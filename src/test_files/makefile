@@ -15,7 +15,7 @@ profileGuided = $(LERNAEANHYDRA_PROFILE_GUIDED) #profile guided
 #------------------------------------------------------------------------
 #source files directories
 #------------------------------------------------------------------------
-include makefile_folders
+include ./config/makefile_folders
 
 #------------------------------------------------------------------------
 #compiler and options
@@ -243,6 +243,10 @@ help:
 	@(echo 'to activate tracing, change the env. var. LERNAEANHYDRA_TRACE')
 	@(echo 'to activate report, change the env. var. LERNAEANHYDRA_OPTREPORT')
 	@(echo '')
+
+doc:
+	./config/generate_doc.sh
+	@(echo 'documentation generated')
 
 test:
 	@(echo '')

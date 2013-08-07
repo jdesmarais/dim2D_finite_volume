@@ -1,3 +1,15 @@
+      !> @file
+      !> test field for the object 'field'
+      !
+      !> @author 
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> test the allocation of the attributes of 'field'
+      !
+      !> @date
+      ! 07_08_2013 - initial version - J.L. Desmarais
+      !-----------------------------------------------------------------
       program test_field
 
         use parameters_kind, only : ikind

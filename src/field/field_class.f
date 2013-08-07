@@ -1,6 +1,6 @@
-      !-------------------------------------------------------------------
-      !
-      ! MODULE: field_class
+      !> @file
+      !> class encapsulating the main tables for the variables and the
+      !> coordinates
       !
       !> @author 
       !> Julien L. Desmarais
@@ -9,9 +9,9 @@
       !> class encapsulating the main tables for the variables and the
       !> coordinates
       !
-      ! REVISION HISTORY:
+      !> @date
       ! 07_08_2013 - initial version - J.L. Desmarais
-      !-------------------------------------------------------------------
+      !-----------------------------------------------------------------
       module field_class
 
         use parameters_kind, only : ikind, rkind
@@ -25,23 +25,29 @@
         public :: field
 
 
-        !-----------------------------------------------------------------
-        !> @author 
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> class encapsulating the main tables for the variables and the
-        !> coordinates
-        !
-        ! REVISION HISTORY:
-        ! 07_08_2013 - initial version - J.L. Desmarais
-        !
-        !>@attribute : nodes  : real, dimension(:,:,:), allocatable
-        !>@attribute : x_map  : real, dimension(:)    , allocatable
-        !>@attribute : y_map  : real, dimension(:)    , allocatable
-        !>@attribute : dx     : real
-        !>@attribute : dy     : real
-        !-----------------------------------------------------------------
+        !> @class field
+        !> class encapsulating the variables of the governing equations
+        !> and the discretisation maps
+        !>
+        !> @param nodes
+        !> variables computed during the simulation
+        !> (ex: mass=nodes(:,:,1),
+        !> momentum_x=nodes(:,:,2),
+        !> momentum_y=nodes(:,:,3),
+        !> energy=nodes(:,:,4))
+        !>
+        !> @param x_map
+        !> discretisation map along the x-axis
+        !>
+        !> @param y_map
+        !> discretisation map along the y-axis
+        !>
+        !> @param dx
+        !> space step along the x-axis
+        !>
+        !> @param dy
+        !> space step along the y-axis
+        !---------------------------------------------------------------
         type, extends(surrogate) :: field
 
           real(rkind), dimension(:,:,:), allocatable :: nodes
@@ -60,6 +66,27 @@
         contains
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> give the boundary layer size
+        !
+        !> @date
+        !> 07_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> field object allocated
+        !
+        !>@param nx
+        !> extension along the x-axis
+        !
+        !>@param ny
+        !> extension along the y-axis
+        !
+        !>@param ne
+        !> number of conservative variables in the governing equations
+        !---------------------------------------------------------------
         subroutine allocate_tables(this,nx,ny,ne)
 
           implicit none
