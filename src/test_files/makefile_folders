@@ -1,0 +1,62 @@
+src_dir          	= $(lernaeanhydra)/../lernaeanhydra_opt/src
+
+#main folders
+field_dir      	        = $(src_dir)/field
+io_interface_dir	= $(src_dir)/io_interface
+mpi_operators_dir	= $(src_dir)/mpi_operators
+parameter_dir    	= $(src_dir)/parameters
+phy_model_bc_dir        = $(src_dir)/phy_model_bc
+phy_model_eq_dir        = $(src_dir)/phy_model_equations
+sd_operators_dir	= $(src_dir)/sd_operators
+simulation_dir		= $(src_dir)/simulation
+td_integrator_dir       = $(src_dir)/td_integrator
+td_operators_dir        = $(src_dir)/td_operators
+test_dir                = $(src_dir)/test_files
+tile_operators_dir      = $(src_dir)/tile_operators
+
+#io_interface folder
+io_operator_dir    	= $(io_interface_dir)/io_operators
+restart_op_dir    	= $(io_interface_dir)/restart_operators
+cmd_operators_dir	= $(io_interface_dir)/cmd_operators
+
+#mpi_operators folder
+mpi_comm_dir		= $(mpi_operators_dir)/mpi_comm
+mpi_pr_dir              = $(mpi_operators_dir)/mpi_process
+mpi_mg_bc_dir		= $(mpi_operators_dir)/mpi_mg_bc
+mpi_mg_wr_dir           = $(mpi_operators_dir)/mpi_mg_wr
+
+#phy_model_bc folder
+reflection_dir       	= $(phy_model_bc_dir)/bc_reflection
+periodic_dir	        = $(phy_model_bc_dir)/bc_periodic
+bc_proc_direction_dir   = $(phy_model_bc_dir)/bc_procedure_direction
+bc_proc_order_dir   	= $(phy_model_bc_dir)/bc_procedure_order
+
+#phy_model_equations folder
+simpletest_dir          = $(phy_model_eq_dir)/simpletest
+threevartest_dir	= $(phy_model_eq_dir)/threevartest
+fourvartest_dir		= $(phy_model_eq_dir)/fourvartest
+heat2d_dir              = $(phy_model_eq_dir)/heat2d
+dim2d_dir               = $(phy_model_eq_dir)/dim2d
+
+#simulation folder
+profile_dir		= $(simulation_dir)/profile
+
+#td_integrator folder
+rungekutta3rdtvd_dir	= $(td_integrator_dir)/rungekutta3rdtvd
+
+#td_operators folder
+finitevolume_dir	= $(td_operators_dir)/finitevolume
+
+#test_files folder
+dep_dir 		= $(test_dir)/dep
+
+#io_operator folder
+nf90_operators_dir      = $(io_operator_dir)/nf90_operators
+
+#mpi_mg_bc folder
+mpi_mg_bc_bl_dir	= $(mpi_mg_bc_dir)/mpi_mg_bc_blocking
+
+#dim2d_folder
+dim2d_ic_dir		= $(dim2d_dir)/dim2d_ic
+dim2d_param_dir		= $(dim2d_dir)/dim2d_parameters
+dim2d_state_dir		= $(dim2d_dir)/dim2d_state_eq
