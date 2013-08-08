@@ -15,7 +15,8 @@ profileGuided = $(LERNAEANHYDRA_PROFILE_GUIDED) #profile guided
 #------------------------------------------------------------------------
 #source files directories
 #------------------------------------------------------------------------
-include ./config/makefile_folders
+src_dir	= /home/jdesmara/Code/lernaeanhydra_opt/src
+include $(src_dir)/test_files/config/makefile_folders
 
 #------------------------------------------------------------------------
 #compiler and options
@@ -285,6 +286,7 @@ cleanall:
 	rm -f $(subst .exe,_mono.exe,$(CMD))\
 	$(CMD) *.o *.mod core *~       		#complete cleaning
 
+
 #------------------------------------------------------------------------
 #dependencies
 #------------------------------------------------------------------------
@@ -294,10 +296,40 @@ $(parameter_dir)/parameters_kind.o:
 
 #fields
 $(field_dir)/surrogate_class.o:
-$(field_dir)/field_class.o:	$(field_dir)/surrogate_class.o
+$(field_dir)/field_class.o:	$(field_dir)/surrogate_class.o\
+				$(parameter_dir)/parameters_kind.o
+
+#space discretization operators
+$(sd_dir)/interface_primary.o:	$(field_dir)/field_class.o\
+				$(parameter_dir)/parameters_kind.o
+
+$(sd_dir)/sd_operators_class.o:	$(field_dir)/field_class.o\
+				$(sd_dir)/interface_primary.o\
+				$(parameter_dir)/parameters_kind.o
+
+$(sd_dir)/cg_operators_class.o:	$(field_dir)/field_class.o\
+				$(sd_dir)/interface_primary.o\
+				$(parameter_dir)/parameters_kind.o\
+				$(sd_dir)/sd_operators_class.o
+
+#dim2d_equations
+$(dim2d_dir)/dim2d_prim_module.o:$(field_dir)/field_class.o\
+				$(parameter_dir)/parameters_kind.o
 
 #tests
 test_field.o:			$(parameter_dir)/parameters_kind.o\
 				$(field_dir)/field_class.o
+
 test_field:			parameters_kind.o\
 				field_class.o
+
+test_cg_operators.o:		$(dim2d_dir)/dim2d_prim_module.o\
+				$(field_dir)/field_class.o\
+				$(parameter_dir)/parameters_kind.o\
+				$(sd_dir)/cg_operators_class.o
+
+test_cg_operators:		dim2d_prim_module.o\
+				field_class.o\
+				interface_primary.o\
+				parameters_kind.o\
+				cg_operators_class.o

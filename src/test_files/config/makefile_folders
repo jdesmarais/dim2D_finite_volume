@@ -1,5 +1,3 @@
-src_dir          	= $(lernaeanhydra)/../lernaeanhydra_opt/src
-
 #main folders
 field_dir      	        = $(src_dir)/field
 io_interface_dir	= $(src_dir)/io_interface
@@ -7,7 +5,7 @@ mpi_operators_dir	= $(src_dir)/mpi_operators
 parameter_dir    	= $(src_dir)/parameters
 phy_model_bc_dir        = $(src_dir)/phy_model_bc
 phy_model_eq_dir        = $(src_dir)/phy_model_equations
-sd_operators_dir	= $(src_dir)/sd_operators
+sd_dir			= $(src_dir)/sd_operators
 simulation_dir		= $(src_dir)/simulation
 td_integrator_dir       = $(src_dir)/td_integrator
 td_operators_dir        = $(src_dir)/td_operators

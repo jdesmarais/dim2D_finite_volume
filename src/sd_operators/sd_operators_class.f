@@ -16,12 +16,11 @@
       !-----------------------------------------------------------------
       module sd_operators_class
 
-        use parameters_kind, only : ikind, rkind
-        use field_class    , only : field
-
+        use field_class      , only : field
+        use interface_primary, only : get_primary_var
+        use parameters_kind  , only : ikind, rkind
 
         implicit none
-
 
         private
         public :: sd_operators
@@ -48,6 +47,10 @@
         !> @param d2fdy2
         !> evaluate \f$\frac{\partial}{\partial y^2}\f$ at [i+1/2,j]
         !>
+        !> @param d2fdxdy
+        !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
+        !> at [i+1/2,j]
+        !>
         !> @param g
         !> evaluate data at [i,j+1/2]
         !>
@@ -62,6 +65,10 @@
         !>
         !> @param d2gdy2
         !> evaluate \f$\frac{\partial}{\partial y^2}\f$ at [i,j+1/2]
+        !>
+        !> @param d2gdxdy
+        !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
+        !> at [i,j+1/2]
         !---------------------------------------------------------------
         type, abstract :: sd_operators
 
@@ -85,6 +92,11 @@
           
 
         end type sd_operators
+
+
+        abstract interface
+        
+        end interface
 
 
         abstract interface
@@ -113,43 +125,6 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface for procedure computing special quantity at [i,j]
-        !> (ex: pressure, temperature)
-        !
-        !> @date
-        !> 07_08_2013 - initial version - J.L. Desmarais
-        !
-        !>@param field_used
-        !> object encapsulating the data
-        !
-        !>@param i
-        !> index along x-axis where the data is evaluated
-        !
-        !>@param j
-        !> index along y-axis where the data is evaluated
-        !
-        !>@param var
-        !> data evaluated at [i,j]
-        !---------------------------------------------------------------
-        function data_proc(field_used,i,j) result(var)
-        
-          import field
-          import ikind
-          import rkind
-
-          class(field)       , intent(in) :: field_used
-          integer(ikind)     , intent(in) :: i
-          integer(ikind)     , intent(in) :: j
-          real(rkind)                     :: var
-
-        end function data_proc
-
-
-
-        !> @author 
-        !> Julien L. Desmarais
-        !
-        !> @brief
         !> space operator interface
         !
         !> @date
@@ -165,8 +140,8 @@
         !> index along y-axis where the data is evaluated
         !
         !>@param proc
-        !> procedure computing special quantity at [i,j] (ex: pressure,
-        !> temperature,...)
+        !> procedure computing the special quantity evaluated at [i,j]
+        !> (ex: pressure, temperature,...)
         !
         !>@param var
         !> data evaluated at [i,j]
@@ -174,13 +149,15 @@
         function space_operator_proc(field_used,i,j,proc) result(var)
 
           import field
+          import get_primary_var
           import ikind
-          
-          class(field)       , intent(in) :: field_used
-          integer(ikind)     , intent(in) :: i
-          integer(ikind)     , intent(in) :: j
-          procedure(var_proc), intent(in) :: proc
-          real(rkind)                     :: var
+          import rkind
+
+          class(field)  , intent(in) :: field_used
+          integer(ikind), intent(in) :: i
+          integer(ikind), intent(in) :: j
+          procedure(get_primary_var) :: proc
+          real(rkind)                :: var
 
         end function space_operator_proc
 
