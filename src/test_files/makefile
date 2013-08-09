@@ -319,7 +319,10 @@ $(phy_eq_dir)/phy_model_eq_class.o:$(field_dir)/field_class.o\
 				$(sd_dir)/sd_operators_class.o
 
 #dim2d_equations
-$(dim2d_dir)/dim2d_prim_module.o:$(field_dir)/field_class.o\
+$(dim2d_dir)/dim2d_parameters.o:$(param_dir)/parameters_kind.o
+
+$(dim2d_dir)/dim2d_prim_module.o:$(dim2d_dir)/dim2d_parameters.o\
+				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_kind.o
 
 $(dim2d_dir)/dim2d_eq_class.o:	$(dim2d_dir)/dim2d_prim_module.o\
@@ -333,7 +336,8 @@ test_field.o:			$(param_dir)/parameters_kind.o\
 				$(field_dir)/field_class.o
 
 test_field:			parameters_kind.o\
-				field_class.o
+				field_class.o\
+				surrogate_class.o
 
 test_cg_operators.o:		$(dim2d_dir)/dim2d_prim_module.o\
 				$(field_dir)/field_class.o\
@@ -344,4 +348,16 @@ test_cg_operators:		dim2d_prim_module.o\
 				field_class.o\
 				interface_primary.o\
 				parameters_kind.o\
-				cg_operators_class.o
+				cg_operators_class.o\
+				surrogate_class.o
+
+test_dim2d_prim.o:		$(dim2d_dir)/dim2d_parameters.o\
+				$(dim2d_dir)/dim2d_prim_module.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_kind.o
+
+test_dim2d_prim:		dim2d_parameters.o\
+				dim2d_prim_module.o\
+				field_class.o\
+				parameters_kind.o\
+				surrogate_class.o

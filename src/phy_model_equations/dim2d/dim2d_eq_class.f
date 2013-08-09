@@ -277,9 +277,9 @@
           import dim2d_eq
           import rkind
         
-          class(dim2d_eq)              , intent(in)   :: this
-          class(field)                 , intent(in)   :: field_used
-          class(sd_operators)          , intent(in)   :: sd_operators_used
+          class(dim2d_eq)             , intent(in)   :: this
+          class(field)                , intent(in)   :: field_used
+          class(sd_operators)         , intent(in)   :: sd_operators_used
           real(rkind), dimension(:,:,:), intent(inout):: flux_x
           real(rkind), dimension(:,:,:), intent(inout):: flux_y
 
