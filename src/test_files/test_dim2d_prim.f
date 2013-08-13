@@ -1,5 +1,5 @@
       !> @file
-      !> test field for the module 'dim2d_prim'
+      !> test file for the module 'dim2d_prim'
       !
       !> @author 
       !> Julien L. Desmarais
@@ -31,9 +31,10 @@
         real    :: time1, time2
 
         !<test parameters
-        logical, parameter         :: detailled=.false.
+        logical, parameter         :: detailled=.true.
         integer(ikind)             :: i,j
-        real(rkind), dimension(17) :: test_data
+        real(rkind)                :: computed_data
+        real(rkind), dimension(19) :: test_data
         logical                    :: test_validated
 
 
@@ -154,6 +155,9 @@
         test_data(15)= -0.833333d0 !<capillarity_pressure
         test_data(16)= -1.15079d0  !<capillarity_pressure_xwork
         test_data(17)= -0.51587d0  !<capillarity_pressure_ywork
+        test_data(18)= -142.55637d0!<classic pressure work along x-axis> 
+        test_data(19)= -63.90458d0 !<classic pressure work along y-axis>
+
 
         !< print the dim2d parameters used for the test
         if(detailled) then
@@ -174,7 +178,7 @@
 
         !<test of the operators
         if(detailled) then
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test mass_density: '',1L)',
      $          is_test_validated(
      $          mass_density(
@@ -182,7 +186,7 @@
      $          i,j),
      $          test_data(1))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test momentum_x: '',1L)',
      $          is_test_validated(
      $          momentum_x(
@@ -190,7 +194,7 @@
      $          i,j),
      $          test_data(2))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test momentum_y: '',1L)',
      $          is_test_validated(
      $          momentum_y(
@@ -198,7 +202,7 @@
      $          i,j),
      $          test_data(3))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test energy: '',1L)',
      $          is_test_validated(
      $          total_energy(
@@ -206,7 +210,7 @@
      $          i,j),
      $          test_data(4))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test velocity_x: '',1L)',
      $          is_test_validated(
      $          velocity_x(
@@ -214,7 +218,7 @@
      $          i,j),
      $          test_data(5))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test velocity_y: '',1L)',
      $          is_test_validated(
      $          velocity_y(
@@ -222,7 +226,7 @@
      $          i,j),
      $          test_data(6))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test classical_pressure: '',1L)',
      $          is_test_validated(
      $          classical_pressure(
@@ -230,7 +234,7 @@
      $          i,j),
      $          test_data(7))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test temperature_eff: '',1L)',
      $          is_test_validated(
      $          temperature_eff(
@@ -238,7 +242,7 @@
      $          i,j),
      $          test_data(8))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test qx_transport_x: '',1L)',
      $          is_test_validated(
      $          qx_transport_x(
@@ -246,7 +250,7 @@
      $          i,j),
      $          test_data(9))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test qy_transport_x: '',1L)',
      $          is_test_validated(
      $          qy_transport_x(
@@ -254,15 +258,14 @@
      $          i,j),
      $          test_data(10))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
+           computed_data = qx_transport_y(field_tested,i,j)
            print '(''test qx_transport_y: '',1L)',
      $          is_test_validated(
-     $          qx_transport_y(
-     $          field_tested,
-     $          i,j),
+     $          computed_data,
      $          test_data(11))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test qy_transport_y: '',1L)',
      $          is_test_validated(
      $          qy_transport_y(
@@ -270,7 +273,7 @@
      $          i,j),
      $          test_data(12))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test energy_transport_x: '',1L)',
      $          is_test_validated(
      $          energy_transport_x(
@@ -278,7 +281,7 @@
      $          i,j),
      $          test_data(13))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test energy_transport_y: '',1L)',
      $          is_test_validated(
      $          energy_transport_y(
@@ -286,7 +289,7 @@
      $          i,j),
      $          test_data(14))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test capillarity_pressure: '',1L)',
      $          is_test_validated(
      $          capillarity_pressure(
@@ -294,7 +297,7 @@
      $          i,j),
      $          test_data(15))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test capillarity_pressure_xwork: '',1L)',
      $          is_test_validated(
      $          capillarity_pressure_xwork(
@@ -302,13 +305,29 @@
      $          i,j),
      $          test_data(16))
 
-           !TAG INLINE
+           !DEC$ FORCEINLINE RECURSIVE
            print '(''test capillarity_pressure_ywork: '',1L)',
      $          is_test_validated(
      $          capillarity_pressure_ywork(
      $          field_tested,
      $          i,j),
      $          test_data(17))
+
+           !DEC$ FORCEINLINE RECURSIVE
+           print '(''test classical_pressure_xwork: '',1L)',
+     $          is_test_validated(
+     $          classical_pressure_xwork(
+     $          field_tested,
+     $          i,j),
+     $          test_data(18))
+
+           !DEC$ FORCEINLINE RECURSIVE
+           print '(''test classical_pressure_ywork: '',1L)',
+     $          is_test_validated(
+     $          classical_pressure_ywork(
+     $          field_tested,
+     $          i,j),
+     $          test_data(19))
 
         else
 
@@ -430,6 +449,20 @@
      $          field_tested,
      $          i,j),
      $          test_data(17))
+
+           test_validated=test_validated.and.
+     $          is_test_validated(
+     $          classical_pressure_xwork(
+     $          field_tested,
+     $          i,j),
+     $          test_data(18))
+
+           test_validated=test_validated.and.
+     $          is_test_validated(
+     $          capillarity_pressure_ywork(
+     $          field_tested,
+     $          i,j),
+     $          test_data(19))           
 
            print '(''test_validated: '', 1L)', test_validated
 

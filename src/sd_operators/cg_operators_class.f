@@ -80,7 +80,7 @@
           procedure, nopass :: get_bc_size => get_bc_size_cockburnandgau
 
           procedure, nopass :: f           => f_cockburnandgau
-          procedure, nopass :: dfdx        => dfdx_cockburnandgau          
+          procedure, nopass :: dfdx        => dfdx_cockburnandgau        
           procedure, nopass :: dfdy        => dfdy_cockburnandgau
           procedure, nopass :: d2fdx2      => d2fdx2_cockburnandgau
           procedure, nopass :: d2fdy2      => d2fdy2_cockburnandgau
@@ -151,12 +151,21 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          var = 1./12.*(
-     $         -  proc(field_used,i-1,j)
-     $         +7*proc(field_used,i,j)
-     $         +7*proc(field_used,i+1,j)
-     $         -  proc(field_used,i+2,j)
-     $         )
+          if(rkind.eq.8) then
+             var = 1.0d0/12.0d0*(
+     $            -      proc(field_used,i-1,j)
+     $            +7.0d0*proc(field_used,i,j)
+     $            +7.0d0*proc(field_used,i+1,j)
+     $            -      proc(field_used,i+2,j)
+     $            )
+          else
+             var = 1./12.*(
+     $            -  proc(field_used,i-1,j)
+     $            +7*proc(field_used,i,j)
+     $            +7*proc(field_used,i+1,j)
+     $            -  proc(field_used,i+2,j)
+     $            )
+          end if
 
         end function f_cockburnandgau
 
@@ -199,9 +208,15 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          var = 1./field_used%dx*(
-     $         -proc(field_used,i,j)
-     $         +proc(field_used,i+1,j))
+          if(rkind.eq.8) then
+             var = 1.d0/field_used%dx*(
+     $            -proc(field_used,i,j)
+     $            +proc(field_used,i+1,j))
+          else
+             var = 1./field_used%dx*(
+     $            -proc(field_used,i,j)
+     $            +proc(field_used,i+1,j))
+          end if
 
         end function dfdx_cockburnandgau
 
@@ -245,10 +260,28 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-
-          var = 1./(2.*field_used%dy)*(
-     $         -f_cockburnandgau(field_used,i,j-1,proc)
-     $         +f_cockburnandgau(field_used,i,j+1,proc))
+          !DEC$ FORCEINLINE RECURSIVE
+          if(rkind.eq.8) then
+             var = 1.0d0/(24.0d0*field_used%dy)*(
+     $            +       proc(field_used,i-1,j-1)
+     $            - 7.0d0*proc(field_used,i  ,j-1)
+     $            - 7.0d0*proc(field_used,i+1,j-1)
+     $            +       proc(field_used,i+2,j-1)
+     $            -       proc(field_used,i-1,j+1)
+     $            + 7.0d0*proc(field_used,i  ,j+1)
+     $            + 7.0d0*proc(field_used,i+1,j+1)
+     $            -       proc(field_used,i+2,j+1))
+          else
+             var = 1./(24.*field_used%dy)*(
+     $         +   proc(field_used,i-1,j-1)
+     $         - 7*proc(field_used,i  ,j-1)
+     $         - 7*proc(field_used,i+1,j-1)
+     $         +   proc(field_used,i+2,j-1)
+     $         -   proc(field_used,i-1,j+1)
+     $         + 7*proc(field_used,i  ,j+1)
+     $         + 7*proc(field_used,i+1,j+1)
+     $         -   proc(field_used,i+2,j+1))
+          end if
 
         end function dfdy_cockburnandgau
 
@@ -292,12 +325,22 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          var = 1./(2.*(field_used%dx**2))*(
-     $         +proc(field_used,i-1,j)
-     $         -proc(field_used,i,j)
-     $         -proc(field_used,i+1,j)
-     $         +proc(field_used,i+2,j)
-     $         )
+          !DEC$ FORCEINLINE RECURSIVE
+          if(rkind.eq.8) then
+             var = 0.5d0/(field_used%dx**2)*(
+     $            +proc(field_used,i-1,j)
+     $            -proc(field_used,i,j)
+     $            -proc(field_used,i+1,j)
+     $            +proc(field_used,i+2,j)
+     $            )
+          else
+             var = 1./(2.*(field_used%dx**2))*(
+     $            +proc(field_used,i-1,j)
+     $            -proc(field_used,i,j)
+     $            -proc(field_used,i+1,j)
+     $            +proc(field_used,i+2,j)
+     $            )
+          end if
 
         end function d2fdx2_cockburnandgau
 
@@ -342,11 +385,44 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          var = (1./field_used%dy**2)*(
-     $           f_cockburnandgau(field_used,i,j-1,proc)
-     $         - 2*f_cockburnandgau(field_used,i,j,proc)
-     $         + f_cockburnandgau(field_used,i,j+1,proc))
-
+          !DEC$ FORCEINLINE RECURSIVE
+          if(rkind.eq.8) then
+             var = (1.0d0/(12.0d0*field_used%dy**2))*(
+     $            (
+     $            -       proc(field_used,i-1,j-1)
+     $            + 7.0d0*proc(field_used,i  ,j-1)
+     $            + 7.0d0*proc(field_used,i+1,j-1)
+     $            -       proc(field_used,i+2,j-1))
+     $            - 2.0d0*(
+     $            -       proc(field_used,i-1,j)
+     $            + 7.0d0*proc(field_used,i  ,j)
+     $            + 7.0d0*proc(field_used,i+1,j)
+     $            -       proc(field_used,i+2,j))
+     $            + (
+     $            -       proc(field_used,i-1,j+1)
+     $            + 7.0d0*proc(field_used,i  ,j+1)
+     $            + 7.0d0*proc(field_used,i+1,j+1)
+     $            -       proc(field_used,i+2,j+1))
+     $            )
+          else
+             var = (1./(12*field_used%dy**2))*(
+     $            (
+     $            -   proc(field_used,i-1,j-1)
+     $            + 7*proc(field_used,i  ,j-1)
+     $            + 7*proc(field_used,i+1,j-1)
+     $            -   proc(field_used,i+2,j-1))
+     $            - 2*(
+     $            -   proc(field_used,i-1,j)
+     $            + 7*proc(field_used,i  ,j)
+     $            + 7*proc(field_used,i+1,j)
+     $            -   proc(field_used,i+2,j))
+     $            + (
+     $            -   proc(field_used,i-1,j+1)
+     $            + 7*proc(field_used,i  ,j+1)
+     $            + 7*proc(field_used,i+1,j+1)
+     $            -   proc(field_used,i+2,j+1))
+     $            )
+          end if
         end function d2fdy2_cockburnandgau
 
 
@@ -390,10 +466,20 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          var =(
-     $         - dfdx_cockburnandgau(field_used,i,j-1,proc)
-     $         + dfdx_cockburnandgau(field_used,i,j+1,proc)
-     $         )/(2*field_used%dy)
+          !DEC$ FORCEINLINE RECURSIVE
+          if(rkind.eq.8) then
+             var =( proc(field_used,i,j-1)
+     $            - proc(field_used,i+1,j-1)
+     $            - proc(field_used,i,j+1)
+     $            + proc(field_used,i+1,j+1))*
+     $            0.5d0/(field_used%dy*field_used%dx)
+          else
+             var =( proc(field_used,i,j-1)
+     $            - proc(field_used,i+1,j-1)
+     $            - proc(field_used,i,j+1)
+     $            + proc(field_used,i+1,j+1))
+     $            /(2*field_used%dy*field_used%dx)
+          end if
 
         end function d2fdxdy_cockburnandgau
 
@@ -436,12 +522,22 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          var = 1./12.*(
-     $         -  proc(field_used,i,j-1)
-     $         +7*proc(field_used,i,j)
-     $         +7*proc(field_used,i,j+1)
-     $         -  proc(field_used,i,j+2)
-     $         )
+          !DEC$ FORCEINLINE RECURSIVE
+          if(rkind.eq.8) then
+             var = 1.0d0/12.0d0*(
+     $            -      proc(field_used,i,j-1)
+     $            +7.0d0*proc(field_used,i,j)
+     $            +7.0d0*proc(field_used,i,j+1)
+     $            -      proc(field_used,i,j+2)
+     $            )
+          else
+             var = 1./12.*(
+     $            -  proc(field_used,i,j-1)
+     $            +7*proc(field_used,i,j)
+     $            +7*proc(field_used,i,j+1)
+     $            -  proc(field_used,i,j+2)
+     $            )
+          end if
 
         end function g_cockburnandgau        
 
@@ -485,9 +581,28 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          var = 1./(2.*field_used%dx)*(
-     $         - g_cockburnandgau(field_used,i-1,j,proc)
-     $         + g_cockburnandgau(field_used,i+1,j,proc))
+          !DEC$ FORCEINLINE RECURSIVE
+          if(rkind.eq.8) then
+             var = 1.0d0/(24.0d0*field_used%dx)*(
+     $            +       proc(field_used,i-1,j-1)
+     $            - 7.0d0*proc(field_used,i-1,j)
+     $            - 7.0d0*proc(field_used,i-1,j+1)
+     $            +       proc(field_used,i-1,j+2)
+     $            -       proc(field_used,i+1,j-1)
+     $            + 7.0d0*proc(field_used,i+1,j)
+     $            + 7.0d0*proc(field_used,i+1,j+1)
+     $            -       proc(field_used,i+1,j+2))
+          else
+             var = 1./(24.*field_used%dx)*(
+     $            +   proc(field_used,i-1,j-1)
+     $            - 7*proc(field_used,i-1,j)
+     $            - 7*proc(field_used,i-1,j+1)
+     $            +   proc(field_used,i-1,j+2)
+     $            -   proc(field_used,i+1,j-1)
+     $            + 7*proc(field_used,i+1,j)
+     $            + 7*proc(field_used,i+1,j+1)
+     $            -   proc(field_used,i+1,j+2))
+          end if
 
         end function dgdx_cockburnandgau
 
@@ -530,10 +645,18 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          var = 1./field_used%dy*(
-     $         -proc(field_used,i,j)
-     $         +proc(field_used,i,j+1)
-     $         )
+          !DEC$ FORCEINLINE RECURSIVE
+          if(rkind.eq.8) then
+             var = 1.0d0/field_used%dy*(
+     $            -proc(field_used,i,j)
+     $            +proc(field_used,i,j+1)
+     $            )
+          else
+             var = 1./field_used%dy*(
+     $            -proc(field_used,i,j)
+     $            +proc(field_used,i,j+1)
+     $            )
+          end if
 
         end function dgdy_cockburnandgau        
 
@@ -578,11 +701,42 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          var = 1./(field_used%dx**2) * (
-     $             g_cockburnandgau(field_used,i-1,j,proc)
-     $         - 2*g_cockburnandgau(field_used,i,j,proc)
-     $         +   g_cockburnandgau(field_used,i+1,j,proc)
-     $         )
+          !DEC$ FORCEINLINE RECURSIVE
+          if(rkind.eq.8) then
+             var = 1.0d0/(12.0d0*field_used%dx**2) * (
+     $            -      proc(field_used,i-1,j-1)
+     $            +7.0d0*proc(field_used,i-1,j)
+     $            +7.0d0*proc(field_used,i-1,j+1)
+     $            -      proc(field_used,i-1,j+2)
+     $            - 2.0d0*(
+     $            -      proc(field_used,i,j-1)
+     $            +7.0d0*proc(field_used,i,j)
+     $            +7.0d0*proc(field_used,i,j+1)
+     $            -      proc(field_used,i,j+2)
+     $            )
+     $            -      proc(field_used,i+1,j-1)
+     $            +7.0d0*proc(field_used,i+1,j)
+     $            +7.0d0*proc(field_used,i+1,j+1)
+     $            -      proc(field_used,i+1,j+2)
+     $            )
+          else
+             var = 1./(12.*field_used%dx**2) * (
+     $            -  proc(field_used,i-1,j-1)
+     $            +7*proc(field_used,i-1,j)
+     $            +7*proc(field_used,i-1,j+1)
+     $            -  proc(field_used,i-1,j+2)
+     $            - 2*(
+     $            -  proc(field_used,i,j-1)
+     $            +7*proc(field_used,i,j)
+     $            +7*proc(field_used,i,j+1)
+     $            -  proc(field_used,i,j+2)
+     $            )
+     $            -  proc(field_used,i+1,j-1)
+     $            +7*proc(field_used,i+1,j)
+     $            +7*proc(field_used,i+1,j+1)
+     $            -  proc(field_used,i+1,j+2)
+     $            )
+          end if
 
         end function d2gdx2_cockburnandgau
 
@@ -626,12 +780,22 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          var = 1./(2.*field_used%dy**2)*(
-     $         +proc(field_used,i,j-1)
-     $         -proc(field_used,i,j)
-     $         -proc(field_used,i,j+1)
-     $         +proc(field_used,i,j+2)
-     $         )
+          !DEC$ FORCEINLINE RECURSIVE
+          if(rkind.eq.8) then
+             var = 0.5d0/(field_used%dy**2)*(
+     $            + proc(field_used,i,j-1)
+     $            - proc(field_used,i,j)
+     $            - proc(field_used,i,j+1)
+     $            + proc(field_used,i,j+2)
+     $            )
+          else
+             var = 1./(2.*field_used%dy**2)*(
+     $            + proc(field_used,i,j-1)
+     $            - proc(field_used,i,j)
+     $            - proc(field_used,i,j+1)
+     $            + proc(field_used,i,j+2)
+     $            )
+          end if
 
         end function d2gdy2_cockburnandgau
 
@@ -676,10 +840,22 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          var =(
-     $         - dgdy_cockburnandgau(field_used,i-1,j,proc)
-     $         + dgdy_cockburnandgau(field_used,i+1,j,proc))
-     $         /(2*field_used%dx)
+          !DEC$ FORCEINLINE RECURSIVE
+          if(rkind.eq.8) then
+             var =(
+     $            proc(field_used,i-1,j)
+     $            - proc(field_used,i-1,j+1)
+     $            - proc(field_used,i+1,j)
+     $            + proc(field_used,i+1,j+1))*
+     $            0.5d0/(field_used%dx*field_used%dy)
+          else
+             var =(
+     $            proc(field_used,i-1,j)
+     $            - proc(field_used,i-1,j+1)
+     $            - proc(field_used,i+1,j)
+     $            + proc(field_used,i+1,j+1))
+     $            /(2*field_used%dx*field_used%dy)
+          end if
 
         end function d2gdxdy_cockburnandgau
         

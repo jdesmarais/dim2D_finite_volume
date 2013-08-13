@@ -95,11 +95,6 @@
 
 
         abstract interface
-        
-        end interface
-
-
-        abstract interface
 
 
         !> @author 
@@ -120,6 +115,10 @@
 
         end function get_bc_size_proc
 
+        end interface
+
+
+        abstract interface
 
         !> @author 
         !> Julien L. Desmarais

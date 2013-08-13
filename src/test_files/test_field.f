@@ -1,5 +1,5 @@
       !> @file
-      !> test field for the object 'field'
+      !> test file for the object 'field'
       !
       !> @author 
       !> Julien L. Desmarais

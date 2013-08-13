@@ -26,12 +26,12 @@
         public :: mass_density, momentum_x, momentum_y, total_energy,
      $            velocity_x, velocity_y,
      $            classical_pressure, temperature_eff,
+     $            classical_pressure_xwork, classical_pressure_ywork,
      $            qx_transport_x, qy_transport_x,
      $            qx_transport_y, qy_transport_y,
      $            energy_transport_x, energy_transport_y,
      $            capillarity_pressure,
      $            capillarity_pressure_xwork, capillarity_pressure_ywork
-
         contains
 
 
@@ -262,7 +262,7 @@
         !> compute the classical pressure
         !> \f$ \frac{3}{(3-\rho) c_v}
         !> \left( \rho E - \frac{1}{2} \rho (u_x^2 + u_y^2) + 3\rho^2
-        !> right) - 3 \rho^2 \f$
+        !> \right) - 3 \rho^2 \f$
         !
         !> @date
         !> 09_08_2013 - initial version - J.L. Desmarais
@@ -289,13 +289,23 @@
           integer(ikind), intent(in) :: j
           real(rkind)                :: var
 
-          var=3./((3.-field_used%nodes(i,j,1))*cv_r)*(
-     $           field_used%nodes(i,j,4)
-     $           - 1./2.*field_used%nodes(i,j,1)*(
-     $              (field_used%nodes(i,j,2)/field_used%nodes(i,j,1))**2+
-     $              (field_used%nodes(i,j,3)/field_used%nodes(i,j,1))**2)
-     $           + 3*field_used%nodes(i,j,1)**2)
-     $        - 3*field_used%nodes(i,j,1)**2
+          if(rkind.eq.8) then
+             var=3.0d0/((3.0d0-field_used%nodes(i,j,1))*cv_r)*(
+     $            field_used%nodes(i,j,4)
+     $            - 0.5d0*field_used%nodes(i,j,1)*(
+     $            (field_used%nodes(i,j,2)/field_used%nodes(i,j,1))**2+
+     $            (field_used%nodes(i,j,3)/field_used%nodes(i,j,1))**2)
+     $            + 3.0d0*field_used%nodes(i,j,1)**2)
+     $            - 3.0d0*field_used%nodes(i,j,1)**2
+          else
+             var=3./((3.-field_used%nodes(i,j,1))*cv_r)*(
+     $            field_used%nodes(i,j,4)
+     $            - 1./2.*field_used%nodes(i,j,1)*(
+     $            (field_used%nodes(i,j,2)/field_used%nodes(i,j,1))**2+
+     $            (field_used%nodes(i,j,3)/field_used%nodes(i,j,1))**2)
+     $            + 3*field_used%nodes(i,j,1)**2)
+     $            - 3*field_used%nodes(i,j,1)**2
+          end if
 
         end function classical_pressure
 
@@ -334,7 +344,22 @@
           integer(ikind), intent(in) :: j
           real(rkind)                :: var
 
-          var=1./(field_used%nodes(i,j,1))*(
+          if(rkind.eq.8) then
+
+          var=1.0d0/(field_used%nodes(i,j,1))*(
+     $           field_used%nodes(i,j,4)
+     $           - 0.5d0*field_used%nodes(i,j,1)*(
+     $              (field_used%nodes(i,j,2)/field_used%nodes(i,j,1))**2+
+     $              (field_used%nodes(i,j,3)/field_used%nodes(i,j,1))**2)
+     $           - 0.5d0/we*((
+     $              (field_used%nodes(i+1,j,1)-field_used%nodes(i-1,j,1))
+     $              /(2.0d0*field_used%dx))**2+(
+     $              (field_used%nodes(i,j+1,1)-field_used%nodes(i,j-1,1))
+     $              /(2.0d0*field_used%dy))**2)
+     $           + 3.0d0*field_used%nodes(i,j,1)**2)
+
+          else
+             var=1./(field_used%nodes(i,j,1))*(
      $           field_used%nodes(i,j,4)
      $           - 1./2.*field_used%nodes(i,j,1)*(
      $              (field_used%nodes(i,j,2)/field_used%nodes(i,j,1))**2+
@@ -345,8 +370,127 @@
      $              (field_used%nodes(i,j+1,1)-field_used%nodes(i,j-1,1))
      $              /(2*field_used%dy))**2)
      $           + 3*field_used%nodes(i,j,1)**2)
+          end if
 
         end function temperature_eff
+
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the classical pressure work along the x-axis
+        !> \f$ \left(\frac{3}{(3-\rho) c_v}
+        !> \left[ \rho E - \frac{1}{2} \rho (u_x^2 + u_y^2) + 3\rho^2
+        !> \right] - 3 \rho^2 \right) u_x \f$
+        !
+        !> @date
+        !> 09_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param field_used
+        !> object encapsulating the conservative variables
+        !> and the coordinates
+        !>
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !>
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !>
+        !>@param var
+        !> work of \f$ P \f$ along the x-axis evaluated at [i,j]
+        !---------------------------------------------------------------
+        function classical_pressure_xwork(field_used,i,j) result(var)
+
+          implicit none
+
+          class(field)  , intent(in) :: field_used
+          integer(ikind), intent(in) :: i
+          integer(ikind), intent(in) :: j
+          real(rkind)                :: var
+
+          if(rkind.eq.8) then
+
+             var=(3.0d0/((3.0d0-field_used%nodes(i,j,1))*cv_r)*(
+     $           field_used%nodes(i,j,4)
+     $           - 0.5d0*field_used%nodes(i,j,1)*(
+     $              (field_used%nodes(i,j,2)/field_used%nodes(i,j,1))**2+
+     $              (field_used%nodes(i,j,3)/field_used%nodes(i,j,1))**2)
+     $           + 3.0d0*field_used%nodes(i,j,1)**2)
+     $         - 3.0d0*field_used%nodes(i,j,1)**2)*
+     $         field_used%nodes(i,j,2)/field_used%nodes(i,j,1)
+
+          else
+             var=(3./((3.-field_used%nodes(i,j,1))*cv_r)*(
+     $           field_used%nodes(i,j,4)
+     $           - 1./2.*field_used%nodes(i,j,1)*(
+     $              (field_used%nodes(i,j,2)/field_used%nodes(i,j,1))**2+
+     $              (field_used%nodes(i,j,3)/field_used%nodes(i,j,1))**2)
+     $           + 3*field_used%nodes(i,j,1)**2)
+     $         - 3*field_used%nodes(i,j,1)**2)*
+     $         field_used%nodes(i,j,2)/field_used%nodes(i,j,1)
+
+          end if
+
+        end function classical_pressure_xwork
+
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the classical pressure work along the y-axis
+        !> \f$ \left(\frac{3}{(3-\rho) c_v}
+        !> \left[ \rho E - \frac{1}{2} \rho (u_x^2 + u_y^2) + 3\rho^2
+        !> \right] - 3 \rho^2 \right) u_y \f$
+        !
+        !> @date
+        !> 09_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param field_used
+        !> object encapsulating the conservative variables
+        !> and the coordinates
+        !>
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !>
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !>
+        !>@param var
+        !> work of \f$ P \f$ along the y-axis evaluated at [i,j]
+        !---------------------------------------------------------------
+        function classical_pressure_ywork(field_used,i,j) result(var)
+
+          implicit none
+
+          class(field)  , intent(in) :: field_used
+          integer(ikind), intent(in) :: i
+          integer(ikind), intent(in) :: j
+          real(rkind)                :: var
+
+          if(rkind.eq.8) then
+             var=(3.0d0/((3.0d0-field_used%nodes(i,j,1))*cv_r)*(
+     $           field_used%nodes(i,j,4)
+     $           - 0.5d0*field_used%nodes(i,j,1)*(
+     $              (field_used%nodes(i,j,2)/field_used%nodes(i,j,1))**2+
+     $              (field_used%nodes(i,j,3)/field_used%nodes(i,j,1))**2)
+     $           + 3.0d0*field_used%nodes(i,j,1)**2)
+     $         - 3.0d0*field_used%nodes(i,j,1)**2)*
+     $         field_used%nodes(i,j,3)/field_used%nodes(i,j,1)
+
+          else
+             var=(3./((3.-field_used%nodes(i,j,1))*cv_r)*(
+     $           field_used%nodes(i,j,4)
+     $           - 1./2.*field_used%nodes(i,j,1)*(
+     $              (field_used%nodes(i,j,2)/field_used%nodes(i,j,1))**2+
+     $              (field_used%nodes(i,j,3)/field_used%nodes(i,j,1))**2)
+     $           + 3*field_used%nodes(i,j,1)**2)
+     $         - 3*field_used%nodes(i,j,1)**2)*
+     $         field_used%nodes(i,j,3)/field_used%nodes(i,j,1)
+          end if
+
+        end function classical_pressure_ywork
 
 
         !> @author 
@@ -611,7 +755,11 @@
           integer(ikind), intent(in) :: j
           real(rkind)                :: var
 
-          var=1./(3.-field_used%nodes(i,j,1))
+          if(rkind.eq.8) then
+             var=1.0d0/(3.0d0-field_used%nodes(i,j,1))
+          else
+             var=1./(3.-field_used%nodes(i,j,1))
+          end if
 
         end function capillarity_pressure
 
@@ -648,8 +796,13 @@
           integer(ikind), intent(in) :: j
           real(rkind)                :: var
 
-          var=field_used%nodes(i,j,2)/
-     $         (field_used%nodes(i,j,1)*(3.-field_used%nodes(i,j,1)))
+          if(rkind.eq.8) then
+             var=field_used%nodes(i,j,2)/
+     $          (field_used%nodes(i,j,1)*(3.0d0-field_used%nodes(i,j,1)))
+          else
+             var=field_used%nodes(i,j,2)/
+     $          (field_used%nodes(i,j,1)*(3.-field_used%nodes(i,j,1)))
+          end if
 
         end function capillarity_pressure_xwork
 
@@ -686,8 +839,13 @@
           integer(ikind), intent(in) :: j
           real(rkind)                :: var
 
-          var=field_used%nodes(i,j,3)/
-     $         (field_used%nodes(i,j,1)*(3.-field_used%nodes(i,j,1)))
+          if(rkind.eq.8) then
+             var=field_used%nodes(i,j,3)/
+     $          (field_used%nodes(i,j,1)*(3.0d0-field_used%nodes(i,j,1)))
+          else
+             var=field_used%nodes(i,j,3)/
+     $          (field_used%nodes(i,j,1)*(3.-field_used%nodes(i,j,1)))
+          end if
 
         end function capillarity_pressure_ywork
 

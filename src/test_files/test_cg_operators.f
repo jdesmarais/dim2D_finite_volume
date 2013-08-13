@@ -1,5 +1,5 @@
       !> @file
-      !> test field for the object 'cg_operators'
+      !> test file for the object 'cg_operators'
       !
       !> @author 
       !> Julien L. Desmarais
@@ -88,12 +88,14 @@
         test_data(7) =  15.833333d0 !<test g
         test_data(8) =  18.0625d0   !<test dgdx
         test_data(9) =  31.333333d0 !<test dgdy
-        test_data(10)= -108.65d0    !<test d2gdx2
+        test_data(10)= -108.64999d0 !<test d2gdx2
         test_data(11)= -37.222210d0 !<test d2gdy2
         test_data(12)=  26.666666d0 !<test d2gdxdy
 
 
         if(detailled) then
+           
+           !TAG INLINE
            print '(''test %f: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%f(
@@ -101,6 +103,8 @@
      $          i,j,
      $          mass_density),
      $          test_data(1))
+
+           !TAG INLINE
            print '(''test %dfdx: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%dfdx(
@@ -108,6 +112,7 @@
      $          i,j,
      $          mass_density),
      $          test_data(2))
+           !TAG INLINE
            print '(''test %dfdy: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%dfdy(
@@ -115,6 +120,7 @@
      $          i,j,
      $          mass_density),
      $          test_data(3))
+           !TAG INLINE
            print '(''test %d2fdx2: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%d2fdx2(
@@ -122,6 +128,8 @@
      $          i,j,
      $          mass_density),
      $          test_data(4))
+
+           !TAG INLINE
            print '(''test %d2fdy2: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%d2fdy2(
@@ -129,6 +137,8 @@
      $          i,j,
      $          mass_density),
      $          test_data(5))
+
+           !TAG INLINE
            print '(''test %d2fdxdy: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%d2fdxdy(
@@ -137,6 +147,7 @@
      $          mass_density),
      $          test_data(6))
 
+           !TAG INLINE
            print '(''test %g: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%g(
@@ -144,6 +155,8 @@
      $          i,j,
      $          mass_density),
      $          test_data(7))
+
+           !TAG INLINE
            print '(''test %dgdx: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%dgdx(
@@ -151,6 +164,8 @@
      $          i,j,
      $          mass_density),
      $          test_data(8))
+
+           !TAG INLINE
            print '(''test %dgdy: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%dgdy(
@@ -158,6 +173,8 @@
      $          i,j,
      $          mass_density),
      $          test_data(9))
+
+           !TAG INLINE
            print '(''test %d2gdx2: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%d2gdx2(
@@ -165,6 +182,8 @@
      $          i,j,
      $          mass_density),
      $          test_data(10))
+
+           !TAG INLINE
            print '(''test %d2gdy2: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%d2gdy2(
@@ -172,6 +191,8 @@
      $          i,j,
      $          mass_density),
      $          test_data(11))
+
+           !TAG INLINE
            print '(''test %d2gdxdy: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%d2gdxdy(

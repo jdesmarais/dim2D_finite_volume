@@ -48,8 +48,8 @@
         !>
         !> @param get_var_unit
         !> get the units of the main variables
-        !> (\f$kg.m^{-3}, kg.m^{-2}.s^{-1},
-        !> kg.m^{-2}.s^{-1}, J.kg.m^{-3})\f$
+        !> (\f$ kg.m^{-3}, kg.m^{-2}.s^{-1},
+        !> kg.m^{-2}.s^{-1}, J.kg.m^{-3}) \f$
         !>
         !> @param get_var_types
         !> get the type of the main variables
@@ -71,7 +71,7 @@
         !> @param compute_fluxes
         !> compute the fluxes along the x- and y-axis
         !---------------------------------------------------------------
-        type, abstract :: dim2d_equations
+        type, abstract :: dim2d_eq
           
           contains
 
@@ -84,7 +84,7 @@
           procedure, nopass, deferred :: apply_ic
           procedure,   pass, deferred :: compute_fluxes
 
-        end type dim2d_equations
+        end type dim2d_eq
 
 
         contains
@@ -277,19 +277,20 @@
           import dim2d_eq
           import rkind
         
-          class(dim2d_eq)             , intent(in)   :: this
-          class(field)                , intent(in)   :: field_used
-          class(sd_operators)         , intent(in)   :: sd_operators_used
+          class(dim2d_eq)              , intent(in)   :: this
+          class(field)                 , intent(in)   :: field_used
+          class(sd_operators)          , intent(in)   :: sd_operators_used
           real(rkind), dimension(:,:,:), intent(inout):: flux_x
           real(rkind), dimension(:,:,:), intent(inout):: flux_y
 
 
-          !<attention au moment du calcul de ces flux
-          !<car il faut soit faire appel à des fonctions externes
-          !<pour que l'inline soit correct ou bien tout définir ici
-          !<mais c'est peu probable vu que l'on va vouloir tout grouper
-          !<dans de grandes boucles: voir au moment de la compilation...
-        
-        end subroutine fluxes
+          !attention au moment du calcul de ces flux
+          !car il faut soit faire appel à des fonctions externes
+          !pour que l'inline soit correct ou bien tout définir ici
+          !mais c'est peu probable vu que l'on va vouloir tout grouper
+          !dans de grandes boucles: voir au moment de la compilation...
+          field_used%nodes(1,1,1)=1
+
+        end subroutine compute_fluxes
 
       end module dim2d_eq_class
