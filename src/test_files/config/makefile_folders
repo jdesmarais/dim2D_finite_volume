@@ -8,7 +8,7 @@ phy_eq_dir        	= $(src_dir)/phy_model_equations
 sd_dir			= $(src_dir)/sd_operators
 simulation_dir		= $(src_dir)/simulation
 td_integrator_dir       = $(src_dir)/td_integrator
-td_operators_dir        = $(src_dir)/td_operators
+td_dir        		= $(src_dir)/td_operators
 test_dir                = $(src_dir)/test_files
 tile_operators_dir      = $(src_dir)/tile_operators
 
@@ -43,7 +43,7 @@ profile_dir		= $(simulation_dir)/profile
 rungekutta3rdtvd_dir	= $(td_integrator_dir)/rungekutta3rdtvd
 
 #td_operators folder
-finitevolume_dir	= $(td_operators_dir)/finitevolume
+fv_dir			= $(td_dir)/finitevolume
 
 #test_files folder
 dep_dir 		= $(test_dir)/dep

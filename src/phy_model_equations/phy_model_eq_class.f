@@ -73,7 +73,7 @@
           procedure(type_var)  , nopass, deferred :: get_var_type
           procedure(gov_eq_nb) , nopass, deferred :: get_eq_nb
           procedure(ini_cond)  , nopass, deferred :: apply_ic
-          procedure(fluxes)    ,   pass, deferred :: compute_fluxes
+          procedure(fluxes)    , nopass, deferred :: compute_fluxes
 
         end type phy_model_eq
 
@@ -200,13 +200,10 @@
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
           !
-          !>@param this
-          !> physical model
-          !>
           !>@param field_used
           !> object encapsulating the main variables
           !
-          !>@param sd_operators_used
+          !>@param s
           !> space discretization operators
           !
           !>@param flux_x
@@ -216,7 +213,6 @@
           !> fluxes along the y-axis
           !--------------------------------------------------------------
           subroutine fluxes(
-     $       this,
      $       field_used,
      $       s,
      $       flux_x,
@@ -227,7 +223,6 @@
             import phy_model_eq
             import rkind
 
-            class(phy_model_eq)          , intent(in)   :: this
             class(field)                 , intent(in)   :: field_used
             type(cg_operators)           , intent(in)   :: s
             real(rkind), dimension(:,:,:), intent(inout):: flux_x

@@ -1,53 +1,41 @@
       !> @file
       !> class encapsulating subroutines to compute
-      !> the governing equations of the Diffuse
-      !> Interface Model in 2D
+      !> some simple test equations
       !
       !> @author 
       !> Julien L. Desmarais
       !
       !> @brief
       !> class encapsulating subroutines to compute
-      !> the governing equations of the Diffuse
-      !> Interface Model in 2D
+      !> some simple test equations
       !
       !> @date
-      !> 08_08_2013 - initial version                   - J.L. Desmarais
+      !> 13_08_2013 - initial version                   - J.L. Desmarais
       !-----------------------------------------------------------------
-      module dim2d_eq_class
+      module simpletest_eq_class
       
-        use dim2d_fluxes_module, only : flux_x_mass_density,
-     $                                  flux_y_mass_density,
-     $                                  flux_x_momentum_x,
-     $                                  flux_y_momentum_x,
-     $                                  flux_x_momentum_y,
-     $                                  flux_y_momentum_y,
-     $                                  flux_x_total_energy,
-     $                                  flux_y_total_energy
-
         use field_class        , only : field
-        use parameters_constant, only : scalar, vector_x, vector_y
-        use parameters_kind    , only : rkind
+        use parameters_constant, only : scalar
+        use parameters_kind    , only : ikind, rkind
         use phy_model_eq_class , only : phy_model_eq
         use cg_operators_class , only : cg_operators
 
         implicit none
 
         private
-        public :: dim2d_eq
+        public :: simpletest_eq
 
 
-        !> @class dim2d_eq
+        !> @class simpletest_eq
         !> abstract class encapsulating operators to compute
-        !> the governing equations of the Diffuse Interface
-        !> Model in 2D
+        !> simple test equations
         !>
         !> @param get_model_name
         !> get the name of the physcial model
         !>
         !> @param get_var_name
         !> get the name of the main variables
-        !> (mass, momentum_x, momentum_y, total_energy)
+        !> (mass)
         !>
         !> @param get_var_longname
         !> get the description of the main variables for the
@@ -55,30 +43,21 @@
         !>
         !> @param get_var_unit
         !> get the units of the main variables
-        !> (\f$ kg.m^{-3}, kg.m^{-2}.s^{-1},
-        !> kg.m^{-2}.s^{-1}, J.kg.m^{-3}) \f$
         !>
         !> @param get_var_types
         !> get the type of the main variables
-        !> (scalar, vector_x, vector_y, scalar)
+        !> (scalar)
         !>
         !> @param get_eq_nb
-        !> get the number of governing equations: 4
-        !>
-        !> @param initialize
-        !> initialize the main parameters of the physical model
-        !> (viscosity ratio, Reynolds, Prandtl, Weber numbers and
-        !> reduced heat capacity)
+        !> get the number of governing equations: 1
         !>
         !> @param apply_initial_conditions
-        !> initialize the main variables of the governing equations
-        !> considering the user choices (drop retraction, two drops
-        !> collision...)
+        !> initialize the main variables
         !>
         !> @param compute_fluxes
         !> compute the fluxes along the x- and y-axis
         !---------------------------------------------------------------
-        type, extends(phy_model_eq) :: dim2d_eq
+        type, extends(phy_model_eq) :: simpletest_eq
           
           contains
 
@@ -91,7 +70,7 @@
           procedure, nopass :: apply_ic
           procedure, nopass :: compute_fluxes
 
-        end type dim2d_eq
+        end type simpletest_eq
 
 
         contains
@@ -114,7 +93,7 @@
 
           character(len=10) :: model_name
 
-          model_name="DIM2d"
+          model_name="Simpletest"
 
         end function get_model_name
         
@@ -138,9 +117,6 @@
           character(len=10), dimension(:), intent(inout) :: var_pties
 
           var_pties(1)="mass"
-          var_pties(2)="momentum_x"
-          var_pties(3)="momentum_y"
-          var_pties(4)="energy"          
 
         end subroutine get_var_name
         
@@ -164,9 +140,6 @@
           character(len=32), dimension(:), intent(inout) :: var_pties
 
           var_pties(1)="mass density"
-          var_pties(2)="momentum density along the x-axis"
-          var_pties(3)="momentum density along the y-axis"
-          var_pties(4)="total energy density"
 
         end subroutine get_var_longname
 
@@ -190,9 +163,6 @@
           character(len=10), dimension(:), intent(inout) :: var_pties
 
           var_pties(1)= "(kg/m3)/(kg/m3)"
-          var_pties(2)= "(kg/(m2.s))/(kg/(m2.s))"
-          var_pties(3)= "(kg/(m2.s))/(kg/(m2.s))"
-          var_pties(4)= "(J/m3)/(J.m3)"
 
         end subroutine get_var_unit
 
@@ -217,9 +187,6 @@
           integer, dimension(:), intent(inout) :: var_type
 
           var_type(1)=scalar
-          var_type(2)=vector_x
-          var_type(3)=vector_y
-          var_type(4)=scalar
 
         end subroutine get_var_type
         
@@ -240,7 +207,7 @@
         function get_eq_nb() result(eq_nb)
           implicit none
           integer :: eq_nb
-          eq_nb=4
+          eq_nb=1
         end function get_eq_nb
         
         
@@ -321,30 +288,36 @@
 
 
           !<fluxes along the x-axis
-          do j=bc_size, size(flux_x,2)-bc_size
-             do i=bc_size, size(flux_x,1)-bc_size
+          do j=bc_size+1, size(flux_x,2)-bc_size
+             do i=bc_size+1, size(flux_x,1)-bc_size
 
-                flux_x(i,j,1) = flux_x_mass_density(field_used,s,i-1,j)
-                flux_x(i,j,2) = flux_x_momentum_x(field_used,s,i-1,j)
-                flux_x(i,j,3) = flux_x_momentum_y(field_used,s,i-1,j)
-                flux_x(i,j,4) = flux_x_total_energy(field_used,s,i-1,j)
+                flux_x(i,j,1) = 10*s%f(field_used,i-1,j,basic)+
+     $               s%dfdx(field_used,i-1,j,basic)
 
              end do
           end do
 
+          do j=bc_size+1, size(flux_y,2)-bc_size
+             do i=bc_size+1, size(flux_y,1)-bc_size
 
-          !<fluxes along the y-axis
-          do j=bc_size, size(flux_y,2)-bc_size
-             do i=bc_size, size(flux_y,1)-bc_size
-
-                flux_y(i,j,1) = flux_y_mass_density(field_used,s,i,j-1)
-                flux_y(i,j,2) = flux_y_momentum_x(field_used,s,i,j-1)
-                flux_y(i,j,3) = flux_y_momentum_y(field_used,s,i,j-1)
-                flux_y(i,j,4) = flux_y_total_energy(field_used,s,i,j-1)
+                flux_y(i,j,1) = s%g(field_used,i,j-1,basic)+
+     $               10*s%dgdy(field_used,i,j-1,basic)
 
              end do
           end do
 
         end subroutine compute_fluxes
 
-      end module dim2d_eq_class
+
+        function basic(field_used,i,j) result(var)
+
+          class(field)       , intent(in) :: field_used
+          integer(ikind)     , intent(in) :: i
+          integer(ikind)     , intent(in) :: j
+          real(rkind)                     :: var
+
+          var = field_used%nodes(i,j,1)
+
+        end function basic
+
+      end module simpletest_eq_class
