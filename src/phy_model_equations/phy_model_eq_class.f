@@ -16,7 +16,7 @@
       
         use field_class       , only : field
         use parameters_kind   , only : rkind
-        use sd_operators_class, only : sd_operators
+        use cg_operators_class, only : cg_operators
 
         implicit none
 
@@ -62,7 +62,7 @@
         !> @param compute_fluxes
         !> compute the fluxes along the x- and y-axes
         !---------------------------------------------------------------
-        type, abstract :: phy_model_equations
+        type, abstract :: phy_model_eq
           
           contains
 
@@ -75,7 +75,7 @@
           procedure(ini_cond)  , nopass, deferred :: apply_ic
           procedure(fluxes)    ,   pass, deferred :: compute_fluxes
 
-        end type phy_model_equations
+        end type phy_model_eq
 
 
         abstract interface
@@ -91,7 +91,7 @@
           !
           !>@param model_name
           !> character giving the name of the model
-          !---------------------------------------------------------------
+          !--------------------------------------------------------------
           function name_model() result(model_name)
             character(len=10) :: model_name
           end function name_model
@@ -109,7 +109,7 @@
           !
           !>@param var_name
           !> characters giving the variable properties
-          !---------------------------------------------------------------
+          !--------------------------------------------------------------
           subroutine name_var(var_pties)
             character(len=10), dimension(:), intent(inout) :: var_pties
           end subroutine name_var
@@ -127,7 +127,7 @@
           !
           !>@param var_name
           !> characters giving the variable descriptions
-          !---------------------------------------------------------------
+          !--------------------------------------------------------------
           subroutine lname_var(var_pties)
             character(len=32), dimension(:), intent(inout) :: var_pties
           end subroutine lname_var
@@ -145,7 +145,7 @@
           !
           !>@param var_name
           !> characters giving the variable type
-          !---------------------------------------------------------------
+          !--------------------------------------------------------------
           subroutine type_var(var_type)
             integer, dimension(:), intent(inout) :: var_type
           end subroutine type_var
@@ -163,7 +163,7 @@
           !
           !>@param eq_nb
           !> number of governing equations
-          !---------------------------------------------------------------
+          !--------------------------------------------------------------
           function gov_eq_nb() result(eq_nb)
             integer :: eq_nb
           end function gov_eq_nb
@@ -182,14 +182,14 @@
           !
           !>@param field_used
           !> object encapsulating the main variables
-          !---------------------------------------------------------------
+          !--------------------------------------------------------------
           subroutine ini_cond(field_used)
             import field
             class(field), intent(inout) :: field_used
           end subroutine ini_cond
 
 
-            !> @author
+          !> @author
           !> Julien L. Desmarais
           !
           !> @brief
@@ -214,21 +214,22 @@
           !
           !>@param flux_y
           !> fluxes along the y-axis
-          !---------------------------------------------------------------
+          !--------------------------------------------------------------
           subroutine fluxes(
      $       this,
      $       field_used,
-     $       sd_operators_used,
+     $       s,
      $       flux_x,
      $       flux_y)
 
+            import cg_operators
             import field
             import phy_model_eq
             import rkind
 
             class(phy_model_eq)          , intent(in)   :: this
             class(field)                 , intent(in)   :: field_used
-            class(sd_operators)          , intent(in)   :: sd_operators_used
+            type(cg_operators)           , intent(in)   :: s
             real(rkind), dimension(:,:,:), intent(inout):: flux_x
             real(rkind), dimension(:,:,:), intent(inout):: flux_y
 

@@ -28,11 +28,11 @@ INCLUDE =
 LIBS	=
 
 #ifort compiler options------------------------------------------------
-FFLAGS_OP_IFORT		 = -O2 -ip -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=200
+FFLAGS_OP_IFORT		 = -O2 -ipo3 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=200
 FFLAGS_PROFILE_IFORT	 = -O0 -g -132 -warn all -check all -r8 -traceback	#profiling options 
 FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
-LDFLAGS_OP_IFORT     	 = -O2 -ip -ipo   -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=200 #-warn all -check all #GOOD options
+LDFLAGS_OP_IFORT     	 = -O2 -ipo3 -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=200 #-warn all -check all #GOOD options
 LDFLAGS_PROFILE_IFORT	 = -O0 -g -i-dynamic -132 -r8			#profiling options
 LDFLAGS_OPT_REPORT_IFORT = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
@@ -319,7 +319,7 @@ $(sd_dir)/cg_operators_class.o:	$(field_dir)/field_class.o\
 #physical models
 $(phy_eq_dir)/phy_model_eq_class.o:$(field_dir)/field_class.o\
 				$(param_dir)/parameters_kind.o\
-				$(sd_dir)/sd_operators_class.o
+				$(sd_dir)/cg_operators_class.o
 
 #dim2d_equations
 $(dim2d_dir)/dim2d_parameters.o:$(param_dir)/parameters_kind.o
@@ -334,10 +334,11 @@ $(dim2d_dir)/dim2d_fluxes_module.o:$(dim2d_dir)/dim2d_parameters.o\
 				$(param_dir)/parameters_kind.o\
 				$(sd_dir)/cg_operators_class.o
 
-$(dim2d_dir)/dim2d_eq_class.o:	$(dim2d_dir)/dim2d_prim_module.o\
+$(dim2d_dir)/dim2d_eq_class.o:	$(dim2d_dir)/dim2d_fluxes_module.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_kind.o\
+				$(phy_eq_dir)/phy_model_eq_class.o\
 				$(sd_dir)/sd_operators_class.o
 
 #tests
@@ -385,30 +386,17 @@ test_dim2d_fluxes:		cg_operators_class.o\
 				parameters_kind.o\
 				surrogate_class.o
 
-test_dim2d_fluxes2.o:		$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_fluxes_module.o\
+test_dim2d_eq.o:		$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_class.o\
 				$(dim2d_dir)/dim2d_parameters.o\
 				$(param_dir)/parameters_kind.o
 
-test_dim2d_fluxes2:		cg_operators_class.o\
+test_dim2d_eq:			cg_operators_class.o\
+				dim2d_eq_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_parameters.o\
 				dim2d_prim_module.o\
 				field_class.o\
 				parameters_kind.o\
-				surrogate_class.o
-
-test_flux.o:			$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_fluxes_module.o\
-				$(field_dir)/field_class.o\
-				$(dim2d_dir)/dim2d_parameters.o\
-				$(param_dir)/parameters_kind.o
-
-test_flux:			cg_operators_class.o\
-				dim2d_fluxes_module.o\
-				dim2d_parameters.o\
-				dim2d_prim_module.o\
-				field_class.o\
-				parameters_kind.o\
-				surrogate_class.o
+				surrogate_class.o	

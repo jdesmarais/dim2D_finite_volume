@@ -4,7 +4,7 @@ io_interface_dir	= $(src_dir)/io_interface
 mpi_operators_dir	= $(src_dir)/mpi_operators
 param_dir    		= $(src_dir)/parameters
 phy_model_bc_dir        = $(src_dir)/phy_model_bc
-phy_model_eq_dir        = $(src_dir)/phy_model_equations
+phy_eq_dir        	= $(src_dir)/phy_model_equations
 sd_dir			= $(src_dir)/sd_operators
 simulation_dir		= $(src_dir)/simulation
 td_integrator_dir       = $(src_dir)/td_integrator
@@ -30,11 +30,11 @@ bc_proc_direction_dir   = $(phy_model_bc_dir)/bc_procedure_direction
 bc_proc_order_dir   	= $(phy_model_bc_dir)/bc_procedure_order
 
 #phy_model_equations folder
-simpletest_dir          = $(phy_model_eq_dir)/simpletest
-threevartest_dir	= $(phy_model_eq_dir)/threevartest
-fourvartest_dir		= $(phy_model_eq_dir)/fourvartest
-heat2d_dir              = $(phy_model_eq_dir)/heat2d
-dim2d_dir               = $(phy_model_eq_dir)/dim2d
+simpletest_dir          = $(phy_eq_dir)/simpletest
+threevartest_dir	= $(phy_eq_dir)/threevartest
+fourvartest_dir		= $(phy_eq_dir)/fourvartest
+heat2d_dir              = $(phy_eq_dir)/heat2d
+dim2d_dir               = $(phy_eq_dir)/dim2d
 
 #simulation folder
 profile_dir		= $(simulation_dir)/profile

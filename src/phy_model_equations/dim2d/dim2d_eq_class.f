@@ -16,13 +16,20 @@
       !-----------------------------------------------------------------
       module dim2d_eq_class
       
-        use dim2d_prim_module  , only : mass_density, momentum_x, momentum_y
-     $                                  velocity_x, velocity_y, pressure,
-     $                                  pressure, temperature
+        use dim2d_fluxes_module, only : flux_x_mass_density,
+     $                                  flux_y_mass_density,
+     $                                  flux_x_momentum_x,
+     $                                  flux_y_momentum_x,
+     $                                  flux_x_momentum_y,
+     $                                  flux_y_momentum_y,
+     $                                  flux_x_total_energy,
+     $                                  flux_y_total_energy
+
         use field_class        , only : field
         use parameters_constant, only : scalar, vector_x, vector_y
         use parameters_kind    , only : rkind
-        use sd_operators_class , only : sd_operators
+        use phy_model_eq_class , only : phy_model_eq
+        use cg_operators_class , only : cg_operators
 
         implicit none
 
@@ -71,18 +78,18 @@
         !> @param compute_fluxes
         !> compute the fluxes along the x- and y-axis
         !---------------------------------------------------------------
-        type, abstract :: dim2d_eq
+        type, extends(phy_model_eq) :: dim2d_eq
           
           contains
 
-          procedure, nopass, deferred :: get_model_name
-          procedure, nopass, deferred :: get_var_name
-          procedure, nopass, deferred :: get_var_longname
-          procedure, nopass, deferred :: get_var_unit
-          procedure, nopass, deferred :: get_var_type
-          procedure, nopass, deferred :: get_eq_nb
-          procedure, nopass, deferred :: apply_ic
-          procedure,   pass, deferred :: compute_fluxes
+          procedure, nopass :: get_model_name
+          procedure, nopass :: get_var_name
+          procedure, nopass :: get_var_longname
+          procedure, nopass :: get_var_unit
+          procedure, nopass :: get_var_type
+          procedure, nopass :: get_eq_nb
+          procedure, nopass :: apply_ic
+          procedure,   pass :: compute_fluxes
 
         end type dim2d_eq
 
@@ -162,6 +169,32 @@
           var_pties(4)="total energy density"
 
         end subroutine get_var_longname
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the units of the main variables
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param var_name
+        !> characters giving the variable units
+        !---------------------------------------------------------------
+        subroutine get_var_unit(var_pties)
+
+          implicit none
+
+          character(len=10), dimension(:), intent(inout) :: var_pties
+
+          var_pties(1)= "(kg/m3)/(kg/m3)"
+          var_pties(2)= "(kg/(m2.s))/(kg/(m2.s))"
+          var_pties(3)= "(kg/(m2.s))/(kg/(m2.s))"
+          var_pties(4)= "(J/m3)/(J.m3)"
+
+        end subroutine get_var_unit
 
 
         !> @author
@@ -269,27 +302,50 @@
         subroutine compute_fluxes(
      $     this,
      $     field_used,
-     $     sd_operators_used,
+     $     s,
      $     flux_x,
      $     flux_y)
         
-          import field
-          import dim2d_eq
-          import rkind
-        
+          implicit none
+
           class(dim2d_eq)              , intent(in)   :: this
           class(field)                 , intent(in)   :: field_used
-          class(sd_operators)          , intent(in)   :: sd_operators_used
+          type(cg_operators)           , intent(in)   :: s
           real(rkind), dimension(:,:,:), intent(inout):: flux_x
           real(rkind), dimension(:,:,:), intent(inout):: flux_y
 
+          integer :: i,j
+          integer :: bc_size
 
-          !attention au moment du calcul de ces flux
-          !car il faut soit faire appel à des fonctions externes
-          !pour que l'inline soit correct ou bien tout définir ici
-          !mais c'est peu probable vu que l'on va vouloir tout grouper
-          !dans de grandes boucles: voir au moment de la compilation...
-          field_used%nodes(1,1,1)=1
+
+          !<get the size of the boundary layers
+          bc_size = s%get_bc_size()
+
+
+          !<fluxes along the x-axis
+          do j=bc_size, size(flux_x,2)-bc_size
+             do i=bc_size, size(flux_x,1)-bc_size
+
+                flux_x(i,j,1) = flux_x_mass_density(field_used,s,i,j)
+                flux_x(i,j,2) = flux_x_momentum_x(field_used,s,i,j)
+                flux_x(i,j,3) = flux_x_momentum_y(field_used,s,i,j)
+                flux_x(i,j,4) = flux_x_total_energy(field_used,s,i,j)
+
+             end do
+          end do
+
+
+          !<fluxes along the y-axis
+          do j=bc_size, size(flux_y,2)-bc_size
+             do i=bc_size, size(flux_y,1)-bc_size
+
+                flux_y(i,j,1) = flux_y_mass_density(field_used,s,i,j)
+                flux_y(i,j,2) = flux_y_momentum_x(field_used,s,i,j)
+                flux_y(i,j,3) = flux_y_momentum_y(field_used,s,i,j)
+                flux_y(i,j,4) = flux_y_total_energy(field_used,s,i,j)
+
+             end do
+          end do
 
         end subroutine compute_fluxes
 
