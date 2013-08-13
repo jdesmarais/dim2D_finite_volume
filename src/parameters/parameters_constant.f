@@ -14,14 +14,15 @@
       !-----------------------------------------------------------------
       module parameters_constant
 
-        use parameters_kind, only : rkind, ikind
-
         !<program version
         character*(*) , parameter :: prog_version = 'lerneanhydra V1.0'
 
         !<main variable types
-        integer(ikind), parameter :: scalar=0
-        integer(ikind), parameter :: vector_x=1
-        integer(ikind), parameter :: vector_y=2
+        integer, parameter :: scalar=0
+        integer, parameter :: vector_x=1
+        integer, parameter :: vector_y=2
+
+        !<boundary conditions choice
+        integer, parameter :: periodic_xy_choice=0
 
       end module parameters_constant
