@@ -13,16 +13,32 @@
       !> @brief
       !> class encapsulating subroutines to integrate
       !> the governing equations using Runge-Kutta 3rd
-      !> order time integration scheme
+      !> order time integration scheme developed in
+      !> “Efficient implementation of essentially non-
+      !> oscillatory shock-capturing methods”, J. Comput.
+      !> Phys., 77 (1988), pp. 439-471, C.-W. Shu and
+      !> S. Osher
       !
       !> @date
       !> 13_08_2013 - initial version                   - J.L. Desmarais
+      !
+      !> \f{eqnarray*}{
+      !> u_1     &=& u_n + \Delta t*\frac{d u_n}{dt} \\\
+      !> u_2     &=& \frac{1}{4}u_n + \frac{3}{4} \left(
+      !>             u_1 + \Delta t * \frac{d u_1}{dt} \right) \\\
+      !> u_{n+1} &=& \frac{1}{3}u_n + \frac{2}{3} \left(
+      !>             u_2 + \Delta t * \frac{d u_2}{dt}\right)\\\
+      !> \f}
       !-----------------------------------------------------------------
       module rk3tvd_class
 
+        use bc_operators_class , only : bc_operators
+        use cg_operators_class , only : cg_operators
         use field_class        , only : field
         use parameters_kind    , only : rkind, ikind
+        use phy_model_eq_class , only : phy_model_eq
         use td_integrator_class, only : td_integrator
+        use td_operators_class , only : td_operators
 
         implicit none
 
@@ -34,6 +50,13 @@
         !>
         !> @param integrate
         !> integrate the computational field for dt
+        !> \f{eqnarray*}{
+        !> u_1     &=& u_n + \Delta t*\frac{d u_n}{dt} \\\
+        !> u_2     &=& \frac{1}{4}u_n + \frac{3}{4} \left(
+        !>             u_1 + \Delta t * \frac{d u_1}{dt} \right) \\\
+        !> u_{n+1} &=& \frac{1}{3}u_n + \frac{2}{3} \left(
+        !>             u_2 + \Delta t * \frac{d u_2}{dt}\right)\\\
+        !> \f}
         !---------------------------------------------------------------
         type, extends(td_integrator) :: rk3tvd
 
@@ -50,9 +73,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface to integrate the governing equations using
-        !> space discretisation operators, physical model, 
-        !> time discretisation operators and boundary conditions
+        !> subroutine to integrate the governing equations using
+        !> the numerical scheme developed by C.W.Shu and S.Osher
         !
         !> @date
         !> 13_08_2013 - initial version - J.L. Desmarais
@@ -63,7 +85,7 @@
         !>@param sd
         !> space discretization operators
         !
-        !>@param p
+        !>@param p_model
         !> physical model
         !
         !>@param td
@@ -82,8 +104,8 @@
           class(td_operators), intent(in)    :: td
           real(rkind)        , intent(in)    :: dt
 
-          real(rkind), parameter :: b2 = 0.75d0 !<coeff for the Runge-Kutta scheme
-          real(rkind), parameter :: b3 = 1./3.  !<coeff for the Runge-Kutta scheme
+          real(rkind) :: b2 !<Runge-Kutta scheme coeff
+          real(rkind) :: b3 !<Runge-Kutta scheme coeff
 
           integer(ikind) :: i,j,k
           integer(ikind) :: nx,ny,ne,bc_size
@@ -94,6 +116,16 @@
           type(bc_operators) :: bc_used !<boundary conditions
           
 
+          !<initialization of the coeff for the Runge-Kutta scheme
+          if(rkind.eq.8) then
+             b2 = 0.75d0
+             b3 = 1.0d0/3.0d0
+          else
+             b2 = 0.75
+             b3 = 1.0/3.0
+          end if
+
+
           !<initialization of local variables for the allocation
           !>of nodes_tmp, a temporary table
           nx      = size(field_used%nodes,1)
@@ -103,66 +135,98 @@
 
           
           !<allocate the temporary tables
-          allocate(nodes_tmp(nx,ny,ne))
-          allocate(time_dev(nx,ny,ne))
+          allocate(nodes_tmp, source=field_used%nodes) !<save u_n
+          allocate(time_dev(nx,ny,ne)) !<for the time derivatives
 
 
           !<runge-kutta first step
-          !>u_1 = u_n + dt*d/dt(u_n)
+          !> u_1 = u_n + dt*d/dt(u_n)
+          !> u_n is saved in nodes_tmp
+          !> u_1 is saved in field_used%nodes
           call td%compute_time_dev(field_used, sd, p_model, time_dev)
 
-          do k=1, nodes_profile(3)
+          do k=1, ne
              do j=bc_size+1, ny-bc_size
                 do i=bc_size+1, nx-bc_size
-                   nodes_tmp(i,j,k) = field_used%nodes(i,j,k) + dt*time_dev(i,j,k)
+                   field_used%nodes(i,j,k) = nodes_tmp(i,j,k) +
+     $                                       dt*time_dev(i,j,k)
                 end do
              end do
           end do
             
-          call bc_used%apply_bc_on_nodes(nodes_tmp,sd)
+          !<apply the boundary conditions
+          call bc_used%apply_bc_on_nodes(field_used%nodes,sd)
 
 
-          !runge-kutta second step
-          !u_2 = b2*u_n +(1-b2)*(u_1 + *dt*d/dt(u_1))
-          call field_bc_used%t(nodes_tmp, time_dev)
+          !<runge-kutta second step
+          !> u_2 = 1/4*u_n + 3/4*(u_1 + dt * du_1/dt)
+          !> u_n is saved in nodes_tmp
+          !> u_2 is saved in field_used%nodes
+          call td%compute_time_dev(field_used, sd, p_model, time_dev)
 
-          do j=bc_size+1, nodes_profile(2)-bc_size
-             do i=bc_size+1, nodes_profile(1)-bc_size
-                do k=1, nodes_profile(3)
-                   nodes_tmp(i,j,k) =
-     $                  b2*field_bc_used%nodes(i,j,k) +
-     $                  (1-b2)*(nodes_tmp(i,j,k) +
-     $                  dt*time_dev(i,j,k))
+          if(rkind.eq.8) then
+             do k=1, ne
+                do j=bc_size+1, ny-bc_size
+                   do i=bc_size+1, nx-bc_size
+                      field_used%nodes(i,j,k) = b2*nodes_tmp(i,j,k) +
+     $                     (1.0d0-b2)*(field_used%nodes(i,j,k)+
+     $                     dt*time_dev(i,j,k))
+                   end do
                 end do
              end do
-          end do
+          else
+             do k=1, ne
+                do j=bc_size+1, ny-bc_size
+                   do i=bc_size+1, nx-bc_size
+                      field_used%nodes(i,j,k) = b2*nodes_tmp(i,j,k) +
+     $                     (1.0-b2)*(field_used%nodes(i,j,k)+
+     $                     dt*time_dev(i,j,k))
+                   end do
+                end do
+             end do
+          end if
           
-          deallocate(time_dev)
-          call field_bc_used%apply_bc(nodes_tmp)
+          !<apply the boundary conditions
+          call bc_used%apply_bc_on_nodes(field_used%nodes,sd)
 
 
-          !runge-kutta third step
-          !u_{n+1} = b3*u_n +(1-b3)*(u_1 + *dt*d/dt(u_1))
-          call field_bc_used%t(nodes_tmp, time_dev)
+          !<runge-kutta third step
+          !> u_{n+1} = 1/3*u_n + 2/3*(u_2 + dt du_2/dt
+          !> u_n is saved in nodes_tmp
+          !> u_{n+1} is saved in field_used%nodes
+          call td%compute_time_dev(field_used, sd, p_model, time_dev)
 
-          do j=bc_size+1, nodes_profile(2)-bc_size
-             do i=bc_size+1, nodes_profile(1)-bc_size
-                do k=1, nodes_profile(3)
-                   field_bc_used%nodes(i,j,k) =
-     $                  b3*field_bc_used%nodes(i,j,k) +
-     $                  (1-b3)*(nodes_tmp(i,j,k) +
-     $                  dt*time_dev(i,j,k))
+          if(rkind.eq.8) then
+             do k=1 ,ne
+                do j=bc_size+1, ny-bc_size
+                   do i=bc_size+1, nx-bc_size
+                      field_used%nodes(i,j,k) = b3*nodes_tmp(i,j,k) +
+     $                     (1.0d0-b3)*(field_used%nodes(i,j,k)+
+     $                     dt*time_dev(i,j,k))
+                   end do
                 end do
              end do
-          end do
+          else
+             do k=1 ,ne
+                do j=bc_size+1, ny-bc_size
+                   do i=bc_size+1, nx-bc_size
+                      field_used%nodes(i,j,k) = b3*nodes_tmp(i,j,k) +
+     $                     (1.0-b3)*(field_used%nodes(i,j,k)+
+     $                     dt*time_dev(i,j,k))
+                   end do
+                end do
+             end do
+          end if
 
+          !<apply the boundary conditions
+          call bc_used%apply_bc_on_nodes(field_used%nodes,sd)
+
+
+          !<deallocate the temporary variables
           deallocate(nodes_tmp)
           deallocate(time_dev)
-          call field_bc_used%apply_bc(field_bc_used%nodes)
-
 
         end subroutine integrate
-
 
       end module rk3tvd_class
 
@@ -174,7 +238,7 @@ c$$$             do i=1, nodes_profile(1)
 c$$$                print '(''('',I2,'','',I2,'')'', 3X,
 c$$$     $                  ''u1='',F10.2)',
 c$$$     $               i,j,
-c$$$     $               nodes_tmp(i,j,1)
+c$$$     $               field_used%nodes(i,j,1)
 c$$$             end do
 c$$$          end do
 
@@ -185,7 +249,7 @@ c$$$             do i=1, nodes_profile(1)
 c$$$                print '(''('',I2,'','',I2,'')'', 3X,
 c$$$     $                  ''u2='',F10.2)',
 c$$$     $               i,j,
-c$$$     $               nodes_tmp(i,j,1)
+c$$$     $               field_used%nodes(i,j,1)
 c$$$             end do
 c$$$          end do
 

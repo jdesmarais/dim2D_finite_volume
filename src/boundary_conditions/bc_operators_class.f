@@ -83,7 +83,7 @@
 
             case(periodic_xy_choice)
 
-               !DEC$ INLINE RECURSIVE
+               !TAG INLINE
                call periodic_bc%apply_bc_on_nodes(nodes,s)
 
             case default

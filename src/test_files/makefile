@@ -301,6 +301,7 @@ $(param_dir)/parameters_kind.o:
 $(param_dir)/parameters_constant.o:$(param_dir)/parameters_kind.o
 $(param_dir)/parameters_input.o:$(param_dir)/parameters_constant.o
 
+
 #fields
 $(field_dir)/surrogate_class.o:
 $(field_dir)/field_class.o:	$(field_dir)/surrogate_class.o\
@@ -324,14 +325,12 @@ $(phy_eq_dir)/phy_model_eq_class.o:$(field_dir)/field_class.o\
 				$(param_dir)/parameters_kind.o\
 				$(sd_dir)/cg_operators_class.o
 
-#simple equations
 $(simpletest_dir)/simpletest_eq_class.o:$(field_dir)/field_class.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o\
 				$(sd_dir)/cg_operators_class.o
 
-#dim2d equations
 $(dim2d_dir)/dim2d_parameters.o:$(param_dir)/parameters_kind.o
 
 $(dim2d_dir)/dim2d_prim_module.o:$(dim2d_dir)/dim2d_parameters.o\
@@ -357,7 +356,6 @@ $(td_dir)/td_operators_class.o:	$(field_dir)/field_class.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o
 
-#finite volume operators
 $(fv_dir)/fv_operators_class.o:	$(field_dir)/field_class.o\
 				$(sd_dir)/cg_operators_class.o\
 				$(param_dir)/parameters_kind.o\
@@ -372,10 +370,24 @@ $(bc_dir)/bc_operators_class.o:	$(sd_dir)/cg_operators_class.o\
 				$(param_dir)/parameters_kind.o\
 				$(periodic_dir)/periodic_xy_class.o
 
-#periodic xy
 $(periodic_dir)/periodic_xy_class.o:$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_kind.o
+
+#time integration methods
+$(ti_dir)/td_integrator_class.o:$(sd_dir)/cg_operators_class.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_kind.o\
+				$(phy_eq_dir)/phy_model_eq_class.o\
+				$(td_dir)/td_operators_class.o
+
+$(rk3tvd_dir)/rk3tvd_class.o:	$(bc_dir)/bc_operators_class.o\
+				$(sd_dir)/cg_operators_class.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_kind.o\
+				$(phy_eq_dir)/phy_model_eq_class.o\
+				$(ti_dir)/td_integrator_class.o\
+				$(td_dir)/td_operators_class.o
 
 #tests
 test_field.o:			$(param_dir)/parameters_kind.o\
@@ -465,3 +477,25 @@ test_bc_operators:		bc_operators_class.o\
 				parameters_kind.o\
 				periodic_xy_class.o\
 				surrogate_class.o
+
+test_rk3tvd.o:			$(sd_dir)/cg_operators_class.o\
+				$(field_dir)/field_class.o\
+				$(fv_dir)/fv_operators_class.o\
+				$(param_dir)/parameters_kind.o\
+				$(simpletest_dir)/simpletest_eq_class.o\
+				$(rk3tvd_dir)/rk3tvd_class.o
+
+test_rk3tvd:			bc_operators_class.o\
+				cg_operators_class.o\
+				field_class.o\
+				fv_operators_class.o\
+				parameters_constant.o\
+				parameters_input.o\
+				parameters_kind.o\
+				periodic_xy_class.o\
+				phy_model_eq_class.o\
+				rk3tvd_class.o\
+				simpletest_eq_class.o\
+				surrogate_class.o\
+				td_integrator_class.o\
+				td_operators_class.o

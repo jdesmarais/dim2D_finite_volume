@@ -70,7 +70,7 @@
           !>@param dt
           !> time step integrated
           !--------------------------------------------------------------
-          subroutine integrate_proc(field_used, sd, p, td, dt)
+          subroutine integrate_proc(field_used, sd, p_model, td, dt)
 
 
             import cg_operators
@@ -81,7 +81,7 @@
 
             class(field)       , intent(inout) :: field_used
             type(cg_operators) , intent(in)    :: sd
-            class(phy_model_eq), intent(in)    :: p
+            class(phy_model_eq), intent(in)    :: p_model
             class(td_operators), intent(in)    :: td
             real(rkind)        , intent(in)    :: dt
 

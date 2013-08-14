@@ -7,7 +7,7 @@ bc_dir			= $(src_dir)/boundary_conditions
 phy_eq_dir        	= $(src_dir)/physical_models
 sd_dir			= $(src_dir)/sd_operators
 simulation_dir		= $(src_dir)/simulation
-td_integrator_dir       = $(src_dir)/td_integrator
+ti_dir			= $(src_dir)/td_integrator
 td_dir        		= $(src_dir)/td_operators
 test_dir                = $(src_dir)/test_files
 tile_operators_dir      = $(src_dir)/tile_operators
@@ -40,7 +40,7 @@ dim2d_dir               = $(phy_eq_dir)/dim2d
 profile_dir		= $(simulation_dir)/profile
 
 #td_integrator folder
-rungekutta3rdtvd_dir	= $(td_integrator_dir)/rungekutta3rdtvd
+rk3tvd_dir		= $(ti_dir)/rungekutta3rdtvd
 
 #td_operators folder
 fv_dir			= $(td_dir)/finitevolume
