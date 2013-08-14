@@ -25,4 +25,7 @@
         !<boundary conditions choice
         integer, parameter :: periodic_xy_choice=0
 
+        !<i/o management choice
+        integer, parameter :: netcdf_choice=0
+
       end module parameters_constant

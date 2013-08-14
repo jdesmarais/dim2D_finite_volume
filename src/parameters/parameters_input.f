@@ -18,4 +18,7 @@
         !<boundary conditions choice
         integer, parameter :: bc_choice = periodic_xy_choice
 
+        !<output choice
+        integer, parameter :: io_choice   = netcdf_choice
+
       end module parameters_input

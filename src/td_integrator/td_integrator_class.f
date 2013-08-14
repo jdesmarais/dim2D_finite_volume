@@ -24,6 +24,9 @@
 
         implicit none
 
+        private
+        public : td_integrator
+
 
         !> @class td_integrator
         !> abstract class encapsulating subroutines to integrate

@@ -115,7 +115,7 @@
           end subroutine name_var
 
           
-           !> @author
+          !> @author
           !> Julien L. Desmarais
           !
           !> @brief

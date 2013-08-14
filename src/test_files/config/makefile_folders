@@ -1,6 +1,6 @@
 #main folders
 field_dir      	        = $(src_dir)/field
-io_interface_dir	= $(src_dir)/io_interface
+io_dir			= $(src_dir)/io_operators
 mpi_operators_dir	= $(src_dir)/mpi_operators
 param_dir    		= $(src_dir)/parameters
 bc_dir			= $(src_dir)/boundary_conditions
@@ -49,7 +49,7 @@ fv_dir			= $(td_dir)/finitevolume
 dep_dir 		= $(test_dir)/dep
 
 #io_operator folder
-nf90_operators_dir      = $(io_operator_dir)/nf90_operators
+nf90_dir		= $(io_dir)/nf90_operators
 
 #mpi_mg_bc folder
 mpi_mg_bc_bl_dir	= $(mpi_mg_bc_dir)/mpi_mg_bc_blocking

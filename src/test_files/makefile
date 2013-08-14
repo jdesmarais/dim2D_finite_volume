@@ -28,11 +28,11 @@ INCLUDE =
 LIBS	=
 
 #ifort compiler options------------------------------------------------
-FFLAGS_OP_IFORT		 = -O2 -g -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=200
+FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=200
 FFLAGS_PROFILE_IFORT	 = -O0 -g -132 -warn all -check all -r8 -traceback	#profiling options 
 FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
-LDFLAGS_OP_IFORT     	 = -O2 -g -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=200 #-warn all -check all #GOOD options
+LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=200 #-warn all -check all #GOOD options
 LDFLAGS_PROFILE_IFORT	 = -O0 -g -i-dynamic -132 -r8			#profiling options
 LDFLAGS_OPT_REPORT_IFORT = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
@@ -282,7 +282,7 @@ test:
 all:	$(CMD)					#main commmand
 
 clear:
-	rm *.err *.out
+	rm *.err *.out *.nc
 
 clean:	
 	rm -f *.o *.mod core *~			#cleaning
@@ -388,6 +388,27 @@ $(rk3tvd_dir)/rk3tvd_class.o:	$(bc_dir)/bc_operators_class.o\
 				$(phy_eq_dir)/phy_model_eq_class.o\
 				$(ti_dir)/td_integrator_class.o\
 				$(td_dir)/td_operators_class.o
+
+#io operators
+$(io_dir)/io_operators_module.o:
+
+$(io_dir)/io_operators_class.o:	$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(phy_eq_dir)/phy_model_eq_class.o
+				$(nf90_dir)/nf90_operators_wr_class.o
+
+$(nf90_dir)/nf90_operators_module.o:$(field_dir)/field_class.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_kind.o\
+				$(phy_eq_dir)/phy_model_eq_class.o	
+
+$(nf90_dir)/nf90_operators_wr_class.o:$(field_dir)/field_class.o\
+				$(io_dir)/io_operators_module.o\
+				$(nf90_dir)/nf90_operators_module.o\
+				$(param_dir)/parameters_kind.o\
+				$(phy_eq_dir)/phy_model_eq_class.o
+
 
 #tests
 test_field.o:			$(param_dir)/parameters_kind.o\
@@ -499,3 +520,24 @@ test_rk3tvd:			bc_operators_class.o\
 				surrogate_class.o\
 				td_integrator_class.o\
 				td_operators_class.o
+
+test_nf90_operators.o:		$(field_dir)/field_class.o\
+				$(param_dir)/parameters_kind.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(nf90_dir)/nf90_operators_wr_class.o
+
+test_nf90_operators:		surrogate_class.o\
+				parameters_kind.o\
+				field_class.o\
+				dim2d_parameters.o\
+				dim2d_prim_module.o\
+				interface_primary.o\
+				sd_operators_class.o\
+				cg_operators_class.o\
+				dim2d_fluxes_module.o\
+				parameters_constant.o\
+				phy_model_eq_class.o\
+				dim2d_eq_class.o\
+				nf90_operators_module.o\
+				nf90_operators_wr_class.o\
+				io_operators_module.o
