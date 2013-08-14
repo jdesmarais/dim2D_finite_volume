@@ -1,5 +1,5 @@
       !> @file
-      !> test file for the object 'dim2d_eq_class'
+      !> test file for the object 'dim2d_eq'
       !
       !> @author 
       !> Julien L. Desmarais

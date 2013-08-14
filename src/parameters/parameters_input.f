@@ -15,6 +15,9 @@
 
         use parameters_constant
 
+        !<initial conditions choice
+        integer, parameter :: ic_choice = drop_retraction
+
         !<boundary conditions choice
         integer, parameter :: bc_choice = periodic_xy_choice
 

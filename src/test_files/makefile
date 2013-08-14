@@ -343,12 +343,29 @@ $(dim2d_dir)/dim2d_fluxes_module.o:$(dim2d_dir)/dim2d_parameters.o\
 				$(param_dir)/parameters_kind.o\
 				$(sd_dir)/cg_operators_class.o
 
+$(dim2d_dir)/dim2d_state_eq_module.o:$(dim2d_dir)/dim2d_parameters.o\
+				$(param_dir)/parameters_kind.o
+
 $(dim2d_dir)/dim2d_eq_class.o:	$(dim2d_dir)/dim2d_fluxes_module.o\
+				$(dim2d_ic)/dim2d_steadystate_module.o\
+				$(dim2d_ic)/dim2d_dropretract_module.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o\
 				$(sd_dir)/sd_operators_class.o
+
+$(dim2d_ic)/dim2d_steadystate_module.o:$(dim2d_dir)/dim2d_parameters.o\
+				$(dim2d_dir)/dim2d_state_eq_module.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_kind.o
+
+$(dim2d_ic)/dim2d_dropretract_module.o:$(dim2d_dir)/dim2d_parameters.o\
+				$(dim2d_dir)/dim2d_state_eq_module.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_kind.o
+
 
 #time discretization methods
 $(td_dir)/td_operators_class.o:	$(field_dir)/field_class.o\
@@ -466,6 +483,9 @@ test_dim2d_eq:			cg_operators_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_parameters.o\
 				dim2d_prim_module.o\
+				dim2d_dropretract_module.o\
+				dim2d_steadystate_module.o\
+				dim2d_state_eq_module.o\
 				field_class.o\
 				parameters_kind.o\
 				surrogate_class.o
@@ -535,6 +555,30 @@ test_nf90_operators:		surrogate_class.o\
 				sd_operators_class.o\
 				cg_operators_class.o\
 				dim2d_fluxes_module.o\
+				parameters_constant.o\
+				phy_model_eq_class.o\
+				dim2d_eq_class.o\
+				nf90_operators_module.o\
+				nf90_operators_wr_class.o\
+				io_operators_module.o
+
+test_dim2d_ic.o:		$(dim2d_dir)/dim2d_eq_class.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_kind.o\
+				$(nf90_dir)/nf90_operators_wr_class.o
+
+test_dim2d_ic:			surrogate_class.o\
+				parameters_kind.o\
+				field_class.o\
+				dim2d_parameters.o\
+				dim2d_prim_module.o\
+				interface_primary.o\
+				sd_operators_class.o\
+				cg_operators_class.o\
+				dim2d_fluxes_module.o\
+				dim2d_steadystate_module.o\
+				dim2d_dropretract_module.o\
+				dim2d_state_eq_module.o\
 				parameters_constant.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\

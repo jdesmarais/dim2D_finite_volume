@@ -55,6 +55,6 @@ nf90_dir		= $(io_dir)/nf90_operators
 mpi_mg_bc_bl_dir	= $(mpi_mg_bc_dir)/mpi_mg_bc_blocking
 
 #dim2d_folder
-dim2d_ic_dir		= $(dim2d_dir)/dim2d_ic
+dim2d_ic		= $(dim2d_dir)/dim2d_ic
 dim2d_param_dir		= $(dim2d_dir)/dim2d_parameters
 dim2d_state_dir		= $(dim2d_dir)/dim2d_state_eq

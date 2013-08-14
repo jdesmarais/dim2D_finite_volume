@@ -20,21 +20,26 @@
       !> 08_08_2013 - initial version                   - J.L. Desmarais
       !-----------------------------------------------------------------
       module dim2d_eq_class
-      
-        use dim2d_fluxes_module, only : flux_x_mass_density,
-     $                                  flux_y_mass_density,
-     $                                  flux_x_momentum_x,
-     $                                  flux_y_momentum_x,
-     $                                  flux_x_momentum_y,
-     $                                  flux_y_momentum_y,
-     $                                  flux_x_total_energy,
-     $                                  flux_y_total_energy
 
-        use field_class        , only : field
-        use parameters_constant, only : scalar, vector_x, vector_y
-        use parameters_kind    , only : rkind
-        use phy_model_eq_class , only : phy_model_eq
-        use cg_operators_class , only : cg_operators
+        use dim2d_steadystate_module, only : apply_steady_state_ic
+        use dim2d_dropretract_module, only : apply_drop_retraction_ic
+        use dim2d_fluxes_module     , only : flux_x_mass_density,
+     $                                       flux_y_mass_density,
+     $                                       flux_x_momentum_x,
+     $                                       flux_y_momentum_x,
+     $                                       flux_x_momentum_y,
+     $                                       flux_y_momentum_y,
+     $                                       flux_x_total_energy,
+     $                                       flux_y_total_energy
+                                    
+        use field_class             , only : field
+        use parameters_constant     , only : scalar, vector_x, vector_y,
+     $                                       steady_state,
+     $                                       drop_retraction
+        use parameters_input        , only : ic_choice
+        use parameters_kind         , only : rkind
+        use phy_model_eq_class      , only : phy_model_eq
+        use cg_operators_class      , only : cg_operators
 
         implicit none
 
@@ -119,7 +124,7 @@
 
           character(len=10) :: model_name
 
-          model_name="DIM2d"
+          model_name="DIM2D"
 
         end function get_model_name
         
@@ -270,6 +275,15 @@
 
 
           !<read the input file to know the user choice
+          select case(ic_choice)
+            case(steady_state)
+               call apply_steady_state_ic(field_used)
+            case(drop_retraction)
+               call apply_drop_retraction_ic(field_used)
+            case default
+               print '(''dim2d_eq_class'')'
+               stop 'ic_choice not recognized'
+          end select
 
           
           !<initialize the field depending on the user choice
@@ -295,7 +309,7 @@
         !>@param field_used
         !> object encapsulating the main variables
         !
-        !>@param sd_operators_used
+        !>@param s
         !> space discretization operators
         !
         !>@param flux_x

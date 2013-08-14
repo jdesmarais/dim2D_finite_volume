@@ -22,6 +22,10 @@
         integer, parameter :: vector_x=1
         integer, parameter :: vector_y=2
 
+        !<initial conditions choice
+        integer, parameter :: steady_state=0
+        integer, parameter :: drop_retraction=1
+
         !<boundary conditions choice
         integer, parameter :: periodic_xy_choice=0
 
