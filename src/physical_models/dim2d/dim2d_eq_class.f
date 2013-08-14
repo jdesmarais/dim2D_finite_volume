@@ -1,7 +1,11 @@
       !> @file
       !> class encapsulating subroutines to compute
-      !> the governing equations of the Diffuse
-      !> Interface Model in 2D
+      !> the reduced governing equations of the Diffuse
+      !> Interface Model in 2D as proposed in “Extension of
+      !> the 1-D characteristic open boundary conditions to
+      !> the diffuse interface model”, Computational Methods
+      !> in Multiphase Flow VII, WIT Press, J. Desmarais and
+      !> J.G.M. Kuerten
       !
       !> @author 
       !> Julien L. Desmarais
@@ -38,7 +42,7 @@
 
 
         !> @class dim2d_eq
-        !> abstract class encapsulating operators to compute
+        !> class encapsulating operators to compute
         !> the governing equations of the Diffuse Interface
         !> Model in 2D
         !>

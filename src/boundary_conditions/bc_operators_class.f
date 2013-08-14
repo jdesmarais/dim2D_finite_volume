@@ -18,16 +18,17 @@
         use field_class        , only : field
         use parameters_constant, only : periodic_xy_choice
         use parameters_input   , only : bc_choice
+        use parameters_kind    , only : rkind
         use periodic_xy_class  , only : periodic_xy
         
-        
         implicit none
+
 
         private
         public :: bc_operators
 
 
-        !> @class bc_class
+        !> @class bc_operators
         !> class encapsulating subroutines to apply
         !> boundary conditions in the x and y directions
         !> at the edge of the computational domain
@@ -66,12 +67,12 @@
         !>@param s
         !> space discretization operators
         !--------------------------------------------------------------
-        subroutine apply_bc_on_nodes(field_used, s)
+        subroutine apply_bc_on_nodes(nodes, s)
 
           implicit none
 
-          class(field)      , intent(inout) :: field_used
-          type(cg_operators), intent(in)    :: s
+          real(rkind), dimension(:,:,:), intent(inout) :: nodes
+          type(cg_operators)           , intent(in)    :: s
 
           
           type(periodic_xy) :: periodic_bc
@@ -83,7 +84,7 @@
             case(periodic_xy_choice)
 
                !DEC$ INLINE RECURSIVE
-               call periodic_bc%apply_bc_on_nodes(field_used,s)
+               call periodic_bc%apply_bc_on_nodes(nodes,s)
 
             case default
                

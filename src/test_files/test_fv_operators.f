@@ -1,3 +1,17 @@
+      !> @file
+      !> test file for the object 'fv_operators'
+      !
+      !> @author 
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> test the computation of the time derivatives
+      !> using the finite volume method by comparing 
+      !> with expected data
+      !
+      !> @date
+      ! 13_08_2013 - initial version - J.L. Desmarais
+      !-----------------------------------------------------------------
       program test_fv_operators
 
         use cg_operators_class , only : cg_operators

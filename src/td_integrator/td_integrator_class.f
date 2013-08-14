@@ -7,21 +7,32 @@
       !> Julien L. Desmarais
       !
       !> @brief
-      !> class encapsulating subroutines to compute
-      !> the time derivatives of the main variables
-      !> in the governing equations
+      !> abstract class encapsulating subroutines to integrate
+      !> the governing equations using the time discretisation
+      !> method and the boundary conditions
       !
       !> @date
       !> 13_08_2013 - initial version                   - J.L. Desmarais
       !-----------------------------------------------------------------
       module td_integrator_class
 
-        use field_class , only : field
-        use parameters_kind, only : rkind
+        use cg_operators_class, only : cg_operators
+        use field_class       , only : field
+        use parameters_kind   , only : rkind
+        use phy_model_eq_class, only : phy_model_eq
+        use td_operators_class, only : td_operators
 
         implicit none
 
 
+        !> @class td_integrator
+        !> abstract class encapsulating subroutines to integrate
+        !> the governing equations using the time discretisation
+        !> method and the boundary conditions
+        !>
+        !> @param integrate
+        !> integrate the computational field for dt
+        !---------------------------------------------------------------
         type, abstract :: td_integrator
 
           contains
@@ -33,13 +44,46 @@
 
         abstract interface
 
-          subroutine integrate_proc(field_bc_used, dt)
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to integrate the governing equations using
+          !> space discretisation operators, physical model, 
+          !> time discretisation operators and boundary conditions
+          !
+          !> @date
+          !> 13_08_2013 - initial version - J.L. Desmarais
+          !
+          !>@param field_used
+          !> object encapsulating the main variables
+          !
+          !>@param sd
+          !> space discretization operators
+          !
+          !>@param p
+          !> physical model
+          !
+          !>@param td
+          !> time discretisation operators
+          !
+          !>@param dt
+          !> time step integrated
+          !--------------------------------------------------------------
+          subroutine integrate_proc(field_used, sd, p, td, dt)
 
-            import field_bc
+
+            import cg_operators
+            import field
+            import phy_model_eq
             import rkind
+            import td_operators
 
-            class(field_bc), intent(inout) :: field_bc_used
-            real(rkind)    , intent(in)    :: dt
+            class(field)       , intent(inout) :: field_used
+            type(cg_operators) , intent(in)    :: sd
+            class(phy_model_eq), intent(in)    :: p
+            class(td_operators), intent(in)    :: td
+            real(rkind)        , intent(in)    :: dt
 
           end subroutine integrate_proc
 

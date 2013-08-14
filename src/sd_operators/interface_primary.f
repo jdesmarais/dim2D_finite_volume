@@ -1,7 +1,6 @@
       !> @file
       !> module implementing the abstract interface for procedures
-      !> computing primary variables from conservative variables
-      !> saved in 'field_used'
+      !> computing primary variables
       !
       !> @author 
       !> Julien L. Desmarais

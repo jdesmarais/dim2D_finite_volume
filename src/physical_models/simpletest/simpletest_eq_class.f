@@ -27,7 +27,7 @@
 
 
         !> @class simpletest_eq
-        !> abstract class encapsulating operators to compute
+        !> class encapsulating operators to compute
         !> simple test equations
         !>
         !> @param get_model_name

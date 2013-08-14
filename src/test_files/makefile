@@ -248,6 +248,8 @@ help:
 doc:
 	./config/generate_doc.sh
 	@(echo 'documentation generated')
+	@(echo 'opening documentation...')
+	@(firefox ./doc/html/files.html &)
 
 test:
 	@(echo '')
@@ -367,6 +369,7 @@ $(bc_dir)/bc_operators_class.o:	$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
 				$(periodic_dir)/periodic_xy_class.o
 
 #periodic xy

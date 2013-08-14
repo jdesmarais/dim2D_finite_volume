@@ -1,9 +1,8 @@
       !> @file
-      !> module containing the constants used in the
-      !> program: they will be propagated at compilation
-      !> time to select the user choice
+      !> module containing the user choices defined as constants
+      !> and propagated at compilation time
       !
-      !> @author 
+      !> @author
       !> Julien L. Desmarais
       !
       !> @brief

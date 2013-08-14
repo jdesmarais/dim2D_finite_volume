@@ -1,68 +1,125 @@
-      module rungekutta3rdtvd_intg_class
+      !> @file
+      !> class encapsulating subroutines to integrate
+      !> the governing equations using Runge-Kutta 3rd
+      !> order time integration scheme developed in
+      !> “Efficient implementation of essentially non-
+      !> oscillatory shock-capturing methods”, J. Comput.
+      !> Phys., 77 (1988), pp. 439-471, C.-W. Shu and
+      !> S. Osher
+      !
+      !> @author 
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> class encapsulating subroutines to integrate
+      !> the governing equations using Runge-Kutta 3rd
+      !> order time integration scheme
+      !
+      !> @date
+      !> 13_08_2013 - initial version                   - J.L. Desmarais
+      !-----------------------------------------------------------------
+      module rk3tvd_class
 
-        use field_bc_class     , only : field_bc
+        use field_class        , only : field
         use parameters_kind    , only : rkind, ikind
         use td_integrator_class, only : td_integrator
-
 
         implicit none
 
 
-        type, extends(td_integrator) :: rungekutta3rdtvd_intg
+        !> @class rk3tvd
+        !> class encapsulating subroutines to integrate
+        !> the governing equations using Runge-Kutta 3rd
+        !> order time integration scheme
+        !>
+        !> @param integrate
+        !> integrate the computational field for dt
+        !---------------------------------------------------------------
+        type, extends(td_integrator) :: rk3tvd
 
           contains
           procedure, nopass :: integrate
 
-        end type rungekutta3rdtvd_intg
+        end type rk3tvd
 
 
         contains
 
 
-        subroutine integrate(field_bc_used, dt)
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface to integrate the governing equations using
+        !> space discretisation operators, physical model, 
+        !> time discretisation operators and boundary conditions
+        !
+        !> @date
+        !> 13_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param field_used
+        !> object encapsulating the main variables
+        !
+        !>@param sd
+        !> space discretization operators
+        !
+        !>@param p
+        !> physical model
+        !
+        !>@param td
+        !> time discretisation operators
+        !
+        !>@param dt
+        !> time step integrated
+        !--------------------------------------------------------------
+        subroutine integrate(field_used, sd, p_model, td, dt)
 
           implicit none
 
+          class(field)       , intent(inout) :: field_used
+          type(cg_operators) , intent(in)    :: sd
+          class(phy_model_eq), intent(in)    :: p_model
+          class(td_operators), intent(in)    :: td
+          real(rkind)        , intent(in)    :: dt
 
-          class(field_bc), intent(inout) :: field_bc_used
-          real(rkind)    , intent(in)    :: dt
+          real(rkind), parameter :: b2 = 0.75d0 !<coeff for the Runge-Kutta scheme
+          real(rkind), parameter :: b3 = 1./3.  !<coeff for the Runge-Kutta scheme
 
+          integer(ikind) :: i,j,k
+          integer(ikind) :: nx,ny,ne,bc_size
 
-          !local variables
-          real(rkind)                                   :: b2 = 3./4.
-          real(rkind)                                   :: b3 = 1./3.
+          real(rkind), dimension(:,:,:), allocatable :: nodes_tmp
+          real(rkind), dimension(:,:,:), allocatable :: time_dev
 
-          integer(ikind)                                :: i,j,k
-          integer(ikind), dimension(3)                  :: nodes_profile
-          integer(ikind)                                :: bc_size
-
-          real(rkind)   , dimension(:,:,:), allocatable :: nodes_tmp
-          real(rkind)   , dimension(:,:,:), allocatable :: time_dev
+          type(bc_operators) :: bc_used !<boundary conditions
           
 
-          !initialization of local variables for the allocation
-          !of nodes_tmp, a temporary table
-          nodes_profile = field_bc_used%get_nodes_profile()
-          bc_size       = field_bc_used%get_bc_size()
+          !<initialization of local variables for the allocation
+          !>of nodes_tmp, a temporary table
+          nx      = size(field_used%nodes,1)
+          ny      = size(field_used%nodes,2)
+          ne      = size(field_used%nodes,3)
+          bc_size = sd%get_bc_size()
+
+          
+          !<allocate the temporary tables
+          allocate(nodes_tmp(nx,ny,ne))
+          allocate(time_dev(nx,ny,ne))
 
 
-          !runge-kutta first step
-          !u_1 = u_n + dt*d/dt(u_n)
-          allocate(nodes_tmp(nodes_profile(1), nodes_profile(2), nodes_profile(3)))
-          call field_bc_used%t(field_bc_used%nodes, time_dev)
+          !<runge-kutta first step
+          !>u_1 = u_n + dt*d/dt(u_n)
+          call td%compute_time_dev(field_used, sd, p_model, time_dev)
 
-          do j=bc_size+1, nodes_profile(2)-bc_size
-             do i=bc_size+1, nodes_profile(1)-bc_size
-                do k=1, nodes_profile(3)
-                   nodes_tmp(i,j,k) =
-     $                  field_bc_used%nodes(i,j,k) +
-     $                  dt*time_dev(i,j,k)
+          do k=1, nodes_profile(3)
+             do j=bc_size+1, ny-bc_size
+                do i=bc_size+1, nx-bc_size
+                   nodes_tmp(i,j,k) = field_used%nodes(i,j,k) + dt*time_dev(i,j,k)
                 end do
              end do
           end do
             
-          deallocate(time_dev)
-          call field_bc_used%apply_bc(nodes_tmp)
+          call bc_used%apply_bc_on_nodes(nodes_tmp,sd)
 
 
           !runge-kutta second step
@@ -107,7 +164,7 @@
         end subroutine integrate
 
 
-      end module rungekutta3rdtvd_intg_class
+      end module rk3tvd_class
 
 
 c$$$      print *,'first step'

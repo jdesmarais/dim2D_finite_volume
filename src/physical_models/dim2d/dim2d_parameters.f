@@ -7,7 +7,8 @@
       !
       !> @brief
       !> definition of the constants appearing in the Diffuse Interface
-      !> Model governing equations: viscosity ratio, reynolds number...
+      !> Model governing equations: viscosity ratio, Reynolds number,
+      !> Prandtl number, Weber number, reduced heat capacity ...
       !
       !> @date
       ! 09_08_2013 - initial version - J.L. Desmarais

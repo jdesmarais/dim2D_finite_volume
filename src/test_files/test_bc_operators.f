@@ -1,3 +1,17 @@
+      !> @file
+      !> test file for the object 'bc_operators'
+      !
+      !> @author 
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> test the application of the boundary conditions
+      !> on the gridpoints and compare the results with the
+      !> expected data
+      !
+      !> @date
+      ! 13_08_2013 - initial version - J.L. Desmarais
+      !-----------------------------------------------------------------
       program test_bc_operators
 
         use bc_operators_class , only : bc_operators
@@ -97,7 +111,7 @@
         !<perform the test
         select case(bc_choice)
           case(periodic_xy_choice)
-             call bc_used%apply_bc_on_nodes(field_tested,s)
+             call bc_used%apply_bc_on_nodes(field_tested%nodes,s)
              
              !<check if the boundary conditions are applied correctly
              !north and south tests

@@ -1,5 +1,5 @@
       !> @file
-      !> definition of the type of the integer and real used
+      !> definition of the type of the integers and reals used
       !> in the program
       !
       !> @author 

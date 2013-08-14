@@ -1,7 +1,9 @@
       !> @file
       !> class encapsulating subroutines for the space discretization
-      !> using the operators developed by Cockburn and Gau in
-      !
+      !> using the operators developed by Cockburn and Gau in 
+      !> “A model numerical scheme for the propagation of phase
+      !> transition in solids”, SIAM J. Sci. Computing, Vol 17, No.
+      !> 5, pp 1092-1121, Sep 1996
       !
       !> @author 
       !> Julien L. Desmarais
