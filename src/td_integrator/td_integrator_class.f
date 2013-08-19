@@ -25,7 +25,7 @@
         implicit none
 
         private
-        public : td_integrator
+        public :: td_integrator
 
 
         !> @class td_integrator

@@ -28,11 +28,11 @@ INCLUDE =
 LIBS	=
 
 #ifort compiler options------------------------------------------------
-FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=200
+FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=400
 FFLAGS_PROFILE_IFORT	 = -O0 -g -132 -warn all -check all -r8 -traceback	#profiling options 
 FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
-LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=200 #-warn all -check all #GOOD options
+LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=400 #-warn all -check all #GOOD options
 LDFLAGS_PROFILE_IFORT	 = -O0 -g -i-dynamic -132 -r8			#profiling options
 LDFLAGS_OPT_REPORT_IFORT = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
@@ -271,6 +271,19 @@ test:
 	@(echo 'LIBS:     ' $(LIBS))
 	@(echo '')
 
+tests:	test_field\
+	test_cg_operators\
+	test_dim2d_prim\
+	test_dim2d_fluxes\
+	test_dim2d_eq\
+	test_fv_operators\
+	test_bc_operators\
+	test_rk3tvd\
+	test_nf90_operators\
+	test_dim2d_ic
+
+sims:	sim_dim2d
+
 %.o:	%.f
 	@(basename $@)
 	@($(FC) $(FFLAGS) -c $< $(INCLUDE))
@@ -426,6 +439,14 @@ $(nf90_dir)/nf90_operators_wr_class.o:$(field_dir)/field_class.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o
 
+#simulations
+sim_dim2d.o:			$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(field_dir)/field_class.o\
+				$(fv_dir)/fv_operators_class.o\
+				$(nf90_dir)/nf90_operators_wr_class.o\
+				$(param_dir)/parameters_kind.o\
+				$(rk3tvd_dir)/rk3tvd_class.o
 
 #tests
 test_field.o:			$(param_dir)/parameters_kind.o\
@@ -585,3 +606,29 @@ test_dim2d_ic:			surrogate_class.o\
 				nf90_operators_module.o\
 				nf90_operators_wr_class.o\
 				io_operators_module.o
+
+sim_dim2d:			surrogate_class.o\
+				parameters_kind.o\
+				field_class.o\
+				interface_primary.o\
+				sd_operators_class.o\
+				cg_operators_class.o\
+				dim2d_parameters.o\
+				dim2d_prim_module.o\
+				dim2d_fluxes_module.o\
+				dim2d_state_eq_module.o\
+				dim2d_steadystate_module.o\
+				dim2d_dropretract_module.o\
+				parameters_constant.o\
+				parameters_input.o\
+				phy_model_eq_class.o\
+				dim2d_eq_class.o\
+				td_operators_class.o\
+				fv_operators_class.o\
+				io_operators_module.o\
+				nf90_operators_module.o\
+				nf90_operators_wr_class.o\
+				periodic_xy_class.o\
+				bc_operators_class.o\
+				td_integrator_class.o\
+				rk3tvd_class.o

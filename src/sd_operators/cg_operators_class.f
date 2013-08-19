@@ -154,6 +154,8 @@
           real(rkind)                :: var
 
           if(rkind.eq.8) then
+
+             !TAG INLINE
              var = 1.0d0/12.0d0*(
      $            -      proc(field_used,i-1,j)
      $            +7.0d0*proc(field_used,i,j)
@@ -211,6 +213,8 @@
           real(rkind)                :: var
 
           if(rkind.eq.8) then
+
+             !TAG INLINE
              var = 1.d0/field_used%dx*(
      $            -proc(field_used,i,j)
      $            +proc(field_used,i+1,j))
@@ -262,8 +266,9 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          !DEC$ FORCEINLINE RECURSIVE
+          !TAG INLINE
           if(rkind.eq.8) then
+             !TAG INLINE
              var = 1.0d0/(24.0d0*field_used%dy)*(
      $            +       proc(field_used,i-1,j-1)
      $            - 7.0d0*proc(field_used,i  ,j-1)
@@ -327,8 +332,8 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          !DEC$ FORCEINLINE RECURSIVE
           if(rkind.eq.8) then
+             !TAG INLINE
              var = 0.5d0/(field_used%dx**2)*(
      $            +proc(field_used,i-1,j)
      $            -proc(field_used,i,j)
@@ -387,8 +392,9 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          !DEC$ FORCEINLINE RECURSIVE
           if(rkind.eq.8) then
+
+             !TAG INLINE
              var = (1.0d0/(12.0d0*field_used%dy**2))*(
      $            (
      $            -       proc(field_used,i-1,j-1)
@@ -468,8 +474,9 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          !DEC$ FORCEINLINE RECURSIVE
           if(rkind.eq.8) then
+
+             !TAG INLINE
              var =( proc(field_used,i,j-1)
      $            - proc(field_used,i+1,j-1)
      $            - proc(field_used,i,j+1)
@@ -524,8 +531,9 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          !DEC$ FORCEINLINE RECURSIVE
           if(rkind.eq.8) then
+
+             !TAG INLINE
              var = 1.0d0/12.0d0*(
      $            -      proc(field_used,i,j-1)
      $            +7.0d0*proc(field_used,i,j)
@@ -583,8 +591,9 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          !DEC$ FORCEINLINE RECURSIVE
           if(rkind.eq.8) then
+
+             !TAG INLINE
              var = 1.0d0/(24.0d0*field_used%dx)*(
      $            +       proc(field_used,i-1,j-1)
      $            - 7.0d0*proc(field_used,i-1,j)
@@ -647,8 +656,9 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          !DEC$ FORCEINLINE RECURSIVE
           if(rkind.eq.8) then
+
+             !TAG INLINE
              var = 1.0d0/field_used%dy*(
      $            -proc(field_used,i,j)
      $            +proc(field_used,i,j+1)
@@ -703,8 +713,9 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          !DEC$ FORCEINLINE RECURSIVE
           if(rkind.eq.8) then
+
+             !TAG INLINE
              var = 1.0d0/(12.0d0*field_used%dx**2) * (
      $            -      proc(field_used,i-1,j-1)
      $            +7.0d0*proc(field_used,i-1,j)
@@ -782,7 +793,7 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          !DEC$ FORCEINLINE RECURSIVE
+          !TAG INLINE
           if(rkind.eq.8) then
              var = 0.5d0/(field_used%dy**2)*(
      $            + proc(field_used,i,j-1)
@@ -842,8 +853,10 @@
           procedure(get_primary_var) :: proc
           real(rkind)                :: var
 
-          !DEC$ FORCEINLINE RECURSIVE
+
           if(rkind.eq.8) then
+
+             !TAG INLINE
              var =(
      $            proc(field_used,i-1,j)
      $            - proc(field_used,i-1,j+1)

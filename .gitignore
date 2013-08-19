@@ -82,3 +82,4 @@ machine
 simulations
 src/test_files/doc
 src/phy_model_equations/dim2d/dim2d_fluxes_module_debug.f
+src/test_files/comparison_duration

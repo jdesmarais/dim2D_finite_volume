@@ -112,10 +112,10 @@
 
           implicit none
 
-          class(nf90_operators_wr), intent(in) :: this
-          class(field)            , intent(in) :: f_used
-          class(phy_model_eq)     , intent(in) :: p_model
-          real(rkind)             , intent(in) :: time
+          class(nf90_operators_wr), intent(inout) :: this
+          class(field)            , intent(in)    :: f_used
+          class(phy_model_eq)     , intent(in)    :: p_model
+          real(rkind)             , intent(in)    :: time
 
           integer                            :: ncid
           integer                            :: retval
@@ -152,6 +152,9 @@
           !<close the netcdf file
           retval = NF90_CLOSE(ncid)
           call nf90_handle_err(retval)
+
+          !<increment the internal counter
+          this%nb_timesteps_written=this%nb_timesteps_written+1
 
         end subroutine write_data
 

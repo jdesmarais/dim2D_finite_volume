@@ -143,6 +143,7 @@
           !> u_1 = u_n + dt*d/dt(u_n)
           !> u_n is saved in nodes_tmp
           !> u_1 is saved in field_used%nodes
+          !DEC$ FORCEINLINE RECURSIVE
           call td%compute_time_dev(field_used, sd, p_model, time_dev)
 
           do k=1, ne
@@ -155,6 +156,7 @@
           end do
             
           !<apply the boundary conditions
+          !DEC$ FORCEINLINE RECURSIVE
           call bc_used%apply_bc_on_nodes(field_used%nodes,sd)
 
 
@@ -162,6 +164,7 @@
           !> u_2 = 1/4*u_n + 3/4*(u_1 + dt * du_1/dt)
           !> u_n is saved in nodes_tmp
           !> u_2 is saved in field_used%nodes
+          !DEC$ FORCEINLINE RECURSIVE
           call td%compute_time_dev(field_used, sd, p_model, time_dev)
 
           if(rkind.eq.8) then
@@ -187,6 +190,7 @@
           end if
           
           !<apply the boundary conditions
+          !DEC$ FORCEINLINE RECURSIVE
           call bc_used%apply_bc_on_nodes(field_used%nodes,sd)
 
 
@@ -194,6 +198,7 @@
           !> u_{n+1} = 1/3*u_n + 2/3*(u_2 + dt du_2/dt
           !> u_n is saved in nodes_tmp
           !> u_{n+1} is saved in field_used%nodes
+          !DEC$ FORCEINLINE RECURSIVE
           call td%compute_time_dev(field_used, sd, p_model, time_dev)
 
           if(rkind.eq.8) then
@@ -219,6 +224,7 @@
           end if
 
           !<apply the boundary conditions
+          !DEC$ FORCEINLINE RECURSIVE
           call bc_used%apply_bc_on_nodes(field_used%nodes,sd)
 
 

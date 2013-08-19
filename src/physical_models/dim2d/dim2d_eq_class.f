@@ -343,9 +343,16 @@
           do j=bc_size, size(flux_x,2)-bc_size
              do i=bc_size, size(flux_x,1)-bc_size
 
+                !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,1) = flux_x_mass_density(field_used,s,i-1,j)
+
+                !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,2) = flux_x_momentum_x(field_used,s,i-1,j)
+
+                !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,3) = flux_x_momentum_y(field_used,s,i-1,j)
+
+                !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,4) = flux_x_total_energy(field_used,s,i-1,j)
 
              end do
@@ -356,9 +363,16 @@
           do j=bc_size, size(flux_y,2)-bc_size
              do i=bc_size, size(flux_y,1)-bc_size
 
+                !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,1) = flux_y_mass_density(field_used,s,i,j-1)
+
+                !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,2) = flux_y_momentum_x(field_used,s,i,j-1)
+
+                !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,3) = flux_y_momentum_y(field_used,s,i,j-1)
+
+                !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,4) = flux_y_total_energy(field_used,s,i,j-1)
 
              end do

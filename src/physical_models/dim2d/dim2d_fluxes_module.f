@@ -79,7 +79,7 @@
           integer(ikind)     , intent(in) :: j
           real(rkind)                     :: var
 
-          !TAG INLINE
+          !DEC$ FORCEINLINE RECURSIVE
           var = s%f(field_used,i,j,momentum_x)
 
         end function flux_x_mass_density
@@ -122,7 +122,7 @@
           integer(ikind)    , intent(in) :: j
           real(rkind)                    :: var
 
-          !TAG INLINE
+          !DEC$ FORCEINLINE RECURSIVE
           var = s%g(field_used,i,j,momentum_y)
 
         end function flux_y_mass_density
@@ -165,8 +165,10 @@
           integer(ikind)    , intent(in) :: j
           real(rkind)                    :: var
 
-          !TAG INLINE
+
           if(rkind.eq.8) then
+
+             !DEC$ FORCEINLINE RECURSIVE
              var =  s%f(field_used,i,j,qx_transport_x)
      $         + s%f(field_used,i,j,classical_pressure)
      $         -1.0d0/re*(
@@ -187,6 +189,8 @@
      $                +(s%dfdy(field_used,i,j,mass_density))**2)
      $         )
           else
+
+            !DEC$ FORCEINLINE RECURSIVE
              var =  s%f(field_used,i,j,qx_transport_x)
      $         + s%f(field_used,i,j,classical_pressure)
      $         -1/re*(
@@ -247,8 +251,10 @@
           integer(ikind)    , intent(in) :: j
           real(rkind)                    :: var
 
-          !TAG INLINE
+
           if(rkind.eq.8) then
+
+             !DEC$ FORCEINLINE RECURSIVE
              var =  s%g(field_used,i,j,qx_transport_y)
      $         -1.0d0/re*(
      $               s%dgdy(field_used,i,j,velocity_x)
@@ -259,6 +265,8 @@
      $             s%dgdy(field_used,i,j,mass_density)
 
           else
+
+            !DEC$ FORCEINLINE RECURSIVE
              var =  s%g(field_used,i,j,qx_transport_y)
      $         -1/re*(
      $               s%dgdy(field_used,i,j,velocity_x)
@@ -309,8 +317,9 @@
           integer(ikind)    , intent(in) :: j
           real(rkind)                    :: var
 
-          !TAG INLINE
           if(rkind.eq.8) then
+
+             !DEC$ FORCEINLINE RECURSIVE
              var = s%f(field_used,i,j,qy_transport_x)
      $         -1.0d0/re*(
      $               s%dfdy(field_used,i,j,velocity_x)
@@ -320,6 +329,8 @@
      $             s%dfdx(field_used,i,j,mass_density)*
      $             s%dfdy(field_used,i,j,mass_density)
           else
+
+            !DEC$ FORCEINLINE RECURSIVE
              var = s%f(field_used,i,j,qy_transport_x)
      $         -1/re*(
      $               s%dfdy(field_used,i,j,velocity_x)
@@ -370,8 +381,9 @@
           integer(ikind)    , intent(in) :: j
           real(rkind)                    :: var
 
-          !TAG INLINE
           if(rkind.eq.8) then
+
+             !DEC$ FORCEINLINE RECURSIVE
              var =  s%g(field_used,i,j,qy_transport_y)
      $         + s%g(field_used,i,j,classical_pressure)
      $         -1.0d0/re*(
@@ -394,6 +406,8 @@
      $              )
      $         )
           else
+
+            !DEC$ FORCEINLINE RECURSIVE
              var =  s%g(field_used,i,j,qy_transport_y)
      $         + s%g(field_used,i,j,classical_pressure)
      $         -1/re*(
@@ -458,7 +472,7 @@
 
           real(rkind) :: ux,uy,duxdx,duydy,drhodx,drhody
 
-          !TAG INLINE
+          !DEC$ FORCEINLINE RECURSIVE
           ux     = s%f(field_used,i,j,velocity_x)
           uy     = s%f(field_used,i,j,velocity_y)
           duxdx  = s%dfdx(field_used,i,j,velocity_x)
@@ -466,8 +480,9 @@
           drhodx = s%dfdx(field_used,i,j,mass_density)
           drhody = s%dfdy(field_used,i,j,mass_density)
 
-          !TAG INLINE
           if(rkind.eq.8) then
+
+            !DEC$ FORCEINLINE RECURSIVE
              var=s%f(field_used,i,j,energy_transport_x)
      $         + s%f(field_used,i,j,classical_pressure_xwork)
      $         -1.5d0/(we*cv_r)*
@@ -491,6 +506,8 @@
      $         +1.0d0/we*s%f(field_used,i,j,mass_density)*drhodx*(
      $               duxdx + duydy)
           else
+
+            !DEC$ FORCEINLINE RECURSIVE
              var=s%f(field_used,i,j,energy_transport_x)
      $         + s%f(field_used,i,j,classical_pressure_xwork)
      $         -1/we*1.5/cv_r*
@@ -557,7 +574,7 @@
           
           real(rkind) :: ux,uy,duxdx,duydy,drhodx,drhody
 
-          !TAG INLINE
+          !DEC$ FORCEINLINE RECURSIVE
           ux     = s%g(field_used,i,j,velocity_x)
           uy     = s%g(field_used,i,j,velocity_y)
           duxdx  = s%dgdx(field_used,i,j,velocity_x)
@@ -565,8 +582,9 @@
           drhodx = s%dgdx(field_used,i,j,mass_density)
           drhody = s%dgdy(field_used,i,j,mass_density)
 
-          !TAG INLINE
           if(rkind.eq.8) then
+
+             !DEC$ FORCEINLINE RECURSIVE
              var = s%g(field_used,i,j,energy_transport_y)
      $         -1.0d0/re*ux*(
      $               s%dgdy(field_used,i,j,velocity_x)
@@ -587,6 +605,8 @@
      $         +1.0d0/we*s%g(field_used,i,j,mass_density)*drhody*
      $               (duxdx+duydy)
           else
+
+            !DEC$ FORCEINLINE RECURSIVE
              var = s%g(field_used,i,j,energy_transport_y)
      $         -1/re*ux*(
      $               s%dgdy(field_used,i,j,velocity_x)

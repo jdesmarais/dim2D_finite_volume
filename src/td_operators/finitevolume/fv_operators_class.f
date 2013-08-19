@@ -105,6 +105,7 @@
             allocate(flux_y(nx  ,ny+1,ne))
 
             !<compute the fluxes
+            !DEC$ FORCEINLINE RECURSIVE
             call p_model%compute_fluxes(field_used,s,flux_x,flux_y)
 
             !<compute the time derivatives
