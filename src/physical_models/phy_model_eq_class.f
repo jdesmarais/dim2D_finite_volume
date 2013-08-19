@@ -15,7 +15,9 @@
       module phy_model_eq_class
       
         use field_class       , only : field
+        use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : rkind
+        use parameters_input  , only : nx,ny,ne
         use cg_operators_class, only : cg_operators
 
         implicit none
@@ -73,7 +75,8 @@
           procedure(type_var)  , nopass, deferred :: get_var_type
           procedure(gov_eq_nb) , nopass, deferred :: get_eq_nb
           procedure(ini_cond)  , nopass, deferred :: apply_ic
-          procedure(fluxes)    , nopass, deferred :: compute_fluxes
+          procedure(fluxes_x)  , nopass, deferred :: compute_flux_x
+          procedure(fluxes_y)  , nopass, deferred :: compute_flux_y
 
         end type phy_model_eq
 
@@ -110,9 +113,10 @@
           !>@param var_name
           !> characters giving the variable properties
           !--------------------------------------------------------------
-          subroutine name_var(var_pties)
-            character(len=10), dimension(:), intent(inout) :: var_pties
-          end subroutine name_var
+          function name_var() result(var_pties)
+            import ne
+            character(len=10), dimension(ne) :: var_pties
+          end function name_var
 
           
           !> @author
@@ -128,9 +132,10 @@
           !>@param var_name
           !> characters giving the variable descriptions
           !--------------------------------------------------------------
-          subroutine lname_var(var_pties)
-            character(len=32), dimension(:), intent(inout) :: var_pties
-          end subroutine lname_var
+          function lname_var() result(var_pties)
+            import ne
+            character(len=32), dimension(ne) :: var_pties
+          end function lname_var
 
 
           !> @author
@@ -146,9 +151,10 @@
           !>@param var_name
           !> characters giving the variable type
           !--------------------------------------------------------------
-          subroutine type_var(var_type)
-            integer, dimension(:), intent(inout) :: var_type
-          end subroutine type_var
+          function type_var() result(var_type)
+            import ne
+            integer, dimension(ne) :: var_type
+          end function type_var
 
 
           !> @author
@@ -193,9 +199,8 @@
           !> Julien L. Desmarais
           !
           !> @brief
-          !> interface to apply the initial conditions
-          !> to the main variables of the governing
-          !> equations
+          !> interface to compute the fluxes along the
+          !> x-axis
           !
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
@@ -208,27 +213,54 @@
           !
           !>@param flux_x
           !> fluxes along the x-axis
-          !
-          !>@param flux_y
-          !> fluxes along the y-axis
           !--------------------------------------------------------------
-          subroutine fluxes(
-     $       field_used,
-     $       s,
-     $       flux_x,
-     $       flux_y)
+          function fluxes_x(field_used, s) result(flux_x)
 
             import cg_operators
             import field
             import phy_model_eq
             import rkind
+            import nx,ny,ne
 
-            class(field)                 , intent(in)   :: field_used
-            type(cg_operators)           , intent(in)   :: s
-            real(rkind), dimension(:,:,:), intent(inout):: flux_x
-            real(rkind), dimension(:,:,:), intent(inout):: flux_y
+            class(field)                     , intent(in)   :: field_used
+            type(cg_operators)               , intent(in)   :: s
+            real(rkind),dimension(nx+1,ny,ne)               :: flux_x
 
-          end subroutine fluxes
+          end function fluxes_x
+
+      
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to compute the fluxes
+          !> along the y-axis
+          !
+          !> @date
+          !> 08_08_2013 - initial version - J.L. Desmarais
+          !
+          !>@param field_used
+          !> object encapsulating the main variables
+          !
+          !>@param s
+          !> space discretization operators
+          !
+          !>@param flux_y
+          !> fluxes along the y-axis
+          !--------------------------------------------------------------
+          function fluxes_y(field_used, s) result(flux_y)
+
+            import cg_operators
+            import field
+            import phy_model_eq
+            import rkind
+            import nx,ny,ne
+
+            class(field)                     , intent(in)   :: field_used
+            type(cg_operators)               , intent(in)   :: s
+            real(rkind),dimension(nx,ny+1,ne)               :: flux_y
+
+          end function fluxes_y
 
         end interface        
 

@@ -21,6 +21,7 @@
         use field_class            , only : field
         use fv_operators_class     , only : fv_operators
         use nf90_operators_wr_class, only : nf90_operators_wr
+        use parameters_input       , only : nx,ny,ne
         use parameters_kind        , only : ikind, rkind
         use rk3tvd_class           , only : rk3tvd
 
@@ -42,43 +43,57 @@
         type(nf90_operators_wr) :: io_writer   !< output management
 
         !<intermediate variables for the simulation
-        integer(ikind) :: nx,ny,nt, output_print
-        integer        :: ne, bc_size
+        integer(ikind) :: nt, output_print
+        integer        :: bc_size
         integer(ikind) :: i,j,t
         real(rkind)    :: time
 
         !<CPU recorded times
-c$$$        real :: time1, time2
+        real :: time1, time2
 
 
 
         !<get the initial CPU time
         !call CPU_TIME(time1)
 
+        if(ne.ne.p_model%get_eq_nb()) then
+           stop 'ne is not correct concerning the physical model'
+        end if
+
 
         !<read the inputs
+c$$     dx           =  0.01
+c$$     x_min        = -0.4
+c$$     x_max        =  0.4
+c$$                    
+c$$     dy           =  0.01
+c$$     y_min        = -0.4
+c$$     y_max        =  0.4
+c$$                    
+c$$     t_max        =  0.15
+c$$     dt           =  0.00005
+c$$     detail_print =  0.0
+
         dx           =  0.01
-        x_min        = -0.4
-        x_max        =  0.4
+        x_min        = -4.
+        x_max        =  4.
                        
         dy           =  0.01
-        y_min        = -0.4
-        y_max        =  0.4
+        y_min        = -4.
+        y_max        =  4.
                        
-        t_max        =  0.15
+        t_max        =  0.0015
         dt           =  0.00005
         detail_print =  0.0
 
 
         !<allocate the field
         bc_size      = s%get_bc_size()
-        nx           = (x_max-x_min)/dx + 2*bc_size
-        ny           = (y_max-y_min)/dy + 2*bc_size
+        !nx           = (x_max-x_min)/dx + 2*bc_size
+        !ny           = (y_max-y_min)/dy + 2*bc_size
         nt           = int(t_max/dt)
         output_print = int(1.0d0/detail_print)
-        ne           = p_model%get_eq_nb()
-
-        call f_simulated%allocate_tables(nx,ny,ne)
+        !ne           = p_model%get_eq_nb()
 
 
         !<initialize the field
@@ -99,11 +114,11 @@ c$$$        real :: time1, time2
         !call io_writer%initialize()
         !call io_writer%write_data(f_simulated,p_model,time)
 
+        call CPU_TIME(time1)
 
         !<integrate the field until t=t_max
         do t=1, nt
            time=(t-1)*dt
-
            call ti%integrate(f_simulated,s,p_model,td,dt)
 
 c$$$           if((output_print.ne.0).and.(mod(t,output_print).eq.0)) then
@@ -120,7 +135,7 @@ c$$$        end if
 
 
         !<print the time needed for the simulation
-c$$$        call CPU_TIME(time2)
-c$$$        print *, 'time_elapsed: ', time2-time1
+        call CPU_TIME(time2)
+        print *, 'time_elapsed: ', time2-time1
 
       end program sim_dim2d

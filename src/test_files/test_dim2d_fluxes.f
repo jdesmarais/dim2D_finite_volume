@@ -13,20 +13,18 @@
       !-----------------------------------------------------------------
       program test_dim2d_fluxes
 
+        use cg_operators_class , only : cg_operators
         use dim2d_fluxes_module
         use field_class        , only : field
         use dim2d_parameters   , only : viscous_r,re,pr,we,cv_r
+        use parameters_input   , only : nx,ny,ne
         use parameters_kind    , only : ikind, rkind
-        use cg_operators_class , only : cg_operators
 
         implicit none
         
         
         !<operators tested
         type(field)               :: field_tested
-        integer(ikind), parameter :: nx=4
-        integer(ikind), parameter :: ny=4
-        integer       , parameter :: ne=4
         type(cg_operators)        :: s
         
         !<CPU recorded times
@@ -40,11 +38,14 @@
         logical                   :: test_validated
 
 
+        !<if nx<4, ny<4 then the test cannot be done
+        if((nx.lt.4).or.(ny.lt.4).or.(ne.ne.4)) then
+           stop 'nx and ny must be greater than 4 for the test'
+        end if
+
+
         !<get the initial CPU time
         call CPU_TIME(time1)
-
-        !<allocate the tables for the field
-        call field_tested%allocate_tables(nx,ny,ne)
 
 
         !<initialize the tables for the field

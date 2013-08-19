@@ -16,6 +16,7 @@
         use dim2d_prim_module
         use field_class      , only : field
         use dim2d_parameters , only : viscous_r,re,pr,we,cv_r
+        use parameters_input , only : nx,ny,ne
         use parameters_kind  , only : ikind, rkind
 
         implicit none
@@ -23,9 +24,6 @@
         
         !<operators tested
         type(field)               :: field_tested
-        integer(ikind), parameter :: nx=4
-        integer(ikind), parameter :: ny=4
-        integer       , parameter :: ne=4
         
         !<CPU recorded times
         real    :: time1, time2
@@ -38,11 +36,14 @@
         logical                    :: test_validated
 
 
+        !<if nx<4, ny<4 then the test cannot be done
+        if((nx.lt.4).or.(ny.lt.4).or.(ne.ne.4)) then
+           stop 'nx and ny must be greater than 4 for the test'
+        end if
+
+
         !<get the initial CPU time
         call CPU_TIME(time1)
-
-        !<allocate the tables for the field
-        call field_tested%allocate_tables(nx,ny,ne)
 
 
         !<initialize the tables for the field
@@ -160,20 +161,21 @@
 
 
         !< print the dim2d parameters used for the test
+        print '(''WARNING: this test is designed for:'')'
+        print '(''viscous_r: '', F16.6)', -1.5
+        print '(''re:        '', F16.6)', 5
+        print '(''pr:        '', F16.6)', 20
+        print '(''we:        '', F16.6)', 10
+        print '(''cv_r:      '', F16.6)', 2.5
+        print '(''it allows to see errors easily'')'
+        print '('''')'
+
         if(detailled) then
            print '(''viscous_r: '', F16.6)', viscous_r
            print '(''re:        '', F16.6)', re
            print '(''pr:        '', F16.6)', pr
            print '(''we:        '', F16.6)', we
            print '(''cv_r:      '', F16.6)', cv_r
-        else
-           print '(''WARNING: this test is designed for:'')'
-           print '(''viscous_r: '', F16.6)', -1.5
-           print '(''re:        '', F16.6)', 5
-           print '(''pr:        '', F16.6)', 20
-           print '(''we:        '', F16.6)', 10
-           print '(''cv_r:      '', F16.6)', 2.5
-           print '(''it allows to see errors easily'')'
         end if
 
         !<test of the operators

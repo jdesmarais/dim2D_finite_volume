@@ -35,6 +35,7 @@
         use bc_operators_class , only : bc_operators
         use cg_operators_class , only : cg_operators
         use field_class        , only : field
+        use parameters_input   , only : nx,ny,ne
         use parameters_kind    , only : rkind, ikind
         use phy_model_eq_class , only : phy_model_eq
         use td_integrator_class, only : td_integrator
@@ -108,10 +109,10 @@
           real(rkind) :: b3 !<Runge-Kutta scheme coeff
 
           integer(ikind) :: i,j,k
-          integer(ikind) :: nx,ny,ne,bc_size
+          integer        :: bc_size
 
-          real(rkind), dimension(:,:,:), allocatable :: nodes_tmp
-          real(rkind), dimension(:,:,:), allocatable :: time_dev
+          real(rkind), dimension(nx,ny,ne) :: nodes_tmp
+          real(rkind), dimension(nx,ny,ne) :: time_dev
 
           type(bc_operators) :: bc_used !<boundary conditions
           
@@ -128,28 +129,21 @@
 
           !<initialization of local variables for the allocation
           !>of nodes_tmp, a temporary table
-          nx      = size(field_used%nodes,1)
-          ny      = size(field_used%nodes,2)
-          ne      = size(field_used%nodes,3)
           bc_size = sd%get_bc_size()
 
           
-          !<allocate the temporary tables
-          allocate(nodes_tmp, source=field_used%nodes) !<save u_n
-          allocate(time_dev(nx,ny,ne)) !<for the time derivatives
-
-
           !<runge-kutta first step
           !> u_1 = u_n + dt*d/dt(u_n)
           !> u_n is saved in nodes_tmp
           !> u_1 is saved in field_used%nodes
           !DEC$ FORCEINLINE RECURSIVE
-          call td%compute_time_dev(field_used, sd, p_model, time_dev)
+          time_dev = td%compute_time_dev(field_used, sd, p_model)
 
           do k=1, ne
              do j=bc_size+1, ny-bc_size
                 do i=bc_size+1, nx-bc_size
-                   field_used%nodes(i,j,k) = nodes_tmp(i,j,k) +
+                   nodes_tmp(i,j,k)        = field_used%nodes(i,j,k)
+                   field_used%nodes(i,j,k) = field_used%nodes(i,j,k) +
      $                                       dt*time_dev(i,j,k)
                 end do
              end do
@@ -157,7 +151,7 @@
             
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call bc_used%apply_bc_on_nodes(field_used%nodes,sd)
+          call bc_used%apply_bc_on_nodes(field_used,sd)
 
 
           !<runge-kutta second step
@@ -165,11 +159,12 @@
           !> u_n is saved in nodes_tmp
           !> u_2 is saved in field_used%nodes
           !DEC$ FORCEINLINE RECURSIVE
-          call td%compute_time_dev(field_used, sd, p_model, time_dev)
+          time_dev = td%compute_time_dev(field_used, sd, p_model)
 
           if(rkind.eq.8) then
              do k=1, ne
                 do j=bc_size+1, ny-bc_size
+                   !DEC$ VECTOR ALIGNED
                    do i=bc_size+1, nx-bc_size
                       field_used%nodes(i,j,k) = b2*nodes_tmp(i,j,k) +
      $                     (1.0d0-b2)*(field_used%nodes(i,j,k)+
@@ -180,6 +175,7 @@
           else
              do k=1, ne
                 do j=bc_size+1, ny-bc_size
+                   !DEC$ VECTOR ALIGNED
                    do i=bc_size+1, nx-bc_size
                       field_used%nodes(i,j,k) = b2*nodes_tmp(i,j,k) +
      $                     (1.0-b2)*(field_used%nodes(i,j,k)+
@@ -191,7 +187,7 @@
           
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call bc_used%apply_bc_on_nodes(field_used%nodes,sd)
+          call bc_used%apply_bc_on_nodes(field_used,sd)
 
 
           !<runge-kutta third step
@@ -199,11 +195,12 @@
           !> u_n is saved in nodes_tmp
           !> u_{n+1} is saved in field_used%nodes
           !DEC$ FORCEINLINE RECURSIVE
-          call td%compute_time_dev(field_used, sd, p_model, time_dev)
+          time_dev = td%compute_time_dev(field_used, sd, p_model)
 
           if(rkind.eq.8) then
              do k=1 ,ne
                 do j=bc_size+1, ny-bc_size
+                   !DEC$ VECTOR ALIGNED
                    do i=bc_size+1, nx-bc_size
                       field_used%nodes(i,j,k) = b3*nodes_tmp(i,j,k) +
      $                     (1.0d0-b3)*(field_used%nodes(i,j,k)+
@@ -214,6 +211,7 @@
           else
              do k=1 ,ne
                 do j=bc_size+1, ny-bc_size
+                   !DEC$ VECTOR ALIGNED
                    do i=bc_size+1, nx-bc_size
                       field_used%nodes(i,j,k) = b3*nodes_tmp(i,j,k) +
      $                     (1.0-b3)*(field_used%nodes(i,j,k)+
@@ -225,12 +223,7 @@
 
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call bc_used%apply_bc_on_nodes(field_used%nodes,sd)
-
-
-          !<deallocate the temporary variables
-          deallocate(nodes_tmp)
-          deallocate(time_dev)
+          call bc_used%apply_bc_on_nodes(field_used,sd)
 
         end subroutine integrate
 

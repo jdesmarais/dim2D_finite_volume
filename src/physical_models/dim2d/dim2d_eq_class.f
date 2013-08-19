@@ -36,8 +36,8 @@
         use parameters_constant     , only : scalar, vector_x, vector_y,
      $                                       steady_state,
      $                                       drop_retraction
-        use parameters_input        , only : ic_choice
-        use parameters_kind         , only : rkind
+        use parameters_input        , only : nx,ny,ne,ic_choice
+        use parameters_kind         , only : ikind,rkind
         use phy_model_eq_class      , only : phy_model_eq
         use cg_operators_class      , only : cg_operators
 
@@ -99,7 +99,8 @@
           procedure, nopass :: get_var_type
           procedure, nopass :: get_eq_nb
           procedure, nopass :: apply_ic
-          procedure, nopass :: compute_fluxes
+          procedure, nopass :: compute_flux_x
+          procedure, nopass :: compute_flux_y
 
         end type dim2d_eq
 
@@ -141,18 +142,18 @@
         !>@param var_name
         !> characters giving the variable names
         !---------------------------------------------------------------
-        subroutine get_var_name(var_pties)
+        function get_var_name() result(var_pties)
 
           implicit none
 
-          character(len=10), dimension(:), intent(inout) :: var_pties
+          character(len=10), dimension(ne) :: var_pties
 
           var_pties(1)="mass"
           var_pties(2)="momentum_x"
           var_pties(3)="momentum_y"
           var_pties(4)="energy"          
 
-        end subroutine get_var_name
+        end function get_var_name
         
         
         !> @author
@@ -167,18 +168,18 @@
         !>@param var_name
         !> characters giving the variable names
         !---------------------------------------------------------------
-        subroutine get_var_longname(var_pties)
+        function get_var_longname() result(var_pties)
 
           implicit none
 
-          character(len=32), dimension(:), intent(inout) :: var_pties
+          character(len=32), dimension(ne) :: var_pties
 
           var_pties(1)="mass density"
           var_pties(2)="momentum density along the x-axis"
           var_pties(3)="momentum density along the y-axis"
           var_pties(4)="total energy density"
 
-        end subroutine get_var_longname
+        end function get_var_longname
 
 
         !> @author
@@ -193,18 +194,18 @@
         !>@param var_name
         !> characters giving the variable units
         !---------------------------------------------------------------
-        subroutine get_var_unit(var_pties)
+        function get_var_unit() result(var_pties)
 
           implicit none
 
-          character(len=10), dimension(:), intent(inout) :: var_pties
+          character(len=10), dimension(ne) :: var_pties
 
           var_pties(1)= "(kg/m3)/(kg/m3)"
           var_pties(2)= "(kg/(m2.s))/(kg/(m2.s))"
           var_pties(3)= "(kg/(m2.s))/(kg/(m2.s))"
           var_pties(4)= "(J/m3)/(J.m3)"
 
-        end subroutine get_var_unit
+        end function get_var_unit
 
 
         !> @author
@@ -220,18 +221,18 @@
         !>@param var_name
         !> characters giving the variable type
         !---------------------------------------------------------------
-        subroutine get_var_type(var_type)
+        function get_var_type() result(var_type)
 
           implicit none
 
-          integer, dimension(:), intent(inout) :: var_type
+          integer, dimension(ne) :: var_type
 
           var_type(1)=scalar
           var_type(2)=vector_x
           var_type(3)=vector_y
           var_type(4)=scalar
 
-        end subroutine get_var_type
+        end function get_var_type
         
         
         !> @author
@@ -275,6 +276,8 @@
 
 
           !<read the input file to know the user choice
+
+          !<initialize the field depending on the user choice
           select case(ic_choice)
             case(steady_state)
                call apply_steady_state_ic(field_used)
@@ -284,10 +287,6 @@
                print '(''dim2d_eq_class'')'
                stop 'ic_choice not recognized'
           end select
-
-          
-          !<initialize the field depending on the user choice
-          
 
         end subroutine apply_ic
         
@@ -318,21 +317,16 @@
         !>@param flux_y
         !> fluxes along the y-axis
         !---------------------------------------------------------------
-        subroutine compute_fluxes(
-     $     field_used,
-     $     s,
-     $     flux_x,
-     $     flux_y)
+        function compute_flux_x(field_used,s) result(flux_x)
         
           implicit none
 
-          class(field)                 , intent(in)   :: field_used
-          type(cg_operators)           , intent(in)   :: s
-          real(rkind), dimension(:,:,:), intent(inout):: flux_x
-          real(rkind), dimension(:,:,:), intent(inout):: flux_y
+          class(field)                      , intent(in)   :: field_used
+          type(cg_operators)                , intent(in)   :: s
+          real(rkind), dimension(nx+1,ny,ne)               :: flux_x
 
-          integer :: i,j
-          integer :: bc_size
+          integer(ikind) :: i,j
+          integer        :: bc_size
 
 
           !<get the size of the boundary layers
@@ -340,8 +334,9 @@
 
 
           !<fluxes along the x-axis
-          do j=bc_size, size(flux_x,2)-bc_size
-             do i=bc_size, size(flux_x,1)-bc_size
+          do j=bc_size, ny-bc_size
+             ! IVDEP
+             do i=bc_size, nx+1-bc_size
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,1) = flux_x_mass_density(field_used,s,i-1,j)
@@ -358,10 +353,56 @@
              end do
           end do
 
+        end function compute_flux_x
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface to apply the initial conditions
+        !> to the main variables of the governing
+        !> equations
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> physical model
+        !>
+        !>@param field_used
+        !> object encapsulating the main variables
+        !
+        !>@param s
+        !> space discretization operators
+        !
+        !>@param flux_x
+        !> fluxes along the x-axis
+        !
+        !>@param flux_y
+        !> fluxes along the y-axis
+        !---------------------------------------------------------------
+        function compute_flux_y(field_used, s) result(flux_y)
+        
+          implicit none
+
+          class(field)                      , intent(in)   :: field_used
+          type(cg_operators)                , intent(in)   :: s
+          real(rkind), dimension(nx,ny+1,ne)               :: flux_y
+
+          integer(ikind) :: i,j
+          integer        :: bc_size
+
+
+          !<get the size of the boundary layers
+          bc_size = s%get_bc_size()
+
 
           !<fluxes along the y-axis
-          do j=bc_size, size(flux_y,2)-bc_size
-             do i=bc_size, size(flux_y,1)-bc_size
+          do j=bc_size, ny+1-bc_size
+             ! IVDEP
+             ! VECTOR ALWAYS
+             do i=bc_size, nx-bc_size
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,1) = flux_y_mass_density(field_used,s,i,j-1)
@@ -378,6 +419,6 @@
              end do
           end do
 
-        end subroutine compute_fluxes
+        end function compute_flux_y
 
       end module dim2d_eq_class

@@ -17,6 +17,7 @@
         use cg_operators_class , only : cg_operators
         use field_class        , only : field
         use fv_operators_class , only : fv_operators
+        use parameters_input   , only : nx,ny,ne
         use parameters_kind    , only : ikind, rkind
         use simpletest_eq_class, only : simpletest_eq
         use rk3tvd_class       , only : rk3tvd
@@ -26,10 +27,6 @@
         
         !<operators tested
         type(field) :: field_tested
-
-        integer(ikind), parameter :: nx=10
-        integer(ikind), parameter :: ny=6
-        integer       , parameter :: ne=1
 
         type(cg_operators)     :: sd
         type(simpletest_eq)    :: p_model
@@ -48,12 +45,14 @@
         logical                    :: test_validated
 
 
+        !<if nx<4, ny<4 then the test cannot be done
+        if((nx.ne.10).or.(ny.ne.6).or.(ne.ne.1)) then
+           stop 'the test needs: (nx,ny,ne)=(10,6,1)'
+        end if
+        
+
         !<get the initial CPU time
         call CPU_TIME(time1)
-
-
-        !<allocate the tables for the field
-        call field_tested%allocate_tables(nx,ny,ne)
 
 
         !<initialize the tables for the field

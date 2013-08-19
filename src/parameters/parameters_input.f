@@ -9,11 +9,20 @@
       !> user choices required at compilation time
       !
       !> @date
-      !> 13_08_2013 - initial version                   - J.L. Desmarais
+      !> 20_08_2013 - initial version                   - J.L. Desmarais
       !-----------------------------------------------------------------
       module parameters_input
 
         use parameters_constant
+        use parameters_kind, only : ikind
+
+        implicit none
+
+        !<size of the main tables
+        !<careful, choose ne according to the physical model
+        integer(ikind), parameter :: nx = 804
+        integer(ikind), parameter :: ny = 804
+        integer       , parameter :: ne = 4
 
         !<initial conditions choice
         integer, parameter :: ic_choice = drop_retraction

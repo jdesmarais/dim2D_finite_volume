@@ -15,7 +15,7 @@ profileGuided = $(LERNAEANHYDRA_PROFILE_GUIDED) #profile guided
 #------------------------------------------------------------------------
 #source files directories
 #------------------------------------------------------------------------
-src_dir	= /home/jdesmara/Code/lernaeanhydra_opt/src
+src_dir	= /home/jdesmara/Code/lernaeanhydra_opt2/src
 include $(src_dir)/test_files/config/makefile_folders
 
 #------------------------------------------------------------------------
@@ -28,11 +28,20 @@ INCLUDE =
 LIBS	=
 
 #ifort compiler options------------------------------------------------
-FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=400
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=400
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=400
+FFLAGS_OP_IFORT		 = -O2 -132 -ipo-c -vec-report3 #-DALIGNED #-inline-factor=400
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -guide -inline-factor=400
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400
+
 FFLAGS_PROFILE_IFORT	 = -O0 -g -132 -warn all -check all -r8 -traceback	#profiling options 
 FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
-LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=400 #-warn all -check all #GOOD options
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=400 #-warn all -check all #GOOD options
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=400 #-warn all -check all #GOOD options
+LDFLAGS_OP_IFORT     	 = -O2 -132 -ipo -vec-report3 #-DALIGNED #-inline-factor=400 #-warn all -check all #GOOD options
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -guide -inline-factor=400 #-warn all -check all #GOOD options
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400 #-warn all -check all #GOOD options
 LDFLAGS_PROFILE_IFORT	 = -O0 -g -i-dynamic -132 -r8			#profiling options
 LDFLAGS_OPT_REPORT_IFORT = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
@@ -318,6 +327,7 @@ $(param_dir)/parameters_input.o:$(param_dir)/parameters_constant.o
 #fields
 $(field_dir)/surrogate_class.o:
 $(field_dir)/field_class.o:	$(field_dir)/surrogate_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
 #space discretization operators
@@ -335,6 +345,7 @@ $(sd_dir)/cg_operators_class.o:	$(field_dir)/field_class.o\
 
 #physical models
 $(phy_eq_dir)/phy_model_eq_class.o:$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(sd_dir)/cg_operators_class.o
 
@@ -372,22 +383,26 @@ $(dim2d_dir)/dim2d_eq_class.o:	$(dim2d_dir)/dim2d_fluxes_module.o\
 $(dim2d_ic)/dim2d_steadystate_module.o:$(dim2d_dir)/dim2d_parameters.o\
 				$(dim2d_dir)/dim2d_state_eq_module.o\
 				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
 $(dim2d_ic)/dim2d_dropretract_module.o:$(dim2d_dir)/dim2d_parameters.o\
 				$(dim2d_dir)/dim2d_state_eq_module.o\
 				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
 
 #time discretization methods
 $(td_dir)/td_operators_class.o:	$(field_dir)/field_class.o\
 				$(sd_dir)/cg_operators_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o
 
 $(fv_dir)/fv_operators_class.o:	$(field_dir)/field_class.o\
 				$(sd_dir)/cg_operators_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o\
 				$(td_dir)/td_operators_class.o
@@ -398,10 +413,16 @@ $(bc_dir)/bc_operators_class.o:	$(sd_dir)/cg_operators_class.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
-				$(periodic_dir)/periodic_xy_class.o
+				$(periodic_dir)/periodic_xy_module.o
 
 $(periodic_dir)/periodic_xy_class.o:$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+$(periodic_dir)/periodic_xy_module.o:$(sd_dir)/cg_operators_class.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
 #time integration methods
@@ -414,6 +435,7 @@ $(ti_dir)/td_integrator_class.o:$(sd_dir)/cg_operators_class.o\
 $(rk3tvd_dir)/rk3tvd_class.o:	$(bc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o\
 				$(ti_dir)/td_integrator_class.o\
@@ -430,12 +452,14 @@ $(io_dir)/io_operators_class.o:	$(field_dir)/field_class.o\
 
 $(nf90_dir)/nf90_operators_module.o:$(field_dir)/field_class.o\
 				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o	
 
 $(nf90_dir)/nf90_operators_wr_class.o:$(field_dir)/field_class.o\
 				$(io_dir)/io_operators_module.o\
 				$(nf90_dir)/nf90_operators_module.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o
 
@@ -445,25 +469,30 @@ sim_dim2d.o:			$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
 				$(fv_dir)/fv_operators_class.o\
 				$(nf90_dir)/nf90_operators_wr_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(rk3tvd_dir)/rk3tvd_class.o
 
 #tests
-test_field.o:			$(param_dir)/parameters_kind.o\
+test_field.o:			$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
 				$(field_dir)/field_class.o
 
-test_field:			parameters_kind.o\
-				field_class.o\
+test_field:			field_class.o\
+				parameters_input.o\
+				parameters_kind.o\
 				surrogate_class.o
 
 test_cg_operators.o:		$(dim2d_dir)/dim2d_prim_module.o\
 				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(sd_dir)/cg_operators_class.o
 
 test_cg_operators:		dim2d_prim_module.o\
 				field_class.o\
 				interface_primary.o\
+				parameters_input.o\
 				parameters_kind.o\
 				cg_operators_class.o\
 				surrogate_class.o
@@ -471,11 +500,13 @@ test_cg_operators:		dim2d_prim_module.o\
 test_dim2d_prim.o:		$(dim2d_dir)/dim2d_parameters.o\
 				$(dim2d_dir)/dim2d_prim_module.o\
 				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
 test_dim2d_prim:		dim2d_parameters.o\
 				dim2d_prim_module.o\
 				field_class.o\
+				parameters_input.o\
 				parameters_kind.o\
 				surrogate_class.o
 
@@ -483,6 +514,7 @@ test_dim2d_fluxes.o:		$(sd_dir)/cg_operators_class.o\
 				$(dim2d_dir)/dim2d_fluxes_module.o\
 				$(field_dir)/field_class.o\
 				$(dim2d_dir)/dim2d_parameters.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
 test_dim2d_fluxes:		cg_operators_class.o\
@@ -497,6 +529,7 @@ test_dim2d_eq.o:		$(sd_dir)/cg_operators_class.o\
 				$(dim2d_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_class.o\
 				$(dim2d_dir)/dim2d_parameters.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
 test_dim2d_eq:			cg_operators_class.o\
@@ -508,18 +541,21 @@ test_dim2d_eq:			cg_operators_class.o\
 				dim2d_steadystate_module.o\
 				dim2d_state_eq_module.o\
 				field_class.o\
+				parameters_input.o\
 				parameters_kind.o\
 				surrogate_class.o
 
 test_fv_operators.o:		$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
 				$(fv_dir)/fv_operators_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(simpletest_dir)/simpletest_eq_class.o
 
 test_fv_operators:		cg_operators_class.o\
 				field_class.o\
 				fv_operators_class.o\
+				parameters_input.o\
 				parameters_kind.o\
 				simpletest_eq_class.o\
 				surrogate_class.o\
@@ -528,6 +564,7 @@ test_fv_operators:		cg_operators_class.o\
 test_bc_operators.o:		$(bc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
@@ -537,12 +574,13 @@ test_bc_operators:		bc_operators_class.o\
 				parameters_constant.o\
 				parameters_input.o\
 				parameters_kind.o\
-				periodic_xy_class.o\
+				periodic_xy_module.o\
 				surrogate_class.o
 
 test_rk3tvd.o:			$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
 				$(fv_dir)/fv_operators_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(simpletest_dir)/simpletest_eq_class.o\
 				$(rk3tvd_dir)/rk3tvd_class.o
@@ -554,7 +592,7 @@ test_rk3tvd:			bc_operators_class.o\
 				parameters_constant.o\
 				parameters_input.o\
 				parameters_kind.o\
-				periodic_xy_class.o\
+				periodic_xy_module.o\
 				phy_model_eq_class.o\
 				rk3tvd_class.o\
 				simpletest_eq_class.o\
@@ -563,15 +601,20 @@ test_rk3tvd:			bc_operators_class.o\
 				td_operators_class.o
 
 test_nf90_operators.o:		$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(dim2d_dir)/dim2d_eq_class.o\
 				$(nf90_dir)/nf90_operators_wr_class.o
 
 test_nf90_operators:		surrogate_class.o\
 				parameters_kind.o\
+				parameters_input.o\
 				field_class.o\
 				dim2d_parameters.o\
 				dim2d_prim_module.o\
+				dim2d_state_eq_module.o\
+				dim2d_dropretract_module.o\
+				dim2d_steadystate_module.o\
 				interface_primary.o\
 				sd_operators_class.o\
 				cg_operators_class.o\
@@ -585,10 +628,12 @@ test_nf90_operators:		surrogate_class.o\
 
 test_dim2d_ic.o:		$(dim2d_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(nf90_dir)/nf90_operators_wr_class.o
 
 test_dim2d_ic:			surrogate_class.o\
+				parameters_input.o\
 				parameters_kind.o\
 				field_class.o\
 				dim2d_parameters.o\
@@ -628,7 +673,7 @@ sim_dim2d:			surrogate_class.o\
 				io_operators_module.o\
 				nf90_operators_module.o\
 				nf90_operators_wr_class.o\
-				periodic_xy_class.o\
+				periodic_xy_module.o\
 				bc_operators_class.o\
 				td_integrator_class.o\
 				rk3tvd_class.o

@@ -18,6 +18,7 @@
         use dim2d_eq_class         , only : dim2d_eq
         use field_class            , only : field
         use nf90_operators_wr_class, only : nf90_operators_wr
+        use parameters_input       , only : nx,ny,ne
         use parameters_kind        , only : ikind, rkind
 
         implicit none
@@ -25,9 +26,6 @@
         
         !<operators tested
         type(field)               :: field_tested
-        integer(ikind), parameter :: nx=100
-        integer(ikind), parameter :: ny=100
-        integer       , parameter :: ne=4
         type(dim2d_eq)            :: p_model
         real(rkind)               :: time
         type(nf90_operators_wr)   :: nf90_writer
@@ -38,26 +36,31 @@
         !<test parameters
         logical, parameter        :: detailled=.true.
         integer(ikind)            :: i,j
+        real(rkind) :: x_min, y_min
         
+
+        !<warning
+        if(ne.ne.4) then
+           stop 'ne=4 is required'
+        end if
+
 
         !<get the initial CPU time
         call CPU_TIME(time1)
 
 
-        !<allocate the tables for the field
-        call field_tested%allocate_tables(nx,ny,ne)
-
-
         !<initialize the tables for the field
         field_tested%dx=0.01
         field_tested%dy=0.01
+        x_min = -4
+        y_min = -4
 
-        do i=1, size(field_tested%x_map)
-           field_tested%x_map(i)=(i-1)*field_tested%dx
+        do i=1, nx
+           field_tested%x_map(i)=x_min + (i-1)*field_tested%dx
         end do
 
-        do j=1, size(field_tested%y_map)
-           field_tested%y_map(j)=(j-1)*field_tested%dy
+        do j=1, ny
+           field_tested%y_map(j)=y_min + (j-1)*field_tested%dy
         end do
 
 

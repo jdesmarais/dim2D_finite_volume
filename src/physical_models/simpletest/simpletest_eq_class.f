@@ -16,6 +16,7 @@
       
         use field_class        , only : field
         use parameters_constant, only : scalar
+        use parameters_input   , only : nx,ny,ne
         use parameters_kind    , only : ikind, rkind
         use phy_model_eq_class , only : phy_model_eq
         use cg_operators_class , only : cg_operators
@@ -68,7 +69,8 @@
           procedure, nopass :: get_var_type
           procedure, nopass :: get_eq_nb
           procedure, nopass :: apply_ic
-          procedure, nopass :: compute_fluxes
+          procedure, nopass :: compute_flux_x
+          procedure, nopass :: compute_flux_y
 
         end type simpletest_eq
 
@@ -110,15 +112,15 @@
         !>@param var_name
         !> characters giving the variable names
         !---------------------------------------------------------------
-        subroutine get_var_name(var_pties)
+        function get_var_name() result(var_pties)
 
           implicit none
 
-          character(len=10), dimension(:), intent(inout) :: var_pties
+          character(len=10), dimension(ne) :: var_pties
 
           var_pties(1)="mass"
 
-        end subroutine get_var_name
+        end function get_var_name
         
         
         !> @author
@@ -133,15 +135,15 @@
         !>@param var_name
         !> characters giving the variable names
         !---------------------------------------------------------------
-        subroutine get_var_longname(var_pties)
+        function get_var_longname() result(var_pties)
 
           implicit none
 
-          character(len=32), dimension(:), intent(inout) :: var_pties
+          character(len=32), dimension(ne) :: var_pties
 
           var_pties(1)="mass density"
 
-        end subroutine get_var_longname
+        end function get_var_longname
 
 
         !> @author
@@ -156,15 +158,15 @@
         !>@param var_name
         !> characters giving the variable units
         !---------------------------------------------------------------
-        subroutine get_var_unit(var_pties)
+        function get_var_unit() result(var_pties)
 
           implicit none
 
-          character(len=10), dimension(:), intent(inout) :: var_pties
+          character(len=10), dimension(ne) :: var_pties
 
           var_pties(1)= "(kg/m3)/(kg/m3)"
 
-        end subroutine get_var_unit
+        end function get_var_unit
 
 
         !> @author
@@ -180,15 +182,15 @@
         !>@param var_name
         !> characters giving the variable type
         !---------------------------------------------------------------
-        subroutine get_var_type(var_type)
+        function get_var_type() result(var_type)
 
           implicit none
 
-          integer, dimension(:), intent(inout) :: var_type
+          integer, dimension(ne) :: var_type
 
           var_type(1)=scalar
 
-        end subroutine get_var_type
+        end function get_var_type
         
         
         !> @author
@@ -251,9 +253,6 @@
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
-        !> physical model
-        !>
         !>@param field_used
         !> object encapsulating the main variables
         !
@@ -262,22 +261,14 @@
         !
         !>@param flux_x
         !> fluxes along the x-axis
-        !
-        !>@param flux_y
-        !> fluxes along the y-axis
         !---------------------------------------------------------------
-        subroutine compute_fluxes(
-     $     field_used,
-     $     s,
-     $     flux_x,
-     $     flux_y)
+        function compute_flux_x(field_used,s) result(flux_x)
         
           implicit none
 
-          class(field)                 , intent(in)   :: field_used
-          type(cg_operators)           , intent(in)   :: s
-          real(rkind), dimension(:,:,:), intent(inout):: flux_x
-          real(rkind), dimension(:,:,:), intent(inout):: flux_y
+          class(field)                      , intent(in) :: field_used
+          type(cg_operators)                , intent(in) :: s
+          real(rkind), dimension(nx+1,ny,ne)             :: flux_x
 
           integer :: i,j
           integer :: bc_size
@@ -288,8 +279,8 @@
 
 
           !<fluxes along the x-axis
-          do j=bc_size+1, size(flux_x,2)-bc_size
-             do i=bc_size+1, size(flux_x,1)-bc_size
+          do j=bc_size+1, ny-bc_size
+             do i=bc_size+1, nx+1-bc_size
 
                 flux_x(i,j,1) = 10*s%f(field_used,i-1,j,basic)+
      $               s%dfdx(field_used,i-1,j,basic)
@@ -297,8 +288,48 @@
              end do
           end do
 
-          do j=bc_size+1, size(flux_y,2)-bc_size
-             do i=bc_size+1, size(flux_y,1)-bc_size
+        end function compute_flux_x
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface to apply the initial conditions
+        !> to the main variables of the governing
+        !> equations
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param field_used
+        !> object encapsulating the main variables
+        !
+        !>@param s
+        !> space discretization operators
+        !
+        !>@param flux_y
+        !> fluxes along the y-axis
+        !---------------------------------------------------------------
+        function compute_flux_y(field_used,s) result(flux_y)
+        
+          implicit none
+
+          class(field)                      , intent(in) :: field_used
+          type(cg_operators)                , intent(in) :: s
+          real(rkind), dimension(nx,ny+1,ne)             :: flux_y
+
+          integer :: i,j
+          integer :: bc_size
+
+
+          !<get the size of the boundary layers
+          bc_size = s%get_bc_size()
+
+
+          !<fluxes along the x-axis
+          do j=bc_size+1, ny+1-bc_size
+             do i=bc_size+1, nx-bc_size
 
                 flux_y(i,j,1) = s%g(field_used,i,j-1,basic)+
      $               10*s%dgdy(field_used,i,j-1,basic)
@@ -306,7 +337,7 @@
              end do
           end do
 
-        end subroutine compute_fluxes
+        end function compute_flux_y
 
 
         function basic(field_used,i,j) result(var)

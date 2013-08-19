@@ -18,6 +18,7 @@
         use netcdf
         use parameters_constant, only : prog_version
         use parameters_kind    , only : rkind, ikind
+        use parameters_input   , only : nx,ny,ne
         use phy_model_eq_class , only : phy_model_eq
 
         implicit none
@@ -167,11 +168,11 @@
 
           implicit none
 
-          integer              , intent(in)    :: ncid
-          class(field)         , intent(in)    :: field_used
-          class(phy_model_eq)  , intent(in)    :: p_model
-          integer, dimension(3), intent(inout) :: coordinates_id
-          integer, dimension(:), intent(inout) :: data_id
+          integer               , intent(in)    :: ncid
+          class(field)          , intent(in)    :: field_used
+          class(phy_model_eq)   , intent(in)    :: p_model
+          integer, dimension(3) , intent(inout) :: coordinates_id
+          integer, dimension(ne), intent(inout) :: data_id
 
 
           character*(*), parameter :: T_NAME = 'time'
@@ -197,14 +198,9 @@
 
           integer :: NF_MYREAL
 
-          integer        :: NT
-          integer(ikind) :: NX
-          integer(ikind) :: NY
-          integer        :: NE
-
-          character(len=10), dimension(:), allocatable :: name_var
-          character(len=32), dimension(:), allocatable :: longname_var
-          character(len=10), dimension(:), allocatable :: unit_var
+          character(len=10), dimension(ne) :: name_var
+          character(len=32), dimension(ne) :: longname_var
+          character(len=10), dimension(ne) :: unit_var
 
           integer :: t_dimid
           integer :: x_dimid
@@ -231,11 +227,7 @@
 
 
           !<define the dimensions
-          NT = 1
-          NX = size(field_used%nodes,1)
-          NY = size(field_used%nodes,2)
-
-          retval = NF90_DEF_DIM(ncid, T_NAME, NT, t_dimid)
+          retval = NF90_DEF_DIM(ncid, T_NAME, 1, t_dimid)
           call nf90_handle_err(retval)
 
           retval = NF90_DEF_DIM(ncid, X_NAME, NX, x_dimid)
@@ -299,15 +291,11 @@
 
           
           !<define the main variables of the governing equations
-          allocate(name_var(p_model%get_eq_nb()))
-          allocate(longname_var(p_model%get_eq_nb()))
-          allocate(unit_var(p_model%get_eq_nb()))
+          name_var     = p_model%get_var_name()
+          longname_var = p_model%get_var_longname()
+          unit_var     = p_model%get_var_unit()
 
-          call p_model%get_var_name(name_var)
-          call p_model%get_var_longname(longname_var)
-          call p_model%get_var_unit(unit_var)
-
-          do k=1, size(data_id)
+          do k=1, ne
 
              !<define the netcdf variables
              retval = NF90_DEF_VAR(ncid, trim(name_var(k)), NF_MYREAL,
@@ -328,11 +316,6 @@
           !<stop the definition of the variables saved in the file
           retval = NF90_ENDDEF(ncid)
           call nf90_handle_err(retval)
-
-          !<deallocate the variables
-          deallocate(name_var)
-          deallocate(longname_var)
-          deallocate(unit_var)
 
         end subroutine nf90_def_var_model
 
@@ -379,8 +362,8 @@
           implicit none
           
           integer                        , intent(in) :: ncid
-          integer    , dimension(:)      , intent(in) :: coordinates_id
-          integer    , dimension(:)      , intent(in) :: data_id
+          integer    , dimension(3)      , intent(in) :: coordinates_id
+          integer    , dimension(ne)     , intent(in) :: data_id
           real(RKIND)                    , intent(in) :: time
           class(field)                   , intent(in) :: field_used
           integer, dimension(:), optional, intent(in) :: start
@@ -410,9 +393,7 @@
           if(.not.present(start)) then
 
              start_op = [1,1,1]
-             count_op = [1,
-     $            size(field_used%nodes,1),
-     $            size(field_used%nodes,2)]
+             count_op = [1,nx,ny]
 
              !<write the coordinate variable data
              retval = NF90_PUT_VAR(ncid, t_varid, time_table)
@@ -425,7 +406,7 @@
              call nf90_handle_err(retval)
              
              !<write the netcdf variables
-             do k=1, size(field_used%nodes,3)
+             do k=1, ne
 
                 retval = NF90_PUT_VAR(
      $               ncid,
@@ -455,7 +436,7 @@
             call nf90_handle_err(retval)
             
             !<write the netcdf variables
-            do k=1, size(field_used%nodes,3)
+            do k=1, ne
 
                retval = NF90_PUT_VAR(
      $              ncid,

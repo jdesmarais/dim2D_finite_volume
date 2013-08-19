@@ -1,18 +1,18 @@
       !> @file
-      !> class encapsulating subroutines to apply periodic
+      !> module encapsulating subroutines to apply periodic
       !> boundary conditions in the x and y directions
       !
       !> @author 
       !> Julien L. Desmarais
       !
       !> @brief
-      !> class encapsulating subroutines to apply periodic
+      !> module encapsulating subroutines to apply periodic
       !> boundary conditions in the x and y directions
       !
       !> @date
       !> 13_08_2013 - initial version                   - J.L. Desmarais
       !-----------------------------------------------------------------
-      module periodic_xy_class
+      module periodic_xy_module
 
         use cg_operators_class, only : cg_operators
         use field_class       , only : field
@@ -23,24 +23,7 @@
         
         
         private
-        public :: periodic_xy
-
-
-        !> @class periodic_xy
-        !> class encapsulating subroutines to apply periodic
-        !> boundary conditions in the x and y directions
-        !>
-        !> @param apply_bc_on_nodes
-        !> apply the periodic boundary conditions along the x and y
-        !> directions at the edge of the computational domain
-        !---------------------------------------------------------------
-        type :: periodic_xy
-
-          contains
-
-          procedure, nopass :: apply_bc_on_nodes
-
-        end type periodic_xy
+        public :: apply_periodic_xy_on_nodes
 
 
         contains
@@ -62,7 +45,7 @@
         !>@param s
         !> space discretization operators
         !--------------------------------------------------------------
-        subroutine apply_bc_on_nodes(nodes,s)
+        subroutine apply_periodic_xy_on_nodes(nodes,s)
         
           implicit none
 
@@ -106,6 +89,6 @@
              end do
           end do
 
-        end subroutine apply_bc_on_nodes
+        end subroutine apply_periodic_xy_on_nodes
 
-      end module periodic_xy_class
+      end module periodic_xy_module

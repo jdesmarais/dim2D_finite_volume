@@ -21,6 +21,7 @@
      $                                    nf90_write_header,
      $                                    nf90_def_var_model,
      $                                    nf90_put_var_model
+        use parameters_input     , only : ne
         use parameters_kind      , only : rkind
         use phy_model_eq_class   , only : phy_model_eq
 
@@ -117,15 +118,11 @@
           class(phy_model_eq)     , intent(in)    :: p_model
           real(rkind)             , intent(in)    :: time
 
-          integer                            :: ncid
-          integer                            :: retval
-          integer, dimension(3)              :: coord_id
-          integer, dimension(:), allocatable :: data_id
-          character(len=16)                  :: filename
-
-
-          !<allocate the temporary variables
-          allocate(data_id(size(f_used%nodes,3)))
+          integer                :: ncid
+          integer                :: retval
+          integer, dimension(3)  :: coord_id
+          integer, dimension(ne) :: data_id
+          character(len=16)      :: filename
 
 
           !<get the name for the netcdf file

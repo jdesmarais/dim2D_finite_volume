@@ -17,6 +17,7 @@
         use cg_operators_class , only : cg_operators
         use field_class        , only : field
         use fv_operators_class , only : fv_operators
+        use parameters_input   , only : nx,ny,ne
         use parameters_kind    , only : ikind, rkind
         use simpletest_eq_class, only : simpletest_eq
 
@@ -24,17 +25,12 @@
 
         
         !<operators tested
-        type(field) :: field_tested
-
-        integer(ikind), parameter :: nx=10
-        integer(ikind), parameter :: ny=6
-        integer       , parameter :: ne=1
-
+        type(field)         :: field_tested
         type(cg_operators)  :: s
         type(simpletest_eq) :: p_model
         type(fv_operators)  :: t_operator
 
-        real(rkind), dimension(:,:,:), allocatable :: time_dev
+        real(rkind), dimension(nx,ny,ne) :: time_dev
 
         !<CPU recorded times
         real    :: time1, time2
@@ -46,12 +42,14 @@
         logical                    :: test_validated
 
 
+        !<if nx<4, ny<4 then the test cannot be done
+        if((nx.ne.10).or.(ny.ne.6).or.(ne.ne.1)) then
+           stop 'the test needs: (nx,ny,ne)=(10,6,1)'
+        end if
+
+
         !<get the initial CPU time
         call CPU_TIME(time1)
-
-
-        !<allocate the tables for the field
-        call field_tested%allocate_tables(nx,ny,ne)
 
 
         !<initialize the tables for the field
@@ -66,8 +64,7 @@
 
 
         !<compute the time derivatives
-        allocate(time_dev(nx,ny,ne))
-        call t_operator%compute_time_dev(field_tested,s,p_model,time_dev)
+        time_dev = t_operator%compute_time_dev(field_tested,s,p_model)
 
 
         !<print the time derivatives

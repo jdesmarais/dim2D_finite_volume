@@ -16,6 +16,7 @@
         use cg_operators_class, only : cg_operators
         use dim2d_prim_module , only : mass_density
         use field_class       , only : field
+        use parameters_input  , only : nx,ny
         use parameters_kind   , only : ikind, rkind
 
         
@@ -23,16 +24,11 @@
 
 
         !<operators tested
-        type(field) :: field_tested
-
-        integer(ikind), parameter :: nx=4
-        integer(ikind), parameter :: ny=4
-        integer       , parameter :: ne=1
-
+        type(field)        :: field_tested
         type(cg_operators) :: sd_operators_tested
 
         !<CPU recorded times
-        real    :: time1, time2
+        real :: time1, time2
 
         !<test parameters
         logical, parameter         :: detailled=.true.
@@ -41,12 +37,14 @@
         logical                    :: test_validated
 
 
+        !<if nx<4, ny<4 then the test cannot be done
+        if((nx.lt.4).or.(ny.lt.4)) then
+           stop 'nx and ny must be greater than 4 for the test'
+        end if
+
+
         !<get the initial CPU time
         call CPU_TIME(time1)
-
-
-        !<allocate the tables for the field
-        call field_tested%allocate_tables(nx,ny,ne)
 
 
         !<initialize the tables for the field

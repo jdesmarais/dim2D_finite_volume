@@ -21,6 +21,7 @@
      $                                    get_mass_density_liquid,
      $                                    get_mass_density_vapor
         use field_class          , only : field
+        use parameters_input     , only : nx,ny,ne
         use parameters_kind      , only : ikind, rkind
 
         implicit none
@@ -84,8 +85,8 @@
 
 
           !<initialize the fields
-          do j=1, size(field_used%y_map,1)
-             do i=1, size(field_used%x_map,1)
+          do j=1, ny
+             do i=1, nx
 
                 radius = r(
      $               field_used%x_map(i),

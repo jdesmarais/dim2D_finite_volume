@@ -15,11 +15,10 @@
       module bc_operators_class
 
         use cg_operators_class , only : cg_operators
-        use field_class        , only : field
         use parameters_constant, only : periodic_xy_choice
         use parameters_input   , only : nx,ny,ne,bc_choice
         use parameters_kind    , only : rkind,ikind
-        use periodic_xy_module , only : apply_periodic_xy_on_nodes
+        use periodic_xy_class  , only : periodic_xy
         
         implicit none
 
@@ -67,20 +66,24 @@
         !>@param s
         !> space discretization operators
         !--------------------------------------------------------------
-        subroutine apply_bc_on_nodes(field_used,s)
+        subroutine apply_bc_on_nodes(nodes,s)
 
           implicit none
 
-          class(field)      , intent(inout) :: field_used
+          real(rkind), dimension(nx,ny,ne) :: nodes
           type(cg_operators), intent(in)    :: s
+
+          type(periodic_xy) :: periodic_bc
+
 
           !<select the type of boundary conditions
           select case(bc_choice)
 
             case(periodic_xy_choice)
 
-               !DEC$ FORCEINLINE RECURSIVE
-               call apply_periodic_xy_on_nodes(field_used%nodes,s)
+               !TAG INLINE
+               !call periodic_bc%apply_bc_on_nodes(nodes,s)
+               nodes(1,1,1)=1
 
             case default
                

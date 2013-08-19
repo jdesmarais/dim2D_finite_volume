@@ -18,6 +18,7 @@
 
         use cg_operators_class, only : cg_operators
         use field_class       , only : field
+        use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : rkind, ikind
         use phy_model_eq_class, only : phy_model_eq
         use td_operators_class, only : td_operators
@@ -70,43 +71,28 @@
           !>@param time_dev
           !> time derivatives
           !--------------------------------------------------------------
-          subroutine compute_time_dev(
-     $       field_used,
-     $       s,
-     $       p_model,
-     $       time_dev)
+          function compute_time_dev(field_used,s,p_model)result(time_dev)
 
             implicit none
 
 
-            class(field)                 , intent(in)   :: field_used
-            type(cg_operators)           , intent(in)   :: s
-            class(phy_model_eq)          , intent(in)   :: p_model
-            real(rkind), dimension(:,:,:), intent(inout):: time_dev
+            class(field)                    , intent(in) :: field_used
+            type(cg_operators)              , intent(in) :: s
+            class(phy_model_eq)             , intent(in) :: p_model
+            real(rkind), dimension(nx,ny,ne)             :: time_dev
 
-            integer(ikind) :: nx
-            integer(ikind) :: ny
-            integer        :: ne
-            integer        :: bc_size
-            integer(ikind) :: i
-            integer(ikind) :: j
-            integer        :: k
-            real(rkind), dimension(:,:,:), allocatable :: flux_x
-            real(rkind), dimension(:,:,:), allocatable :: flux_y
+            integer                            :: bc_size,k
+            integer(ikind)                     :: i,j
+            real(rkind), dimension(nx+1,ny,ne) :: flux_x
+            real(rkind), dimension(nx,ny+1,ne) :: flux_y
             
             !<initialize the main tables size
-            nx      = size(field_used%nodes,1)
-            ny      = size(field_used%nodes,2)
-            ne      = p_model%get_eq_nb()
             bc_size = s%get_bc_size()
             
-            !<allocate the tables for the intermediate variables
-            allocate(flux_x(nx+1,ny  ,ne))
-            allocate(flux_y(nx  ,ny+1,ne))
-
             !<compute the fluxes
             !DEC$ FORCEINLINE RECURSIVE
-            call p_model%compute_fluxes(field_used,s,flux_x,flux_y)
+            flux_x = p_model%compute_flux_x(field_used,s)
+            flux_y = p_model%compute_flux_y(field_used,s)
 
             !<compute the time derivatives
             do k=1, ne
@@ -119,9 +105,6 @@
                end do
             end do
 
-            !<deallocate the intermediate variables
-            deallocate(flux_x, flux_y)
-            
-        end subroutine compute_time_dev
+        end function compute_time_dev
 
       end module fv_operators_class

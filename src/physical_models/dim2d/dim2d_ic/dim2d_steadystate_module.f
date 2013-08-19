@@ -19,6 +19,7 @@
         use dim2d_parameters     , only : cv_r
         use dim2d_state_eq_module, only : get_mass_density_liquid
         use field_class          , only : field
+        use parameters_input     , only : nx,ny
         use parameters_kind      , only : ikind, rkind
 
         implicit none
@@ -57,8 +58,8 @@
           d_liq = get_mass_density_liquid(T0)
 
 
-          do j=1, size(field_used%y_map,1)
-             do i=1, size(field_used%x_map,1)
+          do j=1, ny
+             do i=1, nx
                 
                 field_used%nodes(i,j,1) =  d_liq
                 field_used%nodes(i,j,2) = -1.

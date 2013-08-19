@@ -16,6 +16,7 @@
         use dim2d_eq_class     , only : dim2d_eq
         use field_class        , only : field
         use dim2d_parameters   , only : viscous_r,re,pr,we,cv_r
+        use parameters_input   , only : nx,ny,ne
         use parameters_kind    , only : ikind, rkind
         use cg_operators_class , only : cg_operators
 
@@ -23,31 +24,31 @@
         
         
         !<operators tested
-        type(field)               :: field_tested
-        integer(ikind), parameter :: nx=4
-        integer(ikind), parameter :: ny=4
-        integer       , parameter :: ne=4
-        type(cg_operators)        :: s
-        type(dim2d_eq)            :: phy_model_eq_tested
+        type(field)        :: field_tested
+        type(cg_operators) :: s
+        type(dim2d_eq)     :: phy_model_eq_tested
         
         !<CPU recorded times
         real    :: time1, time2
 
         !<test parameters
-        logical, parameter        :: detailled=.true.
-        integer(ikind)            :: i,j
-        real(rkind), dimension(:,:,:), allocatable :: flux_x
-        real(rkind), dimension(:,:,:), allocatable :: flux_y
-        real(rkind)               :: prog_data
-        real(rkind), dimension(8) :: test_data
-        logical                   :: test_validated
+        logical, parameter                   :: detailled=.true.
+        integer(ikind)                       :: i,j
+        real(rkind), dimension(nx+1,ny  ,ne) :: flux_x
+        real(rkind), dimension(nx  ,ny+1,ne) :: flux_y
+        real(rkind)                          :: prog_data
+        real(rkind), dimension(8)            :: test_data
+        logical                              :: test_validated
 
 
         !<get the initial CPU time
         call CPU_TIME(time1)
 
-        !<allocate the tables for the field
-        call field_tested%allocate_tables(nx,ny,ne)
+
+        !<if nx<4, ny<4 then the test cannot be done
+        if((nx.lt.4).or.(ny.lt.4).or.(ne.ne.4)) then
+           stop 'nx and ny must be greater than 4 for the test'
+        end if
 
 
         !<initialize the tables for the field
@@ -167,51 +168,43 @@
         end if
 
         
-        !<allocate the flux_x and flux_y tables
-        allocate(flux_x(nx+1,ny  ,ne))
-        allocate(flux_y(nx  ,ny+1,ne))
-
-
         !<compute the flux_x and flux_y tables
-        call phy_model_eq_tested%compute_fluxes(
-     $       field_tested,
-     $       s,
-     $       flux_x,
-     $       flux_y)
+        flux_x = phy_model_eq_tested%compute_flux_x(field_tested,s)
+        flux_y = phy_model_eq_tested%compute_flux_y(field_tested,s)
 
 
         !<test of the operators
         if(detailled) then
 
-           prog_data  = flux_x(i,j,1)
+           prog_data  = flux_x(i+1,j,1)
            test_validated = is_test_validated(prog_data, test_data(1))
            print '(''test flux_x_mass_density: '',1L)', test_validated
 
-           prog_data  = flux_x(i,j,2)
+           prog_data  = flux_x(i+1,j,2)
            test_validated = is_test_validated(prog_data, test_data(2))
            print '(''test flux_x_momentum_x: '',1L)', test_validated
            
-           prog_data  = flux_x(i,j,3)
+           prog_data  = flux_x(i+1,j,3)
            test_validated = is_test_validated(prog_data, test_data(3))
            print '(''test flux_x_momentum_y: '',1L)', test_validated
 
-           prog_data  = flux_x(i,j,4)
+           prog_data  = flux_x(i+1,j,4)
            test_validated = is_test_validated(prog_data, test_data(4))
            print '(''test flux_x_total_energy: '',1L)', test_validated
 
-           prog_data  = flux_y(i,j,1)
+           prog_data  = flux_y(i,j+1,1)
            test_validated = is_test_validated(prog_data, test_data(5))
            print '(''test flux_y_mass_density: '',1L)', test_validated
 
-           prog_data  = flux_y(i,j,2)
+           prog_data  = flux_y(i,j+1,2)
            test_validated = is_test_validated(prog_data, test_data(6))
            print '(''test flux_y_momentum_x: '',1L)', test_validated
            
-           prog_data  = flux_y(i,j,3)
+           prog_data  = flux_y(i,j+1,3)
            test_validated = is_test_validated(prog_data, test_data(7))
            print '(''test flux_y_momentum_y: '',1L)', test_validated
 
-           prog_data  = flux_y(i,j,4)
+           prog_data  = flux_y(i,j+1,4)
            test_validated = is_test_validated(prog_data, test_data(8))
            print '(''test flux_y_total_energy: '',1L)', test_validated
 

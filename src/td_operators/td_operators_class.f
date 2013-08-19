@@ -19,6 +19,7 @@
 
         use field_class       , only : field
         use cg_operators_class, only : cg_operators
+        use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : rkind
         use phy_model_eq_class, only : phy_model_eq
 
@@ -69,19 +70,20 @@
           !>@param time_dev
           !> time derivatives
           !--------------------------------------------------------------
-          subroutine time(field_used, s, p_model, time_dev)
+          function time(field_used, s, p_model) result(time_dev)
 
             import cg_operators
             import field
             import phy_model_eq
             import rkind
+            import nx,ny,ne
 
-            class(field)                 , intent(in)   :: field_used
-            type(cg_operators)           , intent(in)   :: s
-            class(phy_model_eq)          , intent(in)   :: p_model
-            real(rkind), dimension(:,:,:), intent(inout):: time_dev
+            class(field)                    , intent(in)   :: field_used
+            type(cg_operators)              , intent(in)   :: s
+            class(phy_model_eq)             , intent(in)   :: p_model
+            real(rkind), dimension(nx,ny,ne)               :: time_dev
 
-          end subroutine time
+          end function time
 
         end interface
 

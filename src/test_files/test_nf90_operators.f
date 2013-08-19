@@ -13,6 +13,7 @@
       program test_nf90_operators
 
         use field_class            , only : field
+        use parameters_input       , only : nx,ny,ne
         use parameters_kind        , only : ikind, rkind
         use dim2d_eq_class         , only : dim2d_eq
         use nf90_operators_wr_class, only : nf90_operators_wr
@@ -22,11 +23,6 @@
         
         !<operators tested
         type(field) :: field_tested
-
-        integer(ikind), parameter :: nx=10
-        integer(ikind), parameter :: ny=6
-        integer       , parameter :: ne=4
-
         type(dim2d_eq)         :: p_model
         real(rkind), parameter :: time=3.0
         type(nf90_operators_wr):: nf90_writer
@@ -39,13 +35,15 @@
         integer(ikind)             :: i,j
         logical                    :: test_validated
 
+        
+        !<if nx<4, ny<4 then the test cannot be done
+        if(ne.ne.4) then
+           stop 'the test needs: ne=4'
+        end if
+        
 
         !<get the initial CPU time
         call CPU_TIME(time1)
-
-
-        !<allocate the tables for the field
-        call field_tested%allocate_tables(nx,ny,ne)
 
 
         !<initialize the tables for the field

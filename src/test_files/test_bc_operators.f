@@ -18,7 +18,7 @@
         use cg_operators_class , only : cg_operators
         use field_class        , only : field
         use parameters_constant, only : periodic_xy_choice
-        use parameters_input   , only : bc_choice
+        use parameters_input   , only : nx,ny,ne,bc_choice
         use parameters_kind    , only : ikind, rkind
 
         implicit none
@@ -26,13 +26,8 @@
         
         !<operators tested
         type(field) :: field_tested
-
-        integer(ikind), parameter :: nx=10
-        integer(ikind), parameter :: ny=12
-        integer       , parameter :: ne=1
-
         type(cg_operators) :: s
-        type(bc_operators) :: bc_used 
+        type(bc_operators) :: bc_used
 
 
         !<CPU recorded times
@@ -41,19 +36,21 @@
         !<test parameters
         logical, parameter          :: detailled=.true.
         integer(ikind)              :: i,j
-        real(rkind), dimension(nx,2):: test_north
-        real(rkind), dimension(nx,2):: test_south
+        real(rkind), dimension(10,2):: test_north
+        real(rkind), dimension(10,2):: test_south
         real(rkind), dimension(2,8) :: test_east
         real(rkind), dimension(2,8) :: test_west
         logical                     :: test_validated
 
 
+        !<test specifications
+        if((nx.ne.10).or.(ny.ne.12).or.(ne.ne.1)) then
+           stop 'the test requires (nx,ny,ne)=(10,12,1)'
+        end if
+
+
         !<get the initial CPU time
         call CPU_TIME(time1)
-
-
-        !<allocate the tables for the field
-        call field_tested%allocate_tables(nx,ny,ne)
 
 
         !<initialize the tables for the field
@@ -111,7 +108,7 @@
         !<perform the test
         select case(bc_choice)
           case(periodic_xy_choice)
-             call bc_used%apply_bc_on_nodes(field_tested%nodes,s)
+             call bc_used%apply_bc_on_nodes(field_tested,s)
              
              !<check if the boundary conditions are applied correctly
              !north and south tests

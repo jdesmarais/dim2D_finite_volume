@@ -71,17 +71,17 @@
         !@param Pr             Prandtl number             [-]    
         !@param cv_r           heat capacity reduced      [-]    
         !--------------------------------------------------------
-        real(rkind), parameter :: viscous_r= dim2d_nu/dim2d_mu
-        real(rkind), parameter :: Re = rho_c*u_c*length_c/dim2d_mu
-        real(rkind), parameter :: We =(length_c**2*u_c**2)/(rho_c*dim2d_K)
-        real(rkind), parameter :: Pr = dim2d_mu*dim2d_cv/dim2d_lambda
-        real(rkind), parameter :: cv_r = dim2d_M*dim2d_cv/dim2d_R
+        !real(rkind), parameter :: viscous_r= dim2d_nu/dim2d_mu
+        !real(rkind), parameter :: Re = rho_c*u_c*length_c/dim2d_mu
+        !real(rkind), parameter :: We =(length_c**2*u_c**2)/(rho_c*dim2d_K)
+        !real(rkind), parameter :: Pr = dim2d_mu*dim2d_cv/dim2d_lambda
+        !real(rkind), parameter :: cv_r = dim2d_M*dim2d_cv/dim2d_R
        
-        !real(rkind), parameter :: viscous_r= -1.5
-        !real(rkind), parameter :: Re = 5
-        !real(rkind), parameter :: We = 10
-        !real(rkind), parameter :: Pr = 20
-        !real(rkind), parameter :: cv_r = 2.5
+        real(rkind), parameter :: viscous_r= -1.5
+        real(rkind), parameter :: Re = 5
+        real(rkind), parameter :: We = 10
+        real(rkind), parameter :: Pr = 20
+        real(rkind), parameter :: cv_r = 2.5
 
       end module dim2d_parameters
 
