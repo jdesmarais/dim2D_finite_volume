@@ -164,7 +164,6 @@
           if(rkind.eq.8) then
              do k=1, ne
                 do j=bc_size+1, ny-bc_size
-                   !DEC$ VECTOR ALIGNED
                    do i=bc_size+1, nx-bc_size
                       field_used%nodes(i,j,k) = b2*nodes_tmp(i,j,k) +
      $                     (1.0d0-b2)*(field_used%nodes(i,j,k)+
@@ -175,7 +174,6 @@
           else
              do k=1, ne
                 do j=bc_size+1, ny-bc_size
-                   !DEC$ VECTOR ALIGNED
                    do i=bc_size+1, nx-bc_size
                       field_used%nodes(i,j,k) = b2*nodes_tmp(i,j,k) +
      $                     (1.0-b2)*(field_used%nodes(i,j,k)+
@@ -200,7 +198,7 @@
           if(rkind.eq.8) then
              do k=1 ,ne
                 do j=bc_size+1, ny-bc_size
-                   !DEC$ VECTOR ALIGNED
+                   
                    do i=bc_size+1, nx-bc_size
                       field_used%nodes(i,j,k) = b3*nodes_tmp(i,j,k) +
      $                     (1.0d0-b3)*(field_used%nodes(i,j,k)+
@@ -211,7 +209,7 @@
           else
              do k=1 ,ne
                 do j=bc_size+1, ny-bc_size
-                   !DEC$ VECTOR ALIGNED
+                   
                    do i=bc_size+1, nx-bc_size
                       field_used%nodes(i,j,k) = b3*nodes_tmp(i,j,k) +
      $                     (1.0-b3)*(field_used%nodes(i,j,k)+

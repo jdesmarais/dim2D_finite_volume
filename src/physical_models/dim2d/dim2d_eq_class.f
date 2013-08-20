@@ -335,7 +335,7 @@
 
           !<fluxes along the x-axis
           do j=bc_size, ny-bc_size
-             ! IVDEP
+             !DEC$ IVDEP
              do i=bc_size, nx+1-bc_size
 
                 !DEC$ FORCEINLINE RECURSIVE
@@ -400,8 +400,7 @@
 
           !<fluxes along the y-axis
           do j=bc_size, ny+1-bc_size
-             ! IVDEP
-             ! VECTOR ALWAYS
+             !DEC$ IVDEP
              do i=bc_size, nx-bc_size
 
                 !DEC$ FORCEINLINE RECURSIVE

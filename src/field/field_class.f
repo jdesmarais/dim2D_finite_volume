@@ -49,7 +49,6 @@
         !> space step along the y-axis
         !---------------------------------------------------------------
         type, extends(surrogate) :: field
-
           real(rkind), dimension(nx,ny,ne) :: nodes
           real(rkind), dimension(nx)       :: x_map
           real(rkind), dimension(ny)       :: y_map

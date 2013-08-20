@@ -119,6 +119,8 @@ c$$     detail_print =  0.0
         !<integrate the field until t=t_max
         do t=1, nt
            time=(t-1)*dt
+
+           !DEC$ FORCEINLINE RECURSIVE
            call ti%integrate(f_simulated,s,p_model,td,dt)
 
 c$$$           if((output_print.ne.0).and.(mod(t,output_print).eq.0)) then

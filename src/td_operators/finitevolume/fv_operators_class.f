@@ -85,13 +85,16 @@
             integer(ikind)                     :: i,j
             real(rkind), dimension(nx+1,ny,ne) :: flux_x
             real(rkind), dimension(nx,ny+1,ne) :: flux_y
-            
+
             !<initialize the main tables size
             bc_size = s%get_bc_size()
             
             !<compute the fluxes
+
             !DEC$ FORCEINLINE RECURSIVE
             flux_x = p_model%compute_flux_x(field_used,s)
+
+            !DEC$ FORCEINLINE RECURSIVE
             flux_y = p_model%compute_flux_y(field_used,s)
 
             !<compute the time derivatives
