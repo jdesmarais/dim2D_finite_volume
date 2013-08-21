@@ -18,6 +18,10 @@
 
         implicit none
 
+        !<mpi choice
+        integer, parameter :: npx = 2 !<number of processors along x
+        integer, parameter :: npy = 2 !<number of processors along y
+
         !<size of the main tables
         !<careful, choose ne according to the physical model
         integer(ikind), parameter :: nx = 84

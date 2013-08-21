@@ -1,7 +1,7 @@
 #main folders
 field_dir      	        = $(src_dir)/field
 io_dir			= $(src_dir)/io_operators
-mpi_operators_dir	= $(src_dir)/mpi_operators
+mpi_dir			= $(src_dir)/mpi_operators
 param_dir    		= $(src_dir)/parameters
 bc_dir			= $(src_dir)/boundary_conditions
 phy_eq_dir        	= $(src_dir)/physical_models

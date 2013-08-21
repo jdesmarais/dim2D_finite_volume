@@ -28,7 +28,7 @@ INCLUDE =
 LIBS	=
 
 #ifort compiler options------------------------------------------------
-FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500
+FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=300 -warn all
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
@@ -40,7 +40,7 @@ FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500
 FFLAGS_PROFILE_IFORT	 = -O0 -g -132 -warn all -check all -r8 -traceback	#profiling options 
 FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
-LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500
+LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=300 -warn all
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
@@ -336,6 +336,11 @@ $(field_dir)/field_class.o:	$(field_dir)/surrogate_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
+$(field_dir)/field_par_class.o:	$(field_dir)/field_class.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o
+
+
 #space discretization operators
 $(sd_dir)/interface_primary.o:	$(field_dir)/field_class.o\
 				$(param_dir)/parameters_kind.o
@@ -468,6 +473,9 @@ $(nf90_dir)/nf90_operators_wr_class.o:$(field_dir)/field_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o
+#mpi processes
+$(mpi_dir)/mpi_process_class.o:	$(param_dir)/parameters_input.o
+
 
 #simulations
 sim_dim2d.o:			$(sd_dir)/cg_operators_class.o\
@@ -478,6 +486,7 @@ sim_dim2d.o:			$(sd_dir)/cg_operators_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(rk3tvd_dir)/rk3tvd_class.o
+
 
 #tests
 test_field.o:			$(param_dir)/parameters_input.o\
@@ -683,3 +692,11 @@ sim_dim2d:			surrogate_class.o\
 				bc_operators_class.o\
 				td_integrator_class.o\
 				rk3tvd_class.o
+
+test_field_par.o:		$(field_dir)/field_par_class.o\
+				$(mpi_dir)/mpi_process_class.o
+
+test_field_par:			field_par_class.o\
+				field_class.o\
+				surrogate_class.o\
+				mpi_process_class.o
