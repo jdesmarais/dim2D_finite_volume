@@ -23,7 +23,7 @@
      $                                    nf90_put_var_model
         use parameters_input     , only : ne
         use parameters_kind      , only : rkind
-        use phy_model_eq_class   , only : phy_model_eq
+        use dim2d_eq_class       , only : dim2d_eq
 
         implicit none
 
@@ -115,7 +115,7 @@
 
           class(nf90_operators_wr), intent(inout) :: this
           class(field)            , intent(in)    :: f_used
-          class(phy_model_eq)     , intent(in)    :: p_model
+          type(dim2d_eq)          , intent(in)    :: p_model
           real(rkind)             , intent(in)    :: time
 
           integer                :: ncid

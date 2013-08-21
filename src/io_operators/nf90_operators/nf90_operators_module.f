@@ -19,7 +19,7 @@
         use parameters_constant, only : prog_version
         use parameters_kind    , only : rkind, ikind
         use parameters_input   , only : nx,ny,ne
-        use phy_model_eq_class , only : phy_model_eq
+        use dim2d_eq_class     , only : dim2d_eq
 
         implicit none
 
@@ -78,8 +78,8 @@
 
           implicit none
 
-          integer            , intent(in) :: ncid
-          class(phy_model_eq), intent(in) :: p_model
+          integer       , intent(in) :: ncid
+          type(dim2d_eq), intent(in) :: p_model
 
 
           character(len=10) :: title
@@ -168,7 +168,7 @@
           implicit none
 
           integer               , intent(in)    :: ncid
-          class(phy_model_eq)   , intent(in)    :: p_model
+          type(dim2d_eq)        , intent(in)    :: p_model
           integer, dimension(3) , intent(inout) :: coordinates_id
           integer, dimension(ne), intent(inout) :: data_id
 
