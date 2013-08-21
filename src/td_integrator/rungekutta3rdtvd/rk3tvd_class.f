@@ -37,7 +37,7 @@
         use field_class        , only : field
         use parameters_input   , only : nx,ny,ne
         use parameters_kind    , only : rkind, ikind
-        use phy_model_eq_class , only : phy_model_eq
+        use dim2d_eq_class     , only : dim2d_eq
         use td_integrator_class, only : td_integrator
         use td_operators_class , only : td_operators
 
@@ -101,7 +101,7 @@
 
           class(field)       , intent(inout) :: field_used
           type(cg_operators) , intent(in)    :: sd
-          class(phy_model_eq), intent(in)    :: p_model
+          type(dim2d_eq)     , intent(in)    :: p_model
           class(td_operators), intent(in)    :: td
           real(rkind)        , intent(in)    :: dt
 

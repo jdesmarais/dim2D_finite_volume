@@ -21,7 +21,7 @@
         use cg_operators_class, only : cg_operators
         use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : rkind
-        use phy_model_eq_class, only : phy_model_eq
+        use dim2d_eq_class    , only : dim2d_eq
 
         implicit none
 
@@ -74,13 +74,13 @@
 
             import cg_operators
             import field
-            import phy_model_eq
+            import dim2d_eq
             import rkind
             import nx,ny,ne
 
             class(field)                    , intent(in)   :: field_used
             type(cg_operators)              , intent(in)   :: s
-            class(phy_model_eq)             , intent(in)   :: p_model
+            type(dim2d_eq)                  , intent(in)   :: p_model
             real(rkind), dimension(nx,ny,ne)               :: time_dev
 
           end function time

@@ -75,14 +75,14 @@ c$$     dt           =  0.00005
 c$$     detail_print =  0.0
 
         dx           =  0.01
-        x_min        = -4.
-        x_max        =  4.
+        x_min        = -0.4
+        x_max        =  0.4
                        
         dy           =  0.01
-        y_min        = -4.
-        y_max        =  4.
+        y_min        = -0.4
+        y_max        =  0.4
                        
-        t_max        =  0.0015
+        t_max        =  0.15
         dt           =  0.00005
         detail_print =  0.0
 

@@ -19,8 +19,8 @@
         use cg_operators_class, only : cg_operators
         use field_class       , only : field
         use parameters_kind   , only : rkind
-        use phy_model_eq_class, only : phy_model_eq
-        use td_operators_class, only : td_operators
+        use dim2d_eq_class    , only : dim2d_eq
+        use fv_operators_class, only : fv_operators
 
         implicit none
 
@@ -78,14 +78,14 @@
 
             import cg_operators
             import field
-            import phy_model_eq
+            import dim2d_eq
             import rkind
-            import td_operators
+            import fv_operators
 
             class(field)       , intent(inout) :: field_used
             type(cg_operators) , intent(in)    :: sd
-            class(phy_model_eq), intent(in)    :: p_model
-            class(td_operators), intent(in)    :: td
+            type(dim2d_eq)     , intent(in)    :: p_model
+            type(fv_operators) , intent(in)    :: td
             real(rkind)        , intent(in)    :: dt
 
           end subroutine integrate_proc

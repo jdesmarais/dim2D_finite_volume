@@ -20,7 +20,7 @@
         use field_class       , only : field
         use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : rkind, ikind
-        use phy_model_eq_class, only : phy_model_eq
+        use dim2d_eq_class    , only : dim2d_eq
         use td_operators_class, only : td_operators
 
         implicit none
@@ -78,7 +78,7 @@
 
             class(field)                    , intent(in) :: field_used
             type(cg_operators)              , intent(in) :: s
-            class(phy_model_eq)             , intent(in) :: p_model
+            type(dim2d_eq)                  , intent(in) :: p_model
             real(rkind), dimension(nx,ny,ne)             :: time_dev
 
             integer                            :: bc_size,k
@@ -90,11 +90,10 @@
             bc_size = s%get_bc_size()
             
             !<compute the fluxes
-
-            !DEC$ FORCEINLINE RECURSIVE
+            !FORCEINLINE RECURSIVE
             flux_x = p_model%compute_flux_x(field_used,s)
 
-            !DEC$ FORCEINLINE RECURSIVE
+            !FORCEINLINE RECURSIVE
             flux_y = p_model%compute_flux_y(field_used,s)
 
             !<compute the time derivatives

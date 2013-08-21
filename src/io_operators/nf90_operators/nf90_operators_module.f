@@ -161,7 +161,6 @@
         !--------------------------------------------------------------
         subroutine nf90_def_var_model(
      $     ncid,
-     $     field_used,
      $     p_model,
      $     coordinates_id,
      $     data_id)
@@ -169,7 +168,6 @@
           implicit none
 
           integer               , intent(in)    :: ncid
-          class(field)          , intent(in)    :: field_used
           class(phy_model_eq)   , intent(in)    :: p_model
           integer, dimension(3) , intent(inout) :: coordinates_id
           integer, dimension(ne), intent(inout) :: data_id

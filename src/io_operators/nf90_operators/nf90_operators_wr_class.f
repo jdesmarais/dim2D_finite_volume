@@ -139,7 +139,7 @@
 
 
           !<define the variables saved in the file
-          call nf90_def_var_model(ncid,f_used,p_model,coord_id,data_id)
+          call nf90_def_var_model(ncid,p_model,coord_id,data_id)
 
 
           !<put the variables in the file

@@ -20,8 +20,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: nx = 804
-        integer(ikind), parameter :: ny = 804
+        integer(ikind), parameter :: nx = 84
+        integer(ikind), parameter :: ny = 84
         integer       , parameter :: ne = 4
 
         !<initial conditions choice
