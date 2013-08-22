@@ -15,7 +15,7 @@ profileGuided = $(LERNAEANHYDRA_PROFILE_GUIDED) #profile guided
 #------------------------------------------------------------------------
 #source files directories
 #------------------------------------------------------------------------
-src_dir	= /home/jdesmara/Code/lernaeanhydra_opt4/src
+src_dir	= /home/jdesmarais/Code/lernaeanhydra_opt4/src
 include $(src_dir)/test_files/config/makefile_folders
 
 #------------------------------------------------------------------------
@@ -28,7 +28,7 @@ INCLUDE =
 LIBS	=
 
 #ifort compiler options------------------------------------------------
-FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=300 -warn all
+FFLAGS_OP_IFORT		 = -O2 -p -g -ipo-c -132 -inline-factor=300 -warn all
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
@@ -40,7 +40,7 @@ FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=300 -warn all
 FFLAGS_PROFILE_IFORT	 = -O0 -g -132 -warn all -check all -r8 -traceback	#profiling options 
 FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
-LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=300 -warn all
+LDFLAGS_OP_IFORT     	 = -O2 -p -g -ipo -132 -inline-factor=300 -warn all
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
@@ -476,6 +476,18 @@ $(nf90_dir)/nf90_operators_wr_class.o:$(field_dir)/field_class.o\
 #mpi processes
 $(mpi_dir)/mpi_process_class.o:	$(param_dir)/parameters_input.o
 
+#mpi messenger bc
+$(mpi_bc_dir)/mpi_mg_neighbours.o:$(param_dir)/parameters_constant.o
+
+$(mpi_bc_dir)/mpi_mg_derived_types.o:$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_kind.o
+
+$(mpi_bc_dir)/mpi_mg_bc_class.o:$(field_dir)/field_par_class.o\
+				$(sd_dir)/cg_operators_class.o\
+				$(mpi_bc_dir)/mpi_mg_neighbours.o\
+				$(mpi_bc_dir)/mpi_mg_derived_types.o\
+				$(param_dir)/parameters_input.o
+
 
 #simulations
 sim_dim2d.o:			$(sd_dir)/cg_operators_class.o\
@@ -700,3 +712,25 @@ test_field_par:			field_par_class.o\
 				field_class.o\
 				surrogate_class.o\
 				mpi_process_class.o
+
+test_mpi_mg_bc.o:		$(sd_dir)/cg_operators_class.o\
+				$(field_dir)/field_par_class.o\
+				$(mpi_dir)/mpi_process_class.o\
+				$(mpi_bc_dir)/mpi_mg_bc_class.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_mpi_mg_bc:			surrogate_class.o\
+				parameters_kind.o\
+				parameters_constant.o\
+				parameters_input.o\
+				field_class.o\
+				interface_primary.o\
+				sd_operators_class.o\
+				cg_operators_class.o\
+				field_par_class.o\
+				mpi_process_class.o\
+				mpi_mg_neighbours.o\
+				mpi_mg_derived_types.o\
+				mpi_mg_bc_class.o

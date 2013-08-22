@@ -28,15 +28,8 @@
 
         !< initialize the cartesian communicator
         call f_tested%ini_cartesian_communicator()
-
-
-        !< check that the different processors
-        !> have an identity
-        print '(''I, proc '', I2, '' belongs to communicator '', I10)',
-     $       f_tested%usr_rank,
-     $       f_tested%comm_2d
-
         
+
         !< finalize the mpi processes
         call mpi_op%finalize_mpi()
 

@@ -20,9 +20,9 @@ cmd_operators_dir	= $(io_interface_dir)/cmd_operators
 #mpi_operators folder
 mpi_comm_dir		= $(mpi_operators_dir)/mpi_comm
 mpi_pr_dir              = $(mpi_operators_dir)/mpi_process
-mpi_mg_bc_dir		= $(mpi_operators_dir)/mpi_mg_bc
+mpi_bc_dir		= $(mpi_dir)/mpi_messenger_bc
 mpi_mg_wr_dir           = $(mpi_operators_dir)/mpi_mg_wr
-
+			
 #phy_model_bc folder
 reflection_dir       	= $(phy_model_bc_dir)/bc_reflection
 periodic_dir	        = $(bc_dir)/periodic_xy

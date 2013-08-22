@@ -32,4 +32,13 @@
         !<i/o management choice
         integer, parameter :: netcdf_choice=0
 
+        !<mpi constant
+        integer, parameter :: N=1
+        integer, parameter :: S=2
+        integer, parameter :: E=3
+        integer, parameter :: W=4
+
+        integer, parameter :: x_direction=1
+        integer, parameter :: y_direction=2
+
       end module parameters_constant
