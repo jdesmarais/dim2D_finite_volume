@@ -30,6 +30,11 @@
         call f_tested%ini_cartesian_communicator()
         
 
+        !< test the data
+        print '(''I, proc '', I2, '' I belongs to the comm '', I2)',
+     $       f_tested%usr_rank, f_tested%comm_2d
+
+
         !< finalize the mpi processes
         call mpi_op%finalize_mpi()
 

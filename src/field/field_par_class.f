@@ -42,6 +42,7 @@
         type, extends(field) :: field_par
 
           integer :: comm_2d
+          integer :: usr_rank
 
           contains
 
@@ -125,6 +126,13 @@
      $         ierror)
           if(ierror.ne.MPI_SUCCESS) then
              stop 'field_par_class: MPI_CART_CREATE failed'
+          end if
+
+
+          !< get the rank of the processor computing the tile
+          call MPI_COMM_RANK(this%comm_2d, this%usr_rank, ierror)
+          if(ierror.ne.MPI_SUCCESS) then
+             stop 'ini_cartesian_comm: MPI_COMM_RANK failed'
           end if
 
         end subroutine ini_cartesian_communicator

@@ -35,7 +35,6 @@
         integer(ikind)                      :: i,j
         integer                             :: k
         integer                             :: bc_size
-        integer                             :: proc_rank
         integer                             :: ierror,sendtag,recvtag
         integer, dimension(MPI_STATUS_SIZE) :: status
         logical                             :: test_validated
@@ -64,15 +63,8 @@
         call f_tested%ini_cartesian_communicator()
 
 
-        !< get the rank of the processor computing this test
-        call MPI_COMM_RANK(f_tested%comm_2d, proc_rank, ierror)
-        if(ierror.ne.MPI_SUCCESS) then
-           stop 'test_mpi_messenger_bc: MPI_COMM_RANK failed'
-        end if
-
-
         !< enter the test data for com_rank
-        select case(proc_rank)
+        select case(f_tested%usr_rank)
           case(0)
              test_com_rank=[1,1,2,2]
           case(1)
@@ -95,7 +87,7 @@
            do j=1, size(test_1x_exchange,2)
               do i=1, size(test_1x_exchange,1)
                  
-                 select case(proc_rank)
+                 select case(f_tested%usr_rank)
                  
                    case(1)
                       test_1x_exchange(i,j,k) = compute_ini_data(
@@ -120,7 +112,7 @@
            do j=1, size(test_1y_exchange,2)
               do i=1, size(test_1y_exchange,1)
                  
-                 select case(proc_rank)
+                 select case(f_tested%usr_rank)
                  
                    case(1)
                       test_1y_exchange(i,j,k) = compute_ini_data(
@@ -141,7 +133,7 @@
         do k=1, ne
            do j=1, ny
               do i=1,nx
-                 f_tested%nodes(i,j,k)=compute_ini_data(proc_rank,i,j,k)
+                 f_tested%nodes(i,j,k)=compute_ini_data(f_tested%usr_rank,i,j,k)
               end do
            end do
         end do
@@ -159,12 +151,12 @@
            k=k+1
         end do
         print '(''proc, '', I1, '' test_com_rank: '', L1)',
-     $       proc_rank, test_validated
+     $       f_tested%usr_rank, test_validated
 
 
         !< test the exchange of data in the first x-direction
         test_validated=.true.
-        select case(proc_rank)
+        select case(f_tested%usr_rank)
 
           case(0)
 
@@ -209,7 +201,7 @@
            do while(test_validated.and.(j.le.size(test_1x_exchange,2)))
               i=1
               do while(test_validated.and.(i.le.size(test_1x_exchange,1)))
-                 select case(proc_rank)
+                 select case(f_tested%usr_rank)
                     case(1)
                        test_validated=
      $                      f_tested%nodes(i+nx-bc_size,j+bc_size,k).eq.
@@ -225,13 +217,13 @@
            end do
         end do
         print '(''proc, '', I1, '' test_1x_exchange: '', L1)',
-     $       proc_rank, test_validated
+     $       f_tested%usr_rank, test_validated
 
 
 
         !< test the exchange of data in the first y-direction
         test_validated=.true.
-        select case(proc_rank)
+        select case(f_tested%usr_rank)
 
           case(0)
 
@@ -276,7 +268,7 @@
            do while(test_validated.and.(j.le.size(test_1y_exchange,2)))
               i=1
               do while(test_validated.and.(i.le.size(test_1y_exchange,1)))
-                 select case(proc_rank)
+                 select case(f_tested%usr_rank)
                     case(1)
                        test_validated=
      $                      f_tested%nodes(i,j,k).eq.
@@ -292,7 +284,7 @@
            end do
         end do
         print '(''proc, '', I1, '' test_1y_exchange: '', L1)',
-     $       proc_rank, test_validated
+     $       f_tested%usr_rank, test_validated
 
 
         !< finalization of the mpi process

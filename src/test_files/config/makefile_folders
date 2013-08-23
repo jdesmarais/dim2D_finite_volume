@@ -24,8 +24,8 @@ mpi_bc_dir		= $(mpi_dir)/mpi_messenger_bc
 mpi_mg_wr_dir           = $(mpi_operators_dir)/mpi_mg_wr
 			
 #phy_model_bc folder
-reflection_dir       	= $(phy_model_bc_dir)/bc_reflection
-periodic_dir	        = $(bc_dir)/periodic_xy
+rbc_dir		       	= $(bc_dir)/reflection_xy
+pbc_dir		        = $(bc_dir)/periodic_xy
 bc_proc_direction_dir   = $(phy_model_bc_dir)/bc_procedure_direction
 bc_proc_order_dir   	= $(phy_model_bc_dir)/bc_procedure_order
 
