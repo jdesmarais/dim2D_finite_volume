@@ -14,14 +14,16 @@
       !> @date
       ! 22_08_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      module mpi_mg_bc_ini_procedures
+      module mpi_mg_ini_bc_proc
 
         use mpi
-        use parameters_constant, only : only_compute_proc,
+        use parameters_constant, only : N,S,E,W,
+     $                                  periodic_xy_choice,
+     $                                  only_compute_proc,
      $                                  compute_and_exchange_proc,
      $                                  only_exchange_proc,
      $                                  x_direction, y_direction
-        use parameters_input   , only : npx,npy
+        use parameters_input   , only : npx,npy,bc_choice
         
         implicit none
 
@@ -70,6 +72,7 @@
 
 
           integer               :: proc_rank
+          integer               :: dims_nb
           integer, dimension(2) :: cart_coord
           logical               :: tile_is_on_the_border
           logical               :: periodic_exchange
@@ -85,6 +88,7 @@
 
           !< get the cartesian coordinates of the processor
           !> computing the tile
+          dims_nb=2
           call MPI_CART_COORDS(comm_2d, proc_rank,
      $         dims_nb, cart_coord, ierror)
           if(ierror.ne.MPI_SUCCESS) then
@@ -94,17 +98,17 @@
 
           !< get the proc_x_choice and the exchange_id
           tile_is_on_the_border = 
-     $         (card_cord(1).eq.0).or.(card_coord(1).eq.(npx-1))
+     $         (cart_coord(1).eq.0).or.(cart_coord(1).eq.(npx-1))
 
           periodic_exchange =
-     $         (bc_choice.eq.periodix_xy_choice).and.(npx.gt.1)
+     $         (bc_choice.eq.periodic_xy_choice).and.(npx.gt.1)
 
           if(tile_is_on_the_border.and.(.not.periodic_exchange)) then
              if(npx.eq.1) then
                 proc_x_choice = only_compute_proc
              else
                 proc_x_choice = compute_and_exchange_proc
-                if(card_coord(1).eq.0) then
+                if(cart_coord(1).eq.0) then
                    exchange_id(x_direction)=E
                 else
                    exchange_id(x_direction)=W
@@ -118,17 +122,17 @@
 
           !< get the proc_y_choice and the exchange_id
           tile_is_on_the_border = 
-     $         (card_cord(2).eq.0).or.(card_coord(2).eq.(npy-1))
+     $         (cart_coord(2).eq.0).or.(cart_coord(2).eq.(npy-1))
 
           periodic_exchange =
-     $         (bc_choice.eq.periodix_xy_choice).and.(npy.gt.1)
+     $         (bc_choice.eq.periodic_xy_choice).and.(npy.gt.1)
 
           if(tile_is_on_the_border.and.(.not.periodic_exchange)) then
              if(npy.eq.1) then
                 proc_y_choice = only_compute_proc
              else
                 proc_y_choice = compute_and_exchange_proc
-                if(card_coord(2).eq.0) then
+                if(cart_coord(2).eq.0) then
                    exchange_id(y_direction)=N
                 else
                    exchange_id(y_direction)=S
@@ -141,4 +145,4 @@
 
         end subroutine ini_bc_procedures
 
-      end module mpi_mg_bc_ini_procedures
+      end module mpi_mg_ini_bc_proc

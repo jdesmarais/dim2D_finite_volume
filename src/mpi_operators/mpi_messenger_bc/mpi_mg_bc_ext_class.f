@@ -16,19 +16,21 @@
       !> @date
       ! 22_08_2013  - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      module mpi_messenger_bc_ext_class
+      module mpi_mg_bc_ext_class
 
-        use mpi_messenger_bc_class  , only : mpi_messenger_bc
-        use mpi_mg_bc_ini_procedures, only : ini_bc_procedures
-        use parameters_input        , only : nx,ny,ne
+        use cg_operators_class, only : cg_operators
+        use field_par_class   , only : field_par
+        use mpi_mg_bc_class   , only : mpi_mg_bc
+        use mpi_mg_ini_bc_proc, only : ini_bc_procedures
+        use parameters_input  , only : nx,ny,ne
 
         implicit none
 
         private
-        public :: mpi_messenger_bc_ext
+        public :: mpi_mg_bc_ext
 
 
-        !> @class mpi_messenger_bc_ext
+        !> @class mpi_mg_bc_ext
         !> class encapsulating attributes to identify the procedures
         !> for the computation of the boundary layers
         !>
@@ -54,9 +56,9 @@
         !>
         !> @param initialize
         !> subroutine initializing the attributes of the
-        !> 'mpi_messenger_bc_ext' object
+        !> 'mpi_mg_bc_ext' object
         !---------------------------------------------------------------
-        type, extends(mpi_messenger_bc) :: mpi_messenger_bc_ext
+        type, extends(mpi_mg_bc) :: mpi_mg_bc_ext
 
           integer               :: proc_x_choice
           integer               :: proc_y_choice
@@ -66,7 +68,7 @@
           
           procedure, pass :: initialize
 
-        end type mpi_messenger_bc_ext
+        end type mpi_mg_bc_ext
 
 
         contains
@@ -77,13 +79,13 @@
         !
         !> @brief
         !> subroutine initializing the attributes of
-        !> the 'mpi_messenger_bc_ext' object
+        !> the 'mpi_mg_bc_ext' object
         !
         !> @date
         !> 21_08_2013 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> 'mpi_messenger_bc' object initialized
+        !> 'mpi_mg_bc' object initialized
         !
         !>@param f_used
         !> object containing the MPI cartesian communicator
@@ -96,21 +98,21 @@
 
           implicit none
 
-          class(mpi_messenger_bc_ext), intent(inout) :: this
-          class(field_par)           , intent(in)    :: f_used
-          type(cg_operators)         , intent(in)    :: s
+          class(mpi_mg_bc_ext), intent(inout) :: this
+          class(field_par)    , intent(in)    :: f_used
+          type(cg_operators)  , intent(in)    :: s
 
 
-          !< initialize the attributes of 'mpi_messenger_bc'
-          call this%mpi_messenger_bc%initialize()
+          !< initialize the attributes of 'mpi_mg_bc'
+          call this%mpi_mg_bc%initialize(f_used,s)
 
           
-          !< initialize the attributes of 'mpi_messenger_bc_ext'
-          call 
-
-
+          !< initialize the attributes of 'mpi_mg_bc_ext'
+          call ini_bc_procedures(
+     $         f_used%comm_2d,
+     $         this%proc_x_choice, this%proc_y_choice, this%exchange_id)
 
         end subroutine initialize
 
 
-      end module mpi_messenger_bc_ext_class
+      end module mpi_mg_bc_ext_class

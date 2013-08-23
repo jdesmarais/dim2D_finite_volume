@@ -28,6 +28,7 @@
 
         !<boundary conditions choice
         integer, parameter :: periodic_xy_choice=0
+        integer, parameter :: reflection_xy_choice=1
 
         !<i/o management choice
         integer, parameter :: netcdf_choice=0
@@ -40,5 +41,9 @@
 
         integer, parameter :: x_direction=1
         integer, parameter :: y_direction=2
+
+        integer, parameter :: only_compute_proc=0
+        integer, parameter :: compute_and_exchange_proc=1
+        integer, parameter :: only_exchange_proc=2
 
       end module parameters_constant

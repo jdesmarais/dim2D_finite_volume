@@ -16,7 +16,8 @@
       !-----------------------------------------------------------------
       module field_par_class
 
-        use parameters_constant, only : periodic_xy_choice
+        use parameters_constant, only : periodic_xy_choice,
+     $                                  reflection_xy_choice
         use parameters_input   , only : npx, npy, bc_choice
         use field_class        , only : field
         use mpi
@@ -97,6 +98,10 @@
             case(periodic_xy_choice)
                periods(1)     = .true.
                periods(2)     = .true.
+
+            case(reflection_xy_choice)
+               periods(1)     = .false.
+               periods(2)     = .false.
 
             case default
                print *, 'bc_choice not implemented in'

@@ -250,6 +250,7 @@ help:
 	@(echo 'make all      : create executable for all test files')
 	@(echo 'make clean    : remove .o files')
 	@(echo 'make cleanall : remove .o and executable files')
+	@(echo 'make clear    : remove .err .out and .nc')
 	@(echo 'make test     : display makefile options')
 
 	@(echo 'to change the cluster configuration, change the env. var. LERNAEANHYDRA_CLUSTER')
@@ -296,6 +297,9 @@ tests:	test_field\
 	test_rk3tvd\
 	test_nf90_operators\
 	test_dim2d_ic
+
+tests_par: test_field_par\
+	test_mpi_mg_bc
 
 sims:	sim_dim2d
 
@@ -476,6 +480,7 @@ $(nf90_dir)/nf90_operators_wr_class.o:$(field_dir)/field_class.o\
 #mpi processes
 $(mpi_dir)/mpi_process_class.o:	$(param_dir)/parameters_input.o
 
+
 #mpi messenger bc
 $(mpi_bc_dir)/mpi_mg_neighbours.o:$(param_dir)/parameters_constant.o
 
@@ -486,6 +491,15 @@ $(mpi_bc_dir)/mpi_mg_bc_class.o:$(field_dir)/field_par_class.o\
 				$(sd_dir)/cg_operators_class.o\
 				$(mpi_bc_dir)/mpi_mg_neighbours.o\
 				$(mpi_bc_dir)/mpi_mg_derived_types.o\
+				$(param_dir)/parameters_input.o
+
+$(mpi_bc_dir)/mpi_mg_ini_bc_proc.o:$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o
+
+$(mpi_bc_dir)/mpi_mg_bc_ext_class.o:$(field_dir)/field_par_class.o\
+				$(sd_dir)/cg_operators_class.o\
+				$(mpi_bc_dir)/mpi_mg_bc_class.o\
+				$(mpi_bc_dir)/mpi_mg_ini_bc_proc.o\
 				$(param_dir)/parameters_input.o
 
 
@@ -734,3 +748,26 @@ test_mpi_mg_bc:			surrogate_class.o\
 				mpi_mg_neighbours.o\
 				mpi_mg_derived_types.o\
 				mpi_mg_bc_class.o
+
+test_mpi_mg_bc_ext.o:		$(sd_dir)/cg_operators_class.o\
+				$(field_dir)/field_par_class.o\
+				$(mpi_bc_dir)/mpi_mg_bc_ext_class.o\
+				$(mpi_dir)/mpi_process_class.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o
+
+test_mpi_mg_bc_ext:		surrogate_class.o\
+				parameters_kind.o\
+				parameters_constant.o\
+				parameters_input.o\
+				field_class.o\
+				interface_primary.o\
+				sd_operators_class.o\
+				cg_operators_class.o\
+				field_par_class.o\
+				mpi_process_class.o\
+				mpi_mg_neighbours.o\
+				mpi_mg_derived_types.o\
+				mpi_mg_bc_class.o\
+				mpi_mg_ini_bc_proc.o\
+				mpi_mg_bc_ext_class.o
