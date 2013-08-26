@@ -29,19 +29,10 @@
 
 
         !< intermediate variables
-        integer(ikind) :: i,j
-        integer        :: k,bc_size
-
-
-        !< test data
-        !real(rkind), dimension(nx,ny,ne) :: test_only_compute_along_x
-        !real(rkind), dimension(nx,ny,ne) :: test_only_compute_along_y
-        !real(rkind), dimension(nx,ny,ne) :: test_only_exchange_along_x
-        !real(rkind), dimension(nx,ny,ne) :: test_only_exchange_along_y
-        !real(rkind), dimension(nx,ny,ne) :: test_compute_and_exchange_N
-        !real(rkind), dimension(nx,ny,ne) :: test_compute_and_exchange_S
-        !real(rkind), dimension(nx,ny,ne) :: test_compute_and_exchange_E
-        !real(rkind), dimension(nx,ny,ne) :: test_compute_and_exchange_W
+        integer(ikind)     :: i,j
+        integer            :: k,bc_size
+        logical, parameter :: test=.true.
+        logical            :: test_validated
 
 
         !< the test is designed for (npx,npy)=(2,2)
@@ -75,6 +66,13 @@
 
         !< test only_compute_along_x
         call only_compute_along_x(nodes,bc_size,p_model)
+        if(.not.test) then
+           call write_data('test_cx',f_tested%usr_rank,nodes)
+        else
+           test_validated = compare_data('test_cx',f_tested%usr_rank,nodes)
+           print '(''Proc '', I1, '': test only compute_x : '',L1)',
+     $          f_tested%usr_rank,test_validated
+        end if
 
         
         !< reinitialize the data
@@ -83,6 +81,13 @@
 
         !< test only_compute_along_y
         call only_compute_along_y(nodes,bc_size,p_model)
+        if(.not.test) then
+           call write_data('test_cy',f_tested%usr_rank,nodes)
+        else
+           test_validated = compare_data('test_cy',f_tested%usr_rank,nodes)
+           print '(''Proc '', I1, '': test only compute_y : '',L1)',
+     $          f_tested%usr_rank,test_validated
+        end if
 
 
         !< reinitialize the data
@@ -105,6 +110,13 @@
              call mpi_op%finalize_mpi()
              stop 'usr_rank not recognized'
         end select
+        if(.not.test) then
+           call write_data('test_ex',f_tested%usr_rank,nodes)
+        else
+           test_validated = compare_data('test_ex',f_tested%usr_rank,nodes)
+           print '(''Proc '', I1, '': test compute_exchange_x : '',L1)',
+     $          f_tested%usr_rank,test_validated
+        end if
 
 
         !< reinitialize the data
@@ -127,24 +139,47 @@
              call mpi_op%finalize_mpi()
              stop 'usr_rank not recognized'
         end select
+        if(.not.test) then
+           call write_data('test_ey',f_tested%usr_rank,nodes)
+        else
+           test_validated = compare_data('test_ey',f_tested%usr_rank,nodes)
+           print '(''Proc '', I1, '': test compute_exchange_y : '',L1)',
+     $          f_tested%usr_rank,test_validated
+        end if
 
 
         !< reinitialize the data
         nodes = ini_data(f_tested%usr_rank)
 
+        !< the test only_exchange_x and only_exchange_y
+        !> cannnot be performed with npx=2 and npy=2
 
-        !< test only_exchange(x)
-        call only_exchange(
-     $       mpi_mg, f_tested, nodes, x_direction)
-
-
-        !< reinitialize the data
-        nodes = ini_data(f_tested%usr_rank)
-
-
-        !< test only_exchange(y)
-        call only_exchange(
-     $       mpi_mg, f_tested, nodes, y_direction)
+c$$$        !< test only_exchange(x)
+c$$$        call only_exchange(
+c$$$     $       mpi_mg, f_tested, nodes, x_direction)
+c$$$        if(.not.test) then
+c$$$           call write_data('test_Ex',f_tested%usr_rank,nodes)
+c$$$        else
+c$$$           test_validated = compare_data('test_Ex',f_tested%usr_rank,nodes)
+c$$$           print '(''Proc '', I1, '': test only_exchange_x : '',L1)',
+c$$$     $          f_tested%usr_rank,test_validated
+c$$$        end if
+c$$$
+c$$$
+c$$$        !< reinitialize the data
+c$$$        nodes = ini_data(f_tested%usr_rank)
+c$$$
+c$$$
+c$$$        !< test only_exchange(y)
+c$$$        call only_exchange(
+c$$$     $       mpi_mg, f_tested, nodes, y_direction)
+c$$$        if(.not.test) then
+c$$$           call write_data('test_Ey',f_tested%usr_rank,nodes)
+c$$$        else
+c$$$           test_validated = compare_data('test_Ey',f_tested%usr_rank,nodes)
+c$$$           print '(''Proc '', I1, '': test only_exchange_y : '',L1)',
+c$$$     $          f_tested%usr_rank,test_validated
+c$$$        end if
 
 
         !< finalization of the mpi process
@@ -176,8 +211,102 @@
           integer, intent(in) :: proc_rank,i,j,k
           real(rkind)         :: var
 
-          var = proc_rank
+          var = 1000*proc_rank+100*k+10*j+i
 
         end function compute_ini_data
+
+
+        subroutine write_data(filename_base,proc_rank,nodes)
+          implicit none
+
+          character(len=7)                 , intent(in) :: filename_base
+          integer                         , intent(in) :: proc_rank
+          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+
+
+          character(len=14) ::filename
+
+
+          write(filename,'(A7,''_'',I1,''.txt'')'),
+     $         filename_base, proc_rank
+
+          open(unit=11,
+     $         file=filename,
+     $         status='unknown',
+     $         position='rewind')
+
+          do j=1, ny
+             do i=1,nx
+                write(11,'(4F10.6)'),
+     $               nodes(i,j,1), nodes(i,j,2),
+     $               nodes(i,j,3), nodes(i,j,4)
+             end do
+          end do
+
+          close(11)
+
+        end subroutine write_data
+
+        subroutine read_data(filename_base,proc_rank,nodes)
+          implicit none
+
+          character(len=7)                , intent(in)   :: filename_base
+          integer                         , intent(in)   :: proc_rank
+          real(rkind), dimension(nx,ny,ne), intent(inout):: nodes
+
+
+          character(len=26) :: filename
+
+
+          write(filename,'(''./data_test/'',A7,''_'',I1,''.txt'')'),
+     $         filename_base, proc_rank
+
+          open(unit=11,
+     $         file=filename,
+     $         status='unknown',
+     $         position='rewind')
+
+          do j=1, ny
+             do i=1,nx
+                read(11,'(4F10.6)'),
+     $               nodes(i,j,1), nodes(i,j,2),
+     $               nodes(i,j,3), nodes(i,j,4)
+             end do
+          end do
+
+          close(11)
+
+        end subroutine read_data
+
+
+        function compare_data(filename_base,proc_rank,nodes)
+     $     result(test_validated)
+          implicit none
+
+          character(len=7)                , intent(in) :: filename_base
+          integer                         , intent(in) :: proc_rank
+          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+          logical                                      :: test_validated
+
+          real(rkind), dimension(nx,ny,ne) :: test_nodes
+
+          call read_data(filename_base,proc_rank,test_nodes)
+
+          k=1
+          test_validated=.true.
+          do while (test_validated.and.(k.le.ne))
+             j=1
+             do while (test_validated.and.(j.le.ny))
+                i=1
+                do while (test_validated.and.(i.le.nx))
+                   test_validated=test_nodes(i,j,k).eq.nodes(i,j,k)
+                   i=i+1
+                end do
+                j=j+1
+             end do
+             k=k+1
+          end do
+
+        end function compare_data
 
       end program test_reflection_xy_par_module

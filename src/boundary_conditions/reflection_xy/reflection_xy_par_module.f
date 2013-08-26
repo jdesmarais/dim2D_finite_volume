@@ -372,7 +372,11 @@
           call MPI_ISSEND(
      $         nodes, 1, this%com_send(card_pt),
      $         this%com_rank(card_pt), tag,
-     $         f_used%comm_2d, mpi_requests(1))
+     $         f_used%comm_2d, mpi_requests(1),ierror)
+          if(ierror.ne.MPI_SUCCESS) then
+             call mpi_op%finalize_mpi()
+             stop 'reflection_xy_par_module: MPI_ISSEND failed'
+          end if
 
           
           !< compute the tag identifying the receving MPI request
@@ -385,7 +389,11 @@
           call MPI_IRECV(
      $         nodes, 1, this%com_recv(card_pt),
      $         this%com_rank(card_pt), tag,
-     $         f_used%comm_2d, mpi_requests(2)) !<compute the tag
+     $         f_used%comm_2d, mpi_requests(2),ierror)
+          if(ierror.ne.MPI_SUCCESS) then
+             call mpi_op%finalize_mpi()
+             stop 'reflection_xy_par_module: MPI_IRECV failed'
+          end if
 
 
           !< overlap some communications with computations
@@ -521,7 +529,10 @@
      $            nodes, 1, this%com_send(card_pt(k)),
      $            this%com_rank(card_pt(k)), tag,
      $            f_used%comm_2d, mpi_requests(2*k-1),ierror)
-
+             if(ierror.ne.MPI_SUCCESS) then
+                call mpi_op%finalize_mpi()
+                stop 'reflection_xy_par_module: MPI_ISSEND failed'
+             end if
              
              !< compute the tag identifying the receving MPI request
              tag = compute_mpi_tag(
@@ -533,6 +544,10 @@
      $            nodes, 1, this%com_recv(card_pt(k)),
      $            this%com_rank(card_pt(k)), tag,
      $            f_used%comm_2d, mpi_requests(2*k),ierror)
+             if(ierror.ne.MPI_SUCCESS) then
+                call mpi_op%finalize_mpi()
+                stop 'reflection_xy_par_module: MPI_IRECV failed'
+             end if
 
           end do
 
