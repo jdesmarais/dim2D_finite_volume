@@ -32,7 +32,7 @@
         integer, parameter :: ic_choice = drop_retraction
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = reflection_xy_choice !periodic_xy_choice
+        integer, parameter :: bc_choice = periodic_xy_choice
 
         !<output choice
         integer, parameter :: io_choice   = netcdf_choice

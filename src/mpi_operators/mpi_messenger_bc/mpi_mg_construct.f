@@ -133,11 +133,18 @@
              end if
 
              !< combining the derived types for receiving
+             !--------------------------------------------
+             !< strangely enough, we need to inverse the
+             !> order of the two derived types in the
+             !> reception compared to the sending to make
+             !> sure that the reception of the structure
+             !> is done in the correct order
+             !--------------------------------------------
              array_displacements(1)=0
              array_displacements(2)=0
              call MPI_TYPE_CREATE_STRUCT(
      $            2,(/1,1/),array_displacements,
-     $            (/com_recv(W),com_recv(E)/),
+     $            (/com_recv(E),com_recv(W)/),
      $            recv_struc_x, ierror)
              if(ierror.ne.MPI_SUCCESS) then
                 call mpi_op%finalize_mpi()
@@ -199,6 +206,13 @@
              end if
 
              !< combining the derived types for receiving
+             !--------------------------------------------
+             !< strangely enough, we need to inverse the
+             !> order of the two derived types in the
+             !> reception compared to the sending to make
+             !> sure that the reception of the structure
+             !> is done in the correct order
+             !--------------------------------------------
              array_displacements(1)=0
              array_displacements(2)=0
              call MPI_TYPE_CREATE_STRUCT(

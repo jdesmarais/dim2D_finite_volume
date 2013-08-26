@@ -1,3 +1,19 @@
+      !> @file
+      !> module encapsulating subroutines for the computation of 
+      !> boundary layers using reflection xy boundary conditions
+      !
+      !> @author 
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module encapsulating subroutines for the computation of 
+      !> boundary layers using reflection xy boundary conditions
+      !> only compute and exchange subroutines are needed for the
+      !> reflection xy boundary conditions
+      !
+      !> @date
+      ! 26_08_2013 - initial version - J.L. Desmarais
+      !-----------------------------------------------------------------
       module reflection_xy_par_module
 
         use dim2d_eq_class      , only : dim2d_eq
@@ -138,7 +154,7 @@
         !
         !> @brief
         !> subroutine computing the boundary layers along the
-        !> y-direction (E and W) using reflection b.c.
+        !> x-direction (E and W) using reflection b.c.
         !
         !> @date
         !> 23_08_2013 - initial version - J.L. Desmarais
@@ -281,7 +297,7 @@
           !< wait for all requests to be finished
           call MPI_WAITALL(2, mpi_requests, status, ierror)
           if(ierror.ne.MPI_SUCCESS) then
-             print *, 'reflection_xy_par_model'
+             print *, 'reflection_xy_par_module'
              print *, 'compute_and_exchange_along_x'
              stop 'MPI_WAITALL failed'
           end if
@@ -556,7 +572,7 @@
           call MPI_WAITALL(4, mpi_requests, status, ierror)
           if(ierror.ne.MPI_SUCCESS) then
              call mpi_op%finalize_mpi()
-             print *, 'reflection_xy_par_model'
+             print *, 'reflection_xy_par_module'
              print *, 'only_exchange'
              stop 'MPI_WAITALL failed'
           end if

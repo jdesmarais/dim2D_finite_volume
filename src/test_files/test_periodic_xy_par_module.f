@@ -1,178 +1,139 @@
       !> @file
-      !> test file for the module 'mpi_mg_construct'
+      !> test file for the module 'periodic_xy_par_module'
       !
       !> @author 
       !> Julien L. Desmarais
       !
       !> @brief
-      !> test the initialization of the mpi construct
-      !> by exchanging information between two tiles
+      !> test the computation and exchange subroutines for
+      !> periodic xy
       !
       !> @date
-      ! 26_08_2013 - initial version - J.L. Desmarais
+      ! 27_08_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      program test_mpi_mg_construct
-      
-        use cg_operators_class , only : cg_operators
-        use field_par_class    , only : field_par
-        use mpi
-        use mpi_mg_bc_ext_class, only : mpi_mg_bc_ext
-        use mpi_mg_construct   , only : update_mpi_derived_types
-        use mpi_process_class  , only : mpi_process
-        use parameters_constant, only : periodic_xy_choice,N,E
-        use parameters_input   , only : nx,ny,ne,npx,npy,bc_choice
-        use parameters_kind    , only : ikind, rkind
+       program test_periodic_xy_par_module
+
+        use cg_operators_class    , only : cg_operators
+        use field_par_class       , only : field_par
+        use mpi_mg_bc_ext_class   , only : mpi_mg_bc_ext
+        use mpi_process_class     , only : mpi_process
+        use parameters_constant   , only : periodic_xy_choice,
+     $                                     x_direction, y_direction
+        use parameters_input      , only : nx,ny,ne,npx,npy,bc_choice
+        use parameters_kind       , only : ikind, rkind
+        use periodic_xy_par_module, only : only_compute_along_x,
+     $       only_compute_along_y,
+     $       only_exchange
 
         implicit none
 
 
         !< operators tested
-        type(field_par)    :: f_tested
-        type(mpi_process)  :: mpi_op
-        type(mpi_mg_bc_ext):: mpi_mg
-        type(cg_operators) :: s_op
+        type(field_par)                  :: f_tested
+        real(rkind), dimension(nx,ny,ne) :: nodes
+        type(cg_operators)               :: s_op
+        type(mpi_process)                :: mpi_op
+        type(mpi_mg_bc_ext)              :: mpi_mg
 
 
         !< intermediate variables
-        integer                             :: ierror,sendtag,recvtag
-        integer, dimension(MPI_STATUS_SIZE) :: status
-        logical, parameter                  :: test=.true.
-        logical                             :: test_validated
+        integer(ikind)     :: i,j
+        integer            :: k,bc_size
+        logical, parameter :: test=.true.
+        logical            :: test_validated
 
-        
+
         !< the test is designed for (npx,npy)=(2,2)
         !> and periodic boundary conditions
-        if((npx.ne.2).or.(npy.ne.2).or.
-     $       (bc_choice.ne.periodic_xy_choice)) then
-           print '(''the test needs (npx,npy)=(2,2)'')'
+        if((npx.ne.2).or.(npy.ne.2).or.(nx.ne.10).or.(ny.ne.10).or.
+     $       (ne.ne.4).or.(bc_choice.ne.periodic_xy_choice)) then
+           print '(''the test needs (npx,npy,nx,ny)=(2,2,10,10)'')'
            stop 'and bc_choice=periodic_xy_choice'
         end if
 
 
-        !< initialization of the mpi process
+        !< initialization of intermediate variables
+        bc_size = s_op%get_bc_size()
+
+
+        !< initialize the mpi process
         call mpi_op%ini_mpi()
 
 
         !< initialization of the cartesian communicator
         call f_tested%ini_cartesian_communicator()
 
-        
-        !< initialization of 'mpi_messenger_bc'
-        !> with the update of the MPI derived types
-        call mpi_mg%initialize(f_tested,s_op)
+
+        !< initialize the data
+        nodes = ini_data(f_tested%usr_rank)
 
 
-c$$$        !< test the update of the MPI derived types
-c$$$        call update_mpi_derived_types(
-c$$$     $       mpi_mg%com_recv, mpi_mg%com_send,
-c$$$     $        mpi_mg%com_rank,
-c$$$     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
-        
-
-        !< initialize the data saved in f_tested
-        f_tested%nodes = ini_data(f_tested%usr_rank)
+        !< initialize the 'mpi_mg_bc_ext' object
+        !> and especially update the mpi derived types 
+        !> with mpi structures
+        call mpi_mg%initialize(f_tested, s_op)
 
 
-        !< test the exchange of data in the x-direction
-        !> to check if the MPI structure works
-        select case(f_tested%usr_rank)
-
-          case(0)
-
-             sendtag = 123
-             call MPI_SEND(
-     $            f_tested%nodes, 1, mpi_mg%com_send(E), 2, sendtag,
-     $            f_tested%comm_2d, ierror)
-             
-          case(2)
-             recvtag = 123
-             call MPI_RECV(
-     $            f_tested%nodes, 1, mpi_mg%com_recv(E), 0, recvtag,
-     $            f_tested%comm_2d, status, ierror)
-             
-          case(1)
-             
-             recvtag=124
-             call MPI_RECV(
-     $            f_tested%nodes, 1, mpi_mg%com_recv(E), 3, recvtag,
-     $            f_tested%comm_2d, status, ierror)
-             
-          case(3)
-             sendtag=124
-             call MPI_SEND(
-     $            f_tested%nodes, 1, mpi_mg%com_send(E), 1, sendtag,
-     $            f_tested%comm_2d, ierror)
-
-          case default
-             call mpi_op%finalize_mpi()
-             stop 'problem with nb of procs'
-        end select
-
-        if(ierror.ne.MPI_SUCCESS) then
-           call mpi_op%finalize_mpi()
-           stop 'MPI_SEND or RECV Failed'
-        end if
-
+        !< test only_compute_along_x
+        call only_compute_along_x(nodes,bc_size)
         if(.not.test) then
-           call write_data('test_constructx',f_tested%usr_rank,f_tested%nodes)
+           call write_data('test_pcx',f_tested%usr_rank,nodes)
         else
-           test_validated = compare_data(
-     $          'test_constructx',f_tested%usr_rank,f_tested%nodes)
-
-           print '(''Proc '', I1, '' : exchange_x: '', L1)',
-     $          f_tested%usr_rank, test_validated
+           test_validated = compare_data('test_pcx',f_tested%usr_rank,nodes)
+           print '(''Proc '', I1, '': test only compute_x : '',L1)',
+     $          f_tested%usr_rank,test_validated
         end if
+
         
+        !< reinitialize the data
+        nodes = ini_data(f_tested%usr_rank)
 
-        !< test the exchange of data in the y-direction
-        !> to check if the MPI structure works
-        select case(f_tested%usr_rank)
 
-          case(0)
-
-             sendtag = 123
-             call MPI_SEND(
-     $            f_tested%nodes, 1, mpi_mg%com_send(N), 1, sendtag,
-     $            f_tested%comm_2d, ierror)
-             
-          case(2)
-             recvtag = 124
-             call MPI_RECV(
-     $            f_tested%nodes, 1, mpi_mg%com_recv(N), 3, recvtag,
-     $            f_tested%comm_2d, status, ierror)
-             
-          case(1)
-             
-             recvtag=123
-             call MPI_RECV(
-     $            f_tested%nodes, 1, mpi_mg%com_recv(N), 0, recvtag,
-     $            f_tested%comm_2d, status, ierror)
-             
-          case(3)
-             sendtag=124
-             call MPI_SEND(
-     $            f_tested%nodes, 1, mpi_mg%com_send(N), 2, sendtag,
-     $            f_tested%comm_2d, ierror)
-
-          case default
-             call mpi_op%finalize_mpi()
-             stop 'problem with nb of procs'
-        end select
-
-        if(ierror.ne.MPI_SUCCESS) then
-           call mpi_op%finalize_mpi()
-           stop 'MPI_SEND or RECV Failed'
-        end if
-
+        !< test only_compute_along_y
+        call only_compute_along_y(nodes,bc_size)
         if(.not.test) then
-           call write_data('test_constructy',f_tested%usr_rank,f_tested%nodes)
+           call write_data('test_pcy',f_tested%usr_rank,nodes)
         else
-           test_validated = compare_data(
-     $          'test_constructy',f_tested%usr_rank,f_tested%nodes)
-
-           print '(''Proc '', I1, '' : exchange_y: '', L1)',
-     $          f_tested%usr_rank, test_validated
+           test_validated = compare_data('test_pcy',f_tested%usr_rank,nodes)
+           print '(''Proc '', I1, '': test only compute_y : '',L1)',
+     $          f_tested%usr_rank,test_validated
         end if
+
+
+        !< reinitialize the data
+        nodes = ini_data(f_tested%usr_rank)
+
+
+        !< test only_exchange(x)
+        call only_exchange(
+     $       mpi_mg, f_tested, nodes, x_direction)
+        if(.not.test) then
+           call write_data('test_pEx',f_tested%usr_rank,nodes)
+        else
+           test_validated = compare_data('test_pEx',f_tested%usr_rank,nodes)
+           print '(''Proc '', I1, '': test only_exchange_x : '',L1)',
+     $          f_tested%usr_rank,test_validated
+        end if
+
+
+        !< reinitialize the data
+        nodes = ini_data(f_tested%usr_rank)
+
+
+        !< test only_exchange(y)
+        call only_exchange(
+     $       mpi_mg, f_tested, nodes, y_direction)
+        if(.not.test) then
+           call write_data('test_pEy',f_tested%usr_rank,nodes)
+        else
+           test_validated = compare_data('test_pEy',f_tested%usr_rank,nodes)
+           print '(''Proc '', I1, '': test only_exchange_y : '',L1)',
+     $          f_tested%usr_rank,test_validated
+        end if
+
+
+        !< finalization of the mpi process
+        call mpi_op%finalize_mpi()
 
         contains
 
@@ -197,9 +158,6 @@ c$$$     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
 
           integer             , intent(in) :: proc_rank
           real(rkind), dimension(nx,ny,ne) :: nodes
-
-          integer(ikind) :: i,j
-          integer        :: k
 
           do k=1,ne
              do j=1,ny
@@ -239,8 +197,7 @@ c$$$     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
         function compute_ini_data(proc_rank,i,j,k) result(var)
           implicit none
 
-          integer(ikind), intent(in) :: i,j
-          integer       , intent(in) :: proc_rank,k
+          integer, intent(in) :: proc_rank,i,j,k
           real(rkind)         :: var
 
           var = 1000*proc_rank+100*k+10*j+i
@@ -270,16 +227,15 @@ c$$$     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
         subroutine write_data(filename_base,proc_rank,nodes)
           implicit none
 
-          character(len=15)                , intent(in) :: filename_base
+          character(len=8)                , intent(in) :: filename_base
           integer                         , intent(in) :: proc_rank
           real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
 
 
-          character(len=22) :: filename
-          integer(ikind) :: i,j
+          character(len=14) ::filename
+          
 
-
-          write(filename,'(A15,''_'',I1,''.txt'')')
+          write(filename,'(A8,''_'',I1,''.txt'')')
      $         filename_base, proc_rank
 
           open(unit=11,
@@ -298,7 +254,6 @@ c$$$     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
           close(11)
 
         end subroutine write_data
-
 
         !> @author
         !> Julien L. Desmarais
@@ -321,16 +276,15 @@ c$$$     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
         subroutine read_data(filename_base,proc_rank,nodes)
           implicit none
 
-          character(len=15)                , intent(in)   :: filename_base
+          character(len=8)                , intent(in)   :: filename_base
           integer                         , intent(in)   :: proc_rank
           real(rkind), dimension(nx,ny,ne), intent(inout):: nodes
 
 
-          character(len=33) :: filename
+          character(len=26) :: filename
 
-          integer(ikind) :: i,j
 
-          write(filename, '(''./data_test/'', A15,''_'',I1,''.txt'')')
+          write(filename, '(''./data_test/'', A8,''_'',I1,''.txt'')')
      $         filename_base, proc_rank
 
           open(unit=11,
@@ -384,9 +338,6 @@ c$$$     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
 
           real(rkind), dimension(nx,ny,ne) :: test_nodes
 
-          integer(ikind) :: i,j
-          integer        :: k
-
           call read_data(filename_base,proc_rank,test_nodes)
 
           k=1
@@ -406,4 +357,4 @@ c$$$     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
 
         end function compare_data
 
-      end program test_mpi_mg_construct
+      end program test_periodic_xy_par_module

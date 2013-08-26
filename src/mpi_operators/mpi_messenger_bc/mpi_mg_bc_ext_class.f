@@ -22,6 +22,7 @@
         use field_par_class   , only : field_par
         use mpi_mg_bc_class   , only : mpi_mg_bc
         use mpi_mg_ini_bc_proc, only : ini_bc_procedures
+        use mpi_mg_construct  , only : update_mpi_derived_types
         use parameters_input  , only : nx,ny,ne
 
         implicit none
@@ -111,6 +112,15 @@
           call ini_bc_procedures(
      $         f_used%comm_2d,
      $         this%proc_x_choice, this%proc_y_choice, this%exchange_id)
+
+
+          !< update the MPI derived types
+          !> some derived types can be gathered in one structure
+          !> to exchange several subarrays to the same processor
+          !> in one time
+          call update_mpi_derived_types(
+     $         this%com_recv, this%com_send, this%com_rank,
+     $         this%proc_x_choice, this%proc_y_choice)
 
         end subroutine initialize
 
