@@ -37,17 +37,23 @@
         !> @date
         !> 21_08_2012 - initial version - J.L. Desmarais
         !
-        !>@param comm_2d
-        !> MPI Cartesian communicator betwwen the tiles
-        !
         !>@param tile_nx
         !> number of gridpoints along the x-axis for the tile
         !
         !>@param tile_ny
         !> number of gridpoints along the y-axis for the tile
         !
-        !> @param com_rank
-        !> rank of the processor computing the neighbouring tiles
+        !>@param tile_ne
+        !> number of governing equations
+        !
+        !>@param bc_size
+        !> size of the boundary layer
+        !
+        !> @param com_send
+        !> MPI derived types for sending data
+        !
+        !> @param com_recv
+        !> MPI derived types for receiving data
         !--------------------------------------------------------------
         subroutine ini_mpi_derived_types(
      $       tile_nx, tile_ny, tile_ne, bc_size,
