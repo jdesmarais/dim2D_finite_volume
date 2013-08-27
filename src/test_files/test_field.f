@@ -13,7 +13,7 @@
       program test_field
 
         use parameters_input, only : nx, ny, ne
-        use parameters_kind , only : ikind
+        use parameters_kind , only : rkind
         use field_class     , only : field
 
 
@@ -24,6 +24,19 @@
 
         logical :: test_validated
 
+
+        real(rkind) :: x_min, x_max, y_min, y_max
+        integer     :: bc_size
+
+        x_min   = 0
+        x_max   = 5
+        y_min   = 0
+        y_max   = 5
+        bc_size = 2
+
+
+        call field_tested%ini_coordinates(x_min,x_max,y_min,y_max,bc_size)
+        
 
         print '(''allocate_tables test'')'
         print '(''--------------------'')'

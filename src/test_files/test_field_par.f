@@ -15,11 +15,22 @@
         use field_par_class  , only : field_par
         use mpi
         use mpi_process_class, only : mpi_process
+        use parameters_kind  , only : rkind
 
         
         !< operators tested
         type(field_par)   :: f_tested
         type(mpi_process) :: mpi_op
+
+        real(rkind) :: x_min, x_max, y_min, y_max
+        integer     :: bc_size
+
+        x_min = 0.d0
+        x_max = 11.d0
+        y_min = 0.d0
+        y_max = 13.d0
+
+        bc_size = 2
 
 
         !< initialize the mpi processes
@@ -29,6 +40,10 @@
         !< initialize the cartesian communicator
         call f_tested%ini_cartesian_communicator()
         
+
+        !< initialize the coordinate table
+        call f_tested%ini_coordinates(x_min,x_max,y_min,y_max,bc_size)
+
 
         !< test the data
         print '(''I, proc '', I2, '' I belongs to the comm '', I2)',

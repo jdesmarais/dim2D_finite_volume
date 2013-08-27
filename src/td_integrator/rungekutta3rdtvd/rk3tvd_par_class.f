@@ -5,7 +5,7 @@
       !> “Efficient implementation of essentially non-
       !> oscillatory shock-capturing methods”, J. Comput.
       !> Phys., 77 (1988), pp. 439-471, C.-W. Shu and
-      !> S. Osher
+      !> S. Osher, on a parallel memory distributed system
       !
       !> @author 
       !> Julien L. Desmarais
@@ -17,10 +17,10 @@
       !> “Efficient implementation of essentially non-
       !> oscillatory shock-capturing methods”, J. Comput.
       !> Phys., 77 (1988), pp. 439-471, C.-W. Shu and
-      !> S. Osher
+      !> S. Osher, on a parallel memory distributed system
       !
       !> @date
-      !> 13_08_2013 - initial version                   - J.L. Desmarais
+      !> 27_08_2013 - initial version - J.L. Desmarais
       !
       !> \f{eqnarray*}{
       !> u_1     &=& u_n + \Delta t*\frac{d u_n}{dt} \\\
@@ -30,24 +30,25 @@
       !>             u_2 + \Delta t * \frac{d u_2}{dt}\right)\\\
       !> \f}
       !-----------------------------------------------------------------
-      module rk3tvd_class
+      module rk3tvd_par_class
 
-        use bc_operators_class , only : bc_operators
-        use cg_operators_class , only : cg_operators
-        use dim2d_eq_class     , only : dim2d_eq
-        use field_class        , only : field
-        use fv_operators_class , only : fv_operators
-        use parameters_input   , only : nx,ny,ne
-        use parameters_kind    , only : rkind, ikind
-        use td_integrator_class, only : td_integrator
+        use bc_operators_par_class , only : bc_operators
+        use cg_operators_class     , only : cg_operators
+        use dim2d_eq_class         , only : dim2d_eq
+        use field_par_class        , only : field_par
+        use fv_operators_class     , only : fv_operators
+        use parameters_input       , only : nx,ny,ne
+        use parameters_kind        , only : rkind, ikind
+        use td_integrator_par_class, only : td_integrator_par
 
         implicit none
 
 
-        !> @class rk3tvd
+        !> @class rk3tvd_par
         !> class encapsulating subroutines to integrate
         !> the governing equations using Runge-Kutta 3rd
-        !> order time integration scheme
+        !> order time integration scheme on a parallel 
+        !> memory distributed system
         !>
         !> @param integrate
         !> integrate the computational field for dt
@@ -59,12 +60,12 @@
         !>             u_2 + \Delta t * \frac{d u_2}{dt}\right)\\\
         !> \f}
         !---------------------------------------------------------------
-        type, extends(td_integrator) :: rk3tvd
+        type, extends(td_integrator_par) :: rk3tvd_par
 
           contains
           procedure, nopass :: integrate
 
-        end type rk3tvd
+        end type rk3tvd_par
 
 
         contains
@@ -76,9 +77,10 @@
         !> @brief
         !> subroutine to integrate the governing equations using
         !> the numerical scheme developed by C.W.Shu and S.Osher
+        !> on a parallel memory distributed system
         !
         !> @date
-        !> 13_08_2013 - initial version - J.L. Desmarais
+        !> 27_08_2013 - initial version - J.L. Desmarais
         !
         !>@param field_used
         !> object encapsulating the main variables
@@ -95,15 +97,17 @@
         !>@param dt
         !> time step integrated
         !--------------------------------------------------------------
-        subroutine integrate(field_used, sd, p_model, td, dt)
+        subroutine integrate(
+     $       field_used, sd, p_model, td, bc_par_used, dt)
 
           implicit none
 
-          class(field)       , intent(inout) :: field_used
-          type(cg_operators) , intent(in)    :: sd
-          type(dim2d_eq)     , intent(in)    :: p_model
-          class(td_operators), intent(in)    :: td
-          real(rkind)        , intent(in)    :: dt
+          class(field_par)      , intent(inout) :: field_used
+          type(cg_operators)    , intent(in)    :: sd
+          type(dim2d_eq)        , intent(in)    :: p_model
+          type(fv_operators)    , intent(in)    :: td
+          type(bc_operators_par), intent(in)    :: bc_par_used
+          real(rkind)           , intent(in)    :: dt
 
           real(rkind) :: b2 !<Runge-Kutta scheme coeff
           real(rkind) :: b3 !<Runge-Kutta scheme coeff
@@ -114,8 +118,6 @@
           real(rkind), dimension(nx,ny,ne) :: nodes_tmp
           real(rkind), dimension(nx,ny,ne) :: time_dev
 
-          type(bc_operators) :: bc_used !<boundary conditions
-          
 
           !<initialization of the coeff for the Runge-Kutta scheme
           if(rkind.eq.8) then
@@ -151,7 +153,8 @@
             
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call bc_used%apply_bc_on_nodes(field_used,sd)
+          call bc_par_used%apply_bc_on_nodes(
+     $         field_used, field_used%nodes, sd, p_model)
 
 
           !<runge-kutta second step
@@ -185,7 +188,8 @@
           
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call bc_used%apply_bc_on_nodes(field_used,sd)
+          call bc_par_used%apply_bc_on_nodes(
+     $         field_used, field_used%nodes, sd, p_model)
 
 
           !<runge-kutta third step
@@ -221,11 +225,12 @@
 
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call bc_used%apply_bc_on_nodes(field_used,sd)
+          call bc_par_used%apply_bc_on_nodes(
+     $         field_used, field_used%nodes, sd, p_model)
 
         end subroutine integrate
 
-      end module rk3tvd_class
+      end module rk3tvd_par_class
 
 
 c$$$      print *,'first step'

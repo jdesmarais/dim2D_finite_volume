@@ -55,6 +55,78 @@
           real(rkind) :: dx
           real(rkind) :: dy
 
+          contains
+
+          procedure, pass :: ini_coordinates
+
         end type field
+
+
+        contains
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine to integrate the governing equations using
+        !> the numerical scheme developed by C.W.Shu and S.Osher
+        !
+        !> @date
+        !> 27_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !
+        !>@param x_min
+        !> coordinate along the x-axis of the SW border
+        !
+        !>@param x_max
+        !> coordinate along the x-axis of the NE border
+        !
+        !>@param y_min
+        !> coordinate along the y-axis of the SW border
+        !
+        !>@param y_max
+        !> coordinate along the y-axis of the NE border
+        !
+        !>@param bc_size
+        !> size of the boundary layer
+        !--------------------------------------------------------------
+        subroutine ini_coordinates(this,x_min,x_max,y_min,y_max,bc_size)
+
+          implicit none
+
+          class(field), intent(inout) :: this
+          real(rkind) , intent(in)    :: x_min
+          real(rkind) , intent(in)    :: x_max
+          real(rkind) , intent(in)    :: y_min
+          real(rkind) , intent(in)    :: y_max
+          integer     , intent(in)    :: bc_size
+
+
+          integer(ikind) :: i,j
+
+
+          !< initialize the space steps along the 
+          !> x and y directions
+          this%dx = (x_max-x_min)/(nx-1-2*bc_size)
+          this%dy = (y_max-y_min)/(ny-1-2*bc_size)
+
+
+          !< initialize the coordinates along the
+          !> x-direction
+          do i=1, nx
+             this%x_map(i)=x_min + (i-1-bc_size)*this%dx
+          end do
+
+
+          !< initialize the coordinates along the
+          !> y-direction
+          do j=1, ny
+             this%y_map(j)=y_min + (j-1-bc_size)*this%dy
+          end do
+
+        end subroutine ini_coordinates
 
       end module field_class

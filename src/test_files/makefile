@@ -17,7 +17,7 @@ profileGuided = $(LERNAEANHYDRA_PROFILE_GUIDED) #profile guided
 #------------------------------------------------------------------------
 #user main options
 #------------------------------------------------------------------------
-src_dir	   = /home/jdesmara/Code/lernaeanhydra_opt4/src
+src_dir	   = /home/jdesmarais/Code/lernaeanhydra_opt4/src
 config_dir = $(src_dir)/test_files/config/
 bc_choice  = periodic_xy
 
@@ -305,8 +305,10 @@ $(field_dir)/field_class.o:	$(field_dir)/surrogate_class.o\
 				$(param_dir)/parameters_kind.o
 
 $(field_dir)/field_par_class.o:	$(field_dir)/field_class.o\
+				$(mpi_dir)/mpi_process_class.o\
 				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
 
 
 #space discretization operators
@@ -457,17 +459,33 @@ $(rbc_dir)/bc_operators_par_class.o:$(sd_dir)/cg_operators_class.o\
 $(ti_dir)/td_integrator_class.o:$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_kind.o\
-				$(phy_eq_dir)/phy_model_eq_class.o\
-				$(td_dir)/td_operators_class.o
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(fv_dir)/fv_operators_class.o
 
 $(rk3tvd_dir)/rk3tvd_class.o:	$(bc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_class.o\
+				$(fv_dir)/fv_operators_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
-				$(phy_eq_dir)/phy_model_eq_class.o\
-				$(ti_dir)/td_integrator_class.o\
-				$(td_dir)/td_operators_class.o
+				$(ti_dir)/td_integrator_class.o
+
+$(ti_dir)/td_integrator_par_class.o:$(sbc_dir)/bc_operator_par_class.o\
+				$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(field_dir)/field_par_class.o\
+				$(fv_dir)/fv_operators_class.o\
+				$(param_dir)/parameters_kind.o
+
+$(rk3tvd_dir)/rk3tvd_par_class.o:$(sbc_dir)/bc_operators_par_class.o\
+				$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(field_dir)/field_par_class.o\
+				$(fv_dir)/fv_operators_class.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(ti_dir)/td_integrator_par_class.o
 
 #io operators
 $(io_dir)/io_operators_module.o:
@@ -740,12 +758,15 @@ sim_dim2d:			surrogate_class.o\
 				rk3tvd_class.o
 
 test_field_par.o:		$(field_dir)/field_par_class.o\
-				$(mpi_dir)/mpi_process_class.o
+				$(mpi_dir)/mpi_process_class.o\
+				$(param_dir)/parameters_kind.o
 
 test_field_par:			field_par_class.o\
 				field_class.o\
 				surrogate_class.o\
-				mpi_process_class.o
+				mpi_process_class.o\
+				parameters_input.o\
+				parameters_kind.o
 
 test_mpi_mg_bc.o:		$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_par_class.o\
