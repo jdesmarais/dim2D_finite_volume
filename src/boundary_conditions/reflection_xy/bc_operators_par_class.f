@@ -20,7 +20,6 @@
         use cg_operators_class   , only : cg_operators
         use dim2d_eq_class       , only : dim2d_eq
         use field_par_class      , only : field_par
-        use mpi_mg_bc_ext_class  , only : mpi_mg_bc_ext
                                  
         use parameters_constant  , only :
      $     x_direction,

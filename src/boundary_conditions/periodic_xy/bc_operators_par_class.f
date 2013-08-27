@@ -12,7 +12,7 @@
       !> conditions on a parallel distributed system
       !
       !> @date
-      ! 26_08_2013  - initial version - J.L. Desmarais
+      ! 27_08_2013  - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module bc_operators_par_class
 
@@ -20,21 +20,19 @@
         use cg_operators_class   , only : cg_operators
         use dim2d_eq_class       , only : dim2d_eq
         use field_par_class      , only : field_par
-        use mpi_mg_bc_ext_class  , only : mpi_mg_bc_ext
+        use mpi_process_class    , only : mpi_process
                                  
         use parameters_constant  , only :
      $     x_direction,
      $     y_direction,
      $     only_compute_proc,
-     $     compute_and_exchange_proc,
      $     only_exchange_proc
         use parameters_input     , only : nx,ny,ne
         use parameters_kind      , only : ikind,rkind
 
         use periodic_xy_par_module, only : 
      $     only_compute_along_x, only_compute_along_y,
-     $     only_exchange,
-     $     compute_and_exchange_along_x, compute_and_exchange_along_y
+     $     only_exchange
 
 
         implicit none
@@ -72,7 +70,7 @@
           !> memory system
           !
           !> @date
-          !> 26_08_2013 - initial version - J.L. Desmarais
+          !> 27_08_2013 - initial version - J.L. Desmarais
           !
           !>@param f_used
           !> object encapsulating the main variables
@@ -97,25 +95,28 @@
             type(dim2d_eq)                  , intent(in)    :: p_model
             
             
-            integer :: bc_size
+            integer           :: bc_size,neq
+            type(mpi_process) :: mpi_op
             
             
             bc_size = s_op%get_bc_size()
+            neq     = p_model%get_eq_nb()
             
             
             !compute the boundary layers along the x-direction
             select case(this%proc_x_choice)
             
               case(only_compute_proc)
-                 call only_compute_along_x(nodes,bc_size,p_model)
-            
-              case(compute_and_exchange_proc)
-                 call compute_and_exchange_along_x(
-     $                this,f_used,nodes,bc_size,p_model,
-     $                this%exchange_id(x_direction))
+                 call only_compute_along_x(nodes,bc_size)
             
               case(only_exchange_proc)
                  call only_exchange(this,f_used,nodes,x_direction)
+
+              case default
+                 call mpi_op%finalize_mpi()
+                 print '(''bc_operators_par_class'')'
+                 print '(''periodic_xy_par'')'
+                 stop 'proc_x_choice not recognized'
                  
             end select
             
@@ -124,15 +125,16 @@
             select case(this%proc_y_choice)
             
               case(only_compute_proc)
-                 call only_compute_along_y(nodes,bc_size,p_model)
-            
-              case(compute_and_exchange_proc)
-                 call compute_and_exchange_along_y(
-     $                this,f_used,nodes,bc_size,p_model,
-     $                this%exchange_id(y_direction))
+                 call only_compute_along_y(nodes,bc_size)
             
               case(only_exchange_proc)
                  call only_exchange(this,f_used,nodes,y_direction)
+
+              case default
+                 call mpi_op%finalize_mpi()
+                 print '(''bc_operators_par_class'')'
+                 print '(''periodic_xy_par'')'
+                 stop 'proc_y_choice not recognized'
                  
             end select
 
