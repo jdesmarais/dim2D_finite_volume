@@ -68,6 +68,7 @@
 
         !< test the application of the periodic boundary conditions
         !> on the nodes
+        !DEC$ FORCEINLINE RECURSIVE
         call bc_par_tested%apply_bc_on_nodes(
      $       f_tested, nodes, s_op, p_model)
 

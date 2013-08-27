@@ -3,8 +3,9 @@
 #------------------------------------------------------------------------
 cluster = $(LERNAEANHYDRA_CLUSTER)
 
+
 #------------------------------------------------------------------------
-#user main options
+#user main options for profiling, optimizing ...
 #------------------------------------------------------------------------
 profile       = $(LERNAEANHYDRA_PROFILE)        #ddt/totalview debugging
 analyse       = $(LERNAEANHYDRA_ANALYSE)        #gprof
@@ -12,11 +13,22 @@ trace         = $(LERNAEANHYDRA_TRACE)          #vampir tracing
 report        = $(LERNAEANHYDRA_OPTREPORT)      #optimization report
 profileGuided = $(LERNAEANHYDRA_PROFILE_GUIDED) #profile guided
 
+
+#------------------------------------------------------------------------
+#user main options
+#------------------------------------------------------------------------
+src_dir	   = /home/jdesmara/Code/lernaeanhydra_opt4/src
+config_dir = $(src_dir)/test_files/config/
+bc_choice  = periodic_xy
+
+
 #------------------------------------------------------------------------
 #source files directories
 #------------------------------------------------------------------------
-src_dir	= /home/jdesmarais/Code/lernaeanhydra_opt4/src
-include $(src_dir)/test_files/config/makefile_folders
+#define the folder paths for the source code compilation
+#------------------------------------------------------------------------
+include $(config_dir)/makefile_folders
+
 
 #------------------------------------------------------------------------
 #compiler and options
@@ -28,11 +40,11 @@ INCLUDE =
 LIBS	=
 
 #ifort compiler options------------------------------------------------
-FFLAGS_OP_IFORT		 = -O2 -p -g -ipo-c -132 -inline-factor=300 -warn all
-#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500
+#FFLAGS_OP_IFORT		 = -O2 -p -g -ipo-c -132 -inline-factor=300 -warn all
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=300
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
-#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=400
+FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=300
 #FFLAGS_OP_IFORT		 = -O2 -132 -ipo-c #-DALIGNED #-inline-factor=400
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -guide -inline-factor=400
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400
@@ -40,16 +52,17 @@ FFLAGS_OP_IFORT		 = -O2 -p -g -ipo-c -132 -inline-factor=300 -warn all
 FFLAGS_PROFILE_IFORT	 = -O0 -g -132 -warn all -check all -r8 -traceback	#profiling options 
 FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
-LDFLAGS_OP_IFORT     	 = -O2 -p -g -ipo -132 -inline-factor=300 -warn all
-#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500 #-warn all -check all #GOOD options
+#LDFLAGS_OP_IFORT     	 = -O2 -p -g -ipo -132 -inline-factor=300 -warn all
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=300 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
-#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=400 #-warn all -check all #GOOD options
+LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=300 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -132 -ipo #-DALIGNED #-inline-factor=400 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -guide -inline-factor=400 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400 #-warn all -check all #GOOD options
 LDFLAGS_PROFILE_IFORT	 = -O0 -g -i-dynamic -132 -r8			#profiling options
 LDFLAGS_OPT_REPORT_IFORT = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
+
 
 #gfortran compiler options---------------------------------------------
 FFLAGS_OP_GFORTRAN     	= -O3 -ffixed-line-length-132 -Wall -Wextra -pedantic -fbacktrace #optimized options
@@ -61,59 +74,10 @@ LDFLAGS_OP_GFORTRAN	= -O3 -ffixed-line-length-132 -Wall -Wextra -pedantic -fback
 LDFLAGS_PROFILE_GFORTRAN= -g  -ffixed-line-length-132 -Wall -Wextra -pedantic -fbacktrace #profiling options
 LDFLAGS_ANALYSE_GFORTRAN= -pg -ffixed-line-length-132 -Wall -Wextra -pedantic -fbacktrace #analyse options
 
+
 #path for the mpi, hdf5, netcdf libraries depending on the cluster used----------------------
-ifeq ($(cluster),bolt)
-#intel librairies
-	INCLUDE_IFORT = -I /cm/shared/apps/openmpi/intel/64/current/include
-	INCLUDE_IFORT+= -I /cm/shared/apps/netcdf/gcc/64/4.1.1/include
-	LIBS_IFORT    = -L /cm/shared/apps/netcdf/gcc/64/4.1.1/lib -netcdf
-
-#GFORTRAN libraries
-	INCLUDE_GFORTRAN = -I /cm/shared/apps/netcdf/gcc/64/4.2.1.1-par/include
-	INCLUDE_GFORTRAN+= -I /cm/shared/apps/hdf5/1.8.10-par/include
-	INCLUDE_GFORTRAN+= -I /cm/shared/apps/openmpi/gcc/64/1.6.1/include
-
-	LIBS_GFORTRAN = -lcurl
-	LIBS_GFORTRAN+= -L /cm/shared/apps/netcdf/gcc/64/4.2.1.1-par/lib -lnetcdff -lnetcdf
-	LIBS_GFORTRAN+= -L /cm/shared/apps/hdf5/1.8.10-par/lib -lhdf5_hl -lhdf5 -lmfhdf -ldf
-	LIBS_GFORTRAN+= -L /cm/shared/apps/openmpi/gcc/64/1.6.1/lib64
-
-	INCLUDE_GCC_PAR		= -I /cm/shared/apps/openmpi/gcc/64/1.6.1/include
-	LIBS_GCC_PAR		= -L /cm/shared/apps/openmpi/gcc/64/1.6.1/lib64
-endif
-
-
-ifeq ($(cluster), cartesius)
-#intel libraries
-	INCLUDE_IFORT 		= -I $(SURFSARA_IMPI_INCLUDE)
-	INCLUDE_IFORT          += -I $(SURFSARA_NETCDF_INCLUDE)
-
-	LIBS_IFORT		 = -lcurl
-	LIBS_IFORT		+= -L $(SURFSARA_NETCDF_LIB) -lnetcdff -lnetcdf
-	LIBS_IFORT		+= -L $(SURFSARA_HDF5_LIB) -lhdf5_hl -lhdf5 -lz
-	LIBS_IFORT		+= -L $(SURFSARA_IMPI_LIB)
-
-#LIBS_IFORT		= -L $(SURFSARA_NETCDF_LIB) -lnetcdff -lnetcdf
-#LIBS_IFORT            += -L $(SURFSARA_IMPI_LIB)
-
-ifeq ($(trace),true)
-	LIBS_IFORT             += -L $(VT_LIB_DIR) -lVT $(VT_ADD_LIBS)
-endif
-
-#GFORTRAN libraries
-	INCLUDE_GFORTRAN = -I /cm/shared/apps/netcdf/gcc/64/4.2.1.1-par/include
-	INCLUDE_GFORTRAN+= -I /cm/shared/apps/hdf5/1.8.10-par/include
-	INCLUDE_GFORTRAN+= -I /cm/shared/apps/openmpi/gcc/64/1.6.1/include
-
-	LIBS_GFORTRAN = -lcurl
-	LIBS_GFORTRAN+= -L /cm/shared/apps/netcdf/gcc/64/4.2.1.1-par/lib -lnetcdff -lnetcdf
-	LIBS_GFORTRAN+= -L /cm/shared/apps/hdf5/1.8.10-par/lib -lhdf5_hl -lhdf5 -lmfhdf -ldf
-	LIBS_GFORTRAN+= -L /cm/shared/apps/openmpi/gcc/64/1.6.1/lib64
-
-	INCLUDE_GCC_PAR		= -I /cm/shared/apps/openmpi/gcc/64/1.6.1/include
-	LIBS_GCC_PAR		= -L /cm/shared/apps/openmpi/gcc/64/1.6.1/lib64
-endif
-
+include $(config_dir)/bolt_libraries
+include $(config_dir)/cartesius_libraries
 
 #options handeling depending on the user main options: debug, trace, analyse--
 #IFORT options

@@ -78,6 +78,7 @@
           !< compute the reflection b.c. in E and W boundary layers
           do k=1,ne
              do j=1+bc_size, ny-bc_size
+                !DEC$ IVDEP
                 do i=1,bc_size
                    
                    nodes(i,j,k) = 
@@ -135,6 +136,7 @@
           !< compute the N and S boundary layers
           do k=1, ne
              do j=1, bc_size
+                !DEC$ IVDEP
                 do i=1, nx
                    
                    nodes(i,j,k) = 
@@ -266,6 +268,7 @@
             case(E)
                 do k=1,ne
                    do j=1+bc_size, ny-bc_size
+                      !DEC$ IVDEP
                       do i=1,bc_size
                    
                          nodes(i,j,k) = 
@@ -278,6 +281,7 @@
             case(W)
                do k=1,ne
                    do j=1+bc_size, ny-bc_size
+                      !DEC$ IVDEP
                       do i=1,bc_size
                    
                          nodes(nx-bc_size+i,j,k) = 
@@ -423,6 +427,7 @@
             case(N)
                 do k=1, ne
                    do j=1, bc_size
+                      !DEC$ IVDEP
                       do i=1, nx
                    
                          nodes(i,j,k) = 
@@ -436,6 +441,7 @@
             case(S)
                do k=1, ne
                    do j=1, bc_size
+                      !DEC$ IVDEP
                       do i=1, nx
                    
                          nodes(i,ny-bc_size+j,k) = 
