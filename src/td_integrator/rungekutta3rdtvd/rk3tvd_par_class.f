@@ -32,7 +32,7 @@
       !-----------------------------------------------------------------
       module rk3tvd_par_class
 
-        use bc_operators_par_class , only : bc_operators
+        use bc_operators_par_class , only : bc_operators_par
         use cg_operators_class     , only : cg_operators
         use dim2d_eq_class         , only : dim2d_eq
         use field_par_class        , only : field_par

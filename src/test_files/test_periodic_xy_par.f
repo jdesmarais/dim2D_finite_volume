@@ -291,6 +291,7 @@
         !--------------------------------------------------------------
         function compare_data(filename_base,proc_rank,nodes)
      $     result(test_validated)
+
           implicit none
 
           character(len=16)               , intent(in) :: filename_base

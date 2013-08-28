@@ -104,4 +104,4 @@
 
         end interface
 
-      end module td_integrator_class
+      end module td_integrator_par_class

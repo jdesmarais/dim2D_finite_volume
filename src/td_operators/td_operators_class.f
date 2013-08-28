@@ -41,7 +41,7 @@
         type, abstract :: td_operators
 
           contains
-          procedure(time), nopass, deferred :: compute_time_dev
+          procedure(time_proc), nopass, deferred :: compute_time_dev
 
         end type td_operators
 
@@ -70,7 +70,7 @@
           !>@param time_dev
           !> time derivatives
           !--------------------------------------------------------------
-          function time(field_used, s, p_model) result(time_dev)
+          function time_proc(field_used, s, p_model) result(time_dev)
 
             import cg_operators
             import field
@@ -83,7 +83,7 @@
             type(dim2d_eq)                  , intent(in)   :: p_model
             real(rkind), dimension(nx,ny,ne)               :: time_dev
 
-          end function time
+          end function time_proc
 
         end interface
 

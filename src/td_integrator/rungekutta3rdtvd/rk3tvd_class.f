@@ -102,7 +102,7 @@
           class(field)       , intent(inout) :: field_used
           type(cg_operators) , intent(in)    :: sd
           type(dim2d_eq)     , intent(in)    :: p_model
-          class(td_operators), intent(in)    :: td
+          type(fv_operators) , intent(in)    :: td
           real(rkind)        , intent(in)    :: dt
 
           real(rkind) :: b2 !<Runge-Kutta scheme coeff

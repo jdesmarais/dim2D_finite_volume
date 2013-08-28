@@ -91,7 +91,4 @@
 
         end subroutine apply_periodic_xy_on_nodes
 
-
-        subroutine apply
-
       end module periodic_xy_module
