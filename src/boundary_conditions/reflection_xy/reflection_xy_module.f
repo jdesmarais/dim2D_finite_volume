@@ -1,3 +1,19 @@
+      !> @file
+      !> module encapsulating subroutines for the computation
+      !> of the boundary layers using the reflection xy boundary
+      !> conditions
+      !
+      !> @author 
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module encapsulating subroutines for the computation
+      !> of the boundary layers using the reflection xy boundary
+      !> conditions
+      !
+      !> @date
+      ! 23_08_2013 - initial version - J.L. Desmarais
+      !-----------------------------------------------------------------
       module reflection_xy_module
 
         use dim2d_eq_class  , only : dim2d_eq

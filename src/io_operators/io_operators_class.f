@@ -64,12 +64,13 @@
         !>@param t
         !> reduced simulation time
         !--------------------------------------------------------------
-        subroutine write_data(field_used, p_model,t)
+        subroutine write_data(field_used, p_model,bc_size,t)
 
           implicit none
 
           class(field)       , intent(in) :: field_used
           class(phy_model_eq), intent(in) :: p_model
+          integer            , intent(in) :: bc_size
           real(rkind)        , intent(in) :: t
 
           type(nf90_operators_wr) :: nf90_writer
@@ -78,7 +79,7 @@
           !<select the i/o strategy
           select case(io_choice)
             case(netcdf_choice)
-               call nf90_writer%write_data(field_used,p_model)
+               call nf90_writer%write_data(field_used,p_model,bc_size)
 
             case default
                print '(''io_operators: write_data'')'

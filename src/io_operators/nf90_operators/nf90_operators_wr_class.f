@@ -35,6 +35,11 @@
         !> abstract class encapsulating subroutines to
         !> handle errors when manipulating netcdf files
         !>
+        !> @param nb_timesteps_written
+        !> attribute saving the total number of timesteps
+        !> already written previously to name the output file
+        !> correctly
+        !>
         !> @param initialize
         !> initialize the counter to identify the netcdf file
         !> written
@@ -109,13 +114,14 @@
         !>@param time
         !> reduced simulation time
         !--------------------------------------------------------------
-        subroutine write_data(this,f_used,p_model,time)
+        subroutine write_data(this,f_used,p_model,bc_size,time)
 
           implicit none
 
           class(nf90_operators_wr), intent(inout) :: this
           class(field)            , intent(in)    :: f_used
           type(dim2d_eq)          , intent(in)    :: p_model
+          integer                 , intent(in)    :: bc_size
           real(rkind)             , intent(in)    :: time
 
           integer                :: ncid
@@ -139,7 +145,7 @@
 
 
           !<define the variables saved in the file
-          call nf90_def_var_model(ncid,p_model,coord_id,data_id)
+          call nf90_def_var_model(ncid,p_model,bc_size,coord_id,data_id)
 
 
           !<put the variables in the file

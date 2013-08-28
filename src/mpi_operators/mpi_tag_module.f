@@ -1,3 +1,17 @@
+      !> @file
+      !> module encapsulating subroutines to compute the tag
+      !> need to recognize the messages sent between the tiles
+      !
+      !> @author 
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module encapsulating subroutines to compute the tag
+      !> need to recognize the messages sent between the tiles
+      !
+      !> @date
+      ! 23_08_2013 - initial version - J.L. Desmarais
+      !-----------------------------------------------------------------
       module mpi_tag_module
 
         implicit none

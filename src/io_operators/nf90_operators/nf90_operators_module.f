@@ -18,7 +18,7 @@
         use netcdf
         use parameters_constant, only : prog_version
         use parameters_kind    , only : rkind, ikind
-        use parameters_input   , only : nx,ny,ne
+        use parameters_input   , only : npx,npy,nx,ny,ne
         use dim2d_eq_class     , only : dim2d_eq
 
         implicit none
@@ -162,6 +162,7 @@
         subroutine nf90_def_var_model(
      $     ncid,
      $     p_model,
+     $     bc_size,
      $     coordinates_id,
      $     data_id)
 
@@ -169,6 +170,7 @@
 
           integer               , intent(in)    :: ncid
           type(dim2d_eq)        , intent(in)    :: p_model
+          integer               , intent(in)    :: bc_size
           integer, dimension(3) , intent(inout) :: coordinates_id
           integer, dimension(ne), intent(inout) :: data_id
 
@@ -207,6 +209,10 @@
           integer :: t_varid
           integer :: x_varid
           integer :: y_varid
+
+          integer(ikind) :: nx_domain
+          integer(ikind) :: ny_domain
+
           integer :: k
           integer :: retval
 
@@ -225,13 +231,16 @@
 
 
           !<define the dimensions
+          nx_domain = npx*(nx-2*bc_size) + 2*bc_size
+          ny_domain = npy*(ny-2*bc_size) + 2*bc_size
+
           retval = NF90_DEF_DIM(ncid, T_NAME, 1, t_dimid)
           call nf90_handle_err(retval)
 
-          retval = NF90_DEF_DIM(ncid, X_NAME, NX, x_dimid)
+          retval = NF90_DEF_DIM(ncid, X_NAME, nx_domain, x_dimid)
           call nf90_handle_err(retval)
 
-          retval = NF90_DEF_DIM(ncid, Y_NAME, NY, y_dimid)
+          retval = NF90_DEF_DIM(ncid, Y_NAME, ny_domain, y_dimid)
           call nf90_handle_err(retval)
 
 
@@ -349,13 +358,18 @@
         !> @param count
         !> integer, dimension(2) identifying the profile
         !> of the gridpoints written
+        !
+        !> @param limit
+        !> integer, dimension(4) identifying the borders
+        !> of the sub-tile written out of the computational
+        !> domain
         !----------------------------------------------------------------
         subroutine nf90_put_var_model(
      $     ncid,
      $     coordinates_id,
      $     data_id,
      $     time, field_used,
-     $     start, count)
+     $     start, count, limit)
 
           implicit none
           
@@ -364,8 +378,9 @@
           integer    , dimension(ne)     , intent(in) :: data_id
           real(RKIND)                    , intent(in) :: time
           class(field)                   , intent(in) :: field_used
-          integer, dimension(:), optional, intent(in) :: start
-          integer, dimension(:), optional, intent(in) :: count
+          integer, dimension(2), optional, intent(in) :: start
+          integer, dimension(2), optional, intent(in) :: count
+          integer, dimension(4), optional, intent(in) :: limit
 
 
           integer    , dimension(3) :: start_op, count_op
@@ -384,26 +399,32 @@
           y_varid = coordinates_id(3)
 
           
+          !< write the time
+          retval = NF90_PUT_VAR(ncid, t_varid, time_table)
+          call nf90_handle_err(retval)
+
+
           !< depending if the start and count optional variables
           !> are present, we should write the whole domain or
-          !> only a part identified by (start, count)
+          !> only a part identified by (start, count) with the
+          !> exception of the time
           !-----------------------------------------------------
           if(.not.present(start)) then
 
              start_op = [1,1,1]
              count_op = [1,nx,ny]
 
-             !<write the coordinate variable data
-             retval = NF90_PUT_VAR(ncid, t_varid, time_table)
-             call nf90_handle_err(retval)
-
+             !< write the x_map coordinates
              retval = NF90_PUT_VAR(ncid, x_varid, field_used%x_map)
              call nf90_handle_err(retval)
 
+
+             !< write the y_map coordinates
              retval = NF90_PUT_VAR(ncid, y_varid, field_used%y_map)
              call nf90_handle_err(retval)
              
-             !<write the netcdf variables
+
+             !< write the variables of the governing equations
              do k=1, ne
 
                 retval = NF90_PUT_VAR(
@@ -412,37 +433,41 @@
      $               field_used%nodes(:,:,k),
      $               START=start_op,
      $               COUNT=count_op)
-
                 call nf90_handle_err(retval)
 
              end do
 
          else
 
-            !<write the coordinate variable data
-            retval = NF90_PUT_VAR(ncid, t_varid, time_table)
-            call nf90_handle_err(retval)
-
-            retval = NF90_PUT_VAR(ncid, x_varid, field_used%x_map,
+            !< write the x_map coordinates
+            retval = NF90_PUT_VAR(
+     $           ncid,
+     $           x_varid,
+     $           field_used%x_map(limit(1):limit(2)),
      $           START=[start(1)],
      $           COUNT=[count(1)])
             call nf90_handle_err(retval)
 
-            retval = NF90_PUT_VAR(ncid, y_varid, field_used%y_map,
+
+            !< write the y_map coordinates
+            retval = NF90_PUT_VAR(
+     $           ncid,
+     $           y_varid,
+     $           field_used%y_map(limit(3):limit(4)),
      $           START=[start(2)],
      $           COUNT=[count(2)])
             call nf90_handle_err(retval)
+
             
-            !<write the netcdf variables
+            !< write the variables of the governing equations
             do k=1, ne
 
                retval = NF90_PUT_VAR(
      $              ncid,
      $              data_id(k),
-     $              field_used%nodes(:,:,k),
+     $              field_used%nodes(limit(1):limit(2),limit(3):limit(4),k),
      $              START=[1, start(1), start(2)], 
      $              COUNT=[1, count(1), count(2)])
-
                call nf90_handle_err(retval)
 
             end do

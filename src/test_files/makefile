@@ -17,7 +17,7 @@ profileGuided = $(LERNAEANHYDRA_PROFILE_GUIDED) #profile guided
 #------------------------------------------------------------------------
 #user main options
 #------------------------------------------------------------------------
-src_dir	   = /home/jdesmarais/Code/lernaeanhydra_opt4/src
+src_dir	   = /home/jdesmara/Code/lernaeanhydra_opt4/src
 config_dir = $(src_dir)/test_files/config/
 bc_choice  ='periodic_xy'
 
@@ -512,7 +512,18 @@ $(nf90_dir)/nf90_operators_wr_class.o:$(field_dir)/field_class.o\
 				$(nf90_dir)/nf90_operators_module.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
-				$(phy_eq_dir)/phy_model_eq_class.o
+				$(dim2d_dir)/dim2d_eq_class.o
+
+
+$(nf90_dir)/nf90_operators_wr_par_class.o:$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(field_dir)/field_par_class.o\
+				$(io_dir)/io_operators_module.o\
+				$(mpi_dir)/mpi_process_class.o\
+				$(nf90_dir)/nf90_operators_module.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+
 #mpi processes
 $(mpi_dir)/mpi_tag_module.o:
 
@@ -1066,3 +1077,32 @@ test_rk3tvd_dim2d_par:		surrogate_class.o\
 				td_integrator_par_class.o\
 				rk3tvd_par_class.o
 
+test_nf90_operators_par.o:	$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(field_dir)/field_par_class.o\
+				$(mpi_dir)/mpi_process_class.o\
+				$(nf90_dir)/nf90_operators_wr_par_class.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_nf90_operators_par:	surrogate_class.o\
+				parameters_kind.o\
+				parameters_constant.o\
+				parameters_input.o\
+				field_class.o\
+				interface_primary.o\
+				sd_operators_class.o\
+				cg_operators_class.o\
+				dim2d_parameters.o\
+				dim2d_prim_module.o\
+				dim2d_fluxes_module.o\
+				dim2d_state_eq_module.o\
+				dim2d_steadystate_module.o\
+				dim2d_dropretract_module.o\
+				phy_model_eq_class.o\
+				dim2d_eq_class.o\
+				mpi_process_class.o\
+				field_par_class.o\
+				io_operators_module.o\
+				nf90_operators_module.o\
+				nf90_operators_wr_par_class.o

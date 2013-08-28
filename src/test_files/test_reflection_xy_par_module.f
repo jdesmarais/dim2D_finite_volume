@@ -1,3 +1,17 @@
+      !> @file
+      !> program testing the subroutines defined in
+      !> 'reflection_xy_module'
+      !
+      !> @author 
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> program testing the subroutines defined in
+      !> 'reflection_xy_module'
+      !
+      !> @date
+      ! 21_08_2013 - initial version - J.L. Desmarais
+      !-----------------------------------------------------------------
       program test_reflection_xy_par_module
 
         use cg_operators_class      , only : cg_operators
