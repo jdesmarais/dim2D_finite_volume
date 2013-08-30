@@ -151,7 +151,7 @@
             
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call bc_used%apply_bc_on_nodes(field_used,sd)
+          call bc_used%apply_bc_on_nodes(field_used,p_model,sd)
 
 
           !<runge-kutta second step
@@ -185,7 +185,7 @@
           
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call bc_used%apply_bc_on_nodes(field_used,sd)
+          call bc_used%apply_bc_on_nodes(field_used,p_model,sd)
 
 
           !<runge-kutta third step
@@ -221,7 +221,7 @@
 
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call bc_used%apply_bc_on_nodes(field_used,sd)
+          call bc_used%apply_bc_on_nodes(field_used,p_model,sd)
 
         end subroutine integrate
 

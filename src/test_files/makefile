@@ -16,16 +16,19 @@ profileGuided = $(LERNAEANHYDRA_PROFILE_GUIDED) #profile guided
 
 #------------------------------------------------------------------------
 #user main options
-#------------------------------------------------------------------------
-src_dir	   = /home/jdesmara/Code/lernaeanhydra_opt4/src
-config_dir = $(src_dir)/test_files/config/
-bc_choice  ='periodic_xy'
+#-----------------------------------------------------------------------
+src_dir	   = $(lernaeanhydra)/src
+config_dir = $(src_dir)/test_files/config
+dep_dir	   = $(src_dir)/test_files/dep
+bc_choice = periodic_xy_choice
 
-ifeq ($(strip $(bc_choice)),'periodic_xy')
+ifeq ($(strip $(bc_choice)), periodic_xy_choice)
 	sbc_dir=$(pbc_dir)
+	sim_dim2d_dep=$(dep_dir)/sim_dim2d_par_periodic.dep
 endif
-ifeq ($(strip $(bc_choice)),'reflection_xy')
+ifeq ($(strip $(bc_choice)), reflection_xy_choice)
 	sbc_dir=$(rbc_dir)
+	sim_dim2d_dep=$(dep_dir)/sim_dim2d_par_reflection.dep
 endif
 #------------------------------------------------------------------------
 #source files directories
@@ -48,9 +51,9 @@ LIBS	=
 #FFLAGS_OP_IFORT		 = -O2 -p -g -ipo-c -132 -inline-factor=300 -warn all
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=300
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
-#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
-FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=300
-#FFLAGS_OP_IFORT		 = -O2 -132 -ipo-c #-DALIGNED #-inline-factor=400
+FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=300 -warn noalignment #check if there are data that are unaligned
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=300
+#FFLAGS_OP_IFORT		 = -O2 -132 -ipo-c #-D	ALIGNED #-inline-factor=400
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -guide -inline-factor=400
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400
 
@@ -60,8 +63,8 @@ FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt
 #LDFLAGS_OP_IFORT     	 = -O2 -p -g -ipo -132 -inline-factor=300 -warn all
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=300 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
-#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
-LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=300 #-warn all -check all #GOOD options
+LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=300 -warn noalignment #check if there are data that are unaligned
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=300 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -132 -ipo #-DALIGNED #-inline-factor=400 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -guide -inline-factor=400 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400 #-warn all -check all #GOOD options
@@ -399,7 +402,8 @@ $(bc_dir)/bc_operators_class.o:	$(sd_dir)/cg_operators_class.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
-				$(pbc_dir)/periodic_xy_module.o
+				$(pbc_dir)/periodic_xy_module.o\
+				$(rbc_dir)/reflection_xy_module.o
 
 $(bc_dir)/bc_abstract_par_class.o:$(sd_dir)/cg_operators_class.o\
 				$(dim2d_dir)/dim2d_eq_class.o\
@@ -435,9 +439,11 @@ $(pbc_dir)/bc_operators_par_class.o:$(bc_dir)/bc_abstract_par_class.o\
 				$(param_dir)/parameters_kind.o\
 				$(pbc_dir)/periodic_xy_par_module.o
 
-$(rbc_dir)/reflection_xy_module.o:$(dim2d_dir)/dim2d_eq_class.o\
+$(rbc_dir)/reflection_xy_module.o:$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
 				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
 
 $(rbc_dir)/reflection_xy_par_module.o:$(dim2d_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_par_class.o\
@@ -671,6 +677,15 @@ test_bc_operators:		bc_operators_class.o\
 				parameters_input.o\
 				parameters_kind.o\
 				periodic_xy_module.o\
+				reflection_xy_module.o\
+				dim2d_parameters.o\
+				dim2d_prim_module.o\
+				dim2d_fluxes_module.o\
+				dim2d_state_eq_module.o\
+				dim2d_steadystate_module.o\
+				dim2d_dropretract_module.o\
+				phy_model_eq_class.o\
+				dim2d_eq_class.o\
 				surrogate_class.o
 
 test_rk3tvd.o:			$(sd_dir)/cg_operators_class.o\
@@ -803,6 +818,7 @@ sim_dim2d:			surrogate_class.o\
 				nf90_operators_module.o\
 				nf90_operators_wr_class.o\
 				periodic_xy_module.o\
+				reflection_xy_module.o\
 				bc_operators_class.o\
 				td_integrator_class.o\
 				rk3tvd_class.o
@@ -1106,3 +1122,16 @@ test_nf90_operators_par:	surrogate_class.o\
 				io_operators_module.o\
 				nf90_operators_module.o\
 				nf90_operators_wr_par_class.o
+
+sim_dim2d_par.o:		$(sbc_dir)/bc_operators_par_class.o\
+				$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(field_dir)/field_par_class.o\
+				$(fv_dir)/fv_operators_class.o\
+				$(mpi_dir)/mpi_process_class.o\
+				$(nf90_dir)/nf90_operators_wr_par_class.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(rk3tvd_dir)/rk3tvd_par_class.o
+
+include $(sim_dim2d_dep)

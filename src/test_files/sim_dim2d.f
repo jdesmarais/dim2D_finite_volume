@@ -64,15 +64,15 @@
 
 
         !<read the inputs
-        x_min        = -0.4
-        x_max        =  0.4
+        x_min = -0.400000d0
+        x_max = 0.400000d0
 
-        y_min        = -0.4
-        y_max        =  0.4
+        y_min = -0.400000d0
+        y_max = 0.400000d0
 
-        t_max        =  0.15
-        dt           =  0.00005
-        detail_print =  1.0
+        t_max = 0.000021d0
+        dt = 0.000001d0
+        detail_print = 0.000000d0
 
 
         !<allocate the field
@@ -85,12 +85,12 @@
         time = 0
         call f_simulated%ini_coordinates(x_min,x_max,y_min,y_max,bc_size)
         call p_model%apply_ic(f_simulated)
-        call bc_used%apply_bc_on_nodes(f_simulated)
+        call bc_used%apply_bc_on_nodes(f_simulated,p_model,s)
 
 
         !<write the initial state in an output file
         call io_writer%initialize()
-        call io_writer%write_data(f_simulated,p_model,time)
+        call io_writer%write_data(f_simulated,p_model,bc_size,time)
 
         call CPU_TIME(time1)
 
@@ -102,7 +102,7 @@
            call ti%integrate(f_simulated,s,p_model,td,dt)
 
            if((output_print.eq.1).or.((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
-              call io_writer%write_data(f_simulated,p_model,time)
+              call io_writer%write_data(f_simulated,p_model,bc_size,time)
            end if
 
         end do
@@ -110,7 +110,7 @@
 
         !<write the last timestep
         if(mod(nt,output_print).ne.0) then
-           call io_writer%write_data(f_simulated,p_model,time)
+           call io_writer%write_data(f_simulated,p_model,bc_size,time)
         end if
 
 
