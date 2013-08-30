@@ -14,12 +14,15 @@
       !-----------------------------------------------------------------
       module bc_operators_class
 
-        use cg_operators_class , only : cg_operators
-        use field_class        , only : field
-        use parameters_constant, only : periodic_xy_choice
-        use parameters_input   , only : nx,ny,ne,bc_choice
-        use parameters_kind    , only : rkind,ikind
-        use periodic_xy_module , only : apply_periodic_xy_on_nodes
+        use cg_operators_class  , only : cg_operators
+        use dim2d_eq_class      , only : dim2d_eq
+        use field_class         , only : field
+        use parameters_constant , only : periodic_xy_choice,
+     $                                   reflection_xy_choice
+        use parameters_input    , only : nx,ny,ne,bc_choice
+        use parameters_kind     , only : rkind,ikind
+        use periodic_xy_module  , only : apply_periodic_xy_on_nodes
+        use reflection_xy_module, only : apply_reflection_xy_on_nodes
         
         implicit none
 
@@ -67,11 +70,12 @@
         !>@param s
         !> space discretization operators
         !--------------------------------------------------------------
-        subroutine apply_bc_on_nodes(field_used,s)
+        subroutine apply_bc_on_nodes(field_used,p_model,s)
 
           implicit none
 
           class(field)      , intent(inout) :: field_used
+          type(dim2d_eq)    , intent(in)    :: p_model
           type(cg_operators), intent(in)    :: s
 
           !<select the type of boundary conditions
@@ -80,7 +84,16 @@
             case(periodic_xy_choice)
 
                !DEC$ FORCEINLINE RECURSIVE
-               call apply_periodic_xy_on_nodes(field_used%nodes,s)
+               call apply_periodic_xy_on_nodes(
+     $              field_used%nodes,s)
+
+
+            case(reflection_xy_choice)
+
+               !DEC$ FORCEINLINE RECURSIVE
+               call apply_reflection_xy_on_nodes(
+     $              field_used%nodes,p_model,s)
+               
 
             case default
                
