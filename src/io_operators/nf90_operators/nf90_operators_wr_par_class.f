@@ -161,11 +161,19 @@
           !< update 'count' depending on the cartesian position
           !> we add the boundary layer if the tile in on the
           !> border of the computational domain
-          if((cart_coords(1).eq.0).or.(cart_coords(1).eq.(npx-1))) then
+          if(cart_coords(1).eq.0) then
              this%count(1)=this%count(1)+bc_size
           end if
 
-          if((cart_coords(2).eq.0).or.(cart_coords(2).eq.(npy-1))) then
+          if(cart_coords(1).eq.(npx-1)) then
+             this%count(1)=this%count(1)+bc_size
+          end if
+
+          if(cart_coords(2).eq.0) then
+             this%count(2)=this%count(2)+bc_size
+          end if
+
+          if(cart_coords(2).eq.(npy-1)) then
              this%count(2)=this%count(2)+bc_size
           end if
 

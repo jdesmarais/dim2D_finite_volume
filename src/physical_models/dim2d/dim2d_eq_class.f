@@ -334,9 +334,9 @@
 
 
           !<fluxes along the x-axis
-          do j=bc_size, ny-bc_size
+          do j=1+bc_size, ny-bc_size
              !DEC$ IVDEP
-             do i=bc_size, nx+1-bc_size
+             do i=1+bc_size, nx+1-bc_size
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,1) = flux_x_mass_density(field_used,s,i-1,j)
@@ -399,9 +399,9 @@
 
 
           !<fluxes along the y-axis
-          do j=bc_size, ny+1-bc_size
+          do j=1+bc_size, ny+1-bc_size
              !DEC$ IVDEP
-             do i=bc_size, nx-bc_size
+             do i=1+bc_size, nx-bc_size
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,1) = flux_y_mass_density(field_used,s,i,j-1)
