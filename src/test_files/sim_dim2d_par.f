@@ -87,15 +87,15 @@
         !> read the simulation inputs determining the extends
         !> of the 2D simulation field and the duration
         !>------------------------------------------------------
-        x_min = -0.400000d0
-        x_max = 0.400000d0
+        x_min = -0.4000000000d0
+        x_max = 0.4000000000d0
                        
-        y_min = -0.400000d0
-        y_max = 0.400000d0
+        y_min = -0.4000000000d0
+        y_max = 0.4000000000d0
                        
-        t_max = 0.000021d0
-        dt = 0.000001d0
-        detail_print = 0.000000d0
+        t_max = 0.0000210000d0
+        dt = 0.0000007000d0
+        detail_print = 0.0000000000d0
 
 
         !< initialize intermediate variables

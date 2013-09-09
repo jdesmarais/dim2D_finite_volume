@@ -65,7 +65,9 @@
           !<compute the east and west boundary layers
           !>without the north and south corners
           do k=1, ne
+             !DEC$ IVDEP
              do j=1+bc_size, ny-bc_size
+                !DEC$ IVDEP
                 do i=1, bc_size
 
                    nodes(i,j,k)=nodes(i+period_x,j,k)
@@ -79,7 +81,9 @@
           !<compute the south and north layers
           !>with the east and west corners
           do k=1, ne
+             !DEC$ IVDEP
              do j=1, bc_size
+                !DEC$ IVDEP
                 do i=1, nx
 
                    nodes(i,j,k)=nodes(i,j+period_y,k)

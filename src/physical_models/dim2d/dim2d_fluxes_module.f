@@ -474,12 +474,18 @@
 
           !DEC$ FORCEINLINE RECURSIVE
           ux     = s%f(field_used,i,j,velocity_x)
+          !DEC$ FORCEINLINE RECURSIVE
           uy     = s%f(field_used,i,j,velocity_y)
+          !DEC$ FORCEINLINE RECURSIVE
           duxdx  = s%dfdx(field_used,i,j,velocity_x)
+          !DEC$ FORCEINLINE RECURSIVE
           duydy  = s%dfdy(field_used,i,j,velocity_y)
+          !DEC$ FORCEINLINE RECURSIVE
           drhodx = s%dfdx(field_used,i,j,mass_density)
+          !DEC$ FORCEINLINE RECURSIVE
           drhody = s%dfdy(field_used,i,j,mass_density)
 
+          !DEC$ FORCEINLINE RECURSIVE
           if(rkind.eq.8) then
 
             !DEC$ FORCEINLINE RECURSIVE
@@ -576,12 +582,18 @@
 
           !DEC$ FORCEINLINE RECURSIVE
           ux     = s%g(field_used,i,j,velocity_x)
+          !DEC$ FORCEINLINE RECURSIVE
           uy     = s%g(field_used,i,j,velocity_y)
+          !DEC$ FORCEINLINE RECURSIVE
           duxdx  = s%dgdx(field_used,i,j,velocity_x)
+          !DEC$ FORCEINLINE RECURSIVE
           duydy  = s%dgdy(field_used,i,j,velocity_y)
+          !DEC$ FORCEINLINE RECURSIVE
           drhodx = s%dgdx(field_used,i,j,mass_density)
+          !DEC$ FORCEINLINE RECURSIVE
           drhody = s%dgdy(field_used,i,j,mass_density)
 
+          !DEC$ FORCEINLINE RECURSIVE
           if(rkind.eq.8) then
 
              !DEC$ FORCEINLINE RECURSIVE

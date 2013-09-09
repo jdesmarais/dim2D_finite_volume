@@ -52,11 +52,11 @@
         !integer, parameter :: output_print=1
 
         !<CPU recorded times
-        real :: time1, time2
+        real :: time1, time2, time3
 
 
         !<get the initial CPU time
-        !call CPU_TIME(time1)
+        call CPU_TIME(time1)
 
         if(ne.ne.p_model%get_eq_nb()) then
            stop 'ne is not correct considering the physical model'
@@ -64,15 +64,15 @@
 
 
         !<read the inputs
-        x_min = -0.400000d0
-        x_max = 0.400000d0
+        x_min = -0.4000000000d0
+        x_max = 0.4000000000d0
 
-        y_min = -0.400000d0
-        y_max = 0.400000d0
+        y_min = -0.4000000000d0
+        y_max = 0.4000000000d0
 
-        t_max = 0.000021d0
-        dt = 0.000001d0
-        detail_print = 0.000000d0
+        t_max = 0.0002100000d0
+        dt = 0.0000007000d0
+        detail_print = 0.0000000000d0
 
 
         !<allocate the field
@@ -92,7 +92,9 @@
         call io_writer%initialize()
         call io_writer%write_data(f_simulated,p_model,bc_size,time)
 
-        call CPU_TIME(time1)
+        !<initialization time
+        call CPU_TIME(time2)
+        print *, 'time_elapsed: ', time2-time1
 
         !<integrate the field until t=t_max
         do t=1, nt
@@ -101,21 +103,21 @@
            !DEC$ FORCEINLINE RECURSIVE
            call ti%integrate(f_simulated,s,p_model,td,dt)
 
-           if((output_print.eq.1).or.((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
-              call io_writer%write_data(f_simulated,p_model,bc_size,time)
-           end if
+c$$$           if((output_print.eq.1).or.((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
+c$$$              call io_writer%write_data(f_simulated,p_model,bc_size,time)
+c$$$           end if
 
         end do
 
 
         !<write the last timestep
-        if(mod(nt,output_print).ne.0) then
-           call io_writer%write_data(f_simulated,p_model,bc_size,time)
-        end if
+c$$$        if(mod(nt,output_print).ne.0) then
+c$$$           call io_writer%write_data(f_simulated,p_model,bc_size,time)
+c$$$        end if
 
 
         !<print the time needed for the simulation
-        call CPU_TIME(time2)
-        print *, 'time_elapsed: ', time2-time1
+        call CPU_TIME(time3)
+        print *, 'time_elapsed: ', time3-time1
 
       end program sim_dim2d

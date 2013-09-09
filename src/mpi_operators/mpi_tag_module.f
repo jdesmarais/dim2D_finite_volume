@@ -48,7 +48,6 @@
         function compute_mpi_tag(
      $     rank_send,
      $     rank_recv,
-     $     comm_id,
      $     nb_procs)
      $     result(tag)
 
@@ -57,7 +56,6 @@
 
           integer, intent(in) :: rank_send
           integer, intent(in) :: rank_recv
-          integer, intent(in) :: comm_id
           integer, intent(in) :: nb_procs
           integer             :: tag
 
@@ -71,7 +69,9 @@
           !uniquely comm_id and (rank_send*nb_procs + rank_recv)
           !then the euclidian division of (rank_send*nb_procs + rank_recv)
           !by nb_procs gives uniquely rank_send and rank_recv
-          tag = comm_id*nb_procs**2 + (rank_send*nb_procs + rank_recv)
+
+          !tag = comm_id*nb_procs**2 + (rank_send*nb_procs + rank_recv)
+          tag = rank_send*nb_procs + rank_recv
 
         end function compute_mpi_tag
 

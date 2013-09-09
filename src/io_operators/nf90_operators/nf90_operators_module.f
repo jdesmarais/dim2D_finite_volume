@@ -112,23 +112,28 @@
 
           !<write the header
           retval = nf90_put_att(ncid,nf90_global,'title',trim(title))
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
           
           retval = nf90_put_att(ncid,nf90_global,'history',history)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
           retval = nf90_put_att(ncid,nf90_global,'institution',institut)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
           retval = nf90_put_att(ncid,nf90_global,'source',source)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
           retval = nf90_put_att(ncid,nf90_global,'references', ref)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
           retval = nf90_put_att(ncid,nf90_global,'convention',convention)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
-
 
           !<write the inputs saved in parameters_input
 
@@ -235,53 +240,67 @@
           ny_domain = npy*(ny-2*bc_size) + 2*bc_size
 
           retval = NF90_DEF_DIM(ncid, T_NAME, 1, t_dimid)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
           retval = NF90_DEF_DIM(ncid, X_NAME, nx_domain, x_dimid)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
           retval = NF90_DEF_DIM(ncid, Y_NAME, ny_domain, y_dimid)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
 
           !<define the coordinates variables
           retval = NF90_DEF_VAR(ncid, T_NAME, NF_MYREAL, t_dimid,t_varid)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
           retval = NF90_DEF_VAR(ncid, X_NAME, NF_MYREAL, x_dimid,x_varid)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
           
           retval = NF90_DEF_VAR(ncid, Y_NAME, NF_MYREAL, y_dimid,y_varid)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
           
 
           !<assign the units to the variables
           retval = NF90_PUT_ATT(ncid, t_varid, UNITS, T_UNITS)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
           retval = NF90_PUT_ATT(ncid, x_varid, UNITS, X_UNITS)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
           
           retval = NF90_PUT_ATT(ncid, y_varid, UNITS, Y_UNITS)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
           
 
           !<assign the type of axis to the coordinates
           retval = NF90_PUT_ATT(ncid, x_varid, AXIS, X_AXIS)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
           
           retval = NF90_PUT_ATT(ncid, y_varid, AXIS, Y_AXIS)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
           
 
           !<assign the long name for the description of the coordinates
           retval = NF90_PUT_ATT(ncid, t_varid, LONG_NAME, T_LONG_NAME)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
           retval = NF90_PUT_ATT(ncid, x_varid, LONG_NAME, X_LONG_NAME)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
           
           retval = NF90_PUT_ATT(ncid, y_varid, LONG_NAME, Y_LONG_NAME)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
 
@@ -307,21 +326,25 @@
              !<define the netcdf variables
              retval = NF90_DEF_VAR(ncid, trim(name_var(k)), NF_MYREAL,
      $            dimids, data_id(k))
+             !DEC$ FORCEINLINE RECURSIVE
              call nf90_handle_err(retval)
 
              !assign the units to the variables
              retval = NF90_PUT_ATT(ncid, data_id(k), UNITS, unit_var(k))
+             !DEC$ FORCEINLINE RECURSIVE
              call nf90_handle_err(retval)
 
              !assign the long_name to the variables
              retval = NF90_PUT_ATT(ncid, data_id(k), LONG_NAME,
      $            longname_var(k))
+             !DEC$ FORCEINLINE RECURSIVE
              call nf90_handle_err(retval)
 
           end do
           
           !<stop the definition of the variables saved in the file
           retval = NF90_ENDDEF(ncid)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
         end subroutine nf90_def_var_model
@@ -401,6 +424,7 @@
           
           !< write the time
           retval = NF90_PUT_VAR(ncid, t_varid, time_table)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
 
@@ -416,11 +440,13 @@
 
              !< write the x_map coordinates
              retval = NF90_PUT_VAR(ncid, x_varid, field_used%x_map)
+             !DEC$ FORCEINLINE RECURSIVE
              call nf90_handle_err(retval)
 
 
              !< write the y_map coordinates
              retval = NF90_PUT_VAR(ncid, y_varid, field_used%y_map)
+             !DEC$ FORCEINLINE RECURSIVE
              call nf90_handle_err(retval)
              
 
@@ -433,6 +459,7 @@
      $               field_used%nodes(:,:,k),
      $               START=start_op,
      $               COUNT=count_op)
+                !DEC$ FORCEINLINE RECURSIVE
                 call nf90_handle_err(retval)
 
              end do
@@ -446,6 +473,7 @@
      $           field_used%x_map(limit(1):limit(2)),
      $           START=[start(1)],
      $           COUNT=[count(1)])
+            !DEC$ FORCEINLINE RECURSIVE
             call nf90_handle_err(retval)
 
 
@@ -456,6 +484,7 @@
      $           field_used%y_map(limit(3):limit(4)),
      $           START=[start(2)],
      $           COUNT=[count(2)])
+            !DEC$ FORCEINLINE RECURSIVE
             call nf90_handle_err(retval)
 
             
@@ -468,6 +497,7 @@
      $              field_used%nodes(limit(1):limit(2),limit(3):limit(4),k),
      $              START=[1, start(1), start(2)], 
      $              COUNT=[1, count(1), count(2)])
+               !DEC$ FORCEINLINE RECURSIVE
                call nf90_handle_err(retval)
 
             end do

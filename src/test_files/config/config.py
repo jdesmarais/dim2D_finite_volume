@@ -207,7 +207,7 @@ def update_sim_dim2d(sim_paths,inputs):
         cmd+=" -i "+str(file_path)
         cmd+=" -o "+str(file_path)
         cmd+=" -p "+key
-        cmd+=" -v "+"%fd0"%value
+        cmd+=" -v "+"%10.10fd0"%value
         subprocess.call(cmd, shell=True)
 
     print 'update ', file_path
@@ -246,8 +246,8 @@ def compile_code(inputs):
     fname='sim_dim2d'
     fname+='_'+str(inputs['npx'])+'x'+str(inputs['npy'])
 
-    cmd_serial  ='cd .. && make sim_dim2d'
-    cmd_parallel='cd .. && make sim_dim2d_par && mv sim_dim2d_par '+fname
+    cmd_serial  ='cd .. && make cleanall && make sim_dim2d'
+    cmd_parallel='cd .. && make cleanall && make sim_dim2d_par && mv sim_dim2d_par '+fname
 
     if(inputs['npx']*inputs['npy']==1):
         cmd=cmd_serial

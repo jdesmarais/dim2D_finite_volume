@@ -575,8 +575,7 @@ c$$$        end subroutine compute_and_exchange_along_y
 
           !< compute the tag identifying the sending MPI request
           tag = compute_mpi_tag(
-     $         f_used%usr_rank, this%com_rank(card_pt),
-     $         f_used%comm_2d, nb_procs)
+     $         f_used%usr_rank, this%com_rank(card_pt), nb_procs)
 
           
           !< create a send request
@@ -592,8 +591,7 @@ c$$$        end subroutine compute_and_exchange_along_y
           
           !< compute the tag identifying the receving MPI request
           tag = compute_mpi_tag(
-     $         this%com_rank(card_pt), f_used%usr_rank,
-     $         f_used%comm_2d, nb_procs)
+     $         this%com_rank(card_pt), f_used%usr_rank, nb_procs)
 
           
           !< create a receive request
@@ -682,8 +680,7 @@ c$$$        end subroutine compute_and_exchange_along_y
            
               !< compute the tag identifying the sending MPI request
               tag = compute_mpi_tag(
-     $             f_used%usr_rank, this%com_rank(card_pt(k)),
-     $             f_used%comm_2d, nb_procs)
+     $             f_used%usr_rank, this%com_rank(card_pt(k)), nb_procs)
            
               !< create a send request
               call MPI_ISSEND(
@@ -697,8 +694,7 @@ c$$$        end subroutine compute_and_exchange_along_y
               
               !< compute the tag identifying the receving MPI request
               tag = compute_mpi_tag(
-     $             this%com_rank(card_pt(k)), f_used%usr_rank,
-     $             f_used%comm_2d, nb_procs)
+     $             this%com_rank(card_pt(k)), f_used%usr_rank, nb_procs)
            
               !< create a receive request
               call MPI_IRECV(
