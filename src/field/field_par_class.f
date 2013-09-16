@@ -21,7 +21,8 @@
         use mpi_process_class  , only : mpi_process
         use parameters_constant, only : periodic_xy_choice,
      $                                  reflection_xy_choice
-        use parameters_input   , only : ntx,nty,nx,ny,npx,npy,bc_choice
+        use parameters_input   , only : ntx,nty,nx,ny,npx,npy,bc_choice,
+     $                                  x_min,x_max,y_min,y_max
         use parameters_kind    , only : ikind, rkind
 
         implicit none
@@ -172,15 +173,11 @@
         !>@param bc_size
         !> size of the boundary layer
         !--------------------------------------------------------------
-        subroutine ini_coordinates(this,x_min,x_max,y_min,y_max,bc_size)
+        subroutine ini_coordinates(this,bc_size)
 
           implicit none
 
           class(field_par), intent(inout) :: this
-          real(rkind)     , intent(in)    :: x_min
-          real(rkind)     , intent(in)    :: x_max
-          real(rkind)     , intent(in)    :: y_min
-          real(rkind)     , intent(in)    :: y_max
           integer         , intent(in)    :: bc_size
 
 
@@ -196,15 +193,15 @@
           !< initialize the space steps along the 
           !> x and y directions
           if(npx.gt.1) then
-             this%dx = (x_max-x_min)/(npx*(nx-2*bc_size-1)+1)
+             this%dx = (x_max-x_min)/(npx*(nx-2*bc_size)-1)
           else
-             this%dx = (x_max-x_min)/(ntx-2*bc_size-1)
+             this%dx = (x_max-x_min)/(ntx-1-2*bc_size)
           end if
 
           if(npy.gt.1) then
-             this%dy = (y_max-y_min)/(npy*(ny-2*bc_size-1)+1)
+             this%dy = (y_max-y_min)/(npy*(ny-2*bc_size)-1)
           else
-             this%dy = (y_max-y_min)/(nty-2*bc_size-1)
+             this%dy = (y_max-y_min)/(nty-1-2*bc_size)
           end if
 
 
@@ -225,7 +222,7 @@
              x_min_tile = x_min
           else
              x_min_tile =
-     $            x_min + (cart_coord(1)*(nx-2*bc_size-1)+1)*this%dx
+     $            x_min + cart_coord(1)*(nx-2*bc_size)*this%dx
           end if
 
 
@@ -234,7 +231,7 @@
              y_min_tile = y_min
           else
              y_min_tile =
-     $            y_min + (cart_coord(2)*(ny-2*bc_size-1)+1)*this%dy
+     $            y_min + cart_coord(2)*(ny-2*bc_size)*this%dy
           end if
 
 

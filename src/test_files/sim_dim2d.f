@@ -22,18 +22,12 @@
         use field_class            , only : field
         use fv_operators_class     , only : fv_operators
         use nf90_operators_wr_class, only : nf90_operators_wr
-        use parameters_input       , only : nx,ny,ne
+        use parameters_input       , only : nx,ny,ne,t_max,dt,detail_print
         use parameters_kind        , only : ikind, rkind
         use rk3tvd_class           , only : rk3tvd
 
         implicit none
 
-
-        !<inputs for the simulation
-        real(rkind) :: x_min, x_max, dx
-        real(rkind) :: y_min, y_max, dy
-        real(rkind) :: t_max, dt
-        real(rkind) :: detail_print
 
         !<operators needed for the simulation
         type(field)             :: f_simulated !< field simulated
@@ -63,18 +57,6 @@
         end if
 
 
-        !<read the inputs
-        x_min = -0.4000000000d0
-        x_max = 0.4000000000d0
-
-        y_min = -0.4000000000d0
-        y_max = 0.4000000000d0
-
-        t_max = 0.0002100000d0
-        dt = 0.0000007000d0
-        detail_print = 0.0000000000d0
-
-
         !<allocate the field
         bc_size      = s%get_bc_size()
         nt           = int(t_max/dt)
@@ -83,7 +65,7 @@
 
         !<initialize the field
         time = 0
-        call f_simulated%ini_coordinates(x_min,x_max,y_min,y_max,bc_size)
+        call f_simulated%ini_coordinates(bc_size)
         call p_model%apply_ic(f_simulated)
         call bc_used%apply_bc_on_nodes(f_simulated,p_model,s)
 
@@ -96,6 +78,7 @@
         call CPU_TIME(time2)
         print *, 'time_elapsed: ', time2-time1
 
+
         !<integrate the field until t=t_max
         do t=1, nt
            time=(t-1)*dt
@@ -103,17 +86,19 @@
            !DEC$ FORCEINLINE RECURSIVE
            call ti%integrate(f_simulated,s,p_model,td,dt)
 
-c$$$           if((output_print.eq.1).or.((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
-c$$$              call io_writer%write_data(f_simulated,p_model,bc_size,time)
-c$$$           end if
+           !< write the output data
+           if((output_print.eq.1).or.
+     $        ((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
+              call io_writer%write_data(f_simulated,p_model,bc_size,time)
+           end if
 
         end do
 
 
         !<write the last timestep
-c$$$        if(mod(nt,output_print).ne.0) then
-c$$$           call io_writer%write_data(f_simulated,p_model,bc_size,time)
-c$$$        end if
+        if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
+           call io_writer%write_data(f_simulated,p_model,bc_size,time)
+        end if
 
 
         !<print the time needed for the simulation

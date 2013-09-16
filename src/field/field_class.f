@@ -14,7 +14,7 @@
       !-----------------------------------------------------------------
       module field_class
 
-        use parameters_input, only : nx,ny,ne
+        use parameters_input, only : nx,ny,ne,x_min,x_max,y_min,y_max
         use parameters_kind , only : ikind, rkind
         use surrogate_class , only : surrogate
 
@@ -93,15 +93,11 @@
         !>@param bc_size
         !> size of the boundary layer
         !--------------------------------------------------------------
-        subroutine ini_coordinates(this,x_min,x_max,y_min,y_max,bc_size)
+        subroutine ini_coordinates(this,bc_size)
 
           implicit none
 
           class(field), intent(inout) :: this
-          real(rkind) , intent(in)    :: x_min
-          real(rkind) , intent(in)    :: x_max
-          real(rkind) , intent(in)    :: y_min
-          real(rkind) , intent(in)    :: y_max
           integer     , intent(in)    :: bc_size
 
 

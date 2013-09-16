@@ -18,8 +18,11 @@
         use netcdf
         use parameters_constant, only : prog_version
         use parameters_kind    , only : rkind, ikind
-        use parameters_input   , only : npx,npy,nx,ny,ne
+        use parameters_input   , only : npx,npy,nx,ny,ne,
+     $                                  x_min,x_max,y_min,y_max,
+     $                                  t_max,dt,detail_print
         use dim2d_eq_class     , only : dim2d_eq
+        use dim2d_parameters   , only : viscous_r, Re, We, Pr, cv_r
 
         implicit none
 
@@ -135,7 +138,57 @@
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          !<write the inputs saved in parameters_input
+
+          !<write the characteristic parameters of the simulation
+          retval = nf90_put_att(ncid,nf90_global,'x_min',x_min)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'x_max',x_max)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'y_min',y_min)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'y_max',y_max)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'t_max',t_max)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'dt',dt)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'detail_print',detail_print)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+          
+
+          !<write the characteristic parameters for the DIM
+          retval = nf90_put_att(ncid,nf90_global,'viscous_r',viscous_r)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'Re',Re)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'We',We)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'Pr',Pr)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'cv_r',cv_r)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
 
         end subroutine nf90_write_header
 

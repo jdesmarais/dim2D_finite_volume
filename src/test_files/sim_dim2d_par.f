@@ -24,18 +24,12 @@
         use fv_operators_class         , only : fv_operators
         use mpi_process_class          , only : mpi_process
         use nf90_operators_wr_par_class, only : nf90_operators_wr_par
-        use parameters_input           , only : ne
+        use parameters_input           , only : ne,t_max,dt,detail_print
         use parameters_kind            , only : ikind, rkind
         use rk3tvd_par_class           , only : rk3tvd_par
 
         implicit none
 
-
-        !<inputs for the simulation
-        real(rkind) :: x_min, x_max
-        real(rkind) :: y_min, y_max
-        real(rkind) :: t_max, dt
-        real(rkind) :: detail_print
 
         !<operators needed for the simulation
         type(field_par)             :: f_simulated!< field simulated
@@ -53,7 +47,7 @@
         real(rkind)    :: time
 
         !<CPU recorded times
-        real :: time1, time2
+        real :: time1, time2, time3
 
 
         !< get the initial CPU time
@@ -82,23 +76,11 @@
         call mpi_op%ini_mpi()
 
 
-        !< read the inputs
-        !>------------------------------------------------------
-        !> read the simulation inputs determining the extends
-        !> of the 2D simulation field and the duration
-        !>------------------------------------------------------
-        x_min = -0.4000000000d0
-        x_max = 0.4000000000d0
-                       
-        y_min = -0.4000000000d0
-        y_max = 0.4000000000d0
-                       
-        t_max = 0.0000210000d0
-        dt = 0.0000007000d0
-        detail_print = 0.0000000000d0
-
-
         !< initialize intermediate variables
+        !>------------------------------------------------------
+        !> initialize the variables determining the total number
+        !> of timesteps for the simulation
+        !>------------------------------------------------------
         bc_size      = sd%get_bc_size()
         nt           = int(t_max/dt)
         if(detail_print.eq.0) then
@@ -116,8 +98,7 @@
         !>------------------------------------------------------
         time = 0
         call f_simulated%ini_cartesian_communicator()
-        call f_simulated%ini_coordinates(
-     $       x_min,x_max,y_min,y_max,bc_size)
+        call f_simulated%ini_coordinates(bc_size)
         call p_model%apply_ic(f_simulated)
 
 
@@ -141,6 +122,14 @@
         !>------------------------------------------------------
         call io_writer%initialize(f_simulated,sd)
         call io_writer%write_data(f_simulated,p_model,bc_size,time)
+
+
+        !<initialization time
+        !>------------------------------------------------------
+        !> compute the initialization time
+        !>------------------------------------------------------
+        call CPU_TIME(time2)
+        print *, 'time_elapsed: ', time2-time1
 
 
         !< integrate the field until t=t_max
@@ -183,7 +172,12 @@
         !> the processor clock time at the begining and at the
         !> end of the simulation
         !>------------------------------------------------------
-        call CPU_TIME(time2)
-        print '(''time_elapsed: '', F10.6)', time2-time1
+        call CPU_TIME(time3)
+        print *, 'time_elapsed: ', time3-time1
+
+
+        !< finalize the MPI processes
+        !>------------------------------------------------------
+        call mpi_op%finalize_mpi()
 
       end program sim_dim2d_par

@@ -158,14 +158,15 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,bc_choice):
     file
     '''
     
-    constants_changed={
+    #change the constant that do not require a special output treatment (double,real...)
+    constants_changed1={
         'npx':inputs['npx'],
         'npy':inputs['npy'],
         'ntx':ntx,
         'nty':nty,
         'bc_choice':bc_choice}
 
-    for key, value  in constants_changed.items():
+    for key, value  in constants_changed1.items():
 
         cmd="./change_parameter.sh"
         cmd+=" -i "+str(file_path)
@@ -173,6 +174,26 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,bc_choice):
         cmd+=" -p "+key
         cmd+=" -v "+str(value)
         subprocess.call(cmd, shell=True)
+
+
+    #change the constant that do require a special output treatment (output format)
+    constants_changed2={
+        'x_min':inputs['x_min'],
+        'x_max':inputs['x_max'],
+        'y_min':inputs['y_min'],
+        'y_max':inputs['y_max'],
+        't_max':inputs['t_max'],
+        'dt':inputs['dt'],
+        'detail_print':inputs['detail_print']}
+
+    for key, value in constants_changed2.items():
+
+        cmd="./change_parameter.sh"
+        cmd+=" -i "+str(file_path)
+        cmd+=" -o "+str(file_path)
+        cmd+=" -p "+key
+        cmd+=" -v "+"%10.10fd0"%value
+        subprocess.call(cmd, shell=True)    
 
     print 'update ', file_path        
 
@@ -285,7 +306,7 @@ if __name__ == "__main__":
 
 
     #< replace the inputs in the 'sim_dim2d' or 'sim_dim2d_par'
-    update_sim_dim2d(sim_paths,inputs)
+    #update_sim_dim2d(sim_paths,inputs)
 
 
     #< replace the inputs in the 'makefile'

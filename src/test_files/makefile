@@ -12,7 +12,7 @@ analyse       = $(LERNAEANHYDRA_ANALYSE)        #gprof
 trace         = $(LERNAEANHYDRA_TRACE)          #vampir tracing
 report        = $(LERNAEANHYDRA_OPTREPORT)      #optimization report
 profileGuided = $(LERNAEANHYDRA_PROFILE_GUIDED) #profile guided
-scalasca      = true				#scalasca instrumentation
+scalasca      = false				#scalasca instrumentation
 
 
 #------------------------------------------------------------------------
@@ -91,7 +91,7 @@ include $(config_dir)/cartesius_libraries
 
 #options handeling depending on the user main options: debug, trace, analyse--
 #scalasca instrumentation
-ifeq($(strip $(scalasca)),true)
+ifeq ($(strip $(scalasca)),true)
 	PREP=skin
 endif
 
@@ -254,17 +254,19 @@ test:
 	@(echo 'cluster:            ' $(cluster))
 	@(echo '')
 
-	@(echo 'profile: ' $(profile))
-	@(echo 'analyse: ' $(analyse))
-	@(echo 'trace:   ' $(trace))
-	@(echo 'report:  ' $(report))
+	@(echo 'profile:   ' $(profile))
+	@(echo 'analyse:   ' $(analyse))
+	@(echo 'trace:     ' $(trace))
+	@(echo 'report:    ' $(report))
+	@(echo 'scalasca:  ' $(scalasca))
 	@(echo '')
 
-	@(echo 'compiler: ' $(FC))
-	@(echo 'FFLAGS:   ' $(FFLAGS))
-	@(echo 'LDFLAGS:  ' $(LDFLAGS))
-	@(echo 'INCLUDE:  ' $(INCLUDE))
-	@(echo 'LIBS:     ' $(LIBS))
+	@(echo 'PREP:    ' $(PREP))
+	@(echo 'FC:      ' $(FC))
+	@(echo 'FFLAGS:  ' $(FFLAGS))
+	@(echo 'LDFLAGS: ' $(LDFLAGS))
+	@(echo 'INCLUDE: ' $(INCLUDE))
+	@(echo 'LIBS:    ' $(LIBS))
 	@(echo '')
 
 tests:	test_field\
@@ -285,11 +287,11 @@ sims:	sim_dim2d
 
 %.o:	%.f
 	@(basename $@)
-	@($(FC) $(FFLAGS) -c $< $(INCLUDE))
+	@($(PREP) $(FC) $(FFLAGS) -c $< $(INCLUDE))
 
 %:	%.o
 	@(basename $@)
-	@($(FC) $(LDFLAGS) -o $@ $^ $(LIBS))
+	@($(PREP) $(FC) $(LDFLAGS) -o $@ $^ $(LIBS))
 
 all:	$(CMD)					#main commmand
 
@@ -519,7 +521,8 @@ $(nf90_dir)/nf90_operators_module.o:$(field_dir)/field_class.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
-				$(phy_eq_dir)/phy_model_eq_class.o	
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(dim2d_dir)/dim2d_parameters.o
 
 $(nf90_dir)/nf90_operators_wr_class.o:$(field_dir)/field_class.o\
 				$(io_dir)/io_operators_module.o\
