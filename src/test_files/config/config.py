@@ -106,7 +106,7 @@ def compute_ntx_and_nty(npx,npy,x_min,x_max,dx,y_min,y_max,dy,bc_size):
     if(npy==1):
         ny = compute_n(y_min,y_max,dy,bc_size)
     else:
-        ny = compute_n_par(npy,x_min,y_max,dy,bc_size)
+        ny = compute_n_par(npy,y_min,y_max,dy,bc_size)
 
     ntx=int(npx*nx)
     nty=int(npy*ny)
