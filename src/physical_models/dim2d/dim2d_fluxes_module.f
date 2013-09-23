@@ -250,8 +250,7 @@
           integer(ikind)    , intent(in) :: i
           integer(ikind)    , intent(in) :: j
           real(rkind)                    :: var
-
-
+          
           if(rkind.eq.8) then
 
              !DEC$ FORCEINLINE RECURSIVE

@@ -21,7 +21,8 @@
       !-----------------------------------------------------------------
       module dim2d_eq_class
 
-        use dim2d_steadystate_module, only : apply_steady_state_ic
+        use cg_operators_class      , only : cg_operators
+        use dim2d_parameters        , only : gravity
         use dim2d_dropretract_module, only : apply_drop_retraction_ic
         use dim2d_fluxes_module     , only : flux_x_mass_density,
      $                                       flux_y_mass_density,
@@ -31,15 +32,18 @@
      $                                       flux_y_momentum_y,
      $                                       flux_x_total_energy,
      $                                       flux_y_total_energy
-                                    
+        use dim2d_steadystate_module, only : apply_steady_state_ic
         use field_class             , only : field
         use parameters_constant     , only : scalar, vector_x, vector_y,
      $                                       steady_state,
-     $                                       drop_retraction
-        use parameters_input        , only : nx,ny,ne,ic_choice
+     $                                       drop_retraction,
+     $                                       earth_gravity_choice
+        use parameters_input        , only : nx,ny,ne,
+     $                                       ic_choice,
+     $                                       gravity_choice
         use parameters_kind         , only : ikind,rkind
         use phy_model_eq_class      , only : phy_model_eq
-        use cg_operators_class      , only : cg_operators
+
 
         implicit none
 
@@ -101,6 +105,7 @@
           procedure, nopass :: apply_ic
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
+          procedure, nopass :: compute_body_forces
 
         end type dim2d_eq
 
@@ -419,5 +424,49 @@
           end do
 
         end function compute_flux_y
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface to compute the body forces
+        !> acting on the cell
+        !
+        !> @date
+        !> 23_09_2013 - initial version - J.L. Desmarais
+        !
+        !>@param field_used
+        !> object encapsulating the main variables
+        !
+        !>@param body_forces
+        !> body forces evaluated at (i,j)
+        !--------------------------------------------------------------
+        function compute_body_forces(field_used,s) result(body_forces)
+
+          implicit none
+
+          class(field)                   , intent(in) :: field_used
+          type(cg_operators)             , intent(in) :: s
+          real(rkind),dimension(nx,ny,ne)             :: body_forces
+
+          integer        :: bc_size
+          integer(ikind) :: i,j
+
+          !<get the size of the boundary layers
+          bc_size = s%get_bc_size()
+
+          do j=1+bc_size, ny-bc_size
+             !DEC$ IVDEP
+             do i=1+bc_size, nx-bc_size
+                body_forces(i,j,1)=0
+                body_forces(i,j,2)=0
+                body_forces(i,j,3)=-field_used%nodes(i,j,1)*gravity
+                body_forces(i,j,4)=-field_used%nodes(i,j,3)*gravity
+             end do
+          end do          
+
+        end function compute_body_forces
+
 
       end module dim2d_eq_class

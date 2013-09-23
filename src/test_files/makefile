@@ -53,8 +53,8 @@ LIBS	=
 #FFLAGS_OP_IFORT		 = -O2 -p -g -ipo-c -132 -inline-factor=300 -warn all
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
-FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=200 #-warn noalignment #check if there are data that are unaligned
-#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=300
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 #-warn noalignment #check if there are data that are unaligned
+FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=300
 #FFLAGS_OP_IFORT		 = -O2 -132 -ipo-c #-D	ALIGNED #-inline-factor=400
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -guide -inline-factor=400
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400
@@ -65,8 +65,8 @@ FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt
 #LDFLAGS_OP_IFORT     	 = -O2 -p -g -ipo -132 -inline-factor=300 -warn all
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
-LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=200 #-warn noalignment #check if there are data that are unaligned
-#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=300 #-warn all -check all #GOOD options
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500 #-warn noalignment #check if there are data that are unaligned
+LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=300 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -132 -ipo #-DALIGNED #-inline-factor=400 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -guide -inline-factor=400 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400 #-warn all -check all #GOOD options
@@ -369,15 +369,16 @@ $(dim2d_dir)/dim2d_fluxes_module.o:$(dim2d_dir)/dim2d_parameters.o\
 $(dim2d_dir)/dim2d_state_eq_module.o:$(dim2d_dir)/dim2d_parameters.o\
 				$(param_dir)/parameters_kind.o
 
-$(dim2d_dir)/dim2d_eq_class.o:	$(dim2d_dir)/dim2d_fluxes_module.o\
+$(dim2d_dir)/dim2d_eq_class.o:	$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_parameters.o\
+				$(dim2d_dir)/dim2d_fluxes_module.o\
 				$(dim2d_ic)/dim2d_steadystate_module.o\
 				$(dim2d_ic)/dim2d_dropretract_module.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
-				$(phy_eq_dir)/phy_model_eq_class.o\
-				$(sd_dir)/sd_operators_class.o
+				$(phy_eq_dir)/phy_model_eq_class.o
 
 $(dim2d_ic)/dim2d_steadystate_module.o:$(dim2d_dir)/dim2d_parameters.o\
 				$(dim2d_dir)/dim2d_state_eq_module.o\

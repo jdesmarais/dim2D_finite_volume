@@ -125,7 +125,7 @@ def compute_code_inputs(inputFileName):
         'y_min','y_max','dy',\
         'dt','t_max','detail_print',\
         'npx', 'npy',\
-        'bc_choice', 'ic_choice']
+        'bc_choice', 'ic_choice', 'gravity_choice']
     inputs=read_inputs(inputFileName, inputs_needed)
     
 
@@ -145,13 +145,29 @@ def compute_code_inputs(inputFileName):
 
     
     #< compute the bc_choice
-    boundary_code = ['periodic_xy_choice', 'reflection_xy_choice']
+    boundary_code = ['periodic_xy_choice', 'reflection_xy_choice', 'wall_xy_choice']
     bc_choice = boundary_code[int(inputs['bc_choice'])]
 
-    return [inputs,ntx,nty,bc_choice]
+    
+    #< compute the bc type choice
+    bc_type_code = ['bc_nodes_choice', 'bc_flux_choice']
+    if(bc_choice=='periodic_xy_choice' or bc_choice=='reflection_xy_choice'):
+        bcx_type_choice = bc_type_code[0]
+        bcy_type_choice = bc_type_code[0]
+    else:
+        bcx_type_choice = bc_type_code[1]
+        bcy_type_choice = bc_type_code[1]
+
+    
+    #< compute the gravity_choice
+    gravity_code = ['no_gravity_choice', 'earth_gravity_choice']
+    gravity_choice = gravity_code[int(inputs['gravity_choice'])]
+
+    return [inputs,ntx,nty,bc_choice,bcx_type_choice,bcy_type_choice,gravity_choice]
 
 
-def update_parameters_inputs(file_path,inputs,ntx,nty,bc_choice):
+def update_parameters_inputs(file_path,inputs,ntx,nty,
+                             bc_choice,gravity_choice):
     '''
     @description
     update the constants defined in the 'parameters_input'
@@ -164,7 +180,8 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,bc_choice):
         'npy':inputs['npy'],
         'ntx':ntx,
         'nty':nty,
-        'bc_choice':bc_choice}
+        'bc_choice':bc_choice,
+        'gravity_choice':gravity_choice}
 
     for key, value  in constants_changed1.items():
 
@@ -196,42 +213,6 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,bc_choice):
         subprocess.call(cmd, shell=True)    
 
     print 'update ', file_path        
-
-
-def update_sim_dim2d(sim_paths,inputs):
-    '''
-    @description
-    '''
-
-    #< choose the tile modified
-    if(inputs['npx']*inputs['npy']>1):
-        file_path=sim_paths['parallel']
-    else:
-        file_path=sim_paths['serial']
-
-
-    #< define the constants changed in the file
-    constants_changed={
-        'x_min':inputs['x_min'],
-        'x_max':inputs['x_max'],
-        'y_min':inputs['y_min'],
-        'y_max':inputs['y_max'],
-        't_max':inputs['t_max'],
-        'dt':inputs['dt'],
-        'detail_print':inputs['detail_print']}    
-
-
-    #< change the constants in the file
-    for key, value in constants_changed.items():
-
-        cmd="./change_parameter.sh"
-        cmd+=" -i "+str(file_path)
-        cmd+=" -o "+str(file_path)
-        cmd+=" -p "+key
-        cmd+=" -v "+"%10.10fd0"%value
-        subprocess.call(cmd, shell=True)
-
-    print 'update ', file_path
 
 
 def update_makefile(file_path,bc_choice):
@@ -298,19 +279,21 @@ if __name__ == "__main__":
 
 
     #< compute the code inputs
-    [inputs,ntx,nty,bc_choice]=compute_code_inputs(inputFileName)
+    [inputs,ntx,nty,
+     bc_choice,
+     bcx_type_choice,bcy_type_choice,
+     gravity_choice]=compute_code_inputs(inputFileName)
 
 
     #< replace the inputs in the 'parameters_input' file
-    update_parameters_inputs(param_path,inputs,ntx,nty,bc_choice)
-
-
-    #< replace the inputs in the 'sim_dim2d' or 'sim_dim2d_par'
-    #update_sim_dim2d(sim_paths,inputs)
+    update_parameters_inputs(param_path,inputs,ntx,nty,
+                             bc_choice,
+                             bcx_type_choice,bcx_type_choice,
+                             gravity_choice)
 
 
     #< replace the inputs in the 'makefile'
-    update_makefile(makefile_path,bc_choice)  
+    update_makefile(makefile_path,bc_choice)
 
 
     #< print the major results

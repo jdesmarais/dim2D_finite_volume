@@ -61,8 +61,14 @@
         !> initialize the main variables of the governing equations
         !> considering the user choices
         !>
-        !> @param compute_fluxes
-        !> compute the fluxes along the x- and y-axes
+        !> @param compute_flux_x
+        !> compute the fluxes along the x-axe
+        !>
+        !> @param compute_flux_y
+        !> compute the fluxes along the y-axe
+        !>
+        !> @param add_body_forces
+        !> add the body forces to the computation of the time derivatives
         !---------------------------------------------------------------
         type, abstract :: phy_model_eq
           
@@ -77,6 +83,7 @@
           procedure(ini_cond)  , nopass, deferred :: apply_ic
           procedure(fluxes_x)  , nopass, deferred :: compute_flux_x
           procedure(fluxes_y)  , nopass, deferred :: compute_flux_y
+          procedure(bodyforces), nopass, deferred :: compute_body_forces
 
         end type phy_model_eq
 
@@ -261,6 +268,36 @@
             real(rkind),dimension(nx,ny+1,ne)               :: flux_y
 
           end function fluxes_y
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to compute the body forces
+          !> acting on the cell
+          !
+          !> @date
+          !> 23_09_2013 - initial version - J.L. Desmarais
+          !
+          !>@param field_used
+          !> object encapsulating the main variables
+          !
+          !>@param body_forces
+          !> body forces
+          !--------------------------------------------------------------
+          function bodyforces(field_used,s) result(body_forces)
+
+            import field
+            import rkind
+            import nx,ny,ne
+            import cg_operators
+
+            class(field)                   , intent(in) :: field_used
+            type(cg_operators)             , intent(in) :: s
+            real(rkind),dimension(nx,ny,ne)             :: body_forces
+
+          end function bodyforces
 
         end interface        
 

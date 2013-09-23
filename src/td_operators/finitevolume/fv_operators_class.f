@@ -16,12 +16,13 @@
       !-----------------------------------------------------------------
       module fv_operators_class
 
-        use cg_operators_class, only : cg_operators
-        use field_class       , only : field
-        use parameters_input  , only : nx,ny,ne
-        use parameters_kind   , only : rkind, ikind
-        use dim2d_eq_class    , only : dim2d_eq
-        use td_operators_class, only : td_operators
+        use cg_operators_class , only : cg_operators
+        use field_class        , only : field
+        use parameters_constant, only : earth_gravity_choice
+        use parameters_input   , only : nx,ny,ne,gravity_choice
+        use parameters_kind    , only : rkind, ikind
+        use dim2d_eq_class     , only : dim2d_eq
+        use td_operators_class , only : td_operators
 
         implicit none
 
@@ -85,6 +86,7 @@
             integer(ikind)                     :: i,j
             real(rkind), dimension(nx+1,ny,ne) :: flux_x
             real(rkind), dimension(nx,ny+1,ne) :: flux_y
+            real(rkind), dimension(nx,ny,ne)   :: body_forces
 
             !<initialize the main tables size
             bc_size = s%get_bc_size()
@@ -96,16 +98,39 @@
             !FORCEINLINE RECURSIVE
             flux_y = p_model%compute_flux_y(field_used,s)
 
-            !<compute the time derivatives
-            do k=1, ne
-               do j=1+bc_size, ny-bc_size
-                  do i=1+bc_size, nx-bc_size
-                     time_dev(i,j,k)=
-     $                    (flux_x(i,j,k)-flux_x(i+1,j,k))/field_used%dx+
-     $                    (flux_y(i,j,k)-flux_y(i,j+1,k))/field_used%dy
+
+            !<compute the time derivatives depending on body forces or not
+            if(gravity_choice.eq.earth_gravity_choice) then
+
+               !<compute the body forces
+               body_forces = p_model%compute_body_forces(field_used,s)
+
+               !<compute the time derivatives
+               do k=1, ne
+                  do j=1+bc_size, ny-bc_size
+                     do i=1+bc_size, nx-bc_size
+                        time_dev(i,j,k)=
+     $                       (flux_x(i,j,k)-flux_x(i+1,j,k))/field_used%dx+
+     $                       (flux_y(i,j,k)-flux_y(i,j+1,k))/field_used%dy+
+     $                       body_forces(i,j,k)
+                     end do
                   end do
                end do
-            end do
+
+            else
+
+               !<compute the time derivatives
+               do k=1, ne
+                  do j=1+bc_size, ny-bc_size
+                     do i=1+bc_size, nx-bc_size
+                        time_dev(i,j,k)=
+     $                       (flux_x(i,j,k)-flux_x(i+1,j,k))/field_used%dx+
+     $                       (flux_y(i,j,k)-flux_y(i,j+1,k))/field_used%dy
+                     end do
+                  end do
+               end do
+
+            end if
 
         end function compute_time_dev
 

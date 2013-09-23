@@ -30,6 +30,14 @@
         integer, parameter :: periodic_xy_choice=0
         integer, parameter :: reflection_xy_choice=1
 
+        !<boundary conditions type choice
+        integer, parameter :: bc_nodes_choice=0
+        integer, parameter :: bc_flux_choice=1
+
+        !<equations tuning choice
+        integer, parameter :: no_gravity_choice=0
+        integer, parameter :: earth_gravity_choice=1
+
         !<i/o management choice
         integer, parameter :: netcdf_choice=0
 

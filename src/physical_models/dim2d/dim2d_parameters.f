@@ -20,20 +20,21 @@
 
 
         private
-        public :: viscous_r, re, pr, we, cv_r
+        public :: viscous_r, re, pr, we, cv_r, gravity
 
 
         !< input quantities for water
         !---------------------------------------------------------
-        !@param dim1d_a       Van der Waals constant   [J.m3.mol-2]     
-        !@param dim1d_b       Van der Waals constant   [m3.mol-1]       
-        !@param dim1d_M       molar mass of the fluid  [kg.mol-1]       
-        !@param dim1d_R       universal gas constant   [J.mol-1.K-1]    
-        !@param dim1d_mu      viscosity coefficient    [Pa.s]
-        !@param dim1d_nu      viscosity coefficient    [Pa.s] 
-        !@param dim1d_K       capillarity coefficient  [J.kg-2.m5]      
-        !@param dim1d_cv      heat capacity at vol cst [J.K-1.kg-1]   
-        !@param dim1d_lambda  thermal conductivity     [J.s-1.K-1.m-1]
+        !@param dim2d_a       Van der Waals constant   [J.m3.mol-2]     
+        !@param dim2d_b       Van der Waals constant   [m3.mol-1]       
+        !@param dim2d_M       molar mass of the fluid  [kg.mol-1]       
+        !@param dim2d_R       universal gas constant   [J.mol-1.K-1]    
+        !@param dim2d_mu      viscosity coefficient    [Pa.s]
+        !@param dim2d_nu      viscosity coefficient    [Pa.s] 
+        !@param dim2d_K       capillarity coefficient  [J.kg-2.m5]      
+        !@param dim2d_cv      heat capacity at vol cst [J.K-1.kg-1]   
+        !@param dim2d_lambda  thermal conductivity     [J.s-1.K-1.m-1]
+        !@param dim2d_g       universal acceleration   [m.s-2]
         !---------------------------------------------------------
         real(rkind), parameter :: dim2d_a      = 0.5536     
         real(rkind), parameter :: dim2d_b      = 0.03049e-3 
@@ -44,6 +45,7 @@
         real(rkind), parameter :: dim2d_K      = 6.81e-15   
         real(rkind), parameter :: dim2d_cv     = 1410.      
         real(rkind), parameter :: dim2d_lambda = 0.6
+        real(rkind), parameter :: dim2d_g      = 9.81
 
 
         !< intermediate variables
@@ -65,17 +67,19 @@
 
         !< parameters initialized
         !--------------------------------------------------------
-        !@param viscous_r      viscous ratio              [-]
-        !@param Re             Reynolds number            [-]    
-        !@param We             Weber number               [-]    
-        !@param Pr             Prandtl number             [-]    
-        !@param cv_r           heat capacity reduced      [-]    
+        !@param viscous_r      viscous ratio                  [-]
+        !@param Re             Reynolds number                [-]    
+        !@param We             Weber number                   [-]    
+        !@param Pr             Prandtl number                 [-]    
+        !@param cv_r           heat capacity reduced          [-]
+        !@param gravity        universal acceleration reduced [-]
         !--------------------------------------------------------
         real(rkind), parameter :: viscous_r= dim2d_nu/dim2d_mu
         real(rkind), parameter :: Re = rho_c*u_c*length_c/dim2d_mu
         real(rkind), parameter :: We =(length_c**2*u_c**2)/(rho_c*dim2d_K)
         real(rkind), parameter :: Pr = dim2d_mu*dim2d_cv/dim2d_lambda
         real(rkind), parameter :: cv_r = dim2d_M*dim2d_cv/dim2d_R
+        real(rkind), parameter :: gravity = time_c/u_c*dim2d_g
        
         !real(rkind), parameter :: viscous_r= -1.5
         !real(rkind), parameter :: Re = 5
