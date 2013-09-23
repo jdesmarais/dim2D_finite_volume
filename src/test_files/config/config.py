@@ -150,11 +150,11 @@ def compute_code_inputs(inputFileName):
 
     
     #< compute the bc type choice
-    bc_type_code = ['bc_nodes_choice', 'bc_flux_choice']
+    bc_type_code = ['bc_nodes_choice', 'bc_fluxes_choice']
     if(bc_choice=='periodic_xy_choice' or bc_choice=='reflection_xy_choice'):
         bcx_type_choice = bc_type_code[0]
         bcy_type_choice = bc_type_code[0]
-    else:
+    if(bc_choice=='wall_xy_choice'):
         bcx_type_choice = bc_type_code[1]
         bcy_type_choice = bc_type_code[1]
 
@@ -167,7 +167,9 @@ def compute_code_inputs(inputFileName):
 
 
 def update_parameters_inputs(file_path,inputs,ntx,nty,
-                             bc_choice,gravity_choice):
+                             bc_choice,
+                             bcx_type_choice,bcy_type_choice,
+                             gravity_choice):
     '''
     @description
     update the constants defined in the 'parameters_input'
@@ -181,6 +183,8 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,
         'ntx':ntx,
         'nty':nty,
         'bc_choice':bc_choice,
+        'bcx_type_choice':bcx_type_choice,
+        'bcy_type_choice':bcy_type_choice,
         'gravity_choice':gravity_choice}
 
     for key, value  in constants_changed1.items():
