@@ -71,18 +71,22 @@
            !>@param this
            !> abstract boundary conditions
            !
+           !>@param s
+           !> spatial discretisation operators
+           !
            !>@param p_model
            !> physical model
            !-------------------------------------------------------------
-           subroutine ini_proc(this, p_model,s)
+           subroutine ini_proc(this, s, p_model)
         
              import bc_abstract
              import dim2d_eq
              import cg_operators
 
              class(bc_abstract), intent(inout) :: this
-             type(dim2d_eq)    , intent(in)    :: p_model
              type(cg_operators), intent(in)    :: s
+             type(dim2d_eq)    , intent(in)    :: p_model
+
 
            end subroutine ini_proc
 
@@ -104,22 +108,17 @@
            !>@param f_used
            !> object encapsulating the main variables
            !
-           !>@param p_model
-           !> physical model
-           !
            !>@param s
            !> space discretization operators
            !-------------------------------------------------------------
-           subroutine nodes_proc(this,f_used,p_model,s)
+           subroutine nodes_proc(this,f_used,s)
            
              import bc_abstract
              import field
-             import dim2d_eq
              import cg_operators
            
              class(bc_abstract), intent(in)    :: this
              class(field)      , intent(inout) :: f_used
-             type(dim2d_eq)    , intent(in)    :: p_model
              type(cg_operators), intent(in)    :: s
 
            end subroutine nodes_proc

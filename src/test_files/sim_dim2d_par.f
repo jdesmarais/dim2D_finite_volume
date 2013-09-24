@@ -156,16 +156,6 @@
         end do
 
 
-        !< write the last timestep
-        !>------------------------------------------------------
-        !> even if the user asked no output, the initial state
-        !> and the last state of the simulation are written
-        !>------------------------------------------------------        
-        if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
-           call io_writer%write_data(f_simulated,p_model,bc_size,time)
-        end if
-
-
         !< print the time needed for the simulation
         !>------------------------------------------------------
         !> the total simulation time is evaluated by comparing
@@ -174,6 +164,16 @@
         !>------------------------------------------------------
         call CPU_TIME(time3)
         print *, 'time_elapsed: ', time3-time1
+
+
+        !< write the last timestep
+        !>------------------------------------------------------
+        !> even if the user asked no output, the initial state
+        !> and the last state of the simulation are written
+        !>------------------------------------------------------        
+        if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
+           call io_writer%write_data(f_simulated,p_model,bc_size,time)
+        end if
 
 
         !< finalize the MPI processes

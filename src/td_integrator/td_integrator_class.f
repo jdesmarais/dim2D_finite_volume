@@ -16,11 +16,13 @@
       !-----------------------------------------------------------------
       module td_integrator_class
 
+        use bc_operators_class, only : bc_operators
         use cg_operators_class, only : cg_operators
-        use field_class       , only : field
-        use parameters_kind   , only : rkind
         use dim2d_eq_class    , only : dim2d_eq
+        use field_class       , only : field
         use fv_operators_class, only : fv_operators
+        use parameters_kind   , only : rkind
+
 
         implicit none
 
@@ -73,18 +75,19 @@
           !>@param dt
           !> time step integrated
           !--------------------------------------------------------------
-          subroutine integrate_proc(field_used, sd, p_model, td, dt)
+          subroutine integrate_proc(field_used,sd,p_model,bc_used,td,dt)
 
-
+            import bc_operators
             import cg_operators
-            import field
             import dim2d_eq
-            import rkind
+            import field
             import fv_operators
+            import rkind
 
             class(field)       , intent(inout) :: field_used
             type(cg_operators) , intent(in)    :: sd
             type(dim2d_eq)     , intent(in)    :: p_model
+            type(bc_operators) , intent(in)    :: bc_used
             type(fv_operators) , intent(in)    :: td
             real(rkind)        , intent(in)    :: dt
 

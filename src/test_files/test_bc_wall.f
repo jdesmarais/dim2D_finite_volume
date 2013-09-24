@@ -1,27 +1,36 @@
       !> @file
       !> test file for the object 'bc_operators'
-      !> for reflection boundary conditions
+      !> for wall boundary conditions
       !
       !> @author 
       !> Julien L. Desmarais
       !
       !> @brief
-      !> test the application of the reflection boundary
+      !> test the application of the wall boundary
       !> conditions on the gridpoints and compare the
       !> results with the expected data
       !
       !> @date
-      ! 24_09_2013 - initial version - J.L. Desmarais
+      ! 25_09_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      program test_bc_reflection
+      !in this test, the application of the boundary conditions on the 
+      !nodes is checked by comparing the saved data with the data
+      !computed by the wall b.c.
+      !the application of the boundary conditions on the fluxes is only
+      !checked by looking if the fluxes modified are the correct ones,
+      !if the fluxes for the mass density are equal to zero, and if the
+      !energy fluxes are equal to zero unless the wall is heated
+      !-----------------------------------------------------------------
+      program test_bc_wall
 
         use bc_operators_class , only : bc_operators
         use cg_operators_class , only : cg_operators
         use dim2d_eq_class     , only : dim2d_eq
         use field_class        , only : field
-        use parameters_constant, only : reflection_xy_choice
+        use parameters_constant, only : wall_xy_choice
         use parameters_input   , only : nx,ny,ne,bc_choice
         use parameters_kind    , only : ikind, rkind
+
 
         implicit none
 
@@ -37,16 +46,18 @@
         real    :: time1, time2
 
         !<test parameters
-        logical, parameter             :: detailled=.true.
-        integer(ikind)                 :: i,j
-        integer                        :: k
-        integer    , dimension(4)      :: prefactor_x
-        integer    , dimension(4)      :: prefactor_y
-        real(rkind), dimension(10,2,ne):: test_north
-        real(rkind), dimension(10,2,ne):: test_south
-        real(rkind), dimension(2,8,ne) :: test_east
-        real(rkind), dimension(2,8,ne) :: test_west
-        logical                        :: test_validated
+        logical, parameter                 :: detailled=.true.
+        integer(ikind)                     :: i,j
+        integer                            :: k, bc_size
+        integer    , dimension(4)          :: prefactor_x
+        integer    , dimension(4)          :: prefactor_y
+        real(rkind), dimension(nx+1,ny,ne) :: flux_x
+        real(rkind), dimension(nx,ny+1,ne) :: flux_y
+        real(rkind), dimension(10,2,ne)    :: test_north
+        real(rkind), dimension(10,2,ne)    :: test_south
+        real(rkind), dimension(2,8,ne)     :: test_east
+        real(rkind), dimension(2,8,ne)     :: test_west
+        logical                            :: test_validated, wall_test
 
 
         !<test specifications
@@ -54,8 +65,8 @@
            stop 'the test requires (nx,ny,ne)=(10,12,4)'
         end if
 
-        if(bc_choice.ne.reflection_xy_choice) then
-           stop 'the test is made for reflection bc'
+        if(bc_choice.ne.wall_xy_choice) then
+           stop 'the test is made for wall bc'
         end if
 
         !<get the initial CPU time
@@ -71,10 +82,27 @@
            end do
         end do
 
+        !<initialize the flux tables
+        do k=1, ne
+           do j=1, ny
+              do i=1,nx+1
+                 flux_x(i,j,k) = k
+              end do
+           end do
+        end do
+
+        do k=1, ne
+           do j=1, ny+1
+              do i=1,nx
+                 flux_y(i,j,k) = k
+              end do
+           end do
+        end do
+
 
         !<initialize the test data
-        prefactor_x = [1,-1,1,1]
-        prefactor_y = [1,1,-1,1]
+        prefactor_x = [1,-1,-1,1]
+        prefactor_y = [1,-1,-1,1]
 
         do k=1, ne
            do j=1,2
@@ -143,7 +171,7 @@
         call bc_used%initialize(s,p_model)
 
         !< apply the boundary conditions
-        call bc_used%apply_bc_on_nodes(field_tested,s,p_model)
+        call bc_used%apply_bc_on_nodes(field_tested,s)
 
 
         !< perform the test
@@ -171,14 +199,14 @@
            k=k+1
         end do
         
-        
-        !east and west tests
-        if(test_validated) then
-           i=1
-           j=1
-           k=1
+        if(.not.test_validated) then
+           print *, 'test_failed at: ', i,j,k, field_tested%nodes(i,j,k)
+           stop 'nodes test failed for north and south'
         end if
+        
 
+        !east and west tests
+        test_validated=.true.
         k=1
         do while(test_validated.and.(k.le.ne))
            j=1
@@ -201,12 +229,85 @@
 
         if(.not.test_validated) then
            print *, 'test_failed at: ', i,j,k, field_tested%nodes(i,j,k)
+           stop 'nodes test failed for east and west'
         end if
+
+        
+        !<test the application of the wall b.c. on the fluxes
+        call bc_used%apply_bc_on_fluxes(field_tested,s,flux_x,flux_y)
+
+        bc_size = s%get_bc_size()
+
+        !< check if the points modified by the b.c. are only the 
+        !> points that should be modified
+        i=1
+        j=1
+        k=1
+        test_validated=.true.
+        do while(test_validated.and.(k.le.ne))
+           j=1
+           do while(test_validated.and.(j.le.ny))
+              i=1
+              do while(test_validated.and.(i.le.nx+1))
+                 wall_test = (i.eq.(bc_size+1)).or.(i.eq.(nx-bc_size+1))
+                 wall_test = wall_test.and.(j.ge.(bc_size+1))
+                 wall_test = wall_test.and.(j.le.(ny-bc_size))
+                 if(wall_test) then
+                    test_validated=int(flux_x(i,j,k)).ne.k
+                    test_validated=test_validated.and.(flux_x(i,j,1).eq.0)
+                    test_validated=test_validated.and.(flux_x(i,j,4).eq.0)
+                 else
+                    test_validated=int(flux_x(i,j,k)).eq.k
+                 end if
+                 i=i+1
+              end do
+              j=j+1
+           end do
+           k=k+1
+        end do
+              
+        if(.not.test_validated) then
+           print *, 'test_failed at: ', i,j,k, flux_x(i,j,k), wall_test
+           stop 'fluxes test failed for modified gridpts flux_x'
+        end if   
+
  
+        i=1
+        j=1
+        k=1
+        test_validated=.true.
+        do while(test_validated.and.(k.le.ne))
+           j=1
+           do while(test_validated.and.(j.le.ny+1))
+              i=1
+              do while(test_validated.and.(i.le.nx))
+                 wall_test = (j.eq.(bc_size+1)).or.(j.eq.(ny-bc_size+1))
+                 wall_test = wall_test.and.(i.ge.(bc_size+1))
+                 wall_test = wall_test.and.(i.le.(nx-bc_size))
+                 if(wall_test) then
+                    test_validated=int(flux_y(i,j,k)).ne.k
+                    test_validated=test_validated.and.(flux_y(i,j,1).eq.0)
+                    test_validated=test_validated.and.(flux_y(i,j,4).eq.0)
+                 else
+                    test_validated=int(flux_y(i,j,k)).eq.k
+                 end if
+                 i=i+1
+              end do
+              j=j+1
+           end do
+           k=k+1
+        end do
+
+        if(.not.test_validated) then
+           print *, 'test_failed at: ', i,j,k, flux_y(i,j,k), wall_test
+           stop 'fluxes test failed for modified gridpts flux_y'
+        end if
+
+
         !<print if the test is validated
         print *, 'test_validated: ', test_validated  
 
         call CPU_TIME(time2)
         print '(''time elapsed:'', F6.2)', time2-time1
 
-      end program test_bc_reflection
+      end program test_bc_wall

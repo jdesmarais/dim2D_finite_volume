@@ -137,10 +137,12 @@
 
           !<create the netcdf file
           retval = NF90_CREATE(trim(filename), NF90_NETCDF4, ncid)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
 
           !<write the header of the file
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_write_header(ncid,p_model)
 
 
@@ -154,6 +156,7 @@
 
           !<close the netcdf file
           retval = NF90_CLOSE(ncid)
+          !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
           !<increment the internal counter

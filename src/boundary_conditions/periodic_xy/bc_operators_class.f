@@ -82,16 +82,20 @@
         !>@param this
         !> boundary conditions initialized
         !
+        !>@param s
+        !> spatial discretisation operators
+        !
         !>@param p_model
         !> physical model to know the type of the main variables
         !--------------------------------------------------------------
-        subroutine initialize(this, p_model,s)
+        subroutine initialize(this, s, p_model)
         
           implicit none
 
           class(bc_operators), intent(inout) :: this
-          type(dim2d_eq)     , intent(in)    :: p_model
           type(cg_operators) , intent(in)    :: s
+          type(dim2d_eq)     , intent(in)    :: p_model
+
           
           integer :: neq,bc_size
 
@@ -118,25 +122,21 @@
         !>@param f
         !> object encapsulating the main variables
         !
-        !>@param p_model
-        !> physical model
-        !
         !>@param s
         !> space discretization operators
         !--------------------------------------------------------------
-        subroutine apply_bc_on_nodes(this,f_used,p_model,s)
+        subroutine apply_bc_on_nodes(this,f_used,s)
 
           implicit none
 
           class(bc_operators), intent(in)    :: this
           class(field)       , intent(inout) :: f_used
-          type(dim2d_eq)     , intent(in)    :: p_model
           type(cg_operators) , intent(in)    :: s
+
 
           integer(ikind) :: i,j
           integer        :: neq,bc_size,k
 
-          neq      = p_model%get_eq_nb()
           bc_size  = s%get_bc_size()
 
           !<compute the east and west boundary layers

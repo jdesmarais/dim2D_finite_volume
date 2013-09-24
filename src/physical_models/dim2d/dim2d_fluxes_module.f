@@ -175,12 +175,13 @@
      $              (2.0d0+viscous_r)*s%dfdx(field_used,i,j,velocity_x)
      $            + viscous_r*s%dfdy(field_used,i,j,velocity_y)
      $         )
-     $         -1/we*1.5d0/cv_r*s%f(field_used,i,j,capillarity_pressure)
+     $         -1.0d0/we*1.5d0/cv_r*
+     $            s%f(field_used,i,j,capillarity_pressure)
      $            *(
      $              (s%dfdx(field_used,i,j,mass_density))**2
      $            + (s%dfdy(field_used,i,j,mass_density))**2
      $         )
-     $         -1/we*(
+     $         -1.0d0/we*(
      $            s%f(field_used,i,j,mass_density)*(
      $                  s%d2fdx2(field_used,i,j,mass_density)
      $                + s%d2fdy2(field_used,i,j,mass_density))

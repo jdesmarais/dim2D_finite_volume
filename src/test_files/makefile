@@ -7,7 +7,7 @@ cluster = $(LERNAEANHYDRA_CLUSTER)
 #------------------------------------------------------------------------
 #user main options for profiling, optimizing ...
 #------------------------------------------------------------------------
-profile       = true #$(LERNAEANHYDRA_PROFILE)        #ddt/totalview debugging
+profile       = $(LERNAEANHYDRA_PROFILE)        #ddt/totalview debugging
 analyse       = $(LERNAEANHYDRA_ANALYSE)        #gprof
 trace         = $(LERNAEANHYDRA_TRACE)          #vampir tracing
 report        = $(LERNAEANHYDRA_OPTREPORT)      #optimization report
@@ -21,15 +21,22 @@ scalasca      = false				#scalasca instrumentation
 src_dir	   = $(lernaeanhydra)/src
 config_dir = $(src_dir)/test_files/config
 dep_dir	   = $(src_dir)/test_files/dep
-bc_choice = reflection_xy_choice
+bc_choice  = wall_xy_choice
 
 ifeq ($(strip $(bc_choice)), periodic_xy_choice)
 	sbc_dir=$(pbc_dir)
-	sim_dim2d_dep=$(dep_dir)/sim_dim2d_par_periodic.dep
+	sim_dim2d_dep=$(dep_dir)/sim_dim2d_periodic.dep
+	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_periodic.dep
 endif
 ifeq ($(strip $(bc_choice)), reflection_xy_choice)
 	sbc_dir=$(rbc_dir)
-	sim_dim2d_dep=$(dep_dir)/sim_dim2d_par_reflection.dep
+	sim_dim2d_dep=$(dep_dir)/sim_dim2d_reflection.dep
+	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_reflection.dep
+endif
+ifeq ($(strip $(bc_choice)), wall_xy_choice)
+	sbc_dir=$(wbc_dir)
+	sim_dim2d_dep=$(dep_dir)/sim_dim2d_wall.dep
+	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_wall.dep
 endif
 #------------------------------------------------------------------------
 #source files directories
@@ -50,10 +57,10 @@ INCLUDE =
 LIBS	=
 
 #ifort compiler options------------------------------------------------
-FFLAGS_OP_IFORT		 = -O2 -p -g -ipo-c -132 -inline-factor=300 -warn all
+#FFLAGS_OP_IFORT		 = -O2 -p -g -ipo-c -132 -inline-factor=300 -warn all
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
-#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 #-warn noalignment #check if there are data that are unaligned
+FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 #-warn noalignment #check if there are data that are unaligned
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=300
 #FFLAGS_OP_IFORT		 = -O2 -132 -ipo-c #-D	ALIGNED #-inline-factor=400
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -guide -inline-factor=400
@@ -62,10 +69,10 @@ FFLAGS_OP_IFORT		 = -O2 -p -g -ipo-c -132 -inline-factor=300 -warn all
 FFLAGS_PROFILE_IFORT	 = -O0 -g -132 -warn all -check all -r8 -traceback	#profiling options 
 FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
-LDFLAGS_OP_IFORT     	 = -O2 -p -g -ipo -132 -inline-factor=300 -warn all
+#LDFLAGS_OP_IFORT     	 = -O2 -p -g -ipo -132 -inline-factor=300 -warn all
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
-#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500 #-warn noalignment #check if there are data that are unaligned
+LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500 #-warn noalignment #check if there are data that are unaligned
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=300 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -132 -ipo #-DALIGNED #-inline-factor=400 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -guide -inline-factor=400 #-warn all -check all #GOOD options
@@ -394,14 +401,16 @@ $(dim2d_ic)/dim2d_dropretract_module.o:$(dim2d_dir)/dim2d_parameters.o\
 
 
 #time discretization methods
-$(td_dir)/td_operators_class.o:	$(field_dir)/field_class.o\
+$(td_dir)/td_operators_class.o:	$(sbc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
+				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o
 
-$(fv_dir)/fv_operators_class.o:	$(field_dir)/field_class.o\
+$(fv_dir)/fv_operators_class.o:	$(sbc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
+				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o\
@@ -485,14 +494,35 @@ $(rbc_dir)/bc_operators_par_class.o:$(sd_dir)/cg_operators_class.o\
 				$(rbc_dir)/reflection_xy_par_module.o
 
 #wall boundary conditions
+$(wbc_dir)/wall_prim_module.o:	$(dim2d_dir)/dim2d_parameters.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_kind.o
 
+$(wbc_dir)/wall_xy_module.o:	$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(dim2d_dir)/dim2d_parameters.o\
+				$(dim2d_dir)/dim2d_prim_module.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(wbc_dir)/wall_prim_module.o
+
+$(wbc_dir)/bc_operators_class.o:$(bc_dir)/bc_abstract_class.o\
+				$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(wbc_dir)/wall_xy_module.o
 
 #time integration methods
-$(ti_dir)/td_integrator_class.o:$(sd_dir)/cg_operators_class.o\
-				$(field_dir)/field_class.o\
-				$(param_dir)/parameters_kind.o\
+$(ti_dir)/td_integrator_class.o:$(sbc_dir)/bc_operators_class.o\
+				$(sd_dir)/cg_operators_class.o\
 				$(dim2d_dir)/dim2d_eq_class.o\
-				$(fv_dir)/fv_operators_class.o
+				$(field_dir)/field_class.o\
+				$(fv_dir)/fv_operators_class.o\
+				$(param_dir)/parameters_kind.o
 
 $(ti_dir)/td_integrator_par_class.o:$(sbc_dir)/bc_operators_par_class.o\
 				$(sd_dir)/cg_operators_class.o\
@@ -505,7 +535,7 @@ $(rk3tvd_dir)/rk3tvd_steps_class.o:$(field_dir)/field_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
-$(rk3tvd_dir)/rk3tvd_class.o:	$(bc_dir)/bc_operators_class.o\
+$(rk3tvd_dir)/rk3tvd_class.o:	$(sbc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
 				$(dim2d_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_class.o\
@@ -592,7 +622,7 @@ $(mpi_bc_dir)/mpi_mg_bc_ext_class.o:$(field_dir)/field_par_class.o\
 
 
 #simulations
-sim_dim2d.o:			$(bc_dir)/bc_operators_class.o\
+sim_dim2d.o:			$(sbc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
 				$(dim2d_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_class.o\
@@ -601,6 +631,20 @@ sim_dim2d.o:			$(bc_dir)/bc_operators_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(rk3tvd_dir)/rk3tvd_class.o
+
+sim_dim2d_par.o:		$(sbc_dir)/bc_operators_par_class.o\
+				$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(field_dir)/field_par_class.o\
+				$(fv_dir)/fv_operators_class.o\
+				$(mpi_dir)/mpi_process_class.o\
+				$(nf90_dir)/nf90_operators_wr_par_class.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(rk3tvd_dir)/rk3tvd_par_class.o
+
+include $(sim_dim2d_dep)
+include $(sim_dim2d_par_dep)
 
 
 #tests
@@ -691,7 +735,7 @@ test_fv_operators:		cg_operators_class.o\
 				surrogate_class.o\
 				td_operators_class.o
 
-test_bc_operators.o:		$(bc_dir)/bc_operators_class.o\
+test_bc_operators.o:		$(sbc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_constant.o\
@@ -771,6 +815,67 @@ test_bc_reflection:		surrogate_class.o\
 				reflection_xy_module.o\
 				bc_operators_class.o
 
+test_wall_xy_module.o:		$(wbc_dir)/bc_operators_class.o\
+				$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(dim2d_dir)/dim2d_parameters.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(wbc_dir)/wall_xy_module.o
+
+test_wall_xy_module:		surrogate_class.o\
+				parameters_kind.o\
+				parameters_constant.o\
+				parameters_input.o\
+				field_class.o\
+				interface_primary.o\
+				sd_operators_class.o\
+				cg_operators_class.o\
+				dim2d_parameters.o\
+				dim2d_prim_module.o\
+				dim2d_fluxes_module.o\
+				dim2d_state_eq_module.o\
+				dim2d_steadystate_module.o\
+				dim2d_dropretract_module.o\
+				phy_model_eq_class.o\
+				dim2d_eq_class.o\
+				bc_abstract_class.o\
+				wall_prim_module.o\
+				wall_xy_module.o\
+				bc_operators_class.o
+
+
+test_bc_wall.o:			$(wbc_dir)/bc_operators_class.o\
+				$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_bc_wall:			surrogate_class.o\
+				parameters_kind.o\
+				parameters_constant.o\
+				parameters_input.o\
+				field_class.o\
+				interface_primary.o\
+				sd_operators_class.o\
+				cg_operators_class.o\
+				dim2d_parameters.o\
+				dim2d_prim_module.o\
+				dim2d_fluxes_module.o\
+				dim2d_state_eq_module.o\
+				dim2d_steadystate_module.o\
+				dim2d_dropretract_module.o\
+				phy_model_eq_class.o\
+				dim2d_eq_class.o\
+				bc_abstract_class.o\
+				wall_prim_module.o\
+				wall_xy_module.o\
+				bc_operators_class.o
+
 test_rk3tvd.o:			$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
 				$(fv_dir)/fv_operators_class.o\
@@ -794,7 +899,7 @@ test_rk3tvd:			bc_operators_class.o\
 				td_integrator_class.o\
 				td_operators_class.o
 
-test_rk3tvd_dim2d.o:		$(bc_dir)/bc_operators_class.o\
+test_rk3tvd_dim2d.o:		$(sbc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
 				$(dim2d_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_class.o\
@@ -879,33 +984,7 @@ test_dim2d_ic:			surrogate_class.o\
 				nf90_operators_wr_class.o\
 				io_operators_module.o
 
-sim_dim2d:			surrogate_class.o\
-				parameters_kind.o\
-				field_class.o\
-				interface_primary.o\
-				sd_operators_class.o\
-				cg_operators_class.o\
-				dim2d_parameters.o\
-				dim2d_prim_module.o\
-				dim2d_fluxes_module.o\
-				dim2d_state_eq_module.o\
-				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
-				parameters_constant.o\
-				parameters_input.o\
-				phy_model_eq_class.o\
-				dim2d_eq_class.o\
-				td_operators_class.o\
-				fv_operators_class.o\
-				io_operators_module.o\
-				nf90_operators_module.o\
-				nf90_operators_wr_class.o\
-				periodic_xy_module.o\
-				reflection_xy_module.o\
-				bc_operators_class.o\
-				td_integrator_class.o\
-				rk3tvd_steps_class.o\
-				rk3tvd_class.o
+
 
 test_field_par.o:		$(field_dir)/field_par_class.o\
 				$(mpi_dir)/mpi_process_class.o\
@@ -1207,15 +1286,6 @@ test_nf90_operators_par:	surrogate_class.o\
 				nf90_operators_module.o\
 				nf90_operators_wr_par_class.o
 
-sim_dim2d_par.o:		$(sbc_dir)/bc_operators_par_class.o\
-				$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
-				$(field_dir)/field_par_class.o\
-				$(fv_dir)/fv_operators_class.o\
-				$(mpi_dir)/mpi_process_class.o\
-				$(nf90_dir)/nf90_operators_wr_par_class.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(rk3tvd_dir)/rk3tvd_par_class.o
 
-include $(sim_dim2d_dep)
+
+

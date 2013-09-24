@@ -337,7 +337,6 @@
           !<get the size of the boundary layers
           bc_size = s%get_bc_size()
 
-
           !<fluxes along the x-axis
           do j=1+bc_size, ny-bc_size
              !DEC$ IVDEP

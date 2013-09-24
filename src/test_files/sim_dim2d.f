@@ -41,7 +41,7 @@
         !<intermediate variables for the simulation
         integer(ikind) :: nt, output_print
         integer        :: bc_size
-        integer(ikind) :: i,j,t
+        integer(ikind) :: t
         real(rkind)    :: time
         !integer, parameter :: output_print=1
 
@@ -67,7 +67,8 @@
         time = 0
         call f_simulated%ini_coordinates(bc_size)
         call p_model%apply_ic(f_simulated)
-        call bc_used%apply_bc_on_nodes(f_simulated,p_model,s)
+        call bc_used%initialize(s,p_model)
+        call bc_used%apply_bc_on_nodes(f_simulated,s)
 
 
         !<write the initial state in an output file
@@ -84,7 +85,7 @@
            time=(t-1)*dt
 
            !DEC$ FORCEINLINE RECURSIVE
-           call ti%integrate(f_simulated,s,p_model,td,dt)
+           call ti%integrate(f_simulated,s,p_model,bc_used,td,dt)
 
            !< write the output data
            if((output_print.eq.1).or.
@@ -95,14 +96,14 @@
         end do
 
 
+        !<print the time needed for the simulation
+        call CPU_TIME(time3)
+        print *, 'time_elapsed: ', time3-time1
+
+
         !<write the last timestep
         if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
            call io_writer%write_data(f_simulated,p_model,bc_size,time)
         end if
-
-
-        !<print the time needed for the simulation
-        call CPU_TIME(time3)
-        print *, 'time_elapsed: ', time3-time1
 
       end program sim_dim2d

@@ -20,7 +20,8 @@
 
 
         private
-        public :: viscous_r, re, pr, we, cv_r, gravity
+        public :: rho_c, u_c, length_c, time_c,
+     $            viscous_r, re, pr, we, cv_r, gravity
 
 
         !< input quantities for water

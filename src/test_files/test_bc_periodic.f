@@ -135,10 +135,10 @@
         end do
 
         !< initialize the boundary conditions
-        call bc_used%initialize(p_model,s)
+        call bc_used%initialize(s,p_model)
 
         !< apply the boundary conditions
-        call bc_used%apply_bc_on_nodes(field_tested,p_model,s)
+        call bc_used%apply_bc_on_nodes(field_tested,s,p_model)
 
 
         !< perform the test

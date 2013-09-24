@@ -370,8 +370,11 @@
 
           
           !<define the main variables of the governing equations
+          !DEC$ FORCEINLINE RECURSIVE
           name_var     = p_model%get_var_name()
+          !DEC$ FORCEINLINE RECURSIVE
           longname_var = p_model%get_var_longname()
+          !DEC$ FORCEINLINE RECURSIVE
           unit_var     = p_model%get_var_unit()
 
           do k=1, ne

@@ -17,11 +17,12 @@
       !-----------------------------------------------------------------
       module td_operators_class
 
-        use field_class       , only : field
+        use bc_operators_class, only : bc_operators
         use cg_operators_class, only : cg_operators
+        use dim2d_eq_class    , only : dim2d_eq
+        use field_class       , only : field
         use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : rkind
-        use dim2d_eq_class    , only : dim2d_eq
 
         implicit none
 
@@ -67,11 +68,15 @@
           !>@param p
           !> physical model
           !
+          !>@param bc_used
+          !> boundary conditions
+          !
           !>@param time_dev
           !> time derivatives
           !--------------------------------------------------------------
-          function time_proc(field_used, s, p_model) result(time_dev)
+          function time_proc(field_used,s,p_model,bc_used) result(time_dev)
 
+            import bc_operators
             import cg_operators
             import field
             import dim2d_eq
@@ -81,6 +86,7 @@
             class(field)                    , intent(in)   :: field_used
             type(cg_operators)              , intent(in)   :: s
             type(dim2d_eq)                  , intent(in)   :: p_model
+            type(bc_operators)              , intent(in)   :: bc_used
             real(rkind), dimension(nx,ny,ne)               :: time_dev
 
           end function time_proc

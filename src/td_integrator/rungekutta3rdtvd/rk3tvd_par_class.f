@@ -40,6 +40,7 @@
         use parameters_input       , only : nx,ny,ne
         use parameters_kind        , only : rkind, ikind
         use td_integrator_par_class, only : td_integrator_par
+        use rk3tvd_steps_class     , only : rk3tvd_steps
 
         implicit none
 
@@ -109,24 +110,10 @@
           type(bc_operators_par), intent(in)    :: bc_par_used
           real(rkind)           , intent(in)    :: dt
 
-          real(rkind) :: b2 !<Runge-Kutta scheme coeff
-          real(rkind) :: b3 !<Runge-Kutta scheme coeff
-
-          integer(ikind) :: i,j,k
-          integer        :: bc_size
-
+          integer                          :: bc_size
           real(rkind), dimension(nx,ny,ne) :: nodes_tmp
           real(rkind), dimension(nx,ny,ne) :: time_dev
-
-
-          !<initialization of the coeff for the Runge-Kutta scheme
-          if(rkind.eq.8) then
-             b2 = 0.75d0
-             b3 = 1.0d0/3.0d0
-          else
-             b2 = 0.75
-             b3 = 1.0/3.0
-          end if
+          type(rk3tvd_steps)               :: rk3tvd_int
 
 
           !<initialization of local variables for the allocation
@@ -141,15 +128,10 @@
           !DEC$ FORCEINLINE RECURSIVE
           time_dev = td%compute_time_dev(field_used, sd, p_model)
 
-          do k=1, ne
-             do j=bc_size+1, ny-bc_size
-                do i=bc_size+1, nx-bc_size
-                   nodes_tmp(i,j,k)        = field_used%nodes(i,j,k)
-                   field_used%nodes(i,j,k) = field_used%nodes(i,j,k) +
-     $                                       dt*time_dev(i,j,k)
-                end do
-             end do
-          end do
+          !DEC$ FORCEINLINE RECURSIVE
+          call rk3tvd_int%compute_1st_step(
+     $         dt, time_dev, bc_size,
+     $         field_used, nodes_tmp)
             
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
@@ -164,27 +146,10 @@
           !DEC$ FORCEINLINE RECURSIVE
           time_dev = td%compute_time_dev(field_used, sd, p_model)
 
-          if(rkind.eq.8) then
-             do k=1, ne
-                do j=bc_size+1, ny-bc_size
-                   do i=bc_size+1, nx-bc_size
-                      field_used%nodes(i,j,k) = b2*nodes_tmp(i,j,k) +
-     $                     (1.0d0-b2)*(field_used%nodes(i,j,k)+
-     $                     dt*time_dev(i,j,k))
-                   end do
-                end do
-             end do
-          else
-             do k=1, ne
-                do j=bc_size+1, ny-bc_size
-                   do i=bc_size+1, nx-bc_size
-                      field_used%nodes(i,j,k) = b2*nodes_tmp(i,j,k) +
-     $                     (1.0-b2)*(field_used%nodes(i,j,k)+
-     $                     dt*time_dev(i,j,k))
-                   end do
-                end do
-             end do
-          end if
+          !DEC$ FORCEINLINE RECURSIVE
+          call rk3tvd_int%compute_2nd_step(
+     $         dt, time_dev, bc_size,
+     $         field_used, nodes_tmp)
           
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
@@ -199,29 +164,10 @@
           !DEC$ FORCEINLINE RECURSIVE
           time_dev = td%compute_time_dev(field_used, sd, p_model)
 
-          if(rkind.eq.8) then
-             do k=1 ,ne
-                do j=bc_size+1, ny-bc_size
-                   
-                   do i=bc_size+1, nx-bc_size
-                      field_used%nodes(i,j,k) = b3*nodes_tmp(i,j,k) +
-     $                     (1.0d0-b3)*(field_used%nodes(i,j,k)+
-     $                     dt*time_dev(i,j,k))
-                   end do
-                end do
-             end do
-          else
-             do k=1 ,ne
-                do j=bc_size+1, ny-bc_size
-                   
-                   do i=bc_size+1, nx-bc_size
-                      field_used%nodes(i,j,k) = b3*nodes_tmp(i,j,k) +
-     $                     (1.0-b3)*(field_used%nodes(i,j,k)+
-     $                     dt*time_dev(i,j,k))
-                   end do
-                end do
-             end do
-          end if
+          !DEC$ FORCEINLINE RECURSIVE
+          call rk3tvd_int%compute_3rd_step(
+     $         dt, time_dev, bc_size,
+     $         field_used, nodes_tmp)
 
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE

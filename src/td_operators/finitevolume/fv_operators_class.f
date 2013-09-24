@@ -16,10 +16,13 @@
       !-----------------------------------------------------------------
       module fv_operators_class
 
+        use bc_operators_class , only : bc_operators
         use cg_operators_class , only : cg_operators
         use field_class        , only : field
-        use parameters_constant, only : earth_gravity_choice
-        use parameters_input   , only : nx,ny,ne,gravity_choice
+        use parameters_constant, only : earth_gravity_choice,
+     $                                  bc_fluxes_choice
+        use parameters_input   , only : nx,ny,ne,gravity_choice,
+     $                                  bcx_type_choice, bcy_type_choice
         use parameters_kind    , only : rkind, ikind
         use dim2d_eq_class     , only : dim2d_eq
         use td_operators_class , only : td_operators
@@ -66,13 +69,17 @@
           !>@param s
           !> space discretization operators
           !
-          !>@param p
+          !>@param p_model
           !> physical model
+          !
+          !>@param bc_used
+          !> boundary conditions
           !
           !>@param time_dev
           !> time derivatives
           !--------------------------------------------------------------
-          function compute_time_dev(field_used,s,p_model)result(time_dev)
+          function compute_time_dev(field_used,s,p_model,bc_used)
+     $       result(time_dev)
 
             implicit none
 
@@ -80,6 +87,7 @@
             class(field)                    , intent(in) :: field_used
             type(cg_operators)              , intent(in) :: s
             type(dim2d_eq)                  , intent(in) :: p_model
+            type(bc_operators)              , intent(in) :: bc_used
             real(rkind), dimension(nx,ny,ne)             :: time_dev
 
             integer                            :: bc_size,k
@@ -88,8 +96,10 @@
             real(rkind), dimension(nx,ny+1,ne) :: flux_y
             real(rkind), dimension(nx,ny,ne)   :: body_forces
 
+
             !<initialize the main tables size
             bc_size = s%get_bc_size()
+
             
             !<compute the fluxes
             !FORCEINLINE RECURSIVE
@@ -99,7 +109,17 @@
             flux_y = p_model%compute_flux_y(field_used,s)
 
 
-            !<compute the time derivatives depending on body forces or not
+            !<if the boundary conditions influence the computation
+            !> of the fluxes, then we need to modify the fluxes
+            if((bcx_type_choice.eq.bc_fluxes_choice).or.
+     $         (bcy_type_choice.eq.bc_fluxes_choice)) then
+               call bc_used%apply_bc_on_fluxes(
+     $              field_used,s,flux_x,flux_y)
+            end if
+
+
+            !<compute the time derivatives
+            !>select if the body forces computation is required
             if(gravity_choice.eq.earth_gravity_choice) then
 
                !<compute the body forces
