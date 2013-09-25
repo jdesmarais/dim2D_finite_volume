@@ -21,7 +21,8 @@
         use mpi
         use mpi_process_class     , only : mpi_process
         use parameters_constant   , only : periodic_xy_choice
-        use parameters_input      , only : nx,ny,ne,npx,npy,bc_choice
+        use parameters_input      , only : nx,ny,ne,npx,npy,
+     $                                     bc_choice
         use parameters_kind       , only : ikind,rkind
 
         implicit none
@@ -37,16 +38,17 @@
 
         
         !< intermediate variables
-        logical :: test=.true.
+        logical :: test=.false.
         logical :: test_validated
 
 
         !< the test is designed for (npx,npy)=(2,2)
         !> and periodic boundary conditions
-        if((npx.ne.2).or.(npy.ne.2).or.
+        if(  (npx.ne.2).or.(npy.ne.2).or.
+     $       (nx.ne.20).or.(ny.ne.20).or.
      $       (bc_choice.ne.periodic_xy_choice)) then
-           print '(''the test needs (npx,npy,bc_choice)='')'
-           stop '(2,2,periodic_xy_choice)'
+           print '(''the test needs (npx,npy,nx,ny,bc_choice)='')'
+           stop '(2,2,20,20,periodic_xy_choice)'
         end if
 
 

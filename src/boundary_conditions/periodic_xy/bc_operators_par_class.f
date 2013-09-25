@@ -54,6 +54,7 @@
           contains
 
           procedure, pass :: apply_bc_on_nodes
+          procedure, pass :: apply_bc_on_fluxes
 
         end type bc_operators_par
 
@@ -84,7 +85,8 @@
           !>@param p_model
           !> physical model
           !--------------------------------------------------------------
-          subroutine apply_bc_on_nodes(this, f_used, nodes, s_op, p_model)
+          subroutine apply_bc_on_nodes(
+     $       this, f_used, nodes, s_op, p_model)
 
             implicit none
             
@@ -139,5 +141,61 @@
             end select
 
           end subroutine apply_bc_on_nodes
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> subroutine to compute the periodic boundary layers
+          !> of the fluxes in a distributed memory system
+          !
+          !> @date
+          !> 25_09_2013 - initial version - J.L. Desmarais
+          !
+          !>@param f_used
+          !> object encapsulating the main variables
+          !
+          !>@param s_op
+          !> space discretization operators
+          !
+          !>@param p_model
+          !> physical model
+          !
+          !>@param flux_x
+          !> fluxes along the x-direction
+          !
+          !>@param flux_y
+          !> fluxes along the y-direction
+          !--------------------------------------------------------------
+          subroutine apply_bc_on_fluxes(
+     $       this, f_used, s_op,
+     $       flux_x, flux_y)
+
+            implicit none
+
+            class(bc_operators_par)           , intent(in)    :: this
+            type(field_par)                   , intent(in)    :: f_used
+            type(cg_operators)                , intent(in)    :: s_op
+            real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
+            real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
+
+
+            !these variables are only used to make sure that there
+            !are no warning about unused subroutine arguments
+            !as the subroutine is not meant to be used for periodic
+            !boundary conditions
+            integer :: proc_choice,bc_size
+            real(rkind) :: node, flux
+            
+            stop 'periodic_xy_par: apply_bc_on_fluxes not implemented'
+
+            proc_choice=this%proc_x_choice
+            node=f_used%nodes(1,1,1)
+            bc_size=s_op%get_bc_size()
+            flux=flux_x(1,1,1)
+            flux=flux_y(1,1,1)
+
+          end subroutine apply_bc_on_fluxes
 
       end module bc_operators_par_class

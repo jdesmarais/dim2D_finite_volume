@@ -15,6 +15,7 @@
       !
       !> @date
       !> 27_08_2013 - initial version - J.L. Desmarais
+      !> 25_09_2013 - update for fv_operators_par - J.L. Desmarais
       !-----------------------------------------------------------------
       module td_integrator_par_class
 
@@ -23,7 +24,7 @@
         use field_par_class       , only : field_par
         use parameters_kind       , only : rkind
         use dim2d_eq_class        , only : dim2d_eq
-        use fv_operators_class    , only : fv_operators
+        use fv_operators_par_class, only : fv_operators_par
 
         implicit none
 
@@ -62,6 +63,7 @@
           !
           !> @date
           !> 27_08_2013 - initial version - J.L. Desmarais
+          !> 25_09_2013 - update for fv_operators_par - J.L. Desmarais
           !
           !>@param field_used
           !> object encapsulating the main variables and the
@@ -73,7 +75,7 @@
           !>@param p
           !> physical model
           !
-          !>@param td
+          !>@param td_par
           !> time discretisation operators
           !
           !>@param bc_par_used
@@ -84,19 +86,19 @@
           !> time step integrated
           !--------------------------------------------------------------
           subroutine integrate_proc(
-     $       field_used, sd, p_model, td, bc_par_used, dt)
+     $       field_used, sd, p_model, td_par, bc_par_used, dt)
 
             import bc_operators_par
             import cg_operators
             import field_par
             import dim2d_eq
             import rkind
-            import fv_operators
+            import fv_operators_par
 
-            class(field_par)      , intent(inout) :: field_used
+            type(field_par)       , intent(inout) :: field_used
             type(cg_operators)    , intent(in)    :: sd
             type(dim2d_eq)        , intent(in)    :: p_model
-            type(fv_operators)    , intent(in)    :: td
+            type(fv_operators_par), intent(in)    :: td_par
             type(bc_operators_par), intent(in)    :: bc_par_used
             real(rkind)           , intent(in)    :: dt
 

@@ -28,8 +28,8 @@ sim_dim2d_par:			surrogate_class.o\
 				reflection_xy_module.o\
 				reflection_xy_par_module.o\
 				bc_operators_par_class.o\
-				td_operators_class.o\
-				fv_operators_class.o\
+				td_operators_par_class.o\
+				fv_operators_par_class.o\
 				io_operators_module.o\
 				nf90_operators_module.o\
 				nf90_operators_wr_par_class.o\

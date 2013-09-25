@@ -21,7 +21,7 @@
         use cg_operators_class         , only : cg_operators
         use dim2d_eq_class             , only : dim2d_eq
         use field_par_class            , only : field_par
-        use fv_operators_class         , only : fv_operators
+        use fv_operators_par_class     , only : fv_operators_par
         use mpi_process_class          , only : mpi_process
         use nf90_operators_wr_par_class, only : nf90_operators_wr_par
         use parameters_input           , only : ne,t_max,dt,detail_print
@@ -36,7 +36,7 @@
         type(cg_operators)          :: sd         !< space discretisation
         type(dim2d_eq)              :: p_model    !< physical model
         type(bc_operators_par)      :: bc_used    !< boundary conditions 
-        type(fv_operators)          :: td         !< time discretisation
+        type(fv_operators_par)      :: td         !< time discretisation
         type(rk3tvd_par)            :: ti         !< time integration
         type(nf90_operators_wr_par) :: io_writer  !< output management
         type(mpi_process)           :: mpi_op     !< mpi process

@@ -20,10 +20,13 @@
         use cg_operators_class    , only : cg_operators
         use dim2d_eq_class        , only : dim2d_eq
         use field_par_class       , only : field_par
-        use fv_operators_class    , only : fv_operators
+        use fv_operators_par_class, only : fv_operators_par
         use mpi
         use mpi_process_class     , only : mpi_process
-        use parameters_input      , only : nx,ny,ne,npx,npy
+        use parameters_constant   , only : periodic_xy_choice
+        use parameters_input      , only : nx,ny,ne,npx,npy,
+     $                                     x_min,x_max,y_min,y_max,
+     $                                     bc_choice
         use parameters_kind       , only : ikind,rkind
         use rk3tvd_par_class      , only : rk3tvd_par
 
@@ -34,7 +37,7 @@
         type(field_par)        :: field_tested
         type(cg_operators)     :: sd
         type(dim2d_eq)         :: p_model
-        type(fv_operators)     :: td
+        type(fv_operators_par) :: td
         type(bc_operators_par) :: bc_used
         type(rk3tvd_par)       :: ti
         type(mpi_process)      :: mpi_op
@@ -46,8 +49,8 @@
 
 
         !< intermediate variables
-        real(rkind) :: x_min, x_max, y_min, y_max
         integer     :: bc_size
+        logical     :: test_coordinates
         logical     :: test_validated
 
 
@@ -67,14 +70,23 @@
 
 
         !< initialize the tables for the field
-        x_min   = 0.
-        x_max   = 1.
-        y_min   = 0.
-        y_max   = 1.
+        test_coordinates = x_min.eq.0
+        test_coordinates = test_coordinates.and.(x_max.eq.1)
+        test_coordinates = test_coordinates.and.(y_min.eq.0)
+        test_coordinates = test_coordinates.and.(y_max.eq.1)
+
+        if(.not.test_coordinates) then
+           stop 'the test needs: (x_min,x_max,y_min,y_max)=(0,1,0,1)'
+        end if
+
+        if(bc_choice.ne.periodic_xy_choice) then
+           stop 'the test needs: bc_choice=periodic_xy_choice'
+        end if
+
         bc_size = sd%get_bc_size()
 
         call field_tested%ini_cartesian_communicator()
-        call field_tested%ini_coordinates(x_min,x_max,y_min,y_max,bc_size)
+        call field_tested%ini_coordinates(bc_size)
         call p_model%apply_ic(field_tested)
 
         call bc_used%initialize(field_tested,sd)

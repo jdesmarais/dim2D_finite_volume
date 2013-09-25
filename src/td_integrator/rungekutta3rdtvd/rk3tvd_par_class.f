@@ -36,7 +36,7 @@
         use cg_operators_class     , only : cg_operators
         use dim2d_eq_class         , only : dim2d_eq
         use field_par_class        , only : field_par
-        use fv_operators_class     , only : fv_operators
+        use fv_operators_par_class , only : fv_operators_par
         use parameters_input       , only : nx,ny,ne
         use parameters_kind        , only : rkind, ikind
         use td_integrator_par_class, only : td_integrator_par
@@ -99,14 +99,14 @@
         !> time step integrated
         !--------------------------------------------------------------
         subroutine integrate(
-     $       field_used, sd, p_model, td, bc_par_used, dt)
+     $       field_used, sd, p_model, td_par, bc_par_used, dt)
 
           implicit none
 
-          class(field_par)      , intent(inout) :: field_used
+          type(field_par)       , intent(inout) :: field_used
           type(cg_operators)    , intent(in)    :: sd
           type(dim2d_eq)        , intent(in)    :: p_model
-          type(fv_operators)    , intent(in)    :: td
+          type(fv_operators_par), intent(in)    :: td_par
           type(bc_operators_par), intent(in)    :: bc_par_used
           real(rkind)           , intent(in)    :: dt
 
@@ -126,7 +126,8 @@
           !> u_n is saved in nodes_tmp
           !> u_1 is saved in field_used%nodes
           !DEC$ FORCEINLINE RECURSIVE
-          time_dev = td%compute_time_dev(field_used, sd, p_model)
+          time_dev = td_par%compute_time_dev(
+     $         field_used, sd, p_model, bc_par_used)
 
           !DEC$ FORCEINLINE RECURSIVE
           call rk3tvd_int%compute_1st_step(
@@ -144,7 +145,8 @@
           !> u_n is saved in nodes_tmp
           !> u_2 is saved in field_used%nodes
           !DEC$ FORCEINLINE RECURSIVE
-          time_dev = td%compute_time_dev(field_used, sd, p_model)
+          time_dev = td_par%compute_time_dev(
+     $         field_used, sd, p_model, bc_par_used)
 
           !DEC$ FORCEINLINE RECURSIVE
           call rk3tvd_int%compute_2nd_step(
@@ -162,7 +164,8 @@
           !> u_n is saved in nodes_tmp
           !> u_{n+1} is saved in field_used%nodes
           !DEC$ FORCEINLINE RECURSIVE
-          time_dev = td%compute_time_dev(field_used, sd, p_model)
+          time_dev = td_par%compute_time_dev(
+     $         field_used, sd, p_model, bc_par_used)
 
           !DEC$ FORCEINLINE RECURSIVE
           call rk3tvd_int%compute_3rd_step(
