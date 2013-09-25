@@ -119,6 +119,25 @@ def compute_code_inputs(inputFileName):
     @description
     compute all the inputs needed by the code
     '''
+
+    #< codes for ic_choice, bc_choice, bc_type_choice,
+    #> gravity_choice: these codes are defined in
+    #> parameters_constant.f
+    ic_code      = ['steady_state',
+                    'drop_retraction',
+                    'homogeneous_liquid']
+
+    bc_code      = ['periodic_xy_choice',
+                     'reflection_xy_choice',
+                     'wall_xy_choice']
+
+    bc_type_code = ['bc_nodes_choice',
+                    'bc_fluxes_choice']
+
+    gravity_code = ['no_gravity_choice',
+                    'earth_gravity_choice']
+
+
     #< read the input file
     inputs_needed=[\
         'x_min','x_max','dx',\
@@ -143,30 +162,36 @@ def compute_code_inputs(inputFileName):
         inputs['y_min'],inputs['y_max'],inputs['dy'],
         bc_size)
 
+    #< compute the ic_choice
+    ic_choice = ic_code[int(inputs['ic_choice'])]
     
-    #< compute the bc_choice
-    boundary_code = ['periodic_xy_choice', 'reflection_xy_choice', 'wall_xy_choice']
-    bc_choice = boundary_code[int(inputs['bc_choice'])]
+    #< compute the bc_choice    
+    bc_choice = bc_code[int(inputs['bc_choice'])]
+    
+    #< compute the bc_type_choice
+    if(bc_choice=='periodic_xy_choice' or
+       bc_choice=='reflection_xy_choice'):
 
-    
-    #< compute the bc type choice
-    bc_type_code = ['bc_nodes_choice', 'bc_fluxes_choice']
-    if(bc_choice=='periodic_xy_choice' or bc_choice=='reflection_xy_choice'):
         bcx_type_choice = bc_type_code[0]
         bcy_type_choice = bc_type_code[0]
+
     if(bc_choice=='wall_xy_choice'):
+
         bcx_type_choice = bc_type_code[1]
         bcy_type_choice = bc_type_code[1]
-
     
     #< compute the gravity_choice
-    gravity_code = ['no_gravity_choice', 'earth_gravity_choice']
     gravity_choice = gravity_code[int(inputs['gravity_choice'])]
 
-    return [inputs,ntx,nty,bc_choice,bcx_type_choice,bcy_type_choice,gravity_choice]
 
+    return [inputs,ntx,nty,
+            ic_choice,
+            bc_choice,
+            bcx_type_choice,bcy_type_choice,
+            gravity_choice]
 
 def update_parameters_inputs(file_path,inputs,ntx,nty,
+                             ic_choice,
                              bc_choice,
                              bcx_type_choice,bcy_type_choice,
                              gravity_choice):
@@ -176,12 +201,14 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,
     file
     '''
     
-    #change the constant that do not require a special output treatment (double,real...)
+    #< change the constant that do not require a special
+    #> output treatment (double,real...)
     constants_changed1={
         'npx':inputs['npx'],
         'npy':inputs['npy'],
         'ntx':ntx,
         'nty':nty,
+        'ic_choice':ic_choice,
         'bc_choice':bc_choice,
         'bcx_type_choice':bcx_type_choice,
         'bcy_type_choice':bcy_type_choice,
@@ -197,7 +224,8 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,
         subprocess.call(cmd, shell=True)
 
 
-    #change the constant that do require a special output treatment (output format)
+    #< change the constant that do require a special
+    #> output treatment (output format)
     constants_changed2={
         'x_min':inputs['x_min'],
         'x_max':inputs['x_max'],
@@ -253,7 +281,8 @@ def compile_code(inputs):
     fname+='_'+str(inputs['npx'])+'x'+str(inputs['npy'])
 
     cmd_serial  ='cd .. && make cleanall && make sim_dim2d'
-    cmd_parallel='cd .. && make cleanall && make sim_dim2d_par && mv sim_dim2d_par '+fname
+    cmd_parallel='cd .. && make cleanall && make sim_dim2d_par'
+    cmd_parallel+=' && mv sim_dim2d_par '+fname
 
     if(inputs['npx']*inputs['npy']==1):
         cmd=cmd_serial
@@ -284,6 +313,7 @@ if __name__ == "__main__":
 
     #< compute the code inputs
     [inputs,ntx,nty,
+     ic_choice,
      bc_choice,
      bcx_type_choice,bcy_type_choice,
      gravity_choice]=compute_code_inputs(inputFileName)
@@ -291,6 +321,7 @@ if __name__ == "__main__":
 
     #< replace the inputs in the 'parameters_input' file
     update_parameters_inputs(param_path,inputs,ntx,nty,
+                             ic_choice,
                              bc_choice,
                              bcx_type_choice,bcx_type_choice,
                              gravity_choice)
@@ -313,4 +344,3 @@ if __name__ == "__main__":
     if(compileCode):
         compile_code(inputs)
         
-    

@@ -32,11 +32,13 @@
      $                                       flux_y_momentum_y,
      $                                       flux_x_total_energy,
      $                                       flux_y_total_energy
+        use dim2d_homogeneous_module, only : apply_homogeneous_ic
         use dim2d_steadystate_module, only : apply_steady_state_ic
         use field_class             , only : field
         use parameters_constant     , only : scalar, vector_x, vector_y,
      $                                       steady_state,
      $                                       drop_retraction,
+     $                                       homogeneous_liquid,
      $                                       earth_gravity_choice
         use parameters_input        , only : nx,ny,ne,
      $                                       ic_choice,
@@ -288,6 +290,8 @@
                call apply_steady_state_ic(field_used)
             case(drop_retraction)
                call apply_drop_retraction_ic(field_used)
+            case(homogeneous_liquid)
+               call apply_homogeneous_ic(field_used)
             case default
                print '(''dim2d_eq_class'')'
                stop 'ic_choice not recognized'

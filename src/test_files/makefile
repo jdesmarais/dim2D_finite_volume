@@ -21,7 +21,7 @@ scalasca      = false				#scalasca instrumentation
 src_dir	   = $(lernaeanhydra)/src
 config_dir = $(src_dir)/test_files/config
 dep_dir	   = $(src_dir)/test_files/dep
-bc_choice  = wall_xy_choice
+bc_choice = reflection_xy_choice
 
 ifeq ($(strip $(bc_choice)), periodic_xy_choice)
 	sbc_dir=$(pbc_dir)
@@ -378,9 +378,10 @@ $(dim2d_dir)/dim2d_state_eq_module.o:$(dim2d_dir)/dim2d_parameters.o\
 
 $(dim2d_dir)/dim2d_eq_class.o:	$(sd_dir)/cg_operators_class.o\
 				$(dim2d_dir)/dim2d_parameters.o\
-				$(dim2d_dir)/dim2d_fluxes_module.o\
-				$(dim2d_ic)/dim2d_steadystate_module.o\
 				$(dim2d_ic)/dim2d_dropretract_module.o\
+				$(dim2d_dir)/dim2d_fluxes_module.o\
+				$(dim2d_ic)/dim2d_homogeneous_module.o\
+				$(dim2d_ic)/dim2d_steadystate_module.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
@@ -394,6 +395,12 @@ $(dim2d_ic)/dim2d_steadystate_module.o:$(dim2d_dir)/dim2d_parameters.o\
 				$(param_dir)/parameters_kind.o
 
 $(dim2d_ic)/dim2d_dropretract_module.o:$(dim2d_dir)/dim2d_parameters.o\
+				$(dim2d_dir)/dim2d_state_eq_module.o\
+				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+$(dim2d_ic)/dim2d_homogeneous_module.o:$(dim2d_dir)/dim2d_parameters.o\
 				$(dim2d_dir)/dim2d_state_eq_module.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_input.o\

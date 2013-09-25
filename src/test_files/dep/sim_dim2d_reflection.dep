@@ -12,6 +12,7 @@ sim_dim2d:			surrogate_class.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
 				dim2d_dropretract_module.o\
+				dim2d_homogeneous_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				bc_abstract_class.o\

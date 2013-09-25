@@ -20,7 +20,7 @@
 
 
         private
-        public :: rho_c, u_c, length_c, time_c,
+        public :: rho_c, T_c, u_c, length_c, time_c,
      $            viscous_r, re, pr, we, cv_r, gravity
 
 
@@ -87,6 +87,7 @@
         !real(rkind), parameter :: We = 10
         !real(rkind), parameter :: Pr = 20
         !real(rkind), parameter :: cv_r = 2.5
+        !real(rkind), parameter :: gravity = 9.81
 
       end module dim2d_parameters
 

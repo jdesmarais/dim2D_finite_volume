@@ -25,14 +25,16 @@
         !<initial conditions choice
         integer, parameter :: steady_state=0
         integer, parameter :: drop_retraction=1
+        integer, parameter :: homogeneous_liquid=2
 
         !<boundary conditions choice
         integer, parameter :: periodic_xy_choice=0
         integer, parameter :: reflection_xy_choice=1
+        integer, parameter :: wall_xy_choice=2
 
         !<boundary conditions type choice
         integer, parameter :: bc_nodes_choice=0
-        integer, parameter :: bc_flux_choice=1
+        integer, parameter :: bc_fluxes_choice=1
 
         !<equations tuning choice
         integer, parameter :: no_gravity_choice=0
