@@ -193,9 +193,6 @@
         !> @date
         !> 23_09_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
-        !> boundary conditions
-        !
         !>@param f_used
         !> object encapsulating the main variables
         !
@@ -208,11 +205,10 @@
         !>@param flux_y
         !> fluxes along the y-direction
         !--------------------------------------------------------------
-        subroutine apply_bc_on_fluxes(this,f_used,s,flux_x,flux_y)
+        subroutine apply_bc_on_fluxes(f_used,s,flux_x,flux_y)
 
           implicit none
 
-          class(bc_operators)               , intent(in)    :: this
           class(field)                      , intent(in)    :: f_used
           type(cg_operators)                , intent(in)    :: s
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
@@ -223,7 +219,6 @@
 
           stop 'reflection_xy: apply_bc_on_fluxes not implemented'
 
-          prefactor=this%prefactor_x(1)
           node=f_used%nodes(1,1,1)
           bc_size=s%get_bc_size()
           flux=flux_x(1,1,1)

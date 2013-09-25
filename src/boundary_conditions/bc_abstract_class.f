@@ -49,9 +49,9 @@
 
           contains
 
-          procedure(ini_proc)   , pass, deferred :: initialize
-          procedure(nodes_proc) , pass, deferred :: apply_bc_on_nodes
-          procedure(fluxes_proc), pass, deferred :: apply_bc_on_fluxes
+          procedure(ini_proc)   ,   pass, deferred :: initialize
+          procedure(nodes_proc) ,   pass, deferred :: apply_bc_on_nodes
+          procedure(fluxes_proc), nopass, deferred :: apply_bc_on_fluxes
 
         end type bc_abstract
 
@@ -150,15 +150,13 @@
            !>@param flux_y
            !> fluxes along the y-direction
            !-------------------------------------------------------------
-           subroutine fluxes_proc(this,f_used,s,flux_x,flux_y)
+           subroutine fluxes_proc(f_used,s,flux_x,flux_y)
            
-             import bc_abstract
              import field
              import cg_operators
              import rkind
              import nx,ny,ne
            
-             class(bc_abstract)                , intent(in)    :: this
              class(field)                      , intent(in)    :: f_used
              type(cg_operators)                , intent(in)    :: s
              real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x

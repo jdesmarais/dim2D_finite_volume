@@ -23,7 +23,7 @@
      $                                  velocity_x, velocity_y,
      $                                  capillarity_pressure
         use parameters_constant, only : vector_x, vector_y
-        use parameters_input   , only : ne
+        use parameters_input   , only : nx,ny,ne
         use parameters_kind    , only : ikind,rkind
         use wall_prim_module   , only : wall_pressure
 
@@ -36,7 +36,9 @@
      $            wall_fx_momentum_y,
      $            wall_fy_momentum_x,
      $            wall_fy_momentum_y,
-     $            wall_heat_flux
+     $            wall_heat_flux,
+     $            compute_wall_flux_x,
+     $            compute_wall_flux_y
 
 
         contains
@@ -400,5 +402,122 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
           end if
 
         end function wall_heat_flux
+
+        
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> function computing the heat flux at the wall
+        !
+        !> @date
+        !> 25_09_2013 - initial version - J.L. Desmarais
+        !
+        !>@param f_used
+        !> object encapsulating the conservative variables
+        !> and the coordinates
+        !>
+        !>@param s
+        !> spatial discretisation operators
+        !>
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !>
+        !>@param flux_x
+        !> modified table for the fluxes along the x-direction
+        !--------------------------------------------------------------
+        subroutine compute_wall_flux_x(f_used,s,i,flux_x)
+
+          implicit none
+
+          class(field)                      , intent(in)    :: f_used
+          type(cg_operators)                , intent(in)    :: s
+          integer(ikind)                    , intent(in)    :: i
+          real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
+
+          integer        :: bc_size
+          integer(ikind) :: j
+
+
+          !< get the size of the boundary layer
+          bc_size = s%get_bc_size()
+
+
+          do j=bc_size+1, ny-bc_size
+             
+
+             !< no mass entering the system
+             flux_x(i,j,1) = 0.0d0
+                
+             !< b.c. for the momentum along the x-direction
+             flux_x(i,j,2) = wall_fx_momentum_x(f_used,s,i,j)
+
+             !< b.c. for the momentum along the y-direction
+             flux_x(i,j,3) = wall_fx_momentum_y(f_used,s,i,j)
+
+             !< constant heat flux entering the system
+             flux_x(i,j,4) = wall_heat_flux(f_used,i,j)
+
+          end do        
+
+        end subroutine compute_wall_flux_x
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> function computing the heat flux at the wall
+        !
+        !> @date
+        !> 25_09_2013 - initial version - J.L. Desmarais
+        !
+        !>@param f_used
+        !> object encapsulating the conservative variables
+        !> and the coordinates
+        !>
+        !>@param s
+        !> spatial discretisation operators
+        !>
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !>
+        !>@param flux_y
+        !> modified table for the fluxes along the y-direction
+        !--------------------------------------------------------------
+        subroutine compute_wall_flux_y(f_used,s,j,flux_y)
+
+          implicit none
+
+          class(field)                      , intent(in)    :: f_used
+          type(cg_operators)                , intent(in)    :: s
+          integer(ikind)                    , intent(in)    :: j
+          real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
+
+          integer        :: bc_size
+          integer(ikind) :: i
+
+
+          !< get the size of the boundary layer
+          bc_size = s%get_bc_size()
+
+
+          do i=bc_size+1, nx-bc_size
+
+            !< no mass entering the system
+            flux_y(i,j,1)= 0.0d0
+            
+            !< b.c. for the momentum along the x-direction
+            flux_y(i,j,2)= wall_fy_momentum_x(f_used,s,i,j)
+
+            !< b.c. for the momentum along the y-direction
+            flux_y(i,j,3)= wall_fy_momentum_y(f_used,s,i,j)
+
+            !< constant heat flux entering the system
+            flux_y(i,j,4)= wall_heat_flux(f_used,i,j)
+
+          end do
+
+        end subroutine compute_wall_flux_y
 
       end module wall_xy_module

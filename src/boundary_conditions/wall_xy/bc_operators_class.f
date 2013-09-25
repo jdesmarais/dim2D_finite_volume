@@ -25,7 +25,9 @@
      $                                 wall_fx_momentum_y,
      $                                 wall_fy_momentum_x,
      $                                 wall_fy_momentum_y,
-     $                                 wall_heat_flux
+     $                                 wall_heat_flux,
+     $                                 compute_wall_flux_x,
+     $                                 compute_wall_flux_y
         
         implicit none
 
@@ -205,17 +207,15 @@
         !>@param flux_y
         !> flux along the y-direction
         !--------------------------------------------------------------
-        subroutine apply_bc_on_fluxes(this,f_used,s,flux_x,flux_y)
+        subroutine apply_bc_on_fluxes(f_used,s,flux_x,flux_y)
 
           implicit none
 
-          class(bc_operators)               , intent(in)    :: this
           class(field)                      , intent(in)    :: f_used
           type(cg_operators)                , intent(in)    :: s
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
 
-          integer(ikind) :: i,j
           integer        :: k, bc_size
           integer(ikind), dimension(2) :: id
 
@@ -223,32 +223,17 @@
           !< get the size of the boundary layer
           bc_size = s%get_bc_size()
 
-
           !< provide the x-indices modified
           id(1)=bc_size+1
           id(2)=nx+1-bc_size
-
 
           !< modify the fluxes along the x-direction
           !> at the E and W borders
           !> W border: i= bc_size+1
           !> E border: i= nx-bc_size+1
-          do j=bc_size+1, ny-bc_size             
-             do k=1,2
-
-                !< no mass entering the system
-                flux_x(id(k),j,1) = 0.0d0
-                
-                !< b.c. for the momentum along the x-direction
-                flux_x(id(k),j,2) = wall_fx_momentum_x(f_used,s,id(k),j)
-
-                !< b.c. for the momentum along the y-direction
-                flux_x(id(k),j,3) = wall_fx_momentum_y(f_used,s,id(k),j)
-
-                !< constant heat flux entering the system
-                flux_x(id(k),j,4) = wall_heat_flux(f_used,id(k),j)
-
-             end do
+          do k=1,2
+             !DEC$ FORCEINLINE RECURSIVE
+             call compute_wall_flux_x(f_used,s,id(k),flux_x)
           end do
 
 
@@ -256,27 +241,13 @@
           id(1)=bc_size+1
           id(2)=ny-bc_size+1
 
-          
           !< modify the fluxes along the y-direction
           !> at the N and S borders
           !> S border: j= bc_size+1
           !> N border: j= ny-bc_size+1
-          do i=bc_size+1, nx-bc_size
-             do k=1,2
-
-                !< no mass entering the system
-                flux_y(i,id(k),1)= 0.0d0
-                
-                !< b.c. for the momentum along the x-direction
-                flux_y(i,id(k),2)= wall_fy_momentum_x(f_used,s,i,id(k))
-
-                !< b.c. for the momentum along the y-direction
-                flux_y(i,id(k),3)= wall_fy_momentum_y(f_used,s,i,id(k))
-
-                !< constant heat flux entering the system
-                flux_y(i,id(k),4)= wall_heat_flux(f_used,i,id(k))
-
-             end do
+          do k=1,2
+             !DEC FORCEINLINE RECURSIVE
+             call compute_wall_flux_y(f_used,s,id(k),flux_y)
           end do
 
         end subroutine apply_bc_on_fluxes

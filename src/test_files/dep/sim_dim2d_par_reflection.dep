@@ -25,6 +25,7 @@ sim_dim2d_par:			surrogate_class.o\
 				mpi_mg_bc_ext_class.o\
 				bc_abstract_par_class.o\
 				mpi_tag_module.o\
+				mpi_requests_module.o\
 				reflection_xy_module.o\
 				reflection_xy_par_module.o\
 				bc_operators_par_class.o\

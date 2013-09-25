@@ -21,7 +21,7 @@ scalasca      = false				#scalasca instrumentation
 src_dir	   = $(lernaeanhydra)/src
 config_dir = $(src_dir)/test_files/config
 dep_dir	   = $(src_dir)/test_files/dep
-bc_choice  = periodic_xy_choice
+bc_choice  = wall_xy_choice
 
 ifeq ($(strip $(bc_choice)), periodic_xy_choice)
 	sbc_dir=$(pbc_dir)
@@ -436,6 +436,7 @@ $(pbc_dir)/periodic_xy_module.o:$(sd_dir)/cg_operators_class.o\
 $(pbc_dir)/periodic_xy_par_module.o:$(field_dir)/field_par_class.o\
 				$(mpi_bc_dir)/mpi_mg_bc_class.o\
 				$(mpi_dir)/mpi_process_class.o\
+				$(mpi_dir)/mpi_requests_module.o\
 				$(mpi_dir)/mpi_tag_module.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
@@ -447,6 +448,7 @@ $(pbc_dir)/bc_operators_par_class.o:$(bc_dir)/bc_abstract_par_class.o\
 				$(field_dir)/field_par_class.o\
 				$(mpi_dir)/mpi_process_class.o\
 				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(pbc_dir)/periodic_xy_par_module.o
 
@@ -461,6 +463,7 @@ $(rbc_dir)/reflection_xy_par_module.o:$(dim2d_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_par_class.o\
 				$(mpi_bc_dir)/mpi_mg_bc_class.o\
 				$(mpi_dir)/mpi_process_class.o\
+				$(mpi_dir)/mpi_requests_module.o\
 				$(mpi_dir)/mpi_tag_module.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
@@ -475,11 +478,12 @@ $(rbc_dir)/bc_operators_class.o:$(bc_dir)/bc_abstract_class.o\
 				$(param_dir)/parameters_kind.o\
 				$(rbc_dir)/reflection_xy_module.o
 
-$(rbc_dir)/bc_operators_par_class.o:$(sd_dir)/cg_operators_class.o\
+$(rbc_dir)/bc_operators_par_class.o:$(bc_dir)/bc_abstract_par_class.o\
+				$(sd_dir)/cg_operators_class.o\
 				$(dim2d_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_par_class.o\
-				$(bc_dir)/bc_abstract_par_class.o\
 				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(rbc_dir)/reflection_xy_par_module.o
 
@@ -498,6 +502,18 @@ $(wbc_dir)/wall_xy_module.o:	$(sd_dir)/cg_operators_class.o\
 				$(param_dir)/parameters_kind.o\
 				$(wbc_dir)/wall_prim_module.o
 
+$(wbc_dir)/wall_xy_par_module.o:$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(field_dir)/field_par_class.o\
+				$(mpi_bc_dir)/mpi_mg_bc_class.o\
+				$(mpi_dir)/mpi_process_class.o\
+				$(mpi_dir)/mpi_requests_module.o\
+				$(mpi_dir)/mpi_tag_module.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(wbc_dir)/wall_xy_module.o
+
 $(wbc_dir)/bc_operators_class.o:$(bc_dir)/bc_abstract_class.o\
 				$(sd_dir)/cg_operators_class.o\
 				$(dim2d_dir)/dim2d_eq_class.o\
@@ -506,6 +522,14 @@ $(wbc_dir)/bc_operators_class.o:$(bc_dir)/bc_abstract_class.o\
 				$(param_dir)/parameters_kind.o\
 				$(wbc_dir)/wall_xy_module.o
 
+$(wbc_dir)/bc_operators_par_class.o:$(bc_dir)/bc_abstract_par_class.o\
+				$(sd_dir)/cg_operators_class.o\
+				$(dim2d_dir)/dim2d_eq_class.o\
+				$(field_dir)/field_par_class.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(wbc_dir)/wall_xy_par_module.o
 
 #time discretization methods
 $(td_dir)/td_operators_class.o:	$(sbc_dir)/bc_operators_class.o\
@@ -613,6 +637,13 @@ $(nf90_dir)/nf90_operators_wr_par_class.o:$(sd_dir)/cg_operators_class.o\
 
 #mpi processes
 $(mpi_dir)/mpi_tag_module.o:
+
+$(mpi_dir)/mpi_requests_module.o:$(field_dir)/field_par_class.o\
+				$(mpi_bc_dir)/mpi_mg_bc_class.o\
+				$(mpi_dir)/mpi_process_class.o\
+				$(mpi_dir)/mpi_tag_module.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
 
 $(mpi_dir)/mpi_process_class.o:	$(param_dir)/parameters_input.o
 

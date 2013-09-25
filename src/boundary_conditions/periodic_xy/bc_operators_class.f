@@ -59,9 +59,9 @@
 
           contains
 
-          procedure, pass :: initialize
-          procedure, pass :: apply_bc_on_nodes
-          procedure, pass :: apply_bc_on_fluxes
+          procedure,   pass :: initialize
+          procedure,   pass :: apply_bc_on_nodes
+          procedure, nopass :: apply_bc_on_fluxes
 
         end type bc_operators
 
@@ -188,9 +188,6 @@
         !> @date
         !> 24_09_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
-        !> boundary conditions
-        !
         !>@param f_used
         !> object encapsulating the main variables
         !
@@ -203,11 +200,10 @@
         !>@param flux_y
         !> flux along the y-direction
         !--------------------------------------------------------------
-        subroutine apply_bc_on_fluxes(this,f_used,s,flux_x,flux_y)
+        subroutine apply_bc_on_fluxes(f_used,s,flux_x,flux_y)
 
           implicit none
 
-          class(bc_operators)               , intent(in)    :: this
           class(field)                      , intent(in)    :: f_used
           type(cg_operators)                , intent(in)    :: s
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
@@ -218,7 +214,6 @@
 
           stop 'periodic_xy: apply_bc_on_fluxes not implemented'
 
-          period=this%period_x
           node=f_used%nodes(1,1,1)
           bc_size=s%get_bc_size()
           flux=flux_x(1,1,1)
