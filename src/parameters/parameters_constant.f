@@ -22,9 +22,13 @@
         integer, parameter :: vector_x=1
         integer, parameter :: vector_y=2
 
+        !<phase identification
+        integer, parameter :: liquid=0
+        integer, parameter :: vapor=1
+
         !<initial conditions choice
         integer, parameter :: steady_state=0
-        integer, parameter :: drop_retraction=1
+        integer, parameter :: droplet_bubble=1
         integer, parameter :: homogeneous_liquid=2
 
         !<boundary conditions choice

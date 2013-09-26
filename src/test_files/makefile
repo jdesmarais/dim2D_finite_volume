@@ -21,7 +21,7 @@ scalasca      = false				#scalasca instrumentation
 src_dir	   = $(lernaeanhydra)/src
 config_dir = $(src_dir)/test_files/config
 dep_dir	   = $(src_dir)/test_files/dep
-bc_choice  = wall_xy_choice
+bc_choice = wall_xy_choice
 
 ifeq ($(strip $(bc_choice)), periodic_xy_choice)
 	sbc_dir=$(pbc_dir)
@@ -378,7 +378,7 @@ $(dim2d_dir)/dim2d_state_eq_module.o:$(dim2d_dir)/dim2d_parameters.o\
 
 $(dim2d_dir)/dim2d_eq_class.o:	$(sd_dir)/cg_operators_class.o\
 				$(dim2d_dir)/dim2d_parameters.o\
-				$(dim2d_ic)/dim2d_dropretract_module.o\
+				$(dim2d_ic)/dim2d_dropletbubble_module.o\
 				$(dim2d_dir)/dim2d_fluxes_module.o\
 				$(dim2d_ic)/dim2d_homogeneous_module.o\
 				$(dim2d_ic)/dim2d_steadystate_module.o\
@@ -394,13 +394,16 @@ $(dim2d_ic)/dim2d_steadystate_module.o:$(dim2d_dir)/dim2d_parameters.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
-$(dim2d_ic)/dim2d_dropretract_module.o:$(dim2d_dir)/dim2d_parameters.o\
+$(dim2d_ic)/dim2d_dropletbubble_module.o:\
+				$(dim2d_dir)/dim2d_parameters.o\
 				$(dim2d_dir)/dim2d_state_eq_module.o\
 				$(field_dir)/field_class.o\
+				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
-$(dim2d_ic)/dim2d_homogeneous_module.o:$(dim2d_dir)/dim2d_parameters.o\
+$(dim2d_ic)/dim2d_homogeneous_module.o:\
+				$(dim2d_dir)/dim2d_parameters.o\
 				$(dim2d_dir)/dim2d_state_eq_module.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_input.o\
@@ -765,7 +768,7 @@ test_dim2d_eq:			cg_operators_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_parameters.o\
 				dim2d_prim_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				dim2d_steadystate_module.o\
 				dim2d_state_eq_module.o\
 				field_class.o\
@@ -809,7 +812,7 @@ test_bc_operators:		bc_operators_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				surrogate_class.o
@@ -835,7 +838,7 @@ test_bc_periodic:		surrogate_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				bc_abstract_class.o\
@@ -862,7 +865,7 @@ test_bc_reflection:		surrogate_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				bc_abstract_class.o\
@@ -892,7 +895,7 @@ test_wall_xy_module:		surrogate_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				bc_abstract_class.o\
@@ -922,7 +925,7 @@ test_bc_wall:			surrogate_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				bc_abstract_class.o\
@@ -977,7 +980,7 @@ test_rk3tvd_dim2d:		surrogate_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				td_operators_class.o\
@@ -999,7 +1002,7 @@ test_nf90_operators:		surrogate_class.o\
 				dim2d_parameters.o\
 				dim2d_prim_module.o\
 				dim2d_state_eq_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				dim2d_steadystate_module.o\
 				interface_primary.o\
 				sd_operators_class.o\
@@ -1029,7 +1032,7 @@ test_dim2d_ic:			surrogate_class.o\
 				cg_operators_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				dim2d_state_eq_module.o\
 				parameters_constant.o\
 				phy_model_eq_class.o\
@@ -1119,7 +1122,7 @@ test_reflection_xy_par_module:	parameters_kind.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				field_par_class.o\
@@ -1156,7 +1159,7 @@ test_reflection_xy_par:		parameters_kind.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				field_par_class.o\
@@ -1251,7 +1254,7 @@ test_periodic_xy_par:		parameters_kind.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				dim2d_homogeneous_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
@@ -1292,7 +1295,7 @@ test_rk3tvd_dim2d_par:		surrogate_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				dim2d_homogeneous_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
@@ -1335,7 +1338,7 @@ test_nf90_operators_par:	surrogate_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropretract_module.o\
+				dim2d_dropletbubble_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				mpi_process_class.o\

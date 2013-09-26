@@ -377,29 +377,31 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
           heater_sigma=(1.0e-3)/length_c
           heater_power=1.0*time_c/(rho_c*u_c**2)
 
-          if(rkind.eq.8) then
+          var = 0.0d0
 
-             if(f_used%y_map(j).eq.(heater_y+f_used%dy/2.0d0)) then
-                var = heater_power/
-     $               (heater_sigma*sqrt(2.0d0*acos(-1.0d0)))*
-     $               exp(-(f_used%x_map(i)-heater_x)**2/
-     $               (2.0d0*heater_sigma**2))
-             else
-                var=0.0d0
-             end if
-
-          else
-
-             if(f_used%y_map(j).eq.(heater_y+f_used%dy/2.0d0)) then
-                var = heater_power/
-     $               (heater_sigma*sqrt(2.0*acos(-1.0)))*
-     $               exp(-(f_used%x_map(i)-heater_x)**2/
-     $               (2.0*heater_sigma**2))
-             else
-                var=0.0
-             end if
-             
-          end if
+          !if(rkind.eq.8) then
+          !
+          !   if(f_used%y_map(j).eq.(heater_y+f_used%dy/2.0d0)) then
+          !      var = heater_power/
+     $    !           (heater_sigma*sqrt(2.0d0*acos(-1.0d0)))*
+     $    !           exp(-(f_used%x_map(i)-heater_x)**2/
+     $    !           (2.0d0*heater_sigma**2))
+          !   else
+          !      var=0.0d0
+          !   end if
+          !
+          !else
+          !
+          !   if(f_used%y_map(j).eq.(heater_y+f_used%dy/2.0d0)) then
+          !      var = heater_power/
+     $    !           (heater_sigma*sqrt(2.0*acos(-1.0)))*
+     $    !           exp(-(f_used%x_map(i)-heater_x)**2/
+     $    !           (2.0*heater_sigma**2))
+          !   else
+          !      var=0.0
+          !   end if
+          !   
+          !end if
 
         end function wall_heat_flux
 
