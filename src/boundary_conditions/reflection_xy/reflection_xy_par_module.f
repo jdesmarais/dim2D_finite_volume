@@ -226,7 +226,7 @@
           !> direction 'cart_pt'
           !DEC$ FORCEINLINE RECURSIVE
           mpi_requests = create_requests_for_one_direction(
-     $         this, f_used, nodes, bc_size, card_pt)
+     $         this, f_used, nodes, card_pt)
 
 
           !< overlap some communications with computations
@@ -357,7 +357,7 @@
           !> direction 'cart_pt'
           !DEC$ FORCEINLINE RECURSIVE
           mpi_requests = create_requests_for_one_direction(
-     $       this, f_used, nodes, bc_size, card_pt)
+     $       this, f_used, nodes, card_pt)
 
           !< overlap some communications with computations
 

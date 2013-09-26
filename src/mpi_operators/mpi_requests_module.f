@@ -61,7 +61,7 @@
         !> sent
         !--------------------------------------------------------------
         function create_requests_for_one_direction(
-     $       this, f_used, nodes, bc_size, card_pt)
+     $       this, f_used, nodes, card_pt)
      $       result(mpi_requests)
 
           implicit none
@@ -69,7 +69,6 @@
           class(mpi_mg_bc)                , intent(in)    :: this
           class(field_par)                , intent(inout) :: f_used
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          integer                         , intent(in)    :: bc_size
           integer                         , intent(in)    :: card_pt
           integer, dimension(2)                          :: mpi_requests
 

@@ -14,12 +14,14 @@
       !-----------------------------------------------------------------
       program test_rk3tvd
 
+        use bc_operators_class , only : bc_operators
         use cg_operators_class , only : cg_operators
         use field_class        , only : field
         use fv_operators_class , only : fv_operators
-        use parameters_input   , only : nx,ny,ne
+        use parameters_constant, only : periodic_xy_choice
+        use parameters_input   , only : nx,ny,ne,bc_choice
         use parameters_kind    , only : ikind, rkind
-        use simpletest_eq_class, only : simpletest_eq
+        use dim2d_eq_class     , only : dim2d_eq
         use rk3tvd_class       , only : rk3tvd
 
         implicit none
@@ -28,15 +30,13 @@
         !<operators tested
         type(field) :: field_tested
 
+        type(bc_operators)     :: bc_used
         type(cg_operators)     :: sd
-        type(simpletest_eq)    :: p_model
+        type(dim2d_eq)         :: p_model
         type(fv_operators)     :: td
         type(rk3tvd)           :: ti
         real(rkind), parameter :: dt=1.0
 
-
-        !<CPU recorded times
-        real    :: time1, time2
 
         !<test parameters
         logical, parameter         :: detailled=.false.
@@ -49,11 +49,11 @@
         if((nx.ne.10).or.(ny.ne.6).or.(ne.ne.1)) then
            stop 'the test needs: (nx,ny,ne)=(10,6,1)'
         end if
+
+        if(bc_choice.ne.periodic_xy_choice) then
+           stop 'the test needs periodic bc'
+        end if
         
-
-        !<get the initial CPU time
-        call CPU_TIME(time1)
-
 
         !<initialize the tables for the field
         field_tested%dx=1.0
@@ -67,7 +67,8 @@
 
 
         !<integrate the field for dt
-        call ti%integrate(field_tested,sd,p_model,td,dt)
+        call bc_used%initialize(sd,p_model)
+        call ti%integrate(field_tested,sd,p_model,bc_used,td,dt)
 
 
         !<check the field after integration

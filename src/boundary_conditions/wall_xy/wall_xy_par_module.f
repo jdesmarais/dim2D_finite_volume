@@ -239,7 +239,7 @@
           !> direction 'card_pt'
           !DEC$ FORCEINLINE RECURSIVE
           mpi_requests = create_requests_for_one_direction(
-     $         this, f_used, nodes, bc_size, card_pt)
+     $         this, f_used, nodes, card_pt)
 
           !< overlap some communications with computations
 
@@ -362,7 +362,7 @@
           !> direction 'card_pt'
           !DEC$ FORCEINLINE RECURSIVE
           mpi_requests = create_requests_for_one_direction(
-     $         this, f_used, nodes, bc_size, card_pt)
+     $         this, f_used, nodes, card_pt)
 
 
           !< overlap some communications with computations
@@ -452,27 +452,15 @@
           integer                         , intent(in)    :: direction
           
 
-          !< mpi_op      : mpi process to finalize in case of error
-          !
-          !< mpi_requests: integer identifying the mpi requests
-          !>               to send and receive information in the
-          !>               direction asked by the user
-          !
+
           !< card_pt     : table corresponding to the two cardinal
           !>               pts of the direction asked by the user
           !
           !< nb_procs    : total number of processors in the 
           !>               communicator
-          !
-          !< status      : table identifying the status of the mpi
-          !>               requests for sending and receiving data
           !-------------------------------------------------------
-          type(mpi_process)                     :: mpi_op
-          integer, dimension(4)                 :: mpi_requests
           integer, dimension(2)                 :: card_pt
           integer                               :: nb_procs
-          integer, dimension(MPI_STATUS_SIZE,4) :: status
-          integer                               :: ierror,k,tag
 
           
           !< choose the direction in which data are send
@@ -517,7 +505,6 @@
           type(cg_operators)                , intent(in)    :: s_op
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
 
-          integer(ikind) :: i,j
           integer        :: k, bc_size
           integer(ikind), dimension(2) :: id
 
@@ -691,7 +678,7 @@
             case(N)
                j=bc_size+1
             case(S)
-               j=nx-bc_size+1
+               j=ny-bc_size+1
             case default
                call mpi_op%finalize_mpi()
                print '(''fluxes_compute_and_exchange_along_x:'')'

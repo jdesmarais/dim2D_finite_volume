@@ -135,7 +135,7 @@
 
 
           integer(ikind) :: i,j
-          integer        :: neq,bc_size,k
+          integer        :: bc_size,k
 
           bc_size  = s%get_bc_size()
 
@@ -209,7 +209,7 @@
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
 
-          integer     :: period,bc_size
+          integer     :: bc_size
           real(rkind) :: node,flux
 
           stop 'periodic_xy: apply_bc_on_fluxes not implemented'

@@ -452,13 +452,13 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
              flux_x(i,j,1) = 0.0d0
                 
              !< b.c. for the momentum along the x-direction
-             flux_x(i,j,2) = wall_fx_momentum_x(f_used,s,i,j)
+             flux_x(i,j,2) = wall_fx_momentum_x(f_used,s,i-1,j)
 
              !< b.c. for the momentum along the y-direction
-             flux_x(i,j,3) = wall_fx_momentum_y(f_used,s,i,j)
+             flux_x(i,j,3) = wall_fx_momentum_y(f_used,s,i-1,j)
 
              !< constant heat flux entering the system
-             flux_x(i,j,4) = wall_heat_flux(f_used,i,j)
+             flux_x(i,j,4) = wall_heat_flux(f_used,i-1,j)
 
           end do        
 
@@ -510,13 +510,13 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
             flux_y(i,j,1)= 0.0d0
             
             !< b.c. for the momentum along the x-direction
-            flux_y(i,j,2)= wall_fy_momentum_x(f_used,s,i,j)
+            flux_y(i,j,2)= wall_fy_momentum_x(f_used,s,i,j-1)
 
             !< b.c. for the momentum along the y-direction
-            flux_y(i,j,3)= wall_fy_momentum_y(f_used,s,i,j)
+            flux_y(i,j,3)= wall_fy_momentum_y(f_used,s,i,j-1)
 
             !< constant heat flux entering the system
-            flux_y(i,j,4)= wall_heat_flux(f_used,i,j)
+            flux_y(i,j,4)= wall_heat_flux(f_used,i,j-1)
 
           end do
 

@@ -21,7 +21,15 @@ scalasca      = false				#scalasca instrumentation
 src_dir	   = $(lernaeanhydra)/src
 config_dir = $(src_dir)/test_files/config
 dep_dir	   = $(src_dir)/test_files/dep
-bc_choice = wall_xy_choice
+pm_choice  = simpletest_choice
+bc_choice  = periodic_xy_choice
+
+ifeq ($(strip $(pm_choice)), simpletest_choice)
+	spm_dir=$(simpletest_dir)
+endif
+ifeq ($(strip $(bc_choice)), reflection_xy_choice)
+	spm_dir=$(dim2d_dir)
+endif
 
 ifeq ($(strip $(bc_choice)), periodic_xy_choice)
 	sbc_dir=$(pbc_dir)
@@ -355,7 +363,7 @@ $(phy_eq_dir)/phy_model_eq_class.o:$(field_dir)/field_class.o\
 				$(param_dir)/parameters_kind.o\
 				$(sd_dir)/cg_operators_class.o
 
-$(simpletest_dir)/simpletest_eq_class.o:$(field_dir)/field_class.o\
+$(simpletest_dir)/dim2d_eq_class.o:$(field_dir)/field_class.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_kind.o\
 				$(phy_eq_dir)/phy_model_eq_class.o\
@@ -411,13 +419,13 @@ $(dim2d_ic)/dim2d_homogeneous_module.o:\
 
 #boundary conditions
 $(bc_dir)/bc_abstract_class.o:	$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
 $(bc_dir)/bc_abstract_par_class.o:$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_par_class.o\
 				$(mpi_bc_dir)/mpi_mg_bc_ext_class.o\
 				$(param_dir)/parameters_constant.o\
@@ -426,7 +434,7 @@ $(bc_dir)/bc_abstract_par_class.o:$(sd_dir)/cg_operators_class.o\
 #periodic boundary conditions
 $(pbc_dir)/bc_operators_class.o:$(bc_dir)/bc_abstract_class.o\
 				$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
@@ -447,7 +455,7 @@ $(pbc_dir)/periodic_xy_par_module.o:$(field_dir)/field_par_class.o\
 
 $(pbc_dir)/bc_operators_par_class.o:$(bc_dir)/bc_abstract_par_class.o\
 				$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_par_class.o\
 				$(mpi_dir)/mpi_process_class.o\
 				$(param_dir)/parameters_constant.o\
@@ -457,12 +465,12 @@ $(pbc_dir)/bc_operators_par_class.o:$(bc_dir)/bc_abstract_par_class.o\
 
 #reflection boundary conditions
 $(rbc_dir)/reflection_xy_module.o:$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
-$(rbc_dir)/reflection_xy_par_module.o:$(dim2d_dir)/dim2d_eq_class.o\
+$(rbc_dir)/reflection_xy_par_module.o:$(spm_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_par_class.o\
 				$(mpi_bc_dir)/mpi_mg_bc_class.o\
 				$(mpi_dir)/mpi_process_class.o\
@@ -475,7 +483,7 @@ $(rbc_dir)/reflection_xy_par_module.o:$(dim2d_dir)/dim2d_eq_class.o\
 
 $(rbc_dir)/bc_operators_class.o:$(bc_dir)/bc_abstract_class.o\
 				$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
@@ -483,7 +491,7 @@ $(rbc_dir)/bc_operators_class.o:$(bc_dir)/bc_abstract_class.o\
 
 $(rbc_dir)/bc_operators_par_class.o:$(bc_dir)/bc_abstract_par_class.o\
 				$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_par_class.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
@@ -540,21 +548,21 @@ $(td_dir)/td_operators_class.o:	$(sbc_dir)/bc_operators_class.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
-				$(dim2d_dir)/dim2d_eq_class.o
+				$(spm_dir)/dim2d_eq_class.o
 
 $(td_dir)/td_operators_par_class.o:$(sbc_dir)/bc_operators_par_class.o\
 				$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_par_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
-				$(dim2d_dir)/dim2d_eq_class.o
+				$(spm_dir)/dim2d_eq_class.o
 
 $(fv_dir)/fv_operators_class.o:	$(sbc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(td_dir)/td_operators_class.o
 
 $(fv_dir)/fv_operators_par_class.o:$(sbc_dir)/bc_operators_par_class.o\
@@ -562,21 +570,21 @@ $(fv_dir)/fv_operators_par_class.o:$(sbc_dir)/bc_operators_par_class.o\
 				$(field_dir)/field_par_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(td_dir)/td_operators_par_class.o
 
 
 #time integration methods
 $(ti_dir)/td_integrator_class.o:$(sbc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_class.o\
 				$(fv_dir)/fv_operators_class.o\
 				$(param_dir)/parameters_kind.o
 
 $(ti_dir)/td_integrator_par_class.o:$(sbc_dir)/bc_operators_par_class.o\
 				$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_par_class.o\
 				$(fv_dir)/fv_operators_par_class.o\
 				$(param_dir)/parameters_kind.o
@@ -587,7 +595,7 @@ $(rk3tvd_dir)/rk3tvd_steps_class.o:$(field_dir)/field_class.o\
 
 $(rk3tvd_dir)/rk3tvd_class.o:	$(sbc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_class.o\
 				$(fv_dir)/fv_operators_class.o\
 				$(param_dir)/parameters_input.o\
@@ -597,7 +605,7 @@ $(rk3tvd_dir)/rk3tvd_class.o:	$(sbc_dir)/bc_operators_class.o\
 
 $(rk3tvd_dir)/rk3tvd_par_class.o:$(sbc_dir)/bc_operators_par_class.o\
 				$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
+				$(spm_dir)/dim2d_eq_class.o\
 				$(field_dir)/field_par_class.o\
 				$(fv_dir)/fv_operators_par_class.o\
 				$(param_dir)/parameters_input.o\
@@ -933,28 +941,33 @@ test_bc_wall:			surrogate_class.o\
 				wall_xy_module.o\
 				bc_operators_class.o
 
-test_rk3tvd.o:			$(sd_dir)/cg_operators_class.o\
+test_rk3tvd.o:			$(sbc_dir)/bc_operators_class.o\
+				$(sd_dir)/cg_operators_class.o\
 				$(field_dir)/field_class.o\
 				$(fv_dir)/fv_operators_class.o\
+				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
-				$(simpletest_dir)/simpletest_eq_class.o\
+				$(simpletest_dir)/dim2d_eq_class.o\
 				$(rk3tvd_dir)/rk3tvd_class.o
 
-test_rk3tvd:			bc_operators_class.o\
-				cg_operators_class.o\
-				field_class.o\
-				fv_operators_class.o\
+test_rk3tvd:			surrogate_class.o\
+				parameters_kind.o\
 				parameters_constant.o\
 				parameters_input.o\
-				parameters_kind.o\
-				periodic_xy_module.o\
+				field_class.o\
+				interface_primary.o\
+				sd_operators_class.o\
+				cg_operators_class.o\
 				phy_model_eq_class.o\
-				rk3tvd_class.o\
-				simpletest_eq_class.o\
-				surrogate_class.o\
+				dim2d_eq_class.o\
+				bc_abstract_class.o\
+				bc_operators_class.o\
+				td_operators_class.o\
+				fv_operators_class.o\
 				td_integrator_class.o\
-				td_operators_class.o
+				rk3tvd_steps_class.o\
+				rk3tvd_class.o
 
 test_rk3tvd_dim2d.o:		$(sbc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\

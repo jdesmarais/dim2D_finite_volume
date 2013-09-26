@@ -12,7 +12,7 @@
       !> @date
       !> 13_08_2013 - initial version                   - J.L. Desmarais
       !-----------------------------------------------------------------
-      module simpletest_eq_class
+      module dim2d_eq_class
       
         use field_class        , only : field
         use parameters_constant, only : scalar
@@ -24,7 +24,7 @@
         implicit none
 
         private
-        public :: simpletest_eq
+        public :: dim2d_eq
 
 
         !> @class simpletest_eq
@@ -58,7 +58,7 @@
         !> @param compute_fluxes
         !> compute the fluxes along the x- and y-axis
         !---------------------------------------------------------------
-        type, extends(phy_model_eq) :: simpletest_eq
+        type, extends(phy_model_eq) :: dim2d_eq
           
           contains
 
@@ -71,8 +71,9 @@
           procedure, nopass :: apply_ic
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
+          procedure, nopass :: compute_body_forces
 
-        end type simpletest_eq
+        end type dim2d_eq
 
 
         contains
@@ -351,4 +352,28 @@
 
         end function basic
 
-      end module simpletest_eq_class
+
+        function compute_body_forces(field_used,s) result(body_forces)
+
+          implicit none
+
+          class(field)                   , intent(in) :: field_used
+          type(cg_operators)             , intent(in) :: s
+          real(rkind),dimension(nx,ny,ne)             :: body_forces
+
+          integer        :: bc_size
+          integer(ikind) :: i,j
+
+          !<get the size of the boundary layers
+          bc_size = s%get_bc_size()
+
+          do j=1+bc_size, ny-bc_size
+             !DEC$ IVDEP
+             do i=1+bc_size, nx-bc_size
+                body_forces(i,j,1)=0
+             end do
+          end do          
+
+        end function compute_body_forces
+
+      end module dim2d_eq_class
