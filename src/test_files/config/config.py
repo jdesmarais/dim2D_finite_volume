@@ -124,12 +124,13 @@ def compute_code_inputs(inputFileName):
     #> gravity_choice: these codes are defined in
     #> parameters_constant.f
     ic_code      = ['steady_state',
-                    'droplet_bubble',
+                    'drop_retraction',
+                    'bubble_ascending',
                     'homogeneous_liquid']
 
     bc_code      = ['periodic_xy_choice',
-                     'reflection_xy_choice',
-                     'wall_xy_choice']
+                    'reflection_xy_choice',
+                    'wall_xy_choice']
 
     bc_type_code = ['bc_nodes_choice',
                     'bc_fluxes_choice']

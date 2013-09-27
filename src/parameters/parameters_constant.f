@@ -28,8 +28,9 @@
 
         !<initial conditions choice
         integer, parameter :: steady_state=0
-        integer, parameter :: droplet_bubble=1
-        integer, parameter :: homogeneous_liquid=2
+        integer, parameter :: drop_retraction=1
+        integer, parameter :: bubble_ascending=2
+        integer, parameter :: homogeneous_liquid=3
 
         !<boundary conditions choice
         integer, parameter :: periodic_xy_choice=0

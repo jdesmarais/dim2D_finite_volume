@@ -19,9 +19,6 @@
       module dim2d_dropbubble_module
 
         use dim2d_parameters     , only : cv_r, we
-        use dim2d_state_eq_module, only : get_interface_length,
-     $                                    get_mass_density_liquid,
-     $                                    get_mass_density_vapor
         use field_class          , only : field
         use parameters_constant  , only : liquid, vapor
         use parameters_input     , only : nx,ny,ne
@@ -306,7 +303,7 @@
 
           real(rkind), intent(in) :: x,y,xc,yc,a,b,li,dliq,dvap
           real(rkind), intent(in) :: md,T0
-          real(rkind)             :: total_energy
+          real(rkind)             :: total_energy_ellipsoid
 
           real(rkind) :: md_grad_norm_squared
 
@@ -314,11 +311,11 @@
      $         x,y,xc,yc,a,b,li,dliq,dvap)
 
           if(rkind.eq.8) then
-             total_energy = md*(8.0d0/3.0d0*cv_r*T0-3.0d0*md) + 
-     $            1.0d0/(2.0d0*we)*md_grad_norm_squared
+             total_energy_ellipsoid = md*(8.0d0/3.0d0*cv_r*T0-3.0d0*md)
+     $            + 1.0d0/(2.0d0*we)*md_grad_norm_squared
           else
-             total_energy = md*(8./3.*cv_r*T0-3*md) + 
-     $            1./(2*we)*md_grad_norm_squared
+             total_energy_ellipsoid = md*(8./3.*cv_r*T0-3*md)
+     $            + 1./(2*we)*md_grad_norm_squared
           end if
 
         end function total_energy_ellipsoid

@@ -64,9 +64,9 @@
 
           contains
 
-          procedure, pass :: initialize
-          procedure, pass :: apply_bc_on_nodes
-          procedure, pass :: apply_bc_on_fluxes
+          procedure,   pass :: initialize
+          procedure,   pass :: apply_bc_on_nodes
+          procedure, nopass :: apply_bc_on_fluxes
 
         end type bc_operators
 
