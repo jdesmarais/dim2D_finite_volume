@@ -29,11 +29,12 @@
         real    :: time1, time2
 
         !<test parameters
-        logical, parameter         :: detailled=.true.
+        logical, parameter         :: detailled=.false.
         integer(ikind)             :: i,j
         real(rkind)                :: computed_data
         real(rkind), dimension(19) :: test_data
-        logical                    :: test_validated
+        logical                    :: global, local
+        logical                    :: test_parameters
 
 
         !<if nx<4, ny<4 then the test cannot be done
@@ -41,12 +42,237 @@
            stop 'nx and ny must be greater than 4 for the test'
         end if
 
+        test_parameters=.true.
+        test_parameters=test_parameters.and.(viscous_r.eq.-1.5d0)
+        test_parameters=test_parameters.and.(re.eq.5d0)
+        test_parameters=test_parameters.and.(pr.eq.20.0d0)
+        test_parameters=test_parameters.and.(we.eq.10.0d0)
+        test_parameters=test_parameters.and.(cv_r.eq.2.5d0)
+        if(.not.test_parameters) then
+           !< print the dim2d parameters used for the test
+           print '(''WARNING: this test is designed for:'')'
+           print '(''viscous_r: '', F16.6)', -1.5
+           print '(''re:        '', F16.6)', 5.
+           print '(''pr:        '', F16.6)', 20.
+           print '(''we:        '', F16.6)', 10.
+           print '(''cv_r:      '', F16.6)', 2.5
+           print '(''it allows to see errors easily'')'
+           print '('''')'
+
+           stop 'dim2d_parameters not adapted for test'
+        end if
+
 
         !<get the initial CPU time
         call CPU_TIME(time1)
 
+        !< initialize data
+        call initialize_data(field_tested,i,j,test_data)
+        
+        !< dim2d_parameters
+        if(detailled) then
+           print '(''viscous_r: '', F16.6)', viscous_r
+           print '(''re:        '', F16.6)', re
+           print '(''pr:        '', F16.6)', pr
+           print '(''we:        '', F16.6)', we
+           print '(''cv_r:      '', F16.6)', cv_r
+        end if
 
-        !<initialize the tables for the field
+
+        global = .true.
+
+        local = is_test_validated(
+     $          mass_density(
+     $          field_tested,
+     $          i,j),
+     $          test_data(1))
+        call print_screen(global,local,detailled,'mass density')
+
+
+        local = is_test_validated(
+     $          momentum_x(
+     $          field_tested,
+     $          i,j),
+     $          test_data(2))
+        call print_screen(global,local,detailled,'momentum_x')
+
+        
+        local = is_test_validated(
+     $          momentum_y(
+     $          field_tested,
+     $          i,j),
+     $          test_data(3))
+        call print_screen(global,local,detailled,'momentum_y')
+
+        
+        local = is_test_validated(
+     $          total_energy(
+     $          field_tested,
+     $          i,j),
+     $          test_data(4))
+        call print_screen(global,local,detailled,'total energy')
+
+
+        local = is_test_validated(
+     $          velocity_x(
+     $          field_tested,
+     $          i,j),
+     $          test_data(5))
+        call print_screen(global,local,detailled,'velocity_x')
+
+
+        local = is_test_validated(
+     $          velocity_y(
+     $          field_tested,
+     $          i,j),
+     $          test_data(6))
+        call print_screen(global,local,detailled,'velocity_y')
+
+        local = is_test_validated(
+     $          classical_pressure(
+     $          field_tested,
+     $          i,j),
+     $          test_data(7))
+        call print_screen(global,local,detailled,'classical_pressure')
+
+        local = is_test_validated(
+     $          temperature_eff(
+     $          field_tested,
+     $          i,j),
+     $          test_data(8))
+        call print_screen(global,local,detailled,'temperature_eff')
+
+        local = is_test_validated(
+     $          qx_transport_x(
+     $          field_tested,
+     $          i,j),
+     $          test_data(9))
+        call print_screen(global,local,detailled,'temperature_eff')
+
+        local = is_test_validated(
+     $          qy_transport_x(
+     $          field_tested,
+     $          i,j),
+     $          test_data(10))
+        call print_screen(global,local,detailled,'qy_transport_x')
+
+        computed_data = qx_transport_y(field_tested,i,j)
+        local = is_test_validated(
+     $          computed_data,
+     $          test_data(11))
+        call print_screen(global,local,detailled,'qx_transport_y')
+
+        local = is_test_validated(
+     $          qy_transport_y(
+     $          field_tested,
+     $          i,j),
+     $          test_data(12))
+        call print_screen(global,local,detailled,'qy_transport_y')
+
+        local = is_test_validated(
+     $          energy_transport_x(
+     $          field_tested,
+     $          i,j),
+     $          test_data(13))
+        call print_screen(global,local,detailled,'qy_transport_y')
+
+        local = is_test_validated(
+     $          energy_transport_y(
+     $          field_tested,
+     $          i,j),
+     $          test_data(14))
+        call print_screen(global,local,detailled,'energy_transport_y')
+
+        local = is_test_validated(
+     $          capillarity_pressure(
+     $          field_tested,
+     $          i,j),
+     $          test_data(15))
+        call print_screen(global,local,detailled,'capillarity pressure')
+
+        local = is_test_validated(
+     $          capillarity_pressure_xwork(
+     $          field_tested,
+     $          i,j),
+     $          test_data(16))
+        call print_screen(global,local,detailled,'cap pressure xwork')
+
+        local = is_test_validated(
+     $          capillarity_pressure_ywork(
+     $          field_tested,
+     $          i,j),
+     $          test_data(17))
+        call print_screen(global,local,detailled,'cap pressure ywork')
+
+        local = is_test_validated(
+     $          classical_pressure_xwork(
+     $          field_tested,
+     $          i,j),
+     $          test_data(18))
+        call print_screen(global,local,detailled,'pressure xwork')
+
+        local = is_test_validated(
+     $       classical_pressure_ywork(
+     $       field_tested,
+     $       i,j),
+     $       test_data(19))
+
+        call print_screen(global,local,detailled,'pressure ywork')
+
+        print '(''test_validated: '', 1L)', global
+
+        !<get the last CPU time
+        call CPU_TIME(time2)
+        print *, 'time elapsed: ', time2-time1
+
+
+        contains
+
+        function is_test_validated(var,cst) result(test_validated)
+
+          implicit none
+
+          real(rkind), intent(in) :: var
+          real(rkind), intent(in) :: cst
+          logical                 :: test_validated
+
+          if(detailled) then
+             print *, int(var*1e5)
+             print *, int(cst*1e5)
+          end if
+          
+          test_validated=(
+     $         int(var*10000.)-
+     $         sign(int(abs(cst*10000.)),int(cst*10000.))).eq.0
+          
+        end function is_test_validated
+
+
+        subroutine print_screen(global,local,verbose,test_name)
+          
+          implicit none
+
+          logical      , intent(inout) :: global
+          logical      , intent(in)    :: local
+          logical      , intent(in)    :: verbose
+          character*(*), intent(in)    :: test_name
+
+          if(verbose) then
+             print *, test_name
+             print '(''validated :'', 1L)', local
+          end if
+
+          global = global.and.local
+
+        end subroutine print_screen
+
+        subroutine initialize_data(field_tested,i,j,test_data)
+
+          class(field), intent(inout) :: field_tested
+          integer, intent(out) :: i,j
+          real(rkind), dimension(19), intent(out) :: test_data
+
+          !<initialize the tables for the field
         field_tested%dx=0.5
         field_tested%dy=0.6
 
@@ -159,343 +385,7 @@
         test_data(18)= -142.55637d0!<classic pressure work along x-axis> 
         test_data(19)= -63.90458d0 !<classic pressure work along y-axis>
 
-
-        !< print the dim2d parameters used for the test
-        print '(''WARNING: this test is designed for:'')'
-        print '(''viscous_r: '', F16.6)', -1.5
-        print '(''re:        '', F16.6)', 5
-        print '(''pr:        '', F16.6)', 20
-        print '(''we:        '', F16.6)', 10
-        print '(''cv_r:      '', F16.6)', 2.5
-        print '(''it allows to see errors easily'')'
-        print '('''')'
-
-        if(detailled) then
-           print '(''viscous_r: '', F16.6)', viscous_r
-           print '(''re:        '', F16.6)', re
-           print '(''pr:        '', F16.6)', pr
-           print '(''we:        '', F16.6)', we
-           print '(''cv_r:      '', F16.6)', cv_r
-        end if
-
-        !<test of the operators
-        if(detailled) then
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test mass_density: '',1L)',
-     $          is_test_validated(
-     $          mass_density(
-     $          field_tested,
-     $          i,j),
-     $          test_data(1))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test momentum_x: '',1L)',
-     $          is_test_validated(
-     $          momentum_x(
-     $          field_tested,
-     $          i,j),
-     $          test_data(2))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test momentum_y: '',1L)',
-     $          is_test_validated(
-     $          momentum_y(
-     $          field_tested,
-     $          i,j),
-     $          test_data(3))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test energy: '',1L)',
-     $          is_test_validated(
-     $          total_energy(
-     $          field_tested,
-     $          i,j),
-     $          test_data(4))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test velocity_x: '',1L)',
-     $          is_test_validated(
-     $          velocity_x(
-     $          field_tested,
-     $          i,j),
-     $          test_data(5))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test velocity_y: '',1L)',
-     $          is_test_validated(
-     $          velocity_y(
-     $          field_tested,
-     $          i,j),
-     $          test_data(6))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test classical_pressure: '',1L)',
-     $          is_test_validated(
-     $          classical_pressure(
-     $          field_tested,
-     $          i,j),
-     $          test_data(7))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test temperature_eff: '',1L)',
-     $          is_test_validated(
-     $          temperature_eff(
-     $          field_tested,
-     $          i,j),
-     $          test_data(8))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test qx_transport_x: '',1L)',
-     $          is_test_validated(
-     $          qx_transport_x(
-     $          field_tested,
-     $          i,j),
-     $          test_data(9))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test qy_transport_x: '',1L)',
-     $          is_test_validated(
-     $          qy_transport_x(
-     $          field_tested,
-     $          i,j),
-     $          test_data(10))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           computed_data = qx_transport_y(field_tested,i,j)
-           print '(''test qx_transport_y: '',1L)',
-     $          is_test_validated(
-     $          computed_data,
-     $          test_data(11))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test qy_transport_y: '',1L)',
-     $          is_test_validated(
-     $          qy_transport_y(
-     $          field_tested,
-     $          i,j),
-     $          test_data(12))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test energy_transport_x: '',1L)',
-     $          is_test_validated(
-     $          energy_transport_x(
-     $          field_tested,
-     $          i,j),
-     $          test_data(13))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test energy_transport_y: '',1L)',
-     $          is_test_validated(
-     $          energy_transport_y(
-     $          field_tested,
-     $          i,j),
-     $          test_data(14))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test capillarity_pressure: '',1L)',
-     $          is_test_validated(
-     $          capillarity_pressure(
-     $          field_tested,
-     $          i,j),
-     $          test_data(15))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test capillarity_pressure_xwork: '',1L)',
-     $          is_test_validated(
-     $          capillarity_pressure_xwork(
-     $          field_tested,
-     $          i,j),
-     $          test_data(16))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test capillarity_pressure_ywork: '',1L)',
-     $          is_test_validated(
-     $          capillarity_pressure_ywork(
-     $          field_tested,
-     $          i,j),
-     $          test_data(17))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test classical_pressure_xwork: '',1L)',
-     $          is_test_validated(
-     $          classical_pressure_xwork(
-     $          field_tested,
-     $          i,j),
-     $          test_data(18))
-
-           !DEC$ FORCEINLINE RECURSIVE
-           print '(''test classical_pressure_ywork: '',1L)',
-     $          is_test_validated(
-     $          classical_pressure_ywork(
-     $          field_tested,
-     $          i,j),
-     $          test_data(19))
-
-        else
-
-           test_validated=
-     $          is_test_validated(
-     $          mass_density(
-     $          field_tested,
-     $          i,j),
-     $          test_data(1))
-           
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          momentum_x(
-     $          field_tested,
-     $          i,j),
-     $          test_data(2))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          momentum_y(
-     $          field_tested,
-     $          i,j),
-     $          test_data(3))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          total_energy(
-     $          field_tested,
-     $          i,j),
-     $          test_data(4))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          velocity_x(
-     $          field_tested,
-     $          i,j),
-     $          test_data(5))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          velocity_y(
-     $          field_tested,
-     $          i,j),
-     $          test_data(6))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          classical_pressure(
-     $          field_tested,
-     $          i,j),
-     $          test_data(7))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          temperature_eff(
-     $          field_tested,
-     $          i,j),
-     $          test_data(8))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          qx_transport_x(
-     $          field_tested,
-     $          i,j),
-     $          test_data(9))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          qy_transport_x(
-     $          field_tested,
-     $          i,j),
-     $          test_data(10))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          qx_transport_y(
-     $          field_tested,
-     $          i,j),
-     $          test_data(11))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          qy_transport_y(
-     $          field_tested,
-     $          i,j),
-     $          test_data(12))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          energy_transport_x(
-     $          field_tested,
-     $          i,j),
-     $          test_data(13))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          energy_transport_y(
-     $          field_tested,
-     $          i,j),
-     $          test_data(14))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          capillarity_pressure(
-     $          field_tested,
-     $          i,j),
-     $          test_data(15))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          capillarity_pressure_xwork(
-     $          field_tested,
-     $          i,j),
-     $          test_data(16))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          capillarity_pressure_ywork(
-     $          field_tested,
-     $          i,j),
-     $          test_data(17))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          classical_pressure_xwork(
-     $          field_tested,
-     $          i,j),
-     $          test_data(18))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          capillarity_pressure_ywork(
-     $          field_tested,
-     $          i,j),
-     $          test_data(19))           
-
-           print '(''test_validated: '', 1L)', test_validated
-
-        end if
-
-
-        !<get the last CPU time
-        call CPU_TIME(time2)
-        print *, 'time elapsed: ', time2-time1
-
-
-        contains
-
-        function is_test_validated(var,cst) result(test_validated)
-
-          implicit none
-
-          real(rkind), intent(in) :: var
-          real(rkind), intent(in) :: cst
-          logical                 :: test_validated
-
-          if(detailled) then
-             print *, int(var*1e5)
-             print *, int(cst*1e5)
-          end if
-          
-          test_validated=(
-     $         int(var*10000.)-
-     $         sign(int(abs(cst*10000.)),int(cst*10000.))).eq.0
-          
-        end function is_test_validated
+        end subroutine initialize_data
 
 
       end program test_dim2d_prim

@@ -29,7 +29,7 @@
 
         
         !< operators tested
-        type(field) :: field_tested
+        type(field)            :: field_tested
         type(cg_operators)     :: sd
         type(dim2d_eq)         :: p_model
         type(fv_operators)     :: td

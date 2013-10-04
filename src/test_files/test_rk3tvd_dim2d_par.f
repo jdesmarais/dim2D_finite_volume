@@ -54,7 +54,7 @@
         logical     :: test_validated
 
 
-        !< if nx.ne.20, ny.ne.20 then the test cannot be done
+        !< if nx.ne.12, ny.ne.12 then the test cannot be done
         if((nx.ne.12).or.(ny.ne.12).or.(ne.ne.4)
      $       .or.(npx.ne.2).or.(npy.ne.2)) then
            stop 'the test needs: (nx,ny,ne,npx,npy)=(12,12,4,2,2)'

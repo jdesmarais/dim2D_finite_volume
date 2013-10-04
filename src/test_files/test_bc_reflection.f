@@ -37,7 +37,7 @@
         real    :: time1, time2
 
         !<test parameters
-        logical, parameter             :: detailled=.true.
+        logical, parameter             :: detailled=.false.
         integer(ikind)                 :: i,j
         integer                        :: k
         integer    , dimension(4)      :: prefactor_x
@@ -143,7 +143,7 @@
         call bc_used%initialize(s,p_model)
 
         !< apply the boundary conditions
-        call bc_used%apply_bc_on_nodes(field_tested,s,p_model)
+        call bc_used%apply_bc_on_nodes(field_tested,s)
 
 
         !< perform the test

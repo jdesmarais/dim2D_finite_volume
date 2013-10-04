@@ -14,12 +14,16 @@
       !-----------------------------------------------------------------
       program test_fv_operators
 
+        use bc_operators_class , only : bc_operators
         use cg_operators_class , only : cg_operators
         use field_class        , only : field
         use fv_operators_class , only : fv_operators
-        use parameters_input   , only : nx,ny,ne
+        use parameters_constant, only : periodic_xy_choice,
+     $                                  bc_nodes_choice
+        use parameters_input   , only : nx,ny,ne,bc_choice,
+     $                                  bcx_type_choice,bcy_type_choice
         use parameters_kind    , only : ikind, rkind
-        use simpletest_eq_class, only : simpletest_eq
+        use dim2d_eq_class     , only : dim2d_eq
 
         implicit none
 
@@ -27,7 +31,8 @@
         !<operators tested
         type(field)         :: field_tested
         type(cg_operators)  :: s
-        type(simpletest_eq) :: p_model
+        type(dim2d_eq)      :: p_model
+        type(bc_operators)  :: bc_used
         type(fv_operators)  :: t_operator
 
         real(rkind), dimension(nx,ny,ne) :: time_dev
@@ -36,15 +41,31 @@
         real    :: time1, time2
 
         !<test parameters
-        logical, parameter         :: detailled=.true.
+        logical, parameter         :: detailled=.false.
         integer(ikind)             :: i,j
         real(rkind), dimension(12) :: test_data
-        logical                    :: test_validated
+        logical                    :: global,local
+        logical                    :: test_parameter
 
 
         !<if nx<4, ny<4 then the test cannot be done
-        if((nx.ne.10).or.(ny.ne.6).or.(ne.ne.1)) then
-           stop 'the test needs: (nx,ny,ne)=(10,6,1)'
+        test_parameter=.true.
+        test_parameter=test_parameter.and.(nx.eq.10)
+        test_parameter=test_parameter.and.(ny.eq.6)
+        test_parameter=test_parameter.and.(ne.eq.1)
+        test_parameter=test_parameter.and.(bc_choice.eq.periodic_xy_choice)
+        test_parameter=test_parameter.and.(bcx_type_choice.eq.bc_nodes_choice)
+        test_parameter=test_parameter.and.(bcy_type_choice.eq.bc_nodes_choice)    
+        if(.not.test_parameter) then
+           print *, 'the test requires several parameters'
+           print *, 'test designed for simpletest eq'
+           print *, 'nx=10'
+           print *, 'ny=6'
+           print *, 'ne=1'
+           print *, 'bc_choice=periodic_xy_choice'
+           print *, 'bcx_type_choice=bc_nodes_choice'
+           print *, 'bcy_type_choice=bc_nodes_choice'
+           stop ''
         end if
 
 
@@ -64,15 +85,24 @@
 
 
         !<compute the time derivatives
-        time_dev = t_operator%compute_time_dev(field_tested,s,p_model)
+        time_dev = t_operator%compute_time_dev(
+     $       field_tested,s,p_model,bc_used)
 
 
         !<print the time derivatives
+        global=.true.
         do j=1+s%get_bc_size(), ny-s%get_bc_size()
            do i=1+s%get_bc_size(), nx-s%get_bc_size()
-              test_validated=(time_dev(i,j,1).eq.(-20.0d0))
-              print *, i,j, test_validated
+              local=(time_dev(i,j,1).eq.(-20.0d0))
+              global=global.and.local
+              if(detailled) then
+                 print *, i,j, local
+              end if
            end do
         end do
+        print '(''test validated :'', L1)', global
+
+        call CPU_TIME(time2)
+        print '(''time elapsed:'', F6.2)', time2-time1
 
       end program test_fv_operators

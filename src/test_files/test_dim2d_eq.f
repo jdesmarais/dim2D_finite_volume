@@ -11,7 +11,7 @@
       !> @date
       ! 09_08_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      program test_dim2d_fluxes
+      program test_dim2d_eq
 
         use dim2d_eq_class     , only : dim2d_eq
         use field_class        , only : field
@@ -32,13 +32,14 @@
         real    :: time1, time2
 
         !<test parameters
-        logical, parameter                   :: detailled=.true.
+        logical, parameter                   :: detailled=.false.
         integer(ikind)                       :: i,j
         real(rkind), dimension(nx+1,ny  ,ne) :: flux_x
         real(rkind), dimension(nx  ,ny+1,ne) :: flux_y
         real(rkind)                          :: prog_data
         real(rkind), dimension(8)            :: test_data
         logical                              :: test_validated
+        logical                              :: test_parameters
 
 
         !<get the initial CPU time
@@ -48,6 +49,27 @@
         !<if nx<4, ny<4 then the test cannot be done
         if((nx.lt.4).or.(ny.lt.4).or.(ne.ne.4)) then
            stop 'nx and ny must be greater than 4 for the test'
+        end if
+
+
+        test_parameters=.true.
+        test_parameters=test_parameters.and.(viscous_r.eq.-1.5d0)
+        test_parameters=test_parameters.and.(re.eq.5d0)
+        test_parameters=test_parameters.and.(pr.eq.20.0d0)
+        test_parameters=test_parameters.and.(we.eq.10.0d0)
+        test_parameters=test_parameters.and.(cv_r.eq.2.5d0)
+        if(.not.test_parameters) then
+           !< print the dim2d parameters used for the test
+           print '(''WARNING: this test is designed for:'')'
+           print '(''viscous_r: '', F16.6)', -1.5
+           print '(''re:        '', F16.6)', 5.
+           print '(''pr:        '', F16.6)', 20.
+           print '(''we:        '', F16.6)', 10.
+           print '(''cv_r:      '', F16.6)', 2.5
+           print '(''it allows to see errors easily'')'
+           print '('''')'
+
+           stop 'dim2d_parameters not adapted for test'
         end if
 
 
@@ -140,31 +162,23 @@
         field_tested%nodes(4,4,4)= 3.4d0
         
         !<test the operators defined dim2d_fluxes
-        i=2 !<index tested in the data along the x-axis
-        j=2 !<index tested in the data along the y-axis
+        i=3 !<index tested in the data along the x-axis
+        j=3 !<index tested in the data along the y-axis
 
-        !<test_data initialization
-        test_data(1) =  2.183333d0  !<flux_x_mass
-        test_data(2) = -251.30268d0 !<flux_x_momentum_x
-        test_data(3) =  29.27583d0  !<flux_x_momentum_y
-        test_data(4) =  262.74627d0 !<flux_x_total_energy
-        test_data(5) =  37.5d0      !<flux_y_mass
-        test_data(6) =  118.44843d0 !<flux_y_momentum_x
-        test_data(7) = -678.96843d0 !<flux_y_momentum_y
-        test_data(8) =-3721.23864d0 !<flux_y_total_energy
+        !<test_data initialization        
+        test_data(1) = -10.033333d0 !<flux_x_mass
+        test_data(2) = -760.92652d0 !<flux_x_momentum_x
+        test_data(3) =  -24.31047d0 !<flux_x_momentum_y
+        test_data(4) = 1463.64782d0 !<flux_x_total_energy
+        test_data(5) = 23.8500000d0 !<flux_y_mass
+        test_data(6) =    6.16168d0 !<flux_y_momentum_x
+        test_data(7) = -352.65586d0 !<flux_y_momentum_y
+        test_data(8) = -840.36959d0!<flux_y_total_energy
 
         !< print the dim2d parameters used for the test
         if(detailled) then
            call print_variables_for_test(
      $          field_tested%nodes,field_tested%dx, field_tested%dy)
-        else
-           print '(''WARNING: this test is designed for:'')'
-           print '(''viscous_r: '', F16.6)', -1.5
-           print '(''re:        '', F16.6)',  5
-           print '(''pr:        '', F16.6)',  20
-           print '(''we:        '', F16.6)',  10
-           print '(''cv_r:      '', F16.6)',  2.5
-           print '(''it allows to see errors easily'')'
         end if
 
         
@@ -176,35 +190,35 @@
         !<test of the operators
         if(detailled) then
 
-           prog_data  = flux_x(i+1,j,1)
+           prog_data  = flux_x(i,j,1)
            test_validated = is_test_validated(prog_data, test_data(1))
            print '(''test flux_x_mass_density: '',1L)', test_validated
 
-           prog_data  = flux_x(i+1,j,2)
+           prog_data  = flux_x(i,j,2)
            test_validated = is_test_validated(prog_data, test_data(2))
            print '(''test flux_x_momentum_x: '',1L)', test_validated
            
-           prog_data  = flux_x(i+1,j,3)
+           prog_data  = flux_x(i,j,3)
            test_validated = is_test_validated(prog_data, test_data(3))
            print '(''test flux_x_momentum_y: '',1L)', test_validated
 
-           prog_data  = flux_x(i+1,j,4)
+           prog_data  = flux_x(i,j,4)
            test_validated = is_test_validated(prog_data, test_data(4))
            print '(''test flux_x_total_energy: '',1L)', test_validated
 
-           prog_data  = flux_y(i,j+1,1)
+           prog_data  = flux_y(i,j,1)
            test_validated = is_test_validated(prog_data, test_data(5))
            print '(''test flux_y_mass_density: '',1L)', test_validated
 
-           prog_data  = flux_y(i,j+1,2)
+           prog_data  = flux_y(i,j,2)
            test_validated = is_test_validated(prog_data, test_data(6))
            print '(''test flux_y_momentum_x: '',1L)', test_validated
            
-           prog_data  = flux_y(i,j+1,3)
+           prog_data  = flux_y(i,j,3)
            test_validated = is_test_validated(prog_data, test_data(7))
            print '(''test flux_y_momentum_y: '',1L)', test_validated
 
-           prog_data  = flux_y(i,j+1,4)
+           prog_data  = flux_y(i,j,4)
            test_validated = is_test_validated(prog_data, test_data(8))
            print '(''test flux_y_total_energy: '',1L)', test_validated
 
@@ -261,8 +275,8 @@
           end if
           
           test_validated=(
-     $         int(var*10000.)-
-     $         sign(int(abs(cst*10000.)),int(cst*10000.))).eq.0
+     $         int(var*100000.)-
+     $         sign(int(abs(cst*100000.)),int(cst*100000.))).eq.0
           
         end function is_test_validated
 
@@ -314,4 +328,4 @@
         end subroutine print_variables_for_test
 
 
-      end program test_dim2d_fluxes
+      end program test_dim2d_eq

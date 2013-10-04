@@ -31,11 +31,13 @@
         real    :: time1, time2
 
         !<test parameters
-        logical, parameter        :: detailled=.true.
+        logical, parameter        :: detailled=.false.
         integer(ikind)            :: i,j
         real(rkind)               :: prog_data
         real(rkind), dimension(8) :: test_data
         logical                   :: test_validated
+        logical                   :: test_parameters
+        
 
 
         !<if nx<4, ny<4 then the test cannot be done
@@ -43,6 +45,25 @@
            stop 'nx and ny must be greater than 4 for the test'
         end if
 
+        test_parameters=.true.
+        test_parameters=test_parameters.and.(viscous_r.eq.-1.5d0)
+        test_parameters=test_parameters.and.(re.eq.5d0)
+        test_parameters=test_parameters.and.(pr.eq.20.0d0)
+        test_parameters=test_parameters.and.(we.eq.10.0d0)
+        test_parameters=test_parameters.and.(cv_r.eq.2.5d0)
+        if(.not.test_parameters) then
+           !< print the dim2d parameters used for the test
+           print '(''WARNING: this test is designed for:'')'
+           print '(''viscous_r: '', F16.6)', -1.5
+           print '(''re:        '', F16.6)', 5.
+           print '(''pr:        '', F16.6)', 20.
+           print '(''we:        '', F16.6)', 10.
+           print '(''cv_r:      '', F16.6)', 2.5
+           print '(''it allows to see errors easily'')'
+           print '('''')'
+
+           stop 'dim2d_parameters not adapted for test'
+        end if
 
         !<get the initial CPU time
         call CPU_TIME(time1)
@@ -154,16 +175,7 @@
         if(detailled) then
            call print_variables_for_test(
      $          field_tested%nodes,field_tested%dx, field_tested%dy)
-        else
-           print '(''WARNING: this test is designed for:'')'
-           print '(''viscous_r: '', F16.6)', -1.5
-           print '(''re:        '', F16.6)',  5
-           print '(''pr:        '', F16.6)',  20
-           print '(''we:        '', F16.6)',  10
-           print '(''cv_r:      '', F16.6)',  2.5
-           print '(''it allows to see errors easily'')'
         end if
-
 
         !<test of the operators
         if(detailled) then

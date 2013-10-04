@@ -27,7 +27,7 @@
         real    :: time1, time2
 
         !<test parameters
-        logical, parameter :: detailled=.true.
+        logical, parameter :: detailled=.false.
         integer(ikind)     :: i,j
         logical            :: test_param
         real(rkind)        :: flux_x_momentum_x
@@ -38,6 +38,7 @@
         real(rkind)        :: test_flux_x_momentum_y
         real(rkind)        :: test_flux_y_momentum_x
         real(rkind)        :: test_flux_y_momentum_y
+        logical            :: global,local
 
 
         !<test specifications
@@ -155,41 +156,42 @@
            stop 'the dim2d parameters are not correct for the test'
         end if
 
-
-        !< print the data
-        print *, 'mass_density'
-        do j=1,4
-           print '(4F7.2)', field_used%nodes(1:4,5-j,1)
-        end do
-        print *, ''
+        if(detailled) then
+           !< print the data
+           print *, 'mass_density'
+           do j=1,4
+              print '(4F7.2)', field_used%nodes(1:4,5-j,1)
+           end do
+           print *, ''
+              
+           print *, 'momentum_x'
+           do j=1,4
+              print '(4F7.2)', field_used%nodes(1:4,5-j,2)
+           end do
+           print *, ''
            
-        print *, 'momentum_x'
-        do j=1,4
-           print '(4F7.2)', field_used%nodes(1:4,5-j,2)
-        end do
-        print *, ''
-
-        print *, 'momentum_y'
-        do j=1,4
-           print '(4F7.2)', field_used%nodes(1:4,5-j,3)
-        end do
-        print *, ''
-
-        print *, 'energy'
-        do j=1,4
-           print '(4F7.2)', field_used%nodes(1:4,5-j,4)
-        end do
-        print *, ''
-
-        print *, 'dim2d_parameters'
-        print '(''dx        '',F7.2)', field_used%dx
-        print '(''dy        '',F7.2)', field_used%dy
-        print '(''Re        '',F7.2)', re
-        print '(''We        '',F7.2)', we
-        print '(''Pr        '',F7.2)', pr
-        print '(''viscous_r '',F7.2)', viscous_r
-        print '(''cv_r      '',F7.2)', cv_r
-        print *,''
+           print *, 'momentum_y'
+           do j=1,4
+              print '(4F7.2)', field_used%nodes(1:4,5-j,3)
+           end do
+           print *, ''
+           
+           print *, 'energy'
+           do j=1,4
+              print '(4F7.2)', field_used%nodes(1:4,5-j,4)
+           end do
+           print *, ''
+           
+           print *, 'dim2d_parameters'
+           print '(''dx        '',F7.2)', field_used%dx
+           print '(''dy        '',F7.2)', field_used%dy
+           print '(''Re        '',F7.2)', re
+           print '(''We        '',F7.2)', we
+           print '(''Pr        '',F7.2)', pr
+           print '(''viscous_r '',F7.2)', viscous_r
+           print '(''cv_r      '',F7.2)', cv_r
+           print *,''
+        end if
 
         !< initialized the test data for the fluxes
         test_flux_x_momentum_x=-284.1147599
@@ -211,15 +213,57 @@
 
 
         !<compare the data
-        print '(''program        | excel         '')'
-        print '(''-------------------------------'')'
-        print '(F14.7,'' | '', F14.7)',
-     $       flux_x_momentum_x, test_flux_x_momentum_x
-        print '(F14.7,'' | '', F14.7)',
-     $       flux_x_momentum_y, test_flux_x_momentum_y
-        print '(F14.7,'' | '', F14.7)',
-     $       flux_y_momentum_x, test_flux_y_momentum_x
-        print '(F14.7,'' | '', F14.7)',
-     $       flux_y_momentum_y, test_flux_y_momentum_y
+        if(detailled) then
+           print '(''program        | excel         '')'
+           print '(''-------------------------------'')'
+           print '(F14.7,'' | '', F14.7)',
+     $          flux_x_momentum_x, test_flux_x_momentum_x
+           print '(F14.7,'' | '', F14.7)',
+     $          flux_x_momentum_y, test_flux_x_momentum_y
+           print '(F14.7,'' | '', F14.7)',
+     $          flux_y_momentum_x, test_flux_y_momentum_x
+           print '(F14.7,'' | '', F14.7)',
+     $          flux_y_momentum_y, test_flux_y_momentum_y
+        end if
+
+        global = .true.
+        local = is_test_validated(
+     $       flux_x_momentum_x,
+     $       test_flux_x_momentum_x)
+        global = global.and.local
+
+        local = is_test_validated(
+     $       flux_x_momentum_y,
+     $       test_flux_x_momentum_y)
+        global = global.and.local
+
+        local = is_test_validated(
+     $       flux_y_momentum_x,
+     $       test_flux_y_momentum_x)
+        global = global.and.local
+
+        local = is_test_validated(
+     $       flux_y_momentum_y,
+     $       test_flux_y_momentum_y)
+        global = global.and.local
+
+        print '(''test validated :'', 1L)', global
+
+
+        contains
+
+        function is_test_validated(var,cst) result(test_validated)
+
+          implicit none
+
+          real(rkind), intent(in) :: var
+          real(rkind), intent(in) :: cst
+          logical                 :: test_validated
+
+          test_validated=(
+     $         int(var*10000.)-
+     $         sign(int(abs(cst*10000.)),int(cst*10000.))).eq.0
+          
+        end function is_test_validated
 
       end program test_wall_xy_module

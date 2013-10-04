@@ -37,6 +37,7 @@
         logical, parameter        :: detailled=.true.
         integer(ikind)            :: i,j
         real(rkind) :: x_min, y_min
+        integer :: bc_size
         
 
         !<warning
@@ -71,8 +72,9 @@
 
         !<write the output data
         call nf90_writer%initialize()
-        call nf90_writer%write_data(field_tested,p_model,time)
-
+        bc_size=2
+        call nf90_writer%write_data(field_tested,p_model,bc_size,time)
+        print '(''please check output data file data0.nc'')'
 
         !<get the last CPU time
         call CPU_TIME(time2)

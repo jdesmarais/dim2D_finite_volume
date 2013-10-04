@@ -31,7 +31,7 @@
         real :: time1, time2
 
         !<test parameters
-        logical, parameter         :: detailled=.true.
+        logical, parameter         :: detailled=.false.
         integer(ikind)             :: i,j
         real(rkind), dimension(12) :: test_data
         logical                    :: test_validated
@@ -86,7 +86,7 @@
         test_data(7) =  15.833333d0 !<test g
         test_data(8) =  18.0625d0   !<test dgdx
         test_data(9) =  31.333333d0 !<test dgdy
-        test_data(10)= -108.64999d0 !<test d2gdx2
+        test_data(10)= -108.65000d0 !<test d2gdx2
         test_data(11)= -37.222210d0 !<test d2gdy2
         test_data(12)=  26.666666d0 !<test d2gdxdy
 
@@ -199,6 +199,8 @@
      $          mass_density),
      $          test_data(12))
         else
+           test_validated=.true.
+
            test_validated=is_test_validated(
      $          sd_operators_tested%f(
      $          field_tested,
@@ -217,14 +219,6 @@
            test_validated=test_validated.and.
      $          is_test_validated(
      $          sd_operators_tested%dfdy(
-     $          field_tested,
-     $          i,j,
-     $          mass_density),
-     $          test_data(3))
-
-           test_validated=test_validated.and.
-     $          is_test_validated(
-     $          sd_operators_tested%d2fdx2(
      $          field_tested,
      $          i,j,
      $          mass_density),

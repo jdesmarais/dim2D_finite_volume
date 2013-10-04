@@ -21,8 +21,8 @@ scalasca      = false				#scalasca instrumentation
 src_dir	   = $(lernaeanhydra)/src
 config_dir = $(src_dir)/test_files/config
 dep_dir	   = $(src_dir)/test_files/dep
-pm_choice  = dim2d_choice
-bc_choice = wall_x_reflection_y_choice
+pm_choice = simpletest_choice
+bc_choice = periodic_xy_choice
 
 ifeq ($(strip $(pm_choice)), simpletest_choice)
 	spm_dir=$(simpletest_dir)
@@ -73,8 +73,8 @@ LIBS	=
 #FFLAGS_OP_IFORT		 = -O2 -p -g -ipo-c -132 -inline-factor=300 -warn all
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
-#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
-FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=500
+FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=500
 #FFLAGS_OP_IFORT		 = -O2 -132 -ipo-c #-D	ALIGNED #-inline-factor=400
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -guide -inline-factor=400
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400
@@ -85,8 +85,8 @@ FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt
 #LDFLAGS_OP_IFORT     	 = -O2 -p -g -ipo -132 -inline-factor=300 -warn all
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
-#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
-LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=300 #-warn all -check all #GOOD options
+LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=300 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -132 -ipo #-DALIGNED #-inline-factor=400 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -guide -inline-factor=400 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400 #-warn all -check all #GOOD options
@@ -295,10 +295,14 @@ tests:	test_field\
 	test_dim2d_fluxes\
 	test_dim2d_eq\
 	test_fv_operators\
-	test_bc_operators\
+	test_bc_periodic\
+	test_bc_reflection\
+	test_wall_xy_module\
+	test_bc_wall\
 	test_rk3tvd\
 	test_nf90_operators\
-	test_dim2d_ic
+	test_dim2d_ic\
+	test_rk3tvd_dim2d
 
 tests_par: test_field_par\
 	test_mpi_mg_bc
@@ -864,59 +868,50 @@ test_dim2d_eq.o:		$(sd_dir)/cg_operators_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
-test_dim2d_eq:			cg_operators_class.o\
-				dim2d_eq_class.o\
-				dim2d_fluxes_module.o\
-				dim2d_parameters.o\
-				dim2d_prim_module.o\
-				dim2d_dropletbubble_module.o\
-				dim2d_steadystate_module.o\
-				dim2d_state_eq_module.o\
-				field_class.o\
-				parameters_input.o\
+test_dim2d_eq:			surrogate_class.o\
 				parameters_kind.o\
-				surrogate_class.o
-
-test_fv_operators.o:		$(sd_dir)/cg_operators_class.o\
-				$(field_dir)/field_class.o\
-				$(fv_dir)/fv_operators_class.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(simpletest_dir)/simpletest_eq_class.o
-
-test_fv_operators:		cg_operators_class.o\
-				field_class.o\
-				fv_operators_class.o\
-				parameters_input.o\
-				parameters_kind.o\
-				simpletest_eq_class.o\
-				surrogate_class.o\
-				td_operators_class.o
-
-test_bc_operators.o:		$(sbc_dir)/bc_operators_class.o\
-				$(sd_dir)/cg_operators_class.o\
-				$(field_dir)/field_class.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o
-
-test_bc_operators:		bc_operators_class.o\
-				cg_operators_class.o\
-				field_class.o\
 				parameters_constant.o\
 				parameters_input.o\
-				parameters_kind.o\
-				periodic_xy_module.o\
-				reflection_xy_module.o\
+				field_class.o\
+				interface_primary.o\
+				sd_operators_class.o\
+				cg_operators_class.o\
 				dim2d_parameters.o\
+				dim2d_dropbubble_module.o\
+				dim2d_vortex_module.o\
+				dim2d_state_eq_module.o\
+				dim2d_bubble_ascending_module.o\
+				dim2d_drop_retraction_module.o\
 				dim2d_prim_module.o\
 				dim2d_fluxes_module.o\
-				dim2d_state_eq_module.o\
+				dim2d_homogeneous_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropletbubble_module.o\
+				phy_model_eq_class.o\
+				dim2d_eq_class.o
+
+test_fv_operators.o:		$(pbc_dir)/bc_operators_class.o\
+				$(sd_dir)/cg_operators_class.o\
+				$(field_dir)/field_class.o\
+				$(fv_dir)/fv_operators_class.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(simpletest_dir)/dim2d_eq_class.o
+
+test_fv_operators:		surrogate_class.o\
+				parameters_kind.o\
+				parameters_constant.o\
+				parameters_input.o\
+				field_class.o\
+				interface_primary.o\
+				sd_operators_class.o\
+				cg_operators_class.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
-				surrogate_class.o
+				bc_abstract_class.o\
+				bc_operators_class.o\
+				td_operators_class.o\
+				fv_operators_class.o
 
 test_bc_periodic.o:		$(pbc_dir)/bc_operators_class.o\
 				$(sd_dir)/cg_operators_class.o\
@@ -939,7 +934,11 @@ test_bc_periodic:		surrogate_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropletbubble_module.o\
+				dim2d_dropbubble_module.o\
+				dim2d_drop_retraction_module.o\
+				dim2d_bubble_ascending_module.o\
+				dim2d_homogeneous_module.o\
+				dim2d_vortex_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				bc_abstract_class.o\
@@ -962,11 +961,15 @@ test_bc_reflection:		surrogate_class.o\
 				sd_operators_class.o\
 				cg_operators_class.o\
 				dim2d_parameters.o\
+				dim2d_dropbubble_module.o\
+				dim2d_vortex_module.o\
+				dim2d_state_eq_module.o\
+				dim2d_bubble_ascending_module.o\
+				dim2d_drop_retraction_module.o\
 				dim2d_prim_module.o\
 				dim2d_fluxes_module.o\
-				dim2d_state_eq_module.o\
+				dim2d_homogeneous_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropletbubble_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				bc_abstract_class.o\
@@ -996,7 +999,11 @@ test_wall_xy_module:		surrogate_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropletbubble_module.o\
+				dim2d_dropbubble_module.o\
+				dim2d_drop_retraction_module.o\
+				dim2d_bubble_ascending_module.o\
+				dim2d_homogeneous_module.o\
+				dim2d_vortex_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				bc_abstract_class.o\
@@ -1026,7 +1033,11 @@ test_bc_wall:			surrogate_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropletbubble_module.o\
+				dim2d_dropbubble_module.o\
+				dim2d_vortex_module.o\
+				dim2d_drop_retraction_module.o\
+				dim2d_bubble_ascending_module.o\
+				dim2d_homogeneous_module.o\
 				phy_model_eq_class.o\
 				dim2d_eq_class.o\
 				bc_abstract_class.o\
@@ -1108,8 +1119,12 @@ test_nf90_operators:		surrogate_class.o\
 				dim2d_parameters.o\
 				dim2d_prim_module.o\
 				dim2d_state_eq_module.o\
-				dim2d_dropletbubble_module.o\
+				dim2d_dropbubble_module.o\
 				dim2d_steadystate_module.o\
+				dim2d_vortex_module.o\
+				dim2d_drop_retraction_module.o\
+				dim2d_bubble_ascending_module.o\
+				dim2d_homogeneous_module.o\
 				interface_primary.o\
 				sd_operators_class.o\
 				cg_operators_class.o\
@@ -1138,7 +1153,11 @@ test_dim2d_ic:			surrogate_class.o\
 				cg_operators_class.o\
 				dim2d_fluxes_module.o\
 				dim2d_steadystate_module.o\
-				dim2d_dropletbubble_module.o\
+				dim2d_dropbubble_module.o\
+				dim2d_vortex_module.o\
+				dim2d_drop_retraction_module.o\
+				dim2d_bubble_ascending_module.o\
+				dim2d_homogeneous_module.o\
 				dim2d_state_eq_module.o\
 				parameters_constant.o\
 				phy_model_eq_class.o\
