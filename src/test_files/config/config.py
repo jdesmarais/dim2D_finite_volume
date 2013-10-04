@@ -130,7 +130,8 @@ def compute_code_inputs(inputFileName):
 
     bc_code      = ['periodic_xy_choice',
                     'reflection_xy_choice',
-                    'wall_xy_choice']
+                    'wall_xy_choice',
+                    'wall_x_reflection_y_choice']
 
     bc_type_code = ['bc_nodes_choice',
                     'bc_fluxes_choice']
@@ -176,7 +177,8 @@ def compute_code_inputs(inputFileName):
         bcx_type_choice = bc_type_code[0]
         bcy_type_choice = bc_type_code[0]
 
-    if(bc_choice=='wall_xy_choice'):
+    if(bc_choice=='wall_xy_choice' or
+       bc_choice=='wall_x_reflection_y_choice'):
 
         bcx_type_choice = bc_type_code[1]
         bcy_type_choice = bc_type_code[1]

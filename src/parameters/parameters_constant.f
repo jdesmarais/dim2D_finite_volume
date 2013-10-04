@@ -14,41 +14,42 @@
       !-----------------------------------------------------------------
       module parameters_constant
 
-        !<program version
+        !>program version
         character*(*) , parameter :: prog_version = 'lerneanhydra V1.0'
 
-        !<main variable types
+        !>main variable types
         integer, parameter :: scalar=0
         integer, parameter :: vector_x=1
         integer, parameter :: vector_y=2
 
-        !<phase identification
+        !>phase identification
         integer, parameter :: liquid=0
         integer, parameter :: vapor=1
 
-        !<initial conditions choice
+        !>initial conditions choice
         integer, parameter :: steady_state=0
         integer, parameter :: drop_retraction=1
         integer, parameter :: bubble_ascending=2
         integer, parameter :: homogeneous_liquid=3
 
-        !<boundary conditions choice
+        !>boundary conditions choice
         integer, parameter :: periodic_xy_choice=0
         integer, parameter :: reflection_xy_choice=1
         integer, parameter :: wall_xy_choice=2
+        integer, parameter :: wall_x_reflection_y_choice=3      
 
-        !<boundary conditions type choice
+        !>boundary conditions type choice
         integer, parameter :: bc_nodes_choice=0
         integer, parameter :: bc_fluxes_choice=1
 
-        !<equations tuning choice
+        !>equations tuning choice
         integer, parameter :: no_gravity_choice=0
         integer, parameter :: earth_gravity_choice=1
 
-        !<i/o management choice
+        !>i/o management choice
         integer, parameter :: netcdf_choice=0
 
-        !<mpi constant
+        !>mpi constant
         integer, parameter :: N=1
         integer, parameter :: S=2
         integer, parameter :: E=3
@@ -62,3 +63,4 @@
         integer, parameter :: only_exchange_proc=2
 
       end module parameters_constant
+

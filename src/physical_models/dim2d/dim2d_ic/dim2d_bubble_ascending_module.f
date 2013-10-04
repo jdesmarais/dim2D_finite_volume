@@ -107,8 +107,8 @@
           r_v2 = 0.5
 
           !< set the strength of the vortex
-          omega_v1 =  1.0
-          omega_v2 = -1.0
+          omega_v1 =  0.0d0
+          omega_v2 =  0.0d0
 
 
           !<initialize the mass and total energy fields

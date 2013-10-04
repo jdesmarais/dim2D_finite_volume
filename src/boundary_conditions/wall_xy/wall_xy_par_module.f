@@ -553,7 +553,7 @@
 
           type(field_par)                   , intent(in)    :: f_used
           type(cg_operators)                , intent(in)    :: s_op
-          real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_y
+          real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
 
           integer        :: k, bc_size
           integer(ikind), dimension(2) :: id

@@ -15,6 +15,7 @@ test_dir                = $(src_dir)/test_files
 rbc_dir		       	= $(bc_dir)/reflection_xy
 pbc_dir		        = $(bc_dir)/periodic_xy
 wbc_dir			= $(bc_dir)/wall_xy
+wrbc_dir		= $(bc_dir)/wall_x_reflection_y
 
 #io_operator folder
 nf90_dir		= $(io_dir)/nf90_operators

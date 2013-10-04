@@ -21,11 +21,6 @@
         use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : rkind,ikind
         use wall_xy_module    , only : wall_prefactor,
-     $                                 wall_fx_momentum_x,
-     $                                 wall_fx_momentum_y,
-     $                                 wall_fy_momentum_x,
-     $                                 wall_fy_momentum_y,
-     $                                 wall_heat_flux,
      $                                 compute_wall_flux_x,
      $                                 compute_wall_flux_y
         

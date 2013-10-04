@@ -21,7 +21,8 @@
         use mpi_process_class  , only : mpi_process
         use parameters_constant, only : periodic_xy_choice,
      $                                  reflection_xy_choice,
-     $                                  wall_xy_choice
+     $                                  wall_xy_choice,
+     $                                  wall_x_reflection_y_choice
         use parameters_input   , only : ntx,nty,nx,ny,npx,npy,bc_choice,
      $                                  x_min,x_max,y_min,y_max
         use parameters_kind    , only : ikind, rkind
@@ -111,6 +112,10 @@
                periods(2)     = .false.
 
             case(wall_xy_choice)
+               periods(1)     = .false.
+               periods(2)     = .false.
+
+            case(wall_x_reflection_y_choice)
                periods(1)     = .false.
                periods(2)     = .false.
 

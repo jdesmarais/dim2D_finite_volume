@@ -27,7 +27,7 @@
       !> u_2     &=& \frac{1}{4}u_n + \frac{3}{4} \left(
       !>             u_1 + \Delta t * \frac{d u_1}{dt} \right) \\\
       !> u_{n+1} &=& \frac{1}{3}u_n + \frac{2}{3} \left(
-      !>             u_2 + \Delta t * \frac{d u_2}{dt}\right)\\\
+      !>             u_2 + \Delta t * \frac{d u_2}{dt}\right) \\\
       !> \f}
       !-----------------------------------------------------------------
       module rk3tvd_steps_class
@@ -209,7 +209,7 @@
         !> @brief
         !> subroutine to compute the 3rd runge-kutta step using
         !> the numerical scheme developed by C.W.Shu and S.Osher
-        !> \f$ u_{n+1} &=& \frac{1}{3}u_n + \frac{2}{3} \left(
+        !> \f$ u_{n+1} = \frac{1}{3}u_n + \frac{2}{3} \left(
         !>             u_2 + \Delta t * \frac{d u_2}{dt}\right) \f$
         !> @date
         !> 23_09_2013 - initial version - J.L. Desmarais

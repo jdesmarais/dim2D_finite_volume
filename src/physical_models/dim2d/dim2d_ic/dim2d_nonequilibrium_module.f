@@ -8,7 +8,7 @@
       !> @date
       !> 27_09_2013 - initial version                   - J.L. Desmarais
       !-----------------------------------------------------------------
-      module dim2d_drop_retraction_module
+      module dim2d_nonequilibrium_module
 
         use dim2d_dropbubble_module, only : mass_density_ellipsoid,
      $                                      total_energy_ellipsoid
@@ -23,7 +23,7 @@
         implicit none
 
         private
-        public :: apply_drop_retraction_ic
+        public :: apply_nonequilibrium_ic
 
 
         contains
@@ -41,7 +41,7 @@
         !>@param field_used
         !> object encapsulating the main variables
         !---------------------------------------------------------------
-        subroutine apply_drop_retraction_ic(field_used)
+        subroutine apply_nonequilibrium_ic(field_used)
 
           implicit none
 
@@ -51,7 +51,9 @@
           !< local variables for the droplet/bubble
           integer        :: phase_at_center
           real(rkind)    :: T0,xc,yc,a,b
+          real(rkind)    :: dliq_eq,dvap_eq
           real(rkind)    :: dliq,dvap,li
+
 
           !< local variables for the initialization
           integer(ikind) :: i,j
@@ -74,8 +76,11 @@
           !<get the mass densities corresponding to the
           !>liquid and vapor phases for the initial
           !>temperature field
-          dliq = get_mass_density_liquid(T0)
-          dvap = get_mass_density_vapor(T0)
+          dliq_eq = get_mass_density_liquid(T0)
+          dvap_eq = get_mass_density_vapor(T0)
+
+          dliq = 2*d_liq_eq
+          dvap = (d_liq+d_vap)/2.0d0
 
           !<get the interface length corresponding
           !>to the initial temperature field
@@ -83,12 +88,11 @@
 
           !<set the major and minor axes of the bubble ellipse
           a=6.0d0*li
-          b=a/2.0d0
+          b=a
 
 
           !<initialize the fields
           do j=1, ny
-             !DEC$ IVDEP
              do i=1, nx
 
                 x = field_used%x_map(i)
@@ -108,7 +112,7 @@
              end do
           end do
 
-        end subroutine apply_drop_retraction_ic
+        end subroutine apply_nonequilibrium_ic
 
-      end module dim2d_drop_retraction_module
+      end module dim2d_nonequilibrium_module
 

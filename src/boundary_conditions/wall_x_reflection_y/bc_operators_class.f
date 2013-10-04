@@ -1,6 +1,20 @@
       !> @file
-      !> class encapsulating subroutines to apply periodic boundary
-      !> conditions at the edge of the computational domain
+      !> class encapsulating subroutines to apply wall boundary
+      !> conditions and reflection at the edge of the
+      !> computational domain
+      !
+      !                      wall b.c.
+      !                          |
+      !>                 //////////////////
+      !>                 |               //
+      !>                 |               //
+      !>    reflection ->| computational //  <-  wall b.c.
+      !>     b.c.        |    domain     //
+      !>                 |               //
+      !>                 |               //
+      !                  //////////////////
+      !                          |
+      !                      wall b.c.
       !
       !> @author 
       !> Julien L. Desmarais
@@ -10,16 +24,20 @@
       !> gridpoints at the edge of the computational domain
       !
       !> @date
-      !> 23_09_2013 - initial version                   - J.L. Desmarais
+      !> 27_09_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module bc_operators_class
 
-        use bc_abstract_class , only : bc_abstract
-        use cg_operators_class, only : cg_operators
-        use dim2d_eq_class    , only : dim2d_eq
-        use field_class       , only : field
-        use parameters_input  , only : nx,ny,ne
-        use parameters_kind   , only : rkind,ikind
+        use bc_abstract_class   , only : bc_abstract
+        use cg_operators_class  , only : cg_operators
+        use dim2d_eq_class      , only : dim2d_eq
+        use field_class         , only : field
+        use parameters_input    , only : nx,ny,ne
+        use parameters_kind     , only : rkind,ikind
+        use reflection_xy_module, only : reflection_x_prefactor
+        use wall_xy_module      , only : wall_prefactor,
+     $                                   compute_wall_flux_x,
+     $                                   compute_wall_flux_y
         
         implicit none
 
@@ -30,32 +48,34 @@
 
         !> @class bc_operators
         !> class encapsulating subroutines to apply
-        !> periodic boundary conditions in the x and
-        !> y directions at the edge of the computational
+        !> wall and reflection boundary conditions in the
+        !> x and y directions at the edge of the computational
         !> domain
         !>
-        !> @param period_x
-        !> period along the x-direction
+        !> @param prefactor
+        !> wall prefactor for the application of the nodes b.c.
         !>
-        !> @param period_y
-        !> period along the y-direction
+        !> @param prefactor_x
+        !> reflection prefactor for the application of the nodes
+        !> b.c.
         !> 
         !> @param initialize
-        !> initialize the period_x and period_y
+        !> initialize the prefactor and x_prefactor
         !> attributes of the boundary conditions
         !>
         !> @param apply_bc_on_nodes
-        !> apply the periodic boundary conditions along the x and y
-        !> directions at the edge of the computational domain
-        !> for the field
+        !> apply the wall and reflection boundary conditions
+        !> along the x and y directions at the edge of the
+        !> computational domain for the field
         !>
         !> @param apply_bc_on_fluxes
-        !> apply the periodic boundary conditions for the fluxes
+        !> apply the wall and reflection boundary conditions
+        !> for the fluxes
         !---------------------------------------------------------------
         type, extends(bc_abstract) :: bc_operators
 
-          integer(ikind) :: period_x
-          integer(ikind) :: period_y
+          integer, dimension(ne) :: prefactor
+          integer, dimension(ne) :: prefactor_x
 
           contains
 
@@ -97,13 +117,12 @@
           type(dim2d_eq)     , intent(in)    :: p_model
 
           
-          integer :: neq,bc_size
+          integer :: bc_size
 
-          neq     = p_model%get_eq_nb()
           bc_size = s%get_bc_size()
 
-          this%period_x = nx-2*bc_size
-          this%period_y = ny-2*bc_size
+          this%prefactor   = wall_prefactor(p_model)
+          this%prefactor_x = reflection_x_prefactor(p_model)
 
         end subroutine initialize
 
@@ -136,45 +155,40 @@
 
           integer(ikind) :: i,j
           integer        :: bc_size,k
-          integer        :: period_x, period_y
 
-          !DEC$ FORCEINLINE
-          bc_size  = s%get_bc_size()
-          
-          period_x = nx-2*bc_size 
-          period_y = ny-2*bc_size
 
-          !<compute the east and west boundary layers
-          !>without the north and south corners
-          do k=1, ne
-             !DEC$ IVDEP
+          !< compute the size of the boundary layer
+          bc_size = s%get_bc_size()
+
+
+          !< compute the reflection b.c. in W boundary layers
+          !> and the wall b.c. in the E boundary layers
+          do k=1,ne
              do j=1+bc_size, ny-bc_size
-                !DEC$ UNROLL(2)
-                do i=1, bc_size
-
-                   f_used%nodes(i,j,k)=
-     $                  f_used%nodes(i+period_x,j,k)
-                   f_used%nodes(i+period_x+bc_size,j,k)=
-     $                  f_used%nodes(i+bc_size,j,k)
+                !DEC$ IVDEP
+                do i=1,bc_size
+                   
+                   f_used%nodes(i,j,k) = 
+     $                this%prefactor_x(k)*f_used%nodes(2*bc_size+1-i,j,k)
+                   f_used%nodes(nx-bc_size+i,j,k) = 
+     $                this%prefactor(k)*f_used%nodes(nx-bc_size-i+1,j,k)
                    
                 end do
              end do
           end do
 
 
-          !<compute the south and north layers
-          !>with the east and west corners
+          !< compute the wall b.c. in N and S boundary layers
           do k=1, ne
-             !DEC$ UNROLL(2)
              do j=1, bc_size
                 !DEC$ IVDEP
                 do i=1, nx
-
-                   f_used%nodes(i,j,k)=
-     $                  f_used%nodes(i,j+period_y,k)
-                   f_used%nodes(i,j+period_y+bc_size,k)=
-     $                  f_used%nodes(i,j+bc_size,k)
-
+                   
+                   f_used%nodes(i,j,k) = 
+     $                  this%prefactor(k)*f_used%nodes(i,2*bc_size+1-j,k)
+                   f_used%nodes(i,ny-bc_size+j,k) = 
+     $                  this%prefactor(k)*f_used%nodes(i,ny-bc_size-j+1,k)
+                   
                 end do
              end do
           end do
@@ -193,6 +207,9 @@
         !> @date
         !> 24_09_2013 - initial version - J.L. Desmarais
         !
+        !>@param this
+        !> boundary conditions
+        !
         !>@param f_used
         !> object encapsulating the main variables
         !
@@ -205,7 +222,7 @@
         !>@param flux_y
         !> flux along the y-direction
         !--------------------------------------------------------------
-        subroutine apply_bc_on_fluxes(f_used,s,flux_x,flux_y)
+      subroutine apply_bc_on_fluxes(f_used,s,flux_x,flux_y)
 
           implicit none
 
@@ -214,15 +231,33 @@
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
 
-          integer     :: bc_size
-          real(rkind) :: node,flux
+          integer        :: k, bc_size
+          integer(ikind), dimension(2) :: id
 
-          stop 'periodic_xy: apply_bc_on_fluxes not implemented'
 
-          node=f_used%nodes(1,1,1)
-          bc_size=s%get_bc_size()
-          flux=flux_x(1,1,1)
-          flux=flux_y(1,1,1)
+          !< get the size of the boundary layer
+          bc_size = s%get_bc_size()
+
+          !< provide the x-indices modified
+          id(1)=nx+1-bc_size
+
+          !< modify the fluxes along the x-direction
+          !> only the E border: i=nx-bc_size+1
+          !DEC$ FORCEINLINE RECURSIVE
+          call compute_wall_flux_x(f_used,s,id(1),flux_x)
+
+          !< provide the y-indices modified
+          id(1)=bc_size+1
+          id(2)=ny-bc_size+1
+
+          !< modify the fluxes along the y-direction
+          !> at the N and S borders
+          !> S border: j= bc_size+1
+          !> N border: j= ny-bc_size+1
+          do k=1,2
+             !DEC FORCEINLINE RECURSIVE
+             call compute_wall_flux_y(f_used,s,id(k),flux_y)
+          end do
 
         end subroutine apply_bc_on_fluxes
 

@@ -22,7 +22,7 @@ src_dir	   = $(lernaeanhydra)/src
 config_dir = $(src_dir)/test_files/config
 dep_dir	   = $(src_dir)/test_files/dep
 pm_choice  = dim2d_choice
-bc_choice = wall_xy_choice
+bc_choice = wall_x_reflection_y_choice
 
 ifeq ($(strip $(pm_choice)), simpletest_choice)
 	spm_dir=$(simpletest_dir)
@@ -46,6 +46,11 @@ ifeq ($(strip $(bc_choice)), wall_xy_choice)
 	sim_dim2d_dep=$(dep_dir)/sim_dim2d_wall.dep
 	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_wall.dep
 endif
+ifeq ($(strip $(bc_choice)), wall_x_reflection_y_choice)
+	sbc_dir=$(wrbc_dir)
+	sim_dim2d_dep=$(dep_dir)/sim_dim2d_wall_reflection.dep
+	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_wall_reflection.dep
+endif
 #------------------------------------------------------------------------
 #source files directories
 #------------------------------------------------------------------------
@@ -68,8 +73,8 @@ LIBS	=
 #FFLAGS_OP_IFORT		 = -O2 -p -g -ipo-c -132 -inline-factor=300 -warn all
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
-FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 #-warn noalignment #check if there are data that are unaligned
-#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=300
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
+FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=500
 #FFLAGS_OP_IFORT		 = -O2 -132 -ipo-c #-D	ALIGNED #-inline-factor=400
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -guide -inline-factor=400
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400
@@ -80,8 +85,8 @@ FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt
 #LDFLAGS_OP_IFORT     	 = -O2 -p -g -ipo -132 -inline-factor=300 -warn all
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
-LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500 #-warn noalignment #check if there are data that are unaligned
-#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=300 #-warn all -check all #GOOD options
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
+LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=300 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -132 -ipo #-DALIGNED #-inline-factor=400 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -guide -inline-factor=400 #-warn all -check all #GOOD options
 #LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400 #-warn all -check all #GOOD options
@@ -327,41 +332,50 @@ cleanall:
 
 #parameter_dir						
 $(param_dir)/parameters_kind.o:
-$(param_dir)/parameters_constant.o:$(param_dir)/parameters_kind.o
-$(param_dir)/parameters_input.o:$(param_dir)/parameters_constant.o
 
+$(param_dir)/parameters_constant.o:\
+			$(param_dir)/parameters_kind.o
+
+$(param_dir)/parameters_input.o:\
+			$(param_dir)/parameters_constant.o
 
 #fields
 $(field_dir)/surrogate_class.o:
-$(field_dir)/field_class.o:	$(field_dir)/surrogate_class.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o
+$(field_dir)/field_class.o:\
+			$(field_dir)/surrogate_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
 
-$(field_dir)/field_par_class.o:	$(field_dir)/field_class.o\
-				$(mpi_dir)/mpi_process_class.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o
+$(field_dir)/field_par_class.o:\
+			$(field_dir)/field_class.o\
+			$(mpi_dir)/mpi_process_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
 
 
 #space discretization operators
-$(sd_dir)/interface_primary.o:	$(field_dir)/field_class.o\
-				$(param_dir)/parameters_kind.o
+$(sd_dir)/interface_primary.o:\
+			$(field_dir)/field_class.o\
+			$(param_dir)/parameters_kind.o
 
-$(sd_dir)/sd_operators_class.o:	$(field_dir)/field_class.o\
-				$(sd_dir)/interface_primary.o\
-				$(param_dir)/parameters_kind.o
+$(sd_dir)/sd_operators_class.o:\
+			$(field_dir)/field_class.o\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_kind.o
 
-$(sd_dir)/cg_operators_class.o:	$(field_dir)/field_class.o\
-				$(sd_dir)/interface_primary.o\
-				$(param_dir)/parameters_kind.o\
-				$(sd_dir)/sd_operators_class.o
+$(sd_dir)/cg_operators_class.o:\
+			$(field_dir)/field_class.o\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_kind.o\
+			$(sd_dir)/sd_operators_class.o
 
 #physical models
-$(phy_eq_dir)/phy_model_eq_class.o:$(field_dir)/field_class.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(sd_dir)/cg_operators_class.o
+$(phy_eq_dir)/phy_model_eq_class.o:\
+			$(field_dir)/field_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(sd_dir)/cg_operators_class.o
 
 #simple test equations
 $(simpletest_dir)/dim2d_eq_class.o:\
@@ -454,131 +468,180 @@ $(bc_dir)/bc_abstract_class.o:\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-$(bc_dir)/bc_abstract_par_class.o:$(sd_dir)/cg_operators_class.o\
-				$(spm_dir)/dim2d_eq_class.o\
-				$(field_dir)/field_par_class.o\
-				$(mpi_bc_dir)/mpi_mg_bc_ext_class.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_kind.o
+$(bc_dir)/bc_abstract_par_class.o:\
+			$(sd_dir)/cg_operators_class.o\
+			$(spm_dir)/dim2d_eq_class.o\
+			$(field_dir)/field_par_class.o\
+			$(mpi_bc_dir)/mpi_mg_bc_ext_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_kind.o
 
 #periodic boundary conditions
-$(pbc_dir)/bc_operators_class.o:$(bc_dir)/bc_abstract_class.o\
-				$(sd_dir)/cg_operators_class.o\
-				$(spm_dir)/dim2d_eq_class.o\
-				$(field_dir)/field_class.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o
+$(pbc_dir)/bc_operators_class.o:\
+			$(bc_dir)/bc_abstract_class.o\
+			$(sd_dir)/cg_operators_class.o\
+			$(spm_dir)/dim2d_eq_class.o\
+			$(field_dir)/field_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
 
-$(pbc_dir)/periodic_xy_module.o:$(sd_dir)/cg_operators_class.o\
-				$(field_dir)/field_class.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o
+$(pbc_dir)/periodic_xy_module.o:\
+			$(sd_dir)/cg_operators_class.o\
+			$(field_dir)/field_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
 
-$(pbc_dir)/periodic_xy_par_module.o:$(field_dir)/field_par_class.o\
-				$(mpi_bc_dir)/mpi_mg_bc_class.o\
-				$(mpi_dir)/mpi_process_class.o\
-				$(mpi_dir)/mpi_requests_module.o\
-				$(mpi_dir)/mpi_tag_module.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o
+$(pbc_dir)/periodic_xy_par_module.o:\
+			$(field_dir)/field_par_class.o\
+			$(mpi_bc_dir)/mpi_mg_bc_class.o\
+			$(mpi_dir)/mpi_process_class.o\
+			$(mpi_dir)/mpi_requests_module.o\
+			$(mpi_dir)/mpi_tag_module.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
 
-$(pbc_dir)/bc_operators_par_class.o:$(bc_dir)/bc_abstract_par_class.o\
-				$(sd_dir)/cg_operators_class.o\
-				$(spm_dir)/dim2d_eq_class.o\
-				$(field_dir)/field_par_class.o\
-				$(mpi_dir)/mpi_process_class.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(pbc_dir)/periodic_xy_par_module.o
+$(pbc_dir)/bc_operators_par_class.o:\
+			$(bc_dir)/bc_abstract_par_class.o\
+			$(sd_dir)/cg_operators_class.o\
+			$(spm_dir)/dim2d_eq_class.o\
+			$(field_dir)/field_par_class.o\
+			$(mpi_dir)/mpi_process_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pbc_dir)/periodic_xy_par_module.o
 
 #reflection boundary conditions
-$(rbc_dir)/reflection_xy_module.o:$(sd_dir)/cg_operators_class.o\
-				$(spm_dir)/dim2d_eq_class.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o
+$(rbc_dir)/reflection_xy_module.o:\
+			$(sd_dir)/cg_operators_class.o\
+			$(spm_dir)/dim2d_eq_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
 
-$(rbc_dir)/reflection_xy_par_module.o:$(spm_dir)/dim2d_eq_class.o\
-				$(field_dir)/field_par_class.o\
-				$(mpi_bc_dir)/mpi_mg_bc_class.o\
-				$(mpi_dir)/mpi_process_class.o\
-				$(mpi_dir)/mpi_requests_module.o\
-				$(mpi_dir)/mpi_tag_module.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(rbc_dir)/reflection_xy_module.o
+$(rbc_dir)/reflection_xy_par_module.o:\
+			$(spm_dir)/dim2d_eq_class.o\
+			$(field_dir)/field_par_class.o\
+			$(mpi_bc_dir)/mpi_mg_bc_class.o\
+			$(mpi_dir)/mpi_process_class.o\
+			$(mpi_dir)/mpi_requests_module.o\
+			$(mpi_dir)/mpi_tag_module.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(rbc_dir)/reflection_xy_module.o
 
-$(rbc_dir)/bc_operators_class.o:$(bc_dir)/bc_abstract_class.o\
-				$(sd_dir)/cg_operators_class.o\
-				$(spm_dir)/dim2d_eq_class.o\
-				$(field_dir)/field_class.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(rbc_dir)/reflection_xy_module.o
+$(rbc_dir)/bc_operators_class.o:\
+			$(bc_dir)/bc_abstract_class.o\
+			$(sd_dir)/cg_operators_class.o\
+			$(spm_dir)/dim2d_eq_class.o\
+			$(field_dir)/field_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(rbc_dir)/reflection_xy_module.o
 
-$(rbc_dir)/bc_operators_par_class.o:$(bc_dir)/bc_abstract_par_class.o\
-				$(sd_dir)/cg_operators_class.o\
-				$(spm_dir)/dim2d_eq_class.o\
-				$(field_dir)/field_par_class.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(rbc_dir)/reflection_xy_par_module.o
+$(rbc_dir)/bc_operators_par_class.o:\
+			$(bc_dir)/bc_abstract_par_class.o\
+			$(sd_dir)/cg_operators_class.o\
+			$(spm_dir)/dim2d_eq_class.o\
+			$(field_dir)/field_par_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(rbc_dir)/reflection_xy_par_module.o
 
 #wall boundary conditions
-$(wbc_dir)/wall_prim_module.o:	$(dim2d_dir)/dim2d_parameters.o\
-				$(field_dir)/field_class.o\
-				$(param_dir)/parameters_kind.o
+$(wbc_dir)/wall_prim_module.o:\
+			$(dim2d_dir)/dim2d_parameters.o\
+			$(field_dir)/field_class.o\
+			$(param_dir)/parameters_kind.o
 
-$(wbc_dir)/wall_xy_module.o:	$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
-				$(dim2d_dir)/dim2d_parameters.o\
-				$(dim2d_dir)/dim2d_prim_module.o\
-				$(field_dir)/field_class.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(wbc_dir)/wall_prim_module.o
+$(wbc_dir)/wall_xy_module.o:\
+			$(sd_dir)/cg_operators_class.o\
+			$(dim2d_dir)/dim2d_eq_class.o\
+			$(dim2d_dir)/dim2d_parameters.o\
+			$(dim2d_dir)/dim2d_prim_module.o\
+			$(field_dir)/field_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(wbc_dir)/wall_prim_module.o
 
-$(wbc_dir)/wall_xy_par_module.o:$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
-				$(field_dir)/field_par_class.o\
-				$(mpi_bc_dir)/mpi_mg_bc_class.o\
-				$(mpi_dir)/mpi_process_class.o\
-				$(mpi_dir)/mpi_requests_module.o\
-				$(mpi_dir)/mpi_tag_module.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(wbc_dir)/wall_xy_module.o
+$(wbc_dir)/wall_xy_par_module.o:\
+			$(sd_dir)/cg_operators_class.o\
+			$(dim2d_dir)/dim2d_eq_class.o\
+			$(field_dir)/field_par_class.o\
+			$(mpi_bc_dir)/mpi_mg_bc_class.o\
+			$(mpi_dir)/mpi_process_class.o\
+			$(mpi_dir)/mpi_requests_module.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(wbc_dir)/wall_xy_module.o
 
-$(wbc_dir)/bc_operators_class.o:$(bc_dir)/bc_abstract_class.o\
-				$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
-				$(field_dir)/field_class.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(wbc_dir)/wall_xy_module.o
+$(wbc_dir)/bc_operators_class.o:\
+			$(bc_dir)/bc_abstract_class.o\
+			$(sd_dir)/cg_operators_class.o\
+			$(dim2d_dir)/dim2d_eq_class.o\
+			$(field_dir)/field_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(wbc_dir)/wall_xy_module.o
 
-$(wbc_dir)/bc_operators_par_class.o:$(bc_dir)/bc_abstract_par_class.o\
-				$(sd_dir)/cg_operators_class.o\
-				$(dim2d_dir)/dim2d_eq_class.o\
-				$(field_dir)/field_par_class.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(wbc_dir)/wall_xy_par_module.o
+$(wbc_dir)/bc_operators_par_class.o:\
+			$(bc_dir)/bc_abstract_par_class.o\
+			$(sd_dir)/cg_operators_class.o\
+			$(dim2d_dir)/dim2d_eq_class.o\
+			$(field_dir)/field_par_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(wbc_dir)/wall_xy_par_module.o
+
+#wall_x reflection_y boundary conditions
+$(wrbc_dir)/wall_x_reflection_y_par_module.o:\
+			$(sd_dir)/cg_operators_class.o\
+			$(dim2d_dir)/dim2d_eq_class.o\
+			$(field_dir)/field_par_class.o\
+			$(mpi_bc_dir)/mpi_mg_bc_class.o\
+			$(mpi_dir)/mpi_process_class.o\
+			$(mpi_dir)/mpi_requests_module.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(rbc_dir)/reflection_xy_module.o\
+			$(wbc_dir)/wall_xy_module.o
+
+$(wrbc_dir)/bc_operators_class.o:\
+			$(bc_dir)/bc_abstract_class.o\
+			$(sd_dir)/cg_operators_class.o\
+			$(dim2d_dir)/dim2d_eq_class.o\
+			$(field_dir)/field_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(rbc_dir)/reflection_xy_module.o\
+			$(wbc_dir)/wall_xy_module.o
+
+$(wrbc_dir)/bc_operators_par_class.o:\
+			$(bc_dir)/bc_abstract_par_class.o\
+			$(sd_dir)/cg_operators_class.o\
+			$(dim2d_dir)/dim2d_eq_class.o\
+			$(field_dir)/field_par_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(wrbc_dir)/wall_x_reflection_y_par_module.o\
+			$(wbc_dir)/wall_xy_par_module.o
 
 #time discretization methods
-$(td_dir)/td_operators_class.o:	$(sbc_dir)/bc_operators_class.o\
-				$(sd_dir)/cg_operators_class.o\
-				$(field_dir)/field_class.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(spm_dir)/dim2d_eq_class.o
+$(td_dir)/td_operators_class.o:\
+			$(sbc_dir)/bc_operators_class.o\
+			$(sd_dir)/cg_operators_class.o\
+			$(field_dir)/field_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(spm_dir)/dim2d_eq_class.o
 
 $(td_dir)/td_operators_par_class.o:$(sbc_dir)/bc_operators_par_class.o\
 				$(sd_dir)/cg_operators_class.o\

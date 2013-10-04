@@ -22,7 +22,7 @@
      $                                  x_min,x_max,y_min,y_max,
      $                                  t_max,dt,detail_print
         use dim2d_eq_class     , only : dim2d_eq
-        use dim2d_parameters   , only : viscous_r, Re, We, Pr, cv_r
+        use dim2d_parameters   , only : viscous_r, Re, We, Pr, cv_r, gravity
 
         implicit none
 
@@ -187,6 +187,10 @@
           call nf90_handle_err(retval)
 
           retval = nf90_put_att(ncid,nf90_global,'cv_r',cv_r)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'gravity',gravity)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
