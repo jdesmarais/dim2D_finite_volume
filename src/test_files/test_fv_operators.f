@@ -20,7 +20,7 @@
         use fv_operators_class , only : fv_operators
         use parameters_constant, only : periodic_xy_choice,
      $                                  bc_nodes_choice
-        use parameters_input   , only : nx,ny,ne,bc_choice,
+        use parameters_input   , only : nx,ny,ne,bc_size,bc_choice,
      $                                  bcx_type_choice,bcy_type_choice
         use parameters_kind    , only : ikind, rkind
         use dim2d_eq_class     , only : dim2d_eq
@@ -41,7 +41,7 @@
         real    :: time1, time2
 
         !<test parameters
-        logical, parameter         :: detailled=.false.
+        logical, parameter         :: detailled=.true.
         integer(ikind)             :: i,j
         real(rkind), dimension(12) :: test_data
         logical                    :: global,local
@@ -91,8 +91,8 @@
 
         !<print the time derivatives
         global=.true.
-        do j=1+s%get_bc_size(), ny-s%get_bc_size()
-           do i=1+s%get_bc_size(), nx-s%get_bc_size()
+        do j=1+bc_size, ny-bc_size
+           do i=1+bc_size, nx-bc_size
               local=(time_dev(i,j,1).eq.(-20.0d0))
               global=global.and.local
               if(detailled) then
@@ -100,7 +100,7 @@
               end if
            end do
         end do
-        print '(''test validated :'', L1)', global
+        print '(''test_validated: '', 1L)', global
 
         call CPU_TIME(time2)
         print '(''time elapsed:'', F6.2)', time2-time1

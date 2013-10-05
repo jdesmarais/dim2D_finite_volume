@@ -28,7 +28,7 @@
         use dim2d_eq_class     , only : dim2d_eq
         use field_class        , only : field
         use parameters_constant, only : wall_xy_choice
-        use parameters_input   , only : nx,ny,ne,bc_choice
+        use parameters_input   , only : nx,ny,ne,bc_choice,bc_size
         use parameters_kind    , only : ikind, rkind
 
 
@@ -48,7 +48,7 @@
         !<test parameters
         logical, parameter                 :: detailled=.true.
         integer(ikind)                     :: i,j
-        integer                            :: k, bc_size
+        integer                            :: k
         integer    , dimension(4)          :: prefactor_x
         integer    , dimension(4)          :: prefactor_y
         real(rkind), dimension(nx+1,ny,ne) :: flux_x
@@ -235,8 +235,6 @@
         
         !<test the application of the wall b.c. on the fluxes
         call bc_used%apply_bc_on_fluxes(field_tested,s,flux_x,flux_y)
-
-        bc_size = s%get_bc_size()
 
         !< check if the points modified by the b.c. are only the 
         !> points that should be modified

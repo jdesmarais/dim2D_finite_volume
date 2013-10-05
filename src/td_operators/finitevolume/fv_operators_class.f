@@ -21,7 +21,7 @@
         use field_class        , only : field
         use parameters_constant, only : earth_gravity_choice,
      $                                  bc_fluxes_choice
-        use parameters_input   , only : nx,ny,ne,gravity_choice,
+        use parameters_input   , only : nx,ny,ne,bc_size,gravity_choice,
      $                                  bcx_type_choice, bcy_type_choice
         use parameters_kind    , only : rkind, ikind
         use dim2d_eq_class     , only : dim2d_eq
@@ -90,17 +90,13 @@
             type(bc_operators)              , intent(in) :: bc_used
             real(rkind), dimension(nx,ny,ne)             :: time_dev
 
-            integer                            :: bc_size,k
+            integer                            :: k
             integer(ikind)                     :: i,j
             real(rkind), dimension(nx+1,ny,ne) :: flux_x
             real(rkind), dimension(nx,ny+1,ne) :: flux_y
             real(rkind), dimension(nx,ny,ne)   :: body_forces
 
 
-            !<initialize the main tables size
-            bc_size = s%get_bc_size()
-
-            
             !<compute the fluxes
             !FORCEINLINE RECURSIVE
             flux_x = p_model%compute_flux_x(field_used,s)

@@ -44,7 +44,6 @@
 
         !< intermediate variables
         real(rkind) :: x_min, x_max, y_min, y_max
-        integer     :: bc_size
 
 
         !< if nx.ne.20, ny.ne.20 then the test cannot be done
@@ -63,9 +62,8 @@
         x_max   = 1.
         y_min   = 0.
         y_max   = 1.
-        bc_size = sd%get_bc_size()
 
-        call field_tested%ini_coordinates(x_min,x_max,y_min,y_max,bc_size)
+        call field_tested%ini_coordinates()
         call p_model%apply_ic(field_tested)
         call bc_used%apply_bc_on_nodes(field_tested,sd)
 

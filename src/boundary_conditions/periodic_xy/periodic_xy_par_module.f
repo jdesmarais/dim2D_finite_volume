@@ -24,7 +24,7 @@
         use mpi_requests_module, only : only_exchange_twice
         use mpi_tag_module     , only : compute_mpi_tag
         use parameters_constant, only : N,S,E,W,x_direction
-        use parameters_input   , only : nx,ny,ne,npx,npy
+        use parameters_input   , only : nx,ny,ne,npx,npy,bc_size
         use parameters_kind    , only : ikind, rkind
 
         implicit none
@@ -52,12 +52,11 @@
         !>@param s
         !> space discretization operators
         !--------------------------------------------------------------
-        subroutine only_compute_along_x(nodes,bc_size)
+        subroutine only_compute_along_x(nodes)
         
           implicit none
 
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          integer                         , intent(in)    :: bc_size
 
 
           integer(ikind) :: i,j
@@ -100,12 +99,11 @@
         !>@param s
         !> space discretization operators
         !--------------------------------------------------------------
-        subroutine only_compute_along_y(nodes,bc_size)
+        subroutine only_compute_along_y(nodes)
         
           implicit none
 
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          integer                         , intent(in)    :: bc_size
 
 
           integer(ikind) :: i,j

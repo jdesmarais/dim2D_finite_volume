@@ -27,7 +27,7 @@
         use mpi_tag_module      , only : compute_mpi_tag
         use parameters_constant , only : x_direction, y_direction,
      $                                   N,S,E,W
-        use parameters_input    , only : nx,ny,ne,npx,npy
+        use parameters_input    , only : nx,ny,ne,npx,npy,bc_size
         use parameters_kind     , only : ikind, rkind
         use wall_xy_module      , only : wall_prefactor,
      $                                   compute_wall_flux_x,
@@ -63,18 +63,14 @@
         !>@param nodes
         !> table containing the gridpoint data
         !
-        !>@param bc_size
-        !> size of the boundary layer
-        !
         !>@param p_model
         !> physical model
         !--------------------------------------------------------------
-        subroutine only_compute_along_x(nodes, bc_size, p_model)
+        subroutine only_compute_along_x(nodes, p_model)
 
           implicit none
 
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          integer                         , intent(in)    :: bc_size
           type(dim2d_eq)                  , intent(in)    :: p_model
 
           
@@ -121,18 +117,14 @@
         !>@param nodes
         !> table containing the gridpoint data
         !
-        !>@param bc_size
-        !> size of the boundary layer
-        !
         !>@param p_model
         !> physical model
         !--------------------------------------------------------------
-        subroutine only_compute_along_y(nodes, bc_size, p_model)
+        subroutine only_compute_along_y(nodes, p_model)
 
           implicit none
 
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          integer                         , intent(in)    :: bc_size
           type(dim2d_eq)                  , intent(in)    :: p_model
 
           
@@ -187,9 +179,6 @@
         !>@param nodes
         !> table containing the gridpoint data
         !
-        !>@param bc_size
-        !> size of the boundary layer
-        !
         !>@param p_model
         !> physical model
         !
@@ -198,14 +187,13 @@
         !> are sent
         !--------------------------------------------------------------
         subroutine compute_and_exchange_along_x(
-     $     this, f_used, nodes, bc_size, p_model, card_pt)
+     $     this, f_used, nodes, p_model, card_pt)
 
           implicit none
 
           class(mpi_mg_bc)                , intent(in)    :: this
           class(field_par)                , intent(inout) :: f_used
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          integer                         , intent(in)    :: bc_size
           type(dim2d_eq)                  , intent(in)    :: p_model
           integer                         , intent(in)    :: card_pt
 
@@ -316,9 +304,6 @@
         !>@param nodes
         !> table containing the gridpoint data
         !
-        !>@param bc_size
-        !> size of the boundary layer
-        !
         !>@param p_model
         !> physical model
         !
@@ -327,14 +312,13 @@
         !> are sent
         !--------------------------------------------------------------
         subroutine compute_and_exchange_along_y(
-     $     this, f_used, nodes, bc_size, p_model, card_pt)
+     $     this, f_used, nodes, p_model, card_pt)
 
           implicit none
 
           class(mpi_mg_bc)                , intent(in)    :: this
           class(field_par)                , intent(inout) :: f_used
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          integer                         , intent(in)    :: bc_size
           type(dim2d_eq)                  , intent(in)    :: p_model
           integer                         , intent(in)    :: card_pt
 
@@ -505,12 +489,9 @@
           type(cg_operators)                , intent(in)    :: s_op
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
 
-          integer        :: k, bc_size
+          integer        :: k
           integer(ikind), dimension(2) :: id
 
-
-          !< get the size of the boundary layer
-          bc_size = s_op%get_bc_size()
 
           !< provide the x-indices modified
           id(1)=bc_size+1
@@ -555,11 +536,8 @@
           type(cg_operators)                , intent(in)    :: s_op
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
 
-          integer        :: k, bc_size
+          integer        :: k
           integer(ikind), dimension(2) :: id
-
-          !< get the size of the boundary layer
-          bc_size = s_op%get_bc_size()
 
           !< provide the y-indices modified
           id(1)=bc_size+1
@@ -611,10 +589,8 @@
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
 
           type(mpi_process) :: mpi_op
-          integer           :: bc_size,i
+          integer           :: i
 
-          !get the size of the boundary layers
-          bc_size = s_op%get_bc_size()
 
           !select the x-indice of the flux modified: either E or W
           select case(card_pt)
@@ -668,10 +644,7 @@
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
 
           type(mpi_process) :: mpi_op
-          integer           :: bc_size,j
-
-          !get the size of the boundary layers
-          bc_size = s_op%get_bc_size()
+          integer           :: j
 
           !select the x-indice of the flux modified: either E or W
           select case(card_pt)

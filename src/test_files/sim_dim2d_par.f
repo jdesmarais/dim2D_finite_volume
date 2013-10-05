@@ -24,7 +24,7 @@
         use fv_operators_par_class     , only : fv_operators_par
         use mpi_process_class          , only : mpi_process
         use nf90_operators_wr_par_class, only : nf90_operators_wr_par
-        use parameters_input           , only : ne,t_max,dt,detail_print
+        use parameters_input           , only : ne,bc_size,t_max,dt,detail_print
         use parameters_kind            , only : ikind, rkind
         use rk3tvd_par_class           , only : rk3tvd_par
 
@@ -43,7 +43,6 @@
 
         !<intermediate variables for the simulation
         integer(ikind) :: nt,t,output_print
-        integer        :: bc_size
         real(rkind)    :: time
 
         !<CPU recorded times
@@ -69,6 +68,13 @@
         end if
 
 
+        !< check the size of boundary layers
+        !>------------------------------------------------------
+        if(bc_size.ne.s%get_bc_size()) then
+           stop 'bc_size is not correct : check the spatial op'
+        end if
+
+
         !< initialize the mpi processes
         !>------------------------------------------------------
         !> start mpi on the processors computing the simulation
@@ -81,7 +87,6 @@
         !> initialize the variables determining the total number
         !> of timesteps for the simulation
         !>------------------------------------------------------
-        bc_size      = sd%get_bc_size()
         nt           = int(t_max/dt)
         if(detail_print.eq.0) then
            output_print=0
@@ -98,7 +103,7 @@
         !>------------------------------------------------------
         time = 0
         call f_simulated%ini_cartesian_communicator()
-        call f_simulated%ini_coordinates(bc_size)
+        call f_simulated%ini_coordinates()
         call p_model%apply_ic(f_simulated)
 
 
@@ -121,7 +126,7 @@
         !> write the initial state on 'data0.nc'
         !>------------------------------------------------------
         call io_writer%initialize(f_simulated,sd)
-        call io_writer%write_data(f_simulated,p_model,bc_size,time)
+        call io_writer%write_data(f_simulated,p_model,time)
 
 
         !<initialization time
@@ -150,7 +155,7 @@
            !< write the output data
            if((output_print.eq.1).or.
      $        ((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
-              call io_writer%write_data(f_simulated,p_model,bc_size,time)
+              call io_writer%write_data(f_simulated,p_model,time)
            end if
 
         end do
@@ -172,7 +177,7 @@
         !> and the last state of the simulation are written
         !>------------------------------------------------------        
         if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
-           call io_writer%write_data(f_simulated,p_model,bc_size,time)
+           call io_writer%write_data(f_simulated,p_model,time)
         end if
 
 

@@ -18,7 +18,7 @@
         use cg_operators_class  , only : cg_operators
         use dim2d_eq_class      , only : dim2d_eq
         use field_class         , only : field
-        use parameters_input    , only : nx,ny,ne
+        use parameters_input    , only : nx,ny,ne,bc_size
         use parameters_kind     , only : rkind,ikind
         use reflection_xy_module, only : reflection_x_prefactor,
      $                                   reflection_y_prefactor
@@ -101,10 +101,6 @@
           type(cg_operators) , intent(in)    :: s
           type(dim2d_eq)     , intent(in)    :: p_model
 
-          integer :: bc_size
-
-          bc_size = s%get_bc_size()
-
           this%prefactor_x = reflection_x_prefactor(p_model)
           this%prefactor_y = reflection_y_prefactor(p_model)          
 
@@ -141,12 +137,8 @@
 
 
           integer(ikind)         :: i,j
-          integer                :: neq,bc_size,k
+          integer                :: neq,k
           
-
-          !< compute the size of the boundary layer
-          bc_size = s%get_bc_size()
-
 
           !< compute the reflection b.c. in E and W boundary layers
           do k=1,ne
@@ -214,13 +206,12 @@
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
 
-          integer     :: prefactor,bc_size
+          integer     :: prefactor
           real(rkind) :: node,flux
 
           stop 'reflection_xy: apply_bc_on_fluxes not implemented'
 
           node=f_used%nodes(1,1,1)
-          bc_size=s%get_bc_size()
           flux=flux_x(1,1,1)
           flux=flux_y(1,1,1)
 

@@ -111,9 +111,9 @@
         !>@param bc_size
         !> boundary layer size
         !---------------------------------------------------------------
-        function get_bc_size_cockburnandgau() result(bc_size)
-          integer :: bc_size
-          bc_size = 2
+        function get_bc_size_cockburnandgau() result(bc_size_op)
+          integer :: bc_size_op
+          bc_size_op = 2
         end function get_bc_size_cockburnandgau
 
 

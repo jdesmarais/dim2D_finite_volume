@@ -53,9 +53,6 @@
         !>@param nodes
         !> table containing the gridpoint data
         !
-        !>@param bc_size
-        !> size of the boundary layer
-        !
         !>@param cart_pt
         !> cardinal point identifying the direction in which data are
         !> sent

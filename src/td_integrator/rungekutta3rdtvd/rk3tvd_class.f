@@ -110,18 +110,11 @@
           type(fv_operators) , intent(in)    :: td
           real(rkind)        , intent(in)    :: dt
 
-          integer        :: bc_size
-
           real(rkind), dimension(nx,ny,ne) :: nodes_tmp
           real(rkind), dimension(nx,ny,ne) :: time_dev
           type(rk3tvd_steps)               :: rk3tvd_int
           
 
-          !<initialization of local variables for the allocation
-          !>of nodes_tmp, a temporary table
-          bc_size = sd%get_bc_size()
-
-          
           !<runge-kutta first step
           !> u_1 = u_n + dt*d/dt(u_n)
           !> u_n is saved in nodes_tmp
@@ -131,7 +124,7 @@
 
           !DEC$ FORCEINLINE RECURSIVE
           call rk3tvd_int%compute_1st_step(
-     $         dt, time_dev, bc_size,
+     $         dt, time_dev,
      $         field_used, nodes_tmp)
             
           !<apply the boundary conditions
@@ -148,7 +141,7 @@
 
           !DEC$ FORCEINLINE RECURSIVE
           call rk3tvd_int%compute_2nd_step(
-     $         dt, time_dev, bc_size,
+     $         dt, time_dev,
      $         field_used, nodes_tmp)
           
           !<apply the boundary conditions
@@ -165,7 +158,7 @@
 
           !DEC$ FORCEINLINE RECURSIVE
           call rk3tvd_int%compute_3rd_step(
-     $         dt, time_dev, bc_size,
+     $         dt, time_dev,
      $         field_used, nodes_tmp)
 
           !<apply the boundary conditions

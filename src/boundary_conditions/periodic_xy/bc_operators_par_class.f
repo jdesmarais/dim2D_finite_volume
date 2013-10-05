@@ -97,11 +97,10 @@
             type(dim2d_eq)                  , intent(in)    :: p_model
             
             
-            integer           :: bc_size,neq
+            integer           :: neq
             type(mpi_process) :: mpi_op
             
             
-            bc_size = s_op%get_bc_size()
             neq     = p_model%get_eq_nb()
             
             
@@ -109,7 +108,7 @@
             select case(this%proc_x_choice)
             
               case(only_compute_proc)
-                 call only_compute_along_x(nodes,bc_size)
+                 call only_compute_along_x(nodes)
             
               case(only_exchange_proc)
                  call only_exchange(this,f_used,nodes,x_direction)
@@ -127,7 +126,7 @@
             select case(this%proc_y_choice)
             
               case(only_compute_proc)
-                 call only_compute_along_y(nodes,bc_size)
+                 call only_compute_along_y(nodes)
             
               case(only_exchange_proc)
                  call only_exchange(this,f_used,nodes,y_direction)
@@ -185,14 +184,13 @@
             !are no warning about unused subroutine arguments
             !as the subroutine is not meant to be used for periodic
             !boundary conditions
-            integer :: proc_choice,bc_size
+            integer :: proc_choice
             real(rkind) :: node, flux
             
             stop 'periodic_xy_par: apply_bc_on_fluxes not implemented'
 
             proc_choice=this%proc_x_choice
             node=f_used%nodes(1,1,1)
-            bc_size=s_op%get_bc_size()
             flux=flux_x(1,1,1)
             flux=flux_y(1,1,1)
 

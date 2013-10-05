@@ -24,7 +24,7 @@
         use mpi
         use mpi_process_class     , only : mpi_process
         use parameters_constant   , only : periodic_xy_choice
-        use parameters_input      , only : nx,ny,ne,npx,npy,
+        use parameters_input      , only : nx,ny,ne,npx,npy,bc_size,
      $                                     x_min,x_max,y_min,y_max,
      $                                     bc_choice
         use parameters_kind       , only : ikind,rkind
@@ -49,7 +49,6 @@
 
 
         !< intermediate variables
-        integer     :: bc_size
         logical     :: test_coordinates
         logical     :: test_validated
 
@@ -83,10 +82,8 @@
            stop 'the test needs: bc_choice=periodic_xy_choice'
         end if
 
-        bc_size = sd%get_bc_size()
-
         call field_tested%ini_cartesian_communicator()
-        call field_tested%ini_coordinates(bc_size)
+        call field_tested%ini_coordinates()
         call p_model%apply_ic(field_tested)
 
         call bc_used%initialize(field_tested,sd)

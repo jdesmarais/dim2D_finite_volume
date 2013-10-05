@@ -33,7 +33,6 @@
 
         !<test parameters
         integer(ikind)             :: i,j
-        integer                    :: bc_size
 
         
         !<if nx<4, ny<4 then the test cannot be done
@@ -67,8 +66,7 @@
 
         !<write the data
         call nf90_writer%initialize()
-        bc_size = 2
-        call nf90_writer%write_data(field_tested,p_model,bc_size,time)
+        call nf90_writer%write_data(field_tested,p_model,time)
         print '(''please check output data file data0.nc'')'
 
       end program test_nf90_operators

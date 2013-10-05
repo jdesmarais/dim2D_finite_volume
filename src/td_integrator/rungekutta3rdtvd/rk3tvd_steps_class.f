@@ -33,7 +33,7 @@
       module rk3tvd_steps_class
 
         use field_class     , only : field
-        use parameters_input, only : nx,ny,ne
+        use parameters_input, only : nx,ny,ne,bc_size
         use parameters_kind , only : ikind, rkind
 
         implicit none
@@ -87,9 +87,6 @@
         !>@param time_dev
         !> table containing the time derivative at \f$ t=n \f$
         !
-        !>@param bc_size
-        !> size of the boundary layer
-        !
         !>@param field_used
         !> object encapsulating the main variables at \f$ t=\Delta t \f$
         !
@@ -99,7 +96,6 @@
         subroutine compute_1st_step(
      $       dt,
      $       time_dev,
-     $       bc_size,
      $       field_used,
      $       nodes_tmp)
 
@@ -107,7 +103,6 @@
 
           real(rkind)                     , intent(in)    :: dt 
           real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
-          integer                         , intent(in)    :: bc_size
           class(field)                    , intent(inout) :: field_used
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
 
@@ -147,9 +142,6 @@
         !>@param time_dev
         !> table containing the time derivative at \f$ t=n \f$
         !
-        !>@param bc_size
-        !> size of the boundary layer
-        !
         !>@param field_used
         !> object encapsulating the main variables at \f$ t=\Delta t \f$
         !
@@ -160,7 +152,6 @@
      $     this,
      $     dt,
      $     time_dev,
-     $     bc_size,
      $     field_used,
      $     nodes_tmp)
 
@@ -169,7 +160,6 @@
           class(rk3tvd_steps)        , intent(in)    :: this
           real(rkind)                     , intent(in)    :: dt 
           real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
-          integer                         , intent(in)    :: bc_size
           class(field)                    , intent(inout) :: field_used
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
 
@@ -220,9 +210,6 @@
         !>@param time_dev
         !> table containing the time derivative at \f$ t=n \f$
         !
-        !>@param bc_size
-        !> size of the boundary layer
-        !
         !>@param field_used
         !> object encapsulating the main variables at \f$ t=\Delta t \f$
         !
@@ -233,7 +220,6 @@
      $     this,
      $     dt,
      $     time_dev,
-     $     bc_size,
      $     field_used,
      $     nodes_tmp)
 
@@ -242,7 +228,6 @@
           class(rk3tvd_steps)        , intent(in)    :: this
           real(rkind)                     , intent(in)    :: dt 
           real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
-          integer                         , intent(in)    :: bc_size
           class(field)                    , intent(inout) :: field_used
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
 

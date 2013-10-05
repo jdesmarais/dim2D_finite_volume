@@ -15,6 +15,7 @@
       module mpi_mg_derived_types
 
         use parameters_constant, only : N,S,E,W
+        use parameters_input   , only : bc_size
         use parameters_kind    , only : ikind, rkind
         use mpi
 
@@ -46,9 +47,6 @@
         !>@param tile_ne
         !> number of governing equations
         !
-        !>@param bc_size
-        !> size of the boundary layer
-        !
         !> @param com_send
         !> MPI derived types for sending data
         !
@@ -56,7 +54,7 @@
         !> MPI derived types for receiving data
         !--------------------------------------------------------------
         subroutine ini_mpi_derived_types(
-     $       tile_nx, tile_ny, tile_ne, bc_size,
+     $       tile_nx, tile_ny, tile_ne,
      $       com_send, com_recv)
 
           implicit none
@@ -64,7 +62,6 @@
           integer(ikind)       , intent(in)  :: tile_nx
           integer(ikind)       , intent(in)  :: tile_ny
           integer              , intent(in)  :: tile_ne
-          integer              , intent(in)  :: bc_size
           integer, dimension(4), intent(out) :: com_send
           integer, dimension(4), intent(out) :: com_recv
 

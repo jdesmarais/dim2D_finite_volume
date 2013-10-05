@@ -22,7 +22,8 @@
         use field_class            , only : field
         use fv_operators_class     , only : fv_operators
         use nf90_operators_wr_class, only : nf90_operators_wr
-        use parameters_input       , only : nx,ny,ne,t_max,dt,detail_print
+        use parameters_input       , only : nx,ny,ne,bc_size,
+     $                                      t_max,dt,detail_print
         use parameters_kind        , only : ikind, rkind
         use rk3tvd_class           , only : rk3tvd
 
@@ -40,7 +41,6 @@
 
         !<intermediate variables for the simulation
         integer(ikind) :: nt, output_print
-        integer        :: bc_size
         integer(ikind) :: t
         real(rkind)    :: time
         !integer, parameter :: output_print=1
@@ -56,16 +56,19 @@
            stop 'ne is not correct considering the physical model'
         end if
 
+        if(bc_size.ne.s%get_bc_size()) then
+           stop 'bc_size is not correct considering spatial op'
+        end if
+
 
         !<allocate the field
-        bc_size      = s%get_bc_size()
         nt           = int(t_max/dt)
         output_print = int(1.0d0/detail_print)
 
 
         !<initialize the field
         time = 0
-        call f_simulated%ini_coordinates(bc_size)
+        call f_simulated%ini_coordinates()
         call p_model%apply_ic(f_simulated)
         call bc_used%initialize(s,p_model)
         call bc_used%apply_bc_on_nodes(f_simulated,s)
@@ -73,7 +76,7 @@
 
         !<write the initial state in an output file
         call io_writer%initialize()
-        call io_writer%write_data(f_simulated,p_model,bc_size,time)
+        call io_writer%write_data(f_simulated,p_model,time)
 
         !<initialization time
         call CPU_TIME(time2)
@@ -90,7 +93,7 @@
            !< write the output data
            if((output_print.eq.1).or.
      $        ((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
-              call io_writer%write_data(f_simulated,p_model,bc_size,time)
+              call io_writer%write_data(f_simulated,p_model,time)
            end if
 
         end do
@@ -103,7 +106,7 @@
 
         !<write the last timestep
         if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
-           call io_writer%write_data(f_simulated,p_model,bc_size,time)
+           call io_writer%write_data(f_simulated,p_model,time)
         end if
 
       end program sim_dim2d

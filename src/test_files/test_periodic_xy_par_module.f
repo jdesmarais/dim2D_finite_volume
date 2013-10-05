@@ -38,7 +38,7 @@
 
         !< intermediate variables
         integer(ikind)     :: i,j
-        integer            :: k,bc_size
+        integer            :: k
         logical, parameter :: test=.true.
         logical            :: test_validated
 
@@ -50,10 +50,6 @@
            print '(''the test needs (npx,npy,nx,ny)=(2,2,10,10)'')'
            stop 'and bc_choice=periodic_xy_choice'
         end if
-
-
-        !< initialization of intermediate variables
-        bc_size = s_op%get_bc_size()
 
 
         !< initialize the mpi process
@@ -75,7 +71,7 @@
 
 
         !< test only_compute_along_x
-        call only_compute_along_x(nodes,bc_size)
+        call only_compute_along_x(nodes)
         if(.not.test) then
            call write_data('test_pcx',f_tested%usr_rank,nodes)
         else
@@ -90,7 +86,7 @@
 
 
         !< test only_compute_along_y
-        call only_compute_along_y(nodes,bc_size)
+        call only_compute_along_y(nodes)
         if(.not.test) then
            call write_data('test_pcy',f_tested%usr_rank,nodes)
         else

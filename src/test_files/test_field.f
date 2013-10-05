@@ -24,11 +24,7 @@
 
         logical :: test_validated
 
-        integer :: bc_size
-        bc_size = 2
-
-
-        call field_tested%ini_coordinates(bc_size)
+        call field_tested%ini_coordinates()
         
 
         print '(''allocate_tables test'')'

@@ -82,15 +82,11 @@
 
           !< local variables
           integer, dimension(2) :: nb_tiles
-          integer               :: bc_size
 
 
           !< initialization of local variables
           nb_tiles(1) = npx
           nb_tiles(2) = npy
-
-          bc_size = s%get_bc_size()
-
 
           !< initialize the 'com_rank' attribute by checking
           !> the rank of the processors computing the neighbours
@@ -101,7 +97,7 @@
           !< initialize the 'com_send' and 'com_recv' attributes
           !> by creating the MPI derived types needed
           call ini_mpi_derived_types(
-     $         nx, ny, ne, bc_size,
+     $         nx, ny, ne,
      $         this%com_send, this%com_recv)
 
         end subroutine initialize

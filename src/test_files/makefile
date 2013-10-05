@@ -687,6 +687,7 @@ $(ti_dir)/td_integrator_par_class.o:$(sbc_dir)/bc_operators_par_class.o\
 				$(param_dir)/parameters_kind.o
 
 $(rk3tvd_dir)/rk3tvd_steps_class.o:$(field_dir)/field_class.o\
+				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
@@ -760,6 +761,7 @@ $(mpi_dir)/mpi_process_class.o:	$(param_dir)/parameters_input.o
 $(mpi_bc_dir)/mpi_mg_neighbours.o:$(param_dir)/parameters_constant.o
 
 $(mpi_bc_dir)/mpi_mg_derived_types.o:$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
 $(mpi_bc_dir)/mpi_mg_bc_class.o:$(field_dir)/field_par_class.o\

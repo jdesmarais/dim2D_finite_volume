@@ -33,8 +33,6 @@
         type(nf90_operators_wr_par):: nf90_writer
         real(rkind), parameter     :: time=3.0
         real(rkind) :: x_min, x_max, y_min, y_max
-        integer     :: bc_size
-
 
         !<CPU recorded times
         real    :: time1, time2
@@ -59,16 +57,15 @@
         x_max   = 1.
         y_min   = 0.
         y_max   = 1.
-        bc_size = sd_op%get_bc_size()
 
         call field_tested%ini_cartesian_communicator()
-        call field_tested%ini_coordinates(x_min,x_max,y_min,y_max,bc_size)
+        call field_tested%ini_coordinates()
         call p_model%apply_ic(field_tested)
 
 
         !< write the data
         call nf90_writer%initialize(field_tested, sd_op, 3)
-        call nf90_writer%write_data(field_tested, p_model, bc_size, time)
+        call nf90_writer%write_data(field_tested, p_model, time)
 
 
         !< finalize the mpi process

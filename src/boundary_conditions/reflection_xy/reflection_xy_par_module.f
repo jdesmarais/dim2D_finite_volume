@@ -25,7 +25,7 @@
      $                                   only_exchange_twice
         use mpi_tag_module      , only : compute_mpi_tag
         use parameters_constant , only : x_direction, y_direction,N,S,E,W
-        use parameters_input    , only : nx,ny,ne,npx,npy
+        use parameters_input    , only : nx,ny,ne,npx,npy,bc_size
         use parameters_kind     , only : ikind, rkind
         use reflection_xy_module, only : reflection_x_prefactor,
      $                                   reflection_y_prefactor
@@ -57,12 +57,11 @@
         !>@param p_model
         !> physical model
         !--------------------------------------------------------------
-        subroutine only_compute_along_x(nodes, bc_size, p_model)
+        subroutine only_compute_along_x(nodes, p_model)
 
           implicit none
 
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          integer                         , intent(in)    :: bc_size
           type(dim2d_eq)                  , intent(in)    :: p_model
 
           
@@ -109,18 +108,14 @@
         !>@param nodes
         !> table containing the gridpoint data
         !
-        !>@param bc_size
-        !> size of the boundary layer
-        !
         !>@param p_model
         !> physical model
         !--------------------------------------------------------------
-        subroutine only_compute_along_y(nodes, bc_size, p_model)
+        subroutine only_compute_along_y(nodes, p_model)
 
           implicit none
 
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          integer                         , intent(in)    :: bc_size
           type(dim2d_eq)                  , intent(in)    :: p_model
 
           
@@ -174,9 +169,6 @@
         !>@param nodes
         !> table containing the gridpoint data
         !
-        !>@param bc_size
-        !> size of the boundary layer
-        !
         !>@param p_model
         !> physical model
         !
@@ -185,14 +177,13 @@
         !> are sent
         !--------------------------------------------------------------
         subroutine compute_and_exchange_along_x(
-     $     this, f_used, nodes, bc_size, p_model, card_pt)
+     $     this, f_used, nodes, p_model, card_pt)
 
           implicit none
 
           class(mpi_mg_bc)                , intent(in)    :: this
           class(field_par)                , intent(inout) :: f_used
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          integer                         , intent(in)    :: bc_size
           type(dim2d_eq)                  , intent(in)    :: p_model
           integer                         , intent(in)    :: card_pt
 
@@ -304,9 +295,6 @@
         !>@param nodes
         !> table containing the gridpoint data
         !
-        !>@param bc_size
-        !> size of the boundary layer
-        !
         !>@param p_model
         !> physical model
         !
@@ -315,14 +303,13 @@
         !> are sent
         !--------------------------------------------------------------
         subroutine compute_and_exchange_along_y(
-     $     this, f_used, nodes, bc_size, p_model, card_pt)
+     $     this, f_used, nodes, p_model, card_pt)
 
           implicit none
 
           class(mpi_mg_bc)                , intent(in)    :: this
           class(field_par)                , intent(inout) :: f_used
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          integer                         , intent(in)    :: bc_size
           type(dim2d_eq)                  , intent(in)    :: p_model
           integer                         , intent(in)    :: card_pt
 

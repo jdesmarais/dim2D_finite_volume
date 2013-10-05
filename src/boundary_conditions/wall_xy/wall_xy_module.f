@@ -23,7 +23,7 @@
      $                                  velocity_x, velocity_y,
      $                                  capillarity_pressure
         use parameters_constant, only : vector_x, vector_y
-        use parameters_input   , only : nx,ny,ne
+        use parameters_input   , only : nx,ny,ne,bc_size
         use parameters_kind    , only : ikind,rkind
         use wall_prim_module   , only : wall_pressure
 
@@ -437,12 +437,7 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
           integer(ikind)                    , intent(in)    :: i
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
 
-          integer        :: bc_size
           integer(ikind) :: j
-
-
-          !< get the size of the boundary layer
-          bc_size = s%get_bc_size()
 
 
           do j=bc_size+1, ny-bc_size
@@ -496,12 +491,7 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
           integer(ikind)                    , intent(in)    :: j
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
 
-          integer        :: bc_size
           integer(ikind) :: i
-
-
-          !< get the size of the boundary layer
-          bc_size = s%get_bc_size()
 
 
           do i=bc_size+1, nx-bc_size

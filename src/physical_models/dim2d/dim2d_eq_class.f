@@ -43,7 +43,7 @@
      $                                           bubble_ascending,
      $                                           homogeneous_liquid,
      $                                           earth_gravity_choice
-        use parameters_input            , only : nx,ny,ne,
+        use parameters_input            , only : nx,ny,ne,bc_size,
      $                                           ic_choice,
      $                                           gravity_choice
         use parameters_kind             , only : ikind,rkind
@@ -340,11 +340,7 @@
           real(rkind), dimension(nx+1,ny,ne)               :: flux_x
 
           integer(ikind) :: i,j
-          integer        :: bc_size
 
-
-          !<get the size of the boundary layers
-          bc_size = s%get_bc_size()
 
           !<fluxes along the x-axis
           do j=1+bc_size, ny-bc_size
@@ -404,11 +400,6 @@
           real(rkind), dimension(nx,ny+1,ne)               :: flux_y
 
           integer(ikind) :: i,j
-          integer        :: bc_size
-
-
-          !<get the size of the boundary layers
-          bc_size = s%get_bc_size()
 
 
           !<fluxes along the y-axis
@@ -458,11 +449,7 @@
           type(cg_operators)             , intent(in) :: s
           real(rkind),dimension(nx,ny,ne)             :: body_forces
 
-          integer        :: bc_size
           integer(ikind) :: i,j
-
-          !<get the size of the boundary layers
-          bc_size = s%get_bc_size()
 
           do j=1+bc_size, ny-bc_size
              !DEC$ IVDEP

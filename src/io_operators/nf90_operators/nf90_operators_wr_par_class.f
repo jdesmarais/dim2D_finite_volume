@@ -25,7 +25,7 @@
      $                                    nf90_write_header,
      $                                    nf90_def_var_model,
      $                                    nf90_put_var_model
-        use parameters_input     , only : nx,ny,ne,npx,npy
+        use parameters_input     , only : nx,ny,ne,npx,npy,bc_size
         use parameters_kind      , only : rkind
 
         implicit none
@@ -110,7 +110,6 @@
           integer           , optional, intent(in)    :: counter
 
 
-          integer               :: bc_size
           type(mpi_process)     :: mpi_op
           integer, dimension(2) :: cart_coords
           integer               :: ierror
@@ -135,10 +134,6 @@
              print '(''nf90_operators_wr_par: initialize:'')'
              stop ' MPI_CART_COORDS failed'
           end if
-
-
-          !< get the size of the boundary layers
-          bc_size = sd_op%get_bc_size()
 
 
           !< initialize count
@@ -231,14 +226,13 @@
         !>@param time
         !> reduced simulation time
         !--------------------------------------------------------------
-        subroutine write_data(this,f_used,p_model,bc_size,time)
+        subroutine write_data(this,f_used,p_model,time)
 
           implicit none
 
           class(nf90_operators_wr_par), intent(inout) :: this
           class(field_par)            , intent(in)    :: f_used
           type(dim2d_eq)              , intent(in)    :: p_model
-          integer                     , intent(in)    :: bc_size
           real(rkind)                 , intent(in)    :: time
 
           integer                :: ncid
@@ -267,7 +261,7 @@
 
 
           !<define the variables saved in the file
-          call nf90_def_var_model(ncid,p_model,bc_size,coord_id,data_id)
+          call nf90_def_var_model(ncid,p_model,coord_id,data_id)
 
 
           !<put the variables in the file

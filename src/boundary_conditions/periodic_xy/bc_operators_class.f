@@ -18,7 +18,7 @@
         use cg_operators_class, only : cg_operators
         use dim2d_eq_class    , only : dim2d_eq
         use field_class       , only : field
-        use parameters_input  , only : nx,ny,ne
+        use parameters_input  , only : nx,ny,ne,bc_size
         use parameters_kind   , only : rkind,ikind
         
         implicit none
@@ -97,10 +97,9 @@
           type(dim2d_eq)     , intent(in)    :: p_model
 
           
-          integer :: neq,bc_size
+          integer :: neq
 
           neq     = p_model%get_eq_nb()
-          bc_size = s%get_bc_size()
 
           this%period_x = nx-2*bc_size
           this%period_y = ny-2*bc_size
@@ -135,12 +134,9 @@
 
 
           integer(ikind) :: i,j
-          integer        :: bc_size,k
+          integer        :: k
           integer        :: period_x, period_y
 
-          !DEC$ FORCEINLINE
-          bc_size  = s%get_bc_size()
-          
           period_x = nx-2*bc_size 
           period_y = ny-2*bc_size
 
@@ -214,13 +210,11 @@
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
 
-          integer     :: bc_size
           real(rkind) :: node,flux
 
           stop 'periodic_xy: apply_bc_on_fluxes not implemented'
 
           node=f_used%nodes(1,1,1)
-          bc_size=s%get_bc_size()
           flux=flux_x(1,1,1)
           flux=flux_y(1,1,1)
 

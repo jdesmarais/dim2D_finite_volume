@@ -23,15 +23,6 @@
         type(mpi_process) :: mpi_op
 
         real(rkind) :: x_min, x_max, y_min, y_max
-        integer     :: bc_size
-
-        x_min = 0.d0
-        x_max = 11.d0
-        y_min = 0.d0
-        y_max = 13.d0
-
-        bc_size = 2
-
 
         !< initialize the mpi processes
         call mpi_op%ini_mpi()
@@ -42,7 +33,7 @@
         
 
         !< initialize the coordinate table
-        call f_tested%ini_coordinates(x_min,x_max,y_min,y_max,bc_size)
+        call f_tested%ini_coordinates()
 
 
         !< test the data

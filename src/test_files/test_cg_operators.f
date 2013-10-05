@@ -86,8 +86,8 @@
         test_data(7) =  15.833333d0 !<test g
         test_data(8) =  18.0625d0   !<test dgdx
         test_data(9) =  31.333333d0 !<test dgdy
-        test_data(10)= -108.65000d0 !<test d2gdx2
-        test_data(11)= -37.222210d0 !<test d2gdy2
+        test_data(10)= -108.64999d0 !<test d2gdx2
+        test_data(11)= -37.222200d0 !<test d2gdy2
         test_data(12)=  26.666666d0 !<test d2gdxdy
 
 

@@ -18,7 +18,7 @@
         use mpi_mg_bc_class    , only : mpi_mg_bc
         use mpi_process_class  , only : mpi_process
         use parameters_constant, only : periodic_xy_choice,N,S,E,W
-        use parameters_input   , only : nx,ny,ne,npx,npy,bc_choice
+        use parameters_input   , only : nx,ny,ne,npx,npy,bc_choice,bc_size
         use parameters_kind    , only : ikind, rkind
 
         implicit none
@@ -34,7 +34,6 @@
         !< intermediate variables
         integer(ikind)                      :: i,j
         integer                             :: k
-        integer                             :: bc_size
         integer                             :: ierror,sendtag,recvtag
         integer, dimension(MPI_STATUS_SIZE) :: status
         logical                             :: test_validated
@@ -79,8 +78,6 @@
         end select
 
         !< initialize test data for first x exchange
-        bc_size = s_op%get_bc_size()
-
         allocate(test_1x_exchange(bc_size, ny-2*bc_size,ne))
 
         do k=1,ne
@@ -104,8 +101,6 @@
 
 
         !< initialize test data for first y exchange
-        bc_size = s_op%get_bc_size()
-
         allocate(test_1y_exchange(nx,bc_size,ne))
 
         do k=1,ne

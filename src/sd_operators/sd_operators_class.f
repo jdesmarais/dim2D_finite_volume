@@ -106,12 +106,12 @@
         !> @date
         !> 30_07_2012 - initial version - J.L. Desmarais
         !
-        !>@param bc_size
+        !>@param bc_size_op
         !> boundary layer size
         !---------------------------------------------------------------
-        function get_bc_size_proc() result(bc_size)
+        function get_bc_size_proc() result(bc_size_op)
 
-          integer :: bc_size
+          integer :: bc_size_op
 
         end function get_bc_size_proc
 

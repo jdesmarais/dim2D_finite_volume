@@ -23,8 +23,8 @@
      $                                  reflection_xy_choice,
      $                                  wall_xy_choice,
      $                                  wall_x_reflection_y_choice
-        use parameters_input   , only : ntx,nty,nx,ny,npx,npy,bc_choice,
-     $                                  x_min,x_max,y_min,y_max
+        use parameters_input   , only : ntx,nty,nx,ny,npx,npy,bc_size,
+     $                                  bc_choice,x_min,x_max,y_min,y_max
         use parameters_kind    , only : ikind, rkind
 
         implicit none
@@ -180,16 +180,12 @@
         !
         !>@param y_max
         !> coordinate along the y-axis of the NE border
-        !
-        !>@param bc_size
-        !> size of the boundary layer
         !--------------------------------------------------------------
-        subroutine ini_coordinates(this,bc_size)
+        subroutine ini_coordinates(this)
 
           implicit none
 
           class(field_par), intent(inout) :: this
-          integer         , intent(in)    :: bc_size
 
 
           type(mpi_process)     :: mpi_op

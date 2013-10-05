@@ -44,7 +44,7 @@
 
         !< intermediate variables
         integer(ikind)     :: i,j
-        integer            :: k,bc_size
+        integer            :: k
         logical, parameter :: test=.false.
         logical            :: test_validated
 
@@ -56,10 +56,6 @@
            print '(''the test needs (npx,npy,nx,ny)=(2,2,10,10)'')'
            stop 'and bc_choice=reflection_xy_choice'
         end if
-
-
-        !< initialization of intermediate variables
-        bc_size = s_op%get_bc_size()
 
 
         !< initialize the mpi process
@@ -79,7 +75,7 @@
 
 
         !< test only_compute_along_x
-        call only_compute_along_x(nodes,bc_size,p_model)
+        call only_compute_along_x(nodes,p_model)
         if(.not.test) then
            call write_data('test_cx',f_tested%usr_rank,nodes)
         else
@@ -94,7 +90,7 @@
 
 
         !< test only_compute_along_y
-        call only_compute_along_y(nodes,bc_size,p_model)
+        call only_compute_along_y(nodes,p_model)
         if(.not.test) then
            call write_data('test_cy',f_tested%usr_rank,nodes)
         else
@@ -113,12 +109,12 @@
           case(0,1)
              !< test compute_and_exchange_along_x(E)
              call compute_and_exchange_along_x(
-     $            mpi_mg, f_tested, nodes, bc_size, p_model, E)
+     $            mpi_mg, f_tested, nodes, p_model, E)
 
           case(2,3)
              !< test compute_and_exchange_along_x(W)
              call compute_and_exchange_along_x(
-     $            mpi_mg, f_tested, nodes, bc_size, p_model, W)
+     $            mpi_mg, f_tested, nodes, p_model, W)
 
           case default
              call mpi_op%finalize_mpi()
@@ -142,12 +138,12 @@
           case(0,2)
              !< test compute_and_exchange_along_y(N)
              call compute_and_exchange_along_y(
-     $            mpi_mg, f_tested, nodes, bc_size, p_model, N)
+     $            mpi_mg, f_tested, nodes, p_model, N)
 
           case(1,3)
              !< test compute_and_exchange_along_y(S)
              call compute_and_exchange_along_y(
-     $            mpi_mg, f_tested, nodes, bc_size, p_model, S)
+     $            mpi_mg, f_tested, nodes, p_model, S)
 
           case default
              call mpi_op%finalize_mpi()

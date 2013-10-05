@@ -108,21 +108,15 @@
             type(dim2d_eq)                  , intent(in)    :: p_model
             
             
-            integer :: bc_size
-            
-            
-            bc_size = s_op%get_bc_size()
-            
-            
             !compute the boundary layers along the x-direction
             select case(this%proc_x_choice)
             
               case(only_compute_proc)
-                 call only_compute_along_x(nodes,bc_size,p_model)
+                 call only_compute_along_x(nodes,p_model)
             
               case(compute_and_exchange_proc)
                  call compute_and_exchange_along_x(
-     $                this,f_used,nodes,bc_size,p_model,
+     $                this,f_used,nodes,p_model,
      $                this%exchange_id(x_direction))
             
               case(only_exchange_proc)
@@ -135,11 +129,11 @@
             select case(this%proc_y_choice)
             
               case(only_compute_proc)
-                 call only_compute_along_y(nodes,bc_size,p_model)
+                 call only_compute_along_y(nodes,p_model)
             
               case(compute_and_exchange_proc)
                  call compute_and_exchange_along_y(
-     $                this,f_used,nodes,bc_size,p_model,
+     $                this,f_used,nodes,p_model,
      $                this%exchange_id(y_direction))
             
               case(only_exchange_proc)

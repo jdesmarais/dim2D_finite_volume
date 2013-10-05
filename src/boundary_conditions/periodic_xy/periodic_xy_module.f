@@ -16,7 +16,7 @@
 
         use cg_operators_class, only : cg_operators
         use field_class       , only : field
-        use parameters_input  , only : nx,ny,ne
+        use parameters_input  , only : nx,ny,ne,bc_size
         use parameters_kind   , only : ikind, rkind
 
         implicit none
@@ -54,10 +54,9 @@
 
 
           integer(ikind) :: i,j
-          integer        :: bc_size,k,period_x,period_y
+          integer        :: k,period_x,period_y
 
 
-          bc_size  = s%get_bc_size()
           period_x = nx-2*bc_size
           period_y = ny-2*bc_size
 

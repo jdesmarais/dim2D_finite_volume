@@ -16,7 +16,7 @@
       
         use field_class        , only : field
         use parameters_constant, only : scalar
-        use parameters_input   , only : nx,ny,ne
+        use parameters_input   , only : nx,ny,ne,bc_size
         use parameters_kind    , only : ikind, rkind
         use phy_model_eq_class , only : phy_model_eq
         use cg_operators_class , only : cg_operators
@@ -272,11 +272,6 @@
           real(rkind), dimension(nx+1,ny,ne)             :: flux_x
 
           integer :: i,j
-          integer :: bc_size
-
-
-          !<get the size of the boundary layers
-          bc_size = s%get_bc_size()
 
 
           !<fluxes along the x-axis
@@ -321,11 +316,6 @@
           real(rkind), dimension(nx,ny+1,ne)             :: flux_y
 
           integer :: i,j
-          integer :: bc_size
-
-
-          !<get the size of the boundary layers
-          bc_size = s%get_bc_size()
 
 
           !<fluxes along the x-axis
@@ -361,11 +351,8 @@
           type(cg_operators)             , intent(in) :: s
           real(rkind),dimension(nx,ny,ne)             :: body_forces
 
-          integer        :: bc_size
           integer(ikind) :: i,j
 
-          !<get the size of the boundary layers
-          bc_size = s%get_bc_size()
 
           do j=1+bc_size, ny-bc_size
              !DEC$ IVDEP

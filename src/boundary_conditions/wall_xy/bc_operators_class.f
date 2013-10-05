@@ -18,7 +18,7 @@
         use cg_operators_class, only : cg_operators
         use dim2d_eq_class    , only : dim2d_eq
         use field_class       , only : field
-        use parameters_input  , only : nx,ny,ne
+        use parameters_input  , only : nx,ny,ne,bc_size
         use parameters_kind   , only : rkind,ikind
         use wall_xy_module    , only : wall_prefactor,
      $                                 compute_wall_flux_x,
@@ -99,10 +99,6 @@
           type(dim2d_eq)     , intent(in)    :: p_model
 
           
-          integer :: bc_size
-
-          bc_size = s%get_bc_size()
-
           this%prefactor = wall_prefactor(p_model)
 
         end subroutine initialize
@@ -135,11 +131,7 @@
 
 
           integer(ikind) :: i,j
-          integer        :: bc_size,k
-
-
-          !< compute the size of the boundary layer
-          bc_size = s%get_bc_size()
+          integer        :: k
 
 
           !< compute the reflection b.c. in E and W boundary layers
@@ -211,12 +203,8 @@
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
 
-          integer        :: k, bc_size
+          integer        :: k
           integer(ikind), dimension(2) :: id
-
-
-          !< get the size of the boundary layer
-          bc_size = s%get_bc_size()
 
           !< provide the x-indices modified
           id(1)=bc_size+1

@@ -18,7 +18,7 @@
         use netcdf
         use parameters_constant, only : prog_version
         use parameters_kind    , only : rkind, ikind
-        use parameters_input   , only : npx,npy,nx,ny,ne,
+        use parameters_input   , only : npx,npy,nx,ny,ne,bc_size,
      $                                  x_min,x_max,y_min,y_max,
      $                                  t_max,dt,detail_print
         use dim2d_eq_class     , only : dim2d_eq
@@ -224,7 +224,6 @@
         subroutine nf90_def_var_model(
      $     ncid,
      $     p_model,
-     $     bc_size,
      $     coordinates_id,
      $     data_id)
 
@@ -232,7 +231,6 @@
 
           integer               , intent(in)    :: ncid
           type(dim2d_eq)        , intent(in)    :: p_model
-          integer               , intent(in)    :: bc_size
           integer, dimension(3) , intent(inout) :: coordinates_id
           integer, dimension(ne), intent(inout) :: data_id
 

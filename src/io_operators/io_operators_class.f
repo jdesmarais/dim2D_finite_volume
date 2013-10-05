@@ -15,7 +15,7 @@
       module io_operators_class
 
         use field_class       , only : field
-        use parameters_input  , only : io_choice
+        use parameters_input  , only : io_choice,bc_size
         use parameters_kind   , only : rkind
         use phy_model_eq_class, only : phy_model_eq
 
@@ -64,13 +64,12 @@
         !>@param t
         !> reduced simulation time
         !--------------------------------------------------------------
-        subroutine write_data(field_used, p_model,bc_size,t)
+        subroutine write_data(field_used, p_model,t)
 
           implicit none
 
           class(field)       , intent(in) :: field_used
           class(phy_model_eq), intent(in) :: p_model
-          integer            , intent(in) :: bc_size
           real(rkind)        , intent(in) :: t
 
           type(nf90_operators_wr) :: nf90_writer
@@ -79,7 +78,7 @@
           !<select the i/o strategy
           select case(io_choice)
             case(netcdf_choice)
-               call nf90_writer%write_data(field_used,p_model,bc_size)
+               call nf90_writer%write_data(field_used,p_model)
 
             case default
                print '(''io_operators: write_data'')'
