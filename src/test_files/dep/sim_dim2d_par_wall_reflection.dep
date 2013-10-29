@@ -11,6 +11,7 @@ sim_dim2d_par:			surrogate_class.o\
 				dim2d_vortex_module.o\
 				dim2d_state_eq_module.o\
 				dim2d_bubble_ascending_module.o\
+				dim2d_drop_collision_module.o\
 				dim2d_drop_retraction_module.o\
 				dim2d_prim_module.o\
 				dim2d_fluxes_module.o\

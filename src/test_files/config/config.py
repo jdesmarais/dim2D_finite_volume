@@ -126,7 +126,8 @@ def compute_code_inputs(inputFileName):
     ic_code      = ['steady_state',
                     'drop_retraction',
                     'bubble_ascending',
-                    'homogeneous_liquid']
+                    'homogeneous_liquid',
+                    'drop_collision']
 
     bc_code      = ['periodic_xy_choice',
                     'reflection_xy_choice',

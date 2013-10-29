@@ -2,16 +2,15 @@
 !---------------------------------------------------------
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !---------------------------------------------------------
-detail_print = 0.0
-
+detail_print = 0.025
 
 !2.	Simulation duration
 !---------------------------------------------------------
 !t_steps : integer : set number of steps in time
 !t_max   : real    : set simulation maximum time
 !---------------------------------------------------------
-dt    = 0.00005
-t_max = 0.015
+dt    = 0.0025
+t_max = 10.0
 
 
 !3.	Space discretisation
@@ -28,15 +27,15 @@ t_max = 0.015
 !npy     : integer : number of tiles in the y-direction
 !---------------------------------------------------------
 dx = 0.01
-x_min = -4
-x_max = 4
+x_min = -3.0
+x_max = 0.0
 
 dy = 0.01
-y_min = -4
-y_max = 4
+y_min = 0
+y_max = 3.0
 
-npx = 1
-npy = 1
+npx = 4
+npy = 4
 
 
 !4.     Boundary conditions
@@ -58,8 +57,9 @@ bc_choice = 1
 ! 1 : drop retractation
 ! 2 : bubble ascending
 ! 3 : homogeneous liquid
+! 4 : drop heads-on collision
 !---------------------------------------------------------
-ic_choice = 1
+ic_choice = 4
 
 
 !6.     DIM equations

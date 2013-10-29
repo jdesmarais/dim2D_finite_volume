@@ -1,28 +1,28 @@
-#------------------------------------------------------------------------
+#-----------------------------------------------------------------------
 #cluster
-#------------------------------------------------------------------------
+#-----------------------------------------------------------------------
 cluster = $(LERNAEANHYDRA_CLUSTER)
 
 
-#------------------------------------------------------------------------
+#-----------------------------------------------------------------------
 #user main options for profiling, optimizing ...
-#------------------------------------------------------------------------
-profile       = $(LERNAEANHYDRA_PROFILE)        #ddt/totalview debugging
-analyse       = $(LERNAEANHYDRA_ANALYSE)        #gprof
-trace         = $(LERNAEANHYDRA_TRACE)          #vampir tracing
-report        = $(LERNAEANHYDRA_OPTREPORT)      #optimization report
-profileGuided = $(LERNAEANHYDRA_PROFILE_GUIDED) #profile guided
-scalasca      = false				#scalasca instrumentation
+#-----------------------------------------------------------------------
+profile       = $(LERNAEANHYDRA_PROFILE)       #ddt/totalview debugging
+analyse       = $(LERNAEANHYDRA_ANALYSE)       #gprof
+trace         = $(LERNAEANHYDRA_TRACE)         #vampir tracing
+report        = $(LERNAEANHYDRA_OPTREPORT)     #optimization report
+profileGuided = $(LERNAEANHYDRA_PROFILE_GUIDED)#profile guided
+scalasca      = false			       #scalasca instrumentation
 
 
-#------------------------------------------------------------------------
+#-----------------------------------------------------------------------
 #user main options
 #-----------------------------------------------------------------------
 src_dir	   = $(lernaeanhydra)/src
 config_dir = $(src_dir)/test_files/config
 dep_dir	   = $(src_dir)/test_files/dep
-pm_choice = simpletest_choice
-bc_choice = periodic_xy_choice
+pm_choice  = simpletest_choice
+bc_choice = reflection_xy_choice
 
 ifeq ($(strip $(pm_choice)), simpletest_choice)
 	spm_dir=$(simpletest_dir)
@@ -51,17 +51,17 @@ ifeq ($(strip $(bc_choice)), wall_x_reflection_y_choice)
 	sim_dim2d_dep=$(dep_dir)/sim_dim2d_wall_reflection.dep
 	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_wall_reflection.dep
 endif
-#------------------------------------------------------------------------
+#-----------------------------------------------------------------------
 #source files directories
-#------------------------------------------------------------------------
+#-----------------------------------------------------------------------
 #define the folder paths for the source code compilation
 #------------------------------------------------------------------------
 include $(config_dir)/makefile_folders
 
 
-#------------------------------------------------------------------------
+#-----------------------------------------------------------------------
 #compiler and options
-#------------------------------------------------------------------------
+#-----------------------------------------------------------------------
 PREP=
 FC=$(LERNAEANHYDRA_COMPILER)
 FFLAGS	= 
@@ -105,11 +105,12 @@ LDFLAGS_PROFILE_GFORTRAN= -g  -ffixed-line-length-132 -Wall -Wextra -pedantic -f
 LDFLAGS_ANALYSE_GFORTRAN= -pg -ffixed-line-length-132 -Wall -Wextra -pedantic -fbacktrace #analyse options
 
 
-#path for the mpi, hdf5, netcdf libraries depending on the cluster used----------------------
+#path for the mpi, hdf5, netcdf libraries depending on the cluster used-
 include $(config_dir)/bolt_libraries
 include $(config_dir)/cartesius_libraries
 
-#options handeling depending on the user main options: debug, trace, analyse--
+#options handeling depending on the user main options: debug, trace,
+#analyse--
 #scalasca instrumentation
 ifeq ($(strip $(scalasca)),true)
 	PREP=skin
@@ -413,6 +414,7 @@ $(dim2d_dir)/dim2d_eq_class.o:\
 			$(sd_dir)/cg_operators_class.o\
 			$(dim2d_dir)/dim2d_parameters.o\
 			$(dim2d_ic)/dim2d_bubble_ascending_module.o\
+			$(dim2d_ic)/dim2d_drop_collision_module.o\
 			$(dim2d_ic)/dim2d_drop_retraction_module.o\
 			$(dim2d_dir)/dim2d_fluxes_module.o\
 			$(dim2d_ic)/dim2d_homogeneous_module.o\
@@ -441,6 +443,15 @@ $(dim2d_ic)/dim2d_vortex_module.o:\
 			$(param_dir)/parameters_kind.o
 
 $(dim2d_ic)/dim2d_bubble_ascending_module.o:\
+			$(dim2d_ic)/dim2d_dropbubble_module.o\
+			$(dim2d_ic)/dim2d_vortex_module.o\
+			$(dim2d_dir)/dim2d_state_eq_module.o\
+			$(field_dir)/field_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+$(dim2d_ic)/dim2d_drop_collision_module.o:\
 			$(dim2d_ic)/dim2d_dropbubble_module.o\
 			$(dim2d_ic)/dim2d_vortex_module.o\
 			$(dim2d_dir)/dim2d_state_eq_module.o\

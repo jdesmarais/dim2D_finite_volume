@@ -24,6 +24,8 @@
         use cg_operators_class          , only : cg_operators
         use dim2d_parameters            , only : gravity
         use dim2d_bubble_ascending_module,only :apply_bubble_ascending_ic
+        use dim2d_drop_collision_module , only : apply_drop_collision_ic 
+        !use dim2d_drop_evaporation_module, only:apply_drop_evaporation_ic
         use dim2d_drop_retraction_module, only : apply_drop_retraction_ic
         use dim2d_fluxes_module         , only : flux_x_mass_density,
      $                                           flux_y_mass_density,
@@ -39,6 +41,7 @@
         use parameters_constant         , only : scalar,
      $                                           vector_x, vector_y,
      $                                           steady_state,
+     $                                           drop_collision,
      $                                           drop_retraction,
      $                                           bubble_ascending,
      $                                           homogeneous_liquid,
@@ -89,7 +92,7 @@
         !> (viscosity ratio, Reynolds, Prandtl, Weber numbers and
         !> reduced heat capacity)
         !>
-        !> @param apply_initial_conditions
+        !> @param apply_ic
         !> initialize the main variables of the governing equations
         !> considering the user choices (drop retraction, two drops
         !> collision...)
@@ -285,8 +288,6 @@
           class(field), intent(inout) :: field_used
 
 
-          !<read the input file to know the user choice
-
           !<initialize the field depending on the user choice
           select case(ic_choice)
             case(steady_state)
@@ -297,6 +298,10 @@
                call apply_bubble_ascending_ic(field_used)
             case(homogeneous_liquid)
                call apply_homogeneous_ic(field_used)
+            case(drop_collision)
+               call apply_drop_collision_ic(field_used)
+c$$$            case(drop_evaporation)
+c$$$               call apply_drop_evaporation_ic(field_used)
             case default
                print '(''dim2d_eq_class'')'
                stop 'ic_choice not recognized'

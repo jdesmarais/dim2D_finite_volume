@@ -70,7 +70,7 @@
 
         !< check the size of boundary layers
         !>------------------------------------------------------
-        if(bc_size.ne.s%get_bc_size()) then
+        if(bc_size.ne.sd%get_bc_size()) then
            stop 'bc_size is not correct : check the spatial op'
         end if
 

@@ -31,6 +31,7 @@
         integer, parameter :: drop_retraction=1
         integer, parameter :: bubble_ascending=2
         integer, parameter :: homogeneous_liquid=3
+        integer, parameter :: drop_collision=4
 
         !>boundary conditions choice
         integer, parameter :: periodic_xy_choice=0
