@@ -135,9 +135,9 @@
         !> field for drop collision
         !> \f{eqnarray*}{
         !> u_x     &=& - \sin \left( \frac{ 2\pi(x+y)}{T} \right)
-        !>             - \sin \left( \frac{ 2\pi(x-y)}{T} \right)
+        !>             - \sin \left( \frac{ 2\pi(x-y)}{T} \right) \\\
         !> u_y     &=&   \sin \left( \frac{ 2\pi(x+y)}{T} \right)
-        !>             - \sin \left( \frac{ 2\pi(x-y)}{T} \right)
+        !>             - \sin \left( \frac{ 2\pi(x-y)}{T} \right) \\\
         !> \f}
         !
         !> @date

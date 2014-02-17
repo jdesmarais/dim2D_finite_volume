@@ -14,6 +14,8 @@ def display_help():
     print ''
     print 'configure the lernaeanhydra_opt4 code with the input'
     print './config -i <input_file>'
+    print 'configure the lernaeanhydra_opt4 code and compile'
+    print './config -i <input_file> -c'
     print ''
 
 
@@ -127,7 +129,8 @@ def compute_code_inputs(inputFileName):
                     'drop_retraction',
                     'bubble_ascending',
                     'homogeneous_liquid',
-                    'drop_collision']
+                    'drop_collision',
+                    'phase_separation']
 
     bc_code      = ['periodic_xy_choice',
                     'reflection_xy_choice',

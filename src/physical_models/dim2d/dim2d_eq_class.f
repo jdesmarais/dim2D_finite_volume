@@ -25,6 +25,7 @@
         use dim2d_parameters            , only : gravity
         use dim2d_bubble_ascending_module,only :apply_bubble_ascending_ic
         use dim2d_drop_collision_module , only : apply_drop_collision_ic 
+        use dim2d_phase_separation_module, only : apply_phase_separation_ic
         !use dim2d_drop_evaporation_module, only:apply_drop_evaporation_ic
         use dim2d_drop_retraction_module, only : apply_drop_retraction_ic
         use dim2d_fluxes_module         , only : flux_x_mass_density,
@@ -41,10 +42,11 @@
         use parameters_constant         , only : scalar,
      $                                           vector_x, vector_y,
      $                                           steady_state,
-     $                                           drop_collision,
      $                                           drop_retraction,
      $                                           bubble_ascending,
      $                                           homogeneous_liquid,
+     $                                           drop_collision,
+     $                                           phase_separation,
      $                                           earth_gravity_choice
         use parameters_input            , only : nx,ny,ne,bc_size,
      $                                           ic_choice,
@@ -290,16 +292,25 @@
 
           !<initialize the field depending on the user choice
           select case(ic_choice)
+
             case(steady_state)
                call apply_steady_state_ic(field_used)
+
             case(drop_retraction)
                call apply_drop_retraction_ic(field_used)
+
             case(bubble_ascending)
                call apply_bubble_ascending_ic(field_used)
+
             case(homogeneous_liquid)
                call apply_homogeneous_ic(field_used)
+
             case(drop_collision)
                call apply_drop_collision_ic(field_used)
+
+            case(phase_separation)
+               call apply_phase_separation_ic(field_used)
+
 c$$$            case(drop_evaporation)
 c$$$               call apply_drop_evaporation_ic(field_used)
             case default
