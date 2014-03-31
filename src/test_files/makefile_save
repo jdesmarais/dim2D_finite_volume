@@ -1,0 +1,282 @@
+#-----------------------------------------------------------------------
+#cluster
+#-----------------------------------------------------------------------
+cluster = $(LERNAEANHYDRA_CLUSTER)
+
+
+#-----------------------------------------------------------------------
+#user main options for profiling, optimizing ...
+#-----------------------------------------------------------------------
+profile       = $(LERNAEANHYDRA_PROFILE)       #ddt/totalview debugging
+analyse       = $(LERNAEANHYDRA_ANALYSE)       #gprof
+trace         = $(LERNAEANHYDRA_TRACE)         #vampir tracing
+report        = $(LERNAEANHYDRA_OPTREPORT)     #optimization report
+profileGuided = $(LERNAEANHYDRA_PROFILE_GUIDED)#profile guided
+scalasca      = false			       #scalasca instrumentation
+
+#-----------------------------------------------------------------------
+#user main options
+#-----------------------------------------------------------------------
+
+#-----------------------------------------------------------------------
+#compiler and options
+#-----------------------------------------------------------------------
+PREP=
+FC=$(LERNAEANHYDRA_COMPILER)
+FFLAGS	= 
+LDFLAGS =
+INCLUDE =
+LIBS	=
+
+#ifort compiler options------------------------------------------------
+#FFLAGS_OP_IFORT		 = -O2 -p -g -ipo-c -132 -inline-factor=300 -warn all
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
+FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -inline-factor=500
+#FFLAGS_OP_IFORT		 = -O2 -132 -ipo-c #-D	ALIGNED #-inline-factor=400
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -guide -inline-factor=400
+#FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400
+
+FFLAGS_PROFILE_IFORT	 = -O0 -g -132 -warn all -check all -r8 -traceback	#profiling options 
+FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
+
+#LDFLAGS_OP_IFORT     	 = -O2 -p -g -ipo -132 -inline-factor=300 -warn all
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_inl -inline-factor=500 #-warn all -check all #GOOD options
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=ipo_align -inline-factor=500 #check if the data are aligned
+LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -inline-factor=500 -warn noalignment #check if there are data that are unaligned
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -inline-factor=300 #-warn all -check all #GOOD options
+#LDFLAGS_OP_IFORT     	 = -O2 -132 -ipo #-DALIGNED #-inline-factor=400 #-warn all -check all #GOOD options
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -vec-report3 -guide -inline-factor=400 #-warn all -check all #GOOD options
+#LDFLAGS_OP_IFORT     	 = -O2 -ipo -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400 #-warn all -check all #GOOD options
+LDFLAGS_PROFILE_IFORT	 = -O0 -g -i-dynamic -132 -r8			#profiling options
+LDFLAGS_OPT_REPORT_IFORT = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
+
+
+#gfortran compiler options---------------------------------------------
+FFLAGS_OP_GFORTRAN     	= -O3 -ffixed-line-length-132 -Wall -Wextra -pedantic -fbacktrace #optimized options
+FFLAGS_PROFILE_GFORTRAN	= -g  -ffixed-line-length-132 -Wall -Wextra -pedantic -fbacktrace #profiling options
+FFLAGS_ANALYSE_GFORTRAN	= -pg -ffixed-line-length-132 -Wall -Wextra -pedantic -fbacktrace #analyse options
+
+
+LDFLAGS_OP_GFORTRAN	= -O3 -ffixed-line-length-132 -Wall -Wextra -pedantic -fbacktrace #optimized options
+LDFLAGS_PROFILE_GFORTRAN= -g  -ffixed-line-length-132 -Wall -Wextra -pedantic -fbacktrace #profiling options
+LDFLAGS_ANALYSE_GFORTRAN= -pg -ffixed-line-length-132 -Wall -Wextra -pedantic -fbacktrace #analyse options
+
+
+#path for the mpi, hdf5, netcdf libraries depending on the cluster used-
+include $(config_dir)/bolt_libraries
+include $(config_dir)/cartesius_libraries
+
+#options handeling depending on the user main options: debug, trace,
+#analyse--
+#scalasca instrumentation
+ifeq ($(strip $(scalasca)),true)
+	PREP=skin
+endif
+
+
+#IFORT options
+ifeq ($(FC),ifort)
+#PROFILE
+ifeq ($(strip $(profile)),true)
+	FFLAGS +=$(FFLAGS_PROFILE_IFORT)
+	LDFLAGS+=$(LDFLAGS_PROFILE_IFORT)
+else	
+
+#ANALYSE
+ifeq ($(strip $(analyse)),true)
+	FFLAGS +=$(FFLAGS_ANALYSE_IFORT)
+	LDFLAGS+=$(LDFLAGS_ANALYSE_IFORT)
+else
+
+#OPTIMIZED
+	FFLAGS +=$(FFLAGS_OP_IFORT)
+	LDFLAGS+=$(LDFLAGS_OP_IFORT)
+
+#OPTIMIZATION REPORT
+ifeq ($(strip $(report)),true)
+	FFLAGS+=-opt-report3
+	FFLAGS+=-opt-report-phase hpo_vectorization
+	FFLAGS+=-opt-report-file intel_report.txt 
+endif
+
+
+endif
+endif
+INCLUDE +=$(INCLUDE_IFORT)
+LIBS	+=$(LIBS_IFORT)
+endif
+
+#GFORTRAN options
+ifeq ($(FC),gfortran)
+
+#PROFILE
+ifeq ($(strip $(profile)),true)
+	FFLAGS +=$(FFLAGS_PROFILE_GFORTRAN)
+	LDFLAGS+=$(LDFLAGS_PROFILE_GFORTRAN)
+else	
+
+#ANALYSE
+ifeq ($(strip $(analyse)),true)
+	FFLAGS +=$(FFLAGS_ANALYSE_GFORTRAN)
+	LDFLAGS+=$(LDFLAGS_ANALYSE_GFORTRAN)
+else
+
+#OPTIMIZED
+	FFLAGS +=$(FFLAGS_OP_GFORTRAN)
+	LDFLAGS+=$(LDFLAGS_OP_GFORTRAN)
+
+endif
+endif
+
+INCLUDE +=$(INCLUDE_GFORTRAN)
+LIBS	+=$(LIBS_GFORTRAN)
+endif
+
+#mpiifort options
+ifeq ($(FC),mpiifort)
+
+#PROFILE
+ifeq ($(strip $(profile)),true)
+	FFLAGS +=$(FFLAGS_PROFILE_IFORT)
+	LDFLAGS+=$(LDFLAGS_PROFILE_IFORT)
+else	
+
+#ANALYSE
+ifeq ($(strip $(analyse)),true)
+	FFLAGS +=$(FFLAGS_ANALYSE_IFORT)
+	LDFLAGS+=$(LDFLAGS_ANALYSE_IFORT)
+else
+
+#OPTIMIZED
+	FFLAGS +=$(FFLAGS_OP_IFORT)
+	LDFLAGS+=$(LDFLAGS_OP_IFORT)
+
+#OPTIMIZATION REPORT
+ifeq ($(strip $(report)),true)
+	FFLAGS+=$(FFLAGS_OPT_REPORT_IFORT)
+	LDFLAGS+=$(LDFLAGS_OPT_REPORT_IFORT)
+endif
+
+endif
+endif
+
+INCLUDE +=$(INCLUDE_IFORT)
+LIBS	+=$(LIBS_IFORT)
+endif
+
+
+#mpif90 options
+ifeq ($(FC),mpif90)
+
+#PROFILE
+ifeq ($(strip $(profile)),true)
+	FFLAGS +=$(FFLAGS_PROFILE_GFORTRAN)
+	LDFLAGS+=$(LDFLAGS_PROFILE_GFORTRAN)
+else	
+
+#ANALYSE
+ifeq ($(strip $(analyse)),true)
+	FFLAGS +=$(FFLAGS_ANALYSE_GFORTRAN)
+	LDFLAGS+=$(LDFLAGS_ANALYSE_GFORTRAN)
+else
+
+#OPTIMIZED
+	FFLAGS +=$(FFLAGS_OP_GFORTRAN)
+	LDFLAGS+=$(LDFLAGS_OP_GFORTRAN)
+
+endif
+endif
+
+INCLUDE +=$(INCLUDE_GFORTRAN)
+INCLUDE +=$(INCLUDE_GCC_PAR)
+LIBS	+=$(LIBS_GFORTRAN)
+LIBS	+=$(LIBS_GCC_PAR)
+endif
+
+#source files directories
+#------------------------------------------------------------------------------------------------------------------------
+src_dir          	= $(erymanthianboar)/src
+#/home/jdesmarais/hydra
+
+
+#main folders
+param_dir		= $(src_dir)/parameters
+bf_layer_dir		= $(src_dir)/buffer_layer
+test_dir                = $(src_dir)/test_files
+
+
+#------------------------------------------------------------------------------------------------------------------------
+#source code files
+#------------------------------------------------------------------------------------------------------------------------
+SRC	= $(wildcard *.f)					#fortran source files
+
+SRCS	= $(SRC)						#fortran files which do not have a main function
+
+OBJS	= $(SRC:.f=.o)						#objects created by the compilation     (.o and .mod)
+CMD	= $(SRCS:.f=)						#executables created by the compilation (.exe)
+
+#------------------------------------------------------------------------------------------------------------------------
+#general rules
+#------------------------------------------------------------------------------------------------------------------------
+doc:
+	./config/generate_doc.sh
+	@(echo 'documentation generated')
+	@(echo 'opening documentation...')
+	@(firefox ./doc/html/files.html &)
+
+test:
+	@(echo $(src_dir))
+	@(echo $(FC))
+	@(echo $(FFLAGS))
+	@(echo $(LDFLAGS))
+
+#@(echo $<)
+%.o:	%.f
+	@(basename $@)
+	@($(FC) $(FFLAGS) -c $< $(INCLUDE))
+
+%:	%.o
+	@(basename $@)						#executable generation
+	@($(FC) $(LDFLAGS) -o $@ $^ $(INCLUDE))
+#ifeq ($(openmp),true)
+#	@(mv $@ $(subst .exe,_openmp.exe,$@))
+#	@(echo 'openmp executable created')
+#else
+#	@(mv $@ $(subst .exe,_mono.exe,$@))
+#	@(echo 'serial executable created')
+#endif
+
+all:	$(CMD)							#main commmand
+
+clean:	
+	rm -f *.o *.mod core					#cleaning
+
+cleanall:
+	rm -f $(subst .exe,_mono.exe,$(CMD))\
+	$(CMD) *.o *.mod core         				#complete cleaning
+
+#------------------------------------------------------------------------------------------------------------------------
+#dependencies
+#------------------------------------------------------------------------------------------------------------------------
+
+$(param_dir)/parameters_constant.o:
+
+$(param_dir)/parameters_kind.o:
+
+$(param_dir)/parameters_input.o:		$(param_dir)/parameters_kind.o
+
+$(bf_layer_dir)/bf_layer_abstract_class.o:	$(bf_layer_dir)/parameters_bf_layer.o\
+						$(param_dir)/parameters_input.o\
+						$(param_dir)/parameters_kind.o
+
+test_bf_layer_abstract_prog.o:			$(param_dir)/parameters_constant.o\
+						$(param_dir)/parameters_kind.o\
+						$(bf_layer_dir)/bf_layer_abstract_class.o
+
+test_bf_layer_abstract_prog:			parameters_kind.o\
+						parameters_bf_layer.o\
+						parameters_constant.o\
+						bf_layer_abstract_class.o
+#----------------------------------
