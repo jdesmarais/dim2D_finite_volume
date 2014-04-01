@@ -64,47 +64,49 @@ def extract_interior_data(folder_path):
     f.close()
 
     #reorganize the nodes data
-    size_x = sizes[1]
-    size_y = sizes[0]
+    size_x = sizes[0]
+    size_y = sizes[1]
     size_ne = sizes[2]
 
-    nodes.resize(size_ne,size_x,size_y)
+    nodes.resize(size_ne,size_y,size_x)
     nodes = nodes[::,::,::]
 
     #return the interior point data
     return [sizes, nodes]
 
 
-def extract_bf_data(folder_path,bf_layer_location):
+def extract_bf_data(folder_path,suffix_files,bf_layer_location):
+
 
     #load buffer layer sizes file
-    sizes_filename = folder_path+'/'+bf_layer_location+'_sizes.dat'
+    sizes_filename = folder_path+'/'+bf_layer_location+suffix_files['sizes']
     f = FortranFile(sizes_filename)
     sizes = f.readInts()
     f.close()
 
     #load buffer layer nodes file
-    nodes_filename = folder_path+'/'+bf_layer_location+'_nodes.dat'
+    nodes_filename = folder_path+'/'+bf_layer_location+suffix_files['nodes']
     f = FortranFile(nodes_filename)
     nodes    = f.readReals('d')
     f.close()
 
     #load buffer layer gridpt id file
-    grdpt_id_filename = folder_path+'/'+bf_layer_location+'_grdpt_id.dat'
+    grdpt_id_filename = folder_path+'/'+bf_layer_location+suffix_files['grdptid']
     f = FortranFile(grdpt_id_filename)
     grdpt_id = f.readInts()
     f.close()
 
     #reorganize the gridpt id data
-    size_x  = sizes[1]
-    size_y  = sizes[0]
+    size_x  = sizes[0]
+    size_y  = sizes[1]
     size_ne = sizes[2]
 
-    nodes.resize(size_ne,size_x,size_y)
+    nodes.resize(size_ne,size_y,size_x)
     nodes = nodes[::,::,::]
     
-    grdpt_id.resize(size_x,size_y)
+    grdpt_id.resize(size_y,size_x)
     grdpt_id = grdpt_id[::,::]
+
 
     #return the buffer layer data
     return [sizes, nodes, grdpt_id]
@@ -265,7 +267,8 @@ def create_matrix_with_all_bf_layers(data,data_type):
     if(plot_buffer['N']):
         bf_layer_size_x = data['N'][0][0]
         bf_layer_size_y = data['N'][0][1]
-        i_match = interspace + bf_tmp_size_x + interspace + data['E'][0][3] - 2*bc_size +1
+
+        i_match = interspace + bf_tmp_size_x + interspace + data['N'][0][3] - bc_size -1
         j_match = interspace + bf_tmp_size_y + interspace + nodes_size_y + interspace
         if(data_type==nodes_type):    
             lm[j_match:j_match+bf_layer_size_y,
@@ -310,16 +313,15 @@ def plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes, lm_grdptid):
 
     #plot the gridpoint ID
     ax = fig.add_subplot(1,2,1)
-    res = ax.imshow(lm_grdptid, cmap=cm.spectral, interpolation='nearest', vmin=0, vmax=2)
+    res = ax.imshow(lm_grdptid, cmap=cm.spectral, interpolation='nearest', vmin=-1, vmax=2)
     fig.colorbar(res)
     
     #plot the nodes
     ax = fig.add_subplot(1,2,2)
-    res = ax.imshow(lm_nodes, cmap=cm.spectral, interpolation='nearest', vmin=0, vmax=1.0)
+    res = ax.imshow(lm_nodes, cmap=cm.spectral, interpolation='nearest', vmin=0.0, vmax=1.0)
     fig.colorbar(res)    
-    
-    #show
-    plt.show()
+
+    return fig,ax
     
 if __name__ == "__main__":
     
@@ -328,8 +330,11 @@ if __name__ == "__main__":
     [folder_path] = manage_options()
 
 
+    #test the allocation procedure
+    #=================================================================
+    
     #extract data for the interior points and the buffer layers
-    #------------------------------------------------------------------------
+    #-----------------------------------------------------------------
     #data container
     data = {}
 
@@ -338,23 +343,70 @@ if __name__ == "__main__":
 
     #extract the data of the buffer layers
     bf_layer_loc_table = ['N','S','E','W','NE','NW','SE','SW']
+    
+    suffix_files={}
+    suffix_files['sizes']  ='_sizes.dat'
+    suffix_files['nodes']  ='_nodes.dat'
+    suffix_files['grdptid']='_grdpt_id.dat'
+
     for bf_layer_loc in bf_layer_loc_table:
-        data[bf_layer_loc] = extract_bf_data(folder_path,bf_layer_loc)
+        data[bf_layer_loc] = extract_bf_data(folder_path,
+                                             suffix_files,
+                                             bf_layer_loc)
 
-    #create the large matrix containing all the data for the gridpoint id
-    lm_grdptid = create_matrix_with_all_bf_layers(data,grdptid_type)
+    #create the large matrix containing the data for the gridpoint id
+    lm_grdptid = create_matrix_with_all_bf_layers(data,
+                                                  grdptid_type)
 
-    #create the large matrix containing all the data for the nodes
-    lm_nodes = create_matrix_with_all_bf_layers(data,nodes_type)
-
+    #create the large matrix containing the data for the nodes
+    lm_nodes = create_matrix_with_all_bf_layers(data,
+                                                nodes_type)
     
     #display
-    #------------------------------------------------------------------------
-    plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes, lm_grdptid)
+    #-----------------------------------------------------------------
+    fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
+                                                        lm_grdptid)
+    fig.canvas.set_window_title("Allocation test")
 
-    #fig, ax = plot_matrix_with_all_buffer_layers(lm_grdptid)
-    #fig.suptitle('gridpoint ID')
-    #
-    #fig, ax = plot_matrix_with_all_buffer_layers(lm_nodes)
-    #fig.suptitle('nodes')
+
+    #test the reallocation procedure
+    #=================================================================
+    
+    #extract data for the interior points and the buffer layers
+    #-----------------------------------------------------------------
+    #data container
+    data = {}
+
+    #extract the data for the interior points
+    data['interior'] = extract_interior_data(folder_path)
+
+    #extract the data of the buffer layers
+    bf_layer_loc_table = ['N','S','E','W','NE','NW','SE','SW']
+    suffix_files={}
+    suffix_files['sizes']  ='_sizes2.dat'
+    suffix_files['nodes']  ='_nodes2.dat'
+    suffix_files['grdptid']='_grdpt_id2.dat' 
+
+    for bf_layer_loc in bf_layer_loc_table:
+        data[bf_layer_loc] = extract_bf_data(folder_path,
+                                             suffix_files,
+                                             bf_layer_loc)
+
+    #create the large matrix containing the data for the gridpoint id
+    lm_grdptid = create_matrix_with_all_bf_layers(data,
+                                                  grdptid_type)
+
+    #create the large matrix containing the data for the nodes
+    lm_nodes = create_matrix_with_all_bf_layers(data,
+                                                nodes_type)
+    
+    #display
+    #-----------------------------------------------------------------
+    fig2, ax2 = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
+                                                          lm_grdptid)
+    fig2.canvas.set_window_title("Reallocation test")
+
+
+    #show all
+    plt.show()
     

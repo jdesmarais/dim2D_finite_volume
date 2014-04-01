@@ -20,8 +20,9 @@
         integer(ikind), dimension(2,2)      :: alignment
         integer(ikind)                      :: i,j,k
         integer       , dimension(8)        :: bf_layer_loc
-        character(len=20)                   :: sizes_filename, nodes_filename, grdid_filename
-        
+        character(len=21)                   :: sizes_filename, nodes_filename, grdid_filename
+        integer(ikind), dimension(2,2)      :: border_changes
+
         call srand(10)
 
         do k=1, ne
@@ -41,15 +42,17 @@
 
         !alignment
         alignment(1,1) = bc_size+3
-        alignment(1,2) = bc_size+4
+        alignment(1,2) = bc_size+7
         alignment(2,1) = bc_size+3
-        alignment(2,2) = bc_size+4
+        alignment(2,2) = bc_size+7
 
         
         do i=1, size(bf_layer_loc,1)
 
            select case(bf_layer_loc(i))
              case(N)
+                
+                !test allocation
                 sizes_filename = "N_sizes.dat"
                 nodes_filename = "N_nodes.dat"
                 grdid_filename = "N_grdpt_id.dat"
@@ -60,7 +63,23 @@
                 call bf_layer_tested_N%print_nodes(nodes_filename)
                 call bf_layer_tested_N%print_grdpts_id(grdid_filename)
 
+                !test reallocation
+                sizes_filename = "N_sizes2.dat"
+                nodes_filename = "N_nodes2.dat"
+                grdid_filename = "N_grdpt_id2.dat"
+
+                border_changes(1,1) = 0
+                border_changes(1,2) = 2
+                border_changes(2,1) = 0
+                border_changes(2,2) = -1
+                call bf_layer_tested_N%reallocate_bf_layer(border_changes)
+                call bf_layer_tested_N%print_sizes(sizes_filename)
+                call bf_layer_tested_N%print_nodes(nodes_filename)
+                call bf_layer_tested_N%print_grdpts_id(grdid_filename)
+
              case(S)
+
+                !test allocation
                 sizes_filename = "S_sizes.dat"
                 nodes_filename = "S_nodes.dat"
                 grdid_filename = "S_grdpt_id.dat"
@@ -71,7 +90,23 @@
                 call bf_layer_tested_S%print_nodes(nodes_filename)
                 call bf_layer_tested_S%print_grdpts_id(grdid_filename)
 
+                !test reallocation
+                sizes_filename = "S_sizes2.dat"
+                nodes_filename = "S_nodes2.dat"
+                grdid_filename = "S_grdpt_id2.dat"
+
+                border_changes(1,1) = 1
+                border_changes(1,2) = 0
+                border_changes(2,1) = -2
+                border_changes(2,2) = 0
+                call bf_layer_tested_S%reallocate_bf_layer(border_changes)
+                call bf_layer_tested_S%print_sizes(sizes_filename)
+                call bf_layer_tested_S%print_nodes(nodes_filename)
+                call bf_layer_tested_S%print_grdpts_id(grdid_filename)
+
              case(E)
+
+                !test allocation
                 sizes_filename = "E_sizes.dat"
                 nodes_filename = "E_nodes.dat"
                 grdid_filename = "E_grdpt_id.dat"
@@ -82,7 +117,23 @@
                 call bf_layer_tested_E%print_nodes(nodes_filename)
                 call bf_layer_tested_E%print_grdpts_id(grdid_filename)
 
+                !test reallocation
+                sizes_filename = "E_sizes2.dat"
+                nodes_filename = "E_nodes2.dat"
+                grdid_filename = "E_grdpt_id2.dat"
+
+                border_changes(1,1) = 0
+                border_changes(1,2) = 3
+                border_changes(2,1) = -1
+                border_changes(2,2) = 2
+                call bf_layer_tested_E%reallocate_bf_layer(border_changes)
+                call bf_layer_tested_E%print_sizes(sizes_filename)
+                call bf_layer_tested_E%print_nodes(nodes_filename)
+                call bf_layer_tested_E%print_grdpts_id(grdid_filename)
+
              case(W)
+
+                !test allocation
                 sizes_filename = "W_sizes.dat"
                 nodes_filename = "W_nodes.dat"
                 grdid_filename = "W_grdpt_id.dat"
@@ -93,7 +144,23 @@
                 call bf_layer_tested_W%print_nodes(nodes_filename)
                 call bf_layer_tested_W%print_grdpts_id(grdid_filename)
 
+                !test reallocation
+                sizes_filename = "W_sizes2.dat"
+                nodes_filename = "W_nodes2.dat"
+                grdid_filename = "W_grdpt_id2.dat"
+
+                border_changes(1,1) = 2
+                border_changes(1,2) = 0
+                border_changes(2,1) = 3
+                border_changes(2,2) = -1
+                call bf_layer_tested_W%reallocate_bf_layer(border_changes)
+                call bf_layer_tested_W%print_sizes(sizes_filename)
+                call bf_layer_tested_W%print_nodes(nodes_filename)
+                call bf_layer_tested_W%print_grdpts_id(grdid_filename)
+
              case(N_E)
+
+                !test allocation
                 sizes_filename = "NE_sizes.dat"
                 nodes_filename = "NE_nodes.dat"
                 grdid_filename = "NE_grdpt_id.dat"
@@ -104,7 +171,24 @@
                 call bf_layer_tested_NE%print_nodes(nodes_filename)
                 call bf_layer_tested_NE%print_grdpts_id(grdid_filename)
 
+                !test reallocation
+                sizes_filename = "NE_sizes2.dat"
+                nodes_filename = "NE_nodes2.dat"
+                grdid_filename = "NE_grdpt_id2.dat"
+
+                border_changes(1,1) = 0
+                border_changes(1,2) = -2
+                border_changes(2,1) = 0
+                border_changes(2,2) = 2
+                call bf_layer_tested_NE%reallocate_bf_layer(border_changes)
+                call bf_layer_tested_NE%print_sizes(sizes_filename)
+                call bf_layer_tested_NE%print_nodes(nodes_filename)
+                call bf_layer_tested_NE%print_grdpts_id(grdid_filename)
+
+
              case(N_W)
+
+                !test allocation
                 sizes_filename = "NW_sizes.dat"
                 nodes_filename = "NW_nodes.dat"
                 grdid_filename = "NW_grdpt_id.dat"
@@ -115,7 +199,23 @@
                 call bf_layer_tested_NW%print_nodes(nodes_filename)
                 call bf_layer_tested_NW%print_grdpts_id(grdid_filename)
 
+                !test reallocation
+                sizes_filename = "NW_sizes2.dat"
+                nodes_filename = "NW_nodes2.dat"
+                grdid_filename = "NW_grdpt_id2.dat"
+
+                border_changes(1,1) = -6
+                border_changes(1,2) = 0
+                border_changes(2,1) = 0
+                border_changes(2,2) = 8
+                call bf_layer_tested_NW%reallocate_bf_layer(border_changes)
+                call bf_layer_tested_NW%print_sizes(sizes_filename)
+                call bf_layer_tested_NW%print_nodes(nodes_filename)
+                call bf_layer_tested_NW%print_grdpts_id(grdid_filename)
+
              case(S_E)
+                
+                !test allocation
                 sizes_filename = "SE_sizes.dat"
                 nodes_filename = "SE_nodes.dat"
                 grdid_filename = "SE_grdpt_id.dat"
@@ -126,7 +226,23 @@
                 call bf_layer_tested_SE%print_nodes(nodes_filename)
                 call bf_layer_tested_SE%print_grdpts_id(grdid_filename)
 
+                !test reallocation
+                sizes_filename = "SE_sizes2.dat"
+                nodes_filename = "SE_nodes2.dat"
+                grdid_filename = "SE_grdpt_id2.dat"
+
+                border_changes(1,1) = 0
+                border_changes(1,2) = -2
+                border_changes(2,1) = 3
+                border_changes(2,2) = 0
+                call bf_layer_tested_SE%reallocate_bf_layer(border_changes)
+                call bf_layer_tested_SE%print_sizes(sizes_filename)
+                call bf_layer_tested_SE%print_nodes(nodes_filename)
+                call bf_layer_tested_SE%print_grdpts_id(grdid_filename)
+
              case(S_W)
+
+                !test allocation
                 sizes_filename = "SW_sizes.dat"
                 nodes_filename = "SW_nodes.dat"
                 grdid_filename = "SW_grdpt_id.dat"
@@ -137,10 +253,21 @@
                 call bf_layer_tested_SW%print_nodes(nodes_filename)
                 call bf_layer_tested_SW%print_grdpts_id(grdid_filename)
 
-           end select
+                !test reallocation
+                sizes_filename = "SW_sizes2.dat"
+                nodes_filename = "SW_nodes2.dat"
+                grdid_filename = "SW_grdpt_id2.dat"
 
-           !test the buffer layer
-           
+                border_changes(1,1) = -4
+                border_changes(1,2) = 0
+                border_changes(2,1) = -5
+                border_changes(2,2) = 0
+                call bf_layer_tested_SW%reallocate_bf_layer(border_changes)
+                call bf_layer_tested_SW%print_sizes(sizes_filename)
+                call bf_layer_tested_SW%print_nodes(nodes_filename)
+                call bf_layer_tested_SW%print_grdpts_id(grdid_filename)
+
+           end select           
 
         end do
 
