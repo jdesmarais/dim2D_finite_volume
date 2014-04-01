@@ -90,55 +90,53 @@
         end subroutine allocate_bf_layer
 
 
-        subroutine reallocate_bf_layer(this, border_changes)
+        subroutine reallocate_bf_layer(
+     $     this,
+     $     border_changes,
+     $     i_match,
+     $     j_match)
         
           implicit none
 
           class(bf_layer_abstract), intent(inout) :: this
           integer, dimension(2,2) , intent(in)    :: border_changes
+          integer                 , intent(out)    :: i_match
+          integer                 , intent(out)    :: j_match
 
 
           integer(ikind) :: i,j,k
           integer(ikind) :: i_min, i_max, j_min, j_max
-          integer(ikind) :: i_match, j_match
-          integer(ikind) :: i_min_change, i_max_change
-          integer(ikind) :: j_min_change, j_max_change
           integer(ikind) :: new_size_x, new_size_y
           real(rkind), dimension(:,:,:), allocatable :: new_nodes
           integer    , dimension(:,:)  , allocatable :: new_grdptid
-
-        
-          i_min_change = border_changes(1,1)
-          i_max_change = border_changes(1,2)
-          j_min_change = border_changes(2,1)
-          j_max_change = border_changes(2,2)
 
 
           !determine the new alignment between the interior and 
           !buffer layer tables
           select case(this%localization)
             case(N,S,E,W)
-               this%alignment(1,1) = this%alignment(1,1) + i_min_change
-               this%alignment(1,2) = this%alignment(1,2) + i_max_change
-               this%alignment(2,1) = this%alignment(2,1) + j_min_change
-               this%alignment(2,2) = this%alignment(2,2) + j_max_change
+               do j=1,2
+                  do i=1,2
+                     this%alignment(i,j) = this%alignment(i,j) + border_changes(i,j)
+                  end do
+               end do
           end select
 
 
           !determine the borders when filling the new table with the
           !old data
-          i_min = 1 + max(0,i_min_change) - i_min_change
-          i_max = size(this%nodes,1) + min(0,i_max_change) - i_min_change
-          j_min = 1 + max(0,j_min_change) - j_min_change
-          j_max = size(this%nodes,2) + min(0,j_max_change) - j_min_change
+          i_min = 1 + max(0,border_changes(1,1)) - border_changes(1,1)
+          i_max = size(this%nodes,1) + min(0,border_changes(1,2)) - border_changes(1,1)
+          j_min = 1 + max(0,border_changes(2,1)) - border_changes(2,1)
+          j_max = size(this%nodes,2) + min(0,border_changes(2,2)) - border_changes(2,1)
 
-          i_match = i_min_change
-          j_match = j_min_change
+          i_match = border_changes(1,1)
+          j_match = border_changes(2,1)
 
 
           !determine the new size of the nodes and grdptid tables
-          new_size_x = size(this%nodes,1) - i_min_change + i_max_change
-          new_size_y = size(this%nodes,2) - j_min_change + j_max_change
+          new_size_x = size(this%nodes,1) - border_changes(1,1) + border_changes(1,2)
+          new_size_y = size(this%nodes,2) - border_changes(2,1) + border_changes(2,2)
           
 
           !allocate the new tables
@@ -151,42 +149,42 @@
              
              select case(this%localization)
                case(N)
-                  if(j_min_change.ne.0) then
-                     stop 'N: j_min_change.ne.0: this is wrong'
+                  if(border_changes(2,1).ne.0) then
+                     stop 'N: border_changes(2,1).ne.0: this is wrong'
                   end if
 
                case(S)
-                  if(j_max_change.ne.0) then
-                     stop 'S: j_max_change.ne.0: this is wrong'
+                  if(border_changes(2,2).ne.0) then
+                     stop 'S: border_changes(2,2).ne.0: this is wrong'
                   end if
                   
                case(E)
-                  if(i_min_change.ne.0) then
-                     stop 'E: i_min_change.ne.0: this is wrong'
+                  if(border_changes(1,1).ne.0) then
+                     stop 'E: border_changes(1,1).ne.0: this is wrong'
                   end if
                   
                case(W)
-                  if(i_max_change.ne.0) then
-                     stop 'W: i_max_change.ne.0: this is wrong'
+                  if(border_changes(1,2).ne.0) then
+                     stop 'W: border_changes(1,2).ne.0: this is wrong'
                   end if
                   
                case(N_E)
-                  if((i_min_change.ne.0).and.(j_min_change.ne.0)) then
+                  if((border_changes(1,1).ne.0).and.(border_changes(2,1).ne.0)) then
                      stop 'NE: change.ne.0: this is wrong'
                   end if
                   
                case(N_W)
-                  if((i_max_change.ne.0).and.(j_min_change.ne.0)) then
+                  if((border_changes(1,2).ne.0).and.(border_changes(2,1).ne.0)) then
                      stop 'NW: change.ne.0: this is wrong'
                   end if
                   
                case(S_E)
-                  if((i_max_change.ne.0).and.(j_max_change.ne.0)) then
+                  if((border_changes(1,2).ne.0).and.(border_changes(2,2).ne.0)) then
                      stop 'SE: change.ne.0: this is wrong'
                   end if
 
                case(S_W)
-                  if((i_min_change.ne.0).and.(j_max_change.ne.0)) then
+                  if((border_changes(1,1).ne.0).and.(border_changes(2,2).ne.0)) then
                      stop 'SW: change.ne.0: this is wrong'
                   end if
                   
@@ -555,12 +553,16 @@
 
         subroutine identify_and_compute_new_gridpoints(
      $     this,
-     $     selected_grdpts)
+     $     selected_grdpts,
+     $     i_match,
+     $     j_match)
 
           implicit none
 
           class(bf_layer_abstract)      , intent(inout) :: this
           integer(ikind), dimension(:,:), intent(in)    :: selected_grdpts
+          integer(ikind)                , intent(in)    :: i_match
+          integer(ikind)                , intent(in)    :: j_match
 
 
           integer(ikind) :: i,j,k
@@ -589,12 +591,12 @@
           !outside the next loop
           !----------------------------------------------------
           k = 1
-          i_center = selected_grdpts(k,1)
-          j_center = selected_grdpts(k,2)
+          i_center = -i_match+selected_grdpts(k,1)
+          j_center = -j_match+selected_grdpts(k,2)
           this%grdpts_id(i_center,j_center) = interior_pt
           do j=-bc_size, bc_size
              do i=-bc_size, bc_size
-                call check_gridpoint(this,i,j)
+                call check_gridpoint(this,i_center+i,j_center+j)
              end do
           end do
 
@@ -608,8 +610,8 @@
              !tested
              i_prev   = i_center
              j_prev   = j_center
-             i_center = selected_grdpts(k,1)
-             j_center = selected_grdpts(k,2)
+             i_center = -i_match+selected_grdpts(k,1)
+             j_center = -j_match+selected_grdpts(k,2)
 
              !update the status of the gridpoint
              this%grdpts_id(i_center,j_center) = interior_pt

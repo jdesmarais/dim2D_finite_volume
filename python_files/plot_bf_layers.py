@@ -407,6 +407,44 @@ if __name__ == "__main__":
     fig2.canvas.set_window_title("Reallocation test")
 
 
+    #test the reallocation procedure
+    #=================================================================
+    
+    #extract data for the interior points and the buffer layers
+    #-----------------------------------------------------------------
+    #data container
+    data = {}
+    
+    #extract the data for the interior points
+    data['interior'] = extract_interior_data(folder_path)
+    
+    #extract the data of the buffer layers
+    bf_layer_loc_table = ['N','S','E','W','NE','NW','SE','SW']
+    suffix_files={}
+    suffix_files['sizes']  ='_sizes3.dat'
+    suffix_files['nodes']  ='_nodes3.dat'
+    suffix_files['grdptid']='_grdpt_id3.dat'
+    
+    for bf_layer_loc in bf_layer_loc_table:
+        data[bf_layer_loc] = extract_bf_data(folder_path,
+                                             suffix_files,
+                                             bf_layer_loc)
+    
+    #create the large matrix containing the data for the gridpoint id
+    lm_grdptid = create_matrix_with_all_bf_layers(data,
+                                                  grdptid_type)
+    
+    #create the large matrix containing the data for the nodes
+    lm_nodes = create_matrix_with_all_bf_layers(data,
+                                                nodes_type)
+    
+    #display
+    #-----------------------------------------------------------------
+    fig3, ax3 = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
+                                                          lm_grdptid)
+    fig3.canvas.set_window_title("New gridpoints test")
+    
+    
     #show all
     plt.show()
     
