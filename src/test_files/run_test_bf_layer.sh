@@ -2,10 +2,10 @@
 
 
 #compile the test case for buffer layer
-make test_bf_layer_abstract_prog
+make test_bf_layer_prog
 
 #run the test case
-./test_bf_layer_abstract_prog
+./test_bf_layer_prog
 
 #run the visualization using python
 folder_path=$(pwd)

@@ -313,7 +313,7 @@ def plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes, lm_grdptid):
 
     #plot the gridpoint ID
     ax = fig.add_subplot(1,2,1)
-    res = ax.imshow(lm_grdptid, cmap=cm.spectral, interpolation='nearest', vmin=-1, vmax=2)
+    res = ax.imshow(lm_grdptid, cmap=cm.spectral, interpolation='nearest', vmin=-1, vmax=4)
     fig.colorbar(res)
     
     #plot the nodes
@@ -407,7 +407,7 @@ if __name__ == "__main__":
     fig2.canvas.set_window_title("Reallocation test")
 
 
-    #test the reallocation procedure
+    #test the new gridpoints procedure
     #=================================================================
     
     #extract data for the interior points and the buffer layers
