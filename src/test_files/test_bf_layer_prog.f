@@ -8,25 +8,21 @@
 
         implicit none
 
-        type(bf_layer) :: bf_layer_tested_N
-        type(bf_layer) :: bf_layer_tested_S
-        type(bf_layer) :: bf_layer_tested_E
-        type(bf_layer) :: bf_layer_tested_W
-        type(bf_layer) :: bf_layer_tested_NE
-        type(bf_layer) :: bf_layer_tested_NW
-        type(bf_layer) :: bf_layer_tested_SE
-        type(bf_layer) :: bf_layer_tested_SW
-
+        type(bf_layer), dimension(8) :: table_bf_layer_tested
 
         real(rkind)   , dimension(nx,ny,ne) :: nodes
         integer(ikind), dimension(2,2)      :: alignment
         integer(ikind)                      :: i,j,k
         integer       , dimension(8)        :: bf_layer_loc
+        character(2)  , dimension(8)        :: bf_layer_char
         character(len=21)                   :: sizes_filename, nodes_filename, grdid_filename
         integer(ikind), dimension(2,2)      :: border_changes
         logical       , dimension(4)        :: neighbors
         integer(ikind), dimension(2,2)      :: selected_grdpts
         integer       , dimension(2)        :: match_table
+
+        integer, dimension(8,2,2) :: test_border_changes
+        integer, dimension(8,2,2) :: test_selected_grdpts
 
         call srand(10)
 
@@ -43,7 +39,8 @@
         call print_nodes(nodes,'interior_nodes.dat')
 
         !buffer layers tested
-        bf_layer_loc = [N,S,E,W,N_E,N_W,S_E,S_W]
+        bf_layer_loc  = [N,S,E,W,N_E,N_W,S_E,S_W]
+        bf_layer_char = ['N_','S_','E_','W_','NE','NW','SE','SW']
 
         !alignment
         alignment(1,1) = bc_size+3
@@ -56,386 +53,68 @@
         neighbors(2) = .true.
         neighbors(3) = .true.
         neighbors(4) = .true.
+
+        !border changes
+        call ini_border_changes(test_border_changes)
         
-        
+        !selected grid points
+        call ini_selected_grdpts(test_selected_grdpts)        
+
+
+        !tests on all the buffer layers
         do i=1, size(bf_layer_loc,1)
 
-           select case(bf_layer_loc(i))
-             case(N)
-                
-                !test allocation
-                sizes_filename = "N_sizes.dat"
-                nodes_filename = "N_nodes.dat"
-                grdid_filename = "N_grdpt_id.dat"
+           !test allocation
+           write(sizes_filename,'(A2,''_sizes.dat'')') bf_layer_char(i)
+           write(nodes_filename,'(A2,''_nodes.dat'')') bf_layer_char(i)
+           write(grdid_filename,'(A2,''_grdpt_id.dat'')') bf_layer_char(i)
+        
+           call bf_layer_test_allocation(
+     $               table_bf_layer_tested(i),
+     $               bf_layer_loc(i),
+     $               alignment,
+     $               nodes,
+     $               neighbors,
+     $               sizes_filename,
+     $               nodes_filename,
+     $               grdid_filename)
 
-                call bf_layer_tested_N%ini([bf_layer_loc(i),1])
-                call bf_layer_tested_N%allocate_bf_layer(
-     $               alignment, nodes, neighbors)
-                call bf_layer_tested_N%print_sizes(sizes_filename)
-                call bf_layer_tested_N%print_nodes(nodes_filename)
-                call bf_layer_tested_N%print_grdpts_id(grdid_filename)
+           !test reallocation
+           write(sizes_filename,'(A2,''_sizes2.dat'')') bf_layer_char(i)
+           write(nodes_filename,'(A2,''_nodes2.dat'')') bf_layer_char(i)
+           write(grdid_filename,'(A2,''_grdpt_id2.dat'')') bf_layer_char(i)
 
-                !test reallocation
-                sizes_filename = "N_sizes2.dat"
-                nodes_filename = "N_nodes2.dat"
-                grdid_filename = "N_grdpt_id2.dat"
+           border_changes(1,1) = test_border_changes(bf_layer_loc(i),1,1)
+           border_changes(1,2) = test_border_changes(bf_layer_loc(i),1,2)
+           border_changes(2,1) = test_border_changes(bf_layer_loc(i),2,1)
+           border_changes(2,2) = test_border_changes(bf_layer_loc(i),2,2)
 
-                border_changes(1,1) = 0
-                border_changes(1,2) = 0
-                border_changes(2,1) = 0
-                border_changes(2,2) = 2
-                call bf_layer_tested_N%reallocate_bf_layer(
-     $               border_changes,
-     $               match_table)
-                call bf_layer_tested_N%print_sizes(sizes_filename)
-                call bf_layer_tested_N%print_nodes(nodes_filename)
-                call bf_layer_tested_N%print_grdpts_id(grdid_filename)
+           call bf_layer_test_reallocation(
+     $          table_bf_layer_tested(i),
+     $          border_changes,
+     $          match_table,
+     $          sizes_filename,
+     $          nodes_filename,
+     $          grdid_filename)
 
-                !test new interior gridpoints
-                sizes_filename = "N_sizes3.dat"
-                nodes_filename = "N_nodes3.dat"
-                grdid_filename = "N_grdpt_id3.dat"
+           !test new interior gridpoints
+           write(sizes_filename,'(A2,''_sizes3.dat'')') bf_layer_char(i)
+           write(nodes_filename,'(A2,''_nodes3.dat'')') bf_layer_char(i)
+           write(grdid_filename,'(A2,''_grdpt_id3.dat'')') bf_layer_char(i)
+           
+           selected_grdpts(1,1) = test_selected_grdpts(bf_layer_loc(i),1,1)
+           selected_grdpts(1,2) = test_selected_grdpts(bf_layer_loc(i),1,2)
+           selected_grdpts(2,1) = test_selected_grdpts(bf_layer_loc(i),2,1)
+           selected_grdpts(2,2) = test_selected_grdpts(bf_layer_loc(i),2,2)
 
-                selected_grdpts(1,1) = 4
-                selected_grdpts(1,2) = 3
-                selected_grdpts(2,1) = 4
-                selected_grdpts(2,2) = 4
-                call update_grdpts(bf_layer_tested_N,
-     $               selected_grdpts,
-     $               match_table)
-                call bf_layer_tested_N%print_sizes(sizes_filename)
-                call bf_layer_tested_N%print_nodes(nodes_filename)
-                call bf_layer_tested_N%print_grdpts_id(grdid_filename)
-
-             case(S)
-
-                !test allocation
-                sizes_filename = "S_sizes.dat"
-                nodes_filename = "S_nodes.dat"
-                grdid_filename = "S_grdpt_id.dat"
-
-                call bf_layer_tested_S%ini([bf_layer_loc(i),1])           
-                call bf_layer_tested_S%allocate_bf_layer(
-     $               alignment, nodes, neighbors)
-                call bf_layer_tested_S%print_sizes(sizes_filename)
-                call bf_layer_tested_S%print_nodes(nodes_filename)
-                call bf_layer_tested_S%print_grdpts_id(grdid_filename)
-
-                !test reallocation
-                sizes_filename = "S_sizes2.dat"
-                nodes_filename = "S_nodes2.dat"
-                grdid_filename = "S_grdpt_id2.dat"
-
-                border_changes(1,1) = -1
-                border_changes(1,2) = 0
-                border_changes(2,1) = -1
-                border_changes(2,2) = 0
-                call bf_layer_tested_S%reallocate_bf_layer(
-     $               border_changes,
-     $               match_table)                
-                call bf_layer_tested_S%print_sizes(sizes_filename)
-                call bf_layer_tested_S%print_nodes(nodes_filename)
-                call bf_layer_tested_S%print_grdpts_id(grdid_filename)
-
-                !test new interior gridpoints
-                sizes_filename = "S_sizes3.dat"
-                nodes_filename = "S_nodes3.dat"
-                grdid_filename = "S_grdpt_id3.dat"
-
-                selected_grdpts(1,1) = 4
-                selected_grdpts(1,2) = 3
-                selected_grdpts(2,1) = 4
-                selected_grdpts(2,2) = 2
-                call update_grdpts(bf_layer_tested_S,
-     $               selected_grdpts,
-     $               match_table)
-                call bf_layer_tested_S%print_sizes(sizes_filename)
-                call bf_layer_tested_S%print_nodes(nodes_filename)
-                call bf_layer_tested_S%print_grdpts_id(grdid_filename)
-
-             case(E)
-
-                !test allocation
-                sizes_filename = "E_sizes.dat"
-                nodes_filename = "E_nodes.dat"
-                grdid_filename = "E_grdpt_id.dat"
-
-                call bf_layer_tested_E%ini([bf_layer_loc(i),1])           
-                call bf_layer_tested_E%allocate_bf_layer(
-     $               alignment, nodes, neighbors)
-                call bf_layer_tested_E%print_sizes(sizes_filename)
-                call bf_layer_tested_E%print_nodes(nodes_filename)
-                call bf_layer_tested_E%print_grdpts_id(grdid_filename)
-
-                !test reallocation
-                sizes_filename = "E_sizes2.dat"
-                nodes_filename = "E_nodes2.dat"
-                grdid_filename = "E_grdpt_id2.dat"
-
-                border_changes(1,1) = 0
-                border_changes(1,2) = 1
-                border_changes(2,1) = 0
-                border_changes(2,2) = 0
-                call bf_layer_tested_E%reallocate_bf_layer(
-     $               border_changes,
-     $               match_table)
-                call bf_layer_tested_E%print_sizes(sizes_filename)
-                call bf_layer_tested_E%print_nodes(nodes_filename)
-                call bf_layer_tested_E%print_grdpts_id(grdid_filename)
-
-                !test new interior gridpoints
-                sizes_filename = "E_sizes3.dat"
-                nodes_filename = "E_nodes3.dat"
-                grdid_filename = "E_grdpt_id3.dat"
-
-                selected_grdpts(1,1) = 3
-                selected_grdpts(1,2) = 3
-                selected_grdpts(2,1) = 4
-                selected_grdpts(2,2) = 3
-                call update_grdpts(bf_layer_tested_E,
-     $               selected_grdpts,
-     $               match_table)
-                call bf_layer_tested_E%print_sizes(sizes_filename)
-                call bf_layer_tested_E%print_nodes(nodes_filename)
-                call bf_layer_tested_E%print_grdpts_id(grdid_filename)
-
-             case(W)
-
-                !test allocation
-                sizes_filename = "W_sizes.dat"
-                nodes_filename = "W_nodes.dat"
-                grdid_filename = "W_grdpt_id.dat"
-
-                call bf_layer_tested_W%ini([bf_layer_loc(i),1])           
-                call bf_layer_tested_W%allocate_bf_layer(
-     $               alignment, nodes, neighbors)
-                call bf_layer_tested_W%print_sizes(sizes_filename)
-                call bf_layer_tested_W%print_nodes(nodes_filename)
-                call bf_layer_tested_W%print_grdpts_id(grdid_filename)
-
-                !test reallocation
-                sizes_filename = "W_sizes2.dat"
-                nodes_filename = "W_nodes2.dat"
-                grdid_filename = "W_grdpt_id2.dat"
-
-                border_changes(1,1) = -1
-                border_changes(1,2) = 0
-                border_changes(2,1) = 0
-                border_changes(2,2) = 0
-                call bf_layer_tested_W%reallocate_bf_layer(
-     $               border_changes,
-     $               match_table)
-                call bf_layer_tested_W%print_sizes(sizes_filename)
-                call bf_layer_tested_W%print_nodes(nodes_filename)
-                call bf_layer_tested_W%print_grdpts_id(grdid_filename)
-
-                !test new interior gridpoints
-                sizes_filename = "W_sizes3.dat"
-                nodes_filename = "W_nodes3.dat"
-                grdid_filename = "W_grdpt_id3.dat"
-
-                selected_grdpts(1,1) = 3
-                selected_grdpts(1,2) = 3
-                selected_grdpts(2,1) = 2
-                selected_grdpts(2,2) = 4
-                call update_grdpts(bf_layer_tested_W,
-     $               selected_grdpts,
-     $               match_table)
-                call bf_layer_tested_W%print_sizes(sizes_filename)
-                call bf_layer_tested_W%print_nodes(nodes_filename)
-                call bf_layer_tested_W%print_grdpts_id(grdid_filename)
-
-
-             case(N_E)
-
-                !test allocation
-                sizes_filename = "NE_sizes.dat"
-                nodes_filename = "NE_nodes.dat"
-                grdid_filename = "NE_grdpt_id.dat"
-
-                call bf_layer_tested_NE%ini([bf_layer_loc(i),1])           
-                call bf_layer_tested_NE%allocate_bf_layer(
-     $               alignment, nodes, neighbors)
-                call bf_layer_tested_NE%print_sizes(sizes_filename)
-                call bf_layer_tested_NE%print_nodes(nodes_filename)
-                call bf_layer_tested_NE%print_grdpts_id(grdid_filename)
-
-                !test reallocation
-                sizes_filename = "NE_sizes2.dat"
-                nodes_filename = "NE_nodes2.dat"
-                grdid_filename = "NE_grdpt_id2.dat"
-
-                border_changes(1,1) = 0
-                border_changes(1,2) = 2
-                border_changes(2,1) = 0
-                border_changes(2,2) = 1
-                call bf_layer_tested_NE%reallocate_bf_layer(
-     $               border_changes,
-     $               match_table)
-                call bf_layer_tested_NE%print_sizes(sizes_filename)
-                call bf_layer_tested_NE%print_nodes(nodes_filename)
-                call bf_layer_tested_NE%print_grdpts_id(grdid_filename)
-
-                !test new interior gridpoints
-                sizes_filename = "NE_sizes3.dat"
-                nodes_filename = "NE_nodes3.dat"
-                grdid_filename = "NE_grdpt_id3.dat"
-
-                selected_grdpts(1,1) = 3
-                selected_grdpts(1,2) = 3
-                selected_grdpts(2,1) = 4
-                selected_grdpts(2,2) = 4
-                call update_grdpts(bf_layer_tested_NE,
-     $               selected_grdpts,
-     $               match_table)
-                call bf_layer_tested_NE%print_sizes(sizes_filename)
-                call bf_layer_tested_NE%print_nodes(nodes_filename)
-                call bf_layer_tested_NE%print_grdpts_id(grdid_filename)
-
-
-             case(N_W)
-
-                !test allocation
-                sizes_filename = "NW_sizes.dat"
-                nodes_filename = "NW_nodes.dat"
-                grdid_filename = "NW_grdpt_id.dat"
-
-                call bf_layer_tested_NW%ini([bf_layer_loc(i),1])           
-                call bf_layer_tested_NW%allocate_bf_layer(
-     $               alignment, nodes, neighbors)
-                call bf_layer_tested_NW%print_sizes(sizes_filename)
-                call bf_layer_tested_NW%print_nodes(nodes_filename)
-                call bf_layer_tested_NW%print_grdpts_id(grdid_filename)
-
-                !test reallocation
-                sizes_filename = "NW_sizes2.dat"
-                nodes_filename = "NW_nodes2.dat"
-                grdid_filename = "NW_grdpt_id2.dat"
-
-                border_changes(1,1) = -1
-                border_changes(1,2) = 0
-                border_changes(2,1) = 0
-                border_changes(2,2) = 1
-                call bf_layer_tested_NW%reallocate_bf_layer(
-     $               border_changes,
-     $               match_table)
-                call bf_layer_tested_NW%print_sizes(sizes_filename)
-                call bf_layer_tested_NW%print_nodes(nodes_filename)
-                call bf_layer_tested_NW%print_grdpts_id(grdid_filename)
-
-                !test new interior gridpoints
-                sizes_filename = "NW_sizes3.dat"
-                nodes_filename = "NW_nodes3.dat"
-                grdid_filename = "NW_grdpt_id3.dat"
-
-                selected_grdpts(1,1) = 3
-                selected_grdpts(1,2) = 3
-                selected_grdpts(2,1) = 3
-                selected_grdpts(2,2) = 4
-                call update_grdpts(bf_layer_tested_NW,
-     $               selected_grdpts,
-     $               match_table)
-                call bf_layer_tested_NW%print_sizes(sizes_filename)
-                call bf_layer_tested_NW%print_nodes(nodes_filename)
-                call bf_layer_tested_NW%print_grdpts_id(grdid_filename)
-
-
-             case(S_E)
-                
-                !test allocation
-                sizes_filename = "SE_sizes.dat"
-                nodes_filename = "SE_nodes.dat"
-                grdid_filename = "SE_grdpt_id.dat"
-
-                call bf_layer_tested_SE%ini([bf_layer_loc(i),1])           
-                call bf_layer_tested_SE%allocate_bf_layer(
-     $               alignment, nodes, neighbors)
-                call bf_layer_tested_SE%print_sizes(sizes_filename)
-                call bf_layer_tested_SE%print_nodes(nodes_filename)
-                call bf_layer_tested_SE%print_grdpts_id(grdid_filename)
-
-                !test reallocation
-                sizes_filename = "SE_sizes2.dat"
-                nodes_filename = "SE_nodes2.dat"
-                grdid_filename = "SE_grdpt_id2.dat"
-
-                border_changes(1,1) = 0
-                border_changes(1,2) = 2
-                border_changes(2,1) = -2
-                border_changes(2,2) = 0
-                call bf_layer_tested_SE%reallocate_bf_layer(
-     $               border_changes,
-     $               match_table)
-                call bf_layer_tested_SE%print_sizes(sizes_filename)
-                call bf_layer_tested_SE%print_nodes(nodes_filename)
-                call bf_layer_tested_SE%print_grdpts_id(grdid_filename)
-
-                !test new interior gridpoints
-                sizes_filename = "SE_sizes3.dat"
-                nodes_filename = "SE_nodes3.dat"
-                grdid_filename = "SE_grdpt_id3.dat"
-
-                selected_grdpts(1,1) = 3
-                selected_grdpts(1,2) = 3
-                selected_grdpts(2,1) = 4
-                selected_grdpts(2,2) = 2
-
-                call update_grdpts(bf_layer_tested_SE,
-     $               selected_grdpts,
-     $               match_table)
-                call bf_layer_tested_SE%print_sizes(sizes_filename)
-                call bf_layer_tested_SE%print_nodes(nodes_filename)
-                call bf_layer_tested_SE%print_grdpts_id(grdid_filename)
-
-
-             case(S_W)
-
-                !test allocation
-                sizes_filename = "SW_sizes.dat"
-                nodes_filename = "SW_nodes.dat"
-                grdid_filename = "SW_grdpt_id.dat"
-
-                call bf_layer_tested_SW%ini([bf_layer_loc(i),1])
-                call bf_layer_tested_SW%allocate_bf_layer(
-     $               alignment, nodes, neighbors)
-                call bf_layer_tested_SW%print_sizes(sizes_filename)
-                call bf_layer_tested_SW%print_nodes(nodes_filename)
-                call bf_layer_tested_SW%print_grdpts_id(grdid_filename)
-
-                !test reallocation
-                sizes_filename = "SW_sizes2.dat"
-                nodes_filename = "SW_nodes2.dat"
-                grdid_filename = "SW_grdpt_id2.dat"
-
-                border_changes(1,1) = -1
-                border_changes(1,2) = 0
-                border_changes(2,1) = -1
-                border_changes(2,2) = 0
-                call bf_layer_tested_SW%reallocate_bf_layer(
-     $               border_changes,
-     $               match_table)
-                call bf_layer_tested_SW%print_sizes(sizes_filename)
-                call bf_layer_tested_SW%print_nodes(nodes_filename)
-                call bf_layer_tested_SW%print_grdpts_id(grdid_filename)
-
-                !test new interior gridpoints
-                sizes_filename = "SW_sizes3.dat"
-                nodes_filename = "SW_nodes3.dat"
-                grdid_filename = "SW_grdpt_id3.dat"
-
-                selected_grdpts(1,1) = 3
-                selected_grdpts(1,2) = 3
-                selected_grdpts(2,1) = 2
-                selected_grdpts(2,2) = 2
-                call update_grdpts(bf_layer_tested_SW,
-     $               selected_grdpts,
-     $               match_table)
-                call bf_layer_tested_SW%print_sizes(sizes_filename)
-                call bf_layer_tested_SW%print_nodes(nodes_filename)
-                call bf_layer_tested_SW%print_grdpts_id(grdid_filename)
-
-           end select           
-
+           call bf_layer_test_update_grdpts(
+     $          table_bf_layer_tested(i),
+     $          selected_grdpts,
+     $          match_table,
+     $          sizes_filename,
+     $          nodes_filename,
+     $          grdid_filename)
+           
         end do
 
 
@@ -497,5 +176,187 @@
            end if
 
         end subroutine print_sizes
+
+
+        subroutine bf_layer_test_allocation(
+     $     bf_layer_tested,
+     $     bf_layer_loc,
+     $     alignment,
+     $     nodes,
+     $     neighbors,
+     $     sizes_filename,
+     $     nodes_filename,
+     $     grdid_filename)
+
+          implicit none
+
+          class(bf_layer)                  , intent(inout) :: bf_layer_tested
+          integer                          , intent(in)    :: bf_layer_loc
+          integer        , dimension(2,2)  , intent(in)    :: alignment
+          logical        , dimension(4)    , intent(in)    :: neighbors
+          real(rkind)    , dimension(:,:,:), intent(in)    :: nodes
+          character(*)                     , intent(in)    :: sizes_filename
+          character(*)                     , intent(in)    :: nodes_filename
+          character(*)                     , intent(in)    :: grdid_filename
+
+          call bf_layer_tested%ini([bf_layer_loc,1])
+          call bf_layer_tested%allocate_bf_layer(
+     $         alignment, nodes, neighbors)
+          call bf_layer_tested%print_sizes(sizes_filename)
+          call bf_layer_tested%print_nodes(nodes_filename)
+          call bf_layer_tested%print_grdpts_id(grdid_filename)
+
+        end subroutine bf_layer_test_allocation
+
+
+        subroutine bf_layer_test_reallocation(
+     $     bf_layer_tested,
+     $     border_changes,
+     $     match_table,
+     $     sizes_filename,
+     $     nodes_filename,
+     $     grdid_filename)
+
+          implicit none
+
+          class(bf_layer)                  , intent(inout) :: bf_layer_tested
+          integer     , dimension(2,2)     , intent(in)    :: border_changes
+          integer     , dimension(2)       , intent(inout) :: match_table
+          character(*)                     , intent(in)    :: sizes_filename
+          character(*)                     , intent(in)    :: nodes_filename
+          character(*)                     , intent(in)    :: grdid_filename
+
+          call bf_layer_tested%reallocate_bf_layer(
+     $         border_changes,
+     $         match_table)
+          call bf_layer_tested%print_sizes(sizes_filename)
+          call bf_layer_tested%print_nodes(nodes_filename)
+          call bf_layer_tested%print_grdpts_id(grdid_filename)
+          
+        end subroutine bf_layer_test_reallocation
+
+
+        subroutine bf_layer_test_update_grdpts(
+     $     bf_layer_tested,
+     $     selected_grdpts,
+     $     match_table,
+     $     sizes_filename,
+     $     nodes_filename,
+     $     grdid_filename)
+
+          implicit none
+
+          class(bf_layer)                  , intent(inout) :: bf_layer_tested
+          integer     , dimension(:,:)     , intent(in)    :: selected_grdpts
+          integer     , dimension(2)       , intent(in)    :: match_table
+          character(*)                     , intent(in)    :: sizes_filename
+          character(*)                     , intent(in)    :: nodes_filename
+          character(*)                     , intent(in)    :: grdid_filename
+
+          call update_grdpts(bf_layer_tested,
+     $         selected_grdpts,
+     $         match_table)
+          call bf_layer_tested%print_sizes(sizes_filename)
+          call bf_layer_tested%print_nodes(nodes_filename)
+          call bf_layer_tested%print_grdpts_id(grdid_filename)
+          
+        end subroutine bf_layer_test_update_grdpts
+
+
+        subroutine ini_border_changes(border_changes)
+        
+          implicit none
+
+          integer, dimension(:,:,:), intent(inout) :: border_changes
+
+          border_changes(N,1,1) = 0
+          border_changes(N,1,2) = 0
+          border_changes(N,2,1) = 0
+          border_changes(N,2,2) = 2
+
+          border_changes(S,1,1) = -1
+          border_changes(S,1,2) = 0
+          border_changes(S,2,1) = -1
+          border_changes(S,2,2) = 0
+
+          border_changes(E,1,1) = 0
+          border_changes(E,1,2) = 1
+          border_changes(E,2,1) = 0
+          border_changes(E,2,2) = 0
+
+          border_changes(W,1,1) = -1
+          border_changes(W,1,2) = 0
+          border_changes(W,2,1) = 0
+          border_changes(W,2,2) = 0
+
+          border_changes(N_E,1,1) = 0
+          border_changes(N_E,1,2) = 2
+          border_changes(N_E,2,1) = 0
+          border_changes(N_E,2,2) = 1
+
+          border_changes(N_W,1,1) = -1
+          border_changes(N_W,1,2) = 0
+          border_changes(N_W,2,1) = 0
+          border_changes(N_W,2,2) = 1
+
+          border_changes(S_E,1,1) = 0
+          border_changes(S_E,1,2) = 2
+          border_changes(S_E,2,1) = -2
+          border_changes(S_E,2,2) = 0
+
+           border_changes(S_W,1,1) = -1
+           border_changes(S_W,1,2) = 0
+           border_changes(S_W,2,1) = -1
+           border_changes(S_W,2,2) = 0
+
+        end subroutine ini_border_changes
+
+        subroutine ini_selected_grdpts(selected_grdpts)
+
+          implicit none
+
+          integer, dimension(:,:,:), intent(inout) :: selected_grdpts
+
+          selected_grdpts(N,1,1) = 4
+          selected_grdpts(N,1,2) = 3
+          selected_grdpts(N,2,1) = 4
+          selected_grdpts(N,2,2) = 4
+
+          selected_grdpts(S,1,1) = 4
+          selected_grdpts(S,1,2) = 3
+          selected_grdpts(S,2,1) = 4
+          selected_grdpts(S,2,2) = 2
+
+          selected_grdpts(E,1,1) = 3
+          selected_grdpts(E,1,2) = 3
+          selected_grdpts(E,2,1) = 4
+          selected_grdpts(E,2,2) = 3
+
+          selected_grdpts(W,1,1) = 3
+          selected_grdpts(W,1,2) = 3
+          selected_grdpts(W,2,1) = 2
+          selected_grdpts(W,2,2) = 4
+
+          selected_grdpts(N_E,1,1) = 3
+          selected_grdpts(N_E,1,2) = 3
+          selected_grdpts(N_E,2,1) = 4
+          selected_grdpts(N_E,2,2) = 4
+          
+          selected_grdpts(N_W,1,1) = 3
+          selected_grdpts(N_W,1,2) = 3
+          selected_grdpts(N_W,2,1) = 3
+          selected_grdpts(N_W,2,2) = 4
+
+          selected_grdpts(S_E,1,1) = 3
+          selected_grdpts(S_E,1,2) = 3
+          selected_grdpts(S_E,2,1) = 4
+          selected_grdpts(S_E,2,2) = 2
+
+          selected_grdpts(S_W,1,1) = 3
+          selected_grdpts(S_W,1,2) = 3
+          selected_grdpts(S_W,2,1) = 2
+          selected_grdpts(S_W,2,2) = 2
+
+        end subroutine ini_selected_grdpts
 
       end program test_bf_layer_prog

@@ -114,10 +114,10 @@ def extract_bf_data(folder_path,suffix_files,bf_layer_location):
 
 def create_matrix_with_all_bf_layers(data,data_type):
 
-    plot_buffer = {'N'  : True,
-                   'S'  : True,
-                   'E'  : True,
-                   'W'  : True,
+    plot_buffer = {'N_'  : True,
+                   'S_'  : True,
+                   'E_'  : True,
+                   'W_'  : True,
                    'NE' : True,
                    'NW' : True,
                    'SE' : True,
@@ -138,15 +138,15 @@ def create_matrix_with_all_bf_layers(data,data_type):
     #in the x-direction: largest number of columns
     bf_tmp_size_x = max(data['NE'][0][0],
                         data['NW'][0][0],
-                        data['E'][0][0],
-                        data['W'][0][0],
+                        data['E_'][0][0],
+                        data['W_'][0][0],
                         data['SE'][0][0],
                         data['SW'][0][0])
 
     bf_tmp_size_y = max(data['NE'][0][1],
                         data['NW'][0][1],
-                        data['N'][0][1],
-                        data['S'][0][1],
+                        data['N_'][0][1],
+                        data['S_'][0][1],
                         data['SE'][0][1],
                         data['SW'][0][1])
     interspace = 2
@@ -178,17 +178,17 @@ def create_matrix_with_all_bf_layers(data,data_type):
     	       i_match:i_match+bf_layer_size_x] = data['SW'][data_type][:,:]
 
     #3.2) S  buffer layer
-    if(plot_buffer['S']):
-    	bf_layer_size_x = data['S'][0][0]
-    	bf_layer_size_y = data['S'][0][1]
-    	i_match = interspace + bf_tmp_size_x + interspace + data['S'][0][3] - 2*bc_size +1
+    if(plot_buffer['S_']):
+    	bf_layer_size_x = data['S_'][0][0]
+    	bf_layer_size_y = data['S_'][0][1]
+    	i_match = interspace + bf_tmp_size_x + interspace + data['S_'][0][3] - 2*bc_size +1
     	j_match = interspace + bf_tmp_size_y - bf_layer_size_y
     	if(data_type==nodes_type):
     	    lm[j_match:j_match+bf_layer_size_y,
-    	       i_match:i_match+bf_layer_size_x] = data['S'][data_type][0,:,:]
+    	       i_match:i_match+bf_layer_size_x] = data['S_'][data_type][0,:,:]
     	if(data_type==grdptid_type):
     	    lm[j_match:j_match+bf_layer_size_y,
-    	       i_match:i_match+bf_layer_size_x] = data['S'][data_type][:,:]
+    	       i_match:i_match+bf_layer_size_x] = data['S_'][data_type][:,:]
     
     #3.3) SE buffer layer
     if(plot_buffer['SE']):
@@ -204,17 +204,17 @@ def create_matrix_with_all_bf_layers(data,data_type):
                i_match:i_match+bf_layer_size_x] = data['SE'][data_type][:,:]
         
     #3.4) E  buffer layer
-    if(plot_buffer['E']):
-        bf_layer_size_x = data['E'][0][0]
-        bf_layer_size_y = data['E'][0][1]
+    if(plot_buffer['E_']):
+        bf_layer_size_x = data['E_'][0][0]
+        bf_layer_size_y = data['E_'][0][1]
         i_match = interspace + bf_tmp_size_x + interspace + nodes_size_x + interspace
-        j_match = interspace + bf_tmp_size_y + interspace + data['E'][0][5] - 2*bc_size +1
+        j_match = interspace + bf_tmp_size_y + interspace + data['E_'][0][5] - 2*bc_size +1
         if(data_type==nodes_type):
             lm[j_match:j_match+bf_layer_size_y,
-               i_match:i_match+bf_layer_size_x] = data['E'][data_type][0,:,:]
+               i_match:i_match+bf_layer_size_x] = data['E_'][data_type][0,:,:]
         if(data_type==grdptid_type):
             lm[j_match:j_match+bf_layer_size_y,
-               i_match:i_match+bf_layer_size_x] = data['E'][data_type][:,:]
+               i_match:i_match+bf_layer_size_x] = data['E_'][data_type][:,:]
     
     #3.5) nodes
     if(data_type==nodes_type):
@@ -238,17 +238,17 @@ def create_matrix_with_all_bf_layers(data,data_type):
 	   i_match+bc_size:i_match+nodes_size_x-bc_size]=interior_pt    
     
     #3.6) W  buffer layer
-    if(plot_buffer['W']):
-        bf_layer_size_x = data['W'][0][0]
-        bf_layer_size_y = data['W'][0][1]
+    if(plot_buffer['W_']):
+        bf_layer_size_x = data['W_'][0][0]
+        bf_layer_size_y = data['W_'][0][1]
         i_match = interspace + bf_tmp_size_x - bf_layer_size_x
-        j_match = interspace + bf_tmp_size_y + interspace + data['W'][0][5] - 2*bc_size +1
+        j_match = interspace + bf_tmp_size_y + interspace + data['W_'][0][5] - 2*bc_size +1
         if(data_type==nodes_type):
             lm[j_match:j_match+bf_layer_size_y,
-               i_match:i_match+bf_layer_size_x] = data['W'][data_type][0,:,:]
+               i_match:i_match+bf_layer_size_x] = data['W_'][data_type][0,:,:]
         if(data_type==grdptid_type):
             lm[j_match:j_match+bf_layer_size_y,
-               i_match:i_match+bf_layer_size_x] = data['W'][data_type][:,:]
+               i_match:i_match+bf_layer_size_x] = data['W_'][data_type][:,:]
     
     #3.7) NE buffer layer
     if(plot_buffer['NE']):
@@ -264,18 +264,18 @@ def create_matrix_with_all_bf_layers(data,data_type):
                i_match:i_match+bf_layer_size_x] = data['NE'][data_type][:,:]
     
     #3.8) N  buffer layer
-    if(plot_buffer['N']):
-        bf_layer_size_x = data['N'][0][0]
-        bf_layer_size_y = data['N'][0][1]
+    if(plot_buffer['N_']):
+        bf_layer_size_x = data['N_'][0][0]
+        bf_layer_size_y = data['N_'][0][1]
 
-        i_match = interspace + bf_tmp_size_x + interspace + data['N'][0][3] - bc_size -1
+        i_match = interspace + bf_tmp_size_x + interspace + data['N_'][0][3] - bc_size -1
         j_match = interspace + bf_tmp_size_y + interspace + nodes_size_y + interspace
         if(data_type==nodes_type):    
             lm[j_match:j_match+bf_layer_size_y,
-               i_match:i_match+bf_layer_size_x] = data['N'][data_type][0,:,:]
+               i_match:i_match+bf_layer_size_x] = data['N_'][data_type][0,:,:]
         if(data_type==grdptid_type):
             lm[j_match:j_match+bf_layer_size_y,
-               i_match:i_match+bf_layer_size_x] = data['N'][data_type][:,:]
+               i_match:i_match+bf_layer_size_x] = data['N_'][data_type][:,:]
         
     #3.9) NW buffer layer
     if(plot_buffer['NW']):
@@ -342,7 +342,7 @@ if __name__ == "__main__":
     data['interior'] = extract_interior_data(folder_path)
 
     #extract the data of the buffer layers
-    bf_layer_loc_table = ['N','S','E','W','NE','NW','SE','SW']
+    bf_layer_loc_table = ['N_','S_','E_','W_','NE','NW','SE','SW']
     
     suffix_files={}
     suffix_files['sizes']  ='_sizes.dat'
@@ -381,7 +381,7 @@ if __name__ == "__main__":
     data['interior'] = extract_interior_data(folder_path)
 
     #extract the data of the buffer layers
-    bf_layer_loc_table = ['N','S','E','W','NE','NW','SE','SW']
+    bf_layer_loc_table = ['N_','S_','E_','W_','NE','NW','SE','SW']
     suffix_files={}
     suffix_files['sizes']  ='_sizes2.dat'
     suffix_files['nodes']  ='_nodes2.dat'
@@ -419,7 +419,7 @@ if __name__ == "__main__":
     data['interior'] = extract_interior_data(folder_path)
     
     #extract the data of the buffer layers
-    bf_layer_loc_table = ['N','S','E','W','NE','NW','SE','SW']
+    bf_layer_loc_table = ['N_','S_','E_','W_','NE','NW','SE','SW']
     suffix_files={}
     suffix_files['sizes']  ='_sizes3.dat'
     suffix_files['nodes']  ='_nodes3.dat'
