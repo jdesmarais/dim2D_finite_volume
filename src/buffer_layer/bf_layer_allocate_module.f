@@ -346,12 +346,12 @@
           select case(this%localization(1))
           
             case(N,S)
-               size_nodes(1) = this%alignment(1,2) - this%alignment(1,1) + 2*bc_size
+               size_nodes(1) = this%alignment(1,2) - this%alignment(1,1) + 1 + 2*bc_size
                size_nodes(2) = 2*bc_size+1
 
             case(E,W)
                size_nodes(1) = 2*bc_size+1
-               size_nodes(2) = this%alignment(2,2) - this%alignment(2,1) + 2*bc_size
+               size_nodes(2) = this%alignment(2,2) - this%alignment(2,1) + 1 + 2*bc_size
 
             case(N_E,N_W,S_E,S_W)
                size_nodes(1) = 2*bc_size+1
