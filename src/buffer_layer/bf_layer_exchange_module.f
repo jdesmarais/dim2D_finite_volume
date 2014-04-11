@@ -80,7 +80,7 @@
           !< copy of the interior grid points
           !> and identification of the new grid
           !> points
-          select case(this%localization(1))
+          select case(this%localization)
 
             case(N)
 

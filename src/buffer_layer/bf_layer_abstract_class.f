@@ -64,7 +64,7 @@
         !---------------------------------------------------------------
         type :: bf_layer_abstract
 
-          integer       , dimension(2)   :: localization
+          integer                        :: localization
           integer(ikind), dimension(2,2) :: alignment
           
           real(rkind)   , dimension(:,:,:), allocatable :: nodes
@@ -106,7 +106,7 @@
           implicit none
 
           class(bf_layer_abstract)    , intent(inout) :: this
-          integer(ikind), dimension(2), intent(in)    :: localization
+          integer(ikind)              , intent(in)    :: localization
           
           this%localization = localization
 

@@ -59,7 +59,7 @@
              end do
           end do        
 
-          select case(this%localization(1))
+          select case(this%localization)
             case(N_W)
                call make_west_layer(this%grdpts_id)
                call make_north_layer(this%grdpts_id)
@@ -155,7 +155,7 @@
             case default
                print '(''bf_layer_ini_grdptID_module'')'
                print '(''ini_grdptID'')'
-               print *, 'localization: ', this%localization(1)
+               print *, 'localization: ', this%localization
                stop 'localization not recognized'
 
           end select

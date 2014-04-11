@@ -174,7 +174,7 @@
 
           !< determine the new alignment between the interior and 
           !> buffer layer tables
-          select case(this%localization(1))
+          select case(this%localization)
             case(N,S,E,W)
                do j=1,2
                   do i=1,2
@@ -208,7 +208,7 @@
           !debugging step to check the inputs
           if(debug) then
              
-             select case(this%localization(1))
+             select case(this%localization)
                case(N)
                   if(border_changes(2,1).ne.0) then
                      stop 'N: border_changes(2,1).ne.0: this is wrong'
@@ -343,7 +343,7 @@
           !> depending on the localization of the
           !> buffer layer and its alignment with the
           !> interior
-          select case(this%localization(1))
+          select case(this%localization)
           
             case(N,S)
                size_nodes(1) = this%alignment(1,2) - this%alignment(1,1) + 1 + 2*bc_size

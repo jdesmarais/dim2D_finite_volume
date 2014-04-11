@@ -13,7 +13,9 @@
      $       bf_layer_test_allocation,
      $       bf_layer_test_reallocation,
      $       bf_layer_test_update_grdpts,
-     $       ini_nodes
+     $       ini_nodes,
+     $       ini_alignment_table,
+     $       ini_neighbors_table
 
         contains
 
@@ -97,7 +99,7 @@
           character(*)                     , intent(in)    :: nodes_filename
           character(*)                     , intent(in)    :: grdid_filename
 
-          call bf_layer_tested%ini([bf_layer_loc,1])
+          call bf_layer_tested%ini(bf_layer_loc)
           call bf_layer_tested%allocate_bf_layer(
      $         alignment, nodes, neighbors)
           call bf_layer_tested%print_sizes(sizes_filename)
@@ -181,5 +183,42 @@
           end do
 
         end subroutine ini_nodes
+
+
+        subroutine ini_alignment_table(test_alignment)
+        
+          implicit none
+
+          integer, dimension(:,:,:), intent(inout) :: test_alignment
+
+          test_alignment(1,1,1) = bc_size+9
+          test_alignment(1,1,2) = bc_size+10
+          test_alignment(1,2,1) = bc_size+1
+          test_alignment(1,2,2) = bc_size+2
+
+          test_alignment(2,1,1) = bc_size+1
+          test_alignment(2,1,2) = bc_size+2
+          test_alignment(2,2,1) = bc_size+16
+          test_alignment(2,2,2) = bc_size+16
+          
+          test_alignment(3,1,1) = bc_size+16
+          test_alignment(3,1,2) = bc_size+16
+          test_alignment(3,2,1) = bc_size+9
+          test_alignment(3,2,2) = bc_size+10
+          
+        end subroutine ini_alignment_table
+
+
+        subroutine ini_neighbors_table(test_neighbors)
+        
+          implicit none
+
+          logical, dimension(:,:), intent(inout) :: test_neighbors
+
+          test_neighbors(1,:) = [.true.,.true.,.true.,.true.]
+          test_neighbors(2,:) = [.true.,.true.,.true.,.true.]
+          test_neighbors(3,:) = [.true.,.true.,.true.,.true.]
+          
+        end subroutine ini_neighbors_table
 
       end module test_bf_layer_module
