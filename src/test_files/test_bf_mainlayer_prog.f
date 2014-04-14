@@ -8,6 +8,7 @@
         use test_bf_layer_module, only : ini_nodes,
      $                                   ini_alignment_table,
      $                                   ini_neighbors_table
+        use test_bf_mainlayer_module, only : print_mainlayer
 
         implicit none
 
@@ -89,45 +90,5 @@
         end do
 
         call print_mainlayer(bf_mainlayer_E_tested)
-
-
-        contains
-
-        subroutine print_mainlayer(bf_mainlayer_tested)
-
-          implicit none
-
-          class(bf_mainlayer), intent(inout) :: bf_mainlayer_tested
-
-          type(bf_sublayer), pointer :: current_sublayer
-          integer :: i
-          
-          print '(''nb_sublayers: '',I2)', bf_mainlayer_tested%nb_sublayers
-          print '('''')'
-
-          i=1
-          current_sublayer => bf_mainlayer_tested%head_sublayer
-          print '(''sublayer: '', I2, '', location: '', I3,
-     $         '', alignment: '', 4I3)',
-     $         i,
-     $         current_sublayer%element%localization,
-     $         current_sublayer%element%alignment(1,:),
-     $         current_sublayer%element%alignment(2,:)
-
-          do while(associated(current_sublayer%next))
-
-             i=i+1
-             current_sublayer => current_sublayer%next
-             print '(''sublayer: '', I2, '', location: '', I3,
-     $         '', alignment: '', 4I3)',
-     $            i,
-     $            current_sublayer%element%localization,
-     $            current_sublayer%element%alignment(1,:),
-     $            current_sublayer%element%alignment(2,:)
-             
-          end do
-          print '('''')'
-
-        end subroutine print_mainlayer
 
       end program test_bf_mainlayer_prog

@@ -266,19 +266,28 @@ test_bf_layer_prog.o:\
 test_bf_sublayer_prog.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o
 
+test_bf_mainlayer_module.o:\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o
+
 test_bf_mainlayer_prog.o:\
 	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
-	test_bf_layer_module.o
+	test_bf_layer_module.o\
+	test_bf_mainlayer_module.o
 
 test_interface_abstract_prog.o:\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(bf_layer_dir)/interface_abstract_class.o\
 	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
-	test_bf_layer_module.o
+	test_bf_layer_module.o\
+	test_bf_mainlayer_module.o
 
 
 test_bf_layer_prog:\
@@ -340,7 +349,10 @@ test_bf_mainlayer_prog:\
 	bf_layer_class.o\
 	bf_sublayer_class.o\
 	bf_mainlayer_class.o\
-	bf_layer_update_grdpts_module.o
+	bf_layer_update_grdpts_module.o\
+	test_bf_layer_module.o\
+	test_bf_mainlayer_module.o
+
 
 test_interface_abstract_prog:\
 	parameters_kind.o\
@@ -358,7 +370,8 @@ test_interface_abstract_prog:\
 	bf_mainlayer_class.o\
 	interface_abstract_class.o\
 	bf_layer_update_grdpts_module.o\
-	test_bf_layer_module.o
+	test_bf_layer_module.o\
+	test_bf_mainlayer_module.o
 
 #-----------------------------------------------------------------------
 #parameter_dir						

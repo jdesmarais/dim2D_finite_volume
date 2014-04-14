@@ -16,7 +16,8 @@
      $       test_bf_layer_local_coord,
      $       ini_nodes,
      $       ini_alignment_table,
-     $       ini_neighbors_table
+     $       ini_neighbors_table,
+     $       ini_general_coord
 
         contains
 
@@ -220,7 +221,7 @@
           test_neighbors(2,:) = [.true.,.true.,.true.,.true.]
           test_neighbors(3,:) = [.true.,.true.,.true.,.true.]
           
-        end subroutine ini_neighbors_table
+        end subroutine ini_neighbors_table        
 
 
         subroutine test_bf_layer_local_coord(
@@ -268,5 +269,48 @@
 
         end subroutine test_bf_layer_local_coord
 
+
+        subroutine ini_general_coord(mainlayer_id, alignment, general_coord)
+
+          implicit none
+
+          integer                       , intent(in)  :: mainlayer_id
+          integer       , dimension(2,2), intent(in)  :: alignment
+          integer(ikind), dimension(2)  , intent(out) :: general_coord
+
+          select case(mainlayer_id)
+            case(N)
+               general_coord(1) = alignment(1,1)
+               general_coord(2) = ny-1
+            case(S)
+               general_coord(1) = alignment(1,1)
+               general_coord(2) = 2
+            case(E)
+               general_coord(1) = nx-1
+               general_coord(2) = alignment(1,2)
+            case(W)
+               general_coord(1) = 2
+               general_coord(2) = alignment(1,2)
+            case(N_E)
+               general_coord(1) = nx-1
+               general_coord(2) = ny-1
+            case(N_W)
+               general_coord(1) = 2
+               general_coord(2) = ny-1
+            case(S_E)
+               general_coord(1) = nx-1
+               general_coord(2) = 2
+            case(S_W)
+               general_coord(1) = 2
+               general_coord(2) = 2
+            case default
+               print '(''test_bf_layer_prog'')'
+               print '(''ini_general_coord'')'
+               print '(''localization not recognized:'',I2)',
+     $              mainlayer_id
+               stop 'was the buffer layer initialized ?'
+          end select
+
+        end subroutine ini_general_coord
 
       end module test_bf_layer_module

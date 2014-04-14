@@ -59,6 +59,7 @@
         integer, parameter :: N_W=6
         integer, parameter :: S_E=7
         integer, parameter :: S_W=8
+        integer, parameter :: interior=9
 
         integer, parameter :: x_direction=1
         integer, parameter :: y_direction=2

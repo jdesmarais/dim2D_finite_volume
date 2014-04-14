@@ -11,7 +11,8 @@
      $                                            bf_layer_test_reallocation,
      $                                            bf_layer_test_update_grdpts,
      $                                            test_bf_layer_local_coord,
-     $                                            ini_nodes
+     $                                            ini_nodes,
+     $                                            ini_general_coord
 
         implicit none
 
@@ -139,7 +140,8 @@
            write(grdid_filename,'(A2,''_grdpt_id4.dat'')') bf_layer_char(i)
 
            call ini_general_coord(
-     $          table_bf_layer_tested(i),
+     $          table_bf_layer_tested(i)%localization,
+     $          table_bf_layer_tested(i)%alignment,
      $          general_coord)
 
            call test_bf_layer_local_coord(
@@ -256,48 +258,5 @@
           selected_grdpts(S_W,2,2) = 2
 
         end subroutine ini_selected_grdpts
-
-      
-        subroutine ini_general_coord(bf_layer_tested, general_coord)
-
-          implicit none
-
-          type(bf_layer)              , intent(in)  :: bf_layer_tested
-          integer(ikind), dimension(2), intent(out) :: general_coord
-
-          select case(bf_layer_tested%localization)
-            case(N)
-               general_coord(1) = bf_layer_tested%alignment(1,1)
-               general_coord(2) = ny-1
-            case(S)
-               general_coord(1) = bf_layer_tested%alignment(1,1)
-               general_coord(2) = 2
-            case(E)
-               general_coord(1) = nx-1
-               general_coord(2) = bf_layer_tested%alignment(1,2)
-            case(W)
-               general_coord(1) = 2
-               general_coord(2) = bf_layer_tested%alignment(1,2)
-            case(N_E)
-               general_coord(1) = nx-1
-               general_coord(2) = ny-1
-            case(N_W)
-               general_coord(1) = 2
-               general_coord(2) = ny-1
-            case(S_E)
-               general_coord(1) = nx-1
-               general_coord(2) = 2
-            case(S_W)
-               general_coord(1) = 2
-               general_coord(2) = 2
-            case default
-               print '(''test_bf_layer_prog'')'
-               print '(''ini_general_coord'')'
-               print '(''localization not recognized:'',I2)',
-     $              bf_layer_tested%localization
-               stop 'was the buffer layer initialized ?'
-          end select
-
-        end subroutine ini_general_coord
 
       end program test_bf_layer_prog

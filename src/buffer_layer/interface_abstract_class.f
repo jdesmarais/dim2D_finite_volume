@@ -18,9 +18,9 @@
 
         use bf_sublayer_class  , only : bf_sublayer
         use bf_mainlayer_class , only : bf_mainlayer
-        use parameters_constant, only : N,S,E,W,N_E,N_W,S_E,S_W
+        use parameters_constant, only : N,S,E,W,N_E,N_W,S_E,S_W,interior
         use parameters_input   , only : nx,ny,ne,bc_size
-        use parameters_kind    , only : rkind
+        use parameters_kind    , only : ikind, rkind
 
         implicit none
 
@@ -108,6 +108,7 @@
           procedure, pass :: ini
           procedure, pass :: update_mainlayers_pointers
           procedure, pass :: add_sublayer
+          procedure, pass :: get_sublayer
 
         end type interface_abstract
 
@@ -134,6 +135,14 @@
 
           class(interface_abstract), intent(inout) :: this
 
+          integer :: i
+
+          !nullify all the pointers of the mainlayer_pointers table
+          do i=1, size(this%mainlayer_pointers,1)
+             nullify(this%mainlayer_pointers(i)%ptr)
+          end do
+
+          !nullify all the pointers to mainlayers
           nullify(this%N_bf_layers)
           nullify(this%S_bf_layers)
           nullify(this%E_bf_layers)
@@ -332,24 +341,24 @@
 
           integer                     :: mainlayer_id
           type(bf_mainlayer), pointer :: mainlayer
-
+          logical                     :: grdpt_in_sublayer
 
           !identification of the main layer
           mainlayer_id = get_mainlayer_id(general_coord)
 
           !identification of the sublayer
           if(debug) then
-             if(.not.associated(this%mainlayer_pointers(mainlayer_id))) then
+             if(.not.associated(this%mainlayer_pointers(mainlayer_id)%ptr)) then
                 print '(''interface_abstract_class'')'
                 print '(''get_sublayer'')'
                 print '(''mainlayer not associated'')'
                 stop 'the coords do not match any existing buffer layer' 
              end if
           end if
-          mainlayer => this%mainlayer_pointers(mainlayer_id)
+          mainlayer => this%mainlayer_pointers(mainlayer_id)%ptr
 
           if(debug) then
-             if(.not.associated(this%mainlayer%head_sublayer)) then
+             if(.not.associated(mainlayer%head_sublayer)) then
                 print '(''interface_abstract_class'')'
                 print '(''get_sublayer'')'
                 print '(''mainlayer%head not associated'')'
@@ -363,22 +372,22 @@
 
                !check if the grid point belongs to the current sublayer
                grdpt_in_sublayer =
-     $              (general_coord(1).ge.sublayer%element%alignment(1,1)-bc_size)
-     $              .and.(general_coord(1).le.sublayer%element%alignment(1,2))
+     $              (general_coord(1).ge.(sublayer%element%alignment(1,1)-bc_size))
+     $              .and.(general_coord(1).le.(sublayer%element%alignment(1,2)+bc_size))
 
                !go through the different sublayers
                do while(.not.grdpt_in_sublayer)
                   
-                  if(.not.associated(current_sublayer%next)) then
+                  if(.not.associated(sublayer%next)) then
                      print '(''interface_abstract_class'')'
                      print '(''get_sublayer'')'
                      print '(''mainlayer%head not associated'')'
                      stop 'no match for existing buffer layer' 
                   end if
 
-                  sublayer => current_sublayer%next
-                  grdpt_in_sublayer = (general_coord(1).ge.sublayer%element%alignment(1,1)-bc_size)
-     $              .and.(general_coord(1).le.sublayer%element%alignment(1,2))
+                  sublayer => sublayer%next
+                  grdpt_in_sublayer = (general_coord(1).ge.(sublayer%element%alignment(1,1)-bc_size))
+     $              .and.(general_coord(1).le.(sublayer%element%alignment(1,2)+bc_size))
 
                end do
 
@@ -386,25 +395,24 @@
                
                !check if the grid point belongs to the current sublayer
                grdpt_in_sublayer =
-     $              (general_coord(2).ge.sublayer%element%alignment(2,1)-bc_size)
-     $              .and.(general_coord(2).le.sublayer%element%alignment(2,2))
+     $              (general_coord(2).ge.(sublayer%element%alignment(2,1)-bc_size))
+     $              .and.(general_coord(2).le.(sublayer%element%alignment(2,2)+bc_size))
 
                !go through the different sublayers
                do while(.not.grdpt_in_sublayer)
                   
-                  if(.not.associated(current_sublayer%next)) then
+                  if(.not.associated(sublayer%next)) then
                      print '(''interface_abstract_class'')'
                      print '(''get_sublayer'')'
                      print '(''mainlayer%head not associated'')'
                      stop 'no match for existing buffer layer' 
                   end if
 
-                  sublayer => current_sublayer%next
-                  grdpt_in_sublayer = (general_coord(2).ge.sublayer%element%alignment(2,1)-bc_size)
-     $              .and.(general_coord(2).le.sublayer%element%alignment(2,2))
+                  sublayer => sublayer%next
+                  grdpt_in_sublayer = (general_coord(2).ge.(sublayer%element%alignment(2,1)-bc_size))
+     $              .and.(general_coord(2).le.(sublayer%element%alignment(2,2)+bc_size))
 
                end do
-
           end select
 
           !compute the local coordinates
@@ -459,7 +467,7 @@
                       print '(''main_layer_id = interior'')'
                       stop 'the interior should not be access this way'
                    else
-                      main_layer_id = E
+                      mainlayer_id = E
                    end if
                 end if
                       
