@@ -229,7 +229,10 @@ $(bf_layer_dir)/bf_layer_update_grdpts_module.o:\
 $(bf_layer_dir)/bf_layer_class.o:\
 	$(bf_layer_dir)/bf_layer_abstract_class.o\
 	$(bf_layer_dir)/bf_layer_allocate_module.o\
-	$(bf_layer_dir)/bf_layer_print_module.o
+	$(bf_layer_dir)/bf_layer_print_module.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
 
 $(bf_layer_dir)/bf_sublayer_class.o:\
 	$(bf_layer_dir)/bf_layer_class.o

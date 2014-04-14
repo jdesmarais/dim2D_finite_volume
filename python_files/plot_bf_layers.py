@@ -49,16 +49,16 @@ def manage_options():
     return [folder_path]
 
 
-def extract_interior_data(folder_path):
+def extract_interior_data(sizes_filename,nodes_filename):
 
     #load the interior point sizes file
-    sizes_filename = folder_path+'/interior_sizes.dat'
+    #sizes_filename = folder_path+'/interior_sizes.dat'
     f = FortranFile(sizes_filename)
     sizes = f.readInts()
     f.close()
 
     #load the interior point nodes file
-    nodes_filename = folder_path+'/interior_nodes.dat'
+    #nodes_filename = folder_path+'/interior_nodes.dat'
     f = FortranFile(nodes_filename)
     nodes = f.readReals('d')
     f.close()
@@ -339,7 +339,11 @@ if __name__ == "__main__":
     data = {}
 
     #extract the data for the interior points
-    data['interior'] = extract_interior_data(folder_path)
+    sizes_filename = folder_path+'/interior_sizes.dat'
+    nodes_filename = folder_path+'/interior_nodes.dat'
+    data['interior'] = extract_interior_data(
+        sizes_filename,
+        nodes_filename)
 
     #extract the data of the buffer layers
     bf_layer_loc_table = ['N_','S_','E_','W_','NE','NW','SE','SW']
@@ -378,7 +382,11 @@ if __name__ == "__main__":
     data = {}
 
     #extract the data for the interior points
-    data['interior'] = extract_interior_data(folder_path)
+    sizes_filename = folder_path+'/interior_sizes.dat'
+    nodes_filename = folder_path+'/interior_nodes.dat'
+    data['interior'] = extract_interior_data(
+        sizes_filename,
+        nodes_filename)
 
     #extract the data of the buffer layers
     bf_layer_loc_table = ['N_','S_','E_','W_','NE','NW','SE','SW']
@@ -416,7 +424,11 @@ if __name__ == "__main__":
     data = {}
     
     #extract the data for the interior points
-    data['interior'] = extract_interior_data(folder_path)
+    sizes_filename = folder_path+'/interior_sizes.dat'
+    nodes_filename = folder_path+'/interior_nodes.dat'
+    data['interior'] = extract_interior_data(
+        sizes_filename,
+        nodes_filename)
     
     #extract the data of the buffer layers
     bf_layer_loc_table = ['N_','S_','E_','W_','NE','NW','SE','SW']
@@ -445,6 +457,47 @@ if __name__ == "__main__":
     fig3.canvas.set_window_title("New gridpoints test")
     
     
+    #test the get_local_coord procedure
+    #=================================================================
+    
+    #extract data for the interior points and the buffer layers
+    #-----------------------------------------------------------------
+    #data container
+    data = {}
+    
+    #extract the data for the interior points
+    sizes_filename = folder_path+'/interior_sizes4.dat'
+    nodes_filename = folder_path+'/interior_nodes4.dat'
+    data['interior'] = extract_interior_data(
+        sizes_filename,
+        nodes_filename)
+    
+    #extract the data of the buffer layers
+    bf_layer_loc_table = ['N_','S_','E_','W_','NE','NW','SE','SW']
+    suffix_files={}
+    suffix_files['sizes']  ='_sizes4.dat'
+    suffix_files['nodes']  ='_nodes4.dat'
+    suffix_files['grdptid']='_grdpt_id4.dat'
+    
+    for bf_layer_loc in bf_layer_loc_table:
+        data[bf_layer_loc] = extract_bf_data(folder_path,
+                                             suffix_files,
+                                             bf_layer_loc)
+    
+    #create the large matrix containing the data for the gridpoint id
+    lm_grdptid = create_matrix_with_all_bf_layers(data,
+                                                  grdptid_type)
+    
+    #create the large matrix containing the data for the nodes
+    lm_nodes = create_matrix_with_all_bf_layers(data,
+                                                nodes_type)
+    
+    #display
+    #-----------------------------------------------------------------
+    fig4, ax4 = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
+                                                          lm_grdptid)
+    fig4.canvas.set_window_title("General to local coords")
+        
     #show all
     plt.show()
     

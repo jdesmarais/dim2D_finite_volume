@@ -22,7 +22,9 @@
      $                                       print_grdpts_id,
      $                                       print_sizes
 
-        use parameters_kind, only : ikind, rkind
+        use parameters_constant     , only : N,S,E,W,N_W,N_E,S_E,S_W
+        use parameters_input        , only : nx,ny,bc_size
+        use parameters_kind         , only : ikind, rkind
 
         private
         public :: bf_layer
@@ -54,6 +56,7 @@
 
           contains
 
+          procedure, pass :: get_local_coord
           procedure, pass :: allocate_bf_layer   => allocate_bf_layer_proc
           procedure, pass :: reallocate_bf_layer => reallocate_bf_layer_proc
 
@@ -66,6 +69,70 @@
 
         contains
 
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine giving the local coordinates in the
+        !> buffer layer considering the general coordinates
+        !> compared to the interior nodes
+        !
+        !> @date
+        !> 11_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables and the integer identifying the
+        !> correspondance between the buffer layer and the
+        !> interior grid points
+        !
+        !>@param general_coord
+        !> table of integers encapsulating the general
+        !> coordinates
+        !--------------------------------------------------------------
+        function get_local_coord(this, general_coord) result(local_coord)
+
+          implicit none
+
+          class(bf_layer)             , intent(in) :: this
+          integer(ikind), dimension(2), intent(in) :: general_coord
+          integer(ikind), dimension(2)             :: local_coord
+
+          select case(this%localization)
+            case(N)
+               local_coord(1) = general_coord(1) - this%alignment(1,1) + bc_size + 1
+               local_coord(2) = general_coord(2) - ny + bc_size
+            case(S)
+               local_coord(1) = general_coord(1) - this%alignment(1,1) + bc_size + 1
+               local_coord(2) = general_coord(2) + size(this%nodes,2)  - bc_size
+            case(E)
+               local_coord(1) = general_coord(1) - nx + bc_size
+               local_coord(2) = general_coord(2) - this%alignment(2,1) + bc_size + 1
+            case(W)
+               local_coord(1) = general_coord(1) + size(this%nodes,1) - bc_size
+               local_coord(2) = general_coord(2) - this%alignment(2,1) + bc_size + 1
+            case(N_E)
+               local_coord(1) = general_coord(1) - nx + bc_size
+               local_coord(2) = general_coord(2) - ny + bc_size
+            case(N_W)
+               local_coord(1) = general_coord(1) + size(this%nodes,1) - bc_size
+               local_coord(2) = general_coord(2) - ny + bc_size
+            case(S_E)
+               local_coord(1) = general_coord(1) - nx + bc_size
+               local_coord(2) = general_coord(2) + size(this%nodes,2) - bc_size
+            case(S_W)
+               local_coord(1) = general_coord(1) + size(this%nodes,1) - bc_size
+               local_coord(2) = general_coord(2) + size(this%nodes,2) - bc_size
+            case default
+               print '(''bf_layer_class'')'
+               print '(''get_local_coord'')'
+               print '(''localization not recognized'',I2)', this%localization
+               stop '(was the buffer layer initialized ?)'
+          end select               
+
+        end function get_local_coord
+        
 
         !> @author
         !> Julien L. Desmarais

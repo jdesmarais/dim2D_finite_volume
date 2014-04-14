@@ -19,7 +19,7 @@
         use bf_sublayer_class  , only : bf_sublayer
         use bf_mainlayer_class , only : bf_mainlayer
         use parameters_constant, only : N,S,E,W,N_E,N_W,S_E,S_W
-        use parameters_input   , only : nx,ny,ne
+        use parameters_input   , only : nx,ny,ne,bc_size
         use parameters_kind    , only : rkind
 
         implicit none
@@ -30,7 +30,6 @@
 
 
         logical, parameter :: debug = .true.    
-
 
 
         !> @class bf_mainlayer_pointer
@@ -46,38 +45,49 @@
         end type bf_mainlayer_pointer
 
 
-
         !> @class interface_abstract
         !> class encapsulating the bf_layer/interior interface
         !> object but only its main attributes are implemented
-        !>
+        !
         !> @param N_layers
         !> allocatable table which contains the different
         !> sublayers for the north buffer layer
-        !>
+        !
         !> @param S_layers
         !> allocatable table which contains the different
         !> sublayers for the south buffer layer
-        !>
+        !
         !> @param E_layers
         !> allocatable table which contains the different
         !> sublayers for the east buffer layer
-        !>
+        !
         !> @param W_layers
         !> allocatable table which contains the different
         !> sublayers for the west buffer layer
-        !>
+        !
         !> @param NW_layer
         !> buffer layer representing the NW corner
-        !>
+        !
         !> @param NE_layer
         !> buffer layer representing the NE corner
-        !>
+        !
         !> @param SW_layer
         !> buffer layer representing the SW corner
-        !>
+        !
         !> @param SE_layer
         !> buffer layer representing the SE corner
+        !
+        !> @param ini
+        !> initialize the interface by nullifying all the 
+        !> pointers
+        !
+        !> @param update_mainlayers_pointers
+        !> update the pointers to the main layers of the
+        !> interface
+        !
+        !> @param add_sublayer
+        !> add a new sublayer to the main layer identified
+        !> by its cardinal coordinate
         !---------------------------------------------------------------
         type :: interface_abstract
 
@@ -98,9 +108,6 @@
           procedure, pass :: ini
           procedure, pass :: update_mainlayers_pointers
           procedure, pass :: add_sublayer
-
-          !procedure, pass :: allocate_bf_mainlayer
-          !procedure, pass :: get_bf_layer
 
         end type interface_abstract
 
@@ -288,6 +295,189 @@
 
         end function add_sublayer
 
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine updating the interface pointers
+        !> to the main layers
+        !
+        !> @date
+        !> 11_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> interface_abstract class encapsulating the pointers
+        !> to the buffer main layers
+        !
+        !>@param mainlayer_id
+        !> integer identifying the main layer
+        !
+        !>@param alignment
+        !> table if integers identifying the position of the buffer layer
+        !> compared to the interior nodes table
+        !
+        !>@param added_sublayer
+        !> pointer to the newly added sublayer
+        !--------------------------------------------------------------
+        function get_sublayer(this, general_coord, local_coord) result(sublayer)
+
+          implicit none
+
+          class(interface_abstract)   , intent(in)  :: this
+          integer(ikind), dimension(2), intent(in)  :: general_coord
+          integer(ikind), dimension(2), intent(out) :: local_coord
+          type(bf_sublayer), pointer                :: sublayer
+
+
+          integer                     :: mainlayer_id
+          type(bf_mainlayer), pointer :: mainlayer
+
+
+          !identification of the main layer
+          mainlayer_id = get_mainlayer_id(general_coord)
+
+          !identification of the sublayer
+          if(debug) then
+             if(.not.associated(this%mainlayer_pointers(mainlayer_id))) then
+                print '(''interface_abstract_class'')'
+                print '(''get_sublayer'')'
+                print '(''mainlayer not associated'')'
+                stop 'the coords do not match any existing buffer layer' 
+             end if
+          end if
+          mainlayer => this%mainlayer_pointers(mainlayer_id)
+
+          if(debug) then
+             if(.not.associated(this%mainlayer%head_sublayer)) then
+                print '(''interface_abstract_class'')'
+                print '(''get_sublayer'')'
+                print '(''mainlayer%head not associated'')'
+                stop 'the coords do not match any existing buffer layer'
+             end if
+          end if
+          sublayer => mainlayer%head_sublayer
+
+          select case(mainlayer_id)
+            case(N,S)
+
+               !check if the grid point belongs to the current sublayer
+               grdpt_in_sublayer =
+     $              (general_coord(1).ge.sublayer%element%alignment(1,1)-bc_size)
+     $              .and.(general_coord(1).le.sublayer%element%alignment(1,2))
+
+               !go through the different sublayers
+               do while(.not.grdpt_in_sublayer)
+                  
+                  if(.not.associated(current_sublayer%next)) then
+                     print '(''interface_abstract_class'')'
+                     print '(''get_sublayer'')'
+                     print '(''mainlayer%head not associated'')'
+                     stop 'no match for existing buffer layer' 
+                  end if
+
+                  sublayer => current_sublayer%next
+                  grdpt_in_sublayer = (general_coord(1).ge.sublayer%element%alignment(1,1)-bc_size)
+     $              .and.(general_coord(1).le.sublayer%element%alignment(1,2))
+
+               end do
+
+            case(E,W)
+               
+               !check if the grid point belongs to the current sublayer
+               grdpt_in_sublayer =
+     $              (general_coord(2).ge.sublayer%element%alignment(2,1)-bc_size)
+     $              .and.(general_coord(2).le.sublayer%element%alignment(2,2))
+
+               !go through the different sublayers
+               do while(.not.grdpt_in_sublayer)
+                  
+                  if(.not.associated(current_sublayer%next)) then
+                     print '(''interface_abstract_class'')'
+                     print '(''get_sublayer'')'
+                     print '(''mainlayer%head not associated'')'
+                     stop 'no match for existing buffer layer' 
+                  end if
+
+                  sublayer => current_sublayer%next
+                  grdpt_in_sublayer = (general_coord(2).ge.sublayer%element%alignment(2,1)-bc_size)
+     $              .and.(general_coord(2).le.sublayer%element%alignment(2,2))
+
+               end do
+
+          end select
+
+          !compute the local coordinates
+          local_coord = sublayer%element%get_local_coord(general_coord)
+
+        end function get_sublayer
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine converting general coordinates into
+        !> the main layer ID (N,S,E,W,N_E,N_W,S_E,S_W)
+        !
+        !> @date
+        !> 11_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param general_coord
+        !> integer table giving the general coordinates
+        !
+        !>@param mainlayer_id
+        !> main layer cardinal coordinates
+        !--------------------------------------------------------------
+        function get_mainlayer_id(general_coord) result(mainlayer_id)
+
+          implicit none
+
+          integer(ikind), dimension(2), intent(in) :: general_coord
+          integer                                  :: mainlayer_id
+
+          if(general_coord(2).lt.1) then
+             if(general_coord(1).lt.1) then
+                mainlayer_id = S_W
+             else
+                if(general_coord(1).le.ny) then
+                   mainlayer_id = S
+                else
+                   mainlayer_id = S_E
+                end if
+             end if
+
+          else
+             if(general_coord(2).le.ny) then
+                if(general_coord(1).lt.1) then
+                   mainlayer_id = W
+                else
+                   if(general_coord(1).le.nx) then
+                      mainlayer_id = interior
+                      print '(''interface_abstract_class'')'
+                      print '(''get_mainlayer_id'')'
+                      print '(''main_layer_id = interior'')'
+                      stop 'the interior should not be access this way'
+                   else
+                      main_layer_id = E
+                   end if
+                end if
+                      
+             else
+                if(general_coord(1).lt.1) then
+                   mainlayer_id = N_W
+                else
+                   if(general_coord(1).le.nx) then
+                      mainlayer_id = N
+                   else
+                      mainlayer_id = N_E
+                   end if
+                end if
+
+             end if
+          end if
+
+        end function get_mainlayer_id
 
 c$$$        function get_bf_layer(this,mainlayer_id, sublayer_id) result(pointer_to_bf_layer)
 c$$$

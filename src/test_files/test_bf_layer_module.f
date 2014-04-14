@@ -13,6 +13,7 @@
      $       bf_layer_test_allocation,
      $       bf_layer_test_reallocation,
      $       bf_layer_test_update_grdpts,
+     $       test_bf_layer_local_coord,
      $       ini_nodes,
      $       ini_alignment_table,
      $       ini_neighbors_table
@@ -220,5 +221,52 @@
           test_neighbors(3,:) = [.true.,.true.,.true.,.true.]
           
         end subroutine ini_neighbors_table
+
+
+        subroutine test_bf_layer_local_coord(
+     $     bf_layer_tested,
+     $     nodes,
+     $     general_coord,
+     $     sizes_filename,
+     $     nodes_filename,
+     $     grdid_filename)
+
+          implicit none
+
+          type(bf_layer)                  , intent(inout) :: bf_layer_tested
+          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
+          integer(ikind), dimension(2)    , intent(in)    :: general_coord
+          character(*)                    , intent(in)    :: sizes_filename
+          character(*)                    , intent(in)    :: nodes_filename
+          character(*)                    , intent(in)    :: grdid_filename
+
+          integer(ikind) :: i,j,k
+          real(rkind)    :: id
+          integer(ikind), dimension(2) :: local_coord
+
+          
+          !re-initialize the nodes of the buffer layer tested
+          do k=1, ne
+             do j=1, size(bf_layer_tested%nodes,2)
+                do i=1, size(bf_layer_tested%nodes,1)
+                   bf_layer_tested%nodes(i,j,k) = 1.0
+                end do
+             end do
+          end do
+
+          !print the general coordinate tested in the nodes
+          !and the buffer layer
+          id = bf_layer_tested%localization/10.0
+          nodes(general_coord(1), general_coord(2), 1) = id
+          local_coord = bf_layer_tested%get_local_coord(general_coord)
+          bf_layer_tested%nodes(local_coord(1),local_coord(2),1) = id
+
+          !print tables
+          call bf_layer_tested%print_sizes(sizes_filename)
+          call bf_layer_tested%print_nodes(nodes_filename)
+          call bf_layer_tested%print_grdpts_id(grdid_filename)
+
+        end subroutine test_bf_layer_local_coord
+
 
       end module test_bf_layer_module

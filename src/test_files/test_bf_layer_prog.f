@@ -10,6 +10,7 @@
      $                                            bf_layer_test_allocation,
      $                                            bf_layer_test_reallocation,
      $                                            bf_layer_test_update_grdpts,
+     $                                            test_bf_layer_local_coord,
      $                                            ini_nodes
 
         implicit none
@@ -18,7 +19,7 @@
 
         real(rkind)   , dimension(nx,ny,ne) :: nodes
         integer(ikind), dimension(2,2)      :: alignment
-        integer(ikind)                      :: i
+        integer(ikind)                      :: i,j,k
         integer       , dimension(8)        :: bf_layer_loc
         character(2)  , dimension(8)        :: bf_layer_char
         character(len=21)                   :: sizes_filename, nodes_filename, grdid_filename
@@ -26,6 +27,7 @@
         logical       , dimension(4)        :: neighbors
         integer(ikind), dimension(2,2)      :: selected_grdpts
         integer       , dimension(2)        :: match_table
+        integer(ikind), dimension(2)        :: general_coord
 
         integer, dimension(8,2,2) :: test_border_changes
         integer, dimension(8,2,2) :: test_selected_grdpts
@@ -113,13 +115,50 @@
      $          sizes_filename,
      $          nodes_filename,
      $          grdid_filename)
+
+        end do
+           
+
+
+        !test the local coordinates
+        !--------------------------------
+        !re-initialize the interior nodes
+        do k=1, ne
+           do j=1, ny
+              do i=1, nx
+                 nodes(i,j,k) = 1.0
+              end do
+           end do
+        end do
+
+        !test on all the buffer layers
+        do i=1, size(bf_layer_loc,1)
+
+           write(sizes_filename,'(A2,''_sizes4.dat'')') bf_layer_char(i)
+           write(nodes_filename,'(A2,''_nodes4.dat'')') bf_layer_char(i)
+           write(grdid_filename,'(A2,''_grdpt_id4.dat'')') bf_layer_char(i)
+
+           call ini_general_coord(
+     $          table_bf_layer_tested(i),
+     $          general_coord)
+
+           call test_bf_layer_local_coord(
+     $          table_bf_layer_tested(i),
+     $          nodes,
+     $          general_coord,
+     $          sizes_filename,
+     $          nodes_filename,
+     $          grdid_filename)
            
         end do
 
+        !for the test local coordinates: the nodes should be
+        !printed once all the buffer layers were tested
+        call print_sizes(nodes,'interior_sizes4.dat')
+        call print_nodes(nodes,'interior_nodes4.dat')
+
 
         contains
-
-        
 
 
         subroutine ini_border_changes(border_changes)
@@ -217,5 +256,48 @@
           selected_grdpts(S_W,2,2) = 2
 
         end subroutine ini_selected_grdpts
+
+      
+        subroutine ini_general_coord(bf_layer_tested, general_coord)
+
+          implicit none
+
+          type(bf_layer)              , intent(in)  :: bf_layer_tested
+          integer(ikind), dimension(2), intent(out) :: general_coord
+
+          select case(bf_layer_tested%localization)
+            case(N)
+               general_coord(1) = bf_layer_tested%alignment(1,1)
+               general_coord(2) = ny-1
+            case(S)
+               general_coord(1) = bf_layer_tested%alignment(1,1)
+               general_coord(2) = 2
+            case(E)
+               general_coord(1) = nx-1
+               general_coord(2) = bf_layer_tested%alignment(1,2)
+            case(W)
+               general_coord(1) = 2
+               general_coord(2) = bf_layer_tested%alignment(1,2)
+            case(N_E)
+               general_coord(1) = nx-1
+               general_coord(2) = ny-1
+            case(N_W)
+               general_coord(1) = 2
+               general_coord(2) = ny-1
+            case(S_E)
+               general_coord(1) = nx-1
+               general_coord(2) = 2
+            case(S_W)
+               general_coord(1) = 2
+               general_coord(2) = 2
+            case default
+               print '(''test_bf_layer_prog'')'
+               print '(''ini_general_coord'')'
+               print '(''localization not recognized:'',I2)',
+     $              bf_layer_tested%localization
+               stop 'was the buffer layer initialized ?'
+          end select
+
+        end subroutine ini_general_coord
 
       end program test_bf_layer_prog
