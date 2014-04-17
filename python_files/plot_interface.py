@@ -269,7 +269,7 @@ def fill_bf_layer_data(
     sublayer,
     suffix_size,
     suffix_nodes,
-    suffix_grpdtid,
+    suffix_grdptid,
     interspace,
     bf_tmp_size_x,
     bf_tmp_size_y,

@@ -209,6 +209,13 @@
         !> table if integers identifying the position of the buffer layer
         !> compared to the interior nodes table
         !
+        !>@param nodes
+        !> table of the interior domain grid points
+        !
+        !>@param neighbors
+        !> table identifying the neighbors for the allocation of the
+        !> added sublayer
+        !
         !>@param added_sublayer
         !> pointer to the newly added sublayer
         !--------------------------------------------------------------
@@ -319,104 +326,148 @@
         !> interface_abstract class encapsulating the pointers
         !> to the buffer main layers
         !
-        !>@param mainlayer_id
-        !> integer identifying the main layer
+        !>@param general_coord
+        !> table giving the general coordinates of the point analyzed
         !
-        !>@param alignment
-        !> table if integers identifying the position of the buffer layer
-        !> compared to the interior nodes table
+        !>@param local_coord
+        !> table giving the local coordinates of the point analyzed
+        !> in the corresponding sublayer
         !
-        !>@param added_sublayer
-        !> pointer to the newly added sublayer
+        !>@param tolerance_i
+        !> integer indicating how far the gridpoint can be from the
+        !> closest sublayer to be considered inside
+        !
+        !>@param sublayer
+        !> pointer to the sublayer matching the general coordinates
+        !> of the grid point
         !--------------------------------------------------------------
-        function get_sublayer(this, general_coord, local_coord) result(sublayer)
+        function get_sublayer(
+     $     this,
+     $     general_coord,
+     $     local_coord,
+     $     tolerance_i)
+     $     result(sublayer)
 
           implicit none
 
           class(interface_abstract)   , intent(in)  :: this
           integer(ikind), dimension(2), intent(in)  :: general_coord
           integer(ikind), dimension(2), intent(out) :: local_coord
+          integer       , optional    , intent(in)  :: tolerance_i
           type(bf_sublayer), pointer                :: sublayer
 
 
           integer                     :: mainlayer_id
           type(bf_mainlayer), pointer :: mainlayer
+          integer                     :: tolerance
           logical                     :: grdpt_in_sublayer
 
-          !identification of the main layer
+          !< identification of the main layer
           mainlayer_id = get_mainlayer_id(general_coord)
 
-          !identification of the sublayer
-          if(debug) then
+          !< if the general coordinates match the interior,
+          !> no sublayer matches the general coordinates
+          !> and the sublayer pointer is nullified
+          if(mainlayer_id.eq.interior) then
+             nullify(sublayer)
+
+          !< otherwise, the mainlayers are analyzed
+          else
+
+             !< check that the main layer exists
+             !< if it does not exist, no sublayer can be saved inside
+             !< and the pointer to the sublayer is nullified
              if(.not.associated(this%mainlayer_pointers(mainlayer_id)%ptr)) then
-                print '(''interface_abstract_class'')'
-                print '(''get_sublayer'')'
-                print '(''mainlayer not associated'')'
-                stop 'the coords do not match any existing buffer layer' 
+                nullify(sublayer)
+                  
+             !< if the main layer exists, the sublayers saved inside are
+             !< checked to decide whether the grid point asked belongs to
+             !< one of them or not
+             else
+                mainlayer => this%mainlayer_pointers(mainlayer_id)%ptr
+             
+                !< check if sublayers are saved inside the mainlayer
+                !> if no sublayers are saved inside the mainlayer,
+                !> no existing sublayer can match the general coord
+                !> and so the pointer to sublayer is nullified
+                if(.not.associated(mainlayer%head_sublayer)) then
+                   nullify(sublayer)
+             
+                !< otherwise, the sublayer corresponding to the general
+                !> coordinates is searched by going through the different
+                !> element of the doubled chained list
+                else
+                   sublayer => mainlayer%head_sublayer
+             
+             	!< processing the tolerance for matching a sublayer
+             	!> if no tolerence is provided, the default option is 0
+             	if(.not.present(tolerance_i)) then
+             	   tolerance=0
+             	else
+                   tolerance=tolerance_i
+                end if
+             	
+                   !< if the mainlayer investigated is N,S,E or W, there can
+                   !> be sublayers to be investigated, otherwise, there are no
+                   !> several sublayers in the main layers for NE,NW,SE,SW and
+                   !> local coordinates can be directly investigated
+             	select case(mainlayer_id)
+             	  case(N,S)
+             	
+             	     !check if the grid point belongs to the current sublayer
+             	     grdpt_in_sublayer =
+     $                    (general_coord(1).ge.(sublayer%element%alignment(1,1)-bc_size-tolerance))
+     $                    .and.(general_coord(1).le.(sublayer%element%alignment(1,2)+bc_size+tolerance))
+             	
+             	     !go through the different sublayers
+             	     do while(.not.grdpt_in_sublayer)
+             	        
+             	        !if no matching sublayer can be found
+             	        !nullify the corresponding pointer
+             	        if(.not.associated(sublayer%next)) then
+             	           nullify(sublayer)
+             	           exit
+             	        end if
+             	
+             	        sublayer => sublayer%next
+             	        grdpt_in_sublayer = (general_coord(1).ge.(sublayer%element%alignment(1,1)-bc_size-tolerance))
+     $                       .and.(general_coord(1).le.(sublayer%element%alignment(1,2)+bc_size+tolerance))
+             	
+             	     end do
+             	
+             	  case(E,W)
+             	     
+             	     !check if the grid point belongs to the current sublayer
+             	     grdpt_in_sublayer =
+     $                    (general_coord(2).ge.(sublayer%element%alignment(2,1)-bc_size-tolerance))
+     $                    .and.(general_coord(2).le.(sublayer%element%alignment(2,2)+bc_size+tolerance))
+             	
+             	     !go through the different sublayers
+             	     do while(.not.grdpt_in_sublayer)
+             	        
+             	        !if no matching sublayer can be found
+             	        !nullify the corresponding pointer
+             	        if(.not.associated(sublayer%next)) then
+             	           nullify(sublayer)
+             	           exit
+             	        end if
+             	
+             	        sublayer => sublayer%next
+             	        grdpt_in_sublayer = (general_coord(2).ge.(sublayer%element%alignment(2,1)-bc_size-tolerance))
+     $                       .and.(general_coord(2).le.(sublayer%element%alignment(2,2)+bc_size+tolerance))
+             	
+             	     end do
+             	end select
+             
+                end if
              end if
           end if
-          mainlayer => this%mainlayer_pointers(mainlayer_id)%ptr
 
-          if(debug) then
-             if(.not.associated(mainlayer%head_sublayer)) then
-                print '(''interface_abstract_class'')'
-                print '(''get_sublayer'')'
-                print '(''mainlayer%head not associated'')'
-                stop 'the coords do not match any existing buffer layer'
-             end if
-          end if
-          sublayer => mainlayer%head_sublayer
-
-          select case(mainlayer_id)
-            case(N,S)
-
-               !check if the grid point belongs to the current sublayer
-               grdpt_in_sublayer =
-     $              (general_coord(1).ge.(sublayer%element%alignment(1,1)-bc_size))
-     $              .and.(general_coord(1).le.(sublayer%element%alignment(1,2)+bc_size))
-
-               !go through the different sublayers
-               do while(.not.grdpt_in_sublayer)
-                  
-                  if(.not.associated(sublayer%next)) then
-                     print '(''interface_abstract_class'')'
-                     print '(''get_sublayer'')'
-                     print '(''mainlayer%head not associated'')'
-                     stop 'no match for existing buffer layer' 
-                  end if
-
-                  sublayer => sublayer%next
-                  grdpt_in_sublayer = (general_coord(1).ge.(sublayer%element%alignment(1,1)-bc_size))
-     $              .and.(general_coord(1).le.(sublayer%element%alignment(1,2)+bc_size))
-
-               end do
-
-            case(E,W)
-               
-               !check if the grid point belongs to the current sublayer
-               grdpt_in_sublayer =
-     $              (general_coord(2).ge.(sublayer%element%alignment(2,1)-bc_size))
-     $              .and.(general_coord(2).le.(sublayer%element%alignment(2,2)+bc_size))
-
-               !go through the different sublayers
-               do while(.not.grdpt_in_sublayer)
-                  
-                  if(.not.associated(sublayer%next)) then
-                     print '(''interface_abstract_class'')'
-                     print '(''get_sublayer'')'
-                     print '(''mainlayer%head not associated'')'
-                     stop 'no match for existing buffer layer' 
-                  end if
-
-                  sublayer => sublayer%next
-                  grdpt_in_sublayer = (general_coord(2).ge.(sublayer%element%alignment(2,1)-bc_size))
-     $              .and.(general_coord(2).le.(sublayer%element%alignment(2,2)+bc_size))
-
-               end do
-          end select
-
-          !compute the local coordinates
-          local_coord = sublayer%element%get_local_coord(general_coord)
+          !< if a sublayer matching the general coordinates was found
+          !> compute the local coordinates in this sublayer
+          if(associated(sublayer)) then
+             local_coord = sublayer%element%get_local_coord(general_coord)
+          end if           
 
         end function get_sublayer
 
@@ -444,11 +495,11 @@
           integer(ikind), dimension(2), intent(in) :: general_coord
           integer                                  :: mainlayer_id
 
-          if(general_coord(2).lt.1) then
-             if(general_coord(1).lt.1) then
+          if(general_coord(2).le.bc_size) then
+             if(general_coord(1).le.bc_size) then
                 mainlayer_id = S_W
              else
-                if(general_coord(1).le.ny) then
+                if(general_coord(1).le.(nx-bc_size)) then
                    mainlayer_id = S
                 else
                    mainlayer_id = S_E
@@ -456,26 +507,22 @@
              end if
 
           else
-             if(general_coord(2).le.ny) then
-                if(general_coord(1).lt.1) then
+             if(general_coord(2).le.(ny-bc_size)) then
+                if(general_coord(1).le.bc_size) then
                    mainlayer_id = W
                 else
-                   if(general_coord(1).le.nx) then
+                   if(general_coord(1).le.(nx-bc_size)) then
                       mainlayer_id = interior
-                      print '(''interface_abstract_class'')'
-                      print '(''get_mainlayer_id'')'
-                      print '(''main_layer_id = interior'')'
-                      stop 'the interior should not be access this way'
                    else
                       mainlayer_id = E
                    end if
                 end if
                       
              else
-                if(general_coord(1).lt.1) then
+                if(general_coord(1).le.bc_size) then
                    mainlayer_id = N_W
                 else
-                   if(general_coord(1).le.nx) then
+                   if(general_coord(1).le.(nx-bc_size)) then
                       mainlayer_id = N
                    else
                       mainlayer_id = N_E
