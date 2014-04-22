@@ -114,6 +114,7 @@
         subroutine bf_layer_test_reallocation(
      $     bf_layer_tested,
      $     border_changes,
+     $     nodes,
      $     match_table,
      $     sizes_filename,
      $     nodes_filename,
@@ -123,6 +124,7 @@
 
           class(bf_layer)                  , intent(inout) :: bf_layer_tested
           integer     , dimension(2,2)     , intent(in)    :: border_changes
+          real(rkind) , dimension(nx,ny,ne), intent(in)    :: nodes
           integer     , dimension(2)       , intent(inout) :: match_table
           character(*)                     , intent(in)    :: sizes_filename
           character(*)                     , intent(in)    :: nodes_filename
@@ -130,6 +132,7 @@
 
           call bf_layer_tested%reallocate_bf_layer(
      $         border_changes,
+     $         nodes,
      $         match_table)
           call bf_layer_tested%print_sizes(sizes_filename)
           call bf_layer_tested%print_nodes(nodes_filename)

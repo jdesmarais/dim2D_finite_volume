@@ -94,6 +94,7 @@
            call bf_layer_test_reallocation(
      $          table_bf_layer_tested(i),
      $          border_changes,
+     $          nodes,
      $          match_table,
      $          sizes_filename,
      $          nodes_filename,
@@ -169,8 +170,8 @@
 
           integer, dimension(:,:,:), intent(inout) :: border_changes
 
-          border_changes(N,1,1) = 0
-          border_changes(N,1,2) = 0
+          border_changes(N,1,1) = -1
+          border_changes(N,1,2) = 1
           border_changes(N,2,1) = 0
           border_changes(N,2,2) = 2
 
@@ -181,13 +182,13 @@
 
           border_changes(E,1,1) = 0
           border_changes(E,1,2) = 1
-          border_changes(E,2,1) = 0
-          border_changes(E,2,2) = 0
+          border_changes(E,2,1) = -1
+          border_changes(E,2,2) = 1
 
           border_changes(W,1,1) = -1
           border_changes(W,1,2) = 0
-          border_changes(W,2,1) = 0
-          border_changes(W,2,2) = 0
+          border_changes(W,2,1) = -1
+          border_changes(W,2,2) = 2
 
           border_changes(N_E,1,1) = 0
           border_changes(N_E,1,2) = 2
@@ -204,10 +205,10 @@
           border_changes(S_E,2,1) = -2
           border_changes(S_E,2,2) = 0
 
-           border_changes(S_W,1,1) = -1
-           border_changes(S_W,1,2) = 0
-           border_changes(S_W,2,1) = -1
-           border_changes(S_W,2,2) = 0
+          border_changes(S_W,1,1) = -1
+          border_changes(S_W,1,2) = 0
+          border_changes(S_W,2,1) = -1
+          border_changes(S_W,2,2) = 0
 
         end subroutine ini_border_changes
 

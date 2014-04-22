@@ -23,7 +23,7 @@
      $                                       print_sizes
 
         use parameters_constant     , only : N,S,E,W,N_W,N_E,S_E,S_W
-        use parameters_input        , only : nx,ny,bc_size
+        use parameters_input        , only : nx,ny,ne,bc_size
         use parameters_kind         , only : ikind, rkind
 
         private
@@ -219,15 +219,24 @@
         !>
         !> e.g. : new_table(i,j) = prev_table(i_match+i,j_match+j)
         !--------------------------------------------------------------
-        subroutine reallocate_bf_layer_proc(this, border_changes, match_table)
+        subroutine reallocate_bf_layer_proc(
+     $     this,
+     $     border_changes,
+     $     nodes,
+     $     match_table)
         
           implicit none
 
-          class(bf_layer)         , intent(inout) :: this
-          integer, dimension(2,2) , intent(in)    :: border_changes
-          integer, dimension(2)   , intent(out)   :: match_table
+          class(bf_layer)                 , intent(inout) :: this
+          integer, dimension(2,2)         , intent(in)    :: border_changes
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+          integer, dimension(2)           , intent(out)   :: match_table
 
-          call reallocate_bf_layer(this, border_changes, match_table)
+          call reallocate_bf_layer(
+     $         this,
+     $         border_changes,
+     $         nodes,
+     $         match_table)
 
         end subroutine reallocate_bf_layer_proc
 

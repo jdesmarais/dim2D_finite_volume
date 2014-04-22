@@ -26,7 +26,8 @@
 
 
         private
-        public :: first_exchange_with_interior
+        public :: first_exchange_with_interior,
+     $            copy_interior_data_after_reallocation
 
         contains
 
@@ -51,14 +52,12 @@
         !> correspondance between the buffer layer and the
         !> interior grid points
         !
-        !>@param alignment
-        !> table of integers characterizing the
-        !> correspondance between the interior grid points
-        !> and the buffer layer elements
-        !
         !>@param nodes
         !> table encapsulating the data of the internal
         !> grid points
+        !
+        !>@param list_new_grdpts
+        !> table encapsulating the coordinates of the new grid points
         !--------------------------------------------------------------
         subroutine first_exchange_with_interior(
      $       this,
@@ -271,5 +270,138 @@
           end select          
 
         end subroutine first_exchange_with_interior
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine copying the data from the interior domain
+        !> to the reallocated table
+        !
+        !> @date
+        !> 22_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer_abstract object encapsulating the main
+        !> tables and the integer identifying the
+        !> correspondance between the buffer layer and the
+        !> interior grid points
+        !
+        !>@param alignment
+        !> table of integers characterizing the
+        !> correspondance between the interior grid points
+        !> and the buffer layer elements
+        !
+        !>@param nodes
+        !> table encapsulating the data of the internal
+        !> grid points
+        !--------------------------------------------------------------
+        subroutine copy_interior_data_after_reallocation(
+     $       this,
+     $       nodes,
+     $       border_changes)
+
+          implicit none
+
+          class(bf_layer_abstract)          , intent(inout) :: this
+          real(rkind)   , dimension(:,:,:)  , intent(in)    :: nodes
+          integer(ikind), dimension(2,2)    , intent(in)    :: border_changes
+
+          integer(ikind) :: i,j, i_match, j_match
+          integer        :: k
+
+          !< copy of the interior grid points
+          !> and identification of the new grid
+          !> points
+          select case(this%localization)
+
+            case(N)
+
+               !< copy of grid points from the interior
+               i_match = this%alignment(1,1)-bc_size-1
+               j_match = ny-2*bc_size
+               do k=1, ne
+                  do j=1, 2*bc_size
+                     do i=1, -border_changes(1,1)
+                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
+                     end do
+                  end do
+               end do
+
+               do k=1, ne
+                  do j=1, 2*bc_size
+                     do i=size(this%nodes,1)-border_changes(1,2)+1, size(this%nodes,1)
+                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
+                     end do
+                  end do
+               end do
+
+            case(S)               
+
+               !< copy of grid points from the interior
+               i_match = this%alignment(1,1)-bc_size-1
+               j_match = size(this%nodes,2)-(2*bc_size)
+               do k=1, ne
+                  do j=1, 2*bc_size
+                     do i=1, -border_changes(1,1)
+                        this%nodes(i,j_match+j,k) = nodes(i_match+i,j,k)
+                     end do
+                  end do
+               end do
+
+               do k=1, ne
+                  do j=1, 2*bc_size
+                     do i=size(this%nodes,1)-border_changes(1,2)+1, size(this%nodes,1)
+                        this%nodes(i,j_match+j,k) = nodes(i_match+i,j,k)
+                     end do
+                  end do
+               end do
+               
+            case(E)
+
+               !< copy of grid points from the interior
+               i_match = nx-2*bc_size
+               j_match = this%alignment(2,1)-bc_size-1
+               do k=1, ne
+                  do j=1, -border_changes(2,1)
+                     do i=1, 2*bc_size
+                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
+                     end do
+                  end do
+               end do
+
+               do k=1, ne
+                  do j=size(this%nodes,2)-border_changes(2,2)+1, size(this%nodes,2)
+                     do i=1, 2*bc_size
+                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
+                     end do
+                  end do
+               end do
+
+            case(W)
+
+               !< copy of grid points from the interior
+               i_match = size(this%nodes,1)-(2*bc_size)
+               j_match = this%alignment(2,1)-bc_size-1
+               do k=1, ne
+                  do j=1, -border_changes(2,1)
+                     do i=1, 2*bc_size
+                        this%nodes(i_match+i,j,k) = nodes(i,j_match+j,k)
+                     end do
+                  end do
+               end do
+               
+               do k=1, ne
+                  do j=size(this%nodes,2)-border_changes(2,2)+1, size(this%nodes,2)
+                     do i=1, 2*bc_size
+                        this%nodes(i_match+i,j,k) = nodes(i,j_match+j,k)
+                     end do
+                  end do
+               end do
+
+          end select
+
+        end subroutine copy_interior_data_after_reallocation
 
       end module bf_layer_exchange_module

@@ -15,13 +15,14 @@
       module bf_layer_allocate_module
 
         use bf_layer_abstract_class      , only : bf_layer_abstract
-        use bf_layer_exchange_module     , only : first_exchange_with_interior
+        use bf_layer_exchange_module     , only : first_exchange_with_interior,
+     $                                            copy_interior_data_after_reallocation
         use bf_layer_compute_module      , only : compute_new_grdpts
         use bf_layer_ini_grdptID_module  , only : ini_grdptID
 
         use parameters_bf_layer, only : no_pt, interior_pt, bc_pt
         use parameters_constant, only : N,S,E,W,N_E,N_W,S_E,S_W
-        use parameters_input   , only : ne, bc_size
+        use parameters_input   , only : nx,ny,ne, bc_size
         use parameters_kind    , only : ikind, rkind
 
         implicit none
@@ -31,7 +32,7 @@
      $            reallocate_bf_layer
 
 
-        logical, parameter :: debug = .false.
+        logical, parameter :: debug = .true.
 
         contains
 
@@ -156,14 +157,129 @@
         subroutine reallocate_bf_layer(
      $     this,
      $     border_changes,
+     $     nodes,
      $     match_table)
         
+          implicit none
+
+          class(bf_layer_abstract)        , intent(inout) :: this
+          integer, dimension(2,2)         , intent(in)    :: border_changes
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+          integer, dimension(2)           , intent(out)   :: match_table
+
+
+          !< reallocate and copy the tables
+          call reallocate_and_copy_main_tables(
+     $         this,
+     $         border_changes,
+     $         match_table)
+
+          !< copy the data that can be copied from the
+          !> interior
+          call copy_interior_data_after_reallocation(
+     $         this,
+     $         nodes,
+     $         border_changes)
+        
+        end subroutine reallocate_bf_layer
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine allocating the main tables of the
+        !> buffer layer for the first time
+        !
+        !> @date
+        !> 04_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer_abstract object encapsulating the main
+        !> tables and the integer identifying the
+        !> correspondance between the buffer layer and the
+        !> interior grid points
+        !-------------------------------------------------
+        subroutine allocate_main_tables(this)
+        
+          implicit none
+
+          class(bf_layer_abstract), intent(inout) :: this
+
+
+          integer(ikind), dimension(3) :: size_nodes
+
+
+          !< determine the size of the main tables
+          !> depending on the localization of the
+          !> buffer layer and its alignment with the
+          !> interior
+          select case(this%localization)
+          
+            case(N,S)
+               size_nodes(1) = this%alignment(1,2) - this%alignment(1,1) + 1 + 2*bc_size
+               size_nodes(2) = 2*bc_size+1
+
+            case(E,W)
+               size_nodes(1) = 2*bc_size+1
+               size_nodes(2) = this%alignment(2,2) - this%alignment(2,1) + 1 + 2*bc_size
+
+            case(N_E,N_W,S_E,S_W)
+               size_nodes(1) = 2*bc_size+1
+               size_nodes(2) = 2*bc_size+1
+
+            case default
+               print *, 'bf_layer_allocate_module'
+               print *, 'allocate_main_tables'
+               stop 'localization not recognized'
+
+          end select
+
+          size_nodes(3) = ne
+
+
+          !< allocate the nodes table
+          allocate(this%nodes(
+     $         size_nodes(1),
+     $         size_nodes(2),
+     $         size_nodes(3)))
+
+
+          !< allocate the grdptid table
+          allocate(this%grdpts_id(
+     $         size_nodes(1),
+     $         size_nodes(2)))
+
+        end subroutine allocate_main_tables
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine reallocating the main tables of the
+        !> buffer layer and copy what was in the previous
+        !> tables in the new tables
+        !
+        !> @date
+        !> 22_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer_abstract object encapsulating the main
+        !> tables and the integer identifying the
+        !> correspondance between the buffer layer and the
+        !> interior grid points
+        !-------------------------------------------------
+        subroutine reallocate_and_copy_main_tables(
+     $     this,
+     $     border_changes,
+     $     match_table)
+
           implicit none
 
           class(bf_layer_abstract), intent(inout) :: this
           integer, dimension(2,2) , intent(in)    :: border_changes
           integer, dimension(2)   , intent(out)   :: match_table
-
 
           integer(ikind) :: i,j,k
           integer(ikind) :: i_min, i_max, j_min, j_max
@@ -180,7 +296,7 @@
                   do i=1,2
                      this%alignment(i,j) = this%alignment(i,j) + border_changes(i,j)
                   end do
-               end do
+               end do               
           end select
 
 
@@ -283,10 +399,11 @@
           
           do j=j_min, j_max
 
-             do i=1,i_min-1
-                new_grdptid(i,j) = no_pt
-                if(debug) this%nodes(i,j,1) = 1.0
-             end do
+             if(debug) then
+                do i=1,i_min-1
+                   new_grdptid(i,j) = no_pt
+                end do
+             end if
 
              do i=i_min, i_max
                 new_grdptid(i,j) = this%grdpts_id(
@@ -294,91 +411,24 @@
      $               match_table(2)+j)
              end do
 
-             do i=i_max+1, size(this%nodes,1)
-                new_grdptid(i,j) = no_pt
-                if(debug) this%nodes(i,j,1) = 1.0
-             end do
+             if(debug) then
+                do i=i_max+1, size(this%nodes,1)
+                   new_grdptid(i,j) = no_pt
+                end do
+             end if
 
           end do          
 
-          do j=j_max+1,size(this%nodes,2)
-             do i=1, size(this%nodes,1)
-                new_grdptid(i,j) = no_pt
-                if(debug) this%nodes(i,j,1) = 1.0
+          if(debug) then
+             do j=j_max+1,size(this%nodes,2)
+                do i=1, size(this%nodes,1)
+                   new_grdptid(i,j) = no_pt
+                end do
              end do
-          end do
+          end if
              
           call MOVE_ALLOC(new_grdptid,this%grdpts_id)
-        
-        end subroutine reallocate_bf_layer
 
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> subroutine allocating the main tables of the
-        !> buffer layer for the first time
-        !
-        !> @date
-        !> 04_04_2013 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer_abstract object encapsulating the main
-        !> tables and the integer identifying the
-        !> correspondance between the buffer layer and the
-        !> interior grid points
-        !-------------------------------------------------
-        subroutine allocate_main_tables(this)
-        
-          implicit none
-
-          class(bf_layer_abstract), intent(inout) :: this
-
-
-          integer(ikind), dimension(3) :: size_nodes
-
-
-          !< determine the size of the main tables
-          !> depending on the localization of the
-          !> buffer layer and its alignment with the
-          !> interior
-          select case(this%localization)
-          
-            case(N,S)
-               size_nodes(1) = this%alignment(1,2) - this%alignment(1,1) + 1 + 2*bc_size
-               size_nodes(2) = 2*bc_size+1
-
-            case(E,W)
-               size_nodes(1) = 2*bc_size+1
-               size_nodes(2) = this%alignment(2,2) - this%alignment(2,1) + 1 + 2*bc_size
-
-            case(N_E,N_W,S_E,S_W)
-               size_nodes(1) = 2*bc_size+1
-               size_nodes(2) = 2*bc_size+1
-
-            case default
-               print *, 'bf_layer_allocate_module'
-               print *, 'allocate_main_tables'
-               stop 'localization not recognized'
-
-          end select
-
-          size_nodes(3) = ne
-
-
-          !< allocate the nodes table
-          allocate(this%nodes(
-     $         size_nodes(1),
-     $         size_nodes(2),
-     $         size_nodes(3)))
-
-
-          !< allocate the grdptid table
-          allocate(this%grdpts_id(
-     $         size_nodes(1),
-     $         size_nodes(2)))
-
-        end subroutine allocate_main_tables        
+        end subroutine reallocate_and_copy_main_tables
 
       end module bf_layer_allocate_module
