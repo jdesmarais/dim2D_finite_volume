@@ -211,6 +211,7 @@ $(bf_layer_dir)/bf_layer_allocate_module.o:\
 
 $(bf_layer_dir)/bf_layer_exchange_module.o:\
 	$(bf_layer_dir)/bf_layer_abstract_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
@@ -241,7 +242,21 @@ $(bf_layer_dir)/bf_mainlayer_class.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(param_dir)/parameters_constant.o
 
+$(bf_layer_dir)/bf_layer_path_abstract_class.o:\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(param_dir)/parameters_kind.o
+
+$(bf_layer_dir)/bf_layer_corner_check_module.o:\
+	$(bf_layer_dir)/bf_layer_path_abstract_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
+	$(bf_layer_dir)/interface_abstract_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
 $(bf_layer_dir)/bf_layer_path_class.o:\
+	$(bf_layer_dir)/bf_layer_path_abstract_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/interface_abstract_class.o\
 	$(param_dir)/parameters_input.o\
@@ -304,6 +319,35 @@ test_interface_abstract_prog.o:\
 	test_bf_layer_module.o\
 	test_bf_mainlayer_module.o
 
+test_cases_interface_module.o:\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(bf_layer_dir)/interface_abstract_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+test_cases_path_module.o:\
+	$(bf_layer_dir)/bf_layer_path_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o
+
+interface_print_module.o:\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(bf_layer_dir)/interface_abstract_class.o
+
+test_bf_layer_corner_check_prog.o:\
+	$(bf_layer_dir)/bf_layer_corner_check_module.o\
+	$(bf_layer_dir)/bf_layer_path_class.o\
+	$(bf_layer_dir)/interface_abstract_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	test_bf_layer_module.o\
+	test_cases_interface_module.o\
+	test_cases_path_module.o\
+	interface_print_module.o
 
 test_bf_layer_prog:\
 	parameters_kind.o\
@@ -384,6 +428,7 @@ test_bf_layer_path_prog:\
 	bf_sublayer_class.o\
 	bf_mainlayer_class.o\
 	interface_abstract_class.o\
+	bf_layer_path_abstract_class.o\
 	bf_layer_path_class.o\
 	bf_layer_update_grdpts_module.o\
 	test_bf_layer_module.o
@@ -407,6 +452,31 @@ test_interface_abstract_prog:\
 	bf_layer_update_grdpts_module.o\
 	test_bf_layer_module.o\
 	test_bf_mainlayer_module.o
+
+test_bf_layer_corner_check_prog:\
+	parameters_kind.o\
+	bf_layer_abstract_class.o\
+	parameters_constant.o\
+	parameters_input.o\
+	bf_layer_exchange_module.o\
+	bf_layer_compute_module.o\
+	parameters_bf_layer.o\
+	bf_layer_ini_grdptID_module.o\
+	bf_layer_allocate_module.o\
+	bf_layer_print_module.o\
+	bf_layer_class.o\
+	bf_sublayer_class.o\
+	bf_layer_path_abstract_class.o\
+	bf_mainlayer_class.o\
+	interface_abstract_class.o\
+	bf_layer_corner_check_module.o\
+	bf_layer_path_class.o\
+	bf_layer_update_grdpts_module.o\
+	test_bf_layer_module.o\
+	test_cases_interface_module.o\
+	test_cases_path_module.o\
+	interface_print_module.o
+
 
 #-----------------------------------------------------------------------
 #parameter_dir						

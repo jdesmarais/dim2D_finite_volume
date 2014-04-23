@@ -15,14 +15,15 @@
       !
       !> @date
       ! 16_04_2014 - initial version - J.L. Desmarais
-      !-----------------------------------------------------------------
+      !----------------------------------------------------------------
       module bf_layer_path_class
 
-        use bf_sublayer_class       , only : bf_sublayer
-        use interface_abstract_class, only : interface_abstract
-        use parameters_input        , only : nx,ny,bc_size
-        use parameters_constant     , only : S_W,S_E,N_W,N_E
-        use parameters_kind         , only : ikind
+        use bf_layer_path_abstract_class, only : bf_layer_path_abstract
+        use bf_sublayer_class           , only : bf_sublayer
+        use interface_abstract_class    , only : interface_abstract
+        use parameters_input            , only : nx,ny,ne,bc_size
+        use parameters_constant         , only : S_W,S_E,N_W,N_E
+        use parameters_kind             , only : ikind, rkind
 
         implicit none
 
@@ -73,34 +74,24 @@
         !> table identifying the new position of the buffer layer and
         !> whether an existing buffer layer should be reallocated
         !---------------------------------------------------------------
-        type :: bf_layer_path
-
-          type(bf_sublayer), pointer :: matching_sublayer
-
-          logical :: ends
-          logical :: ends_with_corner
-          integer :: corner_id
-
-          integer(ikind), dimension(:,:), allocatable :: pts
-          integer                                     :: nb_pts
-          logical       , dimension(4)                :: neighbors
-          integer(ikind), dimension(2,2)              :: alignment
+        type, extends(bf_layer_path_abstract) :: bf_layer_path
 
           contains
           
-          procedure, pass          :: ini
-          procedure, pass          :: reinitialize
-          procedure, pass, private :: add_pt_to_path
-          procedure, pass, private :: minimize_path
-
-          procedure, pass, private :: are_pts_far_away
-          procedure, pass, private :: update_alignment
-
-          procedure, pass, private :: analyze_path_first_pt
-          procedure, pass, private :: analyze_path_next_pt
-          procedure, pass          :: analyze_pt
-
-          !procedure, pass          :: process_path
+          procedure,   pass          :: ini
+          procedure,   pass          :: reinitialize
+          procedure,   pass, private :: add_pt_to_path
+          procedure,   pass, private :: minimize_path
+                       
+          procedure,   pass, private :: are_pts_far_away
+          procedure,   pass, private :: are_pts_in_same_mainlayer
+          procedure,   pass, private :: update_alignment
+                       
+          procedure,   pass, private :: analyze_path_first_pt
+          procedure,   pass, private :: analyze_path_next_pt
+          procedure,   pass          :: analyze_pt
+                       
+          !procedure,    pass          :: process_path
 
         end type bf_layer_path
 
@@ -371,29 +362,65 @@
         !> interface_abstract class encapsulating the pointers
         !> to the buffer main layers
         !--------------------------------------------------------------
-        !subroutine process_path(
-     $  !   this,
-     $  !   bc_interior_pt_analyzed,
-     $  !   interface_used)
-        !
-        !  implicit none
-        !
-        !  class(bf_layer_path)        , intent(inout) :: this
-        !  integer(ikind), dimension(2), intent(in)    :: bc_interior_pt_analyzed
-        !  class(interface_abstract)   , intent(in)    :: interface_used
-        !
-        !
-        !  !< only if the path ends, we should consider updating the
-        !  !> buffer layers corresponding to the path
-        !  if(this%ends) then
-        !
-        !     !< if the path stoped at a corner, then we should
-        !     !> consider allocating the corner buffer layer
-        !
-        !  end if
-        !
-        !
-        !end subroutine process_path
+        subroutine process_path(
+     $     this,
+     $     bc_interior_pt_analyzed,
+     $     interface_used,
+     $     nodes)
+        
+          implicit none
+        
+          class(bf_layer_path)            , intent(inout) :: this
+          integer(ikind), dimension(2)    , intent(in)    :: bc_interior_pt_analyzed
+          class(interface_abstract)       , intent(inout) :: interface_used
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+        
+          type(bf_sublayer), pointer :: sublayer_corner
+        
+          !< only if the path ends we should consider updating the
+          !> buffer layers corresponding to the path
+          if(this%ends) then
+        
+             !< if the path stoped at a corner, then we should
+             !> consider allocating the corner buffer layer
+             !> and maybe the neighboring buffer layers around
+             !> the corner
+             if(this%ends_with_corner) then
+
+                !< allocate the corner buffer layer
+                sublayer_corner => interface_used%add_sublayer(
+     $               this%corner_id,
+     $               this%alignment,
+     $               nodes,
+     $               this%neighbors)
+
+                !< look for the neighbors sublayers
+                !> take into account previous path if
+                !> there are points inside
+                !if(this%nb_pts.gt.0) then
+                !   call check_corner_bf_layer_neighbors(
+     $          !        this%corner_id,
+     $          !        nodes,
+     $          !        interface_used,
+     $          !        this)
+                !!< otherwise, do not take into account
+                !!> the current path
+                !else
+                !   call check_corner_bf_layer_neighbors(
+     $          !        this%corner_id,
+     $          !        nodes,
+     $          !        interface_used)
+                !end if
+
+             end if
+
+
+             stop 'need to be implemented'
+
+          end if
+        
+        
+        end subroutine process_path
 
 
         !> @author
@@ -489,13 +516,19 @@
           integer(ikind), dimension(2) :: local_coord
 
 
+          !< get the mainlayer id of the path
+          this%mainlayer = interface_used%get_mainlayer_id(
+     $         bc_interior_pt_analyzed)
+
+
           !< check if there is already an exiting buffer layer in which
           !> this bc_interior_pt could fit: if there is a matching layer,
           !> the pointer is associated to the sublayer matching the general
           !> coordinates. Otherwise, the pointer is nullified
           this%matching_sublayer => interface_used%get_sublayer(
      $         bc_interior_pt_analyzed, local_coord,
-     $         tolerance_pts_same_sublayer)
+     $         tolerance_i=tolerance_pts_same_sublayer,
+     $         mainlayer_id_i=this%mainlayer)
 
 
           !< initialize the alignment with the position of the
@@ -556,68 +589,91 @@
 
           
           integer(ikind), dimension(2) :: local_coord
+          logical :: same_mainlayer
           logical :: pts_far_away
           type(bf_sublayer), pointer :: sublayer_new_pt
 
 
-          !< check if there is already an exiting buffer layer associated
-          !> with the current path
-          if(associated(this%matching_sublayer)) then
-             
-             
-             !< check if the current point is not far away from the
-             !> previous point analyzed
-             pts_far_away = this%are_pts_far_away(
-     $            bc_interior_pt_analyzed,
-     $            tolerance_pts_same_path)
+          !< check whether the bc_interior_pt analyzed belongs to the same
+          !> mainlayer as the previous path
+          same_mainlayer = this%are_pts_in_same_mainlayer(
+     $         bc_interior_pt_analyzed,
+     $         interface_used)
 
-             !< if the points are too far away, we need to check
-             !> whether they could belong to the same sublayer
-             if(pts_far_away) then
+
+          !< if they are in the same layer, we check whether the points are
+          !> too far away and are still part of the same sublayer
+          if(same_mainlayer) then
+
+             !< check if there is already an exiting buffer layer associated
+             !> with the current path
+             if(associated(this%matching_sublayer)) then
                 
-                sublayer_new_pt => interface_used%get_sublayer(
+                
+                !< check if the current point is not far away from the
+                !> previous point analyzed
+                pts_far_away = this%are_pts_far_away(
      $               bc_interior_pt_analyzed,
-     $               local_coord,
-     $               tolerance_pts_same_sublayer)              
-
-                !< if the points are too far away and cannot belong
-                !> to the same buffer layer afterwards, the path
-                !> should be ended
-                if(.not.associated(sublayer_new_pt, this%matching_sublayer)) then
-                   this%ends = .true.
+     $               tolerance_pts_same_path)
+             
+             
+                !< if the points are too far away, we need to check
+                !> whether they could belong to the same sublayer
+                if(pts_far_away) then
+                   
+                   sublayer_new_pt => interface_used%get_sublayer(
+     $                  bc_interior_pt_analyzed,
+     $                  local_coord,
+     $                  tolerance_i=tolerance_pts_same_sublayer,
+     $                  mainlayer_id_i=this%mainlayer)
+             
+                   !< if the points are too far away and cannot belong
+                   !> to the same buffer layer afterwards, the path
+                   !> should be ended
+                   if(.not.associated(sublayer_new_pt, this%matching_sublayer)) then
+                      this%ends = .true.
+                   end if
+             
                 end if
-
-             end if
-
-          !< if no sublayer is already matching the current path,
-          !> we need to check whether the current point belongs to
-          !> the same path as the previous point and if it could be
-          !> part of an existing sublayer
-          else
-
-             !< check if the current point is not far away from the
-             !> previous point analyzed
-             pts_far_away = this%are_pts_far_away(
-     $            bc_interior_pt_analyzed,
-     $            tolerance_pts_same_path)
-
-             !< if both points do not belong to the same path, the
-             !> current path should be ended
-             if(pts_far_away) then
-                this%ends=.true.
-
-             !< if both points belongs to the same path, we should
-             !> check if this new point could match an existing layer
-             !> and so if the current path could eventually be part
-             !> of an existing layer
-             else                
-                this%matching_sublayer => interface_used%get_sublayer(
+             
+             !< if no sublayer is already matching the current path,
+             !> we need to check whether the current point belongs to
+             !> the same path as the previous point and if it could be
+             !> part of an existing sublayer
+             else
+             
+                !< check if the current point is not far away from the
+                !> previous point analyzed
+                pts_far_away = this%are_pts_far_away(
      $               bc_interior_pt_analyzed,
-     $               local_coord,
-     $               tolerance_pts_same_sublayer)
-
+     $               tolerance_pts_same_path)
+             
+             
+                !< if both points do not belong to the same path, the
+                !> current path should be ended
+                if(pts_far_away) then
+                   this%ends=.true.
+             
+             
+                !< if both points belongs to the same path, we should
+                !> check if this new point could match an existing layer
+                !> and so if the current path could eventually be part
+                !> of an existing layer
+                else                
+                   this%matching_sublayer => interface_used%get_sublayer(
+     $                  bc_interior_pt_analyzed,
+     $                  local_coord,
+     $                  tolerance_i=tolerance_pts_same_sublayer,
+     $                  mainlayer_id_i=this%mainlayer)
+             
+                end if
+             
              end if
 
+          !< if the bc_interior_pt analyzed is not part of the same 
+          !> mainlayer, we need to cut the path
+          else
+             this%ends=.true.
           end if
 
 
@@ -630,6 +686,60 @@
           end if
 
         end subroutine analyze_path_next_pt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine analyzing whether the bc_interior_pt point
+        !> analyzed is one of the interior corner of the interior
+        !> domain
+        !
+        !> @date
+        !> 17_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param bc_interior_pt_analyzed
+        !> integer, dimension(2) with the general coords of the
+        !> bc_interior_pt analyzed
+        !
+        !>@param interface_used
+        !> interface_abstract class encapsulating the pointers
+        !> to the buffer main layers
+        !
+        !>@param tolerance_pts_same_path
+        !> tolerance to decide whether a grid point should belong
+        !> to the current path
+        !
+        !>@param tolerance_pts_same_sublayer
+        !> tolerance to decide whether a grid point should belong
+        !> to an existing sublayer
+        !--------------------------------------------------------------        
+        function are_pts_in_same_mainlayer(
+     $     this,
+     $     bc_interior_pt_analyzed,
+     $     interface_used)
+
+          implicit none
+
+          class(bf_layer_path)        , intent(inout) :: this
+          integer(ikind), dimension(2), intent(in)    :: bc_interior_pt_analyzed
+          class(interface_abstract)   , intent(in)    :: interface_used
+          logical                                     :: are_pts_in_same_mainlayer
+
+          integer :: mainlayer_current_pt
+          
+
+          !compute the mainlayer of the current point
+          mainlayer_current_pt = interface_used%get_mainlayer_id(
+     $         bc_interior_pt_analyzed)
+
+          !compare with the mainlayer of the path
+          are_pts_in_same_mainlayer =
+     $         this%mainlayer.eq.mainlayer_current_pt
+
+
+        end function are_pts_in_same_mainlayer
 
 
         !> @author

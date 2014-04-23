@@ -105,10 +105,12 @@
 
           contains
 
-          procedure, pass :: ini
-          procedure, pass :: update_mainlayers_pointers
-          procedure, pass :: add_sublayer
-          procedure, pass :: get_sublayer
+          procedure, pass   :: ini
+          procedure, pass   :: update_mainlayers_pointers
+          procedure, pass   :: add_sublayer
+          procedure, pass   :: get_sublayer
+
+          procedure, nopass :: get_mainlayer_id
 
         end type interface_abstract
 
@@ -345,7 +347,8 @@
      $     this,
      $     general_coord,
      $     local_coord,
-     $     tolerance_i)
+     $     tolerance_i,
+     $     mainlayer_id_i)
      $     result(sublayer)
 
           implicit none
@@ -354,6 +357,7 @@
           integer(ikind), dimension(2), intent(in)  :: general_coord
           integer(ikind), dimension(2), intent(out) :: local_coord
           integer       , optional    , intent(in)  :: tolerance_i
+          integer       , optional    , intent(in)  :: mainlayer_id_i
           type(bf_sublayer), pointer                :: sublayer
 
 
@@ -363,7 +367,11 @@
           logical                     :: grdpt_in_sublayer
 
           !< identification of the main layer
-          mainlayer_id = get_mainlayer_id(general_coord)
+          if(present(mainlayer_id_i)) then
+             mainlayer_id = mainlayer_id_i
+          else
+             mainlayer_id = get_mainlayer_id(general_coord)
+          end if
 
           !< if the general coordinates match the interior,
           !> no sublayer matches the general coordinates

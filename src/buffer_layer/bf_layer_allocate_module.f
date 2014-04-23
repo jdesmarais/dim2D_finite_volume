@@ -393,17 +393,14 @@
           do j=1, j_min-1
              do i=1, size(this%nodes,1)
                 new_grdptid(i,j) = no_pt
-                if(debug) this%nodes(i,j,1) = 1.0
              end do
           end do
           
           do j=j_min, j_max
 
-             if(debug) then
-                do i=1,i_min-1
-                   new_grdptid(i,j) = no_pt
-                end do
-             end if
+             do i=1,i_min-1
+                new_grdptid(i,j) = no_pt
+             end do
 
              do i=i_min, i_max
                 new_grdptid(i,j) = this%grdpts_id(
@@ -411,21 +408,17 @@
      $               match_table(2)+j)
              end do
 
-             if(debug) then
-                do i=i_max+1, size(this%nodes,1)
-                   new_grdptid(i,j) = no_pt
-                end do
-             end if
+             do i=i_max+1, size(this%nodes,1)
+                new_grdptid(i,j) = no_pt
+             end do
 
           end do          
 
-          if(debug) then
-             do j=j_max+1,size(this%nodes,2)
-                do i=1, size(this%nodes,1)
-                   new_grdptid(i,j) = no_pt
-                end do
+          do j=j_max+1,size(this%nodes,2)
+             do i=1, size(this%nodes,1)
+                new_grdptid(i,j) = no_pt
              end do
-          end if
+          end do
              
           call MOVE_ALLOC(new_grdptid,this%grdpts_id)
 

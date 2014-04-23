@@ -17,6 +17,7 @@
 
         use bf_layer_abstract_class, only : bf_layer_abstract
 
+        use parameters_bf_layer, only : exchange_pt
         use parameters_constant, only : N,S,E,W,N_E,N_W,S_E,S_W
         use parameters_input   , only : nx,ny,ne,bc_size
         use parameters_kind    , only : ikind, rkind
@@ -337,6 +338,19 @@
                   end do
                end do
 
+               !< update the exchanged gridpoints
+               do j=1, bc_size
+                  do i=1, -border_changes(1,1)
+                     this%grdpts_id(i,j) = exchange_pt
+                  end do
+               end do
+
+               do j=1, bc_size
+                  do i=size(this%grdpts_id,1)-border_changes(1,2)+1, size(this%grdpts_id,1)
+                     this%grdpts_id(i,j) = exchange_pt
+                  end do
+               end do
+
             case(S)               
 
                !< copy of grid points from the interior
@@ -355,6 +369,19 @@
                      do i=size(this%nodes,1)-border_changes(1,2)+1, size(this%nodes,1)
                         this%nodes(i,j_match+j,k) = nodes(i_match+i,j,k)
                      end do
+                  end do
+               end do
+
+               !< update the exchanged gridpoints
+               do j=size(this%grdpts_id,2)-bc_size+1, size(this%grdpts_id,2)
+                  do i=1, -border_changes(1,1)
+                     this%grdpts_id(i,j) = exchange_pt
+                  end do
+               end do
+
+               do j=size(this%grdpts_id,2)-bc_size+1, size(this%grdpts_id,2)
+                  do i=size(this%grdpts_id,1)-border_changes(1,2)+1, size(this%grdpts_id,1)
+                     this%grdpts_id(i,j) = exchange_pt
                   end do
                end do
                
@@ -379,6 +406,19 @@
                   end do
                end do
 
+               !< update the exchanged gridpoints
+               do j=1, -border_changes(2,1)
+                  do i=1, bc_size
+                     this%grdpts_id(i,j) = exchange_pt
+                  end do
+               end do
+
+               do j=size(this%grdpts_id,2)-border_changes(2,2)+1, size(this%grdpts_id,2)
+                  do i=1, bc_size
+                     this%grdpts_id(i,j) = exchange_pt
+                  end do
+               end do
+
             case(W)
 
                !< copy of grid points from the interior
@@ -397,6 +437,19 @@
                      do i=1, 2*bc_size
                         this%nodes(i_match+i,j,k) = nodes(i,j_match+j,k)
                      end do
+                  end do
+               end do
+
+               !< update the exchanged gridpoints
+               do j=1, -border_changes(2,1)
+                  do i=size(this%grdpts_id,1)-bc_size+1, size(this%grdpts_id,1)
+                     this%grdpts_id(i,j) = exchange_pt
+                  end do
+               end do
+
+               do j=size(this%grdpts_id,2)-border_changes(2,2)+1, size(this%grdpts_id,2)
+                  do i=size(this%grdpts_id,1)-bc_size+1, size(this%grdpts_id,1)
+                     this%grdpts_id(i,j) = exchange_pt
                   end do
                end do
 

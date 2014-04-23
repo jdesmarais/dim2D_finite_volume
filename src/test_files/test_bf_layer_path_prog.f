@@ -144,7 +144,7 @@
           
           integer :: nb_bc_interior_pt
           
-          nb_bc_interior_pt = 16
+          nb_bc_interior_pt = 19
           allocate(bc_interior_pt_table(2,nb_bc_interior_pt))
 
           bc_interior_pt_table(:,1)  = [bc_size+1,ny-1]
@@ -156,18 +156,22 @@
           bc_interior_pt_table(:,6)  = [nx-3,ny-1]
           bc_interior_pt_table(:,7)  = [nx-2,ny-1]
 
-          bc_interior_pt_table(:,8)  = [nx-1,10]
-          bc_interior_pt_table(:,9)  = [nx-1,7]
-          bc_interior_pt_table(:,10) = [nx-1,6]
+          bc_interior_pt_table(:,8)  = [nx-1,ny-2]
+          bc_interior_pt_table(:,9)  = [nx-1,ny-3]
+          bc_interior_pt_table(:,10) = [nx-1,ny-4]
 
-          bc_interior_pt_table(:,11) = [nx-1,bc_size]
+          bc_interior_pt_table(:,11) = [nx-1,10]
+          bc_interior_pt_table(:,12) = [nx-1,7]
+          bc_interior_pt_table(:,13) = [nx-1,6]
 
-          bc_interior_pt_table(:,12) = [bc_size, 4]
-          bc_interior_pt_table(:,13) = [bc_size, 5]
-          bc_interior_pt_table(:,14) = [bc_size, 8]
-          bc_interior_pt_table(:,15) = [bc_size, 13]
-          
-          bc_interior_pt_table(:,16) = [bc_size, ny-1]
+          bc_interior_pt_table(:,14) = [nx-1,bc_size]
+
+          bc_interior_pt_table(:,15) = [bc_size, 4]
+          bc_interior_pt_table(:,16) = [bc_size, 5]
+          bc_interior_pt_table(:,17) = [bc_size, 8]
+          bc_interior_pt_table(:,18) = [bc_size, 13]
+         
+          bc_interior_pt_table(:,19) = [bc_size, ny-1]
 
         end subroutine ini_bc_interior_pt
 
