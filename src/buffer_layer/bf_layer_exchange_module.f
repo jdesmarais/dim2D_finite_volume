@@ -60,15 +60,18 @@
         !>@param list_new_grdpts
         !> table encapsulating the coordinates of the new grid points
         !--------------------------------------------------------------
-        subroutine first_exchange_with_interior(
-     $       this,
-     $       nodes,
+        subroutine copy_from_interior(
+        
+     $       bf_nodes,
+     $       interior_nodes,
      $       list_new_grdpts)
 
           implicit none
 
-          class(bf_layer_abstract)                     , intent(inout) :: this
-          real(rkind)   , dimension(:,:,:)             , intent(in)    :: nodes
+          integer                                      , intent(in)    :: mainlayer_id
+          integer(ikind), dimension(2,2)               , intent(in)    :: alignment
+          real(rkind)   , dimension(:,:,:)             , intent(out)   :: bf_nodes
+          real(rkind)   , dimension(nx,ny,ne)          , intent(in)    :: interior_nodes
           integer(ikind), dimension(:,:)  , allocatable, intent(out)   :: list_new_grdpts
           
 

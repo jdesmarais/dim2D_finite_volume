@@ -14,4 +14,4 @@ make test_interface_abstract_prog
 #run the visualization using python
 folder_path=$(pwd)
 pushd ../../python_files
-python plot_interface.py -f $folder_path
+python plot_test_interface_abstract.py -f $folder_path

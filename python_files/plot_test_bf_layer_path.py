@@ -19,10 +19,10 @@ if cmd_subfolder not in sys.path:
 from fortranfile import *
 from pylab import *
 
-from plot_interface import (manage_options,
-                            get_nb_sublayers,
-                            make_matrix_for_all_bf_layers,
-                            plot_nodes_and_grdptid_with_all_bf_layers)
+from library_plot_bf_layer import (manage_options,
+                                   get_nb_sublayers,
+                                   make_matrix_for_all_bf_layers,
+                                   plot_nodes_and_grdptid_with_all_bf_layers)
     
 if __name__ == "__main__":
     
@@ -31,7 +31,8 @@ if __name__ == "__main__":
     [folder_path] = manage_options()
 
     #find the maximum number of sublayers per main layer
-    nb_sublayers = get_nb_sublayers(folder_path)
+    sublayers_filename = folder_path+'/sublayers_nb.dat'
+    nb_sublayers = get_nb_sublayers(sublayers_filename)
 
 
     #test add_sublayer
@@ -39,6 +40,7 @@ if __name__ == "__main__":
     #combine data from several sublayers in one large matrix
     #-----------------------------------------------------------------
     interior_size_filename  = folder_path+'/interior_sizes.dat'
+    interior_grdptsid_filename  = folder_path+'/interior_grdpts_id.dat'
     interior_nodes_filename = folder_path+'/interior_nodes.dat'
 
     suffix_size    = '_sizes.dat'
@@ -46,6 +48,7 @@ if __name__ == "__main__":
     suffix_grdptid = '_grdpt_id.dat'
     
     [lm_nodes,lm_grdptid] = make_matrix_for_all_bf_layers(interior_size_filename,
+                                                          interior_grdptsid_filename,
                                                           interior_nodes_filename,
                                                           folder_path,
                                                           nb_sublayers,

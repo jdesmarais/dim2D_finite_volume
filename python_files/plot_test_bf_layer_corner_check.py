@@ -19,10 +19,10 @@ if cmd_subfolder not in sys.path:
 from fortranfile import *
 from pylab import *
 
-from plot_interface import (manage_options,
-                            get_nb_sublayers,
-                            make_matrix_for_all_bf_layers,
-                            plot_nodes_and_grdptid_with_all_bf_layers)
+from library_plot_bf_layer import (manage_options,
+                                   get_nb_sublayers,
+                                   make_matrix_for_all_bf_layers,
+                                   plot_nodes_and_grdptid_with_all_bf_layers)
     
 if __name__ == "__main__":
     
@@ -30,35 +30,40 @@ if __name__ == "__main__":
     #manage the options
     [folder_path] = manage_options()
 
-    #find the maximum number of sublayers per main layer
-    nb_sublayers = get_nb_sublayers(folder_path)
-
-
     for i in range(0,2):
+
+        #find the maximum number of sublayers per main layer
+        #-----------------------------------------------------------------
+        nb_sublayers_filename = folder_path+'/sublayers_nb_'+str(i)+'.dat'
+        nb_sublayers = get_nb_sublayers(nb_sublayers_filename)
         
-         #test add_sublayer
-         #=================================================================
-         #combine data from several sublayers in one large matrix
-         #-----------------------------------------------------------------
-         interior_size_filename  = folder_path+'/interior_sizes.dat'
-         interior_nodes_filename = folder_path+'/interior_nodes.dat'
-         
-         suffix_size    = '_sizes_'+str(i)+'.dat'
-         suffix_nodes   = '_nodes_'+str(i)+'.dat'
-         suffix_grdptid = '_grdpt_id_'+str(i)+'.dat'
-         
-         [lm_nodes,lm_grdptid] = make_matrix_for_all_bf_layers(interior_size_filename,
-                                                               interior_nodes_filename,
-                                                               folder_path,
-                                                               nb_sublayers,
-                                                               suffix_size,
-                                                               suffix_nodes,
-                                                               suffix_grdptid)
-         #display
-         #-----------------------------------------------------------------
-         fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
-                                                             lm_grdptid)
-         fig.canvas.set_window_title("test bf_layer_corner_check"+str(i))
+
+        #test add_sublayer
+        #=================================================================
+        #combine data from several sublayers in one large matrix
+        #-----------------------------------------------------------------
+        interior_size_filename  = folder_path+'/interior_sizes.dat'
+        interior_grdptsid_filename  = folder_path+'/interior_grdpts_id.dat'
+        interior_nodes_filename = folder_path+'/interior_nodes.dat'
+
+
+        suffix_size    = '_sizes_'+str(i)+'.dat'
+        suffix_nodes   = '_nodes_'+str(i)+'.dat'
+        suffix_grdptid = '_grdpt_id_'+str(i)+'.dat'
+
+        [lm_nodes,lm_grdptid] = make_matrix_for_all_bf_layers(interior_size_filename,
+                                                              interior_grdptsid_filename,
+                                                              interior_nodes_filename,
+                                                              folder_path,
+                                                              nb_sublayers,
+                                                              suffix_size,
+                                                              suffix_nodes,
+                                                              suffix_grdptid)
+        #display
+        #-----------------------------------------------------------------
+        fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
+                                                            lm_grdptid)
+        fig.canvas.set_window_title("test bf_layer_corner_check"+str(i))
 
     
     #show all

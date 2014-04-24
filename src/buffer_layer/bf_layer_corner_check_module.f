@@ -32,7 +32,7 @@
         private
         public :: check_corner_bf_layer_neighbors
 
-        logical, parameter :: debug=.true.
+        logical, parameter :: debug=.false.
         integer, parameter :: head=0
         integer, parameter :: tail=1
 

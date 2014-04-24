@@ -16,8 +16,15 @@
       !-----------------------------------------------------------------
       module bf_mainlayer_class
 
-        use bf_sublayer_class  , only : bf_sublayer
-        use parameters_constant, only : N,S,E,W
+        use bf_mainlayer_abstract_class, only : bf_mainlayer_abstract
+        use bf_sublayer_class          , only : bf_sublayer
+        use bf_sublayers_merge_module  , only : merge_sublayers_N,
+     $                                          merge_sublayers_S,
+     $                                          merge_sublayers_E,
+     $                                          merge_sublayers_W
+        use parameters_constant        , only : N,S,E,W
+        use parameters_input           , only : nx, ny, ne, debug
+        use parameters_kind            , only : ikind, rkind
 
         implicit none
 
@@ -38,18 +45,13 @@
         !> @param tail_sublayer
         !> pointer of the tail sublayer of the main layer
         !---------------------------------------------------------------
-        type :: bf_mainlayer
-
-          integer :: mainlayer_id
-          integer :: nb_sublayers
-
-          type(bf_sublayer), pointer :: head_sublayer
-          type(bf_sublayer), pointer :: tail_sublayer
+        type, extends(bf_mainlayer_abstract) :: bf_mainlayer
 
           contains
 
           procedure, pass :: ini
           procedure, pass :: add_sublayer
+          procedure, pass :: merge_sublayers
 
         end type bf_mainlayer
 
@@ -250,6 +252,214 @@
           this%nb_sublayers = this%nb_sublayers+1
 
         end function add_sublayer
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine combining two sublayers of the main layer
+        !
+        !> @date
+        !> 09_05_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !
+        !>@param sublayer1
+        !> pointer to the first sublayer to merge
+        !
+        !>@param sublayer2
+        !> pointer to the second sublayer to merge
+        !
+        !>@param nodes
+        !> table encapsulating the data of the interior domain
+        !
+        !>@param alignment
+        !> table identifying the final position of the merged sublayer
+        !> compared to the interior domain
+        !
+        !>@param neighbors_i
+        !> table identifying whether the final merged sublayer will have
+        !> neighboring sublayers or not
+        !--------------------------------------------------------------
+        function merge_sublayers(
+     $     this,
+     $     sublayer1,
+     $     sublayer2,
+     $     nodes,
+     $     alignment,
+     $     neighbors_i)
+     $     result(merged_sublayer)
+        
+          implicit none
+        
+        
+          class(bf_mainlayer)                          , intent(inout) :: this
+          type(bf_sublayer), pointer                   , intent(inout) :: sublayer1
+          type(bf_sublayer), pointer                   , intent(inout) :: sublayer2
+          real(rkind)   , dimension(nx,ny,ne), optional, intent(in)    :: nodes
+          integer(ikind), dimension(2,2)     , optional, intent(in)    :: alignment
+          logical       , dimension(4)       , optional, intent(in)    :: neighbors_i
+          type(bf_sublayer), pointer                                   :: merged_sublayer
+        
+        
+          integer :: loc1, loc2
+          logical, dimension(4) :: neighbors
+
+
+          !get the mainlayer ID to which the two sublayers belong
+          loc1 = sublayer1%element%localization
+
+          !check input arguments
+          if(debug) then
+
+             loc2 = sublayer2%element%localization
+             
+             
+             !if the two sublayers do not belong to the same mainlayer,
+             !merging the two is not possible
+             if(loc1.ne.loc2) then
+                print '(''bf_mainlayer_class'')'
+                print '(''merge_sublayers'')'
+                print '(''the sublayers do not belong to'')'
+                print '(''the same mainlayer:'')'
+                print '(''sublayer1%localization: '',I2)', loc1
+                print '(''sublayer2%localization: '',I2)', loc2
+                stop 'check the sublayers merged'
+             end if
+             
+             
+             !if the two sublayers do not belong to this mainlayer,
+             !merging the sublayers is not possible
+             if(loc1.ne.(this%mainlayer_id)) then
+                print '(''bf_mainlayer_class'')'
+                print '(''merge_sublayers'')'
+                print '(''the sublayers do not belong to'')'
+                print '(''the correct mainlayer:'')'
+                print '(''sublayer ID: '',I2)', loc1
+                print '(''mainlayer ID: '',I2)', this%mainlayer_id
+                stop 'check the sublayers and the mainlayer'
+             end if
+             
+             
+             !if alignment is passed as optional argument, so should
+             !be nodes and vice versa
+             if((present(alignment).and..not.present(nodes)).or.
+     $            (.not.present(alignment).and.present(nodes))) then
+                print '(''bf_mainlayer_class'')'
+                print '(''merge_sublayers'')'
+                print '(''alignment and nodes arguments should be'')'
+                print '(''supplied together'')'
+                stop 'change arguments'
+             end if
+
+          end if
+
+
+          !initialize the neighbors table
+          if(present(neighbors_i)) then
+             neighbors = neighbors_i
+          else
+             neighbors = [.false., .false., .false., .false.]
+          end if
+
+
+          !select the subroutine adapted to merge the sublayers
+          select case(loc1)
+            case(N)
+               if(present(nodes)) then
+                  merged_sublayer => merge_sublayers_N(
+     $                 this,
+     $                 sublayer1,
+     $                 sublayer2,
+     $                 nodes,
+     $                 alignment,
+     $                 neighbor_E_i=neighbors(E),
+     $                 neighbor_W_i=neighbors(W))
+               else
+                  merged_sublayer => merge_sublayers_N(
+     $                 this,
+     $                 sublayer1,
+     $                 sublayer2,
+     $                 neighbor_E_i=neighbors(E),
+     $                 neighbor_W_i=neighbors(W))
+               end if
+
+            case(S)
+               if(present(nodes)) then
+                  merged_sublayer => merge_sublayers_S(
+     $                 this,
+     $                 sublayer1,
+     $                 sublayer2,
+     $                 nodes,
+     $                 alignment,
+     $                 neighbor_E_i=neighbors(E),
+     $                 neighbor_W_i=neighbors(W))
+               else
+                  merged_sublayer => merge_sublayers_S(
+     $                 this,
+     $                 sublayer1,
+     $                 sublayer2,
+     $                 neighbor_E_i=neighbors(E),
+     $                 neighbor_W_i=neighbors(W))
+               end if
+
+            case(E)
+               if(present(nodes)) then
+                  merged_sublayer => merge_sublayers_E(
+     $                 this,
+     $                 sublayer1,
+     $                 sublayer2,
+     $                 nodes,
+     $                 alignment,
+     $                 neighbor_N_i=neighbors(N),
+     $                 neighbor_S_i=neighbors(S))
+               else
+                  merged_sublayer => merge_sublayers_E(
+     $                 this,
+     $                 sublayer1,
+     $                 sublayer2,
+     $                 neighbor_N_i=neighbors(N),
+     $                 neighbor_S_i=neighbors(S))
+               end if
+
+            case(W)
+               if(present(nodes)) then
+                  merged_sublayer => merge_sublayers_W(
+     $                 this,
+     $                 sublayer1,
+     $                 sublayer2,
+     $                 nodes,
+     $                 alignment,
+     $                 neighbor_N_i=neighbors(N),
+     $                 neighbor_S_i=neighbors(S))
+               else
+                  merged_sublayer => merge_sublayers_W(
+     $                 this,
+     $                 sublayer1,
+     $                 sublayer2,
+     $                 neighbor_N_i=neighbors(N),
+     $                 neighbor_S_i=neighbors(S))
+               end if
+
+            case default
+               print '(''bf_mainlayer_class'')'
+               print '(''merge_sublayers'')'
+               print '(''it is not possible to merge sublayers'')'
+               print '(''from a corner'')'
+               stop 'check the sublayers and the mainlayer'
+
+          end select
+
+
+          !update the number of sublayers in the mainlayer
+          this%nb_sublayers = this%nb_sublayers-1
+
+        end function merge_sublayers
+
 
 
         !> @author

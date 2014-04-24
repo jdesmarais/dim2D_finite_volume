@@ -14,7 +14,7 @@
       !-----------------------------------------------------------------
       module bf_layer_print_module
 
-        use bf_layer_abstract_class, only : bf_layer_abstract
+        use parameters_kind, only : rkind
 
         implicit none
 
@@ -47,12 +47,12 @@
         !> name of the binary file where the nodes are
         !> written
         !--------------------------------------------------------------
-        subroutine print_nodes(this,filename)
+        subroutine print_nodes(nodes,filename)
 
           implicit none
 
-          class(bf_layer_abstract), intent(in) :: this
-          character(*)            , intent(in) :: filename
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          character(*)                 , intent(in) :: filename
 
           integer :: ios
           
@@ -66,7 +66,7 @@
      $          iostat=ios)
 
            if(ios.eq.0) then
-              write(unit=1, iostat=ios) this%nodes
+              write(unit=1, iostat=ios) nodes
               close(unit=1)
            else
               stop 'file opening pb'
@@ -95,11 +95,11 @@
         !> name of the binary file where the grdpt_id are
         !> written
         !--------------------------------------------------------------
-        subroutine print_grdpts_id(this,filename)
+        subroutine print_grdpts_id(grdpts_id,filename)
 
           implicit none
           
-          class(bf_layer_abstract), intent(in) :: this
+          integer, dimension(:,:) , intent(in) :: grdpts_id
           character(*)            , intent(in) :: filename
 
           integer :: ios
@@ -114,7 +114,7 @@
      $          iostat=ios)
 
           if(ios.eq.0) then
-             write(unit=2, iostat=ios) this%grdpts_id
+             write(unit=2, iostat=ios) grdpts_id
              close(unit=2)
           else
              stop 'file opening pb'
@@ -143,12 +143,13 @@
         !> name of the binary file where the sizes are
         !> written
         !--------------------------------------------------------------
-        subroutine print_sizes(this, filename)
+        subroutine print_sizes(nodes, alignment, filename)
 
           implicit none
           
-          class(bf_layer_abstract), intent(in) :: this
-          character(*)            , intent(in) :: filename
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer    , dimension(2,2)  , intent(in) :: alignment
+          character(*)                 , intent(in) :: filename
 
           integer :: ios
 
@@ -163,13 +164,13 @@
 
           if(ios.eq.0) then
              write(unit=2, iostat=ios)
-     $            size(this%nodes,1),
-     $            size(this%nodes,2),
-     $            size(this%nodes,3),
-     $            this%alignment(1,1),
-     $            this%alignment(1,2),
-     $            this%alignment(2,1),
-     $            this%alignment(2,2)
+     $            size(nodes,1),
+     $            size(nodes,2),
+     $            size(nodes,3),
+     $            alignment(1,1),
+     $            alignment(1,2),
+     $            alignment(2,1),
+     $            alignment(2,2)
              close(unit=2)
           else
              stop 'file opening pb'

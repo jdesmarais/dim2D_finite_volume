@@ -18,6 +18,7 @@
       !----------------------------------------------------------------
       module bf_layer_path_class
 
+        use bf_layer_corner_check_module, only : check_corner_bf_layer_neighbors
         use bf_layer_path_abstract_class, only : bf_layer_path_abstract
         use bf_sublayer_class           , only : bf_sublayer
         use interface_abstract_class    , only : interface_abstract
@@ -397,20 +398,21 @@
                 !< look for the neighbors sublayers
                 !> take into account previous path if
                 !> there are points inside
-                !if(this%nb_pts.gt.0) then
-                !   call check_corner_bf_layer_neighbors(
-     $          !        this%corner_id,
-     $          !        nodes,
-     $          !        interface_used,
-     $          !        this)
-                !!< otherwise, do not take into account
-                !!> the current path
-                !else
-                !   call check_corner_bf_layer_neighbors(
-     $          !        this%corner_id,
-     $          !        nodes,
-     $          !        interface_used)
-                !end if
+                if(this%nb_pts.gt.0) then
+                   call check_corner_bf_layer_neighbors(
+     $                  this%corner_id,
+     $                  nodes,
+     $                  interface_used,
+     $                  this)
+
+                !< otherwise, do not take into account
+                !> the current path
+                else
+                   call check_corner_bf_layer_neighbors(
+     $                  this%corner_id,
+     $                  nodes,
+     $                  interface_used)
+                end if
 
              end if
 

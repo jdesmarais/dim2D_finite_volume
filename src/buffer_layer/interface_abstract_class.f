@@ -16,11 +16,13 @@
       !-----------------------------------------------------------------
       module interface_abstract_class
 
-        use bf_sublayer_class  , only : bf_sublayer
-        use bf_mainlayer_class , only : bf_mainlayer
-        use parameters_constant, only : N,S,E,W,N_E,N_W,S_E,S_W,interior
-        use parameters_input   , only : nx,ny,ne,bc_size
-        use parameters_kind    , only : ikind, rkind
+        use bf_sublayer_class     , only : bf_sublayer
+        use bf_mainlayer_class    , only : bf_mainlayer
+        use parameters_constant   , only : N,S,E,W,
+     $                                     N_E,N_W,S_E,S_W,
+     $                                     interior
+        use parameters_input      , only : nx,ny,ne,bc_size
+        use parameters_kind       , only : ikind, rkind
 
         implicit none
 
@@ -107,8 +109,10 @@
 
           procedure, pass   :: ini
           procedure, pass   :: update_mainlayers_pointers
+          procedure, pass   :: get_mainlayer
           procedure, pass   :: add_sublayer
           procedure, pass   :: get_sublayer
+          !procedure, pass   :: merge_sublayers
 
           procedure, nopass :: get_mainlayer_id
 
@@ -484,6 +488,42 @@
         !> Julien L. Desmarais
         !
         !> @brief
+        !> subroutine updating the interface pointers
+        !> to the main layers
+        !
+        !> @date
+        !> 11_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> interface_abstract class encapsulating the pointers
+        !> to the buffer main layers
+        !
+        !>@param id
+        !> cardinal coordinate of the main layer
+        !--------------------------------------------------------------
+        function get_mainlayer(this, id)
+
+          implicit none
+
+          class(interface_abstract), intent(in) :: this
+          integer                  , intent(in) :: id
+          type(bf_mainlayer), pointer           :: get_mainlayer
+
+          
+          if(associated(this%mainlayer_pointers(id)%ptr)) then
+             get_mainlayer => this%mainlayer_pointers(id)%ptr
+          else
+             nullify(get_mainlayer)
+          end if
+
+        end function get_mainlayer
+
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> subroutine converting general coordinates into
         !> the main layer ID (N,S,E,W,N_E,N_W,S_E,S_W)
         !
@@ -542,51 +582,4 @@
 
         end function get_mainlayer_id
 
-c$$$        function get_bf_layer(this,mainlayer_id, sublayer_id) result(pointer_to_bf_layer)
-c$$$
-c$$$          class(interface_abstract), intent(in) :: this
-c$$$          integer                  , intent(in) :: mainlayer_id
-c$$$          integer, optional        , intent(in) :: sublayer_id
-c$$$          type(bf_layer), pointer               :: pointer_to_bf_layer
-c$$$          
-c$$$          integer :: sublayer_id_I
-c$$$
-c$$$          if(.not.present(sublayer_id)) then
-c$$$             sublayer_id_I = 1
-c$$$          else
-c$$$             sublayer_id_I = sublayer_id
-c$$$          end if
-c$$$
-c$$$          if(debug) then
-c$$$
-c$$$             if(.not.associated(this%mainlayer_pointers(mainlayer_id)%pt)) then
-c$$$                print '(''interface_abstract_class'')'
-c$$$                print '(''get_bf_layer'')'
-c$$$                print '(''pointer to mainlayer not associated'')'
-c$$$                stop 'was abstract interface object initialized ?'
-c$$$             end if
-c$$$
-c$$$             if(.not.allocated(this%mainlayer_pointers(mainlayer_id)%pt%mainlayer)) then
-c$$$                print '(''interface_abstract_class'')'
-c$$$                print '(''get_bf_layer'')'
-c$$$                print '(''mainlayer not allocated'')'
-c$$$                print '(''mainlayer asked'', I2)', mainlayer_id                
-c$$$                stop 'was mainlayer allocated before ?'
-c$$$             end if
-c$$$
-c$$$             if(sublayer_id>size(this%mainlayer_pointers(mainlayer_id)%pt%mainlayer)) then
-c$$$                print '(''interface_abstract_class'')'
-c$$$                print '(''get_bf_layer'')'
-c$$$                print '(''sublayer id does not exist'')'
-c$$$                print '(''mainlayer asked'', I2)', mainlayer_id
-c$$$                print '(''sublayer asked'', I2)', sublayer_id
-c$$$                stop 'were sublayers merged and pointer not updated ?'
-c$$$                stop 'are you really looking for this sublayer ?'
-c$$$             end if
-c$$$          end if
-c$$$
-c$$$          pointer_to_bf_layer => this%mainlayer_pointers(mainlayer_id)%pt%mainlayer(sublayer_id)
-c$$$
-c$$$        end function get_bf_layer
-        
       end module interface_abstract_class

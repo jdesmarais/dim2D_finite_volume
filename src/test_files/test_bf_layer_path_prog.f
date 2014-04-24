@@ -7,7 +7,9 @@
         use parameters_input         , only : nx,ny,ne,bc_size
         use parameters_kind          , only : ikind, rkind
         use test_bf_layer_module     , only : print_nodes,
-     $                                        print_sizes
+     $                                        print_grdpts_id,
+     $                                        print_sizes,
+     $                                        ini_grdpts_id
 
         
         implicit none
@@ -17,6 +19,7 @@
         integer(ikind), dimension(:,:), allocatable :: bc_interior_pt_table
         type(interface_abstract)                    :: interface_used
         real(rkind), dimension(nx,ny,ne)            :: nodes
+        integer    , dimension(nx,ny)               :: grdpts_id
         real(rkind)                                 :: path_id
 
         integer :: i,k
@@ -42,7 +45,9 @@
 
         !initialization of the nodes
         call ini_nodes(nodes)
+        call ini_grdpts_id(grdpts_id)
         call print_sizes(nodes,'interior_sizes.dat')
+        call print_grdpts_id(grdpts_id,'interior_grdpts_id.dat')
 
         !initialization of the interface
         call ini_interface(interface_used,nodes)

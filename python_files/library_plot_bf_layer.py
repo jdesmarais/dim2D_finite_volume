@@ -20,6 +20,7 @@ from fortranfile import *
 from pylab import *
 
 
+#local variables defining the code for the grid points
 backgrd_pt = -10000
 none_pt = 0
 interior_pt = 1
@@ -49,22 +50,28 @@ def manage_options():
     return [folder_path]
 
 
-def get_nb_sublayers(folder_path):
+def get_nb_sublayers(nb_sublayers_filename):
 
     #load the interior point sizes file
-    nb_sublayers_filename = folder_path+'/sublayers_nb.dat'
+    #nb_sublayers_filename = folder_path+'/sublayers_nb.dat'
     f = FortranFile(nb_sublayers_filename)
     nb_sublayers = f.readInts()
     f.close()
     return nb_sublayers
 
 
-def extract_interior_data(sizes_filename,nodes_filename):
+def extract_interior_data(sizes_filename, grdptid_filename, nodes_filename):
 
     #load the interior point sizes file
     #sizes_filename = folder_path+'/interior_sizes.dat'
     f = FortranFile(sizes_filename)
     sizes = f.readInts()
+    f.close()
+
+    #load the interior point grdpt_id file
+    #grdptid_filename = folder_path+'/interior_nodes.dat'
+    f = FortranFile(grdptid_filename)
+    grdpts_id = f.readInts()
     f.close()
 
     #load the interior point nodes file
@@ -78,11 +85,11 @@ def extract_interior_data(sizes_filename,nodes_filename):
     size_y  = sizes[1]
     size_ne = sizes[2]
 
+    grdpts_id.resize(size_ne,size_y,size_x)
     nodes.resize(size_ne,size_y,size_x)
-    nodes = nodes[::,::,::]
 
     #return the interior point data
-    return [sizes, nodes]
+    return [sizes, grdpts_id, nodes]
 
 
 def extract_bf_layer_data(
@@ -124,6 +131,7 @@ def extract_bf_layer_data(
 
 def make_matrix_for_all_bf_layers(
     interior_size_filename,
+    interior_grdptsid_filename,
     interior_nodes_filename,
     folder_path,
     nb_sublayers,
@@ -144,7 +152,12 @@ def make_matrix_for_all_bf_layers(
 
             #if the file exists, extract the size of the sublayer
             filename = folder_path+'/'+mainlayer+str(i)+suffix_size
+            
             if(os.path.isfile(filename)):
+
+                #print filename used
+                print filename+': analyzed'
+                            
                 
                 #extract the size of the sublayer
                 f = FortranFile(filename)
@@ -169,13 +182,18 @@ def make_matrix_for_all_bf_layers(
                     sizes[0],
                     sizes[1])
 
+            #else:
+            #    #print filename not recognized
+            #    print filename+': does not exist'
+
     #the sizes of the buffer layers are now determined
     bf_tmp_size_x = size_x
     bf_tmp_size_y = size_y
 
     #extract the data for the interior nodes
-    [nodes_sizes,nodes] = extract_interior_data(
+    [nodes_sizes,grdpts_id,nodes] = extract_interior_data(
         interior_size_filename,
+        interior_grdptsid_filename,
         interior_nodes_filename)
     nodes_size_x = nodes_sizes[0]
     nodes_size_y = nodes_sizes[1]
@@ -199,21 +217,25 @@ def make_matrix_for_all_bf_layers(
     #and the grdpts ID
     i_match = interspace + bf_tmp_size_x + interspace
     j_match = interspace + bf_tmp_size_y + interspace
+
+    lm_grdptid[
+        j_match:j_match+nodes_size_y,
+        i_match:i_match+nodes_size_x] = grdpts_id[0,:,:]
     
     lm_nodes[
         j_match:j_match+nodes_size_y,
         i_match:i_match+nodes_size_x] = nodes[0,:,:]
 
-    lm_grdptid[j_match:j_match+nodes_size_y,
-       i_match:i_match+bc_size] = bc_pt
-    lm_grdptid[j_match:j_match+nodes_size_y,
-       i_match+nodes_size_x-bc_size:i_match+nodes_size_x] = bc_pt
-    lm_grdptid[j_match:j_match+bc_size,
-       i_match:i_match+nodes_size_x] = bc_pt
-    lm_grdptid[j_match+nodes_size_y-bc_size:j_match+nodes_size_y,
-       i_match:i_match+nodes_size_x] = bc_pt
-    lm_grdptid[j_match+bc_size:j_match+nodes_size_y-bc_size,
-       i_match+bc_size:i_match+nodes_size_x-bc_size]=interior_pt  
+    #lm_grdptid[j_match:j_match+nodes_size_y,
+    #   i_match:i_match+bc_size] = bc_pt
+    #lm_grdptid[j_match:j_match+nodes_size_y,
+    #   i_match+nodes_size_x-bc_size:i_match+nodes_size_x] = bc_pt
+    #lm_grdptid[j_match:j_match+bc_size,
+    #   i_match:i_match+nodes_size_x] = bc_pt
+    #lm_grdptid[j_match+nodes_size_y-bc_size:j_match+nodes_size_y,
+    #   i_match:i_match+nodes_size_x] = bc_pt
+    #lm_grdptid[j_match+bc_size:j_match+nodes_size_y-bc_size,
+    #   i_match+bc_size:i_match+nodes_size_x-bc_size]=interior_pt  
 
     #fill the large matrix with possible sublayers
     for mainlayer in mainlayers_char:
@@ -226,8 +248,6 @@ def make_matrix_for_all_bf_layers(
             filename = folder_path+'/'+mainlayer+str(i)+suffix_size
             
             if(os.path.isfile(filename)):
-
-                print filename
 
                 [lm_nodes,lm_grdptid] = fill_bf_layer_data(
                     folder_path,
@@ -363,69 +383,4 @@ def plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes, lm_grdptid):
     fig.colorbar(res)    
 
     return fig,ax
-    
-if __name__ == "__main__":
-    
 
-    #manage the options
-    [folder_path] = manage_options()
-
-    #find the maximum number of sublayers per main layer
-    nb_sublayers = get_nb_sublayers(folder_path)
-
-
-    #test add_sublayer
-    #=================================================================
-    #combine data from several sublayers in one large matrix
-    #-----------------------------------------------------------------
-    interior_size_filename  = folder_path+'/interior_sizes.dat'
-    interior_nodes_filename = folder_path+'/interior_nodes.dat'
-
-    suffix_size    = '_sizes.dat'
-    suffix_nodes   = '_nodes.dat'
-    suffix_grdptid = '_grdpt_id.dat'
-    
-    [lm_nodes,lm_grdptid] = make_matrix_for_all_bf_layers(interior_size_filename,
-                                                          interior_nodes_filename,
-                                                          folder_path,
-                                                          nb_sublayers,
-                                                          suffix_size,
-                                                          suffix_nodes,
-                                                          suffix_grdptid)
-    
-    #display
-    #-----------------------------------------------------------------
-    fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
-                                                        lm_grdptid)
-    fig.canvas.set_window_title("Allocation test")
-    
-
-    #test get_sublayer
-    #=================================================================
-    #combine data from several sublayers in one large matrix
-    #-----------------------------------------------------------------
-    interior_size_filename  = folder_path+'/interior_sizes2.dat'
-    interior_nodes_filename = folder_path+'/interior_nodes2.dat'
-
-    suffix_size    = '_sizes2.dat'
-    suffix_nodes   = '_nodes2.dat'
-    suffix_grdptid = '_grdpt_id2.dat'
-    
-    [lm_nodes,lm_grdptid] = make_matrix_for_all_bf_layers(interior_size_filename,
-                                                          interior_nodes_filename,
-                                                          folder_path,
-                                                          nb_sublayers,
-                                                          suffix_size,
-                                                          suffix_nodes,
-                                                          suffix_grdptid)
-    
-    #display
-    #-----------------------------------------------------------------
-    fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
-                                                        lm_grdptid)
-    fig.canvas.set_window_title("test get_sublayer")
-
-
-    #show all
-    plt.show()
-    

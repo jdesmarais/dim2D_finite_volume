@@ -1,76 +1,113 @@
       program test_bf_layer_prog
 
         use bf_layer_class               , only : bf_layer
-        use bf_layer_update_grdpts_module, only : update_grdpts
+c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         use parameters_constant          , only : N,S,E,W,N_E,N_W,S_E,S_W
         use parameters_kind              , only : rkind, ikind
         use parameters_input             , only : nx,ny,ne,bc_size
-        use test_bf_layer_module         , only : print_nodes,
-     $                                            print_sizes,
+        use test_bf_layer_module         , only : print_interior_data,
      $                                            bf_layer_test_allocation,
      $                                            bf_layer_test_reallocation,
-     $                                            bf_layer_test_update_grdpts,
+     $                                            bf_layer_test_merge,
      $                                            test_bf_layer_local_coord,
      $                                            ini_nodes,
+     $                                            ini_grdpts_id,
      $                                            ini_general_coord
 
         implicit none
 
+        integer, parameter :: neighbor_case = 1
+        integer, parameter :: size_case = 3
+        integer, parameter :: distance_case = 3
+        integer, parameter :: random_seed = 86456
+        integer, parameter :: over_alignment_case_x = 3
+        integer, parameter :: over_alignment_case_y = 3
+        integer, parameter :: inverse_case = 2
+        integer, parameter :: inverse_size_case = 2
+
+
         type(bf_layer), dimension(8) :: table_bf_layer_tested
+        type(bf_layer), dimension(4) :: table_1st_bf_layer_tested
+        type(bf_layer), dimension(4) :: table_2nd_bf_layer_tested
 
         real(rkind)   , dimension(nx,ny,ne) :: nodes
+        integer       , dimension(nx,ny)    :: grdpts_id
         integer(ikind), dimension(2,2)      :: alignment
-        integer(ikind)                      :: i,j,k
+        integer(ikind), dimension(2,2)      :: alignment_2nd_bf_layer
+        integer(ikind), dimension(2,2)      :: alignment_after_merge
+        integer(ikind)                      :: i !,j,k
         integer       , dimension(8)        :: bf_layer_loc
         character(2)  , dimension(8)        :: bf_layer_char
         character(len=21)                   :: sizes_filename, nodes_filename, grdid_filename
-        integer(ikind), dimension(2,2)      :: border_changes
+c$$$        integer(ikind), dimension(2,2)      :: border_changes
         logical       , dimension(4)        :: neighbors
-        integer(ikind), dimension(2,2)      :: selected_grdpts
-        integer       , dimension(2)        :: match_table
-        integer(ikind), dimension(2)        :: general_coord
+c$$$        integer(ikind), dimension(2,2)      :: selected_grdpts
+c$$$        integer       , dimension(2)        :: match_table
+c$$$        integer(ikind), dimension(2)        :: general_coord
 
-        integer, dimension(8,2,2) :: test_border_changes
-        integer, dimension(8,2,2) :: test_selected_grdpts
+
+        integer(ikind), dimension(8,2,2) :: test_alignment_reallocation
+        integer(ikind), dimension(2,2)   :: alignment_reallocation
+        integer(ikind), dimension(8,2,2) :: test_alignment_merge
+        integer(ikind), dimension(8,2,2) :: test_alignment_2nd
+        integer(ikind), dimension(2,2)   :: alignment_merge
+        integer(ikind), dimension(2,2)   :: alignment_2nd
+
+        integer :: relative_distance
+        integer :: relative_size
+        integer :: over_alignment_x
+        integer :: over_alignment_y
+
+c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
         call ini_nodes(nodes)
-
+        call ini_grdpts_id(grdpts_id)
 
         !print the nodes
-        call print_sizes(nodes,'interior_sizes.dat')
-        call print_nodes(nodes,'interior_nodes.dat')
+        call print_interior_data(
+     $       nodes, grdpts_id,
+     $       'interior_nodes.dat',
+     $       'interior_grdpts_id.dat',
+     $       'interior_sizes.dat')
 
         !buffer layers tested
         bf_layer_loc  = [N,S,E,W,N_E,N_W,S_E,S_W]
         bf_layer_char = ['N_','S_','E_','W_','NE','NW','SE','SW']
 
-        !alignment
-        alignment(1,1) = bc_size+3
-        alignment(1,2) = bc_size+7
-        alignment(2,1) = bc_size+3
-        alignment(2,2) = bc_size+7
+        
+
+        !alignment after reallocation
+        call ini_alignment_after_reallocation(test_alignment_reallocation)
+
+        !alignment after merge
+        call ini_using_case(distance_case, random_seed, relative_distance)
+        call ini_using_case(size_case, random_seed, relative_size)
+        call ini_using_case(over_alignment_case_x, random_seed, over_alignment_x)
+        call ini_using_case(over_alignment_case_y, random_seed, over_alignment_y)
+
+        call ini_alignment_2nd_bf_layer(
+     $       relative_distance, relative_size, 
+     $       over_alignment_x, over_alignment_y,
+     $       test_alignment_2nd, test_alignment_merge)
+
 
         !neighbors
-        neighbors(1) = .true.
-        neighbors(2) = .true.
-        neighbors(3) = .true.
-        neighbors(4) = .true.
-
-        !border changes
-        call ini_border_changes(test_border_changes)
+        call ini_neighbors(neighbor_case, neighbors)
         
         !selected grid points
-        call ini_selected_grdpts(test_selected_grdpts)        
+        !call ini_selected_grdpts(test_selected_grdpts)
 
 
         !tests on all the buffer layers
         do i=1, size(bf_layer_loc,1)
 
            !test allocation
-           write(sizes_filename,'(A2,''_sizes.dat'')') bf_layer_char(i)
-           write(nodes_filename,'(A2,''_nodes.dat'')') bf_layer_char(i)
-           write(grdid_filename,'(A2,''_grdpt_id.dat'')') bf_layer_char(i)
+           write(sizes_filename,'(A2,''1_sizes1.dat'')') bf_layer_char(i)
+           write(nodes_filename,'(A2,''1_nodes1.dat'')') bf_layer_char(i)
+           write(grdid_filename,'(A2,''1_grdpt_id1.dat'')') bf_layer_char(i)
         
+           call ini_alignment(i, alignment)
+
            call bf_layer_test_allocation(
      $               table_bf_layer_tested(i),
      $               bf_layer_loc(i),
@@ -82,135 +119,383 @@
      $               grdid_filename)
 
            !test reallocation
-           write(sizes_filename,'(A2,''_sizes2.dat'')') bf_layer_char(i)
-           write(nodes_filename,'(A2,''_nodes2.dat'')') bf_layer_char(i)
-           write(grdid_filename,'(A2,''_grdpt_id2.dat'')') bf_layer_char(i)
+           write(sizes_filename,'(A2,''1_sizes2.dat'')') bf_layer_char(i)
+           write(nodes_filename,'(A2,''1_nodes2.dat'')') bf_layer_char(i)
+           write(grdid_filename,'(A2,''1_grdpt_id2.dat'')') bf_layer_char(i)
 
-           border_changes(1,1) = test_border_changes(bf_layer_loc(i),1,1)
-           border_changes(1,2) = test_border_changes(bf_layer_loc(i),1,2)
-           border_changes(2,1) = test_border_changes(bf_layer_loc(i),2,1)
-           border_changes(2,2) = test_border_changes(bf_layer_loc(i),2,2)
+           alignment_reallocation(1,1) = test_alignment_reallocation(bf_layer_loc(i),1,1)
+           alignment_reallocation(1,2) = test_alignment_reallocation(bf_layer_loc(i),1,2)
+           alignment_reallocation(2,1) = test_alignment_reallocation(bf_layer_loc(i),2,1)
+           alignment_reallocation(2,2) = test_alignment_reallocation(bf_layer_loc(i),2,2)
 
            call bf_layer_test_reallocation(
      $          table_bf_layer_tested(i),
-     $          border_changes,
+     $          alignment_reallocation,
+     $          sizes_filename,
+     $          nodes_filename,
+     $          grdid_filename)
+           
+c$$$
+c$$$           !test new interior gridpoints
+c$$$           write(sizes_filename,'(A2,''1_sizes3.dat'')') bf_layer_char(i)
+c$$$           write(nodes_filename,'(A2,''1_nodes3.dat'')') bf_layer_char(i)
+c$$$           write(grdid_filename,'(A2,''1_grdpt_id3.dat'')') bf_layer_char(i)
+c$$$           
+c$$$           selected_grdpts(1,1) = test_selected_grdpts(bf_layer_loc(i),1,1)
+c$$$           selected_grdpts(1,2) = test_selected_grdpts(bf_layer_loc(i),1,2)
+c$$$           selected_grdpts(2,1) = test_selected_grdpts(bf_layer_loc(i),2,1)
+c$$$           selected_grdpts(2,2) = test_selected_grdpts(bf_layer_loc(i),2,2)
+c$$$
+c$$$           call bf_layer_test_update_grdpts(
+c$$$     $          table_bf_layer_tested(i),
+c$$$     $          selected_grdpts,
+c$$$     $          match_table,
+c$$$     $          sizes_filename,
+c$$$     $          nodes_filename,
+c$$$     $          grdid_filename)
+
+        end do
+       
+
+
+        !test merge
+        do i=1,4
+
+           !print the data of the first buffer layer
+           write(sizes_filename,'(A2,''1_sizes3.dat'')') bf_layer_char(i)
+           write(nodes_filename,'(A2,''1_nodes3.dat'')') bf_layer_char(i)
+           write(grdid_filename,'(A2,''1_grdpt_id3.dat'')') bf_layer_char(i)
+
+           call ini_alignment(i, alignment)
+
+           call bf_layer_test_allocation(
+     $          table_1st_bf_layer_tested(i),
+     $          bf_layer_loc(i),
+     $          alignment,
      $          nodes,
-     $          match_table,
+     $          neighbors,
      $          sizes_filename,
      $          nodes_filename,
      $          grdid_filename)
 
-           !test new interior gridpoints
-           write(sizes_filename,'(A2,''_sizes3.dat'')') bf_layer_char(i)
-           write(nodes_filename,'(A2,''_nodes3.dat'')') bf_layer_char(i)
-           write(grdid_filename,'(A2,''_grdpt_id3.dat'')') bf_layer_char(i)
-           
-           selected_grdpts(1,1) = test_selected_grdpts(bf_layer_loc(i),1,1)
-           selected_grdpts(1,2) = test_selected_grdpts(bf_layer_loc(i),1,2)
-           selected_grdpts(2,1) = test_selected_grdpts(bf_layer_loc(i),2,1)
-           selected_grdpts(2,2) = test_selected_grdpts(bf_layer_loc(i),2,2)
+           if(inverse_size_case.eq.1) then
+              if(relative_size.ne.0) then
+                 call update_alignment_to_increase_size(
+     $                i,
+     $                relative_size,
+     $                alignment)
 
-           call bf_layer_test_update_grdpts(
-     $          table_bf_layer_tested(i),
-     $          selected_grdpts,
-     $          match_table,
-     $          sizes_filename,
-     $          nodes_filename,
-     $          grdid_filename)
+                 call bf_layer_test_reallocation(
+     $                table_1st_bf_layer_tested(i),
+     $                alignment,
+     $                sizes_filename,
+     $                nodes_filename,
+     $                grdid_filename)
+              end if
+           end if
 
-        end do
-           
+           !create additional bf layer and print its data
+           write(sizes_filename,'(A2,''2_sizes3.dat'')') bf_layer_char(i)
+           write(nodes_filename,'(A2,''2_nodes3.dat'')') bf_layer_char(i)
+           write(grdid_filename,'(A2,''2_grdpt_id3.dat'')') bf_layer_char(i)
 
+           alignment_2nd(1,1) = test_alignment_2nd(bf_layer_loc(i),1,1)
+           alignment_2nd(1,2) = test_alignment_2nd(bf_layer_loc(i),1,2)
+           alignment_2nd(2,1) = test_alignment_2nd(bf_layer_loc(i),2,1)
+           alignment_2nd(2,2) = test_alignment_2nd(bf_layer_loc(i),2,2)
 
-        !test the local coordinates
-        !--------------------------------
-        !re-initialize the interior nodes
-        do k=1, ne
-           do j=1, ny
-              do i=1, nx
-                 nodes(i,j,k) = 1.0
-              end do
-           end do
-        end do
-
-        !test on all the buffer layers
-        do i=1, size(bf_layer_loc,1)
-
-           write(sizes_filename,'(A2,''_sizes4.dat'')') bf_layer_char(i)
-           write(nodes_filename,'(A2,''_nodes4.dat'')') bf_layer_char(i)
-           write(grdid_filename,'(A2,''_grdpt_id4.dat'')') bf_layer_char(i)
-
-           call ini_general_coord(
-     $          table_bf_layer_tested(i)%localization,
-     $          table_bf_layer_tested(i)%alignment,
-     $          general_coord)
-
-           call test_bf_layer_local_coord(
-     $          table_bf_layer_tested(i),
+           call bf_layer_test_allocation(
+     $          table_2nd_bf_layer_tested(i),
+     $          bf_layer_loc(i),
+     $          alignment_2nd,
      $          nodes,
-     $          general_coord,
+     $          neighbors,
      $          sizes_filename,
      $          nodes_filename,
      $          grdid_filename)
-           
+
+           if(inverse_size_case.ne.1) then
+              if(relative_size.ne.0) then
+                 call update_alignment_to_increase_size(
+     $                i,
+     $                relative_size,
+     $                alignment_2nd)
+
+                 call bf_layer_test_reallocation(
+     $                table_2nd_bf_layer_tested(i),
+     $                alignment_2nd,
+     $                sizes_filename,
+     $                nodes_filename,
+     $                grdid_filename)
+              end if
+           end if
+
+           !test the merging procedure
+           write(sizes_filename,'(A2,''1_sizes4.dat'')') bf_layer_char(i)
+           write(nodes_filename,'(A2,''1_nodes4.dat'')') bf_layer_char(i)
+           write(grdid_filename,'(A2,''1_grdpt_id4.dat'')') bf_layer_char(i)
+
+           alignment_merge(1,1) = test_alignment_merge(bf_layer_loc(i),1,1)
+           alignment_merge(1,2) = test_alignment_merge(bf_layer_loc(i),1,2)
+           alignment_merge(2,1) = test_alignment_merge(bf_layer_loc(i),2,1)
+           alignment_merge(2,2) = test_alignment_merge(bf_layer_loc(i),2,2)
+
+           if(inverse_case.eq.1) then
+              call bf_layer_test_merge(
+     $             table_1st_bf_layer_tested(i),
+     $             table_2nd_bf_layer_tested(i),
+     $             alignment_merge,
+     $             sizes_filename,
+     $             nodes_filename,
+     $             grdid_filename)
+
+           else
+              call bf_layer_test_merge(
+     $             table_2nd_bf_layer_tested(i),
+     $             table_1st_bf_layer_tested(i),
+     $             alignment_merge,
+     $             sizes_filename,
+     $             nodes_filename,
+     $             grdid_filename)
+           end if
+
         end do
 
-        !for the test local coordinates: the nodes should be
-        !printed once all the buffer layers were tested
-        call print_sizes(nodes,'interior_sizes4.dat')
-        call print_nodes(nodes,'interior_nodes4.dat')
 
+c$$$        !test the local coordinates
+c$$$        !--------------------------------
+c$$$        !re-initialize the interior nodes
+c$$$        do k=1, ne
+c$$$           do j=1, ny
+c$$$              do i=1, nx
+c$$$                 nodes(i,j,k) = 1.0
+c$$$              end do
+c$$$           end do
+c$$$        end do
+c$$$
+c$$$        !test on all the buffer layers
+c$$$        do i=1, size(bf_layer_loc,1)
+c$$$
+c$$$           write(sizes_filename,'(A2,''1_sizes4.dat'')') bf_layer_char(i)
+c$$$           write(nodes_filename,'(A2,''1_nodes4.dat'')') bf_layer_char(i)
+c$$$           write(grdid_filename,'(A2,''1_grdpt_id4.dat'')') bf_layer_char(i)
+c$$$
+c$$$           call ini_general_coord(
+c$$$     $          table_bf_layer_tested(i)%localization,
+c$$$     $          table_bf_layer_tested(i)%alignment,
+c$$$     $          general_coord)
+c$$$
+c$$$           call test_bf_layer_local_coord(
+c$$$     $          table_bf_layer_tested(i),
+c$$$     $          nodes,
+c$$$     $          general_coord,
+c$$$     $          sizes_filename,
+c$$$     $          nodes_filename,
+c$$$     $          grdid_filename)
+c$$$           
+c$$$        end do
+c$$$
+c$$$        !for the test local coordinates: the nodes should be
+c$$$        !printed once all the buffer layers were tested
+c$$$        call print_interior_data(
+c$$$     $       nodes, grdpts_id,
+c$$$     $       'interior_nodes4.dat',
+c$$$     $       'interior_grdpts_id4.dat',
+c$$$     $       'interior_sizes4.dat')
 
         contains
 
+        subroutine ini_alignment(mainlayer_id, alignment)
 
-        subroutine ini_border_changes(border_changes)
+          implicit none
+
+          integer                       , intent(in)  :: mainlayer_id
+          integer(ikind), dimension(2,2), intent(out) :: alignment
+
+
+          select case(mainlayer_id)
+            case(N)
+               alignment(1,1) = bc_size+3
+               alignment(1,2) = bc_size+7
+               alignment(2,1) = ny+1
+               alignment(2,2) = ny+1
+            case(S)
+               alignment(1,1) = bc_size+3
+               alignment(1,2) = bc_size+7
+               alignment(2,1) = 0
+               alignment(2,2) = 0
+            case(E)
+               alignment(1,1) = nx+1
+               alignment(1,2) = nx+1
+               alignment(2,1) = bc_size+3
+               alignment(2,2) = bc_size+7
+            case(W)
+               alignment(1,1) = 0
+               alignment(1,2) = 0
+               alignment(2,1) = bc_size+3
+               alignment(2,2) = bc_size+7
+            case(N_E)
+               alignment(1,1) = bc_size+3
+               alignment(1,2) = bc_size+7
+               alignment(2,1) = bc_size+3
+               alignment(2,2) = bc_size+7
+            case(N_W)
+               alignment(1,1) = bc_size+3
+               alignment(1,2) = bc_size+7
+               alignment(2,1) = bc_size+3
+               alignment(2,2) = bc_size+7
+            case(S_E)
+               alignment(1,1) = bc_size+3
+               alignment(1,2) = bc_size+7
+               alignment(2,1) = bc_size+3
+               alignment(2,2) = bc_size+7
+            case(S_W)
+               alignment(1,1) = bc_size+3
+               alignment(1,2) = bc_size+7
+               alignment(2,1) = bc_size+3
+               alignment(2,2) = bc_size+7
+            case default
+               
+          end select
+               
+        end subroutine ini_alignment
+
+
+        subroutine ini_alignment_after_reallocation(alignment)
         
           implicit none
 
-          integer, dimension(:,:,:), intent(inout) :: border_changes
+          integer, dimension(:,:,:), intent(inout) :: alignment
 
-          border_changes(N,1,1) = -1
-          border_changes(N,1,2) = 1
-          border_changes(N,2,1) = 0
-          border_changes(N,2,2) = 2
+          alignment(N,1,1) = bc_size+1
+          alignment(N,1,2) = bc_size+8
+          alignment(N,2,1) = ny+1
+          alignment(N,2,2) = ny+1
 
-          border_changes(S,1,1) = -1
-          border_changes(S,1,2) = 0
-          border_changes(S,2,1) = -1
-          border_changes(S,2,2) = 0
+          alignment(S,1,1) = bc_size+3
+          alignment(S,1,2) = bc_size+8
+          alignment(S,2,1) = -1
+          alignment(S,2,2) = 0
 
-          border_changes(E,1,1) = 0
-          border_changes(E,1,2) = 1
-          border_changes(E,2,1) = -1
-          border_changes(E,2,2) = 1
+          alignment(E,1,1) = nx+1
+          alignment(E,1,2) = nx+1
+          alignment(E,2,1) = bc_size+1
+          alignment(E,2,2) = bc_size+8
 
-          border_changes(W,1,1) = -1
-          border_changes(W,1,2) = 0
-          border_changes(W,2,1) = -1
-          border_changes(W,2,2) = 2
+          alignment(W,1,1) = -2
+          alignment(W,1,2) = 0
+          alignment(W,2,1) = bc_size+1
+          alignment(W,2,2) = bc_size+8
 
-          border_changes(N_E,1,1) = 0
-          border_changes(N_E,1,2) = 2
-          border_changes(N_E,2,1) = 0
-          border_changes(N_E,2,2) = 1
+          alignment(N_E,1,1) = nx+1
+          alignment(N_E,1,2) = nx+3
+          alignment(N_E,2,1) = ny+1
+          alignment(N_E,2,2) = ny+4
 
-          border_changes(N_W,1,1) = -1
-          border_changes(N_W,1,2) = 0
-          border_changes(N_W,2,1) = 0
-          border_changes(N_W,2,2) = 1
+          alignment(N_W,1,1) = -1
+          alignment(N_W,1,2) = 0
+          alignment(N_W,2,1) = ny+1
+          alignment(N_W,2,2) = ny+3
 
-          border_changes(S_E,1,1) = 0
-          border_changes(S_E,1,2) = 2
-          border_changes(S_E,2,1) = -2
-          border_changes(S_E,2,2) = 0
+          alignment(S_E,1,1) = nx+1
+          alignment(S_E,1,2) = nx+3
+          alignment(S_E,2,1) = -2
+          alignment(S_E,2,2) = 0
 
-          border_changes(S_W,1,1) = -1
-          border_changes(S_W,1,2) = 0
-          border_changes(S_W,2,1) = -1
-          border_changes(S_W,2,2) = 0
+          alignment(S_W,1,1) = -3
+          alignment(S_W,1,2) = 0
+          alignment(S_W,2,1) = -4
+          alignment(S_W,2,2) = 0
 
-        end subroutine ini_border_changes
+        end subroutine ini_alignment_after_reallocation
+
+
+        subroutine ini_alignment_2nd_bf_layer(
+     $     relative_distance, relative_size, 
+     $     over_alignment_x, over_alignment_y,
+     $     alignment, final_alignment)
+
+          implicit none
+
+          integer                  , intent(in)    :: relative_distance
+          integer                  , intent(in)    :: relative_size
+          integer                  , intent(in)    :: over_alignment_x
+          integer                  , intent(in)    :: over_alignment_y
+          integer, dimension(:,:,:), intent(inout) :: alignment
+          integer, dimension(:,:,:), intent(inout) :: final_alignment
+
+          alignment(N,1,1) = bc_size+7+1+2*bc_size+relative_distance
+          alignment(N,1,2) = alignment(N,1,1) + relative_size
+          alignment(N,2,1) = ny+1
+          alignment(N,2,2) = ny+1
+
+          final_alignment(N,1,1) = bc_size+3 - over_alignment_x
+          final_alignment(N,1,2) = alignment(N,1,2) + over_alignment_x
+          final_alignment(N,2,1) = ny+1
+          final_alignment(N,2,2) = ny+1 + over_alignment_y
+
+          alignment(S,1,1) = bc_size+7+1+2*bc_size+relative_distance
+          alignment(S,1,2) = alignment(S,1,1) + relative_size    
+          alignment(S,2,1) = 0
+          alignment(S,2,2) = 0
+
+          final_alignment(S,1,1) = bc_size+3 - over_alignment_x
+          final_alignment(S,1,2) = alignment(S,1,2) + over_alignment_x
+          final_alignment(S,2,1) = 0 - over_alignment_y
+          final_alignment(S,2,2) = 0
+
+          alignment(E,1,1) = nx+1
+          alignment(E,1,2) = nx+1
+          alignment(E,2,1) = bc_size+7+1+2*bc_size+relative_distance
+          alignment(E,2,2) = alignment(E,2,1) + relative_size
+
+          final_alignment(E,1,1) = nx+1
+          final_alignment(E,1,2) = nx+1 + over_alignment_x
+          final_alignment(E,2,1) = bc_size+3 - over_alignment_y
+          final_alignment(E,2,2) = alignment(E,2,2) + over_alignment_y
+
+          alignment(W,1,1) = 0
+          alignment(W,1,2) = 0
+          alignment(W,2,1) = bc_size+7+1+2*bc_size+relative_distance
+          alignment(W,2,2) = alignment(W,2,1) + relative_size
+
+          final_alignment(W,1,1) = 0 - over_alignment_x
+          final_alignment(W,1,2) = 0
+          final_alignment(W,2,1) = bc_size+3 - over_alignment_y
+          final_alignment(W,2,2) = alignment(W,2,2) + over_alignment_y
+
+        end subroutine ini_alignment_2nd_bf_layer
+
+        
+        subroutine update_alignment_to_increase_size(
+     $     mainlayer_id,
+     $     relative_size,
+     $     alignment)
+
+          implicit none
+
+          integer                       , intent(in)   :: mainlayer_id
+          integer                       , intent(in)   :: relative_size
+          integer(ikind), dimension(2,2), intent(inout):: alignment
+
+          select case(mainlayer_id)
+            case(N)
+               alignment(2,2) = alignment(2,2) + relative_size
+            case(S)
+               alignment(2,1) = alignment(2,1) - relative_size
+            case(E)
+               alignment(1,2) = alignment(1,2) + relative_size
+            case(W)
+               alignment(1,1) = alignment(1,1) - relative_size
+            case default
+               print '(''test_bf_layer_prog'')'
+               print '(''update_alignemnt_to_increase_size'')'
+               print '(''mainlayer_id not recognized'')'
+               print '(''mainlayer : '', I2)', mainlayer_id
+          end select
+
+        end subroutine update_alignment_to_increase_size
+
 
         subroutine ini_selected_grdpts(selected_grdpts)
 
@@ -259,5 +544,53 @@
           selected_grdpts(S_W,2,2) = 2
 
         end subroutine ini_selected_grdpts
+
+        subroutine ini_neighbors(
+     $     neighbor_case, neighbors)
+
+          implicit none
+
+          integer              , intent(in)  :: neighbor_case
+          logical, dimension(4), intent(out) :: neighbors
+
+          select case(neighbor_case)
+            case(1)
+               neighbors = [.false.,.false.,.false.,.false.]
+            case(2)
+               neighbors = [.true.,.false.,.true.,.false.]
+            case(3)
+               neighbors = [.false.,.true.,.false.,.true.]
+            case(4)
+               neighbors = [.true.,.true.,.true.,.true.]
+          end select
+
+        end subroutine ini_neighbors
+
+        subroutine ini_using_case(
+     $     distance_case, seed, relative_distance)
+
+          implicit none
+
+          integer, intent(in) :: distance_case
+          integer, intent(in) :: seed
+          integer, intent(out):: relative_distance          
+
+          select case(distance_case)
+            case(1)
+               relative_distance=0
+            case(2)
+               relative_distance=1
+            case(3)
+               call srand(seed)
+               relative_distance = nint(5.0*RAND())
+            case default
+               print '(''test_bf_layer_prog'')'
+               print '(''ini_using_case'')'
+               print '(''distance_case not recognized'')'
+               print '(''distance_case'', I2)', distance_case
+               stop 'change distance_case'               
+          end select               
+
+        end subroutine ini_using_case
 
       end program test_bf_layer_prog

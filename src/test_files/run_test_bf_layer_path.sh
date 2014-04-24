@@ -14,4 +14,4 @@ make test_bf_layer_path_prog
 #run the visualization using python
 folder_path=$(pwd)
 pushd ../../python_files
-python plot_path.py -f $folder_path
+python plot_test_bf_layer_path.py -f $folder_path

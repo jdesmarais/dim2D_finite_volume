@@ -27,6 +27,8 @@
           integer :: i,j
           integer :: nb_sublayers_max
 
+          character(len=18) :: sublayers_nb_filename
+
           nb_sublayers_max = 1
 
           !go through the different main layers of the interface
@@ -57,8 +59,11 @@
 
           end do
 
+          write(sublayers_nb_filename,'(''sublayers_nb_'',I1,''.dat'')')
+     $         interface_id
+
           call print_nb_sublayers(
-     $         'sublayers_nb.dat',
+     $         sublayers_nb_filename,
      $         nb_sublayers_max)
 
         end subroutine print_interface

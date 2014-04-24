@@ -86,7 +86,48 @@
           !> and the buffer layer allowing to correspond
           !> the interior grid points and the ones from
           !> the buffer layer
-          this%alignment = alignment
+          select case(this%localization)
+            case(N)
+               this%alignment(1,1) = alignment(1,1)
+               this%alignment(2,1) = ny+1
+               this%alignment(1,2) = alignment(1,2)
+               this%alignment(2,2) = ny+1
+            case(S)
+               this%alignment(1,1) = alignment(1,1)
+               this%alignment(2,1) = 0
+               this%alignment(1,2) = alignment(1,2)
+               this%alignment(2,2) = 0
+            case(E)
+               this%alignment(1,1) = nx+1
+               this%alignment(2,1) = alignment(2,1)
+               this%alignment(1,2) = nx+1
+               this%alignment(2,2) = alignment(2,2)
+            case(W)
+               this%alignment(1,1) = 0
+               this%alignment(2,1) = alignment(2,1)
+               this%alignment(1,2) = 0
+               this%alignment(2,2) = alignment(2,2)
+            case(N_E)
+               this%alignment(1,1) = nx+1
+               this%alignment(2,1) = ny+1
+               this%alignment(1,2) = nx+1
+               this%alignment(2,2) = ny+1
+            case(N_W)
+               this%alignment(1,1) = 0
+               this%alignment(2,1) = ny+1
+               this%alignment(1,2) = 0
+               this%alignment(2,2) = ny+1
+            case(S_E)
+               this%alignment(1,1) = nx+1
+               this%alignment(2,1) = 0
+               this%alignment(1,2) = nx+1
+               this%alignment(2,2) = 0
+            case(S_W)
+               this%alignment(1,1) = 0
+               this%alignment(2,1) = 0
+               this%alignment(1,2) = 0
+               this%alignment(2,2) = 0
+          end select
 
 
           !< determine the total size needed for the buffer
@@ -162,24 +203,23 @@
         
           implicit none
 
-          class(bf_layer_abstract)        , intent(inout) :: this
-          integer, dimension(2,2)         , intent(in)    :: border_changes
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
-          integer, dimension(2)           , intent(out)   :: match_table
+          class(bf_layer_abstract)              , intent(inout) :: this
+          integer       , dimension(2,2)        , intent(in)    :: border_changes
+          real(rkind)   , dimension(nx,ny,ne)   , intent(in)    :: nodes
+          integer(ikind), dimension(2), optional, intent(out)   :: match_table
 
 
-          !< reallocate and copy the tables
-          call reallocate_and_copy_main_tables(
-     $         this,
-     $         border_changes,
-     $         match_table)
-
-          !< copy the data that can be copied from the
-          !> interior
-          call copy_interior_data_after_reallocation(
-     $         this,
-     $         nodes,
-     $         border_changes)
+          !< reallocate and copy the nodes
+          if(present(match_table)) then
+             call reallocate_nodes_and_gridpts_id(
+     $            this,
+     $            border_changes,
+     $            match_table)
+          else
+             call reallocate_nodes_and_gridpts_id(
+     $            this,
+     $            border_changes)
+          end if
         
         end subroutine reallocate_bf_layer
 
@@ -270,22 +310,23 @@
         !> correspondance between the buffer layer and the
         !> interior grid points
         !-------------------------------------------------
-        subroutine reallocate_and_copy_main_tables(
+        subroutine reallocate_nodes_and_gridpts_id(
      $     this,
      $     border_changes,
-     $     match_table)
+     $     match_table_o)
 
           implicit none
 
-          class(bf_layer_abstract), intent(inout) :: this
-          integer, dimension(2,2) , intent(in)    :: border_changes
-          integer, dimension(2)   , intent(out)   :: match_table
+          class(bf_layer_abstract)              , intent(inout) :: this
+          integer       , dimension(2,2)        , intent(in)    :: border_changes
+          integer(ikind), dimension(2), optional, intent(out)   :: match_table_o
 
           integer(ikind) :: i,j,k
           integer(ikind) :: i_min, i_max, j_min, j_max
           integer(ikind) :: new_size_x, new_size_y
-          real(rkind), dimension(:,:,:), allocatable :: new_nodes
-          integer    , dimension(:,:)  , allocatable :: new_grdptid
+          real(rkind)   , dimension(:,:,:), allocatable :: new_nodes
+          integer       , dimension(:,:)  , allocatable :: new_grdptid
+          integer(ikind), dimension(2) :: match_table
 
 
           !< determine the new alignment between the interior and 
@@ -422,6 +463,10 @@
              
           call MOVE_ALLOC(new_grdptid,this%grdpts_id)
 
-        end subroutine reallocate_and_copy_main_tables
+          if(present(match_table_o)) then
+             match_table_o = match_table
+          end if
+
+        end subroutine reallocate_nodes_and_gridpts_id
 
       end module bf_layer_allocate_module

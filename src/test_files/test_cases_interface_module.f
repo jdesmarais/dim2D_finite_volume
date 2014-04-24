@@ -26,17 +26,93 @@
      $       corner_id,
      $       corner_order,
      $       bf_corner_distance,
-     $       over_allocated)
+     $       over_allocated,
+     $       mainlayer_id,
+     $       nb_sublayers,
+     $       relative_distance,
+     $       relative_sizes)
 
           implicit none 
 
-          class(interface_abstract)       , intent(inout) :: interface_used
-          integer                         , intent(in)    :: test_case_nb
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
-          integer                         , intent(in)    :: corner_id
-          integer                         , intent(in)    :: corner_order
-          integer                         , intent(in)    :: bf_corner_distance
-          integer                         , intent(in)    :: over_allocated
+          class(interface_abstract)        , intent(inout) :: interface_used
+          integer                          , intent(in)    :: test_case_nb
+          real(rkind), dimension(nx,ny,ne) , intent(in)    :: nodes
+          integer                , optional, intent(in)    :: corner_id
+          integer                , optional, intent(in)    :: corner_order
+          integer                , optional, intent(in)    :: bf_corner_distance
+          integer                , optional, intent(in)    :: over_allocated
+          integer                , optional, intent(in)    :: mainlayer_id
+          integer                , optional, intent(in)    :: nb_sublayers
+          integer, dimension(:)  , optional, intent(in)    :: relative_distance
+          integer, dimension(:,:), optional, intent(in)    :: relative_sizes
+
+          
+          integer                              :: corner_id_i
+          integer                              :: corner_order_i
+          integer                              :: bf_corner_distance_i
+          integer                              :: over_allocated_i
+          integer                              :: mainlayer_id_i
+          integer                              :: nb_sublayers_i
+          integer, dimension(:)  , allocatable :: relative_distance_i
+          integer, dimension(:,:), allocatable :: relative_sizes_i
+
+          integer :: i
+
+          !preprocess the optional arguments
+          if(present(corner_id)) then
+             corner_id_i = corner_id
+          else
+             corner_id_i = 1
+          end if
+
+          if(present(corner_order)) then
+             corner_order_i = corner_order
+          else
+             corner_order_i = 1
+          end if
+
+          if(present(bf_corner_distance)) then
+             bf_corner_distance_i = bf_corner_distance
+          else
+             bf_corner_distance_i = 0
+          end if
+
+          if(present(over_allocated)) then
+             over_allocated_i = over_allocated
+          else
+             over_allocated_i = 0
+          end if
+
+          if(present(mainlayer_id)) then
+             mainlayer_id_i = mainlayer_id
+          else
+             mainlayer_id_i = N
+          end if          
+
+          if(present(nb_sublayers)) then
+             nb_sublayers_i = nb_sublayers
+          else
+             nb_sublayers_i = 2
+          end if
+
+          allocate(relative_distance_i(nb_sublayers_i))
+          if(present(relative_distance)) then
+             relative_distance_i = relative_distance
+          else
+             do i=1, nb_sublayers_i
+                relative_distance_i(i) = 0
+             end do
+          end if
+
+          allocate(relative_sizes_i(2,nb_sublayers_i))
+          if(present(relative_sizes)) then
+             relative_sizes_i = relative_sizes
+          else
+             do i=1, nb_sublayers_i
+                relative_sizes_i(1,i) = 0
+                relative_sizes_i(2,i) = 0
+             end do
+          end if          
 
 
           !choose the test case
@@ -47,17 +123,25 @@
                call ini_interface_testcase1(
      $              interface_used,
      $              nodes,
-     $              corner_id,
-     $              corner_order,
-     $              bf_corner_distance,
-     $              over_allocated)
+     $              corner_id_i,
+     $              corner_order_i,
+     $              bf_corner_distance_i,
+     $              over_allocated_i)
             case(2)
                call ini_interface_testcase2(
      $              interface_used,
      $              nodes,
-     $              corner_id,
-     $              bf_corner_distance,
-     $              over_allocated)
+     $              corner_id_i,
+     $              bf_corner_distance_i,
+     $              over_allocated_i)
+            case(3)
+               call ini_interface_testcase3(
+     $              interface_used,
+     $              nodes,
+     $              mainlayer_id_i,
+     $              nb_sublayers_i,
+     $              relative_distance_i,
+     $              relative_sizes_i)
             case default
                print '(''test_cases_interface_module'')'
                print '(''ini_interface'')'
@@ -502,6 +586,185 @@
             end select
 
         end subroutine ini_interface_testcase2
+
+
+        subroutine ini_interface_testcase3(
+     $     interface_used,
+     $     nodes,
+     $     mainlayer_id,
+     $     nb_sublayers,
+     $     relative_distance,
+     $     relative_sizes)
+
+          implicit none
+
+          class(interface_abstract)       , intent(inout) :: interface_used
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+          integer                         , intent(in)    :: mainlayer_id
+          integer                         , intent(in)    :: nb_sublayers
+          integer, dimension(:)           , intent(in)    :: relative_distance
+          integer, dimension(:,:)         , intent(in)    :: relative_sizes
+          
+
+          type(bf_sublayer), pointer     :: added_sublayer
+          integer(ikind), dimension(2,2) :: alignment
+          logical       , dimension(4)   :: neighbors
+
+          integer :: i
+
+c$$$          character(len=22) :: sizes_filename
+c$$$          character(len=22) :: nodes_filename
+c$$$          character(len=22) :: grdid_filename
+
+
+          print '(''************************************'')'
+          print '(''3: interface with two sublayers     '')'
+          print '('' : on the same mainlayer            '')'
+          print '(''************************************'')'
+
+          !initialization
+          call print_nb_sublayers('sublayers_nb.dat',nb_sublayers)
+          call interface_used%ini()
+
+          neighbors = [.false.,.false.,.false.,.false.]
+
+          select case(mainlayer_id)
+
+            case(N)
+
+               !initialize the alignment
+               alignment(1,2) = - bc_size
+               alignment(2,1) = ny-1
+               alignment(2,2) = ny
+
+               !add the sublayers and print the content
+               do i=1, nb_sublayers
+
+                  alignment(1,1) = alignment(1,2)+2*bc_size+1
+                  alignment(1,1) = alignment(1,1)+relative_distance(i)
+                  alignment(1,2) = alignment(1,1)+relative_sizes(1,i)
+
+                  added_sublayer => interface_used%add_sublayer(
+     $                 mainlayer_id, alignment, nodes, neighbors)
+
+                  if(relative_sizes(2,i).gt.0) then
+                     call over_allocate_north(
+     $                    added_sublayer,
+     $                    nodes,
+     $                    relative_sizes(2,i))
+                  end if
+               
+c$$$                  write(sizes_filename,'(A2,I1,''_sizes.dat'')') 'N_',i
+c$$$                  write(nodes_filename,'(A2,I1,''_nodes.dat'')') 'N_',i
+c$$$                  write(grdid_filename,'(A2,I1,''_grdpt_id.dat'')') 'N_',i
+c$$$                  call added_sublayer%element%print_sizes(sizes_filename)
+c$$$                  call added_sublayer%element%print_nodes(nodes_filename)
+c$$$                  call added_sublayer%element%print_grdpts_id(grdid_filename)
+
+               end do               
+
+            case(S)
+
+               !initialize the alignment
+               alignment(1,2) = - bc_size
+               alignment(2,1) = 1
+               alignment(2,2) = bc_size
+
+               !add the sublayers and print the content
+               do i=1, nb_sublayers
+
+                  alignment(1,1) = alignment(1,2)+2*bc_size+1
+                  alignment(1,1) = alignment(1,1)+relative_distance(i)
+                  alignment(1,2) = alignment(1,1)+relative_sizes(1,i)
+
+                  added_sublayer => interface_used%add_sublayer(
+     $                 mainlayer_id, alignment, nodes, neighbors)
+
+                  if(relative_sizes(2,i).gt.0) then
+                     call over_allocate_south(
+     $                    added_sublayer,
+     $                    nodes,
+     $                    relative_sizes(2,i))
+                  end if
+               
+c$$$                  write(sizes_filename,'(A2,I1,''_sizes.dat'')') 'S_',i
+c$$$                  write(nodes_filename,'(A2,I1,''_nodes.dat'')') 'S_',i
+c$$$                  write(grdid_filename,'(A2,I1,''_grdpt_id.dat'')') 'S_',i
+c$$$                  call added_sublayer%element%print_sizes(sizes_filename)
+c$$$                  call added_sublayer%element%print_nodes(nodes_filename)
+c$$$                  call added_sublayer%element%print_grdpts_id(grdid_filename)
+
+               end do
+
+            case(E)
+
+               !initialize the alignment
+               alignment(1,1) = nx-1
+               alignment(1,2) = nx
+               alignment(2,2) = - bc_size
+
+               !add the sublayers and print the content
+               do i=1, nb_sublayers
+
+                  alignment(2,1) = alignment(2,2)+2*bc_size+1
+                  alignment(2,1) = alignment(2,1)+relative_distance(i)
+                  alignment(2,2) = alignment(2,1)+relative_sizes(1,i)
+
+                  added_sublayer => interface_used%add_sublayer(
+     $                 mainlayer_id, alignment, nodes, neighbors)
+
+                  if(relative_sizes(2,i).gt.0) then
+                     call over_allocate_east(
+     $                    added_sublayer,
+     $                    nodes,
+     $                    relative_sizes(2,i))
+                  end if
+               
+c$$$                  write(sizes_filename,'(A2,I1,''_sizes.dat'')') 'E_',i
+c$$$                  write(nodes_filename,'(A2,I1,''_nodes.dat'')') 'E_',i
+c$$$                  write(grdid_filename,'(A2,I1,''_grdpt_id.dat'')') 'E_',i
+c$$$                  call added_sublayer%element%print_sizes(sizes_filename)
+c$$$                  call added_sublayer%element%print_nodes(nodes_filename)
+c$$$                  call added_sublayer%element%print_grdpts_id(grdid_filename)
+
+               end do
+
+            case(W)
+
+               !initialize the alignment
+               alignment(1,1) = 1
+               alignment(1,2) = bc_size
+               alignment(2,2) = - bc_size
+
+               !add the sublayers and print the content
+               do i=1, nb_sublayers
+
+                  alignment(2,1) = alignment(2,2)+2*bc_size+1
+                  alignment(2,1) = alignment(2,1)+relative_distance(i)
+                  alignment(2,2) = alignment(2,1)+relative_sizes(1,i)
+
+                  added_sublayer => interface_used%add_sublayer(
+     $                 mainlayer_id, alignment, nodes, neighbors)
+
+                  if(relative_sizes(2,i).gt.0) then
+                     call over_allocate_west(
+     $                    added_sublayer,
+     $                    nodes,
+     $                    relative_sizes(2,i))
+                  end if
+               
+c$$$                  write(sizes_filename,'(A2,I1,''_sizes.dat'')') 'W_',i
+c$$$                  write(nodes_filename,'(A2,I1,''_nodes.dat'')') 'W_',i
+c$$$                  write(grdid_filename,'(A2,I1,''_grdpt_id.dat'')') 'W_',i
+c$$$                  call added_sublayer%element%print_sizes(sizes_filename)
+c$$$                  call added_sublayer%element%print_nodes(nodes_filename)
+c$$$                  call added_sublayer%element%print_grdpts_id(grdid_filename)
+
+               end do
+
+            end select
+
+        end subroutine ini_interface_testcase3
 
 
         subroutine over_allocate_north(

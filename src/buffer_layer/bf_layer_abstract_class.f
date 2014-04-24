@@ -64,11 +64,11 @@
         !---------------------------------------------------------------
         type :: bf_layer_abstract
 
-          integer                        :: localization
-          integer(ikind), dimension(2,2) :: alignment
+          integer                       , private :: localization
+          integer(ikind), dimension(2,2), private :: alignment
           
-          real(rkind)   , dimension(:,:,:), allocatable :: nodes
-          integer       , dimension(:,:)  , allocatable :: grdpts_id
+          real(rkind)   , dimension(:,:,:), allocatable, private :: nodes
+          integer       , dimension(:,:)  , allocatable, private :: grdpts_id
 
           contains
 
@@ -111,5 +111,36 @@
           this%localization = localization
 
         end subroutine ini
- 
+
+
+        !!> @author
+        !!> Julien L. Desmarais
+        !!
+        !!> @brief
+        !!> subroutine print the nodes table in a binary
+        !!> file
+        !!
+        !!> @date
+        !!> 07_04_2013 - initial version - J.L. Desmarais
+        !!
+        !!>@param this
+        !!> bf_layer_abstract object encapsulating the main
+        !!> tables and the integer identifying the
+        !!> correspondance between the buffer layer and the
+        !!> interior grid points
+        !!
+        !!>@param localization
+        !!> return the localization of the buffer layer
+        !!--------------------------------------------------------------        
+        !function get_localization(this)
+        !
+        !  implicit none
+        !
+        !  class(bf_layer_abstract)    , intent(in) :: this
+        !  integer(ikind)                           :: localization
+        !  
+        !  localization = this%localization
+        !
+        !end function get_localization
+
       end module bf_layer_abstract_class

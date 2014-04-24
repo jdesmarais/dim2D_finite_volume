@@ -12,11 +12,13 @@
         use parameters_kind         , only : ikind, rkind
 
         use test_bf_layer_module    , only : print_nodes,
+     $                                       print_grdpts_id,
      $                                       print_sizes,
      $                                       bf_layer_test_allocation,
      $                                       bf_layer_test_reallocation,
      $                                       bf_layer_test_update_grdpts,
      $                                       ini_nodes,
+     $                                       ini_grdpts_id,
      $                                       ini_alignment_table,
      $                                       ini_neighbors_table,
      $                                       ini_general_coord
@@ -32,6 +34,7 @@
         logical, dimension(nb_sublayers,4)   :: test_neighbors
 
         real(rkind), dimension(nx,ny,ne)     :: nodes
+        integer    , dimension(nx,ny)        :: grdpts_id
         integer, dimension(2,2)              :: alignment
         logical, dimension(4)                :: neighbors
         integer, dimension(2)                :: general_coord
@@ -55,7 +58,9 @@
 
         !initialize the nodes and print them
         call ini_nodes(nodes)
+        call ini_grdpts_id(grdpts_id)
         call print_sizes(nodes,'interior_sizes.dat')
+        call print_grdpts_id(grdpts_id,'interior_grdpts_id.dat')
         call print_nodes(nodes,'interior_nodes.dat')
         
         !buffer layer tested
@@ -176,8 +181,9 @@
            end do
 
         end do
-
+        
         call print_sizes(nodes,'interior_sizes2.dat')
+        call print_grdpts_id(grdpts_id,'interior_grdpts_id2.dat')
         call print_nodes(nodes,'interior_nodes2.dat')
         
         contains

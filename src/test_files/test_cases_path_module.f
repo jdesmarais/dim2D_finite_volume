@@ -15,6 +15,65 @@
 
         subroutine ini_path(
      $       current_path,
+     $       test_case_id,
+     $       corner_id,
+     $       corner_order,
+     $       bf_corner_distance)
+
+          implicit none
+
+          type(bf_layer_path)          , intent(inout) :: current_path
+          integer                      , intent(in)    :: test_case_id
+          integer            , optional, intent(in)    :: corner_id
+          integer            , optional, intent(in)    :: corner_order
+          integer            , optional, intent(in)    :: bf_corner_distance
+
+
+          integer :: corner_id_i, corner_order_i, bf_corner_distance_i
+
+
+          !initialize the optional argments
+          if(present(corner_id)) then
+             corner_id_i = corner_id
+          else
+             corner_id_i = N
+          end if
+
+          if(present(corner_order)) then
+             corner_order_i = corner_order
+          else
+             corner_order_i = 1
+          end if
+
+          if(present(bf_corner_distance)) then
+             bf_corner_distance_i = bf_corner_distance
+          else
+             bf_corner_distance_i = 3
+          end if
+
+
+          !select the test case
+          select case(test_case_id)
+            case(0)
+               call ini_path_testcase0(
+     $              current_path,
+     $              corner_id,
+     $              corner_order,
+     $              bf_corner_distance)
+            case default
+               print '(''test_cases_path_module'')'
+               print '(''ini_path'')'
+               print '(''test case ID not recognized'')'
+               print '(''test_case_id: '',I2)', test_case_id
+               stop 'change test_case_id'
+          end select
+
+        end subroutine ini_path
+
+
+
+        subroutine ini_path_testcase0(
+     $       current_path,
      $       corner_id,
      $       corner_order,
      $       bf_corner_distance)
@@ -104,6 +163,6 @@
           end select 
           
 
-        end subroutine ini_path
+        end subroutine ini_path_testcase0
 
       end module test_cases_path_module

@@ -10,7 +10,9 @@
         use parameters_kind             , only : rkind
 
         use test_bf_layer_module        , only : print_nodes,
+     $                                           print_grdpts_id,
      $                                           print_sizes,
+     $                                           ini_grdpts_id,
      $                                           ini_nodes
         use test_cases_interface_module , only : ini_interface
         use test_cases_path_module      , only : ini_path
@@ -19,17 +21,18 @@
         implicit none
 
 
-        integer, parameter               :: corner_tested = 4
-        integer, parameter               :: corner_order = 2
-        integer, parameter               :: test_case_id = 1
-        integer, parameter               :: bf_corner_distance = 6
-        integer, parameter               :: over_allocated = 3
+        integer, parameter               :: corner_tested = 1
+        integer, parameter               :: corner_order = 1
+        integer, parameter               :: test_case_id = 3
+        integer, parameter               :: bf_corner_distance = 0
+        integer, parameter               :: over_allocated = 0
         integer, parameter               :: current_path_use = 0
 
         integer, dimension(4)            :: corner_table
         integer                          :: corner_id
 
         real(rkind), dimension(nx,ny,ne) :: nodes
+        integer    , dimension(nx,ny)    :: grdpts_id
         type(interface_abstract)         :: interface_used
         type(bf_layer_path)              :: current_path
 
@@ -42,7 +45,9 @@
 
         !initialize the nodes for the test
         call ini_nodes(nodes)
+        call ini_grdpts_id(grdpts_id)
         call print_sizes(nodes,'interior_sizes.dat')
+        call print_grdpts_id(grdpts_id,'interior_grdpts_id.dat')
         call print_nodes(nodes,'interior_nodes.dat')
 
         !initialize the interface
@@ -58,6 +63,7 @@
         !initialize the current path
         call ini_path(
      $       current_path,
+     $       0,
      $       corner_id,
      $       corner_order,
      $       bf_corner_distance)        

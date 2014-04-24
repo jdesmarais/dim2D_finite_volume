@@ -70,8 +70,8 @@ done
 
 #clean directory from previous compilation
 #and data files
-make cleanall 1> /dev/null 2>$1
-rm *.dat 1> /dev/null 2>$1
+make cleanall 1> /dev/null 2>&1
+rm *.dat 1> /dev/null 2>&1
 
 #change the test case tested
 

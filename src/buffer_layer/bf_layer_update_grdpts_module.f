@@ -14,9 +14,6 @@
       !-----------------------------------------------------------------
       module bf_layer_update_grdpts_module
 
-        use bf_layer_abstract_class, only : bf_layer_abstract
-        use bf_layer_compute_module, only : compute_new_grdpts
-
         use parameters_bf_layer, only : no_pt, interior_pt, bc_interior_pt, bc_pt
         use parameters_constant, only : N,S,E,W,N_E,N_W,S_E,S_W
         use parameters_input   , only : nx,ny,ne,bc_size
