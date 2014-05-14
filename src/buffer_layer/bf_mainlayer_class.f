@@ -16,15 +16,12 @@
       !-----------------------------------------------------------------
       module bf_mainlayer_class
 
-        use bf_mainlayer_abstract_class, only : bf_mainlayer_abstract
-        use bf_sublayer_class          , only : bf_sublayer
-        use bf_sublayers_merge_module  , only : merge_sublayers_N,
-     $                                          merge_sublayers_S,
-     $                                          merge_sublayers_E,
-     $                                          merge_sublayers_W
-        use parameters_constant        , only : N,S,E,W
-        use parameters_input           , only : nx, ny, ne, debug
-        use parameters_kind            , only : ikind, rkind
+        use bf_sublayer_class  , only : bf_sublayer
+        use parameters_constant, only : N,S,E,W,
+     $                                  x_direction, y_direction,
+     $                                  min_border, max_border
+        use parameters_input   , only : nx, ny, ne, debug
+        use parameters_kind    , only : ikind, rkind
 
         implicit none
 
@@ -45,13 +42,27 @@
         !> @param tail_sublayer
         !> pointer of the tail sublayer of the main layer
         !---------------------------------------------------------------
-        type, extends(bf_mainlayer_abstract) :: bf_mainlayer
+        type :: bf_mainlayer
+
+          integer, private :: mainlayer_id
+          integer, private :: nb_sublayers
+
+          type(bf_sublayer), pointer, private :: head_sublayer
+          type(bf_sublayer), pointer, private :: tail_sublayer
 
           contains
 
           procedure, pass :: ini
+
+          procedure, pass :: get_mainlayer_id
+          procedure, pass :: get_nb_sublayers
+          procedure, pass :: get_head_sublayer
+          procedure, pass :: get_tail_sublayer
+
           procedure, pass :: add_sublayer
           procedure, pass :: merge_sublayers
+
+          procedure, nopass, private :: insert_sublayer
 
         end type bf_mainlayer
 
@@ -90,6 +101,66 @@
         end subroutine ini
 
 
+        !< get the localization of the mainlayer
+        function get_mainlayer_id(this)
+
+          implicit none
+
+          class(bf_mainlayer), intent(in) :: this
+          integer                         :: get_mainlayer_id
+
+          get_mainlayer_id = this%mainlayer_id
+
+        end function get_mainlayer_id
+
+
+        !< get the number of sublayers in the mainlayer chained list
+        function get_nb_sublayers(this)
+
+          implicit none
+
+          class(bf_mainlayer), intent(in) :: this
+          integer                         :: get_nb_sublayers
+
+          get_nb_sublayers = this%nb_sublayers
+
+        end function get_nb_sublayers
+
+
+        !< get the first sublayer in the chained list of the mainlayer
+        function get_head_sublayer(this)
+
+          implicit none
+
+          class(bf_mainlayer), intent(in) :: this
+          type(bf_sublayer)  , pointer    :: get_head_sublayer
+
+          if(associated(this%head_sublayer)) then
+             get_head_sublayer => this%head_sublayer
+          else
+             nullify(get_head_sublayer)
+          end if
+
+        end function get_head_sublayer
+
+
+        !< get the last sublayer in the chained list of the mainlayer
+        function get_tail_sublayer(this)
+
+          implicit none
+
+          class(bf_mainlayer), intent(in) :: this
+          type(bf_sublayer)  , pointer    :: get_tail_sublayer
+
+          if(associated(this%tail_sublayer)) then
+             get_tail_sublayer => this%tail_sublayer
+          else
+             nullify(get_tail_sublayer)
+          end if
+
+        end function get_tail_sublayer
+
+
         !> @author
         !> Julien L. Desmarais
         !
@@ -115,351 +186,138 @@
         !> table(2,2) of integers identifying the position of the buffer
         !> layer compared to the interior nodes
         !--------------------------------------------------------------
-        function add_sublayer(this,alignment)
+        function add_sublayer(this, nodes, alignment, neighbors)
      $     result(added_sublayer_ptr)
 
           implicit none
           
-          class(bf_mainlayer)       , intent(inout) :: this
-          integer, dimension(2,2)   , intent(in)    :: alignment
-          type(bf_sublayer), pointer                :: added_sublayer_ptr
+          class(bf_mainlayer)                , intent(inout) :: this
+          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: nodes
+          integer(ikind), dimension(2,2)     , intent(in)    :: alignment
+          logical       , dimension(4)       , intent(in)    :: neighbors
+          type(bf_sublayer), pointer                         :: added_sublayer_ptr
+
 
           type(bf_sublayer), pointer :: current_sublayer
-          integer :: current_border
-          logical :: is_sublayer_further
-          logical :: list_ended
+          type(bf_sublayer), pointer :: current_sublayer_prev
 
+          integer :: direction_tested
+          integer :: i
 
-          !< allocate space for the sublayer and initialize it
+          !allocate space for the sublayer and initialize it
           allocate(added_sublayer_ptr)
-          call added_sublayer_ptr%ini()
+          call added_sublayer_ptr%ini(this%mainlayer_id)
+          call added_sublayer_ptr%allocate_bf_layer(nodes, alignment, neighbors)
 
 
-          !< if there is already an element in the list of sublayers
-          !> of the mainlayer, go through the list of sublayers and
-          !> insert the newly sublayer where its alignment fits
-          list_ended = .true.
-          if(associated(this%head_sublayer)) then
+          !if there is already an element in the list of sublayers
+          !of the mainlayer, go through the list of sublayers and
+          !insert the newly sublayer where its alignment fits
+          select case(this%nb_sublayers)
+            case(0)
 
-             !< going through the sublayer list starts with the head
-             !> of the mainlayer
-             current_sublayer => this%head_sublayer
+               this%head_sublayer => added_sublayer_ptr
+               this%tail_sublayer => added_sublayer_ptr
 
-             !< if the mainlayer_id is N or S, the position of the
-             !> added sublayer is determined by the [i_min,i_max]
-             !> alignment of the sublayer
-             if((this%mainlayer_id.eq.N).or.(this%mainlayer_id.eq.S)) then
+            case(1)
+               
+               select case(this%mainlayer_id)
+                 case(N,S)
+                    direction_tested = x_direction
+                 case(E,W)
+                    direction_tested = y_direction
+                 case default
+                    print '(''bf_mainlayer_class'')'
+                    print '(''merge_sublayers'')'
+                    print '(''corner mainlayers cannot host more'')'
+                    print '(''than one sublayer'')'
+                    print '(''mainlayer_id: '', I2)', this%mainlayer_id
+                    stop 'check mainlayer_id'
+               end select
 
-                current_border = current_sublayer%element%alignment(1,2)
-                is_sublayer_further = current_border.lt.alignment(1,1)
+               if(this%head_sublayer%get_alignment(direction_tested,min_border).lt.
+     $            alignment(direction_tested,min_border)) then
 
-                if(is_sublayer_further) then
-                   
-                   do while (is_sublayer_further)
+                  call this%head_sublayer%set_next(added_sublayer_ptr)
+                  call added_sublayer_ptr%set_prev(this%head_sublayer)
+                  this%tail_sublayer => added_sublayer_ptr
 
-                      if(.not.associated(current_sublayer%next)) then
-                         list_ended=.true.
-                         exit
-                      end if
-
-                      current_sublayer => current_sublayer%next
-                      current_border = current_sublayer%element%alignment(1,2)
-                      is_sublayer_further = current_border.lt.alignment(1,1)
-                      list_ended=.false.
-                   
-                   end do
-                else
-                   list_ended=.false.
-                end if
-
-             !< if the mainlayer_id is E or W, the position of the
-             !> added sublayer is determined by the [j_min,j_max]
-             !> alignment of the sublayer
-             else
-                if((this%mainlayer_id.eq.E).or.(this%mainlayer_id.eq.W)) then
-
-                   current_border = current_sublayer%element%alignment(2,2)
-                   is_sublayer_further = current_border.lt.alignment(2,1)
-                   
-                   if(is_sublayer_further) then
-
-                      do while(is_sublayer_further)
-                         
-                         if(.not.associated(current_sublayer%next)) then
-                            list_ended=.true.
-                            exit
-                         end if
-
-                         current_sublayer => current_sublayer%next
-                         current_border = current_sublayer%element%alignment(2,2)
-                         is_sublayer_further = current_border.lt.alignment(2,1)
-                         list_ended=.false.
-
-                      end do
-                   else
-                      list_ended=.false.
-                   end if 
-
-             !< if the mainlayer_id is NE,NW,SE or SW, the newly sublayer
-             !> is simply added to the main layer
-                else
-                   do while(associated(current_sublayer%next))
-                      current_sublayer => current_sublayer%next
-                   end do
-                end if
-             end if
-
-             !< if the previous list search stopped in the middle of the list
-             !> (i.e. associated(current_sublayer%next)==.true., the new
-             !> sublayer should be inserted in the list
-             if(.not.(list_ended)) then
-
-                !< if the position where it should be inserted is not the first
-                !> position (i.e. associated(current_sublayer%prev==.true.)),
-                !> the added_sublayer should be inserted between 
-                if(associated(current_sublayer%prev)) then
-                   call insert_sublayer(
-     $                  added_sublayer_ptr,
-     $                  current_sublayer%prev,
-     $                  current_sublayer)
-
-                !< if the position where it should be inserted is the first
-                !> position (i.e. associated(current_sublayer%prev==.false.)),
-                !> the added_sublayer should be simply added to the top of the
-                !> list
-                else
-                   call link_next(added_sublayer_ptr,current_sublayer)
-                   this%head_sublayer => added_sublayer_ptr
-                end if
-
-             !< if the previous list search stopped at the end of the list
-             !> (i.e. associated(current_sublayer%next)==.false., the new
-             !> sublayer should be added at the end of the list
-             else
-                call link_next(current_sublayer,added_sublayer_ptr)
-                this%tail_sublayer => added_sublayer_ptr
-             end if
-
-          !< if there is no element in the list of sublayers
-          !> of the mainlayer, simply add the new element to the
-          !> top of the mainlayer
-          else
-             this%head_sublayer => added_sublayer_ptr
-             this%tail_sublayer => added_sublayer_ptr
-
-          end if
-
-          this%nb_sublayers = this%nb_sublayers+1
-
-        end function add_sublayer
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> subroutine combining two sublayers of the main layer
-        !
-        !> @date
-        !> 09_05_2013 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> object encapsulating the double chained list of sublayers,
-        !> pointers to the head and tail elements of the list and the
-        !> total number of elements in the list
-        !
-        !>@param sublayer1
-        !> pointer to the first sublayer to merge
-        !
-        !>@param sublayer2
-        !> pointer to the second sublayer to merge
-        !
-        !>@param nodes
-        !> table encapsulating the data of the interior domain
-        !
-        !>@param alignment
-        !> table identifying the final position of the merged sublayer
-        !> compared to the interior domain
-        !
-        !>@param neighbors_i
-        !> table identifying whether the final merged sublayer will have
-        !> neighboring sublayers or not
-        !--------------------------------------------------------------
-        function merge_sublayers(
-     $     this,
-     $     sublayer1,
-     $     sublayer2,
-     $     nodes,
-     $     alignment,
-     $     neighbors_i)
-     $     result(merged_sublayer)
-        
-          implicit none
-        
-        
-          class(bf_mainlayer)                          , intent(inout) :: this
-          type(bf_sublayer), pointer                   , intent(inout) :: sublayer1
-          type(bf_sublayer), pointer                   , intent(inout) :: sublayer2
-          real(rkind)   , dimension(nx,ny,ne), optional, intent(in)    :: nodes
-          integer(ikind), dimension(2,2)     , optional, intent(in)    :: alignment
-          logical       , dimension(4)       , optional, intent(in)    :: neighbors_i
-          type(bf_sublayer), pointer                                   :: merged_sublayer
-        
-        
-          integer :: loc1, loc2
-          logical, dimension(4) :: neighbors
-
-
-          !get the mainlayer ID to which the two sublayers belong
-          loc1 = sublayer1%element%localization
-
-          !check input arguments
-          if(debug) then
-
-             loc2 = sublayer2%element%localization
-             
-             
-             !if the two sublayers do not belong to the same mainlayer,
-             !merging the two is not possible
-             if(loc1.ne.loc2) then
-                print '(''bf_mainlayer_class'')'
-                print '(''merge_sublayers'')'
-                print '(''the sublayers do not belong to'')'
-                print '(''the same mainlayer:'')'
-                print '(''sublayer1%localization: '',I2)', loc1
-                print '(''sublayer2%localization: '',I2)', loc2
-                stop 'check the sublayers merged'
-             end if
-             
-             
-             !if the two sublayers do not belong to this mainlayer,
-             !merging the sublayers is not possible
-             if(loc1.ne.(this%mainlayer_id)) then
-                print '(''bf_mainlayer_class'')'
-                print '(''merge_sublayers'')'
-                print '(''the sublayers do not belong to'')'
-                print '(''the correct mainlayer:'')'
-                print '(''sublayer ID: '',I2)', loc1
-                print '(''mainlayer ID: '',I2)', this%mainlayer_id
-                stop 'check the sublayers and the mainlayer'
-             end if
-             
-             
-             !if alignment is passed as optional argument, so should
-             !be nodes and vice versa
-             if((present(alignment).and..not.present(nodes)).or.
-     $            (.not.present(alignment).and.present(nodes))) then
-                print '(''bf_mainlayer_class'')'
-                print '(''merge_sublayers'')'
-                print '(''alignment and nodes arguments should be'')'
-                print '(''supplied together'')'
-                stop 'change arguments'
-             end if
-
-          end if
-
-
-          !initialize the neighbors table
-          if(present(neighbors_i)) then
-             neighbors = neighbors_i
-          else
-             neighbors = [.false., .false., .false., .false.]
-          end if
-
-
-          !select the subroutine adapted to merge the sublayers
-          select case(loc1)
-            case(N)
-               if(present(nodes)) then
-                  merged_sublayer => merge_sublayers_N(
-     $                 this,
-     $                 sublayer1,
-     $                 sublayer2,
-     $                 nodes,
-     $                 alignment,
-     $                 neighbor_E_i=neighbors(E),
-     $                 neighbor_W_i=neighbors(W))
                else
-                  merged_sublayer => merge_sublayers_N(
-     $                 this,
-     $                 sublayer1,
-     $                 sublayer2,
-     $                 neighbor_E_i=neighbors(E),
-     $                 neighbor_W_i=neighbors(W))
-               end if
+                
+                  call added_sublayer_ptr%set_next(this%head_sublayer)
+                  call this%head_sublayer%set_prev(added_sublayer_ptr)
+                  call this%head_sublayer%nullify_next()
+                  this%head_sublayer => added_sublayer_ptr
 
-            case(S)
-               if(present(nodes)) then
-                  merged_sublayer => merge_sublayers_S(
-     $                 this,
-     $                 sublayer1,
-     $                 sublayer2,
-     $                 nodes,
-     $                 alignment,
-     $                 neighbor_E_i=neighbors(E),
-     $                 neighbor_W_i=neighbors(W))
-               else
-                  merged_sublayer => merge_sublayers_S(
-     $                 this,
-     $                 sublayer1,
-     $                 sublayer2,
-     $                 neighbor_E_i=neighbors(E),
-     $                 neighbor_W_i=neighbors(W))
                end if
-
-            case(E)
-               if(present(nodes)) then
-                  merged_sublayer => merge_sublayers_E(
-     $                 this,
-     $                 sublayer1,
-     $                 sublayer2,
-     $                 nodes,
-     $                 alignment,
-     $                 neighbor_N_i=neighbors(N),
-     $                 neighbor_S_i=neighbors(S))
-               else
-                  merged_sublayer => merge_sublayers_E(
-     $                 this,
-     $                 sublayer1,
-     $                 sublayer2,
-     $                 neighbor_N_i=neighbors(N),
-     $                 neighbor_S_i=neighbors(S))
-               end if
-
-            case(W)
-               if(present(nodes)) then
-                  merged_sublayer => merge_sublayers_W(
-     $                 this,
-     $                 sublayer1,
-     $                 sublayer2,
-     $                 nodes,
-     $                 alignment,
-     $                 neighbor_N_i=neighbors(N),
-     $                 neighbor_S_i=neighbors(S))
-               else
-                  merged_sublayer => merge_sublayers_W(
-     $                 this,
-     $                 sublayer1,
-     $                 sublayer2,
-     $                 neighbor_N_i=neighbors(N),
-     $                 neighbor_S_i=neighbors(S))
-               end if
-
+                
             case default
-               print '(''bf_mainlayer_class'')'
-               print '(''merge_sublayers'')'
-               print '(''it is not possible to merge sublayers'')'
-               print '(''from a corner'')'
-               stop 'check the sublayers and the mainlayer'
+             
+               select case(this%mainlayer_id)
+                 case(N,S)
+                    direction_tested = x_direction
+                 case(E,W)
+                    direction_tested = y_direction
+                 case default
+                    print '(''bf_mainlayer_class'')'
+                    print '(''merge_sublayers'')'
+                    print '(''corner mainlayers cannot host more'')'
+                    print '(''than one sublayer'')'
+                    print '(''mainlayer_id: '', I2)', this%mainlayer_id
+                    stop 'check mainlayer_id'
+               end select
+
+               current_sublayer => this%head_sublayer
+
+               do i=1, this%nb_sublayers-1
+                  
+                  if(current_sublayer%get_alignment(direction_tested, min_border).gt.
+     $               alignment(direction_tested, min_border)) then
+                     exit
+                  end if
+
+                  current_sublayer => current_sublayer%get_next()
+
+               end do
+
+
+               if(i.ne.this%nb_sublayers) then
+                  if(associated(current_sublayer%get_prev())) then
+                     current_sublayer_prev => current_sublayer%get_prev()
+                     call insert_sublayer(
+     $                    added_sublayer_ptr,
+     $                    current_sublayer_prev,
+     $                    current_sublayer)
+                  else
+                     this%head_sublayer => added_sublayer_ptr
+                     call added_sublayer_ptr%set_next(current_sublayer)
+                     call current_sublayer%set_prev(added_sublayer_ptr)
+                  end if
+
+               else
+                  if(current_sublayer%get_alignment(direction_tested, min_border).gt.
+     $               alignment(direction_tested, min_border)) then
+
+                     current_sublayer_prev => current_sublayer%get_prev()
+                     call insert_sublayer(
+     $                    added_sublayer_ptr,
+     $                    current_sublayer_prev,
+     $                    current_sublayer)
+
+                  else
+                     call current_sublayer%set_next(added_sublayer_ptr)
+                     call added_sublayer_ptr%set_prev(current_sublayer)
+                     this%tail_sublayer => added_sublayer_ptr
+
+                  end if
+               end if
 
           end select
 
-
           !update the number of sublayers in the mainlayer
-          this%nb_sublayers = this%nb_sublayers-1
+          this%nb_sublayers = this%nb_sublayers+1
 
-        end function merge_sublayers
-
+        end function add_sublayer
 
 
         !> @author
@@ -491,74 +349,75 @@
 
           implicit none
 
-          type(bf_sublayer)  , pointer, intent(inout) :: inserted_sublayer
-          type(bf_sublayer)  , pointer, intent(inout) :: prev_sublayer
-          type(bf_sublayer)  , pointer, intent(inout) :: next_sublayer
-
-          call link_next(prev_sublayer, inserted_sublayer)
-          call link_prev(next_sublayer, inserted_sublayer)
-
-        end subroutine insert_sublayer
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> subroutine linking two elements of bf_sublayers
-        !> by providing the current and the next element
-        !
-        !> @date
-        !> 11_04_2013 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_sublayer object encapsulating the buffer layer and
-        !> pointers to the previous and next sublayer elements
-        !
-        !>@param next_sublayer
-        !> bf_sublayer object that should become the next 
-        !> sublayer element
-        !--------------------------------------------------------------
-        subroutine link_next(this, next_sublayer)
-
-          implicit none
-
-          type(bf_sublayer), pointer, intent(inout) :: this
+          type(bf_sublayer), pointer, intent(inout) :: inserted_sublayer
+          type(bf_sublayer), pointer, intent(inout) :: prev_sublayer
           type(bf_sublayer), pointer, intent(inout) :: next_sublayer
 
-          this%next          => next_sublayer
-          next_sublayer%prev => this
+          call prev_sublayer%set_next(inserted_sublayer)
+          call inserted_sublayer%set_prev(prev_sublayer)
 
-        end subroutine link_next
+          call inserted_sublayer%set_next(next_sublayer)
+          call next_sublayer%set_prev(inserted_sublayer)
 
+        end subroutine insert_sublayer
+      
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine linking two elements of bf_sublayers
-        !> by providing the current and the previous element
+        !> subroutine combining two sublayers of the main layer
         !
         !> @date
-        !> 11_04_2013 - initial version - J.L. Desmarais
+        !> 09_05_2013 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> bf_sublayer object encapsulating the buffer layer and
-        !> pointers to the previous and next sublayer elements
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
         !
-        !>@param prev_sublayer
-        !> bf_sublayer object that should become the previous
-        !> sublayer element
+        !>@param sublayer1
+        !> pointer to the first sublayer to merge
+        !
+        !>@param sublayer2
+        !> pointer to the second sublayer to merge
+        !
+        !>@param alignment
+        !> table identifying the final position of the merged sublayer
+        !> compared to the interior domain
         !--------------------------------------------------------------
-        subroutine link_prev(this, prev_sublayer)
+        function merge_sublayers(
+     $     this,
+     $     bf_sublayer1,
+     $     bf_sublayer2,
+     $     alignment)
+     $     result(merged_sublayer)
+        
+          implicit none        
+        
+          class(bf_mainlayer)                     , intent(inout) :: this
+          type(bf_sublayer), pointer              , intent(inout) :: bf_sublayer1
+          type(bf_sublayer), pointer              , intent(inout) :: bf_sublayer2
+          integer(ikind), dimension(2,2), optional, intent(in)    :: alignment
+          type(bf_sublayer), pointer                              :: merged_sublayer
+        
 
-          implicit none
+          !merge the buffer sublayers 1 and 2
+          if(present(alignment)) then
+             call bf_sublayer1%merge_sublayers(
+     $            bf_sublayer1, bf_sublayer2,
+     $            alignment)
+          else
+             call bf_sublayer1%merge_sublayers(
+     $            bf_sublayer1, bf_sublayer2)
+          end if
+        
+          !update the number of sublayers in the mainlayer
+          this%nb_sublayers = this%nb_sublayers-1
 
-          type(bf_sublayer), pointer, intent(inout) :: this
-          type(bf_sublayer), pointer, intent(inout) :: prev_sublayer
+          !return the pointer to the merged sublayer
+          merged_sublayer => bf_sublayer1
 
-          call link_next(prev_sublayer,this)
-
-        end subroutine link_prev
+        end function merge_sublayers        
 
       end module bf_mainlayer_class

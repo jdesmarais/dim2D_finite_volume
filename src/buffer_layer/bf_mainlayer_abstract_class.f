@@ -45,11 +45,7 @@
         !---------------------------------------------------------------
         type :: bf_mainlayer_abstract
 
-          integer :: mainlayer_id
-          integer :: nb_sublayers
-
-          type(bf_sublayer), pointer :: head_sublayer
-          type(bf_sublayer), pointer :: tail_sublayer
+          
 
         end type bf_mainlayer_abstract
 

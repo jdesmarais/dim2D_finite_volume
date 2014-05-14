@@ -63,6 +63,8 @@
 
         integer, parameter :: x_direction=1
         integer, parameter :: y_direction=2
+        integer, parameter :: min_border=1
+        integer, parameter :: max_border=2
 
         integer, parameter :: only_compute_proc=0
         integer, parameter :: compute_and_exchange_proc=1

@@ -31,7 +31,9 @@
         use parameters_bf_layer        , only : exchange_pt,
      $                                          bc_pt, bc_interior_pt,
      $                                          interior_pt, no_pt
-        use parameters_constant        , only : N,S,E,W,N_W,N_E,S_E,S_W
+        use parameters_constant        , only : N,S,E,W,N_W,N_E,S_E,S_W,
+     $                                          x_direction, y_direction,
+     $                                          min_border, max_border
         use parameters_input           , only : nx,ny,ne,bc_size
         use parameters_kind            , only : ikind, rkind
 
@@ -78,6 +80,7 @@
           procedure, pass :: get_localization
           procedure, pass :: get_sizes
           procedure, pass :: set_nodes
+          procedure, pass :: get_alignment
 
           procedure, pass :: get_local_coord
           procedure, pass :: compute_new_grdpts
@@ -167,6 +170,41 @@
           call MOVE_ALLOC(nodes, this%nodes)
 
         end subroutine set_nodes
+
+        !> get the position of the buffer layer compared
+        !> to the interior domain
+        function get_alignment(this, direction, border_type)
+
+          implicit none
+
+          class(bf_layer), intent(in) :: this
+          integer        , intent(in) :: direction
+          integer        , intent(in) :: border_type
+          integer(ikind)              :: get_alignment
+
+          if(debug) then
+             if((direction.ne.x_direction).and.
+     $          (direction.ne.y_direction)) then
+                print '(''bf_layer_class'')'
+                print '(''get_alignment'')'
+                print '(''direction not recognized'')'
+                print '(''direction: '', I2)', direction
+                stop 'modify direction'
+             end if
+
+             if((border_type.ne.min_border).and.
+     $          (border_type.ne.max_border)) then
+                print '(''bf_layer_class'')'
+                print '(''get_alignment'')'
+                print '(''border type not recognized'')'
+                print '(''border_type: '', I2)', border_type
+                stop 'modify border_type'
+             end if
+          end if
+
+          get_alignment = this%alignment(direction,border_type)
+
+        end function get_alignment
 
 
         !> @author
@@ -523,9 +561,9 @@
 
           implicit none
 
-          class(bf_layer)        , intent(inout) :: this
-          class(bf_layer)        , intent(inout) :: bf_layer2
-          integer, dimension(2,2), intent(in)    :: alignment
+          class(bf_layer)                         , intent(inout) :: this
+          class(bf_layer)                         , intent(inout) :: bf_layer2
+          integer(ikind), dimension(2,2), optional, intent(in)    :: alignment
 
           !check if the two buffer layers have the same localization
           if(debug) then
@@ -542,26 +580,56 @@
           !merge sublayers
           select case(this%localization)
             case(N)
-               call merge_bf_layers_N(
-     $              this%nodes    , bf_layer2%nodes,
-     $              this%grdpts_id, bf_layer2%grdpts_id,
-     $              this%alignment, bf_layer2%alignment, alignment)
+               if(present(alignment)) then
+                  call merge_bf_layers_N(
+     $                 this%nodes    , bf_layer2%nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment, alignment)
+               else
+                  call merge_bf_layers_N(
+     $                 this%nodes    , bf_layer2%nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment)
+               end if
+
             case(S)
-               call merge_bf_layers_S(
-     $              this%nodes    , bf_layer2%nodes,
-     $              this%grdpts_id, bf_layer2%grdpts_id,
-     $              this%alignment, bf_layer2%alignment, alignment)
+               if(present(alignment)) then
+                  call merge_bf_layers_S(
+     $                 this%nodes    , bf_layer2%nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment, alignment)
+               else
+                  call merge_bf_layers_S(
+     $                 this%nodes    , bf_layer2%nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment)
+               end if
+
             case(E)
-               call merge_bf_layers_E(
-     $              this%nodes    , bf_layer2%nodes,
-     $              this%grdpts_id, bf_layer2%grdpts_id,
-     $              this%alignment, bf_layer2%alignment, alignment)
+               if(present(alignment)) then
+                  call merge_bf_layers_E(
+     $                 this%nodes    , bf_layer2%nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment, alignment)
+               else
+                  call merge_bf_layers_E(
+     $                 this%nodes    , bf_layer2%nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment)
+               end if
 
             case(W)
-               call merge_bf_layers_W(
-     $              this%nodes    , bf_layer2%nodes,
-     $              this%grdpts_id, bf_layer2%grdpts_id,
-     $              this%alignment, bf_layer2%alignment, alignment)
+               if(present(alignment)) then
+                  call merge_bf_layers_W(
+     $                 this%nodes    , bf_layer2%nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment, alignment)
+               else
+                  call merge_bf_layers_W(
+     $                 this%nodes    , bf_layer2%nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment)
+               end if
 
             case default
                print '(''bf_layer_class'')'

@@ -14,7 +14,7 @@
 
         type(bf_mainlayer) :: bf_mainlayer_N_tested
         type(bf_mainlayer) :: bf_mainlayer_E_tested
-        integer, parameter :: nb_sublayers = 3
+        integer, parameter :: nb_sublayers = 10
         type(bf_sublayer), pointer :: new_sublayer
 
         integer, dimension(nb_sublayers,2,2) :: test_alignment
@@ -22,7 +22,16 @@
         integer, dimension(2,2)              :: alignment
         real(rkind), dimension(nx,ny,ne)     :: nodes
         logical, dimension(4)                :: neighbors
+        logical, parameter                   :: random_test = .true.
+        integer                              :: random_seed
+
         integer :: i
+
+
+        if(random_test) then
+           random_seed = 8945423
+           call srand(random_seed)
+        end if
 
 
         !test initialize the mainlayer
@@ -30,9 +39,9 @@
         print '(''test ini() : initialization of bf_mainlayer'')'
         print '(''-------------------------------------------'')'
         call bf_mainlayer_N_tested%ini(N)
-        print '(''nb_sublayers     : '',I1)', bf_mainlayer_N_tested%nb_sublayers
-        print '(''head associated? : '',L1)', associated(bf_mainlayer_N_tested%head_sublayer)
-        print '(''tail associated? : '',L1)', associated(bf_mainlayer_N_tested%tail_sublayer)
+        print '(''nb_sublayers     : '',I1)', bf_mainlayer_N_tested%get_nb_sublayers()
+        print '(''head associated? : '',L1)', associated(bf_mainlayer_N_tested%get_head_sublayer())
+        print '(''tail associated? : '',L1)', associated(bf_mainlayer_N_tested%get_tail_sublayer())
         print '()'
 
 
@@ -47,19 +56,20 @@
         print '(''----------------------------------------------'')'
         do i=1, nb_sublayers
 
-           alignment(1,1) = test_alignment(i,1,1)
-           alignment(1,2) = test_alignment(i,1,2)
-           alignment(2,1) = test_alignment(i,2,1)
-           alignment(2,2) = test_alignment(i,2,2)
+           if(.not.random_test) then
+              alignment(1,1) = test_alignment(i,1,1)
+              alignment(1,2) = test_alignment(i,1,2)
+              alignment(2,1) = test_alignment(i,2,1)
+              alignment(2,2) = test_alignment(i,2,2)
+           else
+              alignment(1,1) = nint(nx*RAND())
+              alignment(1,2) = alignment(1,1)+(i-1)
+              alignment(2,1) = ny+1
+              alignment(2,2) = ny+1+(i-1)
+           end if
 
            new_sublayer => bf_mainlayer_N_tested%add_sublayer(
-     $          alignment)
-
-           call new_sublayer%element%ini(N)
-           call new_sublayer%element%allocate_bf_layer(
-     $          alignment,
-     $          nodes,
-     $          neighbors)
+     $          nodes, alignment, neighbors)
 
         end do
 
@@ -73,19 +83,20 @@
         print '(''----------------------------------------------'')'
         do i=1, nb_sublayers
 
-           alignment(1,1) = test_alignment(i,1,1)
-           alignment(1,2) = test_alignment(i,1,2)
-           alignment(2,1) = test_alignment(i,2,1)
-           alignment(2,2) = test_alignment(i,2,2)
+           if(.not.random_test) then
+              alignment(1,1) = test_alignment(i,1,1)
+              alignment(1,2) = test_alignment(i,1,2)
+              alignment(2,1) = test_alignment(i,2,1)
+              alignment(2,2) = test_alignment(i,2,2)
+           else
+              alignment(1,1) = nx+1
+              alignment(1,2) = nx+1
+              alignment(2,1) = nint(nx*RAND())
+              alignment(2,2) = alignment(2,1)+(i-1)
+           end if
 
            new_sublayer => bf_mainlayer_E_tested%add_sublayer(
-     $          alignment)
-
-           call new_sublayer%element%ini(E)
-           call new_sublayer%element%allocate_bf_layer(
-     $          alignment,
-     $          nodes,
-     $          neighbors)
+     $          nodes, alignment, neighbors)
 
         end do
 

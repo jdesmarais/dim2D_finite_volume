@@ -13,9 +13,9 @@
         print '(''test ini() : initialization of bf_sublayer'')'
         print '(''------------------------------------------'')'
         allocate(bf_sublayer0)
-        call bf_sublayer0%ini()
-        print '(''prev associated?: '',L1)', associated(bf_sublayer0%prev)
-        print '(''next associated?: '',L1)', associated(bf_sublayer0%next)
+        call bf_sublayer0%ini(1)
+        print '(''prev associated?: '',L1)', associated(bf_sublayer0%get_prev())
+        print '(''next associated?: '',L1)', associated(bf_sublayer0%get_next())
         print '()'
 
       end program test_bf_sublayer_prog
