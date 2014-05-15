@@ -308,6 +308,10 @@ $(bf_layer_dir)/bf_interface_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
+$(bf_layer_dir)/bf_corner_module.o:\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_kind.o
 
 #tests for buffer layer
 test_bf_layer_module.o:\
@@ -360,6 +364,13 @@ test_interface_abstract_prog.o:\
 test_bf_interface_prog.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/bf_interface_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	test_bf_layer_module.o
+
+test_bf_corner_prog.o:\
+	$(bf_layer_dir)/bf_corner_module.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
@@ -518,6 +529,17 @@ test_bf_interface_prog:\
 	bf_mainlayer_class.o\
 	bf_mainlayer_pointer_class.o\
 	bf_interface_class.o\
+	test_bf_layer_module.o
+
+test_bf_corner_prog:\
+	parameters_kind.o\
+	parameters_constant.o\
+	parameters_input.o\
+	bf_corner_module.o\
+	parameters_bf_layer.o\
+	bf_layer_ini_grdptID_module.o\
+	bf_layer_merge_module.o\
+	bf_layer_class.o\
 	test_bf_layer_module.o
 
 test_bf_layer_corner_check_prog:\

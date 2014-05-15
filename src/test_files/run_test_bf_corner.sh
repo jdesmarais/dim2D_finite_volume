@@ -6,12 +6,12 @@ make cleanall
 rm *.dat
 
 #compile the test case for the interface
-make test_bf_interface_prog
+make test_bf_corner_prog
 
 #run the test case
-./test_interface_abstract_prog
+./test_bf_corner_prog
 
 #run the visualization using python
 folder_path=$(pwd)
 pushd ../../python_files
-python plot_test_interface_abstract.py -f $folder_path
+python plot_test_bf_corner.py -f $folder_path
