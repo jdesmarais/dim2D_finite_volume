@@ -94,13 +94,13 @@
               !add the sublayer with this alignement and neighbors
               !and allocate the buffer layer using the nodes
               added_sublayer => interface_tested%add_sublayer(
-     $             i, alignment, nodes, neighbors)
+     $             i, nodes, alignment, neighbors)
            	
               !print the allocated tables on files
               write(sizes_filename,'(A2,I1,''_sizes.dat'')') bf_layer_char(i),j
               write(nodes_filename,'(A2,I1,''_nodes.dat'')') bf_layer_char(i),j
               write(grdid_filename,'(A2,I1,''_grdpt_id.dat'')') bf_layer_char(i),j
-              call added_sublayer%element%print_sizes(sizes_filename)
+              call added_sublayer%print_binary(sizes_filename)
               call added_sublayer%element%print_nodes(nodes_filename)
               call added_sublayer%element%print_grdpts_id(grdid_filename)
 

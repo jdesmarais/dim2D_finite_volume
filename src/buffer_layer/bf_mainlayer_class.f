@@ -62,6 +62,8 @@
           procedure, pass :: add_sublayer
           procedure, pass :: merge_sublayers
 
+          procedure, pass :: print_binary
+
           procedure, nopass, private :: insert_sublayer
 
         end type bf_mainlayer
@@ -418,6 +420,73 @@
           !return the pointer to the merged sublayer
           merged_sublayer => bf_sublayer1
 
-        end function merge_sublayers        
+        end function merge_sublayers
+
+
+        !< print the content of the sublayers constituing the
+        !> buffer main layer on seperate binary output files
+        subroutine print_binary(
+     $     this, suffix_nodes, suffix_grdid, suffix_sizes)
+
+          implicit none
+
+          class(bf_mainlayer), intent(in) :: this
+          character(*)       , intent(in) :: suffix_nodes
+          character(*)       , intent(in) :: suffix_grdid
+          character(*)       , intent(in) :: suffix_sizes
+
+
+          character(2), dimension(8) :: bf_layer_char
+          integer                    :: i
+          character(len=14)          :: filename_format
+          character(len=19)          :: sizes_filename
+          character(len=19)          :: nodes_filename
+          character(len=19)          :: grdid_filename
+          type(bf_sublayer), pointer :: current_sublayer
+
+          bf_layer_char = ['N_','S_','E_','W_','NE','NW','SE','SW']
+
+
+          current_sublayer => this%head_sublayer
+
+
+          !go through the chained list and write the content
+          !of each element
+          do i=1, this%nb_sublayers
+
+             !determine the name of the output files
+             write(filename_format,
+     $            '(''(A2,I1,A1,A'',I2, '')'')')
+     $            len(suffix_nodes)
+
+             write(nodes_filename, filename_format)
+     $            bf_layer_char(this%mainlayer_id), i, '_', suffix_nodes
+
+             write(filename_format,
+     $            '(''(A2,I1,A1,A'',I2, '')'')')
+     $            len(suffix_grdid)
+             write(grdid_filename, filename_format)
+     $            bf_layer_char(this%mainlayer_id), i, '_', suffix_grdid
+
+             write(filename_format,
+     $            '(''(A2,I1,A1,A'',I2, '')'')')
+     $            len(suffix_sizes)
+             write(sizes_filename, filename_format)
+     $            bf_layer_char(this%mainlayer_id), i, '_', suffix_sizes
+
+             !write the content of the sublayer corresponding
+             !to the index i
+             call current_sublayer%print_binary(
+     $            nodes_filename,
+     $            grdid_filename,
+     $            sizes_filename)
+
+             !get the next sublayer in the mainlayer
+             current_sublayer => current_sublayer%get_next()
+
+          end do
+
+        end subroutine print_binary
+      
 
       end module bf_mainlayer_class

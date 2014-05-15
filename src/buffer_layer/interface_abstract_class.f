@@ -34,17 +34,7 @@
         logical, parameter :: debug = .true.    
 
 
-        !> @class bf_mainlayer_pointer
-        !> class encapsulating a pointer to a buffer main layer
-        !>
-        !> @param ptr
-        !> pointer to a buffer main layer
-        !---------------------------------------------------------------
-        type :: bf_mainlayer_pointer
-
-          type(bf_mainlayer), pointer :: ptr
-
-        end type bf_mainlayer_pointer
+        
 
 
         !> @class interface_abstract

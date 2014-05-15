@@ -34,13 +34,11 @@
         use parameters_constant        , only : N,S,E,W,N_W,N_E,S_E,S_W,
      $                                          x_direction, y_direction,
      $                                          min_border, max_border
-        use parameters_input           , only : nx,ny,ne,bc_size
+        use parameters_input           , only : nx,ny,ne,bc_size,debug
         use parameters_kind            , only : ikind, rkind
 
         private
         public :: bf_layer
-
-        logical, parameter :: debug = .true.
 
 
         !> @class bf_layer
@@ -81,6 +79,7 @@
           procedure, pass :: get_sizes
           procedure, pass :: set_nodes
           procedure, pass :: get_alignment
+          procedure, pass :: get_alignment_tab
 
           procedure, pass :: get_local_coord
           procedure, pass :: compute_new_grdpts
@@ -205,6 +204,20 @@
           get_alignment = this%alignment(direction,border_type)
 
         end function get_alignment
+
+
+        !> get the position of the buffer layer compared
+        !> to the interior domain
+        function get_alignment_tab(this)
+
+          implicit none
+
+          class(bf_layer)                , intent(in) :: this
+          integer(ikind) , dimension(2,2)             :: get_alignment_tab
+
+          get_alignment_tab = this%alignment
+
+        end function get_alignment_tab
 
 
         !> @author
@@ -1022,6 +1035,9 @@
         end subroutine ini_grdpts_id
 
 
+        !< print the nodes and the grdpts_id attributes
+        !> as well as the size of the previous tables in
+        !> output binary files
         subroutine print_binary(
      $     this,
      $     filename_nodes,

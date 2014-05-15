@@ -32,19 +32,22 @@
           nb_sublayers_max = 1
 
           !go through the different main layers of the interface
-          do i=1, size(interface_used%mainlayer_pointers,1)
+          do i=1, 8
 
              
              !get the main layer if it exists
              if(associated(interface_used%mainlayer_pointers(i)%ptr)) then
                 
-                mainlayer_ptr => interface_used%mainlayer_pointers(i)%ptr
+                mainlayer_ptr => interface_used%mainlayer_pointers(i)%get_ptr()
+
+                !print the content of the mainlayer
+                call 
 
                 !get the sublayers inside the mainlayer
-                if(associated(mainlayer_ptr%head_sublayer)) then
+                if(associated(mainlayer_ptr%get_head_sublayer())) then
 
                    j=1
-                   sublayer_ptr => mainlayer_ptr%head_sublayer                
+                   sublayer_ptr => mainlayer_ptr%get_head_sublayer()
                    call print_sublayer(sublayer_ptr,i,j,interface_id)
 
                    do while(associated(sublayer_ptr%next))

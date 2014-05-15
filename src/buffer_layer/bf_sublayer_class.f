@@ -60,13 +60,13 @@
 
           contains
 
-          procedure, pass :: ini
-          procedure, pass :: get_prev
-          procedure, pass :: get_next
-          procedure, pass :: set_prev
-          procedure, pass :: set_next
-          procedure, pass :: nullify_prev
-          procedure, pass :: nullify_next
+          procedure, pass   :: ini
+          procedure, pass   :: get_prev
+          procedure, pass   :: get_next
+          procedure, pass   :: set_prev
+          procedure, pass   :: set_next
+          procedure, pass   :: nullify_prev
+          procedure, pass   :: nullify_next
           procedure, nopass :: merge_sublayers
 
         end type bf_sublayer

@@ -115,7 +115,7 @@
                 compatible_neighbor = is_neighbor_alignment_compatible(
      $               neighbor_id, neighbor_position,
      $               new_alignment, new_neighbors,
-     $               alignment_i=neighbor_sublayer%element%alignment)
+     $               alignment_i=neighbor_sublayer%get_alignment_tab())
 
                 !< if the neighbor is compatible, the
                 !> neighboring buffer layer is reallocated
@@ -123,27 +123,26 @@
                 !> arguments
                 if(compatible_neighbor) then
 
-                   border_changes(1,1) = min(
-     $                  new_alignment(1,1)-
-     $                  neighbor_sublayer%element%alignment(1,1)
-     $                  ,0)
-                   border_changes(1,2) = max(
-     $                  new_alignment(1,2)-
-     $                  neighbor_sublayer%element%alignment(1,2)
-     $                  ,0)
-                   border_changes(2,1) = min(
-     $                  new_alignment(2,1)-
-     $                  neighbor_sublayer%element%alignment(2,1)
-     $                  ,0)
-                   border_changes(2,2) = max(
-     $                  new_alignment(2,2)-
-     $                  neighbor_sublayer%element%alignment(2,2)
-     $                  ,0)                
+c$$$                   border_changes(1,1) = min(
+c$$$     $                  new_alignment(1,1)-
+c$$$     $                  neighbor_sublayer%get_alignment(1,1)
+c$$$     $                  ,0)
+c$$$                   border_changes(1,2) = max(
+c$$$     $                  new_alignment(1,2)-
+c$$$     $                  neighbor_sublayer%get_alignment(1,2)
+c$$$     $                  ,0)
+c$$$                   border_changes(2,1) = min(
+c$$$     $                  new_alignment(2,1)-
+c$$$     $                  neighbor_sublayer%get_alignment(2,1)
+c$$$     $                  ,0)
+c$$$                   border_changes(2,2) = max(
+c$$$     $                  new_alignment(2,2)-
+c$$$     $                  neighbor_sublayer%get_alignment(2,2)
+c$$$     $                  ,0)                
                    
                    !< reallocate the existing buffer layer to match the
                    !> borders
-                   call neighbor_sublayer%element%reallocate_bf_layer(
-     $                  border_changes, nodes, match_table)
+                   call neighbor_sublayer%reallocate_bf_layer(new_alignment)
 
                    !
                    print '(''you need to implement a new copy for'')'
