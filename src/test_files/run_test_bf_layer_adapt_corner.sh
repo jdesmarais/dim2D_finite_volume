@@ -3,7 +3,7 @@
 #default values
 TEST_CORNER='1'
 TEST_CORNER_ORDER='1'
-TEST_CASE_TESTED='3'
+TEST_CASE_TESTED='21'
 TEST_BF_LAYER_DISTANCE='0'
 TEST_OVER_ALLOCATED='0'
 TEST_CURRENT_PATH='0'
@@ -75,7 +75,7 @@ rm *.dat 1> /dev/null 2>&1
 
 #change the test case tested
 
-PATH_INPUT='test_bf_layer_corner_check_prog.f'
+PATH_INPUT='test_bf_layer_adapt_corner_prog.f'
 PATH_OUTPUT='temp.f'
 
 sed -e s/'corner_tested '*'='[' ']*[-0-9]*/'corner_tested = '$TEST_CORNER/g \
@@ -104,12 +104,12 @@ mv $PATH_OUTPUT $PATH_INPUT
 
 
 #compile the test case for the interface
-make test_bf_layer_corner_check_prog
+make test_bf_layer_adapt_corner_prog
 
 #run the test case
-./test_bf_layer_corner_check_prog
+./test_bf_layer_adapt_corner_prog
 
 #run the visualization using python
 folder_path=$(pwd)
 pushd ../../python_files
-python plot_test_bf_layer_corner_check.py -f $folder_path
+python plot_test_bf_layer_adapt_corner.py -f $folder_path

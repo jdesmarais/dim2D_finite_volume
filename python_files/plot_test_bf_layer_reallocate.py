@@ -32,19 +32,17 @@ if __name__ == "__main__":
 
 
     test_windows_title = ["Allocation test",
-                          "Reallocation test",
-                          "Merging test: before merging",
-                          "Merging test: after merging"]
+                          "Reallocation test"]
 
     nb_sublayers = 6
 
 
     #plot the tests
-    for i in range(0,4):
+    for i in range(0,2):
         
     	#extract data for the interior points and the buffer layers
     	#-----------------------------------------------------------------
-        test_index = str(i+1)
+        test_index = str(i)
 
         #if(i==3):
         #    interior_size_filename      = folder_path+'/interior_sizes'+test_index+'.dat'
@@ -66,7 +64,8 @@ if __name__ == "__main__":
     	                                                      nb_sublayers,
     	                                                      suffix_size,
     	                                                      suffix_nodes,
-    	                                                      suffix_grdptid)
+    	                                                      suffix_grdptid,
+                                                              continuous=False)
     
         #display
         #-----------------------------------------------------------------

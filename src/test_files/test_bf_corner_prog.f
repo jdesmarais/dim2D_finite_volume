@@ -14,14 +14,9 @@
 
         real(rkind), dimension(nx,ny,ne)     :: nodes
         integer    , dimension(nx,ny)        :: grdpts_id
-        integer, dimension(2,2)              :: alignment
-        logical, dimension(4)                :: neighbors
-        logical                              :: compatible
         integer, dimension(2,2)              :: new_alignment
         logical, dimension(4)                :: new_neighbors
 
-        integer :: mainlayer_id
-        integer :: corner_id
         integer(ikind) :: i,j
         integer :: k
 
@@ -114,8 +109,9 @@
              
              compatible = is_alignment_compatible_with_corner(
      $            corner_id, mainlayer_id,
-     $            alignment, neighbors,
-     $            new_alignment, new_neighbors)
+     $            alignment,
+     $            new_alignment, new_neighbors,
+     $            neighbors)
              
              if(compatible) then
                 nodes(i,j,1) = 0.5
@@ -155,8 +151,9 @@
              
              compatible = is_alignment_compatible_with_corner(
      $            corner_id, mainlayer_id,
-     $            alignment, neighbors,
-     $            new_alignment, new_neighbors)
+     $            alignment,
+     $            new_alignment, new_neighbors,
+     $            neighbors)
              
              if(compatible) then
                 nodes(i,j,1) = 0.5

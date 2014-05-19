@@ -188,7 +188,7 @@
         !> table(2,2) of integers identifying the position of the buffer
         !> layer compared to the interior nodes
         !--------------------------------------------------------------
-        function add_sublayer(this, nodes, alignment, neighbors)
+        function add_sublayer(this, nodes, alignment)
      $     result(added_sublayer_ptr)
 
           implicit none
@@ -196,7 +196,6 @@
           class(bf_mainlayer)                , intent(inout) :: this
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: nodes
           integer(ikind), dimension(2,2)     , intent(in)    :: alignment
-          logical       , dimension(4)       , intent(in)    :: neighbors
           type(bf_sublayer), pointer                         :: added_sublayer_ptr
 
 
@@ -209,7 +208,7 @@
           !allocate space for the sublayer and initialize it
           allocate(added_sublayer_ptr)
           call added_sublayer_ptr%ini(this%mainlayer_id)
-          call added_sublayer_ptr%allocate_bf_layer(nodes, alignment, neighbors)
+          call added_sublayer_ptr%allocate_bf_layer(nodes, alignment)
 
 
           !if there is already an element in the list of sublayers

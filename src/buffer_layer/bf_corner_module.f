@@ -1,4 +1,4 @@
-      !< subroutines shared by bf_layer_class and bf_layer_path_class
+     !< subroutines shared by bf_layer_class and bf_layer_path_class
       !> needed to implement corretcly the update of sublayers at the
       !> corner if a corner point is activated
       module bf_corner_module
@@ -25,23 +25,33 @@
         !> to a buffer layer modification
         function is_alignment_compatible_with_corner(
      $       corner_id, mainlayer_id,
-     $       alignment, neighbors,
-     $       new_alignment, new_neighbors)
+     $       alignment,
+     $       new_alignment, new_neighbors,
+     $       neighbors_i)
      $       result(compatible)
 
           implicit none
 
-          integer                       , intent(in)  :: corner_id
-          integer                       , intent(in)  :: mainlayer_id
-          integer(ikind), dimension(2,2), intent(in)  :: alignment
-          logical       , dimension(4)  , intent(in)  :: neighbors
-          integer(ikind), dimension(2,2), intent(out) :: new_alignment
-          logical       , dimension(4)  , intent(out) :: new_neighbors
-          logical                                     :: compatible
+          integer                                 , intent(in)  :: corner_id
+          integer                                 , intent(in)  :: mainlayer_id
+          integer(ikind), dimension(2,2)          , intent(in)  :: alignment
+          integer(ikind), dimension(2,2)          , intent(out) :: new_alignment
+          logical       , dimension(4)            , intent(out) :: new_neighbors
+          logical       , dimension(4)  , optional, intent(in)  :: neighbors_i
+          logical                                               :: compatible
 
-          integer :: direction
-          integer :: n_direction
-          integer :: border
+
+          logical, dimension(4) :: neighbors
+          integer               :: direction
+          integer               :: n_direction
+          integer               :: border
+
+
+          if(present(neighbors_i)) then
+             neighbors = neighbors_i
+          else
+             neighbors = [.false.,.false.,.false.,.false.]
+          end if
 
 
           !we investigate whether the grid point needed by the new
@@ -183,6 +193,9 @@
         end function is_compatible
 
 
+        !< give the default alignment and neighbors needed to
+        !> allocate a new buffer layer as a neighbor to the
+        !> corner buffer layer
         subroutine get_default_alignment_and_neighbors(
      $     corner_id, mainlayer_id,
      $     new_alignment, new_neighbors)
@@ -312,7 +325,9 @@
         end subroutine get_default_alignment_and_neighbors
 
 
-
+        !< stop the program in case of inadequation between the
+        !> cardinal coordinates of the corner and the main buffer
+        !> layers
         subroutine compatibility_issue(corner_id, mainlayer_id)
         
           implicit none

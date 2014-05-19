@@ -1,5 +1,7 @@
       module test_bf_layer_module
 
+        use ifport
+
         use bf_layer_class               , only : bf_layer
 c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         use parameters_bf_layer          , only : interior_pt, bc_interior_pt, bc_pt
@@ -98,7 +100,6 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
      $     bf_layer_loc,
      $     alignment,
      $     nodes,
-     $     neighbors,
      $     sizes_filename,
      $     nodes_filename,
      $     grdid_filename)
@@ -108,7 +109,6 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
           class(bf_layer)                  , intent(inout) :: bf_layer_tested
           integer                          , intent(in)    :: bf_layer_loc
           integer        , dimension(2,2)  , intent(in)    :: alignment
-          logical        , dimension(4)    , intent(in)    :: neighbors
           real(rkind)    , dimension(:,:,:), intent(in)    :: nodes
           character(*)                     , intent(in)    :: sizes_filename
           character(*)                     , intent(in)    :: nodes_filename
@@ -116,8 +116,7 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
 
           call bf_layer_tested%ini(bf_layer_loc)
           call bf_layer_tested%allocate_bf_layer(nodes,
-     $                                           alignment,
-     $                                           neighbors)
+     $                                           alignment)
           call bf_layer_tested%print_binary(nodes_filename,
      $                                      grdid_filename,
      $                                      sizes_filename)
@@ -127,6 +126,7 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
 
         subroutine bf_layer_test_reallocation(
      $     bf_layer_tested,
+     $     interior_nodes,
      $     new_alignment,
      $     sizes_filename,
      $     nodes_filename,
@@ -135,12 +135,13 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
           implicit none
 
           class(bf_layer)                  , intent(inout) :: bf_layer_tested
+          real(rkind) , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           integer     , dimension(2,2)     , intent(in)    :: new_alignment
           character(*)                     , intent(in)    :: sizes_filename
           character(*)                     , intent(in)    :: nodes_filename
           character(*)                     , intent(in)    :: grdid_filename
 
-          call bf_layer_tested%reallocate_bf_layer(new_alignment)
+          call bf_layer_tested%reallocate_bf_layer(interior_nodes, new_alignment)
           call bf_layer_tested%print_binary(nodes_filename,
      $                                      grdid_filename,
      $                                      sizes_filename)

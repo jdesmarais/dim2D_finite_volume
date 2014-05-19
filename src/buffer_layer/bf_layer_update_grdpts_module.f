@@ -61,15 +61,17 @@
         !> identified before the reallocation
         !--------------------------------------------------------------
         subroutine update_grdpts(
-     $       this,
+     $       grdpts_id,
+     $       nodes,
      $       selected_grdpts,
      $       match_table)
 
           implicit none
 
-          class(bf_layer_abstract)      , intent(inout) :: this
-          integer(ikind), dimension(:,:), intent(in)    :: selected_grdpts
-          integer(ikind), dimension(2)  , intent(in)    :: match_table
+          integer       , dimension(:,:)  , intent(inout) :: grdpts_id
+          real(rkind)   , dimension(:,:,:), intent(inout) :: nodes
+          integer(ikind), dimension(:,:)  , intent(in)    :: selected_grdpts
+          integer(ikind), dimension(2)    , intent(in)    :: match_table
 
 
           integer(ikind) :: i,j,k
@@ -77,9 +79,9 @@
 
 
           !we have a list of gridpoints that should be turned
-          !from interior to boundary points. For a point to be
+          !from bc_inetrior_pt to interior_pt. For a point to be
           !considered an interior point, we need to make sure
-          !that the grid points I need to compute its time
+          !that the grid points it needs to compute its time
           !derivatives are available
           !
           !previously, the nodes table of the buffer layer was
@@ -94,37 +96,37 @@
           !----------------------------------------------------
 
           !for the first grid point, there is no simplification
-          !possible in checking the neighbours so it is taken
-          !outside the next loop
+          !possible in checking the neighbours so it is separated
+          !from the next loop
           !----------------------------------------------------
           k = 1
-          i_center = -match_table(1)+selected_grdpts(k,1)
-          j_center = -match_table(2)+selected_grdpts(k,2)
+          i_center = -match_table(1)+selected_grdpts(1,k)
+          j_center = -match_table(2)+selected_grdpts(2,k)
           do j=j_center-bc_size, j_center+bc_size
              do i=i_center-bc_size, i_center+bc_size
-                call check_gridpoint(this,i,j,i_center,j_center)
+                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
              end do
           end do
-          this%grdpts_id(i_center,j_center) = interior_pt
+          grdpts_id(i_center,j_center) = interior_pt
 
 
           !from the second gridpoint, we reduce the number of
           !neighbours to be tested
           !----------------------------------------------------
-          do k=2, size(selected_grdpts,1)
+          do k=2, size(selected_grdpts,2)
 
              !update the position of the gridpoint previously
              !tested
              i_prev   =   i_center
              j_prev   =   j_center
-             i_center = - match_table(1) + selected_grdpts(k,1)
-             j_center = - match_table(2) + selected_grdpts(k,2)
+             i_center = - match_table(1) + selected_grdpts(1,k)
+             j_center = - match_table(2) + selected_grdpts(2,k)
 
              !check its neighbours
-             call check_neighbors(this,i_prev,j_prev,i_center,j_center)
+             call check_neighbors(grdpts_id,nodes,i_prev,j_prev,i_center,j_center)
 
              !update the status of the gridpoint
-             this%grdpts_id(i_center,j_center) = interior_pt
+             grdpts_id(i_center,j_center) = interior_pt
 
           end do             
 
@@ -168,15 +170,16 @@
         !> y-index of the current bc_interior_pt whose 
         !> neighbors were checked
         !---------------------------------------------------------------
-        subroutine check_neighbors(this,i_prev,j_prev,i_center,j_center)
+        subroutine check_neighbors(grdpts_id,nodes,i_prev,j_prev,i_center,j_center)
 
           implicit none
 
-          class(bf_layer_abstract), intent(inout) :: this
-          integer(ikind)          , intent(in)    :: i_prev
-          integer(ikind)          , intent(in)    :: j_prev
-          integer(ikind)          , intent(in)    :: i_center
-          integer(ikind)          , intent(in)    :: j_center
+          integer       , dimension(:,:)  , intent(inout) :: grdpts_id
+          real(rkind)   , dimension(:,:,:), intent(inout) :: nodes
+          integer(ikind)                  , intent(in)    :: i_prev
+          integer(ikind)                  , intent(in)    :: j_prev
+          integer(ikind)                  , intent(in)    :: i_center
+          integer(ikind)                  , intent(in)    :: j_center
           
 
           integer(ikind) :: min_j, max_j
@@ -189,25 +192,25 @@
           !check neighbors for the extra boundary points bc_pt
           do j=j_center-bc_size, j_prev - bc_size + min(j_center-j_prev+2*bc_size,-1)
              do i=i_center-bc_size,i_center+bc_size
-                call check_gridpoint(this, i,j,i_center,j_center)
+                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
              end do
           end do
 
           do j=j_center-bc_size-min_j, j_center+bc_size-max_j
              do i=i_center-bc_size, i_prev-bc_size+min(i_center-i_prev+2*bc_size,-1)
-                call check_gridpoint(this, i,j,i_center,j_center)
+                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
              end do
           end do
 
           do j=j_center-bc_size-min_j, j_center+bc_size-max_j
              do i=i_prev+bc_size+max(i_center-i_prev-2*bc_size,1),i_center+bc_size
-                call check_gridpoint(this, i,j,i_center,j_center)
+                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
              end do
           end do
 
           do j=j_prev+bc_size+max(j_center-j_prev-2*bc_size,1), j_center+bc_size
              do i=i_center-bc_size,i_center+bc_size
-                call check_gridpoint(this, i,j,i_center,j_center)
+                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
              end do
           end do
 
@@ -215,32 +218,32 @@
           !update the bc_interior_pt overlapping the previous bc_pt
           do j=min(j_center-j_prev+2*bc_size+1,-1), min(j_prev-bc_size,j_center+1) - j_center
              do i=-1,1
-                if(this%grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
-                   this%grdpts_id(i_center+i,j_center+j) = bc_interior_pt
+                if(grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
+                   grdpts_id(i_center+i,j_center+j) = bc_interior_pt
                 end if
              end do
           end do
 
           do j=max(-bc_size-min_j+1,-1), min(bc_size-max_j-1,1)
              do i=min(i_center-i_prev+2*bc_size+1,-1), min(i_prev-bc_size,i_center+1) - i_center
-                if(this%grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
-                   this%grdpts_id(i_center+i,j_center+j) = bc_interior_pt
+                if(grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
+                   grdpts_id(i_center+i,j_center+j) = bc_interior_pt
                 end if
              end do
           end do
 
           do j=max(-bc_size-min_j+1,-1), min(bc_size-max_j-1,1)
              do i=max(i_prev+bc_size,i_center-1)-i_center, max(i_center-i_prev-2*bc_size-1,1)
-                if(this%grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
-                   this%grdpts_id(i_center+i,j_center+j) = bc_interior_pt
+                if(grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
+                   grdpts_id(i_center+i,j_center+j) = bc_interior_pt
                 end if
              end do
           end do
 
           do j=max(j_prev+bc_size,j_center-1)-j_center, max(j_center-j_prev-2*bc_size-1,1)
              do i=-1,1
-                if(this%grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
-                   this%grdpts_id(i_center+i,j_center+j) = bc_interior_pt
+                if(grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
+                   grdpts_id(i_center+i,j_center+j) = bc_interior_pt
                 end if
              end do
           end do
@@ -272,31 +275,28 @@
         !>@param j
         !> y-index of the grid points checked
         !---------------------------------------------------------------
-        subroutine check_gridpoint(this,i,j,i_center,j_center)
+        subroutine check_gridpoint(
+     $     grdpts_id,nodes,i,j,i_center,j_center)
 
           implicit none
 
-          class(bf_layer_abstract), intent(inout) :: this
-          integer(ikind)          , intent(in)    :: i
-          integer(ikind)          , intent(in)    :: j
-          integer(ikind)          , intent(in)    :: i_center
-          integer(ikind)          , intent(in)    :: j_center
+          integer       , dimension(:,:)  , intent(inout) :: grdpts_id
+          real(rkind)   , dimension(:,:,:), intent(out)   :: nodes
+          integer(ikind)                  , intent(in)    :: i
+          integer(ikind)                  , intent(in)    :: j
+          integer(ikind)                  , intent(in)    :: i_center
+          integer(ikind)                  , intent(in)    :: j_center
 
-          integer, dimension(1,2) :: list
+          if (grdpts_id(i,j).eq.no_pt) then
 
-          if (this%grdpts_id(i,j).eq.no_pt) then
-
-             list(1,1) = i
-             list(1,2) = j
-
-             call compute_new_grdpts(this,list)
+             call this%compute_new_grdpt(i,j)
 
              !if the grid point is next to the new interior point,
              !it is a bc_interior_pt, otherwise, it is a bc_pt
              if(abs(i_center-1).le.1.and.abs(j_center-j).le.1) then
-                this%grdpts_id(i,j) = bc_interior_pt
+                grdpts_id(i,j) = bc_interior_pt
              else
-                this%grdpts_id(i,j) = bc_pt
+                grdpts_id(i,j) = bc_pt
              end if
 
           end if

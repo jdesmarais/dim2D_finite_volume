@@ -9,7 +9,8 @@
         public :: merge_bf_layers_N,
      $            merge_bf_layers_S,
      $            merge_bf_layers_E,
-     $            merge_bf_layers_W
+     $            merge_bf_layers_W,
+     $            get_new_size
 
         contains
 
@@ -444,77 +445,6 @@
 
 
         end function get_new_size
-
-
-        !< get the indices needed to match the tables copied
-        !> when merging southern and northerm buffer layers
-        subroutine get_match_indices_NS(
-     $       interior_i_max1, interior_i_max2, interior_i_max3,
-     $       i_min1, i_min2, i_min3, i_min4,
-     $       j_min1, j_min2,
-     $       alignment1, alignment2, final_alignment)
-
-          implicit none
-
-          integer                                 , intent(out) :: interior_i_max1
-          integer                                 , intent(out) :: interior_i_max2
-          integer                                 , intent(out) :: interior_i_max3
-          integer                                 , intent(out) :: i_min1
-          integer                                 , intent(out) :: i_min2
-          integer                                 , intent(out) :: i_min3
-          integer                                 , intent(out) :: i_min4
-          integer                                 , intent(out) :: j_min1
-          integer                                 , intent(out) :: j_min2
-          integer(ikind), dimension(2,2)          , intent(in)  :: alignment1
-          integer(ikind), dimension(2,2)          , intent(in)  :: alignment2
-          integer(ikind), dimension(2,2), optional, intent(in)  :: final_alignment
-
-          integer :: size1, size2
-
-
-          if(present(final_alignment)) then
-             interior_i_max1 = max(min(alignment1(1,1), alignment2(1,1)) -
-     $                         final_alignment(1,1),0)
-
-             interior_i_max3 = max(final_alignment(1,2) -
-     $                         max(alignment1(1,2),alignment2(1,2)),0)
-          else
-             interior_i_max1 = 0
-             interior_i_max3 = 0
-          end if             
-
-          interior_i_max2 = max(alignment1(1,1), alignment2(1,1)) -
-     $                      min(alignment1(1,2), alignment2(1,2)) -
-     $                      (2*bc_size+1)
-
-          if(debug) then
-             if(interior_i_max2.lt.0) then
-                print '(''bf_layer_merge_module'')'
-                print '(''get_match_indices_NS'')'
-                print '(''the two tables are superposed'')'
-                stop 'check the alignment of the two tables'
-             end if
-          end if
-          
-          if(alignment1(1,1).lt.alignment2(1,1)) then
-             size1 = alignment1(1,2)-alignment1(1,1) + 2*bc_size + 1
-             size2 = alignment2(1,2)-alignment2(1,1) + 2*bc_size + 1
-          else
-             size1 = alignment2(1,2)-alignment2(1,1) + 2*bc_size + 1
-             size2 = alignment1(1,2)-alignment1(1,1) + 2*bc_size + 1
-          end if
-
-          i_min1 = interior_i_max1
-          i_min2 = i_min1 + size1
-          i_min3 = i_min2 + interior_i_max2
-          i_min4 = i_min3 + size2
-
-          j_min1 = min((alignment1(2,2)-alignment1(2,1)+2*bc_size+1),
-     $                 (alignment2(2,2)-alignment2(2,1)+2*bc_size+1))
-          j_min2 = max((alignment1(2,2)-alignment1(2,1)+2*bc_size+1),
-     $                 (alignment2(2,2)-alignment2(2,1)+2*bc_size+1))
-
-        end subroutine get_match_indices_NS
 
 
         !< get the indices needed to match the tables copied

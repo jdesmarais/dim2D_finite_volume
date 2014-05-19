@@ -14,28 +14,47 @@
       !-----------------------------------------------------------------
       module bf_layer_class
 
-        use bf_layer_ini_grdptID_module, only : ini_grdpts_id_N,
-     $                                          ini_grdpts_id_S,
-     $                                          ini_grdpts_id_E,
-     $                                          ini_grdpts_id_W,
-     $                                          ini_grdpts_id_NE,
-     $                                          ini_grdpts_id_NW,
-     $                                          ini_grdpts_id_SE,
-     $                                          ini_grdpts_id_SW
+c$$$        use bf_corner_module            , only : is_alignment_compatible_with_corner
+c$$$
+c$$$        use bf_layer_adapt_corner_module, only : adapt_bf_layer_N_to_corner,
+c$$$     $                                           adapt_bf_layer_S_to_corner,
+c$$$     $                                           adapt_bf_layer_E_to_corner,
+c$$$     $                                           adapt_bf_layer_W_to_corner
 
-        use bf_layer_merge_module      , only : merge_bf_layers_N,
-     $                                          merge_bf_layers_S,
-     $                                          merge_bf_layers_E,
-     $                                          merge_bf_layers_W
+c$$$        use bf_layer_ini_grdptID_module , only : ini_grdpts_id_N,
+c$$$     $                                           ini_grdpts_id_S,
+c$$$     $                                           ini_grdpts_id_E,
+c$$$     $                                           ini_grdpts_id_W
+c$$$     $                                           ini_grdpts_id_NE,
+c$$$     $                                           ini_grdpts_id_NW,
+c$$$     $                                           ini_grdpts_id_SE,
+c$$$     $                                           ini_grdpts_id_SW
 
-        use parameters_bf_layer        , only : exchange_pt,
-     $                                          bc_pt, bc_interior_pt,
-     $                                          interior_pt, no_pt
-        use parameters_constant        , only : N,S,E,W,N_W,N_E,S_E,S_W,
-     $                                          x_direction, y_direction,
-     $                                          min_border, max_border
-        use parameters_input           , only : nx,ny,ne,bc_size,debug
-        use parameters_kind            , only : ikind, rkind
+        use bf_layer_allocate_module    , only : allocate_bf_layer_N,
+     $                                           allocate_bf_layer_S,
+     $                                           allocate_bf_layer_E,
+     $                                           allocate_bf_layer_W
+
+        use bf_layer_reallocate_module  , only : reallocate_bf_layer_N,
+     $                                           reallocate_bf_layer_S,
+     $                                           reallocate_bf_layer_E,
+     $                                           reallocate_bf_layer_W
+                                        
+        use bf_layer_merge_module       , only : merge_bf_layers_N,
+     $                                           merge_bf_layers_S,
+     $                                           merge_bf_layers_E,
+     $                                           merge_bf_layers_W
+                                        
+        use parameters_bf_layer         , only : bc_pt, bc_interior_pt,
+     $                                           interior_pt, no_pt
+
+        use parameters_constant         , only : N,S,E,W,
+     $                                           x_direction, y_direction,
+     $                                           min_border, max_border
+
+        use parameters_input            , only : nx,ny,ne,bc_size,debug
+        
+        use parameters_kind             , only : ikind, rkind
 
         private
         public :: bf_layer
@@ -73,26 +92,36 @@
 
           contains
 
-          procedure, pass :: ini
+          procedure,   pass :: ini
+                       
+          procedure,   pass :: get_localization
+          procedure,   pass :: get_sizes
+          procedure,   pass :: set_nodes
+          procedure,   pass :: set_nodes_pt
+          procedure,   pass :: set_grdpts_id
+          procedure,   pass :: get_alignment
+          procedure,   pass :: get_alignment_tab
+                       
+          procedure,   pass :: get_local_coord
+          procedure,   pass :: get_general_to_local_coord_tab
+          procedure,   pass :: compute_new_grdpts
+          procedure, nopass :: compute_new_grdpt
+          procedure,   pass :: allocate_bf_layer
+          procedure,   pass :: reallocate_bf_layer
+          procedure,   pass :: merge_bf_layer
+          procedure,   pass :: update_grdpts_id
 
-          procedure, pass :: get_localization
-          procedure, pass :: get_sizes
-          procedure, pass :: set_nodes
-          procedure, pass :: get_alignment
-          procedure, pass :: get_alignment_tab
+          procedure, nopass, private :: update_bc_interior_pt_to_interior_pt
+          procedure, nopass, private :: check_neighbors
+          procedure, nopass, private :: check_gridpoint
+          
+c$$$          procedure,   pass, private :: ini_alignment
+c$$$          procedure,   pass, private :: allocate_nodes_and_grdpts_id
+c$$$          procedure,   pass, private :: ini_nodes
+c$$$          procedure,   pass, private :: ini_grdpts_id
 
-          procedure, pass :: get_local_coord
-          procedure, pass :: compute_new_grdpts
-          procedure, pass :: allocate_bf_layer
-          procedure, pass :: reallocate_bf_layer
-          procedure, pass :: merge_bf_layer
 
-          procedure, pass, private :: ini_alignment
-          procedure, pass, private :: allocate_nodes_and_grdpts_id
-          procedure, pass, private :: ini_nodes
-          procedure, pass, private :: ini_grdpts_id
-
-          procedure, pass :: print_binary
+          procedure,   pass :: print_binary
 
         end type bf_layer
 
@@ -117,7 +146,7 @@
         !
         !>@param localization
         !> localization of the buffer layer
-        !>     - localization(1) : main layer (N,S,E,W,N_E,N_W,S_E,S_W)
+        !>     - localization(1) : main layer (N,S,E,W)
         !>     - localization(2) : sub-layer
         !--------------------------------------------------------------        
         subroutine ini(this,localization)
@@ -159,16 +188,54 @@
 
       
         !> set the nodes attribute
+        !> as the nodes is passed by reference, this is a very
+        !> unefficient way to change the nodes if no reallocation
+        !> is required: this subroutine has only been implemented
+        !> for test purposes
         subroutine set_nodes(this, nodes)
         
           implicit none
 
           class(bf_layer)                           , intent(inout) :: this
-          real(rkind), dimension(:,:,:), allocatable                :: nodes
+          real(rkind), dimension(:,:,:), allocatable, intent(inout) :: nodes
 
           call MOVE_ALLOC(nodes, this%nodes)
 
         end subroutine set_nodes
+
+      
+        !< set a specific nodes_pt
+        subroutine set_nodes_pt(this,i,j,k,nodes_pt)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+          integer(ikind) , intent(in)    :: i
+          integer(ikind) , intent(in)    :: j
+          integer        , intent(in)    :: k
+          real(rkind)    , intent(in)    :: nodes_pt
+
+          this%nodes(i,j,k) = nodes_pt
+
+        end subroutine set_nodes_pt
+
+
+        !< set the grdpts_id attribute
+        !> as the grdpts_id is passed by reference, this is a very
+        !> unefficient way to change the grdpts_id if no reallocation
+        !> is required: this subroutine has only been implemented for
+        !> test purposes
+        subroutine set_grdpts_id(this, grdpts_id)
+        
+          implicit none
+
+          class(bf_layer)                     , intent(inout) :: this
+          integer, dimension(:,:), allocatable, intent(inout) :: grdpts_id
+
+          call MOVE_ALLOC(grdpts_id, this%grdpts_id)
+
+        end subroutine set_grdpts_id
+
 
         !> get the position of the buffer layer compared
         !> to the interior domain
@@ -249,40 +316,47 @@
           integer(ikind), dimension(2), intent(in) :: general_coord
           integer(ikind), dimension(2)             :: local_coord
 
-          select case(this%localization)
-            case(N)
-               local_coord(1) = general_coord(1) - this%alignment(1,1) + bc_size + 1
-               local_coord(2) = general_coord(2) - ny + bc_size
-            case(S)
-               local_coord(1) = general_coord(1) - this%alignment(1,1) + bc_size + 1
-               local_coord(2) = general_coord(2) + size(this%nodes,2)  - bc_size
-            case(E)
-               local_coord(1) = general_coord(1) - nx + bc_size
-               local_coord(2) = general_coord(2) - this%alignment(2,1) + bc_size + 1
-            case(W)
-               local_coord(1) = general_coord(1) + size(this%nodes,1) - bc_size
-               local_coord(2) = general_coord(2) - this%alignment(2,1) + bc_size + 1
-            case(N_E)
-               local_coord(1) = general_coord(1) - nx + bc_size
-               local_coord(2) = general_coord(2) - ny + bc_size
-            case(N_W)
-               local_coord(1) = general_coord(1) + size(this%nodes,1) - bc_size
-               local_coord(2) = general_coord(2) - ny + bc_size
-            case(S_E)
-               local_coord(1) = general_coord(1) - nx + bc_size
-               local_coord(2) = general_coord(2) + size(this%nodes,2) - bc_size
-            case(S_W)
-               local_coord(1) = general_coord(1) + size(this%nodes,1) - bc_size
-               local_coord(2) = general_coord(2) + size(this%nodes,2) - bc_size
-            case default
-               print '(''bf_layer_class'')'
-               print '(''get_local_coord'')'
-               print '(''localization not recognized'',I2)', this%localization
-               stop '(was the buffer layer initialized ?)'
-          end select               
+          integer(ikind), dimension(2) :: match_table
+
+          match_table = this%get_general_to_local_coord_tab()
+          
+          local_coord(1) = general_coord(1) - match_table(1)
+          local_coord(2) = general_coord(2) - match_table(2)
 
         end function get_local_coord
-        
+
+
+        !< get the table matching the general to the local coordinates
+        !> local_coord(i) = general_coord(i) - match_table(i)
+        function get_general_to_local_coord_tab(this) result(match_table)
+
+          implicit none
+
+          class(bf_layer), intent(in)  :: this
+          integer(ikind), dimension(2) :: match_table
+          
+          select case(this%localization)
+            case(N)
+               match_table(1) = this%alignment(1,1) - bc_size - 1
+               match_table(2) = ny - bc_size
+            case(S)
+               match_table(1) = this%alignment(1,1) - bc_size - 1
+               match_table(2) = -size(this%nodes,2) + bc_size
+            case(E)
+               match_table(1) = nx - bc_size
+               match_table(2) = this%alignment(2,1) - bc_size - 1
+            case(W)
+               match_table(1) = -size(this%nodes,1) + bc_size
+               match_table(2) = this%alignment(2,1) - bc_size - 1
+           case default
+               print '(''bf_layer_class'')'
+               print '(''get_general_to_local_coord_tab'')'
+               print '(''localization not recognized'',I2)', this%localization
+               stop '(was the buffer layer initialized ?)'
+          end select
+
+        end function get_general_to_local_coord_tab
+
 
         !< compute the new grid points corresponding to
         !> the list_new_grdpts asked
@@ -299,8 +373,8 @@
 
           do l=1, size(list_new_grdpts,1)
              
-             i = list_new_grdpts(l,1)
-             j = list_new_grdpts(l,2)
+             i = list_new_grdpts(1,l)
+             j = list_new_grdpts(2,l)
           
              do k=1, ne
                 this%nodes(i,j,k) = 3
@@ -309,6 +383,25 @@
           end do          
 
         end subroutine compute_new_grdpts
+
+
+        !< compute the new grid points corresponding to
+        !> the list_new_grdpts asked
+        subroutine compute_new_grdpt(nodes,i,j)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(out) :: nodes
+          integer(ikind)               , intent(in)  :: i
+          integer(ikind)               , intent(in)  :: j
+          
+          integer :: k
+
+          do k=1, ne
+             nodes(i,j,k) = 3
+          end do
+
+        end subroutine compute_new_grdpt
 
 
         !> @author
@@ -344,226 +437,96 @@
         !> has neighboring buffer layers with which it should
         !> exchange data grid points
         !--------------------------------------------------------------
-        subroutine allocate_bf_layer(this, nodes, alignment, neighbors)
+        subroutine allocate_bf_layer(this, nodes, alignment)
 
           implicit none
           
           class(bf_layer)                 , intent(inout) :: this
           real(rkind)   , dimension(:,:,:), intent(in)    :: nodes
           integer(ikind), dimension(2,2)  , intent(in)    :: alignment
-          logical       , dimension(4)    , intent(in)    :: neighbors
 
-          !initialize the alignment
-          call this%ini_alignment(alignment)
 
-          !allocate the nodes and the grdpts_id attributes
-          call this%allocate_nodes_and_grdpts_id()
+          select case(this%localization)
+            case(N)
+               call allocate_bf_layer_N(
+     $              this%nodes, nodes,
+     $              this%grdpts_id,
+     $              this%alignment, alignment)
+            case(S)
+               call allocate_bf_layer_S(
+     $              this%nodes, nodes,
+     $              this%grdpts_id,
+     $              this%alignment, alignment)
+            case(E)
+               call allocate_bf_layer_E(
+     $              this%nodes, nodes,
+     $              this%grdpts_id,
+     $              this%alignment, alignment)
+            case(W)
+               call allocate_bf_layer_W(
+     $              this%nodes, nodes,
+     $              this%grdpts_id,
+     $              this%alignment, alignment)
+            case default
+               print '(''bf_layer_class'')'
+               print '(''allocate_bf_layer'')'
+               print '(''localization not recognized'')'
+               print '(''localization:'',I2)', this%localization
+          end select
+          
 
-          !initialize the nodes
-          call this%ini_nodes(nodes)
-
-          !initialize the grdpts_id
-          call this%ini_grdpts_id(neighbors)
+c$$$          !initialize the alignment
+c$$$          call this%ini_alignment(alignment)
+c$$$
+c$$$          !allocate the nodes and the grdpts_id attributes
+c$$$          call this%allocate_nodes_and_grdpts_id()
+c$$$
+c$$$          !initialize the nodes
+c$$$          call this%ini_nodes(nodes)
+c$$$
+c$$$          !initialize the grdpts_id
+c$$$          call this%ini_grdpts_id()
 
         end subroutine allocate_bf_layer
 
 
         !< reallocate the buffer layer using the
         !> border changes asked
-        subroutine reallocate_bf_layer(this, alignment)
+        subroutine reallocate_bf_layer(this, nodes, alignment)
 
           implicit none
 
-          class(bf_layer)        , intent(inout) :: this
-          integer, dimension(2,2), intent(in)    :: alignment
+          class(bf_layer)                 , intent(inout) :: this
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+          integer    , dimension(2,2)     , intent(in)    :: alignment
 
-          integer(ikind), dimension(2,2) :: border_changes
-          integer(ikind) :: i,j
-          integer        :: k
-          integer(ikind) :: i_min, i_max, j_min, j_max
-          integer(ikind) :: new_size_x, new_size_y
-          real(rkind)   , dimension(:,:,:), allocatable :: new_nodes
-          integer       , dimension(:,:)  , allocatable :: new_grdptid
-          integer(ikind), dimension(2) :: match_table
-
-
-          !< determine the border changes corresponding to the
-          !> alignment asked
-          border_changes(1,1) = alignment(1,1) - this%alignment(1,1)
-          border_changes(2,1) = alignment(2,1) - this%alignment(2,1)
-          border_changes(1,2) = alignment(1,2) - this%alignment(1,2)
-          border_changes(2,2) = alignment(2,2) - this%alignment(2,2)
-
-
-          !< determine the new alignment between the interior and 
-          !> buffer layer tables
           select case(this%localization)
+
             case(N)
-               border_changes(1,1) = alignment(1,1) - this%alignment(1,1)
-               border_changes(2,1) = 0 !alignment(2,1) - this%alignment(2,1)
-               border_changes(1,2) = alignment(1,2) - this%alignment(1,2)
-               border_changes(2,2) = alignment(2,2) - this%alignment(2,2)
+               call reallocate_bf_layer_N(
+     $              this%nodes, nodes,
+     $              this%grdpts_id,
+     $              this%alignment, alignment)
 
-               this%alignment(1,1) = alignment(1,1)
-               !this%alignment(2,1) = alignment(2,1)
-               this%alignment(1,2) = alignment(1,2)
-               this%alignment(2,2) = alignment(2,2)
-           
             case(S)
-               border_changes(1,1) = alignment(1,1) - this%alignment(1,1)
-               border_changes(2,1) = alignment(2,1) - this%alignment(2,1)
-               border_changes(1,2) = alignment(1,2) - this%alignment(1,2)
-               border_changes(2,2) = 0 !alignment(2,2) - this%alignment(2,2)
-
-               this%alignment(1,1) = alignment(1,1)
-               this%alignment(2,1) = alignment(2,1)
-               this%alignment(1,2) = alignment(1,2)
-               !this%alignment(2,2) = alignment(2,2)
+               call reallocate_bf_layer_S(
+     $              this%nodes, nodes,
+     $              this%grdpts_id,
+     $              this%alignment, alignment)
 
             case(E)
-               border_changes(1,1) = 0 !alignment(1,1) - this%alignment(1,1)
-               border_changes(2,1) = alignment(2,1) - this%alignment(2,1)
-               border_changes(1,2) = alignment(1,2) - this%alignment(1,2)
-               border_changes(2,2) = alignment(2,2) - this%alignment(2,2)
-
-               !this%alignment(1,1) = alignment(1,1)
-               this%alignment(2,1) = alignment(2,1)
-               this%alignment(1,2) = alignment(1,2)
-               this%alignment(2,2) = alignment(2,2)
+               call reallocate_bf_layer_E(
+     $              this%nodes, nodes,
+     $              this%grdpts_id,
+     $              this%alignment, alignment)
 
             case(W)
-               border_changes(1,1) = alignment(1,1) - this%alignment(1,1)
-               border_changes(2,1) = alignment(2,1) - this%alignment(2,1)
-               border_changes(1,2) = 0 !alignment(1,2) - this%alignment(1,2)
-               border_changes(2,2) = alignment(2,2) - this%alignment(2,2)
-
-               this%alignment(1,1) = alignment(1,1)
-               this%alignment(2,1) = alignment(2,1)
-               !this%alignment(1,2) = alignment(1,2)
-               this%alignment(2,2) = alignment(2,2)
-
-            case(N_E)
-               border_changes(1,1) = 0 !alignment(1,1) - this%alignment(1,1)
-               border_changes(2,1) = 0 !alignment(2,1) - this%alignment(2,1)
-               border_changes(1,2) = alignment(1,2) - this%alignment(1,2)
-               border_changes(2,2) = alignment(2,2) - this%alignment(2,2)
-
-               !this%alignment(1,1) = alignment(1,1)
-               !this%alignment(2,1) = alignment(2,1)
-               this%alignment(1,2) = alignment(1,2)
-               this%alignment(2,2) = alignment(2,2)
-
-            case(N_W)
-               border_changes(1,1) = alignment(1,1) - this%alignment(1,1)
-               border_changes(2,1) = 0 !alignment(2,1) - this%alignment(2,1)
-               border_changes(1,2) = 0 !alignment(1,2) - this%alignment(1,2)
-               border_changes(2,2) = alignment(2,2) - this%alignment(2,2)
-
-               this%alignment(1,1) = alignment(1,1)
-               !this%alignment(2,1) = alignment(2,1)
-               !this%alignment(1,2) = alignment(1,2)
-               this%alignment(2,2) = alignment(2,2)
-
-            case(S_E)
-               border_changes(1,1) = 0 !alignment(1,1) - this%alignment(1,1)
-               border_changes(2,1) = alignment(2,1) - this%alignment(2,1)
-               border_changes(1,2) = alignment(1,2) - this%alignment(1,2)
-               border_changes(2,2) = 0 !alignment(2,2) - this%alignment(2,2)
-
-               !this%alignment(1,1) = alignment(1,1)
-               this%alignment(2,1) = alignment(2,1)
-               this%alignment(1,2) = alignment(1,2)
-               !this%alignment(2,2) = alignment(2,2)
-
-            case(S_W)
-               border_changes(1,1) = alignment(1,1) - this%alignment(1,1)
-               border_changes(2,1) = alignment(2,1) - this%alignment(2,1)
-               border_changes(1,2) = 0 !alignment(1,2) - this%alignment(1,2)
-               border_changes(2,2) = 0 !alignment(2,2) - this%alignment(2,2)
-
-               this%alignment(1,1) = alignment(1,1)
-               this%alignment(2,1) = alignment(2,1)
-               !this%alignment(1,2) = alignment(1,2)
-               !this%alignment(2,2) = alignment(2,2)
-
-            case default
-               print '(''bf_layer_class'')'
-               print '(''reallocate_bf_layer'')'
-               print '(''localization not recognized: '')', this%localization
-               stop 'wrong initialization'
+               call reallocate_bf_layer_W(
+     $              this%nodes, nodes,
+     $              this%grdpts_id,
+     $              this%alignment, alignment)
 
           end select
-
-
-          !< determine the borders when filling the new table with the
-          !> old data
-          i_min = 1 + max(0,border_changes(1,1)) - border_changes(1,1)
-          i_max = size(this%nodes,1) + min(0,border_changes(1,2)) - border_changes(1,1)
-          j_min = 1 + max(0,border_changes(2,1)) - border_changes(2,1)
-          j_max = size(this%nodes,2) + min(0,border_changes(2,2)) - border_changes(2,1)
-
-          match_table(1) = border_changes(1,1)
-          match_table(2) = border_changes(2,1)
-
-
-          !< determine the new size of the nodes and grdptid tables
-          new_size_x = size(this%nodes,1) - border_changes(1,1) + border_changes(1,2)
-          new_size_y = size(this%nodes,2) - border_changes(2,1) + border_changes(2,2)
-          
-
-          !< allocate the new tables
-          allocate(new_nodes(new_size_x,new_size_y,ne))
-          allocate(new_grdptid(new_size_x,new_size_y))
-
-
-          !fill the new nodes table with the previous data
-          !and transfer the new table in the buffer layer
-          do k=1, ne
-             do j=j_min, j_max
-                do i=i_min, i_max
-                   new_nodes(i,j,k) = this%nodes(
-     $                  match_table(1)+i,
-     $                  match_table(2)+j,
-     $                  k)
-                end do
-             end do
-          end do
-          call MOVE_ALLOC(new_nodes,this%nodes)
-
-
-          !fill the new grdptid with the previous data
-          !and transfer the new table in the buffer layer
-          do j=1, j_min-1
-             do i=1, size(this%nodes,1)
-                new_grdptid(i,j) = no_pt
-             end do
-          end do
-          
-          do j=j_min, j_max
-
-             do i=1,i_min-1
-                new_grdptid(i,j) = no_pt
-             end do
-
-             do i=i_min, i_max
-                new_grdptid(i,j) = this%grdpts_id(
-     $               match_table(1)+i,
-     $               match_table(2)+j)
-             end do
-
-             do i=i_max+1, size(this%nodes,1)
-                new_grdptid(i,j) = no_pt
-             end do
-
-          end do          
-
-          do j=j_max+1,size(this%nodes,2)
-             do i=1, size(this%nodes,1)
-                new_grdptid(i,j) = no_pt
-             end do
-          end do
-             
-          call MOVE_ALLOC(new_grdptid,this%grdpts_id)
 
         end subroutine reallocate_bf_layer
 
@@ -655,384 +618,564 @@
         end subroutine merge_bf_layer
 
 
-
-        !< set the alignment between the interior table
-        !> and the buffer layer allowing to correspond
-        !> the interior grid points and the ones from
-        !> the buffer layer
-        subroutine ini_alignment(this, alignment)
+        !< turn the grdpts_id identified by general coordinates
+        !> from bc_interior_pt to interior_pt and add the neighboring
+        !> points around it to make sure that their computation is
+        !> possible. Then compute these new grid points.
+        subroutine update_grdpts_id(this, selected_grdpts)
 
           implicit none
 
           class(bf_layer)               , intent(inout) :: this
-          integer(ikind), dimension(2,2), intent(in)    :: alignment
+          integer(ikind), dimension(:,:), intent(in)    :: selected_grdpts
+
+
+          integer(ikind), dimension(2) :: match_table
+
+          match_table = this%get_general_to_local_coord_tab()
           
-          select case(this%localization)
-            case(N)
-               this%alignment(1,1) = alignment(1,1)
-               this%alignment(2,1) = ny+1
-               this%alignment(1,2) = alignment(1,2)
-               this%alignment(2,2) = ny+1
-            case(S)
-               this%alignment(1,1) = alignment(1,1)
-               this%alignment(2,1) = 0
-               this%alignment(1,2) = alignment(1,2)
-               this%alignment(2,2) = 0
-            case(E)
-               this%alignment(1,1) = nx+1
-               this%alignment(2,1) = alignment(2,1)
-               this%alignment(1,2) = nx+1
-               this%alignment(2,2) = alignment(2,2)
-            case(W)
-               this%alignment(1,1) = 0
-               this%alignment(2,1) = alignment(2,1)
-               this%alignment(1,2) = 0
-               this%alignment(2,2) = alignment(2,2)
-            case(N_E)
-               this%alignment(1,1) = nx+1
-               this%alignment(2,1) = ny+1
-               this%alignment(1,2) = nx+1
-               this%alignment(2,2) = ny+1
-            case(N_W)
-               this%alignment(1,1) = 0
-               this%alignment(2,1) = ny+1
-               this%alignment(1,2) = 0
-               this%alignment(2,2) = ny+1
-            case(S_E)
-               this%alignment(1,1) = nx+1
-               this%alignment(2,1) = 0
-               this%alignment(1,2) = nx+1
-               this%alignment(2,2) = 0
-            case(S_W)
-               this%alignment(1,1) = 0
-               this%alignment(2,1) = 0
-               this%alignment(1,2) = 0
-               this%alignment(2,2) = 0
-          end select
+          call update_bc_interior_pt_to_interior_pt(
+     $         this%grdpts_id,
+     $         this%nodes,
+     $         selected_grdpts,
+     $         match_table)
 
-        end subroutine ini_alignment
+        end subroutine update_grdpts_id
 
 
-        !< allocate the nodes and the grdpts_id attributes
-        !> of the bf_layer object
-        subroutine allocate_nodes_and_grdpts_id(this)
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine updating the grid points of the buffer
+        !> layer: bc_interior_pt were identified by the
+        !> detectors to be turned into interior pt. Therefore,
+        !> it is required to make sure that the neighboring
+        !> points needed by the normal stencil exist otherwise
+        !> they are added to the buffer layer. The new grid points
+        !> are then computed
+        !
+        !> @date
+        !> 07_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer_abstract object encapsulating the main
+        !> tables and the integer identifying the
+        !> correspondance between the buffer layer and the
+        !> interior grid points
+        !
+        !>@param selected_grdpts
+        !> list of bc_interior_pt grid points that should be turned
+        !> into interior_pt and therefore need neighboring grid points
+        !
+        !>@param match_table
+        !> (i_match,j_match) needed to identify correctly the grid
+        !> points activated by the detectors even if they were
+        !> identified before the reallocation
+        !--------------------------------------------------------------
+        subroutine update_bc_interior_pt_to_interior_pt(
+     $       grdpts_id,
+     $       nodes,
+     $       selected_grdpts,
+     $       match_table)
 
           implicit none
 
-          class(bf_layer), intent(inout) :: this
+          integer       , dimension(:,:)  , intent(inout) :: grdpts_id
+          real(rkind)   , dimension(:,:,:), intent(inout) :: nodes
+          integer(ikind), dimension(:,:)  , intent(in)    :: selected_grdpts
+          integer(ikind), dimension(2)    , intent(in)    :: match_table
 
-
-          integer(ikind), dimension(3) :: size_nodes
-
-
-          !determine the size of the main tables depending on the
-          !localization of the buffer layer and its alignment with
-          !the interior
-          select case(this%localization)
-          
-            case(N,S)
-               size_nodes(1) = this%alignment(1,2) - this%alignment(1,1) + 1 + 2*bc_size
-               size_nodes(2) = 2*bc_size+1
-
-            case(E,W)
-               size_nodes(1) = 2*bc_size+1
-               size_nodes(2) = this%alignment(2,2) - this%alignment(2,1) + 1 + 2*bc_size
-
-            case(N_E,N_W,S_E,S_W)
-               size_nodes(1) = 2*bc_size+1
-               size_nodes(2) = 2*bc_size+1
-
-            case default
-               print '(''bf_layer_allocate_module'')'
-               print '(''allocate_main_tables'')'
-               stop 'localization not recognized'
-
-          end select
-
-          size_nodes(3) = ne
-
-
-          !allocate the nodes table
-          allocate(this%nodes(
-     $         size_nodes(1),
-     $         size_nodes(2),
-     $         size_nodes(3)))
-
-
-          !allocate the grdptid table
-          allocate(this%grdpts_id(
-     $         size_nodes(1),
-     $         size_nodes(2)))
-
-        end subroutine allocate_nodes_and_grdpts_id
-
-      
-        !< initialize the nodes of the object from the
-        !> interior nodes and determine the new gridpoints
-        subroutine ini_nodes(
-     $     this,
-     $     nodes)
-
-          implicit none
-
-          class(bf_layer)                              , intent(inout) :: this
-          real(rkind)   , dimension(nx,ny,ne)          , intent(in)    :: nodes
 
           integer(ikind) :: i,j,k
-          integer(ikind) :: i_match, j_match
-          integer(ikind) :: nb_new_grdpts
-          integer(ikind), dimension(:,:), allocatable :: list_new_grdpts
-
-          !copy of the interior grid points
-          !and identification of the new grid
-          !points
-          select case(this%localization)
-
-            case(N)
-
-               !copy of grid points from the interior
-               i_match = this%alignment(1,1)-bc_size-1
-               j_match = ny-2*bc_size
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, size(this%nodes,1)
-                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !determination of the list of new gridpoints
-               nb_new_grdpts = size(this%nodes,1)
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do i=1, size(this%nodes,1)
-                  list_new_grdpts(i,1) = i
-                  list_new_grdpts(i,2) = 2*bc_size+1
-               end do
-
-            case(S)               
-
-               !copy of grid points from the interior
-               i_match = this%alignment(1,1)-bc_size-1
-               j_match = 0
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, size(this%nodes,1)
-                        this%nodes(i,j+1,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !determination of the list of new gridpoints
-               nb_new_grdpts = size(this%nodes,1)
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do i=1, size(this%nodes,1)
-                  list_new_grdpts(i,1) = i
-                  list_new_grdpts(i,2) = 1
-               end do
-               
-            case(E)
-
-               !copy of grid points from the interior
-               i_match = nx-2*bc_size
-               j_match = this%alignment(2,1)-bc_size-1
-               do k=1, ne
-                  do j=1, size(this%nodes,2)
-                     do i=1, 2*bc_size
-                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !determination of the list of new gridpoints
-               nb_new_grdpts = size(this%nodes,2)
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do j=1, size(this%nodes,2)
-                  list_new_grdpts(j,1) = 2*bc_size+1
-                  list_new_grdpts(j,2) = j
-               end do
-
-            case(W)
-
-               !copy of grid points from the interior
-               i_match = 0
-               j_match = this%alignment(2,1)-bc_size-1
-               do k=1, ne
-                  do j=1, size(this%nodes,2)
-                     do i=1, 2*bc_size
-                        this%nodes(i+1,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-               
-               !determination of the list of new gridpoints
-               nb_new_grdpts = size(this%nodes,2)
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do j=1, size(this%nodes,2)
-                  list_new_grdpts(j,1) = 1
-                  list_new_grdpts(j,2) = j
-               end do
-
-            case(N_E)
-
-               !copy of grid points from the interior
-               i_match = nx-2*bc_size
-               j_match = ny-2*bc_size
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, 2*bc_size
-                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !determination of the list of new gridpoints
-               nb_new_grdpts = 4*bc_size + 1
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do j=1, 2*bc_size
-                  list_new_grdpts(j,1) = 2*bc_size+1
-                  list_new_grdpts(j,2) = j
-               end do
-               do i=1, 2*bc_size+1
-                  list_new_grdpts(2*bc_size+i,1) = i
-                  list_new_grdpts(2*bc_size+i,2) = 2*bc_size+1
-               end do
-               
-
-            case(N_W)
-
-               !copy of grid points from the interior
-               i_match = 0
-               j_match = ny-2*bc_size
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, 2*bc_size
-                        this%nodes(1+i,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !determination of the list of new gridpoints
-               nb_new_grdpts = 4*bc_size + 1
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do j=1, 2*bc_size
-                  list_new_grdpts(j,1) = 1
-                  list_new_grdpts(j,2) = j
-               end do
-               do i=1, 2*bc_size+1
-                  list_new_grdpts(2*bc_size+i,1) = i
-                  list_new_grdpts(2*bc_size+i,2) = 2*bc_size+1
-               end do
-
-            case(S_E)
-
-               !copy of grid points from the interior
-               i_match = nx-2*bc_size
-               j_match = 0
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, 2*bc_size
-                        this%nodes(i,1+j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !determination of the list of new gridpoints
-               nb_new_grdpts = 4*bc_size+1
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do i=1, 2*bc_size+1
-                  list_new_grdpts(i,1) = i
-                  list_new_grdpts(i,2) = 1
-               end do
-               do j=2, 2*bc_size+1
-                  list_new_grdpts(2*bc_size+j,1) = 2*bc_size+1
-                  list_new_grdpts(2*bc_size+j,2) = j
-               end do
-               
-
-            case(S_W)
-
-               !copy of grid points from the interior
-               i_match = 0
-               j_match = 0
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, 2*bc_size
-                        this%nodes(1+i,1+j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !determination of the list of new gridpoints
-               nb_new_grdpts = 4*bc_size+1
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do i=1, 2*bc_size+1
-                  list_new_grdpts(i,1) = i
-                  list_new_grdpts(i,2) = 1
-               end do
-               do j=2, 2*bc_size+1
-                  list_new_grdpts(2*bc_size+j,1) = 1
-                  list_new_grdpts(2*bc_size+j,2) = j
-               end do
-
-             case default
-                print '(''bf_layer_class'')'
-                print '(''ini_nodes'')'
-                print '(''localization not recognized'')'
-                print '(''localization: '', I2)', this%localization
-                stop 'change localization'
-
-          end select
-
-          !compute the new grid points
-          call this%compute_new_grdpts(list_new_grdpts)
-
-        end subroutine ini_nodes
+          integer(ikind) :: i_prev, j_prev, i_center, j_center
 
 
-        !< initialization of the grdpts_id
-        subroutine ini_grdpts_id(this, neighbors)
+          !we have a list of gridpoints that should be turned
+          !from bc_inetrior_pt to interior_pt. For a point to be
+          !considered an interior point, we need to make sure
+          !that the grid points it needs to compute its time
+          !derivatives are available
+          !
+          !previously, the nodes table of the buffer layer was
+          !increased to take into account the space needed for
+          !new gridpoints at the boundary
+          !
+          !in this function, we go through the list of gridpoint
+          !whose neighbours need to be tested. As it is possible
+          !to reduce the number of tests by considering the
+          !previous gridpoint tested, there is a distinction
+          !between k=1 and k>1 in the list of gridpoints
+          !----------------------------------------------------
+
+          !for the first grid point, there is no simplification
+          !possible in checking the neighbours so it is separated
+          !from the next loop
+          !----------------------------------------------------
+          k = 1
+          i_center = -match_table(1)+selected_grdpts(1,k)
+          j_center = -match_table(2)+selected_grdpts(2,k)
+          do j=j_center-bc_size, j_center+bc_size
+             do i=i_center-bc_size, i_center+bc_size
+                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
+             end do
+          end do
+          grdpts_id(i_center,j_center) = interior_pt
+
+
+          !from the second gridpoint, we reduce the number of
+          !neighbours to be tested
+          !----------------------------------------------------
+          do k=2, size(selected_grdpts,2)
+
+             !update the position of the gridpoint previously
+             !tested
+             i_prev   =   i_center
+             j_prev   =   j_center
+             i_center = - match_table(1) + selected_grdpts(1,k)
+             j_center = - match_table(2) + selected_grdpts(2,k)
+
+             !check its neighbours
+             call check_neighbors(grdpts_id,nodes,i_prev,j_prev,i_center,j_center)
+
+             !update the status of the gridpoint
+             grdpts_id(i_center,j_center) = interior_pt
+
+          end do  
+
+        end subroutine update_bc_interior_pt_to_interior_pt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !>
+        !> @brief
+        !> subroutine checking whether the neighboring points
+        !> from a bc_interior_pt that should be turned into
+        !> an interior point exists: if they exist, nothing
+        !> happens. Otherwise, the grid point ID is updated
+        !> and the grid point is computed
+        !> the number of neighbors to be checked can be reduced
+        !> knowing the previous neighbors checked
+        !>
+        !> @date
+        !> 07_04_2013 - initial version - J.L. Desmarais
+        !>
+        !>@param this
+        !> bf_layer_abstract object encapsulating the main
+        !> tables and the integer identifying the
+        !> correspondance between the buffer layer and the
+        !> interior grid points
+        !>
+        !>@param i_prev
+        !> x-index of the previous bc_interior_pt whose 
+        !> neighbors were checked
+        !>
+        !>@param j_prev
+        !> y-index of the previous bc_interior_pt whose 
+        !> neighbors were checked
+        !>
+        !>@param i_center
+        !> x-index of the current bc_interior_pt whose 
+        !> neighbors were checked
+        !>
+        !>@param j_center
+        !> y-index of the current bc_interior_pt whose 
+        !> neighbors were checked
+        !---------------------------------------------------------------
+        subroutine check_neighbors(
+     $     grdpts_id, nodes,
+     $     i_prev, j_prev,
+     $     i_center, j_center)
 
           implicit none
 
-          class(bf_layer)      , intent(inout) :: this
-          logical, dimension(4), intent(in)    :: neighbors
-
-          select case(this%localization)
-
-            case(N)
-               call ini_grdpts_id_N(this%grdpts_id,neighbors)
-
-            case(S)
-               call ini_grdpts_id_S(this%grdpts_id,neighbors)
-
-            case(E)
-               call ini_grdpts_id_E(this%grdpts_id,neighbors)
-
-            case(W)
-               call ini_grdpts_id_W(this%grdpts_id,neighbors)
-
-            case(N_E)
-               call ini_grdpts_id_NE(this%grdpts_id)
-               
-            case(N_W)
-               call ini_grdpts_id_NW(this%grdpts_id)
-               
-            case(S_E)
-               call ini_grdpts_id_SE(this%grdpts_id)
-               
-            case(S_W)
-               call ini_grdpts_id_SW(this%grdpts_id)              
-            
-            case default
-               print '(''bf_layer_class'')'
-               print '(''ini_grdpts_id'')'
-               print '(''localization not recognized'')'
-               print '(''localization: '', I2)', this%localization
-               stop 'change localization'
+          integer       , dimension(:,:)  , intent(inout) :: grdpts_id
+          real(rkind)   , dimension(:,:,:), intent(inout) :: nodes
+          integer(ikind)                  , intent(in)    :: i_prev
+          integer(ikind)                  , intent(in)    :: j_prev
+          integer(ikind)                  , intent(in)    :: i_center
+          integer(ikind)                  , intent(in)    :: j_center
           
-          end select
 
-        end subroutine ini_grdpts_id
+          integer(ikind) :: min_j, max_j
+          integer(ikind) :: i,j
+
+
+          min_j = min(j_center-j_prev,0)
+          max_j = max(j_center-j_prev,0)
+
+          !check neighbors for the extra boundary points bc_pt
+          do j=j_center-bc_size, j_prev - bc_size + min(j_center-j_prev+2*bc_size,-1)
+             do i=i_center-bc_size,i_center+bc_size
+                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
+             end do
+          end do
+
+          do j=j_center-bc_size-min_j, j_center+bc_size-max_j
+             do i=i_center-bc_size, i_prev-bc_size+min(i_center-i_prev+2*bc_size,-1)
+                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
+             end do
+          end do
+
+          do j=j_center-bc_size-min_j, j_center+bc_size-max_j
+             do i=i_prev+bc_size+max(i_center-i_prev-2*bc_size,1),i_center+bc_size
+                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
+             end do
+          end do
+
+          do j=j_prev+bc_size+max(j_center-j_prev-2*bc_size,1), j_center+bc_size
+             do i=i_center-bc_size,i_center+bc_size
+                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
+             end do
+          end do
+
+
+          !update the bc_interior_pt overlapping the previous bc_pt
+          do j=min(j_center-j_prev+2*bc_size+1,-1), min(j_prev-bc_size,j_center+1) - j_center
+             do i=-1,1
+                if(grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
+                   grdpts_id(i_center+i,j_center+j) = bc_interior_pt
+                end if
+             end do
+          end do
+
+          do j=max(-bc_size-min_j+1,-1), min(bc_size-max_j-1,1)
+             do i=min(i_center-i_prev+2*bc_size+1,-1), min(i_prev-bc_size,i_center+1) - i_center
+                if(grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
+                   grdpts_id(i_center+i,j_center+j) = bc_interior_pt
+                end if
+             end do
+          end do
+
+          do j=max(-bc_size-min_j+1,-1), min(bc_size-max_j-1,1)
+             do i=max(i_prev+bc_size,i_center-1)-i_center, max(i_center-i_prev-2*bc_size-1,1)
+                if(grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
+                   grdpts_id(i_center+i,j_center+j) = bc_interior_pt
+                end if
+             end do
+          end do
+
+          do j=max(j_prev+bc_size,j_center-1)-j_center, max(j_center-j_prev-2*bc_size-1,1)
+             do i=-1,1
+                if(grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
+                   grdpts_id(i_center+i,j_center+j) = bc_interior_pt
+                end if
+             end do
+          end do
+
+        end subroutine check_neighbors
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !>
+        !> @brief
+        !> subroutine checking whether the grid point asked
+        !> exists or not. If it does not exist in the buffer
+        !> layer, it has to be computed and updated in the
+        !> gridpoint ID map
+        !>
+        !> @date
+        !> 07_04_2013 - initial version - J.L. Desmarais
+        !>
+        !>@param this
+        !> bf_layer_abstract object encapsulating the main
+        !> tables and the integer identifying the
+        !> correspondance between the buffer layer and the
+        !> interior grid points
+        !>
+        !>@param i
+        !> x-index of the grid points checked
+        !>
+        !>@param j
+        !> y-index of the grid points checked
+        !---------------------------------------------------------------
+        subroutine check_gridpoint(
+     $     grdpts_id,nodes,i,j,i_center,j_center)
+
+          implicit none
+
+          integer       , dimension(:,:)  , intent(inout) :: grdpts_id
+          real(rkind)   , dimension(:,:,:), intent(out)   :: nodes
+          integer(ikind)                  , intent(in)    :: i
+          integer(ikind)                  , intent(in)    :: j
+          integer(ikind)                  , intent(in)    :: i_center
+          integer(ikind)                  , intent(in)    :: j_center
+
+
+
+          if((grdpts_id(i,j).eq.no_pt).or.(grdpts_id(i,j).eq.bc_pt)) then
+
+             if (grdpts_id(i,j).eq.no_pt) then
+                call compute_new_grdpt(nodes,i,j)
+             end if
+
+             !if the grid point is next to the new interior point,
+             !it is a bc_interior_pt, otherwise, it is a bc_pt
+             if(abs(i_center-i).le.1.and.abs(j_center-j).le.1) then
+                grdpts_id(i,j) = bc_interior_pt
+             else
+                grdpts_id(i,j) = bc_pt
+             end if
+
+          end if
+
+        end subroutine check_gridpoint        
+
+
+c$$$        !< set the alignment between the interior table
+c$$$        !> and the buffer layer allowing to correspond
+c$$$        !> the interior grid points and the ones from
+c$$$        !> the buffer layer
+c$$$        subroutine ini_alignment(this, alignment)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          class(bf_layer)               , intent(inout) :: this
+c$$$          integer(ikind), dimension(2,2), intent(in)    :: alignment
+c$$$          
+c$$$          select case(this%localization)
+c$$$            case(N)
+c$$$               this%alignment(1,1) = alignment(1,1)
+c$$$               this%alignment(2,1) = ny+1
+c$$$               this%alignment(1,2) = alignment(1,2)
+c$$$               this%alignment(2,2) = ny+1
+c$$$            case(S)
+c$$$               this%alignment(1,1) = alignment(1,1)
+c$$$               this%alignment(2,1) = 0
+c$$$               this%alignment(1,2) = alignment(1,2)
+c$$$               this%alignment(2,2) = 0
+c$$$            case(E)
+c$$$               this%alignment(1,1) = nx+1
+c$$$               this%alignment(2,1) = alignment(2,1)
+c$$$               this%alignment(1,2) = nx+1
+c$$$               this%alignment(2,2) = alignment(2,2)
+c$$$            case(W)
+c$$$               this%alignment(1,1) = 0
+c$$$               this%alignment(2,1) = alignment(2,1)
+c$$$               this%alignment(1,2) = 0
+c$$$               this%alignment(2,2) = alignment(2,2)
+c$$$            case default
+c$$$               print '(''bf_layer_class'')'
+c$$$               print '(''ini_alignment'')'
+c$$$               print '(''localization not recognized'')'
+c$$$               print '(''localization: '', I2)', this%localization
+c$$$               stop 'change localization'
+c$$$          end select
+c$$$
+c$$$        end subroutine ini_alignment
+c$$$
+c$$$
+c$$$        !< allocate the nodes and the grdpts_id attributes
+c$$$        !> of the bf_layer object
+c$$$        subroutine allocate_nodes_and_grdpts_id(this)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          class(bf_layer), intent(inout) :: this
+c$$$
+c$$$
+c$$$          integer(ikind), dimension(3) :: size_nodes
+c$$$
+c$$$
+c$$$          !determine the size of the main tables depending on the
+c$$$          !localization of the buffer layer and its alignment with
+c$$$          !the interior
+c$$$          select case(this%localization)
+c$$$          
+c$$$            case(N,S)
+c$$$               size_nodes(1) = this%alignment(1,2) - this%alignment(1,1) + 1 + 2*bc_size
+c$$$               size_nodes(2) = 2*bc_size+1
+c$$$
+c$$$            case(E,W)
+c$$$               size_nodes(1) = 2*bc_size+1
+c$$$               size_nodes(2) = this%alignment(2,2) - this%alignment(2,1) + 1 + 2*bc_size
+c$$$
+c$$$            case default
+c$$$               print '(''bf_layer_allocate_module'')'
+c$$$               print '(''allocate_main_tables'')'
+c$$$               stop 'localization not recognized'
+c$$$
+c$$$          end select
+c$$$
+c$$$          size_nodes(3) = ne
+c$$$
+c$$$
+c$$$          !allocate the nodes table
+c$$$          allocate(this%nodes(
+c$$$     $         size_nodes(1),
+c$$$     $         size_nodes(2),
+c$$$     $         size_nodes(3)))
+c$$$
+c$$$
+c$$$          !allocate the grdptid table
+c$$$          allocate(this%grdpts_id(
+c$$$     $         size_nodes(1),
+c$$$     $         size_nodes(2)))
+c$$$
+c$$$        end subroutine allocate_nodes_and_grdpts_id
+c$$$
+c$$$      
+c$$$        !< initialize the nodes of the object from the
+c$$$        !> interior nodes and determine the new gridpoints
+c$$$        subroutine ini_nodes(
+c$$$     $     this,
+c$$$     $     nodes)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          class(bf_layer)                              , intent(inout) :: this
+c$$$          real(rkind)   , dimension(nx,ny,ne)          , intent(in)    :: nodes
+c$$$
+c$$$          integer(ikind) :: i,j,k
+c$$$          integer(ikind) :: i_match, j_match
+c$$$          !integer(ikind) :: nb_new_grdpts
+c$$$          !integer(ikind), dimension(:,:), allocatable :: list_new_grdpts
+c$$$
+c$$$          !copy of the interior grid points
+c$$$          !and identification of the new grid
+c$$$          !points
+c$$$          select case(this%localization)
+c$$$
+c$$$            case(N)
+c$$$
+c$$$               !copy of grid points from the interior
+c$$$               i_match = this%alignment(1,1)-bc_size-1
+c$$$               j_match = ny-2*bc_size
+c$$$               do k=1, ne
+c$$$                  do j=1, 2*bc_size
+c$$$                     do i=1, size(this%nodes,1)
+c$$$                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
+c$$$                     end do
+c$$$                  end do
+c$$$               end do
+c$$$
+c$$$c$$$               !determination of the list of new gridpoints
+c$$$c$$$               nb_new_grdpts = size(this%nodes,1)
+c$$$c$$$               allocate(list_new_grdpts(2,nb_new_grdpts))
+c$$$c$$$               do i=1, size(this%nodes,1)
+c$$$c$$$                  list_new_grdpts(1,i) = i
+c$$$c$$$                  list_new_grdpts(2,i) = 2*bc_size+1
+c$$$c$$$               end do
+c$$$
+c$$$            case(S)               
+c$$$
+c$$$               !copy of grid points from the interior
+c$$$               i_match = this%alignment(1,1)-bc_size-1
+c$$$               j_match = 0
+c$$$               do k=1, ne
+c$$$                  do j=1, 2*bc_size
+c$$$                     do i=1, size(this%nodes,1)
+c$$$                        this%nodes(i,j+1,k) = nodes(i_match+i,j_match+j,k)
+c$$$                     end do
+c$$$                  end do
+c$$$               end do
+c$$$
+c$$$c$$$               !determination of the list of new gridpoints
+c$$$c$$$               nb_new_grdpts = size(this%nodes,1)
+c$$$c$$$               allocate(list_new_grdpts(2,nb_new_grdpts))
+c$$$c$$$               do i=1, size(this%nodes,1)
+c$$$c$$$                  list_new_grdpts(1,i) = i
+c$$$c$$$                  list_new_grdpts(2,i) = 1
+c$$$c$$$               end do
+c$$$               
+c$$$            case(E)
+c$$$
+c$$$               !copy of grid points from the interior
+c$$$               i_match = nx-2*bc_size
+c$$$               j_match = this%alignment(2,1)-bc_size-1
+c$$$               do k=1, ne
+c$$$                  do j=1, size(this%nodes,2)
+c$$$                     do i=1, 2*bc_size
+c$$$                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
+c$$$                     end do
+c$$$                  end do
+c$$$               end do
+c$$$
+c$$$c$$$               !determination of the list of new gridpoints
+c$$$c$$$               nb_new_grdpts = size(this%nodes,2)
+c$$$c$$$               allocate(list_new_grdpts(2,nb_new_grdpts))
+c$$$c$$$               do j=1, size(this%nodes,2)
+c$$$c$$$                  list_new_grdpts(1,j) = 2*bc_size+1
+c$$$c$$$                  list_new_grdpts(2,j) = j
+c$$$c$$$               end do
+c$$$
+c$$$            case(W)
+c$$$
+c$$$               !copy of grid points from the interior
+c$$$               i_match = 0
+c$$$               j_match = this%alignment(2,1)-bc_size-1
+c$$$               do k=1, ne
+c$$$                  do j=1, size(this%nodes,2)
+c$$$                     do i=1, 2*bc_size
+c$$$                        this%nodes(i+1,j,k) = nodes(i_match+i,j_match+j,k)
+c$$$                     end do
+c$$$                  end do
+c$$$               end do
+c$$$               
+c$$$c$$$               !determination of the list of new gridpoints
+c$$$c$$$               nb_new_grdpts = size(this%nodes,2)
+c$$$c$$$               allocate(list_new_grdpts(2,nb_new_grdpts))
+c$$$c$$$               do j=1, size(this%nodes,2)
+c$$$c$$$                  list_new_grdpts(1,j) = 1
+c$$$c$$$                  list_new_grdpts(2,j) = j
+c$$$c$$$               end do
+c$$$
+c$$$             case default
+c$$$                print '(''bf_layer_class'')'
+c$$$                print '(''ini_nodes'')'
+c$$$                print '(''localization not recognized'')'
+c$$$                print '(''localization: '', I2)', this%localization
+c$$$                stop 'change localization'
+c$$$
+c$$$          end select
+c$$$
+c$$$c$$$          !compute the new grid points
+c$$$c$$$          call this%compute_new_grdpts(list_new_grdpts)
+c$$$
+c$$$        end subroutine ini_nodes
+c$$$
+c$$$
+c$$$        !< initialization of the grdpts_id
+c$$$        subroutine ini_grdpts_id(this)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          class(bf_layer), intent(inout) :: this
+c$$$
+c$$$          select case(this%localization)
+c$$$
+c$$$            case(N)
+c$$$               call ini_grdpts_id_N(
+c$$$     $              this%grdpts_id,
+c$$$     $              this%alignment)
+c$$$
+c$$$            case(S)
+c$$$               call ini_grdpts_id_S(
+c$$$     $              this%grdpts_id,
+c$$$     $              this%alignment)
+c$$$
+c$$$            case(E)
+c$$$               call ini_grdpts_id_E(
+c$$$     $              this%grdpts_id,
+c$$$     $              this%alignment)
+c$$$
+c$$$            case(W)
+c$$$               call ini_grdpts_id_W(
+c$$$     $              this%grdpts_id,
+c$$$     $              this%alignment)
+c$$$
+c$$$            case default
+c$$$               print '(''bf_layer_class'')'
+c$$$               print '(''ini_grdpts_id'')'
+c$$$               print '(''localization not recognized'')'
+c$$$               print '(''localization: '', I2)', this%localization
+c$$$               stop 'change localization'
+c$$$          
+c$$$          end select
+c$$$
+c$$$        end subroutine ini_grdpts_id
 
 
         !< print the nodes and the grdpts_id attributes
@@ -1112,168 +1255,5 @@
           end if
 
         end subroutine print_binary
-
-
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> subroutine reallocating the main tables of the
-c$$$        !> buffer layer and copying the previous data in
-c$$$        !> the new table
-c$$$        !
-c$$$        !> @date
-c$$$        !> 07_04_2013 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param this
-c$$$        !> bf_layer_abstract object encapsulating the main
-c$$$        !> tables and the integer identifying the
-c$$$        !> correspondance between the buffer layer and the
-c$$$        !> interior grid points
-c$$$        !
-c$$$        !>@param border_change
-c$$$        !> table giving the border changes of the previous
-c$$$        !> allocated table
-c$$$        !>     - border_change(1,1) : change of i_min
-c$$$        !>     - border_change(1,2) : change of i_max
-c$$$        !>     - border_change(2,1) : change of j_min
-c$$$        !>     - border_change(2,2) : change of j_max
-c$$$        !>
-c$$$        !> e.g. : i_min = +1 : the first column of the table is deleted
-c$$$        !>        i_max = +1 : a new column is added to the table
-c$$$        !>        j_min = -1 : a new line is added to the table
-c$$$        !>        j_max = -1 : the last line of the table is deleted
-c$$$        !
-c$$$        !>@param match_table
-c$$$        !> indices allowing to identify correctly the
-c$$$        !> previously allocated nodes and the new nodes
-c$$$        !>     - match_table(1) : i_match
-c$$$        !>     - match_table(2) : j_match
-c$$$        !>
-c$$$        !> e.g. : new_table(i,j) = prev_table(i_match+i,j_match+j)
-c$$$        !--------------------------------------------------------------
-c$$$        subroutine reallocate_bf_layer_proc(
-c$$$     $     this,
-c$$$     $     border_changes,
-c$$$     $     nodes,
-c$$$     $     match_table)
-c$$$        
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer)                        , intent(inout) :: this
-c$$$          integer       , dimension(2,2)         , intent(in)    :: border_changes
-c$$$          real(rkind)   , dimension(nx,ny,ne)    , intent(in)    :: nodes
-c$$$          integer(ikind), dimension(2), optional , intent(out)   :: match_table
-c$$$
-c$$$          if(present(match_table)) then
-c$$$             call reallocate_bf_layer(
-c$$$     $            this,
-c$$$     $            border_changes,
-c$$$     $            nodes,
-c$$$     $            match_table)
-c$$$          else
-c$$$             call reallocate_bf_layer(
-c$$$     $            this,
-c$$$     $            border_changes,
-c$$$     $            nodes)
-c$$$          end if
-c$$$
-c$$$        end subroutine reallocate_bf_layer_proc
-c$$$
-c$$$
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> subroutine print the nodes table in a binary
-c$$$        !> file
-c$$$        !
-c$$$        !> @date
-c$$$        !> 07_04_2013 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param this
-c$$$        !> bf_layer_abstract object encapsulating the main
-c$$$        !> tables and the integer identifying the
-c$$$        !> correspondance between the buffer layer and the
-c$$$        !> interior grid points
-c$$$        !
-c$$$        !>@param filename
-c$$$        !> name of the binary file where the nodes are
-c$$$        !> written
-c$$$        !--------------------------------------------------------------
-c$$$        subroutine print_nodes_proc(this,filename)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer), intent(in) :: this
-c$$$          character(*)   , intent(in) :: filename
-c$$$
-c$$$          call print_nodes(this,filename)
-c$$$
-c$$$        end subroutine print_nodes_proc
-c$$$
-c$$$
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> subroutine print the grdpt_id table in a binary
-c$$$        !> file
-c$$$        !
-c$$$        !> @date
-c$$$        !> 07_04_2013 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param this
-c$$$        !> bf_layer_abstract object encapsulating the main
-c$$$        !> tables and the integer identifying the
-c$$$        !> correspondance between the buffer layer and the
-c$$$        !> interior grid points
-c$$$        !
-c$$$        !>@param filename
-c$$$        !> name of the binary file where the grdpt_id are
-c$$$        !> written
-c$$$        !--------------------------------------------------------------
-c$$$        subroutine print_grdpts_id_proc(this,filename)
-c$$$
-c$$$          implicit none
-c$$$          
-c$$$          class(bf_layer), intent(in) :: this
-c$$$          character(*)   , intent(in) :: filename
-c$$$
-c$$$          call print_grdpts_id(this, filename)
-c$$$
-c$$$        end subroutine print_grdpts_id_proc
-c$$$
-c$$$
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> subroutine print the sizes of the main table in
-c$$$        !> a binary file
-c$$$        !
-c$$$        !> @date
-c$$$        !> 07_04_2013 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param this
-c$$$        !> bf_layer_abstract object encapsulating the main
-c$$$        !> tables and the integer identifying the
-c$$$        !> correspondance between the buffer layer and the
-c$$$        !> interior grid points
-c$$$        !
-c$$$        !>@param filename
-c$$$        !> name of the binary file where the sizes are
-c$$$        !> written
-c$$$        !--------------------------------------------------------------
-c$$$        subroutine print_sizes_proc(this, filename)
-c$$$
-c$$$          implicit none
-c$$$          
-c$$$          class(bf_layer), intent(in) :: this
-c$$$          character(*)   , intent(in) :: filename
-c$$$
-c$$$          call print_sizes(this, filename)
-c$$$
-c$$$        end subroutine print_sizes_proc
 
       end module bf_layer_class

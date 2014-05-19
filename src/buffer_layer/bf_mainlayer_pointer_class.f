@@ -270,7 +270,7 @@
 
         !< add sublayer to the chained list of the mainlayer
         !> encapsulated
-        function add_sublayer(this, nodes, alignment, neighbors)
+        function add_sublayer(this, nodes, alignment)
      $     result(added_sublayer_ptr)
 
           implicit none
@@ -278,12 +278,12 @@
           class(bf_mainlayer_pointer)        , intent(inout) :: this
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: nodes
           integer(ikind), dimension(2,2)     , intent(in)    :: alignment
-          logical       , dimension(4)       , intent(in)    :: neighbors
+
           type(bf_sublayer), pointer                         :: added_sublayer_ptr
 
           if(this%associated_ptr()) then
              added_sublayer_ptr => this%ptr%add_sublayer(
-     $            nodes, alignment, neighbors)
+     $            nodes, alignment)
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''add_sublayer'')'

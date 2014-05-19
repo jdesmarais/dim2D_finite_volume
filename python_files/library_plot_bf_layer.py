@@ -22,7 +22,7 @@ from pylab import *
 
 #local variables defining the code for the grid points
 backgrd_pt = -10000
-none_pt = 0
+no_pt = 0
 interior_pt = 1
 bc_pt = 2
 
@@ -137,7 +137,8 @@ def make_matrix_for_all_bf_layers(
     nb_sublayers,
     suffix_size,
     suffix_nodes,
-    suffix_grdptid):
+    suffix_grdptid,
+    continuous=False):
 
     #possible mainlayers
     mainlayers_char = ['N_','S_','E_','W_','NE','NW','SE','SW']
@@ -205,7 +206,7 @@ def make_matrix_for_all_bf_layers(
     lm_size_y = 2*bf_tmp_size_y + nodes_size_y + 4*interspace
 
     
-    #allocation of the large matrices for the nodse and the grdptid
+    #allocation of the large matrices for the nodes and the grdptid
     lm_nodes = np.empty([lm_size_y, lm_size_x])
     lm_nodes.fill(backgrd_pt)
 
@@ -226,16 +227,6 @@ def make_matrix_for_all_bf_layers(
         j_match:j_match+nodes_size_y,
         i_match:i_match+nodes_size_x] = nodes[0,:,:]
 
-    #lm_grdptid[j_match:j_match+nodes_size_y,
-    #   i_match:i_match+bc_size] = bc_pt
-    #lm_grdptid[j_match:j_match+nodes_size_y,
-    #   i_match+nodes_size_x-bc_size:i_match+nodes_size_x] = bc_pt
-    #lm_grdptid[j_match:j_match+bc_size,
-    #   i_match:i_match+nodes_size_x] = bc_pt
-    #lm_grdptid[j_match+nodes_size_y-bc_size:j_match+nodes_size_y,
-    #   i_match:i_match+nodes_size_x] = bc_pt
-    #lm_grdptid[j_match+bc_size:j_match+nodes_size_y-bc_size,
-    #   i_match+bc_size:i_match+nodes_size_x-bc_size]=interior_pt  
 
     #fill the large matrix with possible sublayers
     for mainlayer in mainlayers_char:
@@ -262,7 +253,8 @@ def make_matrix_for_all_bf_layers(
                     nodes_size_x,
                     nodes_size_y,
                     lm_nodes,
-                    lm_grdptid)
+                    lm_grdptid,
+                    continuous)
 
     lm_nodes   = lm_nodes[::-1,::]
     lm_grdptid = lm_grdptid[::-1,::]
@@ -283,6 +275,7 @@ def update_size_x_and_y(size_x,size_y,new_size_x,new_size_y):
     size_y = max(size_y,new_size_y)
     return [size_x,size_y]
 
+
 def fill_bf_layer_data(
     folder_path,
     mainlayer,
@@ -296,7 +289,8 @@ def fill_bf_layer_data(
     nodes_size_x,
     nodes_size_y,
     lm_nodes,
-    lm_grdptid):
+    lm_grdptid,
+    continuous):
 
 
     #determine the filenames
@@ -317,47 +311,189 @@ def fill_bf_layer_data(
 
     #determine the matched indices between the large matrix
     #and the sublayers
+    if(continuous):
+        extra_alignment = interspace + 2*bc_size
+    else:
+        extra_alignment = 0
+
     if(mainlayer=='SW'):        
-    	i_match = interspace + bf_tmp_size_x - bf_layer_size_x
-    	j_match = interspace + bf_tmp_size_y - bf_layer_size_y
+    	i_match = interspace + bf_tmp_size_x - bf_layer_size_x + extra_alignment
+    	j_match = interspace + bf_tmp_size_y - bf_layer_size_y + extra_alignment
 
     if(mainlayer=='S_'):
         i_match = interspace + bf_tmp_size_x + interspace + sizes[3] - 2*bc_size +1
-    	j_match = interspace + bf_tmp_size_y - bf_layer_size_y
+    	j_match = interspace + bf_tmp_size_y - bf_layer_size_y + extra_alignment
 
     if(mainlayer=='SE'):
-        i_match = interspace + bf_tmp_size_x + interspace + nodes_size_x + interspace
-        j_match = interspace + bf_tmp_size_y - bf_layer_size_y
+        i_match = interspace + bf_tmp_size_x + interspace + nodes_size_x + interspace - extra_alignment
+        j_match = interspace + bf_tmp_size_y - bf_layer_size_y + extra_alignment
 
     if(mainlayer=='E_'):
-        i_match = interspace + bf_tmp_size_x + interspace + nodes_size_x + interspace
-        j_match = interspace + bf_tmp_size_y + interspace + sizes[5] - 2*bc_size +1
+        i_match = interspace + bf_tmp_size_x + interspace + nodes_size_x + interspace - extra_alignment
+        j_match = interspace + bf_tmp_size_y + interspace + sizes[5] - 2*bc_size +1 
 
     if(mainlayer=='W_'):
-        i_match = interspace + bf_tmp_size_x - bf_layer_size_x
+        i_match = interspace + bf_tmp_size_x - bf_layer_size_x + extra_alignment
         j_match = interspace + bf_tmp_size_y + interspace + sizes[5] - 2*bc_size +1
 
     if(mainlayer=='NE'):
-        i_match = interspace + bf_tmp_size_x + interspace + nodes_size_x + interspace
-        j_match = interspace + bf_tmp_size_y + interspace + nodes_size_y + interspace
+        i_match = interspace + bf_tmp_size_x + interspace + nodes_size_x + interspace - extra_alignment
+        j_match = interspace + bf_tmp_size_y + interspace + nodes_size_y + interspace - extra_alignment
 
     if(mainlayer=='N_'):
-        i_match = interspace + bf_tmp_size_x + interspace + sizes[3] - bc_size -1
-        j_match = interspace + bf_tmp_size_y + interspace + nodes_size_y + interspace
+        i_match = interspace + bf_tmp_size_x + interspace + sizes[3] - 2*bc_size +1
+        j_match = interspace + bf_tmp_size_y + interspace + nodes_size_y + interspace - extra_alignment
 
     if(mainlayer=='NW'):
-        i_match = interspace + bf_tmp_size_x - bf_layer_size_x
-        j_match = interspace + bf_tmp_size_y + interspace + nodes_size_y + interspace
+        i_match = interspace + bf_tmp_size_x - bf_layer_size_x + extra_alignment
+        j_match = interspace + bf_tmp_size_y + interspace + nodes_size_y + interspace - extra_alignment
  
-    lm_nodes[j_match:j_match+bf_layer_size_y,
-             i_match:i_match+bf_layer_size_x] = nodes[0,:,:]
+    if(continuous):
+        selective_copy(mainlayer,
+                   lm_nodes, lm_grdptid,
+                   nodes, grdptid,
+                   i_match, j_match,
+                   bf_layer_size_x, bf_layer_size_y)
+    else:
+        #print mainlayer
+        #
+        #print shape(nodes)
+        #print bf_layer_size_y
+        #print bf_layer_size_x
+
+        lm_nodes[j_match:j_match+bf_layer_size_y,
+                 i_match:i_match+bf_layer_size_x] = nodes[0,:,:]
     
-    lm_grdptid[j_match:j_match+bf_layer_size_y,
-               i_match:i_match+bf_layer_size_x] = grdptid[:,:]
+        #print shape(grdptid)
+        #print bf_layer_size_y
+        #print bf_layer_size_x
+
+        lm_grdptid[j_match:j_match+bf_layer_size_y,
+                   i_match:i_match+bf_layer_size_x] = grdptid[:,:]
 
     return [lm_nodes,lm_grdptid]
 
-    
+
+def selective_copy(mainlayer,
+                   lm_nodes, lm_grdptid,
+                   nodes, grdptid,
+                   i_match, j_match,
+                   bf_layer_size_x, bf_layer_size_y):
+
+    #copy what is sure to be copied
+    if(mainlayer=='S_'):
+        lm_j_min = j_match
+        lm_j_max = j_match+bf_layer_size_y-bc_size
+        lm_i_min = i_match
+        lm_i_max = i_match+bf_layer_size_x
+        
+        j_min = 0
+        j_max = nodes.shape[1]-bc_size
+        i_min = 0
+        i_max = nodes.shape[2]
+
+        conditional_copy(lm_nodes, lm_grdptid,
+                         nodes, grdptid,
+                         lm_i_min, lm_i_max,
+                         lm_j_min, lm_j_max,
+                         i_min, i_max,
+                         j_min, j_max)
+
+        #lm_nodes[j_match:j_match+bf_layer_size_y-bc_size,
+        #         i_match:i_match+bf_layer_size_x] = nodes[0,0:-bc_size,:]
+        #
+        #lm_grdptid[j_match:j_match+bf_layer_size_y-bc_size,
+        #           i_match:i_match+bf_layer_size_x] = grdptid[0:-bc_size,:]
+
+    if(mainlayer=='N_'):
+        lm_j_min = j_match+bc_size
+        lm_j_max = j_match+bf_layer_size_y
+        lm_i_min = i_match
+        lm_i_max = i_match+bf_layer_size_x
+        
+        j_min = bc_size
+        j_max = nodes.shape[1]
+        i_min = 0
+        i_max = nodes.shape[2]
+
+        conditional_copy(lm_nodes, lm_grdptid,
+                         nodes, grdptid,
+                         lm_i_min, lm_i_max,
+                         lm_j_min, lm_j_max,
+                         i_min, i_max,
+                         j_min, j_max)
+
+        #lm_nodes[j_match+bc_size:j_match+bf_layer_size_y,
+        #         i_match:i_match+bf_layer_size_x] = nodes[0,bc_size:,:]
+        #
+        #lm_grdptid[j_match+bc_size:j_match+bf_layer_size_y,
+        #           i_match:i_match+bf_layer_size_x] = grdptid[bc_size:,:]
+
+    if(mainlayer=='E_'):
+        lm_j_min = j_match
+        lm_j_max = j_match+bf_layer_size_y
+        lm_i_min = i_match+bc_size
+        lm_i_max = i_match+bf_layer_size_x
+        
+        j_min = 0
+        j_max = nodes.shape[1]
+        i_min = bc_size
+        i_max = nodes.shape[2]
+
+        conditional_copy(lm_nodes, lm_grdptid,
+                         nodes, grdptid,
+                         lm_i_min, lm_i_max,
+                         lm_j_min, lm_j_max,
+                         i_min, i_max,
+                         j_min, j_max)
+
+        #lm_nodes[j_match:j_match+bf_layer_size_y,
+        #         i_match+bc_size:i_match+bf_layer_size_x] = nodes[0,:,bc_size:]
+        #
+        #lm_grdptid[j_match:j_match+bf_layer_size_y,
+        #           i_match+bc_size:i_match+bf_layer_size_x] = grdptid[:,bc_size:]
+
+    if(mainlayer=='W_'):
+        lm_j_min = j_match
+        lm_j_max = j_match+bf_layer_size_y
+        lm_i_min = i_match
+        lm_i_max = i_match+bf_layer_size_x-bc_size
+        
+        j_min = 0
+        j_max = nodes.shape[1]
+        i_min = 0
+        i_max = nodes.shape[2]-bc_size
+
+        conditional_copy(lm_nodes, lm_grdptid,
+                         nodes, grdptid,
+                         lm_i_min, lm_i_max,
+                         lm_j_min, lm_j_max,
+                         i_min, i_max,
+                         j_min, j_max)
+
+        #lm_nodes[j_match:j_match+bf_layer_size_y,
+        #         i_match:i_match+bf_layer_size_x-bc_size] = nodes[0,:,:-bc_size]
+        #
+        #lm_grdptid[j_match:j_match+bf_layer_size_y,
+        #           i_match:i_match+bf_layer_size_x-bc_size] = grdptid[:,:-bc_size]
+
+
+def conditional_copy(
+    lm_nodes, lm_grdptid,
+    nodes, grdptid,
+    lm_i_min, lm_i_max,
+    lm_j_min, lm_j_max,
+    i_min, i_max,
+    j_min, j_max):
+
+    for (lm_j,j) in zip(range(lm_j_min,lm_j_max), range(j_min,j_max)):
+        for (lm_i,i) in zip(range(lm_i_min,lm_i_max), range(i_min,i_max)):
+            if(grdptid[j,i]!=no_pt):
+                
+                lm_grdptid[lm_j,lm_i] = grdptid[j,i]
+                lm_nodes[lm_j,lm_i] = nodes[0,j,i]
+
+            
 def plot_matrix_with_all_buffer_layers(lm):
     
     #plot the matrix with all the buffer layers
