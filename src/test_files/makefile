@@ -229,6 +229,7 @@ $(bf_layer_dir)/bf_layer_reallocate_module.o:\
 	$(param_dir)/parameters_kind.o
 
 $(bf_layer_dir)/bf_layer_merge_module.o:\
+	$(bf_layer_dir)/bf_layer_reallocate_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
@@ -496,7 +497,8 @@ test_bf_layer_prog:\
 	parameters_constant.o\
 	parameters_bf_layer.o\
 	parameters_input.o\
-	bf_layer_ini_grdptID_module.o\
+	bf_layer_allocate_module.o\
+	bf_layer_reallocate_module.o\
 	bf_layer_merge_module.o\
 	bf_layer_class.o\
 	test_bf_layer_module.o

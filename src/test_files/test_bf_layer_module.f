@@ -152,6 +152,7 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         subroutine bf_layer_test_merge(
      $     bf_layer_tested,
      $     bf_layer_tested2,
+     $     nodes,
      $     new_alignment,
      $     sizes_filename,
      $     nodes_filename,
@@ -159,14 +160,18 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
 
           implicit none
 
-          class(bf_layer)             , intent(inout) :: bf_layer_tested
-          class(bf_layer)             , intent(inout) :: bf_layer_tested2
-          integer     , dimension(2,2), intent(in)    :: new_alignment
-          character(*)                , intent(in)    :: sizes_filename
-          character(*)                , intent(in)    :: nodes_filename
-          character(*)                , intent(in)    :: grdid_filename
+          class(bf_layer)                 , intent(inout) :: bf_layer_tested
+          class(bf_layer)                 , intent(inout) :: bf_layer_tested2
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+          integer    , dimension(2,2)     , intent(in)    :: new_alignment
+          character(*)                    , intent(in)    :: sizes_filename
+          character(*)                    , intent(in)    :: nodes_filename
+          character(*)                    , intent(in)    :: grdid_filename
 
-          call bf_layer_tested%merge_bf_layer(bf_layer_tested2, new_alignment)
+          call bf_layer_tested%merge_bf_layer(bf_layer_tested2,
+     $                                        nodes,
+     $                                        new_alignment)
+
           call bf_layer_tested%print_binary(nodes_filename,
      $                                      grdid_filename,
      $                                      sizes_filename)

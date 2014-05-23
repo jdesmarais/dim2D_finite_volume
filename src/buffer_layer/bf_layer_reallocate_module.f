@@ -14,7 +14,11 @@
         public :: reallocate_bf_layer_N,
      $            reallocate_bf_layer_S,
      $            reallocate_bf_layer_E,
-     $            reallocate_bf_layer_W
+     $            reallocate_bf_layer_W,
+     $            get_additional_blocks_N,
+     $            get_additional_blocks_S,
+     $            get_additional_blocks_E,
+     $            get_additional_blocks_W
 
 
         contains

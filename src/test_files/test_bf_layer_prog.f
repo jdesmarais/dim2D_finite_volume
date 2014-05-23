@@ -1,8 +1,10 @@
       program test_bf_layer_prog
 
+        use ifport
+
         use bf_layer_class               , only : bf_layer
 c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
-        use parameters_constant          , only : N,S,E,W,N_E,N_W,S_E,S_W
+        use parameters_constant          , only : N,S,E,W
         use parameters_kind              , only : rkind, ikind
         use parameters_input             , only : nx,ny,ne,bc_size
         use test_bf_layer_module         , only : print_interior_data,
@@ -17,13 +19,13 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         implicit none
 
         integer, parameter :: neighbor_case = 1
-        integer, parameter :: size_case = 3
+        integer, parameter :: size_case = 2
         integer, parameter :: distance_case = 3
         integer, parameter :: random_seed = 86456
-        integer, parameter :: over_alignment_case_x = 3
-        integer, parameter :: over_alignment_case_y = 3
-        integer, parameter :: inverse_case = 2
-        integer, parameter :: inverse_size_case = 2
+        integer, parameter :: over_alignment_case_x = 1
+        integer, parameter :: over_alignment_case_y = 1
+        integer, parameter :: inverse_case = 1
+        integer, parameter :: inverse_size_case = 1
 
 
         type(bf_layer), dimension(8) :: table_bf_layer_tested
@@ -33,11 +35,11 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         real(rkind)   , dimension(nx,ny,ne) :: nodes
         integer       , dimension(nx,ny)    :: grdpts_id
         integer(ikind), dimension(2,2)      :: alignment
-        integer(ikind), dimension(2,2)      :: alignment_2nd_bf_layer
-        integer(ikind), dimension(2,2)      :: alignment_after_merge
+c$$$        integer(ikind), dimension(2,2)      :: alignment_2nd_bf_layer
+c$$$        integer(ikind), dimension(2,2)      :: alignment_after_merge
         integer(ikind)                      :: i !,j,k
-        integer       , dimension(8)        :: bf_layer_loc
-        character(2)  , dimension(8)        :: bf_layer_char
+        integer       , dimension(4)        :: bf_layer_loc
+        character(2)  , dimension(4)        :: bf_layer_char
         character(len=21)                   :: sizes_filename, nodes_filename, grdid_filename
 c$$$        integer(ikind), dimension(2,2)      :: border_changes
         logical       , dimension(4)        :: neighbors
@@ -71,8 +73,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
      $       'interior_sizes.dat')
 
         !buffer layers tested
-        bf_layer_loc  = [N,S,E,W,N_E,N_W,S_E,S_W]
-        bf_layer_char = ['N_','S_','E_','W_','NE','NW','SE','SW']
+        bf_layer_loc  = [N,S,E,W]
+        bf_layer_char = ['N_','S_','E_','W_']
 
         
 
@@ -113,7 +115,6 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
      $               bf_layer_loc(i),
      $               alignment,
      $               nodes,
-     $               neighbors,
      $               sizes_filename,
      $               nodes_filename,
      $               grdid_filename)
@@ -130,6 +131,7 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
            call bf_layer_test_reallocation(
      $          table_bf_layer_tested(i),
+     $          nodes,
      $          alignment_reallocation,
      $          sizes_filename,
      $          nodes_filename,
@@ -173,7 +175,6 @@ c$$$     $          grdid_filename)
      $          bf_layer_loc(i),
      $          alignment,
      $          nodes,
-     $          neighbors,
      $          sizes_filename,
      $          nodes_filename,
      $          grdid_filename)
@@ -187,6 +188,7 @@ c$$$     $          grdid_filename)
 
                  call bf_layer_test_reallocation(
      $                table_1st_bf_layer_tested(i),
+     $                nodes,
      $                alignment,
      $                sizes_filename,
      $                nodes_filename,
@@ -209,7 +211,6 @@ c$$$     $          grdid_filename)
      $          bf_layer_loc(i),
      $          alignment_2nd,
      $          nodes,
-     $          neighbors,
      $          sizes_filename,
      $          nodes_filename,
      $          grdid_filename)
@@ -223,6 +224,7 @@ c$$$     $          grdid_filename)
 
                  call bf_layer_test_reallocation(
      $                table_2nd_bf_layer_tested(i),
+     $                nodes,
      $                alignment_2nd,
      $                sizes_filename,
      $                nodes_filename,
@@ -244,6 +246,7 @@ c$$$     $          grdid_filename)
               call bf_layer_test_merge(
      $             table_1st_bf_layer_tested(i),
      $             table_2nd_bf_layer_tested(i),
+     $             nodes,
      $             alignment_merge,
      $             sizes_filename,
      $             nodes_filename,
@@ -253,6 +256,7 @@ c$$$     $          grdid_filename)
               call bf_layer_test_merge(
      $             table_2nd_bf_layer_tested(i),
      $             table_1st_bf_layer_tested(i),
+     $             nodes,
      $             alignment_merge,
      $             sizes_filename,
      $             nodes_filename,
@@ -334,28 +338,6 @@ c$$$     $       'interior_sizes4.dat')
                alignment(1,2) = 0
                alignment(2,1) = bc_size+3
                alignment(2,2) = bc_size+7
-            case(N_E)
-               alignment(1,1) = bc_size+3
-               alignment(1,2) = bc_size+7
-               alignment(2,1) = bc_size+3
-               alignment(2,2) = bc_size+7
-            case(N_W)
-               alignment(1,1) = bc_size+3
-               alignment(1,2) = bc_size+7
-               alignment(2,1) = bc_size+3
-               alignment(2,2) = bc_size+7
-            case(S_E)
-               alignment(1,1) = bc_size+3
-               alignment(1,2) = bc_size+7
-               alignment(2,1) = bc_size+3
-               alignment(2,2) = bc_size+7
-            case(S_W)
-               alignment(1,1) = bc_size+3
-               alignment(1,2) = bc_size+7
-               alignment(2,1) = bc_size+3
-               alignment(2,2) = bc_size+7
-            case default
-               
           end select
                
         end subroutine ini_alignment
@@ -386,26 +368,6 @@ c$$$     $       'interior_sizes4.dat')
           alignment(W,1,2) = 0
           alignment(W,2,1) = bc_size+1
           alignment(W,2,2) = bc_size+8
-
-          alignment(N_E,1,1) = nx+1
-          alignment(N_E,1,2) = nx+3
-          alignment(N_E,2,1) = ny+1
-          alignment(N_E,2,2) = ny+4
-
-          alignment(N_W,1,1) = -1
-          alignment(N_W,1,2) = 0
-          alignment(N_W,2,1) = ny+1
-          alignment(N_W,2,2) = ny+3
-
-          alignment(S_E,1,1) = nx+1
-          alignment(S_E,1,2) = nx+3
-          alignment(S_E,2,1) = -2
-          alignment(S_E,2,2) = 0
-
-          alignment(S_W,1,1) = -3
-          alignment(S_W,1,2) = 0
-          alignment(S_W,2,1) = -4
-          alignment(S_W,2,2) = 0
 
         end subroutine ini_alignment_after_reallocation
 
@@ -522,26 +484,6 @@ c$$$     $       'interior_sizes4.dat')
           selected_grdpts(W,1,2) = 3
           selected_grdpts(W,2,1) = 2
           selected_grdpts(W,2,2) = 4
-
-          selected_grdpts(N_E,1,1) = 3
-          selected_grdpts(N_E,1,2) = 3
-          selected_grdpts(N_E,2,1) = 4
-          selected_grdpts(N_E,2,2) = 4
-          
-          selected_grdpts(N_W,1,1) = 3
-          selected_grdpts(N_W,1,2) = 3
-          selected_grdpts(N_W,2,1) = 3
-          selected_grdpts(N_W,2,2) = 4
-
-          selected_grdpts(S_E,1,1) = 3
-          selected_grdpts(S_E,1,2) = 3
-          selected_grdpts(S_E,2,1) = 4
-          selected_grdpts(S_E,2,2) = 2
-
-          selected_grdpts(S_W,1,1) = 3
-          selected_grdpts(S_W,1,2) = 3
-          selected_grdpts(S_W,2,1) = 2
-          selected_grdpts(S_W,2,2) = 2
 
         end subroutine ini_selected_grdpts
 
