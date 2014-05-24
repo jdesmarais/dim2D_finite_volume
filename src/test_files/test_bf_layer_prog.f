@@ -22,10 +22,12 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         integer, parameter :: size_case = 1
         integer, parameter :: distance_case = 1
         integer, parameter :: random_seed = 86456
-        integer, parameter :: over_alignment_case_x = 3
-        integer, parameter :: over_alignment_case_y = 3
+        integer, parameter :: over_alignment_case_x = 1
+        integer, parameter :: over_alignment_case_y = 1
         integer, parameter :: inverse_case = 1
         integer, parameter :: inverse_size_case = 1
+        integer, parameter :: test_first_bf_layer_align_case = 0
+        integer, parameter :: test_second_bf_layer_align_case = 1
 
 
         type(bf_layer), dimension(8) :: table_bf_layer_tested
@@ -77,9 +79,10 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
         bf_layer_char = ['N_','S_','E_','W_']
 
         
-
         !alignment after reallocation
-        call ini_alignment_after_reallocation(test_alignment_reallocation)
+        call ini_alignment_after_reallocation(
+     $       test_first_bf_layer_align_case,
+     $       test_alignment_reallocation)
 
         !alignment after merge
         call ini_using_case(distance_case, random_seed, relative_distance)
@@ -88,6 +91,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
         call ini_using_case(over_alignment_case_y, random_seed, over_alignment_y)
 
         call ini_alignment_2nd_bf_layer(
+     $       test_first_bf_layer_align_case,
+     $       test_second_bf_layer_align_case,
      $       relative_distance, relative_size, 
      $       over_alignment_x, over_alignment_y,
      $       test_alignment_2nd, test_alignment_merge)
@@ -108,7 +113,9 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
            write(nodes_filename,'(A2,''1_nodes1.dat'')') bf_layer_char(i)
            write(grdid_filename,'(A2,''1_grdpt_id1.dat'')') bf_layer_char(i)
         
-           call ini_alignment(i, alignment)
+           call ini_alignment(
+     $          test_first_bf_layer_align_case,
+     $          i, alignment)
 
            call bf_layer_test_allocation(
      $               table_bf_layer_tested(i),
@@ -168,7 +175,8 @@ c$$$     $          grdid_filename)
            write(nodes_filename,'(A2,''1_nodes3.dat'')') bf_layer_char(i)
            write(grdid_filename,'(A2,''1_grdpt_id3.dat'')') bf_layer_char(i)
 
-           call ini_alignment(i, alignment)
+           call ini_alignment(
+     $          test_first_bf_layer_align_case, i, alignment)
 
            call bf_layer_test_allocation(
      $          table_1st_bf_layer_tested(i),
@@ -309,76 +317,101 @@ c$$$     $       'interior_sizes4.dat')
 
         contains
 
-        subroutine ini_alignment(mainlayer_id, alignment)
+        subroutine ini_alignment(
+     $       test_first_bf_layer_align_case, mainlayer_id, alignment)
 
           implicit none
 
+          integer                       , intent(in)  :: test_first_bf_layer_align_case
           integer                       , intent(in)  :: mainlayer_id
           integer(ikind), dimension(2,2), intent(out) :: alignment
 
 
+          integer(ikind) :: border_min,border_max
+
+          
+          !basic alignment depending on cardinal point
           select case(mainlayer_id)
             case(N)
-               alignment(1,1) = bc_size+3
-               alignment(1,2) = bc_size+7
                alignment(2,1) = ny+1
                alignment(2,2) = ny+1
             case(S)
-               alignment(1,1) = bc_size+3
-               alignment(1,2) = bc_size+7
                alignment(2,1) = 0
                alignment(2,2) = 0
             case(E)
                alignment(1,1) = nx+1
                alignment(1,2) = nx+1
-               alignment(2,1) = bc_size+3
-               alignment(2,2) = bc_size+7
             case(W)
                alignment(1,1) = 0
                alignment(1,2) = 0
-               alignment(2,1) = bc_size+3
-               alignment(2,2) = bc_size+7
           end select
-               
+
+          !distance from corner
+          if(test_first_bf_layer_align_case.ge.-4) then
+             border_min = bc_size+1+test_first_bf_layer_align_case
+             border_max = bc_size+5+test_first_bf_layer_align_case
+          else
+             print '(''test_bf_layer_prog'')'
+             print '(''ini_alignment'')'
+             print '(''test_first_bf_layer_align_case not correct'')'
+          end if
+             
+          !borders
+          select case(mainlayer_id)
+            case(N,S)
+               alignment(1,1) = border_min
+               alignment(1,2) = border_max
+            case(E,W)
+               alignment(2,1) = border_min
+               alignment(2,2) = border_max
+          end select
+            
         end subroutine ini_alignment
 
 
-        subroutine ini_alignment_after_reallocation(alignment)
+        subroutine ini_alignment_after_reallocation(
+     $     test_first_bf_layer_align_case,
+     $     alignment)
         
           implicit none
 
+          integer                  , intent(in)    :: test_first_bf_layer_align_case
           integer, dimension(:,:,:), intent(inout) :: alignment
 
-          alignment(N,1,1) = bc_size+1
-          alignment(N,1,2) = bc_size+8
+          alignment(N,1,1) = bc_size+1+test_first_bf_layer_align_case
+          alignment(N,1,2) = bc_size+8+test_first_bf_layer_align_case
           alignment(N,2,1) = ny+1
-          alignment(N,2,2) = ny+1
+          alignment(N,2,2) = ny+2
 
-          alignment(S,1,1) = bc_size+3
-          alignment(S,1,2) = bc_size+8
+          alignment(S,1,1) = bc_size+1+test_first_bf_layer_align_case
+          alignment(S,1,2) = bc_size+8+test_first_bf_layer_align_case
           alignment(S,2,1) = -1
           alignment(S,2,2) = 0
 
           alignment(E,1,1) = nx+1
-          alignment(E,1,2) = nx+1
-          alignment(E,2,1) = bc_size+1
-          alignment(E,2,2) = bc_size+8
+          alignment(E,1,2) = nx+2
+          alignment(E,2,1) = bc_size+1+test_first_bf_layer_align_case
+          alignment(E,2,2) = bc_size+8+test_first_bf_layer_align_case
 
-          alignment(W,1,1) = -2
+          alignment(W,1,1) = -1
           alignment(W,1,2) = 0
-          alignment(W,2,1) = bc_size+1
-          alignment(W,2,2) = bc_size+8
+          alignment(W,2,1) = bc_size+1+test_first_bf_layer_align_case
+          alignment(W,2,2) = bc_size+8+test_first_bf_layer_align_case
 
         end subroutine ini_alignment_after_reallocation
 
 
         subroutine ini_alignment_2nd_bf_layer(
+     $     test_first_bf_layer_alignment,
+     $     test_second_bf_layer_alignment,
      $     relative_distance, relative_size, 
      $     over_alignment_x, over_alignment_y,
      $     alignment, final_alignment)
 
           implicit none
 
+          integer                  , intent(in)    :: test_first_bf_layer_alignment
+          integer                  , intent(in)    :: test_second_bf_layer_alignment
           integer                  , intent(in)    :: relative_distance
           integer                  , intent(in)    :: relative_size
           integer                  , intent(in)    :: over_alignment_x
@@ -386,44 +419,115 @@ c$$$     $       'interior_sizes4.dat')
           integer, dimension(:,:,:), intent(inout) :: alignment
           integer, dimension(:,:,:), intent(inout) :: final_alignment
 
-          alignment(N,1,1) = bc_size+7+1+2*bc_size+relative_distance
-          alignment(N,1,2) = alignment(N,1,1) + relative_size
+
+          !basic alignment requirements needed by the 2nd buffer layer
+          !depending on the cardinal point
           alignment(N,2,1) = ny+1
           alignment(N,2,2) = ny+1
+          
+          alignment(S,2,1) = 0
+          alignment(S,2,2) = 0
 
-          final_alignment(N,1,1) = bc_size+3 - over_alignment_x
+          alignment(E,1,1) = nx+1
+          alignment(E,1,2) = nx+1
+
+          alignment(W,1,1) = 0
+          alignment(W,1,2) = 0
+
+          select case(test_second_bf_layer_alignment)
+
+            !a bit further from the first buffer layer
+            case(1)
+               alignment(N,1,1) = bc_size+1+7+
+     $              test_first_bf_layer_alignment+
+     $              2*bc_size+relative_distance
+               alignment(N,1,2) = alignment(N,1,1) + relative_size
+          
+               alignment(S,1,1) = bc_size+1+7+
+     $              test_first_bf_layer_alignment+
+     $              2*bc_size+relative_distance
+               alignment(S,1,2) = alignment(S,1,1) + relative_size    
+
+               alignment(E,2,1) = bc_size+7+1+
+     $              test_first_bf_layer_alignment+
+     $              2*bc_size+relative_distance
+               alignment(E,2,2) = alignment(E,2,1) + relative_size
+
+               alignment(W,2,1) = bc_size+7+1+
+     $              test_first_bf_layer_alignment+
+     $              2*bc_size+relative_distance
+               alignment(W,2,2) = alignment(W,2,1) + relative_size
+
+            !on the other corner - 2
+            case(2)
+               alignment(N,1,2) = nx-bc_size-2
+               alignment(N,1,1) = alignment(N,1,2) - relative_size
+               
+               alignment(S,1,2) = nx-bc_size-2
+               alignment(S,1,1) = alignment(S,1,2) - relative_size
+
+               alignment(E,2,2) = ny-bc_size-2
+               alignment(E,2,1) = alignment(E,2,2)-relative_size
+
+               alignment(W,2,2) = ny-bc_size-2
+               alignment(W,2,1) = alignment(E,2,2)-relative_size
+
+            !on the other corner - 1
+            case(3)
+               alignment(N,1,2) = nx-bc_size-1
+               alignment(N,1,1) = alignment(N,1,2) - relative_size
+               
+               alignment(S,1,2) = nx-bc_size-1
+               alignment(S,1,1) = alignment(S,1,2) - relative_size
+
+               alignment(E,2,2) = ny-bc_size-1
+               alignment(E,2,1) = alignment(E,2,2)-relative_size
+
+               alignment(W,2,2) = ny-bc_size-1
+               alignment(W,2,1) = alignment(E,2,2)-relative_size
+
+            !on the other corner
+            case(4)
+                alignment(N,1,2) = nx-bc_size
+                alignment(N,1,1) = alignment(N,1,2) - relative_size
+               
+                alignment(S,1,2) = nx-bc_size
+                alignment(S,1,1) = alignment(S,1,2) - relative_size
+                
+                alignment(E,2,2) = ny-bc_size
+                alignment(E,2,1) = alignment(E,2,2)-relative_size
+                
+                alignment(W,2,2) = ny-bc_size
+                alignment(W,2,1) = alignment(E,2,2)-relative_size
+
+          end select
+
+          final_alignment(N,1,1) = bc_size+1+
+     $                             test_first_bf_layer_alignment -
+     $                             over_alignment_x
           final_alignment(N,1,2) = alignment(N,1,2) + over_alignment_x
           final_alignment(N,2,1) = ny+1
           final_alignment(N,2,2) = ny+1 + over_alignment_y
 
-          alignment(S,1,1) = bc_size+7+1+2*bc_size+relative_distance
-          alignment(S,1,2) = alignment(S,1,1) + relative_size    
-          alignment(S,2,1) = 0
-          alignment(S,2,2) = 0
-
-          final_alignment(S,1,1) = bc_size+3 - over_alignment_x
+          final_alignment(S,1,1) = bc_size+1+
+     $                             test_first_bf_layer_alignment -
+     $                             over_alignment_x
           final_alignment(S,1,2) = alignment(S,1,2) + over_alignment_x
           final_alignment(S,2,1) = 0 - over_alignment_y
           final_alignment(S,2,2) = 0
-
-          alignment(E,1,1) = nx+1
-          alignment(E,1,2) = nx+1
-          alignment(E,2,1) = bc_size+7+1+2*bc_size+relative_distance
-          alignment(E,2,2) = alignment(E,2,1) + relative_size
-
+          
           final_alignment(E,1,1) = nx+1
           final_alignment(E,1,2) = nx+1 + over_alignment_x
-          final_alignment(E,2,1) = bc_size+3 - over_alignment_y
+          final_alignment(E,2,1) = bc_size+1+
+     $                             test_first_bf_layer_alignment -
+     $                             over_alignment_y
           final_alignment(E,2,2) = alignment(E,2,2) + over_alignment_y
-
-          alignment(W,1,1) = 0
-          alignment(W,1,2) = 0
-          alignment(W,2,1) = bc_size+7+1+2*bc_size+relative_distance
-          alignment(W,2,2) = alignment(W,2,1) + relative_size
-
+          
           final_alignment(W,1,1) = 0 - over_alignment_x
           final_alignment(W,1,2) = 0
-          final_alignment(W,2,1) = bc_size+3 - over_alignment_y
+          final_alignment(W,2,1) = bc_size+1+
+     $                             test_first_bf_layer_alignment -
+     $                             over_alignment_y
           final_alignment(W,2,2) = alignment(W,2,2) + over_alignment_y
 
         end subroutine ini_alignment_2nd_bf_layer

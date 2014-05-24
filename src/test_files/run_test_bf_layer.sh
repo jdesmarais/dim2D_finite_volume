@@ -9,9 +9,11 @@ TEST_OVER_ALIGNMENT_CASE_X='1'
 TEST_OVER_ALIGNMENT_CASE_Y='1'
 TEST_INVERSE_CASE='1'
 TEST_INVERSE_SIZE_CASE='1'
+TEST_FIRST_BF_LAYER_ALIGN_CASE='0'
+TEST_SECOND_BF_LAYER_ALIGN_CASE='1'
 
 #manage the options
-while getopts n:s:d:r:x:y:i:j:h option
+while getopts n:s:d:r:x:y:i:j:k:l:h option
   do
   case $option in
 
@@ -55,6 +57,16 @@ while getopts n:s:d:r:x:y:i:j:h option
 	  TEST_INVERSE_SIZE_CASE=$OPTARG
 	  ;;
 
+      #first buffer layer alignment case
+      k)
+	  TEST_FIRST_BF_LAYER_ALIGN_CASE=$OPTARG
+	  ;;
+
+      #second buffer layer alignment case
+      l)
+	  TEST_SECOND_BF_LAYER_ALIGN_CASE=$OPTARG
+	  ;;
+
       #help
       h)
 	  echo "run the test_bf_layer.sh"
@@ -66,6 +78,8 @@ while getopts n:s:d:r:x:y:i:j:h option
 	  echo "-y : over alignment for the merge along y-direction"
 	  echo "-i : inverse test for the two buffer layers "
 	  echo "-j : decide which buffer is larger than the other "
+	  echo "-k : decide the alignment for the 1st bf layer for merge"
+	  echo "-l : decide the alignment for the 2nd bf layer for merge"
 	  echo "-h : help"
 	  ;;
 
@@ -80,6 +94,8 @@ while getopts n:s:d:r:x:y:i:j:h option
 	  echo "-y : over alignment for the merge along y-direction"
 	  echo "-i : inverse test for the two buffer layers "
 	  echo "-j : decide which buffer is larger than the other "
+	  echo "-k : decide the alignment for the 1st bf layer for merge"
+	  echo "-l : decide the alignment for the 2nd bf layer for merge"
 	  echo "-h : help"
 	  ;;
   esac
@@ -125,6 +141,14 @@ sed -e s/' inverse_case '[' ']*'='[' ']*[-0-9]*/' inverse_case = '$TEST_INVERSE_
 mv $PATH_OUTPUT $PATH_INPUT
 
 sed -e s/' inverse_size_case '[' ']*'='[' ']*[-0-9]*/' inverse_size_case = '$TEST_INVERSE_SIZE_CASE/g \
+    < $PATH_INPUT > $PATH_OUTPUT
+mv $PATH_OUTPUT $PATH_INPUT
+
+sed -e s/' test_first_bf_layer_align_case '[' ']*'='[' ']*[-0-9]*/' test_first_bf_layer_align_case = '$TEST_FIRST_BF_LAYER_ALIGN_CASE/g \
+    < $PATH_INPUT > $PATH_OUTPUT
+mv $PATH_OUTPUT $PATH_INPUT
+
+sed -e s/' test_second_bf_layer_align_case '[' ']*'='[' ']*[-0-9]*/' test_second_bf_layer_align_case = '$TEST_SECOND_BF_LAYER_ALIGN_CASE/g \
     < $PATH_INPUT > $PATH_OUTPUT
 mv $PATH_OUTPUT $PATH_INPUT
 
