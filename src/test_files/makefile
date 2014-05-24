@@ -223,13 +223,14 @@ $(bf_layer_dir)/bf_layer_allocate_module.o:\
 	$(param_dir)/parameters_kind.o
 
 $(bf_layer_dir)/bf_layer_reallocate_module.o:\
+	$(bf_layer_dir)/bf_layer_allocate_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
 $(bf_layer_dir)/bf_layer_merge_module.o:\
-	$(bf_layer_dir)/bf_layer_reallocate_module.o\
+	$(bf_layer_dir)/bf_layer_allocate_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o

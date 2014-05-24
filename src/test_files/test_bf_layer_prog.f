@@ -22,12 +22,12 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         integer, parameter :: size_case = 1
         integer, parameter :: distance_case = 1
         integer, parameter :: random_seed = 86456
-        integer, parameter :: over_alignment_case_x = 1
+        integer, parameter :: over_alignment_case_x = 3
         integer, parameter :: over_alignment_case_y = 1
         integer, parameter :: inverse_case = 1
         integer, parameter :: inverse_size_case = 1
         integer, parameter :: test_first_bf_layer_align_case = 0
-        integer, parameter :: test_second_bf_layer_align_case = 1
+        integer, parameter :: test_second_bf_layer_align_case = 4
 
 
         type(bf_layer), dimension(8) :: table_bf_layer_tested
@@ -500,6 +500,39 @@ c$$$     $       'interior_sizes4.dat')
                 alignment(W,2,2) = ny-bc_size
                 alignment(W,2,1) = alignment(E,2,2)-relative_size
 
+            !on the other corner + 1
+            case(5)
+                alignment(N,1,2) = nx-bc_size+1
+                alignment(N,1,1) = alignment(N,1,2) - relative_size
+               
+                alignment(S,1,2) = nx-bc_size+1
+                alignment(S,1,1) = alignment(S,1,2) - relative_size
+                
+                alignment(E,2,2) = ny-bc_size+1
+                alignment(E,2,1) = alignment(E,2,2)-relative_size
+                
+                alignment(W,2,2) = ny-bc_size+1
+                alignment(W,2,1) = alignment(E,2,2)-relative_size
+
+            !on the other corner + 2
+            case(6)
+                alignment(N,1,2) = nx-bc_size+2
+                alignment(N,1,1) = alignment(N,1,2) - relative_size
+               
+                alignment(S,1,2) = nx-bc_size+2
+                alignment(S,1,1) = alignment(S,1,2) - relative_size
+                
+                alignment(E,2,2) = ny-bc_size+2
+                alignment(E,2,1) = alignment(E,2,2)-relative_size
+                
+                alignment(W,2,2) = ny-bc_size+2
+                alignment(W,2,1) = alignment(E,2,2)-relative_size
+
+            case default
+               print '(''test_bf_layer_prog'')'
+               print '(''ini_alignment_2nd_bf_layer'')'
+               print '(''second_bf_layer_alignment not recognized'')'
+
           end select
 
           final_alignment(N,1,1) = bc_size+1+
@@ -517,18 +550,18 @@ c$$$     $       'interior_sizes4.dat')
           final_alignment(S,2,2) = 0
           
           final_alignment(E,1,1) = nx+1
-          final_alignment(E,1,2) = nx+1 + over_alignment_x
+          final_alignment(E,1,2) = nx+1 + over_alignment_y
           final_alignment(E,2,1) = bc_size+1+
      $                             test_first_bf_layer_alignment -
-     $                             over_alignment_y
-          final_alignment(E,2,2) = alignment(E,2,2) + over_alignment_y
+     $                             over_alignment_x
+          final_alignment(E,2,2) = alignment(E,2,2) + over_alignment_x
           
-          final_alignment(W,1,1) = 0 - over_alignment_x
+          final_alignment(W,1,1) = 0 - over_alignment_y
           final_alignment(W,1,2) = 0
           final_alignment(W,2,1) = bc_size+1+
      $                             test_first_bf_layer_alignment -
-     $                             over_alignment_y
-          final_alignment(W,2,2) = alignment(W,2,2) + over_alignment_y
+     $                             over_alignment_x
+          final_alignment(W,2,2) = alignment(W,2,2) + over_alignment_x
 
         end subroutine ini_alignment_2nd_bf_layer
 

@@ -40,10 +40,10 @@ c$$$     $                                           ini_grdpts_id_SW
      $                                           reallocate_bf_layer_E,
      $                                           reallocate_bf_layer_W
                                         
-        use bf_layer_merge_module       , only : merge_bf_layers_N
-c$$$     $                                           merge_bf_layers_S,
-c$$$     $                                           merge_bf_layers_E,
-c$$$     $                                           merge_bf_layers_W
+        use bf_layer_merge_module       , only : merge_bf_layers_N,
+     $                                           merge_bf_layers_S,
+     $                                           merge_bf_layers_E,
+     $                                           merge_bf_layers_W
                                         
         use parameters_bf_layer         , only : bc_pt, bc_interior_pt,
      $                                           interior_pt, no_pt
@@ -473,7 +473,6 @@ c$$$          procedure,   pass, private :: ini_grdpts_id
                print '(''localization not recognized'')'
                print '(''localization:'',I2)', this%localization
           end select
-          
 
 c$$$          !initialize the alignment
 c$$$          call this%ini_alignment(alignment)
@@ -569,51 +568,51 @@ c$$$          call this%ini_grdpts_id()
      $                 this%alignment, bf_layer2%alignment)
                end if
 
-c$$$            case(S)
-c$$$               if(present(alignment)) then
-c$$$                  call merge_bf_layers_S(
-c$$$     $                 this%nodes    , bf_layer2%nodes,
-c$$$     $                 this%grdpts_id, bf_layer2%grdpts_id,
-c$$$     $                 this%alignment, bf_layer2%alignment, alignment)
-c$$$               else
-c$$$                  call merge_bf_layers_S(
-c$$$     $                 this%nodes    , bf_layer2%nodes,
-c$$$     $                 this%grdpts_id, bf_layer2%grdpts_id,
-c$$$     $                 this%alignment, bf_layer2%alignment)
-c$$$               end if
-c$$$
-c$$$            case(E)
-c$$$               if(present(alignment)) then
-c$$$                  call merge_bf_layers_E(
-c$$$     $                 this%nodes    , bf_layer2%nodes,
-c$$$     $                 this%grdpts_id, bf_layer2%grdpts_id,
-c$$$     $                 this%alignment, bf_layer2%alignment, alignment)
-c$$$               else
-c$$$                  call merge_bf_layers_E(
-c$$$     $                 this%nodes    , bf_layer2%nodes,
-c$$$     $                 this%grdpts_id, bf_layer2%grdpts_id,
-c$$$     $                 this%alignment, bf_layer2%alignment)
-c$$$               end if
-c$$$
-c$$$            case(W)
-c$$$               if(present(alignment)) then
-c$$$                  call merge_bf_layers_W(
-c$$$     $                 this%nodes    , bf_layer2%nodes,
-c$$$     $                 this%grdpts_id, bf_layer2%grdpts_id,
-c$$$     $                 this%alignment, bf_layer2%alignment, alignment)
-c$$$               else
-c$$$                  call merge_bf_layers_W(
-c$$$     $                 this%nodes    , bf_layer2%nodes,
-c$$$     $                 this%grdpts_id, bf_layer2%grdpts_id,
-c$$$     $                 this%alignment, bf_layer2%alignment)
-c$$$               end if
-c$$$
-c$$$            case default
-c$$$               print '(''bf_layer_class'')'
-c$$$               print '(''merge_bf_layer'')'
-c$$$               print '(''corner buffer layers cannot be merged'')'
-c$$$               print '(''loc: '',I2)', this%localization
-c$$$               stop 'check localizations'
+            case(S)
+               if(present(alignment)) then
+                  call merge_bf_layers_S(
+     $                 this%nodes    , bf_layer2%nodes, nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment, alignment)
+               else
+                  call merge_bf_layers_S(
+     $                 this%nodes    , bf_layer2%nodes, nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment)
+               end if
+
+            case(E)
+               if(present(alignment)) then
+                  call merge_bf_layers_E(
+     $                 this%nodes    , bf_layer2%nodes, nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment, alignment)
+               else
+                  call merge_bf_layers_E(
+     $                 this%nodes    , bf_layer2%nodes, nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment)
+               end if
+
+            case(W)
+               if(present(alignment)) then
+                  call merge_bf_layers_W(
+     $                 this%nodes    , bf_layer2%nodes, nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment, alignment)
+               else
+                  call merge_bf_layers_W(
+     $                 this%nodes    , bf_layer2%nodes, nodes,
+     $                 this%grdpts_id, bf_layer2%grdpts_id,
+     $                 this%alignment, bf_layer2%alignment)
+               end if
+
+            case default
+               print '(''bf_layer_class'')'
+               print '(''merge_bf_layer'')'
+               print '(''corner buffer layers cannot be merged'')'
+               print '(''loc: '',I2)', this%localization
+               stop 'check localizations'
           end select
 
         end subroutine merge_bf_layer
