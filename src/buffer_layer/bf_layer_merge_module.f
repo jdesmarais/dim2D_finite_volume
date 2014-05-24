@@ -630,8 +630,8 @@ c$$$        end subroutine merge_bf_layers_W
           i_min4 = i_min3 + size1
           i_min5 = i_min4 + interior_i_max2
           i_min6 = i_min5 + size2
-          i_min7 = i_min6 + max(0, interior_i_max2-bc_size)
-          i_min8 = i_min7 + interior_i_max2
+          i_min7 = i_min6 + max(0, interior_i_max3-bc_size)
+          i_min8 = i_min7 + interior_i_max3
 
           j_min1 = min((alignment1(dir2,2)-alignment1(dir2,1)+2*bc_size+1),
      $                 (alignment2(dir2,2)-alignment2(dir2,1)+2*bc_size+1))
@@ -682,7 +682,7 @@ c$$$        end subroutine merge_bf_layers_W
           integer(ikind)                  , intent(in) :: j_min1
           integer(ikind)                  , intent(in) :: j_min2
 
-          integer        :: k
+          integer :: k
 
           !nodes1 - nodes2
           if(alignment1(1,1).lt.alignment2(1,1)) then

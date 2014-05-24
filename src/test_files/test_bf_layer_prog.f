@@ -19,11 +19,11 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         implicit none
 
         integer, parameter :: neighbor_case = 1
-        integer, parameter :: size_case = 2
-        integer, parameter :: distance_case = 3
+        integer, parameter :: size_case = 1
+        integer, parameter :: distance_case = 1
         integer, parameter :: random_seed = 86456
-        integer, parameter :: over_alignment_case_x = 1
-        integer, parameter :: over_alignment_case_y = 1
+        integer, parameter :: over_alignment_case_x = 3
+        integer, parameter :: over_alignment_case_y = 3
         integer, parameter :: inverse_case = 1
         integer, parameter :: inverse_size_case = 1
 
