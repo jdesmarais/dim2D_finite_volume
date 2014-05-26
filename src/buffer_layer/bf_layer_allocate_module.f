@@ -17,7 +17,8 @@
      $            get_additional_blocks_N,
      $            get_additional_blocks_S,
      $            get_additional_blocks_E,
-     $            get_additional_blocks_W
+     $            get_additional_blocks_W,
+     $            get_match_interior
 
 
         contains
@@ -753,6 +754,45 @@
          end subroutine get_match
 
 
+         subroutine get_match_interior(
+     $     dir, ndir,
+     $     bf_alignment, i_start_interior, size_interior,
+     $     size_layer1, size_layer2)
+
+           implicit none
+           
+           integer                       , intent(in) :: dir
+           integer(ikind)                , intent(in) :: ndir
+           integer(ikind), dimension(2,2), intent(in) :: bf_alignment
+           integer(ikind)                , intent(in) :: i_start_interior
+           integer(ikind)                , intent(in) :: size_interior
+           integer(ikind)                , intent(out):: size_layer1
+           integer(ikind)                , intent(out):: size_layer2
+           
+           
+           integer(ikind) :: layer_coord
+           
+           
+           layer_coord = bf_alignment(dir,1)-bc_size+
+     $          i_start_interior
+           if((layer_coord.ge.1).and.(layer_coord.le.bc_size)) then
+              size_layer1 = min(bc_size,size_interior)
+           else
+              size_layer1 = 0
+           end if
+           
+           layer_coord = bf_alignment(dir,1)-(bc_size+1)+
+     $          i_start_interior+
+     $          size_interior
+           if((layer_coord.ge.(ndir-1)).and.(layer_coord.le.ndir)) then
+              size_layer2 = min(bc_size,size_interior)
+           else
+              size_layer2 = 0
+           end if
+
+         end subroutine get_match_interior
+
+
          subroutine add_grdpts_id_blocks_1_to_5_NS(
      $     bf_grdpts_id,
      $     border_W, border_E, interior_profile,
@@ -1409,6 +1449,6 @@ c$$$              print *, 'interior_i_max1-i_start', interior_i_max1-i_start
              end if
           end if
 
-        end subroutine fill_border_EW        
+        end subroutine fill_border_EW      
 
       end module bf_layer_allocate_module
