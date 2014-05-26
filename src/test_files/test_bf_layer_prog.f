@@ -22,11 +22,11 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         integer, parameter :: size_case = 1
         integer, parameter :: distance_case = 1
         integer, parameter :: random_seed = 86456
-        integer, parameter :: over_alignment_case_x = 4
+        integer, parameter :: over_alignment_case_x = 40
         integer, parameter :: over_alignment_case_y = 0
         integer, parameter :: inverse_case = 1
         integer, parameter :: inverse_size_case = 1
-        integer, parameter :: test_first_bf_layer_align_case = -10
+        integer, parameter :: test_first_bf_layer_align_case = 40
         integer, parameter :: test_second_bf_layer_align_case = 1
         logical, parameter :: test_reallocation = .true.
         logical, parameter :: test_merge = .false.
