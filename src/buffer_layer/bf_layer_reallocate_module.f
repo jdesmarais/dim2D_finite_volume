@@ -44,7 +44,6 @@
           integer(ikind)                                :: i_min1, i_min3, i_min4, i_min5, i_min6
           integer(ikind)                                :: outside_i_max1, outside_i_max2
           integer(ikind)                                :: interior_i_max1, interior_i_max2
-          integer(ikind)                                :: i_match_border_E
           integer(ikind), dimension(2)                  :: new_sizes
 
 
@@ -58,8 +57,7 @@
      $         i_min1, i_min3, i_min4, i_min5, i_min6,
      $         i_match, i_max, j_max,
      $         outside_i_max1, outside_i_max2,
-     $         interior_i_max1, interior_i_max2,
-     $         i_match_border_E)
+     $         interior_i_max1, interior_i_max2)
 
           new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
 
@@ -76,8 +74,7 @@
      $         i_match, i_max, j_max,
      $         outside_i_max1, outside_i_max2,
      $         interior_i_max1, interior_i_max2,
-     $         bf_alignment ,new_sizes,
-     $         i_match_border_E)
+     $         bf_alignment ,new_sizes)
 
         end subroutine reallocate_bf_layer_N
 
@@ -101,7 +98,6 @@
           integer(ikind)                                :: i_min1, i_min3, i_min4, i_min5, i_min6
           integer(ikind)                                :: outside_i_max1, outside_i_max2
           integer(ikind)                                :: interior_i_max1, interior_i_max2
-          integer(ikind)                                :: i_match_border_E
           integer(ikind), dimension(2)                  :: new_sizes
 
 
@@ -115,8 +111,7 @@
      $         i_min1, i_min3, i_min4, i_min5, i_min6,
      $         i_match, i_max, j_max,
      $         outside_i_max1, outside_i_max2,
-     $         interior_i_max1, interior_i_max2,
-     $         i_match_border_E)
+     $         interior_i_max1, interior_i_max2)
 
           new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
 
@@ -133,8 +128,7 @@
      $         i_match, i_max, j_max,
      $         outside_i_max1, outside_i_max2,
      $         interior_i_max1, interior_i_max2,
-     $         bf_alignment ,new_sizes,
-     $         i_match_border_E)
+     $         bf_alignment ,new_sizes)
 
         end subroutine reallocate_bf_layer_S
 
@@ -158,7 +152,6 @@
           integer(ikind)                 :: j_min1, j_min3, j_min4, j_min5, j_min6
           integer(ikind)                 :: outside_j_max1, outside_j_max2
           integer(ikind)                 :: interior_j_max1, interior_j_max2
-          integer(ikind)                 :: j_match_border_N
           integer(ikind), dimension(2)   :: new_sizes
 
 
@@ -172,8 +165,7 @@
      $         j_min1, j_min3, j_min4, j_min5, j_min6,
      $         j_match, i_max, j_max,
      $         outside_j_max1, outside_j_max2,
-     $         interior_j_max1, interior_j_max2,
-     $         j_match_border_N)
+     $         interior_j_max1, interior_j_max2)
 
           new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
 
@@ -190,8 +182,7 @@
      $         j_match, i_max, j_max,
      $         outside_j_max1, outside_j_max2,
      $         interior_j_max1, interior_j_max2,
-     $         bf_alignment ,new_sizes,
-     $         j_match_border_N)
+     $         bf_alignment ,new_sizes)
 
         end subroutine reallocate_bf_layer_E
 
@@ -216,7 +207,6 @@
           integer(ikind)                 :: j_min1, j_min3, j_min4, j_min5, j_min6
           integer(ikind)                 :: outside_j_max1, outside_j_max2
           integer(ikind)                 :: interior_j_max1, interior_j_max2
-          integer(ikind)                 :: j_match_border_N
           integer(ikind), dimension(2)   :: new_sizes
 
 
@@ -230,8 +220,7 @@
      $         j_min1, j_min3, j_min4, j_min5, j_min6,
      $         j_match, i_max, j_max,
      $         outside_j_max1, outside_j_max2,
-     $         interior_j_max1, interior_j_max2,
-     $         j_match_border_N)
+     $         interior_j_max1, interior_j_max2)
 
           new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
 
@@ -248,8 +237,7 @@
      $         j_match, j_max,
      $         outside_j_max1, outside_j_max2,
      $         interior_j_max1, interior_j_max2,
-     $         bf_alignment ,new_sizes,
-     $         j_match_border_N)
+     $         bf_alignment ,new_sizes)
 
         end subroutine reallocate_bf_layer_W
 
@@ -323,8 +311,7 @@
      $     i_match, i_max, j_max,
      $     outside_i_max1, outside_i_max2,
      $     interior_i_max1, interior_i_max2,
-     $     bf_alignment, new_sizes,
-     $     i_match_border_E)
+     $     bf_alignment, new_sizes)
 
           implicit none
 
@@ -343,7 +330,6 @@
           integer(ikind)                                  , intent(in)    :: interior_i_max2
           integer(ikind), dimension(2,2)                  , intent(in)    :: bf_alignment
           integer(ikind), dimension(2)                    , intent(in)    :: new_sizes
-          integer(ikind)                                  , intent(in)    :: i_match_border_E
 
 
           integer, dimension(:,:), allocatable :: new_grdpts_id
@@ -359,7 +345,8 @@
           !get the special border for the left and right
           !as well as the interior profile
           call get_additional_blocks_N(
-     $         bf_alignment,
+     $         bf_alignment(1,1)-bc_size+i_min1,
+     $         bf_alignment(1,1)-bc_size+i_min5,
      $         border_W, border_E, interior_profile)
 
 
@@ -392,7 +379,7 @@
 
              !block 6
              do i=1, min(interior_i_max2,bc_size)
-                new_grdpts_id(i_min5+i,j) = border_E(i_match_border_E+i,j)
+                new_grdpts_id(i_min5+i,j) = border_E(i,j)
              end do
 
              !block 7
@@ -507,8 +494,7 @@
      $     i_match, i_max, j_max,
      $     outside_i_max1, outside_i_max2,
      $     interior_i_max1, interior_i_max2,
-     $     bf_alignment, new_sizes,
-     $     i_match_border_E)
+     $     bf_alignment, new_sizes)
 
           implicit none
 
@@ -527,7 +513,6 @@
           integer(ikind)                                  , intent(in)    :: interior_i_max2
           integer(ikind), dimension(2,2)                  , intent(in)    :: bf_alignment
           integer(ikind), dimension(2)                    , intent(in)    :: new_sizes
-          integer(ikind)                                  , intent(in)    :: i_match_border_E
 
 
           integer, dimension(:,:), allocatable :: new_grdpts_id
@@ -552,7 +537,8 @@
           !get the special border for the left and right
           !as well as the interior profile
           call get_additional_blocks_S(
-     $         bf_alignment,
+     $         bf_alignment(1,1)-bc_size+i_min1,
+     $         bf_alignment(1,1)-bc_size+i_min5,
      $         border_W, border_E, interior_profile)
 
 
@@ -612,7 +598,7 @@
 
              !block 6
              do i=1, min(interior_i_max2,bc_size)
-                new_grdpts_id(i_min5+i,j) = border_E(i_match_border_E+i,j-j_match_profile)
+                new_grdpts_id(i_min5+i,j) = border_E(i,j-j_match_profile)
              end do
 
              !block 7
@@ -693,8 +679,7 @@
      $     j_match, i_max, j_max,
      $     outside_j_max1, outside_j_max2,
      $     interior_j_max1, interior_j_max2,
-     $     bf_alignment, new_sizes,
-     $     j_match_border_N)
+     $     bf_alignment, new_sizes)
 
           implicit none
 
@@ -713,7 +698,6 @@
           integer(ikind)                             , intent(in)    :: interior_j_max2
           integer(ikind), dimension(2,2)             , intent(in)    :: bf_alignment
           integer(ikind), dimension(2)               , intent(in)    :: new_sizes
-          integer(ikind)                             , intent(in)    :: j_match_border_N
 
 
           integer, dimension(:,:), allocatable :: new_grdpts_id
@@ -731,7 +715,8 @@
           !get the special border for the left and right
           !as well as the interior profile
           call get_additional_blocks_E(
-     $         bf_alignment,
+     $         bf_alignment(2,1)-bc_size+j_min1,
+     $         bf_alignment(2,1)-bc_size+j_min5,
      $         border_S, border_N, interior_profile)
 
 
@@ -790,7 +775,7 @@
           !fill the blocks 6 and partially 10 and 11
           do j=1, min(interior_j_max2,bc_size)
              do i=1, 2*bc_size
-                new_grdpts_id(i,j_min5+j) = border_N(i,j_match_border_N+j)
+                new_grdpts_id(i,j_min5+j) = border_N(i,j)
              end do
              do i=2*bc_size+1, size(new_grdpts_id,1)
                 new_grdpts_id(i,j_min5+j) = no_pt
@@ -885,8 +870,7 @@
      $     j_match, j_max,
      $     outside_j_max1, outside_j_max2,
      $     interior_j_max1, interior_j_max2,
-     $     bf_alignment, new_sizes,
-     $     j_match_border_N)
+     $     bf_alignment, new_sizes)
 
           implicit none
 
@@ -904,7 +888,6 @@
           integer(ikind)                             , intent(in)    :: interior_j_max2
           integer(ikind), dimension(2,2)             , intent(in)    :: bf_alignment
           integer(ikind), dimension(2)               , intent(in)    :: new_sizes
-          integer(ikind)                             , intent(in)    :: j_match_border_N
 
 
           integer, dimension(:,:), allocatable :: new_grdpts_id
@@ -929,7 +912,8 @@
           !get the special border for the left and right
           !as well as the interior profile
           call get_additional_blocks_W(
-     $         bf_alignment,
+     $         bf_alignment(2,1)-bc_size+j_min1,
+     $         bf_alignment(2,1)-bc_size+j_min5,
      $         border_S, border_N, interior_profile)
 
 
@@ -991,8 +975,7 @@
                 new_grdpts_id(i,j_min5+j) = no_pt
              end do
              do i=i_match_profile+1, size(new_grdpts_id,1)
-                new_grdpts_id(i,j_min5+j) = border_N(i-i_match_profile,
-     $                                               j+j_match_border_N)
+                new_grdpts_id(i,j_min5+j) = border_N(i-i_match_profile,j)
              end do             
           end do
 
@@ -1018,8 +1001,7 @@
      $     i_min1, i_min3, i_min4, i_min5, i_min6,
      $     i_match, i_max, j_max,
      $     outside_i_max1, outside_i_max2,
-     $     interior_i_max1, interior_i_max2,
-     $     i_match_border_W)
+     $     interior_i_max1, interior_i_max2)
         
           implicit none
 
@@ -1040,7 +1022,6 @@
           integer(ikind)                , intent(out) :: outside_i_max2
           integer(ikind)                , intent(out) :: interior_i_max1
           integer(ikind)                , intent(out) :: interior_i_max2
-          integer(ikind)                , intent(out) :: i_match_border_W
 
           integer(ikind), dimension(2) :: old_bf_alignment
           integer(ikind) :: ndir
@@ -1057,7 +1038,7 @@
           end select
 
 
-          !compute the previosu alignment
+          !compute the previous alignment
           old_bf_alignment(1) = bf_alignment(dir,1)-border_changes(dir,1)
           old_bf_alignment(2) = bf_alignment(dir,2)-border_changes(dir,2)
 
@@ -1139,9 +1120,6 @@
           end if
           i_min5 = i_min4 + max(0,interior_i_max2-bc_size)
           i_min6 = i_min4 + interior_i_max2
-
-          i_match_border_W = max(0,bf_alignment(dir,1)-
-     $         (bc_size+1)+i_min5-(ndir-bc_size))
 
         end subroutine get_match
 

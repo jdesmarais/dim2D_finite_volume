@@ -1,6 +1,6 @@
       module test_bf_layer_module
 
-        use ifport
+        !use ifport
 
         use bf_layer_class               , only : bf_layer
 c$$$        use bf_layer_update_grdpts_module, only : update_grdpts

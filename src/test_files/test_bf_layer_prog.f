@@ -1,6 +1,6 @@
       program test_bf_layer_prog
 
-        use ifport
+        !use ifport
 
         use bf_layer_class               , only : bf_layer
 c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
@@ -22,12 +22,14 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         integer, parameter :: size_case = 1
         integer, parameter :: distance_case = 1
         integer, parameter :: random_seed = 86456
-        integer, parameter :: over_alignment_case_x = 3
-        integer, parameter :: over_alignment_case_y = 1
+        integer, parameter :: over_alignment_case_x = 4
+        integer, parameter :: over_alignment_case_y = 0
         integer, parameter :: inverse_case = 1
         integer, parameter :: inverse_size_case = 1
-        integer, parameter :: test_first_bf_layer_align_case = 0
-        integer, parameter :: test_second_bf_layer_align_case = 4
+        integer, parameter :: test_first_bf_layer_align_case = -10
+        integer, parameter :: test_second_bf_layer_align_case = 1
+        logical, parameter :: test_reallocation = .true.
+        logical, parameter :: test_merge = .false.
 
 
         type(bf_layer), dimension(8) :: table_bf_layer_tested
@@ -78,17 +80,25 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
         bf_layer_loc  = [N,S,E,W]
         bf_layer_char = ['N_','S_','E_','W_']
 
+
+        !over alignments
+        over_alignment_x = over_alignment_case_x
+        over_alignment_y = over_alignment_case_y
+
         
         !alignment after reallocation
         call ini_alignment_after_reallocation(
      $       test_first_bf_layer_align_case,
+     $       over_alignment_x,
+     $       over_alignment_y,
      $       test_alignment_reallocation)
 
         !alignment after merge
         call ini_using_case(distance_case, random_seed, relative_distance)
         call ini_using_case(size_case, random_seed, relative_size)
-        call ini_using_case(over_alignment_case_x, random_seed, over_alignment_x)
-        call ini_using_case(over_alignment_case_y, random_seed, over_alignment_y)
+        
+        !call ini_using_case(over_alignment_case_x, random_seed, over_alignment_x)
+        !call ini_using_case(over_alignment_case_y, random_seed, over_alignment_y)
 
         call ini_alignment_2nd_bf_layer(
      $       test_first_bf_layer_align_case,
@@ -127,151 +137,155 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
      $               grdid_filename)
 
            !test reallocation
-           write(sizes_filename,'(A2,''1_sizes2.dat'')') bf_layer_char(i)
-           write(nodes_filename,'(A2,''1_nodes2.dat'')') bf_layer_char(i)
-           write(grdid_filename,'(A2,''1_grdpt_id2.dat'')') bf_layer_char(i)
+           if(test_reallocation) then
+              write(sizes_filename,'(A2,''1_sizes2.dat'')') bf_layer_char(i)
+              write(nodes_filename,'(A2,''1_nodes2.dat'')') bf_layer_char(i)
+              write(grdid_filename,'(A2,''1_grdpt_id2.dat'')') bf_layer_char(i)
 
-           alignment_reallocation(1,1) = test_alignment_reallocation(bf_layer_loc(i),1,1)
-           alignment_reallocation(1,2) = test_alignment_reallocation(bf_layer_loc(i),1,2)
-           alignment_reallocation(2,1) = test_alignment_reallocation(bf_layer_loc(i),2,1)
-           alignment_reallocation(2,2) = test_alignment_reallocation(bf_layer_loc(i),2,2)
+              alignment_reallocation(1,1) = test_alignment_reallocation(bf_layer_loc(i),1,1)
+              alignment_reallocation(1,2) = test_alignment_reallocation(bf_layer_loc(i),1,2)
+              alignment_reallocation(2,1) = test_alignment_reallocation(bf_layer_loc(i),2,1)
+              alignment_reallocation(2,2) = test_alignment_reallocation(bf_layer_loc(i),2,2)
 
-           call bf_layer_test_reallocation(
-     $          table_bf_layer_tested(i),
-     $          nodes,
-     $          alignment_reallocation,
-     $          sizes_filename,
-     $          nodes_filename,
-     $          grdid_filename)
-           
-c$$$
-c$$$           !test new interior gridpoints
-c$$$           write(sizes_filename,'(A2,''1_sizes3.dat'')') bf_layer_char(i)
-c$$$           write(nodes_filename,'(A2,''1_nodes3.dat'')') bf_layer_char(i)
-c$$$           write(grdid_filename,'(A2,''1_grdpt_id3.dat'')') bf_layer_char(i)
-c$$$           
-c$$$           selected_grdpts(1,1) = test_selected_grdpts(bf_layer_loc(i),1,1)
-c$$$           selected_grdpts(1,2) = test_selected_grdpts(bf_layer_loc(i),1,2)
-c$$$           selected_grdpts(2,1) = test_selected_grdpts(bf_layer_loc(i),2,1)
-c$$$           selected_grdpts(2,2) = test_selected_grdpts(bf_layer_loc(i),2,2)
-c$$$
-c$$$           call bf_layer_test_update_grdpts(
-c$$$     $          table_bf_layer_tested(i),
-c$$$     $          selected_grdpts,
-c$$$     $          match_table,
-c$$$     $          sizes_filename,
-c$$$     $          nodes_filename,
-c$$$     $          grdid_filename)
+              call bf_layer_test_reallocation(
+     $             table_bf_layer_tested(i),
+     $             nodes,
+     $             alignment_reallocation,
+     $             sizes_filename,
+     $             nodes_filename,
+     $             grdid_filename)
+           end if
+              
+
+c$$$c$$$           !test new interior gridpoints
+c$$$c$$$           write(sizes_filename,'(A2,''1_sizes3.dat'')') bf_layer_char(i)
+c$$$c$$$           write(nodes_filename,'(A2,''1_nodes3.dat'')') bf_layer_char(i)
+c$$$c$$$           write(grdid_filename,'(A2,''1_grdpt_id3.dat'')') bf_layer_char(i)
+c$$$c$$$           
+c$$$c$$$           selected_grdpts(1,1) = test_selected_grdpts(bf_layer_loc(i),1,1)
+c$$$c$$$           selected_grdpts(1,2) = test_selected_grdpts(bf_layer_loc(i),1,2)
+c$$$c$$$           selected_grdpts(2,1) = test_selected_grdpts(bf_layer_loc(i),2,1)
+c$$$c$$$           selected_grdpts(2,2) = test_selected_grdpts(bf_layer_loc(i),2,2)
+c$$$c$$$
+c$$$c$$$           call bf_layer_test_update_grdpts(
+c$$$c$$$     $          table_bf_layer_tested(i),
+c$$$c$$$     $          selected_grdpts,
+c$$$c$$$     $          match_table,
+c$$$c$$$     $          sizes_filename,
+c$$$c$$$     $          nodes_filename,
+c$$$c$$$     $          grdid_filename)
 
         end do
        
 
 
         !test merge
-        do i=1,4
+        if(test_merge) then
+           do i=1,4
 
-           !print the data of the first buffer layer
-           write(sizes_filename,'(A2,''1_sizes3.dat'')') bf_layer_char(i)
-           write(nodes_filename,'(A2,''1_nodes3.dat'')') bf_layer_char(i)
-           write(grdid_filename,'(A2,''1_grdpt_id3.dat'')') bf_layer_char(i)
+              !print the data of the first buffer layer
+              write(sizes_filename,'(A2,''1_sizes3.dat'')') bf_layer_char(i)
+              write(nodes_filename,'(A2,''1_nodes3.dat'')') bf_layer_char(i)
+              write(grdid_filename,'(A2,''1_grdpt_id3.dat'')') bf_layer_char(i)
 
-           call ini_alignment(
-     $          test_first_bf_layer_align_case, i, alignment)
+              call ini_alignment(
+     $             test_first_bf_layer_align_case, i, alignment)
 
-           call bf_layer_test_allocation(
-     $          table_1st_bf_layer_tested(i),
-     $          bf_layer_loc(i),
-     $          alignment,
-     $          nodes,
-     $          sizes_filename,
-     $          nodes_filename,
-     $          grdid_filename)
+              call bf_layer_test_allocation(
+     $             table_1st_bf_layer_tested(i),
+     $             bf_layer_loc(i),
+     $             alignment,
+     $             nodes,
+     $             sizes_filename,
+     $             nodes_filename,
+     $             grdid_filename)
 
-           if(inverse_size_case.eq.1) then
-              if(relative_size.ne.0) then
-                 call update_alignment_to_increase_size(
-     $                i,
-     $                relative_size,
-     $                alignment)
+              if(inverse_size_case.eq.1) then
+                 if(relative_size.ne.0) then
+                    call update_alignment_to_increase_size(
+     $                   i,
+     $                   relative_size,
+     $                   alignment)
 
-                 call bf_layer_test_reallocation(
-     $                table_1st_bf_layer_tested(i),
-     $                nodes,
-     $                alignment,
-     $                sizes_filename,
-     $                nodes_filename,
-     $                grdid_filename)
+                    call bf_layer_test_reallocation(
+     $                   table_1st_bf_layer_tested(i),
+     $                   nodes,
+     $                   alignment,
+     $                   sizes_filename,
+     $                   nodes_filename,
+     $                   grdid_filename)
+                 end if
               end if
-           end if
 
-           !create additional bf layer and print its data
-           write(sizes_filename,'(A2,''2_sizes3.dat'')') bf_layer_char(i)
-           write(nodes_filename,'(A2,''2_nodes3.dat'')') bf_layer_char(i)
-           write(grdid_filename,'(A2,''2_grdpt_id3.dat'')') bf_layer_char(i)
+              !create additional bf layer and print its data
+              write(sizes_filename,'(A2,''2_sizes3.dat'')') bf_layer_char(i)
+              write(nodes_filename,'(A2,''2_nodes3.dat'')') bf_layer_char(i)
+              write(grdid_filename,'(A2,''2_grdpt_id3.dat'')') bf_layer_char(i)
 
-           alignment_2nd(1,1) = test_alignment_2nd(bf_layer_loc(i),1,1)
-           alignment_2nd(1,2) = test_alignment_2nd(bf_layer_loc(i),1,2)
-           alignment_2nd(2,1) = test_alignment_2nd(bf_layer_loc(i),2,1)
-           alignment_2nd(2,2) = test_alignment_2nd(bf_layer_loc(i),2,2)
+              alignment_2nd(1,1) = test_alignment_2nd(bf_layer_loc(i),1,1)
+              alignment_2nd(1,2) = test_alignment_2nd(bf_layer_loc(i),1,2)
+              alignment_2nd(2,1) = test_alignment_2nd(bf_layer_loc(i),2,1)
+              alignment_2nd(2,2) = test_alignment_2nd(bf_layer_loc(i),2,2)
 
-           call bf_layer_test_allocation(
-     $          table_2nd_bf_layer_tested(i),
-     $          bf_layer_loc(i),
-     $          alignment_2nd,
-     $          nodes,
-     $          sizes_filename,
-     $          nodes_filename,
-     $          grdid_filename)
+              call bf_layer_test_allocation(
+     $             table_2nd_bf_layer_tested(i),
+     $             bf_layer_loc(i),
+     $             alignment_2nd,
+     $             nodes,
+     $             sizes_filename,
+     $             nodes_filename,
+     $             grdid_filename)
 
-           if(inverse_size_case.ne.1) then
-              if(relative_size.ne.0) then
-                 call update_alignment_to_increase_size(
-     $                i,
-     $                relative_size,
-     $                alignment_2nd)
+              if(inverse_size_case.ne.1) then
+                 if(relative_size.ne.0) then
+                    call update_alignment_to_increase_size(
+     $                   i,
+     $                   relative_size,
+     $                   alignment_2nd)
 
-                 call bf_layer_test_reallocation(
+                    call bf_layer_test_reallocation(
+     $                   table_2nd_bf_layer_tested(i),
+     $                   nodes,
+     $                   alignment_2nd,
+     $                   sizes_filename,
+     $                   nodes_filename,
+     $                   grdid_filename)
+                 end if
+              end if
+
+              !test the merging procedure
+              write(sizes_filename,'(A2,''1_sizes4.dat'')') bf_layer_char(i)
+              write(nodes_filename,'(A2,''1_nodes4.dat'')') bf_layer_char(i)
+              write(grdid_filename,'(A2,''1_grdpt_id4.dat'')') bf_layer_char(i)
+
+              alignment_merge(1,1) = test_alignment_merge(bf_layer_loc(i),1,1)
+              alignment_merge(1,2) = test_alignment_merge(bf_layer_loc(i),1,2)
+              alignment_merge(2,1) = test_alignment_merge(bf_layer_loc(i),2,1)
+              alignment_merge(2,2) = test_alignment_merge(bf_layer_loc(i),2,2)
+
+              if(inverse_case.eq.1) then
+                 call bf_layer_test_merge(
+     $                table_1st_bf_layer_tested(i),
      $                table_2nd_bf_layer_tested(i),
      $                nodes,
-     $                alignment_2nd,
+     $                alignment_merge,
+     $                sizes_filename,
+     $                nodes_filename,
+     $                grdid_filename)
+
+              else
+                 call bf_layer_test_merge(
+     $                table_2nd_bf_layer_tested(i),
+     $                table_1st_bf_layer_tested(i),
+     $                nodes,
+     $                alignment_merge,
      $                sizes_filename,
      $                nodes_filename,
      $                grdid_filename)
               end if
-           end if
 
-           !test the merging procedure
-           write(sizes_filename,'(A2,''1_sizes4.dat'')') bf_layer_char(i)
-           write(nodes_filename,'(A2,''1_nodes4.dat'')') bf_layer_char(i)
-           write(grdid_filename,'(A2,''1_grdpt_id4.dat'')') bf_layer_char(i)
-
-           alignment_merge(1,1) = test_alignment_merge(bf_layer_loc(i),1,1)
-           alignment_merge(1,2) = test_alignment_merge(bf_layer_loc(i),1,2)
-           alignment_merge(2,1) = test_alignment_merge(bf_layer_loc(i),2,1)
-           alignment_merge(2,2) = test_alignment_merge(bf_layer_loc(i),2,2)
-
-           if(inverse_case.eq.1) then
-              call bf_layer_test_merge(
-     $             table_1st_bf_layer_tested(i),
-     $             table_2nd_bf_layer_tested(i),
-     $             nodes,
-     $             alignment_merge,
-     $             sizes_filename,
-     $             nodes_filename,
-     $             grdid_filename)
-
-           else
-              call bf_layer_test_merge(
-     $             table_2nd_bf_layer_tested(i),
-     $             table_1st_bf_layer_tested(i),
-     $             nodes,
-     $             alignment_merge,
-     $             sizes_filename,
-     $             nodes_filename,
-     $             grdid_filename)
-           end if
-
-        end do
+           end do
+        end if
 
 
 c$$$        !test the local coordinates
@@ -346,15 +360,18 @@ c$$$     $       'interior_sizes4.dat')
                alignment(1,2) = 0
           end select
 
+          border_min = bc_size+1+test_first_bf_layer_align_case
+          border_max = bc_size+7+test_first_bf_layer_align_case
+
           !distance from corner
-          if(test_first_bf_layer_align_case.ge.-4) then
-             border_min = bc_size+1+test_first_bf_layer_align_case
-             border_max = bc_size+5+test_first_bf_layer_align_case
-          else
-             print '(''test_bf_layer_prog'')'
-             print '(''ini_alignment'')'
-             print '(''test_first_bf_layer_align_case not correct'')'
-          end if
+c$$$          if(test_first_bf_layer_align_case.ge.-4) then
+c$$$             border_min = bc_size+1+test_first_bf_layer_align_case
+c$$$             border_max = bc_size+5+test_first_bf_layer_align_case
+c$$$          else
+c$$$             print '(''test_bf_layer_prog'')'
+c$$$             print '(''ini_alignment'')'
+c$$$             print '(''test_first_bf_layer_align_case not correct'')'
+c$$$          end if
              
           !borders
           select case(mainlayer_id)
@@ -371,32 +388,36 @@ c$$$     $       'interior_sizes4.dat')
 
         subroutine ini_alignment_after_reallocation(
      $     test_first_bf_layer_align_case,
+     $     over_alignment_x,
+     $     over_alignment_y,
      $     alignment)
         
           implicit none
 
           integer                  , intent(in)    :: test_first_bf_layer_align_case
+          integer                  , intent(in)    :: over_alignment_x
+          integer                  , intent(in)    :: over_alignment_y
           integer, dimension(:,:,:), intent(inout) :: alignment
 
-          alignment(N,1,1) = bc_size+1+test_first_bf_layer_align_case
-          alignment(N,1,2) = bc_size+8+test_first_bf_layer_align_case
+          alignment(N,1,1) = bc_size+1+test_first_bf_layer_align_case-over_alignment_x
+          alignment(N,1,2) = bc_size+7+test_first_bf_layer_align_case+over_alignment_x
           alignment(N,2,1) = ny+1
-          alignment(N,2,2) = ny+2
+          alignment(N,2,2) = ny+1+over_alignment_y
 
-          alignment(S,1,1) = bc_size+1+test_first_bf_layer_align_case
-          alignment(S,1,2) = bc_size+8+test_first_bf_layer_align_case
-          alignment(S,2,1) = -1
+          alignment(S,1,1) = bc_size+1+test_first_bf_layer_align_case-over_alignment_x
+          alignment(S,1,2) = bc_size+7+test_first_bf_layer_align_case+over_alignment_x
+          alignment(S,2,1) = 0-over_alignment_y
           alignment(S,2,2) = 0
 
           alignment(E,1,1) = nx+1
-          alignment(E,1,2) = nx+2
-          alignment(E,2,1) = bc_size+1+test_first_bf_layer_align_case
-          alignment(E,2,2) = bc_size+8+test_first_bf_layer_align_case
+          alignment(E,1,2) = nx+1+over_alignment_y
+          alignment(E,2,1) = bc_size+1+test_first_bf_layer_align_case-over_alignment_x
+          alignment(E,2,2) = bc_size+7+test_first_bf_layer_align_case+over_alignment_x
 
-          alignment(W,1,1) = -1
+          alignment(W,1,1) = 0-over_alignment_y
           alignment(W,1,2) = 0
-          alignment(W,2,1) = bc_size+1+test_first_bf_layer_align_case
-          alignment(W,2,2) = bc_size+8+test_first_bf_layer_align_case
+          alignment(W,2,1) = bc_size+1+test_first_bf_layer_align_case-over_alignment_x
+          alignment(W,2,2) = bc_size+7+test_first_bf_layer_align_case+over_alignment_x
 
         end subroutine ini_alignment_after_reallocation
 

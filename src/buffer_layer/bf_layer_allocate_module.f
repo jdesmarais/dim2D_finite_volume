@@ -44,7 +44,6 @@
           integer(ikind)               :: outside_i_max1
           integer(ikind)               :: outside_i_max2
           integer(ikind)               :: interior_i_max1
-          integer(ikind)               :: i_match_border_E
 
 
           !compute the new sizes
@@ -57,8 +56,7 @@
      $         bf_alignment,
      $         i_min1, i_min3, i_min4,
      $         outside_i_max1, outside_i_max2,
-     $         interior_i_max1,
-     $         i_match_border_E)
+     $         interior_i_max1)
 
           !allocate the nodes
           call allocate_nodes_N(
@@ -73,7 +71,6 @@
      $         outside_i_max1, outside_i_max2,
      $         interior_i_max1,
      $         i_min1, i_min3, i_min4,
-     $         i_match_border_E,
      $         bf_alignment, new_sizes)
 
         end subroutine allocate_bf_layer_N
@@ -100,7 +97,6 @@
           integer(ikind)               :: outside_i_max1
           integer(ikind)               :: outside_i_max2
           integer(ikind)               :: interior_i_max1
-          integer(ikind)               :: i_match_border_E
 
           !compute the new sizes
           call get_new_sizes_and_alignment_S(
@@ -112,8 +108,7 @@
      $         bf_alignment,
      $         i_min1, i_min3, i_min4,
      $         outside_i_max1, outside_i_max2,
-     $         interior_i_max1,
-     $         i_match_border_E)
+     $         interior_i_max1)
 
           !allocate the nodes
           call allocate_nodes_S(
@@ -128,7 +123,6 @@
      $         outside_i_max1, outside_i_max2,
      $         interior_i_max1,
      $         i_min1, i_min3, i_min4,
-     $         i_match_border_E,
      $         bf_alignment, new_sizes)
 
         end subroutine allocate_bf_layer_S
@@ -155,7 +149,6 @@
           integer(ikind)               :: outside_j_max1
           integer(ikind)               :: outside_j_max2
           integer(ikind)               :: interior_j_max1
-          integer(ikind)               :: j_match_border_N
 
           !compute the new sizes
           call get_new_sizes_and_alignment_E(
@@ -167,8 +160,7 @@
      $         bf_alignment,
      $         j_min1, j_min3, j_min4,
      $         outside_j_max1, outside_j_max2,
-     $         interior_j_max1,
-     $         j_match_border_N)
+     $         interior_j_max1)
 
           !allocate the nodes
           call allocate_nodes_E(
@@ -183,7 +175,6 @@
      $         outside_j_max1, outside_j_max2,
      $         interior_j_max1,
      $         j_min1, j_min3, j_min4,
-     $         j_match_border_N,
      $         bf_alignment, new_sizes)
 
         end subroutine allocate_bf_layer_E
@@ -210,7 +201,6 @@
           integer(ikind)               :: outside_j_max1
           integer(ikind)               :: outside_j_max2
           integer(ikind)               :: interior_j_max1
-          integer(ikind)               :: j_match_border_N
 
           !compute the new sizes
           call get_new_sizes_and_alignment_W(
@@ -222,8 +212,7 @@
      $         bf_alignment,
      $         j_min1, j_min3, j_min4,
      $         outside_j_max1, outside_j_max2,
-     $         interior_j_max1,
-     $         j_match_border_N)
+     $         interior_j_max1)
 
           !allocate the nodes
           call allocate_nodes_W(
@@ -238,7 +227,6 @@
      $         outside_j_max1, outside_j_max2,
      $         interior_j_max1,
      $         j_min1, j_min3, j_min4,
-     $         j_match_border_N,
      $         bf_alignment, new_sizes)
           
         end subroutine allocate_bf_layer_W
@@ -392,7 +380,6 @@
      $     outside_i_max1, outside_i_max2,
      $     interior_i_max1,
      $     i_min1, i_min3, i_min4,
-     $     i_match_border_E,
      $     bf_alignment, new_sizes)
 
           implicit none
@@ -404,7 +391,6 @@
           integer(ikind)                             , intent(in) :: i_min1
           integer(ikind)                             , intent(in) :: i_min3
           integer(ikind)                             , intent(in) :: i_min4
-          integer(ikind)                             , intent(in) :: i_match_border_E
           integer(ikind), dimension(2,2)             , intent(in) :: bf_alignment
           integer(ikind), dimension(2)               , intent(in) :: new_sizes
 
@@ -419,7 +405,8 @@
           !get the special border for the left and right
           !as well as the interior profile
           call get_additional_blocks_N(
-     $         bf_alignment,
+     $         bf_alignment(1,1)-bc_size+i_min1,
+     $         bf_alignment(1,1)-bc_size+i_min3,
      $         border_W, border_E, interior_profile)
 
           !blocks 1-5
@@ -429,7 +416,6 @@
      $         outside_i_max1, outside_i_max2,
      $         interior_i_max1,
      $         i_min1, i_min3, i_min4,
-     $         i_match_border_E,
      $         0)
 
           !block 6
@@ -445,7 +431,6 @@
      $     outside_i_max1, outside_i_max2,
      $     interior_i_max1,
      $     i_min1, i_min3, i_min4,
-     $     i_match_border_E,
      $     bf_alignment, new_sizes)
 
           implicit none
@@ -457,7 +442,6 @@
           integer(ikind)                             , intent(in) :: i_min1
           integer(ikind)                             , intent(in) :: i_min3
           integer(ikind)                             , intent(in) :: i_min4
-          integer(ikind)                             , intent(in) :: i_match_border_E
           integer(ikind), dimension(2,2)             , intent(in) :: bf_alignment
           integer(ikind), dimension(2)               , intent(in) :: new_sizes
 
@@ -472,7 +456,8 @@
           !get the special border for the left and right
           !as well as the interior profile
           call get_additional_blocks_S(
-     $         bf_alignment,
+     $         bf_alignment(1,1)-bc_size+i_min1,
+     $         bf_alignment(1,1)-bc_size+i_min3,
      $         border_W, border_E, interior_profile)
 
           !block 6
@@ -487,7 +472,6 @@
      $         outside_i_max1, outside_i_max2,
      $         interior_i_max1,
      $         i_min1, i_min3, i_min4,
-     $         i_match_border_E,
      $         1)          
 
         end subroutine allocate_grdpts_id_S
@@ -498,7 +482,6 @@
      $     outside_j_max1, outside_j_max2,
      $     interior_j_max1,
      $     j_min1, j_min3, j_min4,
-     $     j_match_border_N,
      $     bf_alignment, new_sizes)
 
           implicit none
@@ -510,7 +493,6 @@
           integer(ikind)                             , intent(in) :: j_min1
           integer(ikind)                             , intent(in) :: j_min3
           integer(ikind)                             , intent(in) :: j_min4
-          integer(ikind)                             , intent(in) :: j_match_border_N
           integer(ikind), dimension(2,2)             , intent(in) :: bf_alignment
           integer(ikind), dimension(2)               , intent(in) :: new_sizes
 
@@ -525,7 +507,8 @@
           !get the special border for the left and right
           !as well as the interior profile
           call get_additional_blocks_E(
-     $         bf_alignment,
+     $         bf_alignment(2,1)-bc_size+j_min1,
+     $         bf_alignment(2,1)-bc_size+j_min3,
      $         border_S, border_N, interior_profile)
 
           !blocks 1-5
@@ -534,8 +517,7 @@
      $         border_S, border_N, interior_profile,
      $         outside_j_max1, outside_j_max2,
      $         interior_j_max1,
-     $         j_min1, j_min3, j_min4,
-     $         j_match_border_N)
+     $         j_min1, j_min3, j_min4)
 
         end subroutine allocate_grdpts_id_E
 
@@ -545,7 +527,6 @@
      $     outside_j_max1, outside_j_max2,
      $     interior_j_max1,
      $     j_min1, j_min3, j_min4,
-     $     j_match_border_N,
      $     bf_alignment, new_sizes)
 
           implicit none
@@ -557,7 +538,6 @@
           integer(ikind)                             , intent(in) :: j_min1
           integer(ikind)                             , intent(in) :: j_min3
           integer(ikind)                             , intent(in) :: j_min4
-          integer(ikind)                             , intent(in) :: j_match_border_N
           integer(ikind), dimension(2,2)             , intent(in) :: bf_alignment
           integer(ikind), dimension(2)               , intent(in) :: new_sizes
 
@@ -572,7 +552,8 @@
           !get the special border for the left and right
           !as well as the interior profile
           call get_additional_blocks_W(
-     $         bf_alignment,
+     $         bf_alignment(2,1)-bc_size+j_min1,
+     $         bf_alignment(2,1)-bc_size+j_min3,
      $         border_S, border_N, interior_profile)
 
           !blocks 1-5
@@ -581,8 +562,7 @@
      $         border_S, border_N, interior_profile,
      $         outside_j_max1, outside_j_max2,
      $         interior_j_max1,
-     $         j_min1, j_min3, j_min4,
-     $         j_match_border_N)
+     $         j_min1, j_min3, j_min4)
 
         end subroutine allocate_grdpts_id_W
 
@@ -692,8 +672,7 @@
      $     bf_alignment,
      $     i_min1, i_min3, i_min4,
      $     outside_i_max1, outside_i_max2,
-     $     interior_i_max1,
-     $     i_match_border_E)
+     $     interior_i_max1)
 
            implicit none
 
@@ -705,7 +684,6 @@
            integer(ikind)                , intent(out) :: outside_i_max1
            integer(ikind)                , intent(out) :: outside_i_max2
            integer(ikind)                , intent(out) :: interior_i_max1
-           integer(ikind)                , intent(out) :: i_match_border_E
 
            integer(ikind) :: ndir
            integer(ikind) :: min_border, max_border
@@ -725,25 +703,44 @@
 
 
            !define the length of the block 1
-           outside_i_max1 = max(0,(bc_size+1) - bf_alignment(dir,1))
+           if(bf_alignment(dir,2).le.0) then
+              outside_i_max1 = 2*bc_size + 1 +
+     $                         bf_alignment(dir,2) - bf_alignment(dir,1) -
+     $                         max(0, bf_alignment(dir,2)+bc_size)
+           else
+              outside_i_max1 = max(0,(bc_size+1) - bf_alignment(dir,1))
+           end if
 
 
            !define the length of the block 2+3+4
            if(bf_alignment(dir,1).lt.(bc_size+1)) then
-              min_border = bc_size+1
+              min_border = 1
            else
-              min_border = bf_alignment(dir,1)
+              min_border = bf_alignment(dir,1)-bc_size
            end if
            if(bf_alignment(dir,2).gt.(ndir-bc_size)) then
-              max_border = ndir-bc_size
+              max_border = ndir
            else
-              max_border = bf_alignment(dir,2)
+              max_border = bf_alignment(dir,2)+bc_size
            end if
-           interior_i_max1 = max_border-min_border+1+2*bc_size
+           interior_i_max1 = max_border-min_border+1
+
+           if(bf_alignment(dir,2).le.0) then
+              interior_i_max1 = max(0, bf_alignment(dir,2)+bc_size)
+           end if
+           if(bf_alignment(dir,1).ge.(ndir+1)) then
+              interior_i_max1 = max(0, ndir+bc_size-bf_alignment(dir,1)+1)
+           end if
 
 
            !define the length of the block 5
-           outside_i_max2 = max(0, bf_alignment(dir,2)-(ndir-bc_size))
+           if(bf_alignment(dir,1).ge.(ndir+1)) then
+              outside_i_max2 = 2*bc_size + 1 + 
+     $                         bf_alignment(dir,2) - bf_alignment(dir,1) -
+     $                         interior_i_max1
+           else
+              outside_i_max2 = max(0, bf_alignment(dir,2)-(ndir-bc_size))
+           end if
 
 
            !define the border indices
@@ -752,8 +749,6 @@
      $              min(bc_size, interior_i_max1) +
      $              max(0, interior_i_max1 - 2*bc_size)
            i_min4 = i_min1 + interior_i_max1
-           i_match_border_E = max(0,bf_alignment(dir,1)-
-     $         (bc_size+1)+i_min3-(ndir-bc_size))
 
          end subroutine get_match
 
@@ -764,7 +759,6 @@
      $     outside_i_max1, outside_i_max2,
      $     interior_i_max1,
      $     i_min1, i_min3, i_min4,
-     $     i_match_border_E,
      $     j_match)
 
            implicit none
@@ -779,16 +773,16 @@
            integer(ikind)                             , intent(in) :: i_min1
            integer(ikind)                             , intent(in) :: i_min3
            integer(ikind)                             , intent(in) :: i_min4
-           integer(ikind)                             , intent(in) :: i_match_border_E
            integer(ikind)                             , intent(in) :: j_match
 
            integer(ikind) :: i_start,i,j
 
            if((interior_i_max1-bc_size).gt.0) then
-              i_start = interior_i_max1-bc_size
+              i_start = max(bc_size, interior_i_max1-bc_size)
            else
               i_start = interior_i_max1
            end if
+
 
            do j=1, 2*bc_size
 
@@ -801,15 +795,17 @@
               do i=1, min(bc_size, interior_i_max1)
                  bf_grdpts_id(i_min1+i,j_match+j) = border_W(i,j)
               end do
-
+                 
               !block 3
               do i=min(bc_size, interior_i_max1)+1, interior_i_max1-bc_size
                  bf_grdpts_id(i_min1+i,j_match+j) = interior_profile(j)
               end do
 
               !block 4
+c$$$              print *, 'interior_i_max1', interior_i_max1
+c$$$              print *, 'interior_i_max1-i_start', interior_i_max1-i_start
               do i=1, interior_i_max1-i_start
-                 bf_grdpts_id(i_min3+i,j_match+j) = border_E(i_match_border_E+i,j)
+                 bf_grdpts_id(i_min3+i,j_match+j) = border_E(i,j)
               end do
 
               !block 5
@@ -849,8 +845,7 @@
      $     border_S, border_N, interior_profile,
      $     outside_j_max1, outside_j_max2,
      $     interior_j_max1,
-     $     j_min1, j_min3, j_min4,
-     $     j_match_border_N)
+     $     j_min1, j_min3, j_min4)
 
            implicit none
 
@@ -864,12 +859,11 @@
            integer(ikind)                             , intent(in) :: j_min1
            integer(ikind)                             , intent(in) :: j_min3
            integer(ikind)                             , intent(in) :: j_min4
-           integer(ikind)                             , intent(in) :: j_match_border_N
 
            integer(ikind) :: i,j,j_start
 
            if((interior_j_max1-bc_size).gt.0) then
-              j_start = interior_j_max1-bc_size
+              j_start = max(bc_size,interior_j_max1-bc_size)
            else
               j_start = interior_j_max1
            end if
@@ -901,10 +895,11 @@
               end do
            end do
 
+
            !block 4 + partially 6
            do j=1, interior_j_max1-j_start
               do i=1, 2*bc_size
-                 bf_grdpts_id(i,j_min3+j) = border_N(i,j_match_border_N+j)
+                 bf_grdpts_id(i,j_min3+j) = border_N(i,j)
               end do
               do i=2*bc_size+1, size(bf_grdpts_id,1)
                  bf_grdpts_id(i,j_min3+j) = no_pt
@@ -926,8 +921,7 @@
      $     border_S, border_N, interior_profile,
      $     outside_j_max1, outside_j_max2,
      $     interior_j_max1,
-     $     j_min1, j_min3, j_min4,
-     $     j_match_border_N)
+     $     j_min1, j_min3, j_min4)
 
            implicit none
 
@@ -941,14 +935,13 @@
            integer(ikind)                             , intent(in) :: j_min1
            integer(ikind)                             , intent(in) :: j_min3
            integer(ikind)                             , intent(in) :: j_min4
-           integer(ikind)                             , intent(in) :: j_match_border_N
 
            integer(ikind) :: i,j,i_match, j_start
 
            i_match = size(bf_grdpts_id,1) - 2*bc_size
 
            if((interior_j_max1-bc_size).gt.0) then
-              j_start = interior_j_max1-bc_size
+              j_start = max(bc_size,interior_j_max1-bc_size)
            else
               j_start = interior_j_max1
            end if
@@ -987,7 +980,7 @@
                  bf_grdpts_id(i,j_min3+j) = no_pt
               end do
               do i=1, 2*bc_size
-                 bf_grdpts_id(i_match+i,j_min3+j) = border_N(i,j_match_border_N+j)
+                 bf_grdpts_id(i_match+i,j_min3+j) = border_N(i,j)
               end do
            end do
 
@@ -1002,17 +995,62 @@
 
 
          subroutine get_additional_blocks_N(
-     $     bf_alignment,
+     $     i_border_W, i_border_E,
      $     border_W, border_E, interior_profile)
 
           implicit none
 
-          integer(ikind), dimension(2,2)              , intent(in)  :: bf_alignment
+          integer(ikind)                              , intent(in)  :: i_border_W
+          integer(ikind)                              , intent(in)  :: i_border_E
           integer       , dimension(bc_size,2*bc_size), intent(out) :: border_W
           integer       , dimension(bc_size,2*bc_size), intent(out) :: border_E
           integer       , dimension(2*bc_size)        , intent(out) :: interior_profile
 
           integer :: i,j
+          integer(ikind), dimension(2*bc_size,2*bc_size) :: corner_E
+          integer(ikind), dimension(2*bc_size,2*bc_size) :: corner_W
+
+          !corner_W
+          do j=1, bc_size
+             corner_W(1,j)=no_pt
+             corner_W(2,j)=bc_pt
+             corner_W(3,j)=bc_interior_pt
+             corner_W(4,j)=interior_pt
+          end do
+
+          j=bc_size+1
+          corner_W(1,j)=no_pt
+          corner_W(2,j)=bc_pt
+          corner_W(3,j)=bc_interior_pt
+          corner_W(4,j)=bc_interior_pt
+
+          j=bc_size+2
+          corner_W(1,j)=no_pt
+          corner_W(2,j)=bc_pt
+          corner_W(3,j)=bc_pt
+          corner_W(4,j)=bc_pt
+
+
+          !corner_E
+          do j=1, bc_size
+             corner_E(1,j)=interior_pt
+             corner_E(2,j)=bc_interior_pt
+             corner_E(3,j)=bc_pt
+             corner_E(4,j)=no_pt
+          end do
+
+          j=bc_size+1
+          corner_E(1,j)=bc_interior_pt
+          corner_E(2,j)=bc_interior_pt
+          corner_E(3,j)=bc_pt
+          corner_E(4,j)=no_pt
+
+          j=bc_size+2
+          corner_E(1,j)=bc_pt
+          corner_E(2,j)=bc_pt
+          corner_E(3,j)=bc_pt
+          corner_E(4,j)=no_pt
+
 
           !interior profile
           do i=1, bc_size
@@ -1024,104 +1062,72 @@
           end do
 
           !border_W
-          if(bf_alignment(1,1).gt.(bc_size+2)) then
-             do j=1, bc_size
-                do i=1, bc_size
-                   border_W(i,j) = interior_pt
-                end do
-             end do
-             j=bc_size+1
-             do i=1, bc_size
-                border_W(i,j) = bc_interior_pt
-             end do
-             do j=bc_size+2, 2*bc_size
-                do i=1, bc_size
-                   border_W(i,j) = bc_pt
-                end do
-             end do
-          else
-             if(bf_alignment(1,1).eq.bc_size+2) then
-                do j=1, 2*bc_size-2
-                   border_W(1,j) = bc_interior_pt
-                   border_W(2,j) = interior_pt
-               end do
-
-               j=2*bc_size-1
-               border_W(1,j) = bc_interior_pt
-               border_W(2,j) = bc_interior_pt
-
-               j=2*bc_size
-               border_W(1,j) = bc_pt
-               border_W(2,j) = bc_pt
-
-             else
-               do j=1, 2*bc_size-1
-                  border_W(1,j) = bc_pt
-                  border_W(2,j) = bc_interior_pt
-               end do
-               j=2*bc_size
-               border_W(1,j) = bc_pt
-               border_W(2,j) = bc_pt
-             end if
-          end if
+          call fill_border_NS(i_border_W, border_W, corner_W, corner_E, interior_profile)
 
           !border_E
-          if(bf_alignment(1,2).lt.(nx-bc_size-1)) then
-             do j=1, bc_size
-                do i=1, bc_size
-                   border_E(i,j) = interior_pt
-                end do
-             end do
-             j=bc_size+1
-             do i=1, bc_size
-                border_E(i,j) = bc_interior_pt
-             end do
-             do j=bc_size+2, 2*bc_size
-                do i=1, bc_size
-                   border_E(i,j) = bc_pt
-                end do
-             end do
-          else
-             if(bf_alignment(1,2).eq.(nx-bc_size-1)) then
-                do j=1, 2*bc_size-2
-                   border_E(1,j) = interior_pt
-                   border_E(2,j) = bc_interior_pt
-               end do
+          call fill_border_NS(i_border_E, border_E, corner_W, corner_E, interior_profile)
 
-               j=2*bc_size-1
-               border_E(1,j) = bc_interior_pt
-               border_E(2,j) = bc_interior_pt
-
-               j=2*bc_size
-               border_E(1,j) = bc_pt
-               border_E(2,j) = bc_pt
-
-             else
-               do j=1, 2*bc_size-1
-                  border_E(1,j) = bc_interior_pt
-                  border_E(2,j) = bc_pt
-               end do
-               j=2*bc_size
-               border_E(1,j) = bc_pt
-               border_E(2,j) = bc_pt
-             end if
-          end if
-
-        end subroutine get_additional_blocks_N
+        end subroutine get_additional_blocks_N                
 
 
         subroutine get_additional_blocks_S(
-     $     bf_alignment,
+     $     i_border_W, i_border_E,
      $     border_W, border_E, interior_profile)
 
           implicit none
 
-          integer(ikind), dimension(2,2)              , intent(in)  :: bf_alignment
+          integer(ikind)                              , intent(in)  :: i_border_W
+          integer(ikind)                              , intent(in)  :: i_border_E
           integer       , dimension(bc_size,2*bc_size), intent(out) :: border_W
           integer       , dimension(bc_size,2*bc_size), intent(out) :: border_E
           integer       , dimension(2*bc_size)        , intent(out) :: interior_profile
 
           integer :: i,j
+          integer(ikind), dimension(2*bc_size,2*bc_size) :: corner_E
+          integer(ikind), dimension(2*bc_size,2*bc_size) :: corner_W
+
+
+          !corner_W
+          j=1
+          corner_W(1,j)=no_pt
+          corner_W(2,j)=bc_pt
+          corner_W(3,j)=bc_pt
+          corner_W(4,j)=bc_pt
+
+          j=bc_size
+          corner_W(1,j)=no_pt
+          corner_W(2,j)=bc_pt
+          corner_W(3,j)=bc_interior_pt
+          corner_W(4,j)=bc_interior_pt
+
+          do j=bc_size+1, 2*bc_size
+             corner_W(1,j)=no_pt
+             corner_W(2,j)=bc_pt
+             corner_W(3,j)=bc_interior_pt
+             corner_W(4,j)=interior_pt
+          end do
+
+
+          !corner_E
+          j=1
+          corner_E(1,j)=bc_pt
+          corner_E(2,j)=bc_pt
+          corner_E(3,j)=bc_pt
+          corner_E(4,j)=no_pt
+
+          j=bc_size
+          corner_E(1,j)=bc_interior_pt
+          corner_E(2,j)=bc_interior_pt
+          corner_E(3,j)=bc_pt
+          corner_E(4,j)=no_pt
+
+          do j=bc_size+1, 2*bc_size
+             corner_E(1,j)=interior_pt
+             corner_E(2,j)=bc_interior_pt
+             corner_E(3,j)=bc_pt
+             corner_E(4,j)=no_pt
+          end do
+
 
           !interior profile
           do i=1, bc_size-1
@@ -1131,111 +1137,85 @@
           do i=bc_size+1, 2*bc_size
              interior_profile(i) = interior_pt
           end do          
+     
 
           !border_W
-          if(bf_alignment(1,1).gt.(bc_size+2)) then
-             do j=1, bc_size-1
-                do i=1, bc_size
-                   border_W(i,j) = bc_pt
-                end do
-             end do
-             j=bc_size
-             do i=1, bc_size
-                border_W(i,j) = bc_interior_pt
-             end do
-             do j=bc_size+1, 2*bc_size
-                do i=1, bc_size
-                   border_W(i,j) = interior_pt
-                end do
-             end do
-             
-          else
-             if(bf_alignment(1,1).eq.bc_size+2) then
-                j=1
-                border_W(1,j) = bc_pt
-                border_W(2,j) = bc_pt
-               
-                j=2
-                border_W(1,j) = bc_interior_pt
-                border_W(2,j) = bc_interior_pt
-
-                do j=3, 2*bc_size
-                   border_W(1,j) = bc_interior_pt
-                   border_W(2,j) = interior_pt
-                end do               
-
-             else
-                j=1
-                border_W(1,j) = bc_pt
-                border_W(2,j) = bc_pt
-
-                do j=2, 2*bc_size
-                   border_W(1,j) = bc_pt
-                   border_W(2,j) = bc_interior_pt
-                end do
-               
-             end if
-          end if
+          call fill_border_NS(
+     $         i_border_W, border_W,
+     $         corner_W, corner_E, interior_profile)
 
           !border_E
-          if(bf_alignment(1,2).lt.(nx-bc_size-1)) then
-             do j=1, bc_size-1
-                do i=1, bc_size
-                   border_E(i,j) = bc_pt
-                end do
-             end do
-             j=bc_size
-             do i=1, bc_size
-                border_E(i,j) = bc_interior_pt
-             end do
-             do j=bc_size+1, 2*bc_size
-                do i=1, bc_size
-                   border_E(i,j) = interior_pt
-                end do
-             end do
-             
-          else
-             if(bf_alignment(1,2).eq.(nx-bc_size-1)) then
-                j=1
-                border_E(1,j) = bc_pt
-                border_E(2,j) = bc_pt
-
-                j=2
-                border_E(1,j) = bc_interior_pt
-                border_E(2,j) = bc_interior_pt
-                
-                do j=3, 2*bc_size
-                   border_E(1,j) = interior_pt
-                   border_E(2,j) = bc_interior_pt
-                end do
-
-             else
-               j=1
-               border_E(1,j) = bc_pt
-               border_E(2,j) = bc_pt
-
-               do j=2, 2*bc_size
-                  border_E(1,j) = bc_interior_pt
-                  border_E(2,j) = bc_pt
-               end do
-             end if
-          end if
+          call fill_border_NS(
+     $         i_border_E, border_E,
+     $         corner_W, corner_E, interior_profile)
 
         end subroutine get_additional_blocks_S
 
 
         subroutine get_additional_blocks_E(
-     $     bf_alignment,
+     $     j_border_S, j_border_N,
      $     border_S, border_N, interior_profile)
 
           implicit none
 
-          integer(ikind), dimension(2,2)              , intent(in)  :: bf_alignment
+          integer(ikind)                              , intent(in)  :: j_border_S
+          integer(ikind)                              , intent(in)  :: j_border_N          
           integer       , dimension(2*bc_size,bc_size), intent(out) :: border_S
           integer       , dimension(2*bc_size,bc_size), intent(out) :: border_N
           integer       , dimension(2*bc_size)        , intent(out) :: interior_profile
 
           integer :: i,j
+          integer(ikind), dimension(2*bc_size,2*bc_size) :: corner_S
+          integer(ikind), dimension(2*bc_size,2*bc_size) :: corner_N
+
+
+          !corner_S
+          j=1
+          do i=1, 2*bc_size
+             corner_S(i,j)=no_pt
+          end do
+
+          j=bc_size
+          do i=1, 2*bc_size
+             corner_S(i,j) = bc_pt
+          end do
+
+          j=bc_size+1
+          corner_S(1,j)=bc_interior_pt
+          corner_S(2,j)=bc_interior_pt
+          corner_S(3,j)=bc_interior_pt
+          corner_S(4,j)=bc_pt
+
+          j=bc_size+2
+          corner_S(1,j)=interior_pt
+          corner_S(2,j)=interior_pt
+          corner_S(3,j)=bc_interior_pt
+          corner_S(4,j)=bc_pt          
+
+
+          !corner_N
+          j=1
+          corner_N(1,j)=interior_pt
+          corner_N(2,j)=interior_pt
+          corner_N(3,j)=bc_interior_pt
+          corner_N(4,j)=bc_pt
+
+          j=bc_size
+          corner_N(1,j)=bc_interior_pt
+          corner_N(2,j)=bc_interior_pt
+          corner_N(3,j)=bc_interior_pt
+          corner_N(4,j)=bc_pt
+
+          j=bc_size+1
+          do i=1, 2*bc_size
+             corner_N(i,j)=bc_pt
+          end do
+
+          j=bc_size+2
+          do i=1, 2*bc_size
+             corner_N(i,j)=no_pt
+          end do
+
 
           !interior profile
           do i=1, bc_size
@@ -1246,124 +1226,87 @@
              interior_profile(i) = bc_pt
           end do
 
+
           !border_S
-          if(bf_alignment(2,1).gt.(bc_size+2)) then
-             do j=1, bc_size
-                do i=1, bc_size
-                   border_S(i,j) = interior_pt
-                end do
+          call fill_border_EW(
+     $         j_border_S, border_S,
+     $         corner_S, corner_N, interior_profile)
 
-                i = bc_size+1
-                border_S(i,j) = bc_interior_pt
-
-                do i=bc_size+2, 2*bc_size
-                   border_S(i,j) = bc_pt
-                end do
-             end do
-
-          else
-             if(bf_alignment(2,1).eq.bc_size+2) then
-                j=1
-                do i=1, bc_size+1
-                   border_S(i,j) = bc_interior_pt
-                end do
-                do i=bc_size+2,2*bc_size
-                   border_S(i,j) = bc_pt
-                end do
-                
-                do j=2, bc_size
-                   do i=1, bc_size
-                      border_S(i,j) = interior_pt
-                   end do
-                   i=bc_size+1
-                   border_S(i,j) = bc_interior_pt
-                   do i=bc_size+2, 2*bc_size
-                      border_S(i,j) = bc_pt
-                   end do
-                end do
-
-             else
-                j=1
-                do i=1, 2*bc_size
-                   border_S(i,j) = bc_pt
-                end do
-                do j=2, bc_size
-                   do i=1, bc_size+1
-                      border_S(i,j) = bc_interior_pt
-                   end do
-                   do i=bc_size+2, 2*bc_size
-                      border_S(i,j) = bc_pt
-                   end do
-                end do
-             end if
-          end if
 
           !border_N
-          if(bf_alignment(2,2).lt.(ny-bc_size-1)) then
-             do j=1, bc_size
-                do i=1, bc_size
-                   border_N(i,j) = interior_pt
-                end do
-                i=bc_size+1
-                border_N(i,j) = bc_interior_pt
-                do i=bc_size+2, 2*bc_size
-                   border_N(i,j) = bc_pt
-                end do
-             end do                
-
-          else
-             if(bf_alignment(2,2).eq.(ny-bc_size-1)) then
-                j=1
-                do i=1, bc_size
-                   border_N(i,j) = interior_pt
-                end do
-                i=bc_size+1
-                border_N(i,j) = bc_interior_pt
-                do i=bc_size+2, 2*bc_size
-                   border_N(i,j) = bc_pt
-                end do
-
-                do j=2, bc_size
-                   do i=1, bc_size+1
-                      border_N(i,j) = bc_interior_pt
-                   end do
-                   do i=bc_size+2, 2*bc_size
-                      border_N(i,j) = bc_pt
-                   end do
-                end do
-
-             else
-                 j=1
-                 do i=1, bc_size+1
-                    border_N(i,j) = bc_interior_pt
-                 end do
-                 do i=bc_size+2, 2*bc_size
-                    border_N(i,j) = bc_pt
-                 end do
-                 do j=2, bc_size
-                    do i=1, 2*bc_size
-                       border_N(i,j) = bc_pt
-                    end do
-                 end do
-             end if
-          end if
+          call fill_border_EW(
+     $         j_border_N, border_N,
+     $         corner_S, corner_N, interior_profile)
 
         end subroutine get_additional_blocks_E
 
 
         !< compute the additional block W for Fig.4
         subroutine get_additional_blocks_W(
-     $     bf_alignment,
+     $     j_border_S, j_border_N,
      $     border_S, border_N, interior_profile)
 
           implicit none
 
-          integer(ikind), dimension(2,2)              , intent(in)  :: bf_alignment
+          integer(ikind)                              , intent(in)  :: j_border_S
+          integer(ikind)                              , intent(in)  :: j_border_N
           integer       , dimension(2*bc_size,bc_size), intent(out) :: border_S
           integer       , dimension(2*bc_size,bc_size), intent(out) :: border_N
           integer       , dimension(2*bc_size)        , intent(out) :: interior_profile
 
           integer :: i,j
+          integer(ikind), dimension(2*bc_size,2*bc_size) :: corner_S
+          integer(ikind), dimension(2*bc_size,2*bc_size) :: corner_N
+
+          
+          !corner_S
+          j=1
+          do i=1, 2*bc_size
+             corner_S(i,j)=no_pt
+          end do
+
+          j=bc_size
+          do i=1, 2*bc_size
+             corner_S(i,j) = bc_pt
+          end do
+
+          j=bc_size+1
+          corner_S(1,j)=bc_pt
+          corner_S(2,j)=bc_interior_pt
+          corner_S(3,j)=bc_interior_pt
+          corner_S(4,j)=bc_interior_pt
+
+          j=bc_size+2
+          corner_S(1,j)=bc_pt
+          corner_S(2,j)=bc_interior_pt
+          corner_S(3,j)=interior_pt
+          corner_S(4,j)=interior_pt
+
+
+          !corner_N
+          j=1
+          corner_N(1,j)=bc_pt
+          corner_N(2,j)=bc_interior_pt
+          corner_N(3,j)=interior_pt
+          corner_N(4,j)=interior_pt
+
+          j=bc_size
+          corner_N(1,j)=bc_pt
+          corner_N(2,j)=bc_interior_pt
+          corner_N(3,j)=bc_interior_pt
+          corner_N(4,j)=bc_interior_pt
+
+          j=bc_size+1
+          do i=1, 2*bc_size
+             corner_N(i,j)=bc_pt
+          end do
+
+          j=bc_size+2
+          do i=1, 2*bc_size
+             corner_N(i,j)=no_pt
+          end do
+
+
 
           !interior profile
           do i=1, bc_size-1
@@ -1376,111 +1319,96 @@
           end do
 
           !border_S
-          if(bf_alignment(2,1).gt.(bc_size+2)) then
-             do j=1, bc_size
-                do i=1, bc_size
-                   border_S(i,j) = bc_pt
-                end do
+          call fill_border_EW(
+     $         j_border_S, border_S,
+     $         corner_S, corner_N, interior_profile)
 
-                i = bc_size
-                border_S(i,j) = bc_interior_pt
-
-                do i=bc_size+1, 2*bc_size
-                   border_S(i,j) = interior_pt
-                end do
-             end do
-
-          else
-             if(bf_alignment(2,1).eq.bc_size+2) then
-                j=1
-                do i=1,bc_size-1
-                   border_S(i,j) = bc_pt
-                end do
-                do i=bc_size, 2*bc_size
-                   border_S(i,j) = bc_interior_pt
-                end do
-
-                do j=2, bc_size
-                   do i=1,bc_size-1
-                      border_S(i,j) = bc_pt
-                   end do
-                   i=bc_size
-                   border_S(i,j) = bc_interior_pt
-                   do i=bc_size+1, 2*bc_size
-                      border_S(i,j) = interior_pt
-                   end do
-                end do                
-
-             else
-                do j=1, bc_size-1
-                   do i=1,2*bc_size
-                      border_S(i,j) = bc_pt
-                   end do
-                end do
-
-                j=bc_size
-                do i=1,bc_size-1
-                   border_S(i,j) = bc_pt
-                end do
-                do i=bc_size, 2*bc_size
-                   border_S(i,j) = bc_interior_pt
-                end do
-                
-             end if
-          end if
 
           !border_N
-          if(bf_alignment(2,2).lt.(ny-bc_size-1)) then
-             do j=1, bc_size
-                do i=1, bc_size-1
-                   border_N(i,j) = bc_pt
-                end do
-                i=bc_size
-                border_N(i,j) = bc_interior_pt
-                do i=bc_size+1, 2*bc_size
-                   border_N(i,j) = interior_pt
+          call fill_border_EW(
+     $         j_border_N, border_N,
+     $         corner_S, corner_N, interior_profile)
+
+        end subroutine get_additional_blocks_W
+
+
+        subroutine fill_border_NS(i_border, border, corner_W, corner_E, interior_profile)
+
+          implicit none
+
+          integer(ikind)                                , intent(in) :: i_border
+          integer(ikind), dimension(bc_size,2*bc_size)  , intent(out):: border
+          integer(ikind), dimension(2*bc_size,2*bc_size), intent(in) :: corner_W
+          integer(ikind), dimension(2*bc_size,2*bc_size), intent(in) :: corner_E
+          integer(ikind), dimension(2*bc_size)          , intent(in) :: interior_profile
+
+
+          integer(ikind) :: i,j
+
+
+          if((i_border.ge.0).and.(i_border.le.bc_size)) then
+             do j=1, 2*bc_size
+                do i=1, bc_size
+                   border(i,j) = corner_W(i+i_border,j)
                 end do
              end do
 
           else
-             if(bf_alignment(2,2).eq.(ny-bc_size-1)) then
-                j=1
-                do i=1, bc_size-1
-                   border_N(i,j) = bc_pt
-                end do
-                i=bc_size
-                border_N(i,j) = bc_interior_pt
-                do i=bc_size+1, 2*bc_size
-                   border_N(i,j) = interior_pt
-                end do
-
-                do j=2, bc_size
-                   do i=1, bc_size-1
-                      border_N(i,j) = bc_pt
-                   end do
-                   do i=bc_size, 2*bc_size
-                      border_N(i,j) = bc_interior_pt
+             if((i_border.ge.(nx-bc_size)).and.(i_border.le.nx)) then
+                do j=1, 2*bc_size
+                   do i=1, bc_size
+                      border(i,j) = corner_E(i_border-(nx-bc_size)+i,j)
                    end do
                 end do
-
              else
-                j=1
-                do i=1, bc_size-1
-                   border_N(i,j) = bc_pt
-                end do
-                do i=bc_size, 2*bc_size
-                   border_N(i,j) = bc_interior_pt
-                end do
-
-                do j=2, bc_size
-                   do i=1, 2*bc_size
-                      border_N(i,j) = bc_pt
+                do j=1, 2*bc_size
+                   do i=1, bc_size
+                      border(i,j) = interior_profile(j)
                    end do
                 end do
-
              end if
           end if
 
-        end subroutine get_additional_blocks_W
+        end subroutine fill_border_NS
+
+
+        subroutine fill_border_EW(j_border, border, corner_S, corner_N, interior_profile)
+
+          implicit none
+
+          integer(ikind)                                , intent(in) :: j_border
+          integer(ikind), dimension(2*bc_size,bc_size)  , intent(out):: border
+          integer(ikind), dimension(2*bc_size,2*bc_size), intent(in) :: corner_S
+          integer(ikind), dimension(2*bc_size,2*bc_size), intent(in) :: corner_N
+          integer(ikind), dimension(2*bc_size)          , intent(in) :: interior_profile
+
+
+          integer(ikind) :: i,j
+
+
+          if((j_border.ge.0).and.(j_border.le.bc_size)) then
+             do j=1, bc_size
+                do i=1, 2*bc_size
+                   border(i,j) = corner_S(i,j+j_border)
+                end do
+             end do
+
+          else
+             if((j_border.ge.(ny-bc_size)).and.(j_border.le.ny)) then
+                do j=1, bc_size
+                   do i=1, 2*bc_size
+                      border(i,j) = corner_N(i,j_border-(ny-bc_size)+j)
+                   end do
+                end do
+             else
+                do j=1, bc_size
+                   do i=1, 2*bc_size
+                      border(i,j) = interior_profile(i)
+                   end do
+                end do
+             end if
+          end if
+
+        end subroutine fill_border_EW        
 
       end module bf_layer_allocate_module

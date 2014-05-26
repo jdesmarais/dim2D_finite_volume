@@ -142,6 +142,16 @@ def make_matrix_for_all_bf_layers(
 
     #possible mainlayers
     mainlayers_char = ['N_','S_','E_','W_','NE','NW','SE','SW']
+
+    
+    #extract the data for the interior nodes
+    [nodes_sizes,grdpts_id,nodes] = extract_interior_data(
+        interior_size_filename,
+        interior_grdptsid_filename,
+        interior_nodes_filename)
+    nodes_size_x = nodes_sizes[0]
+    nodes_size_y = nodes_sizes[1]
+    
     
     #extract the size of the sublayers
     size_x = 0
@@ -168,20 +178,20 @@ def make_matrix_for_all_bf_layers(
                 #compare the size with the actual extent of the
                 #large matrix
                 compare_procedure = {
-                    'N_' : update_size_y,
-                    'S_' : update_size_y,
-                    'E_' : update_size_x,
-                    'W_' : update_size_x,
-                    'NE' : update_size_x_and_y,
-                    'NW' : update_size_x_and_y,
-                    'SE' : update_size_x_and_y,
-                    'SW' : update_size_x_and_y}
-
+                    'N_' : compute_sizes_N,
+                    'S_' : compute_sizes_S,
+                    'E_' : compute_sizes_E,
+                    'W_' : compute_sizes_W}
+                
                 [size_x,size_y] = compare_procedure[mainlayer](
                     size_x,
                     size_y,
-                    sizes[0],
-                    sizes[1])
+                    nodes_size_x,
+                    nodes_size_y,
+                    sizes[3],
+                    sizes[4],
+                    sizes[5],
+                    sizes[6])
 
             #else:
             #    #print filename not recognized
@@ -191,14 +201,6 @@ def make_matrix_for_all_bf_layers(
     bf_tmp_size_x = size_x
     bf_tmp_size_y = size_y
 
-    #extract the data for the interior nodes
-    [nodes_sizes,grdpts_id,nodes] = extract_interior_data(
-        interior_size_filename,
-        interior_grdptsid_filename,
-        interior_nodes_filename)
-    nodes_size_x = nodes_sizes[0]
-    nodes_size_y = nodes_sizes[1]
-    
     #interspace
     interspace = 2
 
@@ -262,19 +264,41 @@ def make_matrix_for_all_bf_layers(
     return [lm_nodes,lm_grdptid]
 
  
-def update_size_x(size_x,size_y,new_size_x,new_size_y):
-    size_x = max(size_x,new_size_x)
-    return [size_x,size_y]
- 
-def update_size_y(size_x,size_y,new_size_x,new_size_y):
-    size_y = max(size_y,new_size_y)
-    return [size_x,size_y]    
+def compute_sizes_N(size_x, size_y, nx, ny, align11, align12, align21, align22):
+    new_size_x = max(0,bc_size+1-align11,align12-(nx+1))
+    new_size_y = max(0,align22-(ny+1)+bc_size)
 
-def update_size_x_and_y(size_x,size_y,new_size_x,new_size_y):
-    size_x = max(size_x,new_size_x)
-    size_y = max(size_y,new_size_y)
+    size_x = max(size_x, new_size_x+2*bc_size)
+    size_y = max(size_y, new_size_y+2*bc_size)
+    
     return [size_x,size_y]
 
+def compute_sizes_S(size_x, size_y, nx, ny, align11, align12, align21, align22):
+    new_size_x = max(0,bc_size+1-align11,align12-(nx+1))
+    new_size_y = max(0,-align21+bc_size)
+
+    size_x = max(size_x, new_size_x+2*bc_size)
+    size_y = max(size_y, new_size_y+2*bc_size)
+    
+    return [size_x,size_y]
+
+def compute_sizes_E(size_x, size_y, nx, ny, align11, align12, align21, align22):
+    new_size_x = max(0,align12-(nx+1))
+    new_size_y = max(0,bc_size+1-align21,align22-(ny+1))
+
+    size_x = max(size_x, new_size_x+2*bc_size)
+    size_y = max(size_y, new_size_y+2*bc_size)
+    
+    return [size_x,size_y]
+
+def compute_sizes_W(size_x, size_y, nx, ny, align11, align12, align21, align22):
+    new_size_x = max(0,0-align11)
+    new_size_y = max(0,bc_size+1-align21,align22-(ny+1))
+
+    size_x = max(size_x, new_size_x+2*bc_size)
+    size_y = max(size_y, new_size_y+2*bc_size)
+    
+    return [size_x,size_y]
 
 def fill_bf_layer_data(
     folder_path,
@@ -360,6 +384,8 @@ def fill_bf_layer_data(
         #print shape(nodes)
         #print bf_layer_size_y
         #print bf_layer_size_x
+
+        #print i_match, j_match, i_match+bf_layer_size_x, j_match+bf_layer_size_y, shape(lm_nodes)
 
         lm_nodes[j_match:j_match+bf_layer_size_y,
                  i_match:i_match+bf_layer_size_x] = nodes[0,:,:]

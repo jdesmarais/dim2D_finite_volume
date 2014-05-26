@@ -1329,7 +1329,8 @@
           
           !get the additional blocks
           call get_additional_blocks_N(
-     $         bf_alignment,
+     $         bf_alignment(1,1)-bc_size+i_min1,
+     $         bf_alignment(1,1)-bc_size+i_min7,
      $         border_W, border_E, interior_profile)
           
 
@@ -1531,7 +1532,8 @@
           
           !get the additional blocks
           call get_additional_blocks_S(
-     $         bf_alignment,
+     $         bf_alignment(1,1)-bc_size+i_min1,
+     $         bf_alignment(1,1)-bc_size+i_min7,
      $         border_W, border_E, interior_profile)
           
 
@@ -1738,7 +1740,8 @@
 
           !get the additional blocks
           call get_additional_blocks_E(
-     $         bf_alignment,
+     $         bf_alignment(2,1)-bc_size+j_min1,
+     $         bf_alignment(2,1)-bc_size+j_min7,
      $         border_S, border_N, interior_profile)
           
 
@@ -1858,7 +1861,8 @@
 
           !get the additional blocks
           call get_additional_blocks_W(
-     $         bf_alignment,
+     $         bf_alignment(2,1)-bc_size+j_min1,
+     $         bf_alignment(2,1)-bc_size+j_min7,
      $         border_S, border_N, interior_profile)
           
 
