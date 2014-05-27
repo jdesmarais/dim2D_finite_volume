@@ -107,7 +107,7 @@
           procedure,   pass :: copy_to_neighbor1
           procedure,   pass :: copy_to_neighbor2
 
-          procedure,   pass          :: update_grdpts_id
+          procedure,   pass          :: update_grdpts
           procedure, nopass, private :: update_bc_interior_pt_to_interior_pt
           procedure, nopass, private :: check_neighbors
           procedure, nopass, private :: check_gridpoint
@@ -734,7 +734,7 @@
         !> from bc_interior_pt to interior_pt and add the neighboring
         !> points around it to make sure that their computation is
         !> possible. Then compute these new grid points.
-        subroutine update_grdpts_id(this, selected_grdpts)
+        subroutine update_grdpts(this, selected_grdpts)
 
           implicit none
 
@@ -751,7 +751,7 @@
      $         selected_grdpts,
      $         match_table)
 
-        end subroutine update_grdpts_id
+        end subroutine update_grdpts
 
 
         !> @author
