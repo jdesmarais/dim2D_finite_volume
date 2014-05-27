@@ -1,463 +1,457 @@
       !> @file
       !> module encapsulating the subroutines related to the
-      !> exchange of data between the interior and the buffer
-      !> layers and between the different buffer layers
+      !> exchange of data between the different buffer layers
       !
       !> @author
       !> Julien L. Desmarais
       !
       !> @brief
-      !> subroutines related to allocation and reallocation of the
-      !> buffer layer object
+      !> subroutines related to the exchange of data between
+      !> the different buffer layers
       !
       !> @date
-      ! 04_04_2014 - initial version - J.L. Desmarais
+      ! 27_05_2014 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module bf_layer_exchange_module
 
-        use bf_layer_abstract_class, only : bf_layer_abstract
-
-        use parameters_bf_layer, only : exchange_pt
-        use parameters_constant, only : N,S,E,W,N_E,N_W,S_E,S_W
-        use parameters_input   , only : nx,ny,ne,bc_size
+        use parameters_constant, only : N,S,E,W
+        use parameters_input   , only : ne, bc_size
         use parameters_kind    , only : ikind, rkind
-
-
+      
         implicit none
 
-
         private
-        public :: first_exchange_with_interior,
-     $            copy_interior_data_after_reallocation
+        public :: get_match_indices_for_copy_from_neighbor1,
+     $            get_match_indices_for_copy_to_neighbor1,
+     $            get_match_indices_for_copy_from_neighbor2,
+     $            get_match_indices_for_copy_to_neighbor2,
+     $            copy_from_bf1_to_bf2
 
         contains
 
         
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> subroutine initializing the data contained in the
-        !> main tables of the buffer layer (grdptid, nodes)
-        !> using the data of the interior domain
-        !> the grid points that can not be initialized by the
-        !> exchange are identified and their position is saved
-        !> in an additional table
-        !
-        !> @date
-        !> 04_04_2013 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer_abstract object encapsulating the main
-        !> tables and the integer identifying the
-        !> correspondance between the buffer layer and the
-        !> interior grid points
-        !
-        !>@param nodes
-        !> table encapsulating the data of the internal
-        !> grid points
-        !
-        !>@param list_new_grdpts
-        !> table encapsulating the coordinates of the new grid points
-        !--------------------------------------------------------------
-        subroutine copy_from_interior(
-        
-     $       bf_nodes,
-     $       interior_nodes,
-     $       list_new_grdpts)
+        subroutine copy_from_bf1_to_bf2(
+     $       bf1_i_min, bf1_j_min, bf2_i_min, bf2_j_min,
+     $       bf_copy_size_x, bf_copy_size_y,
+     $       bf1_nodes, bf1_grdpts_id,
+     $       bf2_nodes, bf2_grdpts_id)
+
 
           implicit none
 
-          integer                                      , intent(in)    :: mainlayer_id
-          integer(ikind), dimension(2,2)               , intent(in)    :: alignment
-          real(rkind)   , dimension(:,:,:)             , intent(out)   :: bf_nodes
-          real(rkind)   , dimension(nx,ny,ne)          , intent(in)    :: interior_nodes
-          integer(ikind), dimension(:,:)  , allocatable, intent(out)   :: list_new_grdpts
-          
+          integer(ikind)                  , intent(in) :: bf1_i_min
+          integer(ikind)                  , intent(in) :: bf1_j_min
+          integer(ikind)                  , intent(in) :: bf2_i_min
+          integer(ikind)                  , intent(in) :: bf2_j_min
+          integer(ikind)                  , intent(in) :: bf_copy_size_x
+          integer(ikind)                  , intent(in) :: bf_copy_size_y
+          real(rkind)   , dimension(:,:,:), intent(in) :: bf1_nodes
+          integer       , dimension(:,:)  , intent(in) :: bf1_grdpts_id
+          real(rkind)   , dimension(:,:,:), intent(out):: bf2_nodes
+          integer       , dimension(:,:)  , intent(out):: bf2_grdpts_id
 
-          integer(ikind) :: i,j,k
-          integer(ikind) :: i_match, j_match
-          integer(ikind) :: nb_new_grdpts
-
-
-          !< copy of the interior grid points
-          !> and identification of the new grid
-          !> points
-          select case(this%localization)
-
-            case(N)
-
-               !< copy of grid points from the interior
-               i_match = this%alignment(1,1)-bc_size-1
-               j_match = ny-2*bc_size
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, size(this%nodes,1)
-                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !< determination of the list of new gridpoints
-               nb_new_grdpts = size(this%nodes,1)
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do i=1, size(this%nodes,1)
-                  list_new_grdpts(i,1) = i
-                  list_new_grdpts(i,2) = 2*bc_size+1
-               end do
-
-            case(S)               
-
-               !< copy of grid points from the interior
-               i_match = this%alignment(1,1)-bc_size-1
-               j_match = 0
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, size(this%nodes,1)
-                        this%nodes(i,j+1,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !< determination of the list of new gridpoints
-               nb_new_grdpts = size(this%nodes,1)
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do i=1, size(this%nodes,1)
-                  list_new_grdpts(i,1) = i
-                  list_new_grdpts(i,2) = 1
-               end do
-               
-            case(E)
-
-               !< copy of grid points from the interior
-               i_match = nx-2*bc_size
-               j_match = this%alignment(2,1)-bc_size-1
-               do k=1, ne
-                  do j=1, size(this%nodes,2)
-                     do i=1, 2*bc_size
-                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !< determination of the list of new gridpoints
-               nb_new_grdpts = size(this%nodes,2)
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do j=1, size(this%nodes,2)
-                  list_new_grdpts(j,1) = 2*bc_size+1
-                  list_new_grdpts(j,2) = j
-               end do
-
-            case(W)
-
-               !< copy of grid points from the interior
-               i_match = 0
-               j_match = this%alignment(2,1)-bc_size-1
-               do k=1, ne
-                  do j=1, size(this%nodes,2)
-                     do i=1, 2*bc_size
-                        this%nodes(i+1,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-               
-               !< determination of the list of new gridpoints
-               nb_new_grdpts = size(this%nodes,2)
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do j=1, size(this%nodes,2)
-                  list_new_grdpts(j,1) = 1
-                  list_new_grdpts(j,2) = j
-               end do
-
-            case(N_E)
-
-               !< copy of grid points from the interior
-               i_match = nx-2*bc_size
-               j_match = ny-2*bc_size
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, 2*bc_size
-                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !< determination of the list of new gridpoints
-               nb_new_grdpts = 4*bc_size + 1
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do j=1, 2*bc_size
-                  list_new_grdpts(j,1) = 2*bc_size+1
-                  list_new_grdpts(j,2) = j
-               end do
-               do i=1, 2*bc_size+1
-                  list_new_grdpts(2*bc_size+i,1) = i
-                  list_new_grdpts(2*bc_size+i,2) = 2*bc_size+1
-               end do
-               
-
-            case(N_W)
-
-               !< copy of grid points from the interior
-               i_match = 0
-               j_match = ny-2*bc_size
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, 2*bc_size
-                        this%nodes(1+i,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !< determination of the list of new gridpoints
-               nb_new_grdpts = 4*bc_size + 1
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do j=1, 2*bc_size
-                  list_new_grdpts(j,1) = 1
-                  list_new_grdpts(j,2) = j
-               end do
-               do i=1, 2*bc_size+1
-                  list_new_grdpts(2*bc_size+i,1) = i
-                  list_new_grdpts(2*bc_size+i,2) = 2*bc_size+1
-               end do
-
-            case(S_E)
-
-               !< copy of grid points from the interior
-               i_match = nx-2*bc_size
-               j_match = 0
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, 2*bc_size
-                        this%nodes(i,1+j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !< determination of the list of new gridpoints
-               nb_new_grdpts = 4*bc_size+1
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do i=1, 2*bc_size+1
-                  list_new_grdpts(i,1) = i
-                  list_new_grdpts(i,2) = 1
-               end do
-               do j=2, 2*bc_size+1
-                  list_new_grdpts(2*bc_size+j,1) = 2*bc_size+1
-                  list_new_grdpts(2*bc_size+j,2) = j
-               end do
-               
-
-            case(S_W)
-
-               !< copy of grid points from the interior
-               i_match = 0
-               j_match = 0
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, 2*bc_size
-                        this%nodes(1+i,1+j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !< determination of the list of new gridpoints
-               nb_new_grdpts = 4*bc_size+1
-               allocate(list_new_grdpts(nb_new_grdpts,2))
-               do i=1, 2*bc_size+1
-                  list_new_grdpts(i,1) = i
-                  list_new_grdpts(i,2) = 1
-               end do
-               do j=2, 2*bc_size+1
-                  list_new_grdpts(2*bc_size+j,1) = 1
-                  list_new_grdpts(2*bc_size+j,2) = j
-               end do
-
-          end select          
-
-        end subroutine first_exchange_with_interior
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> subroutine copying the data from the interior domain
-        !> to the reallocated table
-        !
-        !> @date
-        !> 22_04_2013 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer_abstract object encapsulating the main
-        !> tables and the integer identifying the
-        !> correspondance between the buffer layer and the
-        !> interior grid points
-        !
-        !>@param alignment
-        !> table of integers characterizing the
-        !> correspondance between the interior grid points
-        !> and the buffer layer elements
-        !
-        !>@param nodes
-        !> table encapsulating the data of the internal
-        !> grid points
-        !--------------------------------------------------------------
-        subroutine copy_interior_data_after_reallocation(
-     $       this,
-     $       nodes,
-     $       border_changes)
-
-          implicit none
-
-          class(bf_layer_abstract)          , intent(inout) :: this
-          real(rkind)   , dimension(:,:,:)  , intent(in)    :: nodes
-          integer(ikind), dimension(2,2)    , intent(in)    :: border_changes
-
-          integer(ikind) :: i,j, i_match, j_match
+          integer(ikind) :: i,j
           integer        :: k
 
-          !< copy of the interior grid points
-          !> and identification of the new grid
-          !> points
-          select case(this%localization)
+          
+          do k=1, ne
+             do j=bf1_j_min, bf1_j_min+bf_copy_size_y-1
+                do i=bf1_i_min, bf1_i_min+bf_copy_size_x-1
+                   bf2_nodes(i-bf1_i_min+bf2_i_min,
+     $                       j-bf1_j_min+bf2_j_min,
+     $                       k) = bf1_nodes(i,j,k)
+                end do
+             end do
+          end do
 
-            case(N)
+          do j=bf1_j_min, bf1_j_min+bf_copy_size_y-1
+             do i=bf1_i_min, bf1_i_min+bf_copy_size_x-1
+                bf2_grdpts_id(
+     $               i-bf1_i_min+bf2_i_min,
+     $               j-bf1_j_min+bf2_j_min) = bf1_grdpts_id(i,j)
+             end do
+          end do
 
-               !< copy of grid points from the interior
-               i_match = this%alignment(1,1)-bc_size-1
-               j_match = ny-2*bc_size
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, -border_changes(1,1)
-                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
+        end subroutine copy_from_bf1_to_bf2
 
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=size(this%nodes,1)-border_changes(1,2)+1, size(this%nodes,1)
-                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
 
-               !< update the exchanged gridpoints
-               do j=1, bc_size
-                  do i=1, -border_changes(1,1)
-                     this%grdpts_id(i,j) = exchange_pt
-                  end do
-               end do
+        subroutine get_match_indices_for_copy_from_neighbor1(
+     $     localization,
+     $     bf_alignment, bf_size_y,
+     $     nbf_alignment, nbf_size_y,
+     $     bf_i_min, bf_j_min,
+     $     nbf_i_min, nbf_j_min,
+     $     bf_copy_size_x, bf_copy_size_y)
 
-               do j=1, bc_size
-                  do i=size(this%grdpts_id,1)-border_changes(1,2)+1, size(this%grdpts_id,1)
-                     this%grdpts_id(i,j) = exchange_pt
-                  end do
-               end do
+          implicit none
 
-            case(S)               
+          integer                       , intent(in)  :: localization
+          integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
+          integer(ikind)                , intent(in)  :: bf_size_y
+          integer(ikind), dimension(2,2), intent(in)  :: nbf_alignment
+          integer(ikind)                , intent(in)  :: nbf_size_y
+          integer(ikind)                , intent(out) :: bf_i_min
+          integer(ikind)                , intent(out) :: bf_j_min
+          integer(ikind)                , intent(out) :: nbf_i_min
+          integer(ikind)                , intent(out) :: nbf_j_min
+          integer(ikind)                , intent(out) :: bf_copy_size_x
+          integer(ikind)                , intent(out) :: bf_copy_size_y
 
-               !< copy of grid points from the interior
-               i_match = this%alignment(1,1)-bc_size-1
-               j_match = size(this%nodes,2)-(2*bc_size)
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=1, -border_changes(1,1)
-                        this%nodes(i,j_match+j,k) = nodes(i_match+i,j,k)
-                     end do
-                  end do
-               end do
+          !we need to define the borders identifying the subarrays
+          !copied from the tables of neighbors1 to the tables of the
+          !current sublayer
 
-               do k=1, ne
-                  do j=1, 2*bc_size
-                     do i=size(this%nodes,1)-border_changes(1,2)+1, size(this%nodes,1)
-                        this%nodes(i,j_match+j,k) = nodes(i_match+i,j,k)
-                     end do
-                  end do
-               end do
+          !for the borders along the x-direction, we first use their
+          !general coordinates to identify thme (that is the coordinates
+          !with references to the interior domain)
 
-               !< update the exchanged gridpoints
-               do j=size(this%grdpts_id,2)-bc_size+1, size(this%grdpts_id,2)
-                  do i=1, -border_changes(1,1)
-                     this%grdpts_id(i,j) = exchange_pt
-                  end do
-               end do
+          !then they are expressed as (bf_i_min, bf_i_max), and 
+          !(nbf_i_min, nbf_i_max) for the local coordinates of the tables
 
-               do j=size(this%grdpts_id,2)-bc_size+1, size(this%grdpts_id,2)
-                  do i=size(this%grdpts_id,1)-border_changes(1,2)+1, size(this%grdpts_id,1)
-                     this%grdpts_id(i,j) = exchange_pt
-                  end do
-               end do
-               
-            case(E)
-
-               !< copy of grid points from the interior
-               i_match = nx-2*bc_size
-               j_match = this%alignment(2,1)-bc_size-1
-               do k=1, ne
-                  do j=1, -border_changes(2,1)
-                     do i=1, 2*bc_size
-                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               do k=1, ne
-                  do j=size(this%nodes,2)-border_changes(2,2)+1, size(this%nodes,2)
-                     do i=1, 2*bc_size
-                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !< update the exchanged gridpoints
-               do j=1, -border_changes(2,1)
-                  do i=1, bc_size
-                     this%grdpts_id(i,j) = exchange_pt
-                  end do
-               end do
-
-               do j=size(this%grdpts_id,2)-border_changes(2,2)+1, size(this%grdpts_id,2)
-                  do i=1, bc_size
-                     this%grdpts_id(i,j) = exchange_pt
-                  end do
-               end do
-
-            case(W)
-
-               !< copy of grid points from the interior
-               i_match = size(this%nodes,1)-(2*bc_size)
-               j_match = this%alignment(2,1)-bc_size-1
-               do k=1, ne
-                  do j=1, -border_changes(2,1)
-                     do i=1, 2*bc_size
-                        this%nodes(i_match+i,j,k) = nodes(i,j_match+j,k)
-                     end do
-                  end do
-               end do
-               
-               do k=1, ne
-                  do j=size(this%nodes,2)-border_changes(2,2)+1, size(this%nodes,2)
-                     do i=1, 2*bc_size
-                        this%nodes(i_match+i,j,k) = nodes(i,j_match+j,k)
-                     end do
-                  end do
-               end do
-
-               !< update the exchanged gridpoints
-               do j=1, -border_changes(2,1)
-                  do i=size(this%grdpts_id,1)-bc_size+1, size(this%grdpts_id,1)
-                     this%grdpts_id(i,j) = exchange_pt
-                  end do
-               end do
-
-               do j=size(this%grdpts_id,2)-border_changes(2,2)+1, size(this%grdpts_id,2)
-                  do i=size(this%grdpts_id,1)-bc_size+1, size(this%grdpts_id,1)
-                     this%grdpts_id(i,j) = exchange_pt
-                  end do
-               end do
-
+          !the borders along the y-direction, we use the assumptions:
+          ! - for the N and S buffer layers, the neighbor1 corresponds
+          !   to the neighbor on the W main layer
+          ! - for the E and W buffer layers, the neighbor1 corresponds
+          !   to the neighbor on the S main layer
+          
+          !using the previous assumptions, it is possible to determine the
+          !borders along the y-direction as local coordinates for the tables
+          !(bf_j_min, bf_j_max) and (nbf_j_min, nbf_j_max)
+          call get_x_exchange_indices(bf_alignment, nbf_alignment,
+     $                                bf_i_min, nbf_i_min,
+     $                                bf_copy_size_x)
+          
+          !get the local min and max borders along the y-direction as
+          !local coordinates
+          select case(localization)
+            case(N,E,W)
+               call get_S_recv_indices(bf_j_min)
+               call get_N_send_indices(nbf_size_y, nbf_j_min)
+            case(S)
+               call get_N_recv_indices(bf_size_y, bf_j_min)
+               call get_S_send_indices(nbf_j_min)
+            case default
+               print '(''bf_layer_class'')'
+               print '(''copy_from_neighbor1'')'
+               print '(''localization not recognized'')'
+               print '(''localization: '', I2)', localization
+               stop 'change loclaization'
           end select
 
-        end subroutine copy_interior_data_after_reallocation
+          bf_copy_size_y = bc_size
+
+        end subroutine get_match_indices_for_copy_from_neighbor1
+
+
+        subroutine get_match_indices_for_copy_to_neighbor1(
+     $     localization,
+     $     bf_alignment, bf_size_y,
+     $     nbf_alignment, nbf_size_y,
+     $     bf_i_min, bf_j_min,
+     $     nbf_i_min, nbf_j_min,
+     $     bf_copy_size_x, bf_copy_size_y)
+
+          implicit none
+
+          integer                       , intent(in)  :: localization
+          integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
+          integer(ikind)                , intent(in)  :: bf_size_y
+          integer(ikind), dimension(2,2), intent(in)  :: nbf_alignment
+          integer(ikind)                , intent(in)  :: nbf_size_y
+          integer(ikind)                , intent(out) :: bf_i_min
+          integer(ikind)                , intent(out) :: bf_j_min
+          integer(ikind)                , intent(out) :: nbf_i_min
+          integer(ikind)                , intent(out) :: nbf_j_min
+          integer(ikind)                , intent(out) :: bf_copy_size_x
+          integer(ikind)                , intent(out) :: bf_copy_size_y
+
+
+          !we need to define the borders identifying the subarrays
+          !copied from the tables of neighbors1 to the tables of the
+          !current sublayer
+
+          !for the borders along the x-direction, we first use their
+          !general coordinates to identify thme (that is the coordinates
+          !with references to the interior domain)
+
+          !then they are expressed as (bf_i_min, bf_i_max), and 
+          !(nbf_i_min, nbf_i_max) for the local coordinates of the tables
+
+          !the borders along the y-direction, we use the assumptions:
+          ! - for the N and S buffer layers, the neighbor1 corresponds
+          !   to the neighbor on the W main layer
+          ! - for the E and W buffer layers, the neighbor1 corresponds
+          !   to the neighbor on the S main layer
+          
+          !using the previous assumptions, it is possible to determine the
+          !borders along the y-direction as local coordinates for the tables
+          !(bf_j_min, bf_j_max) and (nbf_j_min, nbf_j_max)
+          call get_x_exchange_indices(bf_alignment, nbf_alignment,
+     $                                bf_i_min, nbf_i_min,
+     $                                bf_copy_size_x)
+          
+          !get the local min and max borders along the y-direction as
+          !local coordinates
+          select case(localization)
+            case(N,E,W)
+               call get_S_send_indices(bf_j_min)
+               call get_N_recv_indices(nbf_size_y, nbf_j_min)
+            case(S)
+               call get_N_send_indices(bf_size_y, bf_j_min)
+               call get_S_recv_indices(nbf_j_min)
+            case default
+               print '(''bf_layer_class'')'
+               print '(''copy_from_neighbor1'')'
+               print '(''localization not recognized'')'
+               print '(''localization: '', I2)', localization
+               stop 'change loclaization'
+          end select
+
+          bf_copy_size_y = bc_size
+
+        end subroutine get_match_indices_for_copy_to_neighbor1
+
+
+        subroutine get_match_indices_for_copy_from_neighbor2(
+     $     localization,
+     $     bf_alignment, bf_size_y,
+     $     nbf_alignment, nbf_size_y,
+     $     bf_i_min, bf_j_min,
+     $     nbf_i_min, nbf_j_min,
+     $     bf_copy_size_x, bf_copy_size_y)
+
+          implicit none
+
+          integer                       , intent(in)  :: localization
+          integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
+          integer(ikind)                , intent(in)  :: bf_size_y
+          integer(ikind), dimension(2,2), intent(in)  :: nbf_alignment
+          integer(ikind)                , intent(in)  :: nbf_size_y
+          integer(ikind)                , intent(out) :: bf_i_min
+          integer(ikind)                , intent(out) :: bf_j_min
+          integer(ikind)                , intent(out) :: nbf_i_min
+          integer(ikind)                , intent(out) :: nbf_j_min
+          integer(ikind)                , intent(out) :: bf_copy_size_x
+          integer(ikind)                , intent(out) :: bf_copy_size_y
+
+
+          !we need to define the borders identifying the subarrays
+          !copied from the tables of neighbors1 to the tables of the
+          !current sublayer
+
+          !for the borders along the x-direction, we first use their
+          !general coordinates to identify thme (that is the coordinates
+          !with references to the interior domain)
+
+          !then they are expressed as (bf_i_min, bf_i_max), and 
+          !(nbf_i_min, nbf_i_max) for the local coordinates of the tables
+
+          !the borders along the y-direction, we use the assumptions:
+          ! - for the N and S buffer layers, the neighbor2 corresponds
+          !   to the neighbor on the E main layer
+          ! - for the E and W buffer layers, the neighbor2 corresponds
+          !   to the neighbor on the N main layer
+          
+          !using the previous assumptions, it is possible to determine the
+          !borders along the y-direction as local coordinates for the tables
+          !(bf_j_min, bf_j_max) and (nbf_j_min, nbf_j_max)
+          call get_x_exchange_indices(bf_alignment, nbf_alignment,
+     $                                bf_i_min, nbf_i_min,
+     $                                bf_copy_size_x)
+          
+          !get the local min and max borders along the y-direction as
+          !local coordinates
+          select case(localization)
+            case(N)
+               call get_S_recv_indices(bf_j_min)
+               call get_N_send_indices(nbf_size_y, nbf_j_min)
+            case(S,E,W)
+               call get_N_recv_indices(bf_size_y, bf_j_min)
+               call get_S_send_indices(nbf_j_min)
+            case default
+               print '(''bf_layer_class'')'
+               print '(''copy_from_neighbor1'')'
+               print '(''localization not recognized'')'
+               print '(''localization: '', I2)', localization
+               stop 'change loclaization'
+          end select
+
+          bf_copy_size_y = bc_size
+
+        end subroutine get_match_indices_for_copy_from_neighbor2
+
+
+        subroutine get_match_indices_for_copy_to_neighbor2(
+     $     localization,
+     $     bf_alignment, bf_size_y,
+     $     nbf_alignment, nbf_size_y,
+     $     bf_i_min, bf_j_min,
+     $     nbf_i_min, nbf_j_min,
+     $     bf_copy_size_x, bf_copy_size_y)
+
+          implicit none
+
+          integer                       , intent(in)  :: localization
+          integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
+          integer(ikind)                , intent(in)  :: bf_size_y
+          integer(ikind), dimension(2,2), intent(in)  :: nbf_alignment
+          integer(ikind)                , intent(in)  :: nbf_size_y
+          integer(ikind)                , intent(out) :: bf_i_min
+          integer(ikind)                , intent(out) :: bf_j_min
+          integer(ikind)                , intent(out) :: nbf_i_min
+          integer(ikind)                , intent(out) :: nbf_j_min
+          integer(ikind)                , intent(out) :: bf_copy_size_x
+          integer(ikind)                , intent(out) :: bf_copy_size_y
+
+
+          !we need to define the borders identifying the subarrays
+          !copied from the tables of neighbors1 to the tables of the
+          !current sublayer
+
+          !for the borders along the x-direction, we first use their
+          !general coordinates to identify thme (that is the coordinates
+          !with references to the interior domain)
+
+          !then they are expressed as (bf_i_min, bf_i_max), and 
+          !(nbf_i_min, nbf_i_max) for the local coordinates of the tables
+
+          !the borders along the y-direction, we use the assumptions:
+          ! - for the N and S buffer layers, the neighbor2 corresponds
+          !   to the neighbor on the E main layer
+          ! - for the E and W buffer layers, the neighbor2 corresponds
+          !   to the neighbor on the N main layer
+          
+          !using the previous assumptions, it is possible to determine the
+          !borders along the y-direction as local coordinates for the tables
+          !(bf_j_min, bf_j_max) and (nbf_j_min, nbf_j_max)
+          call get_x_exchange_indices(bf_alignment, nbf_alignment,
+     $                                bf_i_min, nbf_i_min,
+     $                                bf_copy_size_x)
+          
+          !get the local min and max borders along the y-direction as
+          !local coordinates
+          select case(localization)
+            case(N)
+               call get_S_send_indices(bf_j_min)
+               call get_N_recv_indices(nbf_size_y, nbf_j_min)
+            case(S,E,W)
+               call get_N_send_indices(bf_size_y, bf_j_min)
+               call get_S_recv_indices(nbf_j_min)
+            case default
+               print '(''bf_layer_class'')'
+               print '(''copy_from_neighbor1'')'
+               print '(''localization not recognized'')'
+               print '(''localization: '', I2)', localization
+               stop 'change loclaization'
+          end select
+
+          bf_copy_size_y = bc_size
+
+        end subroutine get_match_indices_for_copy_to_neighbor2
+
+
+        subroutine get_N_recv_indices(size_y, bf_j_min)
+
+          implicit none
+
+          integer(ikind), intent(in)  :: size_y
+          integer(ikind), intent(out) :: bf_j_min
+
+          bf_j_min = size_y-bc_size+1
+
+        end subroutine get_N_recv_indices
+
+
+        subroutine get_N_send_indices(size_y, bf_j_min)
+
+          implicit none
+
+          integer(ikind), intent(in)  :: size_y
+          integer(ikind), intent(out) :: bf_j_min
+
+          bf_j_min = size_y-2*bc_size+1
+
+        end subroutine get_N_send_indices
+
+      
+        subroutine get_S_recv_indices(bf_j_min)
+
+          implicit none
+
+          integer(ikind), intent(out) :: bf_j_min
+
+          bf_j_min = 1
+
+        end subroutine get_S_recv_indices
+
+
+        subroutine get_S_send_indices(bf_j_min)
+
+          implicit none
+
+          integer(ikind), intent(out) :: bf_j_min
+
+          bf_j_min = bc_size+1
+
+        end subroutine get_S_send_indices
+
+
+        subroutine get_x_exchange_indices(
+     $     bf_alignment, nbf_alignment,
+     $     bf_i_min, nbf_i_min, bf_copy_size_x)
+
+          implicit none
+
+          integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
+          integer(ikind), dimension(2,2), intent(in)  :: nbf_alignment
+          integer(ikind)                , intent(out) :: bf_i_min
+          integer(ikind)                , intent(out) :: nbf_i_min
+          integer(ikind)                , intent(out) :: bf_copy_size_x
+
+          integer(ikind) :: min_border, max_border
+
+
+          !get the min and max borders along the x-direction as
+          !x-component of the general coordinates
+          min_border = max(bf_alignment(1,1), nbf_alignment(1,1)) - bc_size
+          max_border = min(bf_alignment(1,2), nbf_alignment(1,2)) + bc_size
+
+          !convert the previous data into local coordinates for the current
+          !buffer layer and the neighbor1
+          bf_i_min  = get_x_local_coord(min_border, bf_alignment)
+          nbf_i_min = get_x_local_coord(min_border, nbf_alignment)
+
+          !copy size x
+          bf_copy_size_x = max_border-min_border+1
+
+        end subroutine get_x_exchange_indices
+
+
+        !< get local coordinates along the x-direction
+        function get_x_local_coord(i_general_coord, bf_alignment) result(i_local_coord)
+
+          implicit none
+
+          integer(ikind)                , intent(in) :: i_general_coord
+          integer(ikind), dimension(2,2), intent(in) :: bf_alignment
+          integer(ikind)                             :: i_local_coord
+
+          i_local_coord = i_general_coord - (bf_alignment(1,1) - (bc_size+1))        
+
+        end function get_x_local_coord
+
+
+        !< get local coordinates along the y-direction
+        function get_y_local_coord(j_general_coord, bf_alignment) result(j_local_coord)
+
+          implicit none
+
+          integer(ikind)                , intent(in) :: j_general_coord
+          integer(ikind), dimension(2,2), intent(in) :: bf_alignment
+          integer(ikind)                             :: j_local_coord
+
+          j_local_coord = j_general_coord - (bf_alignment(2,1) - (bc_size+1))
+
+        end function get_y_local_coord        
 
       end module bf_layer_exchange_module

@@ -15,6 +15,7 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
      $       bf_layer_test_allocation,
      $       bf_layer_test_reallocation,
      $       bf_layer_test_merge,
+     $       bf_layer_test_copy_neighbors,
      $       test_bf_layer_local_coord,
      $       ini_nodes,
      $       ini_grdpts_id,
@@ -179,6 +180,85 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         end subroutine bf_layer_test_merge
 
 
+
+        subroutine bf_layer_test_copy_neighbors(
+     $     bf_layer_tested, neighbor1, neighbor2,
+     $     bf_layer_char, neighbor1_char, neighbor2_char,
+     $     file_index)
+
+          implicit none
+
+          type(bf_layer), intent(inout) :: bf_layer_tested
+          type(bf_layer), intent(inout) :: neighbor1
+          type(bf_layer), intent(inout) :: neighbor2
+          character(2)  , intent(in)    :: bf_layer_char
+          character(2)  , intent(in)    :: neighbor1_char
+          character(2)  , intent(in)    :: neighbor2_char
+          integer       , intent(in)    :: file_index
+
+          real(rkind) :: mainlayer_id
+          real(rkind) :: neighbor1_id
+          real(rkind) :: neighbor2_id
+
+          character(len=21) :: sizes_filename
+          character(len=21) :: nodes_filename
+          character(len=21) :: grdid_filename
+
+
+          !id for the buffer layers
+          mainlayer_id = 0.2
+          neighbor1_id = 0.5
+          neighbor2_id = 0.9
+
+          !initialize the nodes of the main layer+neighbors1+neighbors2
+          call ini_cst_nodes(bf_layer_tested, mainlayer_id)
+          call ini_cst_nodes(neighbor1, neighbor1_id)
+          call ini_cst_nodes(neighbor2, neighbor2_id)
+
+          !exchange between the main buffer layer and the neighbors
+          call bf_layer_tested%copy_from_neighbor1(neighbor1)
+          call bf_layer_tested%copy_to_neighbor1(neighbor1)
+          call bf_layer_tested%copy_from_neighbor2(neighbor2)
+          call bf_layer_tested%copy_to_neighbor2(neighbor2)
+
+
+          !print the content of the buffer layers
+          !print main buffer layer
+          write(sizes_filename,'(A2,''1_sizes'',I1,''.dat'')') bf_layer_char, file_index
+          write(nodes_filename,'(A2,''1_nodes'',I1,''.dat'')') bf_layer_char, file_index
+          write(grdid_filename,'(A2,''1_grdpt_id'',I1,''.dat'')') bf_layer_char, file_index
+
+          call bf_layer_tested%print_binary(
+     $         nodes_filename,
+     $         grdid_filename,
+     $         sizes_filename)
+
+
+          !print neighbor1
+          write(sizes_filename,'(A2,''1_sizes'',I1,''.dat'')') neighbor1_char, file_index
+          write(nodes_filename,'(A2,''1_nodes'',I1,''.dat'')') neighbor1_char, file_index
+          write(grdid_filename,'(A2,''1_grdpt_id'',I1,''.dat'')') neighbor1_char, file_index
+
+          call neighbor1%print_binary(
+     $         nodes_filename,
+     $         grdid_filename,
+     $         sizes_filename)
+
+
+          !print neighbor2
+          write(sizes_filename,'(A2,''1_sizes'',I1,''.dat'')') neighbor2_char, file_index
+          write(nodes_filename,'(A2,''1_nodes'',I1,''.dat'')') neighbor2_char, file_index
+          write(grdid_filename,'(A2,''1_grdpt_id'',I1,''.dat'')') neighbor2_char, file_index
+
+          call neighbor2%print_binary(
+     $         nodes_filename,
+     $         grdid_filename,
+     $         sizes_filename)          
+
+        end subroutine bf_layer_test_copy_neighbors
+
+
+
 c$$$        subroutine bf_layer_test_update_grdpts(
 c$$$     $     bf_layer_tested,
 c$$$     $     selected_grdpts,
@@ -204,6 +284,29 @@ c$$$          call bf_layer_tested%print_nodes(nodes_filename)
 c$$$          call bf_layer_tested%print_grdpts_id(grdid_filename)
 c$$$          
 c$$$        end subroutine bf_layer_test_update_grdpts
+
+
+        subroutine ini_cst_nodes(bf_layer_initialized, cst)
+
+          implicit none
+
+          type(bf_layer), intent(inout) :: bf_layer_initialized
+          real(rkind)   , intent(in)    :: cst
+          
+          integer(ikind), dimension(2) :: sizes
+          integer(ikind)               :: i,j
+
+          sizes = bf_layer_initialized%get_sizes()
+          
+          do j=1, sizes(2)
+             do i=1, sizes(1)
+                call bf_layer_initialized%set_nodes_pt(
+     $               i,j,1,
+     $               cst+0.1*real(i-1)/real(sizes(1)-1))
+             end do
+          end do          
+
+        end subroutine ini_cst_nodes
 
 
         subroutine ini_nodes(nodes)

@@ -3,9 +3,11 @@
         use bf_layer_allocate_module, only : get_additional_blocks_N,
      $                                       get_additional_blocks_S,
      $                                       get_additional_blocks_E,
-     $                                       get_additional_blocks_W
+     $                                       get_additional_blocks_W,
+     $                                       get_match_interior
 
-        use parameters_bf_layer     , only : no_pt
+        use parameters_bf_layer     , only : no_pt,
+     $                                       align_N, align_S, align_E, align_W
         use parameters_constant     , only : x_direction, y_direction
         use parameters_input        , only : debug, nx, ny, ne, bc_size
         use parameters_kind         , only : ikind, rkind
@@ -74,7 +76,7 @@
           if(present(final_alignment_i)) then
 
              final_alignment      = final_alignment_i
-             final_alignment(2,1) = ny+1
+             final_alignment(2,1) = align_N
 
              new_size = get_new_size(alignment1,
      $                               alignment2,
@@ -85,10 +87,6 @@
      $            outside_i_max1, outside_i_max2,
      $            interior_i_max1, interior_i_max2, interior_i_max3,
      $            i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
-     $            interior_i_max11, interior_i_max13,
-     $            interior_i_max21, interior_i_max23,
-     $            interior_i_max31, interior_i_max33,
-     $            i_min11, i_min13, i_min21, i_min23, i_min31, i_min33,
      $            j_min1, j_min2,
      $            alignment1, alignment2, final_alignment)
 
@@ -96,7 +94,7 @@
      $                               alignment2(1,1),
      $                               final_alignment(1,1))
 
-             bf_alignment(2,1) = ny+1
+             bf_alignment(2,1) = align_N
 
              bf_alignment(1,2) = max(alignment1(1,2),
      $                               alignment2(1,2),
@@ -115,19 +113,30 @@
      $            outside_i_max1, outside_i_max2,
      $            interior_i_max1, interior_i_max2, interior_i_max3,
      $            i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
-     $            interior_i_max11, interior_i_max13,
-     $            interior_i_max21, interior_i_max23,
-     $            interior_i_max31, interior_i_max33,
-     $            i_min11, i_min13, i_min21, i_min23, i_min31, i_min33,
      $            j_min1, j_min2,
      $            alignment1, alignment2)
              
              bf_alignment(1,1) = min(alignment1(1,1), alignment2(1,1))
-             bf_alignment(2,1) = ny+1
+             bf_alignment(2,1) = align_N
              bf_alignment(1,2) = max(alignment1(1,2), alignment2(1,2))
              bf_alignment(2,2) = max(alignment1(2,2), alignment2(2,2))
 
           end if
+
+
+          !get the subdivision of the interior blocks
+          call get_match_interior_layers(
+     $         x_direction, nx,
+     $         bf_alignment,
+     $         i_min1, i_min3, interior_i_max1,
+     $         i_min4, i_min5, interior_i_max2,
+     $         i_min6, i_min8, interior_i_max3,
+     $         interior_i_max11, interior_i_max13,
+     $         interior_i_max21, interior_i_max23,
+     $         interior_i_max31, interior_i_max33,
+     $         i_min11, i_min13,
+     $         i_min21, i_min23,
+     $         i_min31, i_min33)
 
 
           !allocate the nodes and copy the tables
@@ -203,7 +212,10 @@
           integer(ikind)                                :: j_min2
           integer(ikind)                                :: interior_i_max11, interior_i_max13
           integer(ikind)                                :: interior_i_max21, interior_i_max23
-          integer(ikind)                                :: i_min11, i_min13, i_min21, i_min23
+          integer(ikind)                                :: interior_i_max31, interior_i_max33
+          integer(ikind)                                :: i_min11, i_min13
+          integer(ikind)                                :: i_min21, i_min23
+          integer(ikind)                                :: i_min31, i_min33
 
 
           !get the new size of the tables
@@ -211,7 +223,7 @@
           if(present(final_alignment_i)) then
 
              final_alignment      = final_alignment_i
-             final_alignment(2,2) = 0
+             final_alignment(2,2) = align_S
              
              new_size = get_new_size(alignment1,
      $                               alignment2,
@@ -222,10 +234,6 @@
      $            outside_i_max1, outside_i_max2,
      $            interior_i_max1, interior_i_max2, interior_i_max3,
      $            i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
-     $            interior_i_max11, interior_i_max13,
-     $            interior_i_max21, interior_i_max23,
-     $            interior_i_max31, interior_i_max33,
-     $            i_min11, i_min13, i_min21, i_min23, i_min31, i_min33,
      $            j_min1, j_min2,
      $            alignment1, alignment2, final_alignment)
 
@@ -241,7 +249,7 @@
      $                               alignment2(1,2),
      $                               final_alignment(1,2))
 
-             bf_alignment(2,2) = 0
+             bf_alignment(2,2) = align_S
 
           else
 
@@ -252,18 +260,30 @@
      $            outside_i_max1, outside_i_max2,
      $            interior_i_max1, interior_i_max2, interior_i_max3,
      $            i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
-     $            interior_i_max11, interior_i_max13,
-     $            interior_i_max21, interior_i_max23,
-     $            interior_i_max31, interior_i_max33,
-     $            i_min11, i_min13, i_min21, i_min23, i_min31, i_min33,
      $            j_min1, j_min2,
      $            alignment1, alignment2)
 
              bf_alignment(1,1) = min(alignment1(1,1), alignment2(1,1))
              bf_alignment(2,1) = min(alignment1(2,1), alignment2(2,1))
              bf_alignment(1,2) = max(alignment1(1,2), alignment2(1,2))
-             bf_alignment(2,2) = 0
+             bf_alignment(2,2) = align_S           
+
           end if
+
+
+          !get the subdivision of the interior blocks
+          call get_match_interior_layers(
+     $         x_direction, nx,
+     $         bf_alignment,
+     $         i_min1, i_min3, interior_i_max1,
+     $         i_min4, i_min5, interior_i_max2,
+     $         i_min6, i_min8, interior_i_max3,
+     $         interior_i_max11, interior_i_max13,
+     $         interior_i_max21, interior_i_max23,
+     $         interior_i_max31, interior_i_max33,
+     $         i_min11, i_min13,
+     $         i_min21, i_min23,
+     $         i_min31, i_min33)
 
 
           !allocate the nodes and copy the tables
@@ -333,13 +353,15 @@
           integer(ikind)                                :: j_min4
           integer(ikind)                                :: j_min5
           integer(ikind)                                :: j_min6
-          integer(ikind)                                :: j_min7
           integer(ikind)                                :: j_min8
           integer(ikind)                                :: i_min1
           integer(ikind)                                :: i_min2
           integer(ikind)                                :: interior_j_max11, interior_j_max13
           integer(ikind)                                :: interior_j_max21, interior_j_max23
-          integer(ikind)                                :: j_min11, j_min13, j_min21, j_min23
+          integer(ikind)                                :: interior_j_max31, interior_j_max33
+          integer(ikind)                                :: j_min11, j_min13
+          integer(ikind)                                :: j_min21, j_min23
+          integer(ikind)                                :: j_min31, j_min33
 
 
           !get the new size of the tables
@@ -347,7 +369,7 @@
           if(present(final_alignment_i)) then
 
              final_alignment      = final_alignment_i
-             final_alignment(1,1) = nx+1
+             final_alignment(1,1) = align_E
 
              new_size = get_new_size(alignment1,
      $                               alignment2,
@@ -358,14 +380,10 @@
      $            outside_j_max1, outside_j_max2,
      $            interior_j_max1, interior_j_max2, interior_j_max3,
      $            j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
-     $            interior_j_max11, interior_j_max13,
-     $            interior_j_max21, interior_j_max23,
-     $            interior_j_max31, interior_j_max33,
-     $            j_min11, j_min13, j_min21, j_min23, j_min31, j_min33,
      $            i_min1, i_min2,
      $            alignment1, alignment2, final_alignment)
 
-             bf_alignment(1,1) = nx+1
+             bf_alignment(1,1) = align_E
 
              bf_alignment(2,1) = min(alignment1(2,1),
      $                               alignment2(2,1),
@@ -388,19 +406,31 @@
      $            outside_j_max1, outside_j_max2,
      $            interior_j_max1, interior_j_max2, interior_j_max3,
      $            j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
-     $            interior_j_max11, interior_j_max13,
-     $            interior_j_max21, interior_j_max23,
-     $            interior_j_max31, interior_j_max33,
-     $            j_min11, j_min13, j_min21, j_min23, j_min31, j_min33,
      $            i_min1, i_min2,
      $            alignment1, alignment2)
 
-             bf_alignment(1,1) = nx+1
+             bf_alignment(1,1) = align_E
              bf_alignment(2,1) = min(alignment1(2,1), alignment2(1,2))
              bf_alignment(1,2) = max(alignment1(1,2), alignment2(1,2))
              bf_alignment(2,2) = max(alignment1(2,2), alignment2(2,2))
 
           end if
+
+
+          !get the subdivision of the interior layers blocks
+          call get_match_interior_layers(
+     $            y_direction, ny,
+     $            bf_alignment,
+     $            j_min1, j_min3, interior_j_max1,
+     $            j_min4, j_min5, interior_j_max2,
+     $            j_min6, j_min8, interior_j_max3,
+     $            interior_j_max11, interior_j_max13,
+     $            interior_j_max21, interior_j_max23,
+     $            interior_j_max31, interior_j_max33,
+     $            j_min11, j_min13,
+     $            j_min21, j_min23,
+     $            j_min31, j_min33)
+
 
           !allocate the nodes and copy the tables
           allocate(new_nodes(new_size(1), new_size(2), ne))
@@ -468,19 +498,18 @@
           integer(ikind)                                :: j_min4
           integer(ikind)                                :: j_min5
           integer(ikind)                                :: j_min6
-          integer(ikind)                                :: j_min7
           integer(ikind)                                :: j_min8
           integer(ikind)                                :: i_min1
           integer(ikind)                                :: i_min2
-          integer(ikind)                                :: interior_i_max11
-          integer(ikind)                                :: interior_i_max13
-          integer(ikind)                                :: interior_i_max21
-          integer(ikind)                                :: interior_i_max23
-          integer(ikind)                                :: interior_i_max31
-          integer(ikind)                                :: interior_i_max33
-          integer(ikind)                                :: i_min11, i_min13
-          integer(ikind)                                :: i_min21, i_min23
-          integer(ikind)                                :: i_min31, i_min33
+          integer(ikind)                                :: interior_j_max11
+          integer(ikind)                                :: interior_j_max13
+          integer(ikind)                                :: interior_j_max21
+          integer(ikind)                                :: interior_j_max23
+          integer(ikind)                                :: interior_j_max31
+          integer(ikind)                                :: interior_j_max33
+          integer(ikind)                                :: j_min11, j_min13
+          integer(ikind)                                :: j_min21, j_min23
+          integer(ikind)                                :: j_min31, j_min33
 
 
 
@@ -489,7 +518,7 @@
           if(present(final_alignment_i)) then
 
              final_alignment      = final_alignment_i
-             final_alignment(1,2) = 0
+             final_alignment(1,2) = align_W
 
              new_size = get_new_size(alignment1,
      $                               alignment2,
@@ -500,10 +529,6 @@
      $            outside_j_max1, outside_j_max2,
      $            interior_j_max1, interior_j_max2, interior_j_max3,
      $            j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
-     $            interior_i_max11, interior_i_max13,
-     $            interior_i_max21, interior_i_max23,
-     $            interior_i_max31, interior_i_max33,
-     $            i_min11, i_min13, i_min21, i_min23, i_min31, i_min33,
      $            i_min1, i_min2,
      $            alignment1, alignment2, final_alignment)
 
@@ -515,7 +540,7 @@
      $                               alignment2(2,1),
      $                               final_alignment(2,1))
 
-             bf_alignment(1,2) = 0
+             bf_alignment(1,2) = align_W
 
              bf_alignment(2,2) = max(alignment1(2,2),
      $                               alignment2(2,2),
@@ -529,20 +554,31 @@
      $            x_direction,
      $            outside_j_max1, outside_j_max2,
      $            interior_j_max1, interior_j_max2, interior_j_max3,
-     $            j_min1, j_min3, j_min4, j_min5, j_min6, j_min7, j_min8,
-     $            interior_i_max11, interior_i_max13,
-     $            interior_i_max21, interior_i_max23,
-     $            interior_i_max31, interior_i_max33,
-     $            i_min11, i_min13, i_min21, i_min23, i_min31, i_min33,
+     $            j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
      $            i_min1, i_min2,
      $            alignment1, alignment2)
 
              bf_alignment(1,1) = min(alignment1(1,1), alignment2(1,1))
              bf_alignment(2,1) = min(alignment1(2,1), alignment2(2,1))
-             bf_alignment(1,2) = 0
+             bf_alignment(1,2) = align_W
              bf_alignment(2,2) = max(alignment1(2,2), alignment2(2,2))
 
           end if
+
+
+          !get the subdivision of the interior layers blocks
+          call get_match_interior_layers(
+     $            y_direction, ny,
+     $            bf_alignment,
+     $            j_min1, j_min3, interior_j_max1,
+     $            j_min4, j_min5, interior_j_max2,
+     $            j_min6, j_min8, interior_j_max3,
+     $            interior_j_max11, interior_j_max13,
+     $            interior_j_max21, interior_j_max23,
+     $            interior_j_max31, interior_j_max33,
+     $            j_min11, j_min13,
+     $            j_min21, j_min23,
+     $            j_min31, j_min33)
 
 
           !allocate the nodes and copy the tables
@@ -551,11 +587,7 @@
      $         new_nodes, nodes1, nodes2, interior_nodes,
      $         alignment1, alignment2, bf_alignment,
      $         j_min1, j_min3, j_min4, j_min5, j_min6,
-     $         interior_j_max1, interior_j_max2, interior_j_max3,
-     $         interior_i_max11, interior_i_max13,
-     $         interior_i_max21, interior_i_max23,
-     $         interior_i_max31, interior_i_max33,
-     $         i_min11, i_min13, i_min21, i_min23, i_min31, i_min33)
+     $         interior_j_max1, interior_j_max2, interior_j_max3)
           deallocate(nodes2)
           call MOVE_ALLOC(new_nodes,nodes1)
 
@@ -569,11 +601,10 @@
      $         outside_j_max1, outside_j_max2,
      $         interior_j_max1, interior_j_max2, interior_j_max3,
      $         j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
-     $         interior_j_max1, interior_j_max2, interior_j_max3,
-     $         interior_i_max11, interior_i_max13,
-     $         interior_i_max21, interior_i_max23,
-     $         interior_i_max31, interior_i_max33,
-     $         i_min11, i_min13, i_min21, i_min23, i_min31, i_min33)
+     $         interior_j_max11, interior_j_max13,
+     $         interior_j_max21, interior_j_max23,
+     $         interior_j_max31, interior_j_max33,
+     $         j_min11, j_min13, j_min21, j_min23, j_min31, j_min33)
           deallocate(grdpts_id2)
           call MOVE_ALLOC(new_grdpts_id,grdpts_id1)
 
@@ -623,10 +654,6 @@
      $     outside_i_max1, outside_i_max2,
      $     interior_i_max1, interior_i_max2, interior_i_max3,
      $     i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
-     $     interior_i_max11, interior_i_max13,
-     $     interior_i_max21, interior_i_max23,
-     $     interior_i_max31, interior_i_max33,
-     $     i_min11, i_min13, i_min21, i_min23, i_min31, i_min33,
      $     j_min1, j_min2,
      $     alignment1, alignment2, final_alignment)
 
@@ -644,15 +671,6 @@
           integer(ikind)                          , intent(out) :: i_min5
           integer(ikind)                          , intent(out) :: i_min6
           integer(ikind)                          , intent(out) :: i_min8
-          integer(ikind)                          , intent(out) :: interior_i_max11
-          integer(ikind)                          , intent(out) :: interior_i_max13
-          integer(ikind)                          , intent(out) :: interior_i_max21
-          integer(ikind)                          , intent(out) :: interior_i_max23
-          integer(ikind)                          , intent(out) :: interior_i_max31
-          integer(ikind)                          , intent(out) :: interior_i_max33
-          integer(ikind)                          , intent(out) :: i_min11, i_min13
-          integer(ikind)                          , intent(out) :: i_min21, i_min23
-          integer(ikind)                          , intent(out) :: i_min31, i_min33
           integer(ikind)                          , intent(out) :: j_min1
           integer(ikind)                          , intent(out) :: j_min2
           integer(ikind), dimension(2,2)          , intent(in)  :: alignment1
@@ -780,12 +798,55 @@
           i_min4 = i_min3 + size1
           i_min5 = i_min4 + interior_i_max2
           i_min6 = i_min5 + size2
-          i_min8 = i_min7 + interior_i_max3
+          i_min8 = i_min6 + interior_i_max3
 
           j_min1 = min((alignment1(dir2,2)-alignment1(dir2,1)+2*bc_size+1),
      $                 (alignment2(dir2,2)-alignment2(dir2,1)+2*bc_size+1))
           j_min2 = max((alignment1(dir2,2)-alignment1(dir2,1)+2*bc_size+1),
      $                 (alignment2(dir2,2)-alignment2(dir2,1)+2*bc_size+1))
+
+        end subroutine get_match
+
+
+        subroutine get_match_interior_layers(
+     $     dir, ndir,
+     $     bf_alignment,
+     $     i_min1, i_min3, interior_i_max1,
+     $     i_min4, i_min5, interior_i_max2,
+     $     i_min6, i_min8, interior_i_max3,
+     $     interior_i_max11, interior_i_max13,
+     $     interior_i_max21, interior_i_max23,
+     $     interior_i_max31, interior_i_max33,
+     $     i_min11, i_min13,
+     $     i_min21, i_min23,
+     $     i_min31, i_min33)
+
+          implicit none
+
+          integer                       , intent(in)  :: dir
+          integer(ikind)                , intent(in)  :: ndir
+          integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
+          integer(ikind)                , intent(in)  :: i_min1
+          integer(ikind)                , intent(in)  :: i_min3
+          integer(ikind)                , intent(in)  :: interior_i_max1
+          integer(ikind)                , intent(in)  :: i_min4
+          integer(ikind)                , intent(in)  :: i_min5
+          integer(ikind)                , intent(in)  :: interior_i_max2
+          integer(ikind)                , intent(in)  :: i_min6
+          integer(ikind)                , intent(in)  :: i_min8
+          integer(ikind)                , intent(out) :: interior_i_max3
+          integer(ikind)                , intent(out) :: interior_i_max11
+          integer(ikind)                , intent(out) :: interior_i_max13
+          integer(ikind)                , intent(out) :: interior_i_max21
+          integer(ikind)                , intent(out) :: interior_i_max23
+          integer(ikind)                , intent(out) :: interior_i_max31
+          integer(ikind)                , intent(out) :: interior_i_max33
+          integer(ikind)                , intent(out) :: i_min11
+          integer(ikind)                , intent(out) :: i_min13
+          integer(ikind)                , intent(out) :: i_min21
+          integer(ikind)                , intent(out) :: i_min23
+          integer(ikind)                , intent(out) :: i_min31
+          integer(ikind)                , intent(out) :: i_min33
 
 
           !define the lengths of the blocks 2-3-4
@@ -820,7 +881,7 @@
           i_min31 = i_min6 + interior_i_max31
           i_min33 = i_min8 - interior_i_max33
 
-        end subroutine get_match
+        end subroutine get_match_interior_layers
 
         
         !> merge the nodes for northern buffer layers
@@ -866,7 +927,7 @@
 
                 do k=1,ne
                    
-                   call add_nodes_blocks_2_to_8_NS(
+                   call add_nodes_blocks_2_to_12_NS(
      $                  new_nodes,
      $                  nodes1, nodes2, interior_nodes,
      $                  bf_alignment,
@@ -875,14 +936,14 @@
      $                  interior_i_max1,interior_i_max2,interior_i_max3,
      $                  i_min1, i_min3, i_min4, i_min5, i_min6)
 
-                   call add_nodes_blocks_11_to_13_NS(
+                   call add_nodes_blocks_15_to_17_NS(
      $                  new_nodes,
      $                  nodes1, nodes2,
      $                  k, 2*bc_size+1, j_min1,
      $                  j_match1, j_match2,
      $                  i_min3, i_min5)
                    
-                   call add_nodes_blocks_16_to_18_NS(
+                   call add_nodes_blocks_20_to_22_NS(
      $                  new_nodes,
      $                  nodes1,
      $                  k, j_min1+1, j_min2,
@@ -893,7 +954,7 @@
 
              else
                 do k=1, ne
-                   call add_nodes_blocks_2_to_8_NS(
+                   call add_nodes_blocks_2_to_12_NS(
      $                  new_nodes,
      $                  nodes1, nodes2, interior_nodes,
      $                  bf_alignment,
@@ -902,14 +963,14 @@
      $                  interior_i_max1,interior_i_max2,interior_i_max3,
      $                  i_min1, i_min3, i_min4, i_min5, i_min6)
 
-                   call add_nodes_blocks_11_to_13_NS(
+                   call add_nodes_blocks_15_to_17_NS(
      $                  new_nodes,
      $                  nodes1, nodes2,
      $                  k, 2*bc_size+1, j_min1,
      $                  j_match1, j_match2,
      $                  i_min3, i_min5)
                    
-                   call add_nodes_blocks_16_to_18_NS(
+                   call add_nodes_blocks_20_to_22_NS(
      $                  new_nodes,
      $                  nodes2,
      $                  k, j_min1+1, j_min2,
@@ -924,7 +985,7 @@
              if(alignment1(2,2).gt.alignment2(2,2)) then
                 do k=1, ne
 
-                   call add_nodes_blocks_2_to_8_NS(
+                   call add_nodes_blocks_2_to_12_NS(
      $                  new_nodes,
      $                  nodes2, nodes1, interior_nodes,
      $                  bf_alignment,
@@ -933,14 +994,14 @@
      $                  interior_i_max1,interior_i_max2,interior_i_max3,
      $                  i_min1, i_min3, i_min4, i_min5, i_min6)
 
-                   call add_nodes_blocks_11_to_13_NS(
+                   call add_nodes_blocks_15_to_17_NS(
      $                  new_nodes,
      $                  nodes2, nodes1,
      $                  k, 2*bc_size+1, j_min1,
      $                  j_match2, j_match1,
      $                  i_min3, i_min5)
                    
-                   call add_nodes_blocks_16_to_18_NS(
+                   call add_nodes_blocks_20_to_22_NS(
      $                  new_nodes,
      $                  nodes1,
      $                  k, j_min1+1, j_min2,
@@ -950,7 +1011,7 @@
                 end do
              else
                 do k=1, ne
-                   call add_nodes_blocks_2_to_8_NS(
+                   call add_nodes_blocks_2_to_12_NS(
      $                  new_nodes,
      $                  nodes2, nodes1, interior_nodes,
      $                  bf_alignment,
@@ -959,14 +1020,14 @@
      $                  interior_i_max1,interior_i_max2,interior_i_max3,
      $                  i_min1, i_min3, i_min4, i_min5, i_min6)
 
-                   call add_nodes_blocks_11_to_13_NS(
+                   call add_nodes_blocks_15_to_17_NS(
      $                  new_nodes,
      $                  nodes2, nodes1,
      $                  k, 2*bc_size+1, j_min1,
      $                  j_match2, j_match1,
      $                  i_min3, i_min5)
                    
-                   call add_nodes_blocks_16_to_18_NS(
+                   call add_nodes_blocks_20_to_22_NS(
      $                  new_nodes,
      $                  nodes2,
      $                  k, j_min1+1, j_min2,
@@ -1020,7 +1081,7 @@
 
                 do k=1,ne
 
-                   call add_nodes_blocks_16_to_18_NS(
+                   call add_nodes_blocks_20_to_22_NS(
      $                  new_nodes,
      $                  nodes1,
      $                  k,
@@ -1029,7 +1090,7 @@
      $                  j_match1,
      $                  i_min3)
 
-                   call add_nodes_blocks_11_to_13_NS(
+                   call add_nodes_blocks_15_to_17_NS(
      $                  new_nodes,
      $                  nodes1, nodes2,
      $                  k,
@@ -1038,7 +1099,7 @@
      $                  j_match1, j_match2,
      $                  i_min3, i_min5)
                    
-                   call add_nodes_blocks_2_to_8_NS(
+                   call add_nodes_blocks_2_to_12_NS(
      $                  new_nodes,
      $                  nodes1, nodes2, interior_nodes,
      $                  bf_alignment,
@@ -1054,7 +1115,7 @@
              else                
 
                 do k=1, ne
-                   call add_nodes_blocks_16_to_18_NS(
+                   call add_nodes_blocks_20_to_22_NS(
      $                  new_nodes,
      $                  nodes2,
      $                  k,
@@ -1063,7 +1124,7 @@
      $                  j_match2,
      $                  i_min5)
 
-                   call add_nodes_blocks_11_to_13_NS(
+                   call add_nodes_blocks_15_to_17_NS(
      $                  new_nodes,
      $                  nodes1, nodes2,
      $                  k,
@@ -1072,7 +1133,7 @@
      $                  j_match1, j_match2,
      $                  i_min3, i_min5)
 
-                   call add_nodes_blocks_2_to_8_NS(
+                   call add_nodes_blocks_2_to_12_NS(
      $                  new_nodes,
      $                  nodes1, nodes2, interior_nodes,
      $                  bf_alignment,
@@ -1092,7 +1153,7 @@
              if(alignment1(2,1).lt.alignment2(2,1)) then
                 do k=1, ne
 
-                   call add_nodes_blocks_16_to_18_NS(
+                   call add_nodes_blocks_20_to_22_NS(
      $                  new_nodes,
      $                  nodes1,
      $                  k,
@@ -1101,7 +1162,7 @@
      $                  j_match1,
      $                  i_min5)
 
-                   call add_nodes_blocks_11_to_13_NS(
+                   call add_nodes_blocks_15_to_17_NS(
      $                  new_nodes,
      $                  nodes2, nodes1,
      $                  k,
@@ -1110,7 +1171,7 @@
      $                  j_match2, j_match1,
      $                  i_min3, i_min5)
 
-                   call add_nodes_blocks_2_to_8_NS(
+                   call add_nodes_blocks_2_to_12_NS(
      $                  new_nodes,
      $                  nodes2, nodes1, interior_nodes,
      $                  bf_alignment,
@@ -1125,7 +1186,7 @@
              else
                 do k=1, ne
 
-                   call add_nodes_blocks_16_to_18_NS(
+                   call add_nodes_blocks_20_to_22_NS(
      $                  new_nodes,
      $                  nodes2,
      $                  k,
@@ -1134,7 +1195,7 @@
      $                  j_match2,
      $                  i_min3)
 
-                   call add_nodes_blocks_11_to_13_NS(
+                   call add_nodes_blocks_15_to_17_NS(
      $                  new_nodes,
      $                  nodes2, nodes1,
      $                  k,
@@ -1143,7 +1204,7 @@
      $                  j_match2, j_match1,
      $                  i_min3, i_min5)
 
-                   call add_nodes_blocks_2_to_8_NS(
+                   call add_nodes_blocks_2_to_12_NS(
      $                  new_nodes,
      $                  nodes2, nodes1, interior_nodes,
      $                  bf_alignment,
@@ -1387,8 +1448,7 @@
      $     interior_i_max21, interior_i_max23,
      $     interior_i_max31, interior_i_max33,
      $     i_min11, i_min13, i_min21, i_min23, i_min31, i_min33,
-     $     j_min1, j_min2,
-     $     i_match_borderE)
+     $     j_min1, j_min2)
 
           implicit none
 
@@ -1420,7 +1480,6 @@
           integer(ikind)                , intent(in) :: i_min31, i_min33
           integer(ikind)                , intent(in) :: j_min1
           integer(ikind)                , intent(in) :: j_min2
-          integer(ikind)                , intent(in) :: i_match_borderE
 
 
           integer, dimension(bc_size, 2*bc_size) :: border_W1, border_E1
@@ -1636,8 +1695,7 @@
      $     interior_i_max21, interior_i_max23,
      $     interior_i_max31, interior_i_max33,
      $     i_min11, i_min13, i_min21, i_min23, i_min31, i_min33,
-     $     j_min1, j_min2,
-     $     i_match_borderE)
+     $     j_min1, j_min2)
 
           implicit none
 
@@ -1960,7 +2018,7 @@
 
              call add_grdpts_id_edge_block_E(
      $            new_grdpts_id,
-     $            border_S1, interior_profile,
+     $            border_S1,
      $            j_min1+1,
      $            j_min1+interior_j_max11)
 
@@ -1973,7 +2031,7 @@
 
              call add_grdpts_id_edge_block_E(
      $            new_grdpts_id,
-     $            border_N1, interior_profile,
+     $            border_N1,
      $            j_min13+1,
      $            j_min13+interior_j_max13)
 
@@ -1983,7 +2041,7 @@
 
              call add_grdpts_id_edge_block_E(
      $            new_grdpts_id,
-     $            border_S2, interior_profile,
+     $            border_S2,
      $            j_min4+1,
      $            j_min4+interior_j_max21)
 
@@ -1996,7 +2054,7 @@
 
              call add_grdpts_id_edge_block_E(
      $            new_grdpts_id,
-     $            border_N2, interior_profile,
+     $            border_N2,
      $            j_min23+1,
      $            j_min23+interior_j_max23)
 
@@ -2006,7 +2064,7 @@
 
              call add_grdpts_id_edge_block_E(
      $            new_grdpts_id,
-     $            border_S2, interior_profile,
+     $            border_S3,
      $            j_min6+1,
      $            j_min6+interior_j_max31)
 
@@ -2019,7 +2077,7 @@
 
              call add_grdpts_id_edge_block_E(
      $            new_grdpts_id,
-     $            border_N3, interior_profile,
+     $            border_N3,
      $            j_min33+1,
      $            j_min33+interior_j_max33)
 
@@ -2035,7 +2093,7 @@
 
              call add_grdpts_id_edge_block_E(
      $            new_grdpts_id,
-     $            border_S1, interior_profile,
+     $            border_S1,
      $            j_min1+1,
      $            j_min1+interior_j_max11)
 
@@ -2048,7 +2106,7 @@
 
              call add_grdpts_id_edge_block_E(
      $            new_grdpts_id,
-     $            border_N1, interior_profile,
+     $            border_N1,
      $            j_min13+1,
      $            j_min13+interior_j_max13)
 
@@ -2058,7 +2116,7 @@
 
              call add_grdpts_id_edge_block_E(
      $            new_grdpts_id,
-     $            border_S2, interior_profile,
+     $            border_S2,
      $            j_min4+1,
      $            j_min4+interior_j_max21)
 
@@ -2071,7 +2129,7 @@
 
              call add_grdpts_id_edge_block_E(
      $            new_grdpts_id,
-     $            border_N2, interior_profile,
+     $            border_N2,
      $            j_min23+1,
      $            j_min23+interior_j_max23)
 
@@ -2081,7 +2139,7 @@
 
              call add_grdpts_id_edge_block_E(
      $            new_grdpts_id,
-     $            border_S2, interior_profile,
+     $            border_S3,
      $            j_min6+1,
      $            j_min6+interior_j_max31)
 
@@ -2094,7 +2152,7 @@
 
              call add_grdpts_id_edge_block_E(
      $            new_grdpts_id,
-     $            border_N3, interior_profile,
+     $            border_N3,
      $            j_min33+1,
      $            j_min33+interior_j_max33)
 
@@ -2182,7 +2240,7 @@
 
              call add_grdpts_id_edge_block_W(
      $            new_grdpts_id,
-     $            border_S1, interior_profile,
+     $            border_S1,
      $            j_min1+1,
      $            j_min1+interior_j_max11)
 
@@ -2195,7 +2253,7 @@
 
              call add_grdpts_id_edge_block_W(
      $            new_grdpts_id,
-     $            border_N1, interior_profile,
+     $            border_N1,
      $            j_min13+1,
      $            j_min13+interior_j_max13)
 
@@ -2205,7 +2263,7 @@
 
              call add_grdpts_id_edge_block_W(
      $            new_grdpts_id,
-     $            border_S2, interior_profile,
+     $            border_S2,
      $            j_min4+1,
      $            j_min4+interior_j_max21)
 
@@ -2218,7 +2276,7 @@
 
              call add_grdpts_id_edge_block_W(
      $            new_grdpts_id,
-     $            border_N2, interior_profile,
+     $            border_N2,
      $            j_min23+1,
      $            j_min23+interior_j_max23)
 
@@ -2228,7 +2286,7 @@
 
              call add_grdpts_id_edge_block_W(
      $            new_grdpts_id,
-     $            border_S2, interior_profile,
+     $            border_S3,
      $            j_min6+1,
      $            j_min6+interior_j_max31)
 
@@ -2241,7 +2299,7 @@
 
              call add_grdpts_id_edge_block_W(
      $            new_grdpts_id,
-     $            border_N3, interior_profile,
+     $            border_N3,
      $            j_min33+1,
      $            j_min33+interior_j_max33)
 
@@ -2257,7 +2315,7 @@
 
              call add_grdpts_id_edge_block_W(
      $            new_grdpts_id,
-     $            border_S1, interior_profile,
+     $            border_S1,
      $            j_min1+1,
      $            j_min1+interior_j_max11)
 
@@ -2270,7 +2328,7 @@
 
              call add_grdpts_id_edge_block_W(
      $            new_grdpts_id,
-     $            border_N1, interior_profile,
+     $            border_N1,
      $            j_min13+1,
      $            j_min13+interior_j_max13)
 
@@ -2280,7 +2338,7 @@
 
              call add_grdpts_id_edge_block_W(
      $            new_grdpts_id,
-     $            border_S2, interior_profile,
+     $            border_S2,
      $            j_min4+1,
      $            j_min4+interior_j_max21)
 
@@ -2293,7 +2351,7 @@
 
              call add_grdpts_id_edge_block_W(
      $            new_grdpts_id,
-     $            border_N2, interior_profile,
+     $            border_N2,
      $            j_min23+1,
      $            j_min23+interior_j_max23)
 
@@ -2303,7 +2361,7 @@
 
              call add_grdpts_id_edge_block_W(
      $            new_grdpts_id,
-     $            border_S2, interior_profile,
+     $            border_S3,
      $            j_min6+1,
      $            j_min6+interior_j_max31)
 
@@ -2316,7 +2374,7 @@
 
              call add_grdpts_id_edge_block_W(
      $            new_grdpts_id,
-     $            border_N3, interior_profile,
+     $            border_N3,
      $            j_min33+1,
      $            j_min33+interior_j_max33)
 
@@ -2329,7 +2387,7 @@
         end subroutine merge_grdpts_id_W
 
 
-        subroutine add_nodes_blocks_2_to_8_NS(
+        subroutine add_nodes_blocks_2_to_12_NS(
      $     new_nodes,
      $     nodes_block4, nodes_block6, interior_nodes,
      $     bf_alignment,
@@ -2400,10 +2458,10 @@
              end do
           end do
 
-        end subroutine add_nodes_blocks_2_to_8_NS
+        end subroutine add_nodes_blocks_2_to_12_NS
 
 
-        subroutine add_nodes_blocks_11_to_13_NS(
+        subroutine add_nodes_blocks_15_to_17_NS(
      $     new_nodes,
      $     nodes_block11, nodes_block13,
      $     k, j_min, j_max,
@@ -2443,10 +2501,10 @@
              end do
           end do
 
-        end subroutine add_nodes_blocks_11_to_13_NS
+        end subroutine add_nodes_blocks_15_to_17_NS
 
 
-        subroutine add_nodes_blocks_16_to_18_NS(
+        subroutine add_nodes_blocks_20_to_22_NS(
      $     new_nodes,
      $     nodes_block16,
      $     k, j_min, j_max,
@@ -2476,46 +2534,65 @@
              end do
           end do
 
-        end subroutine add_nodes_blocks_16_to_18_NS
+        end subroutine add_nodes_blocks_20_to_22_NS
 
 
         subroutine add_grdpts_id_blocks_1_to_13_NS(
      $     new_grdpts_id,
      $     grdpts_block4, grdpts_block6,
-     $     border_W, border_E, interior_profile,
+     $     border_W1, border_E1,
+     $     border_W2, border_E2,
+     $     border_W3, border_E3,
+     $     interior_profile,
      $     j_min, j_max,
      $     j_match_block4, j_match_block6,
      $     outside_i_max1, outside_i_max2,
      $     interior_i_max1, interior_i_max2, interior_i_max3,
-     $     i_min1, i_min3, i_min4, i_min5, i_min6, i_min7, i_min8,
-     $     i_match_borderE)
+     $     i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
+     $     interior_i_max11, interior_i_max13,
+     $     interior_i_max21, interior_i_max23,
+     $     interior_i_max31, interior_i_max33,
+     $     i_min11, i_min13, i_min21, i_min23, i_min31, i_min33)
 
           implicit none
 
-          integer, dimension(:,:), intent(out):: new_grdpts_id
-          integer, dimension(:,:), intent(in) :: grdpts_block4
-          integer, dimension(:,:), intent(in) :: grdpts_block6
-          integer, dimension(bc_size,2*bc_size), intent(in):: border_W
-          integer, dimension(bc_size,2*bc_size), intent(in):: border_E
-          integer, dimension(2*bc_size), intent(in):: interior_profile
-          integer(ikind), intent(in) :: j_min
-          integer(ikind), intent(in) :: j_max
-          integer(ikind), intent(in) :: j_match_block4
-          integer(ikind), intent(in) :: j_match_block6
-          integer(ikind), intent(in) :: outside_i_max1
-          integer(ikind), intent(in) :: outside_i_max2
-          integer(ikind), intent(in) :: interior_i_max1
-          integer(ikind), intent(in) :: interior_i_max2
-          integer(ikind), intent(in) :: interior_i_max3
-          integer(ikind), intent(in) :: i_min1
-          integer(ikind), intent(in) :: i_min3
-          integer(ikind), intent(in) :: i_min4
-          integer(ikind), intent(in) :: i_min5
-          integer(ikind), intent(in) :: i_min6
-          integer(ikind), intent(in) :: i_min7
-          integer(ikind), intent(in) :: i_min8
-          integer(ikind), intent(in) :: i_match_borderE
-
+          integer, dimension(:,:)              , intent(out):: new_grdpts_id
+          integer, dimension(:,:)              , intent(in) :: grdpts_block4
+          integer, dimension(:,:)              , intent(in) :: grdpts_block6
+          integer, dimension(bc_size,2*bc_size), intent(in) :: border_W1
+          integer, dimension(bc_size,2*bc_size), intent(in) :: border_E1
+          integer, dimension(bc_size,2*bc_size), intent(in) :: border_W2
+          integer, dimension(bc_size,2*bc_size), intent(in) :: border_E2
+          integer, dimension(bc_size,2*bc_size), intent(in) :: border_W3
+          integer, dimension(bc_size,2*bc_size), intent(in) :: border_E3
+          integer, dimension(2*bc_size)        , intent(in) :: interior_profile
+          integer(ikind)                       , intent(in) :: j_min
+          integer(ikind)                       , intent(in) :: j_max
+          integer(ikind)                       , intent(in) :: j_match_block4
+          integer(ikind)                       , intent(in) :: j_match_block6
+          integer(ikind)                       , intent(in) :: outside_i_max1
+          integer(ikind)                       , intent(in) :: outside_i_max2
+          integer(ikind)                       , intent(in) :: interior_i_max1
+          integer(ikind)                       , intent(in) :: interior_i_max2
+          integer(ikind)                       , intent(in) :: interior_i_max3
+          integer(ikind)                       , intent(in) :: i_min1
+          integer(ikind)                       , intent(in) :: i_min3
+          integer(ikind)                       , intent(in) :: i_min4
+          integer(ikind)                       , intent(in) :: i_min5
+          integer(ikind)                       , intent(in) :: i_min6
+          integer(ikind)                       , intent(in) :: i_min8
+          integer(ikind)                       , intent(in) :: interior_i_max11
+          integer(ikind)                       , intent(in) :: interior_i_max13
+          integer(ikind)                       , intent(in) :: interior_i_max21
+          integer(ikind)                       , intent(in) :: interior_i_max23
+          integer(ikind)                       , intent(in) :: interior_i_max31
+          integer(ikind)                       , intent(in) :: interior_i_max33
+          integer(ikind)                       , intent(in) :: i_min11
+          integer(ikind)                       , intent(in) :: i_min13
+          integer(ikind)                       , intent(in) :: i_min21
+          integer(ikind)                       , intent(in) :: i_min23
+          integer(ikind)                       , intent(in) :: i_min31
+          integer(ikind)                       , intent(in) :: i_min33
 
           integer(ikind) :: i,j
 
@@ -2527,43 +2604,68 @@
                 new_grdpts_id(i,j) = no_pt
              end do
 
+
              !block 2
-             do i=1, min(bc_size, interior_i_max1)
-                new_grdpts_id(i_min1+i,j) = border_W(i,j-(j_min-1))
+             do i=1, interior_i_max11
+                new_grdpts_id(i_min1+i,j) = border_W1(i,j-(j_min-1))
              end do
 
              !block 3
-             do i=bc_size+1, interior_i_max1
-                new_grdpts_id(i_min1+i,j) = interior_profile(j-(j_min-1))
+             do i=1, interior_i_max1-(interior_i_max11+interior_i_max13)
+                new_grdpts_id(i_min11+i,j) = interior_profile(j-(j_min-1))
              end do
 
              !block 4
+             do i=1, interior_i_max13
+                new_grdpts_id(i_min13+i,j) = border_E1(i,j-(j_min-1))
+             end do
+
+
+             !block 5
              do i=1, size(grdpts_block4,1)
                 new_grdpts_id(i_min3+i,j) = grdpts_block4(i,j_match_block4+j)
              end do
 
-             !block 5
-             do i=1, interior_i_max2
-                new_grdpts_id(i_min4+i,j) = interior_profile(j-(j_min-1))
-             end do
 
              !block 6
+             do i=1, interior_i_max21
+                new_grdpts_id(i_min4+i,j) = border_W2(i,j-(j_min-1))
+             end do
+
+             !block 7
+             do i=1, interior_i_max2-(interior_i_max21+interior_i_max23)
+                new_grdpts_id(i_min21+i,j) = interior_profile(j-(j_min-1))
+             end do
+
+             !block 8
+             do i=1, interior_i_max23
+                new_grdpts_id(i_min23+i,j) = border_E2(i,j-(j_min-1))
+             end do
+
+
+             !block 9
              do i=1, size(grdpts_block6,1)
                 new_grdpts_id(i_min5+i,j) = grdpts_block6(i,j_match_block6+j)
              end do
 
-             !block 7
-             do i=1, interior_i_max3-bc_size
-                new_grdpts_id(i_min6+i,j) = interior_profile(j-(j_min-1))
+
+             !block 10
+             do i=1, interior_i_max31
+                new_grdpts_id(i_min6+i,j) = border_W3(i,j-(j_min-1))
              end do
 
-             !block 8
-             do i=1, min(interior_i_max3,bc_size)
-                new_grdpts_id(i_min7+i,j) = border_E(
-     $               i_match_borderE+i,j-(j_min-1))
+             !block 11
+             do i=1, interior_i_max3-(interior_i_max31+interior_i_max33)
+                new_grdpts_id(i_min31+i,j) = interior_profile(j-(j_min-1))
              end do
 
-             !block 9
+             !block 12
+             do i=1, interior_i_max33
+                new_grdpts_id(i_min33+i,j) = border_E3(i,j-(j_min-1))
+             end do
+
+
+             !block 13
              do i=1, outside_i_max2
                 new_grdpts_id(i_min8+i,j) = no_pt
              end do
@@ -2571,7 +2673,6 @@
 
         end subroutine add_grdpts_id_blocks_1_to_13_NS
         
-
 
         subroutine add_grdpts_id_blocks_14_to_18_NS(
      $     new_grdpts_id,
@@ -2836,79 +2937,56 @@
        end subroutine add_grdpts_id_outside_blocks_EW
 
 
-        subroutine add_grdpts_id_edge_S_blocks_E(
+        subroutine add_grdpts_id_edge_block_E(
      $     new_grdpts_id,
-     $     border_S, interior_profile,
-     $     j_min1, interior_j_max1)
+     $     border, j_min, j_max)
 
           implicit none
 
           integer, dimension(:,:)              , intent(out) :: new_grdpts_id
-          integer, dimension(2*bc_size,bc_size), intent(in)  :: border_S
-          integer, dimension(2*bc_size)        , intent(in)  :: interior_profile
-          integer(ikind)                       , intent(in)  :: j_min1
-          integer(ikind)                       , intent(in)  :: interior_j_max1
+          integer, dimension(2*bc_size,bc_size), intent(in)  :: border
+          integer(ikind)                       , intent(in)  :: j_min
+          integer(ikind)                       , intent(in)  :: j_max
 
           integer(ikind) :: i,j
           
-          do j=1, min(bc_size, interior_j_max1)
+          do j=j_min, j_max
              do i=1, 2*bc_size
-                new_grdpts_id(i,j_min1+j) = border_S(i,j)
+                new_grdpts_id(i,j) = border(i,j-(j_min-1))
              end do
              do i=2*bc_size+1, size(new_grdpts_id,1)
-                new_grdpts_id(i,j_min1+j) = no_pt
-             end do
-          end do
-          
-          do j=min(bc_size, interior_j_max1)+1, interior_j_max1
-             do i=1, 2*bc_size
-                new_grdpts_id(i,j_min1+j) = interior_profile(i)
-             end do
-             do i=2*bc_size+1, size(new_grdpts_id,1)
-                new_grdpts_id(i,j_min1+j) = no_pt
+                new_grdpts_id(i,j) = no_pt
              end do
           end do
 
-       end subroutine add_grdpts_id_edge_S_blocks_E
+       end subroutine add_grdpts_id_edge_block_E
 
 
-       subroutine add_grdpts_id_edge_S_blocks_W(
+       subroutine add_grdpts_id_edge_block_W(
      $     new_grdpts_id,
-     $     border_S, interior_profile,
-     $     j_min1, interior_j_max1)
+     $     border, j_min, j_max)
 
           implicit none
 
           integer, dimension(:,:)              , intent(out) :: new_grdpts_id
-          integer, dimension(2*bc_size,bc_size), intent(in)  :: border_S
-          integer, dimension(2*bc_size)        , intent(in)  :: interior_profile
-          integer(ikind)                       , intent(in)  :: j_min1
-          integer(ikind)                       , intent(in)  :: interior_j_max1
+          integer, dimension(2*bc_size,bc_size), intent(in)  :: border
+          integer(ikind)                       , intent(in)  :: j_min
+          integer(ikind)                       , intent(in)  :: j_max
 
           integer(ikind) :: i,j
           
-          do j=1, min(bc_size, interior_j_max1)
+          do j=j_min, j_max
              do i=1, size(new_grdpts_id,1)-(2*bc_size)
-                new_grdpts_id(i,j_min1+j) = no_pt
+                new_grdpts_id(i,j) = no_pt
              end do
              do i=size(new_grdpts_id,1)-(2*bc_size)+1, size(new_grdpts_id,1)
-                new_grdpts_id(i,j_min1+j) = border_S(
+                new_grdpts_id(i,j) = border(
      $               i-(size(new_grdpts_id,1)-(2*bc_size)),
-     $               j)
+     $               j-(j_min-1))
              end do             
           end do
           
-          do j=min(bc_size, interior_j_max1)+1, interior_j_max1
-             do i=1, size(new_grdpts_id,1)-(2*bc_size)
-                new_grdpts_id(i,j_min1+j) = no_pt
-             end do
-             do i=size(new_grdpts_id,1)-(2*bc_size)+1, size(new_grdpts_id,1)
-                new_grdpts_id(i,j_min1+j) = interior_profile(
-     $               i-(size(new_grdpts_id,1)-(2*bc_size)))
-             end do
-          end do
-
-       end subroutine add_grdpts_id_edge_S_blocks_W
+       end subroutine add_grdpts_id_edge_block_W
 
 
        subroutine add_grdpts_id_sublayer_block_E(

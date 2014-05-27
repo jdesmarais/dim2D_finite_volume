@@ -265,38 +265,38 @@ def make_matrix_for_all_bf_layers(
 
  
 def compute_sizes_N(size_x, size_y, nx, ny, align11, align12, align21, align22):
-    new_size_x = max(0,bc_size+1-align11,align12-(nx+1))
-    new_size_y = max(0,align22-(ny+1)+bc_size)
+    new_size_x = max(0,bc_size-align11,align12-(nx-bc_size+1))
+    new_size_y = max(0,align22-(ny-bc_size+1))
 
-    size_x = max(size_x, new_size_x+2*bc_size)
-    size_y = max(size_y, new_size_y+2*bc_size)
+    size_x = max(size_x, new_size_x+2*bc_size+1)
+    size_y = max(size_y, new_size_y+2*bc_size+1)
     
     return [size_x,size_y]
 
 def compute_sizes_S(size_x, size_y, nx, ny, align11, align12, align21, align22):
-    new_size_x = max(0,bc_size+1-align11,align12-(nx+1))
+    new_size_x = max(0,bc_size-align11,align12-(nx-bc_size+1))
     new_size_y = max(0,-align21+bc_size)
 
-    size_x = max(size_x, new_size_x+2*bc_size)
-    size_y = max(size_y, new_size_y+2*bc_size)
+    size_x = max(size_x, new_size_x+2*bc_size+1)
+    size_y = max(size_y, new_size_y+2*bc_size+1)
     
     return [size_x,size_y]
 
 def compute_sizes_E(size_x, size_y, nx, ny, align11, align12, align21, align22):
-    new_size_x = max(0,align12-(nx+1))
-    new_size_y = max(0,bc_size+1-align21,align22-(ny+1))
+    new_size_x = max(0,align12-(nx-bc_size+1))
+    new_size_y = max(0,bc_size-align21,align22-(ny-bc_size+1))
 
-    size_x = max(size_x, new_size_x+2*bc_size)
-    size_y = max(size_y, new_size_y+2*bc_size)
+    size_x = max(size_x, new_size_x+2*bc_size+1)
+    size_y = max(size_y, new_size_y+2*bc_size+1)
     
     return [size_x,size_y]
 
 def compute_sizes_W(size_x, size_y, nx, ny, align11, align12, align21, align22):
-    new_size_x = max(0,0-align11)
-    new_size_y = max(0,bc_size+1-align21,align22-(ny+1))
+    new_size_x = max(0,bc_size-align11)
+    new_size_y = max(0,bc_size-align21,align22-(ny-bc_size+1))
 
-    size_x = max(size_x, new_size_x+2*bc_size)
-    size_y = max(size_y, new_size_y+2*bc_size)
+    size_x = max(size_x, new_size_x+2*bc_size+1)
+    size_y = max(size_y, new_size_y+2*bc_size+1)
     
     return [size_x,size_y]
 

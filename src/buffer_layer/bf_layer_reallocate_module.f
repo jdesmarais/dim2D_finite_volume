@@ -1445,6 +1445,4 @@
 
         end subroutine get_border_changes_and_new_alignment_W
 
-
-
       end module bf_layer_reallocate_module

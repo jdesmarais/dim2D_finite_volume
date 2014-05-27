@@ -14,22 +14,6 @@
       !-----------------------------------------------------------------
       module bf_layer_class
 
-c$$$        use bf_corner_module            , only : is_alignment_compatible_with_corner
-c$$$
-c$$$        use bf_layer_adapt_corner_module, only : adapt_bf_layer_N_to_corner,
-c$$$     $                                           adapt_bf_layer_S_to_corner,
-c$$$     $                                           adapt_bf_layer_E_to_corner,
-c$$$     $                                           adapt_bf_layer_W_to_corner
-
-c$$$        use bf_layer_ini_grdptID_module , only : ini_grdpts_id_N,
-c$$$     $                                           ini_grdpts_id_S,
-c$$$     $                                           ini_grdpts_id_E,
-c$$$     $                                           ini_grdpts_id_W
-c$$$     $                                           ini_grdpts_id_NE,
-c$$$     $                                           ini_grdpts_id_NW,
-c$$$     $                                           ini_grdpts_id_SE,
-c$$$     $                                           ini_grdpts_id_SW
-
         use bf_layer_allocate_module    , only : allocate_bf_layer_N,
      $                                           allocate_bf_layer_S,
      $                                           allocate_bf_layer_E,
@@ -44,6 +28,12 @@ c$$$     $                                           ini_grdpts_id_SW
      $                                           merge_bf_layers_S,
      $                                           merge_bf_layers_E,
      $                                           merge_bf_layers_W
+
+        use bf_layer_exchange_module    , only : get_match_indices_for_copy_from_neighbor1,
+     $                                           get_match_indices_for_copy_to_neighbor1,
+     $                                           get_match_indices_for_copy_from_neighbor2,
+     $                                           get_match_indices_for_copy_to_neighbor2,
+     $                                           copy_from_bf1_to_bf2
                                         
         use parameters_bf_layer         , only : bc_pt, bc_interior_pt,
      $                                           interior_pt, no_pt
@@ -104,23 +94,24 @@ c$$$     $                                           ini_grdpts_id_SW
                        
           procedure,   pass :: get_local_coord
           procedure,   pass :: get_general_to_local_coord_tab
+
           procedure,   pass :: compute_new_grdpts
           procedure, nopass :: compute_new_grdpt
+
           procedure,   pass :: allocate_bf_layer
           procedure,   pass :: reallocate_bf_layer
           procedure,   pass :: merge_bf_layer
-          procedure,   pass :: update_grdpts_id
 
+          procedure,   pass :: copy_from_neighbor1
+          procedure,   pass :: copy_from_neighbor2
+          procedure,   pass :: copy_to_neighbor1
+          procedure,   pass :: copy_to_neighbor2
+
+          procedure,   pass          :: update_grdpts_id
           procedure, nopass, private :: update_bc_interior_pt_to_interior_pt
           procedure, nopass, private :: check_neighbors
           procedure, nopass, private :: check_gridpoint
           
-c$$$          procedure,   pass, private :: ini_alignment
-c$$$          procedure,   pass, private :: allocate_nodes_and_grdpts_id
-c$$$          procedure,   pass, private :: ini_nodes
-c$$$          procedure,   pass, private :: ini_grdpts_id
-
-
           procedure,   pass :: print_binary
 
         end type bf_layer
@@ -338,12 +329,12 @@ c$$$          procedure,   pass, private :: ini_grdpts_id
           select case(this%localization)
             case(N)
                match_table(1) = this%alignment(1,1) - bc_size - 1
-               match_table(2) = ny - bc_size
+               match_table(2) = ny - 2*bc_size
             case(S)
                match_table(1) = this%alignment(1,1) - bc_size - 1
                match_table(2) = -size(this%nodes,2) + bc_size
             case(E)
-               match_table(1) = nx - bc_size
+               match_table(1) = nx - 2*bc_size
                match_table(2) = this%alignment(2,1) - bc_size - 1
             case(W)
                match_table(1) = -size(this%nodes,1) + bc_size
@@ -473,18 +464,6 @@ c$$$          procedure,   pass, private :: ini_grdpts_id
                print '(''localization not recognized'')'
                print '(''localization:'',I2)', this%localization
           end select
-
-c$$$          !initialize the alignment
-c$$$          call this%ini_alignment(alignment)
-c$$$
-c$$$          !allocate the nodes and the grdpts_id attributes
-c$$$          call this%allocate_nodes_and_grdpts_id()
-c$$$
-c$$$          !initialize the nodes
-c$$$          call this%ini_nodes(nodes)
-c$$$
-c$$$          !initialize the grdpts_id
-c$$$          call this%ini_grdpts_id()
 
         end subroutine allocate_bf_layer
 
@@ -618,6 +597,139 @@ c$$$          call this%ini_grdpts_id()
         end subroutine merge_bf_layer
 
 
+        !> copy the exchange layer between the current buffer layer
+        !> and its neighboring buffer layer identified as neighbor1
+        !> from the neighbor1 to the current buffer layer
+        subroutine copy_from_neighbor1(this,neighbor1)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+          class(bf_layer), intent(in)    :: neighbor1
+
+          integer(ikind) :: bf_i_min, bf_j_min
+          integer(ikind) :: nbf_i_min, nbf_j_min
+          integer(ikind) :: bf_copy_size_x, bf_copy_size_y
+          
+          !get the indices for the match between the tables
+          !of the current buffer layer and the neighbor1
+          call get_match_indices_for_copy_from_neighbor1(
+     $         this%localization,
+     $         this%alignment, size(this%nodes,2),
+     $         neighbor1%alignment, size(neighbor1%nodes,2),
+     $         bf_i_min, bf_j_min, nbf_i_min, nbf_j_min,
+     $         bf_copy_size_x, bf_copy_size_y)
+          
+          !copy from neighbor1 to the current buffer layer
+          call copy_from_bf1_to_bf2(
+     $         nbf_i_min, nbf_j_min, bf_i_min, bf_j_min,
+     $         bf_copy_size_x, bf_copy_size_y,
+     $         neighbor1%nodes, neighbor1%grdpts_id,
+     $         this%nodes, this%grdpts_id)
+
+        end subroutine copy_from_neighbor1
+
+
+        !> copy the exchange layer between the current buffer layer
+        !> and its neighboring buffer layer identified as neighbor1
+        !> from the current buffer layer to the neighbor1
+        subroutine copy_to_neighbor1(this, neighbor1)
+
+          implicit none
+
+          class(bf_layer), intent(in)    :: this
+          class(bf_layer), intent(inout) :: neighbor1
+
+          integer(ikind) :: bf_i_min, bf_j_min
+          integer(ikind) :: nbf_i_min, nbf_j_min
+          integer(ikind) :: bf_copy_size_x, bf_copy_size_y
+          
+          !get the indices for the match between the tables
+          !of the current buffer layer and the neighbor1
+          call get_match_indices_for_copy_to_neighbor1(
+     $         this%localization,
+     $         this%alignment, size(this%nodes,2),
+     $         neighbor1%alignment, size(neighbor1%nodes,2),
+     $         bf_i_min, bf_j_min,
+     $         nbf_i_min, nbf_j_min,
+     $         bf_copy_size_x, bf_copy_size_y)
+          
+          !copy from the current buffer layer to neighbor1
+          call copy_from_bf1_to_bf2(
+     $         bf_i_min, bf_j_min, nbf_i_min, nbf_j_min,
+     $         bf_copy_size_x, bf_copy_size_y,
+     $         this%nodes, this%grdpts_id,
+     $         neighbor1%nodes, neighbor1%grdpts_id)
+
+        end subroutine copy_to_neighbor1
+
+
+        !> copy the exchange layer between the current buffer layer
+        !> and its neighboring buffer layer identified as neighbor2
+        !> from the neighbor2 to the current buffer layer
+        subroutine copy_from_neighbor2(this, neighbor2)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+          class(bf_layer), intent(in)    :: neighbor2
+
+          integer(ikind) :: bf_i_min, bf_j_min
+          integer(ikind) :: nbf_i_min, nbf_j_min
+          integer(ikind) :: bf_copy_size_x, bf_copy_size_y
+          
+          !get the indices for the match between the tables
+          !of the current buffer layer and the neighbor1
+          call get_match_indices_for_copy_from_neighbor2(
+     $         this%localization,
+     $         this%alignment, size(this%nodes,2),
+     $         neighbor2%alignment, size(neighbor2%nodes,2),
+     $         bf_i_min, bf_j_min, nbf_i_min, nbf_j_min,
+     $         bf_copy_size_x, bf_copy_size_y)
+          
+          !copy from neighbor1 to the current buffer layer
+          call copy_from_bf1_to_bf2(
+     $         nbf_i_min, nbf_j_min, bf_i_min, bf_j_min,
+     $         bf_copy_size_x, bf_copy_size_y,
+     $         neighbor2%nodes, neighbor2%grdpts_id,
+     $         this%nodes, this%grdpts_id)
+
+        end subroutine copy_from_neighbor2
+
+
+        !> copy the exchange layer between the current buffer layer
+        !> and its neighboring buffer layer identified as neighbor2
+        !> from the current buffer layer to the neighbor2
+        subroutine copy_to_neighbor2(this, neighbor2)
+
+          implicit none
+
+          class(bf_layer), intent(in)    :: this
+          class(bf_layer), intent(inout) :: neighbor2
+
+          integer(ikind) :: bf_i_min, bf_j_min
+          integer(ikind) :: nbf_i_min, nbf_j_min
+          integer(ikind) :: bf_copy_size_x, bf_copy_size_y
+          
+          !get the indices for the match between the tables
+          !of the current buffer layer and the neighbor1
+          call get_match_indices_for_copy_to_neighbor2(
+     $         this%localization,
+     $         this%alignment, size(this%nodes,2),
+     $         neighbor2%alignment, size(neighbor2%nodes,2),
+     $         bf_i_min, bf_j_min, nbf_i_min, nbf_j_min,
+     $         bf_copy_size_x, bf_copy_size_y)
+          
+          !copy from the current buffer layer to neighbor1
+          call copy_from_bf1_to_bf2(
+     $         bf_i_min, bf_j_min, nbf_i_min, nbf_j_min,
+     $         bf_copy_size_x, bf_copy_size_y,
+     $         this%nodes, this%grdpts_id,
+     $         neighbor2%nodes, neighbor2%grdpts_id)
+
+        end subroutine copy_to_neighbor2
+
+
         !< turn the grdpts_id identified by general coordinates
         !> from bc_interior_pt to interior_pt and add the neighboring
         !> points around it to make sure that their computation is
@@ -628,7 +740,6 @@ c$$$          call this%ini_grdpts_id()
 
           class(bf_layer)               , intent(inout) :: this
           integer(ikind), dimension(:,:), intent(in)    :: selected_grdpts
-
 
           integer(ikind), dimension(2) :: match_table
 
@@ -922,260 +1033,6 @@ c$$$          call this%ini_grdpts_id()
           end if
 
         end subroutine check_gridpoint        
-
-
-c$$$        !< set the alignment between the interior table
-c$$$        !> and the buffer layer allowing to correspond
-c$$$        !> the interior grid points and the ones from
-c$$$        !> the buffer layer
-c$$$        subroutine ini_alignment(this, alignment)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer)               , intent(inout) :: this
-c$$$          integer(ikind), dimension(2,2), intent(in)    :: alignment
-c$$$          
-c$$$          select case(this%localization)
-c$$$            case(N)
-c$$$               this%alignment(1,1) = alignment(1,1)
-c$$$               this%alignment(2,1) = ny+1
-c$$$               this%alignment(1,2) = alignment(1,2)
-c$$$               this%alignment(2,2) = ny+1
-c$$$            case(S)
-c$$$               this%alignment(1,1) = alignment(1,1)
-c$$$               this%alignment(2,1) = 0
-c$$$               this%alignment(1,2) = alignment(1,2)
-c$$$               this%alignment(2,2) = 0
-c$$$            case(E)
-c$$$               this%alignment(1,1) = nx+1
-c$$$               this%alignment(2,1) = alignment(2,1)
-c$$$               this%alignment(1,2) = nx+1
-c$$$               this%alignment(2,2) = alignment(2,2)
-c$$$            case(W)
-c$$$               this%alignment(1,1) = 0
-c$$$               this%alignment(2,1) = alignment(2,1)
-c$$$               this%alignment(1,2) = 0
-c$$$               this%alignment(2,2) = alignment(2,2)
-c$$$            case default
-c$$$               print '(''bf_layer_class'')'
-c$$$               print '(''ini_alignment'')'
-c$$$               print '(''localization not recognized'')'
-c$$$               print '(''localization: '', I2)', this%localization
-c$$$               stop 'change localization'
-c$$$          end select
-c$$$
-c$$$        end subroutine ini_alignment
-c$$$
-c$$$
-c$$$        !< allocate the nodes and the grdpts_id attributes
-c$$$        !> of the bf_layer object
-c$$$        subroutine allocate_nodes_and_grdpts_id(this)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer), intent(inout) :: this
-c$$$
-c$$$
-c$$$          integer(ikind), dimension(3) :: size_nodes
-c$$$
-c$$$
-c$$$          !determine the size of the main tables depending on the
-c$$$          !localization of the buffer layer and its alignment with
-c$$$          !the interior
-c$$$          select case(this%localization)
-c$$$          
-c$$$            case(N,S)
-c$$$               size_nodes(1) = this%alignment(1,2) - this%alignment(1,1) + 1 + 2*bc_size
-c$$$               size_nodes(2) = 2*bc_size+1
-c$$$
-c$$$            case(E,W)
-c$$$               size_nodes(1) = 2*bc_size+1
-c$$$               size_nodes(2) = this%alignment(2,2) - this%alignment(2,1) + 1 + 2*bc_size
-c$$$
-c$$$            case default
-c$$$               print '(''bf_layer_allocate_module'')'
-c$$$               print '(''allocate_main_tables'')'
-c$$$               stop 'localization not recognized'
-c$$$
-c$$$          end select
-c$$$
-c$$$          size_nodes(3) = ne
-c$$$
-c$$$
-c$$$          !allocate the nodes table
-c$$$          allocate(this%nodes(
-c$$$     $         size_nodes(1),
-c$$$     $         size_nodes(2),
-c$$$     $         size_nodes(3)))
-c$$$
-c$$$
-c$$$          !allocate the grdptid table
-c$$$          allocate(this%grdpts_id(
-c$$$     $         size_nodes(1),
-c$$$     $         size_nodes(2)))
-c$$$
-c$$$        end subroutine allocate_nodes_and_grdpts_id
-c$$$
-c$$$      
-c$$$        !< initialize the nodes of the object from the
-c$$$        !> interior nodes and determine the new gridpoints
-c$$$        subroutine ini_nodes(
-c$$$     $     this,
-c$$$     $     nodes)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer)                              , intent(inout) :: this
-c$$$          real(rkind)   , dimension(nx,ny,ne)          , intent(in)    :: nodes
-c$$$
-c$$$          integer(ikind) :: i,j,k
-c$$$          integer(ikind) :: i_match, j_match
-c$$$          !integer(ikind) :: nb_new_grdpts
-c$$$          !integer(ikind), dimension(:,:), allocatable :: list_new_grdpts
-c$$$
-c$$$          !copy of the interior grid points
-c$$$          !and identification of the new grid
-c$$$          !points
-c$$$          select case(this%localization)
-c$$$
-c$$$            case(N)
-c$$$
-c$$$               !copy of grid points from the interior
-c$$$               i_match = this%alignment(1,1)-bc_size-1
-c$$$               j_match = ny-2*bc_size
-c$$$               do k=1, ne
-c$$$                  do j=1, 2*bc_size
-c$$$                     do i=1, size(this%nodes,1)
-c$$$                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
-c$$$                     end do
-c$$$                  end do
-c$$$               end do
-c$$$
-c$$$c$$$               !determination of the list of new gridpoints
-c$$$c$$$               nb_new_grdpts = size(this%nodes,1)
-c$$$c$$$               allocate(list_new_grdpts(2,nb_new_grdpts))
-c$$$c$$$               do i=1, size(this%nodes,1)
-c$$$c$$$                  list_new_grdpts(1,i) = i
-c$$$c$$$                  list_new_grdpts(2,i) = 2*bc_size+1
-c$$$c$$$               end do
-c$$$
-c$$$            case(S)               
-c$$$
-c$$$               !copy of grid points from the interior
-c$$$               i_match = this%alignment(1,1)-bc_size-1
-c$$$               j_match = 0
-c$$$               do k=1, ne
-c$$$                  do j=1, 2*bc_size
-c$$$                     do i=1, size(this%nodes,1)
-c$$$                        this%nodes(i,j+1,k) = nodes(i_match+i,j_match+j,k)
-c$$$                     end do
-c$$$                  end do
-c$$$               end do
-c$$$
-c$$$c$$$               !determination of the list of new gridpoints
-c$$$c$$$               nb_new_grdpts = size(this%nodes,1)
-c$$$c$$$               allocate(list_new_grdpts(2,nb_new_grdpts))
-c$$$c$$$               do i=1, size(this%nodes,1)
-c$$$c$$$                  list_new_grdpts(1,i) = i
-c$$$c$$$                  list_new_grdpts(2,i) = 1
-c$$$c$$$               end do
-c$$$               
-c$$$            case(E)
-c$$$
-c$$$               !copy of grid points from the interior
-c$$$               i_match = nx-2*bc_size
-c$$$               j_match = this%alignment(2,1)-bc_size-1
-c$$$               do k=1, ne
-c$$$                  do j=1, size(this%nodes,2)
-c$$$                     do i=1, 2*bc_size
-c$$$                        this%nodes(i,j,k) = nodes(i_match+i,j_match+j,k)
-c$$$                     end do
-c$$$                  end do
-c$$$               end do
-c$$$
-c$$$c$$$               !determination of the list of new gridpoints
-c$$$c$$$               nb_new_grdpts = size(this%nodes,2)
-c$$$c$$$               allocate(list_new_grdpts(2,nb_new_grdpts))
-c$$$c$$$               do j=1, size(this%nodes,2)
-c$$$c$$$                  list_new_grdpts(1,j) = 2*bc_size+1
-c$$$c$$$                  list_new_grdpts(2,j) = j
-c$$$c$$$               end do
-c$$$
-c$$$            case(W)
-c$$$
-c$$$               !copy of grid points from the interior
-c$$$               i_match = 0
-c$$$               j_match = this%alignment(2,1)-bc_size-1
-c$$$               do k=1, ne
-c$$$                  do j=1, size(this%nodes,2)
-c$$$                     do i=1, 2*bc_size
-c$$$                        this%nodes(i+1,j,k) = nodes(i_match+i,j_match+j,k)
-c$$$                     end do
-c$$$                  end do
-c$$$               end do
-c$$$               
-c$$$c$$$               !determination of the list of new gridpoints
-c$$$c$$$               nb_new_grdpts = size(this%nodes,2)
-c$$$c$$$               allocate(list_new_grdpts(2,nb_new_grdpts))
-c$$$c$$$               do j=1, size(this%nodes,2)
-c$$$c$$$                  list_new_grdpts(1,j) = 1
-c$$$c$$$                  list_new_grdpts(2,j) = j
-c$$$c$$$               end do
-c$$$
-c$$$             case default
-c$$$                print '(''bf_layer_class'')'
-c$$$                print '(''ini_nodes'')'
-c$$$                print '(''localization not recognized'')'
-c$$$                print '(''localization: '', I2)', this%localization
-c$$$                stop 'change localization'
-c$$$
-c$$$          end select
-c$$$
-c$$$c$$$          !compute the new grid points
-c$$$c$$$          call this%compute_new_grdpts(list_new_grdpts)
-c$$$
-c$$$        end subroutine ini_nodes
-c$$$
-c$$$
-c$$$        !< initialization of the grdpts_id
-c$$$        subroutine ini_grdpts_id(this)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer), intent(inout) :: this
-c$$$
-c$$$          select case(this%localization)
-c$$$
-c$$$            case(N)
-c$$$               call ini_grdpts_id_N(
-c$$$     $              this%grdpts_id,
-c$$$     $              this%alignment)
-c$$$
-c$$$            case(S)
-c$$$               call ini_grdpts_id_S(
-c$$$     $              this%grdpts_id,
-c$$$     $              this%alignment)
-c$$$
-c$$$            case(E)
-c$$$               call ini_grdpts_id_E(
-c$$$     $              this%grdpts_id,
-c$$$     $              this%alignment)
-c$$$
-c$$$            case(W)
-c$$$               call ini_grdpts_id_W(
-c$$$     $              this%grdpts_id,
-c$$$     $              this%alignment)
-c$$$
-c$$$            case default
-c$$$               print '(''bf_layer_class'')'
-c$$$               print '(''ini_grdpts_id'')'
-c$$$               print '(''localization not recognized'')'
-c$$$               print '(''localization: '', I2)', this%localization
-c$$$               stop 'change localization'
-c$$$          
-c$$$          end select
-c$$$
-c$$$        end subroutine ini_grdpts_id
 
 
         !< print the nodes and the grdpts_id attributes

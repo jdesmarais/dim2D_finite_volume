@@ -34,13 +34,17 @@ if __name__ == "__main__":
     test_windows_title = ["Allocation test",
                           "Reallocation test",
                           "Merging test: before merging",
-                          "Merging test: after merging"]
+                          "Merging test: after merging",
+                          "Neighbor copy test: N",
+                          "Neighbor copy test: S",
+                          "Neighbor copy test: E",
+                          "Neighbor copy test: W"]
 
     nb_sublayers = 6
 
 
     #plot the tests
-    for i in range(0,4):
+    for i in range(0,8):
         
     	#extract data for the interior points and the buffer layers
     	#-----------------------------------------------------------------

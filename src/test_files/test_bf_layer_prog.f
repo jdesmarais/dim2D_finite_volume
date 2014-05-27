@@ -2,39 +2,43 @@
 
         !use ifport
 
-        use bf_layer_class               , only : bf_layer
+        use bf_layer_class      , only : bf_layer
 c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
-        use parameters_constant          , only : N,S,E,W
-        use parameters_kind              , only : rkind, ikind
-        use parameters_input             , only : nx,ny,ne,bc_size
-        use test_bf_layer_module         , only : print_interior_data,
-     $                                            bf_layer_test_allocation,
-     $                                            bf_layer_test_reallocation,
-     $                                            bf_layer_test_merge,
-     $                                            test_bf_layer_local_coord,
-     $                                            ini_nodes,
-     $                                            ini_grdpts_id,
-     $                                            ini_general_coord
+        use parameters_bf_layer , only : align_N, align_S, align_E, align_W
+        use parameters_constant , only : N,S,E,W
+        use parameters_kind     , only : rkind, ikind
+        use parameters_input    , only : nx,ny,ne,bc_size
+        use test_bf_layer_module, only : print_interior_data,
+     $                                  bf_layer_test_allocation,
+     $                                  bf_layer_test_reallocation,
+     $                                  bf_layer_test_merge,
+     $                                  bf_layer_test_copy_neighbors,
+     $                                  test_bf_layer_local_coord,
+     $                                  ini_nodes,
+     $                                  ini_grdpts_id,
+     $                                  ini_general_coord
 
         implicit none
 
-        integer, parameter :: neighbor_case = 1
+        !integer, parameter :: neighbor_case = 1
         integer, parameter :: size_case = 1
         integer, parameter :: distance_case = 1
         integer, parameter :: random_seed = 86456
-        integer, parameter :: over_alignment_case_x = 40
-        integer, parameter :: over_alignment_case_y = 0
+        integer, parameter :: over_alignment_case_x = 1
+        integer, parameter :: over_alignment_case_y = 1
         integer, parameter :: inverse_case = 1
         integer, parameter :: inverse_size_case = 1
-        integer, parameter :: test_first_bf_layer_align_case = 40
+        integer, parameter :: test_first_bf_layer_align_case = 0
         integer, parameter :: test_second_bf_layer_align_case = 1
         logical, parameter :: test_reallocation = .true.
-        logical, parameter :: test_merge = .false.
+        logical, parameter :: test_merge = .true.
+        logical, parameter :: test_copy_with_neighbors=.true.
 
 
-        type(bf_layer), dimension(8) :: table_bf_layer_tested
-        type(bf_layer), dimension(4) :: table_1st_bf_layer_tested
-        type(bf_layer), dimension(4) :: table_2nd_bf_layer_tested
+        type(bf_layer), dimension(8)   :: table_bf_layer_tested
+        type(bf_layer), dimension(4)   :: table_1st_bf_layer_tested
+        type(bf_layer), dimension(4)   :: table_2nd_bf_layer_tested
+        type(bf_layer), dimension(4,3) :: table_bf_layer_copy_tested
 
         real(rkind)   , dimension(nx,ny,ne) :: nodes
         integer       , dimension(nx,ny)    :: grdpts_id
@@ -46,16 +50,17 @@ c$$$        integer(ikind), dimension(2,2)      :: alignment_after_merge
         character(2)  , dimension(4)        :: bf_layer_char
         character(len=21)                   :: sizes_filename, nodes_filename, grdid_filename
 c$$$        integer(ikind), dimension(2,2)      :: border_changes
-        logical       , dimension(4)        :: neighbors
+c$$$        logical       , dimension(4)        :: neighbors
 c$$$        integer(ikind), dimension(2,2)      :: selected_grdpts
 c$$$        integer       , dimension(2)        :: match_table
 c$$$        integer(ikind), dimension(2)        :: general_coord
 
 
-        integer(ikind), dimension(8,2,2) :: test_alignment_reallocation
+        integer(ikind), dimension(4,2,2) :: test_alignment_reallocation
         integer(ikind), dimension(2,2)   :: alignment_reallocation
-        integer(ikind), dimension(8,2,2) :: test_alignment_merge
-        integer(ikind), dimension(8,2,2) :: test_alignment_2nd
+        integer(ikind), dimension(4,2,2) :: test_alignment_merge
+        integer(ikind), dimension(4,2,2) :: test_alignment_2nd
+        integer(ikind), dimension(4,3,2,2) :: test_alignment_copy_neighbors
         integer(ikind), dimension(2,2)   :: alignment_merge
         integer(ikind), dimension(2,2)   :: alignment_2nd
 
@@ -63,6 +68,17 @@ c$$$        integer(ikind), dimension(2)        :: general_coord
         integer :: relative_size
         integer :: over_alignment_x
         integer :: over_alignment_y
+        
+        integer, dimension(4,2) :: neighbors
+
+        neighbors(N,1) = W
+        neighbors(N,2) = E
+        neighbors(S,1) = W
+        neighbors(S,2) = E
+        neighbors(E,1) = S
+        neighbors(E,2) = N
+        neighbors(W,1) = S
+        neighbors(W,2) = N
 
 c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
@@ -94,7 +110,13 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
      $       test_alignment_reallocation)
 
         !alignment after merge
-        call ini_using_case(distance_case, random_seed, relative_distance)
+        if(distance_case.ge.0) then
+           relative_distance = distance_case
+        else
+           print '(''distance_case < 0'')'
+           stop 'not possible'
+        end if
+        !call ini_using_case(distance_case, random_seed, relative_distance)
         call ini_using_case(size_case, random_seed, relative_size)
         
         !call ini_using_case(over_alignment_case_x, random_seed, over_alignment_x)
@@ -109,7 +131,7 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
 
         !neighbors
-        call ini_neighbors(neighbor_case, neighbors)
+        !call ini_neighbors(neighbor_case, neighbors)
         
         !selected grid points
         !call ini_selected_grdpts(test_selected_grdpts)
@@ -155,25 +177,6 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
      $             nodes_filename,
      $             grdid_filename)
            end if
-              
-
-c$$$c$$$           !test new interior gridpoints
-c$$$c$$$           write(sizes_filename,'(A2,''1_sizes3.dat'')') bf_layer_char(i)
-c$$$c$$$           write(nodes_filename,'(A2,''1_nodes3.dat'')') bf_layer_char(i)
-c$$$c$$$           write(grdid_filename,'(A2,''1_grdpt_id3.dat'')') bf_layer_char(i)
-c$$$c$$$           
-c$$$c$$$           selected_grdpts(1,1) = test_selected_grdpts(bf_layer_loc(i),1,1)
-c$$$c$$$           selected_grdpts(1,2) = test_selected_grdpts(bf_layer_loc(i),1,2)
-c$$$c$$$           selected_grdpts(2,1) = test_selected_grdpts(bf_layer_loc(i),2,1)
-c$$$c$$$           selected_grdpts(2,2) = test_selected_grdpts(bf_layer_loc(i),2,2)
-c$$$c$$$
-c$$$c$$$           call bf_layer_test_update_grdpts(
-c$$$c$$$     $          table_bf_layer_tested(i),
-c$$$c$$$     $          selected_grdpts,
-c$$$c$$$     $          match_table,
-c$$$c$$$     $          sizes_filename,
-c$$$c$$$     $          nodes_filename,
-c$$$c$$$     $          grdid_filename)
 
         end do
        
@@ -288,6 +291,60 @@ c$$$c$$$     $          grdid_filename)
         end if
 
 
+        !test copy from the neighbors
+        if(test_copy_with_neighbors) then
+
+           call ini_alignment_for_neighbor_copy(
+     $          test_alignment_copy_neighbors)
+
+           do i=1,4
+
+
+              !buffer layer
+              alignment(1,1) = test_alignment_copy_neighbors(bf_layer_loc(i),1,1,1)
+              alignment(1,2) = test_alignment_copy_neighbors(bf_layer_loc(i),1,1,2)
+              alignment(2,1) = test_alignment_copy_neighbors(bf_layer_loc(i),1,2,1)
+              alignment(2,2) = test_alignment_copy_neighbors(bf_layer_loc(i),1,2,2)
+
+              call table_bf_layer_copy_tested(i,1)%ini(bf_layer_loc(i))
+              call table_bf_layer_copy_tested(i,1)%allocate_bf_layer(nodes,alignment)
+
+
+              !neighbor1
+              alignment(1,1) = test_alignment_copy_neighbors(bf_layer_loc(i),2,1,1)
+              alignment(1,2) = test_alignment_copy_neighbors(bf_layer_loc(i),2,1,2)
+              alignment(2,1) = test_alignment_copy_neighbors(bf_layer_loc(i),2,2,1)
+              alignment(2,2) = test_alignment_copy_neighbors(bf_layer_loc(i),2,2,2)
+
+              call table_bf_layer_copy_tested(i,2)%ini(neighbors(i,1))
+              call table_bf_layer_copy_tested(i,2)%allocate_bf_layer(nodes,alignment)
+
+
+              !neighbor2
+              alignment(1,1) = test_alignment_copy_neighbors(bf_layer_loc(i),3,1,1)
+              alignment(1,2) = test_alignment_copy_neighbors(bf_layer_loc(i),3,1,2)
+              alignment(2,1) = test_alignment_copy_neighbors(bf_layer_loc(i),3,2,1)
+              alignment(2,2) = test_alignment_copy_neighbors(bf_layer_loc(i),3,2,2)
+
+              call table_bf_layer_copy_tested(i,3)%ini(neighbors(i,2))
+              call table_bf_layer_copy_tested(i,3)%allocate_bf_layer(nodes,alignment)
+
+
+              !test copy neighbors
+              call bf_layer_test_copy_neighbors(
+     $             table_bf_layer_copy_tested(i,1),
+     $             table_bf_layer_copy_tested(i,2),
+     $             table_bf_layer_copy_tested(i,3),
+     $             bf_layer_char(i),
+     $             bf_layer_char(neighbors(i,1)),
+     $             bf_layer_char(neighbors(i,2)),
+     $             4+i)
+
+           end do
+
+        end if
+
+
 c$$$        !test the local coordinates
 c$$$        !--------------------------------
 c$$$        !re-initialize the interior nodes
@@ -347,17 +404,17 @@ c$$$     $       'interior_sizes4.dat')
           !basic alignment depending on cardinal point
           select case(mainlayer_id)
             case(N)
-               alignment(2,1) = ny+1
-               alignment(2,2) = ny+1
+               alignment(2,1) = align_N
+               alignment(2,2) = align_N
             case(S)
-               alignment(2,1) = 0
-               alignment(2,2) = 0
+               alignment(2,1) = align_S
+               alignment(2,2) = align_S
             case(E)
-               alignment(1,1) = nx+1
-               alignment(1,2) = nx+1
+               alignment(1,1) = align_E
+               alignment(1,2) = align_E
             case(W)
-               alignment(1,1) = 0
-               alignment(1,2) = 0
+               alignment(1,1) = align_W
+               alignment(1,2) = align_W
           end select
 
           border_min = bc_size+1+test_first_bf_layer_align_case
@@ -401,21 +458,21 @@ c$$$          end if
 
           alignment(N,1,1) = bc_size+1+test_first_bf_layer_align_case-over_alignment_x
           alignment(N,1,2) = bc_size+7+test_first_bf_layer_align_case+over_alignment_x
-          alignment(N,2,1) = ny+1
-          alignment(N,2,2) = ny+1+over_alignment_y
+          alignment(N,2,1) = align_N
+          alignment(N,2,2) = align_N+over_alignment_y
 
           alignment(S,1,1) = bc_size+1+test_first_bf_layer_align_case-over_alignment_x
           alignment(S,1,2) = bc_size+7+test_first_bf_layer_align_case+over_alignment_x
-          alignment(S,2,1) = 0-over_alignment_y
-          alignment(S,2,2) = 0
+          alignment(S,2,1) = align_S-over_alignment_y
+          alignment(S,2,2) = align_S
 
-          alignment(E,1,1) = nx+1
-          alignment(E,1,2) = nx+1+over_alignment_y
+          alignment(E,1,1) = align_E
+          alignment(E,1,2) = align_E+over_alignment_y
           alignment(E,2,1) = bc_size+1+test_first_bf_layer_align_case-over_alignment_x
           alignment(E,2,2) = bc_size+7+test_first_bf_layer_align_case+over_alignment_x
 
-          alignment(W,1,1) = 0-over_alignment_y
-          alignment(W,1,2) = 0
+          alignment(W,1,1) = align_W-over_alignment_y
+          alignment(W,1,2) = align_W
           alignment(W,2,1) = bc_size+1+test_first_bf_layer_align_case-over_alignment_x
           alignment(W,2,2) = bc_size+7+test_first_bf_layer_align_case+over_alignment_x
 
@@ -443,17 +500,17 @@ c$$$          end if
 
           !basic alignment requirements needed by the 2nd buffer layer
           !depending on the cardinal point
-          alignment(N,2,1) = ny+1
-          alignment(N,2,2) = ny+1
+          alignment(N,2,1) = align_N
+          alignment(N,2,2) = align_N
           
-          alignment(S,2,1) = 0
-          alignment(S,2,2) = 0
+          alignment(S,2,1) = align_S
+          alignment(S,2,2) = align_S
 
-          alignment(E,1,1) = nx+1
-          alignment(E,1,2) = nx+1
+          alignment(E,1,1) = align_E
+          alignment(E,1,2) = align_E
 
-          alignment(W,1,1) = 0
-          alignment(W,1,2) = 0
+          alignment(W,1,1) = align_W
+          alignment(W,1,2) = align_W
 
           select case(test_second_bf_layer_alignment)
 
@@ -560,31 +617,111 @@ c$$$          end if
      $                             test_first_bf_layer_alignment -
      $                             over_alignment_x
           final_alignment(N,1,2) = alignment(N,1,2) + over_alignment_x
-          final_alignment(N,2,1) = ny+1
-          final_alignment(N,2,2) = ny+1 + over_alignment_y
+          final_alignment(N,2,1) = align_N
+          final_alignment(N,2,2) = align_N + over_alignment_y
 
           final_alignment(S,1,1) = bc_size+1+
      $                             test_first_bf_layer_alignment -
      $                             over_alignment_x
           final_alignment(S,1,2) = alignment(S,1,2) + over_alignment_x
-          final_alignment(S,2,1) = 0 - over_alignment_y
-          final_alignment(S,2,2) = 0
+          final_alignment(S,2,1) = align_S - over_alignment_y
+          final_alignment(S,2,2) = align_S
           
-          final_alignment(E,1,1) = nx+1
-          final_alignment(E,1,2) = nx+1 + over_alignment_y
+          final_alignment(E,1,1) = align_E
+          final_alignment(E,1,2) = align_E + over_alignment_y
           final_alignment(E,2,1) = bc_size+1+
      $                             test_first_bf_layer_alignment -
      $                             over_alignment_x
           final_alignment(E,2,2) = alignment(E,2,2) + over_alignment_x
           
-          final_alignment(W,1,1) = 0 - over_alignment_y
-          final_alignment(W,1,2) = 0
+          final_alignment(W,1,1) = align_W - over_alignment_y
+          final_alignment(W,1,2) = align_W
           final_alignment(W,2,1) = bc_size+1+
      $                             test_first_bf_layer_alignment -
      $                             over_alignment_x
           final_alignment(W,2,2) = alignment(W,2,2) + over_alignment_x
 
         end subroutine ini_alignment_2nd_bf_layer
+
+
+        subroutine ini_alignment_for_neighbor_copy(
+     $     test_alignment_copy_neighbors)
+
+          implicit none
+
+          integer(ikind), dimension(4,3,2,2), intent(out) :: test_alignment_copy_neighbors
+          
+          integer(ikind) :: large_layer
+          integer(ikind) :: small_layer
+
+          large_layer = 7
+          small_layer = 3
+
+          !north
+          test_alignment_copy_neighbors(N,1,1,1) = -large_layer
+          test_alignment_copy_neighbors(N,1,1,2) = nx+large_layer
+          test_alignment_copy_neighbors(N,1,2,1) = align_N
+          test_alignment_copy_neighbors(N,1,2,2) = align_N
+
+          test_alignment_copy_neighbors(N,2,1,1) = align_W-small_layer
+          test_alignment_copy_neighbors(N,2,1,2) = align_W
+          test_alignment_copy_neighbors(N,2,2,1) = ny-bc_size-small_layer
+          test_alignment_copy_neighbors(N,2,2,2) = ny-bc_size
+
+          test_alignment_copy_neighbors(N,3,1,1) = align_E
+          test_alignment_copy_neighbors(N,3,1,2) = align_E+small_layer
+          test_alignment_copy_neighbors(N,3,2,1) = ny-bc_size-small_layer
+          test_alignment_copy_neighbors(N,3,2,2) = ny-bc_size
+
+          !south
+          test_alignment_copy_neighbors(S,1,1,1) = -large_layer
+          test_alignment_copy_neighbors(S,1,1,2) = nx+large_layer
+          test_alignment_copy_neighbors(S,1,2,1) = align_S
+          test_alignment_copy_neighbors(S,1,2,2) = align_S
+
+          test_alignment_copy_neighbors(S,2,1,1) = align_W-small_layer
+          test_alignment_copy_neighbors(S,2,1,2) = align_W
+          test_alignment_copy_neighbors(S,2,2,1) = 1+bc_size
+          test_alignment_copy_neighbors(S,2,2,2) = 1+bc_size+small_layer
+
+          test_alignment_copy_neighbors(S,3,1,1) = align_E
+          test_alignment_copy_neighbors(S,3,1,2) = align_E+small_layer
+          test_alignment_copy_neighbors(S,3,2,1) = 1+bc_size
+          test_alignment_copy_neighbors(S,3,2,2) = 1+bc_size+small_layer
+          
+          !east
+          test_alignment_copy_neighbors(E,1,1,1) = align_E
+          test_alignment_copy_neighbors(E,1,1,2) = align_E+large_layer
+          test_alignment_copy_neighbors(E,1,2,1) = bc_size+1
+          test_alignment_copy_neighbors(E,1,2,2) = ny-bc_size
+
+          test_alignment_copy_neighbors(E,2,1,1) = nx-small_layer
+          test_alignment_copy_neighbors(E,2,1,2) = nx+small_layer
+          test_alignment_copy_neighbors(E,2,2,1) = align_S
+          test_alignment_copy_neighbors(E,2,2,2) = align_S
+
+          test_alignment_copy_neighbors(E,3,1,1) = nx-small_layer
+          test_alignment_copy_neighbors(E,3,1,2) = nx+small_layer
+          test_alignment_copy_neighbors(E,3,2,1) = align_N
+          test_alignment_copy_neighbors(E,3,2,2) = align_N
+
+          !west
+          test_alignment_copy_neighbors(W,1,1,1) = align_W-large_layer
+          test_alignment_copy_neighbors(W,1,1,2) = align_W
+          test_alignment_copy_neighbors(W,1,2,1) = bc_size+1
+          test_alignment_copy_neighbors(W,1,2,2) = ny-bc_size
+
+          test_alignment_copy_neighbors(W,2,1,1) = -small_layer
+          test_alignment_copy_neighbors(W,2,1,2) = small_layer
+          test_alignment_copy_neighbors(W,2,2,1) = align_S
+          test_alignment_copy_neighbors(W,2,2,2) = align_S
+
+          test_alignment_copy_neighbors(W,3,1,1) = -small_layer
+          test_alignment_copy_neighbors(W,3,1,2) = small_layer
+          test_alignment_copy_neighbors(W,3,2,1) = align_N
+          test_alignment_copy_neighbors(W,3,2,2) = align_N
+
+        end subroutine ini_alignment_for_neighbor_copy
 
         
         subroutine update_alignment_to_increase_size(

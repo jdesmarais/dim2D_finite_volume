@@ -188,7 +188,8 @@ cleanall:
 #-----------------------------------------------------------------------
 
 #buffer layer dep
-$(bf_layer_dir)/parameters_bf_layer.o:
+$(bf_layer_dir)/parameters_bf_layer.o:\
+	$(param_dir)/parameters_input.o
 
 #$(bf_layer_dir)/bf_layer_abstract_class.o:\
 #	$(param_dir)/parameters_kind.o
@@ -235,6 +236,11 @@ $(bf_layer_dir)/bf_layer_merge_module.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
+$(bf_layer_dir)/bf_layer_exchange_module.o:\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
 #$(bf_layer_dir)/bf_corner_module.o:\
 #	$(param_dir)/parameters_input.o\
 #	$(param_dir)/parameters_constant.o\
@@ -258,6 +264,7 @@ $(bf_layer_dir)/bf_layer_class.o:\
 	$(bf_layer_dir)/bf_layer_allocate_module.o\
 	$(bf_layer_dir)/bf_layer_reallocate_module.o\
 	$(bf_layer_dir)/bf_layer_merge_module.o\
+	$(bf_layer_dir)/bf_layer_exchange_module.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
@@ -501,8 +508,10 @@ test_bf_layer_prog:\
 	bf_layer_allocate_module.o\
 	bf_layer_reallocate_module.o\
 	bf_layer_merge_module.o\
+	bf_layer_exchange_module.o\
 	bf_layer_class.o\
 	test_bf_layer_module.o
+
 
 test_bf_sublayer_prog:\
 	parameters_bf_layer.o\

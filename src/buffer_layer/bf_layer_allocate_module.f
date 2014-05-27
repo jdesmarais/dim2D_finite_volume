@@ -1,7 +1,8 @@
       module bf_layer_allocate_module
 
         use parameters_bf_layer, only : no_pt, interior_pt,
-     $                                  bc_interior_pt, bc_pt
+     $                                  bc_interior_pt, bc_pt,
+     $                                  align_N, align_S, align_E, align_W
         use parameters_constant, only : N,S,E,W, x_direction, y_direction
         use parameters_input   , only : nx,ny,ne,bc_size
         use parameters_kind    , only : ikind, rkind     
@@ -581,12 +582,12 @@
           !compute the new_sizes
           new_sizes(1) = final_alignment(1,2) - final_alignment(1,1) +
      $                   2*bc_size + 1
-          new_sizes(2) = final_alignment(2,2) - (ny+1) +
+          new_sizes(2) = final_alignment(2,2) - align_N +
      $                   2*bc_size + 1
 
           !compute the new alignment
           bf_alignment(1,1) = final_alignment(1,1)
-          bf_alignment(2,1) = ny+1
+          bf_alignment(2,1) = align_N
           bf_alignment(1,2) = final_alignment(1,2)
           bf_alignment(2,2) = final_alignment(2,2)
 
@@ -606,14 +607,14 @@
           !compute the new_sizes
           new_sizes(1) = final_alignment(1,2) - final_alignment(1,1) +
      $                   2*bc_size + 1
-          new_sizes(2) = 0 - final_alignment(2,1) +
+          new_sizes(2) = align_S - final_alignment(2,1) +
      $                   2*bc_size + 1
 
           !compute the new alignment
           bf_alignment(1,1) = final_alignment(1,1)
           bf_alignment(2,1) = final_alignment(2,1)
           bf_alignment(1,2) = final_alignment(1,2)
-          bf_alignment(2,2) = 0
+          bf_alignment(2,2) = align_S
 
         end subroutine get_new_sizes_and_alignment_S
 
@@ -629,13 +630,13 @@
           integer(ikind), dimension(2,2), intent(out) :: bf_alignment
           
           !compute the new_sizes
-          new_sizes(1) = final_alignment(1,2) - (nx+1) +
+          new_sizes(1) = final_alignment(1,2) - align_E +
      $                   2*bc_size + 1
           new_sizes(2) = final_alignment(2,2) - final_alignment(2,1) +
      $                   2*bc_size + 1
 
           !compute the new alignment
-          bf_alignment(1,1) = nx+1
+          bf_alignment(1,1) = align_E
           bf_alignment(2,1) = final_alignment(2,1)
           bf_alignment(1,2) = final_alignment(1,2)
           bf_alignment(2,2) = final_alignment(2,2)
@@ -654,7 +655,7 @@
           integer(ikind), dimension(2,2), intent(out) :: bf_alignment
           
           !compute the new_sizes
-          new_sizes(1) = 0 - final_alignment(1,1) +
+          new_sizes(1) = align_W - final_alignment(1,1) +
      $                   2*bc_size + 1
           new_sizes(2) = final_alignment(2,2) - final_alignment(2,1) +
      $                   2*bc_size + 1
@@ -662,7 +663,7 @@
           !compute the new alignment
           bf_alignment(1,1) = final_alignment(1,1)
           bf_alignment(2,1) = final_alignment(2,1)
-          bf_alignment(1,2) = 0
+          bf_alignment(1,2) = align_W
           bf_alignment(2,2) = final_alignment(2,2)
 
         end subroutine get_new_sizes_and_alignment_W
@@ -754,6 +755,11 @@
          end subroutine get_match
 
 
+         !< decide the size of the sub layers inside
+         !> an interior layer to know whether a special
+         !> treatment for the corner grid points id is needed
+         !> for example when dividing the first interior layer
+         !> into 2+3+4 for the reallocation layers
          subroutine get_match_interior(
      $     dir, ndir,
      $     bf_alignment, i_start_interior, size_interior,
@@ -842,8 +848,6 @@
               end do
 
               !block 4
-c$$$              print *, 'interior_i_max1', interior_i_max1
-c$$$              print *, 'interior_i_max1-i_start', interior_i_max1-i_start
               do i=1, interior_i_max1-i_start
                  bf_grdpts_id(i_min3+i,j_match+j) = border_E(i,j)
               end do
