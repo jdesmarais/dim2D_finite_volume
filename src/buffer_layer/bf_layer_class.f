@@ -14,6 +14,8 @@
       !-----------------------------------------------------------------
       module bf_layer_class
 
+        use bf_layer_errors_module      , only : error_mainlayer_id
+
         use bf_layer_allocate_module    , only : allocate_bf_layer_N,
      $                                           allocate_bf_layer_S,
      $                                           allocate_bf_layer_E,
@@ -101,6 +103,9 @@
           procedure,   pass :: allocate_bf_layer
           procedure,   pass :: reallocate_bf_layer
           procedure,   pass :: merge_bf_layer
+
+          procedure,   pass :: share_grdpts_with_neighbor1
+          procedure,   pass :: share_grdpts_with_neighbor2
 
           procedure,   pass :: copy_from_neighbor1
           procedure,   pass :: copy_from_neighbor2
@@ -595,6 +600,103 @@
           end select
 
         end subroutine merge_bf_layer
+
+
+        !< from the cardinal coordinate identifying to which
+        !> main layer the buffer layer belongs, the function
+        !> gives the cardinal coordinates of the neighboring
+        !> buffer layers as well as the index the neighboring
+        !> buffer layers will refer to when they will exchange
+        !> with the main layer corresponding to the mainlayer_id
+        subroutine get_neighbor_coords(
+     $     this,
+     $     neighbor1_id,
+     $     neighbor2_id,
+     $     neighbor_index)
+        
+          implicit none
+
+          class(bf_layer), intent(in)  :: this
+          integer        , intent(out) :: neighbor1_id
+          integer        , intent(out) :: neighbor2_id
+          integer        , intent(out) :: neighbor_index
+
+          select case(this%localization)
+            case(N)
+               neighbor1_id   = W
+               neighbor2_id   = E
+               neighbor_index = 1
+            case(S)
+               neighbor1_id   = W
+               neighbor2_id   = E
+               neighbor_index = 2
+            case(W)
+               neighbor1_id   = S
+               neighbor2_id   = N
+               neighbor_index = 1
+            case(E)
+               neighbor1_id   = S
+               neighbor2_id   = N
+               neighbor_index = 2
+            case default
+               call error_mainlayer_id(
+     $              'nbf_interface_class.f',
+     $              'get_neighbor_coords',
+     $              this%localization)
+          end select
+
+        end subroutine get_neighbor_coords
+
+
+        !< check if the current buffer layer share gridpoints with
+        !> a neighboring main layer
+        function share_grdpts_with_neighbor1(this)
+     $     result(share_grdpts)
+
+          implicit none
+
+          class(bf_layer), intent(in) :: this
+          logical                     :: share_grdpts
+
+          select case(this%localization)
+            case(N,S)
+               share_grdpts = this%alignment(1,1).le.(align_W+1)
+            case(E,W)
+               share_grdpts = this%alignment(2,1).le.(align_S+1)
+            case default
+               call error_mainlayer_id(
+     $              'nbf_interface_class.f',
+     $              'share_grdpts_with_neighbor1',
+     $              this%localization)
+          end select
+
+        end function share_grdpts_with_neighbor1
+
+
+        !< check if the current buffer layer share gridpoints with
+        !> a neighboring main layer
+        function share_grdpts_with_neighbor2(this)
+     $     result(share_grdpts)
+
+          implicit none
+
+          class(bf_layer), intent(in) :: this
+          logical                     :: share_grdpts
+
+
+          select case(this%localization)
+            case(N,S)
+               share_grdpts = this%alignment(1,2).ge.(align_E-1)
+            case(E,W)
+               share_grdpts = this%alignment(2,2).ge.(align_N-1)
+            case default
+               call error_mainlayer_id(
+     $              'nbf_interface_class.f',
+     $              'share_grdpts_with_neighbor2',
+     $              this%localization)
+          end select
+
+        end function share_grdpts_with_neighbor2       
 
 
         !> copy the exchange layer between the current buffer layer
