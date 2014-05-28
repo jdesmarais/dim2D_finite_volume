@@ -391,6 +391,7 @@
      $     this,
      $     bf_sublayer1,
      $     bf_sublayer2,
+     $     interior_nodes,
      $     alignment)
      $     result(merged_sublayer)
         
@@ -399,6 +400,7 @@
           class(bf_mainlayer)                     , intent(inout) :: this
           type(bf_sublayer), pointer              , intent(inout) :: bf_sublayer1
           type(bf_sublayer), pointer              , intent(inout) :: bf_sublayer2
+          real(rkind)   , dimension(nx,ny,ne)     , intent(in)    :: interior_nodes
           integer(ikind), dimension(2,2), optional, intent(in)    :: alignment
           type(bf_sublayer), pointer                              :: merged_sublayer
         
@@ -407,10 +409,12 @@
           if(present(alignment)) then
              call bf_sublayer1%merge_sublayers(
      $            bf_sublayer1, bf_sublayer2,
+     $            interior_nodes,
      $            alignment)
           else
              call bf_sublayer1%merge_sublayers(
-     $            bf_sublayer1, bf_sublayer2)
+     $            bf_sublayer1, bf_sublayer2,
+     $            interior_nodes)
           end if
         
           !update the number of sublayers in the mainlayer

@@ -21,7 +21,8 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
      $       ini_grdpts_id,
      $       ini_alignment_table,
      $       ini_neighbors_table,
-     $       ini_general_coord
+     $       ini_general_coord,
+     $       ini_cst_nodes
 
         contains
 
@@ -290,8 +291,8 @@ c$$$        end subroutine bf_layer_test_update_grdpts
 
           implicit none
 
-          type(bf_layer), intent(inout) :: bf_layer_initialized
-          real(rkind)   , intent(in)    :: cst
+          class(bf_layer), intent(inout) :: bf_layer_initialized
+          real(rkind)    , intent(in)    :: cst
           
           integer(ikind), dimension(2) :: sizes
           integer(ikind)               :: i,j

@@ -191,31 +191,13 @@ cleanall:
 $(bf_layer_dir)/parameters_bf_layer.o:\
 	$(param_dir)/parameters_input.o
 
-#$(bf_layer_dir)/bf_layer_abstract_class.o:\
-#	$(param_dir)/parameters_kind.o
+$(bf_layer_dir)/bf_layer_errors_module.o:
 
 $(bf_layer_dir)/bf_layer_ini_grdptID_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
-
-#$(bf_layer_dir)/bf_layer_allocate_module.o:\
-#	$(bf_layer_dir)/bf_layer_abstract_class.o\
-#	$(bf_layer_dir)/bf_layer_exchange_module.o\
-#	$(bf_layer_dir)/bf_layer_compute_module.o\
-#	$(bf_layer_dir)/bf_layer_ini_grdptID_module.o\
-#	$(bf_layer_dir)/parameters_bf_layer.o\
-#	$(param_dir)/parameters_constant.o\
-#	$(param_dir)/parameters_input.o\
-#	$(param_dir)/parameters_kind.o
-
-#$(bf_layer_dir)/bf_layer_exchange_module.o:\
-#	$(bf_layer_dir)/bf_layer_abstract_class.o\
-#	$(bf_layer_dir)/parameters_bf_layer.o\
-#	$(param_dir)/parameters_constant.o\
-#	$(param_dir)/parameters_input.o\
-#	$(param_dir)/parameters_kind.o
 
 $(bf_layer_dir)/bf_layer_allocate_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
@@ -241,26 +223,9 @@ $(bf_layer_dir)/bf_layer_exchange_module.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
-#$(bf_layer_dir)/bf_corner_module.o:\
-#	$(param_dir)/parameters_input.o\
-#	$(param_dir)/parameters_constant.o\
-#	$(param_dir)/parameters_kind.o
-
-#$(bf_layer_dir)/bf_layer_adapt_corner_module.o:\
-#	$(bf_layer_dir)/bf_layer_merge_module.o\
-#	$(bf_layer_dir)/parameters_bf_layer.o\
-#	$(param_dir)/parameters_constant.o\
-#	$(param_dir)/parameters_input.o\
-#	$(param_dir)/parameters_kind.o
-
-#$(bf_layer_dir)/bf_layer_update_grdpts_module.o:\
-#	$(bf_layer_dir)/parameters_bf_layer.o\
-#	$(param_dir)/parameters_constant.o\
-#	$(param_dir)/parameters_input.o\
-#	$(param_dir)/parameters_kind.o
-
 $(bf_layer_dir)/bf_layer_class.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/bf_layer_allocate_module.o\
 	$(bf_layer_dir)/bf_layer_reallocate_module.o\
 	$(bf_layer_dir)/bf_layer_merge_module.o\
@@ -275,8 +240,22 @@ $(bf_layer_dir)/bf_sublayer_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
-#$(bf_layer_dir)/bf_mainlayer_abstract_class.o:\
-#	$(bf_layer_dir)/bf_sublayer_class.o
+$(nbf_layer_dir)/nbf_element_class.o:\
+	$(bf_layer_dir)/bf_layer_class.o\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(nbf_layer_dir)/nbf_list_class.o:\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(nbf_layer_dir)/nbf_element_class.o
+
+$(nbf_layer_dir)/nbf_interface_class.o:\
+	$(nbf_layer_dir)/nbf_list_class.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_bf_layer.o
 
 $(bf_layer_dir)/bf_mainlayer_class.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o\
@@ -373,6 +352,16 @@ test_bf_mainlayer_prog.o:\
 	$(param_dir)/parameters_kind.o\
 	test_bf_layer_module.o\
 	test_bf_mainlayer_module.o
+
+test_nbf_element_prog.o:\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(nbf_layer_dir)/nbf_element_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	test_bf_layer_module.o
 
 test_bf_layer_path_prog.o:\
 	$(bf_layer_dir)/bf_layer_path_class.o\
@@ -539,6 +528,22 @@ test_bf_mainlayer_prog:\
 	bf_mainlayer_class.o\
 	test_bf_layer_module.o\
 	test_bf_mainlayer_module.o
+
+test_nbf_element_prog:\
+	parameters_kind.o\
+	parameters_constant.o\
+	parameters_input.o\
+	parameters_bf_layer.o\
+	bf_layer_errors_module.o\
+	bf_layer_allocate_module.o\
+	bf_layer_reallocate_module.o\
+	bf_layer_merge_module.o\
+	bf_layer_exchange_module.o\
+	bf_layer_class.o\
+	bf_sublayer_class.o\
+	bf_mainlayer_class.o\
+	nbf_element_class.o\
+	test_bf_layer_module.o
 
 test_bf_layer_path_prog:\
 	parameters_kind.o\

@@ -38,7 +38,9 @@
      $                                           copy_from_bf1_to_bf2
                                         
         use parameters_bf_layer         , only : bc_pt, bc_interior_pt,
-     $                                           interior_pt, no_pt
+     $                                           interior_pt, no_pt,
+     $                                           align_N, align_S,
+     $                                           align_E, align_W
 
         use parameters_constant         , only : N,S,E,W,
      $                                           x_direction, y_direction,

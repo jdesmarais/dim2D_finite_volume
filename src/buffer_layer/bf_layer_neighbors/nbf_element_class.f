@@ -1,14 +1,18 @@
       module nbf_element_class
 
-        use bf_layer_class     , only : bf_layer
-        use bf_sublayer_class  , only : bf_sublayer
-        use parameters_constant, only : x_direction, y_direction
-        use parameters_kind    , only : ikind
+        use bf_layer_class        , only : bf_layer
+        use bf_layer_errors_module, only : error_incompatible_neighbor
+        use bf_sublayer_class     , only : bf_sublayer
+        use parameters_bf_layer   , only : align_N, align_S
+        use parameters_constant   , only : N,S,E,W,
+     $                                     x_direction, y_direction
+        use parameters_input      , only : bc_size
+        use parameters_kind       , only : ikind
 
         implicit none
 
         private
-        public : nbf_element
+        public :: nbf_element
 
 
         !< element of a double chained list to save a pointer
@@ -96,7 +100,7 @@
         end function get_prev
 
 
-        subroutine get_next(this)
+        function get_next(this)
 
           implicit none
 
@@ -105,7 +109,7 @@
 
           get_next => this%next
 
-        end subroutine get_next
+        end function get_next
 
 
         subroutine nullify_prev(this)
@@ -156,8 +160,9 @@
              if(associated(element2%ptr)) then
                 
                 is_before = 
-     $               (element2%ptr%get_alignment(x_direction,1)).lt.
-     $               (this%ptr%get_alignment(x_direction,1))
+     $               (this%ptr%get_alignment(x_direction,1)).le.
+     $               (element2%ptr%get_alignment(x_direction,1))
+
 
              else
                 print '(''nbf_element_class'')'
@@ -216,14 +221,76 @@
 
           integer(ikind) :: min_border
           integer(ikind) :: max_border
+          integer        :: mainlayer_id
+          integer        :: n_mainlayer_id
 
 
+          !restrictions along the x-direction
           min_border = max(this%ptr%get_alignment(x_direction,1),
      $                     bf_exchanged%get_alignment(x_direction,1))
           max_border = min(this%ptr%get_alignment(x_direction,2),
      $                     bf_exchanged%get_alignment(x_direction,2))
 
-          can_exchange_with = (max_border-min_border).gt.0
+          can_exchange_with = (max_border-min_border+2*bc_size+1).gt.0
+
+
+          !restrictions for E and W buffer layers
+          !along the y-direction
+          if(can_exchange_with) then
+
+             n_mainlayer_id = this%ptr%get_localization()
+
+             select case(n_mainlayer_id)
+
+               case(N)
+                  mainlayer_id = bf_exchanged%get_localization()
+                  select case(mainlayer_id)
+                    case(E,W)
+                       can_exchange_with =
+     $                      bf_exchanged%get_alignment(y_direction,2).eq.(align_N-1)
+                    
+                    case default
+                       call error_incompatible_neighbor(
+     $                      'nbf_element_class.f',
+     $                      'can_exchange_with',
+     $                      mainlayer_id,
+     $                      n_mainlayer_id)
+                  end select
+
+               case(S)
+                  mainlayer_id = bf_exchanged%get_localization()
+                  select case(mainlayer_id)
+                    case(E,W)
+                       can_exchange_with =
+     $                      bf_exchanged%get_alignment(y_direction,1).eq.(align_S+1)
+                    case default
+                       call error_incompatible_neighbor(
+     $                      'nbf_element_class.f',
+     $                      'can_exchange_with',
+     $                      mainlayer_id,
+     $                      n_mainlayer_id)
+                  end select
+
+               case(E,W)
+                  mainlayer_id = bf_exchanged%get_localization()
+                  select case(mainlayer_id)
+                    case(N)
+                       can_exchange_with =
+     $                      this%ptr%get_alignment(y_direction,2).eq.(align_N-1)
+                    case(S)
+                       can_exchange_with =
+     $                      this%ptr%get_alignment(y_direction,1).eq.(align_S+1)
+                    case default
+                       call error_incompatible_neighbor(
+     $                      'nbf_element_class.f',
+     $                      'can_exchange_with',
+     $                      mainlayer_id,
+     $                      n_mainlayer_id)
+                  end select
+
+             end select
+
+          end if
 
         end function can_exchange_with
 
