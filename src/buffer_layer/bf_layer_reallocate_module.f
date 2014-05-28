@@ -22,7 +22,6 @@
      $            reallocate_bf_layer_E,
      $            reallocate_bf_layer_W
 
-
         contains
 
         
@@ -40,53 +39,64 @@
           integer(ikind), dimension(2,2)                  , intent(in)    :: final_alignment
 
 
-          integer(ikind), dimension(2,2)                :: border_changes
-          integer(ikind)                                :: i_match, i_max, j_max
-          integer(ikind)                                :: i_min1, i_min3, i_min4, i_min6
-          integer(ikind)                                :: outside_i_max1, outside_i_max2
-          integer(ikind)                                :: interior_i_max1, interior_i_max2
-          integer(ikind)                                :: interior_i_max11, interior_i_max13
-          integer(ikind)                                :: interior_i_max21, interior_i_max23
-          integer(ikind)                                :: i_min11, i_min13, i_min21, i_min23
-          integer(ikind), dimension(2)                  :: new_sizes
+          integer(ikind), dimension(2,2) :: border_changes
+          logical                        :: reallocation_needed
+          integer(ikind)                 :: i_match, i_max, j_max
+          integer(ikind)                 :: i_min1, i_min3, i_min4, i_min6
+          integer(ikind)                 :: outside_i_max1, outside_i_max2
+          integer(ikind)                 :: interior_i_max1, interior_i_max2
+          integer(ikind)                 :: interior_i_max11, interior_i_max13
+          integer(ikind)                 :: interior_i_max21, interior_i_max23
+          integer(ikind)                 :: i_min11, i_min13, i_min21, i_min23
+          integer(ikind), dimension(2)   :: new_sizes
+
 
 
           call get_border_changes_and_new_alignment_N(
      $         border_changes, final_alignment, bf_alignment)
 
-          call get_match(
-     $         x_direction,
-     $         bf_alignment, border_changes,
-     $         size(bf_nodes,1), size(bf_nodes,2),
-     $         i_min1, i_min3, i_min4, i_min6,
-     $         i_match, i_max, j_max,
-     $         outside_i_max1, outside_i_max2,
-     $         interior_i_max1, interior_i_max2,
-     $         interior_i_max11, interior_i_max13,
-     $         i_min11, i_min13,
-     $         interior_i_max21, interior_i_max23,
-     $         i_min21, i_min23)
 
-          new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
+          reallocation_needed = is_reallocation_needed(border_changes)
 
-          call reallocate_nodes_N(
-     $         bf_nodes, interior_nodes,
-     $         i_min1, i_min3, i_min4,
-     $         i_match, i_max, j_max,
-     $         interior_i_max1, interior_i_max2,
-     $         bf_alignment, new_sizes)
 
-          call reallocate_grdpts_id_N(
-     $         bf_grdpts_id,
-     $         i_min1, i_min3, i_min4, i_min6,
-     $         i_match, i_max, j_max,
-     $         outside_i_max1, outside_i_max2,
-     $         interior_i_max1, interior_i_max2,
-     $         interior_i_max11, interior_i_max13,
-     $         i_min11, i_min13,
-     $         interior_i_max21, interior_i_max23,
-     $         i_min21, i_min23,
-     $         bf_alignment ,new_sizes)
+          if(reallocation_needed) then
+
+
+             call get_match(
+     $            x_direction,
+     $            bf_alignment, border_changes,
+     $            size(bf_nodes,1), size(bf_nodes,2),
+     $            i_min1, i_min3, i_min4, i_min6,
+     $            i_match, i_max, j_max,
+     $            outside_i_max1, outside_i_max2,
+     $            interior_i_max1, interior_i_max2,
+     $            interior_i_max11, interior_i_max13,
+     $            i_min11, i_min13,
+     $            interior_i_max21, interior_i_max23,
+     $            i_min21, i_min23)
+
+             new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
+
+             call reallocate_nodes_N(
+     $            bf_nodes, interior_nodes,
+     $            i_min1, i_min3, i_min4,
+     $            i_match, i_max, j_max,
+     $            interior_i_max1, interior_i_max2,
+     $            bf_alignment, new_sizes)
+
+             call reallocate_grdpts_id_N(
+     $            bf_grdpts_id,
+     $            i_min1, i_min3, i_min4, i_min6,
+     $            i_match, i_max, j_max,
+     $            outside_i_max1, outside_i_max2,
+     $            interior_i_max1, interior_i_max2,
+     $            interior_i_max11, interior_i_max13,
+     $            i_min11, i_min13,
+     $            interior_i_max21, interior_i_max23,
+     $            i_min21, i_min23,
+     $            bf_alignment ,new_sizes)
+
+          end if
 
         end subroutine reallocate_bf_layer_N
 
@@ -105,53 +115,61 @@
           integer(ikind), dimension(2,2)                  , intent(in)    :: final_alignment
 
 
-          integer(ikind), dimension(2,2)                :: border_changes
-          integer(ikind)                                :: i_match, i_max, j_max
-          integer(ikind)                                :: i_min1, i_min3, i_min4, i_min6
-          integer(ikind)                                :: outside_i_max1, outside_i_max2
-          integer(ikind)                                :: interior_i_max1, interior_i_max2
-          integer(ikind)                                :: interior_i_max11, interior_i_max13
-          integer(ikind)                                :: interior_i_max21, interior_i_max23
-          integer(ikind)                                :: i_min11, i_min13, i_min21, i_min23
-          integer(ikind), dimension(2)                  :: new_sizes
+          integer(ikind), dimension(2,2) :: border_changes
+          logical                        :: reallocation_needed
+          integer(ikind)                 :: i_match, i_max, j_max
+          integer(ikind)                 :: i_min1, i_min3, i_min4, i_min6
+          integer(ikind)                 :: outside_i_max1, outside_i_max2
+          integer(ikind)                 :: interior_i_max1, interior_i_max2
+          integer(ikind)                 :: interior_i_max11, interior_i_max13
+          integer(ikind)                 :: interior_i_max21, interior_i_max23
+          integer(ikind)                 :: i_min11, i_min13, i_min21, i_min23
+          integer(ikind), dimension(2)   :: new_sizes
 
 
-          call get_border_changes_and_new_alignment_S(
-     $         border_changes, final_alignment, bf_alignment)
+          reallocation_needed = is_reallocation_needed(border_changes)
 
-          call get_match(
-     $         x_direction,
-     $         bf_alignment, border_changes,
-     $         size(bf_nodes,1), size(bf_nodes,2),
-     $         i_min1, i_min3, i_min4, i_min6,
-     $         i_match, i_max, j_max,
-     $         outside_i_max1, outside_i_max2,
-     $         interior_i_max1, interior_i_max2,
-     $         interior_i_max11, interior_i_max13,
-     $         i_min11, i_min13,
-     $         interior_i_max21, interior_i_max23,
-     $         i_min21, i_min23)
 
-          new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
+          if(reallocation_needed) then
 
-          call reallocate_nodes_S(
-     $         bf_nodes, interior_nodes,
-     $         i_min1, i_min3, i_min4,
-     $         i_match, i_max,
-     $         interior_i_max1, interior_i_max2,
-     $         bf_alignment, new_sizes)
+             call get_border_changes_and_new_alignment_S(
+     $            border_changes, final_alignment, bf_alignment)
 
-          call reallocate_grdpts_id_S(
-     $         bf_grdpts_id,
-     $         i_min1, i_min3, i_min4, i_min6,
-     $         i_match, i_max, j_max,
-     $         outside_i_max1, outside_i_max2,
-     $         interior_i_max1, interior_i_max2,
-     $         interior_i_max11, interior_i_max13,
-     $         i_min11, i_min13,
-     $         interior_i_max21, interior_i_max23,
-     $         i_min21, i_min23,
-     $         bf_alignment ,new_sizes)
+             call get_match(
+     $            x_direction,
+     $            bf_alignment, border_changes,
+     $            size(bf_nodes,1), size(bf_nodes,2),
+     $            i_min1, i_min3, i_min4, i_min6,
+     $            i_match, i_max, j_max,
+     $            outside_i_max1, outside_i_max2,
+     $            interior_i_max1, interior_i_max2,
+     $            interior_i_max11, interior_i_max13,
+     $            i_min11, i_min13,
+     $            interior_i_max21, interior_i_max23,
+     $            i_min21, i_min23)
+
+             new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
+
+             call reallocate_nodes_S(
+     $            bf_nodes, interior_nodes,
+     $            i_min1, i_min3, i_min4,
+     $            i_match, i_max,
+     $            interior_i_max1, interior_i_max2,
+     $            bf_alignment, new_sizes)
+
+             call reallocate_grdpts_id_S(
+     $            bf_grdpts_id,
+     $            i_min1, i_min3, i_min4, i_min6,
+     $            i_match, i_max, j_max,
+     $            outside_i_max1, outside_i_max2,
+     $            interior_i_max1, interior_i_max2,
+     $            interior_i_max11, interior_i_max13,
+     $            i_min11, i_min13,
+     $            interior_i_max21, interior_i_max23,
+     $            i_min21, i_min23,
+     $            bf_alignment ,new_sizes)
+
+          end if
 
         end subroutine reallocate_bf_layer_S
 
@@ -171,6 +189,7 @@
 
 
           integer(ikind), dimension(2,2) :: border_changes
+          logical                        :: reallocation_needed
           integer(ikind)                 :: j_match, i_max, j_max
           integer(ikind)                 :: j_min1, j_min3, j_min4, j_min6
           integer(ikind)                 :: outside_j_max1, outside_j_max2
@@ -184,39 +203,46 @@
           call get_border_changes_and_new_alignment_E(
      $         border_changes, final_alignment, bf_alignment)
 
-          call get_match(
-     $         y_direction,
-     $         bf_alignment, border_changes,
-     $         size(bf_nodes,1), size(bf_nodes,2),
-     $         j_min1, j_min3, j_min4, j_min6,
-     $         j_match, i_max, j_max,
-     $         outside_j_max1, outside_j_max2,
-     $         interior_j_max1, interior_j_max2,
-     $         interior_j_max11, interior_j_max13,
-     $         j_min11, j_min13,
-     $         interior_j_max21, interior_j_max23,
-     $         j_min21, j_min23)
+          reallocation_needed = is_reallocation_needed(border_changes)
 
-          new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
 
-          call reallocate_nodes_E(
-     $         bf_nodes, interior_nodes,
-     $         j_min1, j_min3, j_min4,
-     $         j_match, i_max, j_max,
-     $         interior_j_max1, interior_j_max2,
-     $         bf_alignment, new_sizes)
+          if(reallocation_needed) then
 
-          call reallocate_grdpts_id_E(
-     $         bf_grdpts_id,
-     $         j_min1, j_min3, j_min4, j_min6,
-     $         j_match, i_max, j_max,
-     $         outside_j_max1, outside_j_max2,
-     $         interior_j_max1, interior_j_max2,
-     $         interior_j_max11, interior_j_max13,
-     $         j_min11, j_min13,
-     $         interior_j_max21, interior_j_max23,
-     $         j_min21, j_min23,
-     $         bf_alignment ,new_sizes)
+             call get_match(
+     $            y_direction,
+     $            bf_alignment, border_changes,
+     $            size(bf_nodes,1), size(bf_nodes,2),
+     $            j_min1, j_min3, j_min4, j_min6,
+     $            j_match, i_max, j_max,
+     $            outside_j_max1, outside_j_max2,
+     $            interior_j_max1, interior_j_max2,
+     $            interior_j_max11, interior_j_max13,
+     $            j_min11, j_min13,
+     $            interior_j_max21, interior_j_max23,
+     $            j_min21, j_min23)
+
+             new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
+
+             call reallocate_nodes_E(
+     $            bf_nodes, interior_nodes,
+     $            j_min1, j_min3, j_min4,
+     $            j_match, i_max, j_max,
+     $            interior_j_max1, interior_j_max2,
+     $            bf_alignment, new_sizes)
+
+             call reallocate_grdpts_id_E(
+     $            bf_grdpts_id,
+     $            j_min1, j_min3, j_min4, j_min6,
+     $            j_match, i_max, j_max,
+     $            outside_j_max1, outside_j_max2,
+     $            interior_j_max1, interior_j_max2,
+     $            interior_j_max11, interior_j_max13,
+     $            j_min11, j_min13,
+     $            interior_j_max21, interior_j_max23,
+     $            j_min21, j_min23,
+     $            bf_alignment ,new_sizes)
+
+          end if
 
         end subroutine reallocate_bf_layer_E
 
@@ -237,6 +263,7 @@
 
 
           integer(ikind), dimension(2,2) :: border_changes
+          logical                        :: reallocation_needed
           integer(ikind)                 :: j_match, i_max, j_max
           integer(ikind)                 :: j_min1, j_min3, j_min4, j_min6
           integer(ikind)                 :: outside_j_max1, outside_j_max2
@@ -251,39 +278,46 @@
           call get_border_changes_and_new_alignment_W(
      $         border_changes, final_alignment, bf_alignment)
 
-          call get_match(
-     $         y_direction,
-     $         bf_alignment, border_changes,
-     $         size(bf_nodes,1), size(bf_nodes,2),
-     $         j_min1, j_min3, j_min4, j_min6,
-     $         j_match, i_max, j_max,
-     $         outside_j_max1, outside_j_max2,
-     $         interior_j_max1, interior_j_max2,
-     $         interior_j_max11, interior_j_max13,
-     $         j_min11, j_min13,
-     $         interior_j_max21, interior_j_max23,
-     $         j_min21, j_min23)
+          reallocation_needed = is_reallocation_needed(border_changes)
 
-          new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
+          
+          if(reallocation_needed) then
 
-          call reallocate_nodes_W(
-     $         bf_nodes, interior_nodes,
-     $         j_min1, j_min3, j_min4,
-     $         j_match, j_max,
-     $         interior_j_max1, interior_j_max2,
-     $         bf_alignment, new_sizes)
+             call get_match(
+     $            y_direction,
+     $            bf_alignment, border_changes,
+     $            size(bf_nodes,1), size(bf_nodes,2),
+     $            j_min1, j_min3, j_min4, j_min6,
+     $            j_match, i_max, j_max,
+     $            outside_j_max1, outside_j_max2,
+     $            interior_j_max1, interior_j_max2,
+     $            interior_j_max11, interior_j_max13,
+     $            j_min11, j_min13,
+     $            interior_j_max21, interior_j_max23,
+     $            j_min21, j_min23)
 
-          call reallocate_grdpts_id_W(
-     $         bf_grdpts_id,
-     $         j_min1, j_min3, j_min4, j_min6,
-     $         j_match, j_max,
-     $         outside_j_max1, outside_j_max2,
-     $         interior_j_max1, interior_j_max2,
-     $         interior_j_max11, interior_j_max13,
-     $         j_min11, j_min13,
-     $         interior_j_max21, interior_j_max23,
-     $         j_min21, j_min23,
-     $         bf_alignment ,new_sizes)
+             new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
+
+             call reallocate_nodes_W(
+     $            bf_nodes, interior_nodes,
+     $            j_min1, j_min3, j_min4,
+     $            j_match, j_max,
+     $            interior_j_max1, interior_j_max2,
+     $            bf_alignment, new_sizes)
+
+             call reallocate_grdpts_id_W(
+     $            bf_grdpts_id,
+     $            j_min1, j_min3, j_min4, j_min6,
+     $            j_match, j_max,
+     $            outside_j_max1, outside_j_max2,
+     $            interior_j_max1, interior_j_max2,
+     $            interior_j_max11, interior_j_max13,
+     $            j_min11, j_min13,
+     $            interior_j_max21, interior_j_max23,
+     $            j_min21, j_min23,
+     $            bf_alignment ,new_sizes)
+
+          end if
 
         end subroutine reallocate_bf_layer_W
 
@@ -1444,5 +1478,23 @@
           bf_alignment(2,2) = final_alignment(2,2)
 
         end subroutine get_border_changes_and_new_alignment_W
+
+
+        function is_reallocation_needed(border_changes)
+     $     result(reallocation_needed)
+
+          implicit none
+
+          integer(ikind), dimension(2,2), intent(in) :: border_changes
+          logical                                    :: reallocation_needed
+
+
+          reallocation_needed = (border_changes(1,1).ne.0).or.
+     $                          (border_changes(1,2).ne.0).or.
+     $                          (border_changes(2,1).ne.0).or.
+     $                          (border_changes(2,2).ne.0)
+
+
+        end function is_reallocation_needed
 
       end module bf_layer_reallocate_module
