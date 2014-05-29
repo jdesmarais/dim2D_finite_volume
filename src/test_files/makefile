@@ -363,6 +363,17 @@ test_nbf_element_prog.o:\
 	$(param_dir)/parameters_kind.o\
 	test_bf_layer_module.o
 
+test_nbf_list_prog.o:\
+	$(nbf_layer_dir)/nbf_element_class.o\
+	$(nbf_layer_dir)/nbf_list_class.o\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	test_bf_layer_module.o
+
 test_bf_layer_path_prog.o:\
 	$(bf_layer_dir)/bf_layer_path_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
@@ -543,6 +554,23 @@ test_nbf_element_prog:\
 	bf_sublayer_class.o\
 	bf_mainlayer_class.o\
 	nbf_element_class.o\
+	test_bf_layer_module.o
+
+test_nbf_list_prog:\
+	parameters_kind.o\
+	parameters_constant.o\
+	parameters_input.o\
+	parameters_bf_layer.o\
+	bf_layer_errors_module.o\
+	bf_layer_allocate_module.o\
+	bf_layer_reallocate_module.o\
+	bf_layer_merge_module.o\
+	bf_layer_exchange_module.o\
+	bf_layer_class.o\
+	bf_sublayer_class.o\
+	nbf_element_class.o\
+	nbf_list_class.o\
+	bf_mainlayer_class.o\
 	test_bf_layer_module.o
 
 test_bf_layer_path_prog:\

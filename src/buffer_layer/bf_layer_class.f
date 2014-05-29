@@ -604,50 +604,7 @@
         end subroutine merge_bf_layer
 
 
-        !< from the cardinal coordinate identifying to which
-        !> main layer the buffer layer belongs, the function
-        !> gives the cardinal coordinates of the neighboring
-        !> buffer layers as well as the index the neighboring
-        !> buffer layers will refer to when they will exchange
-        !> with the main layer corresponding to the mainlayer_id
-        subroutine get_neighbor_coords(
-     $     this,
-     $     neighbor1_id,
-     $     neighbor2_id,
-     $     neighbor_index)
         
-          implicit none
-
-          class(bf_layer), intent(in)  :: this
-          integer        , intent(out) :: neighbor1_id
-          integer        , intent(out) :: neighbor2_id
-          integer        , intent(out) :: neighbor_index
-
-          select case(this%localization)
-            case(N)
-               neighbor1_id   = W
-               neighbor2_id   = E
-               neighbor_index = 1
-            case(S)
-               neighbor1_id   = W
-               neighbor2_id   = E
-               neighbor_index = 2
-            case(W)
-               neighbor1_id   = S
-               neighbor2_id   = N
-               neighbor_index = 1
-            case(E)
-               neighbor1_id   = S
-               neighbor2_id   = N
-               neighbor_index = 2
-            case default
-               call error_mainlayer_id(
-     $              'nbf_interface_class.f',
-     $              'get_neighbor_coords',
-     $              this%localization)
-          end select
-
-        end subroutine get_neighbor_coords
 
 
         !< check if the current buffer layer share gridpoints with

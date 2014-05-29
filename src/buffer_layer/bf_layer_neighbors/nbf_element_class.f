@@ -28,11 +28,13 @@
           procedure, pass :: ini
           procedure, pass :: set_prev
           procedure, pass :: set_next
+          procedure, pass :: set_ptr
           procedure, pass :: get_prev
           procedure, pass :: get_next
+          procedure, pass :: get_ptr
           procedure, pass :: nullify_prev
           procedure, pass :: nullify_next
-          procedure, pass :: set_element
+          procedure, pass :: nullify_ptr
           procedure, pass :: is_before
           procedure, pass :: refers_to
           procedure, pass :: can_exchange_with
@@ -88,6 +90,20 @@
         end subroutine set_next
 
 
+        subroutine set_ptr(this, added_bf_sublayer_ptr)
+
+          implicit none
+
+          class(nbf_element)        , intent(inout) :: this
+          type(bf_sublayer), pointer, intent(in)    :: added_bf_sublayer_ptr
+
+          if(associated(added_bf_sublayer_ptr)) then
+             this%ptr => added_bf_sublayer_ptr
+          end if
+
+        end subroutine set_ptr
+      
+        
         function get_prev(this)
 
           implicit none
@@ -112,6 +128,18 @@
         end function get_next
 
 
+        function get_ptr(this)
+
+          implicit none
+
+          class(nbf_element), intent(inout) :: this
+          type(bf_sublayer) , pointer       :: get_ptr
+
+          get_ptr => this%ptr
+
+        end function get_ptr
+
+
         subroutine nullify_prev(this)
 
           implicit none
@@ -134,18 +162,15 @@
         end subroutine nullify_next
       
 
-        subroutine set_element(this, added_bf_sublayer_ptr)
+        subroutine nullify_ptr(this)
 
           implicit none
 
-          class(nbf_element)        , intent(inout) :: this
-          type(bf_sublayer), pointer, intent(in)    :: added_bf_sublayer_ptr
+          class(nbf_element), intent(inout) :: this
 
-          if(associated(added_bf_sublayer_ptr)) then
-             this%ptr => added_bf_sublayer_ptr
-          end if
+          nullify(this%ptr)
 
-        end subroutine set_element
+        end subroutine nullify_ptr
 
       
         function is_before(this, element2)

@@ -20,8 +20,14 @@
 
           contains
 
+          procedure, pass :: ini
+
+          procedure, pass :: get_head
+          procedure, pass :: get_tail
+          procedure, pass :: get_nb_elements
+
           procedure, pass :: add_link_in_list
-          procedure, pass :: udpate_link_in_list
+          procedure, pass :: update_link_in_list
           procedure, pass :: remove_link_from_list
 
           procedure, pass :: copy_from_neighbors_to_bf_layer
@@ -47,6 +53,42 @@
           this%nb_elements = 0
           
         end subroutine ini
+
+
+        function get_head(this)
+
+          implicit none
+
+          class(nbf_list), intent(in) :: this
+          type(nbf_element), pointer  :: get_head
+          
+          get_head => this%head
+
+        end function get_head
+
+
+        function get_tail(this)
+
+          implicit none
+
+          class(nbf_list), intent(in) :: this
+          type(nbf_element), pointer  :: get_tail
+          
+          get_tail => this%tail
+
+        end function get_tail
+
+
+        function get_nb_elements(this)
+
+          implicit none
+
+          class(nbf_list), intent(in) :: this
+          integer                     :: get_nb_elements
+          
+          get_nb_elements = this%nb_elements
+
+        end function get_nb_elements
 
 
         !< add an element corresponding to the specific link
@@ -78,6 +120,7 @@
           type(bf_sublayer), pointer, intent(in)    :: bf_sublayer1
           type(bf_sublayer), pointer, intent(in)    :: bf_sublayer2
 
+          type(nbf_element), pointer :: current_element
           integer :: i
 
           if(associated(this%head)) then
@@ -105,9 +148,7 @@
           class(nbf_list)           , intent(inout) :: this
           type(bf_sublayer), pointer, intent(in)    :: rm_bf_sublayer_ptr
 
-          type(nbf_element), pointer :: rm_element
-
-
+          type(nbf_element), pointer :: current_element
           integer :: i
 
           if(associated(this%head)) then
@@ -138,6 +179,7 @@
           integer          , intent(in)    :: neighbor_index
           type(bf_sublayer), intent(inout) :: bf_exchanged
 
+          type(nbf_element), pointer :: current_element
           integer :: i
 
           if(associated(this%head)) then
@@ -184,6 +226,7 @@
           integer          , intent(in)    :: neighbor_index
           type(bf_sublayer), intent(in)    :: bf_exchanged
 
+          type(nbf_element), pointer :: current_element
           integer :: i
 
           if(associated(this%head)) then
@@ -193,7 +236,7 @@
              if(neighbor_index.eq.1) then
 
                 do i=1, this%nb_elements
-                   call current_element%copy_to_neighbor1_to(bf_exchanged)
+                   call current_element%copy_to_neighbor1_from(bf_exchanged)
                    current_element => current_element%get_next()
                 end do
 
@@ -201,7 +244,7 @@
 
                 if(neighbor_index.eq.2) then
                    do i=1, this%nb_elements
-                      call current_element%copy_to_neighbor2_to(bf_exchanged)
+                      call current_element%copy_to_neighbor2_from(bf_exchanged)
                       current_element => current_element%get_next()
                    end do
                 else
@@ -225,8 +268,10 @@
           implicit none
 
           class(nbf_list)           , intent(inout) :: this
-          type(nbf_element), pointer, intent(in)    :: new_element
+          type(nbf_element), pointer, intent(inout) :: new_element
 
+          type(nbf_element), pointer :: current_element
+          type(nbf_element), pointer :: current_element_prev
           integer :: i          
 
           select case(this%nb_elements)
@@ -248,7 +293,7 @@
                   call new_element%set_next(this%head)
                   call this%head%set_prev(new_element)
                   call this%head%nullify_next()
-                  this%head => added_bf_sublayer_ptr
+                  this%head => new_element
 
                end if
                 
@@ -290,15 +335,15 @@
 
                      call current_element%set_next(new_element)
                      call new_element%set_prev(current_element)
-                     this%tail_sublayer => new_element
+                     this%tail => new_element
 
                   else
 
-                     current_sublayer_prev => current_sublayer%get_prev()
+                     current_element_prev => current_element%get_prev()
                      call insert_element(
      $                    new_element,
-     $                    current_sublayer_prev,
-     $                    current_sublayer)
+     $                    current_element_prev,
+     $                    current_element)
 
                   end if
                end if
