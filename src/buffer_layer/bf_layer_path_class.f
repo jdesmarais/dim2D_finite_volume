@@ -1,4 +1,4 @@
-                                !> @file
+      !> @file
       !> module implementing the object encapsulating data
       !> required to decide which points need to be updated
       !> and whether this leads to the creation or the update
@@ -18,13 +18,10 @@
       !----------------------------------------------------------------
       module bf_layer_path_class
 
-        !use bf_layer_corner_check_module, only : check_corner_bf_layer_neighbors
-        !use bf_layer_path_abstract_class, only : bf_layer_path_abstract
-        !use bf_corner_module            , only : is_alignment_compatible_with_corner
-
-        use bf_sublayer_class  , only : bf_sublayer
         use bf_interface_class , only : bf_interface
-        use parameters_constant, only : x_direction, y_direction,
+        use bf_sublayer_class  , only : bf_sublayer
+        use parameters_constant, only : N,S,E,W,
+     $                                  x_direction, y_direction,
      $                                  min_border, max_border
         use parameters_input   , only : nx,ny,ne,bc_size
         use parameters_kind    , only : ikind, rkind
@@ -70,10 +67,6 @@
         !> path, it identifies which bc_interior_pt should be modified
         !> in the interior domain or inside the buffer layer
         !
-        !> @param neighbors
-        !> table of logical identifying whether neighboring buffer layers
-        !> exist and so how to allocate new buffer layers
-        !
         !> @param alignment
         !> table identifying the new position of the buffer layer and
         !> whether an existing buffer layer should be reallocated
@@ -82,17 +75,18 @@
 
           type(bf_sublayer), pointer :: matching_sublayer
 
-          integer                                     :: mainlayer
-          integer(ikind), dimension(:,:), allocatable :: pts
-          integer                                     :: nb_pts
-          logical       , dimension(4)                :: neighbors
-          integer(ikind), dimension(2,2)              :: alignment
-          logical                                     :: ends
+          integer                                    , private :: mainlayer_id
+          integer(ikind), dimension(:,:), allocatable, private :: pts
+          integer                                    , private :: nb_pts
+          integer(ikind), dimension(2,2)             , private :: alignment
+          logical                                    , private :: ends
 
           contains
           
           procedure,   pass          :: ini
           procedure,   pass          :: reinitialize
+          procedure,   pass          :: is_ended
+
           procedure,   pass, private :: add_pt_to_path
           procedure,   pass, private :: minimize_path
                        
@@ -105,13 +99,12 @@
           procedure,   pass          :: analyze_pt
 
           procedure,   pass, private :: should_bf_sublayers_be_merged
-          procedure,   pass, private :: update_allocation_bf_sublayers
-          procedure,   pass, private :: update_grdpts_id_bf_sublayers
+          procedure,   pass, private :: update_allocation_bf_sublayer
           procedure,   pass          :: process_path
 
-          procedure, nopass, private :: are_pts_in_the_same_mainlayer
-          procedure, nopass, private :: are_pts_far_away
-          procedure, nopass, private :: update_alignment
+          procedure, pass :: get_nb_pts
+          procedure, pass :: get_pt
+          procedure, pass :: print_on_screen
 
         end type bf_layer_path
 
@@ -142,7 +135,6 @@
           
           this%ends      = .false.
           this%nb_pts    = 0
-          this%neighbors = [.false.,.false.,.false.,.false.]
 
         end subroutine ini
 
@@ -170,9 +162,21 @@
           
           this%ends      = .false.
           this%nb_pts    = 0
-          this%neighbors = [.false.,.false.,.false.,.false.]
 
         end subroutine reinitialize
+
+      
+        !> access to the attribute ends
+        function is_ended(this)
+
+          implicit none
+
+          class(bf_layer_path), intent(in) :: this
+          logical                          :: is_ended
+
+          is_ended = this%ends
+
+        end function is_ended
 
 
         !> @author
@@ -298,7 +302,6 @@
           class(bf_interface)         , intent(in)    :: interface_used
 
 
-          integer :: corner_id
           integer :: tolerance_pts_same_path
           integer :: tolerance_pts_same_sublayer
 
@@ -362,42 +365,37 @@
         !--------------------------------------------------------------
         subroutine process_path(
      $     this,
-     $     bc_interior_pt_analyzed,
      $     interface_used,
-     $     nodes)
+     $     interior_nodes)
         
           implicit none
         
           class(bf_layer_path)            , intent(inout) :: this
-          integer(ikind), dimension(2)    , intent(in)    :: bc_interior_pt_analyzed
           class(bf_interface)             , intent(inout) :: interface_used
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
+
         
-          type(bf_sublayer), pointer :: sublayer_corner
+          type(bf_sublayer), pointer :: modified_sublayer
+
         
           !only if the path ends we should consider updating the
           !buffer layers corresponding to the path
           if(this%ends) then
         
              !update the allocation required for the buffer layer
-             modified_sublayer => this%update_allocation_bf_sublayers(
-     $            interface_used)
+             modified_sublayer => update_allocation_bf_sublayer(
+     $            this,
+     $            interface_used,
+     $            interior_nodes)
 
-             !if the path was used to reallocate or merge sublayers,
-             !then we should consider updating the grdpts_id and 
-             !computing the new grid points. Completely new buffer
-             !layers are completely initialized by the allocate
-             !procedure
-             if(associated(this%matching_sublayer)) then
-                call this%matching_sublayer%update_grdpts_id(
-     $               this%pts(1:2,1:this%nb_pts))
-             end if
+             !update the grid points for the increase
+             call interface_used%update_grdpts_after_increase(
+     $            modified_sublayer, this%pts(1:2,1:this%nb_pts))
 
              !reinitialize the path
              call this%reinitialize()
 
-          end if
-        
+          end if        
         
         end subroutine process_path
 
@@ -443,7 +441,7 @@
 
 
           !get the mainlayer id of the path
-          this%mainlayer = interface_used%get_mainlayer_id(
+          this%mainlayer_id = interface_used%get_mainlayer_id(
      $         bc_interior_pt_analyzed)
 
 
@@ -454,7 +452,7 @@
           this%matching_sublayer => interface_used%get_sublayer(
      $         bc_interior_pt_analyzed, local_coord,
      $         tolerance_i=tolerance_pts_same_sublayer,
-     $         mainlayer_id_i=this%mainlayer)
+     $         mainlayer_id_i=this%mainlayer_id)
 
 
           !initialize the alignment with the position of the
@@ -551,7 +549,7 @@
      $                  bc_interior_pt_analyzed,
      $                  local_coord,
      $                  tolerance_i=tolerance_pts_same_sublayer,
-     $                  mainlayer_id_i=this%mainlayer)
+     $                  mainlayer_id_i=this%mainlayer_id)
              
                    !if the points are too far away and cannot belong
                    !to the same buffer layer afterwards, the path
@@ -590,7 +588,7 @@
      $                  bc_interior_pt_analyzed,
      $                  local_coord,
      $                  tolerance_i=tolerance_pts_same_sublayer,
-     $                  mainlayer_id_i=this%mainlayer)
+     $                  mainlayer_id_i=this%mainlayer_id)
              
                 end if
              
@@ -662,7 +660,7 @@
 
           !compare with the mainlayer of the path
           are_pts_in_same_mainlayer =
-     $         this%mainlayer.eq.mainlayer_current_pt
+     $         this%mainlayer_id.eq.mainlayer_current_pt
 
 
         end function are_pts_in_same_mainlayer
@@ -718,7 +716,7 @@
         !> WARNING: bf_layer2%alignment(direction,max) >
         !>          this%alignment(direction,min)
         function should_bf_sublayers_be_merged(
-     $     this, bf_sublayer_ptr, tolerance)
+     $     this, bf_sublayer_ptr)
      $     result(merge)
 
 
@@ -726,11 +724,9 @@
 
           class(bf_layer_path), intent(in) :: this
           type(bf_sublayer)   , intent(in) :: bf_sublayer_ptr
-          integer             , intent(in) :: tolerance
           logical                          :: merge
 
-          integer : direction
-
+          integer :: direction
           
           !determine the direction and the border compared
           !between the path and the neighboring layer of the
@@ -741,20 +737,18 @@
             case(E,W)
                direction = y_direction
             case default
-               print '(''bf_layer_path_class'')'
-               print '(''should_bf_sublayers_be_merged'')'
-               print '(''mianlayer_id not recognized'')'
-               print '(''mianlayer_id: ''), I2)'
-               print 'check mainlayer_id'
+               call error_mainlayer_id(
+     $              'bf_layer_path_class.f',
+     $              'should_bf_sublayers_be_merged',
+     $              this%mainlayer_id)
           end select          
 
 
           !if the distance between the alignment of the path
           !and the neighboring buffer layer of its matching
           !layer is small, the two buffer layers will be merged
-          merge = abs(
-     $         this%alignment(direction,max_border)-
-     $         bf_sublayer_ptr%get_alignment(direction,max_border)).le.tolerance
+          merge = (this%alignment(direction,max_border)).gt.(
+     $         bf_sublayer_ptr%get_alignment(direction,min_border)-2*bc_size)
 
         end function should_bf_sublayers_be_merged
 
@@ -764,15 +758,16 @@
         !> the buffer layers, the buffer layers should be first 
         !> allocated/reallocated or merged such that the memory needed
         !> for these grid points is allocated
-        function update_allocation_bf_sublayer(this, interface_used)
+        function update_allocation_bf_sublayer(
+     $     this, interface_used, interior_nodes)
      $     result(modified_sublayer)
 
           implicit none
 
-
-          class(bf_layer_path), intent(in)    :: this
-          class(bf_interface) , intent(inout) :: interface_used
-
+          class(bf_layer_path)            , intent(inout) :: this
+          class(bf_interface)             , intent(inout) :: interface_used
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          type(bf_sublayer), pointer                      :: modified_sublayer
           
           type(bf_sublayer), pointer :: neighboring_sublayer
           logical                    :: merge
@@ -785,20 +780,22 @@
              !we need to check whether the reallocation of the matching
              !sublayer with the alignment of the current path will not
              !lead to a merge with the neighboring buffer layer
-             neighboring_sublayer => interface_used%get_neighboring_sublayer(
-     $            this%matching_sublayer)
+             neighboring_sublayer => this%matching_sublayer%get_next()
 
              if(associated(neighboring_sublayer)) then
-                merge = this%should_bf_sublayers_be_merged(neighboring_sublayer)
+                merge = this%should_bf_sublayers_be_merged(
+     $               neighboring_sublayer)
 
                 if(merge) then
-                   call this%matching_sublayer%merge_bf_layer(
+                   modified_sublayer => interface_used%merge_sublayers(
+     $                  this%matching_sublayer,
      $                  neighboring_sublayer,
+     $                  interior_nodes,
      $                  this%alignment)                   
-                   modified_sublayer => this%matching_sublayer
-                   
                 else
-                   call this%matching_sublayer%reallocate_bf_layer(
+                   call interface_used%reallocate_sublayer(
+     $                  this%matching_sublayer,
+     $                  interior_nodes,
      $                  this%alignment)
                    modified_sublayer => this%matching_sublayer
 
@@ -806,9 +803,11 @@
 
              !if there is no potential neighboring sublayer that should be
              !merged, the matching sublayer is simply reallocated according
-             !the alignment and neighbors of the current path
+             !the alignment of the current path
              else
-                 call this%matching_sublayer%reallocate_bf_layer(
+                 call interface_used%reallocate_sublayer(
+     $               this%matching_sublayer,
+     $               interior_nodes,
      $               this%alignment)
                  modified_sublayer => this%matching_sublayer
 
@@ -817,11 +816,10 @@
           !if there is no matching sublayer, a new buffer layer will be
           !allocated with the needed new alignment
           else
-             modified_sublayer => interface_used%add_sublayer(
+             modified_sublayer => interface_used%allocate_sublayer(
      $            this%mainlayer_id,
-     $            nodes,
-     $            this%alignment,
-     $            this%neighbors)
+     $            interior_nodes,
+     $            this%alignment)
 
           end if
           
@@ -857,5 +855,55 @@
           this%alignment(2,2) = max(this%alignment(2,2), bc_interior_pt_analyzed(2))
              
         end subroutine update_alignment
+
+
+        function get_nb_pts(this)
+
+          implicit none
+
+          class(bf_layer_path), intent(in) :: this
+          integer                          :: get_nb_pts
+
+          get_nb_pts = this%nb_pts
+
+        end function get_nb_pts
+
+
+        function get_pt(this,i)
+
+          implicit none
+
+          class(bf_layer_path), intent(in) :: this
+          integer             , intent(in) :: i
+          integer(ikind), dimension(2)     :: get_pt
+
+          get_pt(1) = this%pts(1,i)
+          get_pt(2) = this%pts(2,i)
+
+        end function get_pt
+
+
+        !< print the content of the path on screen
+        subroutine print_on_screen(this)
+
+          implicit none
+
+          class(bf_layer_path), intent(in) :: this
+
+          print '(''path created'')'
+          print '(''nb_pts: '', I2)', this%nb_pts
+          print '(''alignment: '', 4I3)', this%alignment
+          if(associated(this%matching_sublayer)) then
+             print '(''sublayer_matching: associated'')'
+             print '(''  + localization: '', I2)',
+     $            this%matching_sublayer%get_localization()
+             print '(''  + alignment: '', 4I3)',
+     $            this%matching_sublayer%get_alignment_tab()
+          else
+             print '(''sublayer_matching: non associated'')'
+          end if
+          print '('''')'
+              
+        end subroutine print_on_screen
 
       end module bf_layer_path_class
