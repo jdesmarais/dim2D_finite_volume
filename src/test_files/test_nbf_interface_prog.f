@@ -105,14 +105,19 @@
               added_sublayer => bf_mainlayers(j)%add_sublayer(
      $             nodes,alignment)
 
+              !set whether the buffe rlayer can exchange
+              !with neighboring layers
+              call added_sublayer%set_neighbor1_share()
+              call added_sublayer%set_neighbor2_share()
+
               !if the buffer layer is a potential neigboring buffer
               !layer, we add the link to the nbf_interface
-              if(added_sublayer%shares_grdpts_with_neighbor1()) then
+              if(added_sublayer%can_exchange_with_neighbor1()) then
                  call nbf_interface_used%link_neighbor1_to_bf_sublayer(
      $                added_sublayer)
               end if
 
-              if(added_sublayer%shares_grdpts_with_neighbor2()) then
+              if(added_sublayer%can_exchange_with_neighbor2()) then
                  call nbf_interface_used%link_neighbor2_to_bf_sublayer(
      $                added_sublayer)
               end if

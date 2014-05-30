@@ -37,7 +37,7 @@
           procedure, pass :: nullify_ptr
           procedure, pass :: is_before
           procedure, pass :: refers_to
-          procedure, pass :: can_exchange_with
+          !procedure, pass :: can_exchange_with
           procedure, pass :: copy_from_neighbor1_to
           procedure, pass :: copy_from_neighbor2_to
           procedure, pass :: copy_to_neighbor1_from
@@ -235,89 +235,89 @@
 
 
         !< check if the exchange between the element and the
-        !> buffer sublayer are possible
-        function can_exchange_with(this, bf_exchanged)
-
-          implicit none
-
-          class(nbf_element), intent(in) :: this
-          class(bf_layer)   , intent(in) :: bf_exchanged
-          logical                        :: can_exchange_with
-
-          integer(ikind) :: min_border
-          integer(ikind) :: max_border
-          integer        :: mainlayer_id
-          integer        :: n_mainlayer_id
-
-
-          !restrictions along the x-direction
-          min_border = max(this%ptr%get_alignment(x_direction,1),
-     $                     bf_exchanged%get_alignment(x_direction,1))
-          max_border = min(this%ptr%get_alignment(x_direction,2),
-     $                     bf_exchanged%get_alignment(x_direction,2))
-
-          can_exchange_with = (max_border-min_border+2*bc_size+1).gt.0
-
-
-          !restrictions for E and W buffer layers
-          !along the y-direction
-          if(can_exchange_with) then
-
-             n_mainlayer_id = this%ptr%get_localization()
-
-             select case(n_mainlayer_id)
-
-               case(N)
-                  mainlayer_id = bf_exchanged%get_localization()
-                  select case(mainlayer_id)
-                    case(E,W)
-                       can_exchange_with =
-     $                      bf_exchanged%get_alignment(y_direction,2).eq.(align_N-1)
-                    
-                    case default
-                       call error_incompatible_neighbor(
-     $                      'nbf_element_class.f',
-     $                      'can_exchange_with',
-     $                      mainlayer_id,
-     $                      n_mainlayer_id)
-                  end select
-
-               case(S)
-                  mainlayer_id = bf_exchanged%get_localization()
-                  select case(mainlayer_id)
-                    case(E,W)
-                       can_exchange_with =
-     $                      bf_exchanged%get_alignment(y_direction,1).eq.(align_S+1)
-                    case default
-                       call error_incompatible_neighbor(
-     $                      'nbf_element_class.f',
-     $                      'can_exchange_with',
-     $                      mainlayer_id,
-     $                      n_mainlayer_id)
-                  end select
-
-               case(E,W)
-                  mainlayer_id = bf_exchanged%get_localization()
-                  select case(mainlayer_id)
-                    case(N)
-                       can_exchange_with =
-     $                      this%ptr%get_alignment(y_direction,2).eq.(align_N-1)
-                    case(S)
-                       can_exchange_with =
-     $                      this%ptr%get_alignment(y_direction,1).eq.(align_S+1)
-                    case default
-                       call error_incompatible_neighbor(
-     $                      'nbf_element_class.f',
-     $                      'can_exchange_with',
-     $                      mainlayer_id,
-     $                      n_mainlayer_id)
-                  end select
-
-             end select
-
-          end if
-
-        end function can_exchange_with
+c$$$        !> buffer sublayer are possible
+c$$$        function can_exchange_with(this, bf_exchanged)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          class(nbf_element), intent(in) :: this
+c$$$          class(bf_layer)   , intent(in) :: bf_exchanged
+c$$$          logical                        :: can_exchange_with
+c$$$
+c$$$          integer(ikind) :: min_border
+c$$$          integer(ikind) :: max_border
+c$$$          integer        :: mainlayer_id
+c$$$          integer        :: n_mainlayer_id
+c$$$
+c$$$
+c$$$          !restrictions along the x-direction
+c$$$          min_border = max(this%ptr%get_alignment(x_direction,1),
+c$$$     $                     bf_exchanged%get_alignment(x_direction,1))
+c$$$          max_border = min(this%ptr%get_alignment(x_direction,2),
+c$$$     $                     bf_exchanged%get_alignment(x_direction,2))
+c$$$
+c$$$          can_exchange_with = (max_border-min_border+2*bc_size+1).gt.0
+c$$$
+c$$$
+c$$$          !restrictions for E and W buffer layers
+c$$$          !along the y-direction
+c$$$          if(can_exchange_with) then
+c$$$
+c$$$             n_mainlayer_id = this%ptr%get_localization()
+c$$$
+c$$$             select case(n_mainlayer_id)
+c$$$
+c$$$               case(N)
+c$$$                  mainlayer_id = bf_exchanged%get_localization()
+c$$$                  select case(mainlayer_id)
+c$$$                    case(E,W)
+c$$$                       can_exchange_with =
+c$$$     $                      bf_exchanged%get_alignment(y_direction,2).eq.(align_N-1)
+c$$$                    
+c$$$                    case default
+c$$$                       call error_incompatible_neighbor(
+c$$$     $                      'nbf_element_class.f',
+c$$$     $                      'can_exchange_with',
+c$$$     $                      mainlayer_id,
+c$$$     $                      n_mainlayer_id)
+c$$$                  end select
+c$$$
+c$$$               case(S)
+c$$$                  mainlayer_id = bf_exchanged%get_localization()
+c$$$                  select case(mainlayer_id)
+c$$$                    case(E,W)
+c$$$                       can_exchange_with =
+c$$$     $                      bf_exchanged%get_alignment(y_direction,1).eq.(align_S+1)
+c$$$                    case default
+c$$$                       call error_incompatible_neighbor(
+c$$$     $                      'nbf_element_class.f',
+c$$$     $                      'can_exchange_with',
+c$$$     $                      mainlayer_id,
+c$$$     $                      n_mainlayer_id)
+c$$$                  end select
+c$$$
+c$$$               case(E,W)
+c$$$                  mainlayer_id = bf_exchanged%get_localization()
+c$$$                  select case(mainlayer_id)
+c$$$                    case(N)
+c$$$                       can_exchange_with =
+c$$$     $                      this%ptr%get_alignment(y_direction,2).eq.(align_N-1)
+c$$$                    case(S)
+c$$$                       can_exchange_with =
+c$$$     $                      this%ptr%get_alignment(y_direction,1).eq.(align_S+1)
+c$$$                    case default
+c$$$                       call error_incompatible_neighbor(
+c$$$     $                      'nbf_element_class.f',
+c$$$     $                      'can_exchange_with',
+c$$$     $                      mainlayer_id,
+c$$$     $                      n_mainlayer_id)
+c$$$                  end select
+c$$$
+c$$$             end select
+c$$$
+c$$$          end if
+c$$$
+c$$$        end function can_exchange_with
 
 
         !< copy from neighbor1 saved in the element to the
@@ -329,9 +329,9 @@
           class(nbf_element), intent(in)    :: this
           class(bf_layer)   , intent(inout) :: bf_exchanged
 
-          if(this%can_exchange_with(bf_exchanged)) then
+          !if(this%can_exchange_with(bf_exchanged)) then
              call bf_exchanged%copy_from_neighbor1(this%ptr)
-          end if
+          !end if
 
         end subroutine copy_from_neighbor1_to
 
@@ -345,9 +345,9 @@
           class(nbf_element), intent(in)    :: this
           class(bf_layer)   , intent(inout) :: bf_exchanged
 
-          if(this%can_exchange_with(bf_exchanged)) then
+          !if(this%can_exchange_with(bf_exchanged)) then
              call bf_exchanged%copy_from_neighbor2(this%ptr)
-          end if
+          !end if
 
         end subroutine copy_from_neighbor2_to
 
@@ -361,9 +361,9 @@
           class(nbf_element), intent(inout) :: this
           class(bf_layer)   , intent(in)    :: bf_exchanged
 
-          if(this%can_exchange_with(bf_exchanged)) then
+          !if(this%can_exchange_with(bf_exchanged)) then
              call bf_exchanged%copy_to_neighbor1(this%ptr)
-          end if
+          !end if
 
         end subroutine copy_to_neighbor1_from
 
@@ -377,9 +377,9 @@
           class(nbf_element), intent(inout) :: this
           class(bf_layer)   , intent(in)    :: bf_exchanged
 
-          if(this%can_exchange_with(bf_exchanged)) then
+          !if(this%can_exchange_with(bf_exchanged)) then
              call bf_exchanged%copy_to_neighbor2(this%ptr)
-          end if
+          !end if
 
         end subroutine copy_to_neighbor2_from
 

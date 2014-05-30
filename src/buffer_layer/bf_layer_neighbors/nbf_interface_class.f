@@ -24,7 +24,7 @@
         !>                      of the north main layer
         type nbf_interface
 
-          type(nbf_list), dimension(4,2) :: nbf_links
+          type(nbf_list), dimension(4,2), private :: nbf_links
 
           contains
 
@@ -197,7 +197,8 @@
         !> we ask all the main layers that have grid points in common
         !> with the current main layer to send data to the current
         !> buffer layer
-        subroutine update_grdpts_from_neighbors(this, nbf_sublayer)
+        subroutine update_grdpts_from_neighbors(
+     $     this, nbf_sublayer)
 
           implicit none
 
@@ -213,17 +214,17 @@
           !neighboring layers of type 1, the neighboring buffer
           !layers send data to the current buffer
           !layer
-          if(nbf_sublayer%shares_grdpts_with_neighbor1()) then
+          if(nbf_sublayer%can_exchange_with_neighbor1()) then
              call this%nbf_links(mainlayer_id,1)%copy_from_neighbors_to_bf_layer(
      $            1, nbf_sublayer)
           end if
-
+          
 
           !if the current buffer layer shares gridpoints with the
           !neighboring layers of type 2, the neighboring buffer
           !layers send data to the current buffer
           !layer
-          if(nbf_sublayer%shares_grdpts_with_neighbor2()) then
+          if(nbf_sublayer%can_exchange_with_neighbor2()) then
              call this%nbf_links(mainlayer_id,2)%copy_from_neighbors_to_bf_layer(
      $            2, nbf_sublayer)
           end if
@@ -251,7 +252,7 @@
           !neighboring layers of type 1, the neighboring buffer
           !layers are updated with data from the current buffer
           !layer
-          if(nbf_sublayer%shares_grdpts_with_neighbor1()) then
+          if(nbf_sublayer%can_exchange_with_neighbor1()) then
              call this%nbf_links(mainlayer_id,1)%copy_to_neighbors_from_bf_layer(
      $            1, nbf_sublayer)
           end if
@@ -261,7 +262,7 @@
           !neighboring layers of type 2, the neighboring buffer
           !layers are updated with data from the current buffer
           !layer
-          if(nbf_sublayer%shares_grdpts_with_neighbor2()) then
+          if(nbf_sublayer%can_exchange_with_neighbor2()) then
              call this%nbf_links(mainlayer_id,2)%copy_to_neighbors_from_bf_layer(
      $            2, nbf_sublayer)
           end if

@@ -1,10 +1,13 @@
       module bf_interface_class
 
+        use bf_layer_errors_module    , only : error_mainlayer_id
         use bf_sublayer_class         , only : bf_sublayer
         use bf_mainlayer_class        , only : bf_mainlayer
         use bf_mainlayer_pointer_class, only : bf_mainlayer_pointer
+        use nbf_interface_class       , only : nbf_interface
 
-        use parameters_bf_layer       , only : clockwise, counter_clockwise
+        use parameters_bf_layer       , only : align_N, align_S,
+     $                                         align_E, align_W
         use parameters_constant       , only : N,S,E,W,
      $                                         x_direction, y_direction,
      $                                         interior
@@ -25,6 +28,11 @@
         !> @param mainlayer_pointers
         !> table with reference to the buffer main layers
         !
+        !> @param border_interface
+        !> object with references to the sublayers at the interface
+        !> between the main layers and ways to exchange data between
+        !> these boundary sublayers
+        !
         !> @param ini
         !> initialize the interface by nullifying all the 
         !> references to the buffer main layers
@@ -39,17 +47,27 @@
         !---------------------------------------------------------------
         type :: bf_interface
 
-          type(bf_mainlayer_pointer), dimension(4) :: mainlayer_pointers
+          type(bf_mainlayer_pointer), dimension(4), private :: mainlayer_pointers
+          type(nbf_interface)                     , private :: border_interface
 
           contains
 
           procedure, pass :: ini
           procedure, pass :: get_mainlayer
-          procedure, pass :: add_sublayer
 
+          procedure, nopass, private :: shares_with_neighbor1
+          procedure, nopass, private :: shares_with_neighbor2
+          procedure, pass            :: allocate_sublayer
+          procedure, pass            :: reallocate_sublayer
+          procedure, pass            :: merge_sublayers
+          procedure, pass            :: update_grdpts_after_increase
+
+          !procedure, nopass :: get_neighboring_sublayer
           procedure, nopass :: get_mainlayer_id
           procedure, pass   :: get_sublayer
-          procedure, nopass :: get_neighboring_sublayer
+
+          procedure, pass, private :: update_grdpts_from_neighbors
+          procedure, pass, private :: update_neighbor_grdpts
 
           procedure, pass :: print_binary
 
@@ -71,6 +89,8 @@
              call this%mainlayer_pointers(i)%ini()             
           end do
 
+          call this%border_interface%ini()
+
         end subroutine ini
 
 
@@ -84,15 +104,13 @@
          type(bf_mainlayer) , pointer    :: get_mainlayer
 
          if(debug) then
-            if((mainlayer_id.lt.1).or.(mainlayer_id.gt.8)) then
-               print '(''bf_interface_class'')'
-               print '(''get_mainlayer'')'
-               print '(''mainlayer_id not recognized'')'
-               print '(''mainlayer_id: '',I2)', mainlayer_id
-               stop 'change mainlayer_id: N,S,E,W'
+            if((mainlayer_id.lt.1).or.(mainlayer_id.gt.4)) then
+               call error_mainlayer_id(
+     $              'bf_interface_class',
+     $              'get_mainlayer',
+     $              mainlayer_id)
             end if
          end if
-
 
          if(this%mainlayer_pointers(mainlayer_id)%associated_ptr()) then
             get_mainlayer => this%mainlayer_pointers(mainlayer_id)%get_ptr()
@@ -100,13 +118,80 @@
             nullify(get_mainlayer)
          end if
 
-
        end function get_mainlayer
 
 
-       !< add a buffer sublayer to the existing layers in the corresponding
+       !< check if the alignment of the future sublayer makes it a potential
+       !> buffer layer at the interface between main layers and if so update
+       !> its alignment if it is shifted by one grid point from the border
+       !> as it makes exchanges easier later
+       !> the sublayer is here tested as a neighbor buffer layer of type 1
+       !> this function echoes bf_layer_class%shares_grdpts_with_neighbor1
+       function shares_with_neighbor1(mainlayer_id, bf_final_alignment)
+     $     result(share_grdpts)
+
+         implicit none
+
+         integer                       , intent(in)    :: mainlayer_id
+         integer(ikind), dimension(2,2), intent(inout) :: bf_final_alignment
+         logical                                       :: share_grdpts
+
+
+         select case(mainlayer_id)
+           case(N,S)
+              share_grdpts = bf_final_alignment(1,1).le.(align_W+bc_size)
+           case(E,W)
+              share_grdpts = bf_final_alignment(2,1).le.(align_S+bc_size)
+              if(bf_final_alignment(2,1).eq.(align_S+bc_size)) then
+                 bf_final_alignment(2,1)=align_S+1
+              end if
+           case default
+              call error_mainlayer_id(
+     $             'bf_layer_class.f',
+     $             'share_grdpts_with_neighbor1',
+     $             mainlayer_id)
+         end select
+
+       end function shares_with_neighbor1
+
+
+       !< check if the alignment of the future sublayer makes it a potential
+       !> buffer layer at the interface between main layers and if so update
+       !> its alignment if it is shifted by one grid point from the border
+       !> as it makes exchanges easier later
+       !> the sublayer is here tested as a neighbor buffer layer of type 2
+       !> this function echoes bf_layer_class%shares_grdpts_with_neighbor2
+       function shares_with_neighbor2(mainlayer_id, bf_final_alignment)
+     $     result(share_grdpts)
+
+         implicit none
+
+         integer                       , intent(in)    :: mainlayer_id
+         integer(ikind), dimension(2,2), intent(inout) :: bf_final_alignment
+         logical                                       :: share_grdpts
+
+
+         select case(mainlayer_id)
+           case(N,S)
+              share_grdpts = bf_final_alignment(1,2).ge.(align_E-bc_size)
+           case(E,W)
+              share_grdpts = bf_final_alignment(2,2).ge.(align_N-bc_size)
+              if(bf_final_alignment(2,2).eq.(align_N-bc_size)) then
+                 bf_final_alignment(2,2)=align_N-1
+              end if
+           case default
+              call error_mainlayer_id(
+     $             'bf_layer_class.f',
+     $             'share_grdpts_with_neighbor1',
+     $             mainlayer_id)
+         end select
+
+       end function shares_with_neighbor2
+
+
+       !< allocate a buffer sublayer and insert it in the corresponding
        !> buffer mainlayer
-       function add_sublayer(
+       function allocate_sublayer(
      $     this,
      $     mainlayer_id,
      $     nodes,
@@ -116,56 +201,391 @@
           class(bf_interface)             , intent(inout) :: this
           integer                         , intent(in)    :: mainlayer_id
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
-          integer, dimension(2,2)         , intent(in)    :: alignment
+          integer, dimension(2,2)         , intent(inout) :: alignment
 
           type(bf_sublayer), pointer                      :: added_sublayer
 
 
-          !debug : check the mainlayer id
+          logical :: share_with_neighbor1
+          logical :: share_with_neighbor2
+
+
+          !0) debug : check the mainlayer id
           if(debug) then
-             if((mainlayer_id.lt.1).or.(mainlayer_id.gt.8)) then
-                print '(''bf_interface_class'')'
-                print '(''add_sublayer'')'
-                print '(''mainlyer_id not recognized'')'
-                print '(''mainlayer_id: '',I2)', mainlayer_id
-                stop 'change mainlayer_id'
+             if((mainlayer_id.lt.1).or.(mainlayer_id.gt.4)) then
+                call error_mainlayer_id(
+     $              'bf_interface_class',
+     $              'allocate_sublayer',
+     $              mainlayer_id)
              end if
           end if
 
-          !first check if the mainlayer corresponding to the cardinal
-          !point is indeed allocated: if the memory space is not allocated,
-          !the space in memory is first allocated, the pointer identifying
-          !the mainlayer is initialized and the main layer itself is initialized
+          !1) check if the new sublayer is at the interface between several
+          !   main layers and update the alignment in case it is just one grid
+          !   point away from a corner: exchanges are made easier
+          share_with_neighbor1 = shares_with_neighbor1(mainlayer_id, alignment)
+          share_with_neighbor2 = shares_with_neighbor2(mainlayer_id, alignment)
+
+
+          !2) check if the mainlayer corresponding to the cardinal point is
+          !   indeed allocated: if the memory space is not allocated, the space
+          !   in memory is first allocated, the pointer identifying the mainlayer
+          !   is initialized and the main layer itself is initialized
           if(.not.this%mainlayer_pointers(mainlayer_id)%associated_ptr()) then
              call this%mainlayer_pointers(mainlayer_id)%ini_mainlayer(mainlayer_id)
-          end if            
+          end if
 
-          !now that we are sure that space is allocated for the main layer,
-          !the sublayer can be integrated to the mainlayer and the buffer
-          !layer can be initialized using the nodes, alignment and neighbors
-          !arguments
-          added_sublayer   => this%mainlayer_pointers(mainlayer_id)%add_sublayer(
+
+          !3) now that we are sure that space is allocated for the main layer,
+          !   the sublayer can be integrated to the mainlayer and the buffer
+          !   layer can be initialized using the nodes, alignment and neighbors
+          !   arguments
+          added_sublayer => this%mainlayer_pointers(mainlayer_id)%add_sublayer(
      $         nodes, alignment)
+          call added_sublayer%set_neighbor1_share(share_with_neighbor1)
+          call added_sublayer%set_neighbor2_share(share_with_neighbor2)
 
-       end function add_sublayer
+          !4) if the sublayer newly allocated is indeed a buffer layer at the
+          !   interface between main layers and of type 1, the neighboring
+          !   buffer layers should know that they will exchange data with this
+          !   buffer layer.          
+          !   The same is true for an interface buffer layer of type 2          
+          if(share_with_neighbor1) then
+             call this%border_interface%link_neighbor1_to_bf_sublayer(
+     $            added_sublayer)
+          end if
+          if(share_with_neighbor2) then
+             call this%border_interface%link_neighbor2_to_bf_sublayer(
+     $            added_sublayer)
+          end if
+          
+          !5) Morover, the new buffer layer has been allocated without considering
+          !   the other buffer layers already allocated which could share grid
+          !   points with this buffer layer. These grid points are now copy from
+          !   the other buffer layers to this buffer layer
+          call this%border_interface%update_grdpts_from_neighbors(added_sublayer)
+
+       end function allocate_sublayer
 
 
-       !> get neighbor of the same mainlayer
-       function get_neighboring_sublayer(current_bf_sublayer)
-     $     result(neighboring_sublayer)
+       !< reallocate a buffer sublayer and check whether the neighboring buffer
+       !> layer changed and so if the neighboring links should be udpated
+       subroutine reallocate_sublayer(this, bf_sublayer_r, nodes, alignment)
 
          implicit none
 
-         type(bf_sublayer), pointer, intent(in) :: current_bf_sublayer
-         type(bf_sublayer), pointer             :: neighboring_sublayer
+         class(bf_interface)             , intent(inout) :: this
+         type(bf_sublayer), pointer      , intent(inout) :: bf_sublayer_r
+         real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+         integer    , dimension(2,2)     , intent(inout) :: alignment
 
-         if(associated(current_bf_sublayer%get_next())) then
-            neighboring_sublayer => current_bf_sublayer%get_next()
+         integer :: mainlayer_id
+         logical :: share_with_neighbor1
+         logical :: share_with_neighbor2
+
+         mainlayer_id = bf_sublayer_r%get_localization()
+
+
+         !1) check if the reallocated sublayer is at the interface between
+         !   several main layers and update the alignment in case it is just
+         !   one grid point away from a corner: exchanges are made easier
+         share_with_neighbor1 = shares_with_neighbor1(mainlayer_id, alignment)
+         share_with_neighbor2 = shares_with_neighbor2(mainlayer_id, alignment)
+
+         
+         !2) reallocate the buffer sublayer
+         call bf_sublayer_r%reallocate_bf_layer(
+     $        nodes, alignment)
+
+         !3) check if the links to the neighbor1 should be updated
+         ! if the bf_sublayer_r was exchanging with neighbor1 before
+         if(bf_sublayer_r%can_exchange_with_neighbor1()) then
+            
+            !and the bf_sublayer_r can no longer exchange
+            !the previous links should be removed
+            if(.not.share_with_neighbor1) then
+               call this%border_interface%remove_link_from_neighbor1_to_bf_sublayer(
+     $              bf_sublayer_r)
+            end if
+
+         ! if the bf_sublayer_r was not exchanging with neighbor1 before
          else
-            nullify(neighboring_sublayer)
+
+            !and the bf_sublayer_r can now exchange, links should be added
+            !to this bf_sublayer_r
+            if(share_with_neighbor1) then
+               call this%border_interface%link_neighbor1_to_bf_sublayer(
+     $              bf_sublayer_r)
+            end if
+
          end if
 
-       end function get_neighboring_sublayer
+         !4) check if the links to the neighbor2 should be updated
+         ! if the bf_sublayer_r was exchanging with neighbor2 before
+         if(bf_sublayer_r%can_exchange_with_neighbor2()) then
+            
+            !and the bf_sublayer_r can no longer exchange
+            !the previous links should be removed
+            if(.not.share_with_neighbor2) then
+               call this%border_interface%remove_link_from_neighbor2_to_bf_sublayer(
+     $              bf_sublayer_r)
+            end if
+
+         ! if the bf_sublayer_r was not exchanging with neighbor2 before
+         else
+
+            !and the bf_sublayer_r can now exchange, links should be added
+            !to this bf_sublayer_r
+            if(share_with_neighbor2) then
+               call this%border_interface%link_neighbor2_to_bf_sublayer(
+     $              bf_sublayer_r)
+            end if
+
+         end if
+
+         !5) update the status of the bf_sublayer_r for its neighbors
+         call bf_sublayer_r%set_neighbor1_share(share_with_neighbor1)
+         call bf_sublayer_r%set_neighbor2_share(share_with_neighbor2)
+
+         !6) update the grid points new allocated using the neighboring sublayers
+         call this%border_interface%update_grdpts_from_neighbors(bf_sublayer_r)
+         
+       end subroutine reallocate_sublayer
+       
+
+       !< merge sublayers : merge the content of the sublayers and update
+       !> the links to the border buffer layers
+       function merge_sublayers(
+     $     this,
+     $     bf_sublayer1, bf_sublayer2,
+     $     nodes, alignment)
+     $     result(merged_sublayer)
+
+          implicit none
+
+          class(bf_interface)                        , intent(inout) :: this
+          type(bf_sublayer), pointer                 , intent(inout) :: bf_sublayer1
+          type(bf_sublayer), pointer                 , intent(inout) :: bf_sublayer2
+          real(rkind)      , dimension(nx,ny,ne)     , intent(in)    :: nodes
+          integer(ikind)   , dimension(2,2), optional, intent(inout) :: alignment
+          type(bf_sublayer), pointer                                 :: merged_sublayer
+
+          integer :: mainlayer_id
+          logical :: share_with_neighbor1
+          logical :: share_with_neighbor2
+
+
+          mainlayer_id = bf_sublayer1%get_localization()
+   
+
+          if(present(alignment)) then
+
+
+             !1) check if the sublayer resulting from the merge is at the interface
+             !   between several main layers and update the alignment in case it is just
+             !   one grid point away from a corner: exchanges are made easier
+             share_with_neighbor1 = shares_with_neighbor1(mainlayer_id, alignment)
+             share_with_neighbor2 = shares_with_neighbor2(mainlayer_id, alignment)
+
+
+             !2) check if the links to neighbor1 should be updated
+             !if the bf_sublayer1 was already linked to neighbor1 sublayers
+             if(bf_sublayer1%can_exchange_with_neighbor1()) then
+                
+                !if the bf_sublayer2 was also linked to neighbor1 sublayers
+                !as it will be merged, these links should be removed
+                if(bf_sublayer2%can_exchange_with_neighbor1()) then
+                   call this%border_interface%remove_link_from_neighbor1_to_bf_sublayer(
+     $                  bf_sublayer2)
+
+                end if
+
+             !if the bf_sublayer1 was not linked to neighbor1 sublayers
+             else
+
+                !and the bf_sublayer2 was linked to this neighbor, the links should
+                !be updated from bf_sublayer2 to bf_sublayer1 and the status of the
+                !neighbor1 for bf_sublayer1 should be updated
+                if(bf_sublayer2%can_exchange_with_neighbor1()) then
+
+                   call this%border_interface%update_link_from_neighbor1_to_bf_sublayer(
+     $                  bf_sublayer1, bf_sublayer2)
+
+                   call bf_sublayer1%set_neighbor1_share(.true.)
+
+
+                !and if the bf_sublayer2 was also not linked to neighbor1
+                else
+                   
+                   !and if the final alignment is such that the merged sublayer
+                   !will exchange with neighbor1, links should be created to
+                   !bf_sublayer1 and the state of the neighbor1 for bf_sublayer1
+                   !should be updated
+                   if(share_with_neighbor1) then
+                      
+                      call this%border_interface%link_neighbor1_to_bf_sublayer(
+     $                     bf_sublayer1)
+
+                      call bf_sublayer1%set_neighbor1_share(.true.)
+
+                   end if
+                end if
+             end if
+
+
+             !3) check if the links to neighbor2 should be updated
+             !if the bf_sublayer1 was already linked to neighbor1 sublayers
+             if(bf_sublayer1%can_exchange_with_neighbor2()) then
+                
+                !if the bf_sublayer2 was also linked to neighbor2 sublayers
+                !as it will be merged, these links should be removed
+                if(bf_sublayer2%can_exchange_with_neighbor2()) then
+                   call this%border_interface%remove_link_from_neighbor2_to_bf_sublayer(
+     $                  bf_sublayer2)
+
+                end if
+
+             !if the bf_sublayer1 was not linked to neighbor2 sublayers
+             else
+
+                !and on the contrary the bf_sublayer2 was linked to this neighbor
+                !the links should be updated from bf_sublayer2 to bf_sublayer1
+                !and the status of the neighbor2 for bf_sublayer1 should be updated
+                if(bf_sublayer2%can_exchange_with_neighbor2()) then
+
+                   call this%border_interface%update_link_from_neighbor2_to_bf_sublayer(
+     $                  bf_sublayer1, bf_sublayer2)
+
+                   call bf_sublayer1%set_neighbor2_share(.true.)
+
+
+                !and if the bf_sublayer2 was also not linked to neighbor2
+                else
+                   
+                   !and if the final alignment is such that the merged sublayer
+                   !will exchange with neighbor2, links should be created to
+                   !bf_sublayer1 and the state of the neighbor2 for bf_sublayer1
+                   !should be updated
+                   if(share_with_neighbor2) then
+                      
+                      call this%border_interface%link_neighbor2_to_bf_sublayer(
+     $                     bf_sublayer1)
+
+                      call bf_sublayer1%set_neighbor2_share(.true.)
+
+                   end if
+                end if
+             end if
+
+
+             !4) merge the content of the sublayers
+             merged_sublayer => this%mainlayer_pointers(mainlayer_id)%merge_sublayers(
+     $            bf_sublayer1, bf_sublayer2,
+     $            nodes,alignment)
+
+          else
+
+             !2) check if the links to neighbor1 should be updated
+             !if the bf_sublayer1 was already linked to neighbor1 sublayers
+             if(bf_sublayer1%can_exchange_with_neighbor1()) then
+                
+                !if the bf_sublayer2 was also linked to neighbor1 sublayers
+                !as it will be merged, these links should be removed
+                if(bf_sublayer2%can_exchange_with_neighbor1()) then
+                   call this%border_interface%remove_link_from_neighbor1_to_bf_sublayer(
+     $                  bf_sublayer2)
+
+                end if
+
+             !if the bf_sublayer1 was not linked to neighbor1 sublayers
+             else
+
+                !and the bf_sublayer2 was linked to this neighbor, the links should
+                !be updated from bf_sublayer2 to bf_sublayer1 and the status of the
+                !neighbor1 for bf_sublayer1 should be updated
+                if(bf_sublayer2%can_exchange_with_neighbor1()) then
+
+                   call this%border_interface%update_link_from_neighbor1_to_bf_sublayer(
+     $                  bf_sublayer1, bf_sublayer2)
+
+                   call bf_sublayer1%set_neighbor1_share(.true.)
+
+                end if
+             end if
+
+
+             !3) check if the links to neighbor2 should be updated
+             !if the bf_sublayer1 was already linked to neighbor1 sublayers
+             if(bf_sublayer1%can_exchange_with_neighbor2()) then
+                
+                !if the bf_sublayer2 was also linked to neighbor2 sublayers
+                !as it will be merged, these links should be removed
+                if(bf_sublayer2%can_exchange_with_neighbor2()) then
+                   call this%border_interface%remove_link_from_neighbor2_to_bf_sublayer(
+     $                  bf_sublayer2)
+
+                end if
+
+             !if the bf_sublayer1 was not linked to neighbor2 sublayers
+             else
+
+                !and on the contrary the bf_sublayer2 was linked to this neighbor
+                !the links should be updated from bf_sublayer2 to bf_sublayer1
+                !and the status of the neighbor2 for bf_sublayer1 should be updated
+                if(bf_sublayer2%can_exchange_with_neighbor2()) then
+
+                   call this%border_interface%update_link_from_neighbor2_to_bf_sublayer(
+     $                  bf_sublayer1, bf_sublayer2)
+
+                   call bf_sublayer1%set_neighbor2_share(.true.)
+
+                end if
+             end if
+
+
+             !4) merge the content of the sublayers
+             merged_sublayer => this%mainlayer_pointers(mainlayer_id)%merge_sublayers(
+     $            bf_sublayer1, bf_sublayer2,
+     $            nodes)
+
+          end if
+
+
+          !5) update the grid points that have been newly allocated
+          !   with grid points from the neighboring sublayers
+          call this%border_interface%update_grdpts_from_neighbors(bf_sublayer1)
+
+
+c$$$          !6) if the merge is such that grid points between the two
+c$$$          !   sublayers should be updated to prevent a line of inconsistent
+c$$$          !   boundary points
+c$$$          !    ________  ________        __________________
+c$$$          !   |        ||        |      |                  |
+c$$$          !   |        ||        |  ->  |                  |
+c$$$          !   |        ||        |      |                  |
+c$$$          print '(''bf_interface_class'')'
+c$$$          print '(''merge_sublayers'')'
+c$$$          stop 'not implemented yet'
+
+       end function merge_sublayers
+
+
+c$$$       !> get neighbor of the same mainlayer
+c$$$       function get_neighboring_sublayer(current_bf_sublayer)
+c$$$     $     result(neighboring_sublayer)
+c$$$
+c$$$         implicit none
+c$$$
+c$$$         type(bf_sublayer), pointer, intent(in) :: current_bf_sublayer
+c$$$         type(bf_sublayer), pointer             :: neighboring_sublayer
+c$$$
+c$$$         if(associated(current_bf_sublayer%get_next())) then
+c$$$            neighboring_sublayer => current_bf_sublayer%get_next()
+c$$$         else
+c$$$            nullify(neighboring_sublayer)
+c$$$         end if
+c$$$
+c$$$       end function get_neighboring_sublayer
 
 
        !> @author
@@ -191,17 +611,17 @@
          integer(ikind), dimension(2), intent(in) :: general_coord
          integer                                  :: mainlayer_id
 
-         if(general_coord(2).le.bc_size) then
+         if(general_coord(2).le.align_S) then
             mainlayer_id = S
 
          else
-            if(general_coord(2).le.(ny-bc_size)) then
+            if(general_coord(2).lt.(align_N)) then
 
-               if(general_coord(1).le.bc_size) then
+               if(general_coord(1).le.align_W) then
                   mainlayer_id = W
 
                else
-                  if(general_coord(1).le.(nx-bc_size)) then
+                  if(general_coord(1).lt.align_E) then
                      mainlayer_id = interior
 
                   else
@@ -370,6 +790,59 @@
          end if           
          
        end function get_sublayer
+
+
+       !< if the buffer sublayer passed as argument has grid points
+       !> in common with the buffer layers from other main layers, the
+       !> grid points in common are updated from the neighboring buffer
+       !> layers
+       subroutine update_grdpts_from_neighbors(this, nbf_sublayer)
+
+         implicit none
+
+         class(bf_interface), intent(in)    :: this
+         type(bf_sublayer)  , intent(inout) :: nbf_sublayer
+
+         call this%border_interface%update_grdpts_from_neighbors(
+     $        nbf_sublayer)
+
+       end subroutine update_grdpts_from_neighbors
+
+
+       !< if the buffer sublayer passed as argument has grid points
+       !> in common with the buffer layers from other main layers, the
+       !> grid points in common are updated in the neighboring buffer
+       !> layers from the current buffer layer
+       subroutine update_neighbor_grdpts(this, nbf_sublayer)
+
+         implicit none
+
+         class(bf_interface), intent(inout) :: this
+         type(bf_sublayer)  , intent(inout) :: nbf_sublayer
+
+         call this%border_interface%update_neighbor_grdpts(nbf_sublayer)
+
+       end subroutine update_neighbor_grdpts
+
+
+       !< update the grid points of the bf_sublayer after increase
+       subroutine update_grdpts_after_increase(
+     $     this, bf_sublayer_i, selected_grdpts)
+
+         implicit none
+
+         class(bf_interface)           , intent(inout) :: this
+         type(bf_sublayer)             , intent(inout) :: bf_sublayer_i
+         integer(ikind), dimension(:,:), intent(in)    :: selected_grdpts
+
+         !compute the new grid points after the increase
+         call bf_sublayer_i%update_grdpts_after_increase(
+     $        selected_grdpts)
+
+         !update the neighboring buffer layers
+         call this%update_neighbor_grdpts(bf_sublayer_i)
+
+       end subroutine update_grdpts_after_increase
 
 
        !< print the content of the interface on external binary files

@@ -298,6 +298,7 @@
      $     this,
      $     bf_sublayer1,
      $     bf_sublayer2,
+     $     interior_nodes,
      $     alignment)
      $     result(merged_sublayer)
         
@@ -306,13 +307,15 @@
           class(bf_mainlayer_pointer)             , intent(inout) :: this
           type(bf_sublayer), pointer              , intent(inout) :: bf_sublayer1
           type(bf_sublayer), pointer              , intent(inout) :: bf_sublayer2
+          real(rkind)   , dimension(nx,ny,ne)     , intent(in)    :: interior_nodes
           integer(ikind), dimension(2,2), optional, intent(in)    :: alignment
           type(bf_sublayer), pointer                              :: merged_sublayer
         
 
           if(this%associated_ptr()) then
              merged_sublayer => this%ptr%merge_sublayers(
-     $            bf_sublayer1, bf_sublayer2, alignment)
+     $            bf_sublayer1, bf_sublayer2,
+     $            interior_nodes, alignment)
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''merge_sublayers'')'

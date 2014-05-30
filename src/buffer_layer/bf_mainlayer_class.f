@@ -16,12 +16,13 @@
       !-----------------------------------------------------------------
       module bf_mainlayer_class
 
-        use bf_sublayer_class  , only : bf_sublayer
-        use parameters_constant, only : N,S,E,W,
-     $                                  x_direction, y_direction,
-     $                                  min_border, max_border
-        use parameters_input   , only : nx, ny, ne, debug
-        use parameters_kind    , only : ikind, rkind
+        use bf_layer_errors_module, only : error_mainlayer_id
+        use bf_sublayer_class     , only : bf_sublayer
+        use parameters_constant   , only : N,S,E,W,
+     $                                     x_direction, y_direction,
+     $                                     min_border, max_border
+        use parameters_input      , only : nx, ny, ne, debug
+        use parameters_kind       , only : ikind, rkind
 
         implicit none
 
@@ -228,12 +229,10 @@
                  case(E,W)
                     direction_tested = y_direction
                  case default
-                    print '(''bf_mainlayer_class'')'
-                    print '(''merge_sublayers'')'
-                    print '(''corner mainlayers cannot host more'')'
-                    print '(''than one sublayer'')'
-                    print '(''mainlayer_id: '', I2)', this%mainlayer_id
-                    stop 'check mainlayer_id'
+                    call error_mainlayer_id(
+     $                   'bf_mainlayer_class.f',
+     $                   'add_sublayer',
+     $                   this%mainlayer_id)
                end select
 
                if(this%head_sublayer%get_alignment(direction_tested,min_border).lt.
@@ -260,12 +259,10 @@
                  case(E,W)
                     direction_tested = y_direction
                  case default
-                    print '(''bf_mainlayer_class'')'
-                    print '(''merge_sublayers'')'
-                    print '(''corner mainlayers cannot host more'')'
-                    print '(''than one sublayer'')'
-                    print '(''mainlayer_id: '', I2)', this%mainlayer_id
-                    stop 'check mainlayer_id'
+                    call error_mainlayer_id(
+     $                   'bf_mainlayer_class.f',
+     $                   'add_sublayer',
+     $                   this%mainlayer_id)
                end select
 
                current_sublayer => this%head_sublayer
@@ -404,21 +401,78 @@
           integer(ikind), dimension(2,2), optional, intent(in)    :: alignment
           type(bf_sublayer), pointer                              :: merged_sublayer
         
+          
+          integer :: direction_tested
+          type(bf_sublayer), pointer :: temp_ptr
+
+
+          !reorganize the position of the elements in the chained
+          !list of sublayers
+          select case(bf_sublayer1%get_localization())
+            case(N,S)
+               direction_tested = x_direction
+            case(E,W)
+               direction_tested = y_direction
+            case default
+               call error_mainlayer_id(
+     $              'bf_mainlayer_class.f',
+     $              'merge_sublayers',
+     $              bf_sublayer1%get_localization())
+          end select
+
+          if(bf_sublayer1%get_alignment(direction_tested,min_border).lt.
+     $         bf_sublayer2%get_alignment(direction_tested,min_border)) then
+             
+             temp_ptr => bf_sublayer2%get_next()
+
+             if(associated(temp_ptr)) then
+                call bf_sublayer1%set_next(temp_ptr)
+                call temp_ptr%set_prev(bf_sublayer1)
+
+             else
+                call bf_sublayer1%nullify_next()
+                this%tail_sublayer => bf_sublayer1
+
+             end if
+             
+          else
+
+             temp_ptr => bf_sublayer2%get_prev()
+
+             if(associated(temp_ptr)) then
+                call bf_sublayer1%set_prev(temp_ptr)
+                call temp_ptr%set_next(bf_sublayer1)
+
+             else
+                call bf_sublayer1%nullify_prev()
+                this%head_sublayer => bf_sublayer1
+             end if
+             
+          end if
+
 
           !merge the buffer sublayers 1 and 2
           if(present(alignment)) then
-             call bf_sublayer1%merge_sublayers(
-     $            bf_sublayer1, bf_sublayer2,
+             call bf_sublayer1%merge_bf_layer(
+     $            bf_sublayer2,
      $            interior_nodes,
      $            alignment)
           else
-             call bf_sublayer1%merge_sublayers(
-     $            bf_sublayer1, bf_sublayer2,
+             call bf_sublayer1%merge_bf_layer(
+     $            bf_sublayer2,
      $            interior_nodes)
           end if
+
         
+          !destroy the bf_sublayer2
+          call bf_sublayer2%nullify_next()
+          call bf_sublayer2%nullify_prev()
+          deallocate(bf_sublayer2)
+
+
           !update the number of sublayers in the mainlayer
           this%nb_sublayers = this%nb_sublayers-1
+
 
           !return the pointer to the merged sublayer
           merged_sublayer => bf_sublayer1

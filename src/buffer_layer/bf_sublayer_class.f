@@ -70,8 +70,6 @@
           procedure, pass   :: nullify_prev
           procedure, pass   :: nullify_next
 
-          procedure, nopass :: merge_sublayers
-
         end type bf_sublayer
 
         contains
@@ -176,70 +174,32 @@
         end subroutine nullify_next
 
 
-        !< merge sublayers
-        subroutine merge_sublayers(bf_sublayer1, bf_sublayer2, nodes, alignment)
-
-          implicit none
-
-          type(bf_sublayer), pointer                 , intent(inout) :: bf_sublayer1
-          type(bf_sublayer), pointer                 , intent(inout) :: bf_sublayer2
-          real(rkind)      , dimension(nx,ny,ne)     , intent(in)    :: nodes
-          integer(ikind)   , dimension(2,2), optional, intent(in)    :: alignment
-
-          integer :: direction_tested
-
-
-          !reorganize the position of the elements in the chained
-          !list of sublayers
-          select case(bf_sublayer1%get_localization())
-            case(N,S)
-               direction_tested = x_direction
-            case(E,W)
-               direction_tested = y_direction
-            case default
-               print '(''bf_sublayer_class'')'
-               print '(''merge_sublayers'')'
-               print '(''corner sublayers not eligible for merge'')'
-               print '(''localization: '',I2)', bf_sublayer1%get_localization()
-               print '(''check localization'')'
-          end select
-
-          if(bf_sublayer1%get_alignment(direction_tested,min_border).lt.
-     $         bf_sublayer2%get_alignment(direction_tested,min_border)) then
-             
-             if(associated(bf_sublayer2%next)) then
-                bf_sublayer1%next => bf_sublayer2%next
-                bf_sublayer2%next%prev => bf_sublayer1
-             else
-                nullify(bf_sublayer1%next)
-             end if
-             
-          else
-             
-             if(associated(bf_sublayer2%prev)) then
-                bf_sublayer1%prev => bf_sublayer2%prev
-                bf_sublayer2%prev%next => bf_sublayer1
-             else
-                nullify(bf_sublayer1%prev)
-             end if
-             
-          end if
-
-
-          !merge the attributes specific to the bf_layer:
-          !localization, alignment, nodes, grdpts_id
-          if(present(alignment)) then
-             call bf_sublayer1%merge_bf_layer(bf_sublayer2, nodes, alignment)
-          else
-             call bf_sublayer1%merge_bf_layer(bf_sublayer2, nodes)
-          end if
-
-          
-          !destroy the bf_sublayer2
-          nullify(bf_sublayer2%next)
-          nullify(bf_sublayer2%prev)
-          deallocate(bf_sublayer2)
-            
-        end subroutine merge_sublayers
+c$$$        !< merge sublayers
+c$$$        subroutine merge_sublayers(bf_sublayer1, bf_sublayer2, nodes, alignment)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          type(bf_sublayer), pointer                 , intent(inout) :: bf_sublayer1
+c$$$          type(bf_sublayer), pointer                 , intent(inout) :: bf_sublayer2
+c$$$          real(rkind)      , dimension(nx,ny,ne)     , intent(in)    :: nodes
+c$$$          integer(ikind)   , dimension(2,2), optional, intent(in)    :: alignment
+c$$$
+c$$$          
+c$$$
+c$$$          
+c$$$
+c$$$
+c$$$          !merge the attributes specific to the bf_layer:
+c$$$          !localization, alignment, nodes, grdpts_id
+c$$$          if(present(alignment)) then
+c$$$             call bf_sublayer1%merge_bf_layer(bf_sublayer2, nodes, alignment)
+c$$$          else
+c$$$             call bf_sublayer1%merge_bf_layer(bf_sublayer2, nodes)
+c$$$          end if
+c$$$
+c$$$          
+c$$$          
+c$$$            
+c$$$        end subroutine merge_sublayers
 
       end module bf_sublayer_class

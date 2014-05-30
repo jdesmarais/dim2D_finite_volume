@@ -216,13 +216,17 @@
           type(nbf_element), pointer :: current_element
           integer :: i
 
-          current_element => this%head
-
-          do i=1, this%nb_elements
-             call current_element%copy_from_neighbor1_to(bf_exchanged)
-             current_element => current_element%get_next()
-          end do
-
+          if(bf_exchanged%can_exchange_with_neighbor1()) then
+             if(associated(this%head)) then
+                current_element => this%head
+                
+                do i=1, this%nb_elements
+                   call current_element%copy_from_neighbor1_to(bf_exchanged)
+                   current_element => current_element%get_next()
+                end do
+             end if
+          end if
+             
         end subroutine copy_from_neighbors1_to_bf_layer
 
 
@@ -237,12 +241,17 @@
           type(nbf_element), pointer :: current_element
           integer :: i
 
-          current_element => this%head
 
-          do i=1, this%nb_elements
-             call current_element%copy_from_neighbor2_to(bf_exchanged)
-             current_element => current_element%get_next()
-          end do
+          if(bf_exchanged%can_exchange_with_neighbor2()) then
+             if(associated(this%head)) then
+                current_element => this%head
+
+                do i=1, this%nb_elements
+                   call current_element%copy_from_neighbor2_to(bf_exchanged)
+                   current_element => current_element%get_next()
+                end do
+             end if
+          end if
 
         end subroutine copy_from_neighbors2_to_bf_layer
 
@@ -288,15 +297,18 @@
           type(nbf_element), pointer :: current_element
           integer :: i
 
-          if(associated(this%head)) then
+          if(bf_exchanged%can_exchange_with_neighbor1()) then
 
-             current_element => this%head
+             if(associated(this%head)) then
+                
+                current_element => this%head
+                
+                do i=1, this%nb_elements
+                   call current_element%copy_to_neighbor1_from(bf_exchanged)
+                   current_element => current_element%get_next()
+                end do
 
-             do i=1, this%nb_elements
-                call current_element%copy_to_neighbor1_from(bf_exchanged)
-                current_element => current_element%get_next()
-             end do
-
+             end if
           end if
 
         end subroutine copy_to_neighbors1_from_bf_layer
@@ -313,15 +325,18 @@
           type(nbf_element), pointer :: current_element
           integer :: i
 
-          if(associated(this%head)) then
+          if(bf_exchanged%can_exchange_with_neighbor2()) then
 
-             current_element => this%head
-
-             do i=1, this%nb_elements
-                call current_element%copy_to_neighbor2_from(bf_exchanged)
-                current_element => current_element%get_next()
-             end do
-
+             if(associated(this%head)) then
+                
+                current_element => this%head
+                
+                do i=1, this%nb_elements
+                   call current_element%copy_to_neighbor2_from(bf_exchanged)
+                   current_element => current_element%get_next()
+                end do
+                
+             end if
           end if
 
         end subroutine copy_to_neighbors2_from_bf_layer

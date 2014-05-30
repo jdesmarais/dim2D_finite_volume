@@ -322,6 +322,8 @@ $(bf_layer_dir)/bf_interface_class.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(bf_layer_dir)/bf_mainlayer_pointer_class.o\
+	$(nbf_layer_dir)/nbf_interface_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
@@ -420,6 +422,7 @@ test_bf_layer_path_prog.o:\
 test_bf_interface_prog.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/bf_interface_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
@@ -663,16 +666,22 @@ test_bf_layer_path_prog:\
 #	test_bf_mainlayer_module.o
 
 test_bf_interface_prog:\
-	parameters_bf_layer.o\
 	parameters_kind.o\
 	parameters_constant.o\
 	parameters_input.o\
-	bf_layer_ini_grdptID_module.o\
+	parameters_bf_layer.o\
+	bf_layer_errors_module.o\
+	bf_layer_allocate_module.o\
+	bf_layer_reallocate_module.o\
 	bf_layer_merge_module.o\
+	bf_layer_exchange_module.o\
 	bf_layer_class.o\
 	bf_sublayer_class.o\
 	bf_mainlayer_class.o\
 	bf_mainlayer_pointer_class.o\
+	nbf_element_class.o\
+	nbf_list_class.o\
+	nbf_interface_class.o\
 	bf_interface_class.o\
 	test_bf_layer_module.o
 

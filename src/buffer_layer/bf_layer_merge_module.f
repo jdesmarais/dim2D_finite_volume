@@ -75,8 +75,19 @@
           !and the indices to match easily during the copy of the tables
           if(present(final_alignment_i)) then
 
-             final_alignment      = final_alignment_i
+             final_alignment(1,1) = min(alignment1(1,1),
+     $                                  alignment2(1,1),
+     $                                  final_alignment_i(1,1))
+
              final_alignment(2,1) = align_N
+
+             final_alignment(1,2) = max(alignment1(1,2),
+     $                                  alignment2(1,2),
+     $                                  final_alignment_i(1,2))
+
+             final_alignment(2,2) = max(alignment1(2,2),
+     $                                  alignment2(2,2),
+     $                                  final_alignment_i(2,2))
 
              new_size = get_new_size(alignment1,
      $                               alignment2,
@@ -90,19 +101,7 @@
      $            j_min1, j_min2,
      $            alignment1, alignment2, final_alignment)
 
-             bf_alignment(1,1) = min(alignment1(1,1),
-     $                               alignment2(1,1),
-     $                               final_alignment(1,1))
-
-             bf_alignment(2,1) = align_N
-
-             bf_alignment(1,2) = max(alignment1(1,2),
-     $                               alignment2(1,2),
-     $                               final_alignment(1,2))
-
-             bf_alignment(2,2) = max(alignment1(2,2),
-     $                               alignment2(2,2),
-     $                               final_alignment(2,2))
+             bf_alignment = final_alignment
 
           else
 
@@ -222,7 +221,18 @@
           !and the indices to match easily during the copy of the tables
           if(present(final_alignment_i)) then
 
-             final_alignment      = final_alignment_i
+             final_alignment(1,1) = min(alignment1(1,1),
+     $                                  alignment2(1,1),
+     $                                  final_alignment_i(1,1))
+
+             final_alignment(2,1) = min(alignment1(2,1),
+     $                                  alignment2(2,1),
+     $                                  final_alignment_i(2,1))
+
+             final_alignment(1,2) = max(alignment1(1,2),
+     $                                  alignment2(1,2),
+     $                                  final_alignment_i(1,2))
+
              final_alignment(2,2) = align_S
              
              new_size = get_new_size(alignment1,
@@ -237,19 +247,7 @@
      $            j_min1, j_min2,
      $            alignment1, alignment2, final_alignment)
 
-             bf_alignment(1,1) = min(alignment1(1,1),
-     $                               alignment2(1,1),
-     $                               final_alignment(1,1))
-
-             bf_alignment(2,1) = min(alignment1(2,1),
-     $                               alignment2(2,1),
-     $                               final_alignment(2,1))
-
-             bf_alignment(1,2) = max(alignment1(1,2),
-     $                               alignment2(1,2),
-     $                               final_alignment(1,2))
-
-             bf_alignment(2,2) = align_S
+             bf_alignment = final_alignment
 
           else
 
@@ -368,8 +366,19 @@
           !and the indices to match easily during the copy of the tables
           if(present(final_alignment_i)) then
 
-             final_alignment      = final_alignment_i
              final_alignment(1,1) = align_E
+
+             final_alignment(2,1) = min(alignment1(2,1),
+     $                                  alignment2(2,1),
+     $                                  final_alignment_i(2,1))
+
+             final_alignment(1,2) = max(alignment1(1,2),
+     $                                  alignment2(1,2),
+     $                                  final_alignment_i(1,2))
+
+             final_alignment(2,2) = max(alignment1(2,2),
+     $                                  alignment2(2,2),
+     $                                  final_alignment_i(2,2))
 
              new_size = get_new_size(alignment1,
      $                               alignment2,
@@ -383,19 +392,7 @@
      $            i_min1, i_min2,
      $            alignment1, alignment2, final_alignment)
 
-             bf_alignment(1,1) = align_E
-
-             bf_alignment(2,1) = min(alignment1(2,1),
-     $                               alignment2(2,1),
-     $                               final_alignment(2,1))
-
-             bf_alignment(1,2) = max(alignment1(1,2),
-     $                               alignment2(1,2),
-     $                               final_alignment(1,2))
-
-             bf_alignment(2,2) = max(alignment1(2,2),
-     $                               alignment2(2,2),
-     $                               final_alignment(2,2))
+             bf_alignment = final_alignment
 
           else
 
@@ -517,8 +514,19 @@
           !and the indices to match easily during the copy of the tables
           if(present(final_alignment_i)) then
 
-             final_alignment      = final_alignment_i
+             final_alignment(1,1) = min(alignment1(1,1),
+     $                                  alignment2(1,1),
+     $                                  final_alignment_i(1,1))
+
+             final_alignment(2,1) = min(alignment1(2,1),
+     $                                  alignment2(2,1),
+     $                                  final_alignment_i(2,1))
+
              final_alignment(1,2) = align_W
+
+             final_alignment(2,2) = max(alignment1(2,2),
+     $                                  alignment2(2,2),
+     $                                  final_alignment_i(2,2))
 
              new_size = get_new_size(alignment1,
      $                               alignment2,
@@ -532,19 +540,7 @@
      $            i_min1, i_min2,
      $            alignment1, alignment2, final_alignment)
 
-             bf_alignment(1,1) = min(alignment1(1,1),
-     $                               alignment2(1,1),
-     $                               final_alignment(1,1))
-
-             bf_alignment(2,1) = min(alignment1(2,1),
-     $                               alignment2(2,1),
-     $                               final_alignment(2,1))
-
-             bf_alignment(1,2) = align_W
-
-             bf_alignment(2,2) = max(alignment1(2,2),
-     $                               alignment2(2,2),
-     $                               final_alignment(2,2))
+             bf_alignment = final_alignment
 
           else
 

@@ -175,36 +175,36 @@
         print '()'
 
 
-        !test the fct can_exchange_with()
-        print '()'
-        print '(''can_exchange_with() '')'
-        print '(''----------------------'')'
-        do j=1,4
-           do i=1,3,2
-              
-              !loop over the neighboring buffer layers
-              do g=1,2
-                 added_sublayer => bf_mainlayers(neighbors(j,g))%get_head_sublayer()
-
-                 !loop over the number of buffer layers in the main layer
-                 do h=1,3
-
-                    test = nbf_elements(j,i)%can_exchange_with(added_sublayer)
-                    added_sublayer => added_sublayer%get_next()
-                    
-                    if(test) then
-                       call print_exchange(
-     $                      bf_layer_char(j),i,
-     $                      bf_layer_char(neighbors(j,g)),h)
-                             
-                    end if
-                 end do
-
-              end do
-           end do
-        end do
-        print '(''----------------------'')'
-        print '()'
+c$$$        !test the fct can_exchange_with()
+c$$$        print '()'
+c$$$        print '(''can_exchange_with() '')'
+c$$$        print '(''----------------------'')'
+c$$$        do j=1,4
+c$$$           do i=1,3,2
+c$$$              
+c$$$              !loop over the neighboring buffer layers
+c$$$              do g=1,2
+c$$$                 added_sublayer => bf_mainlayers(neighbors(j,g))%get_head_sublayer()
+c$$$
+c$$$                 !loop over the number of buffer layers in the main layer
+c$$$                 do h=1,3
+c$$$
+c$$$                    test = nbf_elements(j,i)%can_exchange_with(added_sublayer)
+c$$$                    added_sublayer => added_sublayer%get_next()
+c$$$                    
+c$$$                    if(test) then
+c$$$                       call print_exchange(
+c$$$     $                      bf_layer_char(j),i,
+c$$$     $                      bf_layer_char(neighbors(j,g)),h)
+c$$$                             
+c$$$                    end if
+c$$$                 end do
+c$$$
+c$$$              end do
+c$$$           end do
+c$$$        end do
+c$$$        print '(''----------------------'')'
+c$$$        print '()'
 
 
         !initialization of the nodes of the different layers
