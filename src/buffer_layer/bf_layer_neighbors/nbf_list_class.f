@@ -1,7 +1,9 @@
       module nbf_list_class
 
-        use bf_sublayer_class, only : bf_sublayer
-        use nbf_element_class, only : nbf_element
+        use bf_layer_errors_module, only : error_neighbor_index
+        use bf_sublayer_class     , only : bf_sublayer
+        use nbf_element_class     , only : nbf_element
+        use parameters_kind       , only : ikind
 
         implicit none
 
@@ -32,9 +34,15 @@
 
           procedure, pass :: copy_from_neighbors_to_bf_layer
           procedure, pass :: copy_to_neighbors_from_bf_layer
-
+          procedure, pass :: copy_from_neighbors1_to_bf_layer
+          procedure, pass :: copy_from_neighbors2_to_bf_layer
+          procedure, pass :: copy_to_neighbors1_from_bf_layer
+          procedure, pass :: copy_to_neighbors2_from_bf_layer
+          
           procedure, pass, private :: add_element
           procedure, pass, private :: remove_element
+
+          procedure, pass :: print_on_screen
 
         end type nbf_list
 
@@ -179,39 +187,64 @@
           integer          , intent(in)    :: neighbor_index
           type(bf_sublayer), intent(inout) :: bf_exchanged
 
+          
+          select case(neighbor_index)
+            case(1)
+               call copy_from_neighbors1_to_bf_layer(
+     $              this, bf_exchanged)
+            case(2)
+               call copy_from_neighbors2_to_bf_layer(
+     $              this, bf_exchanged)
+            case default
+               call error_neighbor_index(
+     $              'nbf_list_class.f',
+     $              'copy_from_neighbors_to_bf_layer',
+     $              neighbor_index)
+          end select
+
+        end subroutine copy_from_neighbors_to_bf_layer
+
+
+        subroutine copy_from_neighbors1_to_bf_layer(
+     $     this, bf_exchanged)
+
+          implicit none
+
+          class(nbf_list)  , intent(in)    :: this
+          type(bf_sublayer), intent(inout) :: bf_exchanged
+
           type(nbf_element), pointer :: current_element
           integer :: i
 
-          if(associated(this%head)) then
+          current_element => this%head
 
-             current_element => this%head
+          do i=1, this%nb_elements
+             call current_element%copy_from_neighbor1_to(bf_exchanged)
+             current_element => current_element%get_next()
+          end do
 
-             if(neighbor_index.eq.1) then
+        end subroutine copy_from_neighbors1_to_bf_layer
 
-                do i=1, this%nb_elements
-                   call current_element%copy_from_neighbor1_to(bf_exchanged)
-                   current_element => current_element%get_next()
-                end do
 
-             else
+        subroutine copy_from_neighbors2_to_bf_layer(
+     $     this, bf_exchanged)
 
-                if(neighbor_index.eq.2) then
-                   do i=1, this%nb_elements
-                      call current_element%copy_from_neighbor2_to(bf_exchanged)
-                      current_element => current_element%get_next()
-                   end do
-                else
-                   print '(''nbf_list_class'')'
-                   print '(''copy_from_neighbors_to_bf_layer'')'
-                   print '(''neighbor_index not recognized'')'
-                   print '(''neighbor_index: '',I2)', neighbor_index
-                   stop 'verify neighbor_index (should be 1 or 2)'
-                end if
+          implicit none
 
-             end if                
-          end if
+          class(nbf_list)  , intent(in)    :: this
+          type(bf_sublayer), intent(inout) :: bf_exchanged
 
-        end subroutine copy_from_neighbors_to_bf_layer
+          type(nbf_element), pointer :: current_element
+          integer :: i
+
+          current_element => this%head
+
+          do i=1, this%nb_elements
+             call current_element%copy_from_neighbor2_to(bf_exchanged)
+             current_element => current_element%get_next()
+          end do
+
+        end subroutine copy_from_neighbors2_to_bf_layer
 
 
         !< copy the layers common between the buffer layers
@@ -226,6 +259,32 @@
           integer          , intent(in)    :: neighbor_index
           type(bf_sublayer), intent(in)    :: bf_exchanged
 
+
+          select case(neighbor_index)
+            case(1)
+               call copy_to_neighbors1_from_bf_layer(
+     $              this, bf_exchanged)
+            case(2)
+               call copy_to_neighbors2_from_bf_layer(
+     $              this, bf_exchanged)
+            case default
+               call error_neighbor_index(
+     $              'nbf_list_class.f',
+     $              'copy_to_neighbors_from_bf_layer',
+     $              neighbor_index)
+          end select
+
+        end subroutine copy_to_neighbors_from_bf_layer
+
+
+        subroutine copy_to_neighbors1_from_bf_layer(
+     $     this, bf_exchanged)
+
+          implicit none
+
+          class(nbf_list)  , intent(inout) :: this
+          type(bf_sublayer), intent(in)    :: bf_exchanged
+
           type(nbf_element), pointer :: current_element
           integer :: i
 
@@ -233,32 +292,39 @@
 
              current_element => this%head
 
-             if(neighbor_index.eq.1) then
+             do i=1, this%nb_elements
+                call current_element%copy_to_neighbor1_from(bf_exchanged)
+                current_element => current_element%get_next()
+             end do
 
-                do i=1, this%nb_elements
-                   call current_element%copy_to_neighbor1_from(bf_exchanged)
-                   current_element => current_element%get_next()
-                end do
-
-             else
-
-                if(neighbor_index.eq.2) then
-                   do i=1, this%nb_elements
-                      call current_element%copy_to_neighbor2_from(bf_exchanged)
-                      current_element => current_element%get_next()
-                   end do
-                else
-                   print '(''nbf_list_class'')'
-                   print '(''copy_from_neighbors_to_bf_layer'')'
-                   print '(''neighbor_index not recognized'')'
-                   print '(''neighbor_index: '',I2)', neighbor_index
-                   stop 'verify neighbor_index (should be 1 or 2)'
-                end if
-
-             end if                
           end if
 
-        end subroutine copy_to_neighbors_from_bf_layer
+        end subroutine copy_to_neighbors1_from_bf_layer
+
+
+        subroutine copy_to_neighbors2_from_bf_layer(
+     $     this, bf_exchanged)
+
+          implicit none
+
+          class(nbf_list)  , intent(inout) :: this
+          type(bf_sublayer), intent(in)    :: bf_exchanged
+
+          type(nbf_element), pointer :: current_element
+          integer :: i
+
+          if(associated(this%head)) then
+
+             current_element => this%head
+
+             do i=1, this%nb_elements
+                call current_element%copy_to_neighbor2_from(bf_exchanged)
+                current_element => current_element%get_next()
+             end do
+
+          end if
+
+        end subroutine copy_to_neighbors2_from_bf_layer
 
 
         !< add element in the chained list and its position
@@ -276,20 +342,16 @@
 
           select case(this%nb_elements)
             case(0)
-
                this%head => new_element
                this%tail => this%head
 
-            case(1)
-               
+            case(1)               
                if(this%head%is_before(new_element)) then
-
                   call this%head%set_next(new_element)
                   call new_element%set_prev(this%head)
                   this%tail => new_element
 
-               else
-                
+               else                
                   call new_element%set_next(this%head)
                   call this%head%set_prev(new_element)
                   call this%head%nullify_next()
@@ -374,32 +436,26 @@
 
              if(associated(rm_element%get_prev())) then
                 prev => rm_element%get_prev()
-
                 call prev%set_next(next)
                 call next%set_prev(prev)
 
              else
-                
                 call next%nullify_prev()
                 this%head => next
 
              end if
-
           else
 
              if(associated(rm_element%get_prev())) then
                 prev => rm_element%get_prev()
-
                 call prev%nullify_next()
                 this%tail => prev
 
              else
-                
                 nullify(this%tail)
                 nullify(this%head)
 
              end if
-
           end if
 
 
@@ -435,5 +491,40 @@
           call next_element%set_prev(inserted_element)
 
         end subroutine insert_element
+
+
+        !< print the alignment of the buffer layer
+        !> referenced by the list
+        subroutine print_on_screen(this)
+
+          implicit none
+
+          class(nbf_list), intent(in) :: this
+
+          type(nbf_element), pointer :: current_element
+          type(bf_sublayer), pointer :: bf_sublayer_ptr
+          integer(ikind), dimension(2,2) :: alignment
+          character(1)  , dimension(4)   :: bf_layer_char
+
+          integer :: i
+
+          bf_layer_char = ['N','S','E','W']
+
+          current_element => this%get_head()
+
+          do i=1, this%get_nb_elements()
+             bf_sublayer_ptr => current_element%get_ptr()
+             alignment       = bf_sublayer_ptr%get_alignment_tab()
+             
+             print '(A1,'': ('',I3,I3,'')  ('',I3,I3,'')'')',
+     $            bf_layer_char(bf_sublayer_ptr%get_localization()),
+     $            alignment(1,1), alignment(1,2),
+     $            alignment(2,1), alignment(2,2)
+
+             current_element => current_element%get_next()
+          end do
+          print '()'
+
+        end subroutine print_on_screen
 
       end module nbf_list_class

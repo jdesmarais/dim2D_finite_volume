@@ -106,8 +106,10 @@
           procedure,   pass :: reallocate_bf_layer
           procedure,   pass :: merge_bf_layer
 
-          procedure,   pass :: share_grdpts_with_neighbor1
-          procedure,   pass :: share_grdpts_with_neighbor2
+          procedure,   pass :: get_neighbor1_id
+          procedure,   pass :: get_neighbor2_id
+          procedure,   pass :: shares_grdpts_with_neighbor1
+          procedure,   pass :: shares_grdpts_with_neighbor2
 
           procedure,   pass :: copy_from_neighbor1
           procedure,   pass :: copy_from_neighbor2
@@ -601,61 +603,218 @@
                stop 'check localizations'
           end select
 
-        end subroutine merge_bf_layer
+        end subroutine merge_bf_layer        
 
 
-        
+c$$$        !< get neighbor_index
+c$$$        function get_neighbor_index(this)
+c$$$          
+c$$$          implicit none
+c$$$
+c$$$          class(bf_layer), intent(in) :: this
+c$$$
+c$$$          select case(this%localization)
+c$$$            case(N,E)
+c$$$               neighbor_index = 1
+c$$$            case(S,W)
+c$$$               neighbor_index = 2
+c$$$          end select 
+c$$$
+c$$$        end function get_neighbor_index
 
 
-        !< check if the current buffer layer share gridpoints with
-        !> a neighboring main layer
-        function share_grdpts_with_neighbor1(this)
-     $     result(share_grdpts)
-
-          implicit none
-
-          class(bf_layer), intent(in) :: this
-          logical                     :: share_grdpts
-
-          select case(this%localization)
-            case(N,S)
-               share_grdpts = this%alignment(1,1).le.(align_W+1)
-            case(E,W)
-               share_grdpts = this%alignment(2,1).le.(align_S+1)
-            case default
-               call error_mainlayer_id(
-     $              'nbf_interface_class.f',
-     $              'share_grdpts_with_neighbor1',
-     $              this%localization)
-          end select
-
-        end function share_grdpts_with_neighbor1
-
-
-        !< check if the current buffer layer share gridpoints with
-        !> a neighboring main layer
-        function share_grdpts_with_neighbor2(this)
-     $     result(share_grdpts)
+        !< get neighbor1_id
+        subroutine get_neighbor1_id(this, neighbor1_id, neighbor_index)
 
           implicit none
 
           class(bf_layer), intent(in) :: this
-          logical                     :: share_grdpts
-
+          integer        , intent(out):: neighbor1_id
+          integer        , intent(out):: neighbor_index
 
           select case(this%localization)
-            case(N,S)
-               share_grdpts = this%alignment(1,2).ge.(align_E-1)
-            case(E,W)
-               share_grdpts = this%alignment(2,2).ge.(align_N-1)
+            case(N)
+               neighbor1_id   = W
+               neighbor_index = 2
+            case(S)
+               neighbor1_id   = W
+               neighbor_index = 1
+            case(E)
+               neighbor1_id   = S
+               neighbor_index = 2
+            case(W)
+               neighbor1_id   = S
+               neighbor_index = 1
             case default
                call error_mainlayer_id(
-     $              'nbf_interface_class.f',
-     $              'share_grdpts_with_neighbor2',
+     $              'bf_layer_class.f',
+     $              'get_neighbor1_id',
      $              this%localization)
-          end select
+          end select 
 
-        end function share_grdpts_with_neighbor2       
+        end subroutine get_neighbor1_id
+
+
+        !< get neighbor2_id
+        subroutine get_neighbor2_id(this, neighbor2_id, neighbor_index)
+
+          implicit none
+
+          class(bf_layer), intent(in) :: this
+          integer        , intent(out):: neighbor2_id
+          integer        , intent(out):: neighbor_index
+
+          select case(this%localization)
+            case(N)
+               neighbor2_id   = E
+               neighbor_index = 2
+            case(S)
+               neighbor2_id   = E
+               neighbor_index = 1
+            case(E)
+               neighbor2_id   = N
+               neighbor_index = 2
+            case(W)
+               neighbor2_id   = N
+               neighbor_index = 1
+            case default
+               call error_mainlayer_id(
+     $              'bf_layer_class.f',
+     $              'get_neighbor1_id',
+     $              this%localization)
+          end select 
+
+        end subroutine get_neighbor2_id
+
+
+c$$$        !< get neighbor2_id
+c$$$        subroutine get_neighbor1_and_2_ids(this,
+c$$$     $     neighbor1_id,
+c$$$     $     neighbor2_id,
+c$$$     $     neighbor_index)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          class(bf_layer), intent(in) :: this
+c$$$          integer        , intent(out):: neighbor1_id
+c$$$          integer        , intent(out):: neighbor2_id
+c$$$          integer        , intent(out):: neighbor_index
+c$$$
+c$$$          select case(this%localization)
+c$$$            case(N)
+c$$$               neighbor1_id   = W
+c$$$               neighbor2_id   = E
+c$$$               neighbor_index = 1
+c$$$            case(S)
+c$$$               neighbor1_id   = W
+c$$$               neighbor2_id   = E
+c$$$               neighbor_index = 2
+c$$$            case(E)
+c$$$               neighbor1_id   = S
+c$$$               neighbor2_id   = N
+c$$$               neighbor_index = 1
+c$$$            case(W)
+c$$$               neighbor1_id   = S
+c$$$               neighbor2_id   = N
+c$$$               neighbor_index = 2
+c$$$            case default
+c$$$               call error_mainlayer_id(
+c$$$     $              'bf_layer_class.f',
+c$$$     $              'get_neighbor1_id',
+c$$$     $              this%localization)
+c$$$          end select 
+c$$$
+c$$$        end subroutine get_neighbor1_and_2_ids
+
+
+        !< check if the current buffer layer share gridpoints with
+        !> a neighboring main layer
+        function shares_grdpts_with_neighbor1(this, bf_final_alignment)
+     $     result(share_grdpts)
+
+          implicit none
+
+          class(bf_layer)                         , intent(in) :: this
+          integer(ikind), dimension(2,2), optional, intent(in) :: bf_final_alignment
+          logical                                              :: share_grdpts
+
+
+          if(present(bf_final_alignment)) then
+
+             select case(this%localization)
+               case(N,S)
+                  share_grdpts = bf_final_alignment(1,1).le.(align_W+bc_size)
+               case(E,W)
+                  share_grdpts = bf_final_alignment(2,1).le.(align_S+bc_size)
+               case default
+                  call error_mainlayer_id(
+     $                 'bf_layer_class.f',
+     $                 'share_grdpts_with_neighbor1',
+     $                 this%localization)
+             end select
+
+          else
+             
+             select case(this%localization)
+               case(N,S)
+                  share_grdpts = this%alignment(1,1).le.(align_W+bc_size)
+               case(E,W)
+                  share_grdpts = this%alignment(2,1).le.(align_S+bc_size)
+               case default
+                  call error_mainlayer_id(
+     $                 'nbf_interface_class.f',
+     $                 'share_grdpts_with_neighbor1',
+     $                 this%localization)
+             end select
+
+          end if
+
+        end function shares_grdpts_with_neighbor1
+
+
+        !< check if the current buffer layer share gridpoints with
+        !> a neighboring main layer
+        function shares_grdpts_with_neighbor2(this, bf_final_alignment)
+     $     result(shares_grdpts)
+
+          implicit none
+
+          class(bf_layer)                         , intent(in) :: this
+          integer(ikind), dimension(2,2), optional, intent(in) :: bf_final_alignment
+          logical                                              :: shares_grdpts
+
+
+          if(present(bf_final_alignment)) then
+
+             select case(this%localization)
+               case(N,S)
+                  shares_grdpts = bf_final_alignment(1,2).ge.(align_E-bc_size)
+               case(E,W)
+                  shares_grdpts = bf_final_alignment(2,2).ge.(align_N-bc_size)
+               case default
+                  call error_mainlayer_id(
+     $                 'nbf_interface_class.f',
+     $                 'share_grdpts_with_neighbor2',
+     $                 this%localization)
+             end select
+
+          else
+
+             select case(this%localization)
+               case(N,S)
+                  shares_grdpts = this%alignment(1,2).ge.(align_E-bc_size)
+               case(E,W)
+                  shares_grdpts = this%alignment(2,2).ge.(align_N-bc_size)
+               case default
+                  call error_mainlayer_id(
+     $                 'nbf_interface_class.f',
+     $                 'share_grdpts_with_neighbor2',
+     $                 this%localization)
+             end select
+
+          end if
+
+        end function shares_grdpts_with_neighbor2       
 
 
         !> copy the exchange layer between the current buffer layer

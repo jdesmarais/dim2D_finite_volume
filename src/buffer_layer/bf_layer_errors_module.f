@@ -7,12 +7,14 @@
         private
         public :: error_mainlayer_id,
      $            error_diff_mainlayer_id,
-     $            error_incompatible_neighbor
+     $            error_incompatible_neighbor,
+     $            error_neighbor_index
 
 
         integer, parameter :: ERROR_MAINLAYER_ID_CODE          = 0
         integer, parameter :: ERROR_DIFF_MAINLAYER_ID_CODE     = 1
         integer, parameter :: ERROR_INCOMPATIBLE_NEIGHBOR_CODE = 2
+        integer, parameter :: ERROR_NEIGHBOR_INDEX_CODE        = 3
 
 
         contains
@@ -86,5 +88,26 @@
           stop 'error_incompatible_neighbor'  
 
         end subroutine error_incompatible_neighbor
+
+
+        !< error neighbor index.ne.(1,2)
+        subroutine error_neighbor_index(
+     $     file_name, fct_name, neighbor_index)
+
+          implicit none
+
+          character(*), intent(in) :: file_name
+          character(*), intent(in) :: fct_name
+          integer     , intent(in) :: neighbor_index
+
+          write(ERROR_UNIT, '(I3)') ERROR_NEIGHBOR_INDEX_CODE
+          write(ERROR_UNIT, '(A)') file_name
+          write(ERROR_UNIT, '(A)') fct_name
+          write(ERROR_UNIT, '(A)') 'neighbor_index not recognized'
+          write(ERROR_UNIT, '(''neighbor_index: '',I2)') neighbor_index
+
+          stop 'error_neighbor_index'
+
+        end subroutine error_neighbor_index
 
       end module bf_layer_errors_module

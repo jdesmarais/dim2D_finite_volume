@@ -1,6 +1,8 @@
       module nbf_interface_class
       
+        use bf_sublayer_class  , only : bf_sublayer
         use nbf_list_class     , only : nbf_list
+        use parameters_constant, only : N,S,E,W
         use parameters_input   , only : debug
         use parameters_bf_layer, only : align_N, align_S,
      $                                  align_E, align_W
@@ -15,184 +17,103 @@
         !< object saving the links between buffer layers
         !> that are in different main layers but share a
         !> border along the x-direction
+        !> the links are saved in the array nbf_links
+        !> ex: nbf_links(N,1) : links to the neighbor1
+        !>                      of the north main layer
+        !>     nbf_links(N,2) : links to the neighbor2
+        !>                      of the north main layer
         type nbf_interface
 
           type(nbf_list), dimension(4,2) :: nbf_links
 
           contains
 
-          procedure, nopass, private :: get_index
-          procedure, nopass, private :: get_neighbor_coords
-          procedure,   pass          :: add_links_to_neighbor1_bf_layer
-          procedure,   pass          :: add_links_to_neighbor2_bf_layer
-          procedure,   pass          :: update_links_to_neighbor1_bf_layer
-          procedure,   pass          :: update_links_to_neighbor2_bf_layer
-          procedure,   pass          :: remove_links_to_neighbor1_bf_layer
-          procedure,   pass          :: remove_links_to_neighbor2_bf_layer
+          procedure, pass :: ini
+
+          procedure, pass :: link_neighbor1_to_bf_sublayer
+          procedure, pass :: link_neighbor2_to_bf_sublayer
+          procedure, pass :: update_link_from_neighbor1_to_bf_sublayer
+          procedure, pass :: update_link_from_neighbor2_to_bf_sublayer
+          procedure, pass :: remove_link_from_neighbor1_to_bf_sublayer
+          procedure, pass :: remove_link_from_neighbor2_to_bf_sublayer
+
+          procedure, pass :: update_grdpts_from_neighbors
+          procedure, pass :: update_neighbor_grdpts
+
+          procedure, pass :: print_on_screen
 
         end type nbf_interface
 
 
         contains
 
-
-        !< from the coordinates identifying the main layer
-        !> to which the buffer layer belongs and the index
-        !> identifying its neighbor, the index where the links
-        !> between the main layer and its neighbors is determined
-        !> this index should be used for the nbf_links table
-        function get_index(mainlayer_id, neighbor_index)
-
-          implicit none
-
-          integer, intent(in) :: mainlayer_id
-          integer, intent(in) :: neighbor_index
-          integer             :: get_index
-
-          get_index = (mainlayer_id-1)*2 + neighbor_index
-
-        end function get_index
-
-
-        !< from the cardinal coordinate identifying to which
-        !> main layer the buffer layer belongs, the function
-        !> gives the cardinal coordinates of the neighboring
-        !> buffer layers as well as the index the neighboring
-        !> buffer layers will refer to when they will exchange
-        !> with the main layer corresponding to the mainlayer_id
-        subroutine get_neighbor_coords(
-     $     this,
-     $     neighbor1_id,
-     $     neighbor2_id,
-     $     neighbor_index)
+        subroutine ini(this)
         
           implicit none
 
-          class(bf_layer), intent(in)  :: this
-          integer        , intent(out) :: neighbor1_id
-          integer        , intent(out) :: neighbor2_id
-          integer        , intent(out) :: neighbor_index
+          class(nbf_interface), intent(inout) :: this
 
-          select case(this%localization)
-            case(N)
-               neighbor1_id   = W
-               neighbor2_id   = E
-               neighbor_index = 1
-            case(S)
-               neighbor1_id   = W
-               neighbor2_id   = E
-               neighbor_index = 2
-            case(W)
-               neighbor1_id   = S
-               neighbor2_id   = N
-               neighbor_index = 1
-            case(E)
-               neighbor1_id   = S
-               neighbor2_id   = N
-               neighbor_index = 2
-            case default
-               call error_mainlayer_id(
-     $              'nbf_interface_class.f',
-     $              'get_neighbor_coords',
-     $              this%localization)
-          end select
+          integer :: i,j
 
-        end subroutine get_neighbor_coords
+          do j=1, size(this%nbf_links,2)
+             do i=1, size(this%nbf_links,1)
+                call this%nbf_links(i,j)%ini()
+             end do
+          end do
+
+        end subroutine ini
 
 
         !< a buffer layer has been identified as a buffer layer
         !> located at the interface between main layers, i.e. this
         !> buffer layer share some gridpoints with other layers
         !> each main layer sharing grid points with this buffer layer
-        !> is informed that this buffer layer has been updated or should
-        !> send newer grid points to other main layers
-        subroutine add_links_to_neighbor1_bf_layer(this, nbf_sublayer)
+        !> is informed that this buffer layer now exists and should be
+        !> considered when updating information
+        subroutine link_neighbor1_to_bf_sublayer(this, nbf_sublayer)
 
           implicit none
 
           class(nbf_interface)         , intent(inout) :: this
           type(bf_sublayer)   , pointer, intent(in)    :: nbf_sublayer
-          
 
-          integer :: mainlayer_id
           integer :: neighbor1_id
-          integer :: neighbor2_id
           integer :: neighbor_index
-          integer :: nbf_index
-
           
-          !get the cardinal coordinate of the buffer layer
-          mainlayer_id = nbf_sublayer%get_localization()
+          call nbf_sublayer%get_neighbor1_id(neighbor1_id, neighbor_index)
+          call this%nbf_links(neighbor1_id,neighbor_index)%add_link_in_list(
+     $         nbf_sublayer)
 
-          !find the coordinates identifying the neighboring buffer layers
-          !with which this buffer layer may be sharing grid points
-          call get_neighbor_coords(
-     $       mainlayer_id,
-     $       neighbor1_id,
-     $       neighbor2_id,
-     $       neighbor_index)
-
-          !get the index corresponding to current_bf_layer -> neighbor1
-          nbf_index = get_index(mainlayer_id,1)
-          !add links for current_bf_layer -> neighbor1
-          call this%nbf_links(nbf_index)%add_link_in_list(nbf_sublayer)
-
-          !get the index corresponding to neighbor1 -> current_bf_layer
-          nbf_index = get_index(neighbor1_id, neighbor_index)
-          !add links for neighbor1 -> current_bf_layer
-          call this%nbf_linfs(nbf_index)%add_link_in_list(nbf_sublayer)
-
-
-        end subroutine add_links_to_neighbor1_bf_layer
-
-
-        subroutine add_links_to_neighbor2_bf_layer(this, nbf_sublayer)
-
-          implicit none
-
-          class(nbf_interface)         , intent(inout) :: this
-          type(bf_sublayer)   , pointer, intent(in)    :: nbf_sublayer
-          
-
-          integer :: mainlayer_id
-          integer :: neighbor1_id
-          integer :: neighbor2_id
-          integer :: neighbor_index
-          integer :: nbf_index
-
-
-          !get the cardinal coordinate of the buffer layer
-          mainlayer_id = nbf_sublayer%get_localization()
-
-          !find the coordinates identifying the neighboring buffer layers
-          !with which this buffer layer may be sharing grid points
-          call get_neighbor_coords(
-     $       mainlayer_id,
-     $       neighbor1_id,
-     $       neighbor2_id,
-     $       neighbor_index)
-
-          !get the index corresponding to current_bf_layer -> neighbor2
-          nbf_index = get_index(mainlayer_id,2)
-          !add links for current_bf_layer -> neighbor2
-          call this%nbf_links(nbf_index)%add_link_in_list(nbf_sublayer)
-
-          !get the index corresponding to neighbor2 -> current_bf_layer
-          nbf_index = get_index(neighbor2_id, neighbor_index)
-          !add links for neighbor2 -> current_bf_layer
-          call this%nbf_linfs(nbf_index)%add_link_in_list(nbf_sublayer)
-
-        end subroutine add_links_to_neighbor2_bf_layer
+        end subroutine link_neighbor1_to_bf_sublayer
 
 
         !< a buffer layer has been identified as a buffer layer
         !> located at the interface between main layers, i.e. this
         !> buffer layer share some gridpoints with other layers
-        !> this bf layer has been updated (merge) and pointers to
-        !> this buffer layer should be updated as they will be no
-        !> longer exist. They are replaced by another link
-        subroutine update_links_to_neighbor1_bf_layer(this,
-     $     nbf_sublayer1, nbf_sublayer2)
+        !> each main layer sharing grid points with this buffer layer
+        !> is informed that this buffer layer now exists and should be
+        !> considered when updating information
+        subroutine link_neighbor2_to_bf_sublayer(this, nbf_sublayer)
+
+          implicit none
+
+          class(nbf_interface)         , intent(inout) :: this
+          type(bf_sublayer)   , pointer, intent(in)    :: nbf_sublayer
+
+          integer :: neighbor2_id
+          integer :: neighbor_index
+          
+          call nbf_sublayer%get_neighbor2_id(neighbor2_id, neighbor_index)
+          call this%nbf_links(neighbor2_id,neighbor_index)%add_link_in_list(
+     $         nbf_sublayer)
+
+        end subroutine link_neighbor2_to_bf_sublayer
+
+
+        !< update the link from : neighbor1 -> nbf_sublayer1
+        !>                 to   : neighbor1 -> nbf_sublayer2
+        subroutine update_link_from_neighbor1_to_bf_sublayer(
+     $     this, nbf_sublayer1, nbf_sublayer2)
 
           implicit none
 
@@ -201,60 +122,20 @@
           type(bf_sublayer)   , pointer, intent(in)    :: nbf_sublayer2
           
 
-          integer :: mainlayer_id, mainlayer_id2
           integer :: neighbor1_id
-          integer :: neighbor2_id
           integer :: neighbor_index
-          integer :: nbf_index
           
-          !get the cardinal coordinate of the buffer layer
-          mainlayer_id = nbf_sublayer1%get_localization()
-          if(debug) then
-             mainlayer_id2 = nbf_sublayer2%get_localization()
-             if(mainlayer_id.ne.mainlayer_id2) then
-                call error_diff_mainlayer_id(
-     $               'nbf_interafce_class.f',
-     $               'update_links_to_neighbor2_bf_layer',
-     $               mainlayer_id,
-     $               mainlayer_id2)
-             end if
-          end if
-
-
-          !find the coordinates identifying the neighboring buffer layers
-          !with which this buffer layer may be sharing grid points
-          call get_neighbor_coords(
-     $       mainlayer_id,
-     $       neighbor1_id,
-     $       neighbor2_id,
-     $       neighbor_index)
-
-
-          !get the index corresponding to nbf_sublayer1 -> neighbor1
-          nbf_index = get_index(mainlayer_id,1)
-          !update links from: nbf_sublayer1 -> neighbor1
-          !             to  : nbf_sublayer2 -> neighbor1
-          call this%nbf_links(nbf_index)%update_link_in_list(
+          call nbf_sublayer1%get_neighbor1_id(neighbor1_id, neighbor_index)
+          call this%nbf_links(neighbor1_id,neighbor_index)%update_link_in_list(
      $         nbf_sublayer1, nbf_sublayer2)
 
-          !get the index corresponding to neighbor1 -> nbf_sublayer1
-          nbf_index = get_index(neighbor1_id, neighbor_index)
-          !update links from: neighbor1 -> nbf_sublayer1
-          !             to  : neighbor1 -> nbf_sublayer2
-          call this%nbf_linfs(nbf_index)%update_link_in_list(
-     $         nbf_sublayer1, nbf_sublayer2)
-
-        end subroutine update_links_to_neighbor1_bf_layer
+        end subroutine update_link_from_neighbor1_to_bf_sublayer
 
 
-        !< a buffer layer has been identified as a buffer layer
-        !> located at the interface between main layers, i.e. this
-        !> buffer layer share some gridpoints with other layers
-        !> this bf layer has been updated (merge) and pointers to
-        !> this buffer layer should be updated as they will be no
-        !> longer exist. They are replaced by another link
-        subroutine update_links_to_neighbor2_bf_layer(this,
-     $     nbf_sublayer1, nbf_sublayer2)
+        !< update the link from : neighbor2 -> nbf_sublayer1
+        !>                 to   : neighbor2 -> nbf_sublayer2
+        subroutine update_link_from_neighbor2_to_bf_sublayer(
+     $     this, nbf_sublayer1, nbf_sublayer2)
 
           implicit none
 
@@ -263,133 +144,162 @@
           type(bf_sublayer)   , pointer, intent(in)    :: nbf_sublayer2
           
 
-          integer :: mainlayer_id, mainlayer_id2
-          integer :: neighbor1_id
           integer :: neighbor2_id
           integer :: neighbor_index
-          integer :: nbf_index
           
-          !get the cardinal coordinate of the buffer layer
-          mainlayer_id = nbf_sublayer1%get_localization()
-          if(debug) then
-             mainlayer_id2 = nbf_sublayer2%get_localization()
-             if(mainlayer_id.ne.mainlayer_id2) then
-                call error_diff_mainlayer_id(
-     $               'nbf_interafce_class.f',
-     $               'update_links_to_neighbor2_bf_layer',
-     $               mainlayer_id,
-     $               mainlayer_id2)
-             end if
+          call nbf_sublayer1%get_neighbor2_id(neighbor2_id, neighbor_index)
+          call this%nbf_links(neighbor2_id,neighbor_index)%update_link_in_list(
+     $         nbf_sublayer1, nbf_sublayer2)
+
+        end subroutine update_link_from_neighbor2_to_bf_sublayer
+      
+
+        !< remove the link existing from neighbor1 -> nbf_sublayer
+        subroutine remove_link_from_neighbor1_to_bf_sublayer(
+     $     this, nbf_sublayer)
+
+          implicit none
+
+          class(nbf_interface)         , intent(inout) :: this
+          type(bf_sublayer)   , pointer, intent(in)    :: nbf_sublayer
+          
+
+          integer :: neighbor1_id
+          integer :: neighbor_index
+          
+          call nbf_sublayer%get_neighbor1_id(neighbor1_id, neighbor_index)
+          call this%nbf_links(neighbor1_id,neighbor_index)%remove_link_from_list(
+     $         nbf_sublayer)
+
+        end subroutine remove_link_from_neighbor1_to_bf_sublayer
+
+
+        !< remove the link existing from neighbor2 -> nbf_sublayer
+        subroutine remove_link_from_neighbor2_to_bf_sublayer(
+     $     this, nbf_sublayer)
+
+          implicit none
+
+          class(nbf_interface)         , intent(inout) :: this
+          type(bf_sublayer)   , pointer, intent(in)    :: nbf_sublayer
+          
+
+          integer :: neighbor2_id
+          integer :: neighbor_index
+          
+          call nbf_sublayer%get_neighbor2_id(neighbor2_id, neighbor_index)
+          call this%nbf_links(neighbor2_id,neighbor_index)%remove_link_from_list(
+     $         nbf_sublayer)
+
+        end subroutine remove_link_from_neighbor2_to_bf_sublayer
+
+
+        !> we ask all the main layers that have grid points in common
+        !> with the current main layer to send data to the current
+        !> buffer layer
+        subroutine update_grdpts_from_neighbors(this, nbf_sublayer)
+
+          implicit none
+
+          class(nbf_interface), intent(in)    :: this
+          type(bf_sublayer)   , intent(inout) :: nbf_sublayer
+
+          integer :: mainlayer_id
+          
+          mainlayer_id = nbf_sublayer%get_localization()
+
+
+          !if the current buffer layer shares gridpoints with the
+          !neighboring layers of type 1, the neighboring buffer
+          !layers send data to the current buffer
+          !layer
+          if(nbf_sublayer%shares_grdpts_with_neighbor1()) then
+             call this%nbf_links(mainlayer_id,1)%copy_from_neighbors_to_bf_layer(
+     $            1, nbf_sublayer)
           end if
 
 
-          !find the coordinates identifying the neighboring buffer layers
-          !with which this buffer layer may be sharing grid points
-          call get_neighbor_coords(
-     $       mainlayer_id,
-     $       neighbor1_id,
-     $       neighbor2_id,
-     $       neighbor_index)
+          !if the current buffer layer shares gridpoints with the
+          !neighboring layers of type 2, the neighboring buffer
+          !layers send data to the current buffer
+          !layer
+          if(nbf_sublayer%shares_grdpts_with_neighbor2()) then
+             call this%nbf_links(mainlayer_id,2)%copy_from_neighbors_to_bf_layer(
+     $            2, nbf_sublayer)
+          end if
+
+        end subroutine update_grdpts_from_neighbors
 
 
-          !get the index corresponding to nbf_sublayer1 -> neighbor1
-          nbf_index = get_index(mainlayer_id,2)
-          !update links from: nbf_sublayer1 -> neighbor1
-          !             to  : nbf_sublayer2 -> neighbor1
-          call this%nbf_links(nbf_index)%update_link_in_list(
-     $         nbf_sublayer1, nbf_sublayer2)
-
-          !get the index corresponding to neighbor1 -> nbf_sublayer1
-          nbf_index = get_index(neighbor2_id, neighbor_index)
-          !update links from: neighbor1 -> nbf_sublayer1
-          !             to  : neighbor1 -> nbf_sublayer2
-          call this%nbf_linfs(nbf_index)%update_link_in_list(
-     $         nbf_sublayer1, nbf_sublayer2)
-
-        end subroutine update_links_to_neighbor2_bf_layer
-
-
-        subroutine remove_links_to_neighbor1_bf_layer(this, nbf_sublayer)
+        !< we ask all the main layers that have grid points in common
+        !> with the current main layer to receive data from the current
+        !> buffer layer
+        subroutine update_neighbor_grdpts(this, nbf_sublayer)
 
           implicit none
 
-          class(nbf_interface)         , intent(inout) :: this
-          type(bf_sublayer)   , pointer, intent(in)    :: nbf_sublayer
-          
+          class(nbf_interface), intent(inout) :: this
+          type(bf_sublayer)   , intent(in)    :: nbf_sublayer
 
-          integer :: mainlayer_id
-          integer :: neighbor1_id
-          integer :: neighbor2_id
-          integer :: neighbor_index
-          integer :: nbf_index
-          
-          !get the cardinal coordinate of the buffer layer
+          integer :: mainlayer_id          
+
+
           mainlayer_id = nbf_sublayer%get_localization()
 
 
-          !find the coordinates identifying the neighboring buffer layers
-          !with which this buffer layer may be sharing grid points
-          call get_neighbor_coords(
-     $       mainlayer_id,
-     $       neighbor1_id,
-     $       neighbor2_id,
-     $       neighbor_index)
+          !if the current buffer layer shares gridpoints with the
+          !neighboring layers of type 1, the neighboring buffer
+          !layers are updated with data from the current buffer
+          !layer
+          if(nbf_sublayer%shares_grdpts_with_neighbor1()) then
+             call this%nbf_links(mainlayer_id,1)%copy_to_neighbors_from_bf_layer(
+     $            1, nbf_sublayer)
+          end if
 
 
-          !get the index corresponding to nbf_sublayer1 -> neighbor1
-          nbf_index = get_index(mainlayer_id,1)
-          !update links from: nbf_sublayer1 -> neighbor1
-          !             to  : nbf_sublayer2 -> neighbor1
-          call this%nbf_links(nbf_index)%remove_link_from_list(nbf_sublayer)
+          !if the current buffer layer shares gridpoints with the
+          !neighboring layers of type 2, the neighboring buffer
+          !layers are updated with data from the current buffer
+          !layer
+          if(nbf_sublayer%shares_grdpts_with_neighbor2()) then
+             call this%nbf_links(mainlayer_id,2)%copy_to_neighbors_from_bf_layer(
+     $            2, nbf_sublayer)
+          end if
 
-          !get the index corresponding to neighbor1 -> nbf_sublayer1
-          nbf_index = get_index(neighbor1_id, neighbor_index)
-          !update links from: neighbor1 -> nbf_sublayer1
-          !             to  : neighbor1 -> nbf_sublayer2
-          call this%nbf_linfs(nbf_index)%remove_link_from_list(nbf_sublayer)
-
-        end subroutine remove_links_to_neighbor1_bf_layer
+        end subroutine update_neighbor_grdpts
 
 
-        subroutine remove_links_to_neighbor2_bf_layer(this,nbf_sublayer)
+        subroutine print_on_screen(this)
 
           implicit none
 
-          class(nbf_interface)         , intent(inout) :: this
-          type(bf_sublayer)   , pointer, intent(in)    :: nbf_sublayer
-          
+          class(nbf_interface), intent(in) :: this
 
-          integer :: mainlayer_id
-          integer :: neighbor1_id
-          integer :: neighbor2_id
-          integer :: neighbor_index
-          integer :: nbf_index
-          
-          !get the cardinal coordinate of the buffer layer
-          mainlayer_id = nbf_sublayer%get_localization()
+          integer     , dimension(4,2) :: neighbors
+          character(1), dimension(4)   :: bf_layer_char
+          integer                      :: i,j
 
+          neighbors(N,1) = W
+          neighbors(N,2) = E
+          neighbors(S,1) = W
+          neighbors(S,2) = E
+          neighbors(E,1) = S
+          neighbors(E,2) = N
+          neighbors(W,1) = S
+          neighbors(W,2) = N
 
-          !find the coordinates identifying the neighboring buffer layers
-          !with which this buffer layer may be sharing grid points
-          call get_neighbor_coords(
-     $       mainlayer_id,
-     $       neighbor1_id,
-     $       neighbor2_id,
-     $       neighbor_index)
+          bf_layer_char = ['N','S','E','W']          
 
+          do j=1, size(this%nbf_links,2)
+             do i=1, size(this%nbf_links,1)
+                print '(A1,'' --> '',A1)',
+     $               bf_layer_char(neighbors(i,j)),
+     $               bf_layer_char(i)
+                call this%nbf_links(i,j)%print_on_screen()
+             end do
+          end do
 
-          !get the index corresponding to nbf_sublayer -> neighbor1
-          nbf_index = get_index(mainlayer_id,2)
-          !update links from: nbf_sublayer -> neighbor1
-          !             to  : nbf_sublayer -> neighbor1
-          call this%nbf_links(nbf_index)%remove_link_from_list(nbf_sublayer)
+        end subroutine print_on_screen
 
-          !get the index corresponding to neighbor1 -> nbf_sublayer
-          nbf_index = get_index(neighbor2_id, neighbor_index)
-          !update links from: neighbor1 -> nbf_sublayer
-          !             to  : neighbor1 -> nbf_sublayer
-          call this%nbf_linfs(nbf_index)%remove_link_from_list(nbf_sublayer)
-
-        end subroutine remove_links_to_neighbor2_bf_layer
 
       end module nbf_interface_class
