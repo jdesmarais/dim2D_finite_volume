@@ -348,12 +348,14 @@
                match_table(2) = ny - 2*bc_size
             case(S)
                match_table(1) = this%alignment(1,1) - bc_size - 1
-               match_table(2) = -size(this%nodes,2) + bc_size
+               !match_table(2) = -size(this%nodes,2) + bc_size
+               match_table(2) = this%alignment(2,1) - bc_size - 1
             case(E)
                match_table(1) = nx - 2*bc_size
                match_table(2) = this%alignment(2,1) - bc_size - 1
             case(W)
-               match_table(1) = -size(this%nodes,1) + bc_size
+               !match_table(1) = -size(this%nodes,1) + bc_size
+               match_table(1) = this%alignment(1,1) - bc_size - 1
                match_table(2) = this%alignment(2,1) - bc_size - 1
            case default
               call error_mainlayer_id(

@@ -18,13 +18,14 @@
       !----------------------------------------------------------------
       module bf_layer_path_class
 
-        use bf_interface_class , only : bf_interface
-        use bf_sublayer_class  , only : bf_sublayer
-        use parameters_constant, only : N,S,E,W,
-     $                                  x_direction, y_direction,
-     $                                  min_border, max_border
-        use parameters_input   , only : nx,ny,ne,bc_size
-        use parameters_kind    , only : ikind, rkind
+        use bf_layer_errors_module, only : error_mainlayer_id
+        use bf_interface_class    , only : bf_interface
+        use bf_sublayer_class     , only : bf_sublayer
+        use parameters_constant   , only : N,S,E,W,
+     $                                     x_direction, y_direction,
+     $                                     min_border, max_border
+        use parameters_input      , only : nx,ny,ne,bc_size
+        use parameters_kind       , only : ikind, rkind
 
         implicit none
 

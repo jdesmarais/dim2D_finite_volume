@@ -26,40 +26,64 @@ from library_plot_bf_layer import (manage_options,
     
 if __name__ == "__main__":
     
-
-    #manage the options
+#manage the options
     [folder_path] = manage_options()
-
-    #find the maximum number of sublayers per main layer
-    sublayers_filename = folder_path+'/sublayers_nb.dat'
-    nb_sublayers = get_nb_sublayers(sublayers_filename)
+    print folder_path
 
 
-    #test add_sublayer
-    #=================================================================
-    #combine data from several sublayers in one large matrix
-    #-----------------------------------------------------------------
-    interior_size_filename  = folder_path+'/interior_sizes.dat'
-    interior_grdptsid_filename  = folder_path+'/interior_grdpts_id.dat'
-    interior_nodes_filename = folder_path+'/interior_nodes.dat'
+    nb_sublayers = 6
 
-    suffix_size    = '_sizes.dat'
-    suffix_nodes   = '_nodes.dat'
-    suffix_grdptid = '_grdpt_id.dat'
+
+    #plot the tests
+    for i in range(0,2):
+        
+    	#extract data for the interior points and the buffer layers
+    	#-----------------------------------------------------------------
+        test_index = str(i+1)
+
+        #if(i==3):
+        #    interior_size_filename      = folder_path+'/interior_sizes'+test_index+'.dat'
+        #    interior_grdptsid_filename  = folder_path+'/interior_grdpts_id'+test_index+'.dat'
+        #    interior_nodes_filename     = folder_path+'/interior_nodes'+test_index+'.dat'
+        #else:
+        interior_size_filename     = folder_path+'/interior_sizes'+test_index+'.dat'
+        interior_grdptsid_filename = folder_path+'/interior_grdpts_id'+test_index+'.dat'
+        interior_nodes_filename    = folder_path+'/interior_nodes'+test_index+'.dat'
+
+    	suffix_size    = '_sizes'+test_index+'.dat'
+    	suffix_nodes   = '_nodes'+test_index+'.dat'
+    	suffix_grdptid = '_grdpt_id'+test_index+'.dat'
+    	
+    	[lm_nodes,lm_grdptid] = make_matrix_for_all_bf_layers(interior_size_filename,
+                                                              interior_grdptsid_filename,
+    	                                                      interior_nodes_filename,
+    	                                                      folder_path,
+    	                                                      nb_sublayers,
+    	                                                      suffix_size,
+    	                                                      suffix_nodes,
+    	                                                      suffix_grdptid,
+                                                              continuous=False)
     
-    [lm_nodes,lm_grdptid] = make_matrix_for_all_bf_layers(interior_size_filename,
-                                                          interior_grdptsid_filename,
-                                                          interior_nodes_filename,
-                                                          folder_path,
-                                                          nb_sublayers,
-                                                          suffix_size,
-                                                          suffix_nodes,
-                                                          suffix_grdptid)
-    #display
-    #-----------------------------------------------------------------
-    fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
-                                                        lm_grdptid)
-    fig.canvas.set_window_title("test bf_layer_path")
+        #display
+        #-----------------------------------------------------------------
+        fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
+                                                            lm_grdptid)
+
+        [lm_nodes,lm_grdptid] = make_matrix_for_all_bf_layers(interior_size_filename,
+                                                              interior_grdptsid_filename,
+    	                                                      interior_nodes_filename,
+    	                                                      folder_path,
+    	                                                      nb_sublayers,
+    	                                                      suffix_size,
+    	                                                      suffix_nodes,
+    	                                                      suffix_grdptid,
+                                                              continuous=True)
+    
+        #display
+        #-----------------------------------------------------------------
+        fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
+                                                            lm_grdptid)
+        #fig.canvas.set_window_title('test')
 
     
     #show all

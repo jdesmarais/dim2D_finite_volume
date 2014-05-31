@@ -323,6 +323,7 @@ $(bf_layer_dir)/bf_interface_class.o:\
 	$(param_dir)/parameters_kind.o
 
 $(bf_layer_dir)/bf_layer_path_class.o:\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/bf_interface_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(param_dir)/parameters_constant.o\
@@ -404,6 +405,7 @@ test_bf_layer_path_prog.o:\
 	$(bf_layer_dir)/bf_layer_path_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/bf_interface_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
@@ -676,10 +678,8 @@ test_bf_layer_path_prog:\
 	bf_layer_exchange_module.o\
 	bf_layer_class.o\
 	bf_sublayer_class.o\
-	nbf_element_class.o\
-	nbf_list_class.o\
-	nbf_interface_class.o\
 	bf_mainlayer_class.o\
+	bf_mainlayer_pointer_class.o\
 	nbf_element_class.o\
 	nbf_list_class.o\
 	nbf_interface_class.o\

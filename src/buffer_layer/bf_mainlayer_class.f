@@ -496,9 +496,9 @@
           character(2), dimension(8) :: bf_layer_char
           integer                    :: i
           character(len=14)          :: filename_format
-          character(len=19)          :: sizes_filename
-          character(len=19)          :: nodes_filename
-          character(len=19)          :: grdid_filename
+          character(len=30)          :: sizes_filename
+          character(len=30)          :: nodes_filename
+          character(len=30)          :: grdid_filename
           type(bf_sublayer), pointer :: current_sublayer
 
           bf_layer_char = ['N_','S_','E_','W_','NE','NW','SE','SW']

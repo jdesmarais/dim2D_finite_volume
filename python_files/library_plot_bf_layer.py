@@ -409,12 +409,12 @@ def selective_copy(mainlayer,
     #copy what is sure to be copied
     if(mainlayer=='S_'):
         lm_j_min = j_match
-        lm_j_max = j_match+bf_layer_size_y-bc_size
+        lm_j_max = j_match+bf_layer_size_y
         lm_i_min = i_match
         lm_i_max = i_match+bf_layer_size_x
         
         j_min = 0
-        j_max = nodes.shape[1]-bc_size
+        j_max = nodes.shape[1]
         i_min = 0
         i_max = nodes.shape[2]
 
@@ -432,12 +432,12 @@ def selective_copy(mainlayer,
         #           i_match:i_match+bf_layer_size_x] = grdptid[0:-bc_size,:]
 
     if(mainlayer=='N_'):
-        lm_j_min = j_match+bc_size
+        lm_j_min = j_match
         lm_j_max = j_match+bf_layer_size_y
         lm_i_min = i_match
         lm_i_max = i_match+bf_layer_size_x
         
-        j_min = bc_size
+        j_min = 0
         j_max = nodes.shape[1]
         i_min = 0
         i_max = nodes.shape[2]
@@ -458,12 +458,12 @@ def selective_copy(mainlayer,
     if(mainlayer=='E_'):
         lm_j_min = j_match
         lm_j_max = j_match+bf_layer_size_y
-        lm_i_min = i_match+bc_size
+        lm_i_min = i_match
         lm_i_max = i_match+bf_layer_size_x
         
         j_min = 0
         j_max = nodes.shape[1]
-        i_min = bc_size
+        i_min = 0
         i_max = nodes.shape[2]
 
         conditional_copy(lm_nodes, lm_grdptid,
@@ -483,12 +483,12 @@ def selective_copy(mainlayer,
         lm_j_min = j_match
         lm_j_max = j_match+bf_layer_size_y
         lm_i_min = i_match
-        lm_i_max = i_match+bf_layer_size_x-bc_size
+        lm_i_max = i_match+bf_layer_size_x
         
         j_min = 0
         j_max = nodes.shape[1]
         i_min = 0
-        i_max = nodes.shape[2]-bc_size
+        i_max = nodes.shape[2]
 
         conditional_copy(lm_nodes, lm_grdptid,
                          nodes, grdptid,
