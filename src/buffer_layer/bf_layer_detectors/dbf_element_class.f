@@ -146,7 +146,7 @@
              print '(''  - prev associated: '', L1)', associated(this%prev%prev)
              print '(''  - next associated: '', L1)', associated(this%prev%next)
           else
-             print '(''prev: not associated'')'
+             print '(''+ prev: X'')'
           end if
           if(associated(this%next)) then
              print '(''+ next: '')'
@@ -154,7 +154,7 @@
              print '(''  - prev associated: '', L1)', associated(this%next%prev)
              print '(''  - next associated: '', L1)', associated(this%next%next)
           else
-             print '(''next: not associated'')'
+             print '(''+ next: X'')'
           end if
 
         end subroutine print_on_screen

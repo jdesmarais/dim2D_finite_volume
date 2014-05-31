@@ -333,6 +333,10 @@ $(bf_layer_dir)/bf_layer_path_class.o:\
 $(dbf_layer_dir)/dbf_element_class.o:\
 	$(param_dir)/parameters_kind.o
 
+$(dbf_layer_dir)/dbf_list_class.o:\
+	$(dbf_layer_dir)/dbf_element_class.o\
+	$(param_dir)/parameters_kind.o
+
 
 #tests for buffer layer
 test_bf_layer_module.o:\
@@ -437,6 +441,10 @@ test_dbf_element_prog.o:\
 	$(dbf_layer_dir)/dbf_element_class.o\
 	$(param_dir)/parameters_kind.o
 
+test_dbf_list_prog.o:\
+	$(dbf_layer_dir)/dbf_element_class.o\
+	$(dbf_layer_dir)/dbf_list_class.o\
+	$(param_dir)/parameters_kind.o
 
 #test_bf_corner_prog.o:\
 #	$(bf_layer_dir)/bf_corner_module.o\
@@ -674,11 +682,6 @@ test_bf_interface_prog:\
 	bf_interface_class.o\
 	test_bf_layer_module.o
 
-test_dbf_element_prog:\
-	dbf_element_class.o\
-	parameters_kind.o
-
-
 test_bf_layer_path_prog:\
 	parameters_kind.o\
 	parameters_constant.o\
@@ -699,6 +702,15 @@ test_bf_layer_path_prog:\
 	bf_interface_class.o\
 	bf_layer_path_class.o\
 	test_bf_layer_module.o
+
+test_dbf_element_prog:\
+	dbf_element_class.o\
+	parameters_kind.o
+
+test_dbf_list_prog:\
+	dbf_element_class.o\
+	dbf_list_class.o\
+	parameters_kind.o
 
 
 #test_bf_corner_prog:\
