@@ -1,6 +1,7 @@
 #for buffer layer
 bf_layer_dir		= $(src_dir)/buffer_layer
 nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors
+dbf_layer_dir           = $(bf_layer_dir)/bf_layer_detectors
 
 
 #main folders

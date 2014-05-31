@@ -120,8 +120,8 @@
 
           implicit none
 
-          class(nbf_element), intent(inout) :: this
-          type(nbf_element) , pointer       :: get_next
+          class(nbf_element), intent(in) :: this
+          type(nbf_element) , pointer    :: get_next
 
           get_next => this%next
 
