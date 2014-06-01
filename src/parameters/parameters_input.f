@@ -62,4 +62,9 @@
         !<output choice
         integer, parameter :: io_choice   = netcdf_choice
 
+        !< boundary conditions parameters
+        !< for the open boundary conditions: number of timesteps
+        !> checked in advance by the increasing detector
+        integer, parameter :: search_nb_dt = 1
+
       end module parameters_input

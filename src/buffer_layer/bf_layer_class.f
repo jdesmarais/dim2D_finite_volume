@@ -103,7 +103,8 @@
                        
           procedure,   pass :: get_local_coord
           procedure,   pass :: get_general_to_local_coord_tab
-
+          procedure,   pass :: get_nodes
+          
           procedure,   pass :: compute_new_grdpts
           procedure, nopass :: compute_new_grdpt
 
@@ -122,6 +123,7 @@
           procedure,   pass :: copy_from_neighbor2
           procedure,   pass :: copy_to_neighbor1
           procedure,   pass :: copy_to_neighbor2
+          procedure,   pass :: copy_grdpts_id_to_temp
 
           procedure,   pass          :: update_grdpts_after_increase
           procedure, nopass, private :: update_bc_interior_pt_to_interior_pt
@@ -365,6 +367,19 @@
           end select
 
         end function get_general_to_local_coord_tab
+
+
+        function get_nodes(this, l_coords)
+
+          implicit none
+
+          class(bf_layer)             , intent(in) :: this
+          integer(ikind), dimension(2), intent(in) :: l_coords
+          real(rkind)   , dimension(ne)            :: var
+          
+          var = this%nodes(l_coords(1), l_coords(2),:)
+
+        end function get_nodes
 
 
         !< compute the new grid points corresponding to
@@ -1001,6 +1016,52 @@ c$$$        end function shares_grdpts_with_neighbor2
           end if
 
         end subroutine copy_to_neighbor2
+
+
+        !the template where the grdpts_id are copied is
+        !a 3x3 array whose center (2,2) is identified by
+        !its general coordinates cpt_coords
+        subroutine copy_grdpts_id_to_temp(this,
+     $     cpt_coords,
+     $     nbc_template)
+
+          class(bf_layer)               , intent(in)  :: this
+          integer(ikind), dimension(2)  , intent(in)  :: cpt_coords
+          integer       , dimension(3,3), intent(out) :: nbc_template
+
+          integer(ikind) :: min_border, max_border
+          integer(ikind) :: bf_copy_size_x, bf_copy_size_y
+          integer(ikind) :: bf_i_min, tbf_i_min
+          integer(ikind) :: bf_j_min, tbf_j_min
+
+          
+          min_border = max(this%alignment(1,1)-bc_size, cpt_coords(1)-1)
+          max_border = min(this%alignment(1,2)+bc_size, cpt_coords(1)+1)
+
+          bf_copy_size_x = max_border-min_border+1
+          bf_i_min  = min_border - (this%alignment(1,1) - bc_size+1)
+          tbf_i_min = min_border - (cpt_coords(1) - 2)
+
+
+          min_border = max(this%alignment(2,1)-bc_size, cpt_coords(2)-1)
+          max_border = min(this%alignment(2,2)+bc_size, cpt_coords(2)+1)
+
+          bf_copy_size_y = max_border-min_border+1
+          bf_j_min  = min_border - (this%alignment(2,1) - bc_size+1)
+          tbf_j_min = min_border - (cpt_coords(2) - 2)
+
+          
+          do j=bf_j_min, bf_j_min+bf_copy_size_y-1
+             do i=bf_i_min, bf_i_min+bf_copy_size_x-1
+                nbc_template(
+     $               i-bf_i_min+nbf_i_min,
+     $               j-bf_j_min+nbf_j_min) = this%grdpts_id(i,j)
+             end do
+          end do
+
+        end subroutine copy_grdpts_id_to_temp
+
+
 
 
         !< turn the grdpts_id identified by general coordinates
