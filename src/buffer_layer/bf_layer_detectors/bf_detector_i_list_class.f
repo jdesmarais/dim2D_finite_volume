@@ -1,9 +1,14 @@
       module bf_detector_i_list_class
-
-        use dbf_list_class , only : dbf_list
-        use parameters_kind, only : ikind
+      
+        use bf_interface_class, only : bf_interface
+        use dbf_element_class , only : dbf_element
+        use dbf_list_class    , only : dbf_list
+        use parameters_kind   , only : ikind, rkind
       
         implicit none
+
+        private
+        public :: bf_detector_i_list
 
 
         type :: bf_detector_i_list
@@ -19,12 +24,30 @@
 
           contains
 
-          procedure, pass :: move_alloc_detectors_list
+          procedure, pass :: ini
+          procedure, pass :: add_new_detector
+
+          procedure, pass, private :: add_new_detector_to_mainlayer
+          procedure, pass, private :: add_new_detector_to_neighbor1
+          procedure, pass, private :: add_new_detector_to_neighbor2
+          procedure, pass, private :: add_detector_to_mainlayer
+          procedure, pass, private :: add_detector_to_neighbor1
+          procedure, pass, private :: add_detector_to_neighbor2
+
+          procedure, nopass, private :: get_inter_detector_param
+          procedure, nopass, private :: get_inter_detector_coords
+
+          procedure, pass :: print_on_matrix
+
+          procedure, pass :: destroy
 
         end type bf_detector_i_list
 
         contains
 
+
+        !< initialize the object with the main layer id and the
+        !> size of the detector list
         subroutine ini(this, mainlayer_id, size_detectors_list)
 
           implicit none
@@ -75,7 +98,7 @@
      $            this, coords)
           else
              neighbor_id = interface_used%get_neighbor_id(
-     $            this%mainlayer, mainlayer_id)
+     $            this%mainlayer_id, mainlayer_id)
              
              if(neighbor_id.eq.1) then
                 call add_new_detector_to_neighbor1(this, coords)
@@ -125,7 +148,7 @@
                 inter_coords = get_inter_detector_coords(
      $               prev_coords,
      $               x_change, y_change, k)
-                call add_detector_to_mainlayer(inter_coords)
+                call add_detector_to_mainlayer(this, inter_coords)
              end do
 
           end if
@@ -156,6 +179,11 @@
           !the new detector added should not be too far away
           !from the previous one to retain the closed path
           !figure
+          if(.not.associated(this%detectors_neighbor1_list)) then
+             allocate(this%detectors_neighbor1_list)
+             call this%detectors_neighbor1_list%ini()
+          end if
+
           if(this%detectors_neighbor1_list%get_nb_elements().gt.0) then
 
              current_element => this%detectors_neighbor1_list%get_tail()
@@ -171,7 +199,7 @@
                 inter_coords = get_inter_detector_coords(
      $               prev_coords,
      $               x_change, y_change, k)
-                call add_detector_to_neighbor1(inter_coords)
+                call add_detector_to_neighbor1(this, inter_coords)
              end do
 
           end if
@@ -202,6 +230,11 @@
           !the new detector added should not be too far away
           !from the previous one to retain the closed path
           !figure
+          if(.not.associated(this%detectors_neighbor2_list)) then
+             allocate(this%detectors_neighbor2_list)
+             call this%detectors_neighbor2_list%ini()
+          end if
+
           if(this%detectors_neighbor2_list%get_nb_elements().gt.0) then
 
              current_element => this%detectors_neighbor2_list%get_tail()
@@ -217,7 +250,7 @@
                 inter_coords = get_inter_detector_coords(
      $               prev_coords,
      $               x_change, y_change, k)
-                call add_detector_to_neighbor2(inter_coords)
+                call add_detector_to_neighbor2(this, inter_coords)
              end do
 
           end if
@@ -249,8 +282,21 @@
           j_change = next_coords(2) - prev_coords(2)
           inter_nb = max(0, abs(i_change)-1, abs(j_change)-1)
 
-          x_change = real(i_change)/real(inter_nb)
-          y_change = real(j_change)/real(inter_nb)
+          if(inter_nb.gt.0) then
+             if(i_change.ne.0) then
+                x_change = (real(i_change)-sign(1,i_change))/real(inter_nb)
+             else
+                x_change = 0
+             end if
+             if(j_change.ne.0) then
+                y_change = (real(j_change)-sign(1,j_change))/real(inter_nb)
+             else
+                y_change = 0
+             end if
+          else
+             x_change = 1
+             y_change = 1
+          end if
 
         end subroutine get_inter_detector_param
 
@@ -292,8 +338,8 @@
           this%nb_detectors = this%nb_detectors+1
 
           if(this%nb_detectors.le.size(this%detectors_list,2)) then
-             this%detectors_list(1,nb_detectors) = coords(1)
-             this%detectors_list(2,nb_detectors) = coords(2)
+             this%detectors_list(1,this%nb_detectors) = coords(1)
+             this%detectors_list(2,this%nb_detectors) = coords(2)
           else
              if(.not.associated(this%detectors_extra_list)) then
                 allocate(this%detectors_extra_list)
@@ -339,6 +385,102 @@
           call this%detectors_neighbor2_list%add_to_list(coords)
 
         end subroutine add_detector_to_neighbor2
+
+
+        !< destroy the object
+        subroutine destroy(this)
+        
+          implicit none
+
+          class(bf_detector_i_list), intent(inout) :: this
+
+          if(allocated(this%detectors_list)) then
+             deallocate(this%detectors_list)
+          end if
+          if(associated(this%detectors_extra_list)) then
+             call this%detectors_extra_list%destroy()
+             deallocate(this%detectors_extra_list)
+             nullify(this%detectors_extra_list)
+          end if
+          if(associated(this%detectors_neighbor1_list)) then
+             call this%detectors_neighbor1_list%destroy()
+             deallocate(this%detectors_neighbor1_list)
+             nullify(this%detectors_neighbor1_list)
+          end if
+          if(associated(this%detectors_neighbor2_list)) then
+             call this%detectors_neighbor2_list%destroy()
+             deallocate(this%detectors_neighbor2_list)
+             nullify(this%detectors_neighbor2_list)
+          end if
+
+        end subroutine destroy
+
+
+        !> print the coordinates of the detectors saved in the object
+        !> as points on a matrix
+        subroutine print_on_matrix(this, matrix)
+
+          implicit none
+
+          class(bf_detector_i_list)  , intent(in)  :: this
+          real(rkind), dimension(:,:), intent(out) :: matrix
+
+
+          real(rkind) :: color_detector_list
+          real(rkind) :: color_detector_extra_list
+          real(rkind) :: color_detector_neighbor1_list
+          real(rkind) :: color_detector_neighbor2_list
+          
+          type(dbf_element), pointer   :: current_element
+          integer(ikind), dimension(2) :: coords
+          integer                      :: k
+
+          color_detector_list           = 0.2d0
+          color_detector_extra_list     = 0.3d0
+          color_detector_neighbor1_list = 0.4d0
+          color_detector_neighbor2_list = 0.5d0
+
+          
+          !detector list
+          do k=1, size(this%detectors_list,2)
+             coords = this%detectors_list(:,k)
+             matrix(coords(1), coords(2)) = color_detector_list
+          end do
+
+          
+          !extra detector list
+          if(associated(this%detectors_extra_list)) then
+             current_element => this%detectors_extra_list%get_head()
+             do k=1, this%detectors_extra_list%get_nb_elements()
+                coords = current_element%get_coords()
+                matrix(coords(1), coords(2)) = color_detector_extra_list
+                current_element => current_element%get_next()
+             end do
+          end if
+
+
+          !neighbor1 list
+          if(associated(this%detectors_neighbor1_list)) then
+             current_element => this%detectors_neighbor1_list%get_head()
+             do k=1, this%detectors_neighbor1_list%get_nb_elements()
+                coords = current_element%get_coords()
+                matrix(coords(1), coords(2)) = color_detector_neighbor1_list
+                current_element => current_element%get_next()
+             end do
+          end if
+
+
+          !neighbor2 list
+          if(associated(this%detectors_neighbor2_list)) then
+             current_element => this%detectors_neighbor2_list%get_head()
+             do k=1, this%detectors_neighbor2_list%get_nb_elements()
+                coords = current_element%get_coords()
+                matrix(coords(1), coords(2)) = color_detector_neighbor2_list
+                current_element => current_element%get_next()
+             end do
+          end if
+
+        end subroutine print_on_matrix
 
       end module bf_detector_i_list_class
       

@@ -337,6 +337,11 @@ $(dbf_layer_dir)/dbf_list_class.o:\
 	$(dbf_layer_dir)/dbf_element_class.o\
 	$(param_dir)/parameters_kind.o
 
+$(dbf_layer_dir)/bf_detector_i_list_class.o:\
+	$(bf_layer_dir)/bf_interface_class.o\
+	$(dbf_layer_dir)/dbf_element_class.o\
+	$(dbf_layer_dir)/dbf_list_class.o\
+	$(param_dir)/parameters_kind.o
 
 #tests for buffer layer
 test_bf_layer_module.o:\
@@ -445,6 +450,15 @@ test_dbf_list_prog.o:\
 	$(dbf_layer_dir)/dbf_element_class.o\
 	$(dbf_layer_dir)/dbf_list_class.o\
 	$(param_dir)/parameters_kind.o
+
+test_bf_detector_i_list_prog.o:\
+	$(dbf_layer_dir)/bf_detector_i_list_class.o\
+	$(bf_layer_dir)/bf_interface_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	test_bf_layer_module.o
 
 #test_bf_corner_prog.o:\
 #	$(bf_layer_dir)/bf_corner_module.o\
@@ -712,6 +726,28 @@ test_dbf_list_prog:\
 	dbf_list_class.o\
 	parameters_kind.o
 
+test_bf_detector_i_list_prog:\
+	parameters_kind.o\
+	parameters_constant.o\
+	parameters_input.o\
+	parameters_bf_layer.o\
+	bf_layer_errors_module.o\
+	bf_layer_allocate_module.o\
+	bf_layer_reallocate_module.o\
+	bf_layer_merge_module.o\
+	bf_layer_exchange_module.o\
+	bf_layer_class.o\
+	bf_sublayer_class.o\
+	bf_mainlayer_class.o\
+	bf_mainlayer_pointer_class.o\
+	nbf_element_class.o\
+	nbf_list_class.o\
+	nbf_interface_class.o\
+	bf_interface_class.o\
+	dbf_element_class.o\
+	dbf_list_class.o\
+	bf_detector_i_list_class.o\
+	test_bf_layer_module.o
 
 #test_bf_corner_prog:\
 #	parameters_kind.o\

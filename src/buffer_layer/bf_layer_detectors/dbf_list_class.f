@@ -26,6 +26,8 @@
 
           procedure, pass :: print_on_screen
 
+          procedure, pass :: destroy
+
         end type dbf_list
 
 
@@ -148,5 +150,36 @@
           end if
 
         end subroutine print_on_screen
+
+
+        subroutine destroy(this)
+
+          implicit none
+
+          class(dbf_list), intent(inout) :: this
+
+          type(dbf_element), pointer :: current_element
+          type(dbf_element), pointer :: next_element
+          integer                    :: i
+
+
+          if(this%nb_elements.gt.0) then
+
+             current_element => this%head
+
+             do i=1, this%nb_elements
+                next_element => current_element%get_next()
+                call current_element%nullify_prev()
+                call current_element%nullify_next()
+                deallocate(current_element)
+                current_element => next_element
+             end do
+             
+             nullify(this%head)
+             nullify(this%tail)
+
+          end if
+
+        end subroutine destroy
 
       end module dbf_list_class

@@ -56,8 +56,6 @@
           procedure, pass :: ini
           procedure, pass :: get_mainlayer
 
-          procedure, nopass, private :: shares_with_neighbor1
-          procedure, nopass, private :: shares_with_neighbor2
           procedure, pass            :: allocate_sublayer
           procedure, pass            :: reallocate_sublayer
           procedure, pass            :: merge_sublayers
@@ -72,8 +70,7 @@
           
           procedure, nopass, private :: shares_with_neighbor1
           procedure, nopass, private :: shares_with_neighbor2
-
-          procedure, pass :: get_neighbor_id          
+          procedure, nopass          :: get_neighbor_id
 
           procedure, pass :: print_binary
 
