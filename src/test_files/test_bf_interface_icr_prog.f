@@ -1,7 +1,10 @@
       program test_bf_interface_icr_prog
 
         use bf_interface_icr_class, only : bf_interface_icr
-        use parameters_input      , only : nx,ny,ne
+        use bf_sublayer_class     , only : bf_sublayer
+        use parameters_bf_layer   , only : align_N, interior_pt
+        use parameters_constant   , only : N
+        use parameters_input      , only : nx,ny,ne,bc_size
         use parameters_kind       , only : ikind, rkind
         use test_bf_layer_module  , only : print_interior_data,
      $                                     ini_grdpts_id
@@ -24,6 +27,8 @@
 
         !test of ini()
         call interface_used%ini()
+        call initialize_sublayers_in_interface(interface_used, nodes)
+
         call interface_used%print_idetectors_on(nodes(:,:,1))
 
         !print the detector positions
@@ -32,6 +37,13 @@
      $                           'interior_nodes1.dat',
      $                           'interior_grdpts_id1.dat',
      $                           'interior_sizes1.dat')
+
+        !print the interface
+        call interface_used%print_binary(
+     $       'nodes1.dat',
+     $       'grdpt_id1.dat',
+     $       'sizes1.dat',
+     $       '1.dat')
 
         !test of create_nbc_interior_pt_template()
         call ini_cpt_coords_table(cpt_coords_tab)
@@ -46,6 +58,36 @@
 
         
         contains
+
+
+        subroutine initialize_sublayers_in_interface(
+     $       interface_used, nodes)
+
+          implicit none
+
+          type(bf_interface_icr)          , intent(inout) :: interface_used
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+
+          
+          type(bf_sublayer), pointer :: added_sublayer
+          integer(ikind), dimension(2,2) :: alignment
+
+
+          alignment(1,1) = bc_size+1
+          alignment(1,2) = bc_size+4
+          alignment(2,1) = align_N
+          alignment(2,2) = align_N
+
+
+          added_sublayer => interface_used%allocate_sublayer(
+     $         N, nodes, alignment)
+
+          !modify the sublayer to see if the copy works
+          call added_sublayer%set_grdpts_id_pt(bc_size+1,2*bc_size+1,interior_pt)
+
+        end subroutine initialize_sublayers_in_interface
+
+
 
         !< print the content of the matrix nbc_template
         !> on an output file

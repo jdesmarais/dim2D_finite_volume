@@ -90,7 +90,9 @@ if __name__ == "__main__":
                 f.close()
                 nbc_template.resize(3,3)
 
-            ax = fig.add_subplot(7,7,i+(j-1)*7)
+            nbc_template = nbc_template[::-1,::]
+
+            ax = fig.add_subplot(7,7,i+(7-j)*7)
             res = ax.imshow(nbc_template, cmap=cm.spectral, interpolation='nearest', vmin=-1, vmax=4)
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)

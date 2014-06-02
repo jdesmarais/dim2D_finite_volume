@@ -98,6 +98,7 @@
           procedure,   pass :: set_nodes
           procedure,   pass :: set_nodes_pt
           procedure,   pass :: set_grdpts_id
+          procedure,   pass :: set_grdpts_id_pt
           procedure,   pass :: get_alignment
           procedure,   pass :: get_alignment_tab
                        
@@ -246,6 +247,20 @@
           call MOVE_ALLOC(grdpts_id, this%grdpts_id)
 
         end subroutine set_grdpts_id
+
+
+        subroutine set_grdpts_id_pt(this,i,j,var)
+        
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+          integer        , intent(in)    :: i,j
+          integer        , intent(in)    :: var
+
+          this%grdpts_id(i,j) = var
+
+        end subroutine set_grdpts_id_pt
+
 
 
         !> get the position of the buffer layer compared
@@ -1027,6 +1042,8 @@ c$$$        end function shares_grdpts_with_neighbor2
      $     cpt_coords,
      $     nbc_template)
 
+          implicit none
+
           class(bf_layer)               , intent(in)  :: this
           integer(ikind), dimension(2)  , intent(in)  :: cpt_coords
           integer       , dimension(3,3), intent(out) :: nbc_template
@@ -1036,12 +1053,13 @@ c$$$        end function shares_grdpts_with_neighbor2
           integer(ikind) :: bf_i_min, tbf_i_min
           integer(ikind) :: bf_j_min, tbf_j_min
 
+          integer(ikind) :: i,j
           
           min_border = max(this%alignment(1,1)-bc_size, cpt_coords(1)-1)
           max_border = min(this%alignment(1,2)+bc_size, cpt_coords(1)+1)
 
           bf_copy_size_x = max_border-min_border+1
-          bf_i_min  = min_border - (this%alignment(1,1) - bc_size+1)
+          bf_i_min  = min_border - (this%alignment(1,1) - (bc_size+1))
           tbf_i_min = min_border - (cpt_coords(1) - 2)
 
 
@@ -1049,15 +1067,15 @@ c$$$        end function shares_grdpts_with_neighbor2
           max_border = min(this%alignment(2,2)+bc_size, cpt_coords(2)+1)
 
           bf_copy_size_y = max_border-min_border+1
-          bf_j_min  = min_border - (this%alignment(2,1) - bc_size+1)
+          bf_j_min  = min_border - (this%alignment(2,1) - (bc_size+1))
           tbf_j_min = min_border - (cpt_coords(2) - 2)
 
           
           do j=bf_j_min, bf_j_min+bf_copy_size_y-1
              do i=bf_i_min, bf_i_min+bf_copy_size_x-1
                 nbc_template(
-     $               i-bf_i_min+nbf_i_min,
-     $               j-bf_j_min+nbf_j_min) = this%grdpts_id(i,j)
+     $               i-bf_i_min+tbf_i_min,
+     $               j-bf_j_min+tbf_j_min) = this%grdpts_id(i,j)
              end do
           end do
 

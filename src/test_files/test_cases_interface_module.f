@@ -224,7 +224,6 @@
 
           type(bf_sublayer), pointer     :: added_sublayer
           integer(ikind), dimension(2,2) :: alignment
-          logical       , dimension(4)   :: neighbors
 
           if((corner_order.ne.1).and.(corner_order.ne.2)) then
              print '(''test_cases_interface_module'')'
@@ -239,8 +238,6 @@
 
           !initialization
           call interface_used%ini()
-
-          neighbors = [.false.,.false.,.false.,.false.]
 
           select case(corner_id)
 
@@ -584,7 +581,6 @@
 
           type(bf_sublayer), pointer     :: added_sublayer
           integer(ikind), dimension(2,2) :: alignment
-          logical       , dimension(4)   :: neighbors
 
           integer :: i
 
@@ -595,8 +591,6 @@
 
           !initialization
           call interface_used%ini()
-
-          neighbors = [.false.,.false.,.false.,.false.]
 
           select case(mainlayer_id)
 
@@ -725,7 +719,6 @@
 
           type(bf_sublayer), pointer     :: added_sublayer
           integer(ikind), dimension(2,2) :: alignment
-          logical       , dimension(4)   :: neighbors
 
           print '(''************************************'')'
           print '(''4: interface with one sublayers     '')'
@@ -735,8 +728,6 @@
 
           !initialization
           call interface_used%ini()
-
-          neighbors     = [.false.,.false.,.false.,.false.]
 
 
           !northern main layer
