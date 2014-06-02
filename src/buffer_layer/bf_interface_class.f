@@ -842,18 +842,20 @@ c$$$       end function get_neighboring_sublayer
        end function get_sublayer
 
 
-       function get_nodes(general_coords) result(var)
+       function get_nodes(this, g_coords, interior_nodes) result(var)
 
          implicit none
          
-         integer(ikind), dimension(2), intent(in) :: g_coords
-         integer :: var
+         class(bf_interface)             , intent(in) :: this
+         integer(ikind), dimension(2)    , intent(in) :: g_coords
+         real(rkind), dimension(nx,ny,ne), intent(in) :: interior_nodes
+         real(rkind), dimension(ne)                   :: var
 
          integer                      :: mainlayer_id
          type(bf_sublayer), pointer   :: sublayer
          integer(ikind), dimension(2) :: l_coords
          
-         mainlayer_id = this%get_mainlayer_id(d_coords)
+         mainlayer_id = this%get_mainlayer_id(g_coords)
          if(mainlayer_id.eq.interior) then
             var = interior_nodes(g_coords(1),g_coords(2),:)
          else
@@ -862,7 +864,7 @@ c$$$       end function get_neighboring_sublayer
             var = sublayer%get_nodes(l_coords)
          end if
 
-       end function get_nodes       
+       end function get_nodes    
 
 
        !< if the buffer sublayer passed as argument has grid points

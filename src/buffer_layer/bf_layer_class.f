@@ -123,7 +123,9 @@
           procedure,   pass :: copy_from_neighbor2
           procedure,   pass :: copy_to_neighbor1
           procedure,   pass :: copy_to_neighbor2
+
           procedure,   pass :: copy_grdpts_id_to_temp
+          procedure,   pass :: check_neighboring_bc_interior_pts
 
           procedure,   pass          :: update_grdpts_after_increase
           procedure, nopass, private :: update_bc_interior_pt_to_interior_pt
@@ -369,7 +371,7 @@
         end function get_general_to_local_coord_tab
 
 
-        function get_nodes(this, l_coords)
+        function get_nodes(this, l_coords) result(var)
 
           implicit none
 
@@ -1062,6 +1064,146 @@ c$$$        end function shares_grdpts_with_neighbor2
         end subroutine copy_grdpts_id_to_temp
 
 
+        !< check if the grdpts neighboring a point identified by its
+        !> general coordinates cpt_coords are bc_interior_pt, if so,
+        !> the points are added to a list of bc_interior_pt 
+        subroutine check_neighboring_bc_interior_pts(
+     $     this,
+     $     i_prev, j_prev,
+     $     i_center, j_center,
+     $     nb_mgrdpts,
+     $     mgrdpts)
+
+          implicit none
+
+          class(bf_layer)                , intent(in)    :: this
+          integer(ikind)                 , intent(in)    :: i_prev
+          integer(ikind)                 , intent(in)    :: j_prev
+          integer(ikind)                 , intent(in)    :: i_center
+          integer(ikind)                 , intent(in)    :: j_center
+          integer                        , intent(inout) :: nb_mgrdpts
+          integer(ikind) , dimension(:,:), intent(out)   :: mgrdpts
+
+
+          !radius for the search of bc_interior_pt around the
+          !central point identified by (i_center, j_center)
+          integer, parameter :: search_r = 1
+
+          integer(ikind), dimension(2) :: match_table
+          integer(ikind) :: min_j, max_j
+          integer(ikind) :: size_x, size_y
+          integer(ikind) :: i,j
+
+
+          !get the match table converting the general coords
+          !into local coords
+          match_table = get_general_to_local_coord_tab(this)
+
+          !get the borders of the loops
+          min_j = min(j_center-j_prev,0)
+          max_j = max(j_center-j_prev,0)
+
+          size_x = size(this%grdpts_id,1)
+          size_y = size(this%grdpts_id,2)
+
+
+          do j=max(1,-search_r+j_center-match_table(2)),
+     $         min(size_y, j_prev-search_r-1-match_table(2))
+
+             do i=max(1,-search_r+i_center-match_table(1)),
+     $            min(size_x, i_center+search_r-match_table(1))
+                
+                call check_bc_interior_pt(
+     $               i,j,
+     $               match_table,
+     $               this%grdpts_id,
+     $               nb_mgrdpts,
+     $               mgrdpts)
+                
+             end do
+          end do
+
+
+          do j=max(1,-search_r+j_center+min_j-match_table(2)),
+     $         min(size_y, j_center+search_r-max_j-match_table(2))
+
+             do i=max(1,-search_r+i_center-match_table(1)),
+     $            min(size_x,i_prev-search_r-1-match_table(1))
+                
+                call check_bc_interior_pt(
+     $               i,j,
+     $               match_table,
+     $               this%grdpts_id,
+     $               nb_mgrdpts,
+     $               mgrdpts)
+
+             end do
+          end do
+
+
+          do j=max(1,j_center-search_r-min_j-match_table(2)),
+     $         min(size_y,j_center+search_r-max_j-match_table(2))
+
+             do i=max(1,i_prev+search_r+1-match_table(1)),
+     $            min(size_x,i_center+search_r-match_table(1))
+                
+                call check_bc_interior_pt(
+     $               i,j,
+     $               match_table,
+     $               this%grdpts_id,
+     $               nb_mgrdpts,
+     $               mgrdpts)
+                
+             end do
+          end do
+
+
+          do j=max(1,j_prev+search_r+1-match_table(2)),
+     $         min(size_y,j_center+search_r-match_table(2))
+
+             do i=max(1,i_center-search_r-match_table(1)),
+     $            min(size_x,i_center+search_r-match_table(1))
+                
+                call check_bc_interior_pt(
+     $               i,j,
+     $               match_table,
+     $               this%grdpts_id,
+     $               nb_mgrdpts,
+     $               mgrdpts)
+                
+             end do
+          end do
+
+        end subroutine check_neighboring_bc_interior_pts
+
+
+        !< check whether the grid point tested is a bc_interior_pt
+        !> and if so save the general coordinates of the grid point
+        !> in mgrdpts
+        subroutine check_bc_interior_pt(
+     $     i,j,
+     $     match_table,
+     $     grdpts_id,
+     $     nb_mgrdpts,
+     $     mgrdpts)
+
+          implicit none
+
+          integer(ikind)                , intent(in)    :: i,j
+          integer(ikind), dimension(2)  , intent(in)    :: match_table
+          integer       , dimension(:,:), intent(in)    :: grdpts_id
+          integer                       , intent(inout) :: nb_mgrdpts
+          integer(ikind), dimension(:,:), intent(out)   :: mgrdpts
+
+          if(grdpts_id(i,j).eq.bc_interior_pt) then
+
+             nb_mgrdpts = nb_mgrdpts+1
+             mgrdpts(1,nb_mgrdpts) = i+match_table(1)
+             mgrdpts(1,nb_mgrdpts) = j+match_table(2)
+             
+          end if
+
+        end subroutine check_bc_interior_pt
 
 
         !< turn the grdpts_id identified by general coordinates
