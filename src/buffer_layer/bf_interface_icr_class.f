@@ -1,6 +1,7 @@
       module bf_interface_icr_class
 
         use bf_detector_i_list_class, only : bf_detector_i_list
+        use bf_layer_path_class     , only : bf_layer_path
         use bf_nbc_template_module
         use bf_sublayer_class       , only : bf_sublayer
         use bf_interface_class      , only : bf_interface
@@ -27,6 +28,8 @@
 
           procedure,   pass :: ini
           procedure,   pass :: get_modified_grdpts_list
+          procedure,   pass :: process_idetector_list
+          procedure,   pass :: update_bf_layers_with_idetectors
 
           procedure, nopass, private :: is_i_detector_activated
           procedure, nopass, private :: get_central_grdpt
@@ -91,15 +94,174 @@
         end subroutine ini
 
 
-        function is_i_detector_activated()
+        !< update the size of the buffer layers using the information 
+        !> given by the increasing detectors
+        subroutine update_bf_layers_with_idetectors(this,dx,dy)
+
+          implicit none
+
+          class(bf_interface_icr), intent(inout) :: this
+          real(rkind)            , intent(in)    :: dx
+          real(rkind)            , intent(in)    :: dy
+
+          type(bf_layer_path)          :: path_update_idetectors
+          integer(ikind), dimension(2) :: cpt_coords_p
+          type(bf_detector_i_list)     :: S_ndt_list
+
+
+          !initialization of the path that will gather information
+          !on the buffer layers to be updated: the path collects
+          !the updating information belonging to a specific buffer
+          !layer and when another buffer layer is activated by
+          !the detectors the path applies all the changes to the
+          !previous buffer layer and starts collecting information
+          !on the next buffer layer
+          call path_update_idetectors%ini()
+
+          !there are 4 layers of detectors cooresponding to the 4
+          !cardinal points. They create a closed path of detectors
+          !we update in this order:
+          !1: S, 2: E, 3: W, 4: N
+          !in this way the path created by one buffer layer can
+          !be continued by the next list of detectors and prevent
+          !double operations on buffer layers
+          
+          !0) initialization of the first point indicating 
+          !   where the previous neighboring bc_interior-pt
+          !   were analyzed
+          cpt_coords_p = [nx/2, ny/2]
+
+          !1) South detectors
+          if(allocated(this%S_detectors_list)) then
+             call S_ndt_list%ini(S, size(this%S_detectors_list,2))
+
+             call process_idetector_list(
+     $            this, this%S_detectors_list, S_ndt_list,
+     $            interior_nodes, dx, dy,
+     $            cpt_coords_p, path_update_idetectors)
+
+          end if
+
+          !2) East detectors
+          if(allocated(this%E_detectors_list)) then
+             call E_ndt_list%ini(E, size(this%E_detectors_list,2))
+
+             call process_idetector_list(
+     $            this, this%E_detectors_list, E_ndt_list,
+     $            interior_nodes, dx, dy,
+     $            cpt_coords_p, path_update_idetectors)
+
+          end if
+
+          !3) West detectors
+          if(allocated(this%W_detectors_list)) then
+             call W_ndt_list%ini(W, size(this%W_detectors_list,2))
+
+             call process_idetector_list(
+     $            this, this%W_detectors_list, W_ndt_list,
+     $            interior_nodes, dx, dy,
+     $            cpt_coords_p, path_update_idetectors)
+
+          end if
+
+          !4) North detectors
+          if(allocated(this%N_detectors_list)) then
+             call N_ndt_list%ini(N, size(this%N_detectors_list,2))
+
+             call process_idetector_list(
+     $            this, this%N_detectors_list, N_ndt_list,
+     $            interior_nodes, dx, dy,
+     $            cpt_coords_p, path_update_idetectors)
+
+          end if
+
+          !5) process the last path as after the detectors of
+          !   the last main layer are analysed, it is possible
+          !   that the final part of the path has not been
+          !   processed
+          call path%process_path(this, interior_nodes)
+
+
+          !6) reconnect the detector paths
+          !   the buffer layer have been updated
+          !   we now have several detector lists but they do
+          !   not make a closed path. They are now reconnected
+
+        end subroutine update_bf_layers_with_idetectors
+
+
+        !< process the list of current detectors, modify the buffer layers
+        !> if they are activated by the detectors and determine the new list
+        !> of detectors
+        !> dt_list  : detector list
+        !> ndt_list : new detector list
+        subroutine process_idetector_list(
+     $     this, dt_list, ndt_list,
+     $     interior_nodes, dx, dy,
+     $     cpt_coords_p, path)
         
           implicit none
-          
-          logical :: is_i_detector_activated
-          
-          is_i_detector_activated = .true.
 
-        end function is_i_detector_activated
+          class(bf_interface_icr)                      , intent(inout) :: this
+          integer(ikind)          , dimension(:,:)     , intent(in)    :: dt_list
+          type(bf_detector_i_list)                     , intent(out)   :: ndt_list
+          real(rkind)             , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          real(rkind)                                  , intent(in)    :: dx
+          real(rkind)                                  , intent(in)    :: dy
+          integer(ikind)          , dimension(2)       , intent(inout) :: cpt_coords_p
+          type(bf_layer_path)                          , intent(inout) :: path
+
+          integer(ikind), dimension(2)   :: cpt_coords
+          integer                        :: k,l
+          integer                        :: nb_mgrdpts
+          integer       , dimension(2,9) :: mgrdpts
+
+          !loop over the detectors
+          do k=1, size(dt_list,2)
+
+             !extract the list of bc_interior_pt that should
+             !be turned into interior_pt due to the activation
+             !of the detector k
+             call get_modified_grdpts_list(
+     $            this, dt_list(:,k),
+     $            interior_nodes,
+     $            dx, dy,
+     $            cpt_coords_p, cpt_coords,
+     $            nb_mgrdpts, mgrdpts, ndt_list)
+
+             !the point used as center point to determine the
+             !neighboring points in the analysis of bc_interior_pt
+             !is updated
+             cpt_coords_p = cpt_coords
+
+             !loop over the list of grid points to be turned from
+             !bc_interior_pt to interior_pt
+             do l=1, nb_mgrdpts
+                
+                !gathering the changes to a buffer layer
+                !(allocate/reallocate/merge)
+                call path%analyze_pt(mgrdpts(:,l), this)
+
+                !if the grid point that is currently analyzed
+                !leads to changes on a buffer layer which is
+                !independent of the buffer layer investigated
+                !up to now, all the changes are implemented
+                !on the current buffer layer
+                if(path%is_ended()) then
+
+                   !the buffer layers are updated
+                   call path%process_path(this, interior_nodes)
+
+                   !the grid point that led to the path end
+                   !is used to reinitialize the current path
+                   call path%analyze_pt(mgrdpts(:,l), this)
+
+                end if
+
+             end do
+          end do
+
+        end subroutine process_idetector_list
 
 
         !< from a detector position, get the bc_interior_pt activated
@@ -114,7 +276,7 @@
      $     this, d_coords,
      $     interior_nodes,
      $     dx, dy,
-     $     cpt_coords_p,
+     $     cpt_coords_p, cpt_coords,
      $     nb_mgrdpts, mgrdpts, ndt_list)
 
           implicit none
@@ -125,6 +287,7 @@
           real(rkind)                     , intent(in)    :: dx
           real(rkind)                     , intent(in)    :: dy
           integer(ikind), dimension(2)    , intent(in)    :: cpt_coords_p
+          integer(ikind), dimension(2)    , intent(out)   :: cpt_coords
           integer                         , intent(out)   :: nb_mgrdpts
           integer(ikind), dimension(2,9)  , intent(out)   :: mgrdpts
           type(bf_detector_i_list)        , intent(inout) :: ndt_list
@@ -132,7 +295,6 @@
 
           real(rkind), dimension(ne)   :: node_var
           real(rkind)   , dimension(2) :: velocity
-          integer(ikind), dimension(2) :: cpt_coords
           integer(ikind), dimension(2) :: d_coords_n
 
 
@@ -178,6 +340,19 @@
           end if
 
         end subroutine get_modified_grdpts_list
+
+
+        !> check whether the detector is activated
+        function is_i_detector_activated()
+        
+          implicit none
+          
+          logical :: is_i_detector_activated
+          
+          is_i_detector_activated = .true.
+
+        end function is_i_detector_activated
+
 
 
         !> get the general coordinates of the point activated by an

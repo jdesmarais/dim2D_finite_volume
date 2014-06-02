@@ -348,6 +348,7 @@ $(bf_layer_dir)/bf_nbc_template_module.o:\
 
 $(bf_layer_dir)/bf_interface_icr_class.o:\
 	$(dbf_layer_dir)/bf_detector_i_list_class.o\
+	$(bf_layer_dir)/bf_layer_path_class.o\
 	$(bf_layer_dir)/bf_nbc_template_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/bf_interface_class.o\
@@ -792,9 +793,11 @@ test_bf_interface_icr_prog:\
 	dbf_element_class.o\
 	dbf_list_class.o\
 	bf_detector_i_list_class.o\
+	bf_layer_path_class.o\
 	bf_nbc_template_module.o\
 	bf_interface_icr_class.o\
 	test_bf_layer_module.o
+
 
 #test_bf_corner_prog:\
 #	parameters_kind.o\

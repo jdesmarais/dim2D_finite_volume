@@ -379,25 +379,19 @@
           type(bf_sublayer), pointer :: modified_sublayer
 
         
-          !only if the path ends we should consider updating the
-          !buffer layers corresponding to the path
-          if(this%ends) then
-        
-             !update the allocation required for the buffer layer
-             modified_sublayer => update_allocation_bf_sublayer(
-     $            this,
-     $            interface_used,
-     $            interior_nodes)
+          !update the allocation required for the buffer layer
+          modified_sublayer => update_allocation_bf_sublayer(
+     $         this,
+     $         interface_used,
+     $         interior_nodes)
 
-             !update the grid points for the increase
-             call interface_used%update_grdpts_after_increase(
-     $            modified_sublayer, this%pts(1:2,1:this%nb_pts))
+          !update the grid points for the increase
+          call interface_used%update_grdpts_after_increase(
+     $         modified_sublayer, this%pts(1:2,1:this%nb_pts))
 
-             !reinitialize the path
-             call this%reinitialize()
+          !reinitialize the path
+          call this%reinitialize()
 
-          end if        
-        
         end subroutine process_path
 
 
