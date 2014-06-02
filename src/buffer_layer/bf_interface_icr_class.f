@@ -33,7 +33,7 @@
           procedure,   pass, private :: check_neighboring_bc_interior_pts
           procedure,   pass, private :: check_neighboring_bc_interior_pts_for_interior
           procedure, nopass, private :: is_inside_border_layer
-          procedure, nopass          :: create_nbc_interior_pt_template
+          procedure,   pass          :: create_nbc_interior_pt_template
           procedure, nopass          :: check_nbc_interior_pt_template
           procedure, nopass, private :: check_bc_interior_pt
           procedure,   pass, private :: update_grdpts_id_for_template
@@ -55,6 +55,12 @@
 
           integer(ikind) :: i, dbf_distance
 
+
+          !initialize the parent attributes
+          call this%bf_interface%ini()
+
+
+          !intialize the attributes specific to bf_interface_icr
           dbf_distance = bc_size
 
           allocate(this%N_detectors_list(2,nx-2*(bc_size+dbf_distance)+2))

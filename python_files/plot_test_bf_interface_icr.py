@@ -72,6 +72,31 @@ if __name__ == "__main__":
                                                             lm_grdptid)
         fig.canvas.set_window_title(test_windows_title[i])
 
+
+    #plot the nbc_templates
+    #------------------------
+    #create the main figure
+    fig=plt.figure(figsize=(12,6))
+    for j in range(1,8):
+        for i in range(1,8):
+            
+            nbc_filename = folder_path+'/nbc_template'+str(i)+str(j)+'.dat'
+            
+            if(i==4 and j==4):
+                nbc_template=np.empty([3,3])
+            else:
+                f = FortranFile(nbc_filename)
+                nbc_template = f.readInts()
+                f.close()
+                nbc_template.resize(3,3)
+
+            ax = fig.add_subplot(7,7,i+(j-1)*7)
+            res = ax.imshow(nbc_template, cmap=cm.spectral, interpolation='nearest', vmin=-1, vmax=4)
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            #fig.colorbar(res)
+
+    fig.canvas.set_window_title('test create_template')
     
     #show all
     plt.show()
