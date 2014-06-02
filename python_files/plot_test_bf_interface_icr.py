@@ -32,13 +32,16 @@ if __name__ == "__main__":
     print folder_path
 
 
-    test_windows_title = ["Initial detector position"]
+    test_windows_title = ["Initial detector position",
+                          "Bc_interior_pt modified by interior",
+                          "Bc_interior_pt modified by bf_sublayer",
+                          "Bc_interior_pt modified by bf_sublayer2"]
 
     nb_sublayers = 6
 
 
     #plot the tests
-    for i in range(0,1):
+    for i in range(0,4):
         
     	#extract data for the interior points and the buffer layers
     	#-----------------------------------------------------------------
@@ -73,32 +76,31 @@ if __name__ == "__main__":
         fig.canvas.set_window_title(test_windows_title[i])
 
 
-    #plot the nbc_templates
-    #------------------------
-    #create the main figure
-    fig=plt.figure(figsize=(12,6))
-    for j in range(1,8):
-        for i in range(1,8):
-            
-            nbc_filename = folder_path+'/nbc_template'+str(i)+str(j)+'.dat'
-            
-            if(i==4 and j==4):
-                nbc_template=np.empty([3,3])
-            else:
-                f = FortranFile(nbc_filename)
-                nbc_template = f.readInts()
-                f.close()
-                nbc_template.resize(3,3)
+    ##plot the nbc_templates
+    ##------------------------
+    ##create the main figure
+    #fig=plt.figure(figsize=(12,6))
+    #for j in range(1,8):
+    #    for i in range(1,8):
+    #
+    #        if(i!=4 and j!=4):
+    #            nbc_filename = folder_path+'/nbc_template'+str(i)+str(j)+'.dat'
+    #        
+    #            f = FortranFile(nbc_filename)
+    #            nbc_template = f.readInts()
+    #            f.close()
+    #            nbc_template.resize(3,3)
+    #
+    #            nbc_template = nbc_template[::-1,::]
+    #
+    #            ax = fig.add_subplot(7,7,i+(7-j)*7)
+    #            res = ax.imshow(nbc_template, cmap=cm.spectral, interpolation='nearest', vmin=-1, vmax=4)
+    #            ax.get_xaxis().set_visible(False)
+    #            ax.get_yaxis().set_visible(False)
+    #        #fig.colorbar(res)
+    #
+    #fig.canvas.set_window_title('test create_template')
 
-            nbc_template = nbc_template[::-1,::]
-
-            ax = fig.add_subplot(7,7,i+(7-j)*7)
-            res = ax.imshow(nbc_template, cmap=cm.spectral, interpolation='nearest', vmin=-1, vmax=4)
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-            #fig.colorbar(res)
-
-    fig.canvas.set_window_title('test create_template')
     
     #show all
     plt.show()

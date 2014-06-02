@@ -2,7 +2,7 @@
 
         use bf_interface_icr_class, only : bf_interface_icr
         use bf_sublayer_class     , only : bf_sublayer
-        use parameters_bf_layer   , only : align_N, interior_pt
+        use parameters_bf_layer   , only : align_N, interior_pt, no_pt
         use parameters_constant   , only : N
         use parameters_input      , only : nx,ny,ne,bc_size
         use parameters_kind       , only : ikind, rkind
@@ -17,9 +17,14 @@
         integer       , dimension(nx,ny)    :: grdpts_id
         integer(ikind), dimension(7,7,2)    :: cpt_coords_tab
         integer(ikind), dimension(2)        :: cpt_coords
+        integer(ikind), dimension(2)        :: cpt_coords_p
         integer       , dimension(3,3)      :: nbc_template
-        integer :: i,j
-
+        integer :: i,j,k
+        integer :: nb_mgrdpts
+        integer, dimension(2,9) :: mgrdpts
+        integer :: mgrdpts_i, mgrdpts_j
+        integer, parameter :: grdpt_checked = no_pt
+        type(bf_sublayer), pointer :: added_sublayer
 
         !initialization of nodes and grdpts_id
         call ini_cst_nodes(nodes)
@@ -27,7 +32,8 @@
 
         !test of ini()
         call interface_used%ini()
-        call initialize_sublayers_in_interface(interface_used, nodes)
+        call initialize_sublayers_in_interface(
+     $       interface_used, nodes, added_sublayer)
 
         call interface_used%print_idetectors_on(nodes(:,:,1))
 
@@ -46,30 +52,108 @@
      $       '1.dat')
 
         !test of create_nbc_interior_pt_template()
+        !and check_nbc_interior_pt_template
         call ini_cpt_coords_table(cpt_coords_tab)
         do j=1,7
            do i=1,7
-              cpt_coords = cpt_coords_tab(i,j,:)
-              nbc_template = interface_used%create_nbc_interior_pt_template(
-     $             cpt_coords)
-              call print_nbc_template(i,j,nbc_template)
+
+              if((i.ne.4).and.(j.ne.4)) then
+
+                 !test of create_nbc_interior_pt_template()
+                 cpt_coords = cpt_coords_tab(i,j,:)
+                 nbc_template = interface_used%create_nbc_interior_pt_template(
+     $                cpt_coords)
+                 !call print_nbc_template(i,j,nbc_template)
+   
+                 !test of check_nbc_interior_pt_template()
+                 
+                 nb_mgrdpts = 0
+                 call interface_used%check_nbc_interior_pt_template(
+     $                nbc_template,
+     $                nx/2, ny/2,
+     $                cpt_coords(1), cpt_coords(2),
+     $                nb_mgrdpts,
+     $                mgrdpts)
+   
+                 do k=1, nb_mgrdpts
+                    mgrdpts_i = mgrdpts(1,k)
+                    mgrdpts_j = mgrdpts(2,k)
+                    grdpts_id(mgrdpts_i,mgrdpts_j) = grdpt_checked
+                 end do
+
+              end if
+
            end do
         end do
+
+        !print the grdpt_checked
+        call print_interior_data(nodes,
+     $                           grdpts_id,
+     $                           'interior_nodes2.dat',
+     $                           'interior_grdpts_id2.dat',
+     $                           'interior_sizes2.dat')
+
+        !test the check_nbc_interior
+        call ini_grdpts_id(grdpts_id)
+        cpt_coords = cpt_coords_tab(2,7,:)
+        nb_mgrdpts = 0
+        call added_sublayer%check_neighboring_bc_interior_pts(
+     $       nx/2, ny/2,
+     $       cpt_coords(1), cpt_coords(2),
+     $       nb_mgrdpts,
+     $       mgrdpts)
+        do k=1, nb_mgrdpts
+           mgrdpts_i = mgrdpts(1,k)
+           mgrdpts_j = mgrdpts(2,k)
+           grdpts_id(mgrdpts_i,mgrdpts_j) = grdpt_checked
+        end do
+
+        !print the grid point tested
+        call print_interior_data(nodes,
+     $                           grdpts_id,
+     $                           'interior_nodes3.dat',
+     $                           'interior_grdpts_id3.dat',
+     $                           'interior_sizes3.dat')
+
+
+        !test the check_nbc_interior
+        call ini_grdpts_id(grdpts_id)
+        cpt_coords_p = cpt_coords_tab(1,7,:)
+        cpt_coords   = cpt_coords_tab(2,7,:)
+        nb_mgrdpts   = 0
+        call added_sublayer%check_neighboring_bc_interior_pts(
+     $       cpt_coords_p(1), cpt_coords_p(2),
+     $       cpt_coords(1), cpt_coords(2),
+     $       nb_mgrdpts,
+     $       mgrdpts)
+        do k=1, nb_mgrdpts
+           mgrdpts_i = mgrdpts(1,k)
+           mgrdpts_j = mgrdpts(2,k)
+           grdpts_id(mgrdpts_i,mgrdpts_j) = grdpt_checked
+        end do
+
+        !print the grid point tested
+        call print_interior_data(nodes,
+     $                           grdpts_id,
+     $                           'interior_nodes4.dat',
+     $                           'interior_grdpts_id4.dat',
+     $                           'interior_sizes4.dat')
+
 
         
         contains
 
 
         subroutine initialize_sublayers_in_interface(
-     $       interface_used, nodes)
+     $       interface_used, nodes, added_sublayer)
 
           implicit none
 
           type(bf_interface_icr)          , intent(inout) :: interface_used
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+          type(bf_sublayer), pointer      , intent(out)   :: added_sublayer
 
           
-          type(bf_sublayer), pointer :: added_sublayer
           integer(ikind), dimension(2,2) :: alignment
 
 

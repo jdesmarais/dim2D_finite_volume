@@ -474,7 +474,7 @@
 
              nb_mgrdpts = nb_mgrdpts+1
              mgrdpts(1,nb_mgrdpts) = i+match_table(1)
-             mgrdpts(1,nb_mgrdpts) = j+match_table(2)
+             mgrdpts(2,nb_mgrdpts) = j+match_table(2)
              
           end if
 
