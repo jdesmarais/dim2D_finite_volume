@@ -92,6 +92,39 @@ def extract_interior_data(sizes_filename, grdptid_filename, nodes_filename):
     return [sizes, grdpts_id, nodes]
 
 
+def extract_detectors_data(
+    N_detector_filename,
+    S_detector_filename,
+    E_detector_filename,
+    W_detector_filename):
+
+    #N detectors
+    f = FortranFile(N_detector_filename)
+    N_detector = f.readInts()
+    f.close()
+
+    #S detectors
+    f = FortranFile(S_detector_filename)
+    S_detector = f.readInts()
+    f.close()
+
+    #E detectors
+    f = FortranFile(E_detector_filename)
+    E_detector = f.readInts()
+    f.close()
+
+    #W detectors
+    f = FortranFile(W_detector_filename)
+    W_detector = f.readInts()
+    f.close()
+
+    N_detector.resize(len(N_detector)/2,2)
+    S_detector.resize(len(S_detector)/2,2)
+    E_detector.resize(len(E_detector)/2,2)
+    W_detector.resize(len(W_detector)/2,2)
+    
+    return [N_detector, S_detector, E_detector, W_detector]
+
 def extract_bf_layer_data(
     sizes_filename,
     nodes_filename,
@@ -203,6 +236,9 @@ def make_matrix_for_all_bf_layers(
 
     #interspace
     interspace = 2
+    margin = [interspace + bf_tmp_size_x+interspace-1,
+              interspace + bf_tmp_size_y+interspace-1]
+    
 
     lm_size_x = 2*bf_tmp_size_x + nodes_size_x + 4*interspace
     lm_size_y = 2*bf_tmp_size_y + nodes_size_y + 4*interspace
@@ -261,8 +297,48 @@ def make_matrix_for_all_bf_layers(
     lm_nodes   = lm_nodes[::-1,::]
     lm_grdptid = lm_grdptid[::-1,::]
     
-    return [lm_nodes,lm_grdptid]
+    return [lm_nodes,lm_grdptid,margin]
 
+
+def add_detectors(
+    N_detector, S_detector,
+    E_detector, W_detector,
+    lm_grdptid, margin):
+
+    lm_grdptid = lm_grdptid[::-1,::]
+
+    N_detector_color = 3.0
+    S_detector_color = 0.0
+    E_detector_color = 2.5
+    W_detector_color = 1.75
+
+    #N detectors
+    for i in range(0,len(N_detector)):
+        x = margin + N_detector[i,0]
+        y = margin + N_detector[i,1]
+        lm_grdptid[y,x] = N_detector_color+0.5*i/(len(N_detector))
+
+    #S detectors
+    for i in range(0,len(S_detector)):
+        x = margin + S_detector[i,0]
+        y = margin + S_detector[i,1]
+        lm_grdptid[y,x] = S_detector_color+0.5*i/(len(S_detector))
+
+    #E detectors
+    for i in range(0,len(E_detector)):
+        x = margin + E_detector[i,0]
+        y = margin + E_detector[i,1]
+        lm_grdptid[y,x] = E_detector_color+0.5*i/(len(E_detector))
+
+    #W detectors
+    for i in range(0,len(W_detector)):
+        x = margin + W_detector[i,0]
+        y = margin + W_detector[i,1]
+        lm_grdptid[y,x] = W_detector_color+0.5*i/(len(W_detector))
+
+    lm_grdptid = lm_grdptid[::-1,::]
+
+    return [lm_grdptid]
  
 def compute_sizes_N(size_x, size_y, nx, ny, align11, align12, align21, align22):
     new_size_x = max(0,bc_size-align11,align12-(nx-bc_size+1))
@@ -545,4 +621,30 @@ def plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes, lm_grdptid):
     fig.colorbar(res)    
 
     return fig,ax
+
+
+#def plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes, lm_grdptid, nodes):
+#
+#    #create the main figure
+#    fig=plt.figure(figsize=(12,6))
+#
+#    #plot the gridpoint ID
+#    ax = fig.add_subplot(1,3,1)
+#    res = ax.imshow(lm_grdptid, cmap=cm.spectral, interpolation='nearest', vmin=-1, vmax=4)
+#    fig.colorbar(res)
+#    
+#    #plot the nodes
+#    ax = fig.add_subplot(1,3,2)
+#    res = ax.imshow(lm_nodes, cmap=cm.spectral, interpolation='nearest', vmin=0.0, vmax=1.0)
+#    fig.colorbar(res)
+#
+#    #plot the velocity
+#    ax = fig.add_subplot(1,3,3)
+#    Q = quiver(nodes[1,::,::], nodes[2,::,::])
+#    qk = quiverkey(Q, 0.9, 0.95, 2, r'$2 \frac{m}{s}$',
+#                   labelpos='E',
+#                   coordinates='figure',
+#                   fontproperties={'weight': 'bold'})
+#
+#    return fig,ax
 

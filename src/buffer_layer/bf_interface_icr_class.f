@@ -43,6 +43,7 @@
           procedure,   pass, private :: update_grdpts_id_for_template
 
           procedure,   pass          :: print_idetectors_on
+          procedure,   pass          :: print_idetectors_on_binary
 
         end type bf_interface_icr
 
@@ -185,7 +186,9 @@
           !   the last main layer are analysed, it is possible
           !   that the final part of the path has not been
           !   processed
-          call path_update_idetectors%process_path(this, interior_nodes)
+          if(path_update_idetectors%get_nb_pts().gt.0) then
+             call path_update_idetectors%process_path(this, interior_nodes)
+          end if
 
 
           !6) reconnect the detector paths
@@ -332,7 +335,7 @@
 
           class(bf_interface_icr)                      , intent(inout) :: this
           integer(ikind)          , dimension(:,:)     , intent(in)    :: dt_list
-          type(bf_detector_i_list)                     , intent(out)   :: ndt_list
+          type(bf_detector_i_list)                     , intent(inout) :: ndt_list
           real(rkind)             , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           real(rkind)                                  , intent(in)    :: dx
           real(rkind)                                  , intent(in)    :: dy
@@ -1293,5 +1296,105 @@
           end if
 
         end subroutine print_idetectors_on
+
+
+        !< print the position of the increasing detectors
+        !> on external binary files
+        subroutine print_idetectors_on_binary(this, index)
+
+          implicit none
+
+          class(bf_interface_icr), intent(in) :: this
+          integer                , intent(in) :: index
+
+          character(len=11) :: filename_format
+          character(len=20) :: filename
+          integer :: ios
+          
+
+          write(filename_format, '(''(A11,I'',I1,'',A4)'')') floor(index/10.0)+1
+
+
+          !N detectors
+          write(filename, filename_format) 'N_detectors', index, '.dat'
+
+          open(unit=1,
+     $          file=filename,
+     $          action="write", 
+     $          status="unknown",
+     $          form='unformatted',
+     $          access='sequential',
+     $          position='rewind',
+     $          iostat=ios)
+
+           if(ios.eq.0) then
+              write(unit=1, iostat=ios) this%N_detectors_list
+              close(unit=1)
+           else
+              stop 'file opening pb'
+           end if
+
+
+          !S detectors
+          write(filename, filename_format) 'S_detectors', index, '.dat'
+
+          open(unit=1,
+     $          file=filename,
+     $          action="write", 
+     $          status="unknown",
+     $          form='unformatted',
+     $          access='sequential',
+     $          position='rewind',
+     $          iostat=ios)
+
+           if(ios.eq.0) then
+              write(unit=1, iostat=ios) this%S_detectors_list
+              close(unit=1)
+           else
+              stop 'file opening pb'
+           end if
+
+
+          !E detectors
+          write(filename, filename_format) 'E_detectors', index, '.dat'
+
+          open(unit=1,
+     $          file=filename,
+     $          action="write", 
+     $          status="unknown",
+     $          form='unformatted',
+     $          access='sequential',
+     $          position='rewind',
+     $          iostat=ios)
+
+           if(ios.eq.0) then
+              write(unit=1, iostat=ios) this%E_detectors_list
+              close(unit=1)
+           else
+              stop 'file opening pb'
+           end if
+
+
+          !W detectors
+          write(filename, filename_format) 'W_detectors', index, '.dat'
+
+          open(unit=1,
+     $          file=filename,
+     $          action="write", 
+     $          status="unknown",
+     $          form='unformatted',
+     $          access='sequential',
+     $          position='rewind',
+     $          iostat=ios)
+
+           if(ios.eq.0) then
+              write(unit=1, iostat=ios) this%W_detectors_list
+              close(unit=1)
+           else
+              stop 'file opening pb'
+           end if
+
+
+        end subroutine print_idetectors_on_binary
 
       end module bf_interface_icr_class

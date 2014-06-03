@@ -856,12 +856,22 @@ c$$$       end function get_neighboring_sublayer
          integer(ikind), dimension(2) :: l_coords
          
          mainlayer_id = this%get_mainlayer_id(g_coords)
-         if(mainlayer_id.eq.interior) then
+         if((g_coords(1).ge.1).and.
+     $        (g_coords(1).le.nx).and.
+     $        (g_coords(2).ge.1).and.
+     $        (g_coords(2).le.ny)) then
             var = interior_nodes(g_coords(1),g_coords(2),:)
          else
             sublayer => this%get_sublayer(
      $               g_coords, l_coords, mainlayer_id_i=mainlayer_id)
-            var = sublayer%get_nodes(l_coords)
+            if(associated(sublayer)) then
+               var = sublayer%get_nodes(l_coords)
+            else
+               print '(''bf_interface_class'')'
+               print '(''get_nodes'')'
+               print '(''cannot get sublayer'')'
+               stop 'check way to get nodes'
+            end if               
          end if
 
        end function get_nodes    

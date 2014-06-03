@@ -29,7 +29,7 @@
         
         !<computational times
         real(rkind), parameter :: t_max = 10.0000000000d0
-        real(rkind), parameter :: dt = 0.0025000000d0
+        real(rkind), parameter :: dt = 1.0!0.0025000000d0
         
         !<output writing
         real(rkind), parameter :: detail_print = 0.0250000000d0
