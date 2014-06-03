@@ -1,13 +1,14 @@
       program test_bf_interface_icr_prog
 
-        use bf_interface_icr_class, only : bf_interface_icr
-        use bf_sublayer_class     , only : bf_sublayer
-        use parameters_bf_layer   , only : align_N, interior_pt, no_pt
-        use parameters_constant   , only : N
-        use parameters_input      , only : nx,ny,ne,bc_size
-        use parameters_kind       , only : ikind, rkind
-        use test_bf_layer_module  , only : print_interior_data,
-     $                                     ini_grdpts_id
+        use bf_detector_i_list_class, only : bf_detector_i_list
+        use bf_interface_icr_class  , only : bf_interface_icr
+        use bf_sublayer_class       , only : bf_sublayer
+        use parameters_bf_layer     , only : align_N, interior_pt, no_pt
+        use parameters_constant     , only : N,S,E,W
+        use parameters_input        , only : nx,ny,ne,bc_size
+        use parameters_kind         , only : ikind, rkind
+        use test_bf_layer_module    , only : print_interior_data,
+     $                                       ini_grdpts_id
 
         implicit none
 
@@ -25,6 +26,13 @@
         integer :: mgrdpts_i, mgrdpts_j
         integer, parameter :: grdpt_checked = no_pt
         type(bf_sublayer), pointer :: added_sublayer
+
+        !for the recombination test
+        type(bf_detector_i_list), dimension(4) :: detector_list
+        integer(ikind), dimension(:,:), allocatable :: detectors_added
+        integer :: size_preallocated
+        integer :: mainlayer_id
+
 
         !initialization of nodes and grdpts_id
         call ini_cst_nodes(nodes)
@@ -140,10 +148,129 @@
      $                           'interior_sizes4.dat')
 
 
+        !test the recombination of detector lists
+
+        !initialize the matrix where the position of the
+        !detectors is pinned
+        do j=1, ny
+           do i=1, nx
+              nodes(i,j,1)   = 1.0
+              grdpts_id(i,j) = no_pt
+           end do
+        end do
+
+        !1) initialize the bf_detector_lists that will be
+        !   recombined
+        do mainlayer_id=1,4
+           
+           !initialize the bf_detector_i_list for the
+           !main layer and 6 detectors preallocated
+           size_preallocated = 6
+           call detector_list(mainlayer_id)%ini(
+     $          mainlayer_id, size_preallocated)
+           
+           
+           !initialize the detectors saved in the bf_detector_i_list
+           call get_detector_test(mainlayer_id, detectors_added)
+           do k=1, size(detectors_added,2)
+              
+              !add a new detector to the object saving the detector
+              !coordinates
+              call detector_list(mainlayer_id)%add_new_detector(
+     $             detectors_added(:,k))
+
+              grdpts_id(detectors_added(1,k), detectors_added(2,k)) =
+     $             interior_pt
+
+           end do
+
+        end do
+
+        !2) print the lists
+        do mainlayer_id=1,4
+           call detector_list(mainlayer_id)%print_on_matrix(
+     $          nodes(:,:,1))
+        end do
+        call print_interior_data(nodes,
+     $                           grdpts_id,
+     $                           'interior_nodes5.dat',
+     $                           'interior_grdpts_id5.dat',
+     $                           'interior_sizes5.dat')
+
+        !3) recombine the lists
+        call interface_used%combine_bf_idetector_lists(
+     $       detector_list(1), detector_list(2),
+     $       detector_list(3), detector_list(4))           
+
+        !4) write the new detector position after recombination\
+        !   on the nodes table
+        do j=1, ny
+           do i=1, nx
+              nodes(i,j,1)   = 1.0
+           end do
+        end do
+        call interface_used%print_idetectors_on(nodes(:,:,1))
+
+        !5) print the position of the new detectors
+        call print_interior_data(nodes,
+     $                           grdpts_id,
+     $                           'interior_nodes6.dat',
+     $                           'interior_grdpts_id6.dat',
+     $                           'interior_sizes6.dat')
+
         
         contains
 
+        !< initialize the position of the detectors that will be
+        !> added to the detector_lists
+        subroutine get_detector_test(mainlayer_id, detectors_added)
 
+          implicit none
+
+          integer                             , intent(in)  :: mainlayer_id
+          integer, dimension(:,:), allocatable, intent(out) :: detectors_added
+
+          allocate(detectors_added(2,5))
+
+          select case(mainlayer_id)
+            case(N)
+
+               detectors_added(:,1)  = [bc_size  ,  ny-1]
+               detectors_added(:,2)  = [bc_size+5,  ny-1]
+               detectors_added(:,3)  = [bc_size+8,  ny-1]
+               detectors_added(:,4)  = [bc_size+12, ny-1]
+               detectors_added(:,5)  = [bc_size+14, ny]
+               
+            case(S)
+
+               detectors_added(:,1)  = [bc_size+3,  bc_size]
+               detectors_added(:,2)  = [bc_size+5,  bc_size]
+               detectors_added(:,3)  = [bc_size+8,  bc_size]
+               detectors_added(:,4)  = [bc_size+12, bc_size]
+               detectors_added(:,5)  = [bc_size+14, 1]
+
+            case(E)
+
+               detectors_added(:,1)  = [nx-1, bc_size+3]
+               detectors_added(:,2)  = [nx-1, bc_size+5]
+               detectors_added(:,3)  = [nx-1, bc_size+6]
+               detectors_added(:,4)  = [nx-1, bc_size+10]
+               detectors_added(:,5)  = [nx  , bc_size+14]
+
+            case(W)
+
+               detectors_added(:,1)  = [bc_size, bc_size+3]
+               detectors_added(:,2)  = [bc_size, bc_size+5]
+               detectors_added(:,3)  = [bc_size, bc_size+6]
+               detectors_added(:,4)  = [bc_size, bc_size+10]
+               detectors_added(:,5)  = [1      , bc_size+14]
+
+          end select            
+
+        end subroutine get_detector_test
+
+
+        !< initialize the sublayers for the interface
         subroutine initialize_sublayers_in_interface(
      $       interface_used, nodes, added_sublayer)
 

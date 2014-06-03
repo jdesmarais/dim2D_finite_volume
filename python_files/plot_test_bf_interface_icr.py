@@ -35,13 +35,15 @@ if __name__ == "__main__":
     test_windows_title = ["Initial detector position",
                           "Bc_interior_pt modified by interior",
                           "Bc_interior_pt modified by bf_sublayer",
-                          "Bc_interior_pt modified by bf_sublayer2"]
+                          "Bc_interior_pt modified by bf_sublayer2",
+                          "Test bf_detector_list bf recombination",
+                          "Test bf_detector_list recombination"]
 
     nb_sublayers = 6
 
 
     #plot the tests
-    for i in range(0,4):
+    for i in range(0,6):
         
     	#extract data for the interior points and the buffer layers
     	#-----------------------------------------------------------------

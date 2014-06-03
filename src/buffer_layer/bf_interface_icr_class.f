@@ -29,6 +29,7 @@
           procedure,   pass :: ini
           procedure,   pass :: get_modified_grdpts_list
           procedure,   pass :: process_idetector_list
+          procedure,   pass :: combine_bf_idetector_lists
           procedure,   pass :: update_bf_layers_with_idetectors
 
           procedure, nopass, private :: is_i_detector_activated
@@ -96,17 +97,22 @@
 
         !< update the size of the buffer layers using the information 
         !> given by the increasing detectors
-        subroutine update_bf_layers_with_idetectors(this,dx,dy)
+        subroutine update_bf_layers_with_idetectors(this, 
+     $     interior_nodes, dx, dy)
 
           implicit none
 
-          class(bf_interface_icr), intent(inout) :: this
-          real(rkind)            , intent(in)    :: dx
-          real(rkind)            , intent(in)    :: dy
+          class(bf_interface_icr)         , intent(inout) :: this
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          real(rkind)                     , intent(in)    :: dx
+          real(rkind)                     , intent(in)    :: dy
 
           type(bf_layer_path)          :: path_update_idetectors
           integer(ikind), dimension(2) :: cpt_coords_p
+          type(bf_detector_i_list)     :: N_ndt_list
           type(bf_detector_i_list)     :: S_ndt_list
+          type(bf_detector_i_list)     :: E_ndt_list
+          type(bf_detector_i_list)     :: W_ndt_list
 
 
           !initialization of the path that will gather information
@@ -179,15 +185,137 @@
           !   the last main layer are analysed, it is possible
           !   that the final part of the path has not been
           !   processed
-          call path%process_path(this, interior_nodes)
+          call path_update_idetectors%process_path(this, interior_nodes)
 
 
           !6) reconnect the detector paths
           !   the buffer layer have been updated
           !   we now have several detector lists but they do
           !   not make a closed path. They are now reconnected
+          call combine_bf_idetector_lists(
+     $         this,
+     $         N_ndt_list, S_ndt_list,
+     $         E_ndt_list, W_ndt_list)
 
         end subroutine update_bf_layers_with_idetectors
+
+
+        !< connect the bf_detector_i_list objects and determine the
+        !> new detector lists
+        subroutine combine_bf_idetector_lists(
+     $     this,
+     $     N_idetectors_list, S_idetectors_list,
+     $     E_idetectors_list, W_idetectors_list)
+
+          implicit none
+
+          class(bf_interface_icr) , intent(inout) :: this
+          type(bf_detector_i_list), intent(in)    :: N_idetectors_list
+          type(bf_detector_i_list), intent(in)    :: S_idetectors_list
+          type(bf_detector_i_list), intent(in)    :: E_idetectors_list
+          type(bf_detector_i_list), intent(in)    :: W_idetectors_list
+
+
+          integer(ikind), dimension(:,:), allocatable :: N_idetectors_list_n
+          integer(ikind), dimension(:,:), allocatable :: S_idetectors_list_n
+          integer(ikind), dimension(:,:), allocatable :: E_idetectors_list_n
+          integer(ikind), dimension(:,:), allocatable :: W_idetectors_list_n
+
+
+          integer(ikind), dimension(2) :: n1_coords, n2_coords, inter_coords
+          integer                      :: n1_inter_nb, n2_inter_nb
+          real(rkind)                  :: n1_x_change, n1_y_change
+          real(rkind)                  :: n2_x_change, n2_y_change
+          integer                      :: k
+
+
+          !S detectors recombination
+          n1_coords = W_idetectors_list%get_head()
+          call S_idetectors_list%get_inter_detector_param(
+     $         n1_coords, S_idetectors_list%get_head(),
+     $         n1_x_change, n1_y_change, n1_inter_nb)
+
+          n2_coords = S_idetectors_list%get_tail()
+          call S_idetectors_list%get_inter_detector_param(
+     $         n2_coords, E_idetectors_list%get_head(),
+     $         n2_x_change, n2_y_change, n2_inter_nb)
+
+          allocate(S_idetectors_list_n(
+     $         2, S_idetectors_list%get_nb_detectors()+n1_inter_nb+n2_inter_nb))
+
+          do k=1, n1_inter_nb
+             inter_coords = S_idetectors_list%get_inter_detector_coords(
+     $            n1_coords,
+     $            n1_x_change, n1_y_change, k)
+             S_idetectors_list_n(:,k) = inter_coords
+          end do
+
+          call S_idetectors_list%fill_new_detector_table(
+     $         n1_inter_nb+1, S_idetectors_list_n)
+
+          do k=1, n2_inter_nb
+             inter_coords = S_idetectors_list%get_inter_detector_coords(
+     $            n2_coords,
+     $            n2_x_change, n2_y_change, k)
+             S_idetectors_list_n(
+     $            :,n1_inter_nb+S_idetectors_list%get_nb_detectors()+k) =
+     $            inter_coords
+          end do
+
+
+          !N detectors recombination
+          n1_coords = W_idetectors_list%get_tail()
+          call N_idetectors_list%get_inter_detector_param(
+     $         n1_coords, N_idetectors_list%get_head(),
+     $         n1_x_change, n1_y_change, n1_inter_nb)
+
+          n2_coords = N_idetectors_list%get_tail()
+          call N_idetectors_list%get_inter_detector_param(
+     $         n2_coords, E_idetectors_list%get_tail(),
+     $         n2_x_change, n2_y_change, n2_inter_nb)
+
+          allocate(N_idetectors_list_n(
+     $         2, N_idetectors_list%get_nb_detectors()+n1_inter_nb+n2_inter_nb))
+
+          do k=1, n1_inter_nb
+             inter_coords = N_idetectors_list%get_inter_detector_coords(
+     $            n1_coords,
+     $            n1_x_change, n1_y_change, k)
+             N_idetectors_list_n(:,k) = inter_coords
+          end do
+
+          call N_idetectors_list%fill_new_detector_table(
+     $         n1_inter_nb+1, N_idetectors_list_n)
+
+          do k=1, n2_inter_nb
+             inter_coords = N_idetectors_list%get_inter_detector_coords(
+     $            n2_coords,
+     $            n2_x_change, n2_y_change, k)
+             N_idetectors_list_n(
+     $            :,n1_inter_nb+N_idetectors_list%get_nb_detectors()+k) =
+     $            inter_coords
+          end do
+
+          
+          !E detectors recombination
+          allocate(E_idetectors_list_n(2, E_idetectors_list%get_nb_detectors()))
+          call E_idetectors_list%fill_new_detector_table(
+     $         1, E_idetectors_list_n)
+          
+
+          !W detectors recombination
+          allocate(W_idetectors_list_n(2, W_idetectors_list%get_nb_detectors()))
+          call W_idetectors_list%fill_new_detector_table(
+     $         1, W_idetectors_list_n)
+
+          !move the allocations of the previous detector tables
+          !to the new detector tables
+          call MOVE_ALLOC(N_idetectors_list_n, this%N_detectors_list)
+          call MOVE_ALLOC(S_idetectors_list_n, this%S_detectors_list)
+          call MOVE_ALLOC(E_idetectors_list_n, this%E_detectors_list)
+          call MOVE_ALLOC(W_idetectors_list_n, this%W_detectors_list)
+             
+        end subroutine combine_bf_idetector_lists      
 
 
         !< process the list of current detectors, modify the buffer layers
@@ -319,7 +447,7 @@
      $            d_coords, velocity, dx, dy, d_coords_n)
              
              !add the new coordinates of the detector of the ndt_list
-             call ndt_list%add_new_detector(this, d_coords_n)
+             call ndt_list%add_new_detector(d_coords_n)
 
              !look for a bc_interior_pt around the point previously
              !computed whose coordinates are: cpt_coords
@@ -336,7 +464,7 @@
           !otherwise, the coordinates of the new detector are simply
           !the previous ones, and are saved in the ndt_list
           else
-             call ndt_list%add_new_detector(this, d_coords)
+             call ndt_list%add_new_detector(d_coords)
           end if
 
         end subroutine get_modified_grdpts_list

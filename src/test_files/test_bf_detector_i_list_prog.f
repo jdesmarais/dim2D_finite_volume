@@ -15,6 +15,7 @@
         real(rkind), dimension(nx,ny,ne)            :: matrix
         integer    , dimension(nx,ny)               :: grdpts_id
         integer(ikind), dimension(:,:), allocatable :: detectors_added
+        integer(ikind), dimension(:,:), allocatable :: new_detectors
 
         integer :: mainlayer_id
         integer :: size_preallocated
@@ -24,6 +25,7 @@
         character(len=30) :: grdpts_id_filename
         character(len=30) :: sizes_filename
 
+        logical :: print_on_matrix =.false.
 
         do mainlayer_id=1,4
 
@@ -32,7 +34,7 @@
            call ini(matrix, grdpts_id)        
            
            !initialize the bf_detector_i_list for the
-           !North main layer and 6 detectors preallocated
+           !main layer and 6 detectors preallocated
            size_preallocated = 6
            call detector_list%ini(mainlayer_id, size_preallocated)
            
@@ -44,7 +46,6 @@
               !add a new detector to the object saving the detector
               !coordinates
               call detector_list%add_new_detector(
-     $             interface_used,
      $             detectors_added(:,k))
            
               !pin-point the detectors asked
@@ -52,9 +53,22 @@
      $             interior_pt
            end do
            
-           
-           !print the detectors saved by the object bf_detector_i_list
-           call detector_list%print_on_matrix(matrix(:,:,1))
+           if(print_on_matrix) then
+
+              !print the detectors saved by the object bf_detector_i_list
+              call detector_list%print_on_matrix(matrix(:,:,1))
+
+           else
+
+              !put the new detectors in another table
+              allocate(new_detectors(2,detector_list%get_nb_detectors()))
+              call detector_list%fill_new_detector_table(1,new_detectors)
+              
+              do k=1, size(new_detectors,2)
+                 matrix(new_detectors(1,k), new_detectors(2,k),1) = 0.3d0
+              end do
+
+           end if
            
 
            !write the file names
@@ -76,6 +90,11 @@
            !deallocate the grdpts
            deallocate(detectors_added)
            call detector_list%destroy()
+
+           !deallocate the new detectors
+           if(allocated(new_detectors)) then
+              deallocate(new_detectors)
+           end if
 
         end do
 

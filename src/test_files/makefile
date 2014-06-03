@@ -475,6 +475,7 @@ test_bf_detector_i_list_prog.o:\
 	test_bf_layer_module.o
 
 test_bf_interface_icr_prog.o:\
+	$(dbf_layer_dir)/bf_detector_i_list_class.o\
 	$(bf_layer_dir)/bf_interface_icr_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
