@@ -105,6 +105,7 @@
           procedure,   pass :: get_local_coord
           procedure,   pass :: get_general_to_local_coord_tab
           procedure,   pass :: get_nodes
+          procedure,   pass :: get_grdpts_id
           
           procedure,   pass :: compute_new_grdpts
           procedure, nopass :: compute_new_grdpt
@@ -397,6 +398,30 @@
           var = this%nodes(l_coords(1), l_coords(2),:)
 
         end function get_nodes
+
+
+        subroutine get_grdpts_id(this, grdpts_id)
+
+          implicit none
+
+          class(bf_layer)                     , intent(in)  :: this
+          integer, dimension(:,:), allocatable, intent(out) :: grdpts_id
+
+          integer(ikind), dimension(2) :: sizes
+          integer(ikind)               :: i,j
+
+          sizes(1) = size(this%grdpts_id,1)
+          sizes(2) = size(this%grdpts_id,2)
+
+          allocate(grdpts_id(sizes(1),sizes(2)))
+
+          do j=1, sizes(2)
+             do i=1, sizes(1)
+                grdpts_id(i,j) = this%grdpts_id(i,j)
+             end do
+          end do
+
+        end subroutine get_grdpts_id
 
 
         !< compute the new grid points corresponding to

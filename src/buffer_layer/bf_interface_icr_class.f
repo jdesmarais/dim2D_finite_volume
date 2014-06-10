@@ -19,10 +19,10 @@
 
         type, extends(bf_interface) :: bf_interface_icr
 
-          integer(ikind), dimension(:,:), allocatable :: N_detectors_list
-          integer(ikind), dimension(:,:), allocatable :: S_detectors_list
-          integer(ikind), dimension(:,:), allocatable :: E_detectors_list
-          integer(ikind), dimension(:,:), allocatable :: W_detectors_list
+          integer(ikind), dimension(:,:), allocatable, private :: N_detectors_list
+          integer(ikind), dimension(:,:), allocatable, private :: S_detectors_list
+          integer(ikind), dimension(:,:), allocatable, private :: E_detectors_list
+          integer(ikind), dimension(:,:), allocatable, private :: W_detectors_list
 
           contains
 
@@ -513,8 +513,8 @@
           cpt_coords(2) = d_coords(2) + nint(dir_y)
           
           !3) compute the new detector position
-          d_coords_n(1) = d_coords(1) + nint(dir_x/SQRT(dir_x**2+dir_y**2))
-          d_coords_n(2) = d_coords(2) + nint(dir_y/SQRT(dir_x**2+dir_y**2))
+          d_coords_n(1) = d_coords(1) + nint(max(min(dir_x,1.0d0),-1.0d0)) !nint(dir_x/SQRT(dir_x**2+dir_y**2))
+          d_coords_n(2) = d_coords(2) + nint(max(min(dir_y,1.0d0),-1.0d0)) !nint(dir_y/SQRT(dir_x**2+dir_y**2))
 
         end function get_central_grdpt
 
@@ -595,10 +595,10 @@
      $         ((cpt_coords(2)).le.ny)
 
           is_interior =
-     $         (cpt_coords(1).ge.(bc_size+1)).and.
-     $         (cpt_coords(1).le.(nx-bc_size)).and.
-     $         (cpt_coords(2).ge.(bc_size+1)).and.
-     $         (cpt_coords(2).le.(ny-bc_size))
+     $         (cpt_coords(1).ge.(bc_size+2)).and.
+     $         (cpt_coords(1).le.(nx-bc_size-1)).and.
+     $         (cpt_coords(2).ge.(bc_size+2)).and.
+     $         (cpt_coords(2).le.(ny-bc_size-1))
           
           is_border = is_interior_and_border.and.(.not.is_interior)
 
@@ -1078,6 +1078,9 @@
                     nbc_template = make_nbc_template_43()
                end select
 
+               call update_grdpts_id_for_template(
+     $              this, E, cpt_coords, nbc_template)
+
             case(i_lim5)
                select case(cpt_coords(2))
                  case(j_lim0)
@@ -1123,6 +1126,9 @@
                  case default
                     nbc_template = make_nbc_template_53()
                end select
+
+               call update_grdpts_id_for_template(
+     $              this, E, cpt_coords, nbc_template)
 
             case(i_lim6)
                select case(cpt_coords(2))
@@ -1170,6 +1176,9 @@
                     nbc_template = make_nbc_template_62()
                end select
 
+               call update_grdpts_id_for_template(
+     $              this, E, cpt_coords, nbc_template)
+
             case default
                select case(cpt_coords(2))
                  case(j_lim0)
@@ -1212,6 +1221,7 @@
                     call update_grdpts_id_for_template(
      $                   this, N, cpt_coords, nbc_template)
                end select
+
           end select
 
         end function create_nbc_interior_pt_template

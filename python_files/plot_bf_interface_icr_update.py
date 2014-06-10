@@ -24,7 +24,8 @@ from library_plot_bf_layer import (manage_options,
                                    make_matrix_for_all_bf_layers,
                                    plot_nodes_and_grdptid_with_all_bf_layers,
                                    extract_detectors_data,
-                                   add_detectors)
+                                   add_detectors,
+                                   plot_all_bf_layers)
     
 if __name__ == "__main__":
     
@@ -38,11 +39,11 @@ if __name__ == "__main__":
 
 
     #plot the tests
-    for i in range(0,2):
+    for i in range(0,10):
         
     	#extract data for the interior points and the buffer layers
     	#-----------------------------------------------------------------
-        test_index = str(i+1)
+        test_index = str(i)
 
         #if(i==3):
         #    interior_size_filename      = folder_path+'/interior_sizes'+test_index+'.dat'
@@ -64,7 +65,8 @@ if __name__ == "__main__":
                                                                      nb_sublayers,
                                                                      suffix_size,
                                                                      suffix_nodes,
-                                                                     suffix_grdptid)
+                                                                     suffix_grdptid,
+                                                                     continuous=True)
 
         #extract detector informations
         N_detector_filename = folder_path+'/N_detectors'+test_index+'.dat'
@@ -87,6 +89,10 @@ if __name__ == "__main__":
         #-----------------------------------------------------------------
         fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
                                                             lm_grdptid)
+        
+        #fig, ax = plot_all_bf_layers(lm_nodes,
+        #                             lm_grdptid)
+        
         fig.canvas.set_window_title('time step: '+str(i))
 
     

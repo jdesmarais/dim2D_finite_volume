@@ -231,8 +231,8 @@ def make_matrix_for_all_bf_layers(
             #    print filename+': does not exist'
 
     #the sizes of the buffer layers are now determined
-    bf_tmp_size_x = size_x
-    bf_tmp_size_y = size_y
+    bf_tmp_size_x = 10 #size_x
+    bf_tmp_size_y = 10 #size_y
 
     #interspace
     interspace = 2
@@ -245,8 +245,11 @@ def make_matrix_for_all_bf_layers(
 
     
     #allocation of the large matrices for the nodes and the grdptid
-    lm_nodes = np.empty([lm_size_y, lm_size_x])
-    lm_nodes.fill(backgrd_pt)
+    lm_nodes = np.empty([4,lm_size_y, lm_size_x])
+    lm_nodes[0,:,:]=backgrd_pt #.fill(backgrd_pt)
+    lm_nodes[1,:,:]=0 #.fill(backgrd_pt)
+    lm_nodes[2,:,:]=0 #.fill(backgrd_pt)
+    lm_nodes[3,:,:]=0 #.fill(backgrd_pt)
 
     lm_grdptid = np.empty([lm_size_y, lm_size_x])
     lm_grdptid.fill(backgrd_pt)
@@ -262,8 +265,9 @@ def make_matrix_for_all_bf_layers(
         i_match:i_match+nodes_size_x] = grdpts_id[0,:,:]
     
     lm_nodes[
+        :,
         j_match:j_match+nodes_size_y,
-        i_match:i_match+nodes_size_x] = nodes[0,:,:]
+        i_match:i_match+nodes_size_x] = nodes[:,:,:]
 
 
     #fill the large matrix with possible sublayers
@@ -294,7 +298,7 @@ def make_matrix_for_all_bf_layers(
                     lm_grdptid,
                     continuous)
 
-    lm_nodes   = lm_nodes[::-1,::]
+    lm_nodes   = lm_nodes[::,::-1,::]
     lm_grdptid = lm_grdptid[::-1,::]
     
     return [lm_nodes,lm_grdptid,margin]
@@ -463,8 +467,8 @@ def fill_bf_layer_data(
 
         #print i_match, j_match, i_match+bf_layer_size_x, j_match+bf_layer_size_y, shape(lm_nodes)
 
-        lm_nodes[j_match:j_match+bf_layer_size_y,
-                 i_match:i_match+bf_layer_size_x] = nodes[0,:,:]
+        lm_nodes[:,j_match:j_match+bf_layer_size_y,
+                 i_match:i_match+bf_layer_size_x] = nodes[:,:,:]
     
         #print shape(grdptid)
         #print bf_layer_size_y
@@ -593,7 +597,7 @@ def conditional_copy(
             if(grdptid[j,i]!=no_pt):
                 
                 lm_grdptid[lm_j,lm_i] = grdptid[j,i]
-                lm_nodes[lm_j,lm_i] = nodes[0,j,i]
+                lm_nodes[:,lm_j,lm_i] = nodes[:,j,i]
 
             
 def plot_matrix_with_all_buffer_layers(lm):
@@ -617,34 +621,36 @@ def plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes, lm_grdptid):
     
     #plot the nodes
     ax = fig.add_subplot(1,2,2)
-    res = ax.imshow(lm_nodes, cmap=cm.spectral, interpolation='nearest', vmin=0.0, vmax=1.0)
+    res = ax.imshow(lm_nodes[0,:,:], cmap=cm.spectral, interpolation='nearest', vmin=0.0, vmax=1.0)
     fig.colorbar(res)    
 
     return fig,ax
 
 
-#def plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes, lm_grdptid, nodes):
-#
-#    #create the main figure
-#    fig=plt.figure(figsize=(12,6))
-#
-#    #plot the gridpoint ID
-#    ax = fig.add_subplot(1,3,1)
-#    res = ax.imshow(lm_grdptid, cmap=cm.spectral, interpolation='nearest', vmin=-1, vmax=4)
-#    fig.colorbar(res)
-#    
-#    #plot the nodes
-#    ax = fig.add_subplot(1,3,2)
-#    res = ax.imshow(lm_nodes, cmap=cm.spectral, interpolation='nearest', vmin=0.0, vmax=1.0)
-#    fig.colorbar(res)
-#
-#    #plot the velocity
-#    ax = fig.add_subplot(1,3,3)
-#    Q = quiver(nodes[1,::,::], nodes[2,::,::])
-#    qk = quiverkey(Q, 0.9, 0.95, 2, r'$2 \frac{m}{s}$',
-#                   labelpos='E',
-#                   coordinates='figure',
-#                   fontproperties={'weight': 'bold'})
-#
-#    return fig,ax
+def plot_all_bf_layers(lm_nodes, lm_grdptid):
+
+    #create the main figure
+    fig=plt.figure(figsize=(12,6))
+
+    #plot the gridpoint ID
+    ax = fig.add_subplot(1,3,1)
+    res = ax.imshow(lm_grdptid, cmap=cm.spectral, interpolation='nearest', vmin=-1, vmax=4)
+    fig.colorbar(res)
+    
+    #plot the nodes
+    ax = fig.add_subplot(1,3,2)
+    res = ax.imshow(lm_nodes[0,:,:], cmap=cm.spectral, interpolation='nearest', vmin=0.0, vmax=1.0)
+    fig.colorbar(res)
+
+    #plot the velocity
+    ax = fig.add_subplot(1,3,3)
+    Q = quiver(lm_nodes[1,::,::]/lm_nodes[0,::,::],
+               lm_nodes[2,::,::]/lm_nodes[0,::,::],
+               scale=0.5)
+    #qk = quiverkey(Q, 0., 1.0, 1, r'$2 \frac{m}{s}$',
+    #               labelpos='E',
+    #               coordinates='figure',
+    #               fontproperties={'weight': 'bold'})
+
+    return fig,ax
 
