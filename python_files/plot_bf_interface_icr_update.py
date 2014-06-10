@@ -84,7 +84,7 @@ if __name__ == "__main__":
                                      E_detector,
                                      W_detector,
                                      lm_grdptid,
-                                     margin)    
+                                     margin) 
         #display
         #-----------------------------------------------------------------
         fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,

@@ -49,7 +49,7 @@
 
 
         !update the buffer layers
-        do i=1,10
+        do i=1,9
 
            call interface_used%update_bf_layers_with_idetectors(
      $          interior_nodes, dx, dy)

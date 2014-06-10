@@ -231,8 +231,8 @@ def make_matrix_for_all_bf_layers(
             #    print filename+': does not exist'
 
     #the sizes of the buffer layers are now determined
-    bf_tmp_size_x = 10 #size_x
-    bf_tmp_size_y = 10 #size_y
+    bf_tmp_size_x = 12 #size_x
+    bf_tmp_size_y = 12 #size_y
 
     #interspace
     interspace = 2
@@ -300,7 +300,7 @@ def make_matrix_for_all_bf_layers(
 
     lm_nodes   = lm_nodes[::,::-1,::]
     lm_grdptid = lm_grdptid[::-1,::]
-    
+
     return [lm_nodes,lm_grdptid,margin]
 
 

@@ -1150,10 +1150,11 @@ c$$$        end function shares_grdpts_with_neighbor2
           size_y = size(this%grdpts_id,2)
 
 
-          do j=max(1,-search_r+j_center-match_table(2)),
-     $         min(size_y, j_prev-search_r-1-match_table(2))
+          !1.
+          do j=max(1,j_center-search_r-match_table(2)),
+     $         min(size_y, j_center+search_r-match_table(2), j_prev-search_r-1-match_table(2))
 
-             do i=max(1,-search_r+i_center-match_table(1)),
+             do i=max(1,i_center-search_r-match_table(1)),
      $            min(size_x, i_center+search_r-match_table(1))
                 
                 call check_bc_interior_pt(
@@ -1166,12 +1167,13 @@ c$$$        end function shares_grdpts_with_neighbor2
              end do
           end do
 
-
-          do j=max(1,-search_r+j_center+min_j-match_table(2)),
+          
+          !2.
+          do j=max(1,j_center-search_r-min_j-match_table(2)),
      $         min(size_y, j_center+search_r-max_j-match_table(2))
 
-             do i=max(1,-search_r+i_center-match_table(1)),
-     $            min(size_x,i_prev-search_r-1-match_table(1))
+             do i=max(1,i_center-search_r-match_table(1)),
+     $            min(size_x,i_center+bc_size-match_table(1), i_prev-search_r-1-match_table(1))
                 
                 call check_bc_interior_pt(
      $               i,j,
@@ -1184,10 +1186,11 @@ c$$$        end function shares_grdpts_with_neighbor2
           end do
 
 
+          !3.
           do j=max(1,j_center-search_r-min_j-match_table(2)),
      $         min(size_y,j_center+search_r-max_j-match_table(2))
 
-             do i=max(1,i_prev+search_r+1-match_table(1)),
+             do i=max(1,i_center-search_r-match_table(1),i_prev+search_r+1-match_table(1)),
      $            min(size_x,i_center+search_r-match_table(1))
                 
                 call check_bc_interior_pt(
@@ -1201,7 +1204,8 @@ c$$$        end function shares_grdpts_with_neighbor2
           end do
 
 
-          do j=max(1,j_prev+search_r+1-match_table(2)),
+          !4.
+          do j=max(1,j_center-search_r-match_table(2),j_prev+search_r+1-match_table(2)),
      $         min(size_y,j_center+search_r-match_table(2))
 
              do i=max(1,i_center-search_r-match_table(1)),

@@ -304,7 +304,7 @@
 
           norm = 1.0d0
 
-          get_velocity(1) = -1.0 !x/SQRT(x**2+y**2)*norm
+          get_velocity(1) =-1.0 !x/SQRT(x**2+y**2)*norm
           get_velocity(2) = 0.0 !y/SQRT(x**2+y**2)*norm
 
         end function get_velocity
