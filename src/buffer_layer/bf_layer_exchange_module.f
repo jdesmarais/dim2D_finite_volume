@@ -21,10 +21,8 @@
         implicit none
 
         private
-        public :: get_match_indices_for_copy_from_neighbor1,
-     $            get_match_indices_for_copy_to_neighbor1,
-     $            get_match_indices_for_copy_from_neighbor2,
-     $            get_match_indices_for_copy_to_neighbor2,
+        public :: get_match_indices_for_exchange_with_neighbor1,
+     $            get_match_indices_for_exchange_with_neighbor2,
      $            copy_from_bf1_to_bf2
 
         contains
@@ -75,7 +73,7 @@
         end subroutine copy_from_bf1_to_bf2
 
 
-        subroutine get_match_indices_for_copy_from_neighbor1(
+        subroutine get_match_indices_for_exchange_with_neighbor1(
      $     localization,
      $     bf_alignment, bf_size_y,
      $     nbf_alignment, nbf_size_y,
@@ -125,11 +123,11 @@
           !local coordinates
           select case(localization)
             case(N,E,W)
-               call get_S_recv_indices(bf_j_min)
-               call get_N_send_indices(nbf_size_y, nbf_j_min)
+               call get_S_exch_indices(bf_j_min)
+               call get_N_exch_indices(nbf_size_y, nbf_j_min)
             case(S)
-               call get_N_recv_indices(bf_size_y, bf_j_min)
-               call get_S_send_indices(nbf_j_min)
+               call get_N_exch_indices(bf_size_y, bf_j_min)
+               call get_S_exch_indices(nbf_j_min)
             case default
                print '(''bf_layer_class'')'
                print '(''copy_from_neighbor1'')'
@@ -138,81 +136,12 @@
                stop 'change loclaization'
           end select
 
-          bf_copy_size_y = bc_size
+          bf_copy_size_y = 2*bc_size
 
-        end subroutine get_match_indices_for_copy_from_neighbor1
-
-
-        subroutine get_match_indices_for_copy_to_neighbor1(
-     $     localization,
-     $     bf_alignment, bf_size_y,
-     $     nbf_alignment, nbf_size_y,
-     $     bf_i_min, bf_j_min,
-     $     nbf_i_min, nbf_j_min,
-     $     bf_copy_size_x, bf_copy_size_y)
-
-          implicit none
-
-          integer                       , intent(in)  :: localization
-          integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
-          integer(ikind)                , intent(in)  :: bf_size_y
-          integer(ikind), dimension(2,2), intent(in)  :: nbf_alignment
-          integer(ikind)                , intent(in)  :: nbf_size_y
-          integer(ikind)                , intent(out) :: bf_i_min
-          integer(ikind)                , intent(out) :: bf_j_min
-          integer(ikind)                , intent(out) :: nbf_i_min
-          integer(ikind)                , intent(out) :: nbf_j_min
-          integer(ikind)                , intent(out) :: bf_copy_size_x
-          integer(ikind)                , intent(out) :: bf_copy_size_y
+        end subroutine get_match_indices_for_exchange_with_neighbor1      
 
 
-          !we need to define the borders identifying the subarrays
-          !copied from the tables of neighbors1 to the tables of the
-          !current sublayer
-
-          !for the borders along the x-direction, we first use their
-          !general coordinates to identify thme (that is the coordinates
-          !with references to the interior domain)
-
-          !then they are expressed as (bf_i_min, bf_i_max), and 
-          !(nbf_i_min, nbf_i_max) for the local coordinates of the tables
-
-          !the borders along the y-direction, we use the assumptions:
-          ! - for the N and S buffer layers, the neighbor1 corresponds
-          !   to the neighbor on the W main layer
-          ! - for the E and W buffer layers, the neighbor1 corresponds
-          !   to the neighbor on the S main layer
-          
-          !using the previous assumptions, it is possible to determine the
-          !borders along the y-direction as local coordinates for the tables
-          !(bf_j_min, bf_j_max) and (nbf_j_min, nbf_j_max)
-          call get_x_exchange_indices(bf_alignment, nbf_alignment,
-     $                                bf_i_min, nbf_i_min,
-     $                                bf_copy_size_x)
-          
-          !get the local min and max borders along the y-direction as
-          !local coordinates
-          select case(localization)
-            case(N,E,W)
-               call get_S_send_indices(bf_j_min)
-               call get_N_recv_indices(nbf_size_y, nbf_j_min)
-            case(S)
-               call get_N_send_indices(bf_size_y, bf_j_min)
-               call get_S_recv_indices(nbf_j_min)
-            case default
-               print '(''bf_layer_class'')'
-               print '(''copy_from_neighbor1'')'
-               print '(''localization not recognized'')'
-               print '(''localization: '', I2)', localization
-               stop 'change loclaization'
-          end select
-
-          bf_copy_size_y = bc_size
-
-        end subroutine get_match_indices_for_copy_to_neighbor1
-
-
-        subroutine get_match_indices_for_copy_from_neighbor2(
+        subroutine get_match_indices_for_exchange_with_neighbor2(
      $     localization,
      $     bf_alignment, bf_size_y,
      $     nbf_alignment, nbf_size_y,
@@ -263,11 +192,11 @@
           !local coordinates
           select case(localization)
             case(N)
-               call get_S_recv_indices(bf_j_min)
-               call get_N_send_indices(nbf_size_y, nbf_j_min)
+               call get_S_exch_indices(bf_j_min)
+               call get_N_exch_indices(nbf_size_y, nbf_j_min)
             case(S,E,W)
-               call get_N_recv_indices(bf_size_y, bf_j_min)
-               call get_S_send_indices(nbf_j_min)
+               call get_N_exch_indices(bf_size_y, bf_j_min)
+               call get_S_exch_indices(nbf_j_min)
             case default
                print '(''bf_layer_class'')'
                print '(''copy_from_neighbor1'')'
@@ -276,93 +205,12 @@
                stop 'change loclaization'
           end select
 
-          bf_copy_size_y = bc_size
+          bf_copy_size_y = 2*bc_size
 
-        end subroutine get_match_indices_for_copy_from_neighbor2
-
-
-        subroutine get_match_indices_for_copy_to_neighbor2(
-     $     localization,
-     $     bf_alignment, bf_size_y,
-     $     nbf_alignment, nbf_size_y,
-     $     bf_i_min, bf_j_min,
-     $     nbf_i_min, nbf_j_min,
-     $     bf_copy_size_x, bf_copy_size_y)
-
-          implicit none
-
-          integer                       , intent(in)  :: localization
-          integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
-          integer(ikind)                , intent(in)  :: bf_size_y
-          integer(ikind), dimension(2,2), intent(in)  :: nbf_alignment
-          integer(ikind)                , intent(in)  :: nbf_size_y
-          integer(ikind)                , intent(out) :: bf_i_min
-          integer(ikind)                , intent(out) :: bf_j_min
-          integer(ikind)                , intent(out) :: nbf_i_min
-          integer(ikind)                , intent(out) :: nbf_j_min
-          integer(ikind)                , intent(out) :: bf_copy_size_x
-          integer(ikind)                , intent(out) :: bf_copy_size_y
+        end subroutine get_match_indices_for_exchange_with_neighbor2
 
 
-          !we need to define the borders identifying the subarrays
-          !copied from the tables of neighbors1 to the tables of the
-          !current sublayer
-
-          !for the borders along the x-direction, we first use their
-          !general coordinates to identify thme (that is the coordinates
-          !with references to the interior domain)
-
-          !then they are expressed as (bf_i_min, bf_i_max), and 
-          !(nbf_i_min, nbf_i_max) for the local coordinates of the tables
-
-          !the borders along the y-direction, we use the assumptions:
-          ! - for the N and S buffer layers, the neighbor2 corresponds
-          !   to the neighbor on the E main layer
-          ! - for the E and W buffer layers, the neighbor2 corresponds
-          !   to the neighbor on the N main layer
-          
-          !using the previous assumptions, it is possible to determine the
-          !borders along the y-direction as local coordinates for the tables
-          !(bf_j_min, bf_j_max) and (nbf_j_min, nbf_j_max)
-          call get_x_exchange_indices(bf_alignment, nbf_alignment,
-     $                                bf_i_min, nbf_i_min,
-     $                                bf_copy_size_x)
-          
-          !get the local min and max borders along the y-direction as
-          !local coordinates
-          select case(localization)
-            case(N)
-               call get_S_send_indices(bf_j_min)
-               call get_N_recv_indices(nbf_size_y, nbf_j_min)
-            case(S,E,W)
-               call get_N_send_indices(bf_size_y, bf_j_min)
-               call get_S_recv_indices(nbf_j_min)
-            case default
-               print '(''bf_layer_class'')'
-               print '(''copy_from_neighbor1'')'
-               print '(''localization not recognized'')'
-               print '(''localization: '', I2)', localization
-               stop 'change loclaization'
-          end select
-
-          bf_copy_size_y = bc_size
-
-        end subroutine get_match_indices_for_copy_to_neighbor2
-
-
-        subroutine get_N_recv_indices(size_y, bf_j_min)
-
-          implicit none
-
-          integer(ikind), intent(in)  :: size_y
-          integer(ikind), intent(out) :: bf_j_min
-
-          bf_j_min = size_y-bc_size+1
-
-        end subroutine get_N_recv_indices
-
-
-        subroutine get_N_send_indices(size_y, bf_j_min)
+        subroutine get_N_exch_indices(size_y, bf_j_min)
 
           implicit none
 
@@ -371,10 +219,10 @@
 
           bf_j_min = size_y-2*bc_size+1
 
-        end subroutine get_N_send_indices
+        end subroutine get_N_exch_indices
 
-      
-        subroutine get_S_recv_indices(bf_j_min)
+
+        subroutine get_S_exch_indices(bf_j_min)
 
           implicit none
 
@@ -382,18 +230,7 @@
 
           bf_j_min = 1
 
-        end subroutine get_S_recv_indices
-
-
-        subroutine get_S_send_indices(bf_j_min)
-
-          implicit none
-
-          integer(ikind), intent(out) :: bf_j_min
-
-          bf_j_min = bc_size+1
-
-        end subroutine get_S_send_indices
+        end subroutine get_S_exch_indices
 
 
         subroutine get_x_exchange_indices(

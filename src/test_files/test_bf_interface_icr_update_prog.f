@@ -14,7 +14,7 @@
         type(bf_interface_icr)              :: interface_used
         real(rkind)   , dimension(nx,ny,ne) :: interior_nodes
         integer       , dimension(nx,ny)    :: grdpts_id
-        integer       , parameter           :: test_case=5
+        integer       , parameter           :: test_case=8
 
         integer :: i
 
@@ -51,7 +51,7 @@
 
 
         !update the buffer layers
-        do i=1,2
+        do i=1,9
 
            call interface_used%update_bf_layers_with_idetectors(
      $          interior_nodes, dx, dy)

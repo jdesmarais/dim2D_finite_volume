@@ -32,10 +32,8 @@
      $                                           merge_bf_layers_E,
      $                                           merge_bf_layers_W
 
-        use bf_layer_exchange_module    , only : get_match_indices_for_copy_from_neighbor1,
-     $                                           get_match_indices_for_copy_to_neighbor1,
-     $                                           get_match_indices_for_copy_from_neighbor2,
-     $                                           get_match_indices_for_copy_to_neighbor2,
+        use bf_layer_exchange_module    , only : get_match_indices_for_exchange_with_neighbor1,
+     $                                           get_match_indices_for_exchange_with_neighbor2,
      $                                           copy_from_bf1_to_bf2
                                         
         use parameters_bf_layer         , only : bc_pt, bc_interior_pt,
@@ -940,7 +938,7 @@ c$$$        end function shares_grdpts_with_neighbor2
           
           !get the indices for the match between the tables
           !of the current buffer layer and the neighbor1
-          call get_match_indices_for_copy_from_neighbor1(
+          call get_match_indices_for_exchange_with_neighbor1(
      $         this%localization,
      $         this%alignment, size(this%nodes,2),
      $         neighbor1%alignment, size(neighbor1%nodes,2),
@@ -973,7 +971,7 @@ c$$$        end function shares_grdpts_with_neighbor2
           
           !get the indices for the match between the tables
           !of the current buffer layer and the neighbor1
-          call get_match_indices_for_copy_to_neighbor1(
+          call get_match_indices_for_exchange_with_neighbor1(
      $         this%localization,
      $         this%alignment, size(this%nodes,2),
      $         neighbor1%alignment, size(neighbor1%nodes,2),
@@ -1007,7 +1005,7 @@ c$$$        end function shares_grdpts_with_neighbor2
           
           !get the indices for the match between the tables
           !of the current buffer layer and the neighbor1
-          call get_match_indices_for_copy_from_neighbor2(
+          call get_match_indices_for_exchange_with_neighbor2(
      $         this%localization,
      $         this%alignment, size(this%nodes,2),
      $         neighbor2%alignment, size(neighbor2%nodes,2),
@@ -1042,7 +1040,7 @@ c$$$        end function shares_grdpts_with_neighbor2
              
              !get the indices for the match between the tables
              !of the current buffer layer and the neighbor1
-             call get_match_indices_for_copy_to_neighbor2(
+             call get_match_indices_for_exchange_with_neighbor2(
      $            this%localization,
      $            this%alignment, size(this%nodes,2),
      $            neighbor2%alignment, size(neighbor2%nodes,2),
@@ -1466,34 +1464,34 @@ c$$$        end function shares_grdpts_with_neighbor2
 
 
           !update the bc_interior_pt overlapping the previous bc_pt
-          do j=min(j_center-j_prev+2*bc_size+1,-1), min(j_prev-bc_size,j_center+1) - j_center
-             do i=-1,1
-                if(grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
-                   grdpts_id(i_center+i,j_center+j) = bc_interior_pt
+          do j=max(j_prev-bc_size, j_center-1), min(j_prev-bc_size, j_center+1)
+             do i=max(i_prev-bc_size, i_center-1), min(i_prev+bc_size, i_center+1)
+                if(grdpts_id(i,j).eq.bc_pt) then
+                   grdpts_id(i,j) = bc_interior_pt
                 end if
              end do
           end do
 
-          do j=max(-bc_size-min_j+1,-1), min(bc_size-max_j-1,1)
-             do i=min(i_center-i_prev+2*bc_size+1,-1), min(i_prev-bc_size,i_center+1) - i_center
-                if(grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
-                   grdpts_id(i_center+i,j_center+j) = bc_interior_pt
+          do j=max(j_prev-1, j_center-1), min(j_prev+1, j_center+1)
+             do i=max(i_prev-bc_size, i_center-1), min(i_prev-bc_size, i_center+1)
+                if(grdpts_id(i,j).eq.bc_pt) then
+                   grdpts_id(i,j) = bc_interior_pt
                 end if
              end do
           end do
 
-          do j=max(-bc_size-min_j+1,-1), min(bc_size-max_j-1,1)
-             do i=max(i_prev+bc_size,i_center-1)-i_center, max(i_center-i_prev-2*bc_size-1,1)
-                if(grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
-                   grdpts_id(i_center+i,j_center+j) = bc_interior_pt
+          do j=max(j_prev-1, j_center-1), min(j_prev+1, j_center+1)
+             do i=max(i_prev+bc_size, i_center-1), min(i_prev+bc_size, i_center+1)
+                if(grdpts_id(i,j).eq.bc_pt) then
+                   grdpts_id(i,j) = bc_interior_pt
                 end if
              end do
           end do
 
-          do j=max(j_prev+bc_size,j_center-1)-j_center, max(j_center-j_prev-2*bc_size-1,1)
-             do i=-1,1
-                if(grdpts_id(i_center+i,j_center+j).eq.bc_pt) then
-                   grdpts_id(i_center+i,j_center+j) = bc_interior_pt
+          do j=max(j_prev+bc_size, j_center-1), min(j_prev+bc_size, j_center+1)
+             do i=max(i_center-1, i_prev-bc_size), min(i_prev+bc_size, i_center+1)
+                if(grdpts_id(i,j).eq.bc_pt) then
+                   grdpts_id(i,j) = bc_interior_pt
                 end if
              end do
           end do
@@ -1547,7 +1545,7 @@ c$$$        end function shares_grdpts_with_neighbor2
 
              !if the grid point is next to the new interior point,
              !it is a bc_interior_pt, otherwise, it is a bc_pt
-             if(abs(i_center-i).le.1.and.abs(j_center-j).le.1) then
+             if((abs(i_center-i).le.1).and.(abs(j_center-j).le.1)) then
                 grdpts_id(i,j) = bc_interior_pt
              else
                 grdpts_id(i,j) = bc_pt

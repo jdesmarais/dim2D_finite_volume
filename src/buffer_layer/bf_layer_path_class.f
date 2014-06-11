@@ -377,10 +377,8 @@
 
         
           type(bf_sublayer), pointer :: modified_sublayer
-          logical :: update
 
-          update = .true.
-        
+
           !update the allocation required for the buffer layer
           modified_sublayer => update_allocation_bf_sublayer(
      $         this,
@@ -388,10 +386,8 @@
      $         interior_nodes)
 
           !update the grid points for the increase
-          if(update) then
-             call interface_used%update_grdpts_after_increase(
-     $            modified_sublayer, this%pts(1:2,1:this%nb_pts))
-          end if
+          call interface_used%update_grdpts_after_increase(
+     $         modified_sublayer, this%pts(1:2,1:this%nb_pts))
 
           !reinitialize the path
           call this%reinitialize()
