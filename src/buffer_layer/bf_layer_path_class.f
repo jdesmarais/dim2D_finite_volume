@@ -377,7 +377,9 @@
 
         
           type(bf_sublayer), pointer :: modified_sublayer
+          logical :: update
 
+          update = .true.
         
           !update the allocation required for the buffer layer
           modified_sublayer => update_allocation_bf_sublayer(
@@ -386,8 +388,10 @@
      $         interior_nodes)
 
           !update the grid points for the increase
-          call interface_used%update_grdpts_after_increase(
-     $         modified_sublayer, this%pts(1:2,1:this%nb_pts))
+          if(update) then
+             call interface_used%update_grdpts_after_increase(
+     $            modified_sublayer, this%pts(1:2,1:this%nb_pts))
+          end if
 
           !reinitialize the path
           call this%reinitialize()
@@ -764,8 +768,8 @@
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
           type(bf_sublayer), pointer                      :: modified_sublayer
           
-          type(bf_sublayer), pointer :: neighboring_sublayer
-          logical                    :: merge
+          type(bf_sublayer), pointer     :: neighboring_sublayer
+          logical                        :: merge
 
 
           !does the current path have a matching sublayer ?
@@ -788,6 +792,9 @@
      $                  interior_nodes,
      $                  this%alignment)                   
                 else
+
+                   call update_alignment_for_reallocation(this)
+                   
                    call interface_used%reallocate_sublayer(
      $                  this%matching_sublayer,
      $                  interior_nodes,
@@ -800,11 +807,13 @@
              !merged, the matching sublayer is simply reallocated according
              !the alignment of the current path
              else
-                 call interface_used%reallocate_sublayer(
+                call update_alignment_for_reallocation(this)
+
+                call interface_used%reallocate_sublayer(
      $               this%matching_sublayer,
      $               interior_nodes,
      $               this%alignment)
-                 modified_sublayer => this%matching_sublayer
+                modified_sublayer => this%matching_sublayer
 
              end if
 
@@ -819,6 +828,26 @@
           end if
           
         end function update_allocation_bf_sublayer
+
+
+        !< update the alignment such that the reallocation process can
+        !> only increase the buffer layer
+        subroutine update_alignment_for_reallocation(this)
+
+          implicit none
+
+          class(bf_layer_path), intent(inout) :: this
+
+          integer(ikind), dimension(2,2) :: p_alignment
+
+          p_alignment = this%matching_sublayer%get_alignment_tab()
+
+          this%alignment(1,1) = min(p_alignment(1,1),this%alignment(1,1))
+          this%alignment(2,1) = min(p_alignment(2,1),this%alignment(2,1))
+          this%alignment(1,2) = max(p_alignment(1,2),this%alignment(1,2))
+          this%alignment(2,2) = max(p_alignment(2,2),this%alignment(2,2))
+
+        end subroutine update_alignment_for_reallocation
 
 
         !> @author

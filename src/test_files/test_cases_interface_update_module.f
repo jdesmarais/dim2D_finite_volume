@@ -18,12 +18,14 @@
         !< update the data in the interior nodes and the buffer layers
         !> to simulate a vapor bubble moving in the computational domain
         subroutine update_nodes(
+     $       test_case,
      $       timestep, dx, dy, 
      $       interior_nodes, interface_used)
 
 
           implicit none
 
+          integer                         , intent(in)    :: test_case
           integer                         , intent(in)    :: timestep
           real(rkind)                     , intent(in)    :: dx
           real(rkind)                     , intent(in)    :: dy
@@ -32,20 +34,21 @@
 
 
           !update the interior nodes
-          call update_interior_nodes(timestep, dx, dy, interior_nodes)
+          call update_interior_nodes(test_case, timestep, dx, dy, interior_nodes)
 
           !update the data in the buffer layers
-          call update_bf_nodes(timestep, dx, dy, interface_used)
+          call update_bf_nodes(test_case, timestep, dx, dy, interface_used)
 
         end subroutine update_nodes
 
 
         !< write data in the interior nodes to simulate a
         !> vapor bubble moving in the interior domain
-        subroutine update_interior_nodes(timestep, dx, dy, interior_nodes)
+        subroutine update_interior_nodes(test_case, timestep, dx, dy, interior_nodes)
 
           implicit none
 
+          integer                         , intent(in)  :: test_case
           integer                         , intent(in)  :: timestep
           real(rkind)                     , intent(in)  :: dx
           real(rkind)                     , intent(in)  :: dy
@@ -63,6 +66,7 @@
 
           !parameters constraining the bubble
           call get_bubble_param(
+     $         test_case,
      $         timestep, dx, dy,
      $         d_liq, d_vap, l_interface, radius,
      $         x_center, y_center)
@@ -81,7 +85,8 @@
      $                              radius,
      $                              x_center, y_center)
 
-                velocity = get_velocity(c_coords,
+                velocity = get_velocity(test_case,
+     $                                  c_coords,
      $                                  x_center, y_center)
                 
                 interior_nodes(i,j,1) = mass
@@ -96,10 +101,11 @@
 
         !< write data in the buffer layer nodes to simulate a
         !> vapor bubble moving in the buffer layers
-        subroutine update_bf_nodes(timestep, dx, dy, interface_used)
+        subroutine update_bf_nodes(test_case, timestep, dx, dy, interface_used)
 
           implicit none
 
+          integer            , intent(in)    :: test_case
           integer            , intent(in)    :: timestep
           real(rkind)        , intent(in)    :: dx
           real(rkind)        , intent(in)    :: dy
@@ -154,6 +160,7 @@
                    
                    !parameters constraining the bubble
                    call get_bubble_param(
+     $                  test_case,
      $                  timestep,
      $                  dx, dy,
      $                  d_liq, d_vap, l_interface, radius,
@@ -177,7 +184,8 @@
      $                                          radius,
      $                                          x_center, y_center)
 
-                            velocity = get_velocity(c_coords,
+                            velocity = get_velocity(test_case,
+     $                                              c_coords,
      $                                              x_center, y_center)
                 
                             new_nodes(i,j,1) = mass
@@ -213,6 +221,7 @@
 
         !< get the parameters contraining the bubble
         subroutine get_bubble_param(
+     $     test_case,
      $     timestep,
      $     dx, dy,
      $     d_liq, d_vap, l_interface, radius,
@@ -220,6 +229,7 @@
 
           implicit none
 
+          integer    , intent(in)  :: test_case
           integer    , intent(in)  :: timestep
           real(rkind), intent(in)  :: dx
           real(rkind), intent(in)  :: dy
@@ -234,8 +244,37 @@
           d_vap       = 0.1
           l_interface = 0.1
           radius      = 0.3
-          x_center    = 0.5-timestep*dx
-          y_center    = 0.5!timestep*dy
+
+          select case(test_case)
+            case(1)
+               x_center    = 0.5+timestep*dx
+               y_center    = 0.5
+            case(2)
+               x_center    = 0.5-timestep*dx
+               y_center    = 0.5
+            case(3)
+               x_center    = 0.5
+               y_center    = 0.5+timestep*dy
+            case(4)
+               x_center    = 0.5
+               y_center    = 0.5-timestep*dy
+            case(5)
+               x_center    = 0.5+timestep*dx
+               y_center    = 0.5+timestep*dy
+            case(6)
+               x_center    = 0.5+timestep*dx
+               y_center    = 0.5-timestep*dy
+            case(7)
+               x_center    = 0.5-timestep*dx
+               y_center    = 0.5+timestep*dy
+            case(8)
+               x_center    = 0.5-timestep*dx
+               y_center    = 0.5-timestep*dy
+            case default
+               print '(''test_cases_interface_update_module'')'
+               print '(''get_bubble_param'')'
+               stop 'test case not recognized'
+          end select
 
         end subroutine get_bubble_param
 
@@ -287,10 +326,11 @@
 
 
         !< compute the velocity
-        function get_velocity(g_coords, x_center, y_center)
+        function get_velocity(test_case, g_coords, x_center, y_center)
 
           implicit none
 
+          integer                  , intent(in) :: test_case
           real(rkind), dimension(2), intent(in) :: g_coords
           real(rkind)              , intent(in) :: x_center     
           real(rkind)              , intent(in) :: y_center
@@ -303,9 +343,40 @@
           y = g_coords(2)-y_center
 
           norm = 1.0d0
+          
+          !get_velocity(1) =-1.0 !x/SQRT(x**2+y**2)*norm
+          !get_velocity(2) = 0.0 !y/SQRT(x**2+y**2)*norm
 
-          get_velocity(1) =-1.0 !x/SQRT(x**2+y**2)*norm
-          get_velocity(2) = 0.0 !y/SQRT(x**2+y**2)*norm
+          select case(test_case)
+            case(1)
+               get_velocity(1) =  1.0
+               get_velocity(2) =  0.0
+            case(2)
+               get_velocity(1) = -1.0
+               get_velocity(2) =  0.0
+            case(3)
+               get_velocity(1) =  0.0
+               get_velocity(2) =  1.0
+            case(4)
+               get_velocity(1) =  0.0
+               get_velocity(2) = -1.0
+            case(5)
+               get_velocity(1) =  1.0
+               get_velocity(2) =  1.0
+            case(6)
+               get_velocity(1) =  1.0
+               get_velocity(2) = -1.0
+            case(7)
+               get_velocity(1) = -1.0
+               get_velocity(2) =  1.0
+            case(8)
+               get_velocity(1) = -1.0
+               get_velocity(2) = -1.0
+            case default
+               print '(''test_cases_interface_update_module'')'
+               print '(''get_velocity'')'
+               stop 'test case not recognized'
+          end select          
 
         end function get_velocity
 

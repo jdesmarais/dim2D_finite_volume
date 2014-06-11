@@ -1287,7 +1287,7 @@
           end if
 
 
-          !define the length of the blocks 9 and 14
+          !define the length of the blocks 9 and 12
           !the length is restricted by the length of the
           !interior domain
           if(old_bf_alignment(2).ge.(ndir-bc_size)) then
