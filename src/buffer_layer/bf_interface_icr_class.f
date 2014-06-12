@@ -1,15 +1,16 @@
       module bf_interface_icr_class
 
+        use bf_activation_module      , only : is_openbc_undermined
         use bf_detector_icr_list_class, only : bf_detector_icr_list
-        use bf_path_icr_class     , only : bf_path_icr
+        use bf_path_icr_class         , only : bf_path_icr
         use bf_nbc_template_module
-        use bf_sublayer_class       , only : bf_sublayer
-        use bf_interface_class      , only : bf_interface
-        use parameters_bf_layer     , only : bc_interior_pt
-        use parameters_constant     , only : N,S,E,W,interior
-        use parameters_input        , only : nx,ny,ne,bc_size,
-     $                                       dt,search_nb_dt
-        use parameters_kind         , only : ikind, rkind
+        use bf_sublayer_class         , only : bf_sublayer
+        use bf_interface_class        , only : bf_interface
+        use parameters_bf_layer       , only : bc_interior_pt
+        use parameters_constant       , only : N,S,E,W,interior
+        use parameters_input          , only : nx,ny,ne,bc_size,
+     $                                         dt,search_nb_dt
+        use parameters_kind           , only : ikind, rkind
 
         implicit none
 
@@ -484,21 +485,9 @@
           real(rkind), dimension(ne), intent(in) :: nodes_var
           logical                                :: activated
           
-          real(rkind) :: d_liq, d_vap
-
-          d_liq = 1.1-0.1*(1.1-0.1)
-          d_vap = 0.1+0.1*(1.1-0.1)
-
-          if((nodes_var(1).ge.d_vap).and.(nodes_var(1).le.d_liq)) then
-             activated = .true.
-          else
-             activated = .false.
-          end if
-
-          !activated = .true.
+          activated = is_openbc_undermined(nodes_var)
 
         end function is_detector_icr_activated
-
 
 
         !> get the general coordinates of the point activated by an

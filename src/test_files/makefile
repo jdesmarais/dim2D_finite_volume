@@ -302,7 +302,12 @@ $(dbf_layer_dir)/bf_detector_icr_list_class.o:\
 $(bf_layer_dir)/bf_nbc_template_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o
 
+$(bf_layer_dir)/bf_activation_module.o:\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
 $(bf_layer_dir)/bf_interface_icr_class.o:\
+	$(bf_layer_dir)/bf_activation_module.o\
 	$(dbf_layer_dir)/bf_detector_icr_list_class.o\
 	$(bf_layer_dir)/bf_path_icr_class.o\
 	$(bf_layer_dir)/bf_nbc_template_module.o\
@@ -633,6 +638,7 @@ test_bf_interface_icr_prog:\
 	dbf_element_class.o\
 	dbf_list_class.o\
 	bf_detector_icr_list_class.o\
+	bf_activation_module.o\
 	bf_path_icr_class.o\
 	bf_nbc_template_module.o\
 	bf_interface_icr_class.o\
@@ -659,6 +665,7 @@ test_bf_interface_icr_update_prog:\
 	dbf_element_class.o\
 	dbf_list_class.o\
 	bf_detector_icr_list_class.o\
+	bf_activation_module.o\
 	bf_path_icr_class.o\
 	bf_nbc_template_module.o\
 	bf_interface_icr_class.o\
