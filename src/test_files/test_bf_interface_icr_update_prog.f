@@ -1,6 +1,6 @@
       program test_bf_interface_icr_update_prog
 
-        use bf_detector_i_list_class, only : bf_detector_i_list
+        use bf_detector_icr_list_class, only : bf_detector_icr_list
         use bf_interface_icr_class  , only : bf_interface_icr
         use parameters_input        , only : nx,ny,ne,bc_size
         use parameters_kind         , only : rkind

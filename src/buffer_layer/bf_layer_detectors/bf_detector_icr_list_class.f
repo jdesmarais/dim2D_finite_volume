@@ -1,4 +1,4 @@
-      module bf_detector_i_list_class
+      module bf_detector_icr_list_class
       
         use bf_interface_class, only : bf_interface
         use dbf_element_class , only : dbf_element
@@ -8,10 +8,10 @@
         implicit none
 
         private
-        public :: bf_detector_i_list
+        public :: bf_detector_icr_list
 
 
-        type :: bf_detector_i_list
+        type :: bf_detector_icr_list
 
           integer, private :: mainlayer_id
           integer, private :: nb_detectors
@@ -49,7 +49,7 @@ c$$$          procedure, pass, private :: add_detector_to_neighbor2
 
           procedure, pass :: destroy
 
-        end type bf_detector_i_list
+        end type bf_detector_icr_list
 
         contains
 
@@ -60,7 +60,7 @@ c$$$          procedure, pass, private :: add_detector_to_neighbor2
 
           implicit none
 
-          class(bf_detector_i_list), intent(inout) :: this
+          class(bf_detector_icr_list), intent(inout) :: this
           integer                  , intent(in)    :: mainlayer_id
           integer(ikind)           , intent(in)    :: size_detectors_list
 
@@ -85,7 +85,7 @@ c$$$          nullify(this%detectors_neighbor2_list)
 
           implicit none
 
-          class(bf_detector_i_list)   , intent(inout) :: this
+          class(bf_detector_icr_list)   , intent(inout) :: this
           integer(ikind), dimension(2), intent(in)    :: coords
 
 c$$$          integer :: mainlayer_id
@@ -123,7 +123,7 @@ c$$$          end if
 
           implicit none
 
-          class(bf_detector_i_list), intent(inout) :: this
+          class(bf_detector_icr_list), intent(inout) :: this
           integer(ikind), dimension(2), intent(in) :: coords
 
           type(dbf_element), pointer :: current_element
@@ -181,7 +181,7 @@ c$$$        subroutine add_new_detector_to_neighbor1(this, coords)
 c$$$
 c$$$          implicit none
 c$$$
-c$$$          class(bf_detector_i_list), intent(inout) :: this
+c$$$          class(bf_detector_icr_list), intent(inout) :: this
 c$$$          integer(ikind), dimension(2), intent(in) :: coords
 c$$$
 c$$$          type(dbf_element), pointer :: current_element
@@ -232,7 +232,7 @@ c$$$        subroutine add_new_detector_to_neighbor2(this, coords)
 c$$$
 c$$$          implicit none
 c$$$
-c$$$          class(bf_detector_i_list), intent(inout) :: this
+c$$$          class(bf_detector_icr_list), intent(inout) :: this
 c$$$          integer(ikind), dimension(2), intent(in) :: coords
 c$$$
 c$$$          type(dbf_element), pointer :: current_element
@@ -348,7 +348,7 @@ c$$$        end subroutine add_new_detector_to_neighbor2
 
           implicit none
 
-          class(bf_detector_i_list), intent(inout) :: this
+          class(bf_detector_icr_list), intent(inout) :: this
           integer(ikind), dimension(2), intent(in) :: coords
 
           this%nb_detectors = this%nb_detectors+1
@@ -373,7 +373,7 @@ c$$$        subroutine add_detector_to_neighbor1(this, coords)
 c$$$
 c$$$          implicit none
 c$$$
-c$$$          class(bf_detector_i_list), intent(inout) :: this
+c$$$          class(bf_detector_icr_list), intent(inout) :: this
 c$$$          integer(ikind), dimension(2), intent(in) :: coords
 c$$$
 c$$$          if(.not.associated(this%detectors_neighbor1_list)) then
@@ -391,7 +391,7 @@ c$$$        subroutine add_detector_to_neighbor2(this, coords)
 c$$$
 c$$$          implicit none
 c$$$
-c$$$          class(bf_detector_i_list), intent(inout) :: this
+c$$$          class(bf_detector_icr_list), intent(inout) :: this
 c$$$          integer(ikind), dimension(2), intent(in) :: coords
 c$$$
 c$$$          if(.not.associated(this%detectors_neighbor2_list)) then
@@ -408,7 +408,7 @@ c$$$        end subroutine add_detector_to_neighbor2
 
           implicit none
 
-          class(bf_detector_i_list), intent(in) :: this
+          class(bf_detector_icr_list), intent(in) :: this
           integer                               :: get_nb_detectors
 
           get_nb_detectors = this%nb_detectors
@@ -421,7 +421,7 @@ c$$$        end subroutine add_detector_to_neighbor2
         
           implicit none
 
-          class(bf_detector_i_list) , intent(in)    :: this
+          class(bf_detector_icr_list) , intent(in)    :: this
           integer                   , intent(inout) :: nb_dt
           type(dbf_element), pointer, intent(inout) :: prev_ele_ptr
           integer(ikind), dimension(2)              :: coords
@@ -446,7 +446,7 @@ c$$$        end subroutine add_detector_to_neighbor2
         
           implicit none
 
-          class(bf_detector_i_list) , intent(in)    :: this
+          class(bf_detector_icr_list) , intent(in)    :: this
           integer                   , intent(inout) :: nb_dt
           type(dbf_element), pointer, intent(inout) :: prev_ele_ptr
           integer(ikind), dimension(2)              :: coords
@@ -478,13 +478,13 @@ c$$$        end subroutine add_detector_to_neighbor2
 
           implicit none
 
-          class(bf_detector_i_list) , intent(in)  :: this
+          class(bf_detector_icr_list) , intent(in)  :: this
           integer(ikind), dimension(2)            :: coords
 
           if(allocated(this%detectors_list)) then
              coords = this%detectors_list(:,1)
           else
-             print '(''bf_detector_i_list'')'
+             print '(''bf_detector_icr_list'')'
              stop 'get_head: detectors_list not allocated'
           end if
 
@@ -496,7 +496,7 @@ c$$$        end subroutine add_detector_to_neighbor2
 
           implicit none
 
-          class(bf_detector_i_list)           , intent(in)  :: this
+          class(bf_detector_icr_list)           , intent(in)  :: this
           type(dbf_element), pointer, optional, intent(out) :: ele_ptr_i
           integer(ikind), dimension(2)            :: coords
 
@@ -511,11 +511,11 @@ c$$$        end subroutine add_detector_to_neighbor2
                    if(this%nb_detectors.gt.0) then
                       coords = this%detectors_list(:,this%nb_detectors)
                    else
-                      print '(''bf_detector_i_list'')'
+                      print '(''bf_detector_icr_list'')'
                       stop 'get_head: no element'
                    end if
                 else
-                   print '(''bf_detector_i_list'')'
+                   print '(''bf_detector_icr_list'')'
                    stop 'get_head: detectors_list not allocated'
                 end if
              end if
@@ -524,11 +524,11 @@ c$$$        end subroutine add_detector_to_neighbor2
                 if(this%nb_detectors.gt.0) then
                    coords = this%detectors_list(:,this%nb_detectors)
                 else
-                   print '(''bf_detector_i_list'')'
+                   print '(''bf_detector_icr_list'')'
                    stop 'get_head: no element'
                 end if
              else
-                print '(''bf_detector_i_list'')'
+                print '(''bf_detector_icr_list'')'
                 stop 'get_head: detectors_list not allocated'
              end if
           end if
@@ -549,7 +549,7 @@ c$$$        end subroutine add_detector_to_neighbor2
 
           implicit none
 
-          class(bf_detector_i_list)     , intent(in) :: this
+          class(bf_detector_icr_list)     , intent(in) :: this
           integer                       , intent(in) :: s_index
           integer(ikind), dimension(:,:), intent(out):: new_dt_table
 
@@ -593,7 +593,7 @@ c$$$     $     start_tail_i)
 c$$$
 c$$$          implicit none
 c$$$
-c$$$          class(bf_detector_i_list)   , intent(in)  :: this
+c$$$          class(bf_detector_icr_list)   , intent(in)  :: this
 c$$$          class(bf_interface)         , intent(in)  :: interface_used
 c$$$          integer                     , intent(in)  :: c_mbf_id
 c$$$          integer                     , intent(out) :: c_index
@@ -647,7 +647,7 @@ c$$$        end subroutine get_cutting_param
         
           implicit none
 
-          class(bf_detector_i_list), intent(inout) :: this
+          class(bf_detector_icr_list), intent(inout) :: this
 
           if(allocated(this%detectors_list)) then
              deallocate(this%detectors_list)
@@ -677,7 +677,7 @@ c$$$          end if
 
           implicit none
 
-          class(bf_detector_i_list)  , intent(in)  :: this
+          class(bf_detector_icr_list)  , intent(in)  :: this
           real(rkind), dimension(:,:), intent(out) :: matrix
 
 
@@ -737,5 +737,5 @@ c$$$          end if
 
         end subroutine print_on_matrix
 
-      end module bf_detector_i_list_class
+      end module bf_detector_icr_list_class
       

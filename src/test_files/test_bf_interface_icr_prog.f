@@ -1,6 +1,6 @@
       program test_bf_interface_icr_prog
 
-        use bf_detector_i_list_class, only : bf_detector_i_list
+        use bf_detector_icr_list_class, only : bf_detector_icr_list
         use bf_interface_icr_class  , only : bf_interface_icr
         use bf_sublayer_class       , only : bf_sublayer
         use parameters_bf_layer     , only : align_N, interior_pt, no_pt
@@ -28,7 +28,7 @@
         type(bf_sublayer), pointer :: added_sublayer
 
         !for the recombination test
-        type(bf_detector_i_list), dimension(4) :: detector_list
+        type(bf_detector_icr_list), dimension(4) :: detector_list
         integer(ikind), dimension(:,:), allocatable :: detectors_added
         integer :: size_preallocated
         integer :: mainlayer_id
@@ -163,14 +163,14 @@
         !   recombined
         do mainlayer_id=1,4
            
-           !initialize the bf_detector_i_list for the
+           !initialize the bf_detector_icr_list for the
            !main layer and 6 detectors preallocated
            size_preallocated = 6
            call detector_list(mainlayer_id)%ini(
      $          mainlayer_id, size_preallocated)
            
            
-           !initialize the detectors saved in the bf_detector_i_list
+           !initialize the detectors saved in the bf_detector_icr_list
            call get_detector_test(mainlayer_id, detectors_added)
            do k=1, size(detectors_added,2)
               

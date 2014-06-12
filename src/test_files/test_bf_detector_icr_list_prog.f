@@ -1,6 +1,6 @@
       program test_bf_detctor_i_list_prog
 
-        use bf_detector_i_list_class, only : bf_detector_i_list
+        use bf_detector_icr_list_class, only : bf_detector_icr_list
         use bf_interface_class      , only : bf_interface
         use parameters_bf_layer     , only : no_pt, interior_pt
         use parameters_constant     , only : N,S,E,W
@@ -10,7 +10,7 @@
 
         implicit none
 
-        type(bf_detector_i_list)                    :: detector_list
+        type(bf_detector_icr_list)                    :: detector_list
         type(bf_interface)                          :: interface_used
         real(rkind), dimension(nx,ny,ne)            :: matrix
         integer    , dimension(nx,ny)               :: grdpts_id
@@ -33,13 +33,13 @@
            !detectors is pinned
            call ini(matrix, grdpts_id)        
            
-           !initialize the bf_detector_i_list for the
+           !initialize the bf_detector_icr_list for the
            !main layer and 6 detectors preallocated
            size_preallocated = 6
            call detector_list%ini(mainlayer_id, size_preallocated)
            
            
-           !initialize the detectors saved in the bf_detector_i_list
+           !initialize the detectors saved in the bf_detector_icr_list
            call get_detector_test(mainlayer_id, detectors_added)
            do k=1, size(detectors_added,2)
               
@@ -55,7 +55,7 @@
            
            if(print_on_matrix) then
 
-              !print the detectors saved by the object bf_detector_i_list
+              !print the detectors saved by the object bf_detector_icr_list
               call detector_list%print_on_matrix(matrix(:,:,1))
 
            else

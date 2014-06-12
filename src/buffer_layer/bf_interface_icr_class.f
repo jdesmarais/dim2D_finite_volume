@@ -1,6 +1,6 @@
       module bf_interface_icr_class
 
-        use bf_detector_i_list_class, only : bf_detector_i_list
+        use bf_detector_icr_list_class, only : bf_detector_icr_list
         use bf_path_icr_class     , only : bf_path_icr
         use bf_nbc_template_module
         use bf_sublayer_class       , only : bf_sublayer
@@ -110,10 +110,10 @@
 
           type(bf_path_icr)          :: path_update_idetectors
           integer(ikind), dimension(2) :: cpt_coords_p
-          type(bf_detector_i_list)     :: N_ndt_list
-          type(bf_detector_i_list)     :: S_ndt_list
-          type(bf_detector_i_list)     :: E_ndt_list
-          type(bf_detector_i_list)     :: W_ndt_list
+          type(bf_detector_icr_list)     :: N_ndt_list
+          type(bf_detector_icr_list)     :: S_ndt_list
+          type(bf_detector_icr_list)     :: E_ndt_list
+          type(bf_detector_icr_list)     :: W_ndt_list
 
 
           !initialization of the path that will gather information
@@ -203,7 +203,7 @@
         end subroutine update_bf_layers_with_idetectors
 
 
-        !< connect the bf_detector_i_list objects and determine the
+        !< connect the bf_detector_icr_list objects and determine the
         !> new detector lists
         subroutine combine_bf_idetector_lists(
      $     this,
@@ -213,10 +213,10 @@
           implicit none
 
           class(bf_interface_icr) , intent(inout) :: this
-          type(bf_detector_i_list), intent(in)    :: N_idetectors_list
-          type(bf_detector_i_list), intent(in)    :: S_idetectors_list
-          type(bf_detector_i_list), intent(in)    :: E_idetectors_list
-          type(bf_detector_i_list), intent(in)    :: W_idetectors_list
+          type(bf_detector_icr_list), intent(in)    :: N_idetectors_list
+          type(bf_detector_icr_list), intent(in)    :: S_idetectors_list
+          type(bf_detector_icr_list), intent(in)    :: E_idetectors_list
+          type(bf_detector_icr_list), intent(in)    :: W_idetectors_list
 
 
           integer(ikind), dimension(:,:), allocatable :: N_idetectors_list_n
@@ -335,7 +335,7 @@
 
           class(bf_interface_icr)                      , intent(inout) :: this
           integer(ikind)          , dimension(:,:)     , intent(in)    :: dt_list
-          type(bf_detector_i_list)                     , intent(inout) :: ndt_list
+          type(bf_detector_icr_list)                     , intent(inout) :: ndt_list
           real(rkind)             , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           real(rkind)                                  , intent(in)    :: dx
           real(rkind)                                  , intent(in)    :: dy
@@ -421,7 +421,7 @@
           integer(ikind), dimension(2)    , intent(out)   :: cpt_coords
           integer                         , intent(out)   :: nb_mgrdpts
           integer(ikind), dimension(2,9)  , intent(out)   :: mgrdpts
-          type(bf_detector_i_list)        , intent(inout) :: ndt_list
+          type(bf_detector_icr_list)        , intent(inout) :: ndt_list
 
 
           real(rkind), dimension(ne)   :: node_var
