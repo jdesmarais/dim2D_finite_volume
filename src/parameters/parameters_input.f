@@ -63,8 +63,14 @@
         integer, parameter :: io_choice   = netcdf_choice
 
         !< boundary conditions parameters
-        !< for the open boundary conditions: number of timesteps
+        !< search_nb_dt:
+        !> for the open boundary conditions: number of timesteps
         !> checked in advance by the increasing detector
+        !
+        !< search_dcr:
+        !> radius expressed as number of grid points to check around
+        !> the line for removing a buffer layer
         integer, parameter :: search_nb_dt = 1
+        integer, parameter :: search_dcr = 4
 
       end module parameters_input

@@ -1,6 +1,6 @@
       module bf_interface_icr_class
 
-        use bf_activation_module      , only : is_openbc_undermined
+        use bf_activation_module      , only : are_openbc_undermined
         use bf_detector_icr_list_class, only : bf_detector_icr_list
         use bf_path_icr_class         , only : bf_path_icr
         use bf_nbc_template_module
@@ -485,7 +485,7 @@
           real(rkind), dimension(ne), intent(in) :: nodes_var
           logical                                :: activated
           
-          activated = is_openbc_undermined(nodes_var)
+          activated = are_openbc_undermined(nodes_var)
 
         end function is_detector_icr_activated
 
