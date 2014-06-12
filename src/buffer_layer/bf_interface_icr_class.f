@@ -32,7 +32,7 @@
           procedure,   pass :: combine_bf_idetector_lists
           procedure,   pass :: update_bf_layers_with_idetectors
 
-          procedure, nopass, private :: is_i_detector_activated
+          procedure, nopass, private :: is_detector_icr_activated
           procedure, nopass, private :: get_central_grdpt
           procedure,   pass, private :: check_neighboring_bc_interior_pts
           procedure,   pass, private :: check_neighboring_bc_interior_pts_for_interior
@@ -433,12 +433,15 @@
           nb_mgrdpts = 0
 
 
+          !extract the nodes at the coordinates of the detector
+          node_var = this%get_nodes(d_coords, interior_nodes)
+
+
           !if the detector is activated, then we check
           !whether grid points need to be modified
-          if(is_i_detector_activated()) then
+          if(is_detector_icr_activated(node_var)) then
 
              !extract the velocity at the coordinates of the detector
-             node_var = this%get_nodes(d_coords, interior_nodes)
              velocity(1) = node_var(2)/node_var(1)
              velocity(2) = node_var(3)/node_var(1)
              
@@ -474,15 +477,27 @@
 
 
         !> check whether the detector is activated
-        function is_i_detector_activated()
+        function is_detector_icr_activated(nodes_var) result(activated)
         
           implicit none
           
-          logical :: is_i_detector_activated
+          real(rkind), dimension(ne), intent(in) :: nodes_var
+          logical                                :: activated
           
-          is_i_detector_activated = .true.
+          real(rkind) :: d_liq, d_vap
 
-        end function is_i_detector_activated
+          d_liq = 1.1-0.1*(1.1-0.1)
+          d_vap = 0.1+0.1*(1.1-0.1)
+
+          if((nodes_var(1).ge.d_vap).and.(nodes_var(1).le.d_liq)) then
+             activated = .true.
+          else
+             activated = .false.
+          end if
+
+          !activated = .true.
+
+        end function is_detector_icr_activated
 
 
 
