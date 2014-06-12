@@ -18,7 +18,7 @@
       !> @date
       ! 18_04_2014 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      module bf_layer_path_abstract_class
+      module bf_path_icr_abstract_class
 
         use bf_sublayer_class       , only : bf_sublayer
         use parameters_kind         , only : ikind
@@ -26,10 +26,10 @@
         implicit none
 
         private
-        public :: bf_layer_path_abstract
+        public :: bf_path_icr_abstract
 
 
-        !> @class bf_layer_path_abstract
+        !> @class bf_path_icr_abstract
         !> class encapsulating data required to decide which points
         !> need to be updated and whether this leads to the creation
         !> or the update of a buffer layer, nut the intrinsic
@@ -73,7 +73,7 @@
         !> table identifying the new position of the buffer layer and
         !> whether an existing buffer layer should be reallocated
         !---------------------------------------------------------------
-        type :: bf_layer_path_abstract
+        type :: bf_path_icr_abstract
 
           type(bf_sublayer), pointer :: matching_sublayer
 
@@ -87,6 +87,6 @@
           logical       , dimension(4)                :: neighbors
           integer(ikind), dimension(2,2)              :: alignment
 
-        end type bf_layer_path_abstract
+        end type bf_path_icr_abstract
 
-      end module bf_layer_path_abstract_class
+      end module bf_path_icr_abstract_class

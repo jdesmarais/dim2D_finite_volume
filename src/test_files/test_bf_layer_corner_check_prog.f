@@ -1,7 +1,7 @@
       program test_bf_layer_corner_check_prog
 
         use bf_layer_corner_check_module, only : check_corner_bf_layer_neighbors
-        use bf_layer_path_class         , only : bf_layer_path
+        use bf_path_icr_class         , only : bf_path_icr
 
         use interface_abstract_class    , only : interface_abstract
 
@@ -34,7 +34,7 @@
         real(rkind), dimension(nx,ny,ne) :: nodes
         integer    , dimension(nx,ny)    :: grdpts_id
         type(interface_abstract)         :: interface_used
-        type(bf_layer_path)              :: current_path
+        type(bf_path_icr)              :: current_path
 
         integer, parameter :: interface_before=0
         integer, parameter :: interface_after=1

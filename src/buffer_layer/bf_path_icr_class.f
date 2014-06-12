@@ -16,7 +16,7 @@
       !> @date
       ! 16_04_2014 - initial version - J.L. Desmarais
       !----------------------------------------------------------------
-      module bf_layer_path_class
+      module bf_path_icr_class
 
         use bf_layer_errors_module, only : error_mainlayer_id
         use bf_interface_class    , only : bf_interface
@@ -30,10 +30,10 @@
         implicit none
 
         private
-        public :: bf_layer_path
+        public :: bf_path_icr
 
 
-        !> @class bf_layer_path
+        !> @class bf_path_icr
         !> class encapsulating data required to decide which points
         !> need to be updated and whether this leads to the creation
         !> or the update of a buffer layer
@@ -72,7 +72,7 @@
         !> table identifying the new position of the buffer layer and
         !> whether an existing buffer layer should be reallocated
         !---------------------------------------------------------------
-        type :: bf_layer_path
+        type :: bf_path_icr
 
           type(bf_sublayer), pointer :: matching_sublayer
 
@@ -107,7 +107,7 @@
           procedure, pass :: get_pt
           procedure, pass :: print_on_screen
 
-        end type bf_layer_path
+        end type bf_path_icr
 
 
         contains
@@ -130,7 +130,7 @@
         
           implicit none
 
-          class(bf_layer_path), intent(inout) :: this
+          class(bf_path_icr), intent(inout) :: this
 
           nullify(this%matching_sublayer)
           
@@ -157,7 +157,7 @@
         
           implicit none
 
-          class(bf_layer_path), intent(inout) :: this
+          class(bf_path_icr), intent(inout) :: this
 
           nullify(this%matching_sublayer)
           
@@ -172,7 +172,7 @@
 
           implicit none
 
-          class(bf_layer_path), intent(in) :: this
+          class(bf_path_icr), intent(in) :: this
           logical                          :: is_ended
 
           is_ended = this%ends
@@ -201,7 +201,7 @@
 
           implicit none
 
-          class(bf_layer_path)        , intent(inout) :: this
+          class(bf_path_icr)        , intent(inout) :: this
           integer(ikind), dimension(2), intent(in)    :: point
           
           integer(ikind), dimension(:,:), allocatable :: tmp_table
@@ -251,7 +251,7 @@
 
           implicit none
 
-          class(bf_layer_path)         , intent(inout) :: this
+          class(bf_path_icr)         , intent(inout) :: this
           
           integer(ikind), dimension(:,:), allocatable :: tmp_table
           integer :: k          
@@ -298,7 +298,7 @@
 
           implicit none
 
-          class(bf_layer_path)        , intent(inout) :: this
+          class(bf_path_icr)        , intent(inout) :: this
           integer(ikind), dimension(2), intent(in)    :: bc_interior_pt_analyzed
           class(bf_interface)         , intent(in)    :: interface_used
 
@@ -371,7 +371,7 @@
         
           implicit none
         
-          class(bf_layer_path)            , intent(inout) :: this
+          class(bf_path_icr)            , intent(inout) :: this
           class(bf_interface)             , intent(inout) :: interface_used
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
 
@@ -426,7 +426,7 @@
 
           implicit none
 
-          class(bf_layer_path)        , intent(inout) :: this
+          class(bf_path_icr)        , intent(inout) :: this
           integer(ikind), dimension(2), intent(in)    :: bc_interior_pt_analyzed
           class(bf_interface)         , intent(in)    :: interface_used
           integer                     , intent(in)    :: tolerance_pts_same_sublayer
@@ -500,7 +500,7 @@
 
           implicit none
 
-          class(bf_layer_path)        , intent(inout) :: this
+          class(bf_path_icr)        , intent(inout) :: this
           integer(ikind), dimension(2), intent(in)    :: bc_interior_pt_analyzed
           class(bf_interface)         , intent(in)    :: interface_used
           integer                     , intent(in)    :: tolerance_pts_same_path
@@ -641,7 +641,7 @@
 
           implicit none
 
-          class(bf_layer_path)        , intent(inout) :: this
+          class(bf_path_icr)        , intent(inout) :: this
           integer(ikind), dimension(2), intent(in)    :: bc_interior_pt_analyzed
           class(bf_interface)         , intent(in)    :: interface_used
           logical                                     :: are_pts_in_same_mainlayer
@@ -692,7 +692,7 @@
 
           implicit none
 
-          class(bf_layer_path)        , intent(in) :: this
+          class(bf_path_icr)        , intent(in) :: this
           integer(ikind), dimension(2), intent(in) :: bc_interior_pt_analyzed
           integer                     , intent(in) :: tolerance
           logical                                  :: are_pts_far_away
@@ -717,7 +717,7 @@
 
           implicit none
 
-          class(bf_layer_path), intent(in) :: this
+          class(bf_path_icr), intent(in) :: this
           type(bf_sublayer)   , intent(in) :: bf_sublayer_ptr
           logical                          :: merge
 
@@ -733,7 +733,7 @@
                direction = y_direction
             case default
                call error_mainlayer_id(
-     $              'bf_layer_path_class.f',
+     $              'bf_path_icr_class.f',
      $              'should_bf_sublayers_be_merged',
      $              this%mainlayer_id)
           end select          
@@ -759,7 +759,7 @@
 
           implicit none
 
-          class(bf_layer_path)            , intent(inout) :: this
+          class(bf_path_icr)            , intent(inout) :: this
           class(bf_interface)             , intent(inout) :: interface_used
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
           type(bf_sublayer), pointer                      :: modified_sublayer
@@ -832,7 +832,7 @@
 
           implicit none
 
-          class(bf_layer_path), intent(inout) :: this
+          class(bf_path_icr), intent(inout) :: this
 
           integer(ikind), dimension(2,2) :: p_alignment
 
@@ -866,7 +866,7 @@
         
           implicit none
         
-          class(bf_layer_path)        , intent(inout) :: this
+          class(bf_path_icr)        , intent(inout) :: this
           integer(ikind), dimension(2), intent(in)    :: bc_interior_pt_analyzed
         
           this%alignment(1,1) = min(this%alignment(1,1), bc_interior_pt_analyzed(1))
@@ -881,7 +881,7 @@
 
           implicit none
 
-          class(bf_layer_path), intent(in) :: this
+          class(bf_path_icr), intent(in) :: this
           integer                          :: get_nb_pts
 
           get_nb_pts = this%nb_pts
@@ -893,7 +893,7 @@
 
           implicit none
 
-          class(bf_layer_path), intent(in) :: this
+          class(bf_path_icr), intent(in) :: this
           integer             , intent(in) :: i
           integer(ikind), dimension(2)     :: get_pt
 
@@ -908,7 +908,7 @@
 
           implicit none
 
-          class(bf_layer_path), intent(in) :: this
+          class(bf_path_icr), intent(in) :: this
 
           print '(''path created'')'
           print '(''nb_pts: '', I2)', this%nb_pts
@@ -926,4 +926,4 @@
               
         end subroutine print_on_screen
 
-      end module bf_layer_path_class
+      end module bf_path_icr_class

@@ -1,6 +1,6 @@
-      program test_bf_layer_path_prog
+      program test_bf_path_icr_prog
 
-        use bf_layer_path_class , only : bf_layer_path
+        use bf_path_icr_class , only : bf_path_icr
         use bf_sublayer_class   , only : bf_sublayer
         use bf_interface_class  , only : bf_interface
         use parameters_bf_layer , only : align_N, align_W
@@ -15,7 +15,7 @@
         implicit none
 
 
-        type(bf_layer_path)                         :: path_tested
+        type(bf_path_icr)                         :: path_tested
         integer(ikind), dimension(:,:), allocatable :: bc_interior_pt_table
         type(bf_interface)                          :: interface_used
         real(rkind), dimension(nx,ny,ne)            :: nodes
@@ -441,4 +441,4 @@ c$$$     $             W, nodes, alignment)
 
         end subroutine ini_nodes_for_path
 
-      end program test_bf_layer_path_prog
+      end program test_bf_path_icr_prog

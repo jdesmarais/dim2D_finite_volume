@@ -1,7 +1,7 @@
       module bf_interface_icr_class
 
         use bf_detector_i_list_class, only : bf_detector_i_list
-        use bf_layer_path_class     , only : bf_layer_path
+        use bf_path_icr_class     , only : bf_path_icr
         use bf_nbc_template_module
         use bf_sublayer_class       , only : bf_sublayer
         use bf_interface_class      , only : bf_interface
@@ -108,7 +108,7 @@
           real(rkind)                     , intent(in)    :: dx
           real(rkind)                     , intent(in)    :: dy
 
-          type(bf_layer_path)          :: path_update_idetectors
+          type(bf_path_icr)          :: path_update_idetectors
           integer(ikind), dimension(2) :: cpt_coords_p
           type(bf_detector_i_list)     :: N_ndt_list
           type(bf_detector_i_list)     :: S_ndt_list
@@ -340,7 +340,7 @@
           real(rkind)                                  , intent(in)    :: dx
           real(rkind)                                  , intent(in)    :: dy
           integer(ikind)          , dimension(2)       , intent(inout) :: cpt_coords_p
-          type(bf_layer_path)                          , intent(inout) :: path
+          type(bf_path_icr)                          , intent(inout) :: path
 
           integer(ikind), dimension(2)   :: cpt_coords
           integer                        :: k,l

@@ -1,4 +1,4 @@
-     !< subroutines shared by bf_layer_class and bf_layer_path_class
+     !< subroutines shared by bf_layer_class and bf_path_icr_class
       !> needed to implement corretcly the update of sublayers at the
       !> corner if a corner point is activated
       module bf_corner_module

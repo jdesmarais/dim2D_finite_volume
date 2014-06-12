@@ -16,7 +16,7 @@
       !-----------------------------------------------------------------
       module bf_layer_corner_check_module
       
-        use bf_layer_path_abstract_class, only : bf_layer_path_abstract
+        use bf_path_icr_abstract_class, only : bf_path_icr_abstract
         use bf_sublayer_class           , only : bf_sublayer
         use bf_mainlayer_class          , only : bf_mainlayer
         use interface_abstract_class    , only : interface_abstract
@@ -72,7 +72,7 @@
           integer                                , intent(in)    :: corner_id
           real(rkind), dimension(nx,ny,ne)       , intent(in)    :: nodes
           class(interface_abstract)              , intent(inout) :: interface_used
-          class(bf_layer_path_abstract), optional, intent(inout) :: current_path
+          class(bf_path_icr_abstract), optional, intent(inout) :: current_path
 
           integer :: k
 

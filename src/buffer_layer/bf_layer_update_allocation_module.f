@@ -16,7 +16,7 @@
       !-----------------------------------------------------------------
       module bf_layer_update_allocation_module
 
-        use bf_layer_path_abstract_class, only : bf_layer_path_abstract
+        use bf_path_icr_abstract_class, only : bf_path_icr_abstract
         use bf_mainlayer_class          , only : bf_mainlayer
         use bf_sublayer_class           , only : bf_sublayer
         use interface_abstract_class    , only : interface_abstract
@@ -52,7 +52,7 @@
 
           class(interface_abstract)       , intent(inout) :: interface_used
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
-          class(bf_layer_path_abstract)   , intent(inout) :: current_path
+          class(bf_path_icr_abstract)   , intent(inout) :: current_path
           type(bf_sublayer), pointer                      :: modified_sublayer
 
          
@@ -227,7 +227,7 @@
 
           implicit none
 
-          class(bf_layer_path_abstract)         , intent(inout) :: current_path
+          class(bf_path_icr_abstract)         , intent(inout) :: current_path
           real(rkind), dimension(nx,ny,ne)      , intent(in)    :: nodes
           integer(ikind), dimension(2), optional, intent(out)   :: match_table
           type(bf_sublayer), pointer                            :: modified_sublayer

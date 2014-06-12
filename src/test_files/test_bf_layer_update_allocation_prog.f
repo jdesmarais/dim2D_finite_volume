@@ -2,7 +2,7 @@
 
         use bf_mainlayer_class               , only : bf_mainlayer
         use bf_layer_update_allocation_module, only : update_allocation_bf_layers
-        use bf_layer_path_class              , only : bf_layer_path
+        use bf_path_icr_class              , only : bf_path_icr
         use bf_sublayer_class                , only : bf_sublayer
                                              
         use interface_abstract_class         , only : interface_abstract
@@ -38,7 +38,7 @@
         real(rkind), dimension(nx,ny,ne) :: nodes
         integer    , dimension(nx,ny)    :: grdpts_id
         type(interface_abstract)         :: interface_used
-        type(bf_layer_path)              :: current_path
+        type(bf_path_icr)              :: current_path
         type(bf_sublayer), pointer       :: modified_sublayer
 
 
@@ -95,7 +95,7 @@
           integer                  , intent(in)  :: test_mainlayer_id
           integer                  , intent(in)  :: random_seed
           class(interface_abstract), intent(out) :: interface_used
-          type(bf_layer_path)      , intent(out) :: current_path
+          type(bf_path_icr)      , intent(out) :: current_path
 
           integer                        :: corner_id, corner_order
           type(bf_mainlayer), pointer    :: mainlayer

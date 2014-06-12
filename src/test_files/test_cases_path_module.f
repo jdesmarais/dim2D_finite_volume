@@ -1,6 +1,6 @@
       module test_cases_path_module
 
-        use bf_layer_path_class, only : bf_layer_path
+        use bf_path_icr_class, only : bf_path_icr
         use parameters_constant, only : N,S,E,W,N_E,N_W,S_E,S_W
         use parameters_input   , only : nx,ny,bc_size
 
@@ -22,7 +22,7 @@
 
           implicit none
 
-          type(bf_layer_path)          , intent(inout) :: current_path
+          type(bf_path_icr)          , intent(inout) :: current_path
           integer                      , intent(in)    :: test_case_id
           integer            , optional, intent(in)    :: corner_id
           integer            , optional, intent(in)    :: corner_order
@@ -80,7 +80,7 @@
 
           implicit none
 
-          type(bf_layer_path), intent(inout) :: current_path
+          type(bf_path_icr), intent(inout) :: current_path
           integer            , intent(in)    :: corner_id
           integer            , intent(in)    :: corner_order
           integer            , intent(in)    :: bf_corner_distance

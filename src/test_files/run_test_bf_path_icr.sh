@@ -6,12 +6,12 @@ make cleanall
 rm *.dat
 
 #compile the test case for the interface
-make test_bf_layer_path_prog
+make test_bf_path_icr_prog
 
 #run the test case
-./test_bf_layer_path_prog
+./test_bf_path_icr_prog
 
 #run the visualization using python
 folder_path=$(pwd)
 pushd ../../python_files
-python plot_test_bf_layer_path.py -f $folder_path
+python plot_test_bf_path_icr.py -f $folder_path
