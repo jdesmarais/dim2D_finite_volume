@@ -467,7 +467,8 @@ test_bf_layer_remove_prog.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_kind.o
+	$(param_dir)/parameters_kind.o\
+	test_bf_layer_module.o
 
 #executable dependencies
 test_bf_layer_prog:\
@@ -688,8 +689,27 @@ test_bf_interface_icr_update_prog:\
 	test_bf_layer_module.o\
 	test_cases_interface_update_module.o
 
-test_bf_layer_remove_prog:
-
+test_bf_layer_remove_prog:\
+	parameters_kind.o\
+	parameters_constant.o\
+	parameters_input.o\
+	bf_activation_module.o\
+	bf_layer_errors_module.o\
+	parameters_bf_layer.o\
+	bf_layer_remove_module.o\
+	bf_layer_allocate_module.o\
+	bf_layer_reallocate_module.o\
+	bf_layer_merge_module.o\
+	bf_layer_exchange_module.o\
+	bf_layer_class.o\
+	bf_sublayer_class.o\
+	bf_mainlayer_class.o\
+	bf_mainlayer_pointer_class.o\
+	nbf_element_class.o\
+	nbf_list_class.o\
+	nbf_interface_class.o\
+	bf_interface_class.o\
+	test_bf_layer_module.o
 
 #-----------------------------------------------------------------------
 #parameter_dir						

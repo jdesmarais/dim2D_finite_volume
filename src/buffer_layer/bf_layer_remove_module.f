@@ -1,17 +1,17 @@
       module bf_layer_remove_module
 
-        use bf_activation_module  , only : is_openbc_undermined
+        use bf_activation_module  , only : are_openbc_undermined
         use bf_layer_errors_module, only : error_mainlayer_id
         use parameters_bf_layer   , only : align_N,align_S,
      $                                     align_E,align_W
         use parameters_constant   , only : N,S,E,W
-        use parameters_input      , only : nx,ny,ne,search_dcr
+        use parameters_input      , only : nx,ny,ne,bc_size,search_dcr
         use parameters_kind       , only : ikind, rkind
         
         implicit none
 
         private
-        public :: check_if_can_be_removed_locally,
+        public :: check_if_bf_layer_remains,
      $            get_check_line_param
 
 
@@ -40,8 +40,9 @@
         !> not
         !---------------------------------------------------------------
         subroutine check_if_bf_layer_remains(
-     $       bf_localization, bf_alignment, bf_nodes,
-     $       interior_nodes, bf_remains)
+     $       bf_localization, bf_alignment, bf_match_table,
+     $       bf_nodes, interior_nodes,
+     $       bf_remains)
 
           implicit none
 
@@ -59,7 +60,7 @@
 
           !check if the buffer layer has grid points in common with
           !the interior domain
-          if(grdpts_common_with_interior(bf_alignment)) then
+          if(grdpts_common_with_check_layer(bf_alignment)) then
              
              !depending on the buffer layer position, determine
              !the line around which the grid points will be checked
@@ -67,6 +68,7 @@
              !conditions or not
              call get_check_line_param(
      $            bf_localization, bf_alignment, bf_match_table,
+     $            size(bf_nodes,1), size(bf_nodes,2),
      $            bf_coords, in_coords)
 
              !check the neighboring points around the line
@@ -84,13 +86,13 @@
              bf_remains = .false.
           end if
 
-        end subroutine check_if_can_be_removed_locally
+        end subroutine check_if_bf_layer_remains
 
 
         !< check if the alignment of the buffer layer compared to
         !> the interior is such that the buffer layer has grid points
         !> in common with the interior domain
-        function grdpts_common_with_interior(bf_alignment)
+        function grdpts_common_with_check_layer(bf_alignment)
      $     result(grdpts_common)
 
           implicit none
@@ -102,19 +104,17 @@
           integer(ikind) :: common_layer_size_y
 
 
-          common_layer_size_x = min(nx-bc_size,bf_alignment(1,2))-
-     $                          max(bc_size+1,bf_alignment(1,1))+
-     $                          2*bc_size+1
+          common_layer_size_x = min(nx+search_dcr,bf_alignment(1,2)+bc_size)-
+     $                          max(1-search_dcr, bf_alignment(1,1)-bc_size)+1
 
-          common_layer_size_y = min(ny-bc_size,bf_alignment(2,2))-
-     $                          max(bc_size+1,bf_alignment(2,1))+
-     $                          2*bc_size+1          
+          common_layer_size_y = min(ny+search_dcr,bf_alignment(2,2)+bc_size)-
+     $                          max(1-search_dcr, bf_alignment(2,1)-bc_size)+1
 
           grdpts_common = (common_layer_size_x.gt.0).and.
      $                    (common_layer_size_y.gt.0)
 
 
-        end function grdpts_common_with_interior
+        end function grdpts_common_with_check_layer
 
 
         !< determine the parameters constraining the line around
@@ -123,6 +123,7 @@
         !> in this region or not
         subroutine get_check_line_param(
      $     bf_localization, bf_alignment, bf_match_table,
+     $     bf_size_x, bf_size_y,
      $     bf_coords, in_coords)
 
 
@@ -131,6 +132,8 @@
           integer                       , intent(in)  :: bf_localization
           integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
           integer(ikind), dimension(2)  , intent(in)  :: bf_match_table
+          integer(ikind)                , intent(in)  :: bf_size_x
+          integer(ikind)                , intent(in)  :: bf_size_y
           integer(ikind), dimension(2,2), intent(out) :: bf_coords
           integer(ikind), dimension(2,2), intent(out) :: in_coords
           
@@ -138,63 +141,63 @@
           select case(bf_localization)
 
             case(N)
-               bf_coords(1,1) = max(bf_alignment(1,1) - bc_size, 1) - bf_match_table(1)
+               bf_coords(1,1) = max(1, align_W - search_dcr - bf_match_table(1))
                bf_coords(2,1) = max(1, align_N - search_dcr - bf_match_table(2))
 
-               bf_coords(1,2) = min(bf_alignment(1,2) + bc_size, nx) - bf_match_table(1)
+               bf_coords(1,2) = min(bf_size_x, align_E + search_dcr - bf_match_table(1))
                bf_coords(2,2) = min(bf_size_y, align_N + search_dcr - bf_match_table(2))
 
 
-               in_coords(1,1) = bf_coords(1,1)
+               in_coords(1,1) = max(bf_alignment(1,1) - bc_size, 1)
                in_coords(2,1) = align_N - search_dcr
 
-               in_coords(1,2) = bf_coords(1,2)
+               in_coords(1,2) = min(bf_alignment(1,2) + bc_size, nx)
                in_coords(2,2) = bf_coords(2,1)-1 + bf_match_table(2)
 
 
             case(S)
-               bf_coords(1,1) = max(bf_alignment(1,1) - bc_size, 1) - bf_match_table(1)
+               bf_coords(1,1) = max(1, align_W - search_dcr - bf_match_table(1))
                bf_coords(2,1) = max(1, align_S - search_dcr - bf_match_table(2))
 
-               bf_coords(1,2) = min(bf_alignment(1,2) + bc_size, nx) - bf_match_table(1)
+               bf_coords(1,2) = min(bf_size_x, align_E + search_dcr - bf_match_table(1))
                bf_coords(2,2) = min(bf_size_y, align_S + search_dcr - bf_match_table(2))
 
 
-               in_coords(1,1) = bf_coords(1,1)
+               in_coords(1,1) = max(bf_alignment(1,1) - bc_size, 1)
                in_coords(2,1) = bf_coords(2,2)+1 + bf_match_table(2)
 
-               in_coords(1,2) = bf_coords(1,2)
+               in_coords(1,2) = min(bf_alignment(1,2) + bc_size, nx)
                in_coords(2,2) = align_S + search_dcr
 
 
             case(E)
                bf_coords(1,1) = max(1, align_E - search_dcr - bf_match_table(1))
-               bf_coords(2,1) = max(bf_alignment(2,1) - bc_size, 1) - bf_match_table(2)
+               bf_coords(2,1) = max(1, align_S - search_dcr - bf_match_table(2))
 
                bf_coords(1,2) = min(bf_size_x, align_E + search_dcr - bf_match_table(1))
-               bf_coords(2,2) = min(bf_alignment(2,2) + bc_size, ny) - bf_match_table(2)
+               bf_coords(2,2) = min(bf_size_y, align_N + search_dcr - bf_match_table(2))
 
 
                in_coords(1,1) = align_E - search_dcr
-               in_coords(2,1) = bf_coords(2,1)
+               in_coords(2,1) = max(bf_alignment(2,1) - bc_size, 1)
 
                in_coords(1,2) = bf_coords(1,1)-1 + bf_match_table(1)
-               in_coords(2,2) = bf_coords(2,2)
+               in_coords(2,2) = min(bf_alignment(2,2) + bc_size, ny)
 
 
             case(W)
                bf_coords(1,1) = max(1, align_W - search_dcr - bf_match_table(1))
-               bf_coords(2,1) = max(bf_alignment(2,1) - bc_size, 1) - bf_match_table(2)
+               bf_coords(2,1) = max(1, align_S - search_dcr - bf_match_table(2))
 
                bf_coords(1,2) = min(bf_size_x, align_W + search_dcr - bf_match_table(1))
-               bf_coords(2,2) = min(bf_alignment(2,2) + bc_size, ny) - bf_match_table(2)
+               bf_coords(2,2) = min(bf_size_y, align_N + search_dcr - bf_match_table(2))
 
 
                in_coords(1,1) = bf_coords(1,2)+1 + bf_match_table(1)
-               in_coords(2,1) = bf_coords(2,1)
+               in_coords(2,1) = max(bf_alignment(2,1) - bc_size, 1)
 
                in_coords(1,2) = align_W + search_dcr
-               in_coords(2,2) = bf_coords(2,2)
+               in_coords(2,2) = min(bf_alignment(2,2) + bc_size, ny)
 
 
             case default
@@ -268,7 +271,7 @@
           do j=pt_coords(2,1), pt_coords(2,2)
              do i=pt_coords(1,1), pt_coords(1,2)
 
-                bf_remains = is_openbc_undermined(nodes(i,j,:))
+                bf_remains = are_openbc_undermined(nodes(i,j,:))
 
                 if(bf_remains) then
                    exit

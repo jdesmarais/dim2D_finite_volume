@@ -39,17 +39,12 @@ if __name__ == "__main__":
 
 
     #plot the tests
-    for i in range(0,10):
+    for i in range(0,1):
         
     	#extract data for the interior points and the buffer layers
     	#-----------------------------------------------------------------
-        test_index = str(i)
-
-        #if(i==3):
-        #    interior_size_filename      = folder_path+'/interior_sizes'+test_index+'.dat'
-        #    interior_grdptsid_filename  = folder_path+'/interior_grdpts_id'+test_index+'.dat'
-        #    interior_nodes_filename     = folder_path+'/interior_nodes'+test_index+'.dat'
-        #else:
+        test_index = str(i+1)
+        
         interior_size_filename      = folder_path+'/interior_sizes'+test_index+'.dat'
         interior_grdptsid_filename  = folder_path+'/interior_grdpts_id'+test_index+'.dat'
         interior_nodes_filename     = folder_path+'/interior_nodes'+test_index+'.dat'
@@ -68,33 +63,11 @@ if __name__ == "__main__":
                                                                      suffix_grdptid,
                                                                      continuous=False)
 
-        #extract detector informations
-        N_detector_filename = folder_path+'/N_detectors'+test_index+'.dat'
-        S_detector_filename = folder_path+'/S_detectors'+test_index+'.dat'
-        E_detector_filename = folder_path+'/E_detectors'+test_index+'.dat'
-        W_detector_filename = folder_path+'/W_detectors'+test_index+'.dat'
-
-        [N_detector, S_detector, E_detector, W_detector] = extract_detectors_data(N_detector_filename,
-                                                                                  S_detector_filename,
-                                                                                  E_detector_filename,
-                                                                                  W_detector_filename)
-
-        [lm_grdptid] = add_detectors(N_detector,
-                                     S_detector,
-                                     E_detector,
-                                     W_detector,
-                                     lm_grdptid,
-                                     margin) 
         #display
         #-----------------------------------------------------------------
         fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
                                                             lm_grdptid)
-        
-        #fig, ax = plot_all_bf_layers(lm_nodes,
-        #                             lm_grdptid)
-        
-        fig.canvas.set_window_title('time step: '+str(i))
-
+        fig.canvas.set_window_title('Print layer investigated for removal')
     
     #show all
     plt.show()
