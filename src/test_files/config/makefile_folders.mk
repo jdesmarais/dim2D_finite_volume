@@ -2,7 +2,7 @@
 bf_layer_dir		= $(src_dir)/buffer_layer
 nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors
 dbf_layer_dir           = $(bf_layer_dir)/bf_layer_detectors
-
+sbf_layer_dir           = $(bf_layer_dir)/bf_sublayer_lists
 
 #main folders
 bc_dir			= $(src_dir)/boundary_conditions

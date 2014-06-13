@@ -326,6 +326,13 @@ $(bf_layer_dir)/bf_interface_icr_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
+$(sbf_layer_dir)/bf_sublayer_pointer_class.o:\
+	$(bf_layer_dir)/bf_sublayer_class.o
+
+$(sbf_layer_dir)/sbf_list_class.o:\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(sbf_layer_dir)/bf_sublayer_pointer_class.o
+
 
 #tests for buffer layer
 test_bf_layer_module.o:\
