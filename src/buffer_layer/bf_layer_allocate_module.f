@@ -299,7 +299,8 @@
           do k=1, ne
              do j=1, 2*bc_size
                 do i=1, interior_i_max1
-                   bf_nodes(i_min1+i,j+1,k) = interior_nodes(i_match+i,j_match+j,k)
+                   bf_nodes(i_min1+i,j+size(bf_nodes,2)-2*bc_size,k) =
+     $                  interior_nodes(i_match+i,j_match+j,k)
                 end do
              end do
           end do
@@ -369,7 +370,8 @@
           do k=1, ne
              do j=1, interior_j_max1
                 do i=1, 2*bc_size
-                   bf_nodes(i+1,j_min1+j,k) = interior_nodes(i_match+i,j_match+j,k)
+                   bf_nodes(i+size(bf_nodes,1)-2*bc_size,j_min1+j,k) =
+     $                  interior_nodes(i_match+i,j_match+j,k)
                 end do
              end do
           end do
@@ -474,7 +476,7 @@
      $         outside_i_max1, outside_i_max2,
      $         interior_i_max1,
      $         i_min1, i_min3, i_min4,
-     $         1)          
+     $         size(bf_grdpts_id,2)-2*bc_size)       
 
         end subroutine allocate_grdpts_id_S
 
