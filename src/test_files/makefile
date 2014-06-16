@@ -189,6 +189,7 @@ cleanall:
 
 #buffer layer dep
 $(bf_layer_dir)/parameters_bf_layer.o:\
+	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o
 
 $(bf_layer_dir)/bf_layer_errors_module.o:

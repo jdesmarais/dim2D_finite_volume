@@ -42,7 +42,8 @@
         use parameters_bf_layer         , only : bc_pt, bc_interior_pt,
      $                                           interior_pt, no_pt,
      $                                           align_N, align_S,
-     $                                           align_E, align_W
+     $                                           align_E, align_W,
+     $                                           bf_neighbors, bf_neighbors_id
 
         use parameters_constant         , only : N,S,E,W,
      $                                           x_direction, y_direction,
@@ -780,29 +781,35 @@ c$$$        end function get_neighbor_index
 
           implicit none
 
-          class(bf_layer), intent(in) :: this
-          integer        , intent(out):: neighbor1_id
-          integer        , intent(out):: neighbor_index
+          class(bf_layer)          , intent(in) :: this
+          integer                  , intent(out):: neighbor1_id
+          integer        , optional, intent(out):: neighbor_index
 
-          select case(this%localization)
-            case(N)
-               neighbor1_id   = W
-               neighbor_index = 2
-            case(S)
-               neighbor1_id   = W
-               neighbor_index = 1
-            case(E)
-               neighbor1_id   = S
-               neighbor_index = 2
-            case(W)
-               neighbor1_id   = S
-               neighbor_index = 1
-            case default
-               call error_mainlayer_id(
-     $              'bf_layer_class.f',
-     $              'get_neighbor1_id',
-     $              this%localization)
-          end select 
+
+          neighbor1_id    = bf_neighbors(this%localization,1)
+          if(present(neighbor_index)) then
+             neighbor_index  = bf_neighbors_id(this%localization)
+          end if
+          
+c$$$          select case(this%localization)
+c$$$            case(N)
+c$$$               neighbor1_id   = W
+c$$$               neighbor_index = 2
+c$$$            case(S)
+c$$$               neighbor1_id   = W
+c$$$               neighbor_index = 1
+c$$$            case(E)
+c$$$               neighbor1_id   = S
+c$$$               neighbor_index = 2
+c$$$            case(W)
+c$$$               neighbor1_id   = S
+c$$$               neighbor_index = 1
+c$$$            case default
+c$$$               call error_mainlayer_id(
+c$$$     $              'bf_layer_class.f',
+c$$$     $              'get_neighbor1_id',
+c$$$     $              this%localization)
+c$$$          end select 
 
         end subroutine get_neighbor1_id
 
@@ -812,29 +819,35 @@ c$$$        end function get_neighbor_index
 
           implicit none
 
-          class(bf_layer), intent(in) :: this
-          integer        , intent(out):: neighbor2_id
-          integer        , intent(out):: neighbor_index
+          class(bf_layer)          , intent(in) :: this
+          integer                  , intent(out):: neighbor2_id
+          integer        , optional, intent(out):: neighbor_index
 
-          select case(this%localization)
-            case(N)
-               neighbor2_id   = E
-               neighbor_index = 2
-            case(S)
-               neighbor2_id   = E
-               neighbor_index = 1
-            case(E)
-               neighbor2_id   = N
-               neighbor_index = 2
-            case(W)
-               neighbor2_id   = N
-               neighbor_index = 1
-            case default
-               call error_mainlayer_id(
-     $              'bf_layer_class.f',
-     $              'get_neighbor1_id',
-     $              this%localization)
-          end select 
+          neighbor2_id    = bf_neighbors(this%localization,2)
+
+          if(present(neighbor_index)) then
+             neighbor_index  = bf_neighbors_id(this%localization)
+          end if
+
+c$$$          select case(this%localization)
+c$$$            case(N)
+c$$$               neighbor2_id   = E
+c$$$               neighbor_index = 2
+c$$$            case(S)
+c$$$               neighbor2_id   = E
+c$$$               neighbor_index = 1
+c$$$            case(E)
+c$$$               neighbor2_id   = N
+c$$$               neighbor_index = 2
+c$$$            case(W)
+c$$$               neighbor2_id   = N
+c$$$               neighbor_index = 1
+c$$$            case default
+c$$$               call error_mainlayer_id(
+c$$$     $              'bf_layer_class.f',
+c$$$     $              'get_neighbor1_id',
+c$$$     $              this%localization)
+c$$$          end select 
 
         end subroutine get_neighbor2_id
 
@@ -858,98 +871,6 @@ c$$$        end function get_neighbor_index
      $         this%alignment, neighbor%alignment)
           
         end function shares_grdpts_along_x_dir_with
-
-
-c$$$        !< get neighbor2_id
-c$$$        subroutine get_neighbor1_and_2_ids(this,
-c$$$     $     neighbor1_id,
-c$$$     $     neighbor2_id,
-c$$$     $     neighbor_index)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer), intent(in) :: this
-c$$$          integer        , intent(out):: neighbor1_id
-c$$$          integer        , intent(out):: neighbor2_id
-c$$$          integer        , intent(out):: neighbor_index
-c$$$
-c$$$          select case(this%localization)
-c$$$            case(N)
-c$$$               neighbor1_id   = W
-c$$$               neighbor2_id   = E
-c$$$               neighbor_index = 1
-c$$$            case(S)
-c$$$               neighbor1_id   = W
-c$$$               neighbor2_id   = E
-c$$$               neighbor_index = 2
-c$$$            case(E)
-c$$$               neighbor1_id   = S
-c$$$               neighbor2_id   = N
-c$$$               neighbor_index = 1
-c$$$            case(W)
-c$$$               neighbor1_id   = S
-c$$$               neighbor2_id   = N
-c$$$               neighbor_index = 2
-c$$$            case default
-c$$$               call error_mainlayer_id(
-c$$$     $              'bf_layer_class.f',
-c$$$     $              'get_neighbor1_id',
-c$$$     $              this%localization)
-c$$$          end select 
-c$$$
-c$$$        end subroutine get_neighbor1_and_2_ids
-
-
-c$$$        !< check if the current buffer layer share gridpoints with
-c$$$        !> a neighboring main layer
-c$$$        function shares_grdpts_with_neighbor1(this)
-c$$$     $     result(share_grdpts)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer), intent(in) :: this
-c$$$          logical                     :: share_grdpts
-c$$$
-c$$$
-c$$$          select case(this%localization)
-c$$$            case(N,S)
-c$$$               share_grdpts = this%alignment(1,1).le.(align_W+bc_size)
-c$$$            case(E,W)
-c$$$               share_grdpts = this%alignment(2,1).le.(align_S+bc_size)
-c$$$            case default
-c$$$               call error_mainlayer_id(
-c$$$     $              'nbf_interface_class.f',
-c$$$     $              'share_grdpts_with_neighbor1',
-c$$$     $              this%localization)
-c$$$          end select
-c$$$
-c$$$        end function shares_grdpts_with_neighbor1
-c$$$
-c$$$
-c$$$        !< check if the current buffer layer share gridpoints with
-c$$$        !> a neighboring main layer
-c$$$        function shares_grdpts_with_neighbor2(this)
-c$$$     $     result(shares_grdpts)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer), intent(in) :: this
-c$$$          logical                     :: shares_grdpts
-c$$$
-c$$$
-c$$$          select case(this%localization)
-c$$$            case(N,S)
-c$$$               shares_grdpts = this%alignment(1,2).ge.(align_E-bc_size)
-c$$$            case(E,W)
-c$$$               shares_grdpts = this%alignment(2,2).ge.(align_N-bc_size)
-c$$$            case default
-c$$$               call error_mainlayer_id(
-c$$$     $              'nbf_interface_class.f',
-c$$$     $              'share_grdpts_with_neighbor2',
-c$$$     $              this%localization)
-c$$$          end select
-c$$$
-c$$$        end function shares_grdpts_with_neighbor2
 
 
         !> copy the exchange layer between the current buffer layer
@@ -1616,6 +1537,7 @@ c$$$        end function shares_grdpts_with_neighbor2
      $         this%localization,
      $         this%alignment,
      $         bf_match_table,
+     $         this%grdpts_id,
      $         this%nodes,
      $         interior_nodes)
 

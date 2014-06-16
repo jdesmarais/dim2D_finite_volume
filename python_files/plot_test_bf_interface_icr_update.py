@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
 
     #plot the tests
-    for i in range(0,10):
+    for i in range(0,8):
         
     	#extract data for the interior points and the buffer layers
     	#-----------------------------------------------------------------
@@ -66,7 +66,7 @@ if __name__ == "__main__":
                                                                      suffix_size,
                                                                      suffix_nodes,
                                                                      suffix_grdptid,
-                                                                     continuous=False)
+                                                                     continuous=True)
 
         #extract detector informations
         N_detector_filename = folder_path+'/N_detectors'+test_index+'.dat'

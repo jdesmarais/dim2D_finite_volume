@@ -231,8 +231,8 @@ def make_matrix_for_all_bf_layers(
             #    print filename+': does not exist'
 
     #the sizes of the buffer layers are now determined
-    bf_tmp_size_x = size_x
-    bf_tmp_size_y = size_y
+    bf_tmp_size_x = 25 #size_x
+    bf_tmp_size_y = 25 #size_y
 
     #interspace
     interspace = 2

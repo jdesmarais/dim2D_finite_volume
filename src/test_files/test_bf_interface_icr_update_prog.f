@@ -14,7 +14,7 @@
         type(bf_interface_icr)              :: interface_used
         real(rkind)   , dimension(nx,ny,ne) :: interior_nodes
         integer       , dimension(nx,ny)    :: grdpts_id
-        integer       , parameter           :: test_case=8
+        integer       , parameter           :: test_case=5
 
         integer :: i
 
@@ -22,12 +22,14 @@
         real(rkind) :: dy
 
         integer :: timestep
+        integer :: file_index
 
         dx = 1.0d0/(nx-2*bc_size)
         dy = 1.0d0/(ny-2*bc_size)
 
 
         timestep = 0
+        file_index = 0
 
         !initialization of the grdpts_id
         call ini_grdpts_id(grdpts_id)
@@ -45,13 +47,14 @@
         call print_state(
      $       interior_nodes, grdpts_id,
      $       interface_used,
-     $       timestep)
+     $       file_index)
+        file_index = file_index+1
 
         timestep = timestep+1
 
 
         !update the buffer layers
-        do i=1,9
+        do i=1,30
 
            call interface_used%update_bf_layers_with_idetectors(
      $          interior_nodes, dx, dy)
@@ -61,10 +64,13 @@
      $          timestep,dx,dy,
      $          interior_nodes, interface_used)
 
-           call print_state(
-     $          interior_nodes, grdpts_id,
-     $          interface_used,
-     $          timestep)
+           if(mod(timestep,4).eq.0) then
+              call print_state(
+     $             interior_nodes, grdpts_id,
+     $             interface_used,
+     $             file_index)
+              file_index = file_index+1
+           end if
 
            timestep = timestep+1
 

@@ -70,5 +70,8 @@
         integer, parameter :: compute_and_exchange_proc=1
         integer, parameter :: only_exchange_proc=2
 
+
+        !integer, dimension(4,2)  , parameter :: neighbors = (/(/W,W,S,S/),(/E,E,N,N/)/)
+
       end module parameters_constant
 

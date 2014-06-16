@@ -71,7 +71,6 @@
           
           procedure, nopass, private :: shares_with_neighbor1
           procedure, nopass, private :: shares_with_neighbor2
-          procedure, nopass          :: get_neighbor_id
 
           procedure, pass :: get_nbf_layers_sharing_grdpts_with
           procedure, pass :: bf_layer_depends_on_neighbors
@@ -194,52 +193,6 @@
          end select
 
        end function shares_with_neighbor2
-
-
-       !< get the neighbor index such that the neighbori of mainlayer
-       !> is mainlayer2
-       function get_neighbor_id(mainlayer1_id, mainlayer2_id)
-       
-         implicit none
-
-         integer, intent(in) :: mainlayer1_id
-         integer, intent(in) :: mainlayer2_id
-         integer             :: get_neighbor_id
-
-
-         select case(mainlayer1_id)
-           case(N,S)
-              select case(mainlayer2_id)
-                case(W)
-                   get_neighbor_id = 1
-                case(E)
-                   get_neighbor_id = 2
-                case default
-                   call error_incompatible_neighbor(
-     $                  'bf_interface_class.f',
-     $                  'get_neighbor_id',
-     $                  mainlayer1_id, mainlayer2_id)
-                end select
-             case(E,W)
-                select case(mainlayer2_id)
-                  case(S)
-                     get_neighbor_id = 1
-                  case(N)
-                     get_neighbor_id = 2
-                  case default
-                     call error_incompatible_neighbor(
-     $                  'bf_interface_class.f',
-     $                  'get_neighbor_id',
-     $                  mainlayer1_id, mainlayer2_id)
-                end select
-             case default
-                call error_mainlayer_id(
-     $               'bf_interface_class.f',
-     $               'get_neighbor_id',
-     $               mainlayer1_id)
-           end select
-
-       end function get_neighbor_id
 
 
        !< allocate a buffer sublayer and insert it in the corresponding

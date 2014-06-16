@@ -3,7 +3,8 @@
         use bf_activation_module  , only : are_openbc_undermined
         use bf_layer_errors_module, only : error_mainlayer_id
         use parameters_bf_layer   , only : align_N,align_S,
-     $                                     align_E,align_W
+     $                                     align_E,align_W,
+     $                                     no_pt
         use parameters_constant   , only : N,S,E,W
         use parameters_input      , only : nx,ny,ne,bc_size,search_dcr
         use parameters_kind       , only : ikind, rkind
@@ -41,7 +42,7 @@
         !---------------------------------------------------------------
         function check_if_bf_layer_remains(
      $       bf_localization, bf_alignment, bf_match_table,
-     $       bf_nodes, interior_nodes)
+     $       bf_grdpts_id, bf_nodes, interior_nodes)
      $       result(bf_remains)
 
           implicit none
@@ -49,6 +50,7 @@
           integer                          , intent(in)  :: bf_localization
           integer(ikind), dimension(2,2)   , intent(in)  :: bf_alignment
           integer(ikind), dimension(2)     , intent(in)  :: bf_match_table
+          integer    , dimension(:,:)      , intent(in)  :: bf_grdpts_id
           real(rkind), dimension(:,:,:)    , intent(in)  :: bf_nodes
           real(rkind), dimension(nx,ny,ne) , intent(in)  :: interior_nodes
           logical                                        :: bf_remains
@@ -74,9 +76,8 @@
              !check the neighboring points around the line
              call check_line_neighbors(
      $            bf_coords, in_coords,
-     $            bf_nodes, interior_nodes,
-     $            bf_remains)
-             
+     $            bf_grdpts_id, bf_nodes, interior_nodes,
+     $            bf_remains)             
           
           !if the buffer layer has no grid point in common with the
           !interior domain, it can be removed immediately (the
@@ -214,13 +215,14 @@
         !< check the points around the line
         subroutine check_line_neighbors(
      $     bf_coords, in_coords,
-     $     bf_nodes, interior_nodes,
+     $     bf_grdpts_id, bf_nodes, interior_nodes,
      $     bf_remains)
 
           implicit none
 
           integer(ikind), dimension(2,2)     , intent(in)    :: bf_coords
           integer(ikind), dimension(2,2)     , intent(in)    :: in_coords
+          integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
           real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           logical                            , intent(out)   :: bf_remains
@@ -230,7 +232,7 @@
 
 
           !check the interior points
-          call check_layer(
+          call check_layer_interior(
      $         in_coords,
      $         interior_nodes,
      $         bf_remains)
@@ -238,8 +240,9 @@
           
           !check the buffer layer points
           if(bf_remains) then
-             call check_layer(
+             call check_layer_bf(
      $            bf_coords,
+     $            bf_grdpts_id,
      $            bf_nodes,
      $            bf_remains)
           end if
@@ -253,7 +256,7 @@
         !> conditions. The number of grid points to be checked
         !> is reduced knowing the previous central point investigated
         !> identified by cpt_coords_p
-        subroutine check_layer(
+        subroutine check_layer_interior(
      $     pt_coords,
      $     nodes,
      $     bf_remains)
@@ -285,6 +288,50 @@
 
           end do
 
-        end subroutine check_layer
+        end subroutine check_layer_interior
+
+      
+        !< check if the grid points neighboring the central point
+        !> identified by cpt_coords undermine the open boundary
+        !> conditions. The number of grid points to be checked
+        !> is reduced knowing the previous central point investigated
+        !> identified by cpt_coords_p
+        subroutine check_layer_bf(
+     $     pt_coords,
+     $     grdpts_id,
+     $     nodes,
+     $     bf_remains)
+        
+          implicit none
+          
+          integer(ikind), dimension(2,2)     , intent(in) :: pt_coords
+          integer       , dimension(:,:)     , intent(in) :: grdpts_id
+          real(rkind)   , dimension(:,:,:)   , intent(in) :: nodes
+          logical                            , intent(out):: bf_remains
+          
+          
+          integer(ikind) :: i,j
+
+
+          do j=pt_coords(2,1), pt_coords(2,2)
+             do i=pt_coords(1,1), pt_coords(1,2)
+
+                if(grdpts_id(i,j).ne.no_pt) then
+                   bf_remains = are_openbc_undermined(nodes(i,j,:))
+
+                   if(bf_remains) then
+                      exit
+                   end if
+                end if
+
+             end do
+
+             if(bf_remains) then
+                exit
+             end if
+
+          end do
+
+        end subroutine check_layer_bf
 
       end module bf_layer_remove_module
