@@ -43,6 +43,7 @@
 
           procedure, pass :: get_nbf_layers_sharing_grdpts_with
           procedure, pass :: bf_layer_depends_on_neighbors
+          procedure, pass :: does_a_neighbor_remains
 
           procedure, pass :: print_on_screen
 
@@ -332,6 +333,35 @@
      $         bf_sublayer_i)
 
         end function bf_layer_depends_on_neighbors
+
+
+        !> check if one of the neighboring buffer layer remains
+        function does_a_neighbor_remains(
+     $     this, nbf_type, bf_sublayer_i, bf_mainlayer_id)
+     $     result(a_neighbor_remains)
+
+          implicit none
+
+          class(nbf_interface)      , intent(in)    :: this
+          integer                   , intent(in)    :: nbf_type
+          type(bf_sublayer), pointer, intent(in)    :: bf_sublayer_i
+          integer         , optional, intent(in)    :: bf_mainlayer_id
+          logical                                   :: a_neighbor_remains
+
+
+          integer :: mainlayer_id
+
+
+          if(present(bf_mainlayer_id)) then
+             mainlayer_id = bf_mainlayer_id
+          else
+             mainlayer_id = bf_sublayer_i%get_localization()
+          end if
+
+          a_neighbor_remains = this%nbf_links(mainlayer_id,nbf_type)%does_a_neighbor_remains(
+     $         bf_sublayer_i)
+
+        end function does_a_neighbor_remains
 
 
         !> print the neighboring links between sublayers on screen

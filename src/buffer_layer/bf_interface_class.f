@@ -74,6 +74,7 @@
 
           procedure, pass :: get_nbf_layers_sharing_grdpts_with
           procedure, pass :: bf_layer_depends_on_neighbors
+          procedure, pass :: does_a_neighbor_remains
 
           procedure, pass :: print_binary
 
@@ -780,6 +781,7 @@ c$$$          stop 'not implemented yet'
        end function get_sublayer
 
 
+       !< extract the nodes at a general coordinates asked by the user
        function get_nodes(this, g_coords, interior_nodes) result(var)
 
          implicit none
@@ -871,7 +873,7 @@ c$$$          stop 'not implemented yet'
        !< determine the neighboring buffer layers sharing grid points
        !> with the current buffer layer
        subroutine get_nbf_layers_sharing_grdpts_with(
-     $     this, bf_sublayer_i, nbf1_list, nbf2_list)
+     $     this, bf_sublayer_i, nbf1_list, nbf2_list, bf_mainlayer_id)
 
          implicit none
          
@@ -879,14 +881,20 @@ c$$$          stop 'not implemented yet'
          type(bf_sublayer), pointer, intent(in)    :: bf_sublayer_i
          type(sbf_list)            , intent(inout) :: nbf1_list
          type(sbf_list)            , intent(inout) :: nbf2_list
+         integer         , optional, intent(in)    :: bf_mainlayer_id
 
 
          !determine inside the list of neighboring buffer layer of
          !type 1 which ones share grid points with the current
          !buffer layer
          if(bf_sublayer_i%can_exchange_with_neighbor1()) then
-            call this%border_interface%get_nbf_layers_sharing_grdpts_with(
-     $           1, bf_sublayer_i, nbf1_list)
+            if(present(bf_mainlayer_id)) then
+               call this%border_interface%get_nbf_layers_sharing_grdpts_with(
+     $              1, bf_sublayer_i, nbf1_list, bf_mainlayer_id)
+            else
+               call this%border_interface%get_nbf_layers_sharing_grdpts_with(
+     $              1, bf_sublayer_i, nbf1_list)
+            end if
          end if
 
 
@@ -894,8 +902,13 @@ c$$$          stop 'not implemented yet'
          !type 2 which ones share grid points with the current
          !buffer layer
          if(bf_sublayer_i%can_exchange_with_neighbor2()) then
-            call this%border_interface%get_nbf_layers_sharing_grdpts_with(
-     $           2, bf_sublayer_i, nbf2_list)
+            if(present(bf_mainlayer_id)) then
+               call this%border_interface%get_nbf_layers_sharing_grdpts_with(
+     $              2, bf_sublayer_i, nbf2_list, bf_mainlayer_id)
+            else
+               call this%border_interface%get_nbf_layers_sharing_grdpts_with(
+     $              2, bf_sublayer_i, nbf2_list)
+            end if
          end if         
 
        end subroutine get_nbf_layers_sharing_grdpts_with
@@ -903,13 +916,14 @@ c$$$          stop 'not implemented yet'
 
        !< determine whether a buffer layer depends on its neighboring
        !> buffer layers
-       function bf_layer_depends_on_neighbors(this,bf_sublayer_i)
+       function bf_layer_depends_on_neighbors(this, bf_sublayer_i, bf_mainlayer_id)
      $     result(dependent)
 
          implicit none
 
          class(bf_interface)       , intent(in) :: this
          type(bf_sublayer), pointer, intent(in) :: bf_sublayer_i
+         integer         , optional, intent(in) :: bf_mainlayer_id
          logical                                :: dependent
        
          
@@ -917,8 +931,13 @@ c$$$          stop 'not implemented yet'
          !with its neighborign buffer layers of type 1
          if(bf_sublayer_i%can_exchange_with_neighbor1()) then
             
-            dependent = this%border_interface%bf_layer_depends_on_neighbors(
-     $           1, bf_sublayer_i)
+            if(present(bf_mainlayer_id)) then
+               dependent = this%border_interface%bf_layer_depends_on_neighbors(
+     $              1, bf_sublayer_i, bf_mainlayer_id)
+            else
+               dependent = this%border_interface%bf_layer_depends_on_neighbors(
+     $              1, bf_sublayer_i)
+            end if
          else
             dependent = .false.
          end if
@@ -930,8 +949,14 @@ c$$$          stop 'not implemented yet'
             
             if(bf_sublayer_i%can_exchange_with_neighbor2()) then
                
-               dependent = this%border_interface%bf_layer_depends_on_neighbors(
-     $              2, bf_sublayer_i)
+               if(present(bf_mainlayer_id)) then
+                  dependent = this%border_interface%bf_layer_depends_on_neighbors(
+     $                 2, bf_sublayer_i, bf_mainlayer_id)
+               else
+                  dependent = this%border_interface%bf_layer_depends_on_neighbors(
+     $                 2, bf_sublayer_i)
+               end if
+
             else
                dependent = .false.
             end if
@@ -939,6 +964,59 @@ c$$$          stop 'not implemented yet'
          end if
 
        end function bf_layer_depends_on_neighbors
+
+
+       !< check if one among the neighboring buffer layers cannot be removed
+       function does_a_neighbor_remains(this, bf_sublayer_i, bf_mainlayer_id)
+     $     result(a_neighbor_remains)
+
+         implicit none
+
+         class(bf_interface)       , intent(in) :: this
+         type(bf_sublayer), pointer, intent(in) :: bf_sublayer_i
+         integer         , optional, intent(in) :: bf_mainlayer_id
+         logical                                :: a_neighbor_remains
+
+
+         !determine if the buffer layer is sharing grid points
+         !with its neighborign buffer layers of type 1
+         if(bf_sublayer_i%can_exchange_with_neighbor1()) then
+            
+            if(present(bf_mainlayer_id)) then
+               a_neighbor_remains = this%border_interface%does_a_neighbor_remains(
+     $              1, bf_sublayer_i, bf_mainlayer_id)
+            else
+               a_neighbor_remains = this%border_interface%does_a_neighbor_remains(
+     $              1, bf_sublayer_i)
+            end if
+
+         else
+            a_neighbor_remains = .false.
+
+         end if
+         
+
+         !determine if the buffer layer is sharing grid points
+         !with its neighborign buffer layers of type 2
+         if(.not.a_neighbor_remains) then
+            
+            if(bf_sublayer_i%can_exchange_with_neighbor2()) then
+               
+               if(present(bf_mainlayer_id)) then
+                  a_neighbor_remains = this%border_interface%does_a_neighbor_remains(
+     $                 2, bf_sublayer_i, bf_mainlayer_id)
+               else
+                  a_neighbor_remains = this%border_interface%does_a_neighbor_remains(
+     $                 2, bf_sublayer_i)
+               end if
+
+            else
+               a_neighbor_remains = .false.
+            end if
+            
+         end if
+
+       end function does_a_neighbor_remains
 
 
        !< print the content of the interface on external binary files

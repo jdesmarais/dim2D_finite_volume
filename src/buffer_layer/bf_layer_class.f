@@ -140,6 +140,7 @@
           procedure, nopass, private :: check_gridpoint
           
           procedure,   pass :: set_remain_status
+          procedure,   pass :: get_remain_status
           procedure,   pass :: should_remain
           
           procedure,   pass :: print_binary
@@ -1518,6 +1519,20 @@ c$$$          end select
           this%can_remain = remain_state
           
         end subroutine set_remain_status
+
+
+        !< get the remain status saying if the buffer layer
+        !> should not be removed
+        function get_remain_status(this)
+
+          implicit none
+
+          class(bf_layer), intent(in) :: this
+          logical                     :: get_remain_status
+
+          get_remain_status = this%can_remain
+
+        end function get_remain_status 
 
 
         !< check whether the buffer layer should remain

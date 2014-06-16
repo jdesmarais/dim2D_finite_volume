@@ -43,6 +43,7 @@
           procedure, pass :: copy_to_neighbor1_from
           procedure, pass :: copy_to_neighbor2_from
           procedure, pass :: shares_grdpts_along_x_dir_with
+          procedure, pass :: get_remain_status
 
         end type nbf_element
 
@@ -397,5 +398,19 @@ c$$$        end function can_exchange_with
           share = this%ptr%shares_grdpts_along_x_dir_with(neighbor)
           
         end function shares_grdpts_along_x_dir_with
+
+
+        !< check whether the buffer layer should remain
+        !> or not
+        function get_remain_status(this)
+
+          implicit none
+
+          class(nbf_element), intent(in) :: this
+          logical                        :: get_remain_status
+
+          get_remain_status = this%ptr%get_remain_status()
+
+        end function get_remain_status
 
       end module nbf_element_class

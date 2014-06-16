@@ -184,6 +184,12 @@
         !has neighbor dependencies and colorize the neighbors
         call test_get_nbf_layers_sharing_grdpts_with(interface_tested)
 
+        
+        !test if the neighboring buffer layers will be removed
+        !-------------------------------------------------------
+        call test_does_a_neighbor_remains(interface_tested)
+
+
         contains
 
         subroutine get_alignment(
@@ -515,6 +521,76 @@
           end do
 
         end subroutine test_get_nbf_layers_sharing_grdpts_with
+
+
+        !< test whether the neighboring buffer layers remain
+        subroutine test_does_a_neighbor_remains(interface_used)
+
+          implicit none
+
+          class(bf_interface), intent(in) :: interface_used
+
+          integer :: k,l
+          type(bf_mainlayer), pointer    :: mainlayer_ptr
+          type(bf_sublayer) , pointer    :: sublayer_ptr
+          integer                        :: nb_sublayers
+
+          logical :: a_neighbor_remains          
+
+          
+          !set the remain status of the buffer layers to .true.
+          do k=1,4           
+
+             mainlayer_ptr => interface_used%get_mainlayer(k)
+             
+             if(associated(mainlayer_ptr)) then
+                nb_sublayers = mainlayer_ptr%get_nb_sublayers()
+                
+                sublayer_ptr => mainlayer_ptr%get_head_sublayer()
+                
+                do l=1, nb_sublayers
+
+                   call sublayer_ptr%set_remain_status(.true.)
+                   sublayer_ptr => sublayer_ptr%get_next()
+
+                end do
+
+             end if
+
+          end do
+
+          
+          !test if removal is approved
+          do k=1,4           
+
+             mainlayer_ptr => interface_used%get_mainlayer(k)
+             
+             print '(''mainlayer '',I2)', k
+             print '(''---------------'')'
+
+             if(associated(mainlayer_ptr)) then
+                nb_sublayers = mainlayer_ptr%get_nb_sublayers()
+                
+                sublayer_ptr => mainlayer_ptr%get_head_sublayer()
+                
+                do l=1, nb_sublayers
+
+                   a_neighbor_remains = interface_used%does_a_neighbor_remains(
+     $                  sublayer_ptr,k)
+
+                   print '(''sublayer '',I2,'': '',L1)', l, a_neighbor_remains
+
+                   sublayer_ptr => sublayer_ptr%get_next()
+
+                end do
+
+             end if
+
+             print '()'
+
+          end do
+
+        end subroutine test_does_a_neighbor_remains
 
       
         !< colorize the main layer whose dependencies are deterimed

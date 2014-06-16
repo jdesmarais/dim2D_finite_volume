@@ -43,7 +43,8 @@
 
           procedure, pass :: get_nbf_layers_sharing_grdpts_with
           procedure, pass :: bf_layer_depends_on_neighbors
-          
+          procedure, pass :: does_a_neighbor_remains
+
           procedure, pass, private :: add_element
           procedure, pass, private :: remove_element
 
@@ -401,6 +402,35 @@
           end do
 
         end function bf_layer_depends_on_neighbors
+
+
+        !< check if a neighbor remains
+        function does_a_neighbor_remains(this, bf_sublayer_i) result(a_neighbor_remains)
+
+          implicit none
+
+          class(nbf_list)           , intent(in)    :: this
+          type(bf_sublayer), pointer, intent(in)    :: bf_sublayer_i
+          logical                                   :: a_neighbor_remains
+
+          type(nbf_element), pointer :: current_element
+          integer                    :: k
+
+          a_neighbor_remains = .false.
+
+          current_element => this%head
+
+          do k=1, this%nb_elements
+             if(current_element%shares_grdpts_along_x_dir_with(bf_sublayer_i)) then
+                if(current_element%get_remain_status()) then
+                   a_neighbor_remains = .true.
+                   exit
+                end if
+             end if
+             current_element => current_element%get_next()
+          end do
+
+        end function does_a_neighbor_remains
 
 
         !< add element in the chained list and its position
