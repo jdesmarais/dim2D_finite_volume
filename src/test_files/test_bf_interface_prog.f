@@ -4,6 +4,7 @@
       !encapsulating the buffer layer objects      
       program test_bf_interface_prog
 
+        use bf_mainlayer_class  , only : bf_mainlayer
         use bf_sublayer_class   , only : bf_sublayer
         use bf_interface_class  , only : bf_interface
         use parameters_bf_layer , only : align_N, align_S,
@@ -16,6 +17,7 @@
      $                                   ini_nodes,
      $                                   ini_grdpts_id,
      $                                   ini_cst_nodes
+        use sbf_list_class      , only : sbf_list
 
 
         implicit none
@@ -30,6 +32,9 @@
         type(bf_sublayer), pointer          :: bf_sublayer_merged2
         type(bf_sublayer), pointer          :: bf_sublayer_reallocated
         real(rkind)                         :: scale
+
+
+        integer :: i
 
 
         !initialize the nodes and print them
@@ -151,6 +156,34 @@
      $       'sizes5.dat',
      $       '5.dat')
 
+        
+        !add more sublayers on N,S
+        do i=11,16
+           call get_alignment(i, alignment, mainlayer_id)
+           added_sublayer => interface_tested%allocate_sublayer(
+     $          mainlayer_id, nodes, alignment)
+        end do
+
+        call interface_tested%print_binary(
+     $       'nodes6.dat',
+     $       'grdpt_id6.dat',
+     $       'sizes6.dat',
+     $       '6.dat')
+
+
+        !test bf_depends_on_neighbors
+        !-------------------------------------------------------
+        !for each sublayer in each mainlayer, test if the buffer layer
+        !depends on neighbors
+        call test_bf_layer_depends_on_neighbors(interface_tested)
+        
+
+        !test get_nbf_layers_sharing_grdpts_with
+        !-------------------------------------------------------
+        !for each sublayer in each mainlayer, test if the buffer layer
+        !has neighbor dependencies and colorize the neighbors
+        call test_get_nbf_layers_sharing_grdpts_with(interface_tested)
+
         contains
 
         subroutine get_alignment(
@@ -251,11 +284,338 @@
                alignment(2,1) = align_S+1
                alignment(2,2) = align_S+large_layer+small_layer
 
+            !north outside allocation N_W
+            case(11)
+               mainlayer_id   = N
+               alignment(1,1) = align_W-2*large_layer-small_layer
+               alignment(1,2) = alignment(1,1)+small_layer
+               alignment(2,1) = align_N
+               alignment(2,2) = align_N               
+
+            !north inside allocation
+            case(12)
+               mainlayer_id   = N
+               alignment(1,1) = align_W+2*large_layer
+               alignment(1,2) = alignment(1,1)+small_layer
+               alignment(2,1) = align_N
+               alignment(2,2) = align_N
+
+            !north outside allocation N_E
+            case(13)
+               mainlayer_id   = N
+               alignment(1,1) = align_E+2*large_layer
+               alignment(1,2) = alignment(1,1)+small_layer
+               alignment(2,1) = align_N
+               alignment(2,2) = align_N
+
+            !south outside allocation S_W
+            case(14)
+               mainlayer_id   = S
+               alignment(1,1) = align_W-2*large_layer-small_layer
+               alignment(1,2) = alignment(1,1)+small_layer
+               alignment(2,1) = align_S
+               alignment(2,2) = align_S               
+
+            !south inside allocation
+            case(15)
+               mainlayer_id   = S
+               alignment(1,1) = align_W+2*large_layer
+               alignment(1,2) = alignment(1,1)+small_layer
+               alignment(2,1) = align_S
+               alignment(2,2) = align_S
+
+            !south outside allocation S_E
+            case(16)
+               mainlayer_id   = S
+               alignment(1,1) = align_E+2*large_layer
+               alignment(1,2) = alignment(1,1)+small_layer
+               alignment(2,1) = align_S
+               alignment(2,2) = align_S
+
             case default
                print '(''case not implemented'')'
                stop ''
           end select               
 
         end subroutine get_alignment
+
+
+        !< initialize the nodes using a constant variable
+        subroutine ini_cst(nodes, color_i)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(out) :: nodes
+          real(rkind)        , optional, intent(in)  :: color_i
+
+          integer(ikind) :: i,j
+          real(rkind) :: color
+
+          if(present(color_i)) then
+             color = color_i
+          else
+             color = 1.0
+          end if
+
+          do j=1, size(nodes,2)
+             do i=1, size(nodes,1)
+                nodes(i,j,1)  = color
+             end do
+          end do
+
+        end subroutine ini_cst
+
+
+        !re-initialize the nodes of all sublayers
+        subroutine reinitialize_nodes(interface_used)
+
+          implicit none
+
+          class(bf_interface), intent(inout) :: interface_used
+
+          integer :: k,l
+          type(bf_mainlayer), pointer :: mainlayer_ptr
+          type(bf_sublayer) , pointer :: sublayer_ptr
+          integer                     :: nb_sublayers
+          integer(ikind), dimension(2):: sizes
+          real(rkind), dimension(:,:,:), allocatable :: new_nodes
+          
+          
+          do k=1,4
+
+             mainlayer_ptr => interface_used%get_mainlayer(k)
+
+             if(associated(mainlayer_ptr)) then
+                nb_sublayers = mainlayer_ptr%get_nb_sublayers()
+
+                sublayer_ptr => mainlayer_ptr%get_head_sublayer()
+
+                do l=1, nb_sublayers
+                   sizes = sublayer_ptr%get_sizes()
+                   allocate(new_nodes(sizes(1), sizes(2), ne))
+                   call ini_cst(new_nodes)
+                   call sublayer_ptr%set_nodes(new_nodes)
+                   sublayer_ptr => sublayer_ptr%get_next()
+                end do
+
+             end if
+
+          end do          
+
+        end subroutine reinitialize_nodes
+
+
+        !test bf_layer
+        subroutine test_bf_layer_depends_on_neighbors(interface_used)
+        
+          implicit none
+
+          class(bf_interface), intent(inout) :: interface_used
+
+          integer :: k,l
+          type(bf_mainlayer), pointer    :: mainlayer_ptr
+          type(bf_sublayer) , pointer    :: sublayer_ptr
+          integer                        :: nb_sublayers
+          logical                        :: dependent
+          integer(ikind), dimension(2,2) :: alignment
+
+
+          do k=1,4
+             
+             print '(''mainlayer_id: '',I1)', k
+             print '(''----------------'')'
+
+             mainlayer_ptr => interface_used%get_mainlayer(k)
+             
+             if(associated(mainlayer_ptr)) then
+                nb_sublayers = mainlayer_ptr%get_nb_sublayers()
+                
+                sublayer_ptr => mainlayer_ptr%get_head_sublayer()
+                
+                do l=1, nb_sublayers
+                   
+                   dependent = interface_used%bf_layer_depends_on_neighbors(sublayer_ptr)
+                   alignment = sublayer_ptr%get_alignment_tab()
+                   
+                   print '(''sublayer '', ''('',4I3,'') dep: '',L1)',
+     $                  alignment(1,1), alignment(1,2),
+     $                  alignment(2,1), alignment(2,2),
+     $                  dependent
+
+                   sublayer_ptr => sublayer_ptr%get_next()
+                end do
+                
+             end if
+             
+             print '()'
+             
+          end do
+
+        end subroutine test_bf_layer_depends_on_neighbors
+
+
+        !> test for the dependencies
+        subroutine test_get_nbf_layers_sharing_grdpts_with(interface_used)
+
+          implicit none
+
+          class(bf_interface), intent(inout) :: interface_used
+
+
+          integer :: k,l
+          type(bf_mainlayer), pointer    :: mainlayer_ptr
+          type(bf_sublayer) , pointer    :: sublayer_ptr
+          integer                        :: nb_sublayers
+          type(sbf_list) :: nbf1_list
+          type(sbf_list) :: nbf2_list
+          integer        :: file_index
+
+          
+          file_index = 7
+
+          do k=1,4           
+
+             mainlayer_ptr => interface_used%get_mainlayer(k)
+             
+             if(associated(mainlayer_ptr)) then
+                nb_sublayers = mainlayer_ptr%get_nb_sublayers()
+                
+                sublayer_ptr => mainlayer_ptr%get_head_sublayer()
+                
+                do l=1, nb_sublayers
+
+                   call reinitialize_nodes(interface_used)
+
+                   call nbf1_list%ini(8)
+                   call nbf2_list%ini(8)
+
+                   call interface_used%get_nbf_layers_sharing_grdpts_with(
+     $                  sublayer_ptr, nbf1_list, nbf2_list)
+
+                   !colorize the mainlayer in red
+                   call colorize_main(sublayer_ptr)
+
+                   !colorize the neighbors in green
+                   call colorize_neighbors(nbf1_list)
+                   call colorize_neighbors(nbf2_list)
+
+                   call nbf1_list%destroy()
+                   call nbf2_list%destroy()
+
+                   !print the result on output files
+                   call print_output(interface_used, file_index)
+
+                   file_index = file_index+1
+
+                   sublayer_ptr => sublayer_ptr%get_next()
+                end do
+
+             end if
+
+          end do
+
+        end subroutine test_get_nbf_layers_sharing_grdpts_with
+
+      
+        !< colorize the main layer whose dependencies are deterimed
+        subroutine colorize_main(sublayer_used)
+
+          implicit none
+
+          type(bf_sublayer), intent(inout) :: sublayer_used
+
+          integer(ikind), dimension(2) :: sizes
+          real(rkind), dimension(:,:,:), allocatable :: new_nodes
+
+          sizes = sublayer_used%get_sizes()
+          allocate(new_nodes(sizes(1), sizes(2), ne))
+          
+          call ini_cst(new_nodes, 0.9d0)
+
+          call sublayer_used%set_nodes(new_nodes)
+
+        end subroutine colorize_main
+
+
+        !< colorize the main layer whose dependencies are deterimed
+        subroutine colorize_neighbors(sbf_list_used)
+
+          implicit none
+
+          type(sbf_list), intent(inout) :: sbf_list_used
+
+          
+          integer                      :: nb_ele
+          integer                      :: k
+          type(bf_sublayer), pointer   :: sublayer_ptr
+          integer(ikind), dimension(2) :: sizes
+          real(rkind)   , dimension(:,:,:), allocatable :: new_nodes
+
+          
+          nb_ele = sbf_list_used%get_nb_ele()
+
+          do k=1, nb_ele
+
+             sublayer_ptr => sbf_list_used%get_ele(k)
+
+             sizes = sublayer_ptr%get_sizes()
+             allocate(new_nodes(sizes(1), sizes(2), ne))
+          
+             call ini_cst(new_nodes, 0.7d0)
+             
+             call sublayer_ptr%set_nodes(new_nodes)
+
+          end do
+
+        end subroutine colorize_neighbors
+
+
+        !print outputs
+        subroutine print_output(interface_used, index)
+
+          implicit none
+
+          class(bf_interface), intent(in) :: interface_used
+          integer            , intent(in) :: index
+
+
+          integer :: format_index
+
+          character(len=15) :: format_nodes
+          character(len=18) :: format_grdpt
+          character(len=10) :: format_nbsbl
+          
+          character(len=11) :: filename_nodes
+          character(len=14) :: filename_grdpt
+          character(len=11) :: filename_sizes
+          character(len=6 ) :: filename_nbsbl
+
+
+          !determine the number of integer needed to write the
+          !file index
+          format_index = floor(real(index)/real(10))+1
+          
+
+          !determine the format for the name of the output files
+          write(format_nodes, '(''(A5,I'',I1,'',A4)'')') format_index
+          write(format_grdpt, '(''(A8,I'',I1,'',A4)'')') format_index
+          write(format_nbsbl, '(''(I'',I1,'',A4)'')'  ) format_index
+          
+
+          !determine the name of the output files
+          write(filename_nodes, format_nodes) 'nodes', index, '.dat'
+          write(filename_grdpt, format_grdpt) 'grdpt_id', index, '.dat'
+          write(filename_sizes, format_nodes) 'sizes', index, '.dat'
+          write(filename_nbsbl, format_nbsbl) index, '.dat'
+
+
+          !write the outputs
+          call interface_used%print_binary(
+     $         filename_nodes,
+     $         filename_grdpt,
+     $         filename_sizes,
+     $         filename_nbsbl)
+          
+        end subroutine print_output
 
       end program test_bf_interface_prog

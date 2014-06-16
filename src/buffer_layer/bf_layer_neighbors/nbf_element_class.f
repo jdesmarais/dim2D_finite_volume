@@ -42,6 +42,7 @@
           procedure, pass :: copy_from_neighbor2_to
           procedure, pass :: copy_to_neighbor1_from
           procedure, pass :: copy_to_neighbor2_from
+          procedure, pass :: shares_grdpts_along_x_dir_with
 
         end type nbf_element
 
@@ -382,5 +383,19 @@ c$$$        end function can_exchange_with
           !end if
 
         end subroutine copy_to_neighbor2_from
+
+
+        !< check if two buffer layers share grdpts along
+        !> the x direction
+        function shares_grdpts_along_x_dir_with(this, neighbor)
+     $     result(share)
+
+          class(nbf_element), intent(in) :: this
+          class(bf_layer)   , intent(in) :: neighbor
+          logical                        :: share
+
+          share = this%ptr%shares_grdpts_along_x_dir_with(neighbor)
+          
+        end function shares_grdpts_along_x_dir_with
 
       end module nbf_element_class

@@ -32,9 +32,12 @@
      $                                           merge_bf_layers_E,
      $                                           merge_bf_layers_W
 
-        use bf_layer_exchange_module    , only : get_match_indices_for_exchange_with_neighbor1,
+        use bf_layer_exchange_module    , only : do_grdpts_overlap_along_x_dir,
+     $                                           get_match_indices_for_exchange_with_neighbor1,
      $                                           get_match_indices_for_exchange_with_neighbor2,
      $                                           copy_from_bf1_to_bf2
+
+        use bf_layer_remove_module      , only : check_if_bf_layer_remains
                                         
         use parameters_bf_layer         , only : bc_pt, bc_interior_pt,
      $                                           interior_pt, no_pt,
@@ -78,14 +81,16 @@
         !---------------------------------------------------------------
         type :: bf_layer
 
-          logical, private :: shares_grdpts_with_neighbor1
-          logical, private :: shares_grdpts_with_neighbor2
-
           integer                       , private :: localization
           integer(ikind), dimension(2,2), private :: alignment
 
           real(rkind), dimension(:,:,:), allocatable, private :: nodes
           integer    , dimension(:,:)  , allocatable, private :: grdpts_id
+
+          logical, private :: shares_grdpts_with_neighbor1
+          logical, private :: shares_grdpts_with_neighbor2
+
+          logical, private :: can_remain
 
           contains
 
@@ -118,6 +123,7 @@
           procedure,   pass :: can_exchange_with_neighbor2
           procedure,   pass :: get_neighbor1_id
           procedure,   pass :: get_neighbor2_id
+          procedure,   pass :: shares_grdpts_along_x_dir_with
 
           procedure,   pass :: copy_from_neighbor1
           procedure,   pass :: copy_from_neighbor2
@@ -131,6 +137,9 @@
           procedure, nopass, private :: update_bc_interior_pt_to_interior_pt
           procedure, nopass, private :: check_neighbors
           procedure, nopass, private :: check_gridpoint
+          
+          procedure,   pass :: set_remain_status
+          procedure,   pass :: should_remain
           
           procedure,   pass :: print_binary
 
@@ -828,6 +837,27 @@ c$$$        end function get_neighbor_index
           end select 
 
         end subroutine get_neighbor2_id
+
+
+        !< check if a neighboring buffer layer
+        !> (positioned along the y-direction such that
+        !> it is either a neighbor1 or neighbor2 bf_layer)
+        !> has indeed grid points in common with another
+        !> buffer layer by computing the x-size of the
+        !> layer to be exchanged
+        function shares_grdpts_along_x_dir_with(this, neighbor)
+     $     result(share)
+
+          implicit none
+
+          class(bf_layer), intent(in) :: this
+          class(bf_layer), intent(in) :: neighbor
+          logical                     :: share
+
+          share = do_grdpts_overlap_along_x_dir(
+     $         this%alignment, neighbor%alignment)
+          
+        end function shares_grdpts_along_x_dir_with
 
 
 c$$$        !< get neighbor2_id
@@ -1553,7 +1583,43 @@ c$$$        end function shares_grdpts_with_neighbor2
 
           end if
 
-        end subroutine check_gridpoint        
+        end subroutine check_gridpoint
+
+
+        !< set whether the buffer layer can be removed or not
+        subroutine set_remain_status(this, remain_state)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+          logical        , intent(in)    :: remain_state
+
+          this%can_remain = remain_state
+          
+        end subroutine set_remain_status
+
+
+        !< check whether the buffer layer should remain
+        function should_remain(this, interior_nodes)
+
+          implicit none
+
+          class(bf_layer)                 , intent(in) :: this
+          real(rkind), dimension(nx,ny,ne), intent(in) :: interior_nodes
+          logical                                      :: should_remain
+          
+          integer(ikind), dimension(2) :: bf_match_table
+
+          bf_match_table = get_general_to_local_coord_tab(this)
+
+          should_remain = check_if_bf_layer_remains(
+     $         this%localization,
+     $         this%alignment,
+     $         bf_match_table,
+     $         this%nodes,
+     $         interior_nodes)
+
+        end function should_remain        
 
 
         !< print the nodes and the grdpts_id attributes

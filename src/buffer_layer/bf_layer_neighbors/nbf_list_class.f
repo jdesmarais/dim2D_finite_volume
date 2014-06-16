@@ -4,6 +4,8 @@
         use bf_sublayer_class     , only : bf_sublayer
         use nbf_element_class     , only : nbf_element
         use parameters_kind       , only : ikind
+        use sbf_list_class        , only : sbf_list
+
 
         implicit none
 
@@ -38,6 +40,9 @@
           procedure, pass :: copy_from_neighbors2_to_bf_layer
           procedure, pass :: copy_to_neighbors1_from_bf_layer
           procedure, pass :: copy_to_neighbors2_from_bf_layer
+
+          procedure, pass :: get_nbf_layers_sharing_grdpts_with
+          procedure, pass :: bf_layer_depends_on_neighbors
           
           procedure, pass, private :: add_element
           procedure, pass, private :: remove_element
@@ -340,6 +345,62 @@
           end if
 
         end subroutine copy_to_neighbors2_from_bf_layer
+
+
+        !< add to the list of sublayer pointers the buffer layers
+        !> in the current list that share grid points with the bf layer
+        !> given
+        subroutine get_nbf_layers_sharing_grdpts_with(
+     $     this, bf_sublayer_i, bf_sublayer_list)
+
+          implicit none
+
+          class(nbf_list)           , intent(in)    :: this
+          type(bf_sublayer), pointer, intent(in)    :: bf_sublayer_i
+          type(sbf_list)            , intent(inout) :: bf_sublayer_list
+
+          type(nbf_element), pointer :: current_element
+          integer                    :: k
+
+          current_element => this%head
+
+          do k=1, this%nb_elements
+             if(current_element%shares_grdpts_along_x_dir_with(bf_sublayer_i)) then
+                call bf_sublayer_list%add_ele(current_element%get_ptr())
+             end if
+             current_element => current_element%get_next()
+          end do
+
+        end subroutine get_nbf_layers_sharing_grdpts_with
+
+
+        !< check whether the buffer layer passed as argument has grdpts
+        !> in common with the buffe rlayers contained in the list
+        function bf_layer_depends_on_neighbors(
+     $     this, bf_sublayer_i) result(dependent)
+
+          implicit none
+
+          class(nbf_list)           , intent(in)    :: this
+          type(bf_sublayer), pointer, intent(in)    :: bf_sublayer_i
+          logical                                   :: dependent
+
+          type(nbf_element), pointer :: current_element
+          integer                    :: k
+
+          dependent = .false.
+
+          current_element => this%head
+
+          do k=1, this%nb_elements
+             if(current_element%shares_grdpts_along_x_dir_with(bf_sublayer_i)) then
+                dependent = .true.
+                exit
+             end if
+             current_element => current_element%get_next()
+          end do
+
+        end function bf_layer_depends_on_neighbors
 
 
         !< add element in the chained list and its position

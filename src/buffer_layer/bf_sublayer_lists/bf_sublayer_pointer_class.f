@@ -18,6 +18,7 @@
 
           procedure, pass :: get_ptr
           procedure, pass :: set_ptr
+          procedure, pass :: associated_ptr
 
         end type bf_sublayer_pointer
 
@@ -57,5 +58,24 @@
           end if
 
         end subroutine set_ptr
+
+      
+        !> check if the pointer is associated
+        function associated_ptr(this, ptr)
+        
+          implicit none
+
+          class(bf_sublayer_pointer)          , intent(in) :: this
+          type(bf_sublayer), pointer, optional, intent(in) :: ptr
+          logical                                          :: associated_ptr
+
+          
+          if(present(ptr)) then
+             associated_ptr = associated(this%ptr, ptr)
+          else
+             associated_ptr = associated(this%ptr)
+          end if        
+
+        end function associated_ptr
 
       end module bf_sublayer_pointer_class

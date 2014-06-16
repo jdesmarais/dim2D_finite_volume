@@ -21,6 +21,8 @@
           procedure, pass :: get_nb_ele
           procedure, pass :: get_ele
           procedure, pass :: add_ele
+          procedure, pass :: does_not_contain
+          procedure, pass :: destroy
 
         end type sbf_list
 
@@ -69,6 +71,8 @@
         end function get_ele
 
 
+        !add element in the list only if the element
+        !is not present already
         subroutine add_ele(this, ptr)
 
           implicit none
@@ -76,11 +80,46 @@
           class(sbf_list)           , intent(inout) :: this
           type(bf_sublayer), pointer, intent(in)    :: ptr
 
-          this%nb_ele = this%nb_ele+1
-
-          call this%list(this%nb_ele)%set_ptr(ptr)
+          if(does_not_contain(this,ptr)) then
+             this%nb_ele = this%nb_ele+1
+             call this%list(this%nb_ele)%set_ptr(ptr)
+          end if
           
         end subroutine add_ele
+
         
+        function does_not_contain(this, ptr)
+
+          implicit none
+
+          class(sbf_list)           , intent(in) :: this
+          type(bf_sublayer), pointer, intent(in) :: ptr
+          logical                                :: does_not_contain
+
+          integer :: k
+
+          does_not_contain = .true.
+
+          do k=1, this%nb_ele
+             
+             if(this%list(k)%associated_ptr(ptr)) then
+                does_not_contain = .false.
+                exit
+             end if
+             
+          end do
+
+        end function does_not_contain
+        
+
+        subroutine destroy(this)
+        
+          implicit none
+
+          class(sbf_list), intent(inout) :: this
+          
+          deallocate(this%list)
+
+        end subroutine destroy
 
       end module sbf_list_class

@@ -14,6 +14,7 @@
      $                                         interior
         use parameters_input          , only : nx,ny,ne,bc_size,debug
         use parameters_kind           , only : ikind, rkind
+        use sbf_list_class            , only : sbf_list
 
 
         implicit none
@@ -56,12 +57,11 @@
           procedure, pass :: ini
           procedure, pass :: get_mainlayer
 
-          procedure, pass            :: allocate_sublayer
-          procedure, pass            :: reallocate_sublayer
-          procedure, pass            :: merge_sublayers
-          procedure, pass            :: update_grdpts_after_increase
+          procedure, pass :: allocate_sublayer
+          procedure, pass :: reallocate_sublayer
+          procedure, pass :: merge_sublayers
+          procedure, pass :: update_grdpts_after_increase
 
-          !procedure, nopass :: get_neighboring_sublayer
           procedure, nopass :: get_mainlayer_id
           procedure, pass   :: get_sublayer
           procedure, pass   :: get_nodes
@@ -72,6 +72,9 @@
           procedure, nopass, private :: shares_with_neighbor1
           procedure, nopass, private :: shares_with_neighbor2
           procedure, nopass          :: get_neighbor_id
+
+          procedure, pass :: get_nbf_layers_sharing_grdpts_with
+          procedure, pass :: bf_layer_depends_on_neighbors
 
           procedure, pass :: print_binary
 
@@ -620,24 +623,6 @@ c$$$          stop 'not implemented yet'
        end function merge_sublayers
 
 
-c$$$       !> get neighbor of the same mainlayer
-c$$$       function get_neighboring_sublayer(current_bf_sublayer)
-c$$$     $     result(neighboring_sublayer)
-c$$$
-c$$$         implicit none
-c$$$
-c$$$         type(bf_sublayer), pointer, intent(in) :: current_bf_sublayer
-c$$$         type(bf_sublayer), pointer             :: neighboring_sublayer
-c$$$
-c$$$         if(associated(current_bf_sublayer%get_next())) then
-c$$$            neighboring_sublayer => current_bf_sublayer%get_next()
-c$$$         else
-c$$$            nullify(neighboring_sublayer)
-c$$$         end if
-c$$$
-c$$$       end function get_neighboring_sublayer
-
-
        !> @author
        !> Julien L. Desmarais
        !
@@ -928,6 +913,79 @@ c$$$       end function get_neighboring_sublayer
          call this%update_neighbor_grdpts(bf_sublayer_i)
 
        end subroutine update_grdpts_after_increase
+
+
+       !< determine the neighboring buffer layers sharing grid points
+       !> with the current buffer layer
+       subroutine get_nbf_layers_sharing_grdpts_with(
+     $     this, bf_sublayer_i, nbf1_list, nbf2_list)
+
+         implicit none
+         
+         class(bf_interface)       , intent(in)    :: this
+         type(bf_sublayer), pointer, intent(in)    :: bf_sublayer_i
+         type(sbf_list)            , intent(inout) :: nbf1_list
+         type(sbf_list)            , intent(inout) :: nbf2_list
+
+
+         !determine inside the list of neighboring buffer layer of
+         !type 1 which ones share grid points with the current
+         !buffer layer
+         if(bf_sublayer_i%can_exchange_with_neighbor1()) then
+            call this%border_interface%get_nbf_layers_sharing_grdpts_with(
+     $           1, bf_sublayer_i, nbf1_list)
+         end if
+
+
+         !determine inside the list of neighboring buffer layer of
+         !type 2 which ones share grid points with the current
+         !buffer layer
+         if(bf_sublayer_i%can_exchange_with_neighbor2()) then
+            call this%border_interface%get_nbf_layers_sharing_grdpts_with(
+     $           2, bf_sublayer_i, nbf2_list)
+         end if         
+
+       end subroutine get_nbf_layers_sharing_grdpts_with
+
+
+       !< determine whether a buffer layer depends on its neighboring
+       !> buffer layers
+       function bf_layer_depends_on_neighbors(this,bf_sublayer_i)
+     $     result(dependent)
+
+         implicit none
+
+         class(bf_interface)       , intent(in) :: this
+         type(bf_sublayer), pointer, intent(in) :: bf_sublayer_i
+         logical                                :: dependent
+       
+         
+         !determine if the buffer layer is sharing grid points
+         !with its neighborign buffer layers of type 1
+         if(bf_sublayer_i%can_exchange_with_neighbor1()) then
+            
+            dependent = this%border_interface%bf_layer_depends_on_neighbors(
+     $           1, bf_sublayer_i)
+         else
+            dependent = .false.
+         end if
+         
+
+         !determine if the buffer layer is sharing grid points
+         !with its neighborign buffer layers of type 2
+         if(.not.dependent) then
+            
+            if(bf_sublayer_i%can_exchange_with_neighbor2()) then
+               
+               dependent = this%border_interface%bf_layer_depends_on_neighbors(
+     $              2, bf_sublayer_i)
+            else
+               dependent = .false.
+            end if
+            
+         end if
+
+       end function bf_layer_depends_on_neighbors
 
 
        !< print the content of the interface on external binary files

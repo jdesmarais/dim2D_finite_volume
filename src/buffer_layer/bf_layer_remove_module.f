@@ -39,10 +39,10 @@
         !> logical identifying whether the local removal is approved or
         !> not
         !---------------------------------------------------------------
-        subroutine check_if_bf_layer_remains(
+        function check_if_bf_layer_remains(
      $       bf_localization, bf_alignment, bf_match_table,
-     $       bf_nodes, interior_nodes,
-     $       bf_remains)
+     $       bf_nodes, interior_nodes)
+     $       result(bf_remains)
 
           implicit none
 
@@ -51,7 +51,7 @@
           integer(ikind), dimension(2)     , intent(in)  :: bf_match_table
           real(rkind), dimension(:,:,:)    , intent(in)  :: bf_nodes
           real(rkind), dimension(nx,ny,ne) , intent(in)  :: interior_nodes
-          logical                          , intent(out) :: bf_remains
+          logical                                        :: bf_remains
 
           
           integer(ikind), dimension(2,2) :: bf_coords
@@ -86,7 +86,7 @@
              bf_remains = .false.
           end if
 
-        end subroutine check_if_bf_layer_remains
+        end function check_if_bf_layer_remains
 
 
         !< check if the alignment of the buffer layer compared to

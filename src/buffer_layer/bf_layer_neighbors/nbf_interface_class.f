@@ -6,6 +6,7 @@
         use parameters_input   , only : debug
         use parameters_bf_layer, only : align_N, align_S,
      $                                  align_E, align_W
+        use sbf_list_class     , only : sbf_list
 
         implicit none
 
@@ -39,6 +40,9 @@
 
           procedure, pass :: update_grdpts_from_neighbors
           procedure, pass :: update_neighbor_grdpts
+
+          procedure, pass :: get_nbf_layers_sharing_grdpts_with
+          procedure, pass :: bf_layer_depends_on_neighbors
 
           procedure, pass :: print_on_screen
 
@@ -270,6 +274,67 @@
         end subroutine update_neighbor_grdpts
 
 
+        !< add to the list of sublayer pointers the neighboring 
+        !> buffer layers of type 1 that shares grid points in the
+        !> x-direction with the current buffer layer
+        subroutine get_nbf_layers_sharing_grdpts_with(
+     $     this, nbf_type, bf_sublayer_i, bf_sublayer_list, bf_mainlayer_id)
+
+          implicit none
+
+          class(nbf_interface)      , intent(in)    :: this
+          integer                   , intent(in)    :: nbf_type
+          type(bf_sublayer), pointer, intent(in)    :: bf_sublayer_i
+          type(sbf_list)            , intent(inout) :: bf_sublayer_list
+          integer         , optional, intent(in)    :: bf_mainlayer_id
+
+
+          integer :: mainlayer_id
+
+
+          if(present(bf_mainlayer_id)) then
+             mainlayer_id = bf_mainlayer_id
+          else
+             mainlayer_id = bf_sublayer_i%get_localization()
+          end if
+
+          call this%nbf_links(mainlayer_id,nbf_type)%get_nbf_layers_sharing_grdpts_with(
+     $         bf_sublayer_i, bf_sublayer_list)
+
+        end subroutine get_nbf_layers_sharing_grdpts_with
+
+
+        !< add to the list of sublayer pointers the neighboring 
+        !> buffer layers of type 1 that shares grid points in the
+        !> x-direction with the current buffer layer
+        function bf_layer_depends_on_neighbors(
+     $     this, nbf_type, bf_sublayer_i, bf_mainlayer_id)
+     $     result(dependent)
+
+          implicit none
+
+          class(nbf_interface)      , intent(in) :: this
+          integer                   , intent(in) :: nbf_type
+          type(bf_sublayer), pointer, intent(in) :: bf_sublayer_i
+          integer         , optional, intent(in) :: bf_mainlayer_id
+          logical                                :: dependent
+
+          integer :: mainlayer_id
+
+
+          if(present(bf_mainlayer_id)) then
+             mainlayer_id = bf_mainlayer_id
+          else
+             mainlayer_id = bf_sublayer_i%get_localization()
+          end if
+
+          dependent = this%nbf_links(mainlayer_id,nbf_type)%bf_layer_depends_on_neighbors(
+     $         bf_sublayer_i)
+
+        end function bf_layer_depends_on_neighbors
+
+
+        !> print the neighboring links between sublayers on screen
         subroutine print_on_screen(this)
 
           implicit none

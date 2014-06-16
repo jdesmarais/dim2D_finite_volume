@@ -232,6 +232,7 @@ $(bf_layer_dir)/bf_layer_class.o:\
 	$(bf_layer_dir)/bf_layer_reallocate_module.o\
 	$(bf_layer_dir)/bf_layer_merge_module.o\
 	$(bf_layer_dir)/bf_layer_exchange_module.o\
+	$(bf_layer_dir)/bf_layer_remove_module.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
@@ -241,6 +242,13 @@ $(bf_layer_dir)/bf_sublayer_class.o:\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
+
+$(sbf_layer_dir)/bf_sublayer_pointer_class.o:\
+	$(bf_layer_dir)/bf_sublayer_class.o
+
+$(sbf_layer_dir)/sbf_list_class.o:\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(sbf_layer_dir)/bf_sublayer_pointer_class.o
 
 $(nbf_layer_dir)/nbf_element_class.o:\
 	$(bf_layer_dir)/bf_layer_class.o\
@@ -254,14 +262,16 @@ $(nbf_layer_dir)/nbf_list_class.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(nbf_layer_dir)/nbf_element_class.o\
-	$(param_dir)/parameters_kind.o
+	$(param_dir)/parameters_kind.o\
+	$(sbf_layer_dir)/sbf_list_class.o
 
 $(nbf_layer_dir)/nbf_interface_class.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(nbf_layer_dir)/nbf_list_class.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
-	$(bf_layer_dir)/parameters_bf_layer.o
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(sbf_layer_dir)/sbf_list_class.o
 
 $(bf_layer_dir)/bf_mainlayer_class.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o\
@@ -284,7 +294,8 @@ $(bf_layer_dir)/bf_interface_class.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
+	$(param_dir)/parameters_kind.o\
+	$(sbf_layer_dir)/sbf_list_class.o
 
 $(bf_layer_dir)/bf_path_icr_class.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
@@ -326,12 +337,7 @@ $(bf_layer_dir)/bf_interface_icr_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
-$(sbf_layer_dir)/bf_sublayer_pointer_class.o:\
-	$(bf_layer_dir)/bf_sublayer_class.o
 
-$(sbf_layer_dir)/sbf_list_class.o:\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(sbf_layer_dir)/bf_sublayer_pointer_class.o
 
 
 #tests for buffer layer
@@ -415,13 +421,15 @@ test_bf_path_icr_prog.o:\
 	test_bf_layer_module.o
 
 test_bf_interface_prog.o:\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/bf_interface_class.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
-	test_bf_layer_module.o
+	test_bf_layer_module.o\
+	$(sbf_layer_dir)/sbf_list_class.o
 
 test_dbf_element_prog.o:\
 	$(dbf_layer_dir)/dbf_element_class.o\
@@ -578,11 +586,15 @@ test_bf_interface_prog:\
 	bf_layer_reallocate_module.o\
 	bf_layer_merge_module.o\
 	bf_layer_exchange_module.o\
+	bf_activation_module.o\
+	bf_layer_remove_module.o\
 	bf_layer_class.o\
 	bf_sublayer_class.o\
 	bf_mainlayer_class.o\
 	bf_mainlayer_pointer_class.o\
 	nbf_element_class.o\
+	bf_sublayer_pointer_class.o\
+	sbf_list_class.o\
 	nbf_list_class.o\
 	nbf_interface_class.o\
 	bf_interface_class.o\
@@ -651,18 +663,21 @@ test_bf_interface_icr_prog:\
 	bf_layer_reallocate_module.o\
 	bf_layer_merge_module.o\
 	bf_layer_exchange_module.o\
+	bf_activation_module.o\
+	bf_layer_remove_module.o\
 	bf_layer_class.o\
 	bf_sublayer_class.o\
 	bf_mainlayer_class.o\
 	bf_mainlayer_pointer_class.o\
 	nbf_element_class.o\
+	bf_sublayer_pointer_class.o\
+	sbf_list_class.o\
 	nbf_list_class.o\
 	nbf_interface_class.o\
 	bf_interface_class.o\
 	dbf_element_class.o\
 	dbf_list_class.o\
 	bf_detector_icr_list_class.o\
-	bf_activation_module.o\
 	bf_path_icr_class.o\
 	bf_nbc_template_module.o\
 	bf_interface_icr_class.o\
@@ -678,18 +693,21 @@ test_bf_interface_icr_update_prog:\
 	bf_layer_reallocate_module.o\
 	bf_layer_merge_module.o\
 	bf_layer_exchange_module.o\
+	bf_activation_module.o\
+	bf_layer_remove_module.o\
 	bf_layer_class.o\
 	bf_sublayer_class.o\
 	bf_mainlayer_class.o\
 	bf_mainlayer_pointer_class.o\
 	nbf_element_class.o\
+	bf_sublayer_pointer_class.o\
+	sbf_list_class.o\
 	nbf_list_class.o\
 	nbf_interface_class.o\
 	bf_interface_class.o\
 	dbf_element_class.o\
 	dbf_list_class.o\
 	bf_detector_icr_list_class.o\
-	bf_activation_module.o\
 	bf_path_icr_class.o\
 	bf_nbc_template_module.o\
 	bf_interface_icr_class.o\

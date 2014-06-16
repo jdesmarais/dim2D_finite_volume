@@ -21,7 +21,8 @@
         implicit none
 
         private
-        public :: get_match_indices_for_exchange_with_neighbor1,
+        public :: do_grdpts_overlap_along_x_dir,
+     $            get_match_indices_for_exchange_with_neighbor1,
      $            get_match_indices_for_exchange_with_neighbor2,
      $            copy_from_bf1_to_bf2
 
@@ -231,6 +232,23 @@
           bf_j_min = 1
 
         end subroutine get_S_exch_indices
+
+
+        function do_grdpts_overlap_along_x_dir(
+     $     bf_alignment, nbf_alignment) result(overlap)
+
+          implicit none
+
+          integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
+          integer(ikind), dimension(2,2), intent(in)  :: nbf_alignment
+          logical                                     :: overlap
+
+          overlap = (min(bf_alignment(1,2), nbf_alignment(1,2)) -
+     $              max(bf_alignment(1,1), nbf_alignment(1,1)) +
+     $              2*bc_size + 1).gt.0
+
+        end function do_grdpts_overlap_along_x_dir
+
 
 
         subroutine get_x_exchange_indices(
