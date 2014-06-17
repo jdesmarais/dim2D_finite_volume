@@ -62,6 +62,7 @@
 
           procedure, pass :: add_sublayer
           procedure, pass :: merge_sublayers
+          procedure, pass :: remove_sublayer
 
           procedure, pass :: print_binary
 
@@ -478,6 +479,47 @@
           merged_sublayer => bf_sublayer1
 
         end function merge_sublayers
+
+
+        !> remove a sublayer from the main layer
+        subroutine remove_sublayer(this, sublayer_ptr)
+
+          implicit none
+
+          class(bf_mainlayer)         , intent(inout) :: this
+          type(bf_sublayer)  , pointer, intent(inout) :: sublayer_ptr
+
+
+          !check if the head of the mainlayer should be changed
+          if(associated(this%head_sublayer,sublayer_ptr)) then
+             if(associated(sublayer_ptr%get_next())) then
+                this%head_sublayer => sublayer_ptr%get_next()
+             else
+                nullify(this%head_sublayer)
+             end if
+          end if
+
+
+          !check if the tail of the mainlayer should be changed
+          if(associated(this%tail_sublayer, sublayer_ptr)) then
+             if(associated(sublayer_ptr%get_prev())) then
+                this%tail_sublayer => sublayer_ptr%get_prev()
+             else
+                nullify(this%tail_sublayer)
+             end if
+          end if
+
+
+          !remove the buffer layer
+          call sublayer_ptr%remove()
+          deallocate(sublayer_ptr)
+          nullify(sublayer_ptr)
+
+
+          !update the number of sublayers in the mainlayer
+          this%nb_sublayers = this%nb_sublayers-1
+
+        end subroutine remove_sublayer
 
 
         !< print the content of the sublayers constituing the

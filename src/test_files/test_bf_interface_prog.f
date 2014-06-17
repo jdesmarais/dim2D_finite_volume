@@ -31,10 +31,11 @@
         type(bf_sublayer), pointer          :: bf_sublayer_merged1
         type(bf_sublayer), pointer          :: bf_sublayer_merged2
         type(bf_sublayer), pointer          :: bf_sublayer_reallocated
+        type(bf_sublayer), pointer          :: merged_sublayer
         real(rkind)                         :: scale
 
 
-        integer :: i
+        integer :: i, index
 
 
         !initialize the nodes and print them
@@ -137,7 +138,7 @@
 
         !merge the E buffer layers
         call get_alignment(9, alignment, mainlayer_id)
-        added_sublayer => interface_tested%merge_sublayers(
+        merged_sublayer => interface_tested%merge_sublayers(
      $       bf_sublayer_merged1, bf_sublayer_merged2,
      $       nodes, alignment)
         
@@ -170,6 +171,8 @@
      $       'sizes6.dat',
      $       '6.dat')
 
+        index = 7
+
 
         !test bf_depends_on_neighbors
         !-------------------------------------------------------
@@ -182,11 +185,21 @@
         !-------------------------------------------------------
         !for each sublayer in each mainlayer, test if the buffer layer
         !has neighbor dependencies and colorize the neighbors
-        call test_get_nbf_layers_sharing_grdpts_with(interface_tested)
+        call test_get_nbf_layers_sharing_grdpts_with(interface_tested, index)
 
         
         !test if the neighboring buffer layers will be removed
         !-------------------------------------------------------
+        call test_does_a_neighbor_remains(interface_tested)
+
+
+        !test the removal of sublayer
+        !----------------------------
+        call test_remove_sublayer(interface_tested, merged_sublayer, index)
+
+
+        !re-test if the neighboring buffer layers will be removed
+        !--------------------------------------------------------
         call test_does_a_neighbor_remains(interface_tested)
 
 
@@ -461,11 +474,12 @@
 
 
         !> test for the dependencies
-        subroutine test_get_nbf_layers_sharing_grdpts_with(interface_used)
+        subroutine test_get_nbf_layers_sharing_grdpts_with(interface_used, index)
 
           implicit none
 
           class(bf_interface), intent(inout) :: interface_used
+          integer            , intent(inout) :: index
 
 
           integer :: k,l
@@ -477,8 +491,6 @@
           integer        :: file_index
 
           
-          file_index = 7
-
           do k=1,4           
 
              mainlayer_ptr => interface_used%get_mainlayer(k)
@@ -509,9 +521,9 @@
                    call nbf2_list%destroy()
 
                    !print the result on output files
-                   call print_output(interface_used, file_index)
+                   call print_output(interface_used, index)
 
-                   file_index = file_index+1
+                   index = index+1
 
                    sublayer_ptr => sublayer_ptr%get_next()
                 end do
@@ -592,6 +604,29 @@
 
         end subroutine test_does_a_neighbor_remains
 
+
+        !test the removal of a sublayer
+        subroutine test_remove_sublayer(interface_used, sublayer_ptr, index)
+        
+          implicit none
+
+          class(bf_interface)       , intent(inout) :: interface_used
+          type(bf_sublayer), pointer, intent(inout) :: sublayer_ptr
+          integer                   , intent(inout) :: index
+
+          print '(''test remove_sublayer'')'
+          print '(''--------------------'')'
+
+          call interface_used%remove_sublayer(sublayer_ptr)
+
+          call print_output(interface_used, index)
+
+          index = index+1
+
+          print '()'
+
+        end subroutine test_remove_sublayer
+
       
         !< colorize the main layer whose dependencies are deterimed
         subroutine colorize_main(sublayer_used)
@@ -669,7 +704,17 @@
 
           !determine the number of integer needed to write the
           !file index
-          format_index = floor(real(index)/real(10))+1
+          if(index.le.9) then
+             format_index = 1
+          else
+             if((index.ge.10).and.(index.le.99)) then
+                format_index = 2
+             else
+                print '(''test_bf_interface_prog'')'
+                print '(''print_output'')'
+                stop 'file_index not supported'
+             end if
+          end if
           
 
           !determine the format for the name of the output files

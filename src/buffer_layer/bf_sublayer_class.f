@@ -70,6 +70,8 @@
           procedure, pass   :: nullify_prev
           procedure, pass   :: nullify_next
 
+          procedure, pass   :: remove
+
         end type bf_sublayer
 
         contains
@@ -174,32 +176,27 @@
         end subroutine nullify_next
 
 
-c$$$        !< merge sublayers
-c$$$        subroutine merge_sublayers(bf_sublayer1, bf_sublayer2, nodes, alignment)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          type(bf_sublayer), pointer                 , intent(inout) :: bf_sublayer1
-c$$$          type(bf_sublayer), pointer                 , intent(inout) :: bf_sublayer2
-c$$$          real(rkind)      , dimension(nx,ny,ne)     , intent(in)    :: nodes
-c$$$          integer(ikind)   , dimension(2,2), optional, intent(in)    :: alignment
-c$$$
-c$$$          
-c$$$
-c$$$          
-c$$$
-c$$$
-c$$$          !merge the attributes specific to the bf_layer:
-c$$$          !localization, alignment, nodes, grdpts_id
-c$$$          if(present(alignment)) then
-c$$$             call bf_sublayer1%merge_bf_layer(bf_sublayer2, nodes, alignment)
-c$$$          else
-c$$$             call bf_sublayer1%merge_bf_layer(bf_sublayer2, nodes)
-c$$$          end if
-c$$$
-c$$$          
-c$$$          
-c$$$            
-c$$$        end subroutine merge_sublayers
+        !< remove buffer layer
+        subroutine remove(this)
+
+          implicit none
+
+          class(bf_sublayer), intent(inout) :: this
+
+          
+          if(associated(this%prev)) then
+             if(associated(this%next)) then
+                this%prev%next => this%next
+                this%next%prev => this%prev
+             else
+                nullify(this%prev%next)
+             end if
+          else
+             if(associated(this%next)) then
+                nullify(this%next%prev)
+             end if
+          end if
+
+        end subroutine remove        
 
       end module bf_sublayer_class

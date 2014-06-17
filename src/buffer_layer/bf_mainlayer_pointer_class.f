@@ -40,6 +40,7 @@
           procedure, pass :: get_tail_sublayer
           procedure, pass :: add_sublayer
           procedure, pass :: merge_sublayers
+          procedure, pass :: remove_sublayer
           procedure, pass :: print_binary
           
         end type bf_mainlayer_pointer
@@ -323,6 +324,28 @@
           end if
 
         end function merge_sublayers
+
+
+        !< merge two sublayers of the mainlayer encapsulated
+        subroutine remove_sublayer(
+     $     this,
+     $     sublayer_ptr)
+        
+          implicit none        
+        
+          class(bf_mainlayer_pointer), intent(inout) :: this
+          type(bf_sublayer), pointer , intent(inout) :: sublayer_ptr
+        
+
+          if(this%associated_ptr()) then
+             call this%ptr%remove_sublayer(sublayer_ptr)
+          else
+             print '(''bf_mainlayer_pointer_class'')'
+             print '(''remove_sublayer'')'
+             stop 'ptr attribute not associated'
+          end if
+
+        end subroutine remove_sublayer
 
       
         !< print the content of the mainlayer encapsulated

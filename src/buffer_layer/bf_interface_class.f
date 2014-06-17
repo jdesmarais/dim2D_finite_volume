@@ -60,6 +60,7 @@
           procedure, pass :: allocate_sublayer
           procedure, pass :: reallocate_sublayer
           procedure, pass :: merge_sublayers
+          procedure, pass :: remove_sublayer
           procedure, pass :: update_grdpts_after_increase
 
           procedure, nopass :: get_mainlayer_id
@@ -575,6 +576,43 @@ c$$$          print '(''merge_sublayers'')'
 c$$$          stop 'not implemented yet'
 
        end function merge_sublayers
+
+
+       !> remove a sublayer from its mainlayer
+       subroutine remove_sublayer(this, sublayer_ptr, bf_mainlayer_id)
+
+         implicit none
+
+         class(bf_interface)       , intent(inout) :: this
+         type(bf_sublayer), pointer, intent(inout) :: sublayer_ptr
+         integer         , optional, intent(in)    :: bf_mainlayer_id
+
+         
+         integer :: mainlayer_id
+
+
+         !> identify the mainlayer to which the sublayer belongs
+         if(present(bf_mainlayer_id)) then
+            mainlayer_id = bf_mainlayer_id
+         else
+            mainlayer_id = sublayer_ptr%get_localization()
+         end if
+
+         !> remove the sublayer from the table identifying the
+         !> neighboring buffer layers
+         if(sublayer_ptr%can_exchange_with_neighbor1()) then
+            call this%border_interface%remove_link_from_neighbor1_to_bf_sublayer(
+     $           sublayer_ptr)
+         end if
+         if(sublayer_ptr%can_exchange_with_neighbor2()) then
+            call this%border_interface%remove_link_from_neighbor2_to_bf_sublayer(
+     $           sublayer_ptr)
+         end if
+
+         !> remove the sublayer from the main layer
+         call this%mainlayer_pointers(mainlayer_id)%remove_sublayer(sublayer_ptr)
+
+       end subroutine remove_sublayer
 
 
        !> @author

@@ -105,11 +105,38 @@ if __name__ == "__main__":
         ax = fig.add_subplot(4,4,i-5)
         res = ax.imshow(lm_nodes[0,:,:], cmap=cm.spectral, interpolation='nearest', vmin=0.0, vmax=1.0)
         
-        #fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
-        #                                                    lm_grdptid)
-
     fig.canvas.set_window_title('7: test_get_nbf_layers_sharing_grdpts_with')
 
+
+    #plot the test of removing a buffer layer
+    for i in range(19,20):
+
+        #extract data for the interior points and the buffer layers
+    	#-----------------------------------------------------------------
+        test_index = str(i+1)
+
+        interior_size_filename      = folder_path+'/interior_sizes.dat'
+        interior_grdptsid_filename  = folder_path+'/interior_grdpts_id.dat'
+        interior_nodes_filename     = folder_path+'/interior_nodes.dat'
+
+    	suffix_size    = '_sizes'+test_index+'.dat'
+    	suffix_nodes   = '_nodes'+test_index+'.dat'
+    	suffix_grdptid = '_grdpt_id'+test_index+'.dat'
+    	
+    	[lm_nodes,lm_grdptid, margin] = make_matrix_for_all_bf_layers(interior_size_filename,
+                                                              interior_grdptsid_filename,
+    	                                                      interior_nodes_filename,
+    	                                                      folder_path,
+    	                                                      nb_sublayers,
+    	                                                      suffix_size,
+    	                                                      suffix_nodes,
+    	                                                      suffix_grdptid)
+    
+        #display
+        #-----------------------------------------------------------------
+        fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
+                                                            lm_grdptid)
+        fig.canvas.set_window_title('8: test_remove_sublayer')
     
     #show all
     plt.show()

@@ -142,6 +142,8 @@
           procedure,   pass :: set_remain_status
           procedure,   pass :: get_remain_status
           procedure,   pass :: should_remain
+
+          procedure,   pass :: remove
           
           procedure,   pass :: print_binary
 
@@ -1556,7 +1558,20 @@ c$$$          end select
      $         this%nodes,
      $         interior_nodes)
 
-        end function should_remain        
+        end function should_remain
+
+
+        !< remove the buffer layer
+        subroutine remove(this)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+
+          deallocate(this%nodes)
+          deallocate(this%grdpts_id)
+
+        end subroutine remove      
 
 
         !< print the nodes and the grdpts_id attributes
