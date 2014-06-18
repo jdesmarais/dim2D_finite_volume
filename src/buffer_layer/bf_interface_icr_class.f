@@ -1361,8 +1361,7 @@
 
           integer(ikind), dimension(2) :: first_pt_linked
           integer(ikind), dimension(2) :: last_pt_linked
-
-
+          
           !create the temporary objects saving the parameters
           !for the update of the detector lists due to the removal
           !of a sublayer
@@ -1387,6 +1386,11 @@
           call E_dcr_param%compute_new_list_param(bf_align, this%E_detectors_list)
           call W_dcr_param%compute_new_list_param(bf_align, this%W_detectors_list)
           
+
+          !check the overlap of detectors between the lists
+          call check_detector_overlap(
+     $         N_dcr_param, S_dcr_param, E_dcr_param, W_dcr_param)
+
 
           !compute the new detector lists and link the lists
           first_pt_linked = W_dcr_param%get_last_detector()
@@ -1425,6 +1429,71 @@
           deallocate(W_dcr_param)
 
         end subroutine update_icr_detectors
+
+
+        !< check if detectors overlap and modify the
+        !> the borders for the detectors
+        subroutine check_detector_overlap(
+     $     N_dcr_param, S_dcr_param, E_dcr_param, W_dcr_param)
+
+          implicit none
+
+          class(bf_detector_dcr_list), intent(inout) :: N_dcr_param
+          class(bf_detector_dcr_list), intent(inout) :: S_dcr_param
+          class(bf_detector_dcr_list), intent(inout) :: E_dcr_param
+          class(bf_detector_dcr_list), intent(inout) :: W_dcr_param        
+        
+          integer(ikind), dimension(2) :: checked_pt1
+          integer(ikind), dimension(2) :: checked_pt2
+
+          !south - west overlap
+          checked_pt1 = S_dcr_param%get_first_detector()
+          checked_pt2 = W_dcr_param%get_first_detector()
+          if(overlap(checked_pt1,checked_pt2)) then
+             checked_pt2(2) = checked_pt2(2)+1
+             call W_dcr_param%set_first_detector(checked_pt2)
+          end if
+
+          !south - east overlap
+          checked_pt1 = S_dcr_param%get_last_detector()
+          checked_pt2 = E_dcr_param%get_first_detector()
+          if(overlap(checked_pt1,checked_pt2)) then
+             checked_pt2(2) = checked_pt2(2)+1
+             call E_dcr_param%set_first_detector(checked_pt2)
+          end if
+
+          !north - west overlap
+          checked_pt1 = N_dcr_param%get_first_detector()
+          checked_pt2 = W_dcr_param%get_last_detector()
+          if(overlap(checked_pt1,checked_pt2)) then
+             checked_pt2(2) = checked_pt2(2)-1
+             call W_dcr_param%set_last_detector(checked_pt2)
+          end if
+
+          !north - east overlap
+          checked_pt1 = N_dcr_param%get_first_detector()
+          checked_pt2 = E_dcr_param%get_last_detector()
+          if(overlap(checked_pt1,checked_pt2)) then
+             checked_pt2(2) = checked_pt2(2)-1
+             call E_dcr_param%set_last_detector(checked_pt2)
+          end if
+
+        end subroutine check_detector_overlap
+
+
+        !> check if the points are the same
+        function overlap(checked_pt1, checked_pt2)
+
+          implicit none
+
+          integer(ikind), dimension(2), intent(in) :: checked_pt1
+          integer(ikind), dimension(2), intent(in) :: checked_pt2
+          logical                                  :: overlap
+
+          overlap = (checked_pt1(1).eq.checked_pt2(1)).and.
+     $              (checked_pt1(2).eq.checked_pt2(2))
+          
+        end function overlap
 
 
         !< print the detector positions on a matrix

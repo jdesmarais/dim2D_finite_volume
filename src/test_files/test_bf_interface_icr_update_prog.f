@@ -18,7 +18,7 @@
         type(bf_interface_icr)              :: interface_used
         real(rkind)   , dimension(nx,ny,ne) :: interior_nodes
         integer       , dimension(nx,ny)    :: grdpts_id
-        integer       , parameter           :: test_case=7
+        integer       , parameter           :: test_case=8
 
         integer :: i
 
@@ -123,11 +123,11 @@
             case(5)
                mainlayer_id = [N,E]
             case(6)
-               mainlayer_id = [E,S]
+               mainlayer_id = [S,E]
             case(7)
                mainlayer_id = [N,W]
             case(8)
-               mainlayer_id = [W,S]
+               mainlayer_id = [S,W]
             case default
                print '(''test_bf_interface_icr_update_prog'')'
                print '(''test_remove_sublayers'')'

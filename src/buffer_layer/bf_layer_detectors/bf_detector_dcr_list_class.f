@@ -61,6 +61,8 @@
           procedure, pass :: compute_new_list_param
           procedure, pass :: get_first_detector
           procedure, pass :: get_last_detector
+          procedure, pass :: set_first_detector
+          procedure, pass :: set_last_detector
           
           procedure, pass, private :: add_deleted_detector
           procedure, pass          :: compute_new_list_g
@@ -390,7 +392,7 @@
      $         detector_list,
      $         nb_added_detectors,
      $         nb_deleted_detectors,
-     $         sign_added_detectors)          
+     $         sign_added_detectors)         
 
           !compute the parameters for linking the new detector
           !list with the first and the last points
@@ -525,6 +527,34 @@
         end function get_last_detector
 
 
+        !< set the coordinates of the first detector for the
+        !> new detector list 
+        subroutine set_first_detector(this, coords)
+
+          implicit none
+
+          class(bf_detector_dcr_list) , intent(inout) :: this
+          integer(ikind), dimension(2), intent(in)    :: coords
+
+          this%first_detector = coords
+
+        end subroutine set_first_detector
+
+
+        !< set the coordinates of the last detector for the
+        !> new detector list 
+        subroutine set_last_detector(this, coords)
+
+          implicit none
+
+          class(bf_detector_dcr_list) , intent(inout) :: this
+          integer(ikind), dimension(2), intent(in)    :: coords
+
+          this%last_detector = coords
+
+        end subroutine set_last_detector
+
+
         function get_segment_first_pt(this, detector_list, dir)
      $     result(segment_first_pt)
 
@@ -575,67 +605,5 @@
           end do
 
         end subroutine replace_removed_detectors
-        
-
-
-c$$$
-c$$$        subroutine update_detectors_after_removal(
-c$$$     $     N_detectors_list,
-c$$$     $     S_detectors_list,
-c$$$     $     E_detectors_list,
-c$$$     $     W_detectors_list)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          integer(ikind), dimension(:,:), allocatable, intent(inout) :: N_detectors_list
-c$$$          integer(ikind), dimension(:,:), allocatable, intent(inout) :: S_detectors_list
-c$$$          integer(ikind), dimension(:,:), allocatable, intent(inout) :: E_detectors_list
-c$$$          integer(ikind), dimension(:,:), allocatable, intent(inout) :: W_detectors_list
-c$$$
-c$$$          type(bf_detector_dcr_list_N) :: N_dcr_param
-c$$$          type(bf_detector_dcr_list_S) :: S_dcr_param
-c$$$          type(bf_detector_dcr_list_E) :: E_dcr_param
-c$$$          type(bf_detector_dcr_list_W) :: W_dcr_param
-c$$$
-c$$$
-c$$$          !initialize the objects saving the parameters
-c$$$          !when constructing the new detector lists
-c$$$          call N_dcr_param%ini()
-c$$$          call S_dcr_param%ini()
-c$$$          call E_dcr_param%ini()
-c$$$          call W_dcr_param%ini()
-c$$$          
-c$$$
-c$$$          !compute the parameters for the construction
-c$$$          !of the new detector lists
-c$$$          call N_dcr_param%compute_new_list_param(N_detectors_list)
-c$$$          call S_dcr_param%compute_new_list_param(S_detectors_list)
-c$$$          call E_dcr_param%compute_new_list_param(E_detectors_list)
-c$$$          call W_dcr_param%compute_new_list_param(W_detectors_list)
-c$$$
-c$$$
-c$$$          !compute the new detector lists and link the
-c$$$          !lists
-c$$$          call N_dcr_param%compute_new_list(
-c$$$     $         N_detectors_list,
-c$$$     $         W_dcr_param%get_last_pt(),
-c$$$     $         E_dcr_param%get_last_pt())
-c$$$
-c$$$          call S_dcr_param%compute_new_list(
-c$$$     $         S_detectors_list,
-c$$$     $         W_dcr_param%get_first_pt(),
-c$$$     $         E_dcr_param%get_first_pt())
-c$$$
-c$$$          call E_dcr_param%compute_new_list(
-c$$$     $         E_detectors_list,
-c$$$     $         S_dcr_param%get_last_pt(),
-c$$$     $         N_dcr_param%get_last_pt())
-c$$$
-c$$$          call W_dcr_param%compute_new_list(
-c$$$     $         W_detectors_list,
-c$$$     $         S_dcr_param%get_first_pt(),
-c$$$     $         N_dcr_param%get_first_pt())
-c$$$
-c$$$        end subroutine update_detectors_after_removal
 
       end module bf_detector_dcr_list_class
