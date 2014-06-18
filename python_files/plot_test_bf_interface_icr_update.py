@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
 
     #plot the tests
-    for i in range(0,8):
+    for i in range(7,10):
         
     	#extract data for the interior points and the buffer layers
     	#-----------------------------------------------------------------
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         
         fig.canvas.set_window_title('time step: '+str(i))
 
-    
+
     #show all
     plt.show()
     

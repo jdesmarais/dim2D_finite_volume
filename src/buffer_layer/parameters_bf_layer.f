@@ -2,6 +2,7 @@
 
         use parameters_constant, only : N,S,E,W
         use parameters_input   , only : nx, ny, bc_size
+        use parameters_kind    , only : ikind
 
         implicit none
 
@@ -31,8 +32,11 @@
         integer, dimension(4), parameter :: bf_neighbors_id = (/2,1,2,1/)
 
 
-
-        logical, parameter :: clockwise=.false.
-        logical, parameter :: counter_clockwise=.not.(clockwise)
+        !default positions for the increasing detectors
+        integer       , parameter :: dct_icr_distance  = bc_size
+        integer(ikind), parameter :: dct_icr_N_default = ny-(bc_size+dct_icr_distance)+1
+        integer(ikind), parameter :: dct_icr_S_default = bc_size+dct_icr_distance
+        integer(ikind), parameter :: dct_icr_E_default = nx-(bc_size+dct_icr_distance)+1
+        integer(ikind), parameter :: dct_icr_W_default = bc_size+dct_icr_distance
 
       end module parameters_bf_layer

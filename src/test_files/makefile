@@ -190,7 +190,8 @@ cleanall:
 #buffer layer dep
 $(bf_layer_dir)/parameters_bf_layer.o:\
 	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_input.o
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
 
 $(bf_layer_dir)/bf_layer_errors_module.o:
 
@@ -313,10 +314,53 @@ $(dbf_layer_dir)/dbf_list_class.o:\
 	$(dbf_layer_dir)/dbf_element_class.o\
 	$(param_dir)/parameters_kind.o
 
+$(dbf_layer_dir)/bf_detector_module.o:\
+	$(param_dir)/parameters_kind.o
+
 $(dbf_layer_dir)/bf_detector_icr_list_class.o:\
+	$(dbf_layer_dir)/bf_detector_module.o\
 	$(bf_layer_dir)/bf_interface_class.o\
 	$(dbf_layer_dir)/dbf_element_class.o\
 	$(dbf_layer_dir)/dbf_list_class.o\
+	$(param_dir)/parameters_kind.o
+
+$(dbf_layer_dir)/bf_detector_dcr_list_class.o:\
+	$(dbf_layer_dir)/bf_detector_module.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(dbf_layer_dir)/bf_detector_dcr_list_NS_class.o:\
+	$(dbf_layer_dir)/bf_detector_dcr_list_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_kind.o
+
+$(dbf_layer_dir)/bf_detector_dcr_list_EW_class.o:\
+	$(dbf_layer_dir)/bf_detector_dcr_list_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_kind.o
+
+$(dbf_layer_dir)/bf_detector_dcr_list_N_class.o:\
+	$(dbf_layer_dir)/bf_detector_dcr_list_NS_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(dbf_layer_dir)/bf_detector_dcr_list_S_class.o:\
+	$(dbf_layer_dir)/bf_detector_dcr_list_NS_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(dbf_layer_dir)/bf_detector_dcr_list_E_class.o:\
+	$(dbf_layer_dir)/bf_detector_dcr_list_EW_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(dbf_layer_dir)/bf_detector_dcr_list_W_class.o:\
+	$(dbf_layer_dir)/bf_detector_dcr_list_EW_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
 $(bf_layer_dir)/bf_nbc_template_module.o:\
@@ -328,7 +372,13 @@ $(bf_layer_dir)/bf_activation_module.o:\
 
 $(bf_layer_dir)/bf_interface_icr_class.o:\
 	$(bf_layer_dir)/bf_activation_module.o\
+	$(dbf_layer_dir)/bf_detector_dcr_list_class.o\
+	$(dbf_layer_dir)/bf_detector_dcr_list_N_class.o\
+	$(dbf_layer_dir)/bf_detector_dcr_list_S_class.o\
+	$(dbf_layer_dir)/bf_detector_dcr_list_E_class.o\
+	$(dbf_layer_dir)/bf_detector_dcr_list_W_class.o\
 	$(dbf_layer_dir)/bf_detector_icr_list_class.o\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/bf_path_icr_class.o\
 	$(bf_layer_dir)/bf_nbc_template_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
@@ -337,8 +387,6 @@ $(bf_layer_dir)/bf_interface_icr_class.o:\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
-
-
 
 
 #tests for buffer layer
@@ -461,6 +509,8 @@ test_bf_interface_icr_prog.o:\
 	test_bf_layer_module.o
 
 test_cases_interface_update_module.o:\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/bf_interface_class.o\
 	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
@@ -471,6 +521,7 @@ test_cases_interface_update_module.o:\
 test_bf_interface_icr_update_prog.o:\
 	$(dbf_layer_dir)/bf_detector_icr_list_class.o\
 	$(bf_layer_dir)/bf_interface_icr_class.o\
+	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
 	test_bf_layer_module.o\
@@ -656,6 +707,7 @@ test_bf_detector_icr_list_prog:\
 
 test_bf_interface_icr_prog:\
 	parameters_kind.o\
+	bf_detector_module.o\
 	parameters_constant.o\
 	parameters_input.o\
 	parameters_bf_layer.o\
@@ -679,6 +731,13 @@ test_bf_interface_icr_prog:\
 	dbf_element_class.o\
 	dbf_list_class.o\
 	bf_detector_icr_list_class.o\
+	bf_detector_dcr_list_class.o\
+	bf_detector_dcr_list_NS_class.o\
+	bf_detector_dcr_list_N_class.o\
+	bf_detector_dcr_list_S_class.o\
+	bf_detector_dcr_list_EW_class.o\
+	bf_detector_dcr_list_E_class.o\
+	bf_detector_dcr_list_W_class.o\
 	bf_path_icr_class.o\
 	bf_nbc_template_module.o\
 	bf_interface_icr_class.o\
@@ -686,6 +745,7 @@ test_bf_interface_icr_prog:\
 
 test_bf_interface_icr_update_prog:\
 	parameters_kind.o\
+	bf_detector_module.o\
 	parameters_constant.o\
 	parameters_input.o\
 	parameters_bf_layer.o\
@@ -709,6 +769,13 @@ test_bf_interface_icr_update_prog:\
 	dbf_element_class.o\
 	dbf_list_class.o\
 	bf_detector_icr_list_class.o\
+	bf_detector_dcr_list_class.o\
+	bf_detector_dcr_list_NS_class.o\
+	bf_detector_dcr_list_N_class.o\
+	bf_detector_dcr_list_S_class.o\
+	bf_detector_dcr_list_EW_class.o\
+	bf_detector_dcr_list_E_class.o\
+	bf_detector_dcr_list_W_class.o\
 	bf_path_icr_class.o\
 	bf_nbc_template_module.o\
 	bf_interface_icr_class.o\

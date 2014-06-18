@@ -1,11 +1,15 @@
       program test_bf_interface_icr_update_prog
 
+        use bf_mainlayer_class        , only : bf_mainlayer
+        use bf_sublayer_class         , only : bf_sublayer
         use bf_detector_icr_list_class, only : bf_detector_icr_list
-        use bf_interface_icr_class  , only : bf_interface_icr
-        use parameters_input        , only : nx,ny,ne,bc_size
-        use parameters_kind         , only : rkind
-        use test_bf_layer_module    , only : print_interior_data,
-     $                                       ini_grdpts_id
+        use bf_interface_icr_class    , only : bf_interface_icr
+        use parameters_constant       , only : N,S,E,W
+        use parameters_input          , only : nx,ny,ne,bc_size
+        use parameters_kind           , only : rkind
+        use test_bf_layer_module      , only : print_interior_data,
+     $                                         ini_grdpts_id
+
         use test_cases_interface_update_module, only : update_nodes
 
         implicit none
@@ -14,7 +18,7 @@
         type(bf_interface_icr)              :: interface_used
         real(rkind)   , dimension(nx,ny,ne) :: interior_nodes
         integer       , dimension(nx,ny)    :: grdpts_id
-        integer       , parameter           :: test_case=5
+        integer       , parameter           :: test_case=7
 
         integer :: i
 
@@ -74,9 +78,107 @@
 
            timestep = timestep+1
 
-        end do        
+        end do
+
+
+        !remove a buffer layer
+        call test_remove_sublayers(
+     $       test_case,
+     $       interior_nodes,
+     $       grdpts_id,
+     $       interface_used,
+     $       file_index)
+
+                
 
         contains
+
+        subroutine test_remove_sublayers(
+     $       test_case,
+     $       nodes,
+     $       grdpts_id,
+     $       interface_used,
+     $       file_index)
+
+          implicit none
+          
+          integer                         , intent(in)    :: test_case
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+          integer    , dimension(nx,ny)   , intent(in)    :: grdpts_id
+          class(bf_interface_icr)         , intent(inout) :: interface_used
+          integer                         , intent(inout) :: file_index
+
+          integer, dimension(2) :: mainlayer_id
+          integer :: i
+
+          select case(test_case)
+            case(1)
+               mainlayer_id = [E,W]
+            case(2)
+               mainlayer_id = [E,W]
+            case(3)
+               mainlayer_id = [N,W]
+            case(4)
+               mainlayer_id = [S,W]
+            case(5)
+               mainlayer_id = [N,E]
+            case(6)
+               mainlayer_id = [E,S]
+            case(7)
+               mainlayer_id = [N,W]
+            case(8)
+               mainlayer_id = [W,S]
+            case default
+               print '(''test_bf_interface_icr_update_prog'')'
+               print '(''test_remove_sublayers'')'
+               stop 'test case not recognized'
+          end select
+
+          do i=1,2
+
+             call test_remove_sublayer(
+     $            nodes,
+     $            grdpts_id,
+     $            interface_used,
+     $            mainlayer_id(i),
+     $            file_index)
+
+          end do
+
+        end subroutine test_remove_sublayers
+
+
+        subroutine test_remove_sublayer(
+     $       nodes,
+     $       grdpts_id,
+     $       interface_used,
+     $       mainlayer_id,
+     $       file_index)
+        
+          implicit none
+          
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+          integer    , dimension(nx,ny)   , intent(in)    :: grdpts_id
+          class(bf_interface_icr)         , intent(inout) :: interface_used
+          integer                         , intent(in)    :: mainlayer_id
+          integer                         , intent(inout) :: file_index
+
+          type(bf_mainlayer), pointer :: mainlayer_ptr
+          type(bf_sublayer) , pointer :: sublayer_ptr
+
+          !remove the head sublayer
+          mainlayer_ptr => interface_used%get_mainlayer(mainlayer_id)
+          if(associated(mainlayer_ptr)) then
+             sublayer_ptr => mainlayer_ptr%get_head_sublayer()
+             call interface_used%remove_sublayer(sublayer_ptr)
+          end if
+
+          !print the interface
+          call print_state(nodes, grdpts_id, interface_used, file_index)
+          file_index = file_index+1
+
+        end subroutine test_remove_sublayer
+
 
         subroutine print_state(nodes, grdpts_id, interface_used, index)
 

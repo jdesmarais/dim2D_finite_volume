@@ -1,16 +1,27 @@
       module bf_interface_icr_class
 
-        use bf_activation_module      , only : are_openbc_undermined
-        use bf_detector_icr_list_class, only : bf_detector_icr_list
-        use bf_path_icr_class         , only : bf_path_icr
-        use bf_nbc_template_module
-        use bf_sublayer_class         , only : bf_sublayer
-        use bf_interface_class        , only : bf_interface
-        use parameters_bf_layer       , only : bc_interior_pt
-        use parameters_constant       , only : N,S,E,W,interior
-        use parameters_input          , only : nx,ny,ne,bc_size,
-     $                                         dt,search_nb_dt
-        use parameters_kind           , only : ikind, rkind
+        use bf_activation_module        , only : are_openbc_undermined
+        use bf_detector_dcr_list_class  , only : bf_detector_dcr_list
+        use bf_detector_dcr_list_N_class, only : bf_detector_dcr_list_N
+        use bf_detector_dcr_list_S_class, only : bf_detector_dcr_list_S
+        use bf_detector_dcr_list_E_class, only : bf_detector_dcr_list_E
+        use bf_detector_dcr_list_W_class, only : bf_detector_dcr_list_W
+        use bf_detector_icr_list_class  , only : bf_detector_icr_list
+        use bf_path_icr_class           , only : bf_path_icr
+        use bf_nbc_template_module      
+        use bf_sublayer_class           , only : bf_sublayer
+        use bf_interface_class          , only : bf_interface
+        use bf_layer_errors_module      , only : error_mainlayer_id
+        use parameters_bf_layer         , only : bc_interior_pt,
+     $                                           dct_icr_distance,
+     $                                           dct_icr_N_default,
+     $                                           dct_icr_S_default,
+     $                                           dct_icr_E_default,
+     $                                           dct_icr_W_default
+        use parameters_constant         , only : N,S,E,W,interior
+        use parameters_input            , only : nx,ny,ne,bc_size,
+     $                                           dt,search_nb_dt
+        use parameters_kind             , only : ikind, rkind
 
         implicit none
 
@@ -32,6 +43,9 @@
           procedure,   pass :: process_idetector_list
           procedure,   pass :: combine_bf_idetector_lists
           procedure,   pass :: update_bf_layers_with_idetectors
+
+          procedure,   pass :: update_icr_detectors_after_removal
+          procedure,   pass :: remove_sublayer
 
           procedure, nopass, private :: is_detector_icr_activated
           procedure, nopass, private :: get_central_grdpt
@@ -59,7 +73,7 @@
 
           class(bf_interface_icr), intent(inout) :: this
 
-          integer(ikind) :: i, dbf_distance
+          integer(ikind) :: i
 
 
           !initialize the parent attributes
@@ -67,31 +81,29 @@
 
 
           !intialize the attributes specific to bf_interface_icr
-          dbf_distance = bc_size
+          allocate(this%N_detectors_list(2,nx-2*(bc_size+dct_icr_distance)+2))
+          allocate(this%S_detectors_list(2,nx-2*(bc_size+dct_icr_distance)+2))
+          allocate(this%E_detectors_list(2,ny-2*(bc_size+dct_icr_distance)))
+          allocate(this%W_detectors_list(2,nx-2*(bc_size+dct_icr_distance)))
 
-          allocate(this%N_detectors_list(2,nx-2*(bc_size+dbf_distance)+2))
-          allocate(this%S_detectors_list(2,nx-2*(bc_size+dbf_distance)+2))
-          allocate(this%E_detectors_list(2,ny-2*(bc_size+dbf_distance)))
-          allocate(this%W_detectors_list(2,nx-2*(bc_size+dbf_distance)))
-
-          do i=bc_size+dbf_distance, nx-(bc_size+dbf_distance)+1
-             this%S_detectors_list(1,i-(bc_size+dbf_distance)+1) = i
-             this%S_detectors_list(2,i-(bc_size+dbf_distance)+1) = bc_size+dbf_distance
+          do i=bc_size+dct_icr_distance, nx-(bc_size+dct_icr_distance)+1
+             this%S_detectors_list(1,i-(bc_size+dct_icr_distance)+1) = i
+             this%S_detectors_list(2,i-(bc_size+dct_icr_distance)+1) = dct_icr_S_default
           end do
 
-          do i=bc_size+dbf_distance, nx-(bc_size+dbf_distance)+1
-             this%N_detectors_list(1,i-(bc_size+dbf_distance)+1) = i
-             this%N_detectors_list(2,i-(bc_size+dbf_distance)+1) = ny-(bc_size+dbf_distance)+1
+          do i=bc_size+dct_icr_distance, nx-(bc_size+dct_icr_distance)+1
+             this%N_detectors_list(1,i-(bc_size+dct_icr_distance)+1) = i
+             this%N_detectors_list(2,i-(bc_size+dct_icr_distance)+1) = dct_icr_N_default
           end do
 
-          do i=bc_size+dbf_distance+1, ny-(bc_size+dbf_distance)
-             this%W_detectors_list(1,i-(bc_size+dbf_distance)) = bc_size+dbf_distance
-             this%W_detectors_list(2,i-(bc_size+dbf_distance)) = i
+          do i=bc_size+dct_icr_distance+1, ny-(bc_size+dct_icr_distance)
+             this%W_detectors_list(1,i-(bc_size+dct_icr_distance)) = dct_icr_W_default
+             this%W_detectors_list(2,i-(bc_size+dct_icr_distance)) = i
           end do
 
-          do i=bc_size+dbf_distance+1, ny-(bc_size+dbf_distance)
-             this%E_detectors_list(1,i-(bc_size+dbf_distance)) = nx-(bc_size+dbf_distance)+1
-             this%E_detectors_list(2,i-(bc_size+dbf_distance)) = i
+          do i=bc_size+dct_icr_distance+1, ny-(bc_size+dct_icr_distance)
+             this%E_detectors_list(1,i-(bc_size+dct_icr_distance)) = dct_icr_E_default
+             this%E_detectors_list(2,i-(bc_size+dct_icr_distance)) = i
           end do          
 
         end subroutine ini
@@ -1260,6 +1272,159 @@
           end if
 
         end subroutine update_grdpts_id_for_template
+
+
+
+        !< remove a sublayer
+        subroutine remove_sublayer(this, sublayer_ptr, bf_mainlayer_id)
+
+          implicit none
+          
+          class(bf_interface_icr)   , intent(inout) :: this
+          type(bf_sublayer), pointer, intent(inout) :: sublayer_ptr
+          integer         , optional, intent(in)    :: bf_mainlayer_id
+          
+          integer :: mainlayer_id
+
+
+          !cardinal coordinate of the sublayer removed
+          if(present(bf_mainlayer_id)) then
+             mainlayer_id = bf_mainlayer_id
+          else
+             mainlayer_id = sublayer_ptr%get_localization()
+          end if
+
+
+          !reoganize the increasing detectors belonging
+          !to the sublayer removed
+          call update_icr_detectors_after_removal(
+     $         this,
+     $         sublayer_ptr%get_alignment_tab(),
+     $         mainlayer_id)
+          
+          !remove the sublayer
+          call this%bf_interface%remove_sublayer(
+     $         sublayer_ptr,
+     $         mainlayer_id)
+
+        end subroutine remove_sublayer
+
+
+        !< update the position of increasing detectors
+        !> if a sublayer is removed
+        subroutine update_icr_detectors_after_removal(
+     $     this, bf_align, bf_mainlayer_id)
+
+          class(bf_interface_icr)       , intent(inout) :: this
+          integer(ikind), dimension(2,2), intent(in)    :: bf_align
+          integer                       , intent(in)    :: bf_mainlayer_id
+
+          type(bf_detector_dcr_list_N) :: dcr_param_N
+          type(bf_detector_dcr_list_S) :: dcr_param_S
+          type(bf_detector_dcr_list_E) :: dcr_param_E
+          type(bf_detector_dcr_list_W) :: dcr_param_W
+
+
+          select case(bf_mainlayer_id)
+            case(N)
+               call update_icr_detectors(this, bf_align, dcr_param_N)
+            case(S)
+               call update_icr_detectors(this, bf_align, dcr_param_S)
+            case(E)
+               call update_icr_detectors(this, bf_align, dcr_param_E)
+            case(W)
+               call update_icr_detectors(this, bf_align, dcr_param_W)
+            case default
+               call error_mainlayer_id(
+     $              'bf_interface_icr_class.f',
+     $              'update_icr_detectors_after_removal',
+     $              bf_mainlayer_id)
+          end select
+
+        end subroutine update_icr_detectors_after_removal
+
+      
+        !< update the detectors by using a model temporary object
+        !> for retaining the parameters for the changes to be made
+        subroutine update_icr_detectors(this, bf_align, dcr_param)
+
+          implicit none
+
+          class(bf_interface_icr)       , intent(inout) :: this
+          integer(ikind), dimension(2,2), intent(in)    :: bf_align
+          class(bf_detector_dcr_list)   , intent(in)    :: dcr_param
+
+          class(bf_detector_dcr_list), allocatable :: N_dcr_param
+          class(bf_detector_dcr_list), allocatable :: S_dcr_param
+          class(bf_detector_dcr_list), allocatable :: E_dcr_param
+          class(bf_detector_dcr_list), allocatable :: W_dcr_param
+
+          integer(ikind), dimension(2) :: first_pt_linked
+          integer(ikind), dimension(2) :: last_pt_linked
+
+
+          !create the temporary objects saving the parameters
+          !for the update of the detector lists due to the removal
+          !of a sublayer
+          allocate(N_dcr_param, source=dcr_param)
+          allocate(S_dcr_param, source=dcr_param)
+          allocate(E_dcr_param, source=dcr_param)
+          allocate(W_dcr_param, source=dcr_param)
+
+
+          !initialize the objects saving the parameters
+          !when constructing the new detector lists
+          call N_dcr_param%ini()
+          call S_dcr_param%ini()
+          call E_dcr_param%ini()
+          call W_dcr_param%ini()
+
+          
+          !compute the parameters for the construction
+          !of the new detector lists
+          call N_dcr_param%compute_new_list_param(bf_align, this%N_detectors_list)
+          call S_dcr_param%compute_new_list_param(bf_align, this%S_detectors_list)
+          call E_dcr_param%compute_new_list_param(bf_align, this%E_detectors_list)
+          call W_dcr_param%compute_new_list_param(bf_align, this%W_detectors_list)
+          
+
+          !compute the new detector lists and link the lists
+          first_pt_linked = W_dcr_param%get_last_detector()
+          last_pt_linked  = E_dcr_param%get_last_detector()
+          call N_dcr_param%compute_new_list(
+     $         this%N_detectors_list,
+     $         first_pt_linked,
+     $         last_pt_linked)
+
+          first_pt_linked = W_dcr_param%get_first_detector()
+          last_pt_linked  = E_dcr_param%get_first_detector()
+          call S_dcr_param%compute_new_list(
+     $         this%S_detectors_list,
+     $         first_pt_linked,
+     $         last_pt_linked)
+
+          first_pt_linked = S_dcr_param%get_last_detector()
+          last_pt_linked  = N_dcr_param%get_last_detector()
+          call E_dcr_param%compute_new_list(
+     $         this%E_detectors_list,
+     $         first_pt_linked,
+     $         last_pt_linked)
+
+          first_pt_linked = S_dcr_param%get_first_detector()
+          last_pt_linked  = N_dcr_param%get_first_detector()
+          call W_dcr_param%compute_new_list(
+     $         this%W_detectors_list,
+     $         first_pt_linked,
+     $         last_pt_linked)
+
+
+          !remove the temporary objects
+          deallocate(N_dcr_param)
+          deallocate(S_dcr_param)
+          deallocate(E_dcr_param)
+          deallocate(W_dcr_param)
+
+        end subroutine update_icr_detectors
 
 
         !< print the detector positions on a matrix

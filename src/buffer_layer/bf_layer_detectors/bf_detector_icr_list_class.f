@@ -1,5 +1,7 @@
       module bf_detector_icr_list_class
       
+        use bf_detector_module, only : get_inter_dct_param,
+     $                                 get_inter_dct_coords
         use bf_interface_class, only : bf_interface
         use dbf_element_class , only : dbf_element
         use dbf_list_class    , only : dbf_list
@@ -19,20 +21,14 @@
           integer(ikind), dimension(:,:), allocatable, private :: detectors_list
 
           type(dbf_list), pointer, private :: detectors_extra_list
-c$$$          type(dbf_list), pointer, private :: detectors_neighbor1_list
-c$$$          type(dbf_list), pointer, private :: detectors_neighbor2_list
 
           contains
 
           procedure, pass :: ini
-          procedure, pass :: add_new_detector
+          procedure, pass :: add_new_detector => add_new_detector_to_mainlayer
 
           procedure, pass, private :: add_new_detector_to_mainlayer
-c$$$          procedure, pass, private :: add_new_detector_to_neighbor1
-c$$$          procedure, pass, private :: add_new_detector_to_neighbor2
           procedure, pass, private :: add_detector_to_mainlayer
-c$$$          procedure, pass, private :: add_detector_to_neighbor1
-c$$$          procedure, pass, private :: add_detector_to_neighbor2
 
           procedure, nopass :: get_inter_detector_param
           procedure, nopass :: get_inter_detector_coords
@@ -43,7 +39,6 @@ c$$$          procedure, pass, private :: add_detector_to_neighbor2
           procedure,   pass :: get_head
           procedure,   pass :: get_tail
           procedure,   pass :: fill_new_detector_table
-          !procedure, nopass :: combine_bf_idetector_lists
 
           procedure, pass :: print_on_matrix
 
@@ -72,49 +67,6 @@ c$$$          nullify(this%detectors_neighbor1_list)
 c$$$          nullify(this%detectors_neighbor2_list)
 
         end subroutine ini
-
-
-        !< add the coordinates from a new detector to the detectors lists
-        !> handled by the main layer: depending on its coordinates, it will
-        !> be saved with the detectors of the main layer or with the detectors
-        !> of a neighboring main layer.
-        !> the distance between the current detector and the previous detector
-        !> added to the list is computed to know whether additional detectors
-        !> are required
-        subroutine add_new_detector(this, coords)
-
-          implicit none
-
-          class(bf_detector_icr_list)   , intent(inout) :: this
-          integer(ikind), dimension(2), intent(in)    :: coords
-
-c$$$          integer :: mainlayer_id
-c$$$          integer :: neighbor_id
-c$$$
-c$$$
-c$$$          !1) check to which list does the new detector belongs to
-c$$$          !   using its coordinates
-c$$$          mainlayer_id = interface_used%get_mainlayer_id(coords)
-c$$$
-c$$$          !2) check whether the new detector belongs to the main layer
-c$$$          !   of the detectors or to the neighboring main layers
-c$$$          !   and add the detectors (and potential intermediates) to
-c$$$          !   the list it belongs to
-c$$$          if(mainlayer_id.eq.this%mainlayer_id) then
-             call add_new_detector_to_mainlayer(
-     $            this, coords)
-c$$$          else
-c$$$             neighbor_id = interface_used%get_neighbor_id(
-c$$$     $            this%mainlayer_id, mainlayer_id)
-c$$$             
-c$$$             if(neighbor_id.eq.1) then
-c$$$                call add_new_detector_to_neighbor1(this, coords)
-c$$$             else
-c$$$                call add_new_detector_to_neighbor2(this, coords)
-c$$$             end if
-c$$$          end if
-          
-        end subroutine add_new_detector
 
 
         !< add the new detectors and its intermediates to the mainlayer
@@ -150,12 +102,12 @@ c$$$          end if
 
                 !add intermediate detectors between the previous
                 !one and the new one to retain a continuous path
-                call get_inter_detector_param(
+                call this%get_inter_detector_param(
      $               prev_coords, coords,
      $               x_change, y_change, inter_nb)
                 
                 do k=1, inter_nb
-                   inter_coords = get_inter_detector_coords(
+                   inter_coords = this%get_inter_detector_coords(
      $                  prev_coords,
      $                  x_change, y_change, k)
                    call add_detector_to_mainlayer(this, inter_coords)
@@ -174,108 +126,6 @@ c$$$          end if
 
         end subroutine add_new_detector_to_mainlayer
 
-      
-c$$$        !< add the new detectors and its intermediates to the
-c$$$        !> neighbor1 list
-c$$$        subroutine add_new_detector_to_neighbor1(this, coords)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_detector_icr_list), intent(inout) :: this
-c$$$          integer(ikind), dimension(2), intent(in) :: coords
-c$$$
-c$$$          type(dbf_element), pointer :: current_element
-c$$$          integer(ikind), dimension(2) :: prev_coords
-c$$$          integer(ikind), dimension(2) :: inter_coords
-c$$$          real(rkind) :: x_change, y_change
-c$$$          integer :: inter_nb, k
-c$$$
-c$$$
-c$$$          !if other detectors were saved in the list before,
-c$$$          !the new detector added should not be too far away
-c$$$          !from the previous one to retain the closed path
-c$$$          !figure
-c$$$          if(.not.associated(this%detectors_neighbor1_list)) then
-c$$$             allocate(this%detectors_neighbor1_list)
-c$$$             call this%detectors_neighbor1_list%ini()
-c$$$          end if
-c$$$
-c$$$          if(this%detectors_neighbor1_list%get_nb_elements().gt.0) then
-c$$$
-c$$$             current_element => this%detectors_neighbor1_list%get_tail()
-c$$$             prev_coords = current_element%get_coords()
-c$$$
-c$$$             !add intermediate detectors between the previous
-c$$$             !one and the new one to retain a continuous path
-c$$$             call get_inter_detector_param(
-c$$$     $            prev_coords, coords,
-c$$$     $            x_change, y_change, inter_nb)
-c$$$
-c$$$             do k=1, inter_nb
-c$$$                inter_coords = get_inter_detector_coords(
-c$$$     $               prev_coords,
-c$$$     $               x_change, y_change, k)
-c$$$                call add_detector_to_neighbor1(this, inter_coords)
-c$$$             end do
-c$$$
-c$$$          end if
-c$$$
-c$$$          !add the new detector
-c$$$          call add_detector_to_neighbor1(this, coords)
-c$$$
-c$$$        end subroutine add_new_detector_to_neighbor1
-c$$$
-c$$$
-c$$$        !< add the new detectors and its intermediates to the
-c$$$        !> neighbor1 list
-c$$$        subroutine add_new_detector_to_neighbor2(this, coords)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_detector_icr_list), intent(inout) :: this
-c$$$          integer(ikind), dimension(2), intent(in) :: coords
-c$$$
-c$$$          type(dbf_element), pointer :: current_element
-c$$$          integer(ikind), dimension(2) :: prev_coords
-c$$$          integer(ikind), dimension(2) :: inter_coords
-c$$$          real(rkind) :: x_change, y_change
-c$$$          integer :: inter_nb, k
-c$$$
-c$$$
-c$$$          !if other detectors were saved in the list before,
-c$$$          !the new detector added should not be too far away
-c$$$          !from the previous one to retain the closed path
-c$$$          !figure
-c$$$          if(.not.associated(this%detectors_neighbor2_list)) then
-c$$$             allocate(this%detectors_neighbor2_list)
-c$$$             call this%detectors_neighbor2_list%ini()
-c$$$          end if
-c$$$
-c$$$          if(this%detectors_neighbor2_list%get_nb_elements().gt.0) then
-c$$$
-c$$$             current_element => this%detectors_neighbor2_list%get_tail()
-c$$$             prev_coords = current_element%get_coords()
-c$$$
-c$$$             !add intermediate detectors between the previous
-c$$$             !one and the new one to retain a continuous path
-c$$$             call get_inter_detector_param(
-c$$$     $            prev_coords, coords,
-c$$$     $            x_change, y_change, inter_nb)
-c$$$
-c$$$             do k=1, inter_nb
-c$$$                inter_coords = get_inter_detector_coords(
-c$$$     $               prev_coords,
-c$$$     $               x_change, y_change, k)
-c$$$                call add_detector_to_neighbor2(this, inter_coords)
-c$$$             end do
-c$$$
-c$$$          end if
-c$$$
-c$$$          !add the new detector
-c$$$          call add_detector_to_neighbor2(this, coords)
-c$$$
-c$$$        end subroutine add_new_detector_to_neighbor2
-
 
         !< get the parameters constraining the addition
         !> of intermediate detectors between the previous
@@ -292,27 +142,11 @@ c$$$        end subroutine add_new_detector_to_neighbor2
           real(rkind)                 , intent(out) :: y_change
           integer                     , intent(out) :: inter_nb
 
-          integer :: i_change, j_change
-
-          i_change = next_coords(1) - prev_coords(1)
-          j_change = next_coords(2) - prev_coords(2)
-          inter_nb = max(0, abs(i_change)-1, abs(j_change)-1)
-
-          if(inter_nb.gt.0) then
-             if(i_change.ne.0) then
-                x_change = (real(i_change)-sign(1,i_change))/real(inter_nb)
-             else
-                x_change = 0
-             end if
-             if(j_change.ne.0) then
-                y_change = (real(j_change)-sign(1,j_change))/real(inter_nb)
-             else
-                y_change = 0
-             end if
-          else
-             x_change = 1
-             y_change = 1
-          end if
+       
+          call get_inter_dct_param(
+     $         prev_coords, next_coords,
+     $         x_change, y_change,
+     $         inter_nb)
 
         end subroutine get_inter_detector_param
 
@@ -335,10 +169,11 @@ c$$$        end subroutine add_new_detector_to_neighbor2
           integer                     , intent(in) :: k
           integer(ikind), dimension(2)             :: inter_coords
 
-          
-          inter_coords(1) = prev_coords(1) + nint(x_change*k)
-          inter_coords(2) = prev_coords(2) + nint(y_change*k)
 
+          inter_coords = get_inter_dct_coords(
+     $         prev_coords,
+     $         x_change, y_change, k)         
+          
         end function get_inter_detector_coords
 
 
@@ -367,42 +202,6 @@ c$$$        end subroutine add_new_detector_to_neighbor2
         end subroutine add_detector_to_mainlayer
 
       
-c$$$        !< add detector coordinates to the list saving the detectors
-c$$$        !> from the neighbor1 main layer
-c$$$        subroutine add_detector_to_neighbor1(this, coords)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_detector_icr_list), intent(inout) :: this
-c$$$          integer(ikind), dimension(2), intent(in) :: coords
-c$$$
-c$$$          if(.not.associated(this%detectors_neighbor1_list)) then
-c$$$             allocate(this%detectors_neighbor1_list)
-c$$$             call this%detectors_neighbor1_list%ini()
-c$$$          end if
-c$$$          call this%detectors_neighbor1_list%add_to_list(coords)
-c$$$
-c$$$        end subroutine add_detector_to_neighbor1
-c$$$
-c$$$
-c$$$        !< add detector coordinates to the list saving the detectors
-c$$$        !> from the neighbor2 main layer
-c$$$        subroutine add_detector_to_neighbor2(this, coords)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_detector_icr_list), intent(inout) :: this
-c$$$          integer(ikind), dimension(2), intent(in) :: coords
-c$$$
-c$$$          if(.not.associated(this%detectors_neighbor2_list)) then
-c$$$             allocate(this%detectors_neighbor2_list)
-c$$$             call this%detectors_neighbor2_list%ini()
-c$$$          end if
-c$$$          call this%detectors_neighbor2_list%add_to_list(coords)
-c$$$
-c$$$        end subroutine add_detector_to_neighbor2
-
-
         !< get nb_detectors
         function get_nb_detectors(this)
 
@@ -580,68 +379,6 @@ c$$$        end subroutine add_detector_to_neighbor2
         end subroutine fill_new_detector_table
 
 
-
-c$$$        !> get the cutting parameters when searching for detectors
-c$$$        !> in another detector list
-c$$$        !> c_mbf_id : cutting main buffer layer ID
-c$$$        !> c_index  : index identifying where the cutting element is
-c$$$        !> c_coords : coordinates of the elements cut
-c$$$        subroutine get_cutting_param(
-c$$$     $     this, interface_used,
-c$$$     $     c_mbf_id, c_index, c_coords,
-c$$$     $     start_tail_i)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_detector_icr_list)   , intent(in)  :: this
-c$$$          class(bf_interface)         , intent(in)  :: interface_used
-c$$$          integer                     , intent(in)  :: c_mbf_id
-c$$$          integer                     , intent(out) :: c_index
-c$$$          integer(ikind), dimension(2), intent(out) :: c_coords
-c$$$          logical       , optional    , intent(in)  :: start_tail_i
-c$$$
-c$$$
-c$$$          logical           :: start_tail
-c$$$          type(dbf_element) :: prev_ele
-c$$$          integer           :: mbf_id
-c$$$
-c$$$
-c$$$          if(present(start_tail_i)) then
-c$$$             start_tail = start_tail_i
-c$$$          else
-c$$$             start_tail = .false.
-c$$$          end if
-c$$$
-c$$$
-c$$$          if(start_tail) then
-c$$$             c_index = this%nb_detectors
-c$$$             
-c$$$             if(allocated(this%detectors_list)) then
-c$$$                coords = this%get_tail(prev_ele)
-c$$$                mbf_id = interface_used%get_mainlayer_id(coords)
-c$$$                do while((c_index.gt.0).and.(mbf_id.ne.c_mbf_id))
-c$$$                   coords = this%get_prev(c_index, prev_ele)
-c$$$                   mbf_id = interface_used%get_mainlayer_id(coords)
-c$$$                end do
-c$$$             end if
-c$$$
-c$$$          else
-c$$$             c_index = 1
-c$$$
-c$$$             if(allocated(this%detectors_list)) then
-c$$$                coords  = this%get_head()
-c$$$                mbf_id  = interface_used%get_mainlayer_id(coords)
-c$$$                do while((c_index.lt.this%nb_detectors).and.(mbf_id.ne.c_mbf_id))
-c$$$                   coords = this%get_next(c_index, prev_ele)
-c$$$                   mbf_id = interface_used%get_mainlayer_id(coords)
-c$$$                end do
-c$$$             end if
-c$$$
-c$$$          end if
-c$$$
-c$$$        end subroutine get_cutting_param
-
-
         !< destroy the object
         subroutine destroy(this)
         
@@ -657,16 +394,6 @@ c$$$        end subroutine get_cutting_param
              deallocate(this%detectors_extra_list)
              nullify(this%detectors_extra_list)
           end if
-c$$$          if(associated(this%detectors_neighbor1_list)) then
-c$$$             call this%detectors_neighbor1_list%destroy()
-c$$$             deallocate(this%detectors_neighbor1_list)
-c$$$             nullify(this%detectors_neighbor1_list)
-c$$$          end if
-c$$$          if(associated(this%detectors_neighbor2_list)) then
-c$$$             call this%detectors_neighbor2_list%destroy()
-c$$$             deallocate(this%detectors_neighbor2_list)
-c$$$             nullify(this%detectors_neighbor2_list)
-c$$$          end if
 
         end subroutine destroy
 
@@ -683,8 +410,6 @@ c$$$          end if
 
           real(rkind) :: color_detector_list
           real(rkind) :: color_detector_extra_list
-c$$$          real(rkind) :: color_detector_neighbor1_list
-c$$$          real(rkind) :: color_detector_neighbor2_list
           
           type(dbf_element), pointer   :: current_element
           integer(ikind), dimension(2) :: coords
@@ -692,9 +417,6 @@ c$$$          real(rkind) :: color_detector_neighbor2_list
 
           color_detector_list           = 0.2d0
           color_detector_extra_list     = 0.3d0
-c$$$          color_detector_neighbor1_list = 0.4d0
-c$$$          color_detector_neighbor2_list = 0.5d0
-
           
           !detector list
           do k=1, size(this%detectors_list,2)
@@ -712,28 +434,6 @@ c$$$          color_detector_neighbor2_list = 0.5d0
                 current_element => current_element%get_next()
              end do
           end if
-
-
-c$$$          !neighbor1 list
-c$$$          if(associated(this%detectors_neighbor1_list)) then
-c$$$             current_element => this%detectors_neighbor1_list%get_head()
-c$$$             do k=1, this%detectors_neighbor1_list%get_nb_elements()
-c$$$                coords = current_element%get_coords()
-c$$$                matrix(coords(1), coords(2)) = color_detector_neighbor1_list
-c$$$                current_element => current_element%get_next()
-c$$$             end do
-c$$$          end if
-c$$$
-c$$$
-c$$$          !neighbor2 list
-c$$$          if(associated(this%detectors_neighbor2_list)) then
-c$$$             current_element => this%detectors_neighbor2_list%get_head()
-c$$$             do k=1, this%detectors_neighbor2_list%get_nb_elements()
-c$$$                coords = current_element%get_coords()
-c$$$                matrix(coords(1), coords(2)) = color_detector_neighbor2_list
-c$$$                current_element => current_element%get_next()
-c$$$             end do
-c$$$          end if
 
         end subroutine print_on_matrix
 
