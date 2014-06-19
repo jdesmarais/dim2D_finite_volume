@@ -830,7 +830,7 @@
           integer(ikind)                , intent(in)  :: interior_i_max2
           integer(ikind)                , intent(in)  :: i_min6
           integer(ikind)                , intent(in)  :: i_min8
-          integer(ikind)                , intent(out) :: interior_i_max3
+          integer(ikind)                , intent(in)  :: interior_i_max3
           integer(ikind)                , intent(out) :: interior_i_max11
           integer(ikind)                , intent(out) :: interior_i_max13
           integer(ikind)                , intent(out) :: interior_i_max21

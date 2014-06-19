@@ -523,14 +523,29 @@
           dir_x  = velocity(1)*search_nb_dt*dt/dx
           dir_y  = velocity(2)*search_nb_dt*dt/dy
           
-          !2) get the point indices in the direction given
-          !   by the velocity vector
-          cpt_coords(1) = d_coords(1) + nint(dir_x)
-          cpt_coords(2) = d_coords(2) + nint(dir_y)
-          
-          !3) compute the new detector position
-          d_coords_n(1) = d_coords(1) + nint(max(min(dir_x,1.0d0),-1.0d0)) !nint(dir_x/SQRT(dir_x**2+dir_y**2))
-          d_coords_n(2) = d_coords(2) + nint(max(min(dir_y,1.0d0),-1.0d0)) !nint(dir_y/SQRT(dir_x**2+dir_y**2))
+          if(rkind.eq.4) then
+
+             !2) get the point indices in the direction given
+             !   by the velocity vector
+             cpt_coords(1) = d_coords(1) + nint(dir_x)
+             cpt_coords(2) = d_coords(2) + nint(dir_y)
+             
+             !3) compute the new detector position
+             d_coords_n(1) = d_coords(1) + nint(max(min(dir_x,1.0d0),-1.0d0))
+             d_coords_n(2) = d_coords(2) + nint(max(min(dir_y,1.0d0),-1.0d0))
+
+          else
+
+             !2) get the point indices in the direction given
+             !   by the velocity vector
+             cpt_coords(1) = d_coords(1) + idnint(dir_x)
+             cpt_coords(2) = d_coords(2) + idnint(dir_y)
+             
+             !3) compute the new detector position
+             d_coords_n(1) = d_coords(1) + idnint(max(min(dir_x,1.0d0),-1.0d0))
+             d_coords_n(2) = d_coords(2) + idnint(max(min(dir_y,1.0d0),-1.0d0))
+
+          end if
 
         end function get_central_grdpt
 

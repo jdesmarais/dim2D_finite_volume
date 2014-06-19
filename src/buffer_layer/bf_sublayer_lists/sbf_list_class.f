@@ -37,11 +37,13 @@
 
           implicit none
 
-          class(sbf_list), intent(inout) :: this
-          integer        , intent(in)    :: nb_ele_max
+          class(sbf_list)          , intent(inout) :: this
+          integer        , optional, intent(in)    :: nb_ele_max
 
           this%nb_ele = 0
-          allocate(this%list(nb_ele_max))
+          if(present(nb_ele_max)) then
+             allocate(this%list(nb_ele_max))
+          end if
 
         end subroutine ini
 
@@ -117,8 +119,10 @@
           implicit none
 
           class(sbf_list), intent(inout) :: this
-          
-          deallocate(this%list)
+
+          if(allocated(this%list)) then
+             deallocate(this%list)
+          end if
 
         end subroutine destroy
 

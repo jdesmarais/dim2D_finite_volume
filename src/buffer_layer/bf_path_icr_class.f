@@ -759,7 +759,7 @@
 
           implicit none
 
-          class(bf_path_icr)            , intent(inout) :: this
+          class(bf_path_icr)              , intent(inout) :: this
           class(bf_interface)             , intent(inout) :: interface_used
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
           type(bf_sublayer), pointer                      :: modified_sublayer

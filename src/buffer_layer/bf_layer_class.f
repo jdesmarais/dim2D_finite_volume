@@ -1298,21 +1298,23 @@ c$$$          end select
           !possible in checking the neighbours so it is separated
           !from the next loop
           !----------------------------------------------------
-          k = 1
-          i_center = -match_table(1)+selected_grdpts(1,k)
-          j_center = -match_table(2)+selected_grdpts(2,k)
-          do j=j_center-bc_size, j_center+bc_size
-             do i=i_center-bc_size, i_center+bc_size
-                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
-             end do
-          end do
-          grdpts_id(i_center,j_center) = interior_pt
+c$$$          k = 1
+c$$$          i_center = -match_table(1)+selected_grdpts(1,k)
+c$$$          j_center = -match_table(2)+selected_grdpts(2,k)
+c$$$          do j=j_center-bc_size, j_center+bc_size
+c$$$             do i=i_center-bc_size, i_center+bc_size
+c$$$                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
+c$$$             end do
+c$$$          end do
+c$$$          grdpts_id(i_center,j_center) = interior_pt
+          i_center = -match_table(1)+nx/2
+          j_center = -match_table(2)+ny/2
 
 
           !from the second gridpoint, we reduce the number of
           !neighbours to be tested
           !----------------------------------------------------
-          do k=2, size(selected_grdpts,2)
+          do k=1, size(selected_grdpts,2)
 
              !update the position of the gridpoint previously
              !tested

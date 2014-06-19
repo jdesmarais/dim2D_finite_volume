@@ -175,8 +175,8 @@
                mainlayer = E
                alignment(1,1) = align_E
                alignment(1,2) = align_E+size_small_layer
-               alignment(2,1) = ny-bc_size-size_small_layer
-               alignment(2,2) = ny-bc_size
+               alignment(2,1) = bc_size + size_small_layer
+               alignment(2,2) = ny-bc_size - size_small_layer
 
             case(5)
                mainlayer = W

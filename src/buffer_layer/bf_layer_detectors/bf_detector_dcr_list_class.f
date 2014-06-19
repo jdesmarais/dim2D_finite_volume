@@ -386,6 +386,10 @@
           integer                                     :: i,j
 
 
+          logical :: test
+
+          test=.true.
+
           !compute the size of the new detector list
           !without the additional points for the links
           call this%get_detector_changes(
@@ -411,17 +415,24 @@
      $       (inter_nb1.eq.0).and.
      $       (inter_nb2.eq.0)) then
 
-             !reallocation is not needed and the detectors removed
-             !are simply replaced by the added detectors
-             segment_first_pt = get_segment_first_pt(this, detector_list, dir)
 
-             call replace_removed_detectors(
-     $            detector_list,
-     $            nb_added_detectors,
-     $            sign_added_detectors,
-     $            segment_first_pt,
-     $            dir,
-     $            this%segment(1)-1)
+             !the detectors are modified only if some detectors
+             !are removed
+             if(nb_deleted_detectors.ne.0) then
+                
+                !reallocation is not needed and the detectors removed
+                !are simply replaced by the added detectors
+                segment_first_pt = get_segment_first_pt(this, detector_list, dir)
+
+                call replace_removed_detectors(
+     $               detector_list,
+     $               nb_added_detectors,
+     $               sign_added_detectors,
+     $               segment_first_pt,
+     $               dir,
+     $               this%segment(1)-1)
+
+             end if
 
           else
 
@@ -438,6 +449,8 @@
 
 
              !fill the new detector list
+
+             if(test) then
 
              !1) link with the first point
              j=0
@@ -490,6 +503,7 @@
                 new_detector_list(:,j+i) = new_coords
              end do
              
+             end if
              
              !set the new detector list
              call MOVE_ALLOC(new_detector_list, detector_list)

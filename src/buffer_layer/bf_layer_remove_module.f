@@ -239,7 +239,7 @@
           
           
           !check the buffer layer points
-          if(bf_remains) then
+          if(.not.bf_remains) then
              call check_layer_bf(
      $            bf_coords,
      $            bf_grdpts_id,
@@ -263,9 +263,9 @@
         
           implicit none
           
-          integer(ikind), dimension(2,2)     , intent(in) :: pt_coords
-          real(rkind)   , dimension(:,:,:)   , intent(in) :: nodes
-          logical                            , intent(out):: bf_remains
+          integer(ikind), dimension(2,2)     , intent(in)    :: pt_coords
+          real(rkind)   , dimension(:,:,:)   , intent(in)    :: nodes
+          logical                            , intent(inout) :: bf_remains
           
           
           integer(ikind) :: i,j
@@ -304,10 +304,10 @@
         
           implicit none
           
-          integer(ikind), dimension(2,2)     , intent(in) :: pt_coords
-          integer       , dimension(:,:)     , intent(in) :: grdpts_id
-          real(rkind)   , dimension(:,:,:)   , intent(in) :: nodes
-          logical                            , intent(out):: bf_remains
+          integer(ikind), dimension(2,2)     , intent(in)   :: pt_coords
+          integer       , dimension(:,:)     , intent(in)   :: grdpts_id
+          real(rkind)   , dimension(:,:,:)   , intent(in)   :: nodes
+          logical                            , intent(inout):: bf_remains
           
           
           integer(ikind) :: i,j

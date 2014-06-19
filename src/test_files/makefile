@@ -388,6 +388,14 @@ $(bf_layer_dir)/bf_interface_icr_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
+$(bf_layer_dir)/bf_interface_dcr_class.o:\
+	$(bf_layer_dir)/bf_interface_icr_class.o\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	$(sbf_layer_dir)/sbf_list_class.o
+
 
 #tests for buffer layer
 test_bf_layer_module.o:\
@@ -509,14 +517,14 @@ test_bf_interface_icr_prog.o:\
 	test_bf_layer_module.o
 
 test_cases_interface_update_module.o:\
-	$(bf_layer_dir)/bf_mainlayer_class.o\
-	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/bf_interface_class.o\
+	$(bf_layer_dir)/bf_interface_icr_class.o\
 	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
+	$(param_dir)/parameters_kind.o\
+	test_bf_layer_module.o
 
 test_bf_interface_icr_update_prog.o:\
 	$(dbf_layer_dir)/bf_detector_icr_list_class.o\
@@ -536,6 +544,42 @@ test_bf_layer_remove_prog.o:\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_kind.o\
 	test_bf_layer_module.o
+
+test_bf_interface_dcr_update_prog.o:\
+	$(bf_layer_dir)/bf_interface_dcr_class.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	test_bf_layer_module.o\
+	test_cases_interface_update_module.o
+
+$(test_case_dir)/bubble_class.o:\
+	$(param_dir)/parameters_kind.o
+
+$(test_case_dir)/rising_bubble_class.o:\
+	$(param_dir)/parameters_kind.o
+
+$(test_case_dir)/growing_bubble_class.o:\
+	$(param_dir)/parameters_kind.o
+
+$(test_case_dir)/test_case_class.o:\
+	$(bf_layer_dir)/bf_interface_class.o\
+	$(bf_layer_dir)/bf_interface_icr_class.o\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(test_case_dir)/bubble_class.o\
+	$(test_case_dir)/rising_bubble_class.o\
+	$(test_case_dir)/growing_bubble_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	test_bf_layer_module.o
+
+test_bf_interface_dcr_update_prog2.o:\
+	$(bf_layer_dir)/bf_interface_dcr_class.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	test_bf_layer_module.o\
+	$(test_case_dir)/test_case_class.o
 
 #executable dependencies
 test_bf_layer_prog:\
@@ -799,10 +843,96 @@ test_bf_layer_remove_prog:\
 	bf_mainlayer_class.o\
 	bf_mainlayer_pointer_class.o\
 	nbf_element_class.o\
+	bf_sublayer_pointer_class.o\
+	sbf_list_class.o\
 	nbf_list_class.o\
 	nbf_interface_class.o\
 	bf_interface_class.o\
 	test_bf_layer_module.o
+
+test_bf_interface_dcr_update_prog:\
+	parameters_kind.o\
+	parameters_constant.o\
+	parameters_input.o\
+	bf_activation_module.o\
+	bf_detector_module.o\
+	bf_detector_dcr_list_class.o\
+	bf_detector_dcr_list_NS_class.o\
+	parameters_bf_layer.o\
+	bf_detector_dcr_list_N_class.o\
+	bf_detector_dcr_list_S_class.o\
+	bf_detector_dcr_list_EW_class.o\
+	bf_detector_dcr_list_E_class.o\
+	bf_detector_dcr_list_W_class.o\
+	bf_layer_errors_module.o\
+	bf_layer_allocate_module.o\
+	bf_layer_reallocate_module.o\
+	bf_layer_merge_module.o\
+	bf_layer_exchange_module.o\
+	bf_layer_remove_module.o\
+	bf_layer_class.o\
+	bf_sublayer_class.o\
+	bf_mainlayer_class.o\
+	bf_mainlayer_pointer_class.o\
+	nbf_element_class.o\
+	bf_sublayer_pointer_class.o\
+	sbf_list_class.o\
+	nbf_list_class.o\
+	nbf_interface_class.o\
+	bf_interface_class.o\
+	dbf_element_class.o\
+	dbf_list_class.o\
+	bf_detector_icr_list_class.o\
+	bf_path_icr_class.o\
+	bf_nbc_template_module.o\
+	bf_interface_icr_class.o\
+	bf_interface_dcr_class.o\
+	test_bf_layer_module.o\
+	test_cases_interface_update_module.o
+
+test_bf_interface_dcr_update_prog2:\
+	parameters_kind.o\
+	parameters_constant.o\
+	parameters_input.o\
+	bf_activation_module.o\
+	bf_detector_module.o\
+	bf_detector_dcr_list_class.o\
+	bf_detector_dcr_list_NS_class.o\
+	parameters_bf_layer.o\
+	bf_detector_dcr_list_N_class.o\
+	bf_detector_dcr_list_S_class.o\
+	bf_detector_dcr_list_EW_class.o\
+	bf_detector_dcr_list_E_class.o\
+	bf_detector_dcr_list_W_class.o\
+	bf_layer_errors_module.o\
+	bf_layer_allocate_module.o\
+	bf_layer_reallocate_module.o\
+	bf_layer_merge_module.o\
+	bf_layer_exchange_module.o\
+	bf_layer_remove_module.o\
+	bf_layer_class.o\
+	bf_sublayer_class.o\
+	bf_mainlayer_class.o\
+	bf_mainlayer_pointer_class.o\
+	nbf_element_class.o\
+	bf_sublayer_pointer_class.o\
+	sbf_list_class.o\
+	nbf_list_class.o\
+	nbf_interface_class.o\
+	bf_interface_class.o\
+	dbf_element_class.o\
+	dbf_list_class.o\
+	bf_detector_icr_list_class.o\
+	bf_path_icr_class.o\
+	bf_nbc_template_module.o\
+	bf_interface_icr_class.o\
+	bf_interface_dcr_class.o\
+	test_bf_layer_module.o\
+	bubble_class.o\
+	rising_bubble_class.o\
+	growing_bubble_class.o\
+	test_case_class.o
+
 
 #-----------------------------------------------------------------------
 #parameter_dir						

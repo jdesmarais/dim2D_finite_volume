@@ -15,6 +15,7 @@ sd_dir			= $(src_dir)/sd_operators
 ti_dir			= $(src_dir)/td_integrator
 td_dir        		= $(src_dir)/td_operators
 test_dir                = $(src_dir)/test_files
+test_case_dir           = $(test_dir)/test_cases
 
 
 #boundary_conditions folder

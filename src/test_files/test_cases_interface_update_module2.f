@@ -18,6 +18,190 @@
 
         contains
 
+        
+        type, abstract :: test_case
+
+          real(rkind), dimension(2) :: velocity
+          real(rkind)               :: alpha
+          real(rkind)               :: position_ini
+
+          contains
+
+          procedure                 , pass           :: ini
+          procedure                 , pass           :: set_alpha
+          procedure                 , pass           :: set_ini_position
+          procedure(get_coords_proc), pass, deferred :: get_coords
+
+
+        end type test_case
+
+        abstract interface
+          function get_coords_proc(g_coords, dx, dy) result(c_coords)
+
+            integer(ikind), dimension(2), intent(in) :: g_coords
+            real(rkind)                 , intent(in) :: dx
+            real(rkind)                 , intent(in) :: dy
+            real(rkind)   , dimension(2)                c_coords
+
+          end function get_coords_proc
+        end abstract interface
+
+
+        type :: one_bubble
+
+          contains
+
+          procedure, pass :: get_coords => get_coords_one_bubble
+
+        end type one_bubble
+
+
+        type :: two_bubbles
+
+          contains
+
+          procedure, pass :: get_coords => get_coords_two_bubbles
+
+        end type two_bubbles
+
+
+        !< initialize the velocity
+        subroutine ini(this, vf_choice)
+
+          class(test_case), intent(inout) :: this
+          integer         , intent(in)    :: vf_choice
+
+          select case(vf_choice)
+            case(1)
+               this%velocity(1) =  1.0d0
+               this%velocity(2) =  0.0d0
+            case(2)
+               this%velocity(1) = -1.0d0
+               this%velocity(2) =  0.0d0
+            case(3)
+               this%velocity(1) =  0.0d0
+               this%velocity(2) =  1.0d0
+            case(4)
+               this%velocity(1) =  0.0d0
+               this%velocity(2) = -1.0d0
+            case default
+               stop 'test case not recognized'
+          end select
+
+        end subroutine ini
+
+
+        !> set the alpha angle
+        subroutine set_alpha(this, alpha)
+
+          implicit none
+
+          class(test_case), intent(inout) :: this
+          real(rkind)     , intent(in)    :: alpha
+
+          this%alpha = alpha
+
+        end subroutine set_alpha
+
+
+        !> set the initial position of the bubble
+        subroutine set_ini_position(this, ini_position)
+
+          implicit none
+
+          class(test_case)         , intent(inout) :: this
+          real(rkind), dimension(2), intent(in)    :: ini_position
+
+          this%ini_position = ini_position
+
+        end subroutine set_ini_position
+
+
+        !carthesian coordinates
+        function get_c_coords(g_coords,dx,dy)
+
+          implicit none
+
+          integer(ikind), dimension(2), intent(in) :: g_coords
+          real(rkind)                 , intent(in) :: dx
+          real(rkind)                 , intent(in) :: dy
+          real(rkind)   , dimension(2)             :: get_c_coords
+
+          get_c_coords(1) = (g_coords(1)-bc_size+1/2)*dx
+          get_c_coords(2) = (g_coords(2)-bc_size+1/2)*dy
+
+        end function get_c_coords
+
+
+        !coordinates in the referential turned with an angle alpha
+        function get_r_coords(c_coords, alpha)
+
+          implicit none
+
+          real(rkind), dimension(2), intent(in) :: c_coords
+          real(rkind)              , intent(in) :: alpha
+          real(rkind), dimension(2), intent(in) :: get_r_coords
+
+          get_r_coords(1) = c_coords(1)*cos(alpha) - c_coords(2)*sin(alpha)
+          get_r_coords(2) = c_coords(2)*cos(alpha) - c_coords(1)*sin(alpha)
+
+        end function get_r_coords
+
+
+        !coordinates in the symetric referential
+        function get_s_coords(r_coords)
+
+          implicit none
+
+          real(rkind), dimension(2), intent(in) :: r_coords
+          real(rkind), dimension(2)             :: get_s_coords
+
+          get_s_coords(1) = abs(r_coords(1))
+          get_s_coords(2) = r_coords(2)
+
+        end function get_s_coords
+
+
+        !coordinates for one bubble
+        function get_coords_one_bubble(g_coords, dx, dy) result(coords)
+
+          implicit none
+
+          integer(ikind), dimension(2), intent(in) :: g_coords
+          real(rkind)                 , intent(in) :: dx
+          real(rkind)                 , intent(in) :: dy
+          real(rkind)   , dimension(2)             :: coords
+
+          real(rkind), dimension(2) :: c_coords
+          real(rkind), dimension(2) :: r_coords
+
+          c_coords = get_c_coords(g_coords,dx,dy)
+          r_coords = get_r_coords(c_coords, this%alpha)
+
+        end function get_coords_one_bubble
+
+
+        !coordinates for two bubbles
+        function get_coords_two_bubbles(g_coords, dx, dy) result(coords)
+
+          implicit none
+
+          integer(ikind), dimension(2), intent(in) :: g_coords
+          real(rkind)                 , intent(in) :: dx
+          real(rkind)                 , intent(in) :: dy
+          real(rkind)   , dimension(2)             :: coords
+
+          real(rkind), dimension(2) :: c_coords
+          real(rkind), dimension(2) :: r_coords
+          real(rkind), dimension(2) :: s_coords
+
+          c_coords = get_c_coords(g_coords,dx,dy)
+          r_coords = get_r_coords(c_coords, this%alpha)
+          s_coords = get_s_coords(r_coords)
+
+        end function get_coords_two_bubbles
+
+
         !< print the content of the interior, the buffer layer and the
         !> increasing detectors on output files
         subroutine print_state(nodes, grdpts_id, interface_used, index)
@@ -79,14 +263,14 @@
         !< update the data in the interior nodes and the buffer layers
         !> to simulate a vapor bubble moving in the computational domain
         subroutine update_nodes(
-     $       test_case,
+     $       this,
      $       timestep, dx, dy, 
      $       interior_nodes, interface_used)
 
 
           implicit none
 
-          integer                         , intent(in)    :: test_case
+          class(test_case)                , intent(in)    :: this
           integer                         , intent(in)    :: timestep
           real(rkind)                     , intent(in)    :: dx
           real(rkind)                     , intent(in)    :: dy
@@ -95,21 +279,21 @@
 
 
           !update the interior nodes
-          call update_interior_nodes(test_case, timestep, dx, dy, interior_nodes)
+          call update_interior_nodes(this, timestep, dx, dy, interior_nodes)
 
           !update the data in the buffer layers
-          call update_bf_nodes(test_case, timestep, dx, dy, interface_used)
+          call update_bf_nodes(this, timestep, dx, dy, interface_used)
 
         end subroutine update_nodes
 
 
         !< write data in the interior nodes to simulate a
         !> vapor bubble moving in the interior domain
-        subroutine update_interior_nodes(test_case, timestep, dx, dy, interior_nodes)
+        subroutine update_interior_nodes(this, timestep, dx, dy, interior_nodes)
 
           implicit none
 
-          integer                         , intent(in)  :: test_case
+          class(test_case)                , intent(in)  :: this
           integer                         , intent(in)  :: timestep
           real(rkind)                     , intent(in)  :: dx
           real(rkind)                     , intent(in)  :: dy
@@ -127,7 +311,7 @@
 
           !parameters constraining the bubble
           call get_bubble_param(
-     $         test_case,
+     $         this,
      $         timestep, dx, dy,
      $         d_liq, d_vap, l_interface, radius,
      $         x_center, y_center)
@@ -138,17 +322,15 @@
           do j=1, ny
              do i=1, nx
 
-                c_coords = get_coords(i,j,dx,dy)
+                c_coords = this%get_coords([i,j],dx,dy)
 
-                mass     = get_mass(c_coords,
-     $                              d_liq, d_vap,
-     $                              l_interface,
-     $                              radius,
-     $                              x_center, y_center)
+                mass     = this%get_mass(c_coords,
+     $                                   d_liq, d_vap,
+     $                                   l_interface,
+     $                                   radius,
+     $                                   x_center, y_center)
 
-                velocity = get_velocity(test_case,
-     $                                  c_coords,
-     $                                  x_center, y_center)
+                velocity = this%get_velocity(c_coords)
                 
                 interior_nodes(i,j,1) = mass
                 interior_nodes(i,j,2) = mass*velocity(1)
@@ -162,11 +344,11 @@
 
         !< write data in the buffer layer nodes to simulate a
         !> vapor bubble moving in the buffer layers
-        subroutine update_bf_nodes(test_case, timestep, dx, dy, interface_used)
+        subroutine update_bf_nodes(this, timestep, dx, dy, interface_used)
 
           implicit none
 
-          integer            , intent(in)    :: test_case
+          class(test_case)   , intent(in)    :: this
           integer            , intent(in)    :: timestep
           real(rkind)        , intent(in)    :: dx
           real(rkind)        , intent(in)    :: dy
@@ -234,10 +416,10 @@
                             g_coords(1) = alignment_tab(1,1)-bc_size+(i-1)
                             g_coords(2) = alignment_tab(2,1)-bc_size+(j-1)
 
-                            c_coords = get_coords(g_coords(1),
-     $                                            g_coords(2),
-     $                                            dx,
-     $                                            dy)
+                            c_coords = this%get_coords(
+     $                           g_coords,
+     $                           dx,
+     $                           dy)
 
                             mass     = get_mass(c_coords,
      $                                          d_liq, d_vap,

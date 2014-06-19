@@ -70,8 +70,13 @@
           integer(ikind), dimension(2)             :: inter_coords
 
           
-          inter_coords(1) = prev_coords(1) + nint(x_change*k)
-          inter_coords(2) = prev_coords(2) + nint(y_change*k)
+          if(rkind.eq.4) then
+             inter_coords(1) = prev_coords(1) + nint(x_change*k)
+             inter_coords(2) = prev_coords(2) + nint(y_change*k)
+          else
+             inter_coords(1) = prev_coords(1) + idnint(x_change*k)
+             inter_coords(2) = prev_coords(2) + idnint(y_change*k)
+          end if
 
         end function get_inter_dct_coords
 
