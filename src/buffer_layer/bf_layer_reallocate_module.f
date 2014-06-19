@@ -126,14 +126,15 @@
           integer(ikind)                 :: i_min11, i_min13, i_min21, i_min23
           integer(ikind), dimension(2)   :: new_sizes
 
+          
+          call get_border_changes_and_new_alignment_S(
+     $         border_changes, final_alignment, bf_alignment)
+
 
           reallocation_needed = is_reallocation_needed(border_changes)
 
 
           if(reallocation_needed) then
-
-             call get_border_changes_and_new_alignment_S(
-     $            border_changes, final_alignment, bf_alignment)
 
              call get_match(
      $            x_direction,
