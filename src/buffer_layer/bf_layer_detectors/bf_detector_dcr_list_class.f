@@ -386,10 +386,6 @@
           integer                                     :: i,j
 
 
-          logical :: test
-
-          test=.true.
-
           !compute the size of the new detector list
           !without the additional points for the links
           call this%get_detector_changes(
@@ -450,8 +446,6 @@
 
              !fill the new detector list
 
-             if(test) then
-
              !1) link with the first point
              j=0
              do i=1, inter_nb1
@@ -472,38 +466,47 @@
 
 
              !3) replace the detectors that are removed
-             j=j+this%segment(1)-1
+             if((this%segment(1)-1).gt.0) then
+                j=j+this%segment(1)-1
+             end if
 
-             segment_first_pt = get_segment_first_pt(this, detector_list, dir)
+             if(nb_deleted_detectors.ne.0) then
 
-             call replace_removed_detectors(
-     $            new_detector_list,
-     $            nb_added_detectors,
-     $            sign_added_detectors,
-     $            segment_first_pt,
-     $            dir,
-     $            j)
+                segment_first_pt = get_segment_first_pt(this, detector_list, dir)
+
+                call replace_removed_detectors(
+     $               new_detector_list,
+     $               nb_added_detectors,
+     $               sign_added_detectors,
+     $               segment_first_pt,
+     $               dir,
+     $               j)
+
+                j=j+nb_added_detectors
+
+             end if
 
 
              !4) add the detectors from the list that
              !   should not be removed on the right of
              !   the segment
-             j =j+nb_added_detectors
              do i=1, size(detector_list,2)-this%segment(2)               
                 new_detector_list(:,j+i) = detector_list(:,this%segment(2)+i)
              end do
              
              
              !5) link with the last point
-             j=j+size(detector_list,2)-this%segment(2)
+             if((size(detector_list,2)-this%segment(2)).gt.0) then
+                j=j+size(detector_list,2)-this%segment(2)
+             end if
+
              do i=1, inter_nb2
                 new_coords = get_inter_dct_coords(
      $               this%last_detector,
      $               x_change2, y_change2, i)
                 new_detector_list(:,j+i) = new_coords
              end do
-             
-             end if
+
              
              !set the new detector list
              call MOVE_ALLOC(new_detector_list, detector_list)

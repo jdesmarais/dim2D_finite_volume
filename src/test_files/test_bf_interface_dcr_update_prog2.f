@@ -10,7 +10,7 @@
 
 
         !parametrization of the test case studied
-        integer       , parameter           :: test_case_set=4
+        integer       , parameter           :: test_case_set=9
         integer       , parameter           :: nb_bubbles=1
         type(test_case)                     :: test_case_used
 
@@ -18,7 +18,7 @@
         !variables tested
         type(bf_interface_dcr)              :: interface_used
         real(rkind)   , dimension(nx,ny,ne) :: interior_nodes
-        integer       , dimension(nx,ny)    :: grdpts_id    
+        integer       , dimension(nx,ny)    :: grdpts_id
 
 
         !local variables
@@ -57,7 +57,7 @@
 
 
         !update the buffer layers
-        do i=1,40
+        do i=1,50
         
            call interface_used%update_bf_layers_with_detector_dcr(
      $          interior_nodes)
@@ -69,6 +69,7 @@
      $          dx,dy,
      $          interior_nodes, interface_used)
         
+!           if(mod(timestep,1).eq.0) then
            if(mod(timestep,5).eq.0) then
               call test_case_used%print_state(
      $             interior_nodes, grdpts_id,

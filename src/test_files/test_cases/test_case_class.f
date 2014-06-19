@@ -179,16 +179,29 @@
 
 
 
-        function get_r_coords(this, c_coords) result(r_coords)
+        function get_r_coords(this, c_coords, inv) result(r_coords)
         
           implicit none
 
           class(test_case)            , intent(in) :: this
           real(rkind)   , dimension(2), intent(in) :: c_coords
+          logical       , optional    , intent(in) :: inv
           real(rkind)   , dimension(2)             :: r_coords
 
-          r_coords(1) = c_coords(1)*cos(this%angle) - c_coords(2)*sin(this%angle)
-          r_coords(2) = c_coords(2)*cos(this%angle) - c_coords(1)*sin(this%angle)
+          real(rkind) :: angle
+          
+          if(present(inv)) then
+             if(inv) then
+                angle = -this%angle
+             else
+                angle = this%angle
+             end if
+          else
+             angle = this%angle
+          end if
+
+          r_coords(1) = c_coords(1)*cos(angle) + c_coords(2)*sin(angle)
+          r_coords(2) = c_coords(2)*cos(angle) - c_coords(1)*sin(angle)
 
         end function get_r_coords
 
@@ -224,12 +237,13 @@
         end function get_mass
 
 
-        function get_velocity(this,coords) result(velocity)
+        function get_velocity(this,coords,r_ref) result(velocity)
 
           implicit none
 
           class(test_case), intent(in) :: this
           real(rkind)     , dimension(2), intent(in) :: coords
+          logical             , optional, intent(in) :: r_ref
           real(rkind)     , dimension(2)             :: velocity
 
           select case(this%vf_choice)
@@ -256,6 +270,14 @@
             case default
                stop 'test case not recognized'
           end select
+
+          if(present(r_ref)) then
+             if(.not.r_ref) then
+                velocity = this%get_r_coords(velocity,inv=.true.)
+             end if
+          else
+             velocity = this%get_r_coords(velocity,.true.)
+          end if
 
         end function get_velocity
 
@@ -297,7 +319,7 @@
           real(rkind), dimension(2) :: velocity
 
           if(allocated(this%bubble_used)) then
-             velocity = this%get_velocity([1.0d0,1.0d0])
+             velocity = this%get_velocity([1.0d0,1.0d0],r_ref=.true.)
              call this%bubble_used%update(velocity, dx, dy)
           else
              stop 'test_case : update: bubble not allocated'
@@ -459,34 +481,67 @@
           class(bf_interface_icr)         , intent(in)    :: interface_used
           integer                         , intent(inout) :: index
 
+          integer :: format_index
+
+          character(len=11) :: i_format_nodes
+          character(len=15) :: i_format_grdpt
+
+          character(len=15) :: bf_format_nodes
+          character(len=18) :: bf_format_grdpt
+          character(len=10) :: bf_format_nbsbl
 
           character(len=20) :: i_nodes_filename
           character(len=24) :: i_grdpts_id_filename
           character(len=20) :: i_sizes_filename
 
-          character(len=10) :: bf_nodes_filename
-          character(len=13) :: bf_grdpts_id_filename
-          character(len=10) :: bf_sizes_filename
-          character(len=5)  :: bf_nb_sbf_filename
+          character(len=11) :: bf_nodes_filename
+          character(len=14) :: bf_grdpts_id_filename
+          character(len=11) :: bf_sizes_filename
+          character(len=6)  :: bf_nb_sbf_filename
 
 
-          write(i_nodes_filename,
-     $         '(''interior_nodes'',I1,''.dat'')') index
-          write(i_grdpts_id_filename,
-     $         '(''interior_grdpts_id'',I1,''.dat'')') index
-          write(i_sizes_filename,
-     $         '(''interior_sizes'',I1,''.dat'')') index
+          !determine the number of integer needed to write the
+          !file index
+          if(index.le.9) then
+             format_index = 1
+          else
+             if((index.ge.10).and.(index.le.99)) then
+                format_index = 2
+             else
+                print '(''test_bf_interface_prog'')'
+                print '(''print_output'')'
+                stop 'file_index not supported'
+             end if
+          end if
+
+
+          !determine the format for the name of the output files
+          write(i_format_nodes, '(''(A14,I'',I1,'',A4)'')') format_index
+          write(i_format_grdpt, '(''(A18,I'',I1,'',A4)'')') format_index
+
+          write(bf_format_nodes, '(''(A5,I'',I1,'',A4)'')') format_index
+          write(bf_format_grdpt, '(''(A8,I'',I1,'',A4)'')') format_index
+          write(bf_format_nbsbl, '(''(I'',I1,'',A4)'')'  )  format_index
+
+
+          !determine the names of the output files
+          write(i_nodes_filename, i_format_nodes)
+     $         'interior_nodes', index, '.dat'
+          write(i_grdpts_id_filename, i_format_grdpt)
+     $         'interior_grdpts_id', index, '.dat'
+          write(i_sizes_filename, i_format_nodes)
+     $         'interior_sizes', index, '.dat'
                     
-          write(bf_nodes_filename,
-     $         '(''nodes'',I1,''.dat'')') index
-          write(bf_grdpts_id_filename,
-     $         '(''grdpt_id'',I1,''.dat'')') index
-          write(bf_sizes_filename,
-     $         '(''sizes'',I1,''.dat'')') index
-          write(bf_nb_sbf_filename,
-     $         '(I1,''.dat'')') index
+          write(bf_nodes_filename, bf_format_nodes)
+     $         'nodes', index, '.dat'
+          write(bf_grdpts_id_filename, bf_format_grdpt)
+     $         'grdpt_id', index, '.dat'
+          write(bf_sizes_filename, bf_format_nodes)
+     $         'sizes', index, '.dat'
+          write(bf_nb_sbf_filename, bf_format_nbsbl)
+     $         index, '.dat'
 
-
+          !write interior data          
           call print_interior_data(
      $         nodes,
      $         grdpts_id,
@@ -494,12 +549,14 @@
      $         i_grdpts_id_filename,
      $         i_sizes_filename)
           
+          !write data stored in the buffer layers
           call interface_used%print_binary(
      $         bf_nodes_filename,
      $         bf_grdpts_id_filename,
      $         bf_sizes_filename,
      $         bf_nb_sbf_filename)
 
+          !write the position of the detectors on output file
           call interface_used%print_idetectors_on_binary(
      $         index)
 

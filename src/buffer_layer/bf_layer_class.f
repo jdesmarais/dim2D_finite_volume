@@ -1273,7 +1273,7 @@ c$$$          end select
           integer(ikind), dimension(2)    , intent(in)    :: match_table
 
 
-          integer(ikind) :: i,j,k
+          integer(ikind) :: k
           integer(ikind) :: i_prev, j_prev, i_center, j_center
 
 
@@ -1295,25 +1295,13 @@ c$$$          end select
           !----------------------------------------------------
 
           !for the first grid point, there is no simplification
-          !possible in checking the neighbours so it is separated
-          !from the next loop
+          !possible in checking the neighbours so the centers
+          !are initialized to do as if the previous central point
+          !checked was far away
           !----------------------------------------------------
-c$$$          k = 1
-c$$$          i_center = -match_table(1)+selected_grdpts(1,k)
-c$$$          j_center = -match_table(2)+selected_grdpts(2,k)
-c$$$          do j=j_center-bc_size, j_center+bc_size
-c$$$             do i=i_center-bc_size, i_center+bc_size
-c$$$                call check_gridpoint(grdpts_id,nodes,i,j,i_center,j_center)
-c$$$             end do
-c$$$          end do
-c$$$          grdpts_id(i_center,j_center) = interior_pt
           i_center = -match_table(1)+nx/2
           j_center = -match_table(2)+ny/2
 
-
-          !from the second gridpoint, we reduce the number of
-          !neighbours to be tested
-          !----------------------------------------------------
           do k=1, size(selected_grdpts,2)
 
              !update the position of the gridpoint previously
