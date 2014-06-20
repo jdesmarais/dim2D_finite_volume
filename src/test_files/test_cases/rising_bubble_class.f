@@ -16,6 +16,7 @@
           contains
 
           procedure, pass :: set_nb_bubbles
+          procedure, pass :: get_nb_bubbles
           procedure, pass :: update
           procedure, pass :: get_mass
 
@@ -35,6 +36,18 @@
           this%nb_bubbles = nb_bubbles
 
         end subroutine set_nb_bubbles
+
+
+        function get_nb_bubbles(this) result(nb_bubbles)
+
+          implicit none
+
+          class(rising_bubble), intent(inout) :: this
+          real(rkind)                         :: nb_bubbles
+
+          nb_bubbles = this%nb_bubbles
+
+        end function get_nb_bubbles
 
 
         subroutine update(this, velocity, dx, dy)
@@ -66,7 +79,7 @@
             case(1)
                mass = this%get_mass_profile(coords)
             case(2)
-               coords_temp(1) =  abs(coords(2))
+               coords_temp(1) =  abs(coords(1))
                coords_temp(2) =  coords(2)
                mass = this%get_mass_profile(coords_temp)
             case default

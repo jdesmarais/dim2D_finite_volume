@@ -8,8 +8,40 @@
 
         implicit none
 
-
         !parametrization of the test case studied
+        !----------------------------------------------------------------
+        ! test case | nb_bubbles | description                          |
+        !----------------------------------------------------------------
+        ! 1         | 1          | one bubble moving in the E direction |
+        !----------------------------------------------------------------
+        ! 2         | 1          | one bubble moving in the W direction |
+        !----------------------------------------------------------------
+        ! 3         | 1          | one bubble moving in the N direction |
+        !----------------------------------------------------------------
+        ! 4         | 1          | one bubble moving in the S direction |
+        !----------------------------------------------------------------
+        ! 5         | 1          | one bubble moving in the NE direction|
+        !----------------------------------------------------------------
+        ! 6         | 1          | one bubble moving in the SE direction|
+        !----------------------------------------------------------------
+        ! 7         | 1          | one bubble moving in the NW direction|
+        !----------------------------------------------------------------
+        ! 8         | 1          | one bubble moving in the SW direction|
+        !----------------------------------------------------------------
+        ! 1         | 2          | two bubbles moving in opposite       |
+        !           |            | direction in the x-direction         |
+        !----------------------------------------------------------------
+        ! 3         | 2          | two bubbles moving in opposite       |
+        !           |            | direction in the y-direction         |
+        !----------------------------------------------------------------
+        ! 5         | 2          | two bubbles moving in opposite       |
+        !           |            | direction in the (y=x)-direction     |
+        !----------------------------------------------------------------
+        ! 7         | 2          | two bubbles moving in opposite       |
+        !           |            | direction in the (y=-x)-direction    |
+        !----------------------------------------------------------------
+        ! 9         | 1          | growing bubble in every direction    |
+        !----------------------------------------------------------------
         integer       , parameter           :: test_case_set=9
         integer       , parameter           :: nb_bubbles=1
         type(test_case)                     :: test_case_used
@@ -57,7 +89,7 @@
 
 
         !update the buffer layers
-        do i=1,50
+        do i=1,55
         
            call interface_used%update_bf_layers_with_detector_dcr(
      $          interior_nodes)

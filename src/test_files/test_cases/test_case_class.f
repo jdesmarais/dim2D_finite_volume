@@ -98,7 +98,8 @@
           call rising_bubble_used%set_nb_bubbles(nb_bubbles_i)
           
           if(nb_bubbles_i.eq.2) then
-             call rising_bubble_used%set_center([-0.1d0,0.0d0])
+             call rising_bubble_used%set_center([0.25d0,0.0d0])
+             call rising_bubble_used%set_radius(0.1d0)
           end if
 
 
@@ -110,11 +111,19 @@
           select case(set_index)
             case(1)
                call this%set_bubble(rising_bubble_used)
-               this%vf_choice = 1
+               if(nb_bubbles_i.eq.2) then
+                  this%vf_choice = 11
+               else
+                  this%vf_choice = 10
+               end if
                this%angle = 0.0d0
             case(2)
                call this%set_bubble(rising_bubble_used)
-               this%vf_choice = 2
+               if(nb_bubbles_i.eq.2) then
+                  this%vf_choice = 21
+               else
+                  this%vf_choice = 20
+               end if
                this%angle = 0.0d0
             case(3)
                call this%set_bubble(rising_bubble_used)
@@ -126,19 +135,35 @@
                this%angle = 0.0d0
             case(5)
                call this%set_bubble(rising_bubble_used)
-               this%vf_choice = 1
+               if(nb_bubbles_i.eq.2) then
+                  this%vf_choice = 11
+               else
+                  this%vf_choice = 10
+               end if
                this%angle =  ACOS(-1.0d0)/4.0d0
             case(6)
                call this%set_bubble(rising_bubble_used)
-               this%vf_choice = 1
+               if(nb_bubbles_i.eq.2) then
+                  this%vf_choice = 11
+               else
+                  this%vf_choice = 10
+               end if
                this%angle = -ACOS(-1.0d0)/4.0d0
             case(7)
                call this%set_bubble(rising_bubble_used)
-               this%vf_choice = 2
+               if(nb_bubbles_i.eq.2) then
+                  this%vf_choice = 21
+               else
+                  this%vf_choice = 20
+               end if
                this%angle =  ACOS(-1.0d0)/4.0d0
             case(8)
                call this%set_bubble(rising_bubble_used)
-               this%vf_choice = 2
+               if(nb_bubbles_i.eq.2) then
+                  this%vf_choice = 21
+               else
+                  this%vf_choice = 20
+               end if
                this%angle = -ACOS(-1.0d0)/4.0d0
             case(9)
                call this%set_bubble(growing_bubble_used)
@@ -247,26 +272,57 @@
           real(rkind)     , dimension(2)             :: velocity
 
           select case(this%vf_choice)
-            case(1)
+            case(10)
                velocity(1) =  1.0d0
                velocity(2) =  0.0d0
-            case(2)
+
+            case(11)
+               if(coords(1).gt.0) then
+                  velocity(1) = 1.0d0
+               else
+                  if(coords(1).eq.0) then
+                     velocity(1) = 0.0d0
+                  else
+                     velocity(1) = -1.0d0
+                  end if
+               end if
+               velocity(2) = 0.0d0
+
+            case(20)
                velocity(1) = -1.0d0
                velocity(2) =  0.0d0
+
+            case(21)
+               if(coords(1).gt.0) then
+                  velocity(1) = -1.0d0
+               else
+                  if(coords(1).eq.0) then
+                     velocity(1) = 0.0d0
+                  else
+                     velocity(1) =  1.0d0
+                  end if
+               end if
+               velocity(2) = 0.0d0                  
+
             case(3)
                velocity(1) =  0.0d0
                velocity(2) =  1.0d0
+
             case(4)
                velocity(1) =  0.0d0
                velocity(2) = -1.0d0
+
             case(5)
                if((coords(1).eq.0).and.(coords(2).eq.0)) then
                   velocity(1) = 0.0d0
                   velocity(2) = 0.0d0
                else
-                  velocity(1) = coords(1)/(SQRT(coords(1)**2+coords(2)**2))
-                  velocity(2) = coords(2)/(SQRT(coords(1)**2+coords(2)**2))
+                  velocity(1) = coords(1)/
+     $                 (SQRT(coords(1)**2+coords(2)**2))
+                  velocity(2) = coords(2)/
+     $                 (SQRT(coords(1)**2+coords(2)**2))
                end if
+
             case default
                stop 'test case not recognized'
           end select
@@ -276,7 +332,7 @@
                 velocity = this%get_r_coords(velocity,inv=.true.)
              end if
           else
-             velocity = this%get_r_coords(velocity,.true.)
+             velocity = this%get_r_coords(velocity,inv=.true.)
           end if
 
         end function get_velocity

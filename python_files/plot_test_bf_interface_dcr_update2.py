@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
 
     #plot the tests
-    for i in range(0,11):
+    for i in range(0,12):
         
     	#extract data for the interior points and the buffer layers
     	#-----------------------------------------------------------------

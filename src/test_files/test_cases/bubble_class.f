@@ -20,6 +20,7 @@
 
           procedure               , pass           :: ini
           procedure               , pass           :: set_center
+          procedure               , pass           :: set_radius
           procedure(update_proc)  , pass, deferred :: update
           procedure               , pass           :: get_mass_profile
           procedure               , pass           :: get_mass
@@ -77,6 +78,18 @@
           this%center = center
 
         end subroutine set_center
+
+
+        subroutine set_radius(this, radius)
+
+          implicit none
+
+          class(bubble), intent(inout) :: this
+          real(rkind)  , intent(in)    :: radius
+
+          this%radius = radius
+
+        end subroutine set_radius
 
 
         function get_mass_profile(this, coords) result(mass)
