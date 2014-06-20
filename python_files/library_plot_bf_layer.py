@@ -34,7 +34,7 @@ grdptid_type = 2
 
 def manage_options():
 
-    folder_path = './'
+    folder_path = '.'
     
     opts, extraparams = getopt.getopt(sys.argv[1:],
                                       "f:",
@@ -48,6 +48,47 @@ def manage_options():
                 sys.exit(0)
 
     return [folder_path]
+
+
+def get_filenames(folder_path,i):
+    
+    test_index = str(i)
+
+    interior_size_filename      = folder_path+\
+        '/interior_sizes'+test_index+'.dat'
+
+    interior_grdptsid_filename  = folder_path+\
+        '/interior_grdpts_id'+test_index+'.dat'
+
+    interior_nodes_filename     = folder_path+\
+        '/interior_nodes'+test_index+'.dat'
+    
+    suffix_size    = '_sizes'+test_index+'.dat'
+    suffix_nodes   = '_nodes'+test_index+'.dat'
+    suffix_grdptid = '_grdpt_id'+test_index+'.dat'
+
+    N_detector_filename = folder_path+\
+        '/N_detectors'+test_index+'.dat'
+
+    S_detector_filename = folder_path+\
+        '/S_detectors'+test_index+'.dat'
+
+    E_detector_filename = folder_path+\
+        '/E_detectors'+test_index+'.dat'
+
+    W_detector_filename = folder_path+\
+        '/W_detectors'+test_index+'.dat'
+
+    return [interior_size_filename,
+            interior_grdptsid_filename,
+            interior_nodes_filename,
+            suffix_size,
+            suffix_nodes,
+            suffix_grdptid,
+            N_detector_filename,
+            S_detector_filename,
+            E_detector_filename,
+            W_detector_filename]
 
 
 def get_nb_sublayers(nb_sublayers_filename):
@@ -162,6 +203,92 @@ def extract_bf_layer_data(
     return [sizes, nodes, grdpt_id]
 
 
+#get the name for the picture path
+def get_picture_file(folder_path,index,index_max):
+
+    len_index_max = len(str(index_max))
+    str_index     = str(index)
+    
+    str_index_f = ''
+    for i in range(0,len_index_max-len(str_index)):
+        str_index_f += '0'
+    str_index_f += str_index
+        
+    picture_file = folder_path+'/picture'+str_index_f+'.png'
+
+    return picture_file
+
+
+#creation of the picture
+def make_picture_bf_layers(
+    picture_folder_path,
+    input_filenames,
+    folder_path,
+    nb_sublayers,
+    index,
+    index_max=100,
+    continuous=False):
+
+    #get the input filenames
+    interior_size_file     = input_filenames[0]
+    interior_grdptsid_file = input_filenames[1]
+    interior_nodes_file    = input_filenames[2]
+    suffix_size            = input_filenames[3]
+    suffix_nodes           = input_filenames[4]
+    suffix_grdptid         = input_filenames[5]
+    N_detector_file        = input_filenames[6]
+    S_detector_file        = input_filenames[7]
+    E_detector_file        = input_filenames[8]
+    W_detector_file        = input_filenames[9]
+
+    #get the output filename
+    picture_file = get_picture_file(
+        picture_folder_path,
+        index,
+        index_max)
+
+    #compute the matrices
+    [lm_nodes,lm_grdptid,margin] =\
+    make_matrix_for_all_bf_layers(
+        interior_size_file,
+        interior_grdptsid_file,
+        interior_nodes_file,
+        folder_path,
+        nb_sublayers,
+        suffix_size,
+        suffix_nodes,
+        suffix_grdptid,
+        continuous)
+
+    #extract detector informations
+    [N_detector, S_detector, E_detector, W_detector] = \
+    extract_detectors_data(N_detector_file,
+                           S_detector_file,
+                           E_detector_file,
+                           W_detector_file)
+
+    #add detectors on the grdpts_id matrix
+    [lm_grdptid] = add_detectors(N_detector,
+                                 S_detector,
+                                 E_detector,
+                                 W_detector,
+                                 lm_grdptid,
+                                 margin)
+
+    #create the graph with the grdpts_id and the nodes
+    fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(
+        lm_nodes,
+        lm_grdptid)
+
+    #create a picture for this graph
+    fig.savefig(picture_file)
+
+    #print the picture produced
+    print 'generating '+picture_file
+    
+
+#computation of the matrices saving the nodes
+#and the grid points id
 def make_matrix_for_all_bf_layers(
     interior_size_filename,
     interior_grdptsid_filename,

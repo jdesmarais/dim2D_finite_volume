@@ -1,7 +1,7 @@
       program test_bf_interface_dcr_update_prog2
 
         use bf_interface_dcr_class, only : bf_interface_dcr
-        use parameters_input      , only : nx,ny,ne !,bc_size
+        use parameters_input      , only : nx,ny,ne
         use parameters_kind       , only : rkind
         use test_bf_layer_module  , only : ini_grdpts_id
         use test_case_class       , only : test_case
@@ -37,13 +37,13 @@
         ! 5         | 2          | two bubbles moving in opposite       |
         !           |            | direction in the (y=x)-direction     |
         !----------------------------------------------------------------
-        ! 7         | 2          | two bubbles moving in opposite       |
+        ! 6         | 2          | two bubbles moving in opposite       |
         !           |            | direction in the (y=-x)-direction    |
         !----------------------------------------------------------------
         ! 9         | 1          | growing bubble in every direction    |
         !----------------------------------------------------------------
-        integer       , parameter           :: test_case_set=9
-        integer       , parameter           :: nb_bubbles=1
+        integer       , parameter           :: test_case_set=6
+        integer       , parameter           :: nb_bubbles=2
         type(test_case)                     :: test_case_used
 
 
@@ -60,8 +60,8 @@
         integer :: file_index
         integer :: timestep
 
-        dx = 1.0d0/nx !(nx-2*bc_size)
-        dy = 1.0d0/ny !(ny-2*bc_size)
+        dx = 1.0d0/nx
+        dy = 1.0d0/ny
         file_index = 0
         timestep = 0
 
@@ -102,13 +102,13 @@
      $          interior_nodes, interface_used)
         
 !           if(mod(timestep,1).eq.0) then
-           if(mod(timestep,5).eq.0) then
+!           if(mod(timestep,5).eq.0) then
               call test_case_used%print_state(
      $             interior_nodes, grdpts_id,
      $             interface_used,
      $             file_index)
               file_index = file_index+1
-           end if
+!           end if
         
            timestep = timestep+1
         

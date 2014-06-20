@@ -45,11 +45,6 @@ if __name__ == "__main__":
     	#-----------------------------------------------------------------
         test_index = str(i)
 
-        #if(i==3):
-        #    interior_size_filename      = folder_path+'/interior_sizes'+test_index+'.dat'
-        #    interior_grdptsid_filename  = folder_path+'/interior_grdpts_id'+test_index+'.dat'
-        #    interior_nodes_filename     = folder_path+'/interior_nodes'+test_index+'.dat'
-        #else:
         interior_size_filename      = folder_path+'/interior_sizes'+test_index+'.dat'
         interior_grdptsid_filename  = folder_path+'/interior_grdpts_id'+test_index+'.dat'
         interior_nodes_filename     = folder_path+'/interior_nodes'+test_index+'.dat'

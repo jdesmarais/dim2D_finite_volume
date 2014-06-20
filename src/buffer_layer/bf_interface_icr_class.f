@@ -1573,9 +1573,20 @@
           character(len=11) :: filename_format
           character(len=20) :: filename
           integer :: ios
+          integer :: index_format
           
 
-          write(filename_format, '(''(A11,I'',I1,'',A4)'')') floor(index/10.0)+1
+          if(index.le.9) then
+             index_format = 1
+          else
+             if(index.le.99) then
+                index_format = 2
+             else
+                index_format = 3
+             end if
+          end if
+
+          write(filename_format, '(''(A11,I'',I1,'',A4)'')') index_format
 
 
           !N detectors
