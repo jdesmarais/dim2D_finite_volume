@@ -1,7 +1,21 @@
+      !> @file
+      !> module implementing the temporary object saving the
+      !> general coordinates of a detector
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the temporary object saving the
+      !> general coordinates of a detector
+      !
+      !> @date
+      ! 16_04_2014 - initial version      - J.L. Desmarais
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !----------------------------------------------------------------
       module dbf_element_class
 
         use parameters_kind, only : ikind
-
 
         implicit none
 
@@ -9,8 +23,48 @@
         public :: dbf_element
 
 
-        !< element of a double chained list to save the general
+        !>@class dbf_element
+        !< element of a double chained list of  save the general
         !> coordinates of a detector
+        !
+        !>@param prev
+        !> pointer to the previous element in the list
+        !
+        !>@param next
+        !> pointer to the next element in the list
+        !
+        !>@param coords
+        !> general coordinates of the detector
+        !
+        !>@param ini
+        !> initialize the dbf_element object its links to
+        !> previous and next elements in the list and setting
+        !> coordinates of the detector
+        !
+        !>@param set_prev
+        !> set the link to the previous element of the list
+        !
+        !>@param set_next
+        !> set the link to the next element of the list
+        !
+        !>@param get_prev
+        !> access the previous element of the list
+        !
+        !>@param get_next
+        !> access the next element of the list
+        !
+        !>@param get_coords
+        !> get the coords attribute
+        !
+        !>@param nullify_prev
+        !> remove the link to the previous element of the list
+        !
+        !>@param nullify_next
+        !> remove the link to the next element of the list
+        !
+        !>@param print_on_screen
+        !> print the content of the list on screen (only for test)
+        !---------------------------------------------------------------
         type :: dbf_element
 
           integer(ikind), dimension(2), private :: coords
@@ -36,6 +90,25 @@
         contains
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the dbf_element object its links to
+        !> previous and next elements in the list and setting
+        !> coordinates of the detector
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_element object encapsulating the detector coordinates
+        !> and the previous and next elements in the doubled chained
+        !> list
+        !
+        !>@param added_bf_sublayer_ptr
+        !> pointer to the bf_sublayer stored in the element
+        !--------------------------------------------------------------
         subroutine ini(this, coords)
 
           implicit none
@@ -50,6 +123,23 @@
         end subroutine ini
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the link to the previous element of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_element object encapsulating the detector coordinates
+        !> and the previous and next elements in the doubled chained
+        !> list
+        !
+        !>@param prev_ptr
+        !> pointer to the previous element of the list
+        !--------------------------------------------------------------
         subroutine set_prev(this, prev_ptr)
 
           implicit none
@@ -62,6 +152,23 @@
         end subroutine set_prev
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the link to the next element of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_element object encapsulating the detector coordinates
+        !> and the previous and next elements in the doubled chained
+        !> list
+        !
+        !>@param next_ptr
+        !> pointer to the next element of the list
+        !--------------------------------------------------------------
         subroutine set_next(this, next_ptr)
 
           implicit none
@@ -74,6 +181,23 @@
         end subroutine set_next
       
         
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> access the previous element of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_element object encapsulating the detector coordinates
+        !> and the previous and next elements in the doubled chained
+        !> list
+        !
+        !>@return get_prev
+        !> pointer to the previous element of the list
+        !--------------------------------------------------------------
         function get_prev(this)
 
           implicit none
@@ -86,6 +210,23 @@
         end function get_prev
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> access the next element of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_element object encapsulating the detector coordinates
+        !> and the previous and next elements in the doubled chained
+        !> list
+        !
+        !>@return get_next
+        !> pointer to the next element of the list
+        !--------------------------------------------------------------
         function get_next(this)
 
           implicit none
@@ -98,6 +239,23 @@
         end function get_next
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the ptr attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_element object encapsulating the detector coordinates
+        !> and the previous and next elements in the doubled chained
+        !> list
+        !
+        !>@return get_coords
+        !> coords attribute
+        !--------------------------------------------------------------
         function get_coords(this)
 
           implicit none
@@ -110,6 +268,20 @@
         end function get_coords
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the link to the previous element of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_element object encapsulating the detector coordinates
+        !> and the previous and next elements in the doubled chained
+        !> list
+        !--------------------------------------------------------------
         subroutine nullify_prev(this)
 
           implicit none
@@ -121,6 +293,20 @@
         end subroutine nullify_prev
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the link to the next element of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_element object encapsulating the detector coordinates
+        !> and the previous and next elements in the doubled chained
+        !> list
+        !--------------------------------------------------------------
         subroutine nullify_next(this)
 
           implicit none
@@ -132,6 +318,20 @@
         end subroutine nullify_next
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the content of the element on screen
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_element object encapsulating the detector coordinates
+        !> and the previous and next elements in the doubled chained
+        !> list
+        !--------------------------------------------------------------
         subroutine print_on_screen(this)
 
           implicit none

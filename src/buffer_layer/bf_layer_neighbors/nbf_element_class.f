@@ -1,3 +1,17 @@
+      !> @file
+      !> module implementing the element of a doubled chained list
+      !> of bf_sublayer pointers
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the element of a doubled chained list
+      !> of bf_sublayer pointers
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module nbf_element_class
 
         use bf_layer_class        , only : bf_layer
@@ -15,8 +29,81 @@
         public :: nbf_element
 
 
-        !< element of a double chained list to save a pointer
-        !> to a buffer sublayer
+        !>@class nbf_element
+        !< element of a double chained list of bf_sublayer
+        !> pointers
+        !
+        !>@param prev
+        !> pointer to the previous element in the list
+        !
+        !>@param next
+        !> pointer to the next element in the list
+        !
+        !>@param ptr
+        !> pointer to the bf_sublayer object
+        !
+        !>@param ini
+        !> initialize the nbf_element object by nullify its
+        !> ptr attribute and its links to previous and next
+        !> elements in the list
+        !
+        !>@param set_prev
+        !> set the link to the previous element of the list
+        !
+        !>@param set_next
+        !> set the link to the next element of the list
+        !
+        !>@param set_ptr
+        !> set the ptr attribute
+        !
+        !>@param get_prev
+        !> access the previous element of the list
+        !
+        !>@param get_next
+        !> access the next element of the list
+        !
+        !>@param get_ptr
+        !> get the ptr attribute
+        !
+        !>@param nullify_prev
+        !> remove the link to the previous element of the list
+        !
+        !>@param nullify_next
+        !> remove the link to the next element of the list
+        !
+        !>@param is_before
+        !> check if the current nbf_element object is before 
+        !> the other element in the doubled chained list
+        !
+        !>@param refers_to
+        !> check if the ptr attribute refers to the
+        !> buffer sublayer passed as argument
+        !
+        !> @param copy_from_neighbor1_to
+        !> copy the common layer to the ptr attribute
+        !> from its neighboring buffer layer identified as of type 1
+        !
+        !> @param copy_from_neighbor2_to
+        !> copy the common layer to the ptr attribute
+        !> from its neighboring buffer layer identified as of type 2
+        !
+        !> @param copy_to_neighbor1_from
+        !> copy the common layer from the ptr attribute
+        !> to its neighboring buffer layer identified as of type 1
+        !
+        !> @param copy_to_neighbor2_from
+        !> copy the common layer from the ptr attribute
+        !> to its neighboring buffer layer identified as of type 2
+        !
+        !> @param shares_grdpts_along_x_dir_with
+        !> check if a neighboring buffer layer (positioned such that
+        !> it is either a potential neighboring buffer layer of type
+        !> 1 or 2) has indeed grid points in common with the ptr attribute
+        !> layer by computing the x-size of the layer to be exchanged
+        !
+        !> @param get_remain_status
+        !> get the can_remain attribute of the ptr attribute
+        !---------------------------------------------------------------
         type :: nbf_element
 
           type(nbf_element), pointer, private :: prev
@@ -37,7 +124,6 @@
           procedure, pass :: nullify_ptr
           procedure, pass :: is_before
           procedure, pass :: refers_to
-          !procedure, pass :: can_exchange_with
           procedure, pass :: copy_from_neighbor1_to
           procedure, pass :: copy_from_neighbor2_to
           procedure, pass :: copy_to_neighbor1_from
@@ -49,6 +135,26 @@
 
         contains
 
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the nbf_element object by nullify its
+        !> ptr attribute and its links to previous and next
+        !> elements in the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param added_bf_sublayer_ptr
+        !> pointer to the bf_sublayer stored in the element
+        !--------------------------------------------------------------
         subroutine ini(this, added_bf_sublayer_ptr)
 
           implicit none
@@ -68,6 +174,23 @@
         end subroutine ini
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the link to the previous element of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param prev_ptr
+        !> pointer to the previous element of the list
+        !--------------------------------------------------------------
         subroutine set_prev(this, prev_ptr)
 
           implicit none
@@ -80,6 +203,23 @@
         end subroutine set_prev
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the link to the next element of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param next_ptr
+        !> pointer to the next element of the list
+        !--------------------------------------------------------------
         subroutine set_next(this, next_ptr)
 
           implicit none
@@ -92,6 +232,23 @@
         end subroutine set_next
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the ptr attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param added_bf_sublayer_ptr
+        !> pointer to the bf_sublayer stored in the element
+        !--------------------------------------------------------------
         subroutine set_ptr(this, added_bf_sublayer_ptr)
 
           implicit none
@@ -106,6 +263,23 @@
         end subroutine set_ptr
       
         
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> access the previous element of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@return get_prev
+        !> pointer to the previous element of the list
+        !--------------------------------------------------------------
         function get_prev(this)
 
           implicit none
@@ -118,6 +292,23 @@
         end function get_prev
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> access the next element of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@return get_next
+        !> pointer to the next element of the list
+        !--------------------------------------------------------------
         function get_next(this)
 
           implicit none
@@ -130,6 +321,23 @@
         end function get_next
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the ptr attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@return get_ptr
+        !> pointer to the bf_sublayer stored in the element
+        !--------------------------------------------------------------
         function get_ptr(this)
 
           implicit none
@@ -142,6 +350,20 @@
         end function get_ptr
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the link to the previous element of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !--------------------------------------------------------------
         subroutine nullify_prev(this)
 
           implicit none
@@ -153,6 +375,20 @@
         end subroutine nullify_prev
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the link to the next element of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !--------------------------------------------------------------
         subroutine nullify_next(this)
 
           implicit none
@@ -164,6 +400,20 @@
         end subroutine nullify_next
       
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the link to the bf_sublayer object
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !--------------------------------------------------------------
         subroutine nullify_ptr(this)
 
           implicit none
@@ -175,6 +425,30 @@
         end subroutine nullify_ptr
 
       
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the current nbf_element object is before 
+        !> the other element in the doubled chained list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param element2
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@return is_before
+        !> logical stating whether the current element should be placed
+        !> before the element2 in the doubled chained list
+        !--------------------------------------------------------------
         function is_before(this, element2)
 
           implicit none
@@ -207,6 +481,28 @@
         end function is_before
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the ptr attribute refers to the
+        !> buffer sublayer passed as argument
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param added_bf_sublayer_ptr
+        !> pointer to the bf_sublayer tested
+        !
+        !>@return refers_to
+        !> logical stating whether the bf_sublayer pointer refers also
+        !> to the element pointed by added_bf_sublayer_ptr
+        !--------------------------------------------------------------
         function refers_to(this, added_bf_sublayer_ptr)
 
           implicit none
@@ -236,94 +532,24 @@
         end function refers_to
 
 
-        !< check if the exchange between the element and the
-c$$$        !> buffer sublayer are possible
-c$$$        function can_exchange_with(this, bf_exchanged)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(nbf_element), intent(in) :: this
-c$$$          class(bf_layer)   , intent(in) :: bf_exchanged
-c$$$          logical                        :: can_exchange_with
-c$$$
-c$$$          integer(ikind) :: min_border
-c$$$          integer(ikind) :: max_border
-c$$$          integer        :: mainlayer_id
-c$$$          integer        :: n_mainlayer_id
-c$$$
-c$$$
-c$$$          !restrictions along the x-direction
-c$$$          min_border = max(this%ptr%get_alignment(x_direction,1),
-c$$$     $                     bf_exchanged%get_alignment(x_direction,1))
-c$$$          max_border = min(this%ptr%get_alignment(x_direction,2),
-c$$$     $                     bf_exchanged%get_alignment(x_direction,2))
-c$$$
-c$$$          can_exchange_with = (max_border-min_border+2*bc_size+1).gt.0
-c$$$
-c$$$
-c$$$          !restrictions for E and W buffer layers
-c$$$          !along the y-direction
-c$$$          if(can_exchange_with) then
-c$$$
-c$$$             n_mainlayer_id = this%ptr%get_localization()
-c$$$
-c$$$             select case(n_mainlayer_id)
-c$$$
-c$$$               case(N)
-c$$$                  mainlayer_id = bf_exchanged%get_localization()
-c$$$                  select case(mainlayer_id)
-c$$$                    case(E,W)
-c$$$                       can_exchange_with =
-c$$$     $                      bf_exchanged%get_alignment(y_direction,2).eq.(align_N-1)
-c$$$                    
-c$$$                    case default
-c$$$                       call error_incompatible_neighbor(
-c$$$     $                      'nbf_element_class.f',
-c$$$     $                      'can_exchange_with',
-c$$$     $                      mainlayer_id,
-c$$$     $                      n_mainlayer_id)
-c$$$                  end select
-c$$$
-c$$$               case(S)
-c$$$                  mainlayer_id = bf_exchanged%get_localization()
-c$$$                  select case(mainlayer_id)
-c$$$                    case(E,W)
-c$$$                       can_exchange_with =
-c$$$     $                      bf_exchanged%get_alignment(y_direction,1).eq.(align_S+1)
-c$$$                    case default
-c$$$                       call error_incompatible_neighbor(
-c$$$     $                      'nbf_element_class.f',
-c$$$     $                      'can_exchange_with',
-c$$$     $                      mainlayer_id,
-c$$$     $                      n_mainlayer_id)
-c$$$                  end select
-c$$$
-c$$$               case(E,W)
-c$$$                  mainlayer_id = bf_exchanged%get_localization()
-c$$$                  select case(mainlayer_id)
-c$$$                    case(N)
-c$$$                       can_exchange_with =
-c$$$     $                      this%ptr%get_alignment(y_direction,2).eq.(align_N-1)
-c$$$                    case(S)
-c$$$                       can_exchange_with =
-c$$$     $                      this%ptr%get_alignment(y_direction,1).eq.(align_S+1)
-c$$$                    case default
-c$$$                       call error_incompatible_neighbor(
-c$$$     $                      'nbf_element_class.f',
-c$$$     $                      'can_exchange_with',
-c$$$     $                      mainlayer_id,
-c$$$     $                      n_mainlayer_id)
-c$$$                  end select
-c$$$
-c$$$             end select
-c$$$
-c$$$          end if
-c$$$
-c$$$        end function can_exchange_with
-
-
-        !< copy from neighbor1 saved in the element to the
-        !> buffer layer passed as argument
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layer to the ptr attribute
+        !> from its neighboring buffer layer identified as of type 1
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param bf_exchanged
+        !> bf_layer with which the current element is exchanging data
+        !--------------------------------------------------------------
         subroutine copy_from_neighbor1_to(this, bf_exchanged)
         
           implicit none
@@ -338,8 +564,24 @@ c$$$        end function can_exchange_with
         end subroutine copy_from_neighbor1_to
 
 
-        !< copy from neighbor2 saved in the element to the
-        !> buffer layer passed as argument
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layer to the ptr attribute
+        !> from its neighboring buffer layer identified as of type 2
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param bf_exchanged
+        !> bf_layer with which the current element is exchanging data
+        !--------------------------------------------------------------
         subroutine copy_from_neighbor2_to(this, bf_exchanged)
         
           implicit none
@@ -354,8 +596,24 @@ c$$$        end function can_exchange_with
         end subroutine copy_from_neighbor2_to
 
 
-        !< copy from the buffer layer passed as argument to
-        !> the neighbor1 saved in the element
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layer from the ptr attribute
+        !> to its neighboring buffer layer identified as of type 1
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param bf_exchanged
+        !> bf_layer with which the current element is exchanging data
+        !--------------------------------------------------------------
         subroutine copy_to_neighbor1_from(this, bf_exchanged)
         
           implicit none
@@ -370,8 +628,24 @@ c$$$        end function can_exchange_with
         end subroutine copy_to_neighbor1_from
 
 
-        !< copy from the buffer layer passed as argument to
-        !> to the neighbor2 saved in the element
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layer from the ptr attribute
+        !> to its neighboring buffer layer identified as of type 2
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param bf_exchanged
+        !> bf_layer with which the current element is exchanging data
+        !--------------------------------------------------------------
         subroutine copy_to_neighbor2_from(this, bf_exchanged)
         
           implicit none
@@ -386,8 +660,30 @@ c$$$        end function can_exchange_with
         end subroutine copy_to_neighbor2_from
 
 
-        !< check if two buffer layers share grdpts along
-        !> the x direction
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if a neighboring buffer layer (positioned such that
+        !> it is either a potential neighboring buffer layer of type
+        !> 1 or 2) has indeed grid points in common with the ptr attribute
+        !> by computing the x-size of the layer to be exchanged
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param neighbor
+        !> bf_layer with which the current element is exchanging data
+        !
+        !>@return share
+        !> logical identifying if the ptr attribute and the bf_layer
+        !> object are sharing grid points
+        !--------------------------------------------------------------
         function shares_grdpts_along_x_dir_with(this, neighbor)
      $     result(share)
 
@@ -400,8 +696,24 @@ c$$$        end function can_exchange_with
         end function shares_grdpts_along_x_dir_with
 
 
-        !< check whether the buffer layer should remain
-        !> or not
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the can_remain attribute of the ptr attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@return get_remain_status
+        !> can_remain attribute of the object pointed by the ptr
+        !> attribute
+        !--------------------------------------------------------------
         function get_remain_status(this)
 
           implicit none

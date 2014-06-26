@@ -1,3 +1,20 @@
+      !> @file
+      !> module implementing the temporary object saving the
+      !> general coordinates of a list of new increasing
+      !> detectors
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the temporary object saving the
+      !> general coordinates of a list of new increasing
+      !> detectors
+      !
+      !> @date
+      ! 16_04_2014 - initial version      - J.L. Desmarais
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !----------------------------------------------------------------
       module bf_detector_icr_list_class
       
         use bf_detector_module, only : get_inter_dct_param,
@@ -13,6 +30,79 @@
         public :: bf_detector_icr_list
 
 
+        !>@class bf_detector_icr_list
+        !> object encapuslating the data structure for storing
+        !> temporary the new increasing detectors
+        !
+        !>@param mainlayer_id
+        !> cardinal coordinate identifying to which mainlayer
+        !> the detectors belongs
+        !
+        !>@param nb_detectors
+        !> total number of increasing detectors
+        !        
+        !>@param detectors_list
+        !> table allocated with the number of detectors at the
+        !> previous timestep where the detectors are first saved
+        !
+        !>@param detectors_extra_list
+        !> doubled chained list with the new increasing detectors
+        !> that do not fit in the detectors_list
+        !
+        !>@param ini
+        !> initialize the object with the main layer id and the
+        !> size of the detector list
+        !
+        !>@param add_new_detector
+        !> add the new detector and its intermediates to the mainlayer
+        !> lists to ensure a continuous path
+        !
+        !>@param add_new_detector_to_mainlayer
+        !> add the new detector and its intermediates to the mainlayer
+        !> lists to ensure a continuous path
+        !
+        !>@param add_detector_to_mainlayer
+        !> add the new detector general coordinates either to the
+        !> detectors_list or the detectors_extra_list
+        !
+        !>@param get_inter_detector_param
+        !> get the parameters constraining the addition
+        !> of intermediate detectors between the previous
+        !> detectors and the new detector to be added
+        !
+        !>@param get_inter_detector_coords
+        !> from the parameters constraining the addition of
+        !> intermediate detectors, give the coordinate of 
+        !> the intermediate detector identified by the index k
+        !> varying between 1 and total number of detectors to
+        !> be added
+        !
+        !>@param get_nb_detectors
+        !> get the nb_detectors attribute
+        !
+        !>@param get_prev
+        !> get the previous detector in the list
+        !
+        !>@param get_next
+        !> get the next detector in the list
+        !
+        !>@param get_head
+        !> get the first detector of the list
+        !
+        !>@param get_tail
+        !> get the last detector of the list
+        !
+        !>@param fill_new_detector_table
+        !> fill the new detector table with the detectors saved
+        !> in the bf_detector_icr_list object
+        !
+        !>@param print_on_matrix
+        !> print the coordinates of the detectors saved in the object
+        !> as points on a matrix
+        !
+        !>@param destroy
+        !> deallocate the content of the object
+        !--------------------------------------------------------------
         type :: bf_detector_icr_list
 
           integer, private :: mainlayer_id
@@ -49,8 +139,29 @@
         contains
 
 
-        !< initialize the object with the main layer id and the
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the object with the main layer id and the
         !> size of the detector list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_icr_list object encapsulating the data structure
+        !> for temporary storing the position of the new increasing
+        !> detectors
+        !
+        !>@param mainlayer_id
+        !> cardinal coordinate identifying to which mainlayer
+        !> the detectors belongs
+        !
+        !>@param size_detectors_list
+        !> original size guessed for saving all teh new increasing
+        !> detectors
+        !--------------------------------------------------------------
         subroutine ini(this, mainlayer_id, size_detectors_list)
 
           implicit none
@@ -63,14 +174,29 @@
           this%nb_detectors = 0
           allocate(this%detectors_list(2,size_detectors_list))
           nullify(this%detectors_extra_list)
-c$$$          nullify(this%detectors_neighbor1_list)
-c$$$          nullify(this%detectors_neighbor2_list)
 
         end subroutine ini
 
 
-        !< add the new detectors and its intermediates to the mainlayer
-        !> lists
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add the new detector and its intermediates to the mainlayer
+        !> lists to ensure a continuous path
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_icr_list object encapsulating the data structure
+        !> for temporary storing the position of the new increasing
+        !> detectors
+        !
+        !>@param coords
+        !> general coordinates of the new increasing detector added
+        !> to the list
+        !--------------------------------------------------------------
         subroutine add_new_detector_to_mainlayer(this, coords)
 
           implicit none
@@ -127,9 +253,35 @@ c$$$          nullify(this%detectors_neighbor2_list)
         end subroutine add_new_detector_to_mainlayer
 
 
-        !< get the parameters constraining the addition
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the parameters constraining the addition
         !> of intermediate detectors between the previous
         !> detectors and the new detector to be added
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param prev_coords
+        !> general coordinates of the last detector added to the list
+        !
+        !>@param next_coords
+        !> general coordinates of the future detector to be added to the list
+        !
+        !>@param x_change
+        !> change in the x-coordinate between the previous and the next
+        !> detector
+        !
+        !>@param y_change
+        !> change in the y-coordinate between the previous and the next
+        !> detector
+        !
+        !>@param inter_nb
+        !> number of detectors to be added between the two to ensure a
+        !> continuous path
+        !--------------------------------------------------------------
         subroutine get_inter_detector_param(
      $     prev_coords, next_coords,
      $     x_change, y_change, inter_nb)
@@ -151,11 +303,37 @@ c$$$          nullify(this%detectors_neighbor2_list)
         end subroutine get_inter_detector_param
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> from the parameters constraining the addition of
         !> intermediate detectors, give the coordinate of 
         !> the intermediate detector identified by the index k
         !> varying between 1 and total number of detectors to
         !> be added
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param prev_coords
+        !> general coordinates of the last detector added to the list
+        !
+        !>@param x_change
+        !> change in the x-coordinate between the previous and the next
+        !> detector
+        !
+        !>@param y_change
+        !> change in the y-coordinate between the previous and the next
+        !> detector
+        !
+        !>@param k
+        !> index identifying the detector to be added
+        !
+        !>@return inter_coords
+        !> general coordinates identifying the detector to be added
+        !> to the list
+        !--------------------------------------------------------------
         function get_inter_detector_coords(
      $     prev_coords,
      $     x_change, y_change, k)
@@ -177,8 +355,25 @@ c$$$          nullify(this%detectors_neighbor2_list)
         end function get_inter_detector_coords
 
 
-        !< add detector coordinates to the list saving the detectors
-        !> from this main layer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add the new detector general coordinates either to the
+        !> detectors_list or the detectors_extra_list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_icr_list object encapsulating the data structure
+        !> for temporary storing the position of the new increasing
+        !> detectors
+        !
+        !>@param coords
+        !> general coordinates of the new increasing detector added
+        !> to the list
+        !--------------------------------------------------------------
         subroutine add_detector_to_mainlayer(this, coords)
 
           implicit none
@@ -202,7 +397,20 @@ c$$$          nullify(this%detectors_neighbor2_list)
         end subroutine add_detector_to_mainlayer
 
       
-        !< get nb_detectors
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the nb_detectors attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_icr_list object encapsulating the data structure
+        !> for temporary storing the position of the new increasing
+        !> detectors
+        !--------------------------------------------------------------
         function get_nb_detectors(this)
 
           implicit none
@@ -215,7 +423,29 @@ c$$$          nullify(this%detectors_neighbor2_list)
         end function get_nb_detectors
 
 
-        !< get the previous detector
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the previous detector in the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_icr_list object encapsulating the data structure
+        !> for temporary storing the position of the new increasing
+        !> detectors
+        !
+        !>@param nb_dt
+        !> index identifying the previous detector
+        !
+        !>@param prev_ele_ptr
+        !> reference to the previous detector
+        !
+        !>@param coords
+        !> general coordinates of the previous detector
+        !--------------------------------------------------------------
         function get_prev(this, nb_dt, prev_ele_ptr) result(coords)
         
           implicit none
@@ -240,7 +470,29 @@ c$$$          nullify(this%detectors_neighbor2_list)
         end function get_prev
 
 
-        !< get the next detector in the list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the previous detector in the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_icr_list object encapsulating the data structure
+        !> for temporary storing the position of the new increasing
+        !> detectors
+        !
+        !>@param nb_dt
+        !> index identifying the previous detector
+        !
+        !>@param prev_ele_ptr
+        !> reference to the previous detector
+        !
+        !>@param coords
+        !> general coordinates of the previous detector
+        !--------------------------------------------------------------
         function get_next(this, nb_dt, prev_ele_ptr) result(coords)
         
           implicit none
@@ -272,7 +524,23 @@ c$$$          nullify(this%detectors_neighbor2_list)
         end function get_next
 
 
-        !< get the first element
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the first detector of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_icr_list object encapsulating the data structure
+        !> for temporary storing the position of the new increasing
+        !> detectors
+        !
+        !>@param coords
+        !> general coordinates of the detector
+        !--------------------------------------------------------------
         function get_head(this) result(coords)
 
           implicit none
@@ -290,7 +558,23 @@ c$$$          nullify(this%detectors_neighbor2_list)
         end function get_head
 
 
-        !< get the last element
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the last detector of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_icr_list object encapsulating the data structure
+        !> for temporary storing the position of the new increasing
+        !> detectors
+        !
+        !>@param coords
+        !> general coordinates of the detector
+        !--------------------------------------------------------------
         function get_tail(this, ele_ptr_i) result(coords)
 
           implicit none
@@ -339,16 +623,33 @@ c$$$          nullify(this%detectors_neighbor2_list)
         end function get_tail
 
 
-
-
-        !< fill the new detector table with the new detectors saved
-        !> in the bf_detector-i_lit object in detector_list and
-        !> detector_extra_list attributes
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> fill the new detector table with the detectors saved
+        !> in the bf_detector_icr_list object
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_icr_list object encapsulating the data structure
+        !> for temporary storing the position of the new increasing
+        !> detectors
+        !
+        !>@param s_index
+        !> index where the first detector saved in the bf_detector_icr_list
+        !> object should be stored in the new_dt_table
+        !
+        !>@param new_dt_table
+        !> new detector table
+        !--------------------------------------------------------------
         subroutine fill_new_detector_table(this, s_index, new_dt_table)
 
           implicit none
 
-          class(bf_detector_icr_list)     , intent(in) :: this
+          class(bf_detector_icr_list)   , intent(in) :: this
           integer                       , intent(in) :: s_index
           integer(ikind), dimension(:,:), intent(out):: new_dt_table
 
@@ -379,7 +680,20 @@ c$$$          nullify(this%detectors_neighbor2_list)
         end subroutine fill_new_detector_table
 
 
-        !< destroy the object
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> deallocate the content of the object
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_icr_list object encapsulating the data structure
+        !> for temporary storing the position of the new increasing
+        !> detectors
+        !--------------------------------------------------------------
         subroutine destroy(this)
         
           implicit none
@@ -398,8 +712,24 @@ c$$$          nullify(this%detectors_neighbor2_list)
         end subroutine destroy
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> print the coordinates of the detectors saved in the object
         !> as points on a matrix
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_icr_list object encapsulating the data structure
+        !> for temporary storing the position of the new increasing
+        !> detectors
+        !
+        !>@param matrix
+        !> array where the general coordinates of the detectors are saved
+        !--------------------------------------------------------------
         subroutine print_on_matrix(this, matrix)
 
           implicit none

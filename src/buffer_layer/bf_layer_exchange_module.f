@@ -29,6 +29,45 @@
         contains
 
         
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy grid points and their role from the bf1 to bf2
+        !
+        !> @date
+        !> 27_05_2014 - initial version - J.L. Desmarais
+        !
+        !>@param bf1_i_min
+        !> min x-index in copying the grid points from bf1
+        !
+        !>@param bf1_j_min
+        !> min y-index in copying the grid points from bf1
+        !
+        !>@param bf2_i_min
+        !> min x-index in receiving the grid points in bf2
+        !
+        !>@param bf2_j_min
+        !> min y-index in receiving the grid points in bf2
+        !
+        !>@param bf_copy_size_x
+        !> extend of the layer copied in the x-direction
+        !
+        !>@param bf_copy_size_y
+        !> extend of the layer copied in the y-direction
+        !
+        !>@param bf1_nodes
+        !> nodes array for the buffer layer bf1
+        !
+        !>@param bf1_grdpts_id
+        !> grdpts_id array for the buffer layer bf1
+        !
+        !>@param bf2_nodes
+        !> nodes array for the buffer layer bf2
+        !
+        !>@param bf2_grdpts_id
+        !> grdpts_id array for the buffer layer bf2
+        !--------------------------------------------------------------
         subroutine copy_from_bf1_to_bf2(
      $       bf1_i_min, bf1_j_min, bf2_i_min, bf2_j_min,
      $       bf_copy_size_x, bf_copy_size_y,
@@ -74,6 +113,55 @@
         end subroutine copy_from_bf1_to_bf2
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the indices identifying the layer to be exchanged
+        !> between a buffer layer and its neighbor of type 1
+        !
+        !> @date
+        !> 27_05_2014 - initial version - J.L. Desmarais
+        !
+        !>@param localization
+        !> cardinal coordinate identifying the position of the
+        !> first buffer layer
+        !
+        !>@param bf_alignment
+        !> alignment of the first buffer layer
+        !
+        !>@param bf_size_y
+        !> extent in the y-direction of the first buffer layer arrays
+        !
+        !>@param nbf_alignment
+        !> alignment of the neighboring buffer layer of type 1
+        !
+        !>@param nbf_size_y
+        !> extent in the y-direction of the arrays of the neighboring
+        !> buffer layer of type 1
+        !
+        !>@param bf_i_min
+        !> min x-index in copying the grid points from the first
+        !> buffer layer
+        !
+        !>@param bf_j_min
+        !> min y-index in copying the grid points from the first
+        !> buffer layer
+        !
+        !>@param nbf_i_min
+        !> min x-index in receiving the grid points in the neighbor
+        !> buffer layer of type 1
+        !
+        !>@param nbf_j_min
+        !> min y-index in receiving the grid points in the neighbor
+        !> buffer layer of type 1
+        !
+        !>@param bf_copy_size_x
+        !> extend of the layer copied in the x-direction
+        !
+        !>@param bf_copy_size_y
+        !> extend of the layer copied in the y-direction
+        !--------------------------------------------------------------
         subroutine get_match_indices_for_exchange_with_neighbor1(
      $     localization,
      $     bf_alignment, bf_size_y,
@@ -142,6 +230,55 @@
         end subroutine get_match_indices_for_exchange_with_neighbor1      
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the indices identifying the layer to be exchanged
+        !> between a buffer layer and its neighbor of type 2
+        !
+        !> @date
+        !> 27_05_2014 - initial version - J.L. Desmarais
+        !
+        !>@param localization
+        !> cardinal coordinate identifying the position of the
+        !> first buffer layer
+        !
+        !>@param bf_alignment
+        !> alignment of the first buffer layer
+        !
+        !>@param bf_size_y
+        !> extent in the y-direction of the first buffer layer arrays
+        !
+        !>@param nbf_alignment
+        !> alignment of the neighboring buffer layer of type 2
+        !
+        !>@param nbf_size_y
+        !> extent in the y-direction of the arrays of the neighboring
+        !> buffer layer of type 2
+        !
+        !>@param bf_i_min
+        !> min x-index in copying the grid points from the first
+        !> buffer layer
+        !
+        !>@param bf_j_min
+        !> min y-index in copying the grid points from the first
+        !> buffer layer
+        !
+        !>@param nbf_i_min
+        !> min x-index in receiving the grid points in the neighbor
+        !> buffer layer of type 2
+        !
+        !>@param nbf_j_min
+        !> min y-index in receiving the grid points in the neighbor
+        !> buffer layer of type 2
+        !
+        !>@param bf_copy_size_x
+        !> extend of the layer copied in the x-direction
+        !
+        !>@param bf_copy_size_y
+        !> extend of the layer copied in the y-direction
+        !--------------------------------------------------------------
         subroutine get_match_indices_for_exchange_with_neighbor2(
      $     localization,
      $     bf_alignment, bf_size_y,
@@ -211,6 +348,23 @@
         end subroutine get_match_indices_for_exchange_with_neighbor2
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the min border in the y-direction identifying the 
+        !> north layer exchanged
+        !
+        !> @date
+        !> 27_05_2014 - initial version - J.L. Desmarais
+        !
+        !>@param size_y
+        !> extent in the y-direction of the buffer layer arrays
+        !
+        !>@param bf_j_min
+        !> min border in the y-direction identifying the 
+        !> north layer exchanged
+        !--------------------------------------------------------------
         subroutine get_N_exch_indices(size_y, bf_j_min)
 
           implicit none
@@ -223,6 +377,20 @@
         end subroutine get_N_exch_indices
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the min border in the y-direction identifying the 
+        !> south layer exchanged
+        !
+        !> @date
+        !> 27_05_2014 - initial version - J.L. Desmarais
+        !
+        !>@param bf_j_min
+        !> min border in the y-direction identifying the 
+        !> south layer exchanged
+        !--------------------------------------------------------------
         subroutine get_S_exch_indices(bf_j_min)
 
           implicit none
@@ -234,6 +402,25 @@
         end subroutine get_S_exch_indices
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the buffer layer and its neighbor have gridpoints
+        !> in common along the x-direction
+        !
+        !> @date
+        !> 27_05_2014 - initial version - J.L. Desmarais
+        !
+        !>@param bf_alignment
+        !> alignment of the first buffer layer
+        !
+        !>@param nbf_alignment
+        !> alignment of the neighboring buffer layer
+        !
+        !>@return overlap
+        !> logical indicating an overlap of the two buffer layers
+        !--------------------------------------------------------------
         function do_grdpts_overlap_along_x_dir(
      $     bf_alignment, nbf_alignment) result(overlap)
 
@@ -250,7 +437,33 @@
         end function do_grdpts_overlap_along_x_dir
 
 
-
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the indices identifying teh borders of the layer
+        !> exchanged in the x-direction
+        !
+        !> @date
+        !> 27_05_2014 - initial version - J.L. Desmarais
+        !
+        !>@param bf_alignment
+        !> alignment of the first buffer layer
+        !
+        !>@param nbf_alignment
+        !> alignment of the neighboring buffer layer
+        !
+        !>@param bf_i_min
+        !> integer identifying the min x-border of the layer exchanged
+        !> for the first buffer layer
+        !
+        !>@param nbf_i_min
+        !> integer identifying the min x-border of the layer exchanged
+        !> for the neighboring buffer layer
+        !
+        !>@param bf_copy_size_x
+        !> extent of the layer exchanged in the x-direction
+        !--------------------------------------------------------------
         subroutine get_x_exchange_indices(
      $     bf_alignment, nbf_alignment,
      $     bf_i_min, nbf_i_min, bf_copy_size_x)
@@ -282,8 +495,27 @@
         end subroutine get_x_exchange_indices
 
 
-        !< get local coordinates along the x-direction
-        function get_x_local_coord(i_general_coord, bf_alignment) result(i_local_coord)
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the local coordinates along the x-direction
+        !
+        !> @date
+        !> 27_05_2014 - initial version - J.L. Desmarais
+        !
+        !>@param i_general_coord
+        !> x-general coordinate of the grid point
+        !
+        !>@param bf_alignment
+        !> alignment of the buffer layer
+        !
+        !>@return i_local_coord
+        !> x-local coordinate of the grid point
+        !--------------------------------------------------------------
+        function get_x_local_coord(
+     $     i_general_coord, bf_alignment)
+     $     result(i_local_coord)
 
           implicit none
 
@@ -296,8 +528,27 @@
         end function get_x_local_coord
 
 
-        !< get local coordinates along the y-direction
-        function get_y_local_coord(j_general_coord, bf_alignment) result(j_local_coord)
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the local coordinates along the y-direction
+        !
+        !> @date
+        !> 27_05_2014 - initial version - J.L. Desmarais
+        !
+        !>@param j_general_coord
+        !> y-general coordinate of the grid point
+        !
+        !>@param bf_alignment
+        !> alignment of the buffer layer
+        !
+        !>@return j_local_coord
+        !> y-local coordinates of the grid point
+        !--------------------------------------------------------------
+        function get_y_local_coord(
+     $     j_general_coord, bf_alignment)
+     $     result(j_local_coord)
 
           implicit none
 

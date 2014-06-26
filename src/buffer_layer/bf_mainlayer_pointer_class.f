@@ -1,9 +1,25 @@
+      !> @file
+      !> module implementing the pointer to a bf_mainlayer object
+      !> such that a table of bf_mainlayer pointers can be created
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the pointer to a bf_mainlayer object
+      !> such that a table of bf_mainlayer pointers can be created
+      !
+      !> @date
+      ! 11_04_2014 - initial version      - J.L. Desmarais
+      ! 26_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_mainlayer_pointer_class
 
-        use bf_sublayer_class , only : bf_sublayer
-        use bf_mainlayer_class, only : bf_mainlayer
-        use parameters_input  , only : nx,ny,ne, debug
-        use parameters_kind   , only : ikind, rkind
+        use bf_layer_errors_module, only : error_mainlayer_id
+        use bf_sublayer_class     , only : bf_sublayer
+        use bf_mainlayer_class    , only : bf_mainlayer
+        use parameters_input      , only : nx,ny,ne, debug
+        use parameters_kind       , only : ikind, rkind
 
 
         implicit none
@@ -13,11 +29,65 @@
         public :: bf_mainlayer_pointer
 
 
-        !> @class bf_mainlayer_pointer
-        !> pointer to a buffer main layer
-        !>
-        !> @param ptr
-        !> pointer to a buffer main layer
+        !>@class bf_mainlayer_pointer
+        !> pointer to a bf_mainlayer object
+        !
+        !>@param ptr
+        !> pointer to a bf_mainlayer object
+        !
+        !>@param ini
+        !> initialize the bf_mainlayer_ptr object by nullify its
+        !> ptr attribute
+        !
+        !>@param get_ptr
+        !> get the ptr attribute
+        !
+        !>@param set_ptr
+        !> set the ptr attribute
+        !
+        !>@param nullify_ptr
+        !> nullify the ptr attribute
+        !
+        !>@param allocate_ptr
+        !> allocate space for the ptr attribute
+        !
+        !>@param deallocate_ptr
+        !> deallocate space for the ptr attribute
+        !
+        !>@param associated_ptr
+        !> check if the ptr attribute is associated
+        !
+        !>@param ini_mainlayer
+        !> initialize the mainlayer corresponding to the
+        !> ptr attribute
+        !
+        !>@param get_mainlayer_id
+        !> get the mainlayer_id attribute
+        !
+        !>@param get_nb_sublayers
+        !> number of sublayers stored in the main layer
+        !
+        !>@param get_head_sublayer
+        !> get the head_sublayer attribute
+        !
+        !>@param get_tail_sublayer
+        !> get the tail_sublayer attribute
+        !
+        !>@param add_sublayer
+        !> allocate space for a new buffer sublayer in the double
+        !> chained list and organize the bf_mainlayer using the
+        !> alignment of the buffer layers. A pointer to the newly
+        !> added buffer sublayer is returned
+        !
+        !>@param merge_sublayers
+        !> combine two sublayers of the main layer
+        !
+        !>@param remove_sublayer
+        !> remove a sublayer from the doubled chained list
+        !
+        !>@param print_binary
+        !> print the content of the bf_sublayers constituing the
+        !> bf_mainlayer on seperate binary output files
         !---------------------------------------------------------------
         type :: bf_mainlayer_pointer
 
@@ -49,7 +119,20 @@
         contains
 
 
-        !< initialize the ptr attribute by nullifying it
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the bf_mainlayer_ptr object by nullify its
+        !> ptr attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !--------------------------------------------------------------
         subroutine ini(this)
 
           implicit none
@@ -61,8 +144,22 @@
         end subroutine ini        
 
 
-        !< get the buffer main layer to which the
-        !> ptr attribute is pointing at 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the ptr attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !
+        !>@return get_ptr
+        !> pointer to the ptr attribute
+        !--------------------------------------------------------------
         function get_ptr(this)
 
           implicit none
@@ -79,8 +176,22 @@
         end function get_ptr
 
 
-        !< set the buffer main layer to which the
-        !> ptr attribute is pointing at 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the ptr attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !
+        !>@param bf_mainlayer_ptr
+        !> pointer to the bf_mainlayer object
+        !--------------------------------------------------------------
         subroutine set_ptr(this, bf_mainlayer_ptr)
 
           implicit none
@@ -93,7 +204,19 @@
         end subroutine set_ptr
 
 
-        !< nullify the ptr attribute
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> nullify the ptr attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !--------------------------------------------------------------
         subroutine nullify_ptr(this)
 
           implicit none
@@ -105,7 +228,19 @@
         end subroutine nullify_ptr
 
 
-        !< allocate space for the ptr attribute
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> allocate space for the ptr attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !--------------------------------------------------------------
         subroutine allocate_ptr(this)
 
           implicit none
@@ -117,7 +252,19 @@
         end subroutine allocate_ptr
 
 
-        !< deallocate space for the ptr attribute
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> deallocate space for the ptr attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !--------------------------------------------------------------
         subroutine deallocate_ptr(this)
 
           implicit none
@@ -130,7 +277,19 @@
         end subroutine deallocate_ptr
 
 
-        !< check if the ptr attribute is associated
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the ptr attribute is associated
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !--------------------------------------------------------------        
         function associated_ptr(this)
 
           implicit none
@@ -143,7 +302,24 @@
         end function associated_ptr
 
 
-        !< initialize the mainlayer corresponding to the pointer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the mainlayer corresponding to the
+        !> ptr attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !
+        !>@param mainlayer_id
+        !> cardinal coordinate identifying the position of the buffer
+        !> sublayers stored in the mainlayer
+        !--------------------------------------------------------------        
         subroutine ini_mainlayer(this, mainlayer_id)
 
           class(bf_mainlayer_pointer), intent(inout) :: this
@@ -151,12 +327,11 @@
 
           !debug: check mainlayer_id
           if(debug) then
-             if((mainlayer_id.lt.1).or.(mainlayer_id.gt.8)) then
-                print '(''bf_interface_class'')'
-                print '(''add_sublayer'')'
-                print '(''mainlyer_id not recognized'')'
-                print '(''mainlayer_id: '',I2)', mainlayer_id
-                stop 'change mainlayer_id'
+             if((mainlayer_id.lt.1).or.(mainlayer_id.gt.4)) then
+                call error_mainlayer_id(
+     $               'bf_mainlayer_pointer_class.f',
+     $               'ini_mainlayer',
+     $               mainlayer_id)
              end if
           end if
 
@@ -181,8 +356,23 @@
         end subroutine ini_mainlayer
 
       
-        !< get the cardinal coordinate of the buffer main layer
-        !> encapsulated
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the mainlayer_id attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !
+        !>@return get_mainlayer_id
+        !> cardinal coordinate identifying the position of the buffer
+        !> sublayers stored in the mainlayer
+        !--------------------------------------------------------------
         function get_mainlayer_id(this)
 
           implicit none
@@ -201,8 +391,22 @@
         end function get_mainlayer_id
 
 
-        !< get the number of sublayers contained in the buffer
-        !> main layer encapsulated
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the nb_sublayers attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !
+        !>@return get_nb_sublayers
+        !> number of sublayers in the mainlayer chained list
+        !--------------------------------------------------------------
         function get_nb_sublayers(this)
 
           implicit none
@@ -221,8 +425,22 @@
         end function get_nb_sublayers
 
 
-        !< get the first sublayer in the chained list of the 
-        !> main layer encapsulated
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the head_sublayer attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !
+        !>@return get_head_sublayer
+        !> pointer to the first sublayer in the chained list
+        !--------------------------------------------------------------
         function get_head_sublayer(this)
 
           implicit none
@@ -245,8 +463,22 @@
         end function get_head_sublayer
 
 
-        !< get the last sublayer in the chained list of the 
-        !> main layer encapsulated
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the tail_sublayer attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !
+        !>@return get_head_sublayer
+        !> pointer to the last sublayer in the chained list
+        !--------------------------------------------------------------
         function get_tail_sublayer(this)
 
           implicit none
@@ -269,8 +501,33 @@
         end function get_tail_sublayer
 
 
-        !< add sublayer to the chained list of the mainlayer
-        !> encapsulated
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> allocate space for a new buffer sublayer in the double
+        !> chained list and organize the bf_mainlayer using the
+        !> alignment of the buffer layers. A pointer to the newly
+        !> added buffer sublayer is returned
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer_ptr object encapsulating a pointer to
+        !> a bf_mainlayer object
+        !
+        !>@param nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
+        !
+        !>@param alignment
+        !> table(2,2) of integers identifying the position of the buffer
+        !> layer compared to the interior nodes
+        !
+        !> @return added_sublayer_ptr
+        !> pointer to the newly added bf_sublayer
+        !--------------------------------------------------------------
         function add_sublayer(this, nodes, alignment)
      $     result(added_sublayer_ptr)
 
@@ -294,7 +551,38 @@
         end function add_sublayer
 
 
-        !< merge two sublayers of the mainlayer encapsulated
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> combine two sublayers of the main layer
+        !
+        !> @date
+        !> 09_05_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !
+        !>@param bf_sublayer1
+        !> pointer to the first sublayer to merge
+        !
+        !>@param bf_sublayer2
+        !> pointer to the second sublayer to merge
+        !
+        !>@param interior_nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
+        !
+        !>@param alignment
+        !> table identifying the final position of the merged sublayer
+        !> compared to the interior domain
+        !
+        !>@return merged_sublayer
+        !> pointer to the bf_sublayer resulting from the merge of the
+        !> buffer sublayers
+        !--------------------------------------------------------------
         function merge_sublayers(
      $     this,
      $     bf_sublayer1,
@@ -326,7 +614,23 @@
         end function merge_sublayers
 
 
-        !< merge two sublayers of the mainlayer encapsulated
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove a sublayer from the doubled chained list
+        !
+        !> @date
+        !> 09_05_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !
+        !>@param bf_sublayer_ptr
+        !> pointer to the sublayer to be removed
+        !--------------------------------------------------------------
         subroutine remove_sublayer(
      $     this,
      $     sublayer_ptr)
@@ -348,8 +652,33 @@
         end subroutine remove_sublayer
 
       
-        !< print the content of the mainlayer encapsulated
-        !> on an output binary file
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the content of the bf_sublayers constituing the
+        !> bf_mainlayer on seperate binary output files
+        !
+        !> @date
+        !> 09_05_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !
+        !>@param suffix_nodes
+        !> suffix for the name of the output files storing the nodes
+        !> of the bf_sublayers
+        !
+        !>@param suffix_grdid
+        !> suffix for the name of the output files storing the grdpts_id
+        !> of the bf_sublayers
+        !
+        !>@param suffix_sizes
+        !> suffix for the name of the output files storing the sizes
+        !> of the bf_sublayers        
+        !--------------------------------------------------------------
         subroutine print_binary(
      $     this, suffix_nodes, suffix_grdid, suffix_sizes)
 

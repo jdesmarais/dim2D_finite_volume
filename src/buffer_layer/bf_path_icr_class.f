@@ -14,7 +14,8 @@
       !> of a buffer layer
       !
       !> @date
-      ! 16_04_2014 - initial version - J.L. Desmarais
+      ! 16_04_2014 - initial version      - J.L. Desmarais
+      ! 27_06_2014 - documentation update - J.L. Desmarais
       !----------------------------------------------------------------
       module bf_path_icr_class
 
@@ -38,25 +39,15 @@
         !> need to be updated and whether this leads to the creation
         !> or the update of a buffer layer
         !
-        !> @param leads_to_new_bf_layer
-        !> logical indicating whether a new buffer layer should be
-        !> created or not
-        !
         !> @param matching_layer
         !> pointer to the buffer layer that should be updated
         !> if the pointer is not associated, it means that the
         !> buffer layer corresponding to this path should be
-        !> allocated
+        !> created
         !
-        !> @param ends
-        !> logical identifying whether the path should ends or not
-        !> and so whether the path should be interpreted to allocate
-        !> and update an existing buffer layer
-        !
-        !> @param ends_with_corner
-        !> logical identifying whether the path ended with a corner
-        !> this fact will determine whether the new buffer layer
-        !> should be allocated or updated with exchanging gridpoints
+        !> @param mainlayer_id
+        !> cardinal coordinate identifying in which direction the buffer
+        !> layers may be updated by the path
         !
         !> @param pts
         !> allocatable table of integers identifying the bc_interior_pts
@@ -71,6 +62,76 @@
         !> @param alignment
         !> table identifying the new position of the buffer layer and
         !> whether an existing buffer layer should be reallocated
+        !
+        !> @param ends
+        !> logical identifying whether the path should ends or not
+        !> and so whether the path should be processed to allocate
+        !> and update an existing buffer layer
+        !
+        !>@param ini
+        !> initialize the path
+        !
+        !>@param reinitialize
+        !> re-initialize the path
+        !
+        !>@param is_ended
+        !> get the ends attribute
+        !
+        !>@param add_pt_to_path
+        !> add the general coordinates of a point
+        !> to the current path
+        !
+        !>@param minimize_path
+        !> reallocate the pts attribute to the nb_pts size
+        !
+        !>@param are_pts_far_away
+        !> analyze whether the bc_interior_pt point is far away
+        !> from the last point added to the path
+        !
+        !>@param are_pts_in_same_mainlayer
+        !> check whether the bc_interior_pt analyzed is located in
+        !> in the same buffer main layer as the grid points stored
+        !> in the path
+        !
+        !>@param update_alignment
+        !> update the alignment of the path. This data is
+        !> used to decide whether the corresponding buffer layer
+        !> will be allocated or reallocated and how its position
+        !> may vary compared to the interior domain
+        !
+        !>@param analyze_path_first_pt
+        !> analyze a bc_interior_pt that could be
+        !> consider as the first point in the path
+        !
+        !>@param analyze_path_next_pt
+        !> analyze a bc_interior_pt that should be
+        !> consider as the next point in the path. The path
+        !> is not empty
+        !
+        !>@param analyze_pt
+        !> analyze the bc_interior_pt passed as argument
+        !
+        !>@param should_bf_sublayers_be_merged
+        !> check whether the two buffer layers in clockwise direction
+        !> should be merged
+        !
+        !>@param update_allocation_bf_sublayer
+        !> update the allocation of the buffer layers to add
+        !> new grid points
+        !
+        !>@param process_path
+        !> process the data encapsulated in the path to update
+        !> the buffer layers
+        !
+        !>@param get_nb_pts
+        !> get the nb_pts attribute
+        !
+        !>@param get_pt
+        !> get the general coordinates of the ith grid point
+        !> stored in the path
+        !
+        !>@param print_on_screen
+        !> print the content of the path on screen
         !---------------------------------------------------------------
         type :: bf_path_icr
 
@@ -117,13 +178,13 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine initializing the path
+        !> initialize the path
         !
         !> @date
         !> 16_04_2013 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> buffer layer path object encapsulating data determining
+        !> bf_path_icr object encapsulating data determining
         !> whether a buffer layer should be allocated or updated
         !--------------------------------------------------------------
         subroutine ini(this)
@@ -144,13 +205,13 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine initializing the path
+        !> re-initialize the path
         !
         !> @date
         !> 16_04_2013 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> buffer layer path object encapsulating data determining
+        !> bf_path_icr object encapsulating data determining
         !> whether a buffer layer should be allocated or updated
         !--------------------------------------------------------------
         subroutine reinitialize(this)
@@ -167,7 +228,22 @@
         end subroutine reinitialize
 
       
-        !> access to the attribute ends
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the ends attribute
+        !
+        !> @date
+        !> 16_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_path_icr object encapsulating data determining
+        !> whether a buffer layer should be allocated or updated
+        !
+        !>@return is_ended
+        !> ends attribute
+        !--------------------------------------------------------------
         function is_ended(this)
 
           implicit none
@@ -184,14 +260,14 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine adding the general coordinates of a point
+        !> add the general coordinates of a point
         !> to the current path
         !
         !> @date
         !> 16_04_2013 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> buffer layer path object encapsulating data determining
+        !> bf_path_icr object encapsulating data determining
         !> whether a buffer layer should be allocated or updated
         !
         !>@param point
@@ -234,18 +310,14 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine adding the general coordinates of a point
-        !> to the current path
+        !> reallocate the pts attribute to the nb_pts size
         !
         !> @date
         !> 16_04_2013 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> buffer layer path object encapsulating data determining
+        !> bf_path_icr object encapsulating data determining
         !> whether a buffer layer should be allocated or updated
-        !
-        !>@param point
-        !> general coordinates of the grid point added to the path
         !--------------------------------------------------------------
         subroutine minimize_path(this)
 
@@ -274,13 +346,13 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine analyzing the bc_interior_pt given
+        !> analyze the bc_interior_pt passed as argument
         !
         !> @date
         !> 16_04_2013 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> buffer layer path object encapsulating data determining
+        !> bf_path_icr object encapsulating data determining
         !> whether a buffer layer should be allocated or updated
         !
         !>@param bc_interior_pt_analyzed
@@ -288,7 +360,7 @@
         !> bc_interior_pt analyzed
         !
         !>@param interface_used
-        !> bf_interface class encapsulating the pointers
+        !> bf_interface object encapsulating the references
         !> to the buffer main layers
         !--------------------------------------------------------------
         subroutine analyze_pt(
@@ -347,22 +419,23 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine analyzing the bc_interior_pt given
+        !> process the data encapsulated in the path to update
+        !> the buffer layers
         !
         !> @date
-        !> 17_04_2013 - initial version - J.L. Desmarais
+        !> 16_04_2013 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> buffer layer path object encapsulating data determining
+        !> bf_path_icr object encapsulating data determining
         !> whether a buffer layer should be allocated or updated
         !
-        !>@param bc_interior_pt_analyzed
-        !> integer, dimension(2) with the general coords of the
-        !> bc_interior_pt analyzed
-        !
         !>@param interface_used
-        !> bf_interface class encapsulating the pointers
+        !> bf_interface object encapsulating the references
         !> to the buffer main layers
+        !
+        !>@param interior_nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
         !--------------------------------------------------------------
         subroutine process_path(
      $     this,
@@ -399,19 +472,22 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine analyzing a bc_interior_pt that should be
-        !> consider as the next point in the path. The path
-        !> is empty
+        !> analyze a bc_interior_pt that could be
+        !> consider as the first point in the path
         !
         !> @date
         !> 17_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_path_icr object encapsulating data determining
+        !> whether a buffer layer should be allocated or updated
         !
         !>@param bc_interior_pt_analyzed
         !> integer, dimension(2) with the general coords of the
         !> bc_interior_pt analyzed
         !
         !>@param interface_used
-        !> bf_interface class encapsulating the pointers
+        !> bf_interface object encapsulating the references
         !> to the buffer main layers
         !
         !>@param tolerance_pts_same_sublayer
@@ -468,19 +544,23 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine analyzing a bc_interior_pt that should be
+        !> analyze a bc_interior_pt that should be
         !> consider as the next point in the path. The path
         !> is not empty
         !
         !> @date
         !> 17_04_2013 - initial version - J.L. Desmarais
         !
+        !>@param this
+        !> bf_path_icr object encapsulating data determining
+        !> whether a buffer layer should be allocated or updated
+        !
         !>@param bc_interior_pt_analyzed
         !> integer, dimension(2) with the general coords of the
         !> bc_interior_pt analyzed
         !
         !>@param interface_used
-        !> bf_interface class encapsulating the pointers
+        !> bf_interface object encapsulating the references
         !> to the buffer main layers
         !
         !>@param tolerance_pts_same_path
@@ -611,29 +691,25 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine analyzing whether the bc_interior_pt point
-        !> analyzed is one of the interior corner of the interior
-        !> domain
+        !> check whether the bc_interior_pt analyzed is located in
+        !> in the same buffer main layer as the grid points stored
+        !> in the path
         !
         !> @date
         !> 17_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_path_icr object encapsulating data determining
+        !> whether a buffer layer should be allocated or updated
         !
         !>@param bc_interior_pt_analyzed
         !> integer, dimension(2) with the general coords of the
         !> bc_interior_pt analyzed
         !
         !>@param interface_used
-        !> bf_interface class encapsulating the pointers
+        !> bf_interface object encapsulating the references
         !> to the buffer main layers
-        !
-        !>@param tolerance_pts_same_path
-        !> tolerance to decide whether a grid point should belong
-        !> to the current path
-        !
-        !>@param tolerance_pts_same_sublayer
-        !> tolerance to decide whether a grid point should belong
-        !> to an existing sublayer
-        !--------------------------------------------------------------        
+        !--------------------------------------------------------------
         function are_pts_in_same_mainlayer(
      $     this,
      $     bc_interior_pt_analyzed,
@@ -665,30 +741,27 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine analyzing whether the bc_interior_pt point
-        !> analyzed is one of the interior corner of the interior
-        !> domain
+        !> analyze whether the bc_interior_pt point is far away
+        !> from the last point added to the path
         !
         !> @date
         !> 17_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_path_icr object encapsulating data determining
+        !> whether a buffer layer should be allocated or updated
         !
         !>@param bc_interior_pt_analyzed
         !> integer, dimension(2) with the general coords of the
         !> bc_interior_pt analyzed
         !
-        !>@param interface_used
-        !> bf_interface class encapsulating the pointers
-        !> to the buffer main layers
-        !
-        !>@param tolerance_pts_same_path
-        !> tolerance to decide whether a grid point should belong
-        !> to the current path
-        !
-        !>@param tolerance_pts_same_sublayer
-        !> tolerance to decide whether a grid point should belong
-        !> to an existing sublayer
-        !--------------------------------------------------------------        
-        function are_pts_far_away(this, bc_interior_pt_analyzed, tolerance)
+        !>@param tolerance
+        !> tolerance deciding the maximum distance between the last
+        !> point fo teh path and the new point so that the point
+        !> belongs to the same path
+        !--------------------------------------------------------------
+        function are_pts_far_away(
+     $     this, bc_interior_pt_analyzed, tolerance)
 
           implicit none
 
@@ -706,10 +779,31 @@
         end function are_pts_far_away
 
 
-        !< check whether the two buffer layers in clockwise direction
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the two buffer layers in clockwise direction
         !> should be merged
-        !> WARNING: bf_layer2%alignment(direction,max) >
-        !>          this%alignment(direction,min)
+        !
+        !> @warning bf_layer2%alignment(direction,max) >
+        !> this%alignment(direction,min)
+        !
+        !> @date
+        !> 17_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_path_icr object encapsulating data determining
+        !> whether a buffer layer should be allocated or updated
+        !
+        !>@param bf_sublayer_ptr
+        !> reference to the second bf_sublayer merged. The first one is
+        !> the matching bf_sublayer of the path
+        !
+        !>@param merge
+        !> logical stating whether the two bf_sublayers should be
+        !> merged
+        !--------------------------------------------------------------
         function should_bf_sublayers_be_merged(
      $     this, bf_sublayer_ptr)
      $     result(merge)
@@ -748,11 +842,31 @@
         end function should_bf_sublayers_be_merged
 
 
-        !< as a result of the alignment asked by the current path,
-        !> that is as a result of the new gridpoints to be added to
-        !> the buffer layers, the buffer layers should be first 
-        !> allocated/reallocated or merged such that the memory needed
-        !> for these grid points is allocated
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the allocation of the buffer layers to add
+        !> new grid points
+        !
+        !> @date
+        !> 17_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_path_icr object encapsulating data determining
+        !> whether a buffer layer should be allocated or updated
+        !
+        !>@param interface_used
+        !> bf_interface object encapsulating the references
+        !> to the buffer main layers
+        !
+        !>@param interior_nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
+        !
+        !>@return modified_sublayer
+        !> reference to the bf_sublayer whose size is updated
+        !--------------------------------------------------------------
         function update_allocation_bf_sublayer(
      $     this, interface_used, interior_nodes)
      $     result(modified_sublayer)
@@ -826,8 +940,20 @@
         end function update_allocation_bf_sublayer
 
 
-        !< update the alignment such that the reallocation process can
-        !> only increase the buffer layer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the alignment such that the reallocation process can
+        !> only increase the buffer layer sizes
+        !
+        !> @date
+        !> 17_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_path_icr object encapsulating data determining
+        !> whether a buffer layer should be allocated or updated
+        !--------------------------------------------------------------
         subroutine update_alignment_for_reallocation(this)
 
           implicit none
@@ -850,7 +976,7 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine updating the alignment of the path, that is
+        !> update the alignment of the path. This data is
         !> used to decide whether the corresponding buffer layer
         !> will be allocated or reallocated and how its position
         !> may vary compared to the interior domain
@@ -858,10 +984,14 @@
         !> @date
         !> 17_04_2013 - initial version - J.L. Desmarais
         !
+        !>@param this
+        !> bf_path_icr object encapsulating data determining
+        !> whether a buffer layer should be allocated or updated
+        !
         !>@param bc_interior_pt_analyzed
         !> integer, dimension(2) with the general coords of the
         !> bc_interior_pt analyzed
-        !--------------------------------------------------------------        
+        !--------------------------------------------------------------
         subroutine update_alignment(this, bc_interior_pt_analyzed)
         
           implicit none
@@ -877,6 +1007,22 @@
         end subroutine update_alignment
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the nb_pts attribute
+        !
+        !> @date
+        !> 17_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_path_icr object encapsulating data determining
+        !> whether a buffer layer should be allocated or updated
+        !
+        !>@return get_nb_pts
+        !> nb_pts attribute
+        !--------------------------------------------------------------
         function get_nb_pts(this)
 
           implicit none
@@ -889,6 +1035,26 @@
         end function get_nb_pts
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the general coordinates of the ith grid point
+        !> stored in the path
+        !
+        !> @date
+        !> 17_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_path_icr object encapsulating data determining
+        !> whether a buffer layer should be allocated or updated
+        !
+        !>@param i
+        !> index identifying the grid point stored in the path
+        !
+        !>@return get_pt
+        !> general coordinates of the ith grid point
+        !--------------------------------------------------------------
         function get_pt(this,i)
 
           implicit none
@@ -903,7 +1069,19 @@
         end function get_pt
 
 
-        !< print the content of the path on screen
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the content of the path on screen
+        !
+        !> @date
+        !> 17_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_path_icr object encapsulating data determining
+        !> whether a buffer layer should be allocated or updated
+        !--------------------------------------------------------------
         subroutine print_on_screen(this)
 
           implicit none

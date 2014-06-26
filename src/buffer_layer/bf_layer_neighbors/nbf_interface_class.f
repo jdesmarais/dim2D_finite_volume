@@ -1,3 +1,17 @@
+      !> @file
+      !> module implementing the object encapsulating links
+      !> to buffer layers at the edge between different main layers
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the object encapsulating links
+      !> to buffer layers at the edge between different main layers
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module nbf_interface_class
       
         use bf_sublayer_class  , only : bf_sublayer
@@ -15,14 +29,81 @@
         public :: nbf_interface
 
         
-        !< object saving the links between buffer layers
-        !> that are in different main layers but share a
-        !> border along the x-direction
-        !> the links are saved in the array nbf_links
-        !> ex: nbf_links(N,1) : links to the neighbor1
-        !>                      of the north main layer
-        !>     nbf_links(N,2) : links to the neighbor2
-        !>                      of the north main layer
+        !>@class nbf_interface
+        !> object encapsulting links to buffer layers at the edge between
+        !> different main layers
+        !
+        !>@param nbf_links
+        !> array of pointers to the buffer layers at the edge of different
+        !> main layers
+        !> ex: nbf_links(N,1) : links to the buffer layers considered
+        !>                      neighbors of type 1 by the north main
+        !>                      layer
+        !>     nbf_links(N,2) : links to the buffer layers considered
+        !>                      neighbors of type 2 by the north main
+        !>                      layer
+        !
+        !>@param ini
+        !> initialize the array of links by initializing the
+        !> nbf_list containing the links
+        !
+        !>@param link_neighbor1_to_bf_sublayer
+        !> a buffer layer has been identified as a buffer layer
+        !> located at the interface between main layers. Each main
+        !> layer sharing grid points with this buffer layer as
+        !> neighbor of type 1 is informed that this buffer layer now
+        !> exists and should be considered when information are updated
+        !> between buffer layers
+        !
+        !>@param link_neighbor2_to_bf_sublayer
+        !> a buffer layer has been identified as a buffer layer
+        !> located at the interface between main layers. Each main
+        !> layer sharing grid points with this buffer layer as
+        !> neighbor of type 2 is informed that this buffer layer now
+        !> exists and should be considered when information are updated
+        !> between buffer layers
+        !
+        !>@param update_link_from_neighbor1_to_bf_sublayer
+        !> the links that were refering to nbf_sublayer1 are changed into
+        !> links to nbf_sublayer2. Only buffer layers considered neighbors
+        !> of type 1 by nbf_sublayer1 have their links updated
+        !
+        !>@param update_link_from_neighbor2_to_bf_sublayer
+        !> the links that were refering to nbf_sublayer1 are changed into
+        !> links to nbf_sublayer2. Only buffer layers considered neighbors
+        !> of type 2 by nbf_sublayer1 have their links updated
+        !
+        !>@param remove_link_from_neighbor1_to_bf_sublayer
+        !> remove the links existing from neighbor1 to nbf_sublayer
+        !
+        !>@param remove_link_from_neighbor2_to_bf_sublayer
+        !> remove the links existing from neighbor2 to nbf_sublayer
+        !
+        !>@param update_grdpts_from_neighbors
+        !> ask all the buffer layers that have grid points in common
+        !> with the current main layer to send data to the current
+        !> buffer layer
+        !
+        !>@param update_neighbor_grdpts
+        !> ask all the main layers that have grid points in common
+        !> with the current main layer to receive data from the current
+        !> buffer layer
+        !
+        !>@param get_nbf_layers_sharing_grdpts_with
+        !> add to the list of sublayer pointers the neighboring 
+        !> buffer layers that shares grid points in the
+        !> x-direction with the current buffer layer
+        !
+        !>@param bf_layer_depends_on_neighbors
+        !> test whether the bf_sublayer is sharing grid points with
+        !> its neighboring buffer layers
+        !
+        !>@param does_a_neighbor_remains
+        !> test whether one of the bf_sublayer neighbors is remaining
+        !
+        !>@param print_on_screen
+        !> print the links between bf_sublayers on screen
+        !--------------------------------------------------------------
         type nbf_interface
 
           type(nbf_list), dimension(4,2), private :: nbf_links
@@ -52,6 +133,20 @@
 
         contains
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the array of links by initializing the
+        !> nbf_list containing the links
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !--------------------------------------------------------------
         subroutine ini(this)
         
           implicit none
@@ -69,12 +164,24 @@
         end subroutine ini
 
 
-        !< a buffer layer has been identified as a buffer layer
-        !> located at the interface between main layers, i.e. this
-        !> buffer layer share some gridpoints with other layers
-        !> each main layer sharing grid points with this buffer layer
-        !> is informed that this buffer layer now exists and should be
-        !> considered when updating information
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> a buffer layer has been identified as a buffer layer
+        !> located at the interface between main layers. Each main
+        !> layer sharing grid points with this buffer layer as
+        !> neighbor of type 1 is informed that this buffer layer now
+        !> exists and should be considered when information are updated
+        !> between buffer layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !--------------------------------------------------------------        
         subroutine link_neighbor1_to_bf_sublayer(this, nbf_sublayer)
 
           implicit none
@@ -92,12 +199,24 @@
         end subroutine link_neighbor1_to_bf_sublayer
 
 
-        !< a buffer layer has been identified as a buffer layer
-        !> located at the interface between main layers, i.e. this
-        !> buffer layer share some gridpoints with other layers
-        !> each main layer sharing grid points with this buffer layer
-        !> is informed that this buffer layer now exists and should be
-        !> considered when updating information
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> a buffer layer has been identified as a buffer layer
+        !> located at the interface between main layers. Each main
+        !> layer sharing grid points with this buffer layer as
+        !> neighbor of type 2 is informed that this buffer layer now
+        !> exists and should be considered when information are updated
+        !> between buffer layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !--------------------------------------------------------------        
         subroutine link_neighbor2_to_bf_sublayer(this, nbf_sublayer)
 
           implicit none
@@ -115,8 +234,27 @@
         end subroutine link_neighbor2_to_bf_sublayer
 
 
-        !< update the link from : neighbor1 -> nbf_sublayer1
-        !>                 to   : neighbor1 -> nbf_sublayer2
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> the links that were refering to nbf_sublayer1 are changed into
+        !> links to nbf_sublayer2. Only buffer layers considered neighbors
+        !> of type 1 by nbf_sublayer1 have their links updated
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param nbf_sublayer1
+        !> bf_sublayer reference before the update
+        !
+        !>@param nbf_sublayer2
+        !> bf_sublayer reference after the update
+        !--------------------------------------------------------------
         subroutine update_link_from_neighbor1_to_bf_sublayer(
      $     this, nbf_sublayer1, nbf_sublayer2)
 
@@ -137,8 +275,27 @@
         end subroutine update_link_from_neighbor1_to_bf_sublayer
 
 
-        !< update the link from : neighbor2 -> nbf_sublayer1
-        !>                 to   : neighbor2 -> nbf_sublayer2
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> the links that were refering to nbf_sublayer1 are changed into
+        !> links to nbf_sublayer2. Only buffer layers considered neighbors
+        !> of type 2 by nbf_sublayer1 have their links updated
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param nbf_sublayer1
+        !> bf_sublayer reference before the update
+        !
+        !>@param nbf_sublayer2
+        !> bf_sublayer reference after the update
+        !--------------------------------------------------------------
         subroutine update_link_from_neighbor2_to_bf_sublayer(
      $     this, nbf_sublayer1, nbf_sublayer2)
 
@@ -159,7 +316,22 @@
         end subroutine update_link_from_neighbor2_to_bf_sublayer
       
 
-        !< remove the link existing from neighbor1 -> nbf_sublayer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the links existing from neighbor1 to nbf_sublayer
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param nbf_sublayer
+        !> bf_sublayer reference removed
+        !--------------------------------------------------------------
         subroutine remove_link_from_neighbor1_to_bf_sublayer(
      $     this, nbf_sublayer)
 
@@ -179,7 +351,22 @@
         end subroutine remove_link_from_neighbor1_to_bf_sublayer
 
 
-        !< remove the link existing from neighbor2 -> nbf_sublayer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the links existing from neighbor2 to nbf_sublayer
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param nbf_sublayer
+        !> bf_sublayer reference removed
+        !--------------------------------------------------------------
         subroutine remove_link_from_neighbor2_to_bf_sublayer(
      $     this, nbf_sublayer)
 
@@ -199,9 +386,24 @@
         end subroutine remove_link_from_neighbor2_to_bf_sublayer
 
 
-        !> we ask all the main layers that have grid points in common
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> ask all the buffer layers that have grid points in common
         !> with the current main layer to send data to the current
         !> buffer layer
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param nbf_sublayer
+        !> bf_sublayer object updated from its references
+        !--------------------------------------------------------------
         subroutine update_grdpts_from_neighbors(
      $     this, nbf_sublayer)
 
@@ -237,9 +439,24 @@
         end subroutine update_grdpts_from_neighbors
 
 
-        !< we ask all the main layers that have grid points in common
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> ask all the main layers that have grid points in common
         !> with the current main layer to receive data from the current
         !> buffer layer
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param nbf_sublayer
+        !> bf_sublayer object updated from its references
+        !--------------------------------------------------------------
         subroutine update_neighbor_grdpts(this, nbf_sublayer)
 
           implicit none
@@ -275,11 +492,40 @@
         end subroutine update_neighbor_grdpts
 
 
-        !< add to the list of sublayer pointers the neighboring 
-        !> buffer layers of type 1 that shares grid points in the
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add to the list of sublayer pointers the neighboring 
+        !> buffer layers that shares grid points in the
         !> x-direction with the current buffer layer
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param nbf_type
+        !> type of the neighboring bf_sublayer investigated
+        !
+        !>@param bf_sublayer_i
+        !> reference to the bf_sublayer whose neighbors are investigated
+        !
+        !>@param bf_sublayer_list
+        !> list of the bf_sublayer objects that share grid points in the
+        !> x-direction with the current buffer layer
+        !
+        !>@param bf_mainlayer_id
+        !> cardinal coordinate of the buffer layer investigated
+        !--------------------------------------------------------------
         subroutine get_nbf_layers_sharing_grdpts_with(
-     $     this, nbf_type, bf_sublayer_i, bf_sublayer_list, bf_mainlayer_id)
+     $     this,
+     $     nbf_type,
+     $     bf_sublayer_i,
+     $     bf_sublayer_list,
+     $     bf_mainlayer_id)
 
           implicit none
 
@@ -305,9 +551,30 @@
         end subroutine get_nbf_layers_sharing_grdpts_with
 
 
-        !< add to the list of sublayer pointers the neighboring 
-        !> buffer layers of type 1 that shares grid points in the
-        !> x-direction with the current buffer layer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> test whether the bf_sublayer is sharing grid points with
+        !> its neighboring buffer layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param nbf_type
+        !> type of the neighboring bf_sublayer investigated
+        !
+        !>@param bf_mainlayer_id
+        !> cardinal coordinate of the buffer layer investigated
+        !
+        !>@param dependent
+        !> logical stating whether the buffer layer is sharing
+        !> grid points with the neighboring buffer layers
+        !--------------------------------------------------------------
         function bf_layer_depends_on_neighbors(
      $     this, nbf_type, bf_sublayer_i, bf_mainlayer_id)
      $     result(dependent)
@@ -335,7 +602,32 @@
         end function bf_layer_depends_on_neighbors
 
 
-        !> check if one of the neighboring buffer layer remains
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> test whether one of the bf_sublayer neighbors is remaining
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param nbf_type
+        !> type of the neighboring bf_sublayer investigated
+        !
+        !>@param bf_sublayer_id
+        !> bf_sublayer 
+        !
+        !>@param bf_mainlayer_id
+        !> cardinal coordinate of the buffer layer investigated
+        !
+        !>@param a_neighbor_remains
+        !> logical stating whether the buffer layer cannot be removed
+        !> because a neighboring buffer layer should remain
+        !--------------------------------------------------------------
         function does_a_neighbor_remains(
      $     this, nbf_type, bf_sublayer_i, bf_mainlayer_id)
      $     result(a_neighbor_remains)
@@ -364,7 +656,19 @@
         end function does_a_neighbor_remains
 
 
-        !> print the neighboring links between sublayers on screen
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the links between bf_sublayers on screen
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !--------------------------------------------------------------
         subroutine print_on_screen(this)
 
           implicit none
@@ -396,6 +700,5 @@
           end do
 
         end subroutine print_on_screen
-
 
       end module nbf_interface_class

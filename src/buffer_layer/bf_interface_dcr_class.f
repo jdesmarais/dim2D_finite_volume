@@ -1,3 +1,17 @@
+      !> @file
+      !> module implementing the object encapsulating the subroutines
+      !> checking whether the buffer layers can be removed
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the object encapsulating the subroutines
+      !> checking whether the buffer layers can be removed
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_interface_dcr_class
 
         use bf_interface_icr_class, only : bf_interface_icr
@@ -13,6 +27,14 @@
         public :: bf_interface_dcr
 
 
+        !>@class bf_interface_dcr
+        !> class encapsulating the subroutines checking when the buffer
+        !> layers can be removed
+        !
+        !>@param update_bf_layers_with_detector_dcr
+        !> check whether buffer layers can be removed and remove the
+        !> ones that are no longer needed
+        !---------------------------------------------------------------
         type, extends(bf_interface_icr) :: bf_interface_dcr
 
           contains
@@ -25,6 +47,24 @@
         contains
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether buffer layers can be removed and remove the
+        !> ones that are no longer needed
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_dcr object encapsulating subroutines checking
+        !> if buffer layers can be removed
+        !
+        !>@param interior_nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
+        !--------------------------------------------------------------
         subroutine update_bf_layers_with_detector_dcr(
      $       this, interior_nodes)
 
@@ -205,6 +245,5 @@
           end do          
 
         end subroutine update_bf_layers_with_detector_dcr
-
 
       end module bf_interface_dcr_class

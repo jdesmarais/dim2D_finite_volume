@@ -1,3 +1,19 @@
+      !> @file
+      !> module implementing the temporary object used to reorganize
+      !> the increasing detector list when an east buffer layer is
+      !> removed
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the temporary object used to reorganize
+      !> the increasing detector list when an east buffer layer is
+      !> removed
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !----------------------------------------------------------------
       module bf_detector_dcr_list_E_class
 
         use bf_detector_dcr_list_EW_class, only : bf_detector_dcr_list_EW
@@ -9,6 +25,11 @@
         implicit none
 
 
+        !> @class bf_detector_dcr_list_E
+        !> class encapsulating the temporary variables needed
+        !> to create a new detector list out of the previous
+        !> detector list when an east buffer layer is removed
+        !----------------------------------------------------------------
         type, extends(bf_detector_dcr_list_EW) :: bf_detector_dcr_list_E
 
           contains

@@ -1,18 +1,19 @@
       !> @file
-      !> module implementing the buffer mainlayer object
-      !> encapsulating a double chained list of buffer
-      !> sublayer elements
+      !> module implementing the bf_mainlayer object
+      !> by encapsulating a double chained list of bf_sublayer
+      !> elements
       !
       !> @author
       !> Julien L. Desmarais
       !
       !> @brief
-      !> module implementing the buffer mainlayer object
-      !> encapsulating a double chained list of buffer
-      !> sublayer elements
+      !> module implementing the bf_mainlayer object
+      !> by encapsulating a double chained list of bf_sublayer
+      !> elements
       !
       !> @date
-      ! 11_04_2014 - initial version - J.L. Desmarais
+      ! 11_04_2014 - initial version      - J.L. Desmarais
+      ! 26_06_2014 - documentation update - J.L. Desmarais
       !-----------------------------------------------------------------
       module bf_mainlayer_class
 
@@ -31,17 +32,54 @@
         
         
         !> @class bf_mainlayer
-        !> class encapsulating the buffer sublayers corresponding
+        !> class storing bf_sublayers corresponding
         !> to the same cardinal point (N,S,E,W,NE,NW,SE,SW)
-        !>
+        !
+        !> @param mainlayer_id
+        !> cardinal coordinate identifying the position of
+        !> the bf_sublayer stored in the main layer
+        !
         !> @param nb_sublayers
-        !> number of sublayers saved in the main layer
-        !>
+        !> number of sublayers stored in the main layer
+        !
         !> @param head_sublayer
-        !> pointer of the head sublayer of the main layer
-        !>
+        !> pointer to the first bf_sublayer of the list
+        !
         !> @param tail_sublayer
-        !> pointer of the tail sublayer of the main layer
+        !> pointer to the last bf_sublayer of the list
+        !
+        !>@param ini
+        !> initialize the buffer mainlayer by initializing the
+        !> number of sublayers to 0 and nullifying the head
+        !> and tail attributes
+        !
+        !>@param get_mainlayer_id
+        !> get the mainlayer_id attribute
+        !
+        !>@param get_nb_sublayers
+        !> number of sublayers stored in the main layer
+        !
+        !>@param get_head_sublayer
+        !> get the head_sublayer attribute
+        !
+        !>@param get_tail_sublayer
+        !> get the tail_sublayer attribute
+        !
+        !>@param add_sublayer
+        !> allocate space for a new buffer sublayer in the double
+        !> chained list and organize the bf_mainlayer using the
+        !> alignment of the buffer layers. A pointer to the newly
+        !> added buffer sublayer is returned
+        !
+        !>@param merge_sublayers
+        !> combine two sublayers of the main layer
+        !
+        !>@param remove_sublayer
+        !> remove a sublayer from the doubled chained list
+        !
+        !>@param print_binary
+        !> print the content of the bf_sublayers constituing the
+        !> bf_mainlayer on seperate binary output files
         !---------------------------------------------------------------
         type :: bf_mainlayer
 
@@ -66,8 +104,6 @@
 
           procedure, pass :: print_binary
 
-          procedure, nopass, private :: insert_sublayer
-
         end type bf_mainlayer
 
 
@@ -78,9 +114,9 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine initializing the buffer mainlayer
-        !> by initializing the number of sublayers to 0 and
-        !> nullifying the head and tail pointers
+        !> initialize the buffer mainlayer by initializing the
+        !> number of sublayers to 0 and nullifying the head
+        !> and tail attributes
         !
         !> @date
         !> 11_04_2013 - initial version - J.L. Desmarais
@@ -89,6 +125,10 @@
         !> bf_mainlayer object encapsulating the double chained
         !> list of sublayers, pointers to the head and tail elements
         !> of the list and the total number of elements in the list
+        !
+        !>@param mainlayer_id
+        !> cardinal coordinate identifying the position of the buffer
+        !> sublayers stored in the mainlayer
         !--------------------------------------------------------------
         subroutine ini(this, mainlayer_id)
 
@@ -105,7 +145,24 @@
         end subroutine ini
 
 
-        !< get the localization of the mainlayer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the mainlayer_id attribute
+        !
+        !> @date
+        !> 11_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer object encapsulating the double chained
+        !> list of sublayers, pointers to the head and tail elements
+        !> of the list and the total number of elements in the list
+        !
+        !>@return get_mainlayer_id
+        !> cardinal coordinate identifying the position of the buffer
+        !> sublayers stored in the mainlayer
+        !--------------------------------------------------------------
         function get_mainlayer_id(this)
 
           implicit none
@@ -118,7 +175,23 @@
         end function get_mainlayer_id
 
 
-        !< get the number of sublayers in the mainlayer chained list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the nb_sublayers attribute
+        !
+        !> @date
+        !> 11_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer object encapsulating the double chained
+        !> list of sublayers, pointers to the head and tail elements
+        !> of the list and the total number of elements in the list
+        !
+        !>@return get_nb_sublayers
+        !> number of sublayers in the mainlayer chained list
+        !--------------------------------------------------------------
         function get_nb_sublayers(this)
 
           implicit none
@@ -131,7 +204,23 @@
         end function get_nb_sublayers
 
 
-        !< get the first sublayer in the chained list of the mainlayer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the head_sublayer attribute
+        !
+        !> @date
+        !> 11_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer object encapsulating the double chained
+        !> list of sublayers, pointers to the head and tail elements
+        !> of the list and the total number of elements in the list
+        !
+        !>@return get_head_sublayer
+        !> pointer to the first sublayer in the chained list
+        !--------------------------------------------------------------
         function get_head_sublayer(this)
 
           implicit none
@@ -148,7 +237,23 @@
         end function get_head_sublayer
 
 
-        !< get the last sublayer in the chained list of the mainlayer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the tail_sublayer attribute
+        !
+        !> @date
+        !> 11_04_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_mainlayer object encapsulating the double chained
+        !> list of sublayers, pointers to the head and tail elements
+        !> of the list and the total number of elements in the list
+        !
+        !>@return get_head_sublayer
+        !> pointer to the last sublayer in the chained list
+        !--------------------------------------------------------------
         function get_tail_sublayer(this)
 
           implicit none
@@ -169,11 +274,10 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine allocating space for a new buffer sublayer
-        !> in the double chained list and positioning the sublayer
-        !> in this double chained list according to the mainlayer
-        !> location and its alignment to the interior nodes. A pointer
-        !> to the newly added buffer sublayer is returned
+        !> allocate space for a new buffer sublayer in the double
+        !> chained list and organize the bf_mainlayer using the
+        !> alignment of the buffer layers. A pointer to the newly
+        !> added buffer sublayer is returned
         !
         !> @date
         !> 11_04_2013 - initial version - J.L. Desmarais
@@ -183,12 +287,16 @@
         !> list of sublayers, pointers to the head and tail elements
         !> of the list and the total number of elements in the list
         !
-        !>@param mainlayer_id
-        !> integer identifying the main layer localization
+        !>@param nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
         !
         !>@param alignment
         !> table(2,2) of integers identifying the position of the buffer
         !> layer compared to the interior nodes
+        !
+        !> @return added_sublayer_ptr
+        !> pointer to the newly added bf_sublayer
         !--------------------------------------------------------------
         function add_sublayer(this, nodes, alignment)
      $     result(added_sublayer_ptr)
@@ -365,7 +473,7 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine combining two sublayers of the main layer
+        !> combine two sublayers of the main layer
         !
         !> @date
         !> 09_05_2013 - initial version - J.L. Desmarais
@@ -375,15 +483,23 @@
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !
-        !>@param sublayer1
+        !>@param bf_sublayer1
         !> pointer to the first sublayer to merge
         !
-        !>@param sublayer2
+        !>@param bf_sublayer2
         !> pointer to the second sublayer to merge
+        !
+        !>@param interior_nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
         !
         !>@param alignment
         !> table identifying the final position of the merged sublayer
         !> compared to the interior domain
+        !
+        !>@return merged_sublayer
+        !> pointer to the bf_sublayer resulting from the merge of the
+        !> buffer sublayers
         !--------------------------------------------------------------
         function merge_sublayers(
      $     this,
@@ -481,7 +597,23 @@
         end function merge_sublayers
 
 
-        !> remove a sublayer from the main layer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove a sublayer from the doubled chained list
+        !
+        !> @date
+        !> 09_05_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !
+        !>@param bf_sublayer_ptr
+        !> pointer to the sublayer to be removed
+        !--------------------------------------------------------------
         subroutine remove_sublayer(this, sublayer_ptr)
 
           implicit none
@@ -522,8 +654,33 @@
         end subroutine remove_sublayer
 
 
-        !< print the content of the sublayers constituing the
-        !> buffer main layer on seperate binary output files
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the content of the bf_sublayers constituing the
+        !> bf_mainlayer on seperate binary output files
+        !
+        !> @date
+        !> 09_05_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !
+        !>@param suffix_nodes
+        !> suffix for the name of the output files storing the nodes
+        !> of the bf_sublayers
+        !
+        !>@param suffix_grdid
+        !> suffix for the name of the output files storing the grdpts_id
+        !> of the bf_sublayers
+        !
+        !>@param suffix_sizes
+        !> suffix for the name of the output files storing the sizes
+        !> of the bf_sublayers        
+        !--------------------------------------------------------------
         subroutine print_binary(
      $     this, suffix_nodes, suffix_grdid, suffix_sizes)
 

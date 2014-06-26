@@ -1,3 +1,19 @@
+      !> @file
+      !> module implementing the object encapsulating the buffer layers
+      !> around the interior domain and the relations to synchronize the
+      !> data between them
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the object encapsulating the buffer layers
+      !> around the interior domain and the relations to synchronize the
+      !> data between them
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_interface_class
 
         use bf_layer_errors_module    , only : error_mainlayer_id,
@@ -23,29 +39,99 @@
         public :: bf_interface
         
 
-        !> @class bf_interface
-        !> class encapsulating the bf_layer/interior interface
-        !> object
+        !>@class bf_interface
+        !> class encapsulating the buffer layers around the interior
+        !> domain and subroutines to synchronize the data between them
         !
-        !> @param mainlayer_pointers
-        !> table with reference to the buffer main layers
+        !>@param mainlayer_pointers
+        !> table with reference to the bf_mainlayers objects gathering
+        !> the bf_sublayer corresponding to a specific cardinal point
         !
-        !> @param border_interface
-        !> object with references to the sublayers at the interface
-        !> between the main layers and ways to exchange data between
-        !> these boundary sublayers
+        !>@param border_interface
+        !> object encapsulating references to the sublayers at the edge
+        !> between the main layers and subroutines to synchronize the data
+        !> between them
         !
-        !> @param ini
-        !> initialize the interface by nullifying all the 
-        !> references to the buffer main layers
+        !>@param ini
+        !> initialize the buffer/interior domain interface
         !
-        !> @param get_mainlayer
-        !> get the reference to the main layer corresponding
-        !> to the cardinal coordinate passed
+        !>@param get_mainlayer
+        !> get the bf_mainlayer object corresponding to the cardinal point
         !
-        !> @param add_sublayer
-        !> add a new sublayer to the main layer corresponding
-        !> to the cardinal coordinate passed
+        !>@param allocate_sublayer
+        !> allocate a bf_sublayer and insert it in the corresponding
+        !> buffer mainlayer
+        !
+        !>@param reallocate_sublayer
+        !> reallocate a buffer sublayer and check whether the neighboring
+        !> buffer layer changed and so if the neighboring links should be
+        !> updated
+        !
+        !>@param merge_sublayers
+        !> merge the content of two sublayers and update
+        !> the links to the border buffer layers
+        !
+        !>@param remove_sublayer
+        !> remove a sublayer from the buffer main layers
+        !
+        !>@param update_grdpts_after_increase
+        !> compute the new grid points of the bf_sublayer after its
+        !> increase and synchronize the neighboring buffer layers
+        !
+        !>@param get_mainlayer_id
+        !> get the cardinal coordinate corresponding to
+        !> the general coordinates
+        !
+        !>@param get_sublayer
+        !> get the sublayer corresponding to the general coordinates
+        !> asked within the tolerance
+        !
+        !>@param get_nodes
+        !> extract the governing variables at a general coordinates
+        !> asked by the user
+        !
+        !>@param update_grdpts_from_neighbors
+        !> if the buffer sublayer passed as argument has grid points
+        !> in common with buffer layers from other main layers, the
+        !> grid points in common are updated from the neighboring buffer
+        !> layers
+        !
+        !>@param update_neighbor_grdpts
+        !< if the buffer sublayer passed as argument has grid points
+        !> in common with the buffer layers from other main layers, the
+        !> grid points in common are updated in the neighboring buffer
+        !> layers from the current buffer layer
+        !
+        !>@param shares_with_neighbor1
+        !> check if the alignment of the future sublayer makes it a
+        !> potential neighboring buffer layer of type 1 and if so
+        !> update its alignment if it is shifted by one grid
+        !> point from the border as it makes exchanges easier later the
+        !> sublayer is here tested as a neighbor buffer layer of type 1
+        !> this function echoes bf_layer_class%shares_grdpts_with_neighbor1
+        !
+        !>@param shares_with_neighbor2
+        !> check if the alignment of the future sublayer makes it a
+        !> potential neighboring buffer layer of type 2 and if so
+        !> update its alignment if it is shifted by one grid
+        !> point from the border as it makes exchanges easier later the
+        !> sublayer is here tested as a neighbor buffer layer of type 1
+        !> this function echoes bf_layer_class%shares_grdpts_with_neighbor1
+        !
+        !>@param get_nbf_layers_sharing_grdpts_with
+        !> determine the neighboring buffer layers sharing grid points
+        !> with the current buffer layer
+        !
+        !>@param bf_layer_depends_on_neighbors
+        !> determine whether a buffer layer depends on its neighboring
+        !> buffer layers
+        !
+        !>@param does_a_neighbor_remains
+        !> check if the neighboring bf_layers from bf_sublayer_i can
+        !> all be removed
+        !
+        !>@param print_binary
+        !> print the content of the interface on external binary files
         !---------------------------------------------------------------
         type :: bf_interface
 
@@ -84,7 +170,20 @@
         contains
 
 
-        !< nullify all the pointers to the main layers
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the buffer/interior domain interface
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface object encapsulating the buffer layers
+        !> around the interior domain and subroutines to synchronize
+        ! the data between them
+        !--------------------------------------------------------------
         subroutine ini(this)
 
           implicit none
@@ -102,8 +201,28 @@
         end subroutine ini
 
 
-       !< get main layer corresponding to the cardinal point
-       function get_mainlayer(this, mainlayer_id)
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the bf_mainlayer object corresponding to the cardinal point
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface object encapsulating the buffer layers
+        !> around the interior domain and subroutines to synchronize
+        !> the data between them
+        !
+        !>@param mainlayer_id
+        !> cardinal coordinate for the bf_mainlayer asked
+        !
+        !>@return get_mainlayer
+        !> reference to the bf_mainlayer corresponding to the cardinal
+        !> coordinate
+        !--------------------------------------------------------------
+        function get_mainlayer(this, mainlayer_id)
        
          implicit none
    
@@ -129,12 +248,30 @@
        end function get_mainlayer
 
 
-       !< check if the alignment of the future sublayer makes it a potential
-       !> buffer layer at the interface between main layers and if so update
-       !> its alignment if it is shifted by one grid point from the border
-       !> as it makes exchanges easier later
-       !> the sublayer is here tested as a neighbor buffer layer of type 1
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> check if the alignment of the future sublayer makes it a
+       !> potential neighboring buffer layer of type 1 and if so
+       !> update its alignment if it is shifted by one grid
+       !> point from the border as it makes exchanges easier later the
+       !> sublayer is here tested as a neighbor buffer layer of type 1
        !> this function echoes bf_layer_class%shares_grdpts_with_neighbor1
+       !
+       !> @date
+       !> 27_06_2014 - initial version - J.L. Desmarais
+       !
+       !>@param mainlayer_id
+       !> cardinal coordinate for the bf_mainlayer asked
+       !
+       !>@param bf_final_alignment
+       !> position of the future buffer layer
+       !
+       !>@return share_grdpts
+       !> logical stating whether the future sublayer is a potential
+       !> buffer layer at the edge between main layers
+       !--------------------------------------------------------------
        function shares_with_neighbor1(mainlayer_id, bf_final_alignment)
      $     result(share_grdpts)
 
@@ -163,12 +300,30 @@
        end function shares_with_neighbor1
 
 
-       !< check if the alignment of the future sublayer makes it a potential
-       !> buffer layer at the interface between main layers and if so update
-       !> its alignment if it is shifted by one grid point from the border
-       !> as it makes exchanges easier later
-       !> the sublayer is here tested as a neighbor buffer layer of type 2
-       !> this function echoes bf_layer_class%shares_grdpts_with_neighbor2
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> check if the alignment of the future sublayer makes it a
+       !> potential neighboring buffer layer of type 2 and if so
+       !> update its alignment if it is shifted by one grid
+       !> point from the border as it makes exchanges easier later the
+       !> sublayer is here tested as a neighbor buffer layer of type 1
+       !> this function echoes bf_layer_class%shares_grdpts_with_neighbor1
+       !
+       !> @date
+       !> 27_06_2014 - initial version - J.L. Desmarais
+       !
+       !>@param mainlayer_id
+       !> cardinal coordinate for the bf_mainlayer asked
+       !
+       !>@param bf_final_alignment
+       !> position of the future buffer layer
+       !
+       !>@return share_grdpts
+       !> logical stating whether the future sublayer is a potential
+       !> buffer layer at the edge between main layers
+       !--------------------------------------------------------------
        function shares_with_neighbor2(mainlayer_id, bf_final_alignment)
      $     result(share_grdpts)
 
@@ -197,8 +352,36 @@
        end function shares_with_neighbor2
 
 
-       !< allocate a buffer sublayer and insert it in the corresponding
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> allocate a bf_sublayer and insert it in the corresponding
        !> buffer mainlayer
+       !
+       !> @date
+       !> 27_06_2014 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param mainlayer_id
+       !> cardinal coordinate for the new bf_sublayer
+       !
+       !>@param nodes
+       !> table encapsulating the data of the grid points of the
+       !> interior domain
+       !
+       !>@param alignment
+       !> table of integers characterizing the
+       !> correspondance between the interior grid points
+       !> and the buffer layer elements
+       !
+       !>@return added_sublayer
+       !> reference to the newly allocated bf_sublayer
+       !--------------------------------------------------------------
        function allocate_sublayer(
      $     this,
      $     mainlayer_id,
@@ -276,9 +459,36 @@
        end function allocate_sublayer
 
 
-       !< reallocate a buffer sublayer and check whether the neighboring buffer
-       !> layer changed and so if the neighboring links should be udpated
-       subroutine reallocate_sublayer(this, bf_sublayer_r, nodes, alignment)
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> reallocate a buffer sublayer and check whether the neighboring
+       !> buffer layer changed and so if the neighboring links should be
+       !> updated
+       !
+       !> @date
+       !> 27_06_2014 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param bf_sublayer_r
+       !> reference to the bf_sublayer to be reallocated
+       !
+       !>@param nodes
+       !> table encapsulating the data of the grid points of the
+       !> interior domain
+       !
+       !>@param alignment
+       !> table of integers characterizing the
+       !> correspondance between the interior grid points
+       !> and the buffer layer
+       !--------------------------------------------------------------
+       subroutine reallocate_sublayer(
+     $     this, bf_sublayer_r, nodes, alignment)
 
          implicit none
 
@@ -361,8 +571,36 @@
        end subroutine reallocate_sublayer
        
 
-       !< merge sublayers : merge the content of the sublayers and update
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> merge the content of two sublayers and update
        !> the links to the border buffer layers
+       !
+       !> @date
+       !> 27_06_2014 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param bf_sublayer1
+       !> reference to the first bf_sublayer merged
+       !
+       !>@param bf_sublayer2
+       !> reference to the second bf_sublayer merged
+       !
+       !>@param nodes
+       !> table encapsulating the data of the grid points of the
+       !> interior domain
+       !
+       !>@param alignment
+       !> table of integers characterizing the
+       !> correspondance between the interior grid points
+       !> and the buffer layer
+       !--------------------------------------------------------------
        function merge_sublayers(
      $     this,
      $     bf_sublayer1, bf_sublayer2,
@@ -578,7 +816,26 @@ c$$$          stop 'not implemented yet'
        end function merge_sublayers
 
 
-       !> remove a sublayer from its mainlayer
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> remove a sublayer from the buffer main layers
+       !
+       !> @date
+       !> 27_06_2014 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param sublayer_ptr
+       !> reference to the bf_sublayer removed
+       !
+       !>@param bf_mainlayer_id
+       !> cardinal coordinate of the buffer layer removed
+       !--------------------------------------------------------------
        subroutine remove_sublayer(this, sublayer_ptr, bf_mainlayer_id)
 
          implicit none
@@ -619,8 +876,8 @@ c$$$          stop 'not implemented yet'
        !> Julien L. Desmarais
        !
        !> @brief
-       !> subroutine converting general coordinates into
-       !> the main layer ID (N,S,E,W)
+       !> get the cardinal coordinate corresponding to
+       !> the general coordinates
        !
        !> @date
        !> 11_04_2013 - initial version - J.L. Desmarais
@@ -628,7 +885,7 @@ c$$$          stop 'not implemented yet'
        !>@param general_coord
        !> integer table giving the general coordinates
        !
-       !>@param mainlayer_id
+       !>@return mainlayer_id
        !> main layer cardinal coordinates
        !--------------------------------------------------------------
        function get_mainlayer_id(general_coord) result(mainlayer_id)
@@ -670,29 +927,33 @@ c$$$          stop 'not implemented yet'
        !> Julien L. Desmarais
        !
        !> @brief
-       !> subroutine updating the interface pointers
-       !> to the main layers
+       !> get the sublayer corresponding to the general coordinates
+       !> asked within the tolerance
        !
        !> @date
        !> 11_04_2013 - initial version - J.L. Desmarais
        !
        !>@param this
-       !> interface_abstract class encapsulating the pointers
-       !> to the buffer main layers
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
        !
        !>@param general_coord
        !> table giving the general coordinates of the point analyzed
        !
        !>@param local_coord
        !> table giving the local coordinates of the point analyzed
-       !> in the corresponding sublayer
+       !> in the corresponding bf_sublayer
        !
        !>@param tolerance_i
        !> integer indicating how far the gridpoint can be from the
        !> closest sublayer to be considered inside
        !
-       !>@param sublayer
-       !> pointer to the sublayer matching the general coordinates
+       !>@param mainlayer_id_i
+       !> cardinal coordinate cooresponding to the general coordinates
+       !
+       !>@return sublayer
+       !> reference to the bf_sublayer matching the general coordinates
        !> of the grid point
        !--------------------------------------------------------------
        function get_sublayer(
@@ -819,7 +1080,31 @@ c$$$          stop 'not implemented yet'
        end function get_sublayer
 
 
-       !< extract the nodes at a general coordinates asked by the user
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> extract the governing variables at a general coordinates
+       !> asked by the user
+       !
+       !> @date
+       !> 11_04_2013 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param g_coord
+       !> table giving the general coordinates of the point analyzed
+       !
+       !>@param interior_nodes
+       !> table encapsulating the data of the grid points of the
+       !> interior domain
+       !
+       !>@return var
+       !> governing variables at the grid point asked
+       !--------------------------------------------------------------
        function get_nodes(this, g_coords, interior_nodes) result(var)
 
          implicit none
@@ -855,10 +1140,26 @@ c$$$          stop 'not implemented yet'
        end function get_nodes    
 
 
-       !< if the buffer sublayer passed as argument has grid points
-       !> in common with the buffer layers from other main layers, the
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> if the buffer sublayer passed as argument has grid points
+       !> in common with buffer layers from other main layers, the
        !> grid points in common are updated from the neighboring buffer
        !> layers
+       !
+       !> @date
+       !> 11_04_2013 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param nbf_sublayer
+       !> bf_sublayer exchanging data with the neighboring buffer layers
+       !--------------------------------------------------------------
        subroutine update_grdpts_from_neighbors(this, nbf_sublayer)
 
          implicit none
@@ -872,10 +1173,26 @@ c$$$          stop 'not implemented yet'
        end subroutine update_grdpts_from_neighbors
 
 
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
        !< if the buffer sublayer passed as argument has grid points
        !> in common with the buffer layers from other main layers, the
        !> grid points in common are updated in the neighboring buffer
        !> layers from the current buffer layer
+       !
+       !> @date
+       !> 11_04_2013 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param nbf_sublayer
+       !> bf_sublayer exchanging data with the neighboring buffer layers
+       !--------------------------------------------------------------
        subroutine update_neighbor_grdpts(this, nbf_sublayer)
 
          implicit none
@@ -888,7 +1205,28 @@ c$$$          stop 'not implemented yet'
        end subroutine update_neighbor_grdpts
 
 
-       !< update the grid points of the bf_sublayer after increase
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> compute the new grid points of the bf_sublayer after its
+       !> increase and synchronize the neighboring buffer layers
+       !
+       !> @date
+       !> 11_04_2013 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param bf_sublayer_i
+       !> bf_sublayer exchanging data with the neighboring buffer layers
+       !
+       !>@param selected_grdpts
+       !> list of the general coordinates of the grid points to be
+       !> computed
+       !--------------------------------------------------------------
        subroutine update_grdpts_after_increase(
      $     this, bf_sublayer_i, selected_grdpts)
 
@@ -908,8 +1246,35 @@ c$$$          stop 'not implemented yet'
        end subroutine update_grdpts_after_increase
 
 
-       !< determine the neighboring buffer layers sharing grid points
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> determine the neighboring buffer layers sharing grid points
        !> with the current buffer layer
+       !
+       !> @date
+       !> 11_04_2013 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param bf_sublayer_i
+       !> bf_sublayer exchanging data with the neighboring buffer layers
+       !
+       !>@param nbf1_list
+       !> list of the neighboring buffer layers of type 1 sharing grid
+       !> points with bf_sublayer_i
+       !
+       !>@param nbf2_list
+       !> list of the neighboring buffer layers of type 2 sharing grid
+       !> points with bf_sublayer_i
+       !
+       !>@param bf_mainlayer_id
+       !> cardinal coordinate of bf_sublayer_i
+       !--------------------------------------------------------------
        subroutine get_nbf_layers_sharing_grdpts_with(
      $     this, bf_sublayer_i, nbf1_list, nbf2_list, bf_mainlayer_id)
 
@@ -952,9 +1317,33 @@ c$$$          stop 'not implemented yet'
        end subroutine get_nbf_layers_sharing_grdpts_with
 
 
-       !< determine whether a buffer layer depends on its neighboring
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> determine whether a buffer layer depends on its neighboring
        !> buffer layers
-       function bf_layer_depends_on_neighbors(this, bf_sublayer_i, bf_mainlayer_id)
+       !
+       !> @date
+       !> 11_04_2013 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param bf_sublayer_i
+       !> bf_sublayer exchanging data with the neighboring buffer layers
+       !
+       !>@param bf_mainlayer_id
+       !> cardinal coordinate of bf_sublayer_i
+       !
+       !>@return dependent
+       !> logical stating whether the bf_sublayer_i depends on neighboring
+       !> buffer layers
+       !--------------------------------------------------------------
+       function bf_layer_depends_on_neighbors(
+     $     this, bf_sublayer_i, bf_mainlayer_id)
      $     result(dependent)
 
          implicit none
@@ -1004,8 +1393,33 @@ c$$$          stop 'not implemented yet'
        end function bf_layer_depends_on_neighbors
 
 
-       !< check if one among the neighboring buffer layers cannot be removed
-       function does_a_neighbor_remains(this, bf_sublayer_i, bf_mainlayer_id)
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> check if the neighboring bf_layers from bf_sublayer_i can
+       !> all be removed
+       !
+       !> @date
+       !> 11_04_2013 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param bf_sublayer_i
+       !> bf_sublayer exchanging data with the neighboring buffer layers
+       !
+       !>@param bf_mainlayer_id
+       !> cardinal coordinate of bf_sublayer_i
+       !
+       !>@return a_neighbor_remains
+       !> logical stating whether the bf_sublayer_i should not be removed
+       !> because one of its neighbors remains
+       !--------------------------------------------------------------
+       function does_a_neighbor_remains(
+     $     this, bf_sublayer_i, bf_mainlayer_id)
      $     result(a_neighbor_remains)
 
          implicit none
@@ -1057,7 +1471,34 @@ c$$$          stop 'not implemented yet'
        end function does_a_neighbor_remains
 
 
-       !< print the content of the interface on external binary files
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> print the content of the interface on external binary files
+       !
+       !> @date
+       !> 11_04_2013 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param suffix_nodes
+       !> suffix for the name of the files storing the nodes content
+       !
+       !>@param suffix_grdid
+       !> suffix for the name of the files storing the grdpts_id content
+       !
+       !>@param suffix_sizes
+       !> suffix for the name of the files storing the profile of the 
+       !> nodes and grdpts_id arrays
+       !
+       !>@param suffix_nb_sublayers_max
+       !> suffix for the name of the files storing the maximum number of
+       !> sublayers per main buffer layer
+       !--------------------------------------------------------------
        subroutine print_binary(
      $     this,
      $     suffix_nodes, suffix_grdid, suffix_sizes,
@@ -1114,7 +1555,23 @@ c$$$          stop 'not implemented yet'
         end subroutine print_binary
 
 
-        subroutine print_nb_sublayers_max(filename, nb_sublayers)
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> print the maxmimum number of sublayers per main layer
+       !
+       !> @date
+       !> 11_04_2013 - initial version - J.L. Desmarais
+       !
+       !>@param filename
+       !> name of the file for storing the maximum number of sublayer
+       !> per mainlayer
+       !
+       !>@param nb_sublayers
+       !> maximum number of sublayers per main layer
+       !--------------------------------------------------------------
+       subroutine print_nb_sublayers_max(filename, nb_sublayers)
 
           implicit none
 

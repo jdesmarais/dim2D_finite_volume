@@ -1,3 +1,17 @@
+      !> @file
+      !> module with the constant used in the implementation of the
+      !> buffer layer concepts
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module with the constant used in the implementation of the
+      !> buffer layer concepts
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !----------------------------------------------------------------
       module parameters_bf_layer
 
         use parameters_constant, only : N,S,E,W

@@ -1,3 +1,17 @@
+      !> @file
+      !> module encapsulating the subroutines needed to check whether
+      !> a bf_layer object should be removed
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module encapsulating the subroutines needed to check whether
+      !> a bf_layer object should be removed
+      !
+      !> @date
+      ! 27_07_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_layer_remove_module
 
         use bf_activation_module  , only : are_openbc_undermined
@@ -18,25 +32,38 @@
 
         contains
 
-
-        !< check if the grid points of the buffer layer common
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the grid points of the buffer layer common
         !> with the interior domain are such that the buffer layer
-        !> can be removed without considering its neighbor dependencies
+        !> can be removed without considering the neighbor dependencies
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
         !
         !> @param bf_localization
         !> cardinal coordinate identifying the position of the buffer
         !> layer
-        !> 
+        !
         !> @param bf_alignment
         !> relative position of the buffer layer to the interior domain
-        !>
+        !
+        !> @param bf_match_table
+        !> table allowing to convert general coordinates into local
+        !> coordinates for the buffer layer
+        !
+        !> @param bf_grdpts_id
+        !> role of the grid points in the buffer layer
+        !
         !> @param bf_nodes
-        !> grid points of the buffer layer investigated
-        !>
+        !> grid points of the the buffer layer
+        !
         !> @param interior_nodes
         !> grid points of the interior domain
-        !>
-        !> @param bf_removal
+        !
+        !> @return bf_remains
         !> logical identifying whether the local removal is approved or
         !> not
         !---------------------------------------------------------------
@@ -90,9 +117,24 @@
         end function check_if_bf_layer_remains
 
 
-        !< check if the alignment of the buffer layer compared to
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the alignment of the buffer layer compared to
         !> the interior is such that the buffer layer has grid points
         !> in common with the interior domain
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !> @param bf_alignment
+        !> relative position of the buffer layer to the interior domain
+        !
+        !> @return grdpts_common
+        !> logical stating whether the buffer layer has grid points in
+        !> common with the interior domain
+        !---------------------------------------------------------------
         function grdpts_common_with_check_layer(bf_alignment)
      $     result(grdpts_common)
 
@@ -118,10 +160,45 @@
         end function grdpts_common_with_check_layer
 
 
-        !< determine the parameters constraining the line around
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the parameters constraining the line around
         !> which the neighboring points will be checked to see
         !> whether the open boundary conditions are undermined
         !> in this region or not
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !> @param bf_localization
+        !> cardinal coordinate identifying the position of the buffer
+        !> layer
+        !
+        !> @param bf_alignment
+        !> relative position of the buffer layer to the interior domain
+        !
+        !> @param bf_match_table
+        !> table allowing to convert general coordinates into local
+        !> coordinates for the buffer layer
+        !
+        !> @param bf_size_x
+        !> extent of the nodes and grdpts arrays of the buffer layer
+        !> in the x-direction
+        !
+        !> @param bf_size_y
+        !> extent of the nodes and grdpts arrays of the buffer layer
+        !> in the y-direction
+        !
+        !> @param bf_coords
+        !> integer table identifying the borders of the layer to be
+        !> checked in the buffer layer grid points
+        !
+        !> @param in_coords
+        !> integer table identifying the borders of the layer to be
+        !> checked in the interior domain grid points
+        !---------------------------------------------------------------
         subroutine get_check_line_param(
      $     bf_localization, bf_alignment, bf_match_table,
      $     bf_size_x, bf_size_y,
@@ -212,7 +289,37 @@
         end subroutine get_check_line_param
 
 
-        !< check the points around the line
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check the grid points in the layer determined previously
+        !> by get_check_line_param
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !> @param bf_coords
+        !> integer table identifying the borders of the layer to be
+        !> checked in the buffer layer grid points
+        !
+        !> @param in_coords
+        !> integer table identifying the borders of the layer to be
+        !> checked in the interior domain grid points
+        !
+        !> @param bf_grdpts_id
+        !> role of the grid points in the buffer layer
+        !
+        !> @param bf_nodes
+        !> grid points of the the buffer layer
+        !
+        !> @param interior_nodes
+        !> grid points of the interior domain
+        !
+        !> @return bf_remains
+        !> logical identifying whether the local removal is approved or
+        !> not
+        !---------------------------------------------------------------
         subroutine check_line_neighbors(
      $     bf_coords, in_coords,
      $     bf_grdpts_id, bf_nodes, interior_nodes,
@@ -251,11 +358,27 @@
         end subroutine check_line_neighbors
 
 
-        !< check if the grid points neighboring the central point
-        !> identified by cpt_coords undermine the open boundary
-        !> conditions. The number of grid points to be checked
-        !> is reduced knowing the previous central point investigated
-        !> identified by cpt_coords_p
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the layer of grid points in the interior domain
+        !> undermine the open boundary conditions
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !> @param pt_coords
+        !> integer table identifying the borders of the layer to be
+        !> checked in the interior domain grid points
+        !
+        !> @param interior_nodes
+        !> grid points of the interior domain
+        !
+        !> @return bf_remains
+        !> logical identifying whether the local removal is approved or
+        !> not
+        !---------------------------------------------------------------
         subroutine check_layer_interior(
      $     pt_coords,
      $     nodes,
@@ -291,11 +414,30 @@
         end subroutine check_layer_interior
 
       
-        !< check if the grid points neighboring the central point
-        !> identified by cpt_coords undermine the open boundary
-        !> conditions. The number of grid points to be checked
-        !> is reduced knowing the previous central point investigated
-        !> identified by cpt_coords_p
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the layer of grid points in the buffer layer 
+        !> undermine the open boundary conditions
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !> @param pt_coords
+        !> integer table identifying the borders of the layer to be
+        !> checked in the interior domain grid points
+        !
+        !> @param grdpts_id
+        !> role of the grid points in the buffer layer
+        !
+        !> @param nodes
+        !> grid points of the buffer layer
+        !
+        !> @return bf_remains
+        !> logical identifying whether the local removal is approved or
+        !> not
+        !---------------------------------------------------------------
         subroutine check_layer_bf(
      $     pt_coords,
      $     grdpts_id,

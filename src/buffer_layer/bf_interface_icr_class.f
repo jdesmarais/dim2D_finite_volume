@@ -1,3 +1,19 @@
+      !> @file
+      !> module implementing the object encapsulating the position of
+      !> the increasing detectors and the subroutines extending the
+      !> computational domain if they are triggered
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the object encapsulating the position of
+      !> the increasing detectors and the subroutines extending the
+      !> computational domain if they are triggered
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_interface_icr_class
 
         use bf_activation_module        , only : are_openbc_undermined
@@ -29,6 +45,103 @@
         public :: bf_interface_icr
 
 
+        !>@class bf_interface_icr
+        !> class encapsulating the position of the increasing detectors
+        !> and the subroutines extending the interior domain
+        !
+        !>@param N_detectors_list
+        !> list containing the position of the north detectors
+        !
+        !>@param S_detectors_list
+        !> list containing the position of the south detectors
+        !
+        !>@param E_detectors_list
+        !> list containing the position of the east detectors
+        !
+        !>@param W_detectors_list
+        !> list containing the position of the west detectors
+        !
+        !>@param ini
+        !> initialize the position of the increasing detectors
+        !> and the parent object
+        !
+        !>@param get_modified_grdpts_list
+        !> from a detector position, get a list of bc_interior_pt
+        !> activated
+        !
+        !>@param process_idetector_list
+        !> process the list of current detectors, modify the buffer
+        !> layers. If they are activated by the detectors and
+        !> determine the new list of detectors
+        !
+        !>@param combine_bf_idetector_lists
+        !> connect the bf_detector_icr_list objects and determine the
+        !> new detector lists
+        !
+        !>@param update_bf_layers_with_idetectors
+        !> update the size of the computational domain based on the
+        !> increasing detector activations
+        !
+        !>@param update_icr_detectors_after_removal
+        !> update the position of the increasing detectors
+        !> if a sublayer is removed
+        !
+        !>@param remove_sublayer
+        !> remove a sublayer
+        !
+        !>@param is_detector_icr_activated
+        !> check whether the detector is activated
+        !
+        !>@param get_central_grdpt
+        !> check whether the detector is activated
+        !
+        !>@param check_neighboring_bc_interior_pts
+        !> check the identity of the grid points surrounding a central
+        !> point: this function encapsulates the function used if the
+        !> central point is at the interface between the interior and
+        !> the buffer layers and the function checking the grid points
+        !> in case all the grid points are inside a buffer layer
+        !
+        !>@param check_neighboring_bc_interior_pts_for_interior
+        !> check the neighboring bc_interior_pt around the central
+        !> point identified by its general coordinates
+        !
+        !>@param is_inside_border_layer
+        !> check the identity of the grid points surrounding a central
+        !> point: this function encapsulates the function used if the
+        !> central point is at the interface between the interior and
+        !> the buffer layers and the function checking the grid points
+        !> in case all the grid points are inside a buffer layer
+        !
+        !>@param create_nbc_interior_pt_template
+        !> create the template for the neighboring points around
+        !> the central point asked: as the central is located in
+        !> a layer at the interface between the interior points
+        !> and the boundary layers, it is required to initialize
+        !> the template using the coordinates as if there were no
+        !> boundary layers, then data are exchanged with the
+        !> neighboring buffer layers
+        !
+        !>@param check_nbc_interior_pt_template
+        !> check if the grid points around the center point are
+        !> bc_interior_pt
+        !
+        !>@param check_bc_interior_pt
+        !> check whether the grid point tested is a bc_interior_pt
+        !> and if so save the general coordinates of the grid point
+        !> in mgrdpts
+        !
+        !>@param update_grdpts_id_for_template
+        !> update the position of the increasing detectors
+        !> if a sublayer is removed
+        !
+        !>@param print_idetectors_on
+        !> print the increasing detector positions on a matrix
+        !
+        !>@param print_idetectors_on_binary
+        !> print the increasing detector positions on binary
+        !> output files
+        !---------------------------------------------------------------
         type, extends(bf_interface) :: bf_interface_icr
 
           integer(ikind), dimension(:,:), allocatable, private :: N_detectors_list
@@ -66,7 +179,21 @@
         contains
 
 
-        !< initialize the detector lists
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the position of the increasing detectors
+        !> and the parent object
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !--------------------------------------------------------------
         subroutine ini(this)
 
           implicit none
@@ -109,8 +236,31 @@
         end subroutine ini
 
 
-        !< update the size of the buffer layers using the information 
-        !> given by the increasing detectors
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the size of the computational domain based on the
+        !> increasing detector activations
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param interior_nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
+        !
+        !>@param dx
+        !> grid size along the x-direction
+        !
+        !>@param dy
+        !> grid size along the y-direction
+        !--------------------------------------------------------------
         subroutine update_bf_layers_with_idetectors(this, 
      $     interior_nodes, dx, dy)
 
@@ -216,8 +366,37 @@
         end subroutine update_bf_layers_with_idetectors
 
 
-        !< connect the bf_detector_icr_list objects and determine the
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> connect the bf_detector_icr_list objects and determine the
         !> new detector lists
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param N_idetectors_list
+        !> temporary object where the position of the new north
+        !> increasing detectors is stored
+        !
+        !>@param S_idetectors_list
+        !> temporary object where the position of the new south
+        !> increasing detectors is stored
+        !
+        !>@param E_idetectors_list
+        !> temporary object where the position of the new east
+        !> increasing detectors is stored
+        !
+        !>@param W_idetectors_list
+        !> temporary object where the position of the new west
+        !> increasing detectors is stored
+        !--------------------------------------------------------------
         subroutine combine_bf_idetector_lists(
      $     this,
      $     N_idetectors_list, S_idetectors_list,
@@ -334,11 +513,47 @@
         end subroutine combine_bf_idetector_lists      
 
 
-        !< process the list of current detectors, modify the buffer layers
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> process the list of current detectors, modify the buffer layers
         !> if they are activated by the detectors and determine the new list
         !> of detectors
-        !> dt_list  : detector list
-        !> ndt_list : new detector list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param dt_list
+        !> detector list processed
+        !
+        !>@param ndt_list
+        !> new detector list resulting from the position update
+        !> of the detector list
+        !
+        !>@param interior_nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
+        !
+        !>@param dx
+        !> grid size along the x-direction
+        !
+        !>@param dy
+        !> grid size along the y-direction
+        !
+        !>@param cpt_coords_p
+        !> general coordinates of the central point triggered by the
+        !> last detector
+        !
+        !>@param path
+        !> bf_path_icr object gathering the data when grid points are
+        !> activated by the detectors
+        !--------------------------------------------------------------
         subroutine process_idetector_list(
      $     this, dt_list, ndt_list,
      $     interior_nodes, dx, dy,
@@ -408,14 +623,40 @@
         end subroutine process_idetector_list
 
 
-        !< from a detector position, get the bc_interior_pt activated
-        !> d_coords     : detector general coordinates
-        !> cpt_coords_p : previous grid point whose neighboring grid points
-        !>                were checked to find bc_interior_pt
-        !> nb_mgrdpts   : number of grid points to be modified
-        !> mgrdpts      : table containing the coordinates of the grid
-        !>                points to be modified
-        !> ndt_list     : temporary new detector list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> from a detector position, get a list of bc_interior_pt activated
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param d_coords
+        !> detector general coordinates
+        !
+        !>@param interior_nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
+        !
+        !>@param cpt_coords_p
+        !> general coordinates of the central point triggered by the
+        !> last detector
+        !
+        !>@param nb_mgrdpts
+        !> number of grid points to be modified
+        !
+        !>@param mgrdpts
+        !> list of the bc_interior_pt grid points to be modified
+        !
+        !>@param ndt_list
+        !> temporary new detector list after their position update
+        !--------------------------------------------------------------
         subroutine get_modified_grdpts_list(
      $     this, d_coords,
      $     interior_nodes,
@@ -489,7 +730,21 @@
         end subroutine get_modified_grdpts_list
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> check whether the detector is activated
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes_var
+        !> governing variables at the grid point
+        !
+        !>@return activated
+        !> logical stating whether the detector is activated
+        !--------------------------------------------------------------
         function is_detector_icr_activated(nodes_var) result(activated)
         
           implicit none
@@ -502,8 +757,34 @@
         end function is_detector_icr_activated
 
 
-        !> get the general coordinates of the point activated by an
-        !> increasing detector
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the detector is activated
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param d_coords
+        !> detector general coordinates
+        !
+        !>@param velocity
+        !> velocity vector at the detector position
+        !
+        !>@param dx
+        !> grid size along the x-direction
+        !
+        !>@param dy
+        !> grid size along the y-direction
+        !
+        !>@param d_coords_n
+        !> new detector general coordinates
+        !
+        !>@return cpt_coords
+        !> general coordinates of the grid point activated by the
+        !> detector
+        !--------------------------------------------------------------
         function get_central_grdpt(
      $     d_coords, velocity, dx, dy, d_coords_n)
      $     result(cpt_coords)
@@ -550,11 +831,38 @@
         end function get_central_grdpt
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> check the identity of the grid points surrounding a central
         !> point: this function encapsulates the function used if the
         !> central point is at the interface between the interior and
         !> the buffer layers and the function checking the grid points
         !> in case all the grid points are inside a buffer layer
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param cpt_coords_p
+        !> previous central point whose neighboring grid points
+        !> have been tested
+        !
+        !>@param cpt_coords
+        !> central point whose neighboring grid points should be 
+        !> tested
+        !
+        !>@param nb_mgrdpts
+        !> number of grid points to be modified
+        !
+        !>@param mgrdpts
+        !> list of the bc_interior_pt grid points to be modified
+        !--------------------------------------------------------------
         subroutine check_neighboring_bc_interior_pts(
      $     this,
      $     cpt_coords_p, cpt_coords,
@@ -605,8 +913,27 @@
         end subroutine check_neighboring_bc_interior_pts    
 
 
-        !> check if a grid point is at the interface between the buffer
-        !> layers and the interior domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check the identity of the grid points surrounding a central
+        !> point: this function encapsulates the function used if the
+        !> central point is at the interface between the interior and
+        !> the buffer layers and the function checking the grid points
+        !> in case all the grid points are inside a buffer layer
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param cpt_coords
+        !> central point whose neighboring grid points should be 
+        !> tested
+        !
+        !>@return is_border
+        !> check whether the central point to be tested is at the
+        !> interface between the interiro domain and the buffer layers
+        !--------------------------------------------------------------
         function is_inside_border_layer(cpt_coords) result(is_border)
 
           implicit none
@@ -636,8 +963,35 @@
         end function is_inside_border_layer
 
 
-        !< check the neighboring bc_interior_pt around the central
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check the neighboring bc_interior_pt around the central
         !> point identified by its general coordinates
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param cpt_coords_p
+        !> previous central point whose neighboring grid points
+        !> have been tested
+        !
+        !>@param cpt_coords
+        !> central point whose neighboring grid points should be 
+        !> tested
+        !
+        !>@param nb_mgrdpts
+        !> number of grid points to be modified
+        !
+        !>@param mgrdpts
+        !> list of the bc_interior_pt grid points to be modified        
+        !--------------------------------------------------------------
         subroutine check_neighboring_bc_interior_pts_for_interior(
      $     this,
      $     cpt_coords_p,
@@ -677,8 +1031,43 @@
         end subroutine check_neighboring_bc_interior_pts_for_interior
 
 
-        !< check if the grid points around the center point are
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the grid points around the center point are
         !> bc_interior_pt
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nbc_template
+        !> temporary array created to combine information on the
+        !> role of the grid points at the interface between the interior
+        !> domain and the buffer layers
+        !
+        !>@param i_prev
+        !> x-index of the previous central point whose neighboring grid
+        !> points have been tested
+        !
+        !>@param j_prev
+        !> y-index of the previous central point whose neighboring grid
+        !> points have been tested
+        !
+        !>@param i_center
+        !> x-index of the central point whose neighboring grid
+        !> points should be tested
+        !
+        !>@param j_center
+        !> y-index of the central point whose neighboring grid
+        !> points should be tested
+        !
+        !>@param nb_mgrdpts
+        !> number of grid points to be modified
+        !
+        !>@param mgrdpts
+        !> list of the bc_interior_pt grid points to be modified        
+        !--------------------------------------------------------------
         subroutine check_nbc_interior_pt_template(
      $     nbc_template,
      $     i_prev, j_prev,
@@ -789,9 +1178,37 @@
         end subroutine check_nbc_interior_pt_template
 
 
-        !< check whether the grid point tested is a bc_interior_pt
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the grid point tested is a bc_interior_pt
         !> and if so save the general coordinates of the grid point
         !> in mgrdpts
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param i
+        !> x-index of the grid point tested
+        !
+        !>@param j
+        !> y-index of the grid point tested
+        !
+        !>@param match_table
+        !> table converting the general coordinates into local coordinates
+        !
+        !>@param nbc_template
+        !> temporary array created to combine information on the
+        !> role of the grid points at the interface between the interior
+        !> domain and the buffer layers
+        !
+        !>@param nb_mgrdpts
+        !> number of grid points to be modified
+        !
+        !>@param mgrdpts
+        !> list of the bc_interior_pt grid points to be modified        
+        !--------------------------------------------------------------
         subroutine check_bc_interior_pt(
      $     i,j,
      $     match_table,
@@ -818,13 +1235,35 @@
         end subroutine check_bc_interior_pt
 
 
-        !< create the template for the neighboring points around
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> create the template for the neighboring points around
         !> the central point asked: as the central is located in
         !> a layer at the interface between the interior points
         !> and the boundary layers, it is required to initialize
         !> the template using the coordinates as if there were no
         !> boundary layers, then data are exchanged with the
         !> neighboring buffer layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param cpt_coords
+        !> central point whose neighboring grid points should
+        !> be tested
+        !
+        !>@return nbc_template
+        !> temporary array created to combine information on the
+        !> role of the grid points at the interface between the interior
+        !> domain and the buffer layers
+        !--------------------------------------------------------------
         function create_nbc_interior_pt_template(this, cpt_coords)
      $     result(nbc_template)
 
@@ -1258,8 +1697,34 @@
         end function create_nbc_interior_pt_template
 
 
-        !< copy the content of the grdpts_id table from neighboring
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the content of the grdpts_id table from neighboring
         !> buffer layers to the nbc_template
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param mainlayer_id
+        !> cardinal coordinate locating where the neighboring
+        !> buffer layers are located
+        !
+        !>@param cpt_coords
+        !> central point whose neighboring grid points should
+        !> be tested
+        !
+        !>@param nbc_template
+        !> temporary array created to combine information on the
+        !> role of the grid points at the interface between the interior
+        !> domain and the buffer layers
+        !--------------------------------------------------------------
         subroutine update_grdpts_id_for_template(
      $     this, mainlayer_id, cpt_coords, nbc_template)
 
@@ -1289,8 +1754,26 @@
         end subroutine update_grdpts_id_for_template
 
 
-
-        !< remove a sublayer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove a bf_sublayer
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param sublayer_ptr
+        !> reference to the bf_sublayer which is removed
+        !
+        !>@param bf_mainlayer_id
+        !> cardinal coordinate locating the buffer layer removed
+        !--------------------------------------------------------------
         subroutine remove_sublayer(this, sublayer_ptr, bf_mainlayer_id)
 
           implicit none
@@ -1325,8 +1808,27 @@
         end subroutine remove_sublayer
 
 
-        !< update the position of increasing detectors
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the position of the increasing detectors
         !> if a sublayer is removed
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param bf_align
+        !> alignment of the bf_sublayer which is removed
+        !
+        !>@param bf_mainlayer_id
+        !> cardinal coordinate locating the buffer layer removed
+        !--------------------------------------------------------------
         subroutine update_icr_detectors_after_removal(
      $     this, bf_align, bf_mainlayer_id)
 
@@ -1359,8 +1861,28 @@
         end subroutine update_icr_detectors_after_removal
 
       
-        !< update the detectors by using a model temporary object
-        !> for retaining the parameters for the changes to be made
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the detectors by using a temporary object
+        !> where the parameters for the changes are stored
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param bf_align
+        !> alignment of the bf_sublayer which is removed
+        !
+        !>@param dcr_param
+        !> temporary object used to identify the detectors that should
+        !> be removed from the list
+        !--------------------------------------------------------------
         subroutine update_icr_detectors(this, bf_align, dcr_param)
 
           implicit none
@@ -1446,8 +1968,36 @@
         end subroutine update_icr_detectors
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !< check if detectors overlap and modify the
         !> the borders for the detectors
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param N_dcr_param
+        !> temporary object with the parameters for updating the
+        !> increasing north detectors after the removal of a buffer
+        !> layer
+        !
+        !>@param S_dcr_param
+        !> temporary object with the parameters for updating the
+        !> increasing south detectors after the removal of a buffer
+        !> layer
+        !
+        !>@param E_dcr_param
+        !> temporary object with the parameters for updating the
+        !> increasing east detectors after the removal of a buffer
+        !> layer
+        !
+        !>@param W_dcr_param
+        !> temporary object with the parameters for updating the
+        !> increasing west detectors after the removal of a buffer
+        !> layer
+        !--------------------------------------------------------------
         subroutine check_detector_overlap(
      $     N_dcr_param, S_dcr_param, E_dcr_param, W_dcr_param)
 
@@ -1496,7 +2046,24 @@
         end subroutine check_detector_overlap
 
 
-        !> check if the points are the same
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether two grid points are the same
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param checked_pt1
+        !> general coordinates of the first grid point checked
+        !
+        !>@param checked_pt2
+        !> general coordinates of the second grid point checked
+        !
+        !>@return overlap
+        !> logical stating whether the two grid points are the same
+        !--------------------------------------------------------------
         function overlap(checked_pt1, checked_pt2)
 
           implicit none
@@ -1511,7 +2078,24 @@
         end function overlap
 
 
-        !< print the detector positions on a matrix
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the increasing detector positions on a matrix
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param matrix
+        !> array on which the position of the increasing detectors
+        !> is indicated
+        !--------------------------------------------------------------
         subroutine print_idetectors_on(this, matrix)
 
           implicit none
@@ -1561,8 +2145,24 @@
         end subroutine print_idetectors_on
 
 
-        !< print the position of the increasing detectors
-        !> on external binary files
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the increasing detector positions on binary
+        !> output files
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param index
+        !> integer identifying the file
+        !--------------------------------------------------------------
         subroutine print_idetectors_on_binary(this, index)
 
           implicit none

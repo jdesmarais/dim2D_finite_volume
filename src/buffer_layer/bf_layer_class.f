@@ -1,16 +1,17 @@
       !> @file
-      !> module encapsulating the buffer layer object where its
-      !> internal procedures are initialized
+      !> module encapsulating the bf_layer object. It encapsulates the
+      !> nodes needed when extending the interior domain
       !
       !> @author
       !> Julien L. Desmarais
       !
       !> @brief
-      !> module encapsulating the buffer layer object where its
-      !> internal procedures are initialized
+      !> module encapsulating the bf_layer object. It encapsulates the
+      !> nodes needed when extending the interior domain
       !
       !> @date
-      ! 07_04_2014 - initial version - J.L. Desmarais
+      ! 07_04_2014 - initial version      - J.L. Desmarais
+      ! 26_06_2014 - documentation update - J.L. Desmarais
       !-----------------------------------------------------------------
       module bf_layer_class
 
@@ -60,25 +61,191 @@
 
         !> @class bf_layer
         !> class encapsulating the buffer layer which extends the
-        !> interior nodes in a particular direction
+        !> interior nodes in a definite direction
+        !
+        !> @param localization
+        !> cardinal coordinate identifying the position of the buffer
+        !> layer : N,S,E, or W
+        !
+        !> @param alignment
+        !> integer identifying the position of the buffer layer
+        !> compared to the interior domain. The coordinates of the
+        !> four border points are stored as general coordinates
+        !> \image html bf_layer_alignment.png "Buffer layer alignment"
+        !> \image latex bf_layer_alignment.eps "Buffer layer alignment"
         !>
+        !> @param nodes
+        !> array where the governing variables are saved at each grid
+        !> point
+        !
+        !> @param grdpts_id
+        !> array where the role of each grid point is stored (no_pt,
+        !> bc_pt, bc_interior_pt, interior_pt)
+        !
+        !> @param shares_grdpts_with_neighbor1
+        !> logical identifying whether the buffer layer can exchange
+        !> grid points with its neighboring buffer layer of type 1
+        !
+        !> @param shares_grdpts_with_neighbor2
+        !> logical identifying whether the buffer layer can exchange
+        !> grid points with its neighboring buffer layer of type 2
+        !
+        !> @param can_remain
+        !> logical identifying whether the buffer layer based on its
+        !> grid points at the edge with the interior domain are such that
+        !> the buffer layer can be removed
+        !
+        !> @param ini
+        !> initialize the buffer layer by setting its cardinal
+        !> coordinate
+        !
+        !> @param get_localization
+        !> get the localization attribute
+        !
+        !> @param get_sizes
+        !> get the sizes of the nodes and grdpts_id
+        !> attributes
+        !
+        !> @param set_nodes
+        !> set the nodes attribute (only for tests)
+        !
+        !> @param set_nodes_pt
+        !> set a specific nodes_pt (only for tests)
+        !
+        !> @param set_grdpts_id
+        !> set the grdpts_id attribute (only for tests)
+        !
+        !> @param set_grdpts_id_pt
+        !> set a specific grid point role (only for tests)
+        !
+        !> @param get_alignment
+        !> get the position of the buffer layer compared
+        !> to the interior domain for one of its border
+        !
+        !> @param get_alignment_tab
+        !> get the alignment attribute
+        !
+        !> @param get_local_coord
+        !> get the indices for the tables in the buffer layer
+        !> buffer layer considering the general indices identifying
+        !> both interior and buffer layer grid points
+        !
+        !> @param get_general_to_local_coord_tab
+        !> get the table matching the general to the local coordinates
+        !> local_coord(i) = general_coord(i) - match_table(i)
+        !
+        !> @param get_nodes
+        !> get the governing variables for a specific grid point
+        !> knowing its local coordinates
+        !
+        !> @param get_grdpts_id
+        !> get the grdpts_id attribute (only for tests)
+        !
+        !> @param compute_new_grdpts
+        !> compute the new grid points corresponding to
+        !> the list_new_grdpts asked
+        !
+        !> @param compute_new_grdpt
+        !> compute the new grid point corresponding to
+        !> indices asked
+        !
         !> @param allocate_bf_layer
-        !> allocate the main tables of the buffer layer (nodes,
-        !> grdptid)
-        !>
+        !> allocate the main tables of the buffer layer for
+        !> the first time and initialize these tables (nodes, grdptid)
+        !> using the data of the interior domain and the boundary
+        !> conditions applied at the edges
+        !
         !> @param reallocate_bf_layer
-        !> reallocate the main tables of the buffer layer to increase
-        !> the buffer layer or remove parts of it
-        !>
-        !> @param print_nodes
-        !> procedure used to print the nodes on a binary file
-        !>
-        !> @param print_grdpts_id
-        !> procedure used to print the grdpt_id on a binary file
-        !> 
-        !> @param print_sizes
-        !> procedure used to print the sizes of the main tables of the
-        !> buffer layer
+        !> reallocate the main tables of the buffer layer
+        !> and initialize the new grid points (nodes, grdptid)
+        !> using the data of the interior domain and the boundary
+        !> conditions applied at the edges
+        !
+        !> @param merge_bf_layer
+        !> merge the main tables of two buffers layer and initialize
+        !> the new grid points (nodes, grdptid) using the data of the
+        !> interior domain and the boundary conditions applied at the
+        !> edges
+        !
+        !> @param set_neighbor1_share
+        !> set whether the buffer layer is sharing grid points
+        !> with its neighbor2
+        !
+        !> @param set_neighbor2_share
+        !> set whether the buffer layer is sharing grid points
+        !> with its neighbor2
+        !
+        !> @param can_exchange_with_neighbor1
+        !> get the share_grdpts_with_neighbor1 attribute
+        !
+        !> @param can_exchange_with_neighbor2
+        !> get the share_grdpts_with_neighbor2 attribute
+        !
+        !> @param get_neighbor1_id
+        !> get the cardinal coordinate coresponding to the neighboring
+        !> buffer layers of type 1
+        !
+        !> @param get_neighbor2_id
+        !> get the cardinal coordinate coresponding to the neighboring
+        !> buffer layers of type 2
+        !
+        !> @param shares_grdpts_along_x_dir_with
+        !> check if a neighboring buffer layer (positioned such that
+        !> it is either a potential neighboring buffer layer of type
+        !> 1 or 2) has indeed grid points in common with another buffer
+        !> layer by computing the x-size of the layer to be exchanged
+        !
+        !> @param copy_from_neighbor1
+        !> copy the common layer to the current buffer layer
+        !> from its neighboring buffer layer identified as of type 1
+        !
+        !> @param copy_from_neighbor2
+        !> copy the common layer to the current buffer layer
+        !> from its neighboring buffer layer identified as of type 2
+        !
+        !> @param copy_to_neighbor1
+        !> copy the common layer from the current buffer layer
+        !> to its neighboring buffer layer identified as of type 1
+        !
+        !> @param copy_to_neighbor2
+        !> copy the common layer from the current buffer layer
+        !> to its neighboring buffer layer identified as of type 2
+        !
+        !> @param copy_grdpts_id_to_temp
+        !> create a truncated copy of the the grdpts_id. The copy is
+        !> a 3x3 array whose center (2,2) is identified by its general
+        !> coordinates cpt_coords
+        !
+        !> @param check_neighboring_bc_interior_pts
+        !> check if the grid points neighboring a point identified by its
+        !> general coordinates (cpt_coords) are bc_interior_pt, if so,
+        !> the points are added to a list of bc_interior_pt
+        !
+        !> @param update_grdpts_after_increase
+        !> turn the grdpts_id identified by general coordinates
+        !> from bc_interior_pt to interior_pt and reallocate the buffer
+        !> layer such that the neighboring points around it are allocated.
+        !> Then compute these new grid points
+        !
+        !> @param set_remain_status
+        !> set the can_remain attribute
+        !
+        !> @param get_remain_status
+        !> get the can_remain attribute
+        !
+        !> @param should_remain
+        !> check the grid points at the edge between the buffer layer
+        !> and the interior domain and compute whether they undermine
+        !> the open boundary conditions. This determines the buffer layer
+        !> should be removed or not
+        !
+        !> @param remove
+        !> remove the buffe rlayer by deallocating the main tables
+        !
+        !> @param print_binary
+        !> print the nodes and the grdpts_id attributes
+        !> as well as the size of the previous tables in
+        !> output binary files
         !---------------------------------------------------------------
         type :: bf_layer
 
@@ -134,10 +301,7 @@
           procedure,   pass :: copy_grdpts_id_to_temp
           procedure,   pass :: check_neighboring_bc_interior_pts
 
-          procedure,   pass          :: update_grdpts_after_increase
-          procedure, nopass, private :: update_bc_interior_pt_to_interior_pt
-          procedure, nopass, private :: check_neighbors
-          procedure, nopass, private :: check_gridpoint
+          procedure,   pass :: update_grdpts_after_increase
           
           procedure,   pass :: set_remain_status
           procedure,   pass :: get_remain_status
@@ -156,23 +320,19 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine print the nodes table in a binary
-        !> file
+        !> initialize the buffer layer by setting its cardinal
+        !> coordinate
         !
         !> @date
-        !> 07_04_2013 - initial version - J.L. Desmarais
+        !> 26_06_2014 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> bf_layer_abstract object encapsulating the main
-        !> tables and the integer identifying the
-        !> correspondance between the buffer layer and the
-        !> interior grid points
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
         !
         !>@param localization
-        !> localization of the buffer layer
-        !>     - localization(1) : main layer (N,S,E,W)
-        !>     - localization(2) : sub-layer
-        !--------------------------------------------------------------        
+        !> localization of the buffer layer (N,S,E, or W)
+        !--------------------------------------------------------------
         subroutine ini(this,localization)
 
           implicit none
@@ -185,7 +345,22 @@
         end subroutine ini
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> get the localization attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@return
+        !> cardinal coordinate identifying the buffer layer position
+        !--------------------------------------------------------------
         function get_localization(this)
         
           implicit none
@@ -198,8 +373,23 @@
         end function get_localization
 
       
-        !< get the sizes of the nodes and grdpts_id
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the sizes of the nodes and grdpts_id
         !> attributes
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@return
+        !> profile of the grdpts_id attribute
+        !--------------------------------------------------------------
         function get_sizes(this)
 
           class(bf_layer)             , intent(in) :: this
@@ -211,11 +401,29 @@
         end function get_sizes
 
       
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> set the nodes attribute
+        !
+        !> @warning
         !> as the nodes is passed by reference, this is a very
         !> unefficient way to change the nodes if no reallocation
         !> is required: this subroutine has only been implemented
         !> for test purposes
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param nodes
+        !> array containing the governing variables at each
+        !> grid point
+        !--------------------------------------------------------------
         subroutine set_nodes(this, nodes)
         
           implicit none
@@ -228,7 +436,32 @@
         end subroutine set_nodes
 
       
-        !< set a specific nodes_pt
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set a specific nodes_pt
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param i
+        !> x-index of the grid point set
+        !
+        !>@param j
+        !> y-index of the grid point set
+        !
+        !>@param k
+        !> index identifying the type of governing variable set
+        !
+        !>@param nodes_pt
+        !> array containing the governing variables at the specific
+        !> grid point
+        !--------------------------------------------------------------
         subroutine set_nodes_pt(this,i,j,k,nodes_pt)
 
           implicit none
@@ -244,11 +477,28 @@
         end subroutine set_nodes_pt
 
 
-        !< set the grdpts_id attribute
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the grdpts_id attribute
+        !
+        !> @warning
         !> as the grdpts_id is passed by reference, this is a very
         !> unefficient way to change the grdpts_id if no reallocation
         !> is required: this subroutine has only been implemented for
         !> test purposes
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param grdpts_id
+        !> array containing the role of the grid points
+        !--------------------------------------------------------------
         subroutine set_grdpts_id(this, grdpts_id)
         
           implicit none
@@ -261,6 +511,29 @@
         end subroutine set_grdpts_id
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set a specific grid point role
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param i
+        !> x-index of the grid point set
+        !
+        !>@param j
+        !> y-index of the grid point set
+        !
+        !>@param var
+        !> array containing the governing variables at the specific
+        !> grid point
+        !--------------------------------------------------------------
         subroutine set_grdpts_id_pt(this,i,j,var)
         
           implicit none
@@ -275,8 +548,30 @@
 
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> get the position of the buffer layer compared
         !> to the interior domain
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param direction
+        !> direction in which the alignment is asked (x_direction
+        !> or y_direction)
+        !
+        !>@param border_type
+        !> either min or max border
+        !
+        !>@return
+        !> coordinate of the border point
+        !--------------------------------------------------------------
         function get_alignment(this, direction, border_type)
 
           implicit none
@@ -311,8 +606,22 @@
         end function get_alignment
 
 
-        !> get the position of the buffer layer compared
-        !> to the interior domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the alignment attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@return alignment_tab
+        !> alignment attribute
+        !--------------------------------------------------------------
         function get_alignment_tab(this)
 
           implicit none
@@ -329,21 +638,23 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine giving the local coordinates in the
-        !> buffer layer considering the general coordinates
-        !> compared to the interior nodes
+        !> get the indices for the tables in the buffer layer
+        !> buffer layer considering the general indices identifying
+        !> both interior and buffer layer grid points
         !
         !> @date
-        !> 11_04_2013 - initial version - J.L. Desmarais
+        !> 11_04_2014 - initial version - J.L. Desmarais
         !
         !>@param this
         !> bf_layer object encapsulating the main
-        !> tables and the integer identifying the
-        !> correspondance between the buffer layer and the
-        !> interior grid points
+        !> tables extending the interior domain
         !
         !>@param general_coord
         !> table of integers encapsulating the general
+        !> coordinates
+        !
+        !>@return local_coord
+        !> table of integers encapsulating the local
         !> coordinates
         !--------------------------------------------------------------
         function get_local_coord(this, general_coord) result(local_coord)
@@ -364,8 +675,24 @@
         end function get_local_coord
 
 
-        !< get the table matching the general to the local coordinates
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the table matching the general to the local coordinates
         !> local_coord(i) = general_coord(i) - match_table(i)
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@return match_table
+        !> table of integers giving the conversion between local and
+        !> general coordinates
+        !--------------------------------------------------------------
         function get_general_to_local_coord_tab(this) result(match_table)
 
           implicit none
@@ -398,6 +725,27 @@
         end function get_general_to_local_coord_tab
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the governing variables for a specific grid point
+        !> knowing its local coordinates
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param l_coords
+        !> local coordinate giving the indices of the grid point
+        !> in the buffer layer nodes attribute
+        !
+        !>@return var
+        !> governig variables at a specific grid point
+        !--------------------------------------------------------------
         function get_nodes(this, l_coords) result(var)
 
           implicit none
@@ -411,6 +759,28 @@
         end function get_nodes
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the grdpts_id attribute
+        !
+        !> @warning
+        !> as the grdpts_id is passed by reference, this is a very
+        !> unefficient way to change the grdpts_id if no reallocation
+        !> is required: this subroutine has only been implemented for
+        !> test purposes
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param grdpts_id
+        !> array containing the role of the grid points
+        !--------------------------------------------------------------
         subroutine get_grdpts_id(this, grdpts_id)
 
           implicit none
@@ -435,8 +805,24 @@
         end subroutine get_grdpts_id
 
 
-        !< compute the new grid points corresponding to
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the new grid points corresponding to
         !> the list_new_grdpts asked
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param list_new_grdpts
+        !> array containing the indices of the new grid points
+        !> to be computed
+        !--------------------------------------------------------------
         subroutine compute_new_grdpts(this, list_new_grdpts)
 
           implicit none
@@ -462,8 +848,26 @@
         end subroutine compute_new_grdpts
 
 
-        !< compute the new grid points corresponding to
-        !> the list_new_grdpts asked
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the new grid point corresponding to
+        !> indices asked
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param i
+        !> x-index identifying the grid point in the nodes array
+        !
+        !>@param j
+        !> y-index identifying the grid point in the nodes array
+        !--------------------------------------------------------------
         subroutine compute_new_grdpt(nodes,i,j)
 
           implicit none
@@ -485,34 +889,26 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine allocating the main tables of the
-        !> buffer layer for the first time and initializing
-        !> these tables (nodes, grdptid) using the internal
-        !> data and the boundary conditions applied at the
-        !> edges
+        !> allocate the main tables of the buffer layer for
+        !> the first time and initialize these tables (nodes, grdptid)
+        !> using the data of the interior domain and the boundary
+        !> conditions applied at the edges
         !
         !> @date
-        !> 07_04_2013 - initial version - J.L. Desmarais
+        !> 26_06_2014 - initial version - J.L. Desmarais
         !
         !>@param this
         !> bf_layer object encapsulating the main
-        !> tables and the integer identifying the
-        !> correspondance between the buffer layer and the
-        !> interior grid points
+        !> tables extending the interior domain
+        !
+        !>@param nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
         !
         !>@param alignment
         !> table of integers characterizing the
         !> correspondance between the interior grid points
         !> and the buffer layer elements
-        !
-        !>@param nodes
-        !> table encapsulating the data of the internal
-        !> grid points
-        !
-        !>@param neighbors
-        !> table encapsulating whether the buffer layer allocated
-        !> has neighboring buffer layers with which it should
-        !> exchange data grid points
         !--------------------------------------------------------------
         subroutine allocate_bf_layer(this, nodes, alignment)
 
@@ -554,8 +950,31 @@
         end subroutine allocate_bf_layer
 
 
-        !< reallocate the buffer layer using the
-        !> border changes asked
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> reallocate the main tables of the buffer layer
+        !> and initialize the new grid points (nodes, grdptid)
+        !> using the data of the interior domain and the boundary
+        !> conditions applied at the edges
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
+        !
+        !>@param alignment
+        !> table of integers characterizing the
+        !> correspondance between the interior grid points
+        !> and the buffer layer elements
+        !--------------------------------------------------------------
         subroutine reallocate_bf_layer(this, nodes, alignment)
 
           implicit none
@@ -595,8 +1014,35 @@
         end subroutine reallocate_bf_layer
 
 
-        !< reallocate the buffer layer using the
-        !> border changes asked
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> merge the main tables of two buffers layer and initialize
+        !> the new grid points (nodes, grdptid) using the data of the
+        !> interior domain and the boundary conditions applied at the
+        !> edges
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param bf_layer2
+        !> second bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
+        !
+        !>@param alignment
+        !> table of integers characterizing the
+        !> correspondance between the interior grid points
+        !> and the buffer layer elements
+        !--------------------------------------------------------------
         subroutine merge_bf_layer(this, bf_layer2, nodes, alignment)
 
           implicit none
@@ -681,25 +1127,25 @@
         end subroutine merge_bf_layer        
 
 
-c$$$        !< get neighbor_index
-c$$$        function get_neighbor_index(this)
-c$$$          
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer), intent(in) :: this
-c$$$
-c$$$          select case(this%localization)
-c$$$            case(N,E)
-c$$$               neighbor_index = 1
-c$$$            case(S,W)
-c$$$               neighbor_index = 2
-c$$$          end select 
-c$$$
-c$$$        end function get_neighbor_index
-
-
-        !< set whether the buffer layer is sharing grid points
-        !> with its neighbor1
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the shares_grdpts_with_neighbor1 attribute
+        !> or let the program compute whether the buffer layer
+        !> may be exchanging grid points with the neighboring
+        !> buffer layers of type 1
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param neighbor1_share
+        !> value set for the shares_grdpts_with_neighbor1 attribute
+        !--------------------------------------------------------------
         subroutine set_neighbor1_share(this, neighbor1_share)
           
           implicit none
@@ -726,8 +1172,25 @@ c$$$        end function get_neighbor_index
         end subroutine set_neighbor1_share
 
 
-        !< set whether the buffer layer is sharing grid points
-        !> with its neighbor2
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the shares_grdpts_with_neighbor2 attribute
+        !> or let the program compute whether the buffer layer
+        !> may be exchanging grid points with the neighboring
+        !> buffer layers of type 2
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param neighbor2_share
+        !> value set for the shares_grdpts_with_neighbor1 attribute
+        !--------------------------------------------------------------
         subroutine set_neighbor2_share(this, neighbor2_share)
           
           implicit none
@@ -754,6 +1217,22 @@ c$$$        end function get_neighbor_index
         end subroutine set_neighbor2_share
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the share_grdpts_with_neighbor1 attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param can_exchange
+        !> share_grdpts_with_neighbor1 attribute
+        !--------------------------------------------------------------
         function can_exchange_with_neighbor1(this) result(can_exchange)
 
           implicit none
@@ -766,6 +1245,22 @@ c$$$        end function get_neighbor_index
         end function can_exchange_with_neighbor1
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the share_grdpts_with_neighbor1 attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param can_exchange
+        !> share_grdpts_with_neighbor1 attribute
+        !--------------------------------------------------------------
         function can_exchange_with_neighbor2(this) result(can_exchange)
 
           implicit none
@@ -778,8 +1273,28 @@ c$$$        end function get_neighbor_index
         end function can_exchange_with_neighbor2
 
 
-
-        !< get neighbor1_id
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the cardinal coordinate coresponding to the neighboring
+        !> buffer layers of type 1
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param neighbor1_id
+        !> cardinal coordinate corresponding to neighboring buffer layers
+        !> of type 1
+        !
+        !>@param neighbor_index
+        !> index identifying if the original buffer layer is a neighbor
+        !> of type 1 or 2 for the neighboring buffer layer
+        !--------------------------------------------------------------
         subroutine get_neighbor1_id(this, neighbor1_id, neighbor_index)
 
           implicit none
@@ -793,31 +1308,32 @@ c$$$        end function get_neighbor_index
           if(present(neighbor_index)) then
              neighbor_index  = bf_neighbors_id(this%localization)
           end if
-          
-c$$$          select case(this%localization)
-c$$$            case(N)
-c$$$               neighbor1_id   = W
-c$$$               neighbor_index = 2
-c$$$            case(S)
-c$$$               neighbor1_id   = W
-c$$$               neighbor_index = 1
-c$$$            case(E)
-c$$$               neighbor1_id   = S
-c$$$               neighbor_index = 2
-c$$$            case(W)
-c$$$               neighbor1_id   = S
-c$$$               neighbor_index = 1
-c$$$            case default
-c$$$               call error_mainlayer_id(
-c$$$     $              'bf_layer_class.f',
-c$$$     $              'get_neighbor1_id',
-c$$$     $              this%localization)
-c$$$          end select 
 
         end subroutine get_neighbor1_id
 
 
-        !< get neighbor2_id
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the cardinal coordinate coresponding to the neighboring
+        !> buffer layers of type 2
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param neighbor2_id
+        !> cardinal coordinate corresponding to neighboring buffer layers
+        !> of type 2
+        !
+        !>@param neighbor_index
+        !> index identifying if the original buffer layer is a neighbor
+        !> of type 1 or 2 for the neighboring buffer layer
+        !--------------------------------------------------------------
         subroutine get_neighbor2_id(this, neighbor2_id, neighbor_index)
 
           implicit none
@@ -832,35 +1348,35 @@ c$$$          end select
              neighbor_index  = bf_neighbors_id(this%localization)
           end if
 
-c$$$          select case(this%localization)
-c$$$            case(N)
-c$$$               neighbor2_id   = E
-c$$$               neighbor_index = 2
-c$$$            case(S)
-c$$$               neighbor2_id   = E
-c$$$               neighbor_index = 1
-c$$$            case(E)
-c$$$               neighbor2_id   = N
-c$$$               neighbor_index = 2
-c$$$            case(W)
-c$$$               neighbor2_id   = N
-c$$$               neighbor_index = 1
-c$$$            case default
-c$$$               call error_mainlayer_id(
-c$$$     $              'bf_layer_class.f',
-c$$$     $              'get_neighbor1_id',
-c$$$     $              this%localization)
-c$$$          end select 
-
         end subroutine get_neighbor2_id
 
 
-        !< check if a neighboring buffer layer
-        !> (positioned along the y-direction such that
-        !> it is either a neighbor1 or neighbor2 bf_layer)
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if a neighboring buffer layer
+        !> (positioned such that it is either a potential
+        !> neighboring buffer layer of type 1 or 2)
         !> has indeed grid points in common with another
         !> buffer layer by computing the x-size of the
         !> layer to be exchanged
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param neighbor
+        !> second bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@return share
+        !> logical identifying if there are grid points in common
+        !> along the x-direction
+        !--------------------------------------------------------------
         function shares_grdpts_along_x_dir_with(this, neighbor)
      $     result(share)
 
@@ -876,9 +1392,24 @@ c$$$          end select
         end function shares_grdpts_along_x_dir_with
 
 
-        !> copy the exchange layer between the current buffer layer
-        !> and its neighboring buffer layer identified as neighbor1
-        !> from the neighbor1 to the current buffer layer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layer to the current buffer layer
+        !> from its neighboring buffer layer identified as of type 1
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param neighbor1
+        !> second bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
         subroutine copy_from_neighbor1(this,neighbor1)
 
           implicit none
@@ -902,16 +1433,31 @@ c$$$          end select
           !copy from neighbor1 to the current buffer layer
           call copy_from_bf1_to_bf2(
      $         nbf_i_min, nbf_j_min, bf_i_min, bf_j_min,
-     $            bf_copy_size_x, bf_copy_size_y,
+     $         bf_copy_size_x, bf_copy_size_y,
      $         neighbor1%nodes, neighbor1%grdpts_id,
      $         this%nodes, this%grdpts_id)
 
         end subroutine copy_from_neighbor1
 
 
-        !> copy the exchange layer between the current buffer layer
-        !> and its neighboring buffer layer identified as neighbor1
-        !> from the current buffer layer to the neighbor1
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layer from the current buffer layer
+        !> to its neighboring buffer layer identified as of type 1
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param neighbor1
+        !> second bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
         subroutine copy_to_neighbor1(this, neighbor1)
 
           implicit none
@@ -943,9 +1489,24 @@ c$$$          end select
         end subroutine copy_to_neighbor1
 
 
-        !> copy the exchange layer between the current buffer layer
-        !> and its neighboring buffer layer identified as neighbor2
-        !> from the neighbor2 to the current buffer layer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layer to the current buffer layer
+        !> from its neighboring buffer layer identified as of type 2
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param neighbor2
+        !> second bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
         subroutine copy_from_neighbor2(this, neighbor2)
 
           implicit none
@@ -976,9 +1537,24 @@ c$$$          end select
         end subroutine copy_from_neighbor2
 
 
-        !> copy the exchange layer between the current buffer layer
-        !> and its neighboring buffer layer identified as neighbor2
-        !> from the current buffer layer to the neighbor2
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layer from the current buffer layer
+        !> to its neighboring buffer layer identified as of type 2
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param neighbor2
+        !> second bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
         subroutine copy_to_neighbor2(this, neighbor2)
 
           implicit none
@@ -1012,9 +1588,27 @@ c$$$          end select
         end subroutine copy_to_neighbor2
 
 
-        !the template where the grdpts_id are copied is
-        !a 3x3 array whose center (2,2) is identified by
-        !its general coordinates cpt_coords
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> create a truncated copy of the the grdpts_id. The copy is
+        !> a 3x3 array whose center (2,2) is identified by its general
+        !> coordinates cpt_coords
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param cpt_coords
+        !> integer identifying the indices of the central point
+        !
+        !>@param nbc_template
+        !> truncated 3x3 array copied of the grdpts_id attribute
+        !--------------------------------------------------------------
         subroutine copy_grdpts_id_to_temp(this,
      $     cpt_coords,
      $     nbc_template)
@@ -1059,9 +1653,44 @@ c$$$          end select
         end subroutine copy_grdpts_id_to_temp
 
 
-        !< check if the grdpts neighboring a point identified by its
-        !> general coordinates cpt_coords are bc_interior_pt, if so,
-        !> the points are added to a list of bc_interior_pt 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the grid points neighboring a point identified by its
+        !> general coordinates (cpt_coords) are bc_interior_pt, if so,
+        !> the points are added to a list of bc_interior_pt
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param i_prev
+        !> integer identifying the x-index of the previous central point
+        !> investigated
+        !
+        !>@param j_prev
+        !> integer identifying the y-index of the previous central point
+        !> investigated
+        !
+        !>@param i_center
+        !> integer identifying the x-index of the central point
+        !> investigated
+        !
+        !>@param j_central
+        !> integer identifying the y-index of the central point
+        !> investigated
+        !
+        !>@param nb_mgrdpts
+        !> number of grid points in the list
+        !>
+        !>@param mgrdpts
+        !> list of indices identifying the bc_interior_pt surrounding
+        !> the central grid point
+        !--------------------------------------------------------------
         subroutine check_neighboring_bc_interior_pts(
      $     this,
      $     i_prev, j_prev,
@@ -1176,9 +1805,38 @@ c$$$          end select
         end subroutine check_neighboring_bc_interior_pts
 
 
-        !< check whether the grid point tested is a bc_interior_pt
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the grid point tested is a bc_interior_pt
         !> and if so save the general coordinates of the grid point
         !> in mgrdpts
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param i
+        !> integer identifying the x-index of the central point
+        !> investigated
+        !
+        !>@param j
+        !> integer identifying the y-index of the central point
+        !> investigated
+        !
+        !>@param match_table
+        !> table converting local coordinate into general coordinates
+        !
+        !>@param grdpts_id
+        !> table where the role of the grid points is stored
+        !
+        !>@param nb_mgrdpts
+        !> number of grid points in the list
+        !>
+        !>@param mgrdpts
+        !> list of indices identifying the bc_interior_pt surrounding
+        !> the central grid point
+        !--------------------------------------------------------------
         subroutine check_bc_interior_pt(
      $     i,j,
      $     match_table,
@@ -1205,10 +1863,26 @@ c$$$          end select
         end subroutine check_bc_interior_pt
 
 
-        !< turn the grdpts_id identified by general coordinates
-        !> from bc_interior_pt to interior_pt and add the neighboring
-        !> points around it to make sure that their computation is
-        !> possible. Then compute these new grid points.
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> turn the grdpts_id identified by general coordinates
+        !> from bc_interior_pt to interior_pt and reallocate the buffer
+        !> layer such that the neighboring points around it are allocated.
+        !> Then compute these new grid points.
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param selected_grdpts
+        !> list containing the general coordinates of the grid points to be
+        !> turned from bc_interior_pt to interior_pt
+        !--------------------------------------------------------------
         subroutine update_grdpts_after_increase(this, selected_grdpts)
 
           implicit none
@@ -1233,7 +1907,7 @@ c$$$          end select
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine updating the grid points of the buffer
+        !> update the grid points of the buffer
         !> layer: bc_interior_pt were identified by the
         !> detectors to be turned into interior pt. Therefore,
         !> it is required to make sure that the neighboring
@@ -1242,13 +1916,15 @@ c$$$          end select
         !> are then computed
         !
         !> @date
-        !> 07_04_2013 - initial version - J.L. Desmarais
+        !> 26_06_2014 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> bf_layer_abstract object encapsulating the main
-        !> tables and the integer identifying the
-        !> correspondance between the buffer layer and the
-        !> interior grid points
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
         !
         !>@param selected_grdpts
         !> list of bc_interior_pt grid points that should be turned
@@ -1326,7 +2002,7 @@ c$$$          end select
         !> Julien L. Desmarais
         !>
         !> @brief
-        !> subroutine checking whether the neighboring points
+        !> check whether the neighboring points
         !> from a bc_interior_pt that should be turned into
         !> an interior point exists: if they exist, nothing
         !> happens. Otherwise, the grid point ID is updated
@@ -1335,14 +2011,15 @@ c$$$          end select
         !> knowing the previous neighbors checked
         !>
         !> @date
-        !> 07_04_2013 - initial version - J.L. Desmarais
+        !> 26_06_2014 - initial version - J.L. Desmarais
         !>
-        !>@param this
-        !> bf_layer_abstract object encapsulating the main
-        !> tables and the integer identifying the
-        !> correspondance between the buffer layer and the
-        !> interior grid points
-        !>
+        !>@param grdpts_id
+        !> table where the role of the grid points is stored
+        !
+        !>@param nodes
+        !> table encapsulating the data of the grid points of the
+        !> buffer layer
+        !
         !>@param i_prev
         !> x-index of the previous bc_interior_pt whose 
         !> neighbors were checked
@@ -1447,20 +2124,26 @@ c$$$          end select
         !> Julien L. Desmarais
         !>
         !> @brief
-        !> subroutine checking whether the grid point asked
-        !> exists or not. If it does not exist in the buffer
-        !> layer, it has to be computed and updated in the
-        !> gridpoint ID map
+        !> check whether the grid point asked exists or not.
+        !> If it does not exist in the buffer layer, it has
+        !> to be computed and updated in the gridpoint ID map
         !>
         !> @date
-        !> 07_04_2013 - initial version - J.L. Desmarais
+        !> 26_06_2014 - initial version - J.L. Desmarais
         !>
-        !>@param this
-        !> bf_layer_abstract object encapsulating the main
-        !> tables and the integer identifying the
-        !> correspondance between the buffer layer and the
-        !> interior grid points
+        !>@param grdpts_id
+        !> table where the role of the grid points is stored
+        !
+        !>@param nodes
+        !> table encapsulating the data of the grid points of the
+        !> buffer layer
+        !
+        !>@param i_center
+        !> x-index of the central point
         !>
+        !>@param j_center
+        !> y-index of the central point
+        !
         !>@param i
         !> x-index of the grid points checked
         !>
@@ -1478,7 +2161,6 @@ c$$$          end select
           integer(ikind)                  , intent(in)    :: j
           integer(ikind)                  , intent(in)    :: i_center
           integer(ikind)                  , intent(in)    :: j_center
-
 
 
           if((grdpts_id(i,j).eq.no_pt).or.(grdpts_id(i,j).eq.bc_pt)) then
@@ -1500,7 +2182,23 @@ c$$$          end select
         end subroutine check_gridpoint
 
 
-        !< set whether the buffer layer can be removed or not
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the can_remain attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param remain_state
+        !> logical identifying whether the buffer layer should be
+        !> removed or not
+        !--------------------------------------------------------------
         subroutine set_remain_status(this, remain_state)
 
           implicit none
@@ -1513,8 +2211,23 @@ c$$$          end select
         end subroutine set_remain_status
 
 
-        !< get the remain status saying if the buffer layer
-        !> should not be removed
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the can_remain attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@return get_remain_status
+        !> logical identifying whether the buffer layer should be
+        !> removed or not
+        !--------------------------------------------------------------
         function get_remain_status(this)
 
           implicit none
@@ -1527,7 +2240,30 @@ c$$$          end select
         end function get_remain_status 
 
 
-        !< check whether the buffer layer should remain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check the grid points at the edge between the buffer layer
+        !> and the interior domain and compute whether they undermine
+        !> the open boundary conditions. This determines the buffer layer
+        !> should be removed or not
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param interior_nodes
+        !> table encapsulating the data of the grid points of the
+        !> interior domain
+        !
+        !>@return get_remain_status
+        !> logical identifying whether the buffer layer should be
+        !> removed or not
+        !--------------------------------------------------------------
         function should_remain(this, interior_nodes)
 
           implicit none
@@ -1551,7 +2287,19 @@ c$$$          end select
         end function should_remain
 
 
-        !< remove the buffer layer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the buffe rlayer by deallocating the main tables
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
         subroutine remove(this)
 
           implicit none
@@ -1564,9 +2312,31 @@ c$$$          end select
         end subroutine remove      
 
 
-        !< print the nodes and the grdpts_id attributes
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the nodes and the grdpts_id attributes
         !> as well as the size of the previous tables in
         !> output binary files
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param filename_nodes
+        !> name of the output file for the data of the nodes attribute
+        !
+        !>@param filename_grdpts_id
+        !> name of the output file for the data of the grdpts_id attribute
+        !
+        !>@param filename_sizes
+        !> name of the output file for the sizes of the nodes and
+        !> grpdts_id attributes
+        !--------------------------------------------------------------
         subroutine print_binary(
      $     this,
      $     filename_nodes,

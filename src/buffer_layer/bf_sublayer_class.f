@@ -1,18 +1,19 @@
       !> @file
-      !> module implementing the object encapsulating 
-      !> a sublayer element, an element of a double
-      !> chained list
+      !> module implementing the bf_sublayer object. It is
+      !> a bf_layer object which is part of a double chained
+      !> list
       !
       !> @author
       !> Julien L. Desmarais
       !
       !> @brief
-      !> module encapsulating the sublyare element, an
-      !> element of a double chained list saving a buffer
-      !> layer
+      !> module implementing the bf_sublayer object. It is
+      !> a bf_layer object which is part of a double chained
+      !> list
       !
       !> @date
-      ! 11_04_2014 - initial version - J.L. Desmarais
+      ! 11_04_2014 - initial version      - J.L. Desmarais
+      ! 26_06_2014 - documentation update - J.L. Desmarais
       !-----------------------------------------------------------------
       module bf_sublayer_class
 
@@ -31,28 +32,41 @@
 
 
         !> @class bf_sublayer
-        !> class encapsulating the bf_layer/interior interface
-        !> object but only its main attributes are implemented
-        !>
-        !> @param element
-        !> buffer layer saved in the double chained list element
-        !>
-        !> @param next_bf_sublayer
+        !> class implementing the bf_layer object as an element
+        !> of a doubled chained list
+        !
+        !> @param next
         !> pointer of the next element of the double chained list
-        !>
-        !> @param prev_bf_sublayer
+        !
+        !> @param prev
         !> pointer of the previous element of the double chained list
-        !>
+        !
         !> @param ini
-        !> nullify the pointers of the object
-        !>
-        !> @param link_next
-        !> links the current sublayer element with the next sublayer
-        !> element given
-        !>
-        !> @param link_prev
-        !> links the current sublayer element with the previous sublayer
-        !> element given
+        !> initialize the bf_layer parent and nullify the pointers
+        !> to the prev and next elements of the doubled chained list
+        !
+        !>@param get_prev
+        !> access the previous element of the list
+        !
+        !>@param get_next
+        !> access the next element of the list
+        !
+        !>@param set_prev
+        !> set the link to the previous element of the list
+        !
+        !>@param set_next
+        !> set the link to the next element of the list
+        !
+        !>@param nullify_prev
+        !> remove the link to the previous element of the list
+        !
+        !>@param nullify_next
+        !> remove the link to the next element of the list
+        !
+        !>@param remove
+        !> remove the element of the list by removing the bf_layer
+        !> parent object and the links to the previous and next
+        !> elements in the list
         !---------------------------------------------------------------
         type, extends(bf_layer) :: bf_sublayer
 
@@ -76,7 +90,23 @@
 
         contains
 
-        !< initialize the sublayer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the bf_layer parent and nullify the pointers
+        !> to the prev and next elements of the doubled chained list
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_sublayer object encapsulating the bf_layer and
+        !> its neighbors in the doubled chained list
+        !
+        !>@param localization
+        !> localization of the buffer layer (N,S,E, or W)
+        !--------------------------------------------------------------
         subroutine ini(this, localization)
 
           implicit none
@@ -92,7 +122,22 @@
         end subroutine ini
 
 
-        !< access the previous list element
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> access the previous element of the list
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_sublayer object encapsulating the bf_layer and
+        !> its neighbors in the doubled chained list
+        !
+        !>@return get_prev
+        !> pointer to the previous element of the list
+        !--------------------------------------------------------------
         function get_prev(this)
 
           implicit none
@@ -109,7 +154,22 @@
         end function get_prev
 
 
-        !< access the next list element
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> access the next element of the list
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_sublayer object encapsulating the bf_layer and
+        !> its neighbors in the doubled chained list
+        !
+        !>@return get_next
+        !> pointer to the next element of the list
+        !--------------------------------------------------------------
         function get_next(this)
 
           implicit none
@@ -126,7 +186,22 @@
         end function get_next
 
 
-        !< link with the previous element in the chained list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the link to the previous element of the list
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_sublayer object encapsulating the bf_layer and
+        !> its neighbors in the doubled chained list
+        !
+        !>@param bf_sublayer_prev
+        !> pointer to the previous element of the list
+        !--------------------------------------------------------------
         subroutine set_prev(this, bf_sublayer_prev)
 
           implicit none
@@ -139,7 +214,22 @@
         end subroutine set_prev
 
 
-        !< link with the next element in the chained list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the link to the next element of the list
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_sublayer object encapsulating the bf_layer and
+        !> its neighbors in the doubled chained list
+        !
+        !>@param bf_sublayer_prev
+        !> pointer to the next element of the list
+        !--------------------------------------------------------------
         subroutine set_next(this, bf_sublayer_next)
 
           implicit none
@@ -152,7 +242,19 @@
         end subroutine set_next
 
 
-        !< nullify the previous list element
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the link to the previous element of the list
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_sublayer object encapsulating the bf_layer and
+        !> its neighbors in the doubled chained list
+        !--------------------------------------------------------------
         subroutine nullify_prev(this)
 
           implicit none
@@ -164,7 +266,19 @@
         end subroutine nullify_prev
 
 
-        !< nullify the next list element
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the link to the next element of the list
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_sublayer object encapsulating the bf_layer and
+        !> its neighbors in the doubled chained list
+        !--------------------------------------------------------------
         subroutine nullify_next(this)
 
           implicit none
@@ -176,7 +290,21 @@
         end subroutine nullify_next
 
 
-        !< remove buffer layer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the element of the list by removing the bf_layer
+        !> parent object and the links to the previous and next
+        !> elements in the list
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_sublayer object encapsulating the bf_layer and
+        !> its neighbors in the doubled chained list
+        !--------------------------------------------------------------
         subroutine remove(this)
 
           implicit none

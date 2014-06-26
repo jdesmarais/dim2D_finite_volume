@@ -1,3 +1,17 @@
+      !> @file
+      !> module implementing a doubled chained list
+      !> of bf_sublayer pointers
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing a doubled chained list
+      !> of bf_sublayer pointers
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module nbf_list_class
 
         use bf_layer_errors_module, only : error_neighbor_index
@@ -13,9 +27,101 @@
         public :: nbf_list
 
 
-        !< double chained list saving ordered references
-        !> to buffer sublayers. The references are ordered
+        !>@class nbf_list
+        !> double chained list saving ordered references
+        !> to bf_sublayer objects. The references are ordered
         !> with increasing bf_alignment(1,1)
+        !
+        !>@param head
+        !> pointer to the first bf_sublayer reference of the list
+        !
+        !>@param tail
+        !> pointer to the last bf_sublayer reference of the list
+        !
+        !>@param nb_elements
+        !> number of references to bf_sublayer stored in the list
+        !        
+        !>@param ini
+        !> initialize the list by initializing the
+        !> number of element to 0 and nullifying the head
+        !> and tail attributes
+        !
+        !>@param get_head
+        !> get the head attribute
+        !
+        !>@param get_tail
+        !> get the tail attribute
+        !
+        !>@param get_nb_elements
+        !> get the nb_elements attribute
+        !
+        !>@param add_link_in_list
+        !> add an element corresponding to the specific link
+        !> in the chained list
+        !
+        !>@param update_link_in_list
+        !> update the element linked to bf_sublayer1
+        !> by modifying its reference to bf_sublayer2
+        !
+        !>@param remove_link_from_list
+        !> remove the element corresponding to a specific link
+        !> from the chained list
+        !
+        !>@param copy_from_neighbors_to_bf_layer
+        !> copy the common layers from the buffer layers
+        !> saved in the chained list as neighbors to the
+        !> bf_layer object passed as argument
+        !
+        !>@param copy_to_neighbors_from_bf_layer
+        !> copy the common layers to the buffer layers
+        !> saved in the chained list as neighbors
+        !> from the bf_layer object passed as argument
+        !
+        !>@param copy_from_neighbors1_to_bf_layer
+        !> copy the common layers from the buffer layers
+        !> saved in the chained list as neighbors of type 1
+        !> to the bf_layer object passed as argument
+        !
+        !>@param copy_from_neighbors2_to_bf_layer
+        !> copy the common layers from the buffer layers
+        !> saved in the chained list as neighbors of type 2
+        !> to the bf_layer object passed as argument
+        !
+        !>@param copy_to_neighbors1_from_bf_layer
+        !> copy the common layers to the buffer layers
+        !> saved in the chained list as neighbors of type 1
+        !> from the bf_layer object passed as argument
+        !
+        !>@param copy_to_neighbors2_from_bf_layer
+        !> copy the common layers to the buffer layers
+        !> saved in the chained list as neighbors of type 2
+        !> from the bf_layer object passed as argument
+        !
+        !>@param get_nbf_layers_sharing_grdpts_with
+        !> add to the list of sublayer pointers the buffer layers
+        !> in the current list that share grid points with the bf layer
+        !> given
+        !
+        !>@param bf_layer_depends_on_neighbors
+        !> check whether the buffer layer passed as argument has grdpts
+        !> in common with the buffer layers contained in the list
+        !
+        !>@param does_a_neighbor_remains
+        !> check whether a bf_sublayer can be removed considering the
+        !> neighboring buffer layers and if their removal has been
+        !> confirmed
+        !
+        !>@param add_element
+        !> add an element in the chained list ensuring that
+        !> the doubled chained list element are ordered
+        !
+        !>@param remove_element
+        !> remove an element from the chained list
+        !
+        !>@param print_on_screen
+        !> print the alignment of the buffer layer
+        !> referenced in the chained list
+        !---------------------------------------------------------------
         type :: nbf_list
 
           type(nbf_element), pointer, private :: head
@@ -52,10 +158,24 @@
 
         end type nbf_list
 
-
         contains
 
-        !< initialize the chained list
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the list by initializing the
+        !> number of element to 0 and nullifying the head
+        !> and tail attributes
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !--------------------------------------------------------------
         subroutine ini(this)
 
           implicit none
@@ -69,6 +189,23 @@
         end subroutine ini
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the head attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param get_head
+        !> reference to the first element of the doubled chained
+        !> list
+        !--------------------------------------------------------------
         function get_head(this)
 
           implicit none
@@ -81,6 +218,23 @@
         end function get_head
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the tail attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param get_head
+        !> reference to the last element of the doubled chained
+        !> list
+        !--------------------------------------------------------------
         function get_tail(this)
 
           implicit none
@@ -93,6 +247,22 @@
         end function get_tail
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the nb_elements attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param get_nb_elements
+        !> nb_element attribute
+        !--------------------------------------------------------------
         function get_nb_elements(this)
 
           implicit none
@@ -105,8 +275,24 @@
         end function get_nb_elements
 
 
-        !< add an element corresponding to the specific link
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add an element corresponding to the specific link
         !> in the chained list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param added_bf_sublayer_ptr
+        !> reference to the bf_sublayer added in the doubled chained
+        !> list
+        !--------------------------------------------------------------
         subroutine add_link_in_list(this, added_bf_sublayer_ptr)
 
           implicit none
@@ -124,8 +310,26 @@
         end subroutine add_link_in_list
 
 
-        !< update the element corresponding to a specific link
-        !> in the chained list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the element linked to bf_sublayer1
+        !> by modifying its reference to bf_sublayer2
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param bf_sublayer1
+        !> bf_sublayer reference to be updated
+        !
+        !>@param bf_sublayer2
+        !> bf_sublayer reference after update
+        !--------------------------------------------------------------
         subroutine update_link_in_list(this, bf_sublayer1, bf_sublayer2)
 
           implicit none
@@ -153,8 +357,23 @@
         end subroutine update_link_in_list
 
 
-        !< remove the element corresponding to a specific link
-        !> in the chained list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the element corresponding to a specific link
+        !> from the chained list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param rm_bf_sublayer_ptr
+        !> bf_sublayer reference identifying the element removed
+        !--------------------------------------------------------------
         subroutine remove_link_from_list(this, rm_bf_sublayer_ptr)
 
           implicit none
@@ -181,9 +400,29 @@
         end subroutine remove_link_from_list
 
 
-        !< copy the layers common between the buffer layers
-        !> saved in the chained list as neighbors1 to the
-        !> buffer layer passed as argument
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layers from the buffer layers
+        !> saved in the chained list as neighbors to the
+        !> bf_layer object passed as argument
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param neighbor_index
+        !> index identifying the type of neighbors saved in the
+        !> current doubled chained list
+        !
+        !>@param bf_exchanged
+        !> bf_layer object exchanging data with the elements
+        !> of the doubled chained list
+        !--------------------------------------------------------------
         subroutine copy_from_neighbors_to_bf_layer(
      $     this, neighbor_index, bf_exchanged)
 
@@ -211,6 +450,25 @@
         end subroutine copy_from_neighbors_to_bf_layer
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layers from the buffer layers
+        !> saved in the chained list as neighbors of type 1
+        !> to the bf_layer object passed as argument
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param bf_exchanged
+        !> bf_layer object exchanging data with the elements
+        !> of the doubled chained list
+        !--------------------------------------------------------------
         subroutine copy_from_neighbors1_to_bf_layer(
      $     this, bf_exchanged)
 
@@ -236,6 +494,25 @@
         end subroutine copy_from_neighbors1_to_bf_layer
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layers from the buffer layers
+        !> saved in the chained list as neighbors of type 2
+        !> to the bf_layer object passed as argument
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param bf_exchanged
+        !> bf_layer object exchanging data with the elements
+        !> of the doubled chained list
+        !--------------------------------------------------------------
         subroutine copy_from_neighbors2_to_bf_layer(
      $     this, bf_exchanged)
 
@@ -262,9 +539,29 @@
         end subroutine copy_from_neighbors2_to_bf_layer
 
 
-        !< copy the layers common between the buffer layers
-        !> saved in the chained list as neighbors to the
-        !> buffer layer passed as argument
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layers to the buffer layers
+        !> saved in the chained list as neighbors
+        !> from the bf_layer object passed as argument
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param neighbor_index
+        !> index identifying the type of neighbors saved in the
+        !> current doubled chained list
+        !
+        !>@param bf_exchanged
+        !> bf_layer object exchanging data with the elements
+        !> of the doubled chained list
+        !--------------------------------------------------------------
         subroutine copy_to_neighbors_from_bf_layer(
      $     this, neighbor_index, bf_exchanged)
 
@@ -292,6 +589,25 @@
         end subroutine copy_to_neighbors_from_bf_layer
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layers to the buffer layers
+        !> saved in the chained list as neighbors of type 1
+        !> from the bf_layer object passed as argument
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param bf_exchanged
+        !> bf_layer object exchanging data with the elements
+        !> of the doubled chained list
+        !--------------------------------------------------------------
         subroutine copy_to_neighbors1_from_bf_layer(
      $     this, bf_exchanged)
 
@@ -320,6 +636,25 @@
         end subroutine copy_to_neighbors1_from_bf_layer
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the common layers to the buffer layers
+        !> saved in the chained list as neighbors of type 2
+        !> from the bf_layer object passed as argument
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param bf_exchanged
+        !> bf_layer object exchanging data with the elements
+        !> of the doubled chained list
+        !--------------------------------------------------------------
         subroutine copy_to_neighbors2_from_bf_layer(
      $     this, bf_exchanged)
 
@@ -348,9 +683,29 @@
         end subroutine copy_to_neighbors2_from_bf_layer
 
 
-        !< add to the list of sublayer pointers the buffer layers
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add to the list of sublayer pointers the buffer layers
         !> in the current list that share grid points with the bf layer
         !> given
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param bf_sublayer_i
+        !> bf_layer object that may be exchanging data with the elements
+        !> of the double chained list
+        !
+        !>@param bf_sublayer_list
+        !> list of bf_layer object from the current doubled chained list
+        !> that are exchanging data with bf_sublayer_i
+        !--------------------------------------------------------------
         subroutine get_nbf_layers_sharing_grdpts_with(
      $     this, bf_sublayer_i, bf_sublayer_list)
 
@@ -375,8 +730,29 @@
         end subroutine get_nbf_layers_sharing_grdpts_with
 
 
-        !< check whether the buffer layer passed as argument has grdpts
-        !> in common with the buffe rlayers contained in the list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the buffer layer passed as argument has grdpts
+        !> in common with the buffer layers contained in the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param bf_sublayer_i
+        !> bf_layer object that may be exchanging data with the elements
+        !> of the double chained list
+        !
+        !>@return dependent
+        !> logical stating whether the bf_sublayer object passed as
+        !> argument has grid points in common with the elements of the
+        !> doubled chained list
+        !--------------------------------------------------------------
         function bf_layer_depends_on_neighbors(
      $     this, bf_sublayer_i) result(dependent)
 
@@ -404,7 +780,28 @@
         end function bf_layer_depends_on_neighbors
 
 
-        !< check if a neighbor remains
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether a bf_sublayer can be removed considering the
+        !> neighboring buffer layers and if their removal has been
+        !> confirmed
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param bf_sublayer_i
+        !> bf_layer object that may be exchanging data with the elements
+        !> of the double chained list
+        !
+        !>@return a_neighbor_remains
+        !> logical stating whether a neighboring bufer layer should remain
+        !--------------------------------------------------------------
         function does_a_neighbor_remains(this, bf_sublayer_i) result(a_neighbor_remains)
 
           implicit none
@@ -433,8 +830,23 @@
         end function does_a_neighbor_remains
 
 
-        !< add element in the chained list and its position
-        !> is such that the chained list is ordered
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add an element in the chained list ensuring that
+        !> the doubled chained list element are ordered
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param new_element
+        !> nbf_element added in the list
+        !--------------------------------------------------------------
         subroutine add_element(this, new_element)
 
           implicit none
@@ -524,7 +936,22 @@
         end subroutine add_element
 
 
-        !< remove element from the chained list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove an element from the chained list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param rm_element
+        !> nbf_element removed from the list
+        !--------------------------------------------------------------
         subroutine remove_element(this, rm_element)
 
           implicit none
@@ -578,7 +1005,25 @@
         end subroutine remove_element
 
 
-        !< insert element between two elements of the chained list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> insert element between two elements of the chained list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param prev_element
+        !> element before the element inserted
+        !
+        !>@param next_element
+        !> element after the element inserted
+        !--------------------------------------------------------------
         subroutine insert_element(
      $     inserted_element,
      $     prev_element,
@@ -599,8 +1044,20 @@
         end subroutine insert_element
 
 
-        !< print the alignment of the buffer layer
-        !> referenced by the list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the alignment of the buffer layer
+        !> referenced in the chained list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !--------------------------------------------------------------
         subroutine print_on_screen(this)
 
           implicit none

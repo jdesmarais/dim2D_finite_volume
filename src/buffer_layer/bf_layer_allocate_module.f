@@ -1,3 +1,19 @@
+      !> @file
+      !> module encapsulating the subroutines needed to allocate 
+      !> the attributes of a bf_layer object
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module encapsulating the subroutines needed to allocate 
+      !> the attributes of a bf_layer object
+      !> \image html  bf_layer_allocate_module.png
+      !> \image latex bf_layer_allocate_module.eps
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_layer_allocate_module
 
         use parameters_bf_layer, only : no_pt, interior_pt,

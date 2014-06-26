@@ -1,3 +1,19 @@
+      !> @file
+      !> module implementing the temporary object used to reorganize
+      !> the increasing detector list when either an east or west
+      !> buffer layer is removed
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the temporary object used to reorganize
+      !> the increasing detector list when either an east or west
+      !> buffer layer is removed
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !----------------------------------------------------------------
       module bf_detector_dcr_list_EW_class
 
         use bf_detector_dcr_list_class, only : bf_detector_dcr_list
@@ -9,6 +25,12 @@
         private
         public :: bf_detector_dcr_list_EW
 
+        !> @class bf_detector_dcr_list_EW
+        !> class encapsulating the temporary variables needed
+        !> to create a new detector list out of the previous
+        !> detector list when an east or west buffer layer is
+        !> removed
+        !----------------------------------------------------------------
         type, abstract, extends(bf_detector_dcr_list) :: bf_detector_dcr_list_EW
 
           contains

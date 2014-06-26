@@ -1,3 +1,17 @@
+      !> @file
+      !> module implementing the temporary object used to reorganize
+      !> the increasing detector list when a buffer layer is removed
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the temporary object used to reorganize
+      !> the increasing detector list when a buffer layer is removed
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !----------------------------------------------------------------
       module bf_detector_dcr_list_class
 
         use bf_detector_module, only : get_inter_dct_param,
@@ -14,9 +28,9 @@
         !> @class bf_detector_dcr_list
         !> class encapsulating the temporary variables needed
         !> to create a new detector list out of the previous
-        !> detector list: identification of the detectors removed
-        !> and determination of the first and last detector in the
-        !> list
+        !> detector list when a buffer layer is removed
+        !> \image html bf_detector_dcr_list_class.png
+        !> \image latex bf_detector_dcr_list_class.eps
         !
         !> @param segment
         !> indices identifying the segment of detectors removed
@@ -35,17 +49,54 @@
         !> of the new detector list
         !
         !> @param ini
-        !> initialization of segment_i to know that the index
-        !> of the first detector removed will be used as starting
-        !> point
+        !> initialize the object
         !
-        !> @param compute_new_list_param
-        !> initialization of the parameters needed to create the
-        !> new detector list
+        !>@param compute_new_list_param
+        !> compute the segment of detectors removed from the detector
+        !> list as well as the first and last detector points for the list
+        !> the new detector list
         !
-        !> @param compute_new_list
-        !> from the parameters computed by compute_new_list_param
-        !> create the new list of detectors
+        !>@param get_first_detector
+        !> get the first_detector attribute
+        !
+        !>@param get_last_detector
+        !> get the last_detector attribute
+        !
+        !>@param set_first_detector
+        !> set the first_detector attribute
+        !
+        !>@param set_last_detector
+        !> set the last_detector attribute
+        !
+        !>@param add_deleted_detector
+        !> add the index of the detector to be removed
+        !> in the segment
+        !
+        !>@param compute_new_list_g
+        !> compute the new list of detectors
+        !
+        !>@param get_detector_changes_g
+        !> compute the parameters determining the size of
+        !> the new detector list
+        !
+        !>@param should_be_removed
+        !> determine whether the detector from the old list of
+        !> detectors should be removed from the list for the new
+        !> list
+        !
+        !>@param get_border_detector
+        !> determine the general coordinates of the first or last
+        !> detector in the new list from the general coordinates
+        !> of the current detector
+        !
+        !>@param get_detector_changes
+        !> determine the size of the new detector list without
+        !> considering the eventual extra points needed to link the
+        !> first and the last point of the detector list with the
+        !> neighboring detector lists (to get a closed path of detectors)
+        !
+        !>@param compute_new_list
+        !> compute the new list of detectors
         !-------------------------------------------------------
         type, abstract :: bf_detector_dcr_list
 
@@ -87,12 +138,12 @@
           !> list
           !
           !> @date
-          !> 18_06_2013 - initial version - J.L. Desmarais
+          !> 18_06_2014 - initial version - J.L. Desmarais
           !
           !>@param g_coords
           !> general coordinates identifying the position of the detector
           !
-          !>@param remove
+          !>@return remove
           !> logical stating whether the detector should be removed
           !--------------------------------------------------------------
           function should_be_removed_proc(bf_align, g_coords) result(remove)
@@ -120,7 +171,7 @@
           !> of the current detector
           !
           !> @date
-          !> 18_06_2013 - initial version - J.L. Desmarais
+          !> 18_06_2014 - initial version - J.L. Desmarais
           !
           !>@param g_coords
           !> general coordinates identifying the position of the old
@@ -155,15 +206,27 @@
           !> neighboring detector lists (to get a closed path of detectors)
           !
           !> @date
-          !> 18_06_2013 - initial version - J.L. Desmarais
+          !> 18_06_2014 - initial version - J.L. Desmarais
           !
           !>@param this
-          !> object encapsulating the temporary parameters needed to
-          !> construct a new detector list after the removal of a buffer
-          !> layer
+          !> bf_detector_dcr_list object encapsulating the temporary
+          !> parameters needed to construct a new detector list after
+          !> the removal of a buffer layer
           !
-          !>@param new_size
-          !> new size of the detector list
+          !>@param dct_list
+          !> old detector list
+          !
+          !>@param nb_added_detectors
+          !> number of detectors that should be added to create the new
+          !> detector list
+          !
+          !>@param nb_deleted_detectors
+          !> number of detectors that should be removed to create the new
+          !> detector list
+          !
+          !>@param sign_added_detectors
+          !> sign identifying whether the detectors added to the new list
+          !> correspond to the increasing or the decreasing direction
           !--------------------------------------------------------------          
           subroutine get_dct_changes_proc(
      $       this, dct_list,
@@ -186,6 +249,32 @@
 
 
         abstract interface
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> compute the new list of detectors
+          !
+          !> @date
+          !> 18_06_2014 - initial version - J.L. Desmarais
+          !
+          !>@param this
+          !> bf_detector_dcr_list object encapsulating the temporary
+          !> parameters needed to construct a new detector list after
+          !> the removal of a buffer layer
+          !
+          !>@param detector_list
+          !> old detector list
+          !
+          !>@param first_pt_linked
+          !> general coordinates corresponding to the first point to which
+          !> the detector list should be linked
+          !
+          !>@param last_pt_linked
+          !> general coordinates corresponding to the last point to which
+          !> the detector list should be linked
+          !--------------------------------------------------------------
           subroutine compute_new_list_proc(
      $       this, detector_list,
      $       first_pt_linked, last_pt_linked)
@@ -206,7 +295,20 @@
 
         contains
 
-        !< initialize the object
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the object
+        !
+        !> @date
+        !> 18_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_dcr_list object encapsulating the temporary
+        !> parameters needed to construct a new detector list after
+        !> the removal of a buffer layer
+        !--------------------------------------------------------------
         subroutine ini(this)
 
           implicit none
@@ -220,8 +322,25 @@
         end subroutine ini
 
 
-        !< add the index of the detector to be removed
-        !> in the segment removed
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add the index of the detector to be removed
+        !> in the segment
+        !
+        !> @date
+        !> 18_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_dcr_list object encapsulating the temporary
+        !> parameters needed to construct a new detector list after
+        !> the removal of a buffer layer
+        !
+        !>@param index
+        !> index identifying the detector removed in the old detector
+        !> list
+        !--------------------------------------------------------------
         subroutine add_deleted_detector(this, index)
 
           implicit none
@@ -238,7 +357,39 @@
         end subroutine add_deleted_detector
 
 
-        !< compute the size of the new detector list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the parameters determining the size of
+        !> the new detector list
+        !
+        !> @date
+        !> 18_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_dcr_list object encapsulating the temporary
+        !> parameters needed to construct a new detector list after
+        !> the removal of a buffer layer
+        !
+        !>@param dct_list
+        !> old detector list
+        !
+        !>@param dir
+        !> direction in which the detectors are removed
+        !
+        !>@param nb_added_detectors
+        !> number of detectors that should be added to create the new
+        !> detector list
+        !
+        !>@param nb_deleted_detectors
+        !> number of detectors that should be removed to create the new
+        !> detector list
+        !
+        !>@param sign_added_detectors
+        !> sign identifying whether the detectors added to the new list
+        !> correspond to the increasing or the decreasing direction
+        !--------------------------------------------------------------
         subroutine get_detector_changes_g(
      $     this, dct_list, dir,
      $     nb_added_detectors, nb_deleted_detectors,
@@ -294,9 +445,28 @@
         end subroutine get_detector_changes_g
 
 
-        !< create the indices identifying the segments of
-        !> detectors removed from the detector list as well
-        !> as the first and last detector points for the list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the segment of detectors removed from the detector
+        !> list as well as the first and last detector points for the list
+        !> the new detector list
+        !
+        !> @date
+        !> 18_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_dcr_list object encapsulating the temporary
+        !> parameters needed to construct a new detector list after
+        !> the removal of a buffer layer
+        !
+        !>@param bf_align
+        !> alignment of the buffer layer removed
+        !
+        !>@param dct_list
+        !> old detector list
+        !--------------------------------------------------------------
         subroutine compute_new_list_param(this, bf_align, dct_list)
 
           implicit none
@@ -356,7 +526,34 @@
         end subroutine compute_new_list_param
 
 
-        !< compute the new list of detectors
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the new list of detectors
+        !
+        !> @date
+        !> 18_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_dcr_list object encapsulating the temporary
+        !> parameters needed to construct a new detector list after
+        !> the removal of a buffer layer
+        !
+        !>@param detector_list
+        !> old detector list
+        !
+        !>@param first_pt_linked
+        !> general coordinates corresponding to the first point to which
+        !> the detector list should be linked
+        !
+        !>@param last_pt_linked
+        !> general coordinates corresponding to the last point to which
+        !> the detector list should be linked
+        !
+        !>@param dir
+        !> direction in which the detectors are removed
+        !--------------------------------------------------------------
         subroutine compute_new_list_g(
      $     this, detector_list,
      $     first_pt_linked, last_pt_linked,
@@ -516,8 +713,23 @@
         end subroutine compute_new_list_g
 
 
-        !< get the coordinates of the first detector for the
-        !> new detector list 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the first_detector attribute
+        !
+        !> @date
+        !> 18_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_dcr_list object encapsulating the temporary
+        !> parameters needed to construct a new detector list after
+        !> the removal of a buffer layer
+        !
+        !>@param coords
+        !> general coordinates of the first_detector
+        !--------------------------------------------------------------
         function get_first_detector(this) result(coords)
 
           implicit none
@@ -530,8 +742,23 @@
         end function get_first_detector
 
 
-        !< get the coordinates of the last detector for the
-        !> new detector list 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the last_detector attribute
+        !
+        !> @date
+        !> 18_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_dcr_list object encapsulating the temporary
+        !> parameters needed to construct a new detector list after
+        !> the removal of a buffer layer
+        !
+        !>@param coords
+        !> general coordinates of the last_detector
+        !--------------------------------------------------------------
         function get_last_detector(this) result(coords)
 
           implicit none
@@ -544,8 +771,23 @@
         end function get_last_detector
 
 
-        !< set the coordinates of the first detector for the
-        !> new detector list 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the first_detector attribute
+        !
+        !> @date
+        !> 18_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_dcr_list object encapsulating the temporary
+        !> parameters needed to construct a new detector list after
+        !> the removal of a buffer layer
+        !
+        !>@param coords
+        !> general coordinates of the first_detector
+        !--------------------------------------------------------------
         subroutine set_first_detector(this, coords)
 
           implicit none
@@ -558,8 +800,23 @@
         end subroutine set_first_detector
 
 
-        !< set the coordinates of the last detector for the
-        !> new detector list 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the last_detector attribute
+        !
+        !> @date
+        !> 18_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_dcr_list object encapsulating the temporary
+        !> parameters needed to construct a new detector list after
+        !> the removal of a buffer layer
+        !
+        !>@param coords
+        !> general coordinates of the last_detector
+        !--------------------------------------------------------------
         subroutine set_last_detector(this, coords)
 
           implicit none
@@ -572,6 +829,30 @@
         end subroutine set_last_detector
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the 
+        !
+        !> @date
+        !> 18_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_dcr_list object encapsulating the temporary
+        !> parameters needed to construct a new detector list after
+        !> the removal of a buffer layer
+        !
+        !>@param detector_list
+        !> old detector list
+        !
+        !>@param dir
+        !> direction in which the detectors are removed
+        !
+        !>@return segment_first_pt
+        !> general coordinate of the detector replacing the first detector
+        !> removed from the segment
+        !--------------------------------------------------------------
         function get_segment_first_pt(this, detector_list, dir)
      $     result(segment_first_pt)
 
@@ -592,6 +873,41 @@
         end function get_segment_first_pt
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the 
+        !
+        !> @date
+        !> 18_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param detector_list
+        !> new detector list
+        !
+        !>@param nb_added_detectors
+        !> number of detectors that should be added to create the new
+        !> detector list
+        !
+        !>@param nb_deleted_detectors
+        !> number of detectors that should be removed to create the new
+        !> detector list
+        !
+        !>@param sign_added_detectors
+        !> sign identifying whether the detectors added to the new list
+        !> correspond to the increasing or the decreasing direction
+        !
+        !>@param segment_first_pt
+        !> general coordinate of the detector replacing the first detector
+        !> removed from the segment
+        !
+        !>@param dir
+        !> direction in which the detectors are removed
+        !
+        !>@param match_i
+        !> integer indicating where the new detector list shall the
+        !> first new detector be added
+        !--------------------------------------------------------------
         subroutine replace_removed_detectors(
      $     detector_list,
      $     nb_added_detectors,

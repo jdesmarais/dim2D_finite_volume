@@ -1,3 +1,19 @@
+      !> @file
+      !> module encapsulating the subroutines testing whether
+      !> a grid point undermine the application of the open
+      !> boundary conditions
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module encapsulating the subroutines testing whether
+      !> a grid point undermine the application of the open
+      !> boundary conditions
+      !
+      !> @date
+      ! 26_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_activation_module
 
         use parameters_input, only : ne
@@ -11,8 +27,23 @@
         contains
 
 
-        !< check if the open boundary conditions are undermined
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the open boundary conditions are undermined
         !> at the point identified by the nodes
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes_var
+        !> governing variables at the grid point tested
+        !
+        !>@return undermined
+        !> logical stating whether the open boundary conditions
+        !> are undermined
+        !--------------------------------------------------------------
         function are_openbc_undermined(nodes_var) result(undermined)
 
           implicit none

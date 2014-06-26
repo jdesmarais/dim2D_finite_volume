@@ -282,6 +282,7 @@ $(bf_layer_dir)/bf_mainlayer_class.o:\
 	$(param_dir)/parameters_kind.o
 
 $(bf_layer_dir)/bf_mainlayer_pointer_class.o:\
+	$(bf_layer_dir)/bf_layer_error_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(param_dir)/parameters_constant.o\

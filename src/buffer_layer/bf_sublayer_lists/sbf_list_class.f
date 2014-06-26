@@ -1,4 +1,19 @@
-      module sbf_list_class
+      !> @file
+      !> module implementing the sbf_list object. It encapsulates an array
+      !> of pointers to bf_sublayer objects
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the sbf_list object. It encapsulates an array
+      !> of pointers to bf_sublayer objects
+      !
+      !> @date
+      ! 07_04_2014 - initial version      - J.L. Desmarais
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
+       module sbf_list_class
 
         use bf_sublayer_class        , only : bf_sublayer
         use bf_sublayer_pointer_class, only : bf_sublayer_pointer
@@ -9,7 +24,37 @@
         public :: sbf_list
 
 
-        !< object containing an array of pointers to bf_sublayer objects
+        !>@class bf_layer
+        !> class encapsulating an array of pointers to bf_sublayer
+        !> objects
+        !
+        !>@param list
+        !> array of pointers to bf_sublayer objects
+        !
+        !>@param nb_ele
+        !> number of references in the list attribute
+        !
+        !>@param ini
+        !> initialize the number of elements to 0
+        !> and allocate the array containing the pointers
+        !> to bf_sublayer
+        !
+        !>@param get_nb_ele
+        !> get the nb_ele attribute
+        !
+        !>@param get_ele
+        !> get the bf_sublayer reference at index i
+        !
+        !>@param add_ele
+        !> add element in the list only if the element
+        !> is not present already
+        !
+        !>@param does_not_contain
+        !> check that a reference is not present in the list
+        !
+        !>@param destroy
+        !> deallocate the content of the object
+        !--------------------------------------------------------------
         type :: sbf_list
 
           type(bf_sublayer_pointer), dimension(:), allocatable :: list
@@ -30,9 +75,24 @@
         contains
 
         
-        !< initialize the number of elements to 0
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the number of elements to 0
         !> and allocate the array containing the pointers
         !> to bf_sublayer
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> sbf_list object encapsulating references to bf_sublayer
+        !> objects
+        !
+        !>@param nb_ele_max
+        !> maximum number of references stored in the list
+        !--------------------------------------------------------------
         subroutine ini(this, nb_ele_max)
 
           implicit none
@@ -48,6 +108,22 @@
         end subroutine ini
 
       
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the nb_ele attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> sbf_list object encapsulating references to bf_sublayer
+        !> objects
+        !
+        !>@return get_nb_ele
+        !> nb_ele attribute
+        !--------------------------------------------------------------
         function get_nb_ele(this)
 
           implicit none
@@ -60,6 +136,25 @@
         end function get_nb_ele
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the bf_sublayer reference at index i
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> sbf_list object encapsulating references to bf_sublayer
+        !> objects
+        !
+        !>@param i
+        !> index identifying the reference asked
+        !
+        !>@return ptr
+        !> bf_sublayer reference
+        !--------------------------------------------------------------
         function get_ele(this, i) result(ptr)
 
           implicit none
@@ -73,8 +168,23 @@
         end function get_ele
 
 
-        !add element in the list only if the element
-        !is not present already
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add element in the list only if the element
+        !> is not present already
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> sbf_list object encapsulating references to bf_sublayer
+        !> objects
+        !
+        !>@param ptr
+        !> bf_sublayer reference
+        !--------------------------------------------------------------
         subroutine add_ele(this, ptr)
 
           implicit none
@@ -90,6 +200,25 @@
         end subroutine add_ele
 
         
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check that a reference is not present in the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> sbf_list object encapsulating references to bf_sublayer
+        !> objects
+        !
+        !>@param ptr
+        !> bf_sublayer reference asked
+        !
+        !>@return does_not_contain
+        !> logical stating whether the reference was found in the list
+        !--------------------------------------------------------------
         function does_not_contain(this, ptr)
 
           implicit none
@@ -114,6 +243,19 @@
         end function does_not_contain
         
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> deallocate the content of the object
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> sbf_list object encapsulating references to bf_sublayer
+        !> objects
+        !--------------------------------------------------------------
         subroutine destroy(this)
         
           implicit none

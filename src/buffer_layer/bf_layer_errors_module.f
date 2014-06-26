@@ -1,3 +1,17 @@
+      !> @file
+      !> module implementing the subroutines run when an exception is
+      !> caught in files implementing the buffer layers
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the subroutines run when an exception is
+      !> caught in files implementing the buffer layers
+      !
+      !> @date
+      ! 26_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_layer_errors_module
 
         use ISO_FORTRAN_ENV, only : ERROR_UNIT
@@ -20,7 +34,24 @@
         contains
 
 
-        !< error printed if mainlayer_id.ne.(N,S,E,W)
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> error printed if mainlayer_id.ne.(N,S,E,W)
+        !
+        !> @date
+        !> 11_04_2014 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param mainlayer_id
+        !> value of the parameter trigerring the exception
+        !--------------------------------------------------------------
         subroutine error_mainlayer_id(
      $     file_name, fct_name, mainlayer_id)
 
@@ -41,7 +72,27 @@
         end subroutine error_mainlayer_id
 
 
-        !< error printed if mainlayer_id do not match
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> error printed if mainlayer_id do not match
+        !
+        !> @date
+        !> 11_04_2014 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param mainlayer_id1
+        !> value of the parameter trigerring the exception
+        !
+        !>@param mainlayer_id2
+        !> value of the parameter trigerring the exception
+        !--------------------------------------------------------------
         subroutine error_diff_mainlayer_id(
      $     file_name, fct_name,
      $     mainlayer_id1, mainlayer_id2)
@@ -65,8 +116,28 @@
         end subroutine error_diff_mainlayer_id
 
 
-        !< error printed if the neighbor is incompatible
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> error printed if the neighbor is incompatible
         !> with the current buffer layer
+        !
+        !> @date
+        !> 11_04_2014 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param mainlayer_id1
+        !> value of the parameter trigerring the exception
+        !
+        !>@param mainlayer_id2
+        !> value of the parameter trigerring the exception
+        !--------------------------------------------------------------
         subroutine error_incompatible_neighbor(
      $     file_name, fct_name,
      $     mainlayer_id1, mainlayer_id2)
@@ -90,7 +161,24 @@
         end subroutine error_incompatible_neighbor
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !< error neighbor index.ne.(1,2)
+        !
+        !> @date
+        !> 11_04_2014 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param neighbor_index
+        !> value of the parameter trigerring the exception
+        !--------------------------------------------------------------
         subroutine error_neighbor_index(
      $     file_name, fct_name, neighbor_index)
 

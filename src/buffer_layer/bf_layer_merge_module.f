@@ -1,3 +1,19 @@
+      !> @file
+      !> module encapsulating the subroutines needed to merge
+      !> the attributes of two bf_layer objects
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module encapsulating the subroutines needed to merge
+      !> the attributes of two bf_layer objects
+      !> \image html  bf_layer_merge_module.png
+      !> \image latex bf_layer_merge_module.eps
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_layer_merge_module
       
         use bf_layer_allocate_module, only : get_additional_blocks_N,

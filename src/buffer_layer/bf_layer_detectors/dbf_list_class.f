@@ -1,3 +1,18 @@
+      !> @file
+      !> module implementing the temporary object saving the
+      !> general coordinates of a list of detectors
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the temporary object saving the
+      !> general coordinates of a list of detectors
+      !
+      !> @date
+      ! 16_04_2014 - initial version      - J.L. Desmarais
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !----------------------------------------------------------------
       module dbf_list_class
 
         use dbf_element_class, only : dbf_element
@@ -6,8 +21,46 @@
         implicit none
 
 
+        !>@class dbf_list
+        !> double chained list saving the general coordinates of
+        !> a list of detectors
+        !
+        !>@param head
+        !> pointer to the first bf_sublayer reference of the list
+        !
+        !>@param tail
+        !> pointer to the last bf_sublayer reference of the list
+        !
+        !>@param nb_elements
+        !> number of references to bf_sublayer stored in the list
+        !        
+        !>@param ini
+        !> initialize the list by initializing the
+        !> number of element to 0 and nullifying the head
+        !> and tail attributes
+        !
+        !>@param get_head
+        !> get the head attribute
+        !
+        !>@param get_tail
+        !> get the tail attribute
+        !
+        !>@param get_nb_elements
+        !> get the nb_elements attribute
+        !
+        !>@param add_to_list
+        !> add the detector general coordinates to the list
+        !
+        !>@param add_element
+        !> add a new element to the list
+        !
+        !>@param print_on_screen
+        !> print the content of the list on screen
+        !
+        !>@param destroy
+        !> deallocate the content of the list
+        !---------------------------------------------------------------
         type :: dbf_list
-
 
           type(dbf_element), pointer :: head
           type(dbf_element), pointer :: tail
@@ -34,7 +87,22 @@
         contains
 
         
-        !< initialize the chained list
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the list by initializing the
+        !> number of element to 0 and nullifying the head
+        !> and tail attributes
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_list object implementing a doubled chained
+        !> list storing the general coordinates of a list
+        !> of detectors
+        !--------------------------------------------------------------
         subroutine ini(this)
 
           implicit none
@@ -48,6 +116,24 @@
         end subroutine ini
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the head attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_list object implementing a doubled chained
+        !> list storing the general coordinates of a list
+        !> of detectors
+        !
+        !>@param get_head
+        !> reference to the first element of the doubled chained
+        !> list
+        !--------------------------------------------------------------
         function get_head(this)
 
           implicit none
@@ -60,6 +146,24 @@
         end function get_head
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the tail attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_list object implementing a doubled chained
+        !> list storing the general coordinates of a list
+        !> of detectors
+        !
+        !>@param get_head
+        !> reference to the last element of the doubled chained
+        !> list
+        !--------------------------------------------------------------
         function get_tail(this)
 
           implicit none
@@ -72,6 +176,23 @@
         end function get_tail
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the nb_elements attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_list object implementing a doubled chained
+        !> list storing the general coordinates of a list
+        !> of detectors
+        !
+        !>@param get_nb_elements
+        !> nb_element attribute
+        !--------------------------------------------------------------
         function get_nb_elements(this)
 
           implicit none
@@ -84,6 +205,23 @@
         end function get_nb_elements
         
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add the detector general coordinates to the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_list object implementing a doubled chained
+        !> list storing the general coordinates of a list
+        !> of detectors
+        !
+        !>@param coords
+        !> general coordinates of the detector
+        !--------------------------------------------------------------
         subroutine add_to_list(this, coords)
 
           implicit none
@@ -103,6 +241,23 @@
         end subroutine add_to_list
 
       
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add a new element to the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_list object implementing a doubled chained
+        !> list storing the general coordinates of a list
+        !> of detectors
+        !
+        !>@param new_element
+        !> dbf_element object added to the list
+        !--------------------------------------------------------------
         subroutine add_element(this, new_element)
 
           implicit none
@@ -125,6 +280,20 @@
         end subroutine add_element
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the content of the list on screen
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_list object implementing a doubled chained
+        !> list storing the general coordinates of a list
+        !> of detectors
+        !--------------------------------------------------------------
         subroutine print_on_screen(this)
         
           implicit none
@@ -152,6 +321,20 @@
         end subroutine print_on_screen
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> deallocate the content of the list
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> dbf_list object implementing a doubled chained
+        !> list storing the general coordinates of a list
+        !> of detectors
+        !--------------------------------------------------------------
         subroutine destroy(this)
 
           implicit none

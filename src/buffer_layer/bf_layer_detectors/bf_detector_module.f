@@ -1,3 +1,19 @@
+      !> @file
+      !> module gathering the subroutines needed when computing the
+      !> number and position of detectors to be inserted between two
+      !> detectors to have a continuous path of increasing detectors
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module gathering the subroutines needed when computing the
+      !> number and position of detectors to be inserted between two
+      !> detectors to have a continuous path of increasing detectors
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !----------------------------------------------------------------
       module bf_detector_module
 
         use parameters_kind    , only : ikind, rkind
@@ -11,9 +27,35 @@
         contains
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !< get the parameters constraining the addition
         !> of intermediate detectors between the previous
         !> detectors and the new detector to be added
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param prev_coords
+        !> general coordinates of the last detector added to the list
+        !
+        !>@param next_coords
+        !> general coordinates of the future detector to be added to the list
+        !
+        !>@param x_change
+        !> change in the x-coordinate between the previous and the next
+        !> detector
+        !
+        !>@param y_change
+        !> change in the y-coordinate between the previous and the next
+        !> detector
+        !
+        !>@param inter_nb
+        !> number of detectors to be added between the two to ensure a
+        !> continuous path
+        !--------------------------------------------------------------
         subroutine get_inter_dct_param(
      $     prev_coords, next_coords,
      $     x_change, y_change, inter_nb)
@@ -51,11 +93,37 @@
         end subroutine get_inter_dct_param
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> from the parameters constraining the addition of
         !> intermediate detectors, give the coordinate of 
         !> the intermediate detector identified by the index k
         !> varying between 1 and total number of detectors to
         !> be added
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param prev_coords
+        !> general coordinates of the last detector added to the list
+        !
+        !>@param x_change
+        !> change in the x-coordinate between the previous and the next
+        !> detector
+        !
+        !>@param y_change
+        !> change in the y-coordinate between the previous and the next
+        !> detector
+        !
+        !>@param k
+        !> index identifying the detector to be added
+        !
+        !>@return inter_coords
+        !> general coordinates identifying the detector to be added
+        !> to the list
+        !--------------------------------------------------------------
         function get_inter_dct_coords(
      $     prev_coords,
      $     x_change, y_change, k)

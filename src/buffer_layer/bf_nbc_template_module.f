@@ -1,3 +1,21 @@
+      !> @file
+      !> module implementing the initializaion of temporary arrays
+      !> when asking the role of grid points at the edge between the
+      !> interior and the buffer layers
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing the initializaion of temporary arrays
+      !> when asking the role of grid points at the edge between the
+      !> interior and the buffer layers
+      !> \image html  bf_nbc_template_module.png
+      !> \image latex bf_nbc_template_module.eps width=10cm
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !----------------------------------------------------------------
       module bf_nbc_template_module
 
         use parameters_bf_layer, only: no_pt,
@@ -51,6 +69,21 @@
 
         contains
 
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_00() result(nbc_template)
 
           implicit none
@@ -72,6 +105,20 @@
         end function make_nbc_template_00
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_10() result(nbc_template)
 
           implicit none
@@ -93,6 +140,20 @@
         end function make_nbc_template_10
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_20() result(nbc_template)
 
           implicit none
@@ -113,7 +174,20 @@
 
         end function make_nbc_template_20
 
-      
+      !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_50() result(nbc_template)
 
           implicit none
@@ -135,6 +209,20 @@
         end function make_nbc_template_50
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_60() result(nbc_template)
 
           implicit none
@@ -156,6 +244,20 @@
         end function make_nbc_template_60
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_01() result(nbc_template)
 
           implicit none
@@ -177,6 +279,20 @@
         end function make_nbc_template_01
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_11() result(nbc_template)
 
           implicit none
@@ -198,6 +314,20 @@
         end function make_nbc_template_11
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_21() result(nbc_template)
 
           implicit none
@@ -219,6 +349,20 @@
         end function make_nbc_template_21
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_31() result(nbc_template)
 
           implicit none
@@ -240,6 +384,20 @@
         end function make_nbc_template_31
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_41() result(nbc_template)
 
           implicit none
@@ -261,6 +419,20 @@
         end function make_nbc_template_41
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_51() result(nbc_template)
 
           implicit none
@@ -282,6 +454,20 @@
         end function make_nbc_template_51
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_61() result(nbc_template)
 
           implicit none
@@ -303,6 +489,20 @@
         end function make_nbc_template_61
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_02() result(nbc_template)
 
           implicit none
@@ -324,6 +524,20 @@
         end function make_nbc_template_02
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_12() result(nbc_template)
 
           implicit none
@@ -345,6 +559,20 @@
         end function make_nbc_template_12
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_22() result(nbc_template)
 
           implicit none
@@ -366,6 +594,20 @@
         end function make_nbc_template_22
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_32() result(nbc_template)
 
           implicit none
@@ -387,6 +629,20 @@
         end function make_nbc_template_32
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_42() result(nbc_template)
 
           implicit none
@@ -408,6 +664,20 @@
         end function make_nbc_template_42
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_52() result(nbc_template)
 
           implicit none
@@ -429,6 +699,20 @@
         end function make_nbc_template_52
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_62() result(nbc_template)
 
           implicit none
@@ -450,6 +734,20 @@
         end function make_nbc_template_62
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_13() result(nbc_template)
 
           implicit none
@@ -471,6 +769,20 @@
         end function make_nbc_template_13
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_23() result(nbc_template)
 
           implicit none
@@ -492,6 +804,20 @@
         end function make_nbc_template_23
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_43() result(nbc_template)
 
           implicit none
@@ -513,6 +839,20 @@
         end function make_nbc_template_43
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_53() result(nbc_template)
 
           implicit none
@@ -534,6 +874,20 @@
         end function make_nbc_template_53
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_14() result(nbc_template)
 
           implicit none
@@ -555,6 +909,20 @@
         end function make_nbc_template_14
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_24() result(nbc_template)
 
           implicit none
@@ -576,6 +944,20 @@
         end function make_nbc_template_24
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_34() result(nbc_template)
 
           implicit none
@@ -597,6 +979,20 @@
         end function make_nbc_template_34
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_44() result(nbc_template)
 
           implicit none
@@ -618,6 +1014,20 @@
         end function make_nbc_template_44
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_54() result(nbc_template)
 
           implicit none
@@ -638,7 +1048,20 @@
 
         end function make_nbc_template_54
 
-      
+      !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_05() result(nbc_template)
 
           implicit none
@@ -660,6 +1083,20 @@
         end function make_nbc_template_05
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_15() result(nbc_template)
 
           implicit none
@@ -681,6 +1118,20 @@
         end function make_nbc_template_15
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_25() result(nbc_template)
 
           implicit none
@@ -702,6 +1153,20 @@
         end function make_nbc_template_25
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_35() result(nbc_template)
 
           implicit none
@@ -723,6 +1188,20 @@
         end function make_nbc_template_35
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_45() result(nbc_template)
 
           implicit none
@@ -744,6 +1223,20 @@
         end function make_nbc_template_45
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_55() result(nbc_template)
 
           implicit none
@@ -765,6 +1258,20 @@
         end function make_nbc_template_55
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_65() result(nbc_template)
 
           implicit none
@@ -786,6 +1293,20 @@
         end function make_nbc_template_65
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_06() result(nbc_template)
 
           implicit none
@@ -807,6 +1328,20 @@
         end function make_nbc_template_06
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_16() result(nbc_template)
 
           implicit none
@@ -828,6 +1363,20 @@
         end function make_nbc_template_16
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_26() result(nbc_template)
 
           implicit none
@@ -849,6 +1398,20 @@
         end function make_nbc_template_26
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_56() result(nbc_template)
 
           implicit none
@@ -870,6 +1433,20 @@
         end function make_nbc_template_56
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the temporary array giving the role of the grid
+        !> points at the edge between the interior domain and the buffer
+        !> layers
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@return nbc_template
+        !> temporary array with the role of the grid point
+        !--------------------------------------------------------------
         function make_nbc_template_66() result(nbc_template)
 
           implicit none

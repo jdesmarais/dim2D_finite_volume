@@ -1,3 +1,17 @@
+      !> @file
+      !> module implementing a pointer to a bf_sublayer object
+      !> to be able to create table of pointers to bf_sublayer objects
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implementing a pointer to a bf_sublayer object
+      !> to be able to create table of pointers to bf_sublayer objects
+      !
+      !> @date
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_sublayer_pointer_class
 
         use bf_sublayer_class, only : bf_sublayer
@@ -8,8 +22,21 @@
         public :: bf_sublayer_pointer
 
         
-        !< object containing a pointer reference to a
-        !> bf_sublayer object
+        !>@class bf_layer
+        !> class encapsulating a pointer to a bf_sublayer object
+        !
+        !>@param ptr
+        !> reference to a bf_sublayer object
+        !
+        !>@param get_ptr
+        !> get the ptr attribute
+        !
+        !>@param set_ptr
+        !> set the ptr attribute
+        !
+        !>@param associated_ptr
+        !> check if the ptr attribute is associated
+        !--------------------------------------------------------------
         type :: bf_sublayer_pointer
 
           type(bf_sublayer), pointer :: ptr
@@ -26,7 +53,22 @@
         contains
 
 
-        !< get the pointer to the buffer sublayer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the ptr attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_sublayer_pointer object encapsulating a reference
+        !> to a bf_sublayer object
+        !
+        !>@return ptr
+        !> ptr attribute
+        !--------------------------------------------------------------
         function get_ptr(this) result(ptr)
         
           implicit none
@@ -43,7 +85,22 @@
         end function get_ptr
 
 
-        !< set the pointer to the buffer sublayer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the ptr attribute
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_sublayer_pointer object encapsulating a reference
+        !> to a bf_sublayer object
+        !
+        !>@param ptr
+        !> value for the ptr attribute
+        !--------------------------------------------------------------
         subroutine set_ptr(this, ptr)
         
           implicit none
@@ -60,7 +117,23 @@
         end subroutine set_ptr
 
       
-        !> check if the pointer is associated
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the ptr attribute is associated
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_sublayer_pointer object encapsulating a reference
+        !> to a bf_sublayer object
+        !
+        !>@param ptr
+        !> reference to a bf_sublayer object with which the ptr
+        !> attribute is compared for the association check
+        !--------------------------------------------------------------
         function associated_ptr(this, ptr)
         
           implicit none
