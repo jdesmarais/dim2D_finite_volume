@@ -32,6 +32,7 @@
         integer, parameter :: bubble_ascending=2
         integer, parameter :: homogeneous_liquid=3
         integer, parameter :: drop_collision=4
+        integer, parameter :: phase_separation=5
 
         !>boundary conditions choice
         integer, parameter :: periodic_xy_choice=0
@@ -55,11 +56,7 @@
         integer, parameter :: S=2
         integer, parameter :: E=3
         integer, parameter :: W=4
-        integer, parameter :: N_E=5
-        integer, parameter :: N_W=6
-        integer, parameter :: S_E=7
-        integer, parameter :: S_W=8
-        integer, parameter :: interior=9
+        integer, parameter :: interior=5
 
         integer, parameter :: x_direction=1
         integer, parameter :: y_direction=2
@@ -69,9 +66,6 @@
         integer, parameter :: only_compute_proc=0
         integer, parameter :: compute_and_exchange_proc=1
         integer, parameter :: only_exchange_proc=2
-
-
-        !integer, dimension(4,2)  , parameter :: neighbors = (/(/W,W,S,S/),(/E,E,N,N/)/)
 
       end module parameters_constant
 
