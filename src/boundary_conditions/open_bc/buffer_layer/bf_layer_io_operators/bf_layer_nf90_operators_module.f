@@ -15,7 +15,6 @@
       module bf_layer_nf90_operators_module
 
         use bf_layer_errors_module, only : error_mainlayer_id
-        use dim2d_eq_class        , only : dim2d_eq
         use netcdf                
         use parameters_bf_layer   , only : no_pt
         use parameters_constant   , only : institut,
@@ -55,11 +54,12 @@
         !> array where the governing variables are saved at each grid
         !> point
         !
-        !> @param t
+        !> @param time
         !> time corresponding to the data for the grdpts and the nodes
         !--------------------------------------------------------------
         subroutine print_bf_layer_on_netcdf(
-     $       filename, p_model,
+     $       filename,
+     $       name_var, longname_var, unit_var,
      $       bf_loc, bf_order,
      $       x_start, y_start, dx, dy,
      $       grdpts_id, nodes, time)
@@ -67,7 +67,9 @@
           implicit none
 
           character(*)                  , intent(in)    :: filename
-          type(dim2d_eq)                , intent(in)    :: p_model
+          character(*), dimension(ne)   , intent(in)    :: name_var
+          character(*), dimension(ne)   , intent(in)    :: longname_var
+          character(*), dimension(ne)   , intent(in)    :: unit_var
           integer                       , intent(in)    :: bf_loc
           integer                       , intent(in)    :: bf_order
           real(rkind)                   , intent(in)    :: x_start
@@ -111,7 +113,8 @@
           !define the variables saved in the file
           call bf_layer_nf90_def_var(
      $         ncid,
-     $         p_model, size(grdpts_id,1), size(grdpts_id,2),
+     $         name_var, longname_var, unit_var,
+     $         size(grdpts_id,1), size(grdpts_id,2),
      $         NF90_FILL_MYREAL,
      $         coords_id, grdptsid_id, nodes_id)
           
@@ -365,19 +368,26 @@
         !> array is to be saved
         !--------------------------------------------------------------
         subroutine bf_layer_nf90_def_var(
-     $     ncid, p_model, size_x, size_y, missing_data,
+     $     ncid,
+     $     name_var, longname_var, unit_var,
+     $     size_x, size_y, missing_data,
      $     coords_id, grdptsid_id, nodes_id)
 
           implicit none
 
-          integer               , intent(in)  :: ncid
-          type(dim2d_eq)        , intent(in)  :: p_model
-          integer               , intent(in)  :: size_x
-          integer               , intent(in)  :: size_y
-          real(rkind)           , intent(in)  :: missing_data
-          integer, dimension(3) , intent(out) :: coords_id
-          integer               , intent(out) :: grdptsid_id
-          integer, dimension(ne), intent(out) :: nodes_id
+          integer                    , intent(in)  :: ncid
+c$$$          character(len=10), dimension(ne) :: name_var
+c$$$          character(len=33), dimension(ne) :: longname_var
+c$$$          character(len=23), dimension(ne) :: unit_var
+          character(*), dimension(ne), intent(in) :: name_var
+          character(*), dimension(ne), intent(in) :: longname_var
+          character(*), dimension(ne), intent(in) :: unit_var
+          integer                    , intent(in)  :: size_x
+          integer                    , intent(in)  :: size_y
+          real(rkind)                , intent(in)  :: missing_data
+          integer     , dimension(3) , intent(out) :: coords_id
+          integer                    , intent(out) :: grdptsid_id
+          integer     , dimension(ne), intent(out) :: nodes_id
 
           !definition of the coordinates saved in the netcdf file
           character*(*), parameter :: T_NAME = 'time'
@@ -405,10 +415,6 @@
           !identification of the memory locations to save the
           !netcdf variables
           integer :: NF_MYREAL
-
-          character(len=10), dimension(ne) :: name_var
-          character(len=33), dimension(ne) :: longname_var
-          character(len=23), dimension(ne) :: unit_var
 
           integer :: t_dimid
           integer :: x_dimid
@@ -540,15 +546,6 @@
      $         'role of the buffer layer grid points')
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
-
-          
-          !define the main variables of the governing equations
-          !DEC$ FORCEINLINE RECURSIVE
-          name_var     = p_model%get_var_name()
-          !DEC$ FORCEINLINE RECURSIVE
-          longname_var = p_model%get_var_longname()
-          !DEC$ FORCEINLINE RECURSIVE
-          unit_var     = p_model%get_var_unit()
 
           do k=1, ne
 

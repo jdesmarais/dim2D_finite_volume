@@ -24,7 +24,8 @@
      $                                  wall_xy_choice,
      $                                  wall_x_reflection_y_choice
         use parameters_input   , only : ntx,nty,nx,ny,npx,npy,bc_size,
-     $                                  bc_choice,x_min,x_max,y_min,y_max
+     $                                  bc_choice,
+     $                                  x_min,x_max,y_min,y_max
         use parameters_kind    , only : ikind, rkind
 
         implicit none

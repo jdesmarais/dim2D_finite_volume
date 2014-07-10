@@ -25,7 +25,7 @@
         use dim2d_parameters            , only : gravity
         use dim2d_bubble_ascending_module,only :apply_bubble_ascending_ic
         use dim2d_drop_collision_module , only : apply_drop_collision_ic 
-        use dim2d_phase_separation_module, only : apply_phase_separation_ic
+        use dim2d_phase_separation_module,only : apply_phase_separation_ic
         !use dim2d_drop_evaporation_module, only:apply_drop_evaporation_ic
         use dim2d_drop_retraction_module, only : apply_drop_retraction_ic
         use dim2d_fluxes_module         , only : flux_x_mass_density,

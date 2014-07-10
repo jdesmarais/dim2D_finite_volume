@@ -40,7 +40,6 @@ $(bf_layer_dir)/bf_layer_remove_module.o:\
 
 $(iobf_layer_dir)/bf_layer_nf90_operators_module.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
-	$(dim2d_dir)/dim2d_eq_class.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
@@ -53,6 +52,7 @@ $(bf_layer_dir)/bf_layer_class.o:\
 	$(bf_layer_dir)/bf_layer_reallocate_module.o\
 	$(bf_layer_dir)/bf_layer_merge_module.o\
 	$(bf_layer_dir)/bf_layer_exchange_module.o\
+	$(iobf_layer_dir)/bf_layer_nf90_operators_module.o\
 	$(bf_layer_dir)/bf_layer_remove_module.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\

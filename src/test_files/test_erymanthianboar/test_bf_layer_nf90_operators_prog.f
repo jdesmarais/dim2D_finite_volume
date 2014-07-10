@@ -31,7 +31,10 @@
         dy = 0.6
 
         call print_bf_layer_on_netcdf(
-     $       'test_bf_layer.nc', p_model,
+     $       'test_bf_layer.nc',
+     $       p_model%get_var_name(),
+     $       p_model%get_var_longname(),
+     $       p_model%get_var_unit(),
      $       N, 1,
      $       x_start, y_start, dx, dy,
      $       grdpts_id, nodes, time)

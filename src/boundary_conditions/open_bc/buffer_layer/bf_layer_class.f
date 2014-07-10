@@ -33,18 +33,23 @@
      $                                           merge_bf_layers_E,
      $                                           merge_bf_layers_W
 
-        use bf_layer_exchange_module    , only : do_grdpts_overlap_along_x_dir,
-     $                                           get_match_indices_for_exchange_with_neighbor1,
-     $                                           get_match_indices_for_exchange_with_neighbor2,
-     $                                           copy_from_bf1_to_bf2
+        use bf_layer_exchange_module    , only :
+     $       do_grdpts_overlap_along_x_dir,
+     $       get_match_indices_for_exchange_with_neighbor1,
+     $       get_match_indices_for_exchange_with_neighbor2,
+     $       copy_from_bf1_to_bf2
+
+        use bf_layer_nf90_operators_module, only :
+     $       print_bf_layer_on_netcdf
 
         use bf_layer_remove_module      , only : check_if_bf_layer_remains
-                                        
+        
         use parameters_bf_layer         , only : bc_pt, bc_interior_pt,
      $                                           interior_pt, no_pt,
      $                                           align_N, align_S,
      $                                           align_E, align_W,
-     $                                           bf_neighbors, bf_neighbors_id
+     $                                           bf_neighbors,
+     $                                           bf_neighbors_id
 
         use parameters_constant         , only : N,S,E,W,
      $                                           x_direction, y_direction,
@@ -71,8 +76,8 @@
         !> integer identifying the position of the buffer layer
         !> compared to the interior domain. The coordinates of the
         !> four border points are stored as general coordinates
-        !> \image html bf_layer_alignment.png "Buffer layer alignment"
-        !> \image latex bf_layer_alignment.eps "Buffer layer alignment"
+        !>\image html bf_layer_alignment.png "Buffer layer alignment"
+        !>\image latex bf_layer_alignment.eps "Buffer layer alignment"
         !>
         !> @param nodes
         !> array where the governing variables are saved at each grid
@@ -92,8 +97,8 @@
         !
         !> @param can_remain
         !> logical identifying whether the buffer layer based on its
-        !> grid points at the edge with the interior domain are such that
-        !> the buffer layer can be removed
+        !> grid points at the edge with the interior domain are such
+        !> that the buffer layer can be removed
         !
         !> @param ini
         !> initialize the buffer layer by setting its cardinal
@@ -217,15 +222,15 @@
         !> coordinates cpt_coords
         !
         !> @param check_neighboring_bc_interior_pts
-        !> check if the grid points neighboring a point identified by its
-        !> general coordinates (cpt_coords) are bc_interior_pt, if so,
-        !> the points are added to a list of bc_interior_pt
+        !> check if the grid points neighboring a point identified by
+        !> its general coordinates (cpt_coords) are bc_interior_pt,
+        !> if so, the points are added to a list of bc_interior_pt
         !
         !> @param update_grdpts_after_increase
         !> turn the grdpts_id identified by general coordinates
-        !> from bc_interior_pt to interior_pt and reallocate the buffer
-        !> layer such that the neighboring points around it are allocated.
-        !> Then compute these new grid points
+        !> from bc_interior_pt to interior_pt and reallocate the
+        !> buffer layer such that the neighboring points around it
+        !> are allocated. Then compute these new grid points
         !
         !> @param set_remain_status
         !> set the can_remain attribute
@@ -236,8 +241,8 @@
         !> @param should_remain
         !> check the grid points at the edge between the buffer layer
         !> and the interior domain and compute whether they undermine
-        !> the open boundary conditions. This determines the buffer layer
-        !> should be removed or not
+        !> the open boundary conditions. This determines whether the
+        !> buffer layer should be removed or not
         !
         !> @param remove
         !> remove the buffe rlayer by deallocating the main tables
@@ -246,14 +251,14 @@
         !> print the nodes and the grdpts_id attributes
         !> as well as the size of the previous tables in
         !> output binary files
-        !---------------------------------------------------------------
+        !-------------------------------------------------------------
         type :: bf_layer
 
           integer                       , private :: localization
           integer(ikind), dimension(2,2), private :: alignment
 
           real(rkind), dimension(:,:,:), allocatable, private :: nodes
-          integer    , dimension(:,:)  , allocatable, private :: grdpts_id
+          integer, dimension(:,:)  , allocatable, private :: grdpts_id
 
           logical, private :: shares_grdpts_with_neighbor1
           logical, private :: shares_grdpts_with_neighbor2
@@ -310,6 +315,7 @@
           procedure,   pass :: remove
           
           procedure,   pass :: print_binary
+          procedure,   pass :: print_netcdf
 
         end type bf_layer
 
@@ -2411,5 +2417,93 @@
           end if
 
         end subroutine print_binary
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the nodes and the grdpts_id attributes
+        !> on a netcdf file
+        !
+        !> @date
+        !> 10_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param filename
+        !> name of the output file for the grdpts_id of the nodes
+        !> attributes
+        !
+        !>@param p_model
+        !> physical model used to know the name of the governing
+        !> variables when writing the netcdf file
+        !
+        !>@param bf_order
+        !> identification of the buffer layer in the main layer to
+        !> determine the title of the netcdf file
+        !
+        !>@param x_min_interior
+        !> x-coordinate corresponding to the grid point next to the
+        !> left boundary layer in the interior domain
+        !
+        !>@param y_min_interior
+        !> y-coordinate corresponding to the grid point next to the
+        !> lower boundary layer in the interior domain
+        !
+        !>@param dx
+        !> buffer layer grid size along the x-direction
+        !
+        !>@param dy
+        !> buffer layer grid size along the y-direction
+        !
+        !>@param time
+        !> time corresponding to the buffer layer data
+        !--------------------------------------------------------------
+        subroutine print_netcdf(
+     $     this,
+     $     filename,
+     $     name_var,
+     $     longname_var,
+     $     unit_var,
+     $     bf_order,
+     $     x_min_interior,
+     $     y_min_interior,
+     $     dx,dy,
+     $     time)
+
+          implicit none
+
+          class(bf_layer)            , intent(inout) :: this
+          character(*)               , intent(in)    :: filename
+          character(*), dimension(ne), intent(in)    :: name_var
+          character(*), dimension(ne), intent(in)    :: longname_var
+          character(*), dimension(ne), intent(in)    :: unit_var
+          integer                    , intent(in)    :: bf_order
+          real(rkind)                , intent(in)    :: x_min_interior
+          real(rkind)                , intent(in)    :: y_min_interior
+          real(rkind)                , intent(in)    :: dx
+          real(rkind)                , intent(in)    :: dy
+          real(rkind)                , intent(in)    :: time
+
+          real(rkind) :: x_start
+          real(rkind) :: y_start
+
+          x_start = (this%alignment(1,1)-2*bc_size-1)*dx +
+     $              x_min_interior
+
+          y_start = (this%alignment(2,1)-2*bc_size-1)*dy +
+     $              y_min_interior
+
+          call print_bf_layer_on_netcdf(
+     $         filename,
+     $         name_var, longname_var, unit_var,
+     $         this%localization, bf_order,
+     $         x_start, y_start, dx, dy,
+     $         this%grdpts_id, this%nodes, time)
+
+        end subroutine print_netcdf
 
       end module bf_layer_class
