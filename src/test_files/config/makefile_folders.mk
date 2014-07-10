@@ -32,3 +32,4 @@ bf_layer_dir		= $(obc_dir)/buffer_layer
 nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors
 dbf_layer_dir           = $(bf_layer_dir)/bf_layer_detectors
 sbf_layer_dir           = $(bf_layer_dir)/bf_sublayer_lists
+iobf_layer_dir		= $(bf_layer_dir)/bf_layer_io_operators

@@ -16,13 +16,17 @@
 
         use field_class        , only : field
         use netcdf
-        use parameters_constant, only : prog_version
+        use parameters_constant, only : institut,
+     $                                  prog_version,
+     $                                  ref,
+     $                                  convention
         use parameters_kind    , only : rkind, ikind
         use parameters_input   , only : npx,npy,nx,ny,ne,bc_size,
      $                                  x_min,x_max,y_min,y_max,
      $                                  t_max,dt,detail_print
         use dim2d_eq_class     , only : dim2d_eq
-        use dim2d_parameters   , only : viscous_r, Re, We, Pr, cv_r, gravity
+        use dim2d_parameters   , only : viscous_r, Re, We, Pr,
+     $                                  cv_r, gravity
 
         implicit none
 
@@ -85,18 +89,8 @@
           type(dim2d_eq), intent(in) :: p_model
 
 
-          character(len=10) :: title
-          character(len=29) :: history
-          character*(*)     :: institut
-          character*(*)     :: source
-          character*(*)     :: ref
-          character*(*)     :: convention
-
-          parameter (institut   = 'Eindhoven university of technology')
-          parameter (source     = prog_version)
-          parameter (ref        = 'desmaraisjulien@gmail.com')
-          parameter (convention = 'cf-1.6')
-
+          character(len=10)     :: title
+          character(len=29)     :: history
           integer, dimension(8) :: now_data
           integer               :: retval
 
@@ -126,11 +120,11 @@
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'source',source)
+          retval = nf90_put_att(ncid,nf90_global,'source',prog_version)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'references', ref)
+          retval = nf90_put_att(ncid,nf90_global,'references',ref)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
@@ -259,8 +253,8 @@
           integer :: NF_MYREAL
 
           character(len=10), dimension(ne) :: name_var
-          character(len=32), dimension(ne) :: longname_var
-          character(len=10), dimension(ne) :: unit_var
+          character(len=33), dimension(ne) :: longname_var
+          character(len=23), dimension(ne) :: unit_var
 
           integer :: t_dimid
           integer :: x_dimid

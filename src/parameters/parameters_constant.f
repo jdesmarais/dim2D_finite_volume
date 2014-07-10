@@ -14,8 +14,17 @@
       !-----------------------------------------------------------------
       module parameters_constant
 
-        !>program version
-        character*(*) , parameter :: prog_version = 'lerneanhydra V1.0'
+        !>program information and conventions
+        character*(*) :: institut
+        character*(*) :: prog_version
+        character*(*) :: ref
+        character*(*) :: convention
+
+        parameter (institut     = 'Eindhoven university of technology')
+        parameter (prog_version = 'augeanstables V0.1')
+        parameter (ref          = 'desmaraisjulien@gmail.com')
+        parameter (convention   = 'cf-1.6')
+        
 
         !>main variable types
         integer, parameter :: scalar=0

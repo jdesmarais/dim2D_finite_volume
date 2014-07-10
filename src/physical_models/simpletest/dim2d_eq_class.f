@@ -343,12 +343,11 @@
         end function basic
 
 
-        function compute_body_forces(field_used,s) result(body_forces)
+        function compute_body_forces(field_used) result(body_forces)
 
           implicit none
 
           class(field)                   , intent(in) :: field_used
-          type(cg_operators)             , intent(in) :: s
           real(rkind),dimension(nx,ny,ne)             :: body_forces
 
           integer(ikind) :: i,j

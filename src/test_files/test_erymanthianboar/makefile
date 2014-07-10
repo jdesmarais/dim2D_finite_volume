@@ -196,6 +196,13 @@ test_bf_interface_dcr_update_prog2.o:\
 	test_bf_layer_module.o\
 	$(bf_test_case_dir)/test_case_class.o
 
+test_bf_layer_nf90_operators_prog.o:\
+	$(iobf_layer_dir)/bf_layer_nf90_operators_module.o\
+	$(dim2d_dir)/dim2d_eq_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_kind.o\
+	$(param_dir)/parameters_input.o
 
 #-----------------------------------------------------------------------
 #dependencies for the test files executables
@@ -1256,3 +1263,30 @@ test_nf90_operators_par:	surrogate_class.o\
 				io_operators_module.o\
 				nf90_operators_module.o\
 				nf90_operators_wr_par_class.o
+
+test_bf_layer_nf90_operators_prog:\
+				bf_layer_errors_module.o\
+				surrogate_class.o\
+				parameters_kind.o\
+				parameters_constant.o\
+				parameters_input.o\
+				field_class.o\
+				interface_primary.o\
+				sd_operators_class.o\
+				cg_operators_class.o\
+				dim2d_parameters.o\
+				dim2d_dropbubble_module.o\
+				dim2d_vortex_module.o\
+				dim2d_state_eq_module.o\
+				dim2d_bubble_ascending_module.o\
+				dim2d_drop_collision_module.o\
+				dim2d_drop_retraction_module.o\
+				dim2d_prim_module.o\
+				dim2d_fluxes_module.o\
+				dim2d_homogeneous_module.o\
+				dim2d_phase_separation_module.o\
+				dim2d_steadystate_module.o\
+				phy_model_eq_class.o\
+				dim2d_eq_class.o\
+				parameters_bf_layer.o\
+				bf_layer_nf90_operators_module.o

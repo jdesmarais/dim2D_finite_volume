@@ -20,7 +20,7 @@
         public :: rkind, ikind
 
         integer, parameter :: digits=8
-        integer, parameter :: decades=9
+        integer, parameter :: decades=8
 
         integer, parameter :: rkind = selected_real_kind(digits)
         integer, parameter :: ikind = selected_int_kind(decades)

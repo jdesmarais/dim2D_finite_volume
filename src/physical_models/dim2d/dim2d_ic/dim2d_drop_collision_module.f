@@ -55,8 +55,8 @@
           real(rkind)    :: dliq,dvap,li
 
           !< local variable for the vortex
-          real(rkind)    :: vortex_xc,vortex_yc
-          real(rkind)    :: vortex_rc,vortex_omega
+          !real(rkind)    :: vortex_xc,vortex_yc
+          !real(rkind)    :: vortex_rc,vortex_omega
 
           !< local variables for the initialization
           integer(ikind)            :: i,j

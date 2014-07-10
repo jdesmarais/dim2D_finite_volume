@@ -187,7 +187,7 @@
 
           implicit none
 
-          character(len=32), dimension(ne) :: var_pties
+          character(len=33), dimension(ne) :: var_pties
 
           var_pties(1)="mass density"
           var_pties(2)="momentum density along the x-axis"
@@ -213,7 +213,7 @@
 
           implicit none
 
-          character(len=10), dimension(ne) :: var_pties
+          character(len=23), dimension(ne) :: var_pties
 
           var_pties(1)= "(kg/m3)/(kg/m3)"
           var_pties(2)= "(kg/(m2.s))/(kg/(m2.s))"
@@ -457,12 +457,11 @@ c$$$               call apply_drop_evaporation_ic(field_used)
         !>@param body_forces
         !> body forces evaluated at (i,j)
         !--------------------------------------------------------------
-        function compute_body_forces(field_used,s) result(body_forces)
+        function compute_body_forces(field_used) result(body_forces)
 
           implicit none
 
           class(field)                   , intent(in) :: field_used
-          type(cg_operators)             , intent(in) :: s
           real(rkind),dimension(nx,ny,ne)             :: body_forces
 
           integer(ikind) :: i,j

@@ -77,7 +77,7 @@
           procedure(name_model), nopass, deferred :: get_model_name
           procedure(name_var)  , nopass, deferred :: get_var_name
           procedure(lname_var) , nopass, deferred :: get_var_longname
-          procedure(name_var)  , nopass, deferred :: get_var_unit
+          procedure(mname_var) , nopass, deferred :: get_var_unit
           procedure(type_var)  , nopass, deferred :: get_var_type
           procedure(gov_eq_nb) , nopass, deferred :: get_eq_nb
           procedure(ini_cond)  , nopass, deferred :: apply_ic
@@ -125,7 +125,26 @@
             character(len=10), dimension(ne) :: var_pties
           end function name_var
 
-          
+      
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to get the description of the
+          !> main variables
+          !
+          !> @date
+          !> 08_08_2013 - initial version - J.L. Desmarais
+          !
+          !>@param var_name
+          !> characters giving the variable descriptions
+          !--------------------------------------------------------------
+          function mname_var() result(var_pties)
+            import ne
+            character(len=23), dimension(ne) :: var_pties
+          end function mname_var
+
+
           !> @author
           !> Julien L. Desmarais
           !
@@ -141,7 +160,7 @@
           !--------------------------------------------------------------
           function lname_var() result(var_pties)
             import ne
-            character(len=32), dimension(ne) :: var_pties
+            character(len=33), dimension(ne) :: var_pties
           end function lname_var
 
 
@@ -286,15 +305,13 @@
           !>@param body_forces
           !> body forces
           !--------------------------------------------------------------
-          function bodyforces(field_used,s) result(body_forces)
+          function bodyforces(field_used) result(body_forces)
 
             import field
             import rkind
             import nx,ny,ne
-            import cg_operators
 
             class(field)                   , intent(in) :: field_used
-            type(cg_operators)             , intent(in) :: s
             real(rkind),dimension(nx,ny,ne)             :: body_forces
 
           end function bodyforces
