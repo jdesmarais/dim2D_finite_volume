@@ -24,11 +24,11 @@ while getopts i: option
 		  mv sim_dim2d $augeanstables
 	      fi
 
-	      #copy the serial executable
+	      #copy the parallel executable
 	      #to the main folder
-	      if [ -f sim_dim2d_par ];
+	      if [ -f sim_dim2d_*x* ];
 	      then
-		  mv sim_dim2d_par $augeanstables
+		  mv sim_dim2d_*x* $augeanstables
 	      fi
 		  
 	  else

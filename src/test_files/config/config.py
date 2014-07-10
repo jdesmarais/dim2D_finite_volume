@@ -290,7 +290,7 @@ def compile_code(inputs):
 
     cmd_serial  ='cd .. && make cleanall && make sim_dim2d && make clean'
     cmd_parallel='cd .. && make cleanall && make sim_dim2d_par && make clean'
-    #cmd_parallel+=' && mv sim_dim2d_par '+fname
+    cmd_parallel+=' && mv sim_dim2d_par '+fname
 
     if(inputs['npx']*inputs['npy']==1):
         cmd      = cmd_serial
