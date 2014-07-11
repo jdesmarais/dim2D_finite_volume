@@ -202,6 +202,11 @@
         !--------------------------------------------------------
         call test_does_a_neighbor_remains(interface_tested)
 
+        
+        !test the netcdf writing
+        call test_print_netcdf(
+     $       interface_tested,1)
+
 
         contains
 
@@ -737,5 +742,58 @@
      $         filename_nbsbl)
           
         end subroutine print_output
+
+
+        subroutine test_print_netcdf(interface_used, index)
+
+          implicit none
+
+          class(bf_interface), intent(in) :: interface_used
+          integer            , intent(in) :: index
+
+          
+          character*(*), dimension(4) :: name_var
+          character*(*), dimension(4) :: longname_var
+          character*(*), dimension(4) :: unit_var
+
+          real(rkind) :: x_min_interior
+          real(rkind) :: y_min_interior
+          real(rkind) :: dx
+          real(rkind) :: dy
+          real(rkind) :: time
+
+          parameter (name_var = [
+     $         'mass','momentum-x','momentum-y','energy'])
+
+          parameter (longname_var = [
+     $         'non-dimensional mass',
+     $         'non-dimensional momentum-x',
+     $         'non-dimensional momentum-y',
+     $         'non-dimensional energy'])
+
+          parameter (unit_var = [
+     $         '(kg/m3)/(kg/m3)',
+     $         '(kg/(m2.s))/(kg/(m2.s))',
+     $         '(kg/(m2.s))/(kg/(m2.s))',
+     $         '(J/m3)/(J/m3)'])
+
+          x_min_interior = 1.0
+          y_min_interior = 3.0
+          dx = 1.0
+          dy = 1.0
+          time = 2.0
+
+          call interface_used%print_netcdf(
+     $         index,
+     $         name_var,
+     $         longname_var,
+     $         unit_var,
+     $         x_min_interior,
+     $         y_min_interior,
+     $         dx,
+     $         dy,
+     $         time)
+
+        end subroutine test_print_netcdf
 
       end program test_bf_interface_prog

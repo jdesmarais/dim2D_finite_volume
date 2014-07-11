@@ -88,6 +88,10 @@
         !>@param print_binary
         !> print the content of the bf_sublayers constituing the
         !> bf_mainlayer on seperate binary output files
+        !
+        !>@param print_netcdf
+        !> print the content of the bf_sublayers constituing the
+        !> bf_mainlayer on seperate netcdf output files
         !---------------------------------------------------------------
         type :: bf_mainlayer_pointer
 
@@ -111,7 +115,9 @@
           procedure, pass :: add_sublayer
           procedure, pass :: merge_sublayers
           procedure, pass :: remove_sublayer
+
           procedure, pass :: print_binary
+          procedure, pass :: print_netcdf
           
         end type bf_mainlayer_pointer
 
@@ -700,5 +706,98 @@
           end if
 
         end subroutine print_binary
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the content of the bf_sublayers constituing the
+        !> bf_mainlayer on a netcdf output file
+        !
+        !> @date
+        !> 11_07_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !
+        !>@param timestep_written
+        !> integer identifying the timestep written
+        !
+        !>@param name_var
+        !> table with the short name for the governing variables saved
+        !> in the netcdf file
+        !
+        !>@param longname_var
+        !> table with the long name for the governing variables saved
+        !> in the netcdf file
+        !
+        !>@param unit_var
+        !> table with the units of the governing variables saved
+        !> in the netcdf file
+        !
+        !>@param x_min_interior
+        !> x-coordinate of interior grid point next to the left
+        !> boundary layer
+        !
+        !>@param y_min_interior
+        !> y-coordinate of interior grid point next to the lower
+        !> boundary layer
+        !
+        !>@param dx
+        !> grid size along the x-coordinate
+        !
+        !>@param dy
+        !> grid size along the y-coordinate
+        !
+        !>@param time
+        !> time corresponding to the data for the grdpts and the nodes
+        !--------------------------------------------------------------
+        subroutine print_netcdf(
+     $     this,
+     $     timestep_written,
+     $     name_var,
+     $     longname_var,
+     $     unit_var,
+     $     x_min_interior,
+     $     y_min_interior,
+     $     dx,
+     $     dy,
+     $     time)
+
+          implicit none
+
+          class(bf_mainlayer_pointer), intent(in) :: this
+          integer                    , intent(in) :: timestep_written
+          character(*), dimension(ne), intent(in) :: name_var
+          character(*), dimension(ne), intent(in) :: longname_var
+          character(*), dimension(ne), intent(in) :: unit_var
+          real(rkind)                , intent(in) :: x_min_interior
+          real(rkind)                , intent(in) :: y_min_interior
+          real(rkind)                , intent(in) :: dx
+          real(rkind)                , intent(in) :: dy
+          real(rkind)                , intent(in) :: time
+
+
+          if(this%associated_ptr()) then
+             call this%ptr%print_netcdf(
+     $            timestep_written,
+     $            name_var,
+     $            longname_var,
+     $            unit_var,
+     $            x_min_interior,
+     $            y_min_interior,
+     $            dx,
+     $            dy,
+     $            time)
+          else
+             print '(''bf_mainlayer_pointer_class'')'
+             print '(''print_netcdf'')'
+             stop 'ptr attribute not associated'
+          end if
+
+        end subroutine print_netcdf
 
       end module bf_mainlayer_pointer_class

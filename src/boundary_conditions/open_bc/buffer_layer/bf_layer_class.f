@@ -2437,7 +2437,7 @@
         !> name of the output file for the grdpts_id of the nodes
         !> attributes
         !
-        !>@param p_model
+        !>@param name_var
         !> physical model used to know the name of the governing
         !> variables when writing the netcdf file
         !

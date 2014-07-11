@@ -46,6 +46,38 @@
         !>@param filename
         !> file name for the netcdf output
         !
+        !>@param name_var
+        !> table with the short name for the governing variables saved
+        !> in the netcdf file
+        !
+        !>@param longname_var
+        !> table with the long name for the governing variables saved
+        !> in the netcdf file
+        !
+        !>@param unit_var
+        !> table with the units of the governing variables saved
+        !> in the netcdf file
+        !
+        !>@param bf_loc
+        !> integer identifying the cardinal coordinate of the buffer
+        !> layer saved in the netcdf file
+        !
+        !>@param bf_order
+        !> integer identifying the position of the buffer layer in the
+        !> main layer
+        !
+        !>@param x_start
+        !> x-coordinate of the left edge of the buffer layer grid points
+        !
+        !>@param y_start
+        !> y-coordinate of the lower edge of the buffer layer grid points
+        !
+        !>@param dx
+        !> grid size along the x-coordinate
+        !
+        !>@param dy
+        !> grid size along the y-coordinate
+        !
         !>@param grdpts_id
         !> array where the role of each grid point is stored (no_pt,
         !> bc_pt, bc_interior_pt, interior_pt)
