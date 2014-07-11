@@ -56,13 +56,11 @@ $(dim2d_dir)/dim2d_parameters.o:\
 
 $(dim2d_dir)/dim2d_prim_module.o:\
 			$(dim2d_dir)/dim2d_parameters.o\
-			$(field_dir)/field_class.o\
 			$(param_dir)/parameters_kind.o
 
 $(dim2d_dir)/dim2d_fluxes_module.o:\
 			$(dim2d_dir)/dim2d_parameters.o\
 			$(dim2d_dir)/dim2d_prim_module.o\
-			$(field_dir)/field_class.o\
 			$(param_dir)/parameters_kind.o\
 			$(sd_dir)/cg_operators_class.o
 

@@ -181,42 +181,48 @@
         if(detailled) then
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_x_mass_density(field_tested,s,i,j)
+           prog_data  = flux_x_mass_density(field_tested%nodes,s,i,j)
            test_validated = is_test_validated(prog_data, test_data(1))
            print '(''test flux_x_mass_density: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_x_momentum_x(field_tested,s,i,j)
+           prog_data  = flux_x_momentum_x(field_tested%nodes,s,i,j,
+     $          field_tested%dx, field_tested%dy)
            test_validated = is_test_validated(prog_data, test_data(2))
            print '(''test flux_x_momentum_x: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_x_momentum_y(field_tested,s,i,j)
+           prog_data  = flux_x_momentum_y(field_tested%nodes,s,i,j,
+     $          field_tested%dx, field_tested%dy)
            test_validated = is_test_validated(prog_data, test_data(3))
            print '(''test flux_x_momentum_y: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_x_total_energy(field_tested,s,i,j)
+           prog_data  = flux_x_total_energy(field_tested%nodes,s,i,j,
+     $          field_tested%dx, field_tested%dy)
            test_validated = is_test_validated(prog_data, test_data(4))
            print '(''test flux_x_total_energy: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_y_mass_density(field_tested,s,i,j)
+           prog_data  = flux_y_mass_density(field_tested%nodes,s,i,j)
            test_validated = is_test_validated(prog_data, test_data(5))
            print '(''test flux_y_mass_density: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_y_momentum_x(field_tested,s,i,j)
+           prog_data  = flux_y_momentum_x(field_tested%nodes,s,i,j,
+     $          field_tested%dx, field_tested%dy)
            test_validated = is_test_validated(prog_data, test_data(6))
            print '(''test flux_y_momentum_x: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_y_momentum_y(field_tested,s,i,j)
+           prog_data  = flux_y_momentum_y(field_tested%nodes,s,i,j,
+     $          field_tested%dx, field_tested%dy)
            test_validated = is_test_validated(prog_data,test_data(7))
            print '(''test flux_y_momentum_y: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_y_total_energy(field_tested,s,i,j)
+           prog_data  = flux_y_total_energy(field_tested%nodes,s,i,j,
+     $          field_tested%dx, field_tested%dy)
            test_validated = is_test_validated(prog_data, test_data(8))
            print '(''test flux_y_total_energy: '',1L)', test_validated
 
@@ -226,57 +232,68 @@
            test_validated=
      $          is_test_validated(
      $          flux_x_mass_density(
-     $          field_tested,s,
+     $          field_tested%nodes,s,
      $          i,j),
      $          test_data(1))
            
            test_validated=test_validated.and.
      $          is_test_validated(
      $          flux_x_momentum_x(
-     $          field_tested,s,
-     $          i,j),
+     $          field_tested%nodes,s,
+     $          i,j,
+     $          field_tested%dx, field_tested%dy),
      $          test_data(2))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          flux_x_momentum_y(
-     $          field_tested,s,
-     $          i,j),
+     $          field_tested%nodes,s,
+     $          i,j,
+     $          field_tested%dx,
+     $          field_tested%dy),
      $          test_data(3))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          flux_x_total_energy(
-     $          field_tested,s,
-     $          i,j),
+     $          field_tested%nodes,s,
+     $          i,j,
+     $          field_tested%dx,
+     $          field_tested%dy),
      $          test_data(4))
 
            test_validated=
      $          is_test_validated(
      $          flux_y_mass_density(
-     $          field_tested,s,
+     $          field_tested%nodes,s,
      $          i,j),
      $          test_data(5))
            
            test_validated=test_validated.and.
      $          is_test_validated(
      $          flux_y_momentum_x(
-     $          field_tested,s,
-     $          i,j),
+     $          field_tested%nodes,s,
+     $          i,j,
+     $          field_tested%dx,
+     $          field_tested%dy),
      $          test_data(6))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          flux_y_momentum_y(
-     $          field_tested,s,
-     $          i,j),
+     $          field_tested%nodes,s,
+     $          i,j,
+     $          field_tested%dx,
+     $          field_tested%dy),
      $          test_data(7))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          flux_y_total_energy(
-     $          field_tested,s,
-     $          i,j),
+     $          field_tested%nodes,s,
+     $          i,j,
+     $          field_tested%dx,
+     $          field_tested%dy),
      $          test_data(8))
 
            print '(''test_validated: '', 1L)', test_validated
