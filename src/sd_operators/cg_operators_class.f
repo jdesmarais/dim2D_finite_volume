@@ -19,8 +19,8 @@
       !-----------------------------------------------------------------
       module cg_operators_class
 
-        use field_class       , only : field
-        use interface_primary , only : get_primary_var
+        use interface_primary , only : get_primary_var,
+     $                                 get_secondary_var
         use parameters_kind   , only : ikind, rkind
         use sd_operators_class, only : sd_operators
 
@@ -82,7 +82,8 @@
           procedure, nopass :: get_bc_size => get_bc_size_cockburnandgau
 
           procedure, nopass :: f           => f_cockburnandgau
-          procedure, nopass :: dfdx        => dfdx_cockburnandgau        
+          procedure, nopass :: dfdx        => dfdx_cockburnandgau
+          procedure, nopass :: dfdx_nl     => dfdx_cockburnandgau_nl
           procedure, nopass :: dfdy        => dfdy_cockburnandgau
           procedure, nopass :: d2fdx2      => d2fdx2_cockburnandgau
           procedure, nopass :: d2fdy2      => d2fdy2_cockburnandgau
@@ -91,6 +92,7 @@
           procedure, nopass :: g           => g_cockburnandgau
           procedure, nopass :: dgdx        => dgdx_cockburnandgau
           procedure, nopass :: dgdy        => dgdy_cockburnandgau
+          procedure, nopass :: dgdy_nl     => dgdy_cockburnandgau_nl
           procedure, nopass :: d2gdx2      => d2gdx2_cockburnandgau
           procedure, nopass :: d2gdy2      => d2gdy2_cockburnandgau
           procedure, nopass :: d2gdxdy     => d2gdxdy_cockburnandgau
@@ -125,10 +127,11 @@
         !>\frac{1}{12}(-u_{i-1,j}+7 u_{i,j}+ 7 u_{i+1,j} - u_{i+2,j})\f$
         !
         !> @date
-        !> 07_08_2013 - initial version - J.L. Desmarais
+        !> 07_08_2013 - initial version  - J.L. Desmarais
+        !> 11_07_2014 - interface change - J.L. Desmarais
         !
-        !>@param field_used
-        !> object encapsulating the data
+        !>@param nodes
+        !> array with the grid point data
         !
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -143,31 +146,31 @@
         !>@param var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
-        function f_cockburnandgau(field_used,i,j,proc) result(var)
+        function f_cockburnandgau(nodes,i,j,proc) result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)                :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
              var = 1.0d0/12.0d0*(
-     $            -      proc(field_used,i-1,j)
-     $            +7.0d0*proc(field_used,i,j)
-     $            +7.0d0*proc(field_used,i+1,j)
-     $            -      proc(field_used,i+2,j)
+     $            -      proc(nodes,i-1,j)
+     $            +7.0d0*proc(nodes,i,j)
+     $            +7.0d0*proc(nodes,i+1,j)
+     $            -      proc(nodes,i+2,j)
      $            )
           else
              var = 1./12.*(
-     $            -  proc(field_used,i-1,j)
-     $            +7*proc(field_used,i,j)
-     $            +7*proc(field_used,i+1,j)
-     $            -  proc(field_used,i+2,j)
+     $            -  proc(nodes,i-1,j)
+     $            +7*proc(nodes,i,j)
+     $            +7*proc(nodes,i+1,j)
+     $            -  proc(nodes,i+2,j)
      $            )
           end if
 
@@ -182,10 +185,11 @@
         !> ,j}= \frac{1}{\Delta x}(-u_{i,j}+u_{i+1,j})\f$
         !
         !> @date
-        !> 07_08_2013 - initial version - J.L. Desmarais
+        !> 07_08_2013 - initial version  - J.L. Desmarais
+        !> 11_07_2014 - interface change - J.L. Desmarais
         !
-        !>@param field_used
-        !> object encapsulating the data
+        !>@param nodes
+        !> array with the grid point data
         !
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -201,30 +205,93 @@
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function dfdx_cockburnandgau(
-     $     field_used,i,j,proc)
+     $     nodes,i,j,proc,dx)
      $     result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
           integer(ikind), intent(in) :: i
           integer(ikind), intent(in) :: j
           procedure(get_primary_var) :: proc
+          real(rkind)   , intent(in) :: dx
           real(rkind)                :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = 1.d0/field_used%dx*(
-     $            -proc(field_used,i,j)
-     $            +proc(field_used,i+1,j))
+             var = 1.d0/dx*(
+     $            -proc(nodes,i,j)
+     $            +proc(nodes,i+1,j))
           else
-             var = 1./field_used%dx*(
-     $            -proc(field_used,i,j)
-     $            +proc(field_used,i+1,j))
+             var = 1./dx*(
+     $            -proc(nodes,i,j)
+     $            +proc(nodes,i+1,j))
           end if
 
         end function dfdx_cockburnandgau
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i+\frac{1}{2}
+        !> ,j}= \frac{1}{\Delta x}(-u_{i,j}+u_{i+1,j})\f$
+        !
+        !> @date
+        !> 07_08_2013 - initial version  - J.L. Desmarais
+        !> 11_07_2014 - interface change - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param proc
+        !> procedure computing the special quantity evaluated at [i,j]
+        !> (ex: pressure, temperature,...)
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> data evaluated at [i,j]
+        !---------------------------------------------------------------
+        function dfdx_cockburnandgau_nl(
+     $     nodes,i,j,proc,dx,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_secondary_var)              :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+          if(rkind.eq.8) then
+
+             !TAG INLINE
+             var = 1.d0/dx*(
+     $            -proc(nodes,i,j,dx,dy)
+     $            +proc(nodes,i+1,j,dx,dy))
+          else
+             var = 1./dx*(
+     $            -proc(nodes,i,j,dx,dy)
+     $            +proc(nodes,i+1,j,dx,dy))
+          end if
+
+        end function dfdx_cockburnandgau_nl
 
 
         !> @author
@@ -238,8 +305,8 @@
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param field_used
-        !> object encapsulating the data
+        !>@param nodes
+        !> array with the grid point data
         !
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -251,43 +318,47 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
+        !>@param dy
+        !> grid step along the y-axis
+        !
         !>@param var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function dfdy_cockburnandgau(
-     $     field_used,i,j,proc)
+     $     nodes,i,j,proc,dy)
      $     result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)                :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                  , intent(in) :: dy
+          procedure(get_primary_var)                :: proc
+          real(rkind)                               :: var
 
           !TAG INLINE
           if(rkind.eq.8) then
              !TAG INLINE
-             var = 1.0d0/(24.0d0*field_used%dy)*(
-     $            +       proc(field_used,i-1,j-1)
-     $            - 7.0d0*proc(field_used,i  ,j-1)
-     $            - 7.0d0*proc(field_used,i+1,j-1)
-     $            +       proc(field_used,i+2,j-1)
-     $            -       proc(field_used,i-1,j+1)
-     $            + 7.0d0*proc(field_used,i  ,j+1)
-     $            + 7.0d0*proc(field_used,i+1,j+1)
-     $            -       proc(field_used,i+2,j+1))
+             var = 1.0d0/(24.0d0*dy)*(
+     $            +       proc(nodes,i-1,j-1)
+     $            - 7.0d0*proc(nodes,i  ,j-1)
+     $            - 7.0d0*proc(nodes,i+1,j-1)
+     $            +       proc(nodes,i+2,j-1)
+     $            -       proc(nodes,i-1,j+1)
+     $            + 7.0d0*proc(nodes,i  ,j+1)
+     $            + 7.0d0*proc(nodes,i+1,j+1)
+     $            -       proc(nodes,i+2,j+1))
           else
-             var = 1./(24.*field_used%dy)*(
-     $         +   proc(field_used,i-1,j-1)
-     $         - 7*proc(field_used,i  ,j-1)
-     $         - 7*proc(field_used,i+1,j-1)
-     $         +   proc(field_used,i+2,j-1)
-     $         -   proc(field_used,i-1,j+1)
-     $         + 7*proc(field_used,i  ,j+1)
-     $         + 7*proc(field_used,i+1,j+1)
-     $         -   proc(field_used,i+2,j+1))
+             var = 1./(24.*dy)*(
+     $         +   proc(nodes,i-1,j-1)
+     $         - 7*proc(nodes,i  ,j-1)
+     $         - 7*proc(nodes,i+1,j-1)
+     $         +   proc(nodes,i+2,j-1)
+     $         -   proc(nodes,i-1,j+1)
+     $         + 7*proc(nodes,i  ,j+1)
+     $         + 7*proc(nodes,i+1,j+1)
+     $         -   proc(nodes,i+2,j+1))
           end if
 
         end function dfdy_cockburnandgau
@@ -304,8 +375,8 @@
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param field_used
-        !> object encapsulating the data
+        !>@param nodes
+        !> array with the grid point data
         !
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -317,35 +388,39 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
+        !>@param dx
+        !> grid step along the x-axis
+        !
         !>@param var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function d2fdx2_cockburnandgau(
-     $     field_used,i,j,proc)
+     $     nodes,i,j,proc,dx)
      $     result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)                :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                               :: var
 
           if(rkind.eq.8) then
              !TAG INLINE
-             var = 0.5d0/(field_used%dx**2)*(
-     $            +proc(field_used,i-1,j)
-     $            -proc(field_used,i,j)
-     $            -proc(field_used,i+1,j)
-     $            +proc(field_used,i+2,j)
+             var = 0.5d0/(dx**2)*(
+     $            +proc(nodes,i-1,j)
+     $            -proc(nodes,i,j)
+     $            -proc(nodes,i+1,j)
+     $            +proc(nodes,i+2,j)
      $            )
           else
-             var = 1./(2.*(field_used%dx**2))*(
-     $            +proc(field_used,i-1,j)
-     $            -proc(field_used,i,j)
-     $            -proc(field_used,i+1,j)
-     $            +proc(field_used,i+2,j)
+             var = 1./(2.*(dx**2))*(
+     $            +proc(nodes,i-1,j)
+     $            -proc(nodes,i,j)
+     $            -proc(nodes,i+1,j)
+     $            +proc(nodes,i+2,j)
      $            )
           end if
 
@@ -364,8 +439,8 @@
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param field_used
-        !> object encapsulating the data
+        !>@param nodes
+        !> array with the grid point data
         !
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -377,58 +452,62 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
+        !>@param dy
+        !> grid step along the y-axis
+        !
         !>@param var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function d2fdy2_cockburnandgau(
-     $     field_used,i,j,proc)
+     $     nodes,i,j,proc,dy)
      $     result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)                :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = (1.0d0/(12.0d0*field_used%dy**2))*(
+             var = (1.0d0/(12.0d0*dy**2))*(
      $            (
-     $            -       proc(field_used,i-1,j-1)
-     $            + 7.0d0*proc(field_used,i  ,j-1)
-     $            + 7.0d0*proc(field_used,i+1,j-1)
-     $            -       proc(field_used,i+2,j-1))
+     $            -       proc(nodes,i-1,j-1)
+     $            + 7.0d0*proc(nodes,i  ,j-1)
+     $            + 7.0d0*proc(nodes,i+1,j-1)
+     $            -       proc(nodes,i+2,j-1))
      $            - 2.0d0*(
-     $            -       proc(field_used,i-1,j)
-     $            + 7.0d0*proc(field_used,i  ,j)
-     $            + 7.0d0*proc(field_used,i+1,j)
-     $            -       proc(field_used,i+2,j))
+     $            -       proc(nodes,i-1,j)
+     $            + 7.0d0*proc(nodes,i  ,j)
+     $            + 7.0d0*proc(nodes,i+1,j)
+     $            -       proc(nodes,i+2,j))
      $            + (
-     $            -       proc(field_used,i-1,j+1)
-     $            + 7.0d0*proc(field_used,i  ,j+1)
-     $            + 7.0d0*proc(field_used,i+1,j+1)
-     $            -       proc(field_used,i+2,j+1))
+     $            -       proc(nodes,i-1,j+1)
+     $            + 7.0d0*proc(nodes,i  ,j+1)
+     $            + 7.0d0*proc(nodes,i+1,j+1)
+     $            -       proc(nodes,i+2,j+1))
      $            )
           else
-             var = (1./(12*field_used%dy**2))*(
+             var = (1./(12*dy**2))*(
      $            (
-     $            -   proc(field_used,i-1,j-1)
-     $            + 7*proc(field_used,i  ,j-1)
-     $            + 7*proc(field_used,i+1,j-1)
-     $            -   proc(field_used,i+2,j-1))
+     $            -   proc(nodes,i-1,j-1)
+     $            + 7*proc(nodes,i  ,j-1)
+     $            + 7*proc(nodes,i+1,j-1)
+     $            -   proc(nodes,i+2,j-1))
      $            - 2*(
-     $            -   proc(field_used,i-1,j)
-     $            + 7*proc(field_used,i  ,j)
-     $            + 7*proc(field_used,i+1,j)
-     $            -   proc(field_used,i+2,j))
+     $            -   proc(nodes,i-1,j)
+     $            + 7*proc(nodes,i  ,j)
+     $            + 7*proc(nodes,i+1,j)
+     $            -   proc(nodes,i+2,j))
      $            + (
-     $            -   proc(field_used,i-1,j+1)
-     $            + 7*proc(field_used,i  ,j+1)
-     $            + 7*proc(field_used,i+1,j+1)
-     $            -   proc(field_used,i+2,j+1))
+     $            -   proc(nodes,i-1,j+1)
+     $            + 7*proc(nodes,i  ,j+1)
+     $            + 7*proc(nodes,i+1,j+1)
+     $            -   proc(nodes,i+2,j+1))
      $            )
           end if
         end function d2fdy2_cockburnandgau
@@ -446,8 +525,8 @@
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param field_used
-        !> object encapsulating the data
+        !>@param nodes
+        !> array with the grid point data
         !
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -459,35 +538,43 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
         !>@param var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function d2fdxdy_cockburnandgau(
-     $     field_used,i,j,proc)
+     $     nodes,i,j,proc,dx,dy)
      $     result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)                :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var =( proc(field_used,i,j-1)
-     $            - proc(field_used,i+1,j-1)
-     $            - proc(field_used,i,j+1)
-     $            + proc(field_used,i+1,j+1))*
-     $            0.5d0/(field_used%dy*field_used%dx)
+             var =( proc(nodes,i,j-1)
+     $            - proc(nodes,i+1,j-1)
+     $            - proc(nodes,i,j+1)
+     $            + proc(nodes,i+1,j+1))*
+     $            0.5d0/(dy*dx)
           else
-             var =( proc(field_used,i,j-1)
-     $            - proc(field_used,i+1,j-1)
-     $            - proc(field_used,i,j+1)
-     $            + proc(field_used,i+1,j+1))
-     $            /(2*field_used%dy*field_used%dx)
+             var =( proc(nodes,i,j-1)
+     $            - proc(nodes,i+1,j-1)
+     $            - proc(nodes,i,j+1)
+     $            + proc(nodes,i+1,j+1))
+     $            /(2*dy*dx)
           end if
 
         end function d2fdxdy_cockburnandgau
@@ -501,10 +588,11 @@
         !>\frac{1}{12}(-u_{i,j-1}+7 u_{i,j}+ 7 u_{i,j+1} - u_{i,j+2})\f$
         !
         !> @date
-        !> 07_08_2013 - initial version - J.L. Desmarais
+        !> 07_08_2013 - initial version  - J.L. Desmarais
+        !> 11_07_2014 - interface change - J.L. Desmarais
         !
-        !>@param field_used
-        !> object encapsulating the data
+        !>@param nodes
+        !> array with the grid point data
         !
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -520,32 +608,32 @@
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function g_cockburnandgau(
-     $     field_used,i,j,proc)
+     $     nodes,i,j,proc)
      $     result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)                :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
              var = 1.0d0/12.0d0*(
-     $            -      proc(field_used,i,j-1)
-     $            +7.0d0*proc(field_used,i,j)
-     $            +7.0d0*proc(field_used,i,j+1)
-     $            -      proc(field_used,i,j+2)
+     $            -      proc(nodes,i,j-1)
+     $            +7.0d0*proc(nodes,i,j)
+     $            +7.0d0*proc(nodes,i,j+1)
+     $            -      proc(nodes,i,j+2)
      $            )
           else
              var = 1./12.*(
-     $            -  proc(field_used,i,j-1)
-     $            +7*proc(field_used,i,j)
-     $            +7*proc(field_used,i,j+1)
-     $            -  proc(field_used,i,j+2)
+     $            -  proc(nodes,i,j-1)
+     $            +7*proc(nodes,i,j)
+     $            +7*proc(nodes,i,j+1)
+     $            -  proc(nodes,i,j+2)
      $            )
           end if
 
@@ -563,8 +651,8 @@
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param field_used
-        !> object encapsulating the data
+        !>@param nodes
+        !> array with the grid point data
         !
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -576,43 +664,47 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
+        !>@param dx
+        !> grid step along the x-axis
+        !
         !>@param var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function dgdx_cockburnandgau(
-     $     field_used,i,j,proc)
+     $     nodes,i,j,proc,dx)
      $     result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)                :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = 1.0d0/(24.0d0*field_used%dx)*(
-     $            +       proc(field_used,i-1,j-1)
-     $            - 7.0d0*proc(field_used,i-1,j)
-     $            - 7.0d0*proc(field_used,i-1,j+1)
-     $            +       proc(field_used,i-1,j+2)
-     $            -       proc(field_used,i+1,j-1)
-     $            + 7.0d0*proc(field_used,i+1,j)
-     $            + 7.0d0*proc(field_used,i+1,j+1)
-     $            -       proc(field_used,i+1,j+2))
+             var = 1.0d0/(24.0d0*dx)*(
+     $            +       proc(nodes,i-1,j-1)
+     $            - 7.0d0*proc(nodes,i-1,j)
+     $            - 7.0d0*proc(nodes,i-1,j+1)
+     $            +       proc(nodes,i-1,j+2)
+     $            -       proc(nodes,i+1,j-1)
+     $            + 7.0d0*proc(nodes,i+1,j)
+     $            + 7.0d0*proc(nodes,i+1,j+1)
+     $            -       proc(nodes,i+1,j+2))
           else
-             var = 1./(24.*field_used%dx)*(
-     $            +   proc(field_used,i-1,j-1)
-     $            - 7*proc(field_used,i-1,j)
-     $            - 7*proc(field_used,i-1,j+1)
-     $            +   proc(field_used,i-1,j+2)
-     $            -   proc(field_used,i+1,j-1)
-     $            + 7*proc(field_used,i+1,j)
-     $            + 7*proc(field_used,i+1,j+1)
-     $            -   proc(field_used,i+1,j+2))
+             var = 1./(24.*dx)*(
+     $            +   proc(nodes,i-1,j-1)
+     $            - 7*proc(nodes,i-1,j)
+     $            - 7*proc(nodes,i-1,j+1)
+     $            +   proc(nodes,i-1,j+2)
+     $            -   proc(nodes,i+1,j-1)
+     $            + 7*proc(nodes,i+1,j)
+     $            + 7*proc(nodes,i+1,j+1)
+     $            -   proc(nodes,i+1,j+2))
           end if
 
         end function dgdx_cockburnandgau
@@ -628,8 +720,8 @@
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param field_used
-        !> object encapsulating the data
+        !>@param nodes
+        !> array with the grid point data
         !
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -641,36 +733,103 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
+        !>@param dy
+        !> grid step along the y-axis
+        !
         !>@param var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function dgdy_cockburnandgau(
-     $     field_used,i,j,proc)
+     $     nodes,i,j,proc,dy)
      $     result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)                :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = 1.0d0/field_used%dy*(
-     $            -proc(field_used,i,j)
-     $            +proc(field_used,i,j+1)
+             var = 1.0d0/dy*(
+     $            -proc(nodes,i,j)
+     $            +proc(nodes,i,j+1)
      $            )
           else
-             var = 1./field_used%dy*(
-     $            -proc(field_used,i,j)
-     $            +proc(field_used,i,j+1)
+             var = 1./dy*(
+     $            -proc(nodes,i,j)
+     $            +proc(nodes,i,j+1)
      $            )
           end if
 
-        end function dgdy_cockburnandgau        
+        end function dgdy_cockburnandgau
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial y}\big|_{i
+        !> ,j+\frac{1}{2}}= \frac{1}{\Delta y}(-u_{i,j}+u_{i,j+1})\f$
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param proc
+        !> procedure computing the special quantity evaluated at [i,j]
+        !> (ex: pressure, temperature,...)
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> data evaluated at [i,j]
+        !---------------------------------------------------------------
+        function dgdy_cockburnandgau_nl(
+     $     nodes,i,j,proc,dx,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_secondary_var)              :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+          if(rkind.eq.8) then
+
+             !TAG INLINE
+             var = 1.0d0/dy*(
+     $            -proc(nodes,i,j,dx,dy)
+     $            +proc(nodes,i,j+1,dx,dy)
+     $            )
+          else
+             var = 1./dy*(
+     $            -proc(nodes,i,j,dx,dy)
+     $            +proc(nodes,i,j+1,dx,dy)
+     $            )
+          end if
+
+        end function dgdy_cockburnandgau_nl        
 
       
         !> @author
@@ -685,8 +844,8 @@
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param field_used
-        !> object encapsulating the data
+        !>@param nodes
+        !> array with the grid point data
         !
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -698,56 +857,60 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
+        !>@param dx
+        !> grid step along the x-axis
+        !
         !>@param var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function d2gdx2_cockburnandgau(
-     $     field_used,i,j,proc)
+     $     nodes,i,j,proc,dx)
      $     result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)                :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = 1.0d0/(12.0d0*field_used%dx**2) * (
-     $            -      proc(field_used,i-1,j-1)
-     $            +7.0d0*proc(field_used,i-1,j)
-     $            +7.0d0*proc(field_used,i-1,j+1)
-     $            -      proc(field_used,i-1,j+2)
+             var = 1.0d0/(12.0d0*dx**2) * (
+     $            -      proc(nodes,i-1,j-1)
+     $            +7.0d0*proc(nodes,i-1,j)
+     $            +7.0d0*proc(nodes,i-1,j+1)
+     $            -      proc(nodes,i-1,j+2)
      $            - 2.0d0*(
-     $            -      proc(field_used,i,j-1)
-     $            +7.0d0*proc(field_used,i,j)
-     $            +7.0d0*proc(field_used,i,j+1)
-     $            -      proc(field_used,i,j+2)
+     $            -      proc(nodes,i,j-1)
+     $            +7.0d0*proc(nodes,i,j)
+     $            +7.0d0*proc(nodes,i,j+1)
+     $            -      proc(nodes,i,j+2)
      $            )
-     $            -      proc(field_used,i+1,j-1)
-     $            +7.0d0*proc(field_used,i+1,j)
-     $            +7.0d0*proc(field_used,i+1,j+1)
-     $            -      proc(field_used,i+1,j+2)
+     $            -      proc(nodes,i+1,j-1)
+     $            +7.0d0*proc(nodes,i+1,j)
+     $            +7.0d0*proc(nodes,i+1,j+1)
+     $            -      proc(nodes,i+1,j+2)
      $            )
           else
-             var = 1./(12.*field_used%dx**2) * (
-     $            -  proc(field_used,i-1,j-1)
-     $            +7*proc(field_used,i-1,j)
-     $            +7*proc(field_used,i-1,j+1)
-     $            -  proc(field_used,i-1,j+2)
+             var = 1./(12.*dx**2) * (
+     $            -  proc(nodes,i-1,j-1)
+     $            +7*proc(nodes,i-1,j)
+     $            +7*proc(nodes,i-1,j+1)
+     $            -  proc(nodes,i-1,j+2)
      $            - 2*(
-     $            -  proc(field_used,i,j-1)
-     $            +7*proc(field_used,i,j)
-     $            +7*proc(field_used,i,j+1)
-     $            -  proc(field_used,i,j+2)
+     $            -  proc(nodes,i,j-1)
+     $            +7*proc(nodes,i,j)
+     $            +7*proc(nodes,i,j+1)
+     $            -  proc(nodes,i,j+2)
      $            )
-     $            -  proc(field_used,i+1,j-1)
-     $            +7*proc(field_used,i+1,j)
-     $            +7*proc(field_used,i+1,j+1)
-     $            -  proc(field_used,i+1,j+2)
+     $            -  proc(nodes,i+1,j-1)
+     $            +7*proc(nodes,i+1,j)
+     $            +7*proc(nodes,i+1,j+1)
+     $            -  proc(nodes,i+1,j+2)
      $            )
           end if
 
@@ -765,8 +928,8 @@
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param field_used
-        !> object encapsulating the data
+        !>@param nodes
+        !> array with the grid point data
         !
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -778,35 +941,39 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
+        !>@param dy
+        !> grid step along the y-axis
+        !
         !>@param var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function d2gdy2_cockburnandgau(
-     $     field_used,i,j,proc)
+     $     nodes,i,j,proc,dy)
      $     result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)                :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
 
           !TAG INLINE
           if(rkind.eq.8) then
-             var = 0.5d0/(field_used%dy**2)*(
-     $            + proc(field_used,i,j-1)
-     $            - proc(field_used,i,j)
-     $            - proc(field_used,i,j+1)
-     $            + proc(field_used,i,j+2)
+             var = 0.5d0/(dy**2)*(
+     $            + proc(nodes,i,j-1)
+     $            - proc(nodes,i,j)
+     $            - proc(nodes,i,j+1)
+     $            + proc(nodes,i,j+2)
      $            )
           else
-             var = 1./(2.*field_used%dy**2)*(
-     $            + proc(field_used,i,j-1)
-     $            - proc(field_used,i,j)
-     $            - proc(field_used,i,j+1)
-     $            + proc(field_used,i,j+2)
+             var = 1./(2.*dy**2)*(
+     $            + proc(nodes,i,j-1)
+     $            - proc(nodes,i,j)
+     $            - proc(nodes,i,j+1)
+     $            + proc(nodes,i,j+2)
      $            )
           end if
 
@@ -825,8 +992,8 @@
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param field_used
-        !> object encapsulating the data
+        !>@param nodes
+        !> array with the grid point data
         !
         !>@param i
         !> index along x-axis where the data is evaluated
@@ -838,38 +1005,45 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
         !>@param var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function d2gdxdy_cockburnandgau(
-     $     field_used,i,j,proc)
+     $     nodes,i,j,proc,dx,dy)
      $     result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)                :: var
-
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
              var =(
-     $            proc(field_used,i-1,j)
-     $            - proc(field_used,i-1,j+1)
-     $            - proc(field_used,i+1,j)
-     $            + proc(field_used,i+1,j+1))*
-     $            0.5d0/(field_used%dx*field_used%dy)
+     $            proc(nodes,i-1,j)
+     $            - proc(nodes,i-1,j+1)
+     $            - proc(nodes,i+1,j)
+     $            + proc(nodes,i+1,j+1))*
+     $            0.5d0/(dx*dy)
           else
              var =(
-     $            proc(field_used,i-1,j)
-     $            - proc(field_used,i-1,j+1)
-     $            - proc(field_used,i+1,j)
-     $            + proc(field_used,i+1,j+1))
-     $            /(2*field_used%dx*field_used%dy)
+     $            proc(nodes,i-1,j)
+     $            - proc(nodes,i-1,j+1)
+     $            - proc(nodes,i+1,j)
+     $            + proc(nodes,i+1,j+1))
+     $            /(2*dx*dy)
           end if
 
         end function d2gdxdy_cockburnandgau

@@ -24,16 +24,13 @@ $(field_dir)/field_par_class.o:\
 
 #space discretization operators
 $(sd_dir)/interface_primary.o:\
-			$(field_dir)/field_class.o\
 			$(param_dir)/parameters_kind.o
 
 $(sd_dir)/sd_operators_class.o:\
-			$(field_dir)/field_class.o\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_kind.o
 
 $(sd_dir)/cg_operators_class.o:\
-			$(field_dir)/field_class.o\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_kind.o\
 			$(sd_dir)/sd_operators_class.o
