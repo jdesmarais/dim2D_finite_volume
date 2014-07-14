@@ -26,14 +26,14 @@ $(field_dir)/field_par_class.o:\
 $(sd_dir)/interface_primary.o:\
 			$(param_dir)/parameters_kind.o
 
-$(sd_dir)/sd_operators_class.o:\
+$(sd_dir)/sd_operators_abstract_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_kind.o
 
-$(sd_dir)/cg_operators_class.o:\
+$(cg_dir)/sd_operators_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_kind.o\
-			$(sd_dir)/sd_operators_class.o
+			$(sd_dir)/sd_operators_abstract_class.o
 
 #physical models
 $(phy_eq_dir)/phy_model_eq_class.o:\

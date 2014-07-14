@@ -10,12 +10,12 @@
       !> scheme
       !
       !> @date
-      !> 30_07_2012 - initial version                                - J.L. Desmarais
-      !> 04_06_2013 - functions for crossed derivatives              - J.L. Desmarais
-      !> 07_08_2013 - transfered in lernaeanhydra_opt                - J.L. Desmarais
-      !> 11_07_2014 - interface modification for erymanthianboar use - J.L. Desmarais
+      !> 30_07_2012 - initial version                   - J.L. Desmarais
+      !> 04_06_2013 - functions for crossed derivatives - J.L. Desmarais
+      !> 07_08_2013 - transfered in lernaeanhydra_opt   - J.L. Desmarais
+      !> 11_07_2014 - interface for erymanthianboar use - J.L. Desmarais
       !-----------------------------------------------------------------
-      module sd_operators_class
+      module sd_operators_abstract_class
 
         use interface_primary, only : get_primary_var
         use parameters_kind  , only : ikind, rkind
@@ -23,10 +23,10 @@
         implicit none
 
         private
-        public :: sd_operators
+        public :: sd_operators_abstract
 
 
-        !> @class sd_operators
+        !> @class sd_operators_abstract
         !> abstract class encapsulating spatial discretization operators
         !>
         !> @param get_bc_size
@@ -70,7 +70,7 @@
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i,j+1/2]
         !---------------------------------------------------------------
-        type, abstract :: sd_operators
+        type, abstract :: sd_operators_abstract
 
           contains
           
@@ -93,7 +93,7 @@
           procedure(space_operator_proc_xy), nopass, deferred :: d2gdxdy
           
 
-        end type sd_operators
+        end type sd_operators_abstract
 
 
         abstract interface
@@ -299,4 +299,4 @@
 
       end interface
 
-      end module sd_operators_class
+      end module sd_operators_abstract_class

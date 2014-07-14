@@ -17,20 +17,20 @@
       !> 04_06_2013 - functions for crossed derivatives - J.L. Desmarais
       !> 07_08_2013 - transfered in lernaeanhydra_opt   - J.L. Desmarais
       !-----------------------------------------------------------------
-      module cg_operators_class
+      module sd_operators_class
 
-        use interface_primary , only : get_primary_var,
-     $                                 get_secondary_var
-        use parameters_kind   , only : ikind, rkind
-        use sd_operators_class, only : sd_operators
+        use interface_primary          , only : get_primary_var,
+     $                                          get_secondary_var
+        use parameters_kind            , only : ikind, rkind
+        use sd_operators_abstract_class, only : sd_operators_abstract
 
         implicit none
 
         private
-        public :: cg_operators
+        public :: sd_operators
 
 
-        !> @class cg_operators
+        !> @class sd_operators
         !> class encapsulating Cockburn and Gau's spatial
         !> discretization operators
         !>
@@ -75,7 +75,7 @@
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i,j+1/2]
         !---------------------------------------------------------------
-        type, extends(sd_operators) :: cg_operators
+        type, extends(sd_operators_abstract) :: sd_operators
 
           contains
 
@@ -97,7 +97,7 @@
           procedure, nopass :: d2gdy2      => d2gdy2_cockburnandgau
           procedure, nopass :: d2gdxdy     => d2gdxdy_cockburnandgau
 
-        end type cg_operators
+        end type sd_operators
 
         contains
 
@@ -1048,4 +1048,4 @@
 
         end function d2gdxdy_cockburnandgau
         
-      end module cg_operators_class
+      end module sd_operators_class

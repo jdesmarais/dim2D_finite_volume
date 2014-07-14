@@ -13,10 +13,9 @@
       !-----------------------------------------------------------------
       program test_cg_operators
 
-        use cg_operators_class, only : cg_operators
+        use sd_operators_class, only : sd_operators
         use dim2d_prim_module , only : mass_density
-        use field_class       , only : field
-        use parameters_input  , only : nx,ny
+        use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : ikind, rkind
 
         
@@ -24,8 +23,10 @@
 
 
         !<operators tested
-        type(field)        :: field_tested
-        type(cg_operators) :: sd_operators_tested
+        real(rkind), dimension(nx,ny,ne) :: nodes
+        real(rkind) :: dx
+        real(rkind) :: dy
+        type(sd_operators) :: sd_operators_tested
 
         !<CPU recorded times
         real :: time1, time2
@@ -48,28 +49,28 @@
 
 
         !<initialize the tables for the field
-        field_tested%dx=0.5
-        field_tested%dy=0.6
+        dx=0.5
+        dy=0.6
 
-        field_tested%nodes(1,1,1)=0.5
-        field_tested%nodes(2,1,1)=0.2
-        field_tested%nodes(3,1,1)=1.2
-        field_tested%nodes(4,1,1)=5.0
+        nodes(1,1,1)=0.5
+        nodes(2,1,1)=0.2
+        nodes(3,1,1)=1.2
+        nodes(4,1,1)=5.0
 
-        field_tested%nodes(1,2,1)=3.0
-        field_tested%nodes(2,2,1)=4.2
-        field_tested%nodes(3,2,1)=11.0
-        field_tested%nodes(4,2,1)=10.6
+        nodes(1,2,1)=3.0
+        nodes(2,2,1)=4.2
+        nodes(3,2,1)=11.0
+        nodes(4,2,1)=10.6
 
-        field_tested%nodes(1,3,1)=-14.2
-        field_tested%nodes(2,3,1)=23
-        field_tested%nodes(3,3,1)=9.8
-        field_tested%nodes(4,3,1)=3.4
+        nodes(1,3,1)=-14.2
+        nodes(2,3,1)=23
+        nodes(3,3,1)=9.8
+        nodes(4,3,1)=3.4
 
-        field_tested%nodes(1,4,1)=2.45
-        field_tested%nodes(2,4,1)=0.2
-        field_tested%nodes(3,4,1)=9.0
-        field_tested%nodes(4,4,1)=5.4
+        nodes(1,4,1)=2.45
+        nodes(2,4,1)=0.2
+        nodes(3,4,1)=9.0
+        nodes(4,4,1)=5.4
 
         
         !<test the operators defined in cg_operators
@@ -97,7 +98,7 @@
            print '(''test %f: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%f(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density),
      $          test_data(1))
@@ -106,56 +107,56 @@
            print '(''test %dfdx: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%dfdx(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dx),
+     $          dx),
      $          test_data(2))
            !TAG INLINE
            print '(''test %dfdy: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%dfdy(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dy),
+     $          dy),
      $          test_data(3))
            !TAG INLINE
            print '(''test %d2fdx2: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%d2fdx2(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dx),
+     $          dx),
      $          test_data(4))
 
            !TAG INLINE
            print '(''test %d2fdy2: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%d2fdy2(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dy),
+     $          dy),
      $          test_data(5))
 
            !TAG INLINE
            print '(''test %d2fdxdy: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%d2fdxdy(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dx,
-     $          field_tested%dy),
+     $          dx,
+     $          dy),
      $          test_data(6))
 
            !TAG INLINE
            print '(''test %g: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%g(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density),
      $          test_data(7))
@@ -164,58 +165,58 @@
            print '(''test %dgdx: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%dgdx(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dx),
+     $          dx),
      $          test_data(8))
 
            !TAG INLINE
            print '(''test %dgdy: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%dgdy(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dy),
+     $          dy),
      $          test_data(9))
 
            !TAG INLINE
            print '(''test %d2gdx2: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%d2gdx2(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dx),
+     $          dx),
      $          test_data(10))
 
            !TAG INLINE
            print '(''test %d2gdy2: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%d2gdy2(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dy),
+     $          dy),
      $          test_data(11))
 
            !TAG INLINE
            print '(''test %d2gdxdy: '',1L)',
      $          is_test_validated(
      $          sd_operators_tested%d2gdxdy(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dx,
-     $          field_tested%dy),
+     $          dx,
+     $          dy),
      $          test_data(12))
         else
            test_validated=.true.
 
            test_validated=is_test_validated(
      $          sd_operators_tested%f(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density),
      $          test_data(1))
@@ -223,53 +224,53 @@
            test_validated=test_validated.and.
      $          is_test_validated(
      $          sd_operators_tested%dfdx(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dx),
+     $          dx),
      $          test_data(2))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          sd_operators_tested%dfdy(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dy),
+     $          dy),
      $          test_data(3))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          sd_operators_tested%d2fdx2(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dx),
+     $          dx),
      $          test_data(4))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          sd_operators_tested%d2fdy2(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dy),
+     $          dy),
      $          test_data(5))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          sd_operators_tested%d2fdxdy(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dx,
-     $          field_tested%dy),
+     $          dx,
+     $          dy),
      $          test_data(6))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          sd_operators_tested%g(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density),
      $          test_data(7))
@@ -277,47 +278,47 @@
            test_validated=test_validated.and.
      $          is_test_validated(
      $          sd_operators_tested%dgdx(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dx),
+     $          dx),
      $          test_data(8))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          sd_operators_tested%dgdy(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dy),
+     $          dy),
      $          test_data(9))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          sd_operators_tested%d2gdx2(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dx),
+     $          dx),
      $          test_data(10))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          sd_operators_tested%d2gdy2(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dy),
+     $          dy),
      $          test_data(11))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          sd_operators_tested%d2gdxdy(
-     $          field_tested%nodes,
+     $          nodes,
      $          i,j,
      $          mass_density,
-     $          field_tested%dx,
-     $          field_tested%dy),
+     $          dx,
+     $          dy),
      $          test_data(12))
 
            print '(''test_validated: '', 1L)', test_validated

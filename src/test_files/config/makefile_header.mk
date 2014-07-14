@@ -21,6 +21,7 @@ scalasca      = false			        #scalasca instrumentation
 src_dir	   = $(augeanstables)/src
 config_dir = $(AUGEANSTABLES_CONFIG)
 dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
+sd_choice  = cg_choice
 pm_choice  = dim2d_choice       #physical model choice
 bc_choice = reflection_xy_choice    #boundary condition choice
 
@@ -36,6 +37,12 @@ include $(config_dir)/makefile_folders.mk
 #-----------------------------------------------------------------------
 #folder options for compilation
 #-----------------------------------------------------------------------
+#space discretisation choice
+ifeq ($(strip $(sd_choice)), cg_choice)
+	sd_cdir=$(cg_dir)
+endif
+
+#physical model
 ifeq ($(strip $(pm_choice)), simpletest_choice)
 	spm_dir=$(simpletest_dir)
 endif
@@ -43,6 +50,7 @@ ifeq ($(strip $(pm_choice)), dim2d_choice)
 	spm_dir=$(dim2d_dir)
 endif
 
+#boundary condition choice
 ifeq ($(strip $(bc_choice)), periodic_xy_choice)
 	sbc_dir=$(pbc_dir)
 	sim_dim2d_dep=$(dep_dir)/sim_dim2d_periodic_dep.mk

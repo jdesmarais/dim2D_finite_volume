@@ -17,18 +17,18 @@ test_field:		field_class.o\
 			surrogate_class.o
 
 test_cg_operators.o:	$(dim2d_dir)/dim2d_prim_module.o\
-			$(field_dir)/field_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(sd_dir)/cg_operators_class.o
+			$(cg_dir)/sd_operators_class.o
 
-test_cg_operators:	dim2d_prim_module.o\
-			field_class.o\
-			interface_primary.o\
+test_cg_operators:	parameters_kind.o\
+			dim2d_parameters.o\
+			dim2d_prim_module.o\
+			parameters_constant.o\
 			parameters_input.o\
-			parameters_kind.o\
-			cg_operators_class.o\
-			surrogate_class.o
+			interface_primary.o\
+			sd_operators_abstract_class.o\
+			sd_operators_class.o
 
 test_dim2d_prim.o:	$(dim2d_dir)/dim2d_parameters.o\
 			$(dim2d_dir)/dim2d_prim_module.o\
@@ -36,12 +36,14 @@ test_dim2d_prim.o:	$(dim2d_dir)/dim2d_parameters.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-test_dim2d_prim:	dim2d_parameters.o\
+test_dim2d_prim:	parameters_kind.o\
+			dim2d_parameters.o\
 			dim2d_prim_module.o\
-			field_class.o\
+			surrogate_class.o\
+			parameters_constant.o\
 			parameters_input.o\
-			parameters_kind.o\
-			surrogate_class.o
+			field_class.o\
+			interface_primary.o
 
 test_dim2d_fluxes.o:	$(sd_dir)/cg_operators_class.o\
 			$(dim2d_dir)/dim2d_fluxes_module.o\

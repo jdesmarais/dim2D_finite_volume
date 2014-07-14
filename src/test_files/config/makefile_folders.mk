@@ -9,6 +9,8 @@ ti_dir			= $(src_dir)/td_integrator
 td_dir        		= $(src_dir)/td_operators
 test_dir                = $(src_dir)/test_files
 
+cg_dir			= $(sd_dir)/cg_operators
+
 rbc_dir		       	= $(bc_dir)/reflection_xy
 pbc_dir		        = $(bc_dir)/periodic_xy
 wbc_dir			= $(bc_dir)/wall_xy
