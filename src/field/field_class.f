@@ -2,7 +2,7 @@
       !> class encapsulating the main tables for the variables and the
       !> coordinates
       !
-      !> @author 
+      !> @author
       !> Julien L. Desmarais
       !
       !> @brief

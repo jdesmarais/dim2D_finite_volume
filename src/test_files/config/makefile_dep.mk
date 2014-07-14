@@ -7,8 +7,19 @@ $(param_dir)/parameters_constant.o:\
 $(param_dir)/parameters_input.o:\
 			$(param_dir)/parameters_constant.o
 
+
 #fields
 $(field_dir)/surrogate_class.o:
+
+$(field_dir)/field_abstract_class.o:\
+			$(bc_cdir)/bc_operators_class.o\
+			$(field_dir)/surrogate_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(td_cdir)/td_operators_class.o
+
 $(field_dir)/field_class.o:\
 			$(field_dir)/surrogate_class.o\
 			$(param_dir)/parameters_input.o\

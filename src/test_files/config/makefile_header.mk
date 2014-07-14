@@ -21,9 +21,11 @@ scalasca      = false			        #scalasca instrumentation
 src_dir	   = $(augeanstables)/src
 config_dir = $(AUGEANSTABLES_CONFIG)
 dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
-sd_choice  = cg_choice
-pm_choice  = simpletest_choice   #physical model choice
-bc_choice = periodic_xy_choice   #boundary condition choice
+
+sd_choice  = cg_choice            #space discretization choice
+pm_choice  = simpletest_choice    #physical model choice
+bc_choice  = periodic_xy_choice   #boundary condition choice
+td_choice  = finitevolume_choice  #time discretization choice
 
 
 #-----------------------------------------------------------------------
@@ -37,7 +39,7 @@ include $(config_dir)/makefile_folders.mk
 #-----------------------------------------------------------------------
 #folder options for compilation
 #-----------------------------------------------------------------------
-#space discretisation choice
+#space discretisation
 ifeq ($(strip $(sd_choice)), cg_choice)
 	sd_cdir=$(cg_dir)
 endif
@@ -50,7 +52,7 @@ ifeq ($(strip $(pm_choice)), dim2d_choice)
 	pm_cdir=$(dim2d_dir)
 endif
 
-#boundary condition choice
+#boundary conditions
 ifeq ($(strip $(bc_choice)), periodic_xy_choice)
 	bc_cdir=$(pbc_dir)
 	sim_dim2d_dep=$(dep_dir)/sim_dim2d_periodic_dep.mk
@@ -72,6 +74,10 @@ ifeq ($(strip $(bc_choice)), wall_x_reflection_y_choice)
 	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_wall_reflection_dep.mk
 endif
 
+#time discretization
+ifeq ($(strip $(td_choice)), finitevolume_choice)
+	td_cdir=$(fv_dir)
+endif
 
 #-----------------------------------------------------------------------
 #compiler and options
