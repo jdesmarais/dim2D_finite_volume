@@ -17,7 +17,7 @@
 
         use dim2d_parameters  , only : viscous_r,re,pr,we,cv_r
         use parameters_kind   , only : ikind, rkind
-        use cg_operators_class, only : cg_operators
+        use sd_operators_class, only : sd_operators
         use dim2d_prim_module , only : mass_density,
      $       momentum_x, momentum_y, total_energy,
      $       velocity_x, velocity_y,
@@ -73,7 +73,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(cg_operators)           , intent(in) :: s
+          type(sd_operators)           , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                               :: var
@@ -115,7 +115,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(cg_operators)           , intent(in) :: s
+          type(sd_operators)           , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                               :: var
@@ -166,7 +166,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(cg_operators)           , intent(in) :: s
+          type(sd_operators)           , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
@@ -260,7 +260,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(cg_operators)           , intent(in) :: s
+          type(sd_operators)           , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
@@ -332,7 +332,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(cg_operators)           , intent(in) :: s
+          type(sd_operators)           , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
@@ -403,7 +403,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(cg_operators)           , intent(in) :: s
+          type(sd_operators)           , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
@@ -499,7 +499,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(cg_operators)           , intent(in) :: s
+          type(sd_operators)           , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
@@ -614,7 +614,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(cg_operators)           , intent(in) :: s
+          type(sd_operators)           , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx

@@ -14,7 +14,6 @@
       program test_dim2d_prim
 
         use dim2d_prim_module
-        use field_class      , only : field
         use dim2d_parameters , only : viscous_r,re,pr,we,cv_r
         use parameters_input , only : nx,ny,ne
         use parameters_kind  , only : ikind, rkind
@@ -23,7 +22,9 @@
         
         
         !<operators tested
-        type(field)               :: field_tested
+        real(rkind), dimension(nx,ny,ne) :: nodes
+        real(rkind) :: dx
+        real(rkind) :: dy
         
         !<CPU recorded times
         real    :: time1, time2
@@ -67,7 +68,7 @@
         call CPU_TIME(time1)
 
         !< initialize data
-        call initialize_data(field_tested,i,j,test_data)
+        call initialize_data(nodes,dx,dy,i,j,test_data)
         
         !< dim2d_parameters
         if(detailled) then
@@ -83,7 +84,7 @@
 
         local = is_test_validated(
      $          mass_density(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(1))
         call print_screen(global,local,detailled,'mass density')
@@ -91,7 +92,7 @@
 
         local = is_test_validated(
      $          momentum_x(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(2))
         call print_screen(global,local,detailled,'momentum_x')
@@ -99,7 +100,7 @@
         
         local = is_test_validated(
      $          momentum_y(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(3))
         call print_screen(global,local,detailled,'momentum_y')
@@ -107,7 +108,7 @@
         
         local = is_test_validated(
      $          total_energy(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(4))
         call print_screen(global,local,detailled,'total energy')
@@ -115,7 +116,7 @@
 
         local = is_test_validated(
      $          velocity_x(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(5))
         call print_screen(global,local,detailled,'velocity_x')
@@ -123,40 +124,40 @@
 
         local = is_test_validated(
      $          velocity_y(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(6))
         call print_screen(global,local,detailled,'velocity_y')
 
         local = is_test_validated(
      $          classical_pressure(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(7))
         call print_screen(global,local,detailled,'classical_pressure')
 
         local = is_test_validated(
      $          temperature_eff(
-     $          field_tested,
-     $          i,j),
+     $          nodes,
+     $          i,j,dx,dy),
      $          test_data(8))
         call print_screen(global,local,detailled,'temperature_eff')
 
         local = is_test_validated(
      $          qx_transport_x(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(9))
         call print_screen(global,local,detailled,'temperature_eff')
 
         local = is_test_validated(
      $          qy_transport_x(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(10))
         call print_screen(global,local,detailled,'qy_transport_x')
 
-        computed_data = qx_transport_y(field_tested,i,j)
+        computed_data = qx_transport_y(nodes,i,j)
         local = is_test_validated(
      $          computed_data,
      $          test_data(11))
@@ -164,56 +165,56 @@
 
         local = is_test_validated(
      $          qy_transport_y(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(12))
         call print_screen(global,local,detailled,'qy_transport_y')
 
         local = is_test_validated(
      $          energy_transport_x(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(13))
         call print_screen(global,local,detailled,'qy_transport_y')
 
         local = is_test_validated(
      $          energy_transport_y(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(14))
         call print_screen(global,local,detailled,'energy_transport_y')
 
         local = is_test_validated(
      $          capillarity_pressure(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(15))
         call print_screen(global,local,detailled,'capillarity pressure')
 
         local = is_test_validated(
      $          capillarity_pressure_xwork(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(16))
         call print_screen(global,local,detailled,'cap pressure xwork')
 
         local = is_test_validated(
      $          capillarity_pressure_ywork(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(17))
         call print_screen(global,local,detailled,'cap pressure ywork')
 
         local = is_test_validated(
      $          classical_pressure_xwork(
-     $          field_tested,
+     $          nodes,
      $          i,j),
      $          test_data(18))
         call print_screen(global,local,detailled,'pressure xwork')
 
         local = is_test_validated(
      $       classical_pressure_ywork(
-     $       field_tested,
+     $       nodes,
      $       i,j),
      $       test_data(19))
 
@@ -266,124 +267,129 @@
 
         end subroutine print_screen
 
-        subroutine initialize_data(field_tested,i,j,test_data)
 
-          class(field), intent(inout) :: field_tested
-          integer, intent(out) :: i,j
+        subroutine initialize_data(nodes,dx,dy,i,j,test_data)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
+          real(rkind), intent(out) :: dx
+          real(rkind), intent(out) :: dy
+          integer    , intent(out) :: i,j
           real(rkind), dimension(19), intent(out) :: test_data
 
           !<initialize the tables for the field
-        field_tested%dx=0.5
-        field_tested%dy=0.6
-
-        !<initialize the mass density
-        field_tested%nodes(1,1,1)=0.5d0
-        field_tested%nodes(2,1,1)=0.2d0
-        field_tested%nodes(3,1,1)=1.2d0
-        field_tested%nodes(4,1,1)=5.0d0
-
-        field_tested%nodes(1,2,1)=2.0d0
-        field_tested%nodes(2,2,1)=4.2d0
-        field_tested%nodes(3,2,1)=11.0d0
-        field_tested%nodes(4,2,1)=10.6d0
-
-        field_tested%nodes(1,3,1)=-14.2d0
-        field_tested%nodes(2,3,1)= 23.0d0
-        field_tested%nodes(3,3,1)=  9.8d0
-        field_tested%nodes(4,3,1)=  3.4d0
-
-        field_tested%nodes(1,4,1)= 2.45d0
-        field_tested%nodes(2,4,1)= 0.2d0
-        field_tested%nodes(3,4,1)= 9.0d0
-        field_tested%nodes(4,4,1)= 5.4d0
-
-        !<initialize the momentum_x
-        field_tested%nodes(1,1,2)= 9.5d0
-        field_tested%nodes(2,1,2)= 9.8d0
-        field_tested%nodes(3,1,2)= 8.8d0
-        field_tested%nodes(4,1,2)= 5.0d0
-
-        field_tested%nodes(1,2,2)= 8.0d0
-        field_tested%nodes(2,2,2)= 5.8d0
-        field_tested%nodes(3,2,2)=-1.0d0
-        field_tested%nodes(4,2,2)=-0.6d0
-
-        field_tested%nodes(1,3,2)=-24.2d0
-        field_tested%nodes(2,3,2)=-13.0d0
-        field_tested%nodes(3,3,2)= 0.2d0
-        field_tested%nodes(4,3,2)= 6.6d0
-
-        field_tested%nodes(1,4,2)= 7.55d0
-        field_tested%nodes(2,4,2)= 9.8d0
-        field_tested%nodes(3,4,2)= 1.0d0
-        field_tested%nodes(4,4,2)= 4.6d0
-
-        !<initialize the momentum_y
-        field_tested%nodes(1,1,3)=-8.5d0
-        field_tested%nodes(2,1,3)=-9.4d0
-        field_tested%nodes(3,1,3)=-6.4d0
-        field_tested%nodes(4,1,3)= 5.0d0
-
-        field_tested%nodes(1,2,3)=-4.0d0
-        field_tested%nodes(2,2,3)= 2.6d0
-        field_tested%nodes(3,2,3)= 23.0d0
-        field_tested%nodes(4,2,3)= 21.8d0
-
-        field_tested%nodes(1,3,3)=-52.6d0
-        field_tested%nodes(2,3,3)= 59.0d0
-        field_tested%nodes(3,3,3)= 19.4d0
-        field_tested%nodes(4,3,3)= 0.20d0
-
-        field_tested%nodes(1,4,3)=-2.65d0
-        field_tested%nodes(2,4,3)=-9.40d0
-        field_tested%nodes(3,4,3)= 17.0d0
-        field_tested%nodes(4,4,3)= 6.20d0
-
-        !<initialize the total energy
-        field_tested%nodes(1,1,4)=-1.5d0
-        field_tested%nodes(2,1,4)=-1.8d0
-        field_tested%nodes(3,1,4)=-0.8d0
-        field_tested%nodes(4,1,4)= 3.0d0
-
-        field_tested%nodes(1,2,4)= 0.0d0
-        field_tested%nodes(2,2,4)= 2.2d0
-        field_tested%nodes(3,2,4)= 9.0d0
-        field_tested%nodes(4,2,4)= 8.6d0
-
-        field_tested%nodes(1,3,4)=-16.2d0
-        field_tested%nodes(2,3,4)= 21.0d0
-        field_tested%nodes(3,3,4)= 7.8d0
-        field_tested%nodes(4,3,4)= 1.4d0
-
-        field_tested%nodes(1,4,4)= 0.45d0
-        field_tested%nodes(2,4,4)=-1.8d0
-        field_tested%nodes(3,4,4)= 7.0d0
-        field_tested%nodes(4,4,4)= 3.4d0
-        
-        !<test the operators defined dim2d_prim
-        i=2 !<index tested in the data along the x-axis
-        j=2 !<index tested in the data along the y-axis
-
-        !<test_data initialization
-        test_data(1) =  4.2d0      !<mass
-        test_data(2) =  5.8d0      !<momentum_x
-        test_data(3) =  2.6d0      !<momentum_y
-        test_data(4) =  2.2d0      !<total_energy
-        test_data(5) =  1.380952d0 !<velocity_x
-        test_data(6) =  0.619048d0 !<velocity_y
-        test_data(7) = -103.23047d0!<classical pressure
-        test_data(8) =  6.71678d0  !<temperature_eff
-        test_data(9) =  8.009524d0 !<qx_transport_x
-        test_data(10)=  3.590476d0 !<qy_transport_y
-        test_data(11)=  3.590476d0 !<qx_transport_y
-        test_data(12)=  1.609524d0 !<qy_transport_y
-        test_data(13)=  3.038095d0 !<energy transport_x
-        test_data(14)=  1.361905d0 !<energy transport_y
-        test_data(15)= -0.833333d0 !<capillarity_pressure
-        test_data(16)= -1.15079d0  !<capillarity_pressure_xwork
-        test_data(17)= -0.51587d0  !<capillarity_pressure_ywork
-        test_data(18)= -142.55637d0!<classic pressure work along x-axis> 
-        test_data(19)= -63.90458d0 !<classic pressure work along y-axis>
+          dx=0.5
+          dy=0.6
+          
+          !<initialize the mass density
+          nodes(1,1,1)=0.5d0
+          nodes(2,1,1)=0.2d0
+          nodes(3,1,1)=1.2d0
+          nodes(4,1,1)=5.0d0
+          
+          nodes(1,2,1)=2.0d0
+          nodes(2,2,1)=4.2d0
+          nodes(3,2,1)=11.0d0
+          nodes(4,2,1)=10.6d0
+          
+          nodes(1,3,1)=-14.2d0
+          nodes(2,3,1)= 23.0d0
+          nodes(3,3,1)=  9.8d0
+          nodes(4,3,1)=  3.4d0
+          
+          nodes(1,4,1)= 2.45d0
+          nodes(2,4,1)= 0.2d0
+          nodes(3,4,1)= 9.0d0
+          nodes(4,4,1)= 5.4d0
+          
+          !<initialize the momentum_x
+          nodes(1,1,2)= 9.5d0
+          nodes(2,1,2)= 9.8d0
+          nodes(3,1,2)= 8.8d0
+          nodes(4,1,2)= 5.0d0
+          
+          nodes(1,2,2)= 8.0d0
+          nodes(2,2,2)= 5.8d0
+          nodes(3,2,2)=-1.0d0
+          nodes(4,2,2)=-0.6d0
+          
+          nodes(1,3,2)=-24.2d0
+          nodes(2,3,2)=-13.0d0
+          nodes(3,3,2)= 0.2d0
+          nodes(4,3,2)= 6.6d0
+          
+          nodes(1,4,2)= 7.55d0
+          nodes(2,4,2)= 9.8d0
+          nodes(3,4,2)= 1.0d0
+          nodes(4,4,2)= 4.6d0
+          
+          !<initialize the momentum_y
+          nodes(1,1,3)=-8.5d0
+          nodes(2,1,3)=-9.4d0
+          nodes(3,1,3)=-6.4d0
+          nodes(4,1,3)= 5.0d0
+          
+          nodes(1,2,3)=-4.0d0
+          nodes(2,2,3)= 2.6d0
+          nodes(3,2,3)= 23.0d0
+          nodes(4,2,3)= 21.8d0
+          
+          nodes(1,3,3)=-52.6d0
+          nodes(2,3,3)= 59.0d0
+          nodes(3,3,3)= 19.4d0
+          nodes(4,3,3)= 0.20d0
+          
+          nodes(1,4,3)=-2.65d0
+          nodes(2,4,3)=-9.40d0
+          nodes(3,4,3)= 17.0d0
+          nodes(4,4,3)= 6.20d0
+          
+          !<initialize the total energy
+          nodes(1,1,4)=-1.5d0
+          nodes(2,1,4)=-1.8d0
+          nodes(3,1,4)=-0.8d0
+          nodes(4,1,4)= 3.0d0
+          
+          nodes(1,2,4)= 0.0d0
+          nodes(2,2,4)= 2.2d0
+          nodes(3,2,4)= 9.0d0
+          nodes(4,2,4)= 8.6d0
+          
+          nodes(1,3,4)=-16.2d0
+          nodes(2,3,4)= 21.0d0
+          nodes(3,3,4)= 7.8d0
+          nodes(4,3,4)= 1.4d0
+          
+          nodes(1,4,4)= 0.45d0
+          nodes(2,4,4)=-1.8d0
+          nodes(3,4,4)= 7.0d0
+          nodes(4,4,4)= 3.4d0
+          
+          !<test the operators defined dim2d_prim
+          i=2 !<index tested in the data along the x-axis
+          j=2 !<index tested in the data along the y-axis
+          
+          !<test_data initialization
+          test_data(1) =  4.2d0      !<mass
+          test_data(2) =  5.8d0      !<momentum_x
+          test_data(3) =  2.6d0      !<momentum_y
+          test_data(4) =  2.2d0      !<total_energy
+          test_data(5) =  1.380952d0 !<velocity_x
+          test_data(6) =  0.619048d0 !<velocity_y
+          test_data(7) = -103.23047d0!<classical pressure
+          test_data(8) =  6.71678d0  !<temperature_eff
+          test_data(9) =  8.009524d0 !<qx_transport_x
+          test_data(10)=  3.590476d0 !<qy_transport_y
+          test_data(11)=  3.590476d0 !<qx_transport_y
+          test_data(12)=  1.609524d0 !<qy_transport_y
+          test_data(13)=  3.038095d0 !<energy transport_x
+          test_data(14)=  1.361905d0 !<energy transport_y
+          test_data(15)= -0.833333d0 !<capillarity_pressure
+          test_data(16)= -1.15079d0  !<capillarity_pressure_xwork
+          test_data(17)= -0.51587d0  !<capillarity_pressure_ywork
+          test_data(18)= -142.55637d0!<classic pressure work along x-axis
+          test_data(19)= -63.90458d0 !<classic pressure work along y-axis
 
         end subroutine initialize_data
 

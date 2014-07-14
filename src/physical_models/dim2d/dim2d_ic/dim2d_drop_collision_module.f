@@ -16,9 +16,8 @@
         use dim2d_state_eq_module  , only : get_mass_density_liquid,
      $                                      get_mass_density_vapor,
      $                                      get_interface_length
-        use field_class            , only : field
         use parameters_constant    , only : liquid, vapor
-        use parameters_input       , only : nx,ny
+        use parameters_input       , only : nx,ny,ne
         use parameters_kind        , only : ikind, rkind
 
         implicit none
@@ -42,11 +41,13 @@
         !>@param field_used
         !> object encapsulating the main variables
         !---------------------------------------------------------------
-        subroutine apply_drop_collision_ic(field_used)
+        subroutine apply_drop_collision_ic(nodes,x_map,y_map)
 
           implicit none
 
-          class(field), intent(inout) :: field_used
+          real(rkind), dimension(:,:,:), intent(inout) :: nodes
+          real(rkind), dimension(:)    , intent(in)    :: x_map
+          real(rkind), dimension(:)    , intent(in)    :: y_map
 
 
           !< local variables for the droplet/bubble
@@ -101,25 +102,25 @@
              !DEC$ IVDEP
              do i=1, nx
 
-                x = field_used%x_map(i)
-                y = field_used%y_map(j)
+                x = x_map(i)
+                y = y_map(j)
 
-                field_used%nodes(i,j,1)=mass_density_ellipsoid(
+                nodes(i,j,1)=mass_density_ellipsoid(
      $               x,y,xc,yc,a,b,li,dliq,dvap,phase_at_center)                
                 
                 velocity = get_divergence_free_sinusoidal_velocity(
      $               x,y,amp,period)
 
-                field_used%nodes(i,j,2)=
-     $               field_used%nodes(i,j,1)*velocity(1)
-                field_used%nodes(i,j,3)=
-     $               field_used%nodes(i,j,1)*velocity(2)
+                nodes(i,j,2)=
+     $               nodes(i,j,1)*velocity(1)
+                nodes(i,j,3)=
+     $               nodes(i,j,1)*velocity(2)
                 
-                field_used%nodes(i,j,4)=total_energy_ellipsoid(
+                nodes(i,j,4)=total_energy_ellipsoid(
      $               x,y,xc,yc,a,b,li,dliq,dvap,
-     $               field_used%nodes(i,j,1),T0)+
-     $               0.5d0*(field_used%nodes(i,j,2)**2+
-     $               field_used%nodes(i,j,3)**2)/field_used%nodes(i,j,1)
+     $               nodes(i,j,1),T0)+
+     $               0.5d0*(nodes(i,j,2)**2+
+     $               nodes(i,j,3)**2)/nodes(i,j,1)
 
              end do
           end do

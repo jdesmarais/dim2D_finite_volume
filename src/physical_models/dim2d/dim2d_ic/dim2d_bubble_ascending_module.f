@@ -42,11 +42,13 @@
         !>@param field_used
         !> object encapsulating the main variables
         !---------------------------------------------------------------
-        subroutine apply_bubble_ascending_ic(field_used)
+        subroutine apply_bubble_ascending_ic(nodes,x_map,y_map)
 
           implicit none
 
-          class(field), intent(inout) :: field_used
+          real(rkind), dimension(:,:,:), intent(inout) :: nodes
+          real(rkind), dimension(:)    , intent(in)    :: x_map
+          real(rkind), dimension(:)    , intent(in)    :: y_map
 
 
           !< local variables for the droplet/bubble
@@ -112,29 +114,29 @@
 
 
           !<initialize the mass and total energy fields
-          do j=1, ny
-             do i=1, nx
+          do j=1, size(y_map,1)
+             do i=1, size(x_map,1)
 
-                x = field_used%x_map(i)
-                y = field_used%y_map(j)
+                x = x_map(i)
+                y = y_map(j)
 
-                field_used%nodes(i,j,1)=mass_density_ellipsoid(
+                nodes(i,j,1)=mass_density_ellipsoid(
      $               x,y,xc,yc,a,b,li,dliq,dvap,phase_at_center)
                 
-                field_used%nodes(i,j,4)=total_energy_ellipsoid(
+                nodes(i,j,4)=total_energy_ellipsoid(
      $               x,y,xc,yc,a,b,li,dliq,dvap,
-     $               field_used%nodes(i,j,1),T0)
+     $               nodes(i,j,1),T0)
 
              end do
           end do
 
 
           !< initialize the momentum and update the total energy fields
-          do j=1, ny
-             do i=1, nx
+          do j=1, size(y_map,1)
+             do i=1, size(x_map,1)
                 
-                x = field_used%x_map(i)
-                y = field_used%y_map(j)
+                x = x_map(i)
+                y = y_map(j)
 
                 velocity_vortex1 = get_vortex_velocity(
      $               x, y, x_v1, y_v1, r_v1, omega_v1)
@@ -144,18 +146,18 @@
                 velocity_x = velocity_vortex1(1)+velocity_vortex2(1)
                 velocity_y = velocity_vortex1(2)+velocity_vortex2(2)
 
-                field_used%nodes(i,j,2)=
-     $               field_used%nodes(i,j,1)*velocity_x
-                field_used%nodes(i,j,3)=
-     $               field_used%nodes(i,j,1)*velocity_y
+                nodes(i,j,2)=
+     $               nodes(i,j,1)*velocity_x
+                nodes(i,j,3)=
+     $               nodes(i,j,1)*velocity_y
 
                 if(rkind.eq.8) then
-                   field_used%nodes(i,j,4)=field_used%nodes(i,j,4)+
-     $                  1.0d0/2.0d0*field_used%nodes(i,j,1)*(
+                   nodes(i,j,4)=nodes(i,j,4)+
+     $                  1.0d0/2.0d0*nodes(i,j,1)*(
      $                  velocity_x**2+velocity_y**2)
                 else
-                   field_used%nodes(i,j,4)=field_used%nodes(i,j,4)+
-     $                  1./2.*field_used%nodes(i,j,1)*(
+                   nodes(i,j,4)=nodes(i,j,4)+
+     $                  1./2.*nodes(i,j,1)*(
      $                  velocity_x**2+velocity_y**2)
                 end if
 

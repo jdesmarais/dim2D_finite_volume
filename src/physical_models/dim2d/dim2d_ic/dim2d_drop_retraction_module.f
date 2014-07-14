@@ -15,7 +15,6 @@
         use dim2d_state_eq_module  , only : get_mass_density_liquid,
      $                                      get_mass_density_vapor,
      $                                      get_interface_length
-        use field_class            , only : field
         use parameters_constant    , only : liquid, vapor
         use parameters_input       , only : nx,ny,ne
         use parameters_kind        , only : ikind, rkind
@@ -41,12 +40,13 @@
         !>@param field_used
         !> object encapsulating the main variables
         !---------------------------------------------------------------
-        subroutine apply_drop_retraction_ic(field_used)
+        subroutine apply_drop_retraction_ic(nodes,x_map,y_map)
 
           implicit none
 
-          class(field), intent(inout) :: field_used
-
+          real(rkind), dimension(:,:,:), intent(inout) :: nodes
+          real(rkind), dimension(:)    , intent(in)    :: x_map
+          real(rkind), dimension(:)    , intent(in)    :: y_map
 
           !< local variables for the droplet/bubble
           integer        :: phase_at_center
@@ -91,19 +91,19 @@
              !DEC$ IVDEP
              do i=1, nx
 
-                x = field_used%x_map(i)
-                y = field_used%y_map(j)
+                x = x_map(i)
+                y = y_map(j)
 
-                field_used%nodes(i,j,1)=mass_density_ellipsoid(
+                nodes(i,j,1)=mass_density_ellipsoid(
      $               x,y,xc,yc,a,b,li,dliq,dvap,phase_at_center)
 
-                field_used%nodes(i,j,2)=0.0d0
+                nodes(i,j,2)=0.0d0
 
-                field_used%nodes(i,j,3)=0.0d0
+                nodes(i,j,3)=0.0d0
                 
-                field_used%nodes(i,j,4)=total_energy_ellipsoid(
+                nodes(i,j,4)=total_energy_ellipsoid(
      $               x,y,xc,yc,a,b,li,dliq,dvap,
-     $               field_used%nodes(i,j,1),T0)
+     $               nodes(i,j,1),T0)
 
              end do
           end do

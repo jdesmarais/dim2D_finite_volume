@@ -15,8 +15,7 @@
         use dim2d_parameters       , only : cv_r,we
         use dim2d_state_eq_module  , only : get_mass_density_liquid,
      $                                      get_mass_density_vapor
-        use field_class            , only : field
-        use parameters_input       , only : nx,ny
+        use parameters_input       , only : nx,ny,ne
         use parameters_kind        , only : ikind, rkind
 
         implicit none
@@ -40,11 +39,13 @@
         !>@param field_used
         !> object encapsulating the main variables
         !---------------------------------------------------------------
-        subroutine apply_phase_separation_ic(field_used)
+        subroutine apply_phase_separation_ic(nodes,x_map,y_map)
 
           implicit none
 
-          class(field), intent(inout) :: field_used
+          real(rkind), dimension(:,:,:), intent(inout) :: nodes
+          real(rkind), dimension(:)    , intent(in)    :: x_map
+          real(rkind), dimension(:)    , intent(in)    :: y_map
 
 
           !< local variables for the unstable state
@@ -110,31 +111,31 @@
              do i=1, nx
 
                 !<coordinates
-                x = field_used%x_map(i)
-                y = field_used%y_map(j)
+                x = x_map(i)
+                y = y_map(j)
 
                 !<unstable mass density
                 if(rkind.eq.8) then
-                   field_used%nodes(i,j,1)=(dliq+dvap)/2.0d0
+                   nodes(i,j,1)=(dliq+dvap)/2.0d0
                 else
-                   field_used%nodes(i,j,1)=(dliq+dvap)/2.0
+                   nodes(i,j,1)=(dliq+dvap)/2.0
                 end if
 
                 !<adding the sinusoidal perturbation to 
                 !the initial unstable mass density
                 noise = perturbation(x,xMin,xMax,kx,Ax)*
      $               perturbation(y,yMin,yMax,ky,Ay)
-                field_used%nodes(i,j,1)=field_used%nodes(i,j,1)+noise
+                nodes(i,j,1)=nodes(i,j,1)+noise
 
                 !<null velocity field
-                field_used%nodes(i,j,2)=0.0d0
-                field_used%nodes(i,j,3)=0.0d0
+                nodes(i,j,2)=0.0d0
+                nodes(i,j,3)=0.0d0
 
                 !<total energy field corresponding to the
                 !<temperature and the mass density fields
-                field_used%nodes(i,j,4)=energy_phase_separation(
+                nodes(i,j,4)=energy_phase_separation(
      $               x,y,
-     $               field_used%nodes(i,j,1),T0,
+     $               nodes(i,j,1),T0,
      $               xMin,xMax,kx,Ax,
      $               yMin,yMax,ky,Ay)
 

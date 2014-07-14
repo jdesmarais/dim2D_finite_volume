@@ -17,12 +17,12 @@
       !> WIT Press, J. Desmarais and J.G.M. Kuerten
       !
       !> @date
-      !> 08_08_2013 - initial version - J.L. Desmarais
+      !> 08_08_2013 - initial version               - J.L. Desmarais
       !> 11_07_2013 - interface for erymanthianboar - J.L. Desmarais
       !-----------------------------------------------------------------
-      module dim2d_eq_class
+      module pmodel_eq_class
 
-        use cg_operators_class          , only : cg_operators
+        use sd_operators_class          , only : sd_operators
         use dim2d_parameters            , only : gravity
         use dim2d_bubble_ascending_module,only :apply_bubble_ascending_ic
         use dim2d_drop_collision_module , only : apply_drop_collision_ic 
@@ -39,7 +39,6 @@
      $                                           flux_y_total_energy
         use dim2d_homogeneous_module    , only : apply_homogeneous_ic
         use dim2d_steadystate_module    , only : apply_steady_state_ic
-        use field_class                 , only : field
         use parameters_bf_layer         , only : interior_pt
         use parameters_constant         , only : scalar,
      $                                           vector_x, vector_y,
@@ -54,16 +53,16 @@
      $                                           ic_choice,
      $                                           gravity_choice
         use parameters_kind             , only : ikind,rkind
-        use phy_model_eq_class          , only : phy_model_eq
+        use pmodel_eq_abstract_class    , only : pmodel_eq_abstract
 
 
         implicit none
 
         private
-        public :: dim2d_eq
+        public :: pmodel_eq
 
 
-        !> @class dim2d_eq
+        !> @class pmodel_eq
         !> class encapsulating operators to compute
         !> the governing equations of the Diffuse Interface
         !> Model in 2D
@@ -104,7 +103,7 @@
         !> @param compute_fluxes
         !> compute the fluxes along the x- and y-axis
         !---------------------------------------------------------------
-        type, extends(phy_model_eq) :: dim2d_eq
+        type, extends(pmodel_eq_abstract) :: pmodel_eq
           
           contains
 
@@ -121,7 +120,7 @@
           procedure, nopass :: compute_flux_y_nopt
           procedure, nopass :: compute_body_forces
 
-        end type dim2d_eq
+        end type pmodel_eq
 
 
         contains
@@ -287,38 +286,40 @@
         !>@param field_used
         !> object encapsulating the main variables
         !---------------------------------------------------------------
-        subroutine apply_ic(field_used)
+        subroutine apply_ic(nodes,x_map,y_map)
 
           implicit none
 
-          class(field), intent(inout) :: field_used
+          real(rkind), dimension(:,:,:), intent(inout) :: nodes
+          real(rkind), dimension(:)    , intent(in)    :: x_map
+          real(rkind), dimension(:)    , intent(in)    :: y_map
 
 
           !<initialize the field depending on the user choice
           select case(ic_choice)
 
             case(steady_state)
-               call apply_steady_state_ic(field_used)
+               call apply_steady_state_ic(nodes)
 
             case(drop_retraction)
-               call apply_drop_retraction_ic(field_used)
+               call apply_drop_retraction_ic(nodes,x_map,y_map)
 
             case(bubble_ascending)
-               call apply_bubble_ascending_ic(field_used)
+               call apply_bubble_ascending_ic(nodes,x_map,y_map)
 
             case(homogeneous_liquid)
-               call apply_homogeneous_ic(field_used)
+               call apply_homogeneous_ic(nodes)
 
             case(drop_collision)
-               call apply_drop_collision_ic(field_used)
+               call apply_drop_collision_ic(nodes,x_map,y_map)
 
             case(phase_separation)
-               call apply_phase_separation_ic(field_used)
+               call apply_phase_separation_ic(nodes,x_map,y_map)
 
 c$$$            case(drop_evaporation)
 c$$$               call apply_drop_evaporation_ic(field_used)
             case default
-               print '(''dim2d_eq_class'')'
+               print '(''pmodel_eq_class'')'
                stop 'ic_choice not recognized'
           end select
 
@@ -336,27 +337,29 @@ c$$$               call apply_drop_evaporation_ic(field_used)
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
-        !> physical model
-        !>
-        !>@param field_used
-        !> object encapsulating the main variables
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param dx
+        !> grid size along the x-axis
+        !
+        !>@param dy
+        !> grid size along the y-axis
         !
         !>@param s
         !> space discretization operators
         !
         !>@param flux_x
         !> fluxes along the x-axis
-        !
-        !>@param flux_y
-        !> fluxes along the y-axis
         !---------------------------------------------------------------
-        function compute_flux_x(field_used,s) result(flux_x)
+        function compute_flux_x(nodes,dx,dy,s) result(flux_x)
         
           implicit none
 
-          class(field)                      , intent(in)   :: field_used
-          type(cg_operators)                , intent(in)   :: s
+          real(rkind), dimension(nx,ny,ne)  , intent(in)   :: nodes
+          real(rkind)                       , intent(in)   :: dx
+          real(rkind)                       , intent(in)   :: dy
+          type(sd_operators)                , intent(in)   :: s
           real(rkind), dimension(nx+1,ny,ne)               :: flux_x
 
           integer(ikind) :: i,j
@@ -370,22 +373,22 @@ c$$$               call apply_drop_evaporation_ic(field_used)
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,1) =
      $               flux_x_mass_density(
-     $               field_used%nodes,s,i-1,j)
+     $               nodes,s,i-1,j)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,2) = flux_x_momentum_x(
-     $               field_used%nodes,s,i-1,j,
-     $               field_used%dx, field_used%dy)
+     $               nodes,s,i-1,j,
+     $               dx, dy)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,3) = flux_x_momentum_y(
-     $               field_used%nodes,s,i-1,j,
-     $               field_used%dx, field_used%dy)
+     $               nodes,s,i-1,j,
+     $               dx, dy)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,4) = flux_x_total_energy(
-     $               field_used%nodes,s,i-1,j,
-     $               field_used%dx, field_used%dy)
+     $               nodes,s,i-1,j,
+     $               dx, dy)
 
              end do
           end do
@@ -404,27 +407,26 @@ c$$$               call apply_drop_evaporation_ic(field_used)
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
-        !> physical model
-        !>
-        !>@param field_used
-        !> object encapsulating the main variables
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param dy
+        !> grid size along the y-axis
         !
         !>@param s
         !> space discretization operators
         !
-        !>@param flux_x
-        !> fluxes along the x-axis
-        !
         !>@param flux_y
         !> fluxes along the y-axis
         !---------------------------------------------------------------
-        function compute_flux_y(field_used, s) result(flux_y)
+        function compute_flux_y(nodes,dx,dy,s) result(flux_y)
         
           implicit none
 
-          class(field)                      , intent(in)   :: field_used
-          type(cg_operators)                , intent(in)   :: s
+          real(rkind), dimension(nx,ny,ne)  , intent(in)   :: nodes
+          real(rkind)                       , intent(in)   :: dx
+          real(rkind)                       , intent(in)   :: dy
+          type(sd_operators)                , intent(in)   :: s
           real(rkind), dimension(nx,ny+1,ne)               :: flux_y
 
           integer(ikind) :: i,j
@@ -437,22 +439,22 @@ c$$$               call apply_drop_evaporation_ic(field_used)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,1) = flux_y_mass_density(
-     $               field_used%nodes,s,i,j-1)
+     $               nodes,s,i,j-1)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,2) = flux_y_momentum_x(
-     $               field_used%nodes,s,i,j-1,
-     $               field_used%dx, field_used%dy)
+     $               nodes,s,i,j-1,
+     $               dx, dy)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,3) = flux_y_momentum_y(
-     $               field_used%nodes,s,i,j-1,
-     $               field_used%dx, field_used%dy)
+     $               nodes,s,i,j-1,
+     $               dx, dy)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,4) = flux_y_total_energy(
-     $               field_used%nodes,s,i,j-1,
-     $               field_used%dx, field_used%dy)
+     $               nodes,s,i,j-1,
+     $               dx, dy)
 
              end do
           end do
@@ -477,14 +479,14 @@ c$$$               call apply_drop_evaporation_ic(field_used)
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param s
-        !> space discretization operators
-        !
         !>@param dx
         !> grid step along the x-axis
         !
         !>@param dy
         !> grid step along the y-axis
+        !
+        !>@param s
+        !> space discretization operators      
         !
         !>@param grdpts_id
         !> role of the grid points
@@ -492,14 +494,14 @@ c$$$               call apply_drop_evaporation_ic(field_used)
         !>@param flux_x
         !> fluxes along the x-axis
         !---------------------------------------------------------------
-        subroutine compute_flux_x_nopt(nodes,s,dx,dy,grdpts_id,flux_x)
+        subroutine compute_flux_x_nopt(nodes,dx,dy,s,grdpts_id,flux_x)
         
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in)    :: nodes
-          type(cg_operators)           , intent(in)    :: s
           real(rkind)                  , intent(in)    :: dx
           real(rkind)                  , intent(in)    :: dy
+          type(sd_operators)           , intent(in)    :: s
           integer    , dimension(:,:)  , intent(in)    :: grdpts_id
           real(rkind), dimension(:,:,:), intent(inout) :: flux_x
 
@@ -573,14 +575,14 @@ c$$$               call apply_drop_evaporation_ic(field_used)
         !>@param flux_y
         !> fluxes along the y-axis
         !---------------------------------------------------------------
-        subroutine compute_flux_y_nopt(nodes,s,dx,dy,grdpts_id,flux_y)
+        subroutine compute_flux_y_nopt(nodes,dx,dy,s,grdpts_id,flux_y)
         
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in)    :: nodes
-          type(cg_operators)           , intent(in)    :: s
           real(rkind)                  , intent(in)    :: dx
           real(rkind)                  , intent(in)    :: dy
+          type(sd_operators)           , intent(in)    :: s
           integer    , dimension(:,:)  , intent(in)    :: grdpts_id
           real(rkind), dimension(:,:,:), intent(inout) :: flux_y
 
@@ -657,4 +659,4 @@ c$$$               call apply_drop_evaporation_ic(field_used)
 
         end function compute_body_forces
 
-      end module dim2d_eq_class
+      end module pmodel_eq_class

@@ -13,9 +13,8 @@
       !-----------------------------------------------------------------
       program test_dim2d_fluxes
 
-        use cg_operators_class , only : cg_operators
+        use sd_operators_class , only : sd_operators
         use dim2d_fluxes_module
-        use field_class        , only : field
         use dim2d_parameters   , only : viscous_r,re,pr,we,cv_r
         use parameters_input   , only : nx,ny,ne
         use parameters_kind    , only : ikind, rkind
@@ -24,8 +23,10 @@
         
         
         !<operators tested
-        type(field)               :: field_tested
-        type(cg_operators)        :: s
+        real(rkind), dimension(nx,ny,ne) :: nodes
+        real(rkind)  :: dx
+        real(rkind)  :: dy
+        type(sd_operators) :: s
         
         !<CPU recorded times
         real    :: time1, time2
@@ -38,6 +39,8 @@
         logical                   :: test_validated
         logical                   :: test_parameters
         
+
+        print '(''WARNING: this test is made for cg_operators'')'
 
 
         !<if nx<4, ny<4 then the test cannot be done
@@ -70,92 +73,92 @@
 
 
         !<initialize the tables for the field
-        field_tested%dx=0.5
-        field_tested%dy=0.6
+        dx=0.5
+        dy=0.6
 
         !<initialize the mass density
-        field_tested%nodes(1,1,1)=0.5d0
-        field_tested%nodes(2,1,1)=0.2d0
-        field_tested%nodes(3,1,1)=1.2d0
-        field_tested%nodes(4,1,1)=5.0d0
+        nodes(1,1,1)=0.5d0
+        nodes(2,1,1)=0.2d0
+        nodes(3,1,1)=1.2d0
+        nodes(4,1,1)=5.0d0
 
-        field_tested%nodes(1,2,1)=2.0d0
-        field_tested%nodes(2,2,1)=4.2d0
-        field_tested%nodes(3,2,1)=11.0d0
-        field_tested%nodes(4,2,1)=10.6d0
+        nodes(1,2,1)=2.0d0
+        nodes(2,2,1)=4.2d0
+        nodes(3,2,1)=11.0d0
+        nodes(4,2,1)=10.6d0
 
-        field_tested%nodes(1,3,1)=-14.2d0
-        field_tested%nodes(2,3,1)= 23.0d0
-        field_tested%nodes(3,3,1)=  9.8d0
-        field_tested%nodes(4,3,1)=  3.4d0
+        nodes(1,3,1)=-14.2d0
+        nodes(2,3,1)= 23.0d0
+        nodes(3,3,1)=  9.8d0
+        nodes(4,3,1)=  3.4d0
 
-        field_tested%nodes(1,4,1)= 2.45d0
-        field_tested%nodes(2,4,1)= 0.2d0
-        field_tested%nodes(3,4,1)= 9.0d0
-        field_tested%nodes(4,4,1)= 5.4d0
+        nodes(1,4,1)= 2.45d0
+        nodes(2,4,1)= 0.2d0
+        nodes(3,4,1)= 9.0d0
+        nodes(4,4,1)= 5.4d0
 
         !<initialize the momentum_x
-        field_tested%nodes(1,1,2)= 9.5d0
-        field_tested%nodes(2,1,2)= 9.8d0
-        field_tested%nodes(3,1,2)= 8.8d0
-        field_tested%nodes(4,1,2)= 5.0d0
+        nodes(1,1,2)= 9.5d0
+        nodes(2,1,2)= 9.8d0
+        nodes(3,1,2)= 8.8d0
+        nodes(4,1,2)= 5.0d0
 
-        field_tested%nodes(1,2,2)= 8.0d0
-        field_tested%nodes(2,2,2)= 5.8d0
-        field_tested%nodes(3,2,2)=-1.0d0
-        field_tested%nodes(4,2,2)=-0.6d0
+        nodes(1,2,2)= 8.0d0
+        nodes(2,2,2)= 5.8d0
+        nodes(3,2,2)=-1.0d0
+        nodes(4,2,2)=-0.6d0
 
-        field_tested%nodes(1,3,2)= 24.2d0
-        field_tested%nodes(2,3,2)=-13.0d0
-        field_tested%nodes(3,3,2)= 0.2d0
-        field_tested%nodes(4,3,2)= 6.6d0
+        nodes(1,3,2)= 24.2d0
+        nodes(2,3,2)=-13.0d0
+        nodes(3,3,2)= 0.2d0
+        nodes(4,3,2)= 6.6d0
 
-        field_tested%nodes(1,4,2)= 7.55d0
-        field_tested%nodes(2,4,2)= 9.8d0
-        field_tested%nodes(3,4,2)= 1.0d0
-        field_tested%nodes(4,4,2)= 4.6d0
+        nodes(1,4,2)= 7.55d0
+        nodes(2,4,2)= 9.8d0
+        nodes(3,4,2)= 1.0d0
+        nodes(4,4,2)= 4.6d0
 
         !<initialize the momentum_y
-        field_tested%nodes(1,1,3)=-8.5d0
-        field_tested%nodes(2,1,3)=-9.4d0
-        field_tested%nodes(3,1,3)=-6.4d0
-        field_tested%nodes(4,1,3)= 5.0d0
+        nodes(1,1,3)=-8.5d0
+        nodes(2,1,3)=-9.4d0
+        nodes(3,1,3)=-6.4d0
+        nodes(4,1,3)= 5.0d0
 
-        field_tested%nodes(1,2,3)=-4.0d0
-        field_tested%nodes(2,2,3)= 2.6d0
-        field_tested%nodes(3,2,3)= 23.0d0
-        field_tested%nodes(4,2,3)= 21.8d0
+        nodes(1,2,3)=-4.0d0
+        nodes(2,2,3)= 2.6d0
+        nodes(3,2,3)= 23.0d0
+        nodes(4,2,3)= 21.8d0
 
-        field_tested%nodes(1,3,3)=-52.6d0
-        field_tested%nodes(2,3,3)= 59.0d0
-        field_tested%nodes(3,3,3)= 19.4d0
-        field_tested%nodes(4,3,3)= 0.20d0
+        nodes(1,3,3)=-52.6d0
+        nodes(2,3,3)= 59.0d0
+        nodes(3,3,3)= 19.4d0
+        nodes(4,3,3)= 0.20d0
 
-        field_tested%nodes(1,4,3)=-2.65d0
-        field_tested%nodes(2,4,3)=-9.40d0
-        field_tested%nodes(3,4,3)= 17.0d0
-        field_tested%nodes(4,4,3)= 6.20d0
+        nodes(1,4,3)=-2.65d0
+        nodes(2,4,3)=-9.40d0
+        nodes(3,4,3)= 17.0d0
+        nodes(4,4,3)= 6.20d0
 
         !<initialize the total energy
-        field_tested%nodes(1,1,4)=-1.5d0
-        field_tested%nodes(2,1,4)=-1.8d0
-        field_tested%nodes(3,1,4)=-0.8d0
-        field_tested%nodes(4,1,4)= 3.0d0
+        nodes(1,1,4)=-1.5d0
+        nodes(2,1,4)=-1.8d0
+        nodes(3,1,4)=-0.8d0
+        nodes(4,1,4)= 3.0d0
 
-        field_tested%nodes(1,2,4)= 0.0d0
-        field_tested%nodes(2,2,4)= 2.2d0
-        field_tested%nodes(3,2,4)= 9.0d0
-        field_tested%nodes(4,2,4)= 8.6d0
+        nodes(1,2,4)= 0.0d0
+        nodes(2,2,4)= 2.2d0
+        nodes(3,2,4)= 9.0d0
+        nodes(4,2,4)= 8.6d0
 
-        field_tested%nodes(1,3,4)=-16.2d0
-        field_tested%nodes(2,3,4)= 21.0d0
-        field_tested%nodes(3,3,4)= 7.8d0
-        field_tested%nodes(4,3,4)= 1.4d0
+        nodes(1,3,4)=-16.2d0
+        nodes(2,3,4)= 21.0d0
+        nodes(3,3,4)= 7.8d0
+        nodes(4,3,4)= 1.4d0
 
-        field_tested%nodes(1,4,4)= 0.45d0
-        field_tested%nodes(2,4,4)=-1.8d0
-        field_tested%nodes(3,4,4)= 7.0d0
-        field_tested%nodes(4,4,4)= 3.4d0
+        nodes(1,4,4)= 0.45d0
+        nodes(2,4,4)=-1.8d0
+        nodes(3,4,4)= 7.0d0
+        nodes(4,4,4)= 3.4d0
         
         !<test the operators defined dim2d_fluxes
         i=2 !<index tested in the data along the x-axis
@@ -174,55 +177,55 @@
         !< print the dim2d parameters used for the test
         if(detailled) then
            call print_variables_for_test(
-     $          field_tested%nodes,field_tested%dx, field_tested%dy)
+     $          nodes,dx, dy)
         end if
 
         !<test of the operators
         if(detailled) then
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_x_mass_density(field_tested%nodes,s,i,j)
+           prog_data  = flux_x_mass_density(nodes,s,i,j)
            test_validated = is_test_validated(prog_data, test_data(1))
            print '(''test flux_x_mass_density: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_x_momentum_x(field_tested%nodes,s,i,j,
-     $          field_tested%dx, field_tested%dy)
+           prog_data  = flux_x_momentum_x(nodes,s,i,j,
+     $          dx, dy)
            test_validated = is_test_validated(prog_data, test_data(2))
            print '(''test flux_x_momentum_x: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_x_momentum_y(field_tested%nodes,s,i,j,
-     $          field_tested%dx, field_tested%dy)
+           prog_data  = flux_x_momentum_y(nodes,s,i,j,
+     $          dx, dy)
            test_validated = is_test_validated(prog_data, test_data(3))
            print '(''test flux_x_momentum_y: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_x_total_energy(field_tested%nodes,s,i,j,
-     $          field_tested%dx, field_tested%dy)
+           prog_data  = flux_x_total_energy(nodes,s,i,j,
+     $          dx, dy)
            test_validated = is_test_validated(prog_data, test_data(4))
            print '(''test flux_x_total_energy: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_y_mass_density(field_tested%nodes,s,i,j)
+           prog_data  = flux_y_mass_density(nodes,s,i,j)
            test_validated = is_test_validated(prog_data, test_data(5))
            print '(''test flux_y_mass_density: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_y_momentum_x(field_tested%nodes,s,i,j,
-     $          field_tested%dx, field_tested%dy)
+           prog_data  = flux_y_momentum_x(nodes,s,i,j,
+     $          dx, dy)
            test_validated = is_test_validated(prog_data, test_data(6))
            print '(''test flux_y_momentum_x: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_y_momentum_y(field_tested%nodes,s,i,j,
-     $          field_tested%dx, field_tested%dy)
+           prog_data  = flux_y_momentum_y(nodes,s,i,j,
+     $          dx, dy)
            test_validated = is_test_validated(prog_data,test_data(7))
            print '(''test flux_y_momentum_y: '',1L)', test_validated
 
            !DEC$ FORCEINLINE RECURSIVE
-           prog_data  = flux_y_total_energy(field_tested%nodes,s,i,j,
-     $          field_tested%dx, field_tested%dy)
+           prog_data  = flux_y_total_energy(nodes,s,i,j,
+     $          dx, dy)
            test_validated = is_test_validated(prog_data, test_data(8))
            print '(''test flux_y_total_energy: '',1L)', test_validated
 
@@ -232,68 +235,68 @@
            test_validated=
      $          is_test_validated(
      $          flux_x_mass_density(
-     $          field_tested%nodes,s,
+     $          nodes,s,
      $          i,j),
      $          test_data(1))
            
            test_validated=test_validated.and.
      $          is_test_validated(
      $          flux_x_momentum_x(
-     $          field_tested%nodes,s,
+     $          nodes,s,
      $          i,j,
-     $          field_tested%dx, field_tested%dy),
+     $          dx, dy),
      $          test_data(2))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          flux_x_momentum_y(
-     $          field_tested%nodes,s,
+     $          nodes,s,
      $          i,j,
-     $          field_tested%dx,
-     $          field_tested%dy),
+     $          dx,
+     $          dy),
      $          test_data(3))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          flux_x_total_energy(
-     $          field_tested%nodes,s,
+     $          nodes,s,
      $          i,j,
-     $          field_tested%dx,
-     $          field_tested%dy),
+     $          dx,
+     $          dy),
      $          test_data(4))
 
            test_validated=
      $          is_test_validated(
      $          flux_y_mass_density(
-     $          field_tested%nodes,s,
+     $          nodes,s,
      $          i,j),
      $          test_data(5))
            
            test_validated=test_validated.and.
      $          is_test_validated(
      $          flux_y_momentum_x(
-     $          field_tested%nodes,s,
+     $          nodes,s,
      $          i,j,
-     $          field_tested%dx,
-     $          field_tested%dy),
+     $          dx,
+     $          dy),
      $          test_data(6))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          flux_y_momentum_y(
-     $          field_tested%nodes,s,
+     $          nodes,s,
      $          i,j,
-     $          field_tested%dx,
-     $          field_tested%dy),
+     $          dx,
+     $          dy),
      $          test_data(7))
 
            test_validated=test_validated.and.
      $          is_test_validated(
      $          flux_y_total_energy(
-     $          field_tested%nodes,s,
+     $          nodes,s,
      $          i,j,
-     $          field_tested%dx,
-     $          field_tested%dy),
+     $          dx,
+     $          dy),
      $          test_data(8))
 
            print '(''test_validated: '', 1L)', test_validated
@@ -373,6 +376,5 @@
           print '('''')'
         
         end subroutine print_variables_for_test
-
 
       end program test_dim2d_fluxes

@@ -13,20 +13,21 @@
       !-----------------------------------------------------------------
       program test_dim2d_eq
 
-        use dim2d_eq_class     , only : dim2d_eq
-        use field_class        , only : field
+        use pmodel_eq_class    , only : pmodel_eq
         use dim2d_parameters   , only : viscous_r,re,pr,we,cv_r
         use parameters_input   , only : nx,ny,ne
         use parameters_kind    , only : ikind, rkind
-        use cg_operators_class , only : cg_operators
+        use sd_operators_class , only : sd_operators
 
         implicit none
         
         
         !<operators tested
-        type(field)        :: field_tested
-        type(cg_operators) :: s
-        type(dim2d_eq)     :: phy_model_eq_tested
+        real(rkind), dimension(nx,ny,ne) :: nodes
+        real(rkind)                      :: dx
+        real(rkind)                      :: dy
+        type(sd_operators)               :: s
+        type(pmodel_eq)                  :: pmodel_eq_tested
         
         !<CPU recorded times
         real    :: time1, time2
@@ -74,92 +75,92 @@
 
 
         !<initialize the tables for the field
-        field_tested%dx=0.5
-        field_tested%dy=0.6
+        dx=0.5
+        dy=0.6
 
         !<initialize the mass density
-        field_tested%nodes(1,1,1)=0.5d0
-        field_tested%nodes(2,1,1)=0.2d0
-        field_tested%nodes(3,1,1)=1.2d0
-        field_tested%nodes(4,1,1)=5.0d0
+        nodes(1,1,1)=0.5d0
+        nodes(2,1,1)=0.2d0
+        nodes(3,1,1)=1.2d0
+        nodes(4,1,1)=5.0d0
 
-        field_tested%nodes(1,2,1)=2.0d0
-        field_tested%nodes(2,2,1)=4.2d0
-        field_tested%nodes(3,2,1)=11.0d0
-        field_tested%nodes(4,2,1)=10.6d0
+        nodes(1,2,1)=2.0d0
+        nodes(2,2,1)=4.2d0
+        nodes(3,2,1)=11.0d0
+        nodes(4,2,1)=10.6d0
 
-        field_tested%nodes(1,3,1)=-14.2d0
-        field_tested%nodes(2,3,1)= 23.0d0
-        field_tested%nodes(3,3,1)=  9.8d0
-        field_tested%nodes(4,3,1)=  3.4d0
+        nodes(1,3,1)=-14.2d0
+        nodes(2,3,1)= 23.0d0
+        nodes(3,3,1)=  9.8d0
+        nodes(4,3,1)=  3.4d0
 
-        field_tested%nodes(1,4,1)= 2.45d0
-        field_tested%nodes(2,4,1)= 0.2d0
-        field_tested%nodes(3,4,1)= 9.0d0
-        field_tested%nodes(4,4,1)= 5.4d0
+        nodes(1,4,1)= 2.45d0
+        nodes(2,4,1)= 0.2d0
+        nodes(3,4,1)= 9.0d0
+        nodes(4,4,1)= 5.4d0
 
         !<initialize the momentum_x
-        field_tested%nodes(1,1,2)= 9.5d0
-        field_tested%nodes(2,1,2)= 9.8d0
-        field_tested%nodes(3,1,2)= 8.8d0
-        field_tested%nodes(4,1,2)= 5.0d0
+        nodes(1,1,2)= 9.5d0
+        nodes(2,1,2)= 9.8d0
+        nodes(3,1,2)= 8.8d0
+        nodes(4,1,2)= 5.0d0
 
-        field_tested%nodes(1,2,2)= 8.0d0
-        field_tested%nodes(2,2,2)= 5.8d0
-        field_tested%nodes(3,2,2)=-1.0d0
-        field_tested%nodes(4,2,2)=-0.6d0
+        nodes(1,2,2)= 8.0d0
+        nodes(2,2,2)= 5.8d0
+        nodes(3,2,2)=-1.0d0
+        nodes(4,2,2)=-0.6d0
 
-        field_tested%nodes(1,3,2)= 24.2d0
-        field_tested%nodes(2,3,2)=-13.0d0
-        field_tested%nodes(3,3,2)= 0.2d0
-        field_tested%nodes(4,3,2)= 6.6d0
+        nodes(1,3,2)= 24.2d0
+        nodes(2,3,2)=-13.0d0
+        nodes(3,3,2)= 0.2d0
+        nodes(4,3,2)= 6.6d0
 
-        field_tested%nodes(1,4,2)= 7.55d0
-        field_tested%nodes(2,4,2)= 9.8d0
-        field_tested%nodes(3,4,2)= 1.0d0
-        field_tested%nodes(4,4,2)= 4.6d0
+        nodes(1,4,2)= 7.55d0
+        nodes(2,4,2)= 9.8d0
+        nodes(3,4,2)= 1.0d0
+        nodes(4,4,2)= 4.6d0
 
         !<initialize the momentum_y
-        field_tested%nodes(1,1,3)=-8.5d0
-        field_tested%nodes(2,1,3)=-9.4d0
-        field_tested%nodes(3,1,3)=-6.4d0
-        field_tested%nodes(4,1,3)= 5.0d0
+        nodes(1,1,3)=-8.5d0
+        nodes(2,1,3)=-9.4d0
+        nodes(3,1,3)=-6.4d0
+        nodes(4,1,3)= 5.0d0
 
-        field_tested%nodes(1,2,3)=-4.0d0
-        field_tested%nodes(2,2,3)= 2.6d0
-        field_tested%nodes(3,2,3)= 23.0d0
-        field_tested%nodes(4,2,3)= 21.8d0
+        nodes(1,2,3)=-4.0d0
+        nodes(2,2,3)= 2.6d0
+        nodes(3,2,3)= 23.0d0
+        nodes(4,2,3)= 21.8d0
 
-        field_tested%nodes(1,3,3)=-52.6d0
-        field_tested%nodes(2,3,3)= 59.0d0
-        field_tested%nodes(3,3,3)= 19.4d0
-        field_tested%nodes(4,3,3)= 0.20d0
+        nodes(1,3,3)=-52.6d0
+        nodes(2,3,3)= 59.0d0
+        nodes(3,3,3)= 19.4d0
+        nodes(4,3,3)= 0.20d0
 
-        field_tested%nodes(1,4,3)=-2.65d0
-        field_tested%nodes(2,4,3)=-9.40d0
-        field_tested%nodes(3,4,3)= 17.0d0
-        field_tested%nodes(4,4,3)= 6.20d0
+        nodes(1,4,3)=-2.65d0
+        nodes(2,4,3)=-9.40d0
+        nodes(3,4,3)= 17.0d0
+        nodes(4,4,3)= 6.20d0
 
         !<initialize the total energy
-        field_tested%nodes(1,1,4)=-1.5d0
-        field_tested%nodes(2,1,4)=-1.8d0
-        field_tested%nodes(3,1,4)=-0.8d0
-        field_tested%nodes(4,1,4)= 3.0d0
+        nodes(1,1,4)=-1.5d0
+        nodes(2,1,4)=-1.8d0
+        nodes(3,1,4)=-0.8d0
+        nodes(4,1,4)= 3.0d0
 
-        field_tested%nodes(1,2,4)= 0.0d0
-        field_tested%nodes(2,2,4)= 2.2d0
-        field_tested%nodes(3,2,4)= 9.0d0
-        field_tested%nodes(4,2,4)= 8.6d0
+        nodes(1,2,4)= 0.0d0
+        nodes(2,2,4)= 2.2d0
+        nodes(3,2,4)= 9.0d0
+        nodes(4,2,4)= 8.6d0
 
-        field_tested%nodes(1,3,4)=-16.2d0
-        field_tested%nodes(2,3,4)= 21.0d0
-        field_tested%nodes(3,3,4)= 7.8d0
-        field_tested%nodes(4,3,4)= 1.4d0
+        nodes(1,3,4)=-16.2d0
+        nodes(2,3,4)= 21.0d0
+        nodes(3,3,4)= 7.8d0
+        nodes(4,3,4)= 1.4d0
 
-        field_tested%nodes(1,4,4)= 0.45d0
-        field_tested%nodes(2,4,4)=-1.8d0
-        field_tested%nodes(3,4,4)= 7.0d0
-        field_tested%nodes(4,4,4)= 3.4d0
+        nodes(1,4,4)= 0.45d0
+        nodes(2,4,4)=-1.8d0
+        nodes(3,4,4)= 7.0d0
+        nodes(4,4,4)= 3.4d0
         
         !<test the operators defined dim2d_fluxes
         i=3 !<index tested in the data along the x-axis
@@ -178,13 +179,13 @@
         !< print the dim2d parameters used for the test
         if(detailled) then
            call print_variables_for_test(
-     $          field_tested%nodes,field_tested%dx, field_tested%dy)
+     $          nodes,dx,dy)
         end if
 
         
         !<compute the flux_x and flux_y tables
-        flux_x = phy_model_eq_tested%compute_flux_x(field_tested,s)
-        flux_y = phy_model_eq_tested%compute_flux_y(field_tested,s)
+        flux_x = pmodel_eq_tested%compute_flux_x(nodes,dx,dy,s)
+        flux_y = pmodel_eq_tested%compute_flux_y(nodes,dx,dy,s)
 
 
         !<test of the operators
@@ -326,6 +327,5 @@
           print '('''')'
         
         end subroutine print_variables_for_test
-
 
       end program test_dim2d_eq

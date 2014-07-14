@@ -18,8 +18,7 @@
 
         use dim2d_parameters     , only : cv_r
         use dim2d_state_eq_module, only : get_mass_density_liquid
-        use field_class          , only : field
-        use parameters_input     , only : nx,ny
+        use parameters_input     , only : nx,ny,ne
         use parameters_kind      , only : ikind, rkind
 
         implicit none
@@ -44,12 +43,11 @@
         !>@param field_used
         !> object encapsulating the main variables
         !---------------------------------------------------------------
-        subroutine apply_steady_state_ic(field_used)
+        subroutine apply_steady_state_ic(nodes)
 
           implicit none
 
-          class(field), intent(inout) :: field_used
-
+          real(rkind), dimension(:,:,:), intent(inout) :: nodes
           integer(ikind) :: i,j
           real(rkind)    :: T0, d_liq
 
@@ -58,13 +56,13 @@
           d_liq = get_mass_density_liquid(T0)
 
 
-          do j=1, ny
-             do i=1, nx
+          do j=1, size(nodes,2)
+             do i=1, size(nodes,1)
                 
-                field_used%nodes(i,j,1) =  d_liq
-                field_used%nodes(i,j,2) = -1.
-                field_used%nodes(i,j,3) =  1.
-                field_used%nodes(i,j,4) =  cv_r*T0
+                nodes(i,j,1) =  d_liq
+                nodes(i,j,2) = -1.
+                nodes(i,j,3) =  1.
+                nodes(i,j,4) =  cv_r*T0
 
              end do
           end do

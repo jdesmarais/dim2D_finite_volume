@@ -12,21 +12,20 @@
       !> @date
       !> 08_08_2013 - initial version                   - J.L. Desmarais
       !-----------------------------------------------------------------
-      module phy_model_eq_class
+      module pmodel_eq_abstract_class
       
-        use field_class       , only : field
         use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : rkind
         use parameters_input  , only : nx,ny,ne
-        use cg_operators_class, only : cg_operators
+        use sd_operators_class, only : sd_operators
 
         implicit none
 
         private
-        public :: phy_model_eq
+        public :: pmodel_eq_abstract
 
 
-        !> @class phy_model_eq
+        !> @class pmodel_eq
         !> abstract class encapsulating operators to compute
         !> the governing equations of the physical model
         !>
@@ -57,7 +56,7 @@
         !> initialize the main parameters of the physical model
         !> (ex:reynolds number)
         !>
-        !> @param apply_initial_conditions
+        !> @param apply_ic
         !> initialize the main variables of the governing equations
         !> considering the user choices
         !>
@@ -70,7 +69,7 @@
         !> @param add_body_forces
         !> add the body forces to the computation of the time derivatives
         !---------------------------------------------------------------
-        type, abstract :: phy_model_eq
+        type, abstract :: pmodel_eq_abstract
           
           contains
 
@@ -87,7 +86,7 @@
           procedure(fluxes_y_n), nopass, deferred :: compute_flux_y_nopt
           procedure(bodyforces), nopass, deferred :: compute_body_forces
 
-        end type phy_model_eq
+        end type pmodel_eq_abstract
 
 
         abstract interface
@@ -214,12 +213,14 @@
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
           !
-          !>@param field_used
-          !> object encapsulating the main variables
+          !>@param nodes
+          !> array with the grid point data
           !--------------------------------------------------------------
-          subroutine ini_cond(field_used)
-            import field
-            class(field), intent(inout) :: field_used
+          subroutine ini_cond(nodes,x_map,y_map)
+            import rkind
+            real(rkind), dimension(:,:,:), intent(inout) :: nodes
+            real(rkind), dimension(:)    , intent(in)    :: x_map
+            real(rkind), dimension(:)    , intent(in)    :: y_map
           end subroutine ini_cond
 
 
@@ -233,8 +234,14 @@
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
           !
-          !>@param field_used
-          !> object encapsulating the main variables
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param dx
+          !> grid size along the x-axis
+          !
+          !>@param dy
+          !> grid size along the y-axis
           !
           !>@param s
           !> space discretization operators
@@ -242,17 +249,17 @@
           !>@param flux_x
           !> fluxes along the x-axis
           !--------------------------------------------------------------
-          function fluxes_x(field_used, s) result(flux_x)
+          function fluxes_x(nodes,dx,dy,s) result(flux_x)
 
-            import cg_operators
-            import field
-            import phy_model_eq
             import rkind
             import nx,ny,ne
+            import sd_operators
 
-            class(field)                     , intent(in)   :: field_used
-            type(cg_operators)               , intent(in)   :: s
-            real(rkind),dimension(nx+1,ny,ne)               :: flux_x
+            real(rkind), dimension(nx,ny,ne)  , intent(in)   :: nodes
+            real(rkind)                       , intent(in)   :: dx
+            real(rkind)                       , intent(in)   :: dy
+            type(sd_operators)                , intent(in)   :: s
+            real(rkind), dimension(nx+1,ny,ne)               :: flux_x
 
           end function fluxes_x
 
@@ -267,8 +274,8 @@
           !> @date
           !> 08_08_2013 - initial version - J.L. Desmarais
           !
-          !>@param field_used
-          !> object encapsulating the main variables
+          !>@param nodes
+          !> array with the grid point data
           !
           !>@param s
           !> space discretization operators
@@ -276,45 +283,103 @@
           !>@param flux_y
           !> fluxes along the y-axis
           !--------------------------------------------------------------
-          function fluxes_y(field_used, s) result(flux_y)
+          function fluxes_y(nodes,dx,dy,s) result(flux_y)
 
-            import cg_operators
-            import field
-            import phy_model_eq
             import rkind
             import nx,ny,ne
+            import sd_operators
 
-            class(field)                     , intent(in)   :: field_used
-            type(cg_operators)               , intent(in)   :: s
+            real(rkind), dimension(nx,ny,ne) , intent(in)   :: nodes
+            real(rkind)                      , intent(in)   :: dx
+            real(rkind)                      , intent(in)   :: dy
+            type(sd_operators)               , intent(in)   :: s
             real(rkind),dimension(nx,ny+1,ne)               :: flux_y
 
           end function fluxes_y
 
 
-          subroutine fluxes_x_n(nodes,s,dx,dy,grdpts_id,flux_x)
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to compute the fluxes
+          !> along the x-axis without knowing the exact
+          !> dimensions of the input and output arrays
+          !
+          !> @date
+          !> 08_08_2013 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param s
+          !> space discretization operators
+          !
+          !>@param dx
+          !> grid step along the x-axis
+          !
+          !>@param dy
+          !> grid step along the x-axis
+          !
+          !>@param grdpts_id
+          !> role of the grid points
+          !
+          !>@param flux_x
+          !> fluxes along the x-axis
+          !--------------------------------------------------------------
+          subroutine fluxes_x_n(nodes,dx,dy,s,grdpts_id,flux_x)
         
-            import cg_operators
+            import sd_operators
             import rkind
 
             real(rkind), dimension(:,:,:), intent(in)    :: nodes
-            type(cg_operators)           , intent(in)    :: s
             real(rkind)                  , intent(in)    :: dx
             real(rkind)                  , intent(in)    :: dy
+            type(sd_operators)           , intent(in)    :: s
             integer    , dimension(:,:)  , intent(in)    :: grdpts_id
             real(rkind), dimension(:,:,:), intent(inout) :: flux_x
 
           end subroutine fluxes_x_n
 
 
-          subroutine fluxes_y_n(nodes,s,dx,dy,grdpts_id,flux_y)
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to compute the fluxes
+          !> along the y-axis without knowing the exact
+          !> dimensions of the input and output arrays
+          !
+          !> @date
+          !> 08_08_2013 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param s
+          !> space discretization operators
+          !
+          !>@param dx
+          !> grid step along the x-axis
+          !
+          !>@param dy
+          !> grid step along the x-axis
+          !
+          !>@param grdpts_id
+          !> role of the grid points
+          !
+          !>@param flux_y
+          !> fluxes along the y-axis
+          !--------------------------------------------------------------
+          subroutine fluxes_y_n(nodes,dx,dy,s,grdpts_id,flux_y)
         
-            import cg_operators
+            import sd_operators
             import rkind
 
             real(rkind), dimension(:,:,:), intent(in)    :: nodes
-            type(cg_operators)           , intent(in)    :: s
             real(rkind)                  , intent(in)    :: dx
             real(rkind)                  , intent(in)    :: dy
+            type(sd_operators)           , intent(in)    :: s           
             integer    , dimension(:,:)  , intent(in)    :: grdpts_id
             real(rkind), dimension(:,:,:), intent(inout) :: flux_y
 
@@ -332,8 +397,11 @@
           !> @date
           !> 23_09_2013 - initial version - J.L. Desmarais
           !
-          !>@param field_used
-          !> object encapsulating the main variables
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param k
+          !> governing variables identifier
           !
           !>@param body_forces
           !> body forces
@@ -351,4 +419,4 @@
 
         end interface        
 
-      end module phy_model_eq_class
+      end module pmodel_eq_abstract_class

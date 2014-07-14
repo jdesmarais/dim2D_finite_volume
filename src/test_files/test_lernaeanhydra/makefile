@@ -32,62 +32,58 @@ test_cg_operators:	parameters_kind.o\
 
 test_dim2d_prim.o:	$(dim2d_dir)/dim2d_parameters.o\
 			$(dim2d_dir)/dim2d_prim_module.o\
-			$(field_dir)/field_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
 test_dim2d_prim:	parameters_kind.o\
 			dim2d_parameters.o\
 			dim2d_prim_module.o\
-			surrogate_class.o\
 			parameters_constant.o\
-			parameters_input.o\
-			field_class.o\
-			interface_primary.o
+			parameters_input.o
 
-test_dim2d_fluxes.o:	$(sd_dir)/cg_operators_class.o\
+test_dim2d_fluxes.o:	$(cg_dir)/sd_operators_class.o\
 			$(dim2d_dir)/dim2d_fluxes_module.o\
-			$(field_dir)/field_class.o\
 			$(dim2d_dir)/dim2d_parameters.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-test_dim2d_fluxes:	cg_operators_class.o\
-			dim2d_fluxes_module.o\
+test_dim2d_fluxes:	parameters_kind.o\
+			interface_primary.o\
+			sd_operators_abstract_class.o\
+			sd_operators_class.o\
 			dim2d_parameters.o\
 			dim2d_prim_module.o\
-			field_class.o\
-			parameters_kind.o\
-			surrogate_class.o
+			dim2d_fluxes_module.o\
+			parameters_constant.o\
+			parameters_input.o
 
-test_dim2d_eq.o:	$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_class.o\
+test_dim2d_eq.o:	$(cg_dir)/sd_operators_class.o\
+			$(dim2d_dir)/pmodel_eq_class.o\
 			$(dim2d_dir)/dim2d_parameters.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-test_dim2d_eq:		surrogate_class.o\
-			parameters_kind.o\
+test_dim2d_eq:		parameters_kind.o\
+			interface_primary.o\
+			sd_operators_abstract_class.o\
+			sd_operators_class.o\
+			dim2d_parameters.o\
 			parameters_constant.o\
 			parameters_input.o\
-			field_class.o\
-			interface_primary.o\
-			sd_operators_class.o\
-			cg_operators_class.o\
-			dim2d_parameters.o\
 			dim2d_dropbubble_module.o\
 			dim2d_vortex_module.o\
 			dim2d_state_eq_module.o\
 			dim2d_bubble_ascending_module.o\
+			dim2d_drop_collision_module.o\
 			dim2d_drop_retraction_module.o\
 			dim2d_prim_module.o\
 			dim2d_fluxes_module.o\
 			dim2d_homogeneous_module.o\
 			dim2d_phase_separation_module.o\
 			dim2d_steadystate_module.o\
-			phy_model_eq_class.o\
-			dim2d_eq_class.o
+			parameters_bf_layer.o\
+			pmodel_eq_abstract_class.o\
+			pmodel_eq_class.o
 
 test_fv_operators.o:	$(pbc_dir)/bc_operators_class.o\
 			$(sd_dir)/cg_operators_class.o\
