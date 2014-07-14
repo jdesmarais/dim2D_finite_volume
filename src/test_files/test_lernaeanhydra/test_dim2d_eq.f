@@ -167,12 +167,12 @@
 
         !<test_data initialization        
         test_data(1) = -10.033333d0 !<flux_x_mass
-        test_data(2) = -760.92653d0 !<flux_x_momentum_x
+        test_data(2) = -760.92652d0 !<flux_x_momentum_x
         test_data(3) =  -24.31047d0 !<flux_x_momentum_y
-        test_data(4) = 1463.64778d0 !<flux_x_total_energy
+        test_data(4) = 1463.64782d0 !<flux_x_total_energy
         test_data(5) = 23.8500000d0 !<flux_y_mass
         test_data(6) =    6.16168d0 !<flux_y_momentum_x
-        test_data(7) = -352.65587d0 !<flux_y_momentum_y
+        test_data(7) = -352.65586d0 !<flux_y_momentum_y
         test_data(8) = -840.36959d0!<flux_y_total_energy
 
         !< print the dim2d parameters used for the test

@@ -71,6 +71,8 @@
           procedure, nopass :: apply_ic
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
+          procedure, nopass :: compute_flux_x_nopt
+          procedure, nopass :: compute_flux_y_nopt
           procedure, nopass :: compute_body_forces
 
         end type dim2d_eq
@@ -331,6 +333,70 @@
         end function compute_flux_y
 
 
+        subroutine compute_flux_x_nopt(nodes,s,dx,dy,grdpts_id,flux_x)
+        
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in)    :: nodes
+          type(cg_operators)           , intent(in)    :: s
+          real(rkind)                  , intent(in)    :: dx
+          real(rkind)                  , intent(in)    :: dy
+          integer    , dimension(:,:)  , intent(in)    :: grdpts_id
+          real(rkind), dimension(:,:,:), intent(inout) :: flux_x
+
+          integer(ikind) :: i,j
+
+
+          !<fluxes along the x-axis
+          do j=1+bc_size, size(flux_x,2)-bc_size
+             !DEC$ IVDEP
+             do i=1+bc_size, size(flux_x,1)-bc_size
+
+                if(grdpts_id(i,j).eq.interior_pt) then
+
+                   flux_x(i,j,1) = 10*s%f(field_used,i-1,j,basic)+
+     $               s%dfdx(field_used,i-1,j,basic)
+
+                end if
+
+             end do
+          end do
+
+        end subroutine compute_flux_x_nopt
+
+
+        subroutine compute_flux_y_nopt(nodes,s,dx,dy,grdpts_id,flux_y)
+        
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in)    :: nodes
+          type(cg_operators)           , intent(in)    :: s
+          real(rkind)                  , intent(in)    :: dx
+          real(rkind)                  , intent(in)    :: dy
+          integer    , dimension(:,:)  , intent(in)    :: grdpts_id
+          real(rkind), dimension(:,:,:), intent(inout) :: flux_y
+
+          integer(ikind) :: i,j
+
+
+          !<fluxes along the y-axis
+          do j=1+bc_size, size(flux_y,2)-bc_size
+             !DEC$ IVDEP
+             do i=1+bc_size, size(flux_y,1)-bc_size
+
+                if(grdpts_id(i,j).eq.interior_pt) then
+
+                   flux_y(i,j,1) = s%g(field_used,i,j-1,basic)+
+     $                  10*s%dgdy(field_used,i,j-1,basic)
+
+                end if
+
+             end do
+          end do
+
+        end subroutine compute_flux_y_nopt
+
+
         function basic(field_used,i,j) result(var)
 
           class(field)       , intent(in) :: field_used
@@ -343,22 +409,15 @@
         end function basic
 
 
-        function compute_body_forces(field_used) result(body_forces)
+        function compute_body_forces(nodes,k) result(body_forces)
 
           implicit none
 
-          class(field)                   , intent(in) :: field_used
-          real(rkind),dimension(nx,ny,ne)             :: body_forces
+          real(rkind), dimension(ne), intent(in) :: nodes
+          integer                   , intent(in) :: k
+          real(rkind)                            :: body_forces
 
-          integer(ikind) :: i,j
-
-
-          do j=1+bc_size, ny-bc_size
-             !DEC$ IVDEP
-             do i=1+bc_size, nx-bc_size
-                body_forces(i,j,1)=0
-             end do
-          end do          
+          body_forces = 0
 
         end function compute_body_forces
 

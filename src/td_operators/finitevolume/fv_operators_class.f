@@ -46,6 +46,8 @@
           contains
 
           procedure, nopass :: compute_time_dev
+          procedure, nopass :: compute_time_dev_opt
+          procedure, nopass :: compute_time_dev_nopt
 
         end type fv_operators
 
@@ -94,7 +96,6 @@
             integer(ikind)                     :: i,j
             real(rkind), dimension(nx+1,ny,ne) :: flux_x
             real(rkind), dimension(nx,ny+1,ne) :: flux_y
-            real(rkind), dimension(nx,ny,ne)   :: body_forces
 
 
             !<compute the fluxes
@@ -118,9 +119,6 @@
             !>select if the body forces computation is required
             if(gravity_choice.eq.earth_gravity_choice) then
 
-               !<compute the body forces
-               body_forces = p_model%compute_body_forces(field_used,s)
-
                !<compute the time derivatives
                do k=1, ne
                   do j=1+bc_size, ny-bc_size
@@ -128,7 +126,7 @@
                         time_dev(i,j,k)=
      $                       (flux_x(i,j,k)-flux_x(i+1,j,k))/field_used%dx+
      $                       (flux_y(i,j,k)-flux_y(i,j+1,k))/field_used%dy+
-     $                       body_forces(i,j,k)
+     $                       p_model%compute_body_forces(nodes(i,j,:),k)
                      end do
                   end do
                end do
@@ -149,5 +147,80 @@
             end if
 
         end function compute_time_dev
+
+
+
+        !compute the time derivatives without knowing the size of the
+        !tables
+        subroutine compute_time_dev_nopt(nodes,s,p_model,bc_used,time_dev)
+
+            implicit none
+
+
+            real(rkind), dimension(:,:,:)             , intent(in)  :: nodes
+            type(cg_operators)                        , intent(in)  :: s
+            type(dim2d_eq)                            , intent(in)  :: p_model
+            type(bc_operators)                        , intent(in)  :: bc_used
+            real(rkind), dimension(:,:,:), allocatable, intent(out) :: time_dev
+
+            integer                            :: k
+            integer(ikind)                     :: i,j
+            real(rkind), dimension(nx+1,ny,ne) :: flux_x
+            real(rkind), dimension(nx,ny+1,ne) :: flux_y
+
+
+            allocate(flux_x(size(nodes,1)+1,size(nodes,2),ne))
+            allocate(flux_y(size(nodes,1),size(nodes,2)+1,ne))
+
+
+            !<compute the fluxes
+            !FORCEINLINE RECURSIVE
+            flux_x = p_model%compute_flux_x(field_used,s)
+
+            !FORCEINLINE RECURSIVE
+            flux_y = p_model%compute_flux_y(field_used,s)
+
+
+            !<if the boundary conditions influence the computation
+            !> of the fluxes, then we need to modify the fluxes
+            if((bcx_type_choice.eq.bc_fluxes_choice).or.
+     $         (bcy_type_choice.eq.bc_fluxes_choice)) then
+               call bc_used%apply_bc_on_fluxes(
+     $              field_used,s,flux_x,flux_y)
+            end if
+
+
+            !<compute the time derivatives
+            !>select if the body forces computation is required
+            if(gravity_choice.eq.earth_gravity_choice) then
+
+               !<compute the time derivatives
+               do k=1, ne
+                  do j=1+bc_size, ny-bc_size
+                     do i=1+bc_size, nx-bc_size
+                        time_dev(i,j,k)=
+     $                       (flux_x(i,j,k)-flux_x(i+1,j,k))/field_used%dx+
+     $                       (flux_y(i,j,k)-flux_y(i,j+1,k))/field_used%dy+
+     $                       p_model%compute_body_forces(nodes(i,j,:),k)
+                     end do
+                  end do
+               end do
+
+            else
+
+               !<compute the time derivatives
+               do k=1, ne
+                  do j=1+bc_size, ny-bc_size
+                     do i=1+bc_size, nx-bc_size
+                        time_dev(i,j,k)=
+     $                       (flux_x(i,j,k)-flux_x(i+1,j,k))/field_used%dx+
+     $                       (flux_y(i,j,k)-flux_y(i,j+1,k))/field_used%dy
+                     end do
+                  end do
+               end do
+
+            end if
+
+        end subroutine compute_time_dev_nopt
 
       end module fv_operators_class

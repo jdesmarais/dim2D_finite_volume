@@ -17,7 +17,8 @@
       !> WIT Press, J. Desmarais and J.G.M. Kuerten
       !
       !> @date
-      !> 08_08_2013 - initial version                   - J.L. Desmarais
+      !> 08_08_2013 - initial version - J.L. Desmarais
+      !> 11_07_2013 - interface for erymanthianboar - J.L. Desmarais
       !-----------------------------------------------------------------
       module dim2d_eq_class
 
@@ -39,6 +40,7 @@
         use dim2d_homogeneous_module    , only : apply_homogeneous_ic
         use dim2d_steadystate_module    , only : apply_steady_state_ic
         use field_class                 , only : field
+        use parameters_bf_layer         , only : interior_pt
         use parameters_constant         , only : scalar,
      $                                           vector_x, vector_y,
      $                                           steady_state,
@@ -115,6 +117,8 @@
           procedure, nopass :: apply_ic
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
+          procedure, nopass :: compute_flux_x_nopt
+          procedure, nopass :: compute_flux_y_nopt
           procedure, nopass :: compute_body_forces
 
         end type dim2d_eq
@@ -364,16 +368,24 @@ c$$$               call apply_drop_evaporation_ic(field_used)
              do i=1+bc_size, nx+1-bc_size
 
                 !DEC$ FORCEINLINE RECURSIVE
-                flux_x(i,j,1) = flux_x_mass_density(field_used,s,i-1,j)
+                flux_x(i,j,1) =
+     $               flux_x_mass_density(
+     $               field_used%nodes,s,i-1,j)
 
                 !DEC$ FORCEINLINE RECURSIVE
-                flux_x(i,j,2) = flux_x_momentum_x(field_used,s,i-1,j)
+                flux_x(i,j,2) = flux_x_momentum_x(
+     $               field_used%nodes,s,i-1,j,
+     $               field_used%dx, field_used%dy)
 
                 !DEC$ FORCEINLINE RECURSIVE
-                flux_x(i,j,3) = flux_x_momentum_y(field_used,s,i-1,j)
+                flux_x(i,j,3) = flux_x_momentum_y(
+     $               field_used%nodes,s,i-1,j,
+     $               field_used%dx, field_used%dy)
 
                 !DEC$ FORCEINLINE RECURSIVE
-                flux_x(i,j,4) = flux_x_total_energy(field_used,s,i-1,j)
+                flux_x(i,j,4) = flux_x_total_energy(
+     $               field_used%nodes,s,i-1,j,
+     $               field_used%dx, field_used%dy)
 
              end do
           end do
@@ -424,21 +436,188 @@ c$$$               call apply_drop_evaporation_ic(field_used)
              do i=1+bc_size, nx-bc_size
 
                 !DEC$ FORCEINLINE RECURSIVE
-                flux_y(i,j,1) = flux_y_mass_density(field_used,s,i,j-1)
+                flux_y(i,j,1) = flux_y_mass_density(
+     $               field_used%nodes,s,i,j-1)
 
                 !DEC$ FORCEINLINE RECURSIVE
-                flux_y(i,j,2) = flux_y_momentum_x(field_used,s,i,j-1)
+                flux_y(i,j,2) = flux_y_momentum_x(
+     $               field_used%nodes,s,i,j-1,
+     $               field_used%dx, field_used%dy)
 
                 !DEC$ FORCEINLINE RECURSIVE
-                flux_y(i,j,3) = flux_y_momentum_y(field_used,s,i,j-1)
+                flux_y(i,j,3) = flux_y_momentum_y(
+     $               field_used%nodes,s,i,j-1,
+     $               field_used%dx, field_used%dy)
 
                 !DEC$ FORCEINLINE RECURSIVE
-                flux_y(i,j,4) = flux_y_total_energy(field_used,s,i,j-1)
+                flux_y(i,j,4) = flux_y_total_energy(
+     $               field_used%nodes,s,i,j-1,
+     $               field_used%dx, field_used%dy)
 
              end do
           end do
 
         end function compute_flux_y
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface to apply the initial conditions
+        !> to the main variables of the governing
+        !> equations
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> physical model
+        !>
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> space discretization operators
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param grdpts_id
+        !> role of the grid points
+        !
+        !>@param flux_x
+        !> fluxes along the x-axis
+        !---------------------------------------------------------------
+        subroutine compute_flux_x_nopt(nodes,s,dx,dy,grdpts_id,flux_x)
+        
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in)    :: nodes
+          type(cg_operators)           , intent(in)    :: s
+          real(rkind)                  , intent(in)    :: dx
+          real(rkind)                  , intent(in)    :: dy
+          integer    , dimension(:,:)  , intent(in)    :: grdpts_id
+          real(rkind), dimension(:,:,:), intent(inout) :: flux_x
+
+          integer(ikind) :: i,j
+
+
+          !<fluxes along the x-axis
+          do j=1+bc_size, size(flux_x,2)-bc_size
+             !DEC$ IVDEP
+             do i=1+bc_size, size(flux_x,1)-bc_size
+
+                if(grdpts_id(i,j).eq.interior_pt) then
+
+                   !DEC$ FORCEINLINE RECURSIVE
+                   flux_x(i,j,1) =
+     $                  flux_x_mass_density(
+     $                  nodes,s,i-1,j)
+                   
+                   !DEC$ FORCEINLINE RECURSIVE
+                   flux_x(i,j,2) = flux_x_momentum_x(
+     $                  nodes,s,i-1,j,
+     $                  dx, dy)
+                   
+                   !DEC$ FORCEINLINE RECURSIVE
+                   flux_x(i,j,3) = flux_x_momentum_y(
+     $                  nodes,s,i-1,j,
+     $                  dx, dy)
+                   
+                   !DEC$ FORCEINLINE RECURSIVE
+                   flux_x(i,j,4) = flux_x_total_energy(
+     $                  nodes,s,i-1,j,
+     $                  dx, dy)
+
+                end if
+
+             end do
+          end do
+
+        end subroutine compute_flux_x_nopt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface to apply the initial conditions
+        !> to the main variables of the governing
+        !> equations
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> physical model
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> space discretization operators
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param grdpts_id
+        !> role of the grid points
+        !
+        !>@param flux_y
+        !> fluxes along the y-axis
+        !---------------------------------------------------------------
+        subroutine compute_flux_y_nopt(nodes,s,dx,dy,grdpts_id,flux_y)
+        
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in)    :: nodes
+          type(cg_operators)           , intent(in)    :: s
+          real(rkind)                  , intent(in)    :: dx
+          real(rkind)                  , intent(in)    :: dy
+          integer    , dimension(:,:)  , intent(in)    :: grdpts_id
+          real(rkind), dimension(:,:,:), intent(inout) :: flux_y
+
+          integer(ikind) :: i,j
+
+
+          !<fluxes along the y-axis
+          do j=1+bc_size, size(flux_y,2)-bc_size
+             !DEC$ IVDEP
+             do i=1+bc_size, size(flux_y,1)-bc_size
+
+                if(grdpts_id(i,j).eq.interior_pt) then
+
+                   !DEC$ FORCEINLINE RECURSIVE
+                   flux_y(i,j,1) = flux_y_mass_density(nodes,s,i,j-1)
+                   
+                   !DEC$ FORCEINLINE RECURSIVE
+                   flux_y(i,j,2) = flux_y_momentum_x(
+     $                  nodes,s,i,j-1,
+     $                  dx,dy)
+                   
+                   !DEC$ FORCEINLINE RECURSIVE
+                   flux_y(i,j,3) = flux_y_momentum_y(
+     $                  nodes,s,i,j-1,
+     $                  dx,dy)
+                   
+                   !DEC$ FORCEINLINE RECURSIVE
+                   flux_y(i,j,4) = flux_y_total_energy(
+     $                  nodes,s,i,j-1,
+     $                  dx,dy)
+
+                end if
+
+             end do
+          end do
+
+        end subroutine compute_flux_y_nopt
 
 
         !> @author
@@ -457,26 +636,25 @@ c$$$               call apply_drop_evaporation_ic(field_used)
         !>@param body_forces
         !> body forces evaluated at (i,j)
         !--------------------------------------------------------------
-        function compute_body_forces(field_used) result(body_forces)
+        function compute_body_forces(nodes,k) result(body_forces)
 
           implicit none
 
-          class(field)                   , intent(in) :: field_used
-          real(rkind),dimension(nx,ny,ne)             :: body_forces
+          real(rkind), dimension(ne), intent(in) :: nodes
+          integer                   , intent(in) :: k
+          real(rkind)                            :: body_forces
 
-          integer(ikind) :: i,j
-
-          do j=1+bc_size, ny-bc_size
-             !DEC$ IVDEP
-             do i=1+bc_size, nx-bc_size
-                body_forces(i,j,1)=0
-                body_forces(i,j,2)=0
-                body_forces(i,j,3)=-field_used%nodes(i,j,1)*gravity
-                body_forces(i,j,4)=-field_used%nodes(i,j,3)*gravity
-             end do
-          end do          
+          select case(k)
+            case(1)
+               body_forces = 0
+            case(2)
+               body_forces = 0
+            case(3)
+               body_forces = -nodes(1)*gravity
+            case(4)
+               body_forces = -nodes(3)*gravity
+          end select
 
         end function compute_body_forces
-
 
       end module dim2d_eq_class

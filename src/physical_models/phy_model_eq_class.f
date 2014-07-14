@@ -83,6 +83,8 @@
           procedure(ini_cond)  , nopass, deferred :: apply_ic
           procedure(fluxes_x)  , nopass, deferred :: compute_flux_x
           procedure(fluxes_y)  , nopass, deferred :: compute_flux_y
+          procedure(fluxes_x_n), nopass, deferred :: compute_flux_x_nopt
+          procedure(fluxes_y_n), nopass, deferred :: compute_flux_y_nopt
           procedure(bodyforces), nopass, deferred :: compute_body_forces
 
         end type phy_model_eq
@@ -289,6 +291,37 @@
           end function fluxes_y
 
 
+          subroutine fluxes_x_n(nodes,s,dx,dy,grdpts_id,flux_x)
+        
+            import cg_operators
+            import rkind
+
+            real(rkind), dimension(:,:,:), intent(in)    :: nodes
+            type(cg_operators)           , intent(in)    :: s
+            real(rkind)                  , intent(in)    :: dx
+            real(rkind)                  , intent(in)    :: dy
+            integer    , dimension(:,:)  , intent(in)    :: grdpts_id
+            real(rkind), dimension(:,:,:), intent(inout) :: flux_x
+
+          end subroutine fluxes_x_n
+
+
+          subroutine fluxes_y_n(nodes,s,dx,dy,grdpts_id,flux_y)
+        
+            import cg_operators
+            import rkind
+
+            real(rkind), dimension(:,:,:), intent(in)    :: nodes
+            type(cg_operators)           , intent(in)    :: s
+            real(rkind)                  , intent(in)    :: dx
+            real(rkind)                  , intent(in)    :: dy
+            integer    , dimension(:,:)  , intent(in)    :: grdpts_id
+            real(rkind), dimension(:,:,:), intent(inout) :: flux_y
+
+          end subroutine fluxes_y_n
+
+
+
           !> @author
           !> Julien L. Desmarais
           !
@@ -305,14 +338,14 @@
           !>@param body_forces
           !> body forces
           !--------------------------------------------------------------
-          function bodyforces(field_used) result(body_forces)
+          function bodyforces(nodes,k) result(body_forces)
 
-            import field
             import rkind
-            import nx,ny,ne
+            import ne
 
-            class(field)                   , intent(in) :: field_used
-            real(rkind),dimension(nx,ny,ne)             :: body_forces
+            real(rkind), dimension(ne), intent(in) :: nodes
+            integer                   , intent(in) :: k
+            real(rkind)                            :: body_forces
 
           end function bodyforces
 
