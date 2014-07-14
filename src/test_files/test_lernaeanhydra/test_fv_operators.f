@@ -15,30 +15,31 @@
       program test_fv_operators
 
         use bc_operators_class , only : bc_operators
-        use cg_operators_class , only : cg_operators
-        use field_class        , only : field
-        use fv_operators_class , only : fv_operators
+        use sd_operators_class , only : sd_operators
+        use td_operators_class , only : td_operators
         use parameters_constant, only : periodic_xy_choice,
      $                                  bc_nodes_choice
         use parameters_input   , only : nx,ny,ne,bc_size,bc_choice,
      $                                  bcx_type_choice,bcy_type_choice
         use parameters_kind    , only : ikind, rkind
-        use dim2d_eq_class     , only : dim2d_eq
+        use pmodel_eq_class    , only : pmodel_eq
 
         implicit none
 
         
         !<operators tested
-        type(field)         :: field_tested
-        type(cg_operators)  :: s
-        type(dim2d_eq)      :: p_model
-        type(bc_operators)  :: bc_used
-        type(fv_operators)  :: t_operator
+        real(rkind), dimension(nx,ny,ne) :: nodes
+        real(rkind)                      :: dx
+        real(rkind)                      :: dy
+        type(sd_operators)               :: s
+        type(pmodel_eq)                  :: p_model
+        type(bc_operators)               :: bc_used
+        type(td_operators)               :: t_operator
 
         real(rkind), dimension(nx,ny,ne) :: time_dev
 
         !<CPU recorded times
-        real    :: time1, time2
+        real :: time1, time2
 
         !<test parameters
         logical, parameter         :: detailled=.true.
@@ -74,19 +75,19 @@
 
 
         !<initialize the tables for the field
-        field_tested%dx=1.0
-        field_tested%dy=1.0
+        dx=1.0
+        dy=1.0
 
         do j=1, ny
            do i=1, nx
-              field_tested%nodes(i,j,1) = i + (j-1)*nx
+              nodes(i,j,1) = i + (j-1)*nx
            end do
         end do
 
 
         !<compute the time derivatives
         time_dev = t_operator%compute_time_dev(
-     $       field_tested,s,p_model,bc_used)
+     $       nodes,dx,dy,s,p_model,bc_used)
 
 
         !<print the time derivatives

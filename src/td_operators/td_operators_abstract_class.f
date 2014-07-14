@@ -21,7 +21,6 @@
         use bc_operators_class, only : bc_operators
         use sd_operators_class, only : sd_operators
         use pmodel_eq_class   , only : pmodel_eq
-        use field_class       , only : field
         use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : rkind
 
@@ -90,9 +89,8 @@
      $       result(time_dev)
 
             import bc_operators
-            import cg_operators
-            import field
-            import dim2d_eq
+            import sd_operators
+            import pmodel_eq
             import rkind
             import nx,ny,ne
 
@@ -145,9 +143,8 @@
      $     time_dev)
 
             import bc_operators
-            import cg_operators
-            import field
-            import dim2d_eq
+            import sd_operators
+            import pmodel_eq
             import rkind
 
             real(rkind), dimension(:,:,:), intent(in)   :: nodes
@@ -156,7 +153,7 @@
             type(sd_operators)           , intent(in)   :: s
             type(pmodel_eq)              , intent(in)   :: p_model
             type(bc_operators)           , intent(in)   :: bc_used
-            real(rkind), dimension(:,:,:)               :: time_dev
+            real(rkind), dimension(:,:,:), intent(out)  :: time_dev
 
           end subroutine time_proc_nopt
 

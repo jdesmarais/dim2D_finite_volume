@@ -15,6 +15,11 @@ sd_dep=			interface_primary.o\
 			sd_operators_abstract_class.o\
 			sd_operators_class.o
 
+pm_dep=			pmodel_eq_abstract_class.o\
+			pmodel_eq_class.o
+
+simpletest_dep=		$(pm_dep)
+
 dim2d_flux_dep=		dim2d_parameters.o\
 			dim2d_prim_module.o\
 			dim2d_fluxes_module.o
@@ -32,8 +37,7 @@ dim2d_ic_dep=		dim2d_dropbubble_module.o\
 dim2d_dep=		$(dim2d_flux_dep)\
 			$(dim2d_ic_dep)\
 			parameters_bf_layer.o\
-			pmodel_eq_abstract_class.o\
-			pmodel_eq_class.o
+			$(pm_dep)
 
 bc_dep=			bc_operators_abstract_class.o\
 			bc_operators_class.o
@@ -47,7 +51,10 @@ wall_xy_dep=		$(bc_dep)\
 			wall_prim_module.o\
 			wall_xy_module.o
 
-wall_x_reflection_y_dep=
+td_dep=			td_operators_abstract_class.o\
+			td_operators_class.o
+
+fv_dep=			$(td_dep)
 
 test_field.o:		$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
@@ -97,28 +104,18 @@ test_dim2d_eq:		$(param_dep)\
 			$(dim2d_dep)
 
 test_fv_operators.o:	$(pbc_dir)/bc_operators_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(field_dir)/field_class.o\
-			$(fv_dir)/fv_operators_class.o\
+			$(cg_dir)/sd_operators_class.o\
+			$(fv_dir)/td_operators_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(simpletest_dir)/dim2d_eq_class.o
+			$(simpletest_dir)/pmodel_eq_class.o
 
-test_fv_operators:	surrogate_class.o\
-			parameters_kind.o\
-			parameters_constant.o\
-			parameters_input.o\
-			field_class.o\
-			interface_primary.o\
-			sd_operators_class.o\
-			cg_operators_class.o\
-			phy_model_eq_class.o\
-			dim2d_eq_class.o\
-			bc_abstract_class.o\
-			bc_operators_class.o\
-			td_operators_class.o\
-			fv_operators_class.o
+test_fv_operators:	$(param_dep)\
+			$(sd_dep)\
+			$(simpletest_dep)\
+			$(periodic_dep)\
+			$(td_dep)
 
 test_bc_periodic.o:	$(pbc_dir)/bc_operators_class.o\
 			$(dim2d_dir)/pmodel_eq_class.o\

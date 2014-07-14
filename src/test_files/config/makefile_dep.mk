@@ -297,13 +297,12 @@ $(wrbc_dir)/bc_operators_par_class.o:\
 include $(AUGEANSTABLES_CONFIG)/dep/bf_layer_dep.mk
 
 #time discretization methods
-$(td_dir)/td_operators_class.o:\
-			$(sbc_dir)/bc_operators_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(field_dir)/field_class.o\
+$(td_dir)/td_operators_abstract_class.o:\
+			$(bc_cdir)/bc_operators_class.o\
+			$(sd_cdir)/sd_operators_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(spm_dir)/dim2d_eq_class.o
+			$(pm_cdir)/pmodel_eq_class.o
 
 $(td_dir)/td_operators_par_class.o:\
 			$(sbc_dir)/bc_operators_par_class.o\
@@ -313,14 +312,13 @@ $(td_dir)/td_operators_par_class.o:\
 			$(param_dir)/parameters_kind.o\
 			$(spm_dir)/dim2d_eq_class.o
 
-$(fv_dir)/fv_operators_class.o:\
-			$(sbc_dir)/bc_operators_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(field_dir)/field_class.o\
+$(fv_dir)/td_operators_class.o:\
+			$(bc_cdir)/bc_operators_class.o\
+			$(sd_cdir)/sd_operators_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(spm_dir)/dim2d_eq_class.o\
-			$(td_dir)/td_operators_class.o
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(td_dir)/td_operators_abstract_class.o
 
 $(fv_dir)/fv_operators_par_class.o:$(sbc_dir)/bc_operators_par_class.o\
 			$(sd_dir)/cg_operators_class.o\

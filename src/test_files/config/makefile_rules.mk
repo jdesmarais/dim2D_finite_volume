@@ -57,6 +57,11 @@ dir:
 	@(echo 'dbf_layer_dir: ' $(dbf_layer_dir)    )
 	@(echo 'sbf_layer_dir: ' $(sbf_layer_dir)    )
 
+cdir:
+	@(echo 'sd_cdir: '    	 $(sd_cdir)          )
+	@(echo 'pm_cdir: '	 $(pm_cdir)          )
+	@(echo 'bc_cdir: '	 $(bc_cdir)          )
+
 test:
 	@(echo '')
 

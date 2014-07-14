@@ -18,8 +18,7 @@
       module td_operators_class
 
         use bc_operators_class         , only : bc_operators
-        use cg_operators_class         , only : cg_operators
-        use field_class                , only : field
+        use sd_operators_class         , only : sd_operators
         use parameters_constant        , only : earth_gravity_choice,
      $                                          bc_fluxes_choice
         use parameters_input           , only : nx,ny,ne,bc_size,
@@ -120,7 +119,7 @@
           flux_y = p_model%compute_flux_y(nodes,dx,dy,s)
 
 
-          !<if the boundary conditions influence the computation
+          !< if the boundary conditions influence the computation
           !> of the fluxes, then we need to modify the fluxes
           if((bcx_type_choice.eq.bc_fluxes_choice).or.
      $       (bcy_type_choice.eq.bc_fluxes_choice)) then
@@ -181,10 +180,10 @@
             type(bc_operators)           , intent(in)  :: bc_used
             real(rkind), dimension(:,:,:), intent(out) :: time_dev
 
-            integer                            :: k
-            integer(ikind)                     :: i,j
-            real(rkind), dimension(nx+1,ny,ne) :: flux_x
-            real(rkind), dimension(nx,ny+1,ne) :: flux_y
+            integer(ikind)                             :: i,j
+            integer                                    :: k
+            real(rkind), dimension(:,:,:), allocatable :: flux_x
+            real(rkind), dimension(:,:,:), allocatable :: flux_y
 
 
             allocate(flux_x(size(nodes,1)+1,size(nodes,2),ne))
@@ -238,6 +237,9 @@
                end do
 
             end if
+
+            deallocate(flux_x)
+            deallocate(flux_y)
 
         end subroutine compute_time_dev_nopt
 

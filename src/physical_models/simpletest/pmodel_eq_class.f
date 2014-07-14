@@ -12,7 +12,7 @@
       !> @date
       !> 13_08_2013 - initial version                   - J.L. Desmarais
       !-----------------------------------------------------------------
-      module pmdel_eq_class
+      module pmodel_eq_class
       
         use parameters_bf_layer     , only : interior_pt
         use parameters_constant     , only : scalar
@@ -237,11 +237,11 @@
           real(rkind), dimension(:)    , intent(in)    :: x_map
           real(rkind), dimension(:)    , intent(in)    :: y_map
 
-          !<read the input file to know the user choice
+          real(rkind) :: node_s,x_s,y_s
 
-          
-          !<initialize the field depending on the user choice
-          
+          node_s = nodes(1,1,1)
+          x_s = x_map(1)
+          y_s = y_map(1)
 
         end subroutine apply_ic
         
@@ -276,8 +276,9 @@
           type(sd_operators)                , intent(in)   :: s
           real(rkind), dimension(nx+1,ny,ne)               :: flux_x
 
-          integer :: i,j
+          integer :: i,j,dy_s
 
+          dy_s = dy
 
           !<fluxes along the x-axis
           do j=bc_size+1, ny-bc_size
@@ -322,8 +323,9 @@
           type(sd_operators)                , intent(in)   :: s
           real(rkind), dimension(nx,ny+1,ne)               :: flux_y
 
-          integer :: i,j
+          integer :: i,j,dx_s
 
+          dx_s = dx
 
           !<fluxes along the x-axis
           do j=bc_size+1, ny+1-bc_size
@@ -349,8 +351,9 @@
           integer    , dimension(:,:)  , intent(in)    :: grdpts_id
           real(rkind), dimension(:,:,:), intent(inout) :: flux_x
 
-          integer(ikind) :: i,j
+          integer(ikind) :: i,j,dy_s
 
+          dy_s = dy
 
           !<fluxes along the x-axis
           do j=1+bc_size, size(flux_x,2)-bc_size
@@ -381,8 +384,9 @@
           integer    , dimension(:,:)  , intent(in)    :: grdpts_id
           real(rkind), dimension(:,:,:), intent(inout) :: flux_y
 
-          integer(ikind) :: i,j
+          integer(ikind) :: i,j,dx_s
 
+          dx_s = dx
 
           !<fluxes along the y-axis
           do j=1+bc_size, size(flux_y,2)-bc_size
@@ -422,8 +426,14 @@
           integer                   , intent(in) :: k
           real(rkind)                            :: body_forces
 
+          real(rkind) :: node_s
+          integer :: k_s
+
           body_forces = 0
+
+          node_s = nodes(1)
+          k_s = k
 
         end function compute_body_forces
 
-      end module pmdel_eq_class
+      end module pmodel_eq_class

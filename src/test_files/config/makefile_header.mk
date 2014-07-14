@@ -22,7 +22,7 @@ src_dir	   = $(augeanstables)/src
 config_dir = $(AUGEANSTABLES_CONFIG)
 dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 sd_choice  = cg_choice
-pm_choice  = dim2d_choice       #physical model choice
+pm_choice  = simpletest_choice   #physical model choice
 bc_choice = periodic_xy_choice   #boundary condition choice
 
 
@@ -52,22 +52,22 @@ endif
 
 #boundary condition choice
 ifeq ($(strip $(bc_choice)), periodic_xy_choice)
-	sbc_dir=$(pbc_dir)
+	bc_cdir=$(pbc_dir)
 	sim_dim2d_dep=$(dep_dir)/sim_dim2d_periodic_dep.mk
 	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_periodic_dep.mk
 endif
 ifeq ($(strip $(bc_choice)), reflection_xy_choice)
-	sbc_dir=$(rbc_dir)
+	bc_cdir=$(rbc_dir)
 	sim_dim2d_dep=$(dep_dir)/sim_dim2d_reflection_dep.mk
 	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_reflection_dep.mk
 endif
 ifeq ($(strip $(bc_choice)), wall_xy_choice)
-	sbc_dir=$(wbc_dir)
+	bc_cdir=$(wbc_dir)
 	sim_dim2d_dep=$(dep_dir)/sim_dim2d_wall_dep.mk
 	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_wall_dep.mk
 endif
 ifeq ($(strip $(bc_choice)), wall_x_reflection_y_choice)
-	sbc_dir=$(wrbc_dir)
+	bc_cdir=$(wrbc_dir)
 	sim_dim2d_dep=$(dep_dir)/sim_dim2d_wall_reflection_dep.mk
 	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_wall_reflection_dep.mk
 endif
