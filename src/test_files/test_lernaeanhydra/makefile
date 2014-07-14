@@ -7,6 +7,48 @@ include $(AUGEANSTABLES_CONFIG)/makefile_header.mk
 #-----------------------------------------------------------------------
 #dependencies for the test files objects
 #-----------------------------------------------------------------------
+param_dep=		parameters_kind.o\
+			parameters_constant.o\
+			parameters_input.o
+
+sd_dep=			interface_primary.o\
+			sd_operators_abstract_class.o\
+			sd_operators_class.o
+
+dim2d_flux_dep=		dim2d_parameters.o\
+			dim2d_prim_module.o\
+			dim2d_fluxes_module.o
+
+dim2d_ic_dep=		dim2d_dropbubble_module.o\
+			dim2d_vortex_module.o\
+			dim2d_state_eq_module.o\
+			dim2d_bubble_ascending_module.o\
+			dim2d_drop_collision_module.o\
+			dim2d_drop_retraction_module.o\
+			dim2d_homogeneous_module.o\
+			dim2d_phase_separation_module.o\
+			dim2d_steadystate_module.o
+
+dim2d_dep=		$(dim2d_flux_dep)\
+			$(dim2d_ic_dep)\
+			parameters_bf_layer.o\
+			pmodel_eq_abstract_class.o\
+			pmodel_eq_class.o
+
+bc_dep=			bc_operators_abstract_class.o\
+			bc_operators_class.o
+
+reflection_dep=		$(bc_dep)\
+			reflection_xy_module.o
+
+periodic_dep=		$(bc_dep)
+
+wall_xy_dep=		$(bc_dep)\
+			wall_prim_module.o\
+			wall_xy_module.o
+
+wall_x_reflection_y_dep=
+
 test_field.o:		$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(field_dir)/field_class.o
@@ -21,25 +63,18 @@ test_cg_operators.o:	$(dim2d_dir)/dim2d_prim_module.o\
 			$(param_dir)/parameters_kind.o\
 			$(cg_dir)/sd_operators_class.o
 
-test_cg_operators:	parameters_kind.o\
-			dim2d_parameters.o\
-			dim2d_prim_module.o\
-			parameters_constant.o\
-			parameters_input.o\
-			interface_primary.o\
-			sd_operators_abstract_class.o\
-			sd_operators_class.o
+test_cg_operators:	$(param_dep)\
+			$(sd_dep)\
+			dim2d_prim_module.o
 
 test_dim2d_prim.o:	$(dim2d_dir)/dim2d_parameters.o\
 			$(dim2d_dir)/dim2d_prim_module.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-test_dim2d_prim:	parameters_kind.o\
+test_dim2d_prim:	$(param_dep)\
 			dim2d_parameters.o\
-			dim2d_prim_module.o\
-			parameters_constant.o\
-			parameters_input.o
+			dim2d_prim_module.o
 
 test_dim2d_fluxes.o:	$(cg_dir)/sd_operators_class.o\
 			$(dim2d_dir)/dim2d_fluxes_module.o\
@@ -47,15 +82,9 @@ test_dim2d_fluxes.o:	$(cg_dir)/sd_operators_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-test_dim2d_fluxes:	parameters_kind.o\
-			interface_primary.o\
-			sd_operators_abstract_class.o\
-			sd_operators_class.o\
-			dim2d_parameters.o\
-			dim2d_prim_module.o\
-			dim2d_fluxes_module.o\
-			parameters_constant.o\
-			parameters_input.o
+test_dim2d_fluxes:	$(param_dep)\
+			$(sd_dep)\
+			$(dim2d_flux_dep)
 
 test_dim2d_eq.o:	$(cg_dir)/sd_operators_class.o\
 			$(dim2d_dir)/pmodel_eq_class.o\
@@ -63,27 +92,9 @@ test_dim2d_eq.o:	$(cg_dir)/sd_operators_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-test_dim2d_eq:		parameters_kind.o\
-			interface_primary.o\
-			sd_operators_abstract_class.o\
-			sd_operators_class.o\
-			dim2d_parameters.o\
-			parameters_constant.o\
-			parameters_input.o\
-			dim2d_dropbubble_module.o\
-			dim2d_vortex_module.o\
-			dim2d_state_eq_module.o\
-			dim2d_bubble_ascending_module.o\
-			dim2d_drop_collision_module.o\
-			dim2d_drop_retraction_module.o\
-			dim2d_prim_module.o\
-			dim2d_fluxes_module.o\
-			dim2d_homogeneous_module.o\
-			dim2d_phase_separation_module.o\
-			dim2d_steadystate_module.o\
-			parameters_bf_layer.o\
-			pmodel_eq_abstract_class.o\
-			pmodel_eq_class.o
+test_dim2d_eq:		$(param_dep)\
+			$(sd_dep)\
+			$(dim2d_dep)
 
 test_fv_operators.o:	$(pbc_dir)/bc_operators_class.o\
 			$(sd_dir)/cg_operators_class.o\
@@ -110,140 +121,51 @@ test_fv_operators:	surrogate_class.o\
 			fv_operators_class.o
 
 test_bc_periodic.o:	$(pbc_dir)/bc_operators_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_class.o\
+			$(dim2d_dir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-test_bc_periodic:	surrogate_class.o\
-			parameters_kind.o\
-			parameters_constant.o\
-			parameters_input.o\
-			field_class.o\
-			interface_primary.o\
-			sd_operators_class.o\
-			cg_operators_class.o\
-			dim2d_parameters.o\
-			dim2d_prim_module.o\
-			dim2d_fluxes_module.o\
-			dim2d_state_eq_module.o\
-			dim2d_steadystate_module.o\
-			dim2d_dropbubble_module.o\
-			dim2d_drop_retraction_module.o\
-			dim2d_bubble_ascending_module.o\
-			dim2d_homogeneous_module.o\
-			dim2d_phase_separation_module.o\
-			dim2d_vortex_module.o\
-			phy_model_eq_class.o\
-			dim2d_eq_class.o\
-			bc_abstract_class.o\
-			bc_operators_class.o
+test_bc_periodic:	$(param_dep)\
+			$(sd_dep)\
+			$(dim2d_dep)\
+			$(periodic_dep)
 
 test_bc_reflection.o:	$(rbc_dir)/bc_operators_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_class.o\
+			$(dim2d_dir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-test_bc_reflection:	surrogate_class.o\
-			parameters_kind.o\
-			parameters_constant.o\
-			parameters_input.o\
-			field_class.o\
-			interface_primary.o\
-			sd_operators_class.o\
-			cg_operators_class.o\
-			dim2d_parameters.o\
-			dim2d_dropbubble_module.o\
-			dim2d_vortex_module.o\
-			dim2d_state_eq_module.o\
-			dim2d_bubble_ascending_module.o\
-			dim2d_drop_retraction_module.o\
-			dim2d_prim_module.o\
-			dim2d_fluxes_module.o\
-			dim2d_homogeneous_module.o\
-			dim2d_phase_separation_module.o\
-			dim2d_steadystate_module.o\
-			phy_model_eq_class.o\
-			dim2d_eq_class.o\
-			bc_abstract_class.o\
-			reflection_xy_module.o\
-			bc_operators_class.o
+test_bc_reflection:	$(param_dep)\
+			$(sd_dep)\
+			$(dim2d_dep)\
+			$(reflection_dep)
 
 test_wall_xy_module.o:	$(wbc_dir)/bc_operators_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
 			$(dim2d_dir)/dim2d_parameters.o\
-			$(field_dir)/field_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(wbc_dir)/wall_xy_module.o
 
-test_wall_xy_module:	surrogate_class.o\
-			parameters_kind.o\
-			parameters_constant.o\
-			parameters_input.o\
-			field_class.o\
-			interface_primary.o\
-			sd_operators_class.o\
-			cg_operators_class.o\
-			dim2d_parameters.o\
-			dim2d_prim_module.o\
-			dim2d_fluxes_module.o\
-			dim2d_state_eq_module.o\
-			dim2d_steadystate_module.o\
-			dim2d_dropbubble_module.o\
-			dim2d_drop_retraction_module.o\
-			dim2d_bubble_ascending_module.o\
-			dim2d_homogeneous_module.o\
-			dim2d_phase_separation_module.o\
-			dim2d_vortex_module.o\
-			phy_model_eq_class.o\
-			dim2d_eq_class.o\
-			bc_abstract_class.o\
-			wall_prim_module.o\
-			wall_xy_module.o\
-			bc_operators_class.o
+test_wall_xy_module:	$(param_dep)\
+			$(sd_dep)\
+			$(dim2d_dep)\
+			$(wall_xy_dep)
 
 
 test_bc_wall.o:		$(wbc_dir)/bc_operators_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_class.o\
+			$(cg_dir)/sd_operators_class.o\
+			$(dim2d_dir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-test_bc_wall:		surrogate_class.o\
-			parameters_kind.o\
-			parameters_constant.o\
-			parameters_input.o\
-			field_class.o\
-			interface_primary.o\
-			sd_operators_class.o\
-			cg_operators_class.o\
-			dim2d_parameters.o\
-			dim2d_prim_module.o\
-			dim2d_fluxes_module.o\
-			dim2d_state_eq_module.o\
-			dim2d_steadystate_module.o\
-			dim2d_dropbubble_module.o\
-			dim2d_vortex_module.o\
-			dim2d_drop_retraction_module.o\
-			dim2d_bubble_ascending_module.o\
-			dim2d_homogeneous_module.o\
-			dim2d_phase_separation_module.o\
-			phy_model_eq_class.o\
-			dim2d_eq_class.o\
-			bc_abstract_class.o\
-			wall_prim_module.o\
-			wall_xy_module.o\
-			bc_operators_class.o
+test_bc_wall:		$(param_dep)\
+			$(sd_dep)\
+			$(dim2d_dep)\
+			$(wall_xy_dep)
 
 test_rk3tvd.o:		$(sbc_dir)/bc_operators_class.o\
 			$(sd_dir)/cg_operators_class.o\

@@ -14,9 +14,8 @@
       !-----------------------------------------------------------------
       module wall_xy_module
       
-        use cg_operators_class , only : cg_operators
-        use field_class        , only : field
-        use dim2d_eq_class     , only : dim2d_eq
+        use sd_operators_class , only : sd_operators
+        use pmodel_eq_class    , only : pmodel_eq
         use dim2d_parameters   , only : rho_c, u_c, length_c, time_c,
      $                                  re, we, viscous_r, cv_r
         use dim2d_prim_module  , only : mass_density,
@@ -66,7 +65,7 @@
 
           implicit none
 
-          type(dim2d_eq)        , intent(in) :: p_model
+          type(pmodel_eq)        , intent(in) :: p_model
           integer, dimension(ne)             :: prefactor
         
           integer, dimension(ne) :: var_type
@@ -110,29 +109,31 @@
         !> \f$ {\left(f_{q_x}\right)}_x \f$ evaluated
         !> at $(i+\frac{1}{2},j)$
         !--------------------------------------------------------------
-        function wall_fx_momentum_x(f_used,s,i,j) result(var)
+        function wall_fx_momentum_x(nodes,dx,dy,s,i,j) result(var)
 
           implicit none
 
-          class(field)      , intent(in) :: f_used
-          type(cg_operators), intent(in) :: s
-          integer(ikind)    , intent(in) :: i
-          integer(ikind)    , intent(in) :: j
-          real(rkind)                    :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          type(sd_operators)           , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
 
 
           if(rkind.eq.8) then
              
              !DEC$ FORCEINLINE RECURSIVE
-             var=s%f(f_used,i,j,wall_pressure)
+             var=s%f(nodes,i,j,wall_pressure)
      $            -1.0d0/re*(2.0d0+viscous_r)*
-     $                s%dfdx(f_used,i,j,velocity_x)
-     $            -1.0d0/we*(s%dfdy(f_used,i,j,mass_density))**2*(
+     $                s%dfdx(nodes,i,j,velocity_x,dx)
+     $            -1.0d0/we*(s%dfdy(nodes,i,j,mass_density,dy))**2*(
      $                0.5d0+1.5d0/cv_r*
-     $                s%f(f_used,i,j,capillarity_pressure))
-     $            -1.0d0/we*s%f(f_used,i,j,mass_density)*(
-     $                s%d2fdx2(f_used,i,j,mass_density)+
-     $                s%d2fdy2(f_used,i,j,mass_density))
+     $                s%f(nodes,i,j,capillarity_pressure))
+     $            -1.0d0/we*s%f(nodes,i,j,mass_density)*(
+     $                s%d2fdx2(nodes,i,j,mass_density,dx)+
+     $                s%d2fdy2(nodes,i,j,mass_density,dy))
 
 c$$$             print *, 'wall_pressure', s%f(f_used,i,j,wall_pressure)
 c$$$             print *, 'viscosity', -1.0d0/re*(2.0d0+viscous_r)*
@@ -149,15 +150,15 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
           else
              
              !DEC$ FORCEINLINE RECURSIVE
-             var=s%f(f_used,i,j,wall_pressure)
+             var=s%f(nodes,i,j,wall_pressure)
      $            -1.0/re*(2.0+viscous_r)*
-     $                s%dfdx(f_used,i,j,velocity_x)
-     $            +1.0/we*(s%dfdy(f_used,i,j,mass_density))**2*(
+     $                s%dfdx(nodes,i,j,velocity_x,dx)
+     $            +1.0/we*(s%dfdy(nodes,i,j,mass_density,dy))**2*(
      $                0.5-1.5/cv_r*
-     $                s%f(f_used,i,j,capillarity_pressure))
-     $            -1.0/we*s%f(f_used,i,j,mass_density)*(
-     $                s%d2fdx2(f_used,i,j,mass_density)+
-     $                s%d2fdy2(f_used,i,j,mass_density))
+     $                s%f(nodes,i,j,capillarity_pressure))
+     $            -1.0/we*s%f(nodes,i,j,mass_density)*(
+     $                s%d2fdx2(nodes,i,j,mass_density,dx)+
+     $                s%d2fdy2(nodes,i,j,mass_density,dy))
 
           end if
 
@@ -188,26 +189,28 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
         !> \f$ {\left(f_{q_y}\right)}_x \f$ evaluated
         !> at $(i+\frac{1}{2},j)$
         !--------------------------------------------------------------
-        function wall_fx_momentum_y(f_used,s,i,j) result(var)
+        function wall_fx_momentum_y(nodes,dx,s,i,j) result(var)
 
           implicit none
 
-          class(field)      , intent(in) :: f_used
-          type(cg_operators), intent(in) :: s
-          integer(ikind)    , intent(in) :: i
-          integer(ikind)    , intent(in) :: j
-          real(rkind)                    :: var
+          
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind)                  , intent(in) :: dx
+          type(sd_operators)           , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
 
 
           if(rkind.eq.8) then
              
              !DEC$ FORCEINLINE RECURSIVE
-             var= -1.0d0/re*s%dfdx(f_used,i,j,velocity_y)
+             var= -1.0d0/re*s%dfdx(nodes,i,j,velocity_y,dx)
 
           else
              
              !DEC$ FORCEINLINE RECURSIVE
-             var= -1.0/re*s%dfdx(f_used,i,j,velocity_y)
+             var= -1.0/re*s%dfdx(nodes,i,j,velocity_y,dx)
 
           end if
 
@@ -238,26 +241,27 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
         !> \f$ {\left(f_{q_x}\right)}_y \f$ evaluated
         !> at $(i,j+\frac{1}{2})$
         !--------------------------------------------------------------
-        function wall_fy_momentum_x(f_used,s,i,j) result(var)
+        function wall_fy_momentum_x(nodes,dy,s,i,j) result(var)
 
           implicit none
 
-          class(field)      , intent(in) :: f_used
-          type(cg_operators), intent(in) :: s
-          integer(ikind)    , intent(in) :: i
-          integer(ikind)    , intent(in) :: j
-          real(rkind)                    :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind)                  , intent(in) :: dy
+          type(sd_operators)           , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
 
 
           if(rkind.eq.8) then
              
              !DEC$ FORCEINLINE RECURSIVE
-             var= -1.0d0/re*s%dgdy(f_used,i,j,velocity_x)
+             var= -1.0d0/re*s%dgdy(nodes,i,j,velocity_x,dy)
 
           else
              
              !DEC$ FORCEINLINE RECURSIVE
-             var= -1.0/re*s%dgdy(f_used,i,j,velocity_x)
+             var= -1.0/re*s%dgdy(nodes,i,j,velocity_x,dy)
 
           end if
 
@@ -288,42 +292,44 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
         !> \f$ {\left(f_{q_y}\right)}_y \f$ evaluated
         !> at $(i,j+\frac{1}{2})$
         !--------------------------------------------------------------
-        function wall_fy_momentum_y(f_used,s,i,j) result(var)
+        function wall_fy_momentum_y(nodes,dx,dy,s,i,j) result(var)
 
           implicit none
 
-          class(field)      , intent(in) :: f_used
-          type(cg_operators), intent(in) :: s
-          integer(ikind)    , intent(in) :: i
-          integer(ikind)    , intent(in) :: j
-          real(rkind)                    :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          type(sd_operators)           , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
 
 
           if(rkind.eq.8) then
              
              !DEC$ FORCEINLINE RECURSIVE
-             var=s%g(f_used,i,j,wall_pressure)
+             var=s%g(nodes,i,j,wall_pressure)
      $            -1.0d0/re*(2.0d0+viscous_r)*
-     $                s%dgdy(f_used,i,j,velocity_y)
-     $            -1.0d0/we*(s%dgdx(f_used,i,j,mass_density))**2*(
+     $                s%dgdy(nodes,i,j,velocity_y,dy)
+     $            -1.0d0/we*(s%dgdx(nodes,i,j,mass_density,dx))**2*(
      $                0.5d0+1.5d0/cv_r*
-     $                s%g(f_used,i,j,capillarity_pressure))
-     $            -1.0d0/we*s%g(f_used,i,j,mass_density)*(
-     $                s%d2gdx2(f_used,i,j,mass_density)+
-     $                s%d2gdy2(f_used,i,j,mass_density))
+     $                s%g(nodes,i,j,capillarity_pressure))
+     $            -1.0d0/we*s%g(nodes,i,j,mass_density)*(
+     $                s%d2gdx2(nodes,i,j,mass_density,dx)+
+     $                s%d2gdy2(nodes,i,j,mass_density,dy))
 
           else
              
              !DEC$ FORCEINLINE RECURSIVE
-             var=s%g(f_used,i,j,wall_pressure)
+             var=s%g(nodes,i,j,wall_pressure)
      $            -1.0/re*(2.0+viscous_r)*
-     $                s%dgdy(f_used,i,j,velocity_y)
-     $            -1.0/we*(s%dgdx(f_used,i,j,mass_density))**2*(
+     $                s%dgdy(nodes,i,j,velocity_y,dy)
+     $            -1.0/we*(s%dgdx(nodes,i,j,mass_density,dx))**2*(
      $                0.5+1.5/cv_r*
-     $                s%g(f_used,i,j,capillarity_pressure))
-     $            -1.0/we*s%g(f_used,i,j,mass_density)*(
-     $                s%d2gdx2(f_used,i,j,mass_density)+
-     $                s%d2gdy2(f_used,i,j,mass_density))
+     $                s%g(nodes,i,j,capillarity_pressure))
+     $            -1.0/we*s%g(nodes,i,j,mass_density)*(
+     $                s%d2gdx2(nodes,i,j,mass_density,dx)+
+     $                s%d2gdy2(nodes,i,j,mass_density,dy))
 
           end if
 
@@ -352,26 +358,31 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
         !>@param var
         !> heat flux evaluated at (x,y)
         !--------------------------------------------------------------
-        function wall_heat_flux(f_used,i,j) result(var)
+        function wall_heat_flux(nodes,i,j) result(var)
 
           implicit none
           
-          class(field)      , intent(in) :: f_used
-          integer(ikind)    , intent(in) :: i
-          integer(ikind)    , intent(in) :: j
-          real(rkind)                    :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
 
 
+          real(rkind) :: node_s
+          integer(ikind) :: i_s, j_s          
           real(rkind) :: heater_x
           real(rkind) :: heater_y
           real(rkind) :: heater_sigma
           real(rkind) :: heater_power
 
+          node_s = nodes(1,1,1)
+          i_s = i
+          j_s = j
+
 
           !< the heater is localized at the bottom of the
           !> system. It is a square of 1mm by 1mm. In 2D, it
           !> is modelled as a segment of length 1mm.
-          !> 
           heater_x=0.0
           heater_y=10.0
           heater_sigma=(1.0e-3)/length_c
@@ -428,12 +439,14 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
         !>@param flux_x
         !> modified table for the fluxes along the x-direction
         !--------------------------------------------------------------
-        subroutine compute_wall_flux_x(f_used,s,i,flux_x)
+        subroutine compute_wall_flux_x(nodes,dx,dy,s,i,flux_x)
 
           implicit none
 
-          class(field)                      , intent(in)    :: f_used
-          type(cg_operators)                , intent(in)    :: s
+          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          type(sd_operators)                , intent(in)    :: s
           integer(ikind)                    , intent(in)    :: i
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
 
@@ -447,13 +460,13 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
              flux_x(i,j,1) = 0.0d0
                 
              !< b.c. for the momentum along the x-direction
-             flux_x(i,j,2) = wall_fx_momentum_x(f_used,s,i-1,j)
+             flux_x(i,j,2) = wall_fx_momentum_x(nodes,dx,dy,s,i-1,j)
 
              !< b.c. for the momentum along the y-direction
-             flux_x(i,j,3) = wall_fx_momentum_y(f_used,s,i-1,j)
+             flux_x(i,j,3) = wall_fx_momentum_y(nodes,dx,s,i-1,j)
 
              !< constant heat flux entering the system
-             flux_x(i,j,4) = wall_heat_flux(f_used,i-1,j)
+             flux_x(i,j,4) = wall_heat_flux(nodes,i-1,j)
 
           end do        
 
@@ -482,12 +495,14 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
         !>@param flux_y
         !> modified table for the fluxes along the y-direction
         !--------------------------------------------------------------
-        subroutine compute_wall_flux_y(f_used,s,j,flux_y)
+        subroutine compute_wall_flux_y(nodes,dx,dy,s,j,flux_y)
 
           implicit none
 
-          class(field)                      , intent(in)    :: f_used
-          type(cg_operators)                , intent(in)    :: s
+          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          type(sd_operators)                , intent(in)    :: s
           integer(ikind)                    , intent(in)    :: j
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
 
@@ -500,13 +515,13 @@ c$$$     $                s%d2fdy2(f_used,i,j,mass_density))
             flux_y(i,j,1)= 0.0d0
             
             !< b.c. for the momentum along the x-direction
-            flux_y(i,j,2)= wall_fy_momentum_x(f_used,s,i,j-1)
+            flux_y(i,j,2)= wall_fy_momentum_x(nodes,dy,s,i,j-1)
 
             !< b.c. for the momentum along the y-direction
-            flux_y(i,j,3)= wall_fy_momentum_y(f_used,s,i,j-1)
+            flux_y(i,j,3)= wall_fy_momentum_y(nodes,dx,dy,s,i,j-1)
 
             !< constant heat flux entering the system
-            flux_y(i,j,4)= wall_heat_flux(f_used,i,j-1)
+            flux_y(i,j,4)= wall_heat_flux(nodes,i,j-1)
 
           end do
 

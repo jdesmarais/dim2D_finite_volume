@@ -19,7 +19,6 @@
       module dim2d_dropbubble_module
 
         use dim2d_parameters     , only : cv_r, we
-        use field_class          , only : field
         use parameters_constant  , only : liquid, vapor
         use parameters_input     , only : nx,ny,ne
         use parameters_kind      , only : rkind

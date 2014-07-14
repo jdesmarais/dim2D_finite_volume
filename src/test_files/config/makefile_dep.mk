@@ -134,10 +134,9 @@ $(dim2d_ic)/dim2d_homogeneous_module.o:\
 			$(param_dir)/parameters_kind.o
 
 #boundary conditions
-$(bc_dir)/bc_abstract_class.o:\
-			$(sd_dir)/cg_operators_class.o\
-			$(spm_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_class.o\
+$(bc_dir)/bc_operators_abstract_class.o:\
+			$(sd_cdir)/sd_operators_class.o\
+			$(pm_cdir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
@@ -151,16 +150,9 @@ $(bc_dir)/bc_abstract_par_class.o:\
 
 #periodic boundary conditions
 $(pbc_dir)/bc_operators_class.o:\
-			$(bc_dir)/bc_abstract_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(spm_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_class.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o
-
-$(pbc_dir)/periodic_xy_module.o:\
-			$(sd_dir)/cg_operators_class.o\
-			$(field_dir)/field_class.o\
+			$(bc_dir)/bc_operators_abstract_class.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(pm_cdir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
@@ -187,8 +179,7 @@ $(pbc_dir)/bc_operators_par_class.o:\
 
 #reflection boundary conditions
 $(rbc_dir)/reflection_xy_module.o:\
-			$(sd_dir)/cg_operators_class.o\
-			$(spm_dir)/dim2d_eq_class.o\
+			$(pm_cdir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
@@ -206,10 +197,9 @@ $(rbc_dir)/reflection_xy_par_module.o:\
 			$(rbc_dir)/reflection_xy_module.o
 
 $(rbc_dir)/bc_operators_class.o:\
-			$(bc_dir)/bc_abstract_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(spm_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_class.o\
+			$(bc_dir)/bc_operators_abstract_class.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(pm_cdir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(rbc_dir)/reflection_xy_module.o
@@ -227,15 +217,13 @@ $(rbc_dir)/bc_operators_par_class.o:\
 #wall boundary conditions
 $(wbc_dir)/wall_prim_module.o:\
 			$(dim2d_dir)/dim2d_parameters.o\
-			$(field_dir)/field_class.o\
 			$(param_dir)/parameters_kind.o
 
 $(wbc_dir)/wall_xy_module.o:\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(dim2d_dir)/pmodel_eq_class.o\
 			$(dim2d_dir)/dim2d_parameters.o\
 			$(dim2d_dir)/dim2d_prim_module.o\
-			$(field_dir)/field_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
@@ -254,10 +242,9 @@ $(wbc_dir)/wall_xy_par_module.o:\
 			$(wbc_dir)/wall_xy_module.o
 
 $(wbc_dir)/bc_operators_class.o:\
-			$(bc_dir)/bc_abstract_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_class.o\
+			$(bc_dir)/bc_operators_abstract_class.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(dim2d_dir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(wbc_dir)/wall_xy_module.o
@@ -287,10 +274,9 @@ $(wrbc_dir)/wall_x_reflection_y_par_module.o:\
 			$(wbc_dir)/wall_xy_module.o
 
 $(wrbc_dir)/bc_operators_class.o:\
-			$(bc_dir)/bc_abstract_class.o\
-			$(sd_dir)/cg_operators_class.o\
+			$(bc_dir)/bc_operators_abstract_class.o\
+			$(sd_cdir)/sd_operators_class.o\
 			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(rbc_dir)/reflection_xy_module.o\

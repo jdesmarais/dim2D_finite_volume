@@ -48,7 +48,7 @@
 
           contains
 
-          procedure(ini_proc)   ,   pass, deferred :: initialize
+          procedure(ini_proc)   ,   pass, deferred :: ini
           procedure(nodes_proc) ,   pass, deferred :: apply_bc_on_nodes
           procedure(fluxes_proc), nopass, deferred :: apply_bc_on_fluxes
 
@@ -76,14 +76,12 @@
            !>@param p_model
            !> physical model
            !-------------------------------------------------------------
-           subroutine ini_proc(this, s, p_model)
+           subroutine ini_proc(this,p_model)
         
              import bc_operators_abstract
              import pmodel_eq
-             import sd_operators
 
              class(bc_operators_abstract), intent(inout) :: this
-             type(sd_operators)          , intent(in)    :: s
              type(pmodel_eq)             , intent(in)    :: p_model
 
 
@@ -110,18 +108,14 @@
            !>@param s
            !> space discretization operators
            !-------------------------------------------------------------
-           subroutine nodes_proc(this,f_used,s)
+           subroutine nodes_proc(this,nodes)
            
              import bc_operators_abstract
              import nx,ny,ne
              import rkind
-             import sd_operators
            
              class(bc_operators_abstract)    , intent(in)    :: this
              real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-             real(rkind)                     , intent(in)    :: dx
-             real(rkind)                     , intent(in)    :: dy
-             type(sd_operators)              , intent(in)    :: s
 
            end subroutine nodes_proc
 

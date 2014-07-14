@@ -12,7 +12,8 @@
       !> using the finite volume method
       !
       !> @date
-      !> 13_08_2013 - initial version                   - J.L. Desmarais
+      !> 13_08_2013 - initial version               - J.L. Desmarais
+      !> 14_07_2014 - interface for erymanthianboar - J.L. Desmarais
       !-----------------------------------------------------------------
       module td_operators_class
 
@@ -42,13 +43,16 @@
         !>
         !> @param compute_time_dev
         !> compute the time derivatives
+        !
+        !> @param compute_time_dev_nopt
+        !> compute the time derivatives without optimizing the
+        !> size of the arrays passed as arguments
         !---------------------------------------------------------------
         type, extends(td_operators_abstract) :: td_operators
 
           contains
 
           procedure, nopass :: compute_time_dev
-          procedure, nopass :: compute_time_dev_opt
           procedure, nopass :: compute_time_dev_nopt
 
         end type td_operators

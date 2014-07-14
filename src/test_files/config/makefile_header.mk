@@ -23,7 +23,7 @@ config_dir = $(AUGEANSTABLES_CONFIG)
 dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 sd_choice  = cg_choice
 pm_choice  = dim2d_choice       #physical model choice
-bc_choice = reflection_xy_choice    #boundary condition choice
+bc_choice = periodic_xy_choice   #boundary condition choice
 
 
 #-----------------------------------------------------------------------
@@ -44,10 +44,10 @@ endif
 
 #physical model
 ifeq ($(strip $(pm_choice)), simpletest_choice)
-	spm_dir=$(simpletest_dir)
+	pm_cdir=$(simpletest_dir)
 endif
 ifeq ($(strip $(pm_choice)), dim2d_choice)
-	spm_dir=$(dim2d_dir)
+	pm_cdir=$(dim2d_dir)
 endif
 
 #boundary condition choice

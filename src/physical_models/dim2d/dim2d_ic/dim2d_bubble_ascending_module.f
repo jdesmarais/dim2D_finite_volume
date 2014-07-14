@@ -16,7 +16,6 @@
         use dim2d_state_eq_module  , only : get_mass_density_liquid,
      $                                      get_mass_density_vapor,
      $                                      get_interface_length
-        use field_class            , only : field
         use parameters_constant    , only : liquid, vapor
         use parameters_input       , only : nx,ny,ne
         use parameters_kind        , only : ikind, rkind

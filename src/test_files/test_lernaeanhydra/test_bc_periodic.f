@@ -16,9 +16,7 @@
       program test_bc_periodic
 
         use bc_operators_class , only : bc_operators
-        use cg_operators_class , only : cg_operators
-        use dim2d_eq_class     , only : dim2d_eq
-        use field_class        , only : field
+        use pmodel_eq_class    , only : pmodel_eq
         use parameters_constant, only : periodic_xy_choice
         use parameters_input   , only : nx,ny,ne,bc_choice
         use parameters_kind    , only : ikind, rkind
@@ -27,9 +25,8 @@
 
         
         !<operators tested
-        type(field)        :: field_tested
-        type(dim2d_eq)     :: p_model
-        type(cg_operators) :: s
+        real(rkind), dimension(nx,ny,ne) :: nodes
+        type(pmodel_eq)    :: p_model
         type(bc_operators) :: bc_used
 
 
@@ -64,7 +61,7 @@
         do k=1, ne
            do j=1, ny
               do i=1, nx
-                 field_tested%nodes(i,j,k) = 100*(k-1) + i + (j-1)*nx
+                 nodes(i,j,k) = 100*(k-1) + i + (j-1)*nx
               end do
            end do
         end do
@@ -135,10 +132,10 @@
         end do
 
         !< initialize the boundary conditions
-        call bc_used%initialize(s,p_model)
+        call bc_used%ini(p_model)
 
         !< apply the boundary conditions
-        call bc_used%apply_bc_on_nodes(field_tested,s)
+        call bc_used%apply_bc_on_nodes(nodes)
 
 
         !< perform the test
@@ -154,10 +151,10 @@
               do while(test_validated.and.(i.le.nx))
 
                  test_validated=
-     $             field_tested%nodes(i,j+10,k).eq.test_north(i,j,k)
+     $             nodes(i,j+10,k).eq.test_north(i,j,k)
 
                  test_validated=test_validated.and.
-     $             field_tested%nodes(i,j,k).eq.test_south(i,j,k)
+     $             nodes(i,j,k).eq.test_south(i,j,k)
 
                  i=i+1           
               end do
@@ -182,10 +179,10 @@
               do while(test_validated.and.(i.le.2))
 
                  test_validated=
-     $             field_tested%nodes(i,j+2,k).eq.test_west(i,j,k)
+     $             nodes(i,j+2,k).eq.test_west(i,j,k)
 
                  test_validated=test_validated.and.
-     $             field_tested%nodes(i+8,j+2,k).eq.test_east(i,j,k)
+     $             nodes(i+8,j+2,k).eq.test_east(i,j,k)
 
                  i=i+1           
               end do

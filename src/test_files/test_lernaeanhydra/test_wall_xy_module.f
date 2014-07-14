@@ -1,10 +1,7 @@
       program test_wall_xy_module
 
-        use bc_operators_class , only : bc_operators
-        use cg_operators_class , only : cg_operators
-        use dim2d_eq_class     , only : dim2d_eq
+        use sd_operators_class , only : sd_operators
         use dim2d_parameters   , only : re,we,pr,viscous_r,cv_r
-        use field_class        , only : field
         use parameters_constant, only : wall_xy_choice
         use parameters_input   , only : nx,ny,ne,bc_choice
         use parameters_kind    , only : ikind, rkind
@@ -18,13 +15,10 @@
 
         
         !<operators tested
-        type(field)        :: field_used
-        type(dim2d_eq)     :: p_model
-        type(cg_operators) :: s
-        type(bc_operators) :: bc_used
-
-        !<CPU recorded times
-        real    :: time1, time2
+        real(rkind), dimension(nx,ny,ne) :: nodes
+        real(rkind)                      :: dx
+        real(rkind)                      :: dy
+        type(sd_operators)               :: s
 
         !<test parameters
         logical, parameter :: detailled=.false.
@@ -53,96 +47,96 @@
 
         !<initialize the data for the field
         !<mass data
-        field_used%nodes(1,1,1)=0.5
-        field_used%nodes(2,1,1)=0.2
-        field_used%nodes(3,1,1)=1.2
-        field_used%nodes(4,1,1)=5.0
+        nodes(1,1,1)=0.5
+        nodes(2,1,1)=0.2
+        nodes(3,1,1)=1.2
+        nodes(4,1,1)=5.0
 
-        field_used%nodes(1,2,1)=2.0
-        field_used%nodes(2,2,1)=4.2
-        field_used%nodes(3,2,1)=11.0
-        field_used%nodes(4,2,1)=10.6
+        nodes(1,2,1)=2.0
+        nodes(2,2,1)=4.2
+        nodes(3,2,1)=11.0
+        nodes(4,2,1)=10.6
 
-        field_used%nodes(1,3,1)=-14.2
-        field_used%nodes(2,3,1)=23.0
-        field_used%nodes(3,3,1)=9.8
-        field_used%nodes(4,3,1)=3.4
+        nodes(1,3,1)=-14.2
+        nodes(2,3,1)=23.0
+        nodes(3,3,1)=9.8
+        nodes(4,3,1)=3.4
       
-        field_used%nodes(1,4,1)=2.45
-        field_used%nodes(2,4,1)=0.2
-        field_used%nodes(3,4,1)=9.0
-        field_used%nodes(4,4,1)=5.4
+        nodes(1,4,1)=2.45
+        nodes(2,4,1)=0.2
+        nodes(3,4,1)=9.0
+        nodes(4,4,1)=5.4
 
 
         !<momentum_x data
-        field_used%nodes(1,1,2)=9.5
-        field_used%nodes(2,1,2)=9.8
-        field_used%nodes(3,1,2)=8.8
-        field_used%nodes(4,1,2)=5.0
+        nodes(1,1,2)=9.5
+        nodes(2,1,2)=9.8
+        nodes(3,1,2)=8.8
+        nodes(4,1,2)=5.0
 
-        field_used%nodes(1,2,2)=8.0
-        field_used%nodes(2,2,2)=5.8
-        field_used%nodes(3,2,2)=-1.0
-        field_used%nodes(4,2,2)=-0.6
+        nodes(1,2,2)=8.0
+        nodes(2,2,2)=5.8
+        nodes(3,2,2)=-1.0
+        nodes(4,2,2)=-0.6
 
-        field_used%nodes(1,3,2)=24.2
-        field_used%nodes(2,3,2)=-13.0
-        field_used%nodes(3,3,2)=0.2
-        field_used%nodes(4,3,2)=6.6
+        nodes(1,3,2)=24.2
+        nodes(2,3,2)=-13.0
+        nodes(3,3,2)=0.2
+        nodes(4,3,2)=6.6
       
-        field_used%nodes(1,4,2)=7.55
-        field_used%nodes(2,4,2)=9.8
-        field_used%nodes(3,4,2)=1.0
-        field_used%nodes(4,4,2)=4.6
+        nodes(1,4,2)=7.55
+        nodes(2,4,2)=9.8
+        nodes(3,4,2)=1.0
+        nodes(4,4,2)=4.6
 
 
         !<momentum_y data
-        field_used%nodes(1,1,3)=-8.5
-        field_used%nodes(2,1,3)=-9.4
-        field_used%nodes(3,1,3)=-6.4
-        field_used%nodes(4,1,3)=5.0
+        nodes(1,1,3)=-8.5
+        nodes(2,1,3)=-9.4
+        nodes(3,1,3)=-6.4
+        nodes(4,1,3)=5.0
                              
-        field_used%nodes(1,2,3)=-4.0
-        field_used%nodes(2,2,3)=2.6
-        field_used%nodes(3,2,3)=23.0
-        field_used%nodes(4,2,3)=21.8
+        nodes(1,2,3)=-4.0
+        nodes(2,2,3)=2.6
+        nodes(3,2,3)=23.0
+        nodes(4,2,3)=21.8
                              
-        field_used%nodes(1,3,3)=-52.6
-        field_used%nodes(2,3,3)=59.0
-        field_used%nodes(3,3,3)=19.4
-        field_used%nodes(4,3,3)=0.2
+        nodes(1,3,3)=-52.6
+        nodes(2,3,3)=59.0
+        nodes(3,3,3)=19.4
+        nodes(4,3,3)=0.2
                              
-        field_used%nodes(1,4,3)=-2.65
-        field_used%nodes(2,4,3)=-9.4
-        field_used%nodes(3,4,3)=17.0
-        field_used%nodes(4,4,3)=6.2
+        nodes(1,4,3)=-2.65
+        nodes(2,4,3)=-9.4
+        nodes(3,4,3)=17.0
+        nodes(4,4,3)=6.2
 
         
         !<total energy data
-        field_used%nodes(1,1,4)=-1.5
-        field_used%nodes(2,1,4)=-1.8
-        field_used%nodes(3,1,4)=-0.8
-        field_used%nodes(4,1,4)=3.0
+        nodes(1,1,4)=-1.5
+        nodes(2,1,4)=-1.8
+        nodes(3,1,4)=-0.8
+        nodes(4,1,4)=3.0
                              
-        field_used%nodes(1,2,4)=0.0
-        field_used%nodes(2,2,4)=2.2
-        field_used%nodes(3,2,4)=9.0
-        field_used%nodes(4,2,4)=8.6
+        nodes(1,2,4)=0.0
+        nodes(2,2,4)=2.2
+        nodes(3,2,4)=9.0
+        nodes(4,2,4)=8.6
                              
-        field_used%nodes(1,3,4)=-16.2
-        field_used%nodes(2,3,4)=21.0
-        field_used%nodes(3,3,4)=7.8
-        field_used%nodes(4,3,4)=1.4
+        nodes(1,3,4)=-16.2
+        nodes(2,3,4)=21.0
+        nodes(3,3,4)=7.8
+        nodes(4,3,4)=1.4
                              
-        field_used%nodes(1,4,4)=0.45
-        field_used%nodes(2,4,4)=-1.8
-        field_used%nodes(3,4,4)=7.0
-        field_used%nodes(4,4,4)=3.4
+        nodes(1,4,4)=0.45
+        nodes(2,4,4)=-1.8
+        nodes(3,4,4)=7.0
+        nodes(4,4,4)=3.4
 
 
         !< initialize the dx and dy data
-        field_used%dx=0.5
-        field_used%dy=0.6
+        dx=0.5
+        dy=0.6
 
 
         !<check if the DIM2d parameters
@@ -160,31 +154,31 @@
            !< print the data
            print *, 'mass_density'
            do j=1,4
-              print '(4F7.2)', field_used%nodes(1:4,5-j,1)
+              print '(4F7.2)', nodes(1:4,5-j,1)
            end do
            print *, ''
               
            print *, 'momentum_x'
            do j=1,4
-              print '(4F7.2)', field_used%nodes(1:4,5-j,2)
+              print '(4F7.2)', nodes(1:4,5-j,2)
            end do
            print *, ''
            
            print *, 'momentum_y'
            do j=1,4
-              print '(4F7.2)', field_used%nodes(1:4,5-j,3)
+              print '(4F7.2)', nodes(1:4,5-j,3)
            end do
            print *, ''
            
            print *, 'energy'
            do j=1,4
-              print '(4F7.2)', field_used%nodes(1:4,5-j,4)
+              print '(4F7.2)', nodes(1:4,5-j,4)
            end do
            print *, ''
            
            print *, 'dim2d_parameters'
-           print '(''dx        '',F7.2)', field_used%dx
-           print '(''dy        '',F7.2)', field_used%dy
+           print '(''dx        '',F7.2)', dx
+           print '(''dy        '',F7.2)', dy
            print '(''Re        '',F7.2)', re
            print '(''We        '',F7.2)', we
            print '(''Pr        '',F7.2)', pr
@@ -205,11 +199,11 @@
         i=2
         j=2
 
-        flux_x_momentum_x=wall_fx_momentum_x(field_used,s,i,j)
-        flux_x_momentum_y=wall_fx_momentum_y(field_used,s,i,j)
+        flux_x_momentum_x=wall_fx_momentum_x(nodes,dx,dy,s,i,j)
+        flux_x_momentum_y=wall_fx_momentum_y(nodes,dx,s,i,j)
 
-        flux_y_momentum_x=wall_fy_momentum_x(field_used,s,i,j)
-        flux_y_momentum_y=wall_fy_momentum_y(field_used,s,i,j)
+        flux_y_momentum_x=wall_fy_momentum_x(nodes,dy,s,i,j)
+        flux_y_momentum_y=wall_fy_momentum_y(nodes,dx,dy,s,i,j)
 
 
         !<compare the data

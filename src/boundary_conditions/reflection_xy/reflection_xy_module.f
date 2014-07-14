@@ -16,8 +16,7 @@
       !-----------------------------------------------------------------
       module reflection_xy_module
 
-        use cg_operators_class , only : cg_operators
-        use dim2d_eq_class     , only : dim2d_eq
+        use pmodel_eq_class    , only : pmodel_eq
         use parameters_constant, only : vector_x, vector_y
         use parameters_input   , only : nx,ny,ne
         use parameters_kind    , only : ikind, rkind
@@ -52,10 +51,10 @@
 
           implicit none
 
-          type(dim2d_eq), intent(in) :: p_model
-          integer, dimension(ne)     :: prefactor
+          type(pmodel_eq), intent(in) :: p_model
+          integer, dimension(ne)      :: prefactor
             
-          integer, dimension(ne)     :: var_type
+          integer, dimension(ne)      :: var_type
           integer :: k
 
           var_type = p_model%get_var_type()
@@ -92,10 +91,10 @@
 
           implicit none
 
-          type(dim2d_eq), intent(in) :: p_model
-          integer, dimension(ne)     :: prefactor
+          type(pmodel_eq), intent(in) :: p_model
+          integer, dimension(ne)      :: prefactor
           
-          integer, dimension(ne)     :: var_type
+          integer, dimension(ne) :: var_type
           integer :: k
 
           var_type = p_model%get_var_type()

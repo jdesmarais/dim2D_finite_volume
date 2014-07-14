@@ -40,8 +40,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 248
-        integer(ikind), parameter :: nty = 248
+        integer(ikind), parameter :: ntx = 20 !248
+        integer(ikind), parameter :: nty = 24 !248
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -55,7 +55,7 @@
         integer, parameter :: gravity_choice = no_gravity_choice
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = reflection_xy_choice
+        integer, parameter :: bc_choice = wall_xy_choice
         integer, parameter :: bcx_type_choice = bc_nodes_choice
         integer, parameter :: bcy_type_choice = bc_nodes_choice
 

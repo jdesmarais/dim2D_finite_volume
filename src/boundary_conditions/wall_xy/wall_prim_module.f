@@ -19,7 +19,6 @@
       module wall_prim_module
       
         use dim2d_parameters, only : cv_r
-        use field_class     , only : field
         use parameters_kind , only : ikind, rkind
 
         implicit none
@@ -52,26 +51,26 @@
         !>@param var
         !> \f$ P_{\textrm{wall}} \f$ evaluated at [i,j]
         !---------------------------------------------------------------
-        function wall_pressure(field_used,i,j) result(var)
+        function wall_pressure(nodes,i,j) result(var)
 
           implicit none
 
-          class(field)  , intent(in) :: field_used
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          real(rkind)                :: var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
 
 
           if(rkind.eq.8) then
-             var=3.0d0/((3.0d0-field_used%nodes(i,j,1))*cv_r)*(
-     $            field_used%nodes(i,j,4)
-     $            + 3.0d0*field_used%nodes(i,j,1)**2)
-     $            - 3.0d0*field_used%nodes(i,j,1)**2
+             var=3.0d0/((3.0d0-nodes(i,j,1))*cv_r)*(
+     $            nodes(i,j,4)
+     $            + 3.0d0*nodes(i,j,1)**2)
+     $            - 3.0d0*nodes(i,j,1)**2
           else
-             var=3./((3.-field_used%nodes(i,j,1))*cv_r)*(
-     $            field_used%nodes(i,j,4)
-     $            + 3*field_used%nodes(i,j,1)**2)
-     $            - 3*field_used%nodes(i,j,1)**2
+             var=3./((3.-nodes(i,j,1))*cv_r)*(
+     $            nodes(i,j,4)
+     $            + 3*nodes(i,j,1)**2)
+     $            - 3*nodes(i,j,1)**2
           end if
 
         end function wall_pressure
