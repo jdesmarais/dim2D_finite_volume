@@ -70,16 +70,19 @@
 
           contains
 
-          procedure, pass :: ini
-          procedure, pass :: ini_coordinates
-          procedure, pass :: compute_time_dev
-          procedure, pass :: apply_bc_on_nodes
-          procedure, pass :: compute_integration_step
+          procedure, pass          :: ini
+          procedure, pass, private :: ini_coordinates
+          procedure, pass, private :: apply_initial_conditions
+          procedure, pass          :: compute_time_dev
+          procedure, pass          :: apply_bc_on_nodes
+          procedure, pass          :: compute_integration_step
 
-          procedure, pass :: set_dx    !only for tests
-          procedure, pass :: set_dy    !only for tests
-          procedure, pass :: get_nodes !only for tests
-          procedure, pass :: set_nodes !only for tests
+          procedure, pass          :: set_dx    !only for tests
+          procedure, pass          :: set_dy    !only for tests
+          procedure, pass          :: get_nodes !only for tests
+          procedure, pass          :: set_nodes !only for tests
+          procedure, pass          :: get_x_map !only for tests
+          procedure, pass          :: get_y_map !only for tests
 
         end type field_abstract
 
@@ -104,8 +107,10 @@
 
         contains
 
-        !initialize the field_abstract by initializing
-        !the boundary conditions bc_operators_used
+        !initialize the field_abstract by:
+        ! - initializing the boundary conditions bc_operators_used
+        ! - initializing the coordinates
+        ! - applying the initial conditions
         subroutine ini(this)
 
           implicit none
@@ -113,6 +118,8 @@
           class(field_abstract), intent(inout) :: this
 
           call this%bc_operators_used%ini(this%pmodel_eq_used)
+          call this%ini_coordinates()
+          call this%apply_initial_conditions()
 
         end subroutine ini
 
@@ -172,6 +179,21 @@
           end do
 
         end subroutine ini_coordinates
+
+
+        !apply the initial conditions
+        subroutine apply_initial_conditions(this)
+
+          implicit none
+
+          class(field_abstract), intent(inout) :: this
+          
+          call this%pmodel_eq_used%apply_ic(
+     $         this%nodes,
+     $         this%x_map,
+     $         this%y_map)
+
+        end subroutine apply_initial_conditions
 
 
         !compute the time derivative
@@ -252,16 +274,16 @@
 
 
         !get the attribute nodes
-        subroutine get_nodes(this,nodes)
+        function get_nodes(this) result(nodes)
 
           implicit none
 
           class(field_abstract)           , intent(in)  :: this
-          real(rkind), dimension(nx,ny,ne), intent(out) :: nodes
+          real(rkind), dimension(nx,ny,ne)              :: nodes
 
           nodes = this%nodes
 
-        end subroutine get_nodes
+        end function get_nodes
 
 
         !set the attribute nodes
@@ -275,5 +297,31 @@
           this%nodes = nodes
 
         end subroutine set_nodes
+
+
+        !get the attribute x_map
+        function get_x_map(this) result(x_map)
+
+          implicit none
+
+          class(field_abstract)     , intent(in)  :: this
+          real(rkind), dimension(nx)              :: x_map
+
+          x_map = this%x_map
+
+        end function get_x_map
+
+
+        !get the attribute y_map
+        function get_y_map(this) result(y_map)
+
+          implicit none
+
+          class(field_abstract)     , intent(in)  :: this
+          real(rkind), dimension(ny)              :: y_map
+
+          y_map = this%y_map
+
+        end function get_y_map      
 
       end module field_abstract_class

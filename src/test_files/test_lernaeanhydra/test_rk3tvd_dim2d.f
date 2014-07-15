@@ -10,31 +10,26 @@
       !> (initial conditions and after 1 integration step)
       !> to compare the results of the serial and the 
       !> parallel code
+      !> test data are saved in $test_files/data_test
+      !> initial conditions: drop_retraction
+      !> pmodel_eq: dim2d_eq
       !
       !> @date
       ! 27_08_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       program test_rk3tvd_dim2d
 
-        use bc_operators_class , only : bc_operators
-        use cg_operators_class , only : cg_operators
-        use dim2d_eq_class     , only : dim2d_eq
-        use field_class        , only : field
-        use fv_operators_class , only : fv_operators
-        use parameters_input   , only : nx,ny,ne
-        use parameters_kind    , only : ikind,rkind
-        use rk3tvd_class       , only : rk3tvd
+        use field_abstract_class, only : field_abstract
+        use parameters_input    , only : npx,npy,nx,ny,ne
+        use parameters_kind     , only : ikind,rkind
+        use td_integrator_class , only : td_integrator
 
         implicit none
 
-        
+
         !< operators tested
-        type(field)            :: field_tested
-        type(cg_operators)     :: sd
-        type(dim2d_eq)         :: p_model
-        type(fv_operators)     :: td
-        type(bc_operators)     :: bc_used
-        type(rk3tvd)           :: ti
+        type(field_abstract)   :: field_tested
+        type(td_integrator)    :: ti
         real(rkind), parameter :: dt=1.0
 
 
@@ -48,7 +43,7 @@
 
         !< if nx.ne.20, ny.ne.20 then the test cannot be done
         if((nx.ne.20).or.(ny.ne.20).or.(ne.ne.4)
-     $       .or.(npx.eq.1).or.(npy.ne.1)) then
+     $       .or.(npx.ne.1).or.(npy.ne.1)) then
            stop 'the test needs: (nx,ny,ne,npx,npy)=(20,20,4,1,1)'
         end if
         
@@ -63,23 +58,28 @@
         y_min   = 0.
         y_max   = 1.
 
-        call field_tested%ini_coordinates()
-        call p_model%apply_ic(field_tested)
-        call bc_used%apply_bc_on_nodes(field_tested,sd)
+        call field_tested%ini()
+        call field_tested%apply_bc_on_nodes()
 
 
         !< write the data as initial conditions
-        call write_data('test_dim2d_rk0',
-     $       field_tested%nodes,field_tested%x_map,field_tested%y_map)
+        call write_data(
+     $       'test_dim2d_rk0',
+     $       field_tested%get_nodes(),
+     $       field_tested%get_x_map(),
+     $       field_tested%get_y_map())
 
 
         !< integrate the field for dt
-        call ti%integrate(field_tested,sd,p_model,td,dt)
+        call ti%integrate(field_tested,dt)
 
 
         !< write the data after one integration step
-        call write_data('test_dim2d_rk1',
-     $       field_tested%nodes,field_tested%x_map,field_tested%y_map)
+        call write_data(
+     $       'test_dim2d_rk1',
+     $       field_tested%get_nodes(),
+     $       field_tested%get_x_map(),
+     $       field_tested%get_y_map())
 
 
         !< get the total time needed to run the test
