@@ -73,3 +73,8 @@ mpi_dep=		mpi_process_class.o
 mpi_mg_dep=		mpi_mg_neighbours.o\
 			mpi_mg_derived_types.o\
 			mpi_mg_bc_class.o
+
+mpi_mg_ext_dep=		$(mpi_mg_dep)\
+			mpi_mg_construct.o\
+			mpi_mg_ini_bc_proc.o\
+			mpi_mg_bc_ext_class.o

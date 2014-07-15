@@ -443,8 +443,6 @@ $(mpi_bc_dir)/mpi_mg_construct.o:\
 			$(param_dir)/parameters_constant.o
 
 $(mpi_bc_dir)/mpi_mg_bc_ext_class.o:\
-			$(field_dir)/field_par_class.o\
-			$(sd_dir)/cg_operators_class.o\
 			$(mpi_bc_dir)/mpi_mg_bc_class.o\
 			$(mpi_bc_dir)/mpi_mg_construct.o\
 			$(mpi_bc_dir)/mpi_mg_ini_bc_proc.o\

@@ -12,8 +12,6 @@
       !-----------------------------------------------------------------
       program test_mpi_mg_bc_ext
 
-        use cg_operators_class , only : cg_operators
-        use field_par_class    , only : field_par
         use mpi
         use mpi_mg_bc_ext_class, only : mpi_mg_bc_ext
         use mpi_process_class  , only : mpi_process
@@ -28,13 +26,13 @@
 
 
         !< operators tested
-        type(field_par)    :: f_tested
         type(mpi_process)  :: mpi_op
         type(mpi_mg_bc_ext):: mpi_mg
-        type(cg_operators) :: s_op
 
         
         !< intermediate variables
+        integer :: comm_2d
+        integer :: usr_rank
         integer :: k
         integer :: proc_rank
         logical :: test_validated
@@ -59,11 +57,11 @@
 
 
         !< initialization of the cartesian communicator
-        call f_tested%ini_cartesian_communicator()
+        call mpi_op%ini_cartesian_communicator(comm_2d,usr_rank)
 
 
         !< get the rank of the processor computing this test
-        call MPI_COMM_RANK(f_tested%comm_2d, proc_rank, ierror)
+        call MPI_COMM_RANK(comm_2d, proc_rank, ierror)
         if(ierror.ne.MPI_SUCCESS) then
            stop 'test_mpi_messenger_bc: MPI_COMM_RANK failed'
         end if
@@ -122,7 +120,7 @@
 
 
         !< test the initialization of the object 'mpi_mg_bc_ext'
-        call mpi_mg%initialize(f_tested,s_op)
+        call mpi_mg%ini(comm_2d)
 
 
         !< compare the attributes of 'mpi_mg_bc_ext' with the test data

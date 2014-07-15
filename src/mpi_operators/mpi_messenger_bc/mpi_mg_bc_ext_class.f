@@ -18,8 +18,6 @@
       !-----------------------------------------------------------------
       module mpi_mg_bc_ext_class
 
-        use cg_operators_class, only : cg_operators
-        use field_par_class   , only : field_par
         use mpi_mg_bc_class   , only : mpi_mg_bc
         use mpi_mg_ini_bc_proc, only : ini_bc_procedures
         use mpi_mg_construct  , only : update_mpi_derived_types
@@ -67,7 +65,7 @@
 
           contains
           
-          procedure, pass :: initialize
+          procedure, pass :: ini
 
         end type mpi_mg_bc_ext
 
@@ -88,30 +86,31 @@
         !>@param this
         !> 'mpi_mg_bc' object initialized
         !
-        !>@param f_used
-        !> object containing the MPI cartesian communicator
+        !>@param comm_2d
+        !> integre identifying the global communicator
         !
-        !>@param s
-        !> space discretisation method to know the boundary
-        !> layer size
+        !>@param usr_rank
+        !> integer identifying the processor in the communicator
+        !> comm_2d
         !--------------------------------------------------------------
-        subroutine initialize(this,f_used,s)
+        subroutine ini(this,comm_2d)
 
           implicit none
 
           class(mpi_mg_bc_ext), intent(inout) :: this
-          class(field_par)    , intent(in)    :: f_used
-          type(cg_operators)  , intent(in)    :: s
+          integer             , intent(in)    :: comm_2d
 
 
           !< initialize the attributes of 'mpi_mg_bc'
-          call this%mpi_mg_bc%initialize(f_used,s)
+          call this%mpi_mg_bc%ini(comm_2d)
 
           
           !< initialize the attributes of 'mpi_mg_bc_ext'
           call ini_bc_procedures(
-     $         f_used%comm_2d,
-     $         this%proc_x_choice, this%proc_y_choice, this%exchange_id)
+     $         comm_2d,
+     $         this%proc_x_choice,
+     $         this%proc_y_choice,
+     $         this%exchange_id)
 
 
           !< update the MPI derived types
@@ -122,7 +121,6 @@
      $         this%com_recv, this%com_send, this%com_rank,
      $         this%proc_x_choice, this%proc_y_choice)
 
-        end subroutine initialize
-
+        end subroutine ini
 
       end module mpi_mg_bc_ext_class
