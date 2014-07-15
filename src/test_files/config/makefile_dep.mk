@@ -197,8 +197,7 @@ $(rbc_dir)/reflection_xy_module.o:\
 			$(param_dir)/parameters_kind.o
 
 $(rbc_dir)/reflection_xy_par_module.o:\
-			$(spm_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_par_class.o\
+			$(pm_cdir)/pmodel_eq_class.o\
 			$(mpi_bc_dir)/mpi_mg_bc_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(mpi_dir)/mpi_requests_module.o\
@@ -408,7 +407,6 @@ $(nf90_dir)/nf90_operators_wr_par_class.o:\
 $(mpi_dir)/mpi_tag_module.o:
 
 $(mpi_dir)/mpi_requests_module.o:\
-			$(field_dir)/field_par_class.o\
 			$(mpi_bc_dir)/mpi_mg_bc_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(mpi_dir)/mpi_tag_module.o\

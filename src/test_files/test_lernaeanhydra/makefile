@@ -267,8 +267,7 @@ test_mpi_mg_bc_ext:	$(param_dep)\
 			$(mpi_mg_ext_dep)
 
 test_reflection_xy_par_module.o:\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_par_class.o\
+			$(dim2d_dir)/pmodel_eq_class.o\
 			$(mpi_bc_dir)/mpi_mg_bc_ext_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(param_dir)/parameters_constant.o\
@@ -277,31 +276,11 @@ test_reflection_xy_par_module.o:\
 			$(rbc_dir)/reflection_xy_par_module.o	
 
 test_reflection_xy_par_module:\
-			parameters_kind.o\
-			dim2d_parameters.o\
-			surrogate_class.o\
-			parameters_constant.o\
-			parameters_input.o\
-			field_class.o\
-			dim2d_prim_module.o\
-			interface_primary.o\
-			sd_operators_class.o\
-			cg_operators_class.o\
-			dim2d_fluxes_module.o\
-			dim2d_state_eq_module.o\
-			dim2d_steadystate_module.o\
-			dim2d_dropletbubble_module.o\
-			phy_model_eq_class.o\
-			dim2d_eq_class.o\
-			field_par_class.o\
-			mpi_mg_neighbours.o\
-			mpi_mg_derived_types.o\
-			mpi_mg_bc_class.o\
-			mpi_mg_ini_bc_proc.o\
-			mpi_mg_construct.o\
-			mpi_mg_bc_ext_class.o\
-			mpi_process_class.o\
-			mpi_tag_module.o\
+			$(param_dep)\
+			$(mpi_dep)\
+			$(mpi_bc_dep)\
+			$(sd_dep)\
+			$(dim2d_dep)\
 			reflection_xy_module.o\
 			reflection_xy_par_module.o
 

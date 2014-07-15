@@ -14,7 +14,6 @@
       !-----------------------------------------------------------------
       module mpi_requests_module
 
-        use field_par_class  , only : field_par
         use mpi
         use mpi_mg_bc_class  , only : mpi_mg_bc
         use mpi_process_class, only : mpi_process
@@ -45,10 +44,11 @@
         !> exchanged as well as the processor ids computing the
         !> neighbouring tiles
         !
-        !>@param f_used
-        !> object containing information about the communicator used
-        !> between the tiles as well as the rank of the processor
-        !> computing the current tile
+        !>@param comm_2d
+        !> integer identifying the general communicator
+        !
+        !>@param usr_rank
+        !> integer identifying the processor in the general communicator
         !
         !>@param nodes
         !> table containing the gridpoint data
@@ -58,16 +58,17 @@
         !> sent
         !--------------------------------------------------------------
         function create_requests_for_one_direction(
-     $       this, f_used, nodes, card_pt)
+     $       this, comm_2d, usr_rank, nodes, card_pt)
      $       result(mpi_requests)
 
           implicit none
 
           class(mpi_mg_bc)                , intent(in)    :: this
-          class(field_par)                , intent(inout) :: f_used
+          integer                         , intent(in)    :: comm_2d
+          integer                         , intent(in)    :: usr_rank
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
           integer                         , intent(in)    :: card_pt
-          integer, dimension(2)                          :: mpi_requests
+          integer, dimension(2)                           :: mpi_requests
 
           type(mpi_process) :: mpi_op
           integer           :: nb_procs
@@ -81,14 +82,14 @@
 
           !< compute the tag identifying the sending MPI request
           tag = compute_mpi_tag(
-     $         f_used%usr_rank, this%com_rank(card_pt), nb_procs)
+     $         usr_rank, this%com_rank(card_pt), nb_procs)
    
 
           !< create a sending request
           call MPI_ISSEND(
      $         nodes, 1, this%com_send(card_pt),
      $         this%com_rank(card_pt), tag,
-     $         f_used%comm_2d, mpi_requests(1),ierror)
+     $         comm_2d, mpi_requests(1),ierror)
           if(ierror.ne.MPI_SUCCESS) then
              call mpi_op%finalize_mpi()
              stop 'mpi_requests_module: MPI_ISSEND failed'
@@ -98,14 +99,14 @@
           
           !< compute the tag identifying the receving MPI request
           tag = compute_mpi_tag(
-     $         this%com_rank(card_pt), f_used%usr_rank, nb_procs)
+     $         this%com_rank(card_pt), usr_rank, nb_procs)
 
 
           !< create a receiving request
           call MPI_IRECV(
      $         nodes, 1, this%com_recv(card_pt),
      $         this%com_rank(card_pt), tag,
-     $         f_used%comm_2d, mpi_requests(2),ierror)
+     $         comm_2d, mpi_requests(2),ierror)
           if(ierror.ne.MPI_SUCCESS) then
              call mpi_op%finalize_mpi()
              stop 'mpi_requests_module: MPI_IRECV failed'
@@ -130,8 +131,11 @@
         !> the neighbouring tiles as well as the MPI derived types to
         !> identify the location of the data sent and received
         !
-        !> @param f_used
-        !> object encapsulating the main variables
+        !> @param comm_2d
+        !> integer identifying the general communicator
+        !
+        !>@param usr_rank
+        !> integer identifying the processor in the general communicator
         !
         !>@param nodes
         !> table containing the gridpoint data
@@ -143,12 +147,13 @@
         !> cardinal directions in which the data are sent (x or y axis)
         !--------------------------------------------------------------
         subroutine only_exchange_twice(
-     $     this, f_used, nodes, nb_procs, card_pt)
+     $     this, comm_2d, usr_rank, nodes, nb_procs, card_pt)
         
           implicit none
 
           class(mpi_mg_bc)                , intent(in)    :: this
-          class(field_par)                , intent(inout) :: f_used
+          integer                         , intent(in)    :: comm_2d
+          integer                         , intent(in)    :: usr_rank
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
           integer                         , intent(in)    :: nb_procs
           integer, dimension(2)           , intent(in)    :: card_pt
@@ -175,13 +180,13 @@
            
               !< compute the tag identifying the sending MPI request
               tag = compute_mpi_tag(
-     $             f_used%usr_rank, this%com_rank(card_pt(k)), nb_procs)
+     $             usr_rank, this%com_rank(card_pt(k)), nb_procs)
            
               !< create a send request
               call MPI_ISSEND(
      $             nodes, 1, this%com_send(card_pt(k)),
      $             this%com_rank(card_pt(k)), tag,
-     $             f_used%comm_2d, mpi_requests(2*k-1),ierror)
+     $             comm_2d, mpi_requests(2*k-1),ierror)
               if(ierror.ne.MPI_SUCCESS) then
                  call mpi_op%finalize_mpi()
                  stop 'reflection_xy_par_module: MPI_ISSEND failed'
@@ -189,13 +194,13 @@
               
               !< compute the tag identifying the receving MPI request
               tag = compute_mpi_tag(
-     $             this%com_rank(card_pt(k)), f_used%usr_rank, nb_procs)
+     $             this%com_rank(card_pt(k)), usr_rank, nb_procs)
            
               !< create a receive request
               call MPI_IRECV(
      $             nodes, 1, this%com_recv(card_pt(k)),
      $             this%com_rank(card_pt(k)), tag,
-     $             f_used%comm_2d, mpi_requests(2*k),ierror)
+     $             comm_2d, mpi_requests(2*k),ierror)
               if(ierror.ne.MPI_SUCCESS) then
                  call mpi_op%finalize_mpi()
                  stop 'reflection_xy_par_module: MPI_IRECV failed'

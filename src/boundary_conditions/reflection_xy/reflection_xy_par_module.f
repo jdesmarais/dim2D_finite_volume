@@ -16,26 +16,27 @@
       !-----------------------------------------------------------------
       module reflection_xy_par_module
 
-        use dim2d_eq_class      , only : dim2d_eq
-        use field_par_class     , only : field_par
         use mpi                 
         use mpi_mg_bc_class     , only : mpi_mg_bc
         use mpi_process_class   , only : mpi_process
-        use mpi_requests_module , only : create_requests_for_one_direction,
+        use mpi_requests_module , only:create_requests_for_one_direction,
      $                                   only_exchange_twice
         use mpi_tag_module      , only : compute_mpi_tag
         use parameters_constant , only : x_direction, y_direction,N,S,E,W
         use parameters_input    , only : nx,ny,ne,npx,npy,bc_size
         use parameters_kind     , only : ikind, rkind
+        use pmodel_eq_class     , only : pmodel_eq
         use reflection_xy_module, only : reflection_x_prefactor,
      $                                   reflection_y_prefactor
 
         implicit none
 
         private
-        public :: only_compute_along_x, only_compute_along_y,
+        public :: only_compute_along_x,
+     $            only_compute_along_y,
      $            only_exchange,
-     $            compute_and_exchange_along_x, compute_and_exchange_along_y
+     $            compute_and_exchange_along_x,
+     $            compute_and_exchange_along_y
 
         
         contains
@@ -62,7 +63,7 @@
           implicit none
 
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          type(dim2d_eq)                  , intent(in)    :: p_model
+          type(pmodel_eq)                 , intent(in)    :: p_model
 
           
           !< x_prefactor : equal to -1 or +1 depending on the variable
@@ -116,7 +117,7 @@
           implicit none
 
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          type(dim2d_eq)                  , intent(in)    :: p_model
+          type(pmodel_eq)                 , intent(in)    :: p_model
 
           
           !< y_prefactor : equal to -1 or +1 depending on the variable
@@ -163,8 +164,11 @@
         !> the neighbouring tiles as well as the MPI derived types to
         !> identify the locatio of the data sent and received
         !
-        !> @param f_used
-        !> object encapsulating the main variables
+        !>@param comm_2d
+        !> integer identifying the general communicator
+        !
+        !>@param usr_rank
+        !> integer identifying the processor in the general communicator
         !
         !>@param nodes
         !> table containing the gridpoint data
@@ -177,14 +181,15 @@
         !> are sent
         !--------------------------------------------------------------
         subroutine compute_and_exchange_along_x(
-     $     this, f_used, nodes, p_model, card_pt)
+     $     this, comm_2d, usr_rank, nodes, p_model, card_pt)
 
           implicit none
 
           class(mpi_mg_bc)                , intent(in)    :: this
-          class(field_par)                , intent(inout) :: f_used
+          integer                         , intent(in)    :: comm_2d
+          integer                         , intent(in)    :: usr_rank
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          type(dim2d_eq)                  , intent(in)    :: p_model
+          type(pmodel_eq)                 , intent(in)    :: p_model
           integer                         , intent(in)    :: card_pt
 
 
@@ -217,7 +222,7 @@
           !> direction 'cart_pt'
           !DEC$ FORCEINLINE RECURSIVE
           mpi_requests = create_requests_for_one_direction(
-     $         this, f_used, nodes, card_pt)
+     $         this, comm_2d, usr_rank, nodes, card_pt)
 
 
           !< overlap some communications with computations
@@ -289,8 +294,11 @@
         !> the neighbouring tiles as well as the MPI derived types to
         !> identify the locatio of the data sent and received
         !
-        !> @param f_used
-        !> object encapsulating the main variables
+        !>@param comm_2d
+        !> integer identifying the general communicator
+        !
+        !>@param usr_rank
+        !> integer identifying the processor in the general communicator
         !
         !>@param nodes
         !> table containing the gridpoint data
@@ -303,14 +311,15 @@
         !> are sent
         !--------------------------------------------------------------
         subroutine compute_and_exchange_along_y(
-     $     this, f_used, nodes, p_model, card_pt)
+     $     this, comm_2d, usr_rank, nodes, p_model, card_pt)
 
           implicit none
 
           class(mpi_mg_bc)                , intent(in)    :: this
-          class(field_par)                , intent(inout) :: f_used
+          integer                         , intent(in)    :: comm_2d
+          integer                         , intent(in)    :: usr_rank
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          type(dim2d_eq)                  , intent(in)    :: p_model
+          type(pmodel_eq)                 , intent(in)    :: p_model
           integer                         , intent(in)    :: card_pt
 
 
@@ -331,9 +340,8 @@
           !-------------------------------------------------------
           type(mpi_process)                     :: mpi_op
           integer, dimension(2)                 :: mpi_requests
-          integer                               :: nb_procs
           integer, dimension(MPI_STATUS_SIZE,2) :: status
-          integer                               :: ierror,tag,k
+          integer                               :: ierror,k
           integer(ikind)                        :: i,j
           integer, dimension(ne)                :: y_prefactor
 
@@ -344,7 +352,7 @@
           !> direction 'cart_pt'
           !DEC$ FORCEINLINE RECURSIVE
           mpi_requests = create_requests_for_one_direction(
-     $       this, f_used, nodes, card_pt)
+     $       this, comm_2d, usr_rank, nodes, card_pt)
 
           !< overlap some communications with computations
 
@@ -414,8 +422,11 @@
         !> the neighbouring tiles as well as the MPI derived types to
         !> identify the locatio of the data sent and received
         !
-        !> @param f_used
-        !> object encapsulating the main variables
+        !>@param comm_2d
+        !> integer identifying the general communicator
+        !
+        !>@param usr_rank
+        !> integer identifying the processor in the general communicator
         !
         !>@param nodes
         !> table containing the gridpoint data
@@ -423,12 +434,16 @@
         !>@param direction
         !> direction in which the data are sent (x or y axis)
         !--------------------------------------------------------------
-        subroutine only_exchange(this, f_used, nodes, direction)
+        subroutine only_exchange(
+     $     this,
+     $     comm_2d, usr_rank,
+     $     nodes, direction)
 
           implicit none
 
           class(mpi_mg_bc)                , intent(in)    :: this
-          class(field_par)                , intent(inout) :: f_used
+          integer                         , intent(in)    :: comm_2d
+          integer                         , intent(in)    :: usr_rank
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
           integer                         , intent(in)    :: direction
           
@@ -447,7 +462,9 @@
 
 
           call only_exchange_twice(
-     $            this, f_used, nodes, nb_procs, card_pt)
+     $         this,
+     $         comm_2d, usr_rank,
+     $         nodes, nb_procs, card_pt)
 
         end subroutine only_exchange
 

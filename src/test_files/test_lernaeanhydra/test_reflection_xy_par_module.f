@@ -14,9 +14,7 @@
       !-----------------------------------------------------------------
       program test_reflection_xy_par_module
 
-        use cg_operators_class      , only : cg_operators
-        use dim2d_eq_class          , only : dim2d_eq
-        use field_par_class         , only : field_par
+        use pmodel_eq_class         , only : pmodel_eq
         use mpi_mg_bc_class         , only : mpi_mg_bc
         use mpi_process_class       , only : mpi_process
         use parameters_constant     , only : reflection_xy_choice,
@@ -27,22 +25,22 @@
         use reflection_xy_par_module, only : only_compute_along_x,
      $     				     only_compute_along_y,
      $                                       only_exchange,
-     $                                       compute_and_exchange_along_x,
-     $                                       compute_and_exchange_along_y
+     $                                      compute_and_exchange_along_x,
+     $                                      compute_and_exchange_along_y
 
         implicit none
 
 
         !< operators tested
-        type(field_par)                  :: f_tested
         real(rkind), dimension(nx,ny,ne) :: nodes
-        type(cg_operators)               :: s_op
-        type(dim2d_eq)                   :: p_model
+        type(pmodel_eq)                  :: p_model
         type(mpi_process)                :: mpi_op
         type(mpi_mg_bc)                  :: mpi_mg
 
 
         !< intermediate variables
+        integer            :: comm_2d
+        integer            :: usr_rank
         integer(ikind)     :: i,j
         integer            :: k
         logical, parameter :: test=.false.
@@ -63,132 +61,132 @@
 
 
         !< initialization of the cartesian communicator
-        call f_tested%ini_cartesian_communicator()
+        call mpi_op%ini_cartesian_communicator(comm_2d, usr_rank)
 
 
         !< initialize the data
-        nodes = ini_data(f_tested%usr_rank)
+        nodes = ini_data(usr_rank)
 
 
         !< initialize the 'mpi_mg_bc' object
-        call mpi_mg%initialize(f_tested, s_op)
+        call mpi_mg%ini(comm_2d)
 
 
         !< test only_compute_along_x
         call only_compute_along_x(nodes,p_model)
         if(.not.test) then
-           call write_data('test_cx',f_tested%usr_rank,nodes)
+           call write_data('test_cx',usr_rank,nodes)
         else
-           test_validated = compare_data('test_cx',f_tested%usr_rank,nodes)
+           test_validated = compare_data('test_cx',usr_rank,nodes)
            print '(''Proc '', I1, '': test only compute_x : '',L1)',
-     $          f_tested%usr_rank,test_validated
+     $          usr_rank,test_validated
         end if
 
         
         !< reinitialize the data
-        nodes = ini_data(f_tested%usr_rank)
+        nodes = ini_data(usr_rank)
 
 
         !< test only_compute_along_y
         call only_compute_along_y(nodes,p_model)
         if(.not.test) then
-           call write_data('test_cy',f_tested%usr_rank,nodes)
+           call write_data('test_cy',usr_rank,nodes)
         else
-           test_validated = compare_data('test_cy',f_tested%usr_rank,nodes)
+           test_validated = compare_data('test_cy',usr_rank,nodes)
            print '(''Proc '', I1, '': test only compute_y : '',L1)',
-     $          f_tested%usr_rank,test_validated
+     $          usr_rank,test_validated
         end if
 
 
         !< reinitialize the data
-        nodes = ini_data(f_tested%usr_rank)
+        nodes = ini_data(usr_rank)
 
 
         !< test compute_and_exchange_along_x()
-        select case(f_tested%usr_rank)
+        select case(usr_rank)
           case(0,1)
              !< test compute_and_exchange_along_x(E)
              call compute_and_exchange_along_x(
-     $            mpi_mg, f_tested, nodes, p_model, E)
+     $            mpi_mg, comm_2d, usr_rank, nodes, p_model, E)
 
           case(2,3)
              !< test compute_and_exchange_along_x(W)
              call compute_and_exchange_along_x(
-     $            mpi_mg, f_tested, nodes, p_model, W)
+     $            mpi_mg, comm_2d, usr_rank, nodes, p_model, W)
 
           case default
              call mpi_op%finalize_mpi()
              stop 'usr_rank not recognized'
         end select
         if(.not.test) then
-           call write_data('test_ex',f_tested%usr_rank,nodes)
+           call write_data('test_ex',usr_rank,nodes)
         else
-           test_validated = compare_data('test_ex',f_tested%usr_rank,nodes)
+           test_validated = compare_data('test_ex',usr_rank,nodes)
            print '(''Proc '', I1, '': test compute_exchange_x : '',L1)',
-     $          f_tested%usr_rank,test_validated
+     $          usr_rank,test_validated
         end if
 
 
         !< reinitialize the data
-        nodes = ini_data(f_tested%usr_rank)
+        nodes = ini_data(usr_rank)
 
 
         !< test compute_and_exchange_along_y()
-        select case(f_tested%usr_rank)
+        select case(usr_rank)
           case(0,2)
              !< test compute_and_exchange_along_y(N)
              call compute_and_exchange_along_y(
-     $            mpi_mg, f_tested, nodes, p_model, N)
+     $            mpi_mg, comm_2d, usr_rank, nodes, p_model, N)
 
           case(1,3)
              !< test compute_and_exchange_along_y(S)
              call compute_and_exchange_along_y(
-     $            mpi_mg, f_tested, nodes, p_model, S)
+     $            mpi_mg, comm_2d, usr_rank, nodes, p_model, S)
 
           case default
              call mpi_op%finalize_mpi()
              stop 'usr_rank not recognized'
         end select
         if(.not.test) then
-           call write_data('test_ey',f_tested%usr_rank,nodes)
+           call write_data('test_ey',usr_rank,nodes)
         else
-           test_validated = compare_data('test_ey',f_tested%usr_rank,nodes)
+           test_validated = compare_data('test_ey',usr_rank,nodes)
            print '(''Proc '', I1, '': test compute_exchange_y : '',L1)',
-     $          f_tested%usr_rank,test_validated
+     $          usr_rank,test_validated
         end if
 
 
         !< reinitialize the data
-        nodes = ini_data(f_tested%usr_rank)
+        nodes = ini_data(usr_rank)
 
         !< the test only_exchange_x and only_exchange_y
         !> cannnot be performed with npx=2 and npy=2
 
 c$$$        !< test only_exchange(x)
 c$$$        call only_exchange(
-c$$$     $       mpi_mg, f_tested, nodes, x_direction)
+c$$$     $       mpi_mg, comm_2d, usr_rank, nodes, x_direction)
 c$$$        if(.not.test) then
-c$$$           call write_data('test_Ex',f_tested%usr_rank,nodes)
+c$$$           call write_data('test_Ex',usr_rank,nodes)
 c$$$        else
-c$$$           test_validated = compare_data('test_Ex',f_tested%usr_rank,nodes)
+c$$$           test_validated = compare_data('test_Ex',usr_rank,nodes)
 c$$$           print '(''Proc '', I1, '': test only_exchange_x : '',L1)',
-c$$$     $          f_tested%usr_rank,test_validated
+c$$$     $          usr_rank,test_validated
 c$$$        end if
 c$$$
 c$$$
 c$$$        !< reinitialize the data
-c$$$        nodes = ini_data(f_tested%usr_rank)
+c$$$        nodes = ini_data(usr_rank)
 c$$$
 c$$$
 c$$$        !< test only_exchange(y)
 c$$$        call only_exchange(
-c$$$     $       mpi_mg, f_tested, nodes, y_direction)
+c$$$     $       mpi_mg, comm_2d, usr_rank, nodes, y_direction)
 c$$$        if(.not.test) then
-c$$$           call write_data('test_Ey',f_tested%usr_rank,nodes)
+c$$$           call write_data('test_Ey',usr_rank,nodes)
 c$$$        else
-c$$$           test_validated = compare_data('test_Ey',f_tested%usr_rank,nodes)
+c$$$           test_validated = compare_data('test_Ey',usr_rank,nodes)
 c$$$           print '(''Proc '', I1, '': test only_exchange_y : '',L1)',
-c$$$     $          f_tested%usr_rank,test_validated
+c$$$     $          usr_rank,test_validated
 c$$$        end if
 
 
