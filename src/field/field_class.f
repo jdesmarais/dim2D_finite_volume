@@ -14,10 +14,9 @@
       !-----------------------------------------------------------------
       module field_class
 
-        use parameters_input, only : nx,ny,ne,bc_size,
-     $                               x_min,x_max,y_min,y_max
-        use parameters_kind , only : ikind, rkind
-        use surrogate_class , only : surrogate
+        use field_abstract_class , only : field_abstract
+        use parameters_kind      , only : rkind
+        use td_integrator_class  , only : td_integrator
 
         implicit none
 
@@ -29,36 +28,14 @@
         !> @class field
         !> class encapsulating the variables of the governing equations
         !> and the discretisation maps
-        !>
-        !> @param nodes
-        !> variables computed during the simulation
-        !> (ex: mass=nodes(:,:,1),
-        !> momentum_x=nodes(:,:,2),
-        !> momentum_y=nodes(:,:,3),
-        !> energy=nodes(:,:,4))
-        !>
-        !> @param x_map
-        !> discretisation map along the x-axis
-        !>
-        !> @param y_map
-        !> discretisation map along the y-axis
-        !>
-        !> @param dx
-        !> space step along the x-axis
-        !>
-        !> @param dy
-        !> space step along the y-axis
         !---------------------------------------------------------------
-        type, extends(surrogate) :: field
-          real(rkind), dimension(nx,ny,ne) :: nodes
-          real(rkind), dimension(nx)       :: x_map
-          real(rkind), dimension(ny)       :: y_map
-          real(rkind) :: dx
-          real(rkind) :: dy
+        type, extends(field_abstract) :: field
+
+          type(td_integrator) :: td_integrator_used
 
           contains
 
-          procedure, pass :: ini_coordinates
+          procedure, pass :: integrate
 
         end type field
 
@@ -66,60 +43,16 @@
         contains
 
 
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> subroutine to integrate the governing equations using
-        !> the numerical scheme developed by C.W.Shu and S.Osher
-        !
-        !> @date
-        !> 27_08_2013 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> object encapsulating the main variables
-        !
-        !>@param x_min
-        !> coordinate along the x-axis of the SW border
-        !
-        !>@param x_max
-        !> coordinate along the x-axis of the NE border
-        !
-        !>@param y_min
-        !> coordinate along the y-axis of the SW border
-        !
-        !>@param y_max
-        !> coordinate along the y-axis of the NE border
-        !--------------------------------------------------------------
-        subroutine ini_coordinates(this)
+        !integrate the field in time from t to t+dt
+        subroutine integrate(this, dt)
 
           implicit none
 
           class(field), intent(inout) :: this
+          real(rkind) , intent(in)    :: dt
 
+          call this%td_integrator_used%integrate(this,dt)
 
-          integer(ikind) :: i,j
-
-
-          !< initialize the space steps along the 
-          !> x and y directions
-          this%dx = (x_max-x_min)/(nx-1-2*bc_size)
-          this%dy = (y_max-y_min)/(ny-1-2*bc_size)
-
-
-          !< initialize the coordinates along the
-          !> x-direction
-          do i=1, nx
-             this%x_map(i)=x_min + (i-1-bc_size)*this%dx
-          end do
-
-
-          !< initialize the coordinates along the
-          !> y-direction
-          do j=1, ny
-             this%y_map(j)=y_min + (j-1-bc_size)*this%dy
-          end do
-
-        end subroutine ini_coordinates
+        end subroutine integrate
 
       end module field_class

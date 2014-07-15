@@ -22,9 +22,9 @@ $(field_dir)/field_abstract_class.o:\
 			$(td_cdir)/td_operators_class.o
 
 $(field_dir)/field_class.o:\
-			$(field_dir)/surrogate_class.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o
+			$(field_dir)/field_abstract_class.o\
+			$(param_dir)/parameters_kind.o\
+			$(ti_cdir)/td_integrator_class.o
 
 $(field_dir)/field_par_class.o:\
 			$(field_dir)/field_class.o\
@@ -420,7 +420,8 @@ $(mpi_dir)/mpi_process_class.o:\
 
 
 #mpi messenger bc
-$(mpi_bc_dir)/mpi_mg_neighbours.o:	$(param_dir)/parameters_constant.o
+$(mpi_bc_dir)/mpi_mg_neighbours.o:\
+			$(param_dir)/parameters_constant.o
 
 $(mpi_bc_dir)/mpi_mg_derived_types.o:\
 			$(param_dir)/parameters_constant.o\
@@ -452,15 +453,9 @@ $(mpi_bc_dir)/mpi_mg_bc_ext_class.o:\
 
 
 #simulations
-sim_dim2d.o:		$(sbc_dir)/bc_operators_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_class.o\
-			$(fv_dir)/fv_operators_class.o\
-			$(nf90_dir)/nf90_operators_wr_class.o\
+sim_dim2d.o:		$(field_dir)/field_class.o\
 			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(rk3tvd_dir)/rk3tvd_class.o
+			$(param_dir)/parameters_kind.o
 
 sim_dim2d_par.o:	$(sbc_dir)/bc_operators_par_class.o\
 			$(sd_dir)/cg_operators_class.o\
@@ -473,7 +468,13 @@ sim_dim2d_par.o:	$(sbc_dir)/bc_operators_par_class.o\
 			$(param_dir)/parameters_kind.o\
 			$(rk3tvd_dir)/rk3tvd_par_class.o
 
+
 #dependencies for the executable code
-include $(sim_dim2d_dep)
+sim_dim2d:		$(sim_dep)\
+			surrogate_class.o\
+			field_abstract_class.o\
+			field_class.o
+
+#include $(sim_dim2d_dep)
 include $(sim_dim2d_par_dep)
 

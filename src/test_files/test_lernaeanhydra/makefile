@@ -7,77 +7,77 @@ include $(AUGEANSTABLES_CONFIG)/makefile_header.mk
 #-----------------------------------------------------------------------
 #dependencies for the test files objects
 #-----------------------------------------------------------------------
-param_dep=		parameters_kind.o\
-			parameters_constant.o\
-			parameters_input.o
+#param_dep=		parameters_kind.o\
+#			parameters_constant.o\
+#			parameters_input.o
+#
+#sd_dep=			interface_primary.o\
+#			sd_operators_abstract_class.o\
+#			sd_operators_class.o
+#
+#pm_dep=			pmodel_eq_abstract_class.o\
+#			pmodel_eq_class.o
+#
+#simpletest_dep=		$(pm_dep)
+#
+#dim2d_flux_dep=		dim2d_parameters.o\
+#			dim2d_prim_module.o\
+#			dim2d_fluxes_module.o
+#
+#dim2d_ic_dep=		dim2d_dropbubble_module.o\
+#			dim2d_vortex_module.o\
+#			dim2d_state_eq_module.o\
+#			dim2d_bubble_ascending_module.o\
+#			dim2d_drop_collision_module.o\
+#			dim2d_drop_retraction_module.o\
+#			dim2d_homogeneous_module.o\
+#			dim2d_phase_separation_module.o\
+#			dim2d_steadystate_module.o
+#
+#dim2d_dep=		$(dim2d_flux_dep)\
+#			$(dim2d_ic_dep)\
+#			parameters_bf_layer.o\
+#			$(pm_dep)
+#
+#bc_dep=			bc_operators_abstract_class.o\
+#			bc_operators_class.o
+#
+#reflection_dep=		$(bc_dep)\
+#			reflection_xy_module.o
+#
+#periodic_dep=		$(bc_dep)
+#
+#wall_xy_dep=		$(bc_dep)\
+#			wall_prim_module.o\
+#			wall_xy_module.o
+#
+#
+#td_dep=			td_operators_abstract_class.o\
+#			td_operators_class.o
+#
+#fv_dep=			$(td_dep)
+#
+#
+#ti_dep=			td_integrator_abstract_class.o\
+#			td_integrator_class.o
+#
+#rk_dep=			$(ti_dep)
+#
+#io_dep=			io_operators_abstract_class.o\
+#			io_operators_class.o
+#
+#nf90_dep=		$(io_dep)\
+#			io_operators_module.o\
+#			nf90_operators_module.o
 
-sd_dep=			interface_primary.o\
-			sd_operators_abstract_class.o\
-			sd_operators_class.o
-
-pm_dep=			pmodel_eq_abstract_class.o\
-			pmodel_eq_class.o
-
-simpletest_dep=		$(pm_dep)
-
-dim2d_flux_dep=		dim2d_parameters.o\
-			dim2d_prim_module.o\
-			dim2d_fluxes_module.o
-
-dim2d_ic_dep=		dim2d_dropbubble_module.o\
-			dim2d_vortex_module.o\
-			dim2d_state_eq_module.o\
-			dim2d_bubble_ascending_module.o\
-			dim2d_drop_collision_module.o\
-			dim2d_drop_retraction_module.o\
-			dim2d_homogeneous_module.o\
-			dim2d_phase_separation_module.o\
-			dim2d_steadystate_module.o
-
-dim2d_dep=		$(dim2d_flux_dep)\
-			$(dim2d_ic_dep)\
-			parameters_bf_layer.o\
-			$(pm_dep)
-
-bc_dep=			bc_operators_abstract_class.o\
-			bc_operators_class.o
-
-reflection_dep=		$(bc_dep)\
-			reflection_xy_module.o
-
-periodic_dep=		$(bc_dep)
-
-wall_xy_dep=		$(bc_dep)\
-			wall_prim_module.o\
-			wall_xy_module.o
-
-
-td_dep=			td_operators_abstract_class.o\
-			td_operators_class.o
-
-fv_dep=			$(td_dep)
-
-
-ti_dep=			td_integrator_abstract_class.o\
-			td_integrator_class.o
-
-rk_dep=			$(ti_dep)
-
-io_dep=			io_operators_abstract_class.o\
-			io_operators_class.o
-
-nf90_dep=		$(io_dep)\
-			io_operators_module.o\
-			nf90_operators_module.o
-
-test_field.o:		$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(field_dir)/field_class.o
-
-test_field:		field_class.o\
-			parameters_input.o\
-			parameters_kind.o\
-			surrogate_class.o
+#test_field.o:		$(param_dir)/parameters_input.o\
+#			$(param_dir)/parameters_kind.o\
+#			$(field_dir)/field_class.o
+#
+#test_field:		field_class.o\
+#			parameters_input.o\
+#			parameters_kind.o\
+#			surrogate_class.o
 
 
 test_cg_operators.o:	$(dim2d_dir)/dim2d_prim_module.o\
@@ -236,16 +236,16 @@ test_dim2d_ic:		$(param_dep)\
 			$(dim2d_dep)\
 			$(nf90_dep)
 
-test_field_par.o:	$(field_dir)/field_par_class.o\
-			$(mpi_dir)/mpi_process_class.o\
-			$(param_dir)/parameters_kind.o
-
-test_field_par:		field_par_class.o\
-			field_class.o\
-			surrogate_class.o\
-			mpi_process_class.o\
-			parameters_input.o\
-			parameters_kind.o
+#test_field_par.o:	$(field_dir)/field_par_class.o\
+#			$(mpi_dir)/mpi_process_class.o\
+#			$(param_dir)/parameters_kind.o
+#
+#test_field_par:		field_par_class.o\
+#			field_class.o\
+#			surrogate_class.o\
+#			mpi_process_class.o\
+#			parameters_input.o\
+#			parameters_kind.o
 
 test_mpi_mg_bc.o:	$(sd_dir)/cg_operators_class.o\
 			$(field_dir)/field_par_class.o\

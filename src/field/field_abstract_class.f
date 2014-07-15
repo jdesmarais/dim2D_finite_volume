@@ -73,6 +73,7 @@
           contains
 
           procedure, pass          :: ini
+          procedure, pass, private :: check_inputs
           procedure, pass, private :: ini_coordinates
           procedure, pass, private :: apply_initial_conditions
           procedure, pass          :: compute_time_dev
@@ -121,12 +122,32 @@
 
           class(field_abstract), intent(inout) :: this
 
+          call this%check_inputs()
+
           call this%bc_operators_used%ini(this%pmodel_eq_used)
           call this%ini_coordinates()
           call this%apply_initial_conditions()
           call this%io_operators_used%ini()
 
         end subroutine ini
+
+
+        subroutine check_inputs(this)
+
+          implicit none
+
+          class(field_abstract), intent(in) :: this
+
+
+          if(ne.ne.this%pmodel_eq_used%get_eq_nb()) then
+             stop 'ne is not correct considering the physical model'
+          end if
+
+          if(bc_size.ne.this%sd_operators_used%get_bc_size()) then
+             stop 'bc_size is not correct considering spatial operator'
+          end if
+          
+        end subroutine check_inputs
 
 
         !> @author
