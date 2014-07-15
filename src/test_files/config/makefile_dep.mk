@@ -14,6 +14,7 @@ $(field_dir)/surrogate_class.o:
 $(field_dir)/field_abstract_class.o:\
 			$(bc_cdir)/bc_operators_class.o\
 			$(field_dir)/surrogate_class.o\
+			$(io_cdir)/io_operators_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(pm_cdir)/pmodel_eq_class.o\

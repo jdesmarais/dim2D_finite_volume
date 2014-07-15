@@ -86,8 +86,8 @@ ifeq ($(strip $(ti_choice)), rk3tvd_choice)
 endif
 
 #writer choice
-ifeq ($(strip $(wr_choice)), nf90_choice)
-	wr_cdir=$(nf90_dir)
+ifeq ($(strip $(io_choice)), nf90_choice)
+	io_cdir=$(nf90_dir)
 endif
 
 #-----------------------------------------------------------------------

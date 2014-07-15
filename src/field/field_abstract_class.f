@@ -16,6 +16,7 @@
       module field_abstract_class
       
         use bc_operators_class, only : bc_operators
+        use io_operators_class, only : io_operators
         use parameters_input  , only : nx,ny,ne,bc_size,
      $                                 x_min,x_max,
      $                                 y_min,y_max
@@ -61,6 +62,7 @@
           type(pmodel_eq)    :: pmodel_eq_used
           type(bc_operators) :: bc_operators_used
           type(td_operators) :: td_operators_used
+          type(io_operators) :: io_operators_used
 
           real(rkind), dimension(nx,ny,ne) :: nodes
           real(rkind), dimension(nx)       :: x_map
@@ -76,6 +78,7 @@
           procedure, pass          :: compute_time_dev
           procedure, pass          :: apply_bc_on_nodes
           procedure, pass          :: compute_integration_step
+          procedure, pass          :: write_data
 
           procedure, pass          :: set_dx    !only for tests
           procedure, pass          :: set_dy    !only for tests
@@ -111,6 +114,7 @@
         ! - initializing the boundary conditions bc_operators_used
         ! - initializing the coordinates
         ! - applying the initial conditions
+        ! - initializing the i/o operator io_operators_used
         subroutine ini(this)
 
           implicit none
@@ -120,6 +124,7 @@
           call this%bc_operators_used%ini(this%pmodel_eq_used)
           call this%ini_coordinates()
           call this%apply_initial_conditions()
+          call this%io_operators_used%ini()
 
         end subroutine ini
 
@@ -245,6 +250,24 @@
           call integration_step(this%nodes, dt, nodes_tmp, time_dev)
 
         end subroutine compute_integration_step
+
+
+        !write the data on an output file
+        subroutine write_data(this, time)
+
+          implicit none
+
+          class(field_abstract), intent(inout) :: this
+          real(rkind)          , intent(in)    :: time
+
+          call this%io_operators_used%write_data(
+     $         this%nodes,
+     $         this%x_map,
+     $         this%y_map,
+     $         this%pmodel_eq_used,
+     $         time)
+
+        end subroutine write_data
 
 
         !set the attribute dx
