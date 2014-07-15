@@ -40,8 +40,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 20 !248
-        integer(ikind), parameter :: nty = 20 !248
+        integer(ikind), parameter :: ntx = 248 !248
+        integer(ikind), parameter :: nty = 248 !248
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -56,7 +56,7 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer, parameter :: ic_choice = drop_retraction
+        integer, parameter :: ic_choice = phase_separation !drop_retraction
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
