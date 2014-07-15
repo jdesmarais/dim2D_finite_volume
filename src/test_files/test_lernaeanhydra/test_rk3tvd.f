@@ -14,28 +14,22 @@
       !-----------------------------------------------------------------
       program test_rk3tvd
 
-        use bc_operators_class , only : bc_operators
-        use cg_operators_class , only : cg_operators
-        use field_class        , only : field
-        use fv_operators_class , only : fv_operators
-        use parameters_constant, only : periodic_xy_choice
-        use parameters_input   , only : nx,ny,ne,bc_choice
-        use parameters_kind    , only : ikind, rkind
-        use dim2d_eq_class     , only : dim2d_eq
-        use rk3tvd_class       , only : rk3tvd
+        use field_abstract_class, only : field_abstract
+        use parameters_constant , only : periodic_xy_choice
+        use parameters_input    , only : nx,ny,ne,bc_choice
+        use parameters_kind     , only : ikind, rkind
+        use td_integrator_class , only : td_integrator
 
         implicit none
 
         
         !<operators tested
-        type(field) :: field_tested
-
-        type(bc_operators)     :: bc_used
-        type(cg_operators)     :: sd
-        type(dim2d_eq)         :: p_model
-        type(fv_operators)     :: td
-        type(rk3tvd)           :: ti
-        real(rkind), parameter :: dt=1.0
+        type(field_abstract)             :: field_tested
+        type(td_integrator)              :: ti
+        real(rkind), dimension(nx,ny,ne) :: nodes
+        real(rkind), parameter           :: dt=1.0
+        real(rkind)                      :: dx
+        real(rkind)                      :: dy
 
 
         !<test parameters
@@ -56,19 +50,23 @@
         
 
         !<initialize the tables for the field
-        field_tested%dx=1.0
-        field_tested%dy=1.0
+        dx=1.0
+        dy=1.0
 
         do j=1, ny
            do i=1, nx
-              field_tested%nodes(i,j,1) = i + (j-1)*nx
+              nodes(i,j,1) = i + (j-1)*nx
            end do
         end do
 
+        call field_tested%ini()
+        call field_tested%set_nodes(nodes)
+        call field_tested%set_dx(dx)
+        call field_tested%set_dy(dy)
+
 
         !<integrate the field for dt
-        call bc_used%initialize(sd,p_model)
-        call ti%integrate(field_tested,sd,p_model,bc_used,td,dt)
+        call ti%integrate(field_tested,dt)
 
 
         !<check the field after integration
@@ -86,20 +84,24 @@
         test_data(5,2) = 1471.139d0
         test_data(6,2) = 1531.694d0
 
+
+        call field_tested%get_nodes(nodes)
+
         j=1
         i=1
         test_validated=.true.
         do while (test_validated.and.(j.le.(size(test_data,2))))
            do while(test_validated.and.(i.le.(size(test_data,1))))
 
-              test_validated=is_test_validated(
-     $             field_tested%nodes(i+2,j+2,1),
-     $             test_data(i,j))
+              test_validated=is_test_validated(nodes(i+2,j+2,1),
+     $                                         test_data(i,j))
               i=i+1
 
            end do
            j=j+1
         end do
+
+        print *, nodes
         
 
         !<display the result of the test

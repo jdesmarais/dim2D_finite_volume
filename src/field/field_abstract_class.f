@@ -70,9 +70,16 @@
 
           contains
 
+          procedure, pass :: ini
           procedure, pass :: ini_coordinates
           procedure, pass :: compute_time_dev
+          procedure, pass :: apply_bc_on_nodes
           procedure, pass :: compute_integration_step
+
+          procedure, pass :: set_dx    !only for tests
+          procedure, pass :: set_dy    !only for tests
+          procedure, pass :: get_nodes !only for tests
+          procedure, pass :: set_nodes !only for tests
 
         end type field_abstract
 
@@ -96,6 +103,18 @@
 
 
         contains
+
+        !initialize the field_abstract by initializing
+        !the boundary conditions bc_operators_used
+        subroutine ini(this)
+
+          implicit none
+
+          class(field_abstract), intent(inout) :: this
+
+          call this%bc_operators_used%ini(this%pmodel_eq_used)
+
+        end subroutine ini
 
 
         !> @author
@@ -176,6 +195,19 @@
         end function compute_time_dev
 
 
+        !apply the boundary conditions on the grid points
+        !of the field
+        subroutine apply_bc_on_nodes(this)
+
+          implicit none
+
+          class(field_abstract), intent(inout) :: this
+
+          call this%bc_operators_used%apply_bc_on_nodes(this%nodes)
+
+        end subroutine apply_bc_on_nodes
+
+
         !compute the integration step
         subroutine compute_integration_step(
      $     this, dt, nodes_tmp, time_dev, integration_step)
@@ -191,5 +223,57 @@
           call integration_step(this%nodes, dt, nodes_tmp, time_dev)
 
         end subroutine compute_integration_step
+
+
+        !set the attribute dx
+        subroutine set_dx(this, dx)
+
+          implicit none
+
+          class(field_abstract), intent(inout) :: this
+          real(rkind)          , intent(in)    :: dx
+
+          this%dx = dx
+
+        end subroutine set_dx
+
+      
+        !set the attribute dy
+        subroutine set_dy(this, dy)
+
+          implicit none
+
+          class(field_abstract), intent(inout) :: this
+          real(rkind)          , intent(in)    :: dy
+
+          this%dy = dy
+
+        end subroutine set_dy
+
+
+        !get the attribute nodes
+        subroutine get_nodes(this,nodes)
+
+          implicit none
+
+          class(field_abstract)           , intent(in)  :: this
+          real(rkind), dimension(nx,ny,ne), intent(out) :: nodes
+
+          nodes = this%nodes
+
+        end subroutine get_nodes
+
+
+        !set the attribute nodes
+        subroutine set_nodes(this,nodes)
+
+          implicit none
+
+          class(field_abstract)           , intent(inout) :: this
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+
+          this%nodes = nodes
+
+        end subroutine set_nodes
 
       end module field_abstract_class

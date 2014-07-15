@@ -14,23 +14,23 @@
       !> @date
       !> 13_08_2013 - initial version                   - J.L. Desmarais
       !-----------------------------------------------------------------
-      module td_integrator_class
+      module td_integrator_abstract_class
 
-        use bc_operators_class, only : bc_operators
-        use cg_operators_class, only : cg_operators
-        use dim2d_eq_class    , only : dim2d_eq
-        use field_class       , only : field
-        use fv_operators_class, only : fv_operators
-        use parameters_kind   , only : rkind
+        use bc_operators_class  , only : bc_operators
+        use sd_operators_class  , only : sd_operators
+        use pmodel_eq_class     , only : pmodel_eq
+        use field_abstract_class, only : field_abstract
+        use td_operators_class  , only : td_operators
+        use parameters_kind     , only : rkind
 
 
         implicit none
 
         private
-        public :: td_integrator
+        public :: td_integrator_abstract
 
 
-        !> @class td_integrator
+        !> @class td_integrator_abstract
         !> abstract class encapsulating subroutines to integrate
         !> the governing equations using the time discretisation
         !> method and the boundary conditions
@@ -38,13 +38,13 @@
         !> @param integrate
         !> integrate the computational field for dt
         !---------------------------------------------------------------
-        type, abstract :: td_integrator
+        type, abstract :: td_integrator_abstract
 
           contains
 
           procedure(integrate_proc), nopass, deferred :: integrate
 
-        end type td_integrator
+        end type td_integrator_abstract
 
 
         abstract interface
@@ -63,36 +63,19 @@
           !>@param field_used
           !> object encapsulating the main variables
           !
-          !>@param sd
-          !> space discretization operators
-          !
-          !>@param p
-          !> physical model
-          !
-          !>@param td
-          !> time discretisation operators
-          !
           !>@param dt
           !> time step integrated
           !--------------------------------------------------------------
-          subroutine integrate_proc(field_used,sd,p_model,bc_used,td,dt)
+          subroutine integrate_proc(field_used,dt)
 
-            import bc_operators
-            import cg_operators
-            import dim2d_eq
-            import field
-            import fv_operators
+            import field_abstract
             import rkind
 
-            class(field)       , intent(inout) :: field_used
-            type(cg_operators) , intent(in)    :: sd
-            type(dim2d_eq)     , intent(in)    :: p_model
-            type(bc_operators) , intent(in)    :: bc_used
-            type(fv_operators) , intent(in)    :: td
-            real(rkind)        , intent(in)    :: dt
+            class(field_abstract), intent(inout) :: field_used
+            real(rkind)          , intent(in)    :: dt
 
           end subroutine integrate_proc
 
         end interface
 
-      end module td_integrator_class
+      end module td_integrator_abstract_class

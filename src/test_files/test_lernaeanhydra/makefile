@@ -51,10 +51,18 @@ wall_xy_dep=		$(bc_dep)\
 			wall_prim_module.o\
 			wall_xy_module.o
 
+
 td_dep=			td_operators_abstract_class.o\
 			td_operators_class.o
 
 fv_dep=			$(td_dep)
+
+
+ti_dep=			td_integrator_abstract_class.o\
+			td_integrator_class.o
+
+rk_dep=			$(ti_dep)
+
 
 test_field.o:		$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
@@ -164,33 +172,19 @@ test_bc_wall:		$(param_dep)\
 			$(dim2d_dep)\
 			$(wall_xy_dep)
 
-test_rk3tvd.o:		$(sbc_dir)/bc_operators_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(field_dir)/field_class.o\
-			$(fv_dir)/fv_operators_class.o\
+test_rk3tvd.o:		$(field_dir)/field_abstract_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(simpletest_dir)/dim2d_eq_class.o\
-			$(rk3tvd_dir)/rk3tvd_class.o
+			$(rk3tvd_dir)/td_integrator_class.o
 
-test_rk3tvd:		surrogate_class.o\
-			parameters_kind.o\
-			parameters_constant.o\
-			parameters_input.o\
-			field_class.o\
-			interface_primary.o\
-			sd_operators_class.o\
-			cg_operators_class.o\
-			phy_model_eq_class.o\
-			dim2d_eq_class.o\
-			bc_abstract_class.o\
-			bc_operators_class.o\
-			td_operators_class.o\
-			fv_operators_class.o\
-			td_integrator_class.o\
-			rk3tvd_steps_class.o\
-			rk3tvd_class.o
+test_rk3tvd:		$(param_dep)\
+			$(sd_dep)\
+			$(simpletest_dep)\
+			$(periodic_dep)\
+			$(fv_dep)\
+			$(rk_dep)\
+			field_abstract_class.o
 
 test_rk3tvd_dim2d.o:	$(sbc_dir)/bc_operators_class.o\
 			$(sd_dir)/cg_operators_class.o\
