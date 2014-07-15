@@ -373,29 +373,25 @@ $(rk3tvd_dir)/rk3tvd_par_class.o:\
 #io operators
 $(io_dir)/io_operators_module.o:
 
-$(io_dir)/io_operators_class.o:\
-			$(field_dir)/field_class.o\
+$(io_dir)/io_operators_abstract_class.o:\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(phy_eq_dir)/phy_model_eq_class.o
-			$(nf90_dir)/nf90_operators_wr_class.o
+			$(pm_cdir)/pmodel_eq_class.o
 
 $(nf90_dir)/nf90_operators_module.o:\
-			$(field_dir)/field_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
+			$(pm_cdir)/pmodel_eq_class.o\
 			$(dim2d_dir)/dim2d_parameters.o
 
-$(nf90_dir)/nf90_operators_wr_class.o:\
-			$(field_dir)/field_class.o\
+$(nf90_dir)/io_operators_class.o:\
 			$(io_dir)/io_operators_module.o\
+			$(io_dir)/io_operators_abstract_class.o\
 			$(nf90_dir)/nf90_operators_module.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(dim2d_dir)/dim2d_eq_class.o
-
+			$(pm_cdir)/pmodel_eq_class.o
 
 $(nf90_dir)/nf90_operators_wr_par_class.o:\
 			$(sd_dir)/cg_operators_class.o\

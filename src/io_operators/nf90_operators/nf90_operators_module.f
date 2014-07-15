@@ -10,11 +10,10 @@
       !> netcdf files
       !
       !> @date
-      !> 14_08_2013 - initial version                   - J.L. Desmarais
+      !> 14_08_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module nf90_operators_module
 
-        use field_class        , only : field
         use netcdf
         use parameters_constant, only : institut,
      $                                  prog_version,
@@ -24,7 +23,7 @@
         use parameters_input   , only : npx,npy,nx,ny,ne,bc_size,
      $                                  x_min,x_max,y_min,y_max,
      $                                  t_max,dt,detail_print
-        use dim2d_eq_class     , only : dim2d_eq
+        use pmodel_eq_class    , only : pmodel_eq
         use dim2d_parameters   , only : viscous_r, Re, We, Pr,
      $                                  cv_r, gravity
 
@@ -32,9 +31,11 @@
 
         private
         public :: nf90_handle_err,
+     $            nf90_open_file,
      $            nf90_write_header,
      $            nf90_def_var_model,
-     $            nf90_put_var_model
+     $            nf90_put_var_model,
+     $            nf90_close_file
 
         contains
 
@@ -63,6 +64,24 @@
         end subroutine nf90_handle_err
 
 
+      
+        !open a netcdf file for writing
+        subroutine nf90_open_file(filename,ncid)
+
+          implicit none
+
+          character*(*), intent(in)  :: filename
+          integer      , intent(out) :: ncid
+
+          integer :: retval
+
+          retval = NF90_CREATE(trim(filename), NF90_NETCDF4, ncid)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+        end subroutine nf90_open_file
+
+
         !> @author
         !> Julien L. Desmarais
         !
@@ -85,8 +104,8 @@
 
           implicit none
 
-          integer       , intent(in) :: ncid
-          type(dim2d_eq), intent(in) :: p_model
+          integer        , intent(in) :: ncid
+          type(pmodel_eq), intent(in) :: p_model
 
 
           character(len=10)     :: title
@@ -224,7 +243,7 @@
           implicit none
 
           integer               , intent(in)    :: ncid
-          type(dim2d_eq)        , intent(in)    :: p_model
+          type(pmodel_eq)       , intent(in)    :: p_model
           integer, dimension(3) , intent(inout) :: coordinates_id
           integer, dimension(ne), intent(inout) :: data_id
 
@@ -443,23 +462,25 @@
      $     ncid,
      $     coordinates_id,
      $     data_id,
-     $     time, field_used,
+     $     time, nodes, x_map, y_map,
      $     start, count, limit)
 
           implicit none
           
-          integer                        , intent(in) :: ncid
-          integer    , dimension(3)      , intent(in) :: coordinates_id
-          integer    , dimension(ne)     , intent(in) :: data_id
-          real(RKIND)                    , intent(in) :: time
-          class(field)                   , intent(in) :: field_used
-          integer, dimension(2), optional, intent(in) :: start
-          integer, dimension(2), optional, intent(in) :: count
-          integer, dimension(4), optional, intent(in) :: limit
+          integer                         , intent(in) :: ncid
+          integer    , dimension(3)       , intent(in) :: coordinates_id
+          integer    , dimension(ne)      , intent(in) :: data_id
+          real(rkind)                     , intent(in) :: time
+          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+          real(rkind), dimension(nx)      , intent(in) :: x_map
+          real(rkind), dimension(ny)      , intent(in) :: y_map
+          integer, dimension(2), optional , intent(in) :: start
+          integer, dimension(2), optional , intent(in) :: count
+          integer, dimension(4), optional , intent(in) :: limit
 
 
           integer    , dimension(3) :: start_op, count_op
-          real(RKIND), dimension(1) :: time_table
+          real(rkind), dimension(1) :: time_table
           integer :: t_varid
           integer :: x_varid
           integer :: y_varid
@@ -491,13 +512,13 @@
              count_op = [1,nx,ny]
 
              !< write the x_map coordinates
-             retval = NF90_PUT_VAR(ncid, x_varid, field_used%x_map)
+             retval = NF90_PUT_VAR(ncid, x_varid, x_map)
              !DEC$ FORCEINLINE RECURSIVE
              call nf90_handle_err(retval)
 
 
              !< write the y_map coordinates
-             retval = NF90_PUT_VAR(ncid, y_varid, field_used%y_map)
+             retval = NF90_PUT_VAR(ncid, y_varid, y_map)
              !DEC$ FORCEINLINE RECURSIVE
              call nf90_handle_err(retval)
              
@@ -508,7 +529,7 @@
                 retval = NF90_PUT_VAR(
      $               ncid,
      $               data_id(k),
-     $               field_used%nodes(:,:,k),
+     $               nodes(:,:,k),
      $               START=start_op,
      $               COUNT=count_op)
                 !DEC$ FORCEINLINE RECURSIVE
@@ -522,7 +543,7 @@
             retval = NF90_PUT_VAR(
      $           ncid,
      $           x_varid,
-     $           field_used%x_map(limit(1):limit(2)),
+     $           x_map(limit(1):limit(2)),
      $           START=[start(1)],
      $           COUNT=[count(1)])
             !DEC$ FORCEINLINE RECURSIVE
@@ -533,7 +554,7 @@
             retval = NF90_PUT_VAR(
      $           ncid,
      $           y_varid,
-     $           field_used%y_map(limit(3):limit(4)),
+     $           y_map(limit(3):limit(4)),
      $           START=[start(2)],
      $           COUNT=[count(2)])
             !DEC$ FORCEINLINE RECURSIVE
@@ -546,7 +567,7 @@
                retval = NF90_PUT_VAR(
      $              ncid,
      $              data_id(k),
-     $              field_used%nodes(limit(1):limit(2),limit(3):limit(4),k),
+     $              nodes(limit(1):limit(2),limit(3):limit(4),k),
      $              START=[1, start(1), start(2)], 
      $              COUNT=[1, count(1), count(2)])
                !DEC$ FORCEINLINE RECURSIVE
@@ -557,5 +578,21 @@
           end if
 
         end subroutine nf90_put_var_model
+
+
+        !close netcdf file
+        subroutine nf90_close_file(ncid)
+        
+          implicit none
+
+          integer, intent(in) :: ncid
+
+          integer :: retval
+
+          retval = NF90_CLOSE(ncid)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+        end subroutine nf90_close_file
 
       end module nf90_operators_module

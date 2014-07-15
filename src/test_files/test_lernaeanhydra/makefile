@@ -63,6 +63,12 @@ ti_dep=			td_integrator_abstract_class.o\
 
 rk_dep=			$(ti_dep)
 
+io_dep=			io_operators_abstract_class.o\
+			io_operators_class.o
+
+nf90_dep=		$(io_dep)\
+			io_operators_module.o\
+			nf90_operators_module.o
 
 test_field.o:		$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
@@ -210,36 +216,15 @@ test_rk3tvd_dim2d:	$(param_dep)\
 			field_abstract_class.o
 
 
-test_nf90_operators.o:	$(field_dir)/field_class.o\
-			$(param_dir)/parameters_input.o\
+test_nf90_operators.o:	$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(nf90_dir)/nf90_operators_wr_class.o
+			$(dim2d_dir)/pmodel_eq_class.o\
+			$(nf90_dir)/io_operators_class.o
 
-test_nf90_operators:	surrogate_class.o\
-			parameters_kind.o\
-			parameters_input.o\
-			field_class.o\
-			dim2d_parameters.o\
-			dim2d_prim_module.o\
-			dim2d_state_eq_module.o\
-			dim2d_dropbubble_module.o\
-			dim2d_steadystate_module.o\
-			dim2d_vortex_module.o\
-			dim2d_drop_retraction_module.o\
-			dim2d_bubble_ascending_module.o\
-			dim2d_homogeneous_module.o\
-			dim2d_phase_separation_module.o\
-			interface_primary.o\
-			sd_operators_class.o\
-			cg_operators_class.o\
-			dim2d_fluxes_module.o\
-			parameters_constant.o\
-			phy_model_eq_class.o\
-			dim2d_eq_class.o\
-			nf90_operators_module.o\
-			nf90_operators_wr_class.o\
-			io_operators_module.o
+test_nf90_operators:	$(param_dep)\
+			$(sd_dep)\
+			$(dim2d_dep)\
+			$(nf90_dep)
 
 test_dim2d_ic.o:	$(dim2d_dir)/dim2d_eq_class.o\
 			$(field_dir)/field_class.o\

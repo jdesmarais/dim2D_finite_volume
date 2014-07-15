@@ -26,7 +26,8 @@ sd_choice  = cg_choice            #space discretization choice
 pm_choice  = dim2d_choice         #physical model choice
 bc_choice  = periodic_xy_choice   #boundary condition choice
 td_choice  = finitevolume_choice  #time discretization choice
-
+ti_choice  = rk3tvd_choice        #time integration choice
+io_choice  = nf90_choice          #writer choice
 
 #-----------------------------------------------------------------------
 #source files directories
@@ -77,6 +78,16 @@ endif
 #time discretization
 ifeq ($(strip $(td_choice)), finitevolume_choice)
 	td_cdir=$(fv_dir)
+endif
+
+#time integration
+ifeq ($(strip $(ti_choice)), rk3tvd_choice)
+	ti_cdir=$(rk3tvd_dir)
+endif
+
+#writer choice
+ifeq ($(strip $(wr_choice)), nf90_choice)
+	wr_cdir=$(nf90_dir)
 endif
 
 #-----------------------------------------------------------------------
