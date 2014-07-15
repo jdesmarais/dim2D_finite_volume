@@ -302,34 +302,18 @@ test_reflection_xy_par:	\
 			$(dim2d_dep)\
 			$(reflection_xy_par_dep)
 
-test_mpi_mg_construct.o:$(sd_dir)/cg_operators_class.o\
-			$(field_dir)/field_par_class.o\
-			$(mpi_bc_dir)/mpi_mg_bc_ext_class.o\
+test_mpi_mg_construct.o:$(mpi_bc_dir)/mpi_mg_bc_ext_class.o\
 			$(mpi_bc_dir)/mpi_mg_construct.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-test_mpi_mg_construct:	surrogate_class.o\
-			parameters_kind.o\
-			parameters_constant.o\
-			parameters_input.o\
-			field_class.o\
-			interface_primary.o\
-			sd_operators_class.o\
-			cg_operators_class.o\
-			field_par_class.o\
-			mpi_mg_neighbours.o\
-			mpi_mg_derived_types.o\
-			mpi_mg_bc_class.o\
-			mpi_mg_ini_bc_proc.o\
-			mpi_mg_bc_ext_class.o\
-			mpi_process_class.o\
-			mpi_mg_construct.o
+test_mpi_mg_construct:	$(param_dep)\
+			$(mpi_dep)\
+			$(mpi_mg_ext_dep)
 
 test_periodic_xy_par_module.o:\
-			$(field_dir)/field_par_class.o\
 			$(mpi_bc_dir)/mpi_mg_bc_ext_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(param_dir)/parameters_constant.o\
@@ -338,25 +322,9 @@ test_periodic_xy_par_module.o:\
 			$(pbc_dir)/periodic_xy_par_module.o
 
 test_periodic_xy_par_module:\
-			parameters_kind.o\
-			dim2d_parameters.o\
-			surrogate_class.o\
-			parameters_constant.o\
-			parameters_input.o\
-			field_class.o\
-			dim2d_prim_module.o\
-			interface_primary.o\
-			sd_operators_class.o\
-			cg_operators_class.o\
-			field_par_class.o\
-			mpi_mg_neighbours.o\
-			mpi_mg_derived_types.o\
-			mpi_mg_bc_class.o\
-			mpi_mg_ini_bc_proc.o\
-			mpi_mg_construct.o\
-			mpi_mg_bc_ext_class.o\
-			mpi_process_class.o\
-			mpi_tag_module.o\
+			$(param_dep)\
+			$(mpi_dep)\
+			$(mpi_bc_dep)\
 			periodic_xy_par_module.o
 
 

@@ -166,7 +166,6 @@ $(pbc_dir)/bc_operators_class.o:\
 			$(param_dir)/parameters_kind.o
 
 $(pbc_dir)/periodic_xy_par_module.o:\
-			$(field_dir)/field_par_class.o\
 			$(mpi_bc_dir)/mpi_mg_bc_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(mpi_dir)/mpi_requests_module.o\
@@ -176,10 +175,8 @@ $(pbc_dir)/periodic_xy_par_module.o:\
 			$(param_dir)/parameters_kind.o
 
 $(pbc_dir)/bc_operators_par_class.o:\
-			$(bc_dir)/bc_abstract_par_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(spm_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_par_class.o\
+			$(bc_dir)/bc_operators_abstract_par_class.o\
+			$(pm_cdir)/pmodel_eq_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\

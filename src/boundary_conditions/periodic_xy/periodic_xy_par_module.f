@@ -16,10 +16,8 @@
       !-----------------------------------------------------------------
       module periodic_xy_par_module
 
-        use field_par_class    , only : field_par
         use mpi
         use mpi_mg_bc_class    , only : mpi_mg_bc
-
         use mpi_process_class  , only : mpi_process
         use mpi_requests_module, only : only_exchange_twice
         use mpi_tag_module     , only : compute_mpi_tag
@@ -30,7 +28,8 @@
         implicit none
         
         private
-        public :: only_compute_along_x, only_compute_along_y,
+        public :: only_compute_along_x,
+     $            only_compute_along_y,
      $            only_exchange
 
         contains
@@ -202,15 +201,15 @@ c$$$
 c$$$
 c$$$          !< compute the tag identifying the sending MPI request
 c$$$          tag = compute_mpi_tag(
-c$$$     $         f_used%usr_rank, this%com_rank(card_pt),
-c$$$     $         f_used%comm_2d, nb_procs)
+c$$$     $         usr_rank, this%com_rank(card_pt),
+c$$$     $         comm_2d, nb_procs)
 c$$$   
 c$$$
 c$$$          !< create a send request
 c$$$          call MPI_ISSEND(
 c$$$     $         nodes, 1, this%com_send(card_pt),
 c$$$     $         this%com_rank(card_pt), tag,
-c$$$     $         f_used%comm_2d, mpi_requests(1),ierror)
+c$$$     $         comm_2d, mpi_requests(1),ierror)
 c$$$          if(ierror.ne.MPI_SUCCESS) then
 c$$$             call mpi_op%finalize_mpi()
 c$$$             stop 'reflection_xy_par_module: MPI_ISSEND failed'
@@ -220,15 +219,15 @@ c$$$
 c$$$          
 c$$$          !< compute the tag identifying the receving MPI request
 c$$$          tag = compute_mpi_tag(
-c$$$     $         this%com_rank(card_pt), f_used%usr_rank,
-c$$$     $         f_used%comm_2d, nb_procs)
+c$$$     $         this%com_rank(card_pt), usr_rank,
+c$$$     $         comm_2d, nb_procs)
 c$$$
 c$$$
 c$$$          !< create a receive request
 c$$$          call MPI_IRECV(
 c$$$     $         nodes, 1, this%com_recv(card_pt),
 c$$$     $         this%com_rank(card_pt), tag,
-c$$$     $         f_used%comm_2d, mpi_requests(2),ierror) !<compute the tag
+c$$$     $         comm_2d, mpi_requests(2),ierror) !<compute the tag
 c$$$          if(ierror.ne.MPI_SUCCESS) then
 c$$$             call mpi_op%finalize_mpi()
 c$$$             stop 'reflection_xy_par_module: MPI_IRECV failed'
@@ -356,15 +355,15 @@ c$$$
 c$$$
 c$$$          !< compute the tag identifying the sending MPI request
 c$$$          tag = compute_mpi_tag(
-c$$$     $         f_used%usr_rank, this%com_rank(card_pt),
-c$$$     $         f_used%comm_2d, nb_procs)
+c$$$     $         usr_rank, this%com_rank(card_pt),
+c$$$     $         comm_2d, nb_procs)
 c$$$   
 c$$$
 c$$$          !< create a send request
 c$$$          call MPI_ISSEND(
 c$$$     $         nodes, 1, this%com_send(card_pt),
 c$$$     $         this%com_rank(card_pt), tag,
-c$$$     $         f_used%comm_2d, mpi_requests(1),ierror)
+c$$$     $         comm_2d, mpi_requests(1),ierror)
 c$$$          if(ierror.ne.MPI_SUCCESS) then
 c$$$             call mpi_op%finalize_mpi()
 c$$$             stop 'reflection_xy_par_module: MPI_ISSEND failed'
@@ -373,15 +372,15 @@ c$$$
 c$$$          
 c$$$          !< compute the tag identifying the receving MPI request
 c$$$          tag = compute_mpi_tag(
-c$$$     $         this%com_rank(card_pt), f_used%usr_rank,
-c$$$     $         f_used%comm_2d, nb_procs)
+c$$$     $         this%com_rank(card_pt), usr_rank,
+c$$$     $         comm_2d, nb_procs)
 c$$$
 c$$$
 c$$$          !< create a receive request
 c$$$          call MPI_IRECV(
 c$$$     $         nodes, 1, this%com_recv(card_pt),
 c$$$     $         this%com_rank(card_pt), tag,
-c$$$     $         f_used%comm_2d, mpi_requests(2),ierror)
+c$$$     $         comm_2d, mpi_requests(2),ierror)
 c$$$          if(ierror.ne.MPI_SUCCESS) then
 c$$$             call mpi_op%finalize_mpi()
 c$$$             stop 'reflection_xy_par_module: MPI_IRECV failed'
@@ -462,12 +461,14 @@ c$$$        end subroutine compute_and_exchange_along_y
         !>@param direction
         !> direction in which the data are sent (x or y axis)
         !--------------------------------------------------------------
-        subroutine only_exchange(this, f_used, nodes, direction)
+        subroutine only_exchange(
+     $     this, comm_2d, usr_rank, nodes, direction)
 
           implicit none
 
           class(mpi_mg_bc)                , intent(in)    :: this
-          class(field_par)                , intent(inout) :: f_used
+          integer                         , intent(in)    :: comm_2d
+          integer                         , intent(in)    :: usr_rank
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
           integer                         , intent(in)    :: direction
           
@@ -505,13 +506,13 @@ c$$$        end subroutine compute_and_exchange_along_y
           if(this%com_rank(card_pt(1)).ne.this%com_rank(card_pt(2))) then
              
              call only_exchange_twice(
-     $            this, f_used, nodes, nb_procs, card_pt)
+     $            this, comm_2d, usr_rank, nodes, nb_procs, card_pt)
 
           !< only one sending and one receiving requests are needed
           else
 
              call only_exchange_once(
-     $            this, f_used, nodes, nb_procs, card_pt(1))
+     $            this, comm_2d, usr_rank, nodes, nb_procs, card_pt(1))
 
           end if
 
@@ -547,12 +548,13 @@ c$$$        end subroutine compute_and_exchange_along_y
         !> cardinal directions in which the data are sent (x or y axis)
         !--------------------------------------------------------------
         subroutine only_exchange_once(
-     $     this, f_used, nodes, nb_procs, card_pt)
+     $     this, comm_2d, usr_rank, nodes, nb_procs, card_pt)
         
           implicit none
 
           class(mpi_mg_bc)                , intent(in)    :: this
-          class(field_par)                , intent(inout) :: f_used
+          integer                         , intent(in)    :: comm_2d
+          integer                         , intent(in)    :: usr_rank
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
           integer                         , intent(in)    :: nb_procs
           integer                         , intent(in)    :: card_pt
@@ -575,14 +577,14 @@ c$$$        end subroutine compute_and_exchange_along_y
 
           !< compute the tag identifying the sending MPI request
           tag = compute_mpi_tag(
-     $         f_used%usr_rank, this%com_rank(card_pt), nb_procs)
+     $         usr_rank, this%com_rank(card_pt), nb_procs)
 
           
           !< create a send request
           call MPI_ISSEND(
      $         nodes, 1, this%com_send(card_pt),
      $         this%com_rank(card_pt), tag,
-     $         f_used%comm_2d, mpi_requests(1),ierror)
+     $         comm_2d, mpi_requests(1),ierror)
           if(ierror.ne.MPI_SUCCESS) then
              call mpi_op%finalize_mpi()
              stop 'periodic_xy_par_module: MPI_ISSEND failed'
@@ -591,14 +593,14 @@ c$$$        end subroutine compute_and_exchange_along_y
           
           !< compute the tag identifying the receving MPI request
           tag = compute_mpi_tag(
-     $         this%com_rank(card_pt), f_used%usr_rank, nb_procs)
+     $         this%com_rank(card_pt), usr_rank, nb_procs)
 
           
           !< create a receive request
           call MPI_IRECV(
      $         nodes, 1, this%com_recv(card_pt),
      $         this%com_rank(card_pt), tag,
-     $         f_used%comm_2d, mpi_requests(2),ierror)
+     $         comm_2d, mpi_requests(2),ierror)
           if(ierror.ne.MPI_SUCCESS) then
              call mpi_op%finalize_mpi()
              stop 'periodic_xy_par_module: MPI_IRECV failed'

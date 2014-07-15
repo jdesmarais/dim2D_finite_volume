@@ -13,8 +13,6 @@
       !-----------------------------------------------------------------
       program test_mpi_mg_construct
       
-        use cg_operators_class , only : cg_operators
-        use field_par_class    , only : field_par
         use mpi
         use mpi_mg_bc_ext_class, only : mpi_mg_bc_ext
         use mpi_mg_construct   , only : update_mpi_derived_types
@@ -27,13 +25,14 @@
 
 
         !< operators tested
-        type(field_par)    :: f_tested
+        real(rkind), dimension(nx,ny,ne) :: nodes
         type(mpi_process)  :: mpi_op
         type(mpi_mg_bc_ext):: mpi_mg
-        type(cg_operators) :: s_op
 
 
         !< intermediate variables
+        integer                             :: comm_2d
+        integer                             :: usr_rank
         integer                             :: ierror,sendtag,recvtag
         integer, dimension(MPI_STATUS_SIZE) :: status
         logical, parameter                  :: test=.true.
@@ -54,54 +53,54 @@
 
 
         !< initialization of the cartesian communicator
-        call f_tested%ini_cartesian_communicator()
+        call mpi_op%ini_cartesian_communicator(comm_2d, usr_rank)
 
         
         !< initialization of 'mpi_messenger_bc'
         !> with the update of the MPI derived types
-        call mpi_mg%initialize(f_tested,s_op)
+        call mpi_mg%ini(comm_2d)
 
 
-c$$$        !< test the update of the MPI derived types
-c$$$        call update_mpi_derived_types(
-c$$$     $       mpi_mg%com_recv, mpi_mg%com_send,
-c$$$     $        mpi_mg%com_rank,
-c$$$     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
+        !< test the update of the MPI derived types
+        call update_mpi_derived_types(
+     $       mpi_mg%com_recv, mpi_mg%com_send,
+     $       mpi_mg%com_rank,
+     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
         
 
         !< initialize the data saved in f_tested
-        f_tested%nodes = ini_data(f_tested%usr_rank)
+        nodes = ini_data(usr_rank)
 
 
         !< test the exchange of data in the x-direction
         !> to check if the MPI structure works
-        select case(f_tested%usr_rank)
+        select case(usr_rank)
 
           case(0)
 
              sendtag = 123
              call MPI_SEND(
-     $            f_tested%nodes, 1, mpi_mg%com_send(E), 2, sendtag,
-     $            f_tested%comm_2d, ierror)
+     $            nodes, 1, mpi_mg%com_send(E), 2, sendtag,
+     $            comm_2d, ierror)
              
           case(2)
              recvtag = 123
              call MPI_RECV(
-     $            f_tested%nodes, 1, mpi_mg%com_recv(E), 0, recvtag,
-     $            f_tested%comm_2d, status, ierror)
+     $            nodes, 1, mpi_mg%com_recv(E), 0, recvtag,
+     $            comm_2d, status, ierror)
              
           case(1)
              
              recvtag=124
              call MPI_RECV(
-     $            f_tested%nodes, 1, mpi_mg%com_recv(E), 3, recvtag,
-     $            f_tested%comm_2d, status, ierror)
+     $            nodes, 1, mpi_mg%com_recv(E), 3, recvtag,
+     $            comm_2d, status, ierror)
              
           case(3)
              sendtag=124
              call MPI_SEND(
-     $            f_tested%nodes, 1, mpi_mg%com_send(E), 1, sendtag,
-     $            f_tested%comm_2d, ierror)
+     $            nodes, 1, mpi_mg%com_send(E), 1, sendtag,
+     $            comm_2d, ierror)
 
           case default
              call mpi_op%finalize_mpi()
@@ -114,45 +113,45 @@ c$$$     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
         end if
 
         if(.not.test) then
-           call write_data('test_constructx',f_tested%usr_rank,f_tested%nodes)
+           call write_data('test_constructx',usr_rank,nodes)
         else
            test_validated = compare_data(
-     $          'test_constructx',f_tested%usr_rank,f_tested%nodes)
+     $          'test_constructx',usr_rank,nodes)
 
            print '(''Proc '', I1, '' : exchange_x: '', L1)',
-     $          f_tested%usr_rank, test_validated
+     $          usr_rank, test_validated
         end if
         
 
         !< test the exchange of data in the y-direction
         !> to check if the MPI structure works
-        select case(f_tested%usr_rank)
+        select case(usr_rank)
 
           case(0)
 
              sendtag = 123
              call MPI_SEND(
-     $            f_tested%nodes, 1, mpi_mg%com_send(N), 1, sendtag,
-     $            f_tested%comm_2d, ierror)
+     $            nodes, 1, mpi_mg%com_send(N), 1, sendtag,
+     $            comm_2d, ierror)
              
           case(2)
              recvtag = 124
              call MPI_RECV(
-     $            f_tested%nodes, 1, mpi_mg%com_recv(N), 3, recvtag,
-     $            f_tested%comm_2d, status, ierror)
+     $            nodes, 1, mpi_mg%com_recv(N), 3, recvtag,
+     $            comm_2d, status, ierror)
              
           case(1)
              
              recvtag=123
              call MPI_RECV(
-     $            f_tested%nodes, 1, mpi_mg%com_recv(N), 0, recvtag,
-     $            f_tested%comm_2d, status, ierror)
+     $            nodes, 1, mpi_mg%com_recv(N), 0, recvtag,
+     $            comm_2d, status, ierror)
              
           case(3)
              sendtag=124
              call MPI_SEND(
-     $            f_tested%nodes, 1, mpi_mg%com_send(N), 2, sendtag,
-     $            f_tested%comm_2d, ierror)
+     $            nodes, 1, mpi_mg%com_send(N), 2, sendtag,
+     $            comm_2d, ierror)
 
           case default
              call mpi_op%finalize_mpi()
@@ -165,13 +164,13 @@ c$$$     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
         end if
 
         if(.not.test) then
-           call write_data('test_constructy',f_tested%usr_rank,f_tested%nodes)
+           call write_data('test_constructy',usr_rank,nodes)
         else
            test_validated = compare_data(
-     $          'test_constructy',f_tested%usr_rank,f_tested%nodes)
+     $          'test_constructy',usr_rank,nodes)
 
            print '(''Proc '', I1, '' : exchange_y: '', L1)',
-     $          f_tested%usr_rank, test_validated
+     $          usr_rank, test_validated
         end if
 
         contains
@@ -377,7 +376,7 @@ c$$$     $       mpi_mg%proc_x_choice, mpi_mg%proc_y_choice)
      $     result(test_validated)
           implicit none
 
-          character(len=7)                , intent(in) :: filename_base
+          character(len=15)               , intent(in) :: filename_base
           integer                         , intent(in) :: proc_rank
           real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
           logical                                      :: test_validated
