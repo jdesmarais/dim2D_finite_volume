@@ -14,12 +14,10 @@
       !-----------------------------------------------------------------
       module mpi_mg_bc_class
 
-        use cg_operators_class  , only : cg_operators
-        use field_par_class     , only : field_par
         use mpi
         use mpi_mg_neighbours   , only : ini_neighbours_proc_id
         use mpi_mg_derived_types, only : ini_mpi_derived_types
-        use parameters_input           , only : nx,ny,ne,npx,npy
+        use parameters_input    , only : nx,ny,ne,npx,npy
         
         implicit none
 
@@ -51,7 +49,7 @@
 
           contains
 
-          procedure, pass :: initialize
+          procedure, pass :: ini
 
         end type mpi_mg_bc
 
@@ -72,13 +70,12 @@
         !>@param this
         !> 'mpi_mg_bc' object initialized
         !--------------------------------------------------------------
-        subroutine initialize(this,f_used,s)
+        subroutine ini(this,comm_2d)
         
           implicit none
 
-          class(mpi_mg_bc), intent(inout) :: this
-          class(field_par)       , intent(in)    :: f_used
-          type(cg_operators)     , intent(in)    :: s
+          class(mpi_mg_bc)  , intent(inout) :: this
+          integer           , intent(in)    :: comm_2d
 
           !< local variables
           integer, dimension(2) :: nb_tiles
@@ -91,8 +88,7 @@
           !< initialize the 'com_rank' attribute by checking
           !> the rank of the processors computing the neighbours
           call ini_neighbours_proc_id(
-     $         f_used%comm_2d, nb_tiles, this%com_rank)
-
+     $         comm_2d, nb_tiles, this%com_rank)
 
           !< initialize the 'com_send' and 'com_recv' attributes
           !> by creating the MPI derived types needed
@@ -100,7 +96,7 @@
      $         nx, ny, ne,
      $         this%com_send, this%com_recv)
 
-        end subroutine initialize
+        end subroutine ini
 
       end module mpi_mg_bc_class
       

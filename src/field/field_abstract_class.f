@@ -58,17 +58,17 @@
         !---------------------------------------------------------------
         type, extends(surrogate) :: field_abstract
 
-          type(sd_operators) :: sd_operators_used
-          type(pmodel_eq)    :: pmodel_eq_used
-          type(bc_operators) :: bc_operators_used
-          type(td_operators) :: td_operators_used
-          type(io_operators) :: io_operators_used
+          type(sd_operators), private :: sd_operators_used
+          type(pmodel_eq)   , private :: pmodel_eq_used
+          type(bc_operators), private :: bc_operators_used
+          type(td_operators), private :: td_operators_used
+          type(io_operators), private :: io_operators_used
 
-          real(rkind), dimension(nx,ny,ne) :: nodes
-          real(rkind), dimension(nx)       :: x_map
-          real(rkind), dimension(ny)       :: y_map
-          real(rkind) :: dx
-          real(rkind) :: dy
+          real(rkind), dimension(nx,ny,ne), private :: nodes
+          real(rkind), dimension(nx)      , private :: x_map
+          real(rkind), dimension(ny)      , private :: y_map
+          real(rkind)                     , private :: dx
+          real(rkind)                     , private :: dy
 
           contains
 

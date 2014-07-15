@@ -416,6 +416,7 @@ $(mpi_dir)/mpi_requests_module.o:\
 			$(param_dir)/parameters_kind.o
 
 $(mpi_dir)/mpi_process_class.o:\
+			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o
 
 
@@ -429,8 +430,6 @@ $(mpi_bc_dir)/mpi_mg_derived_types.o:\
 			$(param_dir)/parameters_kind.o
 
 $(mpi_bc_dir)/mpi_mg_bc_class.o:\
-			$(field_dir)/field_par_class.o\
-			$(sd_dir)/cg_operators_class.o\
 			$(mpi_bc_dir)/mpi_mg_neighbours.o\
 			$(mpi_bc_dir)/mpi_mg_derived_types.o\
 			$(param_dir)/parameters_input.o

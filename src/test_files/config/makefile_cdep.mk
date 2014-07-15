@@ -67,3 +67,9 @@ nf90_dep=		$(io_dep)\
 			io_operators_module.o\
 			nf90_operators_module.o
 
+
+mpi_dep=		mpi_process_class.o
+
+mpi_mg_dep=		mpi_mg_neighbours.o\
+			mpi_mg_derived_types.o\
+			mpi_mg_bc_class.o

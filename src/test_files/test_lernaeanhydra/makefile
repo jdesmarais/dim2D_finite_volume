@@ -247,27 +247,15 @@ test_dim2d_ic:		$(param_dep)\
 #			parameters_input.o\
 #			parameters_kind.o
 
-test_mpi_mg_bc.o:	$(sd_dir)/cg_operators_class.o\
-			$(field_dir)/field_par_class.o\
-			$(mpi_dir)/mpi_process_class.o\
+test_mpi_mg_bc.o:	$(mpi_dir)/mpi_process_class.o\
 			$(mpi_bc_dir)/mpi_mg_bc_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-test_mpi_mg_bc:		surrogate_class.o\
-			parameters_kind.o\
-			parameters_constant.o\
-			parameters_input.o\
-			field_class.o\
-			interface_primary.o\
-			sd_operators_class.o\
-			cg_operators_class.o\
-			field_par_class.o\
-			mpi_process_class.o\
-			mpi_mg_neighbours.o\
-			mpi_mg_derived_types.o\
-			mpi_mg_bc_class.o
+test_mpi_mg_bc:		$(param_dep)\
+			$(mpi_dep)\
+			$(mpi_mg_dep)
 
 test_mpi_mg_bc_ext.o:	$(sd_dir)/cg_operators_class.o\
 			$(field_dir)/field_par_class.o\
