@@ -82,3 +82,8 @@ mpi_mg_ext_dep=		$(mpi_mg_dep)\
 mpi_bc_dep=		$(mpi_mg_ext_dep)\
 			mpi_tag_module.o\
 			mpi_requests_module.o
+
+reflection_xy_par_dep=	reflection_xy_module.o\
+			reflection_xy_par_module.o\
+			bc_operators_abstract_par_class.o\
+			bc_operators_par_class.o

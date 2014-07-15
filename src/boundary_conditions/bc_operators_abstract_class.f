@@ -17,7 +17,6 @@
       module bc_operators_abstract_class
 
         use sd_operators_class, only : sd_operators
-        use pmodel_eq_class   , only : pmodel_eq
         use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : rkind
 

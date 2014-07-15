@@ -22,6 +22,8 @@
      $                                       x_direction, y_direction
         use parameters_input        , only : nx,ny,ne,npx,npy,bc_choice
         use parameters_kind         , only : ikind, rkind
+        use reflection_xy_module    , only : reflection_x_prefactor,
+     $                                       reflection_y_prefactor
         use reflection_xy_par_module, only : only_compute_along_x,
      $     				     only_compute_along_y,
      $                                       only_exchange,
@@ -39,12 +41,14 @@
 
 
         !< intermediate variables
-        integer            :: comm_2d
-        integer            :: usr_rank
-        integer(ikind)     :: i,j
-        integer            :: k
-        logical, parameter :: test=.false.
-        logical            :: test_validated
+        integer                :: comm_2d
+        integer                :: usr_rank
+        integer, dimension(ne) :: x_prefactor
+        integer, dimension(ne) :: y_prefactor
+        integer(ikind)         :: i,j
+        integer                :: k
+        logical, parameter     :: test=.false.
+        logical                :: test_validated
 
 
         !< the test is designed for (npx,npy)=(2,2)
@@ -71,9 +75,12 @@
         !< initialize the 'mpi_mg_bc' object
         call mpi_mg%ini(comm_2d)
 
+        x_prefactor = reflection_x_prefactor(p_model)
+        y_prefactor = reflection_y_prefactor(p_model)
+
 
         !< test only_compute_along_x
-        call only_compute_along_x(nodes,p_model)
+        call only_compute_along_x(nodes,x_prefactor)
         if(.not.test) then
            call write_data('test_cx',usr_rank,nodes)
         else
@@ -88,7 +95,7 @@
 
 
         !< test only_compute_along_y
-        call only_compute_along_y(nodes,p_model)
+        call only_compute_along_y(nodes,y_prefactor)
         if(.not.test) then
            call write_data('test_cy',usr_rank,nodes)
         else
@@ -107,12 +114,12 @@
           case(0,1)
              !< test compute_and_exchange_along_x(E)
              call compute_and_exchange_along_x(
-     $            mpi_mg, comm_2d, usr_rank, nodes, p_model, E)
+     $            mpi_mg, comm_2d, usr_rank, nodes, x_prefactor, E)
 
           case(2,3)
              !< test compute_and_exchange_along_x(W)
              call compute_and_exchange_along_x(
-     $            mpi_mg, comm_2d, usr_rank, nodes, p_model, W)
+     $            mpi_mg, comm_2d, usr_rank, nodes, x_prefactor, W)
 
           case default
              call mpi_op%finalize_mpi()
@@ -136,12 +143,12 @@
           case(0,2)
              !< test compute_and_exchange_along_y(N)
              call compute_and_exchange_along_y(
-     $            mpi_mg, comm_2d, usr_rank, nodes, p_model, N)
+     $            mpi_mg, comm_2d, usr_rank, nodes, y_prefactor, N)
 
           case(1,3)
              !< test compute_and_exchange_along_y(S)
              call compute_and_exchange_along_y(
-     $            mpi_mg, comm_2d, usr_rank, nodes, p_model, S)
+     $            mpi_mg, comm_2d, usr_rank, nodes, y_prefactor, S)
 
           case default
              call mpi_op%finalize_mpi()

@@ -26,8 +26,6 @@
         use parameters_input    , only : nx,ny,ne,npx,npy,bc_size
         use parameters_kind     , only : ikind, rkind
         use pmodel_eq_class     , only : pmodel_eq
-        use reflection_xy_module, only : reflection_x_prefactor,
-     $                                   reflection_y_prefactor
 
         implicit none
 
@@ -58,23 +56,18 @@
         !>@param p_model
         !> physical model
         !--------------------------------------------------------------
-        subroutine only_compute_along_x(nodes, p_model)
+        subroutine only_compute_along_x(nodes, x_prefactor)
 
           implicit none
 
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          type(pmodel_eq)                 , intent(in)    :: p_model
+          integer, dimension(ne)          , intent(in)    :: x_prefactor
 
           
           !< x_prefactor : equal to -1 or +1 depending on the variable
           !>               type: vector_x or not
-          integer, dimension(ne) :: x_prefactor
           integer(ikind)         :: i,j
           integer                :: k
-
-
-          !< compute the prefactor
-          x_prefactor = reflection_x_prefactor(p_model)
 
 
           !< compute the reflection b.c. in E and W boundary layers
@@ -112,23 +105,18 @@
         !>@param p_model
         !> physical model
         !--------------------------------------------------------------
-        subroutine only_compute_along_y(nodes, p_model)
+        subroutine only_compute_along_y(nodes, y_prefactor)
 
           implicit none
 
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          type(pmodel_eq)                 , intent(in)    :: p_model
+          integer    , dimension(ne)      , intent(in)    :: y_prefactor
 
           
           !< y_prefactor : equal to -1 or +1 depending on the variable
           !>               type: vector_y or not
-          integer, dimension(ne) :: y_prefactor
           integer(ikind)         :: i,j
           integer                :: k
-
-
-          !< compute the prefactor
-          y_prefactor = reflection_y_prefactor(p_model)
 
 
           !< compute the N and S boundary layers
@@ -181,7 +169,7 @@
         !> are sent
         !--------------------------------------------------------------
         subroutine compute_and_exchange_along_x(
-     $     this, comm_2d, usr_rank, nodes, p_model, card_pt)
+     $     this, comm_2d, usr_rank, nodes, x_prefactor, card_pt)
 
           implicit none
 
@@ -189,7 +177,7 @@
           integer                         , intent(in)    :: comm_2d
           integer                         , intent(in)    :: usr_rank
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          type(pmodel_eq)                 , intent(in)    :: p_model
+          integer, dimension(ne)          , intent(in)    :: x_prefactor
           integer                         , intent(in)    :: card_pt
 
 
@@ -213,7 +201,7 @@
           integer, dimension(MPI_STATUS_SIZE,2) :: status
           integer                               :: ierror,k
           integer(ikind)                        :: i,j
-          integer, dimension(ne)                :: x_prefactor
+          
 
 
           !< create two requests in one direction: one for sending
@@ -226,9 +214,6 @@
 
 
           !< overlap some communications with computations
-
-          !< compute the reflection prefactor
-          x_prefactor = reflection_x_prefactor(p_model)
 
           select case(card_pt)
 
@@ -311,7 +296,7 @@
         !> are sent
         !--------------------------------------------------------------
         subroutine compute_and_exchange_along_y(
-     $     this, comm_2d, usr_rank, nodes, p_model, card_pt)
+     $     this, comm_2d, usr_rank, nodes, y_prefactor, card_pt)
 
           implicit none
 
@@ -319,7 +304,7 @@
           integer                         , intent(in)    :: comm_2d
           integer                         , intent(in)    :: usr_rank
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          type(pmodel_eq)                 , intent(in)    :: p_model
+          integer, dimension(ne)          , intent(in)    :: y_prefactor
           integer                         , intent(in)    :: card_pt
 
 
@@ -343,7 +328,6 @@
           integer, dimension(MPI_STATUS_SIZE,2) :: status
           integer                               :: ierror,k
           integer(ikind)                        :: i,j
-          integer, dimension(ne)                :: y_prefactor
 
 
           !< create two requests in one direction: one for sending
@@ -355,10 +339,6 @@
      $       this, comm_2d, usr_rank, nodes, card_pt)
 
           !< overlap some communications with computations
-
-          !< compute the reflection prefactor
-          y_prefactor = reflection_y_prefactor(p_model)
-
           select case(card_pt)
 
             !< if we send along N, we compute S

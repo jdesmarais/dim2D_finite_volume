@@ -15,7 +15,7 @@
       program test_reflection_xy_par
 
         use bc_operators_par_class, only : bc_operators_par
-        use cg_operators_class    , only : cg_operators
+        use sd_operators_class    , only : sd_operators
         use pmodel_eq_class       , only : pmodel_eq
         use mpi
         use mpi_process_class     , only : mpi_process
@@ -58,23 +58,22 @@
 
 
         !< initialization of the bc_operator_par object
-        call bc_par_tested%ini(comm_2d)
+        call bc_par_tested%ini(comm_2d, p_model)
 
 
         !< initialization of the data in nodes
-        nodes = ini_data(f_tested%usr_rank)
+        nodes = ini_data(usr_rank)
 
 
         !< test the application of the reflection boundary conditions
         !> on the nodes
-        call bc_par_tested%apply_bc_on_nodes(
-     $       f_tested, nodes, s_op, p_model)
+        call bc_par_tested%apply_bc_on_nodes(comm_2d, usr_rank, nodes)
         if(.not.test) then
-           call write_data('test_xy',f_tested%usr_rank,nodes)
+           call write_data('test_xy',usr_rank,nodes)
         else
-           test_validated = compare_data('test_xy',f_tested%usr_rank,nodes)
+           test_validated = compare_data('test_xy',usr_rank,nodes)
            print '(''Proc '', I1, '' : apply_bc_on_nodes: '', L1)',
-     $          f_tested%usr_rank, test_validated
+     $          usr_rank, test_validated
         end if
 
 
