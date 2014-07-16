@@ -83,7 +83,40 @@ mpi_bc_dep=		$(mpi_mg_ext_dep)\
 			mpi_tag_module.o\
 			mpi_requests_module.o
 
-reflection_xy_par_dep=	reflection_xy_module.o\
+reflection_xy_par_dep=	$(mpi_dep)\
+			$(mpi_bc_dep)\
+			reflection_xy_module.o\
 			reflection_xy_par_module.o\
 			bc_operators_abstract_par_class.o\
 			bc_operators_par_class.o
+
+periodic_xy_par_dep=	$(mpi_dep)\
+			$(mpi_bc_dep)\
+			periodic_xy_par_module.o\
+			bc_operators_abstract_par_class.o\
+			bc_operators_par_class.o
+
+wall_xy_par_dep=	$(mpi_dep)\
+			$(mpi_bc_dep)\
+			wall_prim_module.o\
+			wall_xy_module.o\
+			wall_xy_par_module.o\
+			bc_operators_abstract)par_class.o\
+			bc_operators_par_class.o
+
+wall_x_refl_y_par_dep=	$(mpi_dep)\
+			$(mpi_bc_dep)\
+			reflection_xy_module.o\
+			wall_prim_module.o\
+			wall_xy_module.o\
+			wall_x_reflection_y_par_module.o\
+			wall_xy_par_module.o\
+			bc_operators_abstract_par_class.o\
+			bc_operators_par_class.o
+
+io_par_dep=		io_operators_abstract_par_class.o\
+			io_operators_par_class.o
+
+nf90_par_dep=		$(io_par_dep)\
+			io_operators_module.o\
+			nf90_operators_module.o

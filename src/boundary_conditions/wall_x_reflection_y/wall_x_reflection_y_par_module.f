@@ -28,31 +28,43 @@
       !-----------------------------------------------------------------
       module wall_x_reflection_y_par_module
 
-        use cg_operators_class  , only : cg_operators
-        use dim2d_eq_class      , only : dim2d_eq
-        use field_par_class     , only : field_par
         use mpi                 
-        use mpi_mg_bc_class     , only : mpi_mg_bc
-        use mpi_process_class   , only : mpi_process
-        use mpi_requests_module , only : create_requests_for_one_direction
-        use parameters_constant , only : x_direction, y_direction,
-     $                                   N,S,E,W
-        use parameters_input    , only : nx,ny,ne,npx,npy,bc_size
-        use parameters_kind     , only : ikind, rkind
-        use reflection_xy_module, only : reflection_x_prefactor
-        use wall_xy_module      , only : wall_prefactor,
-     $                                   compute_wall_flux_x,
-     $                                   compute_wall_flux_y
+
+        use mpi_mg_bc_class, only :
+     $       mpi_mg_bc
+
+        use mpi_process_class, only :
+     $       mpi_process
+
+        use mpi_requests_module, only :
+     $       create_requests_for_one_direction
+
+        use parameters_constant, only :
+     $       x_direction, y_direction,
+     $       N,S,E,W
+
+        use parameters_input, only :
+     $       nx,ny,ne,npx,npy,bc_size
+
+        use parameters_kind, only :
+     $       ikind, rkind
+
+        use sd_operators_class, only :
+     $       sd_operators
+
+        use wall_xy_module, only :
+     $       compute_wall_flux_x,
+     $       compute_wall_flux_y
+
 
         implicit none
+
 
         private
         public :: only_compute_along_x,
      $            compute_and_exchange_along_x,
      $            fluxes_only_compute_along_x,
      $            fluxes_compute_and_exchange_along_x
-
-
         
         contains
 
@@ -73,25 +85,20 @@
         !>@param p_model
         !> physical model
         !--------------------------------------------------------------
-        subroutine only_compute_along_x(nodes, p_model)
+        subroutine only_compute_along_x(
+     $       nodes, prefactor_reflection, prefactor_wall)
 
           implicit none
 
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          type(dim2d_eq)                  , intent(in)    :: p_model
+          integer    , dimension(ne), intent(in)  :: prefactor_reflection
+          integer    , dimension(ne), intent(in)  :: prefactor_wall
 
           
           !< prefactor : equal to -1 or +1 depending on the variable
           !>               type: vector_x/vector_y or not
-          integer, dimension(ne) :: prefactor
-          integer, dimension(ne) :: prefactor_x
           integer(ikind)         :: i,j
           integer                :: k
-
-
-          !< compute the prefactor
-          prefactor   = wall_prefactor(p_model)
-          prefactor_x = reflection_x_prefactor(p_model)
 
 
           !< E layer: wall b.c.
@@ -102,9 +109,9 @@
                 do i=1,bc_size
                    
                    nodes(i,j,k) = 
-     $                  prefactor_x(k)*nodes(2*bc_size+1-i,j,k)
+     $                  prefactor_reflection(k)*nodes(2*bc_size+1-i,j,k)
                    nodes(nx-bc_size+i,j,k) = 
-     $                  prefactor(k)*nodes(nx-bc_size-i+1,j,k)
+     $                  prefactor_wall(k)*nodes(nx-bc_size-i+1,j,k)
                    
                 end do
              end do
@@ -142,14 +149,17 @@
         !> are sent
         !--------------------------------------------------------------
         subroutine compute_and_exchange_along_x(
-     $     this, f_used, nodes, p_model, card_pt)
+     $     this, comm_2d, usr_rank, nodes,
+     $     prefactor_reflection, prefactor_wall, card_pt)
 
           implicit none
 
           class(mpi_mg_bc)                , intent(in)    :: this
-          class(field_par)                , intent(inout) :: f_used
+          integer                         , intent(in)    :: comm_2d
+          integer                         , intent(in)    :: usr_rank
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          type(dim2d_eq)                  , intent(in)    :: p_model
+          integer, dimension(ne), intent(in) :: prefactor_reflection
+          integer, dimension(ne), intent(in) :: prefactor_wall
           integer                         , intent(in)    :: card_pt
 
 
@@ -173,7 +183,6 @@
           integer, dimension(MPI_STATUS_SIZE,2) :: status
           integer                               :: ierror,k
           integer(ikind)                        :: i,j
-          integer, dimension(ne)                :: prefactor
 
 
           !< create two requests in one direction: one for sending
@@ -182,39 +191,35 @@
           !> direction 'card_pt'
           !DEC$ FORCEINLINE RECURSIVE
           mpi_requests = create_requests_for_one_direction(
-     $         this, f_used, nodes, card_pt)
+     $         this, comm_2d, usr_rank, nodes, card_pt)
 
           !< overlap some communications with computations
-
-          !< compute the wall prefactor
-
-
           select case(card_pt)
 
             !< if we send along E, we compute W
             case(E)
-               prefactor = reflection_x_prefactor(p_model)
                do k=1,ne
                   do j=1+bc_size, ny-bc_size
                      !DEC$ IVDEP
                      do i=1,bc_size
                    
                         nodes(i,j,k) = 
-     $                       prefactor(k)*nodes(2*bc_size+1-i,j,k)
+     $                       prefactor_reflection(k)*
+     $                       nodes(2*bc_size+1-i,j,k)
                         
                      end do
                   end do
                end do
 
             case(W)
-               prefactor = wall_prefactor(p_model)
                do k=1,ne
                   do j=1+bc_size, ny-bc_size
                      !DEC$ IVDEP
                      do i=1,bc_size
                    
                         nodes(nx-bc_size+i,j,k) = 
-     $                       prefactor(k)*nodes(nx-bc_size-i+1,j,k)
+     $                       prefactor_wall(k)*
+     $                       nodes(nx-bc_size-i+1,j,k)
                    
                      end do
                   end do
@@ -258,17 +263,18 @@
         !>@param flux_x
         !> fluxes along the x-direction
         !--------------------------------------------------------------
-        subroutine fluxes_only_compute_along_x(f_used,s_op,flux_x)
+        subroutine fluxes_only_compute_along_x(
+     $     nodes, dx, dy, s_op, flux_x)
 
           implicit none
 
-          type(field_par)                   , intent(in)    :: f_used
-          type(cg_operators)                , intent(in)    :: s_op
+          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          type(sd_operators)                , intent(in)    :: s_op
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
 
-          integer        :: k
           integer(ikind) :: id
-
 
           !< provide the x-indices modified
           id=nx+1-bc_size
@@ -277,7 +283,7 @@
           !> at the E and W borders
           !> E border: i= nx-bc_size+1
           !DEC$ FORCEINLINE RECURSIVE
-          call compute_wall_flux_x(f_used,s_op,id,flux_x)
+          call compute_wall_flux_x(nodes,dx,dy,s_op,id,flux_x)
 
         end subroutine fluxes_only_compute_along_x
 
@@ -306,22 +312,23 @@
         !> flux along the x-direction
         !--------------------------------------------------------------
         subroutine fluxes_compute_and_exchange_along_x(
-     $     f_used, s_op, card_pt, flux_x)
+     $     nodes, dx, dy, s_op, card_pt, flux_x)
 
           implicit none
 
-          type(field_par)                   , intent(in)    :: f_used
-          type(cg_operators)                , intent(in)    :: s_op
+          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          type(sd_operators)                , intent(in)    :: s_op
           integer                           , intent(in)    :: card_pt
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
 
-          type(mpi_process) :: mpi_op
           integer           :: i
 
           !select the x-indice of the flux modified: only W
           if(card_pt.eq.W) then
              i=nx-bc_size+1
-             call compute_wall_flux_x(f_used,s_op,i,flux_x)
+             call compute_wall_flux_x(nodes,dx,dy,s_op,i,flux_x)
           end if
 
         end subroutine fluxes_compute_and_exchange_along_x

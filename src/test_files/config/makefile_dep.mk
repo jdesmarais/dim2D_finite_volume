@@ -177,6 +177,8 @@ $(pbc_dir)/periodic_xy_par_module.o:\
 $(pbc_dir)/bc_operators_par_class.o:\
 			$(bc_dir)/bc_operators_abstract_par_class.o\
 			$(pm_cdir)/pmodel_eq_class.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(mpi_bc_dir)/mpi_mg_bc_ext_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
@@ -235,12 +237,11 @@ $(wbc_dir)/wall_xy_module.o:\
 			$(wbc_dir)/wall_prim_module.o
 
 $(wbc_dir)/wall_xy_par_module.o:\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_par_class.o\
+			$(sd_cdir)/sd_operators_class.o\
 			$(mpi_bc_dir)/mpi_mg_bc_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(mpi_dir)/mpi_requests_module.o\
+			$(mpi_dir)/mpi_tag_module.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
@@ -255,27 +256,25 @@ $(wbc_dir)/bc_operators_class.o:\
 			$(wbc_dir)/wall_xy_module.o
 
 $(wbc_dir)/bc_operators_par_class.o:\
-			$(bc_dir)/bc_abstract_par_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_par_class.o\
+			$(bc_dir)/bc_operators_abstract_par_class.o\
+			$(mpi_bc_dir)/mpi_mg_bc_ext_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
+			$(dim2d_dir)/pmodel_eq_class.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(wbc_dir)/wall_xy_module.o\
 			$(wbc_dir)/wall_xy_par_module.o
 
 #wall_x reflection_y boundary conditions
 $(wrbc_dir)/wall_x_reflection_y_par_module.o:\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_par_class.o\
+			$(sd_cdir)/sd_operators_class.o\
 			$(mpi_bc_dir)/mpi_mg_bc_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(mpi_dir)/mpi_requests_module.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(rbc_dir)/reflection_xy_module.o\
 			$(wbc_dir)/wall_xy_module.o
 
 $(wrbc_dir)/bc_operators_class.o:\
@@ -288,14 +287,15 @@ $(wrbc_dir)/bc_operators_class.o:\
 			$(wbc_dir)/wall_xy_module.o
 
 $(wrbc_dir)/bc_operators_par_class.o:\
-			$(bc_dir)/bc_abstract_par_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_par_class.o\
+			$(bc_dir)/bc_operators_abstract_par_class.o\
+			$(mpi_bc_dir)/mpi_mg_bc_ext_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
+			$(rbc_dir)/reflection_xy_module.o\
+			$(sd_cdir)/sd_operators_class.o\
 			$(wrbc_dir)/wall_x_reflection_y_par_module.o\
+			$(wbc_dir)/wall_xy_module.o\
 			$(wbc_dir)/wall_xy_par_module.o
 
 #open boundary conditions
@@ -325,13 +325,13 @@ $(fv_dir)/td_operators_class.o:\
 			$(pm_cdir)/pmodel_eq_class.o\
 			$(td_dir)/td_operators_abstract_class.o
 
-$(fv_dir)/fv_operators_par_class.o:$(sbc_dir)/bc_operators_par_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(field_dir)/field_par_class.o\
+$(fv_dir)/td_operators_par_class.o:\
+			$(bc_cdir)/bc_operators_par_class.o\
+			$(sd_cdir)/sd_operators_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(spm_dir)/dim2d_eq_class.o\
-			$(td_dir)/td_operators_par_class.o
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(td_dir)/td_operators_abstract_par_class.o
 
 
 #time integration methods
@@ -372,6 +372,12 @@ $(io_dir)/io_operators_abstract_class.o:\
 			$(param_dir)/parameters_kind.o\
 			$(pm_cdir)/pmodel_eq_class.o
 
+$(io_dir)/io_operators_abstract_par_class.o:\
+			$(mpi_dir)/mpi_process_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o
+
 $(nf90_dir)/nf90_operators_module.o:\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
@@ -387,15 +393,14 @@ $(nf90_dir)/io_operators_class.o:\
 			$(param_dir)/parameters_kind.o\
 			$(pm_cdir)/pmodel_eq_class.o
 
-$(nf90_dir)/nf90_operators_wr_par_class.o:\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_par_class.o\
+$(nf90_dir)/io_operators_par_class.o:\
 			$(io_dir)/io_operators_module.o\
+			$(io_dir)/io_operators_abstract_par_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(nf90_dir)/nf90_operators_module.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o
 
 #mpi processes
 $(mpi_dir)/mpi_tag_module.o:

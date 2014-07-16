@@ -16,12 +16,11 @@
       !> @date
       !> 25_09_2013 - initial version                   - J.L. Desmarais
       !-----------------------------------------------------------------
-      module td_operators_par_class
+      module td_operators_abstract_par_class
 
         use bc_operators_par_class, only : bc_operators_par
-        use cg_operators_class    , only : cg_operators
-        use dim2d_eq_class        , only : dim2d_eq
-        use field_par_class       , only : field_par
+        use sd_operators_class    , only : sd_operators
+        use pmodel_eq_class       , only : pmodel_eq
         use parameters_input      , only : nx,ny,ne
         use parameters_kind       , only : rkind
 
@@ -29,10 +28,10 @@
 
 
         private
-        public :: td_operators_par
+        public :: td_operators_abstract_par
 
 
-        !> @class td_operators_par
+        !> @class td_operators_abstract_par
         !> abstract class encapsulating operators to compute
         !> the time derivatives of the main variables from 
         !> the governing equations in a distributed memory
@@ -41,12 +40,12 @@
         !> @param compute_time_dev
         !> compute the time derivatives
         !---------------------------------------------------------------
-        type, abstract :: td_operators_par
+        type, abstract :: td_operators_abstract_par
 
           contains
           procedure(time_proc), nopass, deferred :: compute_time_dev
 
-        end type td_operators_par
+        end type td_operators_abstract_par
 
 
         abstract interface
@@ -77,24 +76,29 @@
           !>@param time_dev
           !> time derivatives
           !--------------------------------------------------------------
-          function time_proc(field_used,s,p_model,bc_par_used)
+          function time_proc(
+     $       comm_2d, usr_rank,
+     $       nodes,dx,dy,s,p_model,bc_par_used)
      $       result(time_dev)
 
             import bc_operators_par
-            import cg_operators
-            import field_par
-            import dim2d_eq
+            import sd_operators
+            import pmodel_eq
             import rkind
             import nx,ny,ne
 
-            type(field_par)                 , intent(in)   :: field_used
-            type(cg_operators)              , intent(in)   :: s
-            type(dim2d_eq)                  , intent(in)   :: p_model
-            type(bc_operators_par)          , intent(in)   :: bc_par_used
-            real(rkind), dimension(nx,ny,ne)               :: time_dev
+            integer                         , intent(in) :: comm_2d
+            integer                         , intent(in) :: usr_rank
+            real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+            real(rkind)                     , intent(in) :: dx
+            real(rkind)                     , intent(in) :: dy
+            type(sd_operators)              , intent(in) :: s
+            type(pmodel_eq)                 , intent(in) :: p_model
+            type(bc_operators_par)          , intent(in) :: bc_par_used
+            real(rkind), dimension(nx,ny,ne)             :: time_dev
 
           end function time_proc
 
         end interface
 
-      end module td_operators_par_class
+      end module td_operators_abstract_par_class

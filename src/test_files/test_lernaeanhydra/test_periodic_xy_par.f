@@ -15,9 +15,7 @@
       program test_periodic_xy_par
 
         use bc_operators_par_class, only : bc_operators_par
-        use cg_operators_class    , only : cg_operators
-        use field_par_class       , only : field_par
-        use dim2d_eq_class        , only : dim2d_eq
+        use pmodel_eq_class       , only : pmodel_eq
         use mpi
         use mpi_process_class     , only : mpi_process
         use parameters_constant   , only : periodic_xy_choice
@@ -29,12 +27,12 @@
 
 
         !< operators tested
-        type(field_par)                  :: f_tested
+        integer                          :: comm_2d
+        integer                          :: usr_rank
         real(rkind), dimension(nx,ny,ne) :: nodes
         type(mpi_process)                :: mpi_op
         type(bc_operators_par)           :: bc_par_tested
-        type(cg_operators)               :: s_op
-        type(dim2d_eq)                   :: p_model
+        type(pmodel_eq)                  :: p_model
 
         
         !< intermediate variables
@@ -57,34 +55,34 @@
 
 
         !< initialization of the cartesian communicator
-        call f_tested%ini_cartesian_communicator()
+        call mpi_op%ini_cartesian_communicator(comm_2d, usr_rank)
 
 
         !< initialization of the bc_operator_par object
-        call bc_par_tested%initialize(f_tested,s_op)
+        call bc_par_tested%ini(comm_2d, p_model)
 
 
         !< initialization of the data in nodes
-        nodes = ini_data(f_tested%usr_rank)
+        nodes = ini_data(usr_rank)
 
 
         !< test the application of the periodic boundary conditions
         !> on the nodes
         !DEC$ FORCEINLINE RECURSIVE
         call bc_par_tested%apply_bc_on_nodes(
-     $       f_tested, nodes, s_op, p_model)
+     $       comm_2d, usr_rank, nodes)
 
         if(.not.test) then
            call write_data(
-     $          'test_periodic_xy', f_tested%usr_rank, nodes)
+     $          'test_periodic_xy', usr_rank, nodes)
 
         else
 
            test_validated = compare_data(
-     $          'test_periodic_xy', f_tested%usr_rank, nodes)
+     $          'test_periodic_xy', usr_rank, nodes)
 
            print '(''Proc '', I1, '' : apply_bc_on_nodes: '', L1)',
-     $          f_tested%usr_rank, test_validated
+     $          usr_rank, test_validated
         end if
 
 

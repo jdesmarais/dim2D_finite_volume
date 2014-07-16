@@ -13,26 +13,33 @@
       !-----------------------------------------------------------------
       program test_nf90_operators_par
 
-        use cg_operators_class         , only : cg_operators
-        use dim2d_eq_class             , only : dim2d_eq
-        use field_par_class            , only : field_par
-        use mpi_process_class          , only : mpi_process
-        use nf90_operators_wr_par_class, only : nf90_operators_wr_par
-        use parameters_input           , only : ne
-        use parameters_kind            , only : rkind
+        use pmodel_eq_class       , only : pmodel_eq
+        use mpi_process_class     , only : mpi_process
+        use io_operators_par_class, only : io_operators_par
+        use parameters_input      , only : nx,ny,ne
+        use parameters_kind       , only : rkind
 
 
         implicit none
 
         
         !<operators tested
-        type(field_par)            :: field_tested
-        type(cg_operators)         :: sd_op
-        type(dim2d_eq)             :: p_model
-        type(mpi_process)          :: mpi_op
-        type(nf90_operators_wr_par):: nf90_writer
-        real(rkind), parameter     :: time=3.0
-        real(rkind) :: x_min, x_max, y_min, y_max
+        integer :: comm_2d
+        integer :: usr_rank
+        real(rkind), dimension(nx,ny,ne) :: nodes
+        real(rkind), dimension(nx)       :: x_map
+        real(rkind), dimension(ny)       :: y_map
+        real(rkind)                      :: dx
+        real(rkind)                      :: dy
+        integer                          :: i,j        
+        type(pmodel_eq)                  :: p_model
+        type(mpi_process)                :: mpi_op
+        type(io_operators_par)           :: nf90_writer
+        real(rkind), parameter           :: time=3.0
+        real(rkind)                      :: x_min
+        real(rkind)                      :: x_max
+        real(rkind)                      :: y_min
+        real(rkind)                      :: y_max
 
         !<CPU recorded times
         real    :: time1, time2
@@ -58,14 +65,32 @@
         y_min   = 0.
         y_max   = 1.
 
-        call field_tested%ini_cartesian_communicator()
-        call field_tested%ini_coordinates()
-        call p_model%apply_ic(field_tested)
+        dx=0.6
+        dy=0.7
+
+        do j=1, ny
+           do i=1, nx
+              nodes(i,j,1) = i + (j-1)*nx
+           end do
+        end do
+
+        do i=1, nx
+           x_map(i)=(i-1)*dx
+        end do
+
+        do j=1, ny
+           y_map(j)=(j-1)*dy
+        end do
+
+        call mpi_op%ini_cartesian_communicator(comm_2d, usr_rank)
 
 
         !< write the data
-        call nf90_writer%initialize(field_tested, sd_op, 3)
-        call nf90_writer%write_data(field_tested, p_model, time)
+        call nf90_writer%ini(comm_2d, usr_rank)
+        call nf90_writer%write_data(
+     $       comm_2d,
+     $       nodes, x_map, y_map,
+     $       p_model, time)
 
 
         !< finalize the mpi process

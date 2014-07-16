@@ -43,7 +43,13 @@
         !---------------------------------------------------------------
         type, extends(surrogate) :: field_abstract_par
 
-          type(mpi_process) :: mpi_process_used
+          type(mpi_process)     , private :: mpi_process_used
+
+          type(sd_operators)    , private :: sd_operators_used
+          type(pmodel_eq)       , private :: pmodel_eq_used
+          type(bc_operators_par), private :: bc_operators_used
+          type(td_operators)    , private :: td_operators_used
+          type(io_operators_par), private :: io_operators_used
 
           integer                         , private :: comm_2d
           integer                         , private :: usr_rank
@@ -61,18 +67,43 @@
           procedure, pass, private :: ini_cartesian_communicator
           procedure, pass, private :: ini_coordinates
 
-          procedure, pass :: get_comm2d !only for tests
+          procedure, pass, private :: apply_initial_conditions
+          procedure, pass          :: compute_time_dev
+          procedure, pass          :: apply_bc_on_nodes
+          procedure, pass          :: compute_integration_step
+          procedure, pass          :: write_data
 
         end type field_abstract_par
+
+
+        interface
+
+           subroutine integration_step_proc(
+     $          nodes, dt, nodes_tmp, time_dev)
+           
+             import rkind
+             import nx,ny,ne
+
+             real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
+             real(rkind)                     , intent(in)    :: dt
+             real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
+             real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
+
+           end subroutine integration_step_proc
+
+        end interface
 
 
         contains
 
 
         !initialize the field_abstract_par object:
+        ! - check the inputs
+        ! - initialize the mpi process
         ! - initialize the cartesian communicator between
         !   the tiles
         ! - initialize the coordinates
+        ! - initialize the boundary conditions
         subroutine ini(this)
 
           implicit none
@@ -83,6 +114,8 @@
           call this%mpi_process_used%ini_mpi()
           call this%ini_cartesian_communicator()
           call this%ini_coordinates()
+          call this%bc_operators_used%ini(
+     $         this%comm_2d, this%pmodel_eq_used)
 
         end subroutine ini
 
@@ -244,16 +277,74 @@
         end subroutine ini_coordinates
 
 
-        !get the comm2d attribute
-        function get_comm2d(this) result(comm2d)
+        !initialize the nodes using the initial conditions
+        !of the physical model
+        subroutine apply_initial_conditions(this)
 
           implicit none
 
-          class(field_abstract_par), intent(in) :: this
-          integer                               :: comm2d
+          class(field_abstract_par), intent(inout) :: this
 
-          comm2d = this%comm_2d
+          call this%pmodel_eq_used%apply_ic(
+     $         this%nodes,
+     $         this%x_map,
+     $         this%y_map)
 
-        end function get_comm2d
+        end subroutine apply_initial_conditions
+
+
+        !compute the time derivatives
+        function compute_time_dev(this) result(time_dev)
+
+          implicit none
+
+          class(field_abstract), intent(in) :: this
+          real(rkind), dimension(nx,ny,ne)  :: time_dev
+
+          !make use of the time discretization operator
+          !to compute the time derivative of the field
+          time_dev = this%td_operators_used%compute_time_dev(
+     $         this%comm_2d,
+     $         this%usr_rank,
+     $         this%nodes,
+     $         this%dx,
+     $         this%dy,
+     $         this%sd_operators_used,
+     $         this%pmodel_eq_used,
+     $         this%bc_operators_used)
+
+        end function compute_time_dev
+
+
+        !apply the boundary conditions on the nodes
+        subroutine apply_bc_on_nodes(this)
+
+          implicit none
+
+          class(field_abstract_par), intent(inout) :: this
+          
+          call this%bc_operators_used%apply_bc_on_nodes(
+     $         this%comm_2d,
+     $         this%usr_rank,
+     $         this%nodes)
+
+        end subroutine apply_bc_on_nodes
+
+
+        !compute the time derivatives
+        subroutine compute_integration_step(
+     $     this, dt, nodes_tmp, time_dev, integration_step)
+
+          implicit none
+
+          class(field_abstract_par)       , intent(inout) :: this
+          real(rkind)                     , intent(in)    :: dt
+          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
+          procedure(integration_step_proc) :: integration_step
+
+          call integration_step(this%nodes, dt, nodes_tmp, time_dev)
+
+        end subroutine compute_integration_step
 
       end module field_abstract_par_class
