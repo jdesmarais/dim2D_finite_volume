@@ -17,29 +17,17 @@
       !-----------------------------------------------------------------
       program sim_dim2d_par
 
-        use bc_operators_par_class     , only : bc_operators_par
-        use cg_operators_class         , only : cg_operators
-        use dim2d_eq_class             , only : dim2d_eq
-        use field_par_class            , only : field_par
-        use fv_operators_par_class     , only : fv_operators_par
-        use mpi_process_class          , only : mpi_process
-        use nf90_operators_wr_par_class, only : nf90_operators_wr_par
-        use parameters_input           , only : ne,bc_size,t_max,dt,detail_print
-        use parameters_kind            , only : ikind, rkind
-        use rk3tvd_par_class           , only : rk3tvd_par
+        use mpi_process_class, only : mpi_process
+        use field_par_class  , only : field_par
+        use parameters_input , only : t_max,dt,detail_print
+        use parameters_kind  , only : ikind, rkind
 
         implicit none
 
 
         !<operators needed for the simulation
-        type(field_par)             :: f_simulated!< field simulated
-        type(cg_operators)          :: sd         !< space discretisation
-        type(dim2d_eq)              :: p_model    !< physical model
-        type(bc_operators_par)      :: bc_used    !< boundary conditions 
-        type(fv_operators_par)      :: td         !< time discretisation
-        type(rk3tvd_par)            :: ti         !< time integration
-        type(nf90_operators_wr_par) :: io_writer  !< output management
-        type(mpi_process)           :: mpi_op     !< mpi process
+        type(field_par)             :: f_simulated !< field simulated
+        type(mpi_process)           :: mpi_op      !< mpi process
 
         !<intermediate variables for the simulation
         integer(ikind) :: nt,t,output_print
@@ -55,31 +43,6 @@
         !> compute the total duration of the simulation
         !>------------------------------------------------------
         call CPU_TIME(time1)
-
-
-        !< check the number of governing equations
-        !>------------------------------------------------------
-        !> ne which is the third dimension of the main table
-        !> needs to correspond with the number of governing
-        !> equations defined in the physical model
-        !>------------------------------------------------------
-        if(ne.ne.p_model%get_eq_nb()) then
-           stop 'ne is not correct : check the physical model'
-        end if
-
-
-        !< check the size of boundary layers
-        !>------------------------------------------------------
-        if(bc_size.ne.sd%get_bc_size()) then
-           stop 'bc_size is not correct : check the spatial op'
-        end if
-
-
-        !< initialize the mpi processes
-        !>------------------------------------------------------
-        !> start mpi on the processors computing the simulation
-        !>------------------------------------------------------
-        call mpi_op%ini_mpi()
 
 
         !< initialize intermediate variables
@@ -102,31 +65,9 @@
         !> apply the initial conditions using the physical model
         !>------------------------------------------------------
         time = 0
-        call f_simulated%ini_cartesian_communicator()
-        call f_simulated%ini_coordinates()
-        call p_model%apply_ic(f_simulated)
-
-
-        !< initialize the boundary conditions
-        !>------------------------------------------------------
-        !> initialize the procedures for the computation of the 
-        !> boundary layers: ghost cells between tiles and boundary
-        !> conditions at the edge of the computational domain
-        !>------------------------------------------------------
-        call bc_used%initialize(f_simulated,sd)
-        call bc_used%apply_bc_on_nodes(
-     $       f_simulated, f_simulated%nodes,sd,p_model)
-
-
-        !< initialize the output writer
-        !>------------------------------------------------------
-        !> initialize the subarray limits of the nodes written by
-        !> the current tile on the output file for the entire
-        !> computational domain
-        !> write the initial state on 'data0.nc'
-        !>------------------------------------------------------
-        call io_writer%initialize(f_simulated,sd)
-        call io_writer%write_data(f_simulated,p_model,time)
+        call f_simulated%ini()
+        call f_simulated%apply_bc_on_nodes()
+        call f_simulated%write_data(time)
 
 
         !<initialization time
@@ -150,12 +91,12 @@
            time=(t-1)*dt
 
            !DEC$ FORCEINLINE RECURSIVE
-           call ti%integrate(f_simulated,sd,p_model,td,bc_used,dt)
+           call f_simulated%integrate(dt)
 
            !< write the output data
            if((output_print.eq.1).or.
      $        ((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
-              call io_writer%write_data(f_simulated,p_model,time)
+              call f_simulated%write_data(time)
            end if
 
         end do
@@ -177,7 +118,7 @@
         !> and the last state of the simulation are written
         !>------------------------------------------------------        
         if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
-           call io_writer%write_data(f_simulated,p_model,time)
+           call f_simulated%write_data(time)
         end if
 
 

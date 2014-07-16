@@ -15,14 +15,19 @@
       ! 21_08_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module field_abstract_par_class
-      
-        use surrogate_class    , only : surrogate
-        use mpi_process_class  , only : mpi_process
-        
-        use parameters_input   , only : ntx,nty,nx,ny,npx,npy,bc_size,
-     $                                  bc_choice,
-     $                                  x_min,x_max,y_min,y_max
-        use parameters_kind    , only : ikind, rkind
+
+        use bc_operators_par_class, only : bc_operators_par      
+        use io_operators_par_class, only : io_operators_par
+        use mpi
+        use mpi_process_class     , only : mpi_process        
+        use parameters_input      , only : ntx,nty,npx,npy,bc_size,
+     $                                     bc_choice,nx,ny,ne,
+     $                                     x_min,x_max,y_min,y_max
+        use parameters_kind       , only : ikind, rkind
+        use pmodel_eq_class       , only : pmodel_eq
+        use sd_operators_class    , only : sd_operators
+        use surrogate_class       , only : surrogate
+        use td_operators_par_class, only : td_operators_par
 
         implicit none
 
@@ -43,12 +48,10 @@
         !---------------------------------------------------------------
         type, extends(surrogate) :: field_abstract_par
 
-          type(mpi_process)     , private :: mpi_process_used
-
           type(sd_operators)    , private :: sd_operators_used
           type(pmodel_eq)       , private :: pmodel_eq_used
           type(bc_operators_par), private :: bc_operators_used
-          type(td_operators)    , private :: td_operators_used
+          type(td_operators_par), private :: td_operators_used
           type(io_operators_par), private :: io_operators_used
 
           integer                         , private :: comm_2d
@@ -72,6 +75,12 @@
           procedure, pass          :: apply_bc_on_nodes
           procedure, pass          :: compute_integration_step
           procedure, pass          :: write_data
+
+          procedure, pass          :: get_comm_2d  !only for tests
+          procedure, pass          :: get_usr_rank !only for tests
+          procedure, pass          :: get_nodes    !only for tests
+          procedure, pass          :: get_x_map    !only for tests
+          procedure, pass          :: get_y_map    !only for tests      
 
         end type field_abstract_par
 
@@ -104,18 +113,22 @@
         !   the tiles
         ! - initialize the coordinates
         ! - initialize the boundary conditions
+        ! - initialize the i/o operators
         subroutine ini(this)
 
           implicit none
 
           class(field_abstract_par), intent(inout) :: this
 
+          type(mpi_process) :: mpi_op
+
           call this%check_inputs()
-          call this%mpi_process_used%ini_mpi()
+          call mpi_op%ini_mpi()
           call this%ini_cartesian_communicator()
           call this%ini_coordinates()
           call this%bc_operators_used%ini(
      $         this%comm_2d, this%pmodel_eq_used)
+          call this%io_operators_used%ini(this%comm_2d, this%usr_rank)
 
         end subroutine ini
 
@@ -128,7 +141,7 @@
 
           implicit none
 
-          class(field_abstract), intent(in) :: this
+          class(field_abstract_par), intent(in) :: this
 
 
           if(ne.ne.this%pmodel_eq_used%get_eq_nb()) then
@@ -168,7 +181,9 @@
           !< dummy arguments
           class(field_abstract_par), intent(inout) :: this
 
-          call this%mpi_process_used%ini_cartesian_communicator(
+          type(mpi_process) :: mpi_op
+
+          call mpi_op%ini_cartesian_communicator(
      $         this%comm_2d,
      $         this%usr_rank)
 
@@ -298,8 +313,8 @@
 
           implicit none
 
-          class(field_abstract), intent(in) :: this
-          real(rkind), dimension(nx,ny,ne)  :: time_dev
+          class(field_abstract_par), intent(in) :: this
+          real(rkind), dimension(nx,ny,ne)      :: time_dev
 
           !make use of the time discretization operator
           !to compute the time derivative of the field
@@ -346,5 +361,88 @@
           call integration_step(this%nodes, dt, nodes_tmp, time_dev)
 
         end subroutine compute_integration_step
+
+
+        !write the data on output files
+        subroutine write_data(this, time)
+
+          implicit none
+
+          class(field_abstract_par), intent(inout) :: this
+          real(rkind)              , intent(in)    :: time
+
+          call this%io_operators_used%write_data(
+     $         this%comm_2d,
+     $         this%nodes,
+     $         this%x_map,
+     $         this%y_map,
+     $         this%pmodel_eq_used,
+     $         time)
+
+        end subroutine write_data
+
+
+        !get the comm_2d attribute      
+        function get_comm_2d(this) result(comm_2d)
+
+          implicit none
+
+          class(field_abstract_par), intent(in) :: this
+          integer                               :: comm_2d
+          
+          comm_2d = this%comm_2d
+
+        end function get_comm_2d
+
+
+        !get the usr_rank attribute      
+        function get_usr_rank(this) result(usr_rank)
+
+          implicit none
+
+          class(field_abstract_par), intent(in) :: this
+          integer                               :: usr_rank
+          
+          usr_rank = this%usr_rank
+
+        end function get_usr_rank
+
+        !get the nodes attribute
+        function get_nodes(this) result(nodes)
+
+          implicit none
+
+          class(field_abstract_par), intent(in) :: this
+          real(rkind), dimension(nx,ny,ne)      :: nodes
+          
+          nodes = this%nodes
+
+        end function get_nodes
+
+
+        !get the x_map attribute
+        function get_x_map(this) result(x_map)
+
+          implicit none
+
+          class(field_abstract_par), intent(in) :: this
+          real(rkind), dimension(nx)            :: x_map
+          
+          x_map = this%x_map
+
+        end function get_x_map
+
+
+        !get the y_map attribute
+        function get_y_map(this) result(y_map)
+
+          implicit none
+
+          class(field_abstract_par), intent(in) :: this
+          real(rkind), dimension(ny)            :: y_map
+          
+          y_map = this%y_map
+
+        end function get_y_map
 
       end module field_abstract_par_class

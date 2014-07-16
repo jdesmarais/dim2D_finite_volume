@@ -5,7 +5,7 @@
       !> “Efficient implementation of essentially non-
       !> oscillatory shock-capturing methods”, J. Comput.
       !> Phys., 77 (1988), pp. 439-471, C.-W. Shu and
-      !> S. Osher
+      !> S. Osher, on a parallel memory distributed system
       !
       !> @author 
       !> Julien L. Desmarais
@@ -17,10 +17,10 @@
       !> “Efficient implementation of essentially non-
       !> oscillatory shock-capturing methods”, J. Comput.
       !> Phys., 77 (1988), pp. 439-471, C.-W. Shu and
-      !> S. Osher
+      !> S. Osher, on a parallel memory distributed system
       !
       !> @date
-      !> 13_08_2013 - initial version                   - J.L. Desmarais
+      !> 27_08_2013 - initial version - J.L. Desmarais
       !
       !> \f{eqnarray*}{
       !> u_1     &=& u_n + \Delta t*\frac{d u_n}{dt} \\\
@@ -30,23 +30,33 @@
       !>             u_2 + \Delta t * \frac{d u_2}{dt} \right) \\\
       !> \f}
       !-----------------------------------------------------------------
-      module td_integrator_class
+      module td_integrator_par_class
 
-        use field_abstract_class        , only : field_abstract
-        use parameters_input            , only : nx,ny,ne,bc_size
-        use parameters_kind             , only : rkind, ikind
-        use rk3tvd_steps_module         , only : compute_1st_step,
-     $                                           compute_2nd_step,
-     $                                           compute_3rd_step
-        use td_integrator_abstract_class, only : td_integrator_abstract
+        use field_abstract_par_class, only :
+     $     field_abstract_par
+
+        use parameters_input, only :
+     $       nx,ny,ne
+
+        use parameters_kind, only :
+     $       rkind, ikind
+
+        use td_integrator_abstract_par_class, only :
+     $       td_integrator_abstract_par
+
+        use rk3tvd_steps_module, only :
+     $       compute_1st_step,
+     $       compute_2nd_step,
+     $       compute_3rd_step
 
         implicit none
 
 
-        !> @class rk3tvd
+        !> @class td_integrator_par
         !> class encapsulating subroutines to integrate
         !> the governing equations using Runge-Kutta 3rd
-        !> order time integration scheme
+        !> order time integration scheme on a parallel 
+        !> memory distributed system
         !>
         !> @param integrate
         !> integrate the computational field for dt
@@ -58,12 +68,12 @@
         !>             u_2 + \Delta t * \frac{d u_2}{dt}\right)\\\
         !> \f}
         !---------------------------------------------------------------
-        type, extends(td_integrator_abstract) :: td_integrator
+        type, extends(td_integrator_abstract_par) :: td_integrator_par
 
           contains
           procedure, nopass :: integrate
 
-        end type td_integrator
+        end type td_integrator_par
 
 
         contains
@@ -75,24 +85,13 @@
         !> @brief
         !> subroutine to integrate the governing equations using
         !> the numerical scheme developed by C.W.Shu and S.Osher
+        !> on a parallel memory distributed system
         !
         !> @date
-        !> 13_08_2013 - initial version - J.L. Desmarais
+        !> 27_08_2013 - initial version - J.L. Desmarais
         !
         !>@param field_used
         !> object encapsulating the main variables
-        !
-        !>@param sd
-        !> space discretization operators
-        !
-        !>@param p_model
-        !> physical model
-        !
-        !>@param bc_used
-        !> boundary conditions
-        !
-        !>@param td
-        !> time discretisation operators
         !
         !>@param dt
         !> time step integrated
@@ -101,12 +100,12 @@
 
           implicit none
 
-          class(field_abstract), intent(inout) :: field_used
-          real(rkind)          , intent(in)    :: dt
+          class(field_abstract_par), intent(inout) :: field_used
+          real(rkind)              , intent(in)    :: dt
 
           real(rkind), dimension(nx,ny,ne) :: nodes_tmp
           real(rkind), dimension(nx,ny,ne) :: time_dev
-          
+
 
           !<runge-kutta first step
           !> u_1 = u_n + dt*d/dt(u_n)
@@ -118,7 +117,7 @@
           !DEC$ FORCEINLINE RECURSIVE
           call field_used%compute_integration_step(
      $         dt, nodes_tmp, time_dev, compute_1st_step)
-
+            
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
           call field_used%apply_bc_on_nodes()
@@ -134,7 +133,7 @@
           !DEC$ FORCEINLINE RECURSIVE
           call field_used%compute_integration_step(
      $         dt, nodes_tmp, time_dev, compute_2nd_step)
-
+          
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
           call field_used%apply_bc_on_nodes()
@@ -157,7 +156,7 @@
 
         end subroutine integrate
 
-      end module td_integrator_class
+      end module td_integrator_par_class
 
 
 c$$$      print *,'first step'

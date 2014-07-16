@@ -21,17 +21,26 @@ $(field_dir)/field_abstract_class.o:\
 			$(sd_cdir)/sd_operators_class.o\
 			$(td_cdir)/td_operators_class.o
 
+$(field_dir)/field_abstract_par_class.o:\
+			$(bc_cdir)/bc_operators_par_class.o\
+			$(io_cdir)/io_operators_par_class.o\
+			$(mpi_dir)/mpi_process_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(field_dir)/surrogate_class.o\
+			$(td_cdir)/td_operators_par_class.o
+
 $(field_dir)/field_class.o:\
 			$(field_dir)/field_abstract_class.o\
 			$(param_dir)/parameters_kind.o\
 			$(ti_cdir)/td_integrator_class.o
 
 $(field_dir)/field_par_class.o:\
-			$(field_dir)/field_class.o\
-			$(mpi_dir)/mpi_process_class.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o
+			$(field_dir)/field_abstract_par_class.o\
+			$(param_dir)/parameters_kind.o\
+			$(ti_cdir)/td_integrator_par_class.o
 
 
 #space discretization operators
@@ -145,11 +154,13 @@ $(dim2d_ic)/dim2d_homogeneous_module.o:\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
+
 #boundary conditions
 $(bc_dir)/bc_operators_abstract_class.o:\
 			$(sd_cdir)/sd_operators_class.o\
 			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o
 
 $(bc_dir)/bc_operators_abstract_par_class.o:\
 			$(sd_cdir)/sd_operators_class.o\
@@ -301,6 +312,7 @@ $(wrbc_dir)/bc_operators_par_class.o:\
 #open boundary conditions
 include $(AUGEANSTABLES_CONFIG)/dep/bf_layer_dep.mk
 
+
 #time discretization methods
 $(td_dir)/td_operators_abstract_class.o:\
 			$(bc_cdir)/bc_operators_class.o\
@@ -339,30 +351,24 @@ $(ti_dir)/td_integrator_abstract_class.o:\
 			$(field_dir)/field_abstract_class.o\
 			$(param_dir)/parameters_kind.o
 
-$(ti_dir)/td_integrator_par_class.o:\
-			$(sbc_dir)/bc_operators_par_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(spm_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_par_class.o\
-			$(fv_dir)/fv_operators_par_class.o\
+$(ti_dir)/td_integrator_abstract_par_class.o:\
+			$(field_dir)/field_abstract_par_class.o\
 			$(param_dir)/parameters_kind.o
 
 $(rk3tvd_dir)/td_integrator_class.o:\
 			$(field_dir)/field_abstract_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
+			$(rk3tvd_dir)/rk3tvd_steps_module.o\
 			$(ti_dir)/td_integrator_abstract_class.o
 
-$(rk3tvd_dir)/rk3tvd_par_class.o:\
-			$(sbc_dir)/bc_operators_par_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(spm_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_par_class.o\
-			$(fv_dir)/fv_operators_par_class.o\
+$(rk3tvd_dir)/td_integrator_par_class.o:\
+			$(field_dir)/field_abstract_par_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(ti_dir)/td_integrator_par_class.o\
-			$(rk3tvd_dir)/rk3tvd_steps_class.o
+			$(rk3tvd_dir)/rk3tvd_steps_module.o\
+			$(ti_dir)/td_integrator_abstract_par_class.o
+
 
 #io operators
 $(io_dir)/io_operators_module.o:
@@ -401,6 +407,7 @@ $(nf90_dir)/io_operators_par_class.o:\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(pm_cdir)/pmodel_eq_class.o
+
 
 #mpi processes
 $(mpi_dir)/mpi_tag_module.o:
@@ -451,16 +458,10 @@ sim_dim2d.o:		$(field_dir)/field_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-sim_dim2d_par.o:	$(sbc_dir)/bc_operators_par_class.o\
-			$(sd_dir)/cg_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
-			$(field_dir)/field_par_class.o\
-			$(fv_dir)/fv_operators_par_class.o\
+sim_dim2d_par.o:	$(field_dir)/field_par_class.o\
 			$(mpi_dir)/mpi_process_class.o\
-			$(nf90_dir)/nf90_operators_wr_par_class.o\
 			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(rk3tvd_dir)/rk3tvd_par_class.o
+			$(param_dir)/parameters_kind.o
 
 
 #dependencies for the executable code
@@ -469,6 +470,11 @@ sim_dim2d:		$(sim_dep)\
 			field_abstract_class.o\
 			field_class.o
 
+sim_dim2d_par:		$(sim_par_dep)\
+			surrogate_class.o\
+			field_abstract_par_class.o\
+			field_par_class.o
+
 #include $(sim_dim2d_dep)
-include $(sim_dim2d_par_dep)
+#include $(sim_dim2d_par_dep)
 

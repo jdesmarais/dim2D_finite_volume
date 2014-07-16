@@ -16,32 +16,24 @@
       !-----------------------------------------------------------------
       program test_rk3tvd_dim2d_par
 
-        use bc_operators_par_class, only : bc_operators_par
-        use cg_operators_class    , only : cg_operators
-        use dim2d_eq_class        , only : dim2d_eq
-        use field_par_class       , only : field_par
-        use fv_operators_par_class, only : fv_operators_par
+        use field_abstract_par_class, only : field_abstract_par
         use mpi
-        use mpi_process_class     , only : mpi_process
-        use parameters_constant   , only : periodic_xy_choice
-        use parameters_input      , only : nx,ny,ne,npx,npy,bc_size,
-     $                                     x_min,x_max,y_min,y_max,
-     $                                     bc_choice
-        use parameters_kind       , only : ikind,rkind
-        use rk3tvd_par_class      , only : rk3tvd_par
+        use mpi_process_class       , only : mpi_process
+        use parameters_constant     , only : periodic_xy_choice
+        use parameters_input        , only : nx,ny,ne,npx,npy,bc_size,
+     $                                       x_min,x_max,y_min,y_max,
+     $                                       bc_choice
+        use parameters_kind         , only : ikind,rkind
+        use td_integrator_par_class , only : td_integrator_par
 
         implicit none
 
         
         !< operators tested
-        type(field_par)        :: field_tested
-        type(cg_operators)     :: sd
-        type(dim2d_eq)         :: p_model
-        type(fv_operators_par) :: td
-        type(bc_operators_par) :: bc_used
-        type(rk3tvd_par)       :: ti
-        type(mpi_process)      :: mpi_op
-        real(rkind), parameter :: dt=1.0
+        type(field_abstract_par) :: field_tested
+        type(td_integrator_par)  :: ti
+        real(rkind), parameter   :: dt=1.0
+        type(mpi_process)        :: mpi_op
 
 
         !< CPU recorded times
@@ -82,29 +74,38 @@
            stop 'the test needs: bc_choice=periodic_xy_choice'
         end if
 
-        call field_tested%ini_cartesian_communicator()
-        call field_tested%ini_coordinates()
-        call p_model%apply_ic(field_tested)
-
-        call bc_used%initialize(field_tested,sd)
-        call bc_used%apply_bc_on_nodes(
-     $       field_tested, field_tested%nodes, sd, p_model)
+        call field_tested%ini()
+        call field_tested%apply_bc_on_nodes()
 
 
         !< compare the initial conditions data
-        test_validated = compare_data('test_dim2d_rk0', field_tested)
+        test_validated = compare_data(
+     $       'test_dim2d_rk0', 
+     $       field_tested%get_comm_2d(),
+     $       field_tested%get_usr_rank(),
+     $       field_tested%get_nodes(),
+     $       field_tested%get_x_map(),
+     $       field_tested%get_y_map())
+
         print '(''Proc '', I1, '' : test initial data: '', L1)',
-     $       field_tested%usr_rank, test_validated
+     $       field_tested%get_usr_rank(), test_validated
 
 
         !< integrate the field for dt
-        call ti%integrate(field_tested,sd,p_model,td,bc_used,dt)
+        call ti%integrate(field_tested,dt)
 
 
         !< write the data after one integration step
-        test_validated = compare_data('test_dim2d_rk1', field_tested)
+        test_validated = compare_data(
+     $       'test_dim2d_rk1',
+     $       field_tested%get_comm_2d(),
+     $       field_tested%get_usr_rank(),
+     $       field_tested%get_nodes(),
+     $       field_tested%get_x_map(),
+     $       field_tested%get_y_map())
+
         print '(''Proc '', I1, '' : test first step data: '', L1)',
-     $       field_tested%usr_rank, test_validated
+     $       field_tested%get_usr_rank(), test_validated
 
 
         !< finalization of the mpi process
@@ -238,14 +239,20 @@
         !> y_map corresponding to the procedural program
         !--------------------------------------------------------------
         function compare_data(
-     $     filename_base, f_tested)
+     $     filename_base,
+     $     comm_2d, usr_rank,
+     $     nodes, x_map, y_map)
      $     result(test_validated)
 
           implicit none
 
-          character(len=14), intent(in) :: filename_base
-          class(field_par) , intent(in) :: f_tested
-          logical                       :: test_validated
+          character(len=14)               , intent(in) :: filename_base
+          integer                         , intent(in) :: comm_2d
+          integer                         , intent(in) :: usr_rank
+          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+          real(rkind), dimension(nx)      , intent(in) :: x_map
+          real(rkind), dimension(ny)      , intent(in) :: y_map
+          logical                                      :: test_validated
 
 
           type(mpi_process)     :: mpi_op
@@ -264,13 +271,14 @@
 
 
           !< get the test data
-          call get_test_data(filename_base,test_nodes,test_x_map,test_y_map)
+          call get_test_data(
+     $         filename_base,test_nodes,test_x_map,test_y_map)
           
 
           !< get the cartesian coordinates of the field
           dims_nb=2
           call MPI_CART_COORDS(
-     $         f_tested%comm_2d, f_tested%usr_rank,
+     $         comm_2d, usr_rank,
      $         dims_nb, cart_coord,
      $         ierror)
           if(ierror.ne.MPI_SUCCESS) then
@@ -293,13 +301,13 @@
                 i=1
                 do while (test_validated.and.(i.le.nx))
                    test_validated =is_test_validated(
-     $                  f_tested%nodes(i,j,k),
+     $                  nodes(i,j,k),
      $                  test_nodes(offset_i+i-1,offset_j+j-1,k))
                    test_validated = test_validated.and.is_test_validated(
-     $                  f_tested%x_map(i),
+     $                  x_map(i),
      $                  test_x_map(offset_i+i-1))
                    test_validated = test_validated.and.is_test_validated(
-     $                  f_tested%y_map(j),
+     $                  y_map(j),
      $                  test_y_map(offset_j+j-1))
                    i=i+1
                 end do

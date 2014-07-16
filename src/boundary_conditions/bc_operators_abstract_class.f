@@ -19,6 +19,7 @@
         use sd_operators_class, only : sd_operators
         use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : rkind
+        use pmodel_eq_class   , only : pmodel_eq
 
 
         implicit none

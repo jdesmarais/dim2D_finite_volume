@@ -54,11 +54,23 @@ td_dep=			td_operators_abstract_class.o\
 fv_dep=			$(td_dep)
 
 
+td_par_dep=		td_operators_abstract_par_class.o\
+			td_operators_par_class.o
+
+fv_par_dep=		$(td_par_dep)
+
+
 ti_dep=			td_integrator_abstract_class.o\
 			td_integrator_class.o
 
-rk_dep=			$(ti_dep)
+ti_par_dep=		td_integrator_abstract_par_class.o\
+			td_integrator_par_class.o
 
+rk_dep=			$(ti_dep)\
+			rk3tvd_steps_module.o
+
+rk_par_dep=		$(ti_par_dep)\
+			rk3tvd_steps_module.o
 
 io_dep=			io_operators_abstract_class.o\
 			io_operators_class.o
@@ -67,6 +79,12 @@ nf90_dep=		$(io_dep)\
 			io_operators_module.o\
 			nf90_operators_module.o
 
+io_par_dep=		io_operators_abstract_par_class.o\
+			io_operators_par_class.o
+
+nf90_par_dep=		$(io_par_dep)\
+			io_operators_module.o\
+			nf90_operators_module.o
 
 mpi_dep=		mpi_process_class.o
 
@@ -101,7 +119,7 @@ wall_xy_par_dep=	$(mpi_dep)\
 			wall_prim_module.o\
 			wall_xy_module.o\
 			wall_xy_par_module.o\
-			bc_operators_abstract)par_class.o\
+			bc_operators_abstract_par_class.o\
 			bc_operators_par_class.o
 
 wall_x_refl_y_par_dep=	$(mpi_dep)\
@@ -114,9 +132,3 @@ wall_x_refl_y_par_dep=	$(mpi_dep)\
 			bc_operators_abstract_par_class.o\
 			bc_operators_par_class.o
 
-io_par_dep=		io_operators_abstract_par_class.o\
-			io_operators_par_class.o
-
-nf90_par_dep=		$(io_par_dep)\
-			io_operators_module.o\
-			nf90_operators_module.o
