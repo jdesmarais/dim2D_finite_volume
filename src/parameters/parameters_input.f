@@ -45,7 +45,7 @@
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 4
+        integer       , parameter :: ne = 1
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -62,7 +62,7 @@
         integer, parameter :: gravity_choice = no_gravity_choice
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = reflection_xy_choice
+        integer, parameter :: bc_choice = periodic_xy_choice
         integer, parameter :: bcx_type_choice = bc_nodes_choice
         integer, parameter :: bcy_type_choice = bc_nodes_choice
 

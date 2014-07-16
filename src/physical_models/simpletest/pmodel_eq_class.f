@@ -276,7 +276,8 @@
           type(sd_operators)                , intent(in)   :: s
           real(rkind), dimension(nx+1,ny,ne)               :: flux_x
 
-          integer :: i,j,dy_s
+          integer     :: i,j
+          real(rkind) :: dy_s
 
           dy_s = dy
 
@@ -323,7 +324,8 @@
           type(sd_operators)                , intent(in)   :: s
           real(rkind), dimension(nx,ny+1,ne)               :: flux_y
 
-          integer :: i,j,dx_s
+          integer     :: i,j
+          real(rkind) :: dx_s
 
           dx_s = dx
 
@@ -351,7 +353,8 @@
           integer    , dimension(:,:)  , intent(in)    :: grdpts_id
           real(rkind), dimension(:,:,:), intent(inout) :: flux_x
 
-          integer(ikind) :: i,j,dy_s
+          integer(ikind) :: i,j
+          real(rkind)    :: dy_s
 
           dy_s = dy
 
@@ -384,7 +387,8 @@
           integer    , dimension(:,:)  , intent(in)    :: grdpts_id
           real(rkind), dimension(:,:,:), intent(inout) :: flux_y
 
-          integer(ikind) :: i,j,dx_s
+          integer(ikind) :: i,j
+          real(rkind)    :: dx_s
 
           dx_s = dx
 

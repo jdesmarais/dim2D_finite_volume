@@ -655,6 +655,11 @@ c$$$               call apply_drop_evaporation_ic(field_used)
                body_forces = -nodes(1)*gravity
             case(4)
                body_forces = -nodes(3)*gravity
+            case default
+               body_forces = 0
+               print '(''dim2d/pmodel_eq_class'')'
+               print '(''compute_body_forces'')'
+               stop '1=< k =<4 violated'
           end select
 
         end function compute_body_forces

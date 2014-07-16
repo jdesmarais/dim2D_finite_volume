@@ -140,20 +140,21 @@
           !--------------------------------------------------------------
           subroutine time_proc_nopt(
      $     nodes,dx,dy,s,p_model,bc_used,
-     $     time_dev)
+     $     time_dev, grdpts_id)
 
             import bc_operators
             import sd_operators
             import pmodel_eq
             import rkind
 
-            real(rkind), dimension(:,:,:), intent(in)   :: nodes
-            real(rkind)                  , intent(in)   :: dx
-            real(rkind)                  , intent(in)   :: dy
-            type(sd_operators)           , intent(in)   :: s
-            type(pmodel_eq)              , intent(in)   :: p_model
-            type(bc_operators)           , intent(in)   :: bc_used
-            real(rkind), dimension(:,:,:), intent(out)  :: time_dev
+            real(rkind), dimension(:,:,:), intent(in)  :: nodes
+            real(rkind)                  , intent(in)  :: dx
+            real(rkind)                  , intent(in)  :: dy
+            type(sd_operators)           , intent(in)  :: s
+            type(pmodel_eq)              , intent(in)  :: p_model
+            type(bc_operators)           , intent(in)  :: bc_used
+            real(rkind), dimension(:,:,:), intent(out) :: time_dev
+            integer    , dimension(:,:)  , intent(in)  :: grdpts_id
 
           end subroutine time_proc_nopt
 

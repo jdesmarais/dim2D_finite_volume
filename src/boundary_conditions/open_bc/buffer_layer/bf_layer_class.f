@@ -258,7 +258,7 @@
           integer(ikind), dimension(2,2), private :: alignment
 
           real(rkind), dimension(:,:,:), allocatable, private :: nodes
-          integer, dimension(:,:)  , allocatable, private :: grdpts_id
+          integer, dimension(:,:)      , allocatable, private :: grdpts_id
 
           logical, private :: shares_grdpts_with_neighbor1
           logical, private :: shares_grdpts_with_neighbor2

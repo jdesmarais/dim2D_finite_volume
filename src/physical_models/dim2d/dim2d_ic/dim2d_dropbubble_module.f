@@ -101,6 +101,11 @@
                sign=-1
             case(vapor)
                sign=+1
+            case default
+               sign=0
+               print '(''dim2d_dropbubble_module'')'
+               print '(''choose_phase_at_center'')'
+               stop 'phase_at_center not recognized'
           end select
 
         end function choose_phase_at_center

@@ -21,6 +21,7 @@
         use sd_operators_class         , only : sd_operators
         use parameters_constant        , only : earth_gravity_choice,
      $                                          bc_fluxes_choice
+        use parameters_bf_layer        , only : no_pt
         use parameters_input           , only : nx,ny,ne,bc_size,
      $                                          gravity_choice,
      $                                          bcx_type_choice,
@@ -167,7 +168,7 @@
         !tables
         subroutine compute_time_dev_nopt(
      $     nodes,dx,dy,s,p_model,bc_used,
-     $     time_dev)
+     $     time_dev, grdpts_id)
 
             implicit none
 
@@ -179,6 +180,7 @@
             type(pmodel_eq)              , intent(in)  :: p_model
             type(bc_operators)           , intent(in)  :: bc_used
             real(rkind), dimension(:,:,:), intent(out) :: time_dev
+            integer    , dimension(:,:)  , intent(in)  :: grdpts_id
 
             integer(ikind)                             :: i,j
             integer                                    :: k
@@ -192,10 +194,10 @@
 
             !<compute the fluxes
             !FORCEINLINE RECURSIVE
-            flux_x = p_model%compute_flux_x(nodes,dx,dy,s)
+            call p_model%compute_flux_x_nopt(nodes,dx,dy,s,grdpts_id,flux_x)
 
             !FORCEINLINE RECURSIVE
-            flux_y = p_model%compute_flux_y(nodes,dx,dy,s)
+            call p_model%compute_flux_y_nopt(nodes,dx,dy,s,grdpts_id,flux_y)
 
 
             !<if the boundary conditions influence the computation
@@ -213,12 +215,19 @@
 
                !<compute the time derivatives
                do k=1, ne
-                  do j=1+bc_size, ny-bc_size
-                     do i=1+bc_size, nx-bc_size
-                        time_dev(i,j,k)=
-     $                       (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
-     $                       (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)+
-     $                       p_model%compute_body_forces(nodes(i,j,:),k)
+                  do j=1+bc_size, size(time_dev,2)-bc_size
+                     do i=1+bc_size, size(time_dev,1)-bc_size
+
+                        if(grdpts_id(i,j).ne.no_pt) then
+
+                           time_dev(i,j,k)=
+     $                          (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
+     $                          (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)+
+     $                          p_model%compute_body_forces(
+     $                             nodes(i,j,:),k)
+
+                        end if
+
                      end do
                   end do
                end do
@@ -227,11 +236,16 @@
 
                !<compute the time derivatives
                do k=1, ne
-                  do j=1+bc_size, ny-bc_size
-                     do i=1+bc_size, nx-bc_size
-                        time_dev(i,j,k)=
-     $                       (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
-     $                       (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
+                  do j=1+bc_size, size(time_dev,2)-bc_size
+                     do i=1+bc_size, size(time_dev,1)-bc_size
+
+                        if(grdpts_id(i,j).ne.no_pt) then
+
+                           time_dev(i,j,k)=
+     $                          (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
+     $                          (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
+
+                        end if
                      end do
                   end do
                end do

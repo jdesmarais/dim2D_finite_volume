@@ -45,6 +45,14 @@ $(iobf_layer_dir)/bf_layer_nf90_operators_module.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
+$(cbf_layer_dir)/bf_compute_class.o:\
+	$(bc_cdir)/bc_operators_class.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	$(pm_cdir)/pmodel_eq_class.o\
+	$(sd_cdir)/sd_operators_class.o\
+	$(td_cdir)/td_operators_class.o
+
 $(bf_layer_dir)/bf_layer_class.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\

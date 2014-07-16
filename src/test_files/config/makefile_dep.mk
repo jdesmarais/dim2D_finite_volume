@@ -332,6 +332,7 @@ $(td_dir)/td_operators_par_class.o:\
 $(fv_dir)/td_operators_class.o:\
 			$(bc_cdir)/bc_operators_class.o\
 			$(sd_cdir)/sd_operators_class.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(pm_cdir)/pmodel_eq_class.o\
