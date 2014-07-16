@@ -10,10 +10,14 @@
       !> nodes needed when extending the interior domain
       !
       !> @date
-      ! 07_04_2014 - initial version      - J.L. Desmarais
-      ! 26_06_2014 - documentation update - J.L. Desmarais
+      ! 07_04_2014 - initial version       - J.L. Desmarais
+      ! 26_06_2014 - documentation update  - J.L. Desmarais
+      ! 16_07_2014 - time integration fcts - J.L. Desmarais
       !-----------------------------------------------------------------
       module bf_layer_class
+
+        use bf_compute_class            , only : bf_compute
+        use interface_integration_step  , only : timeInt_step_nopt
 
         use bf_layer_errors_module      , only : error_mainlayer_id,
      $                                           error_diff_mainlayer_id
@@ -99,6 +103,10 @@
         !> logical identifying whether the buffer layer based on its
         !> grid points at the edge with the interior domain are such
         !> that the buffer layer can be removed
+        !
+        !> @param bf_compute_used
+        !> object containing the intermediate variables needed to compute
+        !> the time integration steps
         !
         !> @param ini
         !> initialize the buffer layer by setting its cardinal
@@ -251,6 +259,21 @@
         !> print the nodes and the grdpts_id attributes
         !> as well as the size of the previous tables in
         !> output binary files
+        !
+        !> @param print_netcdf
+        !> print the nodes and the grdpts_id attributes
+        !> on a netcdf file
+        !
+        !> @param ini_for_comput
+        !> initialize the grid size for the computations
+        !
+        !> @param allocate_before_timeInt
+        !> allocate memory space for the intermediate
+        !> variables needed to perform the time integration
+        !
+        !> @param deallocate_after_timeInt
+        !> deallocate memory space for the intermediate
+        !> variables needed to perform the time integration
         !-------------------------------------------------------------
         type :: bf_layer
 
@@ -264,6 +287,8 @@
           logical, private :: shares_grdpts_with_neighbor2
 
           logical, private :: can_remain
+
+          type(bf_compute) :: bf_compute_used
 
           contains
 
@@ -316,6 +341,14 @@
           
           procedure,   pass :: print_binary
           procedure,   pass :: print_netcdf
+
+          
+          procedure,   pass :: ini_for_comput
+          procedure,   pass :: allocate_before_timeInt
+          procedure,   pass :: deallocate_after_timeInt
+          procedure,   pass :: compute_time_dev
+          procedure,   pass :: compute_integration_step
+          procedure,   pass :: get_time_dev !only for tests
 
         end type bf_layer
 
@@ -1724,7 +1757,6 @@
           integer(ikind) :: size_x, size_y
           integer(ikind) :: i,j
 
-
           !get the match table converting the general coords
           !into local coords
           match_table = get_general_to_local_coord_tab(this)
@@ -2505,5 +2537,165 @@
      $         this%grdpts_id, this%nodes, time)
 
         end subroutine print_netcdf
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the grid size of the computations
+        !
+        !> @date
+        !> 16_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
+        subroutine ini_for_comput(this,dx,dy)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+          real(rkind)    , intent(in)    :: dx
+          real(rkind)    , intent(in)    :: dy
+
+          call this%bf_compute_used%ini(dx,dy)
+
+        end subroutine ini_for_comput
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> allocate memory space for the intermediate
+        !> variables needed to perform the time integration
+        !
+        !> @date
+        !> 16_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
+        subroutine allocate_before_timeInt(this)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+
+          call this%bf_compute_used%allocate_tables(
+     $         size(this%nodes,1),
+     $         size(this%nodes,2))
+
+        end subroutine allocate_before_timeInt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> deallocate the memory space for the intermediate
+        !> variables needed to perform the time integration
+        !
+        !> @date
+        !> 16_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
+        subroutine deallocate_after_timeInt(this)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+
+          call this%bf_compute_used%deallocate_tables()
+
+        end subroutine deallocate_after_timeInt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives
+        !
+        !> @date
+        !> 16_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
+        subroutine compute_time_dev(this)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+
+          call this%bf_compute_used%compute_time_dev(
+     $         this%nodes,
+     $         this%grdpts_id)
+
+        end subroutine compute_time_dev
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the integration step
+        !
+        !> @date
+        !> 16_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
+        subroutine compute_integration_step(
+     $     this, dt, integration_step_nopt)
+
+          implicit none
+
+          class(bf_layer)              , intent(inout) :: this
+          real(rkind)                  , intent(in)    :: dt
+          procedure(timeInt_step_nopt) :: integration_step_nopt
+
+          call this%bf_compute_used%compute_integration_step(
+     $         this%grdpts_id,
+     $         this%nodes,
+     $         dt,
+     $         integration_step_nopt)
+
+        end subroutine compute_integration_step
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the time derivatives
+        !
+        !> @date
+        !> 16_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
+        subroutine get_time_dev(this, time_dev)
+
+          implicit none
+
+          class(bf_layer), intent(in) :: this
+          real(rkind), dimension(:,:,:), allocatable, intent(out)::time_dev
+
+          call this%bf_compute_used%get_time_dev(time_dev)
+
+        end subroutine get_time_dev
 
       end module bf_layer_class

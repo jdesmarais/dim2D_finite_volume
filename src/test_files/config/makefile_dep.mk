@@ -348,6 +348,9 @@ $(fv_dir)/td_operators_par_class.o:\
 
 
 #time integration methods
+$(ti_dir)/interface_integration_step.o:\
+			$(param_dir)/parameters_kind.o
+
 $(ti_dir)/td_integrator_abstract_class.o:\
 			$(field_dir)/field_abstract_class.o\
 			$(param_dir)/parameters_kind.o

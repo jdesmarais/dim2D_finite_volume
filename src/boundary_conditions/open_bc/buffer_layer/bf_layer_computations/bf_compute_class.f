@@ -14,12 +14,13 @@
       !-----------------------------------------------------------------
       module bf_compute_class
 
-        use bc_operators_class, only : bc_operators
-        use parameters_input  , only : ne
-        use parameters_kind   , only : ikind, rkind
-        use pmodel_eq_class   , only : pmodel_eq
-        use sd_operators_class, only : sd_operators
-        use td_operators_class, only : td_operators
+        use bc_operators_class        , only : bc_operators
+        use interface_integration_step, only : timeInt_step_nopt
+        use parameters_input          , only : ne
+        use parameters_kind           , only : ikind, rkind
+        use pmodel_eq_class           , only : pmodel_eq
+        use sd_operators_class        , only : sd_operators
+        use td_operators_class        , only : td_operators
 
 
         implicit none
@@ -97,24 +98,6 @@
 
         end type bf_compute
 
-
-        abstract interface
-
-          subroutine integration_step_nopt_proc(
-     $          nodes, dt, nodes_tmp, time_dev)
-           
-             import rkind
-
-             real(rkind), dimension(:,:,:), intent(inout) :: nodes
-             real(rkind)                  , intent(in)    :: dt
-             real(rkind), dimension(:,:,:), intent(inout) :: nodes_tmp
-             real(rkind), dimension(:,:,:), intent(in)    :: time_dev
-
-           end subroutine integration_step_nopt_proc
-
-        end interface
-
-
         contains
 
 
@@ -185,17 +168,18 @@
 
         !compute the integration step
         subroutine compute_integration_step(
-     $     this, nodes, dt, integration_step_nopt)
+     $     this, grdpts_id, nodes, dt, integration_step_nopt)
 
           implicit none
 
           class(bf_compute)            , intent(inout) :: this
+          integer    , dimension(:,:)  , intent(in)    :: grdpts_id
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
           real(rkind)                  , intent(in)    :: dt
-          procedure(integration_step_nopt_proc) :: integration_step_nopt
+          procedure(timeInt_step_nopt) :: integration_step_nopt
 
           call integration_step_nopt(
-     $         nodes, dt, this%nodes_tmp, this%time_dev)
+     $         nodes, dt, this%nodes_tmp, this%time_dev, grdpts_id)
 
         end subroutine compute_integration_step
 

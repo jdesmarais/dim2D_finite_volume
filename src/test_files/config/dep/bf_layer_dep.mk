@@ -51,10 +51,12 @@ $(cbf_layer_dir)/bf_compute_class.o:\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o\
 	$(sd_cdir)/sd_operators_class.o\
-	$(td_cdir)/td_operators_class.o
+	$(td_cdir)/td_operators_class.o\
+	$(ti_dir)/interface_integration_step.o
 
 $(bf_layer_dir)/bf_layer_class.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(cbf_layer_dir)/bf_compute_class.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/bf_layer_allocate_module.o\
 	$(bf_layer_dir)/bf_layer_reallocate_module.o\
@@ -62,6 +64,7 @@ $(bf_layer_dir)/bf_layer_class.o:\
 	$(bf_layer_dir)/bf_layer_exchange_module.o\
 	$(iobf_layer_dir)/bf_layer_nf90_operators_module.o\
 	$(bf_layer_dir)/bf_layer_remove_module.o\
+	$(ti_dir)/interface_integration_step.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
