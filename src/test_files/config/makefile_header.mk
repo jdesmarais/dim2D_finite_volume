@@ -24,7 +24,7 @@ dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 
 sd_choice  = cg_choice                  #space discretization choice
 pm_choice  = dim2d_choice               #physical model choice
-bc_choice  = periodic_xy_choice         #boundary condition choice
+bc_choice = reflection_xy_choice         #boundary condition choice
 td_choice  = finitevolume_choice        #time discretization choice
 ti_choice  = rk3tvd_choice              #time integration choice
 io_choice  = nf90_choice                #writer choice
