@@ -136,6 +136,7 @@ test_rk3tvd_dim2d:	$(param_dep)\
 			$(dim2d_dep)\
 			$(periodic_dep)\
 			$(fv_dep)\
+			$(nf90_dep)\
 			$(rk_dep)\
 			field_abstract_class.o
 

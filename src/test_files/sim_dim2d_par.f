@@ -45,6 +45,11 @@
         call CPU_TIME(time1)
 
 
+        !< initialize the mpi process
+        !>------------------------------------------------------
+        call mpi_op%ini_mpi()
+
+
         !< initialize intermediate variables
         !>------------------------------------------------------
         !> initialize the variables determining the total number

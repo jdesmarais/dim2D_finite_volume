@@ -110,9 +110,11 @@
         ! - check the inputs
         ! - initialize the mpi process
         ! - initialize the cartesian communicator between
-        !   the tiles
-        ! - initialize the coordinates
+        !    the tiles
         ! - initialize the boundary conditions
+        ! - initialize the coordinates
+        ! - apply the initial conditions from the physical
+        !    model
         ! - initialize the i/o operators
         subroutine ini(this)
 
@@ -120,15 +122,13 @@
 
           class(field_abstract_par), intent(inout) :: this
 
-          type(mpi_process) :: mpi_op
-
           call this%check_inputs()
-          call mpi_op%ini_mpi()
           call this%ini_cartesian_communicator()
-          call this%ini_coordinates()
           call this%bc_operators_used%ini(
      $         this%comm_2d, this%pmodel_eq_used)
-          call this%io_operators_used%ini(this%comm_2d, this%usr_rank)
+          call this%ini_coordinates()
+          call this%apply_initial_conditions()
+          call this%io_operators_used%ini(this%comm_2d,this%usr_rank)
 
         end subroutine ini
 

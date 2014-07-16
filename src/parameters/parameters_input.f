@@ -35,13 +35,13 @@
         real(rkind), parameter :: detail_print = 0.0002500000d0
 
         !<mpi choice
-        integer, parameter :: npx = 1 !<number of processors along x
-        integer, parameter :: npy = 1 !<number of processors along y
+        integer, parameter :: npx = 2 !<number of processors along x
+        integer, parameter :: npy = 2 !<number of processors along y
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 248 !248
-        integer(ikind), parameter :: nty = 248 !248
+        integer(ikind), parameter :: ntx = 44 !248
+        integer(ikind), parameter :: nty = 44 !248
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -56,7 +56,7 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer, parameter :: ic_choice = phase_separation !drop_retraction
+        integer, parameter :: ic_choice = drop_retraction !drop_retraction
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
@@ -77,7 +77,7 @@
         !< search_dcr:
         !> radius expressed as number of grid points to check around
         !> the line for removing a buffer layer
-        integer, parameter :: search_nb_dt = 0.0025000000d0
+        real(rkind), parameter :: search_nb_dt = 0.0025000000d0
         integer, parameter :: search_dcr = 4
 
       end module parameters_input

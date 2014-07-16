@@ -46,9 +46,9 @@
 
 
         !< if nx.ne.12, ny.ne.12 then the test cannot be done
-        if((nx.ne.12).or.(ny.ne.12).or.(ne.ne.4)
+        if((nx.ne.22).or.(ny.ne.22).or.(ne.ne.4)
      $       .or.(npx.ne.2).or.(npy.ne.2)) then
-           stop 'the test needs: (nx,ny,ne,npx,npy)=(12,12,4,2,2)'
+           stop 'the test needs: (nx,ny,ne,npx,npy)=(18,18,4,2,2)'
         end if
         
 
@@ -116,6 +116,9 @@
         call CPU_TIME(time2)
         print '(''time elapsed: '', F10.6)', time2-time1
 
+
+        !print *, field_tested%get_x_map()
+
         contains
 
         !> @author
@@ -146,15 +149,15 @@
           implicit none
 
           character(len=14)               , intent(in)   :: filename_base
-          real(rkind), dimension(20,20,ne), intent(inout):: test_nodes
-          real(rkind), dimension(20)      , intent(inout):: test_x_map
-          real(rkind), dimension(20)      , intent(inout):: test_y_map
+          real(rkind), dimension(40,40,ne), intent(inout):: test_nodes
+          real(rkind), dimension(40)      , intent(inout):: test_x_map
+          real(rkind), dimension(40)      , intent(inout):: test_y_map
 
-          character(len=30) :: filename
+          character(len=31) :: filename
 
           integer(ikind) :: i,j
 
-          write(filename, '(''./data_test/'', A14,''.txt'')')
+          write(filename, '(''../data_test/'', A14,''.txt'')')
      $         filename_base
 
           open(unit=11,
@@ -164,8 +167,8 @@
      $         status='unknown',
      $         position='rewind')
 
-          do j=1, 20
-             do i=1, 20
+          do j=1, 40
+             do i=1, 40
                 read(11,'(6F20.6)')
      $               test_x_map(i)    , test_y_map(j),
      $               test_nodes(i,j,1), test_nodes(i,j,2),
@@ -209,9 +212,13 @@
           real(rkind), intent(in) :: cst
           logical                 :: test_validated
 
-          test_validated=(
+          test_validated=abs(
      $         int(var*1000.)-
-     $         sign(int(abs(cst*1000.)),int(cst*1000.))).eq.0
+     $         sign(int(abs(cst*1000.)),int(cst*1000.))).le.1
+
+          if(.not.test_validated) then
+             print *, int(var*1000), sign(int(abs(cst*1000.)),int(cst*1000.))
+          end if
           
         end function is_test_validated
 
@@ -265,15 +272,15 @@
           
 
 
-          real(rkind), dimension(20,20,ne) :: test_nodes
-          real(rkind), dimension(20)       :: test_x_map
-          real(rkind), dimension(20)       :: test_y_map
+          real(rkind), dimension(40,40,ne) :: test_nodes
+          real(rkind), dimension(40)       :: test_x_map
+          real(rkind), dimension(40)       :: test_y_map
 
 
           !< get the test data
           call get_test_data(
      $         filename_base,test_nodes,test_x_map,test_y_map)
-          
+
 
           !< get the cartesian coordinates of the field
           dims_nb=2
@@ -291,7 +298,6 @@
           !> the subarray tested will be different
           offset_i = cart_coord(1)*(nx-2*bc_size)+1
           offset_j = cart_coord(2)*(ny-2*bc_size)+1
-
 
           test_validated=.true.
           k=1
@@ -317,8 +323,13 @@
           end do
 
           if(.not.test_validated) then
-             print '(''(i,j,k)='', I2,1X,I2,1X,I2)',
-     $            i,j,k
+             print '(''x_map('',I2,'')='',1X,F8.3,3X,F8.3,1X,58X,
+     $               ''y_map('',I2,'')='',1X,F8.3,3X,F8.3,1X,58X,
+     $               ''nodes('',I2,'','',I2,'','',I2,'')='',1X,F8.3,3X,F8.3
+     $            )',
+     $            i, x_map(i), test_x_map(offset_i+i-1),
+     $            j, y_map(j), test_y_map(offset_j+j-1),
+     $            i,j,k, nodes(i,j,k), test_nodes(offset_i+i-1,offset_j+j-1,k)
           end if
 
          end function compare_data

@@ -36,17 +36,17 @@
 
         
         !< intermediate variables
-        logical :: test=.false.
+        logical :: test=.true.
         logical :: test_validated
 
 
         !< the test is designed for (npx,npy)=(2,2)
         !> and periodic boundary conditions
         if(  (npx.ne.2).or.(npy.ne.2).or.
-     $       (nx.ne.20).or.(ny.ne.20).or.
+     $       (nx.ne.10).or.(ny.ne.10).or.
      $       (bc_choice.ne.periodic_xy_choice)) then
            print '(''the test needs (npx,npy,nx,ny,bc_choice)='')'
-           stop '(2,2,20,20,periodic_xy_choice)'
+           stop '(2,2,10,10,periodic_xy_choice)'
         end if
 
 
@@ -242,11 +242,11 @@
           real(rkind), dimension(nx,ny,ne), intent(inout):: nodes
 
 
-          character(len=34) :: filename
+          character(len=35) :: filename
 
           integer(ikind) :: i,j
 
-          write(filename, '(''./data_test/'', A16,''_'',I1,''.txt'')')
+          write(filename, '(''../data_test/'', A16,''_'',I1,''.txt'')')
      $         filename_base, proc_rank
 
           open(unit=11,

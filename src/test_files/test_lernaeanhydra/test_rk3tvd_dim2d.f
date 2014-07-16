@@ -42,7 +42,7 @@
 
 
         !< if nx.ne.20, ny.ne.20 then the test cannot be done
-        if((nx.ne.20).or.(ny.ne.20).or.(ne.ne.4)
+        if((nx.ne.40).or.(ny.ne.40).or.(ne.ne.4)
      $       .or.(npx.ne.1).or.(npy.ne.1)) then
            stop 'the test needs: (nx,ny,ne,npx,npy)=(20,20,4,1,1)'
         end if

@@ -18,17 +18,17 @@
         use mpi_mg_bc_class         , only : mpi_mg_bc
         use mpi_process_class       , only : mpi_process
         use parameters_constant     , only : reflection_xy_choice,
-     $                                       N,S,E,W,
-     $                                       x_direction, y_direction
+     $                                       N,S,E,W
         use parameters_input        , only : nx,ny,ne,npx,npy,bc_choice
         use parameters_kind         , only : ikind, rkind
         use reflection_xy_module    , only : reflection_x_prefactor,
      $                                       reflection_y_prefactor
-        use reflection_xy_par_module, only : only_compute_along_x,
-     $     				     only_compute_along_y,
-     $                                       only_exchange,
-     $                                      compute_and_exchange_along_x,
-     $                                      compute_and_exchange_along_y
+        use reflection_xy_par_module, only :
+     $       only_compute_along_x,
+     $       only_compute_along_y,
+     $       only_exchange,
+     $       compute_and_exchange_along_x,
+     $       compute_and_exchange_along_y
 
         implicit none
 
@@ -47,7 +47,7 @@
         integer, dimension(ne) :: y_prefactor
         integer(ikind)         :: i,j
         integer                :: k
-        logical, parameter     :: test=.false.
+        logical, parameter     :: test=.true.
         logical                :: test_validated
 
 
@@ -309,7 +309,7 @@ c$$$        end if
 
           do j=1, ny
              do i=1,nx
-                write(11,'(4F10.6)')
+                write(11,'(4F10.3)')
      $               nodes(i,j,1), nodes(i,j,2),
      $               nodes(i,j,3), nodes(i,j,4)
              end do
@@ -345,10 +345,10 @@ c$$$        end if
           real(rkind), dimension(nx,ny,ne), intent(inout):: nodes
 
 
-          character(len=26) :: filename
+          character(len=27) :: filename
 
 
-          write(filename, '(''./data_test/'', A7,''_'',I1,''.txt'')')
+          write(filename, '(''../data_test/'', A7,''_'',I1,''.txt'')')
      $         filename_base, proc_rank
 
           open(unit=11,

@@ -275,10 +275,10 @@
           real(rkind), dimension(nx,ny,ne), intent(inout):: nodes
 
 
-          character(len=26) :: filename
+          character(len=27) :: filename
 
 
-          write(filename, '(''./data_test/'', A8,''_'',I1,''.txt'')')
+          write(filename, '(''../data_test/'', A8,''_'',I1,''.txt'')')
      $         filename_base, proc_rank
 
           open(unit=11,
