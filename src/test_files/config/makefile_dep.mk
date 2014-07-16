@@ -291,7 +291,7 @@ $(wrbc_dir)/wall_x_reflection_y_par_module.o:\
 $(wrbc_dir)/bc_operators_class.o:\
 			$(bc_dir)/bc_operators_abstract_class.o\
 			$(sd_cdir)/sd_operators_class.o\
-			$(dim2d_dir)/dim2d_eq_class.o\
+			$(dim2d_dir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(rbc_dir)/reflection_xy_module.o\

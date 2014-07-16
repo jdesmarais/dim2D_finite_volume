@@ -23,8 +23,8 @@ config_dir = $(AUGEANSTABLES_CONFIG)
 dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 
 sd_choice  = cg_choice                  #space discretization choice
-pm_choice  = dim2d_choice               #physical model choice
-bc_choice  = wall_x_reflection_y_choice #boundary condition choice
+pm_choice  = simpletest_choice          #physical model choice
+bc_choice  = periodic_xy_choice         #boundary condition choice
 td_choice  = finitevolume_choice        #time discretization choice
 ti_choice  = rk3tvd_choice              #time integration choice
 io_choice  = nf90_choice                #writer choice
@@ -68,29 +68,21 @@ ifeq ($(strip $(bc_choice)), periodic_xy_choice)
 	bc_cdir=$(pbc_dir)
 	sim_dep+=$(periodic_dep)
 	sim_par_dep+=$(periodic_xy_par_dep)
-	sim_dim2d_dep=$(dep_dir)/sim_dim2d_periodic_dep.mk
-	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_periodic_dep.mk
 endif
 ifeq ($(strip $(bc_choice)), reflection_xy_choice)
 	bc_cdir=$(rbc_dir)
 	sim_dep+=$(reflection_dep)
 	sim_par_dep+=$(reflection_xy_par_dep)
-	sim_dim2d_dep=$(dep_dir)/sim_dim2d_reflection_dep.mk
-	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_reflection_dep.mk
 endif
 ifeq ($(strip $(bc_choice)), wall_xy_choice)
 	bc_cdir=$(wbc_dir)
 	sim_dep+=$(wall_xy_dep)
 	sim_par_dep+=$(wall_xy_par_dep)
-	sim_dim2d_dep=$(dep_dir)/sim_dim2d_wall_dep.mk
-	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_wall_dep.mk
 endif
 ifeq ($(strip $(bc_choice)), wall_x_reflection_y_choice)
 	bc_cdir=$(wrbc_dir)
 	sim_dep+=$(wall_x_reflection_dep)
 	sim_par_dep+=$(wall_x_refl_y_par_dep)
-	sim_dim2d_dep=$(dep_dir)/sim_dim2d_wall_reflection_dep.mk
-	sim_dim2d_par_dep=$(dep_dir)/sim_dim2d_par_wall_reflection_dep.mk
 endif
 
 #time discretization
