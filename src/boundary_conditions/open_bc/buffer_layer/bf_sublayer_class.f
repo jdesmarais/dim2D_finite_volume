@@ -107,14 +107,16 @@
         !>@param localization
         !> localization of the buffer layer (N,S,E, or W)
         !--------------------------------------------------------------
-        subroutine ini(this, localization)
+        subroutine ini(this, localization, dx, dy)
 
           implicit none
 
           class(bf_sublayer), intent(inout) :: this
           integer(ikind)    , intent(in)    :: localization
+          real(rkind)       , intent(in)    :: dx
+          real(rkind)       , intent(in)    :: dy
 
-          call this%bf_layer%ini(localization)
+          call this%bf_layer%ini(localization,dx,dy)
 
           nullify(this%prev)
           nullify(this%next)

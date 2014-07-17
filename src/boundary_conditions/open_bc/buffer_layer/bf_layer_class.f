@@ -17,7 +17,7 @@
       module bf_layer_class
 
         use bf_compute_class            , only : bf_compute
-        use interface_integration_step  , only : timeInt_step_nopt
+        
 
         use bf_layer_errors_module      , only : error_mainlayer_id,
      $                                           error_diff_mainlayer_id
@@ -48,6 +48,8 @@
 
         use bf_layer_remove_module      , only : check_if_bf_layer_remains
         
+        use interface_integration_step  , only : timeInt_step_nopt
+
         use parameters_bf_layer         , only : bc_pt, bc_interior_pt,
      $                                           interior_pt, no_pt,
      $                                           align_N, align_S,
@@ -274,6 +276,15 @@
         !> @param deallocate_after_timeInt
         !> deallocate memory space for the intermediate
         !> variables needed to perform the time integration
+        !
+        !> @param compute_time_dev
+        !> compute the time derivatives
+        !
+        !> @param compute_integration_step
+        !> compute the integration step
+        !
+        !> @param get_time_dev
+        !> get the time derivatives
         !-------------------------------------------------------------
         type :: bf_layer
 
@@ -343,12 +354,12 @@
           procedure,   pass :: print_netcdf
 
           
-          procedure,   pass :: ini_for_comput
-          procedure,   pass :: allocate_before_timeInt
-          procedure,   pass :: deallocate_after_timeInt
-          procedure,   pass :: compute_time_dev
-          procedure,   pass :: compute_integration_step
-          procedure,   pass :: get_time_dev !only for tests
+          procedure,   pass, private :: ini_for_comput
+          procedure,   pass          :: allocate_before_timeInt
+          procedure,   pass          :: deallocate_after_timeInt
+          procedure,   pass          :: compute_time_dev
+          procedure,   pass          :: compute_integration_step
+          procedure,   pass          :: get_time_dev !only for tests
 
         end type bf_layer
 
@@ -372,14 +383,18 @@
         !>@param localization
         !> localization of the buffer layer (N,S,E, or W)
         !--------------------------------------------------------------
-        subroutine ini(this,localization)
+        subroutine ini(this,localization,dx,dy)
 
           implicit none
 
           class(bf_layer), intent(inout) :: this
           integer(ikind) , intent(in)    :: localization
+          real(rkind)    , intent(in)    :: dx
+          real(rkind)    , intent(in)    :: dy
           
           this%localization = localization
+
+          call this%ini_for_comput(dx,dy)
 
         end subroutine ini
 
@@ -2655,6 +2670,12 @@
         !>@param this
         !> bf_layer object encapsulating the main
         !> tables extending the interior domain
+        !
+        !>@param dt
+        !> integration time step
+        !
+        !>@param integration_step_nopt
+        !> procedure performing the time integration
         !--------------------------------------------------------------
         subroutine compute_integration_step(
      $     this, dt, integration_step_nopt)
