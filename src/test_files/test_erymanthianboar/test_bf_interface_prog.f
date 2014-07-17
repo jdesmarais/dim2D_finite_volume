@@ -38,6 +38,9 @@
         integer :: i, index
 
 
+        real(rkind) :: dx, dy
+
+
         !initialize the nodes and print them
         call ini_nodes(nodes)
         call ini_grdpts_id(grdpts_id)
@@ -54,14 +57,14 @@
         !add the N_E buffer layer
         call get_alignment(1, alignment, mainlayer_id)
         added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment)
+     $       mainlayer_id, nodes, alignment, dx, dy)
         scale = 0.1
         call ini_cst_nodes(added_sublayer, scale)
         
         !add the W buffer layer under the N_W corner
         call get_alignment(4, alignment, mainlayer_id)
         added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment)
+     $       mainlayer_id, nodes, alignment, dx, dy)
         scale = 0.2
         call ini_cst_nodes(added_sublayer, scale)
 
@@ -77,12 +80,12 @@
         !add the E buffer layer under the N_E corner
         call get_alignment(3, alignment, mainlayer_id)
         bf_sublayer_merged1 => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment)
+     $       mainlayer_id, nodes, alignment, dx, dy)
         
         !add the N_W buffer layer
         call get_alignment(2, alignment, mainlayer_id)
         added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment)
+     $       mainlayer_id, nodes, alignment, dx, dy)
 
         
         !print the interface
@@ -96,12 +99,12 @@
         !add the E buffer layer
         call get_alignment(5, alignment, mainlayer_id)
         bf_sublayer_merged2 => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment)
+     $       mainlayer_id, nodes, alignment, dx, dy)
 
         !add the W buffer layer
         call get_alignment(6, alignment, mainlayer_id)
         bf_sublayer_reallocated => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment)
+     $       mainlayer_id, nodes, alignment, dx, dy)
 
         
         !print the interface
@@ -115,7 +118,7 @@
         !add the S_E buffer layer
         call get_alignment(7, alignment, mainlayer_id)
         added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment)
+     $       mainlayer_id, nodes, alignment, dx, dy)
         scale = 0.3
         call ini_cst_nodes(added_sublayer, scale)
         
@@ -123,7 +126,7 @@
         !add the S_W buffer layer
         call get_alignment(8, alignment, mainlayer_id)
         added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment)
+     $       mainlayer_id, nodes, alignment, dx, dy)
         scale = 0.4
         call ini_cst_nodes(added_sublayer, scale)
 
@@ -162,7 +165,7 @@
         do i=11,16
            call get_alignment(i, alignment, mainlayer_id)
            added_sublayer => interface_tested%allocate_sublayer(
-     $          mainlayer_id, nodes, alignment)
+     $          mainlayer_id, nodes, alignment, dx, dy)
         end do
 
         call interface_tested%print_binary(
@@ -763,19 +766,22 @@
           real(rkind) :: time
 
           parameter (name_var = [
-     $         'mass','momentum-x','momentum-y','energy'])
+     $         'mass      ',
+     $         'momentum-x',
+     $         'momentum-y',
+     $         'energy    '])
 
           parameter (longname_var = [
-     $         'non-dimensional mass',
+     $         'non-dimensional mass      ',
      $         'non-dimensional momentum-x',
      $         'non-dimensional momentum-y',
-     $         'non-dimensional energy'])
+     $         'non-dimensional energy    '])
 
           parameter (unit_var = [
-     $         '(kg/m3)/(kg/m3)',
+     $         '(kg/m3)/(kg/m3)        ',
      $         '(kg/(m2.s))/(kg/(m2.s))',
      $         '(kg/(m2.s))/(kg/(m2.s))',
-     $         '(J/m3)/(J/m3)'])
+     $         '(J/m3)/(J/m3)          '])
 
           x_min_interior = 1.0
           y_min_interior = 3.0

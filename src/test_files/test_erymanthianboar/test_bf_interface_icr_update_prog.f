@@ -5,8 +5,15 @@
         use bf_detector_icr_list_class, only : bf_detector_icr_list
         use bf_interface_icr_class    , only : bf_interface_icr
         use parameters_constant       , only : N,S,E,W
-        use parameters_input          , only : nx,ny,ne,bc_size
+        use parameters_input          , only : npx,npy,ntx,nty,
+     $                                         nx,ny,ne,bc_size,
+     $                                         x_min,x_max,
+     $                                         y_min,y_max,
+     $                                         dt,
+     $                                         search_nb_dt,
+     $                                         search_dcr
         use parameters_kind           , only : rkind
+        use pmodel_eq_class           , only : pmodel_eq
         use test_bf_layer_module      , only : ini_grdpts_id
 
         use test_cases_interface_update_module, only : update_nodes,
@@ -18,6 +25,7 @@
         type(bf_interface_icr)              :: interface_used
         real(rkind)   , dimension(nx,ny,ne) :: interior_nodes
         integer       , dimension(nx,ny)    :: grdpts_id
+        type(pmodel_eq)                     :: p_model
         integer       , parameter           :: test_case=8
 
         integer :: i
@@ -27,6 +35,33 @@
 
         integer :: timestep
         integer :: file_index
+
+        !check the inputs
+        if(
+     $       (npx.ne.1).or.(npy.ne.1).or.
+     $       (ntx.ne.40).or.(nty.ne.40).or.
+     $       (x_min.ne.-3.0d0).or.(x_max.ne.0.0d0).or.
+     $       (y_min.ne.0.0d0).or.(y_max.ne.3.0d0).or.
+     $       (dt.ne.0.02d0).or.(ne.ne.4).or.
+     $       (search_nb_dt.ne.1).or.(search_dcr.ne.4)) then
+
+           print '(''the test requires: '')'
+           print '(''npx = 1'')'
+           print '(''npy = 1'')'
+           print '(''ntx = 40'')'
+           print '(''nty = 40'')'
+           print '(''x_min = -3.0d0'')'
+           print '(''x_max = 0.0d0'')'
+           print '(''y_min = 0.0d0'')'
+           print '(''y_max = 3.0d0'')'
+           print '(''dt = 0.02d0'')'
+           print '(''ne = 4'')'
+           print '(''search_nb_dt = 1'')'
+           print '(''search_dcr = 4'')'
+           stop ''
+
+        end if
+
 
         dx = 1.0d0/(nx-2*bc_size)
         dy = 1.0d0/(ny-2*bc_size)
@@ -61,7 +96,7 @@
         do i=1,30
 
            call interface_used%update_bf_layers_with_idetectors(
-     $          interior_nodes, dx, dy)
+     $          interior_nodes, dx, dy, p_model)
 
            call update_nodes(
      $          test_case,

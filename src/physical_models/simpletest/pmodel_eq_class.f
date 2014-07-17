@@ -74,6 +74,7 @@
           procedure, nopass :: compute_flux_x_nopt
           procedure, nopass :: compute_flux_y_nopt
           procedure, nopass :: compute_body_forces
+          procedure, nopass :: get_velocity
 
         end type pmodel_eq
 
@@ -439,5 +440,34 @@
           k_s = k
 
         end function compute_body_forces
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface to compute the body forces
+        !> acting on the cell
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> governing variables at the grid point location
+        !
+        !>@param velocity
+        !> velocity vector at the grid point location
+        !--------------------------------------------------------------
+        function get_velocity(nodes) result(velocity)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(2)              :: velocity
+
+          velocity(1) = nodes(1)
+          velocity(2) = nodes(1)
+
+        end function get_velocity
 
       end module pmodel_eq_class

@@ -32,6 +32,7 @@
         real(rkind), dimension(:,:,:), allocatable :: bf_nodes
         real(rkind)                                :: color
         integer(ikind)                             :: i,j
+        real(rkind) :: dx,dy
 
 
         !initialize the nodes
@@ -55,7 +56,9 @@
            added_sublayer => interface_used%allocate_sublayer(
      $          mainlayer_id,
      $          nodes,
-     $          alignment)
+     $          alignment,
+     $          dx,
+     $          dy)
 
            !match_table
            match_table = added_sublayer%get_general_to_local_coord_tab()

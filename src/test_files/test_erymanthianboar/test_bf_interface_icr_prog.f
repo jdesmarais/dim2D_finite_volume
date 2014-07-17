@@ -16,6 +16,8 @@
         type(bf_interface_icr)              :: interface_used
         real(rkind)   , dimension(nx,ny,ne) :: nodes
         integer       , dimension(nx,ny)    :: grdpts_id
+        real(rkind)                         :: dx
+        real(rkind)                         :: dy
         integer(ikind), dimension(7,7,2)    :: cpt_coords_tab
         integer(ikind), dimension(2)        :: cpt_coords
         integer(ikind), dimension(2)        :: cpt_coords_p
@@ -41,7 +43,7 @@
         !test of ini()
         call interface_used%ini()
         call initialize_sublayers_in_interface(
-     $       interface_used, nodes, added_sublayer)
+     $       interface_used, nodes, dx, dy, added_sublayer)
 
         call interface_used%print_idetectors_on(nodes(:,:,1))
 
@@ -272,12 +274,14 @@
 
         !< initialize the sublayers for the interface
         subroutine initialize_sublayers_in_interface(
-     $       interface_used, nodes, added_sublayer)
+     $       interface_used, nodes, dx, dy, added_sublayer)
 
           implicit none
 
           type(bf_interface_icr)          , intent(inout) :: interface_used
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+          real(rkind)                     , intent(in)    :: dx
+          real(rkind)                     , intent(in)    :: dy
           type(bf_sublayer), pointer      , intent(out)   :: added_sublayer
 
           
@@ -291,10 +295,11 @@
 
 
           added_sublayer => interface_used%allocate_sublayer(
-     $         N, nodes, alignment)
+     $         N, nodes, alignment, dx, dy)
 
           !modify the sublayer to see if the copy works
-          call added_sublayer%set_grdpts_id_pt(bc_size+1,2*bc_size+1,interior_pt)
+          call added_sublayer%set_grdpts_id_pt(
+     $         bc_size+1, 2*bc_size+1, interior_pt)
 
         end subroutine initialize_sublayers_in_interface
 

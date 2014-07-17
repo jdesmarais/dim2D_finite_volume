@@ -33,6 +33,8 @@
 
         integer :: g,h,i,j
 
+        real(rkind) :: dx,dy
+
         !initialize the nodes and the grdpts_id
         call ini_nodes(nodes)
         call ini_grdpts_id(grdpts_id)
@@ -103,7 +105,7 @@
 
               !allocate the buffer layer
               added_sublayer => bf_mainlayers(j)%add_sublayer(
-     $             nodes,alignment)
+     $             nodes,alignment,dx,dy)
 
               select case(i)
                 case(1,4)
@@ -136,7 +138,7 @@
 
               !allocate the buffer layer
               added_sublayer => bf_mainlayers(j)%add_sublayer(
-     $             nodes,alignment)
+     $             nodes,alignment,dx,dy)
 
               select case(i)
                 case(1)

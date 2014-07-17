@@ -22,3 +22,4 @@ echo ''
 echo 'Cleaning directory...'
 make cleanall 1>/dev/null 2>&1
 rm *.dat
+rm *.nc

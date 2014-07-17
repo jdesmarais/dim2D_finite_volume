@@ -32,6 +32,8 @@
 
         integer :: g,h,i,j,i_max
 
+        real(rkind) :: dx,dy
+
         !initialize the nodes and the grdpts_id
         call ini_nodes(nodes)
         call ini_grdpts_id(grdpts_id)
@@ -103,7 +105,7 @@
 
               !allocate the buffer layer
               added_sublayer => bf_mainlayers(j)%add_sublayer(
-     $             nodes,alignment)
+     $             nodes,alignment,dx,dy)
 
               !set whether the buffe rlayer can exchange
               !with neighboring layers

@@ -100,8 +100,23 @@
         !> considering the user choices (drop retraction, two drops
         !> collision...)
         !>
-        !> @param compute_fluxes
-        !> compute the fluxes along the x- and y-axis
+        !> @param compute_flux_x
+        !> compute the fluxes along the x-axis with fixed sized arrays
+        !
+        !> @param compute_flux_y
+        !> compute the fluxes along the y-axis with fixed sized arrays    
+        !
+        !> @param compute_flux_x_nopt
+        !> compute the fluxes along the x-axis with non-fixed sized arrays
+        !
+        !> @param compute_flux_y_nopt
+        !> compute the fluxes along the y-axis with non-fixed sized arrays
+        !
+        !> @param compute_body_forces
+        !> compute the body forces at a grid point location
+        !
+        !> @param get_velocity
+        !> compute the velocity at a grid point location
         !---------------------------------------------------------------
         type, extends(pmodel_eq_abstract) :: pmodel_eq
           
@@ -119,6 +134,7 @@
           procedure, nopass :: compute_flux_x_nopt
           procedure, nopass :: compute_flux_y_nopt
           procedure, nopass :: compute_body_forces
+          procedure, nopass :: get_velocity
 
         end type pmodel_eq
 
@@ -663,5 +679,34 @@ c$$$               call apply_drop_evaporation_ic(field_used)
           end select
 
         end function compute_body_forces
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface to compute the body forces
+        !> acting on the cell
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> governing variables at the grid point location
+        !
+        !>@param velocity
+        !> velocity vector at the grid point location
+        !--------------------------------------------------------------
+        function get_velocity(nodes) result(velocity)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(2)              :: velocity
+
+          velocity(1) = nodes(2)/nodes(1)
+          velocity(2) = nodes(3)/nodes(1)
+
+        end function get_velocity
 
       end module pmodel_eq_class

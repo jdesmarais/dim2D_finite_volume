@@ -32,6 +32,8 @@
         real(rkind)                             :: scale
 
         integer(ikind) :: g,h,i,j
+
+        real(rkind) :: dx,dy
         
 
         !initialize the nodes and the grdpts_id
@@ -95,7 +97,7 @@
 
               !allocate the buffer layer
               added_sublayer => bf_mainlayers(j)%add_sublayer(
-     $             nodes,alignment)
+     $             nodes,alignment,dx,dy)
 
               !initialize the corresponding nbf_element
               !with the reference to the buffer sublayer

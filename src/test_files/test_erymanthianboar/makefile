@@ -26,7 +26,8 @@ test_bf_layer_prog.o:\
 	test_bf_layer_module.o
 
 test_bf_sublayer_prog.o:\
-	$(bf_layer_dir)/bf_sublayer_class.o
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(param_dir)/parameters_kind.o
 
 test_bf_mainlayer_module.o:\
 	$(bf_layer_dir)/bf_mainlayer_class.o\
@@ -147,6 +148,7 @@ test_bf_interface_icr_update_prog.o:\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
+	$(pm_cdir)/pmodel_eq_class.o\
 	test_bf_layer_module.o\
 	test_cases_interface_update_module.o
 
@@ -164,6 +166,7 @@ test_bf_interface_dcr_update_prog.o:\
 	$(bf_layer_dir)/bf_interface_dcr_class.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
+	$(pm_cdir)/pmodel_eq_class.o\
 	test_bf_layer_module.o\
 	test_cases_interface_update_module.o
 
@@ -198,7 +201,7 @@ test_bf_interface_dcr_update_prog2.o:\
 
 test_bf_layer_nf90_operators_prog.o:\
 	$(iobf_layer_dir)/bf_layer_nf90_operators_module.o\
-	$(dim2d_dir)/dim2d_eq_class.o\
+	$(dim2d_dir)/pmodel_eq_class.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_kind.o\
@@ -208,89 +211,49 @@ test_bf_layer_nf90_operators_prog.o:\
 #dependencies for the test files executables
 #-----------------------------------------------------------------------
 test_bf_layer_prog:\
-	parameters_kind.o\
-	parameters_constant.o\
-	parameters_input.o\
-	parameters_bf_layer.o\
-	bf_layer_errors_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_activation_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(simpletest_dep)\
+	$(bf_layer_dep)\
 	test_bf_layer_module.o
 
 test_bf_sublayer_prog:\
-	parameters_kind.o\
-	parameters_constant.o\
-	parameters_input.o\
-	parameters_bf_layer.o\
-	bf_layer_errors_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_activation_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(simpletest_dep)\
+	$(bf_layer_dep)\
 	bf_sublayer_class.o
 
 test_bf_mainlayer_prog:\
-	parameters_kind.o\
-	parameters_constant.o\
-	parameters_input.o\
-	parameters_bf_layer.o\
-	bf_layer_errors_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_activation_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(simpletest_dep)\
+	$(bf_layer_dep)\
 	bf_sublayer_class.o\
 	bf_mainlayer_class.o\
 	test_bf_layer_module.o\
 	test_bf_mainlayer_module.o
 
 test_nbf_element_prog:\
-	parameters_kind.o\
-	parameters_constant.o\
-	parameters_input.o\
-	parameters_bf_layer.o\
-	bf_layer_errors_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_activation_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(simpletest_dep)\
+	$(bf_layer_dep)\
 	bf_sublayer_class.o\
 	bf_mainlayer_class.o\
 	nbf_element_class.o\
 	test_bf_layer_module.o
 
 test_nbf_list_prog:\
-	parameters_kind.o\
-	parameters_constant.o\
-	parameters_input.o\
-	parameters_bf_layer.o\
-	bf_layer_errors_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_activation_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(simpletest_dep)\
+	$(bf_layer_dep)\
 	bf_sublayer_class.o\
 	nbf_element_class.o\
 	bf_sublayer_pointer_class.o\
@@ -301,19 +264,11 @@ test_nbf_list_prog:\
 	test_nbf_list_module.o
 
 test_nbf_interface_prog:\
-	parameters_kind.o\
-	parameters_constant.o\
-	parameters_input.o\
-	parameters_bf_layer.o\
-	bf_layer_errors_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_activation_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(simpletest_dep)\
+	$(bf_layer_dep)\
 	bf_sublayer_class.o\
 	nbf_element_class.o\
 	bf_sublayer_pointer_class.o\
@@ -325,53 +280,19 @@ test_nbf_interface_prog:\
 	test_nbf_list_module.o
 
 test_bf_interface_prog:\
-	parameters_kind.o\
-	parameters_constant.o\
-	parameters_input.o\
-	parameters_bf_layer.o\
-	bf_layer_errors_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_activation_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
-	bf_sublayer_class.o\
-	bf_mainlayer_class.o\
-	bf_mainlayer_pointer_class.o\
-	nbf_element_class.o\
-	bf_sublayer_pointer_class.o\
-	sbf_list_class.o\
-	nbf_list_class.o\
-	nbf_interface_class.o\
-	bf_interface_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(simpletest_dep)\
+	$(bf_interface_dep)\
 	test_bf_layer_module.o
 
 test_bf_path_icr_prog:\
-	bf_layer_errors_module.o\
-	parameters_kind.o\
-	parameters_constant.o\
-	parameters_input.o\
-	parameters_bf_layer.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_activation_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
-	bf_sublayer_class.o\
-	bf_mainlayer_class.o\
-	bf_mainlayer_pointer_class.o\
-	nbf_element_class.o\
-	bf_sublayer_pointer_class.o\
-	sbf_list_class.o\
-	nbf_list_class.o\
-	nbf_interface_class.o\
-	bf_interface_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(simpletest_dep)\
+	$(bf_interface_dep)\
 	bf_path_icr_class.o\
 	test_bf_layer_module.o
 
@@ -385,217 +306,57 @@ test_dbf_list_prog:\
 	parameters_kind.o
 
 test_bf_detector_icr_list_prog:\
-	parameters_kind.o\
-	bf_detector_module.o\
-	parameters_constant.o\
-	parameters_input.o\
-	parameters_bf_layer.o\
-	bf_layer_errors_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_activation_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
-	bf_sublayer_class.o\
-	bf_mainlayer_class.o\
-	bf_mainlayer_pointer_class.o\
-	nbf_element_class.o\
-	bf_sublayer_pointer_class.o\
-	sbf_list_class.o\
-	nbf_list_class.o\
-	nbf_interface_class.o\
-	bf_interface_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(simpletest_dep)\
+	$(bf_interface_dep)\
 	dbf_element_class.o\
 	dbf_list_class.o\
+	bf_detector_module.o\
 	bf_detector_icr_list_class.o\
 	test_bf_layer_module.o
 
 test_bf_interface_icr_prog:\
-	parameters_kind.o\
-	bf_detector_module.o\
-	parameters_constant.o\
-	parameters_input.o\
-	parameters_bf_layer.o\
-	bf_layer_errors_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_activation_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
-	bf_sublayer_class.o\
-	bf_mainlayer_class.o\
-	bf_mainlayer_pointer_class.o\
-	nbf_element_class.o\
-	bf_sublayer_pointer_class.o\
-	sbf_list_class.o\
-	nbf_list_class.o\
-	nbf_interface_class.o\
-	bf_interface_class.o\
-	dbf_element_class.o\
-	dbf_list_class.o\
-	bf_detector_icr_list_class.o\
-	bf_detector_dcr_list_class.o\
-	bf_detector_dcr_list_NS_class.o\
-	bf_detector_dcr_list_N_class.o\
-	bf_detector_dcr_list_S_class.o\
-	bf_detector_dcr_list_EW_class.o\
-	bf_detector_dcr_list_E_class.o\
-	bf_detector_dcr_list_W_class.o\
-	bf_path_icr_class.o\
-	bf_nbc_template_module.o\
-	bf_interface_icr_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(simpletest_dep)\
+	$(bf_interface_icr_dep)\
 	test_bf_layer_module.o
 
 test_bf_interface_icr_update_prog:\
-	parameters_kind.o\
-	bf_detector_module.o\
-	parameters_constant.o\
-	parameters_input.o\
-	parameters_bf_layer.o\
-	bf_layer_errors_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_activation_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
-	bf_sublayer_class.o\
-	bf_mainlayer_class.o\
-	bf_mainlayer_pointer_class.o\
-	nbf_element_class.o\
-	bf_sublayer_pointer_class.o\
-	sbf_list_class.o\
-	nbf_list_class.o\
-	nbf_interface_class.o\
-	bf_interface_class.o\
-	dbf_element_class.o\
-	dbf_list_class.o\
-	bf_detector_icr_list_class.o\
-	bf_detector_dcr_list_class.o\
-	bf_detector_dcr_list_NS_class.o\
-	bf_detector_dcr_list_N_class.o\
-	bf_detector_dcr_list_S_class.o\
-	bf_detector_dcr_list_EW_class.o\
-	bf_detector_dcr_list_E_class.o\
-	bf_detector_dcr_list_W_class.o\
-	bf_path_icr_class.o\
-	bf_nbc_template_module.o\
-	bf_interface_icr_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(dim2d_dep)\
+	$(bf_interface_icr_dep)\
 	test_bf_layer_module.o\
 	test_cases_interface_update_module.o
 
 test_bf_layer_remove_prog:\
-	parameters_kind.o\
-	parameters_constant.o\
-	parameters_input.o\
-	bf_activation_module.o\
-	bf_layer_errors_module.o\
-	parameters_bf_layer.o\
-	bf_layer_remove_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_layer_class.o\
-	bf_sublayer_class.o\
-	bf_mainlayer_class.o\
-	bf_mainlayer_pointer_class.o\
-	nbf_element_class.o\
-	bf_sublayer_pointer_class.o\
-	sbf_list_class.o\
-	nbf_list_class.o\
-	nbf_interface_class.o\
-	bf_interface_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(dim2d_dep)\
+	$(bf_interface_dep)\
 	test_bf_layer_module.o
 
 test_bf_interface_dcr_update_prog:\
-	parameters_kind.o\
-	parameters_constant.o\
-	parameters_input.o\
-	bf_activation_module.o\
-	bf_detector_module.o\
-	bf_detector_dcr_list_class.o\
-	bf_detector_dcr_list_NS_class.o\
-	parameters_bf_layer.o\
-	bf_detector_dcr_list_N_class.o\
-	bf_detector_dcr_list_S_class.o\
-	bf_detector_dcr_list_EW_class.o\
-	bf_detector_dcr_list_E_class.o\
-	bf_detector_dcr_list_W_class.o\
-	bf_layer_errors_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
-	bf_sublayer_class.o\
-	bf_mainlayer_class.o\
-	bf_mainlayer_pointer_class.o\
-	nbf_element_class.o\
-	bf_sublayer_pointer_class.o\
-	sbf_list_class.o\
-	nbf_list_class.o\
-	nbf_interface_class.o\
-	bf_interface_class.o\
-	dbf_element_class.o\
-	dbf_list_class.o\
-	bf_detector_icr_list_class.o\
-	bf_path_icr_class.o\
-	bf_nbc_template_module.o\
-	bf_interface_icr_class.o\
-	bf_interface_dcr_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(dim2d_dep)\
+	$(bf_interface_dcr_dep)\
 	test_bf_layer_module.o\
 	test_cases_interface_update_module.o
 
 test_bf_interface_dcr_update_prog2:\
-	parameters_kind.o\
-	parameters_constant.o\
-	parameters_input.o\
-	bf_activation_module.o\
-	bf_detector_module.o\
-	bf_detector_dcr_list_class.o\
-	bf_detector_dcr_list_NS_class.o\
-	parameters_bf_layer.o\
-	bf_detector_dcr_list_N_class.o\
-	bf_detector_dcr_list_S_class.o\
-	bf_detector_dcr_list_EW_class.o\
-	bf_detector_dcr_list_E_class.o\
-	bf_detector_dcr_list_W_class.o\
-	bf_layer_errors_module.o\
-	bf_layer_allocate_module.o\
-	bf_layer_reallocate_module.o\
-	bf_layer_merge_module.o\
-	bf_layer_exchange_module.o\
-	bf_layer_nf90_operators_module.o\
-	bf_layer_remove_module.o\
-	bf_layer_class.o\
-	bf_sublayer_class.o\
-	bf_mainlayer_class.o\
-	bf_mainlayer_pointer_class.o\
-	nbf_element_class.o\
-	bf_sublayer_pointer_class.o\
-	sbf_list_class.o\
-	nbf_list_class.o\
-	nbf_interface_class.o\
-	bf_interface_class.o\
-	dbf_element_class.o\
-	dbf_list_class.o\
-	bf_detector_icr_list_class.o\
-	bf_path_icr_class.o\
-	bf_nbc_template_module.o\
-	bf_interface_icr_class.o\
-	bf_interface_dcr_class.o\
+	$(param_dep)\
+	$(cg_dep)\
+	$(fv_dep)\
+	$(dim2d_dep)\
+	$(bf_interface_dcr_dep)\
 	test_bf_layer_module.o\
 	bubble_class.o\
 	rising_bubble_class.o\
@@ -603,28 +364,10 @@ test_bf_interface_dcr_update_prog2:\
 	test_case_class.o
 
 test_bf_layer_nf90_operators_prog:\
+	$(param_dep)\
 	bf_layer_errors_module.o\
-	surrogate_class.o\
-	parameters_kind.o\
-	parameters_constant.o\
-	parameters_input.o\
-	field_class.o\
-	interface_primary.o\
-	sd_operators_class.o\
-	cg_operators_class.o\
-	dim2d_parameters.o\
-	dim2d_dropbubble_module.o\
-	dim2d_vortex_module.o\
-	dim2d_state_eq_module.o\
-	dim2d_bubble_ascending_module.o\
-	dim2d_drop_collision_module.o\
-	dim2d_drop_retraction_module.o\
-	dim2d_prim_module.o\
-	dim2d_fluxes_module.o\
-	dim2d_homogeneous_module.o\
-	dim2d_phase_separation_module.o\
-	dim2d_steadystate_module.o\
-	phy_model_eq_class.o\
-	dim2d_eq_class.o\
 	parameters_bf_layer.o\
-	bf_layer_nf90_operators_module.o
+	bf_layer_nf90_operators_module.o\
+	$(sd_dep)\
+	$(dim2d_dep)
+

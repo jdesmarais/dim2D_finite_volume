@@ -1,6 +1,6 @@
       module test_bf_layer_module
 
-        use ifport
+        !use ifport
 
         use bf_layer_class               , only : bf_layer
 c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
@@ -116,7 +116,12 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
           character(*)                     , intent(in)    :: nodes_filename
           character(*)                     , intent(in)    :: grdid_filename
 
-          call bf_layer_tested%ini(bf_layer_loc)
+          real(rkind) :: dx,dy
+
+          dx = 1.0
+          dy = 1.0
+
+          call bf_layer_tested%ini(bf_layer_loc,dx,dy)
           call bf_layer_tested%allocate_bf_layer(nodes,
      $                                           alignment)
           call bf_layer_tested%print_binary(nodes_filename,

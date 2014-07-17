@@ -156,3 +156,22 @@ bf_interface_dep=	$(bf_layer_dep)\
 			nbf_list_class.o\
 			nbf_interface_class.o\
 			bf_interface_class.o
+
+bf_interface_icr_dep=	$(bf_interface_dep)\
+			dbf_element_class.o\
+			dbf_list_class.o\
+			bf_detector_module.o\
+			bf_detector_icr_list_class.o\
+			bf_detector_dcr_list_class.o\
+			bf_detector_dcr_list_NS_class.o\
+			bf_detector_dcr_list_N_class.o\
+			bf_detector_dcr_list_S_class.o\
+			bf_detector_dcr_list_EW_class.o\
+			bf_detector_dcr_list_E_class.o\
+			bf_detector_dcr_list_W_class.o\
+			bf_path_icr_class.o\
+			bf_nbc_template_module.o\
+			bf_interface_icr_class.o
+
+bf_interface_dcr_dep=	$(bf_interface_icr_dep)\
+			bf_interface_dcr_class.o

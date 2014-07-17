@@ -440,13 +440,16 @@
         subroutine process_path(
      $     this,
      $     interface_used,
-     $     interior_nodes)
+     $     interior_nodes,
+     $     dx, dy)
         
           implicit none
         
-          class(bf_path_icr)            , intent(inout) :: this
+          class(bf_path_icr)              , intent(inout) :: this
           class(bf_interface)             , intent(inout) :: interface_used
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          real(rkind)                     , intent(in)    :: dx
+          real(rkind)                     , intent(in)    :: dy
 
         
           type(bf_sublayer), pointer :: modified_sublayer
@@ -456,7 +459,8 @@
           modified_sublayer => update_allocation_bf_sublayer(
      $         this,
      $         interface_used,
-     $         interior_nodes)
+     $         interior_nodes,
+     $         dx, dy)
 
           !update the grid points for the increase
           call interface_used%update_grdpts_after_increase(
@@ -868,7 +872,7 @@
         !> reference to the bf_sublayer whose size is updated
         !--------------------------------------------------------------
         function update_allocation_bf_sublayer(
-     $     this, interface_used, interior_nodes)
+     $     this, interface_used, interior_nodes, dx, dy)
      $     result(modified_sublayer)
 
           implicit none
@@ -876,6 +880,8 @@
           class(bf_path_icr)              , intent(inout) :: this
           class(bf_interface)             , intent(inout) :: interface_used
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          real(rkind)                     , intent(in)    :: dx
+          real(rkind)                     , intent(in)    :: dy
           type(bf_sublayer), pointer                      :: modified_sublayer
           
           type(bf_sublayer), pointer     :: neighboring_sublayer
@@ -933,7 +939,8 @@
              modified_sublayer => interface_used%allocate_sublayer(
      $            this%mainlayer_id,
      $            interior_nodes,
-     $            this%alignment)
+     $            this%alignment,
+     $            dx,dy)
 
           end if
           

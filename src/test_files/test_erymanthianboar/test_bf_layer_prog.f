@@ -1,6 +1,6 @@
       program test_bf_layer_prog
 
-        use ifport
+        !use ifport
 
         use bf_layer_class      , only : bf_layer
 c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
@@ -55,7 +55,6 @@ c$$$        integer(ikind), dimension(2,2)      :: selected_grdpts
 c$$$        integer       , dimension(2)        :: match_table
 c$$$        integer(ikind), dimension(2)        :: general_coord
 
-
         integer(ikind), dimension(4,2,2) :: test_alignment_reallocation
         integer(ikind), dimension(2,2)   :: alignment_reallocation
         integer(ikind), dimension(4,2,2) :: test_alignment_merge
@@ -68,6 +67,8 @@ c$$$        integer(ikind), dimension(2)        :: general_coord
         integer :: relative_size
         integer :: over_alignment_x
         integer :: over_alignment_y
+
+        real(rkind) :: dx,dy
         
         integer, dimension(4,2) :: neighbors
 
@@ -306,7 +307,7 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
               alignment(2,1) = test_alignment_copy_neighbors(bf_layer_loc(i),1,2,1)
               alignment(2,2) = test_alignment_copy_neighbors(bf_layer_loc(i),1,2,2)
 
-              call table_bf_layer_copy_tested(i,1)%ini(bf_layer_loc(i))
+              call table_bf_layer_copy_tested(i,1)%ini(bf_layer_loc(i),dx,dy)
               call table_bf_layer_copy_tested(i,1)%allocate_bf_layer(nodes,alignment)
 
 
@@ -316,7 +317,7 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
               alignment(2,1) = test_alignment_copy_neighbors(bf_layer_loc(i),2,2,1)
               alignment(2,2) = test_alignment_copy_neighbors(bf_layer_loc(i),2,2,2)
 
-              call table_bf_layer_copy_tested(i,2)%ini(neighbors(i,1))
+              call table_bf_layer_copy_tested(i,2)%ini(neighbors(i,1),dx,dy)
               call table_bf_layer_copy_tested(i,2)%allocate_bf_layer(nodes,alignment)
 
 
@@ -326,7 +327,7 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
               alignment(2,1) = test_alignment_copy_neighbors(bf_layer_loc(i),3,2,1)
               alignment(2,2) = test_alignment_copy_neighbors(bf_layer_loc(i),3,2,2)
 
-              call table_bf_layer_copy_tested(i,3)%ini(neighbors(i,2))
+              call table_bf_layer_copy_tested(i,3)%ini(neighbors(i,2),dx,dy)
               call table_bf_layer_copy_tested(i,3)%allocate_bf_layer(nodes,alignment)
 
 

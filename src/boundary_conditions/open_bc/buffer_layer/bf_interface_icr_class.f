@@ -38,6 +38,7 @@
         use parameters_input            , only : nx,ny,ne,bc_size,
      $                                           dt,search_nb_dt
         use parameters_kind             , only : ikind, rkind
+        use pmodel_eq_class             , only : pmodel_eq
 
         implicit none
 
@@ -262,7 +263,7 @@
         !> grid size along the y-direction
         !--------------------------------------------------------------
         subroutine update_bf_layers_with_idetectors(this, 
-     $     interior_nodes, dx, dy)
+     $     interior_nodes, dx, dy, p_model)
 
           implicit none
 
@@ -270,9 +271,10 @@
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
           real(rkind)                     , intent(in)    :: dx
           real(rkind)                     , intent(in)    :: dy
+          type(pmodel_eq)                 , intent(in)    :: p_model
 
-          type(bf_path_icr)          :: path_update_idetectors
-          integer(ikind), dimension(2) :: cpt_coords_p
+          type(bf_path_icr)              :: path_update_idetectors
+          integer(ikind), dimension(2)   :: cpt_coords_p
           type(bf_detector_icr_list)     :: N_ndt_list
           type(bf_detector_icr_list)     :: S_ndt_list
           type(bf_detector_icr_list)     :: E_ndt_list
@@ -307,7 +309,7 @@
 
              call process_idetector_list(
      $            this, this%S_detectors_list, S_ndt_list,
-     $            interior_nodes, dx, dy,
+     $            interior_nodes, dx, dy, p_model,
      $            cpt_coords_p, path_update_idetectors)
 
           end if
@@ -318,7 +320,7 @@
 
              call process_idetector_list(
      $            this, this%E_detectors_list, E_ndt_list,
-     $            interior_nodes, dx, dy,
+     $            interior_nodes, dx, dy, p_model,
      $            cpt_coords_p, path_update_idetectors)
 
           end if
@@ -329,7 +331,7 @@
 
              call process_idetector_list(
      $            this, this%W_detectors_list, W_ndt_list,
-     $            interior_nodes, dx, dy,
+     $            interior_nodes, dx, dy, p_model,
      $            cpt_coords_p, path_update_idetectors)
 
           end if
@@ -340,7 +342,7 @@
 
              call process_idetector_list(
      $            this, this%N_detectors_list, N_ndt_list,
-     $            interior_nodes, dx, dy,
+     $            interior_nodes, dx, dy, p_model,
      $            cpt_coords_p, path_update_idetectors)
 
           end if
@@ -350,7 +352,8 @@
           !   that the final part of the path has not been
           !   processed
           if(path_update_idetectors%get_nb_pts().gt.0) then
-             call path_update_idetectors%process_path(this, interior_nodes)
+             call path_update_idetectors%process_path(
+     $            this, interior_nodes, dx, dy)
           end if
 
 
@@ -556,7 +559,7 @@
         !--------------------------------------------------------------
         subroutine process_idetector_list(
      $     this, dt_list, ndt_list,
-     $     interior_nodes, dx, dy,
+     $     interior_nodes, dx, dy, p_model,
      $     cpt_coords_p, path)
         
           implicit none
@@ -567,6 +570,7 @@
           real(rkind)             , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           real(rkind)                                  , intent(in)    :: dx
           real(rkind)                                  , intent(in)    :: dy
+          type(pmodel_eq)                              , intent(in)    :: p_model
           integer(ikind)          , dimension(2)       , intent(inout) :: cpt_coords_p
           type(bf_path_icr)                          , intent(inout) :: path
 
@@ -585,6 +589,7 @@
      $            this, dt_list(:,k),
      $            interior_nodes,
      $            dx, dy,
+     $            p_model,
      $            cpt_coords_p, cpt_coords,
      $            nb_mgrdpts, mgrdpts, ndt_list)
 
@@ -609,7 +614,7 @@
                 if(path%is_ended()) then
 
                    !the buffer layers are updated
-                   call path%process_path(this, interior_nodes)
+                   call path%process_path(this, interior_nodes, dx, dy)
 
                    !the grid point that led to the path end
                    !is used to reinitialize the current path
@@ -661,6 +666,7 @@
      $     this, d_coords,
      $     interior_nodes,
      $     dx, dy,
+     $     p_model,
      $     cpt_coords_p, cpt_coords,
      $     nb_mgrdpts, mgrdpts, ndt_list)
 
@@ -671,6 +677,7 @@
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
           real(rkind)                     , intent(in)    :: dx
           real(rkind)                     , intent(in)    :: dy
+          type(pmodel_eq)                 , intent(in)    :: p_model
           integer(ikind), dimension(2)    , intent(in)    :: cpt_coords_p
           integer(ikind), dimension(2)    , intent(out)   :: cpt_coords
           integer                         , intent(out)   :: nb_mgrdpts
@@ -696,8 +703,7 @@
           if(is_detector_icr_activated(node_var)) then
 
              !extract the velocity at the coordinates of the detector
-             velocity(1) = node_var(2)/node_var(1)
-             velocity(2) = node_var(3)/node_var(1)
+             velocity = p_model%get_velocity(node_var)
              
 
              !get the first point from which we should look for a

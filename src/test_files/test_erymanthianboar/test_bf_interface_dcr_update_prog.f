@@ -3,6 +3,7 @@
         use bf_interface_dcr_class    , only : bf_interface_dcr
         use parameters_input          , only : nx,ny,ne,bc_size
         use parameters_kind           , only : rkind
+        use pmodel_eq_class           , only : pmodel_eq
         use test_bf_layer_module      , only : ini_grdpts_id
 
         use test_cases_interface_update_module, only : update_nodes,
@@ -15,6 +16,7 @@
         real(rkind)   , dimension(nx,ny,ne) :: interior_nodes
         integer       , dimension(nx,ny)    :: grdpts_id
         integer       , parameter           :: test_case=8
+        type(pmodel_eq) :: p_model
 
         integer :: i
 
@@ -60,7 +62,7 @@
      $          interior_nodes)
 
            call interface_used%update_bf_layers_with_idetectors(
-     $          interior_nodes, dx, dy)
+     $          interior_nodes, dx, dy, p_model)
 
            call update_nodes(
      $          test_case,

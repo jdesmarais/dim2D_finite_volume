@@ -26,6 +26,8 @@
 
         integer :: i,k, file_index
 
+        real(rkind) :: dx, dy
+
 
         !call test_create_filenames()
 
@@ -97,7 +99,7 @@ c$$$     $             nodes_for_path, nodes, grdpts_id, interface_used,
 c$$$     $             file_index)
 
               !process the path
-              call path_tested%process_path(interface_used, nodes)
+              call path_tested%process_path(interface_used, nodes, dx, dy)
 
 c$$$              !print path map + print interior + bf_interface
 c$$$              call print_path_map_and_interface(

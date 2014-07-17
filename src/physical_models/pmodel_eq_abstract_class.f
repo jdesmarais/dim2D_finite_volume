@@ -66,25 +66,30 @@
         !> @param compute_flux_y
         !> compute the fluxes along the y-axe
         !>
-        !> @param add_body_forces
+        !> @param compute_body_forces
         !> add the body forces to the computation of the time derivatives
+        !
+        !> @param get_velocity
+        !> compute the velocity out of the governing variables at a
+        !> gridpoint location
         !---------------------------------------------------------------
         type, abstract :: pmodel_eq_abstract
           
           contains
 
-          procedure(name_model), nopass, deferred :: get_model_name
-          procedure(name_var)  , nopass, deferred :: get_var_name
-          procedure(lname_var) , nopass, deferred :: get_var_longname
-          procedure(mname_var) , nopass, deferred :: get_var_unit
-          procedure(type_var)  , nopass, deferred :: get_var_type
-          procedure(gov_eq_nb) , nopass, deferred :: get_eq_nb
-          procedure(ini_cond)  , nopass, deferred :: apply_ic
-          procedure(fluxes_x)  , nopass, deferred :: compute_flux_x
-          procedure(fluxes_y)  , nopass, deferred :: compute_flux_y
-          procedure(fluxes_x_n), nopass, deferred :: compute_flux_x_nopt
-          procedure(fluxes_y_n), nopass, deferred :: compute_flux_y_nopt
-          procedure(bodyforces), nopass, deferred :: compute_body_forces
+          procedure(name_model)   , nopass, deferred :: get_model_name
+          procedure(name_var)     , nopass, deferred :: get_var_name
+          procedure(lname_var)    , nopass, deferred :: get_var_longname
+          procedure(mname_var)    , nopass, deferred :: get_var_unit
+          procedure(type_var)     , nopass, deferred :: get_var_type
+          procedure(gov_eq_nb)    , nopass, deferred :: get_eq_nb
+          procedure(ini_cond)     , nopass, deferred :: apply_ic
+          procedure(fluxes_x)     , nopass, deferred :: compute_flux_x
+          procedure(fluxes_y)     , nopass, deferred :: compute_flux_y
+          procedure(fluxes_x_n)   , nopass, deferred :: compute_flux_x_nopt
+          procedure(fluxes_y_n)   , nopass, deferred :: compute_flux_y_nopt
+          procedure(bodyforces)   , nopass, deferred :: compute_body_forces
+          procedure(velocity_proc), nopass, deferred :: get_velocity
 
         end type pmodel_eq_abstract
 
@@ -416,6 +421,37 @@
             real(rkind)                            :: body_forces
 
           end function bodyforces
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to compute the body forces
+          !> acting on the cell
+          !
+          !> @date
+          !> 23_09_2013 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param k
+          !> governing variables identifier
+          !
+          !>@param body_forces
+          !> body forces
+          !--------------------------------------------------------------
+          function velocity_proc(nodes) result(velocity)
+
+            import rkind
+            import ne
+
+            real(rkind), dimension(ne), intent(in) :: nodes
+            real(rkind), dimension(2)              :: velocity
+
+          end function velocity_proc
+
 
         end interface        
 

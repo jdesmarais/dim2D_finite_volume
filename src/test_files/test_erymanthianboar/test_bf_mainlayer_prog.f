@@ -1,6 +1,6 @@
       program test_bf_mainlayer_prog
       
-        use ifport
+        !use ifport
       
         use bf_mainlayer_class  , only : bf_mainlayer
         use bf_sublayer_class   , only : bf_sublayer
@@ -27,6 +27,8 @@
         integer                              :: random_seed
 
         integer :: i
+
+        real(rkind) :: dx,dy        
 
 
         if(random_test) then
@@ -70,7 +72,7 @@
            end if
 
            new_sublayer => bf_mainlayer_N_tested%add_sublayer(
-     $          nodes, alignment)
+     $          nodes, alignment, dx, dy)
 
         end do
 
@@ -97,7 +99,7 @@
            end if
 
            new_sublayer => bf_mainlayer_E_tested%add_sublayer(
-     $          nodes, alignment)
+     $          nodes, alignment, dx, dy)
 
         end do
 

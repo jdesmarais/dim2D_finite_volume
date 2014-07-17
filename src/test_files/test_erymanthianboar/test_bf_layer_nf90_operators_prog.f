@@ -1,7 +1,7 @@
       program test_bf_layer_nf90_operators_prog
 
         use bf_layer_nf90_operators_module, only :print_bf_layer_on_netcdf
-        use dim2d_eq_class                , only : dim2d_eq
+        use pmodel_eq_class               , only : pmodel_eq
         use parameters_bf_layer           , only : no_pt
         use parameters_constant           , only : N
         use parameters_kind               , only : ikind, rkind
@@ -21,7 +21,7 @@
         real(rkind) :: dx
         real(rkind) :: dy
 
-        type(dim2d_eq) :: p_model
+        type(pmodel_eq) :: p_model
 
         call initialize_data(grdpts_id, nodes, time)
 
@@ -38,6 +38,8 @@
      $       N, 1,
      $       x_start, y_start, dx, dy,
      $       grdpts_id, nodes, time)
+
+        print '(''check file test_bf_layer.nc'')'
 
         
         contains
