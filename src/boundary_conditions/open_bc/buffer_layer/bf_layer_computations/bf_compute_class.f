@@ -15,8 +15,9 @@
       module bf_compute_class
 
         use bc_operators_class        , only : bc_operators
+        use bf_remove_module          , only : check_if_bf_layer_remains
         use interface_integration_step, only : timeInt_step_nopt
-        use parameters_input          , only : ne
+        use parameters_input          , only : nx,ny,ne
         use parameters_kind           , only : ikind, rkind
         use pmodel_eq_class           , only : pmodel_eq
         use sd_operators_class        , only : sd_operators
@@ -93,6 +94,8 @@
           procedure, pass :: deallocate_tables
           procedure, pass :: compute_time_dev
           procedure, pass :: compute_integration_step
+
+          procedure, pass :: does_bf_layer_remain
 
           procedure, pass :: get_time_dev !only for tests
 
@@ -209,5 +212,36 @@
           end if
 
         end subroutine get_time_dev
+
+
+        !check if the buffer layer remains
+        function does_bf_layer_remain(
+     $     this,
+     $     bf_localization, bf_alignment, bf_match_table,
+     $     bf_grdpts_id, bf_nodes, interior_nodes)
+     $     result(bf_remains)
+
+          implicit none
+
+          class(bf_compute)                , intent(in)  :: this
+          integer                          , intent(in)  :: bf_localization
+          integer(ikind), dimension(2,2)   , intent(in)  :: bf_alignment
+          integer(ikind), dimension(2)     , intent(in)  :: bf_match_table
+          integer    , dimension(:,:)      , intent(in)  :: bf_grdpts_id
+          real(rkind), dimension(:,:,:)    , intent(in)  :: bf_nodes
+          real(rkind), dimension(nx,ny,ne) , intent(in)  :: interior_nodes
+          logical                                        :: bf_remains
+
+
+          bf_remains = check_if_bf_layer_remains(
+     $         bf_localization,
+     $         bf_alignment,
+     $         bf_match_table,
+     $         bf_grdpts_id,
+     $         bf_nodes,
+     $         interior_nodes,
+     $         this%pmodel_eq_used)
+
+        end function does_bf_layer_remain
 
       end module bf_compute_class

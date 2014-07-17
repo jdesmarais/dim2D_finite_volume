@@ -72,6 +72,10 @@
         !> @param get_velocity
         !> compute the velocity out of the governing variables at a
         !> gridpoint location
+        !
+        !> @param are_openbc_undermined
+        !> check if the open boundary conditions are undermined at the
+        !> grid point location
         !---------------------------------------------------------------
         type, abstract :: pmodel_eq_abstract
           
@@ -90,6 +94,7 @@
           procedure(fluxes_y_n)   , nopass, deferred :: compute_flux_y_nopt
           procedure(bodyforces)   , nopass, deferred :: compute_body_forces
           procedure(velocity_proc), nopass, deferred :: get_velocity
+          procedure(openbc_proc)  , nopass, deferred :: are_openbc_undermined
 
         end type pmodel_eq_abstract
 
@@ -451,6 +456,34 @@
             real(rkind), dimension(2)              :: velocity
 
           end function velocity_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface checking whether the open boundary conditions
+          !> are undermined at the grid point location
+          !
+          !> @date
+          !> 17_07_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param undermined
+          !> check if the open boundary conditions are undermined
+          !> at the grid point location
+          !--------------------------------------------------------------
+          function openbc_proc(nodes) result(undermined)
+
+            import rkind
+            import ne
+
+            real(rkind), dimension(ne), intent(in) :: nodes
+            logical                                :: undermined
+
+          end function openbc_proc
 
 
         end interface        

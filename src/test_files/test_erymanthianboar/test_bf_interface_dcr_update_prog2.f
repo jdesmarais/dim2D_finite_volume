@@ -2,7 +2,7 @@
 
         use bf_interface_dcr_class, only : bf_interface_dcr
         use parameters_input      , only : npx,npy,ntx,nty,
-     $                                     nx,ny,ne,bc_size,
+     $                                     nx,ny,ne,
      $                                     x_min,x_max,
      $                                     y_min,y_max,
      $                                     dt,

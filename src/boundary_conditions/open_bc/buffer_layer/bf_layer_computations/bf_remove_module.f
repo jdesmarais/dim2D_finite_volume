@@ -10,11 +10,11 @@
       !> a bf_layer object should be removed
       !
       !> @date
-      ! 27_07_2014 - documentation update - J.L. Desmarais
+      ! 27_06_2014 - documentation update - J.L. Desmarais
+      ! 17_07_2014 - openbc_undermined in p_model - J.L. Desmarais
       !-----------------------------------------------------------------
-      module bf_layer_remove_module
+      module bf_remove_module
 
-        use bf_activation_module  , only : are_openbc_undermined
         use bf_layer_errors_module, only : error_mainlayer_id
         use parameters_bf_layer   , only : align_N,align_S,
      $                                     align_E,align_W,
@@ -22,6 +22,7 @@
         use parameters_constant   , only : N,S,E,W
         use parameters_input      , only : nx,ny,ne,bc_size,search_dcr
         use parameters_kind       , only : ikind, rkind
+        use pmodel_eq_class       , only : pmodel_eq
         
         implicit none
 
@@ -69,7 +70,8 @@
         !---------------------------------------------------------------
         function check_if_bf_layer_remains(
      $       bf_localization, bf_alignment, bf_match_table,
-     $       bf_grdpts_id, bf_nodes, interior_nodes)
+     $       bf_grdpts_id, bf_nodes, interior_nodes,
+     $       p_model)
      $       result(bf_remains)
 
           implicit none
@@ -80,6 +82,7 @@
           integer    , dimension(:,:)      , intent(in)  :: bf_grdpts_id
           real(rkind), dimension(:,:,:)    , intent(in)  :: bf_nodes
           real(rkind), dimension(nx,ny,ne) , intent(in)  :: interior_nodes
+          type(pmodel_eq)                  , intent(in)  :: p_model
           logical                                        :: bf_remains
 
           
@@ -104,6 +107,7 @@
              call check_line_neighbors(
      $            bf_coords, in_coords,
      $            bf_grdpts_id, bf_nodes, interior_nodes,
+     $            p_model,
      $            bf_remains)             
           
           !if the buffer layer has no grid point in common with the
@@ -316,6 +320,9 @@
         !> @param interior_nodes
         !> grid points of the interior domain
         !
+        !> @param p_model
+        !> physical model telling when the open_bc are undermined
+        !
         !> @return bf_remains
         !> logical identifying whether the local removal is approved or
         !> not
@@ -323,6 +330,7 @@
         subroutine check_line_neighbors(
      $     bf_coords, in_coords,
      $     bf_grdpts_id, bf_nodes, interior_nodes,
+     $     p_model,
      $     bf_remains)
 
           implicit none
@@ -332,6 +340,7 @@
           integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
           real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          type(pmodel_eq)                    , intent(in)    :: p_model
           logical                            , intent(out)   :: bf_remains
 
 
@@ -342,6 +351,7 @@
           call check_layer_interior(
      $         in_coords,
      $         interior_nodes,
+     $         p_model,
      $         bf_remains)
           
           
@@ -351,6 +361,7 @@
      $            bf_coords,
      $            bf_grdpts_id,
      $            bf_nodes,
+     $            p_model,
      $            bf_remains)
           end if
 
@@ -382,12 +393,14 @@
         subroutine check_layer_interior(
      $     pt_coords,
      $     nodes,
+     $     p_model,
      $     bf_remains)
         
           implicit none
           
           integer(ikind), dimension(2,2)     , intent(in)    :: pt_coords
           real(rkind)   , dimension(:,:,:)   , intent(in)    :: nodes
+          type(pmodel_eq)                    , intent(in)    :: p_model
           logical                            , intent(inout) :: bf_remains
           
           
@@ -397,7 +410,7 @@
           do j=pt_coords(2,1), pt_coords(2,2)
              do i=pt_coords(1,1), pt_coords(1,2)
 
-                bf_remains = are_openbc_undermined(nodes(i,j,:))
+                bf_remains = p_model%are_openbc_undermined(nodes(i,j,:))
 
                 if(bf_remains) then
                    exit
@@ -442,6 +455,7 @@
      $     pt_coords,
      $     grdpts_id,
      $     nodes,
+     $     p_model,
      $     bf_remains)
         
           implicit none
@@ -449,6 +463,7 @@
           integer(ikind), dimension(2,2)     , intent(in)   :: pt_coords
           integer       , dimension(:,:)     , intent(in)   :: grdpts_id
           real(rkind)   , dimension(:,:,:)   , intent(in)   :: nodes
+          type(pmodel_eq)                    , intent(in)   :: p_model
           logical                            , intent(inout):: bf_remains
           
           
@@ -459,7 +474,7 @@
              do i=pt_coords(1,1), pt_coords(1,2)
 
                 if(grdpts_id(i,j).ne.no_pt) then
-                   bf_remains = are_openbc_undermined(nodes(i,j,:))
+                   bf_remains = p_model%are_openbc_undermined(nodes(i,j,:))
 
                    if(bf_remains) then
                       exit
@@ -476,4 +491,4 @@
 
         end subroutine check_layer_bf
 
-      end module bf_layer_remove_module
+      end module bf_remove_module

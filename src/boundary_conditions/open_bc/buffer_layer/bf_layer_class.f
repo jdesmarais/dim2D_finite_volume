@@ -46,8 +46,6 @@
         use bf_layer_nf90_operators_module, only :
      $       print_bf_layer_on_netcdf
 
-        use bf_layer_remove_module      , only : check_if_bf_layer_remains
-        
         use interface_integration_step  , only : timeInt_step_nopt
 
         use parameters_bf_layer         , only : bc_pt, bc_interior_pt,
@@ -2329,7 +2327,7 @@
 
           bf_match_table = get_general_to_local_coord_tab(this)
 
-          should_remain = check_if_bf_layer_remains(
+          should_remain = this%bf_compute_used%does_bf_layer_remain(
      $         this%localization,
      $         this%alignment,
      $         bf_match_table,

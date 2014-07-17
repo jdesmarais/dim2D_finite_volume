@@ -153,7 +153,7 @@ test_bf_interface_icr_update_prog.o:\
 	test_cases_interface_update_module.o
 
 test_bf_layer_remove_prog.o:\
-	$(bf_layer_dir)/bf_layer_remove_module.o\
+	$(cbf_layer_dir)/bf_remove_module.o\
 	$(bf_layer_dir)/bf_interface_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\

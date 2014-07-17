@@ -117,6 +117,10 @@
         !
         !> @param get_velocity
         !> compute the velocity at a grid point location
+        !
+        !> @param are_openbc_undermined
+        !> check whether the open boundary conditions are undermined
+        !> at the grid point location
         !---------------------------------------------------------------
         type, extends(pmodel_eq_abstract) :: pmodel_eq
           
@@ -135,6 +139,7 @@
           procedure, nopass :: compute_flux_y_nopt
           procedure, nopass :: compute_body_forces
           procedure, nopass :: get_velocity
+          procedure, nopass :: are_openbc_undermined
 
         end type pmodel_eq
 
@@ -708,5 +713,46 @@ c$$$               call apply_drop_evaporation_ic(field_used)
           velocity(2) = nodes(3)/nodes(1)
 
         end function get_velocity
+
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the open boundary conditions
+        !> are undermined at the grid point location
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param undermined
+        !> check if the open boundary conditions are undermined
+        !> at the grid point location
+        !--------------------------------------------------------------
+        function are_openbc_undermined(nodes) result(undermined)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          logical                                :: undermined
+
+          real(rkind) :: d_liq, d_vap
+
+          d_liq = 1.1-0.05*(1.1-0.1)
+          d_vap = 0.1+0.05*(1.1-0.1)
+
+          if((nodes(1).ge.d_vap).and.(nodes(1).le.d_liq)) then
+             undermined = .true.
+          else
+             undermined = .false.
+          end if
+
+          !undermined = .true.
+
+        end function are_openbc_undermined
 
       end module pmodel_eq_class

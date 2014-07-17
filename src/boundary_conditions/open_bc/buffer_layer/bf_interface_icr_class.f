@@ -16,7 +16,6 @@
       !-----------------------------------------------------------------
       module bf_interface_icr_class
 
-        use bf_activation_module        , only : are_openbc_undermined
         use bf_detector_dcr_list_class  , only : bf_detector_dcr_list
         use bf_detector_dcr_list_N_class, only : bf_detector_dcr_list_N
         use bf_detector_dcr_list_S_class, only : bf_detector_dcr_list_S
@@ -700,7 +699,7 @@
 
           !if the detector is activated, then we check
           !whether grid points need to be modified
-          if(is_detector_icr_activated(node_var)) then
+          if(is_detector_icr_activated(node_var, p_model)) then
 
              !extract the velocity at the coordinates of the detector
              velocity = p_model%get_velocity(node_var)
@@ -751,14 +750,16 @@
         !>@return activated
         !> logical stating whether the detector is activated
         !--------------------------------------------------------------
-        function is_detector_icr_activated(nodes_var) result(activated)
+        function is_detector_icr_activated(nodes, p_model)
+     $     result(activated)
         
           implicit none
           
-          real(rkind), dimension(ne), intent(in) :: nodes_var
+          real(rkind), dimension(ne), intent(in) :: nodes
+          type(pmodel_eq)           , intent(in) :: p_model
           logical                                :: activated
           
-          activated = are_openbc_undermined(nodes_var)
+          activated = p_model%are_openbc_undermined(nodes)
 
         end function is_detector_icr_activated
 

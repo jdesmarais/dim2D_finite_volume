@@ -135,6 +135,7 @@ wall_x_refl_y_par_dep=	$(mpi_dep)\
 			bc_operators_par_class.o
 
 bf_layer_dep=		parameters_bf_layer.o\
+			bf_remove_module.o\
 			bf_compute_class.o\
 			bf_layer_errors_module.o\
 			bf_layer_allocate_module.o\
@@ -142,8 +143,6 @@ bf_layer_dep=		parameters_bf_layer.o\
 			bf_layer_merge_module.o\
 			bf_layer_exchange_module.o\
 			bf_layer_nf90_operators_module.o\
-			bf_activation_module.o\
-			bf_layer_remove_module.o\
 			bf_layer_class.o
 
 bf_interface_dep=	$(bf_layer_dep)\

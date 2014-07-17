@@ -1,17 +1,17 @@
       program test_bf_layer_remove_prog
 
-        use bf_layer_remove_module, only : get_check_line_param
-        use bf_interface_class    , only : bf_interface
-        use bf_sublayer_class     , only : bf_sublayer
-        use parameters_bf_layer   , only : align_N, align_S,
-     $                                     align_E, align_W,
-     $                                     interior_pt
-        use parameters_input      , only : nx,ny,ne,bc_size
-        use parameters_constant   , only : N,S,E,W
-        use parameters_kind       , only : ikind, rkind
-        use test_bf_layer_module  , only : print_interior_data,
-     $                                     ini_grdpts_id!,
-!     $                                     ini_nodes
+        use bf_remove_module    , only : get_check_line_param
+        use bf_interface_class  , only : bf_interface
+        use bf_sublayer_class   , only : bf_sublayer
+        use parameters_bf_layer , only : align_N, align_S,
+     $                                   align_E, align_W,
+     $                                   interior_pt
+        use parameters_input    , only : nx,ny,ne,bc_size
+        use parameters_constant , only : N,S,E,W
+        use parameters_kind     , only : ikind, rkind
+        use test_bf_layer_module, only : print_interior_data,
+     $                                   ini_grdpts_id!,
+!     $                                   ini_nodes
 
 
         implicit none
