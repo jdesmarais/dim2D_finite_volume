@@ -15,11 +15,12 @@
       !-----------------------------------------------------------------
       module bf_mainlayer_pointer_class
 
-        use bf_layer_errors_module, only : error_mainlayer_id
-        use bf_sublayer_class     , only : bf_sublayer
-        use bf_mainlayer_class    , only : bf_mainlayer
-        use parameters_input      , only : nx,ny,ne, debug
-        use parameters_kind       , only : ikind, rkind
+        use bf_layer_errors_module    , only : error_mainlayer_id
+        use bf_sublayer_class         , only : bf_sublayer
+        use bf_mainlayer_class        , only : bf_mainlayer
+        use interface_integration_step, only : timeInt_step_nopt
+        use parameters_input          , only : nx,ny,ne, debug
+        use parameters_kind           , only : ikind, rkind
 
 
         implicit none
@@ -92,6 +93,20 @@
         !>@param print_netcdf
         !> print the content of the bf_sublayers constituing the
         !> bf_mainlayer on seperate netcdf output files
+        !
+        !> @param allocate_before_timeInt
+        !> allocate memory space for the intermediate
+        !> variables needed to perform the time integration
+        !
+        !> @param deallocate_after_timeInt
+        !> deallocate memory space for the intermediate
+        !> variables needed to perform the time integration
+        !
+        !> @param compute_time_dev
+        !> compute the time derivatives
+        !
+        !> @param compute_integration_step
+        !> compute the integration step
         !---------------------------------------------------------------
         type :: bf_mainlayer_pointer
 
@@ -118,6 +133,11 @@
 
           procedure, pass :: print_binary
           procedure, pass :: print_netcdf
+
+          procedure, pass :: allocate_before_timeInt
+          procedure, pass :: deallocate_after_timeInt
+          procedure, pass :: compute_time_dev
+          procedure, pass :: compute_integration_step
           
         end type bf_mainlayer_pointer
 
@@ -357,7 +377,7 @@
 
           !allocate space for the mainlayer and initialize it
           call this%allocate_ptr()
-          call this%ptr%ini(mainlayer_id)          
+          call this%ptr%ini(mainlayer_id)
 
         end subroutine ini_mainlayer
 
@@ -534,7 +554,7 @@
         !> @return added_sublayer_ptr
         !> pointer to the newly added bf_sublayer
         !--------------------------------------------------------------
-        function add_sublayer(this, nodes, alignment)
+        function add_sublayer(this, nodes, alignment, dx, dy)
      $     result(added_sublayer_ptr)
 
           implicit none
@@ -542,12 +562,14 @@
           class(bf_mainlayer_pointer)        , intent(inout) :: this
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: nodes
           integer(ikind), dimension(2,2)     , intent(in)    :: alignment
+          real(rkind)                        , intent(in)    :: dx
+          real(rkind)                        , intent(in)    :: dy
 
           type(bf_sublayer), pointer                         :: added_sublayer_ptr
 
           if(this%associated_ptr()) then
              added_sublayer_ptr => this%ptr%add_sublayer(
-     $            nodes, alignment)
+     $            nodes, alignment, dx, dy)
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''add_sublayer'')'
@@ -799,5 +821,143 @@
           end if
 
         end subroutine print_netcdf
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> allocate memory space for the intermediate
+        !> variables needed to perform the time integration
+        !> for each sublayer contained in this main layer
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !--------------------------------------------------------------
+        subroutine allocate_before_timeInt(this)
+
+          implicit none
+
+          class(bf_mainlayer_pointer), intent(inout) :: this
+
+          if(this%associated_ptr()) then
+             call this%ptr%allocate_before_timeInt()
+          else
+             print '(''bf_mainlayer_pointer_class'')'
+             print '(''allocate_before_timeInt'')'
+             stop 'ptr attribute not associated'
+          end if
+
+        end subroutine allocate_before_timeInt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> deallocate memory space for the intermediate
+        !> variables needed to perform the time integration
+        !> for each sublayer contained in this main layer
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !--------------------------------------------------------------
+        subroutine deallocate_after_timeInt(this)
+
+          implicit none
+
+          class(bf_mainlayer_pointer), intent(inout) :: this
+
+          if(this%associated_ptr()) then
+             call this%ptr%deallocate_after_timeInt()
+          else
+             print '(''bf_mainlayer_pointer_class'')'
+             print '(''deallocate_after_timeInt'')'
+             stop 'ptr attribute not associated'
+          end if
+
+        end subroutine deallocate_after_timeInt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives of the sublayers
+        !> contained in this main layer
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !--------------------------------------------------------------
+        subroutine compute_time_dev(this)
+
+          implicit none
+
+          class(bf_mainlayer_pointer), intent(inout) :: this
+
+          if(this%associated_ptr()) then
+             call this%ptr%compute_time_dev()
+          else
+             print '(''bf_mainlayer_pointer_class'')'
+             print '(''compute_time_dev'')'
+             stop 'ptr attribute not associated'
+          end if
+
+        end subroutine compute_time_dev
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the integration step
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param dt
+        !> integration time step
+        !
+        !>@param integration_step_nopt
+        !> procedure performing the time integration
+        !--------------------------------------------------------------
+        subroutine compute_integration_step(
+     $     this, dt, integration_step_nopt)
+
+          implicit none
+
+          class(bf_mainlayer_pointer), intent(inout) :: this
+          real(rkind)                , intent(in)    :: dt
+          procedure(timeInt_step_nopt) :: integration_step_nopt
+
+          if(this%associated_ptr()) then
+             call this%ptr%compute_integration_step(
+     $            dt, integration_step_nopt)
+          else
+             print '(''bf_mainlayer_pointer_class'')'
+             print '(''compute_integration_step'')'
+             stop 'ptr attribute not associated'
+          end if
+
+        end subroutine compute_integration_step        
 
       end module bf_mainlayer_pointer_class

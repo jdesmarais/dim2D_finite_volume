@@ -21,6 +21,7 @@
         use bf_sublayer_class         , only : bf_sublayer
         use bf_mainlayer_class        , only : bf_mainlayer
         use bf_mainlayer_pointer_class, only : bf_mainlayer_pointer
+        use interface_integration_step, only : timeInt_step_nopt
         use nbf_interface_class       , only : nbf_interface
 
         use parameters_bf_layer       , only : align_N, align_S,
@@ -135,6 +136,20 @@
         !
         !>@param print_netcdf
         !> print the content of the interface on external netcdf files
+        !
+        !> @param allocate_before_timeInt
+        !> allocate memory space for the intermediate
+        !> variables needed to perform the time integration
+        !
+        !> @param deallocate_after_timeInt
+        !> deallocate memory space for the intermediate
+        !> variables needed to perform the time integration
+        !
+        !> @param compute_time_dev
+        !> compute the time derivatives
+        !
+        !> @param compute_integration_step
+        !> compute the integration step
         !---------------------------------------------------------------
         type :: bf_interface
 
@@ -168,6 +183,11 @@
 
           procedure, pass :: print_binary
           procedure, pass :: print_netcdf
+
+          procedure, pass :: allocate_before_timeInt
+          procedure, pass :: deallocate_after_timeInt
+          procedure, pass :: compute_time_dev
+          procedure, pass :: compute_integration_step
 
         end type bf_interface
 
@@ -390,13 +410,17 @@
      $     this,
      $     mainlayer_id,
      $     nodes,
-     $     alignment)
+     $     alignment,
+     $     dx,
+     $     dy)
      $     result(added_sublayer)
         
           class(bf_interface)             , intent(inout) :: this
           integer                         , intent(in)    :: mainlayer_id
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
           integer, dimension(2,2)         , intent(inout) :: alignment
+          real(rkind)                     , intent(in)    :: dx
+          real(rkind)                     , intent(in)    :: dy
 
           type(bf_sublayer), pointer                      :: added_sublayer
 
@@ -436,7 +460,7 @@
           !   layer can be initialized using the nodes, alignment and neighbors
           !   arguments
           added_sublayer => this%mainlayer_pointers(mainlayer_id)%add_sublayer(
-     $         nodes, alignment)
+     $         nodes, alignment, dx, dy)
           call added_sublayer%set_neighbor1_share(share_with_neighbor1)
           call added_sublayer%set_neighbor2_share(share_with_neighbor2)
 
@@ -1698,5 +1722,169 @@ c$$$          stop 'not implemented yet'
          end do
 
         end subroutine print_netcdf
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> allocate memory space for the intermediate
+        !> variables needed to perform the time integration
+        !> for each sublayer contained in this main layer
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface object encapsulating the buffer layers
+        !> around the interior domain and subroutines to synchronize
+        !> the data between them
+        !--------------------------------------------------------------
+        subroutine allocate_before_timeInt(this)
+
+          implicit none
+
+          class(bf_interface), intent(inout) :: this
+
+          integer :: i
+
+          !go through the buffer main layers and
+          !allocate the intermediate variables
+          !needed to perform the integration step
+          do i=1, size(this%mainlayer_pointers,1)
+          
+             if(this%mainlayer_pointers(i)%associated_ptr()) then
+                
+                call this%mainlayer_pointers(i)%allocate_before_timeInt()
+
+             end if
+          end do
+
+        end subroutine allocate_before_timeInt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> deallocate memory space for the intermediate
+        !> variables needed to perform the time integration
+        !> for each main buffer layer contained in this bf_interface
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface object encapsulating the buffer layers
+        !> around the interior domain and subroutines to synchronize
+        !> the data between them
+        !--------------------------------------------------------------
+        subroutine deallocate_after_timeInt(this)
+
+          implicit none
+
+          class(bf_interface), intent(inout) :: this
+
+          integer :: i
+
+          !go through the buffer main layers and
+          !deallocate the intermediate variables
+          !needed to perform the integration step
+          do i=1, size(this%mainlayer_pointers,1)
+          
+             if(this%mainlayer_pointers(i)%associated_ptr()) then
+                
+                call this%mainlayer_pointers(i)%deallocate_after_timeInt()
+
+             end if
+          end do
+
+        end subroutine deallocate_after_timeInt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives of the main layers
+        !> contained in this bf_interface
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface object encapsulating the buffer layers
+        !> around the interior domain and subroutines to synchronize
+        !> the data between them
+        !--------------------------------------------------------------
+        subroutine compute_time_dev(this)
+
+          implicit none
+
+          class(bf_interface), intent(inout) :: this
+
+          integer :: i
+
+          !go through the buffer main layers and
+          !compute the time derivatives
+          do i=1, size(this%mainlayer_pointers,1)
+          
+             if(this%mainlayer_pointers(i)%associated_ptr()) then
+                
+                call this%mainlayer_pointers(i)%compute_time_dev()
+
+             end if
+          end do
+
+        end subroutine compute_time_dev
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> deallocate memory space for the intermediate
+        !> variables needed to perform the time integration
+        !> for each main buffer layer contained in this bf_interface
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface object encapsulating the buffer layers
+        !> around the interior domain and subroutines to synchronize
+        !> the data between them
+        !
+        !>@param dt
+        !> integration time step
+        !
+        !>@param integration_step_nopt
+        !> procedure performing the time integration
+        !--------------------------------------------------------------
+        subroutine compute_integration_step(
+     $     this, dt, integration_step_nopt)
+
+          implicit none
+
+          class(bf_interface), intent(inout) :: this
+          real(rkind)        , intent(in)    :: dt
+          procedure(timeInt_step_nopt) :: integration_step_nopt
+
+          integer :: i
+
+          !go through the buffer main layers and
+          !compute the integration step
+          do i=1, size(this%mainlayer_pointers,1)
+          
+             if(this%mainlayer_pointers(i)%associated_ptr()) then
+                
+                call this%mainlayer_pointers(i)%compute_integration_step(
+     $               dt, integration_step_nopt)
+
+             end if
+          end do
+
+        end subroutine compute_integration_step          
+          
 
       end module bf_interface_class

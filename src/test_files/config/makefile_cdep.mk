@@ -145,3 +145,14 @@ bf_layer_dep=		parameters_bf_layer.o\
 			bf_activation_module.o\
 			bf_layer_remove_module.o\
 			bf_layer_class.o
+
+bf_interface_dep=	$(bf_layer_dep)\
+			bf_sublayer_class.o\
+			bf_mainlayer_class.o\
+			bf_mainlayer_pointer_class.o\
+			nbf_element_class.o\
+			bf_sublayer_pointer_class.o\
+			sbf_list_class.o\
+			nbf_list_class.o\
+			nbf_interface_class.o\
+			bf_interface_class.o

@@ -1,5 +1,6 @@
       !> @file
-      !> test file for the object 'bf_compute'
+      !> test file for the time integration procedures
+      !> on the object 'bf_mainlayer'
       !
       !> @author 
       !> Julien L. Desmarais
