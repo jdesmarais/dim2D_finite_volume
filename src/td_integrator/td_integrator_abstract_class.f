@@ -42,7 +42,9 @@
 
           contains
 
-          procedure(integrate_proc), nopass, deferred :: integrate
+          procedure(timeInt_proc)    , nopass, deferred :: integrate
+          procedure(timeInt_ext_proc), nopass, deferred :: integrate_ext
+          
 
         end type td_integrator_abstract
 
@@ -66,7 +68,7 @@
           !>@param dt
           !> time step integrated
           !--------------------------------------------------------------
-          subroutine integrate_proc(field_used,dt)
+          subroutine timeInt_proc(field_used,dt)
 
             import field_abstract
             import rkind
@@ -74,7 +76,34 @@
             class(field_abstract), intent(inout) :: field_used
             real(rkind)          , intent(in)    :: dt
 
-          end subroutine integrate_proc
+          end subroutine timeInt_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to integrate the governing equations on
+          !> the computationaal domain and its extension
+          !
+          !> @date
+          !> 13_08_2013 - initial version - J.L. Desmarais
+          !
+          !>@param field_used
+          !> object encapsulating the main variables
+          !
+          !>@param dt
+          !> time step integrated
+          !--------------------------------------------------------------
+          subroutine timeInt_ext_proc(field_used,dt)
+
+            import field_abstract
+            import rkind
+
+            class(field_abstract), intent(inout) :: field_used
+            real(rkind)          , intent(in)    :: dt
+
+          end subroutine timeInt_ext_proc
 
         end interface
 

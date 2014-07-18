@@ -37,7 +37,10 @@
         use parameters_kind             , only : rkind, ikind
         use rk3tvd_steps_module         , only : compute_1st_step,
      $                                           compute_2nd_step,
-     $                                           compute_3rd_step
+     $                                           compute_3rd_step,
+     $                                           compute_1st_step_nopt,
+     $                                           compute_2nd_step_nopt,
+     $                                           compute_3rd_step_nopt
         use td_integrator_abstract_class, only : td_integrator_abstract
 
         implicit none
@@ -62,6 +65,7 @@
 
           contains
           procedure, nopass :: integrate
+          procedure, nopass :: integrate_ext
 
         end type td_integrator
 
@@ -81,18 +85,6 @@
         !
         !>@param field_used
         !> object encapsulating the main variables
-        !
-        !>@param sd
-        !> space discretization operators
-        !
-        !>@param p_model
-        !> physical model
-        !
-        !>@param bc_used
-        !> boundary conditions
-        !
-        !>@param td
-        !> time discretisation operators
         !
         !>@param dt
         !> time step integrated
@@ -156,6 +148,87 @@
           call field_used%apply_bc_on_nodes()
 
         end subroutine integrate
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine to integrate the governing equations using
+        !> the numerical scheme developed by C.W.Shu and S.Osher
+        !
+        !> @date
+        !> 13_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param field_used
+        !> object encapsulating the main variables
+        !
+        !>@param dt
+        !> time step integrated
+        !--------------------------------------------------------------
+        subroutine integrate_ext(field_used, dt)
+
+          implicit none
+
+          class(field_abstract), intent(inout) :: field_used
+          real(rkind)          , intent(in)    :: dt
+
+          real(rkind), dimension(nx,ny,ne) :: nodes_tmp
+          real(rkind), dimension(nx,ny,ne) :: time_dev
+          
+
+          !<runge-kutta first step
+          !> u_1 = u_n + dt*d/dt(u_n)
+          !> u_n is saved in nodes_tmp
+          !> u_1 is saved in field_used%nodes
+          !DEC$ FORCEINLINE RECURSIVE
+          time_dev = field_used%compute_time_dev_ext()
+
+          !DEC$ FORCEINLINE RECURSIVE
+          call field_used%compute_integration_step_ext(
+     $         dt, nodes_tmp, time_dev,
+     $         compute_1st_step, compute_1st_step_nopt)
+
+          !<apply the boundary conditions
+          !DEC$ FORCEINLINE RECURSIVE
+          call field_used%apply_bc_on_nodes()
+
+
+          !<runge-kutta second step
+          !> u_2 = 1/4*u_n + 3/4*(u_1 + dt * du_1/dt)
+          !> u_n is saved in nodes_tmp
+          !> u_2 is saved in field_used%nodes
+          !DEC$ FORCEINLINE RECURSIVE
+          time_dev = field_used%compute_time_dev_ext()
+
+          !DEC$ FORCEINLINE RECURSIVE
+          call field_used%compute_integration_step_ext(
+     $         dt, nodes_tmp, time_dev,
+     $         compute_2nd_step, compute_2nd_step_nopt)
+
+          !<apply the boundary conditions
+          !DEC$ FORCEINLINE RECURSIVE
+          call field_used%apply_bc_on_nodes()
+
+
+          !<runge-kutta third step
+          !> u_{n+1} = 1/3*u_n + 2/3*(u_2 + dt du_2/dt
+          !> u_n is saved in nodes_tmp
+          !> u_{n+1} is saved in field_used%nodes
+          !DEC$ FORCEINLINE RECURSIVE
+          time_dev = field_used%compute_time_dev_ext()
+
+          !DEC$ FORCEINLINE RECURSIVE
+          call field_used%compute_integration_step_ext(
+     $         dt, nodes_tmp, time_dev,
+     $         compute_3rd_step, compute_3rd_step_nopt)
+
+          !<apply the boundary conditions
+          !DEC$ FORCEINLINE RECURSIVE
+          call field_used%apply_bc_on_nodes()
+
+        end subroutine integrate_ext
+      
 
       end module td_integrator_class
 

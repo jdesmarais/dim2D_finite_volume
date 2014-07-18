@@ -16,6 +16,8 @@
       module field_abstract_class
       
         use bc_operators_class        , only : bc_operators
+        use interface_integration_step, only : timeInt_step,
+     $                                         timeInt_step_nopt
         use io_operators_class        , only : io_operators
         use parameters_input          , only : nx,ny,ne,bc_size,
      $                                         x_min,x_max,
@@ -33,28 +35,100 @@
         public :: field_abstract
 
 
-        !> @class field_abstract
+        !>@class field_abstract
         !> class encapsulating the variables of the governing equations
         !> and the discretisation maps
-        !>
-        !> @param nodes
+        !
+        !>@param sd_operators_used
+        !> space discretization operators
+        !
+        !>@param pmodel_eq_used
+        !> physical model governing equations
+        !
+        !>@param bc_operators_used
+        !> boundary conditions operators
+        !
+        !>@param td_operators_used
+        !> time discretization operators
+        !
+        !>@param td_integrator_used
+        !> time integration operators
+        !
+        !>@param io_integrator_used
+        !> i/o operators
+        !
+        !>@param nodes
         !> variables computed during the simulation
         !> (ex: mass=nodes(:,:,1),
         !> momentum_x=nodes(:,:,2),
         !> momentum_y=nodes(:,:,3),
         !> energy=nodes(:,:,4))
-        !>
-        !> @param x_map
+        !
+        !>@param x_map
         !> discretisation map along the x-axis
-        !>
-        !> @param y_map
+        !
+        !>@param y_map
         !> discretisation map along the y-axis
-        !>
-        !> @param dx
+        !
+        !>@param dx
         !> space step along the x-axis
-        !>
-        !> @param dy
+        !
+        !>@param dy
         !> space step along the y-axis
+        !
+        !>@param ini
+        !> initialize the interior domain and its operators
+        !
+        !>@param check_inputs
+        !> check the simulation inputs
+        !
+        !>@param ini_coordinates
+        !> initialize the space discretization maps for the field
+        !
+        !>@param apply_initial_conditions
+        !> apply the initial conditions of the physical model on
+        !> the field
+        !
+        !>@param compute_time_dev
+        !> compute the time derivatives of the field
+        !
+        !>@param compute_time_dev_ext
+        !> compute the time derivatives of the field and its extension
+        !> if any
+        !
+        !>@param apply_bc_on_nodes
+        !> apply the boundary conditions on the grid points
+        !
+        !>@param compute_integration_step
+        !> compute the integration step of the interior domain
+        !
+        !>@param compute_integration_step_ext
+        !> compute the integration step of the interior domain and
+        !> its extension if any
+        !
+        !>@param write_data
+        !> write the interior domain data on output files depending
+        !> on the i/o operators used
+        !
+        !>@param set_dx
+        !> set the grid size along the x-axis
+        !
+        !>@param set_dy
+        !> set the grid size along the y-axis
+        !
+        !>@param get_nodes
+        !> get the array containing the grid point data
+        !
+        !>@param set_nodes
+        !> set the array containing the grid point data
+        !
+        !>@param get_x_map
+        !> get the array containing the space discretization map
+        !> along the x-axis
+        !
+        !>@param get_y_map
+        !> get the array containing the space discretization map
+        !> along the y-axis
         !---------------------------------------------------------------
         type, extends(surrogate) :: field_abstract
 
@@ -64,11 +138,11 @@
           type(td_operators), private :: td_operators_used
           type(io_operators), private :: io_operators_used
 
-          real(rkind), dimension(nx,ny,ne), private :: nodes
-          real(rkind), dimension(nx)      , private :: x_map
-          real(rkind), dimension(ny)      , private :: y_map
-          real(rkind)                     , private :: dx
-          real(rkind)                     , private :: dy
+          real(rkind), dimension(nx,ny,ne) :: nodes
+          real(rkind), dimension(nx)       :: x_map
+          real(rkind), dimension(ny)       :: y_map
+          real(rkind)                      :: dx
+          real(rkind)                      :: dy
 
           contains
 
@@ -77,8 +151,10 @@
           procedure, pass, private :: ini_coordinates
           procedure, pass, private :: apply_initial_conditions
           procedure, pass          :: compute_time_dev
+          procedure, pass          :: compute_time_dev_ext
           procedure, pass          :: apply_bc_on_nodes
           procedure, pass          :: compute_integration_step
+          procedure, pass          :: compute_integration_step_ext
           procedure, pass          :: write_data
 
           procedure, pass          :: set_dx    !only for tests
@@ -91,31 +167,26 @@
         end type field_abstract
 
 
-        interface
-
-           subroutine integration_step_proc(
-     $          nodes, dt, nodes_tmp, time_dev)
-           
-             import rkind
-             import nx,ny,ne
-
-             real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-             real(rkind)                     , intent(in)    :: dt
-             real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
-             real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
-
-           end subroutine integration_step_proc
-
-        end interface
-
-
         contains
 
-        !initialize the field_abstract by:
-        ! - initializing the boundary conditions bc_operators_used
-        ! - initializing the coordinates
-        ! - applying the initial conditions
-        ! - initializing the i/o operator io_operators_used
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the field_abstract by:
+        !> (1) check the simulation inputs
+        !> (2) initializing the boundary conditions bc_operators_used
+        !> (3) initializing the coordinates
+        !> (4) applying the initial conditions
+        !> (5) initializing the i/o operators io_operators_used
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main governing variables
+        !--------------------------------------------------------------
         subroutine ini(this)
 
           implicit none
@@ -132,6 +203,18 @@
         end subroutine ini
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check the inputs of the simulation
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main governing variables
+        !--------------------------------------------------------------
         subroutine check_inputs(this)
 
           implicit none
@@ -154,26 +237,13 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> subroutine to integrate the governing equations using
-        !> the numerical scheme developed by C.W.Shu and S.Osher
+        !> initialize the space discretization map for the field
         !
         !> @date
         !> 27_08_2013 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> object encapsulating the main variables
-        !
-        !>@param x_min
-        !> coordinate along the x-axis of the SW border
-        !
-        !>@param x_max
-        !> coordinate along the x-axis of the NE border
-        !
-        !>@param y_min
-        !> coordinate along the y-axis of the SW border
-        !
-        !>@param y_max
-        !> coordinate along the y-axis of the NE border
+        !> object encapsulating the main governing variables
         !--------------------------------------------------------------
         subroutine ini_coordinates(this)
 
@@ -207,7 +277,19 @@
         end subroutine ini_coordinates
 
 
-        !apply the initial conditions
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> apply the initial conditions of the physical model on
+        !> the field
+        !
+        !> @date
+        !> 27_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main governing variables
+        !--------------------------------------------------------------
         subroutine apply_initial_conditions(this)
 
           implicit none
@@ -222,7 +304,21 @@
         end subroutine apply_initial_conditions
 
 
-        !compute the time derivative
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives of the field
+        !
+        !> @date
+        !> 27_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main governing variables
+        !
+        !>@return time_dev
+        !> array containing the time derivatives of the grid points
+        !--------------------------------------------------------------
         function compute_time_dev(this) result(time_dev)
 
           implicit none
@@ -243,8 +339,66 @@
         end function compute_time_dev
 
 
-        !apply the boundary conditions on the grid points
-        !of the field
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives of the field and its extension
+        !> if any
+        !
+        !> @date
+        !> 27_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main governing variables
+        !
+        !>@return time_dev
+        !> array containing the time derivatives of the interior grid
+        !> points
+        !--------------------------------------------------------------
+        function compute_time_dev_ext(this) result(time_dev)
+
+          implicit none
+
+          class(field_abstract), intent(inout) :: this
+          real(rkind), dimension(nx,ny,ne)  :: time_dev
+
+          
+          print '(''********************************'')'
+          print '(''field_abstract'')'
+          print '(''compute_time_dev_ext'')'
+          print '(''this procedure is only for field'')'
+          print '(''with domain extension'')'
+          print '(''********************************'')'
+          print '(''subroutine not implemented'')'
+          print '(''********************************'')'
+          stop
+
+          !make use of the time discretization operator
+          !to compute the time derivative of the field
+          time_dev = this%td_operators_used%compute_time_dev(
+     $         this%nodes,
+     $         this%dx,
+     $         this%dy,
+     $         this%sd_operators_used,
+     $         this%pmodel_eq_used,
+     $         this%bc_operators_used)
+
+        end function compute_time_dev_ext
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> apply the boundary conditions on the grid points
+        !
+        !> @date
+        !> 27_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main governing variables
+        !--------------------------------------------------------------
         subroutine apply_bc_on_nodes(this)
 
           implicit none
@@ -256,7 +410,31 @@
         end subroutine apply_bc_on_nodes
 
 
-        !compute the integration step
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the integration step of the interior domain
+        !
+        !> @date
+        !> 27_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main governing variables
+        !
+        !>@param dt
+        !> time step
+        !
+        !>@param nodes_tmp
+        !> array containing the temporary grid points for the
+        !> time integration of the interior computational domain
+        !
+        !>@param time_dev
+        !> time derivatives of the interior domain
+        !
+        !>@param integration_step
+        !> procedure for the time integration of the interior domain
+        !--------------------------------------------------------------
         subroutine compute_integration_step(
      $     this, dt, nodes_tmp, time_dev, integration_step)
 
@@ -266,14 +444,94 @@
           real(rkind)                     , intent(in)    :: dt
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
           real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
-          procedure(integration_step_proc)                :: integration_step
+          procedure(timeInt_step) :: integration_step
 
           call integration_step(this%nodes, dt, nodes_tmp, time_dev)
 
         end subroutine compute_integration_step
 
 
-        !write the data on an output file
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the integration step of the interior domain and its
+        !> extension if any
+        !
+        !> @date
+        !> 18_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !
+        !>@param dt
+        !> time step
+        !
+        !>@param nodes_tmp
+        !> array containing the temporary grid points for the
+        !> time integration of the interior computational domain
+        !
+        !>@param time_dev
+        !> time derivatives of the interior domain
+        !
+        !>@param integration_step
+        !> procedure for the time integration of the interior domain
+        !
+        !>@param integration_step_nopt
+        !> procedure for the time integration of the domain extension
+        !--------------------------------------------------------------
+        subroutine compute_integration_step_ext(
+     $     this, dt, nodes_tmp, time_dev,
+     $     integration_step, integration_step_nopt)
+
+          implicit none
+
+          class(field_abstract)           , intent(inout) :: this
+          real(rkind)                     , intent(in)    :: dt
+          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
+          procedure(timeInt_step)      :: integration_step
+          procedure(timeInt_step_nopt) :: integration_step_nopt
+
+          
+          integer, dimension(nx,ny) :: grdpts_id
+
+          
+          print '(''********************************'')'
+          print '(''field_abstract'')'
+          print '(''compute_integration_step_ext'')'
+          print '(''this procedure is only for field'')'
+          print '(''with domain extension'')'
+          print '(''********************************'')'
+          print '(''subroutine not implemented'')'
+          print '(''********************************'')'
+          stop
+
+          call integration_step(
+     $         this%nodes, dt, nodes_tmp, time_dev)
+
+          call integration_step_nopt(
+     $         this%nodes, dt, nodes_tmp, time_dev, grdpts_id)
+
+        end subroutine compute_integration_step_ext
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> write the interior domain data on output files depending
+        !> on the i/o operators used
+        !
+        !> @date
+        !> 18_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !
+        !>@param time
+        !> simulation time
+        !--------------------------------------------------------------
         subroutine write_data(this, time)
 
           implicit none
@@ -291,7 +549,21 @@
         end subroutine write_data
 
 
-        !set the attribute dx
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the grid size along the x-axis
+        !
+        !> @date
+        !> 18_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !
+        !>@param dx
+        !> grid size along the x-axis
+        !--------------------------------------------------------------
         subroutine set_dx(this, dx)
 
           implicit none
@@ -304,7 +576,21 @@
         end subroutine set_dx
 
       
-        !set the attribute dy
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the grid size along the x-axis
+        !
+        !> @date
+        !> 18_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !
+        !>@param dy
+        !> grid size along the y-axis
+        !--------------------------------------------------------------
         subroutine set_dy(this, dy)
 
           implicit none
@@ -317,7 +603,21 @@
         end subroutine set_dy
 
 
-        !get the attribute nodes
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the array containing the grid point data
+        !
+        !> @date
+        !> 18_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !
+        !>@return nodes
+        !> grid size along the y-axis
+        !--------------------------------------------------------------
         function get_nodes(this) result(nodes)
 
           implicit none
@@ -330,7 +630,21 @@
         end function get_nodes
 
 
-        !set the attribute nodes
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the array containing the grid point data
+        !
+        !> @date
+        !> 18_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !
+        !>@param nodes
+        !> grid size along the y-axis
+        !--------------------------------------------------------------
         subroutine set_nodes(this,nodes)
 
           implicit none
@@ -343,7 +657,22 @@
         end subroutine set_nodes
 
 
-        !get the attribute x_map
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the array containing the space discretization map
+        !> along the x-axis
+        !
+        !> @date
+        !> 18_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !
+        !>@return x_map
+        !> discretisation map along the x-axis
+        !--------------------------------------------------------------
         function get_x_map(this) result(x_map)
 
           implicit none
@@ -356,7 +685,22 @@
         end function get_x_map
 
 
-        !get the attribute y_map
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the array containing the space discretization map
+        !> along the y-axis
+        !
+        !> @date
+        !> 18_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !
+        !>@return y_map
+        !> discretisation map along the y-axis
+        !--------------------------------------------------------------
         function get_y_map(this) result(y_map)
 
           implicit none

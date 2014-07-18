@@ -16,18 +16,19 @@
       !-----------------------------------------------------------------
       module field_abstract_par_class
 
-        use bc_operators_par_class, only : bc_operators_par      
-        use io_operators_par_class, only : io_operators_par
+        use bc_operators_par_class    , only : bc_operators_par      
+        use interface_integration_step, only : timeInt_step
+        use io_operators_par_class    , only : io_operators_par
         use mpi
-        use mpi_process_class     , only : mpi_process        
-        use parameters_input      , only : ntx,nty,npx,npy,bc_size,
-     $                                     bc_choice,nx,ny,ne,
-     $                                     x_min,x_max,y_min,y_max
-        use parameters_kind       , only : ikind, rkind
-        use pmodel_eq_class       , only : pmodel_eq
-        use sd_operators_class    , only : sd_operators
-        use surrogate_class       , only : surrogate
-        use td_operators_par_class, only : td_operators_par
+        use mpi_process_class         , only : mpi_process        
+        use parameters_input          , only : ntx,nty,npx,npy,bc_size,
+     $                                         bc_choice,nx,ny,ne,
+     $                                         x_min,x_max,y_min,y_max
+        use parameters_kind           , only : ikind, rkind
+        use pmodel_eq_class           , only : pmodel_eq
+        use sd_operators_class        , only : sd_operators
+        use surrogate_class           , only : surrogate
+        use td_operators_par_class    , only : td_operators_par
 
         implicit none
 
@@ -83,24 +84,6 @@
           procedure, pass          :: get_y_map    !only for tests      
 
         end type field_abstract_par
-
-
-        interface
-
-           subroutine integration_step_proc(
-     $          nodes, dt, nodes_tmp, time_dev)
-           
-             import rkind
-             import nx,ny,ne
-
-             real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-             real(rkind)                     , intent(in)    :: dt
-             real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
-             real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
-
-           end subroutine integration_step_proc
-
-        end interface
 
 
         contains
@@ -356,7 +339,7 @@
           real(rkind)                     , intent(in)    :: dt
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
           real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
-          procedure(integration_step_proc) :: integration_step
+          procedure(timeInt_step) :: integration_step
 
           call integration_step(this%nodes, dt, nodes_tmp, time_dev)
 

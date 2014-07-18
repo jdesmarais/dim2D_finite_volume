@@ -14,6 +14,7 @@ $(field_dir)/surrogate_class.o:
 $(field_dir)/field_abstract_class.o:\
 			$(bc_cdir)/bc_operators_class.o\
 			$(field_dir)/surrogate_class.o\
+			$(ti_dir)/interface_integration_step.o\
 			$(io_cdir)/io_operators_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
@@ -23,6 +24,7 @@ $(field_dir)/field_abstract_class.o:\
 
 $(field_dir)/field_abstract_par_class.o:\
 			$(bc_cdir)/bc_operators_par_class.o\
+			$(ti_dir)/interface_integration_step.o\
 			$(io_cdir)/io_operators_par_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(param_dir)/parameters_input.o\
@@ -34,6 +36,13 @@ $(field_dir)/field_abstract_par_class.o:\
 
 $(field_dir)/field_class.o:\
 			$(field_dir)/field_abstract_class.o\
+			$(param_dir)/parameters_kind.o\
+			$(ti_cdir)/td_integrator_class.o
+
+$(field_dir)/field_extended_class.o:\
+			$(bf_layer_dir)/bf_interface_dcr_class.o\
+			$(field_dir)/field_abstract_class.o\
+			$(ti_dir)/interface_integration_step.o\
 			$(param_dir)/parameters_kind.o\
 			$(ti_cdir)/td_integrator_class.o
 
@@ -349,6 +358,7 @@ $(fv_dir)/td_operators_par_class.o:\
 
 #time integration methods
 $(ti_dir)/interface_integration_step.o:\
+			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
 $(ti_dir)/td_integrator_abstract_class.o:\
