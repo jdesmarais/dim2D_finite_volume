@@ -13,6 +13,10 @@ pm_dep=			pmodel_eq_abstract_class.o\
 
 simpletest_dep=		$(pm_dep)
 
+wave2d_dep=		wave2d_parameters.o\
+			wave2d_prim_module.o\
+			$(pm_dep)
+
 dim2d_flux_dep=		dim2d_parameters.o\
 			dim2d_prim_module.o\
 			dim2d_fluxes_module.o

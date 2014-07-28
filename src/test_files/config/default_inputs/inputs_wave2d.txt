@@ -2,7 +2,7 @@
 !---------------------------------------------------------
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !---------------------------------------------------------
-detail_print = 0.0001
+detail_print = 0.04
 
 
 !2.	Simulation duration
@@ -10,8 +10,8 @@ detail_print = 0.0001
 !t_steps : integer : set number of steps in time
 !t_max   : real    : set simulation maximum time
 !---------------------------------------------------------
-dt    = 0.00005
-t_max = 1.5
+dt    = 0.0075
+t_max = 4.0
 
 
 !3.	Space discretisation
@@ -27,16 +27,16 @@ t_max = 1.5
 !npx     : integer : number of tiles in the x-direction
 !npy     : integer : number of tiles in the y-direction
 !---------------------------------------------------------
-dx = 0.001
-x_min = 0
-x_max = 2.4
+dx = 0.01
+x_min = -1
+x_max = 1
 
-dy = 0.001
-y_min = 0
-y_max = 2.4
+dy = 0.01
+y_min = -1
+y_max = 1
 
-npx = 2
-npy = 2
+npx = 1
+npy = 1
 
 
 !4.	Physical model
@@ -48,7 +48,7 @@ npy = 2
 ! 1 : for wave2d
 ! 2 : for dim2d
 !---------------------------------------------------------
-pm_choice = 2
+pm_choice = 1
 
 
 !5.     Boundary conditions

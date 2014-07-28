@@ -22,6 +22,7 @@ nf90_dir		= $(io_dir)/nf90_operators
 mpi_bc_dir 		= $(mpi_dir)/mpi_messenger_bc
 
 dim2d_dir               = $(phy_eq_dir)/dim2d
+wave2d_dir              = $(phy_eq_dir)/wave2d
 simpletest_dir          = $(phy_eq_dir)/simpletest
 
 rk3tvd_dir		= $(ti_dir)/rungekutta3rdtvd

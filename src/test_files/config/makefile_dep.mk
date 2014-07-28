@@ -79,6 +79,22 @@ $(simpletest_dir)/pmodel_eq_class.o:\
 			$(phy_eq_dir)/pmodel_eq_abstract_class.o\
 			$(sd_cdir)/sd_operators_class.o
 
+#wave2d equations
+$(wave2d_dir)/wave2d_parameters.o:\
+			$(param_dir)/parameters_kind.o
+
+$(wave2d_dir)/wave2d_prim_module.o:\
+			$(param_dir)/parameters_kind.o
+
+$(wave2d_dir)/pmodel_eq_class.o:\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_kind.o\
+			$(phy_eq_dir)/pmodel_eq_abstract_class.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(wave2d_dir)/wave2d_parameters.o\
+			$(wave2d_dir)/wave2d_prim_module.o
+
 #diffuse interface model equations
 $(dim2d_dir)/dim2d_parameters.o:\
 			$(param_dir)/parameters_kind.o

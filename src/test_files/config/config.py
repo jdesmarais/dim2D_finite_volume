@@ -125,6 +125,10 @@ def compute_code_inputs(inputFileName):
     #< codes for ic_choice, bc_choice, bc_type_choice,
     #> gravity_choice: these codes are defined in
     #> parameters_constant.f
+    pm_code      = ['simpletest_choice',
+                    'wave2d_choice',
+                    'dim2d_choice']
+    
     ic_code      = ['steady_state',
                     'drop_retraction',
                     'bubble_ascending',
@@ -145,12 +149,14 @@ def compute_code_inputs(inputFileName):
 
 
     #< read the input file
-    inputs_needed=[\
-        'x_min','x_max','dx',\
-        'y_min','y_max','dy',\
-        'dt','t_max','detail_print',\
-        'npx', 'npy',\
-        'bc_choice', 'ic_choice', 'gravity_choice']
+    inputs_needed=['x_min','x_max','dx',
+                   'y_min','y_max','dy',
+                   'dt','t_max','detail_print',
+                   'npx', 'npy',
+                   'pm_choice',
+                   'bc_choice',
+                   'ic_choice',
+                   'gravity_choice']
     inputs=read_inputs(inputFileName, inputs_needed)
     
 
@@ -167,6 +173,17 @@ def compute_code_inputs(inputFileName):
         inputs['x_min'],inputs['x_max'],inputs['dx'],
         inputs['y_min'],inputs['y_max'],inputs['dy'],
         bc_size)
+
+    #< compute the pm_choice
+    pm_choice = pm_code[int(inputs['pm_choice'])]
+
+    #< compute the ne
+    if(pm_choice=='simpletest_choice'):
+        ne = 1
+    if(pm_choice=='wave2d_choice'):
+        ne = 3
+    if(pm_choice=='dim2d_choice'):
+        ne = 4
 
     #< compute the ic_choice
     ic_choice = ic_code[int(inputs['ic_choice'])]
@@ -191,14 +208,16 @@ def compute_code_inputs(inputFileName):
     gravity_choice = gravity_code[int(inputs['gravity_choice'])]
 
 
-    return [inputs,ntx,nty,
+    return [inputs,ntx,nty,ne,
+            pm_choice,
             ic_choice,
             bc_choice,
             bcx_type_choice,bcy_type_choice,
             gravity_choice]
 
 
-def update_parameters_inputs(file_path,inputs,ntx,nty,
+def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
+                             pm_choice,
                              ic_choice,
                              bc_choice,
                              bcx_type_choice,bcy_type_choice,
@@ -210,12 +229,14 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,
     '''
     
     #< change the constant that do not require a special
-    #> output treatment (double,real...)
+    #> output treatment (double,real,integer...)
     constants_changed1={
         'npx':inputs['npx'],
         'npy':inputs['npy'],
         'ntx':ntx,
         'nty':nty,
+        'ne':ne,
+        'pm_choice':pm_choice,
         'ic_choice':ic_choice,
         'bc_choice':bc_choice,
         'bcx_type_choice':bcx_type_choice,
@@ -322,7 +343,8 @@ if __name__ == "__main__":
 
 
     #< compute the code inputs
-    [inputs,ntx,nty,
+    [inputs,ntx,nty,ne,
+     pm_choice,
      ic_choice,
      bc_choice,
      bcx_type_choice,bcy_type_choice,
@@ -330,7 +352,8 @@ if __name__ == "__main__":
 
 
     #< replace the inputs in the 'parameters_input' file
-    update_parameters_inputs(param_path,inputs,ntx,nty,
+    update_parameters_inputs(param_path,inputs,ntx,nty,ne,
+                             pm_choice,
                              ic_choice,
                              bc_choice,
                              bcx_type_choice,bcx_type_choice,
@@ -343,6 +366,7 @@ if __name__ == "__main__":
 
     #< print the major results
     print '(ntx,nty)', ntx,nty
+    print '(ne)', ne
 
 
     #< print the end of the configuration
