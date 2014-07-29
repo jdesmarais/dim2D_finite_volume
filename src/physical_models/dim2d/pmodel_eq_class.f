@@ -394,21 +394,21 @@ c$$$               call apply_drop_evaporation_ic(field_used)
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,1) =
      $               flux_x_mass_density(
-     $               nodes,s,i-1,j)
+     $               nodes,s,i,j)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,2) = flux_x_momentum_x(
-     $               nodes,s,i-1,j,
+     $               nodes,s,i,j,
      $               dx, dy)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,3) = flux_x_momentum_y(
-     $               nodes,s,i-1,j,
+     $               nodes,s,i,j,
      $               dx, dy)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_x(i,j,4) = flux_x_total_energy(
-     $               nodes,s,i-1,j,
+     $               nodes,s,i,j,
      $               dx, dy)
 
              end do
@@ -460,21 +460,21 @@ c$$$               call apply_drop_evaporation_ic(field_used)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,1) = flux_y_mass_density(
-     $               nodes,s,i,j-1)
+     $               nodes,s,i,j)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,2) = flux_y_momentum_x(
-     $               nodes,s,i,j-1,
+     $               nodes,s,i,j,
      $               dx, dy)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,3) = flux_y_momentum_y(
-     $               nodes,s,i,j-1,
+     $               nodes,s,i,j,
      $               dx, dy)
 
                 !DEC$ FORCEINLINE RECURSIVE
                 flux_y(i,j,4) = flux_y_total_energy(
-     $               nodes,s,i,j-1,
+     $               nodes,s,i,j,
      $               dx, dy)
 
              end do
@@ -539,21 +539,21 @@ c$$$               call apply_drop_evaporation_ic(field_used)
                    !DEC$ FORCEINLINE RECURSIVE
                    flux_x(i,j,1) =
      $                  flux_x_mass_density(
-     $                  nodes,s,i-1,j)
+     $                  nodes,s,i,j)
                    
                    !DEC$ FORCEINLINE RECURSIVE
                    flux_x(i,j,2) = flux_x_momentum_x(
-     $                  nodes,s,i-1,j,
+     $                  nodes,s,i,j,
      $                  dx, dy)
                    
                    !DEC$ FORCEINLINE RECURSIVE
                    flux_x(i,j,3) = flux_x_momentum_y(
-     $                  nodes,s,i-1,j,
+     $                  nodes,s,i,j,
      $                  dx, dy)
                    
                    !DEC$ FORCEINLINE RECURSIVE
                    flux_x(i,j,4) = flux_x_total_energy(
-     $                  nodes,s,i-1,j,
+     $                  nodes,s,i,j,
      $                  dx, dy)
 
                 end if
@@ -618,21 +618,21 @@ c$$$               call apply_drop_evaporation_ic(field_used)
                 if(grdpts_id(i,j).eq.interior_pt) then
 
                    !DEC$ FORCEINLINE RECURSIVE
-                   flux_y(i,j,1) = flux_y_mass_density(nodes,s,i,j-1)
+                   flux_y(i,j,1) = flux_y_mass_density(nodes,s,i,j)
                    
                    !DEC$ FORCEINLINE RECURSIVE
                    flux_y(i,j,2) = flux_y_momentum_x(
-     $                  nodes,s,i,j-1,
+     $                  nodes,s,i,j,
      $                  dx,dy)
                    
                    !DEC$ FORCEINLINE RECURSIVE
                    flux_y(i,j,3) = flux_y_momentum_y(
-     $                  nodes,s,i,j-1,
+     $                  nodes,s,i,j,
      $                  dx,dy)
                    
                    !DEC$ FORCEINLINE RECURSIVE
                    flux_y(i,j,4) = flux_y_total_energy(
-     $                  nodes,s,i,j-1,
+     $                  nodes,s,i,j,
      $                  dx,dy)
 
                 end if

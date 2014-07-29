@@ -79,15 +79,15 @@
         dy=0.6
 
         !<initialize the mass density
-        nodes(1,1,1)=0.5d0
-        nodes(2,1,1)=0.2d0
-        nodes(3,1,1)=1.2d0
-        nodes(4,1,1)=5.0d0
+        nodes(1,1,1)=  0.5d0
+        nodes(2,1,1)=  0.2d0
+        nodes(3,1,1)=  1.2d0
+        nodes(4,1,1)=  5.0d0
 
-        nodes(1,2,1)=2.0d0
-        nodes(2,2,1)=4.2d0
-        nodes(3,2,1)=11.0d0
-        nodes(4,2,1)=10.6d0
+        nodes(1,2,1)=  2.0d0
+        nodes(2,2,1)=  4.2d0
+        nodes(3,2,1)= 11.0d0
+        nodes(4,2,1)= 10.6d0
 
         nodes(1,3,1)=-14.2d0
         nodes(2,3,1)= 23.0d0
@@ -95,30 +95,30 @@
         nodes(4,3,1)=  3.4d0
 
         nodes(1,4,1)= 2.45d0
-        nodes(2,4,1)= 0.2d0
-        nodes(3,4,1)= 9.0d0
-        nodes(4,4,1)= 5.4d0
+        nodes(2,4,1)=  0.2d0
+        nodes(3,4,1)=  9.0d0
+        nodes(4,4,1)=  5.4d0
 
         !<initialize the momentum_x
-        nodes(1,1,2)= 9.5d0
-        nodes(2,1,2)= 9.8d0
-        nodes(3,1,2)= 8.8d0
-        nodes(4,1,2)= 5.0d0
+        nodes(1,1,2)=  9.5d0
+        nodes(2,1,2)=  9.8d0
+        nodes(3,1,2)=  8.8d0
+        nodes(4,1,2)=  5.0d0
 
-        nodes(1,2,2)= 8.0d0
-        nodes(2,2,2)= 5.8d0
-        nodes(3,2,2)=-1.0d0
-        nodes(4,2,2)=-0.6d0
+        nodes(1,2,2)=  8.0d0
+        nodes(2,2,2)=  5.8d0
+        nodes(3,2,2)= -1.0d0
+        nodes(4,2,2)= -0.6d0
 
         nodes(1,3,2)= 24.2d0
         nodes(2,3,2)=-13.0d0
-        nodes(3,3,2)= 0.2d0
-        nodes(4,3,2)= 6.6d0
+        nodes(3,3,2)=  0.2d0
+        nodes(4,3,2)=  6.6d0
 
         nodes(1,4,2)= 7.55d0
-        nodes(2,4,2)= 9.8d0
-        nodes(3,4,2)= 1.0d0
-        nodes(4,4,2)= 4.6d0
+        nodes(2,4,2)=  9.8d0
+        nodes(3,4,2)=  1.0d0
+        nodes(4,4,2)=  4.6d0
 
         !<initialize the momentum_y
         nodes(1,1,3)=-8.5d0
@@ -193,35 +193,35 @@
 
            prog_data  = flux_x(i,j,1)
            test_validated = is_test_validated(prog_data, test_data(1))
-           print '(''test flux_x_mass_density: '',1L)', test_validated
+           print '(''test flux_x_mass_density: '',1L1)', test_validated
 
            prog_data  = flux_x(i,j,2)
            test_validated = is_test_validated(prog_data, test_data(2))
-           print '(''test flux_x_momentum_x: '',1L)', test_validated
+           print '(''test flux_x_momentum_x: '',1L1)', test_validated
            
            prog_data  = flux_x(i,j,3)
            test_validated = is_test_validated(prog_data, test_data(3))
-           print '(''test flux_x_momentum_y: '',1L)', test_validated
+           print '(''test flux_x_momentum_y: '',1L1)', test_validated
 
            prog_data  = flux_x(i,j,4)
            test_validated = is_test_validated(prog_data, test_data(4))
-           print '(''test flux_x_total_energy: '',1L)', test_validated
+           print '(''test flux_x_total_energy: '',1L1)', test_validated
 
            prog_data  = flux_y(i,j,1)
            test_validated = is_test_validated(prog_data, test_data(5))
-           print '(''test flux_y_mass_density: '',1L)', test_validated
+           print '(''test flux_y_mass_density: '',1L1)', test_validated
 
            prog_data  = flux_y(i,j,2)
            test_validated = is_test_validated(prog_data, test_data(6))
-           print '(''test flux_y_momentum_x: '',1L)', test_validated
+           print '(''test flux_y_momentum_x: '',1L1)', test_validated
            
            prog_data  = flux_y(i,j,3)
            test_validated = is_test_validated(prog_data, test_data(7))
-           print '(''test flux_y_momentum_y: '',1L)', test_validated
+           print '(''test flux_y_momentum_y: '',1L1)', test_validated
 
            prog_data  = flux_y(i,j,4)
            test_validated = is_test_validated(prog_data, test_data(8))
-           print '(''test flux_y_total_energy: '',1L)', test_validated
+           print '(''test flux_y_total_energy: '',1L1)', test_validated
 
         else
 
@@ -250,7 +250,7 @@
      $          is_test_validated(flux_y(i,j,4), test_data(8))
 
 
-           print '(''test_validated: '', 1L)', test_validated
+           print '(''test_validated: '', 1L1)', test_validated
 
         end if
 
@@ -275,9 +275,9 @@
              print *, int(cst*1e5)
           end if
           
-          test_validated=(
+          test_validated=abs(
      $         int(var*100000.)-
-     $         sign(int(abs(cst*100000.)),int(cst*100000.))).eq.0
+     $         sign(int(abs(cst*100000.)),int(cst*100000.))).le.1
           
         end function is_test_validated
 

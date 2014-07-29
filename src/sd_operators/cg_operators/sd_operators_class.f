@@ -123,8 +123,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute \f$ u_{i+\frac{1}{2},j}=
-        !>\frac{1}{12}(-u_{i-1,j}+7 u_{i,j}+ 7 u_{i+1,j} - u_{i+2,j})\f$
+        !> compute \f$ u_{i-\frac{1}{2},j}=
+        !>\frac{1}{12}(-u_{i-2,j}+7 u_{i-1,j}+ 7 u_{i,j} - u_{i+1,j})\f$
         !
         !> @date
         !> 07_08_2013 - initial version  - J.L. Desmarais
@@ -160,17 +160,17 @@
 
              !TAG INLINE
              var = 1.0d0/12.0d0*(
-     $            -      proc(nodes,i-1,j)
-     $            +7.0d0*proc(nodes,i,j)
-     $            +7.0d0*proc(nodes,i+1,j)
-     $            -      proc(nodes,i+2,j)
+     $            -      proc(nodes,i-2,j)
+     $            +7.0d0*proc(nodes,i-1,j)
+     $            +7.0d0*proc(nodes,i  ,j)
+     $            -      proc(nodes,i+1,j)
      $            )
           else
              var = 1./12.*(
-     $            -  proc(nodes,i-1,j)
-     $            +7*proc(nodes,i,j)
-     $            +7*proc(nodes,i+1,j)
-     $            -  proc(nodes,i+2,j)
+     $            -  proc(nodes,i-2,j)
+     $            +7*proc(nodes,i-1,j)
+     $            +7*proc(nodes,i  ,j)
+     $            -  proc(nodes,i+1,j)
      $            )
           end if
 
@@ -181,8 +181,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i+\frac{1}{2}
-        !> ,j}= \frac{1}{\Delta x}(-u_{i,j}+u_{i+1,j})\f$
+        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i-\frac{1}{2}
+        !> ,j}= \frac{1}{\Delta x}(-u_{i-1,j}+u_{i,j})\f$
         !
         !> @date
         !> 07_08_2013 - initial version  - J.L. Desmarais
@@ -221,12 +221,12 @@
 
              !TAG INLINE
              var = 1.d0/dx*(
-     $            -proc(nodes,i,j)
-     $            +proc(nodes,i+1,j))
+     $            -proc(nodes,i-1,j)
+     $            +proc(nodes,i,j))
           else
              var = 1./dx*(
-     $            -proc(nodes,i,j)
-     $            +proc(nodes,i+1,j))
+     $            -proc(nodes,i-1,j)
+     $            +proc(nodes,i,j))
           end if
 
         end function dfdx_cockburnandgau
@@ -236,8 +236,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i+\frac{1}{2}
-        !> ,j}= \frac{1}{\Delta x}(-u_{i,j}+u_{i+1,j})\f$
+        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i-\frac{1}{2}
+        !> ,j}= \frac{1}{\Delta x}(-u_{i-1,j}+u_{i,j})\f$
         !
         !> @date
         !> 07_08_2013 - initial version  - J.L. Desmarais
@@ -283,12 +283,12 @@
 
              !TAG INLINE
              var = 1.d0/dx*(
-     $            -proc(nodes,i,j,dx,dy)
-     $            +proc(nodes,i+1,j,dx,dy))
+     $            -proc(nodes,i-1,j,dx,dy)
+     $            +proc(nodes,i  ,j,dx,dy))
           else
              var = 1./dx*(
-     $            -proc(nodes,i,j,dx,dy)
-     $            +proc(nodes,i+1,j,dx,dy))
+     $            -proc(nodes,i-1,j,dx,dy)
+     $            +proc(nodes,i  ,j,dx,dy))
           end if
 
         end function dfdx_cockburnandgau_nl
@@ -298,9 +298,9 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute \f$ \frac{\partial u}{\partial y}\big|
-        !> _{i+\frac{1}{2},j}= \frac{1}{2 \Delta y}
-        !> (-u_{i+\frac{1}{2},j-1}+u_{i+\frac{1}{2},j+1})\f$
+        !> compute \f$ \frac{\partial u}{\partial y}\bigg|
+        !> _{i-\frac{1}{2},j}= \frac{1}{2 \Delta y}
+        !> (-u_{i-\frac{1}{2},j-1}+u_{i-\frac{1}{2},j+1})\f$
         !
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
@@ -341,24 +341,24 @@
           if(rkind.eq.8) then
              !TAG INLINE
              var = 1.0d0/(24.0d0*dy)*(
-     $            +       proc(nodes,i-1,j-1)
+     $            +       proc(nodes,i-2,j-1)
+     $            - 7.0d0*proc(nodes,i-1,j-1)
      $            - 7.0d0*proc(nodes,i  ,j-1)
-     $            - 7.0d0*proc(nodes,i+1,j-1)
-     $            +       proc(nodes,i+2,j-1)
-     $            -       proc(nodes,i-1,j+1)
+     $            +       proc(nodes,i+1,j-1)
+     $            -       proc(nodes,i-2,j+1)
+     $            + 7.0d0*proc(nodes,i-1,j+1)
      $            + 7.0d0*proc(nodes,i  ,j+1)
-     $            + 7.0d0*proc(nodes,i+1,j+1)
-     $            -       proc(nodes,i+2,j+1))
+     $            -       proc(nodes,i+1,j+1))
           else
              var = 1./(24.*dy)*(
-     $         +   proc(nodes,i-1,j-1)
+     $         +   proc(nodes,i-2,j-1)
+     $         - 7*proc(nodes,i-1,j-1)
      $         - 7*proc(nodes,i  ,j-1)
-     $         - 7*proc(nodes,i+1,j-1)
-     $         +   proc(nodes,i+2,j-1)
-     $         -   proc(nodes,i-1,j+1)
+     $         +   proc(nodes,i+1,j-1)
+     $         -   proc(nodes,i-2,j+1)
+     $         + 7*proc(nodes,i-1,j+1)
      $         + 7*proc(nodes,i  ,j+1)
-     $         + 7*proc(nodes,i+1,j+1)
-     $         -   proc(nodes,i+2,j+1))
+     $         -   proc(nodes,i+1,j+1))
           end if
 
         end function dfdy_cockburnandgau
@@ -368,9 +368,9 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute \f$ \frac{\partial^2 u}{\partial x^2}\big|
-        !> _{i+\frac{1}{2},j}= \frac{1}{2 {\Delta x}^2}(u_{i-1,j} -
-        !> u_{i,j} - u_{i+1,j} + u_{i+2,j}) \f$
+        !> compute \f$ \frac{\partial^2 u}{\partial x^2}\bigg|
+        !> _{i-\frac{1}{2},j}= \frac{1}{2 {\Delta x}^2}(u_{i-2,j} -
+        !> u_{i-1,j} - u_{i,j} + u_{i+1,j}) \f$
         !
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
@@ -410,17 +410,17 @@
           if(rkind.eq.8) then
              !TAG INLINE
              var = 0.5d0/(dx**2)*(
-     $            +proc(nodes,i-1,j)
-     $            -proc(nodes,i,j)
-     $            -proc(nodes,i+1,j)
-     $            +proc(nodes,i+2,j)
+     $            +proc(nodes,i-2,j)
+     $            -proc(nodes,i-1,j)
+     $            -proc(nodes,i  ,j)
+     $            +proc(nodes,i+1,j)
      $            )
           else
              var = 1./(2.*(dx**2))*(
-     $            +proc(nodes,i-1,j)
-     $            -proc(nodes,i,j)
-     $            -proc(nodes,i+1,j)
-     $            +proc(nodes,i+2,j)
+     $            +proc(nodes,i-2,j)
+     $            -proc(nodes,i-1,j)
+     $            -proc(nodes,i  ,j)
+     $            +proc(nodes,i+1,j)
      $            )
           end if
 
@@ -432,9 +432,9 @@
         !
         !> @brief
         !> compute \f$ \frac{\partial^2 u}{\partial y^2}
-        !> \big|_{i+\frac{1}{2},j}= \frac{1}{{\Delta y}^2}(
-        !> u_{i+\frac{1}{2},j-1} - 2 u_{i+\frac{1}{2},j} +
-        !> u_{i+\frac{1}{2},j+1}) \f$
+        !> \bigg|_{i-\frac{1}{2},j}= \frac{1}{{\Delta y}^2}(
+        !> u_{i-\frac{1}{2},j-1} - 2 u_{i-\frac{1}{2},j} +
+        !> u_{i-\frac{1}{2},j+1}) \f$
         !
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
@@ -476,38 +476,38 @@
              !TAG INLINE
              var = (1.0d0/(12.0d0*dy**2))*(
      $            (
-     $            -       proc(nodes,i-1,j-1)
+     $            -       proc(nodes,i-2,j-1)
+     $            + 7.0d0*proc(nodes,i-1,j-1)
      $            + 7.0d0*proc(nodes,i  ,j-1)
-     $            + 7.0d0*proc(nodes,i+1,j-1)
-     $            -       proc(nodes,i+2,j-1))
+     $            -       proc(nodes,i+1,j-1))
      $            - 2.0d0*(
-     $            -       proc(nodes,i-1,j)
+     $            -       proc(nodes,i-2,j)
+     $            + 7.0d0*proc(nodes,i-1,j)
      $            + 7.0d0*proc(nodes,i  ,j)
-     $            + 7.0d0*proc(nodes,i+1,j)
-     $            -       proc(nodes,i+2,j))
+     $            -       proc(nodes,i+1,j))
      $            + (
-     $            -       proc(nodes,i-1,j+1)
+     $            -       proc(nodes,i-2,j+1)
+     $            + 7.0d0*proc(nodes,i-1,j+1)
      $            + 7.0d0*proc(nodes,i  ,j+1)
-     $            + 7.0d0*proc(nodes,i+1,j+1)
-     $            -       proc(nodes,i+2,j+1))
+     $            -       proc(nodes,i+1,j+1))
      $            )
           else
              var = (1./(12*dy**2))*(
      $            (
-     $            -   proc(nodes,i-1,j-1)
+     $            -   proc(nodes,i-2,j-1)
+     $            + 7*proc(nodes,i-1,j-1)
      $            + 7*proc(nodes,i  ,j-1)
-     $            + 7*proc(nodes,i+1,j-1)
-     $            -   proc(nodes,i+2,j-1))
+     $            -   proc(nodes,i+1,j-1))
      $            - 2*(
-     $            -   proc(nodes,i-1,j)
+     $            -   proc(nodes,i-2,j)
+     $            + 7*proc(nodes,i-1,j)
      $            + 7*proc(nodes,i  ,j)
-     $            + 7*proc(nodes,i+1,j)
-     $            -   proc(nodes,i+2,j))
+     $            -   proc(nodes,i+1,j))
      $            + (
-     $            -   proc(nodes,i-1,j+1)
+     $            -   proc(nodes,i-2,j+1)
+     $            + 7*proc(nodes,i-1,j+1)
      $            + 7*proc(nodes,i  ,j+1)
-     $            + 7*proc(nodes,i+1,j+1)
-     $            -   proc(nodes,i+2,j+1))
+     $            -   proc(nodes,i+1,j+1))
      $            )
           end if
         end function d2fdy2_cockburnandgau
@@ -518,9 +518,9 @@
         !
         !> @brief
         !> compute \f$ \frac{\partial^2 u}{\partial x \partial y}
-        !> \big|_{i+\frac{1}{2},j} = \frac{1}{2 \Delta y}
-        !> (-\frac{\partial u}{\partial x}\big|_{i+\frac{1}{2},j-1} +
-        !> \frac{\partial u}{\partial x}\big|_{i+\frac{1}{2},j+1}) \f$
+        !> \big|_{i-\frac{1}{2},j} = \frac{1}{2 \Delta y}
+        !> (-\frac{\partial u}{\partial x}\big|_{i-\frac{1}{2},j-1} +
+        !> \frac{\partial u}{\partial x}\big|_{i-\frac{1}{2},j+1}) \f$
         !
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
@@ -564,16 +564,16 @@
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var =( proc(nodes,i,j-1)
-     $            - proc(nodes,i+1,j-1)
-     $            - proc(nodes,i,j+1)
-     $            + proc(nodes,i+1,j+1))*
+             var =( proc(nodes,i-1,j-1)
+     $            - proc(nodes,i  ,j-1)
+     $            - proc(nodes,i-1,j+1)
+     $            + proc(nodes,i  ,j+1))*
      $            0.5d0/(dy*dx)
           else
-             var =( proc(nodes,i,j-1)
-     $            - proc(nodes,i+1,j-1)
-     $            - proc(nodes,i,j+1)
-     $            + proc(nodes,i+1,j+1))
+             var =( proc(nodes,i-1,j-1)
+     $            - proc(nodes,i  ,j-1)
+     $            - proc(nodes,i-1,j+1)
+     $            + proc(nodes,i  ,j+1))
      $            /(2*dy*dx)
           end if
 
@@ -584,8 +584,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute \f$ u_{i,j+\frac{1}{2}}=
-        !>\frac{1}{12}(-u_{i,j-1}+7 u_{i,j}+ 7 u_{i,j+1} - u_{i,j+2})\f$
+        !> compute \f$ u_{i,j-\frac{1}{2}}=
+        !>\frac{1}{12}(-u_{i,j-2}+7 u_{i,j-1}+ 7 u_{i,j} - u_{i,j+1})\f$
         !
         !> @date
         !> 07_08_2013 - initial version  - J.L. Desmarais
@@ -623,17 +623,17 @@
 
              !TAG INLINE
              var = 1.0d0/12.0d0*(
-     $            -      proc(nodes,i,j-1)
-     $            +7.0d0*proc(nodes,i,j)
-     $            +7.0d0*proc(nodes,i,j+1)
-     $            -      proc(nodes,i,j+2)
+     $            -      proc(nodes,i,j-2)
+     $            +7.0d0*proc(nodes,i,j-1)
+     $            +7.0d0*proc(nodes,i,j  )
+     $            -      proc(nodes,i,j+1)
      $            )
           else
              var = 1./12.*(
-     $            -  proc(nodes,i,j-1)
-     $            +7*proc(nodes,i,j)
-     $            +7*proc(nodes,i,j+1)
-     $            -  proc(nodes,i,j+2)
+     $            -  proc(nodes,i,j-2)
+     $            +7*proc(nodes,i,j-1)
+     $            +7*proc(nodes,i,j  )
+     $            -  proc(nodes,i,j+1)
      $            )
           end if
 
@@ -645,8 +645,8 @@
         !
         !> @brief
         !> compute \f$ \frac{\partial u}{\partial x}|_{i
-        !> ,j+\frac{1}{2}}= \frac{1}{2 \Delta x} (-u_{i-1,j+\frac{1}{2}}
-        !> +u_{i+1,j+\frac{1}{2}})\f$
+        !> ,j-\frac{1}{2}}= \frac{1}{2 \Delta x} (-u_{i-1,j-\frac{1}{2}}
+        !> +u_{i+1,j-\frac{1}{2}})\f$
         !
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
@@ -687,24 +687,24 @@
 
              !TAG INLINE
              var = 1.0d0/(24.0d0*dx)*(
-     $            +       proc(nodes,i-1,j-1)
-     $            - 7.0d0*proc(nodes,i-1,j)
-     $            - 7.0d0*proc(nodes,i-1,j+1)
-     $            +       proc(nodes,i-1,j+2)
-     $            -       proc(nodes,i+1,j-1)
-     $            + 7.0d0*proc(nodes,i+1,j)
-     $            + 7.0d0*proc(nodes,i+1,j+1)
-     $            -       proc(nodes,i+1,j+2))
+     $            +       proc(nodes,i-1,j-2)
+     $            - 7.0d0*proc(nodes,i-1,j-1)
+     $            - 7.0d0*proc(nodes,i-1,j  )
+     $            +       proc(nodes,i-1,j+1)
+     $            -       proc(nodes,i+1,j-2)
+     $            + 7.0d0*proc(nodes,i+1,j-1)
+     $            + 7.0d0*proc(nodes,i+1,j  )
+     $            -       proc(nodes,i+1,j+1))
           else
              var = 1./(24.*dx)*(
-     $            +   proc(nodes,i-1,j-1)
-     $            - 7*proc(nodes,i-1,j)
-     $            - 7*proc(nodes,i-1,j+1)
-     $            +   proc(nodes,i-1,j+2)
-     $            -   proc(nodes,i+1,j-1)
-     $            + 7*proc(nodes,i+1,j)
-     $            + 7*proc(nodes,i+1,j+1)
-     $            -   proc(nodes,i+1,j+2))
+     $            +   proc(nodes,i-1,j-2)
+     $            - 7*proc(nodes,i-1,j-1)
+     $            - 7*proc(nodes,i-1,j  )
+     $            +   proc(nodes,i-1,j+1)
+     $            -   proc(nodes,i+1,j-2)
+     $            + 7*proc(nodes,i+1,j-1)
+     $            + 7*proc(nodes,i+1,j  )
+     $            -   proc(nodes,i+1,j+1))
           end if
 
         end function dgdx_cockburnandgau
@@ -714,8 +714,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute \f$ \frac{\partial u}{\partial y}\big|_{i
-        !> ,j+\frac{1}{2}}= \frac{1}{\Delta y}(-u_{i,j}+u_{i,j+1})\f$
+        !> compute \f$ \frac{\partial u}{\partial y}\bigg|_{i
+        !> ,j-\frac{1}{2}}= \frac{1}{\Delta y}(-u_{i,j-1}+u_{i,j})\f$
         !
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
@@ -756,13 +756,13 @@
 
              !TAG INLINE
              var = 1.0d0/dy*(
-     $            -proc(nodes,i,j)
-     $            +proc(nodes,i,j+1)
+     $            -proc(nodes,i,j-1)
+     $            +proc(nodes,i,j  )
      $            )
           else
              var = 1./dy*(
-     $            -proc(nodes,i,j)
-     $            +proc(nodes,i,j+1)
+     $            -proc(nodes,i,j-1)
+     $            +proc(nodes,i,j  )
      $            )
           end if
 
@@ -773,8 +773,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute \f$ \frac{\partial u}{\partial y}\big|_{i
-        !> ,j+\frac{1}{2}}= \frac{1}{\Delta y}(-u_{i,j}+u_{i,j+1})\f$
+        !> compute \f$ \frac{\partial u}{\partial y}\bigg|_{i
+        !> ,j-\frac{1}{2}}= \frac{1}{\Delta y}(-u_{i,j-1}+u_{i,j})\f$
         !
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
@@ -819,13 +819,13 @@
 
              !TAG INLINE
              var = 1.0d0/dy*(
-     $            -proc(nodes,i,j,dx,dy)
-     $            +proc(nodes,i,j+1,dx,dy)
+     $            -proc(nodes,i,j-1,dx,dy)
+     $            +proc(nodes,i,j  ,dx,dy)
      $            )
           else
              var = 1./dy*(
-     $            -proc(nodes,i,j,dx,dy)
-     $            +proc(nodes,i,j+1,dx,dy)
+     $            -proc(nodes,i,j-1,dx,dy)
+     $            +proc(nodes,i,j  ,dx,dy)
      $            )
           end if
 
@@ -837,9 +837,9 @@
         !
         !> @brief
         !> compute \f$ \frac{\partial^2 u}{\partial x^2}
-        !> \big|_{i,j+\frac{1}{2}}= \frac{1}{{\Delta x}^2}(
-        !> u_{i-1,j+\frac{1}{2}}- 2 u_{i,j+\frac{1}{2}}
-        !> + u_{i+1,j+\frac{1}{2}}) \f$
+        !> \big|_{i,j-\frac{1}{2}}= \frac{1}{{\Delta x}^2}(
+        !> u_{i-1,j-\frac{1}{2}}- 2 u_{i,j-\frac{1}{2}}
+        !> + u_{i+1,j-\frac{1}{2}}) \f$
         !
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
@@ -880,37 +880,37 @@
 
              !TAG INLINE
              var = 1.0d0/(12.0d0*dx**2) * (
-     $            -      proc(nodes,i-1,j-1)
-     $            +7.0d0*proc(nodes,i-1,j)
-     $            +7.0d0*proc(nodes,i-1,j+1)
-     $            -      proc(nodes,i-1,j+2)
+     $            -      proc(nodes,i-1,j-2)
+     $            +7.0d0*proc(nodes,i-1,j-1)
+     $            +7.0d0*proc(nodes,i-1,j  )
+     $            -      proc(nodes,i-1,j+1)
      $            - 2.0d0*(
-     $            -      proc(nodes,i,j-1)
-     $            +7.0d0*proc(nodes,i,j)
-     $            +7.0d0*proc(nodes,i,j+1)
-     $            -      proc(nodes,i,j+2)
+     $            -      proc(nodes,i,j-2)
+     $            +7.0d0*proc(nodes,i,j-1)
+     $            +7.0d0*proc(nodes,i,j  )
+     $            -      proc(nodes,i,j+1)
      $            )
-     $            -      proc(nodes,i+1,j-1)
-     $            +7.0d0*proc(nodes,i+1,j)
-     $            +7.0d0*proc(nodes,i+1,j+1)
-     $            -      proc(nodes,i+1,j+2)
+     $            -      proc(nodes,i+1,j-2)
+     $            +7.0d0*proc(nodes,i+1,j-1)
+     $            +7.0d0*proc(nodes,i+1,j  )
+     $            -      proc(nodes,i+1,j+1)
      $            )
           else
              var = 1./(12.*dx**2) * (
-     $            -  proc(nodes,i-1,j-1)
-     $            +7*proc(nodes,i-1,j)
-     $            +7*proc(nodes,i-1,j+1)
-     $            -  proc(nodes,i-1,j+2)
+     $            -  proc(nodes,i-1,j-2)
+     $            +7*proc(nodes,i-1,j-1)
+     $            +7*proc(nodes,i-1,j  )
+     $            -  proc(nodes,i-1,j+1)
      $            - 2*(
-     $            -  proc(nodes,i,j-1)
-     $            +7*proc(nodes,i,j)
-     $            +7*proc(nodes,i,j+1)
-     $            -  proc(nodes,i,j+2)
+     $            -  proc(nodes,i,j-2)
+     $            +7*proc(nodes,i,j-1)
+     $            +7*proc(nodes,i,j  )
+     $            -  proc(nodes,i,j+1)
      $            )
-     $            -  proc(nodes,i+1,j-1)
-     $            +7*proc(nodes,i+1,j)
-     $            +7*proc(nodes,i+1,j+1)
-     $            -  proc(nodes,i+1,j+2)
+     $            -  proc(nodes,i+1,j-2)
+     $            +7*proc(nodes,i+1,j-1)
+     $            +7*proc(nodes,i+1,j  )
+     $            -  proc(nodes,i+1,j+1)
      $            )
           end if
 
@@ -922,8 +922,8 @@
         !
         !> @brief
         !> compute \f$ \frac{\partial^2 u}{\partial y^2}\big|
-        !> _{i,j+\frac{1}{2}}= \frac{1}{2 {\Delta y}^2}(u_{i,j-1} -
-        !> u_{i,j} - u_{i,j+1} + u_{i,j+2}) \f$
+        !> _{i,j-\frac{1}{2}}= \frac{1}{2 {\Delta y}^2}(u_{i,j-2} -
+        !> u_{i,j-1} - u_{i,j} + u_{i,j+1}) \f$
         !
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
@@ -963,17 +963,17 @@
           !TAG INLINE
           if(rkind.eq.8) then
              var = 0.5d0/(dy**2)*(
-     $            + proc(nodes,i,j-1)
-     $            - proc(nodes,i,j)
-     $            - proc(nodes,i,j+1)
-     $            + proc(nodes,i,j+2)
+     $            + proc(nodes,i,j-2)
+     $            - proc(nodes,i,j-1)
+     $            - proc(nodes,i,j  )
+     $            + proc(nodes,i,j+1)
      $            )
           else
              var = 1./(2.*dy**2)*(
-     $            + proc(nodes,i,j-1)
-     $            - proc(nodes,i,j)
-     $            - proc(nodes,i,j+1)
-     $            + proc(nodes,i,j+2)
+     $            + proc(nodes,i,j-2)
+     $            - proc(nodes,i,j-1)
+     $            - proc(nodes,i,j  )
+     $            + proc(nodes,i,j+1)
      $            )
           end if
 
@@ -985,9 +985,9 @@
         !
         !> @brief
         !> compute \f$ \frac{\partial^2 u}{\partial x \partial y}
-        !> \big|_{i,j+\frac{1}{2}} = \frac{1}{2 \Delta x}
-        !> (-\frac{\partial u}{\partial y}\big|_{i-1,j+\frac{1}{2}} +
-        !> \frac{\partial u}{\partial y}\big|_{i+1,j+\frac{1}{2}}) \f$
+        !> \bigg|_{i,j-\frac{1}{2}} = \frac{1}{2 \Delta x}
+        !> (-\frac{\partial u}{\partial y}\bigg|_{i-1,j-\frac{1}{2}} +
+        !> \frac{\partial u}{\partial y}\bigg|_{i+1,j-\frac{1}{2}}) \f$
         !
         !> @date
         !> 08_08_2013 - initial version - J.L. Desmarais
@@ -1032,17 +1032,17 @@
 
              !TAG INLINE
              var =(
-     $            proc(nodes,i-1,j)
-     $            - proc(nodes,i-1,j+1)
-     $            - proc(nodes,i+1,j)
-     $            + proc(nodes,i+1,j+1))*
+     $              proc(nodes,i-1,j-1)
+     $            - proc(nodes,i-1,j  )
+     $            - proc(nodes,i+1,j-1)
+     $            + proc(nodes,i+1,j  ))*
      $            0.5d0/(dx*dy)
           else
              var =(
-     $            proc(nodes,i-1,j)
-     $            - proc(nodes,i-1,j+1)
-     $            - proc(nodes,i+1,j)
-     $            + proc(nodes,i+1,j+1))
+     $              proc(nodes,i-1,j-1)
+     $            - proc(nodes,i-1,j  )
+     $            - proc(nodes,i+1,j-1)
+     $            + proc(nodes,i+1,j  ))
      $            /(2*dx*dy)
           end if
 

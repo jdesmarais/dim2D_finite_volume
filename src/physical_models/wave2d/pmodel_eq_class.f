@@ -415,13 +415,13 @@
           do j=bc_size+1, ny-bc_size
              do i=bc_size+1, nx+1-bc_size
 
-                flux_x(i,j,1) = c**2*s%f(nodes,i-1,j,velocity_x)+
+                flux_x(i,j,1) = c**2*s%f(nodes,i,j,velocity_x)+
      $                          epsilon*s%dfdx(nodes,i-1,j,position,dx)
 
-                flux_x(i,j,2) = c**2*s%f(nodes,i-1,j,position)+
+                flux_x(i,j,2) = c**2*s%f(nodes,i,j,position)+
      $                          epsilon*s%dfdx(nodes,i-1,j,velocity_x,dx)
 
-                flux_x(i,j,3) = -c_x*s%f(nodes,i-1,j,velocity_y)+
+                flux_x(i,j,3) = -c_x*s%f(nodes,i,j,velocity_y)+
      $                          epsilon*s%dfdx(nodes,i-1,j,velocity_y,dx)
 
              end do
@@ -474,13 +474,13 @@
           do j=bc_size+1, ny+1-bc_size
              do i=bc_size+1, nx-bc_size
 
-                flux_y(i,j,1) = c**2*s%g(nodes,i,j-1,velocity_y)+
+                flux_y(i,j,1) = c**2*s%g(nodes,i,j,velocity_y)+
      $                          epsilon*s%dgdy(nodes,i,j-1,position,dy)
 
-                flux_y(i,j,2) = -c_y*s%g(nodes,i,j-1,velocity_x)+
+                flux_y(i,j,2) = -c_y*s%g(nodes,i,j,velocity_x)+
      $                          epsilon*s%dgdy(nodes,i,j-1,velocity_x,dy)
 
-                flux_y(i,j,3) = c**2*s%g(nodes,i,j-1,position)+
+                flux_y(i,j,3) = c**2*s%g(nodes,i,j,position)+
      $                          epsilon*s%dgdy(nodes,i,j-1,velocity_y,dy)
 
              end do
@@ -512,13 +512,13 @@
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 
-                   flux_x(i,j,1) = c**2*s%f(nodes,i-1,j,velocity_x)+
+                   flux_x(i,j,1) = c**2*s%f(nodes,i,j,velocity_x)+
      $                             epsilon*s%dfdx(nodes,i-1,j,position,dx)
 
-                   flux_x(i,j,2) = c**2*s%f(nodes,i-1,j,position)+
+                   flux_x(i,j,2) = c**2*s%f(nodes,i,j,position)+
      $                             epsilon*s%dfdx(nodes,i-1,j,velocity_x,dx)
 
-                   flux_x(i,j,3) = -c_x*s%f(nodes,i-1,j,velocity_y)+
+                   flux_x(i,j,3) = -c_x*s%f(nodes,i,j,velocity_y)+
      $                             epsilon*s%dfdx(nodes,i-1,j,velocity_y,dx)
 
                 end if
@@ -552,13 +552,13 @@
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 
-                   flux_y(i,j,1) = c**2*s%g(nodes,i,j-1,velocity_y)+
+                   flux_y(i,j,1) = c**2*s%g(nodes,i,j,velocity_y)+
      $                             epsilon*s%dgdy(nodes,i,j-1,position,dy)
 
-                   flux_y(i,j,2) = -c_y*s%g(nodes,i,j-1,velocity_x)+
+                   flux_y(i,j,2) = -c_y*s%g(nodes,i,j,velocity_x)+
      $                             epsilon*s%dgdy(nodes,i,j-1,velocity_x,dy)
 
-                   flux_y(i,j,3) = c**2*s%g(nodes,i,j-1,position)+
+                   flux_y(i,j,3) = c**2*s%g(nodes,i,j,position)+
      $                             epsilon*s%dgdy(nodes,i,j-1,velocity_y,dy)
 
                 end if

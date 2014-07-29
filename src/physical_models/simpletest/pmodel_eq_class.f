@@ -291,8 +291,8 @@
           do j=bc_size+1, ny-bc_size
              do i=bc_size+1, nx+1-bc_size
 
-                flux_x(i,j,1) = 10*s%f(nodes,i-1,j,basic)+
-     $               s%dfdx(nodes,i-1,j,basic,dx)
+                flux_x(i,j,1) = 10*s%f(nodes,i,j,basic)+
+     $               s%dfdx(nodes,i,j,basic,dx)
 
              end do
           end do
@@ -339,8 +339,8 @@
           do j=bc_size+1, ny+1-bc_size
              do i=bc_size+1, nx-bc_size
 
-                flux_y(i,j,1) = s%g(nodes,i,j-1,basic)+
-     $               10*s%dgdy(nodes,i,j-1,basic,dy)
+                flux_y(i,j,1) = s%g(nodes,i,j,basic)+
+     $               10*s%dgdy(nodes,i,j,basic,dy)
 
              end do
           end do
@@ -371,8 +371,8 @@
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 
-                   flux_x(i,j,1) = 10*s%f(nodes,i-1,j,basic)+
-     $               s%dfdx(nodes,i-1,j,basic,dx)
+                   flux_x(i,j,1) = 10*s%f(nodes,i,j,basic)+
+     $               s%dfdx(nodes,i,j,basic,dx)
 
                 end if
 
@@ -405,8 +405,8 @@
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 
-                   flux_y(i,j,1) = s%g(nodes,i,j-1,basic)+
-     $                  10*s%dgdy(nodes,i,j-1,basic,dy)
+                   flux_y(i,j,1) = s%g(nodes,i,j,basic)+
+     $                  10*s%dgdy(nodes,i,j,basic,dy)
 
                 end if
 
