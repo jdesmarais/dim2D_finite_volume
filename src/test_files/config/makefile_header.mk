@@ -22,7 +22,7 @@ src_dir	   = $(augeanstables)/src
 config_dir = $(AUGEANSTABLES_CONFIG)
 dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 
-sd_choice  = cg_choice                  #space discretization choice
+sd_choice  = mt_choice                  #space discretization choice
 pm_choice  = wave2d_choice              #physical model choice
 bc_choice = reflection_xy_choice       #boundary condition choice
 td_choice  = finitevolume_choice        #time discretization choice
@@ -47,8 +47,13 @@ sim_par_dep = $(param_dep)
 #space discretisation
 ifeq ($(strip $(sd_choice)), cg_choice)
 	sd_cdir=$(cg_dir)
-	sim_dep+=$(sd_dep)
-	sim_par_dep+=$(sd_dep)
+	sim_dep+=$(cg_dep)
+	sim_par_dep+=$(cg_dep)
+endif
+ifeq ($(strip $(sd_choice)), mt_choice)
+	sd_cdir=$(mt_dir)
+	sim_dep+=$(mt_dep)
+	sim_par_dep+=$(mt_dep)
 endif
 
 #physical model

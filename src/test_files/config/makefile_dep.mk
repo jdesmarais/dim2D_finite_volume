@@ -56,6 +56,7 @@ $(field_dir)/field_par_class.o:\
 $(sd_dir)/interface_primary.o:\
 			$(param_dir)/parameters_kind.o
 
+#cockburn and gau operators
 $(sd_dir)/sd_operators_abstract_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_kind.o
@@ -75,6 +76,37 @@ $(cg_dir)/sd_operators_x_oneside_L1_class.o:\
 			$(param_dir)/parameters_kind.o\
 			$(cg_dir)/sd_operators_class.o
 
+$(cg_dir)/sd_operators_x_oneside_R1_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_kind.o\
+			$(cg_dir)/sd_operators_class.o
+
+$(cg_dir)/sd_operators_x_oneside_R0_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_kind.o\
+			$(cg_dir)/sd_operators_class.o
+
+$(cg_dir)/sd_operators_y_oneside_L0_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_kind.o\
+			$(cg_dir)/sd_operators_class.o
+
+$(cg_dir)/sd_operators_y_oneside_L1_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_kind.o\
+			$(cg_dir)/sd_operators_class.o
+
+$(cg_dir)/sd_operators_y_oneside_R1_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_kind.o\
+			$(cg_dir)/sd_operators_class.o
+
+$(cg_dir)/sd_operators_y_oneside_R0_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_kind.o\
+			$(cg_dir)/sd_operators_class.o
+
+#mattsson operators
 $(mt_dir)/sd_operators_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_kind.o\
