@@ -10,6 +10,7 @@ td_dir        		= $(src_dir)/td_operators
 test_dir                = $(src_dir)/test_files
 
 cg_dir			= $(sd_dir)/cg_operators
+mt_dir			= $(sd_dir)/mattsson_operators
 
 rbc_dir		       	= $(bc_dir)/reflection_xy
 pbc_dir		        = $(bc_dir)/periodic_xy

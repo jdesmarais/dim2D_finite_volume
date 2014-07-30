@@ -7,6 +7,7 @@ sd_dep=			interface_primary.o\
 			sd_operators_class.o
 
 cg_dep=			$(sd_dep)
+mt_dep=			$(sd_dep)
 
 pm_dep=			pmodel_eq_abstract_class.o\
 			pmodel_eq_class.o

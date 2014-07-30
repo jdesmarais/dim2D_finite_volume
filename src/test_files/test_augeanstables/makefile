@@ -66,3 +66,58 @@ test_bf_interface_prog:	$(param_dep)\
 			$(fv_dep)\
 			interface_integration_step.o\
 			$(bf_interface_dep)
+
+test_cg_operators_x_oneside_L0.o:\
+			$(cg_dir)/sd_operators_x_oneside_L0_class.o\
+			$(dim2d_dir)/dim2d_prim_module.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+test_cg_operators_x_oneside_L0:\
+			$(param_dep)\
+			$(cg_dep)\
+			sd_operators_x_oneside_L0_class.o\
+			dim2d_parameters.o\
+			dim2d_prim_module.o
+
+test_cg_operators_x_oneside_L1.o:\
+			$(cg_dir)/sd_operators_x_oneside_L1_class.o\
+			$(dim2d_dir)/dim2d_prim_module.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+test_cg_operators_x_oneside_L1:\
+			$(param_dep)\
+			$(cg_dep)\
+			sd_operators_x_oneside_L1_class.o\
+			dim2d_parameters.o\
+			dim2d_prim_module.o
+
+test_mattsson_operators.o:\
+			$(sd_dir)/sd_operators_abstract_class.o\
+			$(mt_dir)/sd_operators_class.o\
+			$(mt_dir)/sd_operators_x_oneside_L0_class.o\
+			$(mt_dir)/sd_operators_x_oneside_L1_class.o\
+			$(mt_dir)/sd_operators_x_oneside_R1_class.o\
+			$(mt_dir)/sd_operators_x_oneside_R0_class.o\
+			$(mt_dir)/sd_operators_y_oneside_L0_class.o\
+			$(mt_dir)/sd_operators_y_oneside_L1_class.o\
+			$(mt_dir)/sd_operators_y_oneside_R1_class.o\
+			$(mt_dir)/sd_operators_y_oneside_R0_class.o\
+			$(dim2d_dir)/dim2d_prim_module.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+test_mattsson_operators:\
+			$(param_dep)\
+			$(mt_dep)\
+			sd_operators_x_oneside_L0_class.o\
+			sd_operators_x_oneside_L1_class.o\
+			sd_operators_x_oneside_R1_class.o\
+			sd_operators_x_oneside_R0_class.o\
+			sd_operators_y_oneside_L0_class.o\
+			sd_operators_y_oneside_L1_class.o\
+			sd_operators_y_oneside_R1_class.o\
+			sd_operators_y_oneside_R0_class.o\
+			dim2d_parameters.o\
+			dim2d_prim_module.o
