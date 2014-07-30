@@ -137,6 +137,8 @@
           procedure, nopass :: compute_flux_y
           procedure, nopass :: compute_flux_x_nopt
           procedure, nopass :: compute_flux_y_nopt
+          procedure, nopass :: compute_flux_x_oneside
+          procedure, nopass :: compute_flux_y_oneside
           procedure, nopass :: compute_body_forces
           procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
@@ -641,6 +643,138 @@ c$$$               call apply_drop_evaporation_ic(field_used)
           end do
 
         end subroutine compute_flux_y_nopt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the fluxes along the x-axis
+        !
+        !> @date
+        !> 28_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param dx
+        !> grid size along the x-axis
+        !
+        !>@param dy
+        !> grid size along the y-axis
+        !
+        !>@param i
+        !> x-index where the flux_x is computed
+        !
+        !>@param j
+        !> y-index where the flux_x is computed
+        !
+        !>@param s_oneside
+        !> space discretization operators
+        !
+        !>@param flux_x
+        !> fluxes along the x-axis
+        !---------------------------------------------------------------
+        function compute_flux_x_oneside(nodes,dx,dy,i,j,s_oneside)
+     $     result(flux_x)
+        
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(in)   :: nodes
+          real(rkind)                     , intent(in)   :: dx
+          real(rkind)                     , intent(in)   :: dy
+          integer(ikind)                  , intent(in)   :: i
+          integer(ikind)                  , intent(in)   :: j
+          class(sd_operators)             , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)                     :: flux_x
+
+          !<fluxes along the x-axis
+          !DEC$ FORCEINLINE RECURSIVE
+          flux_x(1) = flux_y_mass_density(
+     $         nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          flux_x(2) = flux_y_momentum_x(
+     $         nodes,s_oneside,i,j,
+     $         dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          flux_x(3) = flux_y_momentum_y(
+     $         nodes,s_oneside,i,j,
+     $         dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          flux_x(4) = flux_x_total_energy(
+     $         nodes,s_oneside,i,j,
+     $         dx,dy)
+
+        end function compute_flux_x_oneside
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the fluxes along the y-axis
+        !
+        !> @date
+        !> 28_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param dx
+        !> grid size along the x-axis
+        !
+        !>@param dy
+        !> grid size along the y-axis
+        !
+        !>@param i
+        !> x-index where the flux_x is computed
+        !
+        !>@param j
+        !> y-index where the flux_x is computed
+        !
+        !>@param s_oneside
+        !> space discretization operators
+        !
+        !>@param flux_y
+        !> fluxes along the y-axis
+        !---------------------------------------------------------------
+        function compute_flux_y_oneside(nodes,dx,dy,i,j,s_oneside)
+     $     result(flux_y)
+        
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(in)   :: nodes
+          real(rkind)                     , intent(in)   :: dx
+          real(rkind)                     , intent(in)   :: dy
+          integer(ikind)                  , intent(in)   :: i
+          integer(ikind)                  , intent(in)   :: j
+          class(sd_operators)             , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)                     :: flux_y
+
+
+          !DEC$ FORCEINLINE RECURSIVE
+          flux_y(1) = flux_y_mass_density(
+     $         nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          flux_y(2) = flux_y_momentum_x(
+     $         nodes,s_oneside,i,j,
+     $         dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          flux_y(3) = flux_y_momentum_y(
+     $         nodes,s_oneside,i,j,
+     $         dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          flux_y(4) = flux_y_total_energy(
+     $         nodes,s_oneside,i,j,
+     $         dx,dy)
+
+        end function compute_flux_y_oneside
 
 
         !> @author

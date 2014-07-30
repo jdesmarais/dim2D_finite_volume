@@ -77,6 +77,8 @@
           procedure, nopass :: compute_flux_y
           procedure, nopass :: compute_flux_x_nopt
           procedure, nopass :: compute_flux_y_nopt
+          procedure, nopass :: compute_flux_x_oneside
+          procedure, nopass :: compute_flux_y_oneside
           procedure, nopass :: compute_body_forces
           procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
@@ -414,6 +416,55 @@
           end do
 
         end subroutine compute_flux_y_nopt
+
+
+        function compute_flux_x_oneside(nodes,dx,dy,i,j,s_oneside)
+     $     result(flux_x)
+        
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne)  , intent(in)   :: nodes
+          real(rkind)                       , intent(in)   :: dx
+          real(rkind)                       , intent(in)   :: dy
+          integer(ikind)                    , intent(in)   :: i
+          integer(ikind)                    , intent(in)   :: j
+          class(sd_operators)                , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)                       :: flux_x
+
+          real(rkind) :: dy_s
+
+          dy_s = dy
+
+          !<fluxes along the x-axis
+          flux_x(1) = 10*s_oneside%f(nodes,i,j,basic)+
+     $               s_oneside%dfdx(nodes,i,j,basic,dx)
+
+        end function compute_flux_x_oneside
+
+
+        function compute_flux_y_oneside(nodes,dx,dy,i,j,s_oneside)
+     $     result(flux_y)
+        
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne)  , intent(in)   :: nodes
+          real(rkind)                       , intent(in)   :: dx
+          real(rkind)                       , intent(in)   :: dy
+          integer(ikind)                    , intent(in)   :: i
+          integer(ikind)                    , intent(in)   :: j
+          class(sd_operators)                , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)                       :: flux_y
+
+          real(rkind) :: dx_s
+
+          dx_s = dx
+
+
+          !<fluxes along the x-axis
+          flux_y(1) = s%g(nodes,i,j,basic)+
+     $         10*s%dgdy(nodes,i,j,basic,dy)
+
+        end function compute_flux_y_oneside
 
 
         function basic(nodes,i,j) result(var)

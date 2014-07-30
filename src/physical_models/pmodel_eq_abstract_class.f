@@ -15,7 +15,7 @@
       module pmodel_eq_abstract_class
       
         use parameters_input  , only : nx,ny,ne
-        use parameters_kind   , only : rkind
+        use parameters_kind   , only : ikind, rkind
         use parameters_input  , only : nx,ny,ne
         use sd_operators_class, only : sd_operators
 
@@ -81,20 +81,22 @@
           
           contains
 
-          procedure(name_model)   , nopass, deferred :: get_model_name
-          procedure(name_var)     , nopass, deferred :: get_var_name
-          procedure(lname_var)    , nopass, deferred :: get_var_longname
-          procedure(mname_var)    , nopass, deferred :: get_var_unit
-          procedure(type_var)     , nopass, deferred :: get_var_type
-          procedure(gov_eq_nb)    , nopass, deferred :: get_eq_nb
-          procedure(ini_cond)     , nopass, deferred :: apply_ic
-          procedure(fluxes_x)     , nopass, deferred :: compute_flux_x
-          procedure(fluxes_y)     , nopass, deferred :: compute_flux_y
-          procedure(fluxes_x_n)   , nopass, deferred :: compute_flux_x_nopt
-          procedure(fluxes_y_n)   , nopass, deferred :: compute_flux_y_nopt
-          procedure(bodyforces)   , nopass, deferred :: compute_body_forces
-          procedure(velocity_proc), nopass, deferred :: get_velocity
-          procedure(openbc_proc)  , nopass, deferred :: are_openbc_undermined
+          procedure(name_model)      , nopass, deferred :: get_model_name
+          procedure(name_var)        , nopass, deferred :: get_var_name
+          procedure(lname_var)       , nopass, deferred :: get_var_longname
+          procedure(mname_var)       , nopass, deferred :: get_var_unit
+          procedure(type_var)        , nopass, deferred :: get_var_type
+          procedure(gov_eq_nb)       , nopass, deferred :: get_eq_nb
+          procedure(ini_cond)        , nopass, deferred :: apply_ic
+          procedure(fluxes_x)        , nopass, deferred :: compute_flux_x
+          procedure(fluxes_y)        , nopass, deferred :: compute_flux_y
+          procedure(fluxes_x_n)      , nopass, deferred :: compute_flux_x_nopt
+          procedure(fluxes_y_n)      , nopass, deferred :: compute_flux_y_nopt
+          procedure(fluxes_x_oneside), nopass, deferred :: compute_flux_x_oneside
+          procedure(fluxes_y_oneside), nopass, deferred :: compute_flux_y_oneside
+          procedure(bodyforces)      , nopass, deferred :: compute_body_forces
+          procedure(velocity_proc)   , nopass, deferred :: get_velocity
+          procedure(openbc_proc)     , nopass, deferred :: are_openbc_undermined
 
         end type pmodel_eq_abstract
 
@@ -394,6 +396,118 @@
             real(rkind), dimension(:,:,:), intent(inout) :: flux_y
 
           end subroutine fluxes_y_n
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to compute the fluxes along the
+          !> x-axis
+          !
+          !> @date
+          !> 08_08_2013 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param dx
+          !> grid size along the x-axis
+          !
+          !>@param dy
+          !> grid size along the y-axis
+          !
+          !>@param i
+          !> x-index where the flux_x is computed
+          !
+          !>@param j
+          !> y-index where the flux_x is computed
+          !
+          !>@param dy
+          !> grid size along the y-axis
+          !
+          !>@param s_oneside
+          !> space discretization operators
+          !
+          !>@param flux_x
+          !> fluxes along the x-axis
+          !--------------------------------------------------------------
+          function fluxes_x_oneside(
+     $      nodes,dx,dy,
+     $      i,j,
+     $      s_oneside)
+     $      result(flux_x)
+
+            import ikind
+            import rkind
+            import nx,ny,ne
+            import sd_operators
+
+            real(rkind), dimension(nx,ny,ne), intent(in)   :: nodes
+            real(rkind)                     , intent(in)   :: dx
+            real(rkind)                     , intent(in)   :: dy
+            integer(ikind)                  , intent(in)   :: i
+            integer(ikind)                  , intent(in)   :: j
+            class(sd_operators)             , intent(in)   :: s_oneside
+            real(rkind), dimension(ne)                     :: flux_x
+
+          end function fluxes_x_oneside
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to compute the fluxes along the
+          !> x-axis
+          !
+          !> @date
+          !> 08_08_2013 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param dx
+          !> grid size along the x-axis
+          !
+          !>@param dy
+          !> grid size along the y-axis
+          !
+          !>@param i
+          !> x-index where the flux_x is computed
+          !
+          !>@param j
+          !> y-index where the flux_x is computed
+          !
+          !>@param dy
+          !> grid size along the y-axis
+          !
+          !>@param s_oneside
+          !> space discretization operators
+          !
+          !>@param flux_y
+          !> fluxes along the x-axis
+          !--------------------------------------------------------------
+          function fluxes_y_oneside(
+     $      nodes,dx,dy,
+     $      i,j,
+     $      s_oneside)
+     $      result(flux_y)
+
+            import ikind
+            import rkind
+            import nx,ny,ne
+            import sd_operators
+
+            real(rkind), dimension(nx,ny,ne), intent(in)   :: nodes
+            real(rkind)                     , intent(in)   :: dx
+            real(rkind)                     , intent(in)   :: dy
+            integer(ikind)                  , intent(in)   :: i
+            integer(ikind)                  , intent(in)   :: j
+            class(sd_operators)             , intent(in)   :: s_oneside
+            real(rkind), dimension(ne)                     :: flux_y
+
+          end function fluxes_y_oneside
 
 
 

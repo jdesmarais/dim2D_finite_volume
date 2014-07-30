@@ -83,6 +83,8 @@
           procedure, nopass :: compute_flux_y
           procedure, nopass :: compute_flux_x_nopt
           procedure, nopass :: compute_flux_y_nopt
+          procedure, nopass :: compute_flux_x_oneside
+          procedure, nopass :: compute_flux_y_oneside
           procedure, nopass :: compute_body_forces
           procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
@@ -416,13 +418,13 @@
              do i=bc_size+1, nx+1-bc_size
 
                 flux_x(i,j,1) = c**2*s%f(nodes,i,j,velocity_x)+
-     $                          epsilon*s%dfdx(nodes,i-1,j,position,dx)
+     $                          epsilon*s%dfdx(nodes,i,j,position,dx)
 
                 flux_x(i,j,2) = c**2*s%f(nodes,i,j,position)+
-     $                          epsilon*s%dfdx(nodes,i-1,j,velocity_x,dx)
+     $                          epsilon*s%dfdx(nodes,i,j,velocity_x,dx)
 
                 flux_x(i,j,3) = -c_x*s%f(nodes,i,j,velocity_y)+
-     $                          epsilon*s%dfdx(nodes,i-1,j,velocity_y,dx)
+     $                          epsilon*s%dfdx(nodes,i,j,velocity_y,dx)
 
              end do
           end do
@@ -475,13 +477,13 @@
              do i=bc_size+1, nx-bc_size
 
                 flux_y(i,j,1) = c**2*s%g(nodes,i,j,velocity_y)+
-     $                          epsilon*s%dgdy(nodes,i,j-1,position,dy)
+     $                          epsilon*s%dgdy(nodes,i,j,position,dy)
 
                 flux_y(i,j,2) = -c_y*s%g(nodes,i,j,velocity_x)+
-     $                          epsilon*s%dgdy(nodes,i,j-1,velocity_x,dy)
+     $                          epsilon*s%dgdy(nodes,i,j,velocity_x,dy)
 
                 flux_y(i,j,3) = c**2*s%g(nodes,i,j,position)+
-     $                          epsilon*s%dgdy(nodes,i,j-1,velocity_y,dy)
+     $                          epsilon*s%dgdy(nodes,i,j,velocity_y,dy)
 
              end do
           end do
@@ -513,13 +515,13 @@
                 if(grdpts_id(i,j).eq.interior_pt) then
 
                    flux_x(i,j,1) = c**2*s%f(nodes,i,j,velocity_x)+
-     $                             epsilon*s%dfdx(nodes,i-1,j,position,dx)
+     $                             epsilon*s%dfdx(nodes,i,j,position,dx)
 
                    flux_x(i,j,2) = c**2*s%f(nodes,i,j,position)+
-     $                             epsilon*s%dfdx(nodes,i-1,j,velocity_x,dx)
+     $                             epsilon*s%dfdx(nodes,i,j,velocity_x,dx)
 
                    flux_x(i,j,3) = -c_x*s%f(nodes,i,j,velocity_y)+
-     $                             epsilon*s%dfdx(nodes,i-1,j,velocity_y,dx)
+     $                             epsilon*s%dfdx(nodes,i,j,velocity_y,dx)
 
                 end if
 
@@ -553,13 +555,13 @@
                 if(grdpts_id(i,j).eq.interior_pt) then
 
                    flux_y(i,j,1) = c**2*s%g(nodes,i,j,velocity_y)+
-     $                             epsilon*s%dgdy(nodes,i,j-1,position,dy)
+     $                             epsilon*s%dgdy(nodes,i,j,position,dy)
 
                    flux_y(i,j,2) = -c_y*s%g(nodes,i,j,velocity_x)+
-     $                             epsilon*s%dgdy(nodes,i,j-1,velocity_x,dy)
+     $                             epsilon*s%dgdy(nodes,i,j,velocity_x,dy)
 
                    flux_y(i,j,3) = c**2*s%g(nodes,i,j,position)+
-     $                             epsilon*s%dgdy(nodes,i,j-1,velocity_y,dy)
+     $                             epsilon*s%dgdy(nodes,i,j,velocity_y,dy)
 
                 end if
 
@@ -567,6 +569,127 @@
           end do
 
         end subroutine compute_flux_y_nopt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the fluxes along the x-axis
+        !
+        !> @date
+        !> 28_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param dx
+        !> grid size along the x-axis
+        !
+        !>@param dy
+        !> grid size along the y-axis
+        !
+        !>@param i
+        !> x-index where the flux_x is computed
+        !
+        !>@param j
+        !> y-index where the flux_x is computed
+        !
+        !>@param s_oneside
+        !> space discretization operators
+        !
+        !>@param flux_x
+        !> fluxes along the x-axis
+        !---------------------------------------------------------------
+        function compute_flux_x_oneside(nodes,dx,dy,i,j,s_oneside)
+     $     result(flux_x)
+        
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne)  , intent(in)   :: nodes
+          real(rkind)                       , intent(in)   :: dx
+          real(rkind)                       , intent(in)   :: dy
+          integer(ikind)                    , intent(in)   :: i
+          integer(ikind)                    , intent(in)   :: j
+          class(sd_operators)                , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)                       :: flux_x
+
+          real(rkind) :: dy_s
+
+          dy_s = dy
+
+          !<fluxes along the x-axis
+          flux_x(1) = c**2*s_oneside%f(nodes,i,j,velocity_x)+
+     $         epsilon*s_oneside%dfdx(nodes,i,j,position,dx)
+
+          flux_x(2) = c**2*s_oneside%f(nodes,i,j,position)+
+     $         epsilon*s_oneside%dfdx(nodes,i,j,velocity_x,dx)
+          
+          flux_x(3) = -c_x*s_oneside%f(nodes,i,j,velocity_y)+
+     $         epsilon*s_oneside%dfdx(nodes,i,j,velocity_y,dx)
+
+        end function compute_flux_x_oneside
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the fluxes along the y-axis
+        !
+        !> @date
+        !> 28_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param dx
+        !> grid size along the x-axis
+        !
+        !>@param dy
+        !> grid size along the y-axis
+        !
+        !>@param i
+        !> x-index where the flux_x is computed
+        !
+        !>@param j
+        !> y-index where the flux_x is computed
+        !
+        !>@param s_oneside
+        !> space discretization operators
+        !
+        !>@param flux_y
+        !> fluxes along the y-axis
+        !---------------------------------------------------------------
+        function compute_flux_y_oneside(nodes,dx,dy,i,j,s_oneside)
+     $     result(flux_y)
+        
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne)  , intent(in)   :: nodes
+          real(rkind)                       , intent(in)   :: dx
+          real(rkind)                       , intent(in)   :: dy
+          integer(ikind)                    , intent(in)   :: i
+          integer(ikind)                    , intent(in)   :: j
+          class(sd_operators)                , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)                       :: flux_y
+
+          real(rkind) :: dx_s
+
+          dx_s = dx
+
+
+          !<fluxes along the x-axis
+          flux_y(1) = c**2*s_oneside%g(nodes,i,j,velocity_y)+
+     $         epsilon*s_oneside%dgdy(nodes,i,j,position,dy)
+          
+          flux_y(2) = -c_y*s_oneside%g(nodes,i,j,velocity_x)+
+     $         epsilon*s_oneside%dgdy(nodes,i,j,velocity_x,dy)
+          
+          flux_y(3) = c**2*s_oneside%g(nodes,i,j,position)+
+     $         epsilon*s_oneside%dgdy(nodes,i,j,velocity_y,dy)
+
+        end function compute_flux_y_oneside
 
 
         function compute_body_forces(nodes,k) result(body_forces)
