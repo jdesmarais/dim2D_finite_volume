@@ -52,9 +52,6 @@
         !> @param d2fdxdy
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i-1/2,j]
-        !
-        !> @param gradient_x
-        !> evaluate \f$\frac{\partial}{\partial x}\f$ at [i,j]
         !        
         !> @param g
         !> evaluate data at [i,j-1/2]
@@ -74,9 +71,6 @@
         !> @param d2gdxdy
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i,j-1/2]
-        !
-        !> @param gradient_y
-        !> evaluate \f$\frac{\partial}{\partial y}\f$ at [i,j]
         !---------------------------------------------------------------
         type, extends(sd_operators) :: sd_operators_y_oneside_L1
 

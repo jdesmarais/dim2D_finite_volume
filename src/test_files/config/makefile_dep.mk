@@ -61,6 +61,10 @@ $(sd_dir)/sd_operators_abstract_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_kind.o
 
+$(cg_dir)/cg_operators_module.o:\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_kind.o
+
 $(cg_dir)/sd_operators_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_kind.o\
@@ -111,6 +115,10 @@ $(mt_dir)/sd_operators_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_kind.o\
 			$(sd_dir)/sd_operators_abstract_class.o
+
+$(mt_dir)/mattsson_operators_module.o:\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_kind.o
 
 $(mt_dir)/sd_operators_x_oneside_L0_class.o:\
 			$(sd_dir)/interface_primary.o\

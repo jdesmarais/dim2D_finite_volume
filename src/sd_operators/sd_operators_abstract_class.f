@@ -51,9 +51,6 @@
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i-1/2,j]
         !
-        !> @param gradient_x
-        !> compute \f$ \frac{\partial}{\partial x}\f$ at [i,j]
-        !
         !> @param g
         !> evaluate data at [i,j-1/2]
         !
@@ -72,9 +69,6 @@
         !> @param d2gdxdy
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i,j-1/2]
-        !
-        !> @param gradient_y
-        !> compute \f$ \frac{\partial}{\partial y}\f$ at [i,j]
         !---------------------------------------------------------------
         type, abstract :: sd_operators_abstract
 
@@ -89,7 +83,6 @@
           procedure(space_operator_proc_x) , nopass, deferred :: d2fdx2
           procedure(space_operator_proc_y) , nopass, deferred :: d2fdy2
           procedure(space_operator_proc_xy), nopass, deferred :: d2fdxdy
-          procedure(space_operator_proc_x) , nopass, deferred :: gradient_x
 
           procedure(space_operator_proc)   , nopass, deferred :: g
           procedure(space_operator_proc_x) , nopass, deferred :: dgdx
@@ -98,7 +91,6 @@
           procedure(space_operator_proc_x) , nopass, deferred :: d2gdx2
           procedure(space_operator_proc_y) , nopass, deferred :: d2gdy2
           procedure(space_operator_proc_xy), nopass, deferred :: d2gdxdy
-          procedure(space_operator_proc_y) , nopass, deferred :: gradient_y
 
         end type sd_operators_abstract
 

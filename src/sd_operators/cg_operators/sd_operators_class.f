@@ -55,9 +55,6 @@
         !> @param d2fdxdy
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i-1/2,j]
-        !
-        !> @param gradient_x
-        !> evaluate \f$\frac{\partial}{\partial x}\f$ at [i,j]
         !        
         !> @param g
         !> evaluate data at [i,j-1/2]
@@ -77,9 +74,6 @@
         !> @param d2gdxdy
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i,j-1/2]
-        !
-        !> @param gradient_y
-        !> evaluate \f$\frac{\partial}{\partial y}\f$ at [i,j]
         !---------------------------------------------------------------
         type, extends(sd_operators_abstract) :: sd_operators
 
@@ -94,7 +88,6 @@
           procedure, nopass :: d2fdx2      => d2fdx2_cockburnandgau
           procedure, nopass :: d2fdy2      => d2fdy2_cockburnandgau
           procedure, nopass :: d2fdxdy     => d2fdxdy_cockburnandgau
-          procedure, nopass :: gradient_x  => gradient_x_cockburnandgau
 
           procedure, nopass :: g           => g_cockburnandgau
           procedure, nopass :: dgdx        => dgdx_cockburnandgau
@@ -103,7 +96,6 @@
           procedure, nopass :: d2gdx2      => d2gdx2_cockburnandgau
           procedure, nopass :: d2gdy2      => d2gdy2_cockburnandgau
           procedure, nopass :: d2gdxdy     => d2gdxdy_cockburnandgau
-          procedure, nopass :: gradient_y  => gradient_y_cockburnandgau
 
         end type sd_operators
 
@@ -592,68 +584,6 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i,j}=
-        !> \frac{1}{12 \Delta x}(u_{i-2,j} - 8 u_{i-1,j}
-        !> + 8 u_{i+1,j} - u_{i+2,j})\f$
-        !
-        !> @date
-        !> 31_07_2014 - initial version  - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param i
-        !> index along x-axis where the data is evaluated
-        !
-        !>@param j
-        !> index along y-axis where the data is evaluated
-        !
-        !>@param proc
-        !> procedure computing the special quantity evaluated at [i,j]
-        !> (ex: pressure, temperature,...)
-        !
-        !>@param dx
-        !> grid step along the x-axis
-        !
-        !>@param var
-        !> data evaluated at [i,j]
-        !---------------------------------------------------------------
-        function gradient_x_cockburnandgau(
-     $     nodes,i,j,proc,dx)
-     $     result(var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)   , intent(in) :: dx
-          real(rkind)                :: var
-
-          if(rkind.eq.8) then
-
-             !TAG INLINE
-             var = 1.0d0/(12.0*dx)*(
-     $                   proc(nodes,i-2,j)
-     $            -8.0d0*proc(nodes,i-1,j)
-     $            +8.0d0*proc(nodes,i+1,j)
-     $            -      proc(nodes,i+2,j))
-          else
-             var = 1.0/(12.0*dx)*(
-     $                 proc(nodes,i-2,j)
-     $            -8.0*proc(nodes,i-1,j)
-     $            +8.0*proc(nodes,i+1,j)
-     $            -    proc(nodes,i+2,j))
-          end if
-
-        end function gradient_x_cockburnandgau
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
         !> compute \f$ u_{i,j-\frac{1}{2}}=
         !>\frac{1}{12}(-u_{i,j-2}+7 u_{i,j-1}+ 7 u_{i,j} - u_{i,j+1})\f$
         !
@@ -1117,64 +1047,5 @@
           end if
 
         end function d2gdxdy_cockburnandgau
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute \f$ \frac{\partial u}{\partial y}\big|_{i,j}=
-        !> \frac{1}{12 \Delta y}( u_{i,j-2} -8 u_{i,j-1} +
-        !> 8 u_{i,j+1} - u_{i,j+2} )\f$
-        !
-        !> @date
-        !> 31_07_2014 - initial version  - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param i
-        !> index along x-axis where the data is evaluated
-        !
-        !>@param j
-        !> index along y-axis where the data is evaluated
-        !
-        !>@param proc
-        !> procedure computing the special quantity evaluated at [i,j]
-        !> (ex: pressure, temperature,...)
-        !
-        !>@param var
-        !> data evaluated at [i,j]
-        !---------------------------------------------------------------
-        function gradient_y_cockburnandgau(
-     $     nodes,i,j,proc,dy)
-     $     result(var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          procedure(get_primary_var)                :: proc
-          real(rkind)                  , intent(in) :: dy
-          real(rkind)                               :: var
-
-          if(rkind.eq.8) then
-
-             !TAG INLINE
-             var = 1.0d0/(12.0*dy)*(
-     $                   proc(nodes,i,j-2)
-     $            -8.0d0*proc(nodes,i,j-1)
-     $            +8.0d0*proc(nodes,i,j+1)
-     $            -      proc(nodes,i,j+2))
-          else
-             var = 1.0/(12.0*dy)*(
-     $                 proc(nodes,i,j-2)
-     $            -8.0*proc(nodes,i,j-1)
-     $            +8.0*proc(nodes,i,j+1)
-     $            -    proc(nodes,i,j+2))
-          end if
-
-        end function gradient_y_cockburnandgau
         
       end module sd_operators_class

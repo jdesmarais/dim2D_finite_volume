@@ -342,8 +342,8 @@
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
           real(rkind)                  , intent(in) :: dy
-          procedure(gradient_x_proc)   , intent(in) :: gradient_x
-          procedure(gradient_y_proc)   , intent(in) :: gradient_y
+          procedure(gradient_x_proc)                :: gradient_x
+          procedure(gradient_y_proc)                :: gradient_y
           real(rkind)                               :: var
 
           if(rkind.eq.8) then
@@ -354,8 +354,8 @@
      $              (nodes(i,j,2)/nodes(i,j,1))**2+
      $              (nodes(i,j,3)/nodes(i,j,1))**2)
      $           - 0.5d0/we*(
-     $              (gradient_x(nodes,i,j,dx,mass_density))**2
-     $            + (gradient_y(nodes,i,j,dy,mass_density))**2)
+     $              (gradient_x(nodes,i,j,mass_density,dx))**2
+     $            + (gradient_y(nodes,i,j,mass_density,dy))**2)
      $           + 3.0d0*nodes(i,j,1)**2)
 
           else
@@ -365,8 +365,8 @@
      $              (nodes(i,j,2)/nodes(i,j,1))**2+
      $              (nodes(i,j,3)/nodes(i,j,1))**2)
      $           - 0.5/we*(
-     $              (gradient_x(nodes,i,j,dx,mass_density))**2
-     $            + (gradient_y(nodes,i,j,dy,mass_density))**2)
+     $              (gradient_x(nodes,i,j,mass_density,dx))**2
+     $            + (gradient_y(nodes,i,j,mass_density,dy))**2)
      $           + 3*nodes(i,j,1)**2)
           end if
 

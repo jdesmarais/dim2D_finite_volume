@@ -13,6 +13,27 @@
       !-----------------------------------------------------------------
       program test_mattsson_operators
 
+        use mattsson_operators_module, only :
+     $       gradient_x_interior,
+     $       gradient_y_interior,
+     $       gradient_x_x_oneside_L0,
+     $       gradient_x_x_oneside_R0,
+     $       gradient_y_y_oneside_L0,
+     $       gradient_y_y_oneside_R0
+
+        use dim2d_prim_module, only :
+     $       mass_density
+
+        use interface_primary, only :
+     $       gradient_x_proc,
+     $       gradient_y_proc
+
+        use parameters_input, only :
+     $       nx,ny,ne
+
+        use parameters_kind, only :
+     $       rkind
+
         use sd_operators_abstract_class, only :
      $       sd_operators_abstract
 
@@ -42,11 +63,6 @@
 
         use sd_operators_y_oneside_R0_class, only :
      $       sd_operators_y_oneside_R0
-        
-
-        use dim2d_prim_module , only : mass_density
-        use parameters_input  , only : nx,ny,ne
-        use parameters_kind   , only : rkind
 
         
         implicit none
@@ -157,7 +173,11 @@
 
         detailled = .false.
         
-        call test_operator(sd_interior, 3,3, 3,3, test_data, detailled)
+        call test_operator(
+     $       sd_interior,
+     $       gradient_x_interior,
+     $       gradient_y_interior,
+     $       3,3, 3,3, test_data, detailled)
         print '()'
 
         
@@ -184,7 +204,11 @@
 
         detailled = .false.
         
-        call test_operator(sd_x_oneside_L0, 1,3, 1,3, test_data, detailled)
+        call test_operator(
+     $       sd_x_oneside_L0,
+     $       gradient_x_x_oneside_L0,
+     $       gradient_y_interior,
+     $       1,3, 1,3, test_data, detailled)
         print '()'
 
 
@@ -212,7 +236,11 @@
 
         detailled = .false.
         
-        call test_operator(sd_x_oneside_L1, 2,3, 2,3, test_data, detailled)
+        call test_operator(
+     $       sd_x_oneside_L1,
+     $       gradient_x_interior,
+     $       gradient_y_interior,
+     $       2,3, 2,3, test_data, detailled)
         print '()'
 
 
@@ -239,7 +267,11 @@
 
         detailled = .false.
         
-        call test_operator(sd_x_oneside_R1, 6,3, 5,3, test_data, detailled)
+        call test_operator(
+     $       sd_x_oneside_R1,
+     $       gradient_x_interior,
+     $       gradient_y_interior,
+     $       6,3, 5,3, test_data, detailled)
         print '()'
 
 
@@ -267,7 +299,11 @@
 
         detailled = .false.
         
-        call test_operator(sd_x_oneside_R0, 7,3, 6,3, test_data, detailled)
+        call test_operator(
+     $       sd_x_oneside_R0,
+     $       gradient_x_x_oneside_R0,
+     $       gradient_y_interior,
+     $       7,3, 6,3, test_data, detailled)
         print '()'
 
 
@@ -392,7 +428,11 @@
 
         detailled = .false.
         
-        call test_operator(sd_y_oneside_L0, 3,1, 3,1, test_data, detailled)
+        call test_operator(
+     $       sd_y_oneside_L0,
+     $       gradient_x_interior,
+     $       gradient_y_y_oneside_L0,
+     $       3,1, 3,1, test_data, detailled)
         print '()'
 
 
@@ -419,7 +459,11 @@
 
         detailled = .false.
         
-        call test_operator(sd_y_oneside_L1, 3,2, 3,2, test_data, detailled)
+        call test_operator(
+     $       sd_y_oneside_L1,
+     $       gradient_x_interior,
+     $       gradient_y_interior,
+     $       3,2, 3,2, test_data, detailled)
         print '()'
 
 
@@ -446,7 +490,11 @@
 
         detailled = .false.
         
-        call test_operator(sd_y_oneside_R1, 3,5, 3,6, test_data, detailled)
+        call test_operator(
+     $       sd_y_oneside_R1,
+     $       gradient_x_interior,
+     $       gradient_y_interior,
+     $       3,5, 3,6, test_data, detailled)
         print '()'
 
 
@@ -473,7 +521,11 @@
 
         detailled = .false.
         
-        call test_operator(sd_y_oneside_R0, 3,6, 3,7, test_data, detailled)
+        call test_operator(
+     $       sd_y_oneside_R0,
+     $       gradient_x_interior,
+     $       gradient_y_y_oneside_R0,
+     $       3,6, 3,7, test_data, detailled)
         print '()'
 
 
@@ -820,6 +872,8 @@
 
         subroutine test_operator(
      $     sd_operators_tested,
+     $     gradient_x,
+     $     gradient_y,
      $     i1,j1, i2,j2,
      $     test_data,
      $     detailled)
@@ -827,6 +881,8 @@
           implicit none
 
           class(sd_operators_abstract), intent(in) :: sd_operators_tested
+          procedure(gradient_x_proc)               :: gradient_x
+          procedure(gradient_y_proc)               :: gradient_y
           integer                     , intent(in) :: i1,j1, i2,j2
           real(rkind), dimension(14)  , intent(in) :: test_data
           logical                     , intent(in) :: detailled
@@ -915,7 +971,7 @@
 
              !TAG INLINE
              loc = is_test_validated(
-     $            sd_operators_tested%gradient_x(
+     $            gradient_x(
      $            nodes,
      $            i1,j1,
      $            mass_density,
@@ -1006,7 +1062,7 @@
           
              !TAG INLINE
              loc = is_test_validated(
-     $            sd_operators_tested%gradient_y(
+     $            gradient_y(
      $            nodes,
      $            i2,j2,
      $            mass_density,
@@ -1082,7 +1138,7 @@
 
              test_validated=test_validated.and.
      $            is_test_validated(
-     $            sd_operators_tested%gradient_x(
+     $            gradient_x(
      $            nodes,
      $            i1,j1,
      $            mass_density,
@@ -1152,7 +1208,7 @@
 
              test_validated=test_validated.and.
      $            is_test_validated(
-     $            sd_operators_tested%gradient_y(
+     $            gradient_y(
      $            nodes,
      $            i2,j2,
      $            mass_density,

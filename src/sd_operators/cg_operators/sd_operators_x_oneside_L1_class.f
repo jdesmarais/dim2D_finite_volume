@@ -52,9 +52,6 @@
         !> @param d2fdxdy
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i-1/2,j]
-        !
-        !> @param gradient_x
-        !> evaluate \f$\frac{\partial}{\partial x}\f$ at [i,j]
         !        
         !> @param g
         !> evaluate data at [i,j-1/2]
@@ -74,9 +71,6 @@
         !> @param d2gdxdy
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i,j-1/2]
-        !
-        !> @param gradient_y
-        !> evaluate \f$\frac{\partial}{\partial y}\f$ at [i,j]
         !---------------------------------------------------------------
         type, extends(sd_operators) :: sd_operators_x_oneside_L1
 
@@ -86,7 +80,6 @@
           procedure, nopass :: dfdy        => dfdy_x_oneside_L1
           procedure, nopass :: d2fdx2      => d2fdx2_x_oneside_L1
           procedure, nopass :: d2fdy2      => d2fdy2_x_oneside_L1
-          procedure, nopass :: gradient_x  => gradient_x_x_oneside_L1
 
         end type sd_operators_x_oneside_L1
 
@@ -367,59 +360,5 @@
              
           end if
         end function d2fdy2_x_oneside_L1
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i,j}=
-        !> \frac{1}{2 \Delta x}(-u_{i-1,j}+u_{i+1,j})\f$
-        !
-        !> @date
-        !> 31_07_2014 - initial version  - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param i
-        !> index along x-axis where the data is evaluated
-        !
-        !>@param j
-        !> index along y-axis where the data is evaluated
-        !
-        !>@param proc
-        !> procedure computing the special quantity evaluated at [i,j]
-        !> (ex: pressure, temperature,...)
-        !
-        !>@param var
-        !> data evaluated at [i,j]
-        !---------------------------------------------------------------
-        function gradient_x_x_oneside_L1(
-     $     nodes,i,j,proc,dx)
-     $     result(var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)   , intent(in) :: dx
-          real(rkind)                :: var
-
-          if(rkind.eq.8) then
-
-             !TAG INLINE
-             var = 0.5d0/dx*(
-     $            -proc(nodes,i-1,j)
-     $            +proc(nodes,i+1,j))
-          else
-             var =0.5/dx*(
-     $            -proc(nodes,i-1,j)
-     $            +proc(nodes,i+1,j))
-          end if
-
-        end function gradient_x_x_oneside_L1
         
       end module sd_operators_x_oneside_L1_class
