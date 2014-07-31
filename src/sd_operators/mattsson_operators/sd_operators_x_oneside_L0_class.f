@@ -17,10 +17,13 @@
       !-----------------------------------------------------------------
       module sd_operators_x_oneside_L0_class
 
-        use interface_primary , only : get_primary_var,
-     $                                 get_secondary_var
-        use parameters_kind   , only : ikind, rkind
-        use sd_operators_class, only : sd_operators
+        use mattsson_operators_module, only : gradient_x_interior,
+     $                                        gradient_y_interior,
+     $                                        gradient_x_x_oneside_L0
+        use interface_primary        , only : get_primary_var,
+     $                                        get_secondary_var
+        use parameters_kind          , only : ikind, rkind
+        use sd_operators_class       , only : sd_operators
 
         implicit none
 
@@ -85,6 +88,7 @@
           procedure, nopass :: d2fdxdy     => d2fdxdy_x_oneside_L0
 
           procedure, nopass :: dgdx        => dgdx_x_oneside_L0
+          procedure, nopass :: dgdy_nl     => dgdy_x_oneside_L0_nl
           procedure, nopass :: d2gdx2      => d2gdx2_x_oneside_L0
           procedure, nopass :: d2gdxdy     => d2gdxdy_x_oneside_L0
 
@@ -248,14 +252,14 @@
 
              !TAG INLINE
              var = 1.0d0/dx*(
-     $            -2.0d0*proc(nodes,i  ,j,dx,dy)
-     $            +3.0d0*proc(nodes,i+1,j,dx,dy)
-     $            -      proc(nodes,i+2,j,dx,dy))
+     $            -2.0d0*proc(nodes,i  ,j,dx,dy,gradient_x_x_oneside_L0,gradient_y_interior)
+     $            +3.0d0*proc(nodes,i+1,j,dx,dy,gradient_x_interior    ,gradient_y_interior)
+     $            -      proc(nodes,i+2,j,dx,dy,gradient_x_interior    ,gradient_y_interior))
           else
              var = 1.0/dx*(
-     $            -2.0*proc(nodes,i  ,j,dx,dy)
-     $            +3.0*proc(nodes,i+1,j,dx,dy)
-     $            -    proc(nodes,i+2,j,dx,dy))
+     $            -2.0*proc(nodes,i  ,j,dx,dy,gradient_x_x_oneside_L0,gradient_y_interior)
+     $            +3.0*proc(nodes,i+1,j,dx,dy,gradient_x_interior    ,gradient_y_interior)
+     $            -    proc(nodes,i+2,j,dx,dy,gradient_x_interior    ,gradient_y_interior))
           end if
 
         end function dfdx_x_oneside_L0_nl
@@ -593,6 +597,69 @@
           end if
 
         end function dgdx_x_oneside_L0
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial y}\bigg|_{i
+        !> ,j-\frac{1}{2}}= \frac{1}{\Delta y}(-u_{i,j-1}+u_{i,j})\f$
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param proc
+        !> procedure computing the special quantity evaluated at [i,j]
+        !> (ex: pressure, temperature,...)
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> data evaluated at [i,j]
+        !---------------------------------------------------------------
+        function dgdy_x_oneside_L0_nl(
+     $     nodes,i,j,proc,dx,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_secondary_var)              :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+          if(rkind.eq.8) then
+
+             !TAG INLINE
+             var = 1.0d0/dy*(
+     $            -proc(nodes,i,j-1,dx,dy,gradient_x_x_oneside_L0,gradient_y_interior)
+     $            +proc(nodes,i,j  ,dx,dy,gradient_x_x_oneside_L0,gradient_y_interior)
+     $            )
+          else
+             var = 1./dy*(
+     $            -proc(nodes,i,j-1,dx,dy,gradient_x_x_oneside_L0,gradient_y_interior)
+     $            +proc(nodes,i,j  ,dx,dy,gradient_x_x_oneside_L0,gradient_y_interior)
+     $            )
+          end if
+
+        end function dgdy_x_oneside_L0_nl
 
 
         !> @author

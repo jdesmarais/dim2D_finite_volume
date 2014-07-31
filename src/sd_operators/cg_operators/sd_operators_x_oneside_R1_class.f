@@ -17,10 +17,13 @@
       !-----------------------------------------------------------------
       module sd_operators_x_oneside_R1_class
 
-        use interface_primary , only : get_primary_var,
-     $                                 get_secondary_var
-        use parameters_kind   , only : ikind, rkind
-        use sd_operators_class, only : sd_operators
+        use cg_operators_module, only : gradient_x_x_oneside_R1,
+     $                                  gradient_x_x_oneside_R0,
+     $                                  gradient_y_interior
+        use interface_primary  , only : get_primary_var,
+     $                                  get_secondary_var
+        use parameters_kind    , only : ikind, rkind
+        use sd_operators_class , only : sd_operators
 
         implicit none
 
@@ -77,9 +80,12 @@
           contains
 
           procedure, nopass :: f           => f_x_oneside_R1
+          procedure, nopass :: dfdx_nl     => dfdx_x_oneside_R1_nl
           procedure, nopass :: dfdy        => dfdy_x_oneside_R1
           procedure, nopass :: d2fdx2      => d2fdx2_x_oneside_R1
           procedure, nopass :: d2fdy2      => d2fdy2_x_oneside_R1
+
+          procedure, nopass :: dgdy_nl     => dgdy_x_oneside_R1_nl
 
         end type sd_operators_x_oneside_R1
 
@@ -139,6 +145,68 @@
           end if
 
         end function f_x_oneside_R1
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i-\frac{1}{2}
+        !> ,j}= \frac{1}{\Delta x}(-u_{i-1,j}+u_{i,j})\f$
+        !
+        !> @date
+        !> 07_08_2013 - initial version  - J.L. Desmarais
+        !> 11_07_2014 - interface change - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param proc
+        !> procedure computing the special quantity evaluated at [i,j]
+        !> (ex: pressure, temperature,...)
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> data evaluated at [i,j]
+        !---------------------------------------------------------------
+        function dfdx_x_oneside_R1_nl(
+     $     nodes,i,j,proc,dx,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_secondary_var)              :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+          if(rkind.eq.8) then
+
+             !TAG INLINE
+             var = 1.d0/dx*(
+     $            -proc(nodes,i-1,j,dx,dy,gradient_x_x_oneside_R1, gradient_y_interior)
+     $            +proc(nodes,i  ,j,dx,dy,gradient_x_x_oneside_R0, gradient_y_interior))
+          else
+             var = 1./dx*(
+     $            -proc(nodes,i-1,j,dx,dy,gradient_x_x_oneside_R1,gradient_y_interior)
+     $            +proc(nodes,i  ,j,dx,dy,gradient_x_x_oneside_R0,gradient_y_interior))
+          end if
+
+        end function dfdx_x_oneside_R1_nl
 
 
         !> @author
@@ -361,5 +429,68 @@
           end if
 
         end function d2fdy2_x_oneside_R1
+
+      
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial y}\bigg|_{i
+        !> ,j-\frac{1}{2}}= \frac{1}{\Delta y}(-u_{i,j-1}+u_{i,j})\f$
+        !
+        !> @date
+        !> 08_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param proc
+        !> procedure computing the special quantity evaluated at [i,j]
+        !> (ex: pressure, temperature,...)
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> data evaluated at [i,j]
+        !---------------------------------------------------------------
+        function dgdy_x_oneside_R1_nl(
+     $     nodes,i,j,proc,dx,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_secondary_var)              :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+          if(rkind.eq.8) then
+
+             !TAG INLINE
+             var = 1.0d0/dy*(
+     $            -proc(nodes,i,j-1,dx,dy,gradient_x_x_oneside_R1,gradient_y_interior)
+     $            +proc(nodes,i,j  ,dx,dy,gradient_x_x_oneside_R1,gradient_y_interior)
+     $            )
+          else
+             var = 1./dy*(
+     $            -proc(nodes,i,j-1,dx,dy,gradient_x_x_oneside_R1,gradient_y_interior)
+     $            +proc(nodes,i,j  ,dx,dy,gradient_x_x_oneside_R1,gradient_y_interior)
+     $            )
+          end if
+
+        end function dgdy_x_oneside_R1_nl
 
       end module sd_operators_x_oneside_R1_class

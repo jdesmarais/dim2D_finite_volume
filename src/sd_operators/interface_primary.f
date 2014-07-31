@@ -189,11 +189,11 @@
           !> primary variable evaluated at [i,j]
           !--------------------------------------------------------------
           function get_secondary_var(
-     $     nodes,i,j,dx,dy)!,gradient_x,gradient_y)
+     $     nodes,i,j,dx,dy,gradient_x,gradient_y)
      $     result(var)
 
-            !import gradient_x_proc
-            !import gradient_y_proc
+            import gradient_x_proc
+            import gradient_y_proc
             import ikind
             import rkind            
 
@@ -202,8 +202,8 @@
             integer(ikind)               , intent(in) :: j
             real(rkind)                  , intent(in) :: dx
             real(rkind)                  , intent(in) :: dy
-            !procedure(gradient_x_proc)                :: gradient_x
-            !procedure(gradient_y_proc)                :: gradient_y
+            procedure(gradient_x_proc)                :: gradient_x
+            procedure(gradient_y_proc)                :: gradient_y
             real(rkind)                               :: var
 
           end function get_secondary_var

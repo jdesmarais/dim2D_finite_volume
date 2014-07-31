@@ -18,6 +18,8 @@
       !-----------------------------------------------------------------
       module sd_operators_class
 
+        use mattsson_operators_module  , only : gradient_x_interior,
+     $                                          gradient_y_interior
         use interface_primary          , only : get_primary_var,
      $                                          get_secondary_var
         use parameters_kind            , only : ikind, rkind
@@ -277,12 +279,12 @@
 
              !TAG INLINE
              var = 1.d0/dx*(
-     $            -proc(nodes,i-1,j,dx,dy)
-     $            +proc(nodes,i  ,j,dx,dy))
+     $            -proc(nodes,i-1,j,dx,dy,gradient_x_interior,gradient_y_interior)
+     $            +proc(nodes,i  ,j,dx,dy,gradient_x_interior,gradient_y_interior))
           else
              var = 1./dx*(
-     $            -proc(nodes,i-1,j,dx,dy)
-     $            +proc(nodes,i  ,j,dx,dy))
+     $            -proc(nodes,i-1,j,dx,dy,gradient_x_interior,gradient_y_interior)
+     $            +proc(nodes,i  ,j,dx,dy,gradient_x_interior,gradient_y_interior))
           end if
 
         end function dfdx_mattsson_nl
@@ -783,13 +785,13 @@
 
              !TAG INLINE
              var = 1.0d0/dy*(
-     $            -proc(nodes,i,j-1,dx,dy)
-     $            +proc(nodes,i,j  ,dx,dy)
+     $            -proc(nodes,i,j-1,dx,dy,gradient_x_interior,gradient_y_interior)
+     $            +proc(nodes,i,j  ,dx,dy,gradient_x_interior,gradient_y_interior)
      $            )
           else
              var = 1./dy*(
-     $            -proc(nodes,i,j-1,dx,dy)
-     $            +proc(nodes,i,j  ,dx,dy)
+     $            -proc(nodes,i,j-1,dx,dy,gradient_x_interior,gradient_y_interior)
+     $            +proc(nodes,i,j  ,dx,dy,gradient_x_interior,gradient_y_interior)
      $            )
           end if
 

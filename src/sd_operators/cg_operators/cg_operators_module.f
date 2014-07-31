@@ -83,17 +83,26 @@
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = 1.0d0/(12.0*dx)*(
-     $                   proc(nodes,i-2,j)
-     $            -8.0d0*proc(nodes,i-1,j)
-     $            +8.0d0*proc(nodes,i+1,j)
-     $            -      proc(nodes,i+2,j))
+c$$$             var = 1.0d0/(12.0*dx)*(
+c$$$     $                   proc(nodes,i-2,j)
+c$$$     $            -8.0d0*proc(nodes,i-1,j)
+c$$$     $            +8.0d0*proc(nodes,i+1,j)
+c$$$     $            -      proc(nodes,i+2,j))
+             var = 0.5d0/dx*(
+     $            - proc(nodes,i-1,j)
+     $            + proc(nodes,i+1,j))
+
           else
-             var = 1.0/(12.0*dx)*(
-     $                 proc(nodes,i-2,j)
-     $            -8.0*proc(nodes,i-1,j)
-     $            +8.0*proc(nodes,i+1,j)
-     $            -    proc(nodes,i+2,j))
+c$$$             var = 1.0/(12.0*dx)*(
+c$$$     $                 proc(nodes,i-2,j)
+c$$$     $            -8.0*proc(nodes,i-1,j)
+c$$$     $            +8.0*proc(nodes,i+1,j)
+c$$$     $            -    proc(nodes,i+2,j))
+
+             var = 0.5/dx*(
+     $            - proc(nodes,i-1,j)
+     $            + proc(nodes,i+1,j))
+
           end if
 
         end function gradient_x_interior
@@ -142,17 +151,23 @@
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = 1.0d0/(12.0*dy)*(
-     $                   proc(nodes,i,j-2)
-     $            -8.0d0*proc(nodes,i,j-1)
-     $            +8.0d0*proc(nodes,i,j+1)
-     $            -      proc(nodes,i,j+2))
+c$$$             var = 1.0d0/(12.0*dy)*(
+c$$$     $                   proc(nodes,i,j-2)
+c$$$     $            -8.0d0*proc(nodes,i,j-1)
+c$$$     $            +8.0d0*proc(nodes,i,j+1)
+c$$$     $            -      proc(nodes,i,j+2))
+             var = 0.5d0/dy*(
+     $            - proc(nodes,i,j-1)
+     $            + proc(nodes,i,j+1))
           else
-             var = 1.0/(12.0*dy)*(
-     $                 proc(nodes,i,j-2)
-     $            -8.0*proc(nodes,i,j-1)
-     $            +8.0*proc(nodes,i,j+1)
-     $            -    proc(nodes,i,j+2))
+             var = 0.5/dy*(
+     $            - proc(nodes,i,j-1)
+     $            + proc(nodes,i,j+1))
+c$$$             var = 1.0/(12.0*dy)*(
+c$$$     $                 proc(nodes,i,j-2)
+c$$$     $            -8.0*proc(nodes,i,j-1)
+c$$$     $            +8.0*proc(nodes,i,j+1)
+c$$$     $            -    proc(nodes,i,j+2))
           end if
 
         end function gradient_y_interior

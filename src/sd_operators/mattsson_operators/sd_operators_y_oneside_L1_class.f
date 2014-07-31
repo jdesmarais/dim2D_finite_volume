@@ -17,6 +17,10 @@
       !-----------------------------------------------------------------
       module sd_operators_y_oneside_L1_class
 
+        use mattsson_operators_module, only : gradient_y_y_oneside_L0,
+     $                                        gradient_y_interior,
+     $                                        gradient_x_interior
+
         use interface_primary , only : get_primary_var,
      $                                 get_secondary_var
         use parameters_kind   , only : ikind, rkind
@@ -76,11 +80,71 @@
 
           contains
 
-          procedure, nopass :: d2gdy2 => d2gdy2_y_oneside_L1
+          procedure, nopass :: dgdy_nl => dgdy_y_oneside_L1_nl
+          procedure, nopass :: d2gdy2  => d2gdy2_y_oneside_L1
 
         end type sd_operators_y_oneside_L1
 
         contains
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial y} \bigg|_{i
+        !> ,j-\frac{1}{2}} = \frac{1}{\Delta y}(- 2 u_{i,j} +
+        !> 3 u_{i,j+1} - u_{i,j+2}) \f$
+        !
+        !> @date
+        !> 29_07_2014 - initial version  - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param proc
+        !> procedure computing the special quantity evaluated at [i,j]
+        !> (ex: pressure, temperature,...)
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> data evaluated at [i,j]
+        !---------------------------------------------------------------
+        function dgdy_y_oneside_L1_nl(nodes,i,j,proc,dx,dy) result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_secondary_var)              :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+          if(rkind.eq.8) then
+
+             !TAG INLINE
+             var = 1.0d0/dy*(
+     $            -proc(nodes,i,j-1,dx,dy,gradient_x_interior,gradient_y_y_oneside_L0)
+     $            +proc(nodes,i,j  ,dx,dy,gradient_x_interior,gradient_y_interior    ))
+          else
+             var = 1.0/dy*(
+     $            -proc(nodes,i,j-1,dx,dy,gradient_x_interior,gradient_y_y_oneside_L0)
+     $            +proc(nodes,i,j  ,dx,dy,gradient_x_interior,gradient_y_interior))
+          end if
+
+        end function dgdy_y_oneside_L1_nl
 
         
         !> @author

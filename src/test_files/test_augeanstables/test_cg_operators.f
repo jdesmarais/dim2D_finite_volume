@@ -36,7 +36,7 @@
      $       nx,ny,ne
 
         use parameters_kind, only :
-     $       rkind
+     $       ikind, rkind
 
         use sd_operators_abstract_class, only :
      $       sd_operators_abstract
@@ -95,7 +95,7 @@
 
         !<test parameters
         logical                    :: detailled
-        real(rkind), dimension(14) :: test_data
+        real(rkind), dimension(16) :: test_data
         logical                    :: test_validated
 
 
@@ -165,7 +165,7 @@
         test_data(4) =-87.2d0       !<test d2fdx2
         test_data(5) =-76.7245d0    !<test d2fdy2
         test_data(6) =  3.3333333d0 !<test d2fdxdy
-        test_data(7) =-30.0167d0    !<test gradient_x
+        test_data(7) =-19.6d0 !-30.0167d0    !<test gradient_x
 
         test_data(8) =  11.283333d0 !<test g
         test_data(9) = -8.5333333d0 !<test dgdx
@@ -173,7 +173,10 @@
         test_data(11)=  2.2666667d0 !<test d2gdx2
         test_data(12)= -14.722222d0 !<test d2gdy2
         test_data(13)= -43.333333d0 !<test d2gdxdy
-        test_data(14)= -2.93056d0   !<test gradient_y
+        test_data(14)= -1.66666667d0!-2.93056d0   !<test gradient_y
+
+        test_data(15)=-83.8667d0    !<test dfdx_nl
+        test_data(16)=-58.0556d0    !<test dgdy_nl
 
         detailled = .false.
         
@@ -204,7 +207,10 @@
         test_data(11)= -108.65d0    !<test d2gdx2
         test_data(12)=  19.652778d0 !<test d2gdy2
         test_data(13)=  120d0       !<test d2gdxdy
-        test_data(14) =-1.0416667d0 !<test gradient_y
+        test_data(14) =-0.4583333d0!-1.0416667d0 !<test gradient_y
+
+        test_data(15)=-129.233333d0 !<test dfdx_nl
+        test_data(16)= 139.65278d0  !<test dgdy_nl
 
         detailled = .false.
         
@@ -235,7 +241,10 @@
         test_data(11)= -108.65d0    !<test d2gdx2
         test_data(12)= -37.222222d0 !<test d2gdy2
         test_data(13)=  26.666667d0 !<test d2gdxdy
-        test_data(14)= -4.43056d0   !<test gradient_y
+        test_data(14)= -3.3333333d0!-4.43056d0   !<test gradient_y
+
+        test_data(15)=-106.55d0     !<test dfdx_nl
+        test_data(16)=-10.5556d0    !<test dgdy_nl
 
         detailled = .false.
         
@@ -266,7 +275,10 @@
         test_data(11)= -19.366667d0 !<test d2gdx2
         test_data(12)= -22.222222d0 !<test d2gdy2
         test_data(13)=  21.166667d0 !<test d2gdxdy
-        test_data(14)= -7.6625d0    !<test gradient_y
+        test_data(14)= -6.25d0 !-7.6625d0    !<test gradient_y
+
+        test_data(15)=-4.03333d0    !<test dfdx_nl
+        test_data(16)=-1.05556d0    !<test dgdy_nl
 
         detailled = .false.
         
@@ -297,7 +309,10 @@
         test_data(11)= -19.366667d0 !<test d2gdx2
         test_data(12)= -14.5833d0   !<test d2gdy2
         test_data(13)=   5.333333d0 !<test d2gdxdy
-        test_data(14)= -1.95833d0   !<test gradient_y
+        test_data(14)= -0.1666667d0 !-1.95833d0   !<test gradient_y
+
+        test_data(15)=-12.2333d0    !<test dfdx_nl
+        test_data(16)=-9.25d0       !<test dgdy_nl
 
         detailled = .false.
         
@@ -418,7 +433,7 @@
         test_data(4)  =  19.652778d0 !<test d2fdx2   
         test_data(5)  = -108.65d0    !<test d2fdy2   
         test_data(6)  =  120d0       !<test d2fdxdy
-        test_data(7)  = -1.0416667d0 !<test gradient_x
+        test_data(7)  = -0.4583333d0 !-1.0416667d0 !<test gradient_x
 
         test_data(8)  = -29.166667d0 !<test g      
         test_data(9)  = 0.96180556d0 !<test dgdx   
@@ -427,6 +442,9 @@
         test_data(12) = -337.2d0     !<test d2gdy2 
         test_data(13) = -14.833333d0 !<test d2gdxdy
         test_data(14) = 74.4d0       !<test gradient_y
+
+        test_data(15)= 139.65278d0  !<test dfdx_nl
+        test_data(16)=-129.233333d0 !<test dgdy_nl
 
         detailled = .false.
         
@@ -449,7 +467,7 @@
         test_data(4)  = -37.222222d0 !<test d2fdx2 
         test_data(5)  = -108.65d0    !<test d2fdy2 
         test_data(6)  =  26.666667d0 !<test d2fdxdy
-        test_data(7)  = -4.43056d0   !<test gradient_x
+        test_data(7)  = -3.3333333d0 !-4.43056d0   !<test gradient_x
 
         test_data(8)  =  8.0333333d0 !<test g      
         test_data(9)  = -1.91319d0   !<test dgdx   
@@ -458,6 +476,9 @@
         test_data(12) = -108.4d0     !<test d2gdy2 
         test_data(13) = -5.75d0      !<test d2gdxdy
         test_data(14) =  24d0        !<test gradient_y
+
+        test_data(15)=-10.5556d0     !<test dfdx_nl
+        test_data(16)=-106.55d0      !<test dgdy_nl
 
         detailled = .false.
         
@@ -480,7 +501,7 @@
         test_data(4)  = -22.222222d0 !<test d2fdx2 
         test_data(5)  = -19.366667d0 !<test d2fdy2 
         test_data(6)  =  21.166667d0 !<test d2fdxdy
-        test_data(7)  = -7.6625d0    !<test gradient_x
+        test_data(7)  = -6.25d0 !-7.6625d0    !<test gradient_x
 
         test_data(8)  =  7.5666667d0 !<test g      
         test_data(9)  = -3.9375d0    !<test dgdx   
@@ -489,6 +510,9 @@
         test_data(12) =  29.2d0      !<test d2gdy2 
         test_data(13) =  12.166667d0 !<test d2gdxdy
         test_data(14) = -4.98d0      !<test gradient_y
+
+        test_data(15)=-1.05556d0     !<test dfdx_nl
+        test_data(16)=-4.03333d0     !<test dgdy_nl
 
 
         detailled = .false.
@@ -512,7 +536,7 @@
         test_data(4)  = -14.5833d0   !<test d2fdx2 
         test_data(5)  = -19.366667d0 !<test d2fdy2 
         test_data(6)  =   5.333333d0 !<test d2fdxdy
-        test_data(7)  = -1.95833d0   !<test gradient_x
+        test_data(7)  = -0.1666667d0 !-1.95833d0   !<test gradient_x
 
         test_data(8)  =  5.166667d0  !<test g      
         test_data(9)  =  2.145833d0  !<test dgdx   
@@ -521,6 +545,9 @@
         test_data(12) = -51.6d0      !<test d2gdy2 
         test_data(13) =  28.166667d0 !<test d2gdxdy
         test_data(14) =  -5.16d0     !<test gradient_y
+
+        test_data(15)=-9.25d0        !<test dfdx_nl
+        test_data(16)=-12.2333d0     !<test dgdy_nl
 
         detailled = .false.
         
@@ -873,6 +900,28 @@
         end subroutine test_space_derivative
 
 
+        function gradient_av(
+     $     nodes,i,j,dx,dy,gradient_x,gradient_y)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          procedure(gradient_x_proc)                :: gradient_x
+          procedure(gradient_y_proc)                :: gradient_y
+          real(rkind)                               :: var
+
+
+          var = gradient_x(nodes,i,j,mass_density,dx) +
+     $          gradient_y(nodes,i,j,mass_density,dy)
+
+        end function gradient_av
+
+
         subroutine test_operator(
      $     sd_operators_tested,
      $     gradient_x,
@@ -887,7 +936,7 @@
           procedure(gradient_x_proc)               :: gradient_x
           procedure(gradient_y_proc)               :: gradient_y
           integer                     , intent(in) :: i1,j1, i2,j2
-          real(rkind), dimension(14)  , intent(in) :: test_data
+          real(rkind), dimension(:)   , intent(in) :: test_data
           logical                     , intent(in) :: detailled
 
           logical :: loc
@@ -1074,8 +1123,34 @@
      $            detailled)
           
              print '(''test %gradient_y: '',L3)', loc
-          
 
+
+             !TAG INLINE
+             loc = is_test_validated(
+     $            sd_operators_tested%dfdx_nl(
+     $            nodes,
+     $            i1,j1,
+     $            gradient_av,
+     $            dx,
+     $            dy),
+     $            test_data(15),
+     $            detailled)
+          
+             print '(''test %dfdx_nl: '',L3)', loc
+
+
+             !TAG INLINE
+             loc = is_test_validated(
+     $            sd_operators_tested%dgdy_nl(
+     $            nodes,
+     $            i2,j2,
+     $            gradient_av,
+     $            dx,
+     $            dy),
+     $            test_data(16),
+     $            detailled)
+          
+             print '(''test %dgdy_nl: '',L3)', loc
 
           else
              test_validated=.true.
@@ -1215,8 +1290,31 @@
      $            nodes,
      $            i2,j2,
      $            mass_density,
+
      $            dy),
      $            test_data(14),
+     $            detailled)
+
+             test_validated=test_validated.and.
+     $            is_test_validated(
+     $            sd_operators_tested%dfdx_nl(
+     $            nodes,
+     $            i1,j1,
+     $            gradient_av,
+     $            dx,
+     $            dy),
+     $            test_data(15),
+     $            detailled)
+
+             test_validated=test_validated.and.
+     $            is_test_validated(
+     $            sd_operators_tested%dgdy_nl(
+     $            nodes,
+     $            i2,j2,
+     $            gradient_av,
+     $            dx,
+     $            dy),
+     $            test_data(16),
      $            detailled)
           
              print '(''test_validated: '', 1L1)', test_validated
