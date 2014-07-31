@@ -16,8 +16,11 @@
       !-----------------------------------------------------------------
       module dim2d_prim_module
 
-        use dim2d_parameters, only : cv_r, we
-        use parameters_kind , only : ikind, rkind
+        use dim2d_parameters , only : cv_r, we
+        use interface_primary, only : get_primary_var,
+     $                                gradient_x_proc,
+     $                                gradient_y_proc
+        use parameters_kind  , only : ikind, rkind
 
         implicit none
 
@@ -32,9 +35,10 @@
      $            capillarity_pressure,
      $            capillarity_pressure_xwork, capillarity_pressure_ywork
 
+
         contains
 
-
+        
         !> @author 
         !> Julien L. Desmarais
         !
@@ -327,7 +331,9 @@
         !>@param var
         !> \f$ T_{\textrm{eff}} \f$ evaluated at [i,j]
         !---------------------------------------------------------------
-        function temperature_eff(nodes,i,j,dx,dy) result(var)
+        function temperature_eff(
+     $     nodes,i,j,dx,dy,gradient_x,gradient_y)
+     $     result(var)
 
           implicit none
 
@@ -336,6 +342,8 @@
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
           real(rkind)                  , intent(in) :: dy
+          procedure(gradient_x_proc)   , intent(in) :: gradient_x
+          procedure(gradient_y_proc)   , intent(in) :: gradient_y
           real(rkind)                               :: var
 
           if(rkind.eq.8) then
@@ -345,24 +353,20 @@
      $           - 0.5d0*nodes(i,j,1)*(
      $              (nodes(i,j,2)/nodes(i,j,1))**2+
      $              (nodes(i,j,3)/nodes(i,j,1))**2)
-     $           - 0.5d0/we*((
-     $              (nodes(i+1,j,1)-nodes(i-1,j,1))
-     $              /(2.0d0*dx))**2+(
-     $              (nodes(i,j+1,1)-nodes(i,j-1,1))
-     $              /(2.0d0*dy))**2)
+     $           - 0.5d0/we*(
+     $              (gradient_x(nodes,i,j,dx,mass_density))**2
+     $            + (gradient_y(nodes,i,j,dy,mass_density))**2)
      $           + 3.0d0*nodes(i,j,1)**2)
 
           else
              var=1./(nodes(i,j,1))*(
      $           nodes(i,j,4)
-     $           - 1./2.*nodes(i,j,1)*(
+     $           - 0.5*nodes(i,j,1)*(
      $              (nodes(i,j,2)/nodes(i,j,1))**2+
      $              (nodes(i,j,3)/nodes(i,j,1))**2)
-     $           - 1./(2*we)*((
-     $              (nodes(i+1,j,1)-nodes(i-1,j,1))
-     $              /(2*dx))**2+(
-     $              (nodes(i,j+1,1)-nodes(i,j-1,1))
-     $              /(2*dy))**2)
+     $           - 0.5/we*(
+     $              (gradient_x(nodes,i,j,dx,mass_density))**2
+     $            + (gradient_y(nodes,i,j,dy,mass_density))**2)
      $           + 3*nodes(i,j,1)**2)
           end if
 
