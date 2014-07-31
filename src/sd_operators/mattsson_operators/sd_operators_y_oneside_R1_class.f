@@ -30,49 +30,54 @@
 
 
         !> @class sd_operators_y_oneside_R1
-        !> class encapsulating Mattson and Nordstrom's spatial
-        !> discretization operators
-        !>
+        !> class encapsulating 
+        !
         !> @param get_bc_size
         !> get the boundary layer size
-        !>
+        !
         !> @param f
         !> evaluate data at [i-1/2,j]
-        !>
+        !
         !> @param dfdx
         !> evaluate \f$\frac{\partial}{\partial x}\f$ at [i-1/2,j]
-        !>
+        !
         !> @param dfdy
         !> evaluate \f$\frac{\partial}{\partial y}\f$ at [i-1/2,j]
-        !>
+        !
         !> @param d2fdx2
         !> evaluate \f$\frac{\partial}{\partial x^2}\f$ at [i-1/2,j]
-        !>
+        !
         !> @param d2fdy2
         !> evaluate \f$\frac{\partial}{\partial y^2}\f$ at [i-1/2,j]
-        !>
+        !
         !> @param d2fdxdy
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i-1/2,j]
-        !>        
+        !
+        !> @param gradient_x
+        !> evaluate \f$\frac{\partial}{\partial x}\f$ at [i,j]
+        !        
         !> @param g
         !> evaluate data at [i,j-1/2]
-        !>
+        !
         !> @param dgdx
         !> evaluate \f$\frac{\partial}{\partial x}\f$ at [i,j-1/2]
-        !>
+        !
         !> @param dgdy
         !> evaluate \f$\frac{\partial}{\partial y}\f$ at [i,j-1/2]
-        !>
+        !
         !> @param d2gdx2
         !> evaluate \f$\frac{\partial}{\partial x^2}\f$ at [i,j-1/2]
-        !>
+        !
         !> @param d2gdy2
         !> evaluate \f$\frac{\partial}{\partial y^2}\f$ at [i,j-1/2]
-        !>
+        !
         !> @param d2gdxdy
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i,j-1/2]
+        !
+        !> @param gradient_y
+        !> evaluate \f$\frac{\partial}{\partial y}\f$ at [i,j]
         !---------------------------------------------------------------
         type, extends(sd_operators) :: sd_operators_y_oneside_R1
 

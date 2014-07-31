@@ -30,47 +30,53 @@
 
         !> @class sd_operators_y_oneside_L1
         !> class encapsulating 
-        !>
+        !
         !> @param get_bc_size
         !> get the boundary layer size
-        !>
+        !
         !> @param f
         !> evaluate data at [i-1/2,j]
-        !>
+        !
         !> @param dfdx
         !> evaluate \f$\frac{\partial}{\partial x}\f$ at [i-1/2,j]
-        !>
+        !
         !> @param dfdy
         !> evaluate \f$\frac{\partial}{\partial y}\f$ at [i-1/2,j]
-        !>
+        !
         !> @param d2fdx2
         !> evaluate \f$\frac{\partial}{\partial x^2}\f$ at [i-1/2,j]
-        !>
+        !
         !> @param d2fdy2
         !> evaluate \f$\frac{\partial}{\partial y^2}\f$ at [i-1/2,j]
-        !>
+        !
         !> @param d2fdxdy
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i-1/2,j]
-        !>        
+        !
+        !> @param gradient_x
+        !> evaluate \f$\frac{\partial}{\partial x}\f$ at [i,j]
+        !        
         !> @param g
         !> evaluate data at [i,j-1/2]
-        !>
+        !
         !> @param dgdx
         !> evaluate \f$\frac{\partial}{\partial x}\f$ at [i,j-1/2]
-        !>
+        !
         !> @param dgdy
         !> evaluate \f$\frac{\partial}{\partial y}\f$ at [i,j-1/2]
-        !>
+        !
         !> @param d2gdx2
         !> evaluate \f$\frac{\partial}{\partial x^2}\f$ at [i,j-1/2]
-        !>
+        !
         !> @param d2gdy2
         !> evaluate \f$\frac{\partial}{\partial y^2}\f$ at [i,j-1/2]
-        !>
+        !
         !> @param d2gdxdy
         !> evaluate \f$\frac{\partial}{\partial x \partial y}\f$
         !> at [i,j-1/2]
+        !
+        !> @param gradient_y
+        !> evaluate \f$\frac{\partial}{\partial y}\f$ at [i,j]
         !---------------------------------------------------------------
         type, extends(sd_operators) :: sd_operators_y_oneside_L1
 
@@ -80,6 +86,7 @@
           procedure, nopass :: dgdx        => dgdx_y_oneside_L1
           procedure, nopass :: d2gdx2      => d2gdx2_y_oneside_L1
           procedure, nopass :: d2gdy2      => d2gdy2_y_oneside_L1
+          procedure, nopass :: gradient_y  => gradient_y_y_oneside_L1
 
         end type sd_operators_y_oneside_L1
 
@@ -360,5 +367,62 @@
      $            )          
           end if
         end function d2gdx2_y_oneside_L1
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i,j}=
+        !> \frac{1}{2 \Delta x}(-u_{i,j-1}+u_{i,j+1})\f$
+        !
+        !> @date
+        !> 31_07_2014 - initial version  - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param proc
+        !> procedure computing the special quantity evaluated at [i,j]
+        !> (ex: pressure, temperature,...)
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> data evaluated at [i,j]
+        !---------------------------------------------------------------
+        function gradient_y_y_oneside_L1(
+     $     nodes,i,j,proc,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind), intent(in) :: i
+          integer(ikind), intent(in) :: j
+          procedure(get_primary_var) :: proc
+          real(rkind)   , intent(in) :: dy
+          real(rkind)                :: var
+
+          if(rkind.eq.8) then
+
+             !TAG INLINE
+             var = 0.5d0/dy*(
+     $            -proc(nodes,i,j-1)
+     $            +proc(nodes,i,j+1))
+          else
+             var =0.5/dy*(
+     $            -proc(nodes,i,j-1)
+     $            +proc(nodes,i,j+1))
+          end if
+
+        end function gradient_y_y_oneside_L1
         
       end module sd_operators_y_oneside_L1_class
