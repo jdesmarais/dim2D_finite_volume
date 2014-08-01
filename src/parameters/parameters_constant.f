@@ -52,6 +52,7 @@
         !>boundary conditions type choice
         integer, parameter :: bc_nodes_choice=0
         integer, parameter :: bc_fluxes_choice=1
+        integer, parameter :: bc_timedev_choice=2
 
         !>equations tuning choice
         integer, parameter :: no_gravity_choice=0

@@ -20,7 +20,8 @@
         use cg_operators_class         , only : cg_operators
         use field_class                , only : field
         use parameters_constant        , only : earth_gravity_choice,
-     $                                          bc_fluxes_choice
+     $                                          bc_fluxes_choice,
+     $                                          bc_timedev_choice
         use parameters_input           , only : nx,ny,ne,bc_size,
      $                                          gravity_choice,
      $                                          bcx_type_choice,
@@ -118,6 +119,14 @@
 
           !<if the boundary conditions influence the computation
           !> of the fluxes, then we need to modify the fluxes
+          !-----------------------------------------------------
+          !WARNING: bcx_type_choice and bcy_type_choice could be
+          !an attribute of the boundary condition initialized by
+          !ini(), however, the compiler is not able to use this
+          !information to remove or not the part afterwards
+          !and to correctly align the function if we do not use
+          !a global variable
+          !-----------------------------------------------------
           if((bcx_type_choice.eq.bc_fluxes_choice).or.
      $       (bcy_type_choice.eq.bc_fluxes_choice)) then
              call bc_used%apply_bc_on_fluxes(
@@ -154,6 +163,23 @@
                 end do
              end do
 
+          end if
+
+
+          !<if the boundary conditions influence the computation
+          !> of the time derivatives, then we need to modify them
+          !-----------------------------------------------------
+          !WARNING: bcx_type_choice and bcy_type_choice could be
+          !an attribute of the boundary condition initialized by
+          !ini(), however, the compiler is not able to use this
+          !information to remove or not this part afterwards
+          !and to correctly align the function if we do not use
+          !a global variable
+          !-----------------------------------------------------
+          if((bcx_type_choice.eq.bc_timedev_choice).or.
+     $       (bcy_type_choice.eq.bc_timedev_choice)) then
+             call bc_used%apply_bc_on_timedev(
+     $            nodes,dx,dy,s,p_model,flux_x,flux_y,time_dev)
           end if
 
         end function compute_time_dev
@@ -197,6 +223,14 @@
 
             !<if the boundary conditions influence the computation
             !> of the fluxes, then we need to modify the fluxes
+            !-----------------------------------------------------
+            !WARNING: bcx_type_choice and bcy_type_choice could be
+            !an attribute of the boundary condition initialized by
+            !ini(), however, the compiler is not able to use this
+            !information to remove or not this part afterwards
+            !and to correctly align the function if we do not use
+            !a global variable
+            !-----------------------------------------------------
             if((bcx_type_choice.eq.bc_fluxes_choice).or.
      $         (bcy_type_choice.eq.bc_fluxes_choice)) then
                call bc_used%apply_bc_on_fluxes(
@@ -233,6 +267,23 @@
                   end do
                end do
 
+            end if
+
+            
+            !<if the boundary conditions influence the computation
+            !> of the time derivatives, then we need to modify them
+            !-----------------------------------------------------
+            !WARNING: bcx_type_choice and bcy_type_choice could be
+            !an attribute of the boundary condition initialized by
+            !ini(), however, the compiler is not able to use this
+            !information to remove or not this part afterwards
+            !and to correctly align the function if we do not use
+            !a global variable
+            !-----------------------------------------------------
+            if((bcx_type_choice.eq.bc_timedev_choice).or.
+     $         (bcy_type_choice.eq.bc_timedev_choice)) then
+               call bc_used%apply_bc_on_timedev(
+     $              nodes,dx,dy,s,p_model,flux_x,flux_y,time_dev)
             end if
 
         end subroutine compute_time_dev_nopt

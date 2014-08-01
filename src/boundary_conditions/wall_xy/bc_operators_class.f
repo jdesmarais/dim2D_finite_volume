@@ -10,18 +10,19 @@
       !> gridpoints at the edge of the computational domain
       !
       !> @date
-      !> 24_09_2013 - initial version                   - J.L. Desmarais
+      !> 24_09_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module bc_operators_class
 
-        use bc_operators_abstract_class, only : bc_operators_abstract
-        use sd_operators_class         , only : sd_operators
-        use pmodel_eq_class            , only : pmodel_eq
-        use parameters_input           , only : nx,ny,ne,bc_size
-        use parameters_kind            , only : rkind,ikind
-        use wall_xy_module             , only : wall_prefactor,
-     $                                          compute_wall_flux_x,
-     $                                          compute_wall_flux_y
+        use bc_operators_default_class, only : bc_operators_default
+        use sd_operators_class        , only : sd_operators
+        use pmodel_eq_class           , only : pmodel_eq
+        use parameters_constant       , only : bc_fluxes_choice
+        use parameters_input          , only : nx,ny,ne,bc_size
+        use parameters_kind           , only : rkind,ikind
+        use wall_xy_module            , only : wall_prefactor,
+     $                                         compute_wall_flux_x,
+     $                                         compute_wall_flux_y
         
         implicit none
 
@@ -48,7 +49,7 @@
         !> @param apply_bc_on_fluxes
         !> apply the wall boundary conditions for the fluxes
         !---------------------------------------------------------------
-        type, extends(bc_operators_abstract) :: bc_operators
+        type, extends(bc_operators_default) :: bc_operators
 
           integer, dimension(ne) :: prefactor
 
@@ -91,6 +92,9 @@
           type(pmodel_eq)    , intent(in)    :: p_model
           
           this%prefactor = wall_prefactor(p_model)
+
+          this%bcx_choice = bc_fluxes_choice
+          this%bcy_choice = bc_fluxes_choice
 
         end subroutine ini
 
@@ -183,7 +187,7 @@
         !>@param flux_y
         !> flux along the y-direction
         !--------------------------------------------------------------
-      subroutine apply_bc_on_fluxes(nodes,dx,dy,s,flux_x,flux_y)
+        subroutine apply_bc_on_fluxes(nodes,dx,dy,s,flux_x,flux_y)
 
           implicit none
 

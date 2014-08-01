@@ -28,15 +28,16 @@
       !-----------------------------------------------------------------
       module bc_operators_class
 
-        use bc_operators_abstract_class, only : bc_operators_abstract
-        use sd_operators_class         , only : sd_operators
-        use pmodel_eq_class            , only : pmodel_eq
-        use parameters_input           , only : nx,ny,ne,bc_size
-        use parameters_kind            , only : rkind,ikind
-        use reflection_xy_module       , only : reflection_x_prefactor
-        use wall_xy_module             , only : wall_prefactor,
-     $                                          compute_wall_flux_x,
-     $                                          compute_wall_flux_y
+        use bc_operators_default_class, only : bc_operators_default
+        use sd_operators_class        , only : sd_operators
+        use pmodel_eq_class           , only : pmodel_eq
+        use parameters_constant       , only : bc_fluxes_choice
+        use parameters_input          , only : nx,ny,ne,bc_size
+        use parameters_kind           , only : rkind,ikind
+        use reflection_xy_module      , only : reflection_x_prefactor
+        use wall_xy_module            , only : wall_prefactor,
+     $                                         compute_wall_flux_x,
+     $                                         compute_wall_flux_y
         
         implicit none
 
@@ -71,7 +72,7 @@
         !> apply the wall and reflection boundary conditions
         !> for the fluxes
         !---------------------------------------------------------------
-        type, extends(bc_operators_abstract) :: bc_operators
+        type, extends(bc_operators_default) :: bc_operators
 
           integer, dimension(ne) :: prefactor
           integer, dimension(ne) :: prefactor_x
@@ -117,6 +118,9 @@
           
           this%prefactor   = wall_prefactor(p_model)
           this%prefactor_x = reflection_x_prefactor(p_model)
+
+          this%bcx_choice = bc_fluxes_choice
+          this%bcy_choice = bc_fluxes_choice
 
         end subroutine ini
 

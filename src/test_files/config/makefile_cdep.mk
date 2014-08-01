@@ -6,8 +6,11 @@ sd_dep=			interface_primary.o\
 			sd_operators_abstract_class.o\
 			sd_operators_class.o
 
-cg_dep=			$(sd_dep)
-mt_dep=			$(sd_dep)
+cg_dep=			$(sd_dep)\
+			cg_operators_module.o
+
+mt_dep=			$(sd_dep)\
+			mattsson_operators_module.o
 
 pm_dep=			pmodel_eq_abstract_class.o\
 			pmodel_eq_class.o
@@ -38,6 +41,7 @@ dim2d_dep=		$(dim2d_flux_dep)\
 			$(pm_dep)
 
 bc_dep=			bc_operators_abstract_class.o\
+			bc_operators_default_class.o\
 			bc_operators_class.o
 
 reflection_dep=		$(bc_dep)\

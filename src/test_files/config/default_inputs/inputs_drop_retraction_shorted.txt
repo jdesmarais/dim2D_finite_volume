@@ -39,7 +39,19 @@ npx = 1
 npy = 1
 
 
-!4.     Boundary conditions
+!4.	Physical model
+!---------------------------------------------------------
+!set the physical model used
+!---------------------------------------------------------
+!pm_choice : integer
+! 0 : for simple test
+! 1 : for wave2d
+! 2 : for dim2d
+!---------------------------------------------------------
+pm_choice = 2
+
+
+!5.     Boundary conditions
 !---------------------------------------------------------
 !set the type of boundary conditions used
 !---------------------------------------------------------
@@ -51,7 +63,7 @@ npy = 1
 bc_choice = 1
 
 
-!5.    initial conditions for the DIM
+!6.    initial conditions for the DIM
 !---------------------------------------------------------
 !ic_choice : integer
 ! 0 : steady state
@@ -62,7 +74,7 @@ bc_choice = 1
 ic_choice = 1
 
 
-!6.     DIM equations
+!7.     DIM equations
 !---------------------------------------------------------
 !set the options tuning the DIM equations
 !---------------------------------------------------------

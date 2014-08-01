@@ -32,7 +32,7 @@
         !> simple test equations
         !>
         !> @param get_model_name
-        !> get the name of the physcial model
+        !> get the name of the physical model
         !>
         !> @param get_var_name
         !> get the name of the main variables
@@ -293,8 +293,10 @@
           do j=bc_size+1, ny-bc_size
              do i=bc_size+1, nx+1-bc_size
 
-                flux_x(i,j,1) = 10*s%f(nodes,i,j,basic)+
-     $               s%dfdx(nodes,i,j,basic,dx)
+c$$$                flux_x(i,j,1) = 10*s%f(nodes,i,j,basic)+
+c$$$     $               s%dfdx(nodes,i,j,basic,dx)
+
+                flux_x(i,j,1) = s%f(nodes,i,j,basic)
 
              end do
           end do
@@ -341,8 +343,10 @@
           do j=bc_size+1, ny+1-bc_size
              do i=bc_size+1, nx-bc_size
 
-                flux_y(i,j,1) = s%g(nodes,i,j,basic)+
-     $               10*s%dgdy(nodes,i,j,basic,dy)
+c$$$                flux_y(i,j,1) = s%g(nodes,i,j,basic)+
+c$$$     $               10*s%dgdy(nodes,i,j,basic,dy)
+
+                flux_y(i,j,1) = s%g(nodes,i,j,basic)
 
              end do
           end do
@@ -373,8 +377,10 @@
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 
-                   flux_x(i,j,1) = 10*s%f(nodes,i,j,basic)+
-     $               s%dfdx(nodes,i,j,basic,dx)
+c$$$                   flux_x(i,j,1) = 10*s%f(nodes,i,j,basic)+
+c$$$     $               s%dfdx(nodes,i,j,basic,dx)
+
+                   flux_x(i,j,1) = s%f(nodes,i,j,basic)
 
                 end if
 
@@ -407,8 +413,10 @@
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 
-                   flux_y(i,j,1) = s%g(nodes,i,j,basic)+
-     $                  10*s%dgdy(nodes,i,j,basic,dy)
+c$$$                   flux_y(i,j,1) = s%g(nodes,i,j,basic)+
+c$$$     $                  10*s%dgdy(nodes,i,j,basic,dy)
+
+                   flux_y(i,j,1) = s%g(nodes,i,j,basic)
 
                 end if
 
@@ -428,7 +436,7 @@
           real(rkind)                       , intent(in)   :: dy
           integer(ikind)                    , intent(in)   :: i
           integer(ikind)                    , intent(in)   :: j
-          class(sd_operators)                , intent(in)   :: s_oneside
+          class(sd_operators)               , intent(in)   :: s_oneside
           real(rkind), dimension(ne)                       :: flux_x
 
           real(rkind) :: dy_s
@@ -436,8 +444,10 @@
           dy_s = dy
 
           !<fluxes along the x-axis
-          flux_x(1) = 10*s_oneside%f(nodes,i,j,basic)+
-     $               s_oneside%dfdx(nodes,i,j,basic,dx)
+c$$$          flux_x(1) = 10*s_oneside%f(nodes,i,j,basic)+
+c$$$     $               s_oneside%dfdx(nodes,i,j,basic,dx)
+
+          flux_x(1) = s_oneside%f(nodes,i,j,basic)
 
         end function compute_flux_x_oneside
 
@@ -452,7 +462,7 @@
           real(rkind)                       , intent(in)   :: dy
           integer(ikind)                    , intent(in)   :: i
           integer(ikind)                    , intent(in)   :: j
-          class(sd_operators)                , intent(in)   :: s_oneside
+          class(sd_operators)                , intent(in)  :: s_oneside
           real(rkind), dimension(ne)                       :: flux_y
 
           real(rkind) :: dx_s
@@ -461,8 +471,10 @@
 
 
           !<fluxes along the x-axis
-          flux_y(1) = s%g(nodes,i,j,basic)+
-     $         10*s%dgdy(nodes,i,j,basic,dy)
+c$$$          flux_y(1) = s_oneside%g(nodes,i,j,basic)+
+c$$$     $         10*s_oneside%dgdy(nodes,i,j,basic,dy)
+
+          flux_y(1) = s_oneside%g(nodes,i,j,basic)
 
         end function compute_flux_y_oneside
 

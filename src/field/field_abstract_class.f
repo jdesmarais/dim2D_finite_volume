@@ -21,7 +21,9 @@
         use io_operators_class        , only : io_operators
         use parameters_input          , only : nx,ny,ne,bc_size,
      $                                         x_min,x_max,
-     $                                         y_min,y_max
+     $                                         y_min,y_max,
+     $                                         bcx_type_choice,
+     $                                         bcy_type_choice
         use parameters_kind           , only : ikind, rkind
         use pmodel_eq_class           , only : pmodel_eq
         use sd_operators_class        , only : sd_operators
@@ -193,12 +195,12 @@
 
           class(field_abstract), intent(inout) :: this
 
-          call this%check_inputs()
-
           call this%bc_operators_used%ini(this%pmodel_eq_used)
           call this%ini_coordinates()
           call this%apply_initial_conditions()
           call this%io_operators_used%ini()
+
+          call this%check_inputs()
 
         end subroutine ini
 
@@ -228,6 +230,14 @@
 
           if(bc_size.ne.this%sd_operators_used%get_bc_size()) then
              stop 'bc_size is not correct considering spatial operator'
+          end if
+
+          if(bcx_type_choice.ne.this%bc_operators_used%get_bcx_type()) then
+             stop 'bcx_type_choice does not match bc_operator'
+          end if
+
+          if(bcy_type_choice.ne.this%bc_operators_used%get_bcy_type()) then
+             stop 'bcy_type_choice does not match bc_operator'
           end if
           
         end subroutine check_inputs

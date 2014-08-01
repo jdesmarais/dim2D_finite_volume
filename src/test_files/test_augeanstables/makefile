@@ -132,3 +132,31 @@ test_cg_operators:\
 			cg_operators_module.o\
 			dim2d_parameters.o\
 			dim2d_prim_module.o
+
+test_openbc_operators.o:\
+			$(obc_dir)/openbc_operators_module.o\
+			$(simpletest_dir)/pmodel_eq_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(mt_dir)/sd_operators_class.o\
+			$(mt_dir)/sd_operators_x_oneside_L0_class.o\
+			$(mt_dir)/sd_operators_x_oneside_L1_class.o\
+			$(mt_dir)/sd_operators_x_oneside_R1_class.o\
+			$(mt_dir)/sd_operators_x_oneside_R0_class.o\
+			$(mt_dir)/sd_operators_y_oneside_L0_class.o\
+			$(mt_dir)/sd_operators_y_oneside_L1_class.o\
+			$(mt_dir)/sd_operators_y_oneside_R1_class.o\
+			$(mt_dir)/sd_operators_y_oneside_R0_class.o
+
+test_openbc_operators:	$(param_dep)\
+			$(mt_dep)\
+			$(simpletest_dep)\
+			sd_operators_x_oneside_L0_class.o\
+			sd_operators_x_oneside_L1_class.o\
+			sd_operators_x_oneside_R0_class.o\
+			sd_operators_x_oneside_R1_class.o\
+			sd_operators_y_oneside_L0_class.o\
+			sd_operators_y_oneside_L1_class.o\
+			sd_operators_y_oneside_R1_class.o\
+			sd_operators_y_oneside_R0_class.o\
+			openbc_operators_module.o
