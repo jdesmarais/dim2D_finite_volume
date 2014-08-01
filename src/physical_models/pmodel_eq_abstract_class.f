@@ -14,9 +14,10 @@
       !-----------------------------------------------------------------
       module pmodel_eq_abstract_class
       
+        use interface_primary , only : gradient_x_proc,
+     $                                 gradient_y_proc
         use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : ikind, rkind
-        use parameters_input  , only : nx,ny,ne
         use sd_operators_class, only : sd_operators
 
         implicit none
@@ -97,6 +98,12 @@
           procedure(bodyforces)      , nopass, deferred :: compute_body_forces
           procedure(velocity_proc)   , nopass, deferred :: get_velocity
           procedure(openbc_proc)     , nopass, deferred :: are_openbc_undermined
+          procedure(eigenvalues_proc), nopass, deferred :: compute_x_eigenvalues
+          procedure(eigenvalues_proc), nopass, deferred :: compute_y_eigenvalues
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_x_lefteigenvector
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_x_righteigenvector
+          procedure(x_gradient_proc) , nopass, deferred :: compute_x_gradient
+          procedure(y_gradient_proc) , nopass, deferred :: compute_y_gradient
 
         end type pmodel_eq_abstract
 
@@ -599,6 +606,151 @@
 
           end function openbc_proc
 
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for the local computation of the eigenvalues
+          !> for the hyperbolic terms in the x-direction
+          !
+          !> @date
+          !> 01_08_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@return eigenvalues
+          !> eigenvalues at the location of the grid point
+          !--------------------------------------------------------------
+          function eigenvalues_proc(nodes) result(eigenvalues)
+
+            import rkind
+            import ne
+
+            real(rkind), dimension(ne), intent(in) :: nodes
+            real(rkind), dimension(ne)             :: eigenvalues
+
+          end function eigenvalues_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for the local computation of the eigenvalues
+          !> for the hyperbolic terms in the x-direction
+          !
+          !> @date
+          !> 01_08_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param k
+          !> integer identifying the eigenvector
+          !
+          !>@return eigenvalues
+          !> eigenvalues at the location of the grid point
+          !--------------------------------------------------------------
+          function eigenvect_proc(nodes,k) result(eigenvect)
+
+            import rkind
+            import ne
+
+            real(rkind), dimension(ne), intent(in) :: nodes
+            integer                   , intent(in) :: k
+            real(rkind), dimension(ne)             :: eigenvect
+
+          end function eigenvect_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for the computation of the gradient of the
+          !> governing variables in the x-direction
+          !
+          !> @date
+          !> 01_08_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param i
+          !> integer identifying the index in the x-direction
+          !
+          !>@param j
+          !> integer identifying the index in the y-direction
+          !
+          !>@param gradient
+          !> procedure used to compute the gradient along the x-axis
+          !
+          !>@param dx
+          !> grid space step along the x-axis
+          !
+          !>@return grad_var
+          !> gradient of the governing variables along the x-axis
+          !--------------------------------------------------------------
+          function x_gradient_proc(nodes,i,j,gradient,dx) result(grad_var)
+
+            import gradient_x_proc
+            import ikind,rkind
+            import nx,ny,ne
+
+            real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+            integer(ikind)                  , intent(in) :: i
+            integer(ikind)                  , intent(in) :: j
+            procedure(gradient_x_proc)                   :: gradient
+            real(rkind)                     , intent(in) :: dx
+            real(rkind), dimension(ne)                   :: grad_var
+
+          end function x_gradient_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for the computation of the gradient of the
+          !> governing variables in the y-direction 
+          !
+          !> @date
+          !> 01_08_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param i
+          !> integer identifying the index in the x-direction
+          !
+          !>@param j
+          !> integer identifying the index in the y-direction
+          !
+          !>@param gradient
+          !> procedure used to compute the gradient along the y-axis
+          !
+          !>@param dy
+          !> grid space step along the y-axis
+          !
+          !>@return grad_var
+          !> gradient of the governing variables along the x-axis
+          !--------------------------------------------------------------
+          function y_gradient_proc(nodes,i,j,gradient,dy) result(grad_var)
+
+            import gradient_y_proc
+            import ikind,rkind
+            import nx,ny,ne
+
+            real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+            integer(ikind)                  , intent(in) :: i
+            integer(ikind)                  , intent(in) :: j
+            procedure(gradient_y_proc)                   :: gradient
+            real(rkind)                     , intent(in) :: dy
+            real(rkind), dimension(ne)                   :: grad_var
+
+          end function y_gradient_proc
 
         end interface        
 

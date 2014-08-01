@@ -45,7 +45,7 @@
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 1
+        integer       , parameter :: ne = 4
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice

@@ -14,6 +14,8 @@
       !-----------------------------------------------------------------
       module pmodel_eq_class
       
+        use interface_primary       , only : gradient_x_proc,
+     $                                       gradient_y_proc
         use parameters_bf_layer     , only : interior_pt
         use parameters_constant     , only : scalar, vector_x, vector_y
         use parameters_input        , only : nx,ny,ne,bc_size
@@ -88,6 +90,14 @@
           procedure, nopass :: compute_body_forces
           procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
+          procedure, nopass :: compute_x_eigenvalues
+          procedure, nopass :: compute_y_eigenvalues
+          procedure, nopass :: compute_x_lefteigenvector
+          procedure, nopass :: compute_x_righteigenvector
+          procedure, nopass :: compute_y_lefteigenvector
+          procedure, nopass :: compute_y_righteigenvector
+          procedure, nopass :: compute_x_gradient
+          procedure, nopass :: compute_y_gradient
 
         end type pmodel_eq
 
@@ -782,5 +792,469 @@
           undermined = .false.
 
         end function are_openbc_undermined
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the eigenvalues for the hyperbolic terms
+        !> in the x-direction
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvalues
+        !> eigenvalues at the location of the grid point
+        !--------------------------------------------------------------
+        function compute_x_eigenvalues(nodes) result(eigenvalues)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne)             :: eigenvalues
+
+
+          real(rkind) :: node_s
+
+          node_s = nodes(1)
+
+          if(rkind.eq.8) then
+             eigenvalues(1) = 0.0d0
+          else
+             eigenvalues(1) = 0.0
+          end if
+          eigenvalues(2) = -c**2
+          eigenvalues(3) =  c**2
+
+        end function compute_x_eigenvalues
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the eigenvalues for the hyperbolic terms
+        !> in the y-direction
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvalues
+        !> eigenvalues at the location of the grid point
+        !--------------------------------------------------------------
+        function compute_y_eigenvalues(nodes) result(eigenvalues)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne)             :: eigenvalues
+
+          real(rkind) :: node_s
+
+          node_s = nodes(1)
+
+          if(rkind.eq.8) then
+             eigenvalues(1) = 0.0d0
+          else
+             eigenvalues(1) = 0.0
+          end if
+          eigenvalues(2) = -c**2
+          eigenvalues(3) =  c**2
+
+        end function compute_y_eigenvalues
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the left eigenvector for the hyperbolic terms
+        !> in the x-direction. By denoting L the left eigenmatrix, the
+        !> result of the function is L[k,:]
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param k
+        !> integer identifying the eigenvector
+        !
+        !>@return eigenvalues
+        !> eigenvalues at the location of the grid point
+        !--------------------------------------------------------------
+        function compute_x_lefteigenvector(nodes,k) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          integer                   , intent(in) :: k
+          real(rkind), dimension(ne)             :: eigenvect
+
+
+          real(rkind) :: node_s
+
+          node_s = nodes(1)
+
+
+          select case(k)
+            case(1)
+               if(rkind.eq.8) then
+                  eigenvect(1) = 0.0d0
+                  eigenvect(2) = 0.0d0
+                  eigenvect(3) = 1.0d0
+               else
+                  eigenvect(1) = 0.0
+                  eigenvect(2) = 0.0
+                  eigenvect(3) = 1.0
+               end if
+            case(2)
+               if(rkind.eq.8) then
+                  eigenvect(1) = 1.0d0/Sqrt(2.0d0)
+                  eigenvect(2) = eigenvect(1)
+                  eigenvect(3) = 0.0d0
+               else
+                  eigenvect(1) = 1.0/Sqrt(2.0)
+                  eigenvect(2) = eigenvect(1)
+                  eigenvect(3) = 0.0
+               end if
+            case(3)
+               if(rkind.eq.8) then
+                  eigenvect(1) = -1.0d0/Sqrt(2.0d0)
+                  eigenvect(2) = -eigenvect(1)
+                  eigenvect(3) = 0.0d0
+               else
+                  eigenvect(1) = -1.0/Sqrt(2.0)
+                  eigenvect(2) = -eigenvect(1)
+                  eigenvect(3) = 0.0
+               end if
+            case default
+               print '(''wave2d: compute_x_righteigenvector'')'
+               print '(''k: '',I2)', k
+               stop 'k not recognized'
+          end select
+
+        end function compute_x_lefteigenvector
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the right eigenvector for the hyperbolic terms
+        !> in the x-direction. By denoting R the right eigenmatrix, the
+        !> result of the function is R[k,:]
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param k
+        !> integer identifying the eigenvector
+        !
+        !>@return eigenvect
+        !> eigenvector at the location of the grid point
+        !--------------------------------------------------------------
+        function compute_x_righteigenvector(nodes,k) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          integer                   , intent(in) :: k
+          real(rkind), dimension(ne)             :: eigenvect
+
+
+          real(rkind) :: node_s
+
+          node_s = nodes(1)
+
+          select case(k)
+            case(1)
+               if(rkind.eq.8) then
+                  eigenvect(1) = 0.0d0
+                  eigenvect(2) = 1.0d0/Sqrt(2.0d0)
+                  eigenvect(3) = -eigenvect(2)
+               else
+                  eigenvect(1) = 0.0
+                  eigenvect(2) = 1.0/Sqrt(2.0)
+                  eigenvect(3) = -eigenvect(2)
+               end if
+            case(2)
+               if(rkind.eq.8) then
+                  eigenvect(1) = 0.0d0
+                  eigenvect(2) = 1.0d0/Sqrt(2.0d0)
+                  eigenvect(3) = eigenvect(2)
+               else
+                  eigenvect(1) = 0.0
+                  eigenvect(2) = 1.0/Sqrt(2.0)
+                  eigenvect(3) = eigenvect(2)
+               end if
+            case(3)
+               if(rkind.eq.8) then
+                  eigenvect(1) = 1.0
+                  eigenvect(2) = 0.0
+                  eigenvect(3) = 0.0
+               else
+                  eigenvect(1) = 1.0
+                  eigenvect(2) = 0.0
+                  eigenvect(3) = 0.0
+               end if
+            case default
+               print '(''wave2d: compute_x_lefteigenvector'')'
+               print '(''k: '',I2)', k
+               stop 'k not recognized'
+          end select          
+
+        end function compute_x_righteigenvector
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the left eigenvector for the hyperbolic terms
+        !> in the x-direction. By denoting L the left eigenmatrix, the
+        !> result of the function is L[k,:]
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param k
+        !> integer identifying the eigenvector
+        !
+        !>@return eigenvalues
+        !> eigenvalues at the location of the grid point
+        !--------------------------------------------------------------
+        function compute_y_lefteigenvector(nodes,k) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          integer                   , intent(in) :: k
+          real(rkind), dimension(ne)             :: eigenvect
+
+
+          real(rkind) :: node_s
+
+          node_s = nodes(1)
+
+
+          select case(k)
+            case(1)
+               if(rkind.eq.8) then
+                  eigenvect(1) = 0.0d0
+                  eigenvect(2) = 1.0d0/Sqrt(2.0d0)
+                  eigenvect(3) = 0.0d0
+               else
+                  eigenvect(1) = 0.0
+                  eigenvect(2) = 1.0/Sqrt(2.0)
+                  eigenvect(3) = 0.0
+               end if
+            case(2)
+               if(rkind.eq.8) then
+                  eigenvect(1) = 1.0d0/Sqrt(2.0d0)
+                  eigenvect(2) = 0.0d0
+                  eigenvect(3) = eigenvect(1)
+               else
+                  eigenvect(1) = 1.0/Sqrt(2.0)
+                  eigenvect(2) = 0.0
+                  eigenvect(3) = eigenvect(1)
+               end if
+            case(3)
+               if(rkind.eq.8) then
+                  eigenvect(1) = -1.0d0/Sqrt(2.0d0)
+                  eigenvect(2) =  0.0d0
+                  eigenvect(3) = -eigenvect(1)
+               else
+                  eigenvect(1) = -1.0/Sqrt(2.0)
+                  eigenvect(2) =  0.0
+                  eigenvect(3) = -eigenvect(1)
+               end if
+            case default
+               print '(''wave2d: compute_x_righteigenvector'')'
+               print '(''k: '',I2)', k
+               stop 'k not recognized'
+          end select
+
+        end function compute_y_lefteigenvector
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the right eigenvector for the hyperbolic terms
+        !> in the x-direction. By denoting R the right eigenmatrix, the
+        !> result of the function is R[k,:]
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param k
+        !> integer identifying the eigenvector
+        !
+        !>@return eigenvect
+        !> eigenvector at the location of the grid point
+        !--------------------------------------------------------------
+        function compute_y_righteigenvector(nodes,k) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          integer                   , intent(in) :: k
+          real(rkind), dimension(ne)             :: eigenvect
+
+
+          real(rkind) :: node_s
+
+          node_s = nodes(1)
+
+          select case(k)
+            case(1)
+               if(rkind.eq.8) then
+                  eigenvect(1) =  0.0d0
+                  eigenvect(2) =  1.0d0/Sqrt(2.0d0)
+                  eigenvect(3) = -eigenvect(2)
+               else
+                  eigenvect(1) =  0.0
+                  eigenvect(2) =  1.0/Sqrt(2.0)
+                  eigenvect(3) = -eigenvect(2)
+               end if
+            case(2)
+               if(rkind.eq.8) then
+                  eigenvect(1) = 1.0d0/Sqrt(2.0d0)
+                  eigenvect(2) = 0.0d0
+                  eigenvect(3) = 0.0d0
+               else
+                  eigenvect(1) = 1.0/Sqrt(2.0)
+                  eigenvect(2) = 0.0
+                  eigenvect(3) = 0.0
+               end if
+            case(3)
+               if(rkind.eq.8) then
+                  eigenvect(1) = 0.0d0
+                  eigenvect(2) = 1.0d0/Sqrt(2.0d0)
+                  eigenvect(3) = eigenvect(2)
+               else
+                  eigenvect(1) = 0.0
+                  eigenvect(2) = 1.0/Sqrt(2.0)
+                  eigenvect(3) = eigenvect(2)
+               end if
+            case default
+               print '(''wave2d: compute_x_lefteigenvector'')'
+               print '(''k: '',I2)', k
+               stop 'k not recognized'
+          end select          
+
+        end function compute_y_righteigenvector
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface for the computation of the gradient of the
+        !> governing variables in the x-direction
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> integer identifying the index in the x-direction
+        !
+        !>@param j
+        !> integer identifying the index in the y-direction
+        !
+        !>@param gradient
+        !> procedure used to compute the gradient along the x-axis
+        !
+        !>@param dx
+        !> grid space step along the x-axis
+        !
+        !>@return grad_var
+        !> gradient of the governing variables along the x-axis
+        !--------------------------------------------------------------
+        function compute_x_gradient(nodes,i,j,gradient,dx) result(grad_var)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+          integer(ikind)                  , intent(in) :: i
+          integer(ikind)                  , intent(in) :: j
+          procedure(gradient_x_proc)                   :: gradient
+          real(rkind)                     , intent(in) :: dx
+          real(rkind), dimension(ne)                   :: grad_var
+
+
+          grad_var(1) = gradient(nodes,i,j,position  ,dx)
+          grad_var(2) = gradient(nodes,i,j,velocity_x,dx)
+          grad_var(3) = gradient(nodes,i,j,velocity_y,dx)
+
+        end function compute_x_gradient
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface for the computation of the gradient of the
+        !> governing variables in the y-direction 
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> integer identifying the index in the x-direction
+        !
+        !>@param j
+        !> integer identifying the index in the y-direction
+        !
+        !>@param gradient
+        !> procedure used to compute the gradient along the y-axis
+        !
+        !>@param dy
+        !> grid space step along the y-axis
+        !
+        !>@return grad_var
+        !> gradient of the governing variables along the x-axis
+        !--------------------------------------------------------------
+        function compute_y_gradient(nodes,i,j,gradient,dy) result(grad_var)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+          integer(ikind)                  , intent(in) :: i
+          integer(ikind)                  , intent(in) :: j
+          procedure(gradient_y_proc)                   :: gradient
+          real(rkind)                     , intent(in) :: dy
+          real(rkind), dimension(ne)                   :: grad_var
+
+          grad_var(1) = gradient(nodes,i,j,position  ,dy)
+          grad_var(2) = gradient(nodes,i,j,velocity_x,dy)
+          grad_var(3) = gradient(nodes,i,j,velocity_y,dy)
+
+        end function compute_y_gradient
 
       end module pmodel_eq_class
