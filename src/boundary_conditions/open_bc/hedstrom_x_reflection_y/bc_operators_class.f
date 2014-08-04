@@ -275,20 +275,6 @@
      $         flux_x, flux_y)
 
 
-          !apply the boundary conditions on the south layer
-          j=1
-          call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
-     $         gradient_y_y_oneside_L0, incoming_left,
-     $         timedev)
-
-          j=2
-          call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
-     $         gradient_y_y_oneside_L1, incoming_left,
-     $         timedev)
-
-
           !apply the boundary conditions on the west and east
           !layers
           do j=bc_size+1, ny-bc_size
@@ -318,20 +304,6 @@
      $            timedev)
 
           end do
-
-
-          !apply the boundary conditions on the north layer
-          j=ny-1
-          call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
-     $         gradient_y_y_oneside_R1, incoming_right,
-     $         timedev)
-
-          j=ny
-          call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
-     $         gradient_y_y_oneside_R0, incoming_right,
-     $         timedev)
         
         end subroutine apply_bc_on_timedev_2ndorder        
 

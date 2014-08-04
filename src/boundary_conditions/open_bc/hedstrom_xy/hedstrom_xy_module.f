@@ -34,7 +34,9 @@
         private
         public ::
      $       compute_timedev_xlayer,
-     $       compute_timedev_ylayer
+     $       compute_timedev_ylayer,
+     $       compute_x_timedev_with_openbc,
+     $       compute_y_timedev_with_openbc
 
         contains
 
