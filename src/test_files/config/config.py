@@ -126,6 +126,7 @@ def compute_code_inputs(inputFileName):
     #> gravity_choice: these codes are defined in
     #> parameters_constant.f
     pm_code      = ['simpletest_choice',
+                    'wave1d_choice',
                     'wave2d_choice',
                     'dim2d_choice']
     
@@ -140,7 +141,8 @@ def compute_code_inputs(inputFileName):
                     'reflection_xy_choice',
                     'wall_xy_choice',
                     'wall_x_reflection_y_choice',
-                    'hedstrom_xy_choice']
+                    'hedstrom_xy_choice',
+                    'hedstrom_x_reflection_y_choice']
 
     bc_type_code = ['bc_nodes_choice',
                     'bc_fluxes_choice',
@@ -182,6 +184,8 @@ def compute_code_inputs(inputFileName):
     #< compute the ne
     if(pm_choice=='simpletest_choice'):
         ne = 1
+    if(pm_choice=='wave1d_choice'):
+        ne = 2
     if(pm_choice=='wave2d_choice'):
         ne = 3
     if(pm_choice=='dim2d_choice'):
@@ -210,7 +214,12 @@ def compute_code_inputs(inputFileName):
 
         bcx_type_choice = bc_type_code[2]
         bcy_type_choice = bc_type_code[2]
-    
+
+    if(bc_choice=='hedstrom_x_reflection_y_choice'):
+
+        bcx_type_choice = bc_type_code[2]
+        bcy_type_choice = bc_type_code[0]
+
     #< compute the gravity_choice
     gravity_choice = gravity_code[int(inputs['gravity_choice'])]
 
@@ -219,7 +228,8 @@ def compute_code_inputs(inputFileName):
             pm_choice,
             ic_choice,
             bc_choice,
-            bcx_type_choice,bcy_type_choice,
+            bcx_type_choice,
+            bcy_type_choice,
             gravity_choice]
 
 
@@ -291,7 +301,9 @@ def update_makefile(file_path,bc_choice):
     '''
 
     #< define the constants changed in the file
-    constants_changed={'bc_choice':bc_choice}
+    constants_changed={
+        'pm_choice':pm_choice,
+        'bc_choice':bc_choice}
 
 
     #< change the constant in the file
@@ -363,7 +375,8 @@ if __name__ == "__main__":
                              pm_choice,
                              ic_choice,
                              bc_choice,
-                             bcx_type_choice,bcx_type_choice,
+                             bcx_type_choice,
+                             bcy_type_choice,
                              gravity_choice)
 
 

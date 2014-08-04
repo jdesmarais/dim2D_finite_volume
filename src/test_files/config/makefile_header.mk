@@ -23,8 +23,8 @@ config_dir = $(AUGEANSTABLES_CONFIG)
 dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 
 sd_choice  = mt_choice                  #space discretization choice
-pm_choice  = wave2d_choice              #physical model choice
-bc_choice = hedstrom_xy_choice         #boundary condition choice
+pm_choice = wave1d_choice              #physical model choice
+bc_choice = hedstrom_x_reflection_y_choice         #boundary condition choice
 td_choice  = finitevolume_choice        #time discretization choice
 ti_choice  = rk3tvd_choice              #time integration choice
 io_choice  = nf90_choice                #writer choice
@@ -62,6 +62,11 @@ ifeq ($(strip $(pm_choice)), simpletest_choice)
 	sim_dep+=$(simpletest_dep)
 	sim_par_dep+=$(simpletest_dep)
 endif
+ifeq ($(strip $(pm_choice)), wave1d_choice)
+	pm_cdir=$(wave1d_dir)
+	sim_dep+=$(wave1d_dep)
+	sim_par_dep+=$(wave1d_dep)
+endif
 ifeq ($(strip $(pm_choice)), wave2d_choice)
 	pm_cdir=$(wave2d_dir)
 	sim_dep+=$(wave2d_dep)
@@ -98,6 +103,11 @@ ifeq ($(strip $(bc_choice)), hedstrom_xy_choice)
 	bc_cdir=$(hobc_dir)
 	sim_dep+=$(hedstrom_xy_dep)
 	sim_par_dep+=$(hedstrom_xy_par_dep)
+endif
+ifeq ($(strip $(bc_choice)), hedstrom_x_reflection_y_choice)
+	bc_cdir=$(hrobc_dir)
+	sim_dep+=$(hedstrom_x_reflection_y_dep)
+	sim_par_dep+=$(hedstrom_x_reflection_y_par_dep)
 endif
 
 #time discretization

@@ -40,12 +40,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 7
-        integer(ikind), parameter :: nty = 5
+        integer(ikind), parameter :: ntx = 204
+        integer(ikind), parameter :: nty = 204
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 3
+        integer       , parameter :: ne = 2
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -62,9 +62,9 @@
         integer, parameter :: gravity_choice = no_gravity_choice
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = hedstrom_xy_choice
+        integer, parameter :: bc_choice = hedstrom_x_reflection_y_choice
         integer, parameter :: bcx_type_choice = bc_timedev_choice
-        integer, parameter :: bcy_type_choice = bc_timedev_choice
+        integer, parameter :: bcy_type_choice = bc_nodes_choice
 
         !<output choice
         integer, parameter :: io_choice   = netcdf_choice

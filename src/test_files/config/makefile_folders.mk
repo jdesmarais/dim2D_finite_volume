@@ -23,6 +23,7 @@ nf90_dir		= $(io_dir)/nf90_operators
 mpi_bc_dir 		= $(mpi_dir)/mpi_messenger_bc
 
 dim2d_dir               = $(phy_eq_dir)/dim2d
+wave1d_dir              = $(phy_eq_dir)/wave1d
 wave2d_dir              = $(phy_eq_dir)/wave2d
 simpletest_dir          = $(phy_eq_dir)/simpletest
 
@@ -32,7 +33,8 @@ fv_dir			= $(td_dir)/finitevolume
 
 dim2d_ic		= $(dim2d_dir)/dim2d_ic
 
-hobc_dir                = $(obc_dir)/hedstrom_openbc
+hobc_dir                = $(obc_dir)/hedstrom_xy
+hrobc_dir		= $(obc_dir)/hedstrom_x_reflection_y
 
 bf_layer_dir		= $(obc_dir)/buffer_layer
 nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors
