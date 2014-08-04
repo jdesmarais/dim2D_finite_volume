@@ -44,7 +44,8 @@
         implicit none
 
         real(rkind), dimension(nx,ny,ne)   :: nodes
-        real(rkind), dimension(nx)         :: test_data
+        real(rkind), dimension(nx+1,ny)    :: test_data_x_flux
+        real(rkind), dimension(nx,ny+1)    :: test_data_y_flux
         real(rkind)                        :: dx,dy
                                            
         type(pmodel_eq)                    :: p_model
@@ -66,6 +67,10 @@
 
         logical :: detailled
         logical :: test_validated
+        logical :: loc
+
+        integer :: i,j
+
 
 
         print '(''************************************'')'
@@ -79,8 +84,8 @@
         print '(''x-gradient'')'
         print '(''************************************'')'
         
-        if((nx.ne.6).or.(ny.ne.5)) then
-           print '(''the test requires nx=7 and ny>4'')'
+        if((nx.ne.7).or.(ny.ne.5)) then
+           print '(''the test requires nx=7 and ny=5'')'
            stop 'change nx and ny'
         end if
 
@@ -90,12 +95,41 @@
         
 
         !> test data
-        test_data(1) =  74.4d0 !<test dfdx(1)
-        test_data(2) =  24d0   !<test dfdx(2)
-        test_data(3) = -19.6d0 !<test dfdx(3)
-        test_data(4) = -0.7d0  !<test dfdx(4)
-        test_data(5) =  3.3d0  !<test dfdx(5)
-        test_data(6) = -4.8d0  !<test dfdx(6)
+        test_data_x_flux(3,1) =  0.7d0
+        test_data_x_flux(4,1) =  3.1d0 
+        test_data_x_flux(5,1) =  2.8d0
+        test_data_x_flux(6,1) = -1.5d0
+        test_data_x_flux(3,2) =  7.6d0
+        test_data_x_flux(4,2) = 10.8d0 
+        test_data_x_flux(5,2) =  7.9d0
+        test_data_x_flux(6,2) =  3.2d0
+        test_data_x_flux(3,3) = 16.4d0
+        test_data_x_flux(4,3) =  6.6d0 
+        test_data_x_flux(5,3) =  6.25d0
+        test_data_x_flux(6,3) =  7.9d0
+        test_data_x_flux(3,4) =  4.6d0
+        test_data_x_flux(4,4) =  7.2d0 
+        test_data_x_flux(5,4) =  1.55d0
+        test_data_x_flux(6,4) = -0.65d0
+        test_data_x_flux(3,5) =  3.2d0
+        test_data_x_flux(4,5) =  7.6d0 
+        test_data_x_flux(5,5) =  2.335d0
+        test_data_x_flux(6,5) =  2.335d0
+
+        test_data_y_flux(1,3) = -5.6d0
+        test_data_y_flux(2,3) = 13.6d0 
+        test_data_y_flux(3,3) = 10.4d0
+        test_data_y_flux(4,3) =  7d0 
+        test_data_y_flux(5,3) =  7.15d0
+        test_data_y_flux(6,3) =  3.95d0
+        test_data_y_flux(7,3) =  6.005d0
+        test_data_y_flux(1,4) = -5.875d0
+        test_data_y_flux(2,4) = 11.6d0 
+        test_data_y_flux(3,4) =  9.4d0
+        test_data_y_flux(4,4) =  4.4d0 
+        test_data_y_flux(5,4) =  3.4d0
+        test_data_y_flux(6,4) =  3.85d0
+        test_data_y_flux(7,4) = -0.75d0
 
 
         !> compute the fluxes
@@ -111,10 +145,43 @@
 
           
         !> derivative computation + comparison with test_data
-        detailled = .true.
-        call test_space_derivative(flux_x, dx, 3, 1, test_data, detailled)
-        print '()'
+        detailled = .false.
 
+
+        if(detailled) then
+           do j=1,5
+              do i=3,6
+                 loc = is_test_validated(flux_x(i,j,1), test_data_x_flux(i,j), detailled)
+                 print '(''test flux_x('',I2,'','',I2,''): '', L3)', i,j, loc
+              end do
+           end do
+
+           do j=3,4
+              do i=1,7
+                 loc = is_test_validated(flux_y(i,j,1), test_data_y_flux(i,j), detailled)
+                 print '(''test flux_y('',I2,'','',I2,''): '', L3)', i,j, loc
+              end do
+           end do
+
+        else
+           test_validated=.true.
+           do j=1,5
+              do i=3,6
+                 loc = is_test_validated(flux_x(i,j,1), test_data_x_flux(i,j), detailled)
+                 test_validated=test_validated.and.loc
+              end do
+           end do
+
+           do j=3,4
+              do i=1,7
+                 loc = is_test_validated(flux_y(i,j,1), test_data_y_flux(i,j), detailled)
+                 test_validated=test_validated.and.loc
+              end do
+           end do
+           
+           print '(''test validated: '',L3)', test_validated
+        end if
+          
 
         contains
 
@@ -137,50 +204,7 @@
      $         int(var*10000.)-
      $         sign(int(abs(cst*10000.)),int(cst*10000.))).le.1
           
-        end function is_test_validated
-
-
-        subroutine test_space_derivative(
-     $       fluxes, dx, j, k, test_data, detailled)
-        
-          implicit none
-
-          real(rkind), dimension(nx+1,ny,ne), intent(in) :: fluxes
-          real(rkind)                       , intent(in) :: dx
-          integer(ikind)                    , intent(in) :: j
-          integer(ikind)                    , intent(in) :: k
-          real(rkind), dimension(nx)        , intent(in) :: test_data
-          logical                           , intent(in) :: detailled
-
-
-          real(rkind), dimension(:), allocatable :: dev
-          integer :: i
-          logical :: loc
-
-          allocate(dev(size(fluxes,1)-1))
-
-          do i=1, size(dev,1)
-             dev(i) = 1.0/dx*(-fluxes(i,j,k)+fluxes(i+1,j,k))
-          end do
-
-          if(detailled) then
-             do i=1, size(dev,1)
-                loc = is_test_validated(dev(i), test_data(i), detailled)
-                print '(''test dev('',I2,''): '', L3)', i, loc
-             end do
-          else
-             i=1
-             test_validated=is_test_validated(dev(i), test_data(i), detailled)
-             do i=2, size(dev,1)
-                loc = is_test_validated(dev(i), test_data(i), detailled)
-                test_validated = test_validated.and.loc
-             end do
-             print '(''test validated: '',L3)', loc
-          end if
-
-          deallocate(dev)
-
-        end subroutine test_space_derivative
+        end function is_test_validated        
 
 
         subroutine initialize_nodes(nodes,dx,dy)

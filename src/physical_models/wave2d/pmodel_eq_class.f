@@ -80,7 +80,9 @@
           procedure, nopass :: get_var_unit
           procedure, nopass :: get_var_type
           procedure, nopass :: get_eq_nb
+
           procedure, nopass :: apply_ic
+
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
           procedure, nopass :: compute_flux_x_nopt
@@ -88,8 +90,10 @@
           procedure, nopass :: compute_flux_x_oneside
           procedure, nopass :: compute_flux_y_oneside
           procedure, nopass :: compute_body_forces
+
           procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
+
           procedure, nopass :: compute_x_eigenvalues
           procedure, nopass :: compute_y_eigenvalues
           procedure, nopass :: compute_x_lefteigenvector

@@ -227,7 +227,7 @@
 
           !south layer of y-fluxes
           j=1
-          do i=bc_size+1, nx-bc_size
+          do i=bc_size+1, nx-bc_size+1
              flux_x(i,j,:) = p_model%compute_flux_x_oneside(
      $            nodes,dx,dy,
      $            i,j,
@@ -235,7 +235,7 @@
           end do
 
           j=bc_size
-          do i=bc_size+1, nx-bc_size
+          do i=bc_size+1, nx-bc_size+1
              flux_x(i,j,:) = p_model%compute_flux_x_oneside(
      $            nodes,dx,dy,
      $            i,j,
@@ -244,7 +244,7 @@
 
           
           !west and east layer of y-fluxes
-          do j=bc_size+1, ny-bc_size
+          do j=bc_size+1, ny-bc_size+1
              i=1
              flux_y(i,j,:) = p_model%compute_flux_y_oneside(
      $            nodes,dx,dy,
@@ -273,7 +273,7 @@
 
           !north layer of y-fluxes
           j=ny-1
-          do i=bc_size+1, nx-bc_size
+          do i=bc_size+1, nx-bc_size+1
              flux_x(i,j,:) = p_model%compute_flux_x_oneside(
      $            nodes,dx,dy,
      $            i,j,
@@ -281,7 +281,7 @@
           end do
 
           j=ny
-          do i=bc_size+1, nx-bc_size
+          do i=bc_size+1, nx-bc_size+1
              flux_x(i,j,:) = p_model%compute_flux_x_oneside(
      $            nodes,dx,dy,
      $            i,j,
