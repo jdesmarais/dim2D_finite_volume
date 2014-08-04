@@ -209,19 +209,17 @@
            !-------------------------------------------------------------
            subroutine timedev_proc(
      $       nodes,dx,dy,
-     $       s,p_model,
+     $       p_model,
      $       flux_x,flux_y,
      $       timedev)
            
              import nx,ny,ne
              import pmodel_eq
              import rkind
-             import sd_operators
            
              real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
              real(rkind)                       , intent(in)    :: dx
              real(rkind)                       , intent(in)    :: dy
-             type(sd_operators)                , intent(in)    :: s
              type(pmodel_eq)                   , intent(in)    :: p_model
              real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
              real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y

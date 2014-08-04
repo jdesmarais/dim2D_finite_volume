@@ -1,6 +1,6 @@
       !> @file
       !> class encapsulating subroutines for the space discretization
-      !> using finite difference for the Mattsson operators
+      !> using Cockburn and Gau operators
       !
       !> @author 
       !> Julien L. Desmarais
@@ -24,21 +24,26 @@
      $       gradient_y_interior,
      $       
      $       gradient_x_x_oneside_L0,
+     $       gradient_x_x_oneside_L1,
+     $       gradient_x_x_oneside_R1,
      $       gradient_x_x_oneside_R0,
      $       
      $       gradient_y_y_oneside_L0,
+     $       gradient_y_y_oneside_L1,
+     $       gradient_y_y_oneside_R1,
      $       gradient_y_y_oneside_R0
 
         
         contains
 
-        
+
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
         !> compute \f$ \frac{\partial u}{\partial x}\big|_{i,j}=
-        !> \frac{1}{2 \Delta x}(-u_{i-1,j} + u_{i+1,j})
+        !> \frac{1}{12 \Delta x}(u_{i-2,j} - 8 u_{i-1,j}
+        !> + 8 u_{i+1,j} - u_{i+2,j})\f$
         !
         !> @date
         !> 31_07_2014 - initial version  - J.L. Desmarais
@@ -78,13 +83,26 @@
           if(rkind.eq.8) then
 
              !TAG INLINE
+c$$$             var = 1.0d0/(12.0*dx)*(
+c$$$     $                   proc(nodes,i-2,j)
+c$$$     $            -8.0d0*proc(nodes,i-1,j)
+c$$$     $            +8.0d0*proc(nodes,i+1,j)
+c$$$     $            -      proc(nodes,i+2,j))
              var = 0.5d0/dx*(
      $            - proc(nodes,i-1,j)
      $            + proc(nodes,i+1,j))
+
           else
-             var = 0.5d0/dx*(
+c$$$             var = 1.0/(12.0*dx)*(
+c$$$     $                 proc(nodes,i-2,j)
+c$$$     $            -8.0*proc(nodes,i-1,j)
+c$$$     $            +8.0*proc(nodes,i+1,j)
+c$$$     $            -    proc(nodes,i+2,j))
+
+             var = 0.5/dx*(
      $            - proc(nodes,i-1,j)
      $            + proc(nodes,i+1,j))
+
           end if
 
         end function gradient_x_interior
@@ -95,7 +113,8 @@
         !
         !> @brief
         !> compute \f$ \frac{\partial u}{\partial y}\big|_{i,j}=
-        !> \frac{1}{2 \Delta y}(-u_{i,j-1} + u_{i,j+1})
+        !> \frac{1}{12 \Delta y}( u_{i,j-2} -8 u_{i,j-1} +
+        !> 8 u_{i,j+1} - u_{i,j+2} )\f$
         !
         !> @date
         !> 31_07_2014 - initial version  - J.L. Desmarais
@@ -113,9 +132,6 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
-        !>@param dy
-        !> grid step along the y-axis
-        !
         !>@param var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
@@ -126,22 +142,32 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind), intent(in) :: i
-          integer(ikind), intent(in) :: j
-          procedure(get_primary_var) :: proc
-          real(rkind)   , intent(in) :: dy
-          real(rkind)                :: var
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
+c$$$             var = 1.0d0/(12.0*dy)*(
+c$$$     $                   proc(nodes,i,j-2)
+c$$$     $            -8.0d0*proc(nodes,i,j-1)
+c$$$     $            +8.0d0*proc(nodes,i,j+1)
+c$$$     $            -      proc(nodes,i,j+2))
              var = 0.5d0/dy*(
      $            - proc(nodes,i,j-1)
      $            + proc(nodes,i,j+1))
           else
-             var = 0.5d0/dy*(
+             var = 0.5/dy*(
      $            - proc(nodes,i,j-1)
      $            + proc(nodes,i,j+1))
+c$$$             var = 1.0/(12.0*dy)*(
+c$$$     $                 proc(nodes,i,j-2)
+c$$$     $            -8.0*proc(nodes,i,j-1)
+c$$$     $            +8.0*proc(nodes,i,j+1)
+c$$$     $            -    proc(nodes,i,j+2))
           end if
 
         end function gradient_y_interior
@@ -151,7 +177,7 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i,j}=
+        !> compute \f$ \frac{\partial u}{\partial x}\bigg|_{i,j}=
         !> \frac{1}{\Delta x}(-u_{i,j}+u_{i+1,j})\f$
         !
         !> @date
@@ -201,6 +227,117 @@
         end function gradient_x_x_oneside_L0
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i,j}=
+        !> \frac{1}{2 \Delta x}(-u_{i-1,j}+u_{i+1,j})\f$
+        !
+        !> @date
+        !> 31_07_2014 - initial version  - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param proc
+        !> procedure computing the special quantity evaluated at [i,j]
+        !> (ex: pressure, temperature,...)
+        !
+        !>@param var
+        !> data evaluated at [i,j]
+        !---------------------------------------------------------------
+        function gradient_x_x_oneside_L1(
+     $     nodes,i,j,proc,dx)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind), intent(in) :: i
+          integer(ikind), intent(in) :: j
+          procedure(get_primary_var) :: proc
+          real(rkind)   , intent(in) :: dx
+          real(rkind)                :: var
+
+          if(rkind.eq.8) then
+
+             !TAG INLINE
+             var = 0.5d0/dx*(
+     $            -proc(nodes,i-1,j)
+     $            +proc(nodes,i+1,j))
+          else
+             var =0.5/dx*(
+     $            -proc(nodes,i-1,j)
+     $            +proc(nodes,i+1,j))
+          end if
+
+        end function gradient_x_x_oneside_L1
+
+
+        
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i,j}=
+        !> \frac{1}{2 \Delta x}( - u_{i-1,j} + u_{i+1,j} ) \f$
+        !
+        !> @date
+        !> 31_07_2014 - initial version  - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param proc
+        !> procedure computing the special quantity evaluated at [i,j]
+        !> (ex: pressure, temperature,...)
+        !
+        !>@param var
+        !> data evaluated at [i,j]
+        !---------------------------------------------------------------
+        function gradient_x_x_oneside_R1(
+     $     nodes,i,j,proc,dx)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind), intent(in) :: i
+          integer(ikind), intent(in) :: j
+          procedure(get_primary_var) :: proc
+          real(rkind)   , intent(in) :: dx
+          real(rkind)                :: var
+
+          if(rkind.eq.8) then
+
+             !TAG INLINE
+             var = 0.5d0/dx*(
+     $            - proc(nodes,i-1,j)
+     $            + proc(nodes,i+1,j))
+          else
+             var = 0.5/dx*(
+     $            - proc(nodes,i-1,j)
+     $            + proc(nodes,i+1,j))
+          end if
+
+        end function gradient_x_x_oneside_R1
+
+
+        
         !> @author
         !> Julien L. Desmarais
         !
@@ -257,7 +394,7 @@
 
         end function gradient_x_x_oneside_R0
 
-      
+
         !> @author
         !> Julien L. Desmarais
         !
@@ -314,7 +451,121 @@
 
         end function gradient_y_y_oneside_L0
 
-        
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial x}\big|_{i,j}=
+        !> \frac{1}{2 \Delta x}(-u_{i,j-1}+u_{i,j+1})\f$
+        !
+        !> @date
+        !> 31_07_2014 - initial version  - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param proc
+        !> procedure computing the special quantity evaluated at [i,j]
+        !> (ex: pressure, temperature,...)
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> data evaluated at [i,j]
+        !---------------------------------------------------------------
+        function gradient_y_y_oneside_L1(
+     $     nodes,i,j,proc,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind), intent(in) :: i
+          integer(ikind), intent(in) :: j
+          procedure(get_primary_var) :: proc
+          real(rkind)   , intent(in) :: dy
+          real(rkind)                :: var
+
+          if(rkind.eq.8) then
+
+             !TAG INLINE
+             var = 0.5d0/dy*(
+     $            -proc(nodes,i,j-1)
+     $            +proc(nodes,i,j+1))
+          else
+             var =0.5/dy*(
+     $            -proc(nodes,i,j-1)
+     $            +proc(nodes,i,j+1))
+          end if
+
+        end function gradient_y_y_oneside_L1
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial y}\bigg|_{i,j}=
+        !> \frac{1}{2 \Delta y}( - u_{i,j-1} + u_{i,j+1} ) \f$
+        !
+        !> @date
+        !> 31_07_2014 - initial version  - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param proc
+        !> procedure computing the special quantity evaluated at [i,j]
+        !> (ex: pressure, temperature,...)
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> data evaluated at [i,j]
+        !---------------------------------------------------------------
+        function gradient_y_y_oneside_R1(
+     $     nodes,i,j,proc,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind), intent(in) :: i
+          integer(ikind), intent(in) :: j
+          procedure(get_primary_var) :: proc
+          real(rkind)   , intent(in) :: dy
+          real(rkind)                :: var
+
+          if(rkind.eq.8) then
+
+             !TAG INLINE
+             var = 0.5d0/dy*(
+     $            - proc(nodes,i,j-1)
+     $            + proc(nodes,i,j+1))
+          else
+             var = 0.5/dy*(
+     $            - proc(nodes,i,j-1)
+     $            + proc(nodes,i,j+1))
+          end if
+
+        end function gradient_y_y_oneside_R1
+
+
         !> @author
         !> Julien L. Desmarais
         !
@@ -370,5 +621,5 @@
           end if
 
         end function gradient_y_y_oneside_R0
-        
+
       end module sd_operators_fd_module

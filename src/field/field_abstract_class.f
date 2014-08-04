@@ -19,9 +19,11 @@
         use interface_integration_step, only : timeInt_step,
      $                                         timeInt_step_nopt
         use io_operators_class        , only : io_operators
+        use parameters_constant       , only : hedstrom_xy_choice
         use parameters_input          , only : nx,ny,ne,bc_size,
      $                                         x_min,x_max,
      $                                         y_min,y_max,
+     $                                         bc_choice,
      $                                         bcx_type_choice,
      $                                         bcy_type_choice
         use parameters_kind           , only : ikind, rkind
@@ -415,7 +417,10 @@
 
           class(field_abstract), intent(inout) :: this
 
-          call this%bc_operators_used%apply_bc_on_nodes(this%nodes)
+          if(bc_choice.ne.hedstrom_xy_choice) then
+             call this%bc_operators_used%apply_bc_on_nodes(this%nodes)
+          end if
+
 
         end subroutine apply_bc_on_nodes
 
@@ -456,7 +461,23 @@
           real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
           procedure(timeInt_step) :: integration_step
 
-          call integration_step(this%nodes, dt, nodes_tmp, time_dev)
+
+          integer(ikind), dimension(2) :: x_borders
+          integer(ikind), dimension(2) :: y_borders
+
+          
+          if(bc_choice.eq.hedstrom_xy_choice) then
+             x_borders=[1,nx]
+             y_borders=[1,ny]
+          else
+             x_borders=[bc_size+1,nx-bc_size]
+             y_borders=[bc_size+1,ny-bc_size]
+          end if
+
+          call integration_step(
+     $         this%nodes, dt, nodes_tmp, time_dev,
+     $         x_borders=x_borders,
+     $         y_borders=y_borders)
 
         end subroutine compute_integration_step
 

@@ -18,7 +18,7 @@
       !-----------------------------------------------------------------
       module sd_operators_class
 
-        use mattsson_operators_module  , only : gradient_x_interior,
+        use sd_operators_fd_module     , only : gradient_x_interior,
      $                                          gradient_y_interior
         use interface_primary          , only : get_primary_var,
      $                                          get_secondary_var

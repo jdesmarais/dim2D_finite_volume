@@ -38,25 +38,47 @@
         !> table containing the time derivative \f$ \frac{d u_n}{dt} \f$
         !--------------------------------------------------------------
         subroutine compute_1st_step(
-     $     nodes,
-     $     dt,
-     $     nodes_tmp,
-     $     time_dev)
+     $       nodes,
+     $       dt,
+     $       nodes_tmp,
+     $       time_dev,
+     $       x_borders,
+     $       y_borders)
 
           implicit none
 
-          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          real(rkind)                     , intent(in)    :: dt 
-          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
+          real(rkind)   , dimension(nx,ny,ne)   , intent(inout) :: nodes
+          real(rkind)                           , intent(in)    :: dt 
+          real(rkind)   , dimension(nx,ny,ne)   , intent(inout) :: nodes_tmp
+          real(rkind)   , dimension(nx,ny,ne)   , intent(in)    :: time_dev
+          integer(ikind), dimension(2), optional, intent(in)    :: x_borders
+          integer(ikind), dimension(2), optional, intent(in)    :: y_borders
           
           integer        :: k
           integer(ikind) :: i,j
+          integer(ikind) :: i_min, j_min, i_max, j_max
+
+
+          if(present(x_borders)) then
+             i_min = x_borders(1)
+             i_max = x_borders(2)
+          else
+             i_min = bc_size+1
+             i_max = nx-bc_size
+          end if
+
+          if(present(y_borders)) then
+             j_min = y_borders(1)
+             j_max = y_borders(2)
+          else
+             j_min = bc_size+1
+             j_max = ny-bc_size
+          end if
 
           
           do k=1, ne
-             do j=bc_size+1, ny-bc_size
-                do i=bc_size+1, nx-bc_size
+             do j=j_min, j_max
+                do i=i_min, i_max
                    nodes_tmp(i,j,k) = nodes(i,j,k)
                    nodes(i,j,k)     = nodes(i,j,k) + dt*time_dev(i,j,k)
                 end do
@@ -98,24 +120,46 @@
      $     dt,
      $     nodes_tmp,
      $     time_dev,
-     $     grdpts_id)
+     $     grdpts_id,
+     $     x_borders,
+     $     y_borders)
 
           implicit none
 
-          real(rkind), dimension(:,:,:), intent(inout) :: nodes
-          real(rkind)                  , intent(in)    :: dt 
-          real(rkind), dimension(:,:,:), intent(inout) :: nodes_tmp
-          real(rkind), dimension(:,:,:), intent(in)    :: time_dev
-          integer    , dimension(:,:)  , intent(in)    :: grdpts_id
+          real(rkind), dimension(:,:,:)         , intent(inout) :: nodes
+          real(rkind)                           , intent(in)    :: dt 
+          real(rkind), dimension(:,:,:)         , intent(inout) :: nodes_tmp
+          real(rkind), dimension(:,:,:)         , intent(in)    :: time_dev
+          integer    , dimension(:,:)           , intent(in)    :: grdpts_id
+          integer(ikind), dimension(2), optional, intent(in)    :: x_borders
+          integer(ikind), dimension(2), optional, intent(in)    :: y_borders
 
           
           integer        :: k
           integer(ikind) :: i,j
+          integer(ikind) :: i_min, j_min, i_max, j_max
+
+
+          if(present(x_borders)) then
+             i_min = x_borders(1)
+             i_max = x_borders(2)
+          else
+             i_min = bc_size+1
+             i_max = size(nodes,1)-bc_size
+          end if
+
+          if(present(y_borders)) then
+             j_min = y_borders(1)
+             j_max = y_borders(2)
+          else
+             j_min = bc_size+1
+             j_max = size(nodes,2)-bc_size
+          end if
 
           
           do k=1, ne
-             do j=bc_size+1, size(nodes,2)-bc_size
-                do i=bc_size+1, size(nodes,1)-bc_size
+             do j=j_min, j_max
+                do i=i_min, i_max
                    if(grdpts_id(i,j).ne.no_pt) then
                       nodes_tmp(i,j,k) = nodes(i,j,k)
                       nodes(i,j,k)     = nodes(i,j,k) + dt*time_dev(i,j,k)
@@ -156,24 +200,48 @@
      $     nodes,
      $     dt,
      $     nodes_tmp,
-     $     time_dev)
+     $     time_dev,
+     $     x_borders, y_borders)
 
           implicit none
 
-          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          real(rkind)                     , intent(in)    :: dt
-          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
+          real(rkind), dimension(nx,ny,ne)      , intent(inout) :: nodes
+          real(rkind)                           , intent(in)    :: dt
+          real(rkind), dimension(nx,ny,ne)      , intent(inout) :: nodes_tmp
+          real(rkind), dimension(nx,ny,ne)      , intent(in)    :: time_dev
+          integer(ikind), dimension(2), optional, intent(in)    :: x_borders
+          integer(ikind), dimension(2), optional, intent(in)    :: y_borders
+
           
           integer        :: k
           integer(ikind) :: i,j
 
           real(rkind), parameter :: b2 = 0.75d0
+
+          integer(ikind) :: i_min, j_min, i_max, j_max
+
+
+          if(present(x_borders)) then
+             i_min = x_borders(1)
+             i_max = x_borders(2)
+          else
+             i_min = bc_size+1
+             i_max = nx-bc_size
+          end if
+
+          if(present(y_borders)) then
+             j_min = y_borders(1)
+             j_max = y_borders(2)
+          else
+             j_min = bc_size+1
+             j_max = ny-bc_size
+          end if
+
           
           if(rkind.eq.8) then
              do k=1, ne
-                do j=bc_size+1, ny-bc_size
-                   do i=bc_size+1, nx-bc_size
+                do j=j_min, j_max
+                   do i=i_min, i_max
                       nodes(i,j,k) =
      $                     b2*nodes_tmp(i,j,k)+
      $                     (1.0d0-b2)*(nodes(i,j,k)+dt*time_dev(i,j,k))
@@ -182,8 +250,8 @@
              end do
           else
              do k=1, ne
-                do j=bc_size+1, ny-bc_size
-                   do i=bc_size+1, nx-bc_size
+                do j=j_min, j_max
+                   do i=i_min, i_max
                       nodes(i,j,k) = 
      $                     b2*nodes_tmp(i,j,k)+
      $                     (1.0-b2)*(nodes(i,j,k)+dt*time_dev(i,j,k))
@@ -228,25 +296,49 @@
      $     dt,
      $     nodes_tmp,
      $     time_dev,
-     $     grdpts_id)
+     $     grdpts_id,
+     $     x_borders,
+     $     y_borders)
 
           implicit none
 
-          real(rkind), dimension(:,:,:), intent(inout) :: nodes
-          real(rkind)                  , intent(in)    :: dt
-          real(rkind), dimension(:,:,:), intent(inout) :: nodes_tmp
-          real(rkind), dimension(:,:,:), intent(in)    :: time_dev
-          integer    , dimension(:,:)  , intent(in)    :: grdpts_id
+          real(rkind), dimension(:,:,:)         , intent(inout) :: nodes
+          real(rkind)                           , intent(in)    :: dt
+          real(rkind), dimension(:,:,:)         , intent(inout) :: nodes_tmp
+          real(rkind), dimension(:,:,:)         , intent(in)    :: time_dev
+          integer    , dimension(:,:)           , intent(in)    :: grdpts_id
+          integer(ikind), dimension(2), optional, intent(in)    :: x_borders
+          integer(ikind), dimension(2), optional, intent(in)    :: y_borders
+
           
           integer        :: k
           integer(ikind) :: i,j
 
           real(rkind), parameter :: b2 = 0.75d0
+
+          integer(ikind) :: i_min, j_min, i_max, j_max
+
+          if(present(x_borders)) then
+             i_min = x_borders(1)
+             i_max = x_borders(2)
+          else
+             i_min = bc_size+1
+             i_max = size(nodes,1)-bc_size
+          end if
+
+          if(present(y_borders)) then
+             j_min = y_borders(1)
+             j_max = y_borders(2)
+          else
+             j_min = bc_size+1
+             j_max = size(nodes,2)-bc_size
+          end if
+
           
           if(rkind.eq.8) then
              do k=1, ne
-                do j=bc_size+1, size(nodes,2)-bc_size
-                   do i=bc_size+1, size(nodes,1)-bc_size
+                do j=j_min, j_max
+                   do i=i_min, i_max
                       if(grdpts_id(i,j).ne.no_pt) then
                          nodes(i,j,k) =
      $                        b2*nodes_tmp(i,j,k)+
@@ -257,8 +349,8 @@
              end do
           else
              do k=1, ne
-                do j=bc_size+1, size(nodes,2)-bc_size
-                   do i=bc_size+1, size(nodes,1)-bc_size
+                do j=j_min, j_max
+                   do i=i_min, i_max
                       if(grdpts_id(i,j).ne.no_pt) then
                          nodes(i,j,k) = 
      $                        b2*nodes_tmp(i,j,k)+
@@ -304,26 +396,47 @@
      $     nodes,
      $     dt,
      $     nodes_tmp,
-     $     time_dev)
+     $     time_dev,
+     $     x_borders,
+     $     y_borders)
 
           implicit none
 
-          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          real(rkind)                     , intent(in)    :: dt
-          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
-
+          real(rkind), dimension(nx,ny,ne)      , intent(inout) :: nodes
+          real(rkind)                           , intent(in)    :: dt
+          real(rkind), dimension(nx,ny,ne)      , intent(inout) :: nodes_tmp
+          real(rkind), dimension(nx,ny,ne)      , intent(in)    :: time_dev
+          integer(ikind), dimension(2), optional, intent(in)    :: x_borders
+          integer(ikind), dimension(2), optional, intent(in)    :: y_borders
 
           integer        :: k
           integer(ikind) :: i,j
 
           real(rkind), parameter :: b3 = 1.0d0/3.0d0
 
+          integer(ikind) :: i_min, j_min, i_max, j_max
+
+          if(present(x_borders)) then
+             i_min = x_borders(1)
+             i_max = x_borders(2)
+          else
+             i_min = bc_size+1
+             i_max = nx-bc_size
+          end if
+
+          if(present(y_borders)) then
+             j_min = y_borders(1)
+             j_max = y_borders(2)
+          else
+             j_min = bc_size+1
+             j_max = ny-bc_size
+          end if
+
           if(rkind.eq.8) then
 
              do k=1 ,ne
-                do j=bc_size+1, ny-bc_size
-                   do i=bc_size+1, nx-bc_size
+                do j=j_min, j_max
+                   do i=i_min, i_max
                       nodes(i,j,k) =
      $                     b3*nodes_tmp(i,j,k)+
      $                     (1.0d0-b3)*(nodes(i,j,k)+dt*time_dev(i,j,k))
@@ -334,8 +447,8 @@
           else
 
              do k=1 ,ne
-                do j=bc_size+1, ny-bc_size
-                   do i=bc_size+1, nx-bc_size
+                do j=j_min, j_max
+                   do i=i_min, i_max
                       nodes(i,j,k) =
      $                     b3*nodes_tmp(i,j,k)+
      $                     (1.0-b3)*(nodes(i,j,k)+dt*time_dev(i,j,k))
@@ -380,27 +493,49 @@
      $     dt,
      $     nodes_tmp,
      $     time_dev,
-     $     grdpts_id)
+     $     grdpts_id,
+     $     x_borders,
+     $     y_borders)
 
           implicit none
 
-          real(rkind), dimension(:,:,:), intent(inout) :: nodes
-          real(rkind)                  , intent(in)    :: dt
-          real(rkind), dimension(:,:,:), intent(inout) :: nodes_tmp
-          real(rkind), dimension(:,:,:), intent(in)    :: time_dev
-          integer    , dimension(:,:)  , intent(in)    :: grdpts_id
-
+          real(rkind), dimension(:,:,:)         , intent(inout) :: nodes
+          real(rkind)                           , intent(in)    :: dt
+          real(rkind), dimension(:,:,:)         , intent(inout) :: nodes_tmp
+          real(rkind), dimension(:,:,:)         , intent(in)    :: time_dev
+          integer    , dimension(:,:)           , intent(in)    :: grdpts_id
+          integer(ikind), dimension(2), optional, intent(in)    :: x_borders
+          integer(ikind), dimension(2), optional, intent(in)    :: y_borders
 
           integer        :: k
           integer(ikind) :: i,j
 
           real(rkind), parameter :: b3 = 1.0d0/3.0d0
 
+          integer(ikind) :: i_min, j_min, i_max, j_max
+
+          if(present(x_borders)) then
+             i_min = x_borders(1)
+             i_max = x_borders(2)
+          else
+             i_min = bc_size+1
+             i_max = size(nodes,1)-bc_size
+          end if
+
+          if(present(y_borders)) then
+             j_min = y_borders(1)
+             j_max = y_borders(2)
+          else
+             j_min = bc_size+1
+             j_max = size(nodes,2)-bc_size
+          end if
+
+
           if(rkind.eq.8) then
 
              do k=1 ,ne
-                do j=bc_size+1, ny-bc_size
-                   do i=bc_size+1, nx-bc_size
+                do j=j_min,j_max
+                   do i=i_min,i_max
                       if(grdpts_id(i,j).ne.no_pt) then
                          nodes(i,j,k) =
      $                        b3*nodes_tmp(i,j,k)+
@@ -413,8 +548,8 @@
           else
 
              do k=1 ,ne
-                do j=bc_size+1, ny-bc_size
-                   do i=bc_size+1, nx-bc_size
+                do j=j_min,j_max
+                   do i=i_min,i_max
                       if(grdpts_id(i,j).ne.no_pt) then
                          nodes(i,j,k) =
      $                        b3*nodes_tmp(i,j,k)+

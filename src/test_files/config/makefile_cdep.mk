@@ -7,10 +7,10 @@ sd_dep=			interface_primary.o\
 			sd_operators_class.o
 
 cg_dep=			$(sd_dep)\
-			cg_operators_module.o
+			sd_operators_fd_module.o
 
 mt_dep=			$(sd_dep)\
-			mattsson_operators_module.o
+			sd_operators_fd_module.o
 
 pm_dep=			pmodel_eq_abstract_class.o\
 			pmodel_eq_class.o
@@ -58,6 +58,17 @@ wall_x_reflection_dep=	$(bc_dep)\
 			wall_prim_module.o\
 			wall_xy_module.o
 
+hedstrom_xy_dep=	$(bc_dep)\
+			openbc_operators_module.o\
+			sd_operators_x_oneside_L0_class.o\
+			sd_operators_x_oneside_L1_class.o\
+			sd_operators_x_oneside_R1_class.o\
+			sd_operators_x_oneside_R0_class.o\
+			sd_operators_y_oneside_L0_class.o\
+			sd_operators_y_oneside_L1_class.o\
+			sd_operators_y_oneside_R1_class.o\
+			sd_operators_y_oneside_R0_class.o\
+			sd_operators_fd_module.o
 
 td_dep=			td_operators_abstract_class.o\
 			td_operators_class.o

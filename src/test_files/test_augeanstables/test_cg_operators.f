@@ -13,7 +13,7 @@
       !-----------------------------------------------------------------
       program test_cg_operators
 
-        use cg_operators_module, only :
+        use sd_operators_fd_module, only :
      $       gradient_x_interior,
      $       gradient_y_interior,
      $       gradient_x_x_oneside_L0,

@@ -20,7 +20,8 @@
         use bc_operators_class         , only : bc_operators
         use sd_operators_class         , only : sd_operators
         use parameters_constant        , only : earth_gravity_choice,
-     $                                          bc_fluxes_choice
+     $                                          bc_fluxes_choice,
+     $                                          bc_timedev_choice
         use parameters_bf_layer        , only : no_pt
         use parameters_input           , only : nx,ny,ne,bc_size,
      $                                          gravity_choice,
@@ -160,6 +161,19 @@
 
           end if
 
+          !< if the boundary conditions influence the computation
+          !> of the time derivatives, then we need to compute the
+          !> time derivatives at the boundary
+          if((bcx_type_choice.eq.bc_timedev_choice).or.
+     $       (bcy_type_choice.eq.bc_timedev_choice)) then
+             call bc_used%apply_bc_on_timedev(
+     $            nodes,dx,dy,
+     $            p_model,
+     $            flux_x,flux_y,
+     $            time_dev)
+          end if
+          
+
         end function compute_time_dev
 
 
@@ -190,6 +204,8 @@
 
             allocate(flux_x(size(nodes,1)+1,size(nodes,2),ne))
             allocate(flux_y(size(nodes,1),size(nodes,2)+1,ne))
+
+            stop 'td-operators: compute_time_dev_nopt not implemented'
 
 
             !<compute the fluxes
@@ -250,6 +266,14 @@
                   end do
                end do
 
+            end if
+
+            !< if the boundary conditions influence the computation
+            !> of the time derivatives, then we need to compute the
+            !> time derivatives at the boundary
+            if((bcx_type_choice.eq.bc_timedev_choice).or.
+     $         (bcy_type_choice.eq.bc_timedev_choice)) then
+               stop 'not implemented'
             end if
 
             deallocate(flux_x)

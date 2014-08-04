@@ -77,6 +77,30 @@
         !> @param are_openbc_undermined
         !> check if the open boundary conditions are undermined at the
         !> grid point location
+        !
+        !> @param compute_x_eigenvalues
+        !> compute the eigenvalues of the hyperbolic terms in the
+        !> x-direction
+        !
+        !> @param compute_y_eigenvalues
+        !> compute the eigenvalues of the hyperbolic terms in the
+        !> y-direction
+        !
+        !> @param compute_x_lefteigenvector
+        !> compute the left eigenvectors of the hyperbolic terms in the
+        !> x-direction
+        !
+        !> @param compute_x_righteigenvector
+        !> compute the right eigenvectors of the hyperbolic terms in the
+        !> x-direction
+        !
+        !> @param compute_y_lefteigenvector
+        !> compute the left eigenvectors of the hyperbolic terms in the
+        !> y-direction
+        !
+        !> @param compute_y_righteigenvector
+        !> compute the right eigenvectors of the hyperbolic terms in the
+        !> y-direction
         !---------------------------------------------------------------
         type, abstract :: pmodel_eq_abstract
           

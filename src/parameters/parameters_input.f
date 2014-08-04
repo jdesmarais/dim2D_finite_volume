@@ -22,17 +22,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = 0.0000000000d0
-        real(rkind), parameter :: x_max = 2.4000000000d0
-        real(rkind), parameter :: y_min = 0.0000000000d0
-        real(rkind), parameter :: y_max = 2.4000000000d0
+        real(rkind), parameter :: x_min = -1.0000000000d0
+        real(rkind), parameter :: x_max = 1.0000000000d0
+        real(rkind), parameter :: y_min = -1.0000000000d0
+        real(rkind), parameter :: y_max = 1.0000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 10.0000000000d0
-        real(rkind), parameter :: dt = 0.0025000000d0
+        real(rkind), parameter :: t_max = 4.0000000000d0
+        real(rkind), parameter :: dt = 0.0075000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0025000000d0
+        real(rkind), parameter :: detail_print = 0.0400000000d0
 
         !<mpi choice
         integer, parameter :: npx = 1 !<number of processors along x
@@ -40,12 +40,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 6 !248
-        integer(ikind), parameter :: nty = 5 !248
+        integer(ikind), parameter :: ntx = 204 !248
+        integer(ikind), parameter :: nty = 204 !248
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 4
+        integer       , parameter :: ne = 3
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -77,7 +77,7 @@
         !< search_dcr:
         !> radius expressed as number of grid points to check around
         !> the line for removing a buffer layer
-        real(rkind), parameter :: search_nb_dt = 0.0025000000d0
+        real(rkind), parameter :: search_nb_dt = 0.0075000000d0
         integer, parameter :: search_dcr = 4
 
       end module parameters_input

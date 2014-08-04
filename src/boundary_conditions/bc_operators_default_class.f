@@ -71,7 +71,7 @@
           real(rkind) :: node_s          
           integer :: bcx_type_s
 
-          stop 'bc_operator%ini() not implemented'
+          stop 'bc_operator%apply_bc_on_nodes() not implemented'
 
           node_s     = nodes(1,1,1)
           bcx_type_s = this%bcx_type
@@ -168,7 +168,7 @@
         !--------------------------------------------------------------
         subroutine apply_bc_on_timedev(
      $     nodes,dx,dy,
-     $     s,p_model,
+     $     p_model,
      $     flux_x,flux_y,
      $     timedev)
 
@@ -177,21 +177,19 @@
           real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
           real(rkind)                       , intent(in)    :: dx
           real(rkind)                       , intent(in)    :: dy
-          type(sd_operators)                , intent(in)    :: s
           type(pmodel_eq)                   , intent(in)    :: p_model
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
 
           real(rkind) :: node,flux,dx_s,dy_s,timedev_s
-          integer     :: bc_s,neq
+          integer     :: neq
 
           stop 'bc_operator%apply_bc_on_time_dev() not implemented'
 
           node=nodes(1,1,1)
           dx_s = dx
           dy_s = dy
-          bc_s = s%get_bc_size()
           neq  = p_model%get_eq_nb()
           flux=flux_x(1,1,1)
           flux=flux_y(1,1,1)

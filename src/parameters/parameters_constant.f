@@ -47,7 +47,8 @@
         integer, parameter :: periodic_xy_choice=0
         integer, parameter :: reflection_xy_choice=1
         integer, parameter :: wall_xy_choice=2
-        integer, parameter :: wall_x_reflection_y_choice=3      
+        integer, parameter :: wall_x_reflection_y_choice=3
+        integer, parameter :: hedstrom_xy_choice=4
 
         !>boundary conditions type choice
         integer, parameter :: bc_nodes_choice=0

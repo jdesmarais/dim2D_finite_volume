@@ -139,10 +139,12 @@ def compute_code_inputs(inputFileName):
     bc_code      = ['periodic_xy_choice',
                     'reflection_xy_choice',
                     'wall_xy_choice',
-                    'wall_x_reflection_y_choice']
+                    'wall_x_reflection_y_choice',
+                    'hedstrom_xy_choice']
 
     bc_type_code = ['bc_nodes_choice',
-                    'bc_fluxes_choice']
+                    'bc_fluxes_choice',
+                    'bc_timedev_choice']
 
     gravity_code = ['no_gravity_choice',
                     'earth_gravity_choice']
@@ -203,6 +205,11 @@ def compute_code_inputs(inputFileName):
 
         bcx_type_choice = bc_type_code[1]
         bcy_type_choice = bc_type_code[1]
+
+    if(bc_choice=='hedstrom_xy_choice'):
+
+        bcx_type_choice = bc_type_code[2]
+        bcy_type_choice = bc_type_code[2]
     
     #< compute the gravity_choice
     gravity_choice = gravity_code[int(inputs['gravity_choice'])]

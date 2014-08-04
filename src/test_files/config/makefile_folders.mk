@@ -32,6 +32,8 @@ fv_dir			= $(td_dir)/finitevolume
 
 dim2d_ic		= $(dim2d_dir)/dim2d_ic
 
+hobc_dir                = $(obc_dir)/hedstrom_openbc
+
 bf_layer_dir		= $(obc_dir)/buffer_layer
 nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors
 dbf_layer_dir           = $(bf_layer_dir)/bf_layer_detectors

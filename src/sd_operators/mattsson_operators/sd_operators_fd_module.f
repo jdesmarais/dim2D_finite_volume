@@ -22,11 +22,13 @@
         public ::
      $       gradient_x_interior,
      $       gradient_y_interior,
-     $       
      $       gradient_x_x_oneside_L0,
+     $       gradient_x_x_oneside_L1,
+     $       gradient_x_x_oneside_R1,
      $       gradient_x_x_oneside_R0,
-     $       
      $       gradient_y_y_oneside_L0,
+     $       gradient_y_y_oneside_L1,
+     $       gradient_y_y_oneside_R1,
      $       gradient_y_y_oneside_R0
 
         
@@ -201,6 +203,42 @@
         end function gradient_x_x_oneside_L0
 
 
+        function gradient_x_x_oneside_L1(
+     $     nodes,i,j,proc,dx)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                               :: var
+
+          var = gradient_x_interior(nodes,i,j,proc,dx)
+
+        end function gradient_x_x_oneside_L1
+
+
+        function gradient_x_x_oneside_R1(
+     $     nodes,i,j,proc,dx)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                               :: var
+
+          var = gradient_x_interior(nodes,i,j,proc,dx)
+
+        end function gradient_x_x_oneside_R1
+
+
         !> @author
         !> Julien L. Desmarais
         !
@@ -313,6 +351,42 @@
           end if
 
         end function gradient_y_y_oneside_L0
+
+
+        function gradient_y_y_oneside_L1(
+     $     nodes,i,j,proc,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+          var = gradient_y_interior(nodes,i,j,proc,dy)
+
+        end function gradient_y_y_oneside_L1
+
+
+        function gradient_y_y_oneside_R1(
+     $     nodes,i,j,proc,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(get_primary_var)                :: proc
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+          var = gradient_y_interior(nodes,i,j,proc,dy)
+
+        end function gradient_y_y_oneside_R1
 
         
         !> @author

@@ -621,7 +621,7 @@
           real(rkind)                       , intent(in)   :: dy
           integer(ikind)                    , intent(in)   :: i
           integer(ikind)                    , intent(in)   :: j
-          class(sd_operators)                , intent(in)   :: s_oneside
+          class(sd_operators)               , intent(in)   :: s_oneside
           real(rkind), dimension(ne)                       :: flux_x
 
           real(rkind) :: dy_s

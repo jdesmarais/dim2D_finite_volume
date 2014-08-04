@@ -17,13 +17,13 @@
       !-----------------------------------------------------------------
       module sd_operators_x_oneside_L0_class
 
-        use mattsson_operators_module, only : gradient_x_interior,
-     $                                        gradient_y_interior,
-     $                                        gradient_x_x_oneside_L0
-        use interface_primary        , only : get_primary_var,
-     $                                        get_secondary_var
-        use parameters_kind          , only : ikind, rkind
-        use sd_operators_class       , only : sd_operators
+        use sd_operators_fd_module, only : gradient_x_interior,
+     $                                     gradient_y_interior,
+     $                                     gradient_x_x_oneside_L0
+        use interface_primary     , only : get_primary_var,
+     $                                     get_secondary_var
+        use parameters_kind       , only : ikind, rkind
+        use sd_operators_class    , only : sd_operators
 
         implicit none
 

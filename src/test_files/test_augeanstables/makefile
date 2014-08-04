@@ -79,7 +79,7 @@ test_mattsson_operators.o:\
 			$(mt_dir)/sd_operators_y_oneside_L1_class.o\
 			$(mt_dir)/sd_operators_y_oneside_R1_class.o\
 			$(mt_dir)/sd_operators_y_oneside_R0_class.o\
-			$(mt_dir)/mattsson_operators_module.o\
+			$(mt_dir)/sd_operators_fd_module.o\
 			$(dim2d_dir)/dim2d_prim_module.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
@@ -96,7 +96,7 @@ test_mattsson_operators:\
 			sd_operators_y_oneside_R1_class.o\
 			sd_operators_y_oneside_R0_class.o\
 			interface_primary.o\
-			mattsson_operators_module.o\
+			sd_operators_fd_module.o\
 			dim2d_parameters.o\
 			dim2d_prim_module.o
 
@@ -112,7 +112,7 @@ test_cg_operators.o:\
 			$(cg_dir)/sd_operators_y_oneside_L1_class.o\
 			$(cg_dir)/sd_operators_y_oneside_R1_class.o\
 			$(cg_dir)/sd_operators_y_oneside_R0_class.o\
-			$(cg_dir)/cg_operators_module.o\
+			$(cg_dir)/sd_operators_fd_module.o\
 			$(dim2d_dir)/dim2d_prim_module.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
@@ -129,7 +129,7 @@ test_cg_operators:\
 			sd_operators_y_oneside_R1_class.o\
 			sd_operators_y_oneside_R0_class.o\
 			interface_primary.o\
-			cg_operators_module.o\
+			sd_operators_fd_module.o\
 			dim2d_parameters.o\
 			dim2d_prim_module.o
 
