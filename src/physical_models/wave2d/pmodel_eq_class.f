@@ -431,14 +431,14 @@
           do j=bc_size+1, ny-bc_size
              do i=bc_size+1, nx+1-bc_size
 
-                flux_x(i,j,1) = c**2*s%f(nodes,i,j,velocity_x)+
-     $                          epsilon*s%dfdx(nodes,i,j,position,dx)
+                flux_x(i,j,1) = c**2*s%f(nodes,i,j,velocity_x)
+     $                          - epsilon*s%dfdx(nodes,i,j,position,dx)
 
-                flux_x(i,j,2) = c**2*s%f(nodes,i,j,position)+
-     $                          epsilon*s%dfdx(nodes,i,j,velocity_x,dx)
+                flux_x(i,j,2) = c**2*s%f(nodes,i,j,position)
+     $                          - epsilon*s%dfdx(nodes,i,j,velocity_x,dx)
 
-                flux_x(i,j,3) = -c_x*s%f(nodes,i,j,velocity_y)+
-     $                          epsilon*s%dfdx(nodes,i,j,velocity_y,dx)
+                flux_x(i,j,3) = -c_x*s%f(nodes,i,j,velocity_y)
+     $                          - epsilon*s%dfdx(nodes,i,j,velocity_y,dx)
 
              end do
           end do
@@ -490,14 +490,14 @@
           do j=bc_size+1, ny+1-bc_size
              do i=bc_size+1, nx-bc_size
 
-                flux_y(i,j,1) = c**2*s%g(nodes,i,j,velocity_y)+
-     $                          epsilon*s%dgdy(nodes,i,j,position,dy)
+                flux_y(i,j,1) = c**2*s%g(nodes,i,j,velocity_y)
+     $                         - epsilon*s%dgdy(nodes,i,j,position,dy)
 
-                flux_y(i,j,2) = -c_y*s%g(nodes,i,j,velocity_x)+
-     $                          epsilon*s%dgdy(nodes,i,j,velocity_x,dy)
+                flux_y(i,j,2) = -c_y*s%g(nodes,i,j,velocity_x)
+     $                         - epsilon*s%dgdy(nodes,i,j,velocity_x,dy)
 
-                flux_y(i,j,3) = c**2*s%g(nodes,i,j,position)+
-     $                          epsilon*s%dgdy(nodes,i,j,velocity_y,dy)
+                flux_y(i,j,3) = c**2*s%g(nodes,i,j,position)
+     $                         - epsilon*s%dgdy(nodes,i,j,velocity_y,dy)
 
              end do
           end do
@@ -528,14 +528,14 @@
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 
-                   flux_x(i,j,1) = c**2*s%f(nodes,i,j,velocity_x)+
-     $                             epsilon*s%dfdx(nodes,i,j,position,dx)
+                   flux_x(i,j,1) = c**2*s%f(nodes,i,j,velocity_x)
+     $                            - epsilon*s%dfdx(nodes,i,j,position,dx)
 
-                   flux_x(i,j,2) = c**2*s%f(nodes,i,j,position)+
-     $                             epsilon*s%dfdx(nodes,i,j,velocity_x,dx)
+                   flux_x(i,j,2) = c**2*s%f(nodes,i,j,position)
+     $                            - epsilon*s%dfdx(nodes,i,j,velocity_x,dx)
 
-                   flux_x(i,j,3) = -c_x*s%f(nodes,i,j,velocity_y)+
-     $                             epsilon*s%dfdx(nodes,i,j,velocity_y,dx)
+                   flux_x(i,j,3) = -c_x*s%f(nodes,i,j,velocity_y)
+     $                            - epsilon*s%dfdx(nodes,i,j,velocity_y,dx)
 
                 end if
 
@@ -568,14 +568,14 @@
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 
-                   flux_y(i,j,1) = c**2*s%g(nodes,i,j,velocity_y)+
-     $                             epsilon*s%dgdy(nodes,i,j,position,dy)
+                   flux_y(i,j,1) = c**2*s%g(nodes,i,j,velocity_y)
+     $                            - epsilon*s%dgdy(nodes,i,j,position,dy)
 
-                   flux_y(i,j,2) = -c_y*s%g(nodes,i,j,velocity_x)+
-     $                             epsilon*s%dgdy(nodes,i,j,velocity_x,dy)
+                   flux_y(i,j,2) = -c_y*s%g(nodes,i,j,velocity_x)
+     $                            - epsilon*s%dgdy(nodes,i,j,velocity_x,dy)
 
-                   flux_y(i,j,3) = c**2*s%g(nodes,i,j,position)+
-     $                             epsilon*s%dgdy(nodes,i,j,velocity_y,dy)
+                   flux_y(i,j,3) = c**2*s%g(nodes,i,j,position)
+     $                            - epsilon*s%dgdy(nodes,i,j,velocity_y,dy)
 
                 end if
 
@@ -633,14 +633,14 @@
           dy_s = dy
 
           !<fluxes along the x-axis
-          flux_x(1) = c**2*s_oneside%f(nodes,i,j,velocity_x)+
-     $         epsilon*s_oneside%dfdx(nodes,i,j,position,dx)
+          flux_x(1) = c**2*s_oneside%f(nodes,i,j,velocity_x)
+     $               - epsilon*s_oneside%dfdx(nodes,i,j,position,dx)
 
-          flux_x(2) = c**2*s_oneside%f(nodes,i,j,position)+
-     $         epsilon*s_oneside%dfdx(nodes,i,j,velocity_x,dx)
+          flux_x(2) = c**2*s_oneside%f(nodes,i,j,position)
+     $               - epsilon*s_oneside%dfdx(nodes,i,j,velocity_x,dx)
           
-          flux_x(3) = -c_x*s_oneside%f(nodes,i,j,velocity_y)+
-     $         epsilon*s_oneside%dfdx(nodes,i,j,velocity_y,dx)
+          flux_x(3) = -c_x*s_oneside%f(nodes,i,j,velocity_y)
+     $               - epsilon*s_oneside%dfdx(nodes,i,j,velocity_y,dx)
 
         end function compute_flux_x_oneside
 
@@ -694,14 +694,14 @@
 
 
           !<fluxes along the x-axis
-          flux_y(1) = c**2*s_oneside%g(nodes,i,j,velocity_y)+
-     $         epsilon*s_oneside%dgdy(nodes,i,j,position,dy)
+          flux_y(1) = c**2*s_oneside%g(nodes,i,j,velocity_y)
+     $               - epsilon*s_oneside%dgdy(nodes,i,j,position,dy)
           
-          flux_y(2) = -c_y*s_oneside%g(nodes,i,j,velocity_x)+
-     $         epsilon*s_oneside%dgdy(nodes,i,j,velocity_x,dy)
+          flux_y(2) = -c_y*s_oneside%g(nodes,i,j,velocity_x)
+     $               - epsilon*s_oneside%dgdy(nodes,i,j,velocity_x,dy)
           
-          flux_y(3) = c**2*s_oneside%g(nodes,i,j,position)+
-     $         epsilon*s_oneside%dgdy(nodes,i,j,velocity_y,dy)
+          flux_y(3) = c**2*s_oneside%g(nodes,i,j,position)
+     $               - epsilon*s_oneside%dgdy(nodes,i,j,velocity_y,dy)
 
         end function compute_flux_y_oneside
 
@@ -922,22 +922,22 @@
                end if
             case(2)
                if(rkind.eq.8) then
-                  eigenvect(1) = 1.0d0/Sqrt(2.0d0)
-                  eigenvect(2) = eigenvect(1)
+                  eigenvect(1) = 0.5d0
+                  eigenvect(2) = 0.5d0
                   eigenvect(3) = 0.0d0
                else
-                  eigenvect(1) = 1.0/Sqrt(2.0)
-                  eigenvect(2) = eigenvect(1)
+                  eigenvect(1) = 0.5
+                  eigenvect(2) = 0.5
                   eigenvect(3) = 0.0
                end if
             case(3)
                if(rkind.eq.8) then
-                  eigenvect(1) = -1.0d0/Sqrt(2.0d0)
-                  eigenvect(2) = -eigenvect(1)
+                  eigenvect(1) = -0.5d0
+                  eigenvect(2) = 0.5d0
                   eigenvect(3) = 0.0d0
                else
-                  eigenvect(1) = -1.0/Sqrt(2.0)
-                  eigenvect(2) = -eigenvect(1)
+                  eigenvect(1) = -0.5d0
+                  eigenvect(2) = 0.5d0
                   eigenvect(3) = 0.0
                end if
             case default
@@ -985,29 +985,29 @@
           select case(k)
             case(1)
                if(rkind.eq.8) then
-                  eigenvect(1) = 0.0d0
-                  eigenvect(2) = 1.0d0/Sqrt(2.0d0)
-                  eigenvect(3) = -eigenvect(2)
+                  eigenvect(1) =  0.0d0
+                  eigenvect(2) =  1.0d0
+                  eigenvect(3) = -1.0d0
                else
-                  eigenvect(1) = 0.0
-                  eigenvect(2) = 1.0/Sqrt(2.0)
-                  eigenvect(3) = -eigenvect(2)
+                  eigenvect(1) =  0.0
+                  eigenvect(2) =  1.0
+                  eigenvect(3) = -1.0
                end if
             case(2)
                if(rkind.eq.8) then
                   eigenvect(1) = 0.0d0
-                  eigenvect(2) = 1.0d0/Sqrt(2.0d0)
-                  eigenvect(3) = eigenvect(2)
+                  eigenvect(2) = 1.0d0
+                  eigenvect(3) = 1.0d0
                else
                   eigenvect(1) = 0.0
-                  eigenvect(2) = 1.0/Sqrt(2.0)
-                  eigenvect(3) = eigenvect(2)
+                  eigenvect(2) = 1.0
+                  eigenvect(3) = 1.0
                end if
             case(3)
                if(rkind.eq.8) then
-                  eigenvect(1) = 1.0
-                  eigenvect(2) = 0.0
-                  eigenvect(3) = 0.0
+                  eigenvect(1) = 1.0d0
+                  eigenvect(2) = 0.0d0
+                  eigenvect(3) = 0.0d0
                else
                   eigenvect(1) = 1.0
                   eigenvect(2) = 0.0
@@ -1060,32 +1060,32 @@
             case(1)
                if(rkind.eq.8) then
                   eigenvect(1) = 0.0d0
-                  eigenvect(2) = 1.0d0/Sqrt(2.0d0)
+                  eigenvect(2) = 1.0d0
                   eigenvect(3) = 0.0d0
                else
                   eigenvect(1) = 0.0
-                  eigenvect(2) = 1.0/Sqrt(2.0)
+                  eigenvect(2) = 1.0
                   eigenvect(3) = 0.0
                end if
             case(2)
                if(rkind.eq.8) then
-                  eigenvect(1) = 1.0d0/Sqrt(2.0d0)
+                  eigenvect(1) = 0.5d0
                   eigenvect(2) = 0.0d0
-                  eigenvect(3) = eigenvect(1)
+                  eigenvect(3) = 0.5d0
                else
-                  eigenvect(1) = 1.0/Sqrt(2.0)
+                  eigenvect(1) = 0.5
                   eigenvect(2) = 0.0
-                  eigenvect(3) = eigenvect(1)
+                  eigenvect(3) = 0.5
                end if
             case(3)
                if(rkind.eq.8) then
-                  eigenvect(1) = -1.0d0/Sqrt(2.0d0)
+                  eigenvect(1) = -0.5d0
                   eigenvect(2) =  0.0d0
-                  eigenvect(3) = -eigenvect(1)
+                  eigenvect(3) =  0.5d0
                else
-                  eigenvect(1) = -1.0/Sqrt(2.0)
+                  eigenvect(1) = -0.5
                   eigenvect(2) =  0.0
-                  eigenvect(3) = -eigenvect(1)
+                  eigenvect(3) =  0.5
                end if
             case default
                print '(''wave2d: compute_x_righteigenvector'')'
@@ -1133,32 +1133,32 @@
             case(1)
                if(rkind.eq.8) then
                   eigenvect(1) =  0.0d0
-                  eigenvect(2) =  1.0d0/Sqrt(2.0d0)
-                  eigenvect(3) = -eigenvect(2)
+                  eigenvect(2) =  1.0d0
+                  eigenvect(3) = -1.0d0
                else
                   eigenvect(1) =  0.0
-                  eigenvect(2) =  1.0/Sqrt(2.0)
-                  eigenvect(3) = -eigenvect(2)
+                  eigenvect(2) =  1.0
+                  eigenvect(3) = -1.0d0
                end if
             case(2)
                if(rkind.eq.8) then
-                  eigenvect(1) = 1.0d0/Sqrt(2.0d0)
+                  eigenvect(1) = 1.0d0
                   eigenvect(2) = 0.0d0
                   eigenvect(3) = 0.0d0
                else
-                  eigenvect(1) = 1.0/Sqrt(2.0)
+                  eigenvect(1) = 1.0
                   eigenvect(2) = 0.0
                   eigenvect(3) = 0.0
                end if
             case(3)
                if(rkind.eq.8) then
                   eigenvect(1) = 0.0d0
-                  eigenvect(2) = 1.0d0/Sqrt(2.0d0)
-                  eigenvect(3) = eigenvect(2)
+                  eigenvect(2) = 1.0d0
+                  eigenvect(3) = 1.0d0
                else
                   eigenvect(1) = 0.0
-                  eigenvect(2) = 1.0/Sqrt(2.0)
-                  eigenvect(3) = eigenvect(2)
+                  eigenvect(2) = 1.0
+                  eigenvect(3) = 1.0
                end if
             case default
                print '(''wave2d: compute_x_lefteigenvector'')'

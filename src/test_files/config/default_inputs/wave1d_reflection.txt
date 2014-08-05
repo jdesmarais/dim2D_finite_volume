@@ -2,7 +2,7 @@
 !---------------------------------------------------------
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !---------------------------------------------------------
-detail_print = 0.04
+detail_print = 0.02
 
 
 !2.	Simulation duration
@@ -10,8 +10,8 @@ detail_print = 0.04
 !t_steps : integer : set number of steps in time
 !t_max   : real    : set simulation maximum time
 !---------------------------------------------------------
-dt    = 0.0075
-t_max = 4.0
+dt    = 0.05
+t_max = 100
 
 
 !3.	Space discretisation
@@ -27,13 +27,13 @@ t_max = 4.0
 !npx     : integer : number of tiles in the x-direction
 !npy     : integer : number of tiles in the y-direction
 !---------------------------------------------------------
-dx = 0.01
-x_min = -1
-x_max = 1
+dx = 0.4
+x_min = -10
+x_max = 10
 
-dy = 0.01
-y_min = -1
-y_max = 1
+dy = 0.4
+y_min = -10
+y_max = 10
 
 npx = 1
 npy = 1
@@ -45,8 +45,9 @@ npy = 1
 !---------------------------------------------------------
 !pm_choice : integer
 ! 0 : for simple test
-! 1 : for wave2d
-! 2 : for dim2d
+! 1 : for wave1d
+! 2 : for wave2d
+! 3 : for dim2d
 !---------------------------------------------------------
 pm_choice = 1
 
@@ -61,8 +62,9 @@ pm_choice = 1
 ! 2 : for wall xy
 ! 3 : for wall x and reflection y
 ! 4 : for hedstrom openbc xy
+! 5 : for hedstrom x reflection y
 !---------------------------------------------------------
-bc_choice = 4
+bc_choice = 1
 
 
 !6.    initial conditions for the DIM

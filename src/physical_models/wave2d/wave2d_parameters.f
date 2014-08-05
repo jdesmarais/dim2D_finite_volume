@@ -11,10 +11,10 @@
 
 
         !governing equations parameters
-        real(rkind), parameter :: c   = 0.5d0 !1.0d0
+        real(rkind), parameter :: c   = 0.5d0
         real(rkind), parameter :: c_x = 0.0d0
         real(rkind), parameter :: c_y = 0.0d0
-        real(rkind), parameter :: epsilon = 0.0d0
+        real(rkind), parameter :: epsilon = 0.01d0
 
 
       end module wave2d_parameters

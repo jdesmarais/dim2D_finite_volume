@@ -26,6 +26,7 @@
      $       gradient_y_proc
 
         use openbc_operators_module, only :
+     $       compute_fluxes_at_the_edges_2ndorder,
      $       incoming_left,
      $       incoming_right
 
