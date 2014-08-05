@@ -22,17 +22,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -1.0000000000d0
-        real(rkind), parameter :: x_max = 1.0000000000d0
-        real(rkind), parameter :: y_min = -1.0000000000d0
-        real(rkind), parameter :: y_max = 1.0000000000d0
+        real(rkind), parameter :: x_min = -10.0000000000d0
+        real(rkind), parameter :: x_max = 10.0000000000d0
+        real(rkind), parameter :: y_min = -10.0000000000d0
+        real(rkind), parameter :: y_max = 10.0000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 4.0000000000d0
-        real(rkind), parameter :: dt = 0.0075000000d0
+        real(rkind), parameter :: t_max = 100.0000000000d0
+        real(rkind), parameter :: dt = 0.0500000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0400000000d0
+        real(rkind), parameter :: detail_print = 0.0200000000d0
 
         !<mpi choice
         integer, parameter :: npx = 1 !<number of processors along x
@@ -40,8 +40,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 7
-        integer(ikind), parameter :: nty = 5
+        integer(ikind), parameter :: ntx = 54
+        integer(ikind), parameter :: nty = 54
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -77,7 +77,7 @@
         !< search_dcr:
         !> radius expressed as number of grid points to check around
         !> the line for removing a buffer layer
-        real(rkind), parameter :: search_nb_dt = 0.0075000000d0
+        real(rkind), parameter :: search_nb_dt = 0.0500000000d0
         integer, parameter :: search_dcr = 4
 
       end module parameters_input

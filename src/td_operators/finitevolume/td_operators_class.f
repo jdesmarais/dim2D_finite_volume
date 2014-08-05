@@ -139,8 +139,8 @@
                 do j=1+bc_size, ny-bc_size
                    do i=1+bc_size, nx-bc_size
                       time_dev(i,j,k)=
-     $                     (flux_x(i,j,k)-flux_x(i+1,j,k))/dx+
-     $                     (flux_y(i,j,k)-flux_y(i,j+1,k))/dy+
+     $                     (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
+     $                     (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)+
      $                     p_model%compute_body_forces(nodes(i,j,:),k)
                    end do
                 end do
@@ -153,8 +153,8 @@
                 do j=1+bc_size, ny-bc_size
                    do i=1+bc_size, nx-bc_size
                       time_dev(i,j,k)=
-     $                     (flux_x(i,j,k)-flux_x(i+1,j,k))/dx+
-     $                     (flux_y(i,j,k)-flux_y(i,j+1,k))/dy
+     $                     (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
+     $                     (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
                    end do
                 end do
              end do

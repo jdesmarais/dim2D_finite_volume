@@ -22,7 +22,7 @@
         use parameters_kind         , only : ikind, rkind
         use pmodel_eq_abstract_class, only : pmodel_eq_abstract
         use sd_operators_class      , only : sd_operators
-        use wave1d_parameters       , only : c,
+        use wave1d_parameters       , only : c, mu,
      $                                       x_center, y_center,
      $                                       amplitude, period
         use wave1d_prim_module      , only : position,
@@ -409,9 +409,8 @@
           real(rkind), dimension(nx+1,ny,ne)               :: flux_x
 
           integer     :: i,j
-          real(rkind) :: dx_s,dy_s
+          real(rkind) :: dy_s
 
-          dx_s = dx
           dy_s = dy
 
           !<fluxes along the x-axis
@@ -419,7 +418,9 @@
              do i=bc_size+1, nx+1-bc_size
 
                 flux_x(i,j,1) = -c*s%f(nodes,i,j,velocity_x)
+     $                          -mu*s%dfdx(nodes,i,j,position,dx)
                 flux_x(i,j,2) = -c*s%f(nodes,i,j,position)
+     $                          -mu*s%dfdx(nodes,i,j,velocity_x,dx)
 
              end do
           end do
@@ -495,9 +496,8 @@
           real(rkind), dimension(:,:,:), intent(inout) :: flux_x
 
           integer(ikind) :: i,j
-          real(rkind)    :: dx_s,dy_s
+          real(rkind)    :: dy_s
 
-          dx_s = dx
           dy_s = dy
 
           !<fluxes along the x-axis
@@ -507,8 +507,10 @@
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 
-                   flux_x(i,j,1) = c*s%f(nodes,i,j,velocity_x)
-                   flux_x(i,j,2) = c*s%f(nodes,i,j,position)
+                   flux_x(i,j,1) = -c*s%f(nodes,i,j,velocity_x)
+     $                             -mu*s%dfdx(nodes,i,j,position,dx)
+                   flux_x(i,j,2) = -c*s%f(nodes,i,j,position)
+     $                             -mu*s%dfdx(nodes,i,j,velocity_x,dx)
 
                 end if
 
@@ -598,14 +600,16 @@
           class(sd_operators)               , intent(in)   :: s_oneside
           real(rkind), dimension(ne)                       :: flux_x
 
-          real(rkind) :: dx_s, dy_s
+          real(rkind) :: dy_s
 
-          dx_s = dx
           dy_s = dy
 
           !<fluxes along the x-axis
-          flux_x(1) = c*s_oneside%f(nodes,i,j,velocity_x)
-          flux_x(2) = c*s_oneside%f(nodes,i,j,position)
+          flux_x(1) = -c*s_oneside%f(nodes,i,j,velocity_x)
+     $                -mu*s_oneside%dfdx(nodes,i,j,position,dx)
+
+          flux_x(2) = -c*s_oneside%f(nodes,i,j,position)
+     $                -mu*s_oneside%dfdx(nodes,i,j,velocity_x,dx)
 
         end function compute_flux_x_oneside
 
@@ -872,19 +876,19 @@
           select case(k)
             case(1)
                if(rkind.eq.8) then
-                  eigenvect(1) = 1.0d0/Sqrt(2.0d0)
-                  eigenvect(2) = eigenvect(1)
+                  eigenvect(1) = 0.5d0
+                  eigenvect(2) = 0.5d0
                else
-                  eigenvect(1) = 1.0/Sqrt(2.0)
-                  eigenvect(2) = eigenvect(1)
+                  eigenvect(1) = 0.5
+                  eigenvect(2) = 0.5
                end if
             case(2)
                if(rkind.eq.8) then
-                  eigenvect(1) = - 1.0d0/Sqrt(2.0d0)
-                  eigenvect(2) = - eigenvect(1)
+                  eigenvect(1) = - 0.5d0
+                  eigenvect(2) =   0.5d0
                else
-                  eigenvect(1) = - 1.0/Sqrt(2.0)
-                  eigenvect(2) = - eigenvect(1)
+                  eigenvect(1) = - 0.5
+                  eigenvect(2) =   0.5
                end if
             case default
                print '(''wave1d: compute_x_lefteigenvector'')'
@@ -931,19 +935,19 @@
           select case(k)
             case(1)
                if(rkind.eq.8) then
-                  eigenvect(1) = 1.0d0/Sqrt(2.0d0)
-                  eigenvect(2) = -eigenvect(1)
+                  eigenvect(1) =   1.0d0
+                  eigenvect(2) = - 1.0d0
                else
-                  eigenvect(1) = 1.0/Sqrt(2.0)
-                  eigenvect(2) = -eigenvect(1)
+                  eigenvect(1) =   1.0d0
+                  eigenvect(2) = - 1.0d0
                end if
             case(2)
                if(rkind.eq.8) then
-                  eigenvect(1) = 1.0d0/Sqrt(2.0d0)
-                  eigenvect(2) = eigenvect(1)
+                  eigenvect(1) = 1.0d0
+                  eigenvect(2) = 1.0d0
                else
-                  eigenvect(1) = 1.0/Sqrt(2.0)
-                  eigenvect(2) = eigenvect(1)
+                  eigenvect(1) = 1.0
+                  eigenvect(2) = 1.0
                end if
             case default
                print '(''wave1d: compute_x_righteigenvector'')'
