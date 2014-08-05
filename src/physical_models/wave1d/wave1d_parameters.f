@@ -12,7 +12,7 @@
 
         !governing equations parameters
         real(rkind), parameter :: c   = 0.5d0
-        real(rkind), parameter :: mu  = 0.00d0
+        real(rkind), parameter :: mu  = 0.01d0
 
 
       end module wave1d_parameters

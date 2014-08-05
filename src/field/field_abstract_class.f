@@ -19,7 +19,12 @@
         use interface_integration_step, only : timeInt_step,
      $                                         timeInt_step_nopt
         use io_operators_class        , only : io_operators
-        use parameters_constant       , only : hedstrom_xy_choice
+        use parameters_constant       , only : periodic_xy_choice,
+     $                                         reflection_xy_choice,
+     $                                         wall_xy_choice,
+     $                                         wall_x_reflection_y_choice,
+     $                                         hedstrom_xy_choice,
+     $                                         hedstrom_x_reflection_y_choice
         use parameters_input          , only : nx,ny,ne,bc_size,
      $                                         x_min,x_max,
      $                                         y_min,y_max,
@@ -466,13 +471,26 @@
           integer(ikind), dimension(2) :: y_borders
 
           
-          if(bc_choice.eq.hedstrom_xy_choice) then
-             x_borders=[1,nx]
-             y_borders=[1,ny]
-          else
-             x_borders=[bc_size+1,nx-bc_size]
-             y_borders=[bc_size+1,ny-bc_size]
-          end if
+          select case(bc_choice)
+
+            case(reflection_xy_choice, periodic_xy_choice,
+     $           wall_xy_choice, wall_x_reflection_y_choice)
+               x_borders=[bc_size+1,nx-bc_size]
+               y_borders=[bc_size+1,ny-bc_size]
+
+            case(hedstrom_xy_choice)
+               x_borders=[1,nx]
+               y_borders=[1,ny]
+
+            case(hedstrom_x_reflection_y_choice)
+               x_borders=[1,nx]
+               y_borders=[bc_size+1,ny-bc_size]
+
+            case default
+               print '(''field_abstract: compute_integration_step'')'
+               stop 'bc not implemented'
+
+          end select
 
           call integration_step(
      $         this%nodes, dt, nodes_tmp, time_dev,

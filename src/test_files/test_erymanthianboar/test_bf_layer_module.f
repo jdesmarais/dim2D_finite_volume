@@ -179,7 +179,7 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
      $                                        nodes,
      $                                        new_alignment)
 
-          call bf_layer_tested%print_binary(nodes_filename,
+           call bf_layer_tested%print_binary(nodes_filename,
      $                                      grdid_filename,
      $                                      sizes_filename)
           

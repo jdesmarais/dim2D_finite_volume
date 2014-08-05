@@ -1,7 +1,11 @@
       program test_hedstrom_xy
 
+        use bc_operators_class, only :
+     $     bc_operators
+
         use hedstrom_xy_module, only :
-     $     compute_x_timedev_with_openbc
+     $     compute_x_timedev_with_openbc,
+     $     compute_timedev_xlayer
 
         use openbc_operators_module, only :
      $       incoming_left,
@@ -17,18 +21,15 @@
      $       gradient_x_x_oneside_R1,
      $       gradient_x_x_oneside_R0
 
+
         implicit none
 
         real(rkind), dimension(nx,ny,ne) :: nodes
         real(rkind)                      :: dx, dy
         type(pmodel_eq)                  :: p_model
-        real(rkind), dimension(nx,ny,ne) :: test_data
-        real(rkind), dimension(nx,ny,ne) :: time_dev
+        type(bc_operators)               :: bc_used
 
-        integer(ikind) :: i,j,k
-        logical        :: detailled
-        logical        :: loc
-        logical        :: test_validated
+        logical :: detailled
 
 
         if((nx.ne.7).or.(ny.ne.5)) then
@@ -39,71 +40,44 @@
         !initialization of the nodes
         call initialize_nodes(nodes,dx,dy)
 
-        !initialization of the test data
-        call initialize_test_data(test_data)
 
-
-        !computation of the time derivatives using open b.c.
-        do j=1, ny
-
-           i=1
-           time_dev(i,j,:) = compute_x_timedev_with_openbc(
-     $          nodes, i, j, p_model, dx,
-     $          gradient_x_x_oneside_L0, incoming_left)
-
-           i=bc_size
-           time_dev(i,j,:) = compute_x_timedev_with_openbc(
-     $          nodes, i, j, p_model, dx,
-     $          gradient_x_x_oneside_L1, incoming_left)
-
-           i=nx-1
-           time_dev(i,j,:) = compute_x_timedev_with_openbc(
-     $          nodes, i, j, p_model, dx,
-     $          gradient_x_x_oneside_R1, incoming_right)
-
-           i=nx
-           time_dev(i,j,:) = compute_x_timedev_with_openbc(
-     $          nodes, i, j, p_model, dx,
-     $          gradient_x_x_oneside_R0, incoming_right)
-
-        end do
-
-
-        !checking the data
+        !test compute_x_timedev_with_openbc
         detailled = .false.
-        if(detailled) then
-           do k=1,2
-              do j=1,5
-                 do i=1,2
-                    loc = is_test_validated(time_dev(i,j,1), test_data(i,j,1), detailled)
-                    print '(''test('',I2,'','',I2,'','',I2,''): '', L3)', i,j,k,loc
-                 end do
-                 
-                 do i=5,6
-                    loc = is_test_validated(time_dev(i,j,1), test_data(i,j,1), detailled)
-                    print '(''test('',I2,'','',I2,'','',I2,''): '', L3)', i,j,k,loc
-                 end do
-              end do
-           end do
+        print '(''----------------------------------'')'
+        print '(''test_compute_x_timedev_with_openbc'')'
+        print '(''----------------------------------'')'
+        call test_compute_x_timedev_with_openbc(
+     $       nodes,dx,dy,
+     $       p_model,
+     $       detailled)
+        print '()'
 
-        else
-           test_validated=.true.
-           do k=1,2
-              do j=1,5
-                 do i=1,2
-                    loc = is_test_validated(time_dev(i,j,1), test_data(i,j,1), detailled)
-                    test_validated=test_validated.and.loc 
-                 end do
-                 
-                 do i=5,6
-                    loc = is_test_validated(time_dev(i,j,1), test_data(i,j,1), detailled)
-                    test_validated=test_validated.and.loc 
-                 end do
-              end do
-           end do
-           print '(''test_validated: '',L1)', test_validated
-        end if
 
+        !test compute_timedev_x_layer
+        detailled = .false.
+        print '(''----------------------------------'')'
+        print '(''test_compute_timedev_xlayer'')'
+        print '(''----------------------------------'')'
+        call test_compute_timedev_xlayer(
+     $       nodes,dx,dy,
+     $       p_model,
+     $       detailled)
+        print '()'
+
+
+        !test apply_bc_on_timedev_2ndorder
+        detailled=.true.
+        print '(''----------------------------------'')'
+        print '(''test_apply_bc_on_timedev'')'
+        print '(''----------------------------------'')'
+        call test_apply_bc_on_timedev_2ndorder(
+     $       nodes,dx,dy,
+     $       p_model,
+     $       bc_used,
+     $       detailled)
+        print '()'
+        
+        
         contains
 
 
@@ -225,6 +199,319 @@
         end subroutine initialize_nodes
 
 
+        subroutine test_compute_x_timedev_with_openbc(
+     $     nodes,dx,dy,
+     $     p_model,
+     $     detailled)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+          real(rkind)                     , intent(in) :: dx
+          real(rkind)                     , intent(in) :: dy
+          type(pmodel_eq)                 , intent(in) :: p_model
+          logical                         , intent(in) :: detailled
+
+          
+          real(rkind), dimension(nx,ny,ne) :: test_data
+          real(rkind), dimension(nx,ny,ne) :: time_dev
+          integer(ikind)    :: i,j
+          integer           :: k
+          logical           :: test_validated
+          logical           :: loc
+          character(len=45) :: fmt
+          real(rkind)       :: dy_s
+
+          dy_s = dy
+
+          !initialize the test data
+          call initialize_test_data(test_data)
+
+
+          !computation of the time derivatives using open b.c.
+          do j=1, ny
+          
+             i=1
+             time_dev(i,j,:) = compute_x_timedev_with_openbc(
+     $            nodes, i, j, p_model, dx,
+     $            gradient_x_x_oneside_L0, incoming_left)
+          
+             i=bc_size
+             time_dev(i,j,:) = compute_x_timedev_with_openbc(
+     $            nodes, i, j, p_model, dx,
+     $            gradient_x_x_oneside_L1, incoming_left)
+          
+             i=nx-1
+             time_dev(i,j,:) = compute_x_timedev_with_openbc(
+     $            nodes, i, j, p_model, dx,
+     $            gradient_x_x_oneside_R1, incoming_right)
+          
+             i=nx
+             time_dev(i,j,:) = compute_x_timedev_with_openbc(
+     $            nodes, i, j, p_model, dx,
+     $            gradient_x_x_oneside_R0, incoming_right)
+          
+          end do
+
+
+          !checking the data
+          if(detailled) then
+             do k=1,ne
+                do j=1,ny
+
+                   do i=1,bc_size
+                      loc = is_test_validated(
+     $                     time_dev(i,j,1), test_data(i,j,1), detailled)
+                      fmt ='(''test('',I2,'','',I2,'','',I2,''): '',L3)'
+                      print fmt, i,j,k,loc
+                   end do
+                   
+                   do i=nx-bc_size+1,nx
+                      loc = is_test_validated(
+     $                     time_dev(i,j,1), test_data(i,j,1), detailled)
+                      fmt ='(''test('',I2,'','',I2,'','',I2,''): '',L3)'
+                      print fmt, i,j,k,loc
+
+                   end do
+                end do
+             end do
+          
+          else
+             test_validated=.true.
+             do k=1,ne
+                do j=1,ny
+                   do i=1,bc_size
+                      loc = is_test_validated(time_dev(i,j,1), test_data(i,j,1), detailled)
+                      test_validated=test_validated.and.loc 
+                   end do
+                   
+                   do i=nx-bc_size+1,nx
+                      loc = is_test_validated(time_dev(i,j,1), test_data(i,j,1), detailled)
+                      test_validated=test_validated.and.loc 
+                   end do
+                end do
+             end do
+             print '(''test_validated: '',L1)', test_validated
+          end if
+
+        end subroutine test_compute_x_timedev_with_openbc
+
+
+        subroutine test_compute_timedev_xlayer(
+     $     nodes,dx,dy,
+     $     p_model,
+     $     detailled)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+          real(rkind)                     , intent(in) :: dx
+          real(rkind)                     , intent(in) :: dy
+          type(pmodel_eq)                 , intent(in) :: p_model
+          logical                         , intent(in) :: detailled
+
+          
+          real(rkind), dimension(nx,ny,ne)   :: test_data
+          real(rkind), dimension(nx,ny,ne)   :: time_dev
+          real(rkind), dimension(nx,ny+1,ne) :: flux_y
+          integer(ikind)    :: i,j
+          integer           :: k
+          logical           :: test_validated
+          logical           :: loc
+          character(len=45) :: fmt
+
+
+          !initialize the test data
+          call initialize_test_data(test_data)
+
+
+          !initialize the y flux at zero
+          do k=1,ne
+             do j=1,ny+1
+                do i=1,nx
+                   flux_y(i,j,k)=0.0d0
+                end do
+             end do
+          end do
+          
+
+          !computation of the time derivatives using open b.c.
+          do j=1, ny
+          
+             i=1
+             call compute_timedev_xlayer(
+     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            gradient_x_x_oneside_L0, incoming_left,
+     $            time_dev)
+          
+             i=bc_size
+             call compute_timedev_xlayer(
+     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            gradient_x_x_oneside_L1, incoming_left,
+     $            time_dev)
+          
+             i=nx-1
+             call compute_timedev_xlayer(
+     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            gradient_x_x_oneside_R1, incoming_right,
+     $            time_dev)
+          
+             i=nx
+             call compute_timedev_xlayer(
+     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            gradient_x_x_oneside_R0, incoming_right,
+     $            time_dev)
+          
+          end do
+
+
+          !checking the data
+          if(detailled) then
+             do k=1,ne
+                do j=1,ny
+
+                   do i=1,bc_size
+                      loc = is_test_validated(
+     $                     time_dev(i,j,1), test_data(i,j,1), detailled)
+                      fmt ='(''test('',I2,'','',I2,'','',I2,''): '',L3)'
+                      print fmt, i,j,k,loc
+                   end do
+                   
+                   do i=nx-bc_size+1,nx
+                      loc = is_test_validated(
+     $                     time_dev(i,j,1), test_data(i,j,1), detailled)
+                      fmt ='(''test('',I2,'','',I2,'','',I2,''): '',L3)'
+                      print fmt, i,j,k,loc
+
+                   end do
+                end do
+             end do
+          
+          else
+             test_validated=.true.
+             do k=1,ne
+                do j=1,ny
+                   do i=1,bc_size
+                      loc = is_test_validated(time_dev(i,j,1), test_data(i,j,1), detailled)
+                      test_validated=test_validated.and.loc 
+                   end do
+                   
+                   do i=nx-bc_size+1,nx
+                      loc = is_test_validated(time_dev(i,j,1), test_data(i,j,1), detailled)
+                      test_validated=test_validated.and.loc 
+                   end do
+                end do
+             end do
+             print '(''test_validated: '',L1)', test_validated
+          end if
+
+        end subroutine test_compute_timedev_xlayer
+
+
+        subroutine test_apply_bc_on_timedev_2ndorder(
+     $     nodes,dx,dy,
+     $     p_model,
+     $     bc_used,
+     $     detailled)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+          real(rkind)                     , intent(in) :: dx
+          real(rkind)                     , intent(in) :: dy
+          type(pmodel_eq)                 , intent(in) :: p_model
+          type(bc_operators)              , intent(in) :: bc_used
+          logical                         , intent(in) :: detailled
+
+          
+          real(rkind), dimension(nx,ny,ne)   :: test_data
+          real(rkind), dimension(nx,ny,ne)   :: time_dev
+          real(rkind), dimension(nx+1,ny,ne) :: flux_x
+          real(rkind), dimension(nx,ny+1,ne) :: flux_y
+          integer(ikind)    :: i,j
+          integer           :: k
+          logical           :: test_validated
+          logical           :: loc
+          character(len=45) :: fmt
+
+
+          !initialize the test data
+          call initialize_test_data(test_data)
+
+
+          !initialize the y flux at zero
+          do k=1,ne
+             do j=1,ny+1
+                do i=1,nx
+                   flux_y(i,j,k)=0.0d0
+                end do
+             end do
+          end do
+
+
+          !initialize the flux_x randomly
+          call srand(10)
+
+          do k=1,ne
+             do j=1,ny
+                do i=1,nx+1
+                   flux_x(i,j,k) = RAND()
+                end do
+             end do
+          end do
+          
+
+          !computation of the time derivatives using open b.c.
+          call bc_used%apply_bc_on_timedev(
+     $         nodes,dx,dy,
+     $         p_model,
+     $         flux_x,flux_y,
+     $         time_dev)
+
+
+          !checking the data
+          if(detailled) then
+             do k=1,ne
+                do j=bc_size+1,ny-bc_size
+
+                   do i=1,bc_size
+                      loc = is_test_validated(
+     $                     time_dev(i,j,1), test_data(i,j,1), detailled)
+                      fmt ='(''test('',I2,'','',I2,'','',I2,''): '',L3)'
+                      print fmt, i,j,k,loc
+                   end do
+                   
+                   do i=nx-bc_size+1,nx
+                      loc = is_test_validated(
+     $                     time_dev(i,j,1), test_data(i,j,1), detailled)
+                      fmt ='(''test('',I2,'','',I2,'','',I2,''): '',L3)'
+                      print fmt, i,j,k,loc
+
+                   end do
+                end do
+             end do
+          
+          else
+             test_validated=.true.
+             do k=1,ne
+                do j=bc_size+1,ny-bc_size
+                   do i=1,bc_size
+                      loc = is_test_validated(time_dev(i,j,1), test_data(i,j,1), detailled)
+                      test_validated=test_validated.and.loc 
+                   end do
+                   
+                   do i=nx-bc_size+1,nx
+                      loc = is_test_validated(time_dev(i,j,1), test_data(i,j,1), detailled)
+                      test_validated=test_validated.and.loc 
+                   end do
+                end do
+             end do
+             print '(''test_validated: '',L1)', test_validated
+          end if
+
+        end subroutine test_apply_bc_on_timedev_2ndorder
+          
+
         subroutine initialize_test_data(test_data)
 
           implicit none
@@ -232,56 +519,56 @@
           real(rkind), dimension(nx,ny,ne), intent(out) :: test_data
 
           !position
-          test_data(1,1,1)=-13.635
-          test_data(2,1,1)=-1.65
-          test_data(6,1,1)= 1.766
-          test_data(7,1,1)=-0.638
+          test_data(1,1,1)=-6.8175
+          test_data(2,1,1)=-0.825
+          test_data(6,1,1)= 0.883
+          test_data(7,1,1)=-0.319
 
-          test_data(1,2,1)=1.17
-          test_data(2,2,1)=4.12
-          test_data(6,2,1)=-3.14
-          test_data(7,2,1)=-8.69
+          test_data(1,2,1)=0.585
+          test_data(2,2,1)=2.06
+          test_data(6,2,1)=-1.57
+          test_data(7,2,1)=-4.345
 
-          test_data(1,3,1)=44.2
-          test_data(2,3,1)=13.435
-          test_data(6,3,1)= 1.47
-          test_data(7,3,1)= 8.55
+          test_data(1,3,1)=22.1
+          test_data(2,3,1)=6.7175
+          test_data(6,3,1)= 0.735
+          test_data(7,3,1)= 4.275
 
-          test_data(1,4,1)=-13.58
-          test_data(2,4,1)=2.175
-          test_data(6,4,1)= 2.545
-          test_data(7,4,1)=13.15
+          test_data(1,4,1)=-6.79
+          test_data(2,4,1)=1.0875
+          test_data(6,4,1)= 1.2725
+          test_data(7,4,1)=6.575
 
-          test_data(1,5,1)=1.42
-          test_data(2,5,1)=4.2
-          test_data(6,5,1)=-9.89
-          test_data(7,5,1)=-5.15
+          test_data(1,5,1)=0.71
+          test_data(2,5,1)=2.1
+          test_data(6,5,1)=-4.945
+          test_data(7,5,1)=-2.575
 
           !velocity_x
-          test_data(1,1,2)=-13.635
-          test_data(2,1,2)=-1.65
-          test_data(6,1,2)=-1.766
-          test_data(7,1,2)=0.638
-                    
-          test_data(1,2,2)=1.17
-          test_data(2,2,2)=4.12
-          test_data(6,2,2)=3.14
-          test_data(7,2,2)=8.69
-                    
-          test_data(1,3,2)=44.2
-          test_data(2,3,2)=13.435
-          test_data(6,3,2)=-1.47
-          test_data(7,3,2)=-8.55
-                    
-          test_data(1,4,2)=-13.58
-          test_data(2,4,2)=2.175
-          test_data(6,4,2)=-2.545
-          test_data(7,4,2)=-13.15
-                    
-          test_data(1,5,2)=1.42
-          test_data(2,5,2)=4.2
-          test_data(6,5,2)=9.89
-          test_data(7,5,2)=5.15         
+          test_data(1,1,2)=-6.8175
+          test_data(2,1,2)=-0.825
+          test_data(6,1,2)=-0.883
+          test_data(7,1,2)= 0.319
+                        
+          test_data(1,2,2)=0.585
+          test_data(2,2,2)=2.06
+          test_data(6,2,2)= 1.57
+          test_data(7,2,2)= 4.345
+                        
+          test_data(1,3,2)=22.1
+          test_data(2,3,2)=6.7175
+          test_data(6,3,2)=-0.735
+          test_data(7,3,2)=-4.275
+                        
+          test_data(1,4,2)=-6.79
+          test_data(2,4,2)=1.0875
+          test_data(6,4,2)=-1.2725
+          test_data(7,4,2)=-6.575
+                        
+          test_data(1,5,2)=0.71
+          test_data(2,5,2)=2.1
+          test_data(6,5,2)=4.945
+          test_data(7,5,2)=2.575       
 
         end subroutine initialize_test_data
 

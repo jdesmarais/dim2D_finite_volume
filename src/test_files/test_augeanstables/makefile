@@ -161,7 +161,8 @@ test_openbc_operators:	$(param_dep)\
 			sd_operators_y_oneside_R0_class.o\
 			openbc_operators_module.o
 
-test_hedstrom_xy.o:	$(hobc_dir)/hedstrom_xy_module.o\
+test_hedstrom_xy.o:	$(hrobc_dir)/bc_operators_class.o\
+			$(hobc_dir)/hedstrom_xy_module.o\
 			$(obc_dir)/openbc_operators_module.o\
 			$(param_dir)/parameters_kind.o\
 			$(param_dir)/parameters_input.o\
@@ -169,17 +170,20 @@ test_hedstrom_xy.o:	$(hobc_dir)/hedstrom_xy_module.o\
 			$(mt_dir)/sd_operators_fd_module.o
 
 test_hedstrom_xy:	$(param_dep)\
+			$(mt_dep)\
 			$(wave1d_dep)\
-			openbc_operators_module.o\
-			sd_operators_abstract_class	.o\
-			sd_operators_class.o\
-			sd_operators_x_oneside_L0_class.o\
-			sd_operators_x_oneside_L1_class.o\
-			sd_operators_x_oneside_R1_class.o\
-			sd_operators_x_oneside_R0_class.o\
-			sd_operators_y_oneside_L0_class.o\
-			sd_operators_y_oneside_L1_class.o\
-			sd_operators_y_oneside_R1_class.o\
-			sd_operators_y_oneside_R0_class.o\
-			sd_operators_fd_module.o\
-			hedstrom_xy_module.o
+			$(hedstrom_x_reflection_y_dep)
+
+#			openbc_operators_module.o\
+#			sd_operators_abstract_class.o\
+#			sd_operators_class.o\
+#			sd_operators_x_oneside_L0_class.o\
+#			sd_operators_x_oneside_L1_class.o\
+#			sd_operators_x_oneside_R1_class.o\
+#			sd_operators_x_oneside_R0_class.o\
+#			sd_operators_y_oneside_L0_class.o\
+#			sd_operators_y_oneside_L1_class.o\
+#			sd_operators_y_oneside_R1_class.o\
+#			sd_operators_y_oneside_R0_class.o\
+#			sd_operators_fd_module.o\
+#			hedstrom_xy_module.o

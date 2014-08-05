@@ -896,6 +896,7 @@
                stop 'k not recognized'
           end select
 
+
         end function compute_x_lefteigenvector
 
 
@@ -953,9 +954,9 @@
                print '(''wave1d: compute_x_righteigenvector'')'
                print '(''k: '',I2)', k
                stop 'k not recognized'
-          end select          
+          end select 
 
-        end function compute_x_righteigenvector
+         end function compute_x_righteigenvector
 
 
         !> @author
