@@ -34,6 +34,7 @@ fv_dir			= $(td_dir)/finitevolume
 dim2d_ic		= $(dim2d_dir)/dim2d_ic
 
 hobc_dir                = $(obc_dir)/hedstrom_xy
+hcobc_dir               = $(obc_dir)/hedstrom_xy_corners
 hrobc_dir		= $(obc_dir)/hedstrom_x_reflection_y
 
 bf_layer_dir		= $(obc_dir)/buffer_layer

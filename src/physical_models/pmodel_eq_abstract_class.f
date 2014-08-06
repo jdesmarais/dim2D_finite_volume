@@ -15,7 +15,8 @@
       module pmodel_eq_abstract_class
       
         use interface_primary , only : gradient_x_proc,
-     $                                 gradient_y_proc
+     $                                 gradient_y_proc,
+     $                                 gradient_n_proc
         use parameters_input  , only : nx,ny,ne
         use parameters_kind   , only : ikind, rkind
         use sd_operators_class, only : sd_operators
@@ -86,6 +87,14 @@
         !> compute the eigenvalues of the hyperbolic terms in the
         !> y-direction
         !
+        !> @param compute_n1_eigenvalues
+        !> compute the eigenvalues of the hyperbolic terms in the
+        !> (x-y)-direction
+        !
+        !> @param compute_n2_eigenvalues
+        !> compute the eigenvalues of the hyperbolic terms in the
+        !> (x+y)-direction
+        !
         !> @param compute_x_lefteigenvector
         !> compute the left eigenvectors of the hyperbolic terms in the
         !> x-direction
@@ -101,6 +110,22 @@
         !> @param compute_y_righteigenvector
         !> compute the right eigenvectors of the hyperbolic terms in the
         !> y-direction
+        !
+        !> @param compute_n1_lefteigenvector
+        !> compute the left eigenvectors of the hyperbolic terms in the
+        !> (x-y)-direction
+        !
+        !> @param compute_n1_righteigenvector
+        !> compute the right eigenvectors of the hyperbolic terms in the
+        !> (x-y)-direction
+        !
+        !> @param compute_n2_lefteigenvector
+        !> compute the left eigenvectors of the hyperbolic terms in the
+        !> (x+y)-direction
+        !
+        !> @param compute_n2_righteigenvector
+        !> compute the right eigenvectors of the hyperbolic terms in the
+        !> (x+y)-direction
         !---------------------------------------------------------------
         type, abstract :: pmodel_eq_abstract
           
@@ -122,12 +147,24 @@
           procedure(bodyforces)      , nopass, deferred :: compute_body_forces
           procedure(velocity_proc)   , nopass, deferred :: get_velocity
           procedure(openbc_proc)     , nopass, deferred :: are_openbc_undermined
+
           procedure(eigenvalues_proc), nopass, deferred :: compute_x_eigenvalues
           procedure(eigenvalues_proc), nopass, deferred :: compute_y_eigenvalues
+          procedure(eigenvalues_proc), nopass, deferred :: compute_n1_eigenvalues
+          procedure(eigenvalues_proc), nopass, deferred :: compute_n2_eigenvalues
+
           procedure(eigenvect_proc)  , nopass, deferred :: compute_x_lefteigenvector
           procedure(eigenvect_proc)  , nopass, deferred :: compute_x_righteigenvector
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_y_lefteigenvector
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_y_righteigenvector
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_n1_lefteigenvector
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_n1_righteigenvector
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_n2_lefteigenvector
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_n2_righteigenvector
+
           procedure(x_gradient_proc) , nopass, deferred :: compute_x_gradient
           procedure(y_gradient_proc) , nopass, deferred :: compute_y_gradient
+          procedure(n_gradient_proc) , nopass, deferred :: compute_n_gradient
 
         end type pmodel_eq_abstract
 
@@ -775,6 +812,55 @@
             real(rkind), dimension(ne)                   :: grad_var
 
           end function y_gradient_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for the computation of the gradient of the
+          !> governing variables in a diagonal direction
+          !
+          !> @date
+          !> 01_08_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param i
+          !> integer identifying the index in the x-direction
+          !
+          !>@param j
+          !> integer identifying the index in the y-direction
+          !
+          !>@param gradient
+          !> procedure used to compute the gradient along the diagonal
+          !> direction
+          !
+          !>@param dx
+          !> grid space step along the x-axis
+          !
+          !>@param dy
+          !> grid space step along the y-axis
+          !
+          !>@return grad_var
+          !> gradient of the governing variables along the x-axis
+          !--------------------------------------------------------------
+          function n_gradient_proc(nodes,i,j,gradient,dx,dy) result(grad_var)
+
+            import gradient_n_proc
+            import ikind,rkind
+            import nx,ny,ne
+
+            real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+            integer(ikind)                  , intent(in) :: i
+            integer(ikind)                  , intent(in) :: j
+            procedure(gradient_n_proc)                   :: gradient
+            real(rkind)                     , intent(in) :: dx
+            real(rkind)                     , intent(in) :: dy
+            real(rkind), dimension(ne)                   :: grad_var
+
+          end function n_gradient_proc
 
         end interface        
 

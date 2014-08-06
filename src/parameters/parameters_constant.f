@@ -49,7 +49,8 @@
         integer, parameter :: wall_xy_choice=2
         integer, parameter :: wall_x_reflection_y_choice=3
         integer, parameter :: hedstrom_xy_choice=4
-        integer, parameter :: hedstrom_x_reflection_y_choice=5
+        integer, parameter :: hedstrom_xy_corners_choice=5
+        integer, parameter :: hedstrom_x_reflection_y_choice=6
 
         !>boundary conditions type choice
         integer, parameter :: bc_nodes_choice=0

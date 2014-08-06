@@ -49,7 +49,7 @@ npy = 1
 ! 2 : for wave2d
 ! 3 : for dim2d
 !---------------------------------------------------------
-pm_choice = 1
+pm_choice = 2
 
 
 !5.     Boundary conditions
@@ -65,7 +65,7 @@ pm_choice = 1
 ! 5 : for hedstrom openbc xy with corner treatment
 ! 6 : for hedstrom x reflection y
 !---------------------------------------------------------
-bc_choice = 6
+bc_choice = 5
 
 
 !6.    initial conditions for the DIM

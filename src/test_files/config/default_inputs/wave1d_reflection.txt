@@ -62,7 +62,8 @@ pm_choice = 1
 ! 2 : for wall xy
 ! 3 : for wall x and reflection y
 ! 4 : for hedstrom openbc xy
-! 5 : for hedstrom x reflection y
+! 5 : for hedstrom openbc xy with corner treatment
+! 6 : for hedstrom x reflection y
 !---------------------------------------------------------
 bc_choice = 1
 

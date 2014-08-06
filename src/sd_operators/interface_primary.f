@@ -22,7 +22,8 @@
         public :: get_primary_var,
      $            gradient_x_proc,
      $            gradient_y_proc,
-     $            get_secondary_var
+     $            get_secondary_var,
+     $            gradient_n_proc
 
 
         abstract interface
@@ -207,6 +208,55 @@
             real(rkind)                               :: var
 
           end function get_secondary_var
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for computing the gradient of a primitive
+          !> variable along a diagonal direction
+          !
+          !> @date
+          !> 31_07_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param i
+          !> index along x-axis where the gradient is evaluated
+          !
+          !>@param j
+          !> index along y-axis where the gradient is evaluated
+          !
+          !>@param proc
+          !> interface to compute the primitive variable from
+          !> the governing variables
+          !
+          !>@param dx
+          !> grid step along the x-axis
+          !
+          !>@param dy
+          !> grid step along the y-axis
+          !
+          !>@param var
+          !> primary variable evaluated at [i,j]
+          !--------------------------------------------------------------
+          function gradient_n_proc(nodes,i,j,proc,dx,dy) result(var)
+
+            import get_primary_var
+            import ikind
+            import rkind
+
+            real(rkind), dimension(:,:,:), intent(in) :: nodes
+            integer(ikind)               , intent(in) :: i
+            integer(ikind)               , intent(in) :: j
+            procedure(get_primary_var)                :: proc
+            real(rkind)                  , intent(in) :: dx
+            real(rkind)                  , intent(in) :: dy
+            real(rkind)                               :: var
+
+          end function gradient_n_proc
 
         end interface
 

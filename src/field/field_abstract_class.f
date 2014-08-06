@@ -24,6 +24,7 @@
      $                                         wall_xy_choice,
      $                                         wall_x_reflection_y_choice,
      $                                         hedstrom_xy_choice,
+     $                                         hedstrom_xy_corners_choice,
      $                                         hedstrom_x_reflection_y_choice
         use parameters_input          , only : nx,ny,ne,bc_size,
      $                                         x_min,x_max,
@@ -422,8 +423,11 @@
 
           class(field_abstract), intent(inout) :: this
 
-          if(bc_choice.ne.hedstrom_xy_choice) then
+          if((bc_choice.ne.hedstrom_xy_choice).and.
+     $       (bc_choice.ne.hedstrom_xy_corners_choice)) then
+
              call this%bc_operators_used%apply_bc_on_nodes(this%nodes)
+
           end if
 
 
@@ -478,7 +482,7 @@
                x_borders=[bc_size+1,nx-bc_size]
                y_borders=[bc_size+1,ny-bc_size]
 
-            case(hedstrom_xy_choice)
+            case(hedstrom_xy_choice,hedstrom_xy_corners_choice)
                x_borders=[1,nx]
                y_borders=[1,ny]
 

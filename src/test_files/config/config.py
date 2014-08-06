@@ -142,6 +142,7 @@ def compute_code_inputs(inputFileName):
                     'wall_xy_choice',
                     'wall_x_reflection_y_choice',
                     'hedstrom_xy_choice',
+                    'hedstrom_xy_corners_choice',
                     'hedstrom_x_reflection_y_choice']
 
     bc_type_code = ['bc_nodes_choice',
@@ -210,7 +211,8 @@ def compute_code_inputs(inputFileName):
         bcx_type_choice = bc_type_code[1]
         bcy_type_choice = bc_type_code[1]
 
-    if(bc_choice=='hedstrom_xy_choice'):
+    if(bc_choice=='hedstrom_xy_choice' or
+       bc_choice=='hedstrom_xy_corners_choice'):
 
         bcx_type_choice = bc_type_code[2]
         bcy_type_choice = bc_type_code[2]

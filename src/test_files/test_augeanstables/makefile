@@ -80,6 +80,7 @@ test_mattsson_operators.o:\
 			$(mt_dir)/sd_operators_y_oneside_R1_class.o\
 			$(mt_dir)/sd_operators_y_oneside_R0_class.o\
 			$(mt_dir)/sd_operators_fd_module.o\
+			$(mt_dir)/sd_operators_fd_ncoords_module.o\
 			$(dim2d_dir)/dim2d_prim_module.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
@@ -97,6 +98,7 @@ test_mattsson_operators:\
 			sd_operators_y_oneside_R0_class.o\
 			interface_primary.o\
 			sd_operators_fd_module.o\
+			sd_operators_fd_ncoords_module.o\
 			dim2d_parameters.o\
 			dim2d_prim_module.o
 
@@ -173,6 +175,19 @@ test_hedstrom_xy:	$(param_dep)\
 			$(mt_dep)\
 			$(wave1d_dep)\
 			$(hedstrom_x_reflection_y_dep)
+
+test_hedstrom_xy_corners.o:\
+			$(hcobc_dir)/bc_operators_class.o\
+			$(param_dir)/parameters_kind.o\
+			$(param_dir)/parameters_input.o\
+			$(wave2d_dir)/pmodel_eq_class.o\
+			$(mt_dir)/sd_operators_fd_ncoords_module.o
+
+test_hedstrom_xy_corners:\
+			$(param_dep)\
+			$(mt_dep)\
+			$(wave2d_dep)\
+			$(hedstrom_xy_corners_dep)
 
 #			openbc_operators_module.o\
 #			sd_operators_abstract_class.o\

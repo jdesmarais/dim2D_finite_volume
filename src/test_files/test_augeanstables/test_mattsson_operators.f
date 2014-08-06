@@ -21,12 +21,25 @@
      $       gradient_y_y_oneside_L0,
      $       gradient_y_y_oneside_R0
 
+        use sd_operators_fd_ncoords_module, only :
+     $       gradient_n1_interior,
+     $       gradient_n2_interior,
+     $       gradient_n1_oneside_L0,
+     $       gradient_n1_oneside_L1,
+     $       gradient_n1_oneside_R1,
+     $       gradient_n1_oneside_R0,
+     $       gradient_n2_oneside_L0,
+     $       gradient_n2_oneside_L1,
+     $       gradient_n2_oneside_R1,
+     $       gradient_n2_oneside_R0
+
         use dim2d_prim_module, only :
      $       mass_density
 
         use interface_primary, only :
      $       gradient_x_proc,
-     $       gradient_y_proc
+     $       gradient_y_proc,
+     $       gradient_n_proc
 
         use parameters_input, only :
      $       nx,ny,ne
@@ -106,48 +119,7 @@
 
 
         !<initialize the tables for the field
-        dx=0.5
-        dy=0.6
-
-        nodes(1,1,1)=0.5
-        nodes(2,1,1)=0.2
-        nodes(3,1,1)=1.2
-        nodes(4,1,1)=5.0
-        nodes(5,1,1)=0.6
-        nodes(6,1,1)=-3.6
-        nodes(7,1,1)=-6.52
-
-        nodes(1,2,1)=3.0
-        nodes(2,2,1)=4.2
-        nodes(3,2,1)=11.0
-        nodes(4,2,1)=10.6
-        nodes(5,2,1)=5.2
-        nodes(6,2,1)=1.2
-        nodes(7,2,1)=7.89
-
-        nodes(1,3,1)=-14.2
-        nodes(2,3,1)=23
-        nodes(3,3,1)=9.8
-        nodes(4,3,1)=3.4
-        nodes(5,3,1)=9.1
-        nodes(6,3,1)=6.7
-        nodes(7,3,1)=4.12
-
-        nodes(1,4,1)=2.45
-        nodes(2,4,1)=0.2
-        nodes(3,4,1)=9.0
-        nodes(4,4,1)=5.4
-        nodes(5,4,1)=-2.3
-        nodes(6,4,1)=1.0
-        nodes(7,4,1)=-5.62
-
-        nodes(1,5,1)=3.6
-        nodes(2,5,1)=0.1
-        nodes(3,5,1)=6.3
-        nodes(4,5,1)=8.9
-        nodes(5,5,1)=-4.23
-        nodes(6,5,1)=8.9
-        nodes(7,5,1)=8.95
+        call initialize_nodes_x(nodes,dx,dy)
 
 
         print '()'
@@ -376,48 +348,7 @@
 
         !> initialize the nodes for the y-fluxes tests
         !<initialize the tables for the field
-        dx=0.6
-        dy=0.5
-
-        nodes(1,1,1)=0.5
-        nodes(1,2,1)=0.2
-        nodes(1,3,1)=1.2
-        nodes(1,4,1)=5.0
-        nodes(1,5,1)=0.6
-        nodes(1,6,1)=-3.6
-        nodes(1,7,1)=-6.52
-
-        nodes(2,1,1)=3.0
-        nodes(2,2,1)=4.2
-        nodes(2,3,1)=11.0
-        nodes(2,4,1)=10.6
-        nodes(2,5,1)=5.2
-        nodes(2,6,1)=1.2
-        nodes(2,7,1)=7.89
-
-        nodes(3,1,1)=-14.2
-        nodes(3,2,1)=23
-        nodes(3,3,1)=9.8
-        nodes(3,4,1)=3.4
-        nodes(3,5,1)=9.1
-        nodes(3,6,1)=6.7
-        nodes(3,7,1)=4.12
-
-        nodes(4,1,1)=2.45
-        nodes(4,2,1)=0.2
-        nodes(4,3,1)=9.0
-        nodes(4,4,1)=5.4
-        nodes(4,5,1)=-2.3
-        nodes(4,6,1)=1.0
-        nodes(4,7,1)=-5.62
-
-        nodes(5,1,1)=3.6
-        nodes(5,2,1)=0.1
-        nodes(5,3,1)=6.3
-        nodes(5,4,1)=8.9
-        nodes(5,5,1)=-4.23
-        nodes(5,6,1)=8.9
-        nodes(5,7,1)=8.95
+        call initialize_nodes_y(nodes,dx,dy)
 
 
         print '()'
@@ -607,6 +538,60 @@
         
         detailled = .false.
         call test_d3gdy3(nodes, dy, 2, test_data, detailled)
+        print '()'
+
+
+        print '()'
+        print '(''test the n1 gradients in the rotated grid'')'
+        print '(''-----------------------------------------'')'
+
+        call initialize_nodes_x(nodes,dx,dy)
+
+        !<test data
+        test_data(1) =  6.657918d0  !<test gradient_n1_interior
+        test_data(2) =  1.024295d0  !<test gradient_n1_L0
+        test_data(3) =  6.657918d0  !<test gradient_n1_L1
+        test_data(4) =  6.657918d0  !<test gradient_n1_R1
+        test_data(5) = 12.29154d0   !<test gradient_n1_R0
+
+        detailled = .false.
+        call test_ncoords_operators(
+     $       gradient_n1_interior,
+     $       gradient_n1_oneside_L0,
+     $       gradient_n1_oneside_L1,
+     $       gradient_n1_oneside_R1,
+     $       gradient_n1_oneside_R0,
+     $       3,3,
+     $       dx,dy,
+     $       test_data,
+     $       detailled)
+        print '()'
+
+
+        print '()'
+        print '(''test the n2 gradients in the rotated grid'')'
+        print '(''-----------------------------------------'')'
+
+        call initialize_nodes_x(nodes,dx,dy)
+
+        !<test data
+        test_data(1) =  0.768221d0  !<test gradient_n2_interior
+        test_data(2) = -5.63362d0   !<test gradient_n2_L0
+        test_data(3) =  0.768221d0  !<test gradient_n2_L1
+        test_data(4) =  0.768221d0  !<test gradient_n2_R1
+        test_data(5) =  7.170065d0  !<test gradient_n2_R0
+
+        detailled = .false.
+        call test_ncoords_operators(
+     $       gradient_n2_interior,
+     $       gradient_n2_oneside_L0,
+     $       gradient_n2_oneside_L1,
+     $       gradient_n2_oneside_R1,
+     $       gradient_n2_oneside_R0,
+     $       3,3,
+     $       dx,dy,
+     $       test_data,
+     $       detailled)
         print '()'
 
 
@@ -940,387 +925,407 @@
           logical                     , intent(in) :: detailled
 
           logical :: loc
-
-          if(detailled) then
-          
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%f(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density),
-     $            test_data(1),
-     $            detailled)
-          
-             print '(''test %f: '',L3)', loc
-          
-          
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%dfdx(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density,
-     $            dx),
-     $            test_data(2),
-     $            detailled)
-          
-             print '(''test %dfdx: '',L3)', loc
-          
-          
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%dfdy(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density,
-     $            dy),
-     $            test_data(3),
-     $            detailled)
-             
-             print '(''test %dfdy: '',L3)', loc
-          
-     $            
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%d2fdx2(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density,
-     $            dx),
-     $            test_data(4),
-     $            detailled)
-          
-             print '(''test %d2fdx2: '',L3)', loc
-     $            
-          
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%d2fdy2(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density,
-     $            dy),
-     $            test_data(5),
-     $            detailled)
-          
-             print '(''test %d2fdy2: '',L3)', loc
-     $            
-          
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%d2fdxdy(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density,
-     $            dx,
-     $            dy),
-     $            test_data(6),
-     $            detailled)
-
-             print '(''test %d2fdxdy: '',L3)', loc
+          logical :: test_validated
 
 
-             !TAG INLINE
-             loc = is_test_validated(
-     $            gradient_x(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density,
-     $            dx),
-     $            test_data(7),
-     $            detailled)
+          loc = is_test_validated(
+     $         sd_operators_tested%f(
+     $         nodes,
+     $         i1,j1,
+     $         mass_density),
+     $         test_data(1),
+     $         detailled)
+          if(detailled) print '(''test %f: '',L3)', loc
+          test_validated = test_validated.and.loc
+          
+          
+          loc = is_test_validated(
+     $         sd_operators_tested%dfdx(
+     $         nodes,
+     $         i1,j1,
+     $         mass_density,
+     $         dx),
+     $         test_data(2),
+     $         detailled)
+          if(detailled) print '(''test %dfdx: '',L3)', loc
+          test_validated = test_validated.and.loc
+          
 
-             print '(''test %gradient_x: '',L3)', loc             
-     $            
+          loc = is_test_validated(
+     $         sd_operators_tested%dfdy(
+     $         nodes,
+     $         i1,j1,
+     $         mass_density,
+     $         dy),
+     $         test_data(3),
+     $         detailled)
+          if(detailled) print '(''test %dfdy: '',L3)', loc
+          test_validated = test_validated.and.loc          
+                 
+
+          loc = is_test_validated(
+     $         sd_operators_tested%d2fdx2(
+     $         nodes,
+     $         i1,j1,
+     $         mass_density,
+     $         dx),
+     $         test_data(4),
+     $         detailled)
+          if(detailled) print '(''test %d2fdx2: '',L3)', loc
+          test_validated = test_validated.and.loc  
+                 
           
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%g(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density),
-     $            test_data(8),
-     $            detailled)
+          loc = is_test_validated(
+     $         sd_operators_tested%d2fdy2(
+     $         nodes,
+     $         i1,j1,
+     $         mass_density,
+     $         dy),
+     $         test_data(5),
+     $         detailled)
+          if(detailled) print '(''test %d2fdy2: '',L3)', loc
+          test_validated = test_validated.and.loc
+                 
           
-             print '(''test %g: '',L3)', loc
+          loc = is_test_validated(
+     $         sd_operators_tested%d2fdxdy(
+     $         nodes,
+     $         i1,j1,
+     $         mass_density,
+     $         dx,
+     $         dy),
+     $         test_data(6),
+     $         detailled)
+          if(detailled) print '(''test %d2fdxdy: '',L3)', loc
+          test_validated = test_validated.and.loc
+
+
+          loc = is_test_validated(
+     $         gradient_x(
+     $         nodes,
+     $         i1,j1,
+     $         mass_density,
+     $         dx),
+     $         test_data(7),
+     $         detailled)
+          if(detailled) print '(''test %gradient_x: '',L3)', loc
+          test_validated = test_validated.and.loc
           
+
+          loc = is_test_validated(
+     $         sd_operators_tested%g(
+     $         nodes,
+     $         i2,j2,
+     $         mass_density),
+     $         test_data(8),
+     $         detailled)
+          if(detailled) print '(''test %g: '',L3)', loc
+          test_validated = test_validated.and.loc
           
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%dgdx(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density,
-     $            dx),
-     $            test_data(9),
-     $            detailled)
-          
-             print '(''test %dgdx: '',L3)', loc
+
+          loc = is_test_validated(
+     $         sd_operators_tested%dgdx(
+     $         nodes,
+     $         i2,j2,
+     $         mass_density,
+     $         dx),
+     $         test_data(9),
+     $         detailled)
+          if(detailled) print '(''test %dgdx: '',L3)', loc
+          test_validated = test_validated.and.loc
      $            
           
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%dgdy(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density,
-     $            dy),
-     $            test_data(10),
-     $            detailled)
-          
-             print '(''test %dgdy: '',L3)', loc
-          
-          
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%d2gdx2(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density,
-     $            dx),
-     $            test_data(11),
-     $            detailled)
-          
-             print '(''test %d2gdx2: '',L3)', loc
+          loc = is_test_validated(
+     $         sd_operators_tested%dgdy(
+     $         nodes,
+     $         i2,j2,
+     $         mass_density,
+     $         dy),
+     $         test_data(10),
+     $         detailled)
+          if(detailled) print '(''test %dgdy: '',L3)', loc
+          test_validated = test_validated.and.loc
           
           
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%d2gdy2(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density,
-     $            dy),
-     $            test_data(12),
-     $            detailled)
+          loc = is_test_validated(
+     $         sd_operators_tested%d2gdx2(
+     $         nodes,
+     $         i2,j2,
+     $         mass_density,
+     $         dx),
+     $         test_data(11),
+     $         detailled)
+          if(detailled) print '(''test %d2gdx2: '',L3)', loc
+          test_validated = test_validated.and.loc
           
-             print '(''test %d2gdy2: '',L3)', loc
           
+          loc = is_test_validated(
+     $         sd_operators_tested%d2gdy2(
+     $         nodes,
+     $         i2,j2,
+     $         mass_density,
+     $         dy),
+     $         test_data(12),
+     $         detailled)
+          if(detailled) print '(''test %d2gdy2: '',L3)', loc
+          test_validated = test_validated.and.loc          
           
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%d2gdxdy(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density,
-     $            dx,
-     $            dy),
-     $            test_data(13),
-     $            detailled)
-          
-             print '(''test %d2gdxdy: '',L3)', loc
+
+          loc = is_test_validated(
+     $         sd_operators_tested%d2gdxdy(
+     $         nodes,
+     $         i2,j2,
+     $         mass_density,
+     $         dx,
+     $         dy),
+     $         test_data(13),
+     $         detailled)
+          if(detailled) print '(''test %d2gdxdy: '',L3)', loc
+          test_validated = test_validated.and.loc
 
           
-             !TAG INLINE
-             loc = is_test_validated(
-     $            gradient_y(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density,
-     $            dy),
-     $            test_data(14),
-     $            detailled)
-          
-             print '(''test %gradient_y: '',L3)', loc
+          loc = is_test_validated(
+     $         gradient_y(
+     $         nodes,
+     $         i2,j2,
+     $         mass_density,
+     $         dy),
+     $         test_data(14),
+     $         detailled)
+          if(detailled) print '(''test %gradient_y: '',L3)', loc
+          test_validated = test_validated.and.loc
 
 
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%dfdx_nl(
-     $            nodes,
-     $            i1,j1,
-     $            gradient_av,
-     $            dx,
-     $            dy),
-     $            test_data(15),
-     $            detailled)
-          
-             print '(''test %dfdx_nl: '',L3)', loc
+          loc = is_test_validated(
+     $         sd_operators_tested%dfdx_nl(
+     $         nodes,
+     $         i1,j1,
+     $         gradient_av,
+     $         dx,
+     $         dy),
+     $         test_data(15),
+     $         detailled)
+          if(detailled) print '(''test %dfdx_nl: '',L3)', loc
+          test_validated = test_validated.and.loc
 
 
-             !TAG INLINE
-             loc = is_test_validated(
-     $            sd_operators_tested%dgdy_nl(
-     $            nodes,
-     $            i2,j2,
-     $            gradient_av,
-     $            dx,
-     $            dy),
-     $            test_data(16),
-     $            detailled)
-          
-             print '(''test %dgdy_nl: '',L3)', loc
+          loc = is_test_validated(
+     $         sd_operators_tested%dgdy_nl(
+     $         nodes,
+     $         i2,j2,
+     $         gradient_av,
+     $         dx,
+     $         dy),
+     $         test_data(16),
+     $         detailled)
+          if(detailled) print '(''test %dgdy_nl: '',L3)', loc
+          test_validated = test_validated.and.loc
 
-          else
-             test_validated=.true.
-          
-             test_validated=is_test_validated(
-     $            sd_operators_tested%f(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density),
-     $            test_data(1),
-     $            detailled)
-          
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%dfdx(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density,
-     $            dx),
-     $            test_data(2),
-     $            detailled)
-          
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%dfdy(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density,
-     $            dy),
-     $            test_data(3),
-     $            detailled)
-          
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%d2fdx2(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density,
-     $            dx),
-     $            test_data(4),
-     $            detailled)
-          
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%d2fdy2(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density,
-     $            dy),
-     $            test_data(5),
-     $            detailled)
-          
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%d2fdxdy(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density,
-     $            dx,
-     $            dy),
-     $            test_data(6),
-     $            detailled)
-
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            gradient_x(
-     $            nodes,
-     $            i1,j1,
-     $            mass_density,
-     $            dx),
-     $            test_data(7),
-     $            detailled)
-          
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%g(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density),
-     $            test_data(8),
-     $            detailled)
-          
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%dgdx(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density,
-     $            dx),
-     $            test_data(9),
-     $            detailled)
-          
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%dgdy(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density,
-     $            dy),
-     $            test_data(10),
-     $            detailled)
-          
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%d2gdx2(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density,
-     $            dx),
-     $            test_data(11),
-     $            detailled)
-          
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%d2gdy2(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density,
-     $            dy),
-     $            test_data(12),
-     $            detailled)
-          
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%d2gdxdy(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density,
-     $            dx,
-     $            dy),
-     $            test_data(13),
-     $            detailled)
-
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            gradient_y(
-     $            nodes,
-     $            i2,j2,
-     $            mass_density,
-
-     $            dy),
-     $            test_data(14),
-     $            detailled)
-
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%dfdx_nl(
-     $            nodes,
-     $            i1,j1,
-     $            gradient_av,
-     $            dx,
-     $            dy),
-     $            test_data(15),
-     $            detailled)
-
-             test_validated=test_validated.and.
-     $            is_test_validated(
-     $            sd_operators_tested%dgdy_nl(
-     $            nodes,
-     $            i2,j2,
-     $            gradient_av,
-     $            dx,
-     $            dy),
-     $            test_data(16),
-     $            detailled)
-          
-             print '(''test_validated: '', 1L1)', test_validated
-          
-          end if
+          if(.not.detailled) print '(''test validated: '',L3)', test_validated
 
         end subroutine test_operator
+
+
+        subroutine test_ncoords_operators(
+     $     gradient_interior,
+     $     gradient_L0,
+     $     gradient_L1,
+     $     gradient_R1,
+     $     gradient_R0,
+     $     i,j,
+     $     dx,dy,
+     $     test_data,
+     $     detailled)
+
+          implicit none
+
+          procedure(gradient_n_proc)               :: gradient_interior
+          procedure(gradient_n_proc)               :: gradient_L0
+          procedure(gradient_n_proc)               :: gradient_L1
+          procedure(gradient_n_proc)               :: gradient_R1
+          procedure(gradient_n_proc)               :: gradient_R0
+          integer                     , intent(in) :: i,j
+          real(rkind)                 , intent(in) :: dx
+          real(rkind)                 , intent(in) :: dy
+          real(rkind), dimension(:)   , intent(in) :: test_data
+          logical                     , intent(in) :: detailled
+
+          logical :: loc
+          logical :: test_validated
+
+
+          test_validated = .true.
+
+
+          loc = is_test_validated(
+     $         gradient_interior(
+     $         nodes,
+     $         i,j,
+     $         mass_density,
+     $         dx,dy),
+     $         test_data(1),
+     $         detailled)
+          if(detailled) print '(''test interior: '',L3)', loc
+          test_validated=test_validated.and.loc
+
+          
+          loc = is_test_validated(
+     $         gradient_L0(
+     $         nodes,
+     $         i,j,
+     $         mass_density,
+     $         dx,dy),
+     $         test_data(2),
+     $         detailled)
+          if(detailled) print '(''test L0: '',L3)', loc
+          test_validated=test_validated.and.loc
+
+
+          loc = is_test_validated(
+     $         gradient_L1(
+     $         nodes,
+     $         i,j,
+     $         mass_density,
+     $         dx,dy),
+     $         test_data(3),
+     $         detailled)
+          if(detailled) print '(''test L1: '',L3)', loc
+          test_validated=test_validated.and.loc
+
+
+          loc = is_test_validated(
+     $         gradient_R1(
+     $         nodes,
+     $         i,j,
+     $         mass_density,
+     $         dx,dy),
+     $         test_data(4),
+     $         detailled)
+          if(detailled) print '(''test R1: '',L3)', loc
+          test_validated=test_validated.and.loc
+
+          
+          loc = is_test_validated(
+     $         gradient_R0(
+     $         nodes,
+     $         i,j,
+     $         mass_density,
+     $         dx,dy),
+     $         test_data(5),
+     $         detailled)
+          if(detailled) print '(''test R0: '',L3)', loc
+          test_validated=test_validated.and.loc
+
+          if(.not.detailled) print '(''test validated: '', L1)', loc
+
+        end subroutine test_ncoords_operators
+
+
+        subroutine initialize_nodes_x(nodes,dx,dy)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(out) :: nodes
+          real(rkind)                     , intent(out) :: dx
+          real(rkind)                     , intent(out) :: dy
+          
+          dx=0.5
+          dy=0.6
+          
+          nodes(1,1,1)=0.5
+          nodes(2,1,1)=0.2
+          nodes(3,1,1)=1.2
+          nodes(4,1,1)=5.0
+          nodes(5,1,1)=0.6
+          nodes(6,1,1)=-3.6
+          nodes(7,1,1)=-6.52
+          
+          nodes(1,2,1)=3.0
+          nodes(2,2,1)=4.2
+          nodes(3,2,1)=11.0
+          nodes(4,2,1)=10.6
+          nodes(5,2,1)=5.2
+          nodes(6,2,1)=1.2
+          nodes(7,2,1)=7.89
+          
+          nodes(1,3,1)=-14.2
+          nodes(2,3,1)=23
+          nodes(3,3,1)=9.8
+          nodes(4,3,1)=3.4
+          nodes(5,3,1)=9.1
+          nodes(6,3,1)=6.7
+          nodes(7,3,1)=4.12
+          
+          nodes(1,4,1)=2.45
+          nodes(2,4,1)=0.2
+          nodes(3,4,1)=9.0
+          nodes(4,4,1)=5.4
+          nodes(5,4,1)=-2.3
+          nodes(6,4,1)=1.0
+          nodes(7,4,1)=-5.62
+          
+          nodes(1,5,1)=3.6
+          nodes(2,5,1)=0.1
+          nodes(3,5,1)=6.3
+          nodes(4,5,1)=8.9
+          nodes(5,5,1)=-4.23
+          nodes(6,5,1)=8.9
+          nodes(7,5,1)=8.95
+
+        end subroutine initialize_nodes_x
+
+
+        subroutine initialize_nodes_y(nodes,dx,dy)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(out) :: nodes
+          real(rkind)                     , intent(out) :: dx
+          real(rkind)                     , intent(out) :: dy
+          
+          dx=0.6
+          dy=0.5
+          
+          nodes(1,1,1)=0.5
+          nodes(1,2,1)=0.2
+          nodes(1,3,1)=1.2
+          nodes(1,4,1)=5.0
+          nodes(1,5,1)=0.6
+          nodes(1,6,1)=-3.6
+          nodes(1,7,1)=-6.52
+          
+          nodes(2,1,1)=3.0
+          nodes(2,2,1)=4.2
+          nodes(2,3,1)=11.0
+          nodes(2,4,1)=10.6
+          nodes(2,5,1)=5.2
+          nodes(2,6,1)=1.2
+          nodes(2,7,1)=7.89
+          
+          nodes(3,1,1)=-14.2
+          nodes(3,2,1)=23
+          nodes(3,3,1)=9.8
+          nodes(3,4,1)=3.4
+          nodes(3,5,1)=9.1
+          nodes(3,6,1)=6.7
+          nodes(3,7,1)=4.12
+          
+          nodes(4,1,1)=2.45
+          nodes(4,2,1)=0.2
+          nodes(4,3,1)=9.0
+          nodes(4,4,1)=5.4
+          nodes(4,5,1)=-2.3
+          nodes(4,6,1)=1.0
+          nodes(4,7,1)=-5.62
+          
+          nodes(5,1,1)=3.6
+          nodes(5,2,1)=0.1
+          nodes(5,3,1)=6.3
+          nodes(5,4,1)=8.9
+          nodes(5,5,1)=-4.23
+          nodes(5,6,1)=8.9
+          nodes(5,7,1)=8.95
+
+        end subroutine initialize_nodes_y
 
       end program test_mattsson_operators

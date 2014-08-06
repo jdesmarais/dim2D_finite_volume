@@ -1,3 +1,19 @@
+      !> @file
+      !> module implemeting subroutines to apply open boundary
+      !> conditions at the edge of the computational domain using
+      !> hedstrom boundary conditions
+      !
+      !> @author 
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module implemeting subroutines to apply open boundary
+      !> conditions at the edge of the computational domain using
+      !> hedstrom boundary conditions
+      !
+      !> @date
+      !> 04_08_2014 - initial version - J.L. Desmarais
+      !-----------------------------------------------------------------
       module hedstrom_xy_module
 
         use interface_primary, only :
@@ -11,7 +27,7 @@
      $       add_body_forces
 
         use pmodel_eq_class, only :
-     $       pmodel_eq
+     $       pmodel_eq        
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size
@@ -35,6 +51,8 @@
         public ::
      $       compute_timedev_xlayer,
      $       compute_timedev_ylayer,
+     $       compute_timedev_corner_W,
+     $       compute_timedev_corner_E,
      $       compute_x_timedev_with_openbc,
      $       compute_y_timedev_with_openbc
 
@@ -169,6 +187,76 @@
           integer(ikind) :: i
 
 
+          do i=3, nx-bc_size
+             timedev(i,j,:) =
+     $            1.0d0/dx*(flux_x(i,j,:) - flux_x(i+1,j,:)) +
+     $         
+     $            compute_y_timedev_with_openbc(
+     $            nodes, i, j, p_model, dy,
+     $            gradient_y, incoming_y) +
+     $            
+     $            add_body_forces(p_model, nodes(i,j,:))
+          end do
+
+        end subroutine compute_timedev_ylayer
+
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for the
+        !> west corner using open boundary conditions
+        !
+        !> @date
+        !> 06_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array of data for the grid points
+        !
+        !>@param j
+        !> index identifying the grid point in the y-direction
+        !
+        !>@param dx
+        !> space step along the x-axis
+        !
+        !>@param dy
+        !> space step along the y-axis
+        !
+        !>@param p_model
+        !> governing equations of the physical model
+        !
+        !>@param gradient_y
+        !> procedure computing the gradient along the y-direction
+        !
+        !>@param incoming_y
+        !> procedure checking the type of characteristic at the edge
+        !> in the y-direction
+        !
+        !>@param timedev
+        !> time derivatives modified
+        !-------------------------------------------------------------
+        subroutine compute_timedev_corner_W(
+     $     nodes, j, dx, dy, p_model,
+     $     gradient_y, incoming_y,
+     $     timedev)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
+          integer(ikind)                    , intent(in)    :: j
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          procedure(gradient_y_proc)                        :: gradient_y
+          procedure(incoming_proc)                          :: incoming_y
+          real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
+
+          
+          integer(ikind) :: i
+          
+
           i=1
           timedev(i,j,:) = 
      $         compute_x_timedev_with_openbc(
@@ -193,19 +281,62 @@
      $         
      $         add_body_forces(p_model, nodes(i,j,:))
 
+        end subroutine compute_timedev_corner_W        
 
-          do i=3, nx-bc_size
-             timedev(i,j,:) =
-     $            1.0d0/dx*(flux_x(i,j,:) - flux_x(i+1,j,:)) +
-     $         
-     $            compute_y_timedev_with_openbc(
-     $            nodes, i, j, p_model, dy,
-     $            gradient_y, incoming_y) +
-     $            
-     $            add_body_forces(p_model, nodes(i,j,:))
-          end do
 
-          
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for the
+        !> east corner using open boundary conditions
+        !
+        !> @date
+        !> 06_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array of data for the grid points
+        !
+        !>@param j
+        !> index identifying the grid point in the y-direction
+        !
+        !>@param dx
+        !> space step along the x-axis
+        !
+        !>@param dy
+        !> space step along the y-axis
+        !
+        !>@param p_model
+        !> governing equations of the physical model
+        !
+        !>@param gradient_y
+        !> procedure computing the gradient along the y-direction
+        !
+        !>@param incoming_y
+        !> procedure checking the type of characteristic at the edge
+        !> in the y-direction
+        !
+        !>@param timedev
+        !> time derivatives modified
+        !-------------------------------------------------------------
+        subroutine compute_timedev_corner_E(
+     $     nodes, j, dx, dy, p_model,
+     $     gradient_y, incoming_y,
+     $     timedev)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
+          integer(ikind)                    , intent(in)    :: j
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          procedure(gradient_y_proc)                        :: gradient_y
+          procedure(incoming_proc)                          :: incoming_y
+          real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
+
+          integer(ikind) :: i
+
           i=nx-1
           timedev(i,j,:) = 
      $         compute_x_timedev_with_openbc(
@@ -230,7 +361,7 @@
      $         
      $         add_body_forces(p_model, nodes(i,j,:))
 
-        end subroutine compute_timedev_ylayer
+        end subroutine compute_timedev_corner_E
 
 
 
@@ -439,6 +570,6 @@
 
           end do
 
-        end function compute_y_timedev_with_openbc
+        end function compute_y_timedev_with_openbc        
 
       end module hedstrom_xy_module

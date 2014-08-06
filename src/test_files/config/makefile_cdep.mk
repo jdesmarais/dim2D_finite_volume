@@ -21,7 +21,8 @@ wave1d_dep=		wave1d_parameters.o\
 			wave1d_prim_module.o\
 			$(pm_dep)
 
-wave2d_dep=		wave2d_parameters.o\
+wave2d_dep=		wave2d_ncoords_module.o\
+			wave2d_parameters.o\
 			wave2d_prim_module.o\
 			$(pm_dep)
 
@@ -75,19 +76,13 @@ hedstrom_xy_dep=	$(bc_dep)\
 			sd_operators_fd_module.o\
 			hedstrom_xy_module.o
 
+hedstrom_xy_corners_dep=\
+			$(hedstrom_xy_dep)\
+			sd_operators_fd_ncoords_module.o\
+			hedstrom_ncoords_module.o
+
 hedstrom_x_reflection_y_dep=\
-			$(bc_dep)\
-			openbc_operators_module.o\
-			sd_operators_x_oneside_L0_class.o\
-			sd_operators_x_oneside_L1_class.o\
-			sd_operators_x_oneside_R1_class.o\
-			sd_operators_x_oneside_R0_class.o\
-			sd_operators_y_oneside_L0_class.o\
-			sd_operators_y_oneside_L1_class.o\
-			sd_operators_y_oneside_R1_class.o\
-			sd_operators_y_oneside_R0_class.o\
-			sd_operators_fd_module.o\
-			hedstrom_xy_module.o\
+			$(hedstrom_xy_dep)\
 			reflection_xy_module.o
 
 td_dep=			td_operators_abstract_class.o\

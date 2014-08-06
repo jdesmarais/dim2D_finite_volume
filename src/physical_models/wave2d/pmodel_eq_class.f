@@ -22,6 +22,12 @@
         use parameters_kind         , only : ikind, rkind
         use pmodel_eq_abstract_class, only : pmodel_eq_abstract
         use sd_operators_class      , only : sd_operators
+        use wave2d_ncoords_module   , only : compute_n_gradient_wave2d,
+     $                                       compute_n_eigenvalues_wave2d,
+     $                                       compute_n1_lefteigenvector_wave2d,
+     $                                       compute_n1_righteigenvector_wave2d,
+     $                                       compute_n2_lefteigenvector_wave2d,
+     $                                       compute_n2_righteigenvector_wave2d
         use wave2d_parameters       , only : c, c_x, c_y, epsilon,
      $                                       x_center, y_center,
      $                                       amplitude, period
@@ -100,8 +106,17 @@
           procedure, nopass :: compute_x_righteigenvector
           procedure, nopass :: compute_y_lefteigenvector
           procedure, nopass :: compute_y_righteigenvector
+
+          procedure, nopass :: compute_n1_eigenvalues       => compute_n_eigenvalues_wave2d
+          procedure, nopass :: compute_n2_eigenvalues       => compute_n_eigenvalues_wave2d
+          procedure, nopass :: compute_n1_lefteigenvector   => compute_n1_lefteigenvector_wave2d
+          procedure, nopass :: compute_n1_righteigenvector  => compute_n1_righteigenvector_wave2d
+          procedure, nopass :: compute_n2_lefteigenvector   => compute_n2_lefteigenvector_wave2d
+          procedure, nopass :: compute_n2_righteigenvector  => compute_n2_righteigenvector_wave2d
+
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
+          procedure, nopass :: compute_n_gradient => compute_n_gradient_wave2d
 
         end type pmodel_eq
 
@@ -1259,6 +1274,6 @@
           grad_var(2) = gradient(nodes,i,j,velocity_x,dy)
           grad_var(3) = gradient(nodes,i,j,velocity_y,dy)
 
-        end function compute_y_gradient
+        end function compute_y_gradient        
 
       end module pmodel_eq_class
