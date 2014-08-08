@@ -24,8 +24,8 @@
         !<computational field dimensions
         real(rkind), parameter :: x_min = -10.0000000000d0
         real(rkind), parameter :: x_max = 10.0000000000d0
-        real(rkind), parameter :: y_min = -10.0000000000d0
-        real(rkind), parameter :: y_max = 10.0000000000d0
+        real(rkind), parameter :: y_min = -15.0000000000d0
+        real(rkind), parameter :: y_max = 15.0000000000d0
         
         !<computational times
         real(rkind), parameter :: t_max = 100.0000000000d0
@@ -40,12 +40,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 7
-        integer(ikind), parameter :: nty = 5
+        integer(ikind), parameter :: ntx = 54
+        integer(ikind), parameter :: nty = 79
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 3
+        integer       , parameter :: ne = 4
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice

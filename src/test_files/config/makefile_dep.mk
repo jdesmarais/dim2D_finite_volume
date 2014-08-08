@@ -200,6 +200,23 @@ $(simpletest_dir)/pmodel_eq_class.o:\
 			$(phy_eq_dir)/pmodel_eq_abstract_class.o\
 			$(sd_cdir)/sd_operators_class.o
 
+#wave1d equations
+$(wave1d_dir)/wave1d_parameters.o:\
+			$(param_dir)/parameters_kind.o
+
+$(wave1d_dir)/wave1d_prim_module.o:\
+			$(param_dir)/parameters_kind.o
+
+$(wave1d_dir)/pmodel_eq_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_kind.o\
+			$(phy_eq_dir)/pmodel_eq_abstract_class.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(wave1d_dir)/wave1d_parameters.o\
+			$(wave1d_dir)/wave1d_prim_module.o
+
 #wave2d equations
 $(wave2d_dir)/wave2d_parameters.o:\
 			$(param_dir)/parameters_kind.o
@@ -225,22 +242,15 @@ $(wave2d_dir)/pmodel_eq_class.o:\
 			$(wave2d_dir)/wave2d_parameters.o\
 			$(wave2d_dir)/wave2d_prim_module.o
 
-#wave1d equations
-$(wave1d_dir)/wave1d_parameters.o:\
+
+#navier-stokes equations
+$(ns2d_dir)/ns2d_parameters.o:\
 			$(param_dir)/parameters_kind.o
 
-$(wave1d_dir)/wave1d_prim_module.o:\
-			$(param_dir)/parameters_kind.o
-
-$(wave1d_dir)/pmodel_eq_class.o:\
+$(ns2d_dir)/ns2d_prim_module.o:\
+			$(ns2d_dir)/ns2d_parameters.o\
 			$(sd_dir)/interface_primary.o\
-			$(bf_layer_dir)/parameters_bf_layer.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_kind.o\
-			$(phy_eq_dir)/pmodel_eq_abstract_class.o\
-			$(sd_cdir)/sd_operators_class.o\
-			$(wave1d_dir)/wave1d_parameters.o\
-			$(wave1d_dir)/wave1d_prim_module.o
+			$(param_dir)/parameters_kind.o
 
 
 #diffuse interface model equations

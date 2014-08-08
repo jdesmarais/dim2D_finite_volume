@@ -189,6 +189,15 @@ test_hedstrom_xy_corners:\
 			$(wave2d_dep)\
 			$(hedstrom_xy_corners_dep)
 
+test_ns2d_eq_program.o:	$(param_dir)/parameters_kind.o\
+			$(ns2d_dir)/ns2d_parameters.o\
+			$(ns2d_dir)/ns2d_prim_module.o
+
+test_ns2d_eq_program:	parameters_kind.o\
+			ns2d_parameters.o\
+			interface_primary.o\
+			ns2d_prim_module.o
+
 #			openbc_operators_module.o\
 #			sd_operators_abstract_class.o\
 #			sd_operators_class.o\
