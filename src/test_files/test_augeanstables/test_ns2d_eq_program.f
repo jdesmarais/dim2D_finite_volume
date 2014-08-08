@@ -19,7 +19,15 @@
      $       energy_inviscid_x_flux,
      $       energy_inviscid_y_flux
 
+        use ns2d_fluxes_module, only :
+     $       flux_x_mass_density, flux_y_mass_density,
+     $       flux_x_momentum_x  , flux_y_momentum_x,
+     $       flux_x_momentum_y  , flux_y_momentum_y,
+     $       flux_x_total_energy, flux_y_total_energy
+
         use parameters_kind, only : ikind, rkind
+
+        use sd_operators_class, only : sd_operators
 
 
         implicit none
@@ -27,6 +35,7 @@
         real(rkind), dimension(5,5,4) :: nodes
         real(rkind)                   :: dx
         real(rkind)                   :: dy
+        type(sd_operators)            :: s
         logical                       :: detailled
         logical                       :: test_validated
 
@@ -51,6 +60,19 @@
         print '(''test ns2_prim'')'
         print '(''---------------------------'')'
         test_validated = test_ns2d_prim(nodes,detailled)
+        if(detailled) print '(''---------------------------'')'
+        print '(''test_validated: '',L3)', test_validated
+        print '(''---------------------------'')'
+        print '()'
+
+
+        !compute the fluxes for the NS equations
+        !and compare with the test data
+        detailled = .false.
+
+        print '(''test ns2_fluxes'')'
+        print '(''---------------------------'')'
+        test_validated = test_ns2d_fluxes(nodes,dx,dy,s,detailled)
         if(detailled) print '(''---------------------------'')'
         print '(''test_validated: '',L3)', test_validated
         print '(''---------------------------'')'
@@ -226,28 +248,28 @@
           print '()'
           print '(''mass_density'')'
           do j=1,5
-             print '(5F8.3)', nodes(1:5,j,1)
+             print '(5F8.3)', nodes(1:5,6-j,1)
           end do
           print '()'
 
           print '()'
           print '(''momentum-x'')'
           do j=1,5
-             print '(5F8.3)', nodes(1:5,j,2)
+             print '(5F8.3)', nodes(1:5,6-j,2)
           end do
           print '()'
 
           print '()'
           print '(''momentum-y'')'
           do j=1,5
-             print '(5F8.3)', nodes(1:5,j,3)
+             print '(5F8.3)', nodes(1:5,6-j,3)
           end do
           print '()'
 
           print '()'
           print '(''total energy'')'
           do j=1,5
-             print '(5F8.3)', nodes(1:5,j,4)
+             print '(5F8.3)', nodes(1:5,6-j,4)
           end do
           print '()'
 
@@ -396,5 +418,113 @@
 
 
         end function test_ns2d_prim
+
+
+        function test_ns2d_fluxes(nodes,dx,dy,s,detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          type(sd_operators)           , intent(in) :: s
+          logical                      , intent(in) :: detailled
+          logical                                   :: test_validated
+
+
+          real(rkind), dimension(8) :: test_data
+          logical                   :: loc
+          integer(ikind)            :: i,j
+
+
+          test_data(1)  =  5.165      !flux_x_mass
+          test_data(2)  =  5.039545704!flux_x_momentum_x
+          test_data(3)  =  1.139892201!flux_x_momentum_y
+          test_data(4)  =  3.210322639!flux_x_total_energy
+
+          test_data(5)  =  8.425      !flux_y_mass
+          test_data(6)  =  3.115780591!flux_y_momentum_x
+          test_data(7)  =  6.840166285!flux_y_momentum_y
+          test_data(8)  =  2.615690238!flux_y_total_energy
+
+          i = 3
+          j = 3
+
+
+          !fluxes-x
+          test_validated = .true.
+          loc = is_test_validated(
+     $         flux_x_mass_density(nodes,s,i,j),
+     $         test_data(1),
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test flux_x_mass: '', L3)', loc
+
+
+          test_validated = .true.
+          loc = is_test_validated(
+     $         flux_x_momentum_x(nodes,s,i,j,dx,dy),
+     $         test_data(2),
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test flux_x_momentum_x: '', L3)', loc
+
+
+          test_validated = .true.
+          loc = is_test_validated(
+     $         flux_x_momentum_y(nodes,s,i,j,dx,dy),
+     $         test_data(3),
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test flux_x_momentum_y: '', L3)', loc
+
+
+          test_validated = .true.
+          loc = is_test_validated(
+     $         flux_x_total_energy(nodes,s,i,j,dx,dy),
+     $         test_data(4),
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test flux_x_total_energy: '', L3)', loc
+
+
+          !fluxes-y
+          test_validated = .true.
+          loc = is_test_validated(
+     $         flux_y_mass_density(nodes,s,i,j),
+     $         test_data(5),
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test flux_y_mass: '', L3)', loc
+
+
+          test_validated = .true.
+          loc = is_test_validated(
+     $         flux_y_momentum_x(nodes,s,i,j,dx,dy),
+     $         test_data(6),
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test flux_y_momentum_x: '', L3)', loc
+
+
+          test_validated = .true.
+          loc = is_test_validated(
+     $         flux_y_momentum_y(nodes,s,i,j,dx,dy),
+     $         test_data(7),
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test flux_y_momentum_y: '', L3)', loc
+
+
+          test_validated = .true.
+          loc = is_test_validated(
+     $         flux_y_total_energy(nodes,s,i,j,dx,dy),
+     $         test_data(8),
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test flux_y_total_energy: '', L3)', loc
+
+        end function test_ns2d_fluxes
 
       end program test_ns2d_eq_program

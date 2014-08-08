@@ -252,6 +252,12 @@ $(ns2d_dir)/ns2d_prim_module.o:\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_kind.o
 
+$(ns2d_dir)/ns2d_fluxes_module.o:\
+			$(ns2d_dir)/ns2d_parameters.o\
+			$(ns2d_dir)/ns2d_prim_module.o\
+			$(param_dir)/parameters_kind.o\
+			$(sd_cdir)/sd_operators_class.o
+
 
 #diffuse interface model equations
 $(dim2d_dir)/dim2d_parameters.o:\
