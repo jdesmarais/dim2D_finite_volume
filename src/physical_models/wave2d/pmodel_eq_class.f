@@ -894,9 +894,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> computation of the left eigenvector for the hyperbolic terms
-        !> in the x-direction. By denoting L the left eigenmatrix, the
-        !> result of the function is L[k,:]
+        !> computation of the left eigenvectors for the hyperbolic terms
+        !> in the x-direction
         !
         !> @date
         !> 01_08_2014 - initial version - J.L. Desmarais
@@ -904,19 +903,15 @@
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
         !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
+        !> eigenvectors at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_lefteigenvector(nodes,k) result(eigenvect)
+        function compute_x_lefteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
           real(rkind) :: node_s
@@ -924,42 +919,33 @@
           node_s = nodes(1)
 
 
-          select case(k)
-            case(1)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 0.0d0
-                  eigenvect(2) = 0.0d0
-                  eigenvect(3) = 1.0d0
-               else
-                  eigenvect(1) = 0.0
-                  eigenvect(2) = 0.0
-                  eigenvect(3) = 1.0
-               end if
-            case(2)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 0.5d0
-                  eigenvect(2) = 0.5d0
-                  eigenvect(3) = 0.0d0
-               else
-                  eigenvect(1) = 0.5
-                  eigenvect(2) = 0.5
-                  eigenvect(3) = 0.0
-               end if
-            case(3)
-               if(rkind.eq.8) then
-                  eigenvect(1) = -0.5d0
-                  eigenvect(2) = 0.5d0
-                  eigenvect(3) = 0.0d0
-               else
-                  eigenvect(1) = -0.5d0
-                  eigenvect(2) = 0.5d0
-                  eigenvect(3) = 0.0
-               end if
-            case default
-               print '(''wave2d: compute_x_righteigenvector'')'
-               print '(''k: '',I2)', k
-               stop 'k not recognized'
-          end select
+          if(rkind.eq.8) then
+             eigenvect(1,1) =  0.0d0
+             eigenvect(2,1) =  0.0d0
+             eigenvect(3,1) =  1.0d0
+                               
+             eigenvect(1,2) =  0.5d0
+             eigenvect(2,2) =  0.5d0
+             eigenvect(3,2) =  0.0d0
+             
+             eigenvect(1,3) = -0.5d0
+             eigenvect(2,3) =  0.5d0
+             eigenvect(3,3) =  0.0d0
+             
+          else
+             eigenvect(1,1) =  0.0
+             eigenvect(2,1) =  0.0
+             eigenvect(3,1) =  1.0
+                               
+             eigenvect(1,2) =  0.5
+             eigenvect(2,2) =  0.5
+             eigenvect(3,2) =  0.0
+
+             eigenvect(1,3) = -0.5
+             eigenvect(2,3) =  0.5
+             eigenvect(3,3) =  0.0
+
+          end if
 
         end function compute_x_lefteigenvector
 
@@ -968,9 +954,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> computation of the right eigenvector for the hyperbolic terms
-        !> in the x-direction. By denoting R the right eigenmatrix, the
-        !> result of the function is R[k,:]
+        !> computation of the right eigenvectors for the hyperbolic terms
+        !> in the x-direction
         !
         !> @date
         !> 01_08_2014 - initial version - J.L. Desmarais
@@ -978,61 +963,48 @@
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
         !>@return eigenvect
-        !> eigenvector at the location of the grid point
+        !> eigenvectors at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_righteigenvector(nodes,k) result(eigenvect)
+        function compute_x_righteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
           real(rkind) :: node_s
 
           node_s = nodes(1)
 
-          select case(k)
-            case(1)
-               if(rkind.eq.8) then
-                  eigenvect(1) =  0.0d0
-                  eigenvect(2) =  1.0d0
-                  eigenvect(3) = -1.0d0
-               else
-                  eigenvect(1) =  0.0
-                  eigenvect(2) =  1.0
-                  eigenvect(3) = -1.0
-               end if
-            case(2)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 0.0d0
-                  eigenvect(2) = 1.0d0
-                  eigenvect(3) = 1.0d0
-               else
-                  eigenvect(1) = 0.0
-                  eigenvect(2) = 1.0
-                  eigenvect(3) = 1.0
-               end if
-            case(3)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 1.0d0
-                  eigenvect(2) = 0.0d0
-                  eigenvect(3) = 0.0d0
-               else
-                  eigenvect(1) = 1.0
-                  eigenvect(2) = 0.0
-                  eigenvect(3) = 0.0
-               end if
-            case default
-               print '(''wave2d: compute_x_lefteigenvector'')'
-               print '(''k: '',I2)', k
-               stop 'k not recognized'
-          end select          
+          if(rkind.eq.8) then
+             eigenvect(1,1) =  0.0d0
+             eigenvect(2,1) =  1.0d0
+             eigenvect(3,1) = -1.0d0
+             
+             eigenvect(1,2) =  0.0d0
+             eigenvect(2,2) =  1.0d0
+             eigenvect(3,2) =  1.0d0
+                               
+             eigenvect(1,3) =  1.0d0
+             eigenvect(2,3) =  0.0d0
+             eigenvect(3,3) =  0.0d0
+             
+          else
+             eigenvect(1,1) =  0.0
+             eigenvect(2,1) =  1.0
+             eigenvect(3,1) = -1.0
+             
+             eigenvect(1,2) =  0.0
+             eigenvect(2,2) =  1.0
+             eigenvect(3,2) =  1.0
+                               
+             eigenvect(1,3) =  1.0
+             eigenvect(2,3) =  0.0
+             eigenvect(3,3) =  0.0
+
+          end if
 
         end function compute_x_righteigenvector
 
@@ -1041,9 +1013,8 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> computation of the left eigenvector for the hyperbolic terms
-        !> in the x-direction. By denoting L the left eigenmatrix, the
-        !> result of the function is L[k,:]
+        !> computation of the left eigenvectors for the hyperbolic terms
+        !> in the x-direction
         !
         !> @date
         !> 01_08_2014 - initial version - J.L. Desmarais
@@ -1051,19 +1022,15 @@
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
-        !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
+        !>@return eigenvect
+        !> eigenvectors at the location of the grid point
         !--------------------------------------------------------------
-        function compute_y_lefteigenvector(nodes,k) result(eigenvect)
+        function compute_y_lefteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
           real(rkind) :: node_s
@@ -1071,42 +1038,32 @@
           node_s = nodes(1)
 
 
-          select case(k)
-            case(1)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 0.0d0
-                  eigenvect(2) = 1.0d0
-                  eigenvect(3) = 0.0d0
-               else
-                  eigenvect(1) = 0.0
-                  eigenvect(2) = 1.0
-                  eigenvect(3) = 0.0
-               end if
-            case(2)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 0.5d0
-                  eigenvect(2) = 0.0d0
-                  eigenvect(3) = 0.5d0
-               else
-                  eigenvect(1) = 0.5
-                  eigenvect(2) = 0.0
-                  eigenvect(3) = 0.5
-               end if
-            case(3)
-               if(rkind.eq.8) then
-                  eigenvect(1) = -0.5d0
-                  eigenvect(2) =  0.0d0
-                  eigenvect(3) =  0.5d0
-               else
-                  eigenvect(1) = -0.5
-                  eigenvect(2) =  0.0
-                  eigenvect(3) =  0.5
-               end if
-            case default
-               print '(''wave2d: compute_x_righteigenvector'')'
-               print '(''k: '',I2)', k
-               stop 'k not recognized'
-          end select
+          if(rkind.eq.8) then
+             eigenvect(1,1) =  0.0d0
+             eigenvect(2,1) =  1.0d0
+             eigenvect(3,1) =  0.0d0
+                               
+             eigenvect(1,2) =  0.5d0
+             eigenvect(2,2) =  0.0d0
+             eigenvect(3,2) =  0.5d0
+
+             eigenvect(1,3) = -0.5d0
+             eigenvect(2,3) =  0.0d0
+             eigenvect(3,3) =  0.5d0
+
+          else
+             eigenvect(1,1) =  0.0
+             eigenvect(2,1) =  1.0
+             eigenvect(3,1) =  0.0
+                               
+             eigenvect(1,2) =  0.5
+             eigenvect(2,2) =  0.0
+             eigenvect(3,2) =  0.5
+
+             eigenvect(1,3) = -0.5
+             eigenvect(2,3) =  0.0
+             eigenvect(3,3) =  0.5
+          end if
 
         end function compute_y_lefteigenvector
 
@@ -1116,8 +1073,7 @@
         !
         !> @brief
         !> computation of the right eigenvector for the hyperbolic terms
-        !> in the x-direction. By denoting R the right eigenmatrix, the
-        !> result of the function is R[k,:]
+        !> in the x-direction
         !
         !> @date
         !> 01_08_2014 - initial version - J.L. Desmarais
@@ -1125,61 +1081,47 @@
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
         !>@return eigenvect
-        !> eigenvector at the location of the grid point
+        !> eigenvectors at the location of the grid point
         !--------------------------------------------------------------
-        function compute_y_righteigenvector(nodes,k) result(eigenvect)
+        function compute_y_righteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
           real(rkind) :: node_s
 
           node_s = nodes(1)
 
-          select case(k)
-            case(1)
-               if(rkind.eq.8) then
-                  eigenvect(1) =  0.0d0
-                  eigenvect(2) =  1.0d0
-                  eigenvect(3) = -1.0d0
-               else
-                  eigenvect(1) =  0.0
-                  eigenvect(2) =  1.0
-                  eigenvect(3) = -1.0d0
-               end if
-            case(2)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 1.0d0
-                  eigenvect(2) = 0.0d0
-                  eigenvect(3) = 0.0d0
-               else
-                  eigenvect(1) = 1.0
-                  eigenvect(2) = 0.0
-                  eigenvect(3) = 0.0
-               end if
-            case(3)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 0.0d0
-                  eigenvect(2) = 1.0d0
-                  eigenvect(3) = 1.0d0
-               else
-                  eigenvect(1) = 0.0
-                  eigenvect(2) = 1.0
-                  eigenvect(3) = 1.0
-               end if
-            case default
-               print '(''wave2d: compute_x_lefteigenvector'')'
-               print '(''k: '',I2)', k
-               stop 'k not recognized'
-          end select          
+          if(rkind.eq.8) then
+             eigenvect(1,1) =  0.0d0
+             eigenvect(2,1) =  1.0d0
+             eigenvect(3,1) = -1.0d0
+
+             eigenvect(1,2) =  1.0d0
+             eigenvect(2,2) =  0.0d0
+             eigenvect(3,2) =  0.0d0
+                               
+             eigenvect(1,3) =  0.0d0
+             eigenvect(2,3) =  1.0d0
+             eigenvect(3,3) =  1.0d0
+
+          else
+             eigenvect(1,1) =  0.0
+             eigenvect(2,1) =  1.0
+             eigenvect(3,1) = -1.0
+
+             eigenvect(1,2) =  1.0
+             eigenvect(2,2) =  0.0
+             eigenvect(3,2) =  0.0
+                               
+             eigenvect(1,3) =  0.0
+             eigenvect(2,3) =  1.0
+             eigenvect(3,3) =  1.0
+          end if
 
         end function compute_y_righteigenvector
 

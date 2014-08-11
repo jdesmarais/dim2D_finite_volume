@@ -37,6 +37,13 @@
         end if
 
 
+        print '()'
+        print '(''*************************'')'
+        print '(''WARNING: use wave1d model'')'
+        print '(''*************************'')'
+        print '()'
+
+
         !initialization of the nodes
         call initialize_nodes(nodes,dx,dy)
 
@@ -66,7 +73,7 @@
 
 
         !test apply_bc_on_timedev_2ndorder
-        detailled=.true.
+        detailled=.false.
         print '(''----------------------------------'')'
         print '(''test_apply_bc_on_timedev'')'
         print '(''----------------------------------'')'

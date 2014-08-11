@@ -415,17 +415,21 @@
           real(rkind), dimension(ne)                   :: timedev
 
 
-          real(rkind), dimension(ne) :: eigenvalues
-          integer                    :: k
-          real(rkind), dimension(ne) :: incoming_amp
-          real(rkind), dimension(ne) :: left_eigenvector
-          real(rkind), dimension(ne) :: var_gradient
-          real(rkind), dimension(ne) :: right_eigenvector
+          real(rkind), dimension(ne)    :: eigenvalues
+          integer                       :: k
+          real(rkind), dimension(ne)    :: incoming_amp
+          real(rkind), dimension(ne,ne) :: left_eigenmatrix
+          real(rkind), dimension(ne,ne) :: right_eigenmatrix
+          real(rkind), dimension(ne)    :: left_eigenvector
+          real(rkind), dimension(ne)    :: var_gradient
+          real(rkind), dimension(ne)    :: right_eigenvector
 
 
           !determination of the speed of the amplitude waves
           !along the x-direction
-          eigenvalues = p_model%compute_x_eigenvalues(nodes(i,j,:))
+          eigenvalues      = p_model%compute_x_eigenvalues(nodes(i,j,:))
+          left_eigenmatrix = p_model%compute_x_lefteigenvector(nodes(i,j,:))
+          right_eigenmatrix= p_model%compute_x_righteigenvector(nodes(i,j,:))
 
 
           !construction of the vector of characteristic amplitudes
@@ -444,8 +448,7 @@
              !otherwise, the characteristic amplitude is computed using
              !one-side differentiation
              else
-                left_eigenvector = p_model%compute_x_lefteigenvector(
-     $               nodes(i,j,:),k)
+                left_eigenvector = left_eigenmatrix(:,k)
                 var_gradient     = p_model%compute_x_gradient(
      $               nodes, i,j, gradient, dx)
                 incoming_amp(k)  =  - eigenvalues(k)*
@@ -460,8 +463,7 @@
           !to the time derivatives
           do k=1,ne
 
-             right_eigenvector = p_model%compute_x_righteigenvector(
-     $               nodes(i,j,:),k)
+             right_eigenvector = right_eigenmatrix(:,k)
              timedev(k) = DOT_PRODUCT(right_eigenvector, incoming_amp)
 
           end do
@@ -519,17 +521,21 @@
           real(rkind), dimension(ne)                   :: timedev
 
 
-          real(rkind), dimension(ne) :: eigenvalues
-          integer                    :: k
-          real(rkind), dimension(ne) :: incoming_amp
-          real(rkind), dimension(ne) :: left_eigenvector
-          real(rkind), dimension(ne) :: var_gradient
-          real(rkind), dimension(ne) :: right_eigenvector
+          real(rkind), dimension(ne)    :: eigenvalues
+          integer                       :: k
+          real(rkind), dimension(ne)    :: incoming_amp
+          real(rkind), dimension(ne,ne) :: left_eigenmatrix
+          real(rkind), dimension(ne,ne) :: right_eigenmatrix
+          real(rkind), dimension(ne)    :: left_eigenvector
+          real(rkind), dimension(ne)    :: var_gradient
+          real(rkind), dimension(ne)    :: right_eigenvector
 
 
           !determination of the speed of the amplitude waves
           !along the x-direction
-          eigenvalues = p_model%compute_y_eigenvalues(nodes(i,j,:))
+          eigenvalues      = p_model%compute_y_eigenvalues(nodes(i,j,:))
+          left_eigenmatrix = p_model%compute_y_lefteigenvector(nodes(i,j,:))
+          right_eigenmatrix= p_model%compute_y_righteigenvector(nodes(i,j,:))
 
 
           !construction of the vector of characteristic amplitudes
@@ -548,8 +554,7 @@
              !otherwise, the characteristic amplitude is computed using
              !one-side differentiation
              else
-                left_eigenvector = p_model%compute_y_lefteigenvector(
-     $               nodes(i,j,:),k)
+                left_eigenvector = left_eigenmatrix(k,:)
                 var_gradient     = p_model%compute_y_gradient(
      $               nodes, i,j, gradient, dy)
                 incoming_amp(k)  =  - eigenvalues(k)*
@@ -564,8 +569,7 @@
           !to the time derivatives
           do k=1,ne
 
-             right_eigenvector = p_model%compute_y_righteigenvector(
-     $               nodes(i,j,:),k)
+             right_eigenvector = right_eigenmatrix(k,:)
              timedev(k) = DOT_PRODUCT(right_eigenvector, incoming_amp)
 
           end do

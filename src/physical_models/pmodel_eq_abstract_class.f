@@ -708,20 +708,16 @@
           !>@param nodes
           !> array with the grid point data
           !
-          !>@param k
-          !> integer identifying the eigenvector
-          !
           !>@return eigenvalues
           !> eigenvalues at the location of the grid point
           !--------------------------------------------------------------
-          function eigenvect_proc(nodes,k) result(eigenvect)
+          function eigenvect_proc(nodes) result(eigenvect)
 
             import rkind
             import ne
 
             real(rkind), dimension(ne), intent(in) :: nodes
-            integer                   , intent(in) :: k
-            real(rkind), dimension(ne)             :: eigenvect
+            real(rkind), dimension(ne,ne)          :: eigenvect
 
           end function eigenvect_proc
 

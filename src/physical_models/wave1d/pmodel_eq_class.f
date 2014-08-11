@@ -14,19 +14,19 @@
       !-----------------------------------------------------------------
       module pmodel_eq_class
       
-        use interface_primary       , only : gradient_x_proc,
-     $                                       gradient_y_proc
-        use parameters_bf_layer     , only : interior_pt
-        use parameters_constant     , only : scalar, vector_x, vector_y
-        use parameters_input        , only : nx,ny,ne,bc_size
-        use parameters_kind         , only : ikind, rkind
-        use pmodel_eq_abstract_class, only : pmodel_eq_abstract
-        use sd_operators_class      , only : sd_operators
-        use wave1d_parameters       , only : c, mu,
-     $                                       x_center, y_center,
-     $                                       amplitude, period
-        use wave1d_prim_module      , only : position,
-     $                                       velocity_x
+        use interface_primary      , only : gradient_x_proc,
+     $                                      gradient_y_proc
+        use parameters_bf_layer    , only : interior_pt
+        use parameters_constant    , only : scalar, vector_x, vector_y
+        use parameters_input       , only : nx,ny,ne,bc_size
+        use parameters_kind        , only : ikind, rkind
+        use pmodel_eq_default_class, only : pmodel_eq_default
+        use sd_operators_class     , only : sd_operators
+        use wave1d_parameters      , only : c, mu,
+     $                                      x_center, y_center,
+     $                                      amplitude, period
+        use wave1d_prim_module     , only : position,
+     $                                      velocity_x
 
         implicit none
 
@@ -69,7 +69,7 @@
         !> check whether the open boundary conditions are undermined
         !> at the grid point location
         !---------------------------------------------------------------
-        type, extends(pmodel_eq_abstract) :: pmodel_eq
+        type, extends(pmodel_eq_default) :: pmodel_eq
           
           contains
 
@@ -853,19 +853,15 @@
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
         !>@return eigenvalues
         !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_lefteigenvector(nodes,k) result(eigenvect)
+        function compute_x_lefteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
           real(rkind) :: node_s
@@ -873,29 +869,20 @@
           node_s = nodes(1)
 
 
-          select case(k)
-            case(1)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 0.5d0
-                  eigenvect(2) = 0.5d0
-               else
-                  eigenvect(1) = 0.5
-                  eigenvect(2) = 0.5
-               end if
-            case(2)
-               if(rkind.eq.8) then
-                  eigenvect(1) = - 0.5d0
-                  eigenvect(2) =   0.5d0
-               else
-                  eigenvect(1) = - 0.5
-                  eigenvect(2) =   0.5
-               end if
-            case default
-               print '(''wave1d: compute_x_lefteigenvector'')'
-               print '(''k: '',I2)', k
-               stop 'k not recognized'
-          end select
+          if(rkind.eq.8) then
+             eigenvect(1,1) =   0.5d0
+             eigenvect(2,1) =   0.5d0
 
+             eigenvect(1,2) = - 0.5d0
+             eigenvect(2,2) =   0.5d0
+
+          else
+             eigenvect(1,1) =   0.5
+             eigenvect(2,1) =   0.5
+             
+             eigenvect(1,2) = - 0.5
+             eigenvect(2,2) =   0.5
+          end if
 
         end function compute_x_lefteigenvector
 
@@ -914,48 +901,35 @@
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
         !>@return eigenvect
         !> eigenvector at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_righteigenvector(nodes,k) result(eigenvect)
+        function compute_x_righteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
           real(rkind) :: node_s
 
           node_s = nodes(1)
 
-          select case(k)
-            case(1)
-               if(rkind.eq.8) then
-                  eigenvect(1) =   1.0d0
-                  eigenvect(2) = - 1.0d0
-               else
-                  eigenvect(1) =   1.0d0
-                  eigenvect(2) = - 1.0d0
-               end if
-            case(2)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 1.0d0
-                  eigenvect(2) = 1.0d0
-               else
-                  eigenvect(1) = 1.0
-                  eigenvect(2) = 1.0
-               end if
-            case default
-               print '(''wave1d: compute_x_righteigenvector'')'
-               print '(''k: '',I2)', k
-               stop 'k not recognized'
-          end select 
+          if(rkind.eq.8) then
+             eigenvect(1,1) =   1.0d0
+             eigenvect(2,1) = - 1.0d0
 
+             eigenvect(1,2) =   1.0d0
+             eigenvect(2,2) =   1.0d0
+          else
+             eigenvect(1,1) =   1.0
+             eigenvect(2,1) = - 1.0
+
+             eigenvect(1,2) =   1.0
+             eigenvect(2,2) =   1.0
+          end if
+          
          end function compute_x_righteigenvector
 
 
@@ -973,19 +947,15 @@
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
         !>@return eigenvalues
         !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_y_lefteigenvector(nodes,k) result(eigenvect)
+        function compute_y_lefteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
           real(rkind) :: node_s
@@ -993,28 +963,19 @@
           node_s = nodes(1)
 
 
-          select case(k)
-            case(1)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 0.0d0
-                  eigenvect(2) = 0.0d0
-               else
-                  eigenvect(1) = 0.0
-                  eigenvect(2) = 0.0
-               end if
-            case(2)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 0.0d0
-                  eigenvect(2) = 0.0d0
-               else
-                  eigenvect(1) = 0.0
-                  eigenvect(2) = 0.0
-               end if
-            case default
-               print '(''wave2d: compute_y_lefteigenvector'')'
-               print '(''k: '',I2)', k
-               stop 'k not recognized'
-          end select
+          if(rkind.eq.8) then
+             eigenvect(1,1) = 0.0d0
+             eigenvect(2,1) = 0.0d0
+
+             eigenvect(1,2) = 0.0d0
+             eigenvect(2,2) = 0.0d0
+          else
+             eigenvect(1,1) = 0.0
+             eigenvect(2,1) = 0.0
+
+             eigenvect(1,2) = 0.0
+             eigenvect(2,2) = 0.0
+          end if
 
         end function compute_y_lefteigenvector
 
@@ -1033,47 +994,36 @@
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
         !>@return eigenvect
         !> eigenvector at the location of the grid point
         !--------------------------------------------------------------
-        function compute_y_righteigenvector(nodes,k) result(eigenvect)
+        function compute_y_righteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
           real(rkind) :: node_s
 
           node_s = nodes(1)
 
-          select case(k)
-            case(1)
-               if(rkind.eq.8) then
-                  eigenvect(1) =  0.0d0
-                  eigenvect(2) =  0.0d0
-               else
-                  eigenvect(1) =  0.0
-                  eigenvect(2) =  0.0
-               end if
-            case(2)
-               if(rkind.eq.8) then
-                  eigenvect(1) = 0.0d0
-                  eigenvect(2) = 0.0d0
-               else
-                  eigenvect(1) = 0.0
-                  eigenvect(2) = 0.0
-               end if
-            case default
-               print '(''wave2d: compute_x_righteigenvector'')'
-               print '(''k: '',I2)', k
-               stop 'k not recognized'
-          end select          
+
+          if(rkind.eq.8) then
+             eigenvect(1,1) =  0.0d0
+             eigenvect(2,1) =  0.0d0
+
+             eigenvect(1,2) =  0.0d0
+             eigenvect(2,2) =  0.0d0
+
+          else
+             eigenvect(1,1) =  0.0
+             eigenvect(2,1) =  0.0
+
+             eigenvect(1,2) =  0.0
+             eigenvect(2,2) =  0.0
+          end if
 
         end function compute_y_righteigenvector
 

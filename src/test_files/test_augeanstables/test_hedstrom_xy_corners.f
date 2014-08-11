@@ -40,6 +40,12 @@
            stop 'the test requires (nx,ny,ne)=(7,5,3)'
         end if
 
+        print '()'
+        print '(''*************************'')'
+        print '(''WARNING: use wave2d model'')'
+        print '(''*************************'')'
+        print '()'
+
 
         call initialize_nodes(nodes,dx,dy)
 

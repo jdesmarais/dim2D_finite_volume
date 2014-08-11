@@ -186,12 +186,12 @@
           real(rkind), dimension(ne)                   :: timedev
 
 
-          real(rkind), dimension(ne) :: eigenvalues
-          integer                    :: k
-          real(rkind), dimension(ne) :: incoming_amp
-          real(rkind), dimension(ne) :: left_eigenvector
-          real(rkind), dimension(ne) :: var_gradient
-          real(rkind), dimension(ne) :: right_eigenvector
+          real(rkind), dimension(ne)    :: eigenvalues
+          real(rkind), dimension(ne,ne) :: left_eigenmatrix
+          real(rkind), dimension(ne,ne) :: right_eigenmatrix
+          integer                       :: k
+          real(rkind), dimension(ne)    :: incoming_amp
+          real(rkind), dimension(ne)    :: var_gradient
 
 
           !determination of the speed of the amplitude waves
@@ -199,10 +199,14 @@
           select case(direction)
 
             case(x_direction)
-               eigenvalues = p_model%compute_n1_eigenvalues(nodes(i,j,:))
+               eigenvalues       = p_model%compute_n1_eigenvalues(nodes(i,j,:))
+               left_eigenmatrix  = p_model%compute_n1_lefteigenvector(nodes(i,j,:))
+               right_eigenmatrix = p_model%compute_n1_righteigenvector(nodes(i,j,:))
 
             case(y_direction)
-               eigenvalues = p_model%compute_n2_eigenvalues(nodes(i,j,:))
+               eigenvalues       = p_model%compute_n2_eigenvalues(nodes(i,j,:))
+               left_eigenmatrix  = p_model%compute_n2_lefteigenvector(nodes(i,j,:))
+               right_eigenmatrix = p_model%compute_n2_righteigenvector(nodes(i,j,:))
 
             case default
                print '(''hedstrom_xy_module'')'
@@ -229,28 +233,11 @@
              !one-side differentiation
              else
 
-                select case(direction)
-
-                  case(x_direction)
-                     left_eigenvector = p_model%compute_n1_lefteigenvector(
-     $                    nodes(i,j,:),k)
-
-                  case(y_direction)
-                     left_eigenvector = p_model%compute_n2_lefteigenvector(
-     $                    nodes(i,j,:),k)
-
-                  case default
-                     print '(''hedstrom_xy_module'')'
-                     print '(''compute_n_timedev_with_openbc'')'
-                     stop 'direction not recognized'
-
-                end select
-
                 var_gradient     = p_model%compute_n_gradient(
      $               nodes, i,j, gradient, dx,dy)   
              
                 incoming_amp(k)  =  - eigenvalues(k)*
-     $               DOT_PRODUCT(left_eigenvector, var_gradient)
+     $               DOT_PRODUCT(left_eigenmatrix(:,k), var_gradient)
 
              end if
 
@@ -259,24 +246,7 @@
 
           !determination of the contribution of the hyperbolic terms
           !to the time derivatives
-          do k=1,ne
-
-             select case(direction)
-               case(x_direction)
-                  right_eigenvector = p_model%compute_n1_righteigenvector(
-     $               nodes(i,j,:),k)
-               case(y_direction)
-                  right_eigenvector = p_model%compute_n2_righteigenvector(
-     $               nodes(i,j,:),k)
-               case default
-                  print '(''hedstrom_xy_module'')'
-                  print '(''compute_n_timedev_with_openbc'')'
-                  stop 'direction not recognized'
-             end select
-             
-             timedev(k) = DOT_PRODUCT(right_eigenvector, incoming_amp)
-
-          end do
+          timedev = MATMUL(incoming_amp, right_eigenmatrix)
 
         end function compute_n_timedev_with_openbc
 
