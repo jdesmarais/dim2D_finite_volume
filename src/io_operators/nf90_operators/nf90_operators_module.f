@@ -23,9 +23,7 @@
         use parameters_input   , only : npx,npy,nx,ny,ne,bc_size,
      $                                  x_min,x_max,y_min,y_max,
      $                                  t_max,dt,detail_print
-        use pmodel_eq_class    , only : pmodel_eq
-        use dim2d_parameters   , only : viscous_r, Re, We, Pr,
-     $                                  cv_r, gravity
+        use pmodel_eq_class    , only : pmodel_eq        
 
         implicit none
 
@@ -183,31 +181,66 @@
           
 
           !<write the characteristic parameters for the DIM
-          retval = nf90_put_att(ncid,nf90_global,'viscous_r',viscous_r)
-          !DEC$ FORCEINLINE RECURSIVE
-          call nf90_handle_err(retval)
-
-          retval = nf90_put_att(ncid,nf90_global,'Re',Re)
-          !DEC$ FORCEINLINE RECURSIVE
-          call nf90_handle_err(retval)
-
-          retval = nf90_put_att(ncid,nf90_global,'We',We)
-          !DEC$ FORCEINLINE RECURSIVE
-          call nf90_handle_err(retval)
-
-          retval = nf90_put_att(ncid,nf90_global,'Pr',Pr)
-          !DEC$ FORCEINLINE RECURSIVE
-          call nf90_handle_err(retval)
-
-          retval = nf90_put_att(ncid,nf90_global,'cv_r',cv_r)
-          !DEC$ FORCEINLINE RECURSIVE
-          call nf90_handle_err(retval)
-
-          retval = nf90_put_att(ncid,nf90_global,'gravity',gravity)
-          !DEC$ FORCEINLINE RECURSIVE
-          call nf90_handle_err(retval)
+          call nf90_write_sim_parameters(ncid,p_model)
 
         end subroutine nf90_write_header
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> function writing the simulation parameters on the
+        !> output netcdf file
+        !
+        !> @date
+        !> 12_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param ncid
+        !> integer identifying the netcdf file
+        !
+        !>@param p_model
+        !> physical model
+        !--------------------------------------------------------------
+        subroutine nf90_write_sim_parameters(ncid,p_model)
+
+          implicit none
+
+          integer        , intent(in) :: ncid
+          type(pmodel_eq), intent(in) :: p_model
+
+
+          character(10), dimension(:), allocatable :: param_name
+          real(rkind)  , dimension(:), allocatable :: param_value
+          integer                                  :: i, retval
+
+          
+          !get the simulation parameters
+          call p_model%get_sim_parameters(param_name,param_value)
+
+          if(allocated(param_name)) then
+
+            !save the simulation parameters in the netcdf file
+             do i=1, size(param_name)
+
+                retval = nf90_put_att(
+     $               ncid, nf90_global,
+     $               param_name(i),
+     $               param_value(i))
+                
+                !DEC$ FORCEINLINE RECURSIVE
+                call nf90_handle_err(retval)
+
+             end do
+
+
+             !deallocate unused data
+             deallocate(param_name)
+             deallocate(param_value)
+
+          end if
+
+        end subroutine nf90_write_sim_parameters
 
 
         !> @author

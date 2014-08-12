@@ -23,8 +23,8 @@ config_dir = $(AUGEANSTABLES_CONFIG)
 dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 
 sd_choice  = mt_choice                  #space discretization choice
-pm_choice = wave2d_choice              #physical model choice
-bc_choice = hedstrom_xy_corners_choice         #boundary condition choice
+pm_choice = ns2d_choice              #physical model choice
+bc_choice = reflection_xy_choice         #boundary condition choice
 td_choice  = finitevolume_choice        #time discretization choice
 ti_choice  = rk3tvd_choice              #time integration choice
 io_choice  = nf90_choice                #writer choice
@@ -71,6 +71,11 @@ ifeq ($(strip $(pm_choice)), wave2d_choice)
 	pm_cdir=$(wave2d_dir)
 	sim_dep+=$(wave2d_dep)
 	sim_par_dep+=$(wave2d_dep)
+endif
+ifeq ($(strip $(pm_choice)), ns2d_choice)
+	pm_cdir=$(ns2d_dir)
+	sim_dep+=$(ns2d_dep)
+	sim_par_dep+=$(ns2d_dep)
 endif
 ifeq ($(strip $(pm_choice)), dim2d_choice)
 	pm_cdir=$(dim2d_dir)

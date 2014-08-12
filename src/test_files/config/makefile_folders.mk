@@ -33,6 +33,7 @@ rk3tvd_dir		= $(ti_dir)/rungekutta3rdtvd
 
 fv_dir			= $(td_dir)/finitevolume
 
+ns2d_ic			= $(ns2d_dir)/ns2d_ic
 dim2d_ic		= $(dim2d_dir)/dim2d_ic
 
 hobc_dir                = $(obc_dir)/hedstrom_xy

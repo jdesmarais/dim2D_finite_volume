@@ -33,6 +33,8 @@
           
           contains
 
+          procedure, nopass :: get_sim_parameters => get_sim_parameters_default
+
           procedure, nopass :: compute_x_eigenvalues  => compute_eigenvalues_default
           procedure, nopass :: compute_y_eigenvalues  => compute_eigenvalues_default
           procedure, nopass :: compute_n1_eigenvalues => compute_eigenvalues_default
@@ -53,6 +55,42 @@
 
 
         contains
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the simulation parameters
+        !
+        !> @date
+        !> 12_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param param_name
+        !> array with the name of the characteristic parameters
+        !> for the simulation
+        !
+        !>@param param_value
+        !> array with the value of the characteristic parameters
+        !> for the simulation
+        !--------------------------------------------------------------
+        subroutine get_sim_parameters_default(param_name, param_value)
+
+          implicit none
+
+          character(10), dimension(:), allocatable, intent(out) :: param_name
+          real(rkind)  , dimension(:), allocatable, intent(out) :: param_value
+
+
+          if(allocated(param_name)) then
+             stop 'get_sim_parameter: param_name allocated'
+          end if
+
+          if(allocated(param_value)) then
+             stop 'get_sim_parameter: param_value allocated'
+          end if
+
+        end subroutine get_sim_parameters_default
 
 
         !> @author

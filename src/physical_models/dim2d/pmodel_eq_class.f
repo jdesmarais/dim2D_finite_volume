@@ -25,7 +25,8 @@
         use interface_primary           , only : gradient_x_proc,
      $                                           gradient_y_proc
         use sd_operators_class          , only : sd_operators
-        use dim2d_parameters            , only : gravity
+        use dim2d_parameters            , only : viscous_r, Re, We, Pr,
+     $                                           cv_r, gravity
         use dim2d_bubble_ascending_module,only :apply_bubble_ascending_ic
         use dim2d_drop_collision_module , only : apply_drop_collision_ic 
         use dim2d_phase_separation_module,only : apply_phase_separation_ic
@@ -138,6 +139,7 @@
           procedure, nopass :: get_var_unit
           procedure, nopass :: get_var_type
           procedure, nopass :: get_eq_nb
+          procedure, nopass :: get_sim_parameters
           procedure, nopass :: apply_ic
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
@@ -289,6 +291,51 @@
           var_type(4)=scalar
 
         end function get_var_type
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the simulation parameters
+        !
+        !> @date
+        !> 12_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param param_name
+        !> array with the name of the characteristic parameters
+        !> for the simulation
+        !
+        !>@param param_value
+        !> array with the value of the characteristic parameters
+        !> for the simulation
+        !--------------------------------------------------------------
+        subroutine get_sim_parameters(param_name, param_value)
+
+          implicit none
+
+          character(10), dimension(:), allocatable, intent(out) :: param_name
+          real(rkind)  , dimension(:), allocatable, intent(out) :: param_value
+
+
+          allocate(param_name(6))
+          allocate(param_value(6))
+
+          param_name(1) = 'viscous_r'
+          param_name(2) = 'Re'
+          param_name(3) = 'We'
+          param_name(4) = 'Pr'
+          param_name(5) = 'cv_r'
+          param_name(6) = 'gravity'
+
+          param_value(1) = viscous_r
+          param_value(2) = Re
+          param_value(3) = We
+          param_value(4) = Pr
+          param_value(5) = cv_r
+          param_value(6) = gravity
+
+        end subroutine get_sim_parameters
         
         
         !> @author
@@ -308,7 +355,7 @@
           implicit none
           integer :: eq_nb
           eq_nb=4
-        end function get_eq_nb
+        end function get_eq_nb      
         
         
         !> @author

@@ -18,8 +18,10 @@
         use interface_primary           , only : gradient_x_proc,
      $                                           gradient_y_proc
         use sd_operators_class          , only : sd_operators
-        use ns2d_parameters             , only : gamma, gravity
-c$$$        use ns2d_vortex_module          , only : apply_vortex_ic
+        use ns2d_parameters             , only : viscous_r, Re, Pr,
+     $                                           gamma, mach_infty,
+     $                                           gravity
+        use ns2d_vortex_module          , only : apply_vortex_ic
         use ns2d_prim_module            , only : mass_density,
      $                                           momentum_x,
      $                                           momentum_y,
@@ -39,7 +41,7 @@ c$$$     $                                           compute_n1_lefteigenvector_
 c$$$     $                                           compute_n1_righteigenvector_ns2d,
 c$$$     $                                           compute_n2_lefteigenvector_ns2d,
 c$$$     $                                           compute_n2_righteigenvector_ns2d
-c$$$        use ns2d_steadystate_module     , only : apply_steady_state_ic
+        use ns2d_steadystate_module     , only : apply_steady_state_ic
         use parameters_bf_layer         , only : interior_pt
         use parameters_constant         , only : scalar,
      $                                           vector_x, vector_y,
@@ -63,39 +65,42 @@ c$$$        use ns2d_steadystate_module     , only : apply_steady_state_ic
         !> class encapsulating operators to compute
         !> the governing equations of the Navier-Stokes
         !> equatiosn in 2D
-        !>
+        !
         !> @param get_model_name
         !> get the name of the physcial model
-        !>
+        !
         !> @param get_var_name
         !> get the name of the main variables
         !> (mass, momentum_x, momentum_y, total_energy)
-        !>
+        !
         !> @param get_var_longname
         !> get the description of the main variables for the
         !> governing equations of the physical model
-        !>
+        !
         !> @param get_var_unit
         !> get the units of the main variables
         !> (\f$ kg.m^{-3}, kg.m^{-2}.s^{-1},
         !> kg.m^{-2}.s^{-1}, J.kg.m^{-3}) \f$
-        !>
+        !
         !> @param get_var_types
         !> get the type of the main variables
         !> (scalar, vector_x, vector_y, scalar)
-        !>
+        !
+        !> @param get_sim_parameters
+        !> get the simulation parameters (ex: Re, Pr, gamma, ...)
+        !
         !> @param get_eq_nb
         !> get the number of governing equations: 4
-        !>
+        !
         !> @param initialize
         !> initialize the main parameters of the physical model
         !> (viscosity ratio, Reynolds, Prandtl, Mach numbers and
         !> heat capacity ratio)
-        !>
+        !
         !> @param apply_ic
         !> initialize the main variables of the governing equations
         !> considering the user choices (steady state, vortex ...)
-        !>
+        !
         !> @param compute_flux_x
         !> compute the fluxes along the x-axis with fixed sized arrays
         !
@@ -127,6 +132,7 @@ c$$$        use ns2d_steadystate_module     , only : apply_steady_state_ic
           procedure, nopass :: get_var_longname
           procedure, nopass :: get_var_unit
           procedure, nopass :: get_var_type
+          procedure, nopass :: get_sim_parameters
           procedure, nopass :: get_eq_nb
           procedure, nopass :: apply_ic
           procedure, nopass :: compute_flux_x
@@ -279,6 +285,51 @@ c$$$        use ns2d_steadystate_module     , only : apply_steady_state_ic
           var_type(4)=scalar
 
         end function get_var_type
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the simulation parameters
+        !
+        !> @date
+        !> 12_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param param_name
+        !> array with the name of the characteristic parameters
+        !> for the simulation
+        !
+        !>@param param_value
+        !> array with the value of the characteristic parameters
+        !> for the simulation
+        !--------------------------------------------------------------
+        subroutine get_sim_parameters(param_name, param_value)
+
+          implicit none
+
+          character(10), dimension(:), allocatable, intent(out) :: param_name
+          real(rkind)  , dimension(:), allocatable, intent(out) :: param_value
+
+
+          allocate(param_name(6))
+          allocate(param_value(6))
+
+          param_name(1) = 'viscous_r'
+          param_name(2) = 'Re'
+          param_name(3) = 'Pr'
+          param_name(4) = 'gamma'
+          param_name(5) = 'mach_infty'
+          param_name(6) = 'gravity'
+
+          param_value(1) = viscous_r
+          param_value(2) = Re
+          param_value(3) = Pr
+          param_value(4) = gamma
+          param_value(5) = mach_infty
+          param_value(6) = gravity
+
+        end subroutine get_sim_parameters
         
         
         !> @author
@@ -323,28 +374,24 @@ c$$$        use ns2d_steadystate_module     , only : apply_steady_state_ic
           real(rkind), dimension(:)    , intent(in)    :: y_map
 
 
-          real(rkind) :: node_s
           real(rkind) :: x_s
           real(rkind) :: y_s
           
 
-c$$$          !<initialize the field depending on the user choice
-c$$$          select case(ic_choice)
-c$$$
-c$$$            case(steady_state)
-c$$$               call apply_steady_state_ic(nodes)
-c$$$
-c$$$            case(vortex)
-c$$$               call apply_vortex_ic(nodes,x_map,y_map)
-c$$$
-c$$$            case default
-c$$$               print '(''pmodel_eq_class'')'
-c$$$               stop 'ic_choice not recognized'
-c$$$          end select
+          !<initialize the field depending on the user choice
+          select case(ic_choice)
 
-          stop 'ns2d: apply_ic: to be implemented'
+            case(steady_state)
+               call apply_steady_state_ic(nodes)
 
-          node_s = nodes(1,1,1)
+            case(vortex)
+               call apply_vortex_ic(nodes,x_map,y_map)
+
+            case default
+               print '(''pmodel_eq_class'')'
+               stop 'ic_choice not recognized'
+          end select
+
           x_s = x_map(1)
           y_s = y_map(1)
 

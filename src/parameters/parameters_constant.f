@@ -21,7 +21,7 @@
         character*(*) :: convention
 
         parameter (institut     = 'Eindhoven university of technology')
-        parameter (prog_version = 'augeanstables V0.1')
+        parameter (prog_version = 'augeanstables V0.6')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         

@@ -30,44 +30,47 @@
         !> @class pmodel_eq
         !> abstract class encapsulating operators to compute
         !> the governing equations of the physical model
-        !>
+        !
         !> @param get_model_name
         !> get the name of the physcial model
-        !>
+        !
         !> @param get_var_name
         !> get the name of the main variables of the governing
         !> equations of the physical model
-        !>
+        !
         !> @param get_var_longname
         !> get the description of the main variables for the
         !> governing equations of the physical model
-        !>
+        !
         !> @param get_var_unit
         !> get the units of the main variables of the governing
         !> equations of the physical model
-        !>
+        !
         !> @param get_var_types
         !> get the type of the main variables of the governing
         !> equations of the physical model (ex: scalar, vector_x,
         !> vector_y)
-        !>
+        !
+        !> @param get_sim_parameters
+        !> get the simulation parameters (ex: Re, Pr, We, ...)
+        !
         !> @param get_eq_nb
         !> get the number of governing equations
-        !>
+        !
         !> @param initialize
         !> initialize the main parameters of the physical model
         !> (ex:reynolds number)
-        !>
+        !
         !> @param apply_ic
         !> initialize the main variables of the governing equations
         !> considering the user choices
-        !>
+        !
         !> @param compute_flux_x
         !> compute the fluxes along the x-axe
-        !>
+        !
         !> @param compute_flux_y
         !> compute the fluxes along the y-axe
-        !>
+        !
         !> @param compute_body_forces
         !> add the body forces to the computation of the time derivatives
         !
@@ -136,6 +139,7 @@
           procedure(lname_var)       , nopass, deferred :: get_var_longname
           procedure(mname_var)       , nopass, deferred :: get_var_unit
           procedure(type_var)        , nopass, deferred :: get_var_type
+          procedure(param_sim)       , nopass, deferred :: get_sim_parameters
           procedure(gov_eq_nb)       , nopass, deferred :: get_eq_nb
           procedure(ini_cond)        , nopass, deferred :: apply_ic
           procedure(fluxes_x)        , nopass, deferred :: compute_flux_x
@@ -262,6 +266,26 @@
             import ne
             integer, dimension(ne) :: var_type
           end function type_var
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to get the main parameters of the
+          !> simulation
+          !
+          !> @date
+          !> 12_08_2014 - initial version - J.L. Desmarais
+          !
+          !>@param var_name
+          !> characters giving the variable type
+          !--------------------------------------------------------------
+          subroutine param_sim(param_name, param_value)
+            import rkind
+            character(10), dimension(:), allocatable, intent(out) :: param_name
+            real(rkind)  , dimension(:), allocatable, intent(out) :: param_value
+          end subroutine param_sim
 
 
           !> @author

@@ -128,9 +128,13 @@ def compute_code_inputs(inputFileName):
     pm_code      = ['simpletest_choice',
                     'wave1d_choice',
                     'wave2d_choice',
+                    'ns2d_choice',
                     'dim2d_choice']
+
+    ns2d_ic_code = ['steady_state',
+                    'vortex']
     
-    ic_code      = ['steady_state',
+    dim2d_ic_code= ['steady_state',
                     'drop_retraction',
                     'bubble_ascending',
                     'homogeneous_liquid',
@@ -189,11 +193,16 @@ def compute_code_inputs(inputFileName):
         ne = 2
     if(pm_choice=='wave2d_choice'):
         ne = 3
+    if(pm_choice=='ns2d_choice'):
+        ne = 4
     if(pm_choice=='dim2d_choice'):
         ne = 4
 
     #< compute the ic_choice
-    ic_choice = ic_code[int(inputs['ic_choice'])]
+    if(pm_choice=='ns2d_choice'):
+        ic_choice = ns2d_ic_code[int(inputs['ic_choice'])]
+    if(pm_choice=='dim2d_choice'):
+        ic_choice =dim2d_ic_code[int(inputs['ic_choice'])]
     
     #< compute the bc_choice    
     bc_choice = bc_code[int(inputs['bc_choice'])]
