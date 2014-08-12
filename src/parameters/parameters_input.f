@@ -70,14 +70,21 @@
         integer, parameter :: io_choice   = netcdf_choice
 
         !< boundary conditions parameters
-        !< search_nb_dt:
-        !> for the open boundary conditions: number of timesteps
-        !> checked in advance by the increasing detector
+        !--------------------------------------------
+        !search_nb_dt: for the open boundary conditions,
+        !              number of timesteps checked in
+        !              advance by the increasing detector
         !
-        !< search_dcr:
-        !> radius expressed as number of grid points to check around
-        !> the line for removing a buffer layer
+        !search_dcr  : radius expressed as number of grid
+        !              points to check around the line for
+        !              removing a buffer layer
+        !
+        !sigma_P     : relaxation coefficient used when
+        !              applying the non-reflecting outflow
+        !              pressure b.c.
+        !--------------------------------------------
         real(rkind), parameter :: search_nb_dt = 0.0005000000d0
-        integer, parameter :: search_dcr = 4
+        integer    , parameter :: search_dcr = 4
+        real(rkind), parameter :: sigma_P = 0.25d0
 
       end module parameters_input

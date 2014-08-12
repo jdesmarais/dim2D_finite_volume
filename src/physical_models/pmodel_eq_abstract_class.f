@@ -129,6 +129,14 @@
         !> @param compute_n2_righteigenvector
         !> compute the right eigenvectors of the hyperbolic terms in the
         !> (x+y)-direction
+        !
+        !> @param compute_lodi_subsonic_inflow_csttemp
+        !> compute the LODI amplitudes for the subsonic inflow open b.c.
+        !> at constant temperature
+        !
+        !> @param compute_lodi_subsonic_outflow_cstpressure
+        !> compute the LODI amplitudes for the subsonic outflow open b.c.
+        !> at constant pressure
         !---------------------------------------------------------------
         type, abstract :: pmodel_eq_abstract
           
@@ -169,6 +177,9 @@
           procedure(x_gradient_proc) , nopass, deferred :: compute_x_gradient
           procedure(y_gradient_proc) , nopass, deferred :: compute_y_gradient
           procedure(n_gradient_proc) , nopass, deferred :: compute_n_gradient
+
+          procedure(in_lodi_cstT)    , nopass, deferred :: compute_lodi_subsonic_inflow_csttemp
+          procedure(out_lodi_cstP)   , nopass, deferred :: compute_lodi_subsonic_outflow_cstpressure
 
         end type pmodel_eq_abstract
 
@@ -881,6 +892,93 @@
             real(rkind), dimension(ne)                   :: grad_var
 
           end function n_gradient_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for the computation of the LODI amplitudes
+          !> for the Poinsot and Lele open b.c.
+          !
+          !> @date
+          !> 12_08_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> governing variables at the location of the open b.c.
+          !
+          !>@param mass_grad
+          !> gradient of the mass density
+          !
+          !>@param velocity2_grad
+          !> gradient of the velocity
+          !
+          !>@return lodi
+          !> vector with the LODI amplitudes
+          !--------------------------------------------------------------!
+          function in_lodi_cstT(
+     $     nodes,
+     $     eigenvalues,
+     $     velocity1_grad, pressure_grad)
+     $     result(lodi)
+
+            import ne
+            import rkind
+
+            real(rkind), dimension(ne), intent(in) :: nodes
+            real(rkind), dimension(ne), intent(in) :: eigenvalues
+            real(rkind)               , intent(in) :: velocity1_grad
+            real(rkind)               , intent(in) :: pressure_grad
+            real(rkind), dimension(ne)             :: lodi
+
+          end function in_lodi_cstT
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for the computation of the LODI amplitudes
+          !> for the Poinsot and Lele open b.c.
+          !
+          !> @date
+          !> 12_08_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> governing variables at the location of the open b.c.
+          !
+          !>@param mass_grad
+          !> gradient of the mass density
+          !
+          !>@param velocity1_grad
+          !> gradient of the velocity
+          !
+          !>@param velocity2_grad
+          !> gradient of the velocity
+          !
+          !>@param pressure_grad
+          !> gradient of the pressure
+          !
+          !>@return lodi
+          !> vector with the LODI amplitudes
+          !--------------------------------------------------------------
+          function out_lodi_cstP(
+     $     nodes, eigenvalues,
+     $     mass_grad, velocity1_grad, velocity2_grad,pressure_grad)
+     $     result(lodi)
+
+            import ne
+            import rkind
+
+            real(rkind), dimension(ne), intent(in) :: nodes
+            real(rkind), dimension(ne), intent(in) :: eigenvalues
+            real(rkind)               , intent(in) :: mass_grad
+            real(rkind)               , intent(in) :: velocity1_grad
+            real(rkind)               , intent(in) :: velocity2_grad
+            real(rkind)               , intent(in) :: pressure_grad
+            real(rkind), dimension(ne)             :: lodi
+
+          end function out_lodi_cstP
 
         end interface        
 

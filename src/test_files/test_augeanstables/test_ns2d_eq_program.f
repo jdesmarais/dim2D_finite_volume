@@ -1,8 +1,9 @@
       program test_ns2d_eq_program
 
         use ns2d_parameters, only :
-     $     mach_infty,
-     $     gamma
+     $     viscous_r,
+     $     Re, Pr, gamma,
+     $     mach_infty
 
         use ns2d_prim_module, only :
      $       mass_density,
@@ -46,10 +47,19 @@
 
         detailled = .false.
         if(
+     $       (.not.is_test_validated(viscous_r,-2.0d0/3.0d0,detailled)).or.
+     $       (.not.is_test_validated(Re,10.0d0,detailled)).or.
+     $       (.not.is_test_validated(Pr,1.0d0,detailled)).or.
      $       (.not.is_test_validated(gamma,5.0d0/3.0d0,detailled)).or.
      $       (.not.is_test_validated(mach_infty,1.0d0,detailled))) then
 
-           stop 'the test requires (gamma,mach)=(5/3,1)'
+           print '(''the test requires: '')'
+           print '(''viscous_r=-2/3'')'
+           print '(''Re=10.0'')'
+           print '(''Pr=1.0'')'
+           print '(''gamma=5/3'')'
+           print '(''mach_infty=1.0'')'
+           stop ''
 
         end if
 
@@ -725,7 +735,87 @@
           if(.not.detailled_loc) print '(''test_validated: '', L3)', loc
           print '()'
 
+
+          !test lodi computations
+          detailled_loc = detailled
+          loc = test_lodi(p_model, detailled_loc)
+          test_validated = test_validated.and.loc
+          if(.not.detailled_loc) print '(''test_validated: '', L3)', loc
+          print '()'
+
+
         end function test_ns2d_eq
+
+
+        function test_lodi(p_model, detailled) result(test_validated)
+
+          implicit none
+
+          type(pmodel_eq), intent(in) :: p_model
+          logical        , intent(in) :: detailled
+          logical                     :: test_validated
+
+          real(rkind), dimension(ne)    :: test_data
+          real(rkind), dimension(ne)    :: lodi
+          real(rkind), dimension(ne)    :: nodes
+          real(rkind), dimension(ne)    :: eigenvalues
+          real(rkind)                   :: mass_grad
+          real(rkind)                   :: velocity1_grad
+          real(rkind)                   :: velocity2_grad
+          real(rkind)                   :: pressure_grad          
+
+          logical :: loc
+
+
+          nodes          = [3.0, 6.3, -2.3, 8.9]
+          eigenvalues    = [-2.3, 8.952, 0.12, 7.15]
+          mass_grad      = -3.6
+          velocity1_grad = 7.012
+          velocity2_grad = 9.235
+          pressure_grad  = 4.125
+
+
+          test_validated = .true.
+
+
+          !test the subsonic inflow b.c.
+          print '(''subsonic_inflow_bc'')'
+          test_data(1) =    0.0
+          test_data(2) = -0.8832538
+          test_data(3) = -1.3248808
+          test_data(4) = -1.3248808
+
+          lodi  = p_model%compute_lodi_subsonic_inflow_csttemp(
+     $         nodes,
+     $         eigenvalues,
+     $         velocity1_grad,
+     $         pressure_grad)
+          loc = test_eigenvalues(lodi,test_data,detailled)
+          test_validated = test_validated.and.loc
+          if(.not.detailled) print '(''test_validated: '', L3)', loc
+          print '()'
+
+
+          !test the subsonic outflow b.c.
+          print '(''subsonic_outflow_bc'')'
+          test_data(1) = -21.2405
+          test_data(2) = -53.67718
+          test_data(3) =  -0.00805
+          test_data(4) = 137.92831
+
+          lodi  = p_model%compute_lodi_subsonic_outflow_cstpressure(
+     $         nodes,
+     $         eigenvalues,
+     $         mass_grad,
+     $         velocity1_grad,
+     $         velocity2_grad,
+     $         pressure_grad)
+          loc = test_eigenvalues(lodi,test_data,detailled)
+          test_validated = test_validated.and.loc
+          if(.not.detailled) print '(''test_validated: '', L3)', loc
+          print '()'
+
+        end function test_lodi
 
 
         function test_eigenvalues(eigenvalues,test_data,detailled)
