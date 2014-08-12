@@ -16,4 +16,6 @@
 
         real(rkind), parameter :: epsilon     = 1.0d0/Re
 
+        real(rkind), parameter :: gravity     = 0.03d0 !time_c/u_c*dim2d_g
+
       end module ns2d_parameters

@@ -35,7 +35,12 @@
         integer, parameter :: liquid=0
         integer, parameter :: vapor=1
 
-        !>initial conditions choice
+
+        !>initial conditions choice for NS
+        !integer, parameter :: steady_state=0
+        integer, parameter :: vortex=1
+
+        !>initial conditions choice for DIM
         integer, parameter :: steady_state=0
         integer, parameter :: drop_retraction=1
         integer, parameter :: bubble_ascending=2

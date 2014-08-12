@@ -18,12 +18,13 @@
         use interface_primary           , only : gradient_x_proc,
      $                                           gradient_y_proc
         use sd_operators_class          , only : sd_operators
-        use dim2d_parameters            , only : gravity
-        use ns2d_vortex_module          , only : apply_vortex_ic
+        use ns2d_parameters             , only : gamma, gravity
+c$$$        use ns2d_vortex_module          , only : apply_vortex_ic
         use ns2d_prim_module            , only : mass_density,
      $                                           momentum_x,
      $                                           momentum_y,
-     $                                           total_energy
+     $                                           total_energy,
+     $                                           speed_of_sound
         use ns2d_fluxes_module          , only : flux_x_mass_density,
      $                                           flux_y_mass_density,
      $                                           flux_x_momentum_x,
@@ -32,7 +33,13 @@
      $                                           flux_y_momentum_y,
      $                                           flux_x_total_energy,
      $                                           flux_y_total_energy
-        use ns2d_steadystate_module     , only : apply_steady_state_ic
+c$$$        use ns2d_ncoords_module         , only : compute_n_gradient_ns2d,
+c$$$     $                                           compute_n_eigenvalues_ns2d,
+c$$$     $                                           compute_n1_lefteigenvector_ns2d,
+c$$$     $                                           compute_n1_righteigenvector_ns2d,
+c$$$     $                                           compute_n2_lefteigenvector_ns2d,
+c$$$     $                                           compute_n2_righteigenvector_ns2d
+c$$$        use ns2d_steadystate_module     , only : apply_steady_state_ic
         use parameters_bf_layer         , only : interior_pt
         use parameters_constant         , only : scalar,
      $                                           vector_x, vector_y,
@@ -43,7 +50,7 @@
      $                                           ic_choice,
      $                                           gravity_choice
         use parameters_kind             , only : ikind,rkind
-        use pmodel_eq_abstract_class    , only : pmodel_eq_abstract
+        use pmodel_eq_default_class     , only : pmodel_eq_default
 
 
         implicit none
@@ -111,7 +118,7 @@
         !> check whether the open boundary conditions are undermined
         !> at the grid point location
         !---------------------------------------------------------------
-        type, extends(pmodel_eq_abstract) :: pmodel_eq
+        type, extends(pmodel_eq_default) :: pmodel_eq
           
           contains
 
@@ -316,19 +323,30 @@
           real(rkind), dimension(:)    , intent(in)    :: y_map
 
 
-          !<initialize the field depending on the user choice
-          select case(ic_choice)
+          real(rkind) :: node_s
+          real(rkind) :: x_s
+          real(rkind) :: y_s
+          
 
-            case(steady_state)
-               call apply_steady_state_ic(nodes)
+c$$$          !<initialize the field depending on the user choice
+c$$$          select case(ic_choice)
+c$$$
+c$$$            case(steady_state)
+c$$$               call apply_steady_state_ic(nodes)
+c$$$
+c$$$            case(vortex)
+c$$$               call apply_vortex_ic(nodes,x_map,y_map)
+c$$$
+c$$$            case default
+c$$$               print '(''pmodel_eq_class'')'
+c$$$               stop 'ic_choice not recognized'
+c$$$          end select
 
-            case(vortex)
-               call apply_vortex_ic(nodes,x_map,y_map)
+          stop 'ns2d: apply_ic: to be implemented'
 
-            case default
-               print '(''pmodel_eq_class'')'
-               stop 'ic_choice not recognized'
-          end select
+          node_s = nodes(1,1,1)
+          x_s = x_map(1)
+          y_s = y_map(1)
 
         end subroutine apply_ic
         
@@ -847,7 +865,7 @@
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param undermined
+        !>@return undermined
         !> check if the open boundary conditions are undermined
         !> at the grid point location
         !--------------------------------------------------------------
@@ -858,9 +876,173 @@
           real(rkind), dimension(ne), intent(in) :: nodes
           logical                                :: undermined
 
+          real(rkind) :: node_s
+
           undermined = .false.
 
+          node_s=nodes(1)
+
         end function are_openbc_undermined
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the Jacobian matrix for primitive to
+        !> to conservative variables
+        !
+        !> @date
+        !> 11_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return jacPrimCons
+        !> jacobian matrix for conservative to primitive
+        !> variables \f$ \frac{\partial p}{\partial v} \f$
+        !--------------------------------------------------------------
+        function compute_jacobian_prim_to_cons(nodes)
+     $     result(jacPrimCons)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne,ne)          :: jacPrimCons
+
+          real(rkind)                   :: ux
+          real(rkind)                   :: uy
+
+          ux = nodes(2)/nodes(1)
+          uy = nodes(3)/nodes(1)
+
+
+          if(rkind.eq.8) then
+
+             jacPrimCons(1,1) = 1.0d0
+             jacPrimCons(2,1) = 0.0d0
+             jacPrimCons(3,1) = 0.0d0
+             jacPrimCons(4,1) = 0.0d0
+
+             jacPrimCons(1,2) = - ux/nodes(1)
+             jacPrimCons(2,2) = 1.0d0/nodes(1)
+             jacPrimCons(3,2) = 0.0d0
+             jacPrimCons(4,2) = 0.0d0
+
+             jacPrimCons(1,3) = - uy/nodes(1)
+             jacPrimCons(2,3) = 0.0d0
+             jacPrimCons(3,3) = 1.0d0/nodes(1)
+             jacPrimCons(4,3) = 0.0d0
+
+             jacPrimCons(1,4) = 0.5d0*(gamma-1.0d0)*(ux**2+uy**2)
+             jacPrimCons(2,4) = -(gamma-1.0d0)*ux
+             jacPrimCons(3,4) = -(gamma-1.0d0)*uy
+             jacPrimCons(4,4) = gamma-1.0d0             
+
+          else
+
+             jacPrimCons(1,1) = 1.0d0
+             jacPrimCons(2,1) = 0.0d0
+             jacPrimCons(3,1) = 0.0d0
+             jacPrimCons(4,1) = 0.0d0
+
+             jacPrimCons(1,2) = - ux/nodes(1)
+             jacPrimCons(2,2) = 1.0d0/nodes(1)
+             jacPrimCons(3,2) = 0.0d0
+             jacPrimCons(4,2) = 0.0d0
+
+             jacPrimCons(1,3) = - uy/nodes(1)
+             jacPrimCons(2,3) = 0.0d0
+             jacPrimCons(3,3) = 1.0d0/nodes(1)
+             jacPrimCons(4,3) = 0.0d0
+
+             jacPrimCons(1,4) = 0.5d0*(gamma-1.0d0)*(ux**2+uy**2)
+             jacPrimCons(2,4) = -(gamma-1.0d0)*ux
+             jacPrimCons(3,4) = -(gamma-1.0d0)*uy
+             jacPrimCons(4,4) = gamma-1.0d0           
+
+          end if
+
+        end function compute_jacobian_prim_to_cons
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the Jacobian matrix for conservative
+        !> to primitive variables
+        !
+        !> @date
+        !> 11_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return jacConsPrim
+        !> jacobian matrix for primitive to conservative
+        !> variables \f$ \frac{\partial v}{\partial p} \f$
+        !--------------------------------------------------------------
+        function compute_jacobian_cons_to_prim(nodes)
+     $     result(jacConsPrim)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne,ne)          :: jacConsPrim
+
+          real(rkind) :: ux
+          real(rkind) :: uy
+
+          ux = nodes(2)/nodes(1)
+          uy = nodes(3)/nodes(1)          
+
+
+          if(rkind.eq.8) then
+             jacConsPrim(1,1) = 1.0d0
+             jacConsPrim(2,1) = 0.0d0
+             jacConsPrim(3,1) = 0.0d0
+             jacConsPrim(4,1) = 0.0d0
+
+             jacConsPrim(1,2) = ux
+             jacConsPrim(2,2) = nodes(1)
+             jacConsPrim(3,2) = 0.0d0
+             jacConsPrim(4,2) = 0.0d0
+
+             jacConsPrim(1,3) = uy
+             jacConsPrim(2,3) = 0.0d0
+             jacConsPrim(3,3) = nodes(1)
+             jacConsPrim(4,3) = 0.0d0
+
+             jacConsPrim(1,4) = 0.5d0*(ux**2+uy**2)
+             jacConsPrim(2,4) = nodes(1)*ux
+             jacConsPrim(3,4) = nodes(1)*uy
+             jacConsPrim(4,4) = 1.0d0/(gamma-1.0d0)
+
+          else
+             jacConsPrim(1,1) = 1.0
+             jacConsPrim(2,1) = 0.0
+             jacConsPrim(3,1) = 0.0
+             jacConsPrim(4,1) = 0.0
+
+             jacConsPrim(1,2) = ux
+             jacConsPrim(2,2) = nodes(1)
+             jacConsPrim(3,2) = 0.0
+             jacConsPrim(4,2) = 0.0
+
+             jacConsPrim(1,3) = uy
+             jacConsPrim(2,3) = 0.0
+             jacConsPrim(3,3) = nodes(1)
+             jacConsPrim(4,3) = 0.0
+
+             jacConsPrim(1,4) = 0.5*(ux**2+uy**2)
+             jacConsPrim(2,4) = nodes(1)*ux
+             jacConsPrim(3,4) = nodes(1)*uy
+             jacConsPrim(4,4) = 1.0/(gamma-1.0)
+
+          end if             
+             
+        end function compute_jacobian_cons_to_prim
 
 
         !> @author
@@ -871,7 +1053,7 @@
         !> in the x-direction
         !
         !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
+        !> 11_08_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
         !> array with the grid point data
@@ -886,15 +1068,16 @@
           real(rkind), dimension(ne), intent(in) :: nodes
           real(rkind), dimension(ne)             :: eigenvalues
 
+          real(rkind) :: velocity_x
+          real(rkind) :: speedofsound
+          
+          velocity_x   = nodes(2)/nodes(1)
+          speedofsound = speed_of_sound(nodes)
 
-          real(rkind) :: node_s
-
-          node_s = nodes(1)
-
-          stop 'dim2d: compute_y_eigenvalues: not implemented yet'
-
-          node_s = nodes(1)
-          eigenvalues(1) = 0.0d0
+          eigenvalues(1) = velocity_x
+          eigenvalues(2) = velocity_x
+          eigenvalues(3) = velocity_x - speedofsound
+          eigenvalues(4) = velocity_x + speedofsound
 
         end function compute_x_eigenvalues
 
@@ -907,7 +1090,7 @@
         !> in the y-direction
         !
         !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
+        !> 11_08_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
         !> array with the grid point data
@@ -922,12 +1105,16 @@
           real(rkind), dimension(ne), intent(in) :: nodes
           real(rkind), dimension(ne)             :: eigenvalues
 
-          real(rkind) :: node_s
+          real(rkind) :: velocity_y
+          real(rkind) :: speedofsound
+          
+          velocity_y   = nodes(3)/nodes(1)
+          speedofsound = speed_of_sound(nodes)
 
-          stop 'dim2d: compute_y_eigenvalues: not implemented yet'
-
-          node_s = nodes(1)
-          eigenvalues(1) = 0.0d0
+          eigenvalues(1) = velocity_y
+          eigenvalues(2) = velocity_y
+          eigenvalues(3) = velocity_y - speedofsound
+          eigenvalues(4) = velocity_y + speedofsound
 
         end function compute_y_eigenvalues
 
@@ -936,40 +1123,88 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> computation of the left eigenvector for the hyperbolic terms
-        !> in the x-direction. By denoting L the left eigenmatrix, the
-        !> result of the function is L[k,:]
+        !> computation of the left eigenvectors for the hyperbolic terms
+        !> in the x-direction
         !
         !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
+        !> 11_08_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
-        !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
+        !>@return eigenvect
+        !> eigenvectors at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_lefteigenvector(nodes,k) result(eigenvect)
+        function compute_x_lefteigenvector(nodes) result(eigenvect)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne)   , intent(in) :: nodes
+          real(rkind), dimension(ne,ne)             :: eigenvect
 
 
-          real(rkind) :: node_s
-          integer     :: k_s
+          real(rkind), dimension(ne,ne) :: jacPrimCons
+          real(rkind), dimension(ne,ne) :: leftEigenMPrim
+          real(rkind)                   :: c
 
-          print '(''dim2d compute_x_lefteigenvector'')'
-          stop 'not yet implemented'
 
-          node_s = nodes(1)
-          k_s = k
-          eigenvect(1) = 0.0d0
+          !computation of J, the jacobian matrix from primitive
+          !to conservative variables
+          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
+
+
+          !left eigenmatrix for the primitive
+          !variables, L_p
+          c  = speed_of_sound(nodes)
+          if(rkind.eq.8) then
+
+             leftEigenMPrim(1,1) =  0.0d0
+             leftEigenMPrim(2,1) =  0.0d0
+             leftEigenMPrim(3,1) =  1.0d0
+             leftEigenMPrim(4,1) =  0.0d0
+             
+             leftEigenMPrim(1,2) =  1.0d0
+             leftEigenMPrim(2,2) =  0.0d0
+             leftEigenMPrim(3,2) =  0.0d0
+             leftEigenMPrim(4,2) = -1.d0/c**2
+
+             leftEigenMPrim(1,3) =  0.0d0
+             leftEigenMPrim(2,3) = -0.5d0*nodes(1)*c
+             leftEigenMPrim(3,3) =  0.0d0
+             leftEigenMPrim(4,3) =  0.5d0
+
+             leftEigenMPrim(1,4) =  0.0d0
+             leftEigenMPrim(2,4) =  0.5d0*nodes(1)*c
+             leftEigenMPrim(3,4) =  0.0d0
+             leftEigenMPrim(4,4) =  0.5d0
+
+          else
+
+             leftEigenMPrim(1,1) =  0.0
+             leftEigenMPrim(2,1) =  0.0
+             leftEigenMPrim(3,1) =  1.0
+             leftEigenMPrim(4,1) =  0.0
+             
+             leftEigenMPrim(1,2) =  1.0
+             leftEigenMPrim(2,2) =  0.0
+             leftEigenMPrim(3,2) =  0.0
+             leftEigenMPrim(4,2) = -1./c**2
+
+             leftEigenMPrim(1,3) =  0.0
+             leftEigenMPrim(2,3) = -0.5*nodes(1)*c
+             leftEigenMPrim(3,3) =  0.0
+             leftEigenMPrim(4,3) =  0.5
+
+             leftEigenMPrim(1,4) =  0.0
+             leftEigenMPrim(2,4) =  0.5*nodes(1)*c
+             leftEigenMPrim(3,4) =  0.0
+             leftEigenMPrim(4,4) =  0.5
+
+          end if
+
+
+          !compute the left eigenmatrix by L = L_p.J
+          eigenvect = MATMUL(jacPrimCons,leftEigenMPrim)
 
         end function compute_x_lefteigenvector
 
@@ -978,12 +1213,11 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> computation of the left eigenvector for the hyperbolic terms
-        !> in the x-direction. By denoting R the right eigenmatrix, the
-        !> result of the function is R[k,:]
+        !> computation of the right eigenvectors for the hyperbolic terms
+        !> in the x-direction
         !
         !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
+        !> 11_08_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
         !> array with the grid point data
@@ -994,24 +1228,74 @@
         !>@return eigenvalues
         !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_righteigenvector(nodes,k) result(eigenvect)
+        function compute_x_righteigenvector(nodes) result(eigenvect)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne)   , intent(in) :: nodes
+          real(rkind), dimension(ne,ne)             :: eigenvect
 
 
-          real(rkind) :: node_s
-          integer     :: k_s
+          real(rkind), dimension(ne,ne) :: jacConsPrim
+          real(rkind), dimension(ne,ne) :: rightEigenMPrim
+          real(rkind)                   :: c
 
-          print '(''dim2d compute_x_righteigenvector'')'
-          stop 'not yet implemented'
 
-          node_s = nodes(1)
-          k_s = k
-          eigenvect(1) = 0.0d0
+          !computation of J, the jacobian matrix from conservative
+          !to primitive variables
+          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
+
+
+          !right eigenmatrix for the primitive
+          !variables, R_p
+          c  = speed_of_sound(nodes)
+
+          if(rkind.eq.8) then
+             rightEigenMPrim(1,1) =  0.0d0
+             rightEigenMPrim(2,1) =  1.0d0
+             rightEigenMPrim(3,1) =  1.0d0/c**2
+             rightEigenMPrim(4,1) =  1.0d0/c**2
+
+             rightEigenMPrim(1,2) =  0.0d0
+             rightEigenMPrim(2,2) =  0.0d0
+             rightEigenMPrim(3,2) = -1.0d0/(nodes(1)*c)
+             rightEigenMPrim(4,2) =  1.0d0/(nodes(1)*c)             
+
+             rightEigenMPrim(1,3) =  1.0d0
+             rightEigenMPrim(2,3) =  0.0d0
+             rightEigenMPrim(3,3) =  0.0d0
+             rightEigenMPrim(4,3) =  0.0d0
+
+             rightEigenMPrim(1,4) =  0.0d0
+             rightEigenMPrim(2,4) =  0.0d0
+             rightEigenMPrim(3,4) =  1.0d0
+             rightEigenMPrim(4,4) =  1.0d0
+
+          else
+             rightEigenMPrim(1,1) =  0.0
+             rightEigenMPrim(2,1) =  1.0
+             rightEigenMPrim(3,1) =  1.0/c**2
+             rightEigenMPrim(4,1) =  1.0/c**2
+
+             rightEigenMPrim(1,2) =  0.0
+             rightEigenMPrim(2,2) =  0.0
+             rightEigenMPrim(3,2) = -1.0/(nodes(1)*c)
+             rightEigenMPrim(4,2) =  1.0/(nodes(1)*c)             
+
+             rightEigenMPrim(1,3) =  1.0
+             rightEigenMPrim(2,3) =  0.0
+             rightEigenMPrim(3,3) =  0.0
+             rightEigenMPrim(4,3) =  0.0
+
+             rightEigenMPrim(1,4) =  0.0
+             rightEigenMPrim(2,4) =  0.0
+             rightEigenMPrim(3,4) =  1.0
+             rightEigenMPrim(4,4) =  1.0
+
+          end if
+
+          !right eigenmatrix computed as R = J.R_p
+          eigenvect = MATMUL(rightEigenMPrim,jacConsPrim)
 
         end function compute_x_righteigenvector
 
@@ -1036,24 +1320,74 @@
         !>@return eigenvalues
         !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_y_lefteigenvector(nodes,k) result(eigenvect)
+        function compute_y_lefteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
+
+          real(rkind), dimension(ne,ne) :: jacPrimCons
+          real(rkind), dimension(ne,ne) :: leftEigenMPrim
+          real(rkind)                   :: c
 
 
-          real(rkind) :: node_s
-          integer     :: k_s
+          !computation of J, the jacobian matrix from primitive
+          !to conservative variables
+          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
 
-          print '(''dim2d compute_y_lefteigenvector'')'
-          stop 'not yet implemented'
 
-          node_s = nodes(1)
-          k_s = k
-          eigenvect(1) = 0.0d0
+          !left eigenmatrix for the primitive
+          !variables, L_p
+          c  = speed_of_sound(nodes)
+
+          if(rkind.eq.8) then             
+             leftEigenMPrim(1,1) =  0.0d0
+             leftEigenMPrim(2,1) =  1.0d0
+             leftEigenMPrim(3,1) =  0.0d0
+             leftEigenMPrim(4,1) =  0.0d0
+
+             leftEigenMPrim(1,2) =  1.0d0
+             leftEigenMPrim(2,2) =  0.0d0
+             leftEigenMPrim(3,2) =  0.0d0
+             leftEigenMPrim(4,2) = -1.0d0/c**2
+
+             leftEigenMPrim(1,3) =  0.0d0
+             leftEigenMPrim(2,3) =  0.0d0
+             leftEigenMPrim(3,3) = -0.5d0*nodes(1)*c
+             leftEigenMPrim(4,3) =  0.5d0             
+
+             leftEigenMPrim(1,4) =  0.0d0
+             leftEigenMPrim(2,4) =  0.0d0
+             leftEigenMPrim(3,4) =  0.5d0*nodes(1)*c
+             leftEigenMPrim(4,4) =  0.5d0             
+
+          else
+             leftEigenMPrim(1,1) =  0.0
+             leftEigenMPrim(2,1) =  1.0
+             leftEigenMPrim(3,1) =  0.0
+             leftEigenMPrim(4,1) =  0.0
+
+             leftEigenMPrim(1,2) =  1.0
+             leftEigenMPrim(2,2) =  0.0
+             leftEigenMPrim(3,2) =  0.0
+             leftEigenMPrim(4,2) = -1.0/c**2
+
+             leftEigenMPrim(1,3) =  0.0
+             leftEigenMPrim(2,3) =  0.0
+             leftEigenMPrim(3,3) = -0.5*nodes(1)*c
+             leftEigenMPrim(4,3) =  0.5             
+
+             leftEigenMPrim(1,4) =  0.0
+             leftEigenMPrim(2,4) =  0.0
+             leftEigenMPrim(3,4) =  0.5*nodes(1)*c
+             leftEigenMPrim(4,4) =  0.5             
+
+          end if
+
+
+          !compute the left eigenmatrix by L = L_p.J
+          eigenvect = MATMUL(jacPrimCons,leftEigenMPrim)
 
         end function compute_y_lefteigenvector
 
@@ -1072,35 +1406,82 @@
         !>@param nodes
         !> array with the grid point data
         !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
         !>@return eigenvalues
         !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_y_righteigenvector(nodes,k) result(eigenvect)
+        function compute_y_righteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
-          real(rkind) :: node_s
-          integer     :: k_s
+          real(rkind), dimension(ne,ne) :: jacConsPrim
+          real(rkind), dimension(ne,ne) :: rightEigenMPrim
+          real(rkind)                   :: c
 
-          print '(''dim2d compute_y_righteigenvector'')'
-          stop 'not yet implemented'
 
-          node_s = nodes(1)
-          k_s = k
-          eigenvect(1) = 0.0d0
+          !computation of J, the jacobian matrix from conservative
+          !to primitive variables
+          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
+
+
+          !right eigenmatrix for the primitive
+          !variables, R_p
+          c  = speed_of_sound(nodes)
+
+          if(rkind.eq.8) then
+             rightEigenMPrim(1,1) =  0.0d0
+             rightEigenMPrim(2,1) =  1.0d0
+             rightEigenMPrim(3,1) =  1.0d0/c**2
+             rightEigenMPrim(4,1) =  1.0d0/c**2
+
+             rightEigenMPrim(1,2) =  1.0d0
+             rightEigenMPrim(2,2) =  0.0d0
+             rightEigenMPrim(3,2) =  0.0d0
+             rightEigenMPrim(4,2) =  0.0d0
+
+             rightEigenMPrim(1,3) =  0.0d0
+             rightEigenMPrim(2,3) =  0.0d0
+             rightEigenMPrim(3,3) = -1.0d0/(nodes(1)*c)
+             rightEigenMPrim(4,3) =  1.0d0/(nodes(1)*c)
+
+             rightEigenMPrim(1,4) =  0.0d0
+             rightEigenMPrim(2,4) =  0.0d0
+             rightEigenMPrim(3,4) =  1.0d0
+             rightEigenMPrim(4,4) =  1.0d0
+
+          else
+             rightEigenMPrim(1,1) =  0.0
+             rightEigenMPrim(2,1) =  1.0
+             rightEigenMPrim(3,1) =  1.0/c**2
+             rightEigenMPrim(4,1) =  1.0/c**2
+
+             rightEigenMPrim(1,2) =  1.0
+             rightEigenMPrim(2,2) =  0.0
+             rightEigenMPrim(3,2) =  0.0
+             rightEigenMPrim(4,2) =  0.0
+
+             rightEigenMPrim(1,3) =  0.0
+             rightEigenMPrim(2,3) =  0.0
+             rightEigenMPrim(3,3) = -1.0/(nodes(1)*c)
+             rightEigenMPrim(4,3) =  1.0/(nodes(1)*c)
+
+             rightEigenMPrim(1,4) =  0.0
+             rightEigenMPrim(2,4) =  0.0
+             rightEigenMPrim(3,4) =  1.0
+             rightEigenMPrim(4,4) =  1.0
+
+          end if
+
+          !right eigenmatrix computed as R = J.R_p
+          eigenvect = MATMUL(rightEigenMPrim,jacConsPrim)
 
         end function compute_y_righteigenvector
 
 
-                !> @author
+        !> @author
         !> Julien L. Desmarais
         !
         !> @brief

@@ -190,17 +190,17 @@ test_hedstrom_xy_corners:\
 			$(hedstrom_xy_corners_dep)
 
 test_ns2d_eq_program.o:	$(param_dir)/parameters_kind.o\
+			$(param_dir)/parameters_input.o\
 			$(ns2d_dir)/ns2d_parameters.o\
 			$(ns2d_dir)/ns2d_prim_module.o\
 			$(ns2d_dir)/ns2d_fluxes_module.o\
-			$(mt_dir)/sd_operators_class.o
+			$(mt_dir)/sd_operators_class.o\
+			$(ns2d_dir)/pmodel_eq_class.o
 
 test_ns2d_eq_program:	parameters_kind.o\
-			ns2d_parameters.o\
 			interface_primary.o\
-			ns2d_prim_module.o\
-			ns2d_fluxes_module.o\
-			$(mt_dep)
+			$(mt_dep)\
+			$(ns2d_dep)
 
 #			openbc_operators_module.o\
 #			sd_operators_abstract_class.o\

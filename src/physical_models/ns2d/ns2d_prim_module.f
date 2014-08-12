@@ -18,6 +18,7 @@
 
         use ns2d_parameters  , only : gamma, mach_infty
         use interface_primary, only : get_primary_var
+        use parameters_input , only : ne
         use parameters_kind  , only : ikind, rkind
 
         implicit none
@@ -36,7 +37,8 @@
      $       qy_inviscid_y_flux,
      $       qxy_transport,
      $       energy_inviscid_x_flux,
-     $       energy_inviscid_y_flux
+     $       energy_inviscid_y_flux,
+     $       speed_of_sound
 
 
         contains
@@ -517,5 +519,47 @@
           var=(nodes(i,j,4)+pressure(nodes,i,j))*nodes(i,j,3)/nodes(i,j,1)
 
         end function energy_inviscid_y_flux
+
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the speed of sound given the data at the grid
+        !> point location
+        !
+        !> @date
+        !> 11_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data where the speed of sound
+        !> is evaluated
+        !
+        !>@param var
+        !> \f$ \sqrt{\frac{\gamma P}{\rho}} = 
+        !> \sqrt{\frac{\gamma(\gamma-1)}{\rho} \left[ \rho E - \frac{1}{2 \rho}
+        !> \left( q_x^2 + q_y^2 right) \right]} \f$
+        !---------------------------------------------------------------
+        function speed_of_sound(nodes) result(var)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind)                            :: var
+        
+          
+          if(rkind.eq.8) then
+             var = Sqrt(
+     $            gamma*(gamma-1.0d0)/nodes(1)*(
+     $            nodes(4) - 0.5d0/nodes(1)*(nodes(2)**2+nodes(3)**2)))
+
+          else
+             var = Sqrt(
+     $            gamma*(gamma-1.0)/nodes(1)*(
+     $            nodes(4) - 0.5/nodes(1)*(nodes(2)**2+nodes(3)**2)))
+
+          end if          
+
+        end function speed_of_sound
 
       end module ns2d_prim_module

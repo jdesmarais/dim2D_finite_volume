@@ -25,7 +25,11 @@
      $       flux_x_momentum_y  , flux_y_momentum_y,
      $       flux_x_total_energy, flux_y_total_energy
 
+        use parameters_input, only : ne
+
         use parameters_kind, only : ikind, rkind
+
+        use pmodel_eq_class, only : pmodel_eq
 
         use sd_operators_class, only : sd_operators
 
@@ -36,6 +40,7 @@
         real(rkind)                   :: dx
         real(rkind)                   :: dy
         type(sd_operators)            :: s
+        type(pmodel_eq)               :: p_model
         logical                       :: detailled
         logical                       :: test_validated
 
@@ -73,6 +78,19 @@
         print '(''test ns2_fluxes'')'
         print '(''---------------------------'')'
         test_validated = test_ns2d_fluxes(nodes,dx,dy,s,detailled)
+        if(detailled) print '(''---------------------------'')'
+        print '(''test_validated: '',L3)', test_validated
+        print '(''---------------------------'')'
+        print '()'
+
+
+        !compute the eigenvalues and eigenmatrices
+        !and compare with the test data
+        detailled = .false.
+
+        print '(''test ns2_eq'')'
+        print '(''---------------------------'')'
+        test_validated = test_ns2d_eq(nodes,p_model,detailled)
         if(detailled) print '(''---------------------------'')'
         print '(''test_validated: '',L3)', test_validated
         print '(''---------------------------'')'
@@ -526,5 +544,243 @@
           if(detailled) print '(''test flux_y_total_energy: '', L3)', loc
 
         end function test_ns2d_fluxes
+
+
+        function test_ns2d_eq(nodes,p_model,detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          type(pmodel_eq)              , intent(in) :: p_model
+          logical                      , intent(in) :: detailled
+          logical                                   :: test_validated
+
+
+          real(rkind), dimension(ne,ne) :: test_data
+          real(rkind), dimension(ne)    :: eigenvalues
+          real(rkind), dimension(ne,ne) :: eigenmatrix
+          logical                       :: loc
+          logical                       :: detailled_loc
+          integer(ikind)                :: i,j
+          
+          i = 3
+          j = 3
+
+          test_validated = .true.
+
+
+          !test eigenvalues x
+          print '(''x_eigenvalues'')'
+
+          test_data(1,1) =  0.3163265
+          test_data(2,1) =  0.3163265
+          test_data(3,1) = -0.3161230
+          test_data(4,1) =  0.9487761
+
+          detailled_loc = detailled
+          eigenvalues = p_model%compute_x_eigenvalues(nodes(i,j,:))
+          loc = test_eigenvalues(eigenvalues, test_data(:,1),detailled_loc)
+          test_validated = test_validated.and.loc
+          if(.not.detailled_loc) print '(''test_validated: '', L3)', loc
+          print '()'
+
+
+          !test eigenvalues y
+          print '(''y_eigenvalues'')'
+
+          test_data(1,1) =  0.7397959
+          test_data(2,1) =  0.7397959
+          test_data(3,1) =  0.1073463
+          test_data(4,1) =  1.3722455
+
+          detailled_loc = detailled
+          eigenvalues = p_model%compute_y_eigenvalues(nodes(i,j,:))
+          loc = test_eigenvalues(eigenvalues, test_data(:,1),detailled_loc)
+          test_validated = test_validated.and.loc
+          if(.not.detailled_loc) print '(''test_validated: '', L3)', loc
+          print '()'
+
+
+          !test x_left_eigenmatrix
+          print '(''x_left_eigenmatrix'')'
+
+          test_data(1,1) = -0.0754837
+          test_data(2,1) =  0
+          test_data(3,1) =  0.1020408
+          test_data(4,1) =  0
+
+          test_data(1,2) =  0.4605227
+          test_data(2,2) =  0.5272207
+          test_data(3,2) =  1.2330163
+          test_data(4,2) = -1.6666980
+
+          test_data(1,3) =  0.2079237
+          test_data(2,3) = -0.4216669
+          test_data(3,3) = -0.2465986
+          test_data(4,3) =  0.3333333
+          
+          test_data(1,4) =  0.0078631
+          test_data(2,4) =  0.2107826
+          test_data(3,4) = -0.2465986
+          test_data(4,4) =  0.3333333
+
+          detailled_loc = detailled
+          eigenmatrix = p_model%compute_x_lefteigenvector(nodes(i,j,:))
+          loc = test_eigenmatrix(eigenmatrix, test_data, detailled_loc)
+          test_validated = test_validated.and.loc
+          if(.not.detailled_loc) print '(''test_validated: '', L3)', loc
+          print '()'
+
+
+          !test x_right_eigenmatrix
+          print '(''x_right_eigenmatrix'')'
+
+          test_data(1,1) =  0
+          test_data(2,1) =  1
+          test_data(3,1) =  2.5000470
+          test_data(4,1) =  2.5000470
+
+          test_data(1,2) =  0
+          test_data(2,2) =  0.3163265
+          test_data(3,2) = -0.7903224
+          test_data(4,2) =  2.3719848
+
+          test_data(1,3) =  9.8
+          test_data(2,3) =  0.7397959
+          test_data(3,3) =  1.8495245
+          test_data(4,3) =  1.8495245
+         
+          test_data(1,4) =  7.25
+          test_data(2,4) =  0.3236802
+          test_data(3,4) =  1.8090549
+          test_data(4,4) =  2.8093766
+
+          detailled_loc = detailled
+          eigenmatrix = p_model%compute_x_righteigenvector(nodes(i,j,:))
+          loc = test_eigenmatrix(eigenmatrix, test_data, detailled_loc)
+          test_validated = test_validated.and.loc
+          if(.not.detailled_loc) print '(''test_validated: '', L3)', loc
+          print '()'
+
+
+          !test y_left_eigenmatrix
+          print '(''y_left_eigenmatrix'')'
+
+          test_data(1,1) = -0.0322782
+          test_data(2,1) =  0.1020408
+          test_data(3,1) =  0
+          test_data(4,1) =  0
+
+          test_data(1,2) =  0.4605227
+          test_data(2,2) =  0.5272207
+          test_data(3,2) =  1.2330163
+          test_data(4,2) = -1.6666980
+
+          test_data(1,3) =  0.3418352
+          test_data(2,3) = -0.1054421
+          test_data(3,3) = -0.5628234
+          test_data(4,3) =  0.3333333
+         
+          test_data(1,4) = -0.1260483
+          test_data(2,4) = -0.1054421
+          test_data(3,4) =  0.0696261
+          test_data(4,4) =  0.3333333
+
+          detailled_loc = detailled
+          eigenmatrix = p_model%compute_y_lefteigenvector(nodes(i,j,:))
+          loc = test_eigenmatrix(eigenmatrix, test_data, detailled_loc)
+          test_validated = test_validated.and.loc
+          if(.not.detailled_loc) print '(''test_validated: '', L3)', loc
+          print '()'
+
+
+          !test y_right_eigenmatrix
+          print '(''y_right_eigenmatrix'')'
+
+          test_data(1,1) =  0
+          test_data(2,1) =  1
+          test_data(3,1) =  2.50004700
+          test_data(4,1) =  2.50004700
+
+          test_data(1,2) =  9.8
+          test_data(2,2) =  0.3163265
+          test_data(3,2) =  0.7908311
+          test_data(4,2) =  0.7908311 
+
+          test_data(1,3) =  0
+          test_data(2,3) =  0.7397959
+          test_data(3,3) =  0.2683708
+          test_data(4,3) =  3.4306782
+         
+          test_data(1,4) =  3.1
+          test_data(2,4) =  0.3236802
+          test_data(3,4) =  1.1394847
+          test_data(4,4) =  3.4789468
+
+          detailled_loc = detailled
+          eigenmatrix = p_model%compute_y_righteigenvector(nodes(i,j,:))
+          loc = test_eigenmatrix(eigenmatrix, test_data, detailled_loc)
+          test_validated = test_validated.and.loc
+          if(.not.detailled_loc) print '(''test_validated: '', L3)', loc
+          print '()'
+
+        end function test_ns2d_eq
+
+
+        function test_eigenvalues(eigenvalues,test_data,detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: eigenvalues
+          real(rkind), dimension(ne), intent(in) :: test_data
+          logical                   , intent(in) :: detailled
+          logical                                :: test_validated
+
+          integer :: i
+          logical :: loc
+
+          test_validated = .true.
+
+          do i=1,ne
+
+             loc = is_test_validated(eigenvalues(i), test_data(i), detailled)
+             test_validated = test_validated.and.loc
+             if(detailled) print '(''eigenvalue('',I2,''): '',L3)', i, loc
+
+          end do
+
+        end function test_eigenvalues
+
+
+        function test_eigenmatrix(eigenmatrix,test_data,detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          real(rkind), dimension(ne,ne), intent(in) :: eigenmatrix
+          real(rkind), dimension(ne,ne), intent(in) :: test_data
+          logical                      , intent(in) :: detailled
+          logical                                   :: test_validated
+
+          integer :: i,j
+          logical :: loc
+
+          test_validated = .true.
+
+          do j=1,ne
+             do i=1,ne
+                
+                loc = is_test_validated(eigenmatrix(i,j), test_data(i,j), detailled)
+                test_validated = test_validated.and.loc
+                if(detailled) then
+                   print '(''eigenmatrix('',I2,'','',I2,''): '',L3)', i, j, loc
+                end if
+                
+             end do
+          end do
+
+        end function test_eigenmatrix
 
       end program test_ns2d_eq_program

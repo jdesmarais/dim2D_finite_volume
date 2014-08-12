@@ -27,6 +27,11 @@ wave2d_dep=		wave2d_ncoords_module.o\
 			wave2d_prim_module.o\
 			$(pm_dep)
 
+ns2d_dep=		ns2d_parameters.o\
+			ns2d_prim_module.o\
+			ns2d_fluxes_module.o\
+			$(pm_dep)
+
 dim2d_flux_dep=		dim2d_parameters.o\
 			dim2d_prim_module.o\
 			dim2d_fluxes_module.o
