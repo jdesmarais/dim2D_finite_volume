@@ -615,6 +615,31 @@ $(hcobc_dir)/bc_operators_class.o:\
 			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
 			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
 
+#lodi-type open boundary conditions
+$(lobc_dir)/lodi_abstract_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o
+
+$(lpobc_ns2d_dir)/lodi_inflow_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(lobc_dir)/lodi_abstract_class.o\
+			$(ns2d_dir)/ns2d_parameters.o\
+			$(ns2d_dir)/ns2d_prim_module.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(ns2d_dir)/pmodel_eq_class.o
+
+$(lpobc_ns2d_dir)/lodi_outflow_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(lobc_dir)/lodi_abstract_class.o\
+			$(ns2d_dir)/ns2d_parameters.o\
+			$(ns2d_dir)/ns2d_prim_module.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(ns2d_dir)/pmodel_eq_class.o
+
 #hedstrom_x_reflection_y boundary conditions
 $(hrobc_dir)/bc_operators_class.o:\
 			$(bc_dir)/bc_operators_default_class.o\

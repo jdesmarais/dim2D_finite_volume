@@ -40,6 +40,10 @@ hobc_dir                = $(obc_dir)/hedstrom_xy
 hcobc_dir               = $(obc_dir)/hedstrom_xy_corners
 hrobc_dir		= $(obc_dir)/hedstrom_x_reflection_y
 
+lobc_dir		= $(obc_dir)/lodi_xy
+lpobc_dir		= $(lobc_dir)/poinsot_xy
+lpobc_ns2d_dir		= $(lpobc_dir)/poinsot_ns2d
+
 bf_layer_dir		= $(obc_dir)/buffer_layer
 nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors
 dbf_layer_dir           = $(bf_layer_dir)/bf_layer_detectors

@@ -202,6 +202,23 @@ test_ns2d_eq_program:	parameters_kind.o\
 			$(mt_dep)\
 			$(ns2d_dep)
 
+test_lodi_poinsot_ns2d.o:\
+			$(mt_dir)/sd_operators_fd_module.o\
+			$(lobc_dir)/lodi_abstract_class.o\
+			$(lpobc_ns2d_dir)/lodi_inflow_class.o\
+			$(lpobc_ns2d_dir)/lodi_outflow_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(ns2d_dir)/pmodel_eq_class.o
+
+test_lodi_poinsot_ns2d: parameters_kind.o\
+			interface_primary.o\
+			$(mt_dep)\
+			$(ns2d_dep)\
+			lodi_abstract_class.o\
+			lodi_inflow_class.o\
+			lodi_outflow_class.o
+
 #			openbc_operators_module.o\
 #			sd_operators_abstract_class.o\
 #			sd_operators_class.o\
