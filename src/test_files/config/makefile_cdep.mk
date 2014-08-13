@@ -93,6 +93,26 @@ hedstrom_x_reflection_y_dep=\
 			$(hedstrom_xy_dep)\
 			reflection_xy_module.o
 
+lodi_xy_dep=		$(bc_dep)\
+			openbc_operators_module.o\
+			sd_operators_x_oneside_L0_class.o\
+			sd_operators_x_oneside_L1_class.o\
+			sd_operators_x_oneside_R1_class.o\
+			sd_operators_x_oneside_R0_class.o\
+			sd_operators_y_oneside_L0_class.o\
+			sd_operators_y_oneside_L1_class.o\
+			sd_operators_y_oneside_R1_class.o\
+			sd_operators_y_oneside_R0_class.o\
+			sd_operators_fd_module.o\
+			lodi_abstract_class.o\
+			lodi_inflow_class.o\
+			lodi_outflow_class.o\
+			lodi_xy_module.o
+
+poinsot_ns2d_dep=	$(lodi_xy_dep)\
+			lodi_ns2d_class.o
+
+
 td_dep=			td_operators_abstract_class.o\
 			td_operators_class.o
 

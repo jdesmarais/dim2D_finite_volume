@@ -1,23 +1,31 @@
       !> @file
       !> class encapsulating subroutines to apply open boundary
-      !> conditions at the edge of the computational domain
+      !> conditions at the edge of the computational domain using
+      !> lodi boundary conditions
       !
       !> @author 
       !> Julien L. Desmarais
       !
       !> @brief
       !> class encapsulating subroutines to apply open boundary
-      !> conditions at the edge of the computational domain
+      !> conditions at the edge of the computational domain using
+      !> lodi boundary conditions
       !
       !> @date
-      !> 01_08_2014 - initial version - J.L. Desmarais
+      !> 13_08_2014 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module bc_operators_class
 
         use bc_operators_default_class, only :
      $     bc_operators_default
 
-        use hedstrom_xy_module, only :
+        use lodi_inflow_class, only :
+     $       lodi_inflow
+
+        use lodi_outflow_class, only :
+     $       lodi_outflow
+
+        use lodi_xy_module, only :
      $       compute_timedev_xlayer,
      $       compute_timedev_ylayer,
      $       compute_timedev_corner_W,
@@ -102,6 +110,9 @@
         !---------------------------------------------------------------
         type, extends(bc_operators_default) :: bc_operators
 
+          type(lodi_inflow)  :: inflow_bc
+          type(lodi_outflow) :: outflow_bc
+
           contains
 
           procedure, pass :: ini
@@ -120,7 +131,7 @@
         !> of the boundary conditions
         !
         !> @date
-        !> 04_08_2014 - initial version - J.L. Desmarais
+        !> 13_08_2014 - initial version - J.L. Desmarais
         !
         !>@param this
         !> boundary conditions initialized
@@ -142,6 +153,9 @@
           this%bcx_type = bc_timedev_choice
           this%bcy_type = bc_timedev_choice
 
+          call this%inflow_bc%ini()
+          call this%outflow_bc%ini()
+
         end subroutine ini
 
 
@@ -155,7 +169,7 @@
         !> and 1st order accurate at the boundary
         !
         !> @date
-        !> 04_08_2014 - initial version - J.L. Desmarais
+        !> 13_08_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
         !> array of grid point data
@@ -189,8 +203,8 @@
         
           class(bc_operators)               , intent(in)    :: this
           type(pmodel_eq)                   , intent(in)    :: p_model
-          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
           real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
           real(rkind), dimension(nx)        , intent(in)    :: x_map
           real(rkind), dimension(ny)        , intent(in)    :: y_map
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
@@ -211,18 +225,10 @@
           real(rkind)    :: dx,dy
           integer(ikind) :: i,j
 
-          integer :: bc_s
-          real(rkind) :: t_s
 
-          
-          dx = x_map(2)-x_map(1)
-          dy = y_map(2)-y_map(1)
+          dx = x_map(2) - x_map(1)
+          dy = y_map(2) - y_map(1)
 
-
-          !prevent unsed parameter warnings while being
-          !supress by the compiler afterwards
-          bc_s = this%bcx_type
-          t_s  = t
 
           !compute the fluxes at the edge of the computational
           !domain
@@ -237,34 +243,60 @@
           !apply the boundary conditions on the south layer
           j=1
           call compute_timedev_corner_W(
-     $         nodes, j, dx, dy, p_model,
-     $         gradient_y_y_oneside_L0, incoming_left,
+     $         p_model,
+     $         t, nodes, x_map, y_map, j,
+     $         gradient_y_y_oneside_L0,
+     $         this%inflow_bc,
+     $         this%outflow_bc,
+     $         incoming_left,
      $         timedev)
 
           call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
-     $         gradient_y_y_oneside_L0, incoming_left,
+     $         p_model,
+     $         t, nodes, x_map, y_map, j,
+     $         flux_x,
+     $         gradient_y_y_oneside_L0,
+     $         this%inflow_bc,
+     $         this%outflow_bc,
+     $         incoming_left,
      $         timedev)
 
           call compute_timedev_corner_E(
-     $         nodes, j, dx, dy, p_model,
-     $         gradient_y_y_oneside_L0, incoming_left,
+     $         p_model,
+     $         t, nodes, x_map, y_map, j,
+     $         gradient_y_y_oneside_L0,
+     $         this%inflow_bc,
+     $         this%outflow_bc,
+     $         incoming_left,
      $         timedev)
 
           j=2
           call compute_timedev_corner_W(
-     $         nodes, j, dx, dy, p_model,
-     $         gradient_y_y_oneside_L1, incoming_left,
+     $         p_model,
+     $         t, nodes, x_map, y_map, j,
+     $         gradient_y_y_oneside_L1,
+     $         this%inflow_bc,
+     $         this%outflow_bc,
+     $         incoming_left,
      $         timedev)
 
           call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
-     $         gradient_y_y_oneside_L1, incoming_left,
+     $         p_model,
+     $         t, nodes, x_map, y_map, j,
+     $         flux_x,
+     $         gradient_y_y_oneside_L1,
+     $         this%inflow_bc,
+     $         this%outflow_bc,
+     $         incoming_left,
      $         timedev)
 
           call compute_timedev_corner_E(
-     $         nodes, j, dx, dy, p_model,
-     $         gradient_y_y_oneside_L1, incoming_left,
+     $         p_model,
+     $         t, nodes, x_map, y_map, j,
+     $         gradient_y_y_oneside_L1,
+     $         this%inflow_bc,
+     $         this%outflow_bc,
+     $         incoming_left,
      $         timedev)
 
 
@@ -274,26 +306,46 @@
 
              i=1
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
-     $            gradient_x_x_oneside_L0, incoming_left,
+     $            p_model,
+     $            t, nodes, x_map, y_map, i,j,
+     $            flux_y,
+     $            gradient_x_x_oneside_L0,
+     $            this%inflow_bc,
+     $            this%outflow_bc,
+     $            incoming_left,
      $            timedev)
 
              i=bc_size
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
-     $            gradient_x_x_oneside_L1, incoming_left,
+     $            p_model,
+     $            t, nodes, x_map, y_map, i,j,
+     $            flux_y,
+     $            gradient_x_x_oneside_L0,
+     $            this%inflow_bc,
+     $            this%outflow_bc,
+     $            incoming_left,
      $            timedev)
 
              i=nx-1
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
-     $            gradient_x_x_oneside_R1, incoming_right,
+     $            p_model,
+     $            t, nodes, x_map, y_map, i,j,
+     $            flux_y,
+     $            gradient_x_x_oneside_R1,
+     $            this%inflow_bc,
+     $            this%outflow_bc,
+     $            incoming_right,
      $            timedev)
 
              i=nx
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model,  flux_y,
-     $            gradient_x_x_oneside_R0, incoming_right,
+     $            p_model,
+     $            t, nodes, x_map, y_map, i,j,
+     $            flux_y,
+     $            gradient_x_x_oneside_R0,
+     $            this%inflow_bc,
+     $            this%outflow_bc,
+     $            incoming_right,
      $            timedev)
 
           end do
@@ -302,34 +354,60 @@
           !apply the boundary conditions on the north layer
           j=ny-1
           call compute_timedev_corner_W(
-     $         nodes, j, dx, dy, p_model,
-     $         gradient_y_y_oneside_R1, incoming_right,
+     $         p_model,
+     $         t, nodes, x_map, y_map, j,
+     $         gradient_y_y_oneside_R1,
+     $         this%inflow_bc,
+     $         this%outflow_bc,
+     $         incoming_right,
      $         timedev)
 
           call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
-     $         gradient_y_y_oneside_R1, incoming_right,
+     $         p_model,
+     $         t, nodes, x_map, y_map, j,
+     $         flux_x,
+     $         gradient_y_y_oneside_R1,
+     $         this%inflow_bc,
+     $         this%outflow_bc,
+     $         incoming_right,
      $         timedev)
 
           call compute_timedev_corner_E(
-     $         nodes, j, dx, dy, p_model,
-     $         gradient_y_y_oneside_R1, incoming_right,
+     $         p_model,
+     $         t, nodes, x_map, y_map, j,
+     $         gradient_y_y_oneside_R1,
+     $         this%inflow_bc,
+     $         this%outflow_bc,
+     $         incoming_right,
      $         timedev)
 
           j=ny
           call compute_timedev_corner_W(
-     $         nodes, j, dx, dy, p_model,
-     $         gradient_y_y_oneside_R0, incoming_right,
+     $         p_model,
+     $         t, nodes, x_map, y_map, j,
+     $         gradient_y_y_oneside_R0,
+     $         this%inflow_bc,
+     $         this%outflow_bc,
+     $         incoming_right,
      $         timedev)
 
           call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
-     $         gradient_y_y_oneside_R0, incoming_right,
+     $         p_model,
+     $         t, nodes, x_map, y_map, j,
+     $         flux_x,
+     $         gradient_y_y_oneside_R0,
+     $         this%inflow_bc,
+     $         this%outflow_bc,
+     $         incoming_right,
      $         timedev)
 
           call compute_timedev_corner_E(
-     $         nodes, j, dx, dy, p_model,
-     $         gradient_y_y_oneside_R0, incoming_right,
+     $         p_model,
+     $         t, nodes, x_map, y_map, j,
+     $         gradient_y_y_oneside_R0,
+     $         this%inflow_bc,
+     $         this%outflow_bc,
+     $         incoming_right,
      $         timedev)
         
         end subroutine apply_bc_on_timedev_2ndorder        

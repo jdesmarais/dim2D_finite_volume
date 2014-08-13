@@ -25,7 +25,8 @@
      $                                         wall_x_reflection_y_choice,
      $                                         hedstrom_xy_choice,
      $                                         hedstrom_xy_corners_choice,
-     $                                         hedstrom_x_reflection_y_choice
+     $                                         hedstrom_x_reflection_y_choice,
+     $                                         poinsot_xy_choice
         use parameters_input          , only : nx,ny,ne,bc_size,
      $                                         x_min,x_max,
      $                                         y_min,y_max,
@@ -148,6 +149,7 @@
           type(td_operators), private :: td_operators_used
           type(io_operators), private :: io_operators_used
 
+          real(rkind)                      :: time
           real(rkind), dimension(nx,ny,ne) :: nodes
           real(rkind), dimension(nx)       :: x_map
           real(rkind), dimension(ny)       :: y_map
@@ -202,6 +204,8 @@
           implicit none
 
           class(field_abstract), intent(inout) :: this
+
+          this%time = 0.0
 
           call this%bc_operators_used%ini(this%pmodel_eq_used)
           call this%ini_coordinates()
@@ -347,9 +351,10 @@
           !make use of the time discretization operator
           !to compute the time derivative of the field
           time_dev = this%td_operators_used%compute_time_dev(
+     $         this%time,
      $         this%nodes,
-     $         this%dx,
-     $         this%dy,
+     $         this%x_map,
+     $         this%y_map,
      $         this%sd_operators_used,
      $         this%pmodel_eq_used,
      $         this%bc_operators_used)
@@ -395,9 +400,10 @@
           !make use of the time discretization operator
           !to compute the time derivative of the field
           time_dev = this%td_operators_used%compute_time_dev(
+     $         this%time,
      $         this%nodes,
-     $         this%dx,
-     $         this%dy,
+     $         this%x_map,
+     $         this%y_map,
      $         this%sd_operators_used,
      $         this%pmodel_eq_used,
      $         this%bc_operators_used)
@@ -424,7 +430,8 @@
           class(field_abstract), intent(inout) :: this
 
           if((bc_choice.ne.hedstrom_xy_choice).and.
-     $       (bc_choice.ne.hedstrom_xy_corners_choice)) then
+     $       (bc_choice.ne.hedstrom_xy_corners_choice).and.
+     $       (bc_choice.ne.poinsot_xy_choice)) then
 
              call this%bc_operators_used%apply_bc_on_nodes(this%nodes)
 
@@ -482,7 +489,8 @@
                x_borders=[bc_size+1,nx-bc_size]
                y_borders=[bc_size+1,ny-bc_size]
 
-            case(hedstrom_xy_choice,hedstrom_xy_corners_choice)
+            case(hedstrom_xy_choice,hedstrom_xy_corners_choice,
+     $           poinsot_xy_choice)
                x_borders=[1,nx]
                y_borders=[1,ny]
 
@@ -500,6 +508,8 @@
      $         this%nodes, dt, nodes_tmp, time_dev,
      $         x_borders=x_borders,
      $         y_borders=y_borders)
+
+          this%time = this%time + dt
 
         end subroutine compute_integration_step
 
@@ -566,6 +576,8 @@
           call integration_step_nopt(
      $         this%nodes, dt, nodes_tmp, time_dev, grdpts_id)
 
+          this%time = this%time + dt
+
         end subroutine compute_integration_step_ext
 
 
@@ -585,19 +597,18 @@
         !>@param time
         !> simulation time
         !--------------------------------------------------------------
-        subroutine write_data(this, time)
+        subroutine write_data(this)
 
           implicit none
 
           class(field_abstract), intent(inout) :: this
-          real(rkind)          , intent(in)    :: time
 
           call this%io_operators_used%write_data(
      $         this%nodes,
      $         this%x_map,
      $         this%y_map,
      $         this%pmodel_eq_used,
-     $         time)
+     $         this%time)
 
         end subroutine write_data
 

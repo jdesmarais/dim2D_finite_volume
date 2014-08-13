@@ -24,7 +24,6 @@
         private
         public :: apply_vortex_ic
 
-
         contains
 
         
@@ -41,24 +40,40 @@
         !>@param nodes
         !> array with the grid point data
         !---------------------------------------------------------------
-        subroutine apply_vortex_ic(nodes,x_map,y_map)
+        subroutine apply_vortex_ic(nodes,x_map,y_map,velocity_meanflow)
 
           implicit none
 
-          real(rkind), dimension(:,:,:), intent(inout) :: nodes
-          real(rkind), dimension(:)    , intent(in)    :: x_map
-          real(rkind), dimension(:)    , intent(in)    :: y_map
+          real(rkind), dimension(:,:,:)      , intent(inout) :: nodes
+          real(rkind), dimension(:)          , intent(in)    :: x_map
+          real(rkind), dimension(:)          , intent(in)    :: y_map
+          real(rkind), dimension(2), optional, intent(in)    :: velocity_meanflow
           
 
           integer(ikind) :: i,j
           real(rkind)    :: l,amp,R
+          real(rkind)    :: u0_mean_flow, v0_mean_flow
+
+          
+          if(present(velocity_meanflow)) then
+             u0_mean_flow = velocity_meanflow(1)
+             v0_mean_flow = velocity_meanflow(2)
+          else
+             if(rkind.eq.8) then
+                u0_mean_flow = 0.0d0
+                v0_mean_flow = 0.0d0
+             else
+                u0_mean_flow = 0.0
+                v0_mean_flow = 0.0
+             end if
+          end if
 
 
           !vortex located at the center of the computational domain
           !the vortex characteristics scales with the size of the
           !computational domain
           l   = 0.5d0*(x_map(size(x_map,1))-x_map(1))
-          amp = -0.0005d0*l
+          amp = -0.05d0*l
           R   = 0.15d0*l
 
           do j=1, size(nodes,2)
@@ -69,17 +84,23 @@
 
                 !momentum-x
                 nodes(i,j,2) = 
-     $               nodes(i,j,1)*get_vortex_velocity_x(
-     $               x_map(i),y_map(j),
-     $               nodes(i,j,1),
-     $               amp,R)
+     $               nodes(i,j,1)*(
+     $               u0_mean_flow+
+     $               get_vortex_velocity_x(
+     $                  x_map(i),y_map(j),
+     $                  nodes(i,j,1),
+     $                  amp,R)
+     $               )
 
                 !momentum-y
                 nodes(i,j,3) =
-     $               nodes(i,j,1)*get_vortex_velocity_y(
-     $               x_map(i),y_map(j),
-     $               nodes(i,j,1),
-     $               amp,R)
+     $               nodes(i,j,1)*(
+     $               v0_mean_flow+
+     $               get_vortex_velocity_y(
+     $                  x_map(i),y_map(j),
+     $                  nodes(i,j,1),
+     $                  amp,R)
+     $               )
 
                 !total energy
                 nodes(i,j,4) =  0.5d0/nodes(i,j,1)*(

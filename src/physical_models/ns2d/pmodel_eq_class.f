@@ -70,6 +70,7 @@ c$$$     $                                           compute_n2_righteigenvector
      $       vector_y,
      $       steady_state,
      $       vortex,
+     $       vortex_convected_x,
      $       earth_gravity_choice
 
         use parameters_input, only :
@@ -94,7 +95,7 @@ c$$$     $                                           compute_n2_righteigenvector
         !> @class pmodel_eq
         !> class encapsulating operators to compute
         !> the governing equations of the Navier-Stokes
-        !> equatiosn in 2D
+        !> equations in 2D
         !
         !> @param get_model_name
         !> get the name of the physcial model
@@ -420,6 +421,9 @@ c$$$     $                                           compute_n2_righteigenvector
 
             case(vortex)
                call apply_vortex_ic(nodes,x_map,y_map)
+
+            case(vortex_convected_x)
+               call apply_vortex_ic(nodes,x_map,y_map,[0.01d0,0.0d0])
 
             case default
                print '(''pmodel_eq_class'')'

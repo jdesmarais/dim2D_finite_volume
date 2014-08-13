@@ -132,7 +132,8 @@ def compute_code_inputs(inputFileName):
                     'dim2d_choice']
 
     ns2d_ic_code = ['steady_state',
-                    'vortex']
+                    'vortex',
+                    'vortex_convected_x']
     
     dim2d_ic_code= ['steady_state',
                     'drop_retraction',
@@ -147,7 +148,8 @@ def compute_code_inputs(inputFileName):
                     'wall_x_reflection_y_choice',
                     'hedstrom_xy_choice',
                     'hedstrom_xy_corners_choice',
-                    'hedstrom_x_reflection_y_choice']
+                    'hedstrom_x_reflection_y_choice',
+                    'poinsot_xy_choice']
 
     bc_type_code = ['bc_nodes_choice',
                     'bc_fluxes_choice',
@@ -201,8 +203,10 @@ def compute_code_inputs(inputFileName):
     #< compute the ic_choice
     if(pm_choice=='ns2d_choice'):
         ic_choice = ns2d_ic_code[int(inputs['ic_choice'])]
-    if(pm_choice=='dim2d_choice'):
-        ic_choice =dim2d_ic_code[int(inputs['ic_choice'])]
+    elif(pm_choice=='dim2d_choice'):
+        ic_choice = dim2d_ic_code[int(inputs['ic_choice'])]
+    else:
+        ic_choice = ns2d_ic_code[0]
     
     #< compute the bc_choice    
     bc_choice = bc_code[int(inputs['bc_choice'])]
@@ -221,7 +225,8 @@ def compute_code_inputs(inputFileName):
         bcy_type_choice = bc_type_code[1]
 
     if(bc_choice=='hedstrom_xy_choice' or
-       bc_choice=='hedstrom_xy_corners_choice'):
+       bc_choice=='hedstrom_xy_corners_choice' or
+       bc_choice=='poinsot_xy_choice'):
 
         bcx_type_choice = bc_type_code[2]
         bcy_type_choice = bc_type_code[2]

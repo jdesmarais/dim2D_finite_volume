@@ -93,25 +93,31 @@
         !>@param time_dev
         !> time derivatives
         !--------------------------------------------------------------
-        function compute_time_dev(nodes,dx,dy,s,p_model,bc_used)
+        function compute_time_dev(t,nodes,x_map,y_map,s,p_model,bc_used)
      $     result(time_dev)
 
           implicit none
 
-
+          real(rkind)                     , intent(in) :: t
           real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
-          real(rkind)                     , intent(in) :: dx
-          real(rkind)                     , intent(in) :: dy
+          real(rkind), dimension(nx)      , intent(in) :: x_map
+          real(rkind), dimension(ny)      , intent(in) :: y_map
           type(sd_operators)              , intent(in) :: s
           type(pmodel_eq)                 , intent(in) :: p_model
           type(bc_operators)              , intent(in) :: bc_used
           real(rkind), dimension(nx,ny,ne)             :: time_dev
 
+          real(rkind)                        :: dx
+          real(rkind)                        :: dy
           integer                            :: k
           integer(ikind)                     :: i,j
           real(rkind), dimension(nx+1,ny,ne) :: flux_x
           real(rkind), dimension(nx,ny+1,ne) :: flux_y
 
+
+          dx = x_map(2) - x_map(1)
+          dy = y_map(2) - y_map(1)
+          
 
           !<compute the fluxes
           !FORCEINLINE RECURSIVE
@@ -167,8 +173,8 @@
           if((bcx_type_choice.eq.bc_timedev_choice).or.
      $       (bcy_type_choice.eq.bc_timedev_choice)) then
              call bc_used%apply_bc_on_timedev(
-     $            nodes,dx,dy,
      $            p_model,
+     $            t,nodes,x_map,y_map,
      $            flux_x,flux_y,
      $            time_dev)
           end if

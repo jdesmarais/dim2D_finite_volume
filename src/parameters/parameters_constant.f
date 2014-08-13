@@ -39,6 +39,7 @@
         !>initial conditions choice for NS
         !integer, parameter :: steady_state=0
         integer, parameter :: vortex=1
+        integer, parameter :: vortex_convected_x=2
 
         !>initial conditions choice for DIM
         integer, parameter :: steady_state=0
@@ -56,6 +57,7 @@
         integer, parameter :: hedstrom_xy_choice=4
         integer, parameter :: hedstrom_xy_corners_choice=5
         integer, parameter :: hedstrom_x_reflection_y_choice=6
+        integer, parameter :: poinsot_xy_choice=7
 
         !>boundary conditions type choice
         integer, parameter :: bc_nodes_choice=0

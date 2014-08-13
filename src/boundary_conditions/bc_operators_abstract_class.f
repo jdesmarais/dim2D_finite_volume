@@ -66,7 +66,7 @@
           procedure(ini_proc)    ,   pass, deferred :: ini
           procedure(nodes_proc)  ,   pass, deferred :: apply_bc_on_nodes
           procedure(fluxes_proc) , nopass, deferred :: apply_bc_on_fluxes
-          procedure(timedev_proc), nopass, deferred :: apply_bc_on_timedev
+          procedure(timedev_proc),   pass, deferred :: apply_bc_on_timedev
 
         end type bc_operators_abstract
 
@@ -208,19 +208,23 @@
            !> time derivatives
            !-------------------------------------------------------------
            subroutine timedev_proc(
-     $       nodes,dx,dy,
+     $       this,
      $       p_model,
+     $       t,nodes,x_map,y_map,
      $       flux_x,flux_y,
      $       timedev)
            
+             import bc_operators_abstract
              import nx,ny,ne
              import pmodel_eq
              import rkind
            
-             real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
-             real(rkind)                       , intent(in)    :: dx
-             real(rkind)                       , intent(in)    :: dy
+             class(bc_operators_abstract)      , intent(in)    :: this
              type(pmodel_eq)                   , intent(in)    :: p_model
+             real(rkind)                       , intent(in)    :: t
+             real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
+             real(rkind), dimension(nx)        , intent(in)    :: x_map
+             real(rkind), dimension(ny)        , intent(in)    :: y_map
              real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
              real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
              real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev

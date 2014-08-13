@@ -112,9 +112,9 @@
 
           contains
 
-          procedure,   pass :: ini
-          procedure,   pass :: apply_bc_on_nodes
-          procedure, nopass :: apply_bc_on_timedev => apply_bc_on_timedev_2ndorder
+          procedure, pass :: ini
+          procedure, pass :: apply_bc_on_nodes
+          procedure, pass :: apply_bc_on_timedev => apply_bc_on_timedev_2ndorder
 
         end type bc_operators        
       
@@ -236,17 +236,19 @@
         !> time derivatives
         !-------------------------------------------------------------
         subroutine apply_bc_on_timedev_2ndorder(
-     $    nodes,dx,dy,
-     $    p_model,
-     $    flux_x,flux_y,
-     $    timedev)
+     $     this,
+     $     p_model,
+     $     t,nodes,x_map,y_map,
+     $     flux_x,flux_y,
+     $     timedev)
         
           implicit none
         
-          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
-          real(rkind)                       , intent(in)    :: dx
-          real(rkind)                       , intent(in)    :: dy
+          class(bc_operators)               , intent(in)    :: this
           type(pmodel_eq)                   , intent(in)    :: p_model
+          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
+          real(rkind), dimension(nx)        , intent(in)    :: x_map
+          real(rkind), dimension(ny)        , intent(in)    :: y_map
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
@@ -262,7 +264,21 @@
           type(sd_operators_y_oneside_R0) :: s_y_R0
 
 
+          real(rkind)    :: dx,dy
           integer(ikind) :: i,j
+
+          integer        :: bc_s
+          real(rkind)    :: t_s
+
+
+          dx = x_map(2)-x_map(1)
+          dy = y_map(2)-y_map(1)
+
+
+          !prevent unsed parameter warnings while being
+          !supress by the compiler afterwards
+          bc_s = this%bcx_type
+          t_s  = t
 
 
           !compute the fluxes at the edge of the computational

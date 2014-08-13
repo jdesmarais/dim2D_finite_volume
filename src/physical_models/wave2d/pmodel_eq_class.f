@@ -20,7 +20,7 @@
         use parameters_constant     , only : scalar, vector_x, vector_y
         use parameters_input        , only : nx,ny,ne,bc_size
         use parameters_kind         , only : ikind, rkind
-        use pmodel_eq_abstract_class, only : pmodel_eq_abstract
+        use pmodel_eq_default_class , only : pmodel_eq_default
         use sd_operators_class      , only : sd_operators
         use wave2d_ncoords_module   , only : compute_n_gradient_wave2d,
      $                                       compute_n_eigenvalues_wave2d,
@@ -76,7 +76,7 @@
         !> check whether the open boundary conditions are undermined
         !> at the grid point location
         !---------------------------------------------------------------
-        type, extends(pmodel_eq_abstract) :: pmodel_eq
+        type, extends(pmodel_eq_default) :: pmodel_eq
           
           contains
 
