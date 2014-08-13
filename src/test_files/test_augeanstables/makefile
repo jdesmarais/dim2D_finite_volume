@@ -205,6 +205,7 @@ test_ns2d_eq_program:	parameters_kind.o\
 test_lodi_poinsot_ns2d.o:\
 			$(mt_dir)/sd_operators_fd_module.o\
 			$(lobc_dir)/lodi_abstract_class.o\
+			$(lobc_dir)/lodi_ns2d_class.o\
 			$(lpobc_ns2d_dir)/lodi_inflow_class.o\
 			$(lpobc_ns2d_dir)/lodi_outflow_class.o\
 			$(param_dir)/parameters_input.o\
@@ -216,6 +217,7 @@ test_lodi_poinsot_ns2d: parameters_kind.o\
 			$(mt_dep)\
 			$(ns2d_dep)\
 			lodi_abstract_class.o\
+			lodi_ns2d_class.o\
 			lodi_inflow_class.o\
 			lodi_outflow_class.o
 

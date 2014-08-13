@@ -7,6 +7,9 @@
         use lodi_abstract_class, only :
      $       lodi_abstract
 
+        use lodi_ns2d_class, only :
+     $       lodi_ns2d
+
         use lodi_inflow_class , only :
      $       lodi_inflow
 
@@ -24,6 +27,7 @@
      $       pmodel_eq
 
         implicit none
+
 
         type(lodi_inflow)             :: lodi_inflow_tested
         type(lodi_outflow)            :: lodi_outflow_tested
@@ -47,6 +51,7 @@
         !test parameters
         i = 3
         j = 3
+        test_validated = .true.
 
 
         !test lodi inflow
@@ -78,6 +83,7 @@
         print '()'
         print '()'
 
+
         !test lodi outflow
         print '(''test lodi_outflow'')'
         print '(''---------------------------------'')'
@@ -97,6 +103,38 @@
         call lodi_outflow_tested%ini()
         loc = test_lodi(
      $       lodi_outflow_tested, test_data, 
+     $       p_model, t, nodes, x_map, y_map, i,j,
+     $       detailled)
+
+        test_validated = test_validated.and.loc
+        if(.not.detailled) then
+           print '(''---------------------------------'')'
+           print '(''test_validated: '',L3)', loc
+        end if
+        print '()'
+        print '()'
+
+
+        !test the computation of the time derivatives from
+        !the LODI vector for the inflow b.c.
+        print '(''test lodi_inflow: time_dev'')'
+        print '(''---------------------------------'')'
+
+        detailled = .false.
+
+        test_data(1,1) = -29.7979273
+        test_data(2,1) = -20.73328705
+        test_data(3,1) = -22.04438499
+        test_data(4,1) = -23.9488677
+
+        test_data(1,2) =-1.276641286
+        test_data(2,2) =-0.403835509
+        test_data(3,2) =-1.428900765
+        test_data(4,2) =-1.231197507
+        
+        call lodi_inflow_tested%ini()
+        loc = test_lodi_timedev(
+     $       lodi_inflow_tested, test_data, 
      $       p_model, t, nodes, x_map, y_map, i,j,
      $       detailled)
 
@@ -391,5 +429,55 @@
           print '()'
 
         end function test_lodi
+
+
+        function test_lodi_timedev(
+     $     lodi_tested, test_data, 
+     $     p_model, t, nodes, x_map, y_map, i,j,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          class(lodi_ns2d)             , intent(in) :: lodi_tested
+          real(rkind), dimension(4,2)  , intent(in) :: test_data
+          type(pmodel_eq)              , intent(in) :: p_model
+          real(rkind)                  , intent(in) :: t
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: detailled
+          logical                                   :: test_validated
+
+          real(rkind), dimension(ne) :: timedev
+          logical                    :: loc
+          logical                    :: detailled_loc
+
+
+          test_validated = .true.
+
+          
+          print '(''test compute_x_timedev'')'
+          detailled_loc = detailled
+          timedev = lodi_tested%compute_x_timedev(
+     $         p_model, t, nodes, x_map, y_map, i,j, gradient_x_interior)
+          loc  = test_lodi_vector(timedev,test_data(:,1),detailled_loc)
+          test_validated = test_validated.and.loc
+          if(.not.detailled_loc) print '(''test_validated: '',L3)', test_validated
+          print '()'
+
+
+          print '(''test compute_y_timedev'')'
+          detailled_loc = detailled
+          timedev = lodi_tested%compute_y_timedev(
+     $         p_model, t, nodes, x_map, y_map, i,j, gradient_y_interior)
+          loc  = test_lodi_vector(timedev,test_data(:,2),detailled_loc)
+          test_validated = test_validated.and.loc
+          if(.not.detailled_loc) print '(''test_validated: '',L3)', test_validated
+          print '()'
+
+        end function test_lodi_timedev
 
       end program test_lodi_poinsot_ns2d

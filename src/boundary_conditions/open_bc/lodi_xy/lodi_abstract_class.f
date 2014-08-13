@@ -52,9 +52,12 @@
 
           contains
 
-          procedure(ini_proc)  , pass, deferred :: ini
-          procedure(xlodi_proc), pass, deferred :: compute_x_lodi
-          procedure(ylodi_proc), pass, deferred :: compute_y_lodi
+          procedure(ini_proc)     , pass, deferred :: ini
+          procedure(xlodi_proc)   , pass, deferred :: compute_x_lodi
+          procedure(ylodi_proc)   , pass, deferred :: compute_y_lodi
+
+          procedure(xtimedev_proc), pass, deferred :: compute_x_timedev
+          procedure(ytimedev_proc), pass, deferred :: compute_y_timedev
 
         end type lodi_abstract
 
@@ -126,6 +129,64 @@
              real(rkind), dimension(ne)                :: lodi
 
            end function ylodi_proc
+
+
+           !computation of the time derivatives for a boundary normal
+           !to the x-direction
+           function xtimedev_proc(
+     $       this, p_model,
+     $       t, nodes, x_map, y_map, i,j,
+     $       gradient)
+     $       result(timedev)
+
+             import gradient_x_proc
+             import lodi_abstract
+             import ikind
+             import ne
+             import pmodel_eq
+             import rkind
+             
+             class(lodi_abstract)         , intent(in) :: this
+             type(pmodel_eq)              , intent(in) :: p_model
+             real(rkind)                  , intent(in) :: t
+             real(rkind), dimension(:,:,:), intent(in) :: nodes
+             real(rkind), dimension(:)    , intent(in) :: x_map
+             real(rkind), dimension(:)    , intent(in) :: y_map
+             integer(ikind)               , intent(in) :: i
+             integer(ikind)               , intent(in) :: j
+             procedure(gradient_x_proc)                :: gradient
+             real(rkind), dimension(ne)                :: timedev
+
+           end function xtimedev_proc
+
+
+           !computation of the time derivatives for a boundary normal
+           !to the y-direction
+           function ytimedev_proc(
+     $       this, p_model,
+     $       t, nodes, x_map, y_map, i,j,
+     $       gradient)
+     $       result(timedev)
+
+             import gradient_y_proc
+             import lodi_abstract
+             import ikind
+             import ne
+             import pmodel_eq
+             import rkind
+             
+             class(lodi_abstract)         , intent(in) :: this
+             type(pmodel_eq)              , intent(in) :: p_model
+             real(rkind)                  , intent(in) :: t
+             real(rkind), dimension(:,:,:), intent(in) :: nodes
+             real(rkind), dimension(:)    , intent(in) :: x_map
+             real(rkind), dimension(:)    , intent(in) :: y_map
+             integer(ikind)               , intent(in) :: i
+             integer(ikind)               , intent(in) :: j
+             procedure(gradient_y_proc)                :: gradient
+             real(rkind), dimension(ne)                :: timedev
+
+           end function ytimedev_proc
 
         end interface
 

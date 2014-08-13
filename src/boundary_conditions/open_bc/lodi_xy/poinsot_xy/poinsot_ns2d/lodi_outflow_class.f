@@ -23,8 +23,8 @@
      $     gradient_x_proc,
      $     gradient_y_proc
         
-        use lodi_abstract_class, only :
-     $       lodi_abstract
+        use lodi_ns2d_class, only :
+     $       lodi_ns2d
 
         use ns2d_parameters, only :
      $       gamma
@@ -72,7 +72,7 @@
         !>@param compute_Pout
         !> compute the outflow pressure
         !---------------------------------------------------------------
-        type, extends(lodi_abstract) :: lodi_outflow
+        type, extends(lodi_ns2d) :: lodi_outflow
 
           character(len=20) :: title
           real(rkind)       :: relaxation_P

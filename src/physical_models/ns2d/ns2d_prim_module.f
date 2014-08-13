@@ -38,8 +38,9 @@
      $       qxy_transport,
      $       energy_inviscid_x_flux,
      $       energy_inviscid_y_flux,
-     $       speed_of_sound
-
+     $       speed_of_sound,
+     $       compute_jacobian_prim_to_cons,
+     $       compute_jacobian_cons_to_prim
 
         contains
 
@@ -561,5 +562,165 @@
           end if          
 
         end function speed_of_sound
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the Jacobian matrix for primitive to
+        !> to conservative variables
+        !
+        !> @date
+        !> 11_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return jacPrimCons
+        !> jacobian matrix for conservative to primitive
+        !> variables \f$ \frac{\partial p}{\partial v} \f$
+        !--------------------------------------------------------------
+        function compute_jacobian_prim_to_cons(nodes)
+     $     result(jacPrimCons)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne,ne)          :: jacPrimCons
+
+          real(rkind)                   :: ux
+          real(rkind)                   :: uy
+
+          ux = nodes(2)/nodes(1)
+          uy = nodes(3)/nodes(1)
+
+
+          if(rkind.eq.8) then
+
+             jacPrimCons(1,1) = 1.0d0
+             jacPrimCons(2,1) = 0.0d0
+             jacPrimCons(3,1) = 0.0d0
+             jacPrimCons(4,1) = 0.0d0
+
+             jacPrimCons(1,2) = - ux/nodes(1)
+             jacPrimCons(2,2) = 1.0d0/nodes(1)
+             jacPrimCons(3,2) = 0.0d0
+             jacPrimCons(4,2) = 0.0d0
+
+             jacPrimCons(1,3) = - uy/nodes(1)
+             jacPrimCons(2,3) = 0.0d0
+             jacPrimCons(3,3) = 1.0d0/nodes(1)
+             jacPrimCons(4,3) = 0.0d0
+
+             jacPrimCons(1,4) = 0.5d0*(gamma-1.0d0)*(ux**2+uy**2)
+             jacPrimCons(2,4) = -(gamma-1.0d0)*ux
+             jacPrimCons(3,4) = -(gamma-1.0d0)*uy
+             jacPrimCons(4,4) = gamma-1.0d0             
+
+          else
+
+             jacPrimCons(1,1) = 1.0d0
+             jacPrimCons(2,1) = 0.0d0
+             jacPrimCons(3,1) = 0.0d0
+             jacPrimCons(4,1) = 0.0d0
+
+             jacPrimCons(1,2) = - ux/nodes(1)
+             jacPrimCons(2,2) = 1.0d0/nodes(1)
+             jacPrimCons(3,2) = 0.0d0
+             jacPrimCons(4,2) = 0.0d0
+
+             jacPrimCons(1,3) = - uy/nodes(1)
+             jacPrimCons(2,3) = 0.0d0
+             jacPrimCons(3,3) = 1.0d0/nodes(1)
+             jacPrimCons(4,3) = 0.0d0
+
+             jacPrimCons(1,4) = 0.5d0*(gamma-1.0d0)*(ux**2+uy**2)
+             jacPrimCons(2,4) = -(gamma-1.0d0)*ux
+             jacPrimCons(3,4) = -(gamma-1.0d0)*uy
+             jacPrimCons(4,4) = gamma-1.0d0           
+
+          end if
+
+        end function compute_jacobian_prim_to_cons
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the Jacobian matrix for conservative
+        !> to primitive variables
+        !
+        !> @date
+        !> 11_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return jacConsPrim
+        !> jacobian matrix for primitive to conservative
+        !> variables \f$ \frac{\partial v}{\partial p} \f$
+        !--------------------------------------------------------------
+        function compute_jacobian_cons_to_prim(nodes)
+     $     result(jacConsPrim)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne,ne)          :: jacConsPrim
+
+          real(rkind) :: ux
+          real(rkind) :: uy
+
+          ux = nodes(2)/nodes(1)
+          uy = nodes(3)/nodes(1)          
+
+
+          if(rkind.eq.8) then
+             jacConsPrim(1,1) = 1.0d0
+             jacConsPrim(2,1) = 0.0d0
+             jacConsPrim(3,1) = 0.0d0
+             jacConsPrim(4,1) = 0.0d0
+
+             jacConsPrim(1,2) = ux
+             jacConsPrim(2,2) = nodes(1)
+             jacConsPrim(3,2) = 0.0d0
+             jacConsPrim(4,2) = 0.0d0
+
+             jacConsPrim(1,3) = uy
+             jacConsPrim(2,3) = 0.0d0
+             jacConsPrim(3,3) = nodes(1)
+             jacConsPrim(4,3) = 0.0d0
+
+             jacConsPrim(1,4) = 0.5d0*(ux**2+uy**2)
+             jacConsPrim(2,4) = nodes(1)*ux
+             jacConsPrim(3,4) = nodes(1)*uy
+             jacConsPrim(4,4) = 1.0d0/(gamma-1.0d0)
+
+          else
+             jacConsPrim(1,1) = 1.0
+             jacConsPrim(2,1) = 0.0
+             jacConsPrim(3,1) = 0.0
+             jacConsPrim(4,1) = 0.0
+
+             jacConsPrim(1,2) = ux
+             jacConsPrim(2,2) = nodes(1)
+             jacConsPrim(3,2) = 0.0
+             jacConsPrim(4,2) = 0.0
+
+             jacConsPrim(1,3) = uy
+             jacConsPrim(2,3) = 0.0
+             jacConsPrim(3,3) = nodes(1)
+             jacConsPrim(4,3) = 0.0
+
+             jacConsPrim(1,4) = 0.5*(ux**2+uy**2)
+             jacConsPrim(2,4) = nodes(1)*ux
+             jacConsPrim(3,4) = nodes(1)*uy
+             jacConsPrim(4,4) = 1.0/(gamma-1.0)
+
+          end if             
+             
+        end function compute_jacobian_cons_to_prim
 
       end module ns2d_prim_module
