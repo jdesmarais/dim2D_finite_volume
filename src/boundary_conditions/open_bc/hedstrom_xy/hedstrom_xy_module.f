@@ -422,14 +422,12 @@
           real(rkind), dimension(ne,ne) :: right_eigenmatrix
           real(rkind), dimension(ne)    :: left_eigenvector
           real(rkind), dimension(ne)    :: var_gradient
-          real(rkind), dimension(ne)    :: right_eigenvector
 
 
           !determination of the speed of the amplitude waves
           !along the x-direction
           eigenvalues      = p_model%compute_x_eigenvalues(nodes(i,j,:))
           left_eigenmatrix = p_model%compute_x_lefteigenvector(nodes(i,j,:))
-          right_eigenmatrix= p_model%compute_x_righteigenvector(nodes(i,j,:))
 
 
           !construction of the vector of characteristic amplitudes
@@ -461,12 +459,8 @@
 
           !determination of the contribution of the hyperbolic terms
           !to the time derivatives
-          do k=1,ne
-
-             right_eigenvector = right_eigenmatrix(:,k)
-             timedev(k) = DOT_PRODUCT(right_eigenvector, incoming_amp)
-
-          end do
+          right_eigenmatrix= p_model%compute_x_righteigenvector(nodes(i,j,:))
+          timedev = MATMUL(incoming_amp, right_eigenmatrix)
 
         end function compute_x_timedev_with_openbc
 
@@ -528,14 +522,12 @@
           real(rkind), dimension(ne,ne) :: right_eigenmatrix
           real(rkind), dimension(ne)    :: left_eigenvector
           real(rkind), dimension(ne)    :: var_gradient
-          real(rkind), dimension(ne)    :: right_eigenvector
 
 
           !determination of the speed of the amplitude waves
           !along the x-direction
           eigenvalues      = p_model%compute_y_eigenvalues(nodes(i,j,:))
           left_eigenmatrix = p_model%compute_y_lefteigenvector(nodes(i,j,:))
-          right_eigenmatrix= p_model%compute_y_righteigenvector(nodes(i,j,:))
 
 
           !construction of the vector of characteristic amplitudes
@@ -554,7 +546,7 @@
              !otherwise, the characteristic amplitude is computed using
              !one-side differentiation
              else
-                left_eigenvector = left_eigenmatrix(k,:)
+                left_eigenvector = left_eigenmatrix(:,k)
                 var_gradient     = p_model%compute_y_gradient(
      $               nodes, i,j, gradient, dy)
                 incoming_amp(k)  =  - eigenvalues(k)*
@@ -567,12 +559,8 @@
 
           !determination of the contribution of the hyperbolic terms
           !to the time derivatives
-          do k=1,ne
-
-             right_eigenvector = right_eigenmatrix(k,:)
-             timedev(k) = DOT_PRODUCT(right_eigenvector, incoming_amp)
-
-          end do
+          right_eigenmatrix= p_model%compute_y_righteigenvector(nodes(i,j,:))
+          timedev = MATMUL(incoming_amp, right_eigenmatrix)
 
         end function compute_y_timedev_with_openbc        
 
