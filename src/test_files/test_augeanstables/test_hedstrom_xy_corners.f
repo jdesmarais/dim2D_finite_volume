@@ -28,13 +28,17 @@
         type(bc_operators)                 :: bc_used
         type(pmodel_eq)                    :: p_model
         real(rkind), dimension(nx,ny,ne)   :: nodes
+        real(rkind), dimension(nx)         :: x_map
+        real(rkind), dimension(ny)         :: y_map
         real(rkind)                        :: dx
         real(rkind)                        :: dy
+        real(rkind)                        :: t
         real(rkind), dimension(nx,ny,ne)   :: gradients_n
         real(rkind), dimension(nx+1,ny,ne) :: flux_x
         real(rkind), dimension(nx,ny+1,ne) :: flux_y
         real(rkind), dimension(nx,ny,ne)   :: timedev
         logical                            :: detailled
+        integer(ikind) :: i,j
         
         if((nx.ne.7).or.(ny.ne.5).or.(ne.ne.3)) then
            stop 'the test requires (nx,ny,ne)=(7,5,3)'
@@ -63,10 +67,19 @@
 
 
         !test the time derivatives
+        do i=1, nx
+           x_map(i) = (i-1)*dx
+        end do
+
+        do j=1,ny
+           y_map(j) = (j-1)*dy
+        end do
+
+
         call bc_used%ini(p_model)
         call bc_used%apply_bc_on_timedev(
-     $       nodes,dx,dy,
      $       p_model,
+     $       t,nodes,x_map,y_map,
      $       flux_x,flux_y,
      $       timedev)
         print '(''test time_dev at the corners '')'

@@ -441,6 +441,19 @@
           logical           :: loc
           character(len=45) :: fmt
 
+          real(rkind), dimension(nx) :: x_map
+          real(rkind), dimension(ny) :: y_map
+          real(rkind)                :: t
+
+
+          do i=1,nx
+             x_map(i) = (i-1)*dx
+          end do
+
+          do j=1,ny
+             y_map(j) = (j-1)*dy
+          end do
+
 
           !initialize the test data
           call initialize_test_data(test_data)
@@ -470,8 +483,8 @@
 
           !computation of the time derivatives using open b.c.
           call bc_used%apply_bc_on_timedev(
-     $         nodes,dx,dy,
      $         p_model,
+     $         t,nodes,x_map,y_map,
      $         flux_x,flux_y,
      $         time_dev)
 

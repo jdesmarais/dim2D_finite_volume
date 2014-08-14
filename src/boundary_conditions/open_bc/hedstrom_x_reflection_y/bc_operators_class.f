@@ -246,6 +246,7 @@
         
           class(bc_operators)               , intent(in)    :: this
           type(pmodel_eq)                   , intent(in)    :: p_model
+          real(rkind)                       , intent(in)    :: t
           real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
           real(rkind), dimension(nx)        , intent(in)    :: x_map
           real(rkind), dimension(ny)        , intent(in)    :: y_map
