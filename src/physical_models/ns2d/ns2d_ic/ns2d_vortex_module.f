@@ -72,8 +72,9 @@
           !vortex located at the center of the computational domain
           !the vortex characteristics scales with the size of the
           !computational domain
-          l   = 0.5d0*(x_map(size(x_map,1))-x_map(1))
-          amp = -0.05d0*l
+          l   = 0.25d0*(x_map(size(x_map,1))-x_map(1))
+          !amp = -0.005d0*l
+          amp = -0.0005d0*l
           R   = 0.15d0*l
 
           do j=1, size(nodes,2)

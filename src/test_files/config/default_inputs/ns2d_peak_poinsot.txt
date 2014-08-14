@@ -79,8 +79,9 @@ bc_choice = 7
 !
 !for NS:
 ! 0 : steady state
-! 1 : vortex
-! 2 : vortex convected to the right
+! 1 : peak
+! 2 : vortex
+! 3 : vortex convected to the right
 !
 !for DIM:
 ! 0 : steady state
@@ -88,7 +89,7 @@ bc_choice = 7
 ! 2 : bubble ascending
 ! 3 : homogeneous liquid
 !---------------------------------------------------------
-ic_choice = 2
+ic_choice = 1
 
 
 !7.     DIM equations

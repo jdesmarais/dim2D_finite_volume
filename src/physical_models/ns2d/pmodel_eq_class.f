@@ -30,6 +30,9 @@
      $       mach_infty,
      $       gravity
 
+        use ns2d_peak_module, only :
+     $       apply_peak_ic
+
         use ns2d_vortex_module, only :
      $       apply_vortex_ic
 
@@ -69,6 +72,7 @@ c$$$     $                                           compute_n2_righteigenvector
      $       vector_x,
      $       vector_y,
      $       steady_state,
+     $       peak,
      $       vortex,
      $       vortex_convected_x,
      $       earth_gravity_choice
@@ -419,11 +423,14 @@ c$$$     $                                           compute_n2_righteigenvector
             case(steady_state)
                call apply_steady_state_ic(nodes)
 
+            case(peak)
+               call apply_peak_ic(nodes,x_map,y_map)
+
             case(vortex)
                call apply_vortex_ic(nodes,x_map,y_map)
 
             case(vortex_convected_x)
-               call apply_vortex_ic(nodes,x_map,y_map,[0.01d0,0.0d0])
+               call apply_vortex_ic(nodes,x_map,y_map,[0.1d0,0.0d0])
 
             case default
                print '(''pmodel_eq_class'')'
@@ -777,16 +784,16 @@ c$$$     $                                           compute_n2_righteigenvector
 
           !<fluxes along the x-axis
           !DEC$ FORCEINLINE RECURSIVE
-          flux_x(1) = flux_y_mass_density(
+          flux_x(1) = flux_x_mass_density(
      $         nodes,s_oneside,i,j)
           
           !DEC$ FORCEINLINE RECURSIVE
-          flux_x(2) = flux_y_momentum_x(
+          flux_x(2) = flux_x_momentum_x(
      $         nodes,s_oneside,i,j,
      $         dx,dy)
           
           !DEC$ FORCEINLINE RECURSIVE
-          flux_x(3) = flux_y_momentum_y(
+          flux_x(3) = flux_x_momentum_y(
      $         nodes,s_oneside,i,j,
      $         dx,dy)
           

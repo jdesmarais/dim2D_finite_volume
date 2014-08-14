@@ -109,9 +109,9 @@
           this%title = 'outflow Poinsot b.c.'
 
           if(rkind.eq.8) then
-             this%relaxation_P = sigma_P*(1.0d0-(0.002)**2)*1.0d0/2.0d0
+             this%relaxation_P = sigma_P*(1.0d0-(0.01)**2)*1.0d0/2.0d0
           else
-             this%relaxation_P = sigma_P*(1.0-(0.002)**2)*1.0/2.0
+             this%relaxation_P = sigma_P*(1.0-(0.01)**2)*1.0/2.0
           end if
 
         end subroutine ini

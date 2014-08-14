@@ -132,6 +132,7 @@ def compute_code_inputs(inputFileName):
                     'dim2d_choice']
 
     ns2d_ic_code = ['steady_state',
+                    'peak',
                     'vortex',
                     'vortex_convected_x']
     

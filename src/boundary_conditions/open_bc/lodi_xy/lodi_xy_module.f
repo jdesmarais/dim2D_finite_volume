@@ -28,8 +28,8 @@
 
         use openbc_operators_module, only :
      $       incoming_proc,
-     $       incoming_left,
-     $       incoming_right,
+     $       inflow_left,
+     $       inflow_right,
      $       add_body_forces
 
         use pmodel_eq_class, only :
@@ -37,6 +37,11 @@
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size
+
+        use parameters_constant, only :
+     $       always_inflow,
+     $       always_outflow,
+     $       ask_flow
 
         use parameters_kind, only :
      $       rkind,ikind
@@ -118,14 +123,15 @@
         !> time derivatives of the governing variables
         !-------------------------------------------------------------
         subroutine compute_timedev_xlayer(
-     $     p_model,
-     $     t, nodes, x_map, y_map, i,j,
-     $     flux_y,
-     $     gradient_x,
-     $     inflow_bc,
-     $     outflow_bc,
-     $     is_inflow_x,
-     $     timedev)
+     $       p_model,
+     $       t, nodes, x_map, y_map, i,j,
+     $       flux_y,
+     $       gradient_x,
+     $       inflow_bc,
+     $       outflow_bc,
+     $       is_inflow_x,
+     $       oneside_xflow,
+     $       timedev)
 
           implicit none
 
@@ -141,6 +147,7 @@
           type(lodi_inflow)                 , intent(in)    :: inflow_bc
           type(lodi_outflow)                , intent(in)    :: outflow_bc
           procedure(incoming_proc)                          :: is_inflow_x
+          integer    , optional             , intent(in)    :: oneside_xflow
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
 
           real(rkind) :: dy
@@ -156,7 +163,8 @@
      $         gradient_x,
      $         inflow_bc,
      $         outflow_bc,
-     $         is_inflow_x) +
+     $         is_inflow_x,
+     $         oneside_xflow) +
      $         
      $         1.0d0/dy*(flux_y(i,j,:) - flux_y(i,j+1,:)) +
      $         
@@ -222,6 +230,7 @@
      $     inflow_bc,
      $     outflow_bc,
      $     is_inflow_y,
+     $     oneside_yflow,
      $     timedev)
 
           implicit none
@@ -237,6 +246,7 @@
           type(lodi_inflow)                 , intent(in)    :: inflow_bc
           type(lodi_outflow)                , intent(in)    :: outflow_bc
           procedure(incoming_proc)                          :: is_inflow_y
+          integer    , optional             , intent(in)    :: oneside_yflow
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
 
           integer(ikind) :: i
@@ -255,7 +265,8 @@
      $            gradient_y,
      $            inflow_bc,
      $            outflow_bc,
-     $            is_inflow_y) +
+     $            is_inflow_y,
+     $            oneside_yflow) +
      $         
      $            add_body_forces(p_model, nodes(i,j,:))
 
@@ -317,6 +328,8 @@
      $     inflow_bc,
      $     outflow_bc,
      $     is_inflow_y,
+     $     oneside_xflow,
+     $     oneside_yflow,
      $     timedev)
 
           implicit none
@@ -331,6 +344,8 @@
           type(lodi_inflow)               , intent(in)    :: inflow_bc
           type(lodi_outflow)              , intent(in)    :: outflow_bc
           procedure(incoming_proc)                        :: is_inflow_y
+          integer                         , intent(in)    :: oneside_xflow
+          integer                         , intent(in)    :: oneside_yflow
           real(rkind), dimension(nx,ny,ne), intent(inout) :: timedev
 
           integer(ikind) :: i
@@ -343,7 +358,8 @@
      $         gradient_x_x_oneside_L0,
      $         inflow_bc,
      $         outflow_bc,
-     $         incoming_left) + 
+     $         inflow_left,
+     $         oneside_xflow) + 
      $         
      $         compute_y_timedev_with_openbc(
      $         p_model,
@@ -351,7 +367,8 @@
      $         gradient_y,
      $         inflow_bc,
      $         outflow_bc,
-     $         is_inflow_y) +
+     $         is_inflow_y,
+     $         oneside_yflow) +
      $         
      $         add_body_forces(p_model, nodes(i,j,:))
 
@@ -363,7 +380,8 @@
      $         gradient_x_x_oneside_L1,
      $         inflow_bc,
      $         outflow_bc,
-     $         incoming_left) + 
+     $         inflow_left,
+     $         oneside_xflow) + 
      $         
      $         compute_y_timedev_with_openbc(
      $         p_model,
@@ -371,7 +389,8 @@
      $         gradient_y,
      $         inflow_bc,
      $         outflow_bc,
-     $         is_inflow_y) +
+     $         is_inflow_y,
+     $         oneside_yflow) +
      $         
      $         add_body_forces(p_model, nodes(i,j,:))
 
@@ -431,6 +450,8 @@
      $     inflow_bc,
      $     outflow_bc,
      $     is_inflow_y,
+     $     oneside_xflow,
+     $     oneside_yflow,
      $     timedev)
 
           implicit none
@@ -445,6 +466,8 @@
           type(lodi_inflow)               , intent(in)    :: inflow_bc
           type(lodi_outflow)              , intent(in)    :: outflow_bc
           procedure(incoming_proc)                        :: is_inflow_y
+          integer                         , intent(in)    :: oneside_xflow
+          integer                         , intent(in)    :: oneside_yflow
           real(rkind), dimension(nx,ny,ne), intent(inout) :: timedev
 
           integer(ikind) :: i
@@ -457,7 +480,8 @@
      $         gradient_x_x_oneside_R1,
      $         inflow_bc,
      $         outflow_bc,
-     $         incoming_right) + 
+     $         inflow_right,
+     $         oneside_xflow) + 
      $         
      $         compute_y_timedev_with_openbc(
      $         p_model,
@@ -465,7 +489,8 @@
      $         gradient_y,
      $         inflow_bc,
      $         outflow_bc,
-     $         is_inflow_y) +
+     $         is_inflow_y,
+     $         oneside_yflow) +
      $         
      $         add_body_forces(p_model, nodes(i,j,:))
 
@@ -477,7 +502,8 @@
      $         gradient_x_x_oneside_R0,
      $         inflow_bc,
      $         outflow_bc,
-     $         incoming_right) + 
+     $         inflow_right,
+     $         oneside_xflow) + 
      $         
      $         compute_y_timedev_with_openbc(
      $         p_model,
@@ -485,7 +511,8 @@
      $         gradient_y,
      $         inflow_bc,
      $         outflow_bc,
-     $         is_inflow_y) +
+     $         is_inflow_y,
+     $         oneside_yflow) +
      $         
      $         add_body_forces(p_model, nodes(i,j,:))
 
@@ -545,7 +572,8 @@
      $     gradient,
      $     inflow_bc,
      $     outflow_bc,
-     $     is_inflow)
+     $     is_inflow,
+     $     oneside_flow)
      $     result(timedev)
 
           implicit none
@@ -562,13 +590,35 @@
           type(lodi_inflow)            , intent(in) :: inflow_bc
           type(lodi_outflow)           , intent(in) :: outflow_bc
           procedure(incoming_proc)                  :: is_inflow
+          integer            , optional, intent(in) :: oneside_flow
           real(rkind), dimension(ne)                :: timedev
 
 
+          logical :: inflow_option
+
+
+          if(present(oneside_flow)) then
+             select case(oneside_flow)
+               case(always_inflow)
+                  inflow_option = .true.
+               case(always_outflow)
+                  inflow_option = .false.
+               case(ask_flow)
+                  inflow_option = is_inflow(nodes(i,j,2))
+               case default
+                  print '(''lodi_xy_module'')'
+                  print '(''compute_x_timedev_with_openbc'')'
+                  stop 'oneside_flow option not recognized'
+             end select
+          else
+             inflow_option = is_inflow(nodes(i,j,2))
+          end if
+
+             
           !determine whether the b.c. is an inflow or outflow
-          !b.c. by looking at the sign of the y-component of
+          !b.c. by looking at the sign of the x-component of
           !the momentum vector
-          if(is_inflow(nodes(i,j,2))) then
+          if(inflow_option) then
              timedev = inflow_bc%compute_x_timedev(
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,
@@ -638,7 +688,8 @@
      $     gradient,
      $     inflow_bc,
      $     outflow_bc,
-     $     is_inflow)
+     $     is_inflow,
+     $     oneside_flow)
      $     result(timedev)
 
           implicit none
@@ -655,13 +706,34 @@
           type(lodi_inflow)            , intent(in) :: inflow_bc
           type(lodi_outflow)           , intent(in) :: outflow_bc
           procedure(incoming_proc)                  :: is_inflow
+          integer            , optional, intent(in) :: oneside_flow
           real(rkind), dimension(ne)                :: timedev
 
+          logical :: inflow_option
 
+
+          if(present(oneside_flow)) then
+             select case(oneside_flow)
+               case(always_inflow)
+                  inflow_option = .true.
+               case(always_outflow)
+                  inflow_option = .false.
+               case(ask_flow)
+                  inflow_option = is_inflow(nodes(i,j,3))
+               case default
+                  print '(''lodi_xy_module'')'
+                  print '(''compute_y_timedev_with_openbc'')'
+                  stop 'oneside_flow option not recognized'
+             end select
+          else
+             inflow_option = is_inflow(nodes(i,j,3))
+          end if
+
+             
           !determine whether the b.c. is an inflow or outflow
           !b.c. by looking at the sign of the y-component of
           !the momentum vector
-          if(is_inflow(nodes(i,j,3))) then
+          if(inflow_option) then
              timedev = inflow_bc%compute_y_timedev(
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,

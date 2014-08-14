@@ -31,6 +31,7 @@ ns2d_dep=		ns2d_parameters.o\
 			ns2d_prim_module.o\
 			ns2d_fluxes_module.o\
 			ns2d_steadystate_module.o\
+			ns2d_peak_module.o\
 			ns2d_vortex_module.o\
 			$(pm_dep)
 

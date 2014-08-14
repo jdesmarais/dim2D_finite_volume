@@ -272,6 +272,10 @@ $(ns2d_ic)/ns2d_vortex_module.o:\
 			$(ns2d_dir)/ns2d_parameters.o\
 			$(param_dir)/parameters_kind.o
 
+$(ns2d_ic)/ns2d_peak_module.o:\
+			$(ns2d_dir)/ns2d_parameters.o\
+			$(param_dir)/parameters_kind.o
+
 $(ns2d_dir)/pmodel_eq_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(sd_cdir)/sd_operators_class.o\
@@ -280,6 +284,7 @@ $(ns2d_dir)/pmodel_eq_class.o:\
 			$(ns2d_dir)/ns2d_fluxes_module.o\
 			$(ns2d_ic)/ns2d_steadystate_module.o\
 			$(ns2d_ic)/ns2d_vortex_module.o\
+			$(ns2d_ic)/ns2d_peak_module.o\
 			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\

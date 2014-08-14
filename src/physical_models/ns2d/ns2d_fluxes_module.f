@@ -78,7 +78,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(sd_operators)           , intent(in) :: s
+          class(sd_operators)          , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                               :: var
@@ -120,7 +120,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(sd_operators)           , intent(in) :: s
+          class(sd_operators)          , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                               :: var
@@ -171,7 +171,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(sd_operators)           , intent(in) :: s
+          class(sd_operators)          , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
@@ -240,7 +240,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(sd_operators)           , intent(in) :: s
+          class(sd_operators)          , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
@@ -294,7 +294,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(sd_operators)           , intent(in) :: s
+          class(sd_operators)          , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
@@ -349,7 +349,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(sd_operators)           , intent(in) :: s
+          class(sd_operators)          , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
@@ -416,7 +416,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(sd_operators)           , intent(in) :: s
+          class(sd_operators)          , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
@@ -498,7 +498,7 @@
           implicit none
 
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          type(sd_operators)           , intent(in) :: s
+          class(sd_operators)          , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx

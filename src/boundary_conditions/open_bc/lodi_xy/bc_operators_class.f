@@ -37,8 +37,8 @@
 
         use openbc_operators_module, only :
      $       compute_fluxes_at_the_edges_2ndorder,
-     $       incoming_left,
-     $       incoming_right
+     $       inflow_left,
+     $       inflow_right
 
         use pmodel_eq_class, only :
      $       pmodel_eq
@@ -47,7 +47,11 @@
      $       bc_timedev_choice
 
         use parameters_input, only :
-     $       nx,ny,ne,bc_size
+     $       nx,ny,ne,bc_size,
+     $       obc_type_N,
+     $       obc_type_S,
+     $       obc_type_E,
+     $       obc_type_W
 
         use parameters_kind, only :
      $       rkind,ikind
@@ -113,6 +117,11 @@
           type(lodi_inflow)  :: inflow_bc
           type(lodi_outflow) :: outflow_bc
 
+          integer :: oneside_flow_N
+          integer :: oneside_flow_S
+          integer :: oneside_flow_E
+          integer :: oneside_flow_W
+
           contains
 
           procedure, pass :: ini
@@ -155,6 +164,11 @@
 
           call this%inflow_bc%ini()
           call this%outflow_bc%ini()
+
+          this%oneside_flow_N = obc_type_N
+          this%oneside_flow_S = obc_type_S
+          this%oneside_flow_E = obc_type_E
+          this%oneside_flow_W = obc_type_W
 
         end subroutine ini
 
@@ -248,7 +262,9 @@
      $         gradient_y_y_oneside_L0,
      $         this%inflow_bc,
      $         this%outflow_bc,
-     $         incoming_left,
+     $         inflow_left,
+     $         this%oneside_flow_W,
+     $         this%oneside_flow_S,
      $         timedev)
 
           call compute_timedev_ylayer(
@@ -258,7 +274,8 @@
      $         gradient_y_y_oneside_L0,
      $         this%inflow_bc,
      $         this%outflow_bc,
-     $         incoming_left,
+     $         inflow_left,
+     $         this%oneside_flow_S,
      $         timedev)
 
           call compute_timedev_corner_E(
@@ -267,8 +284,11 @@
      $         gradient_y_y_oneside_L0,
      $         this%inflow_bc,
      $         this%outflow_bc,
-     $         incoming_left,
+     $         inflow_left,
+     $         this%oneside_flow_E,
+     $         this%oneside_flow_S,
      $         timedev)
+
 
           j=2
           call compute_timedev_corner_W(
@@ -277,7 +297,9 @@
      $         gradient_y_y_oneside_L1,
      $         this%inflow_bc,
      $         this%outflow_bc,
-     $         incoming_left,
+     $         inflow_left,
+     $         this%oneside_flow_W,
+     $         this%oneside_flow_S,
      $         timedev)
 
           call compute_timedev_ylayer(
@@ -287,7 +309,8 @@
      $         gradient_y_y_oneside_L1,
      $         this%inflow_bc,
      $         this%outflow_bc,
-     $         incoming_left,
+     $         inflow_left,
+     $         this%oneside_flow_S,
      $         timedev)
 
           call compute_timedev_corner_E(
@@ -296,7 +319,9 @@
      $         gradient_y_y_oneside_L1,
      $         this%inflow_bc,
      $         this%outflow_bc,
-     $         incoming_left,
+     $         inflow_left,
+     $         this%oneside_flow_E,
+     $         this%oneside_flow_S,
      $         timedev)
 
 
@@ -312,7 +337,8 @@
      $            gradient_x_x_oneside_L0,
      $            this%inflow_bc,
      $            this%outflow_bc,
-     $            incoming_left,
+     $            inflow_left,
+     $            this%oneside_flow_W,
      $            timedev)
 
              i=bc_size
@@ -320,10 +346,11 @@
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,
      $            flux_y,
-     $            gradient_x_x_oneside_L0,
+     $            gradient_x_x_oneside_L1,
      $            this%inflow_bc,
      $            this%outflow_bc,
-     $            incoming_left,
+     $            inflow_left,
+     $            this%oneside_flow_W,
      $            timedev)
 
              i=nx-1
@@ -334,7 +361,8 @@
      $            gradient_x_x_oneside_R1,
      $            this%inflow_bc,
      $            this%outflow_bc,
-     $            incoming_right,
+     $            inflow_right,
+     $            this%oneside_flow_E,
      $            timedev)
 
              i=nx
@@ -345,7 +373,8 @@
      $            gradient_x_x_oneside_R0,
      $            this%inflow_bc,
      $            this%outflow_bc,
-     $            incoming_right,
+     $            inflow_right,
+     $            this%oneside_flow_E,
      $            timedev)
 
           end do
@@ -359,7 +388,9 @@
      $         gradient_y_y_oneside_R1,
      $         this%inflow_bc,
      $         this%outflow_bc,
-     $         incoming_right,
+     $         inflow_right,
+     $         this%oneside_flow_W,
+     $         this%oneside_flow_N,
      $         timedev)
 
           call compute_timedev_ylayer(
@@ -369,7 +400,8 @@
      $         gradient_y_y_oneside_R1,
      $         this%inflow_bc,
      $         this%outflow_bc,
-     $         incoming_right,
+     $         inflow_right,
+     $         this%oneside_flow_N,
      $         timedev)
 
           call compute_timedev_corner_E(
@@ -378,7 +410,9 @@
      $         gradient_y_y_oneside_R1,
      $         this%inflow_bc,
      $         this%outflow_bc,
-     $         incoming_right,
+     $         inflow_right,
+     $         this%oneside_flow_E,
+     $         this%oneside_flow_N,
      $         timedev)
 
           j=ny
@@ -388,7 +422,9 @@
      $         gradient_y_y_oneside_R0,
      $         this%inflow_bc,
      $         this%outflow_bc,
-     $         incoming_right,
+     $         inflow_right,
+     $         this%oneside_flow_W,
+     $         this%oneside_flow_N,
      $         timedev)
 
           call compute_timedev_ylayer(
@@ -398,7 +434,8 @@
      $         gradient_y_y_oneside_R0,
      $         this%inflow_bc,
      $         this%outflow_bc,
-     $         incoming_right,
+     $         inflow_right,
+     $         this%oneside_flow_N,
      $         timedev)
 
           call compute_timedev_corner_E(
@@ -407,7 +444,9 @@
      $         gradient_y_y_oneside_R0,
      $         this%inflow_bc,
      $         this%outflow_bc,
-     $         incoming_right,
+     $         inflow_right,
+     $         this%oneside_flow_E,
+     $         this%oneside_flow_N,
      $         timedev)
         
         end subroutine apply_bc_on_timedev_2ndorder        

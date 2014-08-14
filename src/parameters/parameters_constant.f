@@ -38,8 +38,9 @@
 
         !>initial conditions choice for NS
         !integer, parameter :: steady_state=0
-        integer, parameter :: vortex=1
-        integer, parameter :: vortex_convected_x=2
+        integer, parameter :: peak=1
+        integer, parameter :: vortex=2
+        integer, parameter :: vortex_convected_x=3
 
         !>initial conditions choice for DIM
         integer, parameter :: steady_state=0
@@ -86,6 +87,11 @@
         integer, parameter :: only_compute_proc=0
         integer, parameter :: compute_and_exchange_proc=1
         integer, parameter :: only_exchange_proc=2
+
+        !>open b.c. constant
+        integer, parameter :: always_inflow=0
+        integer, parameter :: always_outflow=1
+        integer, parameter :: ask_flow=2
 
       end module parameters_constant
 

@@ -57,6 +57,8 @@
      $       incoming_proc,
      $       incoming_left,
      $       incoming_right,
+     $       inflow_left,
+     $       inflow_right,
      $       compute_fluxes_at_the_edges_2ndorder,
      $       add_body_forces
 
@@ -136,6 +138,67 @@
           is_incoming = eigenvalue.le.0
           
         end function incoming_right
+
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the type of the characteristic wave reaching
+        !> the edge of the computational domain at the east or south
+        !> boundary : incoming or not
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param eigenvalues
+        !> eigenvalues evaluated at the edge
+        !
+        !>@return incoming
+        !> check whether the characteristic wave is entering the
+        !> computational domain
+        !--------------------------------------------------------------
+        function inflow_left(eigenvalue) result(is_incoming)
+
+          implicit none
+
+          real(rkind), intent(in) :: eigenvalue
+          logical                 :: is_incoming
+
+          is_incoming = (eigenvalue+1.0e-6).ge.0
+          
+        end function inflow_left
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the type of the characteristic wave reaching
+        !> the edge of the computational domain at the west or north
+        !> boundary: incoming or not
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param eigenvalues
+        !> eigenvalues evaluated at the edge
+        !
+        !>@return incoming
+        !> check whether the characteristic wave is entering the
+        !> computational domain
+        !--------------------------------------------------------------
+        function inflow_right(eigenvalue) result(is_incoming)
+
+          implicit none
+
+          real(rkind), intent(in) :: eigenvalue
+          logical                 :: is_incoming
+
+          is_incoming = (eigenvalue-1.0e-6).le.0
+          
+        end function inflow_right
 
 
         !> @author
