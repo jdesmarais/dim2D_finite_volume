@@ -15,10 +15,16 @@
         use parameters_constant, only :
      $       vector_x,
      $       left,
-     $       right
+     $       right,
+     $       always_outflow,
+     $       always_inflow
 
         use parameters_input, only :
-     $       nx,ny,ne
+     $       nx,ny,ne,
+     $       obc_type_N,
+     $       obc_type_S,
+     $       obc_type_E,
+     $       obc_type_W
 
         use parameters_kind, only :
      $       ikind,
@@ -48,11 +54,9 @@
         real(rkind)                        :: t
         real(rkind)                        :: dx
         real(rkind)                        :: dy
-        !real(rkind), dimension(nx+1,ny,ne) :: flux_x
-        !real(rkind), dimension(nx,ny+1,ne) :: flux_y
-        !real(rkind), dimension(nx,ny,ne)   :: timedev
+        
         type(pmodel_eq)                    :: p_model
-        !type(bc_operators)                 :: bc_used
+        type(bc_operators)                 :: bc_used
         type(lodi_outflow)                 :: outflow_bc
         type(lodi_inflow)                  :: inflow_bc
 
@@ -340,19 +344,140 @@
         print '()'
 
 
-
-c$$$        !test the symmetry for the inflow operators
-c$$$        call bc_used%ini(p_model)
-c$$$        call bc_used%apply_bc_on_timedev(
-c$$$     $       p_model,
-c$$$     $       t, nodes, x_map, y_map,
-c$$$     $       flux_x, flux_y,
-c$$$     $       timedev)
+        !test the symmetry for the inflow operators
+        
+        !step 1 in validating the apply_time_dev: validation of inflow
+        !outflow b.c. along y for non symmetric data along y
+c$$$        print '(''test timedev inflow along y'')'
+c$$$        print '(''--------------------------------------'')'
+c$$$        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
 c$$$
+c$$$        detailled = .false.
+c$$$
+c$$$        call inflow_bc%ini()        
+c$$$
+c$$$        print '(''*************************************************'')'
+c$$$        print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
+c$$$        print '(''*************************************************'')'
+c$$$
+c$$$        do i=1,5
+c$$$           j=1
+c$$$           timedev(i,j,:) = inflow_bc%compute_y_lodi(
+c$$$     $          p_model,
+c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$     $          left,
+c$$$     $          gradient_y_y_oneside_L0)
+c$$$           
+c$$$           j=2
+c$$$           timedev(i,j,:) = inflow_bc%compute_y_lodi(
+c$$$     $          p_model,
+c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$     $          left,
+c$$$     $          gradient_y_y_oneside_L1)
+c$$$           
+c$$$           j=4
+c$$$           timedev(i,j,:) = inflow_bc%compute_y_lodi(
+c$$$     $          p_model,
+c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$     $          right,
+c$$$     $          gradient_y_y_oneside_R1)
+c$$$
+c$$$           j=5
+c$$$           timedev(i,j,:) = inflow_bc%compute_y_lodi(
+c$$$     $          p_model,
+c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$     $          right,
+c$$$     $          gradient_y_y_oneside_R0)
+c$$$
+c$$$        end do
+c$$$
+c$$$        
 c$$$        call print_timedev(timedev)
-
+c$$$
+c$$$        print '()'
         
 
+
+c$$$        print '(''test timedev inflow along y'')'
+c$$$        print '(''--------------------------------------'')'
+c$$$        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
+c$$$
+c$$$        detailled = .false.
+c$$$
+c$$$        call inflow_bc%ini()        
+c$$$
+c$$$        print '(''*************************************************'')'
+c$$$        print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
+c$$$        print '(''*************************************************'')'
+c$$$
+c$$$        do i=1,5
+c$$$           j=1
+c$$$           timedev(i,j,:) = inflow_bc%compute_y_timedev(
+c$$$     $          p_model,
+c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$     $          left,
+c$$$     $          gradient_y_y_oneside_L0)
+c$$$           
+c$$$           j=2
+c$$$           timedev(i,j,:) = inflow_bc%compute_y_timedev(
+c$$$     $          p_model,
+c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$     $          left,
+c$$$     $          gradient_y_y_oneside_L1)
+c$$$           
+c$$$           j=4
+c$$$           timedev(i,j,:) = inflow_bc%compute_y_timedev(
+c$$$     $          p_model,
+c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$     $          right,
+c$$$     $          gradient_y_y_oneside_R1)
+c$$$
+c$$$           j=5
+c$$$           timedev(i,j,:) = inflow_bc%compute_y_timedev(
+c$$$     $          p_model,
+c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$     $          right,
+c$$$     $          gradient_y_y_oneside_R0)
+c$$$
+c$$$        end do
+c$$$
+c$$$        
+c$$$        call print_timedev(timedev)
+c$$$
+c$$$        print '()'
+        
+
+        print '(''test time_dev for the bc_operators'')'
+        print '(''---------------------------------------'')'
+        
+        if(
+     $       (obc_type_N.ne.always_outflow).or.
+     $       (obc_type_S.ne.always_inflow).or.
+     $       (obc_type_E.ne.always_outflow).or.
+     $       (obc_type_W.ne.always_outflow)) then
+
+           print '(''the test is designed for:'')'
+           print '(''obc_type_N = always_outflow'')'
+           print '(''obc_type_S = always_inflow'')'
+           print '(''obc_type_E = always_outflow'')'
+           print '(''obc_type_W = always_outflow'')'
+
+        end if
+
+
+        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
+
+        call get_test_data_for_apply_timedev(test_data)
+
+        test_validated = test_apply_bc_timedev(
+     $       test_data,
+     $       bc_used,
+     $       p_model,
+     $       t,nodes,x_map,y_map)
+
+        print '()'
+
+        
 
         contains
 
@@ -1452,5 +1577,190 @@ c$$$        call print_timedev(timedev)
           test_data(:,:,4) = -test_data(:,:,4)
 
         end subroutine get_test_data_for_lodi_inflow_timedevx
+
+
+        function test_apply_bc_timedev(
+     $     test_data,
+     $     bc_used,
+     $     p_model,
+     $     t,nodes,x_map,y_map)
+     $     result(test_validated)
+
+          implicit none
+          
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: test_data
+          type(bc_operators)              , intent(inout) :: bc_used
+          type(pmodel_eq)                 , intent(in)    :: p_model
+          real(rkind)                     , intent(in)    :: t
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+          real(rkind), dimension(nx)      , intent(in)    :: x_map
+          real(rkind), dimension(ny)      , intent(in)    :: y_map
+          logical                                         :: test_validated
+
+          real(rkind), dimension(nx+1,ny,ne) :: flux_x
+          real(rkind), dimension(nx,ny+1,ne) :: flux_y
+          real(rkind), dimension(nx,ny,ne)   :: timedev
+          logical    , dimension(ne)         :: detailled_loc
+          logical                            :: loc
+          logical                            :: test_timedev_validated
+          integer(ikind)                     :: i,j
+          integer                            :: k
+
+
+          call bc_used%ini(p_model)
+
+          call bc_used%apply_bc_on_timedev(
+     $         p_model,
+     $         t, nodes, x_map, y_map,
+     $         flux_x, flux_y,
+     $         timedev)
+
+          test_validated = .true.
+          detailled_loc  = [.false.,.false.,.false.,.false.]
+
+
+          do k=1,4
+             test_timedev_validated = .true.
+             do j=1,2
+                do i=1,2
+                   loc = is_test_validated(timedev(i,j,k),test_data(i,j,k),detailled_loc(k))
+                   test_validated = test_validated.and.loc
+                   test_validated = test_timedev_validated.and.loc
+                   if(detailled_loc(k)) then
+                      print '(''timedev('',I2,I2,I2,''):'',L3)', i,j,k,loc
+                   end if
+                end do
+             
+                do i=4,5
+                   loc = is_test_validated(timedev(i,j,k),test_data(i,j,k),detailled_loc(k))
+                   test_validated = test_validated.and.loc
+                   test_timedev_validated = test_timedev_validated.and.loc
+                   if(detailled_loc(k)) then
+                      print '(''timedev('',I2,I2,I2,''):'',L3)', i,j,k,loc
+                   end if
+                end do
+             end do
+             do j=4,5
+                do i=1,2
+                   loc = is_test_validated(timedev(i,j,k),test_data(i,j,k),detailled_loc(k))
+                   test_validated = test_validated.and.loc
+                   test_validated = test_timedev_validated.and.loc
+                   if(detailled_loc(k)) then
+                      print '(''timedev('',I2,I2,I2,''):'',L3)', i,j,k,loc
+                   end if
+                end do
+             
+                do i=4,5
+                   loc = is_test_validated(timedev(i,j,k),test_data(i,j,k),detailled_loc(k))
+                   test_validated = test_validated.and.loc
+                   test_timedev_validated = test_timedev_validated.and.loc
+                   if(detailled_loc(k)) then
+                      print '(''timedev('',I2,I2,I2,''):'',L3)', i,j,k,loc
+                   end if
+                end do
+             end do
+             if(.not.detailled_loc(k)) then
+                print '(''timedev('',I1,''):'',L3)', k, test_timedev_validated
+             end if
+          end do
+
+          if(.not.detailled) print '(''test_validated: '',L3)', test_validated
+
+        end function test_apply_bc_timedev
+
+
+        subroutine get_test_data_for_apply_timedev(
+     $     test_data)
+        
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(out) :: test_data
+
+
+          !mass
+          test_data(1,5,1) = 411.5149996 
+          test_data(1,4,1) =  31.90977121 
+          test_data(1,2,1) =  77.43846381 
+          test_data(1,1,1) =-117.0819939 
+                             
+          test_data(2,5,1) =   -42.5268548 
+          test_data(2,4,1) =   314.1518906 
+          test_data(2,2,1) = -1143.94395   
+          test_data(2,1,1) =   -31.64039725
+                             
+          test_data(4,5,1) =   -42.5268548 
+          test_data(4,4,1) =   314.1518906 
+          test_data(4,2,1) = -1143.94395   
+          test_data(4,1,1) =   -31.64039725
+                             
+          test_data(5,5,1) = 411.5149996 
+          test_data(5,4,1) =  31.90977121
+          test_data(5,2,1) =  77.43846381
+          test_data(5,1,1) =-117.0819939 
+
+          !momentum-x
+          test_data(1,5,2) = -2811.25496d0   
+          test_data(1,4,2) =    53.21392297  
+          test_data(1,2,2) =  -245.7056734 
+          test_data(1,1,2) = -1040.931755  
+                                      
+          test_data(2,5,2) =   -25.54023737
+          test_data(2,4,2) =   -22.14881023
+          test_data(2,2,2) = -1069.312538  
+          test_data(2,1,2) =  -506.1504854 
+                                      
+          test_data(4,5,2) =    25.54023737
+          test_data(4,4,2) =    22.14881023
+          test_data(4,2,2) =  1069.312538  
+          test_data(4,1,2) =   506.1504854 
+                                      
+          test_data(5,5,2) =  2811.25496d0   
+          test_data(5,4,2) =   -53.21392297
+          test_data(5,2,2) =   245.7056734 
+          test_data(5,1,2) =  1040.931755  
+
+          !momentum-y
+          test_data(1,5,3) = 12454.29272d0
+          test_data(1,4,3) = 144.0660404 
+          test_data(1,2,3) = 363.1082198
+          test_data(1,1,3) = -67.373919 
+                                            
+          test_data(2,5,3) =   47.03942274
+          test_data(2,4,3) =  -89.75255838
+          test_data(2,2,3) =  321.6939679 
+          test_data(2,1,3) = -111.6170463 
+                                           
+          test_data(4,5,3) =   47.03942274
+          test_data(4,4,3) =  -89.75255838
+          test_data(4,2,3) =  321.6939679 
+          test_data(4,1,3) = -111.6170463 
+                                           
+          test_data(5,5,3) = 12454.29272d0
+          test_data(5,4,3) = 144.0660404
+          test_data(5,2,3) = 363.1082198
+          test_data(5,1,3) = -67.373919 
+
+          !total energy
+          test_data(1,5,4) = 200758.5307d0 
+          test_data(1,4,4) = 499.1978753 
+          test_data(1,2,4) = -528.0714921
+          test_data(1,1,4) = 7818.490886 
+                                            
+          test_data(2,5,4) = -3219.686793
+          test_data(2,4,4) = 185.6690675 
+          test_data(2,2,4) = -1113.950573
+          test_data(2,1,4) = -23315.61095d0
+                                           
+          test_data(4,5,4) = -3219.686793
+          test_data(4,4,4) = 185.6690675 
+          test_data(4,2,4) = -1113.950573
+          test_data(4,1,4) = -23315.61095d0
+                                           
+          test_data(5,5,4) = 200758.5307d0 
+          test_data(5,4,4) = 499.1978753 
+          test_data(5,2,4) = -528.0714921
+          test_data(5,1,4) = 7818.490886 
+
+        end subroutine get_test_data_for_apply_timedev
 
       end program test_lodi_operators
