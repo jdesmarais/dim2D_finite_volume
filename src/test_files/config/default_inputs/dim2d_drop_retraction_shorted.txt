@@ -2,7 +2,7 @@
 !---------------------------------------------------------
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !---------------------------------------------------------
-detail_print = 0.0002
+detail_print = 0.0025
 
 
 !2.	Simulation duration
@@ -11,7 +11,7 @@ detail_print = 0.0002
 !t_max   : real    : set simulation maximum time
 !---------------------------------------------------------
 dt    = 0.0025
-t_max = 4000
+t_max = 10
 
 
 !3.	Space discretisation
@@ -28,18 +28,32 @@ t_max = 4000
 !npy     : integer : number of tiles in the y-direction
 !---------------------------------------------------------
 dx = 0.01
-x_min = 0
-x_max = 1.5
+x_min = 0.0
+x_max = 2.4
 
 dy = 0.01
-y_min = -1
-y_max = 1.5
+y_min = 0.0
+y_max = 2.4
 
-npx = 2
-npy = 2
+npx = 1
+npy = 1
 
 
-!4.     Boundary conditions
+!4.	Physical model
+!---------------------------------------------------------
+!set the physical model used
+!---------------------------------------------------------
+!pm_choice : integer
+! 0 : for simple test
+! 1 : for wave1d
+! 2 : for wave2d
+! 3 : for ns2d
+! 4 : for dim2d
+!---------------------------------------------------------
+pm_choice = 4
+
+
+!5.     Boundary conditions
 !---------------------------------------------------------
 !set the type of boundary conditions used
 !---------------------------------------------------------
@@ -47,23 +61,35 @@ npy = 2
 ! 0 : for periodic xy
 ! 1 : for reflection xy
 ! 2 : for wall xy
-! 3:  for wall x and reflection y
+! 3 : for wall x and reflection y
+! 4 : for hedstrom openbc xy
+! 5 : for hedstrom openbc xy with corner treatment
+! 6 : for hedstrom x reflection y
+! 7 : for poinsot and lele openbc xy
 !---------------------------------------------------------
-bc_choice = 3
+bc_choice = 1
 
 
-!5.    initial conditions for the DIM
+!6.    Initial conditions
 !---------------------------------------------------------
 !ic_choice : integer
+!
+!for NS:
+! 0 : steady state
+! 1 : peak
+! 2 : vortex
+! 3 : vortex convected to the right
+!
+!for DIM:
 ! 0 : steady state
 ! 1 : drop retraction
 ! 2 : bubble ascending
 ! 3 : homogeneous liquid
 !---------------------------------------------------------
-ic_choice = 2
+ic_choice = 1
 
 
-!6.     DIM equations
+!7.     DIM equations
 !---------------------------------------------------------
 !set the options tuning the DIM equations
 !---------------------------------------------------------
@@ -71,4 +97,4 @@ ic_choice = 2
 ! 0 : no gravity
 ! 1 : earth gravity: 9.81
 !---------------------------------------------------------
-gravity_choice=1
+gravity_choice=0

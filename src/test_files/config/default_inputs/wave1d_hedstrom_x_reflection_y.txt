@@ -47,7 +47,8 @@ npy = 1
 ! 0 : for simple test
 ! 1 : for wave1d
 ! 2 : for wave2d
-! 3 : for dim2d
+! 3 : for ns2d
+! 4 : for dim2d
 !---------------------------------------------------------
 pm_choice = 1
 
