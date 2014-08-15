@@ -37,6 +37,9 @@
      $       temperature,
      $       speed_of_sound
 
+        use parameters_constant, only :
+     $       left
+
         use parameters_input, only :
      $       ne,
      $       sigma_P
@@ -83,8 +86,9 @@
           procedure, pass   :: compute_x_lodi
           procedure, pass   :: compute_y_lodi
 
-          procedure, nopass :: compute_Pout         
-
+          procedure, nopass :: compute_Pout
+          procedure,   pass :: get_relaxation_P
+          
         end type lodi_outflow
 
 
@@ -159,10 +163,11 @@
         !> LODI vector
         !---------------------------------------------------------------
         function compute_x_lodi(
-     $    this, p_model,
-     $    t, nodes, x_map, y_map, i,j,
-     $    gradient)
-     $    result(lodi)
+     $     this, p_model,
+     $     t, nodes, x_map, y_map, i,j,
+     $     side,
+     $     gradient)
+     $     result(lodi)
 
           implicit none
           
@@ -174,6 +179,7 @@
           real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side
           procedure(gradient_x_proc)                :: gradient
           real(rkind), dimension(ne)                :: lodi
 
@@ -205,8 +211,13 @@
           !computation of the LODI vector
           lodi(1) = eigenvalues(1)*velocity_y_grad
           lodi(2) = eigenvalues(2)*(c**2*mass_grad-pressure_grad)
-          lodi(3) = this%relaxation_P*(P-P_out)
-          lodi(4) = eigenvalues(4)*(pressure_grad+nodes(i,j,1)*c*velocity_x_grad)
+          if(side.eqv.left) then
+             lodi(3) = eigenvalues(3)*(pressure_grad-nodes(i,j,1)*c*velocity_x_grad)
+             lodi(4) = this%relaxation_P*(P-P_out)
+          else
+             lodi(3) = this%relaxation_P*(P-P_out)
+             lodi(4) = eigenvalues(4)*(pressure_grad+nodes(i,j,1)*c*velocity_x_grad)
+          end if
 
         end function compute_x_lodi
 
@@ -253,10 +264,11 @@
         !> LODI vector
         !---------------------------------------------------------------
         function compute_y_lodi(
-     $    this, p_model,
-     $    t, nodes, x_map, y_map, i,j,
-     $    gradient)
-     $    result(lodi)
+     $     this, p_model,
+     $     t, nodes, x_map, y_map, i,j,
+     $     side,
+     $     gradient)
+     $     result(lodi)
 
           implicit none
           
@@ -268,6 +280,7 @@
           real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side
           procedure(gradient_y_proc)                :: gradient
           real(rkind), dimension(ne)                :: lodi
 
@@ -299,8 +312,14 @@
           !computation of the LODI vector
           lodi(1) = eigenvalues(1)*velocity_x_grad
           lodi(2) = eigenvalues(2)*(c**2*mass_grad-pressure_grad)
-          lodi(3) = this%relaxation_P*(P-P_out)
-          lodi(4) = eigenvalues(4)*(pressure_grad+nodes(i,j,1)*c*velocity_y_grad)
+
+          if(side.eqv.left) then
+             lodi(3) = eigenvalues(3)*(pressure_grad-nodes(i,j,1)*c*velocity_y_grad)
+             lodi(4) = this%relaxation_P*(P-P_out)
+          else
+             lodi(3) = this%relaxation_P*(P-P_out)
+             lodi(4) = eigenvalues(4)*(pressure_grad+nodes(i,j,1)*c*velocity_y_grad)
+          end if
 
         end function compute_y_lodi
 
@@ -343,5 +362,16 @@
           t_s = t
 
         end function compute_Pout
+
+        function get_relaxation_P(this)
+
+          implicit none
+
+          class(lodi_outflow), intent(in) :: this
+          real(rkind)                     :: get_relaxation_P
+
+          get_relaxation_P = this%relaxation_P
+
+        end function get_relaxation_P
 
       end module lodi_outflow_class

@@ -672,6 +672,7 @@ $(lpobc_ns2d_dir)/lodi_inflow_class.o:\
 			$(lobc_dir)/lodi_ns2d_class.o\
 			$(ns2d_dir)/ns2d_parameters.o\
 			$(ns2d_dir)/ns2d_prim_module.o\
+			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(ns2d_dir)/pmodel_eq_class.o
@@ -681,6 +682,7 @@ $(lpobc_ns2d_dir)/lodi_outflow_class.o:\
 			$(lobc_dir)/lodi_ns2d_class.o\
 			$(ns2d_dir)/ns2d_parameters.o\
 			$(ns2d_dir)/ns2d_prim_module.o\
+			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(ns2d_dir)/pmodel_eq_class.o

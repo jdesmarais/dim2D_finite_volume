@@ -41,7 +41,9 @@
         use parameters_constant, only :
      $       always_inflow,
      $       always_outflow,
-     $       ask_flow
+     $       ask_flow,
+     $       left,
+     $       right
 
         use parameters_kind, only :
      $       rkind,ikind
@@ -126,6 +128,7 @@
      $       p_model,
      $       t, nodes, x_map, y_map, i,j,
      $       flux_y,
+     $       side_x,
      $       gradient_x,
      $       inflow_bc,
      $       outflow_bc,
@@ -143,6 +146,7 @@
           integer(ikind)                    , intent(in)    :: i
           integer(ikind)                    , intent(in)    :: j
           real(rkind), dimension(nx,ny+1,ne), intent(in)    :: flux_y
+          logical                           , intent(in)    :: side_x
           procedure(gradient_y_proc)                        :: gradient_x
           type(lodi_inflow)                 , intent(in)    :: inflow_bc
           type(lodi_outflow)                , intent(in)    :: outflow_bc
@@ -160,6 +164,7 @@
      $         compute_x_timedev_with_openbc(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
+     $         side_x,
      $         gradient_x,
      $         inflow_bc,
      $         outflow_bc,
@@ -226,6 +231,7 @@
      $     p_model,
      $     t, nodes, x_map, y_map, j,
      $     flux_x,
+     $     side_y,
      $     gradient_y,
      $     inflow_bc,
      $     outflow_bc,
@@ -242,6 +248,7 @@
           real(rkind), dimension(ny)        , intent(in)    :: y_map
           integer(ikind)                    , intent(in)    :: j
           real(rkind), dimension(nx+1,ny,ne), intent(in)    :: flux_x
+          logical                           , intent(in)    :: side_y
           procedure(gradient_y_proc)                        :: gradient_y
           type(lodi_inflow)                 , intent(in)    :: inflow_bc
           type(lodi_outflow)                , intent(in)    :: outflow_bc
@@ -262,6 +269,7 @@
      $            compute_y_timedev_with_openbc(
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,
+     $            side_y,
      $            gradient_y,
      $            inflow_bc,
      $            outflow_bc,
@@ -324,6 +332,7 @@
         subroutine compute_timedev_corner_W(
      $     p_model,
      $     t, nodes, x_map, y_map, j,
+     $     side_y,
      $     gradient_y,
      $     inflow_bc,
      $     outflow_bc,
@@ -340,6 +349,7 @@
           real(rkind), dimension(nx)      , intent(in)    :: x_map
           real(rkind), dimension(ny)      , intent(in)    :: y_map
           integer(ikind)                  , intent(in)    :: j
+          logical                         , intent(in)    :: side_y
           procedure(gradient_y_proc)                      :: gradient_y
           type(lodi_inflow)               , intent(in)    :: inflow_bc
           type(lodi_outflow)              , intent(in)    :: outflow_bc
@@ -355,6 +365,7 @@
      $         compute_x_timedev_with_openbc(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
+     $         left,
      $         gradient_x_x_oneside_L0,
      $         inflow_bc,
      $         outflow_bc,
@@ -364,6 +375,7 @@
      $         compute_y_timedev_with_openbc(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
+     $         side_y,
      $         gradient_y,
      $         inflow_bc,
      $         outflow_bc,
@@ -377,6 +389,7 @@
      $         compute_x_timedev_with_openbc(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
+     $         left,
      $         gradient_x_x_oneside_L1,
      $         inflow_bc,
      $         outflow_bc,
@@ -386,6 +399,7 @@
      $         compute_y_timedev_with_openbc(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
+     $         side_y,
      $         gradient_y,
      $         inflow_bc,
      $         outflow_bc,
@@ -446,6 +460,7 @@
         subroutine compute_timedev_corner_E(
      $     p_model,
      $     t, nodes, x_map, y_map, j,
+     $     side_y,
      $     gradient_y,
      $     inflow_bc,
      $     outflow_bc,
@@ -462,6 +477,7 @@
           real(rkind), dimension(nx)      , intent(in)    :: x_map
           real(rkind), dimension(ny)      , intent(in)    :: y_map
           integer(ikind)                  , intent(in)    :: j
+          logical                         , intent(in)    :: side_y
           procedure(gradient_y_proc)                      :: gradient_y
           type(lodi_inflow)               , intent(in)    :: inflow_bc
           type(lodi_outflow)              , intent(in)    :: outflow_bc
@@ -477,6 +493,7 @@
      $         compute_x_timedev_with_openbc(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
+     $         right,
      $         gradient_x_x_oneside_R1,
      $         inflow_bc,
      $         outflow_bc,
@@ -486,6 +503,7 @@
      $         compute_y_timedev_with_openbc(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
+     $         side_y,
      $         gradient_y,
      $         inflow_bc,
      $         outflow_bc,
@@ -499,6 +517,7 @@
      $         compute_x_timedev_with_openbc(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
+     $         right,
      $         gradient_x_x_oneside_R0,
      $         inflow_bc,
      $         outflow_bc,
@@ -508,6 +527,7 @@
      $         compute_y_timedev_with_openbc(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
+     $         side_y,
      $         gradient_y,
      $         inflow_bc,
      $         outflow_bc,
@@ -569,6 +589,7 @@
         function compute_x_timedev_with_openbc(
      $     p_model,
      $     t, nodes, x_map, y_map, i,j,
+     $     side,
      $     gradient,
      $     inflow_bc,
      $     outflow_bc,
@@ -586,6 +607,7 @@
           real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side
           procedure(gradient_x_proc)                :: gradient
           type(lodi_inflow)            , intent(in) :: inflow_bc
           type(lodi_outflow)           , intent(in) :: outflow_bc
@@ -608,6 +630,7 @@
                case default
                   print '(''lodi_xy_module'')'
                   print '(''compute_x_timedev_with_openbc'')'
+                  print '(''option asked: '')', oneside_flow
                   stop 'oneside_flow option not recognized'
              end select
           else
@@ -622,12 +645,14 @@
              timedev = inflow_bc%compute_x_timedev(
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,
+     $            side,
      $            gradient)
 
           else
              timedev = outflow_bc%compute_x_timedev(
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,
+     $            side,
      $            gradient)
 
           end if
@@ -685,6 +710,7 @@
         function compute_y_timedev_with_openbc(
      $     p_model,
      $     t, nodes, x_map, y_map, i,j,
+     $     side,
      $     gradient,
      $     inflow_bc,
      $     outflow_bc,
@@ -702,6 +728,7 @@
           real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side
           procedure(gradient_y_proc)                :: gradient
           type(lodi_inflow)            , intent(in) :: inflow_bc
           type(lodi_outflow)           , intent(in) :: outflow_bc
@@ -737,12 +764,14 @@
              timedev = inflow_bc%compute_y_timedev(
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,
+     $            side,
      $            gradient)
 
           else
              timedev = outflow_bc%compute_y_timedev(
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,
+     $            side,
      $            gradient)
 
           end if

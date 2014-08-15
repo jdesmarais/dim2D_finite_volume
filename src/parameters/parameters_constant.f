@@ -89,6 +89,8 @@
         integer, parameter :: only_exchange_proc=2
 
         !>open b.c. constant
+        logical, parameter :: left=.true.
+        logical, parameter :: right=.false.
         integer, parameter :: always_inflow=0
         integer, parameter :: always_outflow=1
         integer, parameter :: ask_flow=2

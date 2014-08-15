@@ -103,6 +103,7 @@
         function compute_x_timedev(
      $    this, p_model,
      $    t, nodes, x_map, y_map, i,j,
+     $    side,
      $    gradient)
      $    result(timedev)
 
@@ -116,6 +117,7 @@
           real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side
           procedure(gradient_x_proc)                :: gradient
           real(rkind), dimension(ne)                :: timedev
 
@@ -128,6 +130,7 @@
           lodi = this%compute_x_lodi(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
+     $         side,
      $         gradient)
 
 
@@ -138,12 +141,12 @@
 
           if(rkind.eq.8) then
              timedev(1) = - 1.0d0/c**2*(lodi(2)+0.5d0*(lodi(3)+lodi(4)))
-             timedev(2) = - 0.5d0/(nodes(i,j,1)*c)*(lodi(3)+lodi(4))
+             timedev(2) = - 0.5d0/(nodes(i,j,1)*c)*(lodi(4)-lodi(3))
              timedev(3) = - lodi(1)
              timedev(4) = - 0.5d0*(lodi(3)+lodi(4))
           else
              timedev(1) = - 1.0/c**2*(lodi(2)+0.5*(lodi(3)+lodi(4)))
-             timedev(2) = - 0.5/(nodes(i,j,1)*c)*(lodi(3)+lodi(4))
+             timedev(2) = - 0.5/(nodes(i,j,1)*c)*(lodi(4)-lodi(3))
              timedev(3) = - lodi(1)
              timedev(4) = - 0.5*(lodi(3)+lodi(4))
           end if
@@ -199,10 +202,11 @@
         !> the time derivatives
         !-------------------------------------------------------------
         function compute_y_timedev(
-     $    this, p_model,
-     $    t, nodes, x_map, y_map, i,j,
-     $    gradient)
-     $    result(timedev)
+     $     this, p_model,
+     $     t, nodes, x_map, y_map, i,j,
+     $     side,
+     $     gradient)
+     $     result(timedev)
 
           implicit none
           
@@ -214,6 +218,7 @@
           real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side
           procedure(gradient_y_proc)                :: gradient
           real(rkind), dimension(ne)                :: timedev
 
@@ -225,6 +230,7 @@
           lodi = this%compute_y_lodi(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
+     $         side,
      $         gradient)
 
 
@@ -236,12 +242,12 @@
           if(rkind.eq.8) then
              timedev(1) = - 1.0d0/c**2*(lodi(2)+0.5d0*(lodi(3)+lodi(4)))
              timedev(2) = - lodi(1)
-             timedev(3) = - 0.5d0/(nodes(i,j,1)*c)*(lodi(3)+lodi(4))
+             timedev(3) = - 0.5d0/(nodes(i,j,1)*c)*(lodi(4)-lodi(3))
              timedev(4) = - 0.5d0*(lodi(3)+lodi(4))
           else
              timedev(1) = - 1.0/c**2*(lodi(2)+0.5*(lodi(3)+lodi(4)))
              timedev(2) = - lodi(1)
-             timedev(3) = - 0.5/(nodes(i,j,1)*c)*(lodi(3)+lodi(4))
+             timedev(3) = - 0.5/(nodes(i,j,1)*c)*(lodi(4)-lodi(3))
              timedev(4) = - 0.5*(lodi(3)+lodi(4))
           end if
 

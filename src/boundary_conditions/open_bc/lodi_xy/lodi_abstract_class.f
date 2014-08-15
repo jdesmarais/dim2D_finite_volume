@@ -79,6 +79,7 @@
            function xlodi_proc(
      $       this, p_model,
      $       t, nodes, x_map, y_map, i,j,
+     $       side,
      $       gradient)
      $       result(lodi)
 
@@ -97,6 +98,7 @@
              real(rkind), dimension(:)    , intent(in) :: y_map
              integer(ikind)               , intent(in) :: i
              integer(ikind)               , intent(in) :: j
+             logical                      , intent(in) :: side
              procedure(gradient_x_proc)                :: gradient
              real(rkind), dimension(ne)                :: lodi
 
@@ -107,6 +109,7 @@
            function ylodi_proc(
      $       this, p_model,
      $       t, nodes, x_map, y_map, i,j,
+     $       side,
      $       gradient)
      $       result(lodi)
 
@@ -125,6 +128,7 @@
              real(rkind), dimension(:)    , intent(in) :: y_map
              integer(ikind)               , intent(in) :: i
              integer(ikind)               , intent(in) :: j
+             logical                      , intent(in) :: side
              procedure(gradient_y_proc)                :: gradient
              real(rkind), dimension(ne)                :: lodi
 
@@ -136,6 +140,7 @@
            function xtimedev_proc(
      $       this, p_model,
      $       t, nodes, x_map, y_map, i,j,
+     $       side,
      $       gradient)
      $       result(timedev)
 
@@ -154,6 +159,7 @@
              real(rkind), dimension(:)    , intent(in) :: y_map
              integer(ikind)               , intent(in) :: i
              integer(ikind)               , intent(in) :: j
+             logical                      , intent(in) :: side
              procedure(gradient_x_proc)                :: gradient
              real(rkind), dimension(ne)                :: timedev
 
@@ -165,6 +171,7 @@
            function ytimedev_proc(
      $       this, p_model,
      $       t, nodes, x_map, y_map, i,j,
+     $       side,
      $       gradient)
      $       result(timedev)
 
@@ -183,6 +190,7 @@
              real(rkind), dimension(:)    , intent(in) :: y_map
              integer(ikind)               , intent(in) :: i
              integer(ikind)               , intent(in) :: j
+             logical                      , intent(in) :: side
              procedure(gradient_y_proc)                :: gradient
              real(rkind), dimension(ne)                :: timedev
 

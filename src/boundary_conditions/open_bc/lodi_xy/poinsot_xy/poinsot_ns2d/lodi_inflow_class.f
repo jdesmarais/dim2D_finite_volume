@@ -37,6 +37,9 @@
      $       temperature,
      $       speed_of_sound
 
+        use parameters_constant, only :
+     $       left
+
         use parameters_input, only :
      $       ne
 
@@ -162,10 +165,11 @@
         !> LODI vector
         !---------------------------------------------------------------
         function compute_x_lodi(
-     $    this, p_model,
-     $    t, nodes, x_map, y_map, i,j,
-     $    gradient)
-     $    result(lodi)
+     $     this, p_model,
+     $     t, nodes, x_map, y_map, i,j,
+     $     side,
+     $     gradient)
+     $     result(lodi)
 
           implicit none
           
@@ -177,6 +181,7 @@
           real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side
           procedure(gradient_x_proc)                :: gradient
           real(rkind), dimension(ne)                :: lodi
 
@@ -205,13 +210,23 @@
 
           !computation of the LODI vector
           if(rkind.eq.8) then
-             lodi(3) = eigenvalues(3)*(pressure_grad - nodes(i,j,1)*c*velocity_x_grad)
-             lodi(4) = lodi(3) - 2.0d0*nodes(i,j,1)*c*duindt
+             if(side.eqv.left) then
+                lodi(3) = eigenvalues(3)*(pressure_grad - nodes(i,j,1)*c*velocity_x_grad)
+                lodi(4) = lodi(3) - 2.0d0*nodes(i,j,1)*c*duindt
+             else
+                lodi(4) = eigenvalues(4)*(pressure_grad + nodes(i,j,1)*c*velocity_x_grad)
+                lodi(3) = lodi(4) + 2.0d0*nodes(i,j,1)*c*duindt
+             end if
              lodi(2) = 0.5d0*(gamma-1.0d0)*(lodi(3)+lodi(4)) + nodes(i,j,1)*c**2/temperature(nodes,i,j)*dTindt
              lodi(1) = - dvindt
           else
-             lodi(3) = eigenvalues(3)*(pressure_grad - nodes(i,j,1)*c*velocity_x_grad)
-             lodi(4) = lodi(3) - 2.0*nodes(i,j,1)*c*duindt
+             if(side.eqv.left) then
+                lodi(3) = eigenvalues(3)*(pressure_grad - nodes(i,j,1)*c*velocity_x_grad)
+                lodi(4) = lodi(3) - 2.0*nodes(i,j,1)*c*duindt
+             else
+                lodi(4) = eigenvalues(4)*(pressure_grad + nodes(i,j,1)*c*velocity_x_grad)
+                lodi(3) = lodi(4) + 2.0*nodes(i,j,1)*c*duindt
+             end if
              lodi(2) = 0.5*(gamma-1.0)*(lodi(3)+lodi(4)) + nodes(i,j,1)*c**2/temperature(nodes,i,j)*dTindt
              lodi(1) = - dvindt
           end if
@@ -260,10 +275,11 @@
         !> LODI vector
         !---------------------------------------------------------------
         function compute_y_lodi(
-     $    this, p_model,
-     $    t, nodes, x_map, y_map, i,j,
-     $    gradient)
-     $    result(lodi)
+     $     this, p_model,
+     $     t, nodes, x_map, y_map, i,j,
+     $     side,
+     $     gradient)
+     $     result(lodi)
 
           implicit none
           
@@ -275,6 +291,7 @@
           real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side
           procedure(gradient_y_proc)                :: gradient
           real(rkind), dimension(ne)                :: lodi
 
@@ -303,13 +320,23 @@
 
           !computation of the LODI vector
           if(rkind.eq.8) then
-             lodi(3) = eigenvalues(3)*(pressure_grad - nodes(i,j,1)*c*velocity_y_grad)
-             lodi(4) = lodi(3) - 2.0d0*nodes(i,j,1)*c*dvindt
+             if(side.eqv.left) then
+                lodi(3) = eigenvalues(3)*(pressure_grad - nodes(i,j,1)*c*velocity_y_grad)
+                lodi(4) = lodi(3) - 2.0d0*nodes(i,j,1)*c*dvindt
+             else
+                lodi(4) = eigenvalues(4)*(pressure_grad + nodes(i,j,1)*c*velocity_y_grad)
+                lodi(3) = lodi(4) + 2.0d0*nodes(i,j,1)*c*dvindt
+             end if
              lodi(2) = 0.5d0*(gamma-1.0d0)*(lodi(3)+lodi(4)) + nodes(i,j,1)*c**2/temperature(nodes,i,j)*dTindt
              lodi(1) = - duindt
           else
-             lodi(3) = eigenvalues(3)*(pressure_grad - nodes(i,j,1)*c*velocity_y_grad)
-             lodi(4) = lodi(3) - 2.0*nodes(i,j,1)*c*dvindt
+             if(side.eqv.left) then
+                lodi(3) = eigenvalues(3)*(pressure_grad - nodes(i,j,1)*c*velocity_y_grad)
+                lodi(4) = lodi(3) - 2.0*nodes(i,j,1)*c*dvindt
+             else
+                lodi(4) = eigenvalues(4)*(pressure_grad + nodes(i,j,1)*c*velocity_y_grad)
+                lodi(3) = lodi(4) + 2.0*nodes(i,j,1)*c*dvindt
+             end if
              lodi(2) = 0.5*(gamma-1.0)*(lodi(3)+lodi(4)) + nodes(i,j,1)*c**2/temperature(nodes,i,j)*dTindt
              lodi(1) = - duindt
           end if

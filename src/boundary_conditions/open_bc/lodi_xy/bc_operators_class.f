@@ -44,7 +44,9 @@
      $       pmodel_eq
 
         use parameters_constant, only :
-     $       bc_timedev_choice
+     $       bc_timedev_choice,
+     $       left,
+     $       right
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
@@ -259,6 +261,7 @@
           call compute_timedev_corner_W(
      $         p_model,
      $         t, nodes, x_map, y_map, j,
+     $         left,
      $         gradient_y_y_oneside_L0,
      $         this%inflow_bc,
      $         this%outflow_bc,
@@ -271,6 +274,7 @@
      $         p_model,
      $         t, nodes, x_map, y_map, j,
      $         flux_x,
+     $         left,
      $         gradient_y_y_oneside_L0,
      $         this%inflow_bc,
      $         this%outflow_bc,
@@ -281,6 +285,7 @@
           call compute_timedev_corner_E(
      $         p_model,
      $         t, nodes, x_map, y_map, j,
+     $         left,
      $         gradient_y_y_oneside_L0,
      $         this%inflow_bc,
      $         this%outflow_bc,
@@ -294,6 +299,7 @@
           call compute_timedev_corner_W(
      $         p_model,
      $         t, nodes, x_map, y_map, j,
+     $         left,
      $         gradient_y_y_oneside_L1,
      $         this%inflow_bc,
      $         this%outflow_bc,
@@ -306,6 +312,7 @@
      $         p_model,
      $         t, nodes, x_map, y_map, j,
      $         flux_x,
+     $         left,
      $         gradient_y_y_oneside_L1,
      $         this%inflow_bc,
      $         this%outflow_bc,
@@ -316,6 +323,7 @@
           call compute_timedev_corner_E(
      $         p_model,
      $         t, nodes, x_map, y_map, j,
+     $         left,
      $         gradient_y_y_oneside_L1,
      $         this%inflow_bc,
      $         this%outflow_bc,
@@ -334,6 +342,7 @@
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,
      $            flux_y,
+     $            left,
      $            gradient_x_x_oneside_L0,
      $            this%inflow_bc,
      $            this%outflow_bc,
@@ -346,6 +355,7 @@
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,
      $            flux_y,
+     $            left,
      $            gradient_x_x_oneside_L1,
      $            this%inflow_bc,
      $            this%outflow_bc,
@@ -358,6 +368,7 @@
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,
      $            flux_y,
+     $            right,
      $            gradient_x_x_oneside_R1,
      $            this%inflow_bc,
      $            this%outflow_bc,
@@ -370,6 +381,7 @@
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,
      $            flux_y,
+     $            right,
      $            gradient_x_x_oneside_R0,
      $            this%inflow_bc,
      $            this%outflow_bc,
@@ -385,6 +397,7 @@
           call compute_timedev_corner_W(
      $         p_model,
      $         t, nodes, x_map, y_map, j,
+     $         right,
      $         gradient_y_y_oneside_R1,
      $         this%inflow_bc,
      $         this%outflow_bc,
@@ -397,6 +410,7 @@
      $         p_model,
      $         t, nodes, x_map, y_map, j,
      $         flux_x,
+     $         right,
      $         gradient_y_y_oneside_R1,
      $         this%inflow_bc,
      $         this%outflow_bc,
@@ -407,6 +421,7 @@
           call compute_timedev_corner_E(
      $         p_model,
      $         t, nodes, x_map, y_map, j,
+     $         right,
      $         gradient_y_y_oneside_R1,
      $         this%inflow_bc,
      $         this%outflow_bc,
@@ -419,6 +434,7 @@
           call compute_timedev_corner_W(
      $         p_model,
      $         t, nodes, x_map, y_map, j,
+     $         right,
      $         gradient_y_y_oneside_R0,
      $         this%inflow_bc,
      $         this%outflow_bc,
@@ -431,6 +447,7 @@
      $         p_model,
      $         t, nodes, x_map, y_map, j,
      $         flux_x,
+     $         right,
      $         gradient_y_y_oneside_R0,
      $         this%inflow_bc,
      $         this%outflow_bc,
@@ -441,6 +458,7 @@
           call compute_timedev_corner_E(
      $         p_model,
      $         t, nodes, x_map, y_map, j,
+     $         right,
      $         gradient_y_y_oneside_R0,
      $         this%inflow_bc,
      $         this%outflow_bc,

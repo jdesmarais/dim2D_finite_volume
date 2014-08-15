@@ -221,6 +221,18 @@ test_lodi_poinsot_ns2d: parameters_kind.o\
 			lodi_inflow_class.o\
 			lodi_outflow_class.o
 
+test_lodi_operators.o:	$(lobc_dir)/bc_operators_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(ns2d_dir)/pmodel_eq_class.o
+
+test_lodi_operators:	$(param_dep)\
+			$(poinsot_ns2d_dep)\
+			$(ns2d_dep)\
+			$(mt_dep)
+
+
 #			openbc_operators_module.o\
 #			sd_operators_abstract_class.o\
 #			sd_operators_class.o\
