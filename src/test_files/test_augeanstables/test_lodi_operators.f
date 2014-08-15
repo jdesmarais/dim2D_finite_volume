@@ -28,23 +28,28 @@
      $       gradient_x_x_oneside_L0,
      $       gradient_x_x_oneside_L1,
      $       gradient_x_x_oneside_R1,
-     $       gradient_x_x_oneside_R0
+     $       gradient_x_x_oneside_R0,
+     $       gradient_y_y_oneside_L0,
+     $       gradient_y_y_oneside_L1,
+     $       gradient_y_y_oneside_R1,
+     $       gradient_y_y_oneside_R0
 
 
         implicit none
 
 
         real(rkind), dimension(nx,ny,ne)   :: nodes
+        real(rkind), dimension(nx,ny)      :: nodes_temp
         real(rkind), dimension(nx)         :: x_map
         real(rkind), dimension(ny)         :: y_map
         real(rkind)                        :: t
         real(rkind)                        :: dx
         real(rkind)                        :: dy
-        real(rkind), dimension(nx+1,ny,ne) :: flux_x
-        real(rkind), dimension(nx,ny+1,ne) :: flux_y
-        real(rkind), dimension(nx,ny,ne)   :: timedev
+        !real(rkind), dimension(nx+1,ny,ne) :: flux_x
+        !real(rkind), dimension(nx,ny+1,ne) :: flux_y
+        !real(rkind), dimension(nx,ny,ne)   :: timedev
         type(pmodel_eq)                    :: p_model
-        type(bc_operators)                 :: bc_used
+        !type(bc_operators)                 :: bc_used
         type(lodi_outflow)                 :: outflow_bc
 
         character(*), parameter :: FMT='(5F14.5)'
@@ -53,7 +58,7 @@
         logical                          :: detailled
         logical                          :: test_validated
 
-        integer(ikind) :: j
+        integer :: k
 
 
         if((nx.ne.5).or.(ny.ne.5).or.(ne.ne.4)) then
@@ -65,52 +70,141 @@
         end if
 
 
-        
-
-
-        !initialize the nodes
+        !compute the lodi vector from the lodi outflow x
         call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
-
-
-        !compute the time derivatives from the lodi outflow x
+        call print_nodes(nodes,x_map,y_map)
         call get_test_data_for_lodi_outflow_x(test_data)
 
         print '(''test lodi for outflow x'')'
         print '(''---------------------------------------'')'
+
         detailled = .false.
+
         call outflow_bc%ini()
+
         if(.not.is_test_validated(
      $       outflow_bc%get_relaxation_P(),
      $       0.1249875d0,.false.)) then
            stop 'the test requires relaxation_P=0.1249875'
         end if
+
         test_validated = test_lodi_x(
      $       test_data,
      $       outflow_bc,
      $       p_model,
      $       t, nodes, x_map, y_map,
      $       detailled)
+
         print '()'
 
 
+        !test the computation of the time derivatives for the lodi
+        !outflow x
+
         print '(''test time_dev for outflow x'')'
         print '(''---------------------------------------'')'
+
+        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
         call get_test_data_for_lodi_outflow_timedevx(test_data)
 
         detailled = .false.
+
         call outflow_bc%ini()
+
         if(.not.is_test_validated(
      $       outflow_bc%get_relaxation_P(),
      $       0.1249875d0,.false.)) then
            stop 'the test requires relaxation_P=0.1249875'
         end if
+
         test_validated = test_lodi_timedev_x(
      $       test_data,
      $       outflow_bc,
      $       p_model,
      $       t, nodes, x_map, y_map,
      $       detailled)
+
         print '()'
+
+
+        !compute the lodi vector from the lodi outflow y
+        print '(''test lodi for outflow y'')'
+        print '(''---------------------------------------'')'
+
+        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
+        do k=1,ne
+           nodes(:,:,k) = TRANSPOSE(nodes(:,:,k))
+        end do
+        nodes_temp   = nodes(:,:,2)
+        nodes(:,:,2) = nodes(:,:,3)
+        nodes(:,:,3) = nodes_temp
+        
+
+        call get_test_data_for_lodi_outflow_x(test_data)
+        do k=1, ne
+           test_data(:,:,k) = TRANSPOSE(test_data(:,:,k))
+        end do
+
+        detailled = .false.
+
+        call outflow_bc%ini()
+
+        if(.not.is_test_validated(
+     $       outflow_bc%get_relaxation_P(),
+     $       0.1249875d0,.false.)) then
+           stop 'the test requires relaxation_P=0.1249875'
+        end if
+
+        test_validated = test_lodi_y(
+     $       test_data,
+     $       outflow_bc,
+     $       p_model,
+     $       t, nodes, y_map, x_map,
+     $       detailled)
+        print '()'
+
+
+        !test the computation of the time derivatives for the lodi
+        !outflow y
+
+        print '(''test time_dev for outflow y'')'
+        print '(''---------------------------------------'')'
+
+        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
+        do k=1,ne
+           nodes(:,:,k) = TRANSPOSE(nodes(:,:,k))
+        end do
+        nodes_temp   = nodes(:,:,2)
+        nodes(:,:,2) = nodes(:,:,3)
+        nodes(:,:,3) = nodes_temp
+
+        call get_test_data_for_lodi_outflow_timedevx(test_data)
+        do k=1, ne
+           test_data(:,:,k) = TRANSPOSE(test_data(:,:,k))
+        end do
+        nodes_temp       = test_data(:,:,2)
+        test_data(:,:,2) = test_data(:,:,3)
+        test_data(:,:,3) = nodes_temp
+
+        detailled = .false.
+
+        call outflow_bc%ini()
+
+        if(.not.is_test_validated(
+     $       outflow_bc%get_relaxation_P(),
+     $       0.1249875d0,.false.)) then
+           stop 'the test requires relaxation_P=0.1249875'
+        end if
+
+        test_validated = test_lodi_timedev_y(
+     $       test_data,
+     $       outflow_bc,
+     $       p_model,
+     $       t, nodes, y_map, x_map,
+     $       detailled)
+
+        print '()'
+
 
 
 c$$$        !test the symmetry for the inflow operators
@@ -295,6 +389,19 @@ c$$$        call print_timedev(timedev)
           do i=1,5
              y_map(i) = (i-1)*dy
           end do
+          
+       end subroutine initialize_nodes
+
+
+       subroutine print_nodes(nodes,x_map,y_map)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(out) :: nodes
+          real(rkind), dimension(nx)      , intent(out) :: x_map
+          real(rkind), dimension(ny)      , intent(out) :: y_map
+
+          integer(ikind) :: j
 
 
           print '(''x_map'')'
@@ -334,7 +441,7 @@ c$$$        call print_timedev(timedev)
           print '()'
           print '()'
 
-        end subroutine initialize_nodes
+        end subroutine print_nodes
 
 
         subroutine print_timedev(timedev)
@@ -477,6 +584,102 @@ c$$$        call print_timedev(timedev)
         end function test_lodi_x
 
 
+        function test_lodi_y(
+     $     test_data,
+     $     bc_used,
+     $     p_model,
+     $     t, nodes, x_map, y_map,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(in)  :: test_data
+          class(lodi_ns2d)                , intent(in)  :: bc_used
+          type(pmodel_eq)                 , intent(in)  :: p_model
+          real(rkind)                     , intent(in)  :: t
+          real(rkind), dimension(nx,ny,ne), intent(in)  :: nodes
+          real(rkind), dimension(nx)      , intent(in)  :: x_map
+          real(rkind), dimension(ny)      , intent(in)  :: y_map
+          logical                         , intent(in)  :: detailled
+          logical                                       :: test_validated
+
+
+          real(rkind), dimension(nx,ny,ne) :: lodi
+          logical                          :: loc
+          logical                          :: test_lodi_validated
+          logical, dimension(ne)           :: detailled_loc
+
+          integer(ikind) :: i,j
+          integer        :: k
+
+          
+          do i=1,5
+             j=1
+             lodi(i,j,:) = bc_used%compute_y_lodi(
+     $            p_model,
+     $            t,nodes,x_map,y_map,i,j,
+     $            left,
+     $            gradient_y_y_oneside_L0)
+             
+             j=2
+             lodi(i,j,:) = bc_used%compute_y_lodi(
+     $            p_model,
+     $            t,nodes,x_map,y_map,i,j,
+     $            left,
+     $            gradient_y_y_oneside_L1)
+             
+             j=4
+             lodi(i,j,:) = bc_used%compute_y_lodi(
+     $            p_model,
+     $            t,nodes,x_map,y_map,i,j,
+     $            right,
+     $            gradient_y_y_oneside_R1)
+
+             j=5
+             lodi(i,j,:) = bc_used%compute_y_lodi(
+     $            p_model,
+     $            t,nodes,x_map,y_map,i,j,
+     $            right,
+     $            gradient_y_y_oneside_R0)
+
+          end do
+
+
+          test_validated = .true.
+          detailled_loc = [.false.,.false.,.false.,.false.]
+
+          do k=1,4
+             test_lodi_validated = .true.
+             do i=1,5
+                do j=1,2
+                   loc = is_test_validated(lodi(i,j,k),test_data(i,j,k),detailled_loc(k))
+                   test_validated = test_validated.and.loc
+                   test_validated = test_lodi_validated.and.loc
+                   if(detailled_loc(k)) then
+                      print '(''lodi('',I2,I2,I2,''):'',L3)', i,j,k,loc
+                   end if
+                end do
+             
+                do j=4,5
+                   loc = is_test_validated(lodi(i,j,k),test_data(i,j,k),detailled_loc(k))
+                   test_validated = test_validated.and.loc
+                   test_lodi_validated = test_lodi_validated.and.loc
+                   if(detailled_loc(k)) then
+                      print '(''lodi('',I2,I2,I2,''):'',L3)', i,j,k,loc
+                   end if
+                end do
+             end do
+             if(.not.detailled_loc(k)) then
+                print '(''lodi('',I1,''):'',L3)', k, test_lodi_validated
+             end if
+          end do
+
+          if(.not.detailled) print '(''test_validated: '',L3)', test_validated
+
+        end function test_lodi_y
+
+
         function test_lodi_timedev_x(
      $     test_data,
      $     bc_used,
@@ -571,6 +774,102 @@ c$$$        call print_timedev(timedev)
           if(.not.detailled) print '(''test_validated: '',L3)', test_validated
 
         end function test_lodi_timedev_x
+
+
+        function test_lodi_timedev_y(
+     $     test_data,
+     $     bc_used,
+     $     p_model,
+     $     t, nodes, x_map, y_map,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(in)  :: test_data
+          class(lodi_ns2d)                , intent(in)  :: bc_used
+          type(pmodel_eq)                 , intent(in)  :: p_model
+          real(rkind)                     , intent(in)  :: t
+          real(rkind), dimension(nx,ny,ne), intent(in)  :: nodes
+          real(rkind), dimension(nx)      , intent(in)  :: x_map
+          real(rkind), dimension(ny)      , intent(in)  :: y_map
+          logical                         , intent(in)  :: detailled
+          logical                                       :: test_validated
+
+
+          real(rkind), dimension(nx,ny,ne) :: timedev
+          logical                          :: loc
+          logical                          :: test_lodi_validated
+          logical, dimension(ne)           :: detailled_loc
+
+          integer(ikind) :: i,j
+          integer        :: k
+
+          
+          do i=1,5
+             j=1
+             timedev(i,j,:) = bc_used%compute_y_timedev(
+     $            p_model,
+     $            t,nodes,x_map,y_map,i,j,
+     $            left,
+     $            gradient_y_y_oneside_L0)
+             
+             j=2
+             timedev(i,j,:) = bc_used%compute_y_timedev(
+     $            p_model,
+     $            t,nodes,x_map,y_map,i,j,
+     $            left,
+     $            gradient_y_y_oneside_L1)
+             
+             j=4
+             timedev(i,j,:) = bc_used%compute_y_timedev(
+     $            p_model,
+     $            t,nodes,x_map,y_map,i,j,
+     $            right,
+     $            gradient_y_y_oneside_R1)
+
+             j=5
+             timedev(i,j,:) = bc_used%compute_y_timedev(
+     $            p_model,
+     $            t,nodes,x_map,y_map,i,j,
+     $            right,
+     $            gradient_y_y_oneside_R0)
+
+          end do
+
+
+          test_validated = .true.
+          detailled_loc = [.false.,.false.,.false.,.false.]
+
+          do k=1,4
+             test_lodi_validated = .true.
+             do i=1,5
+                do j=1,2
+                   loc = is_test_validated(timedev(i,j,k),test_data(i,j,k),detailled_loc(k))
+                   test_validated = test_validated.and.loc
+                   test_validated = test_lodi_validated.and.loc
+                   if(detailled_loc(k)) then
+                      print '(''timedev('',I2,I2,I2,''):'',L3)', i,j,k,loc
+                   end if
+                end do
+             
+                do j=4,5
+                   loc = is_test_validated(timedev(i,j,k),test_data(i,j,k),detailled_loc(k))
+                   test_validated = test_validated.and.loc
+                   test_lodi_validated = test_lodi_validated.and.loc
+                   if(detailled_loc(k)) then
+                      print '(''timedev('',I2,I2,I2,''):'',L3)', i,j,k,loc
+                   end if
+                end do
+             end do
+             if(.not.detailled_loc(k)) then
+                print '(''timedev('',I1,''):'',L3)', k, test_lodi_validated
+             end if
+          end do
+
+          if(.not.detailled) print '(''test_validated: '',L3)', test_validated
+
+        end function test_lodi_timedev_y
 
 
         subroutine get_test_data_for_lodi_outflow_x(

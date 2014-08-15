@@ -44,18 +44,20 @@
         !>@param nodes
         !> array with the grid point data
         !---------------------------------------------------------------
-        subroutine apply_peak_ic(nodes,x_map,y_map)
+        subroutine apply_peak_ic(nodes,x_map,y_map,velocity_meanflow)
 
           implicit none
 
-          real(rkind), dimension(:,:,:), intent(inout) :: nodes
-          real(rkind), dimension(:)    , intent(in)    :: x_map
-          real(rkind), dimension(:)    , intent(in)    :: y_map
+          real(rkind), dimension(:,:,:)      , intent(inout) :: nodes
+          real(rkind), dimension(:)          , intent(in)    :: x_map
+          real(rkind), dimension(:)          , intent(in)    :: y_map
+          real(rkind), dimension(2), optional, intent(in)    :: velocity_meanflow
+          
 
           integer(ikind) :: i,j
 
           real(rkind) :: x_center, y_center, amplitude, period
-          real(rkind) :: u0,v0
+          real(rkind) :: u0_mean_flow, v0_mean_flow
 
 
           x_center  = 0.0d0
@@ -63,8 +65,19 @@
           amplitude = 0.1d0
           period    = 0.5d0
           
-          u0        = 0.0d0
-          v0        = 0.1d0
+
+          if(present(velocity_meanflow)) then
+             u0_mean_flow = velocity_meanflow(1)
+             v0_mean_flow = velocity_meanflow(2)
+          else
+             if(rkind.eq.8) then
+                u0_mean_flow = 0.0d0
+                v0_mean_flow = 0.1d0
+             else
+                u0_mean_flow = 0.0
+                v0_mean_flow = 0.1
+             end if
+          end if
 
 
           do j=1, size(y_map,1)
@@ -76,8 +89,8 @@
      $               period,
      $               x_map(i)-x_center,
      $               y_map(j)-y_center)
-                nodes(i,j,2) = nodes(i,j,1)*u0
-                nodes(i,j,3) = nodes(i,j,1)*v0
+                nodes(i,j,2) = nodes(i,j,1)*u0_mean_flow
+                nodes(i,j,3) = nodes(i,j,1)*v0_mean_flow
                 nodes(i,j,4) = 0.5d0/nodes(i,j,1)*(
      $               nodes(i,j,2)**2+nodes(i,j,3)**2)
      $               + 1.0d0/(gamma-1.0d0)

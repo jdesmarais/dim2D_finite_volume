@@ -40,8 +40,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 44
-        integer(ikind), parameter :: nty = 44
+        integer(ikind), parameter :: ntx = 5
+        integer(ikind), parameter :: nty = 5
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -86,9 +86,9 @@
         real(rkind), parameter :: search_nb_dt = 0.0005000000d0
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P = 0.25d0
-        integer    , parameter :: obc_type_N = ask_flow
-        integer    , parameter :: obc_type_S = ask_flow      
-        integer    , parameter :: obc_type_E = always_outflow
-        integer    , parameter :: obc_type_W = always_outflow
+        integer    , parameter :: obc_type_N = always_outflow
+        integer    , parameter :: obc_type_S = always_outflow
+        integer    , parameter :: obc_type_E = ask_flow
+        integer    , parameter :: obc_type_W = ask_flow      
 
       end module parameters_input
