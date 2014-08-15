@@ -222,10 +222,14 @@ test_lodi_poinsot_ns2d: parameters_kind.o\
 			lodi_outflow_class.o
 
 test_lodi_operators.o:	$(lobc_dir)/bc_operators_class.o\
+			$(lobc_dir)/lodi_ns2d_class.o\
+			$(lpobc_ns2d_dir)/lodi_inflow_class.o\
+			$(lpobc_ns2d_dir)/lodi_outflow_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(ns2d_dir)/pmodel_eq_class.o
+			$(ns2d_dir)/pmodel_eq_class.o\
+			$(mt_dir)/sd_operators_fd_module.o
 
 test_lodi_operators:	$(param_dep)\
 			$(poinsot_ns2d_dep)\

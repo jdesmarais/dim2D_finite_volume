@@ -6,6 +6,9 @@
         use lodi_ns2d_class, only : 
      $       lodi_ns2d
 
+        use lodi_inflow_class, only :
+     $       lodi_inflow
+
         use lodi_outflow_class, only :
      $       lodi_outflow
 
@@ -51,6 +54,7 @@
         type(pmodel_eq)                    :: p_model
         !type(bc_operators)                 :: bc_used
         type(lodi_outflow)                 :: outflow_bc
+        type(lodi_inflow)                  :: inflow_bc
 
         character(*), parameter :: FMT='(5F14.5)'
         
@@ -199,6 +203,136 @@
         test_validated = test_lodi_timedev_y(
      $       test_data,
      $       outflow_bc,
+     $       p_model,
+     $       t, nodes, y_map, x_map,
+     $       detailled)
+
+        print '()'
+
+
+        !compute the lodi vector from the lodi inflow x
+        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
+        call get_test_data_for_lodi_inflow_x(test_data)
+
+        print '(''test lodi for inflow x'')'
+        print '(''---------------------------------------'')'
+
+        detailled = .false.
+
+        call inflow_bc%ini()
+
+        print '(''*************************************************'')'
+        print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
+        print '(''*************************************************'')'
+
+        test_validated = test_lodi_x(
+     $       test_data,
+     $       inflow_bc,
+     $       p_model,
+     $       t, nodes, x_map, y_map,
+     $       detailled)
+
+        print '()'
+
+
+        !test the computation of the time derivatives for the lodi
+        !inflow x
+
+        print '(''test time_dev for inflow x'')'
+        print '(''---------------------------------------'')'
+
+        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
+        call get_test_data_for_lodi_inflow_timedevx(test_data)
+
+        detailled = .false.
+
+        call inflow_bc%ini()
+
+        print '(''*************************************************'')'
+        print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
+        print '(''*************************************************'')'
+
+        test_validated = test_lodi_timedev_x(
+     $       test_data,
+     $       inflow_bc,
+     $       p_model,
+     $       t, nodes, x_map, y_map,
+     $       detailled)
+
+        print '()'
+
+
+        !compute the lodi vector from the lodi inflow x
+        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
+        do k=1,ne
+           nodes(:,:,k) = TRANSPOSE(nodes(:,:,k))
+        end do
+        nodes_temp   = nodes(:,:,2)
+        nodes(:,:,2) = nodes(:,:,3)
+        nodes(:,:,3) = nodes_temp
+
+        call get_test_data_for_lodi_inflow_x(test_data)
+        do k=1, ne
+           test_data(:,:,k) = TRANSPOSE(test_data(:,:,k))
+        end do
+        nodes_temp       = test_data(:,:,2)
+        test_data(:,:,2) = test_data(:,:,3)
+        test_data(:,:,3) = nodes_temp
+
+        print '(''test lodi for inflow y'')'
+        print '(''---------------------------------------'')'
+
+        detailled = .false.
+
+        call inflow_bc%ini()
+
+        print '(''*************************************************'')'
+        print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
+        print '(''*************************************************'')'
+
+        test_validated = test_lodi_y(
+     $       test_data,
+     $       inflow_bc,
+     $       p_model,
+     $       t, nodes, y_map, x_map,
+     $       detailled)
+
+        print '()'
+
+
+        !test the computation of the time derivatives for the lodi
+        !inflow x
+
+        print '(''test time_dev for inflow y'')'
+        print '(''---------------------------------------'')'
+
+        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
+        do k=1,ne
+           nodes(:,:,k) = TRANSPOSE(nodes(:,:,k))
+        end do
+        nodes_temp   = nodes(:,:,2)
+        nodes(:,:,2) = nodes(:,:,3)
+        nodes(:,:,3) = nodes_temp
+
+        call get_test_data_for_lodi_inflow_timedevx(test_data)
+        do k=1, ne
+           test_data(:,:,k) = TRANSPOSE(test_data(:,:,k))
+        end do
+        nodes_temp       = test_data(:,:,2)
+        test_data(:,:,2) = test_data(:,:,3)
+        test_data(:,:,3) = nodes_temp
+
+        detailled = .false.
+
+        call inflow_bc%ini()
+
+        print '(''*************************************************'')'
+        print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
+        print '(''*************************************************'')'
+
+        test_validated = test_lodi_timedev_y(
+     $       test_data,
+     $       inflow_bc,
      $       p_model,
      $       t, nodes, y_map, x_map,
      $       detailled)
@@ -1093,5 +1227,230 @@ c$$$        call print_timedev(timedev)
           test_data(5,1,4) =  7868.867401d0
 
         end subroutine get_test_data_for_lodi_outflow_timedevx
+
+
+        subroutine get_test_data_for_lodi_inflow_x(
+     $     test_data)
+        
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(out) :: test_data
+
+          !L1
+          test_data(1,5,1) = 0.0d0
+          test_data(1,4,1) = 0.0d0 
+          test_data(1,3,1) = 0.0d0 
+          test_data(1,2,1) = 0.0d0 
+          test_data(1,1,1) = 0.0d0 
+                             
+          test_data(2,5,1) = 0.0d0 
+          test_data(2,4,1) = 0.0d0 
+          test_data(2,3,1) = 0.0d0 
+          test_data(2,2,1) = 0.0d0 
+          test_data(2,1,1) = 0.0d0 
+                             
+          test_data(4,5,1) = 0.0d0 
+          test_data(4,4,1) = 0.0d0 
+          test_data(4,3,1) = 0.0d0 
+          test_data(4,2,1) = 0.0d0 
+          test_data(4,1,1) = 0.0d0 
+                             
+          test_data(5,5,1) = 0.0d0 
+          test_data(5,4,1) = 0.0d0 
+          test_data(5,3,1) = 0.0d0 
+          test_data(5,2,1) = 0.0d0 
+          test_data(5,1,1) = 0.0d0 
+
+          !L2
+          test_data(1,5,2) = -2581.898576   
+          test_data(1,4,2) =    46.40138354 
+          test_data(1,3,2) = -1842.436265  
+          test_data(1,2,2) =  1315.58032   
+          test_data(1,1,2) = -4196.720112  
+                                      
+          test_data(2,5,2) =   911.8104509  
+          test_data(2,4,2) =  -199.3357957  
+          test_data(2,3,2) =   331.4484672  
+          test_data(2,2,2) =    -7.813473556
+          test_data(2,1,2) =-10309.04377d0    
+                                      
+          test_data(4,5,2) =   911.8104509 
+          test_data(4,4,2) =  -199.3357957
+          test_data(4,3,2) =   331.4484672 
+          test_data(4,2,2) =    -7.813473556
+          test_data(4,1,2) =-10309.04377d0
+                                      
+          test_data(5,5,2) = -2581.898576  
+          test_data(5,4,2) =    46.40138354
+          test_data(5,3,2) = -1842.436265  
+          test_data(5,2,2) =  1315.58032   
+          test_data(5,1,2) = -4196.720112  
+
+          !L3
+          test_data(1,5,3) = -3872.847865  
+          test_data(1,4,3) =    69.60207531 
+          test_data(1,3,3) = -2763.654398  
+          test_data(1,2,3) =  1973.37048   
+          test_data(1,1,3) = -6295.080168  
+                                            
+          test_data(2,5,3) =  1367.715676  
+          test_data(2,4,3) =  -299.0036936 
+          test_data(2,3,3) =   497.1727008 
+          test_data(2,2,3) =   -11.72021033
+          test_data(2,1,3) =-15463.56565d0   
+                                           
+          test_data(4,5,3) =  1367.715676  
+          test_data(4,4,3) =  -299.0036936 
+          test_data(4,3,3) =   497.1727008 
+          test_data(4,2,3) =   -11.72021033
+          test_data(4,1,3) =-15463.56565d0   
+                                           
+          test_data(5,5,3) = -3872.847865  
+          test_data(5,4,3) =    69.60207531
+          test_data(5,3,3) = -2763.654398  
+          test_data(5,2,3) =  1973.37048   
+          test_data(5,1,3) = -6295.080168  
+
+          !L4
+          test_data(1,5,4) = -3872.847865  
+          test_data(1,4,4) =    69.60207531
+          test_data(1,3,4) = -2763.654398  
+          test_data(1,2,4) =  1973.37048   
+          test_data(1,1,4) = -6295.080168  
+                                            
+          test_data(2,5,4) =  1367.715676  
+          test_data(2,4,4) =  -299.0036936 
+          test_data(2,3,4) =   497.1727008 
+          test_data(2,2,4) =   -11.72021033
+          test_data(2,1,4) =-15463.56565d0   
+                                           
+          test_data(4,5,4) =  1367.715676  
+          test_data(4,4,4) =  -299.0036936 
+          test_data(4,3,4) =   497.1727008 
+          test_data(4,2,4) =   -11.72021033
+          test_data(4,1,4) =-15463.56565d0   
+                                           
+          test_data(5,5,4) = -3872.847865  
+          test_data(5,4,4) =    69.60207531
+          test_data(5,3,4) = -2763.654398  
+          test_data(5,2,4) =  1973.37048   
+          test_data(5,1,4) = -6295.080168   
+
+        end subroutine get_test_data_for_lodi_inflow_x
+
+
+        subroutine get_test_data_for_lodi_inflow_timedevx(
+     $     test_data)
+        
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(out) :: test_data
+
+          !mass
+          test_data(1,5,1) = -214.2620132 
+          test_data(1,4,1) =   17.1090493 
+          test_data(1,3,1) =  -15.4973465 
+          test_data(1,2,1) =   87.69076208
+          test_data(1,1,1) =-1925.732738  
+                                 
+          test_data(2,5,1) =   33.75979961
+          test_data(2,4,1) = -498.8982123 
+          test_data(2,3,1) =   22.3924598 
+          test_data(2,2,1) =  -33.50292477
+          test_data(2,1,1) =  -27.58383676
+                                     
+          test_data(4,5,1) =   33.75979961
+          test_data(4,4,1) = -498.8982123 
+          test_data(4,3,1) =   22.3924598 
+          test_data(4,2,1) =  -33.50292477
+          test_data(4,1,1) =  -27.58383676
+                                     
+          test_data(5,5,1) = -214.2620132 
+          test_data(5,4,1) =   17.1090493 
+          test_data(5,3,1) =  -15.4973465 
+          test_data(5,2,1) =   87.69076208
+          test_data(5,1,1) =-1925.732738  
+                    
+          !momentum-x            
+          test_data(1,5,2) = 1317.711381  
+          test_data(1,4,2) =   16.56558538
+          test_data(1,3,2) =   10.10696511
+          test_data(1,2,2) = -460.3765009 
+          test_data(1,1,2) = 5061.328     
+                                 
+          test_data(2,5,2) =   73.14623249
+          test_data(2,4,2) = -192.6514635 
+          test_data(2,3,2) =  -30.91652283
+          test_data(2,2,2) =  -31.08759763
+          test_data(2,1,2) = -219.7241899 
+                            
+          test_data(4,5,2) =   73.14623249
+          test_data(4,4,2) = -192.6514635 
+          test_data(4,3,2) =  -30.91652283
+          test_data(4,2,2) =  -31.08759763
+          test_data(4,1,2) = -219.7241899 
+                            
+          test_data(5,5,2) = 1317.711381  
+          test_data(5,4,2) =   16.56558538
+          test_data(5,3,2) =   10.10696511
+          test_data(5,2,2) = -460.3765009 
+          test_data(5,1,2) = 5061.328  
+
+          !momentum-y            
+          test_data(1,5,3) = -6537.455417 
+          test_data(1,4,3) =     4.2873264
+          test_data(1,3,3) =  -637.4125993
+          test_data(1,2,3) =   521.3946562
+          test_data(1,1,3) = -1682.922958 
+                                  
+          test_data(2,5,3) =    49.0454866
+          test_data(2,4,3) =   137.5168   
+          test_data(2,3,3) =    45.5810959
+          test_data(2,2,3) =     7.83033  
+          test_data(2,1,3) =   -87.8896759
+                                 
+          test_data(4,5,3) =   49.0454866
+          test_data(4,4,3) =  137.5168    
+          test_data(4,3,3) =   45.5810959
+          test_data(4,2,3) =    7.83033   
+          test_data(4,1,3) =  -87.88967594
+                                 
+          test_data(5,5,3) = -6537.455417 
+          test_data(5,4,3) =     4.2873264
+          test_data(5,3,3) =  -637.4125993
+          test_data(5,2,3) =   521.3946562
+          test_data(5,1,3) = -1682.922958 
+
+
+          !total energy
+          test_data(1,5,4) = -109595.0198d0 
+          test_data(1,4,4) =     112.95998
+          test_data(1,3,4) =  -17257.30602d0
+          test_data(1,2,4) =    5718.60689
+          test_data(1,1,4) =  -16829.22958d0
+                                    
+          test_data(2,5,4) =    2166.44136
+          test_data(2,4,4) =    -504.65473
+          test_data(2,3,4) =     813.49318
+          test_data(2,2,4) =     -32.91857
+          test_data(2,1,4) =  -24210.49578d0
+                                  
+          test_data(4,5,4) =    2166.44136
+          test_data(4,4,4) =    -504.65473
+          test_data(4,3,4) =     813.49318
+          test_data(4,2,4) =     -32.91857
+          test_data(4,1,4) =  -24210.49578d0
+                                  
+          test_data(5,5,4) = -109595.0198d0
+          test_data(5,4,4) =     112.95998
+          test_data(5,3,4) =  -17257.30602d0
+          test_data(5,2,4) =    5718.60689
+          test_data(5,1,4) =  -16829.22958d0
+
+          test_data(:,:,1) = -test_data(:,:,1)
+          test_data(:,:,3) = -test_data(:,:,3)
+          test_data(:,:,4) = -test_data(:,:,4)
+
+        end subroutine get_test_data_for_lodi_inflow_timedevx
 
       end program test_lodi_operators
