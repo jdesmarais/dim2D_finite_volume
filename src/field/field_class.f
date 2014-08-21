@@ -53,6 +53,8 @@
 
           call this%td_integrator_used%integrate(this,dt)
 
+          this%time = this%time + dt
+
         end subroutine integrate
 
       end module field_class

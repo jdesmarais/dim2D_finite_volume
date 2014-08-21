@@ -509,8 +509,6 @@
      $         x_borders=x_borders,
      $         y_borders=y_borders)
 
-          this%time = this%time + dt
-
         end subroutine compute_integration_step
 
 
@@ -575,8 +573,6 @@
 
           call integration_step_nopt(
      $         this%nodes, dt, nodes_tmp, time_dev, grdpts_id)
-
-          this%time = this%time + dt
 
         end subroutine compute_integration_step_ext
 

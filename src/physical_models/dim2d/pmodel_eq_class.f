@@ -140,7 +140,9 @@
           procedure, nopass :: get_var_type
           procedure, nopass :: get_eq_nb
           procedure, nopass :: get_sim_parameters
+
           procedure, nopass :: apply_ic
+
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
           procedure, nopass :: compute_flux_x_nopt
@@ -149,7 +151,9 @@
           procedure, nopass :: compute_flux_y_oneside
           procedure, nopass :: compute_body_forces
           procedure, nopass :: get_velocity
+
           procedure, nopass :: are_openbc_undermined
+
           procedure, nopass :: compute_x_eigenvalues
           procedure, nopass :: compute_y_eigenvalues
           procedure, nopass :: compute_x_lefteigenvector
@@ -159,7 +163,6 @@
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
           
-
         end type pmodel_eq
 
 

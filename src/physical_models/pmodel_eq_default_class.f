@@ -51,9 +51,6 @@
 
           procedure, nopass :: compute_n_gradient => compute_gradient_default
 
-          procedure, nopass :: compute_lodi_subsonic_inflow_csttemp
-          procedure, nopass :: compute_lodi_subsonic_outflow_cstpressure
-
         end type pmodel_eq_default
 
 
@@ -252,103 +249,5 @@
           var = nodes(i,j,1)
           
         end function basic
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> interface for the computation of the LODI amplitudes
-        !> for the Poinsot and Lele open b.c.
-        !
-        !> @date
-        !> 12_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> governing variables at the location of the open b.c.
-        !
-        !>@param mass_grad
-        !> gradient of the mass density
-        !
-        !>@param velocity2_grad
-        !> gradient of the velocity
-        !
-        !>@return lodi
-        !> vector with the LODI amplitudes
-        !--------------------------------------------------------------!
-        function compute_lodi_subsonic_inflow_csttemp(
-     $   nodes,
-     $   eigenvalues,
-     $   velocity1_grad, pressure_grad)
-     $   result(lodi)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne), intent(in) :: eigenvalues
-          real(rkind)               , intent(in) :: velocity1_grad
-          real(rkind)               , intent(in) :: pressure_grad
-          real(rkind), dimension(ne)             :: lodi
-
-
-          print '(''pmodel_eq: compute_lodi_subsonic_inflow_temp'')'
-          stop 'not implemented'
-
-          lodi(1) = nodes(1)+eigenvalues(1)+velocity1_grad+pressure_grad
-
-        end function compute_lodi_subsonic_inflow_csttemp
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> interface for the computation of the LODI amplitudes
-        !> for the Poinsot and Lele open b.c.
-        !
-        !> @date
-        !> 12_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> governing variables at the location of the open b.c.
-        !
-        !>@param mass_grad
-        !> gradient of the mass density
-        !
-        !>@param velocity1_grad
-        !> gradient of the velocity
-        !
-        !>@param velocity2_grad
-        !> gradient of the velocity
-        !
-        !>@param pressure_grad
-        !> gradient of the pressure
-        !
-        !>@return lodi
-        !> vector with the LODI amplitudes
-        !--------------------------------------------------------------
-        function compute_lodi_subsonic_outflow_cstpressure(
-     $   nodes, eigenvalues,
-     $   mass_grad, velocity1_grad, velocity2_grad, pressure_grad)
-     $   result(lodi)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne), intent(in) :: eigenvalues
-          real(rkind)               , intent(in) :: mass_grad
-          real(rkind)               , intent(in) :: velocity1_grad
-          real(rkind)               , intent(in) :: velocity2_grad
-          real(rkind)               , intent(in) :: pressure_grad
-          real(rkind), dimension(ne)             :: lodi
-
-          print '(''pmodel_eq_class'')'
-          print '(''compute_lodi_subsonic_outflow_cstpressure'')'
-          stop 'not implemented'
-
-          lodi(1) = nodes(1)+eigenvalues(1)+mass_grad+velocity1_grad+
-     $         velocity2_grad+pressure_grad
-
-        end function compute_lodi_subsonic_outflow_cstpressure
 
       end module pmodel_eq_default_class

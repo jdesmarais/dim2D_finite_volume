@@ -2,7 +2,7 @@
 !---------------------------------------------------------
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !---------------------------------------------------------
-detail_print = 0.03
+detail_print = 0.002
 
 
 !2.	Simulation duration
@@ -11,9 +11,10 @@ detail_print = 0.03
 !t_max   : real    : set simulation maximum time
 !---------------------------------------------------------
 dt    = 0.0005
-t_max = 1.5
+t_max = 10.0
 
 !t_max = 0.005
+!t_max = 1.5
 !t_max = 5.0000
 
 
@@ -79,8 +80,9 @@ bc_choice = 7
 !
 !for NS:
 ! 0 : steady state
-! 1 : vortex
-! 2 : vortex convected to the right
+! 1 : peak
+! 2 : vortex
+! 3 : vortex convected to the right
 !
 !for DIM:
 ! 0 : steady state
@@ -88,7 +90,7 @@ bc_choice = 7
 ! 2 : bubble ascending
 ! 3 : homogeneous liquid
 !---------------------------------------------------------
-ic_choice = 2
+ic_choice = 3
 
 
 !7.     DIM equations

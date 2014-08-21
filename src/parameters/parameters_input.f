@@ -28,11 +28,11 @@
         real(rkind), parameter :: y_max = 1.0000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 1.5000000000d0
-        real(rkind), parameter :: dt = 0.0005000000d0
+        real(rkind), parameter :: t_max = 15.0000000000d0
+        real(rkind), parameter :: dt = 0.0010000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0300000000d0
+        real(rkind), parameter :: detail_print = 0.0150000000d0
 
         !<mpi choice
         integer, parameter :: npx = 1 !<number of processors along x
@@ -40,8 +40,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 5
-        integer(ikind), parameter :: nty = 5
+        integer(ikind), parameter :: ntx = 204
+        integer(ikind), parameter :: nty = 204
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -56,7 +56,7 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer, parameter :: ic_choice = peak
+        integer, parameter :: ic_choice = vortex_convected_x
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
@@ -83,7 +83,7 @@
         !              applying the non-reflecting outflow
         !              pressure b.c.
         !--------------------------------------------
-        real(rkind), parameter :: search_nb_dt = 0.0005000000d0
+        real(rkind), parameter :: search_nb_dt = 0.0010000000d0
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P = 0.25d0
         integer    , parameter :: obc_type_N = always_outflow !ask_flow

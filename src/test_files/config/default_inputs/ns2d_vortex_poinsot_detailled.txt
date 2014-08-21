@@ -2,7 +2,7 @@
 !---------------------------------------------------------
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !---------------------------------------------------------
-detail_print = 0.03
+detail_print = 0.015
 
 
 !2.	Simulation duration
@@ -10,8 +10,8 @@ detail_print = 0.03
 !t_steps : integer : set number of steps in time
 !t_max   : real    : set simulation maximum time
 !---------------------------------------------------------
-dt    = 0.0005
-t_max = 1.5
+dt    = 0.001
+t_max = 15.0
 
 !t_max = 0.005
 !t_max = 1.5
@@ -31,11 +31,11 @@ t_max = 1.5
 !npx     : integer : number of tiles in the x-direction
 !npy     : integer : number of tiles in the y-direction
 !---------------------------------------------------------
-dx = 0.05
+dx = 0.01
 x_min = -1.0
 x_max = 1.0
 
-dy = 0.05
+dy = 0.01
 y_min = -1.0
 y_max = 1.0
 
@@ -90,7 +90,7 @@ bc_choice = 7
 ! 2 : bubble ascending
 ! 3 : homogeneous liquid
 !---------------------------------------------------------
-ic_choice = 1
+ic_choice = 3
 
 
 !7.     DIM equations
