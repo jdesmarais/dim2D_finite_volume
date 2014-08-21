@@ -28,8 +28,8 @@
         real(rkind), parameter :: y_max = 1.0000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 15.0000000000d0
-        real(rkind), parameter :: dt = 0.0010000000d0
+        real(rkind), parameter :: t_max = 1.5000000000d0
+        real(rkind), parameter :: dt = 0.0001000000d0
         
         !<output writing
         real(rkind), parameter :: detail_print = 0.0150000000d0
@@ -50,13 +50,25 @@
 
         !<initial conditions choice
         !--------------------------------------------
+        !ic_choice:
+        !--------------------------------------------
+        !
+        !for NS equations
+        !--------------------------------------------
+        !steady_state       : constant everywhere
+        !peak               : peak in the center of the domain
+        !vortex             : vortex in the center of the domain
+        !
+        !for DIM equations
+        !--------------------------------------------
         !steady_state       : constant everywhere
         !drop_retraction    : ellipsoidal droplet
         !bubble_ascending   : initial bubble
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer, parameter :: ic_choice = vortex_convected_x
+        integer, parameter :: flow_direction = x_direction
+        integer, parameter :: ic_choice      = vortex_convected_x
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
@@ -83,7 +95,7 @@
         !              applying the non-reflecting outflow
         !              pressure b.c.
         !--------------------------------------------
-        real(rkind), parameter :: search_nb_dt = 0.0010000000d0
+        real(rkind), parameter :: search_nb_dt = 0.0001000000d0
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P = 0.25d0
         integer    , parameter :: obc_type_N = always_outflow !ask_flow

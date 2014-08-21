@@ -17,7 +17,7 @@
       module ns2d_peak_module
 
         use ns2d_parameters, only :
-     $       gamma
+     $       gamma, mach_infty
 
         use parameters_kind, only :
      $       ikind, rkind
@@ -58,6 +58,7 @@
 
           real(rkind) :: x_center, y_center, amplitude, period
           real(rkind) :: u0_mean_flow, v0_mean_flow
+          real(rkind) :: p_infty
 
 
           x_center  = 0.0d0
@@ -72,12 +73,14 @@
           else
              if(rkind.eq.8) then
                 u0_mean_flow = 0.0d0
-                v0_mean_flow = 0.1d0
+                v0_mean_flow = 1.0d0
              else
                 u0_mean_flow = 0.0
-                v0_mean_flow = 0.1
+                v0_mean_flow = 1.0
              end if
           end if
+
+          p_infty = 1.0d0/(gamma*mach_infty**2)
 
 
           do j=1, size(y_map,1)
@@ -93,7 +96,7 @@
                 nodes(i,j,3) = nodes(i,j,1)*v0_mean_flow
                 nodes(i,j,4) = 0.5d0/nodes(i,j,1)*(
      $               nodes(i,j,2)**2+nodes(i,j,3)**2)
-     $               + 1.0d0/(gamma-1.0d0)
+     $               + p_infty/(gamma-1.0d0)
                    
              end do
           end do

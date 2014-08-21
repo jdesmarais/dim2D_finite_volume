@@ -424,13 +424,13 @@ c$$$     $                                           compute_n2_righteigenvector
                call apply_steady_state_ic(nodes)
 
             case(peak)
-               call apply_peak_ic(nodes,x_map,y_map,[0.0d0,0.1d0])
+               call apply_peak_ic(nodes,x_map,y_map,[0.0d0,1.0d0])
 
             case(vortex)
                call apply_vortex_ic(nodes,x_map,y_map)
 
             case(vortex_convected_x)
-               call apply_vortex_ic(nodes,x_map,y_map,[0.0d0,0.1d0])
+               call apply_vortex_ic(nodes,x_map,y_map,[0.0d0,1.0d0])
 
             case default
                print '(''pmodel_eq_class'')'

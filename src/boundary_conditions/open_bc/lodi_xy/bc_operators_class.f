@@ -100,7 +100,6 @@
         public :: bc_operators
 
 
-
         !> @class bc_operators
         !> class encapsulating subroutines to apply
         !> open boundary conditions in the x and

@@ -16,7 +16,7 @@
       !-----------------------------------------------------------------
       module ns2d_vortex_module
 
-        use ns2d_parameters , only : gamma
+        use ns2d_parameters , only : gamma, mach_infty
         use parameters_kind , only : ikind, rkind
 
         implicit none
@@ -50,11 +50,23 @@
           real(rkind), dimension(2), optional, intent(in)    :: velocity_meanflow
           
 
+          real(rkind)    :: mass_infty
           integer(ikind) :: i,j
           real(rkind)    :: l,amp,R
           real(rkind)    :: u0_mean_flow, v0_mean_flow
+          real(rkind)    :: p_infty
+
+
+          !as the scaling for mass density in the NS equations
+          !is the mass density in the far field, we have
+          !mass_infty=1.0
+          mass_infty = 1.0d0
 
           
+          !as the scaling for velocity in the NS equations
+          !is the velocity norm in the far field, we should
+          !have u0_mean_flow**2+v0_meanflow**2=1.0
+
           if(present(velocity_meanflow)) then
              u0_mean_flow = velocity_meanflow(1)
              v0_mean_flow = velocity_meanflow(2)
@@ -68,19 +80,26 @@
              end if
           end if
 
-
           !vortex located at the center of the computational domain
           !the vortex characteristics scales with the size of the
           !computational domain
           l   = 0.25d0*(x_map(size(x_map,1))-x_map(1))
-          amp = -0.05d0*l
+          amp = -0.5d0*l
           R   = 0.15d0*l
+
+
+          !computation of the pressure in the far field
+          if((u0_mean_flow**2+v0_mean_flow**2).le.(1.0e-8)) then
+             P_infty = 1.0d0
+          else
+             P_infty = 1.0d0/(gamma*mach_infty**2)
+          end if
 
           do j=1, size(nodes,2)
              do i=1, size(nodes,1)
                 
                 !mass density: same as in the far field
-                nodes(i,j,1) =  1.0d0
+                nodes(i,j,1) =  mass_infty
 
                 !momentum-x
                 nodes(i,j,2) = 
@@ -107,7 +126,7 @@
      $               nodes(i,j,2)**2 + nodes(i,j,3)**2)+
      $               get_pressure(
      $               x_map(i),y_map(j),
-     $               nodes(i,j,1),amp,R,1.0d0)/(gamma-1.0d0)
+     $               nodes(i,j,1),amp,R,P_infty)/(gamma-1.0d0)
 
              end do
           end do
