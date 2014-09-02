@@ -43,6 +43,7 @@ hrobc_dir		= $(obc_dir)/hedstrom_x_reflection_y
 lobc_dir		= $(obc_dir)/lodi_xy
 lpobc_dir		= $(lobc_dir)/poinsot_xy
 lpobc_ns2d_dir		= $(lpobc_dir)/poinsot_ns2d
+lyobc_dir		= $(lobc_dir)/yoo_lodato_xy
 
 bf_layer_dir		= $(obc_dir)/buffer_layer
 nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors

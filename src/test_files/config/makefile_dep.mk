@@ -687,6 +687,11 @@ $(lpobc_ns2d_dir)/lodi_outflow_class.o:\
 			$(param_dir)/parameters_kind.o\
 			$(ns2d_dir)/pmodel_eq_class.o
 
+#yoo and lodato boundary conditions
+$(lyobc_dir)/lodi_transverse_module.o:\
+			$(sd_cdir)/sd_operators_class.o\
+			$(param_dir)/parameters_kind.o
+
 #hedstrom_x_reflection_y boundary conditions
 $(hrobc_dir)/bc_operators_class.o:\
 			$(bc_dir)/bc_operators_default_class.o\

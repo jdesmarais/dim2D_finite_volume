@@ -236,17 +236,20 @@ test_lodi_operators:	$(param_dep)\
 			$(ns2d_dep)\
 			$(mt_dep)
 
+test_lodi_transverse.o:	$(ns2d_dir)/ns2d_parameters.o\
+			$(ns2d_dir)/ns2d_fluxes_module.o\
+			$(param_dir)/parameters_kind.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(lyobc_dir)/lodi_transverse_module.o
 
-#			openbc_operators_module.o\
-#			sd_operators_abstract_class.o\
-#			sd_operators_class.o\
-#			sd_operators_x_oneside_L0_class.o\
-#			sd_operators_x_oneside_L1_class.o\
-#			sd_operators_x_oneside_R1_class.o\
-#			sd_operators_x_oneside_R0_class.o\
-#			sd_operators_y_oneside_L0_class.o\
-#			sd_operators_y_oneside_L1_class.o\
-#			sd_operators_y_oneside_R1_class.o\
-#			sd_operators_y_oneside_R0_class.o\
-#			sd_operators_fd_module.o\
-#			hedstrom_xy_module.o
+test_lodi_transverse:	parameters_kind.o\
+			ns2d_parameters.o\
+			interface_primary.o\
+			parameters_constant.o\
+			parameters_input.o\
+			ns2d_prim_module.o\
+			sd_operators_fd_module.o\
+			sd_operators_abstract_class.o\
+			sd_operators_class.o\
+			ns2d_fluxes_module.o\
+			lodi_transverse_module.o
