@@ -39,11 +39,28 @@
 
         private
         public ::
-     $       flux_x_mass_density, flux_y_mass_density,
-     $       flux_x_momentum_x  , flux_y_momentum_x,
-     $       flux_x_momentum_y  , flux_y_momentum_y,
-     $       flux_x_total_energy, flux_y_total_energy
-
+     $       flux_x_mass_density,
+     $       flux_x_momentum_x  ,
+     $       flux_x_momentum_y  ,
+     $       flux_x_total_energy,
+     $       flux_y_mass_density,
+     $       flux_y_momentum_x,  
+     $       flux_y_momentum_y,  
+     $       flux_y_total_energy,
+     $       
+     $       flux_x_inviscid_momentum_x,
+     $       flux_x_inviscid_momentum_y,
+     $       flux_x_inviscid_total_energy,
+     $       flux_y_inviscid_momentum_x,
+     $       flux_y_inviscid_momentum_y,
+     $       flux_y_inviscid_total_energy,
+     $       
+     $       flux_x_viscid_momentum_x,
+     $       flux_x_viscid_momentum_y,
+     $       flux_x_viscid_total_energy,
+     $       flux_y_viscid_momentum_x,
+     $       flux_y_viscid_momentum_y,
+     $       flux_y_viscid_total_energy
 
         contains
 
@@ -179,23 +196,9 @@
           real(rkind)                               :: var
 
 
-          if(rkind.eq.8) then
-
-             !DEC$ FORCEINLINE RECURSIVE
-             var =  s%f(nodes,i,j,qx_inviscid_x_flux)
-     $            - epsilon*(
-     $            (2.0d0+viscous_r)*s%dfdx(nodes,i,j,velocity_x,dx) +
-     $            viscous_r*s%dfdy(nodes,i,j,velocity_y,dy))
-
-          else
-
-             !DEC$ FORCEINLINE RECURSIVE
-             var =  s%f(nodes,i,j,qx_inviscid_x_flux)
-     $            - epsilon*(
-     $            (2.0+viscous_r)*s%dfdx(nodes,i,j,velocity_x,dx) +
-     $            viscous_r*s%dfdy(nodes,i,j,velocity_y,dy))
-
-          end if
+          !DEC$ FORCEINLINE RECURSIVE
+          var =  flux_x_inviscid_momentum_x(nodes,s,i,j)
+     $         - epsilon*flux_x_viscid_momentum_x(nodes,s,i,j,dx,dy)
 
         end function flux_x_momentum_x
 
@@ -249,10 +252,8 @@
 
 
           !DEC$ FORCEINLINE RECURSIVE
-          var =  s%g(nodes,i,j,qxy_transport)
-     $         - epsilon*(
-     $         s%dgdy(nodes,i,j,velocity_x,dy) +
-     $         s%dgdx(nodes,i,j,velocity_y,dx))
+          var =  flux_y_inviscid_momentum_x(nodes,s,i,j)
+     $         - epsilon*flux_y_viscid_momentum_x(nodes,s,i,j,dx,dy)
 
         end function flux_y_momentum_x
 
@@ -303,11 +304,8 @@
 
 
           !DEC$ FORCEINLINE RECURSIVE
-          var = s%f(nodes,i,j,qxy_transport)
-     $         -epsilon*(
-     $         s%dfdy(nodes,i,j,velocity_x,dy)+
-     $         s%dfdx(nodes,i,j,velocity_y,dx)
-     $         )
+          var = flux_x_inviscid_momentum_y(nodes,s,i,j)
+     $         -epsilon*flux_x_viscid_momentum_y(nodes,s,i,j,dx,dy)
 
         end function flux_x_momentum_y
 
@@ -357,24 +355,9 @@
           real(rkind)                               :: var
 
           
-          if(rkind.eq.8) then
-
-             !DEC$ FORCEINLINE RECURSIVE
-             var = s%g(nodes,i,j,qy_inviscid_y_flux)
-     $            -epsilon*(
-     $            viscous_r*s%dgdx(nodes,i,j,velocity_x,dx)+
-     $            (2.0d0+viscous_r)*s%dgdy(nodes,i,j,velocity_y,dy)
-     $            )
-
-          else
-
-             var = s%g(nodes,i,j,qy_inviscid_y_flux)
-     $            -epsilon*(
-     $            viscous_r*s%dgdx(nodes,i,j,velocity_x,dx)+
-     $            (2.0+viscous_r)*s%dgdy(nodes,i,j,velocity_y,dy)
-     $            )
-
-          end if
+          !DEC$ FORCEINLINE RECURSIVE
+          var = flux_y_inviscid_momentum_y(nodes,s,i,j)
+     $         -epsilon*flux_y_viscid_momentum_y(nodes,s,i,j,dx,dy)
 
         end function flux_y_momentum_y
 
@@ -424,39 +407,9 @@
           real(rkind)                               :: var
       
 
-          if(rkind.eq.8) then
-
-             !DEC$ FORCEINLINE RECURSIVE
-             var = s%f(nodes,i,j,energy_inviscid_x_flux)
-     $            -epsilon*(
-     $            ((2.0d0+viscous_r)*s%dfdx(nodes,i,j,velocity_x,dx) +
-     $            viscous_r*s%dfdy(nodes,i,j,velocity_y,dy))*
-     $            s%f(nodes,i,j,velocity_x)
-     $            +
-     $            (s%dfdy(nodes,i,j,velocity_x,dy)+s%dfdx(nodes,i,j,velocity_y,dx))*
-     $            s%f(nodes,i,j,velocity_y)
-     $            +
-     $            1.0d0/((gamma-1.0d0)*mach_infty**2*Pr)*
-     $            s%dfdx(nodes,i,j,temperature,dx)
-     $            )
-
-          else
-
-             !DEC$ FORCEINLINE RECURSIVE
-             var = s%f(nodes,i,j,energy_inviscid_x_flux)
-     $            -epsilon*(
-     $            ((2.0+viscous_r)*s%dfdx(nodes,i,j,velocity_x,dx) +
-     $            viscous_r*s%dfdy(nodes,i,j,velocity_y,dy))*
-     $            s%f(nodes,i,j,velocity_x)
-     $            +
-     $            (s%dfdy(nodes,i,j,velocity_x,dy)+s%dfdx(nodes,i,j,velocity_y,dx))*
-     $            s%f(nodes,i,j,velocity_y)
-     $            +
-     $            1.0/((gamma-1.0)*mach_infty**2*Pr)*
-     $            s%dfdx(nodes,i,j,temperature,dx)
-     $            )
-
-          end if
+          !DEC$ FORCEINLINE RECURSIVE
+          var = s%f(nodes,i,j,energy_inviscid_x_flux)
+     $         -epsilon*flux_x_viscid_total_energy(nodes,s,i,j,dx,dy)
 
         end function flux_x_total_energy
 
@@ -469,7 +422,7 @@
         !> \f$ \rho E \f$ along the x-axis
         !
         !> @date
-        !> 09_08_2013 - initial version - J.L. Desmarais
+        !> 09_08_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
         !> array with the grid point data
@@ -506,26 +459,640 @@
           real(rkind)                               :: var
 
 
+          var = s%g(nodes,i,j,energy_inviscid_y_flux)
+     $         -epsilon*flux_y_viscid_total_energy(nodes,s,i,j,dx,dy)
+
+        end function flux_y_total_energy
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the inviscid flux for the momentum_x along the x-axis
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> object encapsulating the spatial discretization operators
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> \f$ fy_{qx}^I \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function flux_x_inviscid_momentum_x(nodes,s,i,j)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          class(sd_operators)          , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
+
+          !DEC$ FORCEINLINE RECURSIVE
+          var = s%f(nodes,i,j,qx_inviscid_x_flux)
+
+        end function flux_x_inviscid_momentum_x
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the viscid flux for the momentum_x along the x-axis
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> object encapsulating the spatial discretization operators
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> \f$ fx_{qx}^V \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function flux_x_viscid_momentum_x(nodes,s,i,j,dx,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          class(sd_operators)          , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+
           if(rkind.eq.8) then
 
-             var = s%g(nodes,i,j,energy_inviscid_y_flux)
-     $            -epsilon*(
-     $            (s%dgdy(nodes,i,j,velocity_x,dy)+
-     $             s%dgdx(nodes,i,j,velocity_y,dx)
-     $            )*s%g(nodes,i,j,velocity_x)
-     $            +
-     $            (viscous_r*s%dgdx(nodes,i,j,velocity_x,dx)+
-     $            (2.0d0+viscous_r)*s%dgdy(nodes,i,j,velocity_y,dy)
-     $            )*s%g(nodes,i,j,velocity_y)
-     $            +
-     $            1.0d0/((gamma-1.0d0)*mach_infty**2*Pr)*
-     $            s%dgdy(nodes,i,j,temperature,dy))
+             !DEC$ FORCEINLINE RECURSIVE
+             var =(2.0d0+viscous_r)*s%dfdx(nodes,i,j,velocity_x,dx) +
+     $            viscous_r*s%dfdy(nodes,i,j,velocity_y,dy)
 
           else
 
-             var = s%g(nodes,i,j,energy_inviscid_y_flux)
-     $            -epsilon*(
-     $            (s%dgdy(nodes,i,j,velocity_x,dy)+
+             !DEC$ FORCEINLINE RECURSIVE
+             var =(2.0+viscous_r)*s%dfdx(nodes,i,j,velocity_x,dx) +
+     $            viscous_r*s%dfdy(nodes,i,j,velocity_y,dy)
+             
+          end if
+
+        end function flux_x_viscid_momentum_x
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the inviscid flux for the momentum_x along the x-axis
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> object encapsulating the spatial discretization operators
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> \f$ fy_{qx}^V \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function flux_y_inviscid_momentum_x(nodes,s,i,j)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          class(sd_operators)          , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
+
+          !DEC$ FORCEINLINE RECURSIVE
+          var = s%g(nodes,i,j,qxy_transport)
+
+        end function flux_y_inviscid_momentum_x
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the viscid flux for the momentum_x along the x-axis
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> object encapsulating the spatial discretization operators
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> \f$ fy_{qx}^V \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function flux_y_viscid_momentum_x(nodes,s,i,j,dx,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          class(sd_operators)          , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+
+          !DEC$ FORCEINLINE RECURSIVE
+          var =s%dgdy(nodes,i,j,velocity_x,dy) +
+     $         s%dgdx(nodes,i,j,velocity_y,dx)
+
+        end function flux_y_viscid_momentum_x
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the inviscid flux for the momentum_x along the x-axis
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> object encapsulating the spatial discretization operators
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> \f$ fx_{qy}^I \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function flux_x_inviscid_momentum_y(nodes,s,i,j)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          class(sd_operators)          , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
+
+          !DEC$ FORCEINLINE RECURSIVE
+          var = s%f(nodes,i,j,qxy_transport)
+
+        end function flux_x_inviscid_momentum_y
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the viscid flux for the momentum_x along the x-axis
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> object encapsulating the spatial discretization operators
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> \f$ fx_{qy}^V \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function flux_x_viscid_momentum_y(nodes,s,i,j,dx,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          class(sd_operators)          , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+
+          !DEC$ FORCEINLINE RECURSIVE
+          var =s%dfdy(nodes,i,j,velocity_x,dy)+
+     $         s%dfdx(nodes,i,j,velocity_y,dx)
+
+        end function flux_x_viscid_momentum_y
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the inviscid flux for the momentum_x along the x-axis
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> object encapsulating the spatial discretization operators
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> \f$ fy_{qy}^I \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function flux_y_inviscid_momentum_y(nodes,s,i,j)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          class(sd_operators)          , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
+
+          !DEC$ FORCEINLINE RECURSIVE
+          var = s%g(nodes,i,j,qy_inviscid_y_flux)
+
+        end function flux_y_inviscid_momentum_y
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the viscid flux for the momentum_x along the x-axis
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> object encapsulating the spatial discretization operators
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> \f$ fy_{qy}^V \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function flux_y_viscid_momentum_y(nodes,s,i,j,dx,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          class(sd_operators)          , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+
+          if(rkind.eq.8) then
+
+             !DEC$ FORCEINLINE RECURSIVE
+             var =viscous_r*s%dgdx(nodes,i,j,velocity_x,dx)+
+     $            (2.0d0+viscous_r)*s%dgdy(nodes,i,j,velocity_y,dy)
+
+          else
+
+             !DEC$ FORCEINLINE RECURSIVE
+             var = viscous_r*s%dgdx(nodes,i,j,velocity_x,dx)+
+     $            (2.0+viscous_r)*s%dgdy(nodes,i,j,velocity_y,dy)
+
+          end if
+             
+        end function flux_y_viscid_momentum_y
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the inviscid flux for the momentum_x along the x-axis
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> object encapsulating the spatial discretization operators
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> \f$ fx_{qy}^I \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function flux_x_inviscid_total_energy(nodes,s,i,j)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          class(sd_operators)          , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
+
+          !DEC$ FORCEINLINE RECURSIVE
+          var = s%f(nodes,i,j,energy_inviscid_x_flux)
+
+        end function flux_x_inviscid_total_energy
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the viscid flux for the momentum_x along the x-axis
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> object encapsulating the spatial discretization operators
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> \f$ fx_{\rho E}^V \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function flux_x_viscid_total_energy(nodes,s,i,j,dx,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          class(sd_operators)          , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+
+          if(rkind.eq.8) then
+
+             !DEC$ FORCEINLINE RECURSIVE
+             var =((2.0d0+viscous_r)*s%dfdx(nodes,i,j,velocity_x,dx) +
+     $            viscous_r*s%dfdy(nodes,i,j,velocity_y,dy))*
+     $            s%f(nodes,i,j,velocity_x)
+     $            +
+     $            (s%dfdy(nodes,i,j,velocity_x,dy)+s%dfdx(nodes,i,j,velocity_y,dx))*
+     $            s%f(nodes,i,j,velocity_y)
+     $            +
+     $            1.0d0/((gamma-1.0d0)*mach_infty**2*Pr)*
+     $            s%dfdx(nodes,i,j,temperature,dx)
+
+          else
+
+             var =((2.0+viscous_r)*s%dfdx(nodes,i,j,velocity_x,dx) +
+     $            viscous_r*s%dfdy(nodes,i,j,velocity_y,dy))*
+     $            s%f(nodes,i,j,velocity_x)
+     $            +
+     $            (s%dfdy(nodes,i,j,velocity_x,dy)+s%dfdx(nodes,i,j,velocity_y,dx))*
+     $            s%f(nodes,i,j,velocity_y)
+     $            +
+     $            1.0/((gamma-1.0)*mach_infty**2*Pr)*
+     $            s%dfdx(nodes,i,j,temperature,dx)
+
+          end if             
+
+        end function flux_x_viscid_total_energy
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the inviscid flux for the momentum_x along the x-axis
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> object encapsulating the spatial discretization operators
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> \f$ fy_{\rho E}^I \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function flux_y_inviscid_total_energy(nodes,s,i,j)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          class(sd_operators)          , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
+
+          !DEC$ FORCEINLINE RECURSIVE
+          var = s%g(nodes,i,j,energy_inviscid_y_flux)
+
+        end function flux_y_inviscid_total_energy
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the viscid flux for the momentum_x along the x-axis
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param s
+        !> object encapsulating the spatial discretization operators
+        !
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !
+        !>@param dx
+        !> grid step along the x-axis
+        !
+        !>@param dy
+        !> grid step along the y-axis
+        !
+        !>@param var
+        !> \f$ fy_{\rho E}^V \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function flux_y_viscid_total_energy(nodes,s,i,j,dx,dy)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          class(sd_operators)          , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind)                               :: var
+
+
+          if(rkind.eq.8) then
+
+             !DEC$ FORCEINLINE RECURSIVE
+             var =(s%dgdy(nodes,i,j,velocity_x,dy)+
      $             s%dgdx(nodes,i,j,velocity_y,dx)
      $            )*s%g(nodes,i,j,velocity_x)
      $            +
@@ -534,10 +1101,24 @@
      $            )*s%g(nodes,i,j,velocity_y)
      $            +
      $            1.0d0/((gamma-1.0d0)*mach_infty**2*Pr)*
-     $            s%dgdy(nodes,i,j,temperature,dy))
+     $            s%dgdy(nodes,i,j,temperature,dy)
+
+          else
+
+             !DEC$ FORCEINLINE RECURSIVE
+             var =(s%dgdy(nodes,i,j,velocity_x,dy)+
+     $             s%dgdx(nodes,i,j,velocity_y,dx)
+     $            )*s%g(nodes,i,j,velocity_x)
+     $            +
+     $            (viscous_r*s%dgdx(nodes,i,j,velocity_x,dx)+
+     $            (2.0d0+viscous_r)*s%dgdy(nodes,i,j,velocity_y,dy)
+     $            )*s%g(nodes,i,j,velocity_y)
+     $            +
+     $            1.0d0/((gamma-1.0d0)*mach_infty**2*Pr)*
+     $            s%dgdy(nodes,i,j,temperature,dy)
 
           end if
-
-        end function flux_y_total_energy 
+             
+        end function flux_y_viscid_total_energy
 
       end module ns2d_fluxes_module
