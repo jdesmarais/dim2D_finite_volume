@@ -18,7 +18,12 @@
      $       qy_inviscid_y_flux,
      $       qxy_transport,
      $       energy_inviscid_x_flux,
-     $       energy_inviscid_y_flux
+     $       energy_inviscid_y_flux,
+     $       speed_of_sound,
+     $       compute_jacobian_prim_to_cons,
+     $       compute_jacobian_cons_to_prim,
+     $       compute_cons_lodi_matrix_x,
+     $       compute_cons_lodi_matrix_y
 
         use ns2d_fluxes_module, only :
      $       flux_x_mass_density, flux_y_mass_density,
@@ -128,6 +133,31 @@
      $         sign(int(abs(cst*10000.)),int(cst*10000.))).le.1
           
         end function is_test_validated
+
+
+        function is_matrix_validated(var,cst,detailled) result(test_validated)
+
+          implicit none
+
+          real(rkind), dimension(ne,ne), intent(in) :: var
+          real(rkind), dimension(ne,ne), intent(in) :: cst
+          logical                      , intent(in) :: detailled
+          logical                                   :: test_validated
+
+          integer :: i,j
+          logical :: loc
+
+          test_validated = .true.
+
+          do j=1,ne
+             do i=1,ne
+                loc = is_test_validated(var(i,j),cst(i,j),detailled)
+                test_validated = test_validated.and.loc
+                if(detailled) print '(''var('',2I2,''): '',L1)', i,j,loc
+             end do
+          end do
+
+        end function is_matrix_validated
 
 
         subroutine initialize_nodes(nodes,dx,dy)
@@ -314,9 +344,13 @@
           logical                                   :: test_validated
 
 
-          real(rkind), dimension(13) :: test_data
-          logical                    :: loc
-          integer(ikind)             :: i,j
+          real(rkind), dimension(14)    :: test_data
+          real(rkind), dimension(ne,ne) :: test_data_jac_pv
+          real(rkind), dimension(ne,ne) :: test_data_jac_vp
+          real(rkind), dimension(ne,ne) :: test_data_lodi_matrix_x
+          real(rkind), dimension(ne,ne) :: test_data_lodi_matrix_y
+          logical                       :: loc
+          integer(ikind)                :: i,j
 
 
           test_data(1)  =  9.8        !mass
@@ -334,6 +368,92 @@
           test_data(11) =  2.29336734 !qxy_transport
           test_data(12) =  2.86337376 !energy_inviscid_x_flux
           test_data(13) =  6.69659994 !energy_inviscid_y_flux
+
+          test_data(14) =  0.632449587!speed_of_sound
+          
+          !jac_prim_to_cons
+          test_data_jac_pv(1,1) = 1.0
+          test_data_jac_pv(2,1) = 0.0
+          test_data_jac_pv(3,1) = 0.0
+          test_data_jac_pv(4,1) = 0.0
+                         
+          test_data_jac_pv(1,2) =-0.032278217
+          test_data_jac_pv(2,2) = 0.102040816
+          test_data_jac_pv(3,2) = 0.0
+          test_data_jac_pv(4,2) = 0.0
+                         
+          test_data_jac_pv(1,3) =-0.075489379
+          test_data_jac_pv(2,3) = 0.0
+          test_data_jac_pv(3,3) = 0.102040816
+          test_data_jac_pv(4,3) = 0.0
+                         
+          test_data_jac_pv(1,4) = 0.215786825
+          test_data_jac_pv(2,4) =-0.210884354
+          test_data_jac_pv(3,4) =-0.493197279
+          test_data_jac_pv(4,4) = 0.666666667
+
+          !jac_cons_to_prim
+          test_data_jac_vp(1,1) = 1.0
+          test_data_jac_vp(2,1) = 0.0
+          test_data_jac_vp(3,1) = 0.0
+          test_data_jac_vp(4,1) = 0.0
+                         
+          test_data_jac_vp(1,2) = 0.316326531
+          test_data_jac_vp(2,2) = 9.8
+          test_data_jac_vp(3,2) = 0.0
+          test_data_jac_vp(4,2) = 0.0
+                         
+          test_data_jac_vp(1,3) = 0.739795918
+          test_data_jac_vp(2,3) = 0.0
+          test_data_jac_vp(3,3) = 9.8
+          test_data_jac_vp(4,3) = 0.0
+                         
+          test_data_jac_vp(1,4) = 0.323680237
+          test_data_jac_vp(2,4) = 3.1
+          test_data_jac_vp(3,4) = 7.25
+          test_data_jac_vp(4,4) = 1.5
+
+          !lodi_matrix_x
+          test_data_lodi_matrix_x(1,1) =-0.075489379
+          test_data_lodi_matrix_x(2,1) = 0.0
+          test_data_lodi_matrix_x(3,1) = 0.102040816
+          test_data_lodi_matrix_x(4,1) = 0.0
+                    
+          test_data_lodi_matrix_x(1,2) = 0.184205655
+          test_data_lodi_matrix_x(2,2) = 0.210884354
+          test_data_lodi_matrix_x(3,2) = 0.493197279
+          test_data_lodi_matrix_x(4,2) =-0.666666667
+                    
+          test_data_lodi_matrix_x(1,3) = 0.415847409
+          test_data_lodi_matrix_x(2,3) =-0.843333941
+          test_data_lodi_matrix_x(3,3) =-0.493197279
+          test_data_lodi_matrix_x(4,3) = 0.666666667
+                    
+          test_data_lodi_matrix_x(1,4) = 0.015726241
+          test_data_lodi_matrix_x(2,4) = 0.421565233
+          test_data_lodi_matrix_x(3,4) =-0.493197279
+          test_data_lodi_matrix_x(4,4) = 0.666666667
+
+          !lodi_matrix_y
+          test_data_lodi_matrix_y(1,1) =-0.032278217
+          test_data_lodi_matrix_y(2,1) = 0.102040816
+          test_data_lodi_matrix_y(3,1) = 0.0
+          test_data_lodi_matrix_y(4,1) = 0.0
+
+          test_data_lodi_matrix_y(1,2) = 0.184205655
+          test_data_lodi_matrix_y(2,2) = 0.210884354
+          test_data_lodi_matrix_y(3,2) = 0.493197279
+          test_data_lodi_matrix_y(4,2) =-0.666666667
+                                
+          test_data_lodi_matrix_y(1,3) = 0.683670448
+          test_data_lodi_matrix_y(2,3) =-0.210884354
+          test_data_lodi_matrix_y(3,3) =-1.125646866
+          test_data_lodi_matrix_y(4,3) = 0.666666667
+                                
+          test_data_lodi_matrix_y(1,4) =-0.252096798
+          test_data_lodi_matrix_y(2,4) =-0.210884354
+          test_data_lodi_matrix_y(3,4) = 0.139252308
+          test_data_lodi_matrix_y(4,4) = 0.666666667
 
 
           i = 3
@@ -444,6 +564,40 @@
           test_validated = test_validated.and.loc
           if(detailled) print '(''test energy_inviscid_y_flux: '', L3)', loc
 
+          loc = is_test_validated(
+     $         speed_of_sound(nodes(i,j,:)),
+     $         test_data(14),
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test speed_of_sound: '', L3)', loc
+
+          loc = is_matrix_validated(
+     $         compute_jacobian_prim_to_cons(nodes(i,j,:)),
+     $         test_data_jac_pv,
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test jac_prim_to_cons: '', L3)', loc
+
+          loc = is_matrix_validated(
+     $         compute_jacobian_cons_to_prim(nodes(i,j,:)),
+     $         test_data_jac_vp,
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test jac_cons_to_prim: '', L3)', loc
+
+          loc = is_matrix_validated(
+     $         compute_cons_lodi_matrix_x(nodes(i,j,:)),
+     $         test_data_lodi_matrix_x,
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test cons_lodi_matrix_x: '', L3)', loc
+
+          loc = is_matrix_validated(
+     $         compute_cons_lodi_matrix_y(nodes(i,j,:)),
+     $         test_data_lodi_matrix_y,
+     $         detailled)
+          test_validated = test_validated.and.loc
+          if(detailled) print '(''test cons_lodi_matrix_y: '', L3)', loc
 
         end function test_ns2d_prim
 

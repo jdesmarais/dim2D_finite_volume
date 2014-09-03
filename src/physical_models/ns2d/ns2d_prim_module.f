@@ -40,7 +40,9 @@
      $       energy_inviscid_y_flux,
      $       speed_of_sound,
      $       compute_jacobian_prim_to_cons,
-     $       compute_jacobian_cons_to_prim
+     $       compute_jacobian_cons_to_prim,
+     $       compute_cons_lodi_matrix_x,
+     $       compute_cons_lodi_matrix_y
 
         contains
 
@@ -722,5 +724,160 @@
           end if             
              
         end function compute_jacobian_cons_to_prim
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the conservative LODI matrix in the x-direction
+        !
+        !> @date
+        !> 03_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return var
+        !> conservative LODI matrix in the x-direction
+        !--------------------------------------------------------------
+        function compute_cons_lodi_matrix_x(nodes) result(var)
+
+            implicit none
+
+            real(rkind), dimension(ne)   , intent(in) :: nodes
+            real(rkind), dimension(ne,ne)             :: var
+
+            real(rkind) :: u,v,c
+
+            u = nodes(2)/nodes(1)
+            v = nodes(3)/nodes(1)
+            c = speed_of_sound(nodes)
+
+            if(rkind.eq.8) then
+
+               var(1,1) = -v/nodes(1)
+               var(2,1) = 0.0d0
+               var(3,1) = 1.0d0/nodes(1)
+               var(4,1) = 0.0d0
+               
+               var(1,2) = c**2-0.5d0*(u**2+v**2)*(gamma-1.0d0)
+               var(2,2) = u*(gamma-1.0d0)
+               var(3,2) = v*(gamma-1.0d0)
+               var(4,2) = 1.0d0-gamma
+               
+               var(1,3) = c*u+0.5d0*(u**2+v**2)*(gamma-1.0d0)
+               var(2,3) = u*(1.0d0-gamma)-c
+               var(3,3) = v*(1.0d0-gamma)
+               var(4,3) = gamma-1.0d0
+               
+               var(1,4) = 0.5d0*(u**2+v**2)*(gamma-1.0d0)-c*u
+               var(2,4) = u*(1.0d0-gamma)+c
+               var(3,4) = v*(1.0d0-gamma)
+               var(4,4) = gamma-1.0d0
+
+            else
+               
+               var(1,1) = -v/nodes(1)
+               var(2,1) = 0.0
+               var(3,1) = 1.0/nodes(1)
+               var(4,1) = 0.0
+               
+               var(1,2) = c**2-0.5*(u**2+v**2)*(gamma-1.0)
+               var(2,2) = u*(gamma-1.0)
+               var(3,2) = v*(gamma-1.0)
+               var(4,2) = 1.0-gamma
+               
+               var(1,3) = c*u+0.5*(u**2+v**2)*(gamma-1.0)
+               var(2,3) = u*(1.0-gamma)-c
+               var(3,3) = v*(1.0-gamma)
+               var(4,3) = gamma-1.0
+               
+               var(1,4) = 0.5*(u**2+v**2)*(gamma-1.0)-c*u
+               var(2,4) = u*(1.0-gamma)+c
+               var(3,4) = v*(1.0-gamma)
+               var(4,4) = gamma-1.0
+
+            end if
+            
+        end function compute_cons_lodi_matrix_x
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the conservative LODI matrix in the y-direction
+        !
+        !> @date
+        !> 03_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return var
+        !> conservative LODI matrix in the y-direction
+        !--------------------------------------------------------------
+        function compute_cons_lodi_matrix_y(nodes) result(var)
+
+            implicit none
+
+            real(rkind), dimension(ne)   , intent(in) :: nodes
+            real(rkind), dimension(ne,ne)             :: var
+
+            real(rkind) :: u,v,c
+
+            u = nodes(2)/nodes(1)
+            v = nodes(3)/nodes(1)
+            c = speed_of_sound(nodes(:))
+
+
+            if(rkind.eq.8) then
+               
+               var(1,1) = -u/nodes(1)
+               var(2,1) = 1.0d0/nodes(1)
+               var(3,1) = 0.0d0
+               var(4,1) = 0.0d0
+               
+               var(1,2) = c**2-0.5d0*(u**2+v**2)*(gamma-1.0d0)
+               var(2,2) = u*(gamma-1.0d0)
+               var(3,2) = v*(gamma-1.0d0)
+               var(4,2) = 1.0d0-gamma
+
+               var(1,3) = c*v+0.5d0*(u**2+v**2)*(gamma-1.0d0)
+               var(2,3) = u*(1.0d0-gamma)
+               var(3,3) = v*(1.0d0-gamma)-c
+               var(4,3) = gamma-1.0d0
+
+               var(1,4) = 0.5d0*(u**2+v**2)*(gamma-1.0d0)-c*v
+               var(2,4) = u*(1.0d0-gamma)
+               var(3,4) = v*(1.0d0-gamma)+c
+               var(4,4) = gamma-1.0d0
+
+            else
+
+               var(1,1) = -u/nodes(1)
+               var(2,1) = 1.0/nodes(1)
+               var(3,1) = 0.0
+               var(4,1) = 0.0
+               
+               var(1,2) = c**2-0.5*(u**2+v**2)*(gamma-1.0)
+               var(2,2) = u*(gamma-1.0)
+               var(3,2) = v*(gamma-1.0)
+               var(4,2) = 1.0-gamma
+
+               var(1,3) = c*v+0.5*(u**2+v**2)*(gamma-1.0)
+               var(2,3) = u*(1.0-gamma)
+               var(3,3) = v*(1.0-gamma)-c
+               var(4,3) = gamma-1.0
+
+               var(1,4) = 0.5*(u**2+v**2)*(gamma-1.0)-c*v
+               var(2,4) = u*(1.0-gamma)
+               var(3,4) = v*(1.0-gamma)+c
+               var(4,4) = gamma-1.0
+
+            end if
+            
+        end function compute_cons_lodi_matrix_y      
 
       end module ns2d_prim_module
