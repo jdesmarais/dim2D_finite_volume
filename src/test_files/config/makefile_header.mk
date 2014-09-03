@@ -120,12 +120,12 @@ ifeq ($(strip $(bc_choice)), hedstrom_x_reflection_y_choice)
 	sim_par_dep+=$(hedstrom_x_reflection_y_par_dep)
 endif
 ifeq ($(strip $(bc_choice)), poinsot_xy_choice)
-	bc_cdir=$(lobc_dir)
+	bc_cdir=$(pobc_dir)
 	sim_dep+=$(poinsot_ns2d_dep)
 	sim_par_dep+=$(poinsot_xy_par_dep)
 
 	ifeq ($(strip $(pm_choice)), ns2d_choice)
-		lobc_cdir=$(lpobc_ns2d_dir)
+		pobc_cdir=$(pobc_ns2d_dir)
 	endif
 endif
 

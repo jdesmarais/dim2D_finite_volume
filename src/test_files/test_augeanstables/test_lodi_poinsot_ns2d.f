@@ -16,6 +16,9 @@
         use lodi_outflow_class, only :
      $       lodi_outflow
 
+        use parameters_constant, only :
+     $       left,right
+
         use parameters_input, only :
      $       ne
 
@@ -73,6 +76,7 @@
         loc = test_lodi(
      $       lodi_inflow_tested, test_data, 
      $       p_model, t, nodes, x_map, y_map, i,j,
+     $       left,
      $       detailled)
 
         test_validated = test_validated.and.loc
@@ -100,10 +104,12 @@
         test_data(3,2) = 0.168993797
         test_data(4,2) =-1.272356148
         
+        detailled = .true.
         call lodi_outflow_tested%ini()
         loc = test_lodi(
      $       lodi_outflow_tested, test_data, 
      $       p_model, t, nodes, x_map, y_map, i,j,
+     $       right,
      $       detailled)
 
         test_validated = test_validated.and.loc
@@ -136,6 +142,7 @@
         loc = test_lodi_timedev(
      $       lodi_inflow_tested, test_data, 
      $       p_model, t, nodes, x_map, y_map, i,j,
+     $       right,
      $       detailled)
 
         test_validated = test_validated.and.loc
@@ -384,6 +391,7 @@
         function test_lodi(
      $     lodi_tested, test_data, 
      $     p_model, t, nodes, x_map, y_map, i,j,
+     $     side,
      $     detailled)
      $     result(test_validated)
 
@@ -398,6 +406,7 @@
           real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side
           logical                      , intent(in) :: detailled
           logical                                   :: test_validated
 
@@ -412,7 +421,7 @@
           print '(''test compute_x_lodi'')'
           detailled_loc = detailled
           lodi = lodi_tested%compute_x_lodi(
-     $         p_model, t, nodes, x_map, y_map, i,j, gradient_x_interior)
+     $         p_model, t, nodes, x_map, y_map, i,j, side, gradient_x_interior)
           loc  = test_lodi_vector(lodi,test_data(:,1),detailled_loc)
           test_validated = test_validated.and.loc
           if(.not.detailled_loc) print '(''test_validated: '',L3)', test_validated
@@ -422,7 +431,7 @@
           print '(''test compute_y_lodi'')'
           detailled_loc = detailled
           lodi = lodi_tested%compute_y_lodi(
-     $         p_model, t, nodes, x_map, y_map, i,j, gradient_y_interior)
+     $         p_model, t, nodes, x_map, y_map, i,j, side, gradient_y_interior)
           loc  = test_lodi_vector(lodi,test_data(:,2),detailled_loc)
           test_validated = test_validated.and.loc
           if(.not.detailled_loc) print '(''test_validated: '',L3)', test_validated
@@ -434,6 +443,7 @@
         function test_lodi_timedev(
      $     lodi_tested, test_data, 
      $     p_model, t, nodes, x_map, y_map, i,j,
+     $     side,
      $     detailled)
      $     result(test_validated)
 
@@ -448,6 +458,7 @@
           real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side
           logical                      , intent(in) :: detailled
           logical                                   :: test_validated
 
@@ -457,12 +468,11 @@
 
 
           test_validated = .true.
-
           
           print '(''test compute_x_timedev'')'
           detailled_loc = detailled
           timedev = lodi_tested%compute_x_timedev(
-     $         p_model, t, nodes, x_map, y_map, i,j, gradient_x_interior)
+     $         p_model, t, nodes, x_map, y_map, i,j, side, gradient_x_interior)
           loc  = test_lodi_vector(timedev,test_data(:,1),detailled_loc)
           test_validated = test_validated.and.loc
           if(.not.detailled_loc) print '(''test_validated: '',L3)', test_validated
@@ -472,7 +482,7 @@
           print '(''test compute_y_timedev'')'
           detailled_loc = detailled
           timedev = lodi_tested%compute_y_timedev(
-     $         p_model, t, nodes, x_map, y_map, i,j, gradient_y_interior)
+     $         p_model, t, nodes, x_map, y_map, i,j, side, gradient_y_interior)
           loc  = test_lodi_vector(timedev,test_data(:,2),detailled_loc)
           test_validated = test_validated.and.loc
           if(.not.detailled_loc) print '(''test_validated: '',L3)', test_validated

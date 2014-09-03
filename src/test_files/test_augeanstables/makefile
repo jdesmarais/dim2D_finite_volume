@@ -204,10 +204,10 @@ test_ns2d_eq_program:	parameters_kind.o\
 
 test_lodi_poinsot_ns2d.o:\
 			$(mt_dir)/sd_operators_fd_module.o\
-			$(lobc_dir)/lodi_abstract_class.o\
-			$(lobc_dir)/lodi_ns2d_class.o\
-			$(lpobc_ns2d_dir)/lodi_inflow_class.o\
-			$(lpobc_ns2d_dir)/lodi_outflow_class.o\
+			$(pobc_dir)/lodi_abstract_class.o\
+			$(pobc_ns2d_dir)/lodi_ns2d_class.o\
+			$(pobc_ns2d_dir)/lodi_inflow_class.o\
+			$(pobc_ns2d_dir)/lodi_outflow_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(ns2d_dir)/pmodel_eq_class.o
@@ -221,10 +221,10 @@ test_lodi_poinsot_ns2d: parameters_kind.o\
 			lodi_inflow_class.o\
 			lodi_outflow_class.o
 
-test_lodi_operators.o:	$(lobc_dir)/bc_operators_class.o\
-			$(lobc_dir)/lodi_ns2d_class.o\
-			$(lpobc_ns2d_dir)/lodi_inflow_class.o\
-			$(lpobc_ns2d_dir)/lodi_outflow_class.o\
+test_lodi_operators.o:	$(pobc_dir)/bc_operators_class.o\
+			$(pobc_ns2d_dir)/lodi_ns2d_class.o\
+			$(pobc_ns2d_dir)/lodi_inflow_class.o\
+			$(pobc_ns2d_dir)/lodi_outflow_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
@@ -240,7 +240,7 @@ test_lodi_transverse.o:	$(ns2d_dir)/ns2d_parameters.o\
 			$(ns2d_dir)/ns2d_fluxes_module.o\
 			$(param_dir)/parameters_kind.o\
 			$(sd_cdir)/sd_operators_class.o\
-			$(lyobc_dir)/lodi_transverse_module.o
+			$(yobc_dir)/lodi_transverse_module.o
 
 test_lodi_transverse:	parameters_kind.o\
 			ns2d_parameters.o\

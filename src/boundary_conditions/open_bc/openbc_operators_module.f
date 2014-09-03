@@ -166,7 +166,7 @@
           real(rkind), intent(in) :: eigenvalue
           logical                 :: is_incoming
 
-          is_incoming = (eigenvalue+1.0e-6).ge.0
+          is_incoming = eigenvalue.ge.0
           
         end function inflow_left
 
@@ -196,7 +196,7 @@
           real(rkind), intent(in) :: eigenvalue
           logical                 :: is_incoming
 
-          is_incoming = (eigenvalue-1.0e-6).le.0
+          is_incoming = eigenvalue.le.0
           
         end function inflow_right
 

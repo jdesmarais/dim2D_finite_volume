@@ -112,6 +112,8 @@
 
           this%title = 'outflow Poinsot b.c.'
 
+c$$$          this%relaxation_P = 0.1249875
+
           if(rkind.eq.8) then
              this%relaxation_P = sigma_P*(1.0d0-(mach_infty)**2)*1.0d0/2.0d0
           else

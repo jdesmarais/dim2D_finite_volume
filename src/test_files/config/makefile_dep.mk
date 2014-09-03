@@ -620,36 +620,28 @@ $(hcobc_dir)/bc_operators_class.o:\
 			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
 			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
 
-#lodi-type open boundary conditions
-$(lobc_dir)/lodi_abstract_class.o:\
+#poinsot open boundary conditions
+$(pobc_dir)/lodi_abstract_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(pm_cdir)/pmodel_eq_class.o
 
-$(lobc_dir)/lodi_ns2d_class.o:\
+$(pobc_dir)/lodi_xy_module.o:\
 			$(sd_dir)/interface_primary.o\
-			$(lobc_dir)/lodi_abstract_class.o\
-			$(ns2d_dir)/ns2d_prim_module.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(lobc_dir)/lodi_xy_module.o:\
-			$(sd_dir)/interface_primary.o\
-			$(lobc_cdir)/lodi_inflow_class.o\
-			$(lobc_cdir)/lodi_outflow_class.o\
+			$(pobc_cdir)/lodi_inflow_class.o\
+			$(pobc_cdir)/lodi_outflow_class.o\
 			$(obc_dir)/openbc_operators_module.o\
 			$(pm_cdir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(sd_cdir)/sd_operators_fd_module.o
 
-$(lobc_dir)/bc_operators_class.o:\
+$(pobc_dir)/bc_operators_class.o:\
 			$(bc_dir)/bc_operators_default_class.o\
-			$(lobc_dir)/lodi_xy_module.o\
-			$(lobc_cdir)/lodi_inflow_class.o\
-			$(lobc_cdir)/lodi_outflow_class.o\
+			$(pobc_dir)/lodi_xy_module.o\
+			$(pobc_cdir)/lodi_inflow_class.o\
+			$(pobc_cdir)/lodi_outflow_class.o\
 			$(sd_dir)/interface_primary.o\
 			$(obc_dir)/openbc_operators_module.o\
 			$(pm_cdir)/pmodel_eq_class.o\
@@ -666,10 +658,18 @@ $(lobc_dir)/bc_operators_class.o:\
 			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
 			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
 
-#poinsot and lele boundary conditions
-$(lpobc_ns2d_dir)/lodi_inflow_class.o:\
+#poinsot boundary conditions for NS equations
+$(pobc_ns2d_dir)/lodi_ns2d_class.o:\
 			$(sd_dir)/interface_primary.o\
-			$(lobc_dir)/lodi_ns2d_class.o\
+			$(pobc_dir)/lodi_abstract_class.o\
+			$(ns2d_dir)/ns2d_prim_module.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o
+
+$(pobc_ns2d_dir)/lodi_inflow_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(pobc_ns2d_dir)/lodi_ns2d_class.o\
 			$(ns2d_dir)/ns2d_parameters.o\
 			$(ns2d_dir)/ns2d_prim_module.o\
 			$(param_dir)/parameters_constant.o\
@@ -677,9 +677,9 @@ $(lpobc_ns2d_dir)/lodi_inflow_class.o:\
 			$(param_dir)/parameters_kind.o\
 			$(ns2d_dir)/pmodel_eq_class.o
 
-$(lpobc_ns2d_dir)/lodi_outflow_class.o:\
+$(pobc_ns2d_dir)/lodi_outflow_class.o:\
 			$(sd_dir)/interface_primary.o\
-			$(lobc_dir)/lodi_ns2d_class.o\
+			$(pobc_ns2d_dir)/lodi_ns2d_class.o\
 			$(ns2d_dir)/ns2d_parameters.o\
 			$(ns2d_dir)/ns2d_prim_module.o\
 			$(param_dir)/parameters_constant.o\
@@ -688,7 +688,7 @@ $(lpobc_ns2d_dir)/lodi_outflow_class.o:\
 			$(ns2d_dir)/pmodel_eq_class.o
 
 #yoo and lodato boundary conditions
-$(lyobc_dir)/lodi_transverse_module.o:\
+$(yobc_dir)/lodi_transverse_module.o:\
 			$(sd_cdir)/sd_operators_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o

@@ -9,6 +9,8 @@ ti_dir			= $(src_dir)/td_integrator
 td_dir        		= $(src_dir)/td_operators
 test_dir                = $(src_dir)/test_files
 
+config_dir		= $(test_dir)/config
+
 cg_dir			= $(sd_dir)/cg_operators
 mt_dir			= $(sd_dir)/mattsson_operators
 
@@ -40,10 +42,10 @@ hobc_dir                = $(obc_dir)/hedstrom_xy
 hcobc_dir               = $(obc_dir)/hedstrom_xy_corners
 hrobc_dir		= $(obc_dir)/hedstrom_x_reflection_y
 
-lobc_dir		= $(obc_dir)/lodi_xy
-lpobc_dir		= $(lobc_dir)/poinsot_xy
-lpobc_ns2d_dir		= $(lpobc_dir)/poinsot_ns2d
-lyobc_dir		= $(lobc_dir)/yoo_lodato_xy
+pobc_dir		= $(obc_dir)/poinsot_xy
+pobc_ns2d_dir		= $(pobc_dir)/poinsot_ns2d
+
+yobc_dir		= $(obc_dir)/yoo_lodato_xy
 
 bf_layer_dir		= $(obc_dir)/buffer_layer
 nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors
