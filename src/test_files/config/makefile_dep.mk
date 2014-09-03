@@ -690,6 +690,7 @@ $(lpobc_ns2d_dir)/lodi_outflow_class.o:\
 #yoo and lodato boundary conditions
 $(lyobc_dir)/lodi_transverse_module.o:\
 			$(sd_cdir)/sd_operators_class.o\
+			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
 #hedstrom_x_reflection_y boundary conditions

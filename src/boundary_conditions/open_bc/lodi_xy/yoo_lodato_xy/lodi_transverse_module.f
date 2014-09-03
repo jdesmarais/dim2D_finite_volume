@@ -3,7 +3,10 @@
       module lodi_transverse_module
 
         use sd_operators_class, only :
-     $     sd_operators
+     $       sd_operators
+
+        use parameters_input, only :
+     $       ne
 
         use parameters_kind, only :
      $       ikind,
@@ -12,7 +15,11 @@
         implicit none
 
         private
-        public :: compute_edge_fluxes
+        public ::
+     $       compute_edge_fluxes,
+     $       compute_lodi_terms,
+     $       compute_dev_from_flux_x,
+     $       compute_dev_from_flux_y
 
         
         abstract interface
@@ -44,6 +51,33 @@
             real(rkind)                  , intent(in) :: dy
             real(rkind)                               :: var
           end function viscid_flux
+
+
+          function lodi_matrix(nodes) result(var)
+
+            import ne
+            import ikind
+            import rkind
+
+            real(rkind), dimension(ne)   , intent(in) :: nodes
+            real(rkind), dimension(ne,ne)             :: var
+
+          end function lodi_matrix
+
+      
+          function dev_from_flux(flux,i,j,ds) result(dev)
+
+            import ne
+            import ikind
+            import rkind
+
+            real(rkind), dimension(:,:,:), intent(in) :: flux
+            integer(ikind)               , intent(in) :: i
+            integer(ikind)               , intent(in) :: j
+            real(rkind)                  , intent(in) :: ds
+            real(rkind), dimension(ne)                :: dev
+
+          end function dev_from_flux
 
         end interface
 
@@ -214,5 +248,191 @@
           end do
 
         end subroutine compute_edge_fluxes
+
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the trasnverse and viscous LODI vectors in the j-direction
+        !
+        !> @date
+        !> 02_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid points data
+        !
+        !>@param ds
+        !> space step
+        !
+        !>@param i_offset
+        !> index along the x-direction identifying the corresponding index
+        !> computed in the nodes table: i -> i_offset+i
+        !
+        !>@param j_offset
+        !> index along the y-direction identifying the corresponding index
+        !> computed in the nodes table: j -> j_offset+j
+        !
+        !>@param epsilon
+        !> dissipation constant
+        !
+        !>@param edge_inviscid_flux
+        !> inviscid fluxes at the edge of the computational
+        !> domain
+        !
+        !>@param edge_viscid_flux
+        !> viscid fluxes at the edge of the computational
+        !> domain
+        !
+        !>@param compute_conservative_lodi_matrix
+        !> compute the conservative LODI matrix in the j-direction
+        !
+        !>@param transverse_lodi
+        !> transverse LODI vector at the edge of the computational domain
+        !> in the j-direction
+        !
+        !>@param viscous_lodi
+        !> viscous LODI vector at the edge of the computational domain
+        !> in the j-direction
+        !---------------------------------------------------------------
+        subroutine compute_lodi_terms(
+     $     nodes,
+     $     ds,
+     $     i_offset, j_offset,
+     $     epsilon,
+     $     edge_inviscid_flux,
+     $     edge_viscid_flux,
+     $     compute_conservative_lodi_matrix,
+     $     compute_dev_from_flux,
+     $     transverse_lodi,
+     $     viscous_lodi)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in)  :: nodes
+          real(rkind)                  , intent(in)  :: ds
+          integer(ikind)               , intent(in)  :: i_offset
+          integer(ikind)               , intent(in)  :: j_offset
+          real(rkind)                  , intent(in)  :: epsilon
+          real(rkind), dimension(:,:,:), intent(in)  :: edge_inviscid_flux
+          real(rkind), dimension(:,:,:), intent(in)  :: edge_viscid_flux
+          procedure(lodi_matrix)                     :: compute_conservative_lodi_matrix
+          procedure(dev_from_flux)                   :: compute_dev_from_flux
+          real(rkind), dimension(:,:,:), intent(out) :: transverse_lodi
+          real(rkind), dimension(:,:,:), intent(out) :: viscous_lodi
+
+          integer(ikind)                :: i,j
+          integer(ikind)                :: i_nodes,j_nodes
+          real(rkind), dimension(ne,ne) :: cons_lodi_matrix
+          real(rkind), dimension(ne)    :: dev
+          
+
+          do j=1, size(transverse_lodi,2)
+             j_nodes = j_offset + j
+
+             do i=1, size(transverse_lodi,1)
+                i_nodes = i_offset + i
+
+                cons_lodi_matrix = compute_conservative_lodi_matrix(nodes(i_nodes,j_nodes,:))
+
+                dev = compute_dev_from_flux(edge_inviscid_flux,i,j,ds)
+                transverse_lodi(i,j,:) = - MATMUL(dev,cons_lodi_matrix)
+
+                dev = compute_dev_from_flux(edge_viscid_flux,i,j,ds)
+                viscous_lodi(i,j,:) = epsilon*MATMUL(dev,cons_lodi_matrix)
+
+             end do
+
+          end do
+
+        end subroutine compute_lodi_terms
+
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivative from the fluxes along
+        !> the x-direction
+        !
+        !> @date
+        !> 03_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param flux
+        !> fluxes along the x-direction
+        !
+        !>@param i
+        !> index along the x-direction
+        !
+        !>@param j
+        !> index along the y-direction
+        !
+        !>@param ds
+        !> space step
+        !
+        !>@return dev
+        !> derivative
+        !---------------------------------------------------------------
+        function compute_dev_from_flux_x(flux,i,j,ds) result(dev)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: flux
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                  , intent(in) :: ds
+          real(rkind), dimension(ne)                :: dev
+
+          integer :: k
+
+          do k=1,ne
+             dev(k) = (flux(i+1,j,k)-flux(i,j,k))/ds
+          end do
+
+        end function compute_dev_from_flux_x
+
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivative from the fluxes along
+        !> the x-direction
+        !
+        !> @date
+        !> 03_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param flux
+        !> fluxes along the x-direction
+        !
+        !>@param i
+        !> index along the x-direction
+        !
+        !>@param j
+        !> index along the y-direction
+        !
+        !>@param ds
+        !> space step
+        !
+        !>@return dev
+        !> derivative
+        !---------------------------------------------------------------
+        function compute_dev_from_flux_y(flux,i,j,ds) result(dev)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: flux
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                  , intent(in) :: ds
+          real(rkind), dimension(ne)                :: dev
+
+          integer :: k
+
+          do k=1,ne
+             dev(k) = (flux(i,j+1,k)-flux(i,j,k))/ds
+          end do
+
+        end function compute_dev_from_flux_y
 
       end module lodi_transverse_module
