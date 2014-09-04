@@ -1,4 +1,4 @@
-      program test_lodi_operators
+      program test_poinsot_ns2d_operators
 
         use bc_operators_class, only :
      $       bc_operators
@@ -133,7 +133,6 @@
      $       detailled)
 
         print '()'
-
 
         !compute the lodi vector from the lodi outflow y
         print '(''test lodi for outflow y'')'
@@ -279,9 +278,9 @@
         do k=1, ne
            test_data(:,:,k) = TRANSPOSE(test_data(:,:,k))
         end do
-        nodes_temp       = test_data(:,:,2)
-        test_data(:,:,2) = test_data(:,:,3)
-        test_data(:,:,3) = nodes_temp
+c$$$        nodes_temp       = test_data(:,:,2)
+c$$$        test_data(:,:,2) = test_data(:,:,3)
+c$$$        test_data(:,:,3) = nodes_temp
 
         print '(''test lodi for inflow y'')'
         print '(''---------------------------------------'')'
@@ -344,107 +343,107 @@
         print '()'
 
 
-        !test the symmetry for the inflow operators
-        
-        !step 1 in validating the apply_time_dev: validation of inflow
-        !outflow b.c. along y for non symmetric data along y
-c$$$        print '(''test timedev inflow along y'')'
-c$$$        print '(''--------------------------------------'')'
-c$$$        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
-c$$$
-c$$$        detailled = .false.
-c$$$
-c$$$        call inflow_bc%ini()        
-c$$$
-c$$$        print '(''*************************************************'')'
-c$$$        print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
-c$$$        print '(''*************************************************'')'
-c$$$
-c$$$        do i=1,5
-c$$$           j=1
-c$$$           timedev(i,j,:) = inflow_bc%compute_y_lodi(
-c$$$     $          p_model,
-c$$$     $          t,nodes,x_map,y_map,i,j,
-c$$$     $          left,
-c$$$     $          gradient_y_y_oneside_L0)
-c$$$           
-c$$$           j=2
-c$$$           timedev(i,j,:) = inflow_bc%compute_y_lodi(
-c$$$     $          p_model,
-c$$$     $          t,nodes,x_map,y_map,i,j,
-c$$$     $          left,
-c$$$     $          gradient_y_y_oneside_L1)
-c$$$           
-c$$$           j=4
-c$$$           timedev(i,j,:) = inflow_bc%compute_y_lodi(
-c$$$     $          p_model,
-c$$$     $          t,nodes,x_map,y_map,i,j,
-c$$$     $          right,
-c$$$     $          gradient_y_y_oneside_R1)
-c$$$
-c$$$           j=5
-c$$$           timedev(i,j,:) = inflow_bc%compute_y_lodi(
-c$$$     $          p_model,
-c$$$     $          t,nodes,x_map,y_map,i,j,
-c$$$     $          right,
-c$$$     $          gradient_y_y_oneside_R0)
-c$$$
-c$$$        end do
-c$$$
+c$$$        !test the symmetry for the inflow operators
 c$$$        
-c$$$        call print_timedev(timedev)
-c$$$
-c$$$        print '()'
-        
-
-
-c$$$        print '(''test timedev inflow along y'')'
-c$$$        print '(''--------------------------------------'')'
-c$$$        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
-c$$$
-c$$$        detailled = .false.
-c$$$
-c$$$        call inflow_bc%ini()        
-c$$$
-c$$$        print '(''*************************************************'')'
-c$$$        print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
-c$$$        print '(''*************************************************'')'
-c$$$
-c$$$        do i=1,5
-c$$$           j=1
-c$$$           timedev(i,j,:) = inflow_bc%compute_y_timedev(
-c$$$     $          p_model,
-c$$$     $          t,nodes,x_map,y_map,i,j,
-c$$$     $          left,
-c$$$     $          gradient_y_y_oneside_L0)
-c$$$           
-c$$$           j=2
-c$$$           timedev(i,j,:) = inflow_bc%compute_y_timedev(
-c$$$     $          p_model,
-c$$$     $          t,nodes,x_map,y_map,i,j,
-c$$$     $          left,
-c$$$     $          gradient_y_y_oneside_L1)
-c$$$           
-c$$$           j=4
-c$$$           timedev(i,j,:) = inflow_bc%compute_y_timedev(
-c$$$     $          p_model,
-c$$$     $          t,nodes,x_map,y_map,i,j,
-c$$$     $          right,
-c$$$     $          gradient_y_y_oneside_R1)
-c$$$
-c$$$           j=5
-c$$$           timedev(i,j,:) = inflow_bc%compute_y_timedev(
-c$$$     $          p_model,
-c$$$     $          t,nodes,x_map,y_map,i,j,
-c$$$     $          right,
-c$$$     $          gradient_y_y_oneside_R0)
-c$$$
-c$$$        end do
-c$$$
+c$$$        !step 1 in validating the apply_time_dev: validation of inflow
+c$$$        !outflow b.c. along y for non symmetric data along y
+c$$$c$$$        print '(''test timedev inflow along y'')'
+c$$$c$$$        print '(''--------------------------------------'')'
+c$$$c$$$        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
+c$$$c$$$
+c$$$c$$$        detailled = .false.
+c$$$c$$$
+c$$$c$$$        call inflow_bc%ini()        
+c$$$c$$$
+c$$$c$$$        print '(''*************************************************'')'
+c$$$c$$$        print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
+c$$$c$$$        print '(''*************************************************'')'
+c$$$c$$$
+c$$$c$$$        do i=1,5
+c$$$c$$$           j=1
+c$$$c$$$           timedev(i,j,:) = inflow_bc%compute_y_lodi(
+c$$$c$$$     $          p_model,
+c$$$c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$c$$$     $          left,
+c$$$c$$$     $          gradient_y_y_oneside_L0)
+c$$$c$$$           
+c$$$c$$$           j=2
+c$$$c$$$           timedev(i,j,:) = inflow_bc%compute_y_lodi(
+c$$$c$$$     $          p_model,
+c$$$c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$c$$$     $          left,
+c$$$c$$$     $          gradient_y_y_oneside_L1)
+c$$$c$$$           
+c$$$c$$$           j=4
+c$$$c$$$           timedev(i,j,:) = inflow_bc%compute_y_lodi(
+c$$$c$$$     $          p_model,
+c$$$c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$c$$$     $          right,
+c$$$c$$$     $          gradient_y_y_oneside_R1)
+c$$$c$$$
+c$$$c$$$           j=5
+c$$$c$$$           timedev(i,j,:) = inflow_bc%compute_y_lodi(
+c$$$c$$$     $          p_model,
+c$$$c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$c$$$     $          right,
+c$$$c$$$     $          gradient_y_y_oneside_R0)
+c$$$c$$$
+c$$$c$$$        end do
+c$$$c$$$
+c$$$c$$$        
+c$$$c$$$        call print_timedev(timedev)
+c$$$c$$$
+c$$$c$$$        print '()'
 c$$$        
-c$$$        call print_timedev(timedev)
 c$$$
-c$$$        print '()'
+c$$$
+c$$$c$$$        print '(''test timedev inflow along y'')'
+c$$$c$$$        print '(''--------------------------------------'')'
+c$$$c$$$        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
+c$$$c$$$
+c$$$c$$$        detailled = .false.
+c$$$c$$$
+c$$$c$$$        call inflow_bc%ini()        
+c$$$c$$$
+c$$$c$$$        print '(''*************************************************'')'
+c$$$c$$$        print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
+c$$$c$$$        print '(''*************************************************'')'
+c$$$c$$$
+c$$$c$$$        do i=1,5
+c$$$c$$$           j=1
+c$$$c$$$           timedev(i,j,:) = inflow_bc%compute_y_timedev(
+c$$$c$$$     $          p_model,
+c$$$c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$c$$$     $          left,
+c$$$c$$$     $          gradient_y_y_oneside_L0)
+c$$$c$$$           
+c$$$c$$$           j=2
+c$$$c$$$           timedev(i,j,:) = inflow_bc%compute_y_timedev(
+c$$$c$$$     $          p_model,
+c$$$c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$c$$$     $          left,
+c$$$c$$$     $          gradient_y_y_oneside_L1)
+c$$$c$$$           
+c$$$c$$$           j=4
+c$$$c$$$           timedev(i,j,:) = inflow_bc%compute_y_timedev(
+c$$$c$$$     $          p_model,
+c$$$c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$c$$$     $          right,
+c$$$c$$$     $          gradient_y_y_oneside_R1)
+c$$$c$$$
+c$$$c$$$           j=5
+c$$$c$$$           timedev(i,j,:) = inflow_bc%compute_y_timedev(
+c$$$c$$$     $          p_model,
+c$$$c$$$     $          t,nodes,x_map,y_map,i,j,
+c$$$c$$$     $          right,
+c$$$c$$$     $          gradient_y_y_oneside_R0)
+c$$$c$$$
+c$$$c$$$        end do
+c$$$c$$$
+c$$$c$$$        
+c$$$c$$$        call print_timedev(timedev)
+c$$$c$$$
+c$$$c$$$        print '()'
         
 
         print '(''test time_dev for the bc_operators'')'
@@ -818,7 +817,7 @@ c$$$        print '()'
                 do i=1,2
                    loc = is_test_validated(lodi(i,j,k),test_data(i,j,k),detailled_loc(k))
                    test_validated = test_validated.and.loc
-                   test_validated = test_lodi_validated.and.loc
+                   test_lodi_validated = test_lodi_validated.and.loc
                    if(detailled_loc(k)) then
                       print '(''lodi('',I2,I2,I2,''):'',L3)', i,j,k,loc
                    end if
@@ -1010,7 +1009,7 @@ c$$$        print '()'
                 do i=1,2
                    loc = is_test_validated(timedev(i,j,k),test_data(i,j,k),detailled_loc(k))
                    test_validated = test_validated.and.loc
-                   test_validated = test_lodi_validated.and.loc
+                   test_lodi_validated = test_lodi_validated.and.loc
                    if(detailled_loc(k)) then
                       print '(''timedev('',I2,I2,I2,''):'',L3)', i,j,k,loc
                    end if
@@ -1139,104 +1138,104 @@ c$$$        print '()'
           real(rkind), dimension(nx,ny,ne), intent(out) :: test_data
 
           !L1
-          test_data(1,5,1) =  446.77785
-          test_data(1,4,1) = -1.2737843
-          test_data(1,3,1) = 63.7416509
-          test_data(1,2,1) = 81.1066497
-          test_data(1,1,1) = -15.193722
+          test_data(1,5,1) =  446.77785d0
+          test_data(1,4,1) = -1.2737843d0
+          test_data(1,3,1) = 63.7416509d0
+          test_data(1,2,1) = 81.1066497d0
+          test_data(1,1,1) = -15.193722d0
                                        
-          test_data(2,5,1) = -82.306674
-          test_data(2,4,1) = -1.1667903
-          test_data(2,3,1) = 69.9870196
-          test_data(2,2,1) = -6.3174795
-          test_data(2,1,1) = 10.5902500
+          test_data(2,5,1) = -82.306674d0
+          test_data(2,4,1) = -1.1667903d0
+          test_data(2,3,1) = 69.9870196d0
+          test_data(2,2,1) = -6.3174795d0
+          test_data(2,1,1) = 10.5902500d0
                                        
-          test_data(4,5,1) = -82.306674
-          test_data(4,4,1) = -1.1667903
-          test_data(4,3,1) = 69.9870196
-          test_data(4,2,1) = -6.3174795
-          test_data(4,1,1) = 10.5902500
+          test_data(4,5,1) = -82.306674d0
+          test_data(4,4,1) = -1.1667903d0
+          test_data(4,3,1) = 69.9870196d0
+          test_data(4,2,1) = -6.3174795d0
+          test_data(4,1,1) = 10.5902500d0
                                        
-          test_data(5,5,1) = 446.777854
-          test_data(5,4,1) = -1.2737843
-          test_data(5,3,1) = 63.7416509
-          test_data(5,2,1) = 81.1066497
-          test_data(5,1,1) = -15.193722
-
-          !L2
-          test_data(1,5,2) = 612.011517
-          test_data(1,4,2) = 60.8978772
-          test_data(1,3,2) = -1973.1928
-          test_data(1,2,2) = -3957.7409
-          test_data(1,1,2) = 3753.61415
+          test_data(5,5,1) = 446.777854d0
+          test_data(5,4,1) = -1.2737843d0
+          test_data(5,3,1) = 63.7416509d0
+          test_data(5,2,1) = 81.1066497d0
+          test_data(5,1,1) = -15.193722d0
                                        
-          test_data(2,5,2) = 1648.38519
-          test_data(2,4,2) = -187.99854
-          test_data(2,3,2) = -501.81569
-          test_data(2,2,2) = 29.5245331
-          test_data(2,1,2) = 2106.98704
+          !L2                          
+          test_data(1,5,2) = 612.011517d0
+          test_data(1,4,2) = 60.8978772d0
+          test_data(1,3,2) = -1973.1928d0
+          test_data(1,2,2) = -3957.7409d0
+          test_data(1,1,2) = 3753.61415d0
                                        
-          test_data(4,5,2) = 1648.38519
-          test_data(4,4,2) = -187.99854
-          test_data(4,3,2) = -501.81569
-          test_data(4,2,2) = 29.5245331
-          test_data(4,1,2) = 2106.98704
+          test_data(2,5,2) = 1648.38519d0
+          test_data(2,4,2) = -187.99854d0
+          test_data(2,3,2) = -501.81569d0
+          test_data(2,2,2) = 29.5245331d0
+          test_data(2,1,2) = 2106.98704d0
                                        
-          test_data(5,5,2) = 612.011517
-          test_data(5,4,2) = 60.8978772
-          test_data(5,3,2) = -1973.1928
-          test_data(5,2,2) = -3957.7409
-          test_data(5,1,2) = 3753.61415
-
-          !L3
-          test_data(1,5,3) = -3872.8478
-          test_data(1,4,3) = 69.6020753
-          test_data(1,3,3) = -2763.6543
-          test_data(1,2,3) = 1973.37048
-          test_data(1,1,3) = -6295.0801
-                       
-          test_data(2,5,3) = 1367.71567
-          test_data(2,4,3) = -299.00369
-          test_data(2,3,3) = 497.172700
-          test_data(2,2,3) = -11.720210
+          test_data(4,5,2) = 1648.38519d0
+          test_data(4,4,2) = -187.99854d0
+          test_data(4,3,2) = -501.81569d0
+          test_data(4,2,2) = 29.5245331d0
+          test_data(4,1,2) = 2106.98704d0
+                                       
+          test_data(5,5,2) = 612.011517d0
+          test_data(5,4,2) = 60.8978772d0
+          test_data(5,3,2) = -1973.1928d0
+          test_data(5,2,2) = -3957.7409d0
+          test_data(5,1,2) = 3753.61415d0
+                                       
+          !L3                          
+          test_data(1,5,3) = -3872.8478d0
+          test_data(1,4,3) = 69.6020753d0
+          test_data(1,3,3) = -2763.6543d0
+          test_data(1,2,3) = 1973.37048d0
+          test_data(1,1,3) = -6295.0801d0
+                                       
+          test_data(2,5,3) = 1367.71567d0
+          test_data(2,4,3) = -299.00369d0
+          test_data(2,3,3) = 497.172700d0
+          test_data(2,2,3) = -11.720210d0
           test_data(2,1,3) = -15463.56565d0
                        
-          test_data(4,5,3) = 18.1041049
-          test_data(4,4,3) = 0.45929891
-          test_data(4,3,3) = 12.3627731
-          test_data(4,2,3) = 0.25103836
-          test_data(4,1,3) = 71.3446734
-                       
-          test_data(5,5,3) = 0.32684954
-          test_data(5,4,3) = 4.19698320
-          test_data(5,3,3) = 5.00151066
-          test_data(5,2,3) = 3.25023657
-          test_data(5,1,3) = 0.81473509
-
-          !L4
-          test_data(1,5,4) = 0.32684954
-          test_data(1,4,4) = 4.19698320
-          test_data(1,3,4) = 5.00151066
-          test_data(1,2,4) = 3.25023657
-          test_data(1,1,4) = 0.81473509
-                       
-          test_data(2,5,4) = 18.1041049
-          test_data(2,4,4) = 0.45929891
-          test_data(2,3,4) = 12.3627731
-          test_data(2,2,4) = 0.25103836
-          test_data(2,1,4) = 71.3446734
-                       
-          test_data(4,5,4) = 1367.71567
-          test_data(4,4,4) = -299.00369
-          test_data(4,3,4) = 497.172700
-          test_data(4,2,4) = -11.720210
+          test_data(4,5,3) = 18.15409992d0 
+          test_data(4,4,3) =  0.509293916d0
+          test_data(4,3,3) = 12.41276815d0 
+          test_data(4,2,3) =  0.301033363d0
+          test_data(4,1,3) = 71.39466844d0 
+                                       
+          test_data(5,5,3) = 0.376844543d0
+          test_data(5,4,3) = 4.246978201d0
+          test_data(5,3,3) = 5.051505668d0
+          test_data(5,2,3) = 3.300231576d0
+          test_data(5,1,3) = 0.864730094d0
+                                       
+          !L4                       
+          test_data(1,5,4) = 0.376844543d0
+          test_data(1,4,4) = 4.246978201d0
+          test_data(1,3,4) = 5.051505668d0
+          test_data(1,2,4) = 3.300231576d0
+          test_data(1,1,4) = 0.864730094d0
+                                       
+          test_data(2,5,4) =  18.15409992d0 
+          test_data(2,4,4) =   0.509293916d0
+          test_data(2,3,4) =  12.41276815d0 
+          test_data(2,2,4) =   0.301033363d0
+          test_data(2,1,4) =  71.39466844d0 
+                                       
+          test_data(4,5,4) = 1367.71567d0
+          test_data(4,4,4) = -299.00369d0
+          test_data(4,3,4) = 497.172700d0
+          test_data(4,2,4) = -11.720210d0
           test_data(4,1,4) = -15463.56565d0
                        
-          test_data(5,5,4) = -3872.8478
-          test_data(5,4,4) = 69.6020753
-          test_data(5,3,4) = -2763.6543
-          test_data(5,2,4) = 1973.37048
-          test_data(5,1,4) = -6295.0801
+          test_data(5,5,4) = -3872.8478d0
+          test_data(5,4,4) = 69.6020753d0
+          test_data(5,3,4) = -2763.6543d0
+          test_data(5,2,4) = 1973.37048d0
+          test_data(5,1,4) = -6295.0801d0
 
         end subroutine get_test_data_for_lodi_outflow_x
 
@@ -1251,105 +1250,106 @@ c$$$        print '()'
 
 
           !mass
-          test_data(1,5,1) =   43.95776926
-          test_data(1,4,1) =  -14.42388585
-          test_data(1,3,1) =   11.27966366 
-          test_data(1,2,1) =   79.17163958 
-          test_data(1,1,1) = -111.3175171
+          test_data(1,5,1) =   43.95693948d0
+          test_data(1,4,1) =  -14.42757267d0
+          test_data(1,3,1) =   11.27957956d0 
+          test_data(1,2,1) =   79.17097309d0 
+          test_data(1,1,1) = -111.3221053d0
 
-          test_data(2,5,1) =  -34.67459837
-          test_data(2,4,1) =  337.6488755 
-          test_data(2,3,1) =    6.676164817 
-          test_data(2,2,1) =  -40.8029952 
-          test_data(2,1,1) =    5.981911497 
+          test_data(2,5,1) =  -34.67496858d0
+          test_data(2,4,1) =  337.62385d0   
+          test_data(2,3,1) =    6.675489291d0 
+          test_data(2,2,1) =  -40.84586932d0
+          test_data(2,1,1) =    5.981884743d0 
                                       
-          test_data(4,5,1) =  -34.6745983
-          test_data(4,4,1) =  337.6488755
-          test_data(4,3,1) =    6.676164817
-          test_data(4,2,1) =  -40.8029952
-          test_data(4,1,1) =    5.981911497
+          test_data(4,5,1) =  -34.67496858d0
+          test_data(4,4,1) =  337.62385d0   
+          test_data(4,3,1) =    6.675489291d0 
+          test_data(4,2,1) =  -40.84586932d0
+          test_data(4,1,1) =    5.981884743d0 
                                       
-          test_data(5,5,1) =   43.95776926 
-          test_data(5,4,1) =  -14.42388585
-          test_data(5,3,1) =   11.27966366 
-          test_data(5,2,1) =   79.17163958 
-          test_data(5,1,1) = -111.3175171
+          test_data(5,5,1) =   43.95693948d0
+          test_data(5,4,1) =  -14.42757267d0
+          test_data(5,3,1) =   11.27957956d0
+          test_data(5,2,1) =   79.17097309d0
+          test_data(5,1,1) = -111.3221053d0
+
                                  
           !momentum-x            
-          test_data(1,5,2) = -623.1740058 
-          test_data(1,4,2) =   -1.40660041 
-          test_data(1,3,2) =  -87.6536906 
-          test_data(1,2,2) = -254.8048462 
-          test_data(1,1,2) =-1056.082304  
+          test_data(1,5,2) = -623.173457d0 
+          test_data(1,4,2) =   -1.419770178d0 
+          test_data(1,3,2) =  -87.65508572d0
+          test_data(1,2,2) = -254.8054288d0
+          test_data(1,1,2) =-1056.080955d0
 
-          test_data(2,5,2) =    6.993121655
-          test_data(2,4,2) =  -19.4309979
-          test_data(2,3,2) =   30.63116387
-          test_data(2,2,2) =  -45.7003492
-          test_data(2,1,2) = -206.462977
+          test_data(2,5,2) =    6.989277422d0 
+          test_data(2,4,2) =  -19.4656732d0 
+          test_data(2,3,2) =   30.62798723d0 
+          test_data(2,2,2) =  -45.77286992d0
+          test_data(2,1,2) = -206.4640079d0
                                       
-          test_data(4,5,2) =   -6.993121655   
-          test_data(4,4,2) =   19.43099799    
-          test_data(4,3,2) =  -30.63116387
-          test_data(4,2,2) =   45.7003492     
-          test_data(4,1,2) =  206.462977  
+          test_data(4,5,2) =   -6.989277422d0    
+          test_data(4,4,2) =   19.4656732d0     
+          test_data(4,3,2) =  -30.62798723d0 
+          test_data(4,2,2) =   45.77286992d0    
+          test_data(4,1,2) =  206.4640079d0
                                       
-          test_data(5,5,2) =  623.1740058 
-          test_data(5,4,2) =    1.40660041
-          test_data(5,3,2) =   87.6536906 
-          test_data(5,2,2) =  254.8048462 
-          test_data(5,1,2) = 1056.082304
+          test_data(5,5,2) =  623.173457d0 
+          test_data(5,4,2) =    1.419770178d0
+          test_data(5,3,2) =   87.65508572d0
+          test_data(5,2,2) =  254.8054288d0
+          test_data(5,1,2) = 1056.080955d0
+
                                  
           !momentum-y            
-          test_data(1,5,3) = 1251.861906   
-          test_data(1,4,3) =    7.212710942 
-          test_data(1,3,3) =  449.276891   
-          test_data(1,2,3) =  373.413394   
-          test_data(1,1,3) =  -62.33626751 
+          test_data(1,5,3) = 1251.836588d0
+          test_data(1,4,3) = 7.211787069d0 
+          test_data(1,3,3) = 449.2734317d0
+          test_data(1,2,3) = 373.4094312d0
+          test_data(1,1,3) = -62.3402772d0
                                  
-          test_data(2,5,3) =  245.9295404  
-          test_data(2,4,3) =  -83.96891766 
-          test_data(2,3,3) = -301.351884   
-          test_data(2,2,3) =   63.86683771 
-          test_data(2,1,3) =    8.257957095
+          test_data(2,5,3) = 245.9290026d0
+          test_data(2,4,3) = -83.9620195d0
+          test_data(2,3,3) = -301.353259d0
+          test_data(2,2,3) = 63.87685829d0
+          test_data(2,1,3) = 8.257871849d0
                                  
-          test_data(4,5,3) =  245.9295404  
-          test_data(4,4,3) =  -83.96891766 
-          test_data(4,3,3) = -301.351884   
-          test_data(4,2,3) =   63.86683771 
-          test_data(4,1,3) =    8.257957095
+          test_data(4,5,3) = 245.9290026d0
+          test_data(4,4,3) = -83.9620195d0
+          test_data(4,3,3) = -301.353259d0
+          test_data(4,2,3) = 63.87685829d0
+          test_data(4,1,3) = 8.257871849d0
                                  
-          test_data(5,5,3) = 1251.861906   
-          test_data(5,4,3) =    7.212710942
-          test_data(5,3,3) =  449.276891   
-          test_data(5,2,3) =  373.413394   
-          test_data(5,1,3) =  -62.33626751
-
+          test_data(5,5,3) = 1251.836588d0 
+          test_data(5,4,3) = 7.211787069d0
+          test_data(5,3,3) = 449.2734317d0 
+          test_data(5,2,3) = 373.4094312d0 
+          test_data(5,1,3) = -62.3402772d0
 
           !total energy
-          test_data(1,5,4) = 23640.52055d0 
-          test_data(1,4,4) =   -47.6898741
-          test_data(1,3,4) = 11061.73524 
-          test_data(1,2,4) =  -415.045323
-          test_data(1,1,4) =  7868.867401d0
+          test_data(1,5,4) = 23640.10913d0
+          test_data(1,4,4) = -47.7385094d0
+          test_data(1,3,4) = 11061.62753d0
+          test_data(1,2,4) = -415.082356d0
+          test_data(1,1,4) = 7868.840453d0
                                   
-          test_data(2,5,4) =  -548.9516464
-          test_data(2,4,4) =   201.54906   
-          test_data(2,3,4) = -1058.056021
-          test_data(2,2,4) =   -30.050448  
-          test_data(2,1,4) =  9705.71074d0  
+          test_data(2,5,4) = -548.996993d0
+          test_data(2,4,4) = 201.4990889d0
+          test_data(2,3,4) = -1058.08988d0
+          test_data(2,2,4) = -30.1379501d0
+          test_data(2,1,4) = 9705.665744d0
                                   
-          test_data(4,5,4) =  -548.9516464
-          test_data(4,4,4) =   201.54906   
-          test_data(4,3,4) = -1058.056021
-          test_data(4,2,4) =   -30.050448  
-          test_data(4,1,4) =  9705.71074d0  
+          test_data(4,5,4) = -548.996993d0
+          test_data(4,4,4) = 201.4990889d0
+          test_data(4,3,4) = -1058.08988d0
+          test_data(4,2,4) = -30.1379501d0
+          test_data(4,1,4) = 9705.665744d0
                                   
-          test_data(5,5,4) = 23640.52055d0
-          test_data(5,4,4) =   -47.6898741
-          test_data(5,3,4) = 11061.73524 
-          test_data(5,2,4) =  -415.045323
-          test_data(5,1,4) =  7868.867401d0
+          test_data(5,5,4) = 23640.10913d0
+          test_data(5,4,4) = -47.7385094d0
+          test_data(5,3,4) = 11061.62753d0
+          test_data(5,2,4) = -415.082356d0
+          test_data(5,1,4) = 7868.840453d0
 
         end subroutine get_test_data_for_lodi_outflow_timedevx
 
@@ -1497,27 +1497,27 @@ c$$$        print '()'
           test_data(5,1,1) =-1925.732738  
                     
           !momentum-x            
-          test_data(1,5,2) = 1317.711381  
-          test_data(1,4,2) =   16.56558538
-          test_data(1,3,2) =   10.10696511
-          test_data(1,2,2) = -460.3765009 
-          test_data(1,1,2) = 5061.328     
+          test_data(1,5,2) =-1317.711381d0
+          test_data(1,4,2) =  -16.56558538d0
+          test_data(1,3,2) =  -10.10696511d0
+          test_data(1,2,2) =  460.3765009d0 
+          test_data(1,1,2) =-5061.328d0     
                                  
-          test_data(2,5,2) =   73.14623249
-          test_data(2,4,2) = -192.6514635 
-          test_data(2,3,2) =  -30.91652283
-          test_data(2,2,2) =  -31.08759763
-          test_data(2,1,2) = -219.7241899 
+          test_data(2,5,2) =  -73.14623249d0     
+          test_data(2,4,2) =  192.6514635d0      
+          test_data(2,3,2) =   30.91652283d0     
+          test_data(2,2,2) =   31.08759763d0     
+          test_data(2,1,2) =  219.7241899d0      
                             
-          test_data(4,5,2) =   73.14623249
-          test_data(4,4,2) = -192.6514635 
-          test_data(4,3,2) =  -30.91652283
-          test_data(4,2,2) =  -31.08759763
-          test_data(4,1,2) = -219.7241899 
+          test_data(4,5,2) =   73.14623249d0     
+          test_data(4,4,2) = -192.6514635d0      
+          test_data(4,3,2) =  -30.91652283d0     
+          test_data(4,2,2) =  -31.08759763d0     
+          test_data(4,1,2) = -219.7241899d0      
                             
-          test_data(5,5,2) = 1317.711381  
-          test_data(5,4,2) =   16.56558538
-          test_data(5,3,2) =   10.10696511
+          test_data(5,5,2) = 1317.711381d0       
+          test_data(5,4,2) =   16.56558538d0     
+          test_data(5,3,2) =   10.10696511d0     
           test_data(5,2,2) = -460.3765009 
           test_data(5,1,2) = 5061.328  
 
@@ -1676,91 +1676,90 @@ c$$$        print '()'
 
           real(rkind), dimension(nx,ny,ne), intent(out) :: test_data
 
-
           !mass
-          test_data(1,5,1) = 411.5149996 
-          test_data(1,4,1) =  31.90977121 
-          test_data(1,2,1) =  77.43846381 
-          test_data(1,1,1) =-117.0819939 
+          test_data(1,5,1) =   411.51334d0
+          test_data(1,4,1) = 31.90239758d0 
+          test_data(1,2,1) = 77.43779732d0 
+          test_data(1,1,1) =-117.0865821d0
                              
-          test_data(2,5,1) =   -42.5268548 
-          test_data(2,4,1) =   314.1518906 
-          test_data(2,2,1) = -1143.94395   
-          test_data(2,1,1) =   -31.64039725
+          test_data(2,5,1) = -42.52759523d0
+          test_data(2,4,1) =  314.1018395d0
+          test_data(2,2,1) = -1143.986825d0
+          test_data(2,1,1) =   -31.640424d0
                              
-          test_data(4,5,1) =   -42.5268548 
-          test_data(4,4,1) =   314.1518906 
-          test_data(4,2,1) = -1143.94395   
-          test_data(4,1,1) =   -31.64039725
+          test_data(4,5,1) = -42.52759523d0
+          test_data(4,4,1) =  314.1018395d0
+          test_data(4,2,1) = -1143.986825d0
+          test_data(4,1,1) =   -31.640424d0
                              
-          test_data(5,5,1) = 411.5149996 
-          test_data(5,4,1) =  31.90977121
-          test_data(5,2,1) =  77.43846381
-          test_data(5,1,1) =-117.0819939 
+          test_data(5,5,1) =   411.51334d0
+          test_data(5,4,1) = 31.90239758d0
+          test_data(5,2,1) = 77.43779732d0
+          test_data(5,1,1) =-117.0865821d0
 
           !momentum-x
-          test_data(1,5,2) = -2811.25496d0   
-          test_data(1,4,2) =    53.21392297  
-          test_data(1,2,2) =  -245.7056734 
-          test_data(1,1,2) = -1040.931755  
+          test_data(1,5,2) = -2811.249308d0
+          test_data(1,4,2) =  53.19718349d0  
+          test_data(1,2,2) = -245.7062561d0
+          test_data(1,1,2) = -1040.930406d0
                                       
-          test_data(2,5,2) =   -25.54023737
-          test_data(2,4,2) =   -22.14881023
-          test_data(2,2,2) = -1069.312538  
-          test_data(2,1,2) =  -506.1504854 
+          test_data(2,5,2) = -25.54488373d0
+          test_data(2,4,2) = -22.19314914d0
+          test_data(2,2,2) = -1069.385059d0
+          test_data(2,1,2) = -506.1515163d0
                                       
-          test_data(4,5,2) =    25.54023737
-          test_data(4,4,2) =    22.14881023
-          test_data(4,2,2) =  1069.312538  
-          test_data(4,1,2) =   506.1504854 
+          test_data(4,5,2) =  25.54488373d0
+          test_data(4,4,2) =  22.19314914d0
+          test_data(4,2,2) =  1069.385059d0
+          test_data(4,1,2) =  506.1515163d0
                                       
-          test_data(5,5,2) =  2811.25496d0   
-          test_data(5,4,2) =   -53.21392297
-          test_data(5,2,2) =   245.7056734 
-          test_data(5,1,2) =  1040.931755  
+          test_data(5,5,2) =  2811.249308d0
+          test_data(5,4,2) = -53.19718349d0
+          test_data(5,2,2) =  245.7062561d0
+          test_data(5,1,2) =  1040.930406d0
 
           !momentum-y
-          test_data(1,5,3) = 12454.29272d0
-          test_data(1,4,3) = 144.0660404 
-          test_data(1,2,3) = 363.1082198
-          test_data(1,1,3) = -67.373919 
-                                            
-          test_data(2,5,3) =   47.03942274
-          test_data(2,4,3) =  -89.75255838
-          test_data(2,2,3) =  321.6939679 
-          test_data(2,1,3) = -111.6170463 
+          test_data(1,5,3) =  12454.24664d0
+          test_data(1,4,3) =  144.0737927d0 
+          test_data(1,2,3) =  363.1042569d0
+          test_data(1,1,3) = -67.37792869d0
+
+          test_data(2,5,3) =  47.04138917d0
+          test_data(2,4,3) = -89.71375075d0
+          test_data(2,2,3) =  321.7039885d0
+          test_data(2,1,3) = -111.6171315d0
                                            
-          test_data(4,5,3) =   47.03942274
-          test_data(4,4,3) =  -89.75255838
-          test_data(4,2,3) =  321.6939679 
-          test_data(4,1,3) = -111.6170463 
+          test_data(4,5,3) =  47.04138917d0
+          test_data(4,4,3) = -89.71375075d0
+          test_data(4,2,3) =  321.7039885d0
+          test_data(4,1,3) = -111.6171315d0
                                            
-          test_data(5,5,3) = 12454.29272d0
-          test_data(5,4,3) = 144.0660404
-          test_data(5,2,3) = 363.1082198
-          test_data(5,1,3) = -67.373919 
+          test_data(5,5,3) =  12454.24664d0
+          test_data(5,4,3) =  144.0737927d0
+          test_data(5,2,3) =  363.1042569d0
+          test_data(5,1,3) = -67.37792869d0
 
           !total energy
-          test_data(1,5,4) = 200758.5307d0 
-          test_data(1,4,4) = 499.1978753 
-          test_data(1,2,4) = -528.0714921
-          test_data(1,1,4) = 7818.490886 
+          test_data(1,5,4) =  200757.8188d0
+          test_data(1,4,4) =  499.1123056d0
+          test_data(1,2,4) = -528.1085254d0
+          test_data(1,1,4) =  7818.463938d0
                                             
-          test_data(2,5,4) = -3219.686793
-          test_data(2,4,4) = 185.6690675 
-          test_data(2,2,4) = -1113.950573
-          test_data(2,1,4) = -23315.61095d0
+          test_data(2,5,4) = -3219.766477d0 
+          test_data(2,4,4) =  185.5718894d0 
+          test_data(2,2,4) = -1114.038075d0 
+          test_data(2,1,4) = -23315.65595d0
                                            
-          test_data(4,5,4) = -3219.686793
-          test_data(4,4,4) = 185.6690675 
-          test_data(4,2,4) = -1113.950573
-          test_data(4,1,4) = -23315.61095d0
+          test_data(4,5,4) = -3219.766477d0 
+          test_data(4,4,4) =  185.5718894d0 
+          test_data(4,2,4) = -1114.038075d0 
+          test_data(4,1,4) = -23315.65595d0
                                            
-          test_data(5,5,4) = 200758.5307d0 
-          test_data(5,4,4) = 499.1978753 
-          test_data(5,2,4) = -528.0714921
-          test_data(5,1,4) = 7818.490886 
+          test_data(5,5,4) =  200757.8188d0
+          test_data(5,4,4) =  499.1123056d0
+          test_data(5,2,4) = -528.1085254d0
+          test_data(5,1,4) =  7818.463938d0
 
         end subroutine get_test_data_for_apply_timedev
 
-      end program test_lodi_operators
+      end program test_poinsot_ns2d_operators
