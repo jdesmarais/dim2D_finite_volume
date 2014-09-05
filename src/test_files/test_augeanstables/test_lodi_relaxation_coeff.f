@@ -29,7 +29,7 @@
         real(rkind), parameter :: r_normal_velocity = 1.2375d0
         real(rkind), parameter :: r_trans_velocity  = 1.0d0
         real(rkind), parameter :: r_temperature     = 15.0d0
-        real(rkind), parameter :: r_pressure        = 2.475d0
+        real(rkind), parameter :: r_pressure        = 0.495d0
         
         
         logical :: detailled

@@ -31,7 +31,7 @@
         
         private
         public ::
-     $       get_local_M,
+     $       get_local_mach,
      $       get_relaxation_lodiT,
      $       get_relaxation_normal_velocity,
      $       get_relaxation_trans_velocity,
@@ -269,10 +269,10 @@
         
           
           if(rkind.eq.8) then
-             relaxationCoeff = sigma_P/(l_domain_n*mach_infty**2)*
+             relaxationCoeff = sigma_P/(l_domain_n*mach_infty)*
      $            (1.0d0-M_un**2)
           else
-             relaxationCoeff = sigma_P/(l_domain_n*mach_infty**2)*
+             relaxationCoeff = sigma_P/(l_domain_n*mach_infty)*
      $            (1.0-M_un**2)
           end if
 
