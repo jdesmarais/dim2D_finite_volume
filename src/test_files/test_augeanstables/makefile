@@ -236,3 +236,17 @@ test_lodi_transverse:	parameters_kind.o\
 			sd_operators_class.o\
 			ns2d_fluxes_module.o\
 			lodi_transverse_module.o
+
+test_lodi_relaxation_coeff.o:\
+			$(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o\
+			$(ns2d_dir)/ns2d_parameters.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+test_lodi_relaxation_coeff:\
+			parameters_kind.o\
+			ns2d_parameters.o\
+			parameters_constant.o\
+			parameters_input.o\
+			lodi_relaxation_coeff_module.o

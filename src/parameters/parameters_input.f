@@ -97,7 +97,7 @@
         !--------------------------------------------
         real(rkind), parameter :: search_nb_dt = 0.0001000000d0
         integer    , parameter :: search_dcr = 4
-        real(rkind), parameter :: sigma_P = 0.25d0
+        real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
         integer    , parameter :: obc_type_N = always_outflow !ask_flow
         integer    , parameter :: obc_type_S = always_inflow !ask_flow
         integer    , parameter :: obc_type_E = always_outflow

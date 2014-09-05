@@ -46,6 +46,7 @@ pobc_dir		= $(obc_dir)/poinsot_xy
 pobc_ns2d_dir		= $(pobc_dir)/poinsot_ns2d
 
 yobc_dir		= $(obc_dir)/yoo_lodato_xy
+yobc_ns2d_dir		= $(yobc_dir)/yoo_lodato_ns2d
 
 bf_layer_dir		= $(obc_dir)/buffer_layer
 nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors
