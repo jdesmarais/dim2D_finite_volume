@@ -15,9 +15,12 @@
       !-----------------------------------------------------------------
       module pmodel_eq_class
 
+        use ic_class, only :
+     $       ic
+
         use interface_primary, only :
-     $     gradient_x_proc,
-     $     gradient_y_proc
+     $       gradient_x_proc,
+     $       gradient_y_proc
 
         use sd_operators_class, only :
      $       sd_operators
@@ -161,6 +164,8 @@ c$$$     $                                           compute_n2_righteigenvector
         !---------------------------------------------------------------
         type, extends(pmodel_eq_default) :: pmodel_eq
           
+          type(ic) :: initial_conditions
+
           contains
 
           procedure, nopass :: get_model_name
@@ -171,7 +176,13 @@ c$$$     $                                           compute_n2_righteigenvector
           procedure, nopass :: get_sim_parameters
           procedure, nopass :: get_eq_nb
 
-          procedure, nopass :: apply_ic
+          procedure,   pass :: apply_ic
+          procedure,   pass :: get_mach_ux_infty
+          procedure,   pass :: get_mach_uy_infty
+          procedure,   pass :: get_u_in
+          procedure,   pass :: get_v_in
+          procedure,   pass :: get_T_in
+          procedure,   pass :: get_P_out
 
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
@@ -191,7 +202,7 @@ c$$$     $                                           compute_n2_righteigenvector
           procedure, nopass :: compute_y_lefteigenvector
           procedure, nopass :: compute_y_righteigenvector
           procedure, nopass :: compute_x_gradient
-          procedure, nopass :: compute_y_gradient        
+          procedure, nopass :: compute_y_gradient
 
         end type pmodel_eq
 
@@ -404,43 +415,209 @@ c$$$     $                                           compute_n2_righteigenvector
         !>@param field_used
         !> object encapsulating the main variables
         !---------------------------------------------------------------
-        subroutine apply_ic(nodes,x_map,y_map)
+        subroutine apply_ic(this,nodes,x_map,y_map)
 
           implicit none
 
+          class(pmodel_eq)             , intent(in)    :: this
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
           real(rkind), dimension(:)    , intent(in)    :: x_map
           real(rkind), dimension(:)    , intent(in)    :: y_map
 
 
-          real(rkind) :: x_s
-          real(rkind) :: y_s
-          
+c$$$          real(rkind) :: x_s
+c$$$          real(rkind) :: y_s
+c$$$          
+c$$$
+c$$$          !<initialize the field depending on the user choice
+c$$$          select case(ic_choice)
+c$$$
+c$$$            case(steady_state)
+c$$$               call apply_steady_state_ic(nodes)
+c$$$
+c$$$            case(peak)
+c$$$               call apply_peak_ic(nodes,x_map,y_map,[0.0d0,1.0d0])
+c$$$
+c$$$            case(vortex)
+c$$$               call apply_vortex_ic(nodes,x_map,y_map)
+c$$$
+c$$$            case(vortex_convected_x)
+c$$$               call apply_vortex_ic(nodes,x_map,y_map,[0.0d0,1.0d0])
+c$$$
+c$$$            case default
+c$$$               print '(''pmodel_eq_class'')'
+c$$$               stop 'ic_choice not recognized'
+c$$$          end select
+c$$$
+c$$$          x_s = x_map(1)
+c$$$          y_s = y_map(1)
 
-          !<initialize the field depending on the user choice
-          select case(ic_choice)
 
-            case(steady_state)
-               call apply_steady_state_ic(nodes)
-
-            case(peak)
-               call apply_peak_ic(nodes,x_map,y_map,[0.0d0,1.0d0])
-
-            case(vortex)
-               call apply_vortex_ic(nodes,x_map,y_map)
-
-            case(vortex_convected_x)
-               call apply_vortex_ic(nodes,x_map,y_map,[0.0d0,1.0d0])
-
-            case default
-               print '(''pmodel_eq_class'')'
-               stop 'ic_choice not recognized'
-          end select
-
-          x_s = x_map(1)
-          y_s = y_map(1)
+          call this%initial_conditions%apply_ic(nodes,x_map,y_map)
 
         end subroutine apply_ic
+
+      
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the far field Mach number in the x-direction
+        !
+        !> @date
+        !> 05_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@result var
+        !> far field Mach number in the x-direction
+        !---------------------------------------------------------------
+        function get_mach_ux_infty(this) result(var)
+
+          implicit none
+
+          class(pmodel_eq), intent(in) :: this
+          real(rkind)                  :: var
+
+          var = this%initial_conditions%get_mach_ux_infty()
+
+        end function get_mach_ux_infty
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the far field Mach number in the y-direction
+        !
+        !> @date
+        !> 05_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@result var
+        !> far field Mach number in the y-direction
+        !---------------------------------------------------------------
+        function get_mach_uy_infty(this) result(var)
+
+          implicit none
+
+          class(pmodel_eq), intent(in) :: this
+          real(rkind)                  :: var
+
+          var = this%initial_conditions%get_mach_uy_infty()
+
+        end function get_mach_uy_infty
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the x-component of the velocity enforced
+        !> at the edge of the computational domain
+        !
+        !> @date
+        !> 05_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@result var
+        !> x-component of the velocity enforced at the edge of the
+        !> computational domain
+        !---------------------------------------------------------------
+        function get_u_in(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq), intent(in) :: this
+          real(rkind)     , intent(in) :: t
+          real(rkind)     , intent(in) :: x
+          real(rkind)     , intent(in) :: y
+          real(rkind)                  :: var
+
+          var = this%initial_conditions%get_u_in(t,x,y)
+
+        end function get_u_in
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the y-component of the velocity enforced
+        !> at the edge of the computational domain
+        !
+        !> @date
+        !> 05_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@result var
+        !> y-component of the velocity enforced at the edge of the
+        !> computational domain
+        !---------------------------------------------------------------
+        function get_v_in(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq), intent(in) :: this
+          real(rkind)     , intent(in) :: t
+          real(rkind)     , intent(in) :: x
+          real(rkind)     , intent(in) :: y
+          real(rkind)                  :: var
+
+          var = this%initial_conditions%get_v_in(t,x,y)
+
+        end function get_v_in
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the temperature enforced at the edge of the
+        !> computational domain
+        !
+        !> @date
+        !> 05_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@result var
+        !> temperature enforced at the edge of the computational domain
+        !---------------------------------------------------------------
+        function get_T_in(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq), intent(in) :: this
+          real(rkind)     , intent(in) :: t
+          real(rkind)     , intent(in) :: x
+          real(rkind)     , intent(in) :: y
+          real(rkind)                  :: var
+
+          var = this%initial_conditions%get_T_in(t,x,y)
+
+        end function get_T_in
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the pressure enforced at the edge of the
+        !> computational domain
+        !
+        !> @date
+        !> 05_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@result var
+        !> pressure enforced at the edge of the computational domain
+        !---------------------------------------------------------------
+        function get_P_out(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq), intent(in) :: this
+          real(rkind)     , intent(in) :: t
+          real(rkind)     , intent(in) :: x
+          real(rkind)     , intent(in) :: y
+          real(rkind)                  :: var
+
+          var = this%initial_conditions%get_P_out(t,x,y)
+
+        end function get_P_out
         
         
         !> @author

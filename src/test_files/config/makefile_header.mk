@@ -22,12 +22,13 @@ src_dir	   = $(augeanstables)/src
 config_dir = $(AUGEANSTABLES_CONFIG)
 dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 
-sd_choice  = mt_choice                  #space discretization choice
-pm_choice = ns2d_choice                #physical model choice
-bc_choice = poinsot_xy_choice       #boundary condition choice
-td_choice  = finitevolume_choice        #time discretization choice
-ti_choice  = rk3tvd_choice              #time integration choice
-io_choice  = nf90_choice                #writer choice
+sd_choice  = mt_choice            #space discretization choice
+pm_choice  = ns2d_choice          #physical model choice
+ic_choice  = vortex               #initial conditions choice
+bc_choice  = poinsot_xy_choice    #boundary condition choice
+td_choice  = finitevolume_choice  #time discretization choice
+ti_choice  = rk3tvd_choice        #time integration choice
+io_choice  = nf90_choice          #writer choice
 
 #-----------------------------------------------------------------------
 #source files directories
@@ -81,6 +82,21 @@ ifeq ($(strip $(pm_choice)), dim2d_choice)
 	pm_cdir=$(dim2d_dir)
 	sim_dep+=$(dim2d_dep)
 	sim_par_dep+=$(dim2d_dep)
+endif
+
+#initial conditions
+ifeq ($(strip $(pm_choice)), ns2d_choice)
+	ifeq ($(strip $(ic_choice)), steady_state)
+		ic_cdir=$(ns2d_sic)
+	endif
+
+	ifeq ($(strip $(ic_choice)), peak)
+		ic_cdir=$(ns2d_pic)
+	endif
+
+	ifeq ($(strip $(ic_choice)), vortex)
+		ic_cdir=$(ns2d_vic)
+	endif
 endif
 
 #boundary conditions

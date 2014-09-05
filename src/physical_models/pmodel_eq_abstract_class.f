@@ -141,7 +141,7 @@
           procedure(type_var)        , nopass, deferred :: get_var_type
           procedure(param_sim)       , nopass, deferred :: get_sim_parameters
           procedure(gov_eq_nb)       , nopass, deferred :: get_eq_nb
-          procedure(ini_cond)        , nopass, deferred :: apply_ic
+          procedure(ini_cond)        ,   pass, deferred :: apply_ic
           procedure(fluxes_x)        , nopass, deferred :: compute_flux_x
           procedure(fluxes_y)        , nopass, deferred :: compute_flux_y
           procedure(fluxes_x_n)      , nopass, deferred :: compute_flux_x_nopt
@@ -320,8 +320,11 @@
           !>@param nodes
           !> array with the grid point data
           !--------------------------------------------------------------
-          subroutine ini_cond(nodes,x_map,y_map)
+          subroutine ini_cond(this,nodes,x_map,y_map)
+            import pmodel_eq_abstract
             import rkind
+            
+            class(pmodel_eq_abstract)    , intent(in)    :: this
             real(rkind), dimension(:,:,:), intent(inout) :: nodes
             real(rkind), dimension(:)    , intent(in)    :: x_map
             real(rkind), dimension(:)    , intent(in)    :: y_map

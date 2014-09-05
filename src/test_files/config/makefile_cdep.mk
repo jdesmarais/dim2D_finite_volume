@@ -27,7 +27,9 @@ wave2d_dep=		wave2d_ncoords_module.o\
 			wave2d_prim_module.o\
 			$(pm_dep)
 
-ns2d_dep=		ns2d_parameters.o\
+ns2d_dep=		ic_abstract_class.o\
+			ic_class.o\
+			ns2d_parameters.o\
 			ns2d_prim_module.o\
 			ns2d_fluxes_module.o\
 			ns2d_steadystate_module.o\

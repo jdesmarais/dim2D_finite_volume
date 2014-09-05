@@ -197,6 +197,9 @@ $(phy_eq_dir)/pmodel_eq_default_class.o:\
 			$(param_dir)/parameters_kind.o\
 			$(phy_eq_dir)/pmodel_eq_abstract_class.o
 
+$(phy_eq_dir)/ic_abstract_class.o:\
+			$(param_dir)/parameters_kind.o
+
 #simple test equations
 $(simpletest_dir)/pmodel_eq_class.o:\
 			$(sd_dir)/interface_primary.o\
@@ -265,18 +268,35 @@ $(ns2d_dir)/ns2d_fluxes_module.o:\
 			$(param_dir)/parameters_kind.o\
 			$(sd_cdir)/sd_operators_class.o
 
-$(ns2d_ic)/ns2d_steadystate_module.o:\
+#$(ns2d_ic)/ns2d_steadystate_module.o:\
+#			$(param_dir)/parameters_kind.o
+#
+#$(ns2d_ic)/ns2d_vortex_module.o:\
+#			$(ns2d_dir)/ns2d_parameters.o\
+#			$(param_dir)/parameters_kind.o
+#
+#$(ns2d_ic)/ns2d_peak_module.o:\
+#			$(ns2d_dir)/ns2d_parameters.o\
+#			$(param_dir)/parameters_kind.o
+
+$(ns2d_sic)/ic_class.o:	$(phy_eq_dir)/ic_abstract_class.o\
+			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_kind.o
 
-$(ns2d_ic)/ns2d_vortex_module.o:\
-			$(ns2d_dir)/ns2d_parameters.o\
+$(ns2d_pic)/ic_class.o:	$(ns2d_dir)/ns2d_parameters.o\
+			$(phy_eq_dir)/ic_abstract_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-$(ns2d_ic)/ns2d_peak_module.o:\
-			$(ns2d_dir)/ns2d_parameters.o\
+$(ns2d_vic)/ic_class.o:	$(ns2d_dir)/ns2d_parameters.o\
+			$(phy_eq_dir)/ic_abstract_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
 $(ns2d_dir)/pmodel_eq_class.o:\
+			$(ic_cdir)/ic_class.o\
 			$(sd_dir)/interface_primary.o\
 			$(sd_cdir)/sd_operators_class.o\
 			$(ns2d_dir)/ns2d_parameters.o\
@@ -709,6 +729,7 @@ $(yobc_ns2d_dir)/lodi_edge_inflow_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(yobc_dir)/lodi_edge_abstract_class.o\
 			$(yobc_dir)/lodi_component_module.o\
+			$(yobc_dir)/lodi_transverse_module.o\
 			$(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\

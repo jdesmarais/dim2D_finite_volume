@@ -133,8 +133,7 @@ def compute_code_inputs(inputFileName):
 
     ns2d_ic_code = ['steady_state',
                     'peak',
-                    'vortex',
-                    'vortex_convected_x']
+                    'vortex']
     
     dim2d_ic_code= ['steady_state',
                     'drop_retraction',
@@ -320,6 +319,7 @@ def update_makefile(file_path,bc_choice):
     #< define the constants changed in the file
     constants_changed={
         'pm_choice':pm_choice,
+        'ic_choice':ic_choice,
         'bc_choice':bc_choice}
 
 

@@ -73,10 +73,20 @@
         call initialize_nodes(nodes,dx,dy)
         
 
-        !compute the quantities for the NS equations
-        !and compare with the test data
         detailled = .false.
 
+
+        !compute the initial conditions related quantities
+        !for the NS equations and
+        print '(''test ns2_initial_conditions'')'
+        print '(''---------------------------'')'
+        call test_ns2d_ic(p_model)
+        print '(''---------------------------'')'
+        print '()'
+
+
+        !compute the quantities for the NS equations
+        !and compare with the test data
         print '(''test ns2_prim'')'
         print '(''---------------------------'')'
         test_validated = test_ns2d_prim(nodes,detailled)
@@ -332,6 +342,24 @@
           print '()'
 
         end subroutine initialize_nodes
+
+
+        subroutine test_ns2d_ic(p_model)
+
+          implicit none
+
+          type(pmodel_eq), intent(in) :: p_model
+          
+          real(rkind) :: t,x,y
+
+          print '(''get_mach_ux_infty: '', F8.3)', p_model%get_mach_ux_infty()
+          print '(''get_mach_uy_infty: '', F8.3)', p_model%get_mach_uy_infty()
+          print '(''get_u_in:  '', F8.3)', p_model%get_u_in(t,x,y)
+          print '(''get_v_in:  '', F8.3)', p_model%get_v_in(t,x,y)
+          print '(''get_T_in:  '', F8.3)', p_model%get_T_in(t,x,y)
+          print '(''get_P_out: '', F8.3)', p_model%get_P_out(t,x,y)
+
+        end subroutine test_ns2d_ic
 
 
         function test_ns2d_prim(nodes,detailled)

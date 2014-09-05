@@ -38,6 +38,10 @@ fv_dir			= $(td_dir)/finitevolume
 ns2d_ic			= $(ns2d_dir)/ns2d_ic
 dim2d_ic		= $(dim2d_dir)/dim2d_ic
 
+ns2d_sic		= $(ns2d_ic)/steady_state
+ns2d_pic		= $(ns2d_ic)/peak
+ns2d_vic		= $(ns2d_ic)/vortex
+
 hobc_dir                = $(obc_dir)/hedstrom_xy
 hcobc_dir               = $(obc_dir)/hedstrom_xy_corners
 hrobc_dir		= $(obc_dir)/hedstrom_x_reflection_y
