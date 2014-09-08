@@ -268,7 +268,11 @@ test_yoo_ns2d_operators:\
 			$(mt_dep)
 
 test_yoo_corners.o:	$(yobc_ns2d_dir)/lodi_corner_inflow_inflow_class.o\
-			$(param_dir)/parameters_kind.o
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(ns2d_dir)/pmodel_eq_class.o\
+			$(mt_dir)/sd_operators_fd_module.o
 
 test_yoo_corners:	parameters_kind.o\
 			interface_primary.o\

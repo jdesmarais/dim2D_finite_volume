@@ -333,6 +333,20 @@
      $         -sign_x_out, -sign_y_out,
      $         relaxation_lodiT)
 
+          !compute the incoming LODI components
+          lodi_forcing = MATMUL(lodi_forcing,lodi_A)
+
+
+          !transfer the computed LODI components
+          !to the lodi x and y vectors
+          lodi_x(1)     = lodi_forcing(1)
+          lodi_x(2)     = lodi_forcing(2)
+          lodi_x(ix_in) = lodi_forcing(3)
+
+          lodi_y(1)     = lodi_forcing(4)
+          lodi_y(2)     = lodi_forcing(5)
+          lodi_y(iy_in) = lodi_forcing(6)
+
         end subroutine compute_x_and_y_lodi
 
 
