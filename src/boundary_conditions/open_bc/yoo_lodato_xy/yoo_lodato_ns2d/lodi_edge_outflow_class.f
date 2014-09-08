@@ -1,6 +1,6 @@
       !> @file
       !> class implementing the subroutines computating the LODI
-      !> vectors in the x and y directions for non-reflecting inflow
+      !> vectors in the x and y directions for non-reflecting outflow
       !> boundary conditions according to the procedure designed by
       !> Yoo et al. in "Characteristic boundary conditions for direct
       !> simulations of turbulent counterflow flames", Combustion Theory
@@ -11,13 +11,13 @@
       !
       !> @brief
       !> class encapsulating the subroutines computing the LODI vectors
-      !> for non-reflecting inflow boundary conditions as designed by Yoo
+      !> for non-reflecting outflow boundary conditions as designed by Yoo
       !> et al.
       !
       !> @date
-      ! 04_09_2014 - initial version - J.L. Desmarais
+      ! 08_09_2014 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      module lodi_edge_inflow_class
+      module lodi_edge_outflow_class
 
         use interface_primary, only :
      $       gradient_x_proc,
@@ -33,19 +33,16 @@
 
         use lodi_relaxation_coeff_module, only :
      $       get_local_mach,
-     $       get_relaxation_lodiT,
-     $       get_relaxation_normal_velocity,
-     $       get_relaxation_trans_velocity,
-     $       get_relaxation_temperature,
-     $       get_relaxation_pressure
+     $       get_relaxation_pressure,
+     $       get_relaxation_lodiT
 
         use lodi_transverse_module, only :
      $       get_enhanced_lodi
 
         use ns2d_prim_module, only :
+     $       mass_density,
      $       velocity_x,
      $       velocity_y,
-     $       temperature,
      $       pressure,
      $       speed_of_sound
 
@@ -62,7 +59,7 @@
         implicit none
 
         private
-        public :: lodi_edge_inflow
+        public :: lodi_edge_outflow
 
         
         !>@class lodi_edge_abstract
@@ -89,7 +86,7 @@
         !> compute the contribution to the time derivative of
         !> the LODI amplitudes in the y-direction
         !---------------------------------------------------------------
-        type, extends(lodi_edge_ns2d) :: lodi_edge_inflow
+        type, extends(lodi_edge_ns2d) :: lodi_edge_outflow
 
           character(len=19) :: title
 
@@ -99,7 +96,7 @@
           procedure, nopass :: compute_x_lodi
           procedure, nopass :: compute_y_lodi
 
-        end type lodi_edge_inflow
+        end type lodi_edge_outflow
 
         contains
 
@@ -108,7 +105,7 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> initialize the attributes of the object lodi_edge_inflow
+        !> initialize the attributes of the object lodi_edge_outflow
         !
         !> @date
         !> 04_09_2014 - initial version - J.L. Desmarais
@@ -117,9 +114,9 @@
 
           implicit none
 
-          class(lodi_edge_inflow), intent(inout) :: this
+          class(lodi_edge_outflow), intent(inout) :: this
 
-          this%title = 'inflow Yoo b.c.'
+          this%title = 'outflow Yoo b.c.'
 
         end subroutine ini
 
@@ -129,13 +126,13 @@
         !
         !> @brief
         !> compute the LODI amplitudes in the x-direction enforcing
-        !> \f$ (u_\text{in}, v_\text{in}, T_\text{in}) \f$
+        !> \f$ (P_\text{out}) \f$
         !
         !> @date
-        !> 04_09_2014 - initial version - J.L. Desmarais
+        !> 08_09_2014 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> object with the inlet conditions
+        !> object with the outlet conditions
         !
         !>@param p_model
         !> physical model needed to compute the eigenvalues
@@ -201,70 +198,68 @@
           integer :: ix_out   !index of outgoing acoustic LODI component
           integer :: sign_out !sign for the outgoing acoustic LODI component
 
-          real(rkind) :: u_set
-          real(rkind) :: v_set
-          real(rkind) :: T_set
-
-          real(rkind) :: c
-          real(rkind) :: u
-          real(rkind) :: v
-          real(rkind) :: temp
+          real(rkind) :: P_set !pressure in the outflow
+          real(rkind) :: P     !pressure
+          real(rkind) :: u     !velocity x-component
+          real(rkind) :: v     !velocity y-component
+          real(rkind) :: c     !speed of sound
 
           real(rkind)                :: L_domain_x
           real(rkind)                :: mach_local
           real(rkind)                :: mach_ux_infty
-          real(rkind)                :: relaxation_u
-          real(rkind)                :: relaxation_v
-          real(rkind)                :: relaxation_T
           real(rkind)                :: relaxation_lodiT
+          real(rkind)                :: relaxation_P
           real(rkind), dimension(ne) :: eigenvalues
           real(rkind)                :: dx
-          real(rkind)                :: dPdx
+          real(rkind)                :: dmdx
           real(rkind)                :: dudx
-          real(rkind)                :: normal_velocity_forcing
-          real(rkind)                :: transv_velocity_forcing
-          real(rkind)                :: temperature_forcing
-          real(rkind)                :: outgoing_component
+          real(rkind)                :: dvdx
+          real(rkind)                :: dPdx
+          real(rkind)                :: vorticity_component
+          real(rkind)                :: entropy_component
+          real(rkind)                :: acoustic_incoming_component
+          real(rkind)                :: acoustic_outgoing_component
 
           
           !computation of the variables needed for the LODI component
-          call get_LODI_inflow_intermediate_variables(
-     $         t, nodes(i,j,:), x_map(i), y_map(j), side,
+          call get_lodi_outflow_intermediate_variables(
+     $         t, nodes, x_map, y_map,
+     $         i,j,
+     $         side,
      $         p_model,
      $         ix_in, ix_out, sign_out,
-     $         u_set,v_set,T_set,
+     $         P_set, P,
      $         c,u,v)
-          temp = temperature(nodes,i,j)
-
+          
 
           !get the variables specific to the x-direction
           L_domain_x       = x_map(size(x_map,1))-x_map(1)
           mach_local       = get_local_mach(u,v,c)
           mach_ux_infty    = p_model%get_mach_ux_infty()
 
-          relaxation_u     = get_relaxation_normal_velocity(L_domain_x,mach_ux_infty,side)
-          relaxation_v     = get_relaxation_trans_velocity(L_domain_x, mach_local)
-          relaxation_T     = get_relaxation_temperature(L_domain_x, mach_local)
           relaxation_lodiT = get_relaxation_lodiT(mach_local)
+          relaxation_P     = get_relaxation_pressure(L_domain_x,mach_ux_infty)
 
           eigenvalues      = p_model%compute_x_eigenvalues(nodes(i,j,:))
           dx               = x_map(2)-x_map(1)
-          dPdx             = gradient(nodes,i,j,pressure,dx)
+          dmdx             = gradient(nodes,i,j,mass_density,dx)
           dudx             = gradient(nodes,i,j,velocity_x,dx)
+          dvdx             = gradient(nodes,i,j,velocity_y,dx)
+          dPdx             = gradient(nodes,i,j,pressure,dx)
 
-          normal_velocity_forcing = relaxation_u*(u-u_set)
-          transv_velocity_forcing = relaxation_v*(v-v_set)
-          temperature_forcing     = relaxation_T*(temp-T_set)
-          outgoing_component      = eigenvalues(ix_out)*(dPdx + sign_out*nodes(i,j,1)*c*dudx)
+          vorticity_component         = eigenvalues(1)*dvdx
+          entropy_component           = eigenvalues(2)*(c**2*dmdx-dPdx)
+          acoustic_incoming_component = relaxation_P*(P-P_set)
+          acoustic_outgoing_component = eigenvalues(ix_out)*(dPdx + sign_out*nodes(i,j,1)*c*dudx)
 
 
           !computation of the LODI components
-          lodi = compute_lodi_inflow_components(
+          lodi = compute_lodi_outflow_components(
      $         ix_in, ix_out,
-     $         normal_velocity_forcing,
-     $         transv_velocity_forcing,
-     $         temperature_forcing,
-     $         outgoing_component,
+     $         vorticity_component,
+     $         entropy_component,
+     $         acoustic_incoming_component,
+     $         acoustic_outgoing_component,
      $         relaxation_lodiT,
      $         transverse_lodi,
      $         viscous_lodi)
@@ -349,70 +344,68 @@
           integer :: iy_out   !index of outgoing acoustic LODI component
           integer :: sign_out !sign for the outgoing acoustic LODI component
 
-          real(rkind) :: u_set
-          real(rkind) :: v_set
-          real(rkind) :: T_set
-
-          real(rkind) :: c
-          real(rkind) :: u
-          real(rkind) :: v
-          real(rkind) :: temp
+          real(rkind) :: P_set !pressure in the outflow
+          real(rkind) :: P     !pressure
+          real(rkind) :: u     !velocity x-component
+          real(rkind) :: v     !velocity y-component
+          real(rkind) :: c     !speed of sound
 
           real(rkind)                :: L_domain_y
           real(rkind)                :: mach_local
           real(rkind)                :: mach_uy_infty
-          real(rkind)                :: relaxation_u
-          real(rkind)                :: relaxation_v
-          real(rkind)                :: relaxation_T
           real(rkind)                :: relaxation_lodiT
+          real(rkind)                :: relaxation_P
           real(rkind), dimension(ne) :: eigenvalues
           real(rkind)                :: dy
-          real(rkind)                :: dPdy
+          real(rkind)                :: dmdy
+          real(rkind)                :: dudy
           real(rkind)                :: dvdy
-          real(rkind)                :: normal_velocity_forcing
-          real(rkind)                :: transv_velocity_forcing
-          real(rkind)                :: temperature_forcing
-          real(rkind)                :: outgoing_component
+          real(rkind)                :: dPdy
+          real(rkind)                :: vorticity_component
+          real(rkind)                :: entropy_component
+          real(rkind)                :: acoustic_incoming_component
+          real(rkind)                :: acoustic_outgoing_component
 
           
           !computation of the variables needed for the LODI component
-          call get_LODI_inflow_intermediate_variables(
-     $         t, nodes(i,j,:), x_map(i), y_map(j), side,
+          call get_lodi_outflow_intermediate_variables(
+     $         t, nodes, x_map, y_map,
+     $         i,j,
+     $         side,
      $         p_model,
      $         iy_in, iy_out, sign_out,
-     $         u_set,v_set,T_set,
+     $         P_set, P,
      $         c,u,v)
-          temp = temperature(nodes,i,j)
-
+          
 
           !get the variables specific to the x-direction
           L_domain_y       = y_map(size(y_map,1))-y_map(1)
           mach_local       = get_local_mach(u,v,c)
           mach_uy_infty    = p_model%get_mach_uy_infty()
 
-          relaxation_u     = get_relaxation_trans_velocity(L_domain_y, mach_local)
-          relaxation_v     = get_relaxation_normal_velocity(L_domain_y,mach_uy_infty,side)
-          relaxation_T     = get_relaxation_temperature(L_domain_y, mach_local)
           relaxation_lodiT = get_relaxation_lodiT(mach_local)
+          relaxation_P     = get_relaxation_pressure(L_domain_y,mach_uy_infty)
 
-          eigenvalues      = p_model%compute_y_eigenvalues(nodes(i,j,:))
+          eigenvalues      = p_model%compute_x_eigenvalues(nodes(i,j,:))
           dy               = y_map(2)-y_map(1)
-          dPdy             = gradient(nodes,i,j,pressure,dy)
+          dmdy             = gradient(nodes,i,j,mass_density,dy)
+          dudy             = gradient(nodes,i,j,velocity_x,dy)
           dvdy             = gradient(nodes,i,j,velocity_y,dy)
+          dPdy             = gradient(nodes,i,j,pressure,dy)
 
-          normal_velocity_forcing = relaxation_v*(v-v_set)
-          transv_velocity_forcing = relaxation_u*(u-u_set)
-          temperature_forcing     = relaxation_T*(temp-T_set)
-          outgoing_component      = eigenvalues(iy_out)*(dPdy + sign_out*nodes(i,j,1)*c*dvdy)
+          vorticity_component         = eigenvalues(1)*dvdy
+          entropy_component           = eigenvalues(2)*(c**2*dmdy-dPdy)
+          acoustic_incoming_component = relaxation_P*(P-P_set)
+          acoustic_outgoing_component = eigenvalues(iy_out)*(dPdy + sign_out*nodes(i,j,1)*c*dudy)
 
 
           !computation of the LODI components
-          lodi = compute_lodi_inflow_components(
+          lodi = compute_lodi_outflow_components(
      $         iy_in, iy_out,
-     $         normal_velocity_forcing,
-     $         transv_velocity_forcing,
-     $         temperature_forcing,
-     $         outgoing_component,
+     $         vorticity_component,
+     $         entropy_component,
+     $         acoustic_incoming_component,
+     $         acoustic_outgoing_component,
      $         relaxation_lodiT,
      $         transverse_lodi,
      $         viscous_lodi)
@@ -421,30 +414,33 @@
 
 
         !get the intermediate variables when computing the LODI
-        !inflow components
-        subroutine get_lodi_inflow_intermediate_variables(
-     $     t, nodes, x, y, side,
+        !outflow components
+        subroutine get_lodi_outflow_intermediate_variables(
+     $     t, nodes, x_map, y_map,
+     $     i,j,
+     $     side,
      $     p_model,
      $     ix_in, ix_out, sign_out,
-     $     u_set,v_set,T_set,
+     $     P_set, P,
      $     c,u,v)
 
           implicit none
 
-          real(rkind)               , intent(in) :: t
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind)               , intent(in) :: x
-          real(rkind)               , intent(in) :: y
-          logical                   , intent(in) :: side
-          type(pmodel_eq)           , intent(in) :: p_model
+          real(rkind)                  , intent(in) :: t
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side
+          type(pmodel_eq)              , intent(in) :: p_model
 
           integer    , intent(out) :: ix_in
           integer    , intent(out) :: ix_out
           integer    , intent(out) :: sign_out
                               
-          real(rkind), intent(out) :: u_set
-          real(rkind), intent(out) :: v_set
-          real(rkind), intent(out) :: T_set
+          real(rkind), intent(out) :: P_set
+          real(rkind), intent(out) :: P
                               
           real(rkind), intent(out) :: c
           real(rkind), intent(out) :: u
@@ -456,29 +452,26 @@
           ix_out   = get_other_acoustic_component(ix_in)
           sign_out = get_sign_acoustic_component(ix_out)
 
-
           !get the constrained data at the location of the boundary
-          u_set = p_model%get_u_in(t,x,y)
-          v_set = p_model%get_v_in(t,x,y)
-          T_set = p_model%get_T_in(t,x,y)
-
+          P_set = p_model%get_P_out(t,x_map(i),y_map(j))
+          P     = pressure(nodes,i,j)
 
           !get the primitive variables for the computation
           !of the LODI components
-          c = speed_of_sound(nodes)
-          u = nodes(2)/nodes(1)
-          v = nodes(3)/nodes(1)
+          c = speed_of_sound(nodes(i,j,:))
+          u = nodes(i,j,2)/nodes(i,j,1)
+          v = nodes(i,j,3)/nodes(i,j,1)
 
-        end subroutine get_lodi_inflow_intermediate_variables
+        end subroutine get_lodi_outflow_intermediate_variables
 
 
-        !computation of the LODI inflow components
-        function compute_lodi_inflow_components(
+        !computation of the LODI outflow components
+        function compute_lodi_outflow_components(
      $     ix_in, ix_out,
-     $     normal_velocity_forcing,
-     $     transv_velocity_forcing,
-     $     temperature_forcing,
-     $     outgoing_component,
+     $     vorticity_component,
+     $     entropy_component,
+     $     acoustic_incoming_component,
+     $     acoustic_outgoing_component,
      $     relaxation_lodiT,
      $     transverse_lodi,
      $     viscous_lodi)
@@ -488,10 +481,10 @@
           
           integer                   , intent(in) :: ix_in
           integer                   , intent(in) :: ix_out
-          real(rkind)               , intent(in) :: normal_velocity_forcing
-          real(rkind)               , intent(in) :: transv_velocity_forcing
-          real(rkind)               , intent(in) :: temperature_forcing
-          real(rkind)               , intent(in) :: outgoing_component
+          real(rkind)               , intent(in) :: vorticity_component
+          real(rkind)               , intent(in) :: entropy_component
+          real(rkind)               , intent(in) :: acoustic_incoming_component
+          real(rkind)               , intent(in) :: acoustic_outgoing_component
           real(rkind)               , intent(in) :: relaxation_lodiT
           real(rkind), dimension(ne), intent(in) :: transverse_lodi
           real(rkind), dimension(ne), intent(in) :: viscous_lodi
@@ -499,25 +492,17 @@
 
 
           !computation of the first two components
-          lodi(1) = transv_velocity_forcing + 
-     $              get_enhanced_lodi(relaxation_lodiT,     
-     $                                transverse_lodi(1),   
-     $                                viscous_lodi(1))
-
-          lodi(2) = temperature_forcing + 
-     $              get_enhanced_lodi(relaxation_lodiT,  
-     $                                transverse_lodi(2),
-     $                                viscous_lodi(2))
-                                             
+          lodi(1) = vorticity_component
+          lodi(2) = entropy_component
 
           !computation of the acoustic components
-          lodi(ix_in)  = normal_velocity_forcing +
+          lodi(ix_in)  = acoustic_incoming_component +
      $                   get_enhanced_lodi(relaxation_lodiT,  
      $                                     transverse_lodi(ix_in),
      $                                     viscous_lodi(ix_in))
-          lodi(ix_out) = outgoing_component
+          lodi(ix_out) = acoustic_outgoing_component
 
-        end function compute_lodi_inflow_components
+        end function compute_lodi_outflow_components
 
 
-      end module lodi_edge_inflow_class
+      end module lodi_edge_outflow_class

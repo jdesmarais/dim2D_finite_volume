@@ -250,3 +250,19 @@ test_lodi_relaxation_coeff:\
 			parameters_constant.o\
 			parameters_input.o\
 			lodi_relaxation_coeff_module.o
+
+test_yoo_ns2d_operators.o:\
+			$(yobc_dir)/lodi_edge_abstract_class.o\
+			$(yobc_ns2d_dir)/lodi_edge_inflow_class.o\
+			$(yobc_ns2d_dir)/lodi_edge_outflow_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(ns2d_dir)/pmodel_eq_class.o\
+			$(mt_dir)/sd_operators_fd_module.o
+
+test_yoo_ns2d_operators:\
+			$(param_dep)\
+			$(yoo_ns2d_dep)\
+			$(ns2d_dep)\
+			$(mt_dep)

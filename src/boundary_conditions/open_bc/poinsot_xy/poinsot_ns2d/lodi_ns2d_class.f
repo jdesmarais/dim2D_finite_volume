@@ -24,8 +24,8 @@
      $       lodi_abstract
 
         use ns2d_prim_module, only :
-     $       speed_of_sound,
-     $       compute_jacobian_cons_to_prim
+     $       compute_x_timedev_from_LODI_vector,
+     $       compute_y_timedev_from_LODI_vector
 
         use parameters_input, only :
      $       ne
@@ -121,9 +121,8 @@
           procedure(gradient_x_proc)                :: gradient
           real(rkind), dimension(ne)                :: timedev
 
-          real(rkind)                   :: c
-          real(rkind), dimension(ne)    :: lodi
-          real(rkind), dimension(ne,ne) :: jacConsPrim
+          
+          real(rkind), dimension(ne) :: lodi          
 
 
           !compute the lodi vector
@@ -133,31 +132,9 @@
      $         side,
      $         gradient)
 
-
           !compute the contribution of the hyperbolic terms along the
-          !x-direction to the time derivatives of the primitive
-          !variables
-          c = speed_of_sound(nodes(i,j,:))
-
-          if(rkind.eq.8) then
-             timedev(1) = - 1.0d0/c**2*(lodi(2)+0.5d0*(lodi(3)+lodi(4)))
-             timedev(2) = - 0.5d0/(nodes(i,j,1)*c)*(lodi(4)-lodi(3))
-             timedev(3) = - lodi(1)
-             timedev(4) = - 0.5d0*(lodi(3)+lodi(4))
-          else
-             timedev(1) = - 1.0/c**2*(lodi(2)+0.5*(lodi(3)+lodi(4)))
-             timedev(2) = - 0.5/(nodes(i,j,1)*c)*(lodi(4)-lodi(3))
-             timedev(3) = - lodi(1)
-             timedev(4) = - 0.5*(lodi(3)+lodi(4))
-          end if
-
-          
-          !compute the contribution of the hyperbolic terms along the
-          !x-direction to the time derivatives of the primitive
-          !variables
-          jacConsPrim = compute_jacobian_cons_to_prim(nodes(i,j,:))
-
-          timedev = MATMUL(timedev,jacConsPrim)
+          !x-direction to the time derivatives of the conservative variables
+          timedev = compute_x_timedev_from_LODI_vector(nodes(i,j,:),lodi)
 
         end function compute_x_timedev
 
@@ -222,9 +199,7 @@
           procedure(gradient_y_proc)                :: gradient
           real(rkind), dimension(ne)                :: timedev
 
-          real(rkind)                   :: c
           real(rkind), dimension(ne)    :: lodi
-          real(rkind), dimension(ne,ne) :: jacConsPrim
 
           !compute the lodi vector
           lodi = this%compute_y_lodi(
@@ -232,32 +207,10 @@
      $         t, nodes, x_map, y_map, i,j,
      $         side,
      $         gradient)
-
-
-          !compute the contribution of the hyperbolic terms along the
-          !x-direction to the time derivatives of the primitive
-          !variables
-          c = speed_of_sound(nodes(i,j,:))
-
-          if(rkind.eq.8) then
-             timedev(1) = - 1.0d0/c**2*(lodi(2)+0.5d0*(lodi(3)+lodi(4)))
-             timedev(2) = - lodi(1)
-             timedev(3) = - 0.5d0/(nodes(i,j,1)*c)*(lodi(4)-lodi(3))
-             timedev(4) = - 0.5d0*(lodi(3)+lodi(4))
-          else
-             timedev(1) = - 1.0/c**2*(lodi(2)+0.5*(lodi(3)+lodi(4)))
-             timedev(2) = - lodi(1)
-             timedev(3) = - 0.5/(nodes(i,j,1)*c)*(lodi(4)-lodi(3))
-             timedev(4) = - 0.5*(lodi(3)+lodi(4))
-          end if
-
           
           !compute the contribution of the hyperbolic terms along the
-          !x-direction to the time derivatives of the primitive
-          !variables
-          jacConsPrim = compute_jacobian_cons_to_prim(nodes(i,j,:))
-
-          timedev = MATMUL(timedev,jacConsPrim)
+          !x-direction to the time derivatives of the conservative variables
+          timedev = compute_y_timedev_from_LODI_vector(nodes(i,j,:),lodi)
 
         end function compute_y_timedev
 

@@ -725,9 +725,27 @@ $(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o:\
 			$(param_dir)/parameters_kind.o\
 			$(param_dir)/parameters_input.o
 
-$(yobc_ns2d_dir)/lodi_edge_inflow_class.o:\
+$(yobc_ns2d_dir)/lodi_edge_ns2d_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(yobc_dir)/lodi_edge_abstract_class.o\
+			$(ns2d_dir)/ns2d_prim_module.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o
+
+$(yobc_ns2d_dir)/lodi_edge_inflow_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(yobc_ns2d_dir)/lodi_edge_ns2d_class.o\
+			$(yobc_dir)/lodi_component_module.o\
+			$(yobc_dir)/lodi_transverse_module.o\
+			$(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(ns2d_dir)/pmodel_eq_class.o
+
+$(yobc_ns2d_dir)/lodi_edge_outflow_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(yobc_ns2d_dir)/lodi_edge_ns2d_class.o\
 			$(yobc_dir)/lodi_component_module.o\
 			$(yobc_dir)/lodi_transverse_module.o\
 			$(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o\

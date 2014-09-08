@@ -51,6 +51,7 @@
           logical, intent(in) :: side
           integer             :: i
 
+          
           if(side.eqv.left) then
              i = 4
           else

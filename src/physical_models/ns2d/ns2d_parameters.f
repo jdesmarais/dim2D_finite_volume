@@ -13,7 +13,7 @@
         real(rkind), parameter :: Re          = 10.0d0        
         real(rkind), parameter :: Pr          = 1.0d0
         real(rkind), parameter :: gamma       = 5.0d0/3.0d0
-        real(rkind), parameter :: mach_infty  = 0.2 !1.0d0
+        real(rkind), parameter :: mach_infty  = 0.2d0 !1.0d0
         real(rkind), parameter :: gravity     = 0.03d0 !time_c/u_c*dim2d_g
 
 c$$$        real(rkind), parameter :: viscous_r   = -2.0d0/3.0d0
