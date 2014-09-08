@@ -266,3 +266,31 @@ test_yoo_ns2d_operators:\
 			$(yoo_ns2d_dep)\
 			$(ns2d_dep)\
 			$(mt_dep)
+
+test_yoo_corners.o:	$(yobc_ns2d_dir)/lodi_corner_inflow_inflow_class.o\
+			$(param_dir)/parameters_kind.o
+
+test_yoo_corners:	parameters_kind.o\
+			interface_primary.o\
+			parameters_constant.o\
+			lodi_component_module.o\
+			parameters_input.o\
+			ns2d_parameters.o\
+			ic_abstract_class.o\
+			ic_class.o\
+			sd_operators_fd_module.o\
+			sd_operators_abstract_class.o\
+			sd_operators_class.o\
+			ns2d_prim_module.o\
+			ns2d_fluxes_module.o\
+			ns2d_steadystate_module.o\
+			ns2d_vortex_module.o\
+			ns2d_peak_module.o\
+			parameters_bf_layer.o\
+			pmodel_eq_abstract_class.o\
+			pmodel_eq_default_class.o\
+			pmodel_eq_class.o\
+			lodi_corner_abstract_class.o\
+			lodi_corner_ns2d_class.o\
+			lodi_relaxation_coeff_module.o\
+			lodi_corner_inflow_inflow_class.o

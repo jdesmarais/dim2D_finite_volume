@@ -44,7 +44,8 @@
      $       compute_cons_lodi_matrix_x,
      $       compute_cons_lodi_matrix_y,
      $       compute_x_timedev_from_LODI_vector,
-     $       compute_y_timedev_from_LODI_vector
+     $       compute_y_timedev_from_LODI_vector,
+     $       compute_timedev_from_LODI_vectors
 
         contains
 
@@ -1004,6 +1005,98 @@
 
           timedev = MATMUL(timedev,jacConsPrim)
 
-        end function compute_y_timedev_from_LODI_vector     
+        end function compute_y_timedev_from_LODI_vector
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the contribution of the hyperbolic terms
+        !> along the x- and y-direction to the time derivatives
+        !> of the conservative variables
+        !
+        !> @date
+        !> 08_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param lodi_x
+        !> lodi vector in the x-direction
+        !
+        !>@param lodi_y
+        !> lodi vector in the y-direction
+        !
+        !>@return timedev
+        !> contribution of the hyperbolic terms along the x- and
+        !> y- directions to the time derivatives of the conservative
+        !> variables
+        !--------------------------------------------------------------
+        function compute_timedev_from_LODI_vectors(
+     $     nodes, lodi_x, lodi_y) result(timedev)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne), intent(in) :: lodi_x
+          real(rkind), dimension(ne), intent(in) :: lodi_y
+          real(rkind), dimension(ne)             :: timedev
+
+          real(rkind)                   :: c
+          real(rkind), dimension(ne,ne) :: jacConsPrim
+
+          !compute the contribution of the hyperbolic terms along the
+          !x-direction to the time derivatives of the primitive
+          !variables
+          c = speed_of_sound(nodes)
+
+          if(rkind.eq.8) then
+
+             timedev(1) = 
+     $            - 1.0d0/c**2*(lodi_x(2)+0.5d0*(lodi_x(3)+lodi_x(4))) 
+     $            - 1.0d0/c**2*(lodi_y(2)+0.5d0*(lodi_y(3)+lodi_y(4)))
+
+             timedev(2) =
+     $            - 0.5d0/(nodes(1)*c)*(lodi_x(4)-lodi_x(3))
+     $            - lodi_y(1)
+
+             timedev(3) =
+     $            - lodi_x(1)
+     $            - 0.5d0/(nodes(1)*c)*(lodi_y(4)-lodi_y(3))
+
+             timedev(4) =
+     $            - 0.5d0*(lodi_x(3)+lodi_x(4))
+     $            - 0.5d0*(lodi_y(3)+lodi_y(4))
+
+          else
+             
+             timedev(1) = 
+     $            - 1.0/c**2*(lodi_x(2)+0.5*(lodi_x(3)+lodi_x(4))) 
+     $            - 1.0/c**2*(lodi_y(2)+0.5*(lodi_y(3)+lodi_y(4)))
+
+             timedev(2) =
+     $            - 0.5/(nodes(1)*c)*(lodi_x(4)-lodi_x(3))
+     $            - lodi_y(1)
+
+             timedev(3) =
+     $            - lodi_x(1)
+     $            - 0.5/(nodes(1)*c)*(lodi_y(4)-lodi_y(3))
+
+             timedev(4) =
+     $            - 0.5*(lodi_x(3)+lodi_x(4))
+     $            - 0.5*(lodi_y(3)+lodi_y(4))
+
+          end if
+
+          
+          !compute the contribution of the hyperbolic terms along the
+          !x-direction to the time derivatives of the primitive
+          !variables
+          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
+
+          timedev = MATMUL(timedev,jacConsPrim)          
+
+        end function compute_timedev_from_LODI_vectors
 
       end module ns2d_prim_module
