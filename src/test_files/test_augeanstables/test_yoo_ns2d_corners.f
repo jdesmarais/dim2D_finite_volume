@@ -1,4 +1,4 @@
-      program test_yoo_corners
+      program test_yoo_ns2d_corners
 
         use lodi_corner_inflow_inflow_class, only :
      $       get_lodi_A_inflow_inflow,
@@ -999,4 +999,4 @@ c$$$          real(rkind), dimension(ne) :: test_data_timedev
 
         end function test_corner_outflow_outflow
 
-      end program test_yoo_corners
+      end program test_yoo_ns2d_corners
