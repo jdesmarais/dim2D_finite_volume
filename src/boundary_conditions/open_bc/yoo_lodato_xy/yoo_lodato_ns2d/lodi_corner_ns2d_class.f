@@ -162,7 +162,7 @@
           !compute the contributions of the hyperbolic terms in
           !the x- and y- directions to the time derivatives
           timedev = compute_timedev_from_LODI_vectors(
-     $         nodes, lodi_x, lodi_y)
+     $         nodes(i,j,:), lodi_x, lodi_y)
 
 
         end function compute_x_and_y_timedev

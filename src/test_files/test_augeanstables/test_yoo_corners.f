@@ -442,16 +442,25 @@
 
           integer(ikind)             :: i
           integer(ikind)             :: j
+          logical                    :: side_x
+          logical                    :: side_y
           real(rkind), dimension(ne) :: lodi_x
           real(rkind), dimension(ne) :: lodi_y
           real(rkind), dimension(ne) :: test_data_lodi_x
           real(rkind), dimension(ne) :: test_data_lodi_y
           logical                    :: test_loc
+          real(rkind), dimension(ne) :: timedev
+          real(rkind), dimension(ne) :: test_data_timedev
 
-
+          
           !NW corner: (side_x=left,side_y=right)
           i = 2
-          j = 4
+          j = 4          
+          side_x = left
+          side_y = right
+
+
+          !test the computation of the x and y LODI vectors
           call corner_i_i%compute_x_and_y_lodi(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
@@ -468,23 +477,43 @@
           test_data_lodi_y(1) = -11.22002954d0
           test_data_lodi_y(2) =  -4.17102088d0
           test_data_lodi_y(3) =  80.28858505d0
-          test_data_lodi_y(4) =  24.96631204d0
-
-          
+          test_data_lodi_y(4) =  24.96631204d0          
 
           test_loc = is_vector_validated(
      $         lodi_x,
      $         test_data_lodi_x,
      $         detailled)
           test_validated = test_validated.and.test_loc
-          print '(''lodi_x(NW): '',L2)', test_loc
+          print '(''lodi_x(NW):'',L2)', test_loc
 
           test_loc = is_vector_validated(
      $         lodi_y,
      $         test_data_lodi_y,
      $         detailled)
           test_validated = test_validated.and.test_loc
-          print '(''lodi_y(NW):'',L2)', test_loc          
+          print '(''lodi_y(NW):'',L2)', test_loc
+
+
+          !test the computation of the time derivatives from
+          !the x and y LODI vectors
+          timedev = corner_i_i%compute_x_and_y_timedev(
+     $         p_model,
+     $         t, nodes, x_map, y_map, i,j,
+     $         side_x, side_y,
+     $         gradient_x_x_oneside_L1,
+     $         gradient_y_y_oneside_R1)
+          
+          test_data_timedev(1) =  112.3433452d0
+          test_data_timedev(2) = -26.69167932d0
+          test_data_timedev(3) = -14.63876117d0
+          test_data_timedev(4) =  114.3962942d0
+
+          test_loc = is_vector_validated(
+     $         timedev,
+     $         test_data_timedev,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''timedev(NW):'',L2)', test_loc
 
         end function test_corner_inflow_inflow
 
