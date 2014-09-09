@@ -63,26 +63,6 @@ $(sd_dir)/sd_operators_abstract_class.o:\
 			$(param_dir)/parameters_kind.o
 
 $(cg_dir)/sd_operators_fd_module.o:\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o
-
-$(cg_dir)/sd_operators_class.o:\
-			$(cg_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(sd_dir)/sd_operators_abstract_class.o
-
-$(cg_dir)/sd_operators_x_oneside_L0_class.o:\
-			$(cg_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(cg_dir)/sd_operators_class.o
-
-$(cg_dir)/sd_operators_x_oneside_L1_class.o:\
-			$(cg_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(cg_dir)/sd_operators_class.o
 
 $(cg_dir)/sd_operators_x_oneside_R1_class.o:\
 			$(cg_dir)/sd_operators_fd_module.o\
@@ -775,6 +755,17 @@ $(yobc_ns2d_dir)/lodi_corner_inflow_inflow_class.o:\
 			$(yobc_dir)/lodi_component_module.o\
 			$(yobc_ns2d_dir)/lodi_corner_ns2d_class.o\
 			$(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o
+
+$(yobc_ns2d_dir)/lodi_corner_inflow_outflow_class.o:\
+			$(sd_dir)/interface_primary.o\
+			$(yobc_dir)/lodi_component_module.o\
+			$(yobc_ns2d_dir)/lodi_corner_ns2d_class.o\
+			$(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o\
+			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(pm_cdir)/pmodel_eq_class.o

@@ -83,6 +83,7 @@
      $       p_model,
      $       t, nodes, x_map, y_map, i,j,
      $       side_x, side_y,
+     $       flow_x, flow_y,
      $       gradient_x, gradient_y,
      $       lodi_x, lodi_y)
 
@@ -103,6 +104,8 @@
              integer(ikind)               , intent(in)  :: j
              logical                      , intent(in)  :: side_x
              logical                      , intent(in)  :: side_y
+             logical                      , intent(in)  :: flow_x
+             logical                      , intent(in)  :: flow_y
              procedure(gradient_x_proc)                 :: gradient_x
              procedure(gradient_y_proc)                 :: gradient_y
              real(rkind), dimension(ne)   , intent(out) :: lodi_x
@@ -117,6 +120,7 @@
      $       this, p_model,
      $       t, nodes, x_map, y_map, i,j,
      $       side_x, side_y,
+     $       flow_x, flow_y,
      $       gradient_x, gradient_y)
      $       result(timedev)
 
@@ -138,6 +142,8 @@
              integer(ikind)               , intent(in) :: j
              logical                      , intent(in) :: side_x
              logical                      , intent(in) :: side_y
+             logical                      , intent(in) :: flow_x
+             logical                      , intent(in) :: flow_y
              procedure(gradient_x_proc)                :: gradient_x
              procedure(gradient_y_proc)                :: gradient_y
              real(rkind), dimension(ne)                :: timedev

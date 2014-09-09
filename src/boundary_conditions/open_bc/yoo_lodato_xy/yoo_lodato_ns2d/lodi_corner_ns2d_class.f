@@ -122,11 +122,12 @@
         !> directions to the time derivatives at the grid point (i,j)
         !---------------------------------------------------------------
         function compute_x_and_y_timedev(
-     $    this, p_model,
-     $    t, nodes, x_map, y_map, i,j,
-     $    side_x, side_y,
-     $    gradient_x, gradient_y)
-     $    result(timedev)
+     $       this, p_model,
+     $       t, nodes, x_map, y_map, i,j,
+     $       side_x, side_y,
+     $       flow_x, flow_y,
+     $       gradient_x, gradient_y)
+     $       result(timedev)
 
           implicit none
           
@@ -140,6 +141,8 @@
           integer(ikind)               , intent(in) :: j
           logical                      , intent(in) :: side_x
           logical                      , intent(in) :: side_y
+          logical                      , intent(in) :: flow_x
+          logical                      , intent(in) :: flow_y
           procedure(gradient_x_proc)                :: gradient_x
           procedure(gradient_y_proc)                :: gradient_y
           real(rkind), dimension(ne)                :: timedev
@@ -155,6 +158,7 @@
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
      $         side_x, side_y,
+     $         flow_x, flow_y,
      $         gradient_x, gradient_y,
      $         lodi_x, lodi_y)
 

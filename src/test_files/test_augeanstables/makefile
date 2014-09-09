@@ -268,6 +268,7 @@ test_yoo_ns2d_operators:\
 			$(mt_dep)
 
 test_yoo_corners.o:	$(yobc_ns2d_dir)/lodi_corner_inflow_inflow_class.o\
+			$(yobc_ns2d_dir)/lodi_corner_inflow_outflow_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
@@ -297,4 +298,5 @@ test_yoo_corners:	parameters_kind.o\
 			lodi_corner_abstract_class.o\
 			lodi_corner_ns2d_class.o\
 			lodi_relaxation_coeff_module.o\
-			lodi_corner_inflow_inflow_class.o
+			lodi_corner_inflow_inflow_class.o\
+			lodi_corner_inflow_outflow_class.o

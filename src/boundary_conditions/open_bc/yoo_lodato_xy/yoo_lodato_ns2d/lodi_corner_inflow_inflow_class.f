@@ -44,6 +44,9 @@
      $       temperature,
      $       speed_of_sound
 
+        use parameters_constant, only :
+     $       inflow_type
+
         use parameters_input, only :
      $       ne
 
@@ -153,6 +156,12 @@
         !> left or right boundary of the computational domain along
         !> the y-direction
         !
+        !>@param flow_x
+        !> boolean designating the flow type at the x-boundary
+        !
+        !>@param flow_y
+        !> boolean designating the flow type at the y-boundary
+        !
         !>@param gradient_x
         !> procedure for the gradient computation along the x-direction
         !
@@ -169,6 +178,7 @@
      $     p_model,
      $     t, nodes, x_map, y_map, i,j,
      $     side_x, side_y,
+     $     flow_x, flow_y,
      $     gradient_x, gradient_y,
      $     lodi_x, lodi_y)
 
@@ -183,6 +193,8 @@
           integer(ikind)               , intent(in)  :: j
           logical                      , intent(in)  :: side_x
           logical                      , intent(in)  :: side_y
+          logical                      , intent(in)  :: flow_x
+          logical                      , intent(in)  :: flow_y
           procedure(gradient_x_proc)                 :: gradient_x
           procedure(gradient_y_proc)                 :: gradient_y
           real(rkind), dimension(ne)   , intent(out) :: lodi_x
@@ -236,6 +248,19 @@
 
           real(rkind), dimension(6)   :: lodi_forcing
           real(rkind), dimension(6,6) :: lodi_A
+
+
+          !test whether the boundary is well of type inflow/inflow
+          if(.not.(
+     $         (flow_x.eqv.inflow_type).and.
+     $         (flow_y.eqv.inflow_type))) then
+             print '(''lodi_corner_inflow_inflow'')'
+             print '(''compute_x_and_y_lodi'')'
+             print '(''flow does not have the correct configuration'')'
+             print '(''flow_x:'',L2)', flow_x
+             print '(''flow_y:'',L2)', flow_y
+             stop
+          end if
 
 
           !primitive variables

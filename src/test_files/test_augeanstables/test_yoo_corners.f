@@ -4,6 +4,9 @@
      $       get_lodi_A_inflow_inflow,
      $       lodi_corner_inflow_inflow
 
+         use lodi_corner_inflow_outflow_class, only :
+     $       lodi_corner_inflow_outflow
+
         use ns2d_parameters, only :
      $       gamma,
      $       mach_infty
@@ -11,6 +14,8 @@
         use parameters_constant, only :
      $       left,
      $       right,
+     $       inflow_type,
+     $       outflow_type,
      $       vector_x,
      $       x_direction
 
@@ -41,9 +46,9 @@
         real(rkind)                        :: dx
         real(rkind)                        :: dy
         type(pmodel_eq)                    :: p_model
-        type(lodi_corner_inflow_inflow)    :: corner_i_i
+        
 
-        character(*), parameter :: FMT='(5F14.5)'
+        !character(*), parameter :: FMT='(5F14.5)'
 
         logical :: test_validated
         logical :: detailled
@@ -87,7 +92,7 @@
         print '()'
 
 
-        !test corner_inflow_inflow
+        !test corner inflow/inflow
         print '(''test corner_inflow_inflow'')'
         print '(''---------------------------------------'')'
 
@@ -98,8 +103,33 @@
      $       nodes, x_map, y_map,
      $       detailled)
 
+        if(.not.detailled) then
+           print '(''---------------------------------------'')'
+           print '(''test_validated:'',L2)', test_validated
+        end if
         print '()'
         
+
+        !test corner inflow/outflow
+        print '(''test corner_inflow_outflow'')'
+        print '(''---------------------------------------'')'
+
+        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
+
+        !detailled = .true.
+
+        test_validated = test_corner_inflow_outflow(
+     $       p_model,
+     $       nodes, x_map, y_map,
+     $       detailled)
+
+        if(.not.detailled) then
+           print '(''---------------------------------------'')'
+           print '(''test_validated:'',L2)', test_validated
+        end if
+
+
+        print '()'
 
         contains
 
@@ -452,7 +482,12 @@
           real(rkind), dimension(ne) :: timedev
           real(rkind), dimension(ne) :: test_data_timedev
 
+          type(lodi_corner_inflow_inflow) :: corner_i_i
+
           
+          test_validated = .true.
+
+
           !NW corner: (side_x=left,side_y=right)
           i = 2
           j = 4          
@@ -465,6 +500,7 @@
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
      $         left, right,
+     $         inflow_type, inflow_type,
      $         gradient_x_x_oneside_L1,
      $         gradient_y_y_oneside_R1,
      $         lodi_x, lodi_y)
@@ -500,6 +536,7 @@
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
      $         side_x, side_y,
+     $         inflow_type, inflow_type,
      $         gradient_x_x_oneside_L1,
      $         gradient_y_y_oneside_R1)
           
@@ -515,6 +552,325 @@
           test_validated = test_validated.and.test_loc
           print '(''timedev(NW):'',L2)', test_loc
 
+          
+          !NE corner: (side_x=right,side_y=right)
+          i = 4
+          j = 4          
+          side_x = right
+          side_y = right
+
+
+          !test the computation of the x and y LODI vectors
+          call corner_i_i%compute_x_and_y_lodi(
+     $         p_model,
+     $         t, nodes, x_map, y_map, i,j,
+     $         side_x, side_y,
+     $         inflow_type, inflow_type,
+     $         gradient_x_x_oneside_R1,
+     $         gradient_y_y_oneside_R1,
+     $         lodi_x, lodi_y)
+
+          test_data_lodi_x(1) =  1.462867208d0
+          test_data_lodi_x(2) = -19.17172083d0
+          test_data_lodi_x(3) =  15.23239041d0
+          test_data_lodi_x(4) = -299.0036936d0
+
+          test_data_lodi_y(1) =  9.216255037d0
+          test_data_lodi_y(2) =  -4.17102088d0
+          test_data_lodi_y(3) =   80.5222253d0
+          test_data_lodi_y(4) =  24.96631204d0
+
+          test_loc = is_vector_validated(
+     $         lodi_x,
+     $         test_data_lodi_x,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''lodi_x(NE):'',L2)', test_loc
+
+          test_loc = is_vector_validated(
+     $         lodi_y,
+     $         test_data_lodi_y,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''lodi_y(NE):'',L2)', test_loc
+
+          
+          !SE corner: (side_x=right,side_y=left)
+          i = 4
+          j = 2          
+          side_x = right
+          side_y = left
+
+
+          !test the computation of the x and y LODI vectors
+          call corner_i_i%compute_x_and_y_lodi(
+     $         p_model,
+     $         t, nodes, x_map, y_map, i,j,
+     $         side_x, side_y,
+     $         inflow_type, inflow_type,
+     $         gradient_x_x_oneside_R1,
+     $         gradient_y_y_oneside_L1,
+     $         lodi_x, lodi_y)
+
+          test_data_lodi_x(1) = -8.494118919d0
+          test_data_lodi_x(2) = -71.64831958d0
+          test_data_lodi_x(3) =  66.02236803d0
+          test_data_lodi_x(4) = -11.72021033d0
+
+          test_data_lodi_y(1) = -6.5319714d0
+          test_data_lodi_y(2) = -56.38772216d0
+          test_data_lodi_y(3) =  385.9079204d0
+          test_data_lodi_y(4) = -7.247702158d0
+
+          test_loc = is_vector_validated(
+     $         lodi_x,
+     $         test_data_lodi_x,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''lodi_x(SE):'',L2)', test_loc
+
+          test_loc = is_vector_validated(
+     $         lodi_y,
+     $         test_data_lodi_y,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''lodi_y(SE):'',L2)', test_loc
+
+          
+          !SE corner: (side_x=right,side_y=left)
+          i = 4
+          j = 2          
+          side_x = right
+          side_y = left
+
+
+          !test the computation of the x and y LODI vectors
+          call corner_i_i%compute_x_and_y_lodi(
+     $         p_model,
+     $         t, nodes, x_map, y_map, i,j,
+     $         side_x, side_y,
+     $         inflow_type, inflow_type,
+     $         gradient_x_x_oneside_R1,
+     $         gradient_y_y_oneside_L1,
+     $         lodi_x, lodi_y)
+
+          test_data_lodi_x(1) = -8.494118919d0
+          test_data_lodi_x(2) = -71.64831958d0
+          test_data_lodi_x(3) =  66.02236803d0
+          test_data_lodi_x(4) = -11.72021033d0
+
+          test_data_lodi_y(1) = -6.5319714d0
+          test_data_lodi_y(2) = -56.38772216d0
+          test_data_lodi_y(3) =  385.9079204d0
+          test_data_lodi_y(4) = -7.247702158d0
+
+          test_loc = is_vector_validated(
+     $         lodi_x,
+     $         test_data_lodi_x,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''lodi_x(SE):'',L2)', test_loc
+
+          test_loc = is_vector_validated(
+     $         lodi_y,
+     $         test_data_lodi_y,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''lodi_y(SE):'',L2)', test_loc
+
+
+          !SW corner: (side_x=right,side_y=left)
+          i = 2
+          j = 2          
+          side_x = left
+          side_y = left
+
+
+          !test the computation of the x and y LODI vectors
+          call corner_i_i%compute_x_and_y_lodi(
+     $         p_model,
+     $         t, nodes, x_map, y_map, i,j,
+     $         side_x, side_y,
+     $         inflow_type, inflow_type,
+     $         gradient_x_x_oneside_L1,
+     $         gradient_y_y_oneside_L1,
+     $         lodi_x, lodi_y)
+
+          test_data_lodi_x(1) = -8.536994696d0
+          test_data_lodi_x(2) = -71.64831958d0
+          test_data_lodi_x(3) = -11.72021033d0
+          test_data_lodi_x(4) =  49.01483604d0
+
+          test_data_lodi_y(1) =   0.98256584d0
+          test_data_lodi_y(2) = -56.38772216d0
+          test_data_lodi_y(3) =  385.9079204d0
+          test_data_lodi_y(4) = -9.471904869d0
+
+          test_loc = is_vector_validated(
+     $         lodi_x,
+     $         test_data_lodi_x,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''lodi_x(SW):'',L2)', test_loc
+
+          test_loc = is_vector_validated(
+     $         lodi_y,
+     $         test_data_lodi_y,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''lodi_y(SW):'',L2)', test_loc
+
         end function test_corner_inflow_inflow
+
+
+        function test_corner_inflow_outflow(
+     $     p_model,
+     $     nodes, x_map, y_map,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          type(pmodel_eq)              , intent(in) :: p_model
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
+          logical                      , intent(in) :: detailled
+          logical                                   :: test_validated
+
+
+          integer(ikind)             :: i
+          integer(ikind)             :: j
+          logical                    :: side_x
+          logical                    :: side_y
+          logical                    :: flow_x
+          logical                    :: flow_y
+          real(rkind), dimension(ne) :: lodi_x
+          real(rkind), dimension(ne) :: lodi_y
+          real(rkind), dimension(ne) :: test_data_lodi_x
+          real(rkind), dimension(ne) :: test_data_lodi_y
+          logical                    :: test_loc
+c$$$          real(rkind), dimension(ne) :: timedev
+c$$$          real(rkind), dimension(ne) :: test_data_timedev
+
+          type(lodi_corner_inflow_outflow) :: corner_i_o
+
+          
+          test_validated = .true.
+
+
+          !NW corner: (side_x=left,side_y=right)
+          i = 2
+          j = 4          
+          side_x = left
+          side_y = right
+
+
+          !x:inflow/y:outflow
+          print '(''x:inflow/y:outflow'')'
+          print '(''=================='')'
+          flow_x = inflow_type
+          flow_y = outflow_type
+
+          !test the computation of the x and y LODI vectors
+          call corner_i_o%compute_x_and_y_lodi(
+     $         p_model,
+     $         t, nodes, x_map, y_map, i,j,
+     $         left, right,
+     $         flow_x, flow_y,
+     $         gradient_x_x_oneside_L1,
+     $         gradient_y_y_oneside_R1,
+     $         lodi_x, lodi_y)
+
+          test_data_lodi_x(1) = -1.250055995d0
+          test_data_lodi_x(2) =  -27.0137852d0
+          test_data_lodi_x(3) = -299.0036936d0
+          test_data_lodi_x(4) = -5.522545252d0
+
+          test_data_lodi_y(1) = -0.814825499d0
+          test_data_lodi_y(2) =  10.75786491d0
+          test_data_lodi_y(3) =  0.0d0
+          test_data_lodi_y(4) =  24.96631204d0
+
+          test_loc = is_vector_validated(
+     $         lodi_x,
+     $         test_data_lodi_x,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''lodi_x(NW):'',L2)', test_loc
+
+          test_loc = is_vector_validated(
+     $         lodi_y,
+     $         test_data_lodi_y,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''lodi_y(NW):'',L2)', test_loc
+          print '()'
+
+          !x:inflow/y:outflow
+          print '(''x:outflow/y:inflow'')'
+          print '(''=================='')'
+          flow_x = outflow_type
+          flow_y = inflow_type
+
+          !test the computation of the x and y LODI vectors
+          call corner_i_o%compute_x_and_y_lodi(
+     $         p_model,
+     $         t, nodes, x_map, y_map, i,j,
+     $         left, right,
+     $         flow_x, flow_y,
+     $         gradient_x_x_oneside_L1,
+     $         gradient_y_y_oneside_R1,
+     $         lodi_x, lodi_y)
+
+          test_data_lodi_x(1) = -1.166790347d0
+          test_data_lodi_x(2) = -187.9985406d0
+          test_data_lodi_x(3) = -299.0036936d0
+          test_data_lodi_x(4) = 0.0d0         
+
+          test_data_lodi_y(1) = -10.680990d0
+          test_data_lodi_y(2) = 84.5128104d0
+          test_data_lodi_y(3) = 73.7545150d0
+          test_data_lodi_y(4) = 24.9663120d0
+
+          test_loc = is_vector_validated(
+     $         lodi_x,
+     $         test_data_lodi_x,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''lodi_x(NW):'',L2)', test_loc
+
+          test_loc = is_vector_validated(
+     $         lodi_y,
+     $         test_data_lodi_y,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          print '(''lodi_y(NW):'',L2)', test_loc
+          print '()'
+
+
+c$$$          !test the computation of the time derivatives from
+c$$$          !the x and y LODI vectors
+c$$$          timedev = corner_i_i%compute_x_and_y_timedev(
+c$$$     $         p_model,
+c$$$     $         t, nodes, x_map, y_map, i,j,
+c$$$     $         side_x, side_y,
+c$$$     $         inflow_type, inflow_type,
+c$$$     $         gradient_x_x_oneside_L1,
+c$$$     $         gradient_y_y_oneside_R1)
+c$$$          
+c$$$          test_data_timedev(1) =  112.3433452d0
+c$$$          test_data_timedev(2) = -26.69167932d0
+c$$$          test_data_timedev(3) = -14.63876117d0
+c$$$          test_data_timedev(4) =  114.3962942d0
+c$$$
+c$$$          test_loc = is_vector_validated(
+c$$$     $         timedev,
+c$$$     $         test_data_timedev,
+c$$$     $         detailled)
+c$$$          test_validated = test_validated.and.test_loc
+c$$$          print '(''timedev(NW):'',L2)', test_loc
+
+        end function test_corner_inflow_outflow
 
       end program test_yoo_corners
