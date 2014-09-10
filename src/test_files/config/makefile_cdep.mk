@@ -116,15 +116,31 @@ poinsot_ns2d_dep=	$(poinsot_xy_dep)\
 			lodi_ns2d_class.o
 
 
-yoo_xy_dep=		lodi_edge_abstract_class.o\
+yoo_xy_dep=		openbc_operators_module.o\
+			sd_operators_x_oneside_L0_class.o\
+			sd_operators_x_oneside_L1_class.o\
+			sd_operators_x_oneside_R1_class.o\
+			sd_operators_x_oneside_R0_class.o\
+			sd_operators_y_oneside_L0_class.o\
+			sd_operators_y_oneside_L1_class.o\
+			sd_operators_y_oneside_R1_class.o\
+			sd_operators_y_oneside_R0_class.o\
+			sd_operators_fd_module.o\
+			lodi_edge_abstract_class.o\
+			lodi_corner_abstract_class.o\
 			lodi_transverse_module.o\
-			lodi_component_module.o
+			lodi_component_module.o\
+			lodi_timedev_xy_module.o
 
 yoo_ns2d_dep=		$(yoo_xy_dep)\
 			lodi_relaxation_coeff_module.o\
 			lodi_edge_ns2d_class.o\
 			lodi_edge_inflow_class.o\
-			lodi_edge_outflow_class.o
+			lodi_edge_outflow_class.o\
+			lodi_corner_ns2d_class.o\
+			lodi_corner_inflow_inflow_class.o\
+			lodi_corner_inflow_outflow_class.o\
+			lodi_corner_outflow_outflow_class.o
 
 
 td_dep=			td_operators_abstract_class.o\

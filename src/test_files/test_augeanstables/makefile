@@ -302,3 +302,20 @@ test_yoo_ns2d_corners:	parameters_kind.o\
 			lodi_corner_inflow_inflow_class.o\
 			lodi_corner_inflow_outflow_class.o\
 			lodi_corner_outflow_outflow_class.o
+
+test_yoo_lodi_timedev_xy.o:\
+			$(yobc_ns2d_dir)/lodi_edge_inflow_class.o\
+			$(yobc_ns2d_dir)/lodi_edge_outflow_class.o\
+			$(yobc_dir)/lodi_timedev_xy_module.o\
+			$(ns2d_dir)/ns2d_parameters.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(ns2d_dir)/pmodel_eq_class.o\
+			$(mt_dir)/sd_operators_fd_module.o
+
+test_yoo_lodi_timedev_xy:\
+			$(param_dep)\
+			$(mt_dep)\
+			$(ns2d_dep)\
+			$(yoo_ns2d_dep)

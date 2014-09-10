@@ -142,6 +142,7 @@ ifeq ($(strip $(bc_choice)), poinsot_xy_choice)
 
 	ifeq ($(strip $(pm_choice)), ns2d_choice)
 		pobc_cdir=$(pobc_ns2d_dir)
+		yobc_cdir=$(yobc_ns2d_dir)
 	endif
 endif
 
