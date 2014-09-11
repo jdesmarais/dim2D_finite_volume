@@ -255,7 +255,7 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the trasnverse and viscous LODI vectors in the j-direction
+        !> compute the transverse and viscous LODI vectors
         !
         !> @date
         !> 02_09_2014 - initial version - J.L. Desmarais
@@ -437,82 +437,48 @@
         end function compute_dev_from_flux_y
 
 
-        !> @author 
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the component for the enhancement of the LODI
-        !> relations
-        !
-        !> @date
-        !> 04_09_2014 - initial version - J.L. Desmarais
-        !
-        !>@param relaxation_lodiT
-        !> relaxation coefficient for the LODI transverse terms
-        !
-        !>@param transverse_lodi
-        !> transverse lodi component
-        !
-        !>@param viscous_lodi
-        !> viscous lodi component
-        !
-        !>@return enhanced_lodi
-        !> enhanced lodi component
-        !---------------------------------------------------------------
-        function get_enhanced_lodi(
+         !> Julien L. Desmarais
+         !
+         !> @brief
+         !> compute the component for the enhancement of the LODI
+         !> relations
+         !
+         !> @date
+         !> 04_09_2014 - initial version - J.L. Desmarais
+         !
+         !>@param relaxation_lodiT
+         !> relaxation coefficient for the LODI transverse terms
+         !
+         !>@param transverse_lodi
+         !> transverse lodi component
+         !
+         !>@param viscous_lodi
+         !> viscous lodi component
+         !
+         !>@return enhanced_lodi
+         !> enhanced lodi component
+         !---------------------------------------------------------------
+         function get_enhanced_lodi(
      $     relaxation_lodiT, transverse_lodi,viscous_lodi)
      $     result(enhanced_lodi)
-
-          implicit none
-
-          real(rkind), intent(in) :: relaxation_lodiT
-          real(rkind), intent(in) :: transverse_lodi
-          real(rkind), intent(in) :: viscous_lodi
-          real(rkind)             :: enhanced_lodi
-
-          if(rkind.eq.8) then
-             enhanced_lodi =
-     $            (1.0d0-relaxation_lodiT)*transverse_lodi +
-     $            viscous_lodi
-          else
-             enhanced_lodi =
-     $            (1.0-relaxation_lodiT)*transverse_lodi +
-     $            viscous_lodi
-          end if
-
-        end function get_enhanced_lodi
-
-
-        !> @author 
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the relaxation coefficient for the LODI transverse
-        !> terms
-        !
-        !> @date
-        !> 04_09_2014 - initial version - J.L. Desmarais
-        !
-        !>@param u_n
-        !> velocity component normal to the boundary
-        !
-        !>@param c
-        !> speed of sound
-        !
-        !>@return relaxation_lodiT
-        !> relaxation coefficient for the LODI transverse terms
-        !---------------------------------------------------------------
-        function get_relaxation_lodiT(u_n,c)
-     $     result(relaxation_lodiT)
-
-          implicit none
-
-          real(rkind), intent(in) :: u_n
-          real(rkind), intent(in) :: c
-          real(rkind)             :: relaxation_lodiT
-
-          relaxation_lodiT = u_n/c
-
-        end function get_relaxation_lodiT
+ 
+           implicit none
+ 
+           real(rkind), intent(in) :: relaxation_lodiT
+           real(rkind), intent(in) :: transverse_lodi
+           real(rkind), intent(in) :: viscous_lodi
+           real(rkind)             :: enhanced_lodi
+ 
+           if(rkind.eq.8) then
+              enhanced_lodi =
+     $             (1.0d0-relaxation_lodiT)*transverse_lodi +
+     $             viscous_lodi
+           else
+              enhanced_lodi =
+     $             (1.0-relaxation_lodiT)*transverse_lodi +
+     $             viscous_lodi
+           end if
+ 
+         end function get_enhanced_lodi
 
       end module lodi_transverse_module

@@ -29,10 +29,10 @@
         
         !<computational times
         real(rkind), parameter :: t_max = 1.5000000000d0
-        real(rkind), parameter :: dt = 0.0001000000d0
+        real(rkind), parameter :: dt = 0.0005000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0150000000d0
+        real(rkind), parameter :: detail_print = 0.0300000000d0
 
         !<mpi choice
         integer, parameter :: npx = 1 !<number of processors along x
@@ -40,8 +40,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 5
-        integer(ikind), parameter :: nty = 5
+        integer(ikind), parameter :: ntx = 44
+        integer(ikind), parameter :: nty = 44
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -68,7 +68,7 @@
         !phase_separation   : unstable mass density
         !--------------------------------------------
         integer, parameter :: flow_direction = x_direction
-        integer, parameter :: ic_choice      = vortex_convected_x
+        integer, parameter :: ic_choice = peak
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
@@ -95,12 +95,12 @@
         !              applying the non-reflecting outflow
         !              pressure b.c.
         !--------------------------------------------
-        real(rkind), parameter :: search_nb_dt = 0.0001000000d0
+        real(rkind), parameter :: search_nb_dt = 0.0005000000d0
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
-        integer    , parameter :: obc_type_N = always_outflow !ask_flow
-        integer    , parameter :: obc_type_S = always_inflow !ask_flow
+        integer    , parameter :: obc_type_N = ask_flow
+        integer    , parameter :: obc_type_S = ask_flow
         integer    , parameter :: obc_type_E = always_outflow
-        integer    , parameter :: obc_type_W = always_outflow
+        integer    , parameter :: obc_type_W = always_inflow
 
       end module parameters_input

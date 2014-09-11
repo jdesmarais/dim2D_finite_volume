@@ -6,6 +6,15 @@ sd_dep=			interface_primary.o\
 			sd_operators_abstract_class.o\
 			sd_operators_class.o
 
+sd_oneside_dep=		sd_operators_x_oneside_L0_class.o\
+			sd_operators_x_oneside_L1_class.o\
+			sd_operators_x_oneside_R1_class.o\
+			sd_operators_x_oneside_R0_class.o\
+			sd_operators_y_oneside_L0_class.o\
+			sd_operators_y_oneside_L1_class.o\
+			sd_operators_y_oneside_R1_class.o\
+			sd_operators_y_oneside_R0_class.o
+
 cg_dep=			$(sd_dep)\
 			sd_operators_fd_module.o
 
@@ -76,14 +85,7 @@ wall_x_reflection_dep=	$(bc_dep)\
 
 hedstrom_xy_dep=	$(bc_dep)\
 			openbc_operators_module.o\
-			sd_operators_x_oneside_L0_class.o\
-			sd_operators_x_oneside_L1_class.o\
-			sd_operators_x_oneside_R1_class.o\
-			sd_operators_x_oneside_R0_class.o\
-			sd_operators_y_oneside_L0_class.o\
-			sd_operators_y_oneside_L1_class.o\
-			sd_operators_y_oneside_R1_class.o\
-			sd_operators_y_oneside_R0_class.o\
+			$(sd_oneside_dep)\
 			sd_operators_fd_module.o\
 			hedstrom_xy_module.o
 
@@ -98,14 +100,7 @@ hedstrom_x_reflection_y_dep=\
 
 poinsot_xy_dep=		$(bc_dep)\
 			openbc_operators_module.o\
-			sd_operators_x_oneside_L0_class.o\
-			sd_operators_x_oneside_L1_class.o\
-			sd_operators_x_oneside_R1_class.o\
-			sd_operators_x_oneside_R0_class.o\
-			sd_operators_y_oneside_L0_class.o\
-			sd_operators_y_oneside_L1_class.o\
-			sd_operators_y_oneside_R1_class.o\
-			sd_operators_y_oneside_R0_class.o\
+			$(sd_oneside_dep)\
 			sd_operators_fd_module.o\
 			lodi_abstract_class.o\
 			lodi_inflow_class.o\
@@ -116,15 +111,9 @@ poinsot_ns2d_dep=	$(poinsot_xy_dep)\
 			lodi_ns2d_class.o
 
 
-yoo_xy_dep=		openbc_operators_module.o\
-			sd_operators_x_oneside_L0_class.o\
-			sd_operators_x_oneside_L1_class.o\
-			sd_operators_x_oneside_R1_class.o\
-			sd_operators_x_oneside_R0_class.o\
-			sd_operators_y_oneside_L0_class.o\
-			sd_operators_y_oneside_L1_class.o\
-			sd_operators_y_oneside_R1_class.o\
-			sd_operators_y_oneside_R0_class.o\
+yoo_xy_dep=		$(bc_dep)\
+			openbc_operators_module.o\
+			$(sd_oneside_dep)\
 			sd_operators_fd_module.o\
 			lodi_edge_abstract_class.o\
 			lodi_corner_abstract_class.o\
@@ -141,7 +130,6 @@ yoo_ns2d_dep=		$(yoo_xy_dep)\
 			lodi_corner_inflow_inflow_class.o\
 			lodi_corner_inflow_outflow_class.o\
 			lodi_corner_outflow_outflow_class.o
-
 
 td_dep=			td_operators_abstract_class.o\
 			td_operators_class.o

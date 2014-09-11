@@ -261,11 +261,16 @@ test_yoo_ns2d_edge.o:\
 			$(ns2d_dir)/pmodel_eq_class.o\
 			$(mt_dir)/sd_operators_fd_module.o
 
-test_yoo_ns2d_edge:\
-			$(param_dep)\
-			$(yoo_ns2d_dep)\
+test_yoo_ns2d_edge:	$(param_dep)\
 			$(ns2d_dep)\
-			$(mt_dep)
+			$(mt_dep)\
+			lodi_component_module.o\
+			lodi_transverse_module.o\
+			lodi_relaxation_coeff_module.o\
+			lodi_edge_abstract_class.o\
+			lodi_edge_ns2d_class.o\
+			lodi_edge_inflow_class.o\
+			lodi_edge_outflow_class.o
 
 test_yoo_ns2d_corners.o:$(yobc_ns2d_dir)/lodi_corner_inflow_inflow_class.o\
 			$(yobc_ns2d_dir)/lodi_corner_inflow_outflow_class.o\
@@ -276,29 +281,14 @@ test_yoo_ns2d_corners.o:$(yobc_ns2d_dir)/lodi_corner_inflow_inflow_class.o\
 			$(ns2d_dir)/pmodel_eq_class.o\
 			$(mt_dir)/sd_operators_fd_module.o
 
-test_yoo_ns2d_corners:	parameters_kind.o\
-			interface_primary.o\
-			parameters_constant.o\
+test_yoo_ns2d_corners:	$(param_dep)\
+			$(ns2d_dep)\
+			$(mt_dep)\
 			lodi_component_module.o\
-			parameters_input.o\
-			ns2d_parameters.o\
-			ic_abstract_class.o\
-			ic_class.o\
-			sd_operators_fd_module.o\
-			sd_operators_abstract_class.o\
-			sd_operators_class.o\
-			ns2d_prim_module.o\
-			ns2d_fluxes_module.o\
-			ns2d_steadystate_module.o\
-			ns2d_vortex_module.o\
-			ns2d_peak_module.o\
-			parameters_bf_layer.o\
-			pmodel_eq_abstract_class.o\
-			pmodel_eq_default_class.o\
-			pmodel_eq_class.o\
+			lodi_transverse_module.o\
+			lodi_relaxation_coeff_module.o\
 			lodi_corner_abstract_class.o\
 			lodi_corner_ns2d_class.o\
-			lodi_relaxation_coeff_module.o\
 			lodi_corner_inflow_inflow_class.o\
 			lodi_corner_inflow_outflow_class.o\
 			lodi_corner_outflow_outflow_class.o
@@ -316,6 +306,39 @@ test_yoo_lodi_timedev_xy.o:\
 
 test_yoo_lodi_timedev_xy:\
 			$(param_dep)\
+			$(mt_dep)\
+			$(ns2d_dep)\
+			sd_operators_x_oneside_L0_class.o\
+			sd_operators_x_oneside_L1_class.o\
+			sd_operators_x_oneside_R1_class.o\
+			sd_operators_x_oneside_R0_class.o\
+			sd_operators_y_oneside_L0_class.o\
+			sd_operators_y_oneside_L1_class.o\
+			sd_operators_y_oneside_R1_class.o\
+			sd_operators_y_oneside_R0_class.o\
+			openbc_operators_module.o\
+			lodi_component_module.o\
+			lodi_transverse_module.o\
+			lodi_relaxation_coeff_module.o\
+			lodi_edge_abstract_class.o\
+			lodi_edge_ns2d_class.o\
+			lodi_edge_inflow_class.o\
+			lodi_edge_outflow_class.o\
+			lodi_corner_abstract_class.o\
+			lodi_corner_ns2d_class.o\
+			lodi_corner_inflow_inflow_class.o\
+			lodi_corner_inflow_outflow_class.o\
+			lodi_corner_outflow_outflow_class.o\
+			lodi_timedev_xy_module.o
+
+test_yoo_operators.o:	$(yobc_ns2d_dir)/bc_operators_class.o\
+			$(ns2d_dir)/ns2d_parameters.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(ns2d_dir)/pmodel_eq_class.o
+
+test_yoo_operators:	$(param_dep)\
 			$(mt_dep)\
 			$(ns2d_dep)\
 			$(yoo_ns2d_dep)

@@ -1,7 +1,7 @@
       !> @file
       !> class encapsulating subroutines to apply open boundary
       !> conditions at the edge of the computational domain using
-      !> lodi boundary conditions
+      !> Poinsot boundary conditions
       !
       !> @author 
       !> Julien L. Desmarais
@@ -9,7 +9,7 @@
       !> @brief
       !> class encapsulating subroutines to apply open boundary
       !> conditions at the edge of the computational domain using
-      !> lodi boundary conditions
+      !> Poinsot boundary conditions
       !
       !> @date
       !> 13_08_2014 - initial version - J.L. Desmarais

@@ -1095,7 +1095,7 @@
           !variables
           jacConsPrim = compute_jacobian_cons_to_prim(nodes)
 
-          timedev = MATMUL(timedev,jacConsPrim)          
+          timedev = MATMUL(timedev,jacConsPrim)
 
         end function compute_timedev_from_LODI_vectors
 

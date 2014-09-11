@@ -26,7 +26,8 @@
      $                                         hedstrom_xy_choice,
      $                                         hedstrom_xy_corners_choice,
      $                                         hedstrom_x_reflection_y_choice,
-     $                                         poinsot_xy_choice
+     $                                         poinsot_xy_choice,
+     $                                         yoolodato_xy_choice
         use parameters_input          , only : nx,ny,ne,bc_size,
      $                                         x_min,x_max,
      $                                         y_min,y_max,
@@ -431,7 +432,8 @@
 
           if((bc_choice.ne.hedstrom_xy_choice).and.
      $       (bc_choice.ne.hedstrom_xy_corners_choice).and.
-     $       (bc_choice.ne.poinsot_xy_choice)) then
+     $       (bc_choice.ne.poinsot_xy_choice).and.
+     $       (bc_choice.ne.yoolodato_xy_choice)) then
 
              call this%bc_operators_used%apply_bc_on_nodes(this%nodes)
 
@@ -490,7 +492,7 @@
                y_borders=[bc_size+1,ny-bc_size]
 
             case(hedstrom_xy_choice,hedstrom_xy_corners_choice,
-     $           poinsot_xy_choice)
+     $           poinsot_xy_choice,yoolodato_xy_choice)
                x_borders=[1,nx]
                y_borders=[1,ny]
 

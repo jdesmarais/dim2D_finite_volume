@@ -149,7 +149,8 @@ def compute_code_inputs(inputFileName):
                     'hedstrom_xy_choice',
                     'hedstrom_xy_corners_choice',
                     'hedstrom_x_reflection_y_choice',
-                    'poinsot_xy_choice']
+                    'poinsot_xy_choice',
+                    'yoolodato_xy_choice']
 
     bc_type_code = ['bc_nodes_choice',
                     'bc_fluxes_choice',
@@ -226,7 +227,8 @@ def compute_code_inputs(inputFileName):
 
     if(bc_choice=='hedstrom_xy_choice' or
        bc_choice=='hedstrom_xy_corners_choice' or
-       bc_choice=='poinsot_xy_choice'):
+       bc_choice=='poinsot_xy_choice' or
+       bc_choice=='yoolodato_xy_choice'):
 
         bcx_type_choice = bc_type_code[2]
         bcy_type_choice = bc_type_code[2]
