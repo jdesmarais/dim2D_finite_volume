@@ -25,7 +25,7 @@ dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 sd_choice  = mt_choice            #space discretization choice
 pm_choice = ns2d_choice          #physical model choice
 ic_choice = peak               #initial conditions choice
-bc_choice = poinsot_xy_choice    #boundary condition choice
+bc_choice = yoolodato_xy_choice    #boundary condition choice
 td_choice  = finitevolume_choice  #time discretization choice
 ti_choice  = rk3tvd_choice        #time integration choice
 io_choice  = nf90_choice          #writer choice
@@ -96,6 +96,14 @@ ifeq ($(strip $(pm_choice)), ns2d_choice)
 
 	ifeq ($(strip $(ic_choice)), vortex)
 		ic_cdir=$(ns2d_vic)
+	endif
+
+	ifeq ($(strip $(ic_choice)), sym_x)
+		ic_cdir=$(ns2d_sxic)
+	endif
+
+	ifeq ($(strip $(ic_choice)), sym_y)
+		ic_cdir=$(ns2d_syic)
 	endif
 endif
 

@@ -68,7 +68,9 @@ cdir:
 	@(echo 'sd_cdir:   '   	 $(sd_cdir)          )
 	@(echo 'pm_cdir:   '	 $(pm_cdir)          )
 	@(echo 'bc_cdir:   '	 $(bc_cdir)          )
+	@(echo 'ic_cdir:   '     $(ic_cdir)          )
 	@(echo 'pobc_cdir: '	 $(pobc_cdir)        )
+	@(echo 'yobc_cdir: '	 $(yobc_cdir)        )
 
 test:
 	@(echo '')

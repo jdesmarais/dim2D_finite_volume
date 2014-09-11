@@ -110,11 +110,16 @@
 
         !get the variable enforced at the edge of the
         !computational domain
-        function get_far() result(var)
+        function get_far(side) result(var)
 
           implicit none
 
-          real(rkind) :: var
+          logical, intent(in) :: side
+          real(rkind)         :: var
+          
+          logical :: side_s
+
+          side_s = side
           
           if(rkind.eq.8) then
              var = 0.0d0

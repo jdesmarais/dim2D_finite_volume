@@ -40,7 +40,8 @@
         !integer, parameter :: steady_state=0
         integer, parameter :: peak=1
         integer, parameter :: vortex=2
-        integer, parameter :: vortex_convected_x=3
+        integer, parameter :: sym_x=3
+        integer, parameter :: sym_y=4
 
         !>initial conditions choice for DIM
         integer, parameter :: steady_state=0

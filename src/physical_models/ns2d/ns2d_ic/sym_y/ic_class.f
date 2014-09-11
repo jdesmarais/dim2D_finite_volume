@@ -23,6 +23,7 @@
      $     ic_abstract
 
         use parameters_constant, only :
+     $       left,
      $       x_direction,
      $       y_direction
 
@@ -114,93 +115,13 @@
           real(rkind), dimension(:)          , intent(in)    :: y_map
           
 
-          real(rkind)    :: mass_infty
-          integer(ikind) :: i,j
-          real(rkind)    :: l,amp,R
-          real(rkind)    :: u0_mean_flow, v0_mean_flow
-          real(rkind)    :: p_infty
+          real(rkind) :: x_s
+          real(rkind) :: y_s
+          real(rkind) :: nodes_s
 
-
-          !as the scaling for mass density in the NS equations
-          !is the mass density in the far field, we have
-          !mass_infty=1.0
-          mass_infty = 1.0d0
-
-          
-          !as the scaling for velocity in the NS equations
-          !is the velocity norm in the far field, we should
-          !have u0_mean_flow**2+v0_meanflow**2=1.0
-
-          select case(flow_direction)
-
-            case(x_direction)
-               u0_mean_flow = u0_x_flow
-               v0_mean_flow = v0_x_flow
-
-            case(y_direction)
-               u0_mean_flow = u0_y_flow
-               v0_mean_flow = v0_y_flow
-
-            case default
-               print '(''ns2d_ic'')'
-               print '(''ic_class/peak/apply_ic'')'
-               print '(''flow_direction not recognized'')'
-               print '(''flow_direction: '',I2)', flow_direction
-               stop
-
-          end select
-
-
-          !vortex located at the center of the computational domain
-          !the vortex characteristics scales with the size of the
-          !computational domain
-          l   = 0.25d0*(x_map(size(x_map,1))-x_map(1))
-          amp = -0.5d0*l
-          R   = 0.15d0*l
-
-
-          !computation of the pressure in the far field
-          if((u0_mean_flow**2+v0_mean_flow**2).le.(1.0e-8)) then
-             P_infty = 1.0d0
-          else
-             P_infty = 1.0d0/(gamma*mach_infty**2)
-          end if
-
-          do j=1, size(nodes,2)
-             do i=1, size(nodes,1)
-                
-                !mass density: same as in the far field
-                nodes(i,j,1) =  mass_infty
-
-                !momentum-x
-                nodes(i,j,2) = 
-     $               nodes(i,j,1)*(
-     $               u0_mean_flow+
-     $               get_vortex_velocity_x(
-     $                  x_map(i),y_map(j),
-     $                  nodes(i,j,1),
-     $                  amp,R)
-     $               )
-
-                !momentum-y
-                nodes(i,j,3) =
-     $               nodes(i,j,1)*(
-     $               v0_mean_flow+
-     $               get_vortex_velocity_y(
-     $                  x_map(i),y_map(j),
-     $                  nodes(i,j,1),
-     $                  amp,R)
-     $               )
-
-                !total energy
-                nodes(i,j,4) =  0.5d0/nodes(i,j,1)*(
-     $               nodes(i,j,2)**2 + nodes(i,j,3)**2)+
-     $               get_pressure(
-     $               x_map(i),y_map(j),
-     $               nodes(i,j,1),amp,R,P_infty)/(gamma-1.0d0)
-
-             end do
-          end do
+          nodes_s = nodes(1,1,1)
+          x_s = x_map(1)
+          y_s = y_map(1)
 
         end subroutine apply_ic        
 
@@ -257,7 +178,11 @@
                var = v0_x_flow*mach_infty/Sqrt(u0_x_flow**2+v0_x_flow**2)
                
             case(y_direction)
-               var = v0_y_flow*mach_infty/Sqrt(u0_y_flow**2+v0_y_flow**2)
+               if(side.eqv.left) then
+                  var = -v0_y_flow*mach_infty/Sqrt(u0_y_flow**2+v0_y_flow**2)
+               else
+                  var = v0_y_flow*mach_infty/Sqrt(u0_y_flow**2+v0_y_flow**2)
+               end if
 
             case default
                print '(''ns2d_ic'')'
@@ -295,7 +220,7 @@
                var = u0_x_flow
                
             case(y_direction)
-               var = u0_y_flow
+               var =-u0_y_flow
 
             case default
                print '(''ns2d_ic'')'
@@ -330,10 +255,18 @@
           select case(flow_direction)
 
             case(x_direction)
-               var = v0_x_flow
+               if(y.gt.0) then
+                  var =-v0_x_flow
+               else
+                  var = v0_x_flow
+               end if
 
             case(y_direction)
-               var = v0_y_flow
+               if(y.gt.0) then
+                  var =-v0_y_flow
+               else
+                  var = v0_y_flow
+               end if
 
             case default
                print '(''ns2d_ic'')'
@@ -399,156 +332,5 @@
           end if
 
         end function get_P_out
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> subroutine computing the initial conditions
-        !> for a steady state
-        !
-        !> @date
-        !> 12_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param x1
-        !> coordinate along the x-axis
-        !
-        !>@param x2
-        !> coordinate along the y-axis
-        !
-        !>@param mass
-        !> mass density at (x1,x2)
-        !
-        !>@param amp
-        !> vortex peak amplitude
-        !
-        !>@param R
-        !> radius of the vortex
-        !
-        !>@return ux
-        !> velocity along the x-axis at (x1,x2)
-        !---------------------------------------------------------------
-        function get_vortex_velocity_x(x1,x2,mass,amp,R)
-     $     result(ux)
-
-          implicit none
-
-          real(rkind), intent(in) :: x1
-          real(rkind), intent(in) :: x2
-          real(rkind), intent(in) :: mass
-          real(rkind), intent(in) :: amp
-          real(rkind), intent(in) :: R
-          real(rkind)             :: ux
-          
-          if(rkind.eq.8) then
-             ux = - 1.0d0/(mass*R**2)*amp*x2*Exp(-(x1**2+x2**2)/(2.0d0*R**2))
-          else
-             ux = - 1.0/(mass*R**2)*amp*x2*Exp(-(x1**2+x2**2)/(2.0*R**2))
-          end if
-
-        end function get_vortex_velocity_x
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> subroutine computing the initial conditions
-        !> for a steady state
-        !
-        !> @date
-        !> 12_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param x1
-        !> coordinate along the x-axis
-        !
-        !>@param x2
-        !> coordinate along the y-axis
-        !
-        !>@param mass
-        !> mass density at (x1,x2)
-        !
-        !>@param amp
-        !> vortex peak amplitude
-        !
-        !>@param R
-        !> radius of the vortex
-        !
-        !>@return uy
-        !> velocity along the y-axis at (x1,x2)
-        !---------------------------------------------------------------
-        function get_vortex_velocity_y(x1,x2,mass,amp,R)
-     $     result(uy)
-
-          implicit none
-
-          real(rkind), intent(in) :: x1
-          real(rkind), intent(in) :: x2
-          real(rkind), intent(in) :: mass
-          real(rkind), intent(in) :: amp
-          real(rkind), intent(in) :: R
-          real(rkind)             :: uy
-          
-          if(rkind.eq.8) then
-             uy =   1.0d0/(mass*R**2)*amp*x1*Exp(-(x1**2+x2**2)/(2.0d0*R**2))
-          else
-             uy =   1.0/(mass*R**2)*amp*x1*Exp(-(x1**2+x2**2)/(2.0*R**2))
-          end if          
-
-        end function get_vortex_velocity_y
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> subroutine computing the initial conditions
-        !> for a steady state
-        !
-        !> @date
-        !> 12_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param x1
-        !> coordinate along the x-axis
-        !
-        !>@param x2
-        !> coordinate along the y-axis
-        !
-        !>@param mass
-        !> mass density at (x1,x2)
-        !
-        !>@param amp
-        !> vortex peak amplitude
-        !
-        !>@param R
-        !> radius of the vortex
-        !
-        !>@param P_infty
-        !> pressure in the far field
-        !
-        !>@return P
-        !> pressure at (x1,x2)
-        !---------------------------------------------------------------
-        function get_pressure(x1,x2,mass,amp,R,P_infty)
-     $     result(P)
-
-          implicit none
-
-          real(rkind), intent(in) :: x1
-          real(rkind), intent(in) :: x2
-          real(rkind), intent(in) :: mass
-          real(rkind), intent(in) :: amp
-          real(rkind), intent(in) :: R
-          real(rkind), intent(in) :: P_infty
-          real(rkind)             :: P
-          
-          if(rkind.eq.8) then
-             P = P_infty + mass*amp**2/R**2*Exp(-(x1**2+x2**2)/(2.0d0*R**2))
-          else
-             P = P_infty + mass*amp**2/R**2*Exp(-(x1**2+x2**2)/(2.0*R**2))
-          end if
-
-        end function get_pressure
 
       end module ic_class

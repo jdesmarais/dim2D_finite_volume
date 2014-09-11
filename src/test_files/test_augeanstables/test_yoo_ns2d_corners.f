@@ -72,13 +72,18 @@
      $       (.not.is_test_validated(gamma,5.0d0/3.0d0,detailled)).or.
      $       (.not.is_test_validated(mach_infty,0.2d0,detailled)).or.
      $       (.not.is_test_validated(sigma_P,0.25d0,detailled)).or.
-     $       (.not.(flow_direction.eq.x_direction))) then
+     $       (.not.(flow_direction.eq.x_direction)).or.
+     $       (.not.is_test_validated(p_model%get_mach_ux_infty(left),mach_infty,detailled)).or.
+     $       (.not.is_test_validated(p_model%get_mach_ux_infty(right),mach_infty,detailled)).or.
+     $       (.not.is_test_validated(p_model%get_mach_uy_infty(left),0.0d0,detailled)).or.
+     $       (.not.is_test_validated(p_model%get_mach_uy_infty(right),0.0d0,detailled))) then
 
            print '(''the test requires: '')'
            print '(''gamma=5/3'')'
            print '(''mach_infty=0.2'')'
            print '(''sigma_P=0.25'')'
            print '(''flow_direction=x-direction'')'
+           print '(''ic_choice=peak'')'
            stop ''
 
         end if

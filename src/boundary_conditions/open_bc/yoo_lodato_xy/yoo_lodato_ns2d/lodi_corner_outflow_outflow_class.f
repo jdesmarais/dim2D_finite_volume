@@ -297,11 +297,11 @@
           relaxation_lodiT = get_relaxation_lodiT(mach_local)
 
           L_domain_x     = x_map(size(x_map,1))-x_map(1)
-          mach_ux_infty  = p_model%get_mach_ux_infty()
+          mach_ux_infty  = p_model%get_mach_ux_infty(side_x)
           relaxation_P_x = get_relaxation_pressure(L_domain_x,mach_ux_infty)
 
           L_domain_y     = y_map(size(y_map,1))-y_map(1)
-          mach_uy_infty  = p_model%get_mach_uy_infty()
+          mach_uy_infty  = p_model%get_mach_uy_infty(side_y)
           relaxation_P_y = get_relaxation_pressure(L_domain_y,mach_uy_infty)
 
 

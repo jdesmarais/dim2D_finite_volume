@@ -285,7 +285,6 @@ test_yoo_ns2d_corners:	$(param_dep)\
 			$(ns2d_dep)\
 			$(mt_dep)\
 			lodi_component_module.o\
-			lodi_transverse_module.o\
 			lodi_relaxation_coeff_module.o\
 			lodi_corner_abstract_class.o\
 			lodi_corner_ns2d_class.o\

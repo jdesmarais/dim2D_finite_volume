@@ -175,11 +175,16 @@
 
         !get the variable enforced at the edge of the
         !computational domain
-        function get_mach_ux_infty() result(var)
+        function get_mach_ux_infty(side) result(var)
 
           implicit none
 
-          real(rkind) :: var
+          logical, intent(in) :: side
+          real(rkind)         :: var
+
+          logical :: side_s
+
+          side_s = side
 
           select case(flow_direction)
 
@@ -203,11 +208,16 @@
 
         !get the variable enforced at the edge of the
         !computational domain
-        function get_mach_uy_infty() result(var)
+        function get_mach_uy_infty(side) result(var)
 
           implicit none
 
-          real(rkind) :: var
+          logical, intent(in) :: side
+          real(rkind)         :: var
+
+          logical :: side_s
+
+          side_s = side
 
           select case(flow_direction)
 

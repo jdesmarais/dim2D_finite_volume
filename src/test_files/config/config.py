@@ -133,7 +133,9 @@ def compute_code_inputs(inputFileName):
 
     ns2d_ic_code = ['steady_state',
                     'peak',
-                    'vortex']
+                    'vortex',
+                    'sym_x',
+                    'sym_y']
     
     dim2d_ic_code= ['steady_state',
                     'drop_retraction',

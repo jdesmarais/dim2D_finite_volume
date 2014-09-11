@@ -86,11 +86,12 @@
 
           !get the variable enforced at the edge of the
           !computational domain
-          function far_proc() result(var)
+          function far_proc(side) result(var)
 
             import rkind
 
-            real(rkind) :: var
+            logical    , intent(in) :: side
+            real(rkind)             :: var
 
           end function far_proc
 

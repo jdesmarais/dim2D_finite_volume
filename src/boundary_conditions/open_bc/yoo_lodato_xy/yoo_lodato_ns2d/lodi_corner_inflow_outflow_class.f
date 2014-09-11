@@ -317,7 +317,7 @@
              
              !compute the incoming LODI components in the x-direction
              L_domain_x     = x_map(size(x_map,1))-x_map(1)
-             mach_ux_infty  = p_model%get_mach_ux_infty()
+             mach_ux_infty  = p_model%get_mach_ux_infty(side_x)
 
              relaxation_u_x = get_relaxation_normal_velocity(L_domain_x,mach_ux_infty,side_x)
              relaxation_v_x = get_relaxation_trans_velocity(L_domain_x, mach_local)
@@ -364,7 +364,7 @@
              
              !compute the incoming LODI components in the x-direction
              L_domain_y     = y_map(size(y_map,1))-y_map(1)
-             mach_uy_infty  = p_model%get_mach_uy_infty()
+             mach_uy_infty  = p_model%get_mach_uy_infty(side_y)
 
              relaxation_u_y = get_relaxation_trans_velocity(L_domain_y, mach_local)
              relaxation_v_y = get_relaxation_normal_velocity(L_domain_y,mach_uy_infty,side_y)

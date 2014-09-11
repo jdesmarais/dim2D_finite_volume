@@ -275,6 +275,19 @@ $(ns2d_vic)/ic_class.o:	$(ns2d_dir)/ns2d_parameters.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
+$(ns2d_sxic)/ic_class.o:$(ns2d_dir)/ns2d_parameters.o\
+			$(phy_eq_dir)/ic_abstract_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+$(ns2d_syic)/ic_class.o:$(ns2d_dir)/ns2d_parameters.o\
+			$(phy_eq_dir)/ic_abstract_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+
 $(ns2d_dir)/pmodel_eq_class.o:\
 			$(ic_cdir)/ic_class.o\
 			$(sd_dir)/interface_primary.o\

@@ -78,7 +78,6 @@ c$$$     $                                           compute_n2_righteigenvector
      $       steady_state,
      $       peak,
      $       vortex,
-     $       vortex_convected_x,
      $       earth_gravity_choice
 
         use parameters_input, only :
@@ -470,14 +469,15 @@ c$$$          y_s = y_map(1)
         !>@result var
         !> far field Mach number in the x-direction
         !---------------------------------------------------------------
-        function get_mach_ux_infty(this) result(var)
+        function get_mach_ux_infty(this,side) result(var)
 
           implicit none
 
           class(pmodel_eq), intent(in) :: this
+          logical         , intent(in) :: side
           real(rkind)                  :: var
 
-          var = this%initial_conditions%get_mach_ux_infty()
+          var = this%initial_conditions%get_mach_ux_infty(side)
 
         end function get_mach_ux_infty
 
@@ -494,14 +494,15 @@ c$$$          y_s = y_map(1)
         !>@result var
         !> far field Mach number in the y-direction
         !---------------------------------------------------------------
-        function get_mach_uy_infty(this) result(var)
+        function get_mach_uy_infty(this,side) result(var)
 
           implicit none
 
           class(pmodel_eq), intent(in) :: this
+          logical         , intent(in) :: side
           real(rkind)                  :: var
 
-          var = this%initial_conditions%get_mach_uy_infty()
+          var = this%initial_conditions%get_mach_uy_infty(side)
 
         end function get_mach_uy_infty
 

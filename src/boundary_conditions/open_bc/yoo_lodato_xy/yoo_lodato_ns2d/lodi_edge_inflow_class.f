@@ -240,7 +240,7 @@
           !get the variables specific to the x-direction
           L_domain_x       = x_map(size(x_map,1))-x_map(1)
           mach_local       = get_local_mach(u,v,c)
-          mach_ux_infty    = p_model%get_mach_ux_infty()
+          mach_ux_infty    = p_model%get_mach_ux_infty(side)
 
           relaxation_u     = get_relaxation_normal_velocity(L_domain_x,mach_ux_infty,side)
           relaxation_v     = get_relaxation_trans_velocity(L_domain_x, mach_local)
@@ -388,7 +388,7 @@
           !get the variables specific to the x-direction
           L_domain_y       = y_map(size(y_map,1))-y_map(1)
           mach_local       = get_local_mach(u,v,c)
-          mach_uy_infty    = p_model%get_mach_uy_infty()
+          mach_uy_infty    = p_model%get_mach_uy_infty(side)
 
           relaxation_u     = get_relaxation_trans_velocity(L_domain_y, mach_local)
           relaxation_v     = get_relaxation_normal_velocity(L_domain_y,mach_uy_infty,side)

@@ -40,8 +40,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 44
-        integer(ikind), parameter :: nty = 44
+        integer(ikind), parameter :: ntx = 5
+        integer(ikind), parameter :: nty = 5
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -68,7 +68,7 @@
         !phase_separation   : unstable mass density
         !--------------------------------------------
         integer, parameter :: flow_direction = x_direction
-        integer, parameter :: ic_choice = peak
+        integer, parameter :: ic_choice = sym_x
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice

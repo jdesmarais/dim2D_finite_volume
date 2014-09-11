@@ -305,8 +305,8 @@
           L_domain_x       = x_map(size(x_map,1))-x_map(1)
           L_domain_y       = y_map(size(y_map,1))-y_map(1)
           mach_local       = get_local_mach(u,v,c)
-          mach_ux_infty    = p_model%get_mach_ux_infty()
-          mach_uy_infty    = p_model%get_mach_uy_infty()
+          mach_ux_infty    = p_model%get_mach_ux_infty(side_x)
+          mach_uy_infty    = p_model%get_mach_uy_infty(side_y)
 
 
           !get the relaxation coefficients
