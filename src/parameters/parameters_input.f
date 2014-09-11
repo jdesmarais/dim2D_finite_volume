@@ -98,9 +98,9 @@
         real(rkind), parameter :: search_nb_dt = 0.0005000000d0
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
-        integer    , parameter :: obc_type_N = ask_flow
-        integer    , parameter :: obc_type_S = ask_flow
-        integer    , parameter :: obc_type_E = always_outflow
-        integer    , parameter :: obc_type_W = always_inflow
+        integer    , parameter :: obc_type_N = always_inflow !ask_flow
+        integer    , parameter :: obc_type_S = always_inflow !ask_flow
+        integer    , parameter :: obc_type_E = always_inflow !ask_flow
+        integer    , parameter :: obc_type_W = always_inflow !ask_flow
 
       end module parameters_input

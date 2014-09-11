@@ -575,7 +575,7 @@
      $         epsilon,
      $         edge_inviscid_flux_S,
      $         edge_viscid_flux_S,
-     $         compute_cons_lodi_matrix_x,
+     $         compute_cons_lodi_matrix_y,
      $         compute_dev_from_flux_x,
      $         transverse_lodi_S,
      $         viscous_lodi_S)
@@ -588,7 +588,7 @@
      $         epsilon,
      $         edge_inviscid_flux_W,
      $         edge_viscid_flux_W,
-     $         compute_cons_lodi_matrix_y,
+     $         compute_cons_lodi_matrix_x,
      $         compute_dev_from_flux_y,
      $         transverse_lodi_W,
      $         viscous_lodi_W)
@@ -601,7 +601,7 @@
      $         epsilon,
      $         edge_inviscid_flux_E,
      $         edge_viscid_flux_E,
-     $         compute_cons_lodi_matrix_y,
+     $         compute_cons_lodi_matrix_x,
      $         compute_dev_from_flux_y,
      $         transverse_lodi_E,
      $         viscous_lodi_E)
@@ -614,7 +614,7 @@
      $         epsilon,
      $         edge_inviscid_flux_N,
      $         edge_viscid_flux_N,
-     $         compute_cons_lodi_matrix_x,
+     $         compute_cons_lodi_matrix_y,
      $         compute_dev_from_flux_x,
      $         transverse_lodi_N,
      $         viscous_lodi_N)

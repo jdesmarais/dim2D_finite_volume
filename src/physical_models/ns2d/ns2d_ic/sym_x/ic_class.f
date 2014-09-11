@@ -143,9 +143,9 @@
 
             case(x_direction)
                if(side.eqv.left) then
-                  var = u0_x_flow*mach_infty/Sqrt(u0_x_flow**2+v0_x_flow**2)
-               else
                   var =-u0_x_flow*mach_infty/Sqrt(u0_x_flow**2+v0_x_flow**2)
+               else
+                  var = u0_x_flow*mach_infty/Sqrt(u0_x_flow**2+v0_x_flow**2)
                end if
                
             case(y_direction)

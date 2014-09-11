@@ -1,4 +1,4 @@
-      program test_yoo_operators
+      program test_yoo_sym_x
 
         use bc_operators_class, only :
      $     bc_operators
@@ -7,17 +7,15 @@
      $       gamma,
      $       mach_infty
 
-        use openbc_operators_module, only :
-     $       compute_fluxes_at_the_edges_2ndorder
-
         use parameters_constant, only :
+     $       left,right,
      $       vector_x,
      $       x_direction
 
         use parameters_input, only :
      $       sigma_P,
      $       flow_direction,
-     $       nx,ny,ne,bc_size
+     $       nx,ny,ne
 
         use parameters_kind, only :
      $       ikind,
@@ -25,30 +23,6 @@
 
         use pmodel_eq_class, only :
      $       pmodel_eq
-
-        use sd_operators_x_oneside_L0_class, only :
-     $       sd_operators_x_oneside_L0
-
-        use sd_operators_x_oneside_L1_class, only :
-     $       sd_operators_x_oneside_L1
-
-        use sd_operators_x_oneside_R1_class, only :
-     $       sd_operators_x_oneside_R1
-
-        use sd_operators_x_oneside_R0_class, only :
-     $       sd_operators_x_oneside_R0
-
-        use sd_operators_y_oneside_L0_class, only :
-     $       sd_operators_y_oneside_L0
-
-        use sd_operators_y_oneside_L1_class, only :
-     $       sd_operators_y_oneside_L1
-
-        use sd_operators_y_oneside_R1_class, only :
-     $       sd_operators_y_oneside_R1
-
-        use sd_operators_y_oneside_R0_class, only :
-     $       sd_operators_y_oneside_R0
 
         implicit none
 
@@ -65,7 +39,9 @@
         real(rkind), dimension(nx,ny,ne)   :: timedev
         type(bc_operators)                 :: bc_used
 
-        logical :: test_validated
+        character(*), parameter :: FMT='(5F14.5)'
+
+c$$$        logical :: test_validated
         logical :: detailled
         
 
@@ -84,32 +60,21 @@
      $       (.not.is_test_validated(gamma,5.0d0/3.0d0,detailled)).or.
      $       (.not.is_test_validated(mach_infty,0.2d0,detailled)).or.
      $       (.not.is_test_validated(sigma_P,0.25d0,detailled)).or.
-     $       (.not.(flow_direction.eq.x_direction))) then
+     $       (.not.(flow_direction.eq.x_direction)).or.
+     $       (.not.is_test_validated(p_model%get_mach_ux_infty(left),-mach_infty,detailled)).or.
+     $       (.not.is_test_validated(p_model%get_mach_ux_infty(right),mach_infty,detailled)).or.
+     $       (.not.is_test_validated(p_model%get_mach_uy_infty(left),0.0d0,detailled)).or.
+     $       (.not.is_test_validated(p_model%get_mach_uy_infty(right),0.0d0,detailled))) then
 
            print '(''the test requires: '')'
            print '(''gamma=5/3'')'
            print '(''mach_infty=0.2'')'
            print '(''sigma_P=0.25'')'
            print '(''flow_direction=x-direction'')'
+           print '(''ic_choice=sym_x'')'
            stop ''
 
         end if
-
-
-        !test compute_fluxes_and_lodi_at_the_edges_2ndorder
-        print '(''test compute_fluxes_and_lodi_at_the_edges_2ndorder'')'
-        print '(''--------------------------------------------------'')'
-
-        detailled = .false.
-
-        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
-
-        test_validated = test_compute_edge_fluxes(
-     $       p_model,nodes,x_map,y_map,
-     $       bc_used,
-     $       detailled)
-        print '()'
-        
 
 
         !test apply_bc_on_timedev
@@ -120,6 +85,8 @@
 
         call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
 
+        call print_nodes(nodes,x_map,y_map)
+
         call bc_used%ini(p_model)
 
         call bc_used%apply_bc_on_timedev(
@@ -128,10 +95,34 @@
      $       flux_x,flux_y,
      $       timedev)
 
+        call print_timedev(timedev)
+
 
         contains
 
-        !initialize the nodes
+
+        !check the data
+        function is_test_validated(var,cst,detailled) result(test_validated)
+
+          implicit none
+
+          real(rkind), intent(in) :: var
+          real(rkind), intent(in) :: cst
+          logical    , intent(in) :: detailled
+          logical                 :: test_validated
+
+          if(detailled) then
+             print *, int(var*1e5)
+             print *, int(cst*1e5)
+          end if
+          
+          test_validated=abs(
+     $         int(var*10000.)-
+     $         sign(int(abs(cst*10000.)),int(cst*10000.))).le.1
+          
+        end function is_test_validated
+
+
         subroutine initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
 
           implicit none
@@ -271,156 +262,111 @@
 
           !initialize the x_map
           do i=1,5
-             x_map(i) = (i-1)*dx
+             x_map(i) = (i-3)*dx
           end do
 
           !initialize the y_map
           do i=1,5
-             y_map(i) = (i-1)*dy
+             y_map(i) = (i-3)*dy
           end do
           
-        end subroutine initialize_nodes
+       end subroutine initialize_nodes
 
 
-        !check the data
-        function is_test_validated(var,cst,detailled) result(test_validated)
+       !print nodes
+       subroutine print_nodes(nodes,x_map,y_map)
 
           implicit none
 
-          real(rkind), intent(in) :: var
-          real(rkind), intent(in) :: cst
-          logical    , intent(in) :: detailled
-          logical                 :: test_validated
+          real(rkind), dimension(nx,ny,ne), intent(out) :: nodes
+          real(rkind), dimension(nx)      , intent(out) :: x_map
+          real(rkind), dimension(ny)      , intent(out) :: y_map
 
-          if(detailled) then
-             print *, int(var*1e5)
-             print *, int(cst*1e5)
-          end if
-          
-          test_validated=abs(
-     $         int(var*10000.)-
-     $         sign(int(abs(cst*10000.)),int(cst*10000.))).le.1
-          
-        end function is_test_validated
+          integer(ikind) :: j
 
 
-        !test compute_edge_fluxes
-        function test_compute_edge_fluxes(
-     $     p_model,nodes,x_map,y_map,
-     $     bc_used,
-     $     detailled)
-     $     result(test_validated)
+          print '(''x_map'')'
+          print FMT, x_map
+          print '()'
+
+          print '(''y_map'')'
+          print FMT, y_map
+          print '()'
+
+          print '()'
+          print '(''mass_density'')'
+          do j=1,5
+             print FMT, nodes(1:5,6-j,1)
+          end do
+          print '()'
+
+          print '()'
+          print '(''momentum-x'')'
+          do j=1,5
+             print FMT, nodes(1:5,6-j,2)
+          end do
+          print '()'
+
+          print '()'
+          print '(''momentum-y'')'
+          do j=1,5
+             print FMT, nodes(1:5,6-j,3)
+          end do
+          print '()'
+
+          print '()'
+          print '(''total energy'')'
+          do j=1,5
+             print FMT, nodes(1:5,6-j,4)
+          end do
+          print '()'
+          print '()'
+
+        end subroutine print_nodes
+
+
+       !print timedev
+       subroutine print_timedev(timedev)
 
           implicit none
 
-          type(pmodel_eq)                 , intent(in)    :: p_model
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
-          real(rkind), dimension(nx)      , intent(in)    :: x_map
-          real(rkind), dimension(ny)      , intent(in)    :: y_map
-          type(bc_operators)              , intent(inout) :: bc_used
-          logical                         , intent(in)    :: detailled
-          logical                                         :: test_validated
+          real(rkind), dimension(nx,ny,ne), intent(in) :: timedev
 
-          type(sd_operators_x_oneside_L0) :: s_x_L0
-          type(sd_operators_x_oneside_L1) :: s_x_L1
-          type(sd_operators_x_oneside_R1) :: s_x_R1
-          type(sd_operators_x_oneside_R0) :: s_x_R0
-          type(sd_operators_y_oneside_L0) :: s_y_L0
-          type(sd_operators_y_oneside_L1) :: s_y_L1
-          type(sd_operators_y_oneside_R1) :: s_y_R1
-          type(sd_operators_y_oneside_R0) :: s_y_R0
- 
-          real(rkind), dimension(nx+1,ny,ne) :: test_data_flux_x
-          real(rkind), dimension(nx,ny+1,ne) :: test_data_flux_y
-          real(rkind), dimension(nx+1,ny,ne) :: flux_x
-          real(rkind), dimension(nx,ny+1,ne) :: flux_y
-
-          logical        :: test_loc
-          integer(ikind) :: i,j
-          integer        :: k
+          integer(ikind) :: j
 
 
-          !computation of the test data
-          call compute_fluxes_at_the_edges_2ndorder(
-     $         nodes, dx, dy,
-     $         s_x_L0, s_x_L1, s_x_R1, s_x_R0,
-     $         s_y_L0, s_y_L1, s_y_R1, s_y_R0,
-     $         p_model,
-     $         test_data_flux_x, test_data_flux_y)
-
-          !computation of the data to be tested
-          call bc_used%ini(p_model)
-
-          call bc_used%apply_bc_on_timedev(
-     $         p_model,
-     $         t,nodes,x_map,y_map,
-     $         flux_x,flux_y,
-     $         timedev)
-
-          !comparison of the data
-          test_validated = .true.
-
-          do k=1, ne
-             do j=1, bc_size
-                do i=bc_size+1, nx-bc_size+1
-                   
-                   test_loc = is_test_validated(
-     $                  flux_x(i,j,k),
-     $                  test_data_flux_x(i,j,k),
-     $                  detailled)
-                   test_validated = test_validated.and.test_loc
-
-                end do
-             end do
-
-             do j=ny-bc_size+1, ny
-                do i=bc_size+1, nx-bc_size+1
-                   
-                   test_loc = is_test_validated(
-     $                  flux_x(i,j,k),
-     $                  test_data_flux_x(i,j,k),
-     $                  detailled)
-                   test_validated = test_validated.and.test_loc
-
-                end do
-             end do
-
-          end do
-          if(.not.detailled) then
-             print '(''test_flux_x(edge): '',L1)', test_validated
-          end if
-
-
-          test_validated=.true.
+          print '(''time derivatives of governing variables'')'
+          print '(''---------------------------------------'')'
           
-          do k=1, ne
-             do j=bc_size+1, ny-bc_size+1
-                do i=1, bc_size
-                   
-                   test_loc = is_test_validated(
-     $                  flux_y(i,j,k),
-     $                  test_data_flux_y(i,j,k),
-     $                  detailled)
-                   test_validated = test_validated.and.test_loc
-
-                end do
-
-                do i=nx-bc_size+1,nx
-                   
-                   test_loc = is_test_validated(
-     $                  flux_y(i,j,k),
-     $                  test_data_flux_y(i,j,k),
-     $                  detailled)
-                   test_validated = test_validated.and.test_loc
-
-                end do
-             end do
+          print '()'
+          print '(''mass_density'')'
+          do j=1,5
+             print FMT, timedev(1:5,6-j,1)
           end do
+          print '()'
+          
+          print '()'
+          print '(''momentum-x'')'
+          do j=1,5
+             print FMT, timedev(1:5,6-j,2)
+          end do
+          print '()'
+          
+          print '()'
+          print '(''momentum-y'')'
+          do j=1,5
+             print FMT, timedev(1:5,6-j,3)
+          end do
+          print '()'
+          
+          print '()'
+          print '(''total energy'')'
+          do j=1,5
+             print FMT, timedev(1:5,6-j,4)
+          end do
+          print '()'
+          print '()'
 
-          if(.not.detailled) then
-             print '(''test_flux_y(edge): '',L1)', test_validated
-          end if
+        end subroutine print_timedev
 
-        end function test_compute_edge_fluxes
-
-      end program test_yoo_operators
+      end program test_yoo_sym_x
