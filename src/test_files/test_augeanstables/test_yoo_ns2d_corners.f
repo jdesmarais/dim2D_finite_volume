@@ -106,6 +106,8 @@
 
         call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
 
+        detailled = .true.
+
         test_validated = test_corner_inflow_inflow(
      $       p_model,
      $       nodes, x_map, y_map,
@@ -117,6 +119,7 @@
         end if
         print '()'
         
+        detailled = .false.
 
         !test corner inflow/outflow
         print '(''test corner_inflow_outflow'')'

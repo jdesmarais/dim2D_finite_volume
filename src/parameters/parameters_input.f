@@ -67,7 +67,7 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer, parameter :: flow_direction = y_direction
+        integer, parameter :: flow_direction = x_direction
         integer, parameter :: ic_choice = vortex
 
         !<body forces choice
@@ -98,9 +98,9 @@
         real(rkind), parameter :: search_nb_dt = 0.0001000000d0
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
-        integer    , parameter :: obc_type_N = always_inflow !ask_flow
-        integer    , parameter :: obc_type_S = always_inflow !ask_flow
-        integer    , parameter :: obc_type_E = always_inflow !ask_flow
-        integer    , parameter :: obc_type_W = always_inflow !ask_flow
+        integer    , parameter :: obc_type_N = always_outflow
+        integer    , parameter :: obc_type_S = always_outflow
+        integer    , parameter :: obc_type_E = always_outflow
+        integer    , parameter :: obc_type_W = always_inflow
 
       end module parameters_input

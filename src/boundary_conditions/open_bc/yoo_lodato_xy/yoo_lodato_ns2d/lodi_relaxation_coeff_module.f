@@ -279,6 +279,14 @@
      $            (1.0-M_un**2)
           end if
 
+c$$$          if(rkind.eq.8) then
+c$$$             relaxationCoeff = sigma_P/(l_domain_n*mach_infty)*
+c$$$     $            (1.0d0-mach_infty**2)
+c$$$          else
+c$$$             relaxationCoeff = sigma_P/(l_domain_n*mach_infty)*
+c$$$     $            (1.0-mach_infty**2)
+c$$$          end if
+
         end function get_relaxation_pressure
 
       end module lodi_relaxation_coeff_module
