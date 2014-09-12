@@ -80,7 +80,8 @@
         use parameters_constant, only :
      $       bc_timedev_choice,
      $       left,
-     $       right
+     $       right,
+     $       N,S,E,W
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
@@ -159,6 +160,7 @@
           contains
 
           procedure, pass :: ini
+          procedure, pass :: set_obc_type
           procedure, pass :: apply_bc_on_timedev => apply_bc_on_timedev_2ndorder
 
         end type bc_operators        
@@ -202,6 +204,37 @@
           this%oneside_flow_W = obc_type_W
 
         end subroutine ini
+
+      
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine initializing the main attributes
+        !> of the boundary conditions
+        !
+        !> @date
+        !> 10_09_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> boundary conditions initialized
+        !
+        !>@param obc_type
+        !> integer table containing the 
+        !--------------------------------------------------------------
+        subroutine set_obc_type(this,obc_type)
+
+          implicit none
+
+          class(bc_operators)  , intent(inout) :: this
+          integer, dimension(4), intent(in)    :: obc_type
+
+          this%oneside_flow_N = obc_type(N)
+          this%oneside_flow_S = obc_type(S)
+          this%oneside_flow_E = obc_type(E)
+          this%oneside_flow_W = obc_type(W)
+
+        end subroutine set_obc_type
 
 
         !> @author

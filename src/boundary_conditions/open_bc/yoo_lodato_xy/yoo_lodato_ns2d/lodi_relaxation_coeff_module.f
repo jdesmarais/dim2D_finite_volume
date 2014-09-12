@@ -139,6 +139,8 @@
           logical    , intent(in) :: side
           real(rkind)             :: relaxationCoeff
 
+          logical :: side_s
+
 
           if(rkind.eq.8) then
              relaxationCoeff =
@@ -156,9 +158,10 @@
 
           end if
 
-          if(side.eqv.right) then
-             relaxationCoeff = -relaxationCoeff
-          end if
+          !if(side.eqv.right) then
+          !   relaxationCoeff = -relaxationCoeff
+          !end if
+          side_s = side
 
         end function get_relaxation_normal_velocity
 

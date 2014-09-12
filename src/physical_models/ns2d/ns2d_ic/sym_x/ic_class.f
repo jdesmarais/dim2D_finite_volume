@@ -218,16 +218,24 @@
 
             case(x_direction)
                if(x.gt.0) then
-                  var =-u0_x_flow
-               else
                   var = u0_x_flow
+               else
+                  if(x.eq.0) then
+                     var = 0.0d0
+                  else
+                     var =-u0_x_flow
+                  end if
                end if
                
             case(y_direction)
                if(x.gt.0) then
-                  var =-u0_y_flow
-               else
                   var = u0_y_flow
+               else
+                  if(x.eq.0) then
+                     var = 0.0d0
+                  else
+                     var =-u0_y_flow
+                  end if
                end if
 
             case default

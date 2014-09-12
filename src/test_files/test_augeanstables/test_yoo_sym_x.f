@@ -10,7 +10,9 @@
         use parameters_constant, only :
      $       left,right,
      $       vector_x,
-     $       x_direction
+     $       x_direction,
+     $       always_inflow,
+     $       always_outflow
 
         use parameters_input, only :
      $       sigma_P,
@@ -41,7 +43,9 @@
 
         character(*), parameter :: FMT='(5F14.5)'
 
-c$$$        logical :: test_validated
+        real(rkind), dimension(nx,ny,ne) :: test_data
+
+        logical :: test_validated
         logical :: detailled
         
 
@@ -77,17 +81,23 @@ c$$$        logical :: test_validated
         end if
 
 
+        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
+        call print_nodes(nodes,x_map,y_map)
+
+
         !test apply_bc_on_timedev
         print '(''test apply_bc_on_timedev'')'
         print '(''---------------------------------------'')'
 
+        !inflow/inflow edges
         detailled = .false.
 
-        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
-
-        call print_nodes(nodes,x_map,y_map)
-
         call bc_used%ini(p_model)
+        call bc_used%set_obc_type([
+     $       always_inflow,
+     $       always_inflow,
+     $       always_inflow,
+     $       always_inflow])
 
         call bc_used%apply_bc_on_timedev(
      $       p_model,
@@ -95,7 +105,42 @@ c$$$        logical :: test_validated
      $       flux_x,flux_y,
      $       timedev)
 
-        call print_timedev(timedev)
+        call get_edge_inflow_inflow_test_data(test_data)
+
+        test_validated = test_edge_x(timedev,test_data,detailled)
+
+        if(.not.detailled) then
+           print '(''test_edge_inflow_inflow: '',L1)', test_validated
+        end if
+        print '()'
+
+        
+        !outflow/outflow edges
+        detailled = .false.
+
+        call bc_used%ini(p_model)
+        call bc_used%set_obc_type([
+     $       always_outflow,
+     $       always_outflow,
+     $       always_outflow,
+     $       always_outflow])
+
+        call bc_used%apply_bc_on_timedev(
+     $       p_model,
+     $       t,nodes,x_map,y_map,
+     $       flux_x,flux_y,
+     $       timedev)
+
+        call get_edge_outflow_outflow_test_data(test_data)
+
+        test_validated = test_edge_x(timedev,test_data,detailled)
+
+        if(.not.detailled) then
+           print '(''test_edge_inflow_inflow: '',L1)', test_validated
+        end if
+        print '()'
+
+c$$$        call print_timedev(timedev)
 
 
         contains
@@ -368,5 +413,103 @@ c$$$        logical :: test_validated
           print '()'
 
         end subroutine print_timedev
+
+
+        subroutine get_edge_inflow_inflow_test_data(test_data)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(out) :: test_data
+
+          test_data(1,3,1) =  5.175782381d0
+          test_data(2,3,1) = -7.239125586d0
+          test_data(4,3,1) = -7.239125586d0
+          test_data(5,3,1) =  5.175782381d0
+
+          test_data(1,3,2) = -63.69487469d0
+          test_data(2,3,2) =  52.30399907d0
+          test_data(4,3,2) = -52.30399907d0
+          test_data(5,3,2) =  63.69487469d0
+
+          test_data(1,3,3) = -198.7475544d0
+          test_data(2,3,3) =  -27.0085677d0
+          test_data(4,3,3) =  -27.0085677d0
+          test_data(5,3,3) = -198.7475544d0
+
+          test_data(1,3,4) = -6053.037008d0
+          test_data(2,3,4) = -494.9285596d0
+          test_data(4,3,4) = -494.9285596d0
+          test_data(5,3,4) = -6053.037008d0
+
+        end subroutine get_edge_inflow_inflow_test_data
+
+
+        subroutine get_edge_outflow_outflow_test_data(test_data)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(out) :: test_data
+
+          test_data(1,3,1) =   18.3065111d0
+          test_data(1,3,2) = -72.86211727d0
+          test_data(1,3,3) =  568.1087269d0
+          test_data(1,3,4) =  14368.95909d0
+
+          test_data(2,3,1) =  6.233415707d0
+          test_data(2,3,2) =  28.58576219d0
+          test_data(2,3,3) = -305.2461723d0
+          test_data(2,3,4) = -1115.994698d0
+
+          test_data(4,3,1) =  6.233415707d0
+          test_data(4,3,2) = -28.58576219d0
+          test_data(4,3,3) = -305.2461723d0
+          test_data(4,3,4) = -1115.994698d0
+
+          test_data(5,3,1) =   18.3065111d0
+          test_data(5,3,2) =  72.86211727d0
+          test_data(5,3,3) =  568.1087269d0
+          test_data(5,3,4) =  14368.95909d0
+
+        end subroutine get_edge_outflow_outflow_test_data
+
+
+        function test_edge_x(timedev,test_data,detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          real(rkind), dimension(nx,ny,ne), intent(in) :: timedev
+          real(rkind), dimension(nx,ny,ne), intent(in) :: test_data
+          logical                         , intent(in) :: detailled
+          logical                                      :: test_validated
+
+          logical        :: test_loc
+          integer(ikind) :: i,j
+          integer        :: k          
+          
+          test_validated = .true.
+
+          j=3
+          do k=1,ne
+             do i=1,2
+                test_loc = is_test_validated(
+     $               timedev(i,j,k), test_data(i,j,k), detailled)
+                test_validated = test_validated.and.test_loc
+                if(detailled) then
+                   print '(''timedev('',I3,'')'')', i,j,k,test_validated
+                end if
+             end do
+
+             do i=4,5
+                test_loc = is_test_validated(
+     $               timedev(i,j,k), test_data(i,j,k), detailled)
+                test_validated = test_validated.and.test_loc
+                if(detailled) then
+                   print '(''timedev('',I3,'')'')', i,j,k,test_validated
+                end if
+             end do
+          end do
+
+        end function test_edge_x
 
       end program test_yoo_sym_x

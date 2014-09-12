@@ -220,7 +220,7 @@
                var = u0_x_flow
                
             case(y_direction)
-               var =-u0_y_flow
+               var = u0_y_flow
 
             case default
                print '(''ns2d_ic'')'
@@ -256,16 +256,16 @@
 
             case(x_direction)
                if(y.gt.0) then
-                  var =-v0_x_flow
-               else
                   var = v0_x_flow
+               else
+                  var =-v0_x_flow
                end if
 
             case(y_direction)
                if(y.gt.0) then
-                  var =-v0_y_flow
-               else
                   var = v0_y_flow
+               else
+                  var =-v0_y_flow
                end if
 
             case default
