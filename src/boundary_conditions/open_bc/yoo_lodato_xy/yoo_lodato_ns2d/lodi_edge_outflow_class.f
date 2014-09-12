@@ -386,17 +386,17 @@
           relaxation_lodiT = get_relaxation_lodiT(mach_local)
           relaxation_P     = get_relaxation_pressure(L_domain_y,mach_uy_infty)
 
-          eigenvalues      = p_model%compute_x_eigenvalues(nodes(i,j,:))
+          eigenvalues      = p_model%compute_y_eigenvalues(nodes(i,j,:))
           dy               = y_map(2)-y_map(1)
           dmdy             = gradient(nodes,i,j,mass_density,dy)
           dudy             = gradient(nodes,i,j,velocity_x,dy)
           dvdy             = gradient(nodes,i,j,velocity_y,dy)
           dPdy             = gradient(nodes,i,j,pressure,dy)
 
-          vorticity_component         = eigenvalues(1)*dvdy
+          vorticity_component         = eigenvalues(1)*dudy
           entropy_component           = eigenvalues(2)*(c**2*dmdy-dPdy)
           acoustic_incoming_component = relaxation_P*(P-P_set)
-          acoustic_outgoing_component = eigenvalues(iy_out)*(dPdy + sign_out*nodes(i,j,1)*c*dudy)
+          acoustic_outgoing_component = eigenvalues(iy_out)*(dPdy + sign_out*nodes(i,j,1)*c*dvdy)
 
 
           !computation of the LODI components
