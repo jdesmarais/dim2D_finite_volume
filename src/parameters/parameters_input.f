@@ -29,10 +29,10 @@
         
         !<computational times
         real(rkind), parameter :: t_max = 1.5000000000d0
-        real(rkind), parameter :: dt = 0.0005000000d0
+        real(rkind), parameter :: dt = 0.0001000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0300000000d0
+        real(rkind), parameter :: detail_print = 0.0150000000d0
 
         !<mpi choice
         integer, parameter :: npx = 1 !<number of processors along x
@@ -40,8 +40,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 5
-        integer(ikind), parameter :: nty = 5
+        integer(ikind), parameter :: ntx = 204
+        integer(ikind), parameter :: nty = 204
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -68,13 +68,13 @@
         !phase_separation   : unstable mass density
         !--------------------------------------------
         integer, parameter :: flow_direction = y_direction
-        integer, parameter :: ic_choice = sym_y
+        integer, parameter :: ic_choice = vortex
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = poinsot_xy_choice
+        integer, parameter :: bc_choice = yoolodato_xy_choice
         integer, parameter :: bcx_type_choice = bc_timedev_choice
         integer, parameter :: bcy_type_choice = bc_timedev_choice
 
@@ -95,7 +95,7 @@
         !              applying the non-reflecting outflow
         !              pressure b.c.
         !--------------------------------------------
-        real(rkind), parameter :: search_nb_dt = 0.0005000000d0
+        real(rkind), parameter :: search_nb_dt = 0.0001000000d0
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
         integer    , parameter :: obc_type_N = always_inflow !ask_flow

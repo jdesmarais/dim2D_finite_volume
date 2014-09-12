@@ -83,6 +83,8 @@ bc_choice = 8
 ! 0 : steady state
 ! 1 : peak
 ! 2 : vortex
+! 3 : sym_x
+! 4 : sym_y
 !
 !for DIM:
 ! 0 : steady state
