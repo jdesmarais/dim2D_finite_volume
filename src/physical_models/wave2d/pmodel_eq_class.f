@@ -87,7 +87,7 @@
           procedure, nopass :: get_var_type
           procedure, nopass :: get_eq_nb
 
-          procedure, nopass :: apply_ic
+          procedure,   pass :: apply_ic
 
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
@@ -286,16 +286,17 @@
         !>@param nodes
         !> array with the y-coordinates
         !---------------------------------------------------------------
-        subroutine apply_ic(nodes,x_map,y_map)
+        subroutine apply_ic(this,nodes,x_map,y_map)
 
           implicit none
 
+          class(pmodel_eq)             , intent(in)    :: this
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
           real(rkind), dimension(:)    , intent(in)    :: x_map
           real(rkind), dimension(:)    , intent(in)    :: y_map
 
 
-          integer(ikind) :: i,j
+          integer(ikind) :: i,j,k
 
 
           if(rkind.eq.8) then
@@ -329,6 +330,58 @@
              end do
              
           end if
+
+
+c$$$          if(.true.) then
+c$$$             nodes(1,1,1) = 0.2
+c$$$             nodes(2,1,1) = 2.3
+c$$$             nodes(3,1,1) = -6.3
+c$$$             nodes(4,1,1) = 7.8
+c$$$             nodes(5,1,1) = -4.1
+c$$$             nodes(6,1,1) = 6.9
+c$$$
+c$$$             nodes(1,2,1) = 3.6
+c$$$             nodes(2,2,1) = 5.2
+c$$$             nodes(3,2,1) = 2.7
+c$$$             nodes(4,2,1) = -5.23
+c$$$             nodes(5,2,1) = 1.2
+c$$$             nodes(6,1,1) = -7.26
+c$$$
+c$$$             nodes(1,3,1) = 9.26
+c$$$             nodes(2,3,1) = -3.2
+c$$$             nodes(3,3,1) = 7.89
+c$$$             nodes(4,3,1) = -2.3
+c$$$             nodes(5,3,1) = 8.62
+c$$$             nodes(6,3,1) = 6.23
+c$$$
+c$$$             nodes(1,4,1) = 0.23
+c$$$             nodes(2,4,1) = 9.26
+c$$$             nodes(3,4,1) = 7.12
+c$$$             nodes(4,4,1) = -5.6
+c$$$             nodes(5,4,1) = -6.98
+c$$$             nodes(6,4,1) = -4.56
+c$$$
+c$$$             nodes(1,5,1) = 1.25
+c$$$             nodes(2,5,1) =-4.53
+c$$$             nodes(3,5,1) = 9.42
+c$$$             nodes(4,5,1) = 8.15
+c$$$             nodes(5,5,1) = -8.152
+c$$$             nodes(6,5,1) = 9.785
+c$$$
+c$$$             nodes(1,6,1) = 3.12
+c$$$             nodes(2,6,1) = 5.146
+c$$$             nodes(3,6,1) =-7.584
+c$$$             nodes(4,6,1) = 2.36
+c$$$             nodes(5,6,1) = 1.20
+c$$$             nodes(6,6,1) = -8.12
+c$$$
+c$$$             do j=1,6
+c$$$                do i=1,6
+c$$$                   nodes(i,j,2) = nodes(i,j,1)+1.0
+c$$$                   nodes(i,j,3) = nodes(i,j,1)*10-5
+c$$$                end do
+c$$$             end do
+c$$$          end if
 
         end subroutine apply_ic
 

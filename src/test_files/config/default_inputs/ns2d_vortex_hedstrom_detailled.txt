@@ -71,7 +71,7 @@ pm_choice = 3
 ! 6 : for hedstrom x reflection y
 ! 7 : for poinsot and lele openbc xy
 !---------------------------------------------------------
-bc_choice = 7
+bc_choice = 4
 
 
 !6.    Initial conditions

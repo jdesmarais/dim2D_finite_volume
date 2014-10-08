@@ -106,7 +106,7 @@
 
         call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
 
-        detailled = .true.
+        detailled = .false.
 
         test_validated = test_corner_inflow_inflow(
      $       p_model,
@@ -666,48 +666,6 @@
           print '(''lodi_y(SE):'',L2)', test_loc
 
           
-          !SE corner: (side_x=right,side_y=left)
-          i = 4
-          j = 2          
-          side_x = right
-          side_y = left
-
-
-          !test the computation of the x and y LODI vectors
-          call corner_i_i%compute_x_and_y_lodi(
-     $         p_model,
-     $         t, nodes, x_map, y_map, i,j,
-     $         side_x, side_y,
-     $         inflow_type, inflow_type,
-     $         gradient_x_x_oneside_R1,
-     $         gradient_y_y_oneside_L1,
-     $         lodi_x, lodi_y)
-
-          test_data_lodi_x(1) = -8.494118919d0
-          test_data_lodi_x(2) = -71.64831958d0
-          test_data_lodi_x(3) =  66.02236803d0
-          test_data_lodi_x(4) = -11.72021033d0
-
-          test_data_lodi_y(1) = -6.5319714d0
-          test_data_lodi_y(2) = -56.38772216d0
-          test_data_lodi_y(3) =  385.9079204d0
-          test_data_lodi_y(4) = -7.247702158d0
-
-          test_loc = is_vector_validated(
-     $         lodi_x,
-     $         test_data_lodi_x,
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          print '(''lodi_x(SE):'',L2)', test_loc
-
-          test_loc = is_vector_validated(
-     $         lodi_y,
-     $         test_data_lodi_y,
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          print '(''lodi_y(SE):'',L2)', test_loc
-
-
           !SW corner: (side_x=right,side_y=left)
           i = 2
           j = 2          
@@ -938,11 +896,11 @@ c$$$          real(rkind), dimension(ne) :: test_data_timedev
           test_data_lodi_x(1) = -1.166790347d0
           test_data_lodi_x(2) = -187.9985406d0
           test_data_lodi_x(3) = -299.0036936d0
-          test_data_lodi_x(4) =  74.90272475d0
+          test_data_lodi_x(4) =  84.33251595d0
 
           test_data_lodi_y(1) = -0.814825499d0
           test_data_lodi_y(2) =  10.75786491d0
-          test_data_lodi_y(3) =  2.959925659d0
+          test_data_lodi_y(3) = -38.86278723d0
           test_data_lodi_y(4) =  24.96631204d0
 
           test_loc = is_vector_validated(
@@ -983,12 +941,12 @@ c$$$          real(rkind), dimension(ne) :: test_data_timedev
 
           test_data_lodi_x(1) = -1.166790347d0
           test_data_lodi_x(2) = -187.9985406d0
-          test_data_lodi_x(3) =  74.90272475d0
+          test_data_lodi_x(3) =  84.33251595d0
           test_data_lodi_x(4) = -299.0036936d0
 
           test_data_lodi_y(1) =  0.814825499d0
           test_data_lodi_y(2) =  10.75786491d0
-          test_data_lodi_y(3) =  2.959925659d0
+          test_data_lodi_y(3) = -38.86278723d0
           test_data_lodi_y(4) =  24.96631204d0
 
           test_loc = is_vector_validated(

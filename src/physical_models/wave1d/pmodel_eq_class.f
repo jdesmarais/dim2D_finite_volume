@@ -80,7 +80,7 @@
           procedure, nopass :: get_var_type
           procedure, nopass :: get_eq_nb
 
-          procedure, nopass :: apply_ic
+          procedure,   pass :: apply_ic
 
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
@@ -266,10 +266,11 @@
         !>@param nodes
         !> array with the y-coordinates
         !---------------------------------------------------------------
-        subroutine apply_ic(nodes,x_map,y_map)
+        subroutine apply_ic(this,nodes,x_map,y_map)
 
           implicit none
 
+          class(pmodel_eq)             , intent(in)    :: this
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
           real(rkind), dimension(:)    , intent(in)    :: x_map
           real(rkind), dimension(:)    , intent(in)    :: y_map
