@@ -296,7 +296,7 @@
           real(rkind), dimension(:)    , intent(in)    :: y_map
 
 
-          integer(ikind) :: i,j,k
+          integer(ikind) :: i,j
 
 
           if(rkind.eq.8) then
@@ -499,13 +499,13 @@ c$$$          end if
           do j=bc_size+1, ny-bc_size
              do i=bc_size+1, nx+1-bc_size
 
-                flux_x(i,j,1) = c**2*s%f(nodes,i,j,velocity_x)
+                flux_x(i,j,1) = - c**2*s%f(nodes,i,j,velocity_x)
      $                          - epsilon*s%dfdx(nodes,i,j,position,dx)
 
-                flux_x(i,j,2) = c**2*s%f(nodes,i,j,position)
+                flux_x(i,j,2) = - c**2*s%f(nodes,i,j,position)
      $                          - epsilon*s%dfdx(nodes,i,j,velocity_x,dx)
 
-                flux_x(i,j,3) = -c_x*s%f(nodes,i,j,velocity_y)
+                flux_x(i,j,3) = - c_x*s%f(nodes,i,j,velocity_y)
      $                          - epsilon*s%dfdx(nodes,i,j,velocity_y,dx)
 
              end do
@@ -558,14 +558,14 @@ c$$$          end if
           do j=bc_size+1, ny+1-bc_size
              do i=bc_size+1, nx-bc_size
 
-                flux_y(i,j,1) = c**2*s%g(nodes,i,j,velocity_y)
-     $                         - epsilon*s%dgdy(nodes,i,j,position,dy)
+                flux_y(i,j,1) = - c**2*s%g(nodes,i,j,velocity_y)
+     $                          - epsilon*s%dgdy(nodes,i,j,position,dy)
 
-                flux_y(i,j,2) = -c_y*s%g(nodes,i,j,velocity_x)
-     $                         - epsilon*s%dgdy(nodes,i,j,velocity_x,dy)
+                flux_y(i,j,2) = - c_y*s%g(nodes,i,j,velocity_x)
+     $                          - epsilon*s%dgdy(nodes,i,j,velocity_x,dy)
 
-                flux_y(i,j,3) = c**2*s%g(nodes,i,j,position)
-     $                         - epsilon*s%dgdy(nodes,i,j,velocity_y,dy)
+                flux_y(i,j,3) = - c**2*s%g(nodes,i,j,position)
+     $                          - epsilon*s%dgdy(nodes,i,j,velocity_y,dy)
 
              end do
           end do
@@ -596,14 +596,14 @@ c$$$          end if
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 
-                   flux_x(i,j,1) = c**2*s%f(nodes,i,j,velocity_x)
-     $                            - epsilon*s%dfdx(nodes,i,j,position,dx)
+                   flux_x(i,j,1) = - c**2*s%f(nodes,i,j,velocity_x)
+     $                             - epsilon*s%dfdx(nodes,i,j,position,dx)
 
-                   flux_x(i,j,2) = c**2*s%f(nodes,i,j,position)
-     $                            - epsilon*s%dfdx(nodes,i,j,velocity_x,dx)
+                   flux_x(i,j,2) = - c**2*s%f(nodes,i,j,position)
+     $                             - epsilon*s%dfdx(nodes,i,j,velocity_x,dx)
 
-                   flux_x(i,j,3) = -c_x*s%f(nodes,i,j,velocity_y)
-     $                            - epsilon*s%dfdx(nodes,i,j,velocity_y,dx)
+                   flux_x(i,j,3) = - c_x*s%f(nodes,i,j,velocity_y)
+     $                             - epsilon*s%dfdx(nodes,i,j,velocity_y,dx)
 
                 end if
 
@@ -636,14 +636,14 @@ c$$$          end if
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 
-                   flux_y(i,j,1) = c**2*s%g(nodes,i,j,velocity_y)
-     $                            - epsilon*s%dgdy(nodes,i,j,position,dy)
+                   flux_y(i,j,1) = - c**2*s%g(nodes,i,j,velocity_y)
+     $                             - epsilon*s%dgdy(nodes,i,j,position,dy)
 
-                   flux_y(i,j,2) = -c_y*s%g(nodes,i,j,velocity_x)
-     $                            - epsilon*s%dgdy(nodes,i,j,velocity_x,dy)
+                   flux_y(i,j,2) = - c_y*s%g(nodes,i,j,velocity_x)
+     $                             - epsilon*s%dgdy(nodes,i,j,velocity_x,dy)
 
-                   flux_y(i,j,3) = c**2*s%g(nodes,i,j,position)
-     $                            - epsilon*s%dgdy(nodes,i,j,velocity_y,dy)
+                   flux_y(i,j,3) = - c**2*s%g(nodes,i,j,position)
+     $                             - epsilon*s%dgdy(nodes,i,j,velocity_y,dy)
 
                 end if
 
@@ -701,14 +701,14 @@ c$$$          end if
           dy_s = dy
 
           !<fluxes along the x-axis
-          flux_x(1) = c**2*s_oneside%f(nodes,i,j,velocity_x)
-     $               - epsilon*s_oneside%dfdx(nodes,i,j,position,dx)
+          flux_x(1) = - c**2*s_oneside%f(nodes,i,j,velocity_x)
+     $                - epsilon*s_oneside%dfdx(nodes,i,j,position,dx)
 
-          flux_x(2) = c**2*s_oneside%f(nodes,i,j,position)
-     $               - epsilon*s_oneside%dfdx(nodes,i,j,velocity_x,dx)
+          flux_x(2) = - c**2*s_oneside%f(nodes,i,j,position)
+     $                - epsilon*s_oneside%dfdx(nodes,i,j,velocity_x,dx)
           
-          flux_x(3) = -c_x*s_oneside%f(nodes,i,j,velocity_y)
-     $               - epsilon*s_oneside%dfdx(nodes,i,j,velocity_y,dx)
+          flux_x(3) = - c_x*s_oneside%f(nodes,i,j,velocity_y)
+     $                - epsilon*s_oneside%dfdx(nodes,i,j,velocity_y,dx)
 
         end function compute_flux_x_oneside
 
@@ -762,14 +762,14 @@ c$$$          end if
 
 
           !<fluxes along the x-axis
-          flux_y(1) = c**2*s_oneside%g(nodes,i,j,velocity_y)
-     $               - epsilon*s_oneside%dgdy(nodes,i,j,position,dy)
+          flux_y(1) = - c**2*s_oneside%g(nodes,i,j,velocity_y)
+     $                - epsilon*s_oneside%dgdy(nodes,i,j,position,dy)
           
-          flux_y(2) = -c_y*s_oneside%g(nodes,i,j,velocity_x)
-     $               - epsilon*s_oneside%dgdy(nodes,i,j,velocity_x,dy)
+          flux_y(2) = - c_y*s_oneside%g(nodes,i,j,velocity_x)
+     $                - epsilon*s_oneside%dgdy(nodes,i,j,velocity_x,dy)
           
-          flux_y(3) = c**2*s_oneside%g(nodes,i,j,position)
-     $               - epsilon*s_oneside%dgdy(nodes,i,j,velocity_y,dy)
+          flux_y(3) = - c**2*s_oneside%g(nodes,i,j,position)
+     $                - epsilon*s_oneside%dgdy(nodes,i,j,velocity_y,dy)
 
         end function compute_flux_y_oneside
 
