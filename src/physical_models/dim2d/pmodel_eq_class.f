@@ -60,7 +60,7 @@
      $                                           ic_choice,
      $                                           gravity_choice
         use parameters_kind             , only : ikind,rkind
-        use pmodel_eq_abstract_class    , only : pmodel_eq_abstract
+        use pmodel_eq_default_class     , only : pmodel_eq_default
 
 
         implicit none
@@ -129,7 +129,7 @@
         !> check whether the open boundary conditions are undermined
         !> at the grid point location
         !---------------------------------------------------------------
-        type, extends(pmodel_eq_abstract) :: pmodel_eq
+        type, extends(pmodel_eq_default) :: pmodel_eq
           
           contains
 
@@ -141,7 +141,7 @@
           procedure, nopass :: get_eq_nb
           procedure, nopass :: get_sim_parameters
 
-          procedure, nopass :: apply_ic
+          procedure,   pass :: apply_ic
 
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
@@ -374,10 +374,11 @@
         !>@param field_used
         !> object encapsulating the main variables
         !---------------------------------------------------------------
-        subroutine apply_ic(nodes,x_map,y_map)
+        subroutine apply_ic(this,nodes,x_map,y_map)
 
           implicit none
 
+          class(pmodel_eq)             , intent(in)    :: this
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
           real(rkind), dimension(:)    , intent(in)    :: x_map
           real(rkind), dimension(:)    , intent(in)    :: y_map
@@ -1044,24 +1045,21 @@ c$$$               call apply_drop_evaporation_ic(field_used)
         !>@return eigenvalues
         !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_lefteigenvector(nodes,k) result(eigenvect)
+        function compute_x_lefteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
           real(rkind) :: node_s
-          integer     :: k_s
 
           print '(''dim2d compute_x_lefteigenvector'')'
           stop 'not yet implemented'
 
           node_s = nodes(1)
-          k_s = k
-          eigenvect(1) = 0.0d0
+          eigenvect(1,1) = 0.0d0
 
         end function compute_x_lefteigenvector
 
@@ -1086,24 +1084,21 @@ c$$$               call apply_drop_evaporation_ic(field_used)
         !>@return eigenvalues
         !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_righteigenvector(nodes,k) result(eigenvect)
+        function compute_x_righteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
           real(rkind) :: node_s
-          integer     :: k_s
 
           print '(''dim2d compute_x_righteigenvector'')'
           stop 'not yet implemented'
 
           node_s = nodes(1)
-          k_s = k
-          eigenvect(1) = 0.0d0
+          eigenvect(1,1) = 0.0d0
 
         end function compute_x_righteigenvector
 
@@ -1128,24 +1123,21 @@ c$$$               call apply_drop_evaporation_ic(field_used)
         !>@return eigenvalues
         !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_y_lefteigenvector(nodes,k) result(eigenvect)
+        function compute_y_lefteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
           real(rkind) :: node_s
-          integer     :: k_s
 
           print '(''dim2d compute_y_lefteigenvector'')'
           stop 'not yet implemented'
 
           node_s = nodes(1)
-          k_s = k
-          eigenvect(1) = 0.0d0
+          eigenvect(1,1) = 0.0d0
 
         end function compute_y_lefteigenvector
 
@@ -1170,29 +1162,26 @@ c$$$               call apply_drop_evaporation_ic(field_used)
         !>@return eigenvalues
         !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_y_righteigenvector(nodes,k) result(eigenvect)
+        function compute_y_righteigenvector(nodes) result(eigenvect)
 
           implicit none
 
           real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)          :: eigenvect
 
 
           real(rkind) :: node_s
-          integer     :: k_s
 
           print '(''dim2d compute_y_righteigenvector'')'
           stop 'not yet implemented'
 
           node_s = nodes(1)
-          k_s = k
-          eigenvect(1) = 0.0d0
+          eigenvect(1,1) = 0.0d0
 
         end function compute_y_righteigenvector
 
 
-                !> @author
+        !> @author
         !> Julien L. Desmarais
         !
         !> @brief

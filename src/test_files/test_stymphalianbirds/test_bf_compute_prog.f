@@ -45,7 +45,7 @@
         !<test parameters
         logical, parameter         :: detailled=.true.
         integer(ikind)             :: i,j
-        logical                    :: global,local
+        logical                    :: test_global,test_local
         logical                    :: test_parameter
 
 
@@ -95,17 +95,17 @@
 
 
         !<print the time derivatives
-        global=.true.
+        test_global=.true.
         do j=1+bc_size, nyt-bc_size
            do i=1+bc_size, nxt-bc_size
-              local=(time_dev(i,j,1).eq.(-20.0d0))
-              global=global.and.local
+              test_local=(time_dev(i,j,1).eq.(-20.0d0))
+              test_global=test_global.and.test_local
               if(detailled) then
-                 print *, i,j, local
+                 print *, i,j, test_local
               end if
            end do
         end do
-        print '(''test_validated: '', L1)', global
+        print '(''test_validated: '', L1)', test_global
 
         call CPU_TIME(time2)
         print '(''time elapsed:'', F6.2)', time2-time1

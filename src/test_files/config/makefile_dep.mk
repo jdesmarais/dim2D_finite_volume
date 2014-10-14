@@ -186,7 +186,7 @@ $(simpletest_dir)/pmodel_eq_class.o:\
 			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_kind.o\
-			$(phy_eq_dir)/pmodel_eq_abstract_class.o\
+			$(phy_eq_dir)/pmodel_eq_default_class.o\
 			$(sd_cdir)/sd_operators_class.o
 
 #wave1d equations
@@ -340,7 +340,7 @@ $(dim2d_dir)/pmodel_eq_class.o:\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(phy_eq_dir)/pmodel_eq_abstract_class.o
+			$(phy_eq_dir)/pmodel_eq_default_class.o
 
 $(dim2d_ic)/dim2d_steadystate_module.o:\
 			$(dim2d_dir)/dim2d_parameters.o\

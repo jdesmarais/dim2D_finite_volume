@@ -128,7 +128,7 @@
         do i=1,55
         
            call interface_used%update_bf_layers_with_detector_dcr(
-     $          interior_nodes)
+     $          interior_nodes, p_model)
         
            call interface_used%update_bf_layers_with_idetectors(
      $          interior_nodes, dx, dy, p_model)

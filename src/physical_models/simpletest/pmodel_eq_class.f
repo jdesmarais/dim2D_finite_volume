@@ -14,14 +14,14 @@
       !-----------------------------------------------------------------
       module pmodel_eq_class
       
-        use interface_primary       , only : gradient_x_proc,
-     $                                       gradient_y_proc
-        use parameters_bf_layer     , only : interior_pt
-        use parameters_constant     , only : scalar
-        use parameters_input        , only : nx,ny,ne,bc_size
-        use parameters_kind         , only : ikind, rkind
-        use pmodel_eq_abstract_class, only : pmodel_eq_abstract
-        use sd_operators_class      , only : sd_operators
+        use interface_primary      , only : gradient_x_proc,
+     $                                      gradient_y_proc
+        use parameters_bf_layer    , only : interior_pt
+        use parameters_constant    , only : scalar
+        use parameters_input       , only : nx,ny,ne,bc_size
+        use parameters_kind        , only : ikind, rkind
+        use pmodel_eq_default_class, only : pmodel_eq_default
+        use sd_operators_class     , only : sd_operators
 
         implicit none
 
@@ -64,7 +64,7 @@
         !> check whether the open boundary conditions are undermined
         !> at the grid point location
         !---------------------------------------------------------------
-        type, extends(pmodel_eq_abstract) :: pmodel_eq
+        type, extends(pmodel_eq_default) :: pmodel_eq
           
           contains
 
@@ -74,7 +74,7 @@
           procedure, nopass :: get_var_unit
           procedure, nopass :: get_var_type
           procedure, nopass :: get_eq_nb
-          procedure, nopass :: apply_ic
+          procedure,   pass :: apply_ic
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
           procedure, nopass :: compute_flux_x_nopt
@@ -84,12 +84,6 @@
           procedure, nopass :: compute_body_forces
           procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
-          procedure, nopass :: compute_x_eigenvalues
-          procedure, nopass :: compute_y_eigenvalues
-          procedure, nopass :: compute_x_lefteigenvector
-          procedure, nopass :: compute_x_righteigenvector
-          procedure, nopass :: compute_y_lefteigenvector
-          procedure, nopass :: compute_y_righteigenvector
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
 
@@ -247,10 +241,11 @@
         !>@param field_used
         !> object encapsulating the main variables
         !---------------------------------------------------------------
-        subroutine apply_ic(nodes,x_map,y_map)
+        subroutine apply_ic(this,nodes,x_map,y_map)
 
           implicit none
 
+          class(pmodel_eq)             , intent(in)    :: this
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
           real(rkind), dimension(:)    , intent(in)    :: x_map
           real(rkind), dimension(:)    , intent(in)    :: y_map
@@ -258,8 +253,8 @@
           real(rkind) :: node_s,x_s,y_s
 
           node_s = nodes(1,1,1)
-          x_s = x_map(1)
-          y_s = y_map(1)
+          x_s    = x_map(1)
+          y_s    = y_map(1)
 
         end subroutine apply_ic
         
@@ -295,8 +290,9 @@
           real(rkind), dimension(nx+1,ny,ne)               :: flux_x
 
           integer     :: i,j
-          real(rkind) :: dy_s
+          real(rkind) :: dx_s,dy_s
 
+          dx_s = dx
           dy_s = dy
 
           !<fluxes along the x-axis
@@ -345,9 +341,10 @@ c$$$     $               s%dfdx(nodes,i,j,basic,dx)
           real(rkind), dimension(nx,ny+1,ne)               :: flux_y
 
           integer     :: i,j
-          real(rkind) :: dx_s
+          real(rkind) :: dx_s,dy_s
 
           dx_s = dx
+          dy_s = dy
 
           !<fluxes along the x-axis
           do j=bc_size+1, ny+1-bc_size
@@ -376,8 +373,9 @@ c$$$     $               10*s%dgdy(nodes,i,j,basic,dy)
           real(rkind), dimension(:,:,:), intent(inout) :: flux_x
 
           integer(ikind) :: i,j
-          real(rkind)    :: dy_s
+          real(rkind) :: dx_s,dy_s
 
+          dx_s = dx
           dy_s = dy
 
           !<fluxes along the x-axis
@@ -412,9 +410,10 @@ c$$$     $               s%dfdx(nodes,i,j,basic,dx)
           real(rkind), dimension(:,:,:), intent(inout) :: flux_y
 
           integer(ikind) :: i,j
-          real(rkind)    :: dx_s
+          real(rkind) :: dx_s,dy_s
 
           dx_s = dx
+          dy_s = dy
 
           !<fluxes along the y-axis
           do j=1+bc_size, size(flux_y,2)-bc_size
@@ -449,8 +448,9 @@ c$$$     $                  10*s%dgdy(nodes,i,j,basic,dy)
           class(sd_operators)               , intent(in)   :: s_oneside
           real(rkind), dimension(ne)                       :: flux_x
 
-          real(rkind) :: dy_s
+          real(rkind) :: dx_s,dy_s
 
+          dx_s = dx
           dy_s = dy
 
           !<fluxes along the x-axis
@@ -475,9 +475,10 @@ c$$$     $               s_oneside%dfdx(nodes,i,j,basic,dx)
           class(sd_operators)                , intent(in)  :: s_oneside
           real(rkind), dimension(ne)                       :: flux_y
 
-          real(rkind) :: dx_s
+          real(rkind) :: dx_s,dy_s
 
           dx_s = dx
+          dy_s = dy
 
 
           !<fluxes along the x-axis
@@ -587,243 +588,6 @@ c$$$     $         10*s_oneside%dgdy(nodes,i,j,basic,dy)
           !undermined = .true.
 
         end function are_openbc_undermined
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> computation of the eigenvalues for the hyperbolic terms
-        !> in the x-direction
-        !
-        !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
-        !--------------------------------------------------------------
-        function compute_x_eigenvalues(nodes) result(eigenvalues)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne)             :: eigenvalues
-
-
-          real(rkind) :: node_s
-
-          node_s = nodes(1)
-
-          stop 'simpletest: compute_y_eigenvalues: not implemented yet'
-
-          node_s = nodes(1)
-          eigenvalues(1) = 0.0d0
-
-        end function compute_x_eigenvalues
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> computation of the eigenvalues for the hyperbolic terms
-        !> in the y-direction
-        !
-        !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
-        !--------------------------------------------------------------
-        function compute_y_eigenvalues(nodes) result(eigenvalues)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne)             :: eigenvalues
-
-          real(rkind) :: node_s
-
-          stop 'simpletest: compute_y_eigenvalues: not implemented yet'
-
-          node_s = nodes(1)
-          eigenvalues(1) = 0.0d0
-
-        end function compute_y_eigenvalues
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> computation of the left eigenvector for the hyperbolic terms
-        !> in the x-direction. By denoting L the left eigenmatrix, the
-        !> result of the function is L[k,:]
-        !
-        !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
-        !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
-        !--------------------------------------------------------------
-        function compute_x_lefteigenvector(nodes,k) result(eigenvect)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
-
-
-          real(rkind) :: node_s
-          integer     :: k_s
-
-          print '(''simpletest compute_x_lefteigenvector'')'
-          stop 'not yet implemented'
-
-          node_s = nodes(1)
-          k_s = k
-          eigenvect(1) = 0.0d0
-
-        end function compute_x_lefteigenvector
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> computation of the left eigenvector for the hyperbolic terms
-        !> in the x-direction. By denoting R the right eigenmatrix, the
-        !> result of the function is R[k,:]
-        !
-        !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
-        !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
-        !--------------------------------------------------------------
-        function compute_x_righteigenvector(nodes,k) result(eigenvect)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
-
-
-          real(rkind) :: node_s
-          integer     :: k_s
-
-          print '(''simpletest compute_x_righteigenvector'')'
-          stop 'not yet implemented'
-
-          node_s = nodes(1)
-          k_s = k
-          eigenvect(1) = 0.0d0
-
-        end function compute_x_righteigenvector
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> computation of the left eigenvector for the hyperbolic terms
-        !> in the y-direction. By denoting L the left eigenmatrix, the
-        !> result of the function is L[k,:]
-        !
-        !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
-        !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
-        !--------------------------------------------------------------
-        function compute_y_lefteigenvector(nodes,k) result(eigenvect)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
-
-
-          real(rkind) :: node_s
-          integer     :: k_s
-
-          print '(''simpletest compute_y_lefteigenvector'')'
-          stop 'not yet implemented'
-
-          node_s = nodes(1)
-          k_s = k
-          eigenvect(1) = 0.0d0
-
-        end function compute_y_lefteigenvector
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> computation of the left eigenvector for the hyperbolic terms
-        !> in the y-direction. By denoting R the right eigenmatrix, the
-        !> result of the function is R[k,:]
-        !
-        !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
-        !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
-        !--------------------------------------------------------------
-        function compute_y_righteigenvector(nodes,k) result(eigenvect)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          integer                   , intent(in) :: k
-          real(rkind), dimension(ne)             :: eigenvect
-
-
-          real(rkind) :: node_s
-          integer     :: k_s
-
-          print '(''simpletest compute_y_righteigenvector'')'
-          stop 'not yet implemented'
-
-          node_s = nodes(1)
-          k_s = k
-          eigenvect(1) = 0.0d0
-
-        end function compute_y_righteigenvector
 
 
         !> @author

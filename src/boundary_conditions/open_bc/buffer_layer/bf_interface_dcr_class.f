@@ -19,6 +19,7 @@
         use bf_sublayer_class     , only : bf_sublayer
         use parameters_input      , only : nx,ny,ne
         use parameters_kind       , only : rkind
+        use pmodel_eq_class       , only : pmodel_eq
         use sbf_list_class        , only : sbf_list
 
         implicit none
@@ -122,12 +123,13 @@ c$$$        end subroutine adapt_domain
         !> interior domain
         !--------------------------------------------------------------
         subroutine update_bf_layers_with_detector_dcr(
-     $       this, interior_nodes)
+     $       this, interior_nodes, p_model)
 
           implicit none
 
           class(bf_interface_dcr)         , intent(inout) :: this
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          type(pmodel_eq)                 , intent(in)    :: p_model
 
 
           integer                      :: k,l
@@ -211,7 +213,7 @@ c$$$        end subroutine adapt_domain
                    if(can_be_tested) then
 
                       !check if it is possible to remove the buffer layer
-                      can_remain = sublayer_ptr%should_remain(interior_nodes)
+                      can_remain = sublayer_ptr%should_remain(interior_nodes,p_model)
 
                       !set the status to the buffer layer
                       call sublayer_ptr%set_remain_status(can_remain)

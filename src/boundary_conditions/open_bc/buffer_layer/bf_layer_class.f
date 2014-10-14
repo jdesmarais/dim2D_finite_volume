@@ -16,28 +16,32 @@
       !-----------------------------------------------------------------
       module bf_layer_class
 
-        use bf_compute_class            , only : bf_compute
+        use bf_compute_class, only :
+     $       bf_compute
         
+        use bf_layer_errors_module, only :
+     $       error_mainlayer_id,
+     $       error_diff_mainlayer_id
 
-        use bf_layer_errors_module      , only : error_mainlayer_id,
-     $                                           error_diff_mainlayer_id
+        use bf_layer_allocate_module, only :
+     $       allocate_bf_layer_N,
+     $       allocate_bf_layer_S,
+     $       allocate_bf_layer_E,
+     $       allocate_bf_layer_W
 
-        use bf_layer_allocate_module    , only : allocate_bf_layer_N,
-     $                                           allocate_bf_layer_S,
-     $                                           allocate_bf_layer_E,
-     $                                           allocate_bf_layer_W
-
-        use bf_layer_reallocate_module  , only : reallocate_bf_layer_N,
-     $                                           reallocate_bf_layer_S,
-     $                                           reallocate_bf_layer_E,
-     $                                           reallocate_bf_layer_W
+        use bf_layer_reallocate_module, only :
+     $       reallocate_bf_layer_N,
+     $       reallocate_bf_layer_S,
+     $       reallocate_bf_layer_E,
+     $       reallocate_bf_layer_W
                                         
-        use bf_layer_merge_module       , only : merge_bf_layers_N,
-     $                                           merge_bf_layers_S,
-     $                                           merge_bf_layers_E,
-     $                                           merge_bf_layers_W
-
-        use bf_layer_exchange_module    , only :
+        use bf_layer_merge_module, only :
+     $       merge_bf_layers_N,
+     $       merge_bf_layers_S,
+     $       merge_bf_layers_E,
+     $       merge_bf_layers_W
+        
+        use bf_layer_exchange_module, only :
      $       do_grdpts_overlap_along_x_dir,
      $       get_match_indices_for_exchange_with_neighbor1,
      $       get_match_indices_for_exchange_with_neighbor2,
@@ -46,22 +50,42 @@
         use bf_layer_nf90_operators_module, only :
      $       print_bf_layer_on_netcdf
 
-        use interface_integration_step  , only : timeInt_step_nopt
+        use bf_remove_module, only :
+     $       check_if_bf_layer_remains
 
-        use parameters_bf_layer         , only : bc_pt, bc_interior_pt,
-     $                                           interior_pt, no_pt,
-     $                                           align_N, align_S,
-     $                                           align_E, align_W,
-     $                                           bf_neighbors,
-     $                                           bf_neighbors_id
+        use interface_integration_step, only :
+     $       timeInt_step_nopt
 
-        use parameters_constant         , only : N,S,E,W,
-     $                                           x_direction, y_direction,
-     $                                           min_border, max_border
+        use parameters_bf_layer, only :
+     $       align_E,
+     $       align_N,
+     $       align_S,
+     $       align_W,
+     $       bc_interior_pt,
+     $       bf_neighbors,
+     $       bf_neighbors_id,
+     $       bc_pt,
+     $       interior_pt,
+     $       no_pt
 
-        use parameters_input            , only : nx,ny,ne,bc_size,debug
+        use parameters_constant, only :
+     $       N,S,E,W,
+     $       x_direction, y_direction,
+     $       min_border, max_border
+
+        use parameters_input, only :
+     $       bc_size,
+     $       debug,
+     $       nx,
+     $       ny,
+     $       ne
         
-        use parameters_kind             , only : ikind, rkind
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
 
 
         private
@@ -2316,25 +2340,27 @@
         !> logical identifying whether the buffer layer should be
         !> removed or not
         !--------------------------------------------------------------
-        function should_remain(this, interior_nodes)
+        function should_remain(this, interior_nodes, p_model)
 
           implicit none
 
           class(bf_layer)                 , intent(in) :: this
           real(rkind), dimension(nx,ny,ne), intent(in) :: interior_nodes
+          type(pmodel_eq)                 , intent(in) :: p_model
           logical                                      :: should_remain
           
           integer(ikind), dimension(2) :: bf_match_table
 
           bf_match_table = get_general_to_local_coord_tab(this)
 
-          should_remain = this%bf_compute_used%does_bf_layer_remain(
+          should_remain = check_if_bf_layer_remains(
      $         this%localization,
      $         this%alignment,
      $         bf_match_table,
      $         this%grdpts_id,
      $         this%nodes,
-     $         interior_nodes)
+     $         interior_nodes,
+     $         p_model)
 
         end function should_remain
 
