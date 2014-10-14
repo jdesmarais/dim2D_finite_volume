@@ -289,7 +289,7 @@
           !on the next buffer layer
           call path_update_idetectors%ini()
 
-          !there are 4 layers of detectors cooresponding to the 4
+          !there are 4 layers of detectors corresponding to the 4
           !cardinal points. They create a closed path of detectors
           !we update in this order:
           !1: S, 2: E, 3: W, 4: N
@@ -298,7 +298,7 @@
           !double operations on buffer layers
           
           !0) initialization of the first point indicating 
-          !   where the previous neighboring bc_interior-pt
+          !   where the previous neighboring bc_interior_pt
           !   were analyzed
           cpt_coords_p = [nx/2, ny/2]
 
@@ -706,7 +706,7 @@
              
 
              !get the first point from which we should look for a
-             !bc_interior_pt to be activated and teh new coordinates
+             !bc_interior_pt to be activated and the new coordinates
              !from the detector
              cpt_coords = get_central_grdpt(
      $            d_coords, velocity, dx, dy, d_coords_n)

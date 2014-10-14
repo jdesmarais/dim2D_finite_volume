@@ -177,10 +177,12 @@
           real(rkind), dimension(nx,ny,ne) :: time_dev
           
 
-          !<runge-kutta first step
-          !> u_1 = u_n + dt*d/dt(u_n)
-          !> u_n is saved in nodes_tmp
-          !> u_1 is saved in field_used%nodes
+          !runge-kutta first step
+          !------------------------------------------
+          ! u_1 = u_n + dt*d/dt(u_n)
+          ! u_n is saved in nodes_tmp
+          ! u_1 is saved in field_used%nodes
+          !------------------------------------------
           !DEC$ FORCEINLINE RECURSIVE
           time_dev = field_used%compute_time_dev_ext()
 
@@ -189,15 +191,17 @@
      $         dt, nodes_tmp, time_dev,
      $         compute_1st_step, compute_1st_step_nopt)
 
-          !<apply the boundary conditions
+          !apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
           call field_used%apply_bc_on_nodes()
 
 
-          !<runge-kutta second step
-          !> u_2 = 1/4*u_n + 3/4*(u_1 + dt * du_1/dt)
-          !> u_n is saved in nodes_tmp
-          !> u_2 is saved in field_used%nodes
+          !runge-kutta second step
+          !------------------------------------------
+          ! u_2 = 1/4*u_n + 3/4*(u_1 + dt * du_1/dt)
+          ! u_n is saved in nodes_tmp
+          ! u_2 is saved in field_used%nodes
+          !------------------------------------------
           !DEC$ FORCEINLINE RECURSIVE
           time_dev = field_used%compute_time_dev_ext()
 
@@ -206,15 +210,17 @@
      $         dt, nodes_tmp, time_dev,
      $         compute_2nd_step, compute_2nd_step_nopt)
 
-          !<apply the boundary conditions
+          !apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
           call field_used%apply_bc_on_nodes()
 
 
-          !<runge-kutta third step
-          !> u_{n+1} = 1/3*u_n + 2/3*(u_2 + dt du_2/dt
-          !> u_n is saved in nodes_tmp
-          !> u_{n+1} is saved in field_used%nodes
+          !runge-kutta third step
+          !------------------------------------------
+          ! u_{n+1} = 1/3*u_n + 2/3*(u_2 + dt du_2/dt
+          ! u_n is saved in nodes_tmp
+          ! u_{n+1} is saved in field_used%nodes
+          !------------------------------------------
           !DEC$ FORCEINLINE RECURSIVE
           time_dev = field_used%compute_time_dev_ext()
 
@@ -223,9 +229,12 @@
      $         dt, nodes_tmp, time_dev,
      $         compute_3rd_step, compute_3rd_step_nopt)
 
-          !<apply the boundary conditions
+          !apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
           call field_used%apply_bc_on_nodes()
+
+c$$$          !adapt the computational domain
+c$$$          call field_used%adapt_domain(nodes_tmp)
 
         end subroutine integrate_ext
       

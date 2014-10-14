@@ -170,6 +170,8 @@
           procedure, pass          :: compute_integration_step_ext
           procedure, pass          :: write_data
 
+          !procedure, pass          :: adapt_domain !interface for domain extension
+
           procedure, pass          :: set_dx    !only for tests
           procedure, pass          :: set_dy    !only for tests
           procedure, pass          :: get_nodes !only for tests
@@ -609,6 +611,47 @@
      $         this%time)
 
         end subroutine write_data
+
+
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> adapt the computational domain
+c$$$        !
+c$$$        !> @date
+c$$$        !> 14_10_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param this
+c$$$        !> object encapsulating the main variables at t
+c$$$        !
+c$$$        !>@param nodes_tmp
+c$$$        !> nodes at the previous time step (t-dt)
+c$$$        !
+c$$$        !>@param dt
+c$$$        !> time step
+c$$$        !--------------------------------------------------------------
+c$$$        subroutine adapt_domain(this,nodes_tmp,dt)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          class(field_abstract)           , intent(inout) :: this
+c$$$          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
+c$$$          real(rkind)                     , intent(in)    :: dt
+c$$$
+c$$$          real(rkind) :: node_s
+c$$$          real(rkind) :: dx_s
+c$$$          real(rkind) :: dt_s
+c$$$
+c$$$          dx_s   = this%dx
+c$$$          dt_s   = dt
+c$$$          node_s = nodes_tmp(1,1,1)
+c$$$
+c$$$          print '(''field_abstract_class'')'
+c$$$          print '(''adapt_domain'')'
+c$$$          stop 'not implemented'
+c$$$
+c$$$        end subroutine adapt_domain
 
 
         !> @author

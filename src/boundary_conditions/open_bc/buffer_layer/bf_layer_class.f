@@ -352,6 +352,7 @@
           procedure,   pass :: print_netcdf
 
           
+          !for time integration
           procedure,   pass, private :: ini_for_comput
           procedure,   pass          :: allocate_before_timeInt
           procedure,   pass          :: deallocate_after_timeInt
@@ -2005,7 +2006,7 @@
 
 
           !we have a list of gridpoints that should be turned
-          !from bc_inetrior_pt to interior_pt. For a point to be
+          !from bc_interior_pt to interior_pt. For a point to be
           !considered an interior point, we need to make sure
           !that the grid points it needs to compute its time
           !derivatives are available

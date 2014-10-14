@@ -68,6 +68,7 @@
           procedure, pass :: compute_time_dev_ext
           procedure, pass :: compute_integration_step_ext
           procedure, pass :: integrate
+          !procedure, pass :: adapt_domain
 
         end type field_extended
 
@@ -241,5 +242,39 @@
           call this%domain_extension%deallocate_after_timeInt()
 
         end subroutine integrate
+
+
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> adapt the computational domain
+c$$$        !
+c$$$        !> @date
+c$$$        !> 14_10_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param this
+c$$$        !> object encapsulating the main variables at t
+c$$$        !
+c$$$        !>@param nodes_tmp
+c$$$        !> nodes at the previous time step (t-dt)
+c$$$        !
+c$$$        !>@param dt
+c$$$        !> time step
+c$$$        !--------------------------------------------------------------
+c$$$        subroutine adapt_domain(this, nodes_tmp, dt)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          class(field_extended)           , intent(inout) :: this
+c$$$          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
+c$$$          real(rkind)                     , intent(in)    :: dt
+c$$$
+c$$$
+c$$$          !allocate memory space for the temporary tables
+c$$$          !used in the time integration of the domain extension
+c$$$          call this%domain_extension%adapt_domain(this%nodes,nodes_tmp,dt)
+c$$$
+c$$$        end subroutine adapt_domain
 
       end module field_extended_class

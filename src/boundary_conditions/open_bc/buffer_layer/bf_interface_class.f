@@ -158,6 +158,7 @@
 
           contains
 
+          !buffer layer interactions management
           procedure, pass :: ini
           procedure, pass :: get_mainlayer
 
@@ -181,9 +182,11 @@
           procedure, pass :: bf_layer_depends_on_neighbors
           procedure, pass :: does_a_neighbor_remains
 
+          !i/o management
           procedure, pass :: print_binary
           procedure, pass :: print_netcdf
 
+          !for time integration
           procedure, pass :: allocate_before_timeInt
           procedure, pass :: deallocate_after_timeInt
           procedure, pass :: compute_time_dev
