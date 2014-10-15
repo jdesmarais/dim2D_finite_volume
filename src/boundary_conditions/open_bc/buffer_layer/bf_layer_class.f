@@ -377,7 +377,6 @@
 
           
           !for time integration
-          procedure,   pass, private :: ini_for_comput
           procedure,   pass          :: allocate_before_timeInt
           procedure,   pass          :: deallocate_after_timeInt
           procedure,   pass          :: compute_time_dev
@@ -406,18 +405,14 @@
         !>@param localization
         !> localization of the buffer layer (N,S,E, or W)
         !--------------------------------------------------------------
-        subroutine ini(this,localization,dx,dy)
+        subroutine ini(this,localization)
 
           implicit none
 
           class(bf_layer), intent(inout) :: this
           integer(ikind) , intent(in)    :: localization
-          real(rkind)    , intent(in)    :: dx
-          real(rkind)    , intent(in)    :: dy
           
           this%localization = localization
-
-          call this%ini_for_comput(dx,dy)
 
         end subroutine ini
 
@@ -2583,32 +2578,6 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> initialize the grid size of the computations
-        !
-        !> @date
-        !> 16_07_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer object encapsulating the main
-        !> tables extending the interior domain
-        !--------------------------------------------------------------
-        subroutine ini_for_comput(this,dx,dy)
-
-          implicit none
-
-          class(bf_layer), intent(inout) :: this
-          real(rkind)    , intent(in)    :: dx
-          real(rkind)    , intent(in)    :: dy
-
-          call this%bf_compute_used%ini(dx,dy)
-
-        end subroutine ini_for_comput
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
         !> allocate memory space for the intermediate
         !> variables needed to perform the time integration
         !
@@ -2678,6 +2647,11 @@
 
           call this%bf_compute_used%compute_time_dev(
      $         this%nodes,
+     $         dx,
+     $         dy,
+     $         sd_operators_used,
+     $         pmodel_eq_used,
+     $         bc_operators_used,
      $         this%grdpts_id)
 
         end subroutine compute_time_dev

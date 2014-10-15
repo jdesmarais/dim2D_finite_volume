@@ -14,15 +14,25 @@
       !-----------------------------------------------------------------
       program test_bf_compute_prog
 
+        use bc_operators_class , only : bc_operators
+
         use bf_compute_class   , only : bf_compute
 
         use parameters_bf_layer, only : interior_pt
 
         use parameters_constant, only : periodic_xy_choice,
      $                                  bc_nodes_choice
+
         use parameters_input   , only : ne,bc_choice,bc_size,
      $                                  bcx_type_choice,bcy_type_choice
+
         use parameters_kind    , only : ikind, rkind
+
+        use pmodel_eq_class    , only : pmodel_eq
+
+        use sd_operators_class , only : sd_operators
+
+        use td_operators_class , only : td_operators
 
         implicit none
 
@@ -35,6 +45,10 @@
         real(rkind)                        :: dx
         real(rkind)                        :: dy
         type(bf_compute)                   :: bf_compute_used
+        type(sd_operators)                 :: sd_operators_used
+        type(pmodel_eq)                    :: pmodel_eq_used
+        type(bc_operators)                 :: bc_operators_used
+        type(td_operators)                 :: td_operators_used
 
         real(rkind), dimension(:,:,:), allocatable :: time_dev
 
@@ -87,9 +101,16 @@
 
 
         !<compute the time derivatives
-        call bf_compute_used%ini(dx,dy)
         call bf_compute_used%allocate_tables(nxt,nyt)
-        call bf_compute_used%compute_time_dev(nodes, grdpts_id)
+        call bf_compute_used%compute_time_dev(
+     $       nodes,
+     $       dx,
+     $       dy,
+     $       sd_operators_used,
+     $       pmodel_eq_used,
+     $       bc_operators_used,
+     $       td_operators_used,
+     $       grdpts_id)
         call bf_compute_used%get_time_dev(time_dev)
         call bf_compute_used%deallocate_tables()
 

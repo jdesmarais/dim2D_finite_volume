@@ -288,7 +288,7 @@
           integer(ikind) :: i,j
 
 
-          !south layer of y-fluxes
+          !south layer of x-fluxes
           j=1
           do i=bc_size+1, nx-bc_size+1
              flux_x(i,j,:) = p_model%compute_flux_x_oneside(
@@ -334,7 +334,7 @@
           end do
 
 
-          !north layer of y-fluxes
+          !north layer of x-fluxes
           j=ny-1
           do i=bc_size+1, nx-bc_size+1
              flux_x(i,j,:) = p_model%compute_flux_x_oneside(

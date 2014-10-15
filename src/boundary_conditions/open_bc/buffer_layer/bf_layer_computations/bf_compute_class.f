@@ -10,12 +10,14 @@
       !> integration of the buffer layer
       !
       !> @date
-      !> 16_07_2014 - initial version - J.L. Desmarais
+      !> 16_07_2014 - initial version         - J.L. Desmarais
+      !> 15_10_2014 - interface modifications - J.L. Desmarais
+      !> (to have a unique sd_operators, p_model... shared between the
+      !>  field and the buffer layer objects)
       !-----------------------------------------------------------------
       module bf_compute_class
 
         use bc_operators_class        , only : bc_operators
-        use bf_remove_module          , only : check_if_bf_layer_remains
         use interface_integration_step, only : timeInt_step_nopt
         use parameters_input          , only : nx,ny,ne
         use parameters_kind           , only : ikind, rkind
@@ -76,47 +78,23 @@
         !---------------------------------------------------------------
         type :: bf_compute
 
-          type(sd_operators) :: sd_operators_used
-          type(pmodel_eq)    :: pmodel_eq_used
-          type(td_operators) :: td_operators_used
-          type(bc_operators) :: bc_operators_used
-
+          integer    , dimension(:,:)  , allocatable, private :: grdpts_id_tmp
           real(rkind), dimension(:,:,:), allocatable, private :: nodes_tmp
           real(rkind), dimension(:,:,:), allocatable, private :: time_dev
 
-          real(rkind) :: dx
-          real(rkind) :: dy
-
           contains
 
-          procedure, pass :: ini
           procedure, pass :: allocate_tables
           procedure, pass :: deallocate_tables
+
           procedure, pass :: compute_time_dev
           procedure, pass :: compute_integration_step
-
-          procedure, pass :: does_bf_layer_remain
 
           procedure, pass :: get_time_dev !only for tests
 
         end type bf_compute
 
         contains
-
-
-        !initialize the bf_compute object
-        subroutine ini(this,dx,dy)
-
-          implicit none
-
-          class(bf_compute), intent(inout) :: this
-          real(rkind)      , intent(in)    :: dx
-          real(rkind)      , intent(in)    :: dy
-
-          this%dx = dx
-          this%dy = dy
-
-        end subroutine ini
 
 
         !allocate the nodes_tmp and time_dev tables
@@ -128,6 +106,7 @@
           integer(ikind)   , intent(in)    :: size_x
           integer(ikind)   , intent(in)    :: size_y
 
+          allocate(this%grdpts_id_tmp(size_x,size_y))
           allocate(this%nodes_tmp(size_x,size_y,ne))
           allocate(this%time_dev(size_x,size_y,ne))
 
@@ -141,6 +120,7 @@
 
           class(bf_compute), intent(inout) :: this
 
+          deallocate(this%grdpts_id_tmp)
           deallocate(this%nodes_tmp)
           deallocate(this%time_dev)
 
@@ -148,21 +128,36 @@
 
 
         !compute the time derivatives
-        subroutine compute_time_dev(this, nodes, grdpts_id)
+        subroutine compute_time_dev(
+     $     this,
+     $     nodes,
+     $     dx,
+     $     dy,
+     $     sd_operators_used,
+     $     pmodel_eq_used,
+     $     bc_operators_used,
+     $     td_operators_used,
+     $     grdpts_id)
 
           implicit none
 
           class(bf_compute)            , intent(inout) :: this
           real(rkind), dimension(:,:,:), intent(in)    :: nodes
+          real(rkind)                  , intent(in)    :: dx
+          real(rkind)                  , intent(in)    :: dy
+          type(sd_operators)           , intent(in)    :: sd_operators_used
+          type(pmodel_eq)              , intent(in)    :: pmodel_eq_used
+          type(bc_operators)           , intent(in)    :: bc_operators_used
+          type(td_operators)           , intent(in)    :: td_operators_used
           integer    , dimension(:,:)  , intent(in)    :: grdpts_id
           
-          call this%td_operators_used%compute_time_dev_nopt(
+          call td_operators_used%compute_time_dev_nopt(
      $         nodes,
-     $         this%dx,
-     $         this%dy,
-     $         this%sd_operators_used,
-     $         this%pmodel_eq_used,
-     $         this%bc_operators_used,
+     $         dx,
+     $         dy,
+     $         sd_operators_used,
+     $         pmodel_eq_used,
+     $         bc_operators_used,
      $         this%time_dev,
      $         grdpts_id)
 
@@ -192,7 +187,7 @@
 
           implicit none
 
-          class(bf_compute), intent(in) :: this
+          class(bf_compute)                         , intent(in)  :: this
           real(rkind), dimension(:,:,:), allocatable, intent(out) :: time_dev
 
 
@@ -211,37 +206,6 @@
 
           end if
 
-        end subroutine get_time_dev
-
-
-        !check if the buffer layer remains
-        function does_bf_layer_remain(
-     $     this,
-     $     bf_localization, bf_alignment, bf_match_table,
-     $     bf_grdpts_id, bf_nodes, interior_nodes)
-     $     result(bf_remains)
-
-          implicit none
-
-          class(bf_compute)                , intent(in)  :: this
-          integer                          , intent(in)  :: bf_localization
-          integer(ikind), dimension(2,2)   , intent(in)  :: bf_alignment
-          integer(ikind), dimension(2)     , intent(in)  :: bf_match_table
-          integer    , dimension(:,:)      , intent(in)  :: bf_grdpts_id
-          real(rkind), dimension(:,:,:)    , intent(in)  :: bf_nodes
-          real(rkind), dimension(nx,ny,ne) , intent(in)  :: interior_nodes
-          logical                                        :: bf_remains
-
-
-          bf_remains = check_if_bf_layer_remains(
-     $         bf_localization,
-     $         bf_alignment,
-     $         bf_match_table,
-     $         bf_grdpts_id,
-     $         bf_nodes,
-     $         interior_nodes,
-     $         this%pmodel_eq_used)
-
-        end function does_bf_layer_remain
+        end subroutine get_time_dev        
 
       end module bf_compute_class
