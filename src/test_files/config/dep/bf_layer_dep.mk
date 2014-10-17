@@ -48,6 +48,9 @@ $(cbf_layer_dir)/bf_remove_module.o:\
 $(cbf_layer_dir)/bf_layer_bc_procedure_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o
 
+$(cbf_layer_dir)/bf_layer_bc_sections_class.o:\
+	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o
+
 $(cbf_layer_dir)/bf_compute_class.o:\
 	$(bc_cdir)/bc_operators_class.o\
 	$(cbf_layer_dir)/bf_remove_module.o\

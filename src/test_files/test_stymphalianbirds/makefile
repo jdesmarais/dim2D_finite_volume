@@ -33,6 +33,17 @@ test_bf_layer_bc_procedure:\
 			parameters_bf_layer.o\
 			bf_layer_bc_procedure_module.o
 
+
+test_bf_layer_bc_sections.o:\
+			$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
+			$(cbf_layer_dir)/bf_layer_bc_sections_class.o
+
+test_bf_layer_bc_sections:\
+			$(param_dep)\
+			bf_layer_bc_procedure_module.o\
+			bf_layer_bc_sections_class.o
+
+
 test_bf_layer_prog.o:	$(bf_layer_dir)/parameters_bf_layer.o\
 			$(bf_layer_dir)/bf_layer_class.o\
 			$(param_dir)/parameters_constant.o\

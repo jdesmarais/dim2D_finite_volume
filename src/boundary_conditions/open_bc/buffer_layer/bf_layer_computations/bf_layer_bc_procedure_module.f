@@ -2,6 +2,9 @@
       !type of procedure used at a boundary gridpoint
       module bf_layer_bc_procedure_module
       
+c$$$        use bc_operators_class, only :
+c$$$     $       bc_operators
+
         use parameters_bf_layer, only :
      $     bc_interior_pt,
      $     bc_pt
