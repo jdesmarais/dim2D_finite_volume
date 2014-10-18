@@ -12,7 +12,8 @@
      $     NE_edge_type,
      $     NW_edge_type,
      $     SE_edge_type,
-     $     SW_edge_type
+     $     SW_edge_type,
+     $     get_bc_interior_pt_procedure
 
         implicit none
 
@@ -34,16 +35,18 @@
 
           contains
 
-          procedure, pass :: ini
-          procedure, pass :: add_to_temporary_bc_sections
-          procedure, pass :: add_to_final_bc_sections
-          procedure, pass :: add_to_bc_sections
-          procedure, pass :: get_bc_section
+          procedure,   pass :: ini
+          procedure,   pass :: deallocate_tables
+          procedure,   pass :: add_to_temporary_bc_sections
+          procedure,   pass :: add_to_final_bc_sections
+          procedure,   pass :: add_to_bc_sections
+          procedure, nopass :: get_bc_section
+          !procedure, pass :: is_compatible_with
 
           !only for tests
-          procedure, pass :: get_nb_ele_temp
-          procedure, pass :: get_nb_ele_final
-          procedure, pass :: print_bc_sections
+          procedure,   pass :: get_nb_ele_temp
+          procedure,   pass :: get_nb_ele_final
+          procedure,   pass :: print_bc_sections
 
         end type bf_layer_bc_sections
 
@@ -62,6 +65,29 @@
           this%nb_ele_final=0
 
         end subroutine ini
+
+
+        !deallocate the allocatable atributes
+        subroutine deallocate_tables(this)
+
+          implicit none
+
+          class(bf_layer_bc_sections), intent(inout) :: this
+
+
+          if(allocated(this%bc_sections_temp)) then
+             deallocate(this%bc_sections_temp)
+          end if
+
+          if(allocated(this%bc_sections_buffer)) then
+             deallocate(this%bc_sections_buffer)
+          end if
+
+          if(allocated(this%bc_sections_final)) then
+             deallocate(this%bc_sections_final)
+          end if
+
+        end subroutine deallocate_tables
 
 
         !add a boundary section to list of boundary layers
@@ -186,8 +212,60 @@
 
 
 
-        !from the boundary procedure given by 
+        !using the boundary procedure given by bf_layer_bc_prcoedure
+        !one can get the bc_section corresponding to the grid point(i,j)
+        function get_bc_section(i,j,grdpts_id) result(bc_section)
 
+          implicit none
+
+          integer                , intent(in) :: i
+          integer                , intent(in) :: j
+          integer, dimension(:,:), intent(in) :: grdpts_id
+          integer, dimension(5)               :: bc_section
+
+          integer :: procedure_type
+          integer :: i_proc
+          integer :: j_proc
+                    
+
+          call get_bc_interior_pt_procedure(
+     $         i,j,
+     $         grdpts_id,
+     $         procedure_type,
+     $         i_proc,
+     $         j_proc)
+
+          bc_section(1)=procedure_type
+
+          select case(procedure_type)
+            case(N_edge_type,S_edge_type)
+               bc_section(2) = i_proc
+               bc_section(3) = i_proc
+               bc_section(4) = j_proc
+
+            case(E_edge_type,W_edge_type)
+               bc_section(2) = j_proc
+               bc_section(3) = j_proc
+               bc_section(4) = i_proc
+
+            case(SE_edge_type,SW_edge_type,NE_edge_type,NW_edge_type)
+               bc_section(2)=i_proc
+               bc_section(3)=j_proc
+               bc_section(5)=0
+
+            case(SE_corner_type,SW_corner_type,NE_corner_type,NW_corner_type)
+               bc_section(2)=i_proc
+               bc_section(3)=j_proc
+
+            case default
+               print '(''bf_layer_bc_sections'')'
+               print '(''get_bc_section'')'
+               print '(''procedure type: '',I2)', procedure_type
+               stop 'procedure type not recognized'
+               
+          end select
+
+        end function get_bc_section
 
 
         function get_nb_ele_temp(this) result(nb_ele_temp)
