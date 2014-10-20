@@ -1,5 +1,9 @@
       module bf_layer_bc_sections_class
 
+        use parameters_bf_layer, only :
+     $     bc_interior_pt,
+     $     bc_pt
+
         use bf_layer_bc_procedure_module, only : 
      $     N_edge_type,
      $     S_edge_type,
@@ -41,7 +45,7 @@
           procedure,   pass :: add_to_final_bc_sections
           procedure,   pass :: add_to_bc_sections
           procedure, nopass :: get_bc_section
-          !procedure, pass :: is_compatible_with
+          procedure, nopass :: analyse_grdpt_with_bc_section
 
           !only for tests
           procedure,   pass :: get_nb_ele_temp
@@ -251,7 +255,7 @@
             case(SE_edge_type,SW_edge_type,NE_edge_type,NW_edge_type)
                bc_section(2)=i_proc
                bc_section(3)=j_proc
-               bc_section(5)=0
+               bc_section(5)=1
 
             case(SE_corner_type,SW_corner_type,NE_corner_type,NW_corner_type)
                bc_section(2)=i_proc
@@ -266,6 +270,157 @@
           end select
 
         end function get_bc_section
+
+
+        !check if the gridpoint tested (i,j) is comaptible with an existing
+        !boundary layer bc_section
+        !teh compatibility depends on the type of boundary layer
+        function analyse_grdpt_with_bc_section(
+     $     i,j,grdpts_id,bc_section,remove_ele)
+     $     result(compatible)
+
+          implicit none
+
+          integer                , intent(in)    :: i
+          integer                , intent(in)    :: j
+          integer, dimension(:,:), intent(in)    :: grdpts_id
+          integer, dimension(5)  , intent(inout) :: bc_section
+          logical                , intent(out)   :: remove_ele
+          logical                                :: compatible
+
+          remove_ele = .false.
+
+
+          !type of procedure
+          select case(bc_section(1))
+
+            !bc_section(2):i_min
+            !bc_section(3):i_max
+            !bc_section(4):j
+            case(N_edge_type)
+               compatible =
+     $              ((j-bc_section(4)).eq.0).and.
+     $              ((i-bc_section(3)).eq.1).and.
+     $              (grdpts_id(i,j+1).eq.bc_pt).and.
+     $              (grdpts_id(i+1,j+1).eq.bc_pt).and.
+     $              (grdpts_id(i+1,j).eq.bc_interior_pt)
+
+               if(compatible) then
+                  bc_section(3)=i
+               end if
+               
+
+            !bc_section(2):i_min
+            !bc_section(3):i_max
+            !bc_section(4):j
+            case(S_edge_type)
+               compatible = 
+     $              ((j-bc_section(4)).eq.0).and.
+     $              ((i-bc_section(3)).eq.1).and.
+     $              (grdpts_id(i,j-1).eq.bc_pt).and.
+     $              (grdpts_id(i+1,j-1).eq.bc_pt).and.
+     $              (grdpts_id(i+1,j).eq.bc_interior_pt)
+
+               if(compatible) then
+                  bc_section(3)=i
+               end if
+
+
+            !bc_section(2): j_min
+            !bc_section(3): j_max
+            !bc_section(4): i
+            case(E_edge_type)
+               compatible =
+     $              ((i-bc_section(4)).eq.0).and.
+     $              ((j-bc_section(3)).eq.1).and.
+     $              (grdpts_id(i+1,j).eq.bc_pt).and.
+     $              (grdpts_id(i,j+1).eq.bc_interior_pt).and.
+     $              (grdpts_id(i+1,j+1).eq.bc_pt)
+
+               if(compatible) then
+                  bc_section(3)=j
+               end if
+
+
+            !bc_section(2): j_min
+            !bc_section(3): j_max
+            !bc_section(4): i
+            case(W_edge_type)
+               compatible = 
+     $              ((i-bc_section(4)).eq.0).and.
+     $              ((j-bc_section(3)).eq.1).and.
+     $              (grdpts_id(i-1,j).eq.bc_pt).and.
+     $              (grdpts_id(i-1,j+1).eq.bc_pt).and.
+     $              (grdpts_id(i,j+1).eq.bc_interior_pt)
+
+               if(compatible) then
+                  bc_section(3)=j
+               end if
+
+
+            !bc_section(2): i_min
+            !bc_section(3): j_min
+            !bc_section(5): match_nb
+            case(NE_edge_type)
+               compatible = 
+     $              ((i.eq.bc_section(2)).and.(j.eq.bc_section(3))).or.
+     $              ((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3))).or.
+     $              ((i.eq.bc_section(2)).and.(j.eq.(bc_section(3)+1)))
+
+               if(compatible) then
+                  bc_section(5) = bc_section(5)+1
+                  remove_ele = bc_section(5).eq.3
+               end if
+
+
+            !bc_section(2): i_min
+            !bc_section(3): j_min
+            !bc_section(5): match_nb
+            case(SE_edge_type)
+               compatible = 
+     $              ((i.eq.bc_section(2)).and.(j.eq.bc_section(3))).or.
+     $              ((i.eq.bc_section(2)).and.(j.eq.(bc_section(3)+1))).or.
+     $              ((i.eq.(bc_section(2)+1)).and.(j.eq.(bc_section(3)+1)))
+
+               if(compatible) then
+                  bc_section(5) = bc_section(5)+1
+                  remove_ele = bc_section(5).eq.3
+               end if
+
+
+            !bc_section(2): i_min
+            !bc_section(3): j_min
+            !bc_section(5): match_nb
+            case(SW_edge_type)
+               compatible = 
+     $              ((i.eq.bc_section(2)).and.(j.eq.(bc_section(3)+1))).or.
+     $              ((i.eq.(bc_section(2)+1)).and.(j.eq.(bc_section(3)+1))).or.
+     $              ((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3)))
+
+               if(compatible) then
+                  bc_section(5) = bc_section(5)+1
+                  remove_ele = bc_section(5).eq.3
+               end if
+
+
+            !bc_section(2): i_min
+            !bc_section(3): j_min
+            !bc_section(5): match_nb
+            case(NW_edge_type)
+               compatible = 
+     $              ((i.eq.bc_section(2)).and.(j.eq.bc_section(3))).or.
+     $              ((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3))).or.
+     $              ((i.eq.(bc_section(2)+1)).and.(j.eq.(bc_section(3)+1)))
+
+               if(compatible) then
+                  bc_section(5) = bc_section(5)+1
+                  remove_ele = bc_section(5).eq.3
+               end if
+
+
+          end select
+
+        end function analyse_grdpt_with_bc_section
 
 
         function get_nb_ele_temp(this) result(nb_ele_temp)
