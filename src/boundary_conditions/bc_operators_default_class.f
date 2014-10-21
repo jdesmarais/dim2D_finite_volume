@@ -284,7 +284,7 @@
         !--------------------------------------------------------------
         function apply_bc_on_timedev_x_edge(
      $     this, p_model, t, nodes, dx, dy, i, j, flux_y, side_x, gradient_x)
-     $     result(time_dev)
+     $     result(timedev)
 
           implicit none
 
@@ -299,11 +299,24 @@
           real(rkind), dimension(:,:,:), intent(in) :: flux_y
           logical                      , intent(in) :: side_x
           procedure(gradient_x_proc)                :: gradient_x
-          real(rkind), dimension(ne)                :: time_dev
+          real(rkind), dimension(ne)                :: timedev
+
+          real(rkind)       :: flux,dy_s,t_s
+          integer           :: bc_s
+          logical           :: side_s
 
           print '(''bc_operators_default_class'')'
           print '(''apply_bc_on_timedev_x_edge'')'
           stop 'function not implemented'
+
+          !to prevent unused param warnings
+          t_s  = t
+          dy_s = dy
+          flux=flux_y(1,1,1)
+          side_s = side_x
+          timedev = p_model%compute_x_gradient(nodes,i,j,gradient_x,dx)
+          bc_s = this%bcx_type
+          
 
         end function apply_bc_on_timedev_x_edge
 
@@ -356,7 +369,7 @@
         !--------------------------------------------------------------
         function apply_bc_on_timedev_y_edge(
      $     this, p_model, t, nodes, dx, dy, i, j, flux_x, side_y, gradient_y)
-     $     result(time_dev)
+     $     result(timedev)
 
           implicit none
 
@@ -371,11 +384,23 @@
           real(rkind), dimension(:,:,:), intent(in) :: flux_x
           logical                      , intent(in) :: side_y
           procedure(gradient_y_proc)                :: gradient_y
-          real(rkind), dimension(ne)                :: time_dev
+          real(rkind), dimension(ne)                :: timedev
+
+          real(rkind)       :: flux,dx_s,t_s
+          integer           :: bc_s
+          logical           :: side_s
 
           print '(''bc_operators_default_class'')'
           print '(''apply_bc_on_timedev_y_edge'')'
           stop 'function not implemented'
+
+          !to prevent unused param warnings
+          t_s  = t
+          dx_s = dx
+          flux=flux_x(1,1,1)
+          side_s = side_y
+          timedev = p_model%compute_y_gradient(nodes,i,j,gradient_y,dy)
+          bc_s = this%bcx_type
 
         end function apply_bc_on_timedev_y_edge
 
@@ -428,7 +453,7 @@
         !--------------------------------------------------------------
         function apply_bc_on_timedev_xy_corner(
      $     this, p_model, t, nodes, dx, dy, i, j, side_x, side_y, gradient_x, gradient_y)
-     $     result(time_dev)
+     $     result(timedev)
 
           implicit none
 
@@ -444,11 +469,23 @@
           logical                      , intent(in) :: side_y
           procedure(gradient_x_proc)                :: gradient_x
           procedure(gradient_y_proc)                :: gradient_y
-          real(rkind), dimension(ne)                :: time_dev
+          real(rkind), dimension(ne)                :: timedev
+
+          real(rkind)       :: t_s
+          integer           :: bc_s
+          logical           :: side_x_s, side_y_s
 
           print '(''bc_operators_default_class'')'
           print '(''apply_bc_on_timedev_xy_corner'')'
           stop 'function not implemented'
+
+          !to prevent unused param warnings
+          t_s  = t
+          side_x_s = side_x
+          side_y_s = side_y          
+          timedev = p_model%compute_x_gradient(nodes,i,j,gradient_x,dx)
+          timedev = p_model%compute_y_gradient(nodes,i,j,gradient_y,dy)
+          bc_s = this%bcx_type
 
         end function apply_bc_on_timedev_xy_corner
 

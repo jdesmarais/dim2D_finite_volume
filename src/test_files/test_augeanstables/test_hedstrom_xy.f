@@ -1,25 +1,40 @@
       program test_hedstrom_xy
 
+        use ifport
+
         use bc_operators_class, only :
-     $     bc_operators
+     $       bc_operators
 
         use hedstrom_xy_module, only :
-     $     compute_x_timedev_with_openbc,
-     $     compute_timedev_xlayer
+     $       compute_x_timedev_with_openbc,
+     $       compute_timedev_xlayer
 
         use openbc_operators_module, only :
      $       incoming_left,
      $       incoming_right
 
-        use parameters_kind , only : ikind, rkind
-        use parameters_input, only : nx,ny,ne,bc_size
-        use pmodel_eq_class , only : pmodel_eq
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use parameters_input, only :
+     $       nx,
+     $       ny,
+     $       ne,
+     $       bc_size
+
+        use pmodel_eq_class , only :
+     $       pmodel_eq
 
         use sd_operators_fd_module, only :
      $       gradient_x_x_oneside_L0,
      $       gradient_x_x_oneside_L1,
      $       gradient_x_x_oneside_R1,
-     $       gradient_x_x_oneside_R0
+     $       gradient_x_x_oneside_R0,
+     $       gradient_y_y_oneside_L0,
+     $       gradient_y_y_oneside_L1,
+     $       gradient_y_y_oneside_R1,
+     $       gradient_y_y_oneside_R0
 
 
         implicit none
@@ -83,8 +98,8 @@
      $       bc_used,
      $       detailled)
         print '()'
-        
-        
+
+
         contains
 
 

@@ -1213,12 +1213,12 @@ c$$$               call apply_drop_evaporation_ic(field_used)
 
           implicit none
 
-          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
-          integer(ikind)                  , intent(in) :: i
-          integer(ikind)                  , intent(in) :: j
-          procedure(gradient_x_proc)                   :: gradient
-          real(rkind)                     , intent(in) :: dx
-          real(rkind), dimension(ne)                   :: grad_var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(gradient_x_proc)                :: gradient
+          real(rkind)                  , intent(in) :: dx
+          real(rkind), dimension(ne)                :: grad_var
 
           grad_var(1) = gradient(nodes,i,j,mass_density,dx)
           grad_var(2) = gradient(nodes,i,j,momentum_x  ,dx)
@@ -1260,12 +1260,12 @@ c$$$               call apply_drop_evaporation_ic(field_used)
 
           implicit none
 
-          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
-          integer(ikind)                  , intent(in) :: i
-          integer(ikind)                  , intent(in) :: j
-          procedure(gradient_y_proc)                   :: gradient
-          real(rkind)                     , intent(in) :: dy
-          real(rkind), dimension(ne)                   :: grad_var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(gradient_y_proc)                :: gradient
+          real(rkind)                  , intent(in) :: dy
+          real(rkind), dimension(ne)                :: grad_var
 
           grad_var(1) = gradient(nodes,i,j,mass_density,dy)
           grad_var(2) = gradient(nodes,i,j,momentum_x  ,dy)

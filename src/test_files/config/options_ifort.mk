@@ -7,7 +7,7 @@ FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -inline-factor=500 -warn noalignment #check 
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -vec-report3 -guide -inline-factor=400
 #FFLAGS_OP_IFORT		 = -O2 -ipo-c -132 -opt-report3 -opt-report-phase=hlo_unroll -inline-factor=400
 
-FFLAGS_PROFILE_IFORT	 = -O0 -g -132 -warn all -check all -r8 -traceback	#profiling options 
+FFLAGS_PROFILE_IFORT	 = -O0 -g -132 -warn all '-check all, noarg_temp_created' -r8 -traceback	#profiling options 
 FFLAGS_OPT_REPORT_IFORT  = -opt-report3 -opt-report-phase hpo_vectorization -opt-report-file report_intel.txt
 
 #LDFLAGS_OP_IFORT     	 = -O2 -p -g -ipo -132 -inline-factor=300 -warn all

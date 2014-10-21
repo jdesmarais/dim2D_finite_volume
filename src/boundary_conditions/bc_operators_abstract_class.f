@@ -17,8 +17,8 @@
       module bc_operators_abstract_class
 
         use interface_primary, only :
-     $       gradient_x_proc,
-     $       gradient_y_proc,
+     $     gradient_x_proc,
+     $     gradient_y_proc
 
         use parameters_input, only :
      $       nx,
@@ -26,6 +26,7 @@
      $       ne
 
         use parameters_kind, only :
+     $       ikind,
      $       rkind
 
         use pmodel_eq_class, only :
@@ -295,8 +296,14 @@
            !> time derivatives of the grid points
            !--------------------------------------------------------------
            function tdev_x_edge(
-     $        this, p_model, t, nodes, dx, dy, i, j, flux_y, side_x, gradient_x)
-     $        result(time_dev)
+     $        this, p_model, t,
+     $        nodes,
+     $        dx, dy,
+     $        i, j,
+     $        flux_y,
+     $        side_x,
+     $        gradient_x)
+     $        result(timedev)
            
              import bc_operators_abstract
              import gradient_x_proc
@@ -316,12 +323,12 @@
              real(rkind), dimension(:,:,:), intent(in) :: flux_y
              logical                      , intent(in) :: side_x
              procedure(gradient_x_proc)                :: gradient_x
-             real(rkind), dimension(ne)                :: time_dev
+             real(rkind), dimension(ne)                :: timedev
            
            end function tdev_x_edge
 
 
-            !> @author
+           !> @author
            !> Julien L. Desmarais
            !
            !> @brief
@@ -369,7 +376,7 @@
            !--------------------------------------------------------------
            function tdev_y_edge(
      $        this, p_model, t, nodes, dx, dy, i, j, flux_x, side_y, gradient_y)
-     $        result(time_dev)
+     $        result(timedev)
            
              import bc_operators_abstract
              import gradient_y_proc
@@ -378,7 +385,7 @@
              import ikind
              import rkind
            
-             class(bc_operators_default)  , intent(in) :: this
+             class(bc_operators_abstract) , intent(in) :: this
              type(pmodel_eq)              , intent(in) :: p_model
              real(rkind)                  , intent(in) :: t
              real(rkind), dimension(:,:,:), intent(in) :: nodes
@@ -389,7 +396,7 @@
              real(rkind), dimension(:,:,:), intent(in) :: flux_x
              logical                      , intent(in) :: side_y
              procedure(gradient_y_proc)                :: gradient_y
-             real(rkind), dimension(ne)                :: time_dev
+             real(rkind), dimension(ne)                :: timedev
            
            end function tdev_y_edge
            
@@ -442,7 +449,7 @@
            !--------------------------------------------------------------
            function tdev_xy_corner(
      $        this, p_model, t, nodes, dx, dy, i, j, side_x, side_y, gradient_x, gradient_y)
-     $        result(time_dev)
+     $        result(timedev)
            
              import bc_operators_abstract
              import gradient_x_proc
@@ -464,7 +471,7 @@
              logical                      , intent(in) :: side_y
              procedure(gradient_x_proc)                :: gradient_x
              procedure(gradient_y_proc)                :: gradient_y
-             real(rkind), dimension(ne)                :: time_dev
+             real(rkind), dimension(ne)                :: timedev
            
            end function tdev_xy_corner
 

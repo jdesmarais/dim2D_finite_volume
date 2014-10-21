@@ -73,13 +73,13 @@
 
           implicit none
 
-          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
-          integer(ikind)                  , intent(in) :: i
-          integer(ikind)                  , intent(in) :: j
-          procedure(gradient_n_proc)                   :: gradient
-          real(rkind)                     , intent(in) :: dx
-          real(rkind)                     , intent(in) :: dy
-          real(rkind), dimension(ne)                   :: grad_var
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(gradient_n_proc)                :: gradient
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind), dimension(ne)                :: grad_var
 
 
           grad_var(1) = gradient(nodes,i,j,position  ,dx,dy)

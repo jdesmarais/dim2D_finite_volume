@@ -12,7 +12,8 @@
       !> hedstrom boundary conditions
       !
       !> @date
-      !> 04_08_2014 - initial version - J.L. Desmarais
+      !> 04_08_2014 - initial version                  - J.L. Desmarais
+      !> 21_10_2014 - local versions for buffer layers - J.L. Desmarais
       !-----------------------------------------------------------------
       module hedstrom_xy_module
 
@@ -51,8 +52,11 @@
         public ::
      $       compute_timedev_xlayer,
      $       compute_timedev_ylayer,
+     $       compute_timedev_xlayer_local,
+     $       compute_timedev_ylayer_local,
      $       compute_timedev_corner_W,
      $       compute_timedev_corner_E,
+     $       compute_timedev_corner_local,
      $       compute_x_timedev_with_openbc,
      $       compute_y_timedev_with_openbc
 
@@ -115,17 +119,18 @@
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
 
 
-          timedev(i,j,:) =
-     $            compute_x_timedev_with_openbc(
-     $            nodes, i, j, p_model, dx,
-     $            gradient_x, incoming_x) +
-     $         
-     $            1.0d0/dy*(flux_y(i,j,:) - flux_y(i,j+1,:)) +
-     $            
-     $            add_body_forces(p_model, nodes(i,j,:))
+          timedev(i,j,:) = compute_timedev_xlayer_local(
+     $         p_model,
+     $         nodes,
+     $         dx,
+     $         dy,
+     $         i,
+     $         j,
+     $         flux_y,
+     $         incoming_x,
+     $         gradient_x)
 
         end subroutine compute_timedev_xlayer
-
 
 
         !> @author
@@ -188,18 +193,177 @@
 
 
           do i=3, nx-bc_size
-             timedev(i,j,:) =
-     $            1.0d0/dx*(flux_x(i,j,:) - flux_x(i+1,j,:)) +
-     $         
-     $            compute_y_timedev_with_openbc(
-     $            nodes, i, j, p_model, dy,
-     $            gradient_y, incoming_y) +
-     $            
-     $            add_body_forces(p_model, nodes(i,j,:))
+
+             timedev(i,j,:) = compute_timedev_ylayer_local(
+     $            p_model,
+     $            nodes,
+     $            dx,
+     $            dy,
+     $            i,
+     $            j,
+     $            flux_x,
+     $            incoming_y,
+     $            gradient_y)
+
           end do
 
         end subroutine compute_timedev_ylayer
 
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for the
+        !> west or east layer using open boundary conditions
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> governing equations of the physical model
+        !        
+        !>@param nodes
+        !> array of data for the grid points
+        !
+        !>@param dx
+        !> space step along the x-axis
+        !
+        !>@param dy
+        !> space step along the y-axis
+        !
+        !>@param i
+        !> index identifying the grid point in the x-direction
+        !
+        !>@param j
+        !> index identifying the grid point in the y-direction
+        !
+        !>@param flux_y
+        !> fluxes along the y-direction
+        !
+        !>@param incoming_x
+        !> procedure checking the type of characteristic at the edge
+        !> in the x-direction
+        !
+        !>@param gradient_x
+        !> procedure computing the gradient along the x-direction
+        !
+        !>@param timedev
+        !> time derivatives modified
+        !-------------------------------------------------------------
+        function compute_timedev_xlayer_local(
+     $     p_model,
+     $     nodes,
+     $     dx,
+     $     dy,
+     $     i,
+     $     j,
+     $     flux_y,
+     $     incoming_x,
+     $     gradient_x)
+     $     result(timedev)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
+          integer(ikind)                    , intent(in)    :: i
+          integer(ikind)                    , intent(in)    :: j
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          real(rkind), dimension(:,:,:)     , intent(in)    :: flux_y
+          procedure(incoming_proc)                          :: incoming_x
+          procedure(gradient_x_proc)                        :: gradient_x
+          real(rkind), dimension(ne)                        :: timedev
+
+          timedev =
+     $         compute_x_timedev_with_openbc(
+     $         nodes, i, j, p_model, dx,
+     $         gradient_x, incoming_x) +
+     $         
+     $         1.0d0/dy*(flux_y(i,j,:) - flux_y(i,j+1,:)) +
+     $         
+     $         add_body_forces(p_model, nodes(i,j,:))
+
+        end function compute_timedev_xlayer_local
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for the
+        !> north or south layer using open boundary conditions
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> governing equations of the physical model
+        !        
+        !>@param nodes
+        !> array of data for the grid points
+        !
+        !>@param dx
+        !> space step along the x-axis
+        !
+        !>@param dy
+        !> space step along the y-axis
+        !
+        !>@param i
+        !> index identifying the grid point in the x-direction
+        !
+        !>@param j
+        !> index identifying the grid point in the y-direction
+        !
+        !>@param flux_x
+        !> fluxes along the x-direction
+        !
+        !>@param incoming_y
+        !> procedure checking the type of characteristic at the edge
+        !> in the y-direction
+        !
+        !>@param gradient_y
+        !> procedure computing the gradient along the y-direction
+        !
+        !>@param timedev
+        !> time derivatives modified
+        !-------------------------------------------------------------
+        function compute_timedev_ylayer_local(
+     $     p_model,
+     $     nodes,
+     $     dx,
+     $     dy,
+     $     i,
+     $     j,
+     $     flux_x,
+     $     incoming_y,
+     $     gradient_y)
+     $     result(timedev)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
+          integer(ikind)                    , intent(in)    :: i
+          integer(ikind)                    , intent(in)    :: j
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          real(rkind), dimension(:,:,:)     , intent(in)    :: flux_x
+          procedure(incoming_proc)                          :: incoming_y
+          procedure(gradient_y_proc)                        :: gradient_y
+          real(rkind), dimension(ne)                        :: timedev
+
+          timedev =
+     $         1.0d0/dx*(flux_x(i,j,:) - flux_x(i+1,j,:)) +
+     $         
+     $         compute_y_timedev_with_openbc(
+     $            nodes, i, j, p_model, dy,
+     $            gradient_y, incoming_y) +
+     $            
+     $         add_body_forces(p_model, nodes(i,j,:))
+
+        end function compute_timedev_ylayer_local
 
 
         !> @author
@@ -254,34 +418,33 @@
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
 
           
-          integer(ikind) :: i
-          
+          integer(ikind) :: i          
 
           i=1
           timedev(i,j,:) = 
-     $         compute_x_timedev_with_openbc(
-     $         nodes, i, j, p_model, dx,
-     $         gradient_x_x_oneside_L0, incoming_left) + 
-     $         
-     $         compute_y_timedev_with_openbc(
-     $         nodes, i, j, p_model, dy,
-     $         gradient_y, incoming_y) +
-     $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         compute_timedev_corner_local(
+     $         p_model,
+     $         nodes,
+     $         dx,dy,
+     $         i,j,
+     $         incoming_left,
+     $         incoming_y,
+     $         gradient_x_x_oneside_L0,
+     $         gradient_y)
 
           i=2
           timedev(i,j,:) = 
-     $         compute_x_timedev_with_openbc(
-     $         nodes, i, j, p_model, dx,
-     $         gradient_x_x_oneside_L1, incoming_left) + 
-     $         
-     $         compute_y_timedev_with_openbc(
-     $         nodes, i, j, p_model, dy,
-     $         gradient_y, incoming_y) +
-     $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         compute_timedev_corner_local(
+     $         p_model,
+     $         nodes,
+     $         dx,dy,
+     $         i,j,
+     $         incoming_left,
+     $         incoming_y,
+     $         gradient_x_x_oneside_L1,
+     $         gradient_y)
 
-        end subroutine compute_timedev_corner_W        
+        end subroutine compute_timedev_corner_W
 
 
         !> @author
@@ -339,21 +502,93 @@
 
           i=nx-1
           timedev(i,j,:) = 
-     $         compute_x_timedev_with_openbc(
-     $         nodes, i, j, p_model, dx,
-     $         gradient_x_x_oneside_R1, incoming_right) + 
-     $         
-     $         compute_y_timedev_with_openbc(
-     $         nodes, i, j, p_model, dy,
-     $         gradient_y, incoming_y) +
-     $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         compute_timedev_corner_local(
+     $         p_model,
+     $         nodes,
+     $         dx,dy,
+     $         i,j,
+     $         incoming_right,
+     $         incoming_y,
+     $         gradient_x_x_oneside_R1,
+     $         gradient_y)
 
           i=nx
           timedev(i,j,:) = 
-     $         compute_x_timedev_with_openbc(
+     $         compute_timedev_corner_local(
+     $         p_model,
+     $         nodes,
+     $         dx,dy,
+     $         i,j,
+     $         incoming_right,
+     $         incoming_y,
+     $         gradient_x_x_oneside_R0,
+     $         gradient_y)
+
+        end subroutine compute_timedev_corner_E
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for the
+        !> NW or SW corner using open boundary conditions
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> governing equations of the physical model
+        !        
+        !>@param nodes
+        !> array of data for the grid points
+        !
+        !>@param dx
+        !> space step along the x-axis
+        !
+        !>@param dy
+        !> space step along the y-axis
+        !
+        !>@param i
+        !> index identifying the grid point in the x-direction
+        !
+        !>@param j
+        !> index identifying the grid point in the y-direction
+        !
+        !>@param incoming_y
+        !> procedure checking the type of characteristic at the edge
+        !> in the y-direction
+        !
+        !>@param gradient_x
+        !> procedure computing the gradient along the x-direction
+        !
+        !>@param gradient_y
+        !> procedure computing the gradient along the y-direction
+        !
+        !>@param timedev
+        !> time derivatives modified
+        !-------------------------------------------------------------
+        function compute_timedev_corner_local(
+     $     p_model,nodes,dx,dy,i,j,incoming_x,incoming_y,gradient_x,gradient_y)
+     $     result(timedev)
+
+          implicit none
+
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          integer(ikind)                    , intent(in)    :: i
+          integer(ikind)                    , intent(in)    :: j
+          procedure(incoming_proc)                          :: incoming_x
+          procedure(incoming_proc)                          :: incoming_y
+          procedure(gradient_x_proc)                        :: gradient_x
+          procedure(gradient_y_proc)                        :: gradient_y
+          real(rkind), dimension(ne)                        :: timedev
+
+          timedev = compute_x_timedev_with_openbc(
      $         nodes, i, j, p_model, dx,
-     $         gradient_x_x_oneside_R0, incoming_right) + 
+     $         gradient_x, incoming_x) + 
      $         
      $         compute_y_timedev_with_openbc(
      $         nodes, i, j, p_model, dy,
@@ -361,8 +596,7 @@
      $         
      $         add_body_forces(p_model, nodes(i,j,:))
 
-        end subroutine compute_timedev_corner_E
-
+        end function compute_timedev_corner_local
 
 
         !> @author
@@ -405,14 +639,14 @@
 
           implicit none
 
-          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
-          integer(ikind)                  , intent(in) :: i
-          integer(ikind)                  , intent(in) :: j
-          type(pmodel_eq)                 , intent(in) :: p_model
-          real(rkind)                     , intent(in) :: dx
-          procedure(gradient_x_proc)                   :: gradient
-          procedure(incoming_proc)                     :: incoming_wave
-          real(rkind), dimension(ne)                   :: timedev
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          type(pmodel_eq)              , intent(in) :: p_model
+          real(rkind)                  , intent(in) :: dx
+          procedure(gradient_x_proc)                :: gradient
+          procedure(incoming_proc)                  :: incoming_wave
+          real(rkind), dimension(ne)                :: timedev
 
 
           real(rkind), dimension(ne)    :: eigenvalues
@@ -505,14 +739,14 @@
 
           implicit none
 
-          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
-          integer(ikind)                  , intent(in) :: i
-          integer(ikind)                  , intent(in) :: j
-          type(pmodel_eq)                 , intent(in) :: p_model
-          real(rkind)                     , intent(in) :: dy
-          procedure(gradient_y_proc)                   :: gradient
-          procedure(incoming_proc)                     :: incoming_wave
-          real(rkind), dimension(ne)                   :: timedev
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          type(pmodel_eq)              , intent(in) :: p_model
+          real(rkind)                  , intent(in) :: dy
+          procedure(gradient_y_proc)                :: gradient
+          procedure(incoming_proc)                  :: incoming_wave
+          real(rkind), dimension(ne)                :: timedev
 
 
           real(rkind), dimension(ne)    :: eigenvalues

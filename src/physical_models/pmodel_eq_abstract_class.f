@@ -781,14 +781,14 @@
 
             import gradient_x_proc
             import ikind,rkind
-            import nx,ny,ne
+            import ne
 
-            real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
-            integer(ikind)                  , intent(in) :: i
-            integer(ikind)                  , intent(in) :: j
-            procedure(gradient_x_proc)                   :: gradient
-            real(rkind)                     , intent(in) :: dx
-            real(rkind), dimension(ne)                   :: grad_var
+            real(rkind), dimension(:,:,:), intent(in) :: nodes
+            integer(ikind)               , intent(in) :: i
+            integer(ikind)               , intent(in) :: j
+            procedure(gradient_x_proc)                :: gradient
+            real(rkind)                  , intent(in) :: dx
+            real(rkind), dimension(ne)                :: grad_var
 
           end function x_gradient_proc
 
@@ -825,14 +825,14 @@
 
             import gradient_y_proc
             import ikind,rkind
-            import nx,ny,ne
+            import ne
 
-            real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
-            integer(ikind)                  , intent(in) :: i
-            integer(ikind)                  , intent(in) :: j
-            procedure(gradient_y_proc)                   :: gradient
-            real(rkind)                     , intent(in) :: dy
-            real(rkind), dimension(ne)                   :: grad_var
+            real(rkind), dimension(:,:,:), intent(in) :: nodes
+            integer(ikind)               , intent(in) :: i
+            integer(ikind)               , intent(in) :: j
+            procedure(gradient_y_proc)                :: gradient
+            real(rkind)                  , intent(in) :: dy
+            real(rkind), dimension(ne)                :: grad_var
 
           end function y_gradient_proc
 
@@ -875,13 +875,13 @@
             import ikind,rkind
             import nx,ny,ne
 
-            real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
-            integer(ikind)                  , intent(in) :: i
-            integer(ikind)                  , intent(in) :: j
-            procedure(gradient_n_proc)                   :: gradient
-            real(rkind)                     , intent(in) :: dx
-            real(rkind)                     , intent(in) :: dy
-            real(rkind), dimension(ne)                   :: grad_var
+            real(rkind), dimension(:,:,:), intent(in) :: nodes
+            integer(ikind)               , intent(in) :: i
+            integer(ikind)               , intent(in) :: j
+            procedure(gradient_n_proc)                :: gradient
+            real(rkind)                  , intent(in) :: dx
+            real(rkind)                  , intent(in) :: dy
+            real(rkind), dimension(ne)                :: grad_var            
 
           end function n_gradient_proc
 
