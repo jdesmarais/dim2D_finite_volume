@@ -66,6 +66,9 @@
      $       compute_timedev_ylayer,
      $       compute_timedev_corner_W,
      $       compute_timedev_corner_E,
+     $       compute_timedev_xlayer_local,
+     $       compute_timedev_ylayer_local,
+     $       compute_timedev_corner_local,
      $       compute_x_timedev_with_openbc,
      $       compute_y_timedev_with_openbc
 
@@ -147,35 +150,26 @@
           integer(ikind)                    , intent(in)    :: j
           real(rkind), dimension(nx,ny+1,ne), intent(in)    :: flux_y
           logical                           , intent(in)    :: side_x
-          procedure(gradient_y_proc)                        :: gradient_x
+          procedure(gradient_x_proc)                        :: gradient_x
           type(lodi_inflow)                 , intent(in)    :: inflow_bc
           type(lodi_outflow)                , intent(in)    :: outflow_bc
           procedure(incoming_proc)                          :: is_inflow_x
-          integer    , optional             , intent(in)    :: oneside_xflow
+          integer                           , intent(in)    :: oneside_xflow
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
 
-          real(rkind) :: dy
-
-
-          dy = y_map(2) - y_map(1)
-
-
-          timedev(i,j,:) = 
-     $         compute_x_timedev_with_openbc(
+          timedev(i,j,:) =
+     $         compute_timedev_xlayer_local(
      $         p_model,
      $         t, nodes, x_map, y_map, i,j,
+     $         flux_y,
      $         side_x,
      $         gradient_x,
      $         inflow_bc,
      $         outflow_bc,
      $         is_inflow_x,
-     $         oneside_xflow) +
-     $         
-     $         1.0d0/dy*(flux_y(i,j,:) - flux_y(i,j+1,:)) +
-     $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         oneside_xflow)     
 
-        end subroutine compute_timedev_xlayer
+        end subroutine compute_timedev_xlayer        
 
 
         !> @author
@@ -263,20 +257,18 @@
 
 
           do i=3, nx-bc_size
+
              timedev(i,j,:) = 
-     $            1.0d0/dx*(flux_x(i,j,:) - flux_x(i+1,j,:)) +
-     $            
-     $            compute_y_timedev_with_openbc(
+     $            compute_timedev_ylayer_local(
      $            p_model,
      $            t, nodes, x_map, y_map, i,j,
+     $            flux_x,
      $            side_y,
      $            gradient_y,
      $            inflow_bc,
      $            outflow_bc,
      $            is_inflow_y,
-     $            oneside_yflow) +
-     $         
-     $            add_body_forces(p_model, nodes(i,j,:))
+     $            oneside_yflow)
 
           end do
 
@@ -359,54 +351,49 @@
           real(rkind), dimension(nx,ny,ne), intent(inout) :: timedev
 
           integer(ikind) :: i
+          logical        :: side_x
 
-          i=1
-          timedev(i,j,:) = 
-     $         compute_x_timedev_with_openbc(
+          side_x = left
+
+          i = 1
+          timedev(i,j,:) = compute_timedev_corner_local(
      $         p_model,
-     $         t, nodes, x_map, y_map, i,j,
-     $         left,
+     $         t,
+     $         nodes,
+     $         x_map,
+     $         y_map,
+     $         i,
+     $         j,
+     $         side_x,
+     $         side_y,
      $         gradient_x_x_oneside_L0,
-     $         inflow_bc,
-     $         outflow_bc,
-     $         inflow_left,
-     $         oneside_xflow) + 
-     $         
-     $         compute_y_timedev_with_openbc(
-     $         p_model,
-     $         t, nodes, x_map, y_map, i,j,
-     $         side_y,
      $         gradient_y,
      $         inflow_bc,
      $         outflow_bc,
+     $         inflow_left,
      $         is_inflow_y,
-     $         oneside_yflow) +
-     $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         oneside_xflow,
+     $         oneside_yflow)
 
-          i=2
-          timedev(i,j,:) = 
-     $         compute_x_timedev_with_openbc(
+          i = 2
+          timedev(i,j,:) = compute_timedev_corner_local(
      $         p_model,
-     $         t, nodes, x_map, y_map, i,j,
-     $         left,
-     $         gradient_x_x_oneside_L1,
-     $         inflow_bc,
-     $         outflow_bc,
-     $         inflow_left,
-     $         oneside_xflow) + 
-     $         
-     $         compute_y_timedev_with_openbc(
-     $         p_model,
-     $         t, nodes, x_map, y_map, i,j,
+     $         t,
+     $         nodes,
+     $         x_map,
+     $         y_map,
+     $         i,
+     $         j,
+     $         side_x,
      $         side_y,
+     $         gradient_x_x_oneside_L1,
      $         gradient_y,
      $         inflow_bc,
      $         outflow_bc,
+     $         inflow_left,
      $         is_inflow_y,
-     $         oneside_yflow) +
-     $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         oneside_xflow,
+     $         oneside_yflow)
 
         end subroutine compute_timedev_corner_W        
 
@@ -486,42 +473,364 @@
           integer                         , intent(in)    :: oneside_yflow
           real(rkind), dimension(nx,ny,ne), intent(inout) :: timedev
 
+          logical        :: side_x
           integer(ikind) :: i
 
+          side_x = right
+
           i=nx-1
-          timedev(i,j,:) = 
-     $         compute_x_timedev_with_openbc(
+          timedev(i,j,:) = compute_timedev_corner_local(
      $         p_model,
-     $         t, nodes, x_map, y_map, i,j,
-     $         right,
-     $         gradient_x_x_oneside_R1,
-     $         inflow_bc,
-     $         outflow_bc,
-     $         inflow_right,
-     $         oneside_xflow) + 
-     $         
-     $         compute_y_timedev_with_openbc(
-     $         p_model,
-     $         t, nodes, x_map, y_map, i,j,
+     $         t,
+     $         nodes,
+     $         x_map,
+     $         y_map,
+     $         i,
+     $         j,
+     $         side_x,
      $         side_y,
+     $         gradient_x_x_oneside_R1,
      $         gradient_y,
      $         inflow_bc,
      $         outflow_bc,
+     $         inflow_right,
      $         is_inflow_y,
-     $         oneside_yflow) +
-     $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         oneside_xflow,
+     $         oneside_yflow)
 
           i=nx
-          timedev(i,j,:) = 
-     $         compute_x_timedev_with_openbc(
+          timedev(i,j,:) = compute_timedev_corner_local(
      $         p_model,
-     $         t, nodes, x_map, y_map, i,j,
-     $         right,
+     $         t,
+     $         nodes,
+     $         x_map,
+     $         y_map,
+     $         i,
+     $         j,
+     $         side_x,
+     $         side_y,
      $         gradient_x_x_oneside_R0,
+     $         gradient_y,
      $         inflow_bc,
      $         outflow_bc,
      $         inflow_right,
+     $         is_inflow_y,
+     $         oneside_xflow,
+     $         oneside_yflow)
+
+        end subroutine compute_timedev_corner_E
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for the
+        !> east or west layer using open boundary conditions
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> governing equations of the physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param nodes
+        !> array of grid points
+        !
+        !>@param x_map
+        !> coordinate map in the x-direction
+        !
+        !>@param y_map
+        !> coordinate map in the y-direction
+        !
+        !>@param i
+        !> index identifying the grid point position along the x-axis
+        !
+        !>@param j
+        !> index identifying the grid point position along the y-axis
+        !
+        !>@param flux_x
+        !> fluxes along the x-direction
+        !
+        !>@param gradient
+        !> procedure computing the gradient along the x-direction
+        !
+        !>@param inflow_bc
+        !> procedure computing the contribution to the time derivatives
+        !> from an inflow boundary condition
+        !
+        !>@param outflow_bc
+        !> procedure computing the contribution to the time derivatives
+        !> from an outflow boundary condition
+        !
+        !>@param is_inflow_x
+        !> procedure identifying whether the boundary normal to the
+        !> x-direction is of inflow or outflow type
+        !
+        !>@param timedev
+        !> time derivatives of the governing variables
+        !-------------------------------------------------------------
+        function compute_timedev_xlayer_local(
+     $     p_model,
+     $     t, nodes, x_map, y_map, i,j,
+     $     flux_y,
+     $     side_x,
+     $     gradient_x,
+     $     inflow_bc,
+     $     outflow_bc,
+     $     is_inflow_x,
+     $     oneside_xflow)
+     $     result(timedev)
+
+          implicit none
+
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
+          real(rkind), dimension(:)         , intent(in)    :: x_map
+          real(rkind), dimension(:)         , intent(in)    :: y_map
+          integer(ikind)                    , intent(in)    :: i
+          integer(ikind)                    , intent(in)    :: j
+          real(rkind), dimension(:,:,:)     , intent(in)    :: flux_y
+          logical                           , intent(in)    :: side_x
+          procedure(gradient_x_proc)                        :: gradient_x
+          type(lodi_inflow)                 , intent(in)    :: inflow_bc
+          type(lodi_outflow)                , intent(in)    :: outflow_bc
+          procedure(incoming_proc)                          :: is_inflow_x
+          integer                           , intent(in)    :: oneside_xflow
+          real(rkind), dimension(ne)                        :: timedev
+
+          real(rkind) :: dy
+
+          dy = y_map(2) - y_map(1)
+
+          timedev = 
+     $         compute_x_timedev_with_openbc(
+     $         p_model,
+     $         t, nodes, x_map, y_map, i,j,
+     $         side_x,
+     $         gradient_x,
+     $         inflow_bc,
+     $         outflow_bc,
+     $         is_inflow_x,
+     $         oneside_xflow) +
+     $         
+     $         1.0d0/dy*(flux_y(i,j,:) - flux_y(i,j+1,:)) +
+     $         
+     $         add_body_forces(p_model, nodes(i,j,:))
+
+        end function compute_timedev_xlayer_local
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for the
+        !> east or west layer using open boundary conditions
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> governing equations of the physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param nodes
+        !> array of grid points
+        !
+        !>@param x_map
+        !> coordinate map in the x-direction
+        !
+        !>@param y_map
+        !> coordinate map in the y-direction
+        !
+        !>@param i
+        !> index identifying the grid point position along the x-axis
+        !
+        !>@param j
+        !> index identifying the grid point position along the y-axis
+        !
+        !>@param flux_x
+        !> fluxes along the x-direction
+        !
+        !>@param gradient
+        !> procedure computing the gradient along the x-direction
+        !
+        !>@param inflow_bc
+        !> procedure computing the contribution to the time derivatives
+        !> from an inflow boundary condition
+        !
+        !>@param outflow_bc
+        !> procedure computing the contribution to the time derivatives
+        !> from an outflow boundary condition
+        !
+        !>@param is_inflow_x
+        !> procedure identifying whether the boundary normal to the
+        !> x-direction is of inflow or outflow type
+        !
+        !>@param timedev
+        !> time derivatives of the governing variables
+        !-------------------------------------------------------------
+        function compute_timedev_ylayer_local(
+     $     p_model,
+     $     t, nodes, x_map, y_map, i,j,
+     $     flux_x,
+     $     side_y,
+     $     gradient_y,
+     $     inflow_bc,
+     $     outflow_bc,
+     $     is_inflow_y,
+     $     oneside_yflow)
+     $     result(timedev)
+
+          implicit none
+
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
+          real(rkind), dimension(:)         , intent(in)    :: x_map
+          real(rkind), dimension(:)         , intent(in)    :: y_map
+          integer(ikind)                    , intent(in)    :: i
+          integer(ikind)                    , intent(in)    :: j
+          real(rkind), dimension(:,:,:)     , intent(in)    :: flux_x
+          logical                           , intent(in)    :: side_y
+          procedure(gradient_y_proc)                        :: gradient_y
+          type(lodi_inflow)                 , intent(in)    :: inflow_bc
+          type(lodi_outflow)                , intent(in)    :: outflow_bc
+          procedure(incoming_proc)                          :: is_inflow_y
+          integer                           , intent(in)    :: oneside_yflow
+          real(rkind), dimension(ne)                        :: timedev
+
+          real(rkind) :: dx
+
+          dx = x_map(2) - x_map(1)
+
+          timedev = 
+     $            1.0d0/dx*(flux_x(i,j,:) - flux_x(i+1,j,:)) +
+     $            
+     $            compute_y_timedev_with_openbc(
+     $            p_model,
+     $            t, nodes, x_map, y_map, i,j,
+     $            side_y,
+     $            gradient_y,
+     $            inflow_bc,
+     $            outflow_bc,
+     $            is_inflow_y,
+     $            oneside_yflow) +
+     $         
+     $            add_body_forces(p_model, nodes(i,j,:))
+
+        end function compute_timedev_ylayer_local
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for the
+        !> east or west layer using open boundary conditions
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> governing equations of the physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param nodes
+        !> array of grid points
+        !
+        !>@param x_map
+        !> coordinate map in the x-direction
+        !
+        !>@param y_map
+        !> coordinate map in the y-direction
+        !
+        !>@param i
+        !> index identifying the grid point position along the x-axis
+        !
+        !>@param j
+        !> index identifying the grid point position along the y-axis
+        !
+        !>@param flux_x
+        !> fluxes along the x-direction
+        !
+        !>@param gradient
+        !> procedure computing the gradient along the x-direction
+        !
+        !>@param inflow_bc
+        !> procedure computing the contribution to the time derivatives
+        !> from an inflow boundary condition
+        !
+        !>@param outflow_bc
+        !> procedure computing the contribution to the time derivatives
+        !> from an outflow boundary condition
+        !
+        !>@param is_inflow_x
+        !> procedure identifying whether the boundary normal to the
+        !> x-direction is of inflow or outflow type
+        !
+        !>@param timedev
+        !> time derivatives of the governing variables
+        !-------------------------------------------------------------
+        function compute_timedev_corner_local(
+     $     p_model,
+     $     t,
+     $     nodes,
+     $     x_map,
+     $     y_map,
+     $     i,
+     $     j,
+     $     side_x,
+     $     side_y,
+     $     gradient_x,
+     $     gradient_y,
+     $     inflow_bc,
+     $     outflow_bc,
+     $     is_inflow_x,
+     $     is_inflow_y,
+     $     oneside_xflow,
+     $     oneside_yflow)
+     $     result(timedev)
+
+          implicit none
+
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
+          real(rkind), dimension(:)         , intent(in)    :: x_map
+          real(rkind), dimension(:)         , intent(in)    :: y_map
+          integer(ikind)                    , intent(in)    :: i
+          integer(ikind)                    , intent(in)    :: j
+          logical                           , intent(in)    :: side_x
+          logical                           , intent(in)    :: side_y
+          procedure(gradient_x_proc)                        :: gradient_x
+          procedure(gradient_y_proc)                        :: gradient_y
+          type(lodi_inflow)                 , intent(in)    :: inflow_bc
+          type(lodi_outflow)                , intent(in)    :: outflow_bc
+          procedure(incoming_proc)                          :: is_inflow_x
+          procedure(incoming_proc)                          :: is_inflow_y
+          integer                           , intent(in)    :: oneside_xflow
+          integer                           , intent(in)    :: oneside_yflow
+          real(rkind), dimension(ne)                        :: timedev
+
+          timedev = 
+     $         compute_x_timedev_with_openbc(
+     $         p_model,
+     $         t, nodes, x_map, y_map, i,j,
+     $         side_x,
+     $         gradient_x,
+     $         inflow_bc,
+     $         outflow_bc,
+     $         is_inflow_x,
      $         oneside_xflow) + 
      $         
      $         compute_y_timedev_with_openbc(
@@ -536,7 +845,7 @@
      $         
      $         add_body_forces(p_model, nodes(i,j,:))
 
-        end subroutine compute_timedev_corner_E
+        end function compute_timedev_corner_local
 
 
         !> @author

@@ -296,10 +296,9 @@
            !> time derivatives of the grid points
            !--------------------------------------------------------------
            function tdev_x_edge(
-     $        this, p_model, t,
-     $        nodes,
-     $        dx, dy,
-     $        i, j,
+     $        this,
+     $        p_model, t,
+     $        nodes, x_map, y_map, i,j,
      $        flux_y,
      $        side_x,
      $        gradient_x)
@@ -316,8 +315,8 @@
              type(pmodel_eq)              , intent(in) :: p_model
              real(rkind)                  , intent(in) :: t
              real(rkind), dimension(:,:,:), intent(in) :: nodes
-             real(rkind)                  , intent(in) :: dx
-             real(rkind)                  , intent(in) :: dy
+             real(rkind), dimension(:)    , intent(in) :: x_map
+             real(rkind), dimension(:)    , intent(in) :: y_map
              integer(ikind)               , intent(in) :: i
              integer(ikind)               , intent(in) :: j
              real(rkind), dimension(:,:,:), intent(in) :: flux_y
@@ -375,7 +374,10 @@
            !> time derivatives of the grid points
            !--------------------------------------------------------------
            function tdev_y_edge(
-     $        this, p_model, t, nodes, dx, dy, i, j, flux_x, side_y, gradient_y)
+     $        this,
+     $        p_model, t,
+     $        nodes, x_map, y_map, i,j,
+     $        flux_x, side_y, gradient_y)
      $        result(timedev)
            
              import bc_operators_abstract
@@ -389,8 +391,8 @@
              type(pmodel_eq)              , intent(in) :: p_model
              real(rkind)                  , intent(in) :: t
              real(rkind), dimension(:,:,:), intent(in) :: nodes
-             real(rkind)                  , intent(in) :: dx
-             real(rkind)                  , intent(in) :: dy
+             real(rkind), dimension(:)    , intent(in) :: x_map
+             real(rkind), dimension(:)    , intent(in) :: y_map
              integer(ikind)               , intent(in) :: i
              integer(ikind)               , intent(in) :: j
              real(rkind), dimension(:,:,:), intent(in) :: flux_x
@@ -448,7 +450,11 @@
            !> time derivatives of the grid points
            !--------------------------------------------------------------
            function tdev_xy_corner(
-     $        this, p_model, t, nodes, dx, dy, i, j, side_x, side_y, gradient_x, gradient_y)
+     $        this,
+     $        p_model, t,
+     $        nodes, x_map, y_map, i,j,
+     $        side_x, side_y,
+     $        gradient_x, gradient_y)
      $        result(timedev)
            
              import bc_operators_abstract
@@ -463,8 +469,8 @@
              type(pmodel_eq)              , intent(in) :: p_model
              real(rkind)                  , intent(in) :: t
              real(rkind), dimension(:,:,:), intent(in) :: nodes
-             real(rkind)                  , intent(in) :: dx
-             real(rkind)                  , intent(in) :: dy
+             real(rkind), dimension(:)    , intent(in) :: x_map
+             real(rkind), dimension(:)    , intent(in) :: y_map
              integer(ikind)               , intent(in) :: i
              integer(ikind)               , intent(in) :: j
              logical                      , intent(in) :: side_x

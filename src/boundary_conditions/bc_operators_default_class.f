@@ -283,7 +283,10 @@
         !> time derivatives of the grid points
         !--------------------------------------------------------------
         function apply_bc_on_timedev_x_edge(
-     $     this, p_model, t, nodes, dx, dy, i, j, flux_y, side_x, gradient_x)
+     $     this,
+     $     p_model, t,
+     $     nodes, x_map, y_map, i,j,
+     $     flux_y, side_x, gradient_x)
      $     result(timedev)
 
           implicit none
@@ -292,8 +295,8 @@
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          real(rkind)                  , intent(in) :: dx
-          real(rkind)                  , intent(in) :: dy
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind), dimension(:,:,:), intent(in) :: flux_y
@@ -301,7 +304,9 @@
           procedure(gradient_x_proc)                :: gradient_x
           real(rkind), dimension(ne)                :: timedev
 
-          real(rkind)       :: flux,dy_s,t_s
+          real(rkind)       :: dx
+          real(rkind)       :: dy
+          real(rkind)       :: flux,t_s
           integer           :: bc_s
           logical           :: side_s
 
@@ -310,8 +315,9 @@
           stop 'function not implemented'
 
           !to prevent unused param warnings
+          dx   = x_map(2)-x_map(1)
+          dy   = y_map(2)-y_map(1)
           t_s  = t
-          dy_s = dy
           flux=flux_y(1,1,1)
           side_s = side_x
           timedev = p_model%compute_x_gradient(nodes,i,j,gradient_x,dx)
@@ -368,7 +374,10 @@
         !> time derivatives of the grid points
         !--------------------------------------------------------------
         function apply_bc_on_timedev_y_edge(
-     $     this, p_model, t, nodes, dx, dy, i, j, flux_x, side_y, gradient_y)
+     $     this,
+     $     p_model, t,
+     $     nodes, x_map, y_map, i,j,
+     $     flux_x, side_y, gradient_y)
      $     result(timedev)
 
           implicit none
@@ -377,8 +386,8 @@
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          real(rkind)                  , intent(in) :: dx
-          real(rkind)                  , intent(in) :: dy
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind), dimension(:,:,:), intent(in) :: flux_x
@@ -386,7 +395,9 @@
           procedure(gradient_y_proc)                :: gradient_y
           real(rkind), dimension(ne)                :: timedev
 
-          real(rkind)       :: flux,dx_s,t_s
+          real(rkind)       :: dx
+          real(rkind)       :: dy
+          real(rkind)       :: flux,t_s
           integer           :: bc_s
           logical           :: side_s
 
@@ -395,8 +406,9 @@
           stop 'function not implemented'
 
           !to prevent unused param warnings
+          dx   = x_map(2)-x_map(1)
+          dy   = y_map(2)-y_map(1)
           t_s  = t
-          dx_s = dx
           flux=flux_x(1,1,1)
           side_s = side_y
           timedev = p_model%compute_y_gradient(nodes,i,j,gradient_y,dy)
@@ -452,7 +464,11 @@
         !> time derivatives of the grid points
         !--------------------------------------------------------------
         function apply_bc_on_timedev_xy_corner(
-     $     this, p_model, t, nodes, dx, dy, i, j, side_x, side_y, gradient_x, gradient_y)
+     $     this,
+     $     p_model, t,
+     $     nodes, x_map, y_map, i,j,
+     $     side_x, side_y,
+     $     gradient_x, gradient_y)
      $     result(timedev)
 
           implicit none
@@ -461,8 +477,8 @@
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          real(rkind)                  , intent(in) :: dx
-          real(rkind)                  , intent(in) :: dy
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           logical                      , intent(in) :: side_x
@@ -471,6 +487,8 @@
           procedure(gradient_y_proc)                :: gradient_y
           real(rkind), dimension(ne)                :: timedev
 
+          real(rkind)       :: dx
+          real(rkind)       :: dy
           real(rkind)       :: t_s
           integer           :: bc_s
           logical           :: side_x_s, side_y_s
@@ -480,6 +498,8 @@
           stop 'function not implemented'
 
           !to prevent unused param warnings
+          dx   = x_map(2)-x_map(1)
+          dy   = y_map(2)-y_map(1)
           t_s  = t
           side_x_s = side_x
           side_y_s = side_y          

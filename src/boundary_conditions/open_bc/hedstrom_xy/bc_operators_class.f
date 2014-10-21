@@ -391,11 +391,8 @@
         !--------------------------------------------------------------
         function apply_bc_on_timedev_x_edge(
      $     this,
-     $     p_model,
-     $     t,
-     $     nodes,
-     $     dx, dy,
-     $     i, j,
+     $     p_model, t,
+     $     nodes, x_map, y_map, i,j,
      $     flux_y,
      $     side_x,
      $     gradient_x)
@@ -407,8 +404,8 @@
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          real(rkind)                  , intent(in) :: dx
-          real(rkind)                  , intent(in) :: dy
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind), dimension(:,:,:), intent(in) :: flux_y
@@ -418,19 +415,18 @@
 
           integer     :: bc_s
           real(rkind) :: t_s
+          real(rkind) :: dx,dy
 
           bc_s = this%bcx_type
           t_s  = t
+          dx   = x_map(2)-x_map(1)
+          dy   = y_map(2)-y_map(1)
 
           if(side_x.eqv.left) then
 
              timedev = compute_timedev_xlayer_local(
      $            p_model,
-     $            nodes,
-     $            dx,
-     $            dy,
-     $            i,
-     $            j,
+     $            nodes, dx, dy, i,j,
      $            flux_y,
      $            incoming_left,
      $            gradient_x)
@@ -439,11 +435,7 @@
 
              timedev = compute_timedev_xlayer_local(
      $            p_model,
-     $            nodes,
-     $            dx,
-     $            dy,
-     $            i,
-     $            j,
+     $            nodes, dx, dy, i,j,
      $            flux_y,
      $            incoming_right,
      $            gradient_x)
@@ -501,11 +493,8 @@
         !--------------------------------------------------------------
         function apply_bc_on_timedev_y_edge(
      $     this, 
-     $     p_model,
-     $     t,
-     $     nodes,
-     $     dx, dy,
-     $     i, j,
+     $     p_model, t,
+     $     nodes, x_map, y_map, i,j,
      $     flux_x,
      $     side_y,
      $     gradient_y)
@@ -517,8 +506,8 @@
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          real(rkind)                  , intent(in) :: dx
-          real(rkind)                  , intent(in) :: dy
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind), dimension(:,:,:), intent(in) :: flux_x
@@ -528,19 +517,18 @@
 
           integer     :: bc_s
           real(rkind) :: t_s
+          real(rkind) :: dx,dy
 
           bc_s = this%bcx_type
           t_s  = t
+          dx   = x_map(2) - x_map(1)
+          dy   = y_map(2) - y_map(1)
 
           if(side_y.eqv.left) then
 
              timedev = compute_timedev_ylayer_local(
      $            p_model,
-     $            nodes,
-     $            dx,
-     $            dy,
-     $            i,
-     $            j,
+     $            nodes, dx, dy, i,j,
      $            flux_x,
      $            incoming_left,
      $            gradient_y)
@@ -549,11 +537,7 @@
 
              timedev = compute_timedev_ylayer_local(
      $            p_model,
-     $            nodes,
-     $            dx,
-     $            dy,
-     $            i,
-     $            j,
+     $            nodes, dx, dy, i,j,
      $            flux_x,
      $            incoming_right,
      $            gradient_y)
@@ -611,17 +595,10 @@
         !--------------------------------------------------------------
         function apply_bc_on_timedev_xy_corner(
      $     this,
-     $     p_model,
-     $     t,
-     $     nodes,
-     $     dx,
-     $     dy,
-     $     i,
-     $     j,
-     $     side_x,
-     $     side_y,
-     $     gradient_x,
-     $     gradient_y)
+     $     p_model, t,
+     $     nodes, x_map, y_map, i,j,
+     $     side_x, side_y,
+     $     gradient_x, gradient_y)
      $     result(timedev)
 
           implicit none
@@ -630,8 +607,8 @@
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
           real(rkind), dimension(:,:,:), intent(in) :: nodes
-          real(rkind)                  , intent(in) :: dx
-          real(rkind)                  , intent(in) :: dy
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           logical                      , intent(in) :: side_x
@@ -642,18 +619,20 @@
 
           integer     :: bc_s
           real(rkind) :: t_s
+          real(rkind) :: dx
+          real(rkind) :: dy          
 
           bc_s = this%bcx_type
           t_s  = t
+          dx   = x_map(2)-x_map(1)
+          dy   = y_map(2)-y_map(1)
 
           if(side_x.eqv.left) then
 
              if(side_y.eqv.left) then
                 timedev = compute_timedev_corner_local(
      $               p_model,
-     $               nodes,
-     $               dx,dy,
-     $               i,j,
+     $               nodes, dx, dy, i,j,
      $               incoming_left,
      $               incoming_left,
      $               gradient_x,
@@ -662,9 +641,7 @@
              else
                 timedev = compute_timedev_corner_local(
      $               p_model,
-     $               nodes,
-     $               dx,dy,
-     $               i,j,
+     $               nodes, dx, dy, i,j,
      $               incoming_left,
      $               incoming_right,
      $               gradient_x,
@@ -677,9 +654,7 @@
              if(side_y.eqv.left) then
                 timedev = compute_timedev_corner_local(
      $               p_model,
-     $               nodes,
-     $               dx,dy,
-     $               i,j,
+     $               nodes, dx, dy, i,j,
      $               incoming_right,
      $               incoming_left,
      $               gradient_x,
@@ -688,9 +663,7 @@
              else
                 timedev = compute_timedev_corner_local(
      $               p_model,
-     $               nodes,
-     $               dx,dy,
-     $               i,j,
+     $               nodes, dx, dy, i,j,
      $               incoming_right,
      $               incoming_right,
      $               gradient_x,

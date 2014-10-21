@@ -93,16 +93,32 @@ test_bf_interface_prog:	$(param_dep)\
 			interface_integration_step.o\
 			$(bf_interface_dep)
 
-test_hedstrom_xy_bf.o:	$(hobc_dir)/bc_operators_class.o\
+
+test_openbc_local_operators_module.o:\
+			$(bc_cdir)/bc_operators_class.o\
 			$(sd_dir)/interface_primary.o\
 			$(obc_dir)/openbc_operators_module.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_kind.o\
 			$(param_dir)/parameters_input.o\
-			$(wave2d_dir)/pmodel_eq_class.o\
+			$(pm_cdir)/pmodel_eq_class.o\
 			$(mt_dir)/sd_operators_fd_module.o
+
+
+test_hedstrom_xy_bf.o:	test_openbc_local_operators_module.o
 
 test_hedstrom_xy_bf:	$(param_dep)\
 			$(mt_dep)\
 			$(wave2d_dep)\
-			$(hedstrom_xy_dep)
+			$(hedstrom_xy_dep)\
+			test_openbc_local_operators_module.o
+
+
+test_poinsot_xy_bf.o:	test_openbc_local_operators_module.o
+
+test_poinsot_xy_bf:	$(param_dep)\
+			$(mt_dep)\
+			$(ns2d_dep)\
+			$(poinsot_xy_dep)\
+			lodi_ns2d_class.o\
+			test_openbc_local_operators_module.o
