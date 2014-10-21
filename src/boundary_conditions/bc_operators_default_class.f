@@ -1,10 +1,26 @@
       module bc_operators_default_class
 
-        use bc_operators_abstract_class, only : bc_operators_abstract
-        use parameters_input           , only : nx,ny,ne
-        use parameters_kind            , only : ikind, rkind
-        use pmodel_eq_class            , only : pmodel_eq
-        use sd_operators_class         , only : sd_operators
+        use bc_operators_abstract_class, only :
+     $       bc_operators_abstract
+
+        use interface_primary, only :
+     $       gradient_x_proc,
+     $       gradient_y_proc
+
+        use parameters_input, only :
+     $       nx,
+     $       ny,
+     $       ne
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use sd_operators_class, only :
+     $       sd_operators
 
         implicit none
 
@@ -30,6 +46,18 @@
         !> @param apply_bc_on_timedev
         !> default application of the boundary conditions on
         !> the time derivatives : program stops
+        !
+        !> @param apply_bc_on_timedev_x_edge
+        !> default application of the boundary conditions on
+        !> the time derivatives for E and W edges: program stops
+        !
+        !> @param apply_bc_on_timedev_y_edge
+        !> default application of the boundary conditions on
+        !> the time derivatives for N and S edges: program stops
+        !
+        !> @param apply_bc_on_timedev_xy_corner
+        !> default application of the boundary conditions on
+        !> the time derivatives for corners: program stops
         !---------------------------------------------------------------
         type, abstract, extends(bc_operators_abstract) :: bc_operators_default
 
@@ -39,9 +67,9 @@
           procedure, nopass :: apply_bc_on_fluxes
           procedure,   pass :: apply_bc_on_timedev
 
-c$$$          procedure,   pass :: apply_bc_on_timedev_x_edge
-c$$$          procedure,   pass :: apply_bc_on_timedev_y_edge
-c$$$          procedure,   pass :: apply_bc_on_timedev_xy_corner
+          procedure,   pass :: apply_bc_on_timedev_x_edge
+          procedure,   pass :: apply_bc_on_timedev_y_edge
+          procedure,   pass :: apply_bc_on_timedev_xy_corner
 
         end type bc_operators_default
 
@@ -208,74 +236,220 @@ c$$$          procedure,   pass :: apply_bc_on_timedev_xy_corner
         end subroutine apply_bc_on_timedev
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives at (i,j) resulting
+        !> of the application of the boundary condition on
+        !> and x edge: W_edge or E_edge
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> simulation time for boundary conditions depending
+        !> on time
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param dx
+        !> grid size along the x-axis
+        !
+        !>@param dy
+        !> grid size along the y-axis
+        !
+        !>@param i
+        !> grid point index along the x-axis
+        !
+        !>@param j
+        !> grid point index along the y-axis
+        !
+        !>@param flux_y
+        !> fluxes along the y-direction
+        !
+        !>@param side_x
+        !> edge side to determine the boundary normal vector
+        !
+        !>@param gradient_x
+        !> procedure to compute the gradient along the x-direction
+        !> at (i,j)
+        !
+        !>@param timedev
+        !> time derivatives of the grid points
+        !--------------------------------------------------------------
+        function apply_bc_on_timedev_x_edge(
+     $     this, p_model, t, nodes, dx, dy, i, j, flux_y, side_x, gradient_x)
+     $     result(time_dev)
 
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> compute the time derivatives at (i,j) resulting
-c$$$        !> of the application of the boundary condition
-c$$$        !
-c$$$        !> @date
-c$$$        !> 16_10_2014 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param p_model
-c$$$        !> object encapsulating the physical model
-c$$$        !
-c$$$        !>@param t
-c$$$        !> simulation time for boundary conditions depending
-c$$$        !> on time
-c$$$        !
-c$$$        !>@param nodes
-c$$$        !> object encapsulating the main variables
-c$$$        !
-c$$$        !>@param dx
-c$$$        !> grid size along the x-axis
-c$$$        !
-c$$$        !>@param dy
-c$$$        !> grid size along the y-axis
-c$$$        !
-c$$$        !>@param i
-c$$$        !> grid point index along the x-axis
-c$$$        !
-c$$$        !>@param j
-c$$$        !> grid point index along the y-axis
-c$$$        !
-c$$$        !>@param flux_y
-c$$$        !> fluxes along the y-direction
-c$$$        !
-c$$$        !>@param side_x
-c$$$        !> edge side to determine the boundary normal vector
-c$$$        !
-c$$$        !>@param gradient_x
-c$$$        !> procedure to compute the gradient along the x-direction
-c$$$        !> at (i,j)
-c$$$        !
-c$$$        !>@param timedev
-c$$$        !> time derivatives of the grid points
-c$$$        !--------------------------------------------------------------
-c$$$        function apply_bc_on_timedev_x_edge(
-c$$$     $     this, p_model, t,, nodes, dx, dy, i, j, flux_y, side_x, gradient_x)
-c$$$     $     result(time_dev)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bc_operators_default)  , intent(in) :: this
-c$$$          type(pmodel_eq)              , intent(in) :: p_model
-c$$$          real(rkind)                  , intent(in) :: t
-c$$$          real(rkind), dimension(:,:,:), intent(in) :: nodes
-c$$$          real(rkind)                  , intent(in) :: dx
-c$$$          real(rkind)                  , intent(in) :: dy
-c$$$          integer(ikind)               , intent(in) :: i
-c$$$          integer(ikind)               , intent(in) :: j
-c$$$          real(rkind), dimension(:,:,:), intent(in) :: flux_y
-c$$$          logical                      , intent(in) :: side_x
-c$$$          procedure(gradient_x_proc)                :: gradient_x
-c$$$          real(rkind), dimension(ne)                :: time_dev
-c$$$
-c$$$        end function apply_bc_on_timedev_x_edge
-c$$$
-c$$$        procedure,   pass :: apply_bc_on_timedev_y_edge
-c$$$          procedure,   pass :: apply_bc_on_timedev_xy_corner
+          implicit none
+
+          class(bc_operators_default)  , intent(in) :: this
+          type(pmodel_eq)              , intent(in) :: p_model
+          real(rkind)                  , intent(in) :: t
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind), dimension(:,:,:), intent(in) :: flux_y
+          logical                      , intent(in) :: side_x
+          procedure(gradient_x_proc)                :: gradient_x
+          real(rkind), dimension(ne)                :: time_dev
+
+          print '(''bc_operators_default_class'')'
+          print '(''apply_bc_on_timedev_x_edge'')'
+          stop 'function not implemented'
+
+        end function apply_bc_on_timedev_x_edge
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives at (i,j) resulting
+        !> of the application of the boundary condition on
+        !> an y edge: N_edge or S_edge
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> simulation time for boundary conditions depending
+        !> on time
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param dx
+        !> grid size along the x-axis
+        !
+        !>@param dy
+        !> grid size along the y-axis
+        !
+        !>@param i
+        !> grid point index along the x-axis
+        !
+        !>@param j
+        !> grid point index along the y-axis
+        !
+        !>@param flux_x
+        !> fluxes along the y-direction
+        !
+        !>@param side_y
+        !> edge side to determine the boundary normal vector
+        !
+        !>@param gradient_y
+        !> procedure to compute the gradient along the y-direction
+        !> at (i,j)
+        !
+        !>@param timedev
+        !> time derivatives of the grid points
+        !--------------------------------------------------------------
+        function apply_bc_on_timedev_y_edge(
+     $     this, p_model, t, nodes, dx, dy, i, j, flux_x, side_y, gradient_y)
+     $     result(time_dev)
+
+          implicit none
+
+          class(bc_operators_default)  , intent(in) :: this
+          type(pmodel_eq)              , intent(in) :: p_model
+          real(rkind)                  , intent(in) :: t
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind), dimension(:,:,:), intent(in) :: flux_x
+          logical                      , intent(in) :: side_y
+          procedure(gradient_y_proc)                :: gradient_y
+          real(rkind), dimension(ne)                :: time_dev
+
+          print '(''bc_operators_default_class'')'
+          print '(''apply_bc_on_timedev_y_edge'')'
+          stop 'function not implemented'
+
+        end function apply_bc_on_timedev_y_edge
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives at (i,j) resulting
+        !> of the application of the boundary condition on
+        !> a corner: SE_corner, SW_corner, NE_corner, NW_corner
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> simulation time for boundary conditions depending
+        !> on time
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param dx
+        !> grid size along the x-axis
+        !
+        !>@param dy
+        !> grid size along the y-axis
+        !
+        !>@param i
+        !> grid point index along the x-axis
+        !
+        !>@param j
+        !> grid point index along the y-axis
+        !
+        !>@param flux_x
+        !> fluxes along the y-direction
+        !
+        !>@param side_y
+        !> edge side to determine the boundary normal vector
+        !
+        !>@param gradient_y
+        !> procedure to compute the gradient along the y-direction
+        !> at (i,j)
+        !
+        !>@param timedev
+        !> time derivatives of the grid points
+        !--------------------------------------------------------------
+        function apply_bc_on_timedev_xy_corner(
+     $     this, p_model, t, nodes, dx, dy, i, j, side_x, side_y, gradient_x, gradient_y)
+     $     result(time_dev)
+
+          implicit none
+
+          class(bc_operators_default)  , intent(in) :: this
+          type(pmodel_eq)              , intent(in) :: p_model
+          real(rkind)                  , intent(in) :: t
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side_x
+          logical                      , intent(in) :: side_y
+          procedure(gradient_x_proc)                :: gradient_x
+          procedure(gradient_y_proc)                :: gradient_y
+          real(rkind), dimension(ne)                :: time_dev
+
+          print '(''bc_operators_default_class'')'
+          print '(''apply_bc_on_timedev_xy_corner'')'
+          stop 'function not implemented'
+
+        end function apply_bc_on_timedev_xy_corner
 
       end module bc_operators_default_class
