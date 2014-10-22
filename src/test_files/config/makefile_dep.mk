@@ -704,7 +704,7 @@ $(pobc_dir)/lodi_xy_module.o:\
 			$(sd_cdir)/sd_operators_fd_module.o
 
 $(pobc_dir)/bc_operators_class.o:\
-			$(bc_dir)/bc_operators_default_class.o\
+			$(obc_dir)/bc_operators_openbc_class.o\
 			$(pobc_dir)/lodi_xy_module.o\
 			$(pobc_cdir)/lodi_inflow_class.o\
 			$(pobc_cdir)/lodi_outflow_class.o\

@@ -16,8 +16,8 @@
       !-----------------------------------------------------------------
       module bc_operators_class
 
-        use bc_operators_default_class, only :
-     $     bc_operators_default
+        use bc_operators_openbc_class, only :
+     $     bc_operators_openbc
 
         use lodi_inflow_class, only :
      $       lodi_inflow
@@ -39,7 +39,6 @@
      $       gradient_y_proc
 
         use openbc_operators_module, only :
-     $       compute_fluxes_at_the_edges_2ndorder,
      $       inflow_left,
      $       inflow_right
 
@@ -49,7 +48,8 @@
         use parameters_constant, only :
      $       bc_timedev_choice,
      $       left,
-     $       right
+     $       right,
+     $       N,S,E,W
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
@@ -116,7 +116,7 @@
         !> @param apply_bc_on_timedev
         !> apply the open boundary conditions for the time derivatives
         !---------------------------------------------------------------
-        type, extends(bc_operators_default) :: bc_operators
+        type, extends(bc_operators_openbc) :: bc_operators
 
           type(lodi_inflow)  :: inflow_bc
           type(lodi_outflow) :: outflow_bc
@@ -246,20 +246,62 @@
 
           real(rkind)    :: dx,dy
           integer(ikind) :: i,j
+          integer(ikind) :: i_min, i_max
+          integer(ikind) :: j_min, j_max
 
 
           dx = x_map(2) - x_map(1)
           dy = y_map(2) - y_map(1)
 
 
-          !compute the fluxes at the edge of the computational
-          !domain
-          call compute_fluxes_at_the_edges_2ndorder(
-     $         nodes, dx, dy,
-     $         s_x_L0, s_x_L1, s_x_R1, s_x_R0,
-     $         s_y_L0, s_y_L1, s_y_R1, s_y_R0,
+          !compute the fluxes at the edge of the
+          !computational domain
+          !--------------------------------------------
+          !S_edge
+          i_min = bc_size+1
+          i_max = nx-bc_size+1
+          j     = 1
+          
+          call this%compute_fluxes_for_bc_y_edge(
      $         p_model,
-     $         flux_x, flux_y)
+     $         nodes,
+     $         s_y_L0, s_y_L1,
+     $         s_y_R1, s_y_R0,
+     $         dx, dy,
+     $         i_min, i_max, j,
+     $         S,
+     $         flux_x)
+          
+          
+          !E+W_edge
+          j_min = bc_size+1
+          j_max = ny-bc_size+1
+          
+          call this%compute_fluxes_for_bc_x_edge(
+     $         p_model,
+     $         nodes,
+     $         s_x_L0, s_x_L1,
+     $         s_x_R1, s_x_R0,
+     $         dx, dy,
+     $         j_min, j_max, i,
+     $         E+W,
+     $         flux_y)
+          
+          
+          !N_edge
+          i_min = bc_size+1
+          i_max = nx-bc_size+1
+          j     = ny-bc_size+1
+          
+          call this%compute_fluxes_for_bc_y_edge(
+     $         p_model,
+     $         nodes,
+     $         s_y_L0, s_y_L1,
+     $         s_y_R1, s_y_R0,
+     $         dx, dy,
+     $         i_min, i_max, j,
+     $         N,
+     $         flux_x)
 
 
           !apply the boundary conditions on the south layer

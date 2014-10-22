@@ -238,6 +238,7 @@ test_poinsot_ns2d_operators.o:\
 			$(pobc_ns2d_dir)/lodi_ns2d_class.o\
 			$(pobc_ns2d_dir)/lodi_inflow_class.o\
 			$(pobc_ns2d_dir)/lodi_outflow_class.o\
+			$(ns2d_dir)/ns2d_parameters.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\

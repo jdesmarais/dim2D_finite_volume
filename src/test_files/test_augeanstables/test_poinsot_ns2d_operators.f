@@ -12,6 +12,12 @@
         use lodi_outflow_class, only :
      $       lodi_outflow
 
+        use ns2d_parameters, only :
+     $       viscous_r,
+     $       Re, Pr, gamma,
+     $       mach_infty,
+     $       gravity
+
         use parameters_constant, only :
      $       vector_x,
      $       left,
@@ -64,6 +70,8 @@
         
         real(rkind), dimension(nx,ny,ne) :: test_data
         logical                          :: detailled
+        logical                          :: loc
+        logical                          :: test_input
         logical                          :: test_validated
 
         integer :: k
@@ -76,6 +84,39 @@
            print '(''pm_model=ns2d'')'
            stop 'change inputs'
         end if
+
+
+        test_input = .true.
+        print '(''****************************'')'
+        print '(''this test is only valid for'')'
+
+        loc = is_test_validated(viscous_r,-2.0d0/3.0d0,.false.) 
+        test_input = test_input.and.loc
+        print '(''viscous_r = -2.0/3.0: '',L1)', loc
+        
+        loc = is_test_validated(Re,10.0d0,.false.)
+        test_input = test_input.and.loc
+        print '(''Re        = 10.0    : '',L1)', loc
+
+        loc = is_test_validated(Pr,1.0d0,.false.)
+        test_input = test_input.and.loc
+        print '(''Pr        = 1.0     : '',L1)', loc
+
+        loc = is_test_validated(gamma,5.0d0/3.0d0,.false.)
+        test_input = test_input.and.loc
+        print '(''gamma     = 5.0/3.0 : '',L1)', loc
+
+        loc = is_test_validated(mach_infty,1.0d0,.false.)
+        test_input = test_input.and.loc
+        print '(''mach_infty= 1.0     : '',L1)', loc
+
+        loc = is_test_validated(gravity,0.03d0,.false.)
+        test_input = test_input.and.loc
+        print '(''gravity   = 0.03    : '',L1)', loc
+
+        print '(''****************************'')'    
+
+        if(.not.test_input) stop 'change inputs'
 
 
         !compute the lodi vector from the lodi outflow x
