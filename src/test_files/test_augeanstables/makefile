@@ -163,6 +163,37 @@ test_openbc_operators:	$(param_dep)\
 			sd_operators_y_oneside_R0_class.o\
 			openbc_operators_module.o
 
+test_bc_operators_openbc.o:\
+			$(hobc_dir)/bc_operators_class.o\
+			$(simpletest_dir)/pmodel_eq_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(mt_dir)/sd_operators_class.o\
+			$(mt_dir)/sd_operators_x_oneside_L0_class.o\
+			$(mt_dir)/sd_operators_x_oneside_L1_class.o\
+			$(mt_dir)/sd_operators_x_oneside_R1_class.o\
+			$(mt_dir)/sd_operators_x_oneside_R0_class.o\
+			$(mt_dir)/sd_operators_y_oneside_L0_class.o\
+			$(mt_dir)/sd_operators_y_oneside_L1_class.o\
+			$(mt_dir)/sd_operators_y_oneside_R1_class.o\
+			$(mt_dir)/sd_operators_y_oneside_R0_class.o
+
+test_bc_operators_openbc:\
+			$(param_dep)\
+			$(mt_dep)\
+			$(simpletest_dep)\
+			sd_operators_x_oneside_L0_class.o\
+			sd_operators_x_oneside_L1_class.o\
+			sd_operators_x_oneside_R0_class.o\
+			sd_operators_x_oneside_R1_class.o\
+			sd_operators_y_oneside_L0_class.o\
+			sd_operators_y_oneside_L1_class.o\
+			sd_operators_y_oneside_R1_class.o\
+			sd_operators_y_oneside_R0_class.o\
+			$(hedstrom_xy_dep)
+
+
 test_hedstrom_xy.o:	$(hrobc_dir)/bc_operators_class.o\
 			$(hobc_dir)/hedstrom_xy_module.o\
 			$(obc_dir)/openbc_operators_module.o\

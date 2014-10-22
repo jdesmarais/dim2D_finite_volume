@@ -35,6 +35,29 @@
         use sd_operators_class, only :
      $       sd_operators
 
+        use sd_operators_x_oneside_L0_class, only :
+     $       sd_operators_x_oneside_L0
+
+        use sd_operators_x_oneside_L1_class, only :
+     $       sd_operators_x_oneside_L1
+
+        use sd_operators_x_oneside_R1_class, only :
+     $       sd_operators_x_oneside_R1
+
+        use sd_operators_x_oneside_R0_class, only :
+     $       sd_operators_x_oneside_R0
+
+        use sd_operators_y_oneside_L0_class, only :
+     $       sd_operators_y_oneside_L0
+
+        use sd_operators_y_oneside_L1_class, only :
+     $       sd_operators_y_oneside_L1
+
+        use sd_operators_y_oneside_R1_class, only :
+     $       sd_operators_y_oneside_R1
+
+        use sd_operators_y_oneside_R0_class, only :
+     $       sd_operators_y_oneside_R0
 
         implicit none
 
@@ -80,7 +103,10 @@
           procedure(ini_proc)      ,   pass, deferred :: ini
           procedure(nodes_proc)    ,   pass, deferred :: apply_bc_on_nodes
           procedure(fluxes_proc)   , nopass, deferred :: apply_bc_on_fluxes
+
           procedure(tdev_proc)     ,   pass, deferred :: apply_bc_on_timedev
+          procedure(flux_x_edge)   ,   pass, deferred :: compute_fluxes_for_bc_x_edge
+          procedure(flux_y_edge)   ,   pass, deferred :: compute_fluxes_for_bc_y_edge
           procedure(tdev_x_edge)   ,   pass, deferred :: apply_bc_on_timedev_x_edge
           procedure(tdev_y_edge)   ,   pass, deferred :: apply_bc_on_timedev_y_edge
           procedure(tdev_xy_corner),   pass, deferred :: apply_bc_on_timedev_xy_corner
@@ -247,6 +273,174 @@
              real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
            
            end subroutine tdev_proc
+
+
+           !> @author
+           !> Julien L. Desmarais
+           !
+           !> @brief
+           !> subroutine computing the fluxes at the edge of the
+           !> computational domain in the y-direction so that
+           !> the time derivatives for an edge in the x-direction
+           !> can be computed
+           !
+           !> @date
+           !> 22_10_2014 - initial version - J.L. Desmarais
+           !
+           !>@param this
+           !> abstract boundary conditions
+           !
+           !>@param p_model
+           !> object encapsulating the physical model
+           !
+           !>@param nodes
+           !> array containing the grid point data
+           !
+           !>@param dx
+           !> space step along the x-direction
+           !
+           !>@param dy
+           !> space step along the y-direction
+           !
+           !>@param j_min
+           !> index min along the y-direction corresponding
+           !> to the beginning of the edge layer computed
+           !
+           !>@param j_max
+           !> index max along the y-direction corresponding
+           !> to the end of the edge layer computed
+           !
+           !>@param i
+           !> index along the x-direction positioning the
+           !> the edge boundary layer
+           !
+           !>@param edge_card_coord
+           !> cardinal coordinate identifying the type of
+           !> edge boundary layer
+           !
+           !>@param flux_y
+           !> fluxes along the y-direction
+           !-------------------------------------------------------------
+           subroutine flux_x_edge(
+     $       this,
+     $       p_model,
+     $       nodes,
+     $       s_x_L0, s_x_L1,
+     $       s_x_R1, s_x_R0, 
+     $       dx, dy,
+     $       j_min, j_max, i,
+     $       edge_card_coord,
+     $       flux_y)
+           
+             import bc_operators_abstract
+             import ikind
+             import pmodel_eq
+             import rkind
+             import sd_operators_x_oneside_L0
+             import sd_operators_x_oneside_L1
+             import sd_operators_x_oneside_R1
+             import sd_operators_x_oneside_R0          
+           
+             class(bc_operators_abstract)      , intent(in)    :: this
+             type(pmodel_eq)                   , intent(in)    :: p_model
+             real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
+             type(sd_operators_x_oneside_L0)   , intent(in)    :: s_x_L0
+             type(sd_operators_x_oneside_L1)   , intent(in)    :: s_x_L1
+             type(sd_operators_x_oneside_R1)   , intent(in)    :: s_x_R1
+             type(sd_operators_x_oneside_R0)   , intent(in)    :: s_x_R0
+             real(rkind)                       , intent(in)    :: dx
+             real(rkind)                       , intent(in)    :: dy
+             integer(ikind)                    , intent(in)    :: j_min
+             integer(ikind)                    , intent(in)    :: j_max
+             integer(ikind)                    , intent(in)    :: i
+             integer                           , intent(in)    :: edge_card_coord
+             real(rkind), dimension(:,:,:)     , intent(inout) :: flux_y
+           
+           end subroutine flux_x_edge
+
+
+           !> @author
+           !> Julien L. Desmarais
+           !
+           !> @brief
+           !> subroutine computing the fluxes at the edge of the
+           !> computational domain in the x-direction so that
+           !> the time derivatives for an edge in the y-direction
+           !> can be computed
+           !
+           !> @date
+           !> 22_10_2014 - initial version - J.L. Desmarais
+           !
+           !>@param this
+           !> abstract boundary conditions
+           !
+           !>@param p_model
+           !> object encapsulating the physical model
+           !
+           !>@param nodes
+           !> array containing the grid point data
+           !
+           !>@param dx
+           !> space step along the x-direction
+           !
+           !>@param dy
+           !> space step along the y-direction
+           !
+           !>@param i_min
+           !> index min along the x-direction corresponding
+           !> to the beginning of the edge layer computed
+           !
+           !>@param i_max
+           !> index max along the x-direction corresponding
+           !> to the end of the edge layer computed
+           !
+           !>@param j
+           !> index along the y-direction positioning the
+           !> the edge boundary layer
+           !
+           !>@param edge_card_coord
+           !> cardinal coordinate identifying the type of
+           !> edge boundary layer
+           !
+           !>@param flux_x
+           !> fluxes along the x-direction
+           !-------------------------------------------------------------
+           subroutine flux_y_edge(
+     $       this,
+     $       p_model,
+     $       nodes,
+     $       s_y_L0, s_y_L1,
+     $       s_y_R1, s_y_R0,
+     $       dx, dy,
+     $       i_min, i_max, j,
+     $       edge_card_coord,
+     $       flux_x)
+           
+             import bc_operators_abstract
+             import ikind
+             import pmodel_eq
+             import rkind
+             import sd_operators_y_oneside_L0
+             import sd_operators_y_oneside_L1
+             import sd_operators_y_oneside_R1
+             import sd_operators_y_oneside_R0
+           
+             class(bc_operators_abstract)      , intent(in)    :: this
+             type(pmodel_eq)                   , intent(in)    :: p_model
+             real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
+             type(sd_operators_y_oneside_L0)   , intent(in)    :: s_y_L0
+             type(sd_operators_y_oneside_L1)   , intent(in)    :: s_y_L1
+             type(sd_operators_y_oneside_R1)   , intent(in)    :: s_y_R1
+             type(sd_operators_y_oneside_R0)   , intent(in)    :: s_y_R0
+             real(rkind)                       , intent(in)    :: dx
+             real(rkind)                       , intent(in)    :: dy
+             integer(ikind)                    , intent(in)    :: i_min
+             integer(ikind)                    , intent(in)    :: i_max
+             integer(ikind)                    , intent(in)    :: j
+             integer                           , intent(in)    :: edge_card_coord
+             real(rkind), dimension(:,:,:)     , intent(inout) :: flux_x
+           
+           end subroutine flux_y_edge
 
       
            !> @author

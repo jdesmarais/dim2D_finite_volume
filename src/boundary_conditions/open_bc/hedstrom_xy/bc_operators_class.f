@@ -14,8 +14,8 @@
       !-----------------------------------------------------------------
       module bc_operators_class
 
-        use bc_operators_default_class, only :
-     $     bc_operators_default
+        use bc_operators_openbc_class, only :
+     $     bc_operators_openbc
 
         use hedstrom_xy_module, only :
      $       compute_timedev_xlayer,
@@ -104,7 +104,7 @@
         !> @param apply_bc_on_timedev
         !> apply the open boundary conditions for the time derivatives
         !---------------------------------------------------------------
-        type, extends(bc_operators_default) :: bc_operators
+        type, extends(bc_operators_openbc) :: bc_operators
 
           contains
 

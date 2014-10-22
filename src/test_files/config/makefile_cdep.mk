@@ -84,6 +84,7 @@ wall_x_reflection_dep=	$(bc_dep)\
 			wall_xy_module.o
 
 hedstrom_xy_dep=	$(bc_dep)\
+			bc_operators_openbc_class.o\
 			openbc_operators_module.o\
 			$(sd_oneside_dep)\
 			sd_operators_fd_module.o\

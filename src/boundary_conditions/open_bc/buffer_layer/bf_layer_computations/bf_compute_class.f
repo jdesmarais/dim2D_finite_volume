@@ -158,6 +158,49 @@
         end subroutine compute_time_dev
 
 
+        !apply the boundary conditions on the time derivatives
+        subroutine apply_bc_on_timedev(
+     $     this,
+     $     bc_used, p_model,
+     $     t, nodes, x_map, y_map,
+     $     flux_x, flux_y,
+     $     timedev)
+
+          implicit none
+
+          class(bc_compute)            , intent(in)    :: this
+          type(bc_operators)           , intent(in)    :: bc_used
+          type(pmodel_eq)              , intent(in)    :: p_model
+          real(rkind)                  , intent(in)    :: t
+          real(rkind), dimension(:,:,:), intent(in)    :: nodes
+          real(rkind), dimension(:)    , intent(in)    :: x_map
+          real(rkind), dimension(:)    , intent(in)    :: y_map
+          real(rkind), dimension(:,:,:), intent(in)    :: flux_x
+          real(rkind), dimension(:,:,:), intent(in)    :: flux_y
+          real(rkind), dimension(:,:,:), intent(inout) :: timedev
+
+
+          !if there are effectively boundary layers
+          !in the buffer layer computed, the time
+          !derivatives corresponding to the boundary
+          !grid points are computed
+          if(allocated(this%bc_sections)) then
+
+
+             !compute the fluxes at the grid points
+             !corresponding to edge-type boundary
+             !layers
+
+
+             !compute the time derivatives
+             !corresponding to the buffer layers
+
+
+          end if          
+
+        end subroutine apply_bc_on_timedev
+
+
         !compute the integration step
         !det_bc_sections : determine the boundary sections
         subroutine compute_integration_step(

@@ -1,17 +1,20 @@
       !test the subroutine compute_fluxes_at_the_edges_2nd_order
-      program test_openbc_operators
+      program test_bc_operators_openbc
 
-        use openbc_operators_module, only :
-     $     compute_fluxes_at_the_edges_2ndorder
+        use bc_operators_class, only :
+     $       bc_operators
 
         use pmodel_eq_class, only :
      $       pmodel_eq
 
+        use parameters_constant, only :
+     $       N,S,E,W
+
         use parameters_input, only :
-     $       nx,ny,ne
+     $       nx,ny,ne,bc_size
 
         use parameters_kind, only :
-     $       rkind
+     $       ikind, rkind
 
         use sd_operators_class, only :
      $       sd_operators
@@ -49,6 +52,8 @@
         real(rkind)                        :: dx,dy
                                            
         type(pmodel_eq)                    :: p_model
+
+        type(bc_operators)                 :: bc_op
                                            
         type(sd_operators)                 :: s_interior
                                            
@@ -62,14 +67,15 @@
         type(sd_operators_y_oneside_R1)    :: s_y_R1
         type(sd_operators_y_oneside_R0)    :: s_y_R0
 
-        real(rkind), dimension(nx+1,ny,ne) :: flux_x
-        real(rkind), dimension(nx,ny+1,ne) :: flux_y
+        real(rkind), dimension(:,:,:), allocatable :: flux_x
+        real(rkind), dimension(:,:,:), allocatable :: flux_y
 
         logical :: detailled
-        logical :: test_validated
-        logical :: loc
+        
 
-        integer :: i,j
+        integer(ikind) :: i_min, i_max
+        integer(ikind) :: j_min, j_max
+        integer(ikind) :: i,j
 
 
 
@@ -133,57 +139,206 @@
 
 
         !> compute the fluxes
+        allocate(flux_x(nx+1,ny,ne))
+        allocate(flux_y(nx,ny+1,ne))
+
         flux_x = p_model%compute_flux_x(nodes,dx,dy,s_interior)
         flux_y = p_model%compute_flux_y(nodes,dx,dy,s_interior)
 
-        call compute_fluxes_at_the_edges_2ndorder(
-     $       nodes, dx, dy,
-     $       s_x_L0, s_x_L1, s_x_R1, s_x_R0,
-     $       s_y_L0, s_y_L1, s_y_R1, s_y_R0,
+        !S_edge
+        i_min = bc_size+1
+        i_max = nx-bc_size+1
+        j     = 1
+
+        call bc_op%compute_fluxes_for_bc_y_edge(
      $       p_model,
-     $       flux_x, flux_y)
+     $       nodes,
+     $       s_y_L0, s_y_L1,
+     $       s_y_R1, s_y_R0,
+     $       dx, dy,
+     $       i_min, i_max, j,
+     $       S,
+     $       flux_x)
+
+        
+        !E+W_edge
+        j_min = bc_size+1
+        j_max = ny-bc_size+1
+
+        call bc_op%compute_fluxes_for_bc_x_edge(
+     $       p_model,
+     $       nodes,
+     $       s_x_L0, s_x_L1,
+     $       s_x_R1, s_x_R0,
+     $       dx, dy,
+     $       j_min, j_max, i,
+     $       E+W,
+     $       flux_y)
+
+
+        !N_edge
+        i_min = bc_size+1
+        i_max = nx-bc_size+1
+        j     = ny-bc_size+1
+
+        call bc_op%compute_fluxes_for_bc_y_edge(
+     $       p_model,
+     $       nodes,
+     $       s_y_L0, s_y_L1,
+     $       s_y_R1, s_y_R0,
+     $       dx, dy,
+     $       i_min, i_max, j,
+     $       N,
+     $       flux_x)
 
           
         !> derivative computation + comparison with test_data
         detailled = .false.
+        call compare_flux(
+     $       flux_x,flux_y,
+     $       test_data_x_flux,test_data_y_flux,
+     $       detailled)
+
+        deallocate(flux_x)
+        deallocate(flux_y)
 
 
-        if(detailled) then
-           do j=1,5
-              do i=3,6
-                 loc = is_test_validated(flux_x(i,j,1), test_data_x_flux(i,j), detailled)
-                 print '(''test flux_x('',I2,'','',I2,''): '', L3)', i,j, loc
-              end do
-           end do
+        !test with E and W computed separately
+        allocate(flux_x(nx+1,ny,ne))
+        allocate(flux_y(nx,ny+1,ne))
 
-           do j=3,4
-              do i=1,7
-                 loc = is_test_validated(flux_y(i,j,1), test_data_y_flux(i,j), detailled)
-                 print '(''test flux_y('',I2,'','',I2,''): '', L3)', i,j, loc
-              end do
-           end do
+        flux_x = p_model%compute_flux_x(nodes,dx,dy,s_interior)
+        flux_y = p_model%compute_flux_y(nodes,dx,dy,s_interior)
 
-        else
-           test_validated=.true.
-           do j=1,5
-              do i=3,6
-                 loc = is_test_validated(flux_x(i,j,1), test_data_x_flux(i,j), detailled)
-                 test_validated=test_validated.and.loc
-              end do
-           end do
+        !S_edge
+        i_min = bc_size+1
+        i_max = nx-bc_size+1
+        j     = 1
 
-           do j=3,4
-              do i=1,7
-                 loc = is_test_validated(flux_y(i,j,1), test_data_y_flux(i,j), detailled)
-                 test_validated=test_validated.and.loc
-              end do
-           end do
-           
-           print '(''test validated: '',L3)', test_validated
-        end if
-          
+        call bc_op%compute_fluxes_for_bc_y_edge(
+     $       p_model,
+     $       nodes,
+     $       s_y_L0, s_y_L1,
+     $       s_y_R1, s_y_R0,
+     $       dx, dy,
+     $       i_min, i_max, j,
+     $       S,
+     $       flux_x)
+
+        !W_edge
+        j_min = bc_size+1
+        j_max = ny-bc_size+1
+        i = 1
+
+        call bc_op%compute_fluxes_for_bc_x_edge(
+     $       p_model,
+     $       nodes,
+     $       s_x_L0, s_x_L1,
+     $       s_x_R1, s_x_R0,
+     $       dx, dy,
+     $       j_min, j_max, i,
+     $       W,
+     $       flux_y)
+
+
+        !E_edge
+        j_min = bc_size+1
+        j_max = ny-bc_size+1
+        i = nx-1
+
+        call bc_op%compute_fluxes_for_bc_x_edge(
+     $       p_model,
+     $       nodes,
+     $       s_x_L0, s_x_L1,
+     $       s_x_R1, s_x_R0,
+     $       dx, dy,
+     $       j_min, j_max, i,
+     $       E,
+     $       flux_y)
+
+
+        !N_edge
+        i_min = bc_size+1
+        i_max = nx-bc_size+1
+        j     = ny-bc_size+1
+
+        call bc_op%compute_fluxes_for_bc_y_edge(
+     $       p_model,
+     $       nodes,
+     $       s_y_L0, s_y_L1,
+     $       s_y_R1, s_y_R0,
+     $       dx, dy,
+     $       i_min, i_max, j,
+     $       N,
+     $       flux_x)
+
+        call compare_flux(
+     $       flux_x,flux_y,
+     $       test_data_x_flux,test_data_y_flux,
+     $       detailled)
+
+        deallocate(flux_x)
+        deallocate(flux_y)
+        
 
         contains
+
+
+        subroutine compare_flux(
+     $       flux_x,
+     $       flux_y,
+     $       test_data_x_flux,
+     $       test_data_y_flux,
+     $       detailled)
+
+          implicit none
+
+          real(rkind), dimension(nx+1,ny,ne), intent(in) :: flux_x
+          real(rkind), dimension(nx,ny+1,ne), intent(in) :: flux_y
+          real(rkind), dimension(nx+1,ny)   , intent(in) :: test_data_x_flux
+          real(rkind), dimension(nx,ny+1)   , intent(in) :: test_data_y_flux
+          logical                           , intent(in) :: detailled
+
+          logical :: test_validated
+          logical :: loc
+
+          integer(ikind) :: i,j
+          
+          if(detailled) then
+             do j=1,5
+                do i=3,6
+                   loc = is_test_validated(flux_x(i,j,1), test_data_x_flux(i,j), detailled)
+                   print '(''test flux_x('',I2,'','',I2,''): '', L3)', i,j, loc
+                end do
+             end do
+
+             do j=3,4
+                do i=1,7
+                   loc = is_test_validated(flux_y(i,j,1), test_data_y_flux(i,j), detailled)
+                   print '(''test flux_y('',I2,'','',I2,''): '', L3)', i,j, loc
+                end do
+             end do
+
+          else
+             test_validated=.true.
+             do j=1,5
+                do i=3,6
+                   loc = is_test_validated(flux_x(i,j,1), test_data_x_flux(i,j), detailled)
+                   test_validated=test_validated.and.loc
+                end do
+             end do
+
+             do j=3,4
+                do i=1,7
+                   loc = is_test_validated(flux_y(i,j,1), test_data_y_flux(i,j), detailled)
+                   test_validated=test_validated.and.loc
+                end do
+             end do
+             
+             print '(''test validated: '',L3)', test_validated
+          end if
+
+        end subroutine compare_flux
 
 
         function is_test_validated(var,cst,detailled) result(test_validated)
@@ -260,4 +415,4 @@
 
         end subroutine initialize_nodes
 
-      end program test_openbc_operators
+      end program test_bc_operators_openbc
