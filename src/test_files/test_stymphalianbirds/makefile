@@ -122,3 +122,34 @@ test_poinsot_xy_bf:	$(param_dep)\
 			$(poinsot_xy_dep)\
 			lodi_ns2d_class.o\
 			test_openbc_local_operators_module.o
+
+
+test_comp_flux_bf.o:	$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(sd_cdir)/sd_operators_class.o
+
+
+
+
+
+#test_comp_flux_bf:	$(param_dep)\
+#			$(mt_dep)\
+#			$(simpletest_dep)
+
+#test_comp_flux_bf:	$(param_dep)\
+#			$(mt_dep)\
+#			$(wave1d_dep)
+
+#test_comp_flux_bf:	$(param_dep)\
+#			$(mt_dep)\
+#			$(wave2d_dep)
+
+#test_comp_flux_bf:	$(param_dep)\
+#			$(mt_dep)\
+#			$(ns2d_dep)
+
+test_comp_flux_bf:	$(param_dep)\
+			$(mt_dep)\
+			$(dim2d_dep)

@@ -576,16 +576,23 @@ c$$$          end if
         end function compute_flux_y
 
 
-        subroutine compute_flux_x_nopt(nodes,dx,dy,s,grdpts_id,flux_x)
+        subroutine compute_flux_x_nopt(
+     $     nodes,dx,dy,s,
+     $     grdpts_id,
+     $     flux_x,
+     $     x_borders,
+     $     y_borders)
         
           implicit none
 
-          real(rkind), dimension(:,:,:), intent(in)    :: nodes
-          real(rkind)                  , intent(in)    :: dx
-          real(rkind)                  , intent(in)    :: dy
-          type(sd_operators)           , intent(in)    :: s
-          integer    , dimension(:,:)  , intent(in)    :: grdpts_id
-          real(rkind), dimension(:,:,:), intent(inout) :: flux_x
+          real(rkind)   , dimension(:,:,:), intent(in)    :: nodes
+          real(rkind)                     , intent(in)    :: dx
+          real(rkind)                     , intent(in)    :: dy
+          type(sd_operators)              , intent(in)    :: s
+          integer       , dimension(:,:)  , intent(in)    :: grdpts_id
+          real(rkind)   , dimension(:,:,:), intent(inout) :: flux_x
+          integer(ikind), dimension(2)    , intent(in)    :: x_borders
+          integer(ikind), dimension(2)    , intent(in)    :: y_borders
 
           integer(ikind) :: i,j
           real(rkind)    :: dy_s
@@ -593,9 +600,9 @@ c$$$          end if
           dy_s = dy
 
           !<fluxes along the x-axis
-          do j=1+bc_size, size(flux_x,2)-bc_size
+          do j=y_borders(1), y_borders(2)
              !DEC$ IVDEP
-             do i=1+bc_size, size(flux_x,1)-bc_size
+             do i=x_borders(1), x_borders(2)+1
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 
@@ -616,16 +623,23 @@ c$$$          end if
         end subroutine compute_flux_x_nopt
 
 
-        subroutine compute_flux_y_nopt(nodes,dx,dy,s,grdpts_id,flux_y)
+        subroutine compute_flux_y_nopt(
+     $     nodes,dx,dy,s,
+     $     grdpts_id,
+     $     flux_y,
+     $     x_borders,
+     $     y_borders)
         
           implicit none
 
-          real(rkind), dimension(:,:,:), intent(in)    :: nodes
-          real(rkind)                  , intent(in)    :: dx
-          real(rkind)                  , intent(in)    :: dy
-          type(sd_operators)           , intent(in)    :: s
-          integer    , dimension(:,:)  , intent(in)    :: grdpts_id
-          real(rkind), dimension(:,:,:), intent(inout) :: flux_y
+          real(rkind)   , dimension(:,:,:), intent(in)    :: nodes
+          real(rkind)                     , intent(in)    :: dx
+          real(rkind)                     , intent(in)    :: dy
+          type(sd_operators)              , intent(in)    :: s
+          integer       , dimension(:,:)  , intent(in)    :: grdpts_id
+          real(rkind)   , dimension(:,:,:), intent(inout) :: flux_y
+          integer(ikind), dimension(2)    , intent(in)    :: x_borders
+          integer(ikind), dimension(2)    , intent(in)    :: y_borders
 
           integer(ikind) :: i,j
           real(rkind)    :: dx_s
@@ -633,9 +647,9 @@ c$$$          end if
           dx_s = dx
 
           !<fluxes along the y-axis
-          do j=1+bc_size, size(flux_y,2)-bc_size
+          do j=y_borders(1), y_borders(2)+1
              !DEC$ IVDEP
-             do i=1+bc_size, size(flux_y,1)-bc_size
+             do i=x_borders(1), x_borders(2)
 
                 if(grdpts_id(i,j).eq.interior_pt) then
 

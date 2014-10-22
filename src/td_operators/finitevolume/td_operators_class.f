@@ -17,19 +17,37 @@
       !-----------------------------------------------------------------
       module td_operators_class
 
-        use bc_operators_class         , only : bc_operators
-        use sd_operators_class         , only : sd_operators
-        use parameters_constant        , only : earth_gravity_choice,
-     $                                          bc_fluxes_choice,
-     $                                          bc_timedev_choice
-        use parameters_bf_layer        , only : no_pt
-        use parameters_input           , only : nx,ny,ne,bc_size,
-     $                                          gravity_choice,
-     $                                          bcx_type_choice,
-     $                                          bcy_type_choice
-        use parameters_kind            , only : rkind, ikind
-        use pmodel_eq_class            , only : pmodel_eq
-        use td_operators_abstract_class, only : td_operators_abstract
+        use bc_operators_class, only :
+     $       bc_operators
+
+        use bf_layer_bc_sections_class , only :
+     $       bf_layer_bc_sections
+
+        use sd_operators_class, only :
+     $       sd_operators
+
+        use parameters_constant, only :
+     $       earth_gravity_choice,
+     $       bc_fluxes_choice,
+     $       bc_timedev_choice
+
+        use parameters_bf_layer, only :
+     $       no_pt
+
+        use parameters_input, only : 
+     $       nx,ny,ne,bc_size,
+     $       gravity_choice,
+     $       bcx_type_choice,
+     $       bcy_type_choice
+
+        use parameters_kind, only :
+     $       rkind, ikind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use td_operators_abstract_class, only :
+     $       td_operators_abstract
 
         implicit none
 
@@ -188,25 +206,47 @@
         !tables
         subroutine compute_time_dev_nopt(
      $     nodes,dx,dy,s,p_model,bc_used,
-     $     time_dev, grdpts_id)
+     $     time_dev, grdpts_id, bc_sections,
+     $     x_borders, y_borders)
 
             implicit none
 
 
-            real(rkind), dimension(:,:,:), intent(in)  :: nodes
-            real(rkind)                  , intent(in)  :: dx
-            real(rkind)                  , intent(in)  :: dy
-            type(sd_operators)           , intent(in)  :: s
-            type(pmodel_eq)              , intent(in)  :: p_model
-            type(bc_operators)           , intent(in)  :: bc_used
-            real(rkind), dimension(:,:,:), intent(out) :: time_dev
-            integer    , dimension(:,:)  , intent(in)  :: grdpts_id
+            real(rkind)   , dimension(:,:,:)           , intent(in)    :: nodes
+            real(rkind)                                , intent(in)    :: dx
+            real(rkind)                                , intent(in)    :: dy
+            type(sd_operators)                         , intent(in)    :: s
+            type(pmodel_eq)                            , intent(in)    :: p_model
+            type(bc_operators)                         , intent(in)    :: bc_used
+            real(rkind)   , dimension(:,:,:)           , intent(out)   :: time_dev
+            integer       , dimension(:,:)             , intent(in)    :: grdpts_id
+            integer       , dimension(:,:), allocatable, intent(inout) :: bc_sections
+            integer(ikind), dimension(2)  , optional   , intent(in)    :: x_borders
+            integer(ikind), dimension(2)  , optional   , intent(in)    :: y_borders
 
+            integer(ikind)                             :: i_min,i_max
+            integer(ikind)                             :: j_min,j_max
             integer(ikind)                             :: i,j
             integer                                    :: k
             real(rkind), dimension(:,:,:), allocatable :: flux_x
             real(rkind), dimension(:,:,:), allocatable :: flux_y
 
+
+            if(present(x_borders)) then
+               i_min = x_borders(1)
+               i_max = x_borders(2)
+            else
+               i_min = bc_size+1
+               i_max = size(nodes,1)-bc_size
+            end if
+
+            if(present(y_borders)) then
+               j_min = y_borders(1)
+               j_max = y_borders(2)
+            else
+               j_min = bc_size+1
+               j_max = size(nodes,2)-bc_size
+            end if
 
             allocate(flux_x(size(nodes,1)+1,size(nodes,2),ne))
             allocate(flux_y(size(nodes,1),size(nodes,2)+1,ne))
@@ -216,10 +256,17 @@
 
             !<compute the fluxes
             !FORCEINLINE RECURSIVE
-            call p_model%compute_flux_x_nopt(nodes,dx,dy,s,grdpts_id,flux_x)
+            call p_model%compute_flux_x_nopt(
+     $           nodes,dx,dy,s,
+     $           grdpts_id,flux_x,
+     $           x_borders, y_borders)
+
 
             !FORCEINLINE RECURSIVE
-            call p_model%compute_flux_y_nopt(nodes,dx,dy,s,grdpts_id,flux_y)
+            call p_model%compute_flux_y_nopt(
+     $           nodes,dx,dy,s,
+     $           grdpts_id,flux_y,
+     $           x_borders, y_borders)
 
 
             !<if the boundary conditions influence the computation

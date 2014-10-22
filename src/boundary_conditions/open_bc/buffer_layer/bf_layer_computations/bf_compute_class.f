@@ -36,14 +36,11 @@
         !> class encapsulating the main temporary tables for the time 
         !> integration of the buffer layer
         !
-        !>@param sd_operators_used
-        !> space discretization operators
+        !>@param bc_sections
+        !> identification of the boundary layers
         !
-        !>@param pmodel_eq_used
-        !> physical model
-        !
-        !>@param td_operators_used
-        !> time discretization operators
+        !>@param grdpts_id_tmp
+        !> temporary array saving the grdpts_id at the previous time step
         !
         !>@param nodes_tmp
         !> temporary array whose size is the same as the array containing
@@ -54,20 +51,11 @@
         !> is the same as the array containing the grid points integrated
         !> in time
         !
-        !>@param dx
-        !> space step along the x-axis
-        !
-        !>@param dy
-        !> space step along the y-axis
-        !
-        !>@param ini
-        !> initialize the attributes dx and dy
-        !
         !>@param allocate_tables
-        !> allocate the nodes_tmp and time_dev attributes
+        !> allocate the grdpts_id_tmp, nodes_tmp and time_dev attributes
         !
         !>@param deallocate_tables
-        !> deallocate the nodes_tmp and time_dev attributes
+        !> deallocate the grdpts_id_tmp, nodes_tmp and time_dev attributes
         !
         !>@param compute_time_dev
         !> compute the time_dev attribute
@@ -78,6 +66,8 @@
         !---------------------------------------------------------------
         type :: bf_compute
 
+          integer    , dimension(:,:)  , allocatable, private :: bc_sections
+
           integer    , dimension(:,:)  , allocatable, private :: grdpts_id_tmp
           real(rkind), dimension(:,:,:), allocatable, private :: nodes_tmp
           real(rkind), dimension(:,:,:), allocatable, private :: time_dev
@@ -86,6 +76,8 @@
 
           procedure, pass :: allocate_tables
           procedure, pass :: deallocate_tables
+
+          procedure, pass :: determine_bc_sections
 
           procedure, pass :: compute_time_dev
           procedure, pass :: compute_integration_step
@@ -120,11 +112,12 @@
 
           class(bf_compute), intent(inout) :: this
 
+          deallocate(this%bc_sections)
           deallocate(this%grdpts_id_tmp)
           deallocate(this%nodes_tmp)
           deallocate(this%time_dev)
 
-        end subroutine deallocate_tables
+        end subroutine deallocate_tables        
 
 
         !compute the time derivatives
@@ -159,14 +152,18 @@
      $         pmodel_eq_used,
      $         bc_operators_used,
      $         this%time_dev,
-     $         grdpts_id)
+     $         grdpts_id,
+     $         this%bc_sections)
 
         end subroutine compute_time_dev
 
 
         !compute the integration step
+        !det_bc_sections : determine the boundary sections
         subroutine compute_integration_step(
-     $     this, grdpts_id, nodes, dt, integration_step_nopt)
+     $     this,
+     $     grdpts_id, nodes, dt,
+     $     integration_step_nopt)
 
           implicit none
 
@@ -174,10 +171,11 @@
           integer    , dimension(:,:)  , intent(in)    :: grdpts_id
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
           real(rkind)                  , intent(in)    :: dt
-          procedure(timeInt_step_nopt) :: integration_step_nopt
+          procedure(timeInt_step_nopt)                 :: integration_step_nopt
 
           call integration_step_nopt(
-     $         nodes, dt, this%nodes_tmp, this%time_dev, grdpts_id)
+     $         nodes, dt, this%nodes_tmp, this%time_dev, grdpts_id,
+     $         this%bc_sections)
 
         end subroutine compute_integration_step
 
