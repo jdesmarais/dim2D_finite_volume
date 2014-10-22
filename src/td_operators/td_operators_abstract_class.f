@@ -22,7 +22,7 @@
         use sd_operators_class, only : sd_operators
         use pmodel_eq_class   , only : pmodel_eq
         use parameters_input  , only : nx,ny,ne
-        use parameters_kind   , only : rkind
+        use parameters_kind   , only : ikind,rkind
 
         implicit none
 
@@ -138,24 +138,48 @@
           !
           !>@param time_dev
           !> time derivatives
+          !
+          !>@param grdpts_id
+          !> array containing the role of the grid points (interior_pt,
+          !> bc_interior_pt, bc_pt, no_pt)
+          !
+          !>@param bc_sections
+          !> array identifying the boundary layers
+          !
+          !>@param x_borders
+          !> array containing the limits of the computed grid points in
+          !> the x-direction
+          !
+          !>@param y_borders
+          !> array containing the limits of the computed grid points in
+          !> the y-direction
           !--------------------------------------------------------------
           subroutine time_proc_nopt(
-     $     nodes,dx,dy,s,p_model,bc_used,
-     $     time_dev, grdpts_id)
+     $      t,nodes,x_map,y_map,
+     $      s,p_model,bc_used,
+     $      time_dev,
+     $      grdpts_id,
+     $      bc_sections,
+     $      x_borders, y_borders)
 
             import bc_operators
-            import sd_operators
+            import ikind
             import pmodel_eq
             import rkind
+            import sd_operators
 
-            real(rkind), dimension(:,:,:), intent(in)  :: nodes
-            real(rkind)                  , intent(in)  :: dx
-            real(rkind)                  , intent(in)  :: dy
-            type(sd_operators)           , intent(in)  :: s
-            type(pmodel_eq)              , intent(in)  :: p_model
-            type(bc_operators)           , intent(in)  :: bc_used
-            real(rkind), dimension(:,:,:), intent(out) :: time_dev
-            integer    , dimension(:,:)  , intent(in)  :: grdpts_id
+            real(rkind)                                  , intent(in)    :: t
+            real(rkind)   , dimension(:,:,:)             , intent(in)    :: nodes
+            real(rkind)   , dimension(:)                 , intent(in)    :: x_map
+            real(rkind)   , dimension(:)                 , intent(in)    :: y_map
+            type(sd_operators)                           , intent(in)    :: s
+            type(pmodel_eq)                              , intent(in)    :: p_model
+            type(bc_operators)                           , intent(in)    :: bc_used
+            real(rkind)   , dimension(:,:,:)             , intent(out)   :: time_dev
+            integer       , dimension(:,:)               , intent(in)    :: grdpts_id
+            integer       , dimension(:,:)  , allocatable, intent(inout) :: bc_sections
+            integer(ikind), dimension(2)                 , intent(in)    :: x_borders
+            integer(ikind), dimension(2)                 , intent(in)    :: y_borders
 
           end subroutine time_proc_nopt
 

@@ -872,6 +872,7 @@ $(td_dir)/td_operators_par_class.o:\
 			$(spm_dir)/dim2d_eq_class.o
 
 $(fv_dir)/td_operators_class.o:\
+			$(cbf_layer_dir)/bf_layer_bc_sections_class.o\
 			$(bc_cdir)/bc_operators_class.o\
 			$(sd_cdir)/sd_operators_class.o\
 			$(bf_layer_dir)/parameters_bf_layer.o\

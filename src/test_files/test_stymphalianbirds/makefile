@@ -130,10 +130,6 @@ test_comp_flux_bf.o:	$(bf_layer_dir)/parameters_bf_layer.o\
 			$(pm_cdir)/pmodel_eq_class.o\
 			$(sd_cdir)/sd_operators_class.o
 
-
-
-
-
 #test_comp_flux_bf:	$(param_dep)\
 #			$(mt_dep)\
 #			$(simpletest_dep)
@@ -146,10 +142,27 @@ test_comp_flux_bf.o:	$(bf_layer_dir)/parameters_bf_layer.o\
 #			$(mt_dep)\
 #			$(wave2d_dep)
 
-#test_comp_flux_bf:	$(param_dep)\
-#			$(mt_dep)\
-#			$(ns2d_dep)
-
 test_comp_flux_bf:	$(param_dep)\
 			$(mt_dep)\
-			$(dim2d_dep)
+			$(ns2d_dep)
+
+#test_comp_flux_bf:	$(param_dep)\
+#			$(mt_dep)\
+#			$(dim2d_dep)
+
+
+test_comp_timedev_bf.o:	$(bc_cdir)/bc_operators_class.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(td_cdir)/td_operators_class.o
+
+test_comp_timedev_bf:	$(param_dep)\
+			$(mt_dep)\
+			$(ns2d_dep)\
+			$(poinsot_ns2d_dep)\
+			$(fv_dep)\
+			bf_layer_bc_procedure_module.o\
+			bf_layer_bc_sections_class.o

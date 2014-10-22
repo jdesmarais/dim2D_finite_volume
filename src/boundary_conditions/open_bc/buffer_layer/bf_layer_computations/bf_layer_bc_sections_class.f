@@ -642,7 +642,9 @@
           !   extent = j_max for E_edge and W_edge
           !   extent = corner for other
           nb_ele_tot = this%nb_ele_temp + this%nb_ele_final
-          allocate(sorted_bc_sections(4,nb_ele_tot))
+          if(nb_ele_tot.gt.0) then
+             allocate(sorted_bc_sections(4,nb_ele_tot))
+          end if
           
           if(allocated(this%bc_sections_temp)) then
              do k=1, min(this%nb_ele_temp,size(this%bc_sections_temp,2))
