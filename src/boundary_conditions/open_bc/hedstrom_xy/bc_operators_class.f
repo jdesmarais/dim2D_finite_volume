@@ -31,7 +31,6 @@
      $       gradient_y_proc
 
         use openbc_operators_module, only :
-     $       compute_fluxes_at_the_edges_2ndorder,
      $       incoming_left,
      $       incoming_right
 
@@ -218,8 +217,9 @@
 
           real(rkind)    :: dx,dy
           integer(ikind) :: i,j
+          integer(ikind) :: i_min, i_max
+          integer(ikind) :: j_min, j_max
 
-          integer :: bc_s
           real(rkind) :: t_s
 
           
@@ -229,20 +229,63 @@
 
           !prevent unsed parameter warnings while being
           !supress by the compiler afterwards
-          bc_s = this%bcx_type
+          !--------------------------------------------
           t_s  = t
 
-          !compute the fluxes at the edge of the computational
-          !domain
-          call compute_fluxes_at_the_edges_2ndorder(
-     $         nodes, dx, dy,
-     $         s_x_L0, s_x_L1, s_x_R1, s_x_R0,
-     $         s_y_L0, s_y_L1, s_y_R1, s_y_R0,
+
+          !compute the fluxes at the edge of the
+          !computational domain
+          !--------------------------------------------
+          !S_edge
+          i_min = bc_size+1
+          i_max = nx-bc_size+1
+          j     = 1
+          
+          call this%compute_fluxes_for_bc_y_edge(
      $         p_model,
-     $         flux_x, flux_y)
+     $         nodes,
+     $         s_y_L0, s_y_L1,
+     $         s_y_R1, s_y_R0,
+     $         dx, dy,
+     $         i_min, i_max, j,
+     $         S,
+     $         flux_x)
+          
+          
+          !E+W_edge
+          j_min = bc_size+1
+          j_max = ny-bc_size+1
+          
+          call this%compute_fluxes_for_bc_x_edge(
+     $         p_model,
+     $         nodes,
+     $         s_x_L0, s_x_L1,
+     $         s_x_R1, s_x_R0,
+     $         dx, dy,
+     $         j_min, j_max, i,
+     $         E+W,
+     $         flux_y)
+          
+          
+          !N_edge
+          i_min = bc_size+1
+          i_max = nx-bc_size+1
+          j     = ny-bc_size+1
+          
+          call this%compute_fluxes_for_bc_y_edge(
+     $         p_model,
+     $         nodes,
+     $         s_y_L0, s_y_L1,
+     $         s_y_R1, s_y_R0,
+     $         dx, dy,
+     $         i_min, i_max, j,
+     $         N,
+     $         flux_x)
 
 
-          !apply the boundary conditions on the south layer
+          !apply the boundary conditions on the south
+          !layer
+          !--------------------------------------------
           j=1
           call compute_timedev_corner_W(
      $         nodes, j, dx, dy, p_model,
@@ -276,8 +319,9 @@
      $         timedev)
 
 
-          !apply the boundary conditions on the west and east
-          !layers
+          !apply the boundary conditions on the west
+          !and east layers
+          !--------------------------------------------
           do j=bc_size+1, ny-bc_size
 
              i=1
@@ -307,7 +351,9 @@
           end do
 
 
-          !apply the boundary conditions on the north layer
+          !apply the boundary conditions on the north
+          !layer
+          !--------------------------------------------
           j=ny-1
           call compute_timedev_corner_W(
      $         nodes, j, dx, dy, p_model,

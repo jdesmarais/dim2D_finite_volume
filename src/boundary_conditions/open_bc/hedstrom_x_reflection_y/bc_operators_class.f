@@ -18,8 +18,8 @@
       !-----------------------------------------------------------------
       module bc_operators_class
 
-        use bc_operators_default_class, only :
-     $     bc_operators_default
+        use bc_operators_openbc_class, only :
+     $     bc_operators_openbc
 
         use hedstrom_xy_module, only :
      $       compute_timedev_xlayer,
@@ -39,7 +39,8 @@
 
         use parameters_constant, only :
      $       bc_nodes_choice,
-     $       bc_timedev_choice
+     $       bc_timedev_choice,
+     $       N,S,E,W
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size
@@ -72,18 +73,6 @@
         use sd_operators_x_oneside_R0_class, only :
      $       sd_operators_x_oneside_R0
 
-        use sd_operators_y_oneside_L0_class, only :
-     $       sd_operators_y_oneside_L0
-
-        use sd_operators_y_oneside_L1_class, only :
-     $       sd_operators_y_oneside_L1
-
-        use sd_operators_y_oneside_R1_class, only :
-     $       sd_operators_y_oneside_R1
-
-        use sd_operators_y_oneside_R0_class, only :
-     $       sd_operators_y_oneside_R0
-
         
         implicit none
 
@@ -106,7 +95,7 @@
         !> @param apply_bc_on_timedev
         !> apply the open boundary conditions for the time derivatives
         !---------------------------------------------------------------
-        type, extends(bc_operators_default) :: bc_operators
+        type, extends(bc_operators_openbc) :: bc_operators
 
           integer, dimension(ne) :: prefactor_y
 
@@ -259,16 +248,12 @@
           type(sd_operators_x_oneside_L1) :: s_x_L1
           type(sd_operators_x_oneside_R1) :: s_x_R1
           type(sd_operators_x_oneside_R0) :: s_x_R0
-          type(sd_operators_y_oneside_L0) :: s_y_L0
-          type(sd_operators_y_oneside_L1) :: s_y_L1
-          type(sd_operators_y_oneside_R1) :: s_y_R1
-          type(sd_operators_y_oneside_R0) :: s_y_R0
 
 
-          real(rkind)    :: dx,dy
+          real(rkind)    :: dx,dy,flux
           integer(ikind) :: i,j
+          integer(ikind) :: j_min, j_max
 
-          integer        :: bc_s
           real(rkind)    :: t_s
 
 
@@ -278,22 +263,32 @@
 
           !prevent unsed parameter warnings while being
           !supress by the compiler afterwards
-          bc_s = this%bcx_type
+          !--------------------------------------------
           t_s  = t
+          flux = flux_x(1,1,1)
 
 
-          !compute the fluxes at the edge of the computational
-          !domain
-          call compute_fluxes_at_the_edges_2ndorder(
-     $         nodes, dx, dy,
-     $         s_x_L0, s_x_L1, s_x_R1, s_x_R0,
-     $         s_y_L0, s_y_L1, s_y_R1, s_y_R0,
+          !compute the fluxes at the edge of the
+          !computational domain
+          !--------------------------------------------
+          !E+W_edge
+          j_min = bc_size+1
+          j_max = ny-bc_size+1
+          
+          call this%compute_fluxes_for_bc_x_edge(
      $         p_model,
-     $         flux_x, flux_y)
+     $         nodes,
+     $         s_x_L0, s_x_L1,
+     $         s_x_R1, s_x_R0,
+     $         dx, dy,
+     $         j_min, j_max, i,
+     $         E+W,
+     $         flux_y)
 
 
-          !apply the boundary conditions on the west and east
-          !layers
+          !apply the boundary conditions on the west
+          !and east layers
+          !--------------------------------------------
           do j=bc_size+1, ny-bc_size
 
              i=1

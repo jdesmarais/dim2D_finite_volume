@@ -665,6 +665,27 @@ $(hcobc_dir)/bc_operators_class.o:\
 			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
 			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
 
+#hedstrom_x_reflection_y boundary conditions
+$(hrobc_dir)/bc_operators_class.o:\
+			$(obc_dir)/bc_operators_openbc_class.o\
+			$(hobc_dir)/hedstrom_xy_module.o\
+			$(sd_dir)/interface_primary.o\
+			$(obc_dir)/openbc_operators_module.o\
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(rbc_dir)/reflection_xy_module.o\
+			$(sd_cdir)/sd_operators_fd_module.o\
+			$(sd_cdir)/sd_operators_x_oneside_L0_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_L1_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_R1_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_R0_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_L0_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
+
 #poinsot open boundary conditions
 $(pobc_dir)/lodi_abstract_class.o:\
 			$(sd_dir)/interface_primary.o\
@@ -865,26 +886,6 @@ $(yobc_ns2d_dir)/lodi_corner_outflow_outflow_class.o:\
 			$(pm_cdir)/pmodel_eq_class.o
 
 
-#hedstrom_x_reflection_y boundary conditions
-$(hrobc_dir)/bc_operators_class.o:\
-			$(bc_dir)/bc_operators_default_class.o\
-			$(hobc_dir)/hedstrom_xy_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(obc_dir)/openbc_operators_module.o\
-			$(pm_cdir)/pmodel_eq_class.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(rbc_dir)/reflection_xy_module.o\
-			$(sd_cdir)/sd_operators_fd_module.o\
-			$(sd_cdir)/sd_operators_x_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
 
 
 #time discretization methods

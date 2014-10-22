@@ -1,6 +1,6 @@
       program test_hedstrom_xy
 
-        use ifport
+        !use ifport
 
         use bc_operators_class, only :
      $       bc_operators
