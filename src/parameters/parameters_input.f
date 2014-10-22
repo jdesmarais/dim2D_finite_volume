@@ -103,4 +103,10 @@
         integer    , parameter :: obc_type_E = always_outflow
         integer    , parameter :: obc_type_W = always_outflow
 
+        integer    , parameter :: bc_N_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_S_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_E_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_W_type_choice = bc_nodes_choice
+
+
       end module parameters_input

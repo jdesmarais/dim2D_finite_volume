@@ -17,13 +17,44 @@
       !-----------------------------------------------------------------
       module bf_compute_class
 
-        use bc_operators_class        , only : bc_operators
-        use interface_integration_step, only : timeInt_step_nopt
-        use parameters_input          , only : nx,ny,ne
-        use parameters_kind           , only : ikind, rkind
-        use pmodel_eq_class           , only : pmodel_eq
-        use sd_operators_class        , only : sd_operators
-        use td_operators_class        , only : td_operators
+        use bf_layer_bc_procedure_module, only :
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type
+
+        use bc_operators_class, only :
+     $       bc_operators
+
+        use interface_integration_step, only :
+     $       timeInt_step_nopt
+
+        use parameters_constant, only :
+     $       bc_timedev_choice
+
+        use parameters_input, only :
+     $       nx,
+     $       ny,
+     $       ne
+
+        use parameters_input, only :
+     $       bc_N_type_choice,
+     $       bc_S_type_choice,
+     $       bc_E_type_choice,
+     $       bc_W_type_choice
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use sd_operators_class, only :
+     $       sd_operators
+
+        use td_operators_class, only :
+     $       td_operators
 
 
         implicit none
@@ -175,8 +206,8 @@
           real(rkind), dimension(:,:,:), intent(in)    :: nodes
           real(rkind), dimension(:)    , intent(in)    :: x_map
           real(rkind), dimension(:)    , intent(in)    :: y_map
-          real(rkind), dimension(:,:,:), intent(in)    :: flux_x
-          real(rkind), dimension(:,:,:), intent(in)    :: flux_y
+          real(rkind), dimension(:,:,:), intent(inout) :: flux_x
+          real(rkind), dimension(:,:,:), intent(inout) :: flux_y
           real(rkind), dimension(:,:,:), intent(inout) :: timedev
 
 
@@ -190,6 +221,7 @@
              !compute the fluxes at the grid points
              !corresponding to edge-type boundary
              !layers
+             call compute_edge_fluxes(this,flux_x,flux_y)
 
 
              !compute the time derivatives
@@ -199,6 +231,168 @@
           end if          
 
         end subroutine apply_bc_on_timedev
+
+
+        subroutine compute_edge_fluxes(
+     $     this,
+     $     bc_used,
+     $     p_model,
+     $     nodes, dx, dy,
+     $     flux_x, flux_y)
+
+          implicit none
+          
+          class(bc_compute)            , intent(in)    :: this
+          type(bc_operators)           , intent(in)    :: bc_used
+          type(pmodel_eq)              , intent(in)    :: p_model
+          real(rkind), dimension(:,:,:), intent(in)    :: nodes
+          real(rkind)                  , intent(in)    :: dx
+          real(rkind)                  , intent(in)    :: dy
+          real(rkind), dimension(:,:,:), intent(inout) :: flux_x
+          real(rkind), dimension(:,:,:), intent(inout) :: flux_y
+
+
+          !go through the boundary layers
+          !if the boundary actually needs the computation
+          !of the fluxes in the direction of the edge, the
+          !fluxes are computed
+          do k=1, size(this%bc_section,2)
+
+             !identify the type of boundary layer
+             select case(this%bc_section(1,k))
+
+               case(N_edge_type)
+
+                  !do not compute the edge fluxes only if
+                  !(y.ge.bc_y_max).and.
+                  !(bc_N_type_choice.ne.bc_timedev_choice)
+
+                  j = this%bc_section(3,k)
+
+                  compute_edge = .not.(
+     $                 (y_map(j).ge.y_max).and.
+     $                 (bc_N_type_choice.ne.bc_timedev_choice))
+
+                  !determine the extent of the edge from the
+                  !bc_section and compute the fluxes
+                  if(compute_edge) then
+                  
+                     i_min = this%bc_section(2,k)
+                     i_max = this%bc_section(4,k)
+
+                     call bc_used%compute_fluxes_for_bc_y_edge(
+     $                    p_model,
+     $                    nodes,
+     $                    s_y_L0, s_y_L1,
+     $                    s_y_R1, s_y_R0,
+     $                    dx, dy,
+     $                    i_min, i_max, j,
+     $                    N,
+     $                    flux_x)
+
+                  end if
+                     
+               case(S_edge_type)
+
+                  !do not compute the edge fluxes only if
+                  !(y.le.bc_y_min).and.
+                  !(bc_S_type_choice.ne.bc_timedev_choice)
+
+                  j = this%bc_section(3,k)
+
+                  compute_edge = .not.(
+     $                 (y_map(j+1).le.y_min).and.
+     $                 (bc_S_type_choice.ne.bc_timedev_choice))
+
+                  !determine the extent of the edge from the
+                  !bc_section and compute the fluxes
+                  if(compute_edge) then
+                  
+                     i_min = this%bc_section(2,k)
+                     i_max = this%bc_section(4,k)
+
+                     call bc_used%compute_fluxes_for_bc_y_edge(
+     $                    p_model,
+     $                    nodes,
+     $                    s_y_L0, s_y_L1,
+     $                    s_y_R1, s_y_R0,
+     $                    dx, dy,
+     $                    i_min, i_max, j,
+     $                    S,
+     $                    flux_x)
+
+                  end if
+
+               case(E_edge_type)
+
+                  !do not compute the edge fluxes only if
+                  !(x.ge.bc_x_max).and.
+                  !(bc_E_type_choice.ne.bc_timedev_choice)
+
+                  i = this%bc_section(2,k)
+
+                  compute_edge = .not.(
+     $                 (x_map(i).ge.y_max).and.
+     $                 (bc_E_type_choice.ne.bc_timedev_choice))
+
+                  !determine the extent of the edge from the
+                  !bc_section and compute the fluxes
+                  if(compute_edge) then
+                  
+                     j_min = this%bc_section(3,k)
+                     j_max = this%bc_section(4,k)
+
+                     call bc_used%compute_fluxes_for_bc_x_edge(
+     $                    p_model,
+     $                    nodes,
+     $                    s_x_L0, s_x_L1,
+     $                    s_x_R1, s_x_R0,
+     $                    dx, dy,
+     $                    j_min, j_max, i,
+     $                    E,
+     $                    flux_y)
+
+                  end if
+
+               case(W_edge_type)
+
+                  !do not compute the edge fluxes only if
+                  !(x.le.bc_x_min).and.
+                  !(bc_W_type_choice.ne.bc_timedev_choice)
+
+                  i = this%bc_section(2,k)
+
+                  compute_edge = .not.(
+     $                 (x_map(i+1).le.x_min).and.
+     $                 (bc_W_type_choice.ne.bc_timedev_choice))
+
+                  !determine the extent of the edge from the
+                  !bc_section and compute the fluxes
+                  if(compute_edge) then
+                  
+                     j_min = this%bc_section(3,k)
+                     j_max = this%bc_section(4,k)
+
+                     call bc_used%compute_fluxes_for_bc_x_edge(
+     $                    p_model,
+     $                    nodes,
+     $                    s_x_L0, s_x_L1,
+     $                    s_x_R1, s_x_R0,
+     $                    dx, dy,
+     $                    j_min, j_max, i,
+     $                    W,
+     $                    flux_y)
+
+                  end if
+
+             end select
+
+          end do
+
+
+
+
+        end subroutine compute_edge_fluxes
 
 
         !compute the integration step
