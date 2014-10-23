@@ -427,12 +427,19 @@
             !if the boundary conditions influence the computation
             !of the time derivatives, then we need to compute the
             !time derivatives at the boundary
-c$$$            if((bc_N_type_choice.eq.bc_timedev_choice).or.
-c$$$     $         (bc_S_type_choice.eq.bc_timedev_choice).or.
-c$$$     $         (bc_E_type_choice.eq.bc_timedev_choice).or.
-c$$$     $         (bc_W_type_choice.eq.bc_timedev_choice)) then
-c$$$               stop 'not implemented'
-c$$$            end if
+            if((bc_N_type_choice.eq.bc_timedev_choice).or.
+     $         (bc_S_type_choice.eq.bc_timedev_choice).or.
+     $         (bc_E_type_choice.eq.bc_timedev_choice).or.
+     $         (bc_W_type_choice.eq.bc_timedev_choice)) then
+
+               call bc_used%apply_bc_on_timedev_nopt(
+     $              p_model,
+     $              t,nodes,x_map,y_map,
+     $              flux_x,flux_y,
+     $              time_dev,
+     $              bc_sections)
+
+            end if
 
             deallocate(flux_x)
             deallocate(flux_y)

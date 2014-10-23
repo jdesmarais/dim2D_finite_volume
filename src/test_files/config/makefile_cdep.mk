@@ -100,6 +100,7 @@ hedstrom_x_reflection_y_dep=\
 			reflection_xy_module.o
 
 poinsot_xy_dep=		$(bc_dep)\
+			bc_operators_nopt_module.o\
 			bc_operators_openbc_class.o\
 			openbc_operators_module.o\
 			$(sd_oneside_dep)\

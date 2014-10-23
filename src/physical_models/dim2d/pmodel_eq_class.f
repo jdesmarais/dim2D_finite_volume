@@ -46,7 +46,7 @@
      $                                           flux_y_total_energy
         use dim2d_homogeneous_module    , only : apply_homogeneous_ic
         use dim2d_steadystate_module    , only : apply_steady_state_ic
-        use parameters_bf_layer         , only : interior_pt
+        use parameters_bf_layer         , only : bc_interior_pt, interior_pt
         use parameters_constant         , only : scalar,
      $                                           vector_x, vector_y,
      $                                           steady_state,
@@ -613,7 +613,8 @@ c$$$               call apply_drop_evaporation_ic(field_used)
              !DEC$ IVDEP
              do i=x_borders(1), x_borders(2)+1
 
-                if(grdpts_id(i,j).eq.interior_pt) then
+                if((grdpts_id(i,j).eq.interior_pt).or.
+     $               (grdpts_id(i,j).eq.bc_interior_pt))then
 
                    !DEC$ FORCEINLINE RECURSIVE
                    flux_x(i,j,1) =
@@ -701,7 +702,8 @@ c$$$               call apply_drop_evaporation_ic(field_used)
              !DEC$ IVDEP
              do i=x_borders(1), x_borders(2)
 
-                if(grdpts_id(i,j).eq.interior_pt) then
+                if((grdpts_id(i,j).eq.interior_pt).or.
+     $               (grdpts_id(i,j).eq.bc_interior_pt))then
 
                    !DEC$ FORCEINLINE RECURSIVE
                    flux_y(i,j,1) = flux_y_mass_density(nodes,s,i,j)

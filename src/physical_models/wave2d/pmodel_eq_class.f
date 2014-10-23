@@ -16,7 +16,7 @@
       
         use interface_primary       , only : gradient_x_proc,
      $                                       gradient_y_proc
-        use parameters_bf_layer     , only : interior_pt
+        use parameters_bf_layer     , only : bc_interior_pt, interior_pt
         use parameters_constant     , only : scalar, vector_x, vector_y
         use parameters_input        , only : nx,ny,ne,bc_size
         use parameters_kind         , only : ikind, rkind
@@ -604,7 +604,8 @@ c$$$          end if
              !DEC$ IVDEP
              do i=x_borders(1), x_borders(2)+1
 
-                if(grdpts_id(i,j).eq.interior_pt) then
+                if((grdpts_id(i,j).eq.interior_pt).or.
+     $               (grdpts_id(i,j).eq.bc_interior_pt)) then
 
                    flux_x(i,j,1) = - c**2*s%f(nodes,i,j,velocity_x)
      $                             - epsilon*s%dfdx(nodes,i,j,position,dx)
@@ -651,7 +652,8 @@ c$$$          end if
              !DEC$ IVDEP
              do i=x_borders(1), x_borders(2)
 
-                if(grdpts_id(i,j).eq.interior_pt) then
+                 if((grdpts_id(i,j).eq.interior_pt).or.
+     $               (grdpts_id(i,j).eq.bc_interior_pt)) then
 
                    flux_y(i,j,1) = - c**2*s%g(nodes,i,j,velocity_y)
      $                             - epsilon*s%dgdy(nodes,i,j,position,dy)

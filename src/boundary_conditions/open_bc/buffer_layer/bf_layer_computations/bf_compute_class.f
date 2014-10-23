@@ -17,25 +17,18 @@
       !-----------------------------------------------------------------
       module bf_compute_class
 
-        use bf_layer_bc_procedure_module, only :
-     $       N_edge_type,
-     $       S_edge_type,
-     $       E_edge_type,
-     $       W_edge_type
-
         use bc_operators_class, only :
      $       bc_operators
 
         use interface_integration_step, only :
      $       timeInt_step_nopt
 
-        use parameters_constant, only :
-     $       bc_timedev_choice
-
         use parameters_input, only :
      $       nx,
      $       ny,
-     $       ne
+     $       ne,
+     $       x_min, x_max,
+     $       y_min, y_max
 
         use parameters_input, only :
      $       bc_N_type_choice,
@@ -108,8 +101,7 @@
           procedure, pass :: allocate_tables
           procedure, pass :: deallocate_tables
 
-          procedure, pass :: determine_bc_sections
-
+          procedure, pass :: apply_bc_on_timedev
           procedure, pass :: compute_time_dev
           procedure, pass :: compute_integration_step
 
@@ -154,245 +146,37 @@
         !compute the time derivatives
         subroutine compute_time_dev(
      $     this,
-     $     nodes,
-     $     dx,
-     $     dy,
-     $     sd_operators_used,
-     $     pmodel_eq_used,
-     $     bc_operators_used,
      $     td_operators_used,
-     $     grdpts_id)
+     $     t, nodes, x_map, y_map,
+     $     s,
+     $     p_model,bc_used,
+     $     grdpts_id,
+     $     x_borders, y_borders)
 
           implicit none
 
-          class(bf_compute)            , intent(inout) :: this
-          real(rkind), dimension(:,:,:), intent(in)    :: nodes
-          real(rkind)                  , intent(in)    :: dx
-          real(rkind)                  , intent(in)    :: dy
-          type(sd_operators)           , intent(in)    :: sd_operators_used
-          type(pmodel_eq)              , intent(in)    :: pmodel_eq_used
-          type(bc_operators)           , intent(in)    :: bc_operators_used
-          type(td_operators)           , intent(in)    :: td_operators_used
-          integer    , dimension(:,:)  , intent(in)    :: grdpts_id
+          class(bf_compute)              , intent(inout) :: this
+          type(td_operators)             , intent(in)    :: td_operators_used
+          real(rkind)                    , intent(in)    :: t
+          real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
+          real(rkind), dimension(:)      , intent(in)    :: x_map
+          real(rkind), dimension(:)      , intent(in)    :: y_map
+          type(sd_operators)             , intent(in)    :: s
+          type(pmodel_eq)                , intent(in)    :: p_model
+          type(bc_operators)             , intent(in)    :: bc_used
+          integer    , dimension(:,:)    , intent(in)    :: grdpts_id
+          integer(ikind), dimension(2)   , intent(in)    :: x_borders
+          integer(ikind), dimension(2)   , intent(in)    :: y_borders
           
           call td_operators_used%compute_time_dev_nopt(
-     $         nodes,
-     $         dx,
-     $         dy,
-     $         sd_operators_used,
-     $         pmodel_eq_used,
-     $         bc_operators_used,
+     $         t,nodes,x_map,y_map,
+     $         s,p_model,bc_used,
      $         this%time_dev,
      $         grdpts_id,
-     $         this%bc_sections)
+     $         this%bc_sections,
+     $         x_borders, y_borders)
 
         end subroutine compute_time_dev
-
-
-        !apply the boundary conditions on the time derivatives
-        subroutine apply_bc_on_timedev(
-     $     this,
-     $     bc_used, p_model,
-     $     t, nodes, x_map, y_map,
-     $     flux_x, flux_y,
-     $     timedev)
-
-          implicit none
-
-          class(bc_compute)            , intent(in)    :: this
-          type(bc_operators)           , intent(in)    :: bc_used
-          type(pmodel_eq)              , intent(in)    :: p_model
-          real(rkind)                  , intent(in)    :: t
-          real(rkind), dimension(:,:,:), intent(in)    :: nodes
-          real(rkind), dimension(:)    , intent(in)    :: x_map
-          real(rkind), dimension(:)    , intent(in)    :: y_map
-          real(rkind), dimension(:,:,:), intent(inout) :: flux_x
-          real(rkind), dimension(:,:,:), intent(inout) :: flux_y
-          real(rkind), dimension(:,:,:), intent(inout) :: timedev
-
-
-          !if there are effectively boundary layers
-          !in the buffer layer computed, the time
-          !derivatives corresponding to the boundary
-          !grid points are computed
-          if(allocated(this%bc_sections)) then
-
-
-             !compute the fluxes at the grid points
-             !corresponding to edge-type boundary
-             !layers
-             call compute_edge_fluxes(this,flux_x,flux_y)
-
-
-             !compute the time derivatives
-             !corresponding to the buffer layers
-
-
-          end if          
-
-        end subroutine apply_bc_on_timedev
-
-
-        subroutine compute_edge_fluxes(
-     $     this,
-     $     bc_used,
-     $     p_model,
-     $     nodes, dx, dy,
-     $     flux_x, flux_y)
-
-          implicit none
-          
-          class(bc_compute)            , intent(in)    :: this
-          type(bc_operators)           , intent(in)    :: bc_used
-          type(pmodel_eq)              , intent(in)    :: p_model
-          real(rkind), dimension(:,:,:), intent(in)    :: nodes
-          real(rkind)                  , intent(in)    :: dx
-          real(rkind)                  , intent(in)    :: dy
-          real(rkind), dimension(:,:,:), intent(inout) :: flux_x
-          real(rkind), dimension(:,:,:), intent(inout) :: flux_y
-
-
-          !go through the boundary layers
-          !if the boundary actually needs the computation
-          !of the fluxes in the direction of the edge, the
-          !fluxes are computed
-          do k=1, size(this%bc_section,2)
-
-             !identify the type of boundary layer
-             select case(this%bc_section(1,k))
-
-               case(N_edge_type)
-
-                  !do not compute the edge fluxes only if
-                  !(y.ge.bc_y_max).and.
-                  !(bc_N_type_choice.ne.bc_timedev_choice)
-
-                  j = this%bc_section(3,k)
-
-                  compute_edge = .not.(
-     $                 (y_map(j).ge.y_max).and.
-     $                 (bc_N_type_choice.ne.bc_timedev_choice))
-
-                  !determine the extent of the edge from the
-                  !bc_section and compute the fluxes
-                  if(compute_edge) then
-                  
-                     i_min = this%bc_section(2,k)
-                     i_max = this%bc_section(4,k)
-
-                     call bc_used%compute_fluxes_for_bc_y_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_y_L0, s_y_L1,
-     $                    s_y_R1, s_y_R0,
-     $                    dx, dy,
-     $                    i_min, i_max, j,
-     $                    N,
-     $                    flux_x)
-
-                  end if
-                     
-               case(S_edge_type)
-
-                  !do not compute the edge fluxes only if
-                  !(y.le.bc_y_min).and.
-                  !(bc_S_type_choice.ne.bc_timedev_choice)
-
-                  j = this%bc_section(3,k)
-
-                  compute_edge = .not.(
-     $                 (y_map(j+1).le.y_min).and.
-     $                 (bc_S_type_choice.ne.bc_timedev_choice))
-
-                  !determine the extent of the edge from the
-                  !bc_section and compute the fluxes
-                  if(compute_edge) then
-                  
-                     i_min = this%bc_section(2,k)
-                     i_max = this%bc_section(4,k)
-
-                     call bc_used%compute_fluxes_for_bc_y_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_y_L0, s_y_L1,
-     $                    s_y_R1, s_y_R0,
-     $                    dx, dy,
-     $                    i_min, i_max, j,
-     $                    S,
-     $                    flux_x)
-
-                  end if
-
-               case(E_edge_type)
-
-                  !do not compute the edge fluxes only if
-                  !(x.ge.bc_x_max).and.
-                  !(bc_E_type_choice.ne.bc_timedev_choice)
-
-                  i = this%bc_section(2,k)
-
-                  compute_edge = .not.(
-     $                 (x_map(i).ge.y_max).and.
-     $                 (bc_E_type_choice.ne.bc_timedev_choice))
-
-                  !determine the extent of the edge from the
-                  !bc_section and compute the fluxes
-                  if(compute_edge) then
-                  
-                     j_min = this%bc_section(3,k)
-                     j_max = this%bc_section(4,k)
-
-                     call bc_used%compute_fluxes_for_bc_x_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_x_L0, s_x_L1,
-     $                    s_x_R1, s_x_R0,
-     $                    dx, dy,
-     $                    j_min, j_max, i,
-     $                    E,
-     $                    flux_y)
-
-                  end if
-
-               case(W_edge_type)
-
-                  !do not compute the edge fluxes only if
-                  !(x.le.bc_x_min).and.
-                  !(bc_W_type_choice.ne.bc_timedev_choice)
-
-                  i = this%bc_section(2,k)
-
-                  compute_edge = .not.(
-     $                 (x_map(i+1).le.x_min).and.
-     $                 (bc_W_type_choice.ne.bc_timedev_choice))
-
-                  !determine the extent of the edge from the
-                  !bc_section and compute the fluxes
-                  if(compute_edge) then
-                  
-                     j_min = this%bc_section(3,k)
-                     j_max = this%bc_section(4,k)
-
-                     call bc_used%compute_fluxes_for_bc_x_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_x_L0, s_x_L1,
-     $                    s_x_R1, s_x_R0,
-     $                    dx, dy,
-     $                    j_min, j_max, i,
-     $                    W,
-     $                    flux_y)
-
-                  end if
-
-             end select
-
-          end do
-
-
-
-
-        end subroutine compute_edge_fluxes
 
 
         !compute the integration step

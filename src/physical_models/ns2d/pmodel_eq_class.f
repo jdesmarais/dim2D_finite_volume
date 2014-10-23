@@ -69,7 +69,8 @@ c$$$     $                                           compute_n2_righteigenvector
      $       apply_steady_state_ic
 
         use parameters_bf_layer, only :
-     $       interior_pt
+     $       interior_pt,
+     $       bc_interior_pt
 
         use parameters_constant, only :
      $       scalar,
@@ -815,7 +816,8 @@ c$$$          y_s = y_map(1)
              !DEC$ IVDEP
              do i=x_borders(1), x_borders(2)+1
 
-                if(grdpts_id(i,j).eq.interior_pt) then
+                if((grdpts_id(i,j).eq.interior_pt).or.
+     $               (grdpts_id(i,j).eq.bc_interior_pt)) then
 
                    !DEC$ FORCEINLINE RECURSIVE
                    flux_x(i,j,1) =
@@ -903,7 +905,8 @@ c$$$          y_s = y_map(1)
              !DEC$ IVDEP
              do i=x_borders(1), x_borders(2)
 
-                if(grdpts_id(i,j).eq.interior_pt) then
+                if((grdpts_id(i,j).eq.interior_pt).or.
+     $               (grdpts_id(i,j).eq.bc_interior_pt)) then
 
                    !DEC$ FORCEINLINE RECURSIVE
                    flux_y(i,j,1) = flux_y_mass_density(nodes,s,i,j)
