@@ -6,6 +6,7 @@ endif
 
 
 #IFORT options
+#-------------------------------------------------------------------------------
 ifeq ($(FC),ifort)
 #PROFILE
 ifeq ($(strip $(profile)),true)
@@ -38,6 +39,7 @@ LIBS	+=$(LIBS_IFORT)
 endif
 
 #GFORTRAN options
+#-------------------------------------------------------------------------------
 ifeq ($(FC),gfortran)
 
 #PROFILE
@@ -64,6 +66,7 @@ LIBS	+=$(LIBS_GFORTRAN)
 endif
 
 #mpiifort options
+#-------------------------------------------------------------------------------
 ifeq ($(FC),mpiifort)
 
 #PROFILE
@@ -97,6 +100,9 @@ endif
 
 
 #mpif90 options
+#-------------------------------------------------------------------------------
+ifeq ($(AUGEANSTABLES_CLUSTER),bolt)
+
 ifeq ($(FC),mpif90)
 
 #PROFILE
@@ -122,4 +128,34 @@ INCLUDE +=$(INCLUDE_GFORTRAN)
 INCLUDE +=$(INCLUDE_GCC_PAR)
 LIBS	+=$(LIBS_GFORTRAN)
 LIBS	+=$(LIBS_GCC_PAR)
+endif
+endif
+
+#newcluster
+ifeq ($(AUGEANSTABLES_CLUSTER),newcluster)
+
+ifeq ($(FC),mpif90)
+
+#PROFILE
+ifeq ($(strip $(profile)),true)
+	FFLAGS +=$(FFLAGS_PROFILE_IFORT)
+	LDFLAGS+=$(LDFLAGS_PROFILE_IFORT)
+else	
+
+#ANALYSE
+ifeq ($(strip $(analyse)),true)
+	FFLAGS +=$(FFLAGS_ANALYSE_IFORT)
+	LDFLAGS+=$(LDFLAGS_ANALYSE_IFORT)
+else
+
+#OPTIMIZED
+	FFLAGS +=$(FFLAGS_OP_IFORT)
+	LDFLAGS+=$(LDFLAGS_OP_IFORT)
+
+endif
+endif
+
+INCLUDE +=$(INCLUDE_IFORT)
+LIBS	+=$(LIBS_IFORT)
+endif
 endif
