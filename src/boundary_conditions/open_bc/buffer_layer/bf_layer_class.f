@@ -16,6 +16,9 @@
       !-----------------------------------------------------------------
       module bf_layer_class
 
+        use bc_operators_class, only :
+     $     bc_operators
+
         use bf_compute_class, only :
      $       bf_compute
         
@@ -86,6 +89,12 @@
 
         use pmodel_eq_class, only :
      $       pmodel_eq
+
+        use sd_operators_class, only :
+     $       sd_operators
+
+        use td_operators_class, only :
+     $       td_operators
 
 
         private
@@ -313,6 +322,8 @@
           integer                       , private :: localization
           integer(ikind), dimension(2,2), private :: alignment
 
+          real(rkind), dimension(:)    , allocatable, private :: x_map
+          real(rkind), dimension(:)    , allocatable, private :: y_map
           real(rkind), dimension(:,:,:), allocatable, private :: nodes
           integer, dimension(:,:)      , allocatable, private :: grdpts_id
 
@@ -321,7 +332,9 @@
 
           logical, private :: can_remain
 
-          type(bf_compute) :: bf_compute_used
+          type(bf_compute)             :: bf_compute_used
+          integer(ikind), dimension(2) :: x_borders
+          integer(ikind), dimension(2) :: y_borders
 
           contains
 
@@ -377,11 +390,12 @@
 
           
           !for time integration
-          procedure,   pass          :: allocate_before_timeInt
-          procedure,   pass          :: deallocate_after_timeInt
-          procedure,   pass          :: compute_time_dev
-          procedure,   pass          :: compute_integration_step
-          procedure,   pass          :: get_time_dev !only for tests
+          procedure,   pass :: update_xy_integration_borders
+          procedure,   pass :: allocate_before_timeInt
+          procedure,   pass :: deallocate_after_timeInt
+          procedure,   pass :: compute_time_dev
+          procedure,   pass :: compute_integration_step
+          procedure,   pass :: get_time_dev !only for tests
 
         end type bf_layer
 
@@ -982,11 +996,13 @@
         !> correspondance between the interior grid points
         !> and the buffer layer elements
         !--------------------------------------------------------------
-        subroutine allocate_bf_layer(this, nodes, alignment)
+        subroutine allocate_bf_layer(this, x_map, y_map, nodes, alignment)
 
           implicit none
           
           class(bf_layer)                 , intent(inout) :: this
+          real(rkind)   , dimension(:)    , intent(in)    :: x_map
+          real(rkind)   , dimension(:)    , intent(in)    :: y_map
           real(rkind)   , dimension(:,:,:), intent(in)    :: nodes
           integer(ikind), dimension(2,2)  , intent(in)    :: alignment
 
@@ -994,29 +1010,37 @@
           select case(this%localization)
             case(N)
                call allocate_bf_layer_N(
+     $              this%x_map, x_map,
+     $              this%y_map, y_map,
      $              this%nodes, nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
             case(S)
                call allocate_bf_layer_S(
+     $              this%x_map, x_map,
+     $              this%y_map, y_map,
      $              this%nodes, nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
             case(E)
                call allocate_bf_layer_E(
+     $              this%x_map, x_map,
+     $              this%y_map, y_map,
      $              this%nodes, nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
             case(W)
                call allocate_bf_layer_W(
+     $              this%x_map, x_map,
+     $              this%y_map, y_map,
      $              this%nodes, nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
             case default
-               print '(''bf_layer_class'')'
-               print '(''allocate_bf_layer'')'
-               print '(''localization not recognized'')'
-               print '(''localization:'',I2)', this%localization
+               call error_mainlayer_id(
+     $              'bf_layer_class.f',
+     $              'allocate_bf_layer',
+     $              this%localization)
           end select
 
         end subroutine allocate_bf_layer
@@ -1047,11 +1071,13 @@
         !> correspondance between the interior grid points
         !> and the buffer layer elements
         !--------------------------------------------------------------
-        subroutine reallocate_bf_layer(this, nodes, alignment)
+        subroutine reallocate_bf_layer(this, x_map, y_map, nodes, alignment)
 
           implicit none
 
           class(bf_layer)                 , intent(inout) :: this
+          real(rkind), dimension(nx)      , intent(in)    :: x_map
+          real(rkind), dimension(ny)      , intent(in)    :: y_map
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
           integer    , dimension(2,2)     , intent(in)    :: alignment
 
@@ -1059,24 +1085,32 @@
 
             case(N)
                call reallocate_bf_layer_N(
+     $              this%x_map, x_map,
+     $              this%y_map, y_map,
      $              this%nodes, nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
 
             case(S)
                call reallocate_bf_layer_S(
+     $              this%x_map, x_map,
+     $              this%y_map, y_map,
      $              this%nodes, nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
 
             case(E)
                call reallocate_bf_layer_E(
+     $              this%x_map, x_map,
+     $              this%y_map, y_map,
      $              this%nodes, nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
 
             case(W)
                call reallocate_bf_layer_W(
+     $              this%x_map, x_map,
+     $              this%y_map, y_map,
      $              this%nodes, nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
@@ -1115,12 +1149,14 @@
         !> correspondance between the interior grid points
         !> and the buffer layer elements
         !--------------------------------------------------------------
-        subroutine merge_bf_layer(this, bf_layer2, nodes, alignment)
+        subroutine merge_bf_layer(this, bf_layer2, x_map, y_map, nodes, alignment)
 
           implicit none
 
           class(bf_layer)                               , intent(inout) :: this
           class(bf_layer)                               , intent(inout) :: bf_layer2
+          real(rkind)    , dimension(nx)                , intent(in)    :: x_map
+          real(rkind)    , dimension(ny)                , intent(in)    :: y_map
           real(rkind)    , dimension(nx,ny,ne)          , intent(in)    :: nodes
           integer(ikind) , dimension(2,2)     , optional, intent(in)    :: alignment
 
@@ -1140,11 +1176,15 @@
             case(N)
                if(present(alignment)) then
                   call merge_bf_layers_N(
+     $                 this%x_map    , bf_layer2%x_map, x_map,
+     $                 this%y_map    , bf_layer2%y_map, y_map,
      $                 this%nodes    , bf_layer2%nodes, nodes,
      $                 this%grdpts_id, bf_layer2%grdpts_id,
      $                 this%alignment, bf_layer2%alignment, alignment)
                else
                   call merge_bf_layers_N(
+     $                 this%x_map    , bf_layer2%x_map, x_map,
+     $                 this%y_map    , bf_layer2%y_map, y_map,
      $                 this%nodes    , bf_layer2%nodes, nodes,
      $                 this%grdpts_id, bf_layer2%grdpts_id,
      $                 this%alignment, bf_layer2%alignment)
@@ -1153,11 +1193,15 @@
             case(S)
                if(present(alignment)) then
                   call merge_bf_layers_S(
+     $                 this%x_map    , bf_layer2%x_map, x_map,
+     $                 this%y_map    , bf_layer2%y_map, y_map,
      $                 this%nodes    , bf_layer2%nodes, nodes,
      $                 this%grdpts_id, bf_layer2%grdpts_id,
      $                 this%alignment, bf_layer2%alignment, alignment)
                else
                   call merge_bf_layers_S(
+     $                 this%x_map    , bf_layer2%x_map, x_map,
+     $                 this%y_map    , bf_layer2%y_map, y_map,
      $                 this%nodes    , bf_layer2%nodes, nodes,
      $                 this%grdpts_id, bf_layer2%grdpts_id,
      $                 this%alignment, bf_layer2%alignment)
@@ -1166,11 +1210,15 @@
             case(E)
                if(present(alignment)) then
                   call merge_bf_layers_E(
+     $                 this%x_map    , bf_layer2%x_map, x_map,
+     $                 this%y_map    , bf_layer2%y_map, y_map,
      $                 this%nodes    , bf_layer2%nodes, nodes,
      $                 this%grdpts_id, bf_layer2%grdpts_id,
      $                 this%alignment, bf_layer2%alignment, alignment)
                else
                   call merge_bf_layers_E(
+     $                 this%x_map    , bf_layer2%x_map, x_map,
+     $                 this%y_map    , bf_layer2%y_map, y_map,
      $                 this%nodes    , bf_layer2%nodes, nodes,
      $                 this%grdpts_id, bf_layer2%grdpts_id,
      $                 this%alignment, bf_layer2%alignment)
@@ -1179,11 +1227,15 @@
             case(W)
                if(present(alignment)) then
                   call merge_bf_layers_W(
+     $                 this%x_map    , bf_layer2%x_map, x_map,
+     $                 this%y_map    , bf_layer2%y_map, y_map,
      $                 this%nodes    , bf_layer2%nodes, nodes,
      $                 this%grdpts_id, bf_layer2%grdpts_id,
      $                 this%alignment, bf_layer2%alignment, alignment)
                else
                   call merge_bf_layers_W(
+     $                 this%x_map    , bf_layer2%x_map, x_map,
+     $                 this%y_map    , bf_layer2%y_map, y_map,
      $                 this%nodes    , bf_layer2%nodes, nodes,
      $                 this%grdpts_id, bf_layer2%grdpts_id,
      $                 this%alignment, bf_layer2%alignment)
@@ -2412,6 +2464,8 @@
         !--------------------------------------------------------------
         subroutine print_binary(
      $     this,
+     $     filename_x_map,
+     $     filename_y_map,
      $     filename_nodes,
      $     filename_grdpts_id,
      $     filename_sizes)
@@ -2419,12 +2473,48 @@
           implicit none
 
           class(bf_layer), intent(in) :: this
+          character(*)   , intent(in) :: filename_x_map
+          character(*)   , intent(in) :: filename_y_map
           character(*)   , intent(in) :: filename_nodes
           character(*)   , intent(in) :: filename_grdpts_id
           character(*)   , intent(in) :: filename_sizes
 
           integer :: ios
           
+          !x_map
+          open(unit=3,
+     $         file=filename_x_map,
+     $         action="write", 
+     $         status="unknown",
+     $         form='unformatted',
+     $         access='sequential',
+     $         position='rewind',
+     $         iostat=ios)
+
+          if(ios.eq.0) then
+             write(unit=3, iostat=ios) this%x_map
+             close(unit=3)
+          else
+             stop 'file opening pb'
+          end if
+
+          !y_map
+          open(unit=3,
+     $         file=filename_y_map,
+     $         action="write", 
+     $         status="unknown",
+     $         form='unformatted',
+     $         access='sequential',
+     $         position='rewind',
+     $         iostat=ios)
+
+          if(ios.eq.0) then
+             write(unit=3, iostat=ios) this%y_map
+             close(unit=3)
+          else
+             stop 'file opening pb'
+          end if
+
           !nodes
           open(unit=3,
      $          file=filename_nodes,
@@ -2578,6 +2668,82 @@
         !> Julien L. Desmarais
         !
         !> @brief
+        !> update the index boundaries to know which grid points
+        !> are computed by the buffer layer at time integration
+        !
+        !> @date
+        !> 23_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
+        subroutine update_xy_integration_borders(this)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+
+          select case(this%localization)
+
+            case(N)
+               this%x_borders(1) = 1
+               this%x_borders(2) = size(this%nodes,1)
+               this%y_borders(1) = 1+bc_size
+               this%y_borders(2) = size(this%nodes,2)
+
+            case(S)
+               this%x_borders(1) = 1
+               this%x_borders(2) = size(this%nodes,1)
+               this%y_borders(1) = 1
+               this%y_borders(2) = size(this%nodes,2)-bc_size
+
+            case(E)
+               this%x_borders(1) = bc_size+1
+               this%x_borders(2) = size(this%nodes,1)
+
+               if(this%shares_grdpts_with_neighbor1) then
+                  this%y_borders(1) = 1+bc_size
+               else
+                  this%y_borders(1) = 1
+               end if
+
+               if(this%shares_grdpts_with_neighbor2) then
+                  this%y_borders(2) = size(this%nodes,2)-bc_size
+               else
+                  this%y_borders(2) = size(this%nodes,2)
+               end if
+
+            case(W)
+               this%x_borders(1) = 1
+               this%x_borders(2) = size(this%nodes,1)-bc_size
+
+               if(this%shares_grdpts_with_neighbor1) then
+                  this%y_borders(1) = 1+bc_size
+               else
+                  this%y_borders(1) = 1
+               end if
+
+               if(this%shares_grdpts_with_neighbor2) then
+                  this%y_borders(2) = size(this%nodes,2)-bc_size
+               else
+                  this%y_borders(2) = size(this%nodes,2)
+               end if
+
+            case default
+               call error_mainlayer_id(
+     $              'bf_layer_class.f',
+     $              'update_xy_integration_borders',
+     $              this%localization)
+          end select
+
+        end subroutine update_xy_integration_borders
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> allocate memory space for the intermediate
         !> variables needed to perform the time integration
         !
@@ -2639,20 +2805,26 @@
         !> bf_layer object encapsulating the main
         !> tables extending the interior domain
         !--------------------------------------------------------------
-        subroutine compute_time_dev(this)
+        subroutine compute_time_dev(
+     $     this,
+     $     td_operators_used,
+     $     t,s,p_model,bc_used)
 
           implicit none
 
-          class(bf_layer), intent(inout) :: this
+          class(bf_layer)                , intent(inout) :: this
+          type(td_operators)             , intent(in)    :: td_operators_used
+          real(rkind)                    , intent(in)    :: t
+          type(sd_operators)             , intent(in)    :: s
+          type(pmodel_eq)                , intent(in)    :: p_model
+          type(bc_operators)             , intent(in)    :: bc_used
 
           call this%bf_compute_used%compute_time_dev(
-     $         this%nodes,
-     $         dx,
-     $         dy,
-     $         sd_operators_used,
-     $         pmodel_eq_used,
-     $         bc_operators_used,
-     $         this%grdpts_id)
+     $         td_operators_used,
+     $         t, this%nodes, this%x_map, this%y_map,
+     $         s,p_model,bc_used,
+     $         this%grdpts_id,
+     $         this%x_borders, this%y_borders)
 
         end subroutine compute_time_dev
 

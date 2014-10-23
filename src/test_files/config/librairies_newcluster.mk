@@ -1,16 +1,9 @@
-ifeq ($(cluster), cartesius)
+ifeq ($(cluster), newcluster)
 #intel libraries
-	INCLUDE_IFORT  = -I $(SURFSARA_IMPI_INCLUDE)
-	INCLUDE_IFORT += -I $(SURFSARA_NETCDF_INCLUDE)
+	INCLUDE_IFORT           = -I $(NETCDFINCLUDE)
 
-	LIBS_IFORT     = -lcurl
-	LIBS_IFORT    += -L $(SURFSARA_NETCDF_LIB) -lnetcdff -lnetcdf
-	LIBS_IFORT    += -L $(SURFSARA_HDF5_LIB) -lhdf5_hl -lhdf5 -lz
-	LIBS_IFORT    += -L $(SURFSARA_IMPI_LIB)
+	LIBS_IFORT		= -L /cm/shared/apps/netcdf/open64/64/4.3.0/lib
 
-ifeq ($(trace),true)
-	LIBS_IFORT             += -L $(VT_LIB_DIR) -lVT $(VT_ADD_LIBS)
-endif
 
 #GFORTRAN libraries
 	INCLUDE_GFORTRAN = -I /cm/shared/apps/netcdf/gcc/64/4.2.1.1-par/include

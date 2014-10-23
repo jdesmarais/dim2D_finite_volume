@@ -22,7 +22,8 @@
         implicit none
 
         private
-        public :: pmodel_eq_default
+        public :: pmodel_eq_default,
+     $            basic
 
 
         !> @class pmodel_eq_default

@@ -12,7 +12,8 @@
       !> \image latex bf_layer_allocate_module.eps
       !
       !> @date
-      ! 27_06_2014 - documentation update - J.L. Desmarais
+      ! 27_06_2014 - documentation update        - J.L. Desmarais
+      ! 23_10_2014 - addition of x_map and y_map - J.L. Desmarais
       !-----------------------------------------------------------------
       module bf_layer_allocate_module
 
@@ -42,12 +43,18 @@
 
 
         subroutine allocate_bf_layer_N(
+     $       bf_x_map, interior_x_map,
+     $       bf_y_map, interior_y_map,
      $       bf_nodes, interior_nodes,
      $       bf_grdpts_id,
      $       bf_alignment, final_alignment)
 
           implicit none
 
+          real(rkind), dimension(:)    , allocatable, intent(inout) :: bf_x_map
+          real(rkind), dimension(nx)                , intent(in)    :: interior_x_map
+          real(rkind), dimension(:)    , allocatable, intent(inout) :: bf_y_map
+          real(rkind), dimension(ny)                , intent(in)    :: interior_y_map
           real(rkind), dimension(:,:,:), allocatable, intent(inout) :: bf_nodes
           real(rkind), dimension(nx,ny,ne)          , intent(in)    :: interior_nodes
           integer    , dimension(:,:)  , allocatable, intent(inout) :: bf_grdpts_id
@@ -78,6 +85,8 @@
 
           !allocate the nodes
           call allocate_nodes_N(
+     $         bf_x_map, interior_x_map,
+     $         bf_y_map, interior_y_map,
      $         bf_nodes, interior_nodes,
      $         i_min1,
      $         interior_i_max1,
@@ -95,12 +104,18 @@
 
 
         subroutine allocate_bf_layer_S(
+     $       bf_x_map, interior_x_map,
+     $       bf_y_map, interior_y_map,
      $       bf_nodes, interior_nodes,
      $       bf_grdpts_id,
      $       bf_alignment, final_alignment)
 
           implicit none
 
+          real(rkind), dimension(:)    , allocatable, intent(inout) :: bf_x_map
+          real(rkind), dimension(nx)                , intent(in)    :: interior_x_map
+          real(rkind), dimension(:)    , allocatable, intent(inout) :: bf_y_map
+          real(rkind), dimension(ny)                , intent(in)    :: interior_y_map
           real(rkind), dimension(:,:,:), allocatable, intent(inout) :: bf_nodes
           real(rkind), dimension(nx,ny,ne)          , intent(in)    :: interior_nodes
           integer    , dimension(:,:)  , allocatable, intent(inout) :: bf_grdpts_id
@@ -130,6 +145,8 @@
 
           !allocate the nodes
           call allocate_nodes_S(
+     $         bf_x_map, interior_x_map,
+     $         bf_y_map, interior_y_map,
      $         bf_nodes, interior_nodes,
      $         i_min1,
      $         interior_i_max1,
@@ -147,12 +164,18 @@
 
 
         subroutine allocate_bf_layer_E(
-     $       bf_nodes, interior_nodes,
-     $       bf_grdpts_id,
-     $       bf_alignment, final_alignment)
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
+     $     bf_nodes, interior_nodes,
+     $     bf_grdpts_id,
+     $     bf_alignment, final_alignment)
 
           implicit none
 
+          real(rkind), dimension(:)    , allocatable, intent(inout) :: bf_x_map
+          real(rkind), dimension(nx)                , intent(in)    :: interior_x_map
+          real(rkind), dimension(:)    , allocatable, intent(inout) :: bf_y_map
+          real(rkind), dimension(ny)                , intent(in)    :: interior_y_map
           real(rkind), dimension(:,:,:), allocatable, intent(inout) :: bf_nodes
           real(rkind), dimension(nx,ny,ne)          , intent(in)    :: interior_nodes
           integer    , dimension(:,:)  , allocatable, intent(inout) :: bf_grdpts_id
@@ -182,6 +205,8 @@
 
           !allocate the nodes
           call allocate_nodes_E(
+     $         bf_x_map, interior_x_map,
+     $         bf_y_map, interior_y_map,
      $         bf_nodes, interior_nodes,
      $         j_min1,
      $         interior_j_max1,
@@ -199,12 +224,18 @@
 
 
         subroutine allocate_bf_layer_W(
-     $       bf_nodes, interior_nodes,
-     $       bf_grdpts_id,
-     $       bf_alignment, final_alignment)
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
+     $     bf_nodes, interior_nodes,
+     $     bf_grdpts_id,
+     $     bf_alignment, final_alignment)
 
           implicit none
 
+          real(rkind), dimension(:)    , allocatable, intent(inout) :: bf_x_map
+          real(rkind), dimension(nx)                , intent(in)    :: interior_x_map
+          real(rkind), dimension(:)    , allocatable, intent(inout) :: bf_y_map
+          real(rkind), dimension(ny)                , intent(in)    :: interior_y_map
           real(rkind), dimension(:,:,:), allocatable, intent(inout) :: bf_nodes
           real(rkind), dimension(nx,ny,ne)          , intent(in)    :: interior_nodes
           integer    , dimension(:,:)  , allocatable, intent(inout) :: bf_grdpts_id
@@ -234,6 +265,8 @@
 
           !allocate the nodes
           call allocate_nodes_W(
+     $         bf_x_map, interior_x_map,
+     $         bf_y_map, interior_y_map,
      $         bf_nodes, interior_nodes,
      $         j_min1,
      $         interior_j_max1,
@@ -251,6 +284,8 @@
 
 
         subroutine allocate_nodes_N(
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
      $     bf_nodes, interior_nodes,
      $     i_min1,
      $     interior_i_max1,
@@ -258,6 +293,10 @@
 
           implicit none
 
+          real(rkind), dimension(:)    , allocatable, intent(out) :: bf_x_map
+          real(rkind), dimension(nx)                , intent(in)  :: interior_x_map
+          real(rkind), dimension(:)    , allocatable, intent(out) :: bf_y_map
+          real(rkind), dimension(ny)                , intent(in)  :: interior_y_map
           real(rkind), dimension(:,:,:), allocatable, intent(out) :: bf_nodes
           real(rkind), dimension(nx,ny,ne)          , intent(in)  :: interior_nodes
           integer(ikind)                            , intent(in)  :: i_min1
@@ -266,16 +305,29 @@
           integer(ikind), dimension(2)              , intent(in)  :: new_sizes
 
 
-
           integer(ikind) :: i_match, j_match
           integer(ikind) :: i,j
           integer        :: k
 
+          allocate(bf_x_map(new_sizes(1)))
+          allocate(bf_y_map(new_sizes(2)))
           allocate(bf_nodes(new_sizes(1), new_sizes(2), ne))
 
-          !copy of grid points from the interior
+          !match indices
           i_match = bf_alignment(1,1)-(bc_size+1)+i_min1
           j_match = ny-2*bc_size
+
+          !x_map copy
+          call create_map_from_interior(
+     $         bf_x_map, interior_x_map,
+     $         i_min1, interior_i_max1, i_match)
+          
+          !y_map copy
+          call create_map_right(
+     $         bf_y_map, interior_y_map,
+     $         j_match)         
+
+          !copy of grid points from the interior
           do k=1, ne
              do j=1, 2*bc_size
                 do i=1, interior_i_max1
@@ -289,6 +341,8 @@
 
 
         subroutine allocate_nodes_S(
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
      $     bf_nodes, interior_nodes,
      $     i_min1,
      $     interior_i_max1,
@@ -296,6 +350,10 @@
 
           implicit none
 
+          real(rkind), dimension(:)    , allocatable, intent(out) :: bf_x_map
+          real(rkind), dimension(nx)                , intent(in)  :: interior_x_map
+          real(rkind), dimension(:)    , allocatable, intent(out) :: bf_y_map
+          real(rkind), dimension(ny)                , intent(in)  :: interior_y_map
           real(rkind), dimension(:,:,:), allocatable, intent(out) :: bf_nodes
           real(rkind), dimension(nx,ny,ne)          , intent(in)  :: interior_nodes
           integer(ikind)                            , intent(in)  :: i_min1
@@ -307,11 +365,25 @@
           integer(ikind) :: i,j
           integer        :: k
 
+          allocate(bf_x_map(new_sizes(1)))
+          allocate(bf_y_map(new_sizes(2)))
           allocate(bf_nodes(new_sizes(1), new_sizes(2), ne))
 
-          !copy of grid points from the interior
+          !match indices
           i_match = bf_alignment(1,1)-(bc_size+1)+i_min1
           j_match = 0
+
+          !x_map copy
+          call create_x_map_from_interior(
+     $         bf_x_map, interior_x_map,
+     $         i_min1, interior_i_max1, i_match)
+
+          !y_map copy
+          call create_map_left(
+     $         bf_y_map, interior_y_map,
+     $         j_match)
+
+          !copy of grid points from the interior
           do k=1, ne
              do j=1, 2*bc_size
                 do i=1, interior_i_max1
@@ -325,6 +397,8 @@
 
 
         subroutine allocate_nodes_E(
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
      $     bf_nodes, interior_nodes,
      $     j_min1,
      $     interior_j_max1,
@@ -332,6 +406,10 @@
 
           implicit none
 
+          real(rkind), dimension(:)    , allocatable, intent(out) :: bf_x_map
+          real(rkind), dimension(nx)                , intent(in)  :: interior_x_map
+          real(rkind), dimension(:)    , allocatable, intent(out) :: bf_y_map
+          real(rkind), dimension(ny)                , intent(in)  :: interior_y_map
           real(rkind), dimension(:,:,:), allocatable, intent(out) :: bf_nodes
           real(rkind), dimension(nx,ny,ne)          , intent(in)  :: interior_nodes
           integer(ikind)                            , intent(in)  :: j_min1
@@ -343,11 +421,25 @@
           integer(ikind) :: i,j
           integer        :: k
 
+          allocate(bf_x_map(new_sizes(1)))
+          allocate(bf_y_map(new_sizes(2)))
           allocate(bf_nodes(new_sizes(1), new_sizes(2), ne))
 
-          !copy of grid points from the interior
+          !match indices
           i_match = nx-2*bc_size
           j_match = bf_alignment(2,1)-(bc_size+1)+j_min1
+
+          !x_map copy
+          call create_map_right(
+     $         bf_x_map, interior_x_map,
+     $         i_match)
+
+          !y_map copy
+          call create_map_from_interior(
+     $         bf_y_map, interior_y_map,
+     $         j_min1, interior_j_max1, j_match)
+
+          !copy of grid points from the interior
           do k=1, ne
              do j=1, interior_j_max1
                 do i=1, 2*bc_size
@@ -360,6 +452,8 @@
 
 
         subroutine allocate_nodes_W(
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
      $     bf_nodes, interior_nodes,
      $     j_min1,
      $     interior_j_max1,
@@ -367,6 +461,10 @@
 
           implicit none
 
+          real(rkind), dimension(:)    , allocatable, intent(out) :: bf_x_map
+          real(rkind), dimension(nx)                , intent(in)  :: interior_x_map
+          real(rkind), dimension(:)    , allocatable, intent(out) :: bf_y_map
+          real(rkind), dimension(ny)                , intent(in)  :: interior_y_map
           real(rkind), dimension(:,:,:), allocatable, intent(out) :: bf_nodes
           real(rkind), dimension(nx,ny,ne)          , intent(in)  :: interior_nodes
           integer(ikind)                            , intent(in)  :: j_min1
@@ -378,11 +476,25 @@
           integer(ikind) :: i,j
           integer        :: k
 
+          allocate(bf_x_map(new_sizes(1)))
+          allocate(bf_y_map(new_sizes(2)))
           allocate(bf_nodes(new_sizes(1), new_sizes(2), ne))
 
-          !copy of grid points from the interior
+          !match indices
           i_match = 0
           j_match = bf_alignment(2,1)-(bc_size+1)+j_min1
+
+          !x_map copy
+          call create_map_left(
+     $         bf_x_map, interior_x_map,
+     $         i_match)
+
+          !y_map copy
+          call create_map_from_interior(
+     $         bf_y_map, interior_y_map,
+     $         j_min1, interior_j_max1, j_match)
+
+          !copy of grid points from the interior
           do k=1, ne
              do j=1, interior_j_max1
                 do i=1, 2*bc_size
@@ -1472,5 +1584,99 @@
           end if
 
         end subroutine fill_border_EW      
+
+        subroutine create_map_from_interior(
+     $     bf_map, interior_map,
+     $     i_min1, interior_i_max1, i_match)
+
+          implicit none
+
+          real(rkind), dimension(:), intent(out) :: bf_map
+          real(rkind), dimension(:), intent(in)  :: interior_map
+          integer(ikind)           , intent(in)  :: i_min1
+          integer(ikind)           , intent(in)  :: interior_i_max1
+          integer(ikind)           , intent(in)  :: i_match
+
+          integer(ikind) :: i
+          integer(ikind) :: i_left
+          integer(ikind) :: i_right
+          real(rkind)    :: dx
+          
+
+          !x_map outside domain: left
+          i_left = i_match+1
+          dx = interior_map(i_left+1) - interior_map(i_left)
+          do i=1, i_min1
+             bf_map(i) = interior_map(i_left) - (i_min1+1-i)*dx
+          end do
+
+          !copy of x_map from the interior
+          do i=1, interior_i_max1
+             bf_map(i_min1+i) = interior_map(i_match+i)
+          end do
+
+          !x_map outside domain: right
+          i_right = i_match+interior_i_max1
+          dx = interior_map(i_right)-interior_map(i_right-1)
+          do i=i_min1+interior_i_max1+1,size(bf_map,1)
+             bf_map(i) = interior_map(i_right) + (i-(i_min1+interior_i_max1))*dx
+          end do
+
+        end subroutine create_map_from_interior
+
+
+        subroutine create_map_right(
+     $     bf_y_map, interior_y_map,
+     $     j_match)
+
+          implicit none
+          
+          real(rkind), dimension(:), intent(out) :: bf_y_map
+          real(rkind), dimension(:), intent(in)  :: interior_y_map
+          integer(ikind)           , intent(in)  :: j_match
+
+          integer(ikind) :: j
+          real(rkind)    :: dy
+
+          !copy of y_map from the interior
+          do j=1, 2*bc_size
+             bf_y_map(j) = interior_y_map(j_match+j)
+          end do
+
+          !creation of y_map outside
+          dy = interior_y_map(size(interior_y_map,1))-
+     $         interior_y_map(size(interior_y_map,1)-1)
+          do j=2*bc_size+1, size(bf_y_map,1)
+             bf_y_map(j) = bf_y_map(2*bc_size) + (j-2*bc_size)*dy
+          end do
+
+        end subroutine create_map_right
+
+
+        subroutine create_map_left(
+     $     bf_y_map, interior_y_map,
+     $     j_match)
+
+          implicit none
+          
+          real(rkind), dimension(:), intent(out) :: bf_y_map
+          real(rkind), dimension(:), intent(in)  :: interior_y_map
+          integer(ikind)           , intent(in)  :: j_match
+
+          integer(ikind) :: j
+          real(rkind)    :: dy
+
+          !create map outside
+          dy = interior_y_map(2) - interior_y_map(1)
+          do j=1, size(bf_y_map,1)-2*bc_size
+             bf_y_map(j) = (size(bf_y_map,1)-2*bc_size+1-j)*dy + interior_y_map(j_match+1)
+          end do
+
+          !copy from inside
+          do j=1, 2*bc_size
+             bf_y_map(j+size(bf_y_map,1)-2*bc_size) = interior_y_map(j_match+j)
+          end do
+
+        end subroutine create_map_left
 
       end module bf_layer_allocate_module

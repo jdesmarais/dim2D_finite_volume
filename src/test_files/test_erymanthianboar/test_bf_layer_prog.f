@@ -2,21 +2,43 @@
 
         !use ifport
 
-        use bf_layer_class      , only : bf_layer
+        use bf_layer_class, only :
+     $     bf_layer
+
 c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
-        use parameters_bf_layer , only : align_N, align_S, align_E, align_W
-        use parameters_constant , only : N,S,E,W
-        use parameters_kind     , only : rkind, ikind
-        use parameters_input    , only : nx,ny,ne,bc_size
-        use test_bf_layer_module, only : print_interior_data,
-     $                                  bf_layer_test_allocation,
-     $                                  bf_layer_test_reallocation,
-     $                                  bf_layer_test_merge,
-     $                                  bf_layer_test_copy_neighbors,
-     $                                  test_bf_layer_local_coord,
-     $                                  ini_nodes,
-     $                                  ini_grdpts_id,
-     $                                  ini_general_coord
+
+        use parameters_bf_layer, only :
+     $       align_N,
+     $       align_S,
+     $       align_E,
+     $       align_W
+
+        use parameters_constant, only :
+     $       N,
+     $       S,
+     $       E,
+     $       W
+
+        use parameters_kind, only :
+     $       rkind,
+     $       ikind
+
+        use parameters_input, only :
+     $       nx,
+     $       ny,
+     $       ne,
+     $       bc_size
+
+        use test_bf_layer_module, only :
+     $       print_interior_data,
+     $       bf_layer_test_allocation,
+     $       bf_layer_test_reallocation,
+     $       bf_layer_test_merge,
+     $       bf_layer_test_copy_neighbors,
+     $       test_bf_layer_local_coord,
+     $       ini_nodes,
+     $       ini_grdpts_id,
+     $       ini_general_coord
 
         implicit none
 
@@ -40,6 +62,8 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         type(bf_layer), dimension(4)   :: table_2nd_bf_layer_tested
         type(bf_layer), dimension(4,3) :: table_bf_layer_copy_tested
 
+        real(rkind)   , dimension(nx)       :: x_map
+        real(rkind)   , dimension(ny)       :: y_map
         real(rkind)   , dimension(nx,ny,ne) :: nodes
         integer       , dimension(nx,ny)    :: grdpts_id
         integer(ikind), dimension(2,2)      :: alignment
@@ -48,20 +72,24 @@ c$$$        integer(ikind), dimension(2,2)      :: alignment_after_merge
         integer(ikind)                      :: i !,j,k
         integer       , dimension(4)        :: bf_layer_loc
         character(2)  , dimension(4)        :: bf_layer_char
-        character(len=21)                   :: sizes_filename, nodes_filename, grdid_filename
+        character(len=21)                   :: sizes_filename
+        character(len=21)                   :: x_map_filename
+        character(len=21)                   :: y_map_filename
+        character(len=21)                   :: nodes_filename
+        character(len=21)                   :: grdid_filename
 c$$$        integer(ikind), dimension(2,2)      :: border_changes
 c$$$        logical       , dimension(4)        :: neighbors
 c$$$        integer(ikind), dimension(2,2)      :: selected_grdpts
 c$$$        integer       , dimension(2)        :: match_table
 c$$$        integer(ikind), dimension(2)        :: general_coord
 
-        integer(ikind), dimension(4,2,2) :: test_alignment_reallocation
-        integer(ikind), dimension(2,2)   :: alignment_reallocation
-        integer(ikind), dimension(4,2,2) :: test_alignment_merge
-        integer(ikind), dimension(4,2,2) :: test_alignment_2nd
+        integer(ikind), dimension(4,2,2)   :: test_alignment_reallocation
+        integer(ikind), dimension(2,2)     :: alignment_reallocation
+        integer(ikind), dimension(4,2,2)   :: test_alignment_merge
+        integer(ikind), dimension(4,2,2)   :: test_alignment_2nd
         integer(ikind), dimension(4,3,2,2) :: test_alignment_copy_neighbors
-        integer(ikind), dimension(2,2)   :: alignment_merge
-        integer(ikind), dimension(2,2)   :: alignment_2nd
+        integer(ikind), dimension(2,2)     :: alignment_merge
+        integer(ikind), dimension(2,2)     :: alignment_2nd
 
         integer :: relative_distance
         integer :: relative_size
@@ -83,12 +111,17 @@ c$$$        integer(ikind), dimension(2)        :: general_coord
 
 c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
+        call ini_x_map(x_map)
+        call ini_y_map(y_map)
         call ini_nodes(nodes)
         call ini_grdpts_id(grdpts_id)
 
         !print the nodes
         call print_interior_data(
+     $       x_map, y_map,
      $       nodes, grdpts_id,
+     $       'interior_x_map.dat',
+     $       'interior_y_map.dat',
      $       'interior_nodes.dat',
      $       'interior_grdpts_id.dat',
      $       'interior_sizes.dat')
@@ -151,14 +184,18 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
      $          i, alignment)
 
            call bf_layer_test_allocation(
-     $               table_bf_layer_tested(i),
-     $               bf_layer_loc(i),
-     $               alignment,
-     $               nodes,
-     $               sizes_filename,
-     $               nodes_filename,
-     $               grdid_filename)
-
+     $          table_bf_layer_tested(i),
+     $          bf_layer_loc(i),
+     $          alignment,
+     $          x_map,
+     $          y_map,
+     $          nodes,
+     $          sizes_filename,
+     $          x_map_filename,
+     $          y_map_filename,
+     $          nodes_filename,
+     $          grdid_filename)
+           
            !test reallocation
            if(test_reallocation) then
               write(sizes_filename,'(A2,''1_sizes2.dat'')') bf_layer_char(i)
@@ -172,9 +209,13 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
               call bf_layer_test_reallocation(
      $             table_bf_layer_tested(i),
+     $             x_map,
+     $             y_map,
      $             nodes,
      $             alignment_reallocation,
      $             sizes_filename,
+     $             x_map_filename,
+     $             y_map_filename,
      $             nodes_filename,
      $             grdid_filename)
            end if
@@ -189,6 +230,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
               !print the data of the first buffer layer
               write(sizes_filename,'(A2,''1_sizes3.dat'')') bf_layer_char(i)
+              write(x_map_filename,'(A2,''1_x_map3.dat'')') bf_layer_char(i)
+              write(y_map_filename,'(A2,''1_y_map3.dat'')') bf_layer_char(i)
               write(nodes_filename,'(A2,''1_nodes3.dat'')') bf_layer_char(i)
               write(grdid_filename,'(A2,''1_grdpt_id3.dat'')') bf_layer_char(i)
 
@@ -199,8 +242,12 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
      $             table_1st_bf_layer_tested(i),
      $             bf_layer_loc(i),
      $             alignment,
+     $             x_map,
+     $             y_map,
      $             nodes,
      $             sizes_filename,
+     $             x_map_filename,
+     $             y_map_filename,
      $             nodes_filename,
      $             grdid_filename)
 
@@ -213,9 +260,13 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
                     call bf_layer_test_reallocation(
      $                   table_1st_bf_layer_tested(i),
+     $                   x_map,
+     $                   y_map,
      $                   nodes,
      $                   alignment,
      $                   sizes_filename,
+     $                   x_map_filename,
+     $                   y_map_filename,
      $                   nodes_filename,
      $                   grdid_filename)
                  end if
@@ -235,6 +286,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
      $             table_2nd_bf_layer_tested(i),
      $             bf_layer_loc(i),
      $             alignment_2nd,
+     $             x_map,
+     $             y_map,
      $             nodes,
      $             sizes_filename,
      $             nodes_filename,
@@ -249,6 +302,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
                     call bf_layer_test_reallocation(
      $                   table_2nd_bf_layer_tested(i),
+     $                   x_map,
+     $                   y_map,
      $                   nodes,
      $                   alignment_2nd,
      $                   sizes_filename,
@@ -271,9 +326,13 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
                  call bf_layer_test_merge(
      $                table_1st_bf_layer_tested(i),
      $                table_2nd_bf_layer_tested(i),
+     $                x_map,
+     $                y_map,
      $                nodes,
      $                alignment_merge,
      $                sizes_filename,
+     $                x_map_filename,
+     $                y_map_filename,
      $                nodes_filename,
      $                grdid_filename)
 
@@ -284,6 +343,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
      $                nodes,
      $                alignment_merge,
      $                sizes_filename,
+     $                x_map_filename,
+     $                y_map_filename,
      $                nodes_filename,
      $                grdid_filename)
               end if

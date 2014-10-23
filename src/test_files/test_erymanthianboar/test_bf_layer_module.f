@@ -1,13 +1,15 @@
       module test_bf_layer_module
 
-        !use ifport
+        use ifport
 
         use bf_layer_class               , only : bf_layer
 c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         use parameters_bf_layer          , only : interior_pt, bc_interior_pt, bc_pt
         use parameters_constant          , only : N,S,E,W
         use parameters_kind              , only : rkind, ikind
-        use parameters_input             , only : nx,ny,ne,bc_size
+        use parameters_input             , only : nx,ny,ne,bc_size,
+     $                                            x_min, x_max,
+     $                                            y_min, y_max
 
         private
         public ::
@@ -17,6 +19,8 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
      $       bf_layer_test_merge,
      $       bf_layer_test_copy_neighbors,
      $       test_bf_layer_local_coord,
+     $       ini_x_map,
+     $       ini_y_map,
      $       ini_nodes,
      $       ini_grdpts_id,
      $       ini_alignment_table,
@@ -28,18 +32,61 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
 
 
         subroutine print_interior_data(
+     $       x_map, y_map,
      $       nodes, grdpts_id,
-     $       filename_nodes, filename_grdpts_id, filename_sizes)
+     $       filename_x_map,
+     $       filename_y_map,
+     $       filename_nodes,
+     $       filename_grdpts_id,
+     $       filename_sizes)
 
           implicit none
 
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
           real(rkind), dimension(:,:,:), intent(in) :: nodes
           integer    , dimension(:,:)  , intent(in) :: grdpts_id 
+          character(*)                 , intent(in) :: filename_x_map
+          character(*)                 , intent(in) :: filename_y_map
           character(*)                 , intent(in) :: filename_nodes
           character(*)                 , intent(in) :: filename_grdpts_id
           character(*)                 , intent(in) :: filename_sizes
 
           integer :: ios
+          
+          !x_map
+          open(unit=1,
+     $          file=filename_x_map,
+     $          action="write", 
+     $          status="unknown",
+     $          form='unformatted',
+     $          access='sequential',
+     $          position='rewind',
+     $          iostat=ios)
+
+           if(ios.eq.0) then
+              write(unit=1, iostat=ios) x_map
+              close(unit=1)
+           else
+              stop 'file opening pb'
+           end if
+
+          !y_map
+          open(unit=1,
+     $          file=filename_y_map,
+     $          action="write", 
+     $          status="unknown",
+     $          form='unformatted',
+     $          access='sequential',
+     $          position='rewind',
+     $          iostat=ios)
+
+          if(ios.eq.0) then
+             write(unit=1, iostat=ios) y_map
+             close(unit=1)
+          else
+             stop 'file opening pb'
+          end if
           
           !nodes
           open(unit=1,
@@ -101,8 +148,12 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
      $     bf_layer_tested,
      $     bf_layer_loc,
      $     alignment,
+     $     x_map,
+     $     y_map,
      $     nodes,
      $     sizes_filename,
+     $     x_map_filename,
+     $     y_map_filename,
      $     nodes_filename,
      $     grdid_filename)
 
@@ -111,47 +162,70 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
           class(bf_layer)                  , intent(inout) :: bf_layer_tested
           integer                          , intent(in)    :: bf_layer_loc
           integer        , dimension(2,2)  , intent(in)    :: alignment
+          real(rkind)    , dimension(:)    , intent(in)    :: x_map
+          real(rkind)    , dimension(:)    , intent(in)    :: y_map
           real(rkind)    , dimension(:,:,:), intent(in)    :: nodes
           character(*)                     , intent(in)    :: sizes_filename
+          character(*)                     , intent(in)    :: x_map_filename
+          character(*)                     , intent(in)    :: y_map_filename
           character(*)                     , intent(in)    :: nodes_filename
           character(*)                     , intent(in)    :: grdid_filename
 
-          real(rkind) :: dx,dy
+          call bf_layer_tested%ini(bf_layer_loc)
 
-          dx = 1.0
-          dy = 1.0
+          call bf_layer_tested%allocate_bf_layer(
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         alignment)
 
-          call bf_layer_tested%ini(bf_layer_loc,dx,dy)
-          call bf_layer_tested%allocate_bf_layer(nodes,
-     $                                           alignment)
-          call bf_layer_tested%print_binary(nodes_filename,
-     $                                      grdid_filename,
-     $                                      sizes_filename)
+          call bf_layer_tested%print_binary(
+     $         x_map_filename,
+     $         y_map_filename,
+     $         nodes_filename,
+     $         grdid_filename,
+     $         sizes_filename)
 
         end subroutine bf_layer_test_allocation
 
 
         subroutine bf_layer_test_reallocation(
      $     bf_layer_tested,
+     $     interior_x_map,
+     $     interior_y_map,
      $     interior_nodes,
      $     new_alignment,
      $     sizes_filename,
+     $     x_map_filename,
+     $     y_map_filename,
      $     nodes_filename,
      $     grdid_filename)
 
           implicit none
 
           class(bf_layer)                  , intent(inout) :: bf_layer_tested
+          real(rkind) , dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind) , dimension(ny)      , intent(in)    :: interior_y_map
           real(rkind) , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           integer     , dimension(2,2)     , intent(in)    :: new_alignment
           character(*)                     , intent(in)    :: sizes_filename
+          character(*)                     , intent(in)    :: x_map_filename
+          character(*)                     , intent(in)    :: y_map_filename
           character(*)                     , intent(in)    :: nodes_filename
           character(*)                     , intent(in)    :: grdid_filename
 
-          call bf_layer_tested%reallocate_bf_layer(interior_nodes, new_alignment)
-          call bf_layer_tested%print_binary(nodes_filename,
-     $                                      grdid_filename,
-     $                                      sizes_filename)
+          call bf_layer_tested%reallocate_bf_layer(
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes,
+     $         new_alignment)
+
+          call bf_layer_tested%print_binary(
+     $         x_map_filename,
+     $         y_map_filename,
+     $         nodes_filename,
+     $         grdid_filename,
+     $         sizes_filename)
           
         end subroutine bf_layer_test_reallocation
 
@@ -159,9 +233,13 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         subroutine bf_layer_test_merge(
      $     bf_layer_tested,
      $     bf_layer_tested2,
+     $     x_map,
+     $     y_map,
      $     nodes,
      $     new_alignment,
      $     sizes_filename,
+     $     x_map_filename,
+     $     y_map_filename,
      $     nodes_filename,
      $     grdid_filename)
 
@@ -169,22 +247,31 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
 
           class(bf_layer)                 , intent(inout) :: bf_layer_tested
           class(bf_layer)                 , intent(inout) :: bf_layer_tested2
+          real(rkind), dimension(nx)      , intent(in)    :: x_map
+          real(rkind), dimension(ny)      , intent(in)    :: y_map
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
           integer    , dimension(2,2)     , intent(in)    :: new_alignment
           character(*)                    , intent(in)    :: sizes_filename
+          character(*)                    , intent(in)    :: x_map_filename
+          character(*)                    , intent(in)    :: y_map_filename
           character(*)                    , intent(in)    :: nodes_filename
           character(*)                    , intent(in)    :: grdid_filename
 
-          call bf_layer_tested%merge_bf_layer(bf_layer_tested2,
-     $                                        nodes,
-     $                                        new_alignment)
-
-           call bf_layer_tested%print_binary(nodes_filename,
-     $                                      grdid_filename,
-     $                                      sizes_filename)
+          call bf_layer_tested%merge_bf_layer(
+     $         bf_layer_tested2,
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         new_alignment)
+          
+           call bf_layer_tested%print_binary(
+     $         x_map_filename,
+     $         y_map_filename,
+     $         nodes_filename,
+     $         grdid_filename,
+     $         sizes_filename)
           
         end subroutine bf_layer_test_merge
-
 
 
         subroutine bf_layer_test_copy_neighbors(
@@ -207,6 +294,8 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
           real(rkind) :: neighbor2_id
 
           character(len=21) :: sizes_filename
+          character(len=21) :: x_map_filename
+          character(len=21) :: y_map_filename
           character(len=21) :: nodes_filename
           character(len=21) :: grdid_filename
 
@@ -231,10 +320,14 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
           !print the content of the buffer layers
           !print main buffer layer
           write(sizes_filename,'(A2,''1_sizes'',I1,''.dat'')') bf_layer_char, file_index
+          write(x_map_filename,'(A2,''1_x_map'',I1,''.dat'')') bf_layer_char, file_index
+          write(y_map_filename,'(A2,''1_y_map'',I1,''.dat'')') bf_layer_char, file_index
           write(nodes_filename,'(A2,''1_nodes'',I1,''.dat'')') bf_layer_char, file_index
           write(grdid_filename,'(A2,''1_grdpt_id'',I1,''.dat'')') bf_layer_char, file_index
 
           call bf_layer_tested%print_binary(
+     $         x_map_filename,
+     $         y_map_filename,
      $         nodes_filename,
      $         grdid_filename,
      $         sizes_filename)
@@ -246,6 +339,8 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
           write(grdid_filename,'(A2,''1_grdpt_id'',I1,''.dat'')') neighbor1_char, file_index
 
           call neighbor1%print_binary(
+     $         x_map_filename,
+     $         y_map_filename,
      $         nodes_filename,
      $         grdid_filename,
      $         sizes_filename)
@@ -253,10 +348,14 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
 
           !print neighbor2
           write(sizes_filename,'(A2,''1_sizes'',I1,''.dat'')') neighbor2_char, file_index
+          write(x_map_filename,'(A2,''1_x_map'',I1,''.dat'')') neighbor2_char, file_index
+          write(y_map_filename,'(A2,''1_y_map'',I1,''.dat'')') neighbor2_char, file_index
           write(nodes_filename,'(A2,''1_nodes'',I1,''.dat'')') neighbor2_char, file_index
           write(grdid_filename,'(A2,''1_grdpt_id'',I1,''.dat'')') neighbor2_char, file_index
 
           call neighbor2%print_binary(
+     $         x_map_filename,
+     $         y_map_filename,
      $         nodes_filename,
      $         grdid_filename,
      $         sizes_filename)          
@@ -313,6 +412,40 @@ c$$$        end subroutine bf_layer_test_update_grdpts
           end do          
 
         end subroutine ini_cst_nodes
+
+
+        subroutine ini_x_map(x_map)
+
+          implicit none
+
+          real(rkind), dimension(:), intent(inout) :: x_map
+
+          integer :: i
+          real(rkind) :: dx
+
+          dx = (x_max-x_min)/(nx-2*bc_size-1)
+          do i=1,nx
+             x_map(i) = x_min + (i-(bc_size+1))*dx
+          end do
+
+        end subroutine ini_x_map
+
+
+        subroutine ini_y_map(y_map)
+
+          implicit none
+
+          real(rkind), dimension(:), intent(inout) :: y_map
+
+          integer :: j
+          real(rkind) :: dy
+
+          dy = (y_max-y_min)/(ny-2*bc_size-1)
+          do j=1,ny
+             y_map(j) = y_min + (j-1)*dy
+          end do
+
+        end subroutine ini_y_map
 
 
         subroutine ini_nodes(nodes)
@@ -434,6 +567,8 @@ c$$$        end subroutine bf_layer_test_update_grdpts
      $     nodes,
      $     general_coord,
      $     sizes_filename,
+     $     x_map_filename,
+     $     y_map_filename,
      $     nodes_filename,
      $     grdid_filename)
 
@@ -443,6 +578,8 @@ c$$$        end subroutine bf_layer_test_update_grdpts
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
           integer(ikind), dimension(2)    , intent(in)    :: general_coord
           character(*)                    , intent(in)    :: sizes_filename
+          character(*)                    , intent(in)    :: x_map_filename
+          character(*)                    , intent(in)    :: y_map_filename
           character(*)                    , intent(in)    :: nodes_filename
           character(*)                    , intent(in)    :: grdid_filename
 
@@ -480,7 +617,11 @@ c$$$        end subroutine bf_layer_test_update_grdpts
 
           !print tables
           call bf_layer_tested%print_binary(
-     $         nodes_filename, grdid_filename, sizes_filename)
+     $         x_map_filename,
+     $         y_map_filename,
+     $         nodes_filename,
+     $         grdid_filename,
+     $         sizes_filename)
 
         end subroutine test_bf_layer_local_coord
 

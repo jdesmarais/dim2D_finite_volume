@@ -12,7 +12,8 @@
       !> \image latex bf_layer_reallocate_module.eps
       !
       !> @date
-      ! 27_06_2014 - documentation update - J.L. Desmarais
+      ! 27_06_2014 - documentation update   - J.L. Desmarais
+      ! 24_10_2014 - adding x_map and y_map - J.L. Desmarais
       !-----------------------------------------------------------------
       module bf_layer_reallocate_module
 
@@ -42,12 +43,18 @@
 
         
         subroutine reallocate_bf_layer_N(
+     $       bf_x_map, interior_x_map,
+     $       bf_y_map, interior_y_map,
      $       bf_nodes, interior_nodes,
      $       bf_grdpts_id,
      $       bf_alignment, final_alignment)
 
           implicit none
           
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_x_map
+          real(rkind)   , dimension(nx)                   , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_y_map
+          real(rkind)   , dimension(ny)                   , intent(in)    :: interior_y_map
           real(rkind)   , dimension(:,:,:)   , allocatable, intent(inout) :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne)             , intent(in)    :: interior_nodes
           integer       , dimension(:,:)     , allocatable, intent(inout) :: bf_grdpts_id
@@ -94,6 +101,8 @@
              new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
 
              call reallocate_nodes_N(
+     $            bf_x_map, interior_x_map,
+     $            bf_y_map, interior_y_map,
      $            bf_nodes, interior_nodes,
      $            i_min1, i_min3, i_min4,
      $            i_match, i_max, j_max,
@@ -118,12 +127,18 @@
 
 
         subroutine reallocate_bf_layer_S(
-     $       bf_nodes, interior_nodes,
-     $       bf_grdpts_id,
-     $       bf_alignment, final_alignment)
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
+     $     bf_nodes, interior_nodes,
+     $     bf_grdpts_id,
+     $     bf_alignment, final_alignment)
 
           implicit none
           
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_x_map
+          real(rkind)   , dimension(nx)                   , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_y_map
+          real(rkind)   , dimension(ny)                   , intent(in)    :: interior_y_map
           real(rkind)   , dimension(:,:,:)   , allocatable, intent(inout) :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne)             , intent(in)    :: interior_nodes
           integer       , dimension(:,:)     , allocatable, intent(inout) :: bf_grdpts_id
@@ -168,6 +183,8 @@
              new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
 
              call reallocate_nodes_S(
+     $            bf_x_map, interior_x_map,
+     $            bf_y_map, interior_y_map,
      $            bf_nodes, interior_nodes,
      $            i_min1, i_min3, i_min4,
      $            i_match, i_max,
@@ -192,12 +209,18 @@
 
 
         subroutine reallocate_bf_layer_E(
-     $       bf_nodes, interior_nodes,
-     $       bf_grdpts_id,
-     $       bf_alignment, final_alignment)
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
+     $     bf_nodes, interior_nodes,
+     $     bf_grdpts_id,
+     $     bf_alignment, final_alignment)
 
           implicit none
           
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_x_map
+          real(rkind)   , dimension(nx)                   , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_y_map
+          real(rkind)   , dimension(ny)                   , intent(in)    :: interior_y_map
           real(rkind)   , dimension(:,:,:)   , allocatable, intent(inout) :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne)             , intent(in)    :: interior_nodes
           integer       , dimension(:,:)     , allocatable, intent(inout) :: bf_grdpts_id
@@ -241,6 +264,8 @@
              new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
 
              call reallocate_nodes_E(
+     $            bf_x_map, interior_x_map,
+     $            bf_y_map, interior_y_map,
      $            bf_nodes, interior_nodes,
      $            j_min1, j_min3, j_min4,
      $            j_match, i_max, j_max,
@@ -266,12 +291,18 @@
 
         !> reallocate the western buffer layer
         subroutine reallocate_bf_layer_W(
-     $       bf_nodes, interior_nodes,
-     $       bf_grdpts_id,
-     $       bf_alignment, final_alignment)
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
+     $     bf_nodes, interior_nodes,
+     $     bf_grdpts_id,
+     $     bf_alignment, final_alignment)
 
           implicit none
           
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_x_map
+          real(rkind)   , dimension(nx)                   , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_y_map
+          real(rkind)   , dimension(ny)                   , intent(in)    :: interior_y_map
           real(rkind)   , dimension(:,:,:)   , allocatable, intent(inout) :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne)             , intent(in)    :: interior_nodes
           integer       , dimension(:,:)     , allocatable, intent(inout) :: bf_grdpts_id
@@ -316,6 +347,8 @@
              new_sizes = get_new_sizes(border_changes, size(bf_nodes,1), size(bf_nodes,2))
 
              call reallocate_nodes_W(
+     $            bf_x_map, interior_x_map,
+     $            bf_y_map, interior_y_map,
      $            bf_nodes, interior_nodes,
      $            j_min1, j_min3, j_min4,
      $            j_match, j_max,
@@ -341,6 +374,8 @@
 
         !< reallocate nodes for northern buffer layers
         subroutine reallocate_nodes_N(
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
      $     bf_nodes, interior_nodes,
      $     i_min1, i_min3, i_min4,
      $     i_match, i_max, j_max,
@@ -349,6 +384,10 @@
 
           implicit none
 
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_x_map
+          real(rkind)   , dimension(nx)                   , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_y_map
+          real(rkind)   , dimension(ny)                   , intent(in)    :: interior_y_map
           real(rkind)   , dimension(:,:,:)   , allocatable, intent(inout) :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne)             , intent(in)    :: interior_nodes
           integer(ikind)                                  , intent(in)    :: i_min1
@@ -362,12 +401,33 @@
           integer(ikind), dimension(2,2)                  , intent(in)    :: bf_alignment
           integer(ikind), dimension(2)                    , intent(in)    :: new_sizes
 
+          real(rkind), dimension(:)    , allocatable :: new_x_map
+          real(rkind), dimension(:)    , allocatable :: new_y_map
           real(rkind), dimension(:,:,:), allocatable :: new_nodes
           integer(ikind) :: i,j
           integer        :: k
 
+          allocate(new_x_map(new_sizes(1)))
+          allocate(new_y_map(new_sizes(2)))
           allocate(new_nodes(new_sizes(1),new_sizes(2),ne))
 
+
+          !x_map
+          call create_map_from_interior(
+     $         new_x_map, bf_x_map, interior_x_map,
+     $         i_min1, interior_i_max1,
+     $         i_min3, i_max, i_match,
+     $         i_min4, interior_i_max2,
+     $         bf_alignment(1,1))
+
+          
+          !y_map
+          call create_map_right(
+     $         new_y_map, bf_y_map, interior_y_map,
+     $         j_max)
+          
+
+          !nodes
           do k=1, ne
              do j=1, 2*bc_size
                 do i=1, interior_i_max1
@@ -396,6 +456,8 @@
              end do
           end do
 
+          call MOVE_ALLOC(new_x_map,bf_x_map)
+          call MOVE_ALLOC(new_y_map,bf_y_map)
           call MOVE_ALLOC(new_nodes,bf_nodes)
 
         end subroutine reallocate_nodes_N
@@ -416,6 +478,7 @@
 
           implicit none
 
+          
           integer       , dimension(:,:)     , allocatable, intent(inout) :: bf_grdpts_id
           integer(ikind)                                  , intent(in)    :: i_min1
           integer(ikind)                                  , intent(in)    :: i_min3
@@ -545,6 +608,8 @@
 
         !< reallocate nodes for southern buffer layers
         subroutine reallocate_nodes_S(
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
      $     bf_nodes, interior_nodes,
      $     i_min1, i_min3, i_min4,
      $     i_match, i_max,
@@ -553,6 +618,10 @@
 
           implicit none
 
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_x_map
+          real(rkind)   , dimension(nx)                   , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_y_map
+          real(rkind)   , dimension(ny)                   , intent(in)    :: interior_y_map
           real(rkind)   , dimension(:,:,:)   , allocatable, intent(inout) :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne)             , intent(in)    :: interior_nodes
           integer(ikind)                                  , intent(in)    :: i_min1
@@ -565,19 +634,38 @@
           integer(ikind), dimension(2,2)                  , intent(in)    :: bf_alignment
           integer(ikind), dimension(2)                    , intent(in)    :: new_sizes
 
+          real(rkind), dimension(:)    , allocatable :: new_x_map
+          real(rkind), dimension(:)    , allocatable :: new_y_map
           real(rkind), dimension(:,:,:), allocatable :: new_nodes
           integer(ikind) :: i,j,j_min,j_start
           integer        :: k
 
+          allocate(new_x_map(new_sizes(1)))
+          allocate(new_y_map(new_sizes(2)))
           allocate(new_nodes(new_sizes(1),new_sizes(2),ne))
-
+          
+          !match indices
           j_min = size(new_nodes,2)-size(bf_nodes,2)
           if(j_min.lt.0) then
              j_start = 0
           else
              j_start = j_min
           end if
-          
+
+          !x_map copy
+          call create_map_from_interior(
+     $         new_x_map, bf_x_map, interior_x_map,
+     $         i_min1, interior_i_max1,
+     $         i_min3, i_max, i_match,
+     $         i_min4, interior_i_max2,
+     $         bf_alignment(1,1))
+
+          !y_map copy
+          call create_map_left(
+     $         new_y_map, bf_y_map, interior_y_map,
+     $         j_start, j_min)
+
+          !nodes          
           do k=1, ne
 
              do j=j_start+1, size(new_nodes,2)-(2*bc_size)
@@ -608,6 +696,8 @@
              
           end do
 
+          call MOVE_ALLOC(new_x_map,bf_x_map)
+          call MOVE_ALLOC(new_y_map,bf_y_map)
           call MOVE_ALLOC(new_nodes,bf_nodes)
 
         end subroutine reallocate_nodes_S
@@ -769,6 +859,8 @@
 
         !< reallocate nodes for eastern buffer layers
         subroutine reallocate_nodes_E(
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
      $     bf_nodes, interior_nodes,
      $     j_min1, j_min3, j_min4,
      $     j_match, i_max, j_max,
@@ -777,6 +869,10 @@
 
           implicit none
 
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_x_map
+          real(rkind)   , dimension(nx)                   , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_y_map
+          real(rkind)   , dimension(ny)                   , intent(in)    :: interior_y_map
           real(rkind)   , dimension(:,:,:)   , allocatable, intent(inout) :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne)             , intent(in)    :: interior_nodes
           integer(ikind)                                  , intent(in)    :: j_min1
@@ -790,12 +886,34 @@
           integer(ikind), dimension(2,2)                  , intent(in)    :: bf_alignment
           integer(ikind), dimension(2)                    , intent(in)    :: new_sizes
 
+          real(rkind), dimension(:)    , allocatable :: new_x_map
+          real(rkind), dimension(:)    , allocatable :: new_y_map
           real(rkind), dimension(:,:,:), allocatable :: new_nodes
           integer(ikind) :: i,j
           integer        :: k
 
+          
+          allocate(new_x_map(new_sizes(1)))
+          allocate(new_y_map(new_sizes(2)))
           allocate(new_nodes(new_sizes(1),new_sizes(2),ne))
 
+
+          !x_map
+          call create_map_right(
+     $         new_x_map, bf_x_map, interior_x_map,
+     $         i_max)
+
+
+          !y_map
+          call create_map_from_interior(
+     $         new_y_map, bf_y_map, interior_y_map,
+     $         j_min1, interior_j_max1,
+     $         j_min3, j_max, j_match,
+     $         j_min4, interior_j_max2,
+     $         bf_alignment(2,1))
+
+
+          !nodes
           do k=1, ne
              do j=1, interior_j_max1
                 do i=1, 2*bc_size
@@ -822,6 +940,8 @@
              end do
           end do
 
+          call MOVE_ALLOC(new_x_map,bf_x_map)
+          call MOVE_ALLOC(new_y_map,bf_y_map)
           call MOVE_ALLOC(new_nodes,bf_nodes)
 
         end subroutine reallocate_nodes_E
@@ -994,6 +1114,8 @@
 
         !< reallocate nodes for western buffer layers
         subroutine reallocate_nodes_W(
+     $     bf_x_map, interior_x_map,
+     $     bf_y_map, interior_y_map,
      $     bf_nodes, interior_nodes,
      $     j_min1, j_min3, j_min4,
      $     j_match, j_max,
@@ -1002,6 +1124,10 @@
 
           implicit none
 
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_x_map
+          real(rkind)   , dimension(nx)                   , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: bf_y_map
+          real(rkind)   , dimension(ny)                   , intent(in)    :: interior_y_map
           real(rkind)   , dimension(:,:,:)   , allocatable, intent(inout) :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne)             , intent(in)    :: interior_nodes
           integer(ikind)                                  , intent(in)    :: j_min1
@@ -1014,12 +1140,17 @@
           integer(ikind), dimension(2,2)                  , intent(in)    :: bf_alignment
           integer(ikind), dimension(2)                    , intent(in)    :: new_sizes
 
+          real(rkind), dimension(:)    , allocatable :: new_x_map
+          real(rkind), dimension(:)    , allocatable :: new_y_map
           real(rkind), dimension(:,:,:), allocatable :: new_nodes
           integer(ikind) :: i,j,i_min,i_start
           integer        :: k
 
+          allocate(new_x_map(new_sizes(1)))
+          allocate(new_y_map(new_sizes(2)))
           allocate(new_nodes(new_sizes(1),new_sizes(2),ne))
 
+          !match indices
           i_min = size(new_nodes,1)-size(bf_nodes,1)
           if(i_min.lt.0) then
              i_start = 0
@@ -1027,6 +1158,20 @@
              i_start = i_min
           end if
 
+          !x_map
+          call create_map_left(
+     $         new_x_map, bf_x_map, interior_x_map,
+     $         i_start, i_min)
+
+          !y_map
+          call create_map_from_interior(
+     $         new_y_map, bf_y_map, interior_y_map,
+     $         j_min1, interior_j_max1,
+     $         j_min3, j_max, j_match,
+     $         j_min4, interior_j_max2,
+     $         bf_alignment(2,1))
+
+          !nodes
           do k=1, ne
              do j=1, interior_j_max1
                 do i=size(new_nodes,1)-(2*bc_size)+1, size(new_nodes,1)
@@ -1053,6 +1198,8 @@
              end do
           end do
 
+          call MOVE_ALLOC(new_x_map,bf_x_map)
+          call MOVE_ALLOC(new_y_map,bf_y_map)
           call MOVE_ALLOC(new_nodes,bf_nodes)
 
         end subroutine reallocate_nodes_W
@@ -1513,5 +1660,119 @@
 
 
         end function is_reallocation_needed
+
+
+        subroutine create_map_from_interior(
+     $     new_x_map, bf_x_map, interior_x_map,
+     $     i_min1, interior_i_max1,
+     $     i_min3, i_max, i_match,
+     $     i_min4, interior_i_max2,
+     $     bf_alignment_i_min)
+        
+          implicit none
+
+          real(rkind)   , dimension(:), intent(out) :: new_x_map
+          real(rkind)   , dimension(:), intent(in)  :: bf_x_map
+          real(rkind)   , dimension(:), intent(in)  :: interior_x_map
+          integer(ikind)              , intent(in)  :: i_min1
+          integer(ikind)              , intent(in)  :: interior_i_max1
+          integer(ikind)              , intent(in)  :: i_min3
+          integer(ikind)              , intent(in)  :: i_max
+          integer(ikind)              , intent(in)  :: i_match
+          integer(ikind)              , intent(in)  :: i_min4
+          integer(ikind)              , intent(in)  :: interior_i_max2
+          integer(ikind)              , intent(in)  :: bf_alignment_i_min
+
+          
+          integer(ikind) :: i
+          real(rkind)    :: dx
+
+
+          !left outside domain
+          dx = interior_x_map(2)-interior_x_map(1)
+          do i=1, i_min1
+             new_x_map(i) = interior_x_map(
+     $            bf_alignment_i_min-(bc_size+1)+i_min1+1)
+     $            - (i_min1-i+1)*dx
+          end do
+
+          !copy of the previous y_map
+          do i=1, interior_i_max1
+             new_x_map(i_min1+i) = interior_x_map(
+     $            bf_alignment_i_min-(bc_size+1)+i_min1+i)
+          end do
+          
+          do i=1, i_max
+             new_x_map(i_min3+i) = bf_x_map(i_match+i)
+          end do
+          
+          do i=1, interior_i_max2
+             new_x_map(i_min4+i) = interior_x_map(
+     $            bf_alignment_i_min-(bc_size+1)+i_min4+i)
+          end do
+
+          !right outside domain
+          dx = interior_x_map(size(interior_x_map,1))-
+     $         interior_x_map(size(interior_x_map,1)-1)
+          do i=interior_i_max2+1, size(new_x_map,1)
+             new_x_map(i_min4+i) = new_x_map(i_min4+interior_i_max2) +
+     $            (i-interior_i_max2)*dx
+          end do
+
+        end subroutine create_map_from_interior
+
+
+        subroutine create_map_right(
+     $     new_y_map, bf_y_map, interior_y_map,
+     $     j_max)
+
+          implicit none
+
+          real(rkind), dimension(:) , intent(out) :: new_y_map
+          real(rkind), dimension(:) , intent(in)  :: bf_y_map
+          real(rkind), dimension(ny), intent(in)  :: interior_y_map
+          integer(ikind)            , intent(in)  :: j_max
+
+          integer(ikind) :: j
+          real(rkind)    :: dy
+
+          do j=1, j_max
+             new_y_map(j) = bf_y_map(j)
+          end do
+
+          dy = interior_y_map(size(interior_y_map,1)) -
+     $         interior_y_map(size(interior_y_map,1)-1)
+          do j=j_max+1, size(new_y_map,1)
+             new_y_map(j) = new_y_map(j_max) + (j-j_max)*dy
+          end do
+
+        end subroutine create_map_right
+
+      
+        subroutine create_map_left(
+     $     new_y_map, bf_y_map, interior_y_map,
+     $     j_start, j_min)
+
+          implicit none
+
+          real(rkind), dimension(:), intent(out) :: new_y_map
+          real(rkind), dimension(:), intent(in)  :: bf_y_map
+          real(rkind), dimension(:), intent(in)  :: interior_y_map
+          integer(ikind)           , intent(in)  :: j_start
+          integer(ikind)           , intent(in)  :: j_min
+
+          real(rkind)    :: dy
+          integer(ikind) :: j
+
+          dy = interior_y_map(2) - interior_y_map(1)
+          do j=1, j_start
+             new_y_map(j) = bf_y_map(j_start+1-j_min) - (j_start+1-j)*dy
+          end do
+
+          do j=j_start+1, size(new_y_map,1)
+             new_y_map(j) = bf_y_map(j-j_min)
+          end do
+
+        end subroutine create_map_left
 
       end module bf_layer_reallocate_module

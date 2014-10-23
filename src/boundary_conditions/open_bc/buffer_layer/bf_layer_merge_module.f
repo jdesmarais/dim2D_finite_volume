@@ -41,12 +41,20 @@
 
         !< merge northern buffer layers
         subroutine merge_bf_layers_N(
+     $       x_map1, x_map2, interior_x_map,
+     $       y_map1, y_map2, interior_y_map,
      $       nodes1, nodes2, interior_nodes,
      $       grdpts_id1, grdpts_id2,
      $       alignment1, alignment2, final_alignment_i)
 
           implicit none
 
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: x_map1
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: x_map2
+          real(rkind)   , dimension(nx)                   , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: y_map1
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: y_map2
+          real(rkind)   , dimension(ny)                   , intent(in)    :: interior_y_map
           real(rkind)   , dimension(:,:,:)   , allocatable, intent(inout) :: nodes1
           real(rkind)   , dimension(:,:,:)   , allocatable, intent(inout) :: nodes2
           real(rkind)   , dimension(nx,ny,ne)             , intent(in)    :: interior_nodes
@@ -59,6 +67,8 @@
 
           integer(ikind), dimension(2,2)                :: final_alignment
           integer(ikind), dimension(2,2)                :: bf_alignment
+          real(rkind)   , dimension(:)    , allocatable :: new_x_map
+          real(rkind)   , dimension(:)    , allocatable :: new_y_map
           real(rkind)   , dimension(:,:,:), allocatable :: new_nodes
           integer       , dimension(:,:)  , allocatable :: new_grdpts_id
           integer(ikind), dimension(2)                  :: new_size
@@ -155,14 +165,26 @@
 
 
           !allocate the nodes and copy the tables
+          allocate(new_x_map(new_size(1)))
+          allocate(new_y_map(new_size(2)))
           allocate(new_nodes(new_size(1), new_size(2), ne))
+
           call merge_nodes_N(
+     $         new_x_map, x_map1, x_map2, interior_x_map,
+     $         new_y_map, y_map1, y_map2, interior_y_map,
      $         new_nodes, nodes1, nodes2, interior_nodes,
      $         alignment1, alignment2, bf_alignment,
-     $         i_min1, i_min3, i_min4, i_min5, i_min6,
+     $         i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
      $         interior_i_max1, interior_i_max2, interior_i_max3,
+     $         outside_i_max1,  outside_i_max2,
      $         j_min1, j_min2)
+          
+          deallocate(x_map2)
+          deallocate(y_map2)
           deallocate(nodes2)
+
+          call MOVE_ALLOC(new_x_map,x_map1)
+          call MOVE_ALLOC(new_y_map,y_map1)
           call MOVE_ALLOC(new_nodes,nodes1)
 
 
@@ -192,12 +214,20 @@
 
         !< merge southern buffer layers
         subroutine merge_bf_layers_S(
-     $       nodes1, nodes2, interior_nodes,
-     $       grdpts_id1, grdpts_id2,
-     $       alignment1, alignment2, final_alignment_i)
+     $     x_map1, x_map2, interior_x_map,
+     $     y_map1, y_map2, interior_y_map,
+     $     nodes1, nodes2, interior_nodes,
+     $     grdpts_id1, grdpts_id2,
+     $     alignment1, alignment2, final_alignment_i)
 
           implicit none
 
+          real(rkind)   , dimension(:)    , allocatable, intent(inout) :: x_map1
+          real(rkind)   , dimension(:)    , allocatable, intent(inout) :: x_map2
+          real(rkind)   , dimension(nx)                , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(:)    , allocatable, intent(inout) :: y_map1
+          real(rkind)   , dimension(:)    , allocatable, intent(inout) :: y_map2
+          real(rkind)   , dimension(ny)                , intent(in)    :: interior_y_map
           real(rkind)   , dimension(:,:,:), allocatable, intent(inout) :: nodes1
           real(rkind)   , dimension(:,:,:), allocatable, intent(inout) :: nodes2
           real(rkind)   , dimension(nx,ny,ne)             , intent(in) :: interior_nodes
@@ -209,6 +239,8 @@
 
           integer(ikind), dimension(2,2)                :: final_alignment
           integer(ikind), dimension(2,2)                :: bf_alignment
+          real(rkind)   , dimension(:)    , allocatable :: new_x_map
+          real(rkind)   , dimension(:)    , allocatable :: new_y_map
           real(rkind)   , dimension(:,:,:), allocatable :: new_nodes
           integer       , dimension(:,:)  , allocatable :: new_grdpts_id
           integer(ikind), dimension(2)                  :: new_size
@@ -301,13 +333,25 @@
 
 
           !allocate the nodes and copy the tables
+          allocate(new_x_map(new_size(1)))
+          allocate(new_y_map(new_size(2)))
           allocate(new_nodes(new_size(1), new_size(2), ne))
+
           call merge_nodes_S(
+     $         new_x_map, x_map1, x_map2, interior_x_map,
+     $         new_y_map, y_map1, y_map2, interior_y_map,
      $         new_nodes, nodes1, nodes2, interior_nodes,
      $         alignment1, alignment2, bf_alignment,
-     $         i_min1, i_min3, i_min4, i_min5, i_min6,
-     $         interior_i_max1, interior_i_max2, interior_i_max3)
+     $         i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
+     $         interior_i_max1, interior_i_max2, interior_i_max3,
+     $         outside_i_max1, outside_i_max2)
+
+          deallocate(x_map2)
+          deallocate(y_map2)
           deallocate(nodes2)
+
+          call MOVE_ALLOC(new_x_map,x_map1)
+          call MOVE_ALLOC(new_y_map,y_map1)
           call MOVE_ALLOC(new_nodes,nodes1)
 
 
@@ -336,12 +380,20 @@
 
         !< merge eastern buffer layers
         subroutine merge_bf_layers_E(
-     $       nodes1, nodes2, interior_nodes,
-     $       grdpts_id1, grdpts_id2,
-     $       alignment1, alignment2, final_alignment_i)
+     $     x_map1, x_map2, interior_x_map,
+     $     y_map1, y_map2, interior_y_map,
+     $     nodes1, nodes2, interior_nodes,
+     $     grdpts_id1, grdpts_id2,
+     $     alignment1, alignment2, final_alignment_i)
 
           implicit none
 
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: x_map1
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: x_map2
+          real(rkind)   , dimension(nx)                   , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: y_map1
+          real(rkind)   , dimension(:)       , allocatable, intent(inout) :: y_map2
+          real(rkind)   , dimension(ny)                   , intent(in)    :: interior_y_map
           real(rkind)   , dimension(:,:,:)   , allocatable, intent(inout) :: nodes1
           real(rkind)   , dimension(:,:,:)   , allocatable, intent(inout) :: nodes2
           real(rkind)   , dimension(nx,ny,ne)             , intent(in)    :: interior_nodes
@@ -354,6 +406,8 @@
 
           integer(ikind), dimension(2,2)                :: final_alignment
           integer(ikind), dimension(2,2)                :: bf_alignment
+          real(rkind)   , dimension(:)    , allocatable :: new_x_map
+          real(rkind)   , dimension(:)    , allocatable :: new_y_map
           real(rkind)   , dimension(:,:,:), allocatable :: new_nodes
           integer       , dimension(:,:)  , allocatable :: new_grdpts_id
           integer(ikind), dimension(2)                  :: new_size
@@ -446,13 +500,25 @@
 
 
           !allocate the nodes and copy the tables
+          allocate(new_x_map(new_size(1)))
+          allocate(new_y_map(new_size(2)))
           allocate(new_nodes(new_size(1), new_size(2), ne))
+
           call merge_nodes_E(
+     $         new_x_map, x_map1, x_map2, interior_x_map,
+     $         new_y_map, y_map1, y_map2, interior_y_map,
      $         new_nodes, nodes1, nodes2, interior_nodes,
      $         alignment1, alignment2, bf_alignment,
-     $         j_min1, j_min3, j_min4, j_min5, j_min6,
-     $         interior_j_max1, interior_j_max2, interior_j_max3)
+     $         j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
+     $         interior_j_max1, interior_j_max2, interior_j_max3,
+     $         outside_j_max1, outside_j_max2)
+          
+          deallocate(x_map2)
+          deallocate(y_map2)
           deallocate(nodes2)
+          
+          call MOVE_ALLOC(new_x_map,x_map1)
+          call MOVE_ALLOC(new_y_map,y_map1)
           call MOVE_ALLOC(new_nodes,nodes1)
 
 
@@ -480,12 +546,20 @@
 
         !< merge western buffer layers
         subroutine merge_bf_layers_W(
-     $       nodes1, nodes2, interior_nodes,
-     $       grdpts_id1, grdpts_id2,
-     $       alignment1, alignment2, final_alignment_i)
+     $     x_map1, x_map2, interior_x_map,
+     $     y_map1, y_map2, interior_y_map,
+     $     nodes1, nodes2, interior_nodes,
+     $     grdpts_id1, grdpts_id2,
+     $     alignment1, alignment2, final_alignment_i)
 
           implicit none
 
+          real(rkind)   , dimension(:)    , allocatable, intent(inout) :: x_map1
+          real(rkind)   , dimension(:)    , allocatable, intent(inout) :: x_map2
+          real(rkind)   , dimension(nx)                , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(:)    , allocatable, intent(inout) :: y_map1
+          real(rkind)   , dimension(:)    , allocatable, intent(inout) :: y_map2
+          real(rkind)   , dimension(ny)                , intent(in)    :: interior_y_map
           real(rkind)   , dimension(:,:,:), allocatable, intent(inout) :: nodes1
           real(rkind)   , dimension(:,:,:), allocatable, intent(inout) :: nodes2
           real(rkind)   , dimension(nx,ny,ne)          , intent(in)    :: interior_nodes
@@ -498,6 +572,8 @@
 
           integer(ikind), dimension(2,2)                :: final_alignment
           integer(ikind), dimension(2,2)                :: bf_alignment
+          real(rkind)   , dimension(:)    , allocatable :: new_x_map
+          real(rkind)   , dimension(:)    , allocatable :: new_y_map
           real(rkind)   , dimension(:,:,:), allocatable :: new_nodes
           integer       , dimension(:,:)  , allocatable :: new_grdpts_id
           integer(ikind), dimension(2)                  :: new_size
@@ -594,13 +670,25 @@
 
 
           !allocate the nodes and copy the tables
+          allocate(new_x_map(new_size(1)))
+          allocate(new_y_map(new_size(2)))
           allocate(new_nodes(new_size(1), new_size(2), ne))
+
           call merge_nodes_W(
+     $         new_x_map, x_map1, x_map2, interior_x_map,
+     $         new_y_map, y_map1, y_map2, interior_y_map,
      $         new_nodes, nodes1, nodes2, interior_nodes,
      $         alignment1, alignment2, bf_alignment,
-     $         j_min1, j_min3, j_min4, j_min5, j_min6,
-     $         interior_j_max1, interior_j_max2, interior_j_max3)
+     $         j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
+     $         interior_j_max1, interior_j_max2, interior_j_max3,
+     $         outside_j_max1, outside_j_max2)
+
+          deallocate(x_map2)
+          deallocate(y_map2)
           deallocate(nodes2)
+
+          call MOVE_ALLOC(new_x_map,x_map1)
+          call MOVE_ALLOC(new_y_map,y_map1)
           call MOVE_ALLOC(new_nodes,nodes1)
 
 
@@ -898,15 +986,28 @@
         
         !> merge the nodes for northern buffer layers
         subroutine merge_nodes_N(
+     $     new_x_map,
+     $     x_map1, x_map2, interior_x_map,
+     $     new_y_map,
+     $     y_map1, y_map2, interior_y_map,
      $     new_nodes,
      $     nodes1, nodes2, interior_nodes,
      $     alignment1, alignment2, bf_alignment,
-     $     i_min1, i_min3, i_min4, i_min5, i_min6,
+     $     i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
      $     interior_i_max1, interior_i_max2, interior_i_max3,
+     $     outside_i_max1,  outside_i_max2,
      $     j_min1, j_min2)
 
           implicit none
 
+          real(rkind), dimension(:)       , intent(out):: new_x_map
+          real(rkind), dimension(:)       , intent(in) :: x_map1
+          real(rkind), dimension(:)       , intent(in) :: x_map2
+          real(rkind), dimension(nx)      , intent(in) :: interior_x_map
+          real(rkind), dimension(:)       , intent(out):: new_y_map
+          real(rkind), dimension(:)       , intent(in) :: y_map1
+          real(rkind), dimension(:)       , intent(in) :: y_map2
+          real(rkind), dimension(ny)      , intent(in) :: interior_y_map
           real(rkind), dimension(:,:,:)   , intent(out):: new_nodes
           real(rkind), dimension(:,:,:)   , intent(in) :: nodes1
           real(rkind), dimension(:,:,:)   , intent(in) :: nodes2
@@ -919,9 +1020,12 @@
           integer(ikind)                  , intent(in) :: i_min4
           integer(ikind)                  , intent(in) :: i_min5
           integer(ikind)                  , intent(in) :: i_min6
+          integer(ikind)                  , intent(in) :: i_min8
           integer(ikind)                  , intent(in) :: interior_i_max1
           integer(ikind)                  , intent(in) :: interior_i_max2
           integer(ikind)                  , intent(in) :: interior_i_max3
+          integer(ikind)                  , intent(in) :: outside_i_max1
+          integer(ikind)                  , intent(in) :: outside_i_max2
           integer(ikind)                  , intent(in) :: j_min1
           integer(ikind)                  , intent(in) :: j_min2
 
@@ -934,6 +1038,18 @@
 
           !nodes1 - nodes2
           if(alignment1(1,1).lt.alignment2(1,1)) then
+
+             !x_map
+             call create_map_from_interior(
+     $            new_x_map, x_map1, x_map2, interior_x_map,
+     $            i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
+     $            interior_i_max1, interior_i_max2, interior_i_max3,
+     $            outside_i_max1, outside_i_max2,
+     $            bf_alignment(1,1))
+
+             !y_map
+             call create_map_right(
+     $            new_y_map, y_map1, interior_y_map)
 
              if(alignment1(2,2).gt.alignment2(2,2)) then
 
@@ -994,6 +1110,19 @@
 
           !nodes2 - nodes1
           else
+
+             !x_map
+             call create_map_from_interior(
+     $            new_x_map, x_map2, x_map1, interior_x_map,
+     $            i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
+     $            interior_i_max1, interior_i_max2, interior_i_max3,
+     $            outside_i_max1, outside_i_max2,
+     $            bf_alignment(1,1))
+
+             !y_map
+             call create_map_right(
+     $            new_y_map, y_map2, interior_y_map)
+
              if(alignment1(2,2).gt.alignment2(2,2)) then
                 do k=1, ne
 
@@ -1052,17 +1181,29 @@
         end subroutine merge_nodes_N
 
 
-
         !> merge the nodes for southern buffer layers
         subroutine merge_nodes_S(
+     $     new_x_map,
+     $     x_map1, x_map2, interior_x_map,
+     $     new_y_map,
+     $     y_map1, y_map2, interior_y_map,
      $     new_nodes,
      $     nodes1, nodes2, interior_nodes,
      $     alignment1, alignment2, bf_alignment,
-     $     i_min1, i_min3, i_min4, i_min5, i_min6,
-     $     interior_i_max1, interior_i_max2, interior_i_max3)
+     $     i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
+     $     interior_i_max1, interior_i_max2, interior_i_max3,
+     $     outside_i_max1,  outside_i_max2)
 
           implicit none
 
+          real(rkind), dimension(:)       , intent(out):: new_x_map
+          real(rkind), dimension(:)       , intent(in) :: x_map1
+          real(rkind), dimension(:)       , intent(in) :: x_map2
+          real(rkind), dimension(nx)      , intent(in) :: interior_x_map
+          real(rkind), dimension(:)       , intent(out):: new_y_map
+          real(rkind), dimension(:)       , intent(in) :: y_map1
+          real(rkind), dimension(:)       , intent(in) :: y_map2
+          real(rkind), dimension(ny)      , intent(in) :: interior_y_map
           real(rkind), dimension(:,:,:)   , intent(out):: new_nodes
           real(rkind), dimension(:,:,:)   , intent(in) :: nodes1
           real(rkind), dimension(:,:,:)   , intent(in) :: nodes2
@@ -1075,9 +1216,12 @@
           integer(ikind)                  , intent(in) :: i_min4
           integer(ikind)                  , intent(in) :: i_min5
           integer(ikind)                  , intent(in) :: i_min6
+          integer(ikind)                  , intent(in) :: i_min8
           integer(ikind)                  , intent(in) :: interior_i_max1
           integer(ikind)                  , intent(in) :: interior_i_max2
           integer(ikind)                  , intent(in) :: interior_i_max3
+          integer(ikind)                  , intent(in) :: outside_i_max1
+          integer(ikind)                  , intent(in) :: outside_i_max2
 
           integer        :: k
           integer(ikind) :: j_match1, j_match2, j_matchI
@@ -1088,6 +1232,18 @@
           
           !nodes1 - nodes2
           if(alignment1(1,1).lt.alignment2(1,1)) then
+
+             !x_map
+             call create_map_from_interior(
+     $            new_x_map, x_map1, x_map2, interior_x_map,
+     $            i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
+     $            interior_i_max1, interior_i_max2, interior_i_max3,
+     $            outside_i_max1, outside_i_max2,
+     $            bf_alignment(1,1))
+
+             !y_map
+                call create_map_left(
+     $               new_y_map, y_map1, interior_y_map)
 
              if(alignment1(2,1).lt.alignment2(2,1)) then
 
@@ -1124,7 +1280,19 @@
 
                 end do
 
-             else                
+             else
+
+                !x_map
+                call create_map_from_interior(
+     $               new_x_map, x_map2, x_map1, interior_x_map,
+     $               i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
+     $               interior_i_max1, interior_i_max2, interior_i_max3,
+     $               outside_i_max1, outside_i_max2,
+     $               bf_alignment(1,1))
+
+                !y_map
+                call create_map_left(
+     $               new_y_map, y_map2, interior_y_map)
 
                 do k=1, ne
                    call add_nodes_blocks_20_to_22_NS(
@@ -1236,14 +1404,27 @@
 
         !> merge the nodes for southern buffer layers
         subroutine merge_nodes_E(
+     $     new_x_map,
+     $     x_map1, x_map2, interior_x_map,
+     $     new_y_map,
+     $     y_map1, y_map2, interior_y_map,
      $     new_nodes,
      $     nodes1, nodes2, interior_nodes,
      $     alignment1, alignment2, bf_alignment,
-     $     j_min1, j_min3, j_min4, j_min5, j_min6,
-     $     interior_j_max1, interior_j_max2, interior_j_max3)
+     $     j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
+     $     interior_j_max1, interior_j_max2, interior_j_max3,
+     $     outside_j_max1, outside_j_max2)
 
           implicit none
 
+          real(rkind), dimension(:)       , intent(out):: new_x_map
+          real(rkind), dimension(:)       , intent(in) :: x_map1
+          real(rkind), dimension(:)       , intent(in) :: x_map2
+          real(rkind), dimension(nx)      , intent(in) :: interior_x_map
+          real(rkind), dimension(:)       , intent(out):: new_y_map
+          real(rkind), dimension(:)       , intent(in) :: y_map1
+          real(rkind), dimension(:)       , intent(in) :: y_map2
+          real(rkind), dimension(ny)      , intent(in) :: interior_y_map
           real(rkind), dimension(:,:,:)   , intent(out):: new_nodes
           real(rkind), dimension(:,:,:)   , intent(in) :: nodes1
           real(rkind), dimension(:,:,:)   , intent(in) :: nodes2
@@ -1256,9 +1437,12 @@
           integer(ikind)                  , intent(in) :: j_min4
           integer(ikind)                  , intent(in) :: j_min5
           integer(ikind)                  , intent(in) :: j_min6
+          integer(ikind)                  , intent(in) :: j_min8
           integer(ikind)                  , intent(in) :: interior_j_max1
           integer(ikind)                  , intent(in) :: interior_j_max2
           integer(ikind)                  , intent(in) :: interior_j_max3
+          integer(ikind)                  , intent(in) :: outside_j_max1
+          integer(ikind)                  , intent(in) :: outside_j_max2
 
           integer        :: k
           integer(ikind) :: i_matchN, i_matchI
@@ -1268,7 +1452,20 @@
           
           !nodes1 - nodes2
           if(alignment1(2,1).lt.alignment2(2,1)) then
+
+             !x_map
+             call create_map_right(
+     $            new_x_map, x_map1, interior_x_map)
              
+             !y_map
+             call create_map_from_interior(
+     $            new_y_map, y_map1, y_map2, interior_y_map,
+     $            j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
+     $            interior_j_max1, interior_j_max2, interior_j_max3,
+     $            outside_j_max1, outside_j_max2,
+     $            bf_alignment(2,1))
+
+
              do k=1, ne
                 call add_nodes_interior_blocks_EW(
      $               new_nodes, interior_nodes,
@@ -1302,6 +1499,18 @@
                 
           !nodes2 - nodes1
           else
+
+             !x_map
+             call create_map_right(
+     $            new_x_map, x_map2, interior_x_map)
+             
+             !y_map
+             call create_map_from_interior(
+     $            new_y_map, y_map2, y_map1, interior_y_map,
+     $            j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
+     $            interior_j_max1, interior_j_max2, interior_j_max3,
+     $            outside_j_max1, outside_j_max2,
+     $            bf_alignment(2,1))
              
              do k=1, ne
 
@@ -1342,14 +1551,27 @@
 
         !> merge the nodes for western buffer layers
         subroutine merge_nodes_W(
+     $     new_x_map,
+     $     x_map1, x_map2, interior_x_map,
+     $     new_y_map,
+     $     y_map1, y_map2, interior_y_map,
      $     new_nodes,
      $     nodes1, nodes2, interior_nodes,
      $     alignment1, alignment2, bf_alignment,
-     $     j_min1, j_min3, j_min4, j_min5, j_min6,
-     $     interior_j_max1, interior_j_max2, interior_j_max3)
+     $     j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
+     $     interior_j_max1, interior_j_max2, interior_j_max3,
+     $     outside_j_max1, outside_j_max2)
 
           implicit none
 
+          real(rkind), dimension(:)       , intent(out):: new_x_map
+          real(rkind), dimension(:)       , intent(in) :: x_map1
+          real(rkind), dimension(:)       , intent(in) :: x_map2
+          real(rkind), dimension(nx)      , intent(in) :: interior_x_map
+          real(rkind), dimension(:)       , intent(out):: new_y_map
+          real(rkind), dimension(:)       , intent(in) :: y_map1
+          real(rkind), dimension(:)       , intent(in) :: y_map2
+          real(rkind), dimension(ny)      , intent(in) :: interior_y_map
           real(rkind), dimension(:,:,:)   , intent(out):: new_nodes
           real(rkind), dimension(:,:,:)   , intent(in) :: nodes1
           real(rkind), dimension(:,:,:)   , intent(in) :: nodes2
@@ -1362,9 +1584,12 @@
           integer(ikind)                  , intent(in) :: j_min4
           integer(ikind)                  , intent(in) :: j_min5
           integer(ikind)                  , intent(in) :: j_min6
+          integer(ikind)                  , intent(in) :: j_min8
           integer(ikind)                  , intent(in) :: interior_j_max1
           integer(ikind)                  , intent(in) :: interior_j_max2
           integer(ikind)                  , intent(in) :: interior_j_max3
+          integer(ikind)                  , intent(in) :: outside_j_max1
+          integer(ikind)                  , intent(in) :: outside_j_max2
 
           integer        :: k
           integer(ikind) :: i_match1, i_match2, i_matchN, i_matchI
@@ -1376,6 +1601,18 @@
           
           !nodes1 - nodes2
           if(alignment1(2,1).lt.alignment2(2,1)) then
+
+             !x_map
+             call create_map_left(
+     $            new_x_map, x_map1, interior_x_map)
+             
+             !y_map
+             call create_map_from_interior(
+     $            new_y_map, y_map1, y_map2, interior_y_map,
+     $            j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
+     $            interior_j_max1, interior_j_max2, interior_j_max3,
+     $            outside_j_max1, outside_j_max2,
+     $            bf_alignment(2,1))
              
              do k=1, ne
                 call add_nodes_interior_blocks_EW(
@@ -1410,6 +1647,18 @@
                 
           !nodes2 - nodes1
           else
+
+             !x_map
+             call create_map_left(
+     $            new_x_map, x_map2, interior_x_map)
+             
+             !y_map
+             call create_map_from_interior(
+     $            new_y_map, y_map2, y_map1, interior_y_map,
+     $            j_min1, j_min3, j_min4, j_min5, j_min6, j_min8,
+     $            interior_j_max1, interior_j_max2, interior_j_max3,
+     $            outside_j_max1, outside_j_max2,
+     $            bf_alignment(2,1))
              
              do k=1, ne
 
@@ -3184,5 +3433,121 @@
          end do         
 
        end subroutine add_grdpts_id_edge_N_blocks_W
+
+
+       subroutine create_map_from_interior(
+     $     new_x_map, x_map1, x_map2, interior_x_map,
+     $     i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
+     $     interior_i_max1, interior_i_max2, interior_i_max3,
+     $     outside_i_max1, outside_i_max2,
+     $     bf_alignment_i_min)
+
+         implicit none
+
+         real(rkind), dimension(:), intent(out) :: new_x_map
+         real(rkind), dimension(:), intent(in)  :: x_map1
+         real(rkind), dimension(:), intent(in)  :: x_map2
+         real(rkind), dimension(:), intent(in)  :: interior_x_map
+         integer(ikind)           , intent(in)  :: i_min1
+         integer(ikind)           , intent(in)  :: i_min3
+         integer(ikind)           , intent(in)  :: i_min4
+         integer(ikind)           , intent(in)  :: i_min5
+         integer(ikind)           , intent(in)  :: i_min6
+         integer(ikind)           , intent(in)  :: i_min8
+         integer(ikind)           , intent(in)  :: interior_i_max1
+         integer(ikind)           , intent(in)  :: interior_i_max2
+         integer(ikind)           , intent(in)  :: interior_i_max3
+         integer(ikind)           , intent(in)  :: outside_i_max1
+         integer(ikind)           , intent(in)  :: outside_i_max2
+         integer(ikind)           , intent(in)  :: bf_alignment_i_min
+
+         integer(ikind) :: i
+         real(rkind)    :: dx
+         
+         dx = interior_x_map(2) - interior_x_map(1)
+         do i=1, outside_i_max1
+            new_x_map(i) = interior_x_map(
+     $           bf_alignment_i_min-(bc_size+1)+i_min1+1) -
+     $           (outside_i_max1+1-i)*dx
+         end do
+
+         do i=1, interior_i_max1
+            new_x_map(i_min1+i) = interior_x_map(
+     $           bf_alignment_i_min-(bc_size+1)+i_min1+i)
+         end do
+
+         do i=1, size(x_map1,1)
+            new_x_map(i_min3+i) = x_map1(i)
+         end do
+         
+         do i=1, interior_i_max2
+            new_x_map(i_min4+i) = interior_x_map(
+     $           bf_alignment_i_min-(bc_size+1)+i_min4+i)
+         end do
+
+         do i=1, size(x_map2,1)
+            new_x_map(i_min5+i) = x_map2(i)
+         end do
+
+         do i=1, interior_i_max3
+            new_x_map(i_min6+i) = interior_x_map(
+     $           bf_alignment_i_min-(bc_size+1)+i_min6+i)
+         end do
+
+         dx = interior_x_map(size(interior_x_map,1)) -
+     $        interior_x_map(size(interior_x_map,1)-1)
+         do i=1, outside_i_max2
+            new_x_map(i_min8+i) = new_x_map(i_min8)+i*dx
+         end do         
+
+       end subroutine create_map_from_interior
+
+
+       subroutine create_map_right(new_y_map, bf_y_map, interior_y_map)
+
+         implicit none
+         
+         real(rkind), dimension(:) , intent(out) :: new_y_map
+         real(rkind), dimension(:) , intent(in)  :: bf_y_map
+         real(rkind), dimension(ny), intent(in)  :: interior_y_map
+
+         integer(ikind) :: j
+         real(rkind)    :: dy
+
+         do j=1,size(bf_y_map,1)
+            new_y_map(j) = bf_y_map(j)
+         end do
+
+         dy = interior_y_map(size(interior_y_map,1)) -
+     $        interior_y_map(size(interior_y_map,1)-1)
+         do j=size(bf_y_map,1)+1, size(new_y_map,1)
+            new_y_map(j) = new_y_map(size(bf_y_map,1)) + j*dy
+         end do
+
+       end subroutine create_map_right
+
+
+       subroutine create_map_left(new_y_map, bf_y_map, interior_y_map)
+
+         implicit none
+         
+         real(rkind), dimension(:) , intent(out) :: new_y_map
+         real(rkind), dimension(:) , intent(in)  :: bf_y_map
+         real(rkind), dimension(ny), intent(in)  :: interior_y_map
+
+         integer(ikind) :: j
+         real(rkind)    :: dy
+
+         dy = interior_y_map(2) - interior_y_map(1)
+         do j=1, size(new_y_map,1)-size(bf_y_map,1)
+            new_y_map(j) = bf_y_map(1) - (size(new_y_map,1)-size(bf_y_map,1)+1-j)*dy
+         end do
+         
+         do j=1, size(bf_y_map,1)
+            new_y_map(size(new_y_map,1)-size(bf_y_map,1)+j) =
+     $           bf_y_map(j)
+         end do
+
+       end subroutine create_map_left
 
       end module bf_layer_merge_module

@@ -101,7 +101,6 @@
           procedure, pass :: allocate_tables
           procedure, pass :: deallocate_tables
 
-          procedure, pass :: apply_bc_on_timedev
           procedure, pass :: compute_time_dev
           procedure, pass :: compute_integration_step
 

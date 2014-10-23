@@ -201,6 +201,7 @@ include $(config_dir)/options_gfortran.mk
 #path for the mpi, hdf5, netcdf libraries depending on the cluster used-
 include $(config_dir)/libraries_bolt.mk
 include $(config_dir)/libraries_cartesius.mk
+include $(config_dir)/libraries_newcluster.mk
 
 #options handeling depending on the user main options: debug, trace,
 #and the type of compiler used (ifort, gfortran, mpiifort...)
