@@ -40,7 +40,7 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 5
+        integer(ikind), parameter :: ntx = 7
         integer(ikind), parameter :: nty = 5
 
         integer(ikind), parameter :: nx = ntx/npx
@@ -75,8 +75,8 @@
 
         !<boundary conditions choice
         integer, parameter :: bc_choice = periodic_xy_choice
-        integer, parameter :: bcx_type_choice = bc_nodes_choice
-        integer, parameter :: bcy_type_choice = bc_nodes_choice
+c$$$        integer, parameter :: bcx_type_choice = bc_nodes_choice
+c$$$        integer, parameter :: bcy_type_choice = bc_nodes_choice
 
         !<output choice
         integer, parameter :: io_choice   = netcdf_choice

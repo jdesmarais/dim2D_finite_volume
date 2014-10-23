@@ -27,13 +27,16 @@
      $                                         hedstrom_xy_corners_choice,
      $                                         hedstrom_x_reflection_y_choice,
      $                                         poinsot_xy_choice,
-     $                                         yoolodato_xy_choice
+     $                                         yoolodato_xy_choice,
+     $                                         N,S,E,W
         use parameters_input          , only : nx,ny,ne,bc_size,
      $                                         x_min,x_max,
      $                                         y_min,y_max,
      $                                         bc_choice,
-     $                                         bcx_type_choice,
-     $                                         bcy_type_choice
+     $                                         bc_N_type_choice,
+     $                                         bc_S_type_choice,
+     $                                         bc_E_type_choice,
+     $                                         bc_W_type_choice
         use parameters_kind           , only : ikind, rkind
         use pmodel_eq_class           , only : pmodel_eq
         use sd_operators_class        , only : sd_operators
@@ -238,6 +241,7 @@
 
           class(field_abstract), intent(in) :: this
 
+          integer, dimension(4) :: bc_type
 
           if(ne.ne.this%pmodel_eq_used%get_eq_nb()) then
              stop 'ne is not correct considering the physical model'
@@ -247,12 +251,22 @@
              stop 'bc_size is not correct considering spatial operator'
           end if
 
-          if(bcx_type_choice.ne.this%bc_operators_used%get_bcx_type()) then
-             stop 'bcx_type_choice does not match bc_operator'
+          bc_type = this%bc_operators_used%get_bc_type()
+
+          if(bc_N_type_choice.ne.bc_type(N)) then
+             stop 'bc_N_type_choice does not match bc_operator'
           end if
 
-          if(bcy_type_choice.ne.this%bc_operators_used%get_bcy_type()) then
-             stop 'bcy_type_choice does not match bc_operator'
+          if(bc_S_type_choice.ne.bc_type(S)) then
+             stop 'bc_S_type_choice does not match bc_operator'
+          end if
+
+          if(bc_E_type_choice.ne.bc_type(E)) then
+             stop 'bc_E_type_choice does not match bc_operator'
+          end if
+
+          if(bc_W_type_choice.ne.bc_type(W)) then
+             stop 'bc_W_type_choice does not match bc_operator'
           end if
           
         end subroutine check_inputs

@@ -1,6 +1,6 @@
       module test_openbc_local_operators_module
 
-        use ifport
+        !use ifport
 
         use bc_operators_class, only :
      $       bc_operators

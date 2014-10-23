@@ -38,8 +38,10 @@
         use parameters_input, only : 
      $       nx,ny,ne,bc_size,
      $       gravity_choice,
-     $       bcx_type_choice,
-     $       bcy_type_choice
+     $       bc_N_type_choice,
+     $       bc_S_type_choice,
+     $       bc_E_type_choice,
+     $       bc_W_type_choice
 
         use parameters_kind, only :
      $       rkind, ikind
@@ -148,10 +150,15 @@
 
           !< if the boundary conditions influence the computation
           !> of the fluxes, then we need to modify the fluxes
-          if((bcx_type_choice.eq.bc_fluxes_choice).or.
-     $       (bcy_type_choice.eq.bc_fluxes_choice)) then
+          if((bc_N_type_choice.eq.bc_fluxes_choice).or.
+     $       (bc_S_type_choice.eq.bc_fluxes_choice).or.
+     $       (bc_E_type_choice.eq.bc_fluxes_choice).or.
+     $       (bc_W_type_choice.eq.bc_fluxes_choice)
+     $    ) then
+
              call bc_used%apply_bc_on_fluxes(
      $            nodes,dx,dy,s,flux_x,flux_y)
+
           end if
 
 
@@ -189,15 +196,18 @@
           !< if the boundary conditions influence the computation
           !> of the time derivatives, then we need to compute the
           !> time derivatives at the boundary
-          if((bcx_type_choice.eq.bc_timedev_choice).or.
-     $       (bcy_type_choice.eq.bc_timedev_choice)) then
+          if(
+     $         (bc_N_type_choice.eq.bc_timedev_choice).or.
+     $         (bc_S_type_choice.eq.bc_timedev_choice).or.
+     $         (bc_E_type_choice.eq.bc_timedev_choice).or.
+     $         (bc_W_type_choice.eq.bc_timedev_choice)
+     $    ) then
              call bc_used%apply_bc_on_timedev(
      $            p_model,
      $            t,nodes,x_map,y_map,
      $            flux_x,flux_y,
      $            time_dev)
-          end if
-          
+          end if          
 
         end function compute_time_dev
 
@@ -316,10 +326,16 @@
 
             !if the boundary conditions influence the computation
             !of the fluxes, then we need to modify the fluxes
-            if((bcx_type_choice.eq.bc_fluxes_choice).or.
-     $         (bcy_type_choice.eq.bc_fluxes_choice)) then
+            if(
+     $           (bc_N_type_choice.eq.bc_fluxes_choice).or.
+     $           (bc_S_type_choice.eq.bc_fluxes_choice).or.
+     $           (bc_E_type_choice.eq.bc_fluxes_choice).or.
+     $           (bc_W_type_choice.eq.bc_fluxes_choice)
+     $      ) then
+
                call bc_used%apply_bc_on_fluxes(
      $              nodes,dx,dy,s,flux_x,flux_y)
+
             end if
 
 
@@ -411,8 +427,10 @@
             !if the boundary conditions influence the computation
             !of the time derivatives, then we need to compute the
             !time derivatives at the boundary
-c$$$            if((bcx_type_choice.eq.bc_timedev_choice).or.
-c$$$     $         (bcy_type_choice.eq.bc_timedev_choice)) then
+c$$$            if((bc_N_type_choice.eq.bc_timedev_choice).or.
+c$$$     $         (bc_S_type_choice.eq.bc_timedev_choice).or.
+c$$$     $         (bc_E_type_choice.eq.bc_timedev_choice).or.
+c$$$     $         (bc_W_type_choice.eq.bc_timedev_choice)) then
 c$$$               stop 'not implemented'
 c$$$            end if
 

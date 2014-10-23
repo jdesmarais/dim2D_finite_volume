@@ -126,13 +126,13 @@
           class(bc_operators_default)     , intent(in)    :: this
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
 
-          real(rkind) :: node_s          
-          integer :: bcx_type_s
+          real(rkind)           :: node_s          
+          integer, dimension(4) :: bc_type
 
           stop 'bc_operator%apply_bc_on_nodes() not implemented'
 
-          node_s     = nodes(1,1,1)
-          bcx_type_s = this%bcx_type
+          node_s  = nodes(1,1,1)
+          bc_type = this%bc_type
           
 
         end subroutine apply_bc_on_nodes
@@ -243,8 +243,9 @@
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
 
-          real(rkind) :: node,flux,dx_s,dy_s,timedev_s,t_s
-          integer     :: neq,bc_s
+          real(rkind)           :: node,flux,dx_s,dy_s,timedev_s,t_s
+          integer               :: neq
+          integer, dimension(4) :: bc_s
 
           stop 'bc_operator%apply_bc_on_time_dev() not implemented'
 
@@ -257,7 +258,7 @@
           flux=flux_x(1,1,1)
           flux=flux_y(1,1,1)
           timedev_s = timedev(1,1,1)
-          bc_s = this%bcx_type
+          bc_s = this%bc_type
 
         end subroutine apply_bc_on_timedev
 
@@ -336,20 +337,20 @@
           integer                           , intent(in)    :: edge_card_coord
           real(rkind), dimension(:,:,:)     , intent(inout) :: flux_y
         
-          integer           :: bc_s
-          integer           :: neq
-          real(rkind)       :: node
-          real(rkind)       :: dx_s
-          real(rkind)       :: dy_s
-          integer(ikind)    :: n_s
-          real(rkind)       :: flux
+          integer, dimension(4) :: bc_s
+          integer               :: neq
+          real(rkind)           :: node
+          real(rkind)           :: dx_s
+          real(rkind)           :: dy_s
+          integer(ikind)        :: n_s
+          real(rkind)           :: flux
 
           print '(''bc_operators_default_class'')'
           print '(''compute_fluxes_for_bc_x_edge'')'
           stop 'function not implemented'
 
           !to prevent unused param warnings
-          bc_s = this%bcx_type
+          bc_s = this%bc_type
           neq  = p_model%get_eq_nb()
           node = nodes(1,1,1)
           bc_s = s_x_L0%get_bc_size()
@@ -440,20 +441,20 @@
           real(rkind), dimension(:,:,:)     , intent(inout) :: flux_x
 
 
-          integer           :: bc_s
-          integer           :: neq
-          real(rkind)       :: node
-          real(rkind)       :: dx_s
-          real(rkind)       :: dy_s
-          integer(ikind)    :: n_s
-          real(rkind)       :: flux
+          integer, dimension(4) :: bc_s
+          integer               :: neq
+          real(rkind)           :: node
+          real(rkind)           :: dx_s
+          real(rkind)           :: dy_s
+          integer(ikind)        :: n_s
+          real(rkind)           :: flux
 
           print '(''bc_operators_default_class'')'
           print '(''compute_fluxes_for_bc_y_edge'')'
           stop 'function not implemented'
 
           !to prevent unused param warnings
-          bc_s = this%bcx_type
+          bc_s = this%bc_type
           neq  = p_model%get_eq_nb()
           node = nodes(1,1,1)
           bc_s = s_y_L0%get_bc_size()
@@ -537,11 +538,11 @@
           procedure(gradient_x_proc)                :: gradient_x
           real(rkind), dimension(ne)                :: timedev
 
-          real(rkind)       :: dx
-          real(rkind)       :: dy
-          real(rkind)       :: flux,t_s
-          integer           :: bc_s
-          logical           :: side_s
+          real(rkind)           :: dx
+          real(rkind)           :: dy
+          real(rkind)           :: flux,t_s
+          integer, dimension(4) :: bc_s
+          logical               :: side_s
 
           print '(''bc_operators_default_class'')'
           print '(''apply_bc_on_timedev_x_edge'')'
@@ -554,7 +555,7 @@
           flux=flux_y(1,1,1)
           side_s = side_x
           timedev = p_model%compute_x_gradient(nodes,i,j,gradient_x,dx)
-          bc_s = this%bcx_type
+          bc_s = this%bc_type
           
 
         end function apply_bc_on_timedev_x_edge
@@ -628,11 +629,11 @@
           procedure(gradient_y_proc)                :: gradient_y
           real(rkind), dimension(ne)                :: timedev
 
-          real(rkind)       :: dx
-          real(rkind)       :: dy
-          real(rkind)       :: flux,t_s
-          integer           :: bc_s
-          logical           :: side_s
+          real(rkind)           :: dx
+          real(rkind)           :: dy
+          real(rkind)           :: flux,t_s
+          integer, dimension(4) :: bc_s
+          logical               :: side_s
 
           print '(''bc_operators_default_class'')'
           print '(''apply_bc_on_timedev_y_edge'')'
@@ -645,7 +646,7 @@
           flux=flux_x(1,1,1)
           side_s = side_y
           timedev = p_model%compute_y_gradient(nodes,i,j,gradient_y,dy)
-          bc_s = this%bcx_type
+          bc_s = this%bc_type
 
         end function apply_bc_on_timedev_y_edge
 
@@ -720,11 +721,11 @@
           procedure(gradient_y_proc)                :: gradient_y
           real(rkind), dimension(ne)                :: timedev
 
-          real(rkind)       :: dx
-          real(rkind)       :: dy
-          real(rkind)       :: t_s
-          integer           :: bc_s
-          logical           :: side_x_s, side_y_s
+          real(rkind)           :: dx
+          real(rkind)           :: dy
+          real(rkind)           :: t_s
+          integer, dimension(4) :: bc_s
+          logical               :: side_x_s, side_y_s
 
           print '(''bc_operators_default_class'')'
           print '(''apply_bc_on_timedev_xy_corner'')'
@@ -738,7 +739,7 @@
           side_y_s = side_y          
           timedev = p_model%compute_x_gradient(nodes,i,j,gradient_x,dx)
           timedev = p_model%compute_y_gradient(nodes,i,j,gradient_y,dy)
-          bc_s = this%bcx_type
+          bc_s = this%bc_type
 
         end function apply_bc_on_timedev_xy_corner
 

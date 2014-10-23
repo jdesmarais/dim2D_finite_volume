@@ -15,7 +15,7 @@
       module bc_operators_class
 
         use bc_operators_openbc_class, only :
-     $     bc_operators_openbc
+     $       bc_operators_openbc
 
         use hedstrom_xy_module, only :
      $       compute_timedev_xlayer,
@@ -39,7 +39,8 @@
 
         use parameters_constant, only :
      $       bc_timedev_choice,
-     $       left,right
+     $       left,right,
+     $       N,S,E,W
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size
@@ -97,8 +98,8 @@
         !> domain
         !
         !> @param ini
-        !> initialize the bcx_type and bcy_type
-        !> attributes of the boundary conditions
+        !> initialize the bc_type attribute of the
+        !> boundary conditions
         !
         !> @param apply_bc_on_timedev
         !> apply the open boundary conditions for the time derivatives
@@ -146,8 +147,11 @@
 
           neq = p_model%get_eq_nb()
 
-          this%bcx_type = bc_timedev_choice
-          this%bcy_type = bc_timedev_choice
+          this%bc_type = [
+     $         bc_timedev_choice,
+     $         bc_timedev_choice,
+     $         bc_timedev_choice,
+     $         bc_timedev_choice]
 
         end subroutine ini
 
@@ -459,11 +463,11 @@
           procedure(gradient_x_proc)                :: gradient_x
           real(rkind), dimension(ne)                :: timedev
 
-          integer     :: bc_s
-          real(rkind) :: t_s
-          real(rkind) :: dx,dy
+          integer, dimension(4) :: bc_s
+          real(rkind)           :: t_s
+          real(rkind)           :: dx,dy
 
-          bc_s = this%bcx_type
+          bc_s = this%bc_type
           t_s  = t
           dx   = x_map(2)-x_map(1)
           dy   = y_map(2)-y_map(1)
@@ -561,11 +565,11 @@
           procedure(gradient_y_proc)                :: gradient_y
           real(rkind), dimension(ne)                :: timedev
 
-          integer     :: bc_s
-          real(rkind) :: t_s
-          real(rkind) :: dx,dy
+          integer, dimension(4) :: bc_s
+          real(rkind)           :: t_s
+          real(rkind)           :: dx,dy
 
-          bc_s = this%bcx_type
+          bc_s = this%bc_type
           t_s  = t
           dx   = x_map(2) - x_map(1)
           dy   = y_map(2) - y_map(1)
@@ -663,12 +667,12 @@
           procedure(gradient_y_proc)                :: gradient_y
           real(rkind), dimension(ne)                :: timedev
 
-          integer     :: bc_s
-          real(rkind) :: t_s
-          real(rkind) :: dx
-          real(rkind) :: dy          
+          integer, dimension(4) :: bc_s
+          real(rkind)           :: t_s
+          real(rkind)           :: dx
+          real(rkind)           :: dy          
 
-          bc_s = this%bcx_type
+          bc_s = this%bc_type
           t_s  = t
           dx   = x_map(2)-x_map(1)
           dy   = y_map(2)-y_map(1)

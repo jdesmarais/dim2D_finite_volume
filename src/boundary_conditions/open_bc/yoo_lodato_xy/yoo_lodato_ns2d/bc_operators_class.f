@@ -144,8 +144,8 @@
         !> domain
         !
         !> @param ini
-        !> initialize the bcx_type and bcy_type
-        !> attributes of the boundary conditions
+        !> initialize the bc_type attributes of the
+        !> boundary conditions
         !
         !> @param apply_bc_on_timedev
         !> apply the open boundary conditions for the time derivatives
@@ -195,8 +195,11 @@
 
           neq = p_model%get_eq_nb()
 
-          this%bcx_type = bc_timedev_choice
-          this%bcy_type = bc_timedev_choice
+          this%bc_type = [
+     $         bc_timedev_choice,
+     $         bc_timedev_choice,
+     $         bc_timedev_choice,
+     $         bc_timedev_choice]
 
           this%oneside_flow_N = obc_type_N
           this%oneside_flow_S = obc_type_S

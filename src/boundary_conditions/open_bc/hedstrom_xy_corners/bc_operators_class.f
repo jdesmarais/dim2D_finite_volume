@@ -111,8 +111,8 @@
         !> domain
         !
         !> @param ini
-        !> initialize the bcx_type and bcy_type
-        !> attributes of the boundary conditions
+        !> initialize the bc_type attribute of the
+        !> boundary conditions
         !
         !> @param apply_bc_on_timedev
         !> apply the open boundary conditions for the time derivatives
@@ -156,8 +156,11 @@
 
           neq = p_model%get_eq_nb()
 
-          this%bcx_type = bc_timedev_choice
-          this%bcy_type = bc_timedev_choice
+          this%bc_type = [
+     $         bc_timedev_choice,
+     $         bc_timedev_choice,
+     $         bc_timedev_choice,
+     $         bc_timedev_choice]
 
         end subroutine ini
 
@@ -225,11 +228,11 @@
           type(sd_operators_y_oneside_R0) :: s_y_R0
 
 
-          real(rkind)    :: dx,dy
-          integer(ikind) :: i,j
+          real(rkind)           :: dx,dy
+          integer(ikind)        :: i,j
 
-          integer :: bc_s
-          real(rkind) :: t_s
+          integer, dimension(4) :: bc_s
+          real(rkind)           :: t_s
 
           
           dx = x_map(2)-x_map(1)
@@ -238,7 +241,7 @@
 
           !prevent unsed parameter warnings while being
           !supress by the compiler afterwards
-          bc_s = this%bcx_type
+          bc_s = this%bc_type
           t_s  = t
 
 

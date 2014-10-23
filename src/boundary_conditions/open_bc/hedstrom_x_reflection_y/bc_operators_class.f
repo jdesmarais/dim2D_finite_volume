@@ -89,8 +89,8 @@
         !> domain
         !
         !> @param ini
-        !> initialize the bcx_type and bcy_type
-        !> attributes of the boundary conditions
+        !> initialize the bc_type attribute of the
+        !> boundary conditions
         !
         !> @param apply_bc_on_timedev
         !> apply the open boundary conditions for the time derivatives
@@ -137,8 +137,10 @@
 
           neq = p_model%get_eq_nb()
 
-          this%bcx_type = bc_timedev_choice
-          this%bcy_type = bc_nodes_choice
+          this%bc_type(N) = bc_nodes_choice
+          this%bc_type(S) = bc_nodes_choice
+          this%bc_type(E) = bc_timedev_choice
+          this%bc_type(W) = bc_timedev_choice
 
           this%prefactor_y = reflection_y_prefactor(p_model)
 

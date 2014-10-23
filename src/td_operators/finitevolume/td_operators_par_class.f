@@ -28,8 +28,10 @@
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
      $       gravity_choice,
-     $       bcx_type_choice,
-     $       bcy_type_choice
+     $       bc_N_type_choice,
+     $       bc_S_type_choice,
+     $       bc_E_type_choice,
+     $       bc_W_type_choice
         
         use parameters_kind, only :
      $       rkind, ikind
@@ -129,8 +131,12 @@
 
            !<if the boundary conditions influence the computation
            !> of the fluxes, then we need to modify the fluxes
-           if((bcx_type_choice.eq.bc_fluxes_choice).or.
-     $        (bcy_type_choice.eq.bc_fluxes_choice)) then
+           if(
+     $          (bc_N_type_choice.eq.bc_fluxes_choice).or.
+     $          (bc_S_type_choice.eq.bc_fluxes_choice).or.
+     $          (bc_E_type_choice.eq.bc_fluxes_choice).or.
+     $          (bc_W_type_choice.eq.bc_fluxes_choice)
+     $     ) then
               call bc_par_used%apply_bc_on_fluxes(
      $             comm_2d, usr_rank,
      $             nodes, dx, dy, s,

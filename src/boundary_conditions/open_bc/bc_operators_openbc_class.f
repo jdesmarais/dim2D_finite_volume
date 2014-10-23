@@ -159,11 +159,11 @@
           integer                        , intent(in)    :: edge_card_coord
           real(rkind), dimension(:,:,:)  , intent(inout) :: flux_y
 
-          integer(ikind) :: i_f
-          integer(ikind) :: j
-          integer        :: bc_s
+          integer(ikind)        :: i_f
+          integer(ikind)        :: j
+          integer, dimension(4) :: bc_s
 
-          bc_s = this%bcx_type
+          bc_s = this%bc_type
 
 
           select case(edge_card_coord)
@@ -312,10 +312,10 @@
           real(rkind), dimension(:,:,:)  , intent(inout) :: flux_x
 
 
-          integer(ikind) :: i
-          integer :: bc_s
+          integer(ikind)        :: i
+          integer, dimension(4) :: bc_s
 
-          bc_s = this%bcy_type
+          bc_s = this%bc_type
 
 
           select case(edge_card_coord)

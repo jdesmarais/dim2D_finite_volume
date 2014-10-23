@@ -99,8 +99,11 @@
           this%prefactor_x = reflection_x_prefactor(p_model)
           this%prefactor_y = reflection_y_prefactor(p_model)
 
-          this%bcx_type = bc_nodes_choice
-          this%bcy_type = bc_nodes_choice
+          this%bc_type = [
+     $         bc_nodes_choice,
+     $         bc_nodes_choice,
+     $         bc_nodes_choice,
+     $         bc_nodes_choice]
 
         end subroutine ini
 

@@ -20,7 +20,10 @@
         use parameters_constant, only : periodic_xy_choice,
      $                                  bc_nodes_choice
         use parameters_input   , only : nx,ny,ne,bc_size,bc_choice,
-     $                                  bcx_type_choice,bcy_type_choice
+     $                                  bc_N_type_choice,
+     $                                  bc_S_type_choice,
+     $                                  bc_E_type_choice,
+     $                                  bc_W_type_choice
         use parameters_kind    , only : ikind, rkind
         use pmodel_eq_class    , only : pmodel_eq
 
@@ -55,8 +58,10 @@
         test_parameter=test_parameter.and.(ny.eq.6)
         test_parameter=test_parameter.and.(ne.eq.1)
         test_parameter=test_parameter.and.(bc_choice.eq.periodic_xy_choice)
-        test_parameter=test_parameter.and.(bcx_type_choice.eq.bc_nodes_choice)
-        test_parameter=test_parameter.and.(bcy_type_choice.eq.bc_nodes_choice)    
+        test_parameter=test_parameter.and.(bc_N_type_choice.eq.bc_nodes_choice)
+        test_parameter=test_parameter.and.(bc_S_type_choice.eq.bc_nodes_choice)    
+        test_parameter=test_parameter.and.(bc_E_type_choice.eq.bc_nodes_choice)    
+        test_parameter=test_parameter.and.(bc_W_type_choice.eq.bc_nodes_choice)    
         if(.not.test_parameter) then
            print *, 'the test requires several parameters'
            print *, 'test designed for simpletest eq'
@@ -64,8 +69,10 @@
            print *, 'ny=6'
            print *, 'ne=1'
            print *, 'bc_choice=periodic_xy_choice'
-           print *, 'bcx_type_choice=bc_nodes_choice'
-           print *, 'bcy_type_choice=bc_nodes_choice'
+           print *, 'bc_N_type_choice=bc_nodes_choice'
+           print *, 'bc_S_type_choice=bc_nodes_choice'
+           print *, 'bc_E_type_choice=bc_nodes_choice'
+           print *, 'bc_W_type_choice=bc_nodes_choice'
            stop ''
         end if
 

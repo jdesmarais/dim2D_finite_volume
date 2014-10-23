@@ -17,8 +17,8 @@
       module bc_operators_abstract_class
 
         use interface_primary, only :
-     $     gradient_x_proc,
-     $     gradient_y_proc
+     $       gradient_x_proc,
+     $       gradient_y_proc
 
         use parameters_input, only :
      $       nx,
@@ -92,13 +92,11 @@
         !---------------------------------------------------------------
         type, abstract :: bc_operators_abstract
 
-          integer :: bcx_type
-          integer :: bcy_type
+          integer, dimension(4) :: bc_type
 
           contains
 
-          procedure,   pass :: get_bcx_type
-          procedure,   pass :: get_bcy_type
+          procedure                ,   pass           :: get_bc_type
 
           procedure(ini_proc)      ,   pass, deferred :: ini
           procedure(nodes_proc)    ,   pass, deferred :: apply_bc_on_nodes
@@ -680,12 +678,11 @@
 
         contains
 
-
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> get the boundary condition type along the x-axis
+        !> get the types of boundary conditions
         !
         !> @date
         !> 01_08_2014 - initial version - J.L. Desmarais
@@ -694,44 +691,17 @@
         !> abstract boundary conditions
         !
         !>@return type
-        !> type of boundary condition along the x-axis
+        !> type of boundary conditions
         !-------------------------------------------------------------
-        function get_bcx_type(this) result(type)
+        function get_bc_type(this) result(type)
 
           implicit none
 
           class(bc_operators_abstract), intent(in) :: this
-          integer :: type
+          integer, dimension(4)                    :: type
 
-          type = this%bcx_type
+          type = this%bc_type
 
-        end function get_bcx_type
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> get the boundary condition type along the y-axis
-        !
-        !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> abstract boundary conditions
-        !
-        !>@return type
-        !> type of boundary condition along the y-axis
-        !-------------------------------------------------------------
-        function get_bcy_type(this) result(type)
-
-          implicit none
-
-          class(bc_operators_abstract), intent(in) :: this
-          integer :: type
-
-          type = this%bcy_type
-
-        end function get_bcy_type        
+        end function get_bc_type        
 
       end module bc_operators_abstract_class

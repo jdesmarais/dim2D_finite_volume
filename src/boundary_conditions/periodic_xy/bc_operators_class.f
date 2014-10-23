@@ -102,8 +102,11 @@
           this%period_x = nx-2*bc_size
           this%period_y = ny-2*bc_size
 
-          this%bcx_type = bc_nodes_choice
-          this%bcy_type = bc_nodes_choice
+          this%bc_type = [
+     $         bc_nodes_choice,
+     $         bc_nodes_choice,
+     $         bc_nodes_choice,
+     $         bc_nodes_choice]
 
         end subroutine ini
 
