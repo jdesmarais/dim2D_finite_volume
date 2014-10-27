@@ -15,13 +15,36 @@
       !-----------------------------------------------------------------
       module bf_mainlayer_pointer_class
 
-        use bf_layer_errors_module    , only : error_mainlayer_id
-        use bf_sublayer_class         , only : bf_sublayer
-        use bf_mainlayer_class        , only : bf_mainlayer
-        use interface_integration_step, only : timeInt_step_nopt
-        use parameters_input          , only : nx,ny,ne, debug
-        use parameters_kind           , only : ikind, rkind
+        use bc_operators_class, only :
+     $     bc_operators
 
+        use bf_layer_errors_module, only :
+     $       error_mainlayer_id
+
+        use bf_sublayer_class, only :
+     $       bf_sublayer
+
+        use bf_mainlayer_class, only :
+     $       bf_mainlayer
+
+        use interface_integration_step, only :
+     $       timeInt_step_nopt
+
+        use parameters_input, only :
+     $       nx,ny,ne, debug
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use sd_operators_class, only :
+     $       sd_operators
+
+        use td_operators_class, only :
+     $       td_operators
 
         implicit none
 
@@ -554,22 +577,30 @@
         !> @return added_sublayer_ptr
         !> pointer to the newly added bf_sublayer
         !--------------------------------------------------------------
-        function add_sublayer(this, nodes, alignment, dx, dy)
+        function add_sublayer(
+     $     this,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes,
+     $     alignment)
      $     result(added_sublayer_ptr)
 
           implicit none
 
           class(bf_mainlayer_pointer)        , intent(inout) :: this
-          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: nodes
+          real(rkind)   , dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           integer(ikind), dimension(2,2)     , intent(in)    :: alignment
-          real(rkind)                        , intent(in)    :: dx
-          real(rkind)                        , intent(in)    :: dy
 
           type(bf_sublayer), pointer                         :: added_sublayer_ptr
 
           if(this%associated_ptr()) then
              added_sublayer_ptr => this%ptr%add_sublayer(
-     $            nodes, alignment, dx, dy)
+     $            interior_x_map,
+     $            interior_y_map,
+     $            interior_nodes,
+     $            alignment)
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''add_sublayer'')'
@@ -615,6 +646,8 @@
      $     this,
      $     bf_sublayer1,
      $     bf_sublayer2,
+     $     interior_x_map,
+     $     interior_y_map,
      $     interior_nodes,
      $     alignment)
      $     result(merged_sublayer)
@@ -624,6 +657,8 @@
           class(bf_mainlayer_pointer)             , intent(inout) :: this
           type(bf_sublayer), pointer              , intent(inout) :: bf_sublayer1
           type(bf_sublayer), pointer              , intent(inout) :: bf_sublayer2
+          real(rkind)   , dimension(nx)           , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(ny)           , intent(in)    :: interior_y_map
           real(rkind)   , dimension(nx,ny,ne)     , intent(in)    :: interior_nodes
           integer(ikind), dimension(2,2), optional, intent(in)    :: alignment
           type(bf_sublayer), pointer                              :: merged_sublayer
@@ -631,8 +666,12 @@
 
           if(this%associated_ptr()) then
              merged_sublayer => this%ptr%merge_sublayers(
-     $            bf_sublayer1, bf_sublayer2,
-     $            interior_nodes, alignment)
+     $            bf_sublayer1,
+     $            bf_sublayer2,
+     $            interior_x_map,
+     $            interior_y_map,
+     $            interior_nodes,
+     $            alignment)
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''merge_sublayers'')'
@@ -708,11 +747,18 @@
         !> of the bf_sublayers        
         !--------------------------------------------------------------
         subroutine print_binary(
-     $     this, suffix_nodes, suffix_grdid, suffix_sizes)
+     $     this,
+     $     suffix_x_map,
+     $     suffix_y_map,
+     $     suffix_nodes,
+     $     suffix_grdid,
+     $     suffix_sizes)
 
           implicit none
 
           class(bf_mainlayer_pointer), intent(in) :: this
+          character(*)               , intent(in) :: suffix_x_map
+          character(*)               , intent(in) :: suffix_y_map
           character(*)               , intent(in) :: suffix_nodes
           character(*)               , intent(in) :: suffix_grdid
           character(*)               , intent(in) :: suffix_sizes
@@ -720,7 +766,11 @@
 
           if(this%associated_ptr()) then
              call this%ptr%print_binary(
-     $            suffix_nodes, suffix_grdid, suffix_sizes)
+     $            suffix_x_map,
+     $            suffix_y_map,
+     $            suffix_nodes,
+     $            suffix_grdid,
+     $            suffix_sizes)
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''merge_sublayers'')'
@@ -783,10 +833,6 @@
      $     name_var,
      $     longname_var,
      $     unit_var,
-     $     x_min_interior,
-     $     y_min_interior,
-     $     dx,
-     $     dy,
      $     time)
 
           implicit none
@@ -796,10 +842,6 @@
           character(*), dimension(ne), intent(in) :: name_var
           character(*), dimension(ne), intent(in) :: longname_var
           character(*), dimension(ne), intent(in) :: unit_var
-          real(rkind)                , intent(in) :: x_min_interior
-          real(rkind)                , intent(in) :: y_min_interior
-          real(rkind)                , intent(in) :: dx
-          real(rkind)                , intent(in) :: dy
           real(rkind)                , intent(in) :: time
 
 
@@ -809,10 +851,6 @@
      $            name_var,
      $            longname_var,
      $            unit_var,
-     $            x_min_interior,
-     $            y_min_interior,
-     $            dx,
-     $            dy,
      $            time)
           else
              print '(''bf_mainlayer_pointer_class'')'
@@ -904,14 +942,24 @@
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !--------------------------------------------------------------
-        subroutine compute_time_dev(this)
+        subroutine compute_time_dev(
+     $     this,
+     $     td_operators_used,
+     $     t,s,p_model,bc_used)
 
           implicit none
 
           class(bf_mainlayer_pointer), intent(inout) :: this
+          type(td_operators)         , intent(in)    :: td_operators_used
+          real(rkind)                , intent(in)    :: t
+          type(sd_operators)         , intent(in)    :: s
+          type(pmodel_eq)            , intent(in)    :: p_model
+          type(bc_operators)         , intent(in)    :: bc_used
 
           if(this%associated_ptr()) then
-             call this%ptr%compute_time_dev()
+             call this%ptr%compute_time_dev(
+     $            td_operators_used,
+     $            t,s,p_model,bc_used)
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''compute_time_dev'')'

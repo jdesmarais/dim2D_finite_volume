@@ -17,7 +17,7 @@
       module bf_layer_class
 
         use bc_operators_class, only :
-     $     bc_operators
+     $       bc_operators
 
         use bf_compute_class, only :
      $       bf_compute
@@ -395,7 +395,9 @@
           procedure,   pass :: deallocate_after_timeInt
           procedure,   pass :: compute_time_dev
           procedure,   pass :: compute_integration_step
-          procedure,   pass :: get_time_dev !only for tests
+          procedure,   pass :: get_time_dev  !only for tests
+          procedure,   pass :: set_x_borders !only for tests
+          procedure,   pass :: set_y_borders !only for tests
 
         end type bf_layer
 
@@ -2431,6 +2433,8 @@
 
           class(bf_layer), intent(inout) :: this
 
+          deallocate(this%x_map)
+          deallocate(this%y_map)
           deallocate(this%nodes)
           deallocate(this%grdpts_id)
 
@@ -2626,9 +2630,6 @@
      $     longname_var,
      $     unit_var,
      $     bf_order,
-     $     x_min_interior,
-     $     y_min_interior,
-     $     dx,dy,
      $     time)
 
           implicit none
@@ -2639,27 +2640,17 @@
           character(*), dimension(ne), intent(in)    :: longname_var
           character(*), dimension(ne), intent(in)    :: unit_var
           integer                    , intent(in)    :: bf_order
-          real(rkind)                , intent(in)    :: x_min_interior
-          real(rkind)                , intent(in)    :: y_min_interior
-          real(rkind)                , intent(in)    :: dx
-          real(rkind)                , intent(in)    :: dy
           real(rkind)                , intent(in)    :: time
-
-          real(rkind) :: x_start
-          real(rkind) :: y_start
-
-          x_start = (this%alignment(1,1)-2*bc_size-1)*dx +
-     $              x_min_interior
-
-          y_start = (this%alignment(2,1)-2*bc_size-1)*dy +
-     $              y_min_interior
 
           call print_bf_layer_on_netcdf(
      $         filename,
      $         name_var, longname_var, unit_var,
      $         this%localization, bf_order,
-     $         x_start, y_start, dx, dy,
-     $         this%grdpts_id, this%nodes, time)
+     $         this%grdpts_id,
+     $         this%x_map,
+     $         this%y_map,
+     $         this%nodes,
+     $         time)
 
         end subroutine print_netcdf
 
@@ -2861,6 +2852,8 @@
      $         this%grdpts_id,
      $         this%nodes,
      $         dt,
+     $         this%x_borders,
+     $         this%y_borders,
      $         integration_step_nopt)
 
         end subroutine compute_integration_step
@@ -2889,5 +2882,61 @@
           call this%bf_compute_used%get_time_dev(time_dev)
 
         end subroutine get_time_dev
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the x-borders for the integration 
+        !
+        !> @date
+        !> 27_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param x_borders
+        !> integration borders along the x-direction
+        !--------------------------------------------------------------
+        subroutine set_x_borders(this,x_borders)
+
+          implicit none
+
+          class(bf_layer)             , intent(inout) :: this
+          integer(ikind), dimension(2), intent(in)    :: x_borders
+
+          this%x_borders = x_borders
+
+        end subroutine set_x_borders
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the y-borders for the integration 
+        !
+        !> @date
+        !> 27_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param y_borders
+        !> integration borders along the y-direction
+        !--------------------------------------------------------------
+        subroutine set_y_borders(this,y_borders)
+
+          implicit none
+
+          class(bf_layer)             , intent(inout) :: this
+          integer(ikind), dimension(2), intent(in)    :: y_borders
+
+          this%y_borders = y_borders
+
+        end subroutine set_y_borders
 
       end module bf_layer_class

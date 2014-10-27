@@ -440,16 +440,17 @@
         subroutine process_path(
      $     this,
      $     interface_used,
-     $     interior_nodes,
-     $     dx, dy)
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes)
         
           implicit none
         
           class(bf_path_icr)              , intent(inout) :: this
           class(bf_interface)             , intent(inout) :: interface_used
+          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          real(rkind)                     , intent(in)    :: dx
-          real(rkind)                     , intent(in)    :: dy
 
         
           type(bf_sublayer), pointer :: modified_sublayer
@@ -459,8 +460,9 @@
           modified_sublayer => update_allocation_bf_sublayer(
      $         this,
      $         interface_used,
-     $         interior_nodes,
-     $         dx, dy)
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes)
 
           !update the grid points for the increase
           call interface_used%update_grdpts_after_increase(
@@ -872,16 +874,20 @@
         !> reference to the bf_sublayer whose size is updated
         !--------------------------------------------------------------
         function update_allocation_bf_sublayer(
-     $     this, interface_used, interior_nodes, dx, dy)
+     $     this,
+     $     interface_used,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes)
      $     result(modified_sublayer)
 
           implicit none
 
           class(bf_path_icr)              , intent(inout) :: this
           class(bf_interface)             , intent(inout) :: interface_used
+          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          real(rkind)                     , intent(in)    :: dx
-          real(rkind)                     , intent(in)    :: dy
           type(bf_sublayer), pointer                      :: modified_sublayer
           
           type(bf_sublayer), pointer     :: neighboring_sublayer
@@ -905,14 +911,18 @@
                    modified_sublayer => interface_used%merge_sublayers(
      $                  this%matching_sublayer,
      $                  neighboring_sublayer,
+     $                  interior_x_map,
+     $                  interior_y_map,
      $                  interior_nodes,
-     $                  this%alignment)                   
+     $                  this%alignment)
                 else
 
                    call update_alignment_for_reallocation(this)
                    
                    call interface_used%reallocate_sublayer(
      $                  this%matching_sublayer,
+     $                  interior_x_map,
+     $                  interior_y_map,
      $                  interior_nodes,
      $                  this%alignment)
                    modified_sublayer => this%matching_sublayer
@@ -927,6 +937,8 @@
 
                 call interface_used%reallocate_sublayer(
      $               this%matching_sublayer,
+     $               interior_x_map,
+     $               interior_y_map,
      $               interior_nodes,
      $               this%alignment)
                 modified_sublayer => this%matching_sublayer
@@ -938,9 +950,10 @@
           else
              modified_sublayer => interface_used%allocate_sublayer(
      $            this%mainlayer_id,
+     $            interior_x_map,
+     $            interior_y_map,
      $            interior_nodes,
-     $            this%alignment,
-     $            dx,dy)
+     $            this%alignment)
 
           end if
           

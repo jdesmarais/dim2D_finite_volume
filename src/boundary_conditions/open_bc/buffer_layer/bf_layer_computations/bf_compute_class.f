@@ -104,7 +104,8 @@
           procedure, pass :: compute_time_dev
           procedure, pass :: compute_integration_step
 
-          procedure, pass :: get_time_dev !only for tests
+          procedure, pass :: set_bc_sections !only for tests
+          procedure, pass :: get_time_dev    !only for tests
 
         end type bf_compute
 
@@ -183,6 +184,7 @@
         subroutine compute_integration_step(
      $     this,
      $     grdpts_id, nodes, dt,
+     $     x_borders, y_borders,
      $     integration_step_nopt)
 
           implicit none
@@ -191,13 +193,33 @@
           integer    , dimension(:,:)  , intent(in)    :: grdpts_id
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
           real(rkind)                  , intent(in)    :: dt
+          integer(ikind), dimension(2) , intent(in)    :: x_borders
+          integer(ikind), dimension(2) , intent(in)    :: y_borders
           procedure(timeInt_step_nopt)                 :: integration_step_nopt
 
           call integration_step_nopt(
-     $         nodes, dt, this%nodes_tmp, this%time_dev, grdpts_id,
-     $         this%bc_sections)
+     $         nodes,
+     $         dt,
+     $         this%nodes_tmp,
+     $         this%time_dev,
+     $         grdpts_id,
+     $         x_borders=x_borders,
+     $         y_borders=y_borders)
 
         end subroutine compute_integration_step
+
+      
+        !set the bc_sections
+        subroutine set_bc_sections(this, bc_sections)
+
+          implicit none
+
+          class(bf_compute)                   , intent(in)    :: this
+          integer, dimension(:,:), allocatable, intent(inout) :: bc_sections
+
+          call MOVE_ALLOC(bc_sections,this%bc_sections)
+
+        end subroutine set_bc_sections
 
 
         !get the time_dev attribute

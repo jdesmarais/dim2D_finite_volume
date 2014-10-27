@@ -16,15 +16,44 @@
       ! 26_06_2014 - documentation update - J.L. Desmarais
       !-----------------------------------------------------------------
       module bf_mainlayer_class
+      
+        use bc_operators_class, only :
+     $     bc_operators
 
-        use bf_layer_errors_module    , only : error_mainlayer_id
-        use bf_sublayer_class         , only : bf_sublayer
-        use interface_integration_step, only : timeInt_step_nopt
-        use parameters_constant       , only : N,S,E,W,
-     $                                         x_direction, y_direction,
-     $                                         min_border, max_border
-        use parameters_input          , only : nx, ny, ne, debug
-        use parameters_kind           , only : ikind, rkind
+        use bf_layer_errors_module, only :
+     $       error_mainlayer_id
+
+        use bf_sublayer_class, only :
+     $       bf_sublayer
+
+        use interface_integration_step, only :
+     $       timeInt_step_nopt
+
+        use parameters_constant, only :
+     $       N,S,E,W,
+     $       x_direction,
+     $       y_direction,
+     $       min_border,
+     $       max_border
+
+        use parameters_input, only :
+     $       nx,
+     $       ny,
+     $       ne,
+     $       debug
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use sd_operators_class, only :
+     $       sd_operators
+
+        use td_operators_class, only :
+     $       td_operators
 
         implicit none
 
@@ -323,16 +352,21 @@
         !> @return added_sublayer_ptr
         !> pointer to the newly added bf_sublayer
         !--------------------------------------------------------------
-        function add_sublayer(this, nodes, alignment, dx, dy)
+        function add_sublayer(
+     $     this,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes,
+     $     alignment)
      $     result(added_sublayer_ptr)
 
           implicit none
           
           class(bf_mainlayer)                , intent(inout) :: this
-          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: nodes
+          real(rkind)   , dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           integer(ikind), dimension(2,2)     , intent(in)    :: alignment
-          real(rkind)                        , intent(in)    :: dx
-          real(rkind)                        , intent(in)    :: dy
           type(bf_sublayer), pointer                         :: added_sublayer_ptr
 
 
@@ -344,8 +378,12 @@
 
           !allocate space for the sublayer and initialize it
           allocate(added_sublayer_ptr)
-          call added_sublayer_ptr%ini(this%mainlayer_id, dx, dy)
-          call added_sublayer_ptr%allocate_bf_layer(nodes, alignment)
+          call added_sublayer_ptr%ini(this%mainlayer_id)
+          call added_sublayer_ptr%allocate_bf_layer(
+     $         interior_x_map,
+     $         interior_y_map, 
+     $         interior_nodes,
+     $         alignment)
 
 
           !if there is already an element in the list of sublayers
@@ -532,6 +570,8 @@
      $     this,
      $     bf_sublayer1,
      $     bf_sublayer2,
+     $     interior_x_map,
+     $     interior_y_map,
      $     interior_nodes,
      $     alignment)
      $     result(merged_sublayer)
@@ -541,6 +581,8 @@
           class(bf_mainlayer)                     , intent(inout) :: this
           type(bf_sublayer), pointer              , intent(inout) :: bf_sublayer1
           type(bf_sublayer), pointer              , intent(inout) :: bf_sublayer2
+          real(rkind)   , dimension(nx)           , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(ny)           , intent(in)    :: interior_y_map
           real(rkind)   , dimension(nx,ny,ne)     , intent(in)    :: interior_nodes
           integer(ikind), dimension(2,2), optional, intent(in)    :: alignment
           type(bf_sublayer), pointer                              :: merged_sublayer
@@ -599,11 +641,15 @@
           if(present(alignment)) then
              call bf_sublayer1%merge_bf_layer(
      $            bf_sublayer2,
+     $            interior_x_map,
+     $            interior_y_map,
      $            interior_nodes,
      $            alignment)
           else
              call bf_sublayer1%merge_bf_layer(
      $            bf_sublayer2,
+     $            interior_x_map,
+     $            interior_y_map,
      $            interior_nodes)
           end if
 
@@ -709,11 +755,18 @@
         !> of the bf_sublayers        
         !--------------------------------------------------------------
         subroutine print_binary(
-     $     this, suffix_nodes, suffix_grdid, suffix_sizes)
+     $     this,
+     $     suffix_x_map,
+     $     suffix_y_map,
+     $     suffix_nodes,
+     $     suffix_grdid,
+     $     suffix_sizes)
 
           implicit none
 
           class(bf_mainlayer), intent(in) :: this
+          character(*)       , intent(in) :: suffix_x_map
+          character(*)       , intent(in) :: suffix_y_map
           character(*)       , intent(in) :: suffix_nodes
           character(*)       , intent(in) :: suffix_grdid
           character(*)       , intent(in) :: suffix_sizes
@@ -723,6 +776,8 @@
           integer                    :: i
           character(len=14)          :: filename_format
           character(len=30)          :: sizes_filename
+          character(len=30)          :: x_map_filename
+          character(len=30)          :: y_map_filename
           character(len=30)          :: nodes_filename
           character(len=30)          :: grdid_filename
           type(bf_sublayer), pointer :: current_sublayer
@@ -742,8 +797,15 @@
      $            '(''(A2,I1,A1,A'',I2, '')'')')
      $            len(suffix_nodes)
 
+             write(x_map_filename, filename_format)
+     $            bf_layer_char(this%mainlayer_id), i, '_', suffix_x_map
+
+             write(y_map_filename, filename_format)
+     $            bf_layer_char(this%mainlayer_id), i, '_', suffix_y_map
+
              write(nodes_filename, filename_format)
      $            bf_layer_char(this%mainlayer_id), i, '_', suffix_nodes
+
 
              write(filename_format,
      $            '(''(A2,I1,A1,A'',I2, '')'')')
@@ -757,9 +819,12 @@
              write(sizes_filename, filename_format)
      $            bf_layer_char(this%mainlayer_id), i, '_', suffix_sizes
 
+
              !write the content of the sublayer corresponding
              !to the index i
              call current_sublayer%print_binary(
+     $            x_map_filename,
+     $            y_map_filename,
      $            nodes_filename,
      $            grdid_filename,
      $            sizes_filename)
@@ -825,10 +890,6 @@
      $     name_var,
      $     longname_var,
      $     unit_var,
-     $     x_min_interior,
-     $     y_min_interior,
-     $     dx,
-     $     dy,
      $     time)
 
           implicit none
@@ -838,10 +899,6 @@
           character(*), dimension(ne), intent(in) :: name_var
           character(*), dimension(ne), intent(in) :: longname_var
           character(*), dimension(ne), intent(in) :: unit_var
-          real(rkind)                , intent(in) :: x_min_interior
-          real(rkind)                , intent(in) :: y_min_interior
-          real(rkind)                , intent(in) :: dx
-          real(rkind)                , intent(in) :: dy
           real(rkind)                , intent(in) :: time
 
 
@@ -895,9 +952,6 @@
      $            longname_var,
      $            unit_var,
      $            i,
-     $            x_min_interior,
-     $            y_min_interior,
-     $            dx,dy,
      $            time)
 
              !get the next sublayer in the mainlayer
@@ -996,7 +1050,7 @@
 
              !allocate the temporary variables for the 
              !time integration
-             call current_sublayer%allocate_before_timeInt()
+             call current_sublayer%deallocate_after_timeInt()
 
              !get the next sublayer in the mainlayer
              current_sublayer => current_sublayer%get_next()
@@ -1022,11 +1076,19 @@
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !--------------------------------------------------------------
-        subroutine compute_time_dev(this)
+        subroutine compute_time_dev(
+     $     this,
+     $     td_operators_used,
+     $     t,s,p_model,bc_used)
 
           implicit none
 
           class(bf_mainlayer), intent(inout) :: this
+           type(td_operators), intent(in)    :: td_operators_used
+          real(rkind)        , intent(in)    :: t
+          type(sd_operators) , intent(in)    :: s
+          type(pmodel_eq)    , intent(in)    :: p_model
+          type(bc_operators) , intent(in)    :: bc_used
 
           type(bf_sublayer), pointer :: current_sublayer
           integer                    :: i
@@ -1044,7 +1106,9 @@
 
              !allocate the temporary variables for the 
              !time integration
-             call current_sublayer%compute_time_dev()
+             call current_sublayer%compute_time_dev(
+     $            td_operators_used,
+     $            t,s,p_model,bc_used)
 
              !get the next sublayer in the mainlayer
              current_sublayer => current_sublayer%get_next()

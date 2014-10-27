@@ -261,15 +261,19 @@
         !>@param dy
         !> grid size along the y-direction
         !--------------------------------------------------------------
-        subroutine update_bf_layers_with_idetectors(this, 
-     $     interior_nodes, dx, dy, p_model)
+        subroutine update_bf_layers_with_idetectors(
+     $     this, 
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes,
+     $     p_model)
 
           implicit none
 
           class(bf_interface_icr)         , intent(inout) :: this
+          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          real(rkind)                     , intent(in)    :: dx
-          real(rkind)                     , intent(in)    :: dy
           type(pmodel_eq)                 , intent(in)    :: p_model
 
           type(bf_path_icr)              :: path_update_idetectors
@@ -308,8 +312,12 @@
 
              call process_idetector_list(
      $            this, this%S_detectors_list, S_ndt_list,
-     $            interior_nodes, dx, dy, p_model,
-     $            cpt_coords_p, path_update_idetectors)
+     $            interior_x_map,
+     $            interior_y_map,
+     $            interior_nodes,
+     $            p_model,
+     $            cpt_coords_p,
+     $            path_update_idetectors)
 
           end if
 
@@ -318,9 +326,15 @@
              call E_ndt_list%ini(E, size(this%E_detectors_list,2))
 
              call process_idetector_list(
-     $            this, this%E_detectors_list, E_ndt_list,
-     $            interior_nodes, dx, dy, p_model,
-     $            cpt_coords_p, path_update_idetectors)
+     $            this,
+     $            this%E_detectors_list,
+     $            E_ndt_list,
+     $            interior_x_map,
+     $            interior_y_map,
+     $            interior_nodes,
+     $            p_model,
+     $            cpt_coords_p,
+     $            path_update_idetectors)
 
           end if
 
@@ -329,9 +343,15 @@
              call W_ndt_list%ini(W, size(this%W_detectors_list,2))
 
              call process_idetector_list(
-     $            this, this%W_detectors_list, W_ndt_list,
-     $            interior_nodes, dx, dy, p_model,
-     $            cpt_coords_p, path_update_idetectors)
+     $            this,
+     $            this%W_detectors_list,
+     $            W_ndt_list,
+     $            interior_x_map,
+     $            interior_y_map,
+     $            interior_nodes,
+     $            p_model,
+     $            cpt_coords_p,
+     $            path_update_idetectors)
 
           end if
 
@@ -340,9 +360,15 @@
              call N_ndt_list%ini(N, size(this%N_detectors_list,2))
 
              call process_idetector_list(
-     $            this, this%N_detectors_list, N_ndt_list,
-     $            interior_nodes, dx, dy, p_model,
-     $            cpt_coords_p, path_update_idetectors)
+     $            this,
+     $            this%N_detectors_list,
+     $            N_ndt_list,
+     $            interior_x_map,
+     $            interior_y_map,
+     $            interior_nodes,
+     $            p_model,
+     $            cpt_coords_p,
+     $            path_update_idetectors)
 
           end if
 
@@ -352,7 +378,10 @@
           !   processed
           if(path_update_idetectors%get_nb_pts().gt.0) then
              call path_update_idetectors%process_path(
-     $            this, interior_nodes, dx, dy)
+     $            this,
+     $            interior_x_map,
+     $            interior_y_map,
+     $            interior_nodes)
           end if
 
 
@@ -557,21 +586,27 @@
         !> activated by the detectors
         !--------------------------------------------------------------
         subroutine process_idetector_list(
-     $     this, dt_list, ndt_list,
-     $     interior_nodes, dx, dy, p_model,
-     $     cpt_coords_p, path)
+     $     this,
+     $     dt_list,
+     $     ndt_list,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes,
+     $     p_model,
+     $     cpt_coords_p,
+     $     path)
         
           implicit none
 
           class(bf_interface_icr)                      , intent(inout) :: this
           integer(ikind)          , dimension(:,:)     , intent(in)    :: dt_list
-          type(bf_detector_icr_list)                     , intent(inout) :: ndt_list
+          type(bf_detector_icr_list)                   , intent(inout) :: ndt_list
+          real(rkind)             , dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind)             , dimension(ny)      , intent(in)    :: interior_y_map
           real(rkind)             , dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          real(rkind)                                  , intent(in)    :: dx
-          real(rkind)                                  , intent(in)    :: dy
           type(pmodel_eq)                              , intent(in)    :: p_model
           integer(ikind)          , dimension(2)       , intent(inout) :: cpt_coords_p
-          type(bf_path_icr)                          , intent(inout) :: path
+          type(bf_path_icr)                            , intent(inout) :: path
 
           integer(ikind), dimension(2)   :: cpt_coords
           integer                        :: k,l
@@ -586,8 +621,9 @@
              !of the detector k
              call get_modified_grdpts_list(
      $            this, dt_list(:,k),
+     $            interior_x_map,
+     $            interior_y_map,
      $            interior_nodes,
-     $            dx, dy,
      $            p_model,
      $            cpt_coords_p, cpt_coords,
      $            nb_mgrdpts, mgrdpts, ndt_list)
@@ -613,7 +649,11 @@
                 if(path%is_ended()) then
 
                    !the buffer layers are updated
-                   call path%process_path(this, interior_nodes, dx, dy)
+                   call path%process_path(
+     $                  this,
+     $                  interior_x_map,
+     $                  interior_y_map,
+     $                  interior_nodes)
 
                    !the grid point that led to the path end
                    !is used to reinitialize the current path
@@ -662,20 +702,25 @@
         !> temporary new detector list after their position update
         !--------------------------------------------------------------
         subroutine get_modified_grdpts_list(
-     $     this, d_coords,
+     $     this,
+     $     d_coords,
+     $     interior_x_map,
+     $     interior_y_map,
      $     interior_nodes,
-     $     dx, dy,
      $     p_model,
-     $     cpt_coords_p, cpt_coords,
-     $     nb_mgrdpts, mgrdpts, ndt_list)
+     $     cpt_coords_p,
+     $     cpt_coords,
+     $     nb_mgrdpts,
+     $     mgrdpts,
+     $     ndt_list)
 
           implicit none
 
           class(bf_interface_icr)         , intent(inout) :: this
           integer(ikind), dimension(2)    , intent(in)    :: d_coords
+          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          real(rkind)                     , intent(in)    :: dx
-          real(rkind)                     , intent(in)    :: dy
           type(pmodel_eq)                 , intent(in)    :: p_model
           integer(ikind), dimension(2)    , intent(in)    :: cpt_coords_p
           integer(ikind), dimension(2)    , intent(out)   :: cpt_coords
@@ -709,7 +754,11 @@
              !bc_interior_pt to be activated and the new coordinates
              !from the detector
              cpt_coords = get_central_grdpt(
-     $            d_coords, velocity, dx, dy, d_coords_n)
+     $            d_coords,
+     $            velocity,
+     $            interior_x_map,
+     $            interior_y_map,
+     $            d_coords_n)
              
              !add the new coordinates of the detector of the ndt_list
              call ndt_list%add_new_detector(d_coords_n)
@@ -793,19 +842,27 @@
         !> detector
         !--------------------------------------------------------------
         function get_central_grdpt(
-     $     d_coords, velocity, dx, dy, d_coords_n)
+     $     d_coords,
+     $     velocity,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     d_coords_n)
      $     result(cpt_coords)
 
           implicit none
 
-          integer(ikind), dimension(2), intent(in)  :: d_coords
-          real(rkind)   , dimension(2), intent(in)  :: velocity
-          real(rkind)                 , intent(in)  :: dx
-          real(rkind)                 , intent(in)  :: dy
-          integer(ikind), dimension(2), intent(out) :: d_coords_n
-          integer(ikind), dimension(2)              :: cpt_coords
+          integer(ikind), dimension(2) , intent(in)  :: d_coords
+          real(rkind)   , dimension(2) , intent(in)  :: velocity
+          real(rkind)   , dimension(nx), intent(in)  :: interior_x_map
+          real(rkind)   , dimension(ny), intent(in)  :: interior_y_map
+          integer(ikind), dimension(2) , intent(out) :: d_coords_n
+          integer(ikind), dimension(2)               :: cpt_coords
 
           real(rkind) :: dir_x, dir_y
+          real(rkind) :: dx,dy
+
+          dx = interior_x_map(2)-interior_x_map(1)
+          dy = interior_y_map(2)-interior_y_map(1)
 
           !1) get the direction to look for a bc_interior_pt
           dir_x  = velocity(1)*search_nb_dt*dt/dx

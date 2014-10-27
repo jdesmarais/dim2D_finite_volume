@@ -93,8 +93,7 @@
      $       filename,
      $       name_var, longname_var, unit_var,
      $       bf_loc, bf_order,
-     $       x_start, y_start, dx, dy,
-     $       grdpts_id, nodes, time)
+     $       grdpts_id, x_map, y_map, nodes, time)
 
           implicit none
 
@@ -104,11 +103,9 @@
           character(*), dimension(ne)   , intent(in)    :: unit_var
           integer                       , intent(in)    :: bf_loc
           integer                       , intent(in)    :: bf_order
-          real(rkind)                   , intent(in)    :: x_start
-          real(rkind)                   , intent(in)    :: y_start
-          real(rkind)                   , intent(in)    :: dx
-          real(rkind)                   , intent(in)    :: dy
           integer     , dimension(:,:)  , intent(in)    :: grdpts_id
+          real(rkind) , dimension(:)    , intent(in)    :: x_map
+          real(rkind) , dimension(:)    , intent(in)    :: y_map
           real(rkind) , dimension(:,:,:), intent(inout) :: nodes
           real(rkind)                   , intent(in)    :: time
 
@@ -155,8 +152,7 @@
           call bf_layer_nf90_put_var(
      $         ncid,
      $         coords_id, grdptsid_id, nodes_id,
-     $         x_start, y_start, dx, dy, 
-     $         grdpts_id, nodes, time)
+     $         grdpts_id, x_map, y_map, nodes, time)
 
 
           !close the file
@@ -677,8 +673,7 @@ c$$$          character(len=23), dimension(ne) :: unit_var
         !--------------------------------------------------------------
         subroutine bf_layer_nf90_put_var(
      $     ncid, coords_id, grdptsid_id, nodes_id,
-     $     x_start, y_start, dx, dy,
-     $     grdpts_id, nodes, time)
+     $     grdpts_id, x_map, y_map, nodes, time)
 
           implicit none
 
@@ -686,23 +681,19 @@ c$$$          character(len=23), dimension(ne) :: unit_var
           integer    , dimension(3)    , intent(in) :: coords_id
           integer                      , intent(in) :: grdptsid_id
           integer    , dimension(ne)   , intent(in) :: nodes_id
-          real(rkind)                  , intent(in) :: x_start
-          real(rkind)                  , intent(in) :: y_start
-          real(rkind)                  , intent(in) :: dx
-          real(rkind)                  , intent(in) :: dy
           integer    , dimension(:,:)  , intent(in) :: grdpts_id
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
           real(rkind), dimension(:,:,:), intent(in) :: nodes
           real(rkind)                  , intent(in) :: time
 
           real(rkind), dimension(1)              :: time_table
           integer                                :: t_varid
           integer                                :: x_varid
-          integer                                :: y_varid
-          real(rkind), dimension(:), allocatable :: x_map
-          real(rkind), dimension(:), allocatable :: y_map
+          integer                                :: y_varid          
           integer    , dimension(3)              :: start_op
           integer    , dimension(3)              :: count_op
-          integer                                :: i,j,k
+          integer                                :: k
           integer                                :: retval
 
 
@@ -721,25 +712,15 @@ c$$$          character(len=23), dimension(ne) :: unit_var
 
 
           !write the x_map coordinates
-          allocate(x_map(size(grdpts_id,1)))
-          do i=1, size(grdpts_id,1)
-             x_map(i) = x_start + (i-1)*dx
-          end do
           retval = NF90_PUT_VAR(ncid, x_varid, x_map)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
-          deallocate(x_map)
 
 
           !write the y_map coordinates
-          allocate(y_map(size(grdpts_id,2)))
-          do j=1, size(grdpts_id,2)
-             y_map(j) = y_start + (j-1)*dy
-          end do
           retval = NF90_PUT_VAR(ncid, y_varid, y_map)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
-          deallocate(y_map)
           
 
           !start of the writing
