@@ -1688,36 +1688,36 @@
           real(rkind)    :: dx
 
 
-c$$$          !left outside domain
-c$$$          dx = interior_x_map(2)-interior_x_map(1)
-c$$$          do i=1, i_min1
-c$$$             new_x_map(i) = interior_x_map(
-c$$$     $            bf_alignment_i_min-(bc_size+1)+i_min1+1)
-c$$$     $            - (i_min1-i+1)*dx
-c$$$          end do
-c$$$
-c$$$          !copy of the previous y_map
-c$$$          do i=1, interior_i_max1
-c$$$             new_x_map(i_min1+i) = interior_x_map(
-c$$$     $            bf_alignment_i_min-(bc_size+1)+i_min1+i)
-c$$$          end do
-c$$$          
-c$$$          do i=1, i_max
-c$$$             new_x_map(i_min3+i) = bf_x_map(i_match+i)
-c$$$          end do
-c$$$          
-c$$$          do i=1, interior_i_max2
-c$$$             new_x_map(i_min4+i) = interior_x_map(
-c$$$     $            bf_alignment_i_min-(bc_size+1)+i_min4+i)
-c$$$          end do
-c$$$
-c$$$          !right outside domain
-c$$$          dx = interior_x_map(size(interior_x_map,1))-
-c$$$     $         interior_x_map(size(interior_x_map,1)-1)
-c$$$          do i=interior_i_max2+1, size(new_x_map,1)
-c$$$             new_x_map(i_min4+i) = new_x_map(i_min4+interior_i_max2) +
-c$$$     $            (i-interior_i_max2)*dx
-c$$$          end do
+          !left outside domain
+          dx = interior_x_map(2)-interior_x_map(1)
+          do i=1, i_min1
+             new_x_map(i) = interior_x_map(
+     $            bf_alignment_i_min-(bc_size+1)+i_min1+1)
+     $            - (i_min1-i+1)*dx
+          end do
+
+          !copy of the previous y_map
+          do i=1, interior_i_max1
+             new_x_map(i_min1+i) = interior_x_map(
+     $            bf_alignment_i_min-(bc_size+1)+i_min1+i)
+          end do
+          
+          do i=1, i_max
+             new_x_map(i_min3+i) = bf_x_map(i_match+i)
+          end do
+          
+          do i=1, interior_i_max2
+             new_x_map(i_min4+i) = interior_x_map(
+     $            bf_alignment_i_min-(bc_size+1)+i_min4+i)
+          end do
+
+          !right outside domain
+          dx = interior_x_map(size(interior_x_map,1))-
+     $         interior_x_map(size(interior_x_map,1)-1)
+          do i=i_min4+interior_i_max2+1, size(new_x_map,1)
+             new_x_map(i) = new_x_map(i_min4+interior_i_max2) +
+     $            (i-(i_min4+interior_i_max2))*dx
+          end do
 
         end subroutine create_map_from_interior
 
@@ -1736,15 +1736,15 @@ c$$$          end do
           integer(ikind) :: j
           real(rkind)    :: dy
 
-c$$$          do j=1, j_max
-c$$$             new_y_map(j) = bf_y_map(j)
-c$$$          end do
-c$$$
-c$$$          dy = interior_y_map(size(interior_y_map,1)) -
-c$$$     $         interior_y_map(size(interior_y_map,1)-1)
-c$$$          do j=j_max+1, size(new_y_map,1)
-c$$$             new_y_map(j) = new_y_map(j_max) + (j-j_max)*dy
-c$$$          end do
+          do j=1, j_max
+             new_y_map(j) = bf_y_map(j)
+          end do
+
+          dy = interior_y_map(size(interior_y_map,1)) -
+     $         interior_y_map(size(interior_y_map,1)-1)
+          do j=j_max+1, size(new_y_map,1)
+             new_y_map(j) = new_y_map(j_max) + (j-j_max)*dy
+          end do
 
         end subroutine create_map_right
 
@@ -1764,14 +1764,14 @@ c$$$          end do
           real(rkind)    :: dy
           integer(ikind) :: j
 
-c$$$          dy = interior_y_map(2) - interior_y_map(1)
-c$$$          do j=1, j_start
-c$$$             new_y_map(j) = bf_y_map(j_start+1-j_min) - (j_start+1-j)*dy
-c$$$          end do
-c$$$
-c$$$          do j=j_start+1, size(new_y_map,1)
-c$$$             new_y_map(j) = bf_y_map(j-j_min)
-c$$$          end do
+          dy = interior_y_map(2) - interior_y_map(1)
+          do j=1, j_start
+             new_y_map(j) = bf_y_map(j_start+1-j_min) - (j_start+1-j)*dy
+          end do
+
+          do j=j_start+1, size(new_y_map,1)
+             new_y_map(j) = bf_y_map(j-j_min)
+          end do
 
         end subroutine create_map_left
 
