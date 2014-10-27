@@ -51,6 +51,10 @@ $(cbf_layer_dir)/bf_layer_bc_procedure_module.o:\
 $(cbf_layer_dir)/bf_layer_bc_sections_class.o:\
 	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o
 
+$(cbf_layer_dir)/bf_interior_bc_sections_module.o:\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
 $(cbf_layer_dir)/bf_compute_class.o:\
 	$(bc_cdir)/bc_operators_class.o\
 	$(cbf_layer_dir)/bf_remove_module.o\
