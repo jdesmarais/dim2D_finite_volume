@@ -335,6 +335,8 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
 
           !print neighbor1
           write(sizes_filename,'(A2,''1_sizes'',I1,''.dat'')') neighbor1_char, file_index
+          write(x_map_filename,'(A2,''1_x_map'',I1,''.dat'')') neighbor1_char, file_index
+          write(y_map_filename,'(A2,''1_y_map'',I1,''.dat'')') neighbor1_char, file_index
           write(nodes_filename,'(A2,''1_nodes'',I1,''.dat'')') neighbor1_char, file_index
           write(grdid_filename,'(A2,''1_grdpt_id'',I1,''.dat'')') neighbor1_char, file_index
 

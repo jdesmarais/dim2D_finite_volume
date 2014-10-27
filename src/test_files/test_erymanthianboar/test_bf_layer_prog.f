@@ -44,7 +44,7 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
 
         implicit none
 
-        !integer, parameter :: neighbor_case = 1
+        !integer, parameter :: neighbor_case = 2
         integer, parameter :: size_case = 1
         integer, parameter :: distance_case = 1
         integer, parameter :: random_seed = 86456
@@ -55,8 +55,8 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         integer, parameter :: test_first_bf_layer_align_case = 0
         integer, parameter :: test_second_bf_layer_align_case = 1
         logical, parameter :: test_reallocation = .true.
-        logical, parameter :: test_merge = .false.!true.
-        logical, parameter :: test_copy_with_neighbors=.false.!true.
+        logical, parameter :: test_merge = .true.
+        logical, parameter :: test_copy_with_neighbors=.true.
 
 
         type(bf_layer), dimension(8)   :: table_bf_layer_tested

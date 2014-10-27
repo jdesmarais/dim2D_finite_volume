@@ -1282,18 +1282,6 @@
 
              else
 
-                !x_map
-                call create_map_from_interior(
-     $               new_x_map, x_map2, x_map1, interior_x_map,
-     $               i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
-     $               interior_i_max1, interior_i_max2, interior_i_max3,
-     $               outside_i_max1, outside_i_max2,
-     $               bf_alignment(1,1))
-
-                !y_map
-                call create_map_left(
-     $               new_y_map, y_map2, interior_y_map)
-
                 do k=1, ne
                    call add_nodes_blocks_20_to_22_NS(
      $                  new_nodes,
@@ -1330,6 +1318,19 @@
 
           !nodes2 - nodes1
           else
+
+             !x_map
+             call create_map_from_interior(
+     $            new_x_map, x_map2, x_map1, interior_x_map,
+     $            i_min1, i_min3, i_min4, i_min5, i_min6, i_min8,
+     $            interior_i_max1, interior_i_max2, interior_i_max3,
+     $            outside_i_max1, outside_i_max2,
+     $            bf_alignment(1,1))
+
+             !y_map
+                call create_map_left(
+     $               new_y_map, y_map2, interior_y_map)
+
              if(alignment1(2,1).lt.alignment2(2,1)) then
                 do k=1, ne
 

@@ -1301,12 +1301,12 @@ def plot_nodes_and_grdptid_with_all_bf_layers_with_maps(
 
     #plot the x_map
     ax = fig.add_subplot(2,2,3)
-    res = ax.imshow(lm_x_map[:,:], cmap=cm.spectral, interpolation='nearest', vmin=-4, vmax=4)
+    res = ax.imshow(lm_x_map[:,:], cmap=cm.spectral, interpolation='nearest', vmin=-5, vmax=5)
     fig.colorbar(res) 
 
     #plot the y_map
     ax = fig.add_subplot(2,2,4)
-    res = ax.imshow(lm_y_map[:,:], cmap=cm.spectral, interpolation='nearest', vmin=-6, vmax=6)
+    res = ax.imshow(lm_y_map[:,:], cmap=cm.spectral, interpolation='nearest', vmin=-5, vmax=5)
     fig.colorbar(res) 
 
     return fig,ax
