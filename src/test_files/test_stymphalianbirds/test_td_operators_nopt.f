@@ -1,4 +1,5 @@
-      program test_comp_timedev_bf
+      !test the function td_operators%compute_time_dev_nopt()
+      program test_td_operators_nopt
 
         use bc_operators_class, only :
      $      bc_operators
@@ -287,4 +288,4 @@
         end function is_test_validated
 
 
-      end program test_comp_timedev_bf
+      end program test_td_operators_nopt

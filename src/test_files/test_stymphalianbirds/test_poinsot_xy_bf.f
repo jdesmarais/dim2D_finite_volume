@@ -1,3 +1,14 @@
+      ! compare the application of the optimized function
+      !  - bc_operators%apply_bc_on_time_dev
+      ! 
+      ! and the application of the functions for the
+      ! boundary layers of the buffer layers
+      ! - bc_operators%apply_bc_on_timedev_x_edge
+      ! - bc_operators%apply_bc_on_timedev_y_edge
+      ! - bc_operators%apply_bc_on_timedev_xy_corner
+      ! 
+      ! for the Poinsot boundary conditions
+      !---------------------------------------------------------
       program test_poinsot_xy_bf
 
         use test_openbc_local_operators_module, only :

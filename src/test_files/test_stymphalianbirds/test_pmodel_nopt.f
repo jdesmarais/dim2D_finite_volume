@@ -1,4 +1,7 @@
-      program test_comp_flux_bf
+      !test the functions:
+      ! - p_model%compute_flux_x_nopt
+      ! - p_model%compute_flux_y_nopt
+      program test_pmodel_nopt
 
         use parameters_bf_layer, only :
      $       interior_pt
@@ -212,4 +215,4 @@
         end function is_test_validated
 
 
-      end program test_comp_flux_bf
+      end program test_pmodel_nopt

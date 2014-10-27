@@ -1,3 +1,11 @@
+      ! module to test the application of the boundary conditions
+      ! on the time derivatives using the edge and corner procedures:
+      !
+      ! functions tested:
+      ! - bc_operators%apply_bc_on_timedev_x_edge
+      ! - bc_operators%apply_bc_on_timedev_y_edge
+      ! - bc_operators%apply_bc_on_timedev_xy_corner
+      !---------------------------------------------------------
       module test_openbc_local_operators_module
 
         use ifport
