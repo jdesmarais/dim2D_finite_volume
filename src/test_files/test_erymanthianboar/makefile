@@ -216,6 +216,7 @@ test_bf_layer_prog:\
 	$(fv_dep)\
 	$(simpletest_dep)\
 	$(bf_layer_dep)\
+	$(bc_dep)\
 	test_bf_layer_module.o
 
 test_bf_sublayer_prog:\

@@ -22,10 +22,10 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -3.0000000000d0
-        real(rkind), parameter :: x_max = 0.0000000000d0
-        real(rkind), parameter :: y_min = 0.0000000000d0
-        real(rkind), parameter :: y_max = 3.0000000000d0
+        real(rkind), parameter :: x_min = -2.0000000000d0
+        real(rkind), parameter :: x_max =  2.0000000000d0
+        real(rkind), parameter :: y_min = -2.0000000000d0
+        real(rkind), parameter :: y_max =  2.0000000000d0
         
         !<computational times
         real(rkind), parameter :: t_max = 1.5000000000d0
@@ -40,8 +40,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 7
-        integer(ikind), parameter :: nty = 5
+        integer(ikind), parameter :: ntx = 20
+        integer(ikind), parameter :: nty = 20
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy

@@ -442,7 +442,7 @@ c$$$        end subroutine bf_layer_test_update_grdpts
 
           dy = (y_max-y_min)/(ny-2*bc_size-1)
           do j=1,ny
-             y_map(j) = y_min + (j-1)*dy
+             y_map(j) = y_min + (j-(bc_size+1))*dy
           end do
 
         end subroutine ini_y_map

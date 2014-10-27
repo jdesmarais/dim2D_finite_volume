@@ -1,6 +1,6 @@
       program test_bf_layer_prog
 
-        !use ifport
+        use ifport
 
         use bf_layer_class, only :
      $     bf_layer
@@ -36,6 +36,8 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
      $       bf_layer_test_merge,
      $       bf_layer_test_copy_neighbors,
      $       test_bf_layer_local_coord,
+     $       ini_x_map,
+     $       ini_y_map,
      $       ini_nodes,
      $       ini_grdpts_id,
      $       ini_general_coord
@@ -53,8 +55,8 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         integer, parameter :: test_first_bf_layer_align_case = 0
         integer, parameter :: test_second_bf_layer_align_case = 1
         logical, parameter :: test_reallocation = .true.
-        logical, parameter :: test_merge = .true.
-        logical, parameter :: test_copy_with_neighbors=.true.
+        logical, parameter :: test_merge = .false.!true.
+        logical, parameter :: test_copy_with_neighbors=.false.!true.
 
 
         type(bf_layer), dimension(8)   :: table_bf_layer_tested
@@ -96,8 +98,6 @@ c$$$        integer(ikind), dimension(2)        :: general_coord
         integer :: over_alignment_x
         integer :: over_alignment_y
 
-        real(rkind) :: dx,dy
-        
         integer, dimension(4,2) :: neighbors
 
         neighbors(N,1) = W
@@ -176,6 +176,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
            !test allocation
            write(sizes_filename,'(A2,''1_sizes1.dat'')') bf_layer_char(i)
+           write(x_map_filename,'(A2,''1_x_map1.dat'')') bf_layer_char(i)
+           write(y_map_filename,'(A2,''1_y_map1.dat'')') bf_layer_char(i)
            write(nodes_filename,'(A2,''1_nodes1.dat'')') bf_layer_char(i)
            write(grdid_filename,'(A2,''1_grdpt_id1.dat'')') bf_layer_char(i)
         
@@ -199,6 +201,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
            !test reallocation
            if(test_reallocation) then
               write(sizes_filename,'(A2,''1_sizes2.dat'')') bf_layer_char(i)
+              write(x_map_filename,'(A2,''1_x_map2.dat'')') bf_layer_char(i)
+              write(y_map_filename,'(A2,''1_y_map2.dat'')') bf_layer_char(i)
               write(nodes_filename,'(A2,''1_nodes2.dat'')') bf_layer_char(i)
               write(grdid_filename,'(A2,''1_grdpt_id2.dat'')') bf_layer_char(i)
 
@@ -274,6 +278,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
               !create additional bf layer and print its data
               write(sizes_filename,'(A2,''2_sizes3.dat'')') bf_layer_char(i)
+              write(x_map_filename,'(A2,''2_x_map3.dat'')') bf_layer_char(i)
+              write(y_map_filename,'(A2,''2_y_map3.dat'')') bf_layer_char(i)
               write(nodes_filename,'(A2,''2_nodes3.dat'')') bf_layer_char(i)
               write(grdid_filename,'(A2,''2_grdpt_id3.dat'')') bf_layer_char(i)
 
@@ -290,6 +296,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
      $             y_map,
      $             nodes,
      $             sizes_filename,
+     $             x_map_filename,
+     $             y_map_filename,
      $             nodes_filename,
      $             grdid_filename)
 
@@ -307,6 +315,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
      $                   nodes,
      $                   alignment_2nd,
      $                   sizes_filename,
+     $                   x_map_filename,
+     $                   y_map_filename,
      $                   nodes_filename,
      $                   grdid_filename)
                  end if
@@ -314,6 +324,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
               !test the merging procedure
               write(sizes_filename,'(A2,''1_sizes4.dat'')') bf_layer_char(i)
+              write(x_map_filename,'(A2,''1_x_map4.dat'')') bf_layer_char(i)
+              write(y_map_filename,'(A2,''1_y_map4.dat'')') bf_layer_char(i)
               write(nodes_filename,'(A2,''1_nodes4.dat'')') bf_layer_char(i)
               write(grdid_filename,'(A2,''1_grdpt_id4.dat'')') bf_layer_char(i)
 
@@ -340,6 +352,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
                  call bf_layer_test_merge(
      $                table_2nd_bf_layer_tested(i),
      $                table_1st_bf_layer_tested(i),
+     $                x_map,
+     $                y_map,
      $                nodes,
      $                alignment_merge,
      $                sizes_filename,
@@ -368,8 +382,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
               alignment(2,1) = test_alignment_copy_neighbors(bf_layer_loc(i),1,2,1)
               alignment(2,2) = test_alignment_copy_neighbors(bf_layer_loc(i),1,2,2)
 
-              call table_bf_layer_copy_tested(i,1)%ini(bf_layer_loc(i),dx,dy)
-              call table_bf_layer_copy_tested(i,1)%allocate_bf_layer(nodes,alignment)
+              call table_bf_layer_copy_tested(i,1)%ini(bf_layer_loc(i))
+              call table_bf_layer_copy_tested(i,1)%allocate_bf_layer(x_map,y_map,nodes,alignment)
 
 
               !neighbor1
@@ -378,8 +392,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
               alignment(2,1) = test_alignment_copy_neighbors(bf_layer_loc(i),2,2,1)
               alignment(2,2) = test_alignment_copy_neighbors(bf_layer_loc(i),2,2,2)
 
-              call table_bf_layer_copy_tested(i,2)%ini(neighbors(i,1),dx,dy)
-              call table_bf_layer_copy_tested(i,2)%allocate_bf_layer(nodes,alignment)
+              call table_bf_layer_copy_tested(i,2)%ini(neighbors(i,1))
+              call table_bf_layer_copy_tested(i,2)%allocate_bf_layer(x_map,y_map,nodes,alignment)
 
 
               !neighbor2
@@ -388,8 +402,8 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
               alignment(2,1) = test_alignment_copy_neighbors(bf_layer_loc(i),3,2,1)
               alignment(2,2) = test_alignment_copy_neighbors(bf_layer_loc(i),3,2,2)
 
-              call table_bf_layer_copy_tested(i,3)%ini(neighbors(i,2),dx,dy)
-              call table_bf_layer_copy_tested(i,3)%allocate_bf_layer(nodes,alignment)
+              call table_bf_layer_copy_tested(i,3)%ini(neighbors(i,2))
+              call table_bf_layer_copy_tested(i,3)%allocate_bf_layer(x_map,y_map,nodes,alignment)
 
 
               !test copy neighbors

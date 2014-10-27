@@ -2482,7 +2482,7 @@
           integer :: ios
           
           !x_map
-          open(unit=3,
+          open(unit=2,
      $         file=filename_x_map,
      $         action="write", 
      $         status="unknown",
@@ -2492,14 +2492,14 @@
      $         iostat=ios)
 
           if(ios.eq.0) then
-             write(unit=3, iostat=ios) this%x_map
-             close(unit=3)
+             write(unit=2, iostat=ios) this%x_map
+             close(unit=2)
           else
              stop 'file opening pb'
           end if
 
           !y_map
-          open(unit=3,
+          open(unit=2,
      $         file=filename_y_map,
      $         action="write", 
      $         status="unknown",
@@ -2509,8 +2509,8 @@
      $         iostat=ios)
 
           if(ios.eq.0) then
-             write(unit=3, iostat=ios) this%y_map
-             close(unit=3)
+             write(unit=2, iostat=ios) this%y_map
+             close(unit=2)
           else
              stop 'file opening pb'
           end if

@@ -374,7 +374,7 @@
           j_match = 0
 
           !x_map copy
-          call create_x_map_from_interior(
+          call create_map_from_interior(
      $         bf_x_map, interior_x_map,
      $         i_min1, interior_i_max1, i_match)
 
@@ -1669,7 +1669,7 @@
           !create map outside
           dy = interior_y_map(2) - interior_y_map(1)
           do j=1, size(bf_y_map,1)-2*bc_size
-             bf_y_map(j) = (size(bf_y_map,1)-2*bc_size+1-j)*dy + interior_y_map(j_match+1)
+             bf_y_map(j) = -(size(bf_y_map,1)-2*bc_size+1-j)*dy + interior_y_map(j_match+1)
           end do
 
           !copy from inside
