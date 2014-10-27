@@ -112,7 +112,29 @@
         contains
 
 
-        !allocate the nodes_tmp and time_dev tables
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> allocate the nodes_tmp and time_dev tables storing
+        !> the intermediate time integration steps for the
+        !> buffer layer
+        !
+        !> @date
+        !> 27_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_compute object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param size_x
+        !> size of the nodes tables for the buffer layer integrated
+        !> along the x-direction
+        !
+        !>@param size_y
+        !> size of the nodes tables for the buffer layer integrated
+        !> along the y-direction
+        !--------------------------------------------------------------
         subroutine allocate_tables(this, size_x, size_y)
 
           implicit none
@@ -128,7 +150,21 @@
         end subroutine allocate_tables
 
 
-        !allocate the nodes_tmp and time_dev tables
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> deallocate the nodes_tmp and time_dev tables storing
+        !> the intermediate time integration steps for the
+        !> buffer layer
+        !
+        !> @date
+        !> 27_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_compute object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
         subroutine deallocate_tables(this)
 
           implicit none
@@ -143,7 +179,60 @@
         end subroutine deallocate_tables        
 
 
-        !compute the time derivatives
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives of the grid points of the
+        !> buffer layer
+        !
+        !> @date
+        !> 27_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_compute object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param td_operators_used
+        !> object encapsulating the functions computing the time
+        !> derivatives of the grid points
+        !
+        !>@param t
+        !> time
+        !
+        !>@param nodes
+        !> grid points of the buffer layer whose time derivatives
+        !> are computed
+        !
+        !>@param x_map
+        !> coordinates along the x-direction of the buffer layer
+        !> grid points
+        !
+        !>@param y_map
+        !> coordinates along the y-direction of the buffer layer
+        !> grid points
+        !
+        !>@param s
+        !> object encapsulating the space discretisation methods
+        !
+        !>@param p_model
+        !> object encapsulating the governing equations of the
+        !> physical model
+        !
+        !>@param bc_used
+        !> object encapsulating the boundary conditions
+        !
+        !>@param grdpts_id
+        !> identification of the role of the grid points
+        !
+        !>@param x_borders
+        !> border indices along the x-direction for the time 
+        !> integration
+        !
+        !>@param y_borders
+        !> border indices along the y-direction for the time 
+        !> integration
+        !--------------------------------------------------------------
         subroutine compute_time_dev(
      $     this,
      $     td_operators_used,
@@ -179,8 +268,40 @@
         end subroutine compute_time_dev
 
 
-        !compute the integration step
-        !det_bc_sections : determine the boundary sections
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the integration step
+        !
+        !> @date
+        !> 27_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_compute object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param grdpts_id
+        !> identification of the role of the grid points
+        !
+        !>@param nodes
+        !> grid points of the buffer layer whose time derivatives
+        !> are computed
+        !
+        !>@param dt
+        !> time
+        !
+        !>@param x_borders
+        !> border indices along the x-direction for the time 
+        !> integration
+        !
+        !>@param y_borders
+        !> border indices along the y-direction for the time 
+        !> integration
+        !
+        !>@param integration_step_nopt
+        !> function determining the procedure for the time integration
+        !--------------------------------------------------------------
         subroutine compute_integration_step(
      $     this,
      $     grdpts_id, nodes, dt,
@@ -209,7 +330,23 @@
         end subroutine compute_integration_step
 
       
-        !set the bc_sections
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the bc_sections attribute
+        !
+        !> @date
+        !> 27_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_compute object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param bc_sections
+        !> array identifying the boundary layers of the buffer layer
+        !> integrated in time
+        !--------------------------------------------------------------
         subroutine set_bc_sections(this, bc_sections)
 
           implicit none
@@ -222,7 +359,22 @@
         end subroutine set_bc_sections
 
 
-        !get the time_dev attribute
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the time_dev attribute
+        !
+        !> @date
+        !> 27_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_compute object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param time_dev
+        !> array which the time derivatives of the buffer layer
+        !--------------------------------------------------------------
         subroutine get_time_dev(this, time_dev)
 
           implicit none
