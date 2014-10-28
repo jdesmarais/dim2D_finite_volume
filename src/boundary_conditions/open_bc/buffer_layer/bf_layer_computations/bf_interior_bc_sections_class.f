@@ -1,198 +1,170 @@
-      module bf_interior_bc_sections_module
+      module bf_interior_bc_sections_class
+
+        use bf_layer_bc_procedure_module, only :
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       NE_corner_type,
+     $       NW_corner_type,
+     $       SE_corner_type,
+     $       SW_corner_type
 
         use parameters_kind, only :
-     $     ikind,
-     $     rkind
+     $       ikind
 
         implicit none
 
+        integer, parameter :: allocation_nb=5
+
+
+        type :: interior_bc_sections
+
+          integer(ikind), dimension(:,:), allocatable, private :: bc_sections
+          integer                                    , private :: nb_sections
+
+          procedure, pass :: ini
+          procedure, pass :: process_E_and_W_sections
+          procedure, pass :: add_E_edge
+          procedure, pass :: add_W_edge
+          procedure, pass :: add_EW_edge
+
+          procedure, pass :: add_bc_section
+
+        end type interior_bc_sections
+
         contains
 
-        !bf_alignment:   alignment in the direction of
-        !                the bc_section investigated
-        !interior_inf:   minimum in the direction of
-        !                the bc_section investigated
-        !interior_sup:   maximum in the direction of
-        !                the bc_section investigated
-        !nb_bc_sections: number of boundary sections
-        !                computed by the interior_domain
-        !bc_sections:    boundary sections computed by
-        !                the interior domain
-        subroutine determine_interior_bc_sections(
-     $       bf_alignment,
-     $       interior_inf,
-     $       interior_sup,
-     $       nb_bc_sections,
-     $       bc_sections,
-     $       end_of_bc_sections)
+        subroutine ini(this,nb_bc_sections)
 
           implicit none
 
-          integer(ikind), dimension(2)               , intent(in)    :: bf_alignment
-          integer(ikind)                             , intent(in)    :: interior_inf
-          integer(ikind)                             , intent(in)    :: interior_sup
-          integer                                    , intent(inout) :: nb_bc_sections
-          integer(ikind), dimension(:,:), allocatable, intent(inout) :: bc_sections
-          logical                                    , intent(out)   :: end_of_bc_sections
+          class(bf_interior_bc_sections_class), intent(inout) :: this
+
+          allocate(this%bc_sections(4,nb_bc_sections))
+
+        end subroutine ini
+
+        subroutine process_E_and_W_sections(
+     $     this,
+     $     E_sections,
+     $     W_sections)
+
+          implicit none
+
+          class(bf_interior_bc_sections), intent(inout) :: this
+          integer(ikind), dimension(:,:), intent(inout) :: E_sections
+          integer(ikind), dimension(:,:), intent(inout) :: W_sections
 
 
-          end_of_bc_sections = .false.
+          integer :: k1,k2
 
-          
-          !does the buffer layer investigated has grid points
-          !in common with the interior ?
-          if((
-     $         min(interior_sup,(bf_alignment(2)+bc_size))-
-     $         max(interior_inf,(bf_alignment(1)-bc_size))).gt.0) then
+          k1=1
+          k2=1
 
-             !is it the first boundary section of the interior ?
-             if(nb_bc_sections.eq.0) then
-                
-                !if the boundary layer does not cover the inferior part of
-                !the interior domain, the inferior limit of the buffer layer
-                !can be used as the upper limit of the current bc_section
-                if(.not.((bf_alignment(1)-bc_size).le.interior_inf)) then
-                   
-                   call set_as_min(nb_bc_sections,bc_sections,interior_inf)
-                   call set_as_max(nb_bc_sections,bc_sections,bf_alignment(1)-bc_size-1)
-                   
-                   !the current interior_bc_section is completed and the
-                   !number of bc_sections can be incremented
-                   nb_bc_sections = nb_bc_sections+1
+          do while((k1.le.size(E_sections,2)).and.
+     $         (k2.le.size(W_sections,2)))
 
-                end if
+             !check whether E_sections(:,k1) and
+             !W_sections(:,k2) have grid points in
+             !common
+             common_grdpts = are_grdpts_common(
+     $            E_sections(:,k1),
+     $            W_sections(:,k2))
 
-                !check the upper bound of the boundary layer
-                call check_upper_bound_bc_section(
-     $               bf_alignment,
-     $               interior_sup,
-     $               nb_bc_sections,
-     $               bc_sections,
-     $               end_of_bc_sections)
-                
+             !if there are grdpts in common, the
+             !bc_sections are merged
+             if(common_grdpts) then
+                call merge_E_and_W_sections(
+     $               this,
+     $               E_sections(:,k1),
+     $               W_sections(:,k2))
 
-             !the boundary section investigated is not the first one
+             !if there are no grdpts in common,
+             !one of the two sections should be
+             !added to the 
              else
 
-                !the inferior limit of the buffer layer can be used as the
-                !upper bound of the current bc_section
-                call set_as_max(nb_bc_sections,bc_sections,bf_alignment(1)-bc_size-1)
-
-                !the current interior_bc_section is completed and the
-                !number of bc_sections can be incremented
-                nb_bc_sections = nb_bc_sections+1
-
-                !check the upper bound of the boundary layer
-                call check_upper_bound_bc_section(
-     $               bf_alignment,
-     $               interior_sup,
-     $               nb_bc_sections,
-     $               bc_sections,
-     $               end_of_bc_sections)
-
-             end if
-
-          end if
-
-        end subroutine determine_interior_bc_sections
+                if
 
 
-        subroutine check_upper_bound_bc_section(
-     $     bf_alignment,
-     $     interior_sup,
-     $     nb_bc_sections,
-     $     bc_sections,
-     $     end_of_bc_sections)
+
+          end do
+
+        end subroutine process_E_and_W_sections
+
+
+        subroutine add_E_edge(this,borders)
 
           implicit none
+
+          class(bf_interior_bc_sections), intent(inout) :: this
+          integer(ikind), dimension(2)  , intent(in)    :: borders
+
+          integer(ikind), dimension(4) :: bc_section
+
+          bc_section(1) = E_edge_type
+          bc_section(2) = nx-1
+          bc_section(3) = borders(1)
+          bc_section(4) = borders(2)
+
+          call this%add_bc_section(bc_section)
+
+        end subroutine add_E_edge
+
+
+        subroutine add_W_edge(this,borders)
+
+          implicit none
+
+          class(bf_interior_bc_sections), intent(inout) :: this
+          integer(ikind), dimension(2)  , intent(in)    :: borders
+
+          integer(ikind), dimension(4) :: bc_section
+
+          bc_section(1) = W_edge_type
+          bc_section(2) = 1
+          bc_section(3) = borders(1)
+          bc_section(4) = borders(2)
+
+          call this%add_bc_section(bc_section)
+
+        end subroutine add_W_edge
+
+
+        subroutine add_bc_section(this,bc_section)
+
+          implicit none
+
+          class(bf_interior_bc_sections), intent(inout) :: this
+          integer(ikind), dimension(4)  , intent(in)    :: bc_section
+
+          this%nb_sections=this%nb_sections+1
+
+          if(this%nb_sections>size(this%bc_sections,2)) then
+             allocate(bc_sections_temp(4,size(this%bc_sections,2)+allocation_nb))
+             bc_sections_temp(:,1:size(this%bc_sections,2)) = this%bc_sections(:,:)
+             call MOVE_ALLOC(bc_sections_temp,this%bc_sections)
+          end if
+
+          this%bc_sections(:,this%nb_sections) = bc_section
+
+        end subroutine add_bc_section
+
+
+        function are_grdpts_common(bc_section1, bc_section2)
+     $     result(grdpts_common)
+        
+          implicit none
+
+          integer(ikind), dimension(2), intent(in) :: bc_section1
+          integer(ikind), dimension(2), intent(in) :: bc_section2
+          logical                                  :: grdpts_common
           
-          integer(ikind), dimension(2)               , intent(inout) :: bf_alignment
-          integer(ikind)                             , intent(in)    :: interior_sup
-          integer                                    , intent(in)    :: nb_bc_sections
-          integer       , dimension(:,:), allocatable, intent(inout) :: bc_sections
+          grdpts_common = (
+     $         min(bc_section1(2),bc_section2(2))-
+     $         max(bc_section1(1),bc_section2(1))).gt.0
 
+        end function are_grdpts_common
 
-          !is the upper limit of the buffer layer in
-          !the interior domain ?
-          if((bf_alignment(2)+bc_size).lt.interior_sup) then
-             
-             !the maximum of the buffer layer is used as the
-             !lower limit of the current bc_section
-             call set_as_min(nb_bc_sections,bc_sections,bf_alignment(2)+bc_size+1)
-
-          !otherwise the buffer layer covers entirely
-          !the interior boundary layer: there are
-          !no bc_sections to be computed by the interior
-          else
-
-             end_of_bc_sections = .true.
-
-          end if
-
-        end subroutine check_upper_bound_bc_section
-
-
-        subroutine close_last_bc_section(
-     $     nb_bc_sections,
-     $     bc_sections,
-     $     interior_sup,
-     $     end_of_bc_sections)
-
-          implicit none
-
-          integer                       , intent(in)    :: nb_bc_sections
-          integer(ikind), dimension(:,:), intent(inout) :: bc_sections
-          integer(ikind)                , intent(in)    :: interior_sup
-          logical                       , intent(in)    :: end_of_bc_sections
-
-          if((nb_bc_sections.ne.0).and.(end_of_bc_sections)) then
-
-             call set_as_max(nb_bc_sections,bc_sections,interior_sup)
-
-          end if
-
-        end subroutine close_last_bc_section
-
-
-        subroutine set_as_min(nb_bc_sections,bc_sections,min)
-
-          implicit none
-
-          integer                                    , intent(in)    :: nb_bc_sections
-          integer(ikind), dimension(:,:), allocatable, intent(inout) :: bc_sections
-          integer(ikind)                             , intent(in)    :: min
-
-          integer, parameter :: nb_bc_sections_alloc=5
-          integer(ikind), dimension(:,:), allocatable :: bc_sections_tmp
-
-          if(allocated(bc_sections)) then
-             if(nb_bc_sections+1>size(bc_sections,2)) then
-
-                allocate(bc_sections_tmp(2,nb_bc_sections+nb_bc_sections_alloc))
-                bc_sections_tmp(:,1:size(bc_sections,2)) = bc_sections(:,:)
-                call MOVE_ALLOC(bc_sections_tmp,bc_sections)
-
-             end if
-
-          else
-             allocate(bc_sections(2,nb_bc_sections_alloc))
-          end if
-
-          bc_sections(1,nb_bc_sections+1) = min
-
-        end subroutine set_as_min
-
-      
-        subroutine set_as_max(nb_bc_sections,bc_sections,max)
-
-          implicit none
-
-          integer                                    , intent(in)    :: nb_bc_sections
-          integer(ikind), dimension(:,:), allocatable, intent(inout) :: bc_sections
-          integer(ikind)                             , intent(in)    :: max
-
-          bc_sections(2,nb_bc_sections+1) = max
-
-        end subroutine set_as_max        
-
-      end module bf_interior_bc_sections_module
+      end module bf_interior_bc_sections_class
