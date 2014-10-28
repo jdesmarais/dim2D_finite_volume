@@ -14,6 +14,8 @@
         use parameters_kind     , only : ikind, rkind
 
         use test_bf_layer_module, only : print_interior_data,
+     $                                   ini_x_map,
+     $                                   ini_y_map,
      $                                   ini_nodes,
      $                                   ini_grdpts_id,
      $                                   ini_cst_nodes
@@ -23,6 +25,8 @@
         implicit none
 
         type(bf_interface)                  :: interface_tested
+        real(rkind)   , dimension(nx)       :: x_map
+        real(rkind)   , dimension(ny)       :: y_map
         real(rkind)   , dimension(nx,ny,ne) :: nodes
         integer       , dimension(nx,ny)    :: grdpts_id
         integer       , dimension(2,2)      :: alignment
@@ -37,18 +41,21 @@
 
         integer :: i, index
 
-
-        real(rkind) :: dx, dy
-
-
         !initialize the nodes and print them
+        call ini_x_map(x_map)
+        call ini_y_map(y_map)
         call ini_nodes(nodes)
         call ini_grdpts_id(grdpts_id)
-        call print_interior_data(nodes,
-     $                           grdpts_id, 
-     $                           'interior_nodes.dat',
-     $                           'interior_grdpts_id.dat',
-     $                           'interior_sizes.dat')
+        call print_interior_data(
+     $       x_map,
+     $       y_map,
+     $       nodes,
+     $       grdpts_id, 
+     $       'interior_x_map.dat',
+     $       'interior_y_map.dat',
+     $       'interior_nodes.dat',
+     $       'interior_grdpts_id.dat',
+     $       'interior_sizes.dat')
         
         !initialize the interface
         call interface_tested%ini()
@@ -57,20 +64,22 @@
         !add the N_E buffer layer
         call get_alignment(1, alignment, mainlayer_id)
         added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment, dx, dy)
+     $       mainlayer_id, x_map, y_map, nodes, alignment)
         scale = 0.1
         call ini_cst_nodes(added_sublayer, scale)
         
         !add the W buffer layer under the N_W corner
         call get_alignment(4, alignment, mainlayer_id)
         added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment, dx, dy)
+     $       mainlayer_id, x_map, y_map, nodes, alignment)
         scale = 0.2
         call ini_cst_nodes(added_sublayer, scale)
 
 
         !print the interface
         call interface_tested%print_binary(
+     $       'x_map1.dat',
+     $       'y_map1.dat',
      $       'nodes1.dat',
      $       'grdpt_id1.dat',
      $       'sizes1.dat',
@@ -80,16 +89,18 @@
         !add the E buffer layer under the N_E corner
         call get_alignment(3, alignment, mainlayer_id)
         bf_sublayer_merged1 => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment, dx, dy)
+     $       mainlayer_id, x_map, y_map, nodes, alignment)
         
         !add the N_W buffer layer
         call get_alignment(2, alignment, mainlayer_id)
         added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment, dx, dy)
+     $       mainlayer_id, x_map, y_map, nodes, alignment)
 
         
         !print the interface
         call interface_tested%print_binary(
+     $       'x_map2.dat',
+     $       'y_map2.dat',
      $       'nodes2.dat',
      $       'grdpt_id2.dat',
      $       'sizes2.dat',
@@ -99,16 +110,18 @@
         !add the E buffer layer
         call get_alignment(5, alignment, mainlayer_id)
         bf_sublayer_merged2 => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment, dx, dy)
+     $       mainlayer_id, x_map, y_map, nodes, alignment)
 
         !add the W buffer layer
         call get_alignment(6, alignment, mainlayer_id)
         bf_sublayer_reallocated => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment, dx, dy)
+     $       mainlayer_id, x_map, y_map, nodes, alignment)
 
         
         !print the interface
         call interface_tested%print_binary(
+     $       'x_map3.dat',
+     $       'y_map3.dat',
      $       'nodes3.dat',
      $       'grdpt_id3.dat',
      $       'sizes3.dat',
@@ -118,7 +131,7 @@
         !add the S_E buffer layer
         call get_alignment(7, alignment, mainlayer_id)
         added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment, dx, dy)
+     $       mainlayer_id, x_map, y_map, nodes, alignment)
         scale = 0.3
         call ini_cst_nodes(added_sublayer, scale)
         
@@ -126,13 +139,15 @@
         !add the S_W buffer layer
         call get_alignment(8, alignment, mainlayer_id)
         added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, nodes, alignment, dx, dy)
+     $       mainlayer_id, x_map, y_map, nodes, alignment)
         scale = 0.4
         call ini_cst_nodes(added_sublayer, scale)
 
 
         !print the interface
         call interface_tested%print_binary(
+     $       'x_map4.dat',
+     $       'y_map4.dat',
      $       'nodes4.dat',
      $       'grdpt_id4.dat',
      $       'sizes4.dat',
@@ -143,18 +158,20 @@
         call get_alignment(9, alignment, mainlayer_id)
         merged_sublayer => interface_tested%merge_sublayers(
      $       bf_sublayer_merged1, bf_sublayer_merged2,
-     $       nodes, alignment)
+     $       x_map, y_map, nodes, alignment)
         
 
         !reallocate the W buffer layer
         call get_alignment(10, alignment, mainlayer_id)
         call interface_tested%reallocate_sublayer(
      $       bf_sublayer_reallocated,
-     $       nodes, alignment)
+     $       x_map, y_map, nodes, alignment)
 
 
         !print the interface
         call interface_tested%print_binary(
+     $       'x_map5.dat',
+     $       'y_map5.dat',
      $       'nodes5.dat',
      $       'grdpt_id5.dat',
      $       'sizes5.dat',
@@ -165,10 +182,12 @@
         do i=11,16
            call get_alignment(i, alignment, mainlayer_id)
            added_sublayer => interface_tested%allocate_sublayer(
-     $          mainlayer_id, nodes, alignment, dx, dy)
+     $          mainlayer_id, x_map, y_map, nodes, alignment)
         end do
 
         call interface_tested%print_binary(
+     $       'x_map6.dat',
+     $       'y_map6.dat',
      $       'nodes6.dat',
      $       'grdpt_id6.dat',
      $       'sizes6.dat',
@@ -207,8 +226,20 @@
 
         
         !test the netcdf writing
+        !--------------------------------------------------------
         call test_print_netcdf(
      $       interface_tested,1)
+
+
+        !test the determination of the bc_sections
+        !--------------------------------------------------------
+        call test_determine_interior_bc_layers(
+     $       interface_tested,
+     $       x_map,
+     $       y_map,
+     $       nodes,
+     $       grdpts_id,
+     $       index)
 
 
         contains
@@ -634,6 +665,111 @@
 
         end subroutine test_remove_sublayer
 
+
+        !test the determination of interior boundary layers
+        subroutine test_determine_interior_bc_layers(
+     $     interface_used,
+     $     x_map,
+     $     y_map,
+     $     nodes,
+     $     grdpts_id,
+     $     index)
+        
+          implicit none
+          
+          class(bf_interface)             , intent(inout) :: interface_used
+          real(rkind), dimension(nx)      , intent(in)    :: x_map
+          real(rkind), dimension(ny)      , intent(in)    :: y_map
+          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
+          integer    , dimension(nx,ny)   , intent(in)    :: grdpts_id
+          integer                         , intent(inout) :: index
+
+          integer(ikind), dimension(:,:), allocatable :: interior_bc_sections_N
+          integer(ikind), dimension(:,:), allocatable :: interior_bc_sections_S
+          integer(ikind), dimension(:,:), allocatable :: interior_bc_sections_E
+          integer(ikind), dimension(:,:), allocatable :: interior_bc_sections_W
+
+          integer(ikind) :: i,j
+          integer        :: k
+
+          !0) reinitialize the nodes of the boundary layers
+          call interface_used%determine_interior_bc_layers(
+     $         interior_bc_sections_N,
+     $         interior_bc_sections_S,
+     $         interior_bc_sections_E,
+     $         interior_bc_sections_W)
+
+          !display the boundary layers
+          !1) reinitialize the nodes
+          call reinitialize_nodes(interface_used)
+
+          !2) for each piece of boundary layer, colorize the
+          !   corresponding piece on the graph
+          do k=1,ne
+             do j=1,ny
+                do i=1,nx
+                   nodes(i,j,k) = 1.0
+                end do
+             end do
+          end do
+
+          if(allocated(interior_bc_sections_S)) then
+             do k=1, size(interior_bc_sections_S,2)
+                do j=1,bc_size
+                   do i=interior_bc_sections_S(1,k),interior_bc_sections_S(2,k)
+                      nodes(i,j,:) = 0.3
+                   end do
+                end do
+             end do
+          end if
+
+          if(allocated(interior_bc_sections_E)) then
+             do k=1, size(interior_bc_sections_E,2)
+                do j=interior_bc_sections_E(1,k),interior_bc_sections_E(2,k)
+                   do i=nx-bc_size+1,nx
+                      nodes(i,j,:) = 0.5
+                   end do
+                end do
+             end do
+          end if
+
+          if(allocated(interior_bc_sections_W)) then
+             do k=1, size(interior_bc_sections_W,2)
+                do j=interior_bc_sections_W(1,k),interior_bc_sections_W(2,k)
+                   do i=1,bc_size
+                      nodes(i,j,:) = 0.7
+                   end do
+                end do
+             end do
+          end if
+
+          if(allocated(interior_bc_sections_N)) then
+             do k=1, size(interior_bc_sections_N,2)
+                do j=ny-bc_size+1,ny
+                   do i=interior_bc_sections_N(1,k),interior_bc_sections_N(2,k)
+                      nodes(i,j,:) = 0.1
+                   end do
+                end do
+             end do
+          end if  
+
+          !print interface
+          call print_output(interface_used, index)
+
+          !print interior nodes
+          call print_interior_data(
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         grdpts_id,
+     $         'interior_x_map_bc_sec.dat',
+     $         'interior_y_map_bc_sec.dat',
+     $         'interior_nodes_bc_sec.dat',
+     $         'interior_grdpts_id_bc_sec.dat',
+     $         'interior_sizes_bc_sec.dat')
+
+        end subroutine test_determine_interior_bc_layers
+
       
         !< colorize the main layer whose dependencies are deterimed
         subroutine colorize_main(sublayer_used)
@@ -703,6 +839,8 @@
           character(len=18) :: format_grdpt
           character(len=10) :: format_nbsbl
           
+          character(len=11) :: filename_x_map
+          character(len=11) :: filename_y_map
           character(len=11) :: filename_nodes
           character(len=14) :: filename_grdpt
           character(len=11) :: filename_sizes
@@ -731,6 +869,8 @@
           
 
           !determine the name of the output files
+          write(filename_x_map, format_nodes) 'x_map', index, '.dat'
+          write(filename_y_map, format_nodes) 'y_map', index, '.dat'
           write(filename_nodes, format_nodes) 'nodes', index, '.dat'
           write(filename_grdpt, format_grdpt) 'grdpt_id', index, '.dat'
           write(filename_sizes, format_nodes) 'sizes', index, '.dat'
@@ -739,6 +879,8 @@
 
           !write the outputs
           call interface_used%print_binary(
+     $         filename_x_map,
+     $         filename_y_map,
      $         filename_nodes,
      $         filename_grdpt,
      $         filename_sizes,
@@ -759,10 +901,6 @@
           character*(*), dimension(4) :: longname_var
           character*(*), dimension(4) :: unit_var
 
-          real(rkind) :: x_min_interior
-          real(rkind) :: y_min_interior
-          real(rkind) :: dx
-          real(rkind) :: dy
           real(rkind) :: time
 
           parameter (name_var = [
@@ -783,10 +921,6 @@
      $         '(kg/(m2.s))/(kg/(m2.s))',
      $         '(J/m3)/(J/m3)          '])
 
-          x_min_interior = 1.0
-          y_min_interior = 3.0
-          dx = 1.0
-          dy = 1.0
           time = 2.0
 
           call interface_used%print_netcdf(
@@ -794,10 +928,6 @@
      $         name_var,
      $         longname_var,
      $         unit_var,
-     $         x_min_interior,
-     $         y_min_interior,
-     $         dx,
-     $         dy,
      $         time)
 
         end subroutine test_print_netcdf

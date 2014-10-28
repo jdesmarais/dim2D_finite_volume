@@ -14,7 +14,8 @@
      $       ini_interior_bc_sections,
      $       determine_interior_bc_sections,
      $       close_last_bc_section,
-     $       set_full_interior_bc_section
+     $       set_full_interior_bc_section,
+     $       minimize_interior_bc_section
 
 
         contains
@@ -270,5 +271,27 @@
      $         min_initialized, max_initialized)
 
         end subroutine set_full_interior_bc_section
+
+
+        subroutine minimize_interior_bc_section(
+     $     nb_bc_sections,
+     $     bc_sections)
+
+          implicit none
+
+          integer                                    , intent(in) :: nb_bc_sections
+          integer(ikind), dimension(:,:), allocatable, intent(inout) :: bc_sections
+
+          integer(ikind), dimension(:,:), allocatable :: bc_sections_temp
+
+          if(nb_bc_sections.ne.size(bc_sections_temp,2)) then
+
+             allocate(bc_sections_temp(2,nb_bc_sections))
+             bc_sections_temp(:,:) = bc_sections(:,1:nb_bc_sections)
+             call MOVE_ALLOC(bc_sections_temp,bc_sections)
+             
+          end if
+
+        end subroutine minimize_interior_bc_section
 
       end module bf_interior_bc_sections_module

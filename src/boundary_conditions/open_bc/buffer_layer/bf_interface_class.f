@@ -205,6 +205,8 @@
           procedure, pass :: remove_sublayer
           procedure, pass :: update_grdpts_after_increase
 
+          procedure, pass :: determine_interior_bc_layers
+
           procedure, nopass :: get_mainlayer_id
           procedure, pass   :: get_sublayer
           procedure, pass   :: get_nodes
@@ -1335,6 +1337,116 @@ c$$$          stop 'not implemented yet'
          call this%update_neighbor_grdpts(bf_sublayer_i)
 
        end subroutine update_grdpts_after_increase
+
+
+       !determine the extent of the interior boundary
+       !layers
+       subroutine determine_interior_bc_layers(
+     $     this,
+     $     interior_bc_sections_N,
+     $     interior_bc_sections_S,
+     $     interior_bc_sections_E,
+     $     interior_bc_sections_W)
+
+         implicit none
+
+         class(bf_interface)                        , intent(in)    :: this
+         integer(ikind), dimension(:,:), allocatable, intent(inout) :: interior_bc_sections_N
+         integer(ikind), dimension(:,:), allocatable, intent(inout) :: interior_bc_sections_S
+         integer(ikind), dimension(:,:), allocatable, intent(inout) :: interior_bc_sections_E
+         integer(ikind), dimension(:,:), allocatable, intent(inout) :: interior_bc_sections_W
+
+          type(bf_mainlayer) , pointer :: get_mainlayer
+
+
+         !North boundary layer
+         !---------------------
+         !if there are buffer sub-layers saved in the buffer main layer
+         !the extents of the interior buffer layers are computed using
+         !the buffer main layer
+         if(this%mainlayer_pointers(N)%associated_ptr()) then
+            get_mainlayer => this%mainlayer_pointers(N)%get_ptr()
+
+            call get_mainlayer%determine_interior_bc_layers(
+     $           interior_bc_sections_N)
+
+         !otherwise, there are no buffer layers and the extent of the
+         !north interior boundary layer computed using the boundary
+         !conditions is the entire north boundary layer
+         else
+
+            allocate(interior_bc_sections_N(2,1))
+            interior_bc_sections_N(:,1) = [1,nx]
+
+         end if
+
+
+         !South boundary layer
+         !---------------------
+         !if there are buffer sub-layers saved in the buffer main layer
+         !the extents of the interior buffer layers are computed using
+         !the buffer main layer
+         if(this%mainlayer_pointers(S)%associated_ptr()) then
+            get_mainlayer => this%mainlayer_pointers(S)%get_ptr()
+
+            call get_mainlayer%determine_interior_bc_layers(
+     $           interior_bc_sections_S)
+
+         !otherwise, there are no buffer layers and the extent of the
+         !south interior boundary layer computed using the boundary
+         !conditions is the entire south boundary layer
+         else
+
+            allocate(interior_bc_sections_S(2,1))
+            interior_bc_sections_S(:,1) = [1,nx]
+
+         end if
+
+
+         !East boundary layer
+         !--------------------
+         !if there are buffer sub-layers saved in the buffer main layer
+         !the extents of the interior buffer layers are computed using
+         !the buffer main layer
+         if(this%mainlayer_pointers(E)%associated_ptr()) then
+            get_mainlayer => this%mainlayer_pointers(E)%get_ptr()
+
+            call get_mainlayer%determine_interior_bc_layers(
+     $           interior_bc_sections_E)
+
+         !otherwise, there are no buffer layers and the extent of the
+         !east interior boundary layer computed using the boundary
+         !conditions is the entire east boundary layer
+         else
+
+            allocate(interior_bc_sections_E(2,1))
+            interior_bc_sections_E(:,1) = [1+bc_size,ny-bc_size]
+
+         end if
+
+
+         !Wast boundary layer
+         !--------------------
+         !if there are buffer sub-layers saved in the buffer main layer
+         !the extents of the interior buffer layers are computed using
+         !the buffer main layer
+         if(this%mainlayer_pointers(W)%associated_ptr()) then
+            get_mainlayer => this%mainlayer_pointers(W)%get_ptr()
+
+            call get_mainlayer%determine_interior_bc_layers(
+     $           interior_bc_sections_W)
+
+         !otherwise, there are no buffer layers and the extent of the
+         !west interior boundary layer computed using the boundary
+         !conditions is the entire west boundary layer
+         else
+
+            allocate(interior_bc_sections_W(2,1))
+            interior_bc_sections_W(:,1) = [1+bc_size,ny-bc_size]
+
+         end if
+
+       end subroutine determine_interior_bc_layers
 
 
        !> @author

@@ -121,6 +121,7 @@ $(nbf_layer_dir)/nbf_interface_class.o:\
 	$(sbf_layer_dir)/sbf_list_class.o
 
 $(bf_layer_dir)/bf_mainlayer_class.o:\
+	$(cbf_layer_dir)/bf_interior_bc_sections_module.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(ti_dir)/interface_integration_step.o\

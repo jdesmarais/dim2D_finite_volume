@@ -235,6 +235,7 @@ bf_interface_dep=	$(bf_layer_dep)\
 			bf_sublayer_class.o\
 			bf_mainlayer_class.o\
 			bf_mainlayer_pointer_class.o\
+			bf_interior_bc_sections_module.o\
 			nbf_element_class.o\
 			bf_sublayer_pointer_class.o\
 			sbf_list_class.o\

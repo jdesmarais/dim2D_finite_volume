@@ -17,6 +17,13 @@
       !-----------------------------------------------------------------
       module bf_mainlayer_class
       
+        use bf_interior_bc_sections_module, only :
+     $     ini_interior_bc_sections,
+     $     determine_interior_bc_sections,
+     $     close_last_bc_section,
+     $     set_full_interior_bc_section,
+     $     minimize_interior_bc_section
+
         use bc_operators_class, only :
      $     bc_operators
 
@@ -40,6 +47,7 @@
      $       nx,
      $       ny,
      $       ne,
+     $       bc_size,
      $       debug
 
         use parameters_kind, only :
@@ -149,6 +157,8 @@
           procedure, pass :: add_sublayer
           procedure, pass :: merge_sublayers
           procedure, pass :: remove_sublayer
+
+          procedure, pass :: determine_interior_bc_layers
 
           procedure, pass :: print_binary
           procedure, pass :: print_netcdf
@@ -725,6 +735,143 @@
           this%nb_sublayers = this%nb_sublayers-1
 
         end subroutine remove_sublayer
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the extent of the boundary layers computed
+        !> by the interior nodes
+        !
+        !> @date
+        !> 28_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !
+        !>@param interior_bc_sections
+        !> extent of the boundary layers computed by the interior
+        !> nodes
+        !--------------------------------------------------------------
+        subroutine determine_interior_bc_layers(this, bc_sections)
+
+          implicit none
+
+          class(bf_mainlayer)                        , intent(in)    :: this
+          integer(ikind), dimension(:,:), allocatable, intent(inout) :: bc_sections
+
+          integer        :: dir
+          integer(ikind) :: interior_inf
+          integer(ikind) :: interior_sup
+
+          integer                                     :: nb_bc_sections
+          logical                                     :: min_initialized
+          logical                                     :: max_initialized
+          logical                                     :: no_bf_common_with_interior
+
+          type(bf_sublayer), pointer :: current_sublayer
+          integer                    :: k
+
+          integer(ikind), dimension(2,2) :: bf_alignments
+          integer(ikind), dimension(2)   :: bf_alignment
+
+
+          !initialize the variables for the determination of the
+          !interior boundary layers depending on the cardinal
+          !coordinate of the main layer
+          select case(this%mainlayer_id)
+            case(N,S)
+               dir          = 1
+               interior_inf = 1
+               interior_sup = nx
+
+            case(E,W)
+               dir          = 2
+               interior_inf = bc_size+1
+               interior_sup = ny-bc_size
+               
+            case default
+               call error_mainlayer_id(
+     $              'bf_mainlayer_class.f',
+     $              'determine_interior_bc_sections',
+     $              this%mainlayer_id)
+               
+          end select
+
+
+          !initialize the interior_bc_sections
+          call ini_interior_bc_sections(
+     $         nb_bc_sections,
+     $         min_initialized,
+     $         max_initialized,
+     $         no_bf_common_with_interior)
+
+
+          !initialize the pointer to the first sublayer
+          !investigated
+          current_sublayer => this%head_sublayer
+
+
+          !go through the chained list and update the
+          !extents of the interior boundary layers
+          if(this%nb_sublayers.gt.0) then
+
+             do k=1, this%nb_sublayers
+
+                !determine the alignment of the sublayer
+                bf_alignments = current_sublayer%get_alignment_tab()
+
+                !determine the alignment relevant for the interior
+                bf_alignment(1) = bf_alignments(dir,1)
+                bf_alignment(2) = bf_alignments(dir,2)
+
+                !update the extent of the interior boundary
+                !layers
+                call determine_interior_bc_sections(
+     $               bf_alignment,
+     $               interior_inf,
+     $               interior_sup,
+     $               nb_bc_sections,
+     $               bc_sections,
+     $               min_initialized,
+     $               max_initialized,
+     $               no_bf_common_with_interior)
+
+                !get the next sublayer in the mainlayer
+                current_sublayer => current_sublayer%get_next()
+
+             end do
+
+             !finalize the interior_bc_sections
+             call close_last_bc_section(
+     $            nb_bc_sections,
+     $            bc_sections,
+     $            interior_sup,
+     $            min_initialized,
+     $            max_initialized)
+
+          end if
+
+          if(no_bf_common_with_interior) then
+             call set_full_interior_bc_section(
+     $            nb_bc_sections,
+     $            bc_sections,
+     $            min_initialized,
+     $            max_initialized,
+     $            interior_inf,
+     $            interior_sup)
+          end if
+
+          !minimize the extent of the interior boundary
+          !layers
+          call minimize_interior_bc_section(
+     $         nb_bc_sections,
+     $         bc_sections)
+
+        end subroutine determine_interior_bc_layers
 
 
         !> @author

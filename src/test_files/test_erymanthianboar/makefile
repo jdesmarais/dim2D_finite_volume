@@ -284,7 +284,8 @@ test_bf_interface_prog:\
 	$(param_dep)\
 	$(cg_dep)\
 	$(fv_dep)\
-	$(simpletest_dep)\
+	$(ns2d_dep)\
+	$(poinsot_ns2d_dep)\
 	$(bf_interface_dep)\
 	test_bf_layer_module.o
 

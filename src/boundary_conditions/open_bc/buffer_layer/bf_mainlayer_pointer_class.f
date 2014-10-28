@@ -154,6 +154,8 @@
           procedure, pass :: merge_sublayers
           procedure, pass :: remove_sublayer
 
+          procedure, pass :: determine_interior_bc_layers
+
           procedure, pass :: print_binary
           procedure, pass :: print_netcdf
 
@@ -717,6 +719,42 @@
           end if
 
         end subroutine remove_sublayer
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the extent of the boundary layers computed
+        !> by the interior nodes
+        !
+        !> @date
+        !> 28_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !
+        !>@param interior_bc_sections
+        !> extent of the boundary layers computed by the interior
+        !> nodes
+        !--------------------------------------------------------------
+        subroutine determine_interior_bc_layers(
+     $     this,
+     $     bc_sections)
+
+          implicit none
+
+          class(bf_mainlayer_pointer)                , intent(in)    :: this
+          integer(ikind), dimension(:,:), allocatable, intent(inout) :: bc_sections
+
+          if(this%associated_ptr()) then
+             call this%ptr%determine_interior_bc_layers(
+     $            bc_sections)
+          end if
+
+        end subroutine determine_interior_bc_layers
 
       
         !> @author
