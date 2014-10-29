@@ -210,6 +210,7 @@
 
           procedure, pass :: determine_interior_bc_layers
           procedure, pass :: determine_interior_bc_procedures
+          procedure, pass :: exchange_with_interior
 
           procedure, nopass :: get_mainlayer_id
           procedure, pass   :: get_sublayer
@@ -1343,8 +1344,37 @@ c$$$          stop 'not implemented yet'
        end subroutine update_grdpts_after_increase
 
 
-       !determine the extent of the interior boundary
-       !layers
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> determine the extent of the interior boundary
+       !> layers
+       !
+       !> @date
+       !> 29_10_2014 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param interior_bc_sections_N
+       !> extent of the boundary sections for the north interior
+       !> boundary layer
+       !
+       !>@param interior_bc_sections_S
+       !> extent of the boundary sections for the south interior
+       !> boundary layer
+       !
+       !>@param interior_bc_sections_E
+       !> extent of the boundary sections for the east interior
+       !> boundary layer
+       !
+       !>@param interior_bc_sections_W
+       !> extent of the boundary sections for the west interior
+       !> boundary layer
+       !--------------------------------------------------------------
        subroutine determine_interior_bc_layers(
      $     this,
      $     interior_bc_sections_N,
@@ -1453,6 +1483,25 @@ c$$$          stop 'not implemented yet'
        end subroutine determine_interior_bc_layers
 
 
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> determine the extent of the interior boundary
+       !> layers
+       !
+       !> @date
+       !> 29_10_2014 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param bc_procedures
+       !> array identifying the boundary procedures to be applied in
+       !> the boundary layers of the interior domain
+       !--------------------------------------------------------------
        subroutine determine_interior_bc_procedures(
      $     this,
      $     bc_procedures)
@@ -1489,6 +1538,48 @@ c$$$          stop 'not implemented yet'
          deallocate(interior_bc_sections_W)
 
        end subroutine determine_interior_bc_procedures
+
+
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> exchange the grid points common between the buffer
+       !> layers and the interior domain
+       !
+       !> @date
+       !> 29_10_2014 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param interior_nodes
+       !> grid points from the interior domain
+       !--------------------------------------------------------------
+       subroutine exchange_with_interior(
+     $     this,
+     $     interior_nodes)
+
+         implicit none
+
+         class(bf_interface)             , intent(inout) :: this
+         real(rkind), dimension(nx,ny,ne), intent(inout) :: interior_nodes
+
+         integer :: i
+
+         do i=1, size(this%mainlayer_pointers,1)
+
+            if(this%mainlayer_pointers(i)%associated_ptr()) then
+               
+               call this%mainlayer_pointers(i)%exchange_with_interior(
+     $              interior_nodes)
+
+            end if
+         end do
+
+       end subroutine exchange_with_interior
 
 
        !> @author

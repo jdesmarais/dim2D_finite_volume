@@ -17,6 +17,7 @@
 
         implicit none
 
+
         type(field)          :: field_used
         type(field_extended) :: field_extended_used
 

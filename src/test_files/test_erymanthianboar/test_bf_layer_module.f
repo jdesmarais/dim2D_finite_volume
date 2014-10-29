@@ -393,15 +393,27 @@ c$$$
 c$$$        end subroutine bf_layer_test_update_grdpts
 
 
-        subroutine ini_cst_nodes(bf_layer_initialized, cst)
+        subroutine ini_cst_nodes(
+     $     bf_layer_initialized,
+     $     cst,
+     $     scale_op)
 
           implicit none
 
-          class(bf_layer), intent(inout) :: bf_layer_initialized
-          real(rkind)    , intent(in)    :: cst
+          class(bf_layer)      , intent(inout) :: bf_layer_initialized
+          real(rkind)          , intent(in)    :: cst
+          real(rkind), optional, intent(in)    :: scale_op
+
+          real(rkind) :: scale
           
           integer(ikind), dimension(2) :: sizes
           integer(ikind)               :: i,j
+
+          if(present(scale_op)) then
+             scale = scale_op
+          else
+             scale = 0.1
+          end if
 
           sizes = bf_layer_initialized%get_sizes()
           
@@ -409,7 +421,7 @@ c$$$        end subroutine bf_layer_test_update_grdpts
              do i=1, sizes(1)
                 call bf_layer_initialized%set_nodes_pt(
      $               i,j,1,
-     $               cst+0.1*real(i-1)/real(sizes(1)-1))
+     $               cst+scale*real(i-1)/real(sizes(1)-1))
              end do
           end do          
 

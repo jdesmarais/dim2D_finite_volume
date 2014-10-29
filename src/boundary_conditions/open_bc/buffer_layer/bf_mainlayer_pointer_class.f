@@ -155,6 +155,7 @@
           procedure, pass :: remove_sublayer
 
           procedure, pass :: determine_interior_bc_layers
+          procedure, pass :: exchange_with_interior
 
           procedure, pass :: print_binary
           procedure, pass :: print_netcdf
@@ -755,6 +756,37 @@
           end if
 
         end subroutine determine_interior_bc_layers
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> exchange grid points between the buffer main layer and
+        !> interior domain
+        !
+        !> @date
+        !> 29_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the double chained list of sublayers,
+        !> pointers to the head and tail elements of the list and the
+        !> total number of elements in the list
+        !
+        !>@param interior_nodes
+        !> grid points from the interior domain
+        !--------------------------------------------------------------
+        subroutine exchange_with_interior(this, interior_nodes)
+
+          class(bf_mainlayer_pointer)     , intent(inout) :: this
+          real(rkind), dimension(nx,ny,ne), intent(inout) :: interior_nodes
+
+          if(this%associated_ptr()) then
+             call this%ptr%exchange_with_interior(
+     $            interior_nodes)
+          end if
+
+        end subroutine exchange_with_interior
 
       
         !> @author

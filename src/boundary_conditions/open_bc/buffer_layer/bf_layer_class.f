@@ -48,7 +48,9 @@
      $       do_grdpts_overlap_along_x_dir,
      $       get_match_indices_for_exchange_with_neighbor1,
      $       get_match_indices_for_exchange_with_neighbor2,
-     $       copy_from_bf1_to_bf2
+     $       copy_from_bf1_to_bf2,
+     $       get_match_indices_for_exchange_with_interior,
+     $       copy_between_interior_and_bf_layer
 
         use bf_layer_nf90_operators_module, only :
      $       print_bf_layer_on_netcdf
@@ -373,6 +375,8 @@
           procedure,   pass :: copy_from_neighbor2
           procedure,   pass :: copy_to_neighbor1
           procedure,   pass :: copy_to_neighbor2
+
+          procedure,   pass :: exchange_with_interior
 
           procedure,   pass :: copy_grdpts_id_to_temp
           procedure,   pass :: check_neighboring_bc_interior_pts
@@ -1718,6 +1722,62 @@
         !> Julien L. Desmarais
         !
         !> @brief
+        !> update the common layers between the buffer
+        !> layer and the interior domain
+        !
+        !> @date
+        !> 29_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param interior_nodes
+        !> grid points for the interior domain
+        !--------------------------------------------------------------
+        subroutine exchange_with_interior(this, interior_nodes)
+
+          implicit none
+
+          class(bf_layer)                 , intent(inout) :: this
+          real(rkind), dimension(nx,ny,ne), intent(inout) :: interior_nodes
+
+          integer(ikind), dimension(2) :: in_send
+          integer(ikind), dimension(2) :: in_recv
+          integer(ikind), dimension(2) :: bf_send
+          integer(ikind), dimension(2) :: bf_recv
+          integer(ikind), dimension(2) :: ex_size
+
+          !get the indices identifying which arrays are exchanged
+          call get_match_indices_for_exchange_with_interior(
+     $         this%localization,
+     $         this%alignment,
+     $         size(this%nodes,1),
+     $         size(this%nodes,2),
+     $         in_send,
+     $         in_recv,
+     $         bf_send,
+     $         bf_recv,
+     $         ex_size)
+
+          !exchange the arrays between the buffer layer
+          !and the interior domain
+          call copy_between_interior_and_bf_layer(
+     $         interior_nodes,
+     $         this%nodes,
+     $         in_send,
+     $         in_recv,
+     $         bf_send,
+     $         bf_recv,
+     $         ex_size)
+
+        end subroutine exchange_with_interior
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> create a truncated copy of the the grdpts_id. The copy is
         !> a 3x3 array whose center (2,2) is identified by its general
         !> coordinates cpt_coords
@@ -2940,3 +3000,4 @@
         end subroutine set_y_borders
 
       end module bf_layer_class
+

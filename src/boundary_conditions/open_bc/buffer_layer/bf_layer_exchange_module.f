@@ -14,17 +14,30 @@
       !-----------------------------------------------------------------
       module bf_layer_exchange_module
 
-        use parameters_constant, only : N,S,E,W
-        use parameters_input   , only : ne, bc_size
-        use parameters_kind    , only : ikind, rkind
+        use bf_layer_errors_module, only :
+     $       error_mainlayer_id
+
+        use parameters_constant, only :
+     $       N,S,E,W
+
+        use parameters_input, only :
+     $       nx,ny,ne,
+     $       bc_size
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
       
         implicit none
 
         private
-        public :: do_grdpts_overlap_along_x_dir,
-     $            get_match_indices_for_exchange_with_neighbor1,
-     $            get_match_indices_for_exchange_with_neighbor2,
-     $            copy_from_bf1_to_bf2
+        public ::
+     $       do_grdpts_overlap_along_x_dir,
+     $       get_match_indices_for_exchange_with_neighbor1,
+     $       get_match_indices_for_exchange_with_neighbor2,
+     $       copy_from_bf1_to_bf2,
+     $       get_match_indices_for_exchange_with_interior,
+     $       copy_between_interior_and_bf_layer
 
         contains
 
@@ -218,11 +231,10 @@
                call get_N_exch_indices(bf_size_y, bf_j_min)
                call get_S_exch_indices(nbf_j_min)
             case default
-               print '(''bf_layer_class'')'
-               print '(''copy_from_neighbor1'')'
-               print '(''localization not recognized'')'
-               print '(''localization: '', I2)', localization
-               stop 'change loclaization'
+               call error_mainlayer_id(
+     $              'bf_layer_exchange_module',
+     $              'get_match_indices_for_exchange_with_neighbor1',
+     $              localization)
           end select
 
           bf_copy_size_y = 2*bc_size
@@ -336,11 +348,10 @@
                call get_N_exch_indices(bf_size_y, bf_j_min)
                call get_S_exch_indices(nbf_j_min)
             case default
-               print '(''bf_layer_class'')'
-               print '(''copy_from_neighbor1'')'
-               print '(''localization not recognized'')'
-               print '(''localization: '', I2)', localization
-               stop 'change loclaization'
+               call error_mainlayer_id(
+     $              'bf_layer_exchange_module',
+     $              'get_match_indices_for_exchange_with_neighbor2',
+     $              localization)
           end select
 
           bf_copy_size_y = 2*bc_size
@@ -559,5 +570,253 @@
           j_local_coord = j_general_coord - (bf_alignment(2,1) - (bc_size+1))
 
         end function get_y_local_coord        
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the indices identifying the layers to be exchanged
+        !> between a buffer layer and the interior domain
+        !
+        !> @date
+        !> 29_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param localization
+        !> cardinal coordinate identifying the position of the
+        !> buffer layer
+        !
+        !>@param bf_alignment
+        !> alignment of the buffer layer
+        !
+        !>@param in_send
+        !> x- and y-indices for the SW corner of the table send by
+        !> the interior domain
+        !
+        !>@param in_recv
+        !> x- and y-indices for the SW corner of the table received
+        !> by the interior domain
+        !
+        !>@param in_send
+        !> x- and y-indices for the SW corner of the table send by
+        !> the interior domain
+        !
+        !>@param bf_recv
+        !> x- and y-indices for the SW corner of the table received
+        !> by the buffer layer
+        !
+        !>@param bf_send
+        !> min y-index in copying the grid points from the buffer
+        !> layer to the interior domain
+        !
+        !>@param ex_size
+        !> size-x and size-y of the exchanged arrays
+        !--------------------------------------------------------------
+        subroutine get_match_indices_for_exchange_with_interior(
+     $     localization,
+     $     bf_alignment,
+     $     bf_size_x,
+     $     bf_size_y,
+     $     in_send,
+     $     in_recv,
+     $     bf_send,
+     $     bf_recv,
+     $     ex_size)
+
+          implicit none
+
+          integer                       , intent(in)  :: localization
+          integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
+          integer(ikind)                , intent(in)  :: bf_size_x
+          integer(ikind)                , intent(in)  :: bf_size_y
+          integer(ikind), dimension(2)  , intent(out) :: in_send
+          integer(ikind), dimension(2)  , intent(out) :: in_recv
+          integer(ikind), dimension(2)  , intent(out) :: bf_send
+          integer(ikind), dimension(2)  , intent(out) :: bf_recv
+          integer(ikind), dimension(2)  , intent(out) :: ex_size
+
+          select case(localization)
+
+            case(N)
+
+               in_send =
+     $             [max(1 , bf_alignment(1,1)-bc_size),
+     $              ny-2*bc_size+1]
+
+               in_recv =
+     $             [in_send(1),
+     $              ny-bc_size+1]
+
+               bf_send = 
+     $             [in_send(1) - (bf_alignment(1,1)-(bc_size+1)),
+     $              bc_size+1]
+
+               bf_recv = 
+     $             [in_send(1) - (bf_alignment(1,1)-(bc_size+1)),
+     $              1]
+
+               ex_size =
+     $             [min(nx, bf_alignment(1,2)+bc_size)-in_send(1)+1,
+     $              bc_size]
+
+            case(S)
+
+               in_send =
+     $             [max(1 , bf_alignment(1,1)-bc_size),
+     $              bc_size+1]
+
+               in_recv =
+     $             [in_send(1),
+     $              1]
+
+               bf_send = 
+     $             [in_send(1) - (bf_alignment(1,1)-(bc_size+1)),
+     $              bf_size_y-2*bc_size+1]
+
+               bf_recv = 
+     $             [bf_send(1),
+     $              bf_size_y-bc_size+1]
+
+               ex_size =
+     $             [min(nx, bf_alignment(1,2)+bc_size)-in_send(1)+1,
+     $              bc_size]
+
+            case(E)
+               
+               in_send =
+     $             [nx-2*bc_size+1,
+     $              max(1 , bf_alignment(2,1)-bc_size)]
+
+               in_recv =
+     $             [nx-bc_size+1,
+     $              in_send(2)]
+
+               bf_send = 
+     $             [bc_size+1,
+     $              in_send(2) - (bf_alignment(2,1)-(bc_size+1))]
+
+               bf_recv = 
+     $             [1,
+     $              bf_send(2)]
+
+               ex_size =
+     $             [bc_size,
+     $              min(ny, bf_alignment(2,2)+bc_size)-in_send(2)+1]
+
+            case(W)
+
+               in_send =
+     $             [bc_size+1,
+     $              max(1 , bf_alignment(2,1)-bc_size)]
+
+               in_recv =
+     $             [1,
+     $              in_send(2)]
+
+               bf_send = 
+     $             [bf_size_x-2*bc_size+1,
+     $              in_send(2) - (bf_alignment(2,1)-(bc_size+1))]
+
+               bf_recv = 
+     $             [bf_size_x-bc_size+1,
+     $              bf_send(2)]
+
+               ex_size =
+     $             [bc_size,
+     $              min(ny, bf_alignment(2,2)+bc_size)-in_send(2)+1]
+
+            case default
+               call error_mainlayer_id(
+     $              'bf_layer_exchange_module',
+     $              'get_match_indices_for_exchange_with_interior',
+     $              localization)
+          end select          
+
+        end subroutine get_match_indices_for_exchange_with_interior
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> exchange the data between the buffer layer and the
+        !> interior domain
+        !
+        !> @date
+        !> 29_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param interior_nodes
+        !> grid points from the interior domain
+        !
+        !>@param bf_nodes
+        !> grid points from the buffer layer
+        !
+        !>@param in_send
+        !> x- and y-indices for the SW corner of the table send by
+        !> the interior domain
+        !
+        !>@param in_recv
+        !> x- and y-indices for the SW corner of the table received
+        !> by the interior domain
+        !
+        !>@param in_send
+        !> x- and y-indices for the SW corner of the table send by
+        !> the interior domain
+        !
+        !>@param bf_recv
+        !> x- and y-indices for the SW corner of the table received
+        !> by the buffer layer
+        !
+        !>@param bf_send
+        !> min y-index in copying the grid points from the buffer
+        !> layer to the interior domain
+        !
+        !>@param ex_size
+        !> size-x and size-y of the exchanged arrays
+        !--------------------------------------------------------------
+        subroutine copy_between_interior_and_bf_layer(
+     $     interior_nodes,
+     $     bf_nodes,
+     $     in_send,
+     $     in_recv,
+     $     bf_send,
+     $     bf_recv,
+     $     ex_size)
+
+          implicit none
+
+          real(rkind)   , dimension(:,:,:), intent(inout) :: interior_nodes
+          real(rkind)   , dimension(:,:,:), intent(inout) :: bf_nodes
+          integer(ikind), dimension(2)    , intent(in)    :: in_send
+          integer(ikind), dimension(2)    , intent(in)    :: in_recv
+          integer(ikind), dimension(2)    , intent(in)    :: bf_send
+          integer(ikind), dimension(2)    , intent(in)    :: bf_recv
+          integer(ikind), dimension(2)    , intent(in)    :: ex_size
+
+
+          integer(ikind) :: i,j
+          integer        :: k
+
+
+          if((ex_size(1).gt.0).and.(ex_size(2).gt.0)) then
+
+             !send from interior to the buffer layer
+             do k=1, ne
+                do j=1, ex_size(2)
+                   do i=1, ex_size(1)
+
+                      bf_nodes(bf_send(1)+(i-1),bf_send(2)+(j-1),k) =
+     $                     interior_nodes(in_recv(1)+(i-1),in_recv(2)+(j-1),k)
+
+                      interior_nodes(in_send(1)+(i-1),in_send(2)+(j-1),k) =
+     $                     bf_nodes(bf_recv(1)+(i-1),bf_recv(2)+(j-1),k)
+
+                   end do
+                end do
+             end do             
+
+          end if
+
+        end subroutine copy_between_interior_and_bf_layer
 
       end module bf_layer_exchange_module

@@ -276,9 +276,21 @@
      $       grdpts_id,
      $       index)
 
+
         !test the determination of the bc_procedures
         !--------------------------------------------------------
         call test_determine_interior_bc_procedures(
+     $       interface_tested,
+     $       x_map,
+     $       y_map,
+     $       nodes,
+     $       grdpts_id,
+     $       index)
+
+
+        !test the exchange with the interior domain
+        !--------------------------------------------------------
+        call test_exchange_with_interior(
      $       interface_tested,
      $       x_map,
      $       y_map,
@@ -506,6 +518,54 @@
           end do          
 
         end subroutine reinitialize_nodes
+
+
+        !re-initialize the nodes of all sublayers
+        subroutine reinitialize_nodes_with_gradient(interface_used)
+
+          implicit none
+
+          class(bf_interface), intent(inout) :: interface_used
+
+          integer :: k,l
+          type(bf_mainlayer), pointer :: mainlayer_ptr
+          type(bf_sublayer) , pointer :: sublayer_ptr
+          integer                     :: nb_sublayers
+          
+          real(rkind), dimension(4) :: color
+          real(rkind), dimension(4) :: scale
+
+          color(N) = 0.1
+          scale(N) = 0.3
+
+          color(S) = 0.6
+          scale(S) = 0.2
+
+          color(E) = 0.4
+          scale(E) = 0.2
+
+          color(W) = 0.8
+          scale(W) = 0.2
+
+          do k=1,4
+
+             mainlayer_ptr => interface_used%get_mainlayer(k)
+
+             if(associated(mainlayer_ptr)) then
+                nb_sublayers = mainlayer_ptr%get_nb_sublayers()
+
+                sublayer_ptr => mainlayer_ptr%get_head_sublayer()
+
+                do l=1, nb_sublayers
+                   call ini_cst_nodes(sublayer_ptr,color(k),scale(k))
+                   sublayer_ptr => sublayer_ptr%get_next()
+                end do
+
+             end if
+
+          end do          
+
+        end subroutine reinitialize_nodes_with_gradient
 
 
         !test bf_layer
@@ -930,6 +990,64 @@
           index = index+1
 
         end subroutine test_determine_interior_bc_procedures
+
+
+        !test the determination of interior boundary layers
+        subroutine test_exchange_with_interior(
+     $     interface_used,
+     $     x_map,
+     $     y_map,
+     $     nodes,
+     $     grdpts_id,
+     $     index)
+        
+          implicit none
+          
+          class(bf_interface)             , intent(inout) :: interface_used
+          real(rkind), dimension(nx)      , intent(in)    :: x_map
+          real(rkind), dimension(ny)      , intent(in)    :: y_map
+          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
+          integer    , dimension(nx,ny)   , intent(in)    :: grdpts_id
+          integer                         , intent(inout) :: index
+
+          integer(ikind), dimension(:,:), allocatable :: bc_procedures
+
+          integer(ikind) :: i,j
+          integer        :: k
+
+          !0) reinitialize the nodes of the boundary layers
+          call reinitialize_nodes_with_gradient(interface_used)
+
+          !2) reinitialize the interior nodes
+          do k=1,ne
+             do j=1,ny
+                do i=1,nx
+                   nodes(i,j,k) = real(i+j)/real(nx+ny)
+                end do
+             end do
+          end do
+
+          !3) exchange with interior
+          call interface_used%exchange_with_interior(nodes)
+
+          !print interface
+          call print_output(interface_used, index)
+
+          !print interior nodes
+          call print_interior_data(
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         grdpts_id,
+     $         'interior_x_map_exch.dat',
+     $         'interior_y_map_exch.dat',
+     $         'interior_nodes_exch.dat',
+     $         'interior_grdpts_id_exch.dat',
+     $         'interior_sizes_exch.dat')
+
+          index = index+1
+
+        end subroutine test_exchange_with_interior
 
       
         !< colorize the main layer whose dependencies are deterimed
