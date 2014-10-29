@@ -288,9 +288,20 @@
      $       index)
 
 
-        !test the exchange with the interior domain
+        !test the node synchronization with the interior domain
         !--------------------------------------------------------
-        call test_synch_nodes_with_interior(
+        call test_sync_nodes_with_interior(
+     $       interface_tested,
+     $       x_map,
+     $       y_map,
+     $       nodes,
+     $       grdpts_id,
+     $       index)
+
+        !test the node synchronization at the interface between
+        !buffer main layers
+        !--------------------------------------------------------
+        call test_sync_nodes_at_mainlayer_interfaces(
      $       interface_tested,
      $       x_map,
      $       y_map,
@@ -993,7 +1004,7 @@
 
 
         !test the determination of interior boundary layers
-        subroutine test_synch_nodes_with_interior(
+        subroutine test_sync_nodes_with_interior(
      $     interface_used,
      $     x_map,
      $     y_map,
@@ -1026,7 +1037,7 @@
           end do
 
           !3) exchange with interior
-          call interface_used%synch_nodes_with_interior(nodes)
+          call interface_used%sync_nodes_with_interior(nodes)
 
           !print interface
           call print_output(interface_used, index)
@@ -1037,15 +1048,71 @@
      $         y_map,
      $         nodes,
      $         grdpts_id,
-     $         'interior_x_map_exch.dat',
-     $         'interior_y_map_exch.dat',
-     $         'interior_nodes_exch.dat',
-     $         'interior_grdpts_id_exch.dat',
-     $         'interior_sizes_exch.dat')
+     $         'interior_x_map_sync_int.dat',
+     $         'interior_y_map_sync_int.dat',
+     $         'interior_nodes_sync_int.dat',
+     $         'interior_grdpts_id_sync_int.dat',
+     $         'interior_sizes_sync_int.dat')
 
           index = index+1
 
-        end subroutine test_synch_nodes_with_interior
+        end subroutine test_sync_nodes_with_interior
+
+
+        !test the determination of interior boundary layers
+        subroutine test_sync_nodes_at_mainlayer_interfaces(
+     $     interface_used,
+     $     x_map,
+     $     y_map,
+     $     nodes,
+     $     grdpts_id,
+     $     index)
+        
+          implicit none
+          
+          class(bf_interface)             , intent(inout) :: interface_used
+          real(rkind), dimension(nx)      , intent(in)    :: x_map
+          real(rkind), dimension(ny)      , intent(in)    :: y_map
+          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
+          integer    , dimension(nx,ny)   , intent(in)    :: grdpts_id
+          integer                         , intent(inout) :: index
+
+          integer(ikind) :: i,j
+          integer        :: k
+
+          !0) reinitialize the nodes of the boundary layers
+          call reinitialize_nodes_with_gradient(interface_used)
+
+          !2) reinitialize the interior nodes
+          do k=1,ne
+             do j=1,ny
+                do i=1,nx
+                   nodes(i,j,k) = real(i+j)/real(nx+ny)
+                end do
+             end do
+          end do
+
+          !3) exchange with interior
+          call interface_used%sync_nodes_at_mainlayer_interfaces()
+
+          !print interface
+          call print_output(interface_used, index)
+
+          !print interior nodes
+          call print_interior_data(
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         grdpts_id,
+     $         'interior_x_map_sync_bml.dat',
+     $         'interior_y_map_sync_bml.dat',
+     $         'interior_nodes_sync_bml.dat',
+     $         'interior_grdpts_id_sync_bml.dat',
+     $         'interior_sizes_sync_bml.dat')
+
+          index = index+1
+
+        end subroutine test_sync_nodes_at_mainlayer_interfaces
 
       
         !< colorize the main layer whose dependencies are deterimed

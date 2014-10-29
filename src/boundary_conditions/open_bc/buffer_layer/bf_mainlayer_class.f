@@ -159,7 +159,7 @@
           procedure, pass :: remove_sublayer
 
           procedure, pass :: determine_interior_bc_layers
-          procedure, pass :: synch_nodes_with_interior
+          procedure, pass :: sync_nodes_with_interior
 
           procedure, pass :: print_binary
           procedure, pass :: print_netcdf
@@ -893,7 +893,7 @@
         !>@param interior_nodes
         !> grid points from the interior domain
         !--------------------------------------------------------------
-        subroutine synch_nodes_with_interior(this, interior_nodes)
+        subroutine sync_nodes_with_interior(this, interior_nodes)
 
           implicit none
 
@@ -908,14 +908,14 @@
 
           do i=1, this%nb_sublayers
 
-             call current_sublayer%synch_nodes_with_interior(
+             call current_sublayer%sync_nodes_with_interior(
      $            interior_nodes)
 
              current_sublayer => current_sublayer%get_next()
 
           end do
 
-        end subroutine synch_nodes_with_interior
+        end subroutine sync_nodes_with_interior
 
 
         !> @author

@@ -210,7 +210,8 @@
 
           procedure, pass :: determine_interior_bc_layers
           procedure, pass :: determine_interior_bc_procedures
-          procedure, pass :: synch_nodes_with_interior
+          procedure, pass :: sync_nodes_with_interior
+          procedure, pass :: sync_nodes_at_mainlayer_interfaces
 
           procedure, nopass :: get_mainlayer_id
           procedure, pass   :: get_sublayer
@@ -1558,7 +1559,7 @@ c$$$          stop 'not implemented yet'
        !>@param interior_nodes
        !> grid points from the interior domain
        !--------------------------------------------------------------
-       subroutine synch_nodes_with_interior(
+       subroutine sync_nodes_with_interior(
      $     this,
      $     interior_nodes)
 
@@ -1573,13 +1574,39 @@ c$$$          stop 'not implemented yet'
 
             if(this%mainlayer_pointers(i)%associated_ptr()) then
                
-               call this%mainlayer_pointers(i)%synch_nodes_with_interior(
+               call this%mainlayer_pointers(i)%sync_nodes_with_interior(
      $              interior_nodes)
 
             end if
          end do
 
-       end subroutine synch_nodes_with_interior
+       end subroutine sync_nodes_with_interior
+
+
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> synchronize the nodes located at the interface between
+       !> buffer main layers
+       !
+       !> @date
+       !> 30_10_2014 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !--------------------------------------------------------------
+       subroutine sync_nodes_at_mainlayer_interfaces(this)
+
+         implicit none
+
+         class(bf_interface), intent(inout) :: this
+                  
+         call this%border_interface%sync_interface_nodes()
+
+       end subroutine sync_nodes_at_mainlayer_interfaces
 
 
        !> @author

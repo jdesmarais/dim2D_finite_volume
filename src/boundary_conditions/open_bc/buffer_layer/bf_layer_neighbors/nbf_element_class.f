@@ -10,7 +10,8 @@
       !> of bf_sublayer pointers
       !
       !> @date
-      ! 27_06_2014 - documentation update - J.L. Desmarais
+      ! 27_06_2014 - documentation update     - J.L. Desmarais
+      ! 30_10_2014 - synchronization of nodes - J.L. Desmarais
       !-----------------------------------------------------------------
       module nbf_element_class
 
@@ -103,6 +104,14 @@
         !
         !> @param get_remain_status
         !> get the can_remain attribute of the ptr attribute
+        !
+        !> @param sync_nodes_with_neighbor1
+        !> synchronize the nodes at the interface between the buffer
+        !> layer and another buffer layer which is a neighbor of type 1
+        !
+        !> @param sync_nodes_with_neighbor2
+        !> synchronize the nodes at the interface between the buffer
+        !> layer and another buffer layer which is a neighbor of type 2
         !---------------------------------------------------------------
         type :: nbf_element
 
@@ -130,6 +139,9 @@
           procedure, pass :: copy_to_neighbor2_from
           procedure, pass :: shares_grdpts_along_x_dir_with
           procedure, pass :: get_remain_status
+
+          procedure, pass :: sync_nodes_with_neighbor1
+          procedure, pass :: sync_nodes_with_neighbor2
 
         end type nbf_element
 
@@ -724,5 +736,69 @@
           get_remain_status = this%ptr%get_remain_status()
 
         end function get_remain_status
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> synchronize the nodes at the interface between the buffer
+        !> layer and another buffer layer which is a neighbor of type 1
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param this2
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !--------------------------------------------------------------
+        subroutine sync_nodes_with_neighbor1(this,this2)
+
+          implicit none
+
+          class(nbf_element), intent(inout) :: this
+          class(nbf_element), intent(inout) :: this2
+
+          call this%ptr%sync_nodes_with_neighbor1(this2%ptr)
+
+        end subroutine sync_nodes_with_neighbor1
+
+      
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> synchronize the nodes at the interface between the buffer
+        !> layer and another buffer layer which is a neighbor of type 2
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !
+        !>@param this2
+        !> nbf_element object encapsulating the references to
+        !> bf_sublayer object and the previous and next elements
+        !> in the doubled chained list
+        !--------------------------------------------------------------
+        subroutine sync_nodes_with_neighbor2(this,this2)
+
+          implicit none
+
+          class(nbf_element), intent(inout) :: this
+          class(nbf_element), intent(inout) :: this2
+
+          call this%ptr%sync_nodes_with_neighbor2(this2%ptr)
+
+        end subroutine sync_nodes_with_neighbor2
 
       end module nbf_element_class

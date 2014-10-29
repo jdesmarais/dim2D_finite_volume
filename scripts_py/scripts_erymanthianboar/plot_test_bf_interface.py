@@ -205,16 +205,17 @@ if __name__ == "__main__":
         fig.canvas.set_window_title('10: test_determine_interior_bc_procedures')
     
 
-    #plot the test of exchanging with the interior
+    #plot the test of synchronizing the nodes of the buffer layers
+    #with the interior domain
     for i in range(22,23):
 
         #extract data for the interior points and the buffer layers
     	#-----------------------------------------------------------------
         test_index = str(i+1)
 
-        interior_size_filename      = folder_path+'/interior_sizes_exch.dat'
-        interior_grdptsid_filename  = folder_path+'/interior_grdpts_id_exch.dat'
-        interior_nodes_filename     = folder_path+'/interior_nodes_exch.dat'
+        interior_size_filename      = folder_path+'/interior_sizes_sync_int.dat'
+        interior_grdptsid_filename  = folder_path+'/interior_grdpts_id_sync_int.dat'
+        interior_nodes_filename     = folder_path+'/interior_nodes_sync_int.dat'
 
     	suffix_size    = '_sizes'+test_index+'.dat'
     	suffix_nodes   = '_nodes'+test_index+'.dat'
@@ -233,8 +234,40 @@ if __name__ == "__main__":
         #-----------------------------------------------------------------
         fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
                                                             lm_grdptid)
-        fig.canvas.set_window_title('11: test_exchange_with_interior')
+        fig.canvas.set_window_title('11: test_sync_nodes_with_interior')
     
+
+    #plot the test of synchronizing the nodes at the interface
+    #between buffer main layers
+    for i in range(23,24):
+
+        #extract data for the interior points and the buffer layers
+    	#-----------------------------------------------------------------
+        test_index = str(i+1)
+
+        interior_size_filename      = folder_path+'/interior_sizes_sync_bml.dat'
+        interior_grdptsid_filename  = folder_path+'/interior_grdpts_id_sync_bml.dat'
+        interior_nodes_filename     = folder_path+'/interior_nodes_sync_bml.dat'
+
+    	suffix_size    = '_sizes'+test_index+'.dat'
+    	suffix_nodes   = '_nodes'+test_index+'.dat'
+    	suffix_grdptid = '_grdpt_id'+test_index+'.dat'
+    	
+    	[lm_nodes,lm_grdptid, margin] = make_matrix_for_all_bf_layers(interior_size_filename,
+                                                              interior_grdptsid_filename,
+    	                                                      interior_nodes_filename,
+    	                                                      folder_path,
+    	                                                      nb_sublayers,
+    	                                                      suffix_size,
+    	                                                      suffix_nodes,
+    	                                                      suffix_grdptid)
+    
+        #display
+        #-----------------------------------------------------------------
+        fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
+                                                            lm_grdptid)
+        fig.canvas.set_window_title('12: test_sync_nodes_at_mainlayer_interfaces')
+
 
     #show all
     plt.show()

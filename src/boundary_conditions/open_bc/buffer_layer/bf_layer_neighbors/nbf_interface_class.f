@@ -89,6 +89,10 @@
         !> with the current main layer to receive data from the current
         !> buffer layer
         !
+        !>@param sync_interface_nodes
+        !> synchronize the nodes located at the interface between
+        !> buffer main layers
+        !
         !>@param get_nbf_layers_sharing_grdpts_with
         !> add to the list of sublayer pointers the neighboring 
         !> buffer layers that shares grid points in the
@@ -121,6 +125,8 @@
 
           procedure, pass :: update_grdpts_from_neighbors
           procedure, pass :: update_neighbor_grdpts
+
+          procedure, pass :: sync_interface_nodes
 
           procedure, pass :: get_nbf_layers_sharing_grdpts_with
           procedure, pass :: bf_layer_depends_on_neighbors
@@ -490,6 +496,81 @@
           end if
 
         end subroutine update_neighbor_grdpts
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> synchronize the nodes located at the interface between
+        !> buffer main layer
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !--------------------------------------------------------------
+        subroutine sync_interface_nodes(this)
+
+          implicit none
+
+          class(nbf_interface), intent(inout) :: this
+
+
+          !synchronize the nodes at the SW interface
+          !-----------------------------------------
+          !nbf_links(W,1) are references to buffer
+          !layers of the S layer that may have grid
+          !points in common with the W main layer
+          !-----------------------------------------
+          !The W layer is a neighbor of type 1 for
+          !the S layer
+          !-----------------------------------------
+          call this%nbf_links(W,1)%sync_nodes_with_neighbor1(
+     $         this%nbf_links(S,1))
+
+
+          !synchronize the nodes at the SE interface
+          !-----------------------------------------
+          !nbf_links(E,1) are references to buffer
+          !layers of the S layer that may have grid
+          !points in common with the E main layer
+          !-----------------------------------------
+          !The E layer is a neighbor of type 2 for
+          !the S layer
+          !-----------------------------------------
+          call this%nbf_links(E,1)%sync_nodes_with_neighbor2(
+     $         this%nbf_links(S,2))
+
+
+          !synchronize the nodes at the NW interface
+          !-----------------------------------------
+          !nbf_links(W,2) are references to buffer
+          !layers of the N layer that may have grid
+          !points in common with the W main layer
+          !-----------------------------------------
+          !The W layer is a neighbor of type 1 for
+          !the N layer
+          !-----------------------------------------
+          call this%nbf_links(W,2)%sync_nodes_with_neighbor1(
+     $         this%nbf_links(N,1))
+
+
+          !synchronize the nodes at the NE interface
+          !-----------------------------------------
+          !nbf_links(E,2) are references to buffer
+          !layers of the N layer that may have grid
+          !points in common with the E main layer
+          !-----------------------------------------
+          !The E layer is a neighbor of type 2 for
+          !the N layer
+          !-----------------------------------------
+          call this%nbf_links(E,2)%sync_nodes_with_neighbor2(
+     $         this%nbf_links(N,2))
+
+        end subroutine sync_interface_nodes
 
 
         !> @author

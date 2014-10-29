@@ -111,6 +111,10 @@
         !> neighboring buffer layers and if their removal has been
         !> confirmed
         !
+        !>@param synchronize_nodes_with
+        !> synchronize the nodes at the interface between buffer main
+        !> layer
+        !
         !>@param add_element
         !> add an element in the chained list ensuring that
         !> the doubled chained list element are ordered
@@ -150,6 +154,9 @@
           procedure, pass :: get_nbf_layers_sharing_grdpts_with
           procedure, pass :: bf_layer_depends_on_neighbors
           procedure, pass :: does_a_neighbor_remains
+
+          procedure, pass :: sync_nodes_with_neighbor1
+          procedure, pass :: sync_nodes_with_neighbor2
 
           procedure, pass, private :: add_element
           procedure, pass, private :: remove_element
@@ -828,6 +835,100 @@
           end do
 
         end function does_a_neighbor_remains
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> synchronize nodes at the interface between two buffer main
+        !> layers, the second main layer is a neighbor of type 1 for
+        !> the first buffer layer
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param nbf_list_interface
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !--------------------------------------------------------------
+        subroutine sync_nodes_with_neighbor1(this, this2)
+
+          implicit none
+
+          class(nbf_list), intent(inout) :: this
+          class(nbf_list), intent(inout) :: this2
+
+          type(nbf_element), pointer :: nbf_ele1
+          type(nbf_element), pointer :: nbf_ele2
+          integer                    :: k1, k2
+
+          nbf_ele1 => this%head
+          do k1=1, this%nb_elements
+
+             nbf_ele2 => this2%head
+             do k2=1, this2%nb_elements
+
+                call nbf_ele1%sync_nodes_with_neighbor1(nbf_ele2)
+
+                nbf_ele2 => nbf_ele2%get_next()
+             end do
+
+             nbf_ele1 => nbf_ele1%get_next()
+          end do
+
+        end subroutine sync_nodes_with_neighbor1
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> synchronize nodes at the interface between two buffer main
+        !> layers, the second main layer is a neighbor of type 2 for
+        !> the first buffer layer
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param nbf_list_interface
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !--------------------------------------------------------------
+        subroutine sync_nodes_with_neighbor2(this, this2)
+
+          implicit none
+
+          class(nbf_list), intent(inout) :: this
+          class(nbf_list), intent(inout) :: this2
+
+          type(nbf_element), pointer :: nbf_ele1
+          type(nbf_element), pointer :: nbf_ele2
+          integer                    :: k1, k2
+
+          nbf_ele1 => this%head
+          do k1=1, this%nb_elements
+
+             nbf_ele2 => this2%head
+             do k2=1, this2%nb_elements
+
+                call nbf_ele1%sync_nodes_with_neighbor2(nbf_ele2)
+
+                nbf_ele2 => nbf_ele2%get_next()
+             end do
+
+             nbf_ele1 => nbf_ele1%get_next()
+          end do
+
+        end subroutine sync_nodes_with_neighbor2
 
 
         !> @author

@@ -36,11 +36,10 @@
      $       get_match_indices_for_exchange_with_neighbor1,
      $       get_match_indices_for_exchange_with_neighbor2,
      $       copy_from_bf1_to_bf2,
-     $       get_synch_indices_with_interior,
-     $       synch_nodes_with_interior_domain
-c$$$     $       get_synch_indices_with_neighbor1,
-c$$$     $       get_synch_indices_with_neighbor2,
-c$$$     $       synchronize_nodes_between
+     $       get_sync_indices_with_interior,
+     $       sync_nodes,
+     $       get_sync_indices_with_neighbor1,
+     $       get_sync_indices_with_neighbor2
 
         contains
 
@@ -611,11 +610,10 @@ c$$$     $       synchronize_nodes_between
         !>@param ex_size
         !> size-x and size-y of the exchanged arrays
         !--------------------------------------------------------------
-        subroutine get_synch_indices_with_interior(
+        subroutine get_sync_indices_with_interior(
      $     localization,
      $     bf_alignment,
-     $     bf_size_x,
-     $     bf_size_y,
+     $     bf_size,
      $     in_send,
      $     in_recv,
      $     bf_send,
@@ -626,13 +624,13 @@ c$$$     $       synchronize_nodes_between
 
           integer                       , intent(in)  :: localization
           integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
-          integer(ikind)                , intent(in)  :: bf_size_x
-          integer(ikind)                , intent(in)  :: bf_size_y
+          integer(ikind), dimension(2)  , intent(in)  :: bf_size
           integer(ikind), dimension(2)  , intent(out) :: in_send
           integer(ikind), dimension(2)  , intent(out) :: in_recv
           integer(ikind), dimension(2)  , intent(out) :: bf_send
           integer(ikind), dimension(2)  , intent(out) :: bf_recv
           integer(ikind), dimension(2)  , intent(out) :: ex_size
+
 
           select case(localization)
 
@@ -670,11 +668,11 @@ c$$$     $       synchronize_nodes_between
 
                bf_send = 
      $             [in_send(1) - (bf_alignment(1,1)-(bc_size+1)),
-     $              bf_size_y-2*bc_size+1]
+     $              bf_size(2)-2*bc_size+1]
 
                bf_recv = 
      $             [bf_send(1),
-     $              bf_size_y-bc_size+1]
+     $              bf_size(2)-bc_size+1]
 
                ex_size =
      $             [min(nx, bf_alignment(1,2)+bc_size)-in_send(1)+1,
@@ -713,11 +711,11 @@ c$$$     $       synchronize_nodes_between
      $              in_send(2)]
 
                bf_send = 
-     $             [bf_size_x-2*bc_size+1,
+     $             [bf_size(1)-2*bc_size+1,
      $              in_send(2) - (bf_alignment(2,1)-(bc_size+1))]
 
                bf_recv = 
-     $             [bf_size_x-bc_size+1,
+     $             [bf_size(1)-bc_size+1,
      $              bf_send(2)]
 
                ex_size =
@@ -727,19 +725,19 @@ c$$$     $       synchronize_nodes_between
             case default
                call error_mainlayer_id(
      $              'bf_layer_exchange_module',
-     $              'get_synch_indices_with_interior',
+     $              'get_sync_indices_with_interior',
      $              localization)
+
           end select          
 
-        end subroutine get_synch_indices_with_interior
+        end subroutine get_sync_indices_with_interior
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> exchange the data between the buffer layer and the
-        !> interior domain
+        !> exchange the nodes between two arrays
         !
         !> @date
         !> 29_10_2014 - initial version - J.L. Desmarais
@@ -769,23 +767,23 @@ c$$$     $       synchronize_nodes_between
         !>@param ex_size
         !> size-x and size-y of the exchanged arrays
         !--------------------------------------------------------------
-        subroutine synch_nodes_with_interior_domain(
-     $     interior_nodes,
-     $     bf_nodes,
-     $     in_send,
-     $     in_recv,
-     $     bf_send,
-     $     bf_recv,
+        subroutine sync_nodes(
+     $     bf1_nodes,
+     $     bf1_send,
+     $     bf1_recv,
+     $     bf2_nodes,
+     $     bf2_send,
+     $     bf2_recv,
      $     ex_size)
 
           implicit none
 
-          real(rkind)   , dimension(:,:,:), intent(inout) :: interior_nodes
-          real(rkind)   , dimension(:,:,:), intent(inout) :: bf_nodes
-          integer(ikind), dimension(2)    , intent(in)    :: in_send
-          integer(ikind), dimension(2)    , intent(in)    :: in_recv
-          integer(ikind), dimension(2)    , intent(in)    :: bf_send
-          integer(ikind), dimension(2)    , intent(in)    :: bf_recv
+          real(rkind)   , dimension(:,:,:), intent(inout) :: bf1_nodes
+          integer(ikind), dimension(2)    , intent(in)    :: bf1_send
+          integer(ikind), dimension(2)    , intent(in)    :: bf1_recv
+          real(rkind)   , dimension(:,:,:), intent(inout) :: bf2_nodes
+          integer(ikind), dimension(2)    , intent(in)    :: bf2_send
+          integer(ikind), dimension(2)    , intent(in)    :: bf2_recv
           integer(ikind), dimension(2)    , intent(in)    :: ex_size
 
 
@@ -800,11 +798,11 @@ c$$$     $       synchronize_nodes_between
                 do j=1, ex_size(2)
                    do i=1, ex_size(1)
 
-                      bf_nodes(bf_send(1)+(i-1),bf_send(2)+(j-1),k) =
-     $                     interior_nodes(in_recv(1)+(i-1),in_recv(2)+(j-1),k)
+                      bf2_nodes(bf2_recv(1)+(i-1),bf2_recv(2)+(j-1),k) =
+     $                     bf1_nodes(bf1_send(1)+(i-1),bf1_send(2)+(j-1),k)
 
-                      interior_nodes(in_send(1)+(i-1),in_send(2)+(j-1),k) =
-     $                     bf_nodes(bf_recv(1)+(i-1),bf_recv(2)+(j-1),k)
+                      bf1_nodes(bf1_recv(1)+(i-1),bf1_recv(2)+(j-1),k) =
+     $                     bf2_nodes(bf2_send(1)+(i-1),bf2_send(2)+(j-1),k)
 
                    end do
                 end do
@@ -812,6 +810,283 @@ c$$$     $       synchronize_nodes_between
 
           end if
 
-        end subroutine synch_nodes_with_interior_domain
+        end subroutine sync_nodes
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the indices identifying the layers to be exchanged
+        !> between a buffer layer and its neighbor1
+        !
+        !> @date
+        !> 29_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param bf1_localization
+        !> cardinal coordinate identifying the position of the
+        !> buffer layer 1
+        !
+        !>@param bf1_alignment
+        !> alignment of the buffer layer 1
+        !
+        !>@param bf1_size
+        !> size of the nodes table for the buffer layer 1
+        !
+        !>@param bf1_send
+        !> x- and y-indices for the SW corner of the table send by
+        !> the buffer layer 1
+        !
+        !>@param bf1_recv
+        !> x- and y-indices for the SW corner of the table received
+        !> by the buffer layer 1
+        !
+        !>@param bf2_alignment
+        !> alignment of the buffer layer 2
+        !
+        !>@param bf2_size
+        !> size of the nodes table for the buffer layer 2
+        !
+        !>@param bf2_send
+        !> x- and y-indices for the SW corner of the table send by
+        !> the buffer layer 2
+        !
+        !>@param bf2_recv
+        !> x- and y-indices for the SW corner of the table received
+        !> by the buffer layer 2
+        !
+        !>@param ex_size
+        !> size-x and size-y of the exchanged arrays
+        !--------------------------------------------------------------
+        subroutine get_sync_indices_with_neighbor1(
+     $     bf1_localization,
+     $     bf1_alignment,
+     $     bf1_size,
+     $     bf1_send,
+     $     bf1_recv,
+     $     bf2_alignment,
+     $     bf2_size,
+     $     bf2_send,
+     $     bf2_recv,
+     $     ex_size)
+
+          implicit none
+
+          integer                       , intent(in)  :: bf1_localization
+          integer(ikind), dimension(2,2), intent(in)  :: bf1_alignment
+          integer(ikind), dimension(2)  , intent(in)  :: bf1_size
+          integer(ikind), dimension(2)  , intent(out) :: bf1_send
+          integer(ikind), dimension(2)  , intent(out) :: bf1_recv
+          integer(ikind), dimension(2,2), intent(in)  :: bf2_alignment
+          integer(ikind), dimension(2)  , intent(in)  :: bf2_size
+          integer(ikind), dimension(2)  , intent(out) :: bf2_send
+          integer(ikind), dimension(2)  , intent(out) :: bf2_recv
+          integer(ikind), dimension(2)  , intent(out) :: ex_size
+
+
+          !determination of the x-coordinates for the exchanges
+          call get_x_sync_indices(
+     $         bf1_alignment,
+     $         bf1_send(1), bf1_recv(1),
+     $         bf2_alignment,
+     $         bf2_send(1), bf2_recv(1),
+     $         ex_size)          
+
+          select case(bf1_localization)
+
+            case(N)
+                              
+               !N is bf1
+               bf1_send(2) = bc_size+1
+               bf1_recv(2) = 1
+               
+               !W is bf2
+               bf2_send(2) = bf2_size(2)-2*bc_size+1
+               bf2_recv(2) = bf2_size(2)-bc_size+1
+
+            case(S)
+
+               !S is bf1
+               bf1_send(2) = bf1_size(2)-2*bc_size+1
+               bf1_recv(2) = bf1_size(2)-bc_size+1
+               
+               !W is bf2
+               bf2_send(2) = bc_size+1
+               bf2_recv(2) = 1
+
+            case(E,W)
+
+               !E is bf1
+               bf1_send(2) = bc_size+1
+               bf1_recv(2) = 1
+               
+               !S is bf2
+               bf2_send(2) = bf2_size(2)-2*bc_size+1
+               bf2_recv(2) = bf2_size(2)-bc_size+1
+ 
+            case default
+               call error_mainlayer_id(
+     $              'bf_layer_exchange_module',
+     $              'get_sync_indices_with_interior',
+     $              bf1_localization)
+          end select          
+
+        end subroutine get_sync_indices_with_neighbor1
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the indices identifying the layers to be exchanged
+        !> between a buffer layer and its neighbor1
+        !
+        !> @date
+        !> 29_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param bf1_localization
+        !> cardinal coordinate identifying the position of the
+        !> buffer layer 1
+        !
+        !>@param bf1_alignment
+        !> alignment of the buffer layer 1
+        !
+        !>@param bf1_size
+        !> size of the nodes table for the buffer layer 1
+        !
+        !>@param bf1_send
+        !> x- and y-indices for the SW corner of the table send by
+        !> the buffer layer 1
+        !
+        !>@param bf1_recv
+        !> x- and y-indices for the SW corner of the table received
+        !> by the buffer layer 1
+        !
+        !>@param bf2_alignment
+        !> alignment of the buffer layer 2
+        !
+        !>@param bf2_size
+        !> size of the nodes table for the buffer layer 2
+        !
+        !>@param bf2_send
+        !> x- and y-indices for the SW corner of the table send by
+        !> the buffer layer 2
+        !
+        !>@param bf2_recv
+        !> x- and y-indices for the SW corner of the table received
+        !> by the buffer layer 2
+        !
+        !>@param ex_size
+        !> size-x and size-y of the exchanged arrays
+        !--------------------------------------------------------------
+        subroutine get_sync_indices_with_neighbor2(
+     $     bf1_localization,
+     $     bf1_alignment,
+     $     bf1_size,
+     $     bf1_send,
+     $     bf1_recv,
+     $     bf2_alignment,
+     $     bf2_size,
+     $     bf2_send,
+     $     bf2_recv,
+     $     ex_size)
+
+          implicit none
+
+          integer                       , intent(in)  :: bf1_localization
+          integer(ikind), dimension(2,2), intent(in)  :: bf1_alignment
+          integer(ikind), dimension(2)  , intent(in)  :: bf1_size
+          integer(ikind), dimension(2)  , intent(out) :: bf1_send
+          integer(ikind), dimension(2)  , intent(out) :: bf1_recv
+          integer(ikind), dimension(2,2), intent(in)  :: bf2_alignment
+          integer(ikind), dimension(2)  , intent(in)  :: bf2_size
+          integer(ikind), dimension(2)  , intent(out) :: bf2_send
+          integer(ikind), dimension(2)  , intent(out) :: bf2_recv
+          integer(ikind), dimension(2)  , intent(out) :: ex_size
+
+
+          !determination of the x-coordinates for the exchanges
+          call get_x_sync_indices(
+     $         bf1_alignment,
+     $         bf1_send(1), bf1_recv(1),
+     $         bf2_alignment,
+     $         bf2_send(1), bf2_recv(1),
+     $         ex_size)          
+
+          select case(bf1_localization)
+
+            case(N)
+                              
+               !N is bf1
+               bf1_send(2) = bc_size+1
+               bf1_recv(2) = 1
+               
+               !E is bf2
+               bf2_send(2) = bf2_size(2)-2*bc_size+1
+               bf2_recv(2) = bf2_size(2)-bc_size+1
+
+            case(S)
+
+               !S is bf1
+               bf1_send(2) = bf1_size(2)-2*bc_size+1
+               bf1_recv(2) = bf1_size(2)-bc_size+1
+               
+               !E is bf2
+               bf2_send(2) = bc_size+1
+               bf2_recv(2) = 1
+
+            case(E,W)
+
+               !E,W is bf1
+               bf1_send(2) = bf1_size(2)-2*bc_size+1
+               bf1_recv(2) = bf1_size(2)-bc_size+1
+               
+               !N is bf2
+               bf2_send(2) = bc_size+1
+               bf2_recv(2) = 1
+ 
+            case default
+               call error_mainlayer_id(
+     $              'bf_layer_exchange_module',
+     $              'get_sync_indices_with_interior',
+     $              bf1_localization)
+          end select          
+
+        end subroutine get_sync_indices_with_neighbor2
+
+
+        subroutine get_x_sync_indices(
+     $     bf1_alignment,
+     $     bf1_send_x,
+     $     bf1_recv_x,
+     $     bf2_alignment,
+     $     bf2_send_x,
+     $     bf2_recv_x,
+     $     ex_size)
+
+          implicit none
+
+          integer(ikind), dimension(2,2), intent(in)  :: bf1_alignment
+          integer(ikind)                , intent(out) :: bf1_send_x
+          integer(ikind)                , intent(out) :: bf1_recv_x
+          integer(ikind), dimension(2,2), intent(in)  :: bf2_alignment
+          integer(ikind)                , intent(out) :: bf2_send_x
+          integer(ikind)                , intent(out) :: bf2_recv_x
+          integer(ikind), dimension(2)  , intent(out) :: ex_size
+
+          integer(ikind), dimension(2) :: gen_coords
+
+          gen_coords(1) = max(bf1_alignment(1,1),bf2_alignment(1,1))-bc_size
+          gen_coords(2) = min(bf1_alignment(1,2),bf2_alignment(1,2))+bc_size
+
+          bf1_send_x = gen_coords(1) - (bf1_alignment(1,1)-(bc_size+1))
+          bf1_recv_x = bf1_send_x
+          bf2_send_x = gen_coords(1) - (bf2_alignment(1,1)-(bc_size+1))
+          bf2_recv_x = bf2_send_x
+
+          ex_size(1) = gen_coords(2)-gen_coords(1)+1
+          ex_size(2) = bc_size
+
+        end subroutine get_x_sync_indices
 
       end module bf_layer_exchange_module

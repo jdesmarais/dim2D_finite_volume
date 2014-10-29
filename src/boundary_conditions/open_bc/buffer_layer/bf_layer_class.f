@@ -49,8 +49,10 @@
      $       get_match_indices_for_exchange_with_neighbor1,
      $       get_match_indices_for_exchange_with_neighbor2,
      $       copy_from_bf1_to_bf2,
-     $       get_synch_indices_with_interior,
-     $       synch_nodes_with_interior_domain
+     $       get_sync_indices_with_interior,
+     $       sync_nodes,
+     $       get_sync_indices_with_neighbor1,
+     $       get_sync_indices_with_neighbor2
 
         use bf_layer_nf90_operators_module, only :
      $       print_bf_layer_on_netcdf
@@ -269,6 +271,15 @@
         !> its general coordinates (cpt_coords) are bc_interior_pt,
         !> if so, the points are added to a list of bc_interior_pt
         !
+        !> @param sync_nodes_with_interior
+        !> synchronize the nodes at the interface with the interior
+        !
+        !> @param sync_nodes_with_neighbor1
+        !> synchronize the nodes at the interface with the neighbor1
+        !
+        !> @param sync_nodes_with_neighbor2
+        !> synchronize the nodes at the interface with the neighbor2
+        !
         !> @param update_grdpts_after_increase
         !> turn the grdpts_id identified by general coordinates
         !> from bc_interior_pt to interior_pt and reallocate the
@@ -375,11 +386,12 @@
           procedure,   pass :: copy_from_neighbor2
           procedure,   pass :: copy_to_neighbor1
           procedure,   pass :: copy_to_neighbor2
-
-          procedure,   pass :: synch_nodes_with_interior
-
           procedure,   pass :: copy_grdpts_id_to_temp
           procedure,   pass :: check_neighboring_bc_interior_pts
+
+          procedure,   pass :: sync_nodes_with_interior
+          procedure,   pass :: sync_nodes_with_neighbor1
+          procedure,   pass :: sync_nodes_with_neighbor2
 
           procedure,   pass :: update_grdpts_after_increase
           
@@ -1735,7 +1747,7 @@
         !>@param interior_nodes
         !> grid points for the interior domain
         !--------------------------------------------------------------
-        subroutine synch_nodes_with_interior(this, interior_nodes)
+        subroutine sync_nodes_with_interior(this, interior_nodes)
 
           implicit none
 
@@ -1749,11 +1761,10 @@
           integer(ikind), dimension(2) :: ex_size
 
           !get the indices identifying which arrays are exchanged
-          call get_synch_indices_with_interior(
+          call get_sync_indices_with_interior(
      $         this%localization,
      $         this%alignment,
-     $         size(this%nodes,1),
-     $         size(this%nodes,2),
+     $         [size(this%nodes,1),size(this%nodes,2)],
      $         in_send,
      $         in_recv,
      $         bf_send,
@@ -1762,16 +1773,132 @@
 
           !exchange the arrays between the buffer layer
           !and the interior domain
-          call synch_nodes_with_interior_domain(
+          call sync_nodes(
      $         interior_nodes,
-     $         this%nodes,
      $         in_send,
      $         in_recv,
+     $         this%nodes,
      $         bf_send,
      $         bf_recv,
      $         ex_size)
 
-        end subroutine synch_nodes_with_interior
+        end subroutine sync_nodes_with_interior
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the common layers between the buffer
+        !> layer and another buffer layer which must be
+        !> of type neighbor1 for the first buffer layer
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param neighbor1
+        !> buffer layer which is of neighbor1 type
+        !--------------------------------------------------------------
+        subroutine sync_nodes_with_neighbor1(this, neighbor1)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+          class(bf_layer), intent(inout) :: neighbor1
+
+          integer(ikind), dimension(2) :: bf_send
+          integer(ikind), dimension(2) :: bf_recv
+          integer(ikind), dimension(2) :: nbf_send
+          integer(ikind), dimension(2) :: nbf_recv
+          integer(ikind), dimension(2) :: ex_size
+
+          !get the indices identifying which arrays are exchanged
+          call get_sync_indices_with_neighbor1(
+     $         this%localization,
+     $         this%alignment,
+     $         [size(this%nodes,1),size(this%nodes,2)],
+     $         bf_send,
+     $         bf_recv,
+     $         neighbor1%alignment,
+     $         [size(neighbor1%nodes,1),size(neighbor1%nodes,2)],
+     $         nbf_send,
+     $         nbf_recv,
+     $         ex_size)
+
+          !exchange the arrays between the buffer layer
+          !and the interior domain
+          call sync_nodes(
+     $         this%nodes,
+     $         bf_send,
+     $         bf_recv,
+     $         neighbor1%nodes,
+     $         nbf_send,
+     $         nbf_recv,
+     $         ex_size)
+
+        end subroutine sync_nodes_with_neighbor1
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the common layers between the buffer
+        !> layer and another buffer layer which must be
+        !> of type neighbor2 for the first buffer layer
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param neighbor1
+        !> buffer layer which is of neighbor1 type
+        !--------------------------------------------------------------
+        subroutine sync_nodes_with_neighbor2(this, neighbor2)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+          class(bf_layer), intent(inout) :: neighbor2
+
+          integer(ikind), dimension(2) :: bf_send
+          integer(ikind), dimension(2) :: bf_recv
+          integer(ikind), dimension(2) :: nbf_send
+          integer(ikind), dimension(2) :: nbf_recv
+          integer(ikind), dimension(2) :: ex_size
+
+          !get the indices identifying which arrays are exchanged
+          call get_sync_indices_with_neighbor2(
+     $         this%localization,
+     $         this%alignment,
+     $         [size(this%nodes,1),size(this%nodes,2)],
+     $         bf_send,
+     $         bf_recv,
+     $         neighbor2%alignment,
+     $         [size(neighbor2%nodes,1),size(neighbor2%nodes,2)],
+     $         nbf_send,
+     $         nbf_recv,
+     $         ex_size)
+
+          !exchange the arrays between the buffer layer
+          !and the interior domain
+          call sync_nodes(
+     $         this%nodes,
+     $         bf_send,
+     $         bf_recv,
+     $         neighbor2%nodes,
+     $         nbf_send,
+     $         nbf_recv,
+     $         ex_size)
+
+        end subroutine sync_nodes_with_neighbor2
 
 
         !> @author
