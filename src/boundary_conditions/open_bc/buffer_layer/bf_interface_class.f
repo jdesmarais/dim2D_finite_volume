@@ -18,6 +18,9 @@
 
         use bc_operators_class, only :
      $       bc_operators
+        
+        use bf_interior_bc_sections_module, only :
+     $       process_bc_sections_into_bc_procedure
 
         use bf_layer_errors_module, only :
      $       error_mainlayer_id,
@@ -206,6 +209,7 @@
           procedure, pass :: update_grdpts_after_increase
 
           procedure, pass :: determine_interior_bc_layers
+          procedure, pass :: determine_interior_bc_procedures
 
           procedure, nopass :: get_mainlayer_id
           procedure, pass   :: get_sublayer
@@ -1447,6 +1451,44 @@ c$$$          stop 'not implemented yet'
          end if
 
        end subroutine determine_interior_bc_layers
+
+
+       subroutine determine_interior_bc_procedures(
+     $     this,
+     $     bc_procedures)
+
+         implicit none
+
+         class(bf_interface)                        , intent(inout) :: this
+         integer(ikind), dimension(:,:), allocatable, intent(out)   :: bc_procedures
+
+         
+         integer(ikind), dimension(:,:), allocatable :: interior_bc_sections_N
+         integer(ikind), dimension(:,:), allocatable :: interior_bc_sections_S
+         integer(ikind), dimension(:,:), allocatable :: interior_bc_sections_E
+         integer(ikind), dimension(:,:), allocatable :: interior_bc_sections_W
+
+
+         call determine_interior_bc_layers(
+     $        this,
+     $        interior_bc_sections_N,
+     $        interior_bc_sections_S,
+     $        interior_bc_sections_E,
+     $        interior_bc_sections_W)
+
+         call process_bc_sections_into_bc_procedure(
+     $        interior_bc_sections_N,
+     $        interior_bc_sections_S,
+     $        interior_bc_sections_E,
+     $        interior_bc_sections_W,
+     $        bc_procedures)
+
+         deallocate(interior_bc_sections_N)
+         deallocate(interior_bc_sections_S)
+         deallocate(interior_bc_sections_E)
+         deallocate(interior_bc_sections_W)
+
+       end subroutine determine_interior_bc_procedures
 
 
        !> @author

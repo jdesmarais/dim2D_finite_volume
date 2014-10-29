@@ -4,22 +4,57 @@
       !encapsulating the buffer layer objects      
       program test_bf_interface_prog
 
-        use bf_mainlayer_class  , only : bf_mainlayer
-        use bf_sublayer_class   , only : bf_sublayer
-        use bf_interface_class  , only : bf_interface
-        use parameters_bf_layer , only : align_N, align_S,
-     $                                   align_E, align_W
-        use parameters_constant , only : N,S,E,W
-        use parameters_input    , only : nx,ny,ne,bc_size
-        use parameters_kind     , only : ikind, rkind
+        use bf_layer_bc_procedure_module, only :
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       SW_corner_type,
+     $       SE_corner_type,
+     $       NW_corner_type,
+     $       NE_corner_type
 
-        use test_bf_layer_module, only : print_interior_data,
-     $                                   ini_x_map,
-     $                                   ini_y_map,
-     $                                   ini_nodes,
-     $                                   ini_grdpts_id,
-     $                                   ini_cst_nodes
-        use sbf_list_class      , only : sbf_list
+        use bf_mainlayer_class, only :
+     $       bf_mainlayer
+
+        use bf_sublayer_class, only :
+     $       bf_sublayer
+
+        use bf_interface_class, only :
+     $       bf_interface
+
+        use parameters_bf_layer, only :
+     $       align_N,
+     $       align_S,
+     $       align_E,
+     $       align_W
+
+        use parameters_constant, only :
+     $       N,
+     $       S,
+     $       E,
+     $       W
+
+        use parameters_input, only :
+     $       nx,
+     $       ny,
+     $       ne,
+     $       bc_size
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use test_bf_layer_module, only :
+     $       print_interior_data,
+     $       ini_x_map,
+     $       ini_y_map,
+     $       ini_nodes,
+     $       ini_grdpts_id,
+     $       ini_cst_nodes
+
+        use sbf_list_class, only :
+     $       sbf_list
 
 
         implicit none
@@ -234,6 +269,16 @@
         !test the determination of the bc_sections
         !--------------------------------------------------------
         call test_determine_interior_bc_layers(
+     $       interface_tested,
+     $       x_map,
+     $       y_map,
+     $       nodes,
+     $       grdpts_id,
+     $       index)
+
+        !test the determination of the bc_procedures
+        !--------------------------------------------------------
+        call test_determine_interior_bc_procedures(
      $       interface_tested,
      $       x_map,
      $       y_map,
@@ -768,7 +813,123 @@
      $         'interior_grdpts_id_bc_sec.dat',
      $         'interior_sizes_bc_sec.dat')
 
+          index = index+1
+
         end subroutine test_determine_interior_bc_layers
+
+
+        !test the determination of interior boundary layers
+        subroutine test_determine_interior_bc_procedures(
+     $     interface_used,
+     $     x_map,
+     $     y_map,
+     $     nodes,
+     $     grdpts_id,
+     $     index)
+        
+          implicit none
+          
+          class(bf_interface)             , intent(inout) :: interface_used
+          real(rkind), dimension(nx)      , intent(in)    :: x_map
+          real(rkind), dimension(ny)      , intent(in)    :: y_map
+          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
+          integer    , dimension(nx,ny)   , intent(in)    :: grdpts_id
+          integer                         , intent(inout) :: index
+
+          integer(ikind), dimension(:,:), allocatable :: bc_procedures
+
+          integer(ikind) :: i,j
+          integer        :: k
+
+          real(rkind), dimension(8) :: color
+
+          !0) reinitialize the nodes of the boundary layers
+          call interface_used%determine_interior_bc_procedures(
+     $         bc_procedures)
+
+          !display the boundary layers
+          !1) reinitialize the nodes of interface
+          call reinitialize_nodes(interface_used)
+
+          !2) reinitialize the interior nodes
+          do k=1,ne
+             do j=1,ny
+                do i=1,nx
+                   nodes(i,j,k) = 1.0
+                end do
+             end do
+          end do
+
+          !3) for each procedure, colorize the
+          !   corresponding piece on the graph
+          color(SW_corner_type) = 0.1
+          color(SE_corner_type) = 0.2
+          color(NW_corner_type) = 0.3
+          color(NE_corner_type) = 0.4
+          color(N_edge_type)    = 0.5
+          color(S_edge_type)    = 0.6
+          color(E_edge_type)    = 0.7
+          color(W_edge_type)    = 0.8
+
+
+          if(allocated(bc_procedures)) then
+             do k=1, size(bc_procedures,2)
+
+                select case(bc_procedures(1,k))
+
+                  case(N_edge_type,S_edge_type)
+
+                     do j = bc_procedures(3,k), bc_procedures(3,k)+1
+                        do i=bc_procedures(2,k), bc_procedures(4,k)
+                           nodes(i,j,:) = color(bc_procedures(1,k))
+                        end do
+                     end do
+
+                  case(E_edge_type,W_edge_type)
+                     
+                     do j = bc_procedures(3,k), bc_procedures(4,k)
+                        do i=bc_procedures(2,k), bc_procedures(2,k)+1
+                           nodes(i,j,:) = color(bc_procedures(1,k))
+                        end do
+                     end do
+
+                  case(SW_corner_type,SE_corner_type,
+     $                 NW_corner_type,NE_corner_type)
+                  
+                     do j = bc_procedures(3,k), bc_procedures(3,k)+1
+                        do i=bc_procedures(2,k), bc_procedures(2,k)+1
+                           nodes(i,j,:) = color(bc_procedures(1,k))
+                        end do
+                     end do
+
+                 case default
+                    print '(''test_bf_interface_prog'')'
+                    print '(''determine_interior_bc_procedures'')'
+                    stop 'case not recognized'
+
+               end select
+
+             end do
+          end if  
+
+          !print interface
+          call print_output(interface_used, index)
+
+          !print interior nodes
+          call print_interior_data(
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         grdpts_id,
+     $         'interior_x_map_bc_proc.dat',
+     $         'interior_y_map_bc_proc.dat',
+     $         'interior_nodes_bc_proc.dat',
+     $         'interior_grdpts_id_bc_proc.dat',
+     $         'interior_sizes_bc_proc.dat')
+
+          index = index+1
+
+        end subroutine test_determine_interior_bc_procedures
 
       
         !< colorize the main layer whose dependencies are deterimed

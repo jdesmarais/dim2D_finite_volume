@@ -94,6 +94,7 @@ test_bf_path_icr_prog.o:\
 	test_bf_layer_module.o
 
 test_bf_interface_prog.o:\
+	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
 	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(bf_layer_dir)/bf_interface_class.o\
