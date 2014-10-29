@@ -147,10 +147,10 @@
         !---------------------------------------------------------------
         type, extends(surrogate) :: field_abstract
 
-          type(sd_operators), private :: sd_operators_used
-          type(pmodel_eq)   , private :: pmodel_eq_used
-          type(bc_operators), private :: bc_operators_used
-          type(td_operators), private :: td_operators_used
+          type(sd_operators)          :: sd_operators_used
+          type(pmodel_eq)             :: pmodel_eq_used
+          type(bc_operators)          :: bc_operators_used
+          type(td_operators)          :: td_operators_used
           type(io_operators), private :: io_operators_used
 
           real(rkind)                      :: time

@@ -632,7 +632,14 @@
           if(nb_bc_sections.ne.0) then
 
              !allocate spaces for the bc_sections
-             allocate(interior_bc_sections(4,nb_bc_sections))
+             if(allocated(interior_bc_sections)) then
+                if(size(interior_bc_sections,2).ne.nb_bc_sections) then
+                   deallocate(interior_bc_sections)
+                   allocate(interior_bc_sections(4,nb_bc_sections))
+                end if
+             else
+                allocate(interior_bc_sections(4,nb_bc_sections))
+             end if
 
              !fill the bc_sections with the procedures
              nb_bc_sections = 0
@@ -687,6 +694,12 @@
      $               N_edge_type,
      $               NE_corner_type)
 
+             end if
+
+          else
+
+             if(allocated(interior_bc_sections)) then
+                deallocate(interior_bc_sections)
              end if
 
           end if

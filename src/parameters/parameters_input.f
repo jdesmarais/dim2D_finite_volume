@@ -74,7 +74,7 @@
         integer, parameter :: gravity_choice = no_gravity_choice
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = periodic_xy_choice
+        integer, parameter :: bc_choice = poinsot_xy_choice
 c$$$        integer, parameter :: bcx_type_choice = bc_nodes_choice
 c$$$        integer, parameter :: bcy_type_choice = bc_nodes_choice
 

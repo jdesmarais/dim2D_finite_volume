@@ -85,23 +85,25 @@
           !>@param time_dev
           !> time derivatives
           !--------------------------------------------------------------
-          function time_proc(t,nodes,x_map,y_map,s,p_model,bc_used)
+          function time_proc(t,nodes,x_map,y_map,s,p_model,bc_used,bc_sections)
      $       result(time_dev)
 
             import bc_operators
             import sd_operators
             import pmodel_eq
+            import ikind
             import rkind
             import nx,ny,ne
 
-            real(rkind)                     , intent(in)   :: t
-            real(rkind), dimension(nx,ny,ne), intent(in)   :: nodes
-            real(rkind), dimension(nx)      , intent(in)   :: x_map
-            real(rkind), dimension(ny)      , intent(in)   :: y_map
-            type(sd_operators)              , intent(in)   :: s
-            type(pmodel_eq)                 , intent(in)   :: p_model
-            type(bc_operators)              , intent(in)   :: bc_used
-            real(rkind), dimension(nx,ny,ne)               :: time_dev
+            real(rkind)                                          , intent(in) :: t
+            real(rkind), dimension(nx,ny,ne)                     , intent(in) :: nodes
+            real(rkind), dimension(nx)                           , intent(in) :: x_map
+            real(rkind), dimension(ny)                           , intent(in) :: y_map
+            type(sd_operators)                                   , intent(in) :: s
+            type(pmodel_eq)                                      , intent(in) :: p_model
+            type(bc_operators)                                   , intent(in) :: bc_used
+            integer(ikind), dimension(:,:), allocatable, optional, intent(in) :: bc_sections
+            real(rkind), dimension(nx,ny,ne)                                  :: time_dev
 
           end function time_proc
 

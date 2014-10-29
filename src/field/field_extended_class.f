@@ -19,7 +19,7 @@
         use interface_integration_step, only : timeInt_step,
      $                                         timeInt_step_nopt
         use parameters_input          , only : nx,ny,ne
-        use parameters_kind           , only : rkind
+        use parameters_kind           , only : ikind,rkind
         use td_integrator_class       , only : td_integrator
 
         implicit none
@@ -59,12 +59,14 @@
         !---------------------------------------------------------------
         type, extends(field_abstract) :: field_extended
 
-          type(bf_interface_dcr) :: domain_extension
-          type(td_integrator)    :: td_integrator_used
+          type(bf_interface_dcr)                      :: domain_extension
+          type(td_integrator)                         :: td_integrator_used
+          integer(ikind), dimension(:,:), allocatable :: bc_sections
 
           contains
 
           procedure, pass :: ini
+          procedure, pass :: update_bc_sections
           procedure, pass :: compute_time_dev_ext
           procedure, pass :: compute_integration_step_ext
           procedure, pass :: integrate
@@ -100,7 +102,72 @@
           !initialize the domain extension
           call this%domain_extension%ini()
 
+          !initialize the boundary layer procedures
+          !depending on the buffer layer
+          call this%update_bc_sections()
+
         end subroutine ini
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the extent of the boundary sections
+        !
+        !> @date
+        !> 29_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables  
+        !--------------------------------------------------------------
+        subroutine update_bc_sections(this)
+        
+          implicit none
+
+          class(field_extended), intent(inout) :: this
+
+          call this%domain_extension%determine_interior_bc_procedures(
+     $         this%bc_sections)
+
+        end subroutine update_bc_sections
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives of the interior field
+        !
+        !> @date
+        !> 29_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main governing variables
+        !
+        !>@return time_dev
+        !> array containing the time derivatives of the grid points
+        !--------------------------------------------------------------
+        function compute_time_dev(this) result(time_dev)
+
+          implicit none
+
+          class(field_extended), intent(in) :: this
+          real(rkind), dimension(nx,ny,ne)  :: time_dev
+
+          !make use of the time discretization operator
+          !to compute the time derivative of the field
+          time_dev = this%td_operators_used%compute_time_dev(
+     $         this%time,
+     $         this%nodes,
+     $         this%x_map,
+     $         this%y_map,
+     $         this%sd_operators_used,
+     $         this%pmodel_eq_used,
+     $         this%bc_operators_used,
+     $         bc_sections=this%bc_sections)
+
+        end function compute_time_dev
 
 
         !> @author
@@ -128,11 +195,16 @@
 
 
           !compute the time derivatives of the interior domain
-          time_dev = this%field_abstract%compute_time_dev()
+          time_dev = compute_time_dev(this)
 
 
           !compute the time derivatives of the domain extension
-          call this%domain_extension%compute_time_dev()
+          call this%domain_extension%compute_time_dev(
+     $         this%td_operators_used,
+     $         this%time,
+     $         this%sd_operators_used,
+     $         this%pmodel_eq_used,
+     $         this%bc_operators_used)
 
           
           !WARNING: depending on the way to implement the computation
@@ -228,7 +300,6 @@
 
           class(field_extended), intent(inout) :: this
           real(rkind)          , intent(in)    :: dt
-
 
           !allocate memory space for the temporary tables
           !used in the time integration of the domain extension

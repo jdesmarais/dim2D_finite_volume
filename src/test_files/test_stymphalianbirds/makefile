@@ -134,3 +134,15 @@ test_bf_compute:	$(param_dep)\
 			bf_remove_module.o\
 			bf_layer_errors_module.o\
 			rk3tvd_steps_module.o
+
+test_field_extended.o:	$(field_dir)/field_class.o\
+			$(field_dir)/field_extended_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+test_field_extended:	$(sim_dep)\
+			$(bf_interface_dcr_dep)\
+			surrogate_class.o\
+			field_abstract_class.o\
+			field_class.o\
+			field_extended_class.o

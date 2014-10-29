@@ -114,19 +114,23 @@
         !>@param time_dev
         !> time derivatives
         !--------------------------------------------------------------
-        function compute_time_dev(t,nodes,x_map,y_map,s,p_model,bc_used)
-     $     result(time_dev)
+        function compute_time_dev(
+     $       t,nodes,x_map,y_map,
+     $       s,p_model,bc_used,
+     $       bc_sections)
+     $       result(time_dev)
 
           implicit none
 
-          real(rkind)                     , intent(in) :: t
-          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
-          real(rkind), dimension(nx)      , intent(in) :: x_map
-          real(rkind), dimension(ny)      , intent(in) :: y_map
-          type(sd_operators)              , intent(in) :: s
-          type(pmodel_eq)                 , intent(in) :: p_model
-          type(bc_operators)              , intent(in) :: bc_used
-          real(rkind), dimension(nx,ny,ne)             :: time_dev
+          real(rkind)                                          , intent(in) :: t
+          real(rkind), dimension(nx,ny,ne)                     , intent(in) :: nodes
+          real(rkind), dimension(nx)                           , intent(in) :: x_map
+          real(rkind), dimension(ny)                           , intent(in) :: y_map
+          type(sd_operators)                                   , intent(in) :: s
+          type(pmodel_eq)                                      , intent(in) :: p_model
+          type(bc_operators)                                   , intent(in) :: bc_used
+          integer(ikind), dimension(:,:), allocatable, optional, intent(in) :: bc_sections
+          real(rkind), dimension(nx,ny,ne)                                  :: time_dev
 
           real(rkind)                        :: dx
           real(rkind)                        :: dy
@@ -202,12 +206,29 @@
      $         (bc_E_type_choice.eq.bc_timedev_choice).or.
      $         (bc_W_type_choice.eq.bc_timedev_choice)
      $    ) then
-             call bc_used%apply_bc_on_timedev(
-     $            p_model,
-     $            t,nodes,x_map,y_map,
-     $            flux_x,flux_y,
-     $            time_dev)
-          end if          
+
+             !if not all the time derivatives of the boundary
+             !layers should be computed, the selected time
+             !derivatives to be computed are given by
+             !bc_sections
+             if(present(bc_sections)) then
+                call bc_used%apply_bc_on_timedev_nopt(
+     $               p_model,
+     $               t,nodes,x_map,y_map,
+     $               flux_x,flux_y,
+     $               time_dev,
+     $               bc_sections)
+
+             !if all the time derivatives of the boundary
+             !layers are computed
+             else
+                call bc_used%apply_bc_on_timedev(
+     $               p_model,
+     $               t,nodes,x_map,y_map,
+     $               flux_x,flux_y,
+     $               time_dev)
+             end if          
+          end if
 
         end function compute_time_dev
 
