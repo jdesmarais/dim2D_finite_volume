@@ -155,7 +155,7 @@
           procedure, pass :: remove_sublayer
 
           procedure, pass :: determine_interior_bc_layers
-          procedure, pass :: exchange_with_interior
+          procedure, pass :: synch_nodes_with_interior
 
           procedure, pass :: print_binary
           procedure, pass :: print_netcdf
@@ -776,17 +776,17 @@
         !>@param interior_nodes
         !> grid points from the interior domain
         !--------------------------------------------------------------
-        subroutine exchange_with_interior(this, interior_nodes)
+        subroutine synch_nodes_with_interior(this, interior_nodes)
 
           class(bf_mainlayer_pointer)     , intent(inout) :: this
           real(rkind), dimension(nx,ny,ne), intent(inout) :: interior_nodes
 
           if(this%associated_ptr()) then
-             call this%ptr%exchange_with_interior(
+             call this%ptr%synch_nodes_with_interior(
      $            interior_nodes)
           end if
 
-        end subroutine exchange_with_interior
+        end subroutine synch_nodes_with_interior
 
       
         !> @author

@@ -210,7 +210,7 @@
 
           procedure, pass :: determine_interior_bc_layers
           procedure, pass :: determine_interior_bc_procedures
-          procedure, pass :: exchange_with_interior
+          procedure, pass :: synch_nodes_with_interior
 
           procedure, nopass :: get_mainlayer_id
           procedure, pass   :: get_sublayer
@@ -1558,7 +1558,7 @@ c$$$          stop 'not implemented yet'
        !>@param interior_nodes
        !> grid points from the interior domain
        !--------------------------------------------------------------
-       subroutine exchange_with_interior(
+       subroutine synch_nodes_with_interior(
      $     this,
      $     interior_nodes)
 
@@ -1573,13 +1573,13 @@ c$$$          stop 'not implemented yet'
 
             if(this%mainlayer_pointers(i)%associated_ptr()) then
                
-               call this%mainlayer_pointers(i)%exchange_with_interior(
+               call this%mainlayer_pointers(i)%synch_nodes_with_interior(
      $              interior_nodes)
 
             end if
          end do
 
-       end subroutine exchange_with_interior
+       end subroutine synch_nodes_with_interior
 
 
        !> @author

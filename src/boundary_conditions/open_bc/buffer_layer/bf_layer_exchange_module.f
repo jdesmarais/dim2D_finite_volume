@@ -36,8 +36,11 @@
      $       get_match_indices_for_exchange_with_neighbor1,
      $       get_match_indices_for_exchange_with_neighbor2,
      $       copy_from_bf1_to_bf2,
-     $       get_match_indices_for_exchange_with_interior,
-     $       copy_between_interior_and_bf_layer
+     $       get_synch_indices_with_interior,
+     $       synch_nodes_with_interior_domain
+c$$$     $       get_synch_indices_with_neighbor1,
+c$$$     $       get_synch_indices_with_neighbor2,
+c$$$     $       synchronize_nodes_between
 
         contains
 
@@ -202,7 +205,7 @@
           !current sublayer
 
           !for the borders along the x-direction, we first use their
-          !general coordinates to identify thme (that is the coordinates
+          !general coordinates to identify them (that is the coordinates
           !with references to the interior domain)
 
           !then they are expressed as (bf_i_min, bf_i_max), and 
@@ -597,22 +600,18 @@
         !> x- and y-indices for the SW corner of the table received
         !> by the interior domain
         !
-        !>@param in_send
+        !>@param bf_send
         !> x- and y-indices for the SW corner of the table send by
-        !> the interior domain
+        !> the buffer layer
         !
         !>@param bf_recv
         !> x- and y-indices for the SW corner of the table received
         !> by the buffer layer
         !
-        !>@param bf_send
-        !> min y-index in copying the grid points from the buffer
-        !> layer to the interior domain
-        !
         !>@param ex_size
         !> size-x and size-y of the exchanged arrays
         !--------------------------------------------------------------
-        subroutine get_match_indices_for_exchange_with_interior(
+        subroutine get_synch_indices_with_interior(
      $     localization,
      $     bf_alignment,
      $     bf_size_x,
@@ -728,11 +727,11 @@
             case default
                call error_mainlayer_id(
      $              'bf_layer_exchange_module',
-     $              'get_match_indices_for_exchange_with_interior',
+     $              'get_synch_indices_with_interior',
      $              localization)
           end select          
 
-        end subroutine get_match_indices_for_exchange_with_interior
+        end subroutine get_synch_indices_with_interior
 
 
         !> @author
@@ -759,22 +758,18 @@
         !> x- and y-indices for the SW corner of the table received
         !> by the interior domain
         !
-        !>@param in_send
+        !>@param bf_send
         !> x- and y-indices for the SW corner of the table send by
-        !> the interior domain
+        !> the buffer layer
         !
         !>@param bf_recv
         !> x- and y-indices for the SW corner of the table received
         !> by the buffer layer
         !
-        !>@param bf_send
-        !> min y-index in copying the grid points from the buffer
-        !> layer to the interior domain
-        !
         !>@param ex_size
         !> size-x and size-y of the exchanged arrays
         !--------------------------------------------------------------
-        subroutine copy_between_interior_and_bf_layer(
+        subroutine synch_nodes_with_interior_domain(
      $     interior_nodes,
      $     bf_nodes,
      $     in_send,
@@ -817,6 +812,6 @@
 
           end if
 
-        end subroutine copy_between_interior_and_bf_layer
+        end subroutine synch_nodes_with_interior_domain
 
       end module bf_layer_exchange_module

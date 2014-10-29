@@ -49,8 +49,8 @@
      $       get_match_indices_for_exchange_with_neighbor1,
      $       get_match_indices_for_exchange_with_neighbor2,
      $       copy_from_bf1_to_bf2,
-     $       get_match_indices_for_exchange_with_interior,
-     $       copy_between_interior_and_bf_layer
+     $       get_synch_indices_with_interior,
+     $       synch_nodes_with_interior_domain
 
         use bf_layer_nf90_operators_module, only :
      $       print_bf_layer_on_netcdf
@@ -376,7 +376,7 @@
           procedure,   pass :: copy_to_neighbor1
           procedure,   pass :: copy_to_neighbor2
 
-          procedure,   pass :: exchange_with_interior
+          procedure,   pass :: synch_nodes_with_interior
 
           procedure,   pass :: copy_grdpts_id_to_temp
           procedure,   pass :: check_neighboring_bc_interior_pts
@@ -1735,7 +1735,7 @@
         !>@param interior_nodes
         !> grid points for the interior domain
         !--------------------------------------------------------------
-        subroutine exchange_with_interior(this, interior_nodes)
+        subroutine synch_nodes_with_interior(this, interior_nodes)
 
           implicit none
 
@@ -1749,7 +1749,7 @@
           integer(ikind), dimension(2) :: ex_size
 
           !get the indices identifying which arrays are exchanged
-          call get_match_indices_for_exchange_with_interior(
+          call get_synch_indices_with_interior(
      $         this%localization,
      $         this%alignment,
      $         size(this%nodes,1),
@@ -1762,7 +1762,7 @@
 
           !exchange the arrays between the buffer layer
           !and the interior domain
-          call copy_between_interior_and_bf_layer(
+          call synch_nodes_with_interior_domain(
      $         interior_nodes,
      $         this%nodes,
      $         in_send,
@@ -1771,7 +1771,7 @@
      $         bf_recv,
      $         ex_size)
 
-        end subroutine exchange_with_interior
+        end subroutine synch_nodes_with_interior
 
 
         !> @author

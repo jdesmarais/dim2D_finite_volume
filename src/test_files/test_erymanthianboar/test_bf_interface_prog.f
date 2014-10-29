@@ -290,7 +290,7 @@
 
         !test the exchange with the interior domain
         !--------------------------------------------------------
-        call test_exchange_with_interior(
+        call test_synch_nodes_with_interior(
      $       interface_tested,
      $       x_map,
      $       y_map,
@@ -993,7 +993,7 @@
 
 
         !test the determination of interior boundary layers
-        subroutine test_exchange_with_interior(
+        subroutine test_synch_nodes_with_interior(
      $     interface_used,
      $     x_map,
      $     y_map,
@@ -1009,8 +1009,6 @@
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
           integer    , dimension(nx,ny)   , intent(in)    :: grdpts_id
           integer                         , intent(inout) :: index
-
-          integer(ikind), dimension(:,:), allocatable :: bc_procedures
 
           integer(ikind) :: i,j
           integer        :: k
@@ -1028,7 +1026,7 @@
           end do
 
           !3) exchange with interior
-          call interface_used%exchange_with_interior(nodes)
+          call interface_used%synch_nodes_with_interior(nodes)
 
           !print interface
           call print_output(interface_used, index)
@@ -1047,7 +1045,7 @@
 
           index = index+1
 
-        end subroutine test_exchange_with_interior
+        end subroutine test_synch_nodes_with_interior
 
       
         !< colorize the main layer whose dependencies are deterimed
