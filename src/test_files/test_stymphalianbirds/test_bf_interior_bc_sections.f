@@ -246,8 +246,8 @@
              !outside right
              case(10)
                 allocate(bf_alignments(2,2))
-                bf_alignments(:,1) = [-10,-2]
-                bf_alignments(:,2) = [nx+2,nx+6]
+                bf_alignments(:,1) = [-10,-3]
+                bf_alignments(:,2) = [nx+3,nx+6]
                 
                 allocate(test_bc_sections(2,1))
                 test_bc_sections(:,1) = [1,nx]
@@ -381,15 +381,15 @@
              call set_full_interior_bc_section(
      $            nb_bc_sections,
      $            bc_sections,
-     $            min_initialized,
-     $            max_initialized,
      $            interior_inf,
      $            interior_sup)
-          end if
+          else
 
-          call minimize_interior_bc_section(
-     $         nb_bc_sections,
-     $         bc_sections)           
+             call minimize_interior_bc_section(
+     $            nb_bc_sections,
+     $            bc_sections)           
+
+          end if
 
           !compare the bc_sections computed with the 
           !test_bc_sections of the test

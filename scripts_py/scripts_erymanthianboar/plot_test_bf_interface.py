@@ -269,6 +269,38 @@ if __name__ == "__main__":
         fig.canvas.set_window_title('12: test_sync_nodes_at_mainlayer_interfaces')
 
 
+    #plot the test of determining the integration borders in the buffer
+    #layers
+    for i in range(24,25):
+
+        #extract data for the interior points and the buffer layers
+    	#-----------------------------------------------------------------
+        test_index = str(i+1)
+
+        interior_size_filename      = folder_path+'/interior_sizes_int_borders.dat'
+        interior_grdptsid_filename  = folder_path+'/interior_grdpts_id_int_borders.dat'
+        interior_nodes_filename     = folder_path+'/interior_nodes_int_borders.dat'
+
+    	suffix_size    = '_sizes'+test_index+'.dat'
+    	suffix_nodes   = '_nodes'+test_index+'.dat'
+    	suffix_grdptid = '_grdpt_id'+test_index+'.dat'
+    	
+    	[lm_nodes,lm_grdptid, margin] = make_matrix_for_all_bf_layers(interior_size_filename,
+                                                                      interior_grdptsid_filename,
+                                                                      interior_nodes_filename,
+                                                                      folder_path,
+                                                                      nb_sublayers,
+                                                                      suffix_size,
+                                                                      suffix_nodes,
+                                                                      suffix_grdptid)
+    
+        #display
+        #-----------------------------------------------------------------
+        fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes,
+                                                            lm_grdptid)
+        fig.canvas.set_window_title('13: test_integration_borders')
+
+
     #show all
     plt.show()
     

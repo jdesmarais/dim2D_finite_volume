@@ -119,6 +119,26 @@
         !> compute the new grid points of the bf_sublayer after its
         !> increase and synchronize the neighboring buffer layers
         !
+        !> @param determine_interior_bc_layers
+        !> determine the boundary sections in the interior domain
+        !
+        !> @param determine_interior_bc_procedures
+        !> determine the boundary sections and prcoedures for the
+        !> interior domain
+        !
+        !> @param sync_nodes_with_interior
+        !> synchronize the nodes at the edge between the interior
+        !> domain and the buffer layers
+        !
+        !> @param sync_nodes_at_mainlayer_interfaces
+        !> synchronize the nodes the edge between the buffer main
+        !> layers
+        !
+        !> @param sync_nodes_at_domain_interfaces
+        !> synchronize the nodes both at the edge between the
+        !> interior and the buffer layers and at the edge between
+        !> the buffer main layers
+        !
         !>@param get_mainlayer_id
         !> get the cardinal coordinate corresponding to
         !> the general coordinates
@@ -208,10 +228,14 @@
           procedure, pass :: remove_sublayer
           procedure, pass :: update_grdpts_after_increase
 
+          !interior boundary procedures
           procedure, pass :: determine_interior_bc_layers
           procedure, pass :: determine_interior_bc_procedures
+
+          !synchronization between the domains
           procedure, pass :: sync_nodes_with_interior
           procedure, pass :: sync_nodes_at_mainlayer_interfaces
+          procedure, pass :: sync_nodes_at_domain_interfaces
 
           procedure, nopass :: get_mainlayer_id
           procedure, pass   :: get_sublayer
@@ -532,6 +556,12 @@
           !   the other buffer layers to this buffer layer
           call this%border_interface%update_grdpts_from_neighbors(added_sublayer)
 
+
+          !6) The integration borders are computed for the new buffer layer
+          !   and the neighboring buffer layers are asked to update their own
+          !   integration borders
+          call this%border_interface%update_integration_borders(added_sublayer)
+
        end function allocate_sublayer
 
 
@@ -654,6 +684,11 @@
          !6) update the grid points new allocated using the neighboring sublayers
          call this%border_interface%update_grdpts_from_neighbors(bf_sublayer_r)
          
+         !7) The integration borders are computed for the reallocated buffer
+         !   layer and the neighboring buffer layers are asked to update their
+         !   own integration borders
+         call this%border_interface%update_integration_borders(bf_sublayer_r)
+
        end subroutine reallocate_sublayer
        
 
@@ -911,6 +946,11 @@ c$$$          !   |        ||        |      |                  |
 c$$$          print '(''bf_interface_class'')'
 c$$$          print '(''merge_sublayers'')'
 c$$$          stop 'not implemented yet'
+
+         !7) The integration borders are computed for the buffer layer resulting
+         !   from the merge and the neighboring buffer layers are asked to update
+         !   their own integration borders
+         call this%border_interface%update_integration_borders(bf_sublayer1)
 
        end function merge_sublayers
 
@@ -1607,6 +1647,38 @@ c$$$          stop 'not implemented yet'
          call this%border_interface%sync_interface_nodes()
 
        end subroutine sync_nodes_at_mainlayer_interfaces
+
+
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> synchronize the nodes located at the interface between
+       !> interior and the buffer layers and the nodes located
+       !> at the interface between the buffer main layers
+       !
+       !> @date
+       !> 30_10_2014 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param interior_nodes
+       !> grid points from the interior domain
+       !--------------------------------------------------------------
+       subroutine sync_nodes_at_domain_interfaces(this, interior_nodes)
+
+         implicit none
+
+         class(bf_interface)             , intent(inout) :: this
+         real(rkind), dimension(nx,ny,ne), intent(inout) :: interior_nodes
+                  
+         call this%sync_nodes_with_interior(interior_nodes)
+         call this%sync_nodes_at_mainlayer_interfaces()
+
+       end subroutine sync_nodes_at_domain_interfaces
 
 
        !> @author

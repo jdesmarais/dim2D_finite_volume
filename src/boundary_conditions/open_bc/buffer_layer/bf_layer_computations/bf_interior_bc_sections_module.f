@@ -171,7 +171,7 @@
           !in common with the interior ?
           if((
      $         min(interior_sup,(bf_alignment(2)+bc_size))-
-     $         max(interior_inf,(bf_alignment(1)-bc_size))).gt.0) then
+     $         max(interior_inf,(bf_alignment(1)-bc_size))).ge.0) then
 
              no_bf_common_with_interior = .false.
 
@@ -501,25 +501,25 @@
         subroutine set_full_interior_bc_section(
      $     nb_bc_sections,
      $     bc_sections,
-     $     min_initialized,
-     $     max_initialized,
      $     interior_inf,
      $     interior_sup)
 
           implicit none
 
-          integer                                    , intent(inout) :: nb_bc_sections
+          integer                                    , intent(out)   :: nb_bc_sections
           integer(ikind), dimension(:,:), allocatable, intent(inout) :: bc_sections
-          logical                                    , intent(inout) :: min_initialized
-          logical                                    , intent(inout) :: max_initialized
           integer(ikind)                             , intent(in)    :: interior_inf
           integer(ikind)                             , intent(in)    :: interior_sup
 
-          call set_as_min(nb_bc_sections,bc_sections,interior_inf,
-     $         min_initialized, max_initialized)
+          if(allocated(bc_sections)) then
+             deallocate(bc_sections)
+          end if
 
-          call set_as_max(nb_bc_sections,bc_sections,interior_sup,
-     $         min_initialized, max_initialized)
+          allocate(bc_sections(2,1))
+          bc_sections(1,1) = interior_inf
+          bc_sections(2,1) = interior_sup
+
+          nb_bc_sections = 1
 
         end subroutine set_full_interior_bc_section
 

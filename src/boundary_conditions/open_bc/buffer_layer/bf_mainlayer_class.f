@@ -86,40 +86,50 @@
         !> @param tail_sublayer
         !> pointer to the last bf_sublayer of the list
         !
-        !>@param ini
+        !> @param ini
         !> initialize the buffer mainlayer by initializing the
         !> number of sublayers to 0 and nullifying the head
         !> and tail attributes
         !
-        !>@param get_mainlayer_id
+        !> @param get_mainlayer_id
         !> get the mainlayer_id attribute
         !
-        !>@param get_nb_sublayers
+        !> @param get_nb_sublayers
         !> number of sublayers stored in the main layer
         !
-        !>@param get_head_sublayer
+        !> @param get_head_sublayer
         !> get the head_sublayer attribute
         !
-        !>@param get_tail_sublayer
+        !> @param get_tail_sublayer
         !> get the tail_sublayer attribute
         !
-        !>@param add_sublayer
+        !> @param add_sublayer
         !> allocate space for a new buffer sublayer in the double
         !> chained list and organize the bf_mainlayer using the
         !> alignment of the buffer layers. A pointer to the newly
         !> added buffer sublayer is returned
         !
-        !>@param merge_sublayers
+        !> @param merge_sublayers
         !> combine two sublayers of the main layer
         !
-        !>@param remove_sublayer
+        !> @param remove_sublayer
         !> remove a sublayer from the doubled chained list
         !
-        !>@param print_binary
+        !> @param determine_interior_bc_layers
+        !> determine the interior_bc_sections, i.e. the boundary
+        !> grid points of the interior domain that are computed
+        !> by the interior domain and not exchanged with the
+        !> buffer layers
+        !
+        !> @param sync_nodes_with_interior
+        !> synchronise the nodes between the interior domain and
+        !> the buffer layers constituing the buffer main layer
+        !
+        !> @param print_binary
         !> print the content of the bf_sublayers constituing the
         !> bf_mainlayer on seperate binary output files
         !
-        !>@param print_netcdf
+        !> @param print_netcdf
         !> print the content of the bf_sublayers constituing the
         !> bf_mainlayer on seperate netcdf files
         !
@@ -149,21 +159,26 @@
 
           procedure, pass :: ini
 
+          !get attributes
           procedure, pass :: get_mainlayer_id
           procedure, pass :: get_nb_sublayers
           procedure, pass :: get_head_sublayer
           procedure, pass :: get_tail_sublayer
 
+          !add/merge/remove a sublayer
           procedure, pass :: add_sublayer
           procedure, pass :: merge_sublayers
           procedure, pass :: remove_sublayer
 
+          !interactions with the interior domain
           procedure, pass :: determine_interior_bc_layers
           procedure, pass :: sync_nodes_with_interior
 
+          !i/o management
           procedure, pass :: print_binary
           procedure, pass :: print_netcdf
 
+          !time integration
           procedure, pass :: allocate_before_timeInt
           procedure, pass :: deallocate_after_timeInt
           procedure, pass :: compute_time_dev
@@ -186,12 +201,12 @@
         !> @date
         !> 11_04_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> bf_mainlayer object encapsulating the double chained
         !> list of sublayers, pointers to the head and tail elements
         !> of the list and the total number of elements in the list
         !
-        !>@param mainlayer_id
+        !> @param mainlayer_id
         !> cardinal coordinate identifying the position of the buffer
         !> sublayers stored in the mainlayer
         !--------------------------------------------------------------
@@ -219,7 +234,7 @@
         !> @date
         !> 11_04_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> bf_mainlayer object encapsulating the double chained
         !> list of sublayers, pointers to the head and tail elements
         !> of the list and the total number of elements in the list
@@ -249,7 +264,7 @@
         !> @date
         !> 11_04_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> bf_mainlayer object encapsulating the double chained
         !> list of sublayers, pointers to the head and tail elements
         !> of the list and the total number of elements in the list
@@ -278,7 +293,7 @@
         !> @date
         !> 11_04_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> bf_mainlayer object encapsulating the double chained
         !> list of sublayers, pointers to the head and tail elements
         !> of the list and the total number of elements in the list
@@ -311,7 +326,7 @@
         !> @date
         !> 11_04_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> bf_mainlayer object encapsulating the double chained
         !> list of sublayers, pointers to the head and tail elements
         !> of the list and the total number of elements in the list
@@ -347,16 +362,16 @@
         !> @date
         !> 11_04_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> bf_mainlayer object encapsulating the double chained
         !> list of sublayers, pointers to the head and tail elements
         !> of the list and the total number of elements in the list
         !
-        !>@param nodes
+        !> @param nodes
         !> table encapsulating the data of the grid points of the
         !> interior domain
         !
-        !>@param alignment
+        !> @param alignment
         !> table(2,2) of integers identifying the position of the buffer
         !> layer compared to the interior nodes
         !
@@ -513,15 +528,15 @@
         !> @date
         !> 11_04_2013 - initial version - J.L. Desmarais
         !
-        !>@param inserted_sublayer
+        !> @param inserted_sublayer
         !> sublayer element inserted between two existing sublayer elements
         !> of the double chained list
         !
-        !>@param prev_sublayer
+        !> @param prev_sublayer
         !> sublayer element of the list that will be placed before the
         !> inserted element afterwards
         !
-        !>@param next_sublayer
+        !> @param next_sublayer
         !> sublayer element of the list that will be placed after the
         !> inserted element afterwards
         !--------------------------------------------------------------
@@ -554,22 +569,22 @@
         !> @date
         !> 09_05_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> object encapsulating the double chained list of sublayers,
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !
-        !>@param bf_sublayer1
+        !> @param bf_sublayer1
         !> pointer to the first sublayer to merge
         !
-        !>@param bf_sublayer2
+        !> @param bf_sublayer2
         !> pointer to the second sublayer to merge
         !
-        !>@param interior_nodes
+        !> @param interior_nodes
         !> table encapsulating the data of the grid points of the
         !> interior domain
         !
-        !>@param alignment
+        !> @param alignment
         !> table identifying the final position of the merged sublayer
         !> compared to the interior domain
         !
@@ -690,12 +705,12 @@
         !> @date
         !> 09_05_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> object encapsulating the double chained list of sublayers,
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !
-        !>@param bf_sublayer_ptr
+        !> @param bf_sublayer_ptr
         !> pointer to the sublayer to be removed
         !--------------------------------------------------------------
         subroutine remove_sublayer(this, sublayer_ptr)
@@ -748,12 +763,12 @@
         !> @date
         !> 28_10_2014 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> object encapsulating the double chained list of sublayers,
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !
-        !>@param interior_bc_sections
+        !> @param interior_bc_sections
         !> extent of the boundary layers computed by the interior
         !> nodes
         !--------------------------------------------------------------
@@ -768,10 +783,10 @@
           integer(ikind) :: interior_inf
           integer(ikind) :: interior_sup
 
-          integer                                     :: nb_bc_sections
-          logical                                     :: min_initialized
-          logical                                     :: max_initialized
-          logical                                     :: no_bf_common_with_interior
+          integer :: nb_bc_sections
+          logical :: min_initialized
+          logical :: max_initialized
+          logical :: no_bf_common_with_interior
 
           type(bf_sublayer), pointer :: current_sublayer
           integer                    :: k
@@ -860,17 +875,17 @@
              call set_full_interior_bc_section(
      $            nb_bc_sections,
      $            bc_sections,
-     $            min_initialized,
-     $            max_initialized,
      $            interior_inf,
      $            interior_sup)
-          end if
+          else
 
-          !minimize the extent of the interior boundary
-          !layers
-          call minimize_interior_bc_section(
-     $         nb_bc_sections,
-     $         bc_sections)
+            !minimize the extent of the interior boundary
+            !layers
+             call minimize_interior_bc_section(
+     $            nb_bc_sections,
+     $            bc_sections)
+
+          end if
 
         end subroutine determine_interior_bc_layers
 
@@ -885,12 +900,12 @@
         !> @date
         !> 29_10_2014 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> object encapsulating the double chained list of sublayers,
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !
-        !>@param interior_nodes
+        !> @param interior_nodes
         !> grid points from the interior domain
         !--------------------------------------------------------------
         subroutine sync_nodes_with_interior(this, interior_nodes)
@@ -928,20 +943,20 @@
         !> @date
         !> 09_05_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> object encapsulating the double chained list of sublayers,
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !
-        !>@param suffix_nodes
+        !> @param suffix_nodes
         !> suffix for the name of the output files storing the nodes
         !> of the bf_sublayers
         !
-        !>@param suffix_grdid
+        !> @param suffix_grdid
         !> suffix for the name of the output files storing the grdpts_id
         !> of the bf_sublayers
         !
-        !>@param suffix_sizes
+        !> @param suffix_sizes
         !> suffix for the name of the output files storing the sizes
         !> of the bf_sublayers        
         !--------------------------------------------------------------
@@ -1038,41 +1053,41 @@
         !> @date
         !> 11_07_2013 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> object encapsulating the double chained list of sublayers,
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !
-        !>@param timestep_written
+        !> @param timestep_written
         !> integer identifying the timestep written
         !
-        !>@param name_var
+        !> @param name_var
         !> table with the short name for the governing variables saved
         !> in the netcdf file
         !
-        !>@param longname_var
+        !> @param longname_var
         !> table with the long name for the governing variables saved
         !> in the netcdf file
         !
-        !>@param unit_var
+        !> @param unit_var
         !> table with the units of the governing variables saved
         !> in the netcdf file
         !
-        !>@param x_min_interior
+        !> @param x_min_interior
         !> x-coordinate of interior grid point next to the left
         !> boundary layer
         !
-        !>@param y_min_interior
+        !> @param y_min_interior
         !> y-coordinate of interior grid point next to the lower
         !> boundary layer
         !
-        !>@param dx
+        !> @param dx
         !> grid size along the x-coordinate
         !
-        !>@param dy
+        !> @param dy
         !> grid size along the y-coordinate
         !
-        !>@param time
+        !> @param time
         !> time corresponding to the data for the grdpts and the nodes
         !--------------------------------------------------------------
         subroutine print_netcdf(
@@ -1164,7 +1179,7 @@
         !> @date
         !> 17_07_2014 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> object encapsulating the double chained list of sublayers,
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
@@ -1213,7 +1228,7 @@
         !> @date
         !> 17_07_2014 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> object encapsulating the double chained list of sublayers,
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
@@ -1262,7 +1277,7 @@
         !> @date
         !> 17_07_2014 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> object encapsulating the double chained list of sublayers,
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
@@ -1320,15 +1335,15 @@
         !> @date
         !> 17_07_2014 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> object encapsulating the double chained list of sublayers,
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !
-        !>@param dt
+        !> @param dt
         !> integration time step
         !
-        !>@param integration_step_nopt
+        !> @param integration_step_nopt
         !> procedure performing the time integration
         !--------------------------------------------------------------
         subroutine compute_integration_step(

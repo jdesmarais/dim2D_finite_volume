@@ -13,13 +13,24 @@
       ! 27_06_2014 - documentation update - J.L. Desmarais
       !-----------------------------------------------------------------
       module nbf_list_class
+      
+        use bf_interior_bc_sections_module, only :
+     $       determine_interior_bc_sections
+      
+        use bf_layer_errors_module, only :
+     $       error_neighbor_index
 
-        use bf_layer_errors_module, only : error_neighbor_index
-        use bf_sublayer_class     , only : bf_sublayer
-        use nbf_element_class     , only : nbf_element
-        use parameters_kind       , only : ikind
-        use sbf_list_class        , only : sbf_list
+        use bf_sublayer_class, only :
+     $       bf_sublayer
 
+        use nbf_element_class, only :
+     $       nbf_element
+
+        use parameters_kind, only :
+     $       ikind
+
+        use sbf_list_class, only :
+     $       sbf_list
 
         implicit none
 
@@ -111,9 +122,17 @@
         !> neighboring buffer layers and if their removal has been
         !> confirmed
         !
-        !>@param synchronize_nodes_with
+        !>@param sync_nodes_with_neighbor1
         !> synchronize the nodes at the interface between buffer main
-        !> layer
+        !> layer of type neighbor1
+        !
+        !>@param sync_nodes_with_neighbor2
+        !> synchronize the nodes at the interface between buffer main
+        !> layer of type neighbor2
+        !
+        !>@param update_bc_sections
+        !> update the bc_sections of the buffer layer by checking the
+        !> grid points shared with the neighboring buffer layers
         !
         !>@param add_element
         !> add an element in the chained list ensuring that
@@ -157,6 +176,7 @@
 
           procedure, pass :: sync_nodes_with_neighbor1
           procedure, pass :: sync_nodes_with_neighbor2
+          procedure, pass :: update_bc_sections
 
           procedure, pass, private :: add_element
           procedure, pass, private :: remove_element
@@ -929,6 +949,77 @@
           end do
 
         end subroutine sync_nodes_with_neighbor2
+
+      
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the bc_sections of the buffer layer by
+        !> checking the grid points shared with the
+        !> neighboring buffer layers
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param nbf_list_interface
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !--------------------------------------------------------------
+        subroutine update_bc_sections(
+     $     this,
+     $     interior_inf,
+     $     interior_sup,
+     $     nb_bc_sections,
+     $     bc_sections,
+     $     min_initialized,
+     $     max_initialized,
+     $     no_bf_common_with_bf_layer)
+        
+          implicit none
+
+          class(nbf_list)                            , intent(in)    :: this
+          integer(ikind)                             , intent(in)    :: interior_inf
+          integer(ikind)                             , intent(in)    :: interior_sup
+          integer(ikind)                             , intent(inout) :: nb_bc_sections
+          integer(ikind), dimension(:,:), allocatable, intent(inout) :: bc_sections
+          logical                                    , intent(inout) :: min_initialized
+          logical                                    , intent(inout) :: max_initialized
+          logical                                    , intent(inout) :: no_bf_common_with_bf_layer
+
+          type(nbf_element), pointer   :: current_element
+          type(bf_sublayer), pointer   :: bf_sublayer_ptr
+          integer(ikind), dimension(2) :: bf_alignment
+          integer                      :: i
+
+          current_element => this%get_head()
+
+          do i=1, this%get_nb_elements()
+
+             bf_sublayer_ptr => current_element%get_ptr()
+             bf_alignment(1) = bf_sublayer_ptr%get_alignment(1,1)
+             bf_alignment(2) = bf_sublayer_ptr%get_alignment(1,2)
+
+             !update the bc_sections
+             call determine_interior_bc_sections(
+     $            bf_alignment,
+     $            interior_inf,
+     $            interior_sup,
+     $            nb_bc_sections,
+     $            bc_sections,
+     $            min_initialized,
+     $            max_initialized,
+     $            no_bf_common_with_bf_layer)
+
+             current_element => current_element%get_next()
+          end do
+          
+
+        end subroutine update_bc_sections
 
 
         !> @author

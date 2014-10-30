@@ -13,14 +13,40 @@
       ! 27_06_2014 - documentation update - J.L. Desmarais
       !-----------------------------------------------------------------
       module nbf_interface_class
+
+        use bf_interior_bc_sections_module, only :
+     $       ini_interior_bc_sections,
+     $       close_last_bc_section,
+     $       set_full_interior_bc_section,
+     $       minimize_interior_bc_section
+
+        use bf_layer_errors_module, only :
+     $       error_mainlayer_id
       
-        use bf_sublayer_class  , only : bf_sublayer
-        use nbf_list_class     , only : nbf_list
-        use parameters_constant, only : N,S,E,W
-        use parameters_input   , only : debug
-        use parameters_bf_layer, only : align_N, align_S,
-     $                                  align_E, align_W
-        use sbf_list_class     , only : sbf_list
+        use bf_sublayer_class, only :
+     $       bf_sublayer
+
+        use nbf_list_class, only :
+     $       nbf_list
+
+        use nbf_element_class, only :
+     $       nbf_element
+
+        use parameters_constant, only :
+     $       N,S,E,W
+
+        use parameters_input, only :
+     $       nx,bc_size,debug
+        
+        use parameters_kind, only :
+     $       ikind
+
+        use parameters_bf_layer, only :
+     $       align_N, align_S,
+     $       align_E, align_W
+
+        use sbf_list_class, only :
+     $       sbf_list
 
         implicit none
 
@@ -93,6 +119,17 @@
         !> synchronize the nodes located at the interface between
         !> buffer main layers
         !
+        !>@param define_integration_borders
+        !> define the x_borders,y_borders and N_bc_sections and
+        !> S_bc_sections for the buffer layer depending on its
+        !> neighboring buffer layers
+        !
+        !>@param update_neighbors_integration_borders
+        !> ask the buffer layers neighboring the recently modified
+        !> buffer layer to update thier integration borders if they
+        !> effectively share grid points with the current buffer
+        !> layer
+        !
         !>@param get_nbf_layers_sharing_grdpts_with
         !> add to the list of sublayer pointers the neighboring 
         !> buffer layers that shares grid points in the
@@ -127,6 +164,9 @@
           procedure, pass :: update_neighbor_grdpts
 
           procedure, pass :: sync_interface_nodes
+          procedure, pass :: define_integration_borders
+          procedure, pass :: update_neighbors_integration_borders
+          procedure, pass :: update_integration_borders
 
           procedure, pass :: get_nbf_layers_sharing_grdpts_with
           procedure, pass :: bf_layer_depends_on_neighbors
@@ -428,6 +468,7 @@
           !layers send data to the current buffer
           !layer
           if(nbf_sublayer%can_exchange_with_neighbor1()) then
+
              call this%nbf_links(mainlayer_id,1)%copy_from_neighbors_to_bf_layer(
      $            1, nbf_sublayer)
           end if
@@ -577,6 +618,608 @@
         !> Julien L. Desmarais
         !
         !> @brief
+        !> synchronize the nodes located at the interface between
+        !> buffer main layer
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !--------------------------------------------------------------
+        subroutine define_integration_borders(this,buffer_layer)
+
+          implicit none
+
+          class(nbf_interface), intent(in)    :: this
+          type(bf_sublayer)   , intent(inout) :: buffer_layer
+
+          integer                                     :: localization
+          integer(ikind), dimension(2)                :: sizes
+          integer(ikind), dimension(2)                :: x_borders
+          integer(ikind), dimension(2)                :: y_borders
+          integer(ikind), dimension(:,:), allocatable :: bc_sections
+
+
+          localization = buffer_layer%get_localization()
+          sizes        = buffer_layer%get_sizes()
+
+
+          select case(localization)
+      
+            case(N)
+               call buffer_layer%set_x_borders([1,sizes(1)])
+               call buffer_layer%set_y_borders([bc_size+1,sizes(2)])
+
+               if(buffer_layer%can_exchange_with_neighbor1().or.
+     $              buffer_layer%can_exchange_with_neighbor2()) then
+
+                  call determine_bc_sections_for_NorS(
+     $                 buffer_layer,
+     $                 this%nbf_links(N,1),
+     $                 this%nbf_links(N,2),
+     $                 bc_sections)
+
+                  if(allocated(bc_sections)) then
+                     call buffer_layer%set_S_bc_sections(bc_sections)
+                  else
+                     call buffer_layer%remove_S_bc_sections()
+                  end if
+
+               else
+                  call buffer_layer%remove_S_bc_sections()                  
+               end if
+
+            case(S)
+               call buffer_layer%set_x_borders([1,sizes(1)])
+               call buffer_layer%set_y_borders([1,sizes(2)-bc_size])
+
+               if(buffer_layer%can_exchange_with_neighbor1().or.
+     $              buffer_layer%can_exchange_with_neighbor2()) then
+
+                  call determine_bc_sections_for_NorS(
+     $                 buffer_layer,
+     $                 this%nbf_links(S,1),
+     $                 this%nbf_links(S,2),
+     $                 bc_sections)
+
+                  if(allocated(bc_sections)) then
+                     call buffer_layer%set_N_bc_sections(bc_sections)
+                  else
+                     call buffer_layer%remove_N_bc_sections()
+                  end if
+
+               else
+                  call buffer_layer%remove_N_bc_sections()
+               end if
+
+            case(E,W)
+               if(localization.eq.E) then
+                  x_borders = [bc_size+1,sizes(1)]
+               else
+                  x_borders = [1,sizes(1)-bc_size]
+               end if
+               y_borders = [bc_size+1,sizes(2)-bc_size]
+
+               
+               !if the buffer layer exchanges with the south
+               !buffer layer, the south boundary sections should
+               !be determined
+               if(buffer_layer%can_exchange_with_neighbor1()) then
+
+                  call determine_bc_sections_for_EorW(
+     $                 localization,
+     $                 buffer_layer,
+     $                 this%nbf_links(localization,1),
+     $                 bc_sections)
+
+                  if(allocated(bc_sections)) then
+                     call buffer_layer%set_S_bc_sections(bc_sections)
+                  else
+                     call buffer_layer%remove_S_bc_sections()
+                  end if
+                  
+               !if the buffer layer does not exchange with the
+               !south buffer layer, the south boundary layer
+               !should be computed by the buffer layer
+               else
+                  y_borders(1) = 1
+                  call buffer_layer%remove_S_bc_sections()
+               end if
+
+
+               !if the buffer layer exchanges with the north
+               !buffer layer, the north boundary sections should
+               !be determined
+               if(buffer_layer%can_exchange_with_neighbor2()) then
+
+                  call determine_bc_sections_for_EorW(
+     $                 localization,
+     $                 buffer_layer,
+     $                 this%nbf_links(localization,2),
+     $                 bc_sections)
+
+                  if(allocated(bc_sections)) then
+                     call buffer_layer%set_N_bc_sections(bc_sections)
+                  else
+                     call buffer_layer%remove_N_bc_sections()
+                  end if
+
+               !if the buffer layer does not exchange with the
+               !north buffer layer, the south boundary layer
+               !should be computed by the buffer layer
+               else                
+                  y_borders(2) = sizes(2)
+                  call buffer_layer%remove_N_bc_sections()
+               end if
+
+               call buffer_layer%set_x_borders(x_borders)
+               call buffer_layer%set_y_borders(y_borders)
+
+
+            case default
+               call error_mainlayer_id(
+     $              'nbf_interface_class.f',
+     $              'define_integration_borders',
+     $              localization)
+
+          end select
+
+        end subroutine define_integration_borders
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the bc_sections for a north or south
+        !> buffer layer
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !> @param buffer_layer
+        !> buffer layer whose bc_sections are determined
+        !
+        !> @param bf_neighbors1
+        !> buffer layer of type neighbors1 that can potentially
+        !> exchange grid points with the buffer layer
+        !
+        !> @param bf_neighbors2
+        !> buffer layer of type neighbors2 that can potentially
+        !> exchange grid points with the buffer layer
+        !
+        !> @param bc_sections
+        !> bc_sections for the buffer layer
+        !--------------------------------------------------------------
+        subroutine determine_bc_sections_for_NorS(
+     $     buffer_layer,
+     $     bf_neighbors1,
+     $     bf_neighbors2,
+     $     bc_sections)
+
+          implicit none
+
+          type(bf_sublayer)                          , intent(inout) :: buffer_layer
+          type(nbf_list)                             , intent(in)    :: bf_neighbors1
+          type(nbf_list)                             , intent(in)    :: bf_neighbors2
+          integer(ikind), dimension(:,:), allocatable, intent(out)   :: bc_sections
+
+
+          integer(ikind) :: bf_inf
+          integer(ikind) :: bf_sup
+
+          integer(ikind) :: interior_inf
+          integer(ikind) :: interior_sup
+
+          integer :: nb_bc_sections
+          logical :: min_initialized
+          logical :: max_initialized
+          logical :: no_bf_common_with_bf_layer
+
+
+          !0) determine the borders identifying the
+          !x-coordinates of the SW and SE corners
+          !of the buffer layer
+          bf_inf = buffer_layer%get_alignment(1,1)-bc_size
+          bf_sup = buffer_layer%get_alignment(1,2)+bc_size
+
+          
+          !1) initialize the bc_sections
+          call ini_interior_bc_sections(
+     $         nb_bc_sections,
+     $         min_initialized,
+     $         max_initialized,
+     $         no_bf_common_with_bf_layer)
+
+
+          !2) check whether the neighbors of type 1 (W)
+          !   have grid points in common with the
+          !   current buffer layer
+          !   (to prevent the inclusion of the interior
+          !   boundary layer in the bc_sections, the
+          !   interior_sup is initialized at min(0,bf_sup))
+          if(buffer_layer%can_exchange_with_neighbor1()) then
+
+             if(bf_inf.le.0) then
+
+                interior_inf = bf_inf
+                interior_sup = min(0,bf_sup)
+                
+                call bf_neighbors1%update_bc_sections(
+     $               interior_inf,
+     $               interior_sup,
+     $               nb_bc_sections,
+     $               bc_sections,
+     $               min_initialized,
+     $               max_initialized,
+     $               no_bf_common_with_bf_layer)
+                
+             end if
+          end if
+
+
+          !3) check whether the neighbors of type 2 (E)
+          !   have grid points in common with the
+          !   current buffer layer
+          !   (to prevent the inclusion of the interior
+          !   boundary layer in the bc_sections, the
+          !   interior_inf is initialized at max(bf_inf,nx+1))
+          if(buffer_layer%can_exchange_with_neighbor2()) then
+
+             if(bf_sup.ge.(nx+1)) then
+                interior_inf = max(bf_inf,nx+1)
+                interior_sup = bf_sup
+
+                call bf_neighbors2%update_bc_sections(
+     $               interior_inf,
+     $               interior_sup,
+     $               nb_bc_sections,
+     $               bc_sections,
+     $               min_initialized,
+     $               max_initialized,
+     $               no_bf_common_with_bf_layer)
+
+             end if
+          end if
+
+
+          !4) close the last bc_section
+          call close_last_bc_section(
+     $         nb_bc_sections,
+     $         bc_sections,
+     $         interior_sup,
+     $         min_initialized,
+     $         max_initialized)
+
+
+          !5) check if there were no buffer layers
+          !   in common with the buffer layer to
+          !   initialize the bc_sections with the
+          !   entire boundary layer
+          if(no_bf_common_with_bf_layer) then
+             
+             nb_bc_sections = 0
+
+             if(bf_inf.le.0) then
+                nb_bc_sections = nb_bc_sections+1
+             end if
+
+             if(bf_sup.ge.(nx+1)) then
+                nb_bc_sections = nb_bc_sections+1
+             end if
+
+             if(nb_bc_sections.gt.0) then
+                allocate(bc_sections(2,nb_bc_sections))
+
+                if(bf_inf.le.0) then
+                   bc_sections(:,1) =
+     $                  [bf_inf,min(bf_sup,0)]
+                end if
+
+                if(bf_sup.ge.(nx+1)) then
+                   bc_sections(:,size(bc_sections,2)) =
+     $                  [max(bf_inf,nx+1),bf_sup]
+                end if
+             end if
+
+          else
+
+          !6) adapt the size of the bc_sections
+             call minimize_interior_bc_section(
+     $            nb_bc_sections,
+     $            bc_sections)
+             
+          end if
+
+          !7) convert the general cooordinates saved
+          !   in the bc_sections into local coordinates
+          !   for the buffer layer
+          call convert_bc_sections_to_local_coords(
+     $         nb_bc_sections,
+     $         bc_sections,
+     $         bf_inf)
+
+        end subroutine determine_bc_sections_for_NorS
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the bc_sections for a north or south
+        !> buffer layer
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !> @param bf_localization
+        !> cardinal coordinate identifying the buffer main layer
+        !> containing the buffer layer, buffer_layer
+        !
+        !> @param buffer_layer
+        !> buffer layer whose bc_sections are determined
+        !
+        !> @param bf_neighbors
+        !> buffer layer of type neighbors that can potentially
+        !> exchange grid points with the buffer layer
+        !
+        !> @param bc_sections
+        !> bc_sections for the buffer layer
+        !--------------------------------------------------------------
+        subroutine determine_bc_sections_for_EorW(
+     $     bf_localization,
+     $     buffer_layer,
+     $     bf_neighbors,
+     $     bc_sections)
+
+          implicit none
+
+          integer                                    , intent(in)    :: bf_localization
+          type(bf_sublayer)                          , intent(inout) :: buffer_layer
+          type(nbf_list)                             , intent(in)    :: bf_neighbors
+          integer(ikind), dimension(:,:), allocatable, intent(out)   :: bc_sections
+
+
+          integer(ikind) :: bf_inf
+          integer(ikind) :: bf_sup
+
+          integer(ikind) :: interior_inf
+          integer(ikind) :: interior_sup
+
+          integer :: nb_bc_sections
+          logical :: min_initialized
+          logical :: max_initialized
+          logical :: no_bf_common_with_bf_layer
+
+
+          !0) determine the borders identifying the
+          !x-coordinates of the SW and SE corners
+          !of the buffer layer
+          bf_inf = buffer_layer%get_alignment(1,1)-bc_size
+          bf_sup = buffer_layer%get_alignment(1,2)+bc_size
+
+
+          !1) initialize the bc_sections
+          call ini_interior_bc_sections(
+     $         nb_bc_sections,
+     $         min_initialized,
+     $         max_initialized,
+     $         no_bf_common_with_bf_layer)
+
+          !2) initialize the boundary of the domain
+          !   studied
+          if(bf_localization.eq.W) then
+             
+             interior_inf = bf_inf
+             interior_sup = bc_size
+
+          else
+
+             interior_inf = nx-1
+             interior_sup = bf_sup
+
+          end if
+
+          !3) determine the bc_sections if any
+          call bf_neighbors%update_bc_sections(
+     $         interior_inf,
+     $         interior_sup,
+     $         nb_bc_sections,
+     $         bc_sections,
+     $         min_initialized,
+     $         max_initialized,
+     $         no_bf_common_with_bf_layer)
+          
+          !4) close the last bc_section
+          call close_last_bc_section(
+     $         nb_bc_sections,
+     $         bc_sections,
+     $         interior_sup,
+     $         min_initialized,
+     $         max_initialized)
+
+          !5) check if there were no buffer layers
+          !   in common with the buffer layer to
+          !   initialize the bc_sections with the
+          !   entire boundary layer
+          if(no_bf_common_with_bf_layer) then
+
+             call set_full_interior_bc_section(
+     $            nb_bc_sections,
+     $            bc_sections,
+     $            interior_inf,
+     $            interior_sup)
+
+          !6) adapt the size of the bc_sections
+          else
+
+             call minimize_interior_bc_section(
+     $            nb_bc_sections,
+     $            bc_sections)
+
+          end if
+
+          !7) convert the general cooordinates saved
+          !   in the bc_sections into local coordinates
+          !   for the buffer layer
+          call convert_bc_sections_to_local_coords(
+     $         nb_bc_sections,
+     $         bc_sections,
+     $         bf_inf)          
+
+        end subroutine determine_bc_sections_for_EorW
+
+
+        subroutine convert_bc_sections_to_local_coords(
+     $     nb_bc_sections,
+     $     bc_sections,
+     $     bf_inf)
+
+          implicit none
+
+          integer                                    , intent(in)    :: nb_bc_sections
+          integer(ikind), dimension(:,:), allocatable, intent(inout) :: bc_sections
+          integer(ikind)                             , intent(in)    :: bf_inf
+
+          integer :: k
+
+          if(nb_bc_sections.gt.0) then
+
+             do k=1, nb_bc_sections
+                bc_sections(1,k) = bc_sections(1,k)-(bf_inf-1)
+                bc_sections(2,k) = bc_sections(2,k)-(bf_inf-1)
+             end do
+
+          end if
+
+        end subroutine convert_bc_sections_to_local_coords
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> ask the buffer layers sharing grid points with the current
+        !> buffer layer to update the integration borders of the layer
+        !> (x_borders, y_borders, N_bc_sections, S_bc_sections)
+        !
+        !> @date
+        !> 31_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param buffer_layer
+        !> buffer layer which has been recently modified and whose
+        !> modifications have a consequence on the neighboring buffer
+        !> layers
+        !--------------------------------------------------------------
+        subroutine update_neighbors_integration_borders(this,buffer_layer)
+
+          implicit none
+
+          class(nbf_interface), intent(in)    :: this
+          type(bf_sublayer)   , intent(inout) :: buffer_layer
+
+          integer                    :: localization
+          type(nbf_element), pointer :: nbf_current_ele
+          integer                    :: k
+          type(bf_sublayer), pointer :: nbf_sublayer
+
+
+          localization = buffer_layer%get_localization()
+          
+
+          !if the buffer layer can potentially share grid points with
+          !its neighboring buffer layer of type 1, the neighboring
+          !buffer layers of type 1 are updated only if they effectively
+          !share grid points with the current buffer layer
+          !----------------------------------------------------------
+          if(buffer_layer%can_exchange_with_neighbor1()) then
+
+             nbf_current_ele => this%nbf_links(localization,1)%get_head()
+
+             do k=1,  this%nbf_links(localization,1)%get_nb_elements()
+
+                if(nbf_current_ele%shares_grdpts_along_x_dir_with(buffer_layer)) then
+                   nbf_sublayer => nbf_current_ele%get_ptr()
+
+                   call define_integration_borders(this, nbf_sublayer)
+
+                end if
+
+                nbf_current_ele => nbf_current_ele%get_next()
+             end do
+          end if
+
+          !if the buffer layer can potentially share grid points with
+          !its neighboring buffer layer of type 2, the neighboring
+          !buffer layers of type 2 are updated only if they effectively
+          !share grid points with the current buffer layer
+          !----------------------------------------------------------
+          if(buffer_layer%can_exchange_with_neighbor2()) then
+
+             nbf_current_ele => this%nbf_links(localization,2)%get_head()
+
+             do k=1,  this%nbf_links(localization,2)%get_nb_elements()
+
+                if(nbf_current_ele%shares_grdpts_along_x_dir_with(buffer_layer)) then
+                   nbf_sublayer => nbf_current_ele%get_ptr()
+
+                   call define_integration_borders(this, nbf_sublayer)
+
+                end if
+
+                nbf_current_ele => nbf_current_ele%get_next()
+             end do
+          end if
+
+        end subroutine update_neighbors_integration_borders
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the integration borders of the current buffer layer
+        !> and ask the neighboring buffer layers that are effectively
+        !> sharing grid points with the current buffer layer to update
+        !> their integration borders
+        !
+        !> @date
+        !> 31_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param buffer_layer
+        !> buffer layer recently modified whose integration borders
+        !> are determined and whose neighboring buffer layers effectively
+        !> sharing grid points with the current buffer layer are asked to
+        !> update their integration borders
+        !--------------------------------------------------------------
+        subroutine update_integration_borders(this,buffer_layer)
+
+          implicit none
+
+          class(nbf_interface), intent(in)    :: this
+          type(bf_sublayer)   , intent(inout) :: buffer_layer
+
+
+          call define_integration_borders(this,buffer_layer)
+          call update_neighbors_integration_borders(this,buffer_layer)
+
+        end subroutine update_integration_borders
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> add to the list of sublayer pointers the neighboring 
         !> buffer layers that shares grid points in the
         !> x-direction with the current buffer layer
@@ -589,7 +1232,7 @@
         !> layers at the edge between different main layers
         !
         !>@param nbf_type
-        !> type of the neighboring bf_sublayer investigated
+        !> type of the neighboring bf_sublayer_i investigated
         !
         !>@param bf_sublayer_i
         !> reference to the bf_sublayer whose neighbors are investigated

@@ -309,6 +309,16 @@
      $       grdpts_id,
      $       index)
 
+        !test the integration borders for the buffer layers
+        !--------------------------------------------------------
+        call test_bf_integration_borders(
+     $       interface_tested,
+     $       x_map,
+     $       y_map,
+     $       nodes,
+     $       grdpts_id,
+     $       index)
+
 
         contains
 
@@ -485,7 +495,7 @@
 
           do j=1, size(nodes,2)
              do i=1, size(nodes,1)
-                nodes(i,j,1)  = color
+                nodes(i,j,:)  = color
              end do
           end do
 
@@ -529,6 +539,103 @@
           end do          
 
         end subroutine reinitialize_nodes
+
+
+        !re-initialize the nodes of all sublayers
+        subroutine colorize_integration_borders(interface_used)
+
+          implicit none
+
+          class(bf_interface), intent(inout) :: interface_used
+
+          integer :: k,l,m,i,j
+          type(bf_mainlayer), pointer :: mainlayer_ptr
+          type(bf_sublayer) , pointer :: sublayer_ptr
+          integer                     :: nb_sublayers
+          integer(ikind), dimension(2):: sizes
+          real(rkind)   , dimension(:,:,:), allocatable :: new_nodes
+          real(rkind)   , dimension(2)                  :: x_borders
+          real(rkind)   , dimension(2)                  :: y_borders
+          integer(ikind), dimension(:,:)  , allocatable :: N_bc_sections
+          integer(ikind), dimension(:,:)  , allocatable :: S_bc_sections
+          real(rkind) :: color_S_bc_sec
+          real(rkind) :: color_integration
+          real(rkind) :: color_N_bc_sec
+
+          color_S_bc_sec    = 0.7
+          color_integration = 0.4
+          color_N_bc_sec    = 0.9
+
+          
+          do k=1,4
+
+             mainlayer_ptr => interface_used%get_mainlayer(k)
+
+             if(associated(mainlayer_ptr)) then
+                nb_sublayers = mainlayer_ptr%get_nb_sublayers()
+
+                sublayer_ptr => mainlayer_ptr%get_head_sublayer()
+
+                do l=1, nb_sublayers
+                   sizes = sublayer_ptr%get_sizes()
+
+                   allocate(new_nodes(sizes(1), sizes(2), ne))
+
+                   !get the x_borders and y_borders
+                   x_borders = sublayer_ptr%get_x_borders()
+                   y_borders = sublayer_ptr%get_y_borders()
+
+                   !get the N and S bc_sections
+                   call sublayer_ptr%get_S_bc_sections(S_bc_sections)
+                   call sublayer_ptr%get_N_bc_sections(N_bc_sections)
+
+                   
+                   do j=1, sizes(2)
+                      do i=1, sizes(1)
+                         new_nodes(i,j,:) = 1.0
+                      end do
+                   end do
+
+                   !colorize S_bc_sections
+                   if(allocated(S_bc_sections)) then
+                      do m=1, size(S_bc_sections,2)
+                         do j=1,bc_size
+                            do i=S_bc_sections(1,m), S_bc_sections(2,m)
+                               new_nodes(i,j,:) = color_S_bc_sec
+                            end do
+                         end do
+                      end do
+                      deallocate(S_bc_sections)
+                   end if
+
+                   !colorize interior domain for integration
+                   do j=y_borders(1), y_borders(2)
+                      do i=x_borders(1), x_borders(2)
+                         new_nodes(i,j,:) = color_integration
+                      end do
+                   end do
+
+                   !colorize N_bc_sections
+                   if(allocated(N_bc_sections)) then
+                      do m=1, size(N_bc_sections,2)
+                         do j=sizes(2)-bc_size+1,sizes(2)
+                            do i=N_bc_sections(1,m), N_bc_sections(2,m)
+                               new_nodes(i,j,:) = color_N_bc_sec
+                            end do
+                         end do
+                      end do
+                      deallocate(N_bc_sections)
+                   end if
+
+                   call sublayer_ptr%set_nodes(new_nodes)
+                   sublayer_ptr => sublayer_ptr%get_next()
+                end do
+
+             end if
+
+          end do          
+
+        end subroutine colorize_integration_borders
 
 
         !re-initialize the nodes of all sublayers
@@ -1113,6 +1220,62 @@
           index = index+1
 
         end subroutine test_sync_nodes_at_mainlayer_interfaces
+
+
+        !test the determination of the integration borders
+        subroutine test_bf_integration_borders(
+     $     interface_used,
+     $     x_map,
+     $     y_map,
+     $     nodes,
+     $     grdpts_id,
+     $     index)
+        
+          implicit none
+          
+          class(bf_interface)             , intent(inout) :: interface_used
+          real(rkind), dimension(nx)      , intent(in)    :: x_map
+          real(rkind), dimension(ny)      , intent(in)    :: y_map
+          real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
+          integer    , dimension(nx,ny)   , intent(in)    :: grdpts_id
+          integer                         , intent(inout) :: index
+
+          integer(ikind) :: i,j
+          integer        :: k
+
+          !1) reinitialize the nodes of the boundary layers
+          call reinitialize_nodes(interface_used)
+
+          !2) reinitialize the interior nodes
+          do k=1,ne
+             do j=1,ny
+                do i=1,nx
+                   nodes(i,j,k) = 1.0
+                end do
+             end do
+          end do
+
+          !3) colorize the integration borders in the buffer layers
+          call colorize_integration_borders(interface_used)
+
+          !4) print interface
+          call print_output(interface_used, index)
+
+          !5) print interior nodes
+          call print_interior_data(
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         grdpts_id,
+     $         'interior_x_map_int_borders.dat',
+     $         'interior_y_map_int_borders.dat',
+     $         'interior_nodes_int_borders.dat',
+     $         'interior_grdpts_id_int_borders.dat',
+     $         'interior_sizes_int_borders.dat')
+
+          index = index+1
+
+        end subroutine test_bf_integration_borders
 
       
         !< colorize the main layer whose dependencies are deterimed
