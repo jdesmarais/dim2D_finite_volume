@@ -146,3 +146,44 @@ test_field_extended:	$(sim_dep)\
 			field_abstract_class.o\
 			field_class.o\
 			field_extended_class.o
+
+
+test_field_extended_timedev.o:\
+			$(bf_layer_dir)/bf_interface_class.o\
+			$(bf_layer_dir)/bf_mainlayer_class.o\
+			$(bf_layer_dir)/bf_sublayer_class.o\
+			$(field_dir)/field_class.o\
+			$(field_dir)/field_extended_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(ns2d_pic)/ic_class.o
+
+test_field_extended_timedev:\
+			$(sim_dep)\
+			$(bf_interface_dcr_dep)\
+			surrogate_class.o\
+			field_abstract_class.o\
+			field_class.o\
+			field_extended_class.o
+
+test_field_extended_integration.o:\
+			$(bf_layer_dir)/bf_interface_class.o\
+			$(bf_layer_dir)/bf_mainlayer_class.o\
+			$(bf_layer_dir)/bf_sublayer_class.o\
+			$(field_dir)/field_class.o\
+			$(field_dir)/field_extended_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(rk3tvd_dir)/rk3tvd_steps_module.o
+
+test_field_extended_integration:\
+			$(sim_dep)\
+			$(bf_interface_dcr_dep)\
+			surrogate_class.o\
+			field_abstract_class.o\
+			field_class.o\
+			field_extended_class.o

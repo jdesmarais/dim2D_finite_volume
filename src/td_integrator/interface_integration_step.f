@@ -31,17 +31,22 @@
 
           subroutine timeInt_step_nopt(
      $     nodes, dt, nodes_tmp, time_dev, grdpts_id,
-     $     x_borders, y_borders)
+     $     full,
+     $     x_borders, y_borders,
+     $     N_bc_sections, S_bc_sections)
            
              import ikind,rkind
 
-             real(rkind), dimension(:,:,:)         , intent(inout) :: nodes
-             real(rkind)                           , intent(in)    :: dt
-             real(rkind), dimension(:,:,:)         , intent(inout) :: nodes_tmp
-             real(rkind), dimension(:,:,:)         , intent(in)    :: time_dev
-             integer    , dimension(:,:)           , intent(in)    :: grdpts_id
-             integer(ikind), dimension(2), optional, intent(in)    :: x_borders
-             integer(ikind), dimension(2), optional, intent(in)    :: y_borders
+             real(rkind), dimension(:,:,:)                        , intent(inout) :: nodes
+             real(rkind)                                          , intent(in)    :: dt
+             real(rkind), dimension(:,:,:)                        , intent(inout) :: nodes_tmp
+             real(rkind), dimension(:,:,:)                        , intent(in)    :: time_dev
+             integer    , dimension(:,:)                          , intent(in)    :: grdpts_id
+             logical                                    , optional, intent(in)    :: full
+             integer(ikind), dimension(2)               , optional, intent(in)    :: x_borders
+             integer(ikind), dimension(2)               , optional, intent(in)    :: y_borders
+             integer(ikind), dimension(:,:), allocatable, optional, intent(in)    :: N_bc_sections
+             integer(ikind), dimension(:,:), allocatable, optional, intent(in)    :: S_bc_sections
 
           end subroutine timeInt_step_nopt
 

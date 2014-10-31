@@ -11,6 +11,11 @@
       !> \image html  bf_layer_allocate_module.png
       !> \image latex bf_layer_allocate_module.eps
       !
+      !> @warning
+      !> the x_map and y_map are not correcly initialized if the
+      !> buffer layer does not have any grid point in common with
+      !> the interior domain
+      !
       !> @date
       ! 27_06_2014 - documentation update        - J.L. Desmarais
       ! 23_10_2014 - addition of x_map and y_map - J.L. Desmarais

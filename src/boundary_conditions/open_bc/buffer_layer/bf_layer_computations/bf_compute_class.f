@@ -240,22 +240,25 @@
      $     s,
      $     p_model,bc_used,
      $     grdpts_id,
-     $     x_borders, y_borders)
+     $     x_borders, y_borders,
+     $     N_bc_sections, S_bc_sections)
 
           implicit none
 
-          class(bf_compute)              , intent(inout) :: this
-          type(td_operators)             , intent(in)    :: td_operators_used
-          real(rkind)                    , intent(in)    :: t
-          real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
-          real(rkind), dimension(:)      , intent(in)    :: x_map
-          real(rkind), dimension(:)      , intent(in)    :: y_map
-          type(sd_operators)             , intent(in)    :: s
-          type(pmodel_eq)                , intent(in)    :: p_model
-          type(bc_operators)             , intent(in)    :: bc_used
-          integer    , dimension(:,:)    , intent(in)    :: grdpts_id
-          integer(ikind), dimension(2)   , intent(in)    :: x_borders
-          integer(ikind), dimension(2)   , intent(in)    :: y_borders
+          class(bf_compute)                          , intent(inout) :: this
+          type(td_operators)                         , intent(in)    :: td_operators_used
+          real(rkind)                                , intent(in)    :: t
+          real(rkind), dimension(:,:,:)              , intent(in)    :: nodes
+          real(rkind), dimension(:)                  , intent(in)    :: x_map
+          real(rkind), dimension(:)                  , intent(in)    :: y_map
+          type(sd_operators)                         , intent(in)    :: s
+          type(pmodel_eq)                            , intent(in)    :: p_model
+          type(bc_operators)                         , intent(in)    :: bc_used
+          integer    , dimension(:,:)                , intent(in)    :: grdpts_id
+          integer(ikind), dimension(2)               , intent(in)    :: x_borders
+          integer(ikind), dimension(2)               , intent(in)    :: y_borders
+          integer(ikind), dimension(:,:), allocatable, intent(in)    :: N_bc_sections
+          integer(ikind), dimension(:,:), allocatable, intent(in)    :: S_bc_sections
           
           call td_operators_used%compute_time_dev_nopt(
      $         t,nodes,x_map,y_map,
@@ -263,7 +266,9 @@
      $         this%time_dev,
      $         grdpts_id,
      $         this%bc_sections,
-     $         x_borders, y_borders)
+     $         x_borders, y_borders,
+     $         N_bc_sections=N_bc_sections,
+     $         S_bc_sections=S_bc_sections)
 
         end subroutine compute_time_dev
 
@@ -306,17 +311,20 @@
      $     this,
      $     grdpts_id, nodes, dt,
      $     x_borders, y_borders,
-     $     integration_step_nopt)
+     $     integration_step_nopt,
+     $     N_bc_sections, S_bc_sections)
 
           implicit none
 
-          class(bf_compute)            , intent(inout) :: this
-          integer    , dimension(:,:)  , intent(in)    :: grdpts_id
-          real(rkind), dimension(:,:,:), intent(inout) :: nodes
-          real(rkind)                  , intent(in)    :: dt
-          integer(ikind), dimension(2) , intent(in)    :: x_borders
-          integer(ikind), dimension(2) , intent(in)    :: y_borders
-          procedure(timeInt_step_nopt)                 :: integration_step_nopt
+          class(bf_compute)                          , intent(inout) :: this
+          integer    , dimension(:,:)                , intent(in)    :: grdpts_id
+          real(rkind), dimension(:,:,:)              , intent(inout) :: nodes
+          real(rkind)                                , intent(in)    :: dt
+          integer(ikind), dimension(2)               , intent(in)    :: x_borders
+          integer(ikind), dimension(2)               , intent(in)    :: y_borders
+          procedure(timeInt_step_nopt)                               :: integration_step_nopt
+          integer(ikind), dimension(:,:), allocatable, intent(in)    :: N_bc_sections
+          integer(ikind), dimension(:,:), allocatable, intent(in)    :: S_bc_sections
 
           call integration_step_nopt(
      $         nodes,
@@ -325,7 +333,9 @@
      $         this%time_dev,
      $         grdpts_id,
      $         x_borders=x_borders,
-     $         y_borders=y_borders)
+     $         y_borders=y_borders,
+     $         N_bc_sections=N_bc_sections,
+     $         S_bc_sections=S_bc_sections)
 
         end subroutine compute_integration_step
 

@@ -969,13 +969,13 @@ c$$$          y_s = y_map(1)
         
           implicit none
 
-          real(rkind), dimension(nx,ny,ne), intent(in)   :: nodes
-          real(rkind)                     , intent(in)   :: dx
-          real(rkind)                     , intent(in)   :: dy
-          integer(ikind)                  , intent(in)   :: i
-          integer(ikind)                  , intent(in)   :: j
-          class(sd_operators)             , intent(in)   :: s_oneside
-          real(rkind), dimension(ne)                     :: flux_x
+          real(rkind), dimension(:,:,:), intent(in)   :: nodes
+          real(rkind)                  , intent(in)   :: dx
+          real(rkind)                  , intent(in)   :: dy
+          integer(ikind)               , intent(in)   :: i
+          integer(ikind)               , intent(in)   :: j
+          class(sd_operators)          , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)                  :: flux_x
 
           !<fluxes along the x-axis
           !DEC$ FORCEINLINE RECURSIVE
@@ -1035,13 +1035,13 @@ c$$$          y_s = y_map(1)
         
           implicit none
 
-          real(rkind), dimension(nx,ny,ne), intent(in)   :: nodes
-          real(rkind)                     , intent(in)   :: dx
-          real(rkind)                     , intent(in)   :: dy
-          integer(ikind)                  , intent(in)   :: i
-          integer(ikind)                  , intent(in)   :: j
-          class(sd_operators)             , intent(in)   :: s_oneside
-          real(rkind), dimension(ne)                     :: flux_y
+          real(rkind), dimension(:,:,:), intent(in)   :: nodes
+          real(rkind)                  , intent(in)   :: dx
+          real(rkind)                  , intent(in)   :: dy
+          integer(ikind)               , intent(in)   :: i
+          integer(ikind)               , intent(in)   :: j
+          class(sd_operators)          , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)                  :: flux_y
 
 
           !DEC$ FORCEINLINE RECURSIVE

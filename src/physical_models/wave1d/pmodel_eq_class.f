@@ -612,13 +612,13 @@
         
           implicit none
 
-          real(rkind), dimension(nx,ny,ne)  , intent(in)   :: nodes
-          real(rkind)                       , intent(in)   :: dx
-          real(rkind)                       , intent(in)   :: dy
-          integer(ikind)                    , intent(in)   :: i
-          integer(ikind)                    , intent(in)   :: j
-          class(sd_operators)               , intent(in)   :: s_oneside
-          real(rkind), dimension(ne)                       :: flux_x
+          real(rkind), dimension(:,:,:), intent(in)   :: nodes
+          real(rkind)                  , intent(in)   :: dx
+          real(rkind)                  , intent(in)   :: dy
+          integer(ikind)               , intent(in)   :: i
+          integer(ikind)               , intent(in)   :: j
+          class(sd_operators)          , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)                  :: flux_x
 
           real(rkind) :: dy_s
 
@@ -669,13 +669,13 @@
         
           implicit none
 
-          real(rkind), dimension(nx,ny,ne)  , intent(in)   :: nodes
-          real(rkind)                       , intent(in)   :: dx
-          real(rkind)                       , intent(in)   :: dy
-          integer(ikind)                    , intent(in)   :: i
-          integer(ikind)                    , intent(in)   :: j
-          class(sd_operators)               , intent(in)   :: s_oneside
-          real(rkind), dimension(ne)                       :: flux_y
+          real(rkind), dimension(:,:,:), intent(in)   :: nodes
+          real(rkind)                  , intent(in)   :: dx
+          real(rkind)                  , intent(in)   :: dy
+          integer(ikind)               , intent(in)   :: i
+          integer(ikind)               , intent(in)   :: j
+          class(sd_operators)          , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)                  :: flux_y
 
           integer     :: bc_s, i_s, j_s
           real(rkind) :: dx_s,dy_s,node_s

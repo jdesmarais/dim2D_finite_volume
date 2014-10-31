@@ -287,22 +287,25 @@
      $     time_dev,
      $     grdpts_id,
      $     bc_sections,
-     $     x_borders, y_borders)
+     $     x_borders, y_borders,
+     $     N_bc_sections, S_bc_sections)
 
             implicit none
 
-            real(rkind)                                  , intent(in)    :: t
-            real(rkind)   , dimension(:,:,:)             , intent(in)    :: nodes
-            real(rkind)   , dimension(:)                 , intent(in)    :: x_map
-            real(rkind)   , dimension(:)                 , intent(in)    :: y_map
-            type(sd_operators)                           , intent(in)    :: s
-            type(pmodel_eq)                              , intent(in)    :: p_model
-            type(bc_operators)                           , intent(in)    :: bc_used
-            real(rkind)   , dimension(:,:,:)             , intent(out)   :: time_dev
-            integer       , dimension(:,:)               , intent(in)    :: grdpts_id
-            integer       , dimension(:,:)  , allocatable, intent(inout) :: bc_sections
-            integer(ikind), dimension(2)                 , intent(in)    :: x_borders
-            integer(ikind), dimension(2)                 , intent(in)    :: y_borders
+            real(rkind)                                            , intent(in)    :: t
+            real(rkind)   , dimension(:,:,:)                       , intent(in)    :: nodes
+            real(rkind)   , dimension(:)                           , intent(in)    :: x_map
+            real(rkind)   , dimension(:)                           , intent(in)    :: y_map
+            type(sd_operators)                                     , intent(in)    :: s
+            type(pmodel_eq)                                        , intent(in)    :: p_model
+            type(bc_operators)                                     , intent(in)    :: bc_used
+            real(rkind)   , dimension(:,:,:)                       , intent(out)   :: time_dev
+            integer       , dimension(:,:)                         , intent(in)    :: grdpts_id
+            integer       , dimension(:,:)  , allocatable          , intent(inout) :: bc_sections
+            integer(ikind), dimension(2)                           , intent(in)    :: x_borders
+            integer(ikind), dimension(2)                           , intent(in)    :: y_borders
+            integer(ikind), dimension(:,:)  , allocatable, optional, intent(in)    :: N_bc_sections
+            integer(ikind), dimension(:,:)  , allocatable, optional, intent(in)    :: S_bc_sections
 
             real(rkind), dimension(:,:,:), allocatable :: flux_x
             real(rkind), dimension(:,:,:), allocatable :: flux_y
@@ -373,10 +376,53 @@
                !the boundary layers
                call bc_sections_id%ini()
 
+               !if the S_bc_sections is present and allocated,
+               !identify the bc_sections also in the
+               !S_bc_sections
+               if(present(S_bc_sections)) then
+                  if(allocated(S_bc_sections)) then
+                     do k=1, size(S_bc_sections,2)
+                        do j=1,bc_size
+                           do i=S_bc_sections(1,k), S_bc_sections(2,k)
+                              call bc_sections_id%analyse_grdpt(i,j,grdpts_id)
+                           end do
+                        end do
+                     end do
+                  end if
+               end if
+               
+
                !compute the time derivatives and collect the
                !grid points belonging to the same boundary
                !layers
-               do k=1, ne
+               k=1
+               do j=y_borders(1), y_borders(2)
+                  do i=x_borders(1), x_borders(2)
+
+                     if(grdpts_id(i,j).eq.interior_pt) then
+                        
+                        time_dev(i,j,k)=
+     $                       (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
+     $                       (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
+                        
+                        if(gravity_choice.eq.earth_gravity_choice) then
+                           time_dev(i,j,k)=
+     $                          time_dev(i,j,k)+
+     $                          p_model%compute_body_forces(
+     $                          nodes(i,j,:),k)
+                        end if
+                        
+                     else
+                        
+                        if(grdpts_id(i,j).eq.bc_interior_pt) then
+                           call bc_sections_id%analyse_grdpt(i,j,grdpts_id)
+                        end if
+                        
+                     end if                     
+                  end do
+               end do
+
+               do k=2,ne
                   do j=y_borders(1), y_borders(2)
                      do i=x_borders(1), x_borders(2)
                         
@@ -393,21 +439,28 @@
      $                             p_model%compute_body_forces(
      $                             nodes(i,j,:),k)
 
-                           end if
-                           
-                        else
-                           
-                           if(grdpts_id(i,j).eq.bc_interior_pt) then
-
-                              call bc_sections_id%analyse_grdpt(i,j,grdpts_id)
-
-                           end if
-
-                        end if
-                        
+                           end if                           
+                        end if                        
                      end do
                   end do
                end do
+
+
+               !if the N_bc_sections is present and allocated,
+               !identify the bc_sections also in the
+               !N_bc_sections
+               if(present(N_bc_sections)) then
+                  if(allocated(N_bc_sections)) then
+                     do k=1, size(N_bc_sections,2)
+                        do j=size(nodes,2)-bc_size+1, size(nodes,2)
+                           do i=N_bc_sections(1,k), N_bc_sections(2,k)
+                              call bc_sections_id%analyse_grdpt(i,j,grdpts_id)
+                           end do
+                        end do
+                     end do
+                  end if
+               end if
+
 
                !finalize the identification of the boundary layers
                call bc_sections_id%sort_bc_sections(bc_sections)

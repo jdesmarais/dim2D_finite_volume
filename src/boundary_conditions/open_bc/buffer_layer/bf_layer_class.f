@@ -430,6 +430,9 @@
                        
           procedure,   pass :: get_local_coord
           procedure,   pass :: get_general_to_local_coord_tab
+          procedure,   pass :: get_x_map
+          procedure,   pass :: get_y_map
+          procedure,   pass :: get_nodes_array
           procedure,   pass :: get_nodes
           procedure,   pass :: get_grdpts_id
           
@@ -902,6 +905,109 @@
           end select
 
         end function get_general_to_local_coord_tab
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the x_map attribute
+        !
+        !> @date
+        !> 03_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param x_map
+        !> map with the coordinates along the x-direction
+        !--------------------------------------------------------------
+        subroutine get_x_map(this, x_map)
+
+          implicit none
+
+          class(bf_layer)                          , intent(in) :: this
+          real(rkind)   , dimension(:), allocatable, intent(out):: x_map
+          
+          if(allocated(x_map)) then
+             deallocate(x_map)
+          end if
+
+          allocate(x_map(size(this%x_map,1)))
+          x_map(:) = this%x_map(:)
+
+        end subroutine get_x_map
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> copy the y_map attribute
+        !
+        !> @date
+        !> 03_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param y_map
+        !> map with the coordinates along the y-direction
+        !--------------------------------------------------------------
+        subroutine get_y_map(this, y_map)
+
+          implicit none
+
+          class(bf_layer)                          , intent(in) :: this
+          real(rkind)   , dimension(:), allocatable, intent(out):: y_map
+          
+          if(allocated(y_map)) then
+             deallocate(y_map)
+          end if
+
+          allocate(y_map(size(this%y_map,1)))
+          y_map(:) = this%y_map(:)
+
+        end subroutine get_y_map
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the nodes attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param l_coords
+        !> local coordinate giving the indices of the grid point
+        !> in the buffer layer nodes attribute
+        !
+        !>@return var
+        !> governig variables at a specific grid point
+        !--------------------------------------------------------------
+        subroutine get_nodes_array(this, nodes)
+
+          implicit none
+
+          class(bf_layer)                           , intent(in)    :: this
+          real(rkind), dimension(:,:,:), allocatable, intent(inout) :: nodes
+
+          if(allocated(nodes)) then
+             deallocate(nodes)
+          end if
+
+          allocate(nodes(size(this%nodes,1),size(this%nodes,2),size(this%nodes,3)))
+          nodes(:,:,:) = this%nodes(:,:,:)
+
+        end subroutine get_nodes_array
 
 
         !> @author
@@ -2737,18 +2843,29 @@
      $     filename_y_map,
      $     filename_nodes,
      $     filename_grdpts_id,
-     $     filename_sizes)
+     $     filename_sizes,
+     $     timedev)
 
           implicit none
 
-          class(bf_layer), intent(in) :: this
-          character(*)   , intent(in) :: filename_x_map
-          character(*)   , intent(in) :: filename_y_map
-          character(*)   , intent(in) :: filename_nodes
-          character(*)   , intent(in) :: filename_grdpts_id
-          character(*)   , intent(in) :: filename_sizes
+          class(bf_layer)  , intent(in) :: this
+          character(*)     , intent(in) :: filename_x_map
+          character(*)     , intent(in) :: filename_y_map
+          character(*)     , intent(in) :: filename_nodes
+          character(*)     , intent(in) :: filename_grdpts_id
+          character(*)     , intent(in) :: filename_sizes
+          logical, optional, intent(in) :: timedev
 
           integer :: ios
+          logical :: timedev_op
+
+          real(rkind), dimension(:,:,:), allocatable :: time_dev
+
+          if(present(timedev)) then
+             timedev_op = timedev
+          else
+             timedev_op = .false.
+          end if
           
           !x_map
           open(unit=2,
@@ -2794,15 +2911,29 @@
      $          position='rewind',
      $          iostat=ios)
 
-           if(ios.eq.0) then
-              write(unit=3, iostat=ios) this%nodes
-              close(unit=3)
-           else
-              stop 'file opening pb'
-           end if
+          if(timedev_op) then
+             call this%bf_compute_used%get_time_dev(time_dev)
 
-           !grdpts_id
-           open(unit=2,
+             if(ios.eq.0) then
+                write(unit=3, iostat=ios) time_dev
+                close(unit=3)
+             else
+                stop 'file opening pb'
+             end if
+
+             deallocate(time_dev)
+
+          else
+             if(ios.eq.0) then
+                write(unit=3, iostat=ios) this%nodes
+                close(unit=3)
+             else
+                stop 'file opening pb'
+             end if
+          end if
+
+          !grdpts_id
+          open(unit=2,
      $          file=filename_grdpts_id,
      $          action="write", 
      $          status="unknown",
@@ -3004,7 +3135,8 @@
      $         t, this%nodes, this%x_map, this%y_map,
      $         s,p_model,bc_used,
      $         this%grdpts_id,
-     $         this%x_borders, this%y_borders)
+     $         this%x_borders, this%y_borders,
+     $         this%N_bc_sections, this%S_bc_sections)
 
         end subroutine compute_time_dev
 
@@ -3043,7 +3175,9 @@
      $         dt,
      $         this%x_borders,
      $         this%y_borders,
-     $         integration_step_nopt)
+     $         integration_step_nopt,
+     $         this%N_bc_sections,
+     $         this%S_bc_sections)
 
         end subroutine compute_integration_step
 

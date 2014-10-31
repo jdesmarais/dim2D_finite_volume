@@ -70,6 +70,7 @@
           procedure, pass :: compute_time_dev_ext
           procedure, pass :: compute_integration_step_ext
           procedure, pass :: integrate
+          procedure, pass :: apply_bc_on_nodes
           !procedure, pass :: adapt_domain
 
         end type field_extended
@@ -167,6 +168,10 @@
      $         this%bc_operators_used,
      $         bc_sections=this%bc_sections)
 
+          !the boundary conditions are applied on the time
+          !derivatives of the interior by using the local
+          !bc_sections for the interior
+
         end function compute_time_dev
 
 
@@ -195,31 +200,22 @@
 
 
           !compute the time derivatives of the interior domain
+          !(the boundary conditions on the time derivatives are
+          ! applied on the interior domain using the interior
+          ! bc_sections)
           time_dev = compute_time_dev(this)
 
 
           !compute the time derivatives of the domain extension
+          !(the boundary conditions on the time derivatives are
+          ! applied on the buffer layers using the bc_sections
+          ! for each buffer layer)
           call this%domain_extension%compute_time_dev(
      $         this%td_operators_used,
      $         this%time,
      $         this%sd_operators_used,
      $         this%pmodel_eq_used,
      $         this%bc_operators_used)
-
-          
-          !WARNING: depending on the way to implement the computation
-          !of the boundary conditions on the time derivatives, it may
-          !be needed to add the computation of the boundary conditions
-          !here and to replace this%field_abstract%compute_time_dev()
-          !by its implementation to distinguish what is computed from
-          !what is exchanged for the interior domain
-          print '()'
-          print '(''**********************************************'')'
-          print '(''field_extended_class'')'
-          print '(''compute_time_dev'')'
-          print '(''think on how to implement the b.c. on time dev'')'
-          print '(''**********************************************'')'
-          print '()'
 
         end function compute_time_dev_ext
 
@@ -313,6 +309,38 @@
           call this%domain_extension%deallocate_after_timeInt()
 
         end subroutine integrate
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> apply the boundary conditions on the gridpoints
+        !
+        !> @date
+        !> 03_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !--------------------------------------------------------------
+        subroutine apply_bc_on_nodes(this)
+
+          implicit none
+
+          class(field_extended), intent(inout) :: this
+
+          !if the boundary conditions are such that some grid points
+          !are computed using the interior information, simply re-use
+          !the procedure from field_abstract as if there are no buffer
+          !layer
+          call this%field_abstract%apply_bc_on_nodes()
+
+          !if there are buffer layers, then synchronizing the grid points
+          !between the different domains is required
+          call this%domain_extension%sync_nodes_at_domain_interfaces(
+     $         this%nodes)
+
+        end subroutine apply_bc_on_nodes
 
 
 c$$$        !> @author

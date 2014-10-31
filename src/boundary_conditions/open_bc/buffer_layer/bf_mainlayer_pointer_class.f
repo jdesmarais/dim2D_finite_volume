@@ -822,7 +822,8 @@
      $     suffix_y_map,
      $     suffix_nodes,
      $     suffix_grdid,
-     $     suffix_sizes)
+     $     suffix_sizes,
+     $     timedev)
 
           implicit none
 
@@ -832,7 +833,16 @@
           character(*)               , intent(in) :: suffix_nodes
           character(*)               , intent(in) :: suffix_grdid
           character(*)               , intent(in) :: suffix_sizes
+          logical     , optional     , intent(in) :: timedev
 
+          logical :: timedev_op
+          
+
+          if(present(timedev)) then
+             timedev_op = timedev
+          else
+             timedev_op = .false.
+          end if
 
           if(this%associated_ptr()) then
              call this%ptr%print_binary(
@@ -840,7 +850,8 @@
      $            suffix_y_map,
      $            suffix_nodes,
      $            suffix_grdid,
-     $            suffix_sizes)
+     $            suffix_sizes,
+     $            timedev=timedev_op)
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''merge_sublayers'')'

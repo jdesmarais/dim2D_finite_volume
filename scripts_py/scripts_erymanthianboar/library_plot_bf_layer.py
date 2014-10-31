@@ -1262,7 +1262,7 @@ def plot_matrix_with_all_buffer_layers(lm):
 
     return fig,ax
 
-def plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes, lm_grdptid):
+def plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes, lm_grdptid, var=0, vmin=0.0,vmax=1.0):
 
     #create the main figure
     fig=plt.figure(figsize=(12,6))
@@ -1274,7 +1274,7 @@ def plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes, lm_grdptid):
     
     #plot the nodes
     ax = fig.add_subplot(1,2,2)
-    res = ax.imshow(lm_nodes[0,:,:], cmap=cm.spectral, interpolation='nearest', vmin=0.0, vmax=1.0)
+    res = ax.imshow(lm_nodes[var,:,:], cmap=cm.spectral, interpolation='nearest', vmin=vmin, vmax=vmax)
     fig.colorbar(res)    
 
     return fig,ax

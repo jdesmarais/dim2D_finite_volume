@@ -162,7 +162,8 @@
      $      time_dev,
      $      grdpts_id,
      $      bc_sections,
-     $      x_borders, y_borders)
+     $      x_borders, y_borders,
+     $      N_bc_sections, S_bc_sections)
 
             import bc_operators
             import ikind
@@ -170,18 +171,20 @@
             import rkind
             import sd_operators
 
-            real(rkind)                                  , intent(in)    :: t
-            real(rkind)   , dimension(:,:,:)             , intent(in)    :: nodes
-            real(rkind)   , dimension(:)                 , intent(in)    :: x_map
-            real(rkind)   , dimension(:)                 , intent(in)    :: y_map
-            type(sd_operators)                           , intent(in)    :: s
-            type(pmodel_eq)                              , intent(in)    :: p_model
-            type(bc_operators)                           , intent(in)    :: bc_used
-            real(rkind)   , dimension(:,:,:)             , intent(out)   :: time_dev
-            integer       , dimension(:,:)               , intent(in)    :: grdpts_id
-            integer       , dimension(:,:)  , allocatable, intent(inout) :: bc_sections
-            integer(ikind), dimension(2)                 , intent(in)    :: x_borders
-            integer(ikind), dimension(2)                 , intent(in)    :: y_borders
+            real(rkind)                                          , intent(in)    :: t
+            real(rkind)   , dimension(:,:,:)                     , intent(in)    :: nodes
+            real(rkind)   , dimension(:)                         , intent(in)    :: x_map
+            real(rkind)   , dimension(:)                         , intent(in)    :: y_map
+            type(sd_operators)                                   , intent(in)    :: s
+            type(pmodel_eq)                                      , intent(in)    :: p_model
+            type(bc_operators)                                   , intent(in)    :: bc_used
+            real(rkind)   , dimension(:,:,:)                     , intent(out)   :: time_dev
+            integer       , dimension(:,:)                       , intent(in)    :: grdpts_id
+            integer       , dimension(:,:), allocatable          , intent(inout) :: bc_sections
+            integer(ikind), dimension(2)                         , intent(in)    :: x_borders
+            integer(ikind), dimension(2)                         , intent(in)    :: y_borders
+            integer(ikind), dimension(:,:), allocatable, optional, intent(in)    :: N_bc_sections
+            integer(ikind), dimension(:,:), allocatable, optional, intent(in)    :: S_bc_sections
 
           end subroutine time_proc_nopt
 

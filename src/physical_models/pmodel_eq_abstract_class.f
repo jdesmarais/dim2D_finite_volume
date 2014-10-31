@@ -548,17 +548,17 @@
      $      result(flux_x)
 
             import ikind
+            import ne
             import rkind
-            import nx,ny,ne
             import sd_operators
 
-            real(rkind), dimension(nx,ny,ne), intent(in)   :: nodes
-            real(rkind)                     , intent(in)   :: dx
-            real(rkind)                     , intent(in)   :: dy
-            integer(ikind)                  , intent(in)   :: i
-            integer(ikind)                  , intent(in)   :: j
-            class(sd_operators)             , intent(in)   :: s_oneside
-            real(rkind), dimension(ne)                     :: flux_x
+            real(rkind), dimension(:,:,:), intent(in)   :: nodes
+            real(rkind)                  , intent(in)   :: dx
+            real(rkind)                  , intent(in)   :: dy
+            integer(ikind)               , intent(in)   :: i
+            integer(ikind)               , intent(in)   :: j
+            class(sd_operators)          , intent(in)   :: s_oneside
+            real(rkind), dimension(ne)                  :: flux_x
 
           end function fluxes_x_oneside
 
@@ -604,17 +604,17 @@
      $      result(flux_y)
 
             import ikind
+            import ne
             import rkind
-            import nx,ny,ne
             import sd_operators
 
-            real(rkind), dimension(nx,ny,ne), intent(in)   :: nodes
-            real(rkind)                     , intent(in)   :: dx
-            real(rkind)                     , intent(in)   :: dy
-            integer(ikind)                  , intent(in)   :: i
-            integer(ikind)                  , intent(in)   :: j
-            class(sd_operators)             , intent(in)   :: s_oneside
-            real(rkind), dimension(ne)                     :: flux_y
+            real(rkind), dimension(:,:,:), intent(in)   :: nodes
+            real(rkind)                  , intent(in)   :: dx
+            real(rkind)                  , intent(in)   :: dy
+            integer(ikind)               , intent(in)   :: i
+            integer(ikind)               , intent(in)   :: j
+            class(sd_operators)          , intent(in)   :: s_oneside
+            real(rkind), dimension(ne)                  :: flux_y
 
           end function fluxes_y_oneside
 

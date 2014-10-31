@@ -260,6 +260,7 @@
           procedure, pass :: deallocate_after_timeInt
           procedure, pass :: compute_time_dev
           procedure, pass :: compute_integration_step
+          procedure, pass :: update_integration_borders
 
         end type bf_interface
 
@@ -560,7 +561,7 @@
           !6) The integration borders are computed for the new buffer layer
           !   and the neighboring buffer layers are asked to update their own
           !   integration borders
-          call this%border_interface%update_integration_borders(added_sublayer)
+          call this%update_integration_borders(added_sublayer)
 
        end function allocate_sublayer
 
@@ -687,7 +688,7 @@
          !7) The integration borders are computed for the reallocated buffer
          !   layer and the neighboring buffer layers are asked to update their
          !   own integration borders
-         call this%border_interface%update_integration_borders(bf_sublayer_r)
+         call this%update_integration_borders(bf_sublayer_r)
 
        end subroutine reallocate_sublayer
        
@@ -950,7 +951,7 @@ c$$$          stop 'not implemented yet'
          !7) The integration borders are computed for the buffer layer resulting
          !   from the merge and the neighboring buffer layers are asked to update
          !   their own integration borders
-         call this%border_interface%update_integration_borders(bf_sublayer1)
+         call this%update_integration_borders(bf_sublayer1)
 
        end function merge_sublayers
 
@@ -1609,12 +1610,15 @@ c$$$          stop 'not implemented yet'
          real(rkind), dimension(nx,ny,ne), intent(inout) :: interior_nodes
 
          integer :: i
+         integer, dimension(4) :: exch_order
 
-         do i=1, size(this%mainlayer_pointers,1)
+         exch_order = [E,W,N,S]
 
-            if(this%mainlayer_pointers(i)%associated_ptr()) then
+         do i=1, size(exch_order,1)
+
+            if(this%mainlayer_pointers(exch_order(i))%associated_ptr()) then
                
-               call this%mainlayer_pointers(i)%sync_nodes_with_interior(
+               call this%mainlayer_pointers(exch_order(i))%sync_nodes_with_interior(
      $              interior_nodes)
 
             end if
@@ -1941,7 +1945,8 @@ c$$$          stop 'not implemented yet'
      $     suffix_nodes,
      $     suffix_grdid,
      $     suffix_sizes,
-     $     suffix_nb_sublayers_max)
+     $     suffix_nb_sublayers_max,
+     $     timedev)
 
          implicit none
 
@@ -1952,12 +1957,20 @@ c$$$          stop 'not implemented yet'
          character(*)       , intent(in) :: suffix_grdid
          character(*)       , intent(in) :: suffix_sizes
          character(*)       , intent(in) :: suffix_nb_sublayers_max
-         
+         logical, optional  , intent(in) :: timedev
+
+         logical :: timedev_op
 
          integer           :: i
          integer           :: nb_sublayers_max
          character(len=18) :: filename_format
          character(len=28) :: nb_sublayers_filename
+
+         if(present(timedev)) then
+            timedev_op = timedev
+         else
+            timedev_op = .false.
+         end if
                   
 
          !go through the buffer main layers and
@@ -1974,7 +1987,8 @@ c$$$          stop 'not implemented yet'
      $              suffix_y_map,
      $              suffix_nodes,
      $              suffix_grdid,
-     $              suffix_sizes)
+     $              suffix_sizes,
+     $              timedev=timedev_op)
 
                nb_sublayers_max = max(
      $              nb_sublayers_max,
@@ -2300,6 +2314,33 @@ c$$$          stop 'not implemented yet'
           end do
 
         end subroutine compute_integration_step          
-          
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the integration borders of the buffer layer
+        !
+        !> @date
+        !> 04_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface object encapsulating the buffer layers
+        !> around the interior domain and subroutines to synchronize
+        !> the data between them
+        !
+        !>@param added_sublayer
+        !> buffer layer whose integration borders are updated
+        !--------------------------------------------------------------
+        subroutine update_integration_borders(this,added_sublayer)
+
+          implicit none
+
+          class(bf_interface), intent(inout) :: this
+          type(bf_sublayer)  , intent(inout) :: added_sublayer
+
+          call this%border_interface%update_integration_borders(added_sublayer)
+
+        end subroutine update_integration_borders          
 
       end module bf_interface_class

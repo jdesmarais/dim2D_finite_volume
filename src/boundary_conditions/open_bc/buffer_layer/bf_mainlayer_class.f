@@ -966,7 +966,8 @@
      $     suffix_y_map,
      $     suffix_nodes,
      $     suffix_grdid,
-     $     suffix_sizes)
+     $     suffix_sizes,
+     $     timedev)
 
           implicit none
 
@@ -976,7 +977,9 @@
           character(*)       , intent(in) :: suffix_nodes
           character(*)       , intent(in) :: suffix_grdid
           character(*)       , intent(in) :: suffix_sizes
+          logical  , optional, intent(in) :: timedev
 
+          logical :: timedev_op
 
           character(2), dimension(4) :: bf_layer_char
           integer                    :: i
@@ -987,6 +990,12 @@
           character(len=30)          :: nodes_filename
           character(len=30)          :: grdid_filename
           type(bf_sublayer), pointer :: current_sublayer
+
+          if(present(timedev)) then
+             timedev_op = timedev
+          else
+             timedev_op = .false.
+          end if
 
           bf_layer_char = ['N_','S_','E_','W_']
 
@@ -1033,7 +1042,8 @@
      $            y_map_filename,
      $            nodes_filename,
      $            grdid_filename,
-     $            sizes_filename)
+     $            sizes_filename,
+     $            timedev=timedev_op)
 
              !get the next sublayer in the mainlayer
              current_sublayer => current_sublayer%get_next()

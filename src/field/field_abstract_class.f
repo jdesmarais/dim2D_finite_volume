@@ -181,6 +181,8 @@
           procedure, pass          :: set_nodes !only for tests
           procedure, pass          :: get_x_map !only for tests
           procedure, pass          :: get_y_map !only for tests
+          procedure, pass          :: set_x_map !only for tests
+          procedure, pass          :: set_y_map !only for tests
 
         end type field_abstract
 
@@ -829,6 +831,62 @@ c$$$        end subroutine adapt_domain
 
           y_map = this%y_map
 
-        end function get_y_map      
+        end function get_y_map 
+
+      
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the array containing the space discretization map
+        !> along the x-axis
+        !
+        !> @date
+        !> 18_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !
+        !>@return x_map
+        !> discretisation map along the x-axis
+        !--------------------------------------------------------------
+        subroutine set_x_map(this,x_map)
+
+          implicit none
+
+          class(field_abstract)     , intent(inout):: this
+          real(rkind), dimension(nx), intent(in)   :: x_map
+
+          this%x_map = x_map
+
+        end subroutine set_x_map
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the array containing the space discretization map
+        !> along the y-axis
+        !
+        !> @date
+        !> 02_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !
+        !>@return y_map
+        !> discretisation map along the y-axis
+        !--------------------------------------------------------------
+        subroutine set_y_map(this,y_map)
+
+          implicit none
+
+          class(field_abstract)     , intent(inout) :: this
+          real(rkind), dimension(ny), intent(in)    :: y_map
+
+          this%y_map = y_map
+
+        end subroutine set_y_map
 
       end module field_abstract_class
