@@ -38,7 +38,7 @@
         implicit none
 
         private
-        public :: pmodel_eq
+        public :: pmodel_eq, peak
 
 
         !> @class pmodel_eq

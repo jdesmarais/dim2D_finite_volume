@@ -2086,20 +2086,6 @@ c$$$          stop 'not implemented yet'
        !> table with the units of the governing variables saved
        !> in the netcdf file
        !
-       !>@param x_min_interior
-       !> x-coordinate of interior grid point next to the left
-       !> boundary layer
-       !
-       !>@param y_min_interior
-       !> y-coordinate of interior grid point next to the lower
-       !> boundary layer
-       !
-       !>@param dx
-       !> grid size along the x-coordinate
-       !
-       !>@param dy
-       !> grid size along the y-coordinate
-       !
        !>@param time
        !> time corresponding to the data for the grdpts and the nodes
        !--------------------------------------------------------------

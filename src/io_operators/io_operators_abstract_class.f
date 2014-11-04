@@ -44,6 +44,7 @@
           procedure            , pass           :: ini
           procedure(write_proc), pass, deferred :: write_data
           procedure            , pass           :: increment_counter
+          procedure            , pass           :: get_nb_timesteps_written
 
         end type io_operators_abstract
 
@@ -100,5 +101,18 @@
           this%nb_timesteps_written=this%nb_timesteps_written+1
 
         end subroutine increment_counter
+
+        
+        !get the nb_timesteps_written attribute
+        function get_nb_timesteps_written(this) result(nb_timesteps_written)
+        
+          implicit none
+
+          class(io_operators_abstract), intent(in) :: this
+          integer                                  :: nb_timesteps_written
+
+          nb_timesteps_written = this%nb_timesteps_written
+
+        end function get_nb_timesteps_written
 
       end module io_operators_abstract_class

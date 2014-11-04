@@ -33,6 +33,7 @@
         
         !<output writing
         real(rkind), parameter :: detail_print = 0.0150000000d0
+        logical    , parameter :: write_domain_extension = .true.
 
         !<mpi choice
         integer, parameter :: npx = 1 !<number of processors along x
@@ -45,7 +46,7 @@
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 4
+        integer       , parameter :: ne = 3
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice

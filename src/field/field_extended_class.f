@@ -14,13 +14,25 @@
       !-----------------------------------------------------------------
       module field_extended_class
 
-        use bf_interface_dcr_class    , only : bf_interface_dcr
-        use field_abstract_class      , only : field_abstract
-        use interface_integration_step, only : timeInt_step,
-     $                                         timeInt_step_nopt
-        use parameters_input          , only : nx,ny,ne
-        use parameters_kind           , only : ikind,rkind
-        use td_integrator_class       , only : td_integrator
+        use bf_interface_dcr_class, only :
+     $       bf_interface_dcr
+
+        use field_abstract_class, only :
+     $       field_abstract
+
+        use interface_integration_step, only :
+     $       timeInt_step,
+     $       timeInt_step_nopt
+
+        use parameters_input, only :
+     $       nx,ny,ne,
+     $       write_domain_extension
+
+        use parameters_kind, only :
+     $       ikind,rkind
+
+        use td_integrator_class, only :
+     $       td_integrator
 
         implicit none
 
@@ -71,6 +83,7 @@
           procedure, pass :: compute_integration_step_ext
           procedure, pass :: integrate
           procedure, pass :: apply_bc_on_nodes
+          procedure, pass :: write_data
           !procedure, pass :: adapt_domain
 
         end type field_extended
@@ -341,6 +354,56 @@
      $         this%nodes)
 
         end subroutine apply_bc_on_nodes
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> apply the boundary conditions on the gridpoints
+        !
+        !> @date
+        !> 03_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !--------------------------------------------------------------
+        subroutine write_data(this)
+
+          implicit none
+
+          class(field_extended), intent(inout) :: this
+
+          character(len=10), dimension(ne) :: name_var
+          character(len=33), dimension(ne) :: longname_var
+          character(len=23), dimension(ne) :: unit_var
+
+          integer :: nb_timesteps
+
+
+          !write the data from the interface if set by the user
+          if(write_domain_extension) then
+
+             name_var     = this%pmodel_eq_used%get_var_name()
+             longname_var = this%pmodel_eq_used%get_var_longname()
+             unit_var     = this%pmodel_eq_used%get_var_unit()
+             
+             nb_timesteps = this%io_operators_used%get_nb_timesteps_written()
+
+             call this%domain_extension%print_netcdf(
+     $            nb_timesteps,
+     $            name_var,
+     $            longname_var,
+     $            unit_var,
+     $            this%time)
+             
+          end if
+
+          !write the interior data using the function encapsulated
+          !in field_abstract
+          call this%field_abstract%write_data()                    
+
+        end subroutine write_data
 
 
 c$$$        !> @author

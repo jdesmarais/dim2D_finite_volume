@@ -117,7 +117,6 @@
           integer                :: grdptsid_id
           integer, dimension(ne) :: nodes_id
 
-
           !determination of the convention for the
           !missing value
           NF90_FILL_MYREAL = set_nf90_fill_myreal()
@@ -127,8 +126,8 @@
           !with a missing_value such that they are
           !recognized by the visualization software
           call set_missing_data(grdpts_id, nodes, NF90_FILL_MYREAL)
-          
 
+         
           !open the netcdf file
           call nf90_open_file(filename, ncid)
           
@@ -157,6 +156,7 @@
 
           !close the file
           call nf90_close_file(ncid)
+
 
         end subroutine print_bf_layer_on_netcdf
 
@@ -727,7 +727,6 @@ c$$$          character(len=23), dimension(ne) :: unit_var
           start_op = [1,1,1]
           count_op = [1,size(grdpts_id,1),size(grdpts_id,2)]
 
-          
           !write the grdpts_id
           retval = NF90_PUT_VAR(
      $         ncid,
@@ -735,10 +734,11 @@ c$$$          character(len=23), dimension(ne) :: unit_var
      $         grdpts_id,
      $         START=start_op,
      $         COUNT=count_op)
+
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-
+          
           !write the variables of the governing equations          
           do k=1, ne
 
