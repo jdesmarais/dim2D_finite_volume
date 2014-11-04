@@ -64,7 +64,7 @@
         type(field)            :: field_tested
         type(field_extended)   :: field_ext_tested
 
-        real(rkind), parameter :: dt = 1.0
+        real(rkind), parameter :: dt = 0.05
 
         logical    , parameter :: one_piece   = .true.
         logical    , parameter :: four_pieces = .false.

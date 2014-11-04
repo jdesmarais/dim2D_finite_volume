@@ -169,7 +169,14 @@ def is_test_validated(x1,x2):
     return test
 
             
-def plot_nodes_and_maps(nodes_0,nodes_1,var=0):
+def plot_nodes_and_maps(
+    nodes_0,
+    nodes_1,
+    var=0,
+    vmin0=0,
+    vmax0=1.0,
+    vmin1=-0.9,
+    vmax1=0.9):
 
     #create the main figure
     fig=plt.figure(figsize=(12,6))
@@ -177,12 +184,12 @@ def plot_nodes_and_maps(nodes_0,nodes_1,var=0):
     #plot the gridpoint ID
     ax = fig.add_subplot(1,2,1)
     #res = ax.imshow(nodes_0[0,:,:], cmap=cm.spectral, interpolation='nearest')#, vmin=0.0, vmax=1.0)
-    res = ax.imshow(nodes_0[var,:,:], cmap=cm.spectral, interpolation='nearest', vmin=-0.9, vmax=0.9)
+    res = ax.imshow(nodes_0[var,:,:], cmap=cm.spectral, interpolation='nearest') #, vmin=vmin0, vmax=vmax0)
     fig.colorbar(res)
     
     #plot the nodes
     ax = fig.add_subplot(1,2,2)
-    res = ax.imshow(nodes_1[var,:,:], cmap=cm.spectral, interpolation='nearest', vmin=-0.9, vmax=0.9)
+    res = ax.imshow(nodes_1[var,:,:], cmap=cm.spectral, interpolation='nearest') #, vmin=vmin1, vmax=vmax1)
     fig.colorbar(res)
 
     return fig,ax
@@ -278,31 +285,31 @@ if __name__ == "__main__":
     fig.canvas.set_window_title('interface: time derivatives')
 
     
-    ##plot the data: after one step
-    #fig, ax = plot_nodes_and_maps(nodes_0, nodes_2, var=var)
-    #fig.canvas.set_window_title('one piece domain: after one step')
-    #
-    #fig, ax = plot_nodes_and_maps(nodes_ext_0, nodes_ext_2, var=var)
-    #fig.canvas.set_window_title('four pieces domain: after one step')
-    #
-    #
-    ##plot the data: after nodes synchronization
-    #fig, ax = plot_nodes_and_maps(nodes_0, nodes_3, var=var)
-    #fig.canvas.set_window_title('one piece domain: after nodes synchronization')
-    #
-    #fig, ax = plot_nodes_and_maps(nodes_ext_0, nodes_ext_3, var=var)
-    #fig.canvas.set_window_title('four pieces domain: after nodes synchronization')
-    #
-    #fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes_3,lm_grdptid_3, var=var, vmin=-0.9, vmax=0.9)
-    #fig.canvas.set_window_title('interface: after nodes synchronization')
-    #
-    #
-    ##plot the data: after integration cycle
-    #fig, ax = plot_nodes_and_maps(nodes_0, nodes_4, var=var)
-    #fig.canvas.set_window_title('one piece domain: after integration cycle')
-    #
-    #fig, ax = plot_nodes_and_maps(nodes_ext_0, nodes_ext_4, var=var)
-    #fig.canvas.set_window_title('four pieces domain: after integration cycle')
+    #plot the data: after one step
+    fig, ax = plot_nodes_and_maps(nodes_0, nodes_2, var=var)
+    fig.canvas.set_window_title('one piece domain: after one step')
+    
+    fig, ax = plot_nodes_and_maps(nodes_ext_0, nodes_ext_2, var=var)
+    fig.canvas.set_window_title('four pieces domain: after one step')
+    
+    
+    #plot the data: after nodes synchronization
+    fig, ax = plot_nodes_and_maps(nodes_0, nodes_3, var=var)
+    fig.canvas.set_window_title('one piece domain: after nodes synchronization')
+    
+    fig, ax = plot_nodes_and_maps(nodes_ext_0, nodes_ext_3, var=var)
+    fig.canvas.set_window_title('four pieces domain: after nodes synchronization')
+    
+    fig, ax = plot_nodes_and_grdptid_with_all_bf_layers(lm_nodes_3,lm_grdptid_3, var=var, vmin=-0.9, vmax=0.9)
+    fig.canvas.set_window_title('interface: after nodes synchronization')
+    
+    
+    #plot the data: after integration cycle
+    fig, ax = plot_nodes_and_maps(nodes_0, nodes_4, var=var)
+    fig.canvas.set_window_title('one piece domain: after integration cycle')
+    
+    fig, ax = plot_nodes_and_maps(nodes_ext_0, nodes_ext_4, var=var)
+    fig.canvas.set_window_title('four pieces domain: after integration cycle')
 
 
     #show all
