@@ -639,11 +639,14 @@
           !>@param body_forces
           !> body forces
           !--------------------------------------------------------------
-          function bodyforces(nodes,k) result(body_forces)
+          function bodyforces(t,x,y,nodes,k) result(body_forces)
 
             import rkind
             import ne
 
+            real(rkind)               , intent(in) :: t
+            real(rkind)               , intent(in) :: x
+            real(rkind)               , intent(in) :: y
             real(rkind), dimension(ne), intent(in) :: nodes
             integer                   , intent(in) :: k
             real(rkind)                            :: body_forces

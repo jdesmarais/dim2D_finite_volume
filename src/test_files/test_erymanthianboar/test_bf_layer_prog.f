@@ -1,6 +1,6 @@
       program test_bf_layer_prog
 
-        use ifport
+        !use ifport
 
         use bf_layer_class, only :
      $     bf_layer

@@ -620,7 +620,9 @@
      $         
      $         1.0d0/dy*(flux_y(i,j,:) - flux_y(i,j+1,:)) +
      $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         add_body_forces(
+     $         p_model,
+     $         t, x_map(i), y_map(j), nodes(i,j,:))
 
         end function compute_timedev_xlayer_local
 
@@ -724,7 +726,9 @@
      $            is_inflow_y,
      $            oneside_yflow) +
      $         
-     $            add_body_forces(p_model, nodes(i,j,:))
+     $            add_body_forces(
+     $            p_model,
+     $            t, x_map(i), y_map(j), nodes(i,j,:))
 
         end function compute_timedev_ylayer_local
 
@@ -843,7 +847,9 @@
      $         is_inflow_y,
      $         oneside_yflow) +
      $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         add_body_forces(
+     $         p_model,
+     $         t, x_map(i), y_map(j), nodes(i,j,:))
 
         end function compute_timedev_corner_local
 

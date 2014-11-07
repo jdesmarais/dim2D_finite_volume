@@ -521,14 +521,18 @@ c$$$     $         10*s_oneside%dgdy(nodes,i,j,basic,dy)
         end function basic
 
 
-        function compute_body_forces(nodes,k) result(body_forces)
+        function compute_body_forces(t,x,y,nodes,k) result(body_forces)
 
           implicit none
 
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
           real(rkind), dimension(ne), intent(in) :: nodes
           integer                   , intent(in) :: k
           real(rkind)                            :: body_forces
 
+          real(rkind) :: t_s,x_s,y_s
           real(rkind) :: node_s
           integer :: k_s
 
@@ -536,6 +540,9 @@ c$$$     $         10*s_oneside%dgdy(nodes,i,j,basic,dy)
 
           node_s = nodes(1)
           k_s = k
+          t_s = t
+          x_s = x
+          y_s = y
 
         end function compute_body_forces
 

@@ -568,7 +568,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = "/home/jdesmarais/Code/augeanstables/src"
+INPUT                  = "/home/jdesmara/Code/augeanstables/src"
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -597,7 +597,7 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE             = "/home/jdesmarais/Code/augeanstables/src/field/surrogate_class.f".f".f".f".f".f".f"
+EXCLUDE             = "/home/jdesmara/Code/augeanstables/src/field/surrogate_class.f".f".f".f".f".f".f".f"
 
 # The EXCLUDE_SYMLINKS tag can be used select whether or not files or
 # directories that are symbolic links (a Unix filesystem feature) are excluded
@@ -645,7 +645,7 @@ EXAMPLE_RECURSIVE      = NO
 # directories that contain image that are included in the documentation (see
 # the \image command).
 
-IMAGE_PATH             = "/home/jdesmarais/Code/augeanstables/src/test_files/config/doc_config/doc_pictures"
+IMAGE_PATH             = "/home/jdesmara/Code/augeanstables/src/test_files/config/doc_config/doc_pictures"
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program

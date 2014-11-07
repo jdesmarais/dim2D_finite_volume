@@ -188,7 +188,9 @@
      $            
      $            1.0d0/dy*(flux_y(i,j,:) - flux_y(i,j+1,:)) +
      $         
-     $            add_body_forces(p_model, nodes(i,j,:))
+     $            add_body_forces(
+     $            p_model,
+     $            t,x_map(i),y_map(j),nodes(i,j,:))
 
 
           !otherwise, if the b.c. is of outlet type,
@@ -205,7 +207,9 @@
      $            
      $            1.0d0/dy*(flux_y(i,j,:) - flux_y(i,j+1,:)) +
      $         
-     $            add_body_forces(p_model, nodes(i,j,:))             
+     $            add_body_forces(
+     $            p_model,
+     $            t,x_map(i),y_map(j),nodes(i,j,:))
 
           end if
 
@@ -333,7 +337,9 @@
      $            
      $            1.0d0/dx*(flux_x(i,j,:) - flux_x(i+1,j,:)) +
      $         
-     $            add_body_forces(p_model, nodes(i,j,:))
+     $            add_body_forces(
+     $            p_model,
+     $            t,x_map(i),y_map(j),nodes(i,j,:))
 
 
           !otherwise, if the b.c. is of outlet type,
@@ -350,7 +356,9 @@
      $            
      $            1.0d0/dx*(flux_x(i,j,:) - flux_x(i+1,j,:)) +
      $         
-     $            add_body_forces(p_model, nodes(i,j,:))       
+     $            add_body_forces(
+     $            p_model,
+     $            t,x_map(i),y_map(j),nodes(i,j,:))
 
           end if
 

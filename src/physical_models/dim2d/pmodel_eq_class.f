@@ -22,45 +22,78 @@
       !-----------------------------------------------------------------
       module pmodel_eq_class
 
-        use interface_primary           , only : gradient_x_proc,
-     $                                           gradient_y_proc
-        use sd_operators_class          , only : sd_operators
-        use dim2d_parameters            , only : viscous_r, Re, We, Pr,
-     $                                           cv_r, gravity
-        use dim2d_bubble_ascending_module,only :apply_bubble_ascending_ic
-        use dim2d_drop_collision_module , only : apply_drop_collision_ic 
-        use dim2d_phase_separation_module,only : apply_phase_separation_ic
+        use interface_primary, only :
+     $     gradient_x_proc,
+     $     gradient_y_proc
+
+        use sd_operators_class, only :
+     $       sd_operators
+
+        use dim2d_parameters, only :
+     $       viscous_r, Re, We, Pr,
+     $       cv_r, gravity
+
+        use dim2d_bubble_ascending_module, only :
+     $       apply_bubble_ascending_ic
+
+        use dim2d_drop_collision_module , only :
+     $       apply_drop_collision_ic 
+
+        use dim2d_phase_separation_module, only :
+     $       apply_phase_separation_ic
+
         !use dim2d_drop_evaporation_module, only:apply_drop_evaporation_ic
-        use dim2d_drop_retraction_module, only : apply_drop_retraction_ic
-        use dim2d_prim_module           , only : mass_density,
-     $                                           momentum_x,
-     $                                           momentum_y,
-     $                                           total_energy
-        use dim2d_fluxes_module         , only : flux_x_mass_density,
-     $                                           flux_y_mass_density,
-     $                                           flux_x_momentum_x,
-     $                                           flux_y_momentum_x,
-     $                                           flux_x_momentum_y,
-     $                                           flux_y_momentum_y,
-     $                                           flux_x_total_energy,
-     $                                           flux_y_total_energy
-        use dim2d_homogeneous_module    , only : apply_homogeneous_ic
-        use dim2d_steadystate_module    , only : apply_steady_state_ic
-        use parameters_bf_layer         , only : bc_interior_pt, interior_pt
-        use parameters_constant         , only : scalar,
-     $                                           vector_x, vector_y,
-     $                                           steady_state,
-     $                                           drop_retraction,
-     $                                           bubble_ascending,
-     $                                           homogeneous_liquid,
-     $                                           drop_collision,
-     $                                           phase_separation,
-     $                                           earth_gravity_choice
-        use parameters_input            , only : nx,ny,ne,bc_size,
-     $                                           ic_choice,
-     $                                           gravity_choice
-        use parameters_kind             , only : ikind,rkind
-        use pmodel_eq_default_class     , only : pmodel_eq_default
+        use dim2d_drop_retraction_module, only :
+     $       apply_drop_retraction_ic
+
+        use dim2d_prim_module, only :
+     $       mass_density,
+     $       momentum_x,
+     $       momentum_y,
+     $       total_energy
+
+        use dim2d_fluxes_module, only :
+     $       flux_x_mass_density,
+     $       flux_y_mass_density,
+     $       flux_x_momentum_x,
+     $       flux_y_momentum_x,
+     $       flux_x_momentum_y,
+     $       flux_y_momentum_y,
+     $       flux_x_total_energy,
+     $       flux_y_total_energy
+
+        use dim2d_homogeneous_module, only :
+     $       apply_homogeneous_ic
+
+        use dim2d_steadystate_module, only :
+     $       apply_steady_state_ic
+
+        use parameters_bf_layer, only :
+     $       bc_interior_pt,
+     $       interior_pt
+
+        use parameters_constant, only :
+     $       scalar,
+     $       vector_x, vector_y,
+     $       steady_state,
+     $       drop_retraction,
+     $       bubble_ascending,
+     $       homogeneous_liquid,
+     $       drop_collision,
+     $       phase_separation,
+     $       earth_gravity_choice
+
+        use parameters_input, only :
+     $       nx,ny,ne,bc_size,
+     $       ic_choice,
+     $       gravity_choice
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use pmodel_eq_default_class, only :
+     $       pmodel_eq_default
 
 
         implicit none
@@ -879,29 +912,45 @@ c$$$               call apply_drop_evaporation_ic(field_used)
         !>@param body_forces
         !> body forces evaluated at (i,j)
         !--------------------------------------------------------------
-        function compute_body_forces(nodes,k) result(body_forces)
+        function compute_body_forces(t,x,y,nodes,k) result(body_forces)
 
           implicit none
 
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
           real(rkind), dimension(ne), intent(in) :: nodes
           integer                   , intent(in) :: k
           real(rkind)                            :: body_forces
 
-          select case(k)
-            case(1)
-               body_forces = 0
-            case(2)
-               body_forces = 0
-            case(3)
-               body_forces = -nodes(1)*gravity
-            case(4)
-               body_forces = -nodes(3)*gravity
-            case default
-               body_forces = 0
-               print '(''dim2d/pmodel_eq_class'')'
-               print '(''compute_body_forces'')'
-               stop '1=< k =<4 violated'
-          end select
+          real(rkind) :: t_s,x_s,y_s
+
+          if(gravity_choice.eq.earth_gravity_choice) then
+             select case(k)
+               case(1)
+                  body_forces = 0
+               case(2)
+                  body_forces = 0
+               case(3)
+                  body_forces = -nodes(1)*gravity
+               case(4)
+                  body_forces = -nodes(3)*gravity
+               case default
+                  body_forces = 0
+                  print '(''dim2d/pmodel_eq_class'')'
+                  print '(''compute_body_forces'')'
+                  stop '1=< k =<4 violated'
+             end select
+
+          else
+
+             body_forces = 0
+
+          end if
+
+          t_s = t
+          x_s = x
+          y_s = y
 
         end function compute_body_forces
 

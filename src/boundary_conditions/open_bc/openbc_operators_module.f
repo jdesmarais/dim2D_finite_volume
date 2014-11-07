@@ -14,12 +14,8 @@
       !-----------------------------------------------------------------
       module openbc_operators_module
 
-        use parameters_constant, only :
-     $       earth_gravity_choice
-
         use parameters_input, only :
-     $     nx,ny,ne,bc_size,
-     $     gravity_choice
+     $     nx,ny,ne,bc_size
 
         use parameters_kind, only :
      $       ikind, rkind
@@ -355,37 +351,24 @@
         end subroutine compute_fluxes_at_the_edges_2ndorder
 
 
-        function add_body_forces(p_model, nodes) result(timedev)
+        function add_body_forces(p_model, t,x,y, nodes) result(timedev)
 
           implicit none
 
           type(pmodel_eq)           , intent(in) :: p_model
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
           real(rkind), dimension(ne), intent(in) :: nodes
           real(rkind), dimension(ne)             :: timedev
         
           integer :: k
 
-
-          if(gravity_choice.eq.earth_gravity_choice) then
-
-             do k=1, ne
-                timedev(k) = p_model%compute_body_forces(nodes,k)
-             end do
-
-          else
-
-             if(rkind.eq.8) then
-                do k=1,ne
-                   timedev(k) = 0.0d0
-                end do
-             else
-                do k=1,ne
-                   timedev(k) = 0.0
-                end do
-             end if
-
-          end if
-
+          do k=1, ne
+             timedev(k) = p_model%compute_body_forces(
+     $            t,x,y,nodes,k)
+          end do
+          
         end function add_body_forces
 
 

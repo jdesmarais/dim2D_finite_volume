@@ -695,22 +695,29 @@
         end function compute_flux_y_oneside
 
 
-        function compute_body_forces(nodes,k) result(body_forces)
+        function compute_body_forces(t,x,y,nodes,k) result(body_forces)
 
           implicit none
 
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
           real(rkind), dimension(ne), intent(in) :: nodes
           integer                   , intent(in) :: k
           real(rkind)                            :: body_forces
 
+          real(rkind) :: t_s,x_s,y_s
           real(rkind) :: node_s
-          integer :: k_s
+          integer     :: k_s
 
           body_forces = 0
 
           node_s = nodes(1)
           k_s = k
-
+          t_s = t
+          x_s = x
+          y_s = y
+          
         end function compute_body_forces
 
 

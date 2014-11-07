@@ -22,12 +22,10 @@
      $     bc_operators_par
 
         use parameters_constant, only :
-     $       earth_gravity_choice,
      $       bc_fluxes_choice
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
-     $       gravity_choice,
      $       bc_N_type_choice,
      $       bc_S_type_choice,
      $       bc_E_type_choice,
@@ -145,35 +143,18 @@
 
 
            !<compute the time derivatives
-           !>select if the body forces computation is required
-           if(gravity_choice.eq.earth_gravity_choice) then
-           
-              !<compute the time derivatives
-              do k=1, ne
-                 do j=1+bc_size, ny-bc_size
-                    do i=1+bc_size, nx-bc_size
-                       time_dev(i,j,k)=
-     $                      (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
-     $                      (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)+
-     $                      p_model%compute_body_forces(nodes(i,j,:),k)
-                    end do
+           do k=1, ne
+              do j=1+bc_size, ny-bc_size
+                 do i=1+bc_size, nx-bc_size
+                    time_dev(i,j,k)=
+     $                   (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
+     $                   (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
+
+                    time_dev(i,j,k)=
+     $                   p_model%compute_body_forces(nodes(i,j,:),k)
                  end do
               end do
-
-           else
-
-              !<compute the time derivatives
-              do k=1, ne
-                 do j=1+bc_size, ny-bc_size
-                    do i=1+bc_size, nx-bc_size
-                       time_dev(i,j,k)=
-     $                      (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
-     $                      (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
-                    end do
-                 end do
-              end do
-
-           end if
+           end do
 
         end function compute_time_dev
 

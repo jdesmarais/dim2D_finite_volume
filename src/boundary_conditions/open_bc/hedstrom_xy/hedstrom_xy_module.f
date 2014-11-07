@@ -101,12 +101,15 @@
         !> time derivatives modified
         !-------------------------------------------------------------
         subroutine compute_timedev_xlayer(
-     $     nodes, i,j, dx,dy, p_model, flux_y,
+     $     t, x_map, y_map, nodes, i,j, dx,dy, p_model, flux_y,
      $     gradient_x, incoming_x,
      $     timedev)
 
           implicit none
 
+          real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(nx)        , intent(in)    :: x_map
+          real(rkind), dimension(ny)        , intent(in)    :: y_map
           real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
           integer(ikind)                    , intent(in)    :: i
           integer(ikind)                    , intent(in)    :: j
@@ -121,6 +124,9 @@
 
           timedev(i,j,:) = compute_timedev_xlayer_local(
      $         p_model,
+     $         t,
+     $         x_map,
+     $         y_map,
      $         nodes,
      $         dx,
      $         dy,
@@ -172,12 +178,16 @@
         !> time derivatives modified
         !-------------------------------------------------------------
         subroutine compute_timedev_ylayer(
-     $     nodes, j, dx, dy, p_model, flux_x,
+     $     t, x_map, y_map, nodes,
+     $     j, dx, dy, p_model, flux_x,
      $     gradient_y, incoming_y,
      $     timedev)
 
           implicit none
 
+          real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(nx)        , intent(in)    :: x_map
+          real(rkind), dimension(ny)        , intent(in)    :: y_map
           real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
           integer(ikind)                    , intent(in)    :: j
           real(rkind)                       , intent(in)    :: dx
@@ -196,6 +206,9 @@
 
              timedev(i,j,:) = compute_timedev_ylayer_local(
      $            p_model,
+     $            t,
+     $            x_map,
+     $            y_map,
      $            nodes,
      $            dx,
      $            dy,
@@ -253,6 +266,9 @@
         !-------------------------------------------------------------
         function compute_timedev_xlayer_local(
      $     p_model,
+     $     t,
+     $     x_map,
+     $     y_map,
      $     nodes,
      $     dx,
      $     dy,
@@ -265,6 +281,10 @@
 
           implicit none
 
+
+          real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(:)         , intent(in)    :: x_map
+          real(rkind), dimension(:)         , intent(in)    :: y_map
           real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
           integer(ikind)                    , intent(in)    :: i
           integer(ikind)                    , intent(in)    :: j
@@ -283,7 +303,9 @@
      $         
      $         1.0d0/dy*(flux_y(i,j,:) - flux_y(i,j+1,:)) +
      $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         add_body_forces(
+     $         p_model,
+     $         t, x_map(i), y_map(j), nodes(i,j,:))
 
         end function compute_timedev_xlayer_local
 
@@ -331,6 +353,9 @@
         !-------------------------------------------------------------
         function compute_timedev_ylayer_local(
      $     p_model,
+     $     t,
+     $     x_map,
+     $     y_map,
      $     nodes,
      $     dx,
      $     dy,
@@ -343,6 +368,9 @@
 
           implicit none
 
+          real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(:)         , intent(in)    :: x_map
+          real(rkind), dimension(:)         , intent(in)    :: y_map
           real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
           integer(ikind)                    , intent(in)    :: i
           integer(ikind)                    , intent(in)    :: j
@@ -361,7 +389,9 @@
      $            nodes, i, j, p_model, dy,
      $            gradient_y, incoming_y) +
      $            
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         add_body_forces(
+     $         p_model,
+     $         t, x_map(i), y_map(j), nodes(i,j,:))
 
         end function compute_timedev_ylayer_local
 
@@ -402,12 +432,15 @@
         !> time derivatives modified
         !-------------------------------------------------------------
         subroutine compute_timedev_corner_W(
-     $     nodes, j, dx, dy, p_model,
+     $     t,x_map,y_map,nodes, j, dx, dy, p_model,
      $     gradient_y, incoming_y,
      $     timedev)
 
           implicit none
 
+          real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(nx)        , intent(in)    :: x_map
+          real(rkind), dimension(ny)        , intent(in)    :: y_map
           real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
           integer(ikind)                    , intent(in)    :: j
           real(rkind)                       , intent(in)    :: dx
@@ -424,6 +457,7 @@
           timedev(i,j,:) = 
      $         compute_timedev_corner_local(
      $         p_model,
+     $         t,x_map,y_map,
      $         nodes,
      $         dx,dy,
      $         i,j,
@@ -436,6 +470,7 @@
           timedev(i,j,:) = 
      $         compute_timedev_corner_local(
      $         p_model,
+     $         t,x_map,y_map,
      $         nodes,
      $         dx,dy,
      $         i,j,
@@ -483,12 +518,15 @@
         !> time derivatives modified
         !-------------------------------------------------------------
         subroutine compute_timedev_corner_E(
-     $     nodes, j, dx, dy, p_model,
+     $     t,x_map,y_map,nodes, j, dx, dy, p_model,
      $     gradient_y, incoming_y,
      $     timedev)
 
           implicit none
 
+          real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(nx)        , intent(in)    :: x_map
+          real(rkind), dimension(ny)        , intent(in)    :: y_map
           real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
           integer(ikind)                    , intent(in)    :: j
           real(rkind)                       , intent(in)    :: dx
@@ -504,6 +542,7 @@
           timedev(i,j,:) = 
      $         compute_timedev_corner_local(
      $         p_model,
+     $         t,x_map,y_map,
      $         nodes,
      $         dx,dy,
      $         i,j,
@@ -516,6 +555,7 @@
           timedev(i,j,:) = 
      $         compute_timedev_corner_local(
      $         p_model,
+     $         t,x_map,y_map,
      $         nodes,
      $         dx,dy,
      $         i,j,
@@ -569,12 +609,19 @@
         !> time derivatives modified
         !-------------------------------------------------------------
         function compute_timedev_corner_local(
-     $     p_model,nodes,dx,dy,i,j,incoming_x,incoming_y,gradient_x,gradient_y)
+     $     p_model,
+     $     t, x_map, y_map, nodes,
+     $     dx,dy, i,j,
+     $     incoming_x, incoming_y,
+     $     gradient_x, gradient_y)
      $     result(timedev)
 
           implicit none
 
           type(pmodel_eq)                   , intent(in)    :: p_model
+          real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(:)         , intent(in)    :: x_map
+          real(rkind), dimension(:)         , intent(in)    :: y_map
           real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
           real(rkind)                       , intent(in)    :: dx
           real(rkind)                       , intent(in)    :: dy
@@ -594,7 +641,9 @@
      $         nodes, i, j, p_model, dy,
      $         gradient_y, incoming_y) +
      $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         add_body_forces(
+     $         p_model,
+     $         t, x_map(i), y_map(j), nodes(i,j,:))
 
         end function compute_timedev_corner_local
 

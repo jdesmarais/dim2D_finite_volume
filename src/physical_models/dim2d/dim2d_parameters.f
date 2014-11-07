@@ -24,7 +24,7 @@
      $            viscous_r, re, pr, we, cv_r, gravity
 
 
-        !< input quantities for water
+        ! input quantities for water
         !---------------------------------------------------------
         !@param dim2d_a       Van der Waals constant   [J.m3.mol-2]     
         !@param dim2d_b       Van der Waals constant   [m3.mol-1]       
@@ -49,7 +49,7 @@
         real(rkind), parameter :: dim2d_g      = 9.81
 
 
-        !< intermediate variables
+        ! intermediate variables
         !--------------------------------------------------------
         !@param rho_c          critical density           [kg.m3]
         !@param p_c            critical pressure          [Pa]   
@@ -66,7 +66,7 @@
         real(rkind), parameter :: time_c   = length_c/u_c
 
 
-        !< parameters initialized
+        ! parameters initialized
         !--------------------------------------------------------
         !@param viscous_r      viscous ratio                  [-]
         !@param Re             Reynolds number                [-]    

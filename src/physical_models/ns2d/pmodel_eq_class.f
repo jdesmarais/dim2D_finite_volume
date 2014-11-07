@@ -1082,29 +1082,46 @@ c$$$          y_s = y_map(1)
         !>@param body_forces
         !> body forces evaluated at (i,j)
         !--------------------------------------------------------------
-        function compute_body_forces(nodes,k) result(body_forces)
+        function compute_body_forces(t,x,y,nodes,k) result(body_forces)
 
           implicit none
 
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
           real(rkind), dimension(ne), intent(in) :: nodes
           integer                   , intent(in) :: k
           real(rkind)                            :: body_forces
 
-          select case(k)
-            case(1)
-               body_forces = 0
-            case(2)
-               body_forces = 0
-            case(3)
-               body_forces = -nodes(1)*gravity
-            case(4)
-               body_forces = -nodes(3)*gravity
-            case default
-               body_forces = 0
-               print '(''ns2d/pmodel_eq_class'')'
-               print '(''compute_body_forces'')'
-               stop '1=< k =<4 violated'
-          end select
+          real(rkind) :: t_s,x_s,y_s
+
+          if(gravity_choice.eq.earth_gravity_choice) then
+
+             select case(k)
+               case(1)
+                  body_forces = 0
+               case(2)
+                  body_forces = 0
+               case(3)
+                  body_forces = -nodes(1)*gravity
+               case(4)
+                  body_forces = -nodes(3)*gravity
+               case default
+                  body_forces = 0
+                  print '(''ns2d/pmodel_eq_class'')'
+                  print '(''compute_body_forces'')'
+                  stop '1=< k =<4 violated'
+             end select
+
+          else
+
+             body_forces = 0
+
+          end if
+
+          t_s = t
+          x_s = x
+          y_s = y
 
         end function compute_body_forces
 

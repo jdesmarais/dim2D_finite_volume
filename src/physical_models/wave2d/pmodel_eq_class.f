@@ -14,27 +14,62 @@
       !-----------------------------------------------------------------
       module pmodel_eq_class
       
-        use interface_primary       , only : gradient_x_proc,
-     $                                       gradient_y_proc
-        use parameters_bf_layer     , only : bc_interior_pt, interior_pt
-        use parameters_constant     , only : scalar, vector_x, vector_y
-        use parameters_input        , only : nx,ny,ne,bc_size
-        use parameters_kind         , only : ikind, rkind
-        use pmodel_eq_default_class , only : pmodel_eq_default
-        use sd_operators_class      , only : sd_operators
-        use wave2d_ncoords_module   , only : compute_n_gradient_wave2d,
-     $                                       compute_n_eigenvalues_wave2d,
-     $                                       compute_n1_lefteigenvector_wave2d,
-     $                                       compute_n1_righteigenvector_wave2d,
-     $                                       compute_n2_lefteigenvector_wave2d,
-     $                                       compute_n2_righteigenvector_wave2d
-        use wave2d_parameters       , only : c, c_x, c_y, epsilon,
-     $                                       x_center, y_center,
-     $                                       amplitude, period
-        use wave2d_prim_module      , only : position,
-     $                                       velocity_x,
-     $                                       velocity_y
+        use interface_primary, only :
+     $     gradient_x_proc,
+     $     gradient_y_proc
 
+        use parameters_bf_layer, only :
+     $       bc_interior_pt,
+     $       interior_pt
+
+        use parameters_constant, only :
+     $       scalar,
+     $       vector_x,
+     $       vector_y,
+     $       oscillatory_forcing
+
+        use parameters_input, only :
+     $       nx,ny,ne,
+     $       bc_size,
+     $       wave_forcing
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use pmodel_eq_default_class, only :
+     $       pmodel_eq_default
+
+        use sd_operators_class, only :
+     $       sd_operators
+
+        use wave2d_ncoords_module, only :
+     $       compute_n_gradient_wave2d,
+     $       compute_n_eigenvalues_wave2d,
+     $       compute_n1_lefteigenvector_wave2d,
+     $       compute_n1_righteigenvector_wave2d,
+     $       compute_n2_lefteigenvector_wave2d,
+     $       compute_n2_righteigenvector_wave2d
+
+        use wave2d_parameters, only :
+     $       c,
+     $       c_x,
+     $       c_y,
+     $       epsilon,
+     $       x_center,
+     $       y_center,
+     $       amplitude,
+     $       period,
+     $       amplitude_force,
+     $       period_force,
+     $       x_center_force,
+     $       y_center_force
+
+        use wave2d_prim_module, only :
+     $       position,
+     $       velocity_x,
+     $       velocity_y
+        
         implicit none
 
         private
@@ -71,7 +106,10 @@
         !>
         !> @param compute_fluxes
         !> compute the fluxes along the x- and y-axis
-        !>
+        !
+        !> @param compute_body_forces
+        !> compute the forcing term
+        !
         !> @param are_openbc_undermined
         !> check whether the open boundary conditions are undermined
         !> at the grid point location
@@ -793,21 +831,40 @@ c$$$          end if
         end function compute_flux_y_oneside
 
 
-        function compute_body_forces(nodes,k) result(body_forces)
+        function compute_body_forces(t,x,y,nodes,k) result(body_forces)
 
           implicit none
 
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
           real(rkind), dimension(ne), intent(in) :: nodes
           integer                   , intent(in) :: k
           real(rkind)                            :: body_forces
 
+          real(rkind) :: omega
           real(rkind) :: node_s
-          integer :: k_s
 
-          body_forces = 0
+          if(wave_forcing.eq.oscillatory_forcing) then
+
+             if(k.eq.1) then
+                omega       = 2.0d0*ACOS(-1.0d0)/period_force
+                body_forces = peak(
+     $               amplitude_force*SIN(omega*t),
+     $               period,
+     $               x-x_center_force,
+     $               y-y_center_force)
+             else
+                body_forces = 0
+             end if
+
+          else
+             
+             body_forces = 0
+
+          end if
 
           node_s = nodes(1)
-          k_s = k
 
         end function compute_body_forces
 

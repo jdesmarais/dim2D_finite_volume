@@ -70,6 +70,8 @@
         !>equations tuning choice
         integer, parameter :: no_gravity_choice=0
         integer, parameter :: earth_gravity_choice=1
+        integer, parameter :: no_wave_forcing=0
+        integer, parameter :: oscillatory_forcing=1
 
         !>i/o management choice
         integer, parameter :: netcdf_choice=0

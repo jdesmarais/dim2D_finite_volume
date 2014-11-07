@@ -161,6 +161,9 @@ def compute_code_inputs(inputFileName):
     gravity_code = ['no_gravity_choice',
                     'earth_gravity_choice']
 
+    wave_forcing_code = ['no_wave_forcing',
+                         'oscillatory_forcing']
+
 
     #< read the input file
     inputs_needed=['x_min','x_max','dx',
@@ -170,7 +173,8 @@ def compute_code_inputs(inputFileName):
                    'pm_choice',
                    'bc_choice',
                    'ic_choice',
-                   'gravity_choice']
+                   'gravity_choice',
+                   'wave_forcing']
     inputs=read_inputs(inputFileName, inputs_needed)
     
 
@@ -242,6 +246,7 @@ def compute_code_inputs(inputFileName):
 
     #< compute the gravity_choice
     gravity_choice = gravity_code[int(inputs['gravity_choice'])]
+    wave_forcing   = wave_forcing_code[int(inputs['wave_forcing'])]
 
 
     return [inputs,ntx,nty,ne,
@@ -250,7 +255,8 @@ def compute_code_inputs(inputFileName):
             bc_choice,
             bcx_type_choice,
             bcy_type_choice,
-            gravity_choice]
+            gravity_choice,
+            wave_forcing]
 
 
 def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
@@ -258,7 +264,8 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
                              ic_choice,
                              bc_choice,
                              bcx_type_choice,bcy_type_choice,
-                             gravity_choice):
+                             gravity_choice,
+                             wave_forcing):
     '''
     @description
     update the constants defined in the 'parameters_input'
@@ -278,7 +285,8 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         'bc_choice':bc_choice,
         'bcx_type_choice':bcx_type_choice,
         'bcy_type_choice':bcy_type_choice,
-        'gravity_choice':gravity_choice}
+        'gravity_choice':gravity_choice,
+        'wave_forcing':wave_forcing}
 
     for key, value  in constants_changed1.items():
 
@@ -388,7 +396,8 @@ if __name__ == "__main__":
      ic_choice,
      bc_choice,
      bcx_type_choice,bcy_type_choice,
-     gravity_choice]=compute_code_inputs(inputFileName)
+     gravity_choice,
+     wave_forcing]=compute_code_inputs(inputFileName)
 
 
     #< replace the inputs in the 'parameters_input' file
@@ -398,7 +407,8 @@ if __name__ == "__main__":
                              bc_choice,
                              bcx_type_choice,
                              bcy_type_choice,
-                             gravity_choice)
+                             gravity_choice,
+                             wave_forcing)
 
 
     #< replace the inputs in the 'makefile'

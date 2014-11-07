@@ -292,33 +292,33 @@
           !--------------------------------------------
           j=1
           call compute_timedev_corner_W(
-     $         nodes, j, dx, dy, p_model,
+     $         t,x_map,y_map, nodes, j, dx, dy, p_model,
      $         gradient_y_y_oneside_L0, incoming_left,
      $         timedev)
 
           call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
+     $         t,x_map,y_map, nodes, j, dx, dy, p_model, flux_x,
      $         gradient_y_y_oneside_L0, incoming_left,
      $         timedev)
 
           call compute_timedev_corner_E(
-     $         nodes, j, dx, dy, p_model,
+     $         t,x_map,y_map, nodes, j, dx, dy, p_model,
      $         gradient_y_y_oneside_L0, incoming_left,
      $         timedev)
 
           j=2
           call compute_timedev_corner_W(
-     $         nodes, j, dx, dy, p_model,
+     $         t,x_map,y_map, nodes, j, dx, dy, p_model,
      $         gradient_y_y_oneside_L1, incoming_left,
      $         timedev)
 
           call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
+     $         t,x_map,y_map, nodes, j, dx, dy, p_model, flux_x,
      $         gradient_y_y_oneside_L1, incoming_left,
      $         timedev)
 
           call compute_timedev_corner_E(
-     $         nodes, j, dx, dy, p_model,
+     $         t,x_map,y_map, nodes, j, dx, dy, p_model,
      $         gradient_y_y_oneside_L1, incoming_left,
      $         timedev)
 
@@ -330,25 +330,25 @@
 
              i=1
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            t,x_map,y_map, nodes, i,j, dx,dy, p_model, flux_y,
      $            gradient_x_x_oneside_L0, incoming_left,
      $            timedev)
 
              i=bc_size
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            t,x_map,y_map, nodes, i,j, dx,dy, p_model, flux_y,
      $            gradient_x_x_oneside_L1, incoming_left,
      $            timedev)
 
              i=nx-1
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            t,x_map,y_map, nodes, i,j, dx,dy, p_model, flux_y,
      $            gradient_x_x_oneside_R1, incoming_right,
      $            timedev)
 
              i=nx
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model,  flux_y,
+     $            t,x_map,y_map, nodes, i,j, dx,dy, p_model,  flux_y,
      $            gradient_x_x_oneside_R0, incoming_right,
      $            timedev)
 
@@ -360,33 +360,33 @@
           !--------------------------------------------
           j=ny-1
           call compute_timedev_corner_W(
-     $         nodes, j, dx, dy, p_model,
+     $         t,x_map,y_map, nodes, j, dx, dy, p_model,
      $         gradient_y_y_oneside_R1, incoming_right,
      $         timedev)
 
           call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
+     $         t,x_map,y_map, nodes, j, dx, dy, p_model, flux_x,
      $         gradient_y_y_oneside_R1, incoming_right,
      $         timedev)
 
           call compute_timedev_corner_E(
-     $         nodes, j, dx, dy, p_model,
+     $         t,x_map,y_map, nodes, j, dx, dy, p_model,
      $         gradient_y_y_oneside_R1, incoming_right,
      $         timedev)
 
           j=ny
           call compute_timedev_corner_W(
-     $         nodes, j, dx, dy, p_model,
+     $         t,x_map,y_map, nodes, j, dx, dy, p_model,
      $         gradient_y_y_oneside_R0, incoming_right,
      $         timedev)
 
           call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
+     $         t,x_map,y_map, nodes, j, dx, dy, p_model, flux_x,
      $         gradient_y_y_oneside_R0, incoming_right,
      $         timedev)
 
           call compute_timedev_corner_E(
-     $         nodes, j, dx, dy, p_model,
+     $         t,x_map,y_map, nodes, j, dx, dy, p_model,
      $         gradient_y_y_oneside_R0, incoming_right,
      $         timedev)
         
@@ -476,7 +476,7 @@
 
              timedev = compute_timedev_xlayer_local(
      $            p_model,
-     $            nodes, dx, dy, i,j,
+     $            t,x_map,y_map, nodes, dx, dy, i,j,
      $            flux_y,
      $            incoming_left,
      $            gradient_x)
@@ -485,7 +485,7 @@
 
              timedev = compute_timedev_xlayer_local(
      $            p_model,
-     $            nodes, dx, dy, i,j,
+     $            t,x_map,y_map, nodes, dx, dy, i,j,
      $            flux_y,
      $            incoming_right,
      $            gradient_x)
@@ -578,7 +578,7 @@
 
              timedev = compute_timedev_ylayer_local(
      $            p_model,
-     $            nodes, dx, dy, i,j,
+     $            t,x_map,y_map, nodes, dx, dy, i,j,
      $            flux_x,
      $            incoming_left,
      $            gradient_y)
@@ -587,7 +587,7 @@
 
              timedev = compute_timedev_ylayer_local(
      $            p_model,
-     $            nodes, dx, dy, i,j,
+     $            t,x_map,y_map, nodes, dx, dy, i,j,
      $            flux_x,
      $            incoming_right,
      $            gradient_y)
@@ -682,7 +682,7 @@
              if(side_y.eqv.left) then
                 timedev = compute_timedev_corner_local(
      $               p_model,
-     $               nodes, dx, dy, i,j,
+     $               t,x_map,y_map, nodes, dx, dy, i,j,
      $               incoming_left,
      $               incoming_left,
      $               gradient_x,
@@ -691,7 +691,7 @@
              else
                 timedev = compute_timedev_corner_local(
      $               p_model,
-     $               nodes, dx, dy, i,j,
+     $               t,x_map,y_map, nodes, dx, dy, i,j,
      $               incoming_left,
      $               incoming_right,
      $               gradient_x,
@@ -704,7 +704,7 @@
              if(side_y.eqv.left) then
                 timedev = compute_timedev_corner_local(
      $               p_model,
-     $               nodes, dx, dy, i,j,
+     $               t,x_map,y_map, nodes, dx, dy, i,j,
      $               incoming_right,
      $               incoming_left,
      $               gradient_x,
@@ -713,7 +713,7 @@
              else
                 timedev = compute_timedev_corner_local(
      $               p_model,
-     $               nodes, dx, dy, i,j,
+     $               t,x_map,y_map, nodes, dx, dy, i,j,
      $               incoming_right,
      $               incoming_right,
      $               gradient_x,
