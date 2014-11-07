@@ -190,6 +190,8 @@ c$$$     $                                           compute_n2_righteigenvector
           procedure, nopass :: compute_flux_y_nopt
           procedure, nopass :: compute_flux_x_oneside
           procedure, nopass :: compute_flux_y_oneside
+          procedure, nopass :: compute_flux_x_by_parts
+          procedure, nopass :: compute_flux_y_by_parts
           procedure, nopass :: compute_body_forces
           procedure, nopass :: get_velocity
 
@@ -1064,6 +1066,197 @@ c$$$          y_s = y_map(1)
      $         dx,dy)
 
         end function compute_flux_y_oneside
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the fluxes by parts (get the inviscid and the
+        !> viscid parts)
+        !
+        !> @date
+        !> 10_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param dx
+        !> space step along the x-direction
+        !
+        !>@param dy
+        !> space step along the y-direction
+        !
+        !>@param i
+        !> index identifying the nodes along the x-direction
+        !
+        !>@param j
+        !> index identifying the nodes along the y-direction
+        !
+        !>@param s_oneside
+        !> space discretization operator
+        !
+        !>@param inviscid_flux
+        !> inviscid flux at (i+1/2,j)
+        !
+        !>@param viscid_flux
+        !> viscous flux computed at (i+1/2,j)
+        !
+        !>@return flux_x
+        !> flux computed at (i+1/2,j)
+        !--------------------------------------------------------------
+        function compute_flux_x_by_parts(
+     $     nodes,dx,dy,i,j,s_oneside,
+     $     inviscid_flux, viscid_flux)
+     $     result(flux_x)
+        
+          implicit none
+        
+          real(rkind), dimension(:,:,:), intent(in)   :: nodes
+          real(rkind)                  , intent(in)   :: dx
+          real(rkind)                  , intent(in)   :: dy
+          integer(ikind)               , intent(in)   :: i
+          integer(ikind)               , intent(in)   :: j
+          class(sd_operators)          , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)   , intent(out)  :: inviscid_flux
+          real(rkind), dimension(ne)   , intent(out)  :: viscid_flux
+          real(rkind), dimension(ne)                  :: flux_x
+
+
+          !inviscid part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(1) = flux_x_mass_density(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(2) = flux_x_inviscid_momentum_x(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(3) = flux_x_inviscid_momentum_y(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(4) = flux_x_inviscid_total_energy(nodes,s_oneside,i,j)
+
+
+          !viscid part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(1) = 0.0d0
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(2) = flux_x_viscid_momentum_x(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(3) = flux_x_viscid_momentum_y(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(4) = flux_x_viscid_total_energy(nodes,s_oneside,i,j,dx,dy)
+
+
+          !total flux
+          !--------------------------------
+          flux_x(1) = inviscid_flux(1) - epsilon*viscid_flux(1)
+          flux_x(2) = inviscid_flux(2) - epsilon*viscid_flux(2)
+          flux_x(3) = inviscid_flux(3) - epsilon*viscid_flux(3)
+          flux_x(4) = inviscid_flux(4) - epsilon*viscid_flux(4)
+          
+        end function compute_flux_x_by_parts
+
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the fluxes by parts (get the inviscid and the
+        !> viscid parts)
+        !
+        !> @date
+        !> 10_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param dx
+        !> space step along the x-direction
+        !
+        !>@param dy
+        !> space step along the y-direction
+        !
+        !>@param i
+        !> index identifying the nodes along the x-direction
+        !
+        !>@param j
+        !> index identifying the nodes along the y-direction
+        !
+        !>@param s_oneside
+        !> space discretization operator
+        !
+        !>@param inviscid_flux
+        !> inviscid flux at (i+1/2,j)
+        !
+        !>@param viscid_flux
+        !> viscous flux computed at (i+1/2,j)
+        !
+        !>@return flux_x
+        !> flux computed at (i+1/2,j)
+        !--------------------------------------------------------------
+        function compute_flux_y_by_parts(
+     $     nodes,dx,dy,i,j,s_oneside,
+     $     inviscid_flux, viscid_flux)
+     $     result(flux_y)
+        
+          implicit none
+        
+          real(rkind), dimension(:,:,:), intent(in)   :: nodes
+          real(rkind)                  , intent(in)   :: dx
+          real(rkind)                  , intent(in)   :: dy
+          integer(ikind)               , intent(in)   :: i
+          integer(ikind)               , intent(in)   :: j
+          class(sd_operators)          , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)   , intent(out)  :: inviscid_flux
+          real(rkind), dimension(ne)   , intent(out)  :: viscid_flux
+          real(rkind), dimension(ne)                  :: flux_y
+          
+
+          !inviscid part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(1) = flux_y_mass_density(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(2) = flux_y_inviscid_momentum_x(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(3) = flux_y_inviscid_momentum_y(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(4) = flux_y_inviscid_total_energy(nodes,s_oneside,i,j)
+
+
+          !viscid part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(1) = 0.0d0
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(2) = flux_y_viscid_momentum_x(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(3) = flux_y_viscid_momentum_y(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(4) = flux_y_viscid_total_energy(nodes,s_oneside,i,j,dx,dy)
+
+
+          !total flux
+          !--------------------------------
+          flux_x(1) = inviscid_flux(1) - epsilon*viscid_flux(1)
+          flux_x(2) = inviscid_flux(2) - epsilon*viscid_flux(2)
+          flux_x(3) = inviscid_flux(3) - epsilon*viscid_flux(3)
+          flux_x(4) = inviscid_flux(4) - epsilon*viscid_flux(4)
+          
+        end function compute_flux_y_by_parts
 
 
         !> @author

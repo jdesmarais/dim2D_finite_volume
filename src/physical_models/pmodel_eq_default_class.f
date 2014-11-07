@@ -14,10 +14,21 @@
       !-----------------------------------------------------------------
       module pmodel_eq_default_class
       
-        use interface_primary       , only : gradient_n_proc
-        use parameters_input        , only : nx,ny,ne
-        use parameters_kind         , only : ikind, rkind
-        use pmodel_eq_abstract_class, only : pmodel_eq_abstract
+        use interface_primary, only :
+     $       gradient_n_proc
+
+        use parameters_input, only :
+     $       nx,ny,ne
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use pmodel_eq_abstract_class, only :
+     $       pmodel_eq_abstract
+
+        use sd_operators_class, only : 
+     $       sd_operators
 
         implicit none
 
@@ -35,6 +46,9 @@
           contains
 
           procedure, nopass :: get_sim_parameters => get_sim_parameters_default
+
+          procedure, nopass :: compute_flux_x_by_parts
+          procedure, nopass :: compute_flux_y_by_parts
 
           procedure, nopass :: compute_x_eigenvalues  => compute_eigenvalues_default
           procedure, nopass :: compute_y_eigenvalues  => compute_eigenvalues_default
@@ -92,6 +106,151 @@
           end if
 
         end subroutine get_sim_parameters_default
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the fluxes by parts (get the inviscid and the
+        !> viscid parts)
+        !
+        !> @date
+        !> 10_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param dx
+        !> space step along the x-direction
+        !
+        !>@param dy
+        !> space step along the y-direction
+        !
+        !>@param i
+        !> index identifying the nodes along the x-direction
+        !
+        !>@param j
+        !> index identifying the nodes along the y-direction
+        !
+        !>@param s_oneside
+        !> space discretization operator
+        !
+        !>@param inviscid_flux
+        !> inviscid flux at (i+1/2,j)
+        !
+        !>@param viscid_flux
+        !> viscous flux computed at (i+1/2,j)
+        !
+        !>@return flux_x
+        !> flux computed at (i+1/2,j)
+        !--------------------------------------------------------------
+        function compute_flux_x_by_parts(
+     $     nodes,dx,dy,i,j,s_oneside,
+     $     inviscid_flux, viscid_flux)
+     $     result(flux_x)
+        
+          implicit none
+        
+          real(rkind), dimension(:,:,:), intent(in)   :: nodes
+          real(rkind)                  , intent(in)   :: dx
+          real(rkind)                  , intent(in)   :: dy
+          integer(ikind)               , intent(in)   :: i
+          integer(ikind)               , intent(in)   :: j
+          class(sd_operators)          , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)   , intent(out)  :: inviscid_flux
+          real(rkind), dimension(ne)   , intent(out)  :: viscid_flux
+          real(rkind), dimension(ne)                  :: flux_x
+
+
+          real(rkind)    :: node_s
+          real(rkind)    :: ds
+          integer(ikind) :: bc_s
+
+          print '(''pmodel_eq_abstract_class'')'
+          print '(''compute_flux_x_by_parts'')'
+          stop 'not implemented'
+
+          node_s = nodes(i,j,1)
+          ds     = dx+dy
+          bc_s   = s_oneside%get_bc_size()
+          inviscid_flux(1) = nodes(i,j,1)
+          viscid_flux(1)   = nodes(i,j,1)
+          flux_x(1)        = nodes(i,j,1)
+          
+        end function compute_flux_x_by_parts
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the fluxes by parts (get the inviscid and the
+        !> viscid parts)
+        !
+        !> @date
+        !> 10_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param dx
+        !> space step along the x-direction
+        !
+        !>@param dy
+        !> space step along the y-direction
+        !
+        !>@param i
+        !> index identifying the nodes along the x-direction
+        !
+        !>@param j
+        !> index identifying the nodes along the y-direction
+        !
+        !>@param s_oneside
+        !> space discretization operator
+        !
+        !>@param inviscid_flux
+        !> inviscid flux at (i+1/2,j)
+        !
+        !>@param viscid_flux
+        !> viscous flux computed at (i+1/2,j)
+        !
+        !>@return flux_x
+        !> flux computed at (i+1/2,j)
+        !--------------------------------------------------------------
+        function compute_flux_y_by_parts(
+     $     nodes,dx,dy,i,j,s_oneside,
+     $     inviscid_flux, viscid_flux)
+     $     result(flux_y)
+        
+          implicit none
+        
+          real(rkind), dimension(:,:,:), intent(in)   :: nodes
+          real(rkind)                  , intent(in)   :: dx
+          real(rkind)                  , intent(in)   :: dy
+          integer(ikind)               , intent(in)   :: i
+          integer(ikind)               , intent(in)   :: j
+          class(sd_operators)          , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)   , intent(out)  :: inviscid_flux
+          real(rkind), dimension(ne)   , intent(out)  :: viscid_flux
+          real(rkind), dimension(ne)                  :: flux_y
+          
+          real(rkind)    :: node_s
+          real(rkind)    :: ds
+          integer(ikind) :: bc_s
+
+          print '(''pmodel_eq_abstract_class'')'
+          print '(''compute_flux_y_by_parts'')'
+          stop 'not implemented'
+
+          node_s = nodes(i,j,1)
+          ds     = dx+dy
+          bc_s   = s_oneside%get_bc_size()
+          inviscid_flux(1) = nodes(i,j,1)
+          viscid_flux(1)   = nodes(i,j,1)
+          flux_y(1)        = nodes(i,j,1)        
+          
+        end function compute_flux_y_by_parts
 
 
         !> @author

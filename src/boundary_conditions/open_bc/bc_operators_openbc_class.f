@@ -393,6 +393,15 @@
           type(sd_operators_y_oneside_L1) :: s_y_L1
           type(sd_operators_y_oneside_R1) :: s_y_R1
           type(sd_operators_y_oneside_R0) :: s_y_R0
+
+          !intermediate variables
+          real(rkind)    :: dx,dy
+          integer(ikind) :: i_min, i_max
+          integer(ikind) :: j_min, j_max
+          integer(ikind) :: i,j
+          integer        :: k
+          logical        :: side_x, side_y
+          logical        :: compute_edge
           
 
           !if there are effectively boundary layers
@@ -400,437 +409,264 @@
           !derivatives corresponding to the boundary
           !grid points are computed
           if(allocated(bc_sections)) then
-
-
-             !compute the fluxes at the grid points
-             !corresponding to edge-type boundary
-             !layers
-             call compute_fluxes_bc_sections(
-     $            this,
-     $            p_model,
-     $            nodes,x_map,y_map,
-     $            s_x_L0,s_x_L1,
-     $            s_x_R1,s_x_R0,
-     $            s_y_L0,s_y_L1,
-     $            s_y_R1,s_y_R0,
-     $            flux_x,flux_y,
-     $            bc_sections)
-
-
-             !compute the time derivatives
-             !corresponding to the buffer layers
-             call compute_timedev_bc_sections(
-     $            this,
-     $            p_model,
-     $            t,nodes,x_map,y_map,
-     $            flux_x, flux_y,
-     $            timedev,
-     $            bc_sections)
-
-          end if          
-
-        end subroutine apply_bc_on_timedev_nopt
-
-
-        !compute the edge fluxes needed for the
-        !computation of the time derivatives in
-        !the boundary layers
-        subroutine compute_fluxes_bc_sections(
-     $     this,
-     $     p_model,
-     $     nodes,x_map,y_map,
-     $     s_x_L0, s_x_L1,
-     $     s_x_R1, s_x_R0,
-     $     s_y_L0, s_y_L1,
-     $     s_y_R1, s_y_R0,
-     $     flux_x, flux_y,
-     $     bc_sections)
-
-          implicit none
           
-          class(bc_operators_openbc)     , intent(in)    :: this
-          type(pmodel_eq)                , intent(in)    :: p_model
-          real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
-          real(rkind), dimension(:)      , intent(in)    :: x_map
-          real(rkind), dimension(:)      , intent(in)    :: y_map
-          type(sd_operators_x_oneside_L0), intent(in)    :: s_x_L0
-          type(sd_operators_x_oneside_L1), intent(in)    :: s_x_L1
-          type(sd_operators_x_oneside_R1), intent(in)    :: s_x_R1
-          type(sd_operators_x_oneside_R0), intent(in)    :: s_x_R0
-          type(sd_operators_y_oneside_L0), intent(in)    :: s_y_L0
-          type(sd_operators_y_oneside_L1), intent(in)    :: s_y_L1
-          type(sd_operators_y_oneside_R1), intent(in)    :: s_y_R1
-          type(sd_operators_y_oneside_R0), intent(in)    :: s_y_R0
-          real(rkind), dimension(:,:,:)  , intent(inout) :: flux_x
-          real(rkind), dimension(:,:,:)  , intent(inout) :: flux_y
-          integer    , dimension(:,:)    , intent(in)    :: bc_sections
-
-          real(rkind)    :: dx,dy
-          integer(ikind) :: i_min, i_max
-          integer(ikind) :: j_min, j_max
-          integer(ikind) :: i,j
-          integer        :: k
-          logical        :: compute_edge
-
-          
-          dx = x_map(2) - x_map(1)
-          dy = y_map(2) - y_map(1)
+             dx = x_map(2) - x_map(1)
+             dy = y_map(2) - y_map(1)
 
 
-          !go through the boundary layers
-          !if the boundary actually needs the computation
-          !of the fluxes in the direction of the edge, the
-          !fluxes are computed
-          do k=1, size(bc_sections,2)
+             !go through the boundary layers
+             !if the boundary actually needs the computation
+             !of the fluxes in the direction of the edge, the
+             !fluxes are computed
+             do k=1, size(bc_sections,2)
 
-             !identify the type of boundary layer
-             select case(bc_sections(1,k))
+                !identify the type of boundary layer
+                select case(bc_sections(1,k))
 
-               case(N_edge_type)
+                  case(N_edge_type)
 
-                  !do not compute the edge fluxes only if
-                  !(y.ge.bc_y_max).and.
-                  !(bc_N_type_choice.ne.bc_timedev_choice)
+                     !do not compute the edge fluxes only if
+                     !(y.ge.bc_y_max).and.
+                     !(bc_N_type_choice.ne.bc_timedev_choice)
 
-                  j = bc_sections(3,k)
+                     j_min = bc_sections(3,k)
 
-                  compute_edge = compute_edge_N(j,y_map,bc_timedev_choice)
-
-                  !determine the extent of the edge from the
-                  !bc_section and compute the fluxes
-                  if(compute_edge) then
+                     compute_edge = compute_edge_N(j_min,y_map,bc_timedev_choice)
                   
-                     i_min = bc_sections(2,k)
-                     i_max = bc_sections(4,k)+1
+                     !determine the extent of the edge from the
+                     !bc_section
+                     if(compute_edge) then
 
-                     call this%compute_fluxes_for_bc_y_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_y_L0, s_y_L1,
-     $                    s_y_R1, s_y_R0,
-     $                    dx, dy,
-     $                    i_min, i_max, j,
-     $                    N,
-     $                    flux_x)
-
-                  end if
                      
-               case(S_edge_type)
-
-                  !do not compute the edge fluxes only if
-                  !(y.le.bc_y_min).and.
-                  !(bc_S_type_choice.ne.bc_timedev_choice)
-
-                  j = bc_sections(3,k)
-
-                  compute_edge = compute_edge_S(j,y_map,bc_timedev_choice)
-
-                  !determine the extent of the edge from the
-                  !bc_section and compute the fluxes
-                  if(compute_edge) then
+                        !compute the edge fluxes
+                        i_min = bc_sections(2,k)
+                        i_max = bc_sections(4,k)+1
                   
-                     i_min = bc_sections(2,k)
-                     i_max = bc_sections(4,k)+1
+                        call this%compute_fluxes_for_bc_y_edge(
+     $                       p_model,
+     $                       nodes,
+     $                       s_y_L0, s_y_L1,
+     $                       s_y_R1, s_y_R0,
+     $                       dx, dy,
+     $                       i_min, i_max, j_min,
+     $                       N,
+     $                       flux_x)
 
-                     call this%compute_fluxes_for_bc_y_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_y_L0, s_y_L1,
-     $                    s_y_R1, s_y_R0,
-     $                    dx, dy,
-     $                    i_min, i_max, j,
-     $                    S,
-     $                    flux_x)
 
-                  end if
+                        !compute the time derivatives
+                        side_y = right
 
-               case(E_edge_type)
+                        j=j_min
+                        do i=i_min,i_max
 
-                  !do not compute the edge fluxes only if
-                  !(x.ge.bc_x_max).and.
-                  !(bc_E_type_choice.ne.bc_timedev_choice)
+                           timedev(i,j,:) = 
+     $                          this%apply_bc_on_timedev_y_edge(
+     $                          p_model,
+     $                          t,nodes,
+     $                          x_map,y_map,i,j,
+     $                          flux_x,
+     $                          side_y,
+     $                          gradient_y_y_oneside_R1)
 
-                  i = bc_sections(2,k)
+                        end do
 
-                  compute_edge = compute_edge_E(i,x_map,bc_timedev_choice)
+                        j=j_min+1
+                        do i=i_min,i_max
 
-                  !determine the extent of the edge from the
-                  !bc_section and compute the fluxes
-                  if(compute_edge) then
+                           timedev(i,j,:) = 
+     $                          this%apply_bc_on_timedev_y_edge(
+     $                          p_model,
+     $                          t,nodes,
+     $                          x_map,y_map,i,j,
+     $                          flux_x,
+     $                          side_y,
+     $                          gradient_y_y_oneside_R0)
+
+                        end do
+                  
+                     end if
+
+                        
+                  case(S_edge_type)
+                  
+                     !do not compute the edge fluxes only if
+                     !(y.le.bc_y_min).and.
+                     !(bc_S_type_choice.ne.bc_timedev_choice)
                   
                      j_min = bc_sections(3,k)
-                     j_max = bc_sections(4,k)+1
-
-                     call this%compute_fluxes_for_bc_x_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_x_L0, s_x_L1,
-     $                    s_x_R1, s_x_R0,
-     $                    dx, dy,
-     $                    j_min, j_max, i,
-     $                    E,
-     $                    flux_y)
-
-                  end if
-
-               case(W_edge_type)
-
-                  !do not compute the edge fluxes only if
-                  !(x.le.bc_x_min).and.
-                  !(bc_W_type_choice.ne.bc_timedev_choice)
-
-                  i = bc_sections(2,k)
-
-                  compute_edge = compute_edge_W(i,x_map,bc_timedev_choice)
-
-                  !determine the extent of the edge from the
-                  !bc_section and compute the fluxes
-                  if(compute_edge) then
                   
-                     j_min = bc_sections(3,k)
-                     j_max = bc_sections(4,k)+1
-
-                     call this%compute_fluxes_for_bc_x_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_x_L0, s_x_L1,
-     $                    s_x_R1, s_x_R0,
-     $                    dx, dy,
-     $                    j_min, j_max, i,
-     $                    W,
-     $                    flux_y)
-
-                  end if
-
-             end select
-
-          end do
-
-        end subroutine compute_fluxes_bc_sections
-
-
-        !compute the time derivatives using the boundary
-        !conditions
-        subroutine compute_timedev_bc_sections(
-     $     this,
-     $     p_model,
-     $     t,nodes,x_map,y_map,
-     $     flux_x, flux_y,
-     $     timedev,
-     $     bc_sections)
-
-          implicit none
-
-          class(bc_operators_openbc)     , intent(in)    :: this
-          type(pmodel_eq)                , intent(in)    :: p_model
-          real(rkind)                    , intent(in)    :: t
-          real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
-          real(rkind), dimension(:)      , intent(in)    :: x_map
-          real(rkind), dimension(:)      , intent(in)    :: y_map
-          real(rkind), dimension(:,:,:)  , intent(in)    :: flux_x
-          real(rkind), dimension(:,:,:)  , intent(in)    :: flux_y
-          real(rkind), dimension(:,:,:)  , intent(inout) :: timedev
-          integer    , dimension(:,:)    , intent(in)    :: bc_sections
-
-          integer(ikind) :: i,j
-          integer(ikind) :: i_min, i_max
-          integer(ikind) :: j_min, j_max
-          integer        :: k
-          logical        :: side_x, side_y
-          logical        :: compute_edge
-
-
-          !go through the boundary layers
-          do k=1, size(bc_sections,2)
-
-             !identify the type of boundary layer
-             select case(bc_sections(1,k))
-
-               case(N_edge_type)
-
-                  !do not compute the time derivatives if
-                  !(y.ge.bc_y_max).and.
-                  !(bc_N_type_choice.ne.bc_timedev_choice)
-
-                  j_min = bc_sections(3,k)
-
-                  compute_edge = compute_edge_N(j_min,y_map,bc_timedev_choice)
-
-                  !determine the extent of the edge from the
-                  !bc_section and compute the time derivatives
-                  if(compute_edge) then
+                     compute_edge = compute_edge_S(j_min,y_map,bc_timedev_choice)
                   
-                     i_min  = bc_sections(2,k)
-                     i_max  = bc_sections(4,k)
-                     side_y = right
-
-                     j=j_min
-                     do i=i_min,i_max
-
-                        timedev(i,j,:) = 
-     $                       this%apply_bc_on_timedev_y_edge(
-     $                       p_model,
-     $                       t,nodes,
-     $                       x_map,y_map,i,j,
-     $                       flux_x,
-     $                       side_y,
-     $                       gradient_y_y_oneside_R1)
-
-                     end do
-
-                     j=j_min+1
-                     do i=i_min,i_max
-
-                        timedev(i,j,:) = 
-     $                       this%apply_bc_on_timedev_y_edge(
-     $                       p_model,
-     $                       t,nodes,
-     $                       x_map,y_map,i,j,
-     $                       flux_x,
-     $                       side_y,
-     $                       gradient_y_y_oneside_R0)
-
-                     end do
-
-                  end if
+                     !determine the extent of the edge from the
+                     !bc_section
+                     if(compute_edge) then
                      
-               case(S_edge_type)
-
-                  !do not compute the time derivatives if
-                  !(y.le.bc_y_min).and.
-                  !(bc_S_type_choice.ne.bc_timedev_choice)
-
-                  j_min = bc_sections(3,k)
-
-                  compute_edge = compute_edge_S(j_min,y_map,bc_timedev_choice)
-
-                  !determine the extent of the edge from the
-                  !bc_section and compute the time derivatives
-                  if(compute_edge) then
+                        !compute the edge fluxes
+                        i_min = bc_sections(2,k)
+                        i_max = bc_sections(4,k)+1
                   
-                     i_min  = bc_sections(2,k)
-                     i_max  = bc_sections(4,k)
-                     side_y = left
-
-                     j=j_min
-                     do i=i_min,i_max
-
-                        timedev(i,j,:) = 
-     $                       this%apply_bc_on_timedev_y_edge(
+                        call this%compute_fluxes_for_bc_y_edge(
      $                       p_model,
-     $                       t,nodes,
-     $                       x_map,y_map,i,j,
-     $                       flux_x,
-     $                       side_y,
-     $                       gradient_y_y_oneside_L0)
+     $                       nodes,
+     $                       s_y_L0, s_y_L1,
+     $                       s_y_R1, s_y_R0,
+     $                       dx, dy,
+     $                       i_min, i_max, j_min,
+     $                       S,
+     $                       flux_x)
 
-                     end do
 
-                     j=j_min+1
-                     do i=i_min,i_max
+                        !compute the time derivatives
+                        side_y = left
 
-                        timedev(i,j,:) = 
-     $                       this%apply_bc_on_timedev_y_edge(
-     $                       p_model,
-     $                       t,nodes,
-     $                       x_map,y_map,i,j,
-     $                       flux_x,
-     $                       side_y,
-     $                       gradient_y_y_oneside_L1)
+                        j=j_min
+                        do i=i_min,i_max
 
-                     end do
+                           timedev(i,j,:) = 
+     $                          this%apply_bc_on_timedev_y_edge(
+     $                          p_model,
+     $                          t,nodes,
+     $                          x_map,y_map,i,j,
+     $                          flux_x,
+     $                          side_y,
+     $                          gradient_y_y_oneside_L0)
 
-                  end if
+                        end do
 
-               case(E_edge_type)
+                        j=j_min+1
+                        do i=i_min,i_max
 
-                  !do not compute the time derivatives if
-                  !(x.ge.bc_x_max).and.
-                  !(bc_E_type_choice.ne.bc_timedev_choice)
+                           timedev(i,j,:) = 
+     $                          this%apply_bc_on_timedev_y_edge(
+     $                          p_model,
+     $                          t,nodes,
+     $                          x_map,y_map,i,j,
+     $                          flux_x,
+     $                          side_y,
+     $                          gradient_y_y_oneside_L1)
 
-                  i_min = bc_sections(2,k)
+                        end do
 
-                  compute_edge = compute_edge_E(i_min,x_map,bc_timedev_choice)
-
-                  !determine the extent of the edge from the
-                  !bc_section and compute the time derivatives
-                  if(compute_edge) then
                   
-                     j_min  = bc_sections(3,k)
-                     j_max  = bc_sections(4,k)
-                     side_x = right
+                     end if
 
-                     do j=j_min, j_max
-
-                        i=i_min
-                        timedev(i,j,:) = 
-     $                       this%apply_bc_on_timedev_x_edge(
-     $                       p_model,
-     $                       t,nodes,
-     $                       x_map,y_map,i,j,
-     $                       flux_y,
-     $                       side_x,
-     $                       gradient_x_x_oneside_R1)
-
-                        i=i_min+1
-                        timedev(i,j,:) = 
-     $                       this%apply_bc_on_timedev_x_edge(
-     $                       p_model,
-     $                       t,nodes,
-     $                       x_map,y_map,i,j,
-     $                       flux_y,
-     $                       side_x,
-     $                       gradient_x_x_oneside_R0)
-
-                     end do
-
-                  end if
-
-               case(W_edge_type)
-
-                  !do not compute the time derivatives if
-                  !(x.le.bc_x_min).and.
-                  !(bc_W_type_choice.ne.bc_timedev_choice)
-
-                  i_min = bc_sections(2,k)
-
-                  compute_edge = compute_edge_W(i_min,x_map,bc_timedev_choice)
-
-                  !determine the extent of the edge from the
-                  !bc_section and compute the time derivatives
-                  if(compute_edge) then
                   
-                     j_min  = bc_sections(3,k)
-                     j_max  = bc_sections(4,k)
-                     side_x = left
-
-                     do j=j_min,j_max
-
-                        i=i_min
-                        timedev(i,j,:) = 
-     $                       this%apply_bc_on_timedev_x_edge(
+                  case(E_edge_type)
+                  
+                     !do not compute the edge fluxes only if
+                     !(x.ge.bc_x_max).and.
+                     !(bc_E_type_choice.ne.bc_timedev_choice)
+                  
+                     i_min = bc_sections(2,k)
+                  
+                     compute_edge = compute_edge_E(i_min,x_map,bc_timedev_choice)
+                  
+                     !determine the extent of the edge from the
+                     !bc_section and compute the fluxes
+                     if(compute_edge) then
+                     
+                        !compute the edge fluxes
+                        j_min = bc_sections(3,k)
+                        j_max = bc_sections(4,k)+1
+                  
+                        call this%compute_fluxes_for_bc_x_edge(
      $                       p_model,
-     $                       t,nodes,
-     $                       x_map,y_map,i,j,
-     $                       flux_y,
-     $                       side_x,
-     $                       gradient_x_x_oneside_L0)
+     $                       nodes,
+     $                       s_x_L0, s_x_L1,
+     $                       s_x_R1, s_x_R0,
+     $                       dx, dy,
+     $                       j_min, j_max, i_min,
+     $                       E,
+     $                       flux_y)
 
-                        i=i_min+1
-                        timedev(i,j,:) = 
-     $                       this%apply_bc_on_timedev_x_edge(
+                        !compute the time derivatives
+                        side_x = right
+
+                        do j=j_min, j_max
+
+                           i=i_min
+                           timedev(i,j,:) = 
+     $                          this%apply_bc_on_timedev_x_edge(
+     $                          p_model,
+     $                          t,nodes,
+     $                          x_map,y_map,i,j,
+     $                          flux_y,
+     $                          side_x,
+     $                          gradient_x_x_oneside_R1)
+
+                           i=i_min+1
+                           timedev(i,j,:) = 
+     $                          this%apply_bc_on_timedev_x_edge(
+     $                          p_model,
+     $                          t,nodes,
+     $                          x_map,y_map,i,j,
+     $                          flux_y,
+     $                          side_x,
+     $                          gradient_x_x_oneside_R0)
+
+                        end do
+                  
+                     end if
+                  
+                  case(W_edge_type)
+                  
+                     !do not compute the edge fluxes only if
+                     !(x.le.bc_x_min).and.
+                     !(bc_W_type_choice.ne.bc_timedev_choice)
+                  
+                     i_min = bc_sections(2,k)
+                  
+                     compute_edge = compute_edge_W(i_min,x_map,bc_timedev_choice)
+                  
+                     !determine the extent of the edge from the
+                     !bc_section
+                     if(compute_edge) then
+                     
+                        !compute the edge fluxes
+                        j_min = bc_sections(3,k)
+                        j_max = bc_sections(4,k)+1
+                  
+                        call this%compute_fluxes_for_bc_x_edge(
      $                       p_model,
-     $                       t,nodes,
-     $                       x_map,y_map,i,j,
-     $                       flux_y,
-     $                       side_x,
-     $                       gradient_x_x_oneside_L1)
+     $                       nodes,
+     $                       s_x_L0, s_x_L1,
+     $                       s_x_R1, s_x_R0,
+     $                       dx, dy,
+     $                       j_min, j_max, i_min,
+     $                       W,
+     $                       flux_y)
 
-                     end do
+                        !compute the time derivatives
+                        side_x = left
 
-                  end if
+                        do j=j_min,j_max
 
-               case(SW_corner_type,SW_edge_type)
+                           i=i_min
+                           timedev(i,j,:) = 
+     $                          this%apply_bc_on_timedev_x_edge(
+     $                          p_model,
+     $                          t,nodes,
+     $                          x_map,y_map,i,j,
+     $                          flux_y,
+     $                          side_x,
+     $                          gradient_x_x_oneside_L0)
+
+                           i=i_min+1
+                           timedev(i,j,:) = 
+     $                          this%apply_bc_on_timedev_x_edge(
+     $                          p_model,
+     $                          t,nodes,
+     $                          x_map,y_map,i,j,
+     $                          flux_y,
+     $                          side_x,
+     $                          gradient_x_x_oneside_L1)
+
+                        end do
+                  
+                     end if
+
+
+                     case(SW_corner_type,SW_edge_type)
 
                   i_min=bc_sections(2,k)
                   j_min=bc_sections(3,k)
@@ -1056,11 +892,13 @@
 
                   end if
 
-             end select
+                end select
 
-          end do
-
-        end subroutine compute_timedev_bc_sections
+             end do
+               
+          end if
+           
+        end subroutine apply_bc_on_timedev_nopt
 
 
         !> @author
@@ -1122,7 +960,7 @@
         
           implicit none            
         
-          class(bc_operators_openbc)     , intent(in)    :: this
+          class(bc_operators_openbc)     , intent(inout) :: this
           type(pmodel_eq)                , intent(in)    :: p_model
           real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
           type(sd_operators_x_oneside_L0), intent(in)    :: s_x_L0
@@ -1274,7 +1112,7 @@
         
           implicit none
         
-          class(bc_operators_openbc)     , intent(in)    :: this
+          class(bc_operators_openbc)     , intent(inout) :: this
           type(pmodel_eq)                , intent(in)    :: p_model
           real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
           type(sd_operators_y_oneside_L0), intent(in)    :: s_y_L0

@@ -321,6 +321,9 @@
           !used in the time integration of the domain extension
           call this%domain_extension%deallocate_after_timeInt()
 
+          !update the time
+          this%time = this%time + dt
+
         end subroutine integrate
 
 

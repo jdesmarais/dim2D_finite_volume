@@ -148,6 +148,8 @@
           procedure(fluxes_y_n)      , nopass, deferred :: compute_flux_y_nopt
           procedure(fluxes_x_oneside), nopass, deferred :: compute_flux_x_oneside
           procedure(fluxes_y_oneside), nopass, deferred :: compute_flux_y_oneside
+          procedure(fluxes_x_byparts), nopass, deferred :: compute_flux_x_by_parts
+          procedure(fluxes_y_byparts), nopass, deferred :: compute_flux_y_by_parts
           procedure(bodyforces)      , nopass, deferred :: compute_body_forces
           procedure(velocity_proc)   , nopass, deferred :: get_velocity
           procedure(openbc_proc)     , nopass, deferred :: are_openbc_undermined
@@ -617,6 +619,120 @@
             real(rkind), dimension(ne)                  :: flux_y
 
           end function fluxes_y_oneside
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to compute the fluxes along the
+          !> x-axis
+          !
+          !> @date
+          !> 10_11_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param dx
+          !> grid size along the x-axis
+          !
+          !>@param dy
+          !> grid size along the y-axis
+          !
+          !>@param i
+          !> x-index where the flux_x is computed
+          !
+          !>@param j
+          !> y-index where the flux_x is computed
+          !
+          !>@param dy
+          !> grid size along the y-axis
+          !
+          !>@param s_oneside
+          !> space discretization operators
+          !
+          !>@param flux_x
+          !> fluxes along the x-axis
+          !--------------------------------------------------------------
+          function fluxes_x_byparts(
+     $      nodes,dx,dy,i,j,s_oneside,
+     $      inviscid_flux, viscid_flux)
+     $      result(flux_x)
+
+            import ikind
+            import ne
+            import rkind
+            import sd_operators
+
+            real(rkind), dimension(:,:,:), intent(in)   :: nodes
+            real(rkind)                  , intent(in)   :: dx
+            real(rkind)                  , intent(in)   :: dy
+            integer(ikind)               , intent(in)   :: i
+            integer(ikind)               , intent(in)   :: j
+            class(sd_operators)          , intent(in)   :: s_oneside
+            real(rkind), dimension(ne)   , intent(out)  :: inviscid_flux
+            real(rkind), dimension(ne)   , intent(out)  :: viscid_flux
+            real(rkind), dimension(ne)                  :: flux_x
+
+          end function fluxes_x_byparts
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to compute the fluxes along the
+          !> y-axis
+          !
+          !> @date
+          !> 10_11_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param dx
+          !> grid size along the x-axis
+          !
+          !>@param dy
+          !> grid size along the y-axis
+          !
+          !>@param i
+          !> x-index where the flux_x is computed
+          !
+          !>@param j
+          !> y-index where the flux_x is computed
+          !
+          !>@param dy
+          !> grid size along the y-axis
+          !
+          !>@param s_oneside
+          !> space discretization operators
+          !
+          !>@param flux_y
+          !> fluxes along the x-axis
+          !--------------------------------------------------------------
+          function fluxes_y_byparts(
+     $      nodes,dx,dy,i,j,s_oneside,
+     $      inviscid_flux, viscid_flux)
+     $      result(flux_y)
+
+            import ikind
+            import ne
+            import rkind
+            import sd_operators
+
+            real(rkind), dimension(:,:,:), intent(in)   :: nodes
+            real(rkind)                  , intent(in)   :: dx
+            real(rkind)                  , intent(in)   :: dy
+            integer(ikind)               , intent(in)   :: i
+            integer(ikind)               , intent(in)   :: j
+            class(sd_operators)          , intent(in)   :: s_oneside
+            real(rkind), dimension(ne)   , intent(out)  :: inviscid_flux
+            real(rkind), dimension(ne)   , intent(out)  :: viscid_flux
+            real(rkind), dimension(ne)                  :: flux_y
+
+          end function fluxes_y_byparts
 
 
 

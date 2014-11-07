@@ -18,7 +18,7 @@
 
 
         !forcing term for the position
-        real(rkind), parameter :: amplitude_force = 2.0d0
+        real(rkind), parameter :: amplitude_force = 10.0d0
         real(rkind), parameter :: period_force    = period/c**2
         real(rkind), parameter :: x_center_force  = x_center
         real(rkind), parameter :: y_center_force  = y_center

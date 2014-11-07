@@ -123,6 +123,7 @@
           procedure, nopass :: get_var_longname
           procedure, nopass :: get_var_unit
           procedure, nopass :: get_var_type
+          procedure, nopass :: get_sim_parameters
           procedure, nopass :: get_eq_nb
 
           procedure,   pass :: apply_ic
@@ -283,6 +284,65 @@
           var_type(3)=vector_y
 
         end function get_var_type
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the simulation parameters
+        !
+        !> @date
+        !> 10_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param param_name
+        !> array with the name of the characteristic parameters
+        !> for the simulation
+        !
+        !>@param param_value
+        !> array with the value of the characteristic parameters
+        !> for the simulation
+        !--------------------------------------------------------------
+        subroutine get_sim_parameters(param_name, param_value)
+
+          implicit none
+
+          character(10), dimension(:), allocatable, intent(out) :: param_name
+          real(rkind)  , dimension(:), allocatable, intent(out) :: param_value
+
+
+          allocate(param_name(12))
+          allocate(param_value(12))
+
+          param_name(1)  = 'c'
+          param_name(2)  = 'c_x'
+          param_name(3)  = 'c_y'
+          param_name(4)  = 'epsilon'
+                         
+          param_name(5)  = 'amplitude'
+          param_name(6)  = 'period'
+          param_name(7)  = 'x_center'
+          param_name(8)  = 'y_center'
+
+          param_name(9)  = 'amp_force'
+          param_name(10) = 'per_force'
+          param_name(11) = 'x_c_force'
+          param_name(12) = 'y_c_force'
+
+          param_value(1)  = c
+          param_value(2)  = c_x
+          param_value(3)  = c_y
+          param_value(4)  = epsilon
+          param_value(5)  = amplitude
+          param_value(6)  = period  
+          param_value(7)  = x_center
+          param_value(8)  = y_center
+          param_value(9)  = amplitude_force
+          param_value(10) = period_force  
+          param_value(11) = x_center_force
+          param_value(12) = y_center_force
+
+        end subroutine get_sim_parameters
         
         
         !> @author

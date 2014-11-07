@@ -30,7 +30,8 @@
      $       align_W,
      $       interior_pt,
      $       bc_interior_pt,
-     $       bc_pt
+     $       bc_pt,
+     $       no_pt
 
         use parameters_constant, only :
      $       N,S,E,W
@@ -54,17 +55,17 @@
         ! intermediate variables for the
         ! simulation
         integer(ikind) :: nt, output_print
-        !integer(ikind) :: t
+        integer(ikind) :: t
 
         ! CPU recorded times
-        real :: time1 !, time2, time3
+        real :: time1, time2, time3
 
         ! configuration for the domain
         ! extension
         integer :: bf_config
 
         !choice of initial domain extension
-        bf_config = 1
+        bf_config = 2
 
 
         ! get the initial CPU time
@@ -84,35 +85,35 @@
 
         call f_simulated%write_data()
 
-c$$$        ! initialization time
-c$$$        call CPU_TIME(time2)
-c$$$        print *, 'time_elapsed: ', time2-time1
-c$$$
-c$$$
-c$$$        ! integrate the field until t=t_max
-c$$$        do t=1, nt
-c$$$
-c$$$           !DEC$ FORCEINLINE RECURSIVE
-c$$$           call f_simulated%integrate(dt)
-c$$$
-c$$$           !  write the output data
-c$$$           if((output_print.eq.1).or.
-c$$$     $        ((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
-c$$$              call f_simulated%write_data()
-c$$$           end if
-c$$$
-c$$$        end do
-c$$$
-c$$$
-c$$$        ! print the time needed for the simulation
-c$$$        call CPU_TIME(time3)
-c$$$        print *, 'time_elapsed: ', time3-time1
-c$$$
-c$$$
-c$$$        ! write the last timestep
-c$$$        if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
-c$$$           call f_simulated%write_data()
-c$$$        end if
+        ! initialization time
+        call CPU_TIME(time2)
+        print *, 'time_elapsed: ', time2-time1
+
+
+        ! integrate the field until t=t_max
+        do t=1, nt
+
+           !DEC$ FORCEINLINE RECURSIVE
+           call f_simulated%integrate(dt)
+
+           !  write the output data
+           if((output_print.eq.1).or.
+     $        ((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
+              call f_simulated%write_data()
+           end if
+
+        end do
+
+
+        ! print the time needed for the simulation
+        call CPU_TIME(time3)
+        print *, 'time_elapsed: ', time3-time1
+
+
+        ! write the last timestep
+        if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
+           call f_simulated%write_data()
+        end if
 
         contains
 
@@ -126,6 +127,9 @@ c$$$        end if
           select case(config)
             case(1)
                call four_bf_layer_config(field_ext_used)
+
+            case(2)
+               call difficult_bf_layer_config(field_ext_used)
 
             case default
                print '(''test_field_extended_wave2d'')'
@@ -210,12 +214,90 @@ c$$$        end if
 
         end subroutine four_bf_layer_config
 
+      
+        subroutine difficult_bf_layer_config(field_ext_tested)
+
+          implicit none
+
+          class(field_extended), intent(inout) :: field_ext_tested
+
+          real(rkind)   , dimension(nx)       :: interior_x_map
+          real(rkind)   , dimension(ny)       :: interior_y_map
+          real(rkind)   , dimension(nx,ny,ne) :: interior_nodes
+          integer(ikind), dimension(2,2)      :: alignment
+          
+          interior_x_map = field_ext_tested%get_x_map()
+          interior_y_map = field_ext_tested%get_y_map()
+          interior_nodes = field_ext_tested%get_nodes()
+
+
+          !extend the interior domain to have
+          !four buffer layers
+          !----------------------------------
+          !add the north buffer layer
+          alignment(1,1) = align_E-7
+          alignment(1,2) = align_E+7
+          alignment(2,1) = align_N
+          alignment(2,2) = align_N+7
+          call add_sublayer(
+     $         field_ext_tested,
+     $         N,
+     $         alignment,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes)
+          
+          !add the south buffer layer
+          alignment(1,1) = align_W-7
+          alignment(1,2) = align_E+7
+          alignment(2,1) = align_S-7
+          alignment(2,2) = align_S
+          call add_sublayer(
+     $         field_ext_tested,
+     $         S,
+     $         alignment,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes,
+     $         difficult_geometry=.true.)
+
+          !add the east buffer layer
+          alignment(1,1) = align_E
+          alignment(1,2) = align_E+7
+          alignment(2,1) = align_N-7
+          alignment(2,2) = align_N-1
+          call add_sublayer(
+     $         field_ext_tested,
+     $         E,
+     $         alignment,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes,
+     $         difficult_geometry=.true.)
+
+          !add the west buffer layer
+          alignment(1,1) = align_W-7
+          alignment(1,2) = align_W
+          alignment(2,1) = align_S+1
+          alignment(2,2) = align_S+7
+          call add_sublayer(
+     $         field_ext_tested,
+     $         W,
+     $         alignment,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes,
+     $         difficult_geometry=.true.)
+
+        end subroutine difficult_bf_layer_config
+
 
         subroutine add_sublayer(
      $     field_ext_tested,
      $     mainlayer_id,
      $     alignment,
-     $     x_map, y_map, nodes)
+     $     x_map, y_map, nodes,
+     $     difficult_geometry)
 
           implicit none
 
@@ -225,6 +307,7 @@ c$$$        end if
           real(rkind)   , dimension(:)    , intent(in)    :: x_map
           real(rkind)   , dimension(:)    , intent(in)    :: y_map
           real(rkind)   , dimension(:,:,:), intent(in)    :: nodes
+          logical       , optional        , intent(in)    :: difficult_geometry
 
           type(bf_sublayer), pointer :: added_sublayer
 
@@ -234,6 +317,16 @@ c$$$        end if
           integer(ikind), dimension(:,:)  , allocatable :: bf_grdpts_id
 
           integer(ikind) :: i,j
+
+          logical :: difficult_geometry_op
+
+          !check whether the geometry simulated is
+          !the conmplex case
+          if(present(difficult_geometry)) then
+             difficult_geometry_op = difficult_geometry
+          else
+             difficult_geometry_op = .false.
+          end if
 
           !get x_map and y_map
           added_sublayer => field_ext_tested%domain_extension%allocate_sublayer(
@@ -308,75 +401,269 @@ c$$$        end if
                
             case(S)
 
-               j=1
-               !----------------------------------
-               do i=1, size(bf_grdpts_id,1)
-                  bf_grdpts_id(i,j) = bc_pt
-               end do
+               if(difficult_geometry_op) then
 
-               j=bc_size
-               !----------------------------------
-               i=1
-               bf_grdpts_id(i,j)=bc_pt
+                  j=1
+                  !----------------------------------
+                  do i=1,16
+                     bf_grdpts_id(i,j) = bc_pt
+                  end do
 
-               do i=bc_size,size(bf_grdpts_id,1)-1
-                  bf_grdpts_id(i,j) = bc_interior_pt
-               end do
+                  do i=17,size(bf_grdpts_id,1)
+                     bf_grdpts_id(i,j) = no_pt
+                  end do
 
-               i=size(bf_grdpts_id,1)
-               bf_grdpts_id(i,j) = bc_pt
-
-               !----------------------------------
-               do j=bc_size+1, size(bf_grdpts_id,2)
-
+                  
+                  j=2
+                  !----------------------------------
                   i=1
                   bf_grdpts_id(i,j) = bc_pt
+                     
+                  do i=2, 15
+                     bf_grdpts_id(i,j) = bc_interior_pt
+                  end do
+                  
+                  i=16
+                  bf_grdpts_id(i,j) = bc_pt
+                     
+                  do i=17, size(bf_grdpts_id,1)
+                     bf_grdpts_id(i,j) = no_pt
+                  end do
+                  
 
-                  i=bc_size
+                  do j=3,4
+                  !----------------------------------
+
+                     i=1
+                     bf_grdpts_id(i,j) = bc_pt
+                     
+                     i=2
+                     bf_grdpts_id(i,j) = bc_interior_pt
+
+                     do i=3, 14
+                        bf_grdpts_id(i,j) = interior_pt
+                     end do
+                     
+                     i=15
+                     bf_grdpts_id(i,j) = bc_interior_pt
+
+                     i=16
+                     bf_grdpts_id(i,j) = bc_pt
+                     
+                     do i=17, size(bf_grdpts_id,1)
+                        bf_grdpts_id(i,j) = no_pt
+                     end do
+
+                  end do
+
+                  
+                  j=5
+                  !----------------------------------
+                  i=1
+                  bf_grdpts_id(i,j) = bc_pt
+                  
+                  i=2
                   bf_grdpts_id(i,j) = bc_interior_pt
 
-                  do i=bc_size+1, size(bf_grdpts_id,1)-bc_size
+                  do i=3, 14
+                     bf_grdpts_id(i,j) = interior_pt
+                  end do
+                  
+                  i=15
+                  bf_grdpts_id(i,j) = bc_interior_pt
+
+                  do i=16, size(bf_grdpts_id,1)
+                     bf_grdpts_id(i,j) = bc_pt
+                  end do
+
+                  
+                  j=6
+                  !----------------------------------
+                  i=1
+                  bf_grdpts_id(i,j) = bc_pt
+                  
+                  i=2
+                  bf_grdpts_id(i,j) = bc_interior_pt
+
+                  do i=3, 14
                      bf_grdpts_id(i,j) = interior_pt
                   end do
 
-                  i=size(bf_grdpts_id,1)-bc_size+1
-                  bf_grdpts_id(i,j) = bc_interior_pt
+                  do i=15, size(bf_grdpts_id,1)-1
+                     bf_grdpts_id(i,j) = bc_interior_pt
+                  end do
 
                   i=size(bf_grdpts_id,1)
                   bf_grdpts_id(i,j) = bc_pt
 
-               end do
+
+                  do j=7, size(bf_grdpts_id,2)
+                  !----------------------------------
+
+                     i=1
+                     bf_grdpts_id(i,j) = bc_pt
+                     
+                     i=2
+                     bf_grdpts_id(i,j) = bc_interior_pt
+
+                     do i=3, size(bf_grdpts_id,1)-2
+                        bf_grdpts_id(i,j) = interior_pt
+                     end do
+
+                     i=size(bf_grdpts_id,1)-1
+                     bf_grdpts_id(i,j) = bc_interior_pt
+
+                     i=size(bf_grdpts_id,1)
+                     bf_grdpts_id(i,j) = bc_pt
+
+                  end do
+
+               else
+
+                  j=1
+                  !----------------------------------
+                  do i=1, size(bf_grdpts_id,1)
+                     bf_grdpts_id(i,j) = bc_pt
+                  end do
+
+                  j=bc_size
+                  !----------------------------------
+                  i=1
+                  bf_grdpts_id(i,j)=bc_pt
+
+                  do i=bc_size,size(bf_grdpts_id,1)-1
+                     bf_grdpts_id(i,j) = bc_interior_pt
+                  end do
+
+                  i=size(bf_grdpts_id,1)
+                  bf_grdpts_id(i,j) = bc_pt
+                  !----------------------------------
+                  do j=bc_size+1, size(bf_grdpts_id,2)
+
+                     i=1
+                     bf_grdpts_id(i,j) = bc_pt
+
+                     i=bc_size
+                     bf_grdpts_id(i,j) = bc_interior_pt
+
+                     do i=bc_size+1, size(bf_grdpts_id,1)-bc_size
+                        bf_grdpts_id(i,j) = interior_pt
+                     end do
+
+                     i=size(bf_grdpts_id,1)-bc_size+1
+                     bf_grdpts_id(i,j) = bc_interior_pt
+
+                     i=size(bf_grdpts_id,1)
+                     bf_grdpts_id(i,j) = bc_pt
+
+                  end do
+
+               end if
 
             case(E)
                
-               do j=1, size(bf_grdpts_id,2)
-                  do i=1, size(bf_grdpts_id,1) -bc_size
-                     bf_grdpts_id(i,j) = interior_pt
+               if(difficult_geometry_op) then
+
+                  j=1
+                  !----------------------------------
+                  do i=1, size(bf_grdpts_id,1)
+                     bf_grdpts_id(i,j) = bc_pt
                   end do
-                  
-                  i=size(bf_grdpts_id,1)-1
-                  bf_grdpts_id(i,j) = bc_interior_pt
+
+                  j=2
+                  !----------------------------------
+                  do i=1, size(bf_grdpts_id,1)-1
+                     bf_grdpts_id(i,j) = bc_interior_pt
+                  end do
 
                   i=size(bf_grdpts_id,1)
                   bf_grdpts_id(i,j) = bc_pt
 
-               end do
+                  
+                  do j=3, size(bf_grdpts_id,2)
+                  !----------------------------------
+                     do i=1, size(bf_grdpts_id,1)-bc_size
+                        bf_grdpts_id(i,j) = interior_pt
+                     end do
+                     
+                     i=size(bf_grdpts_id,1)-1
+                     bf_grdpts_id(i,j) = bc_interior_pt
+
+                     i=size(bf_grdpts_id,1)
+                     bf_grdpts_id(i,j) = bc_pt
+
+                  end do
+
+               else
+
+                  do j=1, size(bf_grdpts_id,2)
+                     do i=1, size(bf_grdpts_id,1) -bc_size
+                        bf_grdpts_id(i,j) = interior_pt
+                     end do
+                     
+                     i=size(bf_grdpts_id,1)-1
+                     bf_grdpts_id(i,j) = bc_interior_pt
+
+                     i=size(bf_grdpts_id,1)
+                     bf_grdpts_id(i,j) = bc_pt
+
+                  end do
+
+               end if
 
             case(W)
 
-               do j=1, size(bf_grdpts_id,2)
+               if(difficult_geometry_op) then
 
+                  do j=1, size(bf_grdpts_id,2)-bc_size
+                  !----------------------------------
+
+                     i=1
+                     bf_grdpts_id(i,j) = bc_pt
+                     
+                     i=bc_size
+                     bf_grdpts_id(i,j) = bc_interior_pt
+
+                     do i=bc_size+1, size(bf_grdpts_id,1)
+                        bf_grdpts_id(i,j) = interior_pt
+                     end do
+
+                  end do
+
+
+                  j=size(bf_grdpts_id,2)-1
+                  !----------------------------------
                   i=1
                   bf_grdpts_id(i,j) = bc_pt
                   
-                  i=bc_size
-                  bf_grdpts_id(i,j) = bc_interior_pt
-
-                  do i=bc_size+1, size(bf_grdpts_id,1)
-                     bf_grdpts_id(i,j) = interior_pt
+                  do i=bc_size, size(bf_grdpts_id,1)
+                     bf_grdpts_id(i,j) = bc_interior_pt
                   end do
 
-               end do
+                  
+                  j=size(bf_grdpts_id,2)
+                  !----------------------------------
+                  do i=1, size(bf_grdpts_id,1)
+                     bf_grdpts_id(i,j) = bc_pt
+                  end do                  
+
+               else
+
+                  do j=1, size(bf_grdpts_id,2)
+
+                     i=1
+                     bf_grdpts_id(i,j) = bc_pt
+                     
+                     i=bc_size
+                     bf_grdpts_id(i,j) = bc_interior_pt
+
+                     do i=bc_size+1, size(bf_grdpts_id,1)
+                        bf_grdpts_id(i,j) = interior_pt
+                     end do
+
+                  end do
+
+               end if
 
           end select
 

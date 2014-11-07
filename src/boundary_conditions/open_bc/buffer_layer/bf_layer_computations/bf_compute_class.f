@@ -361,7 +361,7 @@
 
           implicit none
 
-          class(bf_compute)                   , intent(in)    :: this
+          class(bf_compute)                   , intent(inout) :: this
           integer, dimension(:,:), allocatable, intent(inout) :: bc_sections
 
           call MOVE_ALLOC(bc_sections,this%bc_sections)
