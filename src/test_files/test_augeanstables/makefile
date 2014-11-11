@@ -362,27 +362,6 @@ test_yoo_lodi_timedev_xy:\
 			lodi_corner_outflow_outflow_class.o\
 			lodi_timedev_xy_module.o
 
-test_yoo_operators.o:	$(yobc_ns2d_dir)/bc_operators_class.o\
-			$(ns2d_dir)/ns2d_parameters.o\
-			$(obc_dir)/openbc_operators_module.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(ns2d_dir)/pmodel_eq_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
-
-test_yoo_operators:	$(param_dep)\
-			$(mt_dep)\
-			$(ns2d_dep)\
-			$(yoo_ns2d_dep)
-
 test_yoo_sym_x.o:	$(yobc_ns2d_dir)/bc_operators_class.o\
 			$(ns2d_dir)/ns2d_parameters.o\
 			$(param_dir)/parameters_constant.o\
@@ -403,6 +382,27 @@ test_yoo_sym_y.o:	$(yobc_ns2d_dir)/bc_operators_class.o\
 			$(ns2d_dir)/pmodel_eq_class.o
 
 test_yoo_sym_y:		$(param_dep)\
+			$(mt_dep)\
+			$(ns2d_dep)\
+			$(yoo_ns2d_dep)
+
+test_yoo_ns2d_operators.o:\
+			$(yobc_dir)/bc_operators_class.o\
+			$(ns2d_dir)/ns2d_parameters.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(ns2d_dir)/pmodel_eq_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_L0_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_L1_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_R1_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_R0_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_L0_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
+
+test_yoo_ns2d_operators:\
+			$(param_dep)\
 			$(mt_dep)\
 			$(ns2d_dep)\
 			$(yoo_ns2d_dep)

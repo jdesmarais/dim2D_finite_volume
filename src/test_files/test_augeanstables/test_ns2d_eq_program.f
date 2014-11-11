@@ -22,8 +22,8 @@
      $       speed_of_sound,
      $       compute_jacobian_prim_to_cons,
      $       compute_jacobian_cons_to_prim,
-     $       compute_cons_lodi_matrix_x,
-     $       compute_cons_lodi_matrix_y
+     $       cons_lodi_matrix_x,
+     $       cons_lodi_matrix_y
 
         use ns2d_fluxes_module, only :
      $       flux_x_mass_density, flux_y_mass_density,
@@ -614,14 +614,14 @@
           if(detailled) print '(''test jac_cons_to_prim: '', L3)', loc
 
           loc = is_matrix_validated(
-     $         compute_cons_lodi_matrix_x(nodes(i,j,:)),
+     $         cons_lodi_matrix_x(nodes(i,j,:)),
      $         test_data_lodi_matrix_x,
      $         detailled)
           test_validated = test_validated.and.loc
           if(detailled) print '(''test cons_lodi_matrix_x: '', L3)', loc
 
           loc = is_matrix_validated(
-     $         compute_cons_lodi_matrix_y(nodes(i,j,:)),
+     $         cons_lodi_matrix_y(nodes(i,j,:)),
      $         test_data_lodi_matrix_y,
      $         detailled)
           test_validated = test_validated.and.loc

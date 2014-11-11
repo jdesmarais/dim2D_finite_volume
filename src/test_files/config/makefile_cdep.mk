@@ -118,6 +118,8 @@ poinsot_ns2d_dep=	$(poinsot_xy_dep)\
 
 
 yoo_xy_dep=		$(bc_dep)\
+			bc_operators_nopt_module.o\
+			bc_operators_openbc_class.o\
 			openbc_operators_module.o\
 			$(sd_oneside_dep)\
 			sd_operators_fd_module.o\

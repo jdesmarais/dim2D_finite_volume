@@ -764,11 +764,14 @@ $(pobc_ns2d_dir)/lodi_outflow_class.o:\
 #yoo and lodato boundary conditions
 $(yobc_dir)/bc_operators_class.o:\
 			$(obc_dir)/bc_operators_openbc_class.o\
+			$(sd_dir)/interface_primary.o\
 			$(yobc_cdir)/lodi_edge_inflow_class.o\
 			$(yobc_cdir)/lodi_edge_outflow_class.o\
 			$(yobc_cdir)/lodi_corner_inflow_inflow_class.o\
 			$(yobc_cdir)/lodi_corner_inflow_outflow_class.o\
 			$(yobc_cdir)/lodi_corner_outflow_outflow_class.o\
+			$(yobc_dir)/lodi_timedev_xy_module.o\
+			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(pm_cdir)/pmodel_eq_class.o\

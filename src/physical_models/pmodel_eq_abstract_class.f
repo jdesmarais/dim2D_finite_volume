@@ -152,6 +152,7 @@
           procedure(fluxes_y_byparts), nopass, deferred :: compute_flux_y_by_parts
           procedure(bodyforces)      , nopass, deferred :: compute_body_forces
           procedure(velocity_proc)   , nopass, deferred :: get_velocity
+          procedure(v_coeff_proc)    , nopass, deferred :: get_viscous_coeff
           procedure(openbc_proc)     , nopass, deferred :: are_openbc_undermined
 
           procedure(eigenvalues_proc), nopass, deferred :: compute_x_eigenvalues
@@ -167,6 +168,9 @@
           procedure(eigenvect_proc)  , nopass, deferred :: compute_n1_righteigenvector
           procedure(eigenvect_proc)  , nopass, deferred :: compute_n2_lefteigenvector
           procedure(eigenvect_proc)  , nopass, deferred :: compute_n2_righteigenvector
+
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_cons_lodi_matrix_x
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_cons_lodi_matrix_y
 
           procedure(x_gradient_proc) , nopass, deferred :: compute_x_gradient
           procedure(y_gradient_proc) , nopass, deferred :: compute_y_gradient
@@ -798,6 +802,27 @@
             real(rkind), dimension(2)              :: velocity
 
           end function velocity_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> get the viscous constant
+          !
+          !> @date
+          !> 11_11_2014 - initial version - J.L. Desmarais
+          !
+          !>@return viscous_coeff
+          !> viscous coefficient
+          !-------------------------------------------------------------
+          function v_coeff_proc() result(viscous_coeff)
+          
+            import rkind
+          
+            real(rkind) :: viscous_coeff
+          
+          end function v_coeff_proc
 
 
           !> @author

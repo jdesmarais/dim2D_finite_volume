@@ -47,7 +47,9 @@
      $       total_energy,
      $       speed_of_sound,
      $       compute_jacobian_prim_to_cons,
-     $       compute_jacobian_cons_to_prim
+     $       compute_jacobian_cons_to_prim,
+     $       cons_lodi_matrix_x,
+     $       cons_lodi_matrix_y
 
         use ns2d_fluxes_module, only :
      $       flux_x_mass_density,
@@ -207,6 +209,7 @@ c$$$     $                                           compute_n2_righteigenvector
           procedure, nopass :: compute_flux_y_by_parts
           procedure, nopass :: compute_body_forces
           procedure, nopass :: get_velocity
+          procedure, nopass :: get_viscous_coeff
 
           procedure, nopass :: are_openbc_undermined
 
@@ -216,6 +219,10 @@ c$$$     $                                           compute_n2_righteigenvector
           procedure, nopass :: compute_x_righteigenvector
           procedure, nopass :: compute_y_lefteigenvector
           procedure, nopass :: compute_y_righteigenvector
+
+          procedure, nopass :: compute_cons_lodi_matrix_x
+          procedure, nopass :: compute_cons_lodi_matrix_y
+
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
 
@@ -1829,6 +1836,87 @@ c$$$          y_s = y_map(1)
           eigenvect = MATMUL(rightEigenMPrim,jacConsPrim)
 
         end function compute_y_righteigenvector
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the conservative LODI matrix in the
+        !> x-direction
+        !
+        !> @date
+        !> 11_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvect
+        !> conservative LODI matrix along the x-direction
+        !--------------------------------------------------------------
+        function compute_cons_lodi_matrix_x(nodes) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne,ne)          :: eigenvect
+
+          !DEC$ FORCEINLINE RECURSIVE
+          eigenvect = cons_lodi_matrix_x(nodes)
+
+        end function compute_cons_lodi_matrix_x
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the conservative LODI matrix in the
+        !> y-direction
+        !
+        !> @date
+        !> 11_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvect
+        !> conservative LODI matrix along the y-direction
+        !--------------------------------------------------------------
+        function compute_cons_lodi_matrix_y(nodes) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne,ne)          :: eigenvect
+
+          !DEC$ FORCEINLINE RECURSIVE
+          eigenvect = cons_lodi_matrix_y(nodes)
+
+        end function compute_cons_lodi_matrix_y
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the viscous constant
+        !
+        !> @date
+        !> 11_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@return viscous_coeff
+        !> viscous coefficient: 1/Re
+        !-------------------------------------------------------------
+        function get_viscous_coeff() result(viscous_coeff)
+
+          implicit none
+
+          real(rkind) :: viscous_coeff
+
+          viscous_coeff = epsilon
+
+        end function get_viscous_coeff
 
 
         !> @author

@@ -46,6 +46,7 @@
           contains
 
           procedure, nopass :: get_sim_parameters => get_sim_parameters_default
+          procedure, nopass :: get_viscous_coeff
 
           procedure, nopass :: compute_flux_x_by_parts
           procedure, nopass :: compute_flux_y_by_parts
@@ -63,6 +64,9 @@
           procedure, nopass :: compute_n1_righteigenvector  => compute_eigenvector_default
           procedure, nopass :: compute_n2_lefteigenvector   => compute_eigenvector_default
           procedure, nopass :: compute_n2_righteigenvector  => compute_eigenvector_default
+
+          procedure, nopass :: compute_cons_lodi_matrix_x   => compute_eigenvector_default
+          procedure, nopass :: compute_cons_lodi_matrix_y   => compute_eigenvector_default
 
           procedure, nopass :: compute_n_gradient => compute_gradient_default
 
@@ -106,6 +110,33 @@
           end if
 
         end subroutine get_sim_parameters_default
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the viscous constant
+        !
+        !> @date
+        !> 11_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@return viscous_coeff
+        !> viscous coefficient
+        !-------------------------------------------------------------
+        function get_viscous_coeff() result(viscous_coeff)
+
+          implicit none
+
+          real(rkind) :: viscous_coeff
+
+          print '(''pmodel_eq_default_class'')'
+          print '(''get_viscous_coeff'')'
+          stop 'not implemented'
+
+          viscous_coeff = 0.0d0
+
+        end function get_viscous_coeff
 
 
         !> @author

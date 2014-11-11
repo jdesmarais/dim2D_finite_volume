@@ -41,8 +41,8 @@
      $       speed_of_sound,
      $       compute_jacobian_prim_to_cons,
      $       compute_jacobian_cons_to_prim,
-     $       compute_cons_lodi_matrix_x,
-     $       compute_cons_lodi_matrix_y,
+     $       cons_lodi_matrix_x,
+     $       cons_lodi_matrix_y,
      $       compute_x_timedev_from_LODI_vector,
      $       compute_y_timedev_from_LODI_vector,
      $       compute_timedev_from_LODI_vectors
@@ -744,7 +744,7 @@
         !>@return var
         !> conservative LODI matrix in the x-direction
         !--------------------------------------------------------------
-        function compute_cons_lodi_matrix_x(nodes) result(var)
+        function cons_lodi_matrix_x(nodes) result(var)
 
             implicit none
 
@@ -803,7 +803,7 @@
 
             end if
             
-        end function compute_cons_lodi_matrix_x
+        end function cons_lodi_matrix_x
 
 
         !> @author
@@ -821,7 +821,7 @@
         !>@return var
         !> conservative LODI matrix in the y-direction
         !--------------------------------------------------------------
-        function compute_cons_lodi_matrix_y(nodes) result(var)
+        function cons_lodi_matrix_y(nodes) result(var)
 
             implicit none
 
@@ -881,7 +881,7 @@
 
             end if
             
-        end function compute_cons_lodi_matrix_y
+        end function cons_lodi_matrix_y
 
 
         !> @author
