@@ -14,7 +14,7 @@
       !> @date
       !> 10_09_2014 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      module bc_operators_class
+      module bc_operators_ns2d_class
 
         use bc_operators_default_class, only :
      $       bc_operators_default
@@ -133,11 +133,11 @@
 
         private
         public ::
-     $       bc_operators,
+     $       bc_operators_ns2d,
      $       compute_fluxes_and_lodi_at_the_edges_2ndorder
 
 
-        !> @class bc_operators
+        !> @class bc_operators_ns2d
         !> class encapsulating subroutines to apply
         !> open boundary conditions in the x and
         !> y directions at the edge of the computational
@@ -150,7 +150,7 @@
         !> @param apply_bc_on_timedev
         !> apply the open boundary conditions for the time derivatives
         !---------------------------------------------------------------
-        type, extends(bc_operators_default) :: bc_operators
+        type, extends(bc_operators_default) :: bc_operators_ns2d
 
           integer :: oneside_flow_N
           integer :: oneside_flow_S
@@ -161,9 +161,11 @@
 
           procedure, pass :: ini
           procedure, pass :: set_obc_type
+          procedure, nopass :: compute_edge_fluxes => compute_fluxes_and_lodi_at_the_edges_2ndorder
           procedure, pass :: apply_bc_on_timedev => apply_bc_on_timedev_2ndorder
+          
 
-        end type bc_operators        
+        end type bc_operators_ns2d        
       
 
         contains
@@ -188,7 +190,7 @@
         
           implicit none
 
-          class(bc_operators), intent(inout) :: this
+          class(bc_operators_ns2d), intent(inout) :: this
           type(pmodel_eq)    , intent(in)    :: p_model
           
           integer :: neq
@@ -229,7 +231,7 @@
 
           implicit none
 
-          class(bc_operators)  , intent(inout) :: this
+          class(bc_operators_ns2d)  , intent(inout) :: this
           integer, dimension(4), intent(in)    :: obc_type
 
           this%oneside_flow_N = obc_type(N)
@@ -282,7 +284,7 @@
         
           implicit none
         
-          class(bc_operators)               , intent(in)    :: this
+          class(bc_operators_ns2d)               , intent(in)    :: this
           type(pmodel_eq)                   , intent(in)    :: p_model
           real(rkind)                       , intent(in)    :: t
           real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
@@ -1137,4 +1139,4 @@
 
         end subroutine compute_timedev_y_layer_2ndorder
 
-      end module bc_operators_class
+      end module bc_operators_ns2d_class

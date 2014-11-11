@@ -314,27 +314,27 @@
           i_offset = 3
           j_offset = 3
           
-          !inviscid flux data
-          edge_inviscid_flux_x(1,1,1) = 2.3
-          edge_inviscid_flux_x(1,1,2) = 8.9
-          edge_inviscid_flux_x(1,1,3) =-1.2
-          edge_inviscid_flux_x(1,1,4) = 6.23
+           !inviscid flux data
+          edge_inviscid_flux_y(1,1,1) = 2.3
+          edge_inviscid_flux_y(1,1,2) = 8.9
+          edge_inviscid_flux_y(1,1,3) =-1.2
+          edge_inviscid_flux_y(1,1,4) = 6.23
           
-          edge_inviscid_flux_x(2,1,1) = 9.125
-          edge_inviscid_flux_x(2,1,2) =-6.236
-          edge_inviscid_flux_x(2,1,3) = 7.123
-          edge_inviscid_flux_x(2,1,4) = 9.10
+          edge_inviscid_flux_y(1,2,1) = 9.125
+          edge_inviscid_flux_y(1,2,2) =-6.236
+          edge_inviscid_flux_y(1,2,3) = 7.123
+          edge_inviscid_flux_y(1,2,4) = 9.10
 
           !viscid flux data
-          edge_viscid_flux_x(1,1,1) = 3.126
-          edge_viscid_flux_x(1,1,2) =-2.156
-          edge_viscid_flux_x(1,1,3) = 1.023
-          edge_viscid_flux_x(1,1,4) = 9.145
+          edge_viscid_flux_y(1,1,1) = 3.126
+          edge_viscid_flux_y(1,1,2) =-2.156
+          edge_viscid_flux_y(1,1,3) = 1.023
+          edge_viscid_flux_y(1,1,4) = 9.145
           
-          edge_viscid_flux_x(2,1,1) =-2.364
-          edge_viscid_flux_x(2,1,2) = 7.122
-          edge_viscid_flux_x(2,1,3) = 9.183
-          edge_viscid_flux_x(2,1,4) =-4.156
+          edge_viscid_flux_y(1,2,1) =-2.364
+          edge_viscid_flux_y(1,2,2) = 7.122
+          edge_viscid_flux_y(1,2,3) = 9.183
+          edge_viscid_flux_y(1,2,4) =-4.156
 
           !test_data for lodi terms
           test_data_transverse_lodi(1,1,1) =- 0.668141399 
@@ -348,12 +348,12 @@
           test_data_viscous_lodi(1,1,4) =-1.8133795592
           
           !test compute_lodi_terms in x-direction
-          call bc_used%compute_lodi_terms_y_edge(
+          call bc_used%compute_lodi_terms_x_edge(
      $         p_model,
-     $         nodes,dx,
+     $         nodes,dy,
      $         i_offset,j_offset,
-     $         edge_inviscid_flux_x,
-     $         edge_viscid_flux_x,
+     $         edge_inviscid_flux_y,
+     $         edge_viscid_flux_y,
      $         transverse_lodi,
      $         viscous_lodi)
 
@@ -362,6 +362,10 @@
      $            transverse_lodi(1,1,k),
      $            test_data_transverse_lodi(1,1,k),
      $            detailled)
+c$$$             test_loc = is_test_validated(
+c$$$     $            edge_inviscid_flux_x(1,1,k),
+c$$$     $            test_data_transverse_lodi(1,1,k),
+c$$$     $            detailled)
              test_validated = test_validated.and.test_loc
           end do           
 
@@ -395,26 +399,26 @@
           j_offset = 3
           
           !inviscid flux data
-          edge_inviscid_flux_y(1,1,1) = 2.3
-          edge_inviscid_flux_y(1,1,2) = 8.9
-          edge_inviscid_flux_y(1,1,3) =-1.2
-          edge_inviscid_flux_y(1,1,4) = 6.23
+          edge_inviscid_flux_x(1,1,1) = 2.3
+          edge_inviscid_flux_x(1,1,2) = 8.9
+          edge_inviscid_flux_x(1,1,3) =-1.2
+          edge_inviscid_flux_x(1,1,4) = 6.23
           
-          edge_inviscid_flux_y(1,2,1) = 9.125
-          edge_inviscid_flux_y(1,2,2) =-6.236
-          edge_inviscid_flux_y(1,2,3) = 7.123
-          edge_inviscid_flux_y(1,2,4) = 9.10
+          edge_inviscid_flux_x(2,1,1) = 9.125
+          edge_inviscid_flux_x(2,1,2) =-6.236
+          edge_inviscid_flux_x(2,1,3) = 7.123
+          edge_inviscid_flux_x(2,1,4) = 9.10
 
           !viscid flux data
-          edge_viscid_flux_y(1,1,1) = 3.126
-          edge_viscid_flux_y(1,1,2) =-2.156
-          edge_viscid_flux_y(1,1,3) = 1.023
-          edge_viscid_flux_y(1,1,4) = 9.145
+          edge_viscid_flux_x(1,1,1) = 3.126
+          edge_viscid_flux_x(1,1,2) =-2.156
+          edge_viscid_flux_x(1,1,3) = 1.023
+          edge_viscid_flux_x(1,1,4) = 9.145
           
-          edge_viscid_flux_y(1,2,1) =-2.364
-          edge_viscid_flux_y(1,2,2) = 7.122
-          edge_viscid_flux_y(1,2,3) = 9.183
-          edge_viscid_flux_y(1,2,4) =-4.156
+          edge_viscid_flux_x(2,1,1) =-2.364
+          edge_viscid_flux_x(2,1,2) = 7.122
+          edge_viscid_flux_x(2,1,3) = 9.183
+          edge_viscid_flux_x(2,1,4) =-4.156
 
           !test_data for lodi terms
           test_data_transverse_lodi(1,1,1) =  2.941314383
@@ -428,12 +432,12 @@
           test_data_viscous_lodi(1,1,4) = -1.383934685
           
           !test compute_lodi_terms in x-direction
-          call bc_used%compute_lodi_terms_x_edge(
+          call bc_used%compute_lodi_terms_y_edge(
      $         p_model,
-     $         nodes,dy,
+     $         nodes,dx,
      $         i_offset,j_offset,
-     $         edge_inviscid_flux_y,
-     $         edge_viscid_flux_y,
+     $         edge_inviscid_flux_x,
+     $         edge_viscid_flux_x,
      $         transverse_lodi,
      $         viscous_lodi)
 
@@ -564,8 +568,8 @@
 
 
           !space steps
-          dx = 0.5
-          dy = 0.6
+          dx = 0.6
+          dy = 0.5
 
 
           !mass

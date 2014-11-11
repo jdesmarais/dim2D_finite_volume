@@ -5,20 +5,17 @@ include $(AUGEANSTABLES_CONFIG)/makefile_header.mk
 
 test_openbc_local_operators_module.o:\
 			$(bc_cdir)/bc_operators_class.o\
-			$(sd_dir)/interface_primary.o\
-			$(obc_dir)/openbc_operators_module.o\
+			$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_kind.o\
 			$(param_dir)/parameters_input.o\
-			$(pm_cdir)/pmodel_eq_class.o\
-			$(mt_dir)/sd_operators_fd_module.o
-
+			$(pm_cdir)/pmodel_eq_class.o
 
 test_hedstrom_xy_bf.o:	test_openbc_local_operators_module.o
 
 test_hedstrom_xy_bf:	$(param_dep)\
 			$(mt_dep)\
-			$(wave2d_dep)\
+			$(ns2d_dep)\
 			$(hedstrom_xy_dep)\
 			test_openbc_local_operators_module.o
 
@@ -30,6 +27,14 @@ test_poinsot_xy_bf:	$(param_dep)\
 			$(ns2d_dep)\
 			$(poinsot_xy_dep)\
 			lodi_ns2d_class.o\
+			test_openbc_local_operators_module.o
+
+test_yoolodato_xy_bf.o:	test_openbc_local_operators_module.o
+
+test_yoolodato_xy_bf:	$(param_dep)\
+			$(mt_dep)\
+			$(ns2d_dep)\
+			$(yoo_ns2d_dep)\
 			test_openbc_local_operators_module.o
 
 
@@ -168,7 +173,7 @@ test_field_extended_timedev:\
 			field_class.o\
 			field_extended_class.o
 
-test_field_extended_wave2d.o:\
+test_fixed_field_extended.o:\
 			$(bf_layer_dir)/bf_interface_class.o\
 			$(bf_layer_dir)/bf_mainlayer_class.o\
 			$(bf_layer_dir)/bf_sublayer_class.o\
@@ -178,7 +183,7 @@ test_field_extended_wave2d.o:\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
-test_field_extended_wave2d:\
+test_fixed_field_extended:\
 			$(sim_dep)\
 			$(bf_interface_dcr_dep)\
 			surrogate_class.o\

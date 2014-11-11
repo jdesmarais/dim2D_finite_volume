@@ -7,9 +7,9 @@
       ! - bc_operators%apply_bc_on_timedev_y_edge
       ! - bc_operators%apply_bc_on_timedev_xy_corner
       ! 
-      ! for the Hedstrom boundary conditions
+      ! for the Yoo and Lodato boundary conditions
       !---------------------------------------------------------
-      program test_hedstrom_xy_bf
+      program test_yoolodato_xy_bf
 
         use test_openbc_local_operators_module, only :
      $     test_openbc_local_operators
@@ -20,6 +20,6 @@
 
         detailled = .false.
 
-        call test_openbc_local_operators(detailled)
+        call test_openbc_local_operators(detailled)        
 
-      end program test_hedstrom_xy_bf
+      end program test_yoolodato_xy_bf

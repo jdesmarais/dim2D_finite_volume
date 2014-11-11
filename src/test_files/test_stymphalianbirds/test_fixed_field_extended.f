@@ -6,10 +6,11 @@
       !> Julien L. Desmarais
       !
       !> @brief
-      !> run a simulation using the wave2d governing equations
-      !> on a computational domain with buffer layers
+      !> run a simulation using the physical model
+      !> (in makefile_header choices) on a computational
+      !> domain with buffer layers
       !-----------------------------------------------------------------
-      program test_field_extended_wave2d
+      program test_fixed_field_extended
 
         use bf_interface_class, only :
      $       bf_interface
@@ -48,88 +49,134 @@
 
         implicit none
 
-        
-        ! computational domain simulated
-        type(field_extended) :: f_simulated
-        
-        ! intermediate variables for the
-        ! simulation
-        integer(ikind) :: nt, output_print
-        integer(ikind) :: t
 
-        ! CPU recorded times
-        real :: time1, time2, time3
-
-        ! configuration for the domain
-        ! extension
         integer :: bf_config
 
-        !choice of initial domain extension
+        
+        !configuration of the domain extended:
+        !
+        ! 1 : simple extension:
+        !          _________
+        !         |_________|
+        !         |  |   |  |
+        !         |__|___|__|
+        !         |_________|
+        !
+        ! 2 : cropped buffer layers:
+        !               ____
+        !             _|____|
+        !          __|   |__|
+        !         |__|___|_
+        !         |    ____|
+        !         |____|
+        !
         bf_config = 2
 
+        call make_test_fixed_field_extended(bf_config)
 
-        ! get the initial CPU time
-        call CPU_TIME(time1)
-
-
-        ! time parameters
-        nt           = int(t_max/dt)
-        output_print = int(1.0d0/detail_print)
-
-
-        ! initialize the field
-        call f_simulated%ini()
-        call f_simulated%apply_bc_on_nodes()
-
-        call add_buffer_layers_for_test(f_simulated,bf_config)
-
-        call f_simulated%write_data()
-
-        ! initialization time
-        call CPU_TIME(time2)
-        print *, 'time_elapsed: ', time2-time1
-
-
-        ! integrate the field until t=t_max
-        do t=1, nt
-
-           !DEC$ FORCEINLINE RECURSIVE
-           call f_simulated%integrate(dt)
-
-           !  write the output data
-           if((output_print.eq.1).or.
-     $        ((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
-              call f_simulated%write_data()
-           end if
-
-        end do
-
-
-        ! print the time needed for the simulation
-        call CPU_TIME(time3)
-        print *, 'time_elapsed: ', time3-time1
-
-
-        ! write the last timestep
-        if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
-           call f_simulated%write_data()
-        end if
-
+        
         contains
 
-        subroutine add_buffer_layers_for_test(field_ext_used, config)
+        subroutine make_test_fixed_field_extended(bf_config)
+
+          implicit none
+
+          ! configuration for the domain
+          ! extension
+          ! 1: simple extension
+          ! 2: cropped buffer layers
+          integer, intent(in) :: bf_config
+
+
+          ! size of the buffer layer added to the interior domain
+          integer(ikind) :: size_bf
+
+          ! computational domain simulated
+          type(field_extended) :: f_simulated
+        
+          ! intermediate variables for the
+          ! simulation
+          integer(ikind) :: nt, output_print
+          integer(ikind) :: t
+  
+          ! CPU recorded times
+          real :: time1, time2, time3  
+          
+          !choice of the buffer layer size
+          if(nx.le.20) then
+             size_bf = 10
+          else
+             size_bf = nint(nx/3.0)
+          end if
+
+  
+          ! get the initial CPU time
+          call CPU_TIME(time1)
+  
+  
+          ! time parameters
+          nt           = int(t_max/dt)
+          output_print = int(1.0d0/detail_print)
+  
+  
+          ! initialize the field
+          call f_simulated%ini()
+          call f_simulated%apply_bc_on_nodes()
+  
+          call add_buffer_layers_for_test(f_simulated,bf_config,size_bf)
+  
+          call f_simulated%write_data()
+  
+          ! initialization time
+          call CPU_TIME(time2)
+          print *, 'time_elapsed: ', time2-time1
+  
+  
+          ! integrate the field until t=t_max
+          do t=1, nt
+  
+             !DEC$ FORCEINLINE RECURSIVE
+             call f_simulated%integrate(dt)
+  
+             !  write the output data
+             if((output_print.eq.1).or.
+     $            ((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
+                call f_simulated%write_data()
+             end if
+  
+          end do
+  
+  
+          ! print the time needed for the simulation
+          call CPU_TIME(time3)
+          print *, 'time_elapsed: ', time3-time1
+  
+  
+          ! write the last timestep
+          if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
+             call f_simulated%write_data()
+          end if
+
+        end subroutine make_test_fixed_field_extended
+
+
+        subroutine add_buffer_layers_for_test(
+     $       field_ext_used,
+     $       config,
+     $       size_bf)
 
           implicit none
 
           class(field_extended), intent(inout) :: field_ext_used
           integer              , intent(in)    :: config
+          integer              , intent(in)    :: size_bf
 
           select case(config)
             case(1)
-               call four_bf_layer_config(field_ext_used)
+               call four_bf_layer_config(field_ext_used,size_bf)
 
             case(2)
-               call difficult_bf_layer_config(field_ext_used)
+               call difficult_bf_layer_config(field_ext_used,size_bf)
 
             case default
                print '(''test_field_extended_wave2d'')'
@@ -141,11 +188,12 @@
         end subroutine add_buffer_layers_for_test
 
 
-        subroutine four_bf_layer_config(field_ext_tested)
+        subroutine four_bf_layer_config(field_ext_tested,size_bf)
 
           implicit none
 
           class(field_extended), intent(inout) :: field_ext_tested
+          integer(ikind)       , intent(in)    :: size_bf
 
           real(rkind)   , dimension(nx)       :: interior_x_map
           real(rkind)   , dimension(ny)       :: interior_y_map
@@ -161,22 +209,23 @@
           !four buffer layers
           !----------------------------------
           !add the north buffer layer
-          alignment(1,1) = align_W-7
-          alignment(1,2) = align_E+7
+          alignment(1,1) = align_W-(size_bf-1)
+          alignment(1,2) = align_E+(size_bf-1)
           alignment(2,1) = align_N
-          alignment(2,2) = align_N+7
+          alignment(2,2) = align_N+(size_bf-1)
           call add_sublayer(
      $         field_ext_tested,
      $         N,
      $         alignment,
      $         interior_x_map,
      $         interior_y_map,
-     $         interior_nodes)
+     $         interior_nodes,
+     $         size_bf)
           
           !add the south buffer layer
-          alignment(1,1) = align_W-7
-          alignment(1,2) = align_E+7
-          alignment(2,1) = align_S-7
+          alignment(1,1) = align_W-(size_bf-1)
+          alignment(1,2) = align_E+(size_bf-1)
+          alignment(2,1) = align_S-(size_bf-1)
           alignment(2,2) = align_S
           call add_sublayer(
      $         field_ext_tested,
@@ -184,11 +233,12 @@
      $         alignment,
      $         interior_x_map,
      $         interior_y_map,
-     $         interior_nodes)
+     $         interior_nodes,
+     $         size_bf)
 
           !add the east buffer layer
           alignment(1,1) = align_E
-          alignment(1,2) = align_E+7
+          alignment(1,2) = align_E+(size_bf-1)
           alignment(2,1) = align_S+1
           alignment(2,2) = align_N-1
           call add_sublayer(
@@ -197,10 +247,11 @@
      $         alignment,
      $         interior_x_map,
      $         interior_y_map,
-     $         interior_nodes)
+     $         interior_nodes,
+     $         size_bf)
 
           !add the west buffer layer
-          alignment(1,1) = align_W-7
+          alignment(1,1) = align_W-(size_bf-1)
           alignment(1,2) = align_W
           alignment(2,1) = align_S+1
           alignment(2,2) = align_N-1
@@ -210,16 +261,18 @@
      $         alignment,
      $         interior_x_map,
      $         interior_y_map,
-     $         interior_nodes)
+     $         interior_nodes,
+     $         size_bf)
 
         end subroutine four_bf_layer_config
 
       
-        subroutine difficult_bf_layer_config(field_ext_tested)
+        subroutine difficult_bf_layer_config(field_ext_tested,size_bf)
 
           implicit none
 
           class(field_extended), intent(inout) :: field_ext_tested
+          integer(ikind)       , intent(in)    :: size_bf
 
           real(rkind)   , dimension(nx)       :: interior_x_map
           real(rkind)   , dimension(ny)       :: interior_y_map
@@ -235,22 +288,23 @@
           !four buffer layers
           !----------------------------------
           !add the north buffer layer
-          alignment(1,1) = align_E-7
-          alignment(1,2) = align_E+7
+          alignment(1,1) = align_E-(size_bf-1)
+          alignment(1,2) = align_E+(size_bf-1)
           alignment(2,1) = align_N
-          alignment(2,2) = align_N+7
+          alignment(2,2) = align_N+(size_bf-1)
           call add_sublayer(
      $         field_ext_tested,
      $         N,
      $         alignment,
      $         interior_x_map,
      $         interior_y_map,
-     $         interior_nodes)
+     $         interior_nodes,
+     $         size_bf)
           
           !add the south buffer layer
-          alignment(1,1) = align_W-7
-          alignment(1,2) = align_E+7
-          alignment(2,1) = align_S-7
+          alignment(1,1) = align_W-(size_bf-1)
+          alignment(1,2) = align_E+(size_bf-1)
+          alignment(2,1) = align_S-(size_bf-1)
           alignment(2,2) = align_S
           call add_sublayer(
      $         field_ext_tested,
@@ -259,12 +313,13 @@
      $         interior_x_map,
      $         interior_y_map,
      $         interior_nodes,
+     $         size_bf,
      $         difficult_geometry=.true.)
 
           !add the east buffer layer
           alignment(1,1) = align_E
-          alignment(1,2) = align_E+7
-          alignment(2,1) = align_N-7
+          alignment(1,2) = align_E+(size_bf-1)
+          alignment(2,1) = align_N-size_bf
           alignment(2,2) = align_N-1
           call add_sublayer(
      $         field_ext_tested,
@@ -273,13 +328,14 @@
      $         interior_x_map,
      $         interior_y_map,
      $         interior_nodes,
+     $         size_bf,
      $         difficult_geometry=.true.)
 
           !add the west buffer layer
-          alignment(1,1) = align_W-7
+          alignment(1,1) = align_W-(size_bf-1)
           alignment(1,2) = align_W
           alignment(2,1) = align_S+1
-          alignment(2,2) = align_S+7
+          alignment(2,2) = align_S+size_bf
           call add_sublayer(
      $         field_ext_tested,
      $         W,
@@ -287,6 +343,7 @@
      $         interior_x_map,
      $         interior_y_map,
      $         interior_nodes,
+     $         size_bf,
      $         difficult_geometry=.true.)
 
         end subroutine difficult_bf_layer_config
@@ -297,6 +354,7 @@
      $     mainlayer_id,
      $     alignment,
      $     x_map, y_map, nodes,
+     $     size_bf,
      $     difficult_geometry)
 
           implicit none
@@ -307,6 +365,7 @@
           real(rkind)   , dimension(:)    , intent(in)    :: x_map
           real(rkind)   , dimension(:)    , intent(in)    :: y_map
           real(rkind)   , dimension(:,:,:), intent(in)    :: nodes
+          integer(ikind)                  , intent(in)    :: size_bf
           logical       , optional        , intent(in)    :: difficult_geometry
 
           type(bf_sublayer), pointer :: added_sublayer
@@ -405,11 +464,11 @@
 
                   j=1
                   !----------------------------------
-                  do i=1,16
+                  do i=1,2*size_bf
                      bf_grdpts_id(i,j) = bc_pt
                   end do
 
-                  do i=17,size(bf_grdpts_id,1)
+                  do i=2*size_bf+1,size(bf_grdpts_id,1)
                      bf_grdpts_id(i,j) = no_pt
                   end do
 
@@ -419,14 +478,14 @@
                   i=1
                   bf_grdpts_id(i,j) = bc_pt
                      
-                  do i=2, 15
+                  do i=2, 2*size_bf-1
                      bf_grdpts_id(i,j) = bc_interior_pt
                   end do
                   
-                  i=16
+                  i=2*size_bf
                   bf_grdpts_id(i,j) = bc_pt
                      
-                  do i=17, size(bf_grdpts_id,1)
+                  do i=2*size_bf+1, size(bf_grdpts_id,1)
                      bf_grdpts_id(i,j) = no_pt
                   end do
                   
@@ -440,17 +499,17 @@
                      i=2
                      bf_grdpts_id(i,j) = bc_interior_pt
 
-                     do i=3, 14
+                     do i=3, 2*size_bf-bc_size
                         bf_grdpts_id(i,j) = interior_pt
                      end do
                      
-                     i=15
+                     i=2*size_bf-1
                      bf_grdpts_id(i,j) = bc_interior_pt
 
-                     i=16
+                     i=2*size_bf
                      bf_grdpts_id(i,j) = bc_pt
                      
-                     do i=17, size(bf_grdpts_id,1)
+                     do i=2*size_bf+1, size(bf_grdpts_id,1)
                         bf_grdpts_id(i,j) = no_pt
                      end do
 
@@ -465,14 +524,14 @@
                   i=2
                   bf_grdpts_id(i,j) = bc_interior_pt
 
-                  do i=3, 14
+                  do i=3, 2*size_bf-bc_size
                      bf_grdpts_id(i,j) = interior_pt
                   end do
                   
-                  i=15
+                  i=2*size_bf-1
                   bf_grdpts_id(i,j) = bc_interior_pt
 
-                  do i=16, size(bf_grdpts_id,1)
+                  do i=2*size_bf, size(bf_grdpts_id,1)
                      bf_grdpts_id(i,j) = bc_pt
                   end do
 
@@ -485,11 +544,11 @@
                   i=2
                   bf_grdpts_id(i,j) = bc_interior_pt
 
-                  do i=3, 14
+                  do i=3, 2*size_bf-bc_size
                      bf_grdpts_id(i,j) = interior_pt
                   end do
 
-                  do i=15, size(bf_grdpts_id,1)-1
+                  do i=2*size_bf-bc_size+1, size(bf_grdpts_id,1)-1
                      bf_grdpts_id(i,j) = bc_interior_pt
                   end do
 
@@ -695,4 +754,4 @@
 
         end subroutine initialize_nodes
 
-      end program test_field_extended_wave2d
+      end program test_fixed_field_extended
