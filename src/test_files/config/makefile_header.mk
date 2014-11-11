@@ -22,13 +22,13 @@ src_dir	   = $(augeanstables)/src
 config_dir = $(AUGEANSTABLES_CONFIG)
 dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 
-sd_choice  = mt_choice            #space discretization choice
-pm_choice = wave1d_choice        #physical model choice
-ic_choice = steady_state                 #initial conditions choice
-bc_choice = hedstrom_x_reflection_y_choice   #boundary condition choice
-td_choice  = finitevolume_choice  #time discretization choice
-ti_choice  = rk3tvd_choice        #time integration choice
-io_choice  = nf90_choice          #writer choice
+sd_choice = mt_choice            #space discretization choice
+pm_choice = ns2d_choice          #physical model choice
+ic_choice = steady_state         #initial conditions choice
+bc_choice = poinsot_xy_choice    #boundary condition choice
+td_choice = finitevolume_choice  #time discretization choice
+ti_choice = rk3tvd_choice        #time integration choice
+io_choice = nf90_choice          #writer choice
 
 #-----------------------------------------------------------------------
 #source files directories

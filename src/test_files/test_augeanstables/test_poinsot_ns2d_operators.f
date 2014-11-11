@@ -696,9 +696,9 @@ c$$$c$$$        print '()'
 
           implicit none
 
-          real(rkind), dimension(nx,ny,ne), intent(out) :: nodes
-          real(rkind), dimension(nx)      , intent(out) :: x_map
-          real(rkind), dimension(ny)      , intent(out) :: y_map
+          real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
+          real(rkind), dimension(nx)      , intent(in) :: x_map
+          real(rkind), dimension(ny)      , intent(in) :: y_map
 
           integer(ikind) :: j
 

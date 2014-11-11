@@ -31,7 +31,8 @@
      $       Pr,
      $       gamma,
      $       mach_infty,
-     $       gravity
+     $       gravity,
+     $       epsilon
 
         use ns2d_peak_module, only :
      $       apply_peak_ic
@@ -56,7 +57,19 @@
      $       flux_x_momentum_y,
      $       flux_y_momentum_y,
      $       flux_x_total_energy,
-     $       flux_y_total_energy
+     $       flux_y_total_energy,
+     $       flux_x_inviscid_momentum_x,
+     $       flux_x_inviscid_momentum_y,
+     $       flux_x_inviscid_total_energy,
+     $       flux_x_viscid_momentum_x,
+     $       flux_x_viscid_momentum_y,
+     $       flux_x_viscid_total_energy,
+     $       flux_y_inviscid_momentum_x,
+     $       flux_y_inviscid_momentum_y,
+     $       flux_y_inviscid_total_energy,
+     $       flux_y_viscid_momentum_x,
+     $       flux_y_viscid_momentum_y,
+     $       flux_y_viscid_total_energy
 
 c$$$        use ns2d_ncoords_module         , only : compute_n_gradient_ns2d,
 c$$$     $                                           compute_n_eigenvalues_ns2d,
@@ -1251,10 +1264,10 @@ c$$$          y_s = y_map(1)
 
           !total flux
           !--------------------------------
-          flux_x(1) = inviscid_flux(1) - epsilon*viscid_flux(1)
-          flux_x(2) = inviscid_flux(2) - epsilon*viscid_flux(2)
-          flux_x(3) = inviscid_flux(3) - epsilon*viscid_flux(3)
-          flux_x(4) = inviscid_flux(4) - epsilon*viscid_flux(4)
+          flux_y(1) = inviscid_flux(1) - epsilon*viscid_flux(1)
+          flux_y(2) = inviscid_flux(2) - epsilon*viscid_flux(2)
+          flux_y(3) = inviscid_flux(3) - epsilon*viscid_flux(3)
+          flux_y(4) = inviscid_flux(4) - epsilon*viscid_flux(4)
           
         end function compute_flux_y_by_parts
 
