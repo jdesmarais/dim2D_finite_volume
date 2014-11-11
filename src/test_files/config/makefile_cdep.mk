@@ -87,6 +87,7 @@ hedstrom_xy_dep=	$(bc_dep)\
 			bc_operators_nopt_module.o\
 			bc_operators_openbc_class.o\
 			openbc_operators_module.o\
+			bc_operators_openbc_normal_class.o\
 			$(sd_oneside_dep)\
 			sd_operators_fd_module.o\
 			hedstrom_xy_module.o
@@ -104,6 +105,7 @@ poinsot_xy_dep=		$(bc_dep)\
 			bc_operators_nopt_module.o\
 			bc_operators_openbc_class.o\
 			openbc_operators_module.o\
+			bc_operators_openbc_normal_class.o\
 			$(sd_oneside_dep)\
 			sd_operators_fd_module.o\
 			lodi_abstract_class.o\

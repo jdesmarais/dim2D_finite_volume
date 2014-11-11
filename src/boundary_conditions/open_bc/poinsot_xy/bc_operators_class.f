@@ -16,8 +16,8 @@
       !-----------------------------------------------------------------
       module bc_operators_class
 
-        use bc_operators_openbc_class, only :
-     $     bc_operators_openbc
+        use bc_operators_openbc_normal_class, only :
+     $     bc_operators_openbc_normal
 
         use lodi_inflow_class, only :
      $       lodi_inflow
@@ -116,7 +116,7 @@
         !> @param apply_bc_on_timedev
         !> apply the open boundary conditions for the time derivatives
         !---------------------------------------------------------------
-        type, extends(bc_operators_openbc) :: bc_operators
+        type, extends(bc_operators_openbc_normal) :: bc_operators
 
           type(lodi_inflow)  :: inflow_bc
           type(lodi_outflow) :: outflow_bc

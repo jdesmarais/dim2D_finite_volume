@@ -1,6 +1,6 @@
       program test_hedstrom_xy
 
-        !use ifport
+        use ifport
 
         use bc_operators_class, only :
      $       bc_operators
@@ -39,6 +39,9 @@
 
         implicit none
 
+        real(rkind)                      :: t
+        real(rkind), dimension(nx)       :: x_map
+        real(rkind), dimension(ny)       :: y_map
         real(rkind), dimension(nx,ny,ne) :: nodes
         real(rkind)                      :: dx, dy
         type(pmodel_eq)                  :: p_model
@@ -60,7 +63,7 @@
 
 
         !initialization of the nodes
-        call initialize_nodes(nodes,dx,dy)
+        call initialize_nodes(x_map,y_map,nodes,dx,dy)
 
 
         !test compute_x_timedev_with_openbc
@@ -81,6 +84,7 @@
         print '(''test_compute_timedev_xlayer'')'
         print '(''----------------------------------'')'
         call test_compute_timedev_xlayer(
+     $       t, x_map, y_map,
      $       nodes,dx,dy,
      $       p_model,
      $       detailled)
@@ -124,16 +128,28 @@
         end function is_test_validated        
 
 
-        subroutine initialize_nodes(nodes,dx,dy)
+        subroutine initialize_nodes(x_map,y_map,nodes,dx,dy)
 
           implicit none
 
+          real(rkind), dimension(nx)      , intent(out) :: x_map
+          real(rkind), dimension(ny)      , intent(out) :: y_map
           real(rkind), dimension(nx,ny,ne), intent(out) :: nodes
           real(rkind)                     , intent(out) :: dx
           real(rkind)                     , intent(out) :: dy
           
+          integer(ikind) :: i
+
           dx=0.5
           dy=0.6
+
+          do i=1, size(x_map,1)
+             x_map(i) = (i-1)*dx
+          end do
+
+          do i=1, size(y_map,1)
+             y_map(i) = (i-1)*dy
+          end do
 
           !position
           nodes(1,1,1)=0.5
@@ -227,7 +243,7 @@
      $     detailled)
 
           implicit none
-
+          
           real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
           real(rkind)                     , intent(in) :: dx
           real(rkind)                     , intent(in) :: dy
@@ -320,12 +336,16 @@
 
 
         subroutine test_compute_timedev_xlayer(
+     $     t,x_map,y_map,
      $     nodes,dx,dy,
      $     p_model,
      $     detailled)
 
           implicit none
 
+          real(rkind)                     , intent(in) :: t
+          real(rkind), dimension(nx)      , intent(in) :: x_map
+          real(rkind), dimension(ny)      , intent(in) :: y_map
           real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
           real(rkind)                     , intent(in) :: dx
           real(rkind)                     , intent(in) :: dy
@@ -362,25 +382,25 @@
           
              i=1
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            t,x_map,y_map,nodes, i,j, dx,dy, p_model, flux_y,
      $            gradient_x_x_oneside_L0, incoming_left,
      $            time_dev)
           
              i=bc_size
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            t,x_map,y_map,nodes, i,j, dx,dy, p_model, flux_y,
      $            gradient_x_x_oneside_L1, incoming_left,
      $            time_dev)
           
              i=nx-1
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            t,x_map,y_map,nodes, i,j, dx,dy, p_model, flux_y,
      $            gradient_x_x_oneside_R1, incoming_right,
      $            time_dev)
           
              i=nx
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            t,x_map,y_map,nodes, i,j, dx,dy, p_model, flux_y,
      $            gradient_x_x_oneside_R0, incoming_right,
      $            time_dev)
           
