@@ -172,6 +172,11 @@
           procedure(eigenvect_proc)  , nopass, deferred :: compute_cons_lodi_matrix_x
           procedure(eigenvect_proc)  , nopass, deferred :: compute_cons_lodi_matrix_y
 
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_x_transM
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_y_transM
+
+          procedure(farfield_proc)   ,   pass, deferred :: get_far_field
+
           procedure(x_gradient_proc) , nopass, deferred :: compute_x_gradient
           procedure(y_gradient_proc) , nopass, deferred :: compute_y_gradient
           procedure(n_gradient_proc) , nopass, deferred :: compute_n_gradient
@@ -905,6 +910,41 @@
             real(rkind), dimension(ne,ne)          :: eigenvect
 
           end function eigenvect_proc
+
+      
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for the computation of the governing variables
+          !> in the far field as chosen by the initial conditions
+          !
+          !> @date
+          !> 13_11_2014 - initial version - J.L. Desmarais
+          !
+          !>@param t
+          !> time
+          !
+          !>@param x
+          !> x-coordinate
+          !
+          !>@param y
+          !> y-coordinate
+          !
+          !>@return var
+          !> governing variables in the far field
+          !--------------------------------------------------------------
+          function far_field_proc(t,x,y) result(var)
+
+            import rkind
+            import ne
+
+            real(rkind)   , intent(in) :: t
+            real(rkind)   , intent(in) :: x
+            real(rkind)   , intent(in) :: y
+            real(rkind), dimension(ne) :: var
+            
+          end function far_field_proc
 
 
           !> @author

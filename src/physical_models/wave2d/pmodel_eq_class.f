@@ -153,6 +153,9 @@
           procedure, nopass :: compute_n2_lefteigenvector   => compute_n2_lefteigenvector_wave2d
           procedure, nopass :: compute_n2_righteigenvector  => compute_n2_righteigenvector_wave2d
 
+          procedure, nopass :: compute_x_transM
+          procedure, nopass :: compute_y_transM
+
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
           procedure, nopass :: compute_n_gradient => compute_n_gradient_wave2d
@@ -1313,6 +1316,124 @@ c$$$          end if
           end if
 
         end function compute_y_righteigenvector
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the transverse matrix in the x-direction
+        !
+        !> @date
+        !> 13_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvect
+        !> transverse matrix in the x-direction
+        !--------------------------------------------------------------
+        function compute_x_transM(nodes) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne,ne)          :: eigenvect
+
+          real(rkind) :: node_s
+
+          node_s = nodes(1,1,1)
+
+          if(rkind.eq.8) then
+
+             eigenvect(1,1) = 0.0d0
+             eigenvect(2,1) = 0.0d0
+             eigenvect(3,1) = -c**2
+
+             eigenvect(1,2) = 0.0d0
+             eigenvect(2,2) = 0.0d0
+             eigenvect(3,2) = 0.0d0
+
+             eigenvect(1,3) = -c**2
+             eigenvect(2,3) = 0.0d0
+             eigenvect(3,3) = 0.0d0
+
+          else
+
+             eigenvect(1,1) = 0.0
+             eigenvect(2,1) = 0.0
+             eigenvect(3,1) = -c**2
+
+             eigenvect(1,2) = 0.0
+             eigenvect(2,2) = 0.0
+             eigenvect(3,2) = 0.0
+
+             eigenvect(1,3) = -c**2
+             eigenvect(2,3) = 0.0
+             eigenvect(3,3) = 0.0
+
+          end if
+
+        end function compute_x_transM
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the transverse matrix in the y-direction
+        !
+        !> @date
+        !> 13_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvect
+        !> transverse matrix in the y-direction
+        !--------------------------------------------------------------
+        function compute_y_transM(nodes) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne,ne)          :: eigenvect
+
+          real(rkind) :: node_s
+
+          node_s = nodes(1,1,1)
+
+          if(rkind.eq.8) then
+
+             eigenvect(1,1) = 0.0d0
+             eigenvect(2,1) = -c**2
+             eigenvect(3,1) = 0.0d0
+
+             eigenvect(1,2) = -c**2
+             eigenvect(2,2) = 0.0d0
+             eigenvect(3,2) = 0.0d0
+
+             eigenvect(1,3) = 0.0d0
+             eigenvect(2,3) = 0.0d0
+             eigenvect(3,3) = 0.0d0
+
+          else
+
+             eigenvect(1,1) = 0.0
+             eigenvect(2,1) = -c**2
+             eigenvect(3,1) = 0.0
+
+             eigenvect(1,2) = -c**2
+             eigenvect(2,2) = 0.0
+             eigenvect(3,2) = 0.0
+
+             eigenvect(1,3) = 0.0
+             eigenvect(2,3) = 0.0
+             eigenvect(3,3) = 0.0
+
+          end if
+
+        end function compute_y_transM
 
 
         !> @author

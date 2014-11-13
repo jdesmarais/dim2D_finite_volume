@@ -68,6 +68,9 @@
           procedure, nopass :: compute_cons_lodi_matrix_x   => compute_eigenvector_default
           procedure, nopass :: compute_cons_lodi_matrix_y   => compute_eigenvector_default
 
+          procedure, nopass :: compute_x_transM  => compute_eigenvector_default
+          procedure, nopass :: compute_y_transM  => compute_eigenvector_default
+
           procedure, nopass :: compute_n_gradient => compute_gradient_default
 
         end type pmodel_eq_default
