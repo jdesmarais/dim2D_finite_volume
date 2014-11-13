@@ -189,3 +189,17 @@ test_fixed_field_extended:\
 			surrogate_class.o\
 			field_abstract_class.o\
 			field_extended_class.o
+
+test_bf_layer_newgrdpt_procedure.o:\
+			$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
+			$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_kind.o
+
+test_bf_layer_newgrdpt_procedure:\
+			parameters_kind.o\
+			parameters_constant.o\
+			parameters_input.o\
+			parameters_bf_layer.o\
+			bf_layer_newgrdpt_procedure_module.o\
+			bf_layer_bc_procedure_module.o
