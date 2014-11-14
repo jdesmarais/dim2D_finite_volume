@@ -934,17 +934,19 @@
           !>@return var
           !> governing variables in the far field
           !--------------------------------------------------------------
-          function far_field_proc(t,x,y) result(var)
+          function farfield_proc(this,t,x,y) result(var)
 
-            import rkind
             import ne
+            import pmodel_eq_abstract
+            import rkind
 
-            real(rkind)   , intent(in) :: t
-            real(rkind)   , intent(in) :: x
-            real(rkind)   , intent(in) :: y
-            real(rkind), dimension(ne) :: var
+            class(pmodel_eq_abstract), intent(in) :: this
+            real(rkind)              , intent(in) :: t
+            real(rkind)              , intent(in) :: x
+            real(rkind)              , intent(in) :: y
+            real(rkind), dimension(ne)            :: var
             
-          end function far_field_proc
+          end function farfield_proc
 
 
           !> @author

@@ -71,6 +71,8 @@
           procedure, nopass :: compute_x_transM  => compute_eigenvector_default
           procedure, nopass :: compute_y_transM  => compute_eigenvector_default
 
+          procedure,   pass :: get_far_field => get_far_field_default
+
           procedure, nopass :: compute_n_gradient => compute_gradient_default
 
         end type pmodel_eq_default
@@ -355,6 +357,36 @@
           eigenvect(1,1) = nodes(1)
 
         end function compute_eigenvector_default
+
+
+        function get_far_field_default(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq_default)  , intent(in) :: this
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
+          real(rkind), dimension(ne)             :: var
+
+          real(rkind) :: viscous_coeff
+          real(rkind) :: t_s
+          real(rkind) :: x_s
+          real(rkind) :: y_s
+
+          print '(''pmodel_eq_default_class'')'
+          print '(''get_far_field'')'
+          stop 'not implemented'
+
+          viscous_coeff = this%get_viscous_coeff()
+          t_s = t
+          x_s = x
+          y_s = y
+
+          var(1) = 0.0
+
+        end function get_far_field_default
+
 
 
         !> @author

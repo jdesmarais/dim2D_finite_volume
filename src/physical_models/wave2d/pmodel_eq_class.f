@@ -156,6 +156,8 @@
           procedure, nopass :: compute_x_transM
           procedure, nopass :: compute_y_transM
 
+          procedure,   pass :: get_far_field
+
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
           procedure, nopass :: compute_n_gradient => compute_n_gradient_wave2d
@@ -1342,7 +1344,7 @@ c$$$          end if
 
           real(rkind) :: node_s
 
-          node_s = nodes(1,1,1)
+          node_s = nodes(1)
 
           if(rkind.eq.8) then
 
@@ -1401,7 +1403,7 @@ c$$$          end if
 
           real(rkind) :: node_s
 
-          node_s = nodes(1,1,1)
+          node_s = nodes(1)
 
           if(rkind.eq.8) then
 
@@ -1434,6 +1436,54 @@ c$$$          end if
           end if
 
         end function compute_y_transM
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the transverse matrix in the y-direction
+        !
+        !> @date
+        !> 13_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvect
+        !> transverse matrix in the y-direction
+        !--------------------------------------------------------------
+        function get_far_field(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq)          , intent(in) :: this
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
+          real(rkind), dimension(ne)             :: var
+
+          integer     :: neq
+          real(rkind) :: t_s
+          real(rkind) :: x_s
+          real(rkind) :: y_s
+          
+          neq = this%get_eq_nb()
+          t_s = t
+          x_s = x
+          y_s = y
+
+          if(rkind.eq.8) then
+             var(1) = 0.0d0
+             var(2) = 0.0d0
+             var(3) = 0.0d0
+          else
+             var(1) = 0.0
+             var(2) = 0.0
+             var(3) = 0.0
+          end if
+
+        end function get_far_field
 
 
         !> @author

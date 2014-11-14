@@ -96,19 +96,14 @@
           real(rkind), dimension(ne,ne) :: right_eigenM
           real(rkind), dimension(ne)    :: n_amp0
           real(rkind), dimension(ne)    :: t_amp0
-          real(rkind), dimension(ne)    :: t_amp1
+          real(rkind), dimension(ne)    :: t_map1
           real(rkind), dimension(ne)    :: amp
           real(rkind), dimension(ne)    :: char_amp
 
-          real(rkind)                   :: dy
           real(rkind)                   :: x0,x1
           integer(ikind)                :: i0_inter1, i0_inter2, j0_inter
           integer(ikind)                :: i1_inter1, i1_inter2, j1_inter
-          real(rkind), dimension(2)     :: x_map_inter
-          real(rkind), dimension(2,ne)  :: nodes_inter
-          real(rkind), dimension(2,ne)  :: inter_nodes0
-          real(rkind), dimension(2,ne)  :: inter_trans0
-          real(rkind), dimension(2,ne)  :: inter_trans1
+          
 
           !0) determine the direction
           dir  = x_direction
@@ -165,7 +160,7 @@
           x_map_inter(2) = bf_x_map0(i0_inter2)
           
           nodes_inter(1,:) = bf_nodes0(i0_inter1,j0_inter,:)
-          nodes_inter(2,:) = bf_nodes0(i0_inter2,j0_inter,:)
+          nodes_inter(2,:) = bf_nodes0(i0_inter1,j0_inter,:)
 
           inter_nodes0 = get_interpolation_coeff_1D(x_map_inter,nodes_inter)
 
@@ -207,16 +202,16 @@
           left_eigenM = p_model%compute_x_lefteigenvector(bf_nodes1(i_eigen,j1,:))
              
 
-          !7) determine the characteristic amplitude
+          !4) determine the characteristic amplitude
           do k=1,ne
 
 
-             !7.1) determine the position where the characteristic
+             !4.1) determine the position where the characteristic
              !     amplitude should be estimated
              x0 = x1 - eigenvalues_x(k)*dt
 
 
-             !7.2) determine the normal and transverse contributions of
+             !4.2) determine the normal and transverse contributions of
              !     the hyperbolic terms to the characteristic amplitude
              if(side_x.eq.right) then
 
@@ -225,6 +220,10 @@
                    n_amp0 = interpolate_1D(x0,inter_nodes0)
                    t_amp0 = interpolate_1D(x0,inter_trans0)
                    
+                   amp =
+     $                  n_map0 -
+     $                  compute_NewtonCotes_integration(t_amp0, t_amp1, dt)
+
                 else
 
                    n_amp0 = p_model%get_far_field(t,bf_x_map1(i1),bf_y_map1(j1))
@@ -248,25 +247,25 @@
              end if
 
 
-             !7.3) combine the information on the nodes at t-dt and the approximation
+             !4.3) combine the information on the nodes at t-dt and the approximation
              !     of the integration of the transverse terms from t-dt to t
              amp =
      $            n_amp0 -
      $            compute_NewtonCotes_integration(t_amp0, t_amp1, dt)
 
              
-             !7.4) compute the scalar product of the left eigenvector corresponding
+             !4.4) compute the scalar product of the left eigenvector corresponding
              !     to the eigenvalue with the characteristic amplitude
-             char_amp(k) = DOT_PRODUCT(amp,left_eigenM(:,k))
+             char_amp(k) = DOT_PRODUCT(char_amp,left_eigenM(:,k))
              
           end do
 
 
-          !8) determine the right eigenmatrix
+          !5) determine the right eigenmatrix
           right_eigenM = p_model%compute_x_righteigenvector(bf_nodes1(i_eigen,j1,:))
 
 
-          !9) determine the new grid point
+          !6) determine the new grid point
           bf_nodes1(i1,j1,:) = MATMUL(char_amp,right_eigenM)
 
 
@@ -283,8 +282,6 @@
           real(rkind), dimension(2)   , intent(in) :: x_map
           real(rkind), dimension(2,ne), intent(in) :: nodes
           real(rkind), dimension(2,ne)             :: inter_coeff
-
-          integer :: k
 
           do k=1, ne
 

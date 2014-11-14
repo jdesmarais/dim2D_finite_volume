@@ -203,3 +203,18 @@ test_bf_layer_newgrdpt_procedure:\
 			parameters_bf_layer.o\
 			bf_layer_newgrdpt_procedure_module.o\
 			bf_layer_bc_procedure_module.o
+
+test_bf_newgrdpt.o:	$(cbf_layer_dir)/bf_newgrdpt_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(wave2d_dir)/pmodel_eq_class.o\
+			$(mt_dir)/sd_operators_fd_module.o\
+			$(wave2d_dir)/wave2d_parameters.o
+
+test_bf_newgrdpt:	$(param_dep)\
+			$(mt_dep)\
+			$(wave2d_dep)\
+			bf_layer_bc_procedure_module.o\
+			bf_layer_newgrdpt_procedure_module.o\
+			bf_newgrdpt_class.o
