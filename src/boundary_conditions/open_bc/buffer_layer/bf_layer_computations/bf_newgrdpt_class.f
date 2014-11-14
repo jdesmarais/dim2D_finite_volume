@@ -66,8 +66,13 @@
 
           procedure, nopass :: compute_newgrdpt_x
           procedure, nopass :: compute_newgrdpt_y
+
           procedure, nopass :: get_interpolation_coeff_1D
           procedure, nopass :: interpolate_1D
+
+          procedure, nopass :: get_interpolation_coeff_2D
+          procedure, nopass :: interpolate_2D
+
           procedure, nopass :: compute_NewtonCotes_integration
 
         end type bf_newgrdpt
@@ -678,6 +683,201 @@
           end do
 
         end function interpolate_1D
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the interpolation coefficients for a 1st order
+        !> polynomial fit: get (a,b,c) such that:
+        !> a*x_map(1)+b*y_map(1) + c = nodes(1,k)
+        !
+        !> @date
+        !> 14_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param x_map
+        !> x-coordinates
+        !
+        !>@param y_map
+        !> y-coordinates        
+        !
+        !>@param nodes
+        !> interpolation points
+        !              
+        !>@return inter_coeff
+        !> (a,b,c) for each governing variable
+        !--------------------------------------------------------------
+        function get_interpolation_coeff_2D(x_map,y_map,nodes)
+     $     result(inter_coeff)
+        
+          implicit none
+
+          real(rkind), dimension(3)   , intent(in) :: x_map
+          real(rkind), dimension(3)   , intent(in) :: y_map
+          real(rkind), dimension(3,ne), intent(in) :: nodes
+          real(rkind), dimension(3,ne)             :: inter_coeff
+
+          integer                   :: k
+          real(rkind), dimension(3) :: A
+          real(rkind), dimension(3) :: B
+          real(rkind), dimension(3) :: C
+          real(rkind), dimension(3) :: n
+
+          !create the vector identifying the
+          !points on the plane: coordinates (x,y)
+          A(1) = x_map(1)
+          A(2) = y_map(1)
+
+          B(1) = x_map(2)
+          B(2) = y_map(2)
+
+          C(1) = x_map(3)
+          C(2) = y_map(3)
+
+          do k=1, ne
+
+             !create the vector identifying the
+             !points on the plane: data (z)
+             A(3) = nodes(1,k)
+             B(3) = nodes(2,k)
+             C(3) = nodes(3,k)
+
+             !get the vector normal to the plane
+             n = get_plane_normal_vector(A,B,C)
+
+             !compute the coefficient a,b,c such that
+             !the nodes are given by the equation:
+             !nodes(1) = a*x + b*y + c
+             inter_coeff(1,k) = -n(1)/n(3)
+             inter_coeff(2,k) = -n(2)/n(3)
+             inter_coeff(3,k) =  -A(1)*inter_coeff(1,k) - A(2)*inter_coeff(2,k) + A(3)
+
+          end do
+
+        end function get_interpolation_coeff_2D
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> from the coefficients (a,b,c) for each governing variable
+        !> compute ax+by+c
+        !
+        !> @date
+        !> 14_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@param inter_coeff
+        !> coefficients (a,b,c) for each governing variable
+        !              
+        !>@return nodes_inter
+        !> nodes interpolated at (x,y)
+        !--------------------------------------------------------------
+        function interpolate_2D(
+     $     x,
+     $     y,
+     $     inter_coeff)
+     $     result(nodes_inter)
+
+          implicit none
+
+          real(rkind)                 , intent(in) :: x
+          real(rkind)                 , intent(in) :: y
+          real(rkind), dimension(3,ne), intent(in) :: inter_coeff
+          real(rkind), dimension(ne)               :: nodes_inter
+
+          integer :: k
+
+          do k=1,ne
+             nodes_inter(k) = x*inter_coeff(1,k) + y*inter_coeff(2,k) + inter_coeff(3,k)
+          end do
+
+        end function interpolate_2D
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get a vector normal to the plane created by three points
+        !
+        !> @date
+        !> 14_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param A
+        !> first point (x_A,y_A,z_A)
+        !
+        !>@param B
+        !> second point (x_B,y_B,z_B)
+        !
+        !>@param C
+        !> third point (x_C,y_C,z_C)
+        !
+        !>@return n
+        !> normal vector
+        !--------------------------------------------------------------
+        function get_plane_normal_vector(A,B,C) result(n)
+
+          implicit none
+
+          real(rkind), dimension(3), intent(in) :: A
+          real(rkind), dimension(3), intent(in) :: B
+          real(rkind), dimension(3), intent(in) :: C
+          real(rkind), dimension(3)             :: n
+
+          real(rkind), dimension(3) :: AB
+          real(rkind), dimension(3) :: AC
+
+          integer :: k
+
+          do k=1,3
+             AB(k) = B(k) - A(k)
+             AC(k) = C(k) - A(k)
+          end do
+
+          n = cross_product(AB,AC)          
+
+        end function get_plane_normal_vector
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the cross product between 2 vectors
+        !
+        !> @date
+        !> 14_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param v1
+        !> first vector
+        !
+        !>@param v2
+        !> second vector
+        !
+        !>@return var
+        !> cross product
+        !--------------------------------------------------------------
+        function cross_product(v1,v2) result(var)
+
+          implicit none
+
+          real(rkind), dimension(3), intent(in) :: v1
+          real(rkind), dimension(3), intent(in) :: v2
+          real(rkind), dimension(3)             :: var
+
+          var(1) =  v1(2)*v2(3) - v1(3)*v2(2)
+          var(2) = -v1(1)*v2(3) + v1(3)*v2(1)
+          var(3) =  v1(1)*v2(2) - v1(2)*v2(1)
+
+        end function cross_product
 
 
         !> @author
