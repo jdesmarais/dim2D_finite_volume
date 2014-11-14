@@ -18,6 +18,12 @@
      $       gradient_L0_type,
      $       gradient_R0_type
 
+        use n_coords_module, only :
+     $       get_x_coord,
+     $       get_y_coord,
+     $       get_n1_coord,
+     $       get_n2_coord
+
         use parameters_constant, only :
      $       left, right, x_direction, y_direction
 
@@ -66,6 +72,7 @@
 
           procedure, nopass :: compute_newgrdpt_x
           procedure, nopass :: compute_newgrdpt_y
+          procedure, nopass :: compute_newgrdpt_xy
 
           procedure, nopass :: get_interpolation_coeff_1D
           procedure, nopass :: interpolate_1D
@@ -171,7 +178,7 @@
           real(rkind), dimension(ne)    :: char_amp
 
           real(rkind)                   :: dy
-          real(rkind)                   :: x0,x1
+          real(rkind)                   :: x0,x1,y0,y1
           integer(ikind)                :: i0_inter1, i0_inter2, j0_inter
           integer(ikind)                :: i1_inter1, i1_inter2, j1_inter
           real(rkind), dimension(2)     :: x_map_inter
@@ -187,6 +194,7 @@
 
           !1) determine the x-coordinate of the new grid point computed
           x1   = bf_x_map1(i1)
+          y1   = bf_y_map1(j1)
 
 
           !2) determine where the eigenvalues are evaluated
@@ -278,6 +286,8 @@
              
 
           !7) determine the characteristic amplitude
+          y0 = y1
+
           do k=1,ne
 
 
@@ -297,7 +307,7 @@
                    
                 else
 
-                   n_amp0 = p_model%get_far_field(t,bf_x_map1(i1),bf_y_map1(j1))
+                   n_amp0 = p_model%get_far_field(t,x0,y0)
                    t_amp0 = [0.0d0,0.0d0,0.0d0]
 
                 end if
@@ -306,7 +316,7 @@
                 
                 if(eigenvalues_x(k).gt.0) then
 
-                   n_amp0 = p_model%get_far_field(t,x0,bf_y_map0(j0_inter))
+                   n_amp0 = p_model%get_far_field(t,x0,y0)
                    t_amp0 = [0.0d0,0.0d0,0.0d0]
 
                 else
@@ -434,7 +444,7 @@
           real(rkind), dimension(ne)    :: char_amp
 
           real(rkind)                   :: dx
-          real(rkind)                   :: y0,y1
+          real(rkind)                   :: x0,x1,y0,y1
           integer(ikind)                :: j0_inter1, j0_inter2, i0_inter
           integer(ikind)                :: j1_inter1, j1_inter2, i1_inter
           real(rkind), dimension(2)     :: y_map_inter
@@ -449,6 +459,7 @@
 
 
           !1) determine the x-coordinate of the new grid point computed
+          x1   = bf_x_map1(i1)
           y1   = bf_y_map1(j1)
 
 
@@ -541,6 +552,7 @@
              
 
           !7) determine the characteristic amplitude
+          x0 = x1
           do k=1,ne
 
 
@@ -560,7 +572,7 @@
                    
                 else
 
-                   n_amp0 = p_model%get_far_field(t,bf_x_map1(i1),bf_y_map1(j1))
+                   n_amp0 = p_model%get_far_field(t,x0,y0)
                    t_amp0 = [0.0d0,0.0d0,0.0d0]
 
                 end if
@@ -569,7 +581,7 @@
                 
                 if(eigenvalues_y(k).gt.0) then
 
-                   n_amp0 = p_model%get_far_field(t,bf_x_map0(i0_inter),y0)
+                   n_amp0 = p_model%get_far_field(t,x0,y0)
                    t_amp0 = [0.0d0,0.0d0,0.0d0]
 
                 else
@@ -603,6 +615,527 @@
           bf_nodes1(i1,j1,:) = MATMUL(char_amp,right_eigenM)
 
         end subroutine compute_newgrdpt_y
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the new grid point obtained by extension of the
+        !> computational domain in the n1-direction
+        !
+        !> @date
+        !> 14_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> physical model
+        !
+        !>@param dt
+        !> time step
+        !              
+        !>@param bf_align0
+        !> alignment of the buffer layer at t=t-dt
+        !
+        !>@param bf_x_map0
+        !> x-coordinates of the buffer layer at t=t-dt
+        !
+        !>@param bf_y_map0
+        !> y-coordinates of the buffer layer at t=t-dt
+        !
+        !>@param bf_nodes0
+        !> nodes of the buffer layer at t=t-dt
+        !
+        !>@param bf_align1
+        !> alignment of the buffer layer at t=t
+        !
+        !>@param bf_x_map1
+        !> x-coordinates of the buffer layer at t=t
+        !
+        !>@param bf_y_map1
+        !> y-coordinates of the buffer layer at t=t
+        !
+        !>@param bf_nodes1
+        !> nodes of the buffer layer at t=t
+        !              
+        !>@param i1
+        !> x-index identifying the new grdpt at t=t
+        !
+        !>@param j1
+        !> y-index identifying the new grdpt at t=t
+        !              
+        !>@param side_x
+        !> logical identifying the type of boundary (E or W)
+        !
+        !>@param gradient_y
+        !> gradient procedure applied to compute the
+        !> the transverse terms
+        !--------------------------------------------------------------
+        subroutine compute_newgrdpt_xy(
+     $     p_model, t, dt,
+     $     bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $     bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $     i1,j1,
+     $     n_direction,
+     $     incoming_proc,
+     $     interpolation_indices)
+
+          implicit none
+
+          type(pmodel_eq)                    , intent(in)    :: p_model
+          real(rkind)                        , intent(in)    :: t
+          real(rkind)                        , intent(in)    :: dt
+          integer(ikind), dimension(2,2)     , intent(in)    :: bf_align0
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map0
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map0
+          real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes0
+          integer(ikind), dimension(2,2)     , intent(in)    :: bf_align1
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map1
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map1
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: bf_nodes1
+          integer(ikind)                     , intent(in)    :: i1
+          integer(ikind)                     , intent(in)    :: j1
+          integer                            , intent(in)    :: n_direction
+          procedure(incoming_proc)                           :: is_incoming
+          procedure(gradient_n_proc)         , intent(in)    :: gradient_n_index1 !procedure for computing the gradient at the grid point of index1
+          procedure(gradient_n_proc)         , intent(in)    :: gradient_n_index2 !procedure for computing the gradient at the grid point of index2
+          procedure(gradient_n_proc)         , intent(in)    :: gradient_n_index3 !procedure for computing the gradient at the grid point of index3
+          integer(ikind), dimension(2)       , intent(in)    :: eigen_indices
+          integer(ikind), dimension(2,3)     , intent(in)    :: inter_indices1
+
+          integer                       :: k          
+          integer                       :: dir, dir2
+          real(rkind), dimension(ne)    :: eigenvalues_n
+          real(rkind), dimension(ne,ne) :: left_eigenM
+          real(rkind), dimension(ne,ne) :: right_eigenM
+          real(rkind), dimension(ne)    :: n_amp0
+          real(rkind), dimension(ne)    :: t_amp0
+          real(rkind), dimension(ne)    :: t_amp1
+          real(rkind), dimension(ne)    :: amp
+          real(rkind), dimension(ne)    :: char_amp
+
+          real(rkind)                     :: n0,n1
+          integer(ikind), dimension(2,3)  :: inter_indices0
+          real(rkind)   , dimension(3)    :: n1_inter     !intermediate array where the n1-coordinates of the interpolation points are saved
+          real(rkind)   , dimension(3)    :: n2_inter     !intermediate array where the n2-coordinates of the interpolation points are saved
+          real(rkind)   , dimension(3,ne) :: nodes_inter  !intermediate array where the data of the interpolation points are saved
+          real(rkind)   , dimension(3,ne) :: inter_nodes0 !interpolation coefficient for the plane by the nodes at t
+          real(rkind)   , dimension(3,ne) :: inter_trans0 !interpolation coefficient for the plane by the transverse terms at t
+          real(rkind)   , dimension(3,ne) :: inter_trans1 !interpolation coefficient for the plane by the transverse terms at t+dt
+
+          !0) determine the direction
+          dir  = x_direction
+          dir2 = y_direction
+
+
+          !1) determine the (x,y)-coordinates of the new grid point computed
+          x1 = bf_x_map1(i1)
+          y1 = bf_y_map(j1)
+
+
+          !2) convert them into (n1,n2) coordinates
+          n1_1 = get_n1_coord(x1,y1)
+          n2_1 = get_n2_coord(x1,y1)
+
+
+          !3) determine where the eigenvalues are evaluated
+          !   and which indices are needed for the interpolation
+          !   of the grid points
+          !   i.e. convert the interpolation indices at t into
+          !   interpolation indices at t-dt
+          do k=1, 3
+             
+             inter_indices0(1,k) = bf_align1(dir,1) - bf_align0(dir,1) + inter_indices1(1,k)
+             inter_indices0(2,k) = bf_align1(dir,2) - bf_align0(dir,2) + inter_indices1(2,k)
+
+          end do
+
+
+          !3) create the interpolation coefficients for the data at t-dt
+
+          !3.1) create the interpolation coefficients for the nodes
+          do k=1,3
+             
+             i_x_inter        = inter_indices0(1,k)
+             i_y_inter        = inter_indices0(2,k)
+
+             x_inter          = bf_x_map0(i_x_inter)
+             y_inter          = bf_y_map0(i_y_inter)
+
+             n1_inter(k)      = get_n1_coords(x_inter,y_inter)
+             n2_inter(k)      = get_n2_coords(x_inter,y_inter)
+             nodes_inter(k,:) = bf_nodes0(i_x_inter,i_y_inter,:)
+
+          end do
+          inter_nodes0 = get_interpolation_coeff_2D(n1_inter,n2_inter,nodes_inter)
+
+
+          !3.2) create the interpolation coefficients for the transverse terms
+
+          !3.2.1) create the data at the interpolation grid points
+          call get_n_transverse_data_for_interpolation(
+     $         p_model,
+     $         bf_nodes0,
+     $         inter_indices0,
+     $         n_direction,
+     $         gradient_n_index1,
+     $         gradient_n_index2,
+     $         gradient_n_index3,
+     $         nodes_inter)
+          
+          !3.2.2) create the interpolation plane for the
+          !       contribution of the transverse term at t-dt
+          inter_trans0 = get_interpolation_coeff_2D(
+     $         n1_map_inter,
+     $         n2_map_inter,
+     $         nodes_inter)
+
+
+          !4) create the interpolation coefficients for the data at t+dt
+
+          !4.1) create the coordinate maps (n1,n2) identifying the
+          !     position of the interpolation points
+          do k=1,3
+             
+             i_x_inter        = inter_indices1(1,k)
+             i_y_inter        = inter_indices1(2,k)
+
+             x_inter          = bf_x_map1(i_x_inter)
+             y_inter          = bf_y_map1(i_y_inter)
+
+             n1_inter(k)      = get_n1_coords(x_inter,y_inter)
+             n2_inter(k)      = get_n2_coords(x_inter,y_inter)
+
+          end do
+
+          !4.2) compute the transverse terms at the interpolation
+          !     points
+          call get_n_transverse_data_for_interpolation(
+     $         p_model,
+     $         bf_nodes1,
+     $         inter_indices1,
+     $         n_direction,
+     $         gradient_n_index1,
+     $         gradient_n_index2,
+     $         gradient_n_index3,
+     $         dx,dy,
+     $         nodes_inter1)
+
+          !4.3) create the interpolation plane for the
+          !     contribution of the transverse term at t
+          inter_trans1 = get_interpolation_coeff_2D(
+     $         n1_map_inter,
+     $         n2_map_inter,
+     $         nodes_inter)
+
+          t_amp1 = interpolate_2D(n1_1,n2_1,inter_trans1)
+
+
+          !5) evaluate the eigen data at t
+          select case(n_direction)
+
+            case(n1_direction)
+               eigenvalues_n = p_model%compute_n1_eigenvalues(
+     $              bf_nodes1(indices_eigen(1),indices_eigen(2),:))
+
+               left_eigenM = p_model%compute_n1_lefteigenvector(
+     $              bf_nodes1(indices_eigen(1),indices_eigen(2),:))
+
+               right_eigenM = p_model%compute_n1_righteigenvector(
+     $              bf_nodes1(indices_eigen(1),indices_eigen(2),:))
+
+            case(n2_direction)
+               eigenvalues_n = p_model%compute_n2_eigenvalues(
+     $              bf_nodes1(indices_eigen(1),indices_eigen(2),:))
+
+               left_eigenM = p_model%compute_n2_lefteigenvector(
+     $              bf_nodes1(indices_eigen(1),indices_eigen(2),:))
+
+               right_eigenM = p_model%compute_n2_righteigenvector(
+     $              bf_nodes1(indices_eigen(1),indices_eigen(2),:))
+
+            case default
+               print '(''bf_newgrdpt_class'')'
+               print '(''compute_newgrdpt_xy'')'
+               print '(''direction not recognized: '', I2)', n_direction
+               stop ''
+
+          end select
+
+
+          !7) determine the characteristic amplitude
+          select case(n_direction)
+            case(n1_direction)
+
+               n2_0 = n2_1
+
+               do k=1,ne
+                  
+                 !7.1) determine the position where the characteristic
+                 !     amplitude should be estimated
+                 n1_0 = n1_1 - eigenvalues_n(k)*dt
+
+
+                 !7.2) determine the normal and transverse contributions of
+                 !     the hyperbolic terms to the characteristic amplitude
+                 if(side_x.eq.right) then
+
+                    if(eigenvalues_n(k).ge.0) then
+                   
+                       n_amp0 = interpolate_2D(n1_0, n2_0, inter_nodes0)
+                       t_amp0 = interpolate_2D(n1_0, n2_0, inter_trans0)
+                       
+                    else
+
+                       x0 = get_x_coord(n1_0,n2_0)
+                       y0 = get_y_coord(n1_0,n2_0)
+
+                       n_amp0 = p_model%get_far_field(t,x0,y0)
+                       t_amp0 = [0.0d0,0.0d0,0.0d0]
+                       
+                    end if
+                    
+                 else
+                    
+                    if(eigenvalues_x(k).gt.0) then
+
+                       x0 = get_x_coord(n1_0,n2_0)
+                       y0 = get_y_coord(n1_0,n2_0)
+
+                       n_amp0 = p_model%get_far_field(t,x0,y0)
+                       t_amp0 = [0.0d0,0.0d0,0.0d0]
+
+                    else
+
+                       n_amp0 = interpolate_2D(n1_0, n2_0, inter_nodes0)
+                       t_amp0 = interpolate_2D(n1_0, n2_0, inter_trans0)
+
+                    end if
+                 end if
+
+
+                 !7.3) combine the information on the nodes at t-dt and the approximation
+                 !     of the integration of the transverse terms from t-dt to t
+                 amp =
+     $                n_amp0 -
+     $                compute_NewtonCotes_integration(t_amp0, t_amp1, dt)
+
+                 
+                 !7.4) compute the scalar product of the left eigenvector corresponding
+                 !     to the eigenvalue with the characteristic amplitude
+                 char_amp(k) = DOT_PRODUCT(amp,left_eigenM(:,k))
+                 
+              end do
+
+           case(n2_direction)
+
+              n1_0 = n1_1
+
+              do k=1,ne
+                 
+                 !7.1) determine the position where the characteristic
+                 !     amplitude should be estimated
+                 n2_0 = n2_1 - eigenvalues_n(k)*dt
+
+
+                 !7.2) determine the normal and transverse contributions of
+                 !     the hyperbolic terms to the characteristic amplitude
+                 if(side_x.eq.right) then
+
+                    if(eigenvalues_n(k).ge.0) then
+                       
+                       n_amp0 = interpolate_2D(n1_0, n2_0, inter_nodes0)
+                       t_amp0 = interpolate_2D(n1_0, n2_0, inter_trans0)
+                       
+                    else
+
+                       x0 = get_x_coord(n1_0,n2_0)
+                       y0 = get_y_coord(n1_0,n2_0)
+
+                       n_amp0 = p_model%get_far_field(t,x0,y0)
+                       t_amp0 = [0.0d0,0.0d0,0.0d0]
+                       
+                    end if
+                    
+                 else
+                    
+                    if(eigenvalues_x(k).gt.0) then
+
+                       x0 = get_x_coord(n1_0,n2_0)
+                       y0 = get_y_coord(n1_0,n2_0)
+
+                       n_amp0 = p_model%get_far_field(t,x0,y0)
+                       t_amp0 = [0.0d0,0.0d0,0.0d0]
+
+                    else
+
+                       n_amp0 = interpolate_2D(n1_0, n2_0, inter_nodes0)
+                       t_amp0 = interpolate_2D(n1_0, n2_0, inter_trans0)
+
+                    end if
+                 end if
+
+
+                 !7.3) combine the information on the nodes at t-dt and the approximation
+                 !     of the integration of the transverse terms from t-dt to t
+                 amp =
+     $                n_amp0 -
+     $                compute_NewtonCotes_integration(t_amp0, t_amp1, dt)
+
+                 
+                 !7.4) compute the scalar product of the left eigenvector corresponding
+                 !     to the eigenvalue with the characteristic amplitude
+                 char_amp(k) = DOT_PRODUCT(amp,left_eigenM(:,k))
+                 
+              end do
+
+             case default
+                print '(''bf_newgrdpt_class'')'
+                print '(''compute_newgrdpt_xy'')'
+                print '(''direction not recognized: ''I2)', n_direction
+                stop ''
+
+           end select
+
+
+          !9) determine the new grid point
+          bf_nodes1(i1,j1,:) = MATMUL(char_amp,right_eigenM)
+
+
+        end subroutine compute_newgrdpt_xy
+
+
+        !compute the contribution of the transverse terms
+        !at the location of the interpolation points
+        subroutine get_n_transverse_data_for_interpolation(
+     $     p_model,
+     $     bf_nodes,
+     $     inter_indices,
+     $     n_direction,
+     $     gradient_n_index1,
+     $     gradient_n_index2,
+     $     gradient_n_index3,
+     $     dx,dy,
+     $     nodes_inter)
+
+          implicit none
+
+          type(pmodel_eq)                  , intent(in)  :: p_model
+          real(rkind)    , dimension(:,:,:), intent(in)  :: bf_nodes
+          integer(ikind) , dimension(2,3)  , intent(in)  :: inter_indices
+          integer                          , intent(in)  :: n_direction
+          procedure(gradient_n_proc)       , intent(in)  :: gradient_n_index1
+          procedure(gradient_n_proc)       , intent(in)  :: gradient_n_index2
+          procedure(gradient_n_proc)       , intent(in)  :: gradient_n_index3
+          real(rkind)                      , intent(in)  :: dx
+          real(rkind)                      , intent(in)  :: dy
+          real(rkind)    , dimension(3,ne) , intent(out) :: nodes_inter
+
+          
+          real(rkind) :: dn
+          integer     :: k
+          
+
+          select case(n_direction)
+            case(n1_direction)
+               
+               dn = get_dn2(dx,dy)
+
+               !compute the transverse terms along the n2 direction at the grid point 1
+               k=1
+               nodes_inter(1,:) = MATMUL(
+     $                 p_model%compute_n_gradient(
+     $                        bf_nodes,
+     $                        inter_indices(1,k),
+     $                        inter_indices(2,k),
+     $                        gradient_n_index1,
+     $                        dn),
+     $                 p_model%compute_n1_transM(
+     $                        bf_nodes(
+     $                        inter_indices(1,k),
+     $                        inter_indices(2,k),:)))
+
+               !compute the transverse terms along the n2 direction at the grid point 2
+               k=2
+               nodes_inter(1,:) = MATMUL(
+     $                 p_model%compute_n_gradient(
+     $                        bf_nodes,
+     $                        inter_indices(1,k),
+     $                        inter_indices(2,k),
+     $                        gradient_n_index2,
+     $                        dn),
+     $                 p_model%compute_n1_transM(
+     $                        bf_nodes(
+     $                        inter_indices(1,k),
+     $                        inter_indices(2,k),:)))
+
+               !compute the transverse terms along the n3 direction at the grid point 3
+               k=3
+               nodes_inter(1,:) = MATMUL(
+     $                 p_model%compute_n_gradient(
+     $                        bf_nodes,
+     $                        inter_indices(1,k),
+     $                        inter_indices(2,k),
+     $                        gradient_n_index3,
+     $                        dn),
+     $                 p_model%compute_n1_transM(
+     $                        bf_nodes(
+     $                        inter_indices(1,k),
+     $                        inter_indices(2,k),:)))
+
+             case(n2_direction)
+               
+               dn = get_dn1(dx,dy)
+
+               !compute the transverse terms along the n1 direction at the grid point 1
+               k=1
+               nodes_inter(1,:) = MATMUL(
+     $                 p_model%compute_n_gradient(
+     $                        bf_nodes,
+     $                        inter_indices(1,k),
+     $                        inter_indices(2,k),
+     $                        gradient_n_index1,
+     $                        dn),
+     $                 p_model%compute_n2_transM(
+     $                        bf_nodes(
+     $                        inter_indices(1,k),
+     $                        inter_indices(2,k),:)))
+
+               !compute the transverse terms along the n1 direction at the grid point 2
+               k=2
+               nodes_inter(1,:) = MATMUL(
+     $                 p_model%compute_n_gradient(
+     $                        bf_nodes,
+     $                        inter_indices(1,k),
+     $                        inter_indices(2,k),
+     $                        gradient_n_index2,
+     $                        dn),
+     $                 p_model%compute_n2_transM(
+     $                        bf_nodes(
+     $                        inter_indices(1,k),
+     $                        inter_indices(2,k),:)))
+
+               !compute the transverse terms along the n1 direction at the grid point 3
+               k=3
+               nodes_inter(1,:) = MATMUL(
+     $                 p_model%compute_n_gradient(
+     $                        bf_nodes,
+     $                        inter_indices(1,k),
+     $                        inter_indices(2,k),
+     $                        gradient_n_index2,
+     $                        dn),
+     $                 p_model%compute_n2_transM(
+     $                        bf_nodes(
+     $                        inter_indices(1,k),
+     $                        inter_indices(2,k),:)))
+
+            case default
+               print '(''compute_newgrdpt_xy'')'
+               print '(''direction not recognized: '',I2)', n_direction
+               stop ''
+
+          end select
+
+        end subroutine get_n_transverse_data_for_interpolation
 
 
         !> @author

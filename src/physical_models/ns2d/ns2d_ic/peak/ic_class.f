@@ -24,7 +24,8 @@
 
         use parameters_constant, only :
      $       x_direction,
-     $       y_direction
+     $       y_direction,
+     $       xy_direction
 
         use parameters_input, only :
      $       flow_direction
@@ -39,10 +40,12 @@
         public :: ic
 
 
-        real(rkind) :: u0_x_flow = 1.0d0
-        real(rkind) :: u0_y_flow = 0.0d0
-        real(rkind) :: v0_x_flow = 0.0d0
-        real(rkind) :: v0_y_flow = 1.0d0
+        real(rkind) :: u0_x_flow  = 1.0d0
+        real(rkind) :: u0_y_flow  = 0.0d0
+        real(rkind) :: u0_xy_flow = 0.5d0*SQRT(2.0d0)
+        real(rkind) :: v0_x_flow  = 0.0d0
+        real(rkind) :: v0_y_flow  = 1.0d0
+        real(rkind) :: v0_xy_flow = 0.5d0*SQRT(2.0d0)
 
 
         !> @class ic
@@ -140,6 +143,10 @@
                u0_mean_flow = u0_y_flow
                v0_mean_flow = v0_y_flow
 
+            case(xy_direction)
+               u0_mean_flow = u0_xy_flow
+               v0_mean_flow = v0_xy_flow
+
             case default
                print '(''ns2d_ic'')'
                print '(''ic_class/peak/apply_ic'')'
@@ -194,6 +201,9 @@
             case(y_direction)
                var = u0_y_flow*mach_infty/Sqrt(u0_y_flow**2+v0_y_flow**2)
                
+            case(xy_direction)
+               var = u0_xy_flow*mach_infty/Sqrt(u0_xy_flow**2+v0_xy_flow**2)
+
             case default
                print '(''ns2d_ic'')'
                print '(''ic_class/peak/get_mach_ux_infty'')'
@@ -226,6 +236,9 @@
                
             case(y_direction)
                var = v0_y_flow*mach_infty/Sqrt(u0_y_flow**2+v0_y_flow**2)
+
+            case(xy_direction)
+               var = v0_xy_flow*mach_infty/Sqrt(u0_xy_flow**2+v0_xy_flow**2)
 
             case default
                print '(''ns2d_ic'')'
@@ -265,6 +278,9 @@
             case(y_direction)
                var = u0_y_flow
 
+            case(xy_direction)
+               var = u0_xy_flow
+
             case default
                print '(''ns2d_ic'')'
                print '(''ic_class/peak/get_u_in'')'
@@ -302,6 +318,9 @@
 
             case(y_direction)
                var = v0_y_flow
+
+            case(xy_direction)
+               var = v0_xy_flow
 
             case default
                print '(''ns2d_ic'')'

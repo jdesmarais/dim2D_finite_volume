@@ -23,7 +23,7 @@ config_dir = $(AUGEANSTABLES_CONFIG)
 dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 
 sd_choice = mt_choice            #space discretization choice
-pm_choice = wave2d_choice        #physical model choice
+pm_choice = ns2d_choice          #physical model choice
 ic_choice = vortex               #initial conditions choice
 bc_choice = yoolodato_xy_choice  #boundary condition choice
 td_choice = finitevolume_choice  #time discretization choice

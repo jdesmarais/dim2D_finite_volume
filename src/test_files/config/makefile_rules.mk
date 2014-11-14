@@ -114,6 +114,14 @@ test:
 	@(echo 'LIBS:    ' $(LIBS))
 	@(echo '')
 
+	@(echo 'sd_choice: ' $(sd_choice))
+	@(echo 'pm_choice: ' $(pm_choice))
+	@(echo 'ic_choice: ' $(ic_choice))
+	@(echo 'bc_choice: ' $(bc_choice))
+	@(echo 'td_choice: ' $(td_choice))
+	@(echo 'ti_choice: ' $(ti_choice))
+	@(echo 'io_choice: ' $(io_choice))
+
 	@(echo $(test_dir))
 
 tests:	test_field\
