@@ -1,3 +1,16 @@
+      !> @file
+      !> main subroutines to compute the new grid points after extension
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> class encapsulating the main subroutines computing the new grid
+      !> points after the computational domain extension
+      !
+      !> @date
+      !> 14_11_2014 - initial version         - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_newgrdpt_class
 
         use bf_layer_newgrdpt_procedure_module, only :
@@ -25,8 +38,27 @@
         private
         public :: bf_newgrdpt
 
-        !object encapsulating the subroutines for the computation of
-        !the newgrid points
+
+        !>@class bf_compute
+        !> class encapsulating the main subroutines to compute the
+        !> new gridpoints after the computational domain extension
+        !
+        !>@param compute_newgrdpt_x
+        !> compute a new grid point obtained by extension in the
+        !> x-direction
+        !
+        !>@param get_interpolation_coeff_1D
+        !> get the interpolation coefficients for a 1st order polynomial
+        !> function
+        !
+        !>@param interpolate_1D
+        !> make use of the interpolation coefficients to interpolate the
+        !> grid points data
+        !
+        !>@param compute_NewtonCotes_integration
+        !> perform Newton-Cotes integration to integrate the data between
+        !> two grid points
+        !---------------------------------------------------------------
         type :: bf_newgrdpt
 
           contains
@@ -41,28 +73,59 @@
 
         contains
 
-
-        !p_model       : physical model
-        !dt            : time step
-        !              
-        !bf_align0     : alignment of the buffer layer at t=t-dt
-        !bf_x_map0     : x-coordinates of the buffer layer at t=t-dt
-        !bf_y_map0     : y-coordinates of the buffer layer at t=t-dt
-        !bf_nodes0     : nodes of the buffer layer at t=t-dt
+        !> @author
+        !> Julien L. Desmarais
         !
-        !bf_align1     : alignment of the buffer layer at t=t
-        !bf_x_map1     : x-coordinates of the buffer layer at t=t
-        !bf_y_map1     : y-coordinates of the buffer layer at t=t
-        !bf_nodes1     : nodes of the buffer layer at t=t
+        !> @brief
+        !> compute the new grid point obtained by extension of the
+        !> computational domain in the x-direction
+        !
+        !> @date
+        !> 14_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> physical model
+        !
+        !>@param dt
+        !> time step
         !              
-        !i1            : x-index identifying the new grdpt at t=t
-        !j1            : y-index identifying the new grdpt at t=t
+        !>@param bf_align0
+        !> alignment of the buffer layer at t=t-dt
+        !
+        !>@param bf_x_map0
+        !> x-coordinates of the buffer layer at t=t-dt
+        !
+        !>@param bf_y_map0
+        !> y-coordinates of the buffer layer at t=t-dt
+        !
+        !>@param bf_nodes0
+        !> nodes of the buffer layer at t=t-dt
+        !
+        !>@param bf_align1
+        !> alignment of the buffer layer at t=t
+        !
+        !>@param bf_x_map1
+        !> x-coordinates of the buffer layer at t=t
+        !
+        !>@param bf_y_map1
+        !> y-coordinates of the buffer layer at t=t
+        !
+        !>@param bf_nodes1
+        !> nodes of the buffer layer at t=t
         !              
-        !side_x        : logical identifying the type of boundary
-        !                (E or W)
-        !gradient_type : integer identifying the type of gradient
-        !                to apply for the transverse terms
-        !-----------------------------------------------------------------
+        !>@param i1
+        !> x-index identifying the new grdpt at t=t
+        !
+        !>@param j1
+        !> y-index identifying the new grdpt at t=t
+        !              
+        !>@param side_x
+        !> logical identifying the type of boundary (E or W)
+        !
+        !>@param gradient_y
+        !> gradient procedure applied to compute the
+        !> the transverse terms
+        !--------------------------------------------------------------
         subroutine compute_newgrdpt_x(
      $       p_model, t, dt,
      $       bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
@@ -273,8 +336,26 @@
         end subroutine compute_newgrdpt_x
 
 
-        !get the interpolation coefficients for a 1st order polynomial
-        !fit
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the interpolation coefficients for a 1st order
+        !> polynomial fit: get (a,b) such that:
+        !> a*x_map(1)+b = nodes(1,k)
+        !
+        !> @date
+        !> 14_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param x_map
+        !> x-coordinates
+        !
+        !>@param nodes
+        !> interpolation points
+        !              
+        !>@return inter_coeff
+        !> (a,b) for each governing variable
+        !--------------------------------------------------------------
         function get_interpolation_coeff_1D(x_map,nodes)
      $     result(inter_coeff)
         
@@ -296,7 +377,25 @@
         end function get_interpolation_coeff_1D
 
 
-        !interpolate in 1D using a 1st order approximation
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> from the coefficients (a,b) for each governing variable
+        !> compute ax+b
+        !
+        !> @date
+        !> 14_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param inter_coeff
+        !> coefficients (a,b) for each governing variable
+        !              
+        !>@return nodes_inter
+        !> nodes interpolated at x
+        !--------------------------------------------------------------
         function interpolate_1D(
      $     x,
      $     inter_coeff)
@@ -317,8 +416,27 @@
         end function interpolate_1D
 
 
-        !integrate a function between two points using Newton-Cotes
-        !approximation
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> integrate a function between two points using Newton-Cotes
+        !
+        !> @date
+        !> 14_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param data0
+        !> data at t=t0
+        !
+        !>@param data1
+        !> data at t=t1
+        !              
+        !>@param dt
+        !> time step dt=t1-t0
+        !              
+        !>@return data_integrated
+        !> integration from data0 to data1
+        !--------------------------------------------------------------
         function compute_NewtonCotes_integration(data0,data1,dt)
      $     result(data_integrated)
 
