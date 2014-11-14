@@ -17,6 +17,7 @@
      $       pmodel_eq
 
         use sd_operators_fd_module, only :
+     $       gradient_x_x_oneside_R0,
      $       gradient_y_y_oneside_R0
 
         use wave2d_parameters, only :
@@ -58,6 +59,10 @@
         !test of compute_newgrdpt_x
         test_validated = test_compute_newgrdpt_x(bf_newgrdpt_used,detailled)
         print '(''test_compute_newgrdpt_x: '', L1)', test_validated
+
+        !test of compute_newgrdpt_y
+        test_validated = test_compute_newgrdpt_y(bf_newgrdpt_used,detailled)
+        print '(''test_compute_newgrdpt_y: '', L1)', test_validated
 
         contains
 
@@ -290,6 +295,106 @@
           end do
 
         end function test_compute_newgrdpt_x
+
+
+        function test_compute_newgrdpt_y(bf_newgrdpt_used, detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          class(bf_newgrdpt), intent(in) :: bf_newgrdpt_used
+          logical           , intent(in) :: detailled
+          logical                        :: test_validated
+
+          type(pmodel_eq)                :: p_model
+          real(rkind)                    :: t
+          real(rkind)                    :: dt
+          
+          integer(ikind), dimension(2,2) :: bf_align0
+          real(rkind), dimension(2)      :: bf_x_map0
+          real(rkind), dimension(3)      :: bf_y_map0
+          real(rkind), dimension(2,3,ne) :: bf_nodes0
+
+          integer(ikind), dimension(2,2) :: bf_align1
+          real(rkind), dimension(2)      :: bf_x_map1
+          real(rkind), dimension(3)      :: bf_y_map1
+          real(rkind), dimension(2,3,ne) :: bf_nodes1
+
+          real(rkind), dimension(ne)     :: newgrdpt_data
+          integer(ikind)                 :: i1
+          integer(ikind)                 :: j1
+          logical                        :: side_y
+
+          integer                        :: k
+          logical                        :: test_loc
+          
+
+          test_validated = .true.
+
+          !initialization of the inputs
+          t=0.0d0
+          dt=0.25d0
+          
+          bf_align0(2,1) = 0
+          bf_x_map0 = [0.25d0,0.5d0]
+          bf_y_map0 = [0.5d0,1.5d0,2.5d0]
+          bf_nodes0 = reshape((/
+     $         1.0d0, 0.5d0,
+     $         2.0d0,-0.5d0,
+     $         3.0d0, 1.25d0,
+     $         2.05d0,9.26d0,
+     $         -8.25d0,7.85d0,
+     $         3.26d0,9.23d0,
+     $         0.25d0,0.1d0,
+     $         -0.75d0,-0.45d0,
+     $         3.26d0,6.15d0
+     $         /),
+     $         (/2,3,ne/))
+
+          bf_align1(2,1) = 1
+          bf_x_map1 = [0.25d0,0.5d0]
+          bf_y_map1 = [1.5d0,2.5d0,3.5d0]
+          bf_nodes1 = reshape((/
+     $         1.0d0,0.5d0,
+     $         2.45d0,-0.26d0,
+     $         3.0d0,2.25d0,
+     $         2.05d0,9.26d0,
+     $         -2.15d0,7.85d0,
+     $         3.26d0,6.23d0,
+     $         0.25d0,0.1d0,
+     $         -0.75d0,-8.52d0,
+     $         3.26d0,7.15d0
+     $         /),
+     $         (/2,3,ne/))
+
+          i1 = 2
+          j1 = 3
+
+          side_y = right
+
+          !tested data
+          newgrdpt_data = [-3.345117188d0,9.87d0,4.943867188d0]
+
+          !test
+          call bf_newgrdpt_used%compute_newgrdpt_y(
+     $         p_model, t,dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1, side_y, gradient_x_x_oneside_R0)
+
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            bf_nodes1(i1,j1,k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+        end function test_compute_newgrdpt_y
 
         
         function is_test_validated(var,cst,detailled) result(test_validated)
