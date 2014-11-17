@@ -43,7 +43,8 @@
      $       gradient_I_type,
      $       gradient_L0_type,
      $       gradient_R0_type,
-     $       get_newgrdpt_procedure
+     $       get_newgrdpt_procedure,
+     $       error_gradient_type
 
 
         integer, parameter :: no_gradient_type=0
@@ -656,5 +657,24 @@
           end do
 
         end subroutine error_newgrdpt_procedure
+
+
+        subroutine error_gradient_type(
+     $     module_name,
+     $     subroutine_name,
+     $     gradient_type)
+
+          implicit none
+
+          character(*), intent(in) :: module_name
+          character(*), intent(in) :: subroutine_name
+          integer     , intent(in) :: gradient_type
+
+          print *, module_name
+          print *, subroutine_name
+          print '(''gradient_type not recognized: '',I2)', gradient_type
+          stop ''
+
+        end subroutine error_gradient_type
 
       end module bf_layer_newgrdpt_procedure_module

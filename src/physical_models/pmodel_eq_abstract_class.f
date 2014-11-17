@@ -174,6 +174,8 @@
 
           procedure(eigenvect_proc)  , nopass, deferred :: compute_x_transM
           procedure(eigenvect_proc)  , nopass, deferred :: compute_y_transM
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_n1_transM
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_n2_transM
 
           procedure(farfield_proc)   ,   pass, deferred :: get_far_field
 

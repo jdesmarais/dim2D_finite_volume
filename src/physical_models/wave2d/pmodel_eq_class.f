@@ -16,7 +16,8 @@
       
         use interface_primary, only :
      $     gradient_x_proc,
-     $     gradient_y_proc
+     $     gradient_y_proc,
+     $     gradient_n_proc
 
         use parameters_bf_layer, only :
      $       bc_interior_pt,
@@ -44,12 +45,13 @@
      $       sd_operators
 
         use wave2d_ncoords_module, only :
-     $       compute_n_gradient_wave2d,
      $       compute_n_eigenvalues_wave2d,
      $       compute_n1_lefteigenvector_wave2d,
      $       compute_n1_righteigenvector_wave2d,
      $       compute_n2_lefteigenvector_wave2d,
-     $       compute_n2_righteigenvector_wave2d
+     $       compute_n2_righteigenvector_wave2d,
+     $       compute_n1_transM_wave2d,
+     $       compute_n2_transM_wave2d
 
         use wave2d_parameters, only :
      $       c,
@@ -155,12 +157,14 @@
 
           procedure, nopass :: compute_x_transM
           procedure, nopass :: compute_y_transM
+          procedure, nopass :: compute_n1_transM => compute_n1_transM_wave2d
+          procedure, nopass :: compute_n2_transM => compute_n2_transM_wave2d
 
           procedure,   pass :: get_far_field
 
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
-          procedure, nopass :: compute_n_gradient => compute_n_gradient_wave2d
+          procedure, nopass :: compute_n_gradient
 
         end type pmodel_eq
 
@@ -1576,6 +1580,58 @@ c$$$          end if
           grad_var(2) = gradient(nodes,i,j,velocity_x,dy)
           grad_var(3) = gradient(nodes,i,j,velocity_y,dy)
 
-        end function compute_y_gradient        
+        end function compute_y_gradient
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface for the computation of the gradient of the
+        !> governing variables in the (x-y)-direction
+        !
+        !> @date
+        !> 17_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> integer identifying the index in the x-direction
+        !
+        !>@param j
+        !> integer identifying the index in the y-direction
+        !
+        !>@param gradient
+        !> procedure used to compute the gradient along the
+        !> diagonal direction
+        !
+        !>@param dx
+        !> grid space step along the x-axis
+        !
+        !>@param dy
+        !> grid space step along the y-axis
+        !
+        !>@return grad_var
+        !> gradient of the governing variables along the x-axis
+        !--------------------------------------------------------------
+        function compute_n_gradient(nodes,i,j,gradient,dx,dy) result(grad_var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(gradient_n_proc)                :: gradient
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind), dimension(ne)                :: grad_var
+
+
+          grad_var(1) = gradient(nodes,i,j,position  ,dx,dy)
+          grad_var(2) = gradient(nodes,i,j,velocity_x,dx,dy)
+          grad_var(3) = gradient(nodes,i,j,velocity_y,dx,dy)
+
+        end function compute_n_gradient
 
       end module pmodel_eq_class

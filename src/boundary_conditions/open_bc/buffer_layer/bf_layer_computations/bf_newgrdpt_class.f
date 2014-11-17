@@ -13,10 +13,30 @@
       !-----------------------------------------------------------------
       module bf_newgrdpt_class
 
+        use bf_layer_bc_procedure_module, only : 
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       NE_edge_type,
+     $       NW_edge_type,
+     $       SE_edge_type,
+     $       SW_edge_type,
+     $       NE_corner_type,
+     $       NW_corner_type,
+     $       SE_corner_type,
+     $       SW_corner_type
+
         use bf_layer_newgrdpt_procedure_module, only :
-     $       no_gradient_type,
+     $       gradient_I_type,
      $       gradient_L0_type,
-     $       gradient_R0_type
+     $       gradient_R0_type,
+     $       error_gradient_type
+
+        use interface_primary, only :
+     $       gradient_x_proc,
+     $       gradient_y_proc,
+     $       gradient_n_proc
 
         use n_coords_module, only :
      $       get_x_coord,
@@ -24,8 +44,13 @@
      $       get_n1_coord,
      $       get_n2_coord
 
+        use openbc_operators_module, only :
+     $       incoming_proc        
+
         use parameters_constant, only :
-     $       left, right, x_direction, y_direction
+     $       left, right,
+     $       x_direction, y_direction,
+     $       n1_direction, n2_direction
 
         use parameters_input, only :
      $       nx,ny,ne
@@ -34,11 +59,29 @@
      $       ikind, rkind
 
         use pmodel_eq_class, only :
-     $       pmodel_eq
+     $       pmodel_eq        
 
-        use interface_primary, only :
-     $       gradient_x_proc,
-     $       gradient_y_proc
+        use sd_operators_fd_module, only :
+     $       gradient_x_interior,
+     $       gradient_y_interior,
+     $       gradient_x_x_oneside_L0,
+     $       gradient_x_x_oneside_R0,
+     $       gradient_y_y_oneside_L0,
+     $       gradient_y_y_oneside_R0
+
+        use sd_operators_fd_n_module, only :
+     $       gradient_n2_xL0_yL0,
+     $       gradient_n2_xL1_yL0,
+     $       gradient_n2_xL0_yL1,
+     $       gradient_n1_xR1_yL0,
+     $       gradient_n1_xR0_yL0,
+     $       gradient_n1_xR0_yL1,
+     $       gradient_n1_xL0_yR1,
+     $       gradient_n1_xL0_yR0,
+     $       gradient_n1_xL1_yR0,
+     $       gradient_n2_xR0_yR1,
+     $       gradient_n2_xR1_yR0,
+     $       gradient_n2_xR0_yR0
 
         implicit none
 
@@ -70,6 +113,8 @@
 
           contains
 
+          procedure, nopass :: compute_newgrdpt
+
           procedure, nopass :: compute_newgrdpt_x
           procedure, nopass :: compute_newgrdpt_y
           procedure, nopass :: compute_newgrdpt_xy
@@ -86,6 +131,299 @@
 
 
         contains
+
+
+        subroutine compute_newgrdpt(
+     $       p_model, t, dt,
+     $       bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $       bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $       i1,j1,
+     $       procedure_type, gradient_type)
+
+          implicit none
+
+          type(pmodel_eq)                    , intent(in)    :: p_model
+          real(rkind)                        , intent(in)    :: t
+          real(rkind)                        , intent(in)    :: dt
+          integer(ikind), dimension(2,2)     , intent(in)    :: bf_align0
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map0
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map0
+          real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes0
+          integer(ikind), dimension(2,2)     , intent(in)    :: bf_align1
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map1
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map1
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: bf_nodes1
+          integer(ikind)                     , intent(in)    :: i1
+          integer(ikind)                     , intent(in)    :: j1
+          integer                            , intent(in)    :: procedure_type
+          integer                            , intent(in)    :: gradient_type
+
+          integer                        :: n_direction
+          logical                        :: side
+          integer(ikind), dimension(2)   :: eigen_indices
+          integer(ikind), dimension(2,3) :: inter_indices1
+
+
+          select case(procedure_type)
+          
+            case(SW_corner_type)
+               
+               n_direction         = n2_direction
+               side                = left
+               eigen_indices       = [i1+1,j1+1]
+               inter_indices1(:,1) = [i1+1,j1+1]
+               inter_indices1(:,2) = [i1+2,j1+1]
+               inter_indices1(:,3) = [i1+1,j1+2]
+
+               call compute_newgrdpt_xy(
+     $              p_model, t, dt,
+     $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $              i1,j1,
+     $              n_direction,
+     $              side,
+     $              gradient_n2_xL0_yL0,
+     $              gradient_n2_xL1_yL0,
+     $              gradient_n2_xL0_yL1,
+     $              eigen_indices,
+     $              inter_indices1)
+
+
+            case(SE_corner_type)
+
+               n_direction         = n1_direction
+               side                = right
+               eigen_indices       = [i1-1,j1+1]
+               inter_indices1(:,1) = [i1-2,j1+1]
+               inter_indices1(:,2) = [i1-1,j1+1]
+               inter_indices1(:,3) = [i1-1,j1+2]
+
+               call compute_newgrdpt_xy(
+     $              p_model, t, dt,
+     $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $              i1,j1,
+     $              n_direction,
+     $              side,
+     $              gradient_n1_xR1_yL0,
+     $              gradient_n1_xR0_yL0,
+     $              gradient_n1_xR0_yL1,
+     $              eigen_indices,
+     $              inter_indices1)
+
+
+            case(NW_corner_type)
+
+               n_direction         = n1_direction
+               side                = left
+               eigen_indices       = [i1+1,j1-1]
+               inter_indices1(:,1) = [i1+1,j1-2]
+               inter_indices1(:,2) = [i1+1,j1-1]
+               inter_indices1(:,3) = [i1+2,j1-1]
+
+               call compute_newgrdpt_xy(
+     $              p_model, t, dt,
+     $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $              i1,j1,
+     $              n_direction,
+     $              side,
+     $              gradient_n1_xL0_yR1,
+     $              gradient_n1_xL0_yR0,
+     $              gradient_n1_xL1_yR0,
+     $              eigen_indices,
+     $              inter_indices1)
+
+
+            case(NE_corner_type)
+
+               n_direction         = n2_direction
+               side                = right
+               eigen_indices       = [i1-1,j1-1]
+               inter_indices1(:,1) = [i1-1,j1-2]
+               inter_indices1(:,2) = [i1-2,j1-1]
+               inter_indices1(:,3) = [i1-1,j1-1]
+
+               call compute_newgrdpt_xy(
+     $              p_model, t, dt,
+     $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $              i1,j1,
+     $              n_direction,
+     $              side,
+     $              gradient_n2_xR0_yR1,
+     $              gradient_n2_xR1_yR0,
+     $              gradient_n2_xR0_yR0,
+     $              eigen_indices,
+     $              inter_indices1)
+
+
+            case(S_edge_type)
+
+               side = left
+
+               select case(gradient_type)
+
+                 case(gradient_I_type)
+
+                    call compute_newgrdpt_y(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1, side, gradient_x_interior)
+
+                 case(gradient_L0_type)
+
+                    call compute_newgrdpt_y(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1, side, gradient_x_x_oneside_L0)
+
+                 case(gradient_R0_type)
+
+                    call compute_newgrdpt_y(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1, side, gradient_x_x_oneside_R0)
+
+                 case default
+                    call error_gradient_type(
+     $                   'bf_newgrdpt_class',
+     $                   'compute_newgrdpt',
+     $                   gradient_type)
+
+               end select
+
+                    
+            case(E_edge_type)
+
+               side = right
+
+               select case(gradient_type)
+
+                 case(gradient_I_type)
+
+                    call compute_newgrdpt_x(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1, side, gradient_y_interior)
+
+                 case(gradient_L0_type)
+
+                    call compute_newgrdpt_x(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1, side, gradient_y_y_oneside_L0)
+
+                 case(gradient_R0_type)
+
+                    call compute_newgrdpt_x(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1, side, gradient_y_y_oneside_R0)
+
+                 case default
+                    call error_gradient_type(
+     $                   'bf_newgrdpt_class',
+     $                   'compute_newgrdpt',
+     $                   gradient_type)
+
+               end select
+
+
+            case(W_edge_type)
+
+               side = left
+
+               select case(gradient_type)
+
+                 case(gradient_I_type)
+
+                    call compute_newgrdpt_x(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1, side, gradient_y_interior)
+
+                 case(gradient_L0_type)
+
+                    call compute_newgrdpt_x(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1, side, gradient_y_y_oneside_L0)
+
+                 case(gradient_R0_type)
+
+                    call compute_newgrdpt_x(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1, side, gradient_y_y_oneside_R0)
+
+                 case default
+                    call error_gradient_type(
+     $                   'bf_newgrdpt_class',
+     $                   'compute_newgrdpt',
+     $                   gradient_type)
+
+               end select
+
+
+            case(N_edge_type)
+
+               side = right
+
+               select case(gradient_type)
+
+                 case(gradient_I_type)
+
+                    call compute_newgrdpt_y(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1, side, gradient_x_interior)
+
+                 case(gradient_L0_type)
+
+                    call compute_newgrdpt_y(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1, side, gradient_x_x_oneside_L0)
+
+                 case(gradient_R0_type)
+
+                    call compute_newgrdpt_y(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1, side, gradient_x_x_oneside_R0)
+
+                 case default
+                    call error_gradient_type(
+     $                   'bf_newgrdpt_class',
+     $                   'compute_newgrdpt',
+     $                   gradient_type)
+
+               end select
+
+
+            case default
+               print '(''bf_newgrdpt_class'')'
+               print '(''compute_newgrdpt'')'
+               print '(''procedure_type not recognized: '',I2)', procedure_type
+               stop ''
+
+          end select
+
+        end subroutine compute_newgrdpt
+
 
         !> @author
         !> Julien L. Desmarais
@@ -164,7 +502,7 @@
           logical                            , intent(in)    :: side_x
           procedure(gradient_y_proc)                         :: gradient_y
 
-          integer                       :: k
+          integer                       :: k,l
           
           integer                       :: dir, dir2
           integer(ikind)                :: i_eigen
@@ -308,7 +646,9 @@
                 else
 
                    n_amp0 = p_model%get_far_field(t,x0,y0)
-                   t_amp0 = [0.0d0,0.0d0,0.0d0]
+                   do l=1,ne
+                      t_amp0(l) = 0.0d0
+                   end do
 
                 end if
 
@@ -317,7 +657,9 @@
                 if(eigenvalues_x(k).gt.0) then
 
                    n_amp0 = p_model%get_far_field(t,x0,y0)
-                   t_amp0 = [0.0d0,0.0d0,0.0d0]
+                   do l=1,ne
+                      t_amp0(l) = 0.0d0
+                   end do
 
                 else
 
@@ -430,7 +772,7 @@
           logical                            , intent(in)    :: side_y
           procedure(gradient_x_proc)                         :: gradient_x
 
-          integer                       :: k
+          integer                       :: k,l
           
           integer                       :: dir, dir2
           integer(ikind)                :: j_eigen
@@ -573,7 +915,9 @@
                 else
 
                    n_amp0 = p_model%get_far_field(t,x0,y0)
-                   t_amp0 = [0.0d0,0.0d0,0.0d0]
+                   do l=1,ne
+                      t_amp0(l) = 0.0d0
+                   end do
 
                 end if
 
@@ -582,7 +926,9 @@
                 if(eigenvalues_y(k).gt.0) then
 
                    n_amp0 = p_model%get_far_field(t,x0,y0)
-                   t_amp0 = [0.0d0,0.0d0,0.0d0]
+                   do l=1,ne
+                      t_amp0(l) = 0.0d0
+                   end do
 
                 else
 
@@ -662,13 +1008,36 @@
         !
         !>@param j1
         !> y-index identifying the new grdpt at t=t
-        !              
-        !>@param side_x
-        !> logical identifying the type of boundary (E or W)
+        !             
+        !>@param j1
+        !> y-index identifying the new grdpt at t=t
+        !             
+        !>@param n_direction
+        !> integer identifying whether the vector normal to the
+        !> boundary is located along the n1- or n2- direction
         !
-        !>@param gradient_y
-        !> gradient procedure applied to compute the
-        !> the transverse terms
+        !>@param side_n
+        !> logical determining in which direction the information
+        !> is incoming
+        !             
+        !>@param gradient_n_index1
+        !> procedure for computing the gradient at the grid point
+        !> of index1
+        !
+        !>@param gradient_n_index2
+        !> procedure for computing the gradient at the grid point
+        !> of index2
+        !
+        !>@param gradient_n_index3
+        !> procedure for computing the gradient at the grid point
+        !> of index3
+        !
+        !>@param eigen_indices
+        !> index where the eigen quantities  (eigenvalues, left
+        !> eigenvector, right eigenvector) are evaluated
+        !
+        !>@param inter_indices
+        !> indices identifying the interpolation points
         !--------------------------------------------------------------
         subroutine compute_newgrdpt_xy(
      $     p_model, t, dt,
@@ -676,8 +1045,12 @@
      $     bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
      $     i1,j1,
      $     n_direction,
-     $     incoming_proc,
-     $     interpolation_indices)
+     $     side_n,
+     $     gradient_n_index1,
+     $     gradient_n_index2,
+     $     gradient_n_index3,
+     $     eigen_indices,
+     $     inter_indices1)
 
           implicit none
 
@@ -695,15 +1068,64 @@
           integer(ikind)                     , intent(in)    :: i1
           integer(ikind)                     , intent(in)    :: j1
           integer                            , intent(in)    :: n_direction
-          procedure(incoming_proc)                           :: is_incoming
-          procedure(gradient_n_proc)         , intent(in)    :: gradient_n_index1 !procedure for computing the gradient at the grid point of index1
-          procedure(gradient_n_proc)         , intent(in)    :: gradient_n_index2 !procedure for computing the gradient at the grid point of index2
-          procedure(gradient_n_proc)         , intent(in)    :: gradient_n_index3 !procedure for computing the gradient at the grid point of index3
+          logical                            , intent(in)    :: side_n
+          procedure(gradient_n_proc)                         :: gradient_n_index1
+          procedure(gradient_n_proc)                         :: gradient_n_index2
+          procedure(gradient_n_proc)                         :: gradient_n_index3
           integer(ikind), dimension(2)       , intent(in)    :: eigen_indices
           integer(ikind), dimension(2,3)     , intent(in)    :: inter_indices1
 
-          integer                       :: k          
-          integer                       :: dir, dir2
+          
+          !x1,y1
+          !cartesian coordinates of the new grid point computed
+          !
+          !x0,y0
+          !cartesian coordinates of the grid point where the
+          !characteristic amplitude can be evaluated at t=t
+          !
+          !n1_1, n2_1
+          !(n1,n2)-coordinates of the new grid point computed
+          !at t=t+dt
+          !
+          !n1_0, n2_0
+          !(n1,n2)-coordinates of the grid point where the
+          !characteristic amplitude can be evaluated at t=t
+          !----------------------------------------------------
+          real(rkind)                   :: x1,y1
+          real(rkind)                   :: x0,y0
+          real(rkind)                   :: n1_1,n2_1
+          real(rkind)                   :: n1_0,n2_0
+          integer                       :: k,l
+
+       
+          !eigenvalues_n
+          !eigenvalues in the direction dir
+          !
+          !left_eigenM
+          !left eigenmatrix in the direction dir
+          !
+          !right_eigenM
+          !right eigenmatrix in the direction dir
+          !
+          !n_amp0
+          !normal contribution to the characteristic amplitude
+          !at t=t
+          !
+          !t_amp0
+          !transverse contribution to the characteristic amplitude
+          !at t=t
+          !
+          !t_amp1
+          !transverse contribution to the characteristic amplitude
+          !at t=t+dt
+          !
+          !amp
+          !amplitude computed as the sum of the normal and the time
+          !integration of the transverse contributions
+          !
+          !char_amp
+          !characteristic wave which is assumed constant in time
+          !----------------------------------------------------
           real(rkind), dimension(ne)    :: eigenvalues_n
           real(rkind), dimension(ne,ne) :: left_eigenM
           real(rkind), dimension(ne,ne) :: right_eigenM
@@ -713,23 +1135,71 @@
           real(rkind), dimension(ne)    :: amp
           real(rkind), dimension(ne)    :: char_amp
 
-          real(rkind)                     :: n0,n1
+
+          !inter_indices_0
+          !integer identifying the interpolation points for the
+          !computation of the new grid points on the grdpts_id
+          !array at t=t
+          !
+          !i_x_inter:
+          !index identifying the x-coordinate of the interpolation
+          !point
+          !
+          !i_y_inter:
+          !index identifying the y-coordinate of the interpolation
+          !point
+          !
+          !x_inter:
+          !x-coordinates of the interpolation point
+          !
+          !y_inter:
+          !y-coordinates of the interpolation point
+          !
+          !n1_inter:
+          !intermediate array where the n1-coordinates of
+          !the interpolation points are saved
+          !
+          !n2_inter:
+          !intermediate array where the n2-coordinates of
+          !the interpolation points are saved
+          !
+          !nodes_inter:
+          !intermediate array where the data of the
+          !interpolation points are saved
+          !
+          !inter_nodes0:
+          !interpolation coefficient for the plane by the
+          !nodes at t
+          !
+          !inter_trans0:
+          !interpolation coefficient for the plane by the
+          !transverse terms at t
+          !
+          !inter_trans1:
+          !interpolation coefficient for the plane by the
+          !transverse terms at t+dt
+          !------------------------------------------------
           integer(ikind), dimension(2,3)  :: inter_indices0
-          real(rkind)   , dimension(3)    :: n1_inter     !intermediate array where the n1-coordinates of the interpolation points are saved
-          real(rkind)   , dimension(3)    :: n2_inter     !intermediate array where the n2-coordinates of the interpolation points are saved
-          real(rkind)   , dimension(3,ne) :: nodes_inter  !intermediate array where the data of the interpolation points are saved
-          real(rkind)   , dimension(3,ne) :: inter_nodes0 !interpolation coefficient for the plane by the nodes at t
-          real(rkind)   , dimension(3,ne) :: inter_trans0 !interpolation coefficient for the plane by the transverse terms at t
-          real(rkind)   , dimension(3,ne) :: inter_trans1 !interpolation coefficient for the plane by the transverse terms at t+dt
+          integer(ikind)                  :: i_x_inter
+          integer(ikind)                  :: i_y_inter
+          real(rkind)                     :: x_inter
+          real(rkind)                     :: y_inter
+          real(rkind)   , dimension(3)    :: n1_inter     
+          real(rkind)   , dimension(3)    :: n2_inter     
+          real(rkind)   , dimension(3,ne) :: nodes_inter  
+          real(rkind)   , dimension(3,ne) :: inter_nodes0
+          real(rkind)   , dimension(3,ne) :: inter_trans0
+          real(rkind)   , dimension(3,ne) :: inter_trans1
+          real(rkind)                     :: dx,dy
 
-          !0) determine the direction
-          dir  = x_direction
-          dir2 = y_direction
 
-
-          !1) determine the (x,y)-coordinates of the new grid point computed
+          !1) determine the (x,y)-coordinates of the new grid
+          !   point computed
           x1 = bf_x_map1(i1)
-          y1 = bf_y_map(j1)
+          y1 = bf_y_map1(j1)
+
+          dx = bf_x_map1(2)-bf_x_map1(1)
+          dy = bf_y_map1(2)-bf_y_map1(1)
 
 
           !2) convert them into (n1,n2) coordinates
@@ -744,8 +1214,8 @@
           !   interpolation indices at t-dt
           do k=1, 3
              
-             inter_indices0(1,k) = bf_align1(dir,1) - bf_align0(dir,1) + inter_indices1(1,k)
-             inter_indices0(2,k) = bf_align1(dir,2) - bf_align0(dir,2) + inter_indices1(2,k)
+             inter_indices0(1,k) = bf_align1(1,1) - bf_align0(1,1) + inter_indices1(1,k)
+             inter_indices0(2,k) = bf_align1(2,1) - bf_align0(2,1) + inter_indices1(2,k)
 
           end do
 
@@ -761,15 +1231,19 @@
              x_inter          = bf_x_map0(i_x_inter)
              y_inter          = bf_y_map0(i_y_inter)
 
-             n1_inter(k)      = get_n1_coords(x_inter,y_inter)
-             n2_inter(k)      = get_n2_coords(x_inter,y_inter)
+             n1_inter(k)      = get_n1_coord(x_inter,y_inter)
+             n2_inter(k)      = get_n2_coord(x_inter,y_inter)
              nodes_inter(k,:) = bf_nodes0(i_x_inter,i_y_inter,:)
 
           end do
-          inter_nodes0 = get_interpolation_coeff_2D(n1_inter,n2_inter,nodes_inter)
+          inter_nodes0 = get_interpolation_coeff_2D(
+     $         n1_inter,
+     $         n2_inter,
+     $         nodes_inter)
 
 
-          !3.2) create the interpolation coefficients for the transverse terms
+          !3.2) create the interpolation coefficients for the
+          !     transverse terms
 
           !3.2.1) create the data at the interpolation grid points
           call get_n_transverse_data_for_interpolation(
@@ -780,13 +1254,14 @@
      $         gradient_n_index1,
      $         gradient_n_index2,
      $         gradient_n_index3,
+     $         dx,dy,
      $         nodes_inter)
           
           !3.2.2) create the interpolation plane for the
           !       contribution of the transverse term at t-dt
           inter_trans0 = get_interpolation_coeff_2D(
-     $         n1_map_inter,
-     $         n2_map_inter,
+     $         n1_inter,
+     $         n2_inter,
      $         nodes_inter)
 
 
@@ -802,8 +1277,8 @@
              x_inter          = bf_x_map1(i_x_inter)
              y_inter          = bf_y_map1(i_y_inter)
 
-             n1_inter(k)      = get_n1_coords(x_inter,y_inter)
-             n2_inter(k)      = get_n2_coords(x_inter,y_inter)
+             n1_inter(k)      = get_n1_coord(x_inter,y_inter)
+             n2_inter(k)      = get_n2_coord(x_inter,y_inter)
 
           end do
 
@@ -818,13 +1293,13 @@
      $         gradient_n_index2,
      $         gradient_n_index3,
      $         dx,dy,
-     $         nodes_inter1)
+     $         nodes_inter)
 
           !4.3) create the interpolation plane for the
           !     contribution of the transverse term at t
           inter_trans1 = get_interpolation_coeff_2D(
-     $         n1_map_inter,
-     $         n2_map_inter,
+     $         n1_inter,
+     $         n2_inter,
      $         nodes_inter)
 
           t_amp1 = interpolate_2D(n1_1,n2_1,inter_trans1)
@@ -835,23 +1310,23 @@
 
             case(n1_direction)
                eigenvalues_n = p_model%compute_n1_eigenvalues(
-     $              bf_nodes1(indices_eigen(1),indices_eigen(2),:))
+     $              bf_nodes1(eigen_indices(1),eigen_indices(2),:))
 
                left_eigenM = p_model%compute_n1_lefteigenvector(
-     $              bf_nodes1(indices_eigen(1),indices_eigen(2),:))
+     $              bf_nodes1(eigen_indices(1),eigen_indices(2),:))
 
                right_eigenM = p_model%compute_n1_righteigenvector(
-     $              bf_nodes1(indices_eigen(1),indices_eigen(2),:))
+     $              bf_nodes1(eigen_indices(1),eigen_indices(2),:))
 
             case(n2_direction)
                eigenvalues_n = p_model%compute_n2_eigenvalues(
-     $              bf_nodes1(indices_eigen(1),indices_eigen(2),:))
+     $              bf_nodes1(eigen_indices(1),eigen_indices(2),:))
 
                left_eigenM = p_model%compute_n2_lefteigenvector(
-     $              bf_nodes1(indices_eigen(1),indices_eigen(2),:))
+     $              bf_nodes1(eigen_indices(1),eigen_indices(2),:))
 
                right_eigenM = p_model%compute_n2_righteigenvector(
-     $              bf_nodes1(indices_eigen(1),indices_eigen(2),:))
+     $              bf_nodes1(eigen_indices(1),eigen_indices(2),:))
 
             case default
                print '(''bf_newgrdpt_class'')'
@@ -875,9 +1350,10 @@
                  n1_0 = n1_1 - eigenvalues_n(k)*dt
 
 
-                 !7.2) determine the normal and transverse contributions of
-                 !     the hyperbolic terms to the characteristic amplitude
-                 if(side_x.eq.right) then
+                 !7.2) determine the normal and transverse contributions
+                 !     of the hyperbolic terms to the characteristic
+                 !     amplitude
+                 if(side_n.eqv.right) then
 
                     if(eigenvalues_n(k).ge.0) then
                    
@@ -890,19 +1366,23 @@
                        y0 = get_y_coord(n1_0,n2_0)
 
                        n_amp0 = p_model%get_far_field(t,x0,y0)
-                       t_amp0 = [0.0d0,0.0d0,0.0d0]
+                       do l=1,ne
+                          t_amp0(l) = 0.0d0
+                       end do
                        
                     end if
                     
                  else
                     
-                    if(eigenvalues_x(k).gt.0) then
+                    if(eigenvalues_n(k).gt.0) then
 
                        x0 = get_x_coord(n1_0,n2_0)
                        y0 = get_y_coord(n1_0,n2_0)
 
                        n_amp0 = p_model%get_far_field(t,x0,y0)
-                       t_amp0 = [0.0d0,0.0d0,0.0d0]
+                       do l=1,ne
+                          t_amp0(l) = 0.0d0
+                       end do
 
                     else
 
@@ -913,15 +1393,17 @@
                  end if
 
 
-                 !7.3) combine the information on the nodes at t-dt and the approximation
-                 !     of the integration of the transverse terms from t-dt to t
+                 !7.3) combine the information on the nodes at t-dt and
+                 !     the approximation of the integration of the
+                 !     transverse terms from t-dt to t
                  amp =
      $                n_amp0 -
      $                compute_NewtonCotes_integration(t_amp0, t_amp1, dt)
 
                  
-                 !7.4) compute the scalar product of the left eigenvector corresponding
-                 !     to the eigenvalue with the characteristic amplitude
+                 !7.4) compute the scalar product of the left eigenvector
+                 !     corresponding to the eigenvalue with the
+                 !     characteristic amplitude
                  char_amp(k) = DOT_PRODUCT(amp,left_eigenM(:,k))
                  
               end do
@@ -937,9 +1419,10 @@
                  n2_0 = n2_1 - eigenvalues_n(k)*dt
 
 
-                 !7.2) determine the normal and transverse contributions of
-                 !     the hyperbolic terms to the characteristic amplitude
-                 if(side_x.eq.right) then
+                 !7.2) determine the normal and transverse contributions
+                 !     of the hyperbolic terms to the characteristic
+                 !     amplitude
+                 if(side_n.eq.right) then
 
                     if(eigenvalues_n(k).ge.0) then
                        
@@ -952,19 +1435,23 @@
                        y0 = get_y_coord(n1_0,n2_0)
 
                        n_amp0 = p_model%get_far_field(t,x0,y0)
-                       t_amp0 = [0.0d0,0.0d0,0.0d0]
+                       do l=1,ne
+                          t_amp0(l) = 0.0d0
+                       end do
                        
                     end if
                     
                  else
                     
-                    if(eigenvalues_x(k).gt.0) then
+                    if(eigenvalues_n(k).gt.0) then
 
                        x0 = get_x_coord(n1_0,n2_0)
                        y0 = get_y_coord(n1_0,n2_0)
 
                        n_amp0 = p_model%get_far_field(t,x0,y0)
-                       t_amp0 = [0.0d0,0.0d0,0.0d0]
+                       do l=1,ne
+                          t_amp0(l) = 0.0d0
+                       end do                       
 
                     else
 
@@ -975,15 +1462,17 @@
                  end if
 
 
-                 !7.3) combine the information on the nodes at t-dt and the approximation
-                 !     of the integration of the transverse terms from t-dt to t
+                 !7.3) combine the information on the nodes at t-dt and
+                 !     the approximation of the integration of the
+                 !     transverse terms from t-dt to t
                  amp =
      $                n_amp0 -
      $                compute_NewtonCotes_integration(t_amp0, t_amp1, dt)
 
                  
-                 !7.4) compute the scalar product of the left eigenvector corresponding
-                 !     to the eigenvalue with the characteristic amplitude
+                 !7.4) compute the scalar product of the left eigenvector
+                 !     corresponding to the eigenvalue with the
+                 !     characteristic amplitude
                  char_amp(k) = DOT_PRODUCT(amp,left_eigenM(:,k))
                  
               end do
@@ -1023,110 +1512,119 @@
           real(rkind)    , dimension(:,:,:), intent(in)  :: bf_nodes
           integer(ikind) , dimension(2,3)  , intent(in)  :: inter_indices
           integer                          , intent(in)  :: n_direction
-          procedure(gradient_n_proc)       , intent(in)  :: gradient_n_index1
-          procedure(gradient_n_proc)       , intent(in)  :: gradient_n_index2
-          procedure(gradient_n_proc)       , intent(in)  :: gradient_n_index3
+          procedure(gradient_n_proc)                     :: gradient_n_index1
+          procedure(gradient_n_proc)                     :: gradient_n_index2
+          procedure(gradient_n_proc)                     :: gradient_n_index3
           real(rkind)                      , intent(in)  :: dx
           real(rkind)                      , intent(in)  :: dy
           real(rkind)    , dimension(3,ne) , intent(out) :: nodes_inter
 
-          
-          real(rkind) :: dn
-          integer     :: k
+          integer                       :: k
+          real(rkind), dimension(ne)    :: n_gradient
+          real(rkind), dimension(ne,ne) :: n_transM
           
 
           select case(n_direction)
             case(n1_direction)
                
-               dn = get_dn2(dx,dy)
-
-               !compute the transverse terms along the n2 direction at the grid point 1
+               !compute the transverse terms along the n2 direction at
+               !the grid point 1
                k=1
-               nodes_inter(1,:) = MATMUL(
-     $                 p_model%compute_n_gradient(
-     $                        bf_nodes,
-     $                        inter_indices(1,k),
-     $                        inter_indices(2,k),
-     $                        gradient_n_index1,
-     $                        dn),
-     $                 p_model%compute_n1_transM(
-     $                        bf_nodes(
-     $                        inter_indices(1,k),
-     $                        inter_indices(2,k),:)))
+               n_gradient = p_model%compute_n_gradient(
+     $              bf_nodes,
+     $              inter_indices(1,k),
+     $              inter_indices(2,k),
+     $              gradient_n_index1,
+     $              dx,dy)
+               n_transM   = p_model%compute_n1_transM(
+     $              bf_nodes(
+     $              inter_indices(1,k),
+     $              inter_indices(2,k),:))
+               
+               nodes_inter(k,:) = MATMUL(n_gradient,n_transM)
 
-               !compute the transverse terms along the n2 direction at the grid point 2
+               !compute the transverse terms along the n2 direction at
+               !the grid point 2
                k=2
-               nodes_inter(1,:) = MATMUL(
-     $                 p_model%compute_n_gradient(
-     $                        bf_nodes,
-     $                        inter_indices(1,k),
-     $                        inter_indices(2,k),
-     $                        gradient_n_index2,
-     $                        dn),
-     $                 p_model%compute_n1_transM(
-     $                        bf_nodes(
-     $                        inter_indices(1,k),
-     $                        inter_indices(2,k),:)))
+               n_gradient = p_model%compute_n_gradient(
+     $              bf_nodes,
+     $              inter_indices(1,k),
+     $              inter_indices(2,k),
+     $              gradient_n_index2,
+     $              dx,dy)
+               n_transM   = p_model%compute_n1_transM(
+     $              bf_nodes(
+     $              inter_indices(1,k),
+     $              inter_indices(2,k),:))
 
-               !compute the transverse terms along the n3 direction at the grid point 3
+               nodes_inter(k,:) = MATMUL(n_gradient,n_transM)
+
+               !compute the transverse terms along the n3 direction at
+               !the grid point 3
                k=3
-               nodes_inter(1,:) = MATMUL(
-     $                 p_model%compute_n_gradient(
-     $                        bf_nodes,
-     $                        inter_indices(1,k),
-     $                        inter_indices(2,k),
-     $                        gradient_n_index3,
-     $                        dn),
-     $                 p_model%compute_n1_transM(
-     $                        bf_nodes(
-     $                        inter_indices(1,k),
-     $                        inter_indices(2,k),:)))
+               n_gradient = p_model%compute_n_gradient(
+     $              bf_nodes,
+     $              inter_indices(1,k),
+     $              inter_indices(2,k),
+     $              gradient_n_index3,
+     $              dx,dy)
+               n_transM   = p_model%compute_n1_transM(
+     $              bf_nodes(
+     $              inter_indices(1,k),
+     $              inter_indices(2,k),:))
+
+               nodes_inter(k,:) = MATMUL(n_gradient,n_transM)
+
 
              case(n2_direction)
                
-               dn = get_dn1(dx,dy)
-
-               !compute the transverse terms along the n1 direction at the grid point 1
+               !compute the transverse terms along the n1 direction at
+               !the grid point 1
                k=1
-               nodes_inter(1,:) = MATMUL(
-     $                 p_model%compute_n_gradient(
-     $                        bf_nodes,
-     $                        inter_indices(1,k),
-     $                        inter_indices(2,k),
-     $                        gradient_n_index1,
-     $                        dn),
-     $                 p_model%compute_n2_transM(
-     $                        bf_nodes(
-     $                        inter_indices(1,k),
-     $                        inter_indices(2,k),:)))
+               n_gradient = p_model%compute_n_gradient(
+     $              bf_nodes,
+     $              inter_indices(1,k),
+     $              inter_indices(2,k),
+     $              gradient_n_index1,
+     $              dx,dy)
+               n_transM   = p_model%compute_n2_transM(
+     $              bf_nodes(
+     $              inter_indices(1,k),
+     $              inter_indices(2,k),:))
 
-               !compute the transverse terms along the n1 direction at the grid point 2
+               nodes_inter(k,:) = MATMUL(n_gradient,n_transM)
+
+               !compute the transverse terms along the n1 direction at
+               !the grid point 2
                k=2
-               nodes_inter(1,:) = MATMUL(
-     $                 p_model%compute_n_gradient(
-     $                        bf_nodes,
-     $                        inter_indices(1,k),
-     $                        inter_indices(2,k),
-     $                        gradient_n_index2,
-     $                        dn),
-     $                 p_model%compute_n2_transM(
-     $                        bf_nodes(
-     $                        inter_indices(1,k),
-     $                        inter_indices(2,k),:)))
+               n_gradient = p_model%compute_n_gradient(
+     $              bf_nodes,
+     $              inter_indices(1,k),
+     $              inter_indices(2,k),
+     $              gradient_n_index2,
+     $              dx,dy)
+               n_transM   = p_model%compute_n2_transM(
+     $              bf_nodes(
+     $              inter_indices(1,k),
+     $              inter_indices(2,k),:))
 
-               !compute the transverse terms along the n1 direction at the grid point 3
+               nodes_inter(k,:) = MATMUL(n_gradient,n_transM)
+
+               !compute the transverse terms along the n1 direction at
+               !the grid point 3
                k=3
-               nodes_inter(1,:) = MATMUL(
-     $                 p_model%compute_n_gradient(
-     $                        bf_nodes,
-     $                        inter_indices(1,k),
-     $                        inter_indices(2,k),
-     $                        gradient_n_index2,
-     $                        dn),
-     $                 p_model%compute_n2_transM(
-     $                        bf_nodes(
-     $                        inter_indices(1,k),
-     $                        inter_indices(2,k),:)))
+               n_gradient = p_model%compute_n_gradient(
+     $              bf_nodes,
+     $              inter_indices(1,k),
+     $              inter_indices(2,k),
+     $              gradient_n_index3,
+     $              dx,dy)
+               n_transM   = p_model%compute_n2_transM(
+     $              bf_nodes(
+     $              inter_indices(1,k),
+     $              inter_indices(2,k),:))
+
+               nodes_inter(k,:) = MATMUL(n_gradient,n_transM)
 
             case default
                print '(''compute_newgrdpt_xy'')'

@@ -4,7 +4,8 @@
      $       bf_newgrdpt
 
         use parameters_constant, only :
-     $       right
+     $       right,
+     $       n2_direction
 
         use parameters_input, only :
      $       ne
@@ -19,6 +20,11 @@
         use sd_operators_fd_module, only :
      $       gradient_x_x_oneside_R0,
      $       gradient_y_y_oneside_R0
+
+        use sd_operators_fd_n_module, only :
+     $       gradient_n1_xR0_yR1,
+     $       gradient_n1_xR1_yR0,
+     $       gradient_n1_xR0_yR0
 
         use wave2d_parameters, only :
      $       c
@@ -48,29 +54,40 @@
         test_validated = test_get_interpolation_coeff_1D(bf_newgrdpt_used,detailled)
         print '(''test_get_interpolation_coeff_1D: '', L1)', test_validated
 
+
         !test of interpolate_1D
         test_validated = test_interpolate_1D(bf_newgrdpt_used,detailled)
         print '(''test_interpolate_1D: '', L1)', test_validated
+
 
         !test of compute_NewtonCotes_integration
         test_validated = test_compute_NewtonCotes_integration(bf_newgrdpt_used,detailled)
         print '(''test_compute_NewtonCotes_integration: '', L1)', test_validated
 
+
         !test of compute_newgrdpt_x
         test_validated = test_compute_newgrdpt_x(bf_newgrdpt_used,detailled)
         print '(''test_compute_newgrdpt_x: '', L1)', test_validated
+
 
         !test of compute_newgrdpt_y
         test_validated = test_compute_newgrdpt_y(bf_newgrdpt_used,detailled)
         print '(''test_compute_newgrdpt_y: '', L1)', test_validated
 
+
         !test of get_interpolation_coeff_2D
         test_validated = test_get_interpolation_coeff_2D(bf_newgrdpt_used,detailled)
         print '(''test_get_interpolation_coeff_2D: '', L1)', test_validated
 
+
         !test of interpolate_2D
         test_validated = test_interpolate_2D(bf_newgrdpt_used,detailled)
         print '(''test_interpolate_2D: '', L1)', test_validated
+
+
+        !test of compute_newgrdpt_xy
+        test_validated = test_compute_newgrdpt_xy(bf_newgrdpt_used,detailled)
+        print '(''test_compute_newgrdpt_xy: '', L1)', test_validated
 
 
         contains
@@ -404,6 +421,123 @@
           end do
 
         end function test_compute_newgrdpt_y
+
+
+        function test_compute_newgrdpt_xy(bf_newgrdpt_used, detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          class(bf_newgrdpt), intent(in) :: bf_newgrdpt_used
+          logical           , intent(in) :: detailled
+          logical                        :: test_validated
+
+          type(pmodel_eq)                :: p_model
+          real(rkind)                    :: t
+          real(rkind)                    :: dt
+          
+          integer(ikind), dimension(2,2) :: bf_align0
+          real(rkind), dimension(3)      :: bf_x_map0
+          real(rkind), dimension(3)      :: bf_y_map0
+          real(rkind), dimension(3,3,ne) :: bf_nodes0
+
+          integer(ikind), dimension(2,2) :: bf_align1
+          real(rkind), dimension(4)      :: bf_x_map1
+          real(rkind), dimension(4)      :: bf_y_map1
+          real(rkind), dimension(4,4,ne) :: bf_nodes1
+
+          real(rkind), dimension(ne)     :: newgrdpt_data
+          integer(ikind)                 :: i1
+          integer(ikind)                 :: j1
+          integer                        :: n_direction
+          logical                        :: side_n
+          integer, dimension(2)          :: eigen_indices
+          integer, dimension(2,3)        :: inter_indices1
+
+          integer                        :: k
+          logical                        :: test_loc
+          
+
+          test_validated = .true.
+
+          !initialization of the inputs
+          t=0.0d0
+          dt=0.25d0
+          
+          bf_align0(1,1) = 0
+          bf_align0(2,1) = 0
+          bf_x_map0 = [0.5d0, 1.5d0 , 2.5d0]
+          bf_y_map0 = [0.0d0, 0.25d0, 0.5d0]
+          bf_nodes0 = reshape((/
+     $          0.6d0,  0.2d0, 0.8d0,
+     $          1.0d0,  2.0d0, 3.0d0,
+     $          0.5d0, -0.5d0, 1.25d0,
+     $        -3.25d0, 6.12d0, 7.15d0,
+     $         0.25d0,-0.75d0, 3.26d0,
+     $          0.1d0,-0.45d0, 6.15d0,
+     $         9.26d0, 3.25d0, 4.15d0,
+     $         2.05d0,-8.25d0, 3.26d0,
+     $         9.26d0, 7.85d0, 9.23d0/),
+     $         (/3,3,ne/))
+
+          bf_align1(1,1) = 0
+          bf_align0(2,1) = 0
+          bf_x_map1 = [0.5d0, 1.5d0,2.5d0, 3.5d0]
+          bf_y_map1 = [0.0d0,0.25d0,0.5d0,0.75d0]
+          bf_nodes1 = reshape((/
+     $         2.3d0,  7.8d0,   1.2d0, 1.5d0,
+     $         8.9d0,  1.0d0,  2.45d0, 3.0d0,
+     $         0.2d0,  0.5d0, -0.26d0,2.25d0,
+     $        6.23d0,-5.15d0,  2.36d0, 0.0d0,
+     $        -5.2d0, 1.23d0,  7.15d0, 6.2d0,
+     $        9.26d0, 0.25d0, -0.75d0,3.26d0,
+     $         2.3d0, 0.1d0, -8.52d0, 7.15d0,
+     $         0.0d0, 0.0d0,   0.0d0,  0.0d0,
+     $        9.63d0, 1.2d0,  7.32d0, 1.52d0,
+     $        1.25d0, 2.05d0,-2.15d0, 3.26d0,
+     $        7.26d0, 9.26d0, 7.85d0, 6.23d0,
+     $         0.0d0,  0.0d0,  0.0d0,  0.0d0/),
+     $         (/4,4,ne/))
+
+          i1 = 4
+          j1 = 4
+
+          n_direction         = n2_direction
+          side_n              = right
+          eigen_indices       = [3,3]
+          inter_indices1(:,1) = [3,2]
+          inter_indices1(:,2) = [2,3]
+          inter_indices1(:,3) = [3,3]
+
+          !tested data
+          newgrdpt_data = [-11.06536693d0,7.194275495d0,8.134275495d0]
+
+          !test
+          call bf_newgrdpt_used%compute_newgrdpt_xy(
+     $         p_model, t,dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         n_direction,
+     $         side_n,
+     $         gradient_n1_xR0_yR1,
+     $         gradient_n1_xR1_yR0,
+     $         gradient_n1_xR0_yR0,
+     $         eigen_indices,
+     $         inter_indices1)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            bf_nodes1(i1,j1,k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+        end function test_compute_newgrdpt_xy
 
 
         function test_get_interpolation_coeff_2D(bf_newgrdpt_used,detailled)

@@ -62,11 +62,17 @@ $(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o:\
 	$(param_dir)/parameters_kind.o
 
 $(cbf_layer_dir)/bf_newgrdpt_class.o:\
+	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
 	$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\
+	$(sd_dir)/interface_primary.o\
+	$(sd_dir)/n_coords_module.o\
+	$(obc_dir)/openbc_operators_module.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
-	$(pm_cdir)/pmodel_eq_class.o
+	$(pm_cdir)/pmodel_eq_class.o\
+	$(sd_cdir)/sd_operators_fd_module.o\
+	$(sd_dir)/sd_operators_fd_n_module.o
 
 $(cbf_layer_dir)/bf_compute_class.o:\
 	$(bc_cdir)/bc_operators_class.o\

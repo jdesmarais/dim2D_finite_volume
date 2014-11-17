@@ -86,6 +86,8 @@
         integer, parameter :: x_direction=1
         integer, parameter :: y_direction=2
         integer, parameter :: xy_direction=3
+        integer, parameter :: n1_direction=4
+        integer, parameter :: n2_direction=5
         integer, parameter :: min_border=1
         integer, parameter :: max_border=2
 
