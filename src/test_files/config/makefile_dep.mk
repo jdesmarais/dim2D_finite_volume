@@ -57,6 +57,12 @@ $(field_dir)/field_par_class.o:\
 $(sd_dir)/interface_primary.o:\
 			$(param_dir)/parameters_kind.o
 
+$(sd_dir)/sd_operators_fd_n_module.o:\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_kind.o\
+			$(sd_cdir)/sd_operators_fd_module.o
+
+
 #cockburn and gau operators
 $(sd_dir)/sd_operators_abstract_class.o:\
 			$(sd_dir)/interface_primary.o\

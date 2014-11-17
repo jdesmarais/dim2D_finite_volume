@@ -204,6 +204,16 @@ test_bf_layer_newgrdpt_procedure:\
 			bf_layer_newgrdpt_procedure_module.o\
 			bf_layer_bc_procedure_module.o
 
+test_sd_operators_fd_n_module.o:\
+			$(param_dir)/parameters_kind.o\
+			$(sd_dir)/sd_operators_fd_n_module.o
+
+test_sd_operators_fd_n_module:\
+			parameters_kind.o\
+			interface_primary.o\
+			sd_operators_fd_module.o\
+			sd_operators_fd_n_module.o
+
 test_bf_newgrdpt.o:	$(cbf_layer_dir)/bf_newgrdpt_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
