@@ -136,30 +136,32 @@
         contains
 
 
-        subroutine compute_newgrdpt(
+        function compute_newgrdpt(
      $       p_model, t, dt,
      $       bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $       bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
      $       i1,j1,
      $       procedure_type, gradient_type)
+     $       result(new_grdpt)
 
           implicit none
 
-          type(pmodel_eq)                    , intent(in)    :: p_model
-          real(rkind)                        , intent(in)    :: t
-          real(rkind)                        , intent(in)    :: dt
-          integer(ikind), dimension(2,2)     , intent(in)    :: bf_align0
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map0
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map0
-          real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes0
-          integer(ikind), dimension(2,2)     , intent(in)    :: bf_align1
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map1
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map1
-          real(rkind)   , dimension(:,:,:)   , intent(inout) :: bf_nodes1
-          integer(ikind)                     , intent(in)    :: i1
-          integer(ikind)                     , intent(in)    :: j1
-          integer                            , intent(in)    :: procedure_type
-          integer                            , intent(in)    :: gradient_type
+          type(pmodel_eq)                    , intent(in) :: p_model
+          real(rkind)                        , intent(in) :: t
+          real(rkind)                        , intent(in) :: dt
+          integer(ikind), dimension(2,2)     , intent(in) :: bf_align0
+          real(rkind)   , dimension(:)       , intent(in) :: bf_x_map0
+          real(rkind)   , dimension(:)       , intent(in) :: bf_y_map0
+          real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes0
+          integer(ikind), dimension(2,2)     , intent(in) :: bf_align1
+          real(rkind)   , dimension(:)       , intent(in) :: bf_x_map1
+          real(rkind)   , dimension(:)       , intent(in) :: bf_y_map1
+          real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes1
+          integer(ikind)                     , intent(in) :: i1
+          integer(ikind)                     , intent(in) :: j1
+          integer                            , intent(in) :: procedure_type
+          integer                            , intent(in) :: gradient_type
+          real(rkind)                                     :: new_grdpt
 
           integer                        :: n_direction
           logical                        :: side
@@ -178,7 +180,7 @@
                inter_indices1(:,2) = [i1+2,j1+1]
                inter_indices1(:,3) = [i1+1,j1+2]
 
-               call compute_newgrdpt_xy(
+               new_grdpt = compute_newgrdpt_xy(
      $              p_model, t, dt,
      $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -201,7 +203,7 @@
                inter_indices1(:,2) = [i1-1,j1+1]
                inter_indices1(:,3) = [i1-1,j1+2]
 
-               call compute_newgrdpt_xy(
+               new_grdpt = compute_newgrdpt_xy(
      $              p_model, t, dt,
      $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -224,7 +226,7 @@
                inter_indices1(:,2) = [i1+1,j1-1]
                inter_indices1(:,3) = [i1+2,j1-1]
 
-               call compute_newgrdpt_xy(
+               new_grdpt = compute_newgrdpt_xy(
      $              p_model, t, dt,
      $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -247,7 +249,7 @@
                inter_indices1(:,2) = [i1-2,j1-1]
                inter_indices1(:,3) = [i1-1,j1-1]
 
-               call compute_newgrdpt_xy(
+               new_grdpt = compute_newgrdpt_xy(
      $              p_model, t, dt,
      $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -269,7 +271,7 @@
 
                  case(gradient_I_type)
 
-                    call compute_newgrdpt_y(
+                    new_grdpt = compute_newgrdpt_y(
      $                   p_model, t, dt,
      $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -277,7 +279,7 @@
 
                  case(gradient_L0_type)
 
-                    call compute_newgrdpt_y(
+                    new_grdpt = compute_newgrdpt_y(
      $                   p_model, t, dt,
      $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -285,7 +287,7 @@
 
                  case(gradient_R0_type)
 
-                    call compute_newgrdpt_y(
+                    new_grdpt = compute_newgrdpt_y(
      $                   p_model, t, dt,
      $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -308,7 +310,7 @@
 
                  case(gradient_I_type)
 
-                    call compute_newgrdpt_x(
+                    new_grdpt = compute_newgrdpt_x(
      $                   p_model, t, dt,
      $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -316,7 +318,7 @@
 
                  case(gradient_L0_type)
 
-                    call compute_newgrdpt_x(
+                    new_grdpt = compute_newgrdpt_x(
      $                   p_model, t, dt,
      $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -324,7 +326,7 @@
 
                  case(gradient_R0_type)
 
-                    call compute_newgrdpt_x(
+                    new_grdpt = compute_newgrdpt_x(
      $                   p_model, t, dt,
      $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -347,7 +349,7 @@
 
                  case(gradient_I_type)
 
-                    call compute_newgrdpt_x(
+                    new_grdpt = compute_newgrdpt_x(
      $                   p_model, t, dt,
      $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -355,7 +357,7 @@
 
                  case(gradient_L0_type)
 
-                    call compute_newgrdpt_x(
+                    new_grdpt = compute_newgrdpt_x(
      $                   p_model, t, dt,
      $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -363,7 +365,7 @@
 
                  case(gradient_R0_type)
 
-                    call compute_newgrdpt_x(
+                    new_grdpt = compute_newgrdpt_x(
      $                   p_model, t, dt,
      $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -386,7 +388,7 @@
 
                  case(gradient_I_type)
 
-                    call compute_newgrdpt_y(
+                    new_grdpt = compute_newgrdpt_y(
      $                   p_model, t, dt,
      $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -394,7 +396,7 @@
 
                  case(gradient_L0_type)
 
-                    call compute_newgrdpt_y(
+                    new_grdpt = compute_newgrdpt_y(
      $                   p_model, t, dt,
      $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -402,7 +404,7 @@
 
                  case(gradient_R0_type)
 
-                    call compute_newgrdpt_y(
+                    new_grdpt = compute_newgrdpt_y(
      $                   p_model, t, dt,
      $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -425,7 +427,7 @@
 
           end select
 
-        end subroutine compute_newgrdpt
+        end function compute_newgrdpt
 
 
         !> @author
@@ -482,28 +484,30 @@
         !> the transverse terms
         !--------------------------------------------------------------
         subroutine compute_newgrdpt_x(
-     $       p_model, t, dt,
-     $       bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
-     $       bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
-     $       i1,j1, side_x, gradient_y)
+     $     p_model, t, dt,
+     $     bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $     bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $     i1,j1, side_x, gradient_y)
+     $     result(new_grdpt)
 
           implicit none
 
-          type(pmodel_eq)                    , intent(in)    :: p_model
-          real(rkind)                        , intent(in)    :: t
-          real(rkind)                        , intent(in)    :: dt
-          integer(ikind), dimension(2,2)     , intent(in)    :: bf_align0
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map0
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map0
-          real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes0
-          integer(ikind), dimension(2,2)     , intent(in)    :: bf_align1
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map1
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map1
-          real(rkind)   , dimension(:,:,:)   , intent(inout) :: bf_nodes1
-          integer(ikind)                     , intent(in)    :: i1
-          integer(ikind)                     , intent(in)    :: j1
-          logical                            , intent(in)    :: side_x
-          procedure(gradient_y_proc)                         :: gradient_y
+          type(pmodel_eq)                    , intent(in) :: p_model
+          real(rkind)                        , intent(in) :: t
+          real(rkind)                        , intent(in) :: dt
+          integer(ikind), dimension(2,2)     , intent(in) :: bf_align0
+          real(rkind)   , dimension(:)       , intent(in) :: bf_x_map0
+          real(rkind)   , dimension(:)       , intent(in) :: bf_y_map0
+          real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes0
+          integer(ikind), dimension(2,2)     , intent(in) :: bf_align1
+          real(rkind)   , dimension(:)       , intent(in) :: bf_x_map1
+          real(rkind)   , dimension(:)       , intent(in) :: bf_y_map1
+          real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes1
+          integer(ikind)                     , intent(in) :: i1
+          integer(ikind)                     , intent(in) :: j1
+          logical                            , intent(in) :: side_x
+          procedure(gradient_y_proc)                      :: gradient_y
+          real(rkind)   , dimension(ne)                   :: new_grdpt
 
           integer                       :: k,l
           
@@ -692,7 +696,7 @@
 
 
           !9) determine the new grid point
-          bf_nodes1(i1,j1,:) = MATMUL(char_amp,right_eigenM)
+          new_grdpt = MATMUL(char_amp,right_eigenM)
 
 
         end subroutine compute_newgrdpt_x
@@ -752,28 +756,30 @@
         !> the transverse terms
         !--------------------------------------------------------------
         subroutine compute_newgrdpt_y(
-     $       p_model, t, dt,
-     $       bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
-     $       bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
-     $       i1,j1, side_y, gradient_x)
+     $     p_model, t, dt,
+     $     bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $     bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $     i1,j1, side_y, gradient_x)
+     $     result(new_grdpt)
 
           implicit none
 
-          type(pmodel_eq)                    , intent(in)    :: p_model
-          real(rkind)                        , intent(in)    :: t
-          real(rkind)                        , intent(in)    :: dt
-          integer(ikind), dimension(2,2)     , intent(in)    :: bf_align0
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map0
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map0
-          real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes0
-          integer(ikind), dimension(2,2)     , intent(in)    :: bf_align1
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map1
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map1
-          real(rkind)   , dimension(:,:,:)   , intent(inout) :: bf_nodes1
-          integer(ikind)                     , intent(in)    :: i1
-          integer(ikind)                     , intent(in)    :: j1
-          logical                            , intent(in)    :: side_y
-          procedure(gradient_x_proc)                         :: gradient_x
+          type(pmodel_eq)                    , intent(in) :: p_model
+          real(rkind)                        , intent(in) :: t
+          real(rkind)                        , intent(in) :: dt
+          integer(ikind), dimension(2,2)     , intent(in) :: bf_align0
+          real(rkind)   , dimension(:)       , intent(in) :: bf_x_map0
+          real(rkind)   , dimension(:)       , intent(in) :: bf_y_map0
+          real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes0
+          integer(ikind), dimension(2,2)     , intent(in) :: bf_align1
+          real(rkind)   , dimension(:)       , intent(in) :: bf_x_map1
+          real(rkind)   , dimension(:)       , intent(in) :: bf_y_map1
+          real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes1
+          integer(ikind)                     , intent(in) :: i1
+          integer(ikind)                     , intent(in) :: j1
+          logical                            , intent(in) :: side_y
+          procedure(gradient_x_proc)                      :: gradient_x
+          real(rkind)   , dimension(ne)                   :: new_grdpt
 
           integer                       :: k,l
           
@@ -961,7 +967,7 @@
 
 
           !9) determine the new grid point
-          bf_nodes1(i1,j1,:) = MATMUL(char_amp,right_eigenM)
+          new_grdpt = MATMUL(char_amp,right_eigenM)
 
         end subroutine compute_newgrdpt_y
 
@@ -1054,6 +1060,7 @@
      $     gradient_n_index3,
      $     eigen_indices,
      $     inter_indices1)
+     $     result(new_grdpt)
 
           implicit none
 
@@ -1077,6 +1084,7 @@
           procedure(gradient_n_proc)                         :: gradient_n_index3
           integer(ikind), dimension(2)       , intent(in)    :: eigen_indices
           integer(ikind), dimension(2,3)     , intent(in)    :: inter_indices1
+          real(rkind)   , dimension(ne)                      :: new_grdpt
 
           
           !x1,y1
@@ -1490,7 +1498,7 @@
 
 
           !9) determine the new grid point
-          bf_nodes1(i1,j1,:) = MATMUL(char_amp,right_eigenM)
+          new_grdpt = MATMUL(char_amp,right_eigenM)
 
 
         end subroutine compute_newgrdpt_xy

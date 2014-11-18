@@ -462,6 +462,9 @@
           procedure,   pass :: sync_nodes_with_neighbor1
           procedure,   pass :: sync_nodes_with_neighbor2
 
+          procedure,   pass :: get_data_for_newgrdpt
+          procedure,   pass :: compute_newgrdpt
+
           procedure,   pass :: update_grdpts_after_increase
           
           procedure,   pass :: set_remain_status
@@ -2086,6 +2089,148 @@
         !> Julien L. Desmarais
         !
         !> @brief
+        !> get the grdpts_id, the coordinate maps and the
+        !> nodes at t-dt and t corresponding to the general
+        !> coordinates gen_coords
+        !    ___________________
+        !   |                  _|_________
+        !   |    buffer layer |/|         |
+        !   |                 |/|  tmp    |
+        !   !                 !/!         !
+        !                   overlapping which is copied
+        !                     from buffer layer to tmp
+        !
+        !> @date
+        !> 18_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param tmp_grdpts_id0
+        !> array with the grdpts_id data
+        !
+        !>@param tmp_nodes0
+        !> array with the grid points data at t-dt
+        !
+        !>@param tmp_nodes1
+        !> array with the grid points data at t
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> tmp arrays computed
+        !--------------------------------------------------------------
+        subroutine get_data_for_newgrdpt(
+     $     this,
+     $     tmp_grdpts_id0,
+     $     tmp_nodes0,
+     $     tmp_nodes1,
+     $     gen_coords)
+
+          implicit none
+
+          class(bf_layer)                                       , intent(in)    :: this
+          integer        , dimension(2*bc_size+1,2*bc_size+1)   , intent(inout) :: tmp_grdpts_id0
+          real(rkind)    , dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes0
+          real(rkind)    , dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes1
+          integer(ikind) , dimension(2,2)                       , intent(in)    :: gen_coords
+
+
+          integer(ikind) :: i_min,i_max,j_min,j_max
+          integer(ikind) :: size_x,size_y
+          integer(ikind) :: i_recv,i_send,j_recv,j_send
+          integer(ikind) :: i,j
+          integer        :: k
+
+
+          !synchronize the overlapping at t=t
+          i_min = max(this%alignment(1,1)-bc_size,gen_coords(1,1))
+          i_max = min(this%alignment(1,2)+bc_size,gen_coords(1,2))
+          j_min = max(this%alignment(2,1)-bc_size,gen_coords(2,1))
+          j_max = min(this%alignment(2,2)+bc_size,gen_coords(2,2))
+
+          size_x = i_max-i_min+1
+          size_y = j_max-j_min+1 
+
+          i_recv = i_min-gen_coords(1,1)+1
+          i_send = i_min-(this%alignment(1,1)-bc_size)+1
+
+          j_recv = j_min-gen_coords(2,1)+1
+          j_send = j_min-(this%alignment(2,1)-bc_size)+1
+
+
+          do k=1,ne
+             do j=1, size_y
+                do i=1, size_x
+
+                   tmp_nodes1(i_recv+i-1,j_recv+j-1,k) =
+     $                  this%nodes(i_send+i-1,j_send+j-1,k)
+
+                end do
+             end do
+          end do
+
+
+          !synchronize the overlapping at t-dt
+          call this%bf_compute_used%get_data_for_newgrdpt(
+     $         tmp_grdpts_id0,
+     $         tmp_nodes0,
+     $         gen_coords)
+
+        end subroutine get_data_for_newgrdpt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the new grid point
+        !
+        !> @date
+        !> 18_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param i1
+        !> index identifying the x-coordinate of the new grid point
+        !
+        !>@param j1
+        !> index identifying the y-coordinate of the new grid point
+        !
+        !>@param t
+        !> time
+        !
+        !>@param dt
+        !> time step
+        !--------------------------------------------------------------
+        subroutine compute_newgrdpt(this,p_model,t,dt,i1,j1)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+          type(pmodel_eq), intent(in)    :: p_model
+          real(rkind)    , intent(in)    :: t
+          real(rkind)    , intent(in)    :: dt
+          integer(ikind) , intent(in)    :: i1
+          integer(ikind) , intent(in)    :: j1
+          
+          this%nodes(i1,j1,:) = this%bf_compute_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         this%alignment,
+     $         this%x_map,
+     $         this%y_map,
+     $         this%nodes,
+     $         i1,j1)
+
+        end subroutine compute_newgrdpt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> create a truncated copy of the the grdpts_id. The copy is
         !> a 3x3 array whose center (2,2) is identified by its general
         !> coordinates cpt_coords
@@ -3073,7 +3218,11 @@
 
           call this%bf_compute_used%allocate_tables(
      $         size(this%nodes,1),
-     $         size(this%nodes,2))
+     $         size(this%nodes,2),
+     $         this%alignment,
+     $         this%x_map,
+     $         this%y_map,
+     $         this%grdpts_id)
 
         end subroutine allocate_before_timeInt
 

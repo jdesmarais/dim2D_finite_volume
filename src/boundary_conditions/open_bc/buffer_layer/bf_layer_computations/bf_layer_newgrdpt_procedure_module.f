@@ -28,12 +28,24 @@
      $       SE_corner_type,
      $       SW_corner_type
 
+        use bf_layer_errors_module, only : 
+     $       error_mainlayer_id
+
         use parameters_bf_layer, only :
      $       no_pt,
-     $       bc_pt
+     $       bc_pt,
+     $       bc_interior_pt,
+     $       interior_pt
+
+        use parameters_constant, only :
+     $       N,S,E,W
+
+        use parameters_input, only :
+     $       nx,ny,ne,bc_size
 
         use parameters_kind, only :
-     $       ikind
+     $       ikind,
+     $       rkind
 
         implicit none
 
@@ -44,7 +56,9 @@
      $       gradient_L0_type,
      $       gradient_R0_type,
      $       get_newgrdpt_procedure,
-     $       error_gradient_type
+     $       error_gradient_type,
+     $       get_interior_data_for_newgrdpt,
+     $       are_intermediate_newgrdpt_data_needed
 
 
         integer, parameter :: no_gradient_type=0
@@ -79,7 +93,7 @@
           ! |   0*  |
           ! | 3     |
           !  -------
-          if((i.gt.1).and.(j.gt.1).and.(grdpts_id(i-1,j-1).eq.bc_pt)) then
+          if(grdpts_id(i-1,j-1).eq.bc_pt) then
 
 
           !  -------
@@ -127,14 +141,14 @@
           ! |   0*  |
           ! | x 3   |
           !  -------
-             if((j.gt.1).and.(grdpts_id(i,j-1).eq.bc_pt)) then
+             if(grdpts_id(i,j-1).eq.bc_pt) then
 
           !  -------
           ! |       |
           ! |   0*  |
           ! | x 3 3 |
           !  -------
-                if((i.lt.size(grdpts_id,1)).and.(grdpts_id(i+1,j-1).eq.bc_pt)) then
+                if(grdpts_id(i+1,j-1).eq.bc_pt) then
 
                    call get_newgrdpt_procedure_2_1(
      $                  i,j,grdpts_id,
@@ -153,7 +167,7 @@
           ! |   0*  |
           ! | x x 3 |
           !  -------
-                if((i.lt.size(grdpts_id,1)).and.(j.gt.1).and.(grdpts_id(i+1,j-1).eq.bc_pt)) then
+                if(grdpts_id(i+1,j-1).eq.bc_pt) then
 
           !  -------
           ! |       |
@@ -186,14 +200,14 @@
           ! | 3 0*  |
           ! | x x x |
           !  -------
-                   if((i.gt.1).and.(grdpts_id(i-1,j).eq.bc_pt)) then
+                   if(grdpts_id(i-1,j).eq.bc_pt) then
                       
           !  -------
           ! | 3     |
           ! | 3 0*  |
           ! | x x x |
           !  -------
-                      if((j.le.size(grdpts_id,2)).and.(grdpts_id(i-1,j+1).eq.bc_pt)) then
+                      if(grdpts_id(i-1,j+1).eq.bc_pt) then
 
                          call get_newgrdpt_procedure_4_1(
      $                     i,j,grdpts_id,
@@ -212,7 +226,7 @@
           ! | x 0*3 |
           ! | x x x |
           !  -------
-                      if((i.lt.size(grdpts_id,1)).and.(grdpts_id(i+1,j).eq.bc_pt)) then
+                      if(grdpts_id(i+1,j).eq.bc_pt) then
 
                          call get_newgrdpt_procedure_5_1(
      $                        i,j,grdpts_id,
@@ -224,7 +238,7 @@
           ! | x 0*x |
           ! | x x x |
           !  -------
-                         if((i.gt.1).and.(j.lt.size(grdpts_id,2)).and.(grdpts_id(i-1,j+1).eq.bc_pt)) then
+                         if(grdpts_id(i-1,j+1).eq.bc_pt) then
 
           !  -------
           ! | 3 3   |
@@ -257,14 +271,14 @@
           ! | x 0*x |
           ! | x x x |
           !  -------
-                            if((j.lt.size(grdpts_id,2)).and.(grdpts_id(i,j+1).eq.bc_pt)) then
+                            if(grdpts_id(i,j+1).eq.bc_pt) then
 
           !  -------
           ! | x 3 3 |
           ! | x 0*x |
           ! | x x x |
           !  -------
-                               if((i.lt.size(grdpts_id,1)).and.(grdpts_id(i+1,j+1).eq.bc_pt)) then
+                               if(grdpts_id(i+1,j+1).eq.bc_pt) then
 
                                   procedure_type = S_edge_type
                                   gradient_type  = gradient_L0_type
@@ -291,7 +305,7 @@
           ! | x 0*x |
           ! | x x x |
           !  ------- 
-                               if((i.lt.size(grdpts_id,1)).and.(j.lt.size(grdpts_id,2)).and.(grdpts_id(i+1,j+1).eq.bc_pt)) then
+                               if(grdpts_id(i+1,j+1).eq.bc_pt) then
 
                                   procedure_type = SW_corner_type
                                   gradient_type  = no_gradient_type
@@ -390,7 +404,7 @@
           ! | 3 0*  |
           ! | 3 x   |
           !  -------
-          if((j.lt.size(grdpts_id,2)).and.(grdpts_id(i-1,j+1).eq.bc_pt)) then
+          if(grdpts_id(i-1,j+1).eq.bc_pt) then
 
              procedure_type = E_edge_type
              gradient_type  = gradient_I_type
@@ -466,7 +480,7 @@
           ! |   0*3 |
           ! | x x 3 |
           !  -------
-          if((j.lt.size(grdpts_id,2)).and.(grdpts_id(i,j+1).eq.bc_pt)) then
+          if(grdpts_id(i,j+1).eq.bc_pt) then
 
              procedure_type = SW_edge_type
              gradient_type  = no_gradient_type
@@ -477,7 +491,7 @@
           ! |   0*3 |
           ! | x x 3 |
           !  -------
-             if((j.lt.size(grdpts_id,2)).and.(grdpts_id(i+1,j+1).eq.bc_pt)) then
+             if(grdpts_id(i+1,j+1).eq.bc_pt) then
 
                 procedure_type = W_edge_type
                 gradient_type  = gradient_I_type
@@ -555,7 +569,7 @@
           ! | x 0*3 |
           ! | x x x |
           !  -------
-          if((j.lt.size(grdpts_id,2)).and.(grdpts_id(i,j+1).eq.bc_pt)) then
+          if(grdpts_id(i,j+1).eq.bc_pt) then
 
              procedure_type = SW_edge_type
              gradient_type  = no_gradient_type
@@ -567,7 +581,7 @@
           ! | x 0*3 |
           ! | x x x |
           !  -------
-             if((j.lt.size(grdpts_id,2)).and.(grdpts_id(i+1,j+1).eq.bc_pt)) then
+             if(grdpts_id(i+1,j+1).eq.bc_pt) then
 
                 procedure_type = W_edge_type
                 gradient_type  = gradient_L0_type
@@ -606,7 +620,7 @@
           ! | x 0*x |
           ! | x x x |
           !  -------
-          if((i.lt.size(grdpts_id,1)).and.(grdpts_id(i+1,j+1).eq.bc_pt)) then
+          if(grdpts_id(i+1,j+1).eq.bc_pt) then
 
              procedure_type = S_edge_type
              gradient_type  = gradient_I_type
@@ -676,5 +690,228 @@
           stop ''
 
         end subroutine error_gradient_type
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the grdpts_id, the coordinate maps and the
+        !> nodes at t-dt and t corresponding to the general
+        !> coordinates gen_coords
+        !    ___________________
+        !   |                  _|_________
+        !   |    interior     |/|         |
+        !   |                 |/|  tmp    |
+        !   !                 !/!         !
+        !                   overlapping which is copied
+        !                     from buffer layer to tmp
+        !
+        !> @date
+        !> 18_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param interior_nodes0
+        !> interior nodes at t=t-dt
+        !
+        !>@param interior_nodes1
+        !> interior nodes at t=t
+        !
+        !>@param tmp_grdpts_id0
+        !> array with the grdpts_id data
+        !
+        !>@param tmp_nodes0
+        !> array with the grid points data at t-dt
+        !
+        !>@param tmp_nodes1
+        !> array with the grid points data at t
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> tmp arrays computed
+        !--------------------------------------------------------------
+        subroutine get_interior_data_for_newgrdpt(
+     $     interior_nodes0,
+     $     interior_nodes1,
+     $     tmp_grdpts_id0,
+     $     tmp_nodes0,
+     $     tmp_nodes1,
+     $     gen_coords)
+
+          implicit none
+
+          real(rkind)    , dimension(nx,ny,ne)                  , intent(in)    :: interior_nodes0
+          real(rkind)    , dimension(nx,ny,ne)                  , intent(in)    :: interior_nodes1
+          integer        , dimension(2*bc_size+1,2*bc_size+1)   , intent(inout) :: tmp_grdpts_id0
+          real(rkind)    , dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes0
+          real(rkind)    , dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes1
+          integer(ikind) , dimension(2,2)                       , intent(in)    :: gen_coords
+
+
+          integer(ikind)                 :: i_min,i_max,j_min,j_max
+          integer(ikind)                 :: size_x,size_y
+          integer(ikind)                 :: i_recv,i_send,j_recv,j_send
+          integer(ikind)                 :: i,j
+          integer                        :: k
+          integer(ikind), dimension(2,2) :: grdpts_id_coords
+
+
+          !synchronize the nodes
+          i_min = max(1 ,gen_coords(1,1))
+          i_max = min(nx,gen_coords(1,2))
+          j_min = max(1 ,gen_coords(2,1))
+          j_max = min(ny,gen_coords(2,2))
+
+          size_x = i_max-i_min+1
+          size_y = j_max-j_min+1 
+
+          i_recv = i_min-gen_coords(1,1)+1
+          i_send = i_min
+
+          j_recv = j_min-gen_coords(2,1)+1
+          j_send = j_min
+
+
+          do k=1,ne
+             do j=1, size_y
+                do i=1, size_x
+
+                   tmp_nodes0(i_recv+i-1,j_recv+j-1,k) =
+     $                  interior_nodes0(i_send+i-1,j_send+j-1,k)
+
+                   tmp_nodes1(i_recv+i-1,j_recv+j-1,k) =
+     $                  interior_nodes1(i_send+i-1,j_send+j-1,k)
+
+                end do
+             end do
+          end do
+
+
+          !synchronize the grdpts_id
+          !initialize with no_pt
+          do j=1, 2*bc_size+1
+             do i=1, 2*bc_size+1
+                tmp_grdpts_id0(i,j) = no_pt
+             end do
+          end do
+
+          !overlap with the bc_pt if any
+          grdpts_id_coords(1,1) = 1
+          grdpts_id_coords(1,2) = nx
+          grdpts_id_coords(2,1) = 1
+          grdpts_id_coords(2,2) = ny
+
+          call set_grdptid(
+     $         tmp_grdpts_id0,
+     $         grdpts_id_coords,
+     $         gen_coords,
+     $         bc_pt)
+
+          !overlap with the bc_interior_pt if any
+          grdpts_id_coords(1,1) = 2
+          grdpts_id_coords(1,2) = nx-1
+          grdpts_id_coords(2,1) = 2
+          grdpts_id_coords(2,2) = ny-1
+
+          call set_grdptid(
+     $         tmp_grdpts_id0,
+     $         grdpts_id_coords,
+     $         gen_coords,
+     $         bc_interior_pt)
+
+          !overlap with the interior_pt if any
+          grdpts_id_coords(1,1) = bc_size+1
+          grdpts_id_coords(1,2) = nx-bc_size
+          grdpts_id_coords(2,1) = bc_size+1
+          grdpts_id_coords(2,2) = ny-bc_size
+
+          call set_grdptid(
+     $         tmp_grdpts_id0,
+     $         grdpts_id_coords,
+     $         gen_coords,
+     $         interior_pt)
+
+        end subroutine get_interior_data_for_newgrdpt
+
+      
+        subroutine set_grdptid(
+     $     grdpts_id,
+     $     grdpts_id_coords,
+     $     gen_coords,
+     $     pt_type)
+
+          implicit none
+
+          integer       , dimension(2*bc_size+1,2*bc_size+1), intent(inout) :: grdpts_id
+          integer(ikind), dimension(2,2)                    , intent(in)    :: grdpts_id_coords
+          integer(ikind), dimension(2,2)                    , intent(in)    :: gen_coords
+          integer                                           , intent(in)    :: pt_type
+
+
+          integer(ikind) :: i_min,i_max,j_min,j_max
+          integer(ikind) :: size_x,size_y
+          integer(ikind) :: i_recv,j_recv
+          integer(ikind) :: i,j
+
+
+          i_min = max(grdpts_id_coords(1,1), gen_coords(1,1))
+          i_max = min(grdpts_id_coords(1,2), gen_coords(1,2))
+          j_min = max(grdpts_id_coords(2,1), gen_coords(2,1))
+          j_max = min(grdpts_id_coords(2,2), gen_coords(2,2))
+
+          size_x = i_max-i_min+1
+          size_y = j_max-j_min+1 
+
+          i_recv = i_min-grdpts_id_coords(1,1)+1
+          j_recv = j_min-grdpts_id_coords(2,1)+1
+
+          
+          do j=1,size_y
+             do i=1,size_x
+                grdpts_id(i_recv+i-1,j_recv+j-1) = pt_type
+             end do
+          end do
+
+        end subroutine set_grdptid
+
+
+        function are_intermediate_newgrdpt_data_needed(
+     $     mainlayer_id, gen_coords)
+     $     result(needed)
+
+          implicit none
+
+          integer                       , intent(in) :: mainlayer_id
+          integer(ikind), dimension(2,2), intent(in) :: gen_coords
+          logical                                    :: needed
+          
+
+          select case(mainlayer_id)
+            case(N)
+               needed = .not.(gen_coords(2,1).gt.ny)
+
+            case(S)
+               needed = .not.(gen_coords(2,2).lt.1)
+               
+            case(E)
+               needed = .not.(
+     $              (gen_coords(1,1).gt.nx).and.
+     $              (gen_coords(2,1).gt.1).and.
+     $              (gen_coords(2,2).lt.ny))
+               
+            case(W)
+               needed = .not.(
+     $              (gen_coords(1,2).lt.1).and.
+     $              (gen_coords(2,1).gt.1).and.
+     $              (gen_coords(2,2).lt.ny))
+               
+            case default
+               call error_mainlayer_id(
+     $              'bf_layer_newgrdpt_procedure_module',
+     $              'are_intermediate_newgrdpt_data_needed',
+     $              mainlayer_id)
+
+          end select
+
+        end function are_intermediate_newgrdpt_data_needed
 
       end module bf_layer_newgrdpt_procedure_module
