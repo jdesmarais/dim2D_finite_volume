@@ -70,18 +70,21 @@
      $       gradient_y_y_oneside_R0
 
         use sd_operators_fd_n_module, only :
-     $       gradient_n2_xL0_yL0,
-     $       gradient_n2_xL1_yL0,
-     $       gradient_n2_xL0_yL1,
-     $       gradient_n1_xR1_yL0,
-     $       gradient_n1_xR0_yL0,
-     $       gradient_n1_xR0_yL1,
-     $       gradient_n1_xL0_yR1,
-     $       gradient_n1_xL0_yR0,
-     $       gradient_n1_xL1_yR0,
-     $       gradient_n2_xR0_yR1,
-     $       gradient_n2_xR1_yR0,
-     $       gradient_n2_xR0_yR0
+     $       gradient_n1_xL0_yL0,
+     $       gradient_n1_xL1_yL0,
+     $       gradient_n1_xL0_yL1,
+     $       
+     $       gradient_n2_xR1_yL0,
+     $       gradient_n2_xR0_yL0,
+     $       gradient_n2_xR0_yL1,
+     $       
+     $       gradient_n2_xL0_yR1,
+     $       gradient_n2_xL0_yR0,
+     $       gradient_n2_xL1_yR0,
+     $       
+     $       gradient_n1_xR0_yR1,
+     $       gradient_n1_xR1_yR0,
+     $       gradient_n1_xR0_yR0
 
         implicit none
 
@@ -182,9 +185,9 @@
      $              i1,j1,
      $              n_direction,
      $              side,
-     $              gradient_n2_xL0_yL0,
-     $              gradient_n2_xL1_yL0,
-     $              gradient_n2_xL0_yL1,
+     $              gradient_n1_xL0_yL0,
+     $              gradient_n1_xL1_yL0,
+     $              gradient_n1_xL0_yL1,
      $              eigen_indices,
      $              inter_indices1)
 
@@ -205,9 +208,9 @@
      $              i1,j1,
      $              n_direction,
      $              side,
-     $              gradient_n1_xR1_yL0,
-     $              gradient_n1_xR0_yL0,
-     $              gradient_n1_xR0_yL1,
+     $              gradient_n2_xR1_yL0,
+     $              gradient_n2_xR0_yL0,
+     $              gradient_n2_xR0_yL1,
      $              eigen_indices,
      $              inter_indices1)
 
@@ -228,9 +231,9 @@
      $              i1,j1,
      $              n_direction,
      $              side,
-     $              gradient_n1_xL0_yR1,
-     $              gradient_n1_xL0_yR0,
-     $              gradient_n1_xL1_yR0,
+     $              gradient_n2_xL0_yR1,
+     $              gradient_n2_xL0_yR0,
+     $              gradient_n2_xL1_yR0,
      $              eigen_indices,
      $              inter_indices1)
 
@@ -251,9 +254,9 @@
      $              i1,j1,
      $              n_direction,
      $              side,
-     $              gradient_n2_xR0_yR1,
-     $              gradient_n2_xR1_yR0,
-     $              gradient_n2_xR0_yR0,
+     $              gradient_n1_xR0_yR1,
+     $              gradient_n1_xR1_yR0,
+     $              gradient_n1_xR0_yR0,
      $              eigen_indices,
      $              inter_indices1)
 
