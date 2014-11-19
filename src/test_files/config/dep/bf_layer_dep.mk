@@ -134,19 +134,23 @@ $(nbf_layer_dir)/nbf_list_class.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(nbf_layer_dir)/nbf_element_class.o\
+	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
 	$(sbf_layer_dir)/sbf_list_class.o
 
 $(nbf_layer_dir)/nbf_interface_class.o:\
 	$(cbf_layer_dir)/bf_interior_bc_sections_module.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\
+	$(cbf_layer_dir)/bf_newgrdpt_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(nbf_layer_dir)/nbf_element_class.o\
 	$(nbf_layer_dir)/nbf_list_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(pm_cdir)/pmodel_eq_class.o\
 	$(sbf_layer_dir)/sbf_list_class.o
 
 $(bf_layer_dir)/bf_mainlayer_class.o:\

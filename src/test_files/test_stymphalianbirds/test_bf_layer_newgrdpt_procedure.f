@@ -24,7 +24,9 @@
      $       gradient_R0_type,
      $       get_newgrdpt_procedure,
      $       get_interior_data_for_newgrdpt,
-     $       are_intermediate_newgrdpt_data_needed
+     $       are_intermediate_newgrdpt_data_needed,
+     $       get_x_map_for_newgrdpt,
+     $       get_y_map_for_newgrdpt
 
         use parameters_bf_layer, only :
      $       no_pt,
@@ -65,6 +67,14 @@
         
         test_validated = test_get_buffer_data_for_newgrdpt(detailled)
         print '(''test_get_buffer_data_for_newgrdpt: '', L1)', test_validated
+        print '()'
+
+        test_validated = test_get_x_map_for_newgrdpt(detailled)
+        print '(''test_get_x_map_for_newgrdpt: '', L1)', test_validated
+        print '()'
+
+        test_validated = test_get_y_map_for_newgrdpt(detailled)
+        print '(''test_get_y_map_for_newgrdpt: '', L1)', test_validated
         print '()'
 
         contains
@@ -1386,7 +1396,7 @@
         end subroutine get_test_data
 
 
-                function is_test_validated(var,cst,detailled) result(test_validated)
+        function is_test_validated(var,cst,detailled) result(test_validated)
 
           implicit none
 
@@ -1405,5 +1415,249 @@
      $         int(cst*1e5)).le.1
           
         end function is_test_validated
+
+
+        function test_get_x_map_for_newgrdpt(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          real(rkind)   , dimension(nx)          :: interior_x_map
+          real(rkind)                            :: dx
+          integer                                :: nb_tests
+          integer                                :: k
+          real(rkind)   , dimension(2*bc_size+1) :: tmp_x_map
+          real(rkind)   , dimension(2*bc_size+1) :: tmp_x_map_data
+          integer(ikind), dimension(2,2)         :: gen_coords
+
+          logical :: test_loc
+
+          
+          dx = 0.1d0
+          call initialize_map(interior_x_map,dx)
+
+          nb_tests = 5
+
+          do k=1, nb_tests
+
+             !get the data for the test
+             call get_data_test_get_map_for_newgrdpt(
+     $            k,dx,
+     $            tmp_x_map_data,
+     $            gen_coords)
+
+             !compute the temporary x_map
+             tmp_x_map = get_x_map_for_newgrdpt(
+     $            interior_x_map,
+     $            gen_coords)
+
+             !compare the results
+             test_loc = compare_tmp_maps(
+     $            tmp_x_map,
+     $            tmp_x_map_data,
+     $            .false.)
+             test_validated = test_validated.and.test_loc
+
+             !display the results of the comparison
+             if(detailled) then
+                if(test_loc) then
+                   print '(''test '',I2, '' validated'')', k
+                else
+                   print '(''** test '',I2, '' failed **'')', k
+                end if
+             end if
+
+          end do
+
+        end function test_get_x_map_for_newgrdpt
+
+
+        function test_get_y_map_for_newgrdpt(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          real(rkind), dimension(ny)          :: interior_y_map
+          real(rkind)                         :: dy
+          integer                             :: nb_tests
+          integer                             :: k
+          real(rkind), dimension(2*bc_size+1) :: tmp_y_map
+          real(rkind), dimension(2*bc_size+1) :: tmp_y_map_data
+          integer(ikind), dimension(2,2)      :: gen_coords
+
+          logical :: test_loc
+
+          
+          dy = 0.2d0
+          call initialize_map(interior_y_map,dy)
+          
+          nb_tests = 5
+
+          do k=1, nb_tests
+
+             !get the data for the test
+             call get_data_test_get_map_for_newgrdpt(
+     $            k,dy,
+     $            tmp_y_map_data,
+     $            gen_coords)
+
+             !compute the temporary x_map
+             tmp_y_map = get_y_map_for_newgrdpt(
+     $            interior_y_map,
+     $            gen_coords)
+
+             !compare the results
+             test_loc = compare_tmp_maps(
+     $            tmp_y_map,
+     $            tmp_y_map_data,
+     $            .false.)
+             test_validated = test_validated.and.test_loc
+
+             !display the results of the comparison
+             if(detailled) then
+                if(test_loc) then
+                   print '(''test '',I2, '' validated'')', k
+                else
+                   print '(''** test '',I2, '' failed **'')', k
+                end if
+             end if
+
+          end do
+
+        end function test_get_y_map_for_newgrdpt
+
+
+        subroutine get_data_test_get_map_for_newgrdpt(
+     $     config,
+     $     space_step,
+     $     tmp_map_data,
+     $     gen_coords)
+
+          implicit none
+
+          integer                            , intent(in)  :: config
+          real(rkind)                        , intent(in)  :: space_step
+          real(rkind), dimension(2*bc_size+1), intent(out) :: tmp_map_data
+          integer(ikind), dimension(2,2)     , intent(out) :: gen_coords
+
+          integer :: k
+
+          select case(config)
+            case(1)
+
+               gen_coords(1,1) = -4
+               gen_coords(1,2) =  0
+               gen_coords(2,1) = -4
+               gen_coords(2,2) =  0
+
+               do k=1,2*bc_size+1
+                  tmp_map_data(k) = (k-6)*space_step
+               end do
+
+            case(2)
+
+               gen_coords(1,1) = -3
+               gen_coords(1,2) =  1
+               gen_coords(2,1) = -3
+               gen_coords(2,2) =  1
+
+               do k=1,2*bc_size+1
+                  tmp_map_data(k) = (k-5)*space_step
+               end do
+
+            case(3)
+
+               gen_coords(1,1) = 1
+               gen_coords(1,2) = 5
+               gen_coords(2,1) = 1
+               gen_coords(2,2) = 5
+
+               do k=1,2*bc_size+1
+                  tmp_map_data(k) = (k-1)*space_step
+               end do
+
+            case(4)
+
+               gen_coords(1,1) = 8
+               gen_coords(1,2) = 13
+               gen_coords(2,1) = 8
+               gen_coords(2,2) = 13
+
+               do k=1,2*bc_size+1
+                  tmp_map_data(k) = (k+6)*space_step
+               end do
+
+            case(5)
+
+               gen_coords(1,1) = 11
+               gen_coords(1,2) = 15
+               gen_coords(2,1) = 11
+               gen_coords(2,2) = 15
+
+               do k=1,2*bc_size+1
+                  tmp_map_data(k) = (k+9)*space_step
+               end do
+
+            case default
+               print '(''test_bf_layer_newgrdpt_procedure'')'
+               print '(''get_data_test_get_map_for_newgrdpt'')'
+               print '(''test not yet implemented: '',I2)',k
+               stop ''
+
+          end select
+
+        end subroutine get_data_test_get_map_for_newgrdpt
+
+
+        function compare_tmp_maps(tmp_map,tmp_map_data,detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          real(rkind), dimension(2*bc_size), intent(in) :: tmp_map
+          real(rkind), dimension(2*bc_size), intent(in) :: tmp_map_data
+          logical                          , intent(in) :: detailled
+          logical                                       :: test_validated
+
+          integer :: k
+          logical :: test_loc
+
+          test_validated = .true.
+
+          do k=1, 2*bc_size+1
+
+             test_loc = is_test_validated(
+     $            tmp_map(k),
+     $            tmp_map_data(k),
+     $            detailled)
+
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+        end function compare_tmp_maps
+
+      
+        subroutine initialize_map(interior_map,space_step)
+
+          implicit none
+
+          real(rkind), dimension(:), intent(out) :: interior_map
+          real(rkind)              , intent(in)  :: space_step
+
+
+          integer     :: i
+
+          do i=1, size(interior_map,1)
+             interior_map(i) = (i-1)*space_step
+          end do
+
+        end subroutine initialize_map
 
       end program test_bf_layer_newgrdpt_procedure

@@ -26,8 +26,11 @@
         use nbf_element_class, only :
      $       nbf_element
 
+        use parameters_input, only :
+     $       ne,bc_size
+
         use parameters_kind, only :
-     $       ikind
+     $       ikind,rkind
 
         use sbf_list_class, only :
      $       sbf_list
@@ -177,6 +180,8 @@
           procedure, pass :: sync_nodes_with_neighbor1
           procedure, pass :: sync_nodes_with_neighbor2
           procedure, pass :: update_bc_sections
+
+          procedure, pass :: get_data_for_newgrdpt
 
           procedure, pass, private :: add_element
           procedure, pass, private :: remove_element
@@ -1020,6 +1025,65 @@
           
 
         end subroutine update_bc_sections
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the bc_sections of the buffer layer by
+        !> checking the grid points shared with the
+        !> neighboring buffer layers
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param nbf_list_interface
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !--------------------------------------------------------------
+        subroutine get_data_for_newgrdpt(
+     $     this,
+     $     tmp_grdpts_id0,
+     $     tmp_nodes0,
+     $     tmp_nodes1,
+     $     gen_borders)
+        
+          implicit none
+
+          class(nbf_list)                                       , intent(in)    :: this
+          integer        , dimension(2*bc_size+1,2*bc_size+1)   , intent(inout) :: tmp_grdpts_id0
+          real(rkind)    , dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes0
+          real(rkind)    , dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes1
+          integer(ikind) , dimension(2,2)                       , intent(in)    :: gen_borders
+
+
+          type(nbf_element), pointer   :: current_element
+          type(bf_sublayer), pointer   :: bf_sublayer_ptr
+          integer                      :: i
+
+          current_element => this%get_head()
+
+          do i=1, this%get_nb_elements()
+
+             bf_sublayer_ptr => current_element%get_ptr()
+
+             !get the data needed for the new grdpt
+             call bf_sublayer_ptr%get_data_for_newgrdpt(
+     $            tmp_grdpts_id0,
+     $            tmp_nodes0,
+     $            tmp_nodes1,
+     $            gen_borders)
+
+             current_element => current_element%get_next()
+          end do
+
+
+        end subroutine get_data_for_newgrdpt
 
 
         !> @author

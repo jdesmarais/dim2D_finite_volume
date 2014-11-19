@@ -58,7 +58,9 @@
      $       get_newgrdpt_procedure,
      $       error_gradient_type,
      $       get_interior_data_for_newgrdpt,
-     $       are_intermediate_newgrdpt_data_needed
+     $       are_intermediate_newgrdpt_data_needed,
+     $       get_x_map_for_newgrdpt,
+     $       get_y_map_for_newgrdpt
 
 
         integer, parameter :: no_gradient_type=0
@@ -913,5 +915,167 @@
           end select
 
         end function are_intermediate_newgrdpt_data_needed
+
+
+        function get_x_map_for_newgrdpt(
+     $     interior_x_map, gen_coords)
+     $     result(tmp_x_map)
+
+          implicit none
+
+          real(rkind)   , dimension(nx) , intent(in) :: interior_x_map
+          integer(ikind), dimension(2,2), intent(in) :: gen_coords
+          real(rkind)   , dimension(2*bc_size+1)     :: tmp_x_map
+
+          real(rkind) :: dx
+          integer     :: i
+          integer     :: size
+
+          ! --[-----]---|-------|--------
+          if(gen_coords(1,2).le.0) then
+
+             dx = interior_x_map(2)-interior_x_map(1)
+
+             do i=gen_coords(1,1),gen_coords(1,2)
+                
+                tmp_x_map(i-gen_coords(1,1)+1) = interior_x_map(1) + (i-1)*dx
+
+             end do
+
+          else
+          ! --------[--|--]-----|--------
+             if(gen_coords(1,1).le.0) then
+
+                dx = interior_x_map(2)-interior_x_map(1)
+
+                do i=gen_coords(1,1),0
+                   tmp_x_map(i-gen_coords(1,1)+1) = interior_x_map(1) + (i-1)*dx
+                end do
+
+                size = -gen_coords(1,1) + 1
+
+                do i=1,gen_coords(1,2)
+                   tmp_x_map(size+i) = interior_x_map(i)
+                end do
+
+          ! -----------|-[-----]|--------
+             else
+                if(gen_coords(1,2).le.nx) then
+
+                   do i=gen_coords(1,1),gen_coords(1,2)
+                      tmp_x_map(i-gen_coords(1,1)+1) = interior_x_map(i)
+                   end do
+
+          ! -----------|-----[--|--]-----
+                else
+
+                   dx = interior_x_map(nx) - interior_x_map(nx-1)
+
+                   if(gen_coords(1,1).le.nx) then
+                      
+                      do i=gen_coords(1,1),nx
+                         tmp_x_map(i-gen_coords(1,1)+1) = interior_x_map(i)
+                      end do
+
+                      size = -gen_coords(1,1) + 1
+
+                      do i=nx+1,gen_coords(1,2)
+                         tmp_x_map(size+i) = interior_x_map(nx) + (i-nx)*dx
+                      end do
+
+           ! -----------|--------|-[-----]
+                   else
+
+                      do i=gen_coords(1,1),gen_coords(1,2)
+                         tmp_x_map(i-gen_coords(1,1)+1) = interior_x_map(nx) + (i-nx)*dx
+                      end do
+
+                   end if
+                end if
+             end if
+          end if
+
+        end function get_x_map_for_newgrdpt
+
+
+        function get_y_map_for_newgrdpt(
+     $     interior_y_map, gen_coords)
+     $     result(tmp_y_map)
+
+          implicit none
+
+          real(rkind)   , dimension(nx) , intent(in) :: interior_y_map
+          integer(ikind), dimension(2,2), intent(in) :: gen_coords
+          real(rkind)   , dimension(2*bc_size+1)     :: tmp_y_map
+
+          real(rkind) :: dy
+          integer     :: i
+          integer     :: size
+
+          ! --[-----]---|-------|--------
+          if(gen_coords(2,2).le.0) then
+
+             dy = interior_y_map(2)-interior_y_map(1)
+
+             do i=gen_coords(2,1),gen_coords(2,2)
+                
+                tmp_y_map(i-gen_coords(2,1)+1) = interior_y_map(1) + (i-1)*dy
+
+             end do
+
+          else
+          ! --------[--|--]-----|--------
+             if(gen_coords(2,1).le.0) then
+
+                dy = interior_y_map(2)-interior_y_map(1)
+
+                do i=gen_coords(2,1),0
+                   tmp_y_map(i-gen_coords(2,1)+1) = interior_y_map(1) + (i-1)*dy
+                end do
+
+                size = -gen_coords(2,1) + 1
+
+                do i=1,gen_coords(2,2)
+                   tmp_y_map(size+i) = interior_y_map(i)
+                end do
+
+          ! -----------|-[-----]|--------
+             else
+                if(gen_coords(2,2).le.ny) then
+
+                   do i=gen_coords(2,1),gen_coords(2,2)
+                      tmp_y_map(i-gen_coords(2,1)+1) = interior_y_map(i)
+                   end do
+
+          ! -----------|-----[--|--]-----
+                else
+
+                   dy = interior_y_map(ny) - interior_y_map(ny-1)
+
+                   if(gen_coords(2,1).le.ny) then
+                      
+                      do i=gen_coords(2,1),ny
+                         tmp_y_map(i-gen_coords(2,1)+1) = interior_y_map(i)
+                      end do
+
+                      size = -gen_coords(2,1) + 1
+
+                      do i=ny+1,gen_coords(2,2)
+                         tmp_y_map(size+i) = interior_y_map(ny) + (i-ny)*dy
+                      end do
+
+           ! -----------|--------|-[-----]
+                   else
+
+                      do i=gen_coords(2,1),gen_coords(2,2)
+                         tmp_y_map(i-gen_coords(2,1)+1) = interior_y_map(ny) + (i-ny)*dy
+                      end do
+
+                   end if
+                end if
+             end if
+          end if
+
+        end function get_y_map_for_newgrdpt
 
       end module bf_layer_newgrdpt_procedure_module
