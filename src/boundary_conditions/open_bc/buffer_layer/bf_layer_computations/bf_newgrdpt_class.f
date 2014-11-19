@@ -161,7 +161,7 @@
           integer(ikind)                     , intent(in) :: j1
           integer                            , intent(in) :: procedure_type
           integer                            , intent(in) :: gradient_type
-          real(rkind)                                     :: new_grdpt
+          real(rkind)   , dimension(ne)                   :: new_grdpt
 
           integer                        :: n_direction
           logical                        :: side
@@ -483,7 +483,7 @@
         !> gradient procedure applied to compute the
         !> the transverse terms
         !--------------------------------------------------------------
-        subroutine compute_newgrdpt_x(
+        function compute_newgrdpt_x(
      $     p_model, t, dt,
      $     bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $     bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -699,7 +699,7 @@
           new_grdpt = MATMUL(char_amp,right_eigenM)
 
 
-        end subroutine compute_newgrdpt_x
+        end function compute_newgrdpt_x
 
 
         !> @author
@@ -755,7 +755,7 @@
         !> gradient procedure applied to compute the
         !> the transverse terms
         !--------------------------------------------------------------
-        subroutine compute_newgrdpt_y(
+        function compute_newgrdpt_y(
      $     p_model, t, dt,
      $     bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $     bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -969,7 +969,7 @@
           !9) determine the new grid point
           new_grdpt = MATMUL(char_amp,right_eigenM)
 
-        end subroutine compute_newgrdpt_y
+        end function compute_newgrdpt_y
 
 
         !> @author
@@ -1048,7 +1048,7 @@
         !>@param inter_indices
         !> indices identifying the interpolation points
         !--------------------------------------------------------------
-        subroutine compute_newgrdpt_xy(
+        function compute_newgrdpt_xy(
      $     p_model, t, dt,
      $     bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $     bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -1064,27 +1064,27 @@
 
           implicit none
 
-          type(pmodel_eq)                    , intent(in)    :: p_model
-          real(rkind)                        , intent(in)    :: t
-          real(rkind)                        , intent(in)    :: dt
-          integer(ikind), dimension(2,2)     , intent(in)    :: bf_align0
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map0
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map0
-          real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes0
-          integer(ikind), dimension(2,2)     , intent(in)    :: bf_align1
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map1
-          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map1
-          real(rkind)   , dimension(:,:,:)   , intent(inout) :: bf_nodes1
-          integer(ikind)                     , intent(in)    :: i1
-          integer(ikind)                     , intent(in)    :: j1
-          integer                            , intent(in)    :: n_direction
-          logical                            , intent(in)    :: side_n
-          procedure(gradient_n_proc)                         :: gradient_n_index1
-          procedure(gradient_n_proc)                         :: gradient_n_index2
-          procedure(gradient_n_proc)                         :: gradient_n_index3
-          integer(ikind), dimension(2)       , intent(in)    :: eigen_indices
-          integer(ikind), dimension(2,3)     , intent(in)    :: inter_indices1
-          real(rkind)   , dimension(ne)                      :: new_grdpt
+          type(pmodel_eq)                    , intent(in) :: p_model
+          real(rkind)                        , intent(in) :: t
+          real(rkind)                        , intent(in) :: dt
+          integer(ikind), dimension(2,2)     , intent(in) :: bf_align0
+          real(rkind)   , dimension(:)       , intent(in) :: bf_x_map0
+          real(rkind)   , dimension(:)       , intent(in) :: bf_y_map0
+          real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes0
+          integer(ikind), dimension(2,2)     , intent(in) :: bf_align1
+          real(rkind)   , dimension(:)       , intent(in) :: bf_x_map1
+          real(rkind)   , dimension(:)       , intent(in) :: bf_y_map1
+          real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes1
+          integer(ikind)                     , intent(in) :: i1
+          integer(ikind)                     , intent(in) :: j1
+          integer                            , intent(in) :: n_direction
+          logical                            , intent(in) :: side_n
+          procedure(gradient_n_proc)                      :: gradient_n_index1
+          procedure(gradient_n_proc)                      :: gradient_n_index2
+          procedure(gradient_n_proc)                      :: gradient_n_index3
+          integer(ikind), dimension(2)       , intent(in) :: eigen_indices
+          integer(ikind), dimension(2,3)     , intent(in) :: inter_indices1
+          real(rkind)   , dimension(ne)                   :: new_grdpt
 
           
           !x1,y1
@@ -1501,7 +1501,7 @@
           new_grdpt = MATMUL(char_amp,right_eigenM)
 
 
-        end subroutine compute_newgrdpt_xy
+        end function compute_newgrdpt_xy
 
 
         !compute the contribution of the transverse terms

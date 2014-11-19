@@ -427,11 +427,14 @@
           procedure,   pass :: set_grdpts_id_pt
           procedure,   pass :: get_alignment
           procedure,   pass :: get_alignment_tab
+          procedure,   pass :: set_alignment_tab
                        
           procedure,   pass :: get_local_coord
           procedure,   pass :: get_general_to_local_coord_tab
           procedure,   pass :: get_x_map
           procedure,   pass :: get_y_map
+          procedure,   pass :: set_x_map
+          procedure,   pass :: set_y_map
           procedure,   pass :: get_nodes_array
           procedure,   pass :: get_nodes
           procedure,   pass :: get_grdpts_id
@@ -818,6 +821,34 @@
 
         end function get_alignment_tab
 
+        
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the alignment attribute
+        !
+        !> @date
+        !> 19_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param alignment
+        !> alignment fror the buffer layer
+        !--------------------------------------------------------------
+        subroutine set_alignment_tab(this, alignment)
+
+          implicit none
+
+          class(bf_layer)               , intent(inout) :: this
+          integer(ikind), dimension(2,2), intent(in)    :: alignment
+
+          this%alignment = alignment
+
+        end subroutine set_alignment_tab
+
 
         !> @author
         !> Julien L. Desmarais
@@ -974,6 +1005,62 @@
           y_map(:) = this%y_map(:)
 
         end subroutine get_y_map
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the x_map attribute
+        !
+        !> @date
+        !> 19_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param x_map
+        !> map with the coordinates along the x-direction
+        !--------------------------------------------------------------
+        subroutine set_x_map(this, x_map)
+
+          implicit none
+
+          class(bf_layer)                          , intent(inout) :: this
+          real(rkind)   , dimension(:), allocatable, intent(inout) :: x_map
+          
+          call MOVE_ALLOC(x_map,this%x_map)
+
+        end subroutine set_x_map
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the y_map attribute
+        !
+        !> @date
+        !> 19_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param y_map
+        !> map with the coordinates along the y-direction
+        !--------------------------------------------------------------
+        subroutine set_y_map(this, y_map)
+
+          implicit none
+
+          class(bf_layer)                          , intent(inout) :: this
+          real(rkind)   , dimension(:), allocatable, intent(inout) :: y_map
+          
+          call MOVE_ALLOC(y_map,this%y_map)
+
+        end subroutine set_y_map
 
 
         !> @author

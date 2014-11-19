@@ -861,8 +861,8 @@
           size_x = i_max-i_min+1
           size_y = j_max-j_min+1 
 
-          i_recv = i_min-grdpts_id_coords(1,1)+1
-          j_recv = j_min-grdpts_id_coords(2,1)+1
+          i_recv = i_min-gen_coords(1,1)+1
+          j_recv = j_min-gen_coords(2,1)+1
 
           
           do j=1,size_y
@@ -895,14 +895,14 @@
             case(E)
                needed = .not.(
      $              (gen_coords(1,1).gt.nx).and.
-     $              (gen_coords(2,1).gt.1).and.
-     $              (gen_coords(2,2).lt.ny))
+     $              (gen_coords(2,1).gt.bc_size).and.
+     $              (gen_coords(2,2).lt.(ny-bc_size+1)))
                
             case(W)
                needed = .not.(
      $              (gen_coords(1,2).lt.1).and.
-     $              (gen_coords(2,1).gt.1).and.
-     $              (gen_coords(2,2).lt.ny))
+     $              (gen_coords(2,1).gt.bc_size).and.
+     $              (gen_coords(2,2).lt.(ny-bc_size+1)))
                
             case default
                call error_mainlayer_id(

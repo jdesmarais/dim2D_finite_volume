@@ -192,9 +192,12 @@ test_fixed_field_extended:\
 
 test_bf_layer_newgrdpt_procedure.o:\
 			$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
+			$(bf_layer_dir)/bf_layer_class.o\
 			$(bf_layer_dir)/bf_layer_errors_module.o\
 			$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\
 			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
 test_bf_layer_newgrdpt_procedure:\
@@ -202,9 +205,11 @@ test_bf_layer_newgrdpt_procedure:\
 			parameters_constant.o\
 			parameters_input.o\
 			parameters_bf_layer.o\
-			bf_layer_errors_module.o\
-			bf_layer_newgrdpt_procedure_module.o\
-			bf_layer_bc_procedure_module.o
+			$(bf_layer_dep)\
+			$(mt_dep)\
+			$(wave2d_dep)\
+			$(fv_dep)\
+			$(hedstrom_xy_dep)
 
 test_sd_operators_fd_n_module.o:\
 			$(param_dir)/parameters_kind.o\
@@ -216,7 +221,9 @@ test_sd_operators_fd_n_module:\
 			sd_operators_fd_module.o\
 			sd_operators_fd_n_module.o
 
-test_bf_newgrdpt.o:	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
+test_bf_newgrdpt.o:     $(cbf_layer_dir)/bf_compute_class.o\
+			$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
+			$(bf_layer_dir)/bf_layer_class.o\
 			$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\
 			$(cbf_layer_dir)/bf_newgrdpt_class.o\
 			$(param_dir)/parameters_constant.o\
@@ -230,8 +237,13 @@ test_bf_newgrdpt.o:	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
 test_bf_newgrdpt:	$(param_dep)\
 			$(mt_dep)\
 			$(wave2d_dep)\
+			$(fv_dep)\
+			$(hedstrom_xy_dep)\
+			$(bf_layer_dep)\
 			bf_layer_bc_procedure_module.o\
+			bf_layer_errors_module.o\
 			bf_layer_newgrdpt_procedure_module.o\
 			bf_newgrdpt_class.o\
 			sd_operators_fd_n_module.o\
-			n_coords_module.o
+			n_coords_module.o\
+			bf_compute_class.o

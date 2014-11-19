@@ -1,5 +1,8 @@
       program test_bf_newgrdpt
 
+        use bf_compute_class, only :
+     $       bf_compute
+
         use bf_layer_bc_procedure_module, only : 
      $       N_edge_type,
      $       S_edge_type,
@@ -13,6 +16,9 @@
      $       NW_corner_type,
      $       SE_corner_type,
      $       SW_corner_type
+
+        use bf_layer_class, only :
+     $       bf_layer
 
         use bf_layer_newgrdpt_procedure_module, only :
      $       no_gradient_type,
@@ -112,6 +118,15 @@
         test_validated = test_compute_newgrdpt(bf_newgrdpt_used,detailled)
         print '(''test_compute_newgrdpt: '', L1)', test_validated
 
+
+        !test of bf_compute/compute_newgrdpt
+        test_validated = test_bf_compute_compute_newgrdpt(detailled)
+        print '(''test_bf_compute_compute_newgrdpt: '',L1)', test_validated
+
+
+        !test of bf_layer/compute_newgrdpt
+        test_validated = test_bf_layer_compute_newgrdpt(detailled)
+        print '(''test_bf_layer_compute_newgrdpt: '',L1)', test_validated
 
         contains
 
@@ -276,6 +291,7 @@
           real(rkind), dimension(3,2,ne) :: bf_nodes1
 
           real(rkind), dimension(ne)     :: newgrdpt_data
+          real(rkind), dimension(ne)     :: newgrdpt
           integer(ikind)                 :: i1
           integer(ikind)                 :: j1
           logical                        :: side_x
@@ -325,7 +341,7 @@
           newgrdpt_data = [-3.345117188d0,4.943867188d0,9.87d0]
 
           !test
-          call bf_newgrdpt_used%compute_newgrdpt_x(
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt_x(
      $         p_model, t,dt,
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -337,7 +353,7 @@
 
              test_loc = is_test_validated(
      $            newgrdpt_data(k),
-     $            bf_nodes1(i1,j1,k),
+     $            newgrdpt(k),
      $            detailled)
              test_validated = test_validated.and.test_loc
 
@@ -370,6 +386,7 @@
           real(rkind), dimension(2,3,ne) :: bf_nodes1
 
           real(rkind), dimension(ne)     :: newgrdpt_data
+          real(rkind), dimension(ne)     :: newgrdpt
           integer(ikind)                 :: i1
           integer(ikind)                 :: j1
           logical                        :: side_y
@@ -425,7 +442,7 @@
           newgrdpt_data = [-3.345117188d0,9.87d0,4.943867188d0]
 
           !test
-          call bf_newgrdpt_used%compute_newgrdpt_y(
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt_y(
      $         p_model, t,dt,
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -437,7 +454,7 @@
 
              test_loc = is_test_validated(
      $            newgrdpt_data(k),
-     $            bf_nodes1(i1,j1,k),
+     $            newgrdpt(k),
      $            detailled)
              test_validated = test_validated.and.test_loc
 
@@ -470,6 +487,7 @@
           real(rkind), dimension(4,4,ne) :: bf_nodes1
 
           real(rkind), dimension(ne)     :: newgrdpt_data
+          real(rkind), dimension(ne)     :: newgrdpt
           integer(ikind)                 :: i1
           integer(ikind)                 :: j1
           integer                        :: n_direction
@@ -536,7 +554,7 @@
           newgrdpt_data = [-11.06536693d0,7.194275495d0,8.134275495d0]
 
           !test
-          call bf_newgrdpt_used%compute_newgrdpt_xy(
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt_xy(
      $         p_model, t,dt,
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -554,7 +572,7 @@
 
              test_loc = is_test_validated(
      $            newgrdpt_data(k),
-     $            bf_nodes1(i1,j1,k),
+     $            newgrdpt(k),
      $            detailled)
              test_validated = test_validated.and.test_loc
 
@@ -587,6 +605,7 @@
           real(rkind), dimension(:,:,:), allocatable :: bf_nodes1
 
           real(rkind), dimension(ne)     :: newgrdpt_data
+          real(rkind), dimension(ne)     :: newgrdpt
           integer(ikind)                 :: i1
           integer(ikind)                 :: j1
 
@@ -664,7 +683,7 @@
           newgrdpt_data = [-11.06536693d0,7.194275495d0,8.134275495d0]
 
           !test
-          call bf_newgrdpt_used%compute_newgrdpt(
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
      $         p_model, t, dt,
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -676,7 +695,7 @@
 
              test_loc = is_test_validated(
      $            newgrdpt_data(k),
-     $            bf_nodes1(i1,j1,k),
+     $            newgrdpt(k),
      $            detailled)
              test_validated = test_validated.and.test_loc
 
@@ -715,7 +734,7 @@
           newgrdpt_data = [-11.06536693d0,-7.194275495d0,8.134275495d0]
 
           !test
-          call bf_newgrdpt_used%compute_newgrdpt(
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
      $         p_model, t,dt,
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -727,7 +746,7 @@
 
              test_loc = is_test_validated(
      $            newgrdpt_data(k),
-     $            bf_nodes1(i1,j1,k),
+     $            newgrdpt(k),
      $            detailled)
              test_validated = test_validated.and.test_loc
 
@@ -766,7 +785,7 @@
           newgrdpt_data = [-11.06536693d0,-7.194275495d0,-8.134275495d0]
 
           !test
-          call bf_newgrdpt_used%compute_newgrdpt(
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
      $         p_model, t,dt,
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -778,7 +797,7 @@
 
              test_loc = is_test_validated(
      $            newgrdpt_data(k),
-     $            bf_nodes1(i1,j1,k),
+     $            newgrdpt(k),
      $            detailled)
              test_validated = test_validated.and.test_loc
 
@@ -817,7 +836,7 @@
           newgrdpt_data = [-11.06536693d0, 7.194275495d0,-8.134275495d0]
 
           !test
-          call bf_newgrdpt_used%compute_newgrdpt(
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
      $         p_model, t,dt,
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -829,7 +848,7 @@
 
              test_loc = is_test_validated(
      $            newgrdpt_data(k),
-     $            bf_nodes1(i1,j1,k),
+     $            newgrdpt(k),
      $            detailled)
              test_validated = test_validated.and.test_loc
 
@@ -902,7 +921,7 @@
           newgrdpt_data = [-3.345117188d0,4.943867188d0,9.87d0]
 
           !test
-          call bf_newgrdpt_used%compute_newgrdpt(
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
      $         p_model, t,dt,
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -915,7 +934,7 @@
 
              test_loc = is_test_validated(
      $            newgrdpt_data(k),
-     $            bf_nodes1(i1,j1,k),
+     $            newgrdpt(k),
      $            detailled)
              test_validated = test_validated.and.test_loc
 
@@ -952,7 +971,7 @@
           newgrdpt_data = [-3.345117188d0,-4.943867188d0,9.87d0]
 
           !test
-          call bf_newgrdpt_used%compute_newgrdpt(
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
      $         p_model, t,dt,
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -965,7 +984,7 @@
 
              test_loc = is_test_validated(
      $            newgrdpt_data(k),
-     $            bf_nodes1(i1,j1,k),
+     $            newgrdpt(k),
      $            detailled)
              test_validated = test_validated.and.test_loc
 
@@ -1045,7 +1064,7 @@
           newgrdpt_data = [-3.345117188d0,9.87d0,4.943867188d0]
 
           !test
-          call bf_newgrdpt_used%compute_newgrdpt(
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
      $         p_model, t,dt,
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -1059,7 +1078,7 @@
 
              test_loc = is_test_validated(
      $            newgrdpt_data(k),
-     $            bf_nodes1(i1,j1,k),
+     $            newgrdpt(k),
      $            detailled)
              test_validated = test_validated.and.test_loc
 
@@ -1095,7 +1114,7 @@
           newgrdpt_data = [-3.345117188d0,9.87d0,-4.943867188d0]
 
           !test
-          call bf_newgrdpt_used%compute_newgrdpt(
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
      $         p_model, t,dt,
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -1109,7 +1128,7 @@
 
              test_loc = is_test_validated(
      $            newgrdpt_data(k),
-     $            bf_nodes1(i1,j1,k),
+     $            newgrdpt(k),
      $            detailled)
              test_validated = test_validated.and.test_loc
 
@@ -1141,6 +1160,521 @@
      $         test_S_edge
 
         end function test_compute_newgrdpt
+
+
+        function test_bf_compute_compute_newgrdpt(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          integer    , dimension(:,:)  , allocatable :: align0
+          integer    , dimension(:,:)  , allocatable :: grdpts_id0
+          real(rkind), dimension(:)    , allocatable :: x_map0
+          real(rkind), dimension(:)    , allocatable :: y_map0
+          real(rkind), dimension(:,:,:), allocatable :: nodes0
+
+          integer    , dimension(:,:)  , allocatable :: align1
+          integer    , dimension(:,:)  , allocatable :: grdpts_id1
+          real(rkind), dimension(:)    , allocatable :: x_map1
+          real(rkind), dimension(:)    , allocatable :: y_map1
+          real(rkind), dimension(:,:,:), allocatable :: nodes1
+
+          integer(ikind)                             :: i1,j1
+          integer                                    :: k,l
+          logical                                    :: test_loc
+
+          integer    , dimension(:,:)  , allocatable :: compute_index
+          real(rkind), dimension(:,:)  , allocatable :: newgrdpt_data
+          real(rkind), dimension(ne)                 :: newgrdpt
+
+          type(bf_compute) :: bf_compute_used
+          type(pmodel_eq)  :: p_model
+
+          real(rkind) :: t
+          real(rkind) :: dt
+
+          !t and dt initialization
+          t  = 0.0d0
+          dt = 0.25d0
+
+
+          !allocations
+          allocate(align0(2,2))
+          allocate(grdpts_id0(14,12))
+          allocate(x_map0(14))
+          allocate(y_map0(12))
+          allocate(nodes0(14,12,ne))
+
+          allocate(align1(2,2))
+          allocate(grdpts_id1(16,14))
+          allocate(x_map1(16))
+          allocate(y_map1(14))
+          allocate(nodes1(16,14,ne))
+
+
+          !initializations
+
+          !initialization of the alignments
+          !--------------------------------------
+          align0(1,1) = 4
+          align0(1,2) = 13
+          align0(2,1) = 3
+          align0(2,2) = 10
+
+          align1(1,1) = 3
+          align1(1,2) = 14
+          align1(2,1) = 2
+          align1(2,2) = 11
+          
+
+          !initialization of the grdpts
+          !--------------------------------------
+          grdpts_id0 = reshape((/
+     $         0,0,0,0,3,3,3,3,3,0,0,0,0,0,
+     $         3,3,3,3,3,2,2,2,3,3,3,3,3,3,
+     $         3,2,2,2,2,2,1,2,2,2,2,2,2,3,
+     $         3,2,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         3,2,2,2,1,1,1,1,1,1,2,2,2,3,
+     $         3,3,3,2,1,1,1,1,1,1,2,3,3,3,
+     $         0,0,3,2,1,1,1,1,1,1,2,3,0,0,
+     $         0,0,3,2,2,2,1,2,2,2,2,3,0,0,
+     $         0,0,3,3,3,2,1,2,3,3,3,3,0,0,
+     $         0,0,0,0,3,2,2,2,3,0,0,0,0,0,
+     $         0,0,0,0,3,3,3,3,3,0,0,0,0,0/),
+     $         (/14,12/))
+
+          grdpts_id1 = reshape((/
+     $         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+     $         0,0,0,0,0,3,3,3,3,3,0,0,0,0,0,0,
+     $         0,3,3,3,3,3,2,2,2,3,3,3,3,3,3,0,
+     $         0,3,2,2,2,2,2,1,2,2,2,2,2,2,3,0,
+     $         0,3,2,1,1,1,1,1,1,1,1,1,1,2,3,0,
+     $         0,3,2,1,1,1,1,1,1,1,1,1,1,2,3,0,
+     $         0,3,2,2,2,1,1,1,1,1,1,2,2,2,3,0,
+     $         0,3,3,3,2,1,1,1,1,1,1,2,3,3,3,0,
+     $         0,0,0,3,2,1,1,1,1,1,1,2,3,0,0,0,
+     $         0,0,0,3,2,2,2,1,2,2,2,2,3,0,0,0,
+     $         0,0,0,3,3,3,2,1,2,3,3,3,3,0,0,0,
+     $         0,0,0,0,0,3,2,2,2,3,0,0,0,0,0,0,
+     $         0,0,0,0,0,3,3,3,3,3,0,0,0,0,0,0,
+     $         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/),
+     $         (/16,14/))
+
+
+          !initialization of the maps
+          !--------------------------------------
+          do k=1, size(x_map0,1)
+             x_map0(k) = 1.0d0 + 0.25d0*(k-12)
+          end do
+
+          do k=1, size(y_map0,1)
+             y_map0(k) = 0.25d0 + 0.25d0*(k-9) !1.0
+          end do
+
+          do k=1, size(x_map1,1)
+             x_map1(k) = 0.75d0 + 0.25d0*(k-12)
+          end do
+
+          do k=1, size(y_map1,1)
+             y_map1(k) = 0.0d0 + 0.25d0*(k-9) !1.0
+          end do
+
+
+          !initialization of the nodes
+          !--------------------------------------
+          !S
+          nodes0(8:9,1:2,:) = reshape((/
+     $         3.0d0,  1.25d0,
+     $         2.0d0,  -0.5d0,
+     $         3.26d0, 9.23d0,
+     $        -8.25d0, 7.85d0,
+     $        -3.26d0,-6.15d0,
+     $         0.75d0, 0.45d0/),
+     $         (/2,2,3/))
+
+          nodes1(9:10,2:3,:) = reshape((/
+     $         2.45d0, -0.26d0,
+     $          1.0d0,   0.5d0,
+     $        -2.15d0,  7.85d0,
+     $         2.05d0,  9.26d0,
+     $         0.75d0,  8.52d0,
+     $        -0.25d0,  -0.1d0/),
+     $         (/2,2,3/))
+
+          !SW_1
+          nodes0(1:3,2:4,:) = reshape((/
+     $          1.25d0,  -0.5d0,   0.5d0,
+     $           3.0d0,   2.0d0,   1.0d0,
+     $           0.8d0,   0.2d0,   0.6d0,
+     $         -6.15d0,  0.45d0,  -0.1d0,
+     $         -3.26d0,  0.75d0, -0.25d0,
+     $         -7.15d0, -6.12d0,  3.25d0,
+     $         -9.23d0, -7.85d0, -9.26d0,
+     $         -3.26d0,  8.25d0, -2.05d0,
+     $         -4.15d0, -3.25d0, -9.26d0/),
+     $         (/3,3,3/))
+
+          nodes1(2:4,3:5,:) = reshape((/
+     $        -0.26d0,   0.5d0,   0.2d0,
+     $         2.45d0,   1.0d0,   8.9d0,
+     $          1.2d0,   7.8d0,   2.3d0,
+     $         8.52d0,  -0.1d0,  -2.3d0,
+     $         0.75d0, -0.25d0, -9.26d0,
+     $        -7.15d0, -1.23d0,   5.2d0,
+     $        -7.85d0, -9.26d0, -7.26d0,
+     $         2.15d0, -2.05d0, -1.25d0,
+     $        -7.32d0,  -1.2d0, -9.63d0/),
+     $         (/3,3,3/))
+
+          !NE_1
+          nodes0(10:12,8:10,:) = reshape((/
+     $          0.6d0,  0.2d0, 0.8d0,
+     $          1.0d0,  2.0d0, 3.0d0,
+     $          0.5d0, -0.5d0,1.25d0,
+     $        -3.25d0, 6.12d0,7.15d0,
+     $         0.25d0,-0.75d0,3.26d0,
+     $          0.1d0,-0.45d0,6.15d0,
+     $         9.26d0, 3.25d0,4.15d0,
+     $         2.05d0,-8.25d0,3.26d0,
+     $         9.26d0, 7.85d0,9.23d0/),
+     $         (/3,3,3/))
+
+          nodes1(11:13,9:11,:) = reshape((/
+     $         2.3d0,  7.8d0,  1.2d0,
+     $         8.9d0,  1.0d0, 2.45d0,
+     $         0.2d0,  0.5d0,-0.26d0,
+     $        -5.2d0, 1.23d0, 7.15d0,
+     $        9.26d0, 0.25d0,-0.75d0,
+     $         2.3d0,  0.1d0,-8.52d0,
+     $        9.63d0,  1.2d0, 7.32d0,
+     $        1.25d0, 2.05d0,-2.15d0,
+     $        7.26d0, 9.26d0, 7.85d0/),
+     $         (/3,3,3/))
+
+
+          !set the nodes in bf_compute object
+          call bf_compute_used%set_alignment(align0)
+          call bf_compute_used%set_grdpts_id(grdpts_id0)
+          call bf_compute_used%set_x_map(x_map0)
+          call bf_compute_used%set_y_map(y_map0)
+          call bf_compute_used%set_nodes(nodes0)
+
+          
+          !test the computation of the new grid point
+          allocate(compute_index(2,3))
+          allocate(newgrdpt_data(3,3))
+
+          compute_index(:,1) = [10,1]
+          newgrdpt_data(:,1) = [-2.77171875d0,9.87d0,-4.37046875d0]
+
+          compute_index(:,2) = [1,2]
+          newgrdpt_data(:,2) = [-11.75157856d0,-6.859983049d0,-7.799983049d0]
+          
+
+          compute_index(:,3) = [14,12]
+          newgrdpt_data(:,3) = [-11.75157856d0, 6.859983049d0, 7.799983049d0]
+
+
+          !test the computation of the new grid points
+          do k=1, size(compute_index,2)
+             
+             !indices of the new grid point
+             i1 = compute_index(1,k)
+             j1 = compute_index(2,k)
+
+             !get the new grid point
+             newgrdpt = bf_compute_used%compute_newgrdpt(
+     $            p_model,t,dt,
+     $            align1, x_map1, y_map1, nodes1,
+     $            i1, j1)
+
+             !compare with the data
+             test_validated = .true.
+             do l=1,ne
+                test_loc = is_test_validated(
+     $               newgrdpt(l),
+     $               newgrdpt_data(l,k),
+     $               detailled)
+                test_validated = test_validated.and.test_loc
+             end do
+
+             !print the comparison results
+             if(detailled) then
+                if(test_loc) then
+                   print '(''test '',I2, '' validated'')', k
+                else
+                   print '(''**test '',I2, '' failed**'')', k
+                end if
+             end if
+
+          end do
+
+        end function test_bf_compute_compute_newgrdpt
+
+
+        function test_bf_layer_compute_newgrdpt(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          integer    , dimension(:,:)  , allocatable :: align0
+          integer    , dimension(:,:)  , allocatable :: grdpts_id0
+          real(rkind), dimension(:)    , allocatable :: x_map0
+          real(rkind), dimension(:)    , allocatable :: y_map0
+          real(rkind), dimension(:,:,:), allocatable :: nodes0
+
+          integer    , dimension(:,:)  , allocatable :: align1
+          integer    , dimension(:,:)  , allocatable :: grdpts_id1
+          real(rkind), dimension(:)    , allocatable :: x_map1
+          real(rkind), dimension(:)    , allocatable :: y_map1
+          real(rkind), dimension(:,:,:), allocatable :: nodes1
+
+          integer(ikind)                             :: i1,j1
+          integer                                    :: k,l
+          logical                                    :: test_loc
+
+          integer    , dimension(:,:)  , allocatable :: compute_index
+          real(rkind), dimension(:,:)  , allocatable :: newgrdpt_data
+          real(rkind), dimension(ne)                 :: newgrdpt
+
+          type(bf_layer)  :: bf_layer_used
+          type(pmodel_eq) :: p_model
+
+          real(rkind) :: t
+          real(rkind) :: dt
+
+          !t and dt initialization
+          t  = 0.0d0
+          dt = 0.25d0
+
+
+          !allocations
+          allocate(align0(2,2))
+          allocate(grdpts_id0(14,12))
+          allocate(x_map0(14))
+          allocate(y_map0(12))
+          allocate(nodes0(14,12,ne))
+
+          allocate(align1(2,2))
+          allocate(grdpts_id1(16,14))
+          allocate(x_map1(16))
+          allocate(y_map1(14))
+          allocate(nodes1(16,14,ne))
+
+
+          !initializations
+
+          !initialization of the alignments
+          !--------------------------------------
+          align0(1,1) = 4
+          align0(1,2) = 13
+          align0(2,1) = 3
+          align0(2,2) = 10
+
+          align1(1,1) = 3
+          align1(1,2) = 14
+          align1(2,1) = 2
+          align1(2,2) = 11
+          
+
+          !initialization of the grdpts
+          !--------------------------------------
+          grdpts_id0 = reshape((/
+     $         0,0,0,0,3,3,3,3,3,0,0,0,0,0,
+     $         3,3,3,3,3,2,2,2,3,3,3,3,3,3,
+     $         3,2,2,2,2,2,1,2,2,2,2,2,2,3,
+     $         3,2,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         3,2,2,2,1,1,1,1,1,1,2,2,2,3,
+     $         3,3,3,2,1,1,1,1,1,1,2,3,3,3,
+     $         0,0,3,2,1,1,1,1,1,1,2,3,0,0,
+     $         0,0,3,2,2,2,1,2,2,2,2,3,0,0,
+     $         0,0,3,3,3,2,1,2,3,3,3,3,0,0,
+     $         0,0,0,0,3,2,2,2,3,0,0,0,0,0,
+     $         0,0,0,0,3,3,3,3,3,0,0,0,0,0/),
+     $         (/14,12/))
+
+          grdpts_id1 = reshape((/
+     $         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+     $         0,0,0,0,0,3,3,3,3,3,0,0,0,0,0,0,
+     $         0,3,3,3,3,3,2,2,2,3,3,3,3,3,3,0,
+     $         0,3,2,2,2,2,2,1,2,2,2,2,2,2,3,0,
+     $         0,3,2,1,1,1,1,1,1,1,1,1,1,2,3,0,
+     $         0,3,2,1,1,1,1,1,1,1,1,1,1,2,3,0,
+     $         0,3,2,2,2,1,1,1,1,1,1,2,2,2,3,0,
+     $         0,3,3,3,2,1,1,1,1,1,1,2,3,3,3,0,
+     $         0,0,0,3,2,1,1,1,1,1,1,2,3,0,0,0,
+     $         0,0,0,3,2,2,2,1,2,2,2,2,3,0,0,0,
+     $         0,0,0,3,3,3,2,1,2,3,3,3,3,0,0,0,
+     $         0,0,0,0,0,3,2,2,2,3,0,0,0,0,0,0,
+     $         0,0,0,0,0,3,3,3,3,3,0,0,0,0,0,0,
+     $         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/),
+     $         (/16,14/))
+
+
+          !initialization of the maps
+          !--------------------------------------
+          do k=1, size(x_map0,1)
+             x_map0(k) = 1.0d0 + 0.25d0*(k-12)
+          end do
+
+          do k=1, size(y_map0,1)
+             y_map0(k) = 0.25d0 + 0.25d0*(k-9) !1.0
+          end do
+
+          do k=1, size(x_map1,1)
+             x_map1(k) = 0.75d0 + 0.25d0*(k-12)
+          end do
+
+          do k=1, size(y_map1,1)
+             y_map1(k) = 0.0d0 + 0.25d0*(k-9) !1.0
+          end do
+
+
+          !initialization of the nodes
+          !--------------------------------------
+          !S
+          nodes0(8:9,1:2,:) = reshape((/
+     $         3.0d0,  1.25d0,
+     $         2.0d0,  -0.5d0,
+     $         3.26d0, 9.23d0,
+     $        -8.25d0, 7.85d0,
+     $        -3.26d0,-6.15d0,
+     $         0.75d0, 0.45d0/),
+     $         (/2,2,3/))
+
+          nodes1(9:10,2:3,:) = reshape((/
+     $         2.45d0, -0.26d0,
+     $          1.0d0,   0.5d0,
+     $        -2.15d0,  7.85d0,
+     $         2.05d0,  9.26d0,
+     $         0.75d0,  8.52d0,
+     $        -0.25d0,  -0.1d0/),
+     $         (/2,2,3/))
+
+          !SW_1
+          nodes0(1:3,2:4,:) = reshape((/
+     $          1.25d0,  -0.5d0,   0.5d0,
+     $           3.0d0,   2.0d0,   1.0d0,
+     $           0.8d0,   0.2d0,   0.6d0,
+     $         -6.15d0,  0.45d0,  -0.1d0,
+     $         -3.26d0,  0.75d0, -0.25d0,
+     $         -7.15d0, -6.12d0,  3.25d0,
+     $         -9.23d0, -7.85d0, -9.26d0,
+     $         -3.26d0,  8.25d0, -2.05d0,
+     $         -4.15d0, -3.25d0, -9.26d0/),
+     $         (/3,3,3/))
+
+          nodes1(2:4,3:5,:) = reshape((/
+     $        -0.26d0,   0.5d0,   0.2d0,
+     $         2.45d0,   1.0d0,   8.9d0,
+     $          1.2d0,   7.8d0,   2.3d0,
+     $         8.52d0,  -0.1d0,  -2.3d0,
+     $         0.75d0, -0.25d0, -9.26d0,
+     $        -7.15d0, -1.23d0,   5.2d0,
+     $        -7.85d0, -9.26d0, -7.26d0,
+     $         2.15d0, -2.05d0, -1.25d0,
+     $        -7.32d0,  -1.2d0, -9.63d0/),
+     $         (/3,3,3/))
+
+          !NE_1
+          nodes0(10:12,8:10,:) = reshape((/
+     $          0.6d0,  0.2d0, 0.8d0,
+     $          1.0d0,  2.0d0, 3.0d0,
+     $          0.5d0, -0.5d0,1.25d0,
+     $        -3.25d0, 6.12d0,7.15d0,
+     $         0.25d0,-0.75d0,3.26d0,
+     $          0.1d0,-0.45d0,6.15d0,
+     $         9.26d0, 3.25d0,4.15d0,
+     $         2.05d0,-8.25d0,3.26d0,
+     $         9.26d0, 7.85d0,9.23d0/),
+     $         (/3,3,3/))
+
+          nodes1(11:13,9:11,:) = reshape((/
+     $         2.3d0,  7.8d0,  1.2d0,
+     $         8.9d0,  1.0d0, 2.45d0,
+     $         0.2d0,  0.5d0,-0.26d0,
+     $        -5.2d0, 1.23d0, 7.15d0,
+     $        9.26d0, 0.25d0,-0.75d0,
+     $         2.3d0,  0.1d0,-8.52d0,
+     $        9.63d0,  1.2d0, 7.32d0,
+     $        1.25d0, 2.05d0,-2.15d0,
+     $        7.26d0, 9.26d0, 7.85d0/),
+     $         (/3,3,3/))
+
+
+          !set the nodes in bf_compute object
+          call bf_layer_used%bf_compute_used%set_alignment(align0)
+          call bf_layer_used%bf_compute_used%set_grdpts_id(grdpts_id0)
+          call bf_layer_used%bf_compute_used%set_x_map(x_map0)
+          call bf_layer_used%bf_compute_used%set_y_map(y_map0)
+          call bf_layer_used%bf_compute_used%set_nodes(nodes0)
+
+          !set the nodes in the bf_layer_object
+          call bf_layer_used%set_alignment_tab(align1)
+          call bf_layer_used%set_x_map(x_map1)
+          call bf_layer_used%set_y_map(y_map1)
+          call bf_layer_used%set_nodes(nodes1)
+
+          
+          !test the computation of the new grid point
+          allocate(compute_index(2,3))
+          allocate(newgrdpt_data(3,3))
+
+          compute_index(:,1) = [10,1]
+          newgrdpt_data(:,1) = [-2.77171875d0,9.87d0,-4.37046875d0]
+
+          compute_index(:,2) = [1,2]
+          newgrdpt_data(:,2) = [-11.75157856d0,-6.859983049d0,-7.799983049d0]
+          
+          compute_index(:,3) = [14,12]
+          newgrdpt_data(:,3) = [-11.75157856d0, 6.859983049d0, 7.799983049d0]
+
+
+          !test the computation of the new grid points
+          do k=1, size(compute_index,2)
+             
+             !indices of the new grid point
+             i1 = compute_index(1,k)
+             j1 = compute_index(2,k)
+
+             !get the new grid point
+             call bf_layer_used%compute_newgrdpt(
+     $            p_model,t,dt,
+     $            i1, j1)
+
+             !compare with the data
+             test_validated = .true.
+             newgrdpt = bf_layer_used%get_nodes([i1,j1])
+             do l=1,ne
+                test_loc = is_test_validated(
+     $               newgrdpt(l),
+     $               newgrdpt_data(l,k),
+     $               detailled)
+                test_validated = test_validated.and.test_loc
+             end do
+
+             !print the comparison results
+             if(detailled) then
+                if(test_loc) then
+                   print '(''test '',I2, '' validated'')', k
+                else
+                   print '(''**test '',I2, '' failed**'')', k
+                end if
+             end if
+
+          end do
+
+        end function test_bf_layer_compute_newgrdpt
 
 
         function test_get_interpolation_coeff_2D(bf_newgrdpt_used,detailled)

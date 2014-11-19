@@ -225,8 +225,14 @@ wall_x_refl_y_par_dep=	$(mpi_dep)\
 			bc_operators_abstract_par_class.o\
 			bc_operators_par_class.o
 
+bf_newgrdpt_dep=	bf_newgrdpt_class.o\
+			n_coords_module.o\
+			sd_operators_fd_n_module.o
+
 bf_layer_dep=		parameters_bf_layer.o\
 			bf_remove_module.o\
+			bf_layer_newgrdpt_procedure_module.o\
+			$(bf_newgrdpt_dep)\
 			bf_compute_class.o\
 			bf_layer_errors_module.o\
 			bf_layer_allocate_module.o\

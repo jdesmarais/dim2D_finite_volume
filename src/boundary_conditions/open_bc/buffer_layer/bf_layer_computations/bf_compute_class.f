@@ -118,6 +118,11 @@
           procedure, pass :: get_data_for_newgrdpt
           procedure, pass :: compute_newgrdpt
 
+          procedure, pass :: set_alignment   !only for tests
+          procedure, pass :: set_grdpts_id   !only for tests
+          procedure, pass :: set_x_map       !only for tests
+          procedure, pass :: set_y_map       !only for tests
+          procedure, pass :: set_nodes       !only for tests
           procedure, pass :: set_bc_sections !only for tests
           procedure, pass :: get_time_dev    !only for tests
 
@@ -546,8 +551,8 @@
 
           
           !get the indices of the new gridpoint for the grdpts_id_tmp
-          i0 = this%alignment_tmp(1,1) - bf_align1(1,1) + i1 -1
-          j0 = this%alignment_tmp(2,1) - bf_align1(2,1) + j1 -1
+          i0 = bf_align1(1,1) - this%alignment_tmp(1,1) + i1
+          j0 = bf_align1(2,1) - this%alignment_tmp(2,1) + j1
 
 
           !create a temporary array for the grid points surrounding the
@@ -603,7 +608,147 @@
      $         i1,j1,
      $         procedure_type, gradient_type)
 
-        end subroutine compute_newgrdpt
+        end function compute_newgrdpt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the alignment attribute
+        !
+        !> @date
+        !> 19_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_compute object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param alignment
+        !> alignment of the buffer layer at t-dt
+        !--------------------------------------------------------------
+        subroutine set_alignment(this, alignment)
+
+          implicit none
+
+          class(bf_compute)                   , intent(inout) :: this
+          integer, dimension(:,:), allocatable, intent(inout) :: alignment
+
+          call MOVE_ALLOC(alignment,this%alignment_tmp)
+
+        end subroutine set_alignment
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the alignment attribute
+        !
+        !> @date
+        !> 19_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_compute object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param grdpts_id
+        !> identification of the gridpoints at t-dt
+        !--------------------------------------------------------------
+        subroutine set_grdpts_id(this, grdpts_id)
+
+          implicit none
+
+          class(bf_compute)                   , intent(inout) :: this
+          integer, dimension(:,:), allocatable, intent(inout) :: grdpts_id
+
+          call MOVE_ALLOC(grdpts_id,this%grdpts_id_tmp)
+
+        end subroutine set_grdpts_id
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the x_map attribute
+        !
+        !> @date
+        !> 19_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_compute object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param x_map
+        !> x-coordinates for the buffer layer at t-dt
+        !--------------------------------------------------------------
+        subroutine set_x_map(this, x_map)
+
+          implicit none
+
+          class(bf_compute)                     , intent(inout) :: this
+          real(rkind), dimension(:), allocatable, intent(inout) :: x_map
+
+          call MOVE_ALLOC(x_map,this%x_map_tmp)
+
+        end subroutine set_x_map
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the y_map attribute
+        !
+        !> @date
+        !> 19_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_compute object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param y_map
+        !> y-coordinates for the buffer layer at t-dt
+        !--------------------------------------------------------------
+        subroutine set_y_map(this, y_map)
+
+          implicit none
+
+          class(bf_compute)                     , intent(inout) :: this
+          real(rkind), dimension(:), allocatable, intent(inout) :: y_map
+
+          call MOVE_ALLOC(y_map,this%y_map_tmp)
+
+        end subroutine set_y_map
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the alignment attribute
+        !
+        !> @date
+        !> 19_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_compute object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param nodes
+        !> grid-points data at t-dt
+        !--------------------------------------------------------------
+        subroutine set_nodes(this, nodes)
+
+          implicit none
+
+          class(bf_compute)                         , intent(inout) :: this
+          real(rkind), dimension(:,:,:), allocatable, intent(inout) :: nodes
+
+          call MOVE_ALLOC(nodes,this%nodes_tmp)
+
+        end subroutine set_nodes
 
       
         !> @author
