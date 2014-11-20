@@ -71,20 +71,29 @@
 
         use sd_operators_fd_n_module, only :
      $       gradient_n1_xL0_yL0,
-     $       gradient_n1_xL1_yL0,
      $       gradient_n1_xL0_yL1,
      $       
-     $       gradient_n2_xR1_yL0,
-     $       gradient_n2_xR0_yL0,
-     $       gradient_n2_xR0_yL1,
+     $       gradient_n1_xL1_yL0,
+     $       gradient_n1_xL1_yL1,
+     $       gradient_n1_xL1_yR0,
+     $       gradient_n1_xR1_yR0,
      $       
+     $       gradient_n1_xR0_yR0,
+     $       gradient_n1_xR0_yR1,
+     $       gradient_n1_xR0_yL1,
+     $       
+     $       gradient_n2_xL0_yL1,
      $       gradient_n2_xL0_yR1,
      $       gradient_n2_xL0_yR0,
-     $       gradient_n2_xL1_yR0,
      $       
-     $       gradient_n1_xR0_yR1,
-     $       gradient_n1_xR1_yR0,
-     $       gradient_n1_xR0_yR0
+     $       gradient_n2_xL1_yL0,
+     $       gradient_n2_xL1_yL1,
+     $       gradient_n2_xL1_yR0,
+     $       gradient_n2_xR1_yL0,
+     $       
+     $       gradient_n2_xR0_yL0,
+     $       gradient_n2_xR0_yL1
+
 
         implicit none
 
@@ -418,6 +427,93 @@
 
                end select
 
+            case(SE_edge_type)
+               
+               n_direction         = n1_direction
+               side                = right
+               eigen_indices       = [i1-1,j1+1]
+               inter_indices1(:,1) = [i1-1,j1]
+               inter_indices1(:,2) = [i1-1,j1+1]
+               inter_indices1(:,3) = [i1  ,j1+1]
+
+               new_grdpt = compute_newgrdpt_xy(
+     $              p_model, t, dt,
+     $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $              i1,j1,
+     $              n_direction,
+     $              side,
+     $              gradient_n2_xR0_yL1,
+     $              gradient_n2_xL1_yL1,
+     $              gradient_n2_xL1_yL0,
+     $              eigen_indices,
+     $              inter_indices1)
+
+            case(SW_edge_type)
+               
+               n_direction         = n2_direction
+               side                = left
+               eigen_indices       = [i1+1,j1+1]
+               inter_indices1(:,1) = [i1+1,j1]
+               inter_indices1(:,2) = [i1  ,j1+1]
+               inter_indices1(:,3) = [i1+1,j1+1]
+
+               new_grdpt = compute_newgrdpt_xy(
+     $              p_model, t, dt,
+     $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $              i1,j1,
+     $              n_direction,
+     $              side,
+     $              gradient_n1_xL0_yL1,
+     $              gradient_n1_xL1_yL0,
+     $              gradient_n1_xL1_yL1,
+     $              eigen_indices,
+     $              inter_indices1)
+
+            case(NE_edge_type)
+               
+               n_direction         = n2_direction
+               side                = right
+               eigen_indices       = [i1-1,j1-1]
+               inter_indices1(:,1) = [i1-1,j1-1]
+               inter_indices1(:,2) = [i1  ,j1-1]
+               inter_indices1(:,3) = [i1-1,j1  ]
+
+               new_grdpt = compute_newgrdpt_xy(
+     $              p_model, t, dt,
+     $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $              i1,j1,
+     $              n_direction,
+     $              side,
+     $              gradient_n1_xL1_yL1,
+     $              gradient_n1_xL1_yR0,
+     $              gradient_n1_xR0_yL1,
+     $              eigen_indices,
+     $              inter_indices1)
+
+            case(NW_edge_type)
+               
+               n_direction         = n1_direction
+               side                = left
+               eigen_indices       = [i1+1,j1-1]
+               inter_indices1(:,1) = [i1  ,j1-1]
+               inter_indices1(:,2) = [i1+1,j1-1]
+               inter_indices1(:,3) = [i1+1,j1  ]
+
+               new_grdpt = compute_newgrdpt_xy(
+     $              p_model, t, dt,
+     $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $              i1,j1,
+     $              n_direction,
+     $              side,
+     $              gradient_n2_xL1_yR0,
+     $              gradient_n2_xL1_yL1,
+     $              gradient_n2_xL0_yL1,
+     $              eigen_indices,
+     $              inter_indices1)
 
             case default
                print '(''bf_newgrdpt_class'')'

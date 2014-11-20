@@ -439,45 +439,49 @@
           integer(ikind) :: i,j
           integer        :: k
 
+          
+          if(allocated(this%alignment_tmp)) then
 
-          !synchronize the overlapping at t=t
-          i_min = max(this%alignment_tmp(1,1)-bc_size,gen_coords(1,1))
-          i_max = min(this%alignment_tmp(1,2)+bc_size,gen_coords(1,2))
-          j_min = max(this%alignment_tmp(2,1)-bc_size,gen_coords(2,1))
-          j_max = min(this%alignment_tmp(2,2)+bc_size,gen_coords(2,2))
-
-          size_x = i_max-i_min+1
-          size_y = j_max-j_min+1 
-
-          i_recv = i_min-gen_coords(1,1)+1
-          i_send = i_min-(this%alignment_tmp(1,1)-bc_size)+1
-
-          j_recv = j_min-gen_coords(2,1)+1
-          j_send = j_min-(this%alignment_tmp(2,1)-bc_size)+1
-
-
-          !synchronize the grdpts_id
-          do j=1, size_y
-             do i=1, size_x
-
-                tmp_grdpts_id0(i_recv+i-1,j_recv+j-1) =
-     $               this%grdpts_id_tmp(i_send+i-1,j_send+j-1)
-                
-             end do
-          end do
-
-
-          !synchronize the nodes
-          do k=1,ne
+             !synchronize the overlapping at t=t
+             i_min = max(this%alignment_tmp(1,1)-bc_size,gen_coords(1,1))
+             i_max = min(this%alignment_tmp(1,2)+bc_size,gen_coords(1,2))
+             j_min = max(this%alignment_tmp(2,1)-bc_size,gen_coords(2,1))
+             j_max = min(this%alignment_tmp(2,2)+bc_size,gen_coords(2,2))
+             
+             size_x = i_max-i_min+1
+             size_y = j_max-j_min+1 
+             
+             i_recv = i_min-gen_coords(1,1)+1
+             i_send = i_min-(this%alignment_tmp(1,1)-bc_size)+1
+             
+             j_recv = j_min-gen_coords(2,1)+1
+             j_send = j_min-(this%alignment_tmp(2,1)-bc_size)+1
+             
+             
+             !synchronize the grdpts_id
              do j=1, size_y
                 do i=1, size_x
-
-                   tmp_nodes0(i_recv+i-1,j_recv+j-1,k) =
-     $                  this%nodes_tmp(i_send+i-1,j_send+j-1,k)
-
+             
+                   tmp_grdpts_id0(i_recv+i-1,j_recv+j-1) =
+     $                  this%grdpts_id_tmp(i_send+i-1,j_send+j-1)
+                   
                 end do
              end do
-          end do
+             
+             
+             !synchronize the nodes
+             do k=1,ne
+                do j=1, size_y
+                   do i=1, size_x
+             
+                      tmp_nodes0(i_recv+i-1,j_recv+j-1,k) =
+     $                     this%nodes_tmp(i_send+i-1,j_send+j-1,k)
+             
+                   end do
+                end do
+             end do
+
+          end if
 
         end subroutine get_data_for_newgrdpt
 
