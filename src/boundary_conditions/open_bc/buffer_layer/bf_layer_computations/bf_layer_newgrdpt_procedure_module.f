@@ -350,26 +350,26 @@
           
           !  -------
           ! |       |
-          ! |   0*  |
-          ! | 3 3 3 |
+          ! | 3 0*  |
+          ! | 3 3   |
           !  -------
-          if((i.lt.size(grdpts_id,1)).and.(grdpts_id(i+1,j-1).eq.bc_pt)) then
+          if(grdpts_id(i-1,j).eq.bc_pt) then
 
-             procedure_type = N_edge_type
-             gradient_type  = gradient_I_type
+             procedure_type = NE_edge_type
+             gradient_type  = no_gradient_type
 
 
           else
 
           !  -------
           ! |       |
-          ! | 3 0*  |
-          ! | 3 3 x |
+          ! | x 0*  |
+          ! | 3 3 3 |
           !  -------
-             if(grdpts_id(i-1,j).eq.bc_pt) then
+             if(grdpts_id(i+1,j-1).eq.bc_pt) then
                 
-                procedure_type = NE_edge_type
-                gradient_type  = no_gradient_type
+                procedure_type = N_edge_type
+                gradient_type  = gradient_I_type
 
           !  -------
           ! |       |
@@ -650,26 +650,10 @@
           integer(ikind)         , intent(in) :: j
           integer, dimension(:,:), intent(in) :: grdpts_id
 
-          integer :: min_i
-          integer :: max_i
-          integer :: min_j
-          integer :: max_j
-
-          character(len=3) :: format_grdpt
-
           integer :: k
 
-          min_i = max(1,i-1)
-          max_i = min(size(grdpts_id,1),i+1)
-          min_j = max(1,j-1)
-          max_j = min(size(grdpts_id,2),j+1)
-
-          write(format_grdpt,'(I1,''I2'')'), max_i-min_i+1
-
-          do k=min_j,max_j
-
-             print (format_grdpt), grdpts_id(min_i:max_i,max_j-(k-min_j))
-
+          do k=j-1,j+1
+             print '(3I2)', grdpts_id(i-1:i+1,(j+1)-k+1)
           end do
 
         end subroutine error_newgrdpt_procedure

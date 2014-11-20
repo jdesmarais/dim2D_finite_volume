@@ -109,6 +109,8 @@
 
           contains
 
+          procedure, pass :: does_previous_timestep_exist
+
           procedure, pass :: allocate_tables
           procedure, pass :: deallocate_tables
 
@@ -129,6 +131,37 @@
         end type bf_compute
 
         contains
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> allocate the nodes_tmp and time_dev tables storing
+        !> the intermediate time integration steps for the
+        !> buffer layer
+        !
+        !> @date
+        !> 27_10_2014 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_compute object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !> @param exist
+        !> say whether the previous step is stored in the object
+        !--------------------------------------------------------------
+        function does_previous_timestep_exist(
+     $       this)
+     $       result(exist)
+
+          implicit none
+
+          class(bf_compute), intent(in) :: this
+          logical                       :: exist
+
+          exist = allocated(this%nodes_tmp)
+        
+        end function does_previous_timestep_exist
 
 
         !> @author

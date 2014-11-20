@@ -240,10 +240,29 @@ test_bf_newgrdpt:	$(param_dep)\
 			$(fv_dep)\
 			$(hedstrom_xy_dep)\
 			$(bf_layer_dep)\
-			bf_layer_bc_procedure_module.o\
-			bf_layer_errors_module.o\
-			bf_layer_newgrdpt_procedure_module.o\
-			bf_newgrdpt_class.o\
+			sd_operators_fd_n_module.o\
+			n_coords_module.o
+
+test_nbf_interface.o:   $(bf_layer_dir)/bf_sublayer_class.o\
+			$(nbf_layer_dir)/nbf_interface_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(wave2d_dir)/pmodel_eq_class.o\
+			$(wave2d_dir)/wave2d_parameters.o
+
+test_nbf_interface:	$(param_dep)\
+			$(mt_dep)\
+			$(wave2d_dep)\
+			$(fv_dep)\
+			$(hedstrom_xy_dep)\
+			$(bf_layer_dep)\
 			sd_operators_fd_n_module.o\
 			n_coords_module.o\
-			bf_compute_class.o
+			bf_sublayer_class.o\
+			nbf_element_class.o\
+			bf_sublayer_pointer_class.o\
+			sbf_list_class.o\
+			bf_interior_bc_sections_module.o\
+			nbf_list_class.o\
+			nbf_interface_class.o

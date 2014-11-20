@@ -24,6 +24,7 @@
      $       error_mainlayer_id
 
         use bf_layer_newgrdpt_procedure_module, only :
+     $       get_newgrdpt_procedure,
      $       get_interior_data_for_newgrdpt,
      $       are_intermediate_newgrdpt_data_needed,
      $       get_x_map_for_newgrdpt,
@@ -1435,17 +1436,17 @@
 
           implicit none
 
-          class(nbf_interface)            , intent(in) :: this
-          type(bf_sublayer)   , pointer   , intent(in) :: bf_sublayer_ptr
-          type(pmodel_eq)                 , intent(in) :: p_model
-          real(rkind)                     , intent(in) :: t
-          real(rkind)                     , intent(in) :: dt
-          integer(ikind)                  , intent(in) :: i1
-          integer(ikind)                  , intent(in) :: j1
-          real(rkind), dimension(nx)      , intent(in) :: interior_x_map
-          real(rkind), dimension(ny)      , intent(in) :: interior_y_map
-          real(rkind), dimension(nx,ny,ne), intent(in) :: interior_nodes0
-          real(rkind), dimension(nx,ny,ne), intent(in) :: interior_nodes1
+          class(nbf_interface)            , intent(in)    :: this
+          type(bf_sublayer)               , intent(inout) :: bf_sublayer_ptr
+          type(pmodel_eq)                 , intent(in)    :: p_model
+          real(rkind)                     , intent(in)    :: t
+          real(rkind)                     , intent(in)    :: dt
+          integer(ikind)                  , intent(in)    :: i1
+          integer(ikind)                  , intent(in)    :: j1
+          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes0
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes1
 
           integer(ikind), dimension(2)   :: match_table
           integer(ikind), dimension(2)   :: gen_coords
@@ -1488,6 +1489,10 @@
           tmp_needed = are_intermediate_newgrdpt_data_needed(
      $         localization,
      $         gen_borders)
+
+          if(.not.tmp_needed) then
+             tmp_needed = .not.(bf_sublayer_ptr%does_previous_timestep_exist())
+          end if
 
 
           !if intermediate data are required, data are gathered from

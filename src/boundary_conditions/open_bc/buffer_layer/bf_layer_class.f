@@ -420,6 +420,7 @@
           procedure,   pass :: ini
                        
           procedure,   pass :: get_localization
+          procedure,   pass :: set_localization
           procedure,   pass :: get_sizes
           procedure,   pass :: set_nodes
           procedure,   pass :: set_nodes_pt
@@ -467,6 +468,7 @@
 
           procedure,   pass :: get_data_for_newgrdpt
           procedure,   pass :: compute_newgrdpt
+          procedure,   pass :: does_previous_timestep_exist
 
           procedure,   pass :: update_grdpts_after_increase
           
@@ -559,6 +561,34 @@
           get_localization = this%localization
           
         end function get_localization
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the localization attribute
+        !
+        !> @date
+        !> 20_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param localization
+        !> cardinal coordinate identifying the buffer layer position
+        !--------------------------------------------------------------
+        subroutine set_localization(this, localization)
+        
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+          integer                        :: localization
+          
+          this%localization = localization
+          
+        end subroutine set_localization
 
       
         !> @author
@@ -2318,6 +2348,36 @@
         !> Julien L. Desmarais
         !
         !> @brief
+        !> check whether the previous time step is stored in the
+        !> buffer layer
+        !
+        !> @date
+        !> 20_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param exist
+        !> says whether the previous time step is stored in the
+        !> buffer layer
+        !--------------------------------------------------------------
+        function does_previous_timestep_exist(this) result(exist)
+
+          implicit none
+
+          class(bf_layer), intent(in) :: this
+          logical                     :: exist
+
+          exist = this%bf_compute_used%does_previous_timestep_exist()
+
+        end function does_previous_timestep_exist
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> create a truncated copy of the the grdpts_id. The copy is
         !> a 3x3 array whose center (2,2) is identified by its general
         !> coordinates cpt_coords
@@ -3040,6 +3100,10 @@
 
           call remove_N_bc_sections(this)
           call remove_S_bc_sections(this)
+
+          if(does_previous_timestep_exist(this)) then
+             call this%bf_compute_used%deallocate_tables()
+          end if
 
         end subroutine remove      
 
