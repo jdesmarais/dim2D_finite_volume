@@ -31,14 +31,25 @@
         detailled = .true.
         
         
+        !all the data needed for the computation of the new grid point
+        !are located in the buffer layer
         test_validated = test_compute_newgrdpt(1, detailled)
         print '(''test_compute_newgrdpt - config 1: '',L1)', test_validated
         
+        !the data needed for the computation of the new grid point need to
+        !be extracted from the interior
         test_validated = test_compute_newgrdpt(2, detailled)
         print '(''test_compute_newgrdpt - config 2: '',L1)', test_validated
 
+        !the data needed for the computation of the new grid point need to
+        !be extracted from the interior and the neighboring buffer layers
         test_validated = test_compute_newgrdpt(3, detailled)
         print '(''test_compute_newgrdpt - config 3: '',L1)', test_validated
+        
+        !the buffer layer has just been created and no data are stored
+        !at t=t-dt
+        test_validated = test_compute_newgrdpt(4, detailled)
+        print '(''test_compute_newgrdpt - config 4: '',L1)', test_validated
         
 
         contains
@@ -107,6 +118,9 @@
              case(3)
                 dx = 1.0d0
                 dy = 0.25d0
+             case(4)
+                dx = 0.25d0
+                dy = 0.25d0                
              case default
                 print '(''test_nbf_interface'')'
                 print '(''test_compute_newgrdpt'')'
@@ -208,6 +222,16 @@
 
             case(3)
                call initialize_data_for_test_compute_newgrpdt_config2(
+     $              dx,dy,
+     $              interior_nodes0,
+     $              interior_nodes1,
+     $              bf_sublayer_used,
+     $              nbf_interface_used,
+     $              i1,j1,
+     $              newgrdpt_data)
+
+            case(4)
+               call initialize_data_for_test_compute_newgrpdt_config4(
      $              dx,dy,
      $              interior_nodes0,
      $              interior_nodes1,
@@ -805,6 +829,114 @@
      $         (/3,2,3/))
 
         end subroutine initialize_data_for_test_compute_newgrpdt_config3
+
+
+        subroutine initialize_data_for_test_compute_newgrpdt_config4(
+     $     dx,dy,
+     $     interior_nodes0,
+     $     interior_nodes1,
+     $     bf_sublayer_used,
+     $     nbf_interface_used,
+     $     i1,j1,
+     $     newgrdpt_data)
+
+          implicit none
+
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          real(rkind), dimension(nx,ny,ne)  , intent(inout) :: interior_nodes0
+          real(rkind), dimension(nx,ny,ne)  , intent(inout) :: interior_nodes1
+          type(bf_sublayer)  , pointer      , intent(inout) :: bf_sublayer_used
+          type(nbf_interface)               , intent(out)   :: nbf_interface_used
+          integer(ikind)                    , intent(out)   :: i1
+          integer(ikind)                    , intent(out)   :: j1
+          real(rkind)        , dimension(ne), intent(out)   :: newgrdpt_data
+
+          integer(ikind), dimension(2,2)                :: align1
+          real(rkind)   , dimension(:)    , allocatable :: x_map1
+          real(rkind)   , dimension(:)    , allocatable :: y_map1
+          real(rkind)   , dimension(:,:,:), allocatable :: nodes1
+
+          integer                                     :: i
+
+          !attribute initialization of buffer layer at t
+          align1(1,1) = 7
+          align1(1,2) = 8
+          align1(2,1) = ny-1
+          align1(2,2) = ny-1
+
+          allocate(x_map1(6))
+          allocate(y_map1(5))
+
+          do i=1,6
+             x_map1(i) = (3+i)*dx
+          end do
+
+          do i=1,5
+             y_map1(i) = (5+i)*dy
+          end do
+
+          allocate(nodes1(6,5,ne))
+
+          nodes1(5:6,3:4,:) = reshape((/
+     $         1.0d0,  0.5d0,
+     $        2.45d0,-0.26d0,
+     $         
+     $        2.05d0, 9.26d0,
+     $       -2.15d0, 7.85d0,
+     $         
+     $        0.25d0, 0.10d0,
+     $       -0.75d0,-8.52d0
+     $         /),
+     $         (/2,2,3/))
+
+
+          !set the nodes in the bf_layer_object
+          call bf_sublayer_used%ini(N)
+          call bf_sublayer_used%set_alignment_tab(align1)
+          call bf_sublayer_used%set_x_map(x_map1)
+          call bf_sublayer_used%set_y_map(y_map1)
+          call bf_sublayer_used%set_nodes(nodes1)
+
+
+          !set the indices of the grid point computed
+          i1 = 6
+          j1 = 5
+
+          
+          !newgrdpt_data
+          newgrdpt_data = [-2.77171875d0,9.87d0,4.370469d0]
+
+
+          !initialize the nbf_interface with no links
+          call nbf_interface_used%ini()
+
+          !initialize the interior_nodes
+          interior_nodes0(9:10,9:10,:) = reshape((/
+     $         2.0d0, -0.5d0,
+     $         3.0d0, 1.25d0,
+     $         
+     $       -8.25d0, 7.85d0,
+     $        3.26d0, 9.23d0,
+     $         
+     $       -0.75d0,-0.45d0,
+     $        3.26d0, 6.15d0
+     $         /),
+     $         (/2,2,3/))
+
+          interior_nodes1(9:10,9:10,:) = reshape((/
+     $         1.0d0,  0.5d0,
+     $        2.45d0,-0.26d0,
+     $         
+     $        2.05d0, 9.26d0,
+     $       -2.15d0, 7.85d0,
+     $         
+     $        0.25d0, 0.10d0,
+     $       -0.75d0,-8.52d0
+     $         /),
+     $         (/2,2,3/))
+
+        end subroutine initialize_data_for_test_compute_newgrpdt_config4
 
 
         function is_test_validated(var,cst,detailled) result(test_validated)
