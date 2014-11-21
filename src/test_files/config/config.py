@@ -4,6 +4,7 @@ import sys
 import getopt
 import subprocess
 import shlex
+import string
 
 
 def display_help():
@@ -53,6 +54,38 @@ def parse_argv(argv):
 
     return [inputFile,compileCode]
 
+def read_commit():
+    '''
+    @description:
+    determine the program version using the last
+    commit SHA reference number
+    '''
+    cmd="git log -1 --format=%H"
+    args = shlex.split(cmd)
+    output = subprocess.Popen(args,stdout=subprocess.PIPE).communicate()[0]
+    
+    return output.strip()
+
+def set_commit(file_path):
+    '''
+    @description:
+    set the parameter 'commit' in the file to the last commit
+    SHA reference number
+    '''
+
+    commit_ID = read_commit()
+    commit_ID = commit_ID
+
+    cmd="./change_parameter.sh"
+    cmd+=" -i "+str(file_path)
+    cmd+=" -o "+str(file_path)
+    cmd+=" -p "+'commit'
+    cmd+=" -v "+commit_ID
+    cmd+=" -q"
+    subprocess.call(cmd, shell=True)
+
+    print 'update commit in '+file_path+' to '+commit_ID
+    
 
 def read_inputs(filename, inputs_needed):
     '''
@@ -374,6 +407,7 @@ def compile_code(inputs):
     print 'executable ready: '+name_exe
     print ''
 
+
 if __name__ == "__main__":
 
     #< define the paths for the files modified by the
@@ -384,7 +418,7 @@ if __name__ == "__main__":
 
     param_path           = '../../parameters/parameters_input.f'
     makefile_path        = './makefile_header.mk'
-
+    param_cst_path       = '../../parameters/parameters_constant.f'
 
     #< parse the program arguments
     [inputFileName,compileCode]=parse_argv(sys.argv[1:])
@@ -414,6 +448,9 @@ if __name__ == "__main__":
     #< replace the inputs in the 'makefile'
     update_makefile(makefile_path,bc_choice)
 
+    #< replace the commit SHA number in the
+    #> 'parameters_constant'
+    set_commit(param_cst_path)
 
     #< print the major results
     print '(ntx,nty)', ntx,nty

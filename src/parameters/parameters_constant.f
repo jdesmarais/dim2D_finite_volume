@@ -17,11 +17,13 @@
         !>program information and conventions
         character*(*) :: institut
         character*(*) :: prog_version
+        character*(*) :: commit
         character*(*) :: ref
         character*(*) :: convention
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
+        parameter (commit = '047207a6ad3bdc510b022d2c6b9acc4c4bf38a73')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         

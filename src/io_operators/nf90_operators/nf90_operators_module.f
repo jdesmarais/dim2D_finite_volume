@@ -15,15 +15,26 @@
       module nf90_operators_module
 
         use netcdf
-        use parameters_constant, only : institut,
-     $                                  prog_version,
-     $                                  ref,
-     $                                  convention
-        use parameters_kind    , only : rkind, ikind
-        use parameters_input   , only : npx,npy,nx,ny,ne,bc_size,
-     $                                  x_min,x_max,y_min,y_max,
-     $                                  t_max,dt,detail_print
-        use pmodel_eq_class    , only : pmodel_eq        
+
+        use parameters_constant, only :
+     $       institut,
+     $       prog_version,
+     $       commit,
+     $       ref,
+     $       convention
+
+        use parameters_kind, only :
+     $       rkind,
+     $       ikind
+
+        use parameters_input, only :
+     $       npx,npy,nx,ny,ne,bc_size,
+     $       x_min,x_max,y_min,y_max,
+     $       t_max,dt,detail_print
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
 
         implicit none
 
@@ -138,6 +149,10 @@
           call nf90_handle_err(retval)
 
           retval = nf90_put_att(ncid,nf90_global,'source',prog_version)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'prog_commit',commit)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 

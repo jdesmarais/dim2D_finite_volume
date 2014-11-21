@@ -4,11 +4,11 @@ PATH_OUTPUT='inputs.txt' #default path for the output
 PATH_INPUT='inputs.txt'  #default path for the input
 PARAM_NAME=''            #default name of the parameter changed
 PARAM_VALUE=''           #default value of the parameter changed
-
+QUOTE=false
 
 #manage the options
 #--------------------------------------------
-while getopts i:o:p:v:h option
+while getopts i:o:p:v:qh option
   do
   case $option in
 
@@ -39,6 +39,10 @@ while getopts i:o:p:v:h option
 	  PARAM_VALUE=$OPTARG
 	  ;;
 
+      q)
+	  QUOTE=true
+	  ;;
+
       #display help
       h)
           echo "invalid option"
@@ -47,6 +51,7 @@ while getopts i:o:p:v:h option
 	  echo "-o: output file path"
 	  echo "-p: name of the parameter changed"
 	  echo "-v: value of the parameter changed"
+	  echo "-q: add quotes around the parameter changed"
 	  ;;
 
       #default
@@ -57,6 +62,7 @@ while getopts i:o:p:v:h option
 	  echo "-o: output file path"
 	  echo "-p: name of the parameter changed"
 	  echo "-v: value of the parameter changed"
+	  echo "-q: add quotes around the parameter changed"
       
   esac
 done
@@ -72,8 +78,14 @@ else
     TEMP_FILE=false
 fi
 
-sed -e s/$PARAM_NAME[' ']*'='[' ']*[-0-9a-zA-Z_\\.e-]*/$PARAM_NAME' = '$PARAM_VALUE/g \
+if $QUOTE
+then
+    sed -e s/$PARAM_NAME[' ']*'='[' ']*[\']*[-0-9a-zA-Z_\\.e-]*[\']*/$PARAM_NAME' = '\'$PARAM_VALUE\'/g \
     < $PATH_INPUT > $PATH_OUTPUT
+else
+    sed -e s/$PARAM_NAME[' ']*'='[' ']*[\']*[-0-9a-zA-Z_\\.e-]*[\']*/$PARAM_NAME' = '$PARAM_VALUE/g \
+    < $PATH_INPUT > $PATH_OUTPUT
+fi
 
 if $TEMP_FILE
 then
