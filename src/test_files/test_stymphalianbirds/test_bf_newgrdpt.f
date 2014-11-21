@@ -22,7 +22,12 @@
 
         use bf_layer_newgrdpt_procedure_module, only :
      $       no_gradient_type,
-     $       gradient_R0_type
+     $       gradient_L0_type,
+     $       gradient_R0_type,
+     $       gradient_I_type,
+     $       gradient_xLR0_yI_type,
+     $       gradient_xI_yLR0_type,
+     $       gradient_xLR0_yLR0_type
 
         use bf_newgrdpt_class, only :
      $       bf_newgrdpt
@@ -619,10 +624,22 @@
           logical                        :: test_W_edge
           logical                        :: test_N_edge
           logical                        :: test_S_edge
-          logical                        :: test_NE_edge
-          logical                        :: test_NW_edge
-          logical                        :: test_SW_edge
-          logical                        :: test_SE_edge
+          logical                        :: test_NE_edge_I
+          logical                        :: test_NE_edge_xLR0          
+          logical                        :: test_NE_edge_yLR0
+          logical                        :: test_NE_edge_xyLR0
+          logical                        :: test_NW_edge_I
+          logical                        :: test_NW_edge_xLR0
+          logical                        :: test_NW_edge_yLR0
+          logical                        :: test_NW_edge_xyLR0
+          logical                        :: test_SW_edge_I
+          logical                        :: test_SW_edge_xLR0
+          logical                        :: test_SW_edge_yLR0
+          logical                        :: test_SW_edge_xyLR0
+          logical                        :: test_SE_edge_I
+          logical                        :: test_SE_edge_xLR0
+          logical                        :: test_SE_edge_yLR0
+          logical                        :: test_SE_edge_xyLR0
 
           allocate(bf_x_map0(3))
           allocate(bf_y_map0(3))
@@ -1167,7 +1184,7 @@
           allocate(bf_nodes1(4,4,ne))
 
 
-          !test of the NE edge
+          !test of the NE edge: I gradient
           !------------------------------------------------
           !initialization of the inputs
           t=0.0d0
@@ -1227,7 +1244,7 @@
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
      $         i1,j1,
-     $         NE_edge_type,no_gradient_type)
+     $         NE_edge_type,gradient_I_type)
 
           !comparison
           do k=1,ne
@@ -1240,14 +1257,106 @@
 
           end do
 
-          test_NE_edge = test_validated
+          test_NE_edge_I = test_validated
           if(detailled) then
-             print '(''test_NE_edge: '',L1)', test_NE_edge
+             print '(''test_NE_edge_I: '',L1)', test_NE_edge_I
           end if
 
 
-          !test of the NW edge
+          !test of the NE edge: xLR0_yI gradient
           !------------------------------------------------
+          test_validated = .true.
+          !tested data
+          newgrdpt_data = [-5.065722713d0,-3.426851262d0,12.37314874d0]
+
+          !test
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         NE_edge_type,gradient_xLR0_yI_type)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            newgrdpt(k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+          test_NE_edge_xLR0 = test_validated
+          if(detailled) then
+             print '(''test_NE_edge_xLR0_yI: '',L1)', test_NE_edge_xLR0
+          end if
+
+
+          !test of the NE edge: xI_yLR0 gradient
+          !------------------------------------------------
+          !tested data
+          newgrdpt_data = [-5.624210148d0,-3.423421794d0,12.37657821d0]
+
+          !test
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         NE_edge_type,gradient_xI_yLR0_type)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            newgrdpt(k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+          test_NE_edge_yLR0 = test_validated
+          if(detailled) then
+             print '(''test_NE_edge_xI_yLR0: '',L1)', test_NE_edge_yLR0
+          end if
+
+
+          !test of the NE edge: xLR0_yLR0 gradient
+          !------------------------------------------------
+          !tested data
+          newgrdpt_data = [-5.697237294d0,-3.445517406d0,12.35448259d0]
+
+          !test
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         NE_edge_type,gradient_xLR0_yLR0_type)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            newgrdpt(k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+          test_NE_edge_xyLR0 = test_validated
+          if(detailled) then
+             print '(''test_NE_edge_xLR0_yLR0: '',L1)', test_NE_edge_xyLR0
+          end if
+
+
+          !test of the NW edge: I gradient
+          !------------------------------------------------
+          test_validated = .true.
           call reflect_x(bf_nodes0)
           call reflect_x(bf_nodes1)
 
@@ -1263,7 +1372,7 @@
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
      $         i1,j1,
-     $         NW_edge_type,no_gradient_type)
+     $         NW_edge_type,gradient_I_type)
 
           !comparison
           do k=1,ne
@@ -1276,14 +1385,108 @@
 
           end do
 
-          test_NW_edge = test_validated
+          test_NW_edge_I = test_validated
           if(detailled) then
-             print '(''test_NW_edge: '',L1)', test_NW_edge
+             print '(''test_NW_edge_I: '',L1)', test_NW_edge_I
+          end if
+
+
+          !test of the NW edge: xLR0 gradient
+          !------------------------------------------------
+          test_validated = .true.
+          !tested data
+          newgrdpt_data = [-5.065722713d0,3.426851262d0,12.37314874d0]
+
+          !test
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         NW_edge_type,gradient_xLR0_yI_type)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            newgrdpt(k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+          test_NW_edge_xLR0 = test_validated
+          if(detailled) then
+             print '(''test_NW_edge_xLR0_yI: '',L1)', test_NW_edge_xLR0
+          end if
+
+          !test of the NW edge: yLR0 gradient
+          !------------------------------------------------
+          test_validated = .true.
+          !tested data
+          newgrdpt_data = [-5.624210148d0, 3.423421794d0,12.37657821d0]
+
+          !test
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         NW_edge_type,gradient_xI_yLR0_type)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            newgrdpt(k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+          test_NW_edge_yLR0 = test_validated
+          if(detailled) then
+             print '(''test_NW_edge_xI_yLR0: '',L1)', test_NW_edge_yLR0
+          end if
+
+
+          !test of the NW edge: xLR0_yLR0 gradient
+          !------------------------------------------------
+          test_validated = .true.
+          !tested data
+          newgrdpt_data = [-5.697237294d0, 3.445517406d0,12.35448259d0]
+
+          !test
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         NW_edge_type,gradient_xLR0_yLR0_type)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            newgrdpt(k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+          test_NW_edge_xyLR0 = test_validated
+          if(detailled) then
+             print '(''test_NW_edge_xLR0_yLR0: '',L1)', test_NW_edge_xyLR0
           end if
 
           
-          !test of the SW edge
+          !test of the SW edge : I gradient
           !------------------------------------------------
+          test_validated = .true.
+
           call reflect_y(bf_nodes0)
           call reflect_y(bf_nodes1)
 
@@ -1299,7 +1502,7 @@
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
      $         i1,j1,
-     $         SW_edge_type,no_gradient_type)
+     $         SW_edge_type,gradient_I_type)
 
           !comparison
           do k=1,ne
@@ -1312,14 +1515,108 @@
 
           end do
 
-          test_SW_edge = test_validated
+          test_SW_edge_I = test_validated
           if(detailled) then
-             print '(''test_SW_edge: '',L1)', test_SW_edge
+             print '(''test_SW_edge_I: '',L1)', test_SW_edge_I
           end if
 
 
-          !test of the SE edge
+          !test of the SW edge : xLR0 gradient
           !------------------------------------------------
+          test_validated = .true.
+          !tested data
+          newgrdpt_data = [-5.065722713d0,3.426851262d0,-12.37314874d0]
+
+          !test
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         SW_edge_type,gradient_xLR0_yI_type)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            newgrdpt(k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+          test_SW_edge_xLR0 = test_validated
+          if(detailled) then
+             print '(''test_SW_edge_xLR0: '',L1)', test_SW_edge_xLR0
+          end if
+
+
+          !test of the SW edge : yLR0 gradient
+          !------------------------------------------------
+          test_validated = .true.
+          !tested data
+          newgrdpt_data = [-5.624210148d0, 3.423421794d0,-12.37657821d0]
+
+          !test
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         SW_edge_type,gradient_xI_yLR0_type)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            newgrdpt(k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+          test_SW_edge_yLR0 = test_validated
+          if(detailled) then
+             print '(''test_SW_edge_yLR0: '',L1)', test_SW_edge_yLR0
+          end if
+
+
+          !test of the SW edge : xLR0_yLR0 gradient
+          !------------------------------------------------
+          test_validated = .true.
+          !tested data
+          newgrdpt_data = [-5.697237294d0, 3.445517406d0,-12.35448259d0]
+
+          !test
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         SW_edge_type,gradient_xLR0_yLR0_type)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            newgrdpt(k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+          test_SW_edge_xyLR0 = test_validated
+          if(detailled) then
+             print '(''test_SW_edge_xLR0_yLR0: '',L1)', test_SW_edge_xyLR0
+          end if
+
+
+          !test of the SE edge: I gradient
+          !------------------------------------------------
+          test_validated = .true.
           call reflect_x(bf_nodes0)
           call reflect_x(bf_nodes1)
 
@@ -1335,7 +1632,7 @@
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
      $         i1,j1,
-     $         SE_edge_type,no_gradient_type)
+     $         SE_edge_type,gradient_I_type)
 
           !comparison
           do k=1,ne
@@ -1348,11 +1645,100 @@
 
           end do
 
-          test_SE_edge = test_validated
+          test_SE_edge_I = test_validated
           if(detailled) then
-             print '(''test_SE_edge: '',L1)', test_SE_edge
+             print '(''test_SE_edge_I: '',L1)', test_SE_edge_I
           end if
-          
+
+          !test of the SE edge: xLR0 gradient
+          !------------------------------------------------
+          test_validated = .true.
+          !tested data
+          newgrdpt_data = [-5.065722713d0,-3.426851262d0,-12.37314874d0]
+
+          !test
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         SE_edge_type,gradient_xLR0_yI_type)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            newgrdpt(k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+          test_SE_edge_xLR0 = test_validated
+          if(detailled) then
+             print '(''test_SE_edge_xLR0: '',L1)', test_SE_edge_xLR0
+          end if
+
+          !test of the SE edge: yLR0 gradient
+          !------------------------------------------------
+          test_validated = .true.
+          !tested data
+          newgrdpt_data = [-5.624210148d0,-3.423421794d0,-12.37657821d0]
+
+          !test
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         SE_edge_type,gradient_xI_yLR0_type)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            newgrdpt(k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+          test_SE_edge_yLR0 = test_validated
+          if(detailled) then
+             print '(''test_SE_edge_yLR0: '',L1)', test_SE_edge_yLR0
+          end if
+
+          !test of the SE edge: xLR0_yLR0 gradient
+          !------------------------------------------------
+          test_validated = .true.
+          !tested data
+          newgrdpt_data = [-5.697237294d0,-3.445517406d0,-12.35448259d0]
+
+          !test
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t, dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         SE_edge_type,gradient_xLR0_yLR0_type)
+
+          !comparison
+          do k=1,ne
+
+             test_loc = is_test_validated(
+     $            newgrdpt_data(k),
+     $            newgrdpt(k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+          test_SE_edge_xyLR0 = test_validated
+          if(detailled) then
+             print '(''test_SE_edge_xyLR0: '',L1)', test_SE_edge_xyLR0
+          end if          
 
           test_validated =
      $         test_NE_corner.and.
@@ -1363,10 +1749,22 @@
      $         test_W_edge.and.
      $         test_N_edge.and.
      $         test_S_edge.and.
-     $         test_NE_edge.and.
-     $         test_NW_edge.and.
-     $         test_SW_edge.and.
-     $         test_SE_edge
+     $         test_NE_edge_I.and.
+     $         test_NE_edge_xLR0.and.
+     $         test_NE_edge_yLR0.and.
+     $         test_NE_edge_xyLR0.and.
+     $         test_NW_edge_I.and.
+     $         test_NW_edge_xLR0.and.
+     $         test_NW_edge_yLR0.and.
+     $         test_NW_edge_xyLR0.and.
+     $         test_SW_edge_I.and.
+     $         test_SW_edge_xLR0.and.
+     $         test_SW_edge_yLR0.and.
+     $         test_SW_edge_xyLR0.and.
+     $         test_SE_edge_I.and.
+     $         test_SE_edge_xLR0.and.
+     $         test_SE_edge_yLR0.and.
+     $         test_SE_edge_xyLR0
 
         end function test_compute_newgrdpt
 

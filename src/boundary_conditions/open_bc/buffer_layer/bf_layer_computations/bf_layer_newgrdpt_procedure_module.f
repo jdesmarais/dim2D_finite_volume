@@ -55,6 +55,9 @@
      $       gradient_I_type,
      $       gradient_L0_type,
      $       gradient_R0_type,
+     $       gradient_xLR0_yI_type,
+     $       gradient_xI_yLR0_type,
+     $       gradient_xLR0_yLR0_type,
      $       get_newgrdpt_procedure,
      $       error_gradient_type,
      $       get_interior_data_for_newgrdpt,
@@ -67,6 +70,9 @@
         integer, parameter :: gradient_I_type=1
         integer, parameter :: gradient_L0_type=2
         integer, parameter :: gradient_R0_type=3
+        integer, parameter :: gradient_xLR0_yI_type=4
+        integer, parameter :: gradient_xI_yLR0_type=5
+        integer, parameter :: gradient_xLR0_yLR0_type=6
 
 
         contains
@@ -95,6 +101,9 @@
           ! |   0*  |
           ! | 3     |
           !  -------
+          !============================================================
+          !procedure 1
+          !============================================================
           if(grdpts_id(i-1,j-1).eq.bc_pt) then
 
 
@@ -143,6 +152,9 @@
           ! |   0*  |
           ! | x 3   |
           !  -------
+          !============================================================
+          !procedure 2
+          !============================================================
              if(grdpts_id(i,j-1).eq.bc_pt) then
 
           !  -------
@@ -169,6 +181,9 @@
           ! |   0*  |
           ! | x x 3 |
           !  -------
+          !============================================================
+          !procedure 3
+          !============================================================
                 if(grdpts_id(i+1,j-1).eq.bc_pt) then
 
           !  -------
@@ -202,24 +217,66 @@
           ! | 3 0*  |
           ! | x x x |
           !  -------
+          !============================================================
+          !procedure 4
+          !============================================================
                    if(grdpts_id(i-1,j).eq.bc_pt) then
                       
           !  -------
-          ! | 3     |
+          ! | - - 3 |
           ! | 3 0*  |
           ! | x x x |
           !  -------
-                      if(grdpts_id(i-1,j+1).eq.bc_pt) then
+          ! WARNING: assumptions:
+          !   - grdpts_id(i-1,j+1) = bc_pt
+          !   - grdpts_id(i  ,j+1) = bc_pt
+          !-------------------------------
+                      if(grdpts_id(i+1,j+1).eq.bc_pt) then
 
-                         call get_newgrdpt_procedure_4_1(
-     $                     i,j,grdpts_id,
-     $                     procedure_type,gradient_type)
+                         procedure_type = SE_edge_type
+                         gradient_type  = gradient_xI_yLR0_type
 
                       else
 
-                         call error_newgrdpt_procedure(i,j,grdpts_id)
+          !  -------
+          ! | - 3 x |
+          ! | 3 0*  |
+          ! | x x x |
+          !  -------
+          ! WARNING: assumptions:
+          !   - grdpts_id(i-1,j+1) = bc_pt
+          !-------------------------------
+                         if(grdpts_id(i,j+1).eq.bc_pt) then
 
-                      end if                      
+                            procedure_type = SE_edge_type
+                            gradient_type  = gradient_xLR0_yLR0_type
+
+                         else
+
+          !  -------
+          ! | 3 x x |
+          ! | 3 0*  |
+          ! | x x x |
+          !  -------
+                            if(grdpts_id(i-1,j+1).eq.bc_pt) then
+                               
+                               procedure_type = E_edge_type
+                               gradient_type  = gradient_L0_type
+
+          !  -------
+          ! | x x x |
+          ! | 3 0*  |
+          ! | x x x |
+          !  -------
+                            else
+
+                               call error_newgrdpt_procedure(i,j,grdpts_id)
+
+                            end if
+
+                         end if
+
+                      end if
 
                    else
 
@@ -228,11 +285,64 @@
           ! | x 0*3 |
           ! | x x x |
           !  -------
+          !============================================================
+          !procedure 5
+          !============================================================
                       if(grdpts_id(i+1,j).eq.bc_pt) then
 
-                         call get_newgrdpt_procedure_5_1(
-     $                        i,j,grdpts_id,
-     $                        procedure_type,gradient_type)
+          !  -------
+          ! | 3 - - |
+          ! | x 0*3 |
+          ! | x x x |
+          !  -------
+          ! WARNING: assumptions:
+          !   - grdpts_id(i,j+1)   = bc_pt
+          !   - grdpts_id(i+1,j+1) = bc_pt
+          !-------------------------------
+                         if(grdpts_id(i-1,j+1).eq.bc_pt) then
+
+                            procedure_type = SW_edge_type
+                            gradient_type  = gradient_xI_yLR0_type
+
+
+                         else
+
+          !  -------
+          ! | x 3 - |
+          ! | x 0*3 |
+          ! | x x x |
+          !  -------
+          ! WARNING: assumptions:
+          !   - grdpts_id(i+1,j+1) = bc_pt
+          !-------------------------------
+                            if(grdpts_id(i,j+1).eq.bc_pt) then
+
+                               procedure_type = SW_edge_type
+                               gradient_type  = gradient_xLR0_yLR0_type
+
+                            else
+          !  -------
+          ! | x x 3 |
+          ! | x 0*3 |
+          ! | x x x |
+          !  -------
+                               if(grdpts_id(i+1,j+1).eq.bc_pt) then
+
+                                  procedure_type = W_edge_type
+                                  gradient_type  = gradient_L0_type
+          !  -------
+          ! | x x x |
+          ! | x 0*3 |
+          ! | x x x |
+          !  -------
+                               else
+                                  
+                                  call error_newgrdpt_procedure(i,j,grdpts_id)
+
+                               end if
+                            end if
+                         end if                               
+
 
                       else
           !  -------
@@ -240,39 +350,53 @@
           ! | x 0*x |
           ! | x x x |
           !  -------
+          !============================================================
+          !procedure 6
+          !============================================================
                          if(grdpts_id(i-1,j+1).eq.bc_pt) then
 
           !  -------
-          ! | 3 3   |
+          ! | 3 - 3 |
           ! | x 0*x |
           ! | x x x |
           !  -------
-                            if(grdpts_id(i,j+1).eq.bc_pt) then
+          ! WARNING: assumptions:
+          !   - grdpts_id(i,j+1)   = bc_pt
+          !-------------------------------
+                            if(grdpts_id(i+1,j+1).eq.bc_pt) then
 
-                               call get_newgrdpt_procedure_6_1(
-     $                              i,j,grdpts_id,
-     $                              procedure_type,gradient_type)
+                               procedure_type = S_edge_type
+                               gradient_type  = gradient_I_type
 
+                            else
+          !  -------
+          ! | 3 3 x |
+          ! | x 0*x |
+          ! | x x x |
+          !  -------
+                               if(grdpts_id(i,j+1).eq.bc_pt) then
+                                  
+                                  procedure_type = S_edge_type
+                                  gradient_type  = gradient_R0_type
           !  -------
           ! | 3 x   |
           ! | x 0*x |
           ! | x x x |
           !  -------
-                            else
-                               
-                               procedure_type = SE_corner_type
-                               gradient_type  = no_gradient_type
-
+                               else
+                                  procedure_type = SE_corner_type
+                                  gradient_type  = no_gradient_type
+                               end if
                             end if
-
-
                          else
-
           !  -------
           ! | x 3   |
           ! | x 0*x |
           ! | x x x |
           !  -------
+          !============================================================
+          !procedure 7
+          !============================================================
                             if(grdpts_id(i,j+1).eq.bc_pt) then
 
           !  -------
@@ -350,39 +474,120 @@
           
           !  -------
           ! |       |
-          ! | 3 0*  |
-          ! | 3 3   |
+          ! |   0*  |
+          ! | 3 3 3 |
           !  -------
-          if(grdpts_id(i-1,j).eq.bc_pt) then
+          !============================================================
+          !procedure 1.1.1
+          !============================================================
+          if(grdpts_id(i+1,j-1).eq.bc_pt) then
 
-             procedure_type = NE_edge_type
-             gradient_type  = no_gradient_type
+          !  -------
+          ! |     3 |
+          ! |   0*- |
+          ! | 3 3 3 |
+          !  -------
+          !WARNING: assumptions:
+          ! - grdpts_id(i+1,j) = bc_pt
+             if(grdpts_id(i+1,j+1).eq.bc_pt) then
 
+                procedure_type = NW_edge_type
+                gradient_type  = gradient_I_type
 
+             else
+
+          !  -------
+          ! |     x |
+          ! |   0*3 |
+          ! | 3 3 3 |
+          !  -------
+                if(grdpts_id(i+1,j).eq.bc_pt) then
+
+                   procedure_type = NW_edge_type
+                   gradient_type  = gradient_xI_yLR0_type
+
+                else
+
+          !  -------
+          ! | 3   x |
+          ! | - 0*x |
+          ! | 3 3 3 |
+          !  -------
+          !WARNING: assumptions:
+          ! - grdpts_id(i-1,j) = bc_pt
+                   if(grdpts_id(i-1,j+1).eq.bc_pt) then
+
+                      procedure_type = NE_edge_type
+                      gradient_type  = gradient_I_type
+
+                   else
+          !  -------
+          ! | x   x |
+          ! | 3 0*x |
+          ! | 3 3 3 |
+          !  -------
+                      if(grdpts_id(i-1,j).eq.bc_pt) then
+                         
+                         procedure_type = NE_edge_type
+                         gradient_type  = gradient_xI_yLR0_type
+
+                      else
+          !  -------
+          ! | x   x |
+          ! | x 0*x |
+          ! | 3 3 3 |
+          !  -------
+                         procedure_type = N_edge_type
+                         gradient_type  = gradient_I_type
+
+                      end if
+                   end if
+                end if
+             end if
+
+          !  -------
+          ! |       |
+          ! |   0*  |
+          ! | 3 3 x |
+          !  -------
+          !============================================================
+          !procedure 1.1.2
+          !============================================================
           else
 
           !  -------
-          ! |       |
-          ! | x 0*  |
-          ! | 3 3 3 |
+          ! | 3     |
+          ! | - 0*  |
+          ! | 3 3 x |
           !  -------
-             if(grdpts_id(i+1,j-1).eq.bc_pt) then
+             if(grdpts_id(i-1,j+1).eq.bc_pt) then
                 
-                procedure_type = N_edge_type
-                gradient_type  = gradient_I_type
+                procedure_type = NE_edge_type
+                gradient_type  = gradient_xLR0_yI_type
+
+             else
+          !  -------
+          ! | x     |
+          ! | 3 0*  |
+          ! | 3 3 x |
+          !  -------
+                if(grdpts_id(i-1,j).eq.bc_pt) then
+
+                   procedure_type = NE_edge_type
+                   gradient_type  = gradient_xLR0_yLR0_type
 
           !  -------
-          ! |       |
+          ! | x     |
           ! | x 0*  |
           ! | 3 3 x |
           !  -------
-             else
-                
-                procedure_type = N_edge_type
-                gradient_type  = gradient_R0_type
+                else
+                   
+                   procedure_type = N_edge_type
+                   gradient_type  = gradient_R0_type
 
+                end if
              end if
-
           end if          
 
         end subroutine get_newgrdpt_procedure_1_1
@@ -402,25 +607,54 @@
 
 
           !  -------
-          ! | 3     |
+          ! | - - 3 |
           ! | 3 0*  |
           ! | 3 x   |
           !  -------
-          if(grdpts_id(i-1,j+1).eq.bc_pt) then
+          !WARNING: assumptions:
+          ! - grdpts_id(i-1,j) = bc_pt
+          ! - grdpts_id(i,j)   = bc_pt
+          if(grdpts_id(i+1,j+1).eq.bc_pt) then
 
-             procedure_type = E_edge_type
+             procedure_type = SE_edge_type
              gradient_type  = gradient_I_type
 
+          else
+
           !  -------
-          ! | x     |
+          ! | - 3 x |
           ! | 3 0*  |
           ! | 3 x   |
           !  -------
-          else
+             if(grdpts_id(i,j+1).eq.bc_pt) then
 
-             procedure_type = E_edge_type
-             gradient_type  = gradient_R0_type
+                procedure_type = SE_edge_type
+                gradient_type  = gradient_xLR0_yI_type
 
+             else
+
+          !  -------
+          ! | 3 x x |
+          ! | 3 0*  |
+          ! | 3 x   |
+          !  -------
+                if(grdpts_id(i-1,j+1).eq.bc_pt) then
+
+                   procedure_type = E_edge_type
+                   gradient_type  = gradient_I_type
+
+          !  -------
+          ! | x x x |
+          ! | 3 0*  |
+          ! | 3 x   |
+          !  -------
+                else
+
+                   procedure_type = E_edge_type
+                   gradient_type  = gradient_R0_type
+
+                end if
+             end if
           end if
 
         end subroutine get_newgrdpt_procedure_1_2
@@ -440,24 +674,38 @@
 
 
           !  -------
-          ! |       |
+          ! |     3 |
+          ! |   0*- |
+          ! | x 3 3 |
+          !  -------
+          !WARNING : assumptions
+          !  - grdpts(i+1,j) = bc_pt
+          if(grdpts_id(i+1,j+1).eq.bc_pt) then
+
+             procedure_type = NW_edge_type
+             gradient_type  = gradient_xLR0_yI_type
+
+          else
+          !  -------
+          ! |     x |
           ! |   0*3 |
           ! | x 3 3 |
           !  -------
-          if(grdpts_id(i+1,j).eq.bc_pt) then
+             if(grdpts_id(i+1,j).eq.bc_pt) then
 
-             procedure_type = NW_edge_type
-             gradient_type  = no_gradient_type
+                procedure_type = NW_edge_type
+                gradient_type  = gradient_xLR0_yLR0_type
 
+             else
           !  -------
-          ! |       |
+          ! |     x |
           ! |   0*x |
           ! | x 3 3 |
           !  -------
-          else
+                procedure_type = N_edge_type
+                gradient_type  = gradient_L0_type
 
-             procedure_type = N_edge_type
-             gradient_type  = gradient_L0_type
+             end if
 
           end if
 
@@ -478,168 +726,57 @@
 
 
           !  -------
-          ! |   3   |
+          ! | 3 - - |
           ! |   0*3 |
           ! | x x 3 |
           !  -------
-          if(grdpts_id(i,j+1).eq.bc_pt) then
+          !WARNING : assumptions
+          ! - grdpts_id(i  ,j+1) = bc_pt
+          ! - grdpts_id(i+1,j+1) = bc_pt
+          if(grdpts_id(i-1,j+1).eq.bc_pt) then
 
              procedure_type = SW_edge_type
-             gradient_type  = no_gradient_type
+             gradient_type  = gradient_I_type
 
           else
           !  -------
-          ! |   x 3 |
+          ! | x 3 - |
           ! |   0*3 |
           ! | x x 3 |
           !  -------
-             if(grdpts_id(i+1,j+1).eq.bc_pt) then
+          !WARNING : assumptions
+          ! - grdpts_id(i+1,j+1) = bc_pt
+             if(grdpts_id(i,j+1).eq.bc_pt) then
 
-                procedure_type = W_edge_type
-                gradient_type  = gradient_I_type
+                procedure_type = SW_edge_type
+                gradient_type  = gradient_xLR0_yI_type
 
-          !  -------
-          ! |   x x |
-          ! |   0*3 |
-          ! | x x 3 |
-          !  -------                
              else
+          !  -------
+          ! | x x 3 |
+          ! |   0*3 |
+          ! | x x 3 |
+          !  -------
+                if(grdpts_id(i+1,j+1).eq.bc_pt) then
+                   
+                   procedure_type = W_edge_type
+                   gradient_type  = gradient_I_type
 
-                procedure_type = W_edge_type
-                gradient_type  = gradient_R0_type
+          !  -------
+          ! | x x x |
+          ! |   0*3 |
+          ! | x x 3 |
+          !  -------
+                else
 
+                   procedure_type = W_edge_type
+                   gradient_type  = gradient_R0_type
+
+                end if
              end if
-
           end if
 
         end subroutine get_newgrdpt_procedure_3_1
-
-
-        subroutine get_newgrdpt_procedure_4_1(
-     $     i,j,grdpts_id,
-     $     procedure_type,gradient_type)
-
-          implicit none
-
-          integer(ikind)         , intent(in)  :: i
-          integer(ikind)         , intent(in)  :: j
-          integer, dimension(:,:), intent(in)  :: grdpts_id
-          integer                , intent(out) :: procedure_type
-          integer                , intent(out) :: gradient_type
-
-          
-          !  -------
-          ! | 3 3   |
-          ! | 3 0*  |
-          ! | x x x |
-          !  -------
-          if(grdpts_id(i,j+1).eq.bc_pt) then
-
-             procedure_type = SE_edge_type
-             gradient_type  = no_gradient_type
-
-          !  -------
-          ! | 3 x   |
-          ! | 3 0*  |
-          ! | x x x |
-          !  -------
-          else
-
-             procedure_type = E_edge_type
-             gradient_type  = gradient_L0_type
-
-          end if
-
-        end subroutine get_newgrdpt_procedure_4_1
-
-
-        subroutine get_newgrdpt_procedure_5_1(
-     $     i,j,grdpts_id,
-     $     procedure_type,gradient_type)
-
-          implicit none
-
-          integer(ikind)         , intent(in)  :: i
-          integer(ikind)         , intent(in)  :: j
-          integer, dimension(:,:), intent(in)  :: grdpts_id
-          integer                , intent(out) :: procedure_type
-          integer                , intent(out) :: gradient_type
-
-          
-          !  -------
-          ! |   3   |
-          ! | x 0*3 |
-          ! | x x x |
-          !  -------
-          if(grdpts_id(i,j+1).eq.bc_pt) then
-
-             procedure_type = SW_edge_type
-             gradient_type  = no_gradient_type
-
-          else
-
-          !  -------
-          ! |   x 3 |
-          ! | x 0*3 |
-          ! | x x x |
-          !  -------
-             if(grdpts_id(i+1,j+1).eq.bc_pt) then
-
-                procedure_type = W_edge_type
-                gradient_type  = gradient_L0_type
-
-          !  -------
-          ! |   x x |
-          ! | x 0*3 |
-          ! | x x x |
-          !  -------
-             else
-
-                call error_newgrdpt_procedure(i,j,grdpts_id)
-
-             end if
-
-          end if
-
-        end subroutine get_newgrdpt_procedure_5_1
-
-
-        subroutine get_newgrdpt_procedure_6_1(
-     $     i,j,grdpts_id,
-     $     procedure_type,gradient_type)
-
-          implicit none
-
-          integer(ikind)         , intent(in)  :: i
-          integer(ikind)         , intent(in)  :: j
-          integer, dimension(:,:), intent(in)  :: grdpts_id
-          integer                , intent(out) :: procedure_type
-          integer                , intent(out) :: gradient_type
-
-          
-          !  -------
-          ! | 3 3 3 |
-          ! | x 0*x |
-          ! | x x x |
-          !  -------
-          if(grdpts_id(i+1,j+1).eq.bc_pt) then
-
-             procedure_type = S_edge_type
-             gradient_type  = gradient_I_type
-
-          !  -------
-          ! | 3 3 x |
-          ! | x 0*x |
-          ! | x x x |
-          !  -------
-          else
-
-             procedure_type = S_edge_type
-             gradient_type  = gradient_R0_type
-
-          end if
-
-        end subroutine get_newgrdpt_procedure_6_1
 
 
         subroutine error_newgrdpt_procedure(i,j,grdpts_id)

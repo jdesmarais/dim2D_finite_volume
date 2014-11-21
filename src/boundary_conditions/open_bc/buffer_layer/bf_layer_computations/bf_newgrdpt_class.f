@@ -31,6 +31,9 @@
      $       gradient_I_type,
      $       gradient_L0_type,
      $       gradient_R0_type,
+     $       gradient_xLR0_yI_type,
+     $       gradient_xI_yLR0_type,
+     $       gradient_xLR0_yLR0_type,
      $       error_gradient_type
 
         use interface_primary, only :
@@ -76,6 +79,8 @@
      $       gradient_n1_xL1_yL0,
      $       gradient_n1_xL1_yL1,
      $       gradient_n1_xL1_yR0,
+     $       
+     $       gradient_n1_xR1_yR1,
      $       gradient_n1_xR1_yR0,
      $       
      $       gradient_n1_xR0_yR0,
@@ -88,11 +93,15 @@
      $       
      $       gradient_n2_xL1_yL0,
      $       gradient_n2_xL1_yL1,
+     $       gradient_n2_xL1_yR1,
      $       gradient_n2_xL1_yR0,
+     $       
      $       gradient_n2_xR1_yL0,
+     $       gradient_n2_xR1_yR0,
      $       
      $       gradient_n2_xR0_yL0,
-     $       gradient_n2_xR0_yL1
+     $       gradient_n2_xR0_yL1,
+     $       gradient_n2_xR0_yR0
 
 
         implicit none
@@ -436,18 +445,74 @@
                inter_indices1(:,2) = [i1-1,j1+1]
                inter_indices1(:,3) = [i1  ,j1+1]
 
-               new_grdpt = compute_newgrdpt_xy(
-     $              p_model, t, dt,
-     $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
-     $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
-     $              i1,j1,
-     $              n_direction,
-     $              side,
-     $              gradient_n2_xR0_yL1,
-     $              gradient_n2_xL1_yL1,
-     $              gradient_n2_xL1_yL0,
-     $              eigen_indices,
-     $              inter_indices1)
+               select case(gradient_type)
+                 case(gradient_I_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n2_xR0_yL1,
+     $                   gradient_n2_xL1_yL1,
+     $                   gradient_n2_xL1_yL0,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case(gradient_xI_yLR0_type)
+                    
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n2_xR0_yL0,
+     $                   gradient_n2_xL1_yL1,
+     $                   gradient_n2_xL1_yL0,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case(gradient_xLR0_yI_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n2_xR0_yL1,
+     $                   gradient_n2_xL1_yL1,
+     $                   gradient_n2_xR0_yL0,
+     $                   eigen_indices,
+     $                   inter_indices1)                    
+
+                 case(gradient_xLR0_yLR0_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n2_xR0_yL0,
+     $                   gradient_n2_xL1_yL1,
+     $                   gradient_n2_xR0_yL0,
+     $                   eigen_indices,
+     $                   inter_indices1)                    
+
+                 case default
+                    call error_gradient_type(
+     $                   'bf_newgrdpt_class',
+     $                   'compute_newgrdpt',
+     $                   gradient_type)
+              end select
+
 
             case(SW_edge_type)
                
@@ -458,18 +523,77 @@
                inter_indices1(:,2) = [i1  ,j1+1]
                inter_indices1(:,3) = [i1+1,j1+1]
 
-               new_grdpt = compute_newgrdpt_xy(
-     $              p_model, t, dt,
-     $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
-     $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
-     $              i1,j1,
-     $              n_direction,
-     $              side,
-     $              gradient_n1_xL0_yL1,
-     $              gradient_n1_xL1_yL0,
-     $              gradient_n1_xL1_yL1,
-     $              eigen_indices,
-     $              inter_indices1)
+
+               select case(gradient_type)
+
+                 case(gradient_I_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n1_xL0_yL1,
+     $                   gradient_n1_xL1_yL0,
+     $                   gradient_n1_xL1_yL1,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case(gradient_xLR0_yI_type)
+                    
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n1_xL0_yL1,
+     $                   gradient_n1_xL0_yL0,
+     $                   gradient_n1_xL1_yL1,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case(gradient_xI_yLR0_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n1_xL0_yL0,
+     $                   gradient_n1_xL1_yL0,
+     $                   gradient_n1_xL1_yL1,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case(gradient_xLR0_yLR0_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n1_xL0_yL0,
+     $                   gradient_n1_xL0_yL0,
+     $                   gradient_n1_xL1_yL1,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case default
+
+                    call error_gradient_type(
+     $                   'bf_newgrdpt_class',
+     $                   'compute_newgrdpt',
+     $                   gradient_type)
+
+               end select
 
             case(NE_edge_type)
                
@@ -480,18 +604,76 @@
                inter_indices1(:,2) = [i1  ,j1-1]
                inter_indices1(:,3) = [i1-1,j1  ]
 
-               new_grdpt = compute_newgrdpt_xy(
-     $              p_model, t, dt,
-     $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
-     $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
-     $              i1,j1,
-     $              n_direction,
-     $              side,
-     $              gradient_n1_xL1_yL1,
-     $              gradient_n1_xL1_yR0,
-     $              gradient_n1_xR0_yL1,
-     $              eigen_indices,
-     $              inter_indices1)
+               select case(gradient_type)
+
+                 case(gradient_I_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n1_xR1_yR1,
+     $                   gradient_n1_xL1_yR0,
+     $                   gradient_n1_xR0_yR1,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case(gradient_xLR0_yI_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n1_xR1_yR1,
+     $                   gradient_n1_xR0_yR0,
+     $                   gradient_n1_xR0_yR1,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case(gradient_xI_yLR0_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n1_xR1_yR1,
+     $                   gradient_n1_xR1_yR0,
+     $                   gradient_n1_xR0_yR0,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case(gradient_xLR0_yLR0_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n1_xR1_yR1,
+     $                   gradient_n1_xR0_yR0,
+     $                   gradient_n1_xR0_yR0,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case default
+
+                    call error_gradient_type(
+     $                   'bf_newgrdpt_class',
+     $                   'compute_newgrdpt',
+     $                   gradient_type)
+
+               end select
 
             case(NW_edge_type)
                
@@ -502,18 +684,77 @@
                inter_indices1(:,2) = [i1+1,j1-1]
                inter_indices1(:,3) = [i1+1,j1  ]
 
-               new_grdpt = compute_newgrdpt_xy(
-     $              p_model, t, dt,
-     $              bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
-     $              bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
-     $              i1,j1,
-     $              n_direction,
-     $              side,
-     $              gradient_n2_xL1_yR0,
-     $              gradient_n2_xL1_yL1,
-     $              gradient_n2_xL0_yL1,
-     $              eigen_indices,
-     $              inter_indices1)
+               select case(gradient_type)
+
+                 case(gradient_I_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n2_xR1_yR0,
+     $                   gradient_n2_xL1_yR1,
+     $                   gradient_n2_xL0_yL1,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case(gradient_xLR0_yI_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n2_xL0_yR0,
+     $                   gradient_n2_xL1_yR1,
+     $                   gradient_n2_xL0_yR1,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case(gradient_xI_yLR0_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n2_xR1_yR0,
+     $                   gradient_n2_xL1_yR1,
+     $                   gradient_n2_xL0_yR0,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case(gradient_xLR0_yLR0_type)
+
+                    new_grdpt = compute_newgrdpt_xy(
+     $                   p_model, t, dt,
+     $                   bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $                   bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $                   i1,j1,
+     $                   n_direction,
+     $                   side,
+     $                   gradient_n2_xL0_yR0,
+     $                   gradient_n2_xL1_yR1,
+     $                   gradient_n2_xL0_yR0,
+     $                   eigen_indices,
+     $                   inter_indices1)
+
+                 case default
+                    
+                    call error_gradient_type(
+     $                   'bf_newgrdpt_class',
+     $                   'compute_newgrdpt',
+     $                   gradient_type)
+
+               end select
+                    
 
             case default
                print '(''bf_newgrdpt_class'')'

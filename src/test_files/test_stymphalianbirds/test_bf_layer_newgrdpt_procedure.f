@@ -22,6 +22,9 @@
      $       gradient_I_type,
      $       gradient_L0_type,
      $       gradient_R0_type,
+     $       gradient_xLR0_yI_type,
+     $       gradient_xI_yLR0_type,
+     $       gradient_xLR0_yLR0_type,
      $       get_newgrdpt_procedure,
      $       get_interior_data_for_newgrdpt,
      $       are_intermediate_newgrdpt_data_needed,
@@ -848,7 +851,7 @@
           logical                              :: test_loc
 
 
-          nb_tests = 22
+          nb_tests = 31
           test_validated = .true.
 
           do k=1, nb_tests
@@ -921,11 +924,95 @@
           select case(k)
 
             !  -------
+            ! | 0 0 3 |
+            ! | 0 0*3 |
+            ! | 3 3 3 |
+            !  -------
+            case(1)
+
+               allocate(grdpts_id_tested(3,3))
+               grdpts_id_tested = reshape( (/
+     $              bc_pt,bc_pt,bc_pt,
+     $              no_pt,no_pt,bc_pt,
+     $              no_pt,no_pt,bc_pt
+     $              /),
+     $              (/3,3/))
+
+               i_tested = 2
+               j_tested = 2
+
+               procedure_type_data = NW_edge_type
+               gradient_type_data  = gradient_I_type
+
+            !  -------
+            ! | 0 0 0 | 
+            ! | 0 0*3 |
+            ! | 3 3 3 |
+            !  ------- 
+            case(2)
+
+               allocate(grdpts_id_tested(3,3))
+               grdpts_id_tested = reshape( (/
+     $              bc_pt,bc_pt,bc_pt,
+     $              no_pt,no_pt,bc_pt,
+     $              no_pt,no_pt,no_pt
+     $              /),
+     $              (/3,3/))
+
+               i_tested = 2
+               j_tested = 2
+
+               procedure_type_data = NW_edge_type
+               gradient_type_data  = gradient_xI_yLR0_type
+
+            !  -------
+            ! | 3 0 0 |
+            ! | 3 0*0 |
+            ! | 3 3 3 |
+            !  -------
+            case(3)
+
+               allocate(grdpts_id_tested(3,3))
+               grdpts_id_tested = reshape( (/
+     $              bc_pt,bc_pt,bc_pt,
+     $              bc_pt,no_pt,no_pt,
+     $              bc_pt,no_pt,no_pt
+     $              /),
+     $              (/3,3/))
+
+               i_tested = 2
+               j_tested = 2
+
+               procedure_type_data = NE_edge_type
+               gradient_type_data  = gradient_I_type
+
+            !  -------
+            ! | 0 0 0 |
+            ! | 3 0*0 |
+            ! | 3 3 3 |
+            !  -------
+            case(4)
+
+               allocate(grdpts_id_tested(3,3))
+               grdpts_id_tested = reshape( (/
+     $              bc_pt,bc_pt,bc_pt,
+     $              bc_pt,no_pt,no_pt,
+     $              no_pt,no_pt,no_pt
+     $              /),
+     $              (/3,3/))
+
+               i_tested = 2
+               j_tested = 2
+
+               procedure_type_data = NE_edge_type
+               gradient_type_data  = gradient_xI_yLR0_type
+
+            !  -------
             ! | 0 0 0 |
             ! | 0 0*0 |
             ! | 3 3 3 |
             !  -------
-            case(1)
+            case(5)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -942,11 +1029,32 @@
                gradient_type_data  = gradient_I_type
 
             !  -------
-            ! | 0 0 0 | 
+            ! | 3 0 0 |
             ! | 3 0*0 |
             ! | 3 3 0 |
-            !  ------- 
-            case(2)
+            !  -------
+            case(6)
+
+               allocate(grdpts_id_tested(3,3))
+               grdpts_id_tested = reshape( (/
+     $              bc_pt,bc_pt,no_pt,
+     $              bc_pt,no_pt,no_pt,
+     $              bc_pt,no_pt,no_pt
+     $              /),
+     $              (/3,3/))
+
+               i_tested = 2
+               j_tested = 2
+
+               procedure_type_data = NE_edge_type
+               gradient_type_data  = gradient_xLR0_yI_type
+
+            !  -------
+            ! | 0 0 0 |
+            ! | 3 0*0 |
+            ! | 3 3 0 |
+            !  -------
+            case(7)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -960,14 +1068,14 @@
                j_tested = 2
 
                procedure_type_data = NE_edge_type
-               gradient_type_data  = no_gradient_type
+               gradient_type_data  = gradient_xLR0_yLR0_type
 
             !  -------
             ! | 0 0 0 |
-            ! | 0 0*0 |
+            ! ! 0 0*0 |
             ! | 3 3 0 |
             !  -------
-            case(3)
+            case(8)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -983,12 +1091,55 @@
                procedure_type_data = N_edge_type
                gradient_type_data  = gradient_R0_type
 
+
+            !  -------
+            ! | 3 3 3 |
+            ! | 3 0*0 |
+            ! | 3 0 0 |
+            !  -------
+            case(9)
+
+               allocate(grdpts_id_tested(3,3))
+               grdpts_id_tested = reshape( (/
+     $              bc_pt,no_pt,bc_pt,
+     $              bc_pt,no_pt,bc_pt,
+     $              bc_pt,bc_pt,bc_pt
+     $              /),
+     $              (/3,3/))
+
+               i_tested = 2
+               j_tested = 2
+
+               procedure_type_data = SE_edge_type
+               gradient_type_data  = gradient_I_type
+
+            !  -------
+            ! | 3 3 0 |
+            ! | 3 0*0 |
+            ! | 3 0 0 |
+            !  -------
+            case(10)
+
+               allocate(grdpts_id_tested(3,3))
+               grdpts_id_tested = reshape( (/
+     $              bc_pt,no_pt,no_pt,
+     $              bc_pt,no_pt,no_pt,
+     $              bc_pt,bc_pt,no_pt
+     $              /),
+     $              (/3,3/))
+
+               i_tested = 2
+               j_tested = 2
+
+               procedure_type_data = SE_edge_type
+               gradient_type_data  = gradient_xLR0_yI_type
+
             !  -------
             ! | 3 0 0 |
             ! | 3 0*0 |
             ! | 3 0 0 |
             !  -------
-            case(4)
+            case(11)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1009,7 +1160,7 @@
             ! | 3 0*0 |
             ! | 3 0 0 |
             !  -------
-            case(5)
+            case(12)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1025,35 +1176,54 @@
                procedure_type_data = E_edge_type
                gradient_type_data  = gradient_R0_type
 
-            !  ---------
-            ! | 0 0 0 0 |
-            ! | 0 0 0*0 |
-            ! | 3 3 0 0 |
-            ! | 2 3 0 0 |
-            !  ---------
-            case(6)
+            !  -------
+            ! | 0 0 0 |
+            ! | 0 0*0 |
+            ! | 3 0 0 |
+            !  -------
+            case(13)
 
-               allocate(grdpts_id_tested(4,4))
+               allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
-     $              bc_interior_pt,bc_pt,no_pt,no_pt,
-     $              bc_pt,bc_pt,no_pt,no_pt,
-     $              no_pt,no_pt,no_pt,no_pt,
-     $              no_pt,no_pt,no_pt,no_pt
+     $              bc_pt,no_pt,no_pt,
+     $              no_pt,no_pt,no_pt,
+     $              no_pt,no_pt,no_pt
      $              /),
-     $              (/4,4/))
+     $              (/3,3/))
 
-               i_tested = 3
-               j_tested = 3
+               i_tested = 2
+               j_tested = 2
 
                procedure_type_data = NE_corner_type
                gradient_type_data  = no_gradient_type
+
+            !  -------
+            ! | 0 0 3 |
+            ! | 0 0*3 |
+            ! | 0 3 3 |
+            !  -------
+            case(14)
+
+               allocate(grdpts_id_tested(3,3))
+               grdpts_id_tested = reshape( (/
+     $              no_pt,bc_pt,bc_pt,
+     $              no_pt,no_pt,bc_pt,
+     $              no_pt,no_pt,bc_pt
+     $              /),
+     $              (/3,3/))
+
+               i_tested = 2
+               j_tested = 2
+
+               procedure_type_data = NW_edge_type
+               gradient_type_data  = gradient_xLR0_yI_type
 
             !  -------
             ! | 0 0 0 |
             ! | 0 0*3 |
             ! | 0 3 3 |
             !  -------
-            case(7)
+            case(15)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1067,14 +1237,14 @@
                j_tested = 2
 
                procedure_type_data = NW_edge_type
-               gradient_type_data  = no_gradient_type
+               gradient_type_data  = gradient_xLR0_yLR0_type
 
             !  -------
             ! | 0 0 0 |
-            ! ! 0 0*0 |
+            ! | 0 0*0 |
             ! | 0 3 3 |
             !  -------
-            case(8)
+            case(16)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1090,13 +1260,33 @@
                procedure_type_data = N_edge_type
                gradient_type_data  = gradient_L0_type
 
+            !  -------
+            ! | 3 3 3 |
+            ! | 0 0*3 |
+            ! | 0 0 3 |
+            !  -------
+            case(17)
+
+               allocate(grdpts_id_tested(3,3))
+               grdpts_id_tested = reshape( (/
+     $              no_pt,no_pt,bc_pt,
+     $              no_pt,no_pt,bc_pt,
+     $              bc_pt,bc_pt,bc_pt
+     $              /),
+     $              (/3,3/))
+
+               i_tested = 2
+               j_tested = 2
+
+               procedure_type_data = SW_edge_type
+               gradient_type_data  = gradient_I_type
 
             !  -------
             ! | 0 3 3 |
             ! | 0 0*3 |
             ! | 0 0 3 |
             !  -------
-            case(9)
+            case(18)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1110,14 +1300,14 @@
                j_tested = 2
 
                procedure_type_data = SW_edge_type
-               gradient_type_data  = no_gradient_type
+               gradient_type_data  = gradient_xLR0_yI_type
 
             !  -------
             ! | 0 0 3 |
             ! | 0 0*3 |
             ! | 0 0 3 |
             !  -------
-            case(10)
+            case(19)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1138,7 +1328,7 @@
             ! | 0 0*3 |
             ! | 0 0 3 |
             !  -------
-            case(11)
+            case(20)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1154,34 +1344,33 @@
                procedure_type_data = W_edge_type
                gradient_type_data  = gradient_R0_type
 
-
             !  -------
+            ! | 3 3 3 |
+            ! | 3 0*0 |
             ! | 0 0 0 |
-            ! | 0 0*0 |
-            ! | 0 0 3 |
             !  -------
-            case(12)
+            case(21)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
-     $              no_pt,no_pt,bc_pt,
      $              no_pt,no_pt,no_pt,
-     $              no_pt,no_pt,no_pt
+     $              bc_pt,no_pt,no_pt,
+     $              bc_pt,bc_pt,bc_pt
      $              /),
      $              (/3,3/))
 
                i_tested = 2
                j_tested = 2
 
-               procedure_type_data = NW_corner_type
-               gradient_type_data  = no_gradient_type
+               procedure_type_data = SE_edge_type
+               gradient_type_data  = gradient_xI_yLR0_type
 
             !  -------
             ! | 3 3 0 |
             ! | 3 0*0 |
             ! | 0 0 0 |
             !  -------
-            case(13)
+            case(22)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1195,14 +1384,14 @@
                j_tested = 2
 
                procedure_type_data = SE_edge_type
-               gradient_type_data  = no_gradient_type
+               gradient_type_data  = gradient_xLR0_yLR0_type
 
             !  -------
             ! | 3 0 0 |
             ! | 3 0*0 |
             ! | 0 0 0 |
             !  -------
-            case(14)
+            case(23)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1219,11 +1408,32 @@
                gradient_type_data  = gradient_L0_type
 
             !  -------
+            ! | 3 3 3 |
+            ! | 0 0*3 |
+            ! | 0 0 0 |
+            !  -------
+            case(24)
+
+               allocate(grdpts_id_tested(3,3))
+               grdpts_id_tested = reshape( (/
+     $              no_pt,no_pt,no_pt,
+     $              no_pt,no_pt,bc_pt,
+     $              bc_pt,bc_pt,bc_pt
+     $              /),
+     $              (/3,3/))
+
+               i_tested = 2
+               j_tested = 2
+
+               procedure_type_data = SW_edge_type
+               gradient_type_data  = gradient_xI_yLR0_type
+
+            !  -------
             ! | 0 3 3 |
             ! | 0 0*3 |
             ! | 0 0 0 |
             !  -------
-            case(15)
+            case(25)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1237,14 +1447,14 @@
                j_tested = 2
 
                procedure_type_data = SW_edge_type
-               gradient_type_data  = no_gradient_type
+               gradient_type_data  = gradient_xLR0_yLR0_type
 
             !  -------
             ! | 0 0 3 |
             ! | 0 0*3 |
             ! | 0 0 0 |
             !  -------
-            case(16)
+            case(26)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1265,7 +1475,7 @@
             ! | 0 0*0 |
             ! | 0 0 0 |
             !  -------
-            case(17)
+            case(27)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1286,7 +1496,7 @@
             ! | 0 0*0 |
             ! | 0 0 0 |
             !  -------
-            case(18)
+            case(28)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1307,7 +1517,7 @@
             ! | 0 0*0 |
             ! | 0 0 0 |
             !  -------
-            case(19)
+            case(29)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1324,32 +1534,11 @@
                gradient_type_data  = no_gradient_type
 
             !  -------
-            ! | 0 0 3 |
-            ! | 0 0*0 |
-            ! | 0 0 0 |
-            !  -------
-            case(20)
-
-               allocate(grdpts_id_tested(3,3))
-               grdpts_id_tested = reshape( (/
-     $              no_pt,no_pt,no_pt,
-     $              no_pt,no_pt,no_pt,
-     $              no_pt,no_pt,bc_pt
-     $              /),
-     $              (/3,3/))
-
-               i_tested = 2
-               j_tested = 2
-
-               procedure_type_data = SW_corner_type
-               gradient_type_data  = no_gradient_type
-
-            !  -------
             ! | 0 3 3 |
             ! | 0 0*0 |
             ! | 0 0 0 |
             !  -------
-            case(21)
+            case(30)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
@@ -1370,7 +1559,7 @@
             ! | 0 0*0 |
             ! | 0 0 0 |
             !  -------
-            case(22)
+            case(31)
 
                allocate(grdpts_id_tested(3,3))
                grdpts_id_tested = reshape( (/
