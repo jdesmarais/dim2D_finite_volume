@@ -29,7 +29,10 @@
         logical :: test_validated
 
         detailled = .true.
+
         
+        !test compute_newgrdpt
+        !------------------------------------------------------------
         
         !all the data needed for the computation of the new grid point
         !are located in the buffer layer
@@ -51,6 +54,13 @@
         test_validated = test_compute_newgrdpt(4, detailled)
         print '(''test_compute_newgrdpt - config 4: '',L1)', test_validated
         
+
+        !test update_bf_grdpts_after_increase
+        !------------------------------------------------------------
+        test_validated = test_update_bf_grdpts_after_increase(detailled)
+        print '(''test_update_bf_grdpts_after_increase: '',L1)', test_validated
+
+
 
         contains
 
@@ -232,6 +242,16 @@
 
             case(4)
                call initialize_data_for_test_compute_newgrpdt_config4(
+     $              dx,dy,
+     $              interior_nodes0,
+     $              interior_nodes1,
+     $              bf_sublayer_used,
+     $              nbf_interface_used,
+     $              i1,j1,
+     $              newgrdpt_data)
+
+            case(5)
+               call initialize_data_for_test_compute_newgrpdt_config5(
      $              dx,dy,
      $              interior_nodes0,
      $              interior_nodes1,
@@ -939,6 +959,128 @@
         end subroutine initialize_data_for_test_compute_newgrpdt_config4
 
 
+        subroutine initialize_data_for_test_compute_newgrpdt_config5(
+     $     dx,dy,
+     $     interior_nodes0,
+     $     interior_nodes1,
+     $     bf_sublayer_used,
+     $     nbf_interface_used,
+     $     i1,j1,
+     $     newgrdpt_data)
+
+          implicit none
+
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          real(rkind), dimension(nx,ny,ne)  , intent(inout) :: interior_nodes0
+          real(rkind), dimension(nx,ny,ne)  , intent(inout) :: interior_nodes1
+          type(bf_sublayer)  , pointer      , intent(inout) :: bf_sublayer_used
+          type(nbf_interface_newgrdpt)      , intent(out)   :: nbf_interface_used
+          integer(ikind)                    , intent(out)   :: i1
+          integer(ikind)                    , intent(out)   :: j1
+          real(rkind)        , dimension(ne), intent(out)   :: newgrdpt_data
+
+          integer(ikind), dimension(2,2)                :: align1
+          real(rkind)   , dimension(:)    , allocatable :: x_map1
+          real(rkind)   , dimension(:)    , allocatable :: y_map1
+          real(rkind)   , dimension(:,:,:), allocatable :: nodes1
+          integer(ikind), dimension(:,:)  , allocatable :: grdpts_id1
+
+          integer :: i
+
+
+          !attribute initialization of buffer layer at t
+          align1(1,1) = 8
+          align1(1,2) = 8
+          align1(2,1) = 9
+          align1(2,2) = 9
+
+          allocate(x_map1(5))
+          allocate(y_map1(5))
+
+          do i=1,5
+             x_map1(i) = (4+i)*dx
+          end do
+
+          do i=1,5
+             y_map1(i) = (5+i)*dy
+          end do
+
+          allocate(grdpts_id1(5,5))
+
+          grdpts_id1 = reshape((/
+     $         1,1,1,2,3,
+     $         1,1,1,2,3,
+     $         2,2,2,2,3,
+     $         3,3,3,3,3,
+     $         0,0,0,0,0
+     $         /),
+     $         (/5,5/))         
+
+          allocate(nodes1(5,5,ne))
+
+          nodes1(4:5,3:4,:) = reshape((/
+     $         1.0d0,  0.5d0,
+     $        2.45d0,-0.26d0,
+     $         
+     $        2.05d0, 9.26d0,
+     $       -2.15d0, 7.85d0,
+     $         
+     $        0.25d0, 0.10d0,
+     $       -0.75d0,-8.52d0
+     $         /),
+     $         (/2,2,3/))
+
+
+          !set the nodes in the bf_layer_object
+          call bf_sublayer_used%ini(N)
+          call bf_sublayer_used%set_alignment_tab(align1)
+          call bf_sublayer_used%set_x_map(x_map1)
+          call bf_sublayer_used%set_y_map(y_map1)
+          call bf_sublayer_used%set_nodes(nodes1)
+          call bf_sublayer_used%set_grdpts_id(grdpts_id1)
+
+
+          !set the indices of the grid point computed
+          i1 = 5
+          j1 = 5
+
+          
+          !newgrdpt_data
+          newgrdpt_data = [-2.77171875d0,9.87d0,4.370469d0]
+
+
+          !initialize the nbf_interface with no links
+          call nbf_interface_used%ini()
+
+          !initialize the interior_nodes
+          interior_nodes0(9:10,9:10,:) = reshape((/
+     $         2.0d0, -0.5d0,
+     $         3.0d0, 1.25d0,
+     $         
+     $       -8.25d0, 7.85d0,
+     $        3.26d0, 9.23d0,
+     $         
+     $       -0.75d0,-0.45d0,
+     $        3.26d0, 6.15d0
+     $         /),
+     $         (/2,2,3/))
+
+          interior_nodes1(9:10,9:10,:) = reshape((/
+     $         1.0d0,  0.5d0,
+     $        2.45d0,-0.26d0,
+     $         
+     $        2.05d0, 9.26d0,
+     $       -2.15d0, 7.85d0,
+     $         
+     $        0.25d0, 0.10d0,
+     $       -0.75d0,-8.52d0
+     $         /),
+     $         (/2,2,3/))
+
+        end subroutine initialize_data_for_test_compute_newgrpdt_config5
+
+
         function is_test_validated(var,cst,detailled) result(test_validated)
 
           implicit none
@@ -958,5 +1100,155 @@
      $         int(cst*1e5)).le.1
           
         end function is_test_validated
+
+
+        function test_update_bf_grdpts_after_increase(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(nbf_interface_newgrdpt)                :: nbf_interface_used
+          type(bf_sublayer), pointer                  :: bf_sublayer_used
+                                                      
+          type(pmodel_eq)                             :: p_model
+          real(rkind)                                 :: t
+          real(rkind)                                 :: dt
+          real(rkind)                                 :: dx
+          real(rkind)                                 :: dy
+          real(rkind)   , dimension(nx)               :: interior_x_map
+          real(rkind)   , dimension(ny)               :: interior_y_map
+          real(rkind)   , dimension(nx,ny,ne)         :: interior_nodes0
+          real(rkind)   , dimension(nx,ny,ne)         :: interior_nodes1
+          integer(ikind)                              :: i1
+          integer(ikind)                              :: j1
+          real(rkind)   , dimension(ne)               :: newgrdpt_data
+          real(rkind)   , dimension(ne)               :: newgrdpt
+          integer(ikind), dimension(2,1)              :: selected_grdpts
+          integer       , dimension(5,5)              :: grdpts_id1_data
+          integer       , dimension(:,:), allocatable :: bf_grdpts_id1
+
+          logical :: test_loc
+          logical :: test_node
+          logical :: test_grdpts_id
+
+          integer(ikind) :: i,j
+          integer        :: k
+          integer        :: config
+
+          !test requirements
+          if((nx.ne.10).or.(ny.ne.10).or.(ne.ne.3).or.
+     $         (.not.(is_test_validated(c,0.5d0,.false.)))) then
+
+             print '(''test_nbf_interface'')'
+             print '(''test_compute_newgrdpt'')'
+             print '(''the test requires:'')'
+             print '(''nx=10 : '',L1)', nx.eq.10
+             print '(''ny=10 : '',L1)', ny.eq.10
+             print '(''ne= 3 : '',L1)', ne.eq.3
+             print '('' -> the wave2d model should be used'')'
+             print '(''c=0.5 : '',L1)', is_test_validated(c,0.5d0,.false.)
+             print '()'
+
+             stop ''
+
+          end if
+
+          config = 5
+          test_validated = .true.
+
+          allocate(bf_sublayer_used)
+
+
+          !initialize the interior x_map and y_map
+          dx = 0.25d0
+          dy = 0.25d0
+
+          do k=1, nx
+             interior_x_map(k) = (k-1)*dx
+          end do
+
+          do k=1, ny
+             interior_y_map(k) = (k-1)*dy
+          end do
+
+
+          !initialize the buffer layer(s), the interior
+          !nodes and the links in the nbf_interface for
+          !the test
+          call initialize_data_for_test_compute_newgrpdt(
+     $         config,
+     $         dx,dy,
+     $         interior_nodes0,
+     $         interior_nodes1,
+     $         bf_sublayer_used,
+     $         nbf_interface_used,
+     $         i1,j1,
+     $         newgrdpt_data)
+          
+          
+          !test the computation of the new grdpt and the
+          !update the neighboring grid points
+          t  = 0.0d0
+          dt = 0.25d0
+
+          selected_grdpts(:,1) = [8,9]
+
+          call nbf_interface_used%update_bf_grdpts_after_increase(
+     $         bf_sublayer_used,
+     $         p_model, t,dt,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes0,
+     $         interior_nodes1,
+     $         selected_grdpts)
+
+
+          !compare the results with what is expected for the nodes
+          newgrdpt = bf_sublayer_used%get_nodes([i1,j1])
+
+          do k=1, ne
+             test_loc = is_test_validated(
+     $            newgrdpt(k), newgrdpt_data(k), detailled)
+             test_validated = test_validated.and.test_loc
+          end do
+          test_node = test_validated
+          print '(''test_node: '',L1)', test_validated
+
+
+          !compare the results with what is expected for the grdpts_id
+          grdpts_id1_data = reshape((/
+     $         1,1,1,2,3,
+     $         1,1,1,2,3,
+     $         2,2,1,2,3,
+     $         3,2,2,2,3,
+     $         3,3,3,3,3
+     $         /),
+     $         (/5,5/))
+
+          call bf_sublayer_used%get_grdpts_id(bf_grdpts_id1)
+          
+          test_validated=.true.
+          do j=1,5
+             do i=1,5
+                test_loc = grdpts_id1_data(i,j).eq.bf_grdpts_id1(i,j)
+                test_validated = test_validated.and.test_loc
+                if(.not.test_loc) then
+                   print '(2I2,''->'',2I2)',
+     $                  i,j,
+     $                  grdpts_id1_data(i,j),
+     $                  bf_grdpts_id1(i,j)
+                end if
+             end do
+          end do
+          test_grdpts_id = test_validated
+          print '(''test_grdpts_id: '',L1)', test_grdpts_id
+
+
+          test_validated = test_node.and.test_grdpts_id
+
+        end function test_update_bf_grdpts_after_increase
 
       end program test_nbf_interface

@@ -1,6 +1,6 @@
       program test_bf_layer_prog
 
-        !use ifport
+        use ifport
 
         use bf_layer_class, only :
      $     bf_layer
@@ -44,7 +44,7 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
 
         implicit none
 
-        !integer, parameter :: neighbor_case = 2
+        !integer, parameter :: neighbor_case = 1
         integer, parameter :: size_case = 1
         integer, parameter :: distance_case = 1
         integer, parameter :: random_seed = 86456
