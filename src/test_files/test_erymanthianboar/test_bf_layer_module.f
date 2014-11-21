@@ -14,6 +14,7 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
         private
         public ::
      $       print_interior_data,
+     $       print_interior_data_wo_maps,
      $       bf_layer_test_allocation,
      $       bf_layer_test_reallocation,
      $       bf_layer_test_merge,
@@ -88,6 +89,31 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
              stop 'file opening pb'
           end if
           
+          call print_interior_data_wo_maps(
+     $       nodes, grdpts_id,
+     $       filename_nodes,
+     $       filename_grdpts_id,
+     $       filename_sizes)
+
+        end subroutine print_interior_data
+
+
+        subroutine print_interior_data_wo_maps(
+     $       nodes, grdpts_id,
+     $       filename_nodes,
+     $       filename_grdpts_id,
+     $       filename_sizes)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer    , dimension(:,:)  , intent(in) :: grdpts_id 
+          character(*)                 , intent(in) :: filename_nodes
+          character(*)                 , intent(in) :: filename_grdpts_id
+          character(*)                 , intent(in) :: filename_sizes
+
+          integer :: ios
+          
           !nodes
           open(unit=1,
      $          file=filename_nodes,
@@ -141,7 +167,7 @@ c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
               stop 'file opening pb'
            end if
 
-        end subroutine print_interior_data
+        end subroutine print_interior_data_wo_maps
 
 
         subroutine bf_layer_test_allocation(

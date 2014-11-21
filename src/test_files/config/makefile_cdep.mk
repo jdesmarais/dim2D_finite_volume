@@ -255,6 +255,7 @@ bf_interface_dep=	$(bf_layer_dep)\
 			sbf_list_class.o\
 			nbf_list_class.o\
 			nbf_interface_class.o\
+			nbf_interface_newgrdpt_class.o\
 			bf_interface_class.o
 
 bf_interface_icr_dep=	$(bf_interface_dep)\

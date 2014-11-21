@@ -7,13 +7,15 @@
         use parameters_constant     , only : N,S,E,W
         use parameters_input        , only : nx,ny,ne,bc_size
         use parameters_kind         , only : ikind, rkind
-        use test_bf_layer_module    , only : print_interior_data,
+        use test_bf_layer_module    , only : print_interior_data_wo_maps,
      $                                       ini_grdpts_id
 
         implicit none
 
 
         type(bf_interface_icr)              :: interface_used
+        real(rkind)   , dimension(nx)       :: x_map
+        real(rkind)   , dimension(ny)       :: y_map
         real(rkind)   , dimension(nx,ny,ne) :: nodes
         integer       , dimension(nx,ny)    :: grdpts_id
         real(rkind)                         :: dx
@@ -48,14 +50,17 @@
         call interface_used%print_idetectors_on(nodes(:,:,1))
 
         !print the detector positions
-        call print_interior_data(nodes,
-     $                           grdpts_id,
-     $                           'interior_nodes1.dat',
-     $                           'interior_grdpts_id1.dat',
-     $                           'interior_sizes1.dat')
+        call print_interior_data_wo_maps(
+     $       nodes,
+     $       grdpts_id,
+     $       'interior_nodes1.dat',
+     $       'interior_grdpts_id1.dat',
+     $       'interior_sizes1.dat')
 
         !print the interface
         call interface_used%print_binary(
+     $       'x_map1.dat',
+     $       'y_map1.dat',
      $       'nodes1.dat',
      $       'grdpt_id1.dat',
      $       'sizes1.dat',
@@ -97,11 +102,12 @@
         end do
 
         !print the grdpt_checked
-        call print_interior_data(nodes,
-     $                           grdpts_id,
-     $                           'interior_nodes2.dat',
-     $                           'interior_grdpts_id2.dat',
-     $                           'interior_sizes2.dat')
+        call print_interior_data_wo_maps(
+     $       nodes,
+     $       grdpts_id,
+     $       'interior_nodes2.dat',
+     $       'interior_grdpts_id2.dat',
+     $       'interior_sizes2.dat')
 
         !test the check_nbc_interior
         call ini_grdpts_id(grdpts_id)
@@ -119,11 +125,12 @@
         end do
 
         !print the grid point tested
-        call print_interior_data(nodes,
-     $                           grdpts_id,
-     $                           'interior_nodes3.dat',
-     $                           'interior_grdpts_id3.dat',
-     $                           'interior_sizes3.dat')
+        call print_interior_data_wo_maps(
+     $       nodes,
+     $       grdpts_id,
+     $       'interior_nodes3.dat',
+     $       'interior_grdpts_id3.dat',
+     $       'interior_sizes3.dat')
 
 
         !test the check_nbc_interior
@@ -143,11 +150,12 @@
         end do
 
         !print the grid point tested
-        call print_interior_data(nodes,
-     $                           grdpts_id,
-     $                           'interior_nodes4.dat',
-     $                           'interior_grdpts_id4.dat',
-     $                           'interior_sizes4.dat')
+        call print_interior_data_wo_maps(
+     $       nodes,
+     $       grdpts_id,
+     $       'interior_nodes4.dat',
+     $       'interior_grdpts_id4.dat',
+     $       'interior_sizes4.dat')
 
 
         !test the recombination of detector lists
@@ -193,11 +201,12 @@
            call detector_list(mainlayer_id)%print_on_matrix(
      $          nodes(:,:,1))
         end do
-        call print_interior_data(nodes,
-     $                           grdpts_id,
-     $                           'interior_nodes5.dat',
-     $                           'interior_grdpts_id5.dat',
-     $                           'interior_sizes5.dat')
+        call print_interior_data_wo_maps(
+     $       nodes,
+     $       grdpts_id,
+     $       'interior_nodes5.dat',
+     $       'interior_grdpts_id5.dat',
+     $       'interior_sizes5.dat')
 
         !3) recombine the lists
         call interface_used%combine_bf_idetector_lists(
@@ -214,12 +223,13 @@
         call interface_used%print_idetectors_on(nodes(:,:,1))
 
         !5) print the position of the new detectors
-        call print_interior_data(nodes,
-     $                           grdpts_id,
-     $                           'interior_nodes6.dat',
-     $                           'interior_grdpts_id6.dat',
-     $                           'interior_sizes6.dat')
-
+        call print_interior_data_wo_maps(
+     $       nodes,
+     $       grdpts_id,
+     $       'interior_nodes6.dat',
+     $       'interior_grdpts_id6.dat',
+     $       'interior_sizes6.dat')
+        
         
         contains
 
@@ -274,11 +284,13 @@
 
         !< initialize the sublayers for the interface
         subroutine initialize_sublayers_in_interface(
-     $       interface_used, nodes, dx, dy, added_sublayer)
+     $       interface_used, x_map, y_map, nodes, dx, dy, added_sublayer)
 
           implicit none
 
           type(bf_interface_icr)          , intent(inout) :: interface_used
+          real(rkind), dimension(nx)      , intent(in)    :: x_map
+          real(rkind), dimension(ny)      , intent(in)    :: y_map
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
           real(rkind)                     , intent(in)    :: dx
           real(rkind)                     , intent(in)    :: dy
@@ -295,7 +307,7 @@
 
 
           added_sublayer => interface_used%allocate_sublayer(
-     $         N, nodes, alignment, dx, dy)
+     $         N, x_map, y_map, nodes, alignment, dx, dy)
 
           !modify the sublayer to see if the copy works
           call added_sublayer%set_grdpts_id_pt(

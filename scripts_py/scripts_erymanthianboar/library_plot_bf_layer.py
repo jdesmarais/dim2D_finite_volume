@@ -463,8 +463,8 @@ def make_matrix_for_all_bf_layers(
             #    print filename+': does not exist'
 
     #the sizes of the buffer layers are now determined
-    bf_tmp_size_x = 30 #size_x #25
-    bf_tmp_size_y = 30 #size_y #25
+    bf_tmp_size_x = 40 #size_x #25
+    bf_tmp_size_y = 40 #size_y #25
 
     #interspace
     interspace = 2
@@ -477,11 +477,11 @@ def make_matrix_for_all_bf_layers(
 
     
     #allocation of the large matrices for the nodes and the grdptid
-    lm_nodes = np.empty([4,lm_size_y, lm_size_x])
+    lm_nodes = np.empty([3,lm_size_y, lm_size_x])
     lm_nodes[0,:,:]=backgrd_pt #.fill(backgrd_pt)
     lm_nodes[1,:,:]=0 #.fill(backgrd_pt)
     lm_nodes[2,:,:]=0 #.fill(backgrd_pt)
-    lm_nodes[3,:,:]=0 #.fill(backgrd_pt)
+    #lm_nodes[3,:,:]=0 #.fill(backgrd_pt)
 
     lm_grdptid = np.empty([lm_size_y, lm_size_x])
     lm_grdptid.fill(backgrd_pt)
@@ -615,8 +615,8 @@ def make_matrix_for_all_bf_layers_with_maps(
             #    print filename+': does not exist'
 
     #the sizes of the buffer layers are now determined
-    bf_tmp_size_x = 10 #30 #size_x #25
-    bf_tmp_size_y = 10 #30 #size_y #25
+    bf_tmp_size_x = 10 #10 #size_x #25
+    bf_tmp_size_y = 10 #10 #size_y #25
 
     #interspace
     interspace = 2
@@ -636,11 +636,11 @@ def make_matrix_for_all_bf_layers_with_maps(
     lm_y_map = np.empty([lm_size_y, lm_size_x])
     lm_y_map.fill(backgrd_pt)
 
-    lm_nodes = np.empty([4,lm_size_y, lm_size_x])
+    lm_nodes = np.empty([3,lm_size_y, lm_size_x])
     lm_nodes[0,:,:]=backgrd_pt #.fill(backgrd_pt)
     lm_nodes[1,:,:]=0 #.fill(backgrd_pt)
     lm_nodes[2,:,:]=0 #.fill(backgrd_pt)
-    lm_nodes[3,:,:]=0 #.fill(backgrd_pt)
+    #lm_nodes[3,:,:]=0 #.fill(backgrd_pt)
 
     lm_grdptid = np.empty([lm_size_y, lm_size_x])
     lm_grdptid.fill(backgrd_pt)

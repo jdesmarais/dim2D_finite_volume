@@ -91,6 +91,7 @@ test_bf_path_icr_prog.o:\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
+	$(pm_cdir)/pmodel_eq_class.o\
 	test_bf_layer_module.o
 
 test_bf_interface_prog.o:\
@@ -224,11 +225,11 @@ test_bf_layer_nf90_operators_prog.o:\
 #-----------------------------------------------------------------------
 test_bf_layer_prog:\
 	$(param_dep)\
-	$(cg_dep)\
+	$(mt_dep)\
 	$(fv_dep)\
-	$(simpletest_dep)\
+	$(wave2d_dep)\
 	$(bf_layer_dep)\
-	$(bc_dep)\
+	$(hedstrom_xy_dep)\
 	test_bf_layer_module.o
 
 test_bf_sublayer_prog:\
@@ -294,10 +295,10 @@ test_nbf_interface_prog:\
 
 test_bf_interface_prog:\
 	$(param_dep)\
-	$(cg_dep)\
+	$(mt_dep)\
 	$(fv_dep)\
-	$(ns2d_dep)\
-	$(poinsot_ns2d_dep)\
+	$(wave2d_dep)\
+	$(hedstrom_xy_dep)\
 	$(bf_interface_dep)\
 	test_bf_layer_module.o
 
@@ -314,7 +315,8 @@ test_bf_path_icr_prog:\
 	$(param_dep)\
 	$(cg_dep)\
 	$(fv_dep)\
-	$(simpletest_dep)\
+	$(wave2d_dep)\
+	$(hedstrom_xy_dep)\
 	$(bf_interface_dep)\
 	bf_path_icr_class.o\
 	test_bf_layer_module.o

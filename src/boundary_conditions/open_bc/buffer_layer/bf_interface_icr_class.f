@@ -16,28 +16,59 @@
       !-----------------------------------------------------------------
       module bf_interface_icr_class
 
-        use bf_detector_dcr_list_class  , only : bf_detector_dcr_list
-        use bf_detector_dcr_list_N_class, only : bf_detector_dcr_list_N
-        use bf_detector_dcr_list_S_class, only : bf_detector_dcr_list_S
-        use bf_detector_dcr_list_E_class, only : bf_detector_dcr_list_E
-        use bf_detector_dcr_list_W_class, only : bf_detector_dcr_list_W
-        use bf_detector_icr_list_class  , only : bf_detector_icr_list
-        use bf_path_icr_class           , only : bf_path_icr
-        use bf_nbc_template_module      
-        use bf_sublayer_class           , only : bf_sublayer
-        use bf_interface_class          , only : bf_interface
-        use bf_layer_errors_module      , only : error_mainlayer_id
-        use parameters_bf_layer         , only : bc_interior_pt,
-     $                                           dct_icr_distance,
-     $                                           dct_icr_N_default,
-     $                                           dct_icr_S_default,
-     $                                           dct_icr_E_default,
-     $                                           dct_icr_W_default
-        use parameters_constant         , only : N,S,E,W,interior
-        use parameters_input            , only : nx,ny,ne,bc_size,
-     $                                           dt,search_nb_dt
-        use parameters_kind             , only : ikind, rkind
-        use pmodel_eq_class             , only : pmodel_eq
+        use bf_detector_dcr_list_class, only :
+     $     bf_detector_dcr_list
+
+        use bf_detector_dcr_list_N_class, only :
+     $       bf_detector_dcr_list_N
+
+        use bf_detector_dcr_list_S_class, only :
+     $       bf_detector_dcr_list_S
+
+        use bf_detector_dcr_list_E_class, only :
+     $       bf_detector_dcr_list_E
+
+        use bf_detector_dcr_list_W_class, only :
+     $       bf_detector_dcr_list_W
+
+        use bf_detector_icr_list_class, only :
+     $       bf_detector_icr_list
+
+        use bf_path_icr_class, only :
+     $       bf_path_icr
+
+        use bf_nbc_template_module
+ 
+        use bf_sublayer_class, only :
+     $       bf_sublayer
+
+        use bf_interface_class, only :
+     $       bf_interface
+
+        use bf_layer_errors_module, only :
+     $       error_mainlayer_id
+
+        use parameters_bf_layer, only :
+     $       bc_interior_pt,
+     $       dct_icr_distance,
+     $       dct_icr_N_default,
+     $       dct_icr_S_default,
+     $       dct_icr_E_default,
+     $       dct_icr_W_default
+
+        use parameters_constant, only :
+     $       N,S,E,W,interior
+
+        use parameters_input, only :
+     $       nx,ny,ne,bc_size,
+     $       dt,search_nb_dt
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
 
         implicit none
 
@@ -262,19 +293,25 @@
         !> grid size along the y-direction
         !--------------------------------------------------------------
         subroutine update_bf_layers_with_idetectors(
-     $     this, 
+     $     this,
+     $     p_model,
+     $     t,dt,
      $     interior_x_map,
      $     interior_y_map,
-     $     interior_nodes,
-     $     p_model)
+     $     interior_nodes0,
+     $     interior_nodes1)
 
           implicit none
 
           class(bf_interface_icr)         , intent(inout) :: this
+          type(pmodel_eq)                 , intent(in)    :: p_model
+          real(rkind)                     , intent(in)    :: t
+          real(rkind)                     , intent(in)    :: dt
           real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
           real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          type(pmodel_eq)                 , intent(in)    :: p_model
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes0
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes1
+
 
           type(bf_path_icr)              :: path_update_idetectors
           integer(ikind), dimension(2)   :: cpt_coords_p
@@ -311,11 +348,15 @@
              call S_ndt_list%ini(S, size(this%S_detectors_list,2))
 
              call process_idetector_list(
-     $            this, this%S_detectors_list, S_ndt_list,
+     $            this,
+     $            this%S_detectors_list,
+     $            S_ndt_list,
+     $            p_model,
+     $            t,dt,
      $            interior_x_map,
      $            interior_y_map,
-     $            interior_nodes,
-     $            p_model,
+     $            interior_nodes0,
+     $            interior_nodes1,
      $            cpt_coords_p,
      $            path_update_idetectors)
 
@@ -329,10 +370,12 @@
      $            this,
      $            this%E_detectors_list,
      $            E_ndt_list,
+     $            p_model,
+     $            t,dt,
      $            interior_x_map,
      $            interior_y_map,
-     $            interior_nodes,
-     $            p_model,
+     $            interior_nodes0,
+     $            interior_nodes1,
      $            cpt_coords_p,
      $            path_update_idetectors)
 
@@ -346,10 +389,12 @@
      $            this,
      $            this%W_detectors_list,
      $            W_ndt_list,
+     $            p_model,
+     $            t,dt,
      $            interior_x_map,
      $            interior_y_map,
-     $            interior_nodes,
-     $            p_model,
+     $            interior_nodes0,
+     $            interior_nodes1,
      $            cpt_coords_p,
      $            path_update_idetectors)
 
@@ -363,10 +408,12 @@
      $            this,
      $            this%N_detectors_list,
      $            N_ndt_list,
+     $            p_model,
+     $            t,dt,
      $            interior_x_map,
      $            interior_y_map,
-     $            interior_nodes,
-     $            p_model,
+     $            interior_nodes0,
+     $            interior_nodes1,
      $            cpt_coords_p,
      $            path_update_idetectors)
 
@@ -379,9 +426,12 @@
           if(path_update_idetectors%get_nb_pts().gt.0) then
              call path_update_idetectors%process_path(
      $            this,
+     $            p_model,
+     $            t,dt,
      $            interior_x_map,
      $            interior_y_map,
-     $            interior_nodes)
+     $            interior_nodes0,
+     $            interior_nodes1)
           end if
 
 
@@ -589,10 +639,12 @@
      $     this,
      $     dt_list,
      $     ndt_list,
+     $     p_model,
+     $     t,dt,
      $     interior_x_map,
      $     interior_y_map,
-     $     interior_nodes,
-     $     p_model,
+     $     interior_nodes0,
+     $     interior_nodes1,
      $     cpt_coords_p,
      $     path)
         
@@ -601,10 +653,13 @@
           class(bf_interface_icr)                      , intent(inout) :: this
           integer(ikind)          , dimension(:,:)     , intent(in)    :: dt_list
           type(bf_detector_icr_list)                   , intent(inout) :: ndt_list
+          type(pmodel_eq)                              , intent(in)    :: p_model
+          real(rkind)                                  , intent(in)    :: t
+          real(rkind)                                  , intent(in)    :: dt
           real(rkind)             , dimension(nx)      , intent(in)    :: interior_x_map
           real(rkind)             , dimension(ny)      , intent(in)    :: interior_y_map
-          real(rkind)             , dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          type(pmodel_eq)                              , intent(in)    :: p_model
+          real(rkind)             , dimension(nx,ny,ne), intent(in)    :: interior_nodes0
+          real(rkind)             , dimension(nx,ny,ne), intent(in)    :: interior_nodes1
           integer(ikind)          , dimension(2)       , intent(inout) :: cpt_coords_p
           type(bf_path_icr)                            , intent(inout) :: path
 
@@ -623,7 +678,7 @@
      $            this, dt_list(:,k),
      $            interior_x_map,
      $            interior_y_map,
-     $            interior_nodes,
+     $            interior_nodes1,
      $            p_model,
      $            cpt_coords_p, cpt_coords,
      $            nb_mgrdpts, mgrdpts, ndt_list)
@@ -651,9 +706,12 @@
                    !the buffer layers are updated
                    call path%process_path(
      $                  this,
+     $                  p_model,
+     $                  t,dt,
      $                  interior_x_map,
      $                  interior_y_map,
-     $                  interior_nodes)
+     $                  interior_nodes0,
+     $                  interior_nodes1)
 
                    !the grid point that led to the path end
                    !is used to reinitialize the current path

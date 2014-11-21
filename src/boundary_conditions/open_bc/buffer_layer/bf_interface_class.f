@@ -38,8 +38,8 @@
         use interface_integration_step, only :
      $       timeInt_step_nopt
 
-        use nbf_interface_class, only :
-     $       nbf_interface
+        use nbf_interface_newgrdpt_class, only :
+     $       nbf_interface_newgrdpt
 
         use parameters_bf_layer, only :
      $       align_N,
@@ -214,7 +214,7 @@
         type :: bf_interface
 
           type(bf_mainlayer_pointer), dimension(4), private :: mainlayer_pointers
-          type(nbf_interface)                     , private :: border_interface
+          type(nbf_interface_newgrdpt)            , private :: border_interface
 
           contains
 
@@ -226,7 +226,9 @@
           procedure, pass :: reallocate_sublayer
           procedure, pass :: merge_sublayers
           procedure, pass :: remove_sublayer
-          procedure, pass :: update_grdpts_after_increase
+
+          !procedure computation of new grid points
+          procedure, pass :: update_bf_grdpts_after_increase
 
           !interior boundary procedures
           procedure, pass :: determine_interior_bc_layers
@@ -1367,23 +1369,45 @@ c$$$          stop 'not implemented yet'
        !> list of the general coordinates of the grid points to be
        !> computed
        !--------------------------------------------------------------
-       subroutine update_grdpts_after_increase(
-     $     this, bf_sublayer_i, selected_grdpts)
+       subroutine update_bf_grdpts_after_increase(
+     $     this,
+     $     bf_sublayer_updated,
+     $     p_model,
+     $     t,dt,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes0,
+     $     interior_nodes1,
+     $     selected_grdpts)
 
          implicit none
 
-         class(bf_interface)           , intent(inout) :: this
-         type(bf_sublayer)             , intent(inout) :: bf_sublayer_i
-         integer(ikind), dimension(:,:), intent(in)    :: selected_grdpts
+         class(bf_interface)             , intent(inout) :: this
+         type(bf_sublayer)               , intent(inout) :: bf_sublayer_updated
+         type(pmodel_eq)                 , intent(in)    :: p_model
+         real(rkind)                     , intent(in)    :: t
+         real(rkind)                     , intent(in)    :: dt
+         real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+         real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
+         real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes0
+         real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes1
+         integer(ikind), dimension(:,:)  , intent(in)    :: selected_grdpts
 
          !compute the new grid points after the increase
-         call bf_sublayer_i%update_grdpts_after_increase(
+         call this%border_interface%update_bf_grdpts_after_increase(
+     $        bf_sublayer_updated,
+     $        p_model,
+     $        t,dt,
+     $        interior_x_map,
+     $        interior_y_map,
+     $        interior_nodes0,
+     $        interior_nodes1,
      $        selected_grdpts)
 
          !update the neighboring buffer layers
-         call this%update_neighbor_grdpts(bf_sublayer_i)
+         call this%update_neighbor_grdpts(bf_sublayer_updated)
 
-       end subroutine update_grdpts_after_increase
+       end subroutine update_bf_grdpts_after_increase
 
 
        !> @author

@@ -1,32 +1,65 @@
       program test_bf_path_icr_prog
 
-        use bf_path_icr_class , only : bf_path_icr
-        use bf_sublayer_class   , only : bf_sublayer
-        use bf_interface_class  , only : bf_interface
-        use parameters_bf_layer , only : align_N, align_W
-        use parameters_constant , only : N,W
-        use parameters_input    , only : nx,ny,ne,bc_size
-        use parameters_kind     , only : ikind, rkind
-        use test_bf_layer_module, only : print_interior_data,
-     $                                   ini_grdpts_id,
-     $                                   ini_nodes
+        use bf_path_icr_class, only :
+     $     bf_path_icr
+
+        use bf_sublayer_class, only :
+     $       bf_sublayer
+
+        use bf_interface_class, only :
+     $       bf_interface
+
+        use parameters_bf_layer , only :
+     $       align_N, align_W
+
+        use parameters_constant , only :
+     $       N,W
+
+        use parameters_input, only :
+     $       nx,ny,ne,bc_size
+
+        use parameters_kind, only :
+     $       ikind, rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use test_bf_layer_module, only :
+     $       print_interior_data,
+     $       print_interior_data_wo_maps,
+     $       ini_grdpts_id,
+     $       ini_nodes
 
         
         implicit none
 
 
-        type(bf_path_icr)                         :: path_tested
+        type(bf_path_icr)                           :: path_tested
         integer(ikind), dimension(:,:), allocatable :: bc_interior_pt_table
         type(bf_interface)                          :: interface_used
+        type(pmodel_eq)                             :: p_model
+        real(rkind), dimension(nx)                  :: interior_x_map
+        real(rkind), dimension(ny)                  :: interior_y_map
+        real(rkind), dimension(nx,ny,ne)            :: nodes0
         real(rkind), dimension(nx,ny,ne)            :: nodes
         real(rkind), dimension(nx,ny,ne)            :: nodes_for_path
         integer    , dimension(nx,ny)               :: grdpts_id
         real(rkind)                                 :: path_id
         integer(ikind), dimension(2)                :: pt
+        real(rkind)                                 :: t,dt
 
         integer :: i,k, file_index
 
         real(rkind) :: dx, dy
+
+
+        do i=1, nx
+           interior_x_map(i) = (i-1)*dx
+        end do
+
+        do i=1, ny
+           interior_y_map(i) = (i-1)*dy
+        end do
 
 
         !call test_create_filenames()
@@ -45,17 +78,20 @@
         call ini_grdpts_id(grdpts_id)
 
         !print interior data
-        call print_interior_data(nodes,
-     $                           grdpts_id, 
-     $                           'interior_nodes1.dat',
-     $                           'interior_grdpts_id1.dat',
-     $                           'interior_sizes1.dat')        
+        call print_interior_data_wo_maps(
+     $       nodes,
+     $       grdpts_id, 
+     $       'interior_nodes1.dat',
+     $       'interior_grdpts_id1.dat',
+     $       'interior_sizes1.dat')        
 
         !initialization of the interface
         call ini_interface(interface_used)!,nodes)
 
         !print the initial state
         call interface_used%print_binary(
+     $       'x_map1.dat',
+     $       'y_map1.dat',
      $       'nodes1.dat',
      $       'grdpt_id1.dat',
      $       'sizes1.dat',
@@ -99,7 +135,14 @@ c$$$     $             nodes_for_path, nodes, grdpts_id, interface_used,
 c$$$     $             file_index)
 
               !process the path
-              call path_tested%process_path(interface_used, nodes, dx, dy)
+              call path_tested%process_path(
+     $             interface_used,
+     $             p_model,
+     $             t,dt,
+     $             interior_x_map,
+     $             interior_y_map,
+     $             nodes0,
+     $             nodes)
 
 c$$$              !print path map + print interior + bf_interface
 c$$$              call print_path_map_and_interface(
@@ -120,92 +163,98 @@ c$$$     $             file_index)
 
         end do
 
-        !print path map + print interior + bf_interface
-        call print_path_map_and_interface(
-     $       nodes_for_path, nodes, grdpts_id, interface_used,
-     $       file_index)
+c$$$        !print path map + print interior + bf_interface
+c$$$        call print_path_map_and_interface(
+c$$$     $       nodes_for_path, nodes, grdpts_id, interface_used,
+c$$$     $       file_index)
 
         print *, file_index
 
         contains
 
-        subroutine print_path_map_and_interface(
-     $       nodes_for_path, nodes, grdpts_id, interface_used, index)
-
-          implicit none
-
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_for_path
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
-          integer    , dimension(nx,ny)   , intent(in)    :: grdpts_id
-          class(bf_interface)             , intent(in)    :: interface_used
-          integer                         , intent(inout) :: index
-          
-
-          character(len=40) :: interior_nodes_filename
-          character(len=40) :: interior_grdpts_filename
-          character(len=40) :: interior_sizes_filename
-          character(len=15)  :: bf_nodes_filename
-          character(len=15)  :: bf_grdpts_filename
-          character(len=15)  :: bf_sizes_filename
-          character(len=15)  :: bf_nb_sublayers_filename
-
-
-          !create the names for the files
-          call create_filenames(
-     $         index,
-     $         interior_nodes_filename,
-     $         interior_grdpts_filename,
-     $         interior_sizes_filename,
-     $         bf_nodes_filename,
-     $         bf_grdpts_filename,
-     $         bf_sizes_filename,
-     $         bf_nb_sublayers_filename)
-
-          !print the nodes for path
-          call print_interior_data(nodes_for_path,
-     $                             grdpts_id,
-     $                             interior_nodes_filename,
-     $                             interior_grdpts_filename,
-     $                             interior_sizes_filename)
-
-          !print the interface at ths state
-          call interface_used%print_binary(
-     $         bf_nodes_filename,
-     $         bf_grdpts_filename,
-     $         bf_sizes_filename,
-     $         bf_nb_sublayers_filename)
-
-          index = index+1
-
-
-          !create the names for the files
-          call create_filenames(
-     $         index,
-     $         interior_nodes_filename,
-     $         interior_grdpts_filename,
-     $         interior_sizes_filename,
-     $         bf_nodes_filename,
-     $         bf_grdpts_filename,
-     $         bf_sizes_filename,
-     $         bf_nb_sublayers_filename)
-
-          !print the interior nodes
-          call print_interior_data(nodes,
-     $                             grdpts_id,
-     $                             interior_nodes_filename,
-     $                             interior_grdpts_filename,
-     $                             interior_sizes_filename)
-
-          !print the interface at ths state
-          call interface_used%print_binary(
-     $         bf_nodes_filename,
-     $         bf_grdpts_filename,
-     $         bf_sizes_filename,
-     $         bf_nb_sublayers_filename)
-
-          index = index+1          
-
-        end subroutine print_path_map_and_interface
+c$$$        subroutine print_path_map_and_interface(
+c$$$     $       nodes_for_path, nodes, grdpts_id, interface_used, index)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_for_path
+c$$$          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+c$$$          integer    , dimension(nx,ny)   , intent(in)    :: grdpts_id
+c$$$          class(bf_interface)             , intent(in)    :: interface_used
+c$$$          integer                         , intent(inout) :: index
+c$$$          
+c$$$
+c$$$          character(len=40) :: interior_nodes_filename
+c$$$          character(len=40) :: interior_grdpts_filename
+c$$$          character(len=40) :: interior_sizes_filename
+c$$$          character(len=15) :: bf_nodes_filename
+c$$$          character(len=15) :: bf_grdpts_filename
+c$$$          character(len=15) :: bf_sizes_filename
+c$$$          character(len=15) :: bf_nb_sublayers_filename
+c$$$
+c$$$
+c$$$          !create the names for the files
+c$$$          call create_filenames(
+c$$$     $         index,
+c$$$     $         interior_nodes_filename,
+c$$$     $         interior_grdpts_filename,
+c$$$     $         interior_sizes_filename,
+c$$$     $         bf_nodes_filename,
+c$$$     $         bf_grdpts_filename,
+c$$$     $         bf_sizes_filename,
+c$$$     $         bf_nb_sublayers_filename)
+c$$$
+c$$$          !print the nodes for path
+c$$$          call print_interior_data_wo_maps(
+c$$$     $         nodes_for_path,
+c$$$     $         grdpts_id,
+c$$$     $         interior_nodes_filename,
+c$$$     $         interior_grdpts_filename,
+c$$$     $         interior_sizes_filename)
+c$$$
+c$$$          !print the interface at ths state
+c$$$          call interface_used%print_binary(
+c$$$     $         'x_map_interior.dat',
+c$$$     $         'y_map_interior.dat',
+c$$$     $         bf_nodes_filename,
+c$$$     $         bf_grdpts_filename,
+c$$$     $         bf_sizes_filename,
+c$$$     $         bf_nb_sublayers_filename)
+c$$$
+c$$$          index = index+1
+c$$$
+c$$$
+c$$$          !create the names for the files
+c$$$          call create_filenames(
+c$$$     $         index,
+c$$$     $         interior_nodes_filename,
+c$$$     $         interior_grdpts_filename,
+c$$$     $         interior_sizes_filename,
+c$$$     $         bf_nodes_filename,
+c$$$     $         bf_grdpts_filename,
+c$$$     $         bf_sizes_filename,
+c$$$     $         bf_nb_sublayers_filename)
+c$$$
+c$$$          !print the interior nodes
+c$$$          call print_interior_data_to_maps(
+c$$$     $         nodes,
+c$$$     $         grdpts_id,
+c$$$     $         interior_nodes_filename,
+c$$$     $         interior_grdpts_filename,
+c$$$     $         interior_sizes_filename)
+c$$$
+c$$$          !print the interface at ths state
+c$$$          call interface_used%print_binary(
+c$$$     $         'x_map_interior.dat',
+c$$$     $         'y_map_interior.dat',
+c$$$     $         bf_nodes_filename,
+c$$$     $         bf_grdpts_filename,
+c$$$     $         bf_sizes_filename,
+c$$$     $         bf_nb_sublayers_filename)
+c$$$
+c$$$          index = index+1          
+c$$$
+c$$$        end subroutine print_path_map_and_interface
 
 
         subroutine create_filenames(

@@ -19,14 +19,31 @@
       !----------------------------------------------------------------
       module bf_path_icr_class
 
-        use bf_layer_errors_module, only : error_mainlayer_id
-        use bf_interface_class    , only : bf_interface
-        use bf_sublayer_class     , only : bf_sublayer
-        use parameters_constant   , only : N,S,E,W,
-     $                                     x_direction, y_direction,
-     $                                     min_border, max_border
-        use parameters_input      , only : nx,ny,ne,bc_size
-        use parameters_kind       , only : ikind, rkind
+        use bf_layer_errors_module, only :
+     $     error_mainlayer_id
+
+        use bf_interface_class, only :
+     $       bf_interface
+
+        use bf_sublayer_class, only :
+     $       bf_sublayer
+
+        use parameters_constant, only :
+     $       N,S,E,W,
+     $       x_direction,
+     $       y_direction,
+     $       min_border,
+     $       max_border
+
+        use parameters_input, only :
+     $       nx,ny,ne,bc_size
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
 
         implicit none
 
@@ -440,17 +457,24 @@
         subroutine process_path(
      $     this,
      $     interface_used,
+     $     p_model,
+     $     t,dt,
      $     interior_x_map,
      $     interior_y_map,
-     $     interior_nodes)
+     $     interior_nodes0,
+     $     interior_nodes1)
         
           implicit none
         
           class(bf_path_icr)              , intent(inout) :: this
           class(bf_interface)             , intent(inout) :: interface_used
+          type(pmodel_eq)                 , intent(in)    :: p_model
+          real(rkind)                     , intent(in)    :: t
+          real(rkind)                     , intent(in)    :: dt
           real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
           real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes0
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes1
 
         
           type(bf_sublayer), pointer :: modified_sublayer
@@ -462,11 +486,18 @@
      $         interface_used,
      $         interior_x_map,
      $         interior_y_map,
-     $         interior_nodes)
+     $         interior_nodes1)
 
           !update the grid points for the increase
-          call interface_used%update_grdpts_after_increase(
-     $         modified_sublayer, this%pts(1:2,1:this%nb_pts))
+          call interface_used%update_bf_grdpts_after_increase(
+     $         modified_sublayer,
+     $         p_model,
+     $         t,dt,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes0,
+     $         interior_nodes1,
+     $         this%pts(1:2,1:this%nb_pts))
 
           !reinitialize the path
           call this%reinitialize()

@@ -184,7 +184,7 @@ $(bf_layer_dir)/bf_interface_class.o:\
 	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(bf_layer_dir)/bf_mainlayer_pointer_class.o\
 	$(ti_dir)/interface_integration_step.o\
-	$(nbf_layer_dir)/nbf_interface_class.o\
+	$(nbf_layer_dir)/nbf_interface_newgrdpt_class.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
@@ -197,7 +197,8 @@ $(bf_layer_dir)/bf_path_icr_class.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
+	$(param_dir)/parameters_kind.o\
+	$(pm_cdir)/pmodel_eq_class.o
 
 $(dbf_layer_dir)/dbf_element_class.o:\
 	$(param_dir)/parameters_kind.o
