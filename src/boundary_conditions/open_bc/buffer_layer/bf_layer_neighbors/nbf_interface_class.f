@@ -23,16 +23,6 @@
         use bf_layer_errors_module, only :
      $       error_mainlayer_id
 
-        use bf_layer_newgrdpt_procedure_module, only :
-     $       get_newgrdpt_procedure,
-     $       get_interior_data_for_newgrdpt,
-     $       are_intermediate_newgrdpt_data_needed,
-     $       get_x_map_for_newgrdpt,
-     $       get_y_map_for_newgrdpt
-      
-        use bf_newgrdpt_class, only :
-     $       bf_newgrdpt
-
         use bf_sublayer_class, only :
      $       bf_sublayer
 
@@ -186,7 +176,7 @@
           procedure, pass :: bf_layer_depends_on_neighbors
           procedure, pass :: does_a_neighbor_remains
 
-          procedure, pass :: compute_newgrdpt
+          procedure, pass :: get_data_for_newgrdpt
 
           procedure, pass :: print_on_screen
 
@@ -1400,196 +1390,63 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the new grid point of the buffer layer
+        !> complete the temporary arrays containing the grid point ID
+        !> and the nodes needed for the computation of new grid points
+        !> using the grid points of the neighboring buffer layers
         !
         !> @date
-        !> 19_11_2014 - initial version - J.L. Desmarais
+        !> 21_11_2014 - initial version - J.L. Desmarais
         !
-        !> @param this
+        !>@param this
         !> nbf_interface object encapsulting links to buffer
         !> layers at the edge between different main layers
         !
-        !> @param bf_sublayer_ptr
-        !> buffer layer whose new grid point is computed
+        !>@param bf_localization
+        !> cardinal coordinate identifying the buffer layer position
         !
-        !> @param i1
-        !> x-index of the new grid point
+        !>@param bf_neighbor_id
+        !> integer identifying the type of neighbor
         !
-        !> @param j1
-        !> y-index of the new grid point
+        !>@param tmp_grdpts_id0
+        !> temporary array with the grid point ID at t=t-dt
         !
-        !> @param interior_nodes0
-        !> array with the grid point data at t=t-dt
+        !>@param tmp_nodes0
+        !> temporary array with the nodes at t=t-dt
         !
-        !> @param interior_nodes1
-        !> array with the grid point data at t=t
+        !>@param tmp_nodes1
+        !> temporary array with the nodes at t=t
+        !
+        !>@param gen_borders
+        !> array with integers identifying the extent of the data
+        !> extracted using general coordinates
         !--------------------------------------------------------------
-        subroutine compute_newgrdpt(
+        subroutine get_data_for_newgrdpt(
      $     this,
-     $     bf_sublayer_ptr,
-     $     p_model,t,dt,
-     $     i1,j1,
-     $     interior_x_map,
-     $     interior_y_map,
-     $     interior_nodes0,
-     $     interior_nodes1)
+     $     bf_localization,
+     $     bf_neighbor_id,
+     $     tmp_grdpts_id0,
+     $     tmp_nodes0,
+     $     tmp_nodes1,
+     $     gen_borders)
 
           implicit none
 
-          class(nbf_interface)            , intent(in)    :: this
-          type(bf_sublayer)               , intent(inout) :: bf_sublayer_ptr
-          type(pmodel_eq)                 , intent(in)    :: p_model
-          real(rkind)                     , intent(in)    :: t
-          real(rkind)                     , intent(in)    :: dt
-          integer(ikind)                  , intent(in)    :: i1
-          integer(ikind)                  , intent(in)    :: j1
-          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
-          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes0
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes1
-
-          integer(ikind), dimension(2)   :: match_table
-          integer(ikind), dimension(2)   :: gen_coords
-          logical                        :: tmp_needed
-          integer(ikind), dimension(2,2) :: gen_borders
-
-          integer    , dimension(2*bc_size+1,2*bc_size+1)    :: tmp_grdpts_id0
-          real(rkind), dimension(2*bc_size+1,2*bc_size+1,ne) :: tmp_nodes0
-          real(rkind), dimension(2*bc_size+1,2*bc_size+1,ne) :: tmp_nodes1
-
-          integer                                :: localization
-          type(bf_newgrdpt)                      :: bf_newgrdpt_used
-          integer                                :: procedure_type
-          integer                                :: gradient_type
-          integer(ikind), dimension(2,2)         :: bf_align
-          real(rkind)   , dimension(2*bc_size+1) :: tmp_x_map
-          real(rkind)   , dimension(2*bc_size+1) :: tmp_y_map
-          real(rkind)   , dimension(ne)          :: new_grdpt
-          integer                                :: k
+          class(nbf_interface)                              , intent(in)    :: this
+          integer                                           , intent(in)    :: bf_localization
+          integer                                           , intent(in)    :: bf_neighbor_id
+          integer    , dimension(2*bc_size+1,2*bc_size+1)   , intent(inout) :: tmp_grdpts_id0
+          real(rkind), dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes0
+          real(rkind), dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes1
+          integer(ikind), dimension(2,2)                    , intent(in)    :: gen_borders
 
 
-          !localization of the buffer layer
-          localization = bf_sublayer_ptr%get_localization()
-
-          !compute the general coordinates of the new grid point
-          match_table   = bf_sublayer_ptr%get_general_to_local_coord_tab()
-          gen_coords(1) = match_table(1) + i1
-          gen_coords(2) = match_table(2) + j1
-          
-          !determine the extent of the data needed
-          gen_borders(1,1) = gen_coords(1)-bc_size
-          gen_borders(1,2) = gen_coords(1)+bc_size
-          gen_borders(2,1) = gen_coords(2)-bc_size
-          gen_borders(2,2) = gen_coords(2)+bc_size
-
-          !determine whether the new grid point is at the interface
-          !between buffer layers or at the interface with the interior
-          !and so requires to create intermediate arrays gathering data
-          !from the interior and the neighboring buffer layers
-          tmp_needed = are_intermediate_newgrdpt_data_needed(
-     $         localization,
+          call this%nbf_links(bf_localization,bf_neighbor_id)%get_data_for_newgrdpt(
+     $         tmp_grdpts_id0,
+     $         tmp_nodes0,
+     $         tmp_nodes1,
      $         gen_borders)
 
-          if(.not.tmp_needed) then
-             tmp_needed = .not.(bf_sublayer_ptr%does_previous_timestep_exist())
-          end if
-
-
-          !if intermediate data are required, data are gathered from
-          !the interior, the buffer layer and its neighbors
-          if(tmp_needed) then
-
-             !gather the data from the interior domain
-             call get_interior_data_for_newgrdpt(
-     $            interior_nodes0,
-     $            interior_nodes1,
-     $            tmp_grdpts_id0,
-     $            tmp_nodes0,
-     $            tmp_nodes1,
-     $            gen_borders)
-
-             !gather the data from the current buffer
-             !layer
-             call bf_sublayer_ptr%get_data_for_newgrdpt(
-     $            tmp_grdpts_id0,
-     $            tmp_nodes0,
-     $            tmp_nodes1,
-     $            gen_borders)
-
-             !gather the data from the potential neighbors
-             !of the buffer layer
-             !- gather data from neighbor of type 1
-             if(gen_borders(1,1).le.0) then
-                
-                call this%nbf_links(localization,1)%get_data_for_newgrdpt(
-     $               tmp_grdpts_id0,
-     $               tmp_nodes0,
-     $               tmp_nodes1,
-     $               gen_borders)
-
-             end if
-
-             !- gather data from neighbor of type 2
-             if(gen_borders(1,2).ge.(nx+1)) then
-
-                call this%nbf_links(localization,2)%get_data_for_newgrdpt(
-     $               tmp_grdpts_id0,
-     $               tmp_nodes0,
-     $               tmp_nodes1,
-     $               gen_borders)
-
-             end if
-
-             
-             !determine the procedure and gradient type
-             call get_newgrdpt_procedure(
-     $            bc_size+1,bc_size+1,
-     $            tmp_grdpts_id0,
-     $            procedure_type,
-     $            gradient_type)
-
-
-             !compute the new grdpt
-             ! - construct the bf_align array to localize
-             !   the buffer layer
-             bf_align(1,1) = gen_coords(1)
-             bf_align(1,2) = gen_coords(1)
-             bf_align(2,1) = gen_coords(2)
-             bf_align(2,2) = gen_coords(2)
-
-             ! - construct the bf_x_map array
-             tmp_x_map = get_x_map_for_newgrdpt(interior_x_map, gen_borders)
-
-             ! - construct the bf_y_map array
-             tmp_y_map = get_y_map_for_newgrdpt(interior_y_map, gen_borders)
-
-             ! - compute the new grdpt
-             new_grdpt = bf_newgrdpt_used%compute_newgrdpt(
-     $            p_model, t, dt,
-     $            bf_align, tmp_x_map, tmp_y_map, tmp_nodes0,
-     $            bf_align, tmp_x_map, tmp_y_map, tmp_nodes1,
-     $            bc_size+1, bc_size+1,
-     $            procedure_type, gradient_type)
-
-
-             !set the new grdpt in the buffer layer
-             do k=1,ne
-                call bf_sublayer_ptr%set_nodes_pt(i1,j1,k,new_grdpt(k))
-             end do
-
-
-          !otherwise, the grid point can be directly computed
-          !from the buffer layer
-          else
-
-              call bf_sublayer_ptr%compute_newgrdpt(
-     $            p_model,
-     $            t,dt,
-     $            i1,j1)
-
-          end if
-
-        end subroutine compute_newgrdpt
+        end subroutine get_data_for_newgrdpt
 
 
         !> @author

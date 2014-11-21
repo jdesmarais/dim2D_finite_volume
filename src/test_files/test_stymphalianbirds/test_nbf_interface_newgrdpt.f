@@ -3,8 +3,8 @@
         use bf_sublayer_class, only :
      $     bf_sublayer
 
-        use nbf_interface_class, only :
-     $     nbf_interface
+        use nbf_interface_newgrdpt_class, only :
+     $     nbf_interface_newgrdpt
 
         use parameters_constant, only :
      $       N,E
@@ -64,7 +64,7 @@
           logical, intent(in) :: detailled
           logical             :: test_validated
 
-          type(nbf_interface)              :: nbf_interface_used
+          type(nbf_interface_newgrdpt)     :: nbf_interface_used
           type(bf_sublayer), pointer       :: bf_sublayer_used
 
           type(pmodel_eq)                  :: p_model
@@ -195,7 +195,7 @@
           real(rkind)  , dimension(nx,ny,ne), intent(inout) :: interior_nodes0
           real(rkind)  , dimension(nx,ny,ne), intent(inout) :: interior_nodes1
           type(bf_sublayer)  , pointer      , intent(inout) :: bf_sublayer_used
-          type(nbf_interface)               , intent(out)   :: nbf_interface_used
+          type(nbf_interface_newgrdpt)      , intent(out)   :: nbf_interface_used
           integer(ikind)                    , intent(out)   :: i1
           integer(ikind)                    , intent(out)   :: j1
           real(rkind)        , dimension(ne), intent(out)   :: newgrdpt_data
@@ -263,7 +263,7 @@
           real(rkind)                       , intent(in)    :: dx
           real(rkind)                       , intent(in)    :: dy
           type(bf_sublayer)  , pointer      , intent(inout) :: bf_sublayer_used
-          type(nbf_interface)               , intent(out)   :: nbf_interface_used
+          type(nbf_interface_newgrdpt)      , intent(out)   :: nbf_interface_used
           integer(ikind)                    , intent(out)   :: i1
           integer(ikind)                    , intent(out)   :: j1
           real(rkind)        , dimension(ne), intent(out)   :: newgrdpt_data
@@ -402,7 +402,7 @@
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: interior_nodes0
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: interior_nodes1
           type(bf_sublayer), pointer        , intent(inout) :: bf_sublayer_used
-          type(nbf_interface)               , intent(out)   :: nbf_interface_used
+          type(nbf_interface_newgrdpt)      , intent(out)   :: nbf_interface_used
           integer(ikind)                    , intent(out)   :: i1
           integer(ikind)                    , intent(out)   :: j1
           real(rkind)        , dimension(ne), intent(out)   :: newgrdpt_data
@@ -578,7 +578,7 @@
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: interior_nodes0
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: interior_nodes1
           type(bf_sublayer), pointer        , intent(inout) :: bf_sublayer_used
-          type(nbf_interface)               , intent(out)   :: nbf_interface_used
+          type(nbf_interface_newgrdpt)      , intent(out)   :: nbf_interface_used
           integer(ikind)                    , intent(out)   :: i1
           integer(ikind)                    , intent(out)   :: j1
           real(rkind)        , dimension(ne), intent(out)   :: newgrdpt_data
@@ -847,7 +847,7 @@
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: interior_nodes0
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: interior_nodes1
           type(bf_sublayer)  , pointer      , intent(inout) :: bf_sublayer_used
-          type(nbf_interface)               , intent(out)   :: nbf_interface_used
+          type(nbf_interface_newgrdpt)      , intent(out)   :: nbf_interface_used
           integer(ikind)                    , intent(out)   :: i1
           integer(ikind)                    , intent(out)   :: j1
           real(rkind)        , dimension(ne), intent(out)   :: newgrdpt_data
