@@ -65,8 +65,8 @@
           procedure, nopass :: compute_n2_lefteigenvector   => compute_eigenvector_default
           procedure, nopass :: compute_n2_righteigenvector  => compute_eigenvector_default
 
-          procedure, nopass :: compute_cons_lodi_matrix_x   => compute_eigenvector_default
-          procedure, nopass :: compute_cons_lodi_matrix_y   => compute_eigenvector_default
+          procedure, nopass :: compute_x_consLodiM  => compute_eigenvector_default
+          procedure, nopass :: compute_y_consLodiM  => compute_eigenvector_default
 
           procedure, nopass :: compute_x_transM   => compute_eigenvector_default
           procedure, nopass :: compute_y_transM   => compute_eigenvector_default

@@ -16,8 +16,8 @@
 
          use ns2d_prim_module, only :
      $        speed_of_sound,
-     $        compute_cons_lodi_matrix_x,
-     $        compute_cons_lodi_matrix_y
+     $        cons_lodi_matrix_x,
+     $        cons_lodi_matrix_y
 
          use ns2d_fluxes_module, only :
      $        flux_x_mass_density,
@@ -394,7 +394,7 @@
      $          epsilon,
      $          edge_inviscid_flux_x,
      $          edge_viscid_flux_x,
-     $          compute_cons_lodi_matrix_x,
+     $          cons_lodi_matrix_x,
      $          compute_dev_from_flux_x,
      $          transverse_lodi,
      $          viscous_lodi)
@@ -467,7 +467,7 @@
      $          epsilon,
      $          edge_inviscid_flux_y,
      $          edge_viscid_flux_y,
-     $          compute_cons_lodi_matrix_y,
+     $          cons_lodi_matrix_y,
      $          compute_dev_from_flux_y,
      $          transverse_lodi,
      $          viscous_lodi)

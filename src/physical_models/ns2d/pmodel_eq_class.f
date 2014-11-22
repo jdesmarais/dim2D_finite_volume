@@ -220,8 +220,8 @@ c$$$     $                                           compute_n2_righteigenvector
           procedure, nopass :: compute_y_lefteigenvector
           procedure, nopass :: compute_y_righteigenvector
 
-          procedure, nopass :: compute_cons_lodi_matrix_x
-          procedure, nopass :: compute_cons_lodi_matrix_y
+          procedure, nopass :: compute_x_consLodiM
+          procedure, nopass :: compute_y_consLodiM
 
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
@@ -1854,7 +1854,7 @@ c$$$          y_s = y_map(1)
         !>@return eigenvect
         !> conservative LODI matrix along the x-direction
         !--------------------------------------------------------------
-        function compute_cons_lodi_matrix_x(nodes) result(eigenvect)
+        function compute_x_consLodiM(nodes) result(eigenvect)
 
           implicit none
 
@@ -1864,7 +1864,7 @@ c$$$          y_s = y_map(1)
           !DEC$ FORCEINLINE RECURSIVE
           eigenvect = cons_lodi_matrix_x(nodes)
 
-        end function compute_cons_lodi_matrix_x
+        end function compute_x_consLodiM
 
 
         !> @author
@@ -1883,7 +1883,7 @@ c$$$          y_s = y_map(1)
         !>@return eigenvect
         !> conservative LODI matrix along the y-direction
         !--------------------------------------------------------------
-        function compute_cons_lodi_matrix_y(nodes) result(eigenvect)
+        function compute_y_consLodiM(nodes) result(eigenvect)
 
           implicit none
 
@@ -1893,7 +1893,7 @@ c$$$          y_s = y_map(1)
           !DEC$ FORCEINLINE RECURSIVE
           eigenvect = cons_lodi_matrix_y(nodes)
 
-        end function compute_cons_lodi_matrix_y
+        end function compute_y_consLodiM
 
 
         !> @author

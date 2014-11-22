@@ -1033,7 +1033,7 @@
                 i_nodes = i_offset+i-1
                 
                 !compute the conservative lodi matrix
-                cons_lodi_matrix = p_model%compute_cons_lodi_matrix_x(
+                cons_lodi_matrix = p_model%compute_x_consLodiM(
      $               nodes(i_nodes,j_nodes,:))
 
                 !compute the transverse LODI from the inviscid flux
@@ -1103,7 +1103,7 @@
                 i_nodes = i_offset+i-1
 
                 !compute the conservative lodi matrix
-                cons_lodi_matrix = p_model%compute_cons_lodi_matrix_y(
+                cons_lodi_matrix = p_model%compute_y_consLodiM(
      $               nodes(i_nodes,j_nodes,:))
 
 
