@@ -27,7 +27,9 @@
      $       scalar,
      $       vector_x,
      $       vector_y,
-     $       oscillatory_forcing
+     $       no_wave_forcing,
+     $       oscillatory_forcing,
+     $       intermittent_oscillatory_forcing
 
         use parameters_input, only :
      $       nx,ny,ne,
@@ -65,7 +67,8 @@
      $       amplitude_force,
      $       period_force,
      $       x_center_force,
-     $       y_center_force
+     $       y_center_force,
+     $       period_intermittent
 
         use wave2d_prim_module, only :
      $       position,
@@ -913,25 +916,52 @@ c$$$          end if
 
           real(rkind) :: omega
           real(rkind) :: node_s
+          real(rkind) :: t2
 
-          if(wave_forcing.eq.oscillatory_forcing) then
 
-             if(k.eq.1) then
-                omega       = 2.0d0*ACOS(-1.0d0)/period_force
-                body_forces = peak(
-     $               amplitude_force*SIN(omega*t),
-     $               period,
-     $               x-x_center_force,
-     $               y-y_center_force)
-             else
-                body_forces = 0
-             end if
+          select case(wave_forcing)
 
-          else
-             
-             body_forces = 0
+            case(no_wave_forcing)
 
-          end if
+               body_forces = 0
+
+            case(oscillatory_forcing)
+
+               if(k.eq.1) then
+                  omega       = 2.0d0*ACOS(-1.0d0)/period_force
+                  body_forces = peak(
+     $                 amplitude_force*SIN(omega*t),
+     $                 period,
+     $                 x-x_center_force,
+     $                 y-y_center_force)
+               else
+                  body_forces = 0
+               end if
+
+            case(intermittent_oscillatory_forcing)
+
+               t2 = t - nint(t/(period_force+period_intermittent))*
+     $              (period_force+period_intermittent)
+
+               if((t2.lt.period_force).and.(k.eq.1)) then
+                  
+                  omega = 2.0d0*ACOS(-1.0d0)/period_force
+                  body_forces = peak(
+     $                 amplitude_force*SIN(omega*t),
+     $                 period,
+     $                 x-x_center_force,
+     $                 y-y_center_force)
+               else
+                  body_forces = 0
+               end if
+
+            case default
+               print '(''pmodel_eq_class'')'
+               print '(''apply_ic'')'
+               print '(''wave_forcing not recognized: '', I2)', wave_forcing
+               stop ''
+
+          end select
 
           node_s = nodes(1)
 

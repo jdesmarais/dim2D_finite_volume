@@ -20,7 +20,7 @@
       !> S. Osher
       !
       !> @date
-      !> 13_08_2013 - initial version                   - J.L. Desmarais
+      !> 13_08_2013 - initial version - J.L. Desmarais
       !
       !> \f{eqnarray*}{
       !> u_1     &=& u_n + \Delta t*\frac{d u_n}{dt} \\\
@@ -183,13 +183,19 @@
           ! u_n is saved in nodes_tmp
           ! u_1 is saved in field_used%nodes
           !------------------------------------------
+          !because of the potential adaptation of the
+          !computational domain, the nodes u_n must be
+          !saved entirely from the u_1 and so full=.true.
+          !specifies to save entirely u_n
+          !------------------------------------------
           !DEC$ FORCEINLINE RECURSIVE
           time_dev = field_used%compute_time_dev_ext()
 
           !DEC$ FORCEINLINE RECURSIVE
           call field_used%compute_integration_step_ext(
      $         dt, nodes_tmp, time_dev,
-     $         compute_1st_step, compute_1st_step_nopt)
+     $         compute_1st_step, compute_1st_step_nopt,
+     $         full=.true.)
 
           !apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
@@ -233,8 +239,8 @@
           !DEC$ FORCEINLINE RECURSIVE
           call field_used%apply_bc_on_nodes()
 
-c$$$          !adapt the computational domain
-c$$$          call field_used%adapt_domain(nodes_tmp)
+          !adapt the computational domain
+          call field_used%adapt_domain(dt,nodes_tmp)
 
         end subroutine integrate_ext
       

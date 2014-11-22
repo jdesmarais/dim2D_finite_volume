@@ -28,7 +28,7 @@ def parse_argv(argv):
     
     #< store the options and the arguments in opts, args
     try:
-        opts, args = getopt.getopt(argv,"hi:c", ["help","input="])
+        opts, args = getopt.getopt(argv,"hi:cb", ["help","input=","buffer"])
     except getopt.GetoptError:
         display_help()
         sys.exit(2)
@@ -38,6 +38,8 @@ def parse_argv(argv):
         sys.exit(2)
 
     compileCode=False
+
+    compileCodeBuffer=False
 
     for opt, arg in opts:
 
@@ -52,7 +54,10 @@ def parse_argv(argv):
         elif opt in ("-c"):
             compileCode=True
 
-    return [inputFile,compileCode]
+        elif opt in ("-b", "--buffer"):
+            compileCodeBuffer=True
+
+    return [inputFile,compileCode,compileCodeBuffer]
 
 def read_commit():
     '''
@@ -84,7 +89,7 @@ def set_commit(file_path):
     cmd+=" -q"
     subprocess.call(cmd, shell=True)
 
-    print 'update commit in '+file_path+' to '+commit_ID
+    print 'update '+file_path+' for commit '+commit_ID
     
 
 def read_inputs(filename, inputs_needed):
@@ -195,7 +200,8 @@ def compute_code_inputs(inputFileName):
                     'earth_gravity_choice']
 
     wave_forcing_code = ['no_wave_forcing',
-                         'oscillatory_forcing']
+                         'oscillatory_forcing',
+                         'intermittent_oscillatory_forcing']
 
 
     #< read the input file
@@ -381,22 +387,39 @@ def update_makefile(file_path,bc_choice):
     print 'update ', file_path
 
 
-def compile_code(inputs):
+def compile_code(inputs,compileCodeBuffer):
     '''
     @description
     compile the code using the previous configuration
     '''
 
+    #name of the executable file obtained
     fname='sim_dim2d'
     fname+='_'+str(inputs['npx'])+'x'+str(inputs['npy'])
 
+    #commands for compilation
     cmd_serial  ='cd .. && make cleanall && make sim_dim2d && make clean'
+
+    cmd_serial_bf = 'cd .. && make cleanall && make sim_dim2d_bf && make clean'
+
     cmd_parallel='cd .. && make cleanall && make sim_dim2d_par && make clean'
     cmd_parallel+=' && mv sim_dim2d_par '+fname
 
+    
+    #serial compilation
     if(inputs['npx']*inputs['npy']==1):
-        cmd      = cmd_serial
-        name_exe = 'sim_dim2d'
+
+        #with domain adaptation: buffer layers
+        if(compileCodeBuffer):
+            cmd      = cmd_serial_bf
+            name_exe = 'sim_dim2d_bf'
+
+        #without domain adaptation
+        else:
+            cmd      = cmd_serial
+            name_exe = 'sim_dim2d'
+
+    #parallel compilation
     else:
         cmd      = cmd_parallel
         name_exe = fname
@@ -421,7 +444,7 @@ if __name__ == "__main__":
     param_cst_path       = '../../parameters/parameters_constant.f'
 
     #< parse the program arguments
-    [inputFileName,compileCode]=parse_argv(sys.argv[1:])
+    [inputFileName,compileCode,compileCodeBuffer]=parse_argv(sys.argv[1:])
 
 
     #< compute the code inputs
@@ -464,5 +487,5 @@ if __name__ == "__main__":
     
     #< compile the code
     if(compileCode):
-        compile_code(inputs)
+        compile_code(inputs,compileCodeBuffer)
         

@@ -1101,6 +1101,10 @@ sim_dim2d.o:		$(field_dir)/field_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
+sim_dim2d_bf.o:		$(field_dir)/field_extended_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
 sim_dim2d_par.o:	$(field_dir)/field_par_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(param_dir)/parameters_input.o\
@@ -1112,6 +1116,12 @@ sim_dim2d:		$(sim_dep)\
 			surrogate_class.o\
 			field_abstract_class.o\
 			field_class.o
+
+sim_dim2d_bf:		$(sim_dep)\
+			$(bf_interface_dcr_dep)\
+			surrogate_class.o\
+			field_abstract_class.o\
+			field_extended_class.o
 
 sim_dim2d_par:		$(sim_par_dep)\
 			surrogate_class.o\

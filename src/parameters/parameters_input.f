@@ -41,8 +41,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 30
-        integer(ikind), parameter :: nty = 30
+        integer(ikind), parameter :: ntx = 54
+        integer(ikind), parameter :: nty = 54
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -82,7 +82,7 @@
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
-        integer, parameter :: wave_forcing = no_wave_forcing
+        integer, parameter :: wave_forcing = oscillatory_forcing
 
         !<boundary conditions choice
         integer, parameter :: bc_choice = hedstrom_xy_choice

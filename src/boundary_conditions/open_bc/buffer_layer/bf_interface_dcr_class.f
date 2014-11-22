@@ -14,13 +14,26 @@
       !-----------------------------------------------------------------
       module bf_interface_dcr_class
 
-        use bf_interface_icr_class, only : bf_interface_icr
-        use bf_mainlayer_class    , only : bf_mainlayer
-        use bf_sublayer_class     , only : bf_sublayer
-        use parameters_input      , only : nx,ny,ne
-        use parameters_kind       , only : rkind
-        use pmodel_eq_class       , only : pmodel_eq
-        use sbf_list_class        , only : sbf_list
+        use bf_interface_icr_class, only :
+     $     bf_interface_icr
+
+        use bf_mainlayer_class, only :
+     $       bf_mainlayer
+
+        use bf_sublayer_class, only :
+     $       bf_sublayer
+
+        use parameters_input, only :
+     $       nx,ny,ne
+
+        use parameters_kind, only :
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use sbf_list_class, only :
+     $       sbf_list
 
         implicit none
 
@@ -40,7 +53,7 @@
 
           contains
 
-          !procedure, pass :: adapt_domain
+          procedure, pass :: adapt_domain
           procedure, pass :: update_bf_layers_with_detector_dcr
 
         end type bf_interface_dcr
@@ -48,60 +61,68 @@
 
         contains
 
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> adapt the computational domain: remove buffer layers that
-c$$$        !> can be removed, increase buffer layers that need to be
-c$$$        !> increased, all according to the detectors and adapt the
-c$$$        !> position of the detectors
-c$$$        !
-c$$$        !> @date
-c$$$        !> 14_10_2014 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param this
-c$$$        !> bf_interface_dcr object encapsulating subroutines checking
-c$$$        !> if buffer layers can be removed
-c$$$        !
-c$$$        !>@param interior_nodes_1
-c$$$        !> table encapsulating the data of the grid points of the
-c$$$        !> interior domain at the current time step (t)
-c$$$        !
-c$$$        !>@param interior_nodes_0
-c$$$        !> table encapsulating the data of the grid points of the
-c$$$        !> interior domain at the previous time step (t-dt)
-c$$$        
-c$$$        !--------------------------------------------------------------
-c$$$        subroutine adapt_domain(
-c$$$     $       this,
-c$$$     $       interior_nodes_1,
-c$$$     $       interior_nodes_0,
-c$$$     $       dt)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_interface_dcr)         , intent(inout) :: this
-c$$$          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes_1
-c$$$          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes_0
-c$$$          real(rkind)                     , intent(in)    :: dt
-c$$$
-c$$$          
-c$$$          !remove the buffer layers that can be removed
-c$$$          call this%update_bf_layers_with_detector_dcr(interior_nodes_1)
-c$$$
-c$$$
-c$$$          !increase the buffer layers that need to be increased
-c$$$          !according to the increasing detectors
-c$$$          call this%update_bf_layers_with_idetectors(
-c$$$     $         interior_nodes_1,
-c$$$     $         dx,dy,p_model)
-c$$$
-c$$$          print '(''bf_interface_dcr_class'')'
-c$$$          print '(''adapt_domain'')'
-c$$$          stop 'not implemented'
-c$$$
-c$$$        end subroutine adapt_domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> adapt the computational domain: remove buffer layers that
+        !> can be removed, increase buffer layers that need to be
+        !> increased, all according to the detectors and adapt the
+        !> position of the detectors
+        !
+        !> @date
+        !> 22_11_2014 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_interface_dcr object encapsulating subroutines checking
+        !> if buffer layers can be removed
+        !
+        !> @param interior_nodes_0
+        !> table encapsulating the data of the grid points of the
+        !> interior domain at the previous time step (t-dt)
+        !
+        !> @param interior_nodes_1
+        !> table encapsulating the data of the grid points of the
+        !> interior domain at the current time step (t)        
+        !--------------------------------------------------------------
+        subroutine adapt_domain(
+     $       this,
+     $       p_model,
+     $       t,dt,
+     $       interior_x_map,
+     $       interior_y_map,
+     $       interior_nodes0,
+     $       interior_nodes1)
+
+          implicit none
+
+          class(bf_interface_dcr)         , intent(inout) :: this
+          type(pmodel_eq)                 , intent(in)    :: p_model
+          real(rkind)                     , intent(in)    :: t
+          real(rkind)                     , intent(in)    :: dt
+          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes0
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes1
+
+          
+          !remove the buffer layers that can be removed
+          call this%update_bf_layers_with_detector_dcr(
+     $         interior_nodes1,
+     $         p_model)
+
+
+          !increase the buffer layers that need to be increased
+          !according to the increasing detectors
+          call this%update_bf_layers_with_idetectors(
+     $         p_model,
+     $         t,dt,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes0,
+     $         interior_nodes1)
+
+        end subroutine adapt_domain
 
 
         !> @author
@@ -114,13 +135,16 @@ c$$$        end subroutine adapt_domain
         !> @date
         !> 27_06_2014 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> bf_interface_dcr object encapsulating subroutines checking
         !> if buffer layers can be removed
         !
-        !>@param interior_nodes
+        !> @param interior_nodes
         !> table encapsulating the data of the grid points of the
         !> interior domain
+        !
+        !> @param p_model
+        !> physical model
         !--------------------------------------------------------------
         subroutine update_bf_layers_with_detector_dcr(
      $       this, interior_nodes, p_model)

@@ -84,7 +84,7 @@
           procedure, pass :: integrate
           procedure, pass :: apply_bc_on_nodes
           procedure, pass :: write_data
-          !procedure, pass :: adapt_domain
+          procedure, pass :: adapt_domain
 
         end type field_extended
 
@@ -211,7 +211,7 @@
           class(field_extended), intent(inout) :: this
           real(rkind), dimension(nx,ny,ne)     :: time_dev
 
-
+  
           !compute the time derivatives of the interior domain
           !(the boundary conditions on the time derivatives are
           ! applied on the interior domain using the interior
@@ -264,7 +264,8 @@
         !--------------------------------------------------------------
         subroutine compute_integration_step_ext(
      $     this, dt, nodes_tmp, time_dev,
-     $     integration_step, integration_step_nopt)
+     $     integration_step, integration_step_nopt,
+     $     full)
 
           implicit none
 
@@ -272,13 +273,21 @@
           real(rkind)                     , intent(in)    :: dt
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
           real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
-          procedure(timeInt_step)      :: integration_step
-          procedure(timeInt_step_nopt) :: integration_step_nopt
+          procedure(timeInt_step)                         :: integration_step
+          procedure(timeInt_step_nopt)                    :: integration_step_nopt
+          logical    , optional           , intent(in)    :: full
 
+          logical :: all_domain
+
+          if(present(full)) then
+             all_domain = full
+          else
+             all_domain = .false.
+          end if
           
           !compute the integration step for the interior domain
           call this%field_abstract%compute_integration_step(
-     $         dt, nodes_tmp, time_dev, integration_step)
+     $         dt, nodes_tmp, time_dev, integration_step, full)
                     
           !compute the integration step for the domain extension
           call this%domain_extension%compute_integration_step(
@@ -368,7 +377,7 @@
         !> @date
         !> 03_11_2014 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> object encapsulating the main variables
         !--------------------------------------------------------------
         subroutine write_data(this)
@@ -409,37 +418,46 @@
         end subroutine write_data
 
 
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> adapt the computational domain
-c$$$        !
-c$$$        !> @date
-c$$$        !> 14_10_2014 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param this
-c$$$        !> object encapsulating the main variables at t
-c$$$        !
-c$$$        !>@param nodes_tmp
-c$$$        !> nodes at the previous time step (t-dt)
-c$$$        !
-c$$$        !>@param dt
-c$$$        !> time step
-c$$$        !--------------------------------------------------------------
-c$$$        subroutine adapt_domain(this, nodes_tmp, dt)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(field_extended)           , intent(inout) :: this
-c$$$          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
-c$$$          real(rkind)                     , intent(in)    :: dt
-c$$$
-c$$$
-c$$$          !allocate memory space for the temporary tables
-c$$$          !used in the time integration of the domain extension
-c$$$          call this%domain_extension%adapt_domain(this%nodes,nodes_tmp,dt)
-c$$$
-c$$$        end subroutine adapt_domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> adapt the computational domain
+        !
+        !> @date
+        !> 22_11_2014 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> object encapsulating the main variables at t
+        !
+        !> @param t
+        !> time
+        !
+        !> @param dt
+        !> time step
+        !
+        !> @param nodes0
+        !> nodes at the previous time step (t-dt)
+        !--------------------------------------------------------------
+        subroutine adapt_domain(this, dt, nodes0)
+
+          implicit none
+
+          class(field_extended)           , intent(inout) :: this
+          real(rkind)                     , intent(in)    :: dt
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes0
+
+
+          !allocate memory space for the temporary tables
+          !used in the time integration of the domain extension
+          call this%domain_extension%adapt_domain(
+     $         this%pmodel_eq_used,
+     $         this%time,dt,
+     $         this%x_map,
+     $         this%y_map,
+     $         nodes0,
+     $         this%nodes)
+
+        end subroutine adapt_domain
 
       end module field_extended_class

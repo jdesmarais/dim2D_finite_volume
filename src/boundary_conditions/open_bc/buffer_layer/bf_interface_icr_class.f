@@ -277,20 +277,33 @@
         !> @date
         !> 27_06_2014 - initial version - J.L. Desmarais
         !
-        !>@param this
+        !> @param this
         !> bf_interface_icr object encapsulating the position of
         !> the increasing detectors and the subroutine controlling
         !> the extension of the computational domain
         !
-        !>@param interior_nodes
+        !> @param p_model
+        !> physical model
+        !
+        !> @param t
+        !> time
+        !
+        !> @param dt
+        !> time step
+        !
+        !> @param interior_x_map
+        !> table encapsulating the coordinates along the x-axis
+        !
+        !> @param interior_y_map
+        !> table encapsulating the coordinates along the y-axis
+        !
+        !> @param interior_nodes_0
         !> table encapsulating the data of the grid points of the
-        !> interior domain
+        !> interior domain at the previous time step (t-dt)
         !
-        !>@param dx
-        !> grid size along the x-direction
-        !
-        !>@param dy
-        !> grid size along the y-direction
+        !> @param interior_nodes_1
+        !> table encapsulating the data of the grid points of the
+        !> interior domain at the current time step (t)
         !--------------------------------------------------------------
         subroutine update_bf_layers_with_idetectors(
      $     this,

@@ -1,3 +1,4 @@
+
       !> @file
       !> class encapsulating the main tables for the variables and the
       !> coordinates
@@ -173,7 +174,7 @@
           procedure, pass          :: compute_integration_step_ext
           procedure, pass          :: write_data
 
-          !procedure, pass          :: adapt_domain !interface for domain extension
+          procedure, pass          :: adapt_domain !interface for domain extension
 
           procedure, pass          :: set_dx    !only for tests
           procedure, pass          :: set_dy    !only for tests
@@ -487,7 +488,12 @@
         !> procedure for the time integration of the interior domain
         !--------------------------------------------------------------
         subroutine compute_integration_step(
-     $     this, dt, nodes_tmp, time_dev, integration_step)
+     $     this,
+     $     dt,
+     $     nodes_tmp,
+     $     time_dev,
+     $     integration_step,
+     $     full)
 
           implicit none
 
@@ -495,40 +501,58 @@
           real(rkind)                     , intent(in)    :: dt
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
           real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
-          procedure(timeInt_step) :: integration_step
+          procedure(timeInt_step)                         :: integration_step
+          logical    , optional           , intent(in)    :: full
+
+          logical :: all_domain
 
 
           integer(ikind), dimension(2) :: x_borders
           integer(ikind), dimension(2) :: y_borders
 
           
-          select case(bc_choice)
+          if(present(full)) then
+             all_domain = full
+          else
+             all_domain = .false.
+          end if
 
-            case(reflection_xy_choice, periodic_xy_choice,
-     $           wall_xy_choice, wall_x_reflection_y_choice)
-               x_borders=[bc_size+1,nx-bc_size]
-               y_borders=[bc_size+1,ny-bc_size]
+          if(.not.all_domain) then
 
-            case(hedstrom_xy_choice,hedstrom_xy_corners_choice,
-     $           poinsot_xy_choice,yoolodato_xy_choice)
-               x_borders=[1,nx]
-               y_borders=[1,ny]
+             select case(bc_choice)
 
-            case(hedstrom_x_reflection_y_choice)
-               x_borders=[1,nx]
-               y_borders=[bc_size+1,ny-bc_size]
+               case(reflection_xy_choice, periodic_xy_choice,
+     $              wall_xy_choice, wall_x_reflection_y_choice)
+                  x_borders=[bc_size+1,nx-bc_size]
+                  y_borders=[bc_size+1,ny-bc_size]
+               
+               case(hedstrom_xy_choice,hedstrom_xy_corners_choice,
+     $              poinsot_xy_choice,yoolodato_xy_choice)
+                  x_borders=[1,nx]
+                  y_borders=[1,ny]
+               
+               case(hedstrom_x_reflection_y_choice)
+                  x_borders=[1,nx]
+                  y_borders=[bc_size+1,ny-bc_size]
+               
+               case default
+                  print '(''field_abstract: compute_integration_step'')'
+                  stop 'bc not implemented'
+               
+             end select
+             
+          else
 
-            case default
-               print '(''field_abstract: compute_integration_step'')'
-               stop 'bc not implemented'
+             x_borders = [1,nx]
+             y_borders = [1,ny]
 
-          end select
+          end if
 
           call integration_step(
      $         this%nodes, dt, nodes_tmp, time_dev,
      $         x_borders=x_borders,
      $         y_borders=y_borders)
-
+          
         end subroutine compute_integration_step
 
 
@@ -562,8 +586,12 @@
         !> procedure for the time integration of the domain extension
         !--------------------------------------------------------------
         subroutine compute_integration_step_ext(
-     $     this, dt, nodes_tmp, time_dev,
-     $     integration_step, integration_step_nopt)
+     $     this, dt,
+     $     nodes_tmp,
+     $     time_dev,
+     $     integration_step,
+     $     integration_step_nopt,
+     $     full)
 
           implicit none
 
@@ -571,11 +599,13 @@
           real(rkind)                     , intent(in)    :: dt
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
           real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
-          procedure(timeInt_step)      :: integration_step
-          procedure(timeInt_step_nopt) :: integration_step_nopt
+          procedure(timeInt_step)                         :: integration_step
+          procedure(timeInt_step_nopt)                    :: integration_step_nopt
+          logical    , optional           , intent(in)    :: full
 
           
           integer, dimension(nx,ny) :: grdpts_id
+          logical :: full_s
 
           
           print '(''********************************'')'
@@ -593,6 +623,10 @@
 
           call integration_step_nopt(
      $         this%nodes, dt, nodes_tmp, time_dev, grdpts_id)
+
+          if(present(full)) then
+             full_s = full
+          end if
 
         end subroutine compute_integration_step_ext
 
@@ -629,45 +663,45 @@
         end subroutine write_data
 
 
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> adapt the computational domain
-c$$$        !
-c$$$        !> @date
-c$$$        !> 14_10_2014 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param this
-c$$$        !> object encapsulating the main variables at t
-c$$$        !
-c$$$        !>@param nodes_tmp
-c$$$        !> nodes at the previous time step (t-dt)
-c$$$        !
-c$$$        !>@param dt
-c$$$        !> time step
-c$$$        !--------------------------------------------------------------
-c$$$        subroutine adapt_domain(this,nodes_tmp,dt)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(field_abstract)           , intent(inout) :: this
-c$$$          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
-c$$$          real(rkind)                     , intent(in)    :: dt
-c$$$
-c$$$          real(rkind) :: node_s
-c$$$          real(rkind) :: dx_s
-c$$$          real(rkind) :: dt_s
-c$$$
-c$$$          dx_s   = this%dx
-c$$$          dt_s   = dt
-c$$$          node_s = nodes_tmp(1,1,1)
-c$$$
-c$$$          print '(''field_abstract_class'')'
-c$$$          print '(''adapt_domain'')'
-c$$$          stop 'not implemented'
-c$$$
-c$$$        end subroutine adapt_domain
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> adapt the computational domain
+        !
+        !> @date
+        !> 14_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables at t
+        !
+        !>@param nodes_tmp
+        !> nodes at the previous time step (t-dt)
+        !
+        !>@param dt
+        !> time step
+        !--------------------------------------------------------------
+        subroutine adapt_domain(this,dt,nodes0)
+
+          implicit none
+
+          class(field_abstract)           , intent(inout) :: this
+          real(rkind)                     , intent(in)    :: dt
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes0
+
+          real(rkind) :: node_s
+          real(rkind) :: dx_s
+          real(rkind) :: dt_s
+
+          print '(''field_abstract_class'')'
+          print '(''adapt_domain'')'
+          stop 'not implemented'
+
+          dx_s   = this%dx
+          dt_s   = dt
+          node_s = nodes0(1,1,1)
+
+        end subroutine adapt_domain
 
 
         !> @author
