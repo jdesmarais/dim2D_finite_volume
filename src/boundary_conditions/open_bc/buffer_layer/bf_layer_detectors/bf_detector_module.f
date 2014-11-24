@@ -12,17 +12,19 @@
       !> detectors to have a continuous path of increasing detectors
       !
       !> @date
-      ! 27_06_2014 - documentation update - J.L. Desmarais
+      ! 24_11_2014 - documentation update - J.L. Desmarais
       !----------------------------------------------------------------
       module bf_detector_module
 
-        use parameters_kind    , only : ikind, rkind
+        use parameters_kind, only :
+     $        ikind,
+     $        rkind
 
         implicit none
 
         private
-        public :: get_inter_dct_param,
-     $            get_inter_dct_coords
+        public :: get_inter_detector_param,
+     $            get_inter_detector_coords
 
         contains
 
@@ -56,41 +58,66 @@
         !> number of detectors to be added between the two to ensure a
         !> continuous path
         !--------------------------------------------------------------
-        subroutine get_inter_dct_param(
-     $     prev_coords, next_coords,
-     $     x_change, y_change, inter_nb)
+        subroutine get_inter_detector_param(
+     $     prev_icoord,
+     $     prev_rcoord,
+     $     next_icoord,
+     $     next_rcoord,
+     $     icoord_icr,
+     $     rcoord_icr,
+     $     inter_nb)
 
           implicit none
 
-          integer(ikind), dimension(2), intent(in)  :: prev_coords
-          integer(ikind), dimension(2), intent(in)  :: next_coords
-          real(rkind)                 , intent(out) :: x_change
-          real(rkind)                 , intent(out) :: y_change
+          integer(ikind), dimension(2), intent(in)  :: prev_icoord
+          real(rkind)   , dimension(2), intent(in)  :: prev_rcoord
+          integer(ikind), dimension(2), intent(in)  :: next_icoord
+          real(rkind)   , dimension(2), intent(in)  :: next_rcoord
+          real(rkind)   , dimension(2), intent(out) :: icoord_icr
+          real(rkind)   , dimension(2), intent(out) :: rcoord_icr
           integer                     , intent(out) :: inter_nb
 
-          integer :: i_change, j_change
+       
+          integer                   :: i_change
+          integer                   :: j_change
+          integer                   :: i_inter_nb
+          integer                   :: j_inter_nb
 
-          i_change = next_coords(1) - prev_coords(1)
-          j_change = next_coords(2) - prev_coords(2)
-          inter_nb = max(0, abs(i_change)-1, abs(j_change)-1)
+
+          i_change = next_icoord(1) - prev_icoord(1)
+          j_change = next_icoord(2) - prev_icoord(2)
+
+          i_inter_nb = abs(i_change)-1
+          j_inter_nb = abs(j_change)-1
+          inter_nb   = max(0,i_inter_nb,j_inter_nb)
+
+          icoord_icr(1) = 0
+          icoord_icr(2) = 0
+          rcoord_icr(1) = 0.0
+          rcoord_icr(2) = 0.0
 
           if(inter_nb.gt.0) then
+
              if(i_change.ne.0) then
-                x_change = (real(i_change)-sign(1,i_change))/real(inter_nb)
+                icoord_icr(1) = (real(i_change)-sign(1,i_change))/real(inter_nb)
+                !icoord_icr(1) = real(i_change)/real(i_inter_nb+1)
              else
-                x_change = 0
+                icoord_icr(1) = 0
              end if
+
              if(j_change.ne.0) then
-                y_change = (real(j_change)-sign(1,j_change))/real(inter_nb)
+                icoord_icr(2) = (real(j_change)-sign(1,j_change))/real(inter_nb)
+                !icoord_icr(2) = real(j_change)/real(j_inter_nb+1)
              else
-                y_change = 0
+                icoord_icr(2) = 0
              end if
-          else
-             x_change = 1
-             y_change = 1
+
+             rcoord_icr(1) = (next_rcoord(1)-prev_rcoord(1))/(inter_nb+1)
+             rcoord_icr(2) = (next_rcoord(2)-prev_rcoord(2))/(inter_nb+1)
+
           end if
 
-        end subroutine get_inter_dct_param
+        end subroutine get_inter_detector_param
 
 
         !> @author
@@ -104,7 +131,7 @@
         !> be added
         !
         !> @date
-        !> 27_06_2014 - initial version - J.L. Desmarais
+        !> 24_11_2014 - initial version - J.L. Desmarais
         !
         !>@param prev_coords
         !> general coordinates of the last detector added to the list
@@ -124,28 +151,38 @@
         !> general coordinates identifying the detector to be added
         !> to the list
         !--------------------------------------------------------------
-        function get_inter_dct_coords(
-     $     prev_coords,
-     $     x_change, y_change, k)
-     $     result(inter_coords)
+        subroutine get_inter_detector_coords(
+     $     prev_icoord,
+     $     prev_rcoord,
+     $     icoord_icr,
+     $     rcoord_icr,
+     $     k,
+     $     icoord_inter,
+     $     rcoord_inter)
 
           implicit none
 
-          integer(ikind), dimension(2), intent(in) :: prev_coords
-          real(rkind)                 , intent(in) :: x_change
-          real(rkind)                 , intent(in) :: y_change
-          integer                     , intent(in) :: k
-          integer(ikind), dimension(2)             :: inter_coords
+          integer(ikind), dimension(2), intent(in)  :: prev_icoord
+          real(rkind)   , dimension(2), intent(in)  :: prev_rcoord
+          real(rkind)   , dimension(2), intent(in)  :: icoord_icr
+          real(rkind)   , dimension(2), intent(in)  :: rcoord_icr
+          integer                     , intent(in)  :: k
+          integer(ikind), dimension(2), intent(out) :: icoord_inter
+          real(rkind)   , dimension(2), intent(out) :: rcoord_inter
 
-          
-          if(rkind.eq.4) then
-             inter_coords(1) = prev_coords(1) + nint(x_change*k)
-             inter_coords(2) = prev_coords(2) + nint(y_change*k)
+
+          if(rkind.eq.8) then
+             icoord_inter(1) = prev_icoord(1) + idnint(icoord_icr(1)*k)
+             icoord_inter(2) = prev_icoord(2) + idnint(icoord_icr(2)*k)
+             rcoord_inter(1) = prev_rcoord(1) + rcoord_icr(1)*k
+             rcoord_inter(2) = prev_rcoord(2) + rcoord_icr(2)*k
           else
-             inter_coords(1) = prev_coords(1) + idnint(x_change*k)
-             inter_coords(2) = prev_coords(2) + idnint(y_change*k)
+             icoord_inter(1) = prev_icoord(1) + nint(icoord_icr(1)*k)
+             icoord_inter(2) = prev_icoord(2) + nint(icoord_icr(2)*k)
+             rcoord_inter(1) = prev_rcoord(1) + rcoord_icr(1)*k
+             rcoord_inter(2) = prev_rcoord(2) + rcoord_icr(2)*k
           end if
-
-        end function get_inter_dct_coords
+          
+        end subroutine get_inter_detector_coords
 
       end module bf_detector_module

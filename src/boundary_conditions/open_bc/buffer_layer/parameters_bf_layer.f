@@ -47,7 +47,7 @@
 
 
         !default positions for the increasing detectors
-        integer       , parameter :: dct_icr_distance  = bc_size
+        integer       , parameter :: dct_icr_distance  = 2*bc_size
         integer(ikind), parameter :: dct_icr_N_default = ny-(bc_size+dct_icr_distance)+1
         integer(ikind), parameter :: dct_icr_S_default = bc_size+dct_icr_distance
         integer(ikind), parameter :: dct_icr_E_default = nx-(bc_size+dct_icr_distance)+1

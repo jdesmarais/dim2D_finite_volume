@@ -212,9 +212,6 @@ $(dbf_layer_dir)/bf_detector_module.o:\
 
 $(dbf_layer_dir)/bf_detector_icr_list_class.o:\
 	$(dbf_layer_dir)/bf_detector_module.o\
-	$(bf_layer_dir)/bf_interface_class.o\
-	$(dbf_layer_dir)/dbf_element_class.o\
-	$(dbf_layer_dir)/dbf_list_class.o\
 	$(param_dir)/parameters_kind.o
 
 $(dbf_layer_dir)/bf_detector_dcr_list_class.o:\

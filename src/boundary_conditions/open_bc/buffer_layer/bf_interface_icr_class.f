@@ -180,6 +180,11 @@
           integer(ikind), dimension(:,:), allocatable, private :: E_detectors_list
           integer(ikind), dimension(:,:), allocatable, private :: W_detectors_list
 
+          real(rkind)   , dimension(:,:), allocatable, private :: N_detectors_list_coords
+          real(rkind)   , dimension(:,:), allocatable, private :: S_detectors_list_coords
+          real(rkind)   , dimension(:,:), allocatable, private :: E_detectors_list_coords
+          real(rkind)   , dimension(:,:), allocatable, private :: W_detectors_list_coords
+
           contains
 
           procedure,   pass :: ini
@@ -239,11 +244,13 @@
 
 
           !intialize the attributes specific to bf_interface_icr
+          !list with the coordinates of the detectors as (i,j)
           allocate(this%N_detectors_list(2,nx-2*(bc_size+dct_icr_distance)+2))
           allocate(this%S_detectors_list(2,nx-2*(bc_size+dct_icr_distance)+2))
           allocate(this%E_detectors_list(2,ny-2*(bc_size+dct_icr_distance)))
           allocate(this%W_detectors_list(2,nx-2*(bc_size+dct_icr_distance)))
 
+          !list with the coordinates of the detectors as (x,y)
           do i=bc_size+dct_icr_distance, nx-(bc_size+dct_icr_distance)+1
              this%S_detectors_list(1,i-(bc_size+dct_icr_distance)+1) = i
              this%S_detectors_list(2,i-(bc_size+dct_icr_distance)+1) = dct_icr_S_default
@@ -936,8 +943,12 @@
           dy = interior_y_map(2)-interior_y_map(1)
 
           !1) get the direction to look for a bc_interior_pt
+          !dir_x  = velocity(1)*search_nb_dt*dt/dx
+          !dir_y  = velocity(2)*search_nb_dt*dt/dy
+
           dir_x  = velocity(1)*search_nb_dt*dt/dx
           dir_y  = velocity(2)*search_nb_dt*dt/dy
+
           
           if(rkind.eq.4) then
 

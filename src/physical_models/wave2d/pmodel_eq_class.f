@@ -219,8 +219,8 @@
           character(len=10), dimension(ne) :: var_pties
 
           var_pties(1)="position"
-          var_pties(2)="x-velocity"
-          var_pties(3)="y-velocity"
+          var_pties(2)="velocity_x"
+          var_pties(3)="velocity_y"
 
         end function get_var_name
         
@@ -554,6 +554,7 @@ c$$$          end if
           real(rkind) :: interior_spot, outside_spot
         
           integer(ikind) :: i,j
+          real(rkind)    :: x1,y1
           
           x_center = 0.0d0
           y_center = 0.0d0
@@ -568,15 +569,27 @@ c$$$          end if
           do j=1, size(y_map,1)
              do i=1, size(x_map,1)
                 
+                x1 = x_map(i)-x_center
+                y1 = y_map(j)-y_center
+
                 nodes(i,j,1) = spot_ic(
      $               radius_spot,
      $               interface_spot,
      $               interior_spot,
      $               outside_spot,
-     $               x_map(i)-x_center,
-     $               y_map(j)-y_center)
-                nodes(i,j,2) = 25.0d0
-                nodes(i,j,3) = 25.0d0
+     $               x1,y1)
+                nodes(i,j,2) = spot_ic(
+     $               radius_spot,
+     $               interface_spot,
+     $               0.0d0,
+     $               c**2*x1/(SQRT(x1**2+y1**2)),
+     $               x1,y1)
+                nodes(i,j,3) = spot_ic(
+     $               radius_spot,
+     $               interface_spot,
+     $               0.0d0,
+     $               c**2*y1/(SQRT(x1**2+y1**2)),
+     $               x1,y1)
                 
              end do
           end do
@@ -1615,23 +1628,40 @@ c$$$          end if
 
           integer     :: neq
           real(rkind) :: t_s
-          real(rkind) :: x_s
-          real(rkind) :: y_s
           
           neq = this%get_eq_nb()
           t_s = t
-          x_s = x
-          y_s = y
 
-          if(rkind.eq.8) then
-             var(1) = 0.0d0
-             var(2) = 0.0d0
-             var(3) = 0.0d0
-          else
-             var(1) = 0.0
-             var(2) = 0.0
-             var(3) = 0.0
-          end if
+          select case(ic_choice)
+            case(peak)
+               if(rkind.eq.8) then
+                  var(1) = 0.0d0
+                  var(2) = 0.0d0
+                  var(3) = 0.0d0
+               else
+                  var(1) = 0.0
+                  var(2) = 0.0
+                  var(3) = 0.0
+               end if
+
+            case(negative_spot)
+               
+               if(rkind.eq.8) then
+                  var(1) = 0.0d0
+                  var(2) = c**2*x/(SQRT(x**2+y**2))
+                  var(3) = c**2*y/(SQRT(x**2+y**2))
+               else
+                  var(1) = 0.0
+                  var(2) = c**2*x/(SQRT(x**2+y**2))
+                  var(3) = c**2*y/(SQRT(x**2+y**2))
+               end if
+
+            case default
+               print '(''pmodel_eq_class'')'
+               print '(''get_far_field'')'
+               print '(''ic_choice not recognized: '',I2)', ic_choice
+               stop ''
+          end select
 
         end function get_far_field
 

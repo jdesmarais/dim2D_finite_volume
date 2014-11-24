@@ -126,14 +126,9 @@ test_dbf_list_prog.o:\
 	$(dbf_layer_dir)/dbf_list_class.o\
 	$(param_dir)/parameters_kind.o
 
-test_bf_detector_icr_list_prog.o:\
+test_bf_detector_icr_list.o:\
 	$(dbf_layer_dir)/bf_detector_icr_list_class.o\
-	$(bf_layer_dir)/bf_interface_class.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o\
-	test_bf_layer_module.o
+	$(param_dir)/parameters_kind.o
 
 test_bf_interface_icr_prog.o:\
 	$(dbf_layer_dir)/bf_detector_icr_list_class.o\
@@ -330,17 +325,10 @@ test_dbf_list_prog:\
 	dbf_list_class.o\
 	parameters_kind.o
 
-test_bf_detector_icr_list_prog:\
-	$(param_dep)\
-	$(cg_dep)\
-	$(fv_dep)\
-	$(simpletest_dep)\
-	$(bf_interface_dep)\
-	dbf_element_class.o\
-	dbf_list_class.o\
+test_bf_detector_icr_list:\
+	parameters_kind.o\
 	bf_detector_module.o\
-	bf_detector_icr_list_class.o\
-	test_bf_layer_module.o
+	bf_detector_icr_list_class.o
 
 test_bf_interface_icr_prog:\
 	$(param_dep)\
