@@ -28,7 +28,7 @@
         real(rkind), parameter :: y_max = 10.0000000000d0 !2.0000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 10.0d0
+        real(rkind), parameter :: t_max = 0.20d0 !10.0d0
         real(rkind), parameter :: dt = 0.0500000000d0
         
         !<output writing

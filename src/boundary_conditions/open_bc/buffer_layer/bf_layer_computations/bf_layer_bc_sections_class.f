@@ -353,9 +353,9 @@
         end function get_bc_section
 
 
-        !check if the gridpoint tested (i,j) is comaptible with an existing
+        !check if the gridpoint tested (i,j) is compatible with an existing
         !boundary layer bc_section
-        !teh compatibility depends on the type of boundary layer
+        !the compatibility depends on the type of boundary layer
         function analyse_grdpt_with_bc_section(
      $     i,j,grdpts_id,bc_section,remove_ele)
      $     result(compatible)
@@ -537,85 +537,118 @@
           logical               :: remove_ele
 
 
-          !if there are already boundary layers, check whether the
-          !grid point analysed is compatible with one of them
-          if(this%nb_ele_temp.gt.0) then
+          !this condition prevents to test the grid points
+          !at the very edge of the grdpts_id array while it
+          !should not be possible since bc_interior_pt are
+          !always one grid point away from the border
+          !this is one exception to this rule: when the buffer
+          !layer is attached to the interior and both border are 
+          !strictly inside the interior
+          !
+          !                          ____ buffer layer
+          !         |---------------|
+          !         | 3 3 3 3 3 3 3 |
+          ! 3 3 3 3 | 3 2 2 2 2 2 3 | 3 3 3 3
+          ! 2 2 2 2 | 2 2 1 1 1 2 2 | 2 2 2 2
+          ! ------- | ------------- | -------
+          !         | 1 1 1 1 1 1 1 |
+          !         | 1 1 1 1 1 1 1 |
+          !         -----------------  
+          !          interior
+          !
+          !the left bc_interior_pt which is at the edge
+          !belongs to an NW_edge. As this edge is treated
+          !as a corner, the grid points outside the buffer
+          !layer are not needed for the computation and as
+          !the grid point next to it can used to determine
+          !that it is a corner, the condition below is
+          !justified
+          !the only restriction is if the NW_edge should be 
+          !treated in a way different from the corner
+          if((i.ne.1).and.(i.ne.size(grdpts_id,1)).and.(j.ne.1).and.(j.ne.size(grdpts_id,2))) then
+             
 
-             compatible = .false.
-
-             !is the grid point compatible with the boundary layers
-             !saved in this%bc_sections_temp
-             k=1
-             do while (k.le.min(this%nb_ele_temp,size(this%bc_sections_temp,2)))
-
-                compatible = this%analyse_grdpt_with_bc_section(
-     $               i,j,grdpts_id,
-     $               this%bc_sections_temp(:,k),
-     $               remove_ele)
-
-                if(remove_ele) then
-                   call this%add_to_final_bc_sections(this%bc_sections_temp(:,k))
-                   call this%remove_from_bc_sections_temp(k)
-                   k = k-1
-                end if
-
-                if(compatible) then
-                   exit
-                end if
-
-                k=k+1
-
-             end do
-
-             if(.not.compatible) then
-
-               !is the grid point compatible with the boundary layers
-               !saved in this%bc_sections_buffer
-                k=size(this%bc_sections_temp,2)+1
-                do while(k.le.this%nb_ele_temp)
-                   
-                   k_buffer = k-size(this%bc_sections_temp,2)
-
+             !if there are already boundary layers, check whether the
+             !grid point analysed is compatible with one of them
+             if(this%nb_ele_temp.gt.0) then
+             
+                compatible = .false.
+             
+                !is the grid point compatible with the boundary layers
+                !saved in this%bc_sections_temp
+                k=1
+                do while (k.le.min(this%nb_ele_temp,size(this%bc_sections_temp,2)))
+             
                    compatible = this%analyse_grdpt_with_bc_section(
      $                  i,j,grdpts_id,
-     $                  this%bc_sections_buffer(:,k_buffer),
+     $                  this%bc_sections_temp(:,k),
      $                  remove_ele)
-
+             
                    if(remove_ele) then
-                      call this%add_to_final_bc_sections(this%bc_sections_buffer(:,k_buffer))
-                      call this%remove_from_bc_sections_buffer(k)
+                      call this%add_to_final_bc_sections(this%bc_sections_temp(:,k))
+                      call this%remove_from_bc_sections_temp(k)
                       k = k-1
                    end if
-
+             
                    if(compatible) then
                       exit
                    end if
-
+             
                    k=k+1
-
+             
                 end do
-
-
-                !if no boundary layer matches the current grid point
-                !the grid point is used as the starting point of a new
-                !boundary layer
+             
                 if(.not.compatible) then
-
-                   new_bc_section = this%get_bc_section(i,j,grdpts_id)
-                   call this%add_to_bc_sections(new_bc_section)
-
+             
+                  !is the grid point compatible with the boundary layers
+                  !saved in this%bc_sections_buffer
+                   k=size(this%bc_sections_temp,2)+1
+                   do while(k.le.this%nb_ele_temp)
+                      
+                      k_buffer = k-size(this%bc_sections_temp,2)
+             
+                      compatible = this%analyse_grdpt_with_bc_section(
+     $                     i,j,grdpts_id,
+     $                     this%bc_sections_buffer(:,k_buffer),
+     $                     remove_ele)
+             
+                      if(remove_ele) then
+                         call this%add_to_final_bc_sections(this%bc_sections_buffer(:,k_buffer))
+                         call this%remove_from_bc_sections_buffer(k)
+                         k = k-1
+                      end if
+             
+                      if(compatible) then
+                         exit
+                      end if
+             
+                      k=k+1
+             
+                   end do
+             
+             
+                   !if no boundary layer matches the current grid point
+                   !the grid point is used as the starting point of a new
+                   !boundary layer
+                   if(.not.compatible) then
+             
+                      new_bc_section = this%get_bc_section(i,j,grdpts_id)
+                      call this%add_to_bc_sections(new_bc_section)
+             
+                   end if
+             
                 end if
-
+             
+             !if there is no existing boundary layers, the grid point
+             !is analysed to know what type of starting point for a
+             !boundary layer it is and then added to the boundary
+             !layers of the object
+             else
+             
+                new_bc_section = this%get_bc_section(i,j,grdpts_id)
+                call this%add_to_bc_sections(new_bc_section)
+             
              end if
-
-          !if there is no existing boundary layers, the grid point
-          !is analysed to know what type of starting point for a
-          !boundary layer it is and then added to the boundary
-          !layers of the object
-          else
-
-             new_bc_section = this%get_bc_section(i,j,grdpts_id)
-             call this%add_to_bc_sections(new_bc_section)
 
           end if
 
