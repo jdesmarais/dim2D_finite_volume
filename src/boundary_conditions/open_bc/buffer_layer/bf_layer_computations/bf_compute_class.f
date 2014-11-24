@@ -248,15 +248,19 @@
 
           class(bf_compute), intent(inout) :: this
 
+          if(allocated(this%bc_sections)) then
+             deallocate(this%bc_sections)
+          end if
 
-          deallocate(this%bc_sections)
+          if(allocated(this%alignment_tmp)) then
+             deallocate(this%alignment_tmp)
+             deallocate(this%x_map_tmp)
+             deallocate(this%y_map_tmp)
+             deallocate(this%grdpts_id_tmp)
+             deallocate(this%nodes_tmp)
+             deallocate(this%time_dev)
 
-          deallocate(this%alignment_tmp)
-          deallocate(this%x_map_tmp)
-          deallocate(this%y_map_tmp)
-          deallocate(this%grdpts_id_tmp)
-          deallocate(this%nodes_tmp)
-          deallocate(this%time_dev)
+          end if
 
         end subroutine deallocate_tables        
 

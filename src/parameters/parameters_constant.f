@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = 'c55fd73d5811a26fb0c08815b3c6b54bf7d5da77')
+        parameter (commit = 'abfcbe900d1a2abd1c0168a3d9d8e6263fbe6376')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -44,6 +44,7 @@
         integer, parameter :: vortex=2
         integer, parameter :: sym_x=3
         integer, parameter :: sym_y=4
+        integer, parameter :: negative_spot=5
 
         !>initial conditions choice for DIM
         integer, parameter :: steady_state=0

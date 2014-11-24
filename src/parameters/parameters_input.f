@@ -28,11 +28,11 @@
         real(rkind), parameter :: y_max = 10.0000000000d0 !2.0000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 100.0000000000d0
+        real(rkind), parameter :: t_max = 10.0d0
         real(rkind), parameter :: dt = 0.0500000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0200000000d0
+        real(rkind), parameter :: detail_print = 1.0d0
         logical    , parameter :: write_domain_extension = .true.
 
         !<mpi choice
@@ -78,11 +78,11 @@
         !phase_separation   : unstable mass density
         !--------------------------------------------
         integer, parameter :: flow_direction = x_direction
-        integer, parameter :: ic_choice = steady_state
+        integer, parameter :: ic_choice = negative_spot
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
-        integer, parameter :: wave_forcing = oscillatory_forcing
+        integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
         integer, parameter :: bc_choice = hedstrom_xy_choice
@@ -104,7 +104,7 @@
         !              applying the non-reflecting outflow
         !              pressure b.c.
         !--------------------------------------------
-        real(rkind), parameter :: search_nb_dt = 0.0500000000d0 !1.0 !0.0001000000d0
+        real(rkind), parameter :: search_nb_dt = 10 !0.0500000000d0 !1.0 !0.0001000000d0
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P =  0.278d0 !0.25d0
         integer    , parameter :: obc_type_N = always_outflow

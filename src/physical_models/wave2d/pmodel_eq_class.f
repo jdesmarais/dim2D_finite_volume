@@ -27,6 +27,8 @@
      $       scalar,
      $       vector_x,
      $       vector_y,
+     $       peak,
+     $       negative_spot,
      $       no_wave_forcing,
      $       oscillatory_forcing,
      $       intermittent_oscillatory_forcing
@@ -34,6 +36,7 @@
         use parameters_input, only :
      $       nx,ny,ne,
      $       bc_size,
+     $       ic_choice,
      $       wave_forcing
 
         use parameters_kind, only :
@@ -406,43 +409,35 @@
           real(rkind), dimension(:)    , intent(in)    :: y_map
 
 
-          integer(ikind) :: i,j
+          
           integer :: neq
 
           neq = this%get_eq_nb()
 
 
-          if(rkind.eq.8) then
+          select case(ic_choice)
 
-             do j=1, size(y_map,1)
-                do i=1, size(x_map,1)
+            case(peak)
+               call apply_peak_ic(
+     $              nodes,
+     $              x_map,
+     $              y_map)
 
-                   nodes(i,j,1) = peak(amplitude,
-     $                                 period,
-     $                                 x_map(i)-x_center,
-     $                                 y_map(j)-y_center)
-                   nodes(i,j,2) = 0.0d0
-                   nodes(i,j,3) = 0.0d0
-                   
-                end do
-             end do
-             
-          else
-             
-             do j=1, size(y_map,1)
-                do i=1, size(x_map,1)
+            case(negative_spot)
+               call apply_negative_spot_ic(
+     $              nodes,
+     $              x_map,
+     $              y_map)
 
-                   nodes(i,j,1) = peak(amplitude,
-     $                                 period,
-     $                                 x_map(i)-x_center,
-     $                                 y_map(j)-y_center)
-                   nodes(i,j,2) = 0.0
-                   nodes(i,j,3) = 0.0
-                   
-                end do
-             end do
-             
-          end if
+            case default
+               print '(''pmodel_eq_class'')'
+               print '(''apply_ic'')'
+               print '(''case not recognized: '',I2)', ic_choice
+               stop ''
+
+          end select
+
+          
 
 
 c$$$          if(.true.) then
@@ -499,6 +494,126 @@ c$$$          end if
         end subroutine apply_ic
 
 
+        subroutine apply_peak_ic(nodes,x_map,y_map)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(inout) :: nodes
+          real(rkind), dimension(:)    , intent(in)    :: x_map
+          real(rkind), dimension(:)    , intent(in)    :: y_map
+
+
+          integer(ikind) :: i,j
+
+          if(rkind.eq.8) then
+
+             do j=1, size(y_map,1)
+                do i=1, size(x_map,1)
+
+                   nodes(i,j,1) = peak_ic(amplitude,
+     $                                 period,
+     $                                 x_map(i)-x_center,
+     $                                 y_map(j)-y_center)
+                   nodes(i,j,2) = 0.0d0
+                   nodes(i,j,3) = 0.0d0
+                   
+                end do
+             end do
+             
+          else
+             
+             do j=1, size(y_map,1)
+                do i=1, size(x_map,1)
+
+                   nodes(i,j,1) = peak_ic(amplitude,
+     $                                 period,
+     $                                 x_map(i)-x_center,
+     $                                 y_map(j)-y_center)
+                   nodes(i,j,2) = 0.0
+                   nodes(i,j,3) = 0.0
+                   
+                end do
+             end do
+             
+          end if
+
+        end subroutine apply_peak_ic
+
+
+        subroutine apply_negative_spot_ic(nodes,x_map,y_map)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(inout) :: nodes
+          real(rkind), dimension(:)    , intent(in)    :: x_map
+          real(rkind), dimension(:)    , intent(in)    :: y_map
+          
+          real(rkind) :: x_center, y_center
+          real(rkind) :: radius_spot
+          real(rkind) :: interface_spot
+          real(rkind) :: interior_spot, outside_spot
+        
+          integer(ikind) :: i,j
+          
+          x_center = 0.0d0
+          y_center = 0.0d0
+          
+          radius_spot    = 9.25d0
+          interface_spot = 0.5d0
+
+          interior_spot = -5.0
+          outside_spot  =  1.0
+             
+             
+          do j=1, size(y_map,1)
+             do i=1, size(x_map,1)
+                
+                nodes(i,j,1) = spot_ic(
+     $               radius_spot,
+     $               interface_spot,
+     $               interior_spot,
+     $               outside_spot,
+     $               x_map(i)-x_center,
+     $               y_map(j)-y_center)
+                nodes(i,j,2) = 25.0d0
+                nodes(i,j,3) = 25.0d0
+                
+             end do
+          end do
+          
+        end subroutine apply_negative_spot_ic
+
+
+        function spot_ic(
+     $     radius_spot,
+     $     interface_spot,
+     $     interior_spot,
+     $     outside_spot,
+     $     x,y)
+
+          implicit none
+
+          real(rkind), intent(in) :: radius_spot
+          real(rkind), intent(in) :: interface_spot
+          real(rkind), intent(in) :: interior_spot
+          real(rkind), intent(in) :: outside_spot
+          real(rkind), intent(in) :: x
+          real(rkind), intent(in) :: y
+          real(rkind)             :: spot_ic
+
+
+          real(rkind) :: r
+
+          r = SQRT(x**2+y**2)
+
+          spot_ic =
+     $         0.5d0*(outside_spot+interior_spot) +
+     $         0.5d0*(outside_spot-interior_spot)*TANH(
+     $         (r-radius_spot)/(2.0d0*interface_spot))
+
+        end function spot_ic
+
+
 
         !> @author
         !> Julien L. Desmarais
@@ -524,7 +639,7 @@ c$$$          end if
         !> y-coordinate identifying where the initial condition is
         !> evaluated
         !---------------------------------------------------------------
-        function peak(amplitude, period, x, y)
+        function peak_ic(amplitude, period, x, y)
 
           implicit none
 
@@ -532,7 +647,7 @@ c$$$          end if
           real(rkind), intent(in) :: period
           real(rkind), intent(in) :: x
           real(rkind), intent(in) :: y
-          real(rkind)             :: peak
+          real(rkind)             :: peak_ic
 
 
           real(rkind) :: radius
@@ -548,9 +663,9 @@ c$$$          end if
              omega      = 2.0d0*ACOS(-1.0d0)/period
 
              if(radius.le.radius_max) then
-                peak = amplitude*(1.0d0 + cos(omega*radius))
+                peak_ic = amplitude*(1.0d0 + cos(omega*radius))
              else
-                peak = 0.0d0                
+                peak_ic = 0.0d0                
              end if
 
           else
@@ -559,14 +674,14 @@ c$$$          end if
              omega      = 2.0*ACOS(-1.0)/period
 
              if(radius.le.radius_max) then
-                peak = amplitude*(1.0 + cos(omega*radius))
+                peak_ic = amplitude*(1.0 + cos(omega*radius))
              else
-                peak = 0.0
+                peak_ic = 0.0
              end if
              
           end if
 
-        end function peak
+        end function peak_ic
         
         
         !> @author
@@ -929,7 +1044,7 @@ c$$$          end if
 
                if(k.eq.1) then
                   omega       = 2.0d0*ACOS(-1.0d0)/period_force
-                  body_forces = peak(
+                  body_forces = peak_ic(
      $                 amplitude_force*SIN(omega*t),
      $                 period,
      $                 x-x_center_force,
@@ -946,7 +1061,7 @@ c$$$          end if
                if((t2.lt.period_force).and.(k.eq.1)) then
                   
                   omega = 2.0d0*ACOS(-1.0d0)/period_force
-                  body_forces = peak(
+                  body_forces = peak_ic(
      $                 amplitude_force*SIN(omega*t),
      $                 period,
      $                 x-x_center_force,
@@ -1034,9 +1149,10 @@ c$$$          end if
           !   undermined = .false.
           !end if
 
-          node_s = nodes(1)
+          !node_s = nodes(1)
 
-          undermined = .false.
+          undermined = (nodes(1).lt.0)
+          !undermined = .false.
 
         end function are_openbc_undermined
 
