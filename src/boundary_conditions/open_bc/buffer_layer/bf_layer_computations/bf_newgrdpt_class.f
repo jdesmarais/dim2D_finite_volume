@@ -980,7 +980,7 @@
 
              !7.2) determine the normal and transverse contributions of
              !     the hyperbolic terms to the characteristic amplitude
-             if(side_x.eq.right) then
+             if(side_x.eqv.right) then
 
                 if(eigenvalues_x(k).ge.0) then
                    
@@ -1251,7 +1251,7 @@
 
              !7.2) determine the normal and transverse contributions of
              !     the hyperbolic terms to the characteristic amplitude
-             if(side_y.eq.right) then
+             if(side_y.eqv.right) then
 
                 if(eigenvalues_y(k).ge.0) then
                    
@@ -1770,7 +1770,7 @@
                  !7.2) determine the normal and transverse contributions
                  !     of the hyperbolic terms to the characteristic
                  !     amplitude
-                 if(side_n.eq.right) then
+                 if(side_n.eqv.right) then
 
                     if(eigenvalues_n(k).ge.0) then
                        
@@ -1828,7 +1828,7 @@
              case default
                 print '(''bf_newgrdpt_class'')'
                 print '(''compute_newgrdpt_xy'')'
-                print '(''direction not recognized: ''I2)', n_direction
+                print '(''direction not recognized: '',I2)', n_direction
                 stop ''
 
            end select

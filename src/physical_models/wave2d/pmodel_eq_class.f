@@ -1136,7 +1136,7 @@ c$$$          end if
           real(rkind), dimension(ne), intent(in) :: nodes
           logical                                :: undermined
 
-          real(rkind) :: node_s
+          !real(rkind) :: node_s
 
           !real(rkind) :: d_liq, d_vap
           !
