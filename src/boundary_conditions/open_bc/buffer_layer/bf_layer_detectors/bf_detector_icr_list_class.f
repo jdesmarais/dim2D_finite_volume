@@ -111,9 +111,6 @@
 
           procedure, pass, private :: add_detector_to_mainlayer
 
-          procedure, nopass :: get_inter_detector_param
-          procedure, nopass :: get_inter_detector_coords
-
           procedure,   pass :: get_nb_detectors
           procedure,   pass :: get_head
           procedure,   pass :: get_tail

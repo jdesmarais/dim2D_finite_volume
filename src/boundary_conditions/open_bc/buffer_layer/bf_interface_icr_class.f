@@ -16,6 +16,8 @@
       !-----------------------------------------------------------------
       module bf_interface_icr_class
 
+        !temporary objects to create one closed path
+        !of detectors out of several detector lists
         use bf_detector_dcr_list_class, only :
      $     bf_detector_dcr_list
 
@@ -31,9 +33,21 @@
         use bf_detector_dcr_list_W_class, only :
      $       bf_detector_dcr_list_W
 
+        !subroutines needed to compute the position
+        !of intermediate detectors when combining
+        !several detector lists into one closed path
+        use bf_detector_module, only :
+     $       get_inter_detector_param,
+     $       get_inter_detector_coords
+
+        !temporary object to store the new detectors
+        !before being reduced to only the number of
+        !elements stored
         use bf_detector_icr_list_class, only :
      $       bf_detector_icr_list
 
+        !temporary object to store the bc_interior_pt
+        !grid points activated by the detectors
         use bf_path_icr_class, only :
      $       bf_path_icr
 
@@ -230,45 +244,86 @@
         !> the increasing detectors and the subroutine controlling
         !> the extension of the computational domain
         !--------------------------------------------------------------
-        subroutine ini(this)
+        subroutine ini(this,interior_x_map,interior_y_map)
 
           implicit none
 
-          class(bf_interface_icr), intent(inout) :: this
+          class(bf_interface_icr)   , intent(inout) :: this
+          real(rkind), dimension(nx), intent(in)    :: interior_x_map
+          real(rkind), dimension(ny), intent(in)    :: interior_y_map
 
           integer(ikind) :: i
 
 
           !initialize the parent attributes
-          call this%bf_interface%ini()
+          call this%bf_interface%ini(interior_x_map,interior_y_map)
 
 
           !intialize the attributes specific to bf_interface_icr
           !list with the coordinates of the detectors as (i,j)
-          allocate(this%N_detectors_list(2,nx-2*(bc_size+dct_icr_distance)+2))
-          allocate(this%S_detectors_list(2,nx-2*(bc_size+dct_icr_distance)+2))
-          allocate(this%E_detectors_list(2,ny-2*(bc_size+dct_icr_distance)))
-          allocate(this%W_detectors_list(2,nx-2*(bc_size+dct_icr_distance)))
+          allocate(this%N_dct_icoords(2,nx-2*(bc_size+dct_icr_distance)+2))
+          allocate(this%N_dct_rcoords(2,nx-2*(bc_size+dct_icr_distance)+2))
+          allocate(this%S_dct_icoords(2,nx-2*(bc_size+dct_icr_distance)+2))
+          allocate(this%S_dct_rcoords(2,nx-2*(bc_size+dct_icr_distance)+2))          
+          allocate(this%E_dct_icoords(2,ny-2*(bc_size+dct_icr_distance)))
+          allocate(this%E_dct_rcoords(2,ny-2*(bc_size+dct_icr_distance)))
+          allocate(this%W_dct_icoords(2,nx-2*(bc_size+dct_icr_distance)))
+          allocate(this%W_dct_rcoords(2,nx-2*(bc_size+dct_icr_distance)))
 
-          !list with the coordinates of the detectors as (x,y)
+
+          !arrays with the coordinates of the South detectors
           do i=bc_size+dct_icr_distance, nx-(bc_size+dct_icr_distance)+1
-             this%S_detectors_list(1,i-(bc_size+dct_icr_distance)+1) = i
-             this%S_detectors_list(2,i-(bc_size+dct_icr_distance)+1) = dct_icr_S_default
+
+             !(x,y)-indices
+             this%S_dct_icoords(1,i-(bc_size+dct_icr_distance)+1) = i
+             this%S_dct_icoords(2,i-(bc_size+dct_icr_distance)+1) = dct_icr_S_default
+
+             !(x,y)-coordinates
+             this%S_dct_icoords(1,i-(bc_size+dct_icr_distance)+1) = interior_x_map(i)
+             this%S_dct_icoords(2,i-(bc_size+dct_icr_distance)+1) = interior_y_map(dct_icr_S_default)
+
           end do
 
+
+          !arrays with the coordinates of the North detectors
           do i=bc_size+dct_icr_distance, nx-(bc_size+dct_icr_distance)+1
-             this%N_detectors_list(1,i-(bc_size+dct_icr_distance)+1) = i
-             this%N_detectors_list(2,i-(bc_size+dct_icr_distance)+1) = dct_icr_N_default
+
+             !(x,y)-indices
+             this%N_dct_icoords(1,i-(bc_size+dct_icr_distance)+1) = i
+             this%N_dct_icoords(2,i-(bc_size+dct_icr_distance)+1) = dct_icr_N_default
+
+             !(x,y)-coordinates
+             this%N_dct_rcoords(1,i-(bc_size+dct_icr_distance)+1) = interior_x_map(i)
+             this%N_dct_rcoords(2,i-(bc_size+dct_icr_distance)+1) = interior_y_map(dct_icr_N_default)
+
           end do
 
+
+          !arrays with the coordinates of the West detectors
           do i=bc_size+dct_icr_distance+1, ny-(bc_size+dct_icr_distance)
-             this%W_detectors_list(1,i-(bc_size+dct_icr_distance)) = dct_icr_W_default
-             this%W_detectors_list(2,i-(bc_size+dct_icr_distance)) = i
+
+             !(x,y)-indices
+             this%W_dct_icoords(1,i-(bc_size+dct_icr_distance)) = dct_icr_W_default
+             this%W_dct_icoords(2,i-(bc_size+dct_icr_distance)) = i
+
+             !(x,y)-coordinates
+             this%W_dct_rcoords(1,i-(bc_size+dct_icr_distance)) = interior_x_map(dct_icr_W_default)
+             this%W_dct_rcoords(2,i-(bc_size+dct_icr_distance)) = interior_y_map(i)
+
           end do
 
+
+          !arrays with the coordinates of the East detectors
           do i=bc_size+dct_icr_distance+1, ny-(bc_size+dct_icr_distance)
-             this%E_detectors_list(1,i-(bc_size+dct_icr_distance)) = dct_icr_E_default
-             this%E_detectors_list(2,i-(bc_size+dct_icr_distance)) = i
+
+             !(x,y)-indices
+             this%E_dct_icoords(1,i-(bc_size+dct_icr_distance)) = dct_icr_E_default
+             this%E_dct_icoords(2,i-(bc_size+dct_icr_distance)) = i
+
+             !(x,y)-coordinates
+             this%E_dct_rcoords(1,i-(bc_size+dct_icr_distance)) = interior_x_map(dct_icr_E_default)
+             this%E_dct_rcoords(2,i-(bc_size+dct_icr_distance)) = interior_y_map(i)
+             
           end do          
 
         end subroutine ini
@@ -335,10 +390,12 @@
 
           type(bf_path_icr)              :: path_update_idetectors
           integer(ikind), dimension(2)   :: cpt_coords_p
-          type(bf_detector_icr_list)     :: N_ndt_list
-          type(bf_detector_icr_list)     :: S_ndt_list
-          type(bf_detector_icr_list)     :: E_ndt_list
-          type(bf_detector_icr_list)     :: W_ndt_list
+
+          !temporary objects to store the new positions of the detectors
+          type(bf_detector_icr_list)     :: N_dct_list_n
+          type(bf_detector_icr_list)     :: S_dct_list_n
+          type(bf_detector_icr_list)     :: E_dct_list_n
+          type(bf_detector_icr_list)     :: W_dct_list_n
 
 
           !initialization of the path that will gather information
@@ -364,13 +421,14 @@
           cpt_coords_p = [nx/2, ny/2]
 
           !1) South detectors
-          if(allocated(this%S_detectors_list)) then
-             call S_ndt_list%ini(S, size(this%S_detectors_list,2))
+          if(allocated(this%S_dct_icoords)) then
+             call S_ndt_list%ini(S, size(this%S_dct_icoords,2))
 
              call process_idetector_list(
      $            this,
-     $            this%S_detectors_list,
-     $            S_ndt_list,
+     $            this%S_dct_icoords,
+     $            this%S_dct_rcoords,
+     $            S_dct_list_n,
      $            p_model,
      $            t,dt,
      $            interior_x_map,
@@ -383,13 +441,14 @@
           end if
 
           !2) East detectors
-          if(allocated(this%E_detectors_list)) then
-             call E_ndt_list%ini(E, size(this%E_detectors_list,2))
+          if(allocated(this%E_dct_icoords)) then
+             call E_ndt_list%ini(E, size(this%E_dct_icoords,2))
 
              call process_idetector_list(
      $            this,
-     $            this%E_detectors_list,
-     $            E_ndt_list,
+     $            this%E_dct_icoords,
+     $            this%E_dct_rcoords,
+     $            E_dct_list_n,
      $            p_model,
      $            t,dt,
      $            interior_x_map,
@@ -402,13 +461,14 @@
           end if
 
           !3) West detectors
-          if(allocated(this%W_detectors_list)) then
-             call W_ndt_list%ini(W, size(this%W_detectors_list,2))
+          if(allocated(this%W_dct_icoords)) then
+             call W_ndt_list%ini(W, size(this%W_dct_icoords,2))
 
              call process_idetector_list(
      $            this,
-     $            this%W_detectors_list,
-     $            W_ndt_list,
+     $            this%W_dct_icoords,
+     $            this%W_dct_rcoords,
+     $            W_dct_list_n,
      $            p_model,
      $            t,dt,
      $            interior_x_map,
@@ -421,13 +481,14 @@
           end if
 
           !4) North detectors
-          if(allocated(this%N_detectors_list)) then
-             call N_ndt_list%ini(N, size(this%N_detectors_list,2))
+          if(allocated(this%N_dct_icoords)) then
+             call N_ndt_list%ini(N, size(this%N_dct_icoords,2))
 
              call process_idetector_list(
      $            this,
-     $            this%N_detectors_list,
-     $            N_ndt_list,
+     $            this%N_dct_icoords,
+     $            this%N_dct_rcoords,
+     $            N_dct_list_n,
      $            p_model,
      $            t,dt,
      $            interior_x_map,
@@ -461,8 +522,10 @@
           !   not make a closed path. They are now reconnected
           call combine_bf_idetector_lists(
      $         this,
-     $         N_ndt_list, S_ndt_list,
-     $         E_ndt_list, W_ndt_list)
+     $         N_dct_list_n,
+     $         S_dct_list_n,
+     $         E_dct_list_n,
+     $         W_dct_list_n)
 
         end subroutine update_bf_layers_with_idetectors
 
@@ -500,118 +563,412 @@
         !--------------------------------------------------------------
         subroutine combine_bf_idetector_lists(
      $     this,
-     $     N_idetectors_list, S_idetectors_list,
-     $     E_idetectors_list, W_idetectors_list)
+     $     N_dct_list,
+     $     S_dct_list,
+     $     E_dct_list,
+     $     W_dct_list)
 
           implicit none
 
-          class(bf_interface_icr) , intent(inout) :: this
-          type(bf_detector_icr_list), intent(in)    :: N_idetectors_list
-          type(bf_detector_icr_list), intent(in)    :: S_idetectors_list
-          type(bf_detector_icr_list), intent(in)    :: E_idetectors_list
-          type(bf_detector_icr_list), intent(in)    :: W_idetectors_list
+          class(bf_interface_icr)   , intent(inout) :: this
+          type(bf_detector_icr_list), intent(in)    :: N_dct_list
+          type(bf_detector_icr_list), intent(in)    :: S_dct_list
+          type(bf_detector_icr_list), intent(in)    :: E_dct_list
+          type(bf_detector_icr_list), intent(in)    :: W_dct_list
 
 
-          integer(ikind), dimension(:,:), allocatable :: N_idetectors_list_n
-          integer(ikind), dimension(:,:), allocatable :: S_idetectors_list_n
-          integer(ikind), dimension(:,:), allocatable :: E_idetectors_list_n
-          integer(ikind), dimension(:,:), allocatable :: W_idetectors_list_n
+          !intermediate coordinates when computing the parameters
+          !for the detectors between the cardinal detector lists
+          integer(ikind), dimension(2) :: icoord
+          real(rkind)   , dimension(2) :: rcoord
+
+          integer(ikind), dimension(2) :: icoord_SW
+          real(rkind)   , dimension(2) :: rcoord_SW
+          integer(ikind), dimension(2) :: icoord_icr_SW
+          real(rkind)   , dimension(2) :: rcoord_icr_SW
+          integer(ikind)               :: inter_nb_SW
+
+          integer(ikind), dimension(2) :: icoord_SE
+          real(rkind)   , dimension(2) :: rcoord_SE
+          integer(ikind), dimension(2) :: icoord_icr_SE
+          real(rkind)   , dimension(2) :: rcoord_icr_SE
+          integer(ikind)               :: inter_nb_SE
+
+          integer(ikind), dimension(2) :: icoord_NE
+          real(rkind)   , dimension(2) :: rcoord_NE
+          integer(ikind), dimension(2) :: icoord_icr_NE
+          real(rkind)   , dimension(2) :: rcoord_icr_NE
+          integer(ikind)               :: inter_nb_NE
+
+          integer(ikind), dimension(2) :: icoord_NW
+          real(rkind)   , dimension(2) :: rcoord_NW
+          integer(ikind), dimension(2) :: icoord_icr_NW
+          real(rkind)   , dimension(2) :: rcoord_icr_NW
+          integer(ikind)               :: inter_nb_NW
 
 
-          integer(ikind), dimension(2) :: n1_coords, n2_coords, inter_coords
-          integer                      :: n1_inter_nb, n2_inter_nb
-          real(rkind)                  :: n1_x_change, n1_y_change
-          real(rkind)                  :: n2_x_change, n2_y_change
-          integer                      :: k
+          !WARNING: we need to organize the intermediate detectors
+          !         between the detector lists in increasing i and j
+          !         otherwise, there will lead to important cache misses
+          !         we also need to make sure that the detectors are
+          !         correcty assigned to each cardinal point to prevent
+          !         wrong connections between the detectors lists .i.e.
+          !         we need to make sure that: ((<-> : is connected)
+          !           - head(W) <-> head(S)
+          !           - tail(S) <-> head(E)
+          !           - tail(E) <-> tail(N)
+          !           - head(N) <-> tail(W)
+
+          ! determine the parameters for the intermediate
+          ! detectors between the W and S detectors
+          call W_dct_list%get_head(icoord_1,rcoord_1)
+          call S_dct_list%get_head(icoord_2,rcoord_2)
+          call get_inter_detector_param(
+     $         icoord_1,
+     $         rcoord_1,
+     $         icoord_2,
+     $         rcoord_2,
+     $         icoord_icr_SW,
+     $         rcoord_icr_SW,
+     $         inter_nb_SW)
+
+          !
+          !  |  ___S___
+          ! W| /
+          !  !/
+          !----------------------------------------
+          if(icoord_icr_SW(2).gt.0) then
+
+             W_in_S = .true.
+
+             icoord_SW = icoord_1
+             rcoord_SW = rcoord_1
+
+          else
+
+          !
+          !  |                        |
+          ! W|                       W|
+          !  !              or        !
+          !   \                      /
+          !    \___S____            /____S____
+          !----------------------------------------
+             W_in_S = .false.
+
+             icoord_SW = icoord_2
+             rcoord_SW = rcoord_2
+
+             icoord_icr_SW(1) = -icoord_icr_SW(1)
+             icoord_icr_SW(2) = -icoord_icr_SW(2)
+             rcoord_icr_SW(1) = -rcoord_icr_SW(1)
+             rcoord_icr_SW(2) = -rcoord_icr_SW(2)
+
+          end if
 
 
-          !S detectors recombination
-          n1_coords = W_idetectors_list%get_head()
-          call S_idetectors_list%get_inter_detector_param(
-     $         n1_coords, S_idetectors_list%get_head(),
-     $         n1_x_change, n1_y_change, n1_inter_nb)
+          ! determine the parameters for the intermediate
+          ! detectors between the E and S detectors
+          call S_dct_list%get_tail(icoord_1,rcoord_1)
+          call E_dct_list%get_head(icoord_2,rcoord_2)
+          call get_inter_detector_param(
+     $         icoord_1,
+     $         rcoord_1,
+     $         icoord_2,
+     $         rcoord_2,
+     $         icoord_icr_SE,
+     $         rcoord_icr_SE,
+     $         inter_nb_SE)
 
-          n2_coords = S_idetectors_list%get_tail()
-          call S_idetectors_list%get_inter_detector_param(
-     $         n2_coords, E_idetectors_list%get_head(),
-     $         n2_x_change, n2_y_change, n2_inter_nb)
+          icoord_SE = icoord_1
+          rcoord_SE = rcoord_1
 
-          allocate(S_idetectors_list_n(
-     $         2, S_idetectors_list%get_nb_detectors()+n1_inter_nb+n2_inter_nb))
+          !
+          !          |E 
+          !          !
+          !         /
+          ! ___S___/
+          !----------------------------------------
+          if(icoord_icr_SW(2).gt.0) then
 
-          do k=1, n1_inter_nb
-             inter_coords = S_idetectors_list%get_inter_detector_coords(
-     $            n1_coords,
-     $            n1_x_change, n1_y_change, k)
-             S_idetectors_list_n(:,k) = inter_coords
-          end do
+             S_in_E = .true.
+          !
+          !          |
+          !          |
+          ! ___S___  |E
+          !        \ |
+          !         \!
+          !----------------------------------------
+          else
 
-          call S_idetectors_list%fill_new_detector_table(
-     $         n1_inter_nb+1, S_idetectors_list_n)
+             S_in_E = .false.
 
-          do k=1, n2_inter_nb
-             inter_coords = S_idetectors_list%get_inter_detector_coords(
-     $            n2_coords,
-     $            n2_x_change, n2_y_change, k)
-             S_idetectors_list_n(
-     $            :,n1_inter_nb+S_idetectors_list%get_nb_detectors()+k) =
-     $            inter_coords
-          end do
+          end if
 
 
-          !N detectors recombination
-          n1_coords = W_idetectors_list%get_tail()
-          call N_idetectors_list%get_inter_detector_param(
-     $         n1_coords, N_idetectors_list%get_head(),
-     $         n1_x_change, n1_y_change, n1_inter_nb)
+          ! determine the parameters for the intermediate
+          ! detectors between the W and N detectors
+          call W_dct_list%get_tail(icoord_1,rcoord_1)
+          call N_dct_list%get_head(icoord_2,rcoord_2)
+          call get_inter_detector_param(
+     $         icoord_1,
+     $         rcoord_1,
+     $         icoord_2,
+     $         rcoord_2,
+     $         icoord_icr_NW,
+     $         rcoord_icr_NW,
+     $         inter_nb_NW)
 
-          n2_coords = N_idetectors_list%get_tail()
-          call N_idetectors_list%get_inter_detector_param(
-     $         n2_coords, E_idetectors_list%get_tail(),
-     $         n2_x_change, n2_y_change, n2_inter_nb)
+          icoord_NW = icoord_1
+          rcoord_NW = rcoord_1
+          
+          !     ____N____
+          !    /
+          !   /       
+          !  |
+          ! W|
+          !  |
+          !----------------------------------------
+          if(icoord_icr_NW(2).gt.0) then
 
-          allocate(N_idetectors_list_n(
-     $         2, N_idetectors_list%get_nb_detectors()+n1_inter_nb+n2_inter_nb))
+             N_in_W = .true.
 
-          do k=1, n1_inter_nb
-             inter_coords = N_idetectors_list%get_inter_detector_coords(
-     $            n1_coords,
-     $            n1_x_change, n1_y_change, k)
-             N_idetectors_list_n(:,k) = inter_coords
-          end do
+          else
 
-          call N_idetectors_list%fill_new_detector_table(
-     $         n1_inter_nb+1, N_idetectors_list_n)
+             N_in_W = .false.
 
-          do k=1, n2_inter_nb
-             inter_coords = N_idetectors_list%get_inter_detector_coords(
-     $            n2_coords,
-     $            n2_x_change, n2_y_change, k)
-             N_idetectors_list_n(
-     $            :,n1_inter_nb+N_idetectors_list%get_nb_detectors()+k) =
-     $            inter_coords
-          end do
+          end if
+
+
+          ! determine the parameters for the intermediate
+          ! detectors between the E and N detectors
+          call E_dct_list%get_tail(icoord_1,rcoord_1)
+          call N_dct_list%get_tail(icoord_2,rcoord_2)
+          call get_inter_detector_param(
+     $         icoord_1,
+     $         rcoord_1,
+     $         icoord_2,
+     $         rcoord_2,
+     $         icoord_icr_NE,
+     $         rcoord_icr_NE,
+     $         inter_nb_NE)
+
+          ! ____N____
+          !          \
+          !           \
+          !            |
+          !            |E
+          !            |
+          !----------------------------------------
+          if(icoord_icr_NE(2).gt.0) then
+
+             N_in_E = .true.
+
+             icoord_NE = icoord_1
+             rcoord_NE = rcoord_1
+
+          !
+          !           /|
+          ! ____N____/ |E
+          !            |
+          !----------------------------------------
+          else
+
+             N_in_E = .false.
+
+             icoord_NE = icoord_2
+             rcoord_NE = rcoord_2
+
+             icoord_icr_NE(1) = -icoord_icr_NE(1)
+             icoord_icr_NE(2) = -icoord_icr_NE(2)
+             rcoord_icr_NE(1) = -rcoord_icr_NE(1)
+             rcoord_icr_NE(2) = -rcoord_icr_NE(2)
+          end if
 
           
-          !E detectors recombination
-          allocate(E_idetectors_list_n(2, E_idetectors_list%get_nb_detectors()))
-          call E_idetectors_list%fill_new_detector_table(
-     $         1, E_idetectors_list_n)
-          
+          ! recombine South detector list
+          call finalize_dct_list(
+     $         this%S_icoords,
+     $         this%S_rcoords,
+     $         .not.(S_in_W),
+     $         icoord_SW,
+     $         rcoord_SW,
+     $         icoord_icr_SW,
+     $         rcoord_icr_SW,
+     $         inter_nb_SW,
+     $         S_dct_list,
+     $         E_in_S,
+     $         icoord_SE,
+     $         rcoord_SE,
+     $         icoord_icr_SE,
+     $         rcoord_icr_SE,
+     $         inter_nb_SE)
 
-          !W detectors recombination
-          allocate(W_idetectors_list_n(2, W_idetectors_list%get_nb_detectors()))
-          call W_idetectors_list%fill_new_detector_table(
-     $         1, W_idetectors_list_n)
+          ! recombine West detector list
+          call finalize_dct_list(
+     $         this%W_icoords,
+     $         this%W_rcoords,
+     $         S_in_W,
+     $         icoord_SW,
+     $         rcoord_SW,
+     $         icoord_icr_SW,
+     $         rcoord_icr_SW,
+     $         inter_nb_SW,
+     $         W_dct_list,
+     $         N_in_W,
+     $         icoord_NW,
+     $         rcoord_NW,
+     $         icoord_icr_NW,
+     $         rcoord_icr_NW,
+     $         inter_nb_NW)
 
-          !move the allocations of the previous detector tables
-          !to the new detector tables
-          call MOVE_ALLOC(N_idetectors_list_n, this%N_detectors_list)
-          call MOVE_ALLOC(S_idetectors_list_n, this%S_detectors_list)
-          call MOVE_ALLOC(E_idetectors_list_n, this%E_detectors_list)
-          call MOVE_ALLOC(W_idetectors_list_n, this%W_detectors_list)
+          ! recombine East detector list
+          call finalize_dct_list(
+     $         this%E_icoords,
+     $         this%E_rcoords,
+     $         .not.(E_in_S),
+     $         icoord_SE,
+     $         rcoord_SE,
+     $         icoord_icr_SE,
+     $         rcoord_icr_SE,
+     $         inter_nb_SE,
+     $         E_dct_list,
+     $         N_in_E,
+     $         icoord_NE,
+     $         rcoord_NE,
+     $         icoord_icr_NE,
+     $         rcoord_icr_NE,
+     $         inter_nb_NE)
+
+          ! recombine North detector list
+          call finalize_dct_list(
+     $         this%N_icoords,
+     $         this%N_rcoords,
+     $         .not.(N_in_W),
+     $         icoord_NW,
+     $         rcoord_NW,
+     $         icoord_icr_NW,
+     $         rcoord_icr_NW,
+     $         inter_nb_NW,
+     $         N_dct_list,
+     $         .not.(N_in_E),
+     $         icoord_NE,
+     $         rcoord_NE,
+     $         icoord_icr_NE,
+     $         rcoord_icr_NE,
+     $         inter_nb_NE)
              
-        end subroutine combine_bf_idetector_lists      
+        end subroutine combine_bf_idetector_lists  
+
+
+        !construct the final detector list from the
+        !multiple pieces: left detectors +
+        !new detectors + right detectors
+        subroutine finalize_dct_list(
+     $     icoords_n,
+     $     rcoords_n,
+     $     add_detectors_left,
+     $     icoord_left,
+     $     rcoord_left,
+     $     icoord_icr_left,
+     $     rcoord_icr_left,
+     $     inter_nb_left,
+     $     dct_list,
+     $     add_detectors_right,
+     $     icoord_right,
+     $     rcoord_right,
+     $     icoord_icr_right,
+     $     rcoord_icr_right,
+     $     inter_nb_right)
+
+          implicit none
+
+          integer(ikind), dimension(:,:), allocatable, intent(inout) :: icoords_n
+          real(rkind)   , dimension(:,:), allocatable, intent(inout) :: rcoords_n
+          logical                                    , intent(in)    :: add_detectors_left
+          integer(ikind), dimension(2)               , intent(in)    :: icoord_left
+          real(rkind)   , dimension(2)               , intent(in)    :: rcoord_left
+          integer(ikind), dimension(2)               , intent(in)    :: icoord_icr_left
+          real(rkind)   , dimension(2)               , intent(in)    :: rcoord_icr_left
+          integer                                    , intent(in)    :: inter_nb_left
+          type(bf_detector_icr_list)                 , intent(in)    :: dct_list
+          logical                                    , intent(in)    :: add_detectors_right
+          integer(ikind), dimension(2)               , intent(in)    :: icoord_right
+          real(rkind)   , dimension(2)               , intent(in)    :: rcoord_right
+          integer(ikind), dimension(2)               , intent(in)    :: icoord_icr_right
+          real(rkind)   , dimension(2)               , intent(in)    :: rcoord_icr_right
+          integer                                    , intent(in)    :: inter_nb_right
+          
+          integer(ikind) :: nb_dct
+          integer(ikind) :: k_start
+
+
+          !determine the total number of detectors
+          nb_dct = dct_list%get_nb_detectors()
+          if(add_detectors_left) then
+             nb_dct = nb_dct + inter_nb_left
+          end if
+          if(add_detectors_right) then
+             nb_dct = nb_dct + inter_nb_right
+          end if
+
+
+          !allocate space to store the detector positions
+          if(allocated(icoords_n)) then
+             if(.not.(size(icoords_n,2).eq.nb_dct)) then
+                deallocate(icoords_n)
+                deallocate(rcoords_n)
+                allocate(icoords_n(2,nb_dct))
+                allocate(rcoords_n(2,nb_dct))
+             end if
+          else
+             allocate(icoords_n(2,nb_dct))
+             allocate(rcoords_n(2,nb_dct))
+          end if
+
+
+          !add the left detectors
+          k_start = 1
+          if(add_detector_left) then
+             do k=1, inter_nb_left
+                call get_inter_detector_coords(
+     $               icoord_left,
+     $               rcoord_left,
+     $               icoord_icr_left,
+     $               rcoord_icr_left,
+     $               k,
+     $               icoord_inter,
+     $               rcoord_inter)
+                icoords_n(:,k) = icoord_inter
+                rcoords_n(:,k) = rcoord_inter
+             end do
+             k_start = inter_nb_left+1
+          end if
+
+          !add the central detectors
+          call dct_list%fill_new_detector_table(
+     $         k_start,
+     $         icoords_n,
+     $         rcoords_n)
+
+          k_start = k_start+dct_list%get_nb_detectors()
+
+          !add the right detectors
+          if(add_detector_right) then
+             do k=1, inter_nb_right
+                call get_inter_detector_coords(
+     $               icoord_right,
+     $               rcoord_right,
+     $               icoord_icr_right,
+     $               rcoord_icr_right,
+     $               k,
+     $               icoord_inter,
+     $               rcoord_inter)
+                icoords_n(:,k_start+k-1) = icoord_inter
+                rcoords_n(:,k_start+k-1) = rcoord_inter
+             end do
+          end if
+
+        end subroutine finalize_dct_list
 
 
         !> @author
@@ -630,26 +987,44 @@
         !> the increasing detectors and the subroutine controlling
         !> the extension of the computational domain
         !
-        !>@param dt_list
-        !> detector list processed
+        !>@param dct_icoords
+        !> (x,y) indices identifying the position of the detectors as
+        !> general indices (beyond the interior domain)
         !
-        !>@param ndt_list
-        !> new detector list resulting from the position update
-        !> of the detector list
+        !>@param dct_rcoords
+        !> (x,y) coordinates identifying the position of the detectors
+        !> as general coordinates (beyong the interior domain)
         !
-        !>@param interior_nodes
+        !>@param dct_list_n
+        !> list containing the temporary new list of detectors
+        !
+        !>@param p_model
+        !> physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param dt
+        !> time step
+        !
+        !>@param interior_x_map
+        !> x-coordinates of the interior domain
+        !
+        !>@param interior_y_map
+        !> y-coordinates of the interior domain
+        !
+        !>@param interior_nodes0
         !> table encapsulating the data of the grid points of the
-        !> interior domain
+        !> interior domain at t=t-dt
         !
-        !>@param dx
-        !> grid size along the x-direction
-        !
-        !>@param dy
-        !> grid size along the y-direction
+        !>@param interior_nodes1
+        !> table encapsulating the data of the grid points of the
+        !> interior domain at t=t
         !
         !>@param cpt_coords_p
         !> general coordinates of the central point triggered by the
-        !> last detector
+        !> last detector at the previous step to optimize the number
+        !> of grid points checked
         !
         !>@param path
         !> bf_path_icr object gathering the data when grid points are
@@ -657,8 +1032,9 @@
         !--------------------------------------------------------------
         subroutine process_idetector_list(
      $     this,
-     $     dt_list,
-     $     ndt_list,
+     $     dct_icoords,
+     $     dct_rcoords,
+     $     dct_list_n,
      $     p_model,
      $     t,dt,
      $     interior_x_map,
@@ -671,8 +1047,9 @@
           implicit none
 
           class(bf_interface_icr)                      , intent(inout) :: this
-          integer(ikind)          , dimension(:,:)     , intent(in)    :: dt_list
-          type(bf_detector_icr_list)                   , intent(inout) :: ndt_list
+          integer(ikind)          , dimension(:,:)     , intent(in)    :: dct_icoords
+          real(rkind)             , dimension(:,:)     , intent(in)    :: dct_rcoords
+          type(bf_detector_icr_list)                   , intent(inout) :: dct_list_n
           type(pmodel_eq)                              , intent(in)    :: p_model
           real(rkind)                                  , intent(in)    :: t
           real(rkind)                                  , intent(in)    :: dt
@@ -689,19 +1066,24 @@
           integer       , dimension(2,9) :: mgrdpts
 
           !loop over the detectors
-          do k=1, size(dt_list,2)
+          do k=1, size(dct_icoords,2)
 
              !extract the list of bc_interior_pt that should
              !be turned into interior_pt due to the activation
              !of the detector k
              call get_modified_grdpts_list(
-     $            this, dt_list(:,k),
+     $            this,
+     $            dct_icoords(:,k),
+     $            dct_rcoords(:,k),
      $            interior_x_map,
      $            interior_y_map,
      $            interior_nodes1,
      $            p_model,
-     $            cpt_coords_p, cpt_coords,
-     $            nb_mgrdpts, mgrdpts, ndt_list)
+     $            cpt_coords_p,
+     $            cpt_coords,
+     $            nb_mgrdpts,
+     $            mgrdpts,
+     $            dct_list_n)
 
              !the point used as center point to determine the
              !neighboring points in the analysis of bc_interior_pt
@@ -781,35 +1163,38 @@
         !--------------------------------------------------------------
         subroutine get_modified_grdpts_list(
      $     this,
-     $     d_coords,
+     $     d_icoord,
+     $     d_rcoord,
      $     interior_x_map,
      $     interior_y_map,
      $     interior_nodes,
      $     p_model,
-     $     cpt_coords_p,
-     $     cpt_coords,
+     $     cpt_coord_p,
+     $     cpt_coord,
      $     nb_mgrdpts,
      $     mgrdpts,
      $     ndt_list)
 
           implicit none
 
-          class(bf_interface_icr)         , intent(inout) :: this
-          integer(ikind), dimension(2)    , intent(in)    :: d_coords
-          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
-          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          type(pmodel_eq)                 , intent(in)    :: p_model
-          integer(ikind), dimension(2)    , intent(in)    :: cpt_coords_p
-          integer(ikind), dimension(2)    , intent(out)   :: cpt_coords
-          integer                         , intent(out)   :: nb_mgrdpts
-          integer(ikind), dimension(2,9)  , intent(out)   :: mgrdpts
-          type(bf_detector_icr_list)        , intent(inout) :: ndt_list
+          class(bf_interface_icr)             , intent(inout) :: this
+          integer(ikind) , dimension(2)       , intent(in)    :: d_icoord
+          real(rkind)    , dimension(2)       , intent(in)    :: d_rcoord
+          real(rkind)    , dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind)    , dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind)    , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          type(pmodel_eq)                     , intent(in)    :: p_model
+          integer(ikind) , dimension(2)       , intent(in)    :: cpt_coord_p
+          integer(ikind) , dimension(2)       , intent(out)   :: cpt_coord
+          integer                             , intent(out)   :: nb_mgrdpts
+          integer(ikind) , dimension(2,9)     , intent(out)   :: mgrdpts
+          type(bf_detector_icr_list)          , intent(inout) :: ndt_list
 
 
-          real(rkind), dimension(ne)   :: node_var
+          real(rkind)   , dimension(ne):: node_var
           real(rkind)   , dimension(2) :: velocity
-          integer(ikind), dimension(2) :: d_coords_n
+          integer(ikind), dimension(2) :: d_icoord_n
+          real(rkind)   , dimension(2) :: d_rcoord_n
 
 
           !initialization of the number of modified grid points
@@ -817,7 +1202,7 @@
 
 
           !extract the nodes at the coordinates of the detector
-          node_var = this%get_nodes(d_coords, interior_nodes)
+          node_var = this%get_nodes(d_icoord, interior_nodes)
 
 
           !if the detector is activated, then we check
@@ -831,15 +1216,17 @@
              !get the first point from which we should look for a
              !bc_interior_pt to be activated and the new coordinates
              !from the detector
-             cpt_coords = get_central_grdpt(
-     $            d_coords,
+             cpt_coord = get_central_grdpt(
+     $            d_icoord,
+     $            d_rcoord,
      $            velocity,
      $            interior_x_map,
      $            interior_y_map,
-     $            d_coords_n)
+     $            d_icoord_n,
+     $            d_rcoord_n)
              
              !add the new coordinates of the detector of the ndt_list
-             call ndt_list%add_new_detector(d_coords_n)
+             call ndt_list%add_new_detector(d_icoord_n, d_rcoord_n)
 
              !look for a bc_interior_pt around the point previously
              !computed whose coordinates are: cpt_coords
@@ -848,15 +1235,15 @@
              !grid points checked
              call check_neighboring_bc_interior_pts(
      $            this,
-     $            cpt_coords_p,
-     $            cpt_coords,
+     $            cpt_coord_p,
+     $            cpt_coord,
      $            nb_mgrdpts,
      $            mgrdpts)
 
           !otherwise, the coordinates of the new detector are simply
           !the previous ones, and are saved in the ndt_list
           else
-             call ndt_list%add_new_detector(d_coords)
+             call ndt_list%add_new_detector(d_icoord,d_rcoord)
           end if
 
         end subroutine get_modified_grdpts_list
@@ -920,58 +1307,80 @@
         !> detector
         !--------------------------------------------------------------
         function get_central_grdpt(
-     $     d_coords,
+     $     d_icoord,
+     $     d_rcoord,
      $     velocity,
      $     interior_x_map,
      $     interior_y_map,
-     $     d_coords_n)
+     $     d_icoord_n,
+     $     d_rcoord_n)
      $     result(cpt_coords)
 
           implicit none
 
-          integer(ikind), dimension(2) , intent(in)  :: d_coords
+          integer(ikind), dimension(2) , intent(in)  :: d_icoord
+          real(rkind)   , dimension(2) , intent(in)  :: d_rcoord
           real(rkind)   , dimension(2) , intent(in)  :: velocity
           real(rkind)   , dimension(nx), intent(in)  :: interior_x_map
           real(rkind)   , dimension(ny), intent(in)  :: interior_y_map
-          integer(ikind), dimension(2) , intent(out) :: d_coords_n
+          integer(ikind), dimension(2) , intent(out) :: d_icoord_n
+          integer(ikind), dimension(2) , intent(out) :: d_rcoord_n
           integer(ikind), dimension(2)               :: cpt_coords
 
-          real(rkind) :: dir_x, dir_y
           real(rkind) :: dx,dy
+          real(rkind) :: dir_x, dir_y
+          real(rkind) :: norm_velocity
 
           dx = interior_x_map(2)-interior_x_map(1)
           dy = interior_y_map(2)-interior_y_map(1)
 
           !1) get the direction to look for a bc_interior_pt
-          !dir_x  = velocity(1)*search_nb_dt*dt/dx
-          !dir_y  = velocity(2)*search_nb_dt*dt/dy
-
-          dir_x  = velocity(1)*search_nb_dt*dt/dx
-          dir_y  = velocity(2)*search_nb_dt*dt/dy
-
+          norm_velocity = SQRT(velocity(1)**2+velocity(2)**2)
           
           if(rkind.eq.4) then
 
              !2) get the point indices in the direction given
              !   by the velocity vector
-             cpt_coords(1) = d_coords(1) + nint(dir_x)
-             cpt_coords(2) = d_coords(2) + nint(dir_y)
-             
-             !3) compute the new detector position
-             d_coords_n(1) = d_coords(1) + nint(max(min(dir_x,1.0d0),-1.0d0))
-             d_coords_n(2) = d_coords(2) + nint(max(min(dir_y,1.0d0),-1.0d0))
+             cpt_coords(1) = d_icoord(1) + nint(velocity(1)/norm_velocity*dct_icr_distance)
+             cpt_coords(2) = d_icoord(2) + nint(velocity(2)/norm_velocity*dct_icr_distance)
 
           else
 
              !2) get the point indices in the direction given
              !   by the velocity vector
-             cpt_coords(1) = d_coords(1) + idnint(dir_x)
-             cpt_coords(2) = d_coords(2) + idnint(dir_y)
+             cpt_coord(1) = d_icoord(1) + idnint(velocity(1)/norm_velocity*dct_icr_distance)
+             cpt_coord(2) = d_icoord(2) + idnint(velocity(1)/norm_velocity*dct_icr_distance)
              
-             !3) compute the new detector position
-             d_coords_n(1) = d_coords(1) + idnint(max(min(dir_x,1.0d0),-1.0d0))
-             d_coords_n(2) = d_coords(2) + idnint(max(min(dir_y,1.0d0),-1.0d0))
+          end if
 
+
+          !3) compute the new detector position
+          dir_x  = velocity(1)*dt
+          dir_y  = velocity(2)*dt
+
+          d_rcoord_n(1) = d_rcoord(1) + dir_x
+          d_rcoord_n(2) = d_rcoord(2) + dir_y
+
+          !update of the x-index for the detector
+          if((d_rcoord_n(1)-interior_x_map(d_icoord(1))).gt.dx) then
+             d_icoord_n(1) = d_icoord(1) + 1
+          else
+             if((d_rcoord_n(1)-interior_x_map(d_icoord(1))).lt.(-dx)) then
+                d_icoord_n(1) = d_icoord(1)-1
+             else
+                d_icoord_n(1) = d_icoord(1)
+             end if
+          end if
+
+          !update of the y-index for the detector
+          if((d_rcoord_n(2)-interior_y_map(d_icoord(2))).gt.dy) then
+             d_icoord_n(2) = d_icoord(2) + 1
+          else
+             if((d_rcoord_n(2)-interior_y_map(d_icoord(2))).lt.(-dy)) then
+                d_icoord_n(2) = d_icoord(2)-1
+             else
+                d_icoord_n(2) = d_icoord(2)
+             end if
           end if
 
         end function get_central_grdpt
@@ -2042,8 +2451,10 @@
           class(bf_detector_dcr_list), allocatable :: E_dcr_param
           class(bf_detector_dcr_list), allocatable :: W_dcr_param
 
-          integer(ikind), dimension(2) :: first_pt_linked
-          integer(ikind), dimension(2) :: last_pt_linked
+          integer(ikind), dimension(2) :: left_icoord
+          real(rkind)   , dimension(2) :: left_rcoord
+          integer(ikind), dimension(2) :: right_icoord
+          real(rkind)   , dimension(2) :: right_rcoord
           
           !create the temporary objects saving the parameters
           !for the update of the detector lists due to the removal
@@ -2064,15 +2475,18 @@
           
           !compute the parameters for the construction
           !of the new detector lists
-          call N_dcr_param%compute_new_list_param(bf_align, this%N_detectors_list)
-          call S_dcr_param%compute_new_list_param(bf_align, this%S_detectors_list)
-          call E_dcr_param%compute_new_list_param(bf_align, this%E_detectors_list)
-          call W_dcr_param%compute_new_list_param(bf_align, this%W_detectors_list)
+          call N_dcr_param%compute_new_list_param(bf_align, this%N_dct_icoords)
+          call S_dcr_param%compute_new_list_param(bf_align, this%S_dct_icoords)
+          call E_dcr_param%compute_new_list_param(bf_align, this%E_dct_icoords)
+          call W_dcr_param%compute_new_list_param(bf_align, this%W_dct_icoords)
           
 
           !check the overlap of detectors between the lists
           call check_detector_overlap(
-     $         N_dcr_param, S_dcr_param, E_dcr_param, W_dcr_param)
+     $         N_dcr_param,
+     $         S_dcr_param,
+     $         E_dcr_param,
+     $         W_dcr_param)
 
 
           !compute the new detector lists and link the lists

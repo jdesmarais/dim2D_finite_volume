@@ -214,6 +214,13 @@ $(dbf_layer_dir)/bf_detector_icr_list_class.o:\
 	$(dbf_layer_dir)/bf_detector_module.o\
 	$(param_dir)/parameters_kind.o
 
+$(dbf_layer_dir)/bf_detector_dcr_param_class.o:\
+	$(dbf_layer_dir)/bf_detector_module.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
 $(dbf_layer_dir)/bf_detector_dcr_list_class.o:\
 	$(dbf_layer_dir)/bf_detector_module.o\
 	$(param_dir)/parameters_input.o\

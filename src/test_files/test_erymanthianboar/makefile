@@ -384,3 +384,16 @@ test_bf_layer_nf90_operators_prog:\
 	$(sd_dep)\
 	$(dim2d_dep)
 
+
+test_bf_detector_dcr_param.o:	$(dbf_layer_dir)/bf_detector_dcr_param_class.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_detector_dcr_param:	parameters_bf_layer.o\
+				bf_detector_module.o\
+				bf_detector_dcr_param_class.o\
+				parameters_constant.o\
+				parameters_input.o\
+				parameters_kind.o

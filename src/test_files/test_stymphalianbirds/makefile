@@ -269,3 +269,14 @@ test_nbf_interface_newgrdpt:\
 			nbf_list_class.o\
 			nbf_interface_class.o\
 			nbf_interface_newgrdpt_class.o
+
+test_bf_interface_icr.o:\
+			$(bf_layer_dir)/bf_interface_icr_class.o
+
+test_bf_interface_icr:\
+			$(mt_dep)\
+			$(wave2d_dep)\
+			$(fv_dep)\
+			$(hedstrom_xy_dep)\
+			$(bf_interface_icr_dep)\
+			parameters_kind.o

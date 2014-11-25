@@ -464,16 +464,36 @@
         !>@param bf_align
         !> alignment of the buffer layer removed
         !
-        !>@param dct_list
-        !> old detector list
+        !>@param interior_x_map
+        !> x-coordinates of the interior domain
+        !
+        !>@param interior_y_map
+        !> y-coordinates of the interior domain
+        !
+        !>@param icoords
+        !> (x,y)-indices of the detectors before removal of the detectors
+        !> located in the buffer layer removed
+        !
+        !>@param rcoords
+        !> (x,y)-coordinates of the detectors before removal of the
+        !>  detectors located in the buffer layer removed
         !--------------------------------------------------------------
-        subroutine compute_new_list_param(this, bf_align, dct_list)
+        subroutine compute_new_list_param(
+     $     this,
+     $     bf_align,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     icoords,
+     $     rcoords)
 
           implicit none
 
           class(bf_detector_dcr_list), intent(inout) :: this
           integer(ikind), dimension(2,2), intent(in) :: bf_align
-          integer(ikind), dimension(:,:), intent(in) :: dct_list
+          real(rkind)   , dimension(nx) , intent(in) :: interior_x_map
+          real(rkind)   , dimension(ny) , intent(in) :: interior_y_map
+          integer(ikind), dimension(:,:), intent(in) :: icoords
+          integer(rkind), dimension(:,:), intent(in) :: rcoords
 
 
           integer(ikind) :: i
@@ -484,13 +504,14 @@
           !be removed, the first detector of the new list is
           !computed depending on the cardinal coordinate
           !of the sublayer removed
-          if(this%should_be_removed(bf_align, dct_list(:,1))) then
+          if(this%should_be_removed(bf_align, icoords(:,1))) then
              call add_deleted_detector(this, 1)
              this%first_detector = this%get_border_detector(dct_list(:,1))
 
           !otherwise the first detector remains
           else
-             this%first_detector = dct_list(:,1)
+             this%first_icoord = icoords(:,1)
+             this%last_rcoord  = rcoords(:,1)
 
           end if
 
