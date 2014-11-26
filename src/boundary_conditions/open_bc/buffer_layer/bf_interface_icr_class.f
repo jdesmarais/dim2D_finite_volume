@@ -18,20 +18,8 @@
 
         !temporary objects to create one closed path
         !of detectors out of several detector lists
-        use bf_detector_dcr_list_class, only :
-     $     bf_detector_dcr_list
-
-        use bf_detector_dcr_list_N_class, only :
-     $       bf_detector_dcr_list_N
-
-        use bf_detector_dcr_list_S_class, only :
-     $       bf_detector_dcr_list_S
-
-        use bf_detector_dcr_list_E_class, only :
-     $       bf_detector_dcr_list_E
-
-        use bf_detector_dcr_list_W_class, only :
-     $       bf_detector_dcr_list_W
+        use bf_detector_dcr_param_class, only :
+     $     bf_detector_dcr_param
 
         !subroutines needed to compute the position
         !of intermediate detectors when combining
@@ -58,9 +46,6 @@
 
         use bf_interface_class, only :
      $       bf_interface
-
-        use bf_layer_errors_module, only :
-     $       error_mainlayer_id
 
         use parameters_bf_layer, only :
      $       bc_interior_pt,
@@ -189,15 +174,15 @@
         !---------------------------------------------------------------
         type, extends(bf_interface) :: bf_interface_icr
 
-          integer(ikind), dimension(:,:), allocatable, private :: N_detectors_list
-          integer(ikind), dimension(:,:), allocatable, private :: S_detectors_list
-          integer(ikind), dimension(:,:), allocatable, private :: E_detectors_list
-          integer(ikind), dimension(:,:), allocatable, private :: W_detectors_list
+          integer(ikind), dimension(:,:), allocatable, private :: N_dct_icoords
+          integer(ikind), dimension(:,:), allocatable, private :: S_dct_icoords
+          integer(ikind), dimension(:,:), allocatable, private :: E_dct_icoords
+          integer(ikind), dimension(:,:), allocatable, private :: W_dct_icoords
 
-          real(rkind)   , dimension(:,:), allocatable, private :: N_detectors_list_coords
-          real(rkind)   , dimension(:,:), allocatable, private :: S_detectors_list_coords
-          real(rkind)   , dimension(:,:), allocatable, private :: E_detectors_list_coords
-          real(rkind)   , dimension(:,:), allocatable, private :: W_detectors_list_coords
+          real(rkind)   , dimension(:,:), allocatable, private :: N_dct_rcoords
+          real(rkind)   , dimension(:,:), allocatable, private :: S_dct_rcoords
+          real(rkind)   , dimension(:,:), allocatable, private :: E_dct_rcoords
+          real(rkind)   , dimension(:,:), allocatable, private :: W_dct_rcoords
 
           contains
 
@@ -211,7 +196,7 @@
           procedure,   pass :: remove_sublayer
 
           procedure, nopass, private :: is_detector_icr_activated
-          procedure, nopass, private :: get_central_grdpt
+          procedure, nopass          :: get_central_grdpt
           procedure,   pass, private :: check_neighboring_bc_interior_pts
           procedure,   pass, private :: check_neighboring_bc_interior_pts_for_interior
           procedure, nopass, private :: is_inside_border_layer
@@ -222,6 +207,8 @@
 
           procedure,   pass          :: print_idetectors_on
           procedure,   pass          :: print_idetectors_on_binary
+
+          procedure,   pass          :: get_dct_coords
 
         end type bf_interface_icr
 
@@ -279,8 +266,8 @@
              this%S_dct_icoords(2,i-(bc_size+dct_icr_distance)+1) = dct_icr_S_default
 
              !(x,y)-coordinates
-             this%S_dct_icoords(1,i-(bc_size+dct_icr_distance)+1) = interior_x_map(i)
-             this%S_dct_icoords(2,i-(bc_size+dct_icr_distance)+1) = interior_y_map(dct_icr_S_default)
+             this%S_dct_rcoords(1,i-(bc_size+dct_icr_distance)+1) = interior_x_map(i)
+             this%S_dct_rcoords(2,i-(bc_size+dct_icr_distance)+1) = interior_y_map(dct_icr_S_default)
 
           end do
 
@@ -422,7 +409,7 @@
 
           !1) South detectors
           if(allocated(this%S_dct_icoords)) then
-             call S_ndt_list%ini(S, size(this%S_dct_icoords,2))
+             call S_dct_list_n%ini(S, size(this%S_dct_icoords,2))
 
              call process_idetector_list(
      $            this,
@@ -442,7 +429,7 @@
 
           !2) East detectors
           if(allocated(this%E_dct_icoords)) then
-             call E_ndt_list%ini(E, size(this%E_dct_icoords,2))
+             call E_dct_list_n%ini(E, size(this%E_dct_icoords,2))
 
              call process_idetector_list(
      $            this,
@@ -462,7 +449,7 @@
 
           !3) West detectors
           if(allocated(this%W_dct_icoords)) then
-             call W_ndt_list%ini(W, size(this%W_dct_icoords,2))
+             call W_dct_list_n%ini(W, size(this%W_dct_icoords,2))
 
              call process_idetector_list(
      $            this,
@@ -482,7 +469,7 @@
 
           !4) North detectors
           if(allocated(this%N_dct_icoords)) then
-             call N_ndt_list%ini(N, size(this%N_dct_icoords,2))
+             call N_dct_list_n%ini(N, size(this%N_dct_icoords,2))
 
              call process_idetector_list(
      $            this,
@@ -563,48 +550,73 @@
         !--------------------------------------------------------------
         subroutine combine_bf_idetector_lists(
      $     this,
-     $     N_dct_list,
-     $     S_dct_list,
-     $     E_dct_list,
-     $     W_dct_list)
+     $     N_dct_list_n,
+     $     S_dct_list_n,
+     $     E_dct_list_n,
+     $     W_dct_list_n)
 
           implicit none
 
           class(bf_interface_icr)   , intent(inout) :: this
-          type(bf_detector_icr_list), intent(in)    :: N_dct_list
-          type(bf_detector_icr_list), intent(in)    :: S_dct_list
-          type(bf_detector_icr_list), intent(in)    :: E_dct_list
-          type(bf_detector_icr_list), intent(in)    :: W_dct_list
+          type(bf_detector_icr_list), intent(in)    :: N_dct_list_n
+          type(bf_detector_icr_list), intent(in)    :: S_dct_list_n
+          type(bf_detector_icr_list), intent(in)    :: E_dct_list_n
+          type(bf_detector_icr_list), intent(in)    :: W_dct_list_n
 
 
           !intermediate coordinates when computing the parameters
           !for the detectors between the cardinal detector lists
-          integer(ikind), dimension(2) :: icoord
-          real(rkind)   , dimension(2) :: rcoord
+          integer(ikind), dimension(2) :: icoord_1
+          real(rkind)   , dimension(2) :: rcoord_1
+          integer(ikind), dimension(2) :: icoord_2
+          real(rkind)   , dimension(2) :: rcoord_2
 
           integer(ikind), dimension(2) :: icoord_SW
           real(rkind)   , dimension(2) :: rcoord_SW
-          integer(ikind), dimension(2) :: icoord_icr_SW
+          real(rkind)   , dimension(2) :: icoord_icr_SW
           real(rkind)   , dimension(2) :: rcoord_icr_SW
           integer(ikind)               :: inter_nb_SW
 
           integer(ikind), dimension(2) :: icoord_SE
           real(rkind)   , dimension(2) :: rcoord_SE
-          integer(ikind), dimension(2) :: icoord_icr_SE
+          real(rkind)   , dimension(2) :: icoord_icr_SE
           real(rkind)   , dimension(2) :: rcoord_icr_SE
           integer(ikind)               :: inter_nb_SE
 
           integer(ikind), dimension(2) :: icoord_NE
           real(rkind)   , dimension(2) :: rcoord_NE
-          integer(ikind), dimension(2) :: icoord_icr_NE
+          real(rkind)   , dimension(2) :: icoord_icr_NE
           real(rkind)   , dimension(2) :: rcoord_icr_NE
           integer(ikind)               :: inter_nb_NE
 
           integer(ikind), dimension(2) :: icoord_NW
           real(rkind)   , dimension(2) :: rcoord_NW
-          integer(ikind), dimension(2) :: icoord_icr_NW
+          real(rkind)   , dimension(2) :: icoord_icr_NW
           real(rkind)   , dimension(2) :: rcoord_icr_NW
           integer(ikind)               :: inter_nb_NW
+
+          logical :: W_in_S
+          logical :: S_in_E
+          logical :: N_in_W
+          logical :: N_in_E
+
+          logical :: N_remove_first_dct
+          logical :: N_remove_last_dct
+          logical :: S_remove_first_dct
+          logical :: S_remove_last_dct
+          logical :: E_remove_first_dct
+          logical :: E_remove_last_dct
+          logical :: W_remove_first_dct
+          logical :: W_remove_last_dct
+
+          N_remove_first_dct = .false.
+          N_remove_last_dct  = .false.
+          S_remove_first_dct = .false.
+          S_remove_last_dct  = .false.
+          E_remove_first_dct = .false.
+          E_remove_last_dct  = .false.
+          W_remove_first_dct = .false.
+          W_remove_last_dct  = .false.
 
 
           !WARNING: we need to organize the intermediate detectors
@@ -621,8 +633,8 @@
 
           ! determine the parameters for the intermediate
           ! detectors between the W and S detectors
-          call W_dct_list%get_head(icoord_1,rcoord_1)
-          call S_dct_list%get_head(icoord_2,rcoord_2)
+          call W_dct_list_n%get_head(icoord_1,rcoord_1)
+          call S_dct_list_n%get_head(icoord_2,rcoord_2)
           call get_inter_detector_param(
      $         icoord_1,
      $         rcoord_1,
@@ -632,12 +644,18 @@
      $         rcoord_icr_SW,
      $         inter_nb_SW)
 
+          !remove overlap b/w S and W
+          if((icoord_1(1).eq.icoord_2(1)).and.(
+     $         icoord_1(2).eq.icoord_2(1))) then
+             W_remove_first_dct = .true.
+          end if
+
           !
           !  |  ___S___
           ! W| /
           !  !/
           !----------------------------------------
-          if(icoord_icr_SW(2).gt.0) then
+          if(icoord_icr_SW(2).ge.0) then
 
              W_in_S = .true.
 
@@ -668,8 +686,8 @@
 
           ! determine the parameters for the intermediate
           ! detectors between the E and S detectors
-          call S_dct_list%get_tail(icoord_1,rcoord_1)
-          call E_dct_list%get_head(icoord_2,rcoord_2)
+          call S_dct_list_n%get_tail(icoord_1,rcoord_1)
+          call E_dct_list_n%get_head(icoord_2,rcoord_2)
           call get_inter_detector_param(
      $         icoord_1,
      $         rcoord_1,
@@ -678,6 +696,13 @@
      $         icoord_icr_SE,
      $         rcoord_icr_SE,
      $         inter_nb_SE)
+
+          !remove overlap b/w S and E
+          if((icoord_1(1).eq.icoord_2(1)).and.(
+     $         icoord_1(2).eq.icoord_2(1))) then
+             E_remove_first_dct = .true.
+          end if
+
 
           icoord_SE = icoord_1
           rcoord_SE = rcoord_1
@@ -688,7 +713,7 @@
           !         /
           ! ___S___/
           !----------------------------------------
-          if(icoord_icr_SW(2).gt.0) then
+          if(icoord_icr_SE(2).gt.0) then
 
              S_in_E = .true.
           !
@@ -707,8 +732,8 @@
 
           ! determine the parameters for the intermediate
           ! detectors between the W and N detectors
-          call W_dct_list%get_tail(icoord_1,rcoord_1)
-          call N_dct_list%get_head(icoord_2,rcoord_2)
+          call W_dct_list_n%get_tail(icoord_1,rcoord_1)
+          call N_dct_list_n%get_head(icoord_2,rcoord_2)
           call get_inter_detector_param(
      $         icoord_1,
      $         rcoord_1,
@@ -717,6 +742,12 @@
      $         icoord_icr_NW,
      $         rcoord_icr_NW,
      $         inter_nb_NW)
+
+          !remove overlap b/w W and N
+          if((icoord_1(1).eq.icoord_2(1)).and.(
+     $         icoord_1(2).eq.icoord_2(1))) then
+             W_remove_last_dct = .true.
+          end if
 
           icoord_NW = icoord_1
           rcoord_NW = rcoord_1
@@ -741,8 +772,8 @@
 
           ! determine the parameters for the intermediate
           ! detectors between the E and N detectors
-          call E_dct_list%get_tail(icoord_1,rcoord_1)
-          call N_dct_list%get_tail(icoord_2,rcoord_2)
+          call E_dct_list_n%get_tail(icoord_1,rcoord_1)
+          call N_dct_list_n%get_tail(icoord_2,rcoord_2)
           call get_inter_detector_param(
      $         icoord_1,
      $         rcoord_1,
@@ -751,6 +782,12 @@
      $         icoord_icr_NE,
      $         rcoord_icr_NE,
      $         inter_nb_NE)
+
+          !remove overlap b/w E and N
+          if((icoord_1(1).eq.icoord_2(1)).and.(
+     $         icoord_1(2).eq.icoord_2(1))) then
+             E_remove_last_dct = .true.
+          end if
 
           ! ____N____
           !          \
@@ -787,16 +824,16 @@
           
           ! recombine South detector list
           call finalize_dct_list(
-     $         this%S_icoords,
-     $         this%S_rcoords,
-     $         .not.(S_in_W),
+     $         this%S_dct_icoords,
+     $         this%S_dct_rcoords,
+     $         W_in_S,
      $         icoord_SW,
      $         rcoord_SW,
      $         icoord_icr_SW,
      $         rcoord_icr_SW,
      $         inter_nb_SW,
-     $         S_dct_list,
-     $         E_in_S,
+     $         S_dct_list_n,
+     $         .not.(S_in_E),
      $         icoord_SE,
      $         rcoord_SE,
      $         icoord_icr_SE,
@@ -805,15 +842,15 @@
 
           ! recombine West detector list
           call finalize_dct_list(
-     $         this%W_icoords,
-     $         this%W_rcoords,
-     $         S_in_W,
+     $         this%W_dct_icoords,
+     $         this%W_dct_rcoords,
+     $         .not.(W_in_S),
      $         icoord_SW,
      $         rcoord_SW,
      $         icoord_icr_SW,
      $         rcoord_icr_SW,
      $         inter_nb_SW,
-     $         W_dct_list,
+     $         W_dct_list_n,
      $         N_in_W,
      $         icoord_NW,
      $         rcoord_NW,
@@ -821,17 +858,27 @@
      $         rcoord_icr_NW,
      $         inter_nb_NW)
 
+          if(W_remove_first_dct.or.W_remove_last_dct) then
+
+             call remove_overlap(
+     $            this%W_dct_icoords,
+     $            this%W_dct_rcoords,
+     $            W_remove_first_dct,
+     $            W_remove_last_dct)
+
+          end if
+
           ! recombine East detector list
           call finalize_dct_list(
-     $         this%E_icoords,
-     $         this%E_rcoords,
-     $         .not.(E_in_S),
+     $         this%E_dct_icoords,
+     $         this%E_dct_rcoords,
+     $         S_in_E,
      $         icoord_SE,
      $         rcoord_SE,
      $         icoord_icr_SE,
      $         rcoord_icr_SE,
      $         inter_nb_SE,
-     $         E_dct_list,
+     $         E_dct_list_n,
      $         N_in_E,
      $         icoord_NE,
      $         rcoord_NE,
@@ -839,17 +886,27 @@
      $         rcoord_icr_NE,
      $         inter_nb_NE)
 
+          if(E_remove_first_dct.or.E_remove_last_dct) then
+
+             call remove_overlap(
+     $            this%E_dct_icoords,
+     $            this%E_dct_rcoords,
+     $            E_remove_first_dct,
+     $            E_remove_last_dct)
+
+          end if
+
           ! recombine North detector list
           call finalize_dct_list(
-     $         this%N_icoords,
-     $         this%N_rcoords,
+     $         this%N_dct_icoords,
+     $         this%N_dct_rcoords,
      $         .not.(N_in_W),
      $         icoord_NW,
      $         rcoord_NW,
      $         icoord_icr_NW,
      $         rcoord_icr_NW,
      $         inter_nb_NW,
-     $         N_dct_list,
+     $         N_dct_list_n,
      $         .not.(N_in_E),
      $         icoord_NE,
      $         rcoord_NE,
@@ -887,19 +944,21 @@
           logical                                    , intent(in)    :: add_detectors_left
           integer(ikind), dimension(2)               , intent(in)    :: icoord_left
           real(rkind)   , dimension(2)               , intent(in)    :: rcoord_left
-          integer(ikind), dimension(2)               , intent(in)    :: icoord_icr_left
+          real(rkind)   , dimension(2)               , intent(in)    :: icoord_icr_left
           real(rkind)   , dimension(2)               , intent(in)    :: rcoord_icr_left
           integer                                    , intent(in)    :: inter_nb_left
           type(bf_detector_icr_list)                 , intent(in)    :: dct_list
           logical                                    , intent(in)    :: add_detectors_right
           integer(ikind), dimension(2)               , intent(in)    :: icoord_right
           real(rkind)   , dimension(2)               , intent(in)    :: rcoord_right
-          integer(ikind), dimension(2)               , intent(in)    :: icoord_icr_right
+          real(rkind)   , dimension(2)               , intent(in)    :: icoord_icr_right
           real(rkind)   , dimension(2)               , intent(in)    :: rcoord_icr_right
           integer                                    , intent(in)    :: inter_nb_right
           
-          integer(ikind) :: nb_dct
-          integer(ikind) :: k_start
+          integer(ikind), dimension(2) :: icoord_inter
+          real(rkind)   , dimension(2) :: rcoord_inter
+          integer(ikind)               :: nb_dct
+          integer(ikind)               :: k,k_start
 
 
           !determine the total number of detectors
@@ -928,7 +987,7 @@
 
           !add the left detectors
           k_start = 1
-          if(add_detector_left) then
+          if(add_detectors_left) then
              do k=1, inter_nb_left
                 call get_inter_detector_coords(
      $               icoord_left,
@@ -953,7 +1012,7 @@
           k_start = k_start+dct_list%get_nb_detectors()
 
           !add the right detectors
-          if(add_detector_right) then
+          if(add_detectors_right) then
              do k=1, inter_nb_right
                 call get_inter_detector_coords(
      $               icoord_right,
@@ -969,6 +1028,58 @@
           end if
 
         end subroutine finalize_dct_list
+
+
+        subroutine remove_overlap(
+     $     icoords,
+     $     rcoords,
+     $     remove_first_dct,
+     $     remove_last_dct)
+        
+          implicit none
+
+          integer(ikind), dimension(:,:), allocatable, intent(inout) :: icoords
+          real(rkind)   , dimension(:,:), allocatable, intent(inout) :: rcoords
+          logical                                    , intent(in)    :: remove_first_dct
+          logical                                    , intent(in)    :: remove_last_dct
+
+          integer(ikind), dimension(:,:), allocatable :: tmp_icoords
+          real(rkind)   , dimension(:,:), allocatable :: tmp_rcoords
+
+          
+          if(remove_first_dct) then
+             if(remove_last_dct) then
+                
+                allocate(tmp_icoords(2,size(icoords,2)-2))
+                allocate(tmp_rcoords(2,size(rcoords,2)-2))
+
+                tmp_icoords = icoords(:,2:size(icoords,2)-1)
+                tmp_rcoords = rcoords(:,2:size(rcoords,2)-1)
+
+             else
+                
+                allocate(tmp_icoords(2,size(icoords,2)-1))
+                allocate(tmp_rcoords(2,size(rcoords,2)-1))
+
+                tmp_icoords = icoords(:,2:size(icoords,2))
+                tmp_rcoords = rcoords(:,2:size(rcoords,2))
+                
+             end if
+
+          else
+
+             allocate(tmp_icoords(2,size(icoords,2)-1))
+             allocate(tmp_rcoords(2,size(rcoords,2)-1))
+
+             tmp_icoords = icoords(:,1:size(icoords,2)-1)
+             tmp_rcoords = rcoords(:,1:size(rcoords,2)-1)
+             
+          end if          
+
+          call MOVE_ALLOC(tmp_icoords,icoords)
+          call MOVE_ALLOC(tmp_rcoords,rcoords)
+
+        end subroutine remove_overlap
 
 
         !> @author
@@ -1324,7 +1435,7 @@
           real(rkind)   , dimension(nx), intent(in)  :: interior_x_map
           real(rkind)   , dimension(ny), intent(in)  :: interior_y_map
           integer(ikind), dimension(2) , intent(out) :: d_icoord_n
-          integer(ikind), dimension(2) , intent(out) :: d_rcoord_n
+          real(rkind)   , dimension(2) , intent(out) :: d_rcoord_n
           integer(ikind), dimension(2)               :: cpt_coords
 
           real(rkind) :: dx,dy
@@ -1348,8 +1459,8 @@
 
              !2) get the point indices in the direction given
              !   by the velocity vector
-             cpt_coord(1) = d_icoord(1) + idnint(velocity(1)/norm_velocity*dct_icr_distance)
-             cpt_coord(2) = d_icoord(2) + idnint(velocity(1)/norm_velocity*dct_icr_distance)
+             cpt_coords(1) = d_icoord(1) + idnint(velocity(1)/norm_velocity*dct_icr_distance)
+             cpt_coords(2) = d_icoord(2) + idnint(velocity(1)/norm_velocity*dct_icr_distance)
              
           end if
 
@@ -2329,13 +2440,20 @@
         !>@param bf_mainlayer_id
         !> cardinal coordinate locating the buffer layer removed
         !--------------------------------------------------------------
-        subroutine remove_sublayer(this, sublayer_ptr, bf_mainlayer_id)
+        subroutine remove_sublayer(
+     $     this,
+     $     sublayer_ptr,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     bf_mainlayer_id)
 
           implicit none
           
-          class(bf_interface_icr)   , intent(inout) :: this
-          type(bf_sublayer), pointer, intent(inout) :: sublayer_ptr
-          integer         , optional, intent(in)    :: bf_mainlayer_id
+          class(bf_interface_icr)         , intent(inout) :: this
+          type(bf_sublayer), pointer      , intent(inout) :: sublayer_ptr
+          real(rkind)      , dimension(nx), intent(in)    :: interior_x_map
+          real(rkind)      , dimension(ny), intent(in)    :: interior_y_map
+          integer, optional               , intent(in)    :: bf_mainlayer_id
           
           integer :: mainlayer_id
 
@@ -2352,12 +2470,16 @@
           !to the sublayer removed
           call update_icr_detectors_after_removal(
      $         this,
+     $         mainlayer_id,
      $         sublayer_ptr%get_alignment_tab(),
-     $         mainlayer_id)
+     $         interior_x_map,
+     $         interior_y_map)
           
           !remove the sublayer
           call this%bf_interface%remove_sublayer(
      $         sublayer_ptr,
+     $         interior_x_map,
+     $         interior_y_map,
      $         mainlayer_id)
 
         end subroutine remove_sublayer
@@ -2385,259 +2507,312 @@
         !> cardinal coordinate locating the buffer layer removed
         !--------------------------------------------------------------
         subroutine update_icr_detectors_after_removal(
-     $     this, bf_align, bf_mainlayer_id)
+     $     this,
+     $     bf_mainlayer_id,
+     $     bf_align,
+     $     interior_x_map,
+     $     interior_y_map)
 
           class(bf_interface_icr)       , intent(inout) :: this
-          integer(ikind), dimension(2,2), intent(in)    :: bf_align
           integer                       , intent(in)    :: bf_mainlayer_id
-
-          type(bf_detector_dcr_list_N) :: dcr_param_N
-          type(bf_detector_dcr_list_S) :: dcr_param_S
-          type(bf_detector_dcr_list_E) :: dcr_param_E
-          type(bf_detector_dcr_list_W) :: dcr_param_W
+          integer(ikind), dimension(2,2), intent(in)    :: bf_align
+          real(rkind)   , dimension(nx) , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(ny) , intent(in)    :: interior_y_map
 
 
-          select case(bf_mainlayer_id)
-            case(N)
-               call update_icr_detectors(this, bf_align, dcr_param_N)
-            case(S)
-               call update_icr_detectors(this, bf_align, dcr_param_S)
-            case(E)
-               call update_icr_detectors(this, bf_align, dcr_param_E)
-            case(W)
-               call update_icr_detectors(this, bf_align, dcr_param_W)
-            case default
-               call error_mainlayer_id(
-     $              'bf_interface_icr_class.f',
-     $              'update_icr_detectors_after_removal',
-     $              bf_mainlayer_id)
-          end select
+          !temporary objects used to store the parameters
+          !when removing detectors from the detector list
+          type(bf_detector_dcr_param) :: N_dcr_param
+          type(bf_detector_dcr_param) :: S_dcr_param
+          type(bf_detector_dcr_param) :: E_dcr_param
+          type(bf_detector_dcr_param) :: W_dcr_param
+
+          logical :: N_remove_first_dct
+          logical :: N_remove_last_dct
+          logical :: S_remove_first_dct
+          logical :: S_remove_last_dct
+          logical :: E_remove_first_dct
+          logical :: E_remove_last_dct
+          logical :: W_remove_first_dct
+          logical :: W_remove_last_dct          
+
+          logical :: E_in_N
+          logical :: E_in_S
+          logical :: W_in_N
+          logical :: W_in_S
+
+          integer(ikind), dimension(2) :: icoord_1
+          integer(ikind), dimension(2) :: icoord_2
+
+          real(rkind)   , dimension(2) :: rcoord_1
+          real(rkind)   , dimension(2) :: rcoord_2
+
+          integer(ikind), dimension(2) :: N_first_dct_icoord
+          integer(ikind), dimension(2) :: N_last_dct_icoord
+          integer(ikind), dimension(2) :: S_first_dct_icoord
+          integer(ikind), dimension(2) :: S_last_dct_icoord
+          integer(ikind), dimension(2) :: E_first_dct_icoord
+          integer(ikind), dimension(2) :: E_last_dct_icoord
+          integer(ikind), dimension(2) :: W_first_dct_icoord
+          integer(ikind), dimension(2) :: W_last_dct_icoord
+
+          real(rkind), dimension(2) :: N_first_dct_rcoord
+          real(rkind), dimension(2) :: N_last_dct_rcoord
+          real(rkind), dimension(2) :: S_first_dct_rcoord
+          real(rkind), dimension(2) :: S_last_dct_rcoord
+          real(rkind), dimension(2) :: E_first_dct_rcoord
+          real(rkind), dimension(2) :: E_last_dct_rcoord
+          real(rkind), dimension(2) :: W_first_dct_rcoord
+          real(rkind), dimension(2) :: W_last_dct_rcoord
+
+
+          !determine the parameters for the removal of the
+          !detectors belonging to the buffer layer removed
+          call N_dcr_param%compute_new_list_param(
+     $         bf_mainlayer_id,
+     $         bf_align,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         this%N_dct_icoords,
+     $         this%N_dct_rcoords)
+
+          call S_dcr_param%compute_new_list_param(
+     $         bf_mainlayer_id,
+     $         bf_align,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         this%S_dct_icoords,
+     $         this%S_dct_rcoords)
+
+          call E_dcr_param%compute_new_list_param(
+     $         bf_mainlayer_id,
+     $         bf_align,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         this%E_dct_icoords,
+     $         this%E_dct_rcoords)
+
+          call W_dcr_param%compute_new_list_param(
+     $         bf_mainlayer_id,
+     $         bf_align,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         this%W_dct_icoords,
+     $         this%W_dct_rcoords)          
+
+
+          !determine the first and last detector of
+          !each list to finalize the new etector lists
+          !if there is an overlapping between two detector
+          !lists (last detector of one list is the first
+          !detector of another one for example), it has to
+          !be removed also
+
+          !============================================================
+          !initialization for the overlap
+          !============================================================
+          N_remove_first_dct = .false.
+          N_remove_last_dct  = .false.
+          S_remove_first_dct = .false.
+          S_remove_last_dct  = .false.
+          E_remove_first_dct = .false.
+          E_remove_last_dct  = .false.
+          W_remove_first_dct = .false.
+          W_remove_last_dct  = .false.          
+          
+
+          !============================================================
+          !NW linking
+          !============================================================
+          call W_dcr_param%get_last_detector( icoord_1, rcoord_1)
+          call N_dcr_param%get_first_detector(icoord_2, rcoord_2)
+
+          if((icoord_2(2)-icoord_1(2)).gt.0) then
+             W_in_N = .false.
+
+             W_last_dct_icoord  = icoord_2
+             W_last_dct_rcoord  = rcoord_2
+             N_first_dct_icoord = icoord_2
+             N_first_dct_rcoord = rcoord_2
+
+          else
+             W_in_N = .true.
+
+             W_last_dct_icoord  = icoord_1
+             W_last_dct_rcoord  = rcoord_1
+             N_first_dct_icoord = icoord_1
+             N_first_dct_rcoord = rcoord_1
+          end if
+
+
+          !overlap between N and W
+          if(
+     $         (icoord_1(1).eq.icoord_2(1)).and.
+     $         (icoord_1(2).eq.icoord_2(2))
+     $    ) then
+             W_remove_last_dct = .true.
+          end if
+             
+
+          !============================================================
+          !NE linking
+          !============================================================
+          call E_dcr_param%get_last_detector(icoord_1, rcoord_1)
+          call N_dcr_param%get_last_detector(icoord_2, rcoord_2)
+
+          if((icoord_2(2)-icoord_1(2)).ge.0) then
+             E_in_N = .false.
+
+             E_last_dct_icoord = icoord_2
+             E_last_dct_rcoord = rcoord_2
+             N_last_dct_icoord = icoord_2
+             N_last_dct_rcoord = rcoord_2
+
+          else
+             E_in_N = .true.
+
+             E_last_dct_icoord  = icoord_1
+             E_last_dct_rcoord  = rcoord_1
+             N_first_dct_icoord = icoord_1
+             N_first_dct_rcoord = rcoord_1
+          end if
+
+
+          !overlap between N and E
+          if(
+     $         (icoord_1(1).eq.icoord_2(1)).and.
+     $         (icoord_1(2).eq.icoord_2(2))
+     $    ) then
+             E_remove_last_dct = .true.
+          end if
+          
+
+          !============================================================
+          !SW linking
+          !============================================================
+          call W_dcr_param%get_first_detector(icoord_1, rcoord_1)
+          call S_dcr_param%get_first_detector(icoord_2, rcoord_2)
+
+          if((icoord_2(2)-icoord_1(2)).ge.0) then
+             W_in_S = .true.
+
+             W_first_dct_icoord = icoord_1
+             W_first_dct_rcoord = rcoord_1
+             S_first_dct_icoord = icoord_1
+             S_first_dct_rcoord = rcoord_1
+
+          else
+             W_in_S = .false.
+
+             W_first_dct_icoord = icoord_2
+             W_first_dct_rcoord = rcoord_2
+             S_first_dct_icoord = icoord_2
+             S_first_dct_rcoord = rcoord_2
+
+          end if
+
+
+          !overlap between S and W
+          if(
+     $         (icoord_1(1).eq.icoord_2(1)).and.
+     $         (icoord_1(2).eq.icoord_2(2))
+     $    ) then
+             W_remove_first_dct = .true.
+          end if
+
+
+          !============================================================
+          !SE linking
+          !============================================================
+          call S_dcr_param%get_last_detector(icoord_1, rcoord_1)
+          call E_dcr_param%get_first_detector(icoord_2, rcoord_2)
+
+          if((icoord_2(2)-icoord_1(2)).ge.0) then
+             E_in_S = .false.
+
+             S_last_dct_icoord  = icoord_1
+             S_last_dct_rcoord  = rcoord_1
+             E_first_dct_icoord = icoord_1
+             E_first_dct_rcoord = rcoord_1
+
+          else
+             E_in_S = .true.
+
+             S_last_dct_icoord  = icoord_2
+             S_last_dct_rcoord  = rcoord_2
+             E_first_dct_icoord = icoord_2
+             E_first_dct_rcoord = rcoord_2
+
+          end if
+
+
+          !overlap between S and E
+          if(
+     $         (icoord_1(1).eq.icoord_2(1)).and.
+     $         (icoord_1(2).eq.icoord_2(2))
+     $    ) then
+             E_remove_first_dct = .true.
+          end if
+
+
+          !now that the first and last detector of each
+          !detector list is determined, the detector lists
+          !can be finalized
+          call N_dcr_param%finalize_new_list(
+     $         bf_mainlayer_id,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         this%N_dct_icoords,
+     $         this%N_dct_rcoords,
+     $         N_first_dct_icoord,
+     $         N_first_dct_rcoord,
+     $         N_last_dct_icoord,
+     $         N_last_dct_rcoord,
+     $         N_remove_first_dct,
+     $         N_remove_last_dct)
+
+          call S_dcr_param%finalize_new_list(
+     $         bf_mainlayer_id,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         this%S_dct_icoords,
+     $         this%S_dct_rcoords,
+     $         S_first_dct_icoord,
+     $         S_first_dct_rcoord,
+     $         S_last_dct_icoord,
+     $         S_last_dct_rcoord,
+     $         S_remove_first_dct,
+     $         S_remove_last_dct)
+
+          call E_dcr_param%finalize_new_list(
+     $         bf_mainlayer_id,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         this%E_dct_icoords,
+     $         this%E_dct_rcoords,
+     $         E_first_dct_icoord,
+     $         E_first_dct_rcoord,
+     $         E_last_dct_icoord,
+     $         E_last_dct_rcoord,
+     $         E_remove_first_dct,
+     $         E_remove_last_dct)
+
+          call W_dcr_param%finalize_new_list(
+     $         bf_mainlayer_id,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         this%W_dct_icoords,
+     $         this%W_dct_rcoords,
+     $         W_first_dct_icoord,
+     $         W_first_dct_rcoord,
+     $         W_last_dct_icoord,
+     $         W_last_dct_rcoord,
+     $         W_remove_first_dct,
+     $         W_remove_last_dct)
 
         end subroutine update_icr_detectors_after_removal
 
       
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> update the detectors by using a temporary object
-        !> where the parameters for the changes are stored
-        !
-        !> @date
-        !> 27_06_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_interface_icr object encapsulating the position of
-        !> the increasing detectors and the subroutine controlling
-        !> the extension of the computational domain
-        !
-        !>@param bf_align
-        !> alignment of the bf_sublayer which is removed
-        !
-        !>@param dcr_param
-        !> temporary object used to identify the detectors that should
-        !> be removed from the list
-        !--------------------------------------------------------------
-        subroutine update_icr_detectors(this, bf_align, dcr_param)
-
-          implicit none
-
-          class(bf_interface_icr)       , intent(inout) :: this
-          integer(ikind), dimension(2,2), intent(in)    :: bf_align
-          class(bf_detector_dcr_list)   , intent(in)    :: dcr_param
-
-          class(bf_detector_dcr_list), allocatable :: N_dcr_param
-          class(bf_detector_dcr_list), allocatable :: S_dcr_param
-          class(bf_detector_dcr_list), allocatable :: E_dcr_param
-          class(bf_detector_dcr_list), allocatable :: W_dcr_param
-
-          integer(ikind), dimension(2) :: left_icoord
-          real(rkind)   , dimension(2) :: left_rcoord
-          integer(ikind), dimension(2) :: right_icoord
-          real(rkind)   , dimension(2) :: right_rcoord
-          
-          !create the temporary objects saving the parameters
-          !for the update of the detector lists due to the removal
-          !of a sublayer
-          allocate(N_dcr_param, source=dcr_param)
-          allocate(S_dcr_param, source=dcr_param)
-          allocate(E_dcr_param, source=dcr_param)
-          allocate(W_dcr_param, source=dcr_param)
-
-
-          !initialize the objects saving the parameters
-          !when constructing the new detector lists
-          call N_dcr_param%ini()
-          call S_dcr_param%ini()
-          call E_dcr_param%ini()
-          call W_dcr_param%ini()
-
-          
-          !compute the parameters for the construction
-          !of the new detector lists
-          call N_dcr_param%compute_new_list_param(bf_align, this%N_dct_icoords)
-          call S_dcr_param%compute_new_list_param(bf_align, this%S_dct_icoords)
-          call E_dcr_param%compute_new_list_param(bf_align, this%E_dct_icoords)
-          call W_dcr_param%compute_new_list_param(bf_align, this%W_dct_icoords)
-          
-
-          !check the overlap of detectors between the lists
-          call check_detector_overlap(
-     $         N_dcr_param,
-     $         S_dcr_param,
-     $         E_dcr_param,
-     $         W_dcr_param)
-
-
-          !compute the new detector lists and link the lists
-          first_pt_linked = W_dcr_param%get_last_detector()
-          last_pt_linked  = E_dcr_param%get_last_detector()
-          call N_dcr_param%compute_new_list(
-     $         this%N_detectors_list,
-     $         first_pt_linked,
-     $         last_pt_linked)
-
-          first_pt_linked = W_dcr_param%get_first_detector()
-          last_pt_linked  = E_dcr_param%get_first_detector()
-          call S_dcr_param%compute_new_list(
-     $         this%S_detectors_list,
-     $         first_pt_linked,
-     $         last_pt_linked)
-
-          first_pt_linked = S_dcr_param%get_last_detector()
-          last_pt_linked  = N_dcr_param%get_last_detector()
-          call E_dcr_param%compute_new_list(
-     $         this%E_detectors_list,
-     $         first_pt_linked,
-     $         last_pt_linked)
-
-          first_pt_linked = S_dcr_param%get_first_detector()
-          last_pt_linked  = N_dcr_param%get_first_detector()
-          call W_dcr_param%compute_new_list(
-     $         this%W_detectors_list,
-     $         first_pt_linked,
-     $         last_pt_linked)
-
-
-          !remove the temporary objects
-          deallocate(N_dcr_param)
-          deallocate(S_dcr_param)
-          deallocate(E_dcr_param)
-          deallocate(W_dcr_param)
-
-        end subroutine update_icr_detectors
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !< check if detectors overlap and modify the
-        !> the borders for the detectors
-        !
-        !> @date
-        !> 27_06_2014 - initial version - J.L. Desmarais
-        !
-        !>@param N_dcr_param
-        !> temporary object with the parameters for updating the
-        !> increasing north detectors after the removal of a buffer
-        !> layer
-        !
-        !>@param S_dcr_param
-        !> temporary object with the parameters for updating the
-        !> increasing south detectors after the removal of a buffer
-        !> layer
-        !
-        !>@param E_dcr_param
-        !> temporary object with the parameters for updating the
-        !> increasing east detectors after the removal of a buffer
-        !> layer
-        !
-        !>@param W_dcr_param
-        !> temporary object with the parameters for updating the
-        !> increasing west detectors after the removal of a buffer
-        !> layer
-        !--------------------------------------------------------------
-        subroutine check_detector_overlap(
-     $     N_dcr_param, S_dcr_param, E_dcr_param, W_dcr_param)
-
-          implicit none
-
-          class(bf_detector_dcr_list), intent(inout) :: N_dcr_param
-          class(bf_detector_dcr_list), intent(inout) :: S_dcr_param
-          class(bf_detector_dcr_list), intent(inout) :: E_dcr_param
-          class(bf_detector_dcr_list), intent(inout) :: W_dcr_param        
-        
-          integer(ikind), dimension(2) :: checked_pt1
-          integer(ikind), dimension(2) :: checked_pt2
-
-          !south - west overlap
-          checked_pt1 = S_dcr_param%get_first_detector()
-          checked_pt2 = W_dcr_param%get_first_detector()
-          if(overlap(checked_pt1,checked_pt2)) then
-             checked_pt2(2) = checked_pt2(2)+1
-             call W_dcr_param%set_first_detector(checked_pt2)
-          end if
-
-          !south - east overlap
-          checked_pt1 = S_dcr_param%get_last_detector()
-          checked_pt2 = E_dcr_param%get_first_detector()
-          if(overlap(checked_pt1,checked_pt2)) then
-             checked_pt2(2) = checked_pt2(2)+1
-             call E_dcr_param%set_first_detector(checked_pt2)
-          end if
-
-          !north - west overlap
-          checked_pt1 = N_dcr_param%get_first_detector()
-          checked_pt2 = W_dcr_param%get_last_detector()
-          if(overlap(checked_pt1,checked_pt2)) then
-             checked_pt2(2) = checked_pt2(2)-1
-             call W_dcr_param%set_last_detector(checked_pt2)
-          end if
-
-          !north - east overlap
-          checked_pt1 = N_dcr_param%get_first_detector()
-          checked_pt2 = E_dcr_param%get_last_detector()
-          if(overlap(checked_pt1,checked_pt2)) then
-             checked_pt2(2) = checked_pt2(2)-1
-             call E_dcr_param%set_last_detector(checked_pt2)
-          end if
-
-        end subroutine check_detector_overlap
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> check whether two grid points are the same
-        !
-        !> @date
-        !> 27_06_2014 - initial version - J.L. Desmarais
-        !
-        !>@param checked_pt1
-        !> general coordinates of the first grid point checked
-        !
-        !>@param checked_pt2
-        !> general coordinates of the second grid point checked
-        !
-        !>@return overlap
-        !> logical stating whether the two grid points are the same
-        !--------------------------------------------------------------
-        function overlap(checked_pt1, checked_pt2)
-
-          implicit none
-
-          integer(ikind), dimension(2), intent(in) :: checked_pt1
-          integer(ikind), dimension(2), intent(in) :: checked_pt2
-          logical                                  :: overlap
-
-          overlap = (checked_pt1(1).eq.checked_pt2(1)).and.
-     $              (checked_pt1(2).eq.checked_pt2(2))
-          
-        end function overlap
-
-
         !> @author
         !> Julien L. Desmarais
         !
@@ -2670,34 +2845,34 @@
           integer(ikind) :: i,j,k
 
 
-          if(allocated(this%N_detectors_list)) then
-             do k=1, size(this%N_detectors_list,2)
-                i = this%N_detectors_list(1,k)
-                j = this%N_detectors_list(2,k)
+          if(allocated(this%N_dct_icoords)) then
+             do k=1, size(this%N_dct_icoords,2)
+                i = this%N_dct_icoords(1,k)
+                j = this%N_dct_icoords(2,k)
                 matrix(i,j) = N_detector_color
              end do
           end if
 
-          if(allocated(this%S_detectors_list)) then
-             do k=1, size(this%S_detectors_list,2)
-                i = this%S_detectors_list(1,k)
-                j = this%S_detectors_list(2,k)
+          if(allocated(this%S_dct_icoords)) then
+             do k=1, size(this%S_dct_icoords,2)
+                i = this%S_dct_icoords(1,k)
+                j = this%S_dct_icoords(2,k)
                 matrix(i,j) = S_detector_color
              end do
           end if
 
-          if(allocated(this%E_detectors_list)) then
-             do k=1, size(this%E_detectors_list,2)
-                i = this%E_detectors_list(1,k)
-                j = this%E_detectors_list(2,k)
+          if(allocated(this%E_dct_icoords)) then
+             do k=1, size(this%E_dct_icoords,2)
+                i = this%E_dct_icoords(1,k)
+                j = this%E_dct_icoords(2,k)
                 matrix(i,j) = E_detector_color
              end do
           end if
           
-          if(allocated(this%W_detectors_list)) then
-             do k=1, size(this%W_detectors_list,2)
-                i = this%W_detectors_list(1,k)
-                j = this%W_detectors_list(2,k)
+          if(allocated(this%W_dct_icoords)) then
+             do k=1, size(this%W_dct_icoords,2)
+                i = this%W_dct_icoords(1,k)
+                j = this%W_dct_icoords(2,k)
                 matrix(i,j) = W_detector_color
              end do
           end if
@@ -2762,7 +2937,7 @@
      $          iostat=ios)
 
            if(ios.eq.0) then
-              write(unit=1, iostat=ios) this%N_detectors_list
+              write(unit=1, iostat=ios) this%N_dct_icoords
               close(unit=1)
            else
               stop 'file opening pb'
@@ -2782,7 +2957,7 @@
      $          iostat=ios)
 
            if(ios.eq.0) then
-              write(unit=1, iostat=ios) this%S_detectors_list
+              write(unit=1, iostat=ios) this%S_dct_icoords
               close(unit=1)
            else
               stop 'file opening pb'
@@ -2802,7 +2977,7 @@
      $          iostat=ios)
 
            if(ios.eq.0) then
-              write(unit=1, iostat=ios) this%E_detectors_list
+              write(unit=1, iostat=ios) this%E_dct_icoords
               close(unit=1)
            else
               stop 'file opening pb'
@@ -2822,7 +2997,7 @@
      $          iostat=ios)
 
            if(ios.eq.0) then
-              write(unit=1, iostat=ios) this%W_detectors_list
+              write(unit=1, iostat=ios) this%W_dct_icoords
               close(unit=1)
            else
               stop 'file opening pb'
@@ -2830,5 +3005,42 @@
 
 
         end subroutine print_idetectors_on_binary
+
+
+        subroutine get_dct_coords(
+     $     this,
+     $     N_icoords,
+     $     S_icoords,
+     $     E_icoords,  
+     $     W_icoords,
+     $     N_rcoords,
+     $     S_rcoords,
+     $     E_rcoords,  
+     $     W_rcoords)
+
+          implicit none
+
+          class(bf_interface_icr)                    , intent(in)  :: this
+          integer(ikind), dimension(:,:), allocatable, intent(out) :: N_icoords
+          integer(ikind), dimension(:,:), allocatable, intent(out) :: S_icoords
+          integer(ikind), dimension(:,:), allocatable, intent(out) :: E_icoords
+          integer(ikind), dimension(:,:), allocatable, intent(out) :: W_icoords
+          real(rkind)   , dimension(:,:), allocatable, intent(out) :: N_rcoords
+          real(rkind)   , dimension(:,:), allocatable, intent(out) :: S_rcoords
+          real(rkind)   , dimension(:,:), allocatable, intent(out) :: E_rcoords
+          real(rkind)   , dimension(:,:), allocatable, intent(out) :: W_rcoords
+
+
+          allocate(N_icoords, source=this%N_dct_icoords)
+          allocate(S_icoords, source=this%S_dct_icoords)
+          allocate(E_icoords, source=this%E_dct_icoords)
+          allocate(W_icoords, source=this%W_dct_icoords)
+          
+          allocate(N_rcoords, source=this%N_dct_rcoords)
+          allocate(S_rcoords, source=this%S_dct_rcoords)
+          allocate(E_rcoords, source=this%E_dct_rcoords)
+          allocate(W_rcoords, source=this%W_dct_rcoords)
+
+        end subroutine get_dct_coords
 
       end module bf_interface_icr_class

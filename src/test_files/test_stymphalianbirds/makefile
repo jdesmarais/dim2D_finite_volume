@@ -270,8 +270,10 @@ test_nbf_interface_newgrdpt:\
 			nbf_interface_class.o\
 			nbf_interface_newgrdpt_class.o
 
-test_bf_interface_icr.o:\
-			$(bf_layer_dir)/bf_interface_icr_class.o
+test_bf_interface_icr.o:$(bf_layer_dir)/bf_interface_icr_class.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
 
 test_bf_interface_icr:\
 			$(mt_dep)\

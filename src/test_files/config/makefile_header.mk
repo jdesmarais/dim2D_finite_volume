@@ -24,7 +24,7 @@ dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 
 sd_choice = mt_choice            #space discretization choice
 pm_choice = wave2d_choice	 #physical model choice
-ic_choice = steady_state         #initial conditions choice
+ic_choice = negative_spot         #initial conditions choice
 bc_choice = hedstrom_xy_choice   #boundary condition choice
 td_choice = finitevolume_choice  #time discretization choice
 ti_choice = rk3tvd_choice        #time integration choice

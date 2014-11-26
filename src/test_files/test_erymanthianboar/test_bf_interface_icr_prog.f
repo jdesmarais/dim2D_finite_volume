@@ -18,8 +18,6 @@
         real(rkind)   , dimension(ny)       :: y_map
         real(rkind)   , dimension(nx,ny,ne) :: nodes
         integer       , dimension(nx,ny)    :: grdpts_id
-        real(rkind)                         :: dx
-        real(rkind)                         :: dy
         integer(ikind), dimension(7,7,2)    :: cpt_coords_tab
         integer(ikind), dimension(2)        :: cpt_coords
         integer(ikind), dimension(2)        :: cpt_coords_p
@@ -33,19 +31,25 @@
 
         !for the recombination test
         type(bf_detector_icr_list), dimension(4) :: detector_list
-        integer(ikind), dimension(:,:), allocatable :: detectors_added
+        integer(ikind), dimension(:,:), allocatable :: icoords_added
+        real(rkind)   , dimension(:,:), allocatable :: rcoords_added
         integer :: size_preallocated
         integer :: mainlayer_id
 
 
         !initialization of nodes and grdpts_id
+        call ini_maps(x_map, y_map)
         call ini_cst_nodes(nodes)
         call ini_grdpts_id(grdpts_id)
 
         !test of ini()
-        call interface_used%ini()
+        call interface_used%ini(x_map,y_map)
         call initialize_sublayers_in_interface(
-     $       interface_used, nodes, dx, dy, added_sublayer)
+     $       interface_used,
+     $       x_map,
+     $       y_map,
+     $       nodes,
+     $       added_sublayer)
 
         call interface_used%print_idetectors_on(nodes(:,:,1))
 
@@ -176,20 +180,29 @@
            !initialize the bf_detector_icr_list for the
            !main layer and 6 detectors preallocated
            size_preallocated = 6
+
            call detector_list(mainlayer_id)%ini(
-     $          mainlayer_id, size_preallocated)
+     $          mainlayer_id,
+     $          size_preallocated)
            
            
            !initialize the detectors saved in the bf_detector_icr_list
-           call get_detector_test(mainlayer_id, detectors_added)
-           do k=1, size(detectors_added,2)
+           call get_detector_test(
+     $          mainlayer_id,
+     $          x_map,
+     $          y_map,
+     $          icoords_added,
+     $          rcoords_added)
+
+           do k=1, size(icoords_added,2)
               
               !add a new detector to the object saving the detector
               !coordinates
               call detector_list(mainlayer_id)%add_new_detector(
-     $             detectors_added(:,k))
+     $             icoords_added(:,k),
+     $             rcoords_added(:,k))
 
-              grdpts_id(detectors_added(1,k), detectors_added(2,k)) =
+              grdpts_id(icoords_added(1,k), icoords_added(2,k)) =
      $             interior_pt
 
            end do
@@ -235,56 +248,80 @@
 
         !< initialize the position of the detectors that will be
         !> added to the detector_lists
-        subroutine get_detector_test(mainlayer_id, detectors_added)
+        subroutine get_detector_test(
+     $       mainlayer_id,
+     $       interior_x_map,
+     $       interior_y_map,
+     $       icoords,
+     $       rcoords)
 
           implicit none
+  
+          integer                                    , intent(in)  :: mainlayer_id
+          real(rkind)   , dimension(nx)              , intent(in)  :: interior_x_map
+          real(rkind)   , dimension(ny)              , intent(in)  :: interior_y_map
+          integer(ikind), dimension(:,:), allocatable, intent(out) :: icoords
+          real(rkind)   , dimension(:,:), allocatable, intent(out) :: rcoords
 
-          integer                             , intent(in)  :: mainlayer_id
-          integer, dimension(:,:), allocatable, intent(out) :: detectors_added
+          real(rkind) :: dx
+          real(rkind) :: dy
+          integer     :: k
 
-          allocate(detectors_added(2,5))
+          dx = interior_x_map(2)-interior_x_map(1)
+          dy = interior_y_map(2)-interior_y_map(1)
+
+          allocate(icoords(2,5))
+          allocate(rcoords(2,5))
 
           select case(mainlayer_id)
             case(N)
 
-               detectors_added(:,1)  = [bc_size  ,  ny-1]
-               detectors_added(:,2)  = [bc_size+5,  ny-1]
-               detectors_added(:,3)  = [bc_size+8,  ny-1]
-               detectors_added(:,4)  = [bc_size+12, ny-1]
-               detectors_added(:,5)  = [bc_size+14, ny]
+               icoords(:,1)  = [bc_size  ,  ny-1]
+               icoords(:,2)  = [bc_size+5,  ny-1]
+               icoords(:,3)  = [bc_size+8,  ny-1]
+               icoords(:,4)  = [bc_size+12, ny-1]
+               icoords(:,5)  = [bc_size+14, ny]
                
             case(S)
 
-               detectors_added(:,1)  = [bc_size+3,  bc_size]
-               detectors_added(:,2)  = [bc_size+5,  bc_size]
-               detectors_added(:,3)  = [bc_size+8,  bc_size]
-               detectors_added(:,4)  = [bc_size+12, bc_size]
-               detectors_added(:,5)  = [bc_size+14, 1]
+               icoords(:,1)  = [bc_size+3,  bc_size]
+               icoords(:,2)  = [bc_size+5,  bc_size]
+               icoords(:,3)  = [bc_size+8,  bc_size]
+               icoords(:,4)  = [bc_size+12, bc_size]
+               icoords(:,5)  = [bc_size+14, 1]
 
             case(E)
 
-               detectors_added(:,1)  = [nx-1, bc_size+3]
-               detectors_added(:,2)  = [nx-1, bc_size+5]
-               detectors_added(:,3)  = [nx-1, bc_size+6]
-               detectors_added(:,4)  = [nx-1, bc_size+10]
-               detectors_added(:,5)  = [nx  , bc_size+14]
+               icoords(:,1)  = [nx-1, bc_size+3]
+               icoords(:,2)  = [nx-1, bc_size+5]
+               icoords(:,3)  = [nx-1, bc_size+6]
+               icoords(:,4)  = [nx-1, bc_size+10]
+               icoords(:,5)  = [nx  , bc_size+14]
 
             case(W)
 
-               detectors_added(:,1)  = [bc_size, bc_size+3]
-               detectors_added(:,2)  = [bc_size, bc_size+5]
-               detectors_added(:,3)  = [bc_size, bc_size+6]
-               detectors_added(:,4)  = [bc_size, bc_size+10]
-               detectors_added(:,5)  = [1      , bc_size+14]
+               icoords(:,1)  = [bc_size, bc_size+3]
+               icoords(:,2)  = [bc_size, bc_size+5]
+               icoords(:,3)  = [bc_size, bc_size+6]
+               icoords(:,4)  = [bc_size, bc_size+10]
+               icoords(:,5)  = [1      , bc_size+14]
 
-          end select            
+          end select
+
+
+          do k=1, size(icoords,2)
+
+             rcoords(1,k) = (icoords(1,k)-1)*dx
+             rcoords(2,k) = (icoords(2,k)-1)*dy
+
+          end do
 
         end subroutine get_detector_test
 
 
         !< initialize the sublayers for the interface
         subroutine initialize_sublayers_in_interface(
-     $       interface_used, x_map, y_map, nodes, dx, dy, added_sublayer)
+     $       interface_used, x_map, y_map, nodes, added_sublayer)
 
           implicit none
 
@@ -292,8 +329,6 @@
           real(rkind), dimension(nx)      , intent(in)    :: x_map
           real(rkind), dimension(ny)      , intent(in)    :: y_map
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
-          real(rkind)                     , intent(in)    :: dx
-          real(rkind)                     , intent(in)    :: dy
           type(bf_sublayer), pointer      , intent(out)   :: added_sublayer
 
           
@@ -307,7 +342,7 @@
 
 
           added_sublayer => interface_used%allocate_sublayer(
-     $         N, x_map, y_map, nodes, alignment, dx, dy)
+     $         N, x_map, y_map, nodes, alignment)
 
           !modify the sublayer to see if the copy works
           call added_sublayer%set_grdpts_id_pt(
@@ -377,6 +412,32 @@
           end do
 
         end subroutine ini_cpt_coords_table
+
+      
+      
+        subroutine ini_maps(x_map,y_map)
+
+          implicit none
+
+          real(rkind), dimension(nx), intent(out) :: x_map
+          real(rkind), dimension(ny), intent(out) :: y_map
+
+          real(rkind) :: dx
+          real(rkind) :: dy
+          integer     :: i
+
+          dx = 0.5d0
+          dy = 0.25d0
+
+          do i=1, size(x_map,1)
+             x_map(i) = (i-1)*dx
+          end do
+
+          do i=1, size(y_map,1)
+             y_map(i) = (i-1)*dy
+          end do
+
+        end subroutine ini_maps
 
 
         !< initialize the nodes using a constant variable

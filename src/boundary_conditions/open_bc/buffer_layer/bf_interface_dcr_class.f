@@ -108,6 +108,8 @@
           
           !remove the buffer layers that can be removed
           call this%update_bf_layers_with_detector_dcr(
+     $         interior_x_map,
+     $         interior_y_map,
      $         interior_nodes1,
      $         p_model)
 
@@ -147,11 +149,17 @@
         !> physical model
         !--------------------------------------------------------------
         subroutine update_bf_layers_with_detector_dcr(
-     $       this, interior_nodes, p_model)
+     $     this,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes,
+     $     p_model)
 
           implicit none
 
           class(bf_interface_dcr)         , intent(inout) :: this
+          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
           type(pmodel_eq)                 , intent(in)    :: p_model
 
@@ -276,7 +284,10 @@
                             call to_be_rechecked_sublayers_list(k)%add_ele(
      $                           sublayer_ptr)
                          else
-                            call this%remove_sublayer(sublayer_ptr)
+                            call this%remove_sublayer(
+     $                           sublayer_ptr,
+     $                           interior_x_map,
+     $                           interior_y_map)
                          end if
 
                       end if                      
@@ -315,7 +326,11 @@
                 !current buffer layer should be removed
                 if(.not.(this%does_a_neighbor_remains(sublayer_ptr,k))) then
 
-                   call this%remove_sublayer(sublayer_ptr,k)
+                   call this%remove_sublayer(
+     $                  sublayer_ptr,
+     $                  interior_x_map,
+     $                  interior_y_map,
+     $                  k)
 
                 end if
 

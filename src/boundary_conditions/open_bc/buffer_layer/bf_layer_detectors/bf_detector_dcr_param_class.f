@@ -123,8 +123,12 @@
           contains
 
           procedure, pass :: compute_new_list_param
+          procedure, pass :: get_first_detector
+          procedure, pass :: get_last_detector
           procedure, pass :: finalize_new_list
+
           procedure, pass :: get_param !only for tests
+
 
         end type bf_detector_dcr_param
 
@@ -1261,6 +1265,37 @@
           end do
 
         end subroutine replace_removed_detectors
+
+
+        ! get the first detector (x,y)-indices and (x,y)-coordinates
+        subroutine get_first_detector(this, icoord, rcoord)
+
+          implicit none
+
+          class(bf_detector_dcr_param), intent(in)  :: this
+          integer(ikind), dimension(2), intent(out) :: icoord
+          real(rkind)   , dimension(2), intent(out) :: rcoord
+
+          icoord = this%first_icoord
+          rcoord = this%first_rcoord
+
+        end subroutine get_first_detector
+
+      
+        ! get the last detector (x,y)-indices and (x,y)-coordinates
+        subroutine get_last_detector(this, icoord, rcoord)
+
+          implicit none
+
+          class(bf_detector_dcr_param), intent(in)  :: this
+          integer(ikind), dimension(2), intent(out) :: icoord
+          real(rkind)   , dimension(2), intent(out) :: rcoord
+
+          icoord = this%last_icoord
+          rcoord = this%last_rcoord
+
+        end subroutine get_last_detector
+
 
         !get the attributes of the objects to comapre with the test
         !data

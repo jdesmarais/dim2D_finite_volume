@@ -169,6 +169,13 @@ def compute_code_inputs(inputFileName):
                     'ns2d_choice',
                     'dim2d_choice']
 
+    wave2d_ic_code = ['non-existing',
+                      'peak',
+                      'non-existing',
+                      'non-existing',
+                      'non-existing',
+                      'negative_spot']
+
     ns2d_ic_code = ['steady_state',
                     'peak',
                     'vortex',
@@ -247,7 +254,9 @@ def compute_code_inputs(inputFileName):
         ne = 4
 
     #< compute the ic_choice
-    if(pm_choice=='ns2d_choice'):
+    if(pm_choice=='wave2d_choice'):
+        ic_choice = wave2d_ic_code[int(inputs['ic_choice'])]
+    elif(pm_choice=='ns2d_choice'):
         ic_choice = ns2d_ic_code[int(inputs['ic_choice'])]
     elif(pm_choice=='dim2d_choice'):
         ic_choice = dim2d_ic_code[int(inputs['ic_choice'])]

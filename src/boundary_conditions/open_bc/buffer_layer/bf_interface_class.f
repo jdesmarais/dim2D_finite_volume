@@ -283,13 +283,20 @@
         !> around the interior domain and subroutines to synchronize
         ! the data between them
         !--------------------------------------------------------------
-        subroutine ini(this)
+        subroutine ini(this,interior_x_map,interior_y_map)
 
           implicit none
 
-          class(bf_interface), intent(inout) :: this
+          class(bf_interface)       , intent(inout) :: this
+          real(rkind), dimension(nx), intent(in)    :: interior_x_map
+          real(rkind), dimension(ny), intent(in)    :: interior_y_map
 
           integer :: i
+          real(rkind) :: dx_s
+          real(rkind) :: dy_s
+
+          dx_s = interior_x_map(2)-interior_x_map(1)
+          dy_s = interior_y_map(2)-interior_y_map(1)          
           
           do i=1, size(this%mainlayer_pointers,1)
              call this%mainlayer_pointers(i)%ini()             
@@ -978,16 +985,28 @@ c$$$          stop 'not implemented yet'
        !>@param bf_mainlayer_id
        !> cardinal coordinate of the buffer layer removed
        !--------------------------------------------------------------
-       subroutine remove_sublayer(this, sublayer_ptr, bf_mainlayer_id)
+       subroutine remove_sublayer(
+     $     this,
+     $     sublayer_ptr,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     bf_mainlayer_id)
 
          implicit none
 
-         class(bf_interface)       , intent(inout) :: this
-         type(bf_sublayer), pointer, intent(inout) :: sublayer_ptr
-         integer         , optional, intent(in)    :: bf_mainlayer_id
+         class(bf_interface)             , intent(inout) :: this
+         type(bf_sublayer), pointer      , intent(inout) :: sublayer_ptr
+         real(rkind)      , dimension(nx), intent(in)    :: interior_x_map
+         real(rkind)      , dimension(ny), intent(in)    :: interior_y_map
+         integer, optional               , intent(in)    :: bf_mainlayer_id
 
          
-         integer :: mainlayer_id
+         integer     :: mainlayer_id
+         real(rkind) :: dx_s
+         real(rkind) :: dy_s
+
+         dx_s = interior_x_map(2)-interior_x_map(1)
+         dy_s = interior_y_map(2)-interior_y_map(1)
 
 
          !> identify the mainlayer to which the sublayer belongs

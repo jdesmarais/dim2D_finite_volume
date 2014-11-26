@@ -28,11 +28,11 @@
         real(rkind), parameter :: y_max = 10.0000000000d0 !2.0000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 0.20d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0500000000d0
+        real(rkind), parameter :: t_max = 10.0000000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0500000000d0 !0.0500000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 1.0d0
+        real(rkind), parameter :: detail_print = 1.0000000000d0
         logical    , parameter :: write_domain_extension = .true.
 
         !<mpi choice
@@ -41,8 +41,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 20
-        integer(ikind), parameter :: nty = 20
+        integer(ikind), parameter :: ntx = 54
+        integer(ikind), parameter :: nty = 54
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -60,6 +60,11 @@
         !--------------------------------------------
         !ic_choice:
         !--------------------------------------------
+        !
+        !for wave2d equations
+        !--------------------------------------------
+        !peak               : peak in the center of the domain
+        !negative_spot      : negative field in the center of the domain
         !
         !for NS equations
         !--------------------------------------------
@@ -104,7 +109,7 @@
         !              applying the non-reflecting outflow
         !              pressure b.c.
         !--------------------------------------------
-        real(rkind), parameter :: search_nb_dt = 10 !0.0500000000d0 !1.0 !0.0001000000d0
+        real(rkind), parameter :: search_nb_dt = 0.0500000000d0 !0.0500000000d0 !1.0 !0.0001000000d0
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P =  0.278d0 !0.25d0
         integer    , parameter :: obc_type_N = always_outflow

@@ -264,13 +264,8 @@ $(bf_layer_dir)/bf_nbc_template_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o
 
 $(bf_layer_dir)/bf_interface_icr_class.o:\
-	$(dbf_layer_dir)/bf_detector_dcr_list_class.o\
-	$(dbf_layer_dir)/bf_detector_dcr_list_N_class.o\
-	$(dbf_layer_dir)/bf_detector_dcr_list_S_class.o\
-	$(dbf_layer_dir)/bf_detector_dcr_list_E_class.o\
-	$(dbf_layer_dir)/bf_detector_dcr_list_W_class.o\
+	$(dbf_layer_dir)/bf_detector_dcr_param_class.o\
 	$(dbf_layer_dir)/bf_detector_icr_list_class.o\
-	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/bf_path_icr_class.o\
 	$(bf_layer_dir)/bf_nbc_template_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\

@@ -114,7 +114,7 @@
           call this%field_abstract%ini()
 
           !initialize the domain extension
-          call this%domain_extension%ini()
+          call this%domain_extension%ini(this%x_map,this%y_map)
 
           !initialize the boundary layer procedures
           !depending on the buffer layer
