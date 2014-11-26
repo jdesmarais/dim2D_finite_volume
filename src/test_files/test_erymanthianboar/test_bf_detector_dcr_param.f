@@ -571,7 +571,7 @@
         real(rkind)   , dimension(nx)   :: interior_x_map
         real(rkind)   , dimension(ny)   :: interior_y_map
 
-        integer       , dimension(4)                :: bf_localization
+        integer       , dimension(2)                :: bf_localization
         integer(ikind), dimension(2,2)              :: bf_align
         integer(ikind), dimension(:,:), allocatable :: icoords_input
         real(rkind)   , dimension(:,:), allocatable :: rcoords_input
@@ -579,15 +579,20 @@
         real(rkind)   , dimension(:,:), allocatable :: rcoords_output
         integer(ikind), dimension(:,:), allocatable :: icoords_output_test
         real(rkind)   , dimension(:,:), allocatable :: rcoords_output_test
+        integer(ikind), dimension(:,:), allocatable :: tmp_icoords
+        real(rkind)   , dimension(:,:), allocatable :: tmp_rcoords
         integer(ikind), dimension(2)                :: left_icoord_test
         real(rkind)   , dimension(2)                :: left_rcoord_test
         integer(ikind), dimension(2)                :: right_icoord_test
         real(rkind)   , dimension(2)                :: right_rcoord_test
 
-        integer :: k
+        integer :: k,l
         integer :: config_detectors
         integer :: config_extra_pts
 
+        logical, dimension(2,3) :: remove_test
+        logical                 :: remove_first_dct
+        logical                 :: remove_last_dct
 
         test_validated = .true.
 
@@ -601,13 +606,19 @@
      $       0.1d0,0.15d0,0.3d0,0.65d0,1.2d0,2.1d0,5.9d0,6.99d0,8.2d0,10.5d0,
      $       12.3d0,15.6d0,21.4d0,28.2d0,36.6d0,41.6d0,47.12d0,52.1d0,53.2d0,63.2d0]
 
-        
-        bf_localization = [N,S,E,W]
+        bf_localization = [N,E]
+
+
+        !============================================================
+        !test config: no_extra_pts
+        !============================================================
+        if(detailled) then
+           print '(''test config: no_extra_pts'')'
+        end if        
 
         config_extra_pts = 1
 
-
-        do k=1,1
+        do k=1,2
 
            if(detailled) then
               print '(''test bf_localization: '',I2)',
@@ -663,7 +674,9 @@
      $             left_icoord_test,
      $             left_rcoord_test,
      $             right_icoord_test,
-     $             right_rcoord_test)
+     $             right_rcoord_test,
+     $             .false.,
+     $             .false.)
               
               !compare the results
               test_loc = compare_bf_detector_new_lists(
@@ -688,6 +701,235 @@
               deallocate(icoords_output_test)
               deallocate(rcoords_output_test)
 
+           end do
+        end do
+
+
+        !============================================================
+        !test config: add_extra_pts
+        !============================================================
+        config_extra_pts = 2
+
+        do k=1,2
+
+           do config_detectors=1,1
+              
+              !allocate input detectors
+              allocate(icoords_input(2,11))
+              allocate(rcoords_input(2,11))
+
+              !get the test data
+              call get_data_test_finalize_new_list(
+     $             bf_localization(k),
+     $             config_detectors,
+     $             config_extra_pts,
+     $             interior_x_map,
+     $             interior_y_map,
+     $             bf_align,
+     $             icoords_input,
+     $             rcoords_input,
+     $             icoords_output_test,
+     $             rcoords_output_test,
+     $             left_icoord_test,
+     $             left_rcoord_test,
+     $             right_icoord_test,
+     $             right_rcoord_test)
+
+              !use input
+              allocate(icoords_output(2,11))
+              allocate(rcoords_output(2,11))
+
+              icoords_output = icoords_input
+              rcoords_output = rcoords_input
+
+              !compute_new_list_param
+              call bf_detector_dcr_param_used%compute_new_list_param(
+     $             bf_localization(k),
+     $             bf_align,
+     $             interior_x_map,
+     $             interior_y_map,
+     $             icoords_input,
+     $             rcoords_input)
+
+              !finalize the new list
+              call bf_detector_dcr_param_used%finalize_new_list(
+     $             bf_localization(k),
+     $             interior_x_map,
+     $             interior_y_map,
+     $             icoords_output,
+     $             rcoords_output,
+     $             left_icoord_test,
+     $             left_rcoord_test,
+     $             right_icoord_test,
+     $             right_rcoord_test,
+     $             .false.,
+     $             .false.)
+              
+              !compare the results
+              test_loc = compare_bf_detector_new_lists(
+     $             icoords_output,
+     $             rcoords_output,
+     $             icoords_output_test,
+     $             rcoords_output_test,
+     $             detailled)
+
+              if(detailled.and.(.not.test_loc)) then
+                 print '(''** test '',I2,'' failed **'')', config_detectors
+              end if
+
+              !update test validation
+              test_validated = test_validated.and.test_loc
+
+              !deallocate
+              deallocate(icoords_input)
+              deallocate(rcoords_input)
+              deallocate(icoords_output)
+              deallocate(rcoords_output)
+              deallocate(icoords_output_test)
+              deallocate(rcoords_output_test)
+
+           end do
+        end do
+
+
+        !============================================================
+        !test config: remove_dct
+        !============================================================
+        if(detailled) then
+           print '(''test config: no_extra_pts'')'
+        end if        
+
+        config_extra_pts = 1
+
+        remove_test = reshape((/
+     $       .true.,.true.,
+     $       .true.,.false.,
+     $       .false.,.true./),
+     $       (/2,3/))
+
+        do l=1,3
+
+           remove_first_dct = remove_test(1,l)
+           remove_last_dct  = remove_test(2,l)
+
+           do k=1,2
+              
+              if(detailled) then
+                 print '(''test bf_localization: '',I2)',
+     $                bf_localization(k)
+              end if
+              
+              do config_detectors=1,4
+                 
+                 !allocate input detectors
+                 allocate(icoords_input(2,11))
+                 allocate(rcoords_input(2,11))
+
+                 !get the test data
+                 call get_data_test_finalize_new_list(
+     $                bf_localization(k),
+     $                config_detectors,
+     $                config_extra_pts,
+     $                interior_x_map,
+     $                interior_y_map,
+     $                bf_align,
+     $                icoords_input,
+     $                rcoords_input,
+     $                icoords_output_test,
+     $                rcoords_output_test,
+     $                left_icoord_test,
+     $                left_rcoord_test,
+     $                right_icoord_test,
+     $                right_rcoord_test)
+
+                 !use input
+                 allocate(icoords_output(2,11))
+                 allocate(rcoords_output(2,11))
+
+                 icoords_output = icoords_input
+                 rcoords_output = rcoords_input
+
+                 !reallocation for the test of remove_first_dct
+                 if(remove_first_dct) then
+
+                    if(remove_last_dct) then
+
+                       allocate(tmp_icoords(2,size(icoords_output_test,2)-2))
+                       allocate(tmp_rcoords(2,size(icoords_output_test,2)-2))
+                       tmp_icoords = icoords_output_test(:,2:size(icoords_output_test,2)-1)
+                       tmp_rcoords = rcoords_output_test(:,2:size(rcoords_output_test,2)-1)
+                       call MOVE_ALLOC(tmp_icoords,icoords_output_test)
+                       call MOVE_ALLOC(tmp_rcoords,rcoords_output_test)
+
+                    else
+
+                       allocate(tmp_icoords(2,size(icoords_output_test,2)-1))
+                       allocate(tmp_rcoords(2,size(icoords_output_test,2)-1))
+                       tmp_icoords = icoords_output_test(:,2:size(icoords_output_test,2))
+                       tmp_rcoords = rcoords_output_test(:,2:size(rcoords_output_test,2))
+                       call MOVE_ALLOC(tmp_icoords,icoords_output_test)
+                       call MOVE_ALLOC(tmp_rcoords,rcoords_output_test)
+
+                    end if
+
+                 else
+
+                    allocate(tmp_icoords(2,size(icoords_output_test,2)-1))
+                    allocate(tmp_rcoords(2,size(icoords_output_test,2)-1))
+                    tmp_icoords = icoords_output_test(:,1:size(icoords_output_test,2)-1)
+                    tmp_rcoords = rcoords_output_test(:,1:size(rcoords_output_test,2)-1)
+                    call MOVE_ALLOC(tmp_icoords,icoords_output_test)
+                    call MOVE_ALLOC(tmp_rcoords,rcoords_output_test)
+                    
+                 end if
+                 
+                 !compute_new_list_param
+                 call bf_detector_dcr_param_used%compute_new_list_param(
+     $                bf_localization(k),
+     $                bf_align,
+     $                interior_x_map,
+     $                interior_y_map,
+     $                icoords_input,
+     $                rcoords_input)
+
+                 !finalize the new list
+                 call bf_detector_dcr_param_used%finalize_new_list(
+     $                bf_localization(k),
+     $                interior_x_map,
+     $                interior_y_map,
+     $                icoords_output,
+     $                rcoords_output,
+     $                left_icoord_test,
+     $                left_rcoord_test,
+     $                right_icoord_test,
+     $                right_rcoord_test,
+     $                remove_first_dct,
+     $                remove_last_dct)
+                 
+                 !compare the results
+                 test_loc = compare_bf_detector_new_lists(
+     $                icoords_output,
+     $                rcoords_output,
+     $                icoords_output_test,
+     $                rcoords_output_test,
+     $                detailled)
+
+                 if(detailled.and.(.not.test_loc)) then
+                    print '(''** test '',I2,'' failed **'')', config_detectors
+                 end if
+
+                 !update test validation
+                 test_validated = test_validated.and.test_loc
+
+                 !deallocate
+                 deallocate(icoords_input)
+                 deallocate(rcoords_input)
+                 deallocate(icoords_output)
+                 deallocate(rcoords_output)
+                 deallocate(icoords_output_test)
+                 deallocate(rcoords_output_test)
+
+              end do
            end do
         end do
 
@@ -1412,10 +1654,10 @@
                         icoords_output_test(:,2:12) = icoords_input
                         icoords_output_test(:,13)   = [12,ny-2]
 
-                        rcoords_output_test(1,1)    = interior_x_map(4)
+                        rcoords_output_test(1,1)    = 0.75d0
                         rcoords_output_test(2,1)    = interior_y_map(ny-2)
                         rcoords_output_test(:,2:12) = rcoords_input
-                        rcoords_output_test(1,13)   = interior_x_map(12)
+                        rcoords_output_test(1,13)   = 18.85d0
                         rcoords_output_test(2,13)   = interior_y_map(ny-2)
 
                         left_icoord_test     = [3,ny-2]
@@ -1444,21 +1686,12 @@
      $                   6, ny-1,
      $                   7, ny-1,
      $                   8, ny-1,
-     $                   6, ny-4,
-     $                   6, dct_icr_N_default,
-     $                   7, dct_icr_N_default,
-     $                   8, dct_icr_N_default,
-     $                   9, dct_icr_N_default,
-     $                  10, dct_icr_N_default,
-     $                  10, ny-4,
-     $                  10, ny-3,
-     $                  10, ny-2,
+     $                   9, ny-1,
      $                  10, ny-1,
-     $                  10, ny,
      $                  11, ny,
      $                  11, ny-1,
      $                  11, ny-2/),
-     $                  (/2,19/))
+     $                  (/2,10/))
 
                    do i=1, size(icoords_output_test,2)
                       rcoords_output_test(1,i) = interior_x_map(icoords_output_test(1,i))
@@ -1479,8 +1712,8 @@
      $                  8,ny+5/),
      $                  (/2,2/))
 
-                   allocate(icoords_output_test(2,13))
-                   allocate(rcoords_output_test(2,13))
+                   allocate(icoords_output_test(2,9))
+                   allocate(rcoords_output_test(2,9))
                         
                    icoords_output_test = reshape((/
      $                   5, dct_icr_N_default,
@@ -1489,14 +1722,10 @@
      $                   8, dct_icr_N_default,
      $                   9, dct_icr_N_default,
      $                  10, dct_icr_N_default,
-     $                  10, ny-4,
-     $                  10, ny-3,
-     $                  10, ny-2,
-     $                  10, ny-1,
      $                  11, ny,
      $                  11, ny-1,
      $                  11, ny-2/),
-     $                  (/2,13/))
+     $                  (/2,9/))
 
                    do i=1, size(icoords_output_test,2)
                       rcoords_output_test(1,i) = interior_x_map(icoords_output_test(1,i))
@@ -1518,19 +1747,19 @@
      $                 9,ny+5/),
      $                 (/2,2/))
 
+                  allocate(icoords_output_test(2,8))
+                  allocate(rcoords_output_test(2,8))
+
                   icoords_output_test = reshape((/
      $                 5,ny-2,
      $                 5,ny-1,
-     $                 6,ny-2,
-     $                 6,ny-3,
-     $                 6,ny-4,
-     $                 6,dct_icr_N_default,
-     $                 7,dct_icr_N_default,
-     $                 8,dct_icr_N_default,
-     $                 9,dct_icr_N_default,
-     $                10,dct_icr_N_default,
-     $                11,dct_icr_N_default/),
-     $                 (/2,11/))
+     $                 6,ny-1,
+     $                 7,ny-1,
+     $                 8,ny-1,
+     $                 9,ny-1,
+     $                10,ny-1,
+     $                11,ny-1/),
+     $                 (/2,8/))
                   
                   do i=1, size(icoords_output_test,2)
                      rcoords_output_test(1,i) = interior_x_map(icoords_output_test(1,i))
@@ -1574,7 +1803,6 @@
                   right_rcoord_test(1) = interior_x_map(11)
                   right_rcoord_test(2) = interior_y_map(dct_icr_N_default)
 
-                   
                case default
                   print '(''test_bf_detector_dcr_param'')'
                   print '(''get_data_test_compute_new_list_param'')'
@@ -1582,6 +1810,227 @@
                   stop ''
 
              end select
+
+
+           !East buffer layer
+           !==========================================================
+           case(E)
+
+              icoords_input = reshape((/
+     $             nx-2, 5,
+     $             nx-1, 5,
+     $             nx-1, 6,
+     $             nx  , 6,
+     $             nx  , 7,
+     $             nx  , 8,
+     $             nx  , 9,
+     $             nx  ,10,
+     $             nx  ,11,
+     $             nx-1,11,
+     $             nx-2,11/),
+     $             (/2,11/))
+
+              do i=1, size(icoords_input,2)
+                 rcoords_input(1,i) = interior_x_map(icoords_input(1,i))
+                 rcoords_input(2,i) = interior_y_map(icoords_input(2,i))
+              end do
+
+
+              select case(config_detectors)
+
+                case(no_detector_removed)
+
+                   bf_align = reshape((/
+     $                  nx-1,14,
+     $                  nx+5,16/),
+     $                  (/2,2/))
+
+                   select case(config_extra_pts)
+                     case(no_extra_pts)
+                        
+                        allocate(icoords_output_test(2,11))
+                        allocate(rcoords_output_test(2,11))
+                        
+                        icoords_output_test = icoords_input
+                        rcoords_output_test = rcoords_input
+
+                        left_icoord_test  = icoords_input(:,1)
+                        left_rcoord_test  = rcoords_input(:,1)
+                        right_icoord_test = icoords_input(:,11)
+                        right_rcoord_test = rcoords_input(:,11)
+
+                     case(add_extra_pts)
+
+                        allocate(icoords_output_test(2,13))
+                        allocate(rcoords_output_test(2,13))
+
+                        icoords_output_test(:,1)    = [nx-2,4]
+                        icoords_output_test(:,2:12) = icoords_input
+                        icoords_output_test(:,13)   = [nx-2,12]
+
+                        rcoords_output_test(1,1)    = interior_x_map(nx-2)
+                        rcoords_output_test(2,1)    = 0.75d0
+                        rcoords_output_test(:,2:12) = rcoords_input
+                        rcoords_output_test(1,13)   = interior_x_map(nx-2)
+                        rcoords_output_test(2,13)   = 16.85d0
+
+                        left_icoord_test     = [nx-2,3]
+                        left_rcoord_test(1)  = interior_x_map(nx-2)
+                        left_rcoord_test(2)  = interior_y_map(3)
+                        right_icoord_test    = [nx-2,13]
+                        right_rcoord_test(1) = interior_x_map(nx-2)
+                        right_rcoord_test(2) = interior_y_map(13)
+
+                   end select
+
+
+                case(middle_detectors_removed)
+                   
+                   bf_align = reshape((/
+     $                  nx-1,8,
+     $                  nx+5,8/),
+     $                  (/2,2/))
+
+                   allocate(icoords_output_test(2,10))
+                   allocate(rcoords_output_test(2,10))
+                        
+                   icoords_output_test = reshape((/
+     $                  nx-2,  5, 
+     $                  nx-1,  5, 
+     $                  nx-1,  6, 
+     $                  nx-1,  7, 
+     $                  nx-1,  8, 
+     $                  nx-1,  9, 
+     $                  nx-1, 10, 
+     $                  nx,   11, 
+     $                  nx-1, 11, 
+     $                  nx-2, 11 /),
+     $                  (/2,10/))
+
+                   do i=1, size(icoords_output_test,2)
+                      rcoords_output_test(1,i) = interior_x_map(icoords_output_test(1,i))
+                      rcoords_output_test(2,i) = interior_y_map(icoords_output_test(2,i))
+                   end do
+
+                   left_icoord_test     = [nx-2,4]
+                   left_rcoord_test(1)  = interior_x_map(nx-2)
+                   left_rcoord_test(2)  = interior_y_map(4)
+                   right_icoord_test    = [nx-2,12]
+                   right_rcoord_test(1) = interior_x_map(nx-2)
+                   right_rcoord_test(2) = interior_y_map(12)
+
+                case(middle_and_left_detectors_removed)
+                   
+                   bf_align = reshape((/
+     $                  nx-1,7,
+     $                  nx+5,8/),
+     $                  (/2,2/))
+
+                   allocate(icoords_output_test(2,9))
+                   allocate(rcoords_output_test(2,9))
+                        
+                   icoords_output_test = reshape((/
+     $                  dct_icr_E_default, 5,
+     $                  dct_icr_E_default, 6,
+     $                  dct_icr_E_default, 7,
+     $                  dct_icr_E_default, 8,
+     $                  dct_icr_E_default, 9,
+     $                  dct_icr_E_default,10,
+     $                  nx  , 11,
+     $                  nx-1, 11,
+     $                  nx-2, 11/),
+     $                  (/2,9/))
+
+                   do i=1, size(icoords_output_test,2)
+                      rcoords_output_test(1,i) = interior_x_map(icoords_output_test(1,i))
+                      rcoords_output_test(2,i) = interior_y_map(icoords_output_test(2,i))
+                   end do
+
+                   left_icoord_test     = [dct_icr_E_default,4]
+                   left_rcoord_test(1)  = interior_x_map(dct_icr_E_default)
+                   left_rcoord_test(2)  = interior_y_map(4)
+                   right_icoord_test    = [nx-2,12]
+                   right_rcoord_test(1) = interior_x_map(nx-2)
+                   right_rcoord_test(2) = interior_y_map(12)
+
+
+               case(middle_and_right_detectors_removed)
+
+                  bf_align = reshape((/
+     $                 nx-1,8,
+     $                 nx+5,9/),
+     $                 (/2,2/))
+
+                  allocate(icoords_output_test(2,8))
+                  allocate(rcoords_output_test(2,8))
+
+                  icoords_output_test = reshape((/
+     $                nx-2, 5,
+     $                nx-1, 5,
+     $                nx-1, 6,
+     $                nx-1, 7,
+     $                nx-1, 8,
+     $                nx-1, 9,
+     $                nx-1,10,
+     $                nx-1,11/),
+     $                 (/2,8/))
+                  
+                  do i=1, size(icoords_output_test,2)
+                     rcoords_output_test(1,i) = interior_x_map(icoords_output_test(1,i))
+                     rcoords_output_test(2,i) = interior_y_map(icoords_output_test(2,i))
+                  end do
+
+                  left_icoord_test     = [nx-2,4]
+                  left_rcoord_test(1)  = interior_x_map(nx-2)
+                  left_rcoord_test(2)  = interior_y_map(4)
+                  right_icoord_test    = [dct_icr_E_default,12]
+                  right_rcoord_test(1) = interior_x_map(dct_icr_E_default)
+                  right_rcoord_test(2) = interior_y_map(12)
+
+
+               case(all_detectors_removed)
+                   
+                  bf_align = reshape((/
+     $                 nx-1,7,
+     $                 nx+5,9/),
+     $                 (/2,2/))
+
+                  icoords_output_test = reshape((/
+     $                dct_icr_E_default, 5,
+     $                dct_icr_E_default, 6,
+     $                dct_icr_E_default, 7,
+     $                dct_icr_E_default, 8,
+     $                dct_icr_E_default, 9,
+     $                dct_icr_E_default,10,
+     $                dct_icr_E_default,11/),
+     $                (/2,7/))
+                  
+                  do i=1, size(icoords_output_test,2)
+                     rcoords_output_test(1,i) = interior_x_map(icoords_output_test(1,i))
+                     rcoords_output_test(2,i) = interior_y_map(icoords_output_test(2,i))
+                  end do
+
+                  left_icoord_test     = [dct_icr_E_default,5]
+                  left_rcoord_test(1)  = interior_x_map(dct_icr_E_default)
+                  left_rcoord_test(2)  = interior_y_map(5)
+                  right_icoord_test    = [dct_icr_E_default,11]
+                  right_rcoord_test(1) = interior_x_map(dct_icr_E_default)
+                  right_rcoord_test(2) = interior_y_map(11)
+
+               case default
+                  print '(''test_bf_detector_dcr_param'')'
+                  print '(''get_data_test_compute_new_list_param'')'
+                  print '(''config not recognized: '',I2)', config_detectors
+                  stop ''
+
+             end select
+
+             case default
+                print '(''test_bf_detector_dcr_param'')'
+                print '(''get_data_test_finalize_new_list'')'
+                print '(''test not recognized: '',I2)', bf_localization
+                stop ''                
+
           end select
 
         end subroutine get_data_test_finalize_new_list

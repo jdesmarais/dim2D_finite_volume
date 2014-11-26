@@ -302,7 +302,9 @@
      $     left_icoord,
      $     left_rcoord,
      $     right_icoord,
-     $     right_rcoord)
+     $     right_rcoord,
+     $     remove_first_dct,
+     $     remove_last_dct)
 
           implicit none
 
@@ -316,6 +318,8 @@
           real(rkind)   , dimension(2)               , intent(in)    :: left_rcoord
           integer(ikind), dimension(2)               , intent(in)    :: right_icoord
           real(rkind)   , dimension(2)               , intent(in)    :: right_rcoord
+          logical                                    , intent(in)    :: remove_first_dct
+          logical                                    , intent(in)    :: remove_last_dct
 
 
           select case(bf_localization)
@@ -331,7 +335,9 @@
      $              right_icoord,
      $              right_rcoord,
      $              interior_x_map,
-     $              x_direction)
+     $              x_direction,
+     $              remove_first_dct,
+     $              remove_last_dct)
 
             case(E,W)
                
@@ -344,7 +350,9 @@
      $              right_icoord,
      $              right_rcoord,
      $              interior_y_map,
-     $              y_direction)
+     $              y_direction,
+     $              remove_first_dct,
+     $              remove_last_dct)
 
             case default
                print '(''bf_detector_dcr_param_class'')'
@@ -635,7 +643,9 @@
      $     right_icoord,
      $     right_rcoord,
      $     interior_map,
-     $     dir)
+     $     dir,
+     $     remove_first_dct,
+     $     remove_last_dct)
 
           implicit none
 
@@ -648,6 +658,8 @@
           real(rkind)   , dimension(2)               , intent(in)    :: right_rcoord
           real(rkind)   , dimension(:)               , intent(in)    :: interior_map
           integer                                    , intent(in)    :: dir
+          logical                                    , intent(in)    :: remove_first_dct
+          logical                                    , intent(in)    :: remove_last_dct
 
           integer                                     :: nb_added_detectors
           integer                                     :: nb_deleted_detectors
@@ -754,8 +766,9 @@
 
              !1) link with the first point
              j=0
-             do i=1, left_inter_nb
 
+             do i=1, left_inter_nb
+                   
                 call get_inter_detector_coords(
      $               left_icoord,
      $               left_rcoord,
@@ -764,10 +777,10 @@
      $               i,
      $               icoord_inter,
      $               rcoord_inter)
-
+                   
                 icoords_n(:,j+i) = icoord_inter
                 rcoords_n(:,j+i) = rcoord_inter
-
+                
              end do
 
 
@@ -846,11 +859,43 @@
              
              !set the new detector list
              call MOVE_ALLOC(icoords_n,icoords)
+             call MOVE_ALLOC(rcoords_n,rcoords)             
+
+          end if
+
+          if(remove_first_dct.or.remove_last_dct) then
+
+             if(remove_first_dct) then
+                
+                if(.not.remove_last_dct) then
+                   allocate(icoords_n(2,size(icoords,2)-1))
+                   allocate(rcoords_n(2,size(rcoords,2)-1))
+                   icoords_n = icoords(:,2:size(icoords,2))
+                   rcoords_n = rcoords(:,2:size(rcoords,2))
+
+                else
+                   allocate(icoords_n(2,size(icoords,2)-2))
+                   allocate(rcoords_n(2,size(rcoords,2)-2))
+                   icoords_n = icoords(:,2:size(icoords,2)-1)
+                   rcoords_n = rcoords(:,2:size(rcoords,2)-1)
+
+                end if
+
+             else
+
+                allocate(icoords_n(2,size(icoords,2)-1))
+                allocate(rcoords_n(2,size(rcoords,2)-1))
+                icoords_n = icoords(:,1:size(icoords,2)-1)
+                rcoords_n = rcoords(:,1:size(rcoords,2)-1)
+                
+             end if
+
+             call MOVE_ALLOC(icoords_n,icoords)
              call MOVE_ALLOC(rcoords_n,rcoords)
 
           end if
 
-        end subroutine finalize_new_list_g
+       end subroutine finalize_new_list_g
 
 
 !======================================================================
