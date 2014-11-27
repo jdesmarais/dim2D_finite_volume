@@ -34,6 +34,7 @@
         !<output writing
         real(rkind), parameter :: detail_print = 1.0000000000d0
         logical    , parameter :: write_domain_extension = .true.
+        logical    , parameter :: write_detectors = .true.
 
         !<mpi choice
         integer, parameter :: npx = 1 !<number of processors along x

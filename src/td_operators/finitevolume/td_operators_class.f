@@ -80,7 +80,6 @@
 
         contains
 
-
         !> @author
         !> Julien L. Desmarais
         !

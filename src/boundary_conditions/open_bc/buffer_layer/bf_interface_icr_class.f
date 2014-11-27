@@ -60,7 +60,8 @@
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
-     $       dt,search_nb_dt
+     $       dt,search_nb_dt,
+     $       write_detectors
 
         use parameters_kind, only :
      $       ikind,
@@ -3007,11 +3008,45 @@
         end subroutine print_idetectors_on_binary
 
 
+        subroutine print_netcdf(
+     $     this,
+     $     timestep_written,
+     $     name_var,
+     $     longname_var,
+     $     unit_var,
+     $     time)
+
+         implicit none
+
+         class(bf_interface_icr)    , intent(in) :: this
+         integer                    , intent(in) :: timestep_written
+         character(*), dimension(ne), intent(in) :: name_var
+         character(*), dimension(ne), intent(in) :: longname_var
+         character(*), dimension(ne), intent(in) :: unit_var
+         real(rkind)                , intent(in) :: time
+
+
+         call this%bf_interface%print_netcdf(
+     $        timestep_written,
+     $        name_var,
+     $        longname_var,
+     $        unit_var,
+     $        time)
+
+         if(write_detectors) then
+            call print_idetectors_on_binary(
+     $           this,
+     $           timestep_written)
+         end if
+
+        end subroutine print_netcdf
+
+
         subroutine get_dct_coords(
      $     this,
      $     N_icoords,
      $     S_icoords,
-     $     E_icoords,  
+     $     E_icoords,
      $     W_icoords,
      $     N_rcoords,
      $     S_rcoords,

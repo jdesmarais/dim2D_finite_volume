@@ -115,7 +115,7 @@
         !>@param remove_sublayer
         !> remove a sublayer from the buffer main layers
         !
-        !>@param update_grdpts_after_increase
+        !>@param update_bf_grdpts_after_increase
         !> compute the new grid points of the bf_sublayer after its
         !> increase and synchronize the neighboring buffer layers
         !
