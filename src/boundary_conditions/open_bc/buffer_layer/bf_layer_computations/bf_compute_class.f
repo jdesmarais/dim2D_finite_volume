@@ -109,24 +109,25 @@
 
           contains
 
-          procedure, pass :: does_previous_timestep_exist
+          procedure,   pass :: does_previous_timestep_exist
+                       
+          procedure,   pass :: allocate_tables
+          procedure,   pass :: deallocate_tables
+                       
+          procedure,   pass :: compute_time_dev
+          procedure,   pass :: compute_integration_step
 
-          procedure, pass :: allocate_tables
-          procedure, pass :: deallocate_tables
+          procedure, nopass :: get_sync_indices_for_newgrdpt_data
+          procedure,   pass :: get_data_for_newgrdpt
+          procedure,   pass :: compute_newgrdpt
 
-          procedure, pass :: compute_time_dev
-          procedure, pass :: compute_integration_step
-
-          procedure, pass :: get_data_for_newgrdpt
-          procedure, pass :: compute_newgrdpt
-
-          procedure, pass :: set_alignment   !only for tests
-          procedure, pass :: set_grdpts_id   !only for tests
-          procedure, pass :: set_x_map       !only for tests
-          procedure, pass :: set_y_map       !only for tests
-          procedure, pass :: set_nodes       !only for tests
-          procedure, pass :: set_bc_sections !only for tests
-          procedure, pass :: get_time_dev    !only for tests
+          procedure,   pass :: set_alignment   !only for tests
+          procedure,   pass :: set_grdpts_id   !only for tests
+          procedure,   pass :: set_x_map       !only for tests
+          procedure,   pass :: set_y_map       !only for tests
+          procedure,   pass :: set_nodes       !only for tests
+          procedure,   pass :: set_bc_sections !only for tests
+          procedure,   pass :: get_time_dev    !only for tests
 
         end type bf_compute
 
@@ -470,7 +471,6 @@
           real(rkind)    , dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes0
           integer(ikind) , dimension(2,2)                       , intent(in)    :: gen_coords
 
-          integer(ikind) :: i_min,i_max,j_min,j_max
           integer(ikind) :: size_x,size_y
           integer(ikind) :: i_recv,i_send,j_recv,j_send
           integer(ikind) :: i,j
@@ -479,21 +479,17 @@
           
           if(allocated(this%alignment_tmp)) then
 
-             !synchronize the overlapping at t=t
-             i_min = max(this%alignment_tmp(1,1)-bc_size,gen_coords(1,1))
-             i_max = min(this%alignment_tmp(1,2)+bc_size,gen_coords(1,2))
-             j_min = max(this%alignment_tmp(2,1)-bc_size,gen_coords(2,1))
-             j_max = min(this%alignment_tmp(2,2)+bc_size,gen_coords(2,2))
-             
-             size_x = i_max-i_min+1
-             size_y = j_max-j_min+1 
-             
-             i_recv = i_min-gen_coords(1,1)+1
-             i_send = i_min-(this%alignment_tmp(1,1)-bc_size)+1
-             
-             j_recv = j_min-gen_coords(2,1)+1
-             j_send = j_min-(this%alignment_tmp(2,1)-bc_size)+1
-             
+             !get th esynchronization indices
+             call get_sync_indices_for_newgrdpt_data(
+     $            this%alignment_tmp,
+     $            gen_coords,
+     $            size_x,
+     $            size_y,
+     $            i_recv,
+     $            j_recv,
+     $            i_send,
+     $            j_send)
+
              
              !synchronize the grdpts_id
              do j=1, size_y
@@ -521,6 +517,45 @@
           end if
 
         end subroutine get_data_for_newgrdpt
+
+
+        !determine the synchronization indices when copying data
+        !from the buffer layer arrays to the gridpoint asked
+        subroutine get_sync_indices_for_newgrdpt_data(
+     $     bf_align,
+     $     gen_coords,
+     $     size_x, size_y,
+     $     i_recv, j_recv,
+     $     i_send, j_send)
+
+          implicit none
+
+          integer(ikind), dimension(2,2), intent(in)  :: bf_align
+          integer(ikind), dimension(2,2), intent(in)  :: gen_coords
+          integer(ikind)                , intent(out) :: size_x
+          integer(ikind)                , intent(out) :: size_y
+          integer(ikind)                , intent(out) :: i_recv
+          integer(ikind)                , intent(out) :: j_recv
+          integer(ikind)                , intent(out) :: i_send
+          integer(ikind)                , intent(out) :: j_send
+
+          integer(ikind) :: i_min, i_max, j_min, j_max
+
+          i_min = max(bf_align(1,1)-bc_size,gen_coords(1,1))
+          i_max = min(bf_align(1,2)+bc_size,gen_coords(1,2))
+          j_min = max(bf_align(2,1)-bc_size,gen_coords(2,1))
+          j_max = min(bf_align(2,2)+bc_size,gen_coords(2,2))
+
+          size_x = i_max-i_min+1
+          size_y = j_max-j_min+1 
+
+          i_recv = i_min-gen_coords(1,1)+1
+          i_send = i_min-(bf_align(1,1)-bc_size)+1
+
+          j_recv = j_min-gen_coords(2,1)+1
+          j_send = j_min-(bf_align(2,1)-bc_size)+1
+
+        end subroutine get_sync_indices_for_newgrdpt_data
 
 
         !> @author

@@ -60,6 +60,7 @@
      $       gradient_xLR0_yLR0_type,
      $       get_newgrdpt_procedure,
      $       error_gradient_type,
+     $       get_grdpts_id_from_interior,
      $       get_interior_data_for_newgrdpt,
      $       are_intermediate_newgrdpt_data_needed,
      $       get_x_map_for_newgrdpt,
@@ -875,7 +876,6 @@
           integer(ikind)                 :: i_recv,i_send,j_recv,j_send
           integer(ikind)                 :: i,j
           integer                        :: k
-          integer(ikind), dimension(2,2) :: grdpts_id_coords
 
 
           !synchronize the nodes
@@ -911,9 +911,52 @@
 
           !synchronize the grdpts_id
           !initialize with no_pt
+          call get_grdpts_id_from_interior(
+     $         tmp_grdpts_id0,
+     $         gen_coords)          
+
+        end subroutine get_interior_data_for_newgrdpt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the grdpts_id corresponding to the general
+        !> coordinates gen_coords for the interior
+        !    ___________________
+        !   |                  _|_________
+        !   |    interior     |/|         |
+        !   |                 |/|  tmp    |
+        !   !                 !/!         !
+        !                   overlapping which is copied
+        !                     from buffer layer to tmp
+        !
+        !> @date
+        !> 27_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param tmp_grdpts_id
+        !> array with the grdpts_id data
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> tmp arrays computed
+        !--------------------------------------------------------------
+        subroutine get_grdpts_id_from_interior(
+     $     tmp_grdpts_id,
+     $     gen_coords)
+        
+          implicit none
+          
+          integer, dimension(2*bc_size+1,2*bc_size+1), intent(out) :: tmp_grdpts_id
+          integer(ikind), dimension(2,2)             , intent(in)  :: gen_coords
+
+          integer                        :: i,j
+          integer(ikind), dimension(2,2) :: grdpts_id_coords
+
           do j=1, 2*bc_size+1
              do i=1, 2*bc_size+1
-                tmp_grdpts_id0(i,j) = no_pt
+                tmp_grdpts_id(i,j) = no_pt
              end do
           end do
 
@@ -924,7 +967,7 @@
           grdpts_id_coords(2,2) = ny
 
           call set_grdptid(
-     $         tmp_grdpts_id0,
+     $         tmp_grdpts_id,
      $         grdpts_id_coords,
      $         gen_coords,
      $         bc_pt)
@@ -936,7 +979,7 @@
           grdpts_id_coords(2,2) = ny-1
 
           call set_grdptid(
-     $         tmp_grdpts_id0,
+     $         tmp_grdpts_id,
      $         grdpts_id_coords,
      $         gen_coords,
      $         bc_interior_pt)
@@ -948,12 +991,12 @@
           grdpts_id_coords(2,2) = ny-bc_size
 
           call set_grdptid(
-     $         tmp_grdpts_id0,
+     $         tmp_grdpts_id,
      $         grdpts_id_coords,
      $         gen_coords,
      $         interior_pt)
 
-        end subroutine get_interior_data_for_newgrdpt
+        end subroutine get_grdpts_id_from_interior
 
       
         subroutine set_grdptid(

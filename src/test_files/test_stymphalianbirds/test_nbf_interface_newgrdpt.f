@@ -4,10 +4,11 @@
      $     bf_sublayer
 
         use nbf_interface_newgrdpt_class, only :
-     $     nbf_interface_newgrdpt
+     $       nbf_interface_newgrdpt,
+     $       finalize_grdpts_around_new_interior_pt
 
         use parameters_constant, only :
-     $       N,E
+     $       N,E,S
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size
@@ -38,28 +39,38 @@
         !are located in the buffer layer
         test_validated = test_compute_newgrdpt(1, detailled)
         print '(''test_compute_newgrdpt - config 1: '',L1)', test_validated
-        
+        print '()'
+
         !the data needed for the computation of the new grid point need to
         !be extracted from the interior
         test_validated = test_compute_newgrdpt(2, detailled)
         print '(''test_compute_newgrdpt - config 2: '',L1)', test_validated
+        print '()'
 
         !the data needed for the computation of the new grid point need to
         !be extracted from the interior and the neighboring buffer layers
         test_validated = test_compute_newgrdpt(3, detailled)
         print '(''test_compute_newgrdpt - config 3: '',L1)', test_validated
+        print '()'
         
         !the buffer layer has just been created and no data are stored
         !at t=t-dt
         test_validated = test_compute_newgrdpt(4, detailled)
         print '(''test_compute_newgrdpt - config 4: '',L1)', test_validated
-        
+        print '()'
 
         !test update_bf_grdpts_after_increase
         !------------------------------------------------------------
         test_validated = test_update_bf_grdpts_after_increase(detailled)
         print '(''test_update_bf_grdpts_after_increase: '',L1)', test_validated
+        print '()'
 
+        !test finalize_grdpts_around_new_interior_pt
+        !------------------------------------------------------------
+        test_validated = test_finalize_grdpts_around_new_interior_pt(detailled)
+        print '(''test_finalize_grdpts_around_new_interior_pt: '',L1)', test_validated
+        print '()'
+        
 
 
         contains
@@ -1250,5 +1261,124 @@
           test_validated = test_node.and.test_grdpts_id
 
         end function test_update_bf_grdpts_after_increase
+
+
+        function test_finalize_grdpts_around_new_interior_pt(
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(nbf_interface_newgrdpt)                :: nbf_interface_used
+          type(bf_sublayer)                           :: bf_sublayer_used
+          integer(ikind), dimension(2,2)              :: bf_align
+          integer       , dimension(:,:), allocatable :: grdpts_id
+          integer(ikind), dimension(2)                :: match_table
+          integer(ikind)                              :: i_center
+          integer(ikind)                              :: j_center
+          integer       , dimension(:,:), allocatable :: test_grdpts_id
+
+
+          !============================================================
+          !initialize the inputs
+          !============================================================
+          !initialize the nbf_interface
+          call nbf_interface_used%ini()
+
+
+          !initialize the buffer layer
+          call bf_sublayer_used%ini(S)
+
+          allocate(grdpts_id(7,5))
+
+          grdpts_id = reshape((/
+     $         3,3,3,3,3,3,3,
+     $         2,2,2,2,2,2,2,
+     $         1,1,2,1,1,1,1,
+     $         1,1,1,1,1,1,1,
+     $         1,1,1,1,1,1,1/),
+     $         (/7,5/))
+
+          bf_align = reshape((/
+     $         6,2,
+     $         8,2/),
+     $         (/2,2/))
+
+          call bf_sublayer_used%set_alignment_tab(bf_align)
+          call bf_sublayer_used%set_grdpts_id(grdpts_id)
+
+          match_table = bf_sublayer_used%get_general_to_local_coord_tab()
+          i_center    = 4
+          j_center    = 3
+
+          allocate(test_grdpts_id(7,5))
+          test_grdpts_id = reshape((/
+     $         3,3,3,3,3,3,3,
+     $         2,2,2,2,2,2,2,
+     $         1,1,1,1,1,1,1,
+     $         1,1,1,1,1,1,1,
+     $         1,1,1,1,1,1,1/),
+     $         (/7,5/))
+
+
+          !============================================================
+          !test finalize_grdpts_around_new_interior_pt
+          !============================================================
+          call finalize_grdpts_around_new_interior_pt(
+     $         nbf_interface_used,
+     $         bf_sublayer_used,
+     $         [i_center,j_center],
+     $         match_table)
+
+
+          !============================================================
+          !compare results
+          !============================================================
+          call bf_sublayer_used%get_grdpts_id(grdpts_id)
+          test_validated = compare_grdpts_id(
+     $         grdpts_id,
+     $         test_grdpts_id,
+     $         detailled)
+
+        end function test_finalize_grdpts_around_new_interior_pt
+
+
+        function compare_grdpts_id(grdpts_id,test_grdpts_id,detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          integer, dimension(:,:), intent(in) :: grdpts_id
+          integer, dimension(:,:), intent(in) :: test_grdpts_id
+          logical                , intent(in) :: detailled
+          logical                             :: test_validated
+
+
+          logical :: test_loc
+          integer :: i,j
+
+          
+          test_validated = .true.
+
+
+          do j=1, size(grdpts_id,2)
+             do i=1, size(grdpts_id,1)
+
+                test_loc = grdpts_id(i,j).eq.test_grdpts_id(i,j)
+                test_validated = test_loc.and.test_validated
+                if(detailled.and.(.not.test_loc)) then
+
+                   print '(''** test failed at '',2I2,''**'')', i,j
+                   print '(I2,'' -> '',I2)', grdpts_id(i,j), test_grdpts_id(i,j)
+
+                end if
+
+             end do
+          end do
+
+        end function compare_grdpts_id
 
       end program test_nbf_interface

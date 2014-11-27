@@ -137,6 +137,14 @@
         !> update the bc_sections of the buffer layer by checking the
         !> grid points shared with the neighboring buffer layers
         !
+        !>@param get_data_for_newgrdpt
+        !> get the data needed for the computation of the new grid point
+        !
+        !>@param get_grdpts_id_part
+        !> get the grid points needed to determine whether a suspicious
+        !> bc_interior_pt should be updated to the interior_pt status
+        !> at t
+        !
         !>@param add_element
         !> add an element in the chained list ensuring that
         !> the doubled chained list element are ordered
@@ -182,6 +190,7 @@
           procedure, pass :: update_bc_sections
 
           procedure, pass :: get_data_for_newgrdpt
+          procedure, pass :: get_grdpts_id_part
 
           procedure, pass, private :: add_element
           procedure, pass, private :: remove_element
@@ -1084,6 +1093,64 @@
 
 
         end subroutine get_data_for_newgrdpt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the bc_sections of the buffer layer by
+        !> checking the grid points shared with the
+        !> neighboring buffer layers
+        !
+        !> @date
+        !> 30_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_list object implementing a doubled chained
+        !> list of bf_sublayer references
+        !
+        !>@param tmp_grdpts_id1
+        !> temporary array where the identity of the grid points
+        !> needed to determine whether the suspicious bc_interior_pt
+        !> should be turned into an interior_pt are stored at t
+        !
+        !>@param gen_borders
+        !> general coordinates identifying the SW and NE borders of the
+        !> grid-points asked
+        !--------------------------------------------------------------
+        subroutine get_grdpts_id_part(
+     $     this,
+     $     tmp_grdpts_id1,
+     $     gen_borders)
+        
+          implicit none
+
+          class(nbf_list)                                    , intent(in)    :: this
+          integer        , dimension(2*bc_size+1,2*bc_size+1), intent(inout) :: tmp_grdpts_id1
+          integer(ikind) , dimension(2,2)                    , intent(in)    :: gen_borders
+
+
+          type(nbf_element), pointer   :: current_element
+          type(bf_sublayer), pointer   :: bf_sublayer_ptr
+          integer                      :: i
+
+          current_element => this%get_head()
+
+          do i=1, this%get_nb_elements()
+
+             bf_sublayer_ptr => current_element%get_ptr()
+
+             !get the data needed for the new grdpt
+             call bf_sublayer_ptr%get_grdpts_id_part(
+     $            tmp_grdpts_id1,
+     $            gen_borders)
+
+             current_element => current_element%get_next()
+
+          end do
+
+        end subroutine get_grdpts_id_part
 
 
         !> @author

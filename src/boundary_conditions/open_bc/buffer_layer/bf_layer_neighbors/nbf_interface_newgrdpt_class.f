@@ -15,10 +15,14 @@
 
         use bf_layer_newgrdpt_procedure_module, only :
      $       get_newgrdpt_procedure,
+     $       get_grdpts_id_from_interior,
      $       get_interior_data_for_newgrdpt,
      $       are_intermediate_newgrdpt_data_needed,
      $       get_x_map_for_newgrdpt,
      $       get_y_map_for_newgrdpt
+
+        use bf_suspicious_bc_interior_pt_module, only :
+     $       verify_if_all_grdpts_exist
 
         use bf_newgrdpt_class, only :
      $       bf_newgrdpt
@@ -28,6 +32,9 @@
 
         use nbf_interface_class, only :
      $       nbf_interface
+
+        use parameters_bf_layer, only :
+     $       BF_SUCCESS
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size
@@ -40,7 +47,8 @@
      $       pmodel_eq
 
         private
-        public :: nbf_interface_newgrdpt
+        public :: nbf_interface_newgrdpt,
+     $       finalize_grdpts_around_new_interior_pt
 
 
         !>@class nbf_interface-newgrdpt
@@ -205,6 +213,14 @@
              call bf_sublayer_updated%set_new_interior_pt(
      $            i_center,
      $            j_center)
+
+             !check whether the neighboring bc_interior_pt
+             !should be updated to interior_pt
+             call finalize_grdpts_around_new_interior_pt(
+     $            this,
+     $            bf_sublayer_updated,
+     $            [i_center,j_center],
+     $            match_table)
 
           end do
 
@@ -615,5 +631,203 @@
           end if
 
         end subroutine compute_newgrdpt
+
+
+        !check whether the bc_interior_pt around the new
+        !interior_pt should be updated to interior_pt as well
+        subroutine finalize_grdpts_around_new_interior_pt(
+     $     this,
+     $     bf_sublayer_updated,
+     $     newgrdpt_local_coords,
+     $     match_table)
+
+          implicit none
+
+          class(nbf_interface_newgrdpt), intent(in)    :: this
+          type(bf_sublayer)            , intent(inout) :: bf_sublayer_updated
+          integer(ikind), dimension(2) , intent(in)    :: newgrdpt_local_coords
+          integer(ikind), dimension(2) , intent(in)    :: match_table
+
+          integer(ikind) :: i,j
+
+
+          do j=newgrdpt_local_coords(2)-1, newgrdpt_local_coords(2)+1
+             do i=newgrdpt_local_coords(1)-1, newgrdpt_local_coords(1)+1
+
+                !check whether there is a bc_interior_pt in the grid points
+                !next to the grid points updated by the interior_pt
+                if(bf_sublayer_updated%is_bc_interior_pt(i,j)) then
+                
+                   !check whether the bc_interior_pt should be updated
+                   !to an interior_pt
+                   if(.not.bf_sublayer_updated%has_a_bc_pt_neighbor([i,j])) then
+                      
+                      call update_bc_interior_pt_to_interior_pt(
+     $                     this,
+     $                     bf_sublayer_updated,
+     $                     [i,j],
+     $                     match_table)
+
+                   end if
+
+                end if
+
+             end do
+          end do
+          
+        end subroutine finalize_grdpts_around_new_interior_pt
+
+
+        !update the bc_interior_pt to interior_pt if all the
+        !grid points around the modified grid point exist
+        subroutine update_bc_interior_pt_to_interior_pt(
+     $     this,
+     $     bf_sublayer_updated,
+     $     local_coords,
+     $     match_table)
+
+          implicit none
+
+          class(nbf_interface_newgrdpt), intent(in)    :: this
+          type(bf_sublayer)            , intent(inout) :: bf_sublayer_updated
+          integer(ikind), dimension(2) , intent(in)    :: local_coords
+          integer(ikind), dimension(2) , intent(in)    :: match_table
+          
+          logical                                     :: all_grdpts_exist
+          logical                                     :: ierror
+          integer(ikind), dimension(2)                :: gen_coords
+          integer(ikind), dimension(2,2)              :: gen_borders
+          integer, dimension(2*bc_size+1,2*bc_size+1) :: tmp_grdpts_id1
+
+          integer :: bf_localization
+
+          integer :: j
+
+          !ask the buffer layer to check whether all the grid points
+          !around the local grid point (local_coord) exist such that
+          !it can be turned into an interior_pt
+          all_grdpts_exist =
+     $         bf_sublayer_updated%verify_if_all_bf_grdpts_exist(
+     $         local_coords(1),local_coords(2),ierror)
+
+
+          !if the buffer layer does not contain all the grid points
+          !needed to determine whether all the grid points exist,
+          !a temporary array with the grid points collected from
+          !the interior, the neighbors and then the buffer layer
+          !is initialized
+          !the order is important (interior,neighbors,buffer layer)
+          !as the status of the grid points in the buffer layer
+          !should erase the other ones as the currently updated
+          !buffer layer is the one with the last updated grid points
+          !only grid points not appearing in the buffer layer should
+          !be gathered
+          if(ierror.neqv.BF_SUCCESS) then
+
+
+             !get the cardinal coordinate of the buffer layer
+             bf_localization = bf_sublayer_updated%get_localization()
+
+             !get the general coordinates of the grid point
+             gen_coords(1) = local_coords(1) + match_table(1)
+             gen_coords(2) = local_coords(1) + match_table(2)
+
+             !i_min,i_max,j_min,j_max
+             gen_borders(1,1) = gen_coords(1)-bc_size
+             gen_borders(1,2) = gen_coords(1)+bc_size
+             gen_borders(2,1) = gen_coords(2)-bc_size
+             gen_borders(2,2) = gen_coords(2)+bc_size
+
+
+             !1) collect data from interior
+             call get_grdpts_id_from_interior(
+     $            tmp_grdpts_id1,
+     $            gen_borders)
+
+
+             !2) collect data from potential neighbors
+             !- gather data from neighbor of type 1
+             if(gen_borders(1,1).le.0) then
+                
+                call this%get_grdpts_id_part(
+     $               bf_localization,1,
+     $               tmp_grdpts_id1,
+     $               gen_borders)
+
+             end if
+
+             !- gather data from neighbor of type 2
+             if(gen_borders(1,2).ge.(nx+1)) then
+
+                call this%get_grdpts_id_part(
+     $               bf_localization,2,
+     $               tmp_grdpts_id1,
+     $               gen_borders)
+
+             end if
+
+
+             !3) collect data from buffer layer
+             call bf_sublayer_updated%get_grdpts_id_part(
+     $            tmp_grdpts_id1,
+     $            gen_borders)
+
+
+             !4) verify whether all grid points are present
+             !   to turn the bc_interior_pt into interior_pt
+             all_grdpts_exist = verify_if_all_grdpts_exist(
+     $            bc_size+1,
+     $            bc_size+1,
+     $            tmp_grdpts_id1)
+     $            
+          end if
+
+
+          !if all grid points exist to set as new interior_pt
+          !the bc_interior_pt, the buffer layer is updated
+          if(all_grdpts_exist) then
+             call bf_sublayer_updated%set_new_interior_pt(
+     $            local_coords(1),
+     $            local_coords(2))
+
+          !otherwise, this is a case which is not handled by
+          !the program and further investigation is needed
+          else
+             
+             print '(''nbf_interface_newgrdpt_class'')'
+             print '(''update_bc_interior_pt_to_interior_pt'')'
+             print '(''not all grdpts exist to turn the'')'
+             print '(''bc_interior_pt into an interior_pt'')'
+             print '()'
+             
+             print '(''this problem arises in the buffer layer:'')'
+             print '(''localization: '',I2)', bf_sublayer_updated%get_localization()
+             print '(''bf_align: '',2I2)', bf_sublayer_updated%get_alignment_tab()
+             print '(''grid point coords: '',2I2)', local_coords
+             print '()'
+
+             print '(''neighboring grid points:'')'
+             if(ierror.eqv.BF_SUCCESS) then
+
+                gen_borders(1,1) = gen_coords(1)-bc_size
+                gen_borders(1,2) = gen_coords(1)+bc_size
+                gen_borders(2,1) = gen_coords(2)-bc_size
+                gen_borders(2,2) = gen_coords(2)+bc_size
+
+                call bf_sublayer_updated%get_grdpts_id_part(
+     $               tmp_grdpts_id1,
+     $               gen_borders)
+
+             end if
+
+             do j=1,2*bc_size+1
+                print '(5I2)', tmp_grdpts_id1(:,2*bc_size+2-j)
+             end do
+             print '()'
+             stop ''
+
+          end if
+
+        end subroutine update_bc_interior_pt_to_interior_pt
 
       end module nbf_interface_newgrdpt_class

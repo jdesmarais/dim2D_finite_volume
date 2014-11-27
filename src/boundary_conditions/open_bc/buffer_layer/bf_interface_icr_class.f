@@ -3066,16 +3066,70 @@
           real(rkind)   , dimension(:,:), allocatable, intent(out) :: W_rcoords
 
 
-          allocate(N_icoords, source=this%N_dct_icoords)
-          allocate(S_icoords, source=this%S_dct_icoords)
-          allocate(E_icoords, source=this%E_dct_icoords)
-          allocate(W_icoords, source=this%W_dct_icoords)
+          call copy_iarray(N_icoords,this%N_dct_icoords)
+          call copy_iarray(S_icoords,this%S_dct_icoords)
+          call copy_iarray(E_icoords,this%E_dct_icoords)
+          call copy_iarray(W_icoords,this%W_dct_icoords)
+
+          call copy_rarray(N_rcoords,this%N_dct_rcoords)
+          call copy_rarray(S_rcoords,this%S_dct_rcoords)
+          call copy_rarray(E_rcoords,this%E_dct_rcoords)
+          call copy_rarray(W_rcoords,this%W_dct_rcoords)
+
+c$$$          allocate(N_icoords, source=this%N_dct_icoords)
+c$$$          allocate(S_icoords, source=this%S_dct_icoords)
+c$$$          allocate(E_icoords, source=this%E_dct_icoords)
+c$$$          allocate(W_icoords, source=this%W_dct_icoords)
           
-          allocate(N_rcoords, source=this%N_dct_rcoords)
-          allocate(S_rcoords, source=this%S_dct_rcoords)
-          allocate(E_rcoords, source=this%E_dct_rcoords)
-          allocate(W_rcoords, source=this%W_dct_rcoords)
+c$$$          allocate(N_rcoords, source=this%N_dct_rcoords)
+c$$$          allocate(S_rcoords, source=this%S_dct_rcoords)
+c$$$          allocate(E_rcoords, source=this%E_dct_rcoords)
+c$$$          allocate(W_rcoords, source=this%W_dct_rcoords)
 
         end subroutine get_dct_coords
+
+
+        subroutine copy_iarray(icoords,icoords_source)
+
+          implicit none
+
+          integer(ikind), dimension(:,:), allocatable, intent(out) :: icoords
+          integer(ikind), dimension(:,:)             , intent(in)  :: icoords_source
+
+
+          integer(ikind) :: i,j
+
+
+          allocate(icoords(size(icoords_source,1),size(icoords_source,2)))
+
+          do j=1, size(icoords_source,2)
+             do i=1, size(icoords_source,1)
+                icoords(i,j) = icoords_source(i,j)
+             end do
+          end do
+
+        end subroutine copy_iarray
+
+
+        subroutine copy_rarray(rcoords,rcoords_source)
+
+          implicit none
+
+          real(rkind), dimension(:,:), allocatable, intent(out) :: rcoords
+          real(rkind), dimension(:,:)             , intent(in)  :: rcoords_source
+
+
+          integer(ikind) :: i,j
+
+
+          allocate(rcoords(size(rcoords_source,1),size(rcoords_source,2)))
+
+          do j=1, size(rcoords_source,2)
+             do i=1, size(rcoords_source,1)
+                rcoords(i,j) = rcoords_source(i,j)
+             end do
+          end do
+
+        end subroutine copy_rarray
 
       end module bf_interface_icr_class

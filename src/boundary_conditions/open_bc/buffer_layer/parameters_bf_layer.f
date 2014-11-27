@@ -20,6 +20,10 @@
 
         implicit none
 
+        !if a function returns successfully
+        logical, parameter :: BF_SUCCESS=.true.
+
+        !identification of the grid points in the buffer layer
         integer, parameter :: no_pt = 0
         integer, parameter :: interior_pt = 1
         integer, parameter :: bc_interior_pt = 2

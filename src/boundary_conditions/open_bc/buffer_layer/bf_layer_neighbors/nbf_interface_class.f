@@ -177,6 +177,7 @@
           procedure, pass :: does_a_neighbor_remains
 
           procedure, pass :: get_data_for_newgrdpt
+          procedure, pass :: get_grdpts_id_part
 
           procedure, pass :: print_on_screen
 
@@ -1447,6 +1448,57 @@
      $         gen_borders)
 
         end subroutine get_data_for_newgrdpt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> complete the temporary array containing the grid point ID
+        !> at t to determine whether the suspicious bc_interior_pt
+        !> should be turned into an interior_pt at t
+        !
+        !> @date
+        !> 27_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param bf_localization
+        !> cardinal coordinate identifying the buffer layer position
+        !
+        !>@param bf_neighbor_id
+        !> integer identifying the type of neighbor
+        !
+        !>@param tmp_grdpts_id0
+        !> temporary array with the grid point ID at t=t-dt
+        !
+        !>@param gen_borders
+        !> array with integers identifying the extent of the data
+        !> extracted using general coordinates
+        !--------------------------------------------------------------
+        subroutine get_grdpts_id_part(
+     $     this,
+     $     bf_localization,
+     $     bf_neighbor_id,
+     $     tmp_grdpts_id1,
+     $     gen_borders)
+
+          implicit none
+
+          class(nbf_interface)                              , intent(in)    :: this
+          integer                                           , intent(in)    :: bf_localization
+          integer                                           , intent(in)    :: bf_neighbor_id
+          integer    , dimension(2*bc_size+1,2*bc_size+1)   , intent(inout) :: tmp_grdpts_id1
+          integer(ikind), dimension(2,2)                    , intent(in)    :: gen_borders
+
+
+          call this%nbf_links(bf_localization,bf_neighbor_id)%get_grdpts_id_part(
+     $         tmp_grdpts_id1,
+     $         gen_borders)
+
+        end subroutine get_grdpts_id_part
 
 
         !> @author
