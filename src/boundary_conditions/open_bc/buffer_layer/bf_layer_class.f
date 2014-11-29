@@ -2890,29 +2890,45 @@
         !> which is a bc_pt
         !--------------------------------------------------------------
         function has_a_bc_pt_neighbor(
-     $     this, local_coords)
+     $     this, local_coords, ierror)
      $     result(bc_pt_neighbor)
 
           implicit none
 
           class(bf_layer)              , intent(in) :: this
           integer(ikind) , dimension(2), intent(in) :: local_coords
+          logical                      , intent(out):: ierror
           logical                                   :: bc_pt_neighbor
 
           integer :: i,j
 
-          bc_pt_neighbor = .false.
 
-          do j=local_coords(2)-1,local_coords(2)+1
-             do i=local_coords(1)-1,local_coords(1)+1
+          if(
+     $         (local_coords(1).gt.1).and.
+     $         (local_coords(1).lt.size(this%grdpts_id,1)).and.
+     $         (local_coords(2).gt.1).and.
+     $         (local_coords(2).lt.size(this%grdpts_id,2))) then
 
-                if(this%grdpts_id(i,j).eq.bc_pt) then
-                   bc_pt_neighbor=.true.
-                   exit
-                end if
-
+             ierror = BF_SUCCESS
+             bc_pt_neighbor = .false.
+             
+             do j=local_coords(2)-1,local_coords(2)+1
+                do i=local_coords(1)-1,local_coords(1)+1
+                   
+                   if(this%grdpts_id(i,j).eq.bc_pt) then
+                      bc_pt_neighbor=.true.
+                      exit
+                   end if
+                   
+                end do
              end do
-          end do
+
+          else
+
+             ierror = .not.BF_SUCCESS
+             bc_pt_neighbor = .false.
+
+          end if
 
         end function has_a_bc_pt_neighbor
 

@@ -67,10 +67,13 @@
 
         !test finalize_grdpts_around_new_interior_pt
         !------------------------------------------------------------
-        test_validated = test_finalize_grdpts_around_new_interior_pt(detailled)
-        print '(''test_finalize_grdpts_around_new_interior_pt: '',L1)', test_validated
+        test_validated = test_finalize_grdpts_around_new_interior_pt(1,detailled)
+        print '(''test_finalize_grdpts_around_new_interior_pt-1: '',L1)', test_validated
         print '()'
-        
+
+        test_validated = test_finalize_grdpts_around_new_interior_pt(2,detailled)
+        print '(''test_finalize_grdpts_around_new_interior_pt-2: '',L1)', test_validated
+        print '()'        
 
 
         contains
@@ -1264,64 +1267,36 @@
 
 
         function test_finalize_grdpts_around_new_interior_pt(
+     $     config,
      $     detailled)
      $     result(test_validated)
 
           implicit none
 
+          integer, intent(in) :: config
           logical, intent(in) :: detailled
           logical             :: test_validated
 
           type(nbf_interface_newgrdpt)                :: nbf_interface_used
           type(bf_sublayer)                           :: bf_sublayer_used
-          integer(ikind), dimension(2,2)              :: bf_align
-          integer       , dimension(:,:), allocatable :: grdpts_id
           integer(ikind), dimension(2)                :: match_table
           integer(ikind)                              :: i_center
           integer(ikind)                              :: j_center
+          integer       , dimension(:,:), allocatable :: grdpts_id
           integer       , dimension(:,:), allocatable :: test_grdpts_id
 
 
           !============================================================
           !initialize the inputs
           !============================================================
-          !initialize the nbf_interface
-          call nbf_interface_used%ini()
-
-
-          !initialize the buffer layer
-          call bf_sublayer_used%ini(S)
-
-          allocate(grdpts_id(7,5))
-
-          grdpts_id = reshape((/
-     $         3,3,3,3,3,3,3,
-     $         2,2,2,2,2,2,2,
-     $         1,1,2,1,1,1,1,
-     $         1,1,1,1,1,1,1,
-     $         1,1,1,1,1,1,1/),
-     $         (/7,5/))
-
-          bf_align = reshape((/
-     $         6,2,
-     $         8,2/),
-     $         (/2,2/))
-
-          call bf_sublayer_used%set_alignment_tab(bf_align)
-          call bf_sublayer_used%set_grdpts_id(grdpts_id)
-
-          match_table = bf_sublayer_used%get_general_to_local_coord_tab()
-          i_center    = 4
-          j_center    = 3
-
-          allocate(test_grdpts_id(7,5))
-          test_grdpts_id = reshape((/
-     $         3,3,3,3,3,3,3,
-     $         2,2,2,2,2,2,2,
-     $         1,1,1,1,1,1,1,
-     $         1,1,1,1,1,1,1,
-     $         1,1,1,1,1,1,1/),
-     $         (/7,5/))
+          call get_data_for_test_finalize_grdpts(
+     $         config,
+     $         nbf_interface_used,
+     $         bf_sublayer_used,
+     $         match_table,
+     $         i_center,
+     $         j_center,
+     $         test_grdpts_id)          
 
 
           !============================================================
@@ -1344,6 +1319,121 @@
      $         detailled)
 
         end function test_finalize_grdpts_around_new_interior_pt
+
+
+        subroutine get_data_for_test_finalize_grdpts(
+     $     config,
+     $     nbf_interface_used,
+     $     bf_sublayer_used,
+     $     match_table,
+     $     i_center,
+     $     j_center,
+     $     test_grdpts_id)
+ 
+          implicit none
+
+          integer                             , intent(in)    :: config
+          type(nbf_interface_newgrdpt)        , intent(inout) :: nbf_interface_used
+          type(bf_sublayer)                   , intent(inout) :: bf_sublayer_used
+          integer(ikind), dimension(2)        , intent(out)   :: match_table
+          integer(ikind)                      , intent(out)   :: i_center
+          integer(ikind)                      , intent(out)   :: j_center
+          integer, dimension(:,:), allocatable, intent(out)   :: test_grdpts_id
+          
+
+          integer(ikind), dimension(2,2)              :: bf_align
+          integer       , dimension(:,:), allocatable :: grdpts_id
+
+
+          select case(config)
+
+            case(1)
+
+               !initialize the nbf_interface
+               call nbf_interface_used%ini()
+          
+               !initialize the buffer layer
+               call bf_sublayer_used%ini(S)
+
+               allocate(grdpts_id(7,5))
+               
+               grdpts_id = reshape((/
+     $              3,3,3,3,3,3,3,
+     $              2,2,2,2,2,2,2,
+     $              1,1,2,1,1,1,1,
+     $              1,1,1,1,1,1,1,
+     $              1,1,1,1,1,1,1/),
+     $              (/7,5/))
+               
+               bf_align = reshape((/
+     $              6,2,
+     $              8,2/),
+     $              (/2,2/))
+               
+               call bf_sublayer_used%set_alignment_tab(bf_align)
+               call bf_sublayer_used%set_grdpts_id(grdpts_id)
+               
+               match_table = bf_sublayer_used%get_general_to_local_coord_tab()
+               i_center    = 4
+               j_center    = 3
+               
+               allocate(test_grdpts_id(7,5))
+               test_grdpts_id = reshape((/
+     $              3,3,3,3,3,3,3,
+     $              2,2,2,2,2,2,2,
+     $              1,1,1,1,1,1,1,
+     $              1,1,1,1,1,1,1,
+     $              1,1,1,1,1,1,1/),
+     $              (/7,5/))
+
+            case(2)
+
+               !initialize the nbf_interface
+               call nbf_interface_used%ini()
+          
+               !initialize the buffer layer
+               call bf_sublayer_used%ini(S)
+
+               allocate(grdpts_id(9,5))
+               
+               grdpts_id = reshape((/
+     $              3,3,3,3,3,3,3,3,3,
+     $              2,2,2,2,2,2,2,2,2,
+     $              1,1,2,2,1,2,2,1,1,
+     $              1,1,1,1,1,1,1,1,1,
+     $              1,1,1,1,1,1,1,1,1/),
+     $              (/9,5/))
+               
+               bf_align = reshape((/
+     $              3,2,
+     $              7,2/),
+     $              (/2,2/))
+               
+               call bf_sublayer_used%set_alignment_tab(bf_align)
+               call bf_sublayer_used%set_grdpts_id(grdpts_id)
+               
+               match_table = bf_sublayer_used%get_general_to_local_coord_tab()
+               i_center    = 5
+               j_center    = 3
+               
+               allocate(test_grdpts_id(9,5))
+               test_grdpts_id = reshape((/
+     $              3,3,3,3,3,3,3,3,3,
+     $              2,2,2,2,2,2,2,2,2,
+     $              1,1,1,1,1,1,1,1,1,
+     $              1,1,1,1,1,1,1,1,1,
+     $              1,1,1,1,1,1,1,1,1/),
+     $              (/9,5/))
+
+            case default
+               print '(''test_nbf_interface_newgrdpt'')'
+               print '(''get_data_for_test_finalize_grdpts'')'
+               print '(''config for test not recognized: '',I2)', config
+               stop ''               
+
+          end select               
+
+        end subroutine get_data_for_test_finalize_grdpts
 
 
         function compare_grdpts_id(grdpts_id,test_grdpts_id,detailled)
