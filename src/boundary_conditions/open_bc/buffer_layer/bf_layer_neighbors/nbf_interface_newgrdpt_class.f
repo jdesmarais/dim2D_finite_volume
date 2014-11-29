@@ -876,7 +876,7 @@
 
           !get the general coordinates of the grid point
           gen_coords(1) = bf_local_coords(1) + bf_match_table(1)
-          gen_coords(2) = bf_local_coords(1) + bf_match_table(2)
+          gen_coords(2) = bf_local_coords(2) + bf_match_table(2)
 
           !i_min,i_max,j_min,j_max
           gen_borders(1,1) = gen_coords(1)-bc_size
