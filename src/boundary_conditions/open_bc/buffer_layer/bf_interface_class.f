@@ -390,9 +390,9 @@
 
          select case(mainlayer_id)
            case(N,S)
-              share_grdpts = bf_final_alignment(1,1).le.(align_W+bc_size)
+              share_grdpts = bf_final_alignment(1,1).le.(align_W+bc_size+1)
            case(E,W)
-              share_grdpts = bf_final_alignment(2,1).le.(align_S+bc_size)
+              share_grdpts = bf_final_alignment(2,1).le.(align_S+bc_size+1)
               if(bf_final_alignment(2,1).eq.(align_S+bc_size)) then
                  bf_final_alignment(2,1)=align_S+1
               end if
@@ -442,9 +442,9 @@
 
          select case(mainlayer_id)
            case(N,S)
-              share_grdpts = bf_final_alignment(1,2).ge.(align_E-bc_size)
+              share_grdpts = bf_final_alignment(1,2).ge.(align_E-bc_size-1)
            case(E,W)
-              share_grdpts = bf_final_alignment(2,2).ge.(align_N-bc_size)
+              share_grdpts = bf_final_alignment(2,2).ge.(align_N-bc_size-1)
               if(bf_final_alignment(2,2).eq.(align_N-bc_size)) then
                  bf_final_alignment(2,2)=align_N-1
               end if

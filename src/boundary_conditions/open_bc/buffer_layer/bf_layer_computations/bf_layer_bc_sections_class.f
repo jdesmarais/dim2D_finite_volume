@@ -2,7 +2,8 @@
 
         use parameters_bf_layer, only :
      $     bc_interior_pt,
-     $     bc_pt
+     $     bc_pt,
+     $     BF_SUCCESS
 
         use bf_layer_bc_procedure_module, only : 
      $     N_edge_type,
@@ -299,26 +300,28 @@
 
         !using the boundary procedure given by bf_layer_bc_prcoedure
         !one can get the bc_section corresponding to the grid point(i,j)
-        function get_bc_section(i,j,grdpts_id) result(bc_section)
+        function get_bc_section(i,j,grdpts_id,ierror) result(bc_section)
 
           implicit none
 
-          integer                , intent(in) :: i
-          integer                , intent(in) :: j
-          integer, dimension(:,:), intent(in) :: grdpts_id
-          integer, dimension(5)               :: bc_section
+          integer                , intent(in)  :: i
+          integer                , intent(in)  :: j
+          integer, dimension(:,:), intent(in)  :: grdpts_id
+          logical                , intent(out) :: ierror
+          integer, dimension(5)                :: bc_section
 
           integer :: procedure_type
           integer :: i_proc
           integer :: j_proc
-                    
+
+          ierror = BF_SUCCESS                    
 
           call get_bc_interior_pt_procedure(
      $         i,j,
      $         grdpts_id,
      $         procedure_type,
      $         i_proc,
-     $         j_proc)
+     $         j_proc,ierror)
 
           bc_section(1)=procedure_type
 
@@ -346,7 +349,10 @@
                print '(''bf_layer_bc_sections'')'
                print '(''get_bc_section'')'
                print '(''procedure type: '',I2)', procedure_type
-               stop 'procedure type not recognized'
+               print '(''procedure not recognized'')'
+               print '(''****************************************'')'
+               print '()'
+               ierror = .not.BF_SUCCESS
                
           end select
 
@@ -522,7 +528,7 @@
         !analyse the grid point and decide whether it is part of an existing
         !boundary layer or whether it is the starting point of another boundary
         !layer
-        subroutine analyse_grdpt(this,i,j,grdpts_id)
+        subroutine analyse_grdpt(this,i,j,grdpts_id,ierror)
 
           implicit none
 
@@ -530,6 +536,7 @@
           integer                    , intent(in)    :: i
           integer                    , intent(in)    :: j
           integer, dimension(:,:)    , intent(in)    :: grdpts_id
+          logical                    , intent(out)   :: ierror
 
           integer               :: k,k_buffer
           integer, dimension(5) :: new_bc_section
@@ -632,7 +639,7 @@
                    !boundary layer
                    if(.not.compatible) then
              
-                      new_bc_section = this%get_bc_section(i,j,grdpts_id)
+                      new_bc_section = this%get_bc_section(i,j,grdpts_id,ierror)
                       call this%add_to_bc_sections(new_bc_section)
              
                    end if
@@ -645,7 +652,7 @@
              !layers of the object
              else
              
-                new_bc_section = this%get_bc_section(i,j,grdpts_id)
+                new_bc_section = this%get_bc_section(i,j,grdpts_id,ierror)
                 call this%add_to_bc_sections(new_bc_section)
              
              end if

@@ -32,7 +32,8 @@
 
         use parameters_bf_layer, only :
      $       interior_pt,
-     $       bc_interior_pt
+     $       bc_interior_pt,
+     $       BF_SUCCESS
 
         use parameters_input, only : 
      $       nx,ny,ne,bc_size,
@@ -135,6 +136,7 @@
           integer(ikind)                     :: i,j
           real(rkind), dimension(nx+1,ny,ne) :: flux_x
           real(rkind), dimension(nx,ny+1,ne) :: flux_y
+
 
 
           dx = x_map(2) - x_map(1)
@@ -301,8 +303,10 @@
             integer                                    :: k
 
             real(rkind) :: t_s
+            logical     :: ierror
 
             t_s = t
+            ierror = BF_SUCCESS          
 
 
             !allocate space for the flux computation
@@ -368,7 +372,17 @@
                      do k=1, size(S_bc_sections,2)
                         do j=1,bc_size
                            do i=S_bc_sections(1,k), S_bc_sections(2,k)
-                              call bc_sections_id%analyse_grdpt(i,j,grdpts_id)
+                              if(grdpts_id(i,j).eq.bc_interior_pt) then
+                                 call bc_sections_id%analyse_grdpt(i,j,grdpts_id,ierror)
+                                 if(ierror.neqv.BF_SUCCESS) then
+                                    print '(''td_operators_class'')'
+                                    print '(''compute_time_dev_nopt'')'
+                                    print '(''S_bc_sections failed'')'
+                                    print '(''[i,j,k]: '',3I4)', i,j,k
+                                    print '(''*************************'')'
+                                    stop ''
+                                 end if
+                              end if
                            end do
                         end do
                      end do
@@ -397,7 +411,15 @@
                      end if
                         
                      if(grdpts_id(i,j).eq.bc_interior_pt) then
-                        call bc_sections_id%analyse_grdpt(i,j,grdpts_id)
+                        call bc_sections_id%analyse_grdpt(i,j,grdpts_id,ierror)
+                        if(ierror.neqv.BF_SUCCESS) then
+                           print '(''td_operators_class'')'
+                           print '(''compute_time_dev_nopt'')'
+                           print '(''bc_sections failed'')'
+                           print '(''[i,j]: '',2I4)', i,j
+                           print '(''*************************'')'
+                           stop ''
+                        end if
                      end if
 
                   end do
@@ -432,7 +454,17 @@
                      do k=1, size(N_bc_sections,2)
                         do j=size(nodes,2)-bc_size+1, size(nodes,2)
                            do i=N_bc_sections(1,k), N_bc_sections(2,k)
-                              call bc_sections_id%analyse_grdpt(i,j,grdpts_id)
+                              if(grdpts_id(i,j).eq.bc_interior_pt) then
+                                 call bc_sections_id%analyse_grdpt(i,j,grdpts_id,ierror)
+                                 if(ierror.neqv.BF_SUCCESS) then
+                                    print '(''td_operators_class'')'
+                                    print '(''compute_time_dev_nopt'')'
+                                    print '(''N_bc_sections failed'')'
+                                    print '(''[i,j,k]: '', 3I4)',i,j,k
+                                    print '(''*************************'')'
+                                    stop ''
+                                 end if
+                              end if
                            end do
                         end do
                      end do

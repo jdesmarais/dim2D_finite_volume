@@ -1532,9 +1532,9 @@
           else
              select case(this%localization)
                case(N,S)
-                  this%shares_grdpts_with_neighbor1 = this%alignment(1,1).le.(align_W+bc_size)
+                  this%shares_grdpts_with_neighbor1 = this%alignment(1,1).le.(align_W+bc_size+1)
                case(E,W)
-                  this%shares_grdpts_with_neighbor1 = this%alignment(2,1).le.(align_S+bc_size)
+                  this%shares_grdpts_with_neighbor1 = this%alignment(2,1).le.(align_S+bc_size+1)
                case default
                   call error_mainlayer_id(
      $                 'nbf_interface_class.f',
@@ -1577,9 +1577,9 @@
           else
              select case(this%localization)
                case(N,S)
-                  this%shares_grdpts_with_neighbor2 = this%alignment(1,2).ge.(align_E-bc_size)
+                  this%shares_grdpts_with_neighbor2 = this%alignment(1,2).ge.(align_E-bc_size-1)
                case(E,W)
-                  this%shares_grdpts_with_neighbor2 = this%alignment(2,2).ge.(align_N-bc_size)
+                  this%shares_grdpts_with_neighbor2 = this%alignment(2,2).ge.(align_N-bc_size-1)
                case default
                   call error_mainlayer_id(
      $                 'nbf_interface_class.f',

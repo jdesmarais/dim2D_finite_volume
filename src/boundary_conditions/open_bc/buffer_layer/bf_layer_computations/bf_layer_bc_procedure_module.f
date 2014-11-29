@@ -4,7 +4,8 @@
       
         use parameters_bf_layer, only :
      $     bc_interior_pt,
-     $     bc_pt
+     $     bc_pt,
+     $     BF_SUCCESS
 
         implicit none
 
@@ -56,7 +57,8 @@
      $       grdpts_id,
      $       procedure_type,
      $       i_proc,
-     $       j_proc)
+     $       j_proc,
+     $       ierror)
 
           implicit none
 
@@ -66,6 +68,11 @@
           integer                , intent(out) :: procedure_type
           integer                , intent(out) :: i_proc
           integer                , intent(out) :: j_proc
+          logical                , intent(out) :: ierror
+
+
+          ierror = BF_SUCCESS
+
 
           !  -------
           ! |       |
@@ -117,7 +124,7 @@
           !  -------
                    else
 
-                      call error_bc_interior_pt_procedure(i,j,grdpts_id)
+                      call error_bc_interior_pt_procedure(i,j,grdpts_id,ierror)
                       
                    end if
                 end if
@@ -163,7 +170,7 @@
           !  -------
                    else
 
-                      call error_bc_interior_pt_procedure(i,j,grdpts_id)
+                      call error_bc_interior_pt_procedure(i,j,grdpts_id,ierror)
                       
                    end if
 
@@ -178,7 +185,8 @@
 
                 call get_bc_interior_pt_procedure_3(
      $                     i,j,grdpts_id,
-     $                     procedure_type,i_proc,j_proc)                
+     $                     procedure_type,i_proc,j_proc,
+     $                     ierror)
 
              end if
 
@@ -627,7 +635,8 @@
 
         subroutine get_bc_interior_pt_procedure_3(
      $     i,j,grdpts_id,
-     $     procedure_type,i_proc,j_proc)
+     $     procedure_type,i_proc,j_proc,
+     $     ierror)
 
           implicit none
           
@@ -637,6 +646,7 @@
           integer                , intent(out) :: procedure_type
           integer                , intent(out) :: i_proc
           integer                , intent(out) :: j_proc
+          logical                , intent(out) :: ierror
  
           !  -------
           ! |   1   |
@@ -669,7 +679,7 @@
 
           else
 
-             call error_bc_interior_pt_procedure(i,j,grdpts_id)
+             call error_bc_interior_pt_procedure(i,j,grdpts_id,ierror)
 
           end if
 
@@ -677,21 +687,25 @@
 
 
         !error pattern not found for bc_interior_pt
-        subroutine error_bc_interior_pt_procedure(i,j,grdpts_id)
+        subroutine error_bc_interior_pt_procedure(i,j,grdpts_id,ierror)
 
           implicit none
 
-          integer                , intent(in) :: i
-          integer                , intent(in) :: j
-          integer, dimension(:,:), intent(in) :: grdpts_id
+          integer                , intent(in)  :: i
+          integer                , intent(in)  :: j
+          integer, dimension(:,:), intent(in)  :: grdpts_id
+          logical                , intent(out) :: ierror
 
           print '(''bf_bc_procedure_module'')'
           print '(''get_bc_interior_pt_procedure'')'
+          print '(''[i,j]: '', 2I4)', i,j
           print '(''grdpts(i-1:i+1,j-1:j+1)'')'
           print '(3I2)', grdpts_id(i-1:i+1,j+1)
           print '(3I2)', grdpts_id(i-1:i+1,j)
           print '(3I2)', grdpts_id(i-1:i+1,j-1)
-          stop 'case not recognized'
+          print '(''****************************************'')'
+          print '()'
+          ierror = .not.BF_SUCCESS
 
         end subroutine error_bc_interior_pt_procedure
 
