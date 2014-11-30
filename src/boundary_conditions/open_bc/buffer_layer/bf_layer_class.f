@@ -1798,10 +1798,10 @@
           !get the indices for the match between the tables
           !of the current buffer layer and the neighbor1
           call get_match_indices_for_exchange_with_neighbor1(
-     $         this%localization,
-     $         this%alignment, size(this%nodes,2),
-     $         neighbor1%alignment, size(neighbor1%nodes,2),
-     $         bf_i_min, bf_j_min, nbf_i_min, nbf_j_min,
+     $         this%alignment,
+     $         neighbor1%alignment,
+     $         bf_i_min, bf_j_min,
+     $         nbf_i_min, nbf_j_min,
      $         bf_copy_size_x, bf_copy_size_y)
           
           !copy from neighbor1 to the current buffer layer
@@ -1846,9 +1846,8 @@
           !get the indices for the match between the tables
           !of the current buffer layer and the neighbor1
           call get_match_indices_for_exchange_with_neighbor1(
-     $         this%localization,
-     $         this%alignment, size(this%nodes,2),
-     $         neighbor1%alignment, size(neighbor1%nodes,2),
+     $         this%alignment,
+     $         neighbor1%alignment,
      $         bf_i_min, bf_j_min,
      $         nbf_i_min, nbf_j_min,
      $         bf_copy_size_x, bf_copy_size_y)
@@ -1895,10 +1894,10 @@
           !get the indices for the match between the tables
           !of the current buffer layer and the neighbor1
           call get_match_indices_for_exchange_with_neighbor2(
-     $         this%localization,
-     $         this%alignment, size(this%nodes,2),
-     $         neighbor2%alignment, size(neighbor2%nodes,2),
-     $         bf_i_min, bf_j_min, nbf_i_min, nbf_j_min,
+     $         this%alignment,
+     $         neighbor2%alignment,
+     $         bf_i_min, bf_j_min,
+     $         nbf_i_min, nbf_j_min,
      $         bf_copy_size_x, bf_copy_size_y)
           
           !copy from neighbor1 to the current buffer layer
@@ -1945,10 +1944,10 @@
              !get the indices for the match between the tables
              !of the current buffer layer and the neighbor1
              call get_match_indices_for_exchange_with_neighbor2(
-     $            this%localization,
-     $            this%alignment, size(this%nodes,2),
-     $            neighbor2%alignment, size(neighbor2%nodes,2),
-     $            bf_i_min, bf_j_min, nbf_i_min, nbf_j_min,
+     $            this%alignment,
+     $            neighbor2%alignment,
+     $            bf_i_min, bf_j_min,
+     $            nbf_i_min, nbf_j_min,
      $            bf_copy_size_x, bf_copy_size_y)
             
              !copy from the current buffer layer to neighbor1
