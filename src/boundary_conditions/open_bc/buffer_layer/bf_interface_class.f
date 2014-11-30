@@ -35,6 +35,9 @@
         use bf_mainlayer_pointer_class, only :
      $       bf_mainlayer_pointer
 
+        use bf_layer_nf90_operators_module, only :
+     $       print_interior_grdpts_id_on_netcdf
+
         use interface_integration_step, only :
      $       timeInt_step_nopt
 
@@ -292,17 +295,19 @@
           real(rkind), dimension(ny), intent(in)    :: interior_y_map
 
           integer :: i
-          real(rkind) :: dx_s
-          real(rkind) :: dy_s
-
-          dx_s = interior_x_map(2)-interior_x_map(1)
-          dy_s = interior_y_map(2)-interior_y_map(1)          
           
           do i=1, size(this%mainlayer_pointers,1)
              call this%mainlayer_pointers(i)%ini()             
           end do
 
           call this%border_interface%ini()
+
+          !create a netcdf file with the grdpts_id for the interior
+          !computational domain
+          call print_interior_grdpts_id_on_netcdf(
+     $         'interior_grdpts_id.nc',
+     $         interior_x_map,
+     $         interior_y_map)
 
         end subroutine ini
 

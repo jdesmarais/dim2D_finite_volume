@@ -14,21 +14,35 @@
       !-----------------------------------------------------------------
       module bf_layer_nf90_operators_module
 
-        use bf_layer_errors_module, only : error_mainlayer_id
+        use bf_layer_errors_module, only :
+     $       error_mainlayer_id
+
         use netcdf                
-        use parameters_bf_layer   , only : no_pt
-        use parameters_constant   , only : institut,
-     $                                     prog_version,
-     $                                     ref,
-     $                                     convention,
-     $                                     N,S,E,W
-        use parameters_input      , only : ne
-        use parameters_kind       , only : ikind, rkind
+
+        use parameters_bf_layer   , only :
+     $       bc_pt,bc_interior_pt,interior_pt,no_pt
+
+        use parameters_constant   , only :
+     $       institut,
+     $       prog_version,
+     $       commit,
+     $       ref,
+     $       convention,
+     $       N,S,E,W
+
+        use parameters_input, only :
+     $       nx,ny,ne
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
 
         implicit none
 
         private
-        public :: print_bf_layer_on_netcdf
+        public ::
+     $       print_bf_layer_on_netcdf,
+     $       print_interior_grdpts_id_on_netcdf
       
         contains
 
@@ -350,6 +364,10 @@
           call nf90_handle_err(retval)
 
           retval = nf90_put_att(ncid,nf90_global,'source',prog_version)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = nf90_put_att(ncid,nf90_global,'prog_commit',commit)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
@@ -836,5 +854,318 @@ c$$$          character(len=23), dimension(ne) :: unit_var
      $         cardinal_coord, bf_order
 
         end function get_bf_layer_title
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the interior grdpts_id on an external netcdf file
+        !
+        !> @date
+        !> 01_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param filename
+        !> file name for the netcdf output
+        !
+        !>@param interior_x_map
+        !> x-coordinates for the interior domain
+        !
+        !>@param interior_y_map
+        !> y-coordinates for the interior domain
+        !--------------------------------------------------------------
+        subroutine print_interior_grdpts_id_on_netcdf(
+     $     filename,
+     $     interior_x_map,
+     $     interior_y_map)
+
+          implicit none
+
+          character(*)              , intent(in) :: filename
+          real(rkind), dimension(nx), intent(in) :: interior_x_map
+          real(rkind), dimension(ny), intent(in) :: interior_y_map
+
+
+          !definition of the coordinates saved in the netcdf file
+          character*(*), parameter :: T_NAME = 'time'
+          character*(*), parameter :: X_NAME = 'x'
+          character*(*), parameter :: Y_NAME = 'y'
+
+          character*(*), parameter :: UNITS    = 'units'
+          character*(*), parameter :: T_UNITS  = 's/s'
+          character*(*), parameter :: X_UNITS  = 'm/m'
+          character*(*), parameter :: Y_UNITS  = 'm/m'
+
+          character*(*), parameter :: AXIS     = 'axis'
+          character*(*), parameter :: X_AXIS   = 'X'
+          character*(*), parameter :: Y_AXIS   = 'Y'
+          
+          character*(*), parameter :: LONG_NAME  ='long_name'
+          character*(*), parameter :: T_LONG_NAME='reduced time'
+          character*(*), parameter :: X_LONG_NAME='reduced x-coordinate'
+          character*(*), parameter :: Y_LONG_NAME='reduced y-coordinate'
+
+          integer, parameter       :: NDIMS = 3
+          integer, dimension(NDIMS):: dimids
+
+
+          !identification of the memory locations to save the
+          !netcdf variables
+          integer :: NF_MYREAL
+
+          integer :: t_dimid
+          integer :: x_dimid
+          integer :: y_dimid
+      
+          integer :: t_varid
+          integer :: x_varid
+          integer :: y_varid
+
+          integer :: retval
+          integer :: ncid
+
+          integer, dimension(3)  :: coords_id
+          integer                :: grdptsid_id
+
+          integer, dimension(nx,ny) :: grdpts_id
+          integer(ikind)            :: i,j
+          
+          integer    , dimension(3) :: start_op
+          integer    , dimension(3) :: count_op
+
+
+          !open the netcdf file
+          !============================================================
+          call nf90_open_file(filename, ncid)
+          
+
+          !define the header of the file
+          !============================================================
+          call nf90_write_header(
+     $         ncid,
+     $         'default_interior_grdpts')          
+
+
+          !define the type of variables stored
+          select case(RKIND)
+            case(4)
+               NF_MYREAL=NF90_FLOAT
+            case(8)
+               NF_MYREAL=NF90_DOUBLE
+            case default
+               print '(''nf90_operators_wr_class :'')'
+               print '(''nf90_def_var_model'')'
+               stop 'NF_MYREAL'
+          end select
+
+
+          !define the dimensions
+          retval = NF90_DEF_DIM(ncid, T_NAME, 1, t_dimid)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = NF90_DEF_DIM(ncid, X_NAME, nx, x_dimid)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = NF90_DEF_DIM(ncid, Y_NAME, ny, y_dimid)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+
+          !define the coordinates variables
+          retval = NF90_DEF_VAR(ncid, T_NAME, NF_MYREAL, t_dimid,t_varid)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = NF90_DEF_VAR(ncid, X_NAME, NF_MYREAL, x_dimid,x_varid)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+          
+          retval = NF90_DEF_VAR(ncid, Y_NAME, NF_MYREAL, y_dimid,y_varid)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+          
+
+          !assign the units to the variables
+          retval = NF90_PUT_ATT(ncid, t_varid, UNITS, T_UNITS)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = NF90_PUT_ATT(ncid, x_varid, UNITS, X_UNITS)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+          
+          retval = NF90_PUT_ATT(ncid, y_varid, UNITS, Y_UNITS)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+          
+
+          !assign the type of axis to the coordinates
+          retval = NF90_PUT_ATT(ncid, x_varid, AXIS, X_AXIS)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+          
+          retval = NF90_PUT_ATT(ncid, y_varid, AXIS, Y_AXIS)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+          
+
+          !assign the long name for the description of the coordinates
+          retval = NF90_PUT_ATT(ncid, t_varid, LONG_NAME, T_LONG_NAME)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval = NF90_PUT_ATT(ncid, x_varid, LONG_NAME, X_LONG_NAME)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+          
+          retval = NF90_PUT_ATT(ncid, y_varid, LONG_NAME, Y_LONG_NAME)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+
+          !assign the coordinates id
+          coords_id(1) = t_varid
+          coords_id(2) = x_varid
+          coords_id(3) = y_varid
+
+
+          !define the extension in x and y directions
+          dimids(1) = t_dimid
+          dimids(2) = x_dimid
+          dimids(3) = y_dimid
+
+
+          !define the role of the grid points
+          retval = NF90_DEF_VAR(
+     $         ncid,
+     $         'grdpts_id',
+     $         NF90_INT,
+     $         dimids,
+     $         grdptsid_id)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          !assign units to the role of grid points
+          retval = NF90_PUT_ATT(
+     $         ncid,
+     $         grdptsid_id,
+     $         UNITS,
+     $         '-')
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          !assign long_name to the role of grid points
+          retval = NF90_PUT_ATT(
+     $         ncid,
+     $         grdptsid_id,
+     $         LONG_NAME,
+     $         'role of the buffer layer grid points')
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          !stop the definition of the variables saved in the file
+          retval = NF90_ENDDEF(ncid)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+
+          !define the interior grid points
+          !============================================================
+          !first row
+          j=1
+          do i=1, nx
+             grdpts_id(i,j) = bc_pt
+          end do
+
+          !second row
+          j=2
+          i=1
+          grdpts_id(i,j) = bc_pt
+          do i=2,nx-1
+             grdpts_id(i,j) = bc_interior_pt
+          end do
+          i=nx
+          grdpts_id(i,j) = bc_pt
+
+          !interior
+          do j=3, ny-2
+             i=1
+             grdpts_id(i,j) = bc_pt
+
+             i=2
+             grdpts_id(i,j) = bc_interior_pt
+
+             do i=3, nx-2
+                grdpts_id(i,j) = interior_pt
+             end do
+
+             i=nx-1
+             grdpts_id(i,j) = bc_interior_pt
+
+             i=nx
+             grdpts_id(i,j) = bc_pt
+          end do
+
+          !last before least row
+          j=ny-1
+          i=1
+          grdpts_id(i,j) = bc_pt
+          do i=2,nx-1
+             grdpts_id(i,j) = bc_interior_pt
+          end do
+          i=nx
+          grdpts_id(i,j) = bc_pt
+
+          !last row
+          j=ny
+          do i=1,nx
+             grdpts_id(i,j) = bc_pt
+          end do
+
+
+          !save the variables in the file
+          !============================================================
+          !write the time
+          retval = NF90_PUT_VAR(ncid, t_varid, [0.0d0])
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+
+          !write the x_map coordinates
+          retval = NF90_PUT_VAR(ncid, x_varid, interior_x_map)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+
+          !write the y_map coordinates
+          retval = NF90_PUT_VAR(ncid, y_varid, interior_y_map)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+          
+
+          !start of the writing
+          start_op = [1,1,1]
+          count_op = [1,nx,ny]
+
+          !write the grdpts_id
+          retval = NF90_PUT_VAR(
+     $         ncid,
+     $         grdptsid_id,
+     $         grdpts_id,
+     $         START=start_op,
+     $         COUNT=count_op)
+
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+
+          !close the file
+          !============================================================
+          call nf90_close_file(ncid)
+
+
+        end subroutine print_interior_grdpts_id_on_netcdf
 
       end module bf_layer_nf90_operators_module
