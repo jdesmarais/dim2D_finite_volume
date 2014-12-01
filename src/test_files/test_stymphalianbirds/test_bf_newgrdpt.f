@@ -65,6 +65,9 @@
         logical           :: test_validated
         logical           :: detailled
 
+        type(pmodel_eq)           :: p_model
+        real(rkind), dimension(3) :: far_field
+        integer                   :: k
 
         !test requirements
         if(ne.ne.3) then
@@ -74,6 +77,14 @@
         if(.not.is_test_validated(c,0.5d0,.false.)) then
            stop 'the test requires c=0.5'
         end if
+
+        far_field = p_model%get_far_field(0.0d0,1.0d0,1.0d0)
+        do k=1,3
+           if(.not.is_test_validated(far_field(k),0.0d0,.false.)) then
+              stop 'the test requires p_model%get_far_field(t,x,y)=0'
+           end if
+        end do
+
 
         !test config
         detailled = .true.

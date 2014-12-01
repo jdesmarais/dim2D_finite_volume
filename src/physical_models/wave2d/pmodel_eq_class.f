@@ -1647,11 +1647,11 @@ c$$$          end if
             case(negative_spot)
                
                if(rkind.eq.8) then
-                  var(1) = 0.0d0
+                  var(1) = 1.0d0
                   var(2) = c**2*x/(SQRT(x**2+y**2))
                   var(3) = c**2*y/(SQRT(x**2+y**2))
                else
-                  var(1) = 0.0
+                  var(1) = 1.0
                   var(2) = c**2*x/(SQRT(x**2+y**2))
                   var(3) = c**2*y/(SQRT(x**2+y**2))
                end if
