@@ -255,7 +255,8 @@ def create_grdpts_id_pictures(
     xmin,
     xmax,
     ymin,
-    ymax):
+    ymax,
+    step=1):
 
 
     #determine the total number of timesteps
@@ -276,7 +277,7 @@ def create_grdpts_id_pictures(
 
     #loop over the time steps, extract the grdpts_id
     #and create a picture from the view
-    for timestep in range(0,nbTimesteps+1):
+    for timestep in range(0,nbTimesteps+1,step):
 
         plot_and_print_grdpts_id(
             dirInputNcFiles,
@@ -294,7 +295,8 @@ def create_field_pictures(
     xmin,
     xmax,
     ymin,
-    ymax):
+    ymax,
+    step=1):
 
 
     #determine the total number of timesteps
@@ -315,7 +317,7 @@ def create_field_pictures(
 
     #loop over the time steps, extract the grdpts_id
     #and create a picture from the view
-    for timestep in range(0,nbTimesteps+1):
+    for timestep in range(0,nbTimesteps+1,step):
 
         plot_and_print_field(
             dirInputNcFiles,
@@ -330,13 +332,14 @@ def create_field_pictures(
 def create_movie(
     dirInputFiles,
     filePattern,
-    movieFileName):
+    movieFileName,
+    movieRate=1):
 
     if(os.path.isfile(os.path.join(dirInputFiles,movieFileName))):
         os.remove(os.path.join(dirInputFiles,movieFileName))
 
     cmd="ffmpeg"
-    cmd+=" -r 2"
+    cmd+=" -r "+str(movieRate)
     cmd+=" -i "+os.path.join(dirInputFiles,filePattern)
     cmd+=" "+movieFileName
     cmd+=" && mv "+movieFileName+" "+dirInputFiles
