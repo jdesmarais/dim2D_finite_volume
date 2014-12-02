@@ -47,7 +47,7 @@
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 3
+        integer       , parameter :: ne = 4
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -84,7 +84,7 @@
         !phase_separation   : unstable mass density
         !--------------------------------------------
         integer, parameter :: flow_direction = x_direction
-        integer, parameter :: ic_choice = negative_spot
+        integer, parameter :: ic_choice = vortex
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice

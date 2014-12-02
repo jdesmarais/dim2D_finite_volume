@@ -16,6 +16,9 @@
       !-----------------------------------------------------------------
       module ic_abstract_class
 
+        use parameters_input, only :
+     $     ne
+
         use parameters_kind, only :
      $     rkind
 
@@ -59,13 +62,14 @@
 
           contains
 
-          procedure(ic_proc) , nopass, deferred :: apply_ic
-          procedure(far_proc), nopass, deferred :: get_mach_ux_infty
-          procedure(far_proc), nopass, deferred :: get_mach_uy_infty
-          procedure(var_proc), nopass, deferred :: get_u_in
-          procedure(var_proc), nopass, deferred :: get_v_in
-          procedure(var_proc), nopass, deferred :: get_T_in
-          procedure(var_proc), nopass, deferred :: get_P_out
+          procedure(ic_proc)       , nopass, deferred :: apply_ic
+          procedure(far_proc)      , nopass, deferred :: get_mach_ux_infty
+          procedure(far_proc)      , nopass, deferred :: get_mach_uy_infty
+          procedure(var_proc)      , nopass, deferred :: get_u_in
+          procedure(var_proc)      , nopass, deferred :: get_v_in
+          procedure(var_proc)      , nopass, deferred :: get_T_in
+          procedure(var_proc)      , nopass, deferred :: get_P_out
+          procedure(far_field_proc), nopass, deferred :: get_far_field
 
         end type ic_abstract
 
@@ -108,6 +112,21 @@
             real(rkind)             :: var
 
           end function var_proc
+
+
+          !get the variable enforced at the edge of the
+          !computational domain
+          function far_field_proc(t,x,y) result(var)
+
+            import ne
+            import rkind
+
+            real(rkind)   , intent(in) :: t
+            real(rkind)   , intent(in) :: x
+            real(rkind)   , intent(in) :: y
+            real(rkind), dimension(ne) :: var
+
+          end function far_field_proc
 
         end interface
 

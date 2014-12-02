@@ -146,6 +146,7 @@
 
           procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
+          procedure,   pass :: get_far_field
 
           procedure, nopass :: compute_x_eigenvalues
           procedure, nopass :: compute_y_eigenvalues
@@ -165,8 +166,6 @@
           procedure, nopass :: compute_y_transM
           procedure, nopass :: compute_n1_transM => compute_n1_transM_wave2d
           procedure, nopass :: compute_n2_transM => compute_n2_transM_wave2d
-
-          procedure,   pass :: get_far_field
 
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
@@ -1610,11 +1609,20 @@ c$$$          end if
         !> @date
         !> 13_11_2014 - initial version - J.L. Desmarais
         !
-        !>@param nodes
-        !> array with the grid point data
+        !>@param this
+        !> physical model
         !
-        !>@return eigenvect
-        !> transverse matrix in the y-direction
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return var
+        !> governing variables in the far-field
         !--------------------------------------------------------------
         function get_far_field(this,t,x,y) result(var)
 

@@ -104,4 +104,4 @@ ic_choice = 2
 ! 1 : earth gravity: 9.81
 !---------------------------------------------------------
 gravity_choice=0
-wave_forcing=1
+wave_forcing=0

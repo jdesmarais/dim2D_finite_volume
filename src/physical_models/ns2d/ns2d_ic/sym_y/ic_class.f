@@ -17,10 +17,10 @@
       module ic_class
        
         use ns2d_parameters, only :
-     $     gamma, mach_infty
+     $       gamma, mach_infty
 
         use ic_abstract_class, only :
-     $     ic_abstract
+     $       ic_abstract
 
         use parameters_constant, only :
      $       left,
@@ -28,7 +28,8 @@
      $       y_direction
 
         use parameters_input, only :
-     $       flow_direction
+     $       flow_direction,
+     $       ne
 
         use parameters_kind, only :
      $       ikind,
@@ -332,5 +333,54 @@
           end if
 
         end function get_P_out
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the governing variables imposed in the far field
+        !
+        !> @date
+        !> 03_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return var
+        !> governing variables in the far-field
+        !--------------------------------------------------------------
+        function get_far_field(t,x,y) result(var)
+
+          implicit none
+
+          real(rkind)   , intent(in) :: t
+          real(rkind)   , intent(in) :: x
+          real(rkind)   , intent(in) :: y
+          real(rkind), dimension(ne) :: var
+          
+          if(rkind.eq.8) then
+             
+             var(1) = 1.0d0
+             var(2) = var(1)*get_u_in(t,x,y)
+             var(3) = var(1)*get_v_in(t,x,y)
+             var(4) = 0.5d0*(var(2)**2+var(3)**2)/var(1) + get_P_out(t,x,y)/(gamma-1.0d0)
+             
+          else
+             
+             var(1) = 1.0
+             var(2) = var(1)*get_u_in(t,x,y)
+             var(3) = var(1)*get_v_in(t,x,y)
+             var(4) = 0.5*(var(2)**2+var(3)**2)/var(1) + get_P_out(t,x,y)/(gamma-1.0)
+             
+          end if
+          
+        end function get_far_field
 
       end module ic_class

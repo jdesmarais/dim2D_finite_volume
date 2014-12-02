@@ -11,7 +11,7 @@
       !> governing equations of the Navier-Stokes equations in 2D
       !
       !> @date
-      !> 08_08_2014 - initial version               - J.L. Desmarais
+      !> 08_08_2014 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module pmodel_eq_class
 
@@ -20,7 +20,8 @@
 
         use interface_primary, only :
      $       gradient_x_proc,
-     $       gradient_y_proc
+     $       gradient_y_proc,
+     $       gradient_n_proc
 
         use sd_operators_class, only :
      $       sd_operators
@@ -73,13 +74,16 @@
      $       flux_y_viscid_momentum_y,
      $       flux_y_viscid_total_energy
 
-c$$$        use ns2d_ncoords_module         , only : compute_n_gradient_ns2d,
-c$$$     $                                           compute_n_eigenvalues_ns2d,
-c$$$     $                                           compute_n1_lefteigenvector_ns2d,
-c$$$     $                                           compute_n1_righteigenvector_ns2d,
-c$$$     $                                           compute_n2_lefteigenvector_ns2d,
-c$$$     $                                           compute_n2_righteigenvector_ns2d
-
+        use ns2d_ncoords_module, only :
+     $       compute_n1_eigenvalues_ns2d,
+     $       compute_n2_eigenvalues_ns2d,
+     $       compute_n1_lefteigenvector_ns2d,
+     $       compute_n1_righteigenvector_ns2d,
+     $       compute_n2_lefteigenvector_ns2d,
+     $       compute_n2_righteigenvector_ns2d,
+     $       compute_n1_transM_ns2d,
+     $       compute_n2_transM_ns2d
+        
         use ns2d_steadystate_module, only :
      $       apply_steady_state_ic
 
@@ -183,6 +187,8 @@ c$$$     $                                           compute_n2_righteigenvector
 
           contains
 
+          !description of the model and its main
+          !governing variables
           procedure, nopass :: get_model_name
           procedure, nopass :: get_var_name
           procedure, nopass :: get_var_longname
@@ -191,6 +197,7 @@ c$$$     $                                           compute_n2_righteigenvector
           procedure, nopass :: get_sim_parameters
           procedure, nopass :: get_eq_nb
 
+          !initial conditions procedures
           procedure,   pass :: apply_ic
           procedure,   pass :: get_mach_ux_infty
           procedure,   pass :: get_mach_uy_infty
@@ -199,6 +206,7 @@ c$$$     $                                           compute_n2_righteigenvector
           procedure,   pass :: get_T_in
           procedure,   pass :: get_P_out
 
+          !flux computation
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
           procedure, nopass :: compute_flux_x_nopt
@@ -208,23 +216,39 @@ c$$$     $                                           compute_n2_righteigenvector
           procedure, nopass :: compute_flux_x_by_parts
           procedure, nopass :: compute_flux_y_by_parts
           procedure, nopass :: compute_body_forces
-          procedure, nopass :: get_velocity
           procedure, nopass :: get_viscous_coeff
 
+          !field extension for open b.c.
+          procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
+          procedure,   pass :: get_far_field
 
+          !eigenquantities computation
           procedure, nopass :: compute_x_eigenvalues
           procedure, nopass :: compute_y_eigenvalues
           procedure, nopass :: compute_x_lefteigenvector
           procedure, nopass :: compute_x_righteigenvector
           procedure, nopass :: compute_y_lefteigenvector
-          procedure, nopass :: compute_y_righteigenvector
+          procedure, nopass :: compute_y_righteigenvector          
+
+          procedure, nopass :: compute_n1_eigenvalues => compute_n1_eigenvalues_ns2d
+          procedure, nopass :: compute_n2_eigenvalues => compute_n2_eigenvalues_ns2d
+          procedure, nopass :: compute_n1_lefteigenvector  => compute_n1_lefteigenvector_ns2d
+          procedure, nopass :: compute_n1_righteigenvector => compute_n1_righteigenvector_ns2d
+          procedure, nopass :: compute_n2_lefteigenvector  => compute_n2_lefteigenvector_ns2d
+          procedure, nopass :: compute_n2_righteigenvector => compute_n2_righteigenvector_ns2d
+
+          procedure, nopass :: compute_x_transM
+          procedure, nopass :: compute_y_transM
+          procedure, nopass :: compute_n1_transM => compute_n1_transM_ns2d
+          procedure, nopass :: compute_n2_transM => compute_n2_transM_ns2d
 
           procedure, nopass :: compute_x_consLodiM
           procedure, nopass :: compute_y_consLodiM
 
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
+          procedure, nopass :: compute_n_gradient
 
         end type pmodel_eq
 
@@ -1311,19 +1335,25 @@ c$$$          y_s = y_map(1)
           if(gravity_choice.eq.earth_gravity_choice) then
 
              select case(k)
+
                case(1)
                   body_forces = 0
+
                case(2)
                   body_forces = 0
+
                case(3)
                   body_forces = -nodes(1)*gravity
+
                case(4)
                   body_forces = -nodes(3)*gravity
+
                case default
                   body_forces = 0
                   print '(''ns2d/pmodel_eq_class'')'
                   print '(''compute_body_forces'')'
                   stop '1=< k =<4 violated'
+
              end select
 
           else
@@ -1393,13 +1423,56 @@ c$$$          y_s = y_map(1)
           real(rkind), dimension(ne), intent(in) :: nodes
           logical                                :: undermined
 
-          real(rkind) :: node_s
+          select case(ic_choice)
 
-          undermined = .false.
+            case(vortex)
+               undermined=nodes(1).lt.0.97d0
 
-          node_s=nodes(1)
+            case default
+               undermined=.false.
+
+          end select
 
         end function are_openbc_undermined
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the governing variables imposed in the far field
+        !
+        !> @date
+        !> 03_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return var
+        !> governing variables in the far-field
+        !--------------------------------------------------------------
+        function get_far_field(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq)          , intent(in) :: this
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
+          real(rkind), dimension(ne)             :: var
+
+          var = this%initial_conditions%get_far_field(t,x,y)
+
+        end function get_far_field
 
 
         !> @author
@@ -1842,6 +1915,228 @@ c$$$          y_s = y_map(1)
         !> Julien L. Desmarais
         !
         !> @brief
+        !> computation of the transverse matrix in the x-direction
+        !> if the convective part of the governing equations is
+        !> written as
+        !> \f$ \frac{\partial v}{\partial t} +
+        !>    A_x \frac{\partial v}{\partial x} + 
+        !>    A_y \frac{\partial v}{\partial y}
+        !> \f$
+        !> then the tranmsverse matrix in the x-direction is
+        !> \f$ A_y \f$
+        !
+        !> @date
+        !> 03_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvect
+        !> transverse matrix in the x-direction
+        !--------------------------------------------------------------
+        function compute_x_transM(nodes) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne,ne)          :: eigenvect
+
+
+          real(rkind), dimension(ne,ne) :: jacConsPrim
+          real(rkind), dimension(ne,ne) :: jacPrimCons
+          real(rkind), dimension(ne,ne) :: xTransMPrim
+
+          real(rkind)                   :: uy
+          real(rkind)                   :: c
+          real(rkind)                   :: P
+
+
+          !computation of J, the jacobian matrix from conservative
+          !to primitive variables
+          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
+          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
+
+
+          !transverse matrix for the primitive variables
+          uy = nodes(3)/nodes(1)         !velocity_y
+          c  = speed_of_sound(nodes)     !speed of sound
+          
+
+          if(rkind.eq.8) then
+
+             P  = (gamma-1.0d0)*(
+     $            nodes(4)-0.5d0/nodes(1)*(
+     $            nodes(2)**2+nodes(3)**2)) !pressure
+
+             xTransMPrim(1,1) =  uy
+             xTransMPrim(2,1) =  0.0d0
+             xTransMPrim(3,1) =  nodes(1)
+             xTransMPrim(4,1) =  0.0d0
+
+             xTransMPrim(1,2) =  0.0d0
+             xTransMPrim(2,2) =  uy
+             xTransMPrim(3,2) =  0.0d0
+             xTransMPrim(4,2) =  0.0d0
+
+             xTransMPrim(1,3) =  0.0d0
+             xTransMPrim(2,3) =  0.0d0
+             xTransMPrim(3,3) =  uy
+             xTransMPrim(4,3) =  1.0d0/nodes(1)
+
+             xTransMPrim(1,4) =  0.0d0
+             xTransMPrim(2,4) =  0.0d0
+             xTransMPrim(3,4) =  gamma*P
+             xTransMPrim(4,4) =  uy
+
+          else
+             
+             P  = (gamma-1.0)*(
+     $            nodes(4)-0.5/nodes(1)*(
+     $            nodes(2)**2+nodes(3)**2)) !pressure
+
+             xTransMPrim(1,1) =  uy
+             xTransMPrim(2,1) =  0.0
+             xTransMPrim(3,1) =  nodes(1)
+             xTransMPrim(4,1) =  0.0
+
+             xTransMPrim(1,2) =  0.0
+             xTransMPrim(2,2) =  uy
+             xTransMPrim(3,2) =  0.0
+             xTransMPrim(4,2) =  0.0
+
+             xTransMPrim(1,3) =  0.0
+             xTransMPrim(2,3) =  0.0
+             xTransMPrim(3,3) =  uy
+             xTransMPrim(4,3) =  1.0/nodes(1)
+
+             xTransMPrim(1,4) =  0.0
+             xTransMPrim(2,4) =  0.0
+             xTransMPrim(3,4) =  gamma*P
+             xTransMPrim(4,4) =  uy
+
+          end if
+
+          !transverse matrix computed as A^y_v = J^v_p.A^y_p.J^p_v
+          eigenvect = MATMUL(MATMUL(jacPrimCons,xTransMPrim),jacConsPrim)
+
+        end function compute_x_transM
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the transverse matrix in the y-direction
+        !> if the convective part of the governing equations is
+        !> written as
+        !> \f$ \frac{\partial v}{\partial t} +
+        !>    A_x \frac{\partial v}{\partial x} + 
+        !>    A_y \frac{\partial v}{\partial y}
+        !> \f$
+        !> then the tranmsverse matrix in the y-direction is
+        !> \f$ A_x \f$
+        !
+        !> @date
+        !> 03_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvect
+        !> transverse matrix in the y-direction
+        !--------------------------------------------------------------
+        function compute_y_transM(nodes) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne,ne)          :: eigenvect
+
+
+          real(rkind), dimension(ne,ne) :: jacConsPrim
+          real(rkind), dimension(ne,ne) :: jacPrimCons
+          real(rkind), dimension(ne,ne) :: yTransMPrim
+
+          real(rkind)                   :: ux
+          real(rkind)                   :: c
+          real(rkind)                   :: P
+
+
+          !computation of J, the jacobian matrix from conservative
+          !to primitive variables
+          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
+          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
+
+
+          !transverse matrix for the primitive variables
+          ux = nodes(2)/nodes(1)         !velocity_x
+          c  = speed_of_sound(nodes)     !speed of sound
+          
+
+          if(rkind.eq.8) then
+
+             P  = (gamma-1.0d0)*(
+     $            nodes(4)-0.5d0/nodes(1)*(
+     $            nodes(2)**2+nodes(3)**2)) !pressure
+
+             yTransMPrim(1,1) =  ux
+             yTransMPrim(2,1) =  nodes(1)
+             yTransMPrim(3,1) =  0.0d0
+             yTransMPrim(4,1) =  0.0d0
+
+             yTransMPrim(1,2) =  0.0d0
+             yTransMPrim(2,2) =  ux
+             yTransMPrim(3,2) =  0.0d0
+             yTransMPrim(4,2) =  1.0d0/nodes(1)
+
+             yTransMPrim(1,3) =  0.0d0
+             yTransMPrim(2,3) =  0.0d0
+             yTransMPrim(3,3) =  ux
+             yTransMPrim(4,3) =  0.0d0
+
+             yTransMPrim(1,4) =  0.0d0
+             yTransMPrim(2,4) =  gamma*P
+             yTransMPrim(3,4) =  0.0d0
+             yTransMPrim(4,4) =  ux
+
+          else
+             
+             P  = (gamma-1.0)*(
+     $            nodes(4)-0.5/nodes(1)*(
+     $            nodes(2)**2+nodes(3)**2)) !pressure
+
+             yTransMPrim(1,1) =  ux
+             yTransMPrim(2,1) =  nodes(1)
+             yTransMPrim(3,1) =  0.0
+             yTransMPrim(4,1) =  0.0
+
+             yTransMPrim(1,2) =  0.0
+             yTransMPrim(2,2) =  ux
+             yTransMPrim(3,2) =  0.0
+             yTransMPrim(4,2) =  1.0/nodes(1)
+
+             yTransMPrim(1,3) =  0.0
+             yTransMPrim(2,3) =  0.0
+             yTransMPrim(3,3) =  ux
+             yTransMPrim(4,3) =  0.0
+
+             yTransMPrim(1,4) =  0.0
+             yTransMPrim(2,4) =  gamma*P
+             yTransMPrim(3,4) =  0.0
+             yTransMPrim(4,4) =  ux
+
+          end if
+
+          !transverse matrix computed as A^x_v = J^v_p.A^x_p.J^p_v
+          eigenvect = MATMUL(MATMUL(jacPrimCons,yTransMPrim),jacConsPrim)
+
+        end function compute_y_transM
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> computation of the conservative LODI matrix in the
         !> x-direction
         !
@@ -2011,5 +2306,58 @@ c$$$          y_s = y_map(1)
           grad_var(4) = gradient(nodes,i,j,total_energy,dy)
 
         end function compute_y_gradient
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface for the computation of the gradient of the
+        !> governing variables in the (x-y)-direction
+        !
+        !> @date
+        !> 11_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> integer identifying the index in the x-direction
+        !
+        !>@param j
+        !> integer identifying the index in the y-direction
+        !
+        !>@param gradient
+        !> procedure used to compute the gradient along the
+        !> diagonal direction
+        !
+        !>@param dx
+        !> grid space step along the x-axis
+        !
+        !>@param dy
+        !> grid space step along the y-axis
+        !
+        !>@return grad_var
+        !> gradient of the governing variables along the x-axis
+        !--------------------------------------------------------------
+        function compute_n_gradient(nodes,i,j,gradient,dx,dy) result(grad_var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(gradient_n_proc)                :: gradient
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          real(rkind), dimension(ne)                :: grad_var
+
+
+          grad_var(1) = gradient(nodes,i,j,mass_density,dx,dy)
+          grad_var(2) = gradient(nodes,i,j,momentum_x,dx,dy)
+          grad_var(3) = gradient(nodes,i,j,momentum_y,dx,dy)
+          grad_var(4) = gradient(nodes,i,j,total_energy,dx,dy)
+
+        end function compute_n_gradient
 
       end module pmodel_eq_class

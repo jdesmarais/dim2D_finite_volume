@@ -248,6 +248,10 @@ $(ns2d_dir)/ns2d_prim_module.o:\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
+$(ns2d_dir)/ns2d_ncoords_module.o:\
+			$(ns2d_dir)/ns2d_prim_module.o\
+			$(param_dir)/parameters_kind.o
+
 $(ns2d_dir)/ns2d_fluxes_module.o:\
 			$(ns2d_dir)/ns2d_parameters.o\
 			$(ns2d_dir)/ns2d_prim_module.o\
@@ -298,6 +302,7 @@ $(ns2d_dir)/pmodel_eq_class.o:\
 			$(ic_cdir)/ic_class.o\
 			$(sd_dir)/interface_primary.o\
 			$(sd_cdir)/sd_operators_class.o\
+			$(ns2d_dir)/ns2d_ncoords_module.o\
 			$(ns2d_dir)/ns2d_parameters.o\
 			$(ns2d_dir)/ns2d_prim_module.o\
 			$(ns2d_dir)/ns2d_fluxes_module.o\

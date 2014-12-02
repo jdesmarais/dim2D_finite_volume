@@ -40,6 +40,7 @@ ns2d_dep=		ic_abstract_class.o\
 			ic_class.o\
 			ns2d_parameters.o\
 			ns2d_prim_module.o\
+			ns2d_ncoords_module.o\
 			ns2d_fluxes_module.o\
 			ns2d_steadystate_module.o\
 			ns2d_peak_module.o\
