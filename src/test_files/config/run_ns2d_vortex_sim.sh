@@ -14,11 +14,11 @@
 #./default_inputs/ns2d_vortex_yoolodato_detailled.txt
 
 #settings
-INPUT=./default_inputs/wave2d_hedstrom_xy_forcing.txt
-DEST_FOLDER=~/projects/test_stym_v0.6_wave2d_forcing
+INPUT=./default_inputs/ns2d_vortex_yoolodato_detailled.txt
+DEST_FOLDER=~/projects/ns2d_vortex_yoolodato
 
 #compile code
-./config.py -i $INPUT -c -b
+./config.py -i $INPUT -c
 
 #move the executable to the corresponding project folder
 #mv ../sim_dim2d $DEST_FOLDER

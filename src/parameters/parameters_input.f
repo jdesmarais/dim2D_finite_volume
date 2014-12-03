@@ -22,17 +22,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -10.0000000000d0 !2.0000000000d0
-        real(rkind), parameter :: x_max = 10.0000000000d0 !2.0000000000d0
-        real(rkind), parameter :: y_min = -10.0000000000d0 !2.0000000000d0
-        real(rkind), parameter :: y_max = 10.0000000000d0 !2.0000000000d0
+        real(rkind), parameter :: x_min = -1.0000000000d0
+        real(rkind), parameter :: x_max = 1.0000000000d0
+        real(rkind), parameter :: y_min = -1.0000000000d0
+        real(rkind), parameter :: y_max = 1.0000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 10.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0500000000d0
+        real(rkind), parameter :: t_max = 1.5000000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0001000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 1.0000000000d0
+        real(rkind), parameter :: detail_print = 0.0150000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -42,12 +42,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 54
-        integer(ikind), parameter :: nty = 54
+        integer(ikind), parameter :: ntx = 7
+        integer(ikind), parameter :: nty = 5
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 4
+        integer       , parameter :: ne = 3
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -91,10 +91,10 @@
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = hedstrom_xy_choice
+        integer, parameter :: bc_choice = yoolodato_xy_choice
 
         !<output choice
-        integer, parameter :: io_choice   = netcdf_choice
+        integer, parameter :: io_choice = netcdf_choice
 
         !< boundary conditions parameters
         !--------------------------------------------
@@ -110,7 +110,7 @@
         !              applying the non-reflecting outflow
         !              pressure b.c.
         !--------------------------------------------
-        real(rkind), parameter :: search_nb_dt = 0.0500000000d0 !0.0500000000d0 !1.0 !0.0001000000d0
+        real(rkind), parameter :: search_nb_dt = 0.0001000000d0 !0.0500000000d0 !1.0 !0.0001000000d0
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P =  0.278d0 !0.25d0
         integer    , parameter :: obc_type_N = always_outflow

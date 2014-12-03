@@ -23,7 +23,7 @@ config_dir = $(AUGEANSTABLES_CONFIG)
 dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 
 sd_choice = mt_choice            #space discretization choice
-pm_choice = ns2d_choice	 	 #physical model choice
+pm_choice = wave1d_choice 	 #physical model choice
 ic_choice = vortex               #initial conditions choice
 bc_choice = hedstrom_xy_choice   #boundary condition choice
 td_choice = finitevolume_choice  #time discretization choice
@@ -195,17 +195,17 @@ INCLUDE =
 LIBS	=
 
 #compiler options------------------------------------------------
-include $(config_dir)/options_ifort.mk
-include $(config_dir)/options_gfortran.mk
+include $(config_dir)/compiler_config/options_ifort.mk
+include $(config_dir)/compiler_config/options_gfortran.mk
 
 #path for the mpi, hdf5, netcdf libraries depending on the cluster used-
-include $(config_dir)/libraries_bolt.mk
-include $(config_dir)/libraries_cartesius.mk
-include $(config_dir)/libraries_newcluster.mk
+include $(config_dir)/libraries_config/libraries_bolt.mk
+include $(config_dir)/libraries_config/libraries_cartesius.mk
+include $(config_dir)/libraries_config/libraries_newcluster.mk
 
 #options handeling depending on the user main options: debug, trace,
 #and the type of compiler used (ifort, gfortran, mpiifort...)
-include $(config_dir)/options_choice.mk
+include $(config_dir)/compiler_config/options_choice.mk
 
 
 #-----------------------------------------------------------------------
