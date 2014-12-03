@@ -45,7 +45,7 @@
 
            print '(''the test requires: '')'
            print '(''gamma=5/3'')'
-           print '(''mach_infty=0.2'')'
+           print '(''mach_infty=0.1'')'
            print '(''sigma_P=0.25'')'
            stop ''
 
@@ -94,8 +94,10 @@
            print '(''get_relaxation_pressure: '',L2)', test_loc
         end if
 
-        print '(''------------------'')'
-        print '(''test_validated: '',L2)', test_validated
+        print '()'
+        print '(''test_lodi_relaxation: '',L2)', test_validated
+        print '(''----------------------------'')'
+
 
         contains
 

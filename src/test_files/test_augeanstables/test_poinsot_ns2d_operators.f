@@ -72,6 +72,7 @@
         logical                          :: detailled
         logical                          :: loc
         logical                          :: test_input
+        logical                          :: test_loc
         logical                          :: test_validated
 
         integer :: k
@@ -119,6 +120,8 @@
         if(.not.test_input) stop 'change inputs'
 
 
+        test_validated = .true.
+
         !compute the lodi vector from the lodi outflow x
         call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
         call print_nodes(nodes,x_map,y_map)
@@ -137,13 +140,13 @@
            stop 'the test requires relaxation_P=0.1249875'
         end if
 
-        test_validated = test_lodi_x(
+        test_loc = test_lodi_x(
      $       test_data,
      $       outflow_bc,
      $       p_model,
      $       t, nodes, x_map, y_map,
      $       detailled)
-
+        test_validated = test_validated.and.test_loc
         print '()'
 
 
@@ -166,12 +169,13 @@
            stop 'the test requires relaxation_P=0.1249875'
         end if
 
-        test_validated = test_lodi_timedev_x(
+        test_loc = test_lodi_timedev_x(
      $       test_data,
      $       outflow_bc,
      $       p_model,
      $       t, nodes, x_map, y_map,
      $       detailled)
+        test_validated = test_validated.and.test_loc
 
         print '()'
 
@@ -203,12 +207,13 @@
            stop 'the test requires relaxation_P=0.1249875'
         end if
 
-        test_validated = test_lodi_y(
+        test_loc = test_lodi_y(
      $       test_data,
      $       outflow_bc,
      $       p_model,
      $       t, nodes, y_map, x_map,
      $       detailled)
+        test_validated = test_validated.and.test_loc
         print '()'
 
 
@@ -244,12 +249,13 @@
            stop 'the test requires relaxation_P=0.1249875'
         end if
 
-        test_validated = test_lodi_timedev_y(
+        test_loc = test_lodi_timedev_y(
      $       test_data,
      $       outflow_bc,
      $       p_model,
      $       t, nodes, y_map, x_map,
      $       detailled)
+        test_validated = test_validated.and.test_loc
 
         print '()'
 
@@ -269,12 +275,13 @@
         print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
         print '(''*************************************************'')'
 
-        test_validated = test_lodi_x(
+        test_loc = test_lodi_x(
      $       test_data,
      $       inflow_bc,
      $       p_model,
      $       t, nodes, x_map, y_map,
      $       detailled)
+        test_validated = test_validated.and.test_loc
 
         print '()'
 
@@ -296,13 +303,13 @@
         print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
         print '(''*************************************************'')'
 
-        test_validated = test_lodi_timedev_x(
+        test_loc = test_lodi_timedev_x(
      $       test_data,
      $       inflow_bc,
      $       p_model,
      $       t, nodes, x_map, y_map,
      $       detailled)
-
+        test_validated = test_validated.and.test_loc
         print '()'
 
 
@@ -334,12 +341,13 @@ c$$$        test_data(:,:,3) = nodes_temp
         print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
         print '(''*************************************************'')'
 
-        test_validated = test_lodi_y(
+        test_loc = test_lodi_y(
      $       test_data,
      $       inflow_bc,
      $       p_model,
      $       t, nodes, y_map, x_map,
      $       detailled)
+        test_validated = test_validated.and.test_loc
 
         print '()'
 
@@ -374,15 +382,18 @@ c$$$        test_data(:,:,3) = nodes_temp
         print '(''test only valid (duin/dt,dvin/dt,dTin/dt)=(0,0,0)'')'
         print '(''*************************************************'')'
 
-        test_validated = test_lodi_timedev_y(
+        test_loc = test_lodi_timedev_y(
      $       test_data,
      $       inflow_bc,
      $       p_model,
      $       t, nodes, y_map, x_map,
      $       detailled)
+        test_validated = test_validated.and.test_loc
 
         print '()'
 
+        
+               
 
 c$$$        !test the symmetry for the inflow operators
 c$$$        
@@ -509,14 +520,17 @@ c$$$c$$$        print '()'
 
         call get_test_data_for_apply_timedev(test_data)
 
-        test_validated = test_apply_bc_timedev(
+        test_loc = test_apply_bc_timedev(
      $       test_data,
      $       bc_used,
      $       p_model,
      $       t,nodes,x_map,y_map)
+        test_validated = test_validated.and.test_loc
 
         print '()'
 
+        print '(''test_poinsot_ns2d_operators: '',L1)', test_validated
+        print '(''-----------------------------------'')'
         
 
         contains

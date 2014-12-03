@@ -42,12 +42,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 7
+        integer(ikind), parameter :: ntx = 5
         integer(ikind), parameter :: nty = 5
 
-        integer(ikind), parameter :: nx = 7/npx
-        integer(ikind), parameter :: ny = 5/npy
-        integer       , parameter :: ne = 3
+        integer(ikind), parameter :: nx = ntx/npx
+        integer(ikind), parameter :: ny = nty/npy
+        integer       , parameter :: ne = 4
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -114,9 +114,9 @@
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
         integer    , parameter :: obc_type_N = always_outflow
-        integer    , parameter :: obc_type_S = always_outflow
+        integer    , parameter :: obc_type_S = always_inflow
         integer    , parameter :: obc_type_E = always_outflow
-        integer    , parameter :: obc_type_W = always_inflow
+        integer    , parameter :: obc_type_W = always_outflow
 
         integer    , parameter :: bc_N_type_choice = bc_timedev_choice
         integer    , parameter :: bc_S_type_choice = bc_timedev_choice

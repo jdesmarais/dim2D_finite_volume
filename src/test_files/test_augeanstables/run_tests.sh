@@ -3,10 +3,12 @@
 #dir paths
 config_dir=$augeanstables/src/test_files/config
 param_dir=$augeanstables/src/parameters
+ns2d_dir=$augeanstables/src/physical_models/ns2d
 
 #file paths
 make_header=$config_dir/makefile_header.mk
 param_input=$param_dir/parameters_input.f
+ns2d_param=$ns2d_dir/ns2d_parameters.f
 
 runtest=~/local/runtest/runtest.sh
 
@@ -42,8 +44,9 @@ echo ''
 echo ''
 echo 'test_lodi_relaxation_coeff'
 echo '------------------------------------------------------------'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice' -v 'ns2d_choice'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'sigma_P' -v '0.25d0'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice'  -v 'ns2d_choice'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'sigma_P'    -v '0.25d0'
+$config_dir/change_parameter.sh -i $ns2d_param  -o $ns2d_param  -p 'mach_infty' -v '0.1d0'
 make test_lodi_relaxation_coeff > /dev/null
 ./test_lodi_relaxation_coeff
 make cleanall > /dev/null
@@ -55,9 +58,32 @@ echo ''
 echo 'test_openbc_operators'
 echo '------------------------------------------------------------'
 $config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice' -v 'simpletest_choice'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nx' -v '7'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ny' -v '5'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '7'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '5'
 make test_openbc_operators > /dev/null
 ./test_openbc_operators
+make cleanall > /dev/null
+echo ''
+
+
+#test_poinsot_ns2d_operators.f
+echo ''
+echo 'test_poinsot_ns2d_operators'
+echo '------------------------------------------------------------'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'sd_choice'  -v 'mt_choice'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice'  -v 'ns2d_choice'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'bc_choice'  -v 'poinsot_xy_choice'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx'        -v '5'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty'        -v '5'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'         -v '4'
+$config_dir/change_parameter.sh -i $ns2d_param  -o $ns2d_param  -p 'Re'         -v '10.0d0'
+$config_dir/change_parameter.sh -i $ns2d_param  -o $ns2d_param  -p 'Pr'         -v '1.0d0'
+$config_dir/change_parameter.sh -i $ns2d_param  -o $ns2d_param  -p 'mach_infty' -v '1.0d0'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'obc_type_N' -v 'always_outflow'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'obc_type_S' -v 'always_inflow'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'obc_type_E' -v 'always_outflow'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'obc_type_W' -v 'always_outflow'
+make test_poinsot_ns2d_operators > /dev/null
+./test_poinsot_ns2d_operators
 make cleanall > /dev/null
 echo ''
