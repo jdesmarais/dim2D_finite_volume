@@ -179,7 +179,7 @@
               end do
            end do
            
-           print '(''test validated: '',L3)', test_validated
+           print '(''test_compute_fluxes_at_the_edge_2ndorder: '',L3)', test_validated
         end if
           
 

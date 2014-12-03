@@ -110,6 +110,7 @@
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
 
           integer(ikind) :: i
+          real(rkind) :: t,x,y
 
 
           i=i_indices(1)
@@ -118,7 +119,7 @@
      $         nodes, i,j, p_model, dx,dy,
      $         gradient1, incoming_wave,direction) +
      $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         add_body_forces(p_model, t,x,y, nodes(i,j,:))
 
           i=i_indices(2)
           timedev(i,j,:) = 
@@ -126,7 +127,7 @@
      $         nodes, i,j, p_model, dx,dy,
      $         gradient2, incoming_wave,direction) +
      $         
-     $         add_body_forces(p_model, nodes(i,j,:))
+     $         add_body_forces(p_model, t,x,y, nodes(i,j,:))
 
         end subroutine compute_timedev_corner_ncoords
 

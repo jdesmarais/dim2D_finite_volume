@@ -16,425 +16,426 @@
 
         private
         public ::
-     $       compute_edge_fluxes,
-     $       compute_lodi_terms,
-     $       compute_dev_from_flux_x,
-     $       compute_dev_from_flux_y,
      $       get_enhanced_lodi
+c$$$     $       compute_edge_fluxes,
+c$$$     $       compute_lodi_terms,
+c$$$     $       compute_dev_from_flux_x,
+c$$$     $       compute_dev_from_flux_y,
+
 
         
-        abstract interface
-          function inviscid_flux(nodes,s,i,j) result(var)
-
-            import sd_operators
-            import ikind
-            import rkind
-
-            real(rkind), dimension(:,:,:), intent(in) :: nodes
-            class(sd_operators)          , intent(in) :: s
-            integer(ikind)               , intent(in) :: i
-            integer(ikind)               , intent(in) :: j
-            real(rkind)                               :: var
-
-          end function inviscid_flux
-
-          function viscid_flux(nodes,s,i,j,dx,dy) result(var)
-
-            import sd_operators
-            import ikind
-            import rkind
-
-            real(rkind), dimension(:,:,:), intent(in) :: nodes
-            class(sd_operators)          , intent(in) :: s
-            integer(ikind)               , intent(in) :: i
-            integer(ikind)               , intent(in) :: j
-            real(rkind)                  , intent(in) :: dx
-            real(rkind)                  , intent(in) :: dy
-            real(rkind)                               :: var
-          end function viscid_flux
-
-
-          function lodi_matrix(nodes) result(var)
-
-            import ne
-            import ikind
-            import rkind
-
-            real(rkind), dimension(ne)   , intent(in) :: nodes
-            real(rkind), dimension(ne,ne)             :: var
-
-          end function lodi_matrix
-
-      
-          function dev_from_flux(flux,i,j,ds) result(dev)
-
-            import ne
-            import ikind
-            import rkind
-
-            real(rkind), dimension(:,:,:), intent(in) :: flux
-            integer(ikind)               , intent(in) :: i
-            integer(ikind)               , intent(in) :: j
-            real(rkind)                  , intent(in) :: ds
-            real(rkind), dimension(ne)                :: dev
-
-          end function dev_from_flux
-
-        end interface
+c$$$        abstract interface
+c$$$          function inviscid_flux(nodes,s,i,j) result(var)
+c$$$
+c$$$            import sd_operators
+c$$$            import ikind
+c$$$            import rkind
+c$$$
+c$$$            real(rkind), dimension(:,:,:), intent(in) :: nodes
+c$$$            class(sd_operators)          , intent(in) :: s
+c$$$            integer(ikind)               , intent(in) :: i
+c$$$            integer(ikind)               , intent(in) :: j
+c$$$            real(rkind)                               :: var
+c$$$
+c$$$          end function inviscid_flux
+c$$$
+c$$$          function viscid_flux(nodes,s,i,j,dx,dy) result(var)
+c$$$
+c$$$            import sd_operators
+c$$$            import ikind
+c$$$            import rkind
+c$$$
+c$$$            real(rkind), dimension(:,:,:), intent(in) :: nodes
+c$$$            class(sd_operators)          , intent(in) :: s
+c$$$            integer(ikind)               , intent(in) :: i
+c$$$            integer(ikind)               , intent(in) :: j
+c$$$            real(rkind)                  , intent(in) :: dx
+c$$$            real(rkind)                  , intent(in) :: dy
+c$$$            real(rkind)                               :: var
+c$$$          end function viscid_flux
+c$$$
+c$$$
+c$$$          function lodi_matrix(nodes) result(var)
+c$$$
+c$$$            import ne
+c$$$            import ikind
+c$$$            import rkind
+c$$$
+c$$$            real(rkind), dimension(ne)   , intent(in) :: nodes
+c$$$            real(rkind), dimension(ne,ne)             :: var
+c$$$
+c$$$          end function lodi_matrix
+c$$$
+c$$$      
+c$$$          function dev_from_flux(flux,i,j,ds) result(dev)
+c$$$
+c$$$            import ne
+c$$$            import ikind
+c$$$            import rkind
+c$$$
+c$$$            real(rkind), dimension(:,:,:), intent(in) :: flux
+c$$$            integer(ikind)               , intent(in) :: i
+c$$$            integer(ikind)               , intent(in) :: j
+c$$$            real(rkind)                  , intent(in) :: ds
+c$$$            real(rkind), dimension(ne)                :: dev
+c$$$
+c$$$          end function dev_from_flux
+c$$$
+c$$$        end interface
 
 
         contains
 
         
-        !> @author 
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the inviscid and viscid fluxes at the edge of the computational domain
-        !
-        !> @date
-        !> 02_09_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid points data
-        !
-        !>@param s
-        !> object encapsulating the spatial discretization operators
-        !
-        !>@param dx
-        !> space step along the x-direction
-        !
-        !>@param dy
-        !> space step along the y-direction
-        !
-        !>@param i_min
-        !> index along the x-direction identifying the first index filled
-        !> in the edge_inviscid_flux_x table
-        !
-        !>@param i_max
-        !> index along the x-direction identifying the last index filled
-        !> in the edge_inviscid_flux_x table
-        !
-        !>@param i_offset
-        !> index along the x-direction identifying the corresponding index
-        !> computed in the nodes table: i -> i_offset+i
-        !
-        !>@param j_min
-        !> index along the y-direction identifying the first index filled
-        !> in the edge_inviscid_flux_x table
-        !
-        !>@param j_max
-        !> index along the y-direction identifying the last index filled
-        !> in the edge_inviscid_flux_x table
-        !
-        !>@param j_offset
-        !> index along the y-direction identifying the corresponding index
-        !> computed in the nodes table: j -> j_offset+j
-        !
-        !>@param epsilon
-        !> dissipation constant
-        !
-        !>@param flux_inviscid_mass_density
-        !> procedure computing the inviscid flux of the mass density
-        !
-        !>@param flux_inviscid_momentum_x
-        !> procedure computing the inviscid flux of the momentum_x
-        !
-        !>@param flux_inviscid_momentum_y
-        !> procedure computing the inviscid flux of the momentum_y
-        !
-        !>@param flux_inviscid_total_energy
-        !> procedure computing the inviscid flux of the total energy
-        !
-        !>@param flux_viscid_mass_density
-        !> procedure computing the viscid flux of the mass density
-        !
-        !>@param flux_viscid_momentum_x
-        !> procedure computing the viscid flux of the momentum_x
-        !
-        !>@param flux_viscid_momentum_y
-        !> procedure computing the viscid flux of the momentum_y
-        !
-        !>@param flux_viscid_total_energy
-        !> procedure computing the viscid flux of the total energy
-        !
-        !>@param edge_inviscid_flux
-        !> inviscid fluxes at the edge of the computational
-        !> domain
-        !
-        !>@param edge_viscid_flux
-        !> viscid fluxes at the edge of the computational
-        !> domain
-        !
-        !>@param flux
-        !> fluxes at the edge of the computational domain
-        !---------------------------------------------------------------
-        subroutine compute_edge_fluxes(
-     $       nodes,
-     $       s,
-     $       dx, dy,
-     $       i_min, i_max, i_offset,
-     $       j_min, j_max, j_offset,
-     $       epsilon,
-     $       flux_mass_density,
-     $       flux_inviscid_momentum_x,
-     $       flux_inviscid_momentum_y,
-     $       flux_inviscid_total_energy,
-     $       flux_viscid_momentum_x,
-     $       flux_viscid_momentum_y,
-     $       flux_viscid_total_energy,
-     $       edge_inviscid_flux,
-     $       edge_viscid_flux,
-     $       flux)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in)    :: nodes
-          class(sd_operators)          , intent(in)    :: s
-          real(rkind)                  , intent(in)    :: dx
-          real(rkind)                  , intent(in)    :: dy
-          integer(ikind)               , intent(in)    :: i_min
-          integer(ikind)               , intent(in)    :: i_max
-          integer(ikind)               , intent(in)    :: i_offset
-          integer(ikind)               , intent(in)    :: j_min
-          integer(ikind)               , intent(in)    :: j_max
-          integer(ikind)               , intent(in)    :: j_offset
-          real(rkind)                  , intent(in)    :: epsilon
-                                                       
-          procedure(inviscid_flux)                     :: flux_mass_density
-                                                    
-          procedure(inviscid_flux)                     :: flux_inviscid_momentum_x
-          procedure(inviscid_flux)                     :: flux_inviscid_momentum_y
-          procedure(inviscid_flux)                     :: flux_inviscid_total_energy
-                                                       
-          procedure(viscid_flux)                       :: flux_viscid_momentum_x
-          procedure(viscid_flux)                       :: flux_viscid_momentum_y
-          procedure(viscid_flux)                       :: flux_viscid_total_energy
-
-          real(rkind), dimension(:,:,:), intent(out)   :: edge_inviscid_flux
-          real(rkind), dimension(:,:,:), intent(out)   :: edge_viscid_flux
-          real(rkind), dimension(:,:,:), intent(inout) :: flux
-
-
-          integer(ikind) :: i,j
-          integer(ikind) :: i_nodes,j_nodes
-
-
-          do j=j_min, j_max
-             j_nodes = j_offset+j
-
-             do i=i_min, i_max
-                i_nodes = i_offset + i
-
-                edge_inviscid_flux(i,j,1) = flux_mass_density(nodes,s,i_nodes,j_nodes)
-                edge_inviscid_flux(i,j,2) = flux_inviscid_momentum_x(nodes,s,i_nodes,j_nodes)
-                edge_inviscid_flux(i,j,3) = flux_inviscid_momentum_y(nodes,s,i_nodes,j_nodes)
-                edge_inviscid_flux(i,j,4) = flux_inviscid_total_energy(nodes,s,i_nodes,j_nodes)
-
-                if(rkind.eq.8) then
-                   edge_viscid_flux(i,j,1)   = 0.0d0
-                else
-                   edge_viscid_flux(i,j,1)   = 0.0
-                end if
-                edge_viscid_flux(i,j,2)   = flux_viscid_momentum_x(nodes,s,i_nodes,j_nodes,dx,dy)
-                edge_viscid_flux(i,j,3)   = flux_viscid_momentum_y(nodes,s,i_nodes,j_nodes,dx,dy)
-                edge_viscid_flux(i,j,4)   = flux_viscid_total_energy(nodes,s,i_nodes,j_nodes,dx,dy)
-
-                flux(i_nodes,j_nodes,1)   = edge_inviscid_flux(i,j,1)-epsilon*edge_viscid_flux(i,j,1)
-                flux(i_nodes,j_nodes,2)   = edge_inviscid_flux(i,j,2)-epsilon*edge_viscid_flux(i,j,2)
-                flux(i_nodes,j_nodes,3)   = edge_inviscid_flux(i,j,3)-epsilon*edge_viscid_flux(i,j,3)
-                flux(i_nodes,j_nodes,4)   = edge_inviscid_flux(i,j,4)-epsilon*edge_viscid_flux(i,j,4)
-
-             end do
-          end do
-
-        end subroutine compute_edge_fluxes
-
-
-        !> @author 
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the transverse and viscous LODI vectors
-        !
-        !> @date
-        !> 02_09_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid points data
-        !
-        !>@param ds
-        !> space step
-        !
-        !>@param i_offset
-        !> index along the x-direction identifying the corresponding index
-        !> computed in the nodes table: i -> i_offset+i
-        !
-        !>@param j_offset
-        !> index along the y-direction identifying the corresponding index
-        !> computed in the nodes table: j -> j_offset+j
-        !
-        !>@param epsilon
-        !> dissipation constant
-        !
-        !>@param edge_inviscid_flux
-        !> inviscid fluxes at the edge of the computational
-        !> domain
-        !
-        !>@param edge_viscid_flux
-        !> viscid fluxes at the edge of the computational
-        !> domain
-        !
-        !>@param compute_conservative_lodi_matrix
-        !> compute the conservative LODI matrix in the j-direction
-        !
-        !>@param transverse_lodi
-        !> transverse LODI vector at the edge of the computational domain
-        !> in the j-direction
-        !
-        !>@param viscous_lodi
-        !> viscous LODI vector at the edge of the computational domain
-        !> in the j-direction
-        !---------------------------------------------------------------
-        subroutine compute_lodi_terms(
-     $     nodes,
-     $     ds,
-     $     i_offset, j_offset,
-     $     epsilon,
-     $     edge_inviscid_flux,
-     $     edge_viscid_flux,
-     $     compute_conservative_lodi_matrix,
-     $     compute_dev_from_flux,
-     $     transverse_lodi,
-     $     viscous_lodi)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in)  :: nodes
-          real(rkind)                  , intent(in)  :: ds
-          integer(ikind)               , intent(in)  :: i_offset
-          integer(ikind)               , intent(in)  :: j_offset
-          real(rkind)                  , intent(in)  :: epsilon
-          real(rkind), dimension(:,:,:), intent(in)  :: edge_inviscid_flux
-          real(rkind), dimension(:,:,:), intent(in)  :: edge_viscid_flux
-          procedure(lodi_matrix)                     :: compute_conservative_lodi_matrix
-          procedure(dev_from_flux)                   :: compute_dev_from_flux
-          real(rkind), dimension(:,:,:), intent(out) :: transverse_lodi
-          real(rkind), dimension(:,:,:), intent(out) :: viscous_lodi
-
-          integer(ikind)                :: i,j
-          integer(ikind)                :: i_nodes,j_nodes
-          real(rkind), dimension(ne,ne) :: cons_lodi_matrix
-          real(rkind), dimension(ne)    :: dev
-          
-
-          do j=1, size(transverse_lodi,2)
-             j_nodes = j_offset + j
-
-             do i=1, size(transverse_lodi,1)
-                i_nodes = i_offset + i
-
-                cons_lodi_matrix = compute_conservative_lodi_matrix(nodes(i_nodes,j_nodes,:))
-
-                dev = compute_dev_from_flux(edge_inviscid_flux,i,j,ds)
-                transverse_lodi(i,j,:) = - MATMUL(dev,cons_lodi_matrix)
-
-                dev = compute_dev_from_flux(edge_viscid_flux,i,j,ds)
-                viscous_lodi(i,j,:) = epsilon*MATMUL(dev,cons_lodi_matrix)
-
-             end do
-
-          end do
-
-        end subroutine compute_lodi_terms
-
-
-        !> @author 
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the time derivative from the fluxes along
-        !> the x-direction
-        !
-        !> @date
-        !> 03_09_2014 - initial version - J.L. Desmarais
-        !
-        !>@param flux
-        !> fluxes along the x-direction
-        !
-        !>@param i
-        !> index along the x-direction
-        !
-        !>@param j
-        !> index along the y-direction
-        !
-        !>@param ds
-        !> space step
-        !
-        !>@return dev
-        !> derivative
-        !---------------------------------------------------------------
-        function compute_dev_from_flux_x(flux,i,j,ds) result(dev)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: flux
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          real(rkind)                  , intent(in) :: ds
-          real(rkind), dimension(ne)                :: dev
-
-          integer :: k
-
-          do k=1,ne
-             dev(k) = (flux(i+1,j,k)-flux(i,j,k))/ds
-          end do
-
-        end function compute_dev_from_flux_x
-
-
-        !> @author 
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the time derivative from the fluxes along
-        !> the x-direction
-        !
-        !> @date
-        !> 03_09_2014 - initial version - J.L. Desmarais
-        !
-        !>@param flux
-        !> fluxes along the x-direction
-        !
-        !>@param i
-        !> index along the x-direction
-        !
-        !>@param j
-        !> index along the y-direction
-        !
-        !>@param ds
-        !> space step
-        !
-        !>@return dev
-        !> derivative
-        !---------------------------------------------------------------
-        function compute_dev_from_flux_y(flux,i,j,ds) result(dev)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: flux
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          real(rkind)                  , intent(in) :: ds
-          real(rkind), dimension(ne)                :: dev
-
-          integer :: k
-
-          do k=1,ne
-             dev(k) = (flux(i,j+1,k)-flux(i,j,k))/ds
-          end do
-
-        end function compute_dev_from_flux_y
+c$$$        !> @author 
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> compute the inviscid and viscid fluxes at the edge of the computational domain
+c$$$        !
+c$$$        !> @date
+c$$$        !> 02_09_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid points data
+c$$$        !
+c$$$        !>@param s
+c$$$        !> object encapsulating the spatial discretization operators
+c$$$        !
+c$$$        !>@param dx
+c$$$        !> space step along the x-direction
+c$$$        !
+c$$$        !>@param dy
+c$$$        !> space step along the y-direction
+c$$$        !
+c$$$        !>@param i_min
+c$$$        !> index along the x-direction identifying the first index filled
+c$$$        !> in the edge_inviscid_flux_x table
+c$$$        !
+c$$$        !>@param i_max
+c$$$        !> index along the x-direction identifying the last index filled
+c$$$        !> in the edge_inviscid_flux_x table
+c$$$        !
+c$$$        !>@param i_offset
+c$$$        !> index along the x-direction identifying the corresponding index
+c$$$        !> computed in the nodes table: i -> i_offset+i
+c$$$        !
+c$$$        !>@param j_min
+c$$$        !> index along the y-direction identifying the first index filled
+c$$$        !> in the edge_inviscid_flux_x table
+c$$$        !
+c$$$        !>@param j_max
+c$$$        !> index along the y-direction identifying the last index filled
+c$$$        !> in the edge_inviscid_flux_x table
+c$$$        !
+c$$$        !>@param j_offset
+c$$$        !> index along the y-direction identifying the corresponding index
+c$$$        !> computed in the nodes table: j -> j_offset+j
+c$$$        !
+c$$$        !>@param epsilon
+c$$$        !> dissipation constant
+c$$$        !
+c$$$        !>@param flux_inviscid_mass_density
+c$$$        !> procedure computing the inviscid flux of the mass density
+c$$$        !
+c$$$        !>@param flux_inviscid_momentum_x
+c$$$        !> procedure computing the inviscid flux of the momentum_x
+c$$$        !
+c$$$        !>@param flux_inviscid_momentum_y
+c$$$        !> procedure computing the inviscid flux of the momentum_y
+c$$$        !
+c$$$        !>@param flux_inviscid_total_energy
+c$$$        !> procedure computing the inviscid flux of the total energy
+c$$$        !
+c$$$        !>@param flux_viscid_mass_density
+c$$$        !> procedure computing the viscid flux of the mass density
+c$$$        !
+c$$$        !>@param flux_viscid_momentum_x
+c$$$        !> procedure computing the viscid flux of the momentum_x
+c$$$        !
+c$$$        !>@param flux_viscid_momentum_y
+c$$$        !> procedure computing the viscid flux of the momentum_y
+c$$$        !
+c$$$        !>@param flux_viscid_total_energy
+c$$$        !> procedure computing the viscid flux of the total energy
+c$$$        !
+c$$$        !>@param edge_inviscid_flux
+c$$$        !> inviscid fluxes at the edge of the computational
+c$$$        !> domain
+c$$$        !
+c$$$        !>@param edge_viscid_flux
+c$$$        !> viscid fluxes at the edge of the computational
+c$$$        !> domain
+c$$$        !
+c$$$        !>@param flux
+c$$$        !> fluxes at the edge of the computational domain
+c$$$        !---------------------------------------------------------------
+c$$$        subroutine compute_edge_fluxes(
+c$$$     $       nodes,
+c$$$     $       s,
+c$$$     $       dx, dy,
+c$$$     $       i_min, i_max, i_offset,
+c$$$     $       j_min, j_max, j_offset,
+c$$$     $       epsilon,
+c$$$     $       flux_mass_density,
+c$$$     $       flux_inviscid_momentum_x,
+c$$$     $       flux_inviscid_momentum_y,
+c$$$     $       flux_inviscid_total_energy,
+c$$$     $       flux_viscid_momentum_x,
+c$$$     $       flux_viscid_momentum_y,
+c$$$     $       flux_viscid_total_energy,
+c$$$     $       edge_inviscid_flux,
+c$$$     $       edge_viscid_flux,
+c$$$     $       flux)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(:,:,:), intent(in)    :: nodes
+c$$$          class(sd_operators)          , intent(in)    :: s
+c$$$          real(rkind)                  , intent(in)    :: dx
+c$$$          real(rkind)                  , intent(in)    :: dy
+c$$$          integer(ikind)               , intent(in)    :: i_min
+c$$$          integer(ikind)               , intent(in)    :: i_max
+c$$$          integer(ikind)               , intent(in)    :: i_offset
+c$$$          integer(ikind)               , intent(in)    :: j_min
+c$$$          integer(ikind)               , intent(in)    :: j_max
+c$$$          integer(ikind)               , intent(in)    :: j_offset
+c$$$          real(rkind)                  , intent(in)    :: epsilon
+c$$$                                                       
+c$$$          procedure(inviscid_flux)                     :: flux_mass_density
+c$$$                                                    
+c$$$          procedure(inviscid_flux)                     :: flux_inviscid_momentum_x
+c$$$          procedure(inviscid_flux)                     :: flux_inviscid_momentum_y
+c$$$          procedure(inviscid_flux)                     :: flux_inviscid_total_energy
+c$$$                                                       
+c$$$          procedure(viscid_flux)                       :: flux_viscid_momentum_x
+c$$$          procedure(viscid_flux)                       :: flux_viscid_momentum_y
+c$$$          procedure(viscid_flux)                       :: flux_viscid_total_energy
+c$$$
+c$$$          real(rkind), dimension(:,:,:), intent(out)   :: edge_inviscid_flux
+c$$$          real(rkind), dimension(:,:,:), intent(out)   :: edge_viscid_flux
+c$$$          real(rkind), dimension(:,:,:), intent(inout) :: flux
+c$$$
+c$$$
+c$$$          integer(ikind) :: i,j
+c$$$          integer(ikind) :: i_nodes,j_nodes
+c$$$
+c$$$
+c$$$          do j=j_min, j_max
+c$$$             j_nodes = j_offset+j
+c$$$
+c$$$             do i=i_min, i_max
+c$$$                i_nodes = i_offset + i
+c$$$
+c$$$                edge_inviscid_flux(i,j,1) = flux_mass_density(nodes,s,i_nodes,j_nodes)
+c$$$                edge_inviscid_flux(i,j,2) = flux_inviscid_momentum_x(nodes,s,i_nodes,j_nodes)
+c$$$                edge_inviscid_flux(i,j,3) = flux_inviscid_momentum_y(nodes,s,i_nodes,j_nodes)
+c$$$                edge_inviscid_flux(i,j,4) = flux_inviscid_total_energy(nodes,s,i_nodes,j_nodes)
+c$$$
+c$$$                if(rkind.eq.8) then
+c$$$                   edge_viscid_flux(i,j,1)   = 0.0d0
+c$$$                else
+c$$$                   edge_viscid_flux(i,j,1)   = 0.0
+c$$$                end if
+c$$$                edge_viscid_flux(i,j,2)   = flux_viscid_momentum_x(nodes,s,i_nodes,j_nodes,dx,dy)
+c$$$                edge_viscid_flux(i,j,3)   = flux_viscid_momentum_y(nodes,s,i_nodes,j_nodes,dx,dy)
+c$$$                edge_viscid_flux(i,j,4)   = flux_viscid_total_energy(nodes,s,i_nodes,j_nodes,dx,dy)
+c$$$
+c$$$                flux(i_nodes,j_nodes,1)   = edge_inviscid_flux(i,j,1)-epsilon*edge_viscid_flux(i,j,1)
+c$$$                flux(i_nodes,j_nodes,2)   = edge_inviscid_flux(i,j,2)-epsilon*edge_viscid_flux(i,j,2)
+c$$$                flux(i_nodes,j_nodes,3)   = edge_inviscid_flux(i,j,3)-epsilon*edge_viscid_flux(i,j,3)
+c$$$                flux(i_nodes,j_nodes,4)   = edge_inviscid_flux(i,j,4)-epsilon*edge_viscid_flux(i,j,4)
+c$$$
+c$$$             end do
+c$$$          end do
+c$$$
+c$$$        end subroutine compute_edge_fluxes
+c$$$
+c$$$
+c$$$        !> @author 
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> compute the transverse and viscous LODI vectors
+c$$$        !
+c$$$        !> @date
+c$$$        !> 02_09_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid points data
+c$$$        !
+c$$$        !>@param ds
+c$$$        !> space step
+c$$$        !
+c$$$        !>@param i_offset
+c$$$        !> index along the x-direction identifying the corresponding index
+c$$$        !> computed in the nodes table: i -> i_offset+i
+c$$$        !
+c$$$        !>@param j_offset
+c$$$        !> index along the y-direction identifying the corresponding index
+c$$$        !> computed in the nodes table: j -> j_offset+j
+c$$$        !
+c$$$        !>@param epsilon
+c$$$        !> dissipation constant
+c$$$        !
+c$$$        !>@param edge_inviscid_flux
+c$$$        !> inviscid fluxes at the edge of the computational
+c$$$        !> domain
+c$$$        !
+c$$$        !>@param edge_viscid_flux
+c$$$        !> viscid fluxes at the edge of the computational
+c$$$        !> domain
+c$$$        !
+c$$$        !>@param compute_conservative_lodi_matrix
+c$$$        !> compute the conservative LODI matrix in the j-direction
+c$$$        !
+c$$$        !>@param transverse_lodi
+c$$$        !> transverse LODI vector at the edge of the computational domain
+c$$$        !> in the j-direction
+c$$$        !
+c$$$        !>@param viscous_lodi
+c$$$        !> viscous LODI vector at the edge of the computational domain
+c$$$        !> in the j-direction
+c$$$        !---------------------------------------------------------------
+c$$$        subroutine compute_lodi_terms(
+c$$$     $     nodes,
+c$$$     $     ds,
+c$$$     $     i_offset, j_offset,
+c$$$     $     epsilon,
+c$$$     $     edge_inviscid_flux,
+c$$$     $     edge_viscid_flux,
+c$$$     $     compute_conservative_lodi_matrix,
+c$$$     $     compute_dev_from_flux,
+c$$$     $     transverse_lodi,
+c$$$     $     viscous_lodi)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(:,:,:), intent(in)  :: nodes
+c$$$          real(rkind)                  , intent(in)  :: ds
+c$$$          integer(ikind)               , intent(in)  :: i_offset
+c$$$          integer(ikind)               , intent(in)  :: j_offset
+c$$$          real(rkind)                  , intent(in)  :: epsilon
+c$$$          real(rkind), dimension(:,:,:), intent(in)  :: edge_inviscid_flux
+c$$$          real(rkind), dimension(:,:,:), intent(in)  :: edge_viscid_flux
+c$$$          procedure(lodi_matrix)                     :: compute_conservative_lodi_matrix
+c$$$          procedure(dev_from_flux)                   :: compute_dev_from_flux
+c$$$          real(rkind), dimension(:,:,:), intent(out) :: transverse_lodi
+c$$$          real(rkind), dimension(:,:,:), intent(out) :: viscous_lodi
+c$$$
+c$$$          integer(ikind)                :: i,j
+c$$$          integer(ikind)                :: i_nodes,j_nodes
+c$$$          real(rkind), dimension(ne,ne) :: cons_lodi_matrix
+c$$$          real(rkind), dimension(ne)    :: dev
+c$$$          
+c$$$
+c$$$          do j=1, size(transverse_lodi,2)
+c$$$             j_nodes = j_offset + j
+c$$$
+c$$$             do i=1, size(transverse_lodi,1)
+c$$$                i_nodes = i_offset + i
+c$$$
+c$$$                cons_lodi_matrix = compute_conservative_lodi_matrix(nodes(i_nodes,j_nodes,:))
+c$$$
+c$$$                dev = compute_dev_from_flux(edge_inviscid_flux,i,j,ds)
+c$$$                transverse_lodi(i,j,:) = - MATMUL(dev,cons_lodi_matrix)
+c$$$
+c$$$                dev = compute_dev_from_flux(edge_viscid_flux,i,j,ds)
+c$$$                viscous_lodi(i,j,:) = epsilon*MATMUL(dev,cons_lodi_matrix)
+c$$$
+c$$$             end do
+c$$$
+c$$$          end do
+c$$$
+c$$$        end subroutine compute_lodi_terms
+c$$$
+c$$$
+c$$$        !> @author 
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> compute the time derivative from the fluxes along
+c$$$        !> the x-direction
+c$$$        !
+c$$$        !> @date
+c$$$        !> 03_09_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param flux
+c$$$        !> fluxes along the x-direction
+c$$$        !
+c$$$        !>@param i
+c$$$        !> index along the x-direction
+c$$$        !
+c$$$        !>@param j
+c$$$        !> index along the y-direction
+c$$$        !
+c$$$        !>@param ds
+c$$$        !> space step
+c$$$        !
+c$$$        !>@return dev
+c$$$        !> derivative
+c$$$        !---------------------------------------------------------------
+c$$$        function compute_dev_from_flux_x(flux,i,j,ds) result(dev)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(:,:,:), intent(in) :: flux
+c$$$          integer(ikind)               , intent(in) :: i
+c$$$          integer(ikind)               , intent(in) :: j
+c$$$          real(rkind)                  , intent(in) :: ds
+c$$$          real(rkind), dimension(ne)                :: dev
+c$$$
+c$$$          integer :: k
+c$$$
+c$$$          do k=1,ne
+c$$$             dev(k) = (flux(i+1,j,k)-flux(i,j,k))/ds
+c$$$          end do
+c$$$
+c$$$        end function compute_dev_from_flux_x
+c$$$
+c$$$
+c$$$        !> @author 
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> compute the time derivative from the fluxes along
+c$$$        !> the x-direction
+c$$$        !
+c$$$        !> @date
+c$$$        !> 03_09_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param flux
+c$$$        !> fluxes along the x-direction
+c$$$        !
+c$$$        !>@param i
+c$$$        !> index along the x-direction
+c$$$        !
+c$$$        !>@param j
+c$$$        !> index along the y-direction
+c$$$        !
+c$$$        !>@param ds
+c$$$        !> space step
+c$$$        !
+c$$$        !>@return dev
+c$$$        !> derivative
+c$$$        !---------------------------------------------------------------
+c$$$        function compute_dev_from_flux_y(flux,i,j,ds) result(dev)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(:,:,:), intent(in) :: flux
+c$$$          integer(ikind)               , intent(in) :: i
+c$$$          integer(ikind)               , intent(in) :: j
+c$$$          real(rkind)                  , intent(in) :: ds
+c$$$          real(rkind), dimension(ne)                :: dev
+c$$$
+c$$$          integer :: k
+c$$$
+c$$$          do k=1,ne
+c$$$             dev(k) = (flux(i,j+1,k)-flux(i,j,k))/ds
+c$$$          end do
+c$$$
+c$$$        end function compute_dev_from_flux_y
 
 
          !> Julien L. Desmarais

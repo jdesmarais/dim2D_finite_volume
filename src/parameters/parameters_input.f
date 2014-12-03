@@ -45,8 +45,8 @@
         integer(ikind), parameter :: ntx = 7
         integer(ikind), parameter :: nty = 5
 
-        integer(ikind), parameter :: nx = ntx/npx
-        integer(ikind), parameter :: ny = nty/npy
+        integer(ikind), parameter :: nx = 7/npx
+        integer(ikind), parameter :: ny = 5/npy
         integer       , parameter :: ne = 3
         integer       , parameter :: bc_size = 2
 
@@ -112,7 +112,7 @@
         !--------------------------------------------
         real(rkind), parameter :: search_nb_dt = 0.0001000000d0 !0.0500000000d0 !1.0 !0.0001000000d0
         integer    , parameter :: search_dcr = 4
-        real(rkind), parameter :: sigma_P =  0.278d0 !0.25d0
+        real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
         integer    , parameter :: obc_type_N = always_outflow
         integer    , parameter :: obc_type_S = always_outflow
         integer    , parameter :: obc_type_E = always_outflow

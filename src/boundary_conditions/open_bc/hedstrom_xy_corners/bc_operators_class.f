@@ -266,7 +266,8 @@
      $         timedev)
 
           call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
+     $         t, x_map, y_map, nodes,
+     $         j, dx, dy, p_model, flux_x,
      $         gradient_y_y_oneside_L0, incoming_left,
      $         timedev)
 
@@ -288,7 +289,8 @@
      $         timedev)
 
           call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
+     $         t, x_map, y_map, nodes,
+     $         j, dx, dy, p_model, flux_x,
      $         gradient_y_y_oneside_L1, incoming_left,
      $         timedev)
 
@@ -307,25 +309,25 @@
 
              i=1
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            t, x_map, y_map, nodes, i,j, dx,dy, p_model, flux_y,
      $            gradient_x_x_oneside_L0, incoming_left,
      $            timedev)
 
              i=bc_size
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            t, x_map, y_map, nodes, i,j, dx,dy, p_model, flux_y,
      $            gradient_x_x_oneside_L1, incoming_left,
      $            timedev)
 
              i=nx-1
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model, flux_y,
+     $            t, x_map, y_map, nodes, i,j, dx,dy, p_model, flux_y,
      $            gradient_x_x_oneside_R1, incoming_right,
      $            timedev)
 
              i=nx
              call compute_timedev_xlayer(
-     $            nodes, i,j, dx,dy, p_model,  flux_y,
+     $            t, x_map, y_map, nodes, i,j, dx,dy, p_model,  flux_y,
      $            gradient_x_x_oneside_R0, incoming_right,
      $            timedev)
 
@@ -343,7 +345,8 @@
      $         timedev)
 
           call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
+     $         t, x_map, y_map, nodes,
+     $         j, dx, dy, p_model, flux_x,
      $         gradient_y_y_oneside_R1, incoming_right,
      $         timedev)
 
@@ -365,7 +368,8 @@
      $         timedev)
 
           call compute_timedev_ylayer(
-     $         nodes, j, dx, dy, p_model, flux_x,
+     $         t, x_map, y_map, nodes,
+     $         j, dx, dy, p_model, flux_x,
      $         gradient_y_y_oneside_R0, incoming_right,
      $         timedev)
 

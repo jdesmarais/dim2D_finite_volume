@@ -23,13 +23,13 @@
 
         real(rkind), parameter :: l_domain_n = 2.5d0
         real(rkind), parameter :: M_un_infty = 0.1d0
-        real(rkind), parameter :: M_local = 0.5d0
+        real(rkind), parameter :: M_local    = 0.5d0
 
 
-        real(rkind), parameter :: r_normal_velocity = 1.2375d0
-        real(rkind), parameter :: r_trans_velocity  = 1.0d0
-        real(rkind), parameter :: r_temperature     = 15.0d0
-        real(rkind), parameter :: r_pressure        = 0.495d0
+        real(rkind), parameter :: r_normal_velocity = 9.9d0
+        real(rkind), parameter :: r_trans_velocity  = 2.0d0
+        real(rkind), parameter :: r_temperature     = 120.0d0
+        real(rkind), parameter :: r_pressure        = 0.75d0
         
         
         logical :: detailled
@@ -40,7 +40,7 @@
         detailled = .false.
         if(
      $       (.not.is_test_validated(gamma,5.0d0/3.0d0,detailled)).or.
-     $       (.not.is_test_validated(mach_infty,0.2d0,detailled)).or.
+     $       (.not.is_test_validated(mach_infty,0.1d0,detailled)).or.
      $       (.not.is_test_validated(sigma_P,0.25d0,detailled))) then
 
            print '(''the test requires: '')'
@@ -84,9 +84,9 @@
            print '(''get_relaxation_temperature: '',L2)', test_loc
         end if
 
-        !test relaxation temperature
+        !test relaxation pressure
         test_loc = is_test_validated(
-     $       get_relaxation_pressure(l_domain_n,M_un_infty),
+     $       get_relaxation_pressure(l_domain_n,M_local),
      $       r_pressure,
      $       detailled)
         test_validated = test_validated.and.test_loc
@@ -115,8 +115,8 @@
           end if
           
           test_validated=abs(
-     $         int(var*10000.)-
-     $         sign(int(abs(cst*10000.)),int(cst*10000.))).le.1
+     $         nint(var*1e5)-
+     $         nint(cst*1e5)).le.1
         
         end function is_test_validated
 

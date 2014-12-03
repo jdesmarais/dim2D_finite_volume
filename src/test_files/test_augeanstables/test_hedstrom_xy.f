@@ -48,6 +48,7 @@
         type(bc_operators)               :: bc_used
 
         logical :: detailled
+        logical :: test_loc
         logical :: test_validated
 
 
@@ -62,6 +63,8 @@
         print '(''*************************'')'
         print '()'
 
+        test_validated = .true.
+
 
         !initialization of the nodes
         call initialize_nodes(x_map,y_map,nodes,dx,dy)
@@ -69,35 +72,41 @@
 
         !test compute_x_timedev_with_openbc
         detailled = .false.
-        test_validated = test_compute_x_timedev_with_openbc(
+        test_loc = test_compute_x_timedev_with_openbc(
      $       nodes,dx,dy,
      $       p_model,
      $       detailled)
-        print '(''test_compute_x_timedev_with_openbc: '', L1)', test_validated
+        test_validated = test_validated.and.test_loc
+        print '(''test_compute_x_timedev_with_openbc: '', L1)', test_loc
         print '()'
 
 
         !test compute_timedev_x_layer
         detailled = .false.
-        test_validated = test_compute_timedev_xlayer(
+        test_loc = test_compute_timedev_xlayer(
      $       t, x_map, y_map,
      $       nodes,dx,dy,
      $       p_model,
      $       detailled)
-        print '(''test_compute_timedev_xlayer: '', L1)', test_validated
+        test_validated = test_validated.and.test_loc
+        print '(''test_compute_timedev_xlayer: '', L1)', test_loc
         print '()'
 
 
         !test apply_bc_on_timedev_2ndorder
         detailled=.false.
-        test_validated = test_apply_bc_on_timedev_2ndorder(
+        test_loc = test_apply_bc_on_timedev_2ndorder(
      $       nodes,dx,dy,
      $       p_model,
      $       bc_used,
      $       detailled)
-        print '(''test_apply_bc_on_timedev: '',L1)', test_validated
+        test_validated = test_validated.and.test_loc
+        print '(''test_apply_bc_on_timedev: '',L1)', test_loc
         print '()'
 
+        print '(''test_hedstrom_xy: '',L1)', test_validated
+        print '(''------------------------'')'
+        print '()'
 
         contains
 
@@ -551,8 +560,6 @@
 
           real(rkind), dimension(nx,ny,ne), intent(out) :: test_data
 
-          integer(ikind) :: i,j,k
-
           !position
           test_data(1,1,1)=-6.8175d0
           test_data(2,1,1)= -0.825d0
@@ -604,14 +611,6 @@
           test_data(2,5,2)=  2.1d0
           test_data(6,5,2)=4.945d0
           test_data(7,5,2)=2.575d0
-
-          do k=3,3
-             do j=1,ny
-                do i=1,nx
-                   test_data(i,j,k) = 0.0d0
-                end do
-             end do
-          end do
 
         end subroutine initialize_test_data
 
