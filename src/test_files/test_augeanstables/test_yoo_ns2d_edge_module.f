@@ -1,27 +1,9 @@
-      program test_yoo_ns2d_edge
-
-        use ns2d_parameters, only :
-     $       gamma,
-     $       mach_infty
-
-        use lodi_edge_abstract_class, only :
-     $       lodi_edge_abstract
-
-        use lodi_edge_inflow_class, only :
-     $       lodi_edge_inflow
-
-        use lodi_edge_outflow_class, only :
-     $       lodi_edge_outflow
+      module test_yoo_ns2d_edge_module
 
         use parameters_constant, only :
-     $       x_direction,
-     $       vector_x,
-     $       left,
-     $       right
+     $       vector_x
 
         use parameters_input, only :
-     $       sigma_P,
-     $       flow_direction,
      $       nx,ny,ne
 
         use parameters_kind, only :
@@ -31,190 +13,20 @@
         use pmodel_eq_class, only :
      $       pmodel_eq
 
-        use sd_operators_fd_module, only :
-     $       gradient_x_x_oneside_L0,
-     $       gradient_x_x_oneside_L1,
-     $       gradient_x_x_oneside_R1,
-     $       gradient_x_x_oneside_R0,
-     $       gradient_y_y_oneside_L0,
-     $       gradient_y_y_oneside_L1,
-     $       gradient_y_y_oneside_R1,
-     $       gradient_y_y_oneside_R0
-
 
         implicit none
 
 
-        real(rkind), dimension(nx,ny,ne)   :: nodes
-        real(rkind), dimension(nx)         :: x_map
-        real(rkind), dimension(ny)         :: y_map
-        real(rkind)                        :: t
-        real(rkind)                        :: dx
-        real(rkind)                        :: dy
-        
-        type(pmodel_eq)                    :: p_model
-        type(lodi_edge_outflow)            :: outflow_bc
-        type(lodi_edge_inflow)             :: inflow_bc
-
-        character(*), parameter :: FMT='(5F14.5)'
-        
-        real(rkind), dimension(nx,ny,ne) :: test_data
-        logical                          :: detailled
-        logical                          :: test_validated
-
-        real(rkind), dimension(nx,ny,ne) :: transverse_lodi
-        real(rkind), dimension(nx,ny,ne) :: viscous_lodi
-
-
-        if((nx.ne.5).or.(ny.ne.5).or.(ne.ne.4)) then
-           print '(''test designed for:'')'
-           print '(''nx=5'')'
-           print '(''ny=5'')'
-           print '(''pm_model=ns2d'')'
-           stop 'change inputs'
-        end if
-
-        
-        detailled = .false.
-        if(
-     $       (.not.is_test_validated(gamma,5.0d0/3.0d0,detailled)).or.
-     $       (.not.is_test_validated(mach_infty,0.2d0,detailled)).or.
-     $       (.not.is_test_validated(sigma_P,0.25d0,detailled)).or.
-     $       (.not.(flow_direction.eq.x_direction)).or.
-     $       (.not.is_test_validated(p_model%get_mach_ux_infty(left),mach_infty,detailled)).or.
-     $       (.not.is_test_validated(p_model%get_mach_ux_infty(right),mach_infty,detailled)).or.
-     $       (.not.is_test_validated(p_model%get_mach_uy_infty(left),0.0d0,detailled)).or.
-     $       (.not.is_test_validated(p_model%get_mach_uy_infty(right),0.0d0,detailled))) then
-
-           print '(''the test requires: '')'
-           print '(''gamma=5/3'')'
-           print '(''mach_infty=0.2'')'
-           print '(''sigma_P=0.25'')'
-           print '(''flow_direction=x-direction'')'
-           print '(''ic_choice=peak'')'
-           stop ''
-
-        end if
-
-
-        !compute the lodi vector from the lodi outflow x
-        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
-        call initialize_lodi_intermediate(transverse_lodi, viscous_lodi)        
-        call print_nodes(nodes,x_map,y_map)
-        call get_test_data_for_lodi_outflow_x(test_data)
-
-        print '(''test lodi for outflow x'')'
-        print '(''---------------------------------------'')'
-
-        detailled = .false.
-
-        call outflow_bc%ini()
-
-        test_validated = test_lodi_x(
-     $       test_data,
-     $       outflow_bc,
-     $       p_model,
-     $       t, nodes, x_map, y_map,
-     $       transverse_lodi, viscous_lodi,
-     $       detailled)
-
-        print '()'
-
-
-        !test the computation of the time derivatives for the lodi
-        !outflow x
-
-        print '(''test time_dev for outflow x'')'
-        print '(''---------------------------------------'')'
-
-        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
-        call initialize_lodi_intermediate(transverse_lodi, viscous_lodi)        
-        call get_test_data_for_lodi_outflow_timedevx(test_data)
-
-        detailled = .false.
-
-        call outflow_bc%ini()
-
-        test_validated = test_lodi_timedev_x(
-     $       test_data,
-     $       outflow_bc,
-     $       p_model,
-     $       t, nodes, x_map, y_map,
-     $       transverse_lodi, viscous_lodi,
-     $       detailled)
-
-        print '()'
-
-
-        !compute the lodi vector from the lodi inflow x
-        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
-        call initialize_lodi_intermediate(transverse_lodi, viscous_lodi)
-        call get_test_data_for_lodi_inflow_x(test_data)
-
-        print '(''test lodi for inflow x'')'
-        print '(''---------------------------------------'')'
-
-        detailled = .true.
-
-        call inflow_bc%ini()
-
-        test_validated = test_lodi_x(
-     $       test_data,
-     $       inflow_bc,
-     $       p_model,
-     $       t, nodes, x_map, y_map,
-     $       transverse_lodi, viscous_lodi,
-     $       detailled)
-
-        print '()'
-
-
-
-        !test the computation of the time derivatives for the lodi
-        !inflow x
-
-        print '(''test time_dev for inflow x'')'
-        print '(''---------------------------------------'')'
-
-        call initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
-        call get_test_data_for_lodi_inflow_timedevx(test_data)
-
-        detailled = .false.
-
-        call inflow_bc%ini()
-
-        test_validated = test_lodi_timedev_x(
-     $       test_data,
-     $       inflow_bc,
-     $       p_model,
-     $       t, nodes, x_map, y_map,
-     $       transverse_lodi, viscous_lodi,
-     $       detailled)
-
-        print '()'
-
+        private
+        public ::
+     $       initialize_nodes,
+     $       initialize_lodi_intermediate,
+     $       get_test_data_for_lodi_outflow_x,
+     $       get_test_data_for_lodi_inflow_x,
+     $       get_test_data_for_lodi_outflow_timedevx,
+     $       get_test_data_for_lodi_inflow_timedevx
 
         contains
-
-        function is_test_validated(var,cst,detailled) result(test_validated)
-
-          implicit none
-
-          real(rkind), intent(in) :: var
-          real(rkind), intent(in) :: cst
-          logical    , intent(in) :: detailled
-          logical                 :: test_validated
-
-          if(detailled) then
-             print *, int(var*1e5)
-             print *, int(cst*1e5)
-          end if
-          
-          test_validated=abs(
-     $         int(var*10000.)-
-     $         sign(int(abs(cst*10000.)),int(cst*10000.))).le.1
-          
-        end function is_test_validated
 
 
         subroutine initialize_nodes(p_model,nodes,x_map,y_map,dx,dy)
@@ -391,315 +203,7 @@
        end subroutine initialize_lodi_intermediate
 
 
-       subroutine print_nodes(nodes,x_map,y_map)
-
-          implicit none
-
-          real(rkind), dimension(nx,ny,ne), intent(out) :: nodes
-          real(rkind), dimension(nx)      , intent(out) :: x_map
-          real(rkind), dimension(ny)      , intent(out) :: y_map
-
-          integer(ikind) :: j
-
-
-          print '(''x_map'')'
-          print FMT, x_map
-          print '()'
-
-          print '(''y_map'')'
-          print FMT, y_map
-          print '()'
-
-          print '()'
-          print '(''mass_density'')'
-          do j=1,5
-             print FMT, nodes(1:5,6-j,1)
-          end do
-          print '()'
-
-          print '()'
-          print '(''momentum-x'')'
-          do j=1,5
-             print FMT, nodes(1:5,6-j,2)
-          end do
-          print '()'
-
-          print '()'
-          print '(''momentum-y'')'
-          do j=1,5
-             print FMT, nodes(1:5,6-j,3)
-          end do
-          print '()'
-
-          print '()'
-          print '(''total energy'')'
-          do j=1,5
-             print FMT, nodes(1:5,6-j,4)
-          end do
-          print '()'
-          print '()'
-
-        end subroutine print_nodes
-
-
-        subroutine print_timedev(timedev)
-
-          implicit none
-
-          real(rkind), dimension(nx,ny,ne), intent(in) :: timedev
-
-          integer(ikind) :: j
-
-
-          print '(''time derivatives of governing variables'')'
-          print '(''---------------------------------------'')'
-          
-          print '()'
-          print '(''mass_density'')'
-          do j=1,5
-             print FMT, timedev(1:5,6-j,1)
-          end do
-          print '()'
-          
-          print '()'
-          print '(''momentum-x'')'
-          do j=1,5
-             print FMT, timedev(1:5,6-j,2)
-          end do
-          print '()'
-          
-          print '()'
-          print '(''momentum-y'')'
-          do j=1,5
-             print FMT, timedev(1:5,6-j,3)
-          end do
-          print '()'
-          
-          print '()'
-          print '(''total energy'')'
-          do j=1,5
-             print FMT, timedev(1:5,6-j,4)
-          end do
-          print '()'
-          print '()'
-
-        end subroutine print_timedev
-
-
-        function test_lodi_x(
-     $     test_data,
-     $     bc_used,
-     $     p_model,
-     $     t, nodes, x_map, y_map,
-     $     transverse_lodi,
-     $     viscous_lodi,
-     $     detailled)
-     $     result(test_validated)
-
-          implicit none
-
-          real(rkind), dimension(nx,ny,ne), intent(in)  :: test_data
-          class(lodi_edge_abstract)       , intent(in)  :: bc_used
-          type(pmodel_eq)                 , intent(in)  :: p_model
-          real(rkind)                     , intent(in)  :: t
-          real(rkind), dimension(nx,ny,ne), intent(in)  :: nodes
-          real(rkind), dimension(nx)      , intent(in)  :: x_map
-          real(rkind), dimension(ny)      , intent(in)  :: y_map
-          real(rkind), dimension(nx,ny,ne), intent(in)  :: transverse_lodi
-          real(rkind), dimension(nx,ny,ne), intent(in)  :: viscous_lodi
-          logical                         , intent(in)  :: detailled
-          logical                                       :: test_validated
-
-
-          real(rkind), dimension(nx,ny,ne) :: lodi
-          logical                          :: loc
-          logical                          :: test_lodi_validated
-          logical, dimension(ne)           :: detailled_loc
-
-          integer(ikind) :: i,j
-          integer        :: k
-
-          
-          do j=1,5
-             i=1
-             lodi(i,j,:) = bc_used%compute_x_lodi(
-     $            p_model,
-     $            t,nodes,x_map,y_map,i,j,
-     $            transverse_lodi(i,j,:), viscous_lodi(i,j,:),
-     $            left,
-     $            gradient_x_x_oneside_L0)
-             
-             i=2
-             lodi(i,j,:) = bc_used%compute_x_lodi(
-     $            p_model,
-     $            t,nodes,x_map,y_map,i,j,
-     $            transverse_lodi(i,j,:), viscous_lodi(i,j,:),
-     $            left,
-     $            gradient_x_x_oneside_L1)
-             
-             i=4
-             lodi(i,j,:) = bc_used%compute_x_lodi(
-     $            p_model,
-     $            t,nodes,x_map,y_map,i,j,
-     $            transverse_lodi(i,j,:), viscous_lodi(i,j,:),
-     $            right,
-     $            gradient_x_x_oneside_R1)
-
-             i=5
-             lodi(i,j,:) = bc_used%compute_x_lodi(
-     $            p_model,
-     $            t,nodes,x_map,y_map,i,j,
-     $            transverse_lodi(i,j,:), viscous_lodi(i,j,:),
-     $            right,
-     $            gradient_x_x_oneside_R0)
-
-          end do
-
-
-          test_validated = .true.
-          detailled_loc = [.true.,.true.,.true.,.true.]
-
-          do k=1,4
-             test_lodi_validated = .true.
-             do j=1,5
-                do i=1,2
-                   loc = is_test_validated(lodi(i,j,k),test_data(i,j,k),.false.)
-                   test_validated = test_validated.and.loc
-                   test_lodi_validated = test_lodi_validated.and.loc
-                   if(detailled_loc(k).and.(.not.loc)) then
-                      print '(''['',3I2,'']: '',F8.3,'' -> '', F8.3)',
-     $                     i,j,k,
-     $                     lodi(i,j,k),
-     $                     test_data(i,j,k)
-                   end if
-                end do
-             
-                do i=4,5
-                   loc = is_test_validated(lodi(i,j,k),test_data(i,j,k),.false.)
-                   test_validated = test_validated.and.loc
-                   test_lodi_validated = test_lodi_validated.and.loc
-                   if(detailled_loc(k).and.(.not.loc)) then
-                      print '(''['',3I2,'']: '',F8.3,'' -> '', F8.3)',
-     $                     i,j,k,
-     $                     lodi(i,j,k),
-     $                     test_data(i,j,k)
-                   end if
-                end do
-             end do
-             if(.not.detailled_loc(k)) then
-                print '(''lodi('',I1,''):'',L3)', k, test_lodi_validated
-             end if
-          end do
-
-          if(.not.detailled) print '(''test_validated: '',L3)', test_validated
-
-        end function test_lodi_x
-
-
-        function test_lodi_timedev_x(
-     $     test_data,
-     $     bc_used,
-     $     p_model,
-     $     t, nodes, x_map, y_map,
-     $     transverse_lodi, viscous_lodi,
-     $     detailled)
-     $     result(test_validated)
-
-          implicit none
-
-          real(rkind), dimension(nx,ny,ne), intent(in)  :: test_data
-          class(lodi_edge_abstract)       , intent(in)  :: bc_used
-          type(pmodel_eq)                 , intent(in)  :: p_model
-          real(rkind)                     , intent(in)  :: t
-          real(rkind), dimension(nx,ny,ne), intent(in)  :: nodes
-          real(rkind), dimension(nx)      , intent(in)  :: x_map
-          real(rkind), dimension(ny)      , intent(in)  :: y_map
-          real(rkind), dimension(ne)      , intent(in)  :: transverse_lodi
-          real(rkind), dimension(ne)      , intent(in)  :: viscous_lodi
-          logical                         , intent(in)  :: detailled
-          logical                                       :: test_validated
-
-
-          real(rkind), dimension(nx,ny,ne) :: timedev
-          logical                          :: loc
-          logical                          :: test_lodi_validated
-          logical, dimension(ne)           :: detailled_loc
-
-          integer(ikind) :: i,j
-          integer        :: k
-
-          
-          do j=1,5
-             i=1
-             timedev(i,j,:) = bc_used%compute_x_timedev(
-     $            p_model,
-     $            t,nodes,x_map,y_map,i,j,
-     $            transverse_lodi, viscous_lodi,
-     $            left,
-     $            gradient_x_x_oneside_L0)
-             
-             i=2
-             timedev(i,j,:) = bc_used%compute_x_timedev(
-     $            p_model,
-     $            t,nodes,x_map,y_map,i,j,
-     $            transverse_lodi, viscous_lodi,
-     $            left,
-     $            gradient_x_x_oneside_L1)
-             
-             i=4
-             timedev(i,j,:) = bc_used%compute_x_timedev(
-     $            p_model,
-     $            t,nodes,x_map,y_map,i,j,
-     $            transverse_lodi, viscous_lodi,
-     $            right,
-     $            gradient_x_x_oneside_R1)
-
-             i=5
-             timedev(i,j,:) = bc_used%compute_x_timedev(
-     $            p_model,
-     $            t,nodes,x_map,y_map,i,j,
-     $            transverse_lodi, viscous_lodi,
-     $            right,
-     $            gradient_x_x_oneside_R0)
-
-          end do
-
-
-          test_validated = .true.
-          detailled_loc = [.false.,.false.,.false.,.false.]
-
-          do k=1,4
-             test_lodi_validated = .true.
-             do j=1,5
-                do i=1,2
-                   loc = is_test_validated(timedev(i,j,k),test_data(i,j,k),detailled_loc(k))
-                   test_validated = test_validated.and.loc
-                   test_lodi_validated = test_lodi_validated.and.loc
-                   if(detailled_loc(k)) then
-                      print '(''timedev('',I2,I2,I2,''):'',L3)', i,j,k,loc
-                   end if
-                end do
-             
-                do i=4,5
-                   loc = is_test_validated(timedev(i,j,k),test_data(i,j,k),detailled_loc(k))
-                   test_validated = test_validated.and.loc
-                   test_lodi_validated = test_lodi_validated.and.loc
-                   if(detailled_loc(k)) then
-                      print '(''timedev('',I2,I2,I2,''):'',L3)', i,j,k,loc
-                   end if
-                end do
-             end do
-             if(.not.detailled_loc(k)) then
-                print '(''timedev('',I1,''):'',L3)', k, test_lodi_validated
-             end if
-          end do
-
-          if(.not.detailled) print '(''test_validated: '',L3)', test_validated
-
-        end function test_lodi_timedev_x
-
-
-        subroutine get_test_data_for_lodi_outflow_x(
+               subroutine get_test_data_for_lodi_outflow_x(
      $     test_data)
         
           implicit none
@@ -993,17 +497,18 @@
           test_data(2,2,3) = -11.7202103d0
           test_data(2,1,3) = -15463.5656d0   
 
-          test_data(4,5,3) = 12.14325378d0
-          test_data(4,4,3) = 5.450606392d0
-          test_data(4,3,3) = -1.16793344d0
-          test_data(4,2,3) = 7.404333897d0
-          test_data(4,1,3) = 33.89325625d0
+          test_data(4,5,3) =-11.60674622d0
+          test_data(4,4,3) =-4.945547454d0
+          test_data(4,3,3) = 1.687066552d0
+          test_data(4,2,3) =-7.054968428d0
+          test_data(4,1,3) =-33.34939081d0
                                           
-          test_data(5,5,3) = -19.5795799d0
-          test_data(5,4,3) = 7.642473002d0
-          test_data(5,3,3) = 1.365742398d0
-          test_data(5,2,3) = -15.7670170d0
-          test_data(5,1,3) = -5.92464050d0
+          test_data(5,5,3) =  19.04542009d0
+          test_data(5,4,3) = -7.119291704d0
+          test_data(5,3,3) = -1.242953254d0
+          test_data(5,2,3) =  16.10798298d0
+          test_data(5,1,3) =  6.287316017d0
+
 
           !L4
           test_data(1,5,4) =-27.0795799d0
@@ -1053,17 +558,17 @@
           test_data(2,2,1) = 108.2349372d0
           test_data(2,1,1) = 7.748555568d0
                    
-          test_data(4,5,1) = -10.5966868d0
-          test_data(4,4,1) = 168.0749796d0
-          test_data(4,3,1) = -6.95491241d0
-          test_data(4,2,1) = 101.8031772d0
-          test_data(4,1,1) = 7.744542029d0
+          test_data(4,5,1) = -10.42081796d0
+          test_data(4,4,1) =  173.2788844d0
+          test_data(4,3,1) = -6.993488833d0
+          test_data(4,2,1) =  114.2030122d0
+          test_data(4,1,1) =  7.780526165d0                                     
                                      
-          test_data(5,5,1) = 62.80340463d0
-          test_data(5,4,1) = -3.79963590d0
-          test_data(5,3,1) = 0.549158673d0
-          test_data(5,2,1) = -26.9113328d0
-          test_data(5,1,1) = 586.2147348d0
+          test_data(5,5,1) =  62.16233605d0
+          test_data(5,4,1) =  -2.71104871d0
+          test_data(5,3,1) =  0.553547195d0
+          test_data(5,2,1) = -27.33626217d0
+          test_data(5,1,1) =  585.0940041d0
                
                     
           !momentum-x        
@@ -1079,17 +584,17 @@
           test_data(2,2,2) = 92.82001573d0
           test_data(2,1,2) = -191.655149d0
 
-          test_data(4,5,2) = -59.524637d0
-          test_data(4,4,2) = 87.4096625d0
-          test_data(4,3,2) = -50.563287d0
-          test_data(4,2,2) = -81.940820d0
-          test_data(4,1,2) = 191.809801d0
+          test_data(4,5,2) = -61.35083065d0
+          test_data(4,4,2) =  80.19916456d0
+          test_data(4,3,2) = -50.38188365d0
+          test_data(4,2,2) = -102.9148968d0
+          test_data(4,1,2) =  190.4232389d0
                             
-          test_data(5,5,2) = 737.2612518d0     
-          test_data(5,4,2) = -8.21856887d0     
-          test_data(5,3,2) = 80.55008953d0     
-          test_data(5,2,2) = -303.683382d0
-          test_data(5,1,2) = 2887.935375d0
+          test_data(5,5,2) =  736.8372929d0     
+          test_data(5,4,2) = -12.10713806d0     
+          test_data(5,3,2) =  80.47729343d0     
+          test_data(5,2,2) = -303.3118948d0
+          test_data(5,1,2) =  2887.605745d0
 
 
           !momentum-y
@@ -1105,17 +610,17 @@
           test_data(2,2,3) = -18.9275509d0
           test_data(2,1,3) = 21.56107056d0
                              
-          test_data(4,5,3) = -21.5488667d0
-          test_data(4,4,3) = -45.1086632d0
-          test_data(4,3,3) = -26.8992344d0
-          test_data(4,2,3) = -17.4243140d0
-          test_data(4,1,3) = 21.54828232d0
+          test_data(4,5,3) = -21.29336841d0
+          test_data(4,4,3) = -46.54307295d0
+          test_data(4,3,3) = -26.97775891d0
+          test_data(4,2,3) = -20.32241503d0
+          test_data(4,1,3) =  21.66293765d0
                              
-          test_data(5,5,3) = 1808.13912d0
-          test_data(5,4,3) = -5.7322870d0
-          test_data(5,3,3) = -47.964715d0
-          test_data(5,2,3) = -189.09312d0
-          test_data(5,1,3) = 504.430154d0
+          test_data(5,5,3) =  1788.579165d0
+          test_data(5,4,3) = -5.459499861d0
+          test_data(5,3,3) = -47.78421365d0
+          test_data(5,2,3) = -191.6196857d0
+          test_data(5,1,3) =  503.4507328d0
 
 
           !total energy
@@ -1131,18 +636,18 @@
           test_data(2,2,4) = 49.86206488d0
           test_data(2,1,4) = 9834.749701d0
                              
-          test_data(4,5,4) = -901.174597d0
-          test_data(4,4,4) = 179.9288051d0
-          test_data(4,3,4) = -475.531847d0
-          test_data(4,2,4) = 36.73542412d0
-          test_data(4,1,4) = 9827.999751d0
-                             
-          test_data(5,5,4) = 32201.3574d0
-          test_data(5,4,4) = -49.512007d0
-          test_data(5,3,4) = -313.18657d0
-          test_data(5,2,4) = -3340.2874d0
-          test_data(5,1,4) = 10508.2621d0 
+          test_data(4,5,4) =  -879.632557d0
+          test_data(4,4,4) =  190.3199834d0
+          test_data(4,3,4) = -477.4657912d0
+          test_data(4,2,4) =  62.04236643d0
+          test_data(4,1,4) =  9888.517688d0
+
+          test_data(5,5,4) =  31883.50279d0
+          test_data(5,4,4) = -35.15171993d0
+          test_data(5,3,4) = -307.5663991d0
+          test_data(5,2,4) =  -3363.89861d0
+          test_data(5,1,4) =  10501.67974d0
 
         end subroutine get_test_data_for_lodi_inflow_timedevx
 
-      end program test_yoo_ns2d_edge
+      end module test_yoo_ns2d_edge_module
