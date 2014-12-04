@@ -42,8 +42,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 5
-        integer(ikind), parameter :: nty = 5
+        integer(ikind), parameter :: ntx = 10
+        integer(ikind), parameter :: nty = 10
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -91,7 +91,7 @@
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = hedstrom_xy_corners_choice
+        integer, parameter :: bc_choice = yoolodato_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
@@ -114,8 +114,8 @@
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P = 0.25 !0.278d0
         integer    , parameter :: obc_type_N = always_outflow
-        integer    , parameter :: obc_type_S = always_inflow
-        integer    , parameter :: obc_type_E = always_outflow
+        integer    , parameter :: obc_type_S = always_outflow
+        integer    , parameter :: obc_type_E = always_inflow
         integer    , parameter :: obc_type_W = always_outflow
 
         integer    , parameter :: bc_N_type_choice = bc_timedev_choice

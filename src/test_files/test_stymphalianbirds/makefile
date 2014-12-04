@@ -282,3 +282,17 @@ test_bf_interface_icr:\
 			$(hedstrom_xy_dep)\
 			$(bf_interface_icr_dep)\
 			parameters_kind.o
+
+test_field_extended_integrate.o:\
+			$(field_dir)/field_class.o\
+			$(field_dir)/field_extended_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+test_field_extended_integrate:\
+			$(sim_dep)\
+			$(bf_interface_dcr_dep)\
+			surrogate_class.o\
+			field_abstract_class.o\
+			field_class.o\
+			field_extended_class.o
