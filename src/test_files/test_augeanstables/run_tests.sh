@@ -87,3 +87,25 @@ make test_poinsot_ns2d_operators > /dev/null
 ./test_poinsot_ns2d_operators
 make cleanall > /dev/null
 echo ''
+
+
+#test_yoo_ns2d_edge.f
+echo ''
+echo 'test_yoo_ns2d_edge'
+echo '------------------------------------------------------------'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'sd_choice'      -v 'mt_choice'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice'      -v 'ns2d_choice'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'bc_choice'      -v 'yoolodato_xy_choice'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx'            -v '5'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty'            -v '5'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'             -v '4'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'sigma_P'        -v '0.25'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'flow_direction' -v 'x_direction'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ic_choice'      -v 'peak'
+$config_dir/change_parameter.sh -i $ns2d_param  -o $ns2d_param  -p 'Re'         -v '10.0d0'
+$config_dir/change_parameter.sh -i $ns2d_param  -o $ns2d_param  -p 'Pr'         -v '1.0d0'
+$config_dir/change_parameter.sh -i $ns2d_param  -o $ns2d_param  -p 'mach_infty' -v '0.2d0'
+make test_yoo_ns2d_edge > /dev/null
+./test_yoo_ns2d_edge
+make cleanall > /dev/null
+echo ''

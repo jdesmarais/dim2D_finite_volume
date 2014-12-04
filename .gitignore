@@ -46,6 +46,11 @@ core*
 *.f90
 *.mod
 
+# job submission files #
+########################
+*.o*
+*.job
+
 #input files#
 #############
 inputs.txt

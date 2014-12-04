@@ -76,8 +76,10 @@ bc_choice = 5
 !
 !for NS:
 ! 0 : steady state
-! 1 : vortex
-! 2 : vortex convected to the right
+! 1 : peak
+! 2 : vortex
+! 3 : sym_x
+! 4 : sym_y
 !
 !for DIM:
 ! 0 : steady state
@@ -97,3 +99,4 @@ ic_choice = 1
 ! 1 : earth gravity: 9.81
 !---------------------------------------------------------
 gravity_choice=0
+wave_forcing=0

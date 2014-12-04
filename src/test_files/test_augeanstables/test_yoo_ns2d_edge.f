@@ -154,7 +154,7 @@
         print '(''test lodi for inflow x'')'
         print '(''---------------------------------------'')'
 
-        detailled = .false.
+        detailled = .true.
 
         call inflow_bc%ini()
 
@@ -557,26 +557,32 @@
 
 
           test_validated = .true.
-          detailled_loc = [.false.,.false.,.false.,.false.]
+          detailled_loc = [.true.,.true.,.true.,.true.]
 
           do k=1,4
              test_lodi_validated = .true.
              do j=1,5
                 do i=1,2
-                   loc = is_test_validated(lodi(i,j,k),test_data(i,j,k),detailled_loc(k))
+                   loc = is_test_validated(lodi(i,j,k),test_data(i,j,k),.false.)
                    test_validated = test_validated.and.loc
                    test_lodi_validated = test_lodi_validated.and.loc
-                   if(detailled_loc(k)) then
-                      print '(''lodi('',I2,I2,I2,''):'',L3)', i,j,k,loc
+                   if(detailled_loc(k).and.(.not.loc)) then
+                      print '(''['',3I2,'']: '',F8.3,'' -> '', F8.3)',
+     $                     i,j,k,
+     $                     lodi(i,j,k),
+     $                     test_data(i,j,k)
                    end if
                 end do
              
                 do i=4,5
-                   loc = is_test_validated(lodi(i,j,k),test_data(i,j,k),detailled_loc(k))
+                   loc = is_test_validated(lodi(i,j,k),test_data(i,j,k),.false.)
                    test_validated = test_validated.and.loc
                    test_lodi_validated = test_lodi_validated.and.loc
-                   if(detailled_loc(k)) then
-                      print '(''lodi('',I2,I2,I2,''):'',L3)', i,j,k,loc
+                   if(detailled_loc(k).and.(.not.loc)) then
+                      print '(''['',3I2,'']: '',F8.3,'' -> '', F8.3)',
+     $                     i,j,k,
+     $                     lodi(i,j,k),
+     $                     test_data(i,j,k)
                    end if
                 end do
              end do

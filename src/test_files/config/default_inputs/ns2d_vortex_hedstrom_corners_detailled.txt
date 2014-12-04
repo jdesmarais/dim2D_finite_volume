@@ -13,10 +13,6 @@ detail_print = 0.015
 dt    = 0.0001
 t_max = 1.5
 
-!t_max = 0.005
-!t_max = 1.5
-!t_max = 5.0000
-
 
 !3.	Space discretisation
 !---------------------------------------------------------
@@ -101,3 +97,4 @@ ic_choice = 2
 ! 1 : earth gravity: 9.81
 !---------------------------------------------------------
 gravity_choice=0
+wave_forcing=0
