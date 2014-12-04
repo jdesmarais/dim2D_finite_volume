@@ -82,7 +82,7 @@
            print '(''gamma=5/3'')'
            print '(''mach_infty=0.2'')'
            print '(''sigma_P=0.25'')'
-           print '(''flow_direction=x-direction'')'
+           print '(''flow_direction=x_direction'')'
            print '(''ic_choice=peak'')'
            stop ''
 
@@ -599,14 +599,14 @@
      $         gradient_y_y_oneside_R1,
      $         lodi_x, lodi_y)
 
-          test_data_lodi_x(1) =  1.462867208d0
+          test_data_lodi_x(1) =  1.599335662d0
           test_data_lodi_x(2) = -19.17172083d0
-          test_data_lodi_x(3) =  15.23239041d0
+          test_data_lodi_x(3) =  1.938218439d0
           test_data_lodi_x(4) = -299.0036936d0
 
-          test_data_lodi_y(1) =  9.216255037d0
+          test_data_lodi_y(1) =  8.768353014d0
           test_data_lodi_y(2) =  -4.17102088d0
-          test_data_lodi_y(3) =   80.5222253d0
+          test_data_lodi_y(3) =  84.57274305d0
           test_data_lodi_y(4) =  24.96631204d0
 
           test_loc = is_vector_validated(
@@ -641,15 +641,15 @@
      $         gradient_y_y_oneside_L1,
      $         lodi_x, lodi_y)
 
-          test_data_lodi_x(1) = -8.494118919d0
+          test_data_lodi_x(1) = -8.532432804d0
           test_data_lodi_x(2) = -71.64831958d0
-          test_data_lodi_x(3) =  66.02236803d0
+          test_data_lodi_x(3) =  50.82440134d0
           test_data_lodi_x(4) = -11.72021033d0
 
-          test_data_lodi_y(1) = -6.5319714d0
+          test_data_lodi_y(1) = -6.239001419d0
           test_data_lodi_y(2) = -56.38772216d0
           test_data_lodi_y(3) =  385.9079204d0
-          test_data_lodi_y(4) = -7.247702158d0
+          test_data_lodi_y(4) = -9.235254423d0
 
           test_loc = is_vector_validated(
      $         lodi_x,

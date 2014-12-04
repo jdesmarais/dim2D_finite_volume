@@ -83,7 +83,7 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer, parameter :: flow_direction = y_direction
+        integer, parameter :: flow_direction = x_direction
         integer, parameter :: ic_choice = peak
 
         !<body forces choice
