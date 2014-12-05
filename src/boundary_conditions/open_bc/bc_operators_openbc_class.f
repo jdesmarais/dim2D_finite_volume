@@ -583,7 +583,7 @@
                      if(compute_edge) then
                      
                         j_min = bc_sections(3,k)
-                        j_max = bc_sections(4,k)+1
+                        j_max = bc_sections(4,k)
                   
                         call this%apply_bc_on_timedev_W_edge(
      $                       p_model,

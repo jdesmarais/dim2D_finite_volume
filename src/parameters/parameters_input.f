@@ -22,10 +22,10 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -1.0000000000d0
-        real(rkind), parameter :: x_max = 1.0000000000d0
-        real(rkind), parameter :: y_min = -1.0000000000d0
-        real(rkind), parameter :: y_max = 1.0000000000d0
+        real(rkind), parameter :: x_min = -0.1d0
+        real(rkind), parameter :: x_max = 0.1d0
+        real(rkind), parameter :: y_min = -0.1d0
+        real(rkind), parameter :: y_max = 0.1d0
         
         !<computational times
         real(rkind), parameter :: t_max = 1.5000000000d0 !10.0d0
@@ -84,7 +84,7 @@
         !phase_separation   : unstable mass density
         !--------------------------------------------
         integer, parameter :: flow_direction = x_direction
-        integer, parameter :: ic_choice = peak
+        integer, parameter :: ic_choice = vortex
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
@@ -112,11 +112,11 @@
         !--------------------------------------------
         real(rkind), parameter :: search_nb_dt = 0.0001000000d0 !0.0500000000d0 !1.0 !0.0001000000d0
         integer    , parameter :: search_dcr = 4
-        real(rkind), parameter :: sigma_P = 0.25 !0.278d0
-        integer    , parameter :: obc_type_N = always_outflow
-        integer    , parameter :: obc_type_S = always_outflow
-        integer    , parameter :: obc_type_E = always_inflow
-        integer    , parameter :: obc_type_W = always_outflow
+        real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
+        integer    , parameter :: obc_type_N = ask_flow
+        integer    , parameter :: obc_type_S = ask_flow
+        integer    , parameter :: obc_type_E = ask_flow
+        integer    , parameter :: obc_type_W = ask_flow
 
         integer    , parameter :: bc_N_type_choice = bc_timedev_choice
         integer    , parameter :: bc_S_type_choice = bc_timedev_choice

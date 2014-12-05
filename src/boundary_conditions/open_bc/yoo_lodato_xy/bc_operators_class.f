@@ -1518,7 +1518,7 @@
           side_x = right
           do j=j_min, j_max
 
-             i=i_min+1
+             i=i_min
              timedev(i,j,:) = compute_timedev_x_edge_local(
      $            p_model,
      $            t,nodes,x_map,y_map,i,j,
@@ -1658,7 +1658,7 @@
           side_x = left
           do j=j_min, j_max
 
-             i=i_min+1            
+             i=i_min
              timedev(i,j,:) = compute_timedev_x_edge_local(
      $            p_model,
      $            t,nodes,x_map,y_map,i,j,

@@ -450,13 +450,13 @@
 
           !allocate memory space for the temporary tables
           !used in the time integration of the domain extension
-          call this%domain_extension%adapt_domain(
-     $         this%pmodel_eq_used,
-     $         this%time,dt,
-     $         this%x_map,
-     $         this%y_map,
-     $         nodes0,
-     $         this%nodes)
+c$$$          call this%domain_extension%adapt_domain(
+c$$$     $         this%pmodel_eq_used,
+c$$$     $         this%time,dt,
+c$$$     $         this%x_map,
+c$$$     $         this%y_map,
+c$$$     $         nodes0,
+c$$$     $         this%nodes)
 
         end subroutine adapt_domain
 

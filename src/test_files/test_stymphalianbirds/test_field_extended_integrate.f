@@ -1,5 +1,5 @@
       !to test whether the integration on the two fields
-      !leads to teh same results
+      !leads to the same results
       program test_field_extended_integration
 
         use field_class, only :
@@ -27,6 +27,8 @@
 
         logical :: detailled
         logical :: test_validated
+        
+        logical :: test_input
 
         real(rkind) :: dt
 
@@ -34,12 +36,28 @@
         detailled = .true.
 
 
+        print '()'
+        print '(''*********************************'')'
+        print '(''WARNING: the computational domain'')'
+        print '(''should not be extended otherwise'')'
+        print '(''the computation on both domains'')'
+        print '(''cannot be the same'')'
+        print '(''*********************************'')'
+        print '()'
+
+
         !verify the inputs
+
+        test_input = .true.
+        test_input = test_input.and.(nx.eq.10)
+        test_input = test_input.and.(ny.eq.10)
+        test_input = test_input.and.(ne.eq.4 )
         if((nx.ne.10).or.(ny.ne.10).or.(ne.ne.4)) then
            print '(''test_field_extended_integrate'')'
            print '(''nx.eq.10: '',L1)', nx.eq.10
            print '(''ny.eq.10: '',L1)', ny.eq.10
            print '(''ne.eq.4 : '',L1)', ne.eq.4
+           
            stop ''
         end if
 
@@ -49,10 +67,22 @@
         call field_extended_used%ini()
 
 
-        !set the nodes
-        call initialize_nodes(nodes_test)
-        call field_used%set_nodes(nodes_test)
-        call field_extended_used%set_nodes(nodes_test)
+        !modify the nodes to have momentum_y.ne.0
+        nodes_field = field_used%get_nodes()
+        nodes_field_extended = field_extended_used%get_nodes()
+        nodes_field(:,:,3) = Transpose(nodes_field(:,:,2))
+        nodes_field_extended(:,:,3) = Transpose(nodes_field_extended(:,:,2))
+        call field_used%set_nodes(nodes_field)
+        call field_extended_used%set_nodes(nodes_field_extended)
+
+
+        !check if the initialization is the
+        !same in both fields
+        nodes_field = field_used%get_nodes()
+        nodes_field_extended = field_extended_used%get_nodes()
+        test_validated = compare_nodes(nodes_field,nodes_field_extended,.false.)
+        print '(''test_initialization: '',L1)', test_validated
+        print '()'
 
 
         !integrate in time
@@ -217,7 +247,7 @@
                    test_loc = is_test_validated(
      $                  nodes_field(i,j,k),
      $                  nodes_field_extended(i,j,k),
-     $                  detailled)
+     $                  .false.)
 
                    test_validated = test_validated.and.test_loc
 
@@ -233,6 +263,17 @@
                 end do
              end do
           end do
+
+          if(detailled) then
+             do k=1,ne
+                print '(''k= '',I2)', k
+                print '(''-------'')'
+                do j=1,ny
+                   print '(10F8.4)', nodes_field(:,ny-j+1,k)
+                end do
+                print '()'
+             end do
+          end if
 
         end function compare_nodes
 
