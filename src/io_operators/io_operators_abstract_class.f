@@ -34,6 +34,9 @@
         !
         !> @param write_data
         !> write data on output files
+        !
+        !>@param read_data
+        !> read data from output files
         !---------------------------------------------------------------
         type, abstract :: io_operators_abstract
 
@@ -43,8 +46,10 @@
           
           procedure            , pass           :: ini
           procedure(write_proc), pass, deferred :: write_data
+          procedure(read_proc) , pass, deferred :: read_data
           procedure            , pass           :: increment_counter
           procedure            , pass           :: get_nb_timesteps_written
+          procedure            , pass           :: set_nb_timesteps_written
 
         end type io_operators_abstract
 
@@ -66,6 +71,31 @@
              real(rkind)                     , intent(in)    :: time
 
            end subroutine write_proc
+
+      
+           subroutine read_proc(
+     $       this,
+     $       filename,
+     $       nodes,
+     $       x_map,
+     $       y_map,
+     $       p_model,
+     $       time)
+
+             import io_operators_abstract
+             import pmodel_eq
+             import nx,ny,ne
+             import rkind
+
+             class(io_operators_abstract)    , intent(inout) :: this
+             character*(*)                   , intent(in)    :: filename
+             real(rkind), dimension(nx,ny,ne), intent(out)   :: nodes
+             real(rkind), dimension(nx)      , intent(out)   :: x_map
+             real(rkind), dimension(ny)      , intent(out)   :: y_map
+             type(pmodel_eq)                 , intent(in)    :: p_model
+             real(rkind)                     , intent(out)   :: time
+
+           end subroutine read_proc
 
         end interface
 
@@ -114,5 +144,18 @@
           nb_timesteps_written = this%nb_timesteps_written
 
         end function get_nb_timesteps_written
+
+
+        !set the nb_timesteps_written attribute
+        subroutine set_nb_timesteps_written(this,nb_timesteps_written)
+        
+          implicit none
+
+          class(io_operators_abstract), intent(inout) :: this
+          integer                     , intent(in)    :: nb_timesteps_written
+
+          this%nb_timesteps_written = nb_timesteps_written
+
+        end subroutine set_nb_timesteps_written
 
       end module io_operators_abstract_class

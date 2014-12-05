@@ -17,7 +17,9 @@
         implicit none
 
         private
-        public :: get_filename
+        public ::
+     $       get_filename,
+     $       get_timestep
 
 
         contains
@@ -63,5 +65,38 @@
          write (filename, trim(format_string)) 'data', timestep, '.nc'
 
         end subroutine get_filename
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the timestep corresponding to the filename
+        !
+        !> @date
+        !> 05_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param filename
+        !> character(len=16) for the name of the file
+        !
+        !>@return timestep
+        !> integer identifying the number of timesteps
+        !> written before writing this file
+        !--------------------------------------------------------------
+        function get_timestep(filename) result(timestep)
+
+          implicit none
+
+          character*(*), intent(in) :: filename
+          integer                   :: timestep
+
+          integer :: length
+
+          !the name of the input file has the structure:
+          !'data'+timestep+'.nc'
+          length   = len(filename)
+          read(filename(5:length-3),'(i10)') timestep
+
+        end function get_timestep
 
       end module io_operators_module

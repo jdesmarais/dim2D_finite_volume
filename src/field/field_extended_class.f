@@ -17,6 +17,9 @@
         use bf_interface_dcr_class, only :
      $       bf_interface_dcr
 
+        use cmd_operators_class, only :
+     $       cmd_operators
+
         use field_abstract_class, only :
      $       field_abstract
 
@@ -108,7 +111,7 @@
         
           implicit none
 
-          class(field_extended), intent(inout) :: this
+          class(field_extended)  , intent(inout) :: this
 
           !initialize the interior domain
           call this%field_abstract%ini()
@@ -450,13 +453,13 @@
 
           !allocate memory space for the temporary tables
           !used in the time integration of the domain extension
-c$$$          call this%domain_extension%adapt_domain(
-c$$$     $         this%pmodel_eq_used,
-c$$$     $         this%time,dt,
-c$$$     $         this%x_map,
-c$$$     $         this%y_map,
-c$$$     $         nodes0,
-c$$$     $         this%nodes)
+          call this%domain_extension%adapt_domain(
+     $         this%pmodel_eq_used,
+     $         this%time,dt,
+     $         this%x_map,
+     $         this%y_map,
+     $         nodes0,
+     $         this%nodes)
 
         end subroutine adapt_domain
 

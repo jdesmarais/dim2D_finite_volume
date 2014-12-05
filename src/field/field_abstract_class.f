@@ -16,33 +16,56 @@
       !-----------------------------------------------------------------
       module field_abstract_class
       
-        use bc_operators_class        , only : bc_operators
-        use interface_integration_step, only : timeInt_step,
-     $                                         timeInt_step_nopt
-        use io_operators_class        , only : io_operators
-        use parameters_constant       , only : periodic_xy_choice,
-     $                                         reflection_xy_choice,
-     $                                         wall_xy_choice,
-     $                                         wall_x_reflection_y_choice,
-     $                                         hedstrom_xy_choice,
-     $                                         hedstrom_xy_corners_choice,
-     $                                         hedstrom_x_reflection_y_choice,
-     $                                         poinsot_xy_choice,
-     $                                         yoolodato_xy_choice,
-     $                                         N,S,E,W
-        use parameters_input          , only : nx,ny,ne,bc_size,
-     $                                         x_min,x_max,
-     $                                         y_min,y_max,
-     $                                         bc_choice,
-     $                                         bc_N_type_choice,
-     $                                         bc_S_type_choice,
-     $                                         bc_E_type_choice,
-     $                                         bc_W_type_choice
-        use parameters_kind           , only : ikind, rkind
-        use pmodel_eq_class           , only : pmodel_eq
-        use sd_operators_class        , only : sd_operators
-        use surrogate_class           , only : surrogate
-        use td_operators_class        , only : td_operators
+        use bc_operators_class, only :
+     $       bc_operators
+
+        use cmd_operators_class, only :
+     $       cmd_operators
+
+        use interface_integration_step, only :
+     $       timeInt_step,
+     $       timeInt_step_nopt
+
+        use io_operators_class, only :
+     $       io_operators
+
+        use parameters_constant, only :
+     $       periodic_xy_choice,
+     $       reflection_xy_choice,
+     $       wall_xy_choice,
+     $       wall_x_reflection_y_choice,
+     $       hedstrom_xy_choice,
+     $       hedstrom_xy_corners_choice,
+     $       hedstrom_x_reflection_y_choice,
+     $       poinsot_xy_choice,
+     $       yoolodato_xy_choice,
+     $       N,S,E,W
+
+        use parameters_input, only :
+     $       nx,ny,ne,bc_size,
+     $       x_min,x_max,
+     $       y_min,y_max,
+     $       bc_choice,
+     $       bc_N_type_choice,
+     $       bc_S_type_choice,
+     $       bc_E_type_choice,
+     $       bc_W_type_choice
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use sd_operators_class, only :
+     $       sd_operators
+
+        use surrogate_class, only :
+     $       surrogate
+
+        use td_operators_class, only :
+     $       td_operators
 
         implicit none
 
@@ -212,15 +235,45 @@
 
           implicit none
 
-          class(field_abstract), intent(inout) :: this
+          class(field_abstract)  , intent(inout) :: this
 
-          this%time = 0.0
 
+          type(cmd_operators) :: cmd_operators_used
+
+
+          !analyze the command line arguments
+          !========================================
+          call cmd_operators_used%analyse_cmd_line_arg()
+
+
+          !initialize the field
+          !========================================
+
+          !1) initialize the boundary conditions
           call this%bc_operators_used%ini(this%pmodel_eq_used)
-          call this%ini_coordinates()
-          call this%apply_initial_conditions()
-          call this%io_operators_used%ini()
 
+          !2) initialize the time+x_map,y_map+nodes+io_operators
+          if(cmd_operators_used%is_restart_activated()) then
+
+             call this%io_operators_used%read_data(
+     $            trim(cmd_operators_used%get_restart_filename()),
+     $            this%nodes,
+     $            this%x_map,
+     $            this%y_map,
+     $            this%pmodel_eq_used,
+     $            this%time)
+             
+          else
+             
+             this%time = 0.0
+
+             call this%ini_coordinates()
+             call this%apply_initial_conditions()
+             call this%io_operators_used%ini()
+
+          end if
+
+          !3) verify the inputs
           call this%check_inputs()
 
         end subroutine ini

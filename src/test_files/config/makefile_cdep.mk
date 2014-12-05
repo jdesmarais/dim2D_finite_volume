@@ -175,7 +175,8 @@ io_dep=			io_operators_abstract_class.o\
 
 nf90_dep=		$(io_dep)\
 			io_operators_module.o\
-			nf90_operators_module.o
+			nf90_operators_module.o\
+			nf90_operators_read_module.o
 
 io_par_dep=		io_operators_abstract_par_class.o\
 			io_operators_par_class.o

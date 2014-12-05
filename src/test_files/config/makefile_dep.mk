@@ -15,6 +15,7 @@ $(field_dir)/field_abstract_class.o:\
 			$(bc_cdir)/bc_operators_class.o\
 			$(field_dir)/surrogate_class.o\
 			$(ti_dir)/interface_integration_step.o\
+			$(io_dir)/cmd_operators_class.o\
 			$(io_cdir)/io_operators_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
@@ -1020,6 +1021,8 @@ $(rk3tvd_dir)/td_integrator_par_class.o:\
 
 
 #io operators
+$(io_dir)/cmd_operators_class.o:
+
 $(io_dir)/io_operators_module.o:
 
 $(io_dir)/io_operators_abstract_class.o:\
@@ -1039,10 +1042,17 @@ $(nf90_dir)/nf90_operators_module.o:\
 			$(param_dir)/parameters_kind.o\
 			$(pm_cdir)/pmodel_eq_class.o
 
+$(nf90_dir)/nf90_operators_read_module.o:\
+			$(nf90_dir)/nf90_operators_module.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o
+
 $(nf90_dir)/io_operators_class.o:\
 			$(io_dir)/io_operators_module.o\
 			$(io_dir)/io_operators_abstract_class.o\
 			$(nf90_dir)/nf90_operators_module.o\
+			$(nf90_dir)/nf90_operators_read_module.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(pm_cdir)/pmodel_eq_class.o
@@ -1118,12 +1128,14 @@ sim_dim2d_par.o:	$(field_dir)/field_par_class.o\
 
 #dependencies for the executable code
 sim_dim2d:		$(sim_dep)\
+			cmd_operators_class.o\
 			surrogate_class.o\
 			field_abstract_class.o\
-			field_class.o
+			field_class.o\
 
 sim_dim2d_bf:		$(sim_dep)\
 			$(bf_interface_dcr_dep)\
+			cmd_operators_class.o\
 			surrogate_class.o\
 			field_abstract_class.o\
 			field_extended_class.o
