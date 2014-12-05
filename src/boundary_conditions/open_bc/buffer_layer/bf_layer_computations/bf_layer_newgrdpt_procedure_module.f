@@ -863,12 +863,12 @@
 
           implicit none
 
-          real(rkind)    , dimension(nx,ny,ne)                  , intent(in)    :: interior_nodes0
-          real(rkind)    , dimension(nx,ny,ne)                  , intent(in)    :: interior_nodes1
-          integer        , dimension(2*bc_size+1,2*bc_size+1)   , intent(inout) :: tmp_grdpts_id0
-          real(rkind)    , dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes0
-          real(rkind)    , dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes1
-          integer(ikind) , dimension(2,2)                       , intent(in)    :: gen_coords
+          real(rkind)    , dimension(nx,ny,ne)                          , intent(in)    :: interior_nodes0
+          real(rkind)    , dimension(nx,ny,ne)                          , intent(in)    :: interior_nodes1
+          integer        , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1)   , intent(inout) :: tmp_grdpts_id0
+          real(rkind)    , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1,ne), intent(inout) :: tmp_nodes0
+          real(rkind)    , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1,ne), intent(inout) :: tmp_nodes1
+          integer(ikind) , dimension(2,2)                               , intent(in)    :: gen_coords
 
 
           integer(ikind)                 :: i_min,i_max,j_min,j_max
@@ -948,14 +948,14 @@
         
           implicit none
           
-          integer, dimension(2*bc_size+1,2*bc_size+1), intent(out) :: tmp_grdpts_id
-          integer(ikind), dimension(2,2)             , intent(in)  :: gen_coords
+          integer, dimension(2*(bc_size+1)+1,2*(bc_size+1)+1), intent(out) :: tmp_grdpts_id
+          integer(ikind), dimension(2,2)                     , intent(in)  :: gen_coords
 
           integer                        :: i,j
           integer(ikind), dimension(2,2) :: grdpts_id_coords
 
-          do j=1, 2*bc_size+1
-             do i=1, 2*bc_size+1
+          do j=1, size(tmp_grdpts_id,2)
+             do i=1, size(tmp_grdpts_id,1)
                 tmp_grdpts_id(i,j) = no_pt
              end do
           end do
@@ -1089,7 +1089,7 @@
 
           real(rkind)   , dimension(nx) , intent(in) :: interior_x_map
           integer(ikind), dimension(2,2), intent(in) :: gen_coords
-          real(rkind)   , dimension(2*bc_size+1)     :: tmp_x_map
+          real(rkind)   , dimension(2*(bc_size+1)+1) :: tmp_x_map
 
           real(rkind) :: dx
           integer     :: i
@@ -1170,7 +1170,7 @@
 
           real(rkind)   , dimension(nx) , intent(in) :: interior_y_map
           integer(ikind), dimension(2,2), intent(in) :: gen_coords
-          real(rkind)   , dimension(2*bc_size+1)     :: tmp_y_map
+          real(rkind)   , dimension(2*(bc_size+1)+1) :: tmp_y_map
 
           real(rkind) :: dy
           integer     :: i

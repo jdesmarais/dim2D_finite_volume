@@ -466,10 +466,10 @@
 
           implicit none
 
-          class(bf_compute)                                     , intent(in)    :: this
-          integer        , dimension(2*bc_size+1,2*bc_size+1)   , intent(inout) :: tmp_grdpts_id0
-          real(rkind)    , dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes0
-          integer(ikind) , dimension(2,2)                       , intent(in)    :: gen_coords
+          class(bf_compute)                                             , intent(in)    :: this
+          integer        , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1)   , intent(inout) :: tmp_grdpts_id0
+          real(rkind)    , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1,ne), intent(inout) :: tmp_nodes0
+          integer(ikind) , dimension(2,2)                               , intent(in)    :: gen_coords
 
           integer(ikind) :: size_x,size_y
           integer(ikind) :: i_recv,i_send,j_recv,j_send

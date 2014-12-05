@@ -1432,13 +1432,13 @@
 
           implicit none
 
-          class(nbf_interface)                              , intent(in)    :: this
-          integer                                           , intent(in)    :: bf_localization
-          integer                                           , intent(in)    :: bf_neighbor_id
-          integer    , dimension(2*bc_size+1,2*bc_size+1)   , intent(inout) :: tmp_grdpts_id0
-          real(rkind), dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes0
-          real(rkind), dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes1
-          integer(ikind), dimension(2,2)                    , intent(in)    :: gen_borders
+          class(nbf_interface)                                      , intent(in)    :: this
+          integer                                                   , intent(in)    :: bf_localization
+          integer                                                   , intent(in)    :: bf_neighbor_id
+          integer    , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1)   , intent(inout) :: tmp_grdpts_id0
+          real(rkind), dimension(2*(bc_size+1)+1,2*(bc_size+1)+1,ne), intent(inout) :: tmp_nodes0
+          real(rkind), dimension(2*(bc_size+1)+1,2*(bc_size+1)+1,ne), intent(inout) :: tmp_nodes1
+          integer(ikind), dimension(2,2)                            , intent(in)    :: gen_borders
 
 
           call this%nbf_links(bf_localization,bf_neighbor_id)%get_data_for_newgrdpt(
@@ -1487,11 +1487,11 @@
 
           implicit none
 
-          class(nbf_interface)                              , intent(in)    :: this
-          integer                                           , intent(in)    :: bf_localization
-          integer                                           , intent(in)    :: bf_neighbor_id
-          integer    , dimension(2*bc_size+1,2*bc_size+1)   , intent(inout) :: tmp_grdpts_id1
-          integer(ikind), dimension(2,2)                    , intent(in)    :: gen_borders
+          class(nbf_interface)                                   , intent(in)    :: this
+          integer                                                , intent(in)    :: bf_localization
+          integer                                                , intent(in)    :: bf_neighbor_id
+          integer    , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1), intent(inout) :: tmp_grdpts_id1
+          integer(ikind), dimension(2,2)                         , intent(in)    :: gen_borders
 
 
           call this%nbf_links(bf_localization,bf_neighbor_id)%get_grdpts_id_part(

@@ -492,19 +492,19 @@
           logical                        :: tmp_needed
           integer(ikind), dimension(2,2) :: gen_borders
 
-          integer    , dimension(2*bc_size+1,2*bc_size+1)    :: tmp_grdpts_id0
-          real(rkind), dimension(2*bc_size+1,2*bc_size+1,ne) :: tmp_nodes0
-          real(rkind), dimension(2*bc_size+1,2*bc_size+1,ne) :: tmp_nodes1
+          integer    , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1)    :: tmp_grdpts_id0
+          real(rkind), dimension(2*(bc_size+1)+1,2*(bc_size+1)+1,ne) :: tmp_nodes0
+          real(rkind), dimension(2*(bc_size+1)+1,2*(bc_size+1)+1,ne) :: tmp_nodes1
 
-          integer                                :: localization
-          type(bf_newgrdpt)                      :: bf_newgrdpt_used
-          integer                                :: procedure_type
-          integer                                :: gradient_type
-          integer(ikind), dimension(2,2)         :: bf_align
-          real(rkind)   , dimension(2*bc_size+1) :: tmp_x_map
-          real(rkind)   , dimension(2*bc_size+1) :: tmp_y_map
-          real(rkind)   , dimension(ne)          :: new_grdpt
-          integer                                :: k
+          integer                                    :: localization
+          type(bf_newgrdpt)                          :: bf_newgrdpt_used
+          integer                                    :: procedure_type
+          integer                                    :: gradient_type
+          integer(ikind), dimension(2,2)             :: bf_align
+          real(rkind)   , dimension(2*(bc_size+1)+1) :: tmp_x_map
+          real(rkind)   , dimension(2*(bc_size+1)+1) :: tmp_y_map
+          real(rkind)   , dimension(ne)              :: new_grdpt
+          integer                                    :: k
 
 
           !localization of the buffer layer
@@ -516,10 +516,10 @@
           gen_coords(2) = match_table(2) + j1
           
           !determine the extent of the data needed
-          gen_borders(1,1) = gen_coords(1)-bc_size
-          gen_borders(1,2) = gen_coords(1)+bc_size
-          gen_borders(2,1) = gen_coords(2)-bc_size
-          gen_borders(2,2) = gen_coords(2)+bc_size
+          gen_borders(1,1) = gen_coords(1)-(bc_size+1)
+          gen_borders(1,2) = gen_coords(1)+(bc_size+1)
+          gen_borders(2,1) = gen_coords(2)-(bc_size+1)
+          gen_borders(2,2) = gen_coords(2)+(bc_size+1)
 
           !determine whether the new grid point is at the interface
           !between buffer layers or at the interface with the interior
@@ -584,7 +584,7 @@
              
              !determine the procedure and gradient type
              call get_newgrdpt_procedure(
-     $            bc_size+1,bc_size+1,
+     $            bc_size+2,bc_size+2,
      $            tmp_grdpts_id0,
      $            procedure_type,
      $            gradient_type)
@@ -593,10 +593,10 @@
              !compute the new grdpt
              ! - construct the bf_align array to localize
              !   the buffer layer
-             bf_align(1,1) = gen_coords(1)
-             bf_align(1,2) = gen_coords(1)
-             bf_align(2,1) = gen_coords(2)
-             bf_align(2,2) = gen_coords(2)
+             bf_align(1,1) = gen_borders(1,1)+bc_size
+             bf_align(1,2) = gen_borders(1,2)-bc_size
+             bf_align(2,1) = gen_borders(2,1)+bc_size
+             bf_align(2,2) = gen_borders(2,2)-bc_size
 
              ! - construct the bf_x_map array
              tmp_x_map = get_x_map_for_newgrdpt(interior_x_map, gen_borders)
@@ -609,7 +609,7 @@
      $            p_model, t, dt,
      $            bf_align, tmp_x_map, tmp_y_map, tmp_nodes0,
      $            bf_align, tmp_x_map, tmp_y_map, tmp_nodes1,
-     $            bc_size+1, bc_size+1,
+     $            bc_size+2, bc_size+2,
      $            procedure_type, gradient_type)
 
 
@@ -648,10 +648,10 @@
           integer(ikind), dimension(2) , intent(in)    :: newgrdpt_local_coords
           integer(ikind), dimension(2) , intent(in)    :: match_table
 
-          integer(ikind)                                     :: i,j
-          logical                                            :: has_a_bc_pt_neighbor
-          logical                                            :: ierror
-          integer(ikind), dimension(2*bc_size+1,2*bc_size+1) :: tmp_grdpts_id
+          integer(ikind)                                             :: i,j
+          logical                                                    :: has_a_bc_pt_neighbor
+          logical                                                    :: ierror
+          integer(ikind), dimension(2*(bc_size+1)+1,2*(bc_size+1)+1) :: tmp_grdpts_id
 
 
           do j=newgrdpt_local_coords(2)-bc_size, newgrdpt_local_coords(2)+bc_size
@@ -698,7 +698,7 @@
                       !if the bc_interior_pt is a suspicious grid point
                       has_a_bc_pt_neighbor = verify_if_has_a_bc_pt_neighbor(
      $                     tmp_grdpts_id,
-     $                     [bc_size+1,bc_size+1])
+     $                     [bc_size+2,bc_size+2])
 
                       !if the bc_interior_pt has no bc_pt neighbor, then
                       !it is a suspicious bc_interior_pt that may be
@@ -735,17 +735,17 @@
 
           implicit none
 
-          class(nbf_interface_newgrdpt)                        , intent(in)    :: this
-          type(bf_sublayer)                                    , intent(inout) :: bf_sublayer_updated
-          integer(ikind), dimension(2)                         , intent(in)    :: local_coords
-          integer(ikind), dimension(2)                         , intent(in)    :: match_table
-          integer, dimension(2*bc_size+1,2*bc_size+1), optional, intent(in)    :: tmp_grdpts_id
+          class(nbf_interface_newgrdpt)                                , intent(in)    :: this
+          type(bf_sublayer)                                            , intent(inout) :: bf_sublayer_updated
+          integer(ikind), dimension(2)                                 , intent(in)    :: local_coords
+          integer(ikind), dimension(2)                                 , intent(in)    :: match_table
+          integer, dimension(2*(bc_size+1)+1,2*(bc_size+1)+1), optional, intent(in)    :: tmp_grdpts_id
           
-          logical                                     :: all_grdpts_exist
-          logical                                     :: ierror
-          integer(ikind), dimension(2)                :: gen_coords
-          integer(ikind), dimension(2,2)              :: gen_borders
-          integer, dimension(2*bc_size+1,2*bc_size+1) :: tmp_grdpts_id1
+          logical                                             :: all_grdpts_exist
+          logical                                             :: ierror
+          integer(ikind), dimension(2)                        :: gen_coords
+          integer(ikind), dimension(2,2)                      :: gen_borders
+          integer, dimension(2*(bc_size+1)+1,2*(bc_size+1)+1) :: tmp_grdpts_id1
 
           integer :: j
 
@@ -753,8 +753,8 @@
           if(present(tmp_grdpts_id)) then
 
              all_grdpts_exist = verify_if_all_grdpts_exist(
-     $            bc_size+1,
-     $            bc_size+1,
+     $            bc_size+2,
+     $            bc_size+2,
      $            tmp_grdpts_id)
 
           else
@@ -791,8 +791,8 @@
                 !2) verify whether all grid points are present
                 !   to turn the bc_interior_pt into interior_pt
                 all_grdpts_exist = verify_if_all_grdpts_exist(
-     $               bc_size+1,
-     $               bc_size+1,
+     $               bc_size+2,
+     $               bc_size+2,
      $               tmp_grdpts_id1)
      $               
              end if
@@ -827,10 +827,10 @@
              print '(''neighboring grid points:'')'
              if(ierror.eqv.BF_SUCCESS) then
 
-                gen_borders(1,1) = gen_coords(1)-bc_size
-                gen_borders(1,2) = gen_coords(1)+bc_size
-                gen_borders(2,1) = gen_coords(2)-bc_size
-                gen_borders(2,2) = gen_coords(2)+bc_size
+                gen_borders(1,1) = gen_coords(1)-(bc_size+1)
+                gen_borders(1,2) = gen_coords(1)+(bc_size+1)
+                gen_borders(2,1) = gen_coords(2)-(bc_size+1)
+                gen_borders(2,2) = gen_coords(2)+(bc_size+1)
 
                 call bf_sublayer_updated%get_grdpts_id_part(
      $               tmp_grdpts_id1,
@@ -838,8 +838,8 @@
 
              end if
 
-             do j=1,2*bc_size+1
-                print '(5I2)', tmp_grdpts_id1(:,2*bc_size+2-j)
+             do j=1,2*(bc_size+1)+1
+                print '(5I2)', tmp_grdpts_id1(:,2*bc_size+4-j)
              end do
              print '()'
              stop ''
@@ -859,11 +859,11 @@
 
           implicit none
           
-          class(nbf_interface_newgrdpt)         , intent(in) :: this
-          type(bf_sublayer)                     , intent(in) :: bf_sublayer_updated
-          integer(ikind), dimension(2)          , intent(in) :: bf_local_coords
-          integer(ikind), dimension(2)          , intent(in) :: bf_match_table
-          integer(ikind), dimension(2*bc_size+1,2*bc_size+1) :: tmp_grdpts_id
+          class(nbf_interface_newgrdpt)                 , intent(in) :: this
+          type(bf_sublayer)                             , intent(in) :: bf_sublayer_updated
+          integer(ikind), dimension(2)                  , intent(in) :: bf_local_coords
+          integer(ikind), dimension(2)                  , intent(in) :: bf_match_table
+          integer(ikind), dimension(2*(bc_size+1)+1,2*(bc_size+1)+1) :: tmp_grdpts_id
           
 
           integer                        :: bf_localization
@@ -879,10 +879,10 @@
           gen_coords(2) = bf_local_coords(2) + bf_match_table(2)
 
           !i_min,i_max,j_min,j_max
-          gen_borders(1,1) = gen_coords(1)-bc_size
-          gen_borders(1,2) = gen_coords(1)+bc_size
-          gen_borders(2,1) = gen_coords(2)-bc_size
-          gen_borders(2,2) = gen_coords(2)+bc_size
+          gen_borders(1,1) = gen_coords(1)-(bc_size+1)
+          gen_borders(1,2) = gen_coords(1)+(bc_size+1)
+          gen_borders(2,1) = gen_coords(2)-(bc_size+1)
+          gen_borders(2,2) = gen_coords(2)+(bc_size+1)
 
 
           !1) collect data from interior

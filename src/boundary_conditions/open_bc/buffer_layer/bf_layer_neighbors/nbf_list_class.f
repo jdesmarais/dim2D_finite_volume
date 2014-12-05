@@ -1064,11 +1064,11 @@
         
           implicit none
 
-          class(nbf_list)                                       , intent(in)    :: this
-          integer        , dimension(2*bc_size+1,2*bc_size+1)   , intent(inout) :: tmp_grdpts_id0
-          real(rkind)    , dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes0
-          real(rkind)    , dimension(2*bc_size+1,2*bc_size+1,ne), intent(inout) :: tmp_nodes1
-          integer(ikind) , dimension(2,2)                       , intent(in)    :: gen_borders
+          class(nbf_list)                                               , intent(in)    :: this
+          integer        , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1)   , intent(inout) :: tmp_grdpts_id0
+          real(rkind)    , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1,ne), intent(inout) :: tmp_nodes0
+          real(rkind)    , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1,ne), intent(inout) :: tmp_nodes1
+          integer(ikind) , dimension(2,2)                               , intent(in)    :: gen_borders
 
 
           type(nbf_element), pointer   :: current_element
@@ -1126,9 +1126,9 @@
         
           implicit none
 
-          class(nbf_list)                                    , intent(in)    :: this
-          integer        , dimension(2*bc_size+1,2*bc_size+1), intent(inout) :: tmp_grdpts_id1
-          integer(ikind) , dimension(2,2)                    , intent(in)    :: gen_borders
+          class(nbf_list)                                            , intent(in)    :: this
+          integer        , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1), intent(inout) :: tmp_grdpts_id1
+          integer(ikind) , dimension(2,2)                            , intent(in)    :: gen_borders
 
 
           type(nbf_element), pointer   :: current_element
