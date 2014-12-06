@@ -109,8 +109,11 @@
           contains
 
           procedure, pass :: ini
+
+          !procedure used w/o field extension
           procedure, pass :: apply_bc_on_timedev => apply_bc_on_timedev_2ndorder
 
+          !procedures used w/ field extension
           procedure, pass :: apply_bc_on_timedev_x_edge
           procedure, pass :: apply_bc_on_timedev_y_edge
           procedure, pass :: apply_bc_on_timedev_xy_corner

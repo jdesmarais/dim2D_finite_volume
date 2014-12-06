@@ -1426,7 +1426,8 @@ c$$$          y_s = y_map(1)
           select case(ic_choice)
 
             case(vortex)
-               undermined=nodes(1).lt.0.97d0
+               undermined=nodes(1).lt.0.99d0
+               !0.97d0
 
             case default
                undermined=.false.
