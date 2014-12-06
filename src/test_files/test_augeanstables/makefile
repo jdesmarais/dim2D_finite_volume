@@ -208,17 +208,30 @@ test_hedstrom_xy:	$(param_dep)\
 			$(hedstrom_x_reflection_y_dep)
 
 test_hedstrom_xy_corners.o:\
-			$(hcobc_dir)/bc_operators_class.o\
+			$(hcobc_dir)/hedstrom_xy_corners_module.o\
+			$(obc_dir)/openbc_operators_module.o\
+			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_kind.o\
 			$(param_dir)/parameters_input.o\
 			$(wave2d_dir)/pmodel_eq_class.o\
-			$(mt_dir)/sd_operators_fd_ncoords_module.o
+			$(sd_dir)/sd_operators_fd_n_module.o\
+			$(wave2d_dir)/wave2d_parameters.o
 
 test_hedstrom_xy_corners:\
 			$(param_dep)\
 			$(mt_dep)\
 			$(wave2d_dep)\
-			$(hedstrom_xy_corners_dep)
+			hedstrom_xy_corners_module.o\
+			sd_operators_fd_n_module.o\
+			openbc_operators_module.o\
+			sd_operators_x_oneside_L0_class.o\
+			sd_operators_x_oneside_L1_class.o\
+			sd_operators_x_oneside_R0_class.o\
+			sd_operators_x_oneside_R1_class.o\
+			sd_operators_y_oneside_L0_class.o\
+			sd_operators_y_oneside_L1_class.o\
+			sd_operators_y_oneside_R1_class.o\
+			sd_operators_y_oneside_R0_class.o
 
 test_ns2d_eq_program.o:	$(param_dir)/parameters_kind.o\
 			$(param_dir)/parameters_input.o\

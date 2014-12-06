@@ -18,14 +18,12 @@
       !-----------------------------------------------------------------
       module bc_operators_class
 
-        use bc_operators_openbc_normal_class, only :
-     $     bc_operators_openbc_normal
+        use bc_operators_default_class, only :
+     $     bc_operators_default
 
         use hedstrom_xy_module, only :
      $       compute_timedev_xlayer,
-     $       compute_timedev_ylayer,
-     $       compute_timedev_xlayer_local,
-     $       compute_timedev_ylayer_local
+     $       compute_timedev_ylayer
 
         use hedstrom_ncoords_module, only :
      $       compute_timedev_corner_ncoords
@@ -35,6 +33,7 @@
      $       gradient_y_proc
 
         use openbc_operators_module, only :
+     $       compute_fluxes_at_the_edges_2ndorder,
      $       incoming_left,
      $       incoming_right
 
@@ -43,8 +42,6 @@
 
         use parameters_constant, only :
      $       bc_timedev_choice,
-     $       left, right,
-     $       N,S,E,W,
      $       x_direction,
      $       y_direction
 
@@ -64,30 +61,15 @@
      $       gradient_y_y_oneside_R1,
      $       gradient_y_y_oneside_R0
 
-        use sd_operators_fd_n_module, only :
-     $       gradient_n1_xL0_yL0,
-     $       gradient_n1_xI_yL0,
-     $       gradient_n1_xR0_yL0,
-     $       gradient_n1_xL0_yI,
-     $       gradient_n1_xI_yI,
-     $       gradient_n1_xR0_yI,
-     $       gradient_n1_xL0_yI,
-     $       gradient_n1_xR0_yI,
-     $       gradient_n1_xL0_yR0,
-     $       gradient_n1_xI_yR0,
-     $       gradient_n1_xR0_yR0,
-     $       
-     $       gradient_n2_xL0_yL0,
-     $       gradient_n2_xI_yL0,
-     $       gradient_n2_xR0_yL0,
-     $       gradient_n2_xL0_yI,
-     $       gradient_n2_xI_yI,
-     $       gradient_n2_xR0_yI,
-     $       gradient_n2_xL0_yI,
-     $       gradient_n2_xR0_yI,
-     $       gradient_n2_xL0_yR0,
-     $       gradient_n2_xI_yR0,
-     $       gradient_n2_xR0_yR0
+        use sd_operators_fd_ncoords_module, only :
+     $       gradient_n1_oneside_L0,
+     $       gradient_n1_oneside_L1,
+     $       gradient_n1_oneside_R1,
+     $       gradient_n1_oneside_R0,
+     $       gradient_n2_oneside_L0,
+     $       gradient_n2_oneside_L1,
+     $       gradient_n2_oneside_R1,
+     $       gradient_n2_oneside_R0
 
         use sd_operators_x_oneside_L0_class, only :
      $       sd_operators_x_oneside_L0
@@ -135,19 +117,12 @@
         !> @param apply_bc_on_timedev
         !> apply the open boundary conditions for the time derivatives
         !---------------------------------------------------------------
-        type, extends(bc_operators_openbc_normal) :: bc_operators
+        type, extends(bc_operators_default) :: bc_operators
 
           contains
 
           procedure, pass :: ini
-
-          !procedure used w/o field extension
           procedure, pass :: apply_bc_on_timedev => apply_bc_on_timedev_2ndorder_corners
-
-          !procedures used w/ field extension
-          procedure, pass :: apply_bc_on_timedev_x_edge
-          procedure, pass :: apply_bc_on_timedev_y_edge
-          procedure, pass :: apply_bc_on_timedev_xy_corner
 
         end type bc_operators        
       
@@ -272,59 +247,15 @@
 
           !compute the fluxes at the edge of the computational
           !domain
-          !compute the fluxes at the edge of the
-          !computational domain
-          !--------------------------------------------
-          !S_edge
-          i_min = bc_size+1
-          i_max = nx-bc_size+1
-          j     = 1
-          
-          call this%compute_fluxes_for_bc_y_edge(
+          call compute_fluxes_at_the_edges_2ndorder(
+     $         nodes, dx, dy,
+     $         s_x_L0, s_x_L1, s_x_R1, s_x_R0,
+     $         s_y_L0, s_y_L1, s_y_R1, s_y_R0,
      $         p_model,
-     $         nodes,
-     $         s_y_L0, s_y_L1,
-     $         s_y_R1, s_y_R0,
-     $         dx, dy,
-     $         i_min, i_max, j,
-     $         S,
-     $         flux_x)
-          
-          
-          !E+W_edge
-          j_min = bc_size+1
-          j_max = ny-bc_size+1
-          
-          call this%compute_fluxes_for_bc_x_edge(
-     $         p_model,
-     $         nodes,
-     $         s_x_L0, s_x_L1,
-     $         s_x_R1, s_x_R0,
-     $         dx, dy,
-     $         j_min, j_max, i,
-     $         E+W,
-     $         flux_y)
-          
-          
-          !N_edge
-          i_min = bc_size+1
-          i_max = nx-bc_size+1
-          j     = ny-bc_size+1
-          
-          call this%compute_fluxes_for_bc_y_edge(
-     $         p_model,
-     $         nodes,
-     $         s_y_L0, s_y_L1,
-     $         s_y_R1, s_y_R0,
-     $         dx, dy,
-     $         i_min, i_max, j,
-     $         N,
-     $         flux_x)
+     $         flux_x, flux_y)
 
 
-          !apply the boundary conditions on the south
-          !layer
-          !--------------------------------------------
+          !apply the boundary conditions on the south layer
           j=1
           call compute_timedev_corner_ncoords(
      $         nodes, [1,2], j, dx, dy, p_model,
