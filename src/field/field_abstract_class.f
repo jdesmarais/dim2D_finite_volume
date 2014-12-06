@@ -207,6 +207,7 @@
           procedure, pass          :: get_y_map !only for tests
           procedure, pass          :: set_x_map !only for tests
           procedure, pass          :: set_y_map !only for tests
+          procedure, pass          :: get_time
 
         end type field_abstract
 
@@ -975,5 +976,32 @@
           this%y_map = y_map
 
         end subroutine set_y_map
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the time of the simulation
+        !
+        !> @date
+        !> 06_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !
+        !>@return time
+        !> simulation time
+        !--------------------------------------------------------------
+        function get_time(this) result(time)
+
+          implicit none
+
+          class(field_abstract), intent(in) :: this
+          real(rkind)                       :: time
+
+          time = this%time
+
+        end function get_time        
 
       end module field_abstract_class

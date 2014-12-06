@@ -39,15 +39,15 @@
         call CPU_TIME(time1)
 
 
-        ! allocate the field
-        nt           = int(t_max/dt)
-        output_print = int(1.0d0/detail_print)
-
-
         ! initialize the field
         call f_simulated%ini()
         call f_simulated%apply_bc_on_nodes()
         call f_simulated%write_data()
+
+
+        ! allocate the field
+        nt           = int((t_max-f_simulated%get_time())/dt)
+        output_print = int(1.0d0/detail_print)
 
 
         ! initialization time
