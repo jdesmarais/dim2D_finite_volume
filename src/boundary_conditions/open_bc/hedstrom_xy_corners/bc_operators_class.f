@@ -27,8 +27,8 @@
      $       compute_timedev_xlayer_local,
      $       compute_timedev_ylayer_local
 
-        use hedstrom_ncoords_module, only :
-     $       compute_timedev_corner_ncoords
+        use hedstrom_xy_corners_module, only :
+     $       compute_n_timedev_with_openbc
 
         use interface_primary, only :
      $       gradient_x_proc,
@@ -46,7 +46,9 @@
      $       left, right,
      $       N,S,E,W,
      $       x_direction,
-     $       y_direction
+     $       y_direction,
+     $       n1_direction,
+     $       n2_direction
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size
@@ -65,29 +67,35 @@
      $       gradient_y_y_oneside_R0
 
         use sd_operators_fd_n_module, only :
-     $       gradient_n1_xL0_yL0,
-     $       gradient_n1_xI_yL0,
-     $       gradient_n1_xR0_yL0,
      $       gradient_n1_xL0_yI,
      $       gradient_n1_xI_yI,
-     $       gradient_n1_xR0_yI,
-     $       gradient_n1_xL0_yI,
-     $       gradient_n1_xR0_yI,
      $       gradient_n1_xL0_yR0,
      $       gradient_n1_xI_yR0,
-     $       gradient_n1_xR0_yR0,
-     $       
-     $       gradient_n2_xL0_yL0,
-     $       gradient_n2_xI_yL0,
-     $       gradient_n2_xR0_yL0,
      $       gradient_n2_xL0_yI,
      $       gradient_n2_xI_yI,
-     $       gradient_n2_xR0_yI,
-     $       gradient_n2_xL0_yI,
-     $       gradient_n2_xR0_yI,
      $       gradient_n2_xL0_yR0,
      $       gradient_n2_xI_yR0,
-     $       gradient_n2_xR0_yR0
+     $       
+     $       gradient_n1_xR0_yI,
+     $       gradient_n1_xI_yR0,
+     $       gradient_n1_xR0_yR0,
+     $       gradient_n2_xR0_yI,
+     $       gradient_n2_xI_yR0,
+     $       gradient_n2_xR0_yR0,
+     $       
+     $       gradient_n1_xI_yL0,
+     $       gradient_n1_xR0_yL0,
+     $       gradient_n1_xR0_yI,
+     $       gradient_n2_xI_yL0,
+     $       gradient_n2_xR0_yL0,
+     $       gradient_n2_xR0_yI,
+     $       
+     $       gradient_n1_xL0_yL0,
+     $       gradient_n1_xI_yL0,
+     $       gradient_n1_xL0_yI,
+     $       gradient_n2_xL0_yL0,
+     $       gradient_n2_xI_yL0,
+     $       gradient_n2_xL0_yI
 
         use sd_operators_x_oneside_L0_class, only :
      $       sd_operators_x_oneside_L0
@@ -200,7 +208,7 @@
         !> and 1st order accurate at the boundary
         !
         !> @date
-        !> 06_08_2014 - initial version - J.L. Desmarais
+        !> 06_12_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
         !> array of grid point data
@@ -326,13 +334,24 @@
           !layer
           !--------------------------------------------
           j=1
-          call compute_timedev_corner_ncoords(
-     $         nodes, [1,2], j, dx, dy, p_model,
-     $         gradient_n2_oneside_L0,
-     $         gradient_n2_oneside_L0,
+
+          i=1
+          timedev(i,j,:) = compute_timedev_corner_ncoords(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_n2_xL0_yL0,
+     $         gradient_n1_xL0_yL0,
      $         incoming_left,
-     $         y_direction,
-     $         timedev)
+     $         n2_direction)
+
+          i=2
+          timedev(i,j,:) = compute_timedev_corner_ncoords(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_n2_xI_yL0,
+     $         gradient_n1_xI_yL0,
+     $         incoming_left,
+     $         n2_direction)
 
           call compute_timedev_ylayer(
      $         t, x_map, y_map, nodes,
