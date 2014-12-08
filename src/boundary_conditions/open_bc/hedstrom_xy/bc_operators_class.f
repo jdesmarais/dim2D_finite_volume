@@ -22,8 +22,8 @@
      $       compute_timedev_ylayer,
      $       compute_timedev_corner_W,
      $       compute_timedev_corner_E,
-     $       compute_timedev_xlayer_local,
-     $       compute_timedev_ylayer_local,
+     $       compute_timedev_xlayer_local_hedstrom,
+     $       compute_timedev_ylayer_local_hedstrom,
      $       compute_timedev_corner_local
 
         use interface_primary, only :
@@ -468,33 +468,18 @@
           real(rkind), dimension(ne)                :: timedev
 
           integer, dimension(4) :: bc_s
-          real(rkind)           :: t_s
           real(rkind)           :: dx,dy
 
           bc_s = this%bc_type
-          t_s  = t
           dx   = x_map(2)-x_map(1)
           dy   = y_map(2)-y_map(1)
 
-          if(side_x.eqv.left) then
-
-             timedev = compute_timedev_xlayer_local(
-     $            p_model,
-     $            t,x_map,y_map, nodes, dx, dy, i,j,
-     $            flux_y,
-     $            incoming_left,
-     $            gradient_x)
-
-          else
-
-             timedev = compute_timedev_xlayer_local(
-     $            p_model,
-     $            t,x_map,y_map, nodes, dx, dy, i,j,
-     $            flux_y,
-     $            incoming_right,
-     $            gradient_x)
-
-          end if
+          timedev = compute_timedev_xlayer_local_hedstrom(
+     $         p_model,
+     $         t,x_map,y_map, nodes, dx,dy, i,j,
+     $         flux_y,
+     $         gradient_x,
+     $         side_x)
 
         end function apply_bc_on_timedev_x_edge
 
@@ -570,33 +555,18 @@
           real(rkind), dimension(ne)                :: timedev
 
           integer, dimension(4) :: bc_s
-          real(rkind)           :: t_s
           real(rkind)           :: dx,dy
 
           bc_s = this%bc_type
-          t_s  = t
           dx   = x_map(2) - x_map(1)
           dy   = y_map(2) - y_map(1)
 
-          if(side_y.eqv.left) then
-
-             timedev = compute_timedev_ylayer_local(
-     $            p_model,
-     $            t,x_map,y_map, nodes, dx, dy, i,j,
-     $            flux_x,
-     $            incoming_left,
-     $            gradient_y)
-
-          else
-
-             timedev = compute_timedev_ylayer_local(
-     $            p_model,
-     $            t,x_map,y_map, nodes, dx, dy, i,j,
-     $            flux_x,
-     $            incoming_right,
-     $            gradient_y)
-
-          end if
+          timedev = compute_timedev_ylayer_local_hedstrom(
+     $         p_model,
+     $         t, x_map, y_map, nodes, dx,dy, i,j,
+     $         flux_x,
+     $         gradient_y,
+     $         side_y)
 
         end function apply_bc_on_timedev_y_edge
 

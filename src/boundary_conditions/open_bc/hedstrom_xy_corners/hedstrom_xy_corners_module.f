@@ -19,7 +19,8 @@
        module hedstrom_xy_corners_module
 
         use interface_primary, only :
-     $       gradient_n_proc
+     $       gradient_x_proc,
+     $       gradient_y_proc
 
         use openbc_operators_module, only :
      $       incoming_proc
@@ -40,6 +41,10 @@
 
         use pmodel_eq_class, only :
      $       pmodel_eq
+
+        use sd_operators_fd_n_module, only :
+     $       get_gradient_n1,
+     $       get_gradient_n2
 
 
         implicit none
@@ -82,16 +87,23 @@
         !>@param dy
         !> space step along the y-direction
         !
-        !>@param gradient
-        !> procedure computing the gradient along the n-direction
+        !>@param gradient_x
+        !> procedure computing the gradient along the x-direction
+        !
+        !>@param gradient_y
+        !> procedure computing the gradient along the y-direction
         !
         !>@param incoming_wave
         !> procedure identifying whether the wave is incoming or
         !> outgoing the edge of the computational domain
+        !
+        !>@param dir1
+        !> direction in which the vector points to the outside of
+        !> the computational domain
         !-------------------------------------------------------------
         function compute_n_timedev_with_openbc(
      $     nodes, i, j, p_model, dx, dy,
-     $     gradient_dir1, gradient_dir2,
+     $     gradient_x, gradient_y,
      $     incoming_wave,
      $     dir1)
      $     result(timedev)
@@ -104,11 +116,15 @@
           type(pmodel_eq)                 , intent(in) :: p_model
           real(rkind)                     , intent(in) :: dx
           real(rkind)                     , intent(in) :: dy
-          procedure(gradient_n_proc)                   :: gradient_dir1
-          procedure(gradient_n_proc)                   :: gradient_dir2
+          procedure(gradient_x_proc)                   :: gradient_x
+          procedure(gradient_y_proc)                   :: gradient_y
           procedure(incoming_proc)                     :: incoming_wave
           integer                         , intent(in) :: dir1
           real(rkind), dimension(ne)                   :: timedev
+
+
+          real(rkind), dimension(ne)    :: var_gradient_x
+          real(rkind), dimension(ne)    :: var_gradient_y
 
           real(rkind), dimension(ne)    :: eigenvalues
           real(rkind), dimension(ne,ne) :: left_eigenmatrix
@@ -124,6 +140,13 @@
           real(rkind), dimension(ne)    :: trans_timedev
                                                         
 
+          !determination of the gradient
+          var_gradient_x = p_model%compute_x_gradient(
+     $         nodes,i,j,gradient_x,dx)
+                
+          var_gradient_y = p_model%compute_y_gradient(
+     $         nodes,i,j,gradient_y,dy)
+          
 
           !determination of the speed of the amplitude waves
           !along the n-direction
@@ -135,11 +158,17 @@
                right_eigenmatrix = p_model%compute_n1_righteigenvector(nodes(i,j,:))
                transM_dir1       = p_model%compute_n1_transM(nodes(i,j,:))
 
+               var_gradient_dir1 = get_gradient_n1(var_gradient_x,var_gradient_y)
+               var_gradient_dir2 = get_gradient_n2(var_gradient_x,var_gradient_y)
+
             case(n2_direction)
                eigenvalues       = p_model%compute_n2_eigenvalues(nodes(i,j,:))
                left_eigenmatrix  = p_model%compute_n2_lefteigenvector(nodes(i,j,:))
                right_eigenmatrix = p_model%compute_n2_righteigenvector(nodes(i,j,:))
                transM_dir1       = p_model%compute_n2_transM(nodes(i,j,:))
+
+               var_gradient_dir1 = get_gradient_n2(var_gradient_x,var_gradient_y)
+               var_gradient_dir2 = get_gradient_n1(var_gradient_x,var_gradient_y)
 
             case default
                print '(''hedstrom_xy_corners_module'')'
@@ -167,23 +196,12 @@
              !one-side differentiation
              else
 
-                var_gradient_dir1     = p_model%compute_n_gradient(
-     $               nodes, i,j, gradient_dir1, dx,dy)
-             
                 incoming_amp(k)  =  - eigenvalues(k)*
      $               DOT_PRODUCT(left_eigenmatrix(:,k), var_gradient_dir1)
 
              end if
 
           end do
-
-
-          !in the direction transverse to leaving the domain, the 
-          !contribution of the transverse terms to the time derivatives
-          !is computed using the transverse matrix and the transverse
-          !gradient
-          var_gradient_dir2 = p_model%compute_n_gradient(
-     $         nodes, i,j, gradient_dir2, dx,dy)
 
 
           !determination of the contribution of the hyperbolic terms

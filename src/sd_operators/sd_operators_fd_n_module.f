@@ -18,6 +18,9 @@
      $       gradient_x_proc,
      $       gradient_y_proc
 
+        use parameters_input, only :
+     $       ne
+
         use parameters_kind  , only :
      $       ikind,
      $       rkind
@@ -97,7 +100,10 @@
      $       gradient_n2_xR0_yL1,
      $       gradient_n2_xR0_yI,
      $       gradient_n2_xR0_yR1,
-     $       gradient_n2_xR0_yR0
+     $       gradient_n2_xR0_yR0,
+     $       
+     $       get_gradient_n1,
+     $       get_gradient_n2
         
         contains
 
@@ -3128,7 +3134,7 @@
         !
         !> @brief
         !> compute \f$ \frac{\partial u}{\partial n_2}\big|_{i,j}=
-        !> \frac{\sqrt{2}}{2} \left( \frac{\partial u}{\partial x} -
+        !> \frac{\sqrt{2}}{2} \left( \frac{\partial u}{\partial x} +
         !> \frac{\partial u}{\partial y} \right)
         !
         !> @date
@@ -3192,5 +3198,89 @@
      $        + grad_y_proc(nodes,i,j,var_proc,dy))
 
         end function gradient_n2
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial n_1}\big|_{i,j}=
+        !> \frac{\sqrt{2}}{2} \left( \frac{\partial u}{\partial x} -
+        !> \frac{\partial u}{\partial y} \right)
+        !
+        !> @date
+        !> 08_12_2014 - initial version  - J.L. Desmarais
+        !
+        !>@param var_gradient_x
+        !> gradient of the governing variables in the x-direction
+        !
+        !>@param var_gradient_y
+        !> gradient of the governing variables in the y-direction
+        !
+        !>@param var_gradient_n1
+        !> gradient of the governing variables in the n1-direction
+        !---------------------------------------------------------------
+        function get_gradient_n1(var_gradient_x,var_gradient_y)
+     $     result(var_gradient_n1)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in)  :: var_gradient_x
+          real(rkind), dimension(ne), intent(in)  :: var_gradient_y
+          real(rkind), dimension(ne)              :: var_gradient_n1
+
+          integer :: k
+
+          do k=1,ne
+             
+             var_gradient_n1(k) = 0.5d0*SQRT(2.0d0)*(
+     $            var_gradient_x(k)
+     $           -var_gradient_y(k))
+
+          end do
+
+        end function get_gradient_n1
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute \f$ \frac{\partial u}{\partial n_2}\big|_{i,j}=
+        !> \frac{\sqrt{2}}{2} \left( \frac{\partial u}{\partial x} +
+        !> \frac{\partial u}{\partial y} \right)
+        !
+        !> @date
+        !> 08_12_2014 - initial version  - J.L. Desmarais
+        !
+        !>@param var_gradient_x
+        !> gradient of the governing variables in the x-direction
+        !
+        !>@param var_gradient_y
+        !> gradient of the governing variables in the y-direction
+        !
+        !>@param var_gradient_n2
+        !> gradient of the governing variables in the n2-direction
+        !---------------------------------------------------------------
+        function get_gradient_n2(var_gradient_x,var_gradient_y)
+     $     result(var_gradient_n2)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in)  :: var_gradient_x
+          real(rkind), dimension(ne), intent(in)  :: var_gradient_y
+          real(rkind), dimension(ne)              :: var_gradient_n2
+
+          integer :: k
+
+          do k=1,ne
+             
+             var_gradient_n2(k) = 0.5d0*SQRT(2.0d0)*(
+     $            var_gradient_x(k)
+     $           +var_gradient_y(k))
+
+          end do
+
+        end function get_gradient_n2
 
       end module sd_operators_fd_n_module

@@ -30,6 +30,10 @@
         use pmodel_eq_class, only :
      $       pmodel_eq        
 
+        use parameters_constant, only :
+     $       left,
+     $       right
+
         use parameters_input, only :
      $       nx,ny,ne,bc_size
 
@@ -54,6 +58,8 @@
      $       compute_timedev_ylayer,
      $       compute_timedev_xlayer_local,
      $       compute_timedev_ylayer_local,
+     $       compute_timedev_xlayer_local_hedstrom,
+     $       compute_timedev_ylayer_local_hedstrom,
      $       compute_timedev_corner_W,
      $       compute_timedev_corner_E,
      $       compute_timedev_corner_local,
@@ -124,14 +130,7 @@
 
           timedev(i,j,:) = compute_timedev_xlayer_local(
      $         p_model,
-     $         t,
-     $         x_map,
-     $         y_map,
-     $         nodes,
-     $         dx,
-     $         dy,
-     $         i,
-     $         j,
+     $         t, x_map, y_map, nodes, dx,dy, i,j,
      $         flux_y,
      $         incoming_x,
      $         gradient_x)
@@ -206,14 +205,7 @@
 
              timedev(i,j,:) = compute_timedev_ylayer_local(
      $            p_model,
-     $            t,
-     $            x_map,
-     $            y_map,
-     $            nodes,
-     $            dx,
-     $            dy,
-     $            i,
-     $            j,
+     $            t, x_map, y_map, nodes, dx,dy, i,j,
      $            flux_x,
      $            incoming_y,
      $            gradient_y)
@@ -394,6 +386,183 @@
      $         t, x_map(i), y_map(j), nodes(i,j,:))
 
         end function compute_timedev_ylayer_local
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for the
+        !> west or east layer using open boundary conditions
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> governing equations of the physical model
+        !        
+        !>@param nodes
+        !> array of data for the grid points
+        !
+        !>@param dx
+        !> space step along the x-axis
+        !
+        !>@param dy
+        !> space step along the y-axis
+        !
+        !>@param i
+        !> index identifying the grid point in the x-direction
+        !
+        !>@param j
+        !> index identifying the grid point in the y-direction
+        !
+        !>@param flux_y
+        !> fluxes along the y-direction
+        !
+        !>@param incoming_x
+        !> procedure checking the type of characteristic at the edge
+        !> in the x-direction
+        !
+        !>@param gradient_x
+        !> procedure computing the gradient along the x-direction
+        !
+        !>@param timedev
+        !> time derivatives modified
+        !-------------------------------------------------------------
+        function compute_timedev_xlayer_local_hedstrom(
+     $     p_model,
+     $     t, x_map, y_map, nodes, dx, dy, i,j,
+     $     flux_y,
+     $     gradient_x,
+     $     side_x)
+     $     result(timedev)
+
+          implicit none
+
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(:)         , intent(in)    :: x_map
+          real(rkind), dimension(:)         , intent(in)    :: y_map
+          real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          integer(ikind)                    , intent(in)    :: i
+          integer(ikind)                    , intent(in)    :: j
+          real(rkind), dimension(:,:,:)     , intent(in)    :: flux_y
+          procedure(gradient_x_proc)                        :: gradient_x
+          logical                           , intent(in)    :: side_x
+          real(rkind), dimension(ne)                        :: timedev
+
+          if(side_x.eqv.left) then
+
+             timedev = compute_timedev_xlayer_local(
+     $            p_model,
+     $            t,x_map,y_map, nodes, dx, dy, i,j,
+     $            flux_y,
+     $            incoming_left,
+     $            gradient_x)
+
+          else
+
+             timedev = compute_timedev_xlayer_local(
+     $            p_model,
+     $            t,x_map,y_map, nodes, dx, dy, i,j,
+     $            flux_y,
+     $            incoming_right,
+     $            gradient_x)
+
+          end if
+
+        end function compute_timedev_xlayer_local_hedstrom
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for the
+        !> west or east layer using open boundary conditions
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> governing equations of the physical model
+        !        
+        !>@param nodes
+        !> array of data for the grid points
+        !
+        !>@param dx
+        !> space step along the x-axis
+        !
+        !>@param dy
+        !> space step along the y-axis
+        !
+        !>@param i
+        !> index identifying the grid point in the x-direction
+        !
+        !>@param j
+        !> index identifying the grid point in the y-direction
+        !
+        !>@param flux_y
+        !> fluxes along the y-direction
+        !
+        !>@param incoming_x
+        !> procedure checking the type of characteristic at the edge
+        !> in the x-direction
+        !
+        !>@param gradient_x
+        !> procedure computing the gradient along the x-direction
+        !
+        !>@param timedev
+        !> time derivatives modified
+        !-------------------------------------------------------------
+        function compute_timedev_ylayer_local_hedstrom(
+     $     p_model,
+     $     t, x_map, y_map, nodes, dx,dy, i,j,
+     $     flux_x,
+     $     gradient_y,
+     $     side_y)
+     $     result(timedev)
+
+          implicit none
+
+          type(pmodel_eq)                   , intent(in) :: p_model
+          real(rkind)                       , intent(in) :: t
+          real(rkind), dimension(:)         , intent(in) :: x_map
+          real(rkind), dimension(:)         , intent(in) :: y_map
+          real(rkind), dimension(:,:,:)     , intent(in) :: nodes
+          real(rkind)                       , intent(in) :: dx
+          real(rkind)                       , intent(in) :: dy
+          integer(ikind)                    , intent(in) :: i
+          integer(ikind)                    , intent(in) :: j
+          real(rkind), dimension(:,:,:)     , intent(in) :: flux_x
+          procedure(gradient_y_proc)                     :: gradient_y
+          logical                           , intent(in) :: side_y
+          real(rkind), dimension(ne)                     :: timedev
+
+
+          if(side_y.eqv.left) then
+
+             timedev = compute_timedev_ylayer_local(
+     $            p_model,
+     $            t,x_map,y_map, nodes, dx, dy, i,j,
+     $            flux_x,
+     $            incoming_left,
+     $            gradient_y)
+
+          else
+
+             timedev = compute_timedev_ylayer_local(
+     $            p_model,
+     $            t,x_map,y_map, nodes, dx, dy, i,j,
+     $            flux_x,
+     $            incoming_right,
+     $            gradient_y)
+
+          end if
+
+        end function compute_timedev_ylayer_local_hedstrom
 
 
         !> @author

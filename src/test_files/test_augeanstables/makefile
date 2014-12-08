@@ -214,7 +214,7 @@ test_hedstrom_xy_corners.o:\
 			$(param_dir)/parameters_kind.o\
 			$(param_dir)/parameters_input.o\
 			$(wave2d_dir)/pmodel_eq_class.o\
-			$(sd_dir)/sd_operators_fd_n_module.o\
+			$(sd_cdir)/sd_operators_fd_module.o\
 			$(wave2d_dir)/wave2d_parameters.o
 
 test_hedstrom_xy_corners:\

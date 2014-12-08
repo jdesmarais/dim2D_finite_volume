@@ -21,38 +21,13 @@
         use pmodel_eq_class, only :
      $       pmodel_eq
 
-        use sd_operators_fd_n_module, only :
-     $       gradient_n1_xL0_yI,
-     $       gradient_n1_xI_yI,
-     $       gradient_n1_xL0_yR0,
-     $       gradient_n1_xI_yR0,
-     $       gradient_n2_xL0_yI,
-     $       gradient_n2_xI_yI,
-     $       gradient_n2_xL0_yR0,
-     $       gradient_n2_xI_yR0,
-     $       
-     $       gradient_n1_xR0_yI,
-     $       gradient_n1_xI_yR0,
-     $       gradient_n1_xR0_yR0,
-     $       gradient_n2_xR0_yI,
-     $       gradient_n2_xI_yR0,
-     $       gradient_n2_xR0_yR0,
-     $       
-     $       gradient_n1_xI_yL0,
-     $       gradient_n1_xR0_yL0,
-     $       gradient_n1_xR0_yI,
-     $       gradient_n2_xI_yL0,
-     $       gradient_n2_xR0_yL0,
-     $       gradient_n2_xR0_yI,
-     $       
-     $       gradient_n1_xL0_yL0,
-     $       gradient_n1_xI_yL0,
-     $       gradient_n1_xL0_yI,
-     $       gradient_n2_xL0_yL0,
-     $       gradient_n2_xI_yL0,
-     $       gradient_n2_xL0_yI
-
-
+        use sd_operators_fd_module, only :
+     $       gradient_x_interior,
+     $       gradient_x_x_oneside_L0,
+     $       gradient_x_x_oneside_R0,
+     $       gradient_y_interior,
+     $       gradient_y_y_oneside_L0,
+     $       gradient_y_y_oneside_R0
 
         use wave2d_parameters, only :
      $       c
@@ -206,7 +181,7 @@
      $         indices_tested(1,1),
      $         indices_tested(2,1),
      $         p_model, dx, dy,
-     $         gradient_n1_xL0_yI, gradient_n2_xL0_yI,
+     $         gradient_x_x_oneside_L0, gradient_y_interior,
      $         incoming_left,
      $         n1_direction)
 
@@ -215,7 +190,7 @@
      $         indices_tested(1,2),
      $         indices_tested(2,2),
      $         p_model, dx, dy,
-     $         gradient_n1_xI_yI, gradient_n2_xI_yI,
+     $         gradient_x_interior, gradient_y_interior,
      $         incoming_left,
      $         n1_direction)
 
@@ -224,7 +199,7 @@
      $         indices_tested(1,3),
      $         indices_tested(2,3),
      $         p_model, dx, dy,
-     $         gradient_n1_xL0_yR0, gradient_n2_xL0_yR0,
+     $         gradient_x_x_oneside_L0, gradient_y_y_oneside_R0,
      $         incoming_left,
      $         n1_direction)
 
@@ -233,7 +208,7 @@
      $         indices_tested(1,4),
      $         indices_tested(2,4),
      $         p_model, dx, dy,
-     $         gradient_n1_xI_yR0, gradient_n2_xI_yR0,
+     $         gradient_x_interior, gradient_y_y_oneside_R0,
      $         incoming_left,
      $         n1_direction)
 
@@ -312,7 +287,7 @@
      $         indices_tested(1,1),
      $         indices_tested(2,1),
      $         p_model, dx, dy,
-     $         gradient_n2_xI_yI, gradient_n1_xI_yI,
+     $         gradient_x_interior, gradient_y_interior,
      $         incoming_right,
      $         n2_direction)
 
@@ -321,7 +296,7 @@
      $         indices_tested(1,2),
      $         indices_tested(2,2),
      $         p_model, dx, dy,
-     $         gradient_n2_xR0_yI, gradient_n1_xR0_yI,
+     $         gradient_x_x_oneside_R0, gradient_y_interior,
      $         incoming_right,
      $         n2_direction)
 
@@ -330,7 +305,7 @@
      $         indices_tested(1,3),
      $         indices_tested(2,3),
      $         p_model, dx, dy,
-     $         gradient_n2_xI_yR0, gradient_n1_xI_yR0,
+     $         gradient_x_interior, gradient_y_y_oneside_R0,
      $         incoming_right,
      $         n2_direction)
 
@@ -339,7 +314,7 @@
      $         indices_tested(1,4),
      $         indices_tested(2,4),
      $         p_model, dx, dy,
-     $         gradient_n2_xR0_yR0, gradient_n1_xR0_yR0,
+     $         gradient_x_x_oneside_R0, gradient_y_y_oneside_R0,
      $         incoming_right,
      $         n2_direction)
 
@@ -418,7 +393,7 @@
      $         indices_tested(1,1),
      $         indices_tested(2,1),
      $         p_model, dx, dy,
-     $         gradient_n1_xI_yL0, gradient_n2_xI_yL0,
+     $         gradient_x_interior, gradient_y_y_oneside_L0,
      $         incoming_right,
      $         n1_direction)
 
@@ -427,7 +402,7 @@
      $         indices_tested(1,2),
      $         indices_tested(2,2),
      $         p_model, dx, dy,
-     $         gradient_n1_xR0_yL0, gradient_n2_xR0_yL0,
+     $         gradient_x_x_oneside_R0, gradient_y_y_oneside_L0,
      $         incoming_right,
      $         n1_direction)
 
@@ -436,7 +411,7 @@
      $         indices_tested(1,3),
      $         indices_tested(2,3),
      $         p_model, dx, dy,
-     $         gradient_n1_xI_yI, gradient_n2_xI_yI,
+     $         gradient_x_interior, gradient_y_interior,
      $         incoming_right,
      $         n1_direction)
 
@@ -445,7 +420,7 @@
      $         indices_tested(1,4),
      $         indices_tested(2,4),
      $         p_model, dx, dy,
-     $         gradient_n1_xR0_yI, gradient_n2_xR0_yI,
+     $         gradient_x_x_oneside_R0, gradient_y_interior,
      $         incoming_right,
      $         n1_direction)
 
@@ -524,7 +499,7 @@
      $         indices_tested(1,1),
      $         indices_tested(2,1),
      $         p_model, dx, dy,
-     $         gradient_n2_xL0_yL0, gradient_n1_xL0_yL0,
+     $         gradient_x_x_oneside_L0, gradient_y_y_oneside_L0,
      $         incoming_left,
      $         n2_direction)
 
@@ -533,7 +508,7 @@
      $         indices_tested(1,2),
      $         indices_tested(2,2),
      $         p_model, dx, dy,
-     $         gradient_n2_xI_yL0, gradient_n1_xI_yL0,
+     $         gradient_x_interior, gradient_y_y_oneside_L0,
      $         incoming_left,
      $         n2_direction)
 
@@ -542,7 +517,7 @@
      $         indices_tested(1,3),
      $         indices_tested(2,3),
      $         p_model, dx, dy,
-     $         gradient_n2_xL0_yI, gradient_n1_xL0_yI,
+     $         gradient_x_x_oneside_L0, gradient_y_interior,
      $         incoming_left,
      $         n2_direction)
 
@@ -551,7 +526,7 @@
      $         indices_tested(1,4),
      $         indices_tested(2,4),
      $         p_model, dx, dy,
-     $         gradient_n2_xI_yI, gradient_n1_xI_yI,
+     $         gradient_x_interior, gradient_y_interior,
      $         incoming_left,
      $         n2_direction)
 

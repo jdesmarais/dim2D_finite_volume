@@ -662,15 +662,8 @@ $(hcobc_dir)/hedstrom_xy_corners_module.o:\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(hcobc_dir)/hedstrom_ncoords_module.o:\
-			$(sd_dir)/interface_primary.o\
-			$(obc_dir)/openbc_operators_module.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(sd_dir)/sd_operators_fd_n_module.o
 
 $(hcobc_dir)/bc_operators_class.o:\
 			$(bc_dir)/bc_operators_default_class.o\
