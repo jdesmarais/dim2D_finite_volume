@@ -95,12 +95,15 @@ hedstrom_xy_dep=	$(bc_dep)\
 
 hedstrom_xy_corners_dep=\
 			$(bc_dep)\
+			bc_operators_nopt_module.o\
+			bc_operators_openbc_class.o\
 			openbc_operators_module.o\
+			bc_operators_openbc_normal_class.o\
 			$(sd_oneside_dep)\
 			sd_operators_fd_module.o\
 			hedstrom_xy_module.o\
-			sd_operators_fd_ncoords_module.o\
-			hedstrom_ncoords_module.o
+			sd_operators_fd_n_module.o\
+			hedstrom_xy_corners_module.o
 
 hedstrom_x_reflection_y_dep=\
 			$(hedstrom_xy_dep)\

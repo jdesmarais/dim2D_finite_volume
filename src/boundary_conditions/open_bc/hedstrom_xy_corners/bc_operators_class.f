@@ -24,8 +24,8 @@
         use hedstrom_xy_module, only :
      $       compute_timedev_xlayer,
      $       compute_timedev_ylayer,
-     $       compute_timedev_xlayer_local,
-     $       compute_timedev_ylayer_local
+     $       compute_timedev_xlayer_local_hedstrom,
+     $       compute_timedev_ylayer_local_hedstrom
 
         use hedstrom_xy_corners_module, only :
      $       compute_n_timedev_with_openbc
@@ -57,6 +57,8 @@
      $       rkind,ikind
 
         use sd_operators_fd_module, only :
+     $       gradient_x_interior,
+     $       gradient_y_interior,
      $       gradient_x_x_oneside_L0,
      $       gradient_x_x_oneside_L1,
      $       gradient_x_x_oneside_R1,
@@ -65,37 +67,6 @@
      $       gradient_y_y_oneside_L1,
      $       gradient_y_y_oneside_R1,
      $       gradient_y_y_oneside_R0
-
-        use sd_operators_fd_n_module, only :
-     $       gradient_n1_xL0_yI,
-     $       gradient_n1_xI_yI,
-     $       gradient_n1_xL0_yR0,
-     $       gradient_n1_xI_yR0,
-     $       gradient_n2_xL0_yI,
-     $       gradient_n2_xI_yI,
-     $       gradient_n2_xL0_yR0,
-     $       gradient_n2_xI_yR0,
-     $       
-     $       gradient_n1_xR0_yI,
-     $       gradient_n1_xI_yR0,
-     $       gradient_n1_xR0_yR0,
-     $       gradient_n2_xR0_yI,
-     $       gradient_n2_xI_yR0,
-     $       gradient_n2_xR0_yR0,
-     $       
-     $       gradient_n1_xI_yL0,
-     $       gradient_n1_xR0_yL0,
-     $       gradient_n1_xR0_yI,
-     $       gradient_n2_xI_yL0,
-     $       gradient_n2_xR0_yL0,
-     $       gradient_n2_xR0_yI,
-     $       
-     $       gradient_n1_xL0_yL0,
-     $       gradient_n1_xI_yL0,
-     $       gradient_n1_xL0_yI,
-     $       gradient_n2_xL0_yL0,
-     $       gradient_n2_xI_yL0,
-     $       gradient_n2_xL0_yI
 
         use sd_operators_x_oneside_L0_class, only :
      $       sd_operators_x_oneside_L0
@@ -150,7 +121,7 @@
           procedure, pass :: ini
 
           !procedure used w/o field extension
-          procedure, pass :: apply_bc_on_timedev => apply_bc_on_timedev_2ndorder_corners
+          procedure, pass :: apply_bc_on_timedev => apply_bc_on_timedev_2ndorder
 
           !procedures used w/ field extension
           procedure, pass :: apply_bc_on_timedev_x_edge
@@ -231,7 +202,7 @@
         !>@param timedev
         !> time derivatives
         !-------------------------------------------------------------
-        subroutine apply_bc_on_timedev_2ndorder_corners(
+        subroutine apply_bc_on_timedev_2ndorder(
      $     this,
      $     p_model,
      $     t,nodes,x_map,y_map,
@@ -263,6 +234,8 @@
 
           real(rkind)           :: dx,dy
           integer(ikind)        :: i,j
+          integer(ikind)        :: i_min,i_max
+          integer(ikind)        :: j_min,j_max
 
           integer, dimension(4) :: bc_s
           real(rkind)           :: t_s
@@ -336,20 +309,20 @@
           j=1
 
           i=1
-          timedev(i,j,:) = compute_timedev_corner_ncoords(
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
      $         nodes, i,j,
      $         p_model, dx, dy,
-     $         gradient_n2_xL0_yL0,
-     $         gradient_n1_xL0_yL0,
+     $         gradient_x_x_oneside_L0,
+     $         gradient_y_y_oneside_L0,
      $         incoming_left,
      $         n2_direction)
 
           i=2
-          timedev(i,j,:) = compute_timedev_corner_ncoords(
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
      $         nodes, i,j,
      $         p_model, dx, dy,
-     $         gradient_n2_xI_yL0,
-     $         gradient_n1_xI_yL0,
+     $         gradient_x_interior,
+     $         gradient_y_y_oneside_L0,
      $         incoming_left,
      $         n2_direction)
 
@@ -359,22 +332,43 @@
      $         gradient_y_y_oneside_L0, incoming_left,
      $         timedev)
 
-          call compute_timedev_corner_ncoords(
-     $         nodes, [nx-1,nx], j, dx, dy, p_model,
-     $         gradient_n1_oneside_R0,
-     $         gradient_n1_oneside_R0,
+
+          i=nx-1
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_interior,
+     $         gradient_y_y_oneside_L0,
      $         incoming_right,
-     $         x_direction,
-     $         timedev)
+     $         n1_direction)
+
+          i=nx
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_x_oneside_R0,
+     $         gradient_y_y_oneside_L0,
+     $         incoming_right,
+     $         n1_direction)
 
           j=2
-          call compute_timedev_corner_ncoords(
-     $         nodes, [1,2], j, dx, dy, p_model,
-     $         gradient_n2_oneside_L0,
-     $         gradient_n2_oneside_L1,
+          i=1
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_x_oneside_L0,
+     $         gradient_y_interior,
      $         incoming_left,
-     $         y_direction,
-     $         timedev)
+     $         n2_direction)
+
+          i=2
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_interior,
+     $         gradient_y_interior,
+     $         incoming_left,
+     $         n2_direction)
 
           call compute_timedev_ylayer(
      $         t, x_map, y_map, nodes,
@@ -382,13 +376,23 @@
      $         gradient_y_y_oneside_L1, incoming_left,
      $         timedev)
 
-          call compute_timedev_corner_ncoords(
-     $         nodes, [nx-1,nx], j, dx, dy, p_model,
-     $         gradient_n1_oneside_R1,
-     $         gradient_n1_oneside_R0,
+          i=nx-1
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_interior,
+     $         gradient_y_interior,
      $         incoming_right,
-     $         x_direction,
-     $         timedev)
+     $         n1_direction)
+
+          i=nx
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_x_oneside_R0,
+     $         gradient_y_interior,
+     $         incoming_right,
+     $         n1_direction)
 
 
           !apply the boundary conditions on the west and east
@@ -424,13 +428,25 @@
 
           !apply the boundary conditions on the north layer
           j=ny-1
-          call compute_timedev_corner_ncoords(
-     $         nodes, [1,2], j, dx, dy, p_model,
-     $         gradient_n1_oneside_L0,
-     $         gradient_n1_oneside_L1,
+          
+          i=1
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_x_oneside_L0,
+     $         gradient_y_interior,
      $         incoming_left,
-     $         x_direction,
-     $         timedev)
+     $         n1_direction)
+
+
+          i=2
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_interior,
+     $         gradient_y_interior,
+     $         incoming_left,
+     $         n1_direction)
 
           call compute_timedev_ylayer(
      $         t, x_map, y_map, nodes,
@@ -438,22 +454,45 @@
      $         gradient_y_y_oneside_R1, incoming_right,
      $         timedev)
 
-          call compute_timedev_corner_ncoords(
-     $         nodes, [nx-1,nx], j, dx, dy, p_model,
-     $         gradient_n2_oneside_R1,
-     $         gradient_n2_oneside_R0,
+          i=nx-1
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_interior,
+     $         gradient_y_interior,
      $         incoming_right,
-     $         y_direction,
-     $         timedev)
+     $         n2_direction)
+
+
+          i=nx
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_x_oneside_R0,
+     $         gradient_y_interior,
+     $         incoming_right,
+     $         n2_direction)
+
 
           j=ny
-          call compute_timedev_corner_ncoords(
-     $         nodes, [1,2], j, dx, dy, p_model,
-     $         gradient_n1_oneside_L0,
-     $         gradient_n1_oneside_L0,
+
+          i=1
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_x_oneside_L0,
+     $         gradient_y_y_oneside_R0,
      $         incoming_left,
-     $         x_direction,
-     $         timedev)
+     $         n1_direction)
+
+          i=2
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_interior,
+     $         gradient_y_y_oneside_R0,
+     $         incoming_left,
+     $         n1_direction)
 
           call compute_timedev_ylayer(
      $         t, x_map, y_map, nodes,
@@ -461,14 +500,333 @@
      $         gradient_y_y_oneside_R0, incoming_right,
      $         timedev)
 
-          call compute_timedev_corner_ncoords(
-     $         nodes, [nx-1,nx], j, dx, dy, p_model,
-     $         gradient_n2_oneside_R0,
-     $         gradient_n2_oneside_R0,
+          i=nx-1
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_interior,
+     $         gradient_y_y_oneside_R0,
      $         incoming_right,
-     $         y_direction,
-     $         timedev)
+     $         n2_direction)
+
+
+          i=nx
+          timedev(i,j,:) = compute_n_timedev_with_openbc(
+     $         nodes, i,j,
+     $         p_model, dx, dy,
+     $         gradient_x_x_oneside_R0,
+     $         gradient_y_y_oneside_R0,
+     $         incoming_right,
+     $         n2_direction)
         
-        end subroutine apply_bc_on_timedev_2ndorder_corners
+        end subroutine apply_bc_on_timedev_2ndorder
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives at (i,j) resulting
+        !> of the application of the boundary condition on
+        !> and x edge: W_edge or E_edge
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> simulation time for boundary conditions depending
+        !> on time
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param dx
+        !> grid size along the x-axis
+        !
+        !>@param dy
+        !> grid size along the y-axis
+        !
+        !>@param i
+        !> grid point index along the x-axis
+        !
+        !>@param j
+        !> grid point index along the y-axis
+        !
+        !>@param flux_y
+        !> fluxes along the y-direction
+        !
+        !>@param side_x
+        !> edge side to determine the boundary normal vector
+        !
+        !>@param gradient_x
+        !> procedure to compute the gradient along the x-direction
+        !> at (i,j)
+        !
+        !>@param timedev
+        !> time derivatives of the grid points
+        !--------------------------------------------------------------
+        function apply_bc_on_timedev_x_edge(
+     $     this,
+     $     p_model, t,
+     $     nodes, x_map, y_map, i,j,
+     $     flux_y,
+     $     side_x,
+     $     gradient_x)
+     $     result(timedev)
+
+          implicit none
+
+          class(bc_operators)          , intent(in) :: this
+          type(pmodel_eq)              , intent(in) :: p_model
+          real(rkind)                  , intent(in) :: t
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind), dimension(:,:,:), intent(in) :: flux_y
+          logical                      , intent(in) :: side_x
+          procedure(gradient_x_proc)                :: gradient_x
+          real(rkind), dimension(ne)                :: timedev
+
+          integer, dimension(4) :: bc_s
+          real(rkind)           :: dx,dy
+
+          bc_s = this%bc_type
+          dx   = x_map(2)-x_map(1)
+          dy   = y_map(2)-y_map(1)
+
+          timedev = compute_timedev_xlayer_local_hedstrom(
+     $         p_model,
+     $         t,x_map,y_map, nodes, dx,dy, i,j,
+     $         flux_y,
+     $         gradient_x,
+     $         side_x)
+
+        end function apply_bc_on_timedev_x_edge
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives at (i,j) resulting
+        !> of the application of the boundary condition on
+        !> an y edge: N_edge or S_edge
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> simulation time for boundary conditions depending
+        !> on time
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param dx
+        !> grid size along the x-axis
+        !
+        !>@param dy
+        !> grid size along the y-axis
+        !
+        !>@param i
+        !> grid point index along the x-axis
+        !
+        !>@param j
+        !> grid point index along the y-axis
+        !
+        !>@param flux_x
+        !> fluxes along the y-direction
+        !
+        !>@param side_y
+        !> edge side to determine the boundary normal vector
+        !
+        !>@param gradient_y
+        !> procedure to compute the gradient along the y-direction
+        !> at (i,j)
+        !
+        !>@param timedev
+        !> time derivatives of the grid points
+        !--------------------------------------------------------------
+        function apply_bc_on_timedev_y_edge(
+     $     this, 
+     $     p_model, t,
+     $     nodes, x_map, y_map, i,j,
+     $     flux_x,
+     $     side_y,
+     $     gradient_y)
+     $     result(timedev)
+
+          implicit none
+
+          class(bc_operators)          , intent(in) :: this
+          type(pmodel_eq)              , intent(in) :: p_model
+          real(rkind)                  , intent(in) :: t
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind), dimension(:,:,:), intent(in) :: flux_x
+          logical                      , intent(in) :: side_y
+          procedure(gradient_y_proc)                :: gradient_y
+          real(rkind), dimension(ne)                :: timedev
+
+          integer, dimension(4) :: bc_s
+          real(rkind)           :: dx,dy
+
+          bc_s = this%bc_type
+          dx   = x_map(2) - x_map(1)
+          dy   = y_map(2) - y_map(1)
+
+          timedev = compute_timedev_ylayer_local_hedstrom(
+     $         p_model,
+     $         t, x_map, y_map, nodes, dx,dy, i,j,
+     $         flux_x,
+     $         gradient_y,
+     $         side_y)
+
+        end function apply_bc_on_timedev_y_edge
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives at (i,j) resulting
+        !> of the application of the boundary condition on
+        !> a corner: SE_corner, SW_corner, NE_corner, NW_corner
+        !
+        !> @date
+        !> 21_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> simulation time for boundary conditions depending
+        !> on time
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param dx
+        !> grid size along the x-axis
+        !
+        !>@param dy
+        !> grid size along the y-axis
+        !
+        !>@param i
+        !> grid point index along the x-axis
+        !
+        !>@param j
+        !> grid point index along the y-axis
+        !
+        !>@param flux_x
+        !> fluxes along the y-direction
+        !
+        !>@param side_y
+        !> edge side to determine the boundary normal vector
+        !
+        !>@param gradient_y
+        !> procedure to compute the gradient along the y-direction
+        !> at (i,j)
+        !
+        !>@param timedev
+        !> time derivatives of the grid points
+        !--------------------------------------------------------------
+        function apply_bc_on_timedev_xy_corner(
+     $     this,
+     $     p_model, t,
+     $     nodes, x_map, y_map, i,j,
+     $     side_x, side_y,
+     $     gradient_x, gradient_y)
+     $     result(timedev)
+
+          implicit none
+
+          class(bc_operators)          , intent(in) :: this
+          type(pmodel_eq)              , intent(in) :: p_model
+          real(rkind)                  , intent(in) :: t
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind), dimension(:)    , intent(in) :: x_map
+          real(rkind), dimension(:)    , intent(in) :: y_map
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          logical                      , intent(in) :: side_x
+          logical                      , intent(in) :: side_y
+          procedure(gradient_x_proc)                :: gradient_x
+          procedure(gradient_y_proc)                :: gradient_y
+          real(rkind), dimension(ne)                :: timedev
+
+
+          integer, dimension(4) :: bc_s
+          real(rkind)           :: t_s
+          real(rkind)           :: dx,dy
+
+          bc_s = this%bc_type
+          t_s  = t
+          dx   = x_map(2) - x_map(1)
+          dy   = y_map(2) - y_map(1)
+
+          
+          if(side_x.eqv.left) then
+
+             if(side_y.eqv.left) then
+                
+                timedev = compute_n_timedev_with_openbc(
+     $               nodes, i,j,
+     $               p_model, dx,dy,
+     $               gradient_x,
+     $               gradient_y,
+     $               incoming_left,
+     $               n2_direction)
+
+             else
+
+                timedev = compute_n_timedev_with_openbc(
+     $               nodes, i,j,
+     $               p_model, dx,dy,
+     $               gradient_x,
+     $               gradient_y,
+     $               incoming_left,
+     $               n1_direction)
+
+             end if
+
+          else
+             
+             if(side_y.eqv.left) then
+                
+                timedev = compute_n_timedev_with_openbc(
+     $               nodes, i,j,
+     $               p_model, dx,dy,
+     $               gradient_x,
+     $               gradient_y,
+     $               incoming_right,
+     $               n1_direction)
+
+             else
+
+                timedev = compute_n_timedev_with_openbc(
+     $               nodes, i,j,
+     $               p_model, dx,dy,
+     $               gradient_x,
+     $               gradient_y,
+     $               incoming_right,
+     $               n2_direction)
+
+             end if
+
+          end if
+
+        end function apply_bc_on_timedev_xy_corner
 
       end module bc_operators_class
