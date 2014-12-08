@@ -123,6 +123,12 @@
           integer                         , intent(in) :: dir1
           real(rkind), dimension(ne)                   :: timedev
 
+          
+          timedev =  compute_n_timedev_with_openbc_local(
+     $         nodes, i, j, p_model, dx, dy,
+     $         gradient_x, gradient_y,
+     $         incoming_wave,
+     $         dir1)
 
         end function compute_n_timedev_with_openbc
 

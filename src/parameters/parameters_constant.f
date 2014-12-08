@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = 'ab66ef07670de8553d5b6e110a845c8a8b320083')
+        parameter (commit = '298c071e9651e39322af5d802c9822e6d5eafe31')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
