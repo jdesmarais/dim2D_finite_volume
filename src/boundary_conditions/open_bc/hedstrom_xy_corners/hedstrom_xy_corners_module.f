@@ -52,7 +52,8 @@
 
         private
         public ::
-     $       compute_n_timedev_with_openbc
+     $       compute_n_timedev_with_openbc,
+     $       compute_n_timedev_with_openbc_local
 
 
         contains
@@ -121,6 +122,74 @@
           procedure(incoming_proc)                     :: incoming_wave
           integer                         , intent(in) :: dir1
           real(rkind), dimension(ne)                   :: timedev
+
+
+        end function compute_n_timedev_with_openbc
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the contribution of the hyperbolic terms of the
+        !> governing equations in the n-direction to the time
+        !> derivatives of the governing variables
+        !
+        !> @date
+        !> 06_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array of grid points
+        !
+        !>@param i
+        !> index identifying the grid point position along the x-axis
+        !
+        !>@param j
+        !> index identifying the grid point position along the y-axis
+        !
+        !>@param p_model
+        !> governing equations of the physical model
+        !
+        !>@param dx
+        !> space step along the x-direction
+        !
+        !>@param dy
+        !> space step along the y-direction
+        !
+        !>@param gradient_x
+        !> procedure computing the gradient along the x-direction
+        !
+        !>@param gradient_y
+        !> procedure computing the gradient along the y-direction
+        !
+        !>@param incoming_wave
+        !> procedure identifying whether the wave is incoming or
+        !> outgoing the edge of the computational domain
+        !
+        !>@param dir1
+        !> direction in which the vector points to the outside of
+        !> the computational domain
+        !-------------------------------------------------------------
+        function compute_n_timedev_with_openbc_local(
+     $     nodes, i, j, p_model, dx, dy,
+     $     gradient_x, gradient_y,
+     $     incoming_wave,
+     $     dir1)
+     $     result(timedev)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          type(pmodel_eq)              , intent(in) :: p_model
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          procedure(gradient_x_proc)                :: gradient_x
+          procedure(gradient_y_proc)                :: gradient_y
+          procedure(incoming_proc)                  :: incoming_wave
+          integer                      , intent(in) :: dir1
+          real(rkind), dimension(ne)                :: timedev
 
 
           real(rkind), dimension(ne)    :: var_gradient_x
@@ -210,6 +279,6 @@
           trans_timedev  = MATMUL(var_gradient_dir2, transM_dir1)
           timedev = normal_timedev - trans_timedev
 
-        end function compute_n_timedev_with_openbc
+        end function compute_n_timedev_with_openbc_local
 
       end module hedstrom_xy_corners_module

@@ -28,7 +28,8 @@
      $       compute_timedev_ylayer_local_hedstrom
 
         use hedstrom_xy_corners_module, only :
-     $       compute_n_timedev_with_openbc
+     $       compute_n_timedev_with_openbc,
+     $       compute_n_timedev_with_openbc_local
 
         use interface_primary, only :
      $       gradient_x_proc,
@@ -781,7 +782,7 @@
 
              if(side_y.eqv.left) then
                 
-                timedev = compute_n_timedev_with_openbc(
+                timedev = compute_n_timedev_with_openbc_local(
      $               nodes, i,j,
      $               p_model, dx,dy,
      $               gradient_x,
@@ -791,7 +792,7 @@
 
              else
 
-                timedev = compute_n_timedev_with_openbc(
+                timedev = compute_n_timedev_with_openbc_local(
      $               nodes, i,j,
      $               p_model, dx,dy,
      $               gradient_x,
@@ -805,7 +806,7 @@
              
              if(side_y.eqv.left) then
                 
-                timedev = compute_n_timedev_with_openbc(
+                timedev = compute_n_timedev_with_openbc_local(
      $               nodes, i,j,
      $               p_model, dx,dy,
      $               gradient_x,
@@ -815,7 +816,7 @@
 
              else
 
-                timedev = compute_n_timedev_with_openbc(
+                timedev = compute_n_timedev_with_openbc_local(
      $               nodes, i,j,
      $               p_model, dx,dy,
      $               gradient_x,
