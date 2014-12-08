@@ -171,8 +171,8 @@
                 do i=1+bc_size, nx-bc_size
 
                    time_dev(i,j,k)=
-     $                  (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
-     $                  (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
+     $                  (flux_x(i,j,k)-flux_x(i+1,j,k))/dx+
+     $                  (flux_y(i,j,k)-flux_y(i,j+1,k))/dy
                    
                    time_dev(i,j,k)=time_dev(i,j,k)+
      $                  p_model%compute_body_forces(

@@ -183,8 +183,8 @@
           procedure, nopass :: compute_flux_x_oneside
           procedure, nopass :: compute_flux_y_oneside
           procedure, nopass :: compute_body_forces
-          procedure, nopass :: get_velocity
 
+          procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
 
           procedure, nopass :: compute_x_eigenvalues
