@@ -14,9 +14,24 @@
       program test_dim2d_prim
 
         use dim2d_prim_module
-        use dim2d_parameters , only : viscous_r,re,pr,we,cv_r
-        use parameters_input , only : nx,ny,ne
-        use parameters_kind  , only : ikind, rkind
+
+        use dim2d_parameters, only :
+     $       viscous_r,
+     $       re,
+     $       pr,
+     $       we,
+     $       cv_r
+
+        use parameters_input, only :
+     $       nx,ny,ne
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use sd_operators_fd_module, only :
+     $       gradient_x_interior,
+     $       gradient_y_interior
 
         implicit none
         
@@ -30,12 +45,14 @@
         real    :: time1, time2
 
         !<test parameters
-        logical, parameter         :: detailled=.false.
-        integer(ikind)             :: i,j
-        real(rkind)                :: computed_data
-        real(rkind), dimension(19) :: test_data
-        logical                    :: global, local
-        logical                    :: test_parameters
+        logical, parameter            :: detailled=.false.
+        integer(ikind)                :: i,j
+        real(rkind)                   :: computed_data
+        real(rkind), dimension(20)    :: test_data
+        real(rkind), dimension(ne,ne) :: test_jacPrimCons
+        real(rkind), dimension(ne,ne) :: test_jacConsPrim
+        logical                       :: global, local
+        logical                       :: test_parameters
 
 
         !<if nx<4, ny<4 then the test cannot be done
@@ -68,7 +85,11 @@
         call CPU_TIME(time1)
 
         !< initialize data
-        call initialize_data(nodes,dx,dy,i,j,test_data)
+        call initialize_data(
+     $       nodes,dx,dy,i,j,
+     $       test_data,
+     $       test_jacPrimCons,
+     $       test_jacConsPrim)
         
         !< dim2d_parameters
         if(detailled) then
@@ -139,7 +160,9 @@
         local = is_test_validated(
      $          temperature_eff(
      $          nodes,
-     $          i,j,dx,dy),
+     $          i,j,dx,dy,
+     $          gradient_x_interior,
+     $          gradient_y_interior),
      $          test_data(8))
         call print_screen(global,local,detailled,'temperature_eff')
 
@@ -220,6 +243,25 @@
 
         call print_screen(global,local,detailled,'pressure ywork')
 
+        local = is_test_validated(
+     $       speed_of_sound(nodes(i,j,:)),
+     $       test_data(20))
+
+        call print_screen(global,local,detailled,'speed_of_sound')
+
+        local = is_matrix_validated(
+     $       compute_jacobian_prim_to_cons(nodes(i,j,:)),
+     $       test_jacPrimCons)
+
+        call print_screen(global,local,detailled,'jacPrimCons')
+
+        local = is_matrix_validated(
+     $       compute_jacobian_cons_to_prim(nodes(i,j,:)),
+     $       test_jacConsPrim)
+
+        call print_screen(global,local,detailled,'jacConsPrim')
+
+
         print '(''test_validated: '', 1L)', global
 
         !<get the last CPU time
@@ -238,15 +280,38 @@
           logical                 :: test_validated
 
           if(detailled) then
-             print *, int(var*1e5)
-             print *, int(cst*1e5)
+             print *, nint(var*1e5)
+             print *, nint(cst*1e5)
           end if
           
-          test_validated=(
-     $         int(var*10000.)-
-     $         sign(int(abs(cst*10000.)),int(cst*10000.))).eq.0
+          test_validated=abs(
+     $         nint(var*1e5)-
+     $         nint(cst*1e5)).le.1
           
         end function is_test_validated
+
+
+        function is_matrix_validated(var,cst) result(test_validated)
+
+          implicit none
+
+          real(rkind), dimension(ne,ne), intent(in) :: var
+          real(rkind), dimension(ne,ne), intent(in) :: cst
+          logical                                   :: test_validated
+
+          logical :: test_loc
+          integer :: i,j
+
+          test_validated = .true.
+
+          do j=1,ne
+             do i=1,ne
+                test_loc = is_test_validated(var(i,j),cst(i,j))
+                test_validated = test_validated.and.test_loc
+             end do
+          end do
+
+        end function is_matrix_validated
 
 
         subroutine print_screen(global,local,verbose,test_name)
@@ -268,15 +333,21 @@
         end subroutine print_screen
 
 
-        subroutine initialize_data(nodes,dx,dy,i,j,test_data)
+        subroutine initialize_data(
+     $     nodes,dx,dy,i,j,
+     $     test_data,
+     $     test_jacPrimCons,
+     $     test_jacConsPrim)
 
           implicit none
 
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
-          real(rkind), intent(out) :: dx
-          real(rkind), intent(out) :: dy
-          integer    , intent(out) :: i,j
-          real(rkind), dimension(19), intent(out) :: test_data
+          real(rkind)                     , intent(out) :: dx
+          real(rkind)                     , intent(out) :: dy
+          integer                         , intent(out) :: i,j
+          real(rkind), dimension(20)      , intent(out) :: test_data
+          real(rkind), dimension(ne,ne)   , intent(out) :: test_jacPrimCons
+          real(rkind), dimension(ne,ne)   , intent(out) :: test_jacConsPrim
 
           !<initialize the tables for the field
           dx=0.5
@@ -391,7 +462,24 @@
           test_data(18)= -142.55637d0!<classic pressure work along x-axis
           test_data(19)= -63.90458d0 !<classic pressure work along y-axis
 
-        end subroutine initialize_data
+          test_data(20)= 4.089669525d0 !<speed of sound
+          
+          !< jacobian matrix primitive -> conservative
+          test_jacConsPrim = reshape((/
+     $         1.0d0        , 0.0d0, 0.0d0,  0.0d0,
+     $         1.380952381d0, 4.2d0, 0.0d0,  0.0d0,
+     $         0.619047619d0, 0.0d0, 4.2d0,  0.0d0,
+     $        -7.329478458d0, 5.8d0, 2.6d0, -1.0d0
+     $         /), (/4,4/))
 
+          !< jacobian matrix conservative -> primitive
+          test_jacPrimCons = reshape((/
+     $         1.0d0        , 0.0d0     , 0.0d0     ,  0.0d0,
+     $        -0.328798186d0, 0.238095d0, 0.0d0     ,  0.0d0,
+     $        -0.147392290d0, 0.0d0     , 0.238095d0,  0.0d0,
+     $        -9.619727891d0, 1.380952d0, 0.619048d0, -1.0d0
+     $         /), (/4,4/))
+
+        end subroutine initialize_data
 
       end program test_dim2d_prim

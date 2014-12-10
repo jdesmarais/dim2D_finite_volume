@@ -49,8 +49,8 @@
      $       speed_of_sound,
      $       compute_jacobian_prim_to_cons,
      $       compute_jacobian_cons_to_prim,
-     $       cons_lodi_matrix_x,
-     $       cons_lodi_matrix_y
+     $       left_cons_lodi_matrix_x,
+     $       left_cons_lodi_matrix_y
 
         use ns2d_fluxes_module, only :
      $       flux_x_mass_density,
@@ -243,8 +243,8 @@
           procedure, nopass :: compute_n1_transM => compute_n1_transM_ns2d
           procedure, nopass :: compute_n2_transM => compute_n2_transM_ns2d
 
-          procedure, nopass :: compute_x_consLodiM
-          procedure, nopass :: compute_y_consLodiM
+          procedure, nopass :: compute_x_leftConsLodiM
+          procedure, nopass :: compute_y_leftConsLodiM
 
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
@@ -2150,7 +2150,7 @@ c$$$          y_s = y_map(1)
         !>@return eigenvect
         !> conservative LODI matrix along the x-direction
         !--------------------------------------------------------------
-        function compute_x_consLodiM(nodes) result(eigenvect)
+        function compute_x_leftConsLodiM(nodes) result(eigenvect)
 
           implicit none
 
@@ -2158,9 +2158,9 @@ c$$$          y_s = y_map(1)
           real(rkind), dimension(ne,ne)          :: eigenvect
 
           !DEC$ FORCEINLINE RECURSIVE
-          eigenvect = cons_lodi_matrix_x(nodes)
+          eigenvect = left_cons_lodi_matrix_x(nodes)
 
-        end function compute_x_consLodiM
+        end function compute_x_leftConsLodiM
 
 
         !> @author
@@ -2179,7 +2179,7 @@ c$$$          y_s = y_map(1)
         !>@return eigenvect
         !> conservative LODI matrix along the y-direction
         !--------------------------------------------------------------
-        function compute_y_consLodiM(nodes) result(eigenvect)
+        function compute_y_leftConsLodiM(nodes) result(eigenvect)
 
           implicit none
 
@@ -2187,9 +2187,9 @@ c$$$          y_s = y_map(1)
           real(rkind), dimension(ne,ne)          :: eigenvect
 
           !DEC$ FORCEINLINE RECURSIVE
-          eigenvect = cons_lodi_matrix_y(nodes)
+          eigenvect = left_cons_lodi_matrix_y(nodes)
 
-        end function compute_y_consLodiM
+        end function compute_y_leftConsLodiM
 
 
         !> @author

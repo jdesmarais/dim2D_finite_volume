@@ -1,5 +1,5 @@
       !> @file
-      !> module implemeting subroutines to compute the gradients,
+      !> module implementing subroutines to compute the gradients,
       !> the eigenvalues and the eigenvectors in the (x-y) and (x+y)
       !> directions for the ns2d governing equations
       !
@@ -7,7 +7,7 @@
       !> Julien L. Desmarais
       !
       !> @brief
-      !> module implemeting subroutines to compute the gradients,
+      !> module implementing subroutines to compute the gradients,
       !> the eigenvalues and the eigenvectors in the (x-y) and (x+y)
       !> directions for the ns2d governing equations
       !
@@ -22,7 +22,7 @@
      $       speed_of_sound
         
         use parameters_input, only :
-     $       nx,ny,ne
+     $       ne
         
         use parameters_kind, only :
      $       ikind,

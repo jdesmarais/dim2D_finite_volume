@@ -169,8 +169,8 @@
           procedure(eigenvect_proc)  , nopass, deferred :: compute_n2_lefteigenvector
           procedure(eigenvect_proc)  , nopass, deferred :: compute_n2_righteigenvector
 
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_x_consLodiM
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_y_conslodiM
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_x_leftConsLodiM
+          procedure(eigenvect_proc)  , nopass, deferred :: compute_y_leftConslodiM
 
           procedure(eigenvect_proc)  , nopass, deferred :: compute_x_transM
           procedure(eigenvect_proc)  , nopass, deferred :: compute_y_transM
