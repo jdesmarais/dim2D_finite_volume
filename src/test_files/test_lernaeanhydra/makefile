@@ -25,6 +25,15 @@ test_dim2d_prim:	$(param_dep)\
 			dim2d_prim_module.o\
 			sd_operators_fd_module.o
 
+test_dim2d_ncoords.o:	$(dim2d_dir)/dim2d_ncoords_module.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+test_dim2d_ncoords:	$(param_dep)\
+			dim2d_parameters.o\
+			dim2d_prim_module.o\
+			dim2d_ncoords_module.o
+
 
 test_dim2d_fluxes.o:	$(cg_dir)/sd_operators_class.o\
 			$(dim2d_dir)/dim2d_fluxes_module.o\
