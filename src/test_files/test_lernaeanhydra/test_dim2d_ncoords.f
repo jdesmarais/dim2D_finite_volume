@@ -1,4 +1,8 @@
-      program test_dim2d_ncoords
+      program test_dim2d_ncoords        
+
+        use check_data_module, only :
+     $       is_test_validated,
+     $       is_matrix_validated
 
         use dim2d_ncoords_module, only :
      $       compute_n1_eigenvalues_dim2d,
@@ -10,8 +14,15 @@
      $       compute_n1_transM_dim2d,
      $       compute_n2_transM_dim2d
 
+        use dim2d_parameters, only :
+     $       viscous_r,
+     $       re,
+     $       pr,
+     $       we,
+     $       cv_r
+
         use parameters_input, only :
-     $       ne
+     $       nx,ny,ne
         
         use parameters_kind, only :
      $       ikind,
@@ -24,6 +35,11 @@
         logical :: test_loc
         logical :: test_validated
         logical :: detailled
+
+
+        !test the input parameters
+        call test_inputs()
+        
 
         detailled = .true.
 
@@ -77,57 +93,6 @@
 
         
         contains
-
-
-        function is_test_validated(var,cst,detailled) result(test_validated)
-
-          implicit none
-
-          real(rkind), intent(in) :: var
-          real(rkind), intent(in) :: cst
-          logical                 :: detailled
-          logical                 :: test_validated
-
-          if(detailled) then
-             print *, nint(var*1e5)
-             print *, nint(cst*1e5)
-          end if
-          
-          test_validated=abs(
-     $         nint(var*1e5)-
-     $         nint(cst*1e5)).le.1
-          
-        end function is_test_validated
-
-
-        function is_matrix_validated(var,cst,detailled) result(test_validated)
-
-          implicit none
-
-          real(rkind), dimension(ne,ne), intent(in) :: var
-          real(rkind), dimension(ne,ne), intent(in) :: cst
-          logical                      , intent(in) :: detailled
-          logical                                   :: test_validated
-
-          logical :: test_loc
-          integer :: i,j
-
-          test_validated = .true.
-
-          do j=1,ne
-             do i=1,ne
-                test_loc = is_test_validated(var(i,j),cst(i,j),.false.)
-                test_validated = test_validated.and.test_loc
-                if(detailled.and.(.not.test_loc)) then
-                   print '(''['',2I2'']:'',F8.3,'' -> '',F8.3)', 
-     $                  i,j,
-     $                  var(i,j), cst(i,j)
-                end if
-             end do
-          end do
-
-        end function is_matrix_validated
-
 
         function test_compute_n1_eigenvalues(detailled)
      $     result(test_validated)
@@ -417,5 +382,40 @@
      $         detailled)
 
         end function test_compute_n2_transM
+
+
+        subroutine test_inputs()
+        
+          implicit none
+
+          logical :: test_parameters
+
+          !<if nx<4, ny<4 then the test cannot be done
+          if((nx.lt.4).or.(ny.lt.4).or.(ne.ne.4)) then
+             stop 'nx and ny must be greater than 4 for the test'
+          end if
+
+          test_parameters=.true.
+          test_parameters=test_parameters.and.(viscous_r.eq.-1.5d0)
+          test_parameters=test_parameters.and.(re.eq.5d0)
+          test_parameters=test_parameters.and.(pr.eq.20.0d0)
+          test_parameters=test_parameters.and.(we.eq.10.0d0)
+          test_parameters=test_parameters.and.(cv_r.eq.2.5d0)
+          if(.not.test_parameters) then
+
+             !< print the dim2d parameters used for the test
+             print '(''WARNING: this test is designed for:'')'
+             print '(''viscous_r: '', F16.6)', -1.5
+             print '(''re:        '', F16.6)', 5.
+             print '(''pr:        '', F16.6)', 20.
+             print '(''we:        '', F16.6)', 10.
+             print '(''cv_r:      '', F16.6)', 2.5
+             print '(''it allows to see errors easily'')'
+             print '('''')'
+
+             stop 'dim2d_parameters not adapted for test'
+          end if
+
+        end subroutine test_inputs
 
       end program test_dim2d_ncoords

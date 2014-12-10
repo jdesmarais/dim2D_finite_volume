@@ -63,6 +63,7 @@ dim2d_ic_dep=		dim2d_dropbubble_module.o\
 
 dim2d_dep=		$(dim2d_flux_dep)\
 			$(dim2d_ic_dep)\
+			dim2d_ncoords_module.o\
 			parameters_bf_layer.o\
 			$(pm_dep)
 

@@ -238,6 +238,7 @@
           procedure, nopass :: compute_n2_lefteigenvector  => compute_n2_lefteigenvector_ns2d
           procedure, nopass :: compute_n2_righteigenvector => compute_n2_righteigenvector_ns2d
 
+          !transverse matrices
           procedure, nopass :: compute_x_transM
           procedure, nopass :: compute_y_transM
           procedure, nopass :: compute_n1_transM => compute_n1_transM_ns2d
@@ -246,6 +247,7 @@
           procedure, nopass :: compute_x_leftConsLodiM
           procedure, nopass :: compute_y_leftConsLodiM
 
+          !gradient computation
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
           procedure, nopass :: compute_n_gradient
@@ -2034,7 +2036,7 @@ c$$$          y_s = y_map(1)
         !>    A_x \frac{\partial v}{\partial x} + 
         !>    A_y \frac{\partial v}{\partial y}
         !> \f$
-        !> then the tranmsverse matrix in the y-direction is
+        !> then the transverse matrix in the y-direction is
         !> \f$ A_x \f$
         !
         !> @date

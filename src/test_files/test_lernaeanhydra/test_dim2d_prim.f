@@ -13,6 +13,10 @@
       !-----------------------------------------------------------------
       program test_dim2d_prim
 
+        use check_data_module, only :
+     $       is_test_validated,
+     $       is_matrix_validated
+
         use dim2d_prim_module
 
         use dim2d_parameters, only :
@@ -52,37 +56,10 @@
         real(rkind), dimension(ne,ne) :: test_jacPrimCons
         real(rkind), dimension(ne,ne) :: test_jacConsPrim
         logical                       :: global, local
-        logical                       :: test_parameters
 
 
-        !<if nx<4, ny<4 then the test cannot be done
-        if((nx.lt.4).or.(ny.lt.4).or.(ne.ne.4)) then
-           stop 'nx and ny must be greater than 4 for the test'
-        end if
-
-        test_parameters=.true.
-        test_parameters=test_parameters.and.(viscous_r.eq.-1.5d0)
-        test_parameters=test_parameters.and.(re.eq.5d0)
-        test_parameters=test_parameters.and.(pr.eq.20.0d0)
-        test_parameters=test_parameters.and.(we.eq.10.0d0)
-        test_parameters=test_parameters.and.(cv_r.eq.2.5d0)
-        if(.not.test_parameters) then
-           !< print the dim2d parameters used for the test
-           print '(''WARNING: this test is designed for:'')'
-           print '(''viscous_r: '', F16.6)', -1.5
-           print '(''re:        '', F16.6)', 5.
-           print '(''pr:        '', F16.6)', 20.
-           print '(''we:        '', F16.6)', 10.
-           print '(''cv_r:      '', F16.6)', 2.5
-           print '(''it allows to see errors easily'')'
-           print '('''')'
-
-           stop 'dim2d_parameters not adapted for test'
-        end if
-
-
-        !<get the initial CPU time
-        call CPU_TIME(time1)
+        !test the inputs
+        call test_inputs()
 
         !< initialize data
         call initialize_data(
@@ -107,7 +84,8 @@
      $          mass_density(
      $          nodes,
      $          i,j),
-     $          test_data(1))
+     $          test_data(1),
+     $          detailled)
         call print_screen(global,local,detailled,'mass density')
 
 
@@ -115,7 +93,8 @@
      $          momentum_x(
      $          nodes,
      $          i,j),
-     $          test_data(2))
+     $          test_data(2),
+     $          detailled)
         call print_screen(global,local,detailled,'momentum_x')
 
         
@@ -123,7 +102,8 @@
      $          momentum_y(
      $          nodes,
      $          i,j),
-     $          test_data(3))
+     $          test_data(3),
+     $          detailled)
         call print_screen(global,local,detailled,'momentum_y')
 
         
@@ -131,7 +111,8 @@
      $          total_energy(
      $          nodes,
      $          i,j),
-     $          test_data(4))
+     $          test_data(4),
+     $          detailled)
         call print_screen(global,local,detailled,'total energy')
 
 
@@ -139,7 +120,8 @@
      $          velocity_x(
      $          nodes,
      $          i,j),
-     $          test_data(5))
+     $          test_data(5),
+     $          detailled)
         call print_screen(global,local,detailled,'velocity_x')
 
 
@@ -147,14 +129,16 @@
      $          velocity_y(
      $          nodes,
      $          i,j),
-     $          test_data(6))
+     $          test_data(6),
+     $          detailled)
         call print_screen(global,local,detailled,'velocity_y')
 
         local = is_test_validated(
      $          classical_pressure(
      $          nodes,
      $          i,j),
-     $          test_data(7))
+     $          test_data(7),
+     $          detailled)
         call print_screen(global,local,detailled,'classical_pressure')
 
         local = is_test_validated(
@@ -163,101 +147,116 @@
      $          i,j,dx,dy,
      $          gradient_x_interior,
      $          gradient_y_interior),
-     $          test_data(8))
+     $          test_data(8),
+     $          detailled)
         call print_screen(global,local,detailled,'temperature_eff')
 
         local = is_test_validated(
      $          qx_transport_x(
      $          nodes,
      $          i,j),
-     $          test_data(9))
+     $          test_data(9),
+     $          detailled)
         call print_screen(global,local,detailled,'temperature_eff')
 
         local = is_test_validated(
      $          qy_transport_x(
      $          nodes,
      $          i,j),
-     $          test_data(10))
+     $          test_data(10),
+     $          detailled)
         call print_screen(global,local,detailled,'qy_transport_x')
 
         computed_data = qx_transport_y(nodes,i,j)
         local = is_test_validated(
      $          computed_data,
-     $          test_data(11))
+     $          test_data(11),
+     $          detailled)
         call print_screen(global,local,detailled,'qx_transport_y')
 
         local = is_test_validated(
      $          qy_transport_y(
      $          nodes,
      $          i,j),
-     $          test_data(12))
+     $          test_data(12),
+     $          detailled)
         call print_screen(global,local,detailled,'qy_transport_y')
 
         local = is_test_validated(
      $          energy_transport_x(
      $          nodes,
      $          i,j),
-     $          test_data(13))
+     $          test_data(13),
+     $          detailled)
         call print_screen(global,local,detailled,'qy_transport_y')
 
         local = is_test_validated(
      $          energy_transport_y(
      $          nodes,
      $          i,j),
-     $          test_data(14))
+     $          test_data(14),
+     $          detailled)
         call print_screen(global,local,detailled,'energy_transport_y')
 
         local = is_test_validated(
      $          capillarity_pressure(
      $          nodes,
      $          i,j),
-     $          test_data(15))
+     $          test_data(15),
+     $          detailled)
         call print_screen(global,local,detailled,'capillarity pressure')
 
         local = is_test_validated(
      $          capillarity_pressure_xwork(
      $          nodes,
      $          i,j),
-     $          test_data(16))
+     $          test_data(16),
+     $          detailled)
         call print_screen(global,local,detailled,'cap pressure xwork')
 
         local = is_test_validated(
      $          capillarity_pressure_ywork(
      $          nodes,
      $          i,j),
-     $          test_data(17))
+     $          test_data(17),
+     $          detailled)
         call print_screen(global,local,detailled,'cap pressure ywork')
 
         local = is_test_validated(
      $          classical_pressure_xwork(
      $          nodes,
      $          i,j),
-     $          test_data(18))
+     $          test_data(18),
+     $          detailled)
         call print_screen(global,local,detailled,'pressure xwork')
 
         local = is_test_validated(
      $       classical_pressure_ywork(
      $       nodes,
      $       i,j),
-     $       test_data(19))
+     $       test_data(19),
+     $       detailled)
 
         call print_screen(global,local,detailled,'pressure ywork')
 
         local = is_test_validated(
      $       speed_of_sound(nodes(i,j,:)),
-     $       test_data(20))
+     $       test_data(20),
+     $       detailled)
 
         call print_screen(global,local,detailled,'speed_of_sound')
 
         local = is_matrix_validated(
      $       compute_jacobian_prim_to_cons(nodes(i,j,:)),
-     $       test_jacPrimCons)
+     $       test_jacPrimCons,
+     $       detailled)
 
         call print_screen(global,local,detailled,'jacPrimCons')
 
         local = is_matrix_validated(
      $       compute_jacobian_cons_to_prim(nodes(i,j,:)),
-     $       test_jacConsPrim)
+     $       test_jacConsPrim,
+     $       detailled)
 
         call print_screen(global,local,detailled,'jacConsPrim')
 
@@ -269,49 +268,7 @@
         print *, 'time elapsed: ', time2-time1
 
 
-        contains
-
-        function is_test_validated(var,cst) result(test_validated)
-
-          implicit none
-
-          real(rkind), intent(in) :: var
-          real(rkind), intent(in) :: cst
-          logical                 :: test_validated
-
-          if(detailled) then
-             print *, nint(var*1e5)
-             print *, nint(cst*1e5)
-          end if
-          
-          test_validated=abs(
-     $         nint(var*1e5)-
-     $         nint(cst*1e5)).le.1
-          
-        end function is_test_validated
-
-
-        function is_matrix_validated(var,cst) result(test_validated)
-
-          implicit none
-
-          real(rkind), dimension(ne,ne), intent(in) :: var
-          real(rkind), dimension(ne,ne), intent(in) :: cst
-          logical                                   :: test_validated
-
-          logical :: test_loc
-          integer :: i,j
-
-          test_validated = .true.
-
-          do j=1,ne
-             do i=1,ne
-                test_loc = is_test_validated(var(i,j),cst(i,j))
-                test_validated = test_validated.and.test_loc
-             end do
-          end do
-
-        end function is_matrix_validated
+        contains        
 
 
         subroutine print_screen(global,local,verbose,test_name)
@@ -481,5 +438,40 @@
      $         /), (/4,4/))
 
         end subroutine initialize_data
+
+
+        subroutine test_inputs()
+        
+          implicit none
+
+          logical :: test_parameters
+
+          !<if nx<4, ny<4 then the test cannot be done
+          if((nx.lt.4).or.(ny.lt.4).or.(ne.ne.4)) then
+             stop 'nx and ny must be greater than 4 for the test'
+          end if
+
+          test_parameters=.true.
+          test_parameters=test_parameters.and.(viscous_r.eq.-1.5d0)
+          test_parameters=test_parameters.and.(re.eq.5d0)
+          test_parameters=test_parameters.and.(pr.eq.20.0d0)
+          test_parameters=test_parameters.and.(we.eq.10.0d0)
+          test_parameters=test_parameters.and.(cv_r.eq.2.5d0)
+          if(.not.test_parameters) then
+
+             !< print the dim2d parameters used for the test
+             print '(''WARNING: this test is designed for:'')'
+             print '(''viscous_r: '', F16.6)', -1.5
+             print '(''re:        '', F16.6)', 5.
+             print '(''pr:        '', F16.6)', 20.
+             print '(''we:        '', F16.6)', 10.
+             print '(''cv_r:      '', F16.6)', 2.5
+             print '(''it allows to see errors easily'')'
+             print '('''')'
+
+             stop 'dim2d_parameters not adapted for test'
+          end if
+
+        end subroutine test_inputs
 
       end program test_dim2d_prim
