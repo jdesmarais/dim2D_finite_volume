@@ -36,16 +36,27 @@
 
         private
         public ::
-     $       mass_density, momentum_x, momentum_y, total_energy,
-     $       velocity_x, velocity_y,
-     $       classical_pressure, temperature_eff,
-     $       classical_pressure_xwork, classical_pressure_ywork,
-     $       qx_transport_x, qy_transport_x,
-     $       qx_transport_y, qy_transport_y,
-     $       energy_transport_x, energy_transport_y,
+     $       mass_density,
+     $       momentum_x,
+     $       momentum_y,
+     $       total_energy,
+     $       velocity_x,
+     $       velocity_y,
+     $       classical_pressure,
+     $       classical_temperature_eff,
+     $       capillarity_temperature_eff,
+     $       temperature_eff,
+     $       classical_pressure_xwork,
+     $       classical_pressure_ywork,
+     $       qx_transport_x,
+     $       qy_transport_x,
+     $       qx_transport_y,
+     $       qy_transport_y,
+     $       energy_transport_x,
+     $       energy_transport_y,
      $       capillarity_pressure,
-     $       capillarity_pressure_xwork, capillarity_pressure_ywork,
-     $       
+     $       capillarity_pressure_xwork,
+     $       capillarity_pressure_ywork,
      $       speed_of_sound,
      $       compute_jacobian_prim_to_cons,
      $       compute_jacobian_cons_to_prim
@@ -320,6 +331,118 @@
           end if
 
         end function classical_pressure
+
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the effective temperature
+        !> \f$ \frac{1}{\rho}
+        !> \left( \rho E - \frac{1}{2} \rho (u_x^2 + u_y^2)
+        !>  + 3 \rho^2 \right)
+        !
+        !> @date
+        !> 11_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !>
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !>
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !>
+        !>@param var
+        !> \f$ T_{\textrm{eff}} \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function classical_temperature_eff(
+     $     nodes,i,j)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
+
+          if(rkind.eq.8) then
+
+          var=1.0d0/(nodes(i,j,1))*(
+     $           nodes(i,j,4)
+     $           - 0.5d0*nodes(i,j,1)*(
+     $              (nodes(i,j,2)/nodes(i,j,1))**2+
+     $              (nodes(i,j,3)/nodes(i,j,1))**2)
+     $           + 3.0d0*nodes(i,j,1)**2)
+
+          else
+             var=1./(nodes(i,j,1))*(
+     $           nodes(i,j,4)
+     $           - 0.5*nodes(i,j,1)*(
+     $              (nodes(i,j,2)/nodes(i,j,1))**2+
+     $              (nodes(i,j,3)/nodes(i,j,1))**2)
+     $           + 3*nodes(i,j,1)**2)
+          end if
+
+        end function classical_temperature_eff
+
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the effective temperature
+        !> \f$ \frac{1}{2 \rho} {|\nabla \rho|}^2 \f$
+        !
+        !> @date
+        !> 11_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !>
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !>
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !>
+        !>@param var
+        !> \f$ T_{\textrm{eff}} \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function capillarity_temperature_eff(
+     $     nodes,i,j,dx,dy,gradient_x,gradient_y)
+     $     result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          procedure(gradient_x_proc)                :: gradient_x
+          procedure(gradient_y_proc)                :: gradient_y
+          real(rkind)                               :: var
+
+          if(rkind.eq.8) then
+
+             var=0.5d0/(nodes(i,j,1))*(
+     $            (gradient_x(nodes,i,j,mass_density,dx))**2 +
+     $            (gradient_y(nodes,i,j,mass_density,dy))**2
+     $            )
+
+          else
+
+             var=0.5/(nodes(i,j,1))*(
+     $            (gradient_x(nodes,i,j,mass_density,dx))**2 +
+     $            (gradient_y(nodes,i,j,mass_density,dy))**2
+     $            )
+
+          end if
+
+        end function capillarity_temperature_eff
 
 
         !> @author 

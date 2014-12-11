@@ -20,9 +20,11 @@
       !> 08_08_2013 - initial version               - J.L. Desmarais
       !> 11_07_2014 - interface for erymanthianboar - J.L. Desmarais
       !> 10_12_2014 - eigensystems                  - J.L. Desmarais
+      !> 11_12_2014 - initial conditions            - J.L. Desmarais
       !-----------------------------------------------------------------
       module pmodel_eq_class
 
+        !space discretization module
         use interface_primary, only :
      $       gradient_x_proc,
      $       gradient_y_proc,
@@ -31,22 +33,10 @@
         use sd_operators_class, only :
      $       sd_operators
 
+        !diffuse interface model equations
         use dim2d_parameters, only :
      $       viscous_r, Re, We, Pr,
      $       cv_r, gravity
-
-        use dim2d_bubble_ascending_module, only :
-     $       apply_bubble_ascending_ic
-
-        use dim2d_drop_collision_module , only :
-     $       apply_drop_collision_ic 
-
-        use dim2d_phase_separation_module, only :
-     $       apply_phase_separation_ic
-
-        !use dim2d_drop_evaporation_module, only:apply_drop_evaporation_ic
-        use dim2d_drop_retraction_module, only :
-     $       apply_drop_retraction_ic
 
         use dim2d_prim_module, only :
      $       mass_density,
@@ -77,12 +67,12 @@
      $       flux_x_total_energy,
      $       flux_y_total_energy
 
-        use dim2d_homogeneous_module, only :
-     $       apply_homogeneous_ic
 
-        use dim2d_steadystate_module, only :
-     $       apply_steady_state_ic
+        !diffuse interface model initial conditions
+        use ic_class, only :
+     $       ic
 
+        !global parameters
         use parameters_bf_layer, only :
      $       bc_interior_pt,
      $       interior_pt
@@ -179,6 +169,8 @@
         !---------------------------------------------------------------
         type, extends(pmodel_eq_default) :: pmodel_eq
           
+          type(ic) :: initial_conditions
+
           contains
 
           !description of the model and its main
@@ -188,11 +180,17 @@
           procedure, nopass :: get_var_longname
           procedure, nopass :: get_var_unit
           procedure, nopass :: get_var_type
-          procedure, nopass :: get_eq_nb
           procedure, nopass :: get_sim_parameters
+          procedure, nopass :: get_eq_nb
 
           !initial conditions procedures
           procedure,   pass :: apply_ic
+          procedure,   pass :: get_mach_ux_infty
+          procedure,   pass :: get_mach_uy_infty
+          procedure,   pass :: get_u_in
+          procedure,   pass :: get_v_in
+          procedure,   pass :: get_T_in
+          procedure,   pass :: get_P_out
 
           !flux computation
           procedure, nopass :: compute_flux_x
@@ -443,7 +441,7 @@
         !> variables of the governing equations
         !
         !> @date
-        !> 08_08_2013 - initial version - J.L. Desmarais
+        !> 11_12_2014 - initial version - J.L. Desmarais
         !
         !>@param field_used
         !> object encapsulating the main variables
@@ -457,40 +455,173 @@
           real(rkind), dimension(:)    , intent(in)    :: x_map
           real(rkind), dimension(:)    , intent(in)    :: y_map
 
-          integer :: neq
-
-          neq = this%get_eq_nb()
-
-
-          !<initialize the field depending on the user choice
-          select case(ic_choice)
-
-            case(steady_state)
-               call apply_steady_state_ic(nodes)
-
-            case(drop_retraction)
-               call apply_drop_retraction_ic(nodes,x_map,y_map)
-
-            case(bubble_ascending)
-               call apply_bubble_ascending_ic(nodes,x_map,y_map)
-
-            case(homogeneous_liquid)
-               call apply_homogeneous_ic(nodes)
-
-            case(drop_collision)
-               call apply_drop_collision_ic(nodes,x_map,y_map)
-
-            case(phase_separation)
-               call apply_phase_separation_ic(nodes,x_map,y_map)
-
-c$$$            case(drop_evaporation)
-c$$$               call apply_drop_evaporation_ic(field_used)
-            case default
-               print '(''pmodel_eq_class'')'
-               stop 'ic_choice not recognized'
-          end select
+          call this%initial_conditions%apply_ic(nodes,x_map,y_map)
 
         end subroutine apply_ic
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the far field Mach number in the x-direction
+        !
+        !> @date
+        !> 11_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@result var
+        !> far field Mach number in the x-direction
+        !---------------------------------------------------------------
+        function get_mach_ux_infty(this,side) result(var)
+
+          implicit none
+
+          class(pmodel_eq), intent(in) :: this
+          logical         , intent(in) :: side
+          real(rkind)                  :: var
+
+          var = this%initial_conditions%get_mach_ux_infty(side)
+
+        end function get_mach_ux_infty
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the far field Mach number in the y-direction
+        !
+        !> @date
+        !> 11_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@result var
+        !> far field Mach number in the y-direction
+        !---------------------------------------------------------------
+        function get_mach_uy_infty(this,side) result(var)
+
+          implicit none
+
+          class(pmodel_eq), intent(in) :: this
+          logical         , intent(in) :: side
+          real(rkind)                  :: var
+
+          var = this%initial_conditions%get_mach_uy_infty(side)
+
+        end function get_mach_uy_infty
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the x-component of the velocity enforced
+        !> at the edge of the computational domain
+        !
+        !> @date
+        !> 11_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@result var
+        !> x-component of the velocity enforced at the edge of the
+        !> computational domain
+        !---------------------------------------------------------------
+        function get_u_in(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq), intent(in) :: this
+          real(rkind)     , intent(in) :: t
+          real(rkind)     , intent(in) :: x
+          real(rkind)     , intent(in) :: y
+          real(rkind)                  :: var
+
+          var = this%initial_conditions%get_u_in(t,x,y)
+
+        end function get_u_in
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the y-component of the velocity enforced
+        !> at the edge of the computational domain
+        !
+        !> @date
+        !> 11_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@result var
+        !> y-component of the velocity enforced at the edge of the
+        !> computational domain
+        !---------------------------------------------------------------
+        function get_v_in(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq), intent(in) :: this
+          real(rkind)     , intent(in) :: t
+          real(rkind)     , intent(in) :: x
+          real(rkind)     , intent(in) :: y
+          real(rkind)                  :: var
+
+          var = this%initial_conditions%get_v_in(t,x,y)
+
+        end function get_v_in
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the temperature enforced at the edge of the
+        !> computational domain
+        !
+        !> @date
+        !> 11_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@result var
+        !> temperature enforced at the edge of the computational domain
+        !---------------------------------------------------------------
+        function get_T_in(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq), intent(in) :: this
+          real(rkind)     , intent(in) :: t
+          real(rkind)     , intent(in) :: x
+          real(rkind)     , intent(in) :: y
+          real(rkind)                  :: var
+
+          var = this%initial_conditions%get_T_in(t,x,y)
+
+        end function get_T_in
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the pressure enforced at the edge of the
+        !> computational domain
+        !
+        !> @date
+        !> 11_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@result var
+        !> pressure enforced at the edge of the computational domain
+        !---------------------------------------------------------------
+        function get_P_out(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq), intent(in) :: this
+          real(rkind)     , intent(in) :: t
+          real(rkind)     , intent(in) :: x
+          real(rkind)     , intent(in) :: y
+          real(rkind)                  :: var
+
+          var = this%initial_conditions%get_P_out(t,x,y)
+
+        end function get_P_out
         
         
         !> @author
@@ -803,6 +934,197 @@ c$$$               call apply_drop_evaporation_ic(field_used)
           end do
 
         end subroutine compute_flux_y_nopt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the fluxes by parts (get the inviscid and the
+        !> viscid parts)
+        !
+        !> @date
+        !> 11_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param dx
+        !> space step along the x-direction
+        !
+        !>@param dy
+        !> space step along the y-direction
+        !
+        !>@param i
+        !> index identifying the nodes along the x-direction
+        !
+        !>@param j
+        !> index identifying the nodes along the y-direction
+        !
+        !>@param s_oneside
+        !> space discretization operator
+        !
+        !>@param inviscid_flux
+        !> inviscid flux at (i+1/2,j)
+        !
+        !>@param viscid_flux
+        !> viscous flux computed at (i+1/2,j)
+        !
+        !>@return flux_x
+        !> flux computed at (i+1/2,j)
+        !--------------------------------------------------------------
+        function compute_flux_x_by_parts(
+     $     nodes,dx,dy,i,j,s_oneside,
+     $     inviscid_flux, viscid_flux)
+     $     result(flux_x)
+        
+          implicit none
+        
+          real(rkind), dimension(:,:,:), intent(in)   :: nodes
+          real(rkind)                  , intent(in)   :: dx
+          real(rkind)                  , intent(in)   :: dy
+          integer(ikind)               , intent(in)   :: i
+          integer(ikind)               , intent(in)   :: j
+          class(sd_operators)          , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)   , intent(out)  :: inviscid_flux
+          real(rkind), dimension(ne)   , intent(out)  :: viscid_flux
+          real(rkind), dimension(ne)                  :: flux_x
+
+
+          !inviscid part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(1) = flux_x_mass_density(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(2) = flux_x_inviscid_momentum_x(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(3) = flux_x_inviscid_momentum_y(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(4) = flux_x_inviscid_total_energy(nodes,s_oneside,i,j)
+
+
+          !viscid part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(1) = 0.0d0
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(2) = flux_x_viscid_momentum_x(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(3) = flux_x_viscid_momentum_y(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(4) = flux_x_viscid_total_energy(nodes,s_oneside,i,j,dx,dy)
+
+
+          !total flux
+          !--------------------------------
+          flux_x(1) = inviscid_flux(1) - epsilon*viscid_flux(1)
+          flux_x(2) = inviscid_flux(2) - epsilon*viscid_flux(2)
+          flux_x(3) = inviscid_flux(3) - epsilon*viscid_flux(3)
+          flux_x(4) = inviscid_flux(4) - epsilon*viscid_flux(4)
+          
+        end function compute_flux_x_by_parts
+
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the fluxes by parts (get the inviscid and the
+        !> viscid parts)
+        !
+        !> @date
+        !> 10_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param dx
+        !> space step along the x-direction
+        !
+        !>@param dy
+        !> space step along the y-direction
+        !
+        !>@param i
+        !> index identifying the nodes along the x-direction
+        !
+        !>@param j
+        !> index identifying the nodes along the y-direction
+        !
+        !>@param s_oneside
+        !> space discretization operator
+        !
+        !>@param inviscid_flux
+        !> inviscid flux at (i+1/2,j)
+        !
+        !>@param viscid_flux
+        !> viscous flux computed at (i+1/2,j)
+        !
+        !>@return flux_x
+        !> flux computed at (i+1/2,j)
+        !--------------------------------------------------------------
+        function compute_flux_y_by_parts(
+     $     nodes,dx,dy,i,j,s_oneside,
+     $     inviscid_flux, viscid_flux)
+     $     result(flux_y)
+        
+          implicit none
+        
+          real(rkind), dimension(:,:,:), intent(in)   :: nodes
+          real(rkind)                  , intent(in)   :: dx
+          real(rkind)                  , intent(in)   :: dy
+          integer(ikind)               , intent(in)   :: i
+          integer(ikind)               , intent(in)   :: j
+          class(sd_operators)          , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)   , intent(out)  :: inviscid_flux
+          real(rkind), dimension(ne)   , intent(out)  :: viscid_flux
+          real(rkind), dimension(ne)                  :: flux_y
+          
+
+          !inviscid part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(1) = flux_y_mass_density(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(2) = flux_y_inviscid_momentum_x(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(3) = flux_y_inviscid_momentum_y(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(4) = flux_y_inviscid_total_energy(nodes,s_oneside,i,j)
+
+
+          !viscid part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(1) = 0.0d0
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(2) = flux_y_viscid_momentum_x(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(3) = flux_y_viscid_momentum_y(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(4) = flux_y_viscid_total_energy(nodes,s_oneside,i,j,dx,dy)
+
+
+          !total flux
+          !--------------------------------
+          flux_y(1) = inviscid_flux(1) - epsilon*viscid_flux(1)
+          flux_y(2) = inviscid_flux(2) - epsilon*viscid_flux(2)
+          flux_y(3) = inviscid_flux(3) - epsilon*viscid_flux(3)
+          flux_y(4) = inviscid_flux(4) - epsilon*viscid_flux(4)
+          
+        end function compute_flux_y_by_parts
 
 
         !> @author

@@ -51,15 +51,7 @@ dim2d_flux_dep=		dim2d_parameters.o\
 			dim2d_prim_module.o\
 			dim2d_fluxes_module.o
 
-dim2d_ic_dep=		dim2d_dropbubble_module.o\
-			dim2d_vortex_module.o\
-			dim2d_state_eq_module.o\
-			dim2d_bubble_ascending_module.o\
-			dim2d_drop_collision_module.o\
-			dim2d_drop_retraction_module.o\
-			dim2d_homogeneous_module.o\
-			dim2d_phase_separation_module.o\
-			dim2d_steadystate_module.o
+dim2d_ic_dep=		ic_class.o
 
 dim2d_dep=		$(dim2d_flux_dep)\
 			$(dim2d_ic_dep)\

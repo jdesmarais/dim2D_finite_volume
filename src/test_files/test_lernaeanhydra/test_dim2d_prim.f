@@ -52,7 +52,7 @@
         logical, parameter            :: detailled=.false.
         integer(ikind)                :: i,j
         real(rkind)                   :: computed_data
-        real(rkind), dimension(20)    :: test_data
+        real(rkind), dimension(22)    :: test_data
         real(rkind), dimension(ne,ne) :: test_jacPrimCons
         real(rkind), dimension(ne,ne) :: test_jacConsPrim
         logical                       :: global, local
@@ -246,6 +246,29 @@
 
         call print_screen(global,local,detailled,'speed_of_sound')
 
+        local = is_test_validated(
+     $       classical_temperature_eff(
+     $       nodes,
+     $       i,j),
+     $       test_data(21),
+     $       detailled)
+
+        call print_screen(global,local,detailled,
+     $       'classical_temperature_eff')
+
+        local = is_test_validated(
+     $       capillarity_temperature_eff(
+     $       nodes,
+     $       i,j,dx,dy,
+     $       gradient_x_interior,
+     $       gradient_y_interior
+     $       ),
+     $       test_data(22),
+     $       detailled)
+
+        call print_screen(global,local,detailled,
+     $       'capillarity_temperature_eff')
+
         local = is_matrix_validated(
      $       compute_jacobian_prim_to_cons(nodes(i,j,:)),
      $       test_jacPrimCons,
@@ -302,7 +325,7 @@
           real(rkind)                     , intent(out) :: dx
           real(rkind)                     , intent(out) :: dy
           integer                         , intent(out) :: i,j
-          real(rkind), dimension(20)      , intent(out) :: test_data
+          real(rkind), dimension(22)      , intent(out) :: test_data
           real(rkind), dimension(ne,ne)   , intent(out) :: test_jacPrimCons
           real(rkind), dimension(ne,ne)   , intent(out) :: test_jacConsPrim
 
@@ -399,27 +422,29 @@
           j=2 !<index tested in the data along the y-axis
           
           !<test_data initialization
-          test_data(1) =  4.2d0      !<mass
-          test_data(2) =  5.8d0      !<momentum_x
-          test_data(3) =  2.6d0      !<momentum_y
-          test_data(4) =  2.2d0      !<total_energy
-          test_data(5) =  1.380952d0 !<velocity_x
-          test_data(6) =  0.619048d0 !<velocity_y
-          test_data(7) = -103.23047d0!<classical pressure
-          test_data(8) =  6.71678d0  !<temperature_eff
-          test_data(9) =  8.009524d0 !<qx_transport_x
-          test_data(10)=  3.590476d0 !<qy_transport_y
-          test_data(11)=  3.590476d0 !<qx_transport_y
-          test_data(12)=  1.609524d0 !<qy_transport_y
-          test_data(13)=  3.038095d0 !<energy transport_x
-          test_data(14)=  1.361905d0 !<energy transport_y
-          test_data(15)= -0.833333d0 !<capillarity_pressure
-          test_data(16)= -1.15079d0  !<capillarity_pressure_xwork
-          test_data(17)= -0.51587d0  !<capillarity_pressure_ywork
-          test_data(18)= -142.55637d0!<classic pressure work along x-axis
-          test_data(19)= -63.90458d0 !<classic pressure work along y-axis
-
+          test_data(1) =  4.2d0        !<mass
+          test_data(2) =  5.8d0        !<momentum_x
+          test_data(3) =  2.6d0        !<momentum_y
+          test_data(4) =  2.2d0        !<total_energy
+          test_data(5) =  1.380952d0   !<velocity_x
+          test_data(6) =  0.619048d0   !<velocity_y
+          test_data(7) = -103.23047d0  !<classical pressure
+          test_data(8) =  6.71678d0    !<temperature_eff
+          test_data(9) =  8.009524d0   !<qx_transport_x
+          test_data(10)=  3.590476d0   !<qy_transport_y
+          test_data(11)=  3.590476d0   !<qx_transport_y
+          test_data(12)=  1.609524d0   !<qy_transport_y
+          test_data(13)=  3.038095d0   !<energy transport_x
+          test_data(14)=  1.361905d0   !<energy transport_y
+          test_data(15)= -0.833333d0   !<capillarity_pressure
+          test_data(16)= -1.15079d0    !<capillarity_pressure_xwork
+          test_data(17)= -0.51587d0    !<capillarity_pressure_ywork
+          test_data(18)= -142.55637d0  !<classic pressure work along x-axis
+          test_data(19)= -63.90458d0   !<classic pressure work along y-axis
           test_data(20)= 4.089669525d0 !<speed of sound
+          test_data(21)= 11.97868481d0 !<classical temperature effective
+          test_data(22)= 52.61904762d0 !<capillarity temperature effective
+          
           
           !< jacobian matrix primitive -> conservative
           test_jacConsPrim = reshape((/
