@@ -1,7 +1,7 @@
       !> @file
       !> class encapsulating subroutines to compute the initial
       !> conditions and the conditions enforced at the edge of
-      !> the computational domain for a drop retraction
+      !> the computational domain for phase separation
       !
       !> @author 
       !> Julien L. Desmarais
@@ -9,30 +9,23 @@
       !> @brief
       !> class encapsulating subroutines to compute the initial
       !> conditions and the conditions enforced at the edge of
-      !> the computational domain for a drop retraction
+      !> the computational domain for phase separation
       !
       !> @date
       !> 11_12_2014 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module ic_class
        
-        use dim2d_dropbubble_module, only :
-     $       mass_density_ellipsoid,
-     $       total_energy_ellipsoid
-
         use dim2d_parameters, only :
-     $       cv_r
+     $       cv_r,
+     $       we
 
-        use dim2d_state_eq_module  , only :
+        use dim2d_state_eq_module, only :
      $       get_mass_density_liquid,
-     $       get_mass_density_vapor,
-     $       get_interface_length
+     $       get_mass_density_vapor
 
         use ic_abstract_class, only :
      $       ic_abstract
-
-        use parameters_constant, only :
-     $       liquid, vapor
 
         use parameters_input, only :
      $       nx,
@@ -41,28 +34,23 @@
 
         use parameters_kind, only :
      $       ikind,
-     $       rkind        
+     $       rkind
 
         implicit none
-
-
-        !choose the phase at the domain center:
-        !is it a droplet of liquid in a vapor medium ? -> vapor
-        !is it a bubble  of vapor in a liquid medium ? -> liquid
-        integer, parameter :: phase_at_center = liquid
-
-        !set the initial temperature in the field
-        real(rkind), parameter :: T0 = 0.995d0
 
 
         private
         public :: ic
 
+        
+        !set the initial temperature in the field
+        real(rkind), parameter :: T0 = 0.99d0
+
 
         !> @class ic
         !> class encapsulating operators to set the initial
         !> conditions and the conditions enforced at the edge of the
-        !> computational domain for a drop retraction
+        !> computational domain for phase separation
         !
         !> @param apply_initial_conditions
         !> set the initial conditions
@@ -136,52 +124,91 @@
 
           
           !local variables for the droplet/bubble
-          real(rkind)    :: xc,yc,a,b
-          real(rkind)    :: dliq,dvap,li
+          real(rkind) :: dliq,dvap
 
-          !local variables for the initialization
+
+          !< local variables for the perturbation
+          real(rkind) :: xMin, xMax
+          real(rkind) :: Tx, kx, Ax
+          
+          real(rkind) :: yMin, yMax
+          real(rkind) :: Ty, ky, Ay
+
+          !< local variables for the initialization
           integer(ikind) :: i,j
           real(rkind)    :: x,y
-          
-          
-          !set the center of the droplet
-          xc=0.
-          yc=0.
+          real(rkind)    :: noise
 
 
-          !get the mass densities corresponding to the
-          !liquid and vapor phases for the initial
-          !temperature field
+          !<get the mass densities corresponding to the
+          !>liquid and vapor phases for the initial
+          !>temperature field
           dliq = get_mass_density_liquid(T0)
           dvap = get_mass_density_vapor(T0)
 
-          !get the interface length corresponding
-          !to the initial temperature field
-          li = get_interface_length(T0)
+          !<set the perturbation properties
+          if(rkind.eq.8) then
+             xMin = -0.5d0
+             xMax =  0.5d0
+             Tx   =  xMax - xMin
+             kx   =  2.0d0 * acos(-1.0d0)/Tx
+             Ax   =  0.7d0*(dliq-dvap)
+          else
+             xMin = -0.5
+             xMax =  0.5
+             Tx   =  xMax - xMin
+             kx   =  2.0 * acos(-1.0)/Tx
+             Ax   =  0.7*(dliq-dvap)
+          end if
 
-          !set the major and minor axes of the bubble ellipse
-          a=6.0d0*li
-          b=a/2.0d0
+          if(rkind.eq.8) then
+             yMin = -0.5d0
+             yMax =  0.5d0
+             Ty   =  yMax - yMin
+             ky   =  2.0d0 * acos(-1.0d0)/Ty
+             Ay   =  0.7d0*(dliq-dvap)
+          else
+             yMin = -0.5
+             yMax =  0.5
+             Ty   =  yMax - yMin
+             ky   =  2.0 * acos(-1.0)/Ty
+             Ay   =  0.7*(dliq-dvap)
+          end if
 
 
-          !initialize the fields
+          !<initialize the fields
           do j=1, ny
              !DEC$ IVDEP
              do i=1, nx
 
+                !<coordinates
                 x = x_map(i)
                 y = y_map(j)
 
-                nodes(i,j,1)=mass_density_ellipsoid(
-     $               x,y,xc,yc,a,b,li,dliq,dvap,phase_at_center)
+                !<unstable mass density
+                if(rkind.eq.8) then
+                   nodes(i,j,1)=(dliq+dvap)/2.0d0
+                else
+                   nodes(i,j,1)=(dliq+dvap)/2.0
+                end if
 
+                !<adding the sinusoidal perturbation to 
+                !the initial unstable mass density
+                noise = perturbation(x,xMin,xMax,kx,Ax)*
+     $               perturbation(y,yMin,yMax,ky,Ay)
+                nodes(i,j,1)=nodes(i,j,1)+noise
+
+                !<null velocity field
                 nodes(i,j,2)=0.0d0
-
                 nodes(i,j,3)=0.0d0
-                
-                nodes(i,j,4)=total_energy_ellipsoid(
-     $               x,y,xc,yc,a,b,li,dliq,dvap,
-     $               nodes(i,j,1),T0)
+
+                !<total energy field corresponding to the
+                !<temperature and the mass density fields
+                nodes(i,j,4)=energy_phase_separation(
+     $               x,y,
+     $               nodes(i,j,1),T0,
+     $               xMin,xMax,kx,Ax,
+     $               yMin,yMax,ky,Ay)
 
              end do
           end do
@@ -329,22 +356,7 @@
           x_s = x
           y_s = y
 
-          select case(phase_at_center)
-
-            case(liquid)
-               mass = get_mass_density_liquid(T0)
-
-            case(vapor)
-               mass = get_mass_density_vapor(T0)
-
-            case default
-               print '(''dim2d_ic/drop_retraction/ic_class'')'
-               print '(''get_P_out'')'
-               print '(''phase_at_center: '',I2)', phase_at_center
-               print '(''case not recognized'')'
-               stop ''
-
-          end select
+          mass = get_mass_density_vapor(T0)
 
           if(rkind.eq.8) then
              var = 8.0d0*mass*T0/(3.0d0-mass) - 3.0d0*mass**2
@@ -388,24 +400,7 @@
 
             real(rkind) :: mass
 
-            
-            select case(phase_at_center)
-
-              case(liquid)
-                 mass = get_mass_density_liquid(T0)
-                 
-              case(vapor)
-                 mass = get_mass_density_vapor(T0)
-                 
-              case default
-                 print '(''dim2d_ic/drop_retraction/ic_class'')'
-                 print '(''get_P_out'')'
-                 print '(''phase_at_center: '',I2)', phase_at_center
-                 print '(''case not recognized'')'
-                 stop ''
-                 
-            end select
-
+            mass = get_mass_density_vapor(T0)
 
             if(rkind.eq.8) then
 
@@ -426,5 +421,185 @@
             end if
 
           end function get_far_field
+
+
+          !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> function computing the perturbation
+        !
+        !> @date
+        !> 19_12_2013 - initial version - J.L. Desmarais
+        !
+        !>@param x
+        !> x-coordinate
+        !>@param x_min
+        !> lower space border of the perturbation
+        !>@param x_max
+        !> upper space border of the perturbation
+        !>@param kx
+        !> wave number for the sinusoidal perturbation
+        !>@param Ax
+        !> amplitude of the perturbation
+        !---------------------------------------------------------------
+        function perturbation(x,x_min,x_max,kx,Ax)
+
+          implicit none
+
+          real(rkind), intent(in) :: x
+          real(rkind), intent(in) :: x_min
+          real(rkind), intent(in) :: x_max
+          real(rkind), intent(in) :: kx
+          real(rkind), intent(in) :: Ax
+          real(rkind)             :: perturbation
+          
+
+          if((x.lt.x_min).or.(x.gt.x_max)) then
+             if(rkind.eq.8) then
+                perturbation = 0.0d0
+             else
+                perturbation = 0.0
+             end if
+
+          else
+             if(rkind.eq.8) then
+                perturbation = Ax*(
+     $               1.0d0+cos(kx*(x-(x_max+x_min)/2.0d0)))
+             else
+                perturbation = Ax*(
+     $               1.0+cos(kx*(x-(x_max+x_min)/2.0)))
+             end if
+          end if
+
+
+        end function perturbation
+
+      
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> function computing the perturbation
+        !
+        !> @date
+        !> 19_12_2013 - initial version - J.L. Desmarais
+        !
+        !>@param x
+        !> x-coordinate
+        !>@param x_min
+        !> lower space border of the perturbation
+        !>@param x_max
+        !> upper space border of the perturbation
+        !>@param kx
+        !> wave number for the sinusoidal perturbation
+        !>@param Ax
+        !> amplitude of the perturbation
+        !---------------------------------------------------------------
+        function perturbation_gradient(x,x_min,x_max,kx,Ax)
+
+          implicit none
+
+          real(rkind), intent(in) :: x
+          real(rkind), intent(in) :: x_min
+          real(rkind), intent(in) :: x_max
+          real(rkind), intent(in) :: kx
+          real(rkind), intent(in) :: Ax
+          real(rkind)             :: perturbation_gradient
+          
+
+          if((x.lt.x_min).or.(x.gt.x_max)) then
+             if(rkind.eq.8) then
+                perturbation_gradient = 0.0d0
+             else
+                perturbation_gradient = 0.0
+             end if
+
+          else
+             if(rkind.eq.8) then
+                perturbation_gradient = - kx*Ax*
+     $               sin(kx*(x-(x_max+x_min)/2.0d0))
+             else
+                perturbation_gradient = - kx*Ax*
+     $               sin(kx*(x-(x_max+x_min)/2.0))
+             end if
+          end if
+
+        end function perturbation_gradient
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> function computing the total energy corresponding
+        !> to the initial mass density and temperature fields
+        !> leading to phase separation
+        !
+        !> @date
+        !> 19_12_2013 - initial version - J.L. Desmarais
+        !
+        !>@param x
+        !> x-coordinate
+        !>@param y
+        !> y-coordinate
+        !>@param mass_density
+        !> mass density at (x,y)
+        !>@param temperature
+        !> temperature at (x,y)
+        !>@param x_min
+        !> lower space border of the perturbation along x
+        !>@param x_max
+        !> upper space border of the perturbation along x
+        !>@param kx
+        !> wave number for the sinusoidal perturbation along x
+        !>@param Ax
+        !> amplitude of the perturbation along x
+        !>@param y_min
+        !> lower space border of the perturbation along y
+        !>@param y_max
+        !> upper space border of the perturbation along y
+        !>@param ky
+        !> wave number for the sinusoidal perturbation along y
+        !>@param Ay
+        !> amplitude of the perturbation along y
+        !---------------------------------------------------------------
+        function energy_phase_separation(
+     $               x,y,
+     $               mass_density,temperature,
+     $               x_min,x_max,kx,Ax,
+     $               y_min,y_max,ky,Ay)
+
+          implicit none
+
+          real(rkind), intent(in) :: x,y
+          real(rkind), intent(in) :: mass_density, temperature
+          real(rkind), intent(in) :: x_min, x_max, kx, Ax
+          real(rkind), intent(in) :: y_min, y_max, ky, Ay
+          real(rkind)             :: energy_phase_separation
+
+
+          real(rkind) :: d_md_dx, d_md_dy
+
+
+          !<compute the mass density gradients at (x,y)
+          d_md_dx = perturbation_gradient(x,x_min,x_max,kx,Ax)
+          d_md_dy = perturbation_gradient(y,y_min,y_max,ky,Ay)
+
+          
+          !<compute the total energy assuming no velocity field
+          if(rkind.eq.8) then
+             energy_phase_separation=
+     $            mass_density*(
+     $            8.0d0/3.0d0*cv_r*temperature-3.0d0*mass_density)
+     $            + 1.0d0/(2.0d0*we)*((d_md_dx)**2+(d_md_dy)**2)
+          else
+             energy_phase_separation=
+     $            mass_density*(
+     $            8.0/3.0*cv_r*temperature-3.0*mass_density)
+     $            + 1.0/(2.0*we)*((d_md_dx)**2+(d_md_dy)**2)
+          end if
+
+        end function energy_phase_separation
 
       end module ic_class

@@ -185,6 +185,7 @@ $(phy_eq_dir)/pmodel_eq_default_class.o:\
 			$(phy_eq_dir)/pmodel_eq_abstract_class.o
 
 $(phy_eq_dir)/ic_abstract_class.o:\
+			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
 #simple test equations

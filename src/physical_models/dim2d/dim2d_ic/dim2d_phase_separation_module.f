@@ -67,7 +67,7 @@
 
 
           !<set the initial temperature in the field
-          T0 = 0.99
+          T0 = 0.99d0
 
           !<get the mass densities corresponding to the
           !>liquid and vapor phases for the initial
