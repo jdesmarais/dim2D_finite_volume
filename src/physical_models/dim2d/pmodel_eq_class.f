@@ -1169,6 +1169,7 @@ c$$$               call apply_drop_evaporation_ic(field_used)
           real(rkind), dimension(ne,ne) :: jacPrimCons
           real(rkind), dimension(ne,ne) :: leftEigenMPrim
           real(rkind)                   :: c
+          real(rkind)                   :: q_c
 
 
           !computation of J, the jacobian matrix from primitive
@@ -1178,50 +1179,26 @@ c$$$               call apply_drop_evaporation_ic(field_used)
 
           !left eigenmatrix for the primitive
           !variables, L_p
-          c  = speed_of_sound(nodes)
+          c   = speed_of_sound(nodes)
+          q_c = 0.5d0*nodes(1)*c
+
           if(rkind.eq.8) then
 
-             leftEigenMPrim(1,1) =  0.0d0
-             leftEigenMPrim(2,1) =  0.0d0
-             leftEigenMPrim(3,1) =  1.0d0
-             leftEigenMPrim(4,1) =  0.0d0
-             
-             leftEigenMPrim(1,2) =  1.0d0
-             leftEigenMPrim(2,2) =  0.0d0
-             leftEigenMPrim(3,2) =  0.0d0
-             leftEigenMPrim(4,2) = -1.d0/c**2
-
-             leftEigenMPrim(1,3) =  0.0d0
-             leftEigenMPrim(2,3) = -0.5d0*nodes(1)*c
-             leftEigenMPrim(3,3) =  0.0d0
-             leftEigenMPrim(4,3) =  0.5d0
-
-             leftEigenMPrim(1,4) =  0.0d0
-             leftEigenMPrim(2,4) =  0.5d0*nodes(1)*c
-             leftEigenMPrim(3,4) =  0.0d0
-             leftEigenMPrim(4,4) =  0.5d0
+             leftEigenMPrim = reshape((/
+     $            0.0d0, 0.0d0, 1.0d0, 0.0d0,
+     $            1.0d0, 0.0d0, 0.0d0, -1.d0/c**2,
+     $            0.0d0, -q_c , 0.0d0, 0.5d0,
+     $            0.0d0,  q_c , 0.0d0, 0.5d0/),
+     $            (/ne,ne/))
 
           else
 
-             leftEigenMPrim(1,1) =  0.0
-             leftEigenMPrim(2,1) =  0.0
-             leftEigenMPrim(3,1) =  1.0
-             leftEigenMPrim(4,1) =  0.0
-             
-             leftEigenMPrim(1,2) =  1.0
-             leftEigenMPrim(2,2) =  0.0
-             leftEigenMPrim(3,2) =  0.0
-             leftEigenMPrim(4,2) = -1.0/c**2
-
-             leftEigenMPrim(1,3) =  0.0
-             leftEigenMPrim(2,3) = -0.5*nodes(1)*c
-             leftEigenMPrim(3,3) =  0.0
-             leftEigenMPrim(4,3) =  0.5
-
-             leftEigenMPrim(1,4) =  0.0
-             leftEigenMPrim(2,4) =  0.5*nodes(1)*c
-             leftEigenMPrim(3,4) =  0.0
-             leftEigenMPrim(4,4) =  0.5
+             leftEigenMPrim = reshape((/
+     $            0.0, 0.0, 1.0, 0.0,
+     $            1.0, 0.0, 0.0, -1./c**2,
+     $            0.0, -q_c , 0.0, 0.5,
+     $            0.0,  q_c , 0.0, 0.5/),
+     $            (/ne,ne/))
 
           end if
 
@@ -1259,6 +1236,8 @@ c$$$               call apply_drop_evaporation_ic(field_used)
           real(rkind), dimension(ne,ne) :: jacConsPrim
           real(rkind), dimension(ne,ne) :: rightEigenMPrim
           real(rkind)                   :: c
+          real(rkind)                   :: inv_c
+          real(rkind)                   :: inv_q_c
 
 
           !computation of J, the jacobian matrix from conservative
@@ -1268,49 +1247,27 @@ c$$$               call apply_drop_evaporation_ic(field_used)
 
           !right eigenmatrix for the primitive
           !variables, R_p
-          c  = speed_of_sound(nodes)
+          c       = speed_of_sound(nodes)
+          inv_c   = 1.0d0/c**2
+          inv_q_c = 1.0d0/(nodes(1)*c)
 
           if(rkind.eq.8) then
-             rightEigenMPrim(1,1) =  0.0d0
-             rightEigenMPrim(2,1) =  1.0d0
-             rightEigenMPrim(3,1) =  1.0d0/c**2
-             rightEigenMPrim(4,1) =  1.0d0/c**2
 
-             rightEigenMPrim(1,2) =  0.0d0
-             rightEigenMPrim(2,2) =  0.0d0
-             rightEigenMPrim(3,2) = -1.0d0/(nodes(1)*c)
-             rightEigenMPrim(4,2) =  1.0d0/(nodes(1)*c)             
-
-             rightEigenMPrim(1,3) =  1.0d0
-             rightEigenMPrim(2,3) =  0.0d0
-             rightEigenMPrim(3,3) =  0.0d0
-             rightEigenMPrim(4,3) =  0.0d0
-
-             rightEigenMPrim(1,4) =  0.0d0
-             rightEigenMPrim(2,4) =  0.0d0
-             rightEigenMPrim(3,4) =  1.0d0
-             rightEigenMPrim(4,4) =  1.0d0
+             rightEigenMPrim = reshape((/
+     $            0.0d0, 1.0d0,  inv_c  , inv_c,
+     $            0.0d0, 0.0d0, -inv_q_c, inv_q_c,
+     $            1.0d0, 0.0d0,  0.0d0  , 0.0d0,
+     $            0.0d0, 0.0d0,  1.0d0  , 1.0d0/),
+     $            (/ne,ne/))
 
           else
-             rightEigenMPrim(1,1) =  0.0
-             rightEigenMPrim(2,1) =  1.0
-             rightEigenMPrim(3,1) =  1.0/c**2
-             rightEigenMPrim(4,1) =  1.0/c**2
 
-             rightEigenMPrim(1,2) =  0.0
-             rightEigenMPrim(2,2) =  0.0
-             rightEigenMPrim(3,2) = -1.0/(nodes(1)*c)
-             rightEigenMPrim(4,2) =  1.0/(nodes(1)*c)             
-
-             rightEigenMPrim(1,3) =  1.0
-             rightEigenMPrim(2,3) =  0.0
-             rightEigenMPrim(3,3) =  0.0
-             rightEigenMPrim(4,3) =  0.0
-
-             rightEigenMPrim(1,4) =  0.0
-             rightEigenMPrim(2,4) =  0.0
-             rightEigenMPrim(3,4) =  1.0
-             rightEigenMPrim(4,4) =  1.0
+             rightEigenMPrim = reshape((/
+     $            0.0, 1.0,  inv_c  , inv_c,
+     $            0.0, 0.0, -inv_q_c, inv_q_c,
+     $            1.0, 0.0,  0.0    , 0.0,
+     $            0.0, 0.0,  1.0    , 1.0/),
+     $            (/ne,ne/))
 
           end if
 
@@ -1358,47 +1315,23 @@ c$$$               call apply_drop_evaporation_ic(field_used)
           !variables, L_p
           c  = speed_of_sound(nodes)
 
-          if(rkind.eq.8) then             
-             leftEigenMPrim(1,1) =  0.0d0
-             leftEigenMPrim(2,1) =  1.0d0
-             leftEigenMPrim(3,1) =  0.0d0
-             leftEigenMPrim(4,1) =  0.0d0
+          if(rkind.eq.8) then
 
-             leftEigenMPrim(1,2) =  1.0d0
-             leftEigenMPrim(2,2) =  0.0d0
-             leftEigenMPrim(3,2) =  0.0d0
-             leftEigenMPrim(4,2) = -1.0d0/c**2
-
-             leftEigenMPrim(1,3) =  0.0d0
-             leftEigenMPrim(2,3) =  0.0d0
-             leftEigenMPrim(3,3) = -0.5d0*nodes(1)*c
-             leftEigenMPrim(4,3) =  0.5d0             
-
-             leftEigenMPrim(1,4) =  0.0d0
-             leftEigenMPrim(2,4) =  0.0d0
-             leftEigenMPrim(3,4) =  0.5d0*nodes(1)*c
-             leftEigenMPrim(4,4) =  0.5d0             
+             leftEigenMPrim = reshape((/
+     $            0.0d0, 1.0d0, 0.0d0            , 0.0d0,
+     $            1.0d0, 0.0d0, 0.0d0            , -1.0d0/c**2,
+     $            0.0d0, 0.0d0, -0.5d0*nodes(1)*c, 0.5d0,
+     $            0.0d0, 0.0d0,  0.5d0*nodes(1)*c, 0.5d0/),
+     $            (/ne,ne/))
 
           else
-             leftEigenMPrim(1,1) =  0.0
-             leftEigenMPrim(2,1) =  1.0
-             leftEigenMPrim(3,1) =  0.0
-             leftEigenMPrim(4,1) =  0.0
 
-             leftEigenMPrim(1,2) =  1.0
-             leftEigenMPrim(2,2) =  0.0
-             leftEigenMPrim(3,2) =  0.0
-             leftEigenMPrim(4,2) = -1.0/c**2
-
-             leftEigenMPrim(1,3) =  0.0
-             leftEigenMPrim(2,3) =  0.0
-             leftEigenMPrim(3,3) = -0.5*nodes(1)*c
-             leftEigenMPrim(4,3) =  0.5             
-
-             leftEigenMPrim(1,4) =  0.0
-             leftEigenMPrim(2,4) =  0.0
-             leftEigenMPrim(3,4) =  0.5*nodes(1)*c
-             leftEigenMPrim(4,4) =  0.5             
+             leftEigenMPrim = reshape((/
+     $            0.0d0, 1.0d0, 0.0d0            , 0.0d0,
+     $            1.0d0, 0.0d0, 0.0d0            , -1.0d0/c**2,
+     $            0.0d0, 0.0d0, -0.5d0*nodes(1)*c, 0.5d0,
+     $            0.0d0, 0.0d0,  0.5d0*nodes(1)*c, 0.5d0/),
+     $            (/ne,ne/))
 
           end if
 
@@ -1436,6 +1369,7 @@ c$$$               call apply_drop_evaporation_ic(field_used)
           real(rkind), dimension(ne,ne) :: jacConsPrim
           real(rkind), dimension(ne,ne) :: rightEigenMPrim
           real(rkind)                   :: c
+          real(rkind)                   :: inv_q_c
 
 
           !computation of J, the jacobian matrix from conservative
@@ -1445,49 +1379,26 @@ c$$$               call apply_drop_evaporation_ic(field_used)
 
           !right eigenmatrix for the primitive
           !variables, R_p
-          c  = speed_of_sound(nodes)
+          c   = speed_of_sound(nodes)
+          inv_q_c = 1.0d0/(nodes(1)*c)
 
           if(rkind.eq.8) then
-             rightEigenMPrim(1,1) =  0.0d0
-             rightEigenMPrim(2,1) =  1.0d0
-             rightEigenMPrim(3,1) =  1.0d0/c**2
-             rightEigenMPrim(4,1) =  1.0d0/c**2
 
-             rightEigenMPrim(1,2) =  1.0d0
-             rightEigenMPrim(2,2) =  0.0d0
-             rightEigenMPrim(3,2) =  0.0d0
-             rightEigenMPrim(4,2) =  0.0d0
-
-             rightEigenMPrim(1,3) =  0.0d0
-             rightEigenMPrim(2,3) =  0.0d0
-             rightEigenMPrim(3,3) = -1.0d0/(nodes(1)*c)
-             rightEigenMPrim(4,3) =  1.0d0/(nodes(1)*c)
-
-             rightEigenMPrim(1,4) =  0.0d0
-             rightEigenMPrim(2,4) =  0.0d0
-             rightEigenMPrim(3,4) =  1.0d0
-             rightEigenMPrim(4,4) =  1.0d0
+             rightEigenMPrim = reshape((/
+     $            0.0d0, 1.0d0, 1.0d0/c**2, 1.0d0/c**2,
+     $            1.0d0, 0.0d0, 0.0d0     , 0.0d0,
+     $            0.0d0, 0.0d0,-inv_q_c   , inv_q_c,
+     $            0.0d0, 0.0d0, 1.0d0     , 1.0d0/),
+     $            (/ne,ne/))
 
           else
-             rightEigenMPrim(1,1) =  0.0
-             rightEigenMPrim(2,1) =  1.0
-             rightEigenMPrim(3,1) =  1.0/c**2
-             rightEigenMPrim(4,1) =  1.0/c**2
 
-             rightEigenMPrim(1,2) =  1.0
-             rightEigenMPrim(2,2) =  0.0
-             rightEigenMPrim(3,2) =  0.0
-             rightEigenMPrim(4,2) =  0.0
-
-             rightEigenMPrim(1,3) =  0.0
-             rightEigenMPrim(2,3) =  0.0
-             rightEigenMPrim(3,3) = -1.0/(nodes(1)*c)
-             rightEigenMPrim(4,3) =  1.0/(nodes(1)*c)
-
-             rightEigenMPrim(1,4) =  0.0
-             rightEigenMPrim(2,4) =  0.0
-             rightEigenMPrim(3,4) =  1.0
-             rightEigenMPrim(4,4) =  1.0
+             rightEigenMPrim = reshape((/
+     $            0.0d0, 1.0d0, 1.0d0/c**2, 1.0d0/c**2,
+     $            1.0d0, 0.0d0, 0.0d0     , 0.0d0,
+     $            0.0d0, 0.0d0,-inv_q_c   , inv_q_c,
+     $            0.0d0, 0.0d0, 1.0d0     , 1.0d0/),
+     $            (/ne,ne/))
 
           end if
 
@@ -1552,47 +1463,21 @@ c$$$               call apply_drop_evaporation_ic(field_used)
 
           if(rkind.eq.8) then
 
-             xTransMPrim(1,1) =  uy
-             xTransMPrim(2,1) =  0.0d0
-             xTransMPrim(3,1) =  nodes(1)
-             xTransMPrim(4,1) =  0.0d0
-
-             xTransMPrim(1,2) =  0.0d0
-             xTransMPrim(2,2) =  uy
-             xTransMPrim(3,2) =  0.0d0
-             xTransMPrim(4,2) =  0.0d0
-
-             xTransMPrim(1,3) =  0.0d0
-             xTransMPrim(2,3) =  0.0d0
-             xTransMPrim(3,3) =  uy
-             xTransMPrim(4,3) =  1.0d0/nodes(1)
-
-             xTransMPrim(1,4) =  0.0d0
-             xTransMPrim(2,4) =  0.0d0
-             xTransMPrim(3,4) =  c**2*nodes(1)
-             xTransMPrim(4,4) =  uy
+             xTransMPrim = reshape((/
+     $            uy   , 0.0d0, nodes(1)     , 0.0d0,
+     $            0.0d0, uy   , 0.0d0        , 0.0d0,
+     $            0.0d0, 0.0d0, uy           , 1.0d0/nodes(1),
+     $            0.0d0, 0.0d0, c**2*nodes(1), uy/),
+     $            (/ne,ne/))
 
           else
              
-             xTransMPrim(1,1) =  uy
-             xTransMPrim(2,1) =  0.0
-             xTransMPrim(3,1) =  nodes(1)
-             xTransMPrim(4,1) =  0.0
-
-             xTransMPrim(1,2) =  0.0
-             xTransMPrim(2,2) =  uy
-             xTransMPrim(3,2) =  0.0
-             xTransMPrim(4,2) =  0.0
-
-             xTransMPrim(1,3) =  0.0
-             xTransMPrim(2,3) =  0.0
-             xTransMPrim(3,3) =  uy
-             xTransMPrim(4,3) =  1.0/nodes(1)
-
-             xTransMPrim(1,4) =  0.0
-             xTransMPrim(2,4) =  0.0
-             xTransMPrim(3,4) =  c**2*nodes(1)
-             xTransMPrim(4,4) =  uy
+             xTransMPrim = reshape((/
+     $            uy , 0.0, nodes(1)     , 0.0,
+     $            0.0, uy , 0.0          , 0.0,
+     $            0.0, 0.0, uy           , 1.0/nodes(1),
+     $            0.0, 0.0, c**2*nodes(1), uy/),
+     $            (/ne,ne/))
 
           end if
 
@@ -1656,48 +1541,22 @@ c$$$               call apply_drop_evaporation_ic(field_used)
           
 
           if(rkind.eq.8) then
-
-             yTransMPrim(1,1) =  ux
-             yTransMPrim(2,1) =  nodes(1)
-             yTransMPrim(3,1) =  0.0d0
-             yTransMPrim(4,1) =  0.0d0
-
-             yTransMPrim(1,2) =  0.0d0
-             yTransMPrim(2,2) =  ux
-             yTransMPrim(3,2) =  0.0d0
-             yTransMPrim(4,2) =  1.0d0/nodes(1)
-
-             yTransMPrim(1,3) =  0.0d0
-             yTransMPrim(2,3) =  0.0d0
-             yTransMPrim(3,3) =  ux
-             yTransMPrim(4,3) =  0.0d0
-
-             yTransMPrim(1,4) =  0.0d0
-             yTransMPrim(2,4) =  c**2*nodes(1)
-             yTransMPrim(3,4) =  0.0d0
-             yTransMPrim(4,4) =  ux
+             
+             yTransMPrim = reshape((/
+     $            ux   , nodes(1)     , 0.0d0, 0.0d0         ,
+     $            0.0d0, ux           , 0.0d0, 1.0d0/nodes(1),
+     $            0.0d0, 0.0d0        , ux   , 0.0d0         ,
+     $            0.0d0, c**2*nodes(1), 0.0d0, ux            /),
+     $            (/ne,ne/))
 
           else
              
-             yTransMPrim(1,1) =  ux
-             yTransMPrim(2,1) =  nodes(1)
-             yTransMPrim(3,1) =  0.0
-             yTransMPrim(4,1) =  0.0
-
-             yTransMPrim(1,2) =  0.0
-             yTransMPrim(2,2) =  ux
-             yTransMPrim(3,2) =  0.0
-             yTransMPrim(4,2) =  1.0/nodes(1)
-
-             yTransMPrim(1,3) =  0.0
-             yTransMPrim(2,3) =  0.0
-             yTransMPrim(3,3) =  ux
-             yTransMPrim(4,3) =  0.0
-
-             yTransMPrim(1,4) =  0.0
-             yTransMPrim(2,4) =  c**2*nodes(1)
-             yTransMPrim(3,4) =  0.0
-             yTransMPrim(4,4) =  ux
+             yTransMPrim = reshape((/
+     $            ux , nodes(1)     , 0.0, 0.0         ,
+     $            0.0, ux           , 0.0, 1.0/nodes(1),
+     $            0.0, 0.0          , ux , 0.0         ,
+     $            0.0, c**2*nodes(1), 0.0, ux          /),
+     $            (/ne,ne/))
 
           end if
 
@@ -1705,6 +1564,140 @@ c$$$               call apply_drop_evaporation_ic(field_used)
           eigenvect = MATMUL(MATMUL(jacPrimCons,yTransMPrim),jacConsPrim)
 
         end function compute_y_transM
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the left LODI conservative matrix in the
+        !> x-direction
+        !
+        !> @date
+        !> 11_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvect
+        !> conservative LODI matrix in the x-direction
+        !--------------------------------------------------------------
+        function compute_x_leftConsLodiM(nodes) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne,ne)          :: eigenvect
+
+
+          real(rkind), dimension(ne,ne) :: jacPrimCons
+          real(rkind), dimension(ne,ne) :: leftLodiM
+
+          real(rkind)                   :: c
+          real(rkind)                   :: q_c
+
+
+          !computation of J, the jacobian matrix from primitive
+          !to conservative variables
+          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
+
+
+          !left LODI matrix for the primitive variables
+          c   = speed_of_sound(nodes)     !speed of sound
+          q_c = nodes(1)*c
+          
+
+          if(rkind.eq.8) then
+
+             leftLodiM = reshape((/
+     $            0.0d0,  0.0d0, 1.0d0,  0.0d0,
+     $            c**2 ,  0.0d0, 0.0d0, -1.0d0,
+     $            0.0d0, -q_c  , 0.0d0,  1.0d0,
+     $            0.0d0,  q_c  , 0.0d0,  1.0d0/),
+     $            (/ne,ne/))
+
+          else
+             
+             leftLodiM = reshape((/
+     $            0.0,  0.0, 1.0,  0.0,
+     $            c**2 ,0.0, 0.0, -1.0,
+     $            0.0, -q_c, 0.0,  1.0,
+     $            0.0,  q_c, 0.0,  1.0/),
+     $            (/ne,ne/))
+
+          end if
+
+          !conservative LODI matrix computed as N^x_L = M^x_L.J^p_v
+          eigenvect = MATMUL(jacPrimCons,leftLodiM)
+
+        end function compute_x_leftConsLodiM
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the left LODI conservative matrix in the
+        !> y-direction
+        !
+        !> @date
+        !> 11_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvect
+        !> conservative LODI matrix in the y-direction
+        !--------------------------------------------------------------
+        function compute_y_leftConsLodiM(nodes) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne,ne)          :: eigenvect
+
+
+          real(rkind), dimension(ne,ne) :: jacPrimCons
+          real(rkind), dimension(ne,ne) :: leftLodiM
+
+          real(rkind)                   :: c
+          real(rkind)                   :: q_c
+
+
+          !computation of J, the jacobian matrix from primitive
+          !to conservative variables
+          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
+
+
+          !left LODI matrix for the primitive variables
+          c   = speed_of_sound(nodes)     !speed of sound
+          q_c = nodes(1)*c
+          
+
+          if(rkind.eq.8) then
+
+             leftLodiM = reshape((/
+     $            0.0d0,  1.0d0, 0.0d0,  0.0d0,
+     $            c**2 ,  0.0d0, 0.0d0, -1.0d0,
+     $            0.0d0,  0.0d0, -q_c ,  1.0d0,
+     $            0.0d0,  0.0d0,  q_c ,  1.0d0/),
+     $            (/ne,ne/))
+
+          else
+             
+             leftLodiM = reshape((/
+     $            0.0d0,  1.0d0, 0.0d0,  0.0d0,
+     $            c**2 ,  0.0d0, 0.0d0, -1.0d0,
+     $            0.0d0,  0.0d0, -q_c ,  1.0d0,
+     $            0.0d0,  0.0d0,  q_c ,  1.0d0/),
+     $            (/ne,ne/))
+
+          end if
+
+          !conservative LODI matrix computed as N^y_L = M^y_L.J^p_v
+          eigenvect = MATMUL(jacPrimCons,leftLodiM)
+
+        end function compute_y_leftConsLodiM
 
 
         !> @author

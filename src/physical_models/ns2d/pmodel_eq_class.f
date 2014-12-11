@@ -472,35 +472,6 @@
           real(rkind), dimension(:)    , intent(in)    :: x_map
           real(rkind), dimension(:)    , intent(in)    :: y_map
 
-
-c$$$          real(rkind) :: x_s
-c$$$          real(rkind) :: y_s
-c$$$          
-c$$$
-c$$$          !<initialize the field depending on the user choice
-c$$$          select case(ic_choice)
-c$$$
-c$$$            case(steady_state)
-c$$$               call apply_steady_state_ic(nodes)
-c$$$
-c$$$            case(peak)
-c$$$               call apply_peak_ic(nodes,x_map,y_map,[0.0d0,1.0d0])
-c$$$
-c$$$            case(vortex)
-c$$$               call apply_vortex_ic(nodes,x_map,y_map)
-c$$$
-c$$$            case(vortex_convected_x)
-c$$$               call apply_vortex_ic(nodes,x_map,y_map,[0.0d0,1.0d0])
-c$$$
-c$$$            case default
-c$$$               print '(''pmodel_eq_class'')'
-c$$$               stop 'ic_choice not recognized'
-c$$$          end select
-c$$$
-c$$$          x_s = x_map(1)
-c$$$          y_s = y_map(1)
-
-
           call this%initial_conditions%apply_ic(nodes,x_map,y_map)
 
         end subroutine apply_ic

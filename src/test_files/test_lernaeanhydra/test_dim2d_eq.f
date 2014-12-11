@@ -99,7 +99,23 @@
         print '(''test_compute_x_transM: '',L1)', test_loc
         print '()'
 
-        !
+        !test_compute_y_transM
+        test_loc = test_compute_y_transM(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_compute_y_transM: '',L1)', test_loc
+        print '()'
+
+        !test_compute_x_leftConsLodiM
+        test_loc = test_compute_x_leftConsLodiM(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_compute_x_leftConsLodiM: '',L1)', test_loc
+        print '()'
+
+        !test_compute_y_leftConsLodiM
+        test_loc = test_compute_y_leftConsLodiM(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_compute_y_leftConsLodiM: '',L1)', test_loc
+        print '()'
         
         !test_compute_n_gradient
         test_loc = test_compute_n_gradient(detailled)
@@ -552,62 +568,6 @@
         end function test_compute_y_righteigenvector
 
 
-        !test: compute_y_righteigenvector
-        function test_compute_n_gradient(detailled)
-     $     result(test_validated)
-        
-          implicit none
-
-          logical, intent(in) :: detailled
-          logical             :: test_validated
-
-          
-          real(rkind)                      :: dx
-          real(rkind)                      :: dy
-          real(rkind), dimension(nx,ny,ne) :: nodes
-          real(rkind), dimension(ne)       :: gradient
-          real(rkind), dimension(ne)       :: gradient_test
-
-          type(pmodel_eq) :: p_model
-
-          nodes = reshape((/
-     $          0.5d0,  0.2d0,  1.2d0,  5.0d0,  3.1d0,
-     $          2.0d0,  4.2d0, 11.0d0, 10.6d0,  6.9d0,
-     $        -14.2d0, 23.0d0,  9.8d0,  3.4d0,  2.3d0,
-     $         2.45d0,  0.2d0,  9.0d0,  5.4d0, -1.0d0,
-     $          6.3d0, -5.1d0,  4.2d0,  9.8d0, -0.3d0,
-     $          9.5d0,  9.8d0,  8.8d0,  5.0d0,  6.9d0,
-     $          8.0d0,  5.8d0, -1.0d0, -0.6d0,  3.1d0,
-     $         24.2d0,-13.0d0,  0.2d0,  6.6d0,  7.7d0,
-     $         7.55d0,  9.8d0,  1.0d0,  4.6d0, 11.0d0,
-     $          3.7d0,  15.1d0, 5.8d0,  0.2d0, 10.3d0,
-     $         -8.5d0,  9.4d0, -6.4d0,  5.0d0, -0.7d0,
-     $         -4.0d0,  2.6d0, 23.0d0, 21.8d0, 10.7d0,
-     $        -52.6d0, 59.0d0, 19.4d0, 0.20d0, -3.1d0,
-     $        -2.65d0,-9.40d0, 17.0d0, 6.20d0,-13.0d0,
-     $         8.9d0, -25.3d0,  2.6d0, 19.4d0,-10.9d0,
-     $         -1.5d0, -1.8d0, -0.8d0,  3.0d0,  1.1d0,
-     $          0.0d0,  2.2d0,  9.0d0,  8.6d0,  4.9d0,
-     $        -16.2d0, 21.0d0,  7.8d0,  1.4d0,  0.3d0,
-     $         0.45d0, -1.8d0,  7.0d0,  3.4d0, -3.0d0,
-     $          4.3d0, -7.1d0,  2.2d0,  7.8d0, -2.3d0/),
-     $         (/5,5,ne/))
-
-          dx = 0.1d0
-          dy = 0.2d0
-
-          gradient_test = [-65.76093065d0,65.76093065d0,-197.282792d0,-65.76093065d0]
-          
-          gradient = p_model%compute_n_gradient(nodes,3,3,gradient_n1_xI_yI,dx,dy)
-
-          test_validated = is_vector_validated(
-     $         gradient,
-     $         gradient_test,
-     $         detailled)
-
-        end function test_compute_n_gradient
-
-
         !test: compute_x_transM
         function test_compute_x_transM(detailled)
      $     result(test_validated)
@@ -675,6 +635,132 @@
      $         transM_test,
      $         detailled)
 
-        end function test_compute_y_transM        
+        end function test_compute_y_transM   
+
+
+        !test: compute_x_leftConsLodiM
+        function test_compute_x_leftConsLodiM(detailled)
+     $     result(test_validated)
+        
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          
+          real(rkind), dimension(ne)    :: nodes
+          real(rkind), dimension(ne,ne) :: leftConsLodiM
+          real(rkind), dimension(ne,ne) :: leftConsLodiM_test
+
+          type(pmodel_eq) :: p_model
+
+          nodes = [4.2d0,5.8d0,2.6d0,2.2d0]
+
+          leftConsLodiM_test = reshape((/
+     $          -0.14739229d0, 0.0d0	     ,  0.238095238d0,  0.0d0,
+     $          26.34512472d0, -1.380952381d0, -0.619047619d0,  1.0d0,
+     $         -3.972089023d0, -2.708717144d0,	0.619047619d0, -1.0d0,
+     $         -15.26736676d0, 	5.470621906d0,	0.619047619d0, -1.0d0/),
+     $         (/4,4/))
+
+          leftConsLodiM = p_model%compute_x_leftConslodiM(nodes)
+
+          test_validated = is_matrix_validated(
+     $         leftConsLodiM,
+     $         leftConsLodiM_test,
+     $         detailled)
+
+        end function test_compute_x_leftConsLodiM
+
+
+        !test: compute_x_leftConsLodiM
+        function test_compute_y_leftConsLodiM(detailled)
+     $     result(test_validated)
+        
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          
+          real(rkind), dimension(ne)    :: nodes
+          real(rkind), dimension(ne,ne) :: leftConsLodiM
+          real(rkind), dimension(ne,ne) :: leftConsLodiM_test
+
+          type(pmodel_eq) :: p_model
+
+          nodes = [4.2d0,5.8d0,2.6d0,2.2d0]
+
+          leftConsLodiM_test = reshape((/
+     $         -0.328798186d0, 	0.238095238d0,  0.0d0	     ,  0.0d0,
+     $          26.34512472d0, -1.380952381d0, -0.619047619d0,  1.0d0,
+     $         -7.088027709d0, 	1.380952381d0, -3.470621906d0, -1.0d0,
+     $         -12.15142807d0, 	1.380952381d0, 	4.708717144d0, -1.0d0/),
+     $         (/4,4/))
+
+          leftConsLodiM = p_model%compute_y_leftConslodiM(nodes)
+
+          test_validated = is_matrix_validated(
+     $         leftConsLodiM,
+     $         leftConsLodiM_test,
+     $         detailled)
+
+        end function test_compute_y_leftConsLodiM
+
+
+        !test: compute_n_gradient
+        function test_compute_n_gradient(detailled)
+     $     result(test_validated)
+        
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          
+          real(rkind)                      :: dx
+          real(rkind)                      :: dy
+          real(rkind), dimension(nx,ny,ne) :: nodes
+          real(rkind), dimension(ne)       :: gradient
+          real(rkind), dimension(ne)       :: gradient_test
+
+          type(pmodel_eq) :: p_model
+
+          nodes = reshape((/
+     $          0.5d0,  0.2d0,  1.2d0,  5.0d0,  3.1d0,
+     $          2.0d0,  4.2d0, 11.0d0, 10.6d0,  6.9d0,
+     $        -14.2d0, 23.0d0,  9.8d0,  3.4d0,  2.3d0,
+     $         2.45d0,  0.2d0,  9.0d0,  5.4d0, -1.0d0,
+     $          6.3d0, -5.1d0,  4.2d0,  9.8d0, -0.3d0,
+     $          9.5d0,  9.8d0,  8.8d0,  5.0d0,  6.9d0,
+     $          8.0d0,  5.8d0, -1.0d0, -0.6d0,  3.1d0,
+     $         24.2d0,-13.0d0,  0.2d0,  6.6d0,  7.7d0,
+     $         7.55d0,  9.8d0,  1.0d0,  4.6d0, 11.0d0,
+     $          3.7d0,  15.1d0, 5.8d0,  0.2d0, 10.3d0,
+     $         -8.5d0,  9.4d0, -6.4d0,  5.0d0, -0.7d0,
+     $         -4.0d0,  2.6d0, 23.0d0, 21.8d0, 10.7d0,
+     $        -52.6d0, 59.0d0, 19.4d0, 0.20d0, -3.1d0,
+     $        -2.65d0,-9.40d0, 17.0d0, 6.20d0,-13.0d0,
+     $         8.9d0, -25.3d0,  2.6d0, 19.4d0,-10.9d0,
+     $         -1.5d0, -1.8d0, -0.8d0,  3.0d0,  1.1d0,
+     $          0.0d0,  2.2d0,  9.0d0,  8.6d0,  4.9d0,
+     $        -16.2d0, 21.0d0,  7.8d0,  1.4d0,  0.3d0,
+     $         0.45d0, -1.8d0,  7.0d0,  3.4d0, -3.0d0,
+     $          4.3d0, -7.1d0,  2.2d0,  7.8d0, -2.3d0/),
+     $         (/5,5,ne/))
+
+          dx = 0.1d0
+          dy = 0.2d0
+
+          gradient_test = [-65.76093065d0,65.76093065d0,-197.282792d0,-65.76093065d0]
+          
+          gradient = p_model%compute_n_gradient(nodes,3,3,gradient_n1_xI_yI,dx,dy)
+
+          test_validated = is_vector_validated(
+     $         gradient,
+     $         gradient_test,
+     $         detailled)
+
+        end function test_compute_n_gradient
 
       end program test_dim2d_eq
