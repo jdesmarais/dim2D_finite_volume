@@ -422,7 +422,7 @@
 
         !get the intermediate variables when computing the LODI
         !inflow components
-        subroutine get_lodi_inflow_intermediate_variables(
+        subroutine get_LODI_inflow_intermediate_variables(
      $     t, nodes, x, y, side,
      $     p_model,
      $     ix_in, ix_out, sign_out,
@@ -469,7 +469,7 @@
           u = nodes(2)/nodes(1)
           v = nodes(3)/nodes(1)
 
-        end subroutine get_lodi_inflow_intermediate_variables
+        end subroutine get_LODI_inflow_intermediate_variables
 
 
         !computation of the LODI inflow components
