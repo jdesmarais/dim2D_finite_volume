@@ -70,6 +70,17 @@ $(dim2d_ic)/steady_state/ic_class.o:\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
+$(dim2d_ic)/drop_collision/ic_class.o:\
+			$(dim2d_ic)/dim2d_dropbubble_module.o\
+			$(dim2d_dir)/dim2d_parameters.o\
+			$(dim2d_ic)/dim2d_vortex_module.o\
+			$(dim2d_dir)/dim2d_state_eq_module.o\
+			$(phy_eq_dir)/ic_abstract_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+
 #common subroutines for the initial conditions
 $(dim2d_ic)/dim2d_dropbubble_module.o:\
 			$(dim2d_dir)/dim2d_parameters.o\

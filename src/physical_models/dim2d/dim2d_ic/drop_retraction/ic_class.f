@@ -332,10 +332,10 @@
           select case(phase_at_center)
 
             case(liquid)
-               mass = get_mass_density_liquid(T0)
+               mass = get_mass_density_vapor(T0)
 
             case(vapor)
-               mass = get_mass_density_vapor(T0)
+               mass = get_mass_density_liquid(T0)
 
             case default
                print '(''dim2d_ic/drop_retraction/ic_class'')'
@@ -392,14 +392,14 @@
             select case(phase_at_center)
 
               case(liquid)
-                 mass = get_mass_density_liquid(T0)
+                 mass = get_mass_density_vapor(T0)
                  
               case(vapor)
-                 mass = get_mass_density_vapor(T0)
+                 mass = get_mass_density_liquid(T0)
                  
               case default
                  print '(''dim2d_ic/drop_retraction/ic_class'')'
-                 print '(''get_P_out'')'
+                 print '(''get_far_field'')'
                  print '(''phase_at_center: '',I2)', phase_at_center
                  print '(''case not recognized'')'
                  stop ''

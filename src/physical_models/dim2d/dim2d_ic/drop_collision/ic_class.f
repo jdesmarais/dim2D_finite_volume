@@ -1,7 +1,7 @@
       !> @file
       !> class encapsulating subroutines to compute the initial
       !> conditions and the conditions enforced at the edge of
-      !> the computational domain for steady state
+      !> the computational domain for drop collision
       !
       !> @author 
       !> Julien L. Desmarais
@@ -9,24 +9,34 @@
       !> @brief
       !> class encapsulating subroutines to compute the initial
       !> conditions and the conditions enforced at the edge of
-      !> the computational domain for steady state
+      !> the computational domain for drop collision
       !
       !> @date
       !> 11_12_2014 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module ic_class
        
+        use dim2d_dropbubble_module, only :
+     $       mass_density_ellipsoid,
+     $       total_energy_ellipsoid
+
         use dim2d_parameters, only :
      $       cv_r
 
-        use dim2d_prim_module, only :
-     $       speed_of_sound
+        use dim2d_vortex_module, only :
+     $       get_vortex_velocity
 
         use dim2d_state_eq_module, only :
-     $       get_mass_density_liquid
+     $       get_mass_density_liquid,
+     $       get_mass_density_vapor,
+     $       get_interface_length
 
         use ic_abstract_class, only :
      $       ic_abstract
+
+        use parameters_constant, only :
+     $       liquid,
+     $       vapor
 
         use parameters_input, only :
      $       nx,
@@ -44,11 +54,13 @@
         public :: ic
 
         
-        !set the initial temperature in the field
-        real(rkind), parameter :: T0 = 0.99d0
-        real(rkind), parameter :: u0_flow = 0.5d0*SQRT(2.0d0)
-        real(rkind), parameter :: v0_flow = 0.5d0*SQRT(2.0d0)
+        !< choose the phase at the domain center:
+        !> is it a droplet of liquid in a vapor medium ? -> vapor
+        !> is it a bubble  of vapor in a liquid medium ? -> liquid
+        integer, parameter :: phase_at_center = liquid
 
+        !<set the initial temperature in the field
+        real(rkind), parameter :: T0 = 0.995d0
 
 
         !> @class ic
@@ -127,22 +139,66 @@
           real(rkind), dimension(:)    , intent(in)    :: y_map          
 
           
-          !local variables
-          real(rkind), dimension(ne) :: cst_nodes
-          real(rkind)                :: t,x,y
-          integer(ikind)             :: i,j
-          integer                    :: k
+          !< local variables for the droplet/bubble
+          real(rkind)    :: xc,yc,a,b
+          real(rkind)    :: dliq,dvap,li
+
+
+          !< local variables for the initialization
+          integer(ikind)            :: i,j
+          real(rkind)               :: x,y
+          real(rkind), dimension(2) :: velocity
+          real(rkind)               :: period,amp
+
           
-          x = x_map(1)
-          y = y_map(1)
+          !<set the center of the droplet
+          xc=-0.5
+          yc=0.
 
-          cst_nodes = get_far_field(t,x,y)
+          !<set the vortex properties
+          period= 6.0
+          amp   = 0.05
 
-          do k=1,ne
-             do j=1, size(nodes,2)
-                do i=1, size(nodes,1)
-                   nodes(i,j,k) = cst_nodes(k)
-                end do
+          !<get the mass densities corresponding to the
+          !>liquid and vapor phases for the initial
+          !>temperature field
+          dliq = get_mass_density_liquid(T0)
+          dvap = get_mass_density_vapor(T0)
+
+          !<get the interface length corresponding
+          !>to the initial temperature field
+          li = get_interface_length(T0)
+
+          !<set the major and minor axes of the bubble ellipse
+          a=2.8d0*li
+          b=a
+
+
+          !<initialize the fields
+          do j=1, ny
+             !DEC$ IVDEP
+             do i=1, nx
+
+                x = x_map(i)
+                y = y_map(j)
+
+                nodes(i,j,1)=mass_density_ellipsoid(
+     $               x,y,xc,yc,a,b,li,dliq,dvap,phase_at_center)                
+                
+                velocity = get_divergence_free_sinusoidal_velocity(
+     $               x,y,amp,period)
+
+                nodes(i,j,2)=
+     $               nodes(i,j,1)*velocity(1)
+                nodes(i,j,3)=
+     $               nodes(i,j,1)*velocity(2)
+                
+                nodes(i,j,4)=total_energy_ellipsoid(
+     $               x,y,xc,yc,a,b,li,dliq,dvap,
+     $               nodes(i,j,1),T0)+
+     $               0.5d0*(nodes(i,j,2)**2+
+     $               nodes(i,j,3)**2)/nodes(i,j,1)
+
              end do
           end do
 
@@ -159,13 +215,10 @@
           real(rkind)         :: var
 
           logical     :: side_s
-          real(rkind) :: c
 
           side_s = side
 
-          c = speed_of_sound_liquid()
-
-          var = u0_flow/c
+          var = 0.0d0
 
         end function get_mach_ux_infty
 
@@ -180,13 +233,10 @@
           real(rkind)         :: var
 
           logical :: side_s
-          real(rkind) :: c
 
           side_s = side
 
-          c = speed_of_sound_liquid()
-
-          var = v0_flow/c
+          var = 0.0d0
 
         end function get_mach_uy_infty
 
@@ -208,7 +258,7 @@
           x_s = x
           y_s = y
 
-          var = u0_flow
+          var = 0.0d0
 
         end function get_u_in
 
@@ -231,7 +281,7 @@
           x_s = x
           y_s = y
 
-          var = v0_flow
+          var = 0.0d0
 
         end function get_v_in
 
@@ -278,7 +328,22 @@
           x_s = x
           y_s = y
 
-          mass = get_mass_density_liquid(T0)
+          select case(phase_at_center)
+
+            case(liquid)
+               mass = get_mass_density_vapor(T0)
+
+            case(vapor)
+               mass = get_mass_density_liquid(T0)
+
+            case default
+               print '(''dim2d/dim2d_ic/drop_collision/ic_class'')'
+               print '(''get_P_out'')'
+               print '(''phase_at_center: '',I2)', phase_at_center
+               print '(''phase at center not recognized'')'
+               stop ''
+
+          end select
 
           if(rkind.eq.8) then
              var = 8.0d0*mass*T0/(3.0d0-mass) - 3.0d0*mass**2
@@ -321,46 +386,107 @@
 
 
           real(rkind) :: t_s,x_s,y_s
-          real(rkind) :: d_liq
+          real(rkind) :: mass
           
           t_s = t
           x_s = x
           y_s = y
 
 
-          d_liq = get_mass_density_liquid(T0)
+          select case(phase_at_center)
+
+            case(liquid)
+               mass = get_mass_density_vapor(T0)
+
+            case(vapor)
+               mass = get_mass_density_liquid(T0)
+
+            case default
+               print '(''dim2d/dim2d_ic/drop_collision/ic_class'')'
+               print '(''get_far_field'')'
+               print '(''phase_at_center: '',I2)', phase_at_center
+               print '(''phase at center not recognized'')'
+               stop ''
+
+          end select
+
 
           if(rkind.eq.8) then
 
-             var(1) = d_liq
-             var(2) = d_liq*u0_flow
-             var(3) = d_liq*v0_flow
-             var(4) = 0.5d0*d_liq*((u0_flow)**2 + (v0_flow)**2) + d_liq*(8.0d0/3.0d0*cv_r*T0-3.0d0*d_liq)
+             var(1) = mass
+             var(2) = 0.0d0
+             var(3) = 0.0d0
+             var(4) = mass*(8.0d0/3.0d0*cv_r*T0-3.0d0*mass)
 
           else
 
-             var(1) = d_liq
-             var(2) = d_liq*u0_flow
-             var(3) = d_liq*v0_flow
-             var(4) = 0.5*d_liq*((u0_flow)**2 + (v0_flow)**2) + d_liq*(8.0/3.0*cv_r*T0-3.0*d_liq)
+             var(1) = mass
+             var(2) = 0.0
+             var(3) = 0.0
+             var(4) = mass*(8.0/3.0*cv_r*T0-3.0*mass)
 
           end if
 
         end function get_far_field
 
 
-        function speed_of_sound_liquid() result(c)
-
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the initial velocity
+        !> field for drop collision
+        !> \f{eqnarray*}{
+        !> u_x     &=& - \sin \left( \frac{ 2\pi(x+y)}{T} \right)
+        !>             - \sin \left( \frac{ 2\pi(x-y)}{T} \right) \\\
+        !> u_y     &=&   \sin \left( \frac{ 2\pi(x+y)}{T} \right)
+        !>             - \sin \left( \frac{ 2\pi(x-y)}{T} \right) \\\
+        !> \f}
+        !
+        !> @date
+        !> 30_10_2013 - initial version - J.L. Desmarais
+        !
+        !>@param amp:A
+        !> amplitude of the sinusoidal velocity field
+        !>
+        !>@param period:T
+        !> period of the sinusoidal velocity field
+        !---------------------------------------------------------------
+        function get_divergence_free_sinusoidal_velocity(
+     $     x,y,amp,period)
+     $     result(velocity)
+        
           implicit none
 
-          real(rkind), dimension(ne) :: nodes
-          real(rkind)                :: c
+          real(rkind), intent(in)   :: x
+          real(rkind), intent(in)   :: y
+          real(rkind), intent(in)   :: amp
+          real(rkind), intent(in)   :: period
+          real(rkind), dimension(2) :: velocity
 
-          real(rkind) :: t,x,y
+          real(rkind) :: pi
 
-          nodes = get_far_field(t,x,y)
-          c = speed_of_sound(nodes)
+          if(rkind.eq.8) then
+             pi = acos(-1.0d0)
 
-        end function speed_of_sound_liquid
+             velocity(1)=-sin((x+y)*2.0d0*pi/period)
+     $                   -sin((x-y)*2.0d0*pi/period)
+             velocity(2)= sin((x+y)*2.0d0*pi/period)
+     $                   -sin((x-y)*2.0d0*pi/period)
+             
+          else             
+             pi = acos(-1.0)
+
+             velocity(1)=-sin((x+y)*2.0*pi/period)
+     $                   -sin((x-y)*2.0*pi/period)
+             velocity(2)= sin((x+y)*2.0*pi/period)
+     $                   -sin((x-y)*2.0*pi/period)
+
+          end if
+
+          velocity(1)=amp*velocity(1)
+          velocity(2)=amp*velocity(2)
+ 
+        end function get_divergence_free_sinusoidal_velocity
 
       end module ic_class
