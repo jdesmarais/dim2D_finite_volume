@@ -44,7 +44,6 @@ ns2d_vic		= $(ns2d_ic)/vortex
 ns2d_sxic		= $(ns2d_ic)/sym_x
 ns2d_syic		= $(ns2d_ic)/sym_y
 
-
 hobc_dir                = $(obc_dir)/hedstrom_xy
 hcobc_dir               = $(obc_dir)/hedstrom_xy_corners
 hrobc_dir		= $(obc_dir)/hedstrom_x_reflection_y
