@@ -17,10 +17,11 @@
       module ic_class
        
         use ns2d_parameters, only :
-     $     gamma, mach_infty
+     $       gamma,
+     $       mach_infty
 
         use ic_abstract_class, only :
-     $     ic_abstract
+     $       ic_abstract
 
         use parameters_constant, only :
      $       x_direction,
