@@ -1168,7 +1168,7 @@
 
           implicit none
 
-          real(rkind)   , dimension(nx) , intent(in) :: interior_y_map
+          real(rkind)   , dimension(ny) , intent(in) :: interior_y_map
           integer(ikind), dimension(2,2), intent(in) :: gen_coords
           real(rkind)   , dimension(2*(bc_size+1)+1) :: tmp_y_map
 

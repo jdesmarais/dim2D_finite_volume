@@ -22,17 +22,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -1.0000000000d0
-        real(rkind), parameter :: x_max = 1.0000000000d0
+        real(rkind), parameter :: x_min = -1.5000000000d0
+        real(rkind), parameter :: x_max = 1.5000000000d0
         real(rkind), parameter :: y_min = -1.0000000000d0
-        real(rkind), parameter :: y_max = 1.0000000000d0
+        real(rkind), parameter :: y_max = 1.5000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 0.7790000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0001000000d0
+        real(rkind), parameter :: t_max = 4000.0000000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0025000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 1.0000000000d0
+        real(rkind), parameter :: detail_print = 0.0002000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -42,8 +42,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 5
-        integer(ikind), parameter :: nty = 5
+        integer(ikind), parameter :: ntx = 304
+        integer(ikind), parameter :: nty = 254
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -84,7 +84,7 @@
         !phase_separation   : unstable mass density
         !--------------------------------------------
         integer, parameter :: flow_direction = x_direction
-        integer, parameter :: ic_choice = vortex
+        integer, parameter :: ic_choice = bubble_ascending
 
         !<body forces choice
         integer, parameter :: gravity_choice = earth_gravity_choice
@@ -110,7 +110,7 @@
         !              applying the non-reflecting outflow
         !              pressure b.c.
         !--------------------------------------------
-        real(rkind), parameter :: search_nb_dt = 0.0001000000d0 !0.0500000000d0 !1.0 !0.0001000000d0
+        real(rkind), parameter :: search_nb_dt = 0.0025000000d0 !0.0500000000d0 !1.0 !0.0001000000d0
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
         integer    , parameter :: obc_type_N = always_outflow

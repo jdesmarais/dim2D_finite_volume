@@ -28,15 +28,15 @@ t_max = 4000
 !npy     : integer : number of tiles in the y-direction
 !---------------------------------------------------------
 dx = 0.01
-x_min = 0.0
+x_min =-1.5
 x_max = 1.5
 
 dy = 0.01
 y_min = -1
 y_max = 1.5
 
-npx = 2
-npy = 2
+npx = 1
+npy = 1
 
 
 !4.	Physical model

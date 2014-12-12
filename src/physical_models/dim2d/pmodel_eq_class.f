@@ -1731,24 +1731,49 @@
 
           if(rkind.eq.8) then
 
-             leftEigenMPrim = reshape((/
-     $            0.0d0, 0.0d0, 1.0d0, 0.0d0,
-     $            1.0d0, 0.0d0, 0.0d0, -1.d0/c**2,
-     $            0.0d0, -q_c , 0.0d0, 0.5d0,
-     $            0.0d0,  q_c , 0.0d0, 0.5d0/),
-     $            (/ne,ne/))
+             leftEigenMPrim(1,1) = 0.0d0
+             leftEigenMPrim(2,1) = 0.0d0
+             leftEigenMPrim(3,1) = 1.0d0
+             leftEigenMPrim(4,1) = 0.0d0
+
+             leftEigenMPrim(1,2) = 1.0d0
+             leftEigenMPrim(2,2) = 0.0d0
+             leftEigenMPrim(3,2) = 0.0d0
+             leftEigenMPrim(4,2) =-1.0d0/c**2
+
+             leftEigenMPrim(1,3) = 0.0d0
+             leftEigenMPrim(2,3) =-q_c
+             leftEigenMPrim(3,3) = 0.0d0
+             leftEigenMPrim(4,3) = 0.5d0
+
+             leftEigenMPrim(1,4) = 0.0d0
+             leftEigenMPrim(2,4) = q_c
+             leftEigenMPrim(3,4) = 0.0d0
+             leftEigenMPrim(4,4) = 0.5d0
 
           else
 
-             leftEigenMPrim = reshape((/
-     $            0.0, 0.0, 1.0, 0.0,
-     $            1.0, 0.0, 0.0, -1./c**2,
-     $            0.0, -q_c , 0.0, 0.5,
-     $            0.0,  q_c , 0.0, 0.5/),
-     $            (/ne,ne/))
+             leftEigenMPrim(1,1) = 0.0
+             leftEigenMPrim(2,1) = 0.0
+             leftEigenMPrim(3,1) = 1.0
+             leftEigenMPrim(4,1) = 0.0
+
+             leftEigenMPrim(1,2) = 1.0
+             leftEigenMPrim(2,2) = 0.0
+             leftEigenMPrim(3,2) = 0.0
+             leftEigenMPrim(4,2) =-1.0/c**2
+
+             leftEigenMPrim(1,3) = 0.0
+             leftEigenMPrim(2,3) =-q_c
+             leftEigenMPrim(3,3) = 0.0
+             leftEigenMPrim(4,3) = 0.5
+
+             leftEigenMPrim(1,4) = 0.0
+             leftEigenMPrim(2,4) = q_c
+             leftEigenMPrim(3,4) = 0.0
+             leftEigenMPrim(4,4) = 0.5
 
           end if
-
 
           !compute the left eigenmatrix by L = L_p.J
           eigenvect = MATMUL(jacPrimCons,leftEigenMPrim)
@@ -1800,21 +1825,47 @@
 
           if(rkind.eq.8) then
 
-             rightEigenMPrim = reshape((/
-     $            0.0d0, 1.0d0,  inv_c  , inv_c,
-     $            0.0d0, 0.0d0, -inv_q_c, inv_q_c,
-     $            1.0d0, 0.0d0,  0.0d0  , 0.0d0,
-     $            0.0d0, 0.0d0,  1.0d0  , 1.0d0/),
-     $            (/ne,ne/))
+             rightEigenMPrim(1,1) = 0.0d0
+             rightEigenMPrim(2,1) = 1.0d0
+             rightEigenMPrim(3,1) = inv_c
+             rightEigenMPrim(4,1) = inv_c
+             
+             rightEigenMPrim(1,2) = 0.0d0
+             rightEigenMPrim(2,2) = 0.0d0
+             rightEigenMPrim(3,2) =-inv_q_c
+             rightEigenMPrim(4,2) = inv_q_c
+
+             rightEigenMPrim(1,3) = 1.0d0
+             rightEigenMPrim(2,3) = 0.0d0
+             rightEigenMPrim(3,3) = 0.0d0
+             rightEigenMPrim(4,3) = 0.0d0
+
+             rightEigenMPrim(1,4) = 0.0d0
+             rightEigenMPrim(2,4) = 0.0d0
+             rightEigenMPrim(3,4) = 1.0d0
+             rightEigenMPrim(4,4) = 1.0d0
 
           else
 
-             rightEigenMPrim = reshape((/
-     $            0.0, 1.0,  inv_c  , inv_c,
-     $            0.0, 0.0, -inv_q_c, inv_q_c,
-     $            1.0, 0.0,  0.0    , 0.0,
-     $            0.0, 0.0,  1.0    , 1.0/),
-     $            (/ne,ne/))
+             rightEigenMPrim(1,1) = 0.0
+             rightEigenMPrim(2,1) = 1.0
+             rightEigenMPrim(3,1) = inv_c
+             rightEigenMPrim(4,1) = inv_c
+             
+             rightEigenMPrim(1,2) = 0.0
+             rightEigenMPrim(2,2) = 0.0
+             rightEigenMPrim(3,2) =-inv_q_c
+             rightEigenMPrim(4,2) = inv_q_c
+
+             rightEigenMPrim(1,3) = 1.0
+             rightEigenMPrim(2,3) = 0.0
+             rightEigenMPrim(3,3) = 0.0
+             rightEigenMPrim(4,3) = 0.0
+
+             rightEigenMPrim(1,4) = 0.0
+             rightEigenMPrim(2,4) = 0.0
+             rightEigenMPrim(3,4) = 1.0
+             rightEigenMPrim(4,4) = 1.0
 
           end if
 
@@ -1864,21 +1915,47 @@
 
           if(rkind.eq.8) then
 
-             leftEigenMPrim = reshape((/
-     $            0.0d0, 1.0d0, 0.0d0            , 0.0d0,
-     $            1.0d0, 0.0d0, 0.0d0            , -1.0d0/c**2,
-     $            0.0d0, 0.0d0, -0.5d0*nodes(1)*c, 0.5d0,
-     $            0.0d0, 0.0d0,  0.5d0*nodes(1)*c, 0.5d0/),
-     $            (/ne,ne/))
+             leftEigenMPrim(1,1) = 0.0d0
+             leftEigenMPrim(2,1) = 1.0d0
+             leftEigenMPrim(3,1) = 0.0d0
+             leftEigenMPrim(4,1) = 0.0d0
+
+             leftEigenMPrim(1,2) = 1.0d0
+             leftEigenMPrim(2,2) = 0.0d0
+             leftEigenMPrim(3,2) = 0.0d0
+             leftEigenMPrim(4,2) =-1.0d0/c**2
+
+             leftEigenMPrim(1,3) = 0.0d0
+             leftEigenMPrim(2,3) = 0.0d0
+             leftEigenMPrim(3,3) =-0.5d0*nodes(1)*c
+             leftEigenMPrim(4,3) = 0.5d0
+
+             leftEigenMPrim(1,4) = 0.0d0
+             leftEigenMPrim(2,4) = 0.0d0
+             leftEigenMPrim(3,4) = 0.5d0*nodes(1)*c
+             leftEigenMPrim(4,4) = 0.5d0
 
           else
 
-             leftEigenMPrim = reshape((/
-     $            0.0d0, 1.0d0, 0.0d0            , 0.0d0,
-     $            1.0d0, 0.0d0, 0.0d0            , -1.0d0/c**2,
-     $            0.0d0, 0.0d0, -0.5d0*nodes(1)*c, 0.5d0,
-     $            0.0d0, 0.0d0,  0.5d0*nodes(1)*c, 0.5d0/),
-     $            (/ne,ne/))
+             leftEigenMPrim(1,1) = 0.0
+             leftEigenMPrim(2,1) = 1.0
+             leftEigenMPrim(3,1) = 0.0
+             leftEigenMPrim(4,1) = 0.0
+
+             leftEigenMPrim(1,2) = 1.0
+             leftEigenMPrim(2,2) = 0.0
+             leftEigenMPrim(3,2) = 0.0
+             leftEigenMPrim(4,2) =-1.0/c**2
+
+             leftEigenMPrim(1,3) = 0.0
+             leftEigenMPrim(2,3) = 0.0
+             leftEigenMPrim(3,3) =-0.5*nodes(1)*c
+             leftEigenMPrim(4,3) = 0.5
+
+             leftEigenMPrim(1,4) = 0.0
+             leftEigenMPrim(2,4) = 0.0
+             leftEigenMPrim(3,4) = 0.5*nodes(1)*c
+             leftEigenMPrim(4,4) = 0.5
 
           end if
 
@@ -1931,21 +2008,47 @@
 
           if(rkind.eq.8) then
 
-             rightEigenMPrim = reshape((/
-     $            0.0d0, 1.0d0, 1.0d0/c**2, 1.0d0/c**2,
-     $            1.0d0, 0.0d0, 0.0d0     , 0.0d0,
-     $            0.0d0, 0.0d0,-inv_q_c   , inv_q_c,
-     $            0.0d0, 0.0d0, 1.0d0     , 1.0d0/),
-     $            (/ne,ne/))
+             rightEigenMPrim(1,1) = 0.0d0
+             rightEigenMPrim(2,1) = 1.0d0
+             rightEigenMPrim(3,1) = 1.0d0/c**2
+             rightEigenMPrim(4,1) = 1.0d0/c**2
+
+             rightEigenMPrim(1,2) = 1.0d0
+             rightEigenMPrim(2,2) = 0.0d0
+             rightEigenMPrim(3,2) = 0.0d0
+             rightEigenMPrim(4,2) = 0.0d0
+
+             rightEigenMPrim(1,3) = 0.0d0
+             rightEigenMPrim(2,3) = 0.0d0
+             rightEigenMPrim(3,3) =-inv_q_c
+             rightEigenMPrim(4,3) = inv_q_c
+
+             rightEigenMPrim(1,4) = 0.0d0
+             rightEigenMPrim(2,4) = 0.0d0
+             rightEigenMPrim(3,4) = 1.0d0
+             rightEigenMPrim(4,4) = 1.0d0
 
           else
 
-             rightEigenMPrim = reshape((/
-     $            0.0d0, 1.0d0, 1.0d0/c**2, 1.0d0/c**2,
-     $            1.0d0, 0.0d0, 0.0d0     , 0.0d0,
-     $            0.0d0, 0.0d0,-inv_q_c   , inv_q_c,
-     $            0.0d0, 0.0d0, 1.0d0     , 1.0d0/),
-     $            (/ne,ne/))
+             rightEigenMPrim(1,1) = 0.0
+             rightEigenMPrim(2,1) = 1.0
+             rightEigenMPrim(3,1) = 1.0/c**2
+             rightEigenMPrim(4,1) = 1.0/c**2
+
+             rightEigenMPrim(1,2) = 1.0
+             rightEigenMPrim(2,2) = 0.0
+             rightEigenMPrim(3,2) = 0.0
+             rightEigenMPrim(4,2) = 0.0
+
+             rightEigenMPrim(1,3) = 0.0
+             rightEigenMPrim(2,3) = 0.0
+             rightEigenMPrim(3,3) =-inv_q_c
+             rightEigenMPrim(4,3) = inv_q_c
+
+             rightEigenMPrim(1,4) = 0.0
+             rightEigenMPrim(2,4) = 0.0
+             rightEigenMPrim(3,4) = 1.0
+             rightEigenMPrim(4,4) = 1.0
 
           end if
 
@@ -2010,21 +2113,47 @@
 
           if(rkind.eq.8) then
 
-             xTransMPrim = reshape((/
-     $            uy   , 0.0d0, nodes(1)     , 0.0d0,
-     $            0.0d0, uy   , 0.0d0        , 0.0d0,
-     $            0.0d0, 0.0d0, uy           , 1.0d0/nodes(1),
-     $            0.0d0, 0.0d0, c**2*nodes(1), uy/),
-     $            (/ne,ne/))
+             xTransMPrim(1,1) = uy
+             xTransMPrim(2,1) = 0.0d0
+             xTransMPrim(3,1) = nodes(1)
+             xTransMPrim(4,1) = 0.0d0
+
+             xTransMPrim(1,2) = 0.0d0
+             xTransMPrim(2,2) = uy
+             xTransMPrim(3,2) = 0.0d0
+             xTransMPrim(4,2) = 0.0d0
+
+             xTransMPrim(1,3) = 0.0d0
+             xTransMPrim(2,3) = 0.0d0
+             xTransMPrim(3,3) = uy
+             xTransMPrim(4,3) = 1.0d0/nodes(1)
+
+             xTransMPrim(1,4) = 0.0d0
+             xTransMPrim(2,4) = 0.0d0
+             xTransMPrim(3,4) = c**2*nodes(1)
+             xTransMPrim(4,4) = uy
 
           else
              
-             xTransMPrim = reshape((/
-     $            uy , 0.0, nodes(1)     , 0.0,
-     $            0.0, uy , 0.0          , 0.0,
-     $            0.0, 0.0, uy           , 1.0/nodes(1),
-     $            0.0, 0.0, c**2*nodes(1), uy/),
-     $            (/ne,ne/))
+             xTransMPrim(1,1) = uy
+             xTransMPrim(2,1) = 0.0
+             xTransMPrim(3,1) = nodes(1)
+             xTransMPrim(4,1) = 0.0
+
+             xTransMPrim(1,2) = 0.0
+             xTransMPrim(2,2) = uy
+             xTransMPrim(3,2) = 0.0
+             xTransMPrim(4,2) = 0.0
+
+             xTransMPrim(1,3) = 0.0
+             xTransMPrim(2,3) = 0.0
+             xTransMPrim(3,3) = uy
+             xTransMPrim(4,3) = 1.0/nodes(1)
+
+             xTransMPrim(1,4) = 0.0
+             xTransMPrim(2,4) = 0.0
+             xTransMPrim(3,4) = c**2*nodes(1)
+             xTransMPrim(4,4) = uy
 
           end if
 
@@ -2089,21 +2218,47 @@
 
           if(rkind.eq.8) then
              
-             yTransMPrim = reshape((/
-     $            ux   , nodes(1)     , 0.0d0, 0.0d0         ,
-     $            0.0d0, ux           , 0.0d0, 1.0d0/nodes(1),
-     $            0.0d0, 0.0d0        , ux   , 0.0d0         ,
-     $            0.0d0, c**2*nodes(1), 0.0d0, ux            /),
-     $            (/ne,ne/))
+             yTransMPrim(1,1) = ux
+             yTransMPrim(2,1) = nodes(1)
+             yTransMPrim(3,1) = 0.0d0
+             yTransMPrim(4,1) = 0.0d0
+
+             yTransMPrim(1,2) = 0.0d0
+             yTransMPrim(2,2) = ux
+             yTransMPrim(3,2) = 0.0d0
+             yTransMPrim(4,2) = 1.0d0/nodes(1)
+
+             yTransMPrim(1,3) = 0.0d0
+             yTransMPrim(2,3) = 0.0d0
+             yTransMPrim(3,3) = ux
+             yTransMPrim(4,3) = 0.0d0
+
+             yTransMPrim(1,4) = 0.0d0
+             yTransMPrim(2,4) = c**2*nodes(1)
+             yTransMPrim(3,4) = 0.0d0
+             yTransMPrim(4,4) = ux
 
           else
              
-             yTransMPrim = reshape((/
-     $            ux , nodes(1)     , 0.0, 0.0         ,
-     $            0.0, ux           , 0.0, 1.0/nodes(1),
-     $            0.0, 0.0          , ux , 0.0         ,
-     $            0.0, c**2*nodes(1), 0.0, ux          /),
-     $            (/ne,ne/))
+             yTransMPrim(1,1) = ux
+             yTransMPrim(2,1) = nodes(1)
+             yTransMPrim(3,1) = 0.0
+             yTransMPrim(4,1) = 0.0
+
+             yTransMPrim(1,2) = 0.0
+             yTransMPrim(2,2) = ux
+             yTransMPrim(3,2) = 0.0
+             yTransMPrim(4,2) = 1.0/nodes(1)
+
+             yTransMPrim(1,3) = 0.0
+             yTransMPrim(2,3) = 0.0
+             yTransMPrim(3,3) = ux
+             yTransMPrim(4,3) = 0.0
+
+             yTransMPrim(1,4) = 0.0
+             yTransMPrim(2,4) = c**2*nodes(1)
+             yTransMPrim(3,4) = 0.0
+             yTransMPrim(4,4) = ux
 
           end if
 
@@ -2156,21 +2311,47 @@
 
           if(rkind.eq.8) then
 
-             leftLodiM = reshape((/
-     $            0.0d0,  0.0d0, 1.0d0,  0.0d0,
-     $            c**2 ,  0.0d0, 0.0d0, -1.0d0,
-     $            0.0d0, -q_c  , 0.0d0,  1.0d0,
-     $            0.0d0,  q_c  , 0.0d0,  1.0d0/),
-     $            (/ne,ne/))
+             leftLodiM(1,1) = 0.0d0
+             leftLodiM(2,1) = 0.0d0
+             leftLodiM(3,1) = 1.0d0
+             leftLodiM(4,1) = 0.0d0
+
+             leftLodiM(1,2) = c**2
+             leftLodiM(2,2) = 0.0d0
+             leftLodiM(3,2) = 0.0d0
+             leftLodiM(4,2) =-1.0d0
+
+             leftLodiM(1,3) = 0.0d0
+             leftLodiM(2,3) =-q_c
+             leftLodiM(3,3) = 0.0d0
+             leftLodiM(4,3) = 1.0d0
+
+             leftLodiM(1,4) = 0.0d0
+             leftLodiM(2,4) = q_c
+             leftLodiM(3,4) = 0.0d0
+             leftLodiM(4,4) = 1.0d0
 
           else
              
-             leftLodiM = reshape((/
-     $            0.0,  0.0, 1.0,  0.0,
-     $            c**2 ,0.0, 0.0, -1.0,
-     $            0.0, -q_c, 0.0,  1.0,
-     $            0.0,  q_c, 0.0,  1.0/),
-     $            (/ne,ne/))
+             leftLodiM(1,1) = 0.0
+             leftLodiM(2,1) = 0.0
+             leftLodiM(3,1) = 1.0
+             leftLodiM(4,1) = 0.0
+
+             leftLodiM(1,2) = c**2
+             leftLodiM(2,2) = 0.0
+             leftLodiM(3,2) = 0.0
+             leftLodiM(4,2) =-1.0
+
+             leftLodiM(1,3) = 0.0
+             leftLodiM(2,3) =-q_c
+             leftLodiM(3,3) = 0.0
+             leftLodiM(4,3) = 1.0
+
+             leftLodiM(1,4) = 0.0
+             leftLodiM(2,4) = q_c
+             leftLodiM(3,4) = 0.0
+             leftLodiM(4,4) = 1.0
 
           end if
 
@@ -2223,21 +2404,47 @@
 
           if(rkind.eq.8) then
 
-             leftLodiM = reshape((/
-     $            0.0d0,  1.0d0, 0.0d0,  0.0d0,
-     $            c**2 ,  0.0d0, 0.0d0, -1.0d0,
-     $            0.0d0,  0.0d0, -q_c ,  1.0d0,
-     $            0.0d0,  0.0d0,  q_c ,  1.0d0/),
-     $            (/ne,ne/))
+             leftLodiM(1,1) = 0.0d0
+             leftLodiM(2,1) = 1.0d0
+             leftLodiM(3,1) = 0.0d0
+             leftLodiM(4,1) = 0.0d0
+
+             leftLodiM(1,2) = c**2
+             leftLodiM(2,2) = 0.0d0
+             leftLodiM(3,2) = 0.0d0
+             leftLodiM(4,2) =-1.0d0
+
+             leftLodiM(1,3) = 0.0d0
+             leftLodiM(2,3) = 0.0d0
+             leftLodiM(3,3) =-q_c
+             leftLodiM(4,3) = 1.0d0
+
+             leftLodiM(1,4) = 0.0d0
+             leftLodiM(2,4) = 0.0d0
+             leftLodiM(3,4) = q_c
+             leftLodiM(4,4) = 1.0d0
 
           else
              
-             leftLodiM = reshape((/
-     $            0.0d0,  1.0d0, 0.0d0,  0.0d0,
-     $            c**2 ,  0.0d0, 0.0d0, -1.0d0,
-     $            0.0d0,  0.0d0, -q_c ,  1.0d0,
-     $            0.0d0,  0.0d0,  q_c ,  1.0d0/),
-     $            (/ne,ne/))
+             leftLodiM(1,1) = 0.0
+             leftLodiM(2,1) = 1.0
+             leftLodiM(3,1) = 0.0
+             leftLodiM(4,1) = 0.0
+
+             leftLodiM(1,2) = c**2
+             leftLodiM(2,2) = 0.0
+             leftLodiM(3,2) = 0.0
+             leftLodiM(4,2) =-1.0
+
+             leftLodiM(1,3) = 0.0
+             leftLodiM(2,3) = 0.0
+             leftLodiM(3,3) =-q_c
+             leftLodiM(4,3) = 1.0
+
+             leftLodiM(1,4) = 0.0
+             leftLodiM(2,4) = 0.0
+             leftLodiM(3,4) = q_c
+             leftLodiM(4,4) = 1.0
 
           end if
 

@@ -231,7 +231,7 @@
      $          flux_x_total_energy(
      $          nodes,s,i,j,dx,dy),
      $          test_data(22),
-     $          detailled)
+     $          .true.)
         call print_screen(global,local,detailled,
      $       'flux_x_total_energy')
 
