@@ -1,7 +1,7 @@
       !> @file
       !> class encapsulating the interfaces for the computation
       !> of the time derivatives from the LODI amplitudes in the
-      !> x and y directions for the NS equations
+      !> x and y directions
       !
       !> @author
       !> Julien L. Desmarais
@@ -9,12 +9,12 @@
       !> @brief
       !> class encapsulating the interfaces for the computation
       !> of the time derivatives from the LODI amplitudes in the
-      !> x and y directions for the NS equations
+      !> x and y directions
       !
       !> @date
       ! 13_08_2013 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      module lodi_ns2d_class
+      module lodi_class
 
         use interface_primary, only :
      $     gradient_x_proc,
@@ -22,10 +22,6 @@
 
         use lodi_abstract_class, only :
      $       lodi_abstract
-
-        use ns2d_prim_module, only :
-     $       compute_x_timedev_from_LODI_vector,
-     $       compute_y_timedev_from_LODI_vector
 
         use parameters_input, only :
      $       ne
@@ -40,7 +36,7 @@
         implicit none
 
         private
-        public :: lodi_ns2d
+        public :: lodi
 
 
         !>@class lodi_ns2d
@@ -48,14 +44,14 @@
         !> of the time derivatives from the LODI amplitudes in the
         !> x and y directions for the NS equations
         !---------------------------------------------------------------
-        type, abstract, extends(lodi_abstract) :: lodi_ns2d
+        type, abstract, extends(lodi_abstract) :: lodi
 
           contains
 
           procedure, pass :: compute_x_timedev
           procedure, pass :: compute_y_timedev
 
-        end type lodi_ns2d
+        end type lodi
 
 
         contains
@@ -109,7 +105,7 @@
 
           implicit none
           
-          class(lodi_ns2d)             , intent(in) :: this
+          class(lodi)                  , intent(in) :: this
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
           real(rkind), dimension(:,:,:), intent(in) :: nodes
@@ -134,7 +130,9 @@
 
           !compute the contribution of the hyperbolic terms along the
           !x-direction to the time derivatives of the conservative variables
-          timedev = compute_x_timedev_from_LODI_vector(nodes(i,j,:),lodi)
+          timedev = p_model%compute_x_timedev_from_LODI_vector(
+     $         nodes(i,j,:),
+     $         lodi)
 
         end function compute_x_timedev
 
@@ -187,7 +185,7 @@
 
           implicit none
           
-          class(lodi_ns2d)             , intent(in) :: this
+          class(lodi)                  , intent(in) :: this
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
           real(rkind), dimension(:,:,:), intent(in) :: nodes
@@ -209,9 +207,12 @@
      $         gradient)
           
           !compute the contribution of the hyperbolic terms along the
-          !x-direction to the time derivatives of the conservative variables
-          timedev = compute_y_timedev_from_LODI_vector(nodes(i,j,:),lodi)
+          !y-direction to the time derivatives of the conservative
+          !variables
+          timedev = p_model%compute_y_timedev_from_LODI_vector(
+     $         nodes(i,j,:),
+     $         lodi)
 
         end function compute_y_timedev
 
-      end module lodi_ns2d_class
+      end module lodi_class

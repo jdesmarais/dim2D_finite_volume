@@ -24,8 +24,8 @@
      $     gradient_x_proc,
      $     gradient_y_proc
         
-        use lodi_ns2d_class, only :
-     $       lodi_ns2d
+        use lodi_class, only :
+     $       lodi
 
         use ns2d_parameters, only :
      $       gamma
@@ -84,7 +84,7 @@
         !> compute the time derivative of the temperature of the inlet
         !> flow
         !---------------------------------------------------------------
-        type, extends(lodi_ns2d) :: lodi_inflow
+        type, extends(lodi) :: lodi_inflow
 
           character(len=19) :: title
 

@@ -28,8 +28,8 @@
      $       get_other_acoustic_component,
      $       get_sign_acoustic_component
 
-        use lodi_edge_ns2d_class, only :
-     $       lodi_edge_ns2d
+        use lodi_edge_class, only :
+     $       lodi_edge
 
         use lodi_relaxation_coeff_module, only :
      $       get_local_mach,
@@ -86,7 +86,7 @@
         !> compute the contribution to the time derivative of
         !> the LODI amplitudes in the y-direction
         !---------------------------------------------------------------
-        type, extends(lodi_edge_ns2d) :: lodi_edge_outflow
+        type, extends(lodi_edge) :: lodi_edge_outflow
 
           character(len=19) :: title
 

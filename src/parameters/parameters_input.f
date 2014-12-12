@@ -91,7 +91,7 @@
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = hedstrom_xy_corners_choice
+        integer, parameter :: bc_choice = hedstrom_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice

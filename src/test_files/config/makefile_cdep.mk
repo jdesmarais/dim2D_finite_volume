@@ -132,10 +132,10 @@ yoo_xy_dep=		$(bc_dep)\
 
 yoo_ns2d_dep=		$(yoo_xy_dep)\
 			lodi_relaxation_coeff_module.o\
-			lodi_edge_ns2d_class.o\
+			lodi_edge_class.o\
 			lodi_edge_inflow_class.o\
 			lodi_edge_outflow_class.o\
-			lodi_corner_ns2d_class.o\
+			lodi_corner_class.o\
 			lodi_corner_inflow_inflow_class.o\
 			lodi_corner_inflow_outflow_class.o\
 			lodi_corner_outflow_outflow_class.o

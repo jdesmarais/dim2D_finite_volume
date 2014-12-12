@@ -27,8 +27,8 @@
      $       get_other_acoustic_component,
      $       get_sign_acoustic_component
 
-        use lodi_corner_ns2d_class, only :
-     $       lodi_corner_ns2d
+        use lodi_corner_class, only :
+     $       lodi_corner
 
         use lodi_relaxation_coeff_module, only :
      $       get_relaxation_normal_velocity,
@@ -78,7 +78,7 @@
         !>@param compute_x_and_y_lodi
         !> compute the LODI amplitudes in the x-and y-directions
         !---------------------------------------------------------------
-        type, extends(lodi_corner_ns2d) :: lodi_corner_inflow_outflow
+        type, extends(lodi_corner) :: lodi_corner_inflow_outflow
 
           character(len=23) :: title
 

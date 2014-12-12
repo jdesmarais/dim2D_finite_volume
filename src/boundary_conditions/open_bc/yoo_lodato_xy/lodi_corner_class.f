@@ -14,7 +14,7 @@
       !> @date
       ! 08_09_2014 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      module lodi_corner_ns2d_class
+      module lodi_corner_class
 
         use interface_primary, only :
      $     gradient_x_proc,
@@ -22,9 +22,6 @@
 
         use lodi_corner_abstract_class, only :
      $       lodi_corner_abstract
-
-        use ns2d_prim_module, only :
-     $       compute_timedev_from_LODI_vectors
 
         use parameters_input, only :
      $       ne
@@ -39,7 +36,7 @@
         implicit none
 
         private
-        public :: lodi_corner_ns2d
+        public :: lodi_corner
 
 
         !>@class lodi_corner_ns2d
@@ -55,13 +52,13 @@
         !> compute the contributions to the time derivative of
         !> the LODI amplitudes in the x- and y- directions
         !---------------------------------------------------------------
-        type, abstract, extends(lodi_corner_abstract) :: lodi_corner_ns2d
+        type, abstract, extends(lodi_corner_abstract) :: lodi_corner
 
           contains
 
           procedure, pass :: compute_x_and_y_timedev
 
-        end type lodi_corner_ns2d
+        end type lodi_corner
 
 
         contains
@@ -131,7 +128,7 @@
 
           implicit none
           
-          class(lodi_corner_ns2d)      , intent(in) :: this
+          class(lodi_corner)           , intent(in) :: this
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
           real(rkind), dimension(:,:,:), intent(in) :: nodes
@@ -165,10 +162,10 @@
 
           !compute the contributions of the hyperbolic terms in
           !the x- and y- directions to the time derivatives
-          timedev = compute_timedev_from_LODI_vectors(
+          timedev = p_model%compute_timedev_from_LODI_vectors(
      $         nodes(i,j,:), lodi_x, lodi_y)
 
 
         end function compute_x_and_y_timedev
 
-      end module lodi_corner_ns2d_class
+      end module lodi_corner_class

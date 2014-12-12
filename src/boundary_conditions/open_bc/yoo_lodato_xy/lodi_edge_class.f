@@ -14,7 +14,7 @@
       !> @date
       ! 05_09_2014 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      module lodi_edge_ns2d_class
+      module lodi_edge_class
 
         use interface_primary, only :
      $     gradient_x_proc,
@@ -22,10 +22,6 @@
 
         use lodi_edge_abstract_class, only :
      $       lodi_edge_abstract
-
-        use ns2d_prim_module, only :
-     $       compute_x_timedev_from_LODI_vector,
-     $       compute_y_timedev_from_LODI_vector
 
         use parameters_input, only :
      $       ne
@@ -40,7 +36,7 @@
         implicit none
 
         private
-        public :: lodi_edge_ns2d
+        public :: lodi_edge
 
 
         !>@class lodi_edge_abstract
@@ -67,14 +63,14 @@
         !> compute the contribution to the time derivative of
         !> the LODI amplitudes in the y-direction
         !---------------------------------------------------------------
-        type, abstract, extends(lodi_edge_abstract) :: lodi_edge_ns2d
+        type, abstract, extends(lodi_edge_abstract) :: lodi_edge
 
           contains
 
           procedure, pass :: compute_x_timedev
           procedure, pass :: compute_y_timedev
 
-        end type lodi_edge_ns2d
+        end type lodi_edge
 
 
         contains
@@ -141,7 +137,7 @@
 
           implicit none
           
-          class(lodi_edge_ns2d)        , intent(in) :: this
+          class(lodi_edge)             , intent(in) :: this
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
           real(rkind), dimension(:,:,:), intent(in) :: nodes
@@ -171,7 +167,9 @@
           !compute the contribution of the hyperbolic terms along the
           !x-direction to the time derivatives of the conservative
           !variables
-          timedev = compute_x_timedev_from_LODI_vector(nodes(i,j,:),lodi)
+          timedev = p_model%compute_x_timedev_from_LODI_vector(
+     $         nodes(i,j,:),
+     $         lodi)
 
         end function compute_x_timedev
 
@@ -237,7 +235,7 @@
 
           implicit none
           
-          class(lodi_edge_ns2d)        , intent(in) :: this
+          class(lodi_edge)             , intent(in) :: this
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
           real(rkind), dimension(:,:,:), intent(in) :: nodes
@@ -267,8 +265,10 @@
           !compute the contribution of the hyperbolic terms along the
           !x-direction to the time derivatives of the conservative
           !variables
-          timedev = compute_y_timedev_from_LODI_vector(nodes(i,j,:),lodi)
+          timedev = p_model%compute_y_timedev_from_LODI_vector(
+     $         nodes(i,j,:),
+     $         lodi)
 
         end function compute_y_timedev
 
-      end module lodi_edge_ns2d_class
+      end module lodi_edge_class

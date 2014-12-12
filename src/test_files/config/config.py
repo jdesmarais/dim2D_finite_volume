@@ -181,7 +181,7 @@ def compute_code_inputs(inputFileName):
                     'vortex',
                     'sym_x',
                     'sym_y']
-    
+
     dim2d_ic_code= ['steady_state',
                     'drop_retraction',
                     'bubble_ascending',
@@ -256,12 +256,16 @@ def compute_code_inputs(inputFileName):
     #< compute the ic_choice
     if(pm_choice=='wave2d_choice'):
         ic_choice = wave2d_ic_code[int(inputs['ic_choice'])]
+
     elif(pm_choice=='ns2d_choice'):
         ic_choice = ns2d_ic_code[int(inputs['ic_choice'])]
+
     elif(pm_choice=='dim2d_choice'):
         ic_choice = dim2d_ic_code[int(inputs['ic_choice'])]
+
     else:
         ic_choice = ns2d_ic_code[0]
+
     
     #< compute the bc_choice    
     bc_choice = bc_code[int(inputs['bc_choice'])]
