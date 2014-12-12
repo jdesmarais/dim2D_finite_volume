@@ -1180,7 +1180,6 @@
         end function compute_flux_x_by_parts
 
 
-
         !> @author
         !> Julien L. Desmarais
         !
@@ -1340,6 +1339,29 @@
           y_s = y
 
         end function compute_body_forces
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the viscous constant
+        !
+        !> @date
+        !> 11_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@return viscous_coeff
+        !> viscous coefficient: 1/Re
+        !-------------------------------------------------------------
+        function get_viscous_coeff() result(viscous_coeff)
+
+          implicit none
+
+          real(rkind) :: viscous_coeff
+
+          viscous_coeff = epsilon
+
+        end function get_viscous_coeff
 
 
         !> @author
@@ -2163,29 +2185,6 @@
           eigenvect = left_cons_lodi_matrix_y(nodes)
 
         end function compute_y_leftConsLodiM
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> get the viscous constant
-        !
-        !> @date
-        !> 11_11_2014 - initial version - J.L. Desmarais
-        !
-        !>@return viscous_coeff
-        !> viscous coefficient: 1/Re
-        !-------------------------------------------------------------
-        function get_viscous_coeff() result(viscous_coeff)
-
-          implicit none
-
-          real(rkind) :: viscous_coeff
-
-          viscous_coeff = epsilon
-
-        end function get_viscous_coeff
 
 
         !> @author

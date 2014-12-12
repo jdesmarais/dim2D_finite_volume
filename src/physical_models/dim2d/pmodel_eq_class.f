@@ -36,7 +36,8 @@
         !diffuse interface model equations
         use dim2d_parameters, only :
      $       viscous_r, Re, We, Pr,
-     $       cv_r, gravity
+     $       cv_r, gravity,
+     $       epsilon, zeta
 
         use dim2d_prim_module, only :
      $       mass_density,
@@ -65,7 +66,25 @@
      $       flux_x_momentum_y,
      $       flux_y_momentum_y,
      $       flux_x_total_energy,
-     $       flux_y_total_energy
+     $       flux_y_total_energy,
+     $       flux_x_inviscid_momentum_x,
+     $       flux_y_inviscid_momentum_x,
+     $       flux_x_inviscid_momentum_y,
+     $       flux_y_inviscid_momentum_y,
+     $       flux_x_inviscid_total_energy,
+     $       flux_y_inviscid_total_energy,
+     $       flux_x_viscid_momentum_x,
+     $       flux_y_viscid_momentum_x,
+     $       flux_x_viscid_momentum_y,
+     $       flux_y_viscid_momentum_y,
+     $       flux_x_viscid_total_energy,
+     $       flux_y_viscid_total_energy,
+     $       flux_x_capillarity_momentum_x,
+     $       flux_y_capillarity_momentum_x,
+     $       flux_x_capillarity_momentum_y,
+     $       flux_y_capillarity_momentum_y,
+     $       flux_x_capillarity_total_energy,
+     $       flux_y_capillarity_total_energy
 
 
         !diffuse interface model initial conditions
@@ -111,61 +130,187 @@
         !> class encapsulating operators to compute
         !> the governing equations of the Diffuse Interface
         !> Model in 2D
-        !>
+        !
         !> @param get_model_name
         !> get the name of the physcial model
-        !>
+        !
         !> @param get_var_name
         !> get the name of the main variables
         !> (mass, momentum_x, momentum_y, total_energy)
-        !>
+        !
         !> @param get_var_longname
         !> get the description of the main variables for the
         !> governing equations of the physical model
-        !>
+        !
         !> @param get_var_unit
         !> get the units of the main variables
         !> (\f$ kg.m^{-3}, kg.m^{-2}.s^{-1},
         !> kg.m^{-2}.s^{-1}, J.kg.m^{-3}) \f$
-        !>
-        !> @param get_var_types
+        !
+        !> @param get_var_type
         !> get the type of the main variables
         !> (scalar, vector_x, vector_y, scalar)
-        !>
+        !
+        !> @param get_sim_parameters
+        !> get the simulation parameters specific to the DIM
+        !> such as Re,Pr,We...
+        !
         !> @param get_eq_nb
         !> get the number of governing equations: 4
-        !>
-        !> @param initialize
-        !> initialize the main parameters of the physical model
-        !> (viscosity ratio, Reynolds, Prandtl, Weber numbers and
-        !> reduced heat capacity)
-        !>
+        !
         !> @param apply_ic
         !> initialize the main variables of the governing equations
         !> considering the user choices (drop retraction, two drops
         !> collision...)
-        !>
+        !
+        !> @param get_mach_ux_infty
+        !> get the mach number based on the velocity in the x-direction
+        !> in the far field
+        !
+        !> @param get_mach_uy_infty
+        !> get the mach number based on the velocity in the y-direction
+        !> in the far field
+        !
+        !> @param get_u_in
+        !> get the velocity in the x-direction imposed in the far field
+        !
+        !> @param get_v_in
+        !> get the velocity in the y-direction imposed in the far field
+        !
+        !> @param get_T_in
+        !> get the temperature imposed in the far field
+        !
+        !> @param get_P_out
+        !> get the pressure imposed in the far field
+        !
         !> @param compute_flux_x
         !> compute the fluxes along the x-axis with fixed sized arrays
         !
         !> @param compute_flux_y
-        !> compute the fluxes along the y-axis with fixed sized arrays    
+        !> compute the fluxes along the y-axis with fixed sized arrays
         !
         !> @param compute_flux_x_nopt
-        !> compute the fluxes along the x-axis with non-fixed sized arrays
+        !> compute the fluxes along the x-axis with non-fixed sized
+        !> arrays
         !
         !> @param compute_flux_y_nopt
-        !> compute the fluxes along the y-axis with non-fixed sized arrays
+        !> compute the fluxes along the y-axis with non-fixed sized
+        !> arrays
+        !
+        !> @param compute_flux_x_oneside
+        !> compute the fluxes along the x-axis with non-fixed sized
+        !> arrays using oneside space discretization operators
+        !
+        !> @param compute_flux_y_oneside
+        !> compute the fluxes along the y-axis with non-fixed sized
+        !> arrays using oneside space discretization operators
+        !
+        !> @param compute_flux_x_by_parts
+        !> compute the fluxes along the x-axis with non-fixed sized
+        !> arrays by making distinction b\w the inviscid and the viscid
+        !> parts
+        !
+        !> @param compute_flux_y_by_parts
+        !> compute the fluxes along the y-axis with non-fixed sized
+        !> arrays by making distinction b\w the inviscid and the viscid
+        !> parts
         !
         !> @param compute_body_forces
         !> compute the body forces at a grid point location
         !
+        !> @param get_viscous_coeff
+        !> get the inverse of the Reynolds number
+        !
         !> @param get_velocity
-        !> compute the velocity at a grid point location
+        !> compute the velocity
         !
         !> @param are_openbc_undermined
-        !> check whether the open boundary conditions are undermined
-        !> at the grid point location
+        !> determine whether the open b.c. are undermined at the grid
+        !> point location
+        !
+        !> @param compute_x_eigenvalues
+        !> compute the eigenvalues for the convective part in the
+        !> x-direction
+        !
+        !> @param compute_y_eigenvalues
+        !> compute the eigenvalues for the convective part in the
+        !> y-direction
+        !
+        !> @param compute_x_lefteigenvector
+        !> compute the left eigenmatrix for the convective part in the
+        !> x-direction
+        !
+        !> @param compute_x_righteigenvector
+        !> compute the right eigenmatrix for the convective part in the
+        !> x-direction
+        !
+        !> @param compute_y_lefteigenvector
+        !> compute the left eigenmatrix for the convective part in the
+        !> y-direction
+        !
+        !> @param compute_y_righteigenvector
+        !> compute the right eigenmatrix for the convective part in the
+        !> y-direction
+        !
+        !> @param compute_n1_eigenvalues
+        !> compute the eigenvalues for the convective part in the
+        !> (x-y)-direction
+        !
+        !> @param compute_n2_eigenvalues
+        !> compute the eigenvalues for the convective part in the
+        !> (x+y)-direction
+        !
+        !> @param compute_n1_lefteigenvector
+        !> compute the left eigenmatrix for the convective part in the
+        !> (x-y)-direction
+        !
+        !> @param compute_n1_righteigenvector
+        !> compute the right eigenmatrix for the convective part in the
+        !> (x-y)-direction
+        !
+        !> @param compute_n2_lefteigenvector
+        !> compute the left eigenmatrix for the convective part in the
+        !> (x+y)-direction
+        !
+        !> @param compute_n2_righteigenvector
+        !> compute the right eigenmatrix for the convective part in the
+        !> (x+y)-direction
+        !
+        !> @param compute_x_transM
+        !> compute the transverse matrix of the convective part in the
+        !> x-direction
+        !
+        !> @param compute_y_transM
+        !> compute the transverse matrix of the convective part in the
+        !> y-direction
+        !
+        !> @param compute_n1_transM
+        !> compute the transverse matrix of the convective part in the
+        !> (x-y)-direction
+        !
+        !> @param compute_n2_transM
+        !> compute the transverse matrix of the convective part in the
+        !> (x+y)-direction
+        !
+        !> @param compute_x_leftConsLodiM
+        !> compute the conservative LODI matrix for the convective part
+        !> in the x-direction
+        !
+        !> @param compute_y_leftConsLodiM
+        !> compute the conservative LODI matrix for the convective part
+        !> in the y-direction
+        !
+        !> @param compute_x_gradient
+        !> compute the gradient of the governing variables in the
+        !> x-direction
+        !
+        !> @param compute_y_gradient
+        !> compute the gradient of the governing variables in the
+        !> y-direction
+        !
+        !> @param compute_n_gradient
+        !> compute the gradient of the governing variables either in the
+        !> (x-y)- or the (x+y)-direction
         !---------------------------------------------------------------
         type, extends(pmodel_eq_default) :: pmodel_eq
           
@@ -199,7 +344,10 @@
           procedure, nopass :: compute_flux_y_nopt
           procedure, nopass :: compute_flux_x_oneside
           procedure, nopass :: compute_flux_y_oneside
+          procedure, nopass :: compute_flux_x_by_parts
+          procedure, nopass :: compute_flux_y_by_parts
           procedure, nopass :: compute_body_forces
+          procedure, nopass :: get_viscous_coeff
 
           !field extension for open b.c.
           procedure, nopass :: get_velocity
@@ -940,197 +1088,6 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the fluxes by parts (get the inviscid and the
-        !> viscid parts)
-        !
-        !> @date
-        !> 11_12_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param dx
-        !> space step along the x-direction
-        !
-        !>@param dy
-        !> space step along the y-direction
-        !
-        !>@param i
-        !> index identifying the nodes along the x-direction
-        !
-        !>@param j
-        !> index identifying the nodes along the y-direction
-        !
-        !>@param s_oneside
-        !> space discretization operator
-        !
-        !>@param inviscid_flux
-        !> inviscid flux at (i+1/2,j)
-        !
-        !>@param viscid_flux
-        !> viscous flux computed at (i+1/2,j)
-        !
-        !>@return flux_x
-        !> flux computed at (i+1/2,j)
-        !--------------------------------------------------------------
-        function compute_flux_x_by_parts(
-     $     nodes,dx,dy,i,j,s_oneside,
-     $     inviscid_flux, viscid_flux)
-     $     result(flux_x)
-        
-          implicit none
-        
-          real(rkind), dimension(:,:,:), intent(in)   :: nodes
-          real(rkind)                  , intent(in)   :: dx
-          real(rkind)                  , intent(in)   :: dy
-          integer(ikind)               , intent(in)   :: i
-          integer(ikind)               , intent(in)   :: j
-          class(sd_operators)          , intent(in)   :: s_oneside
-          real(rkind), dimension(ne)   , intent(out)  :: inviscid_flux
-          real(rkind), dimension(ne)   , intent(out)  :: viscid_flux
-          real(rkind), dimension(ne)                  :: flux_x
-
-
-          !inviscid part
-          !--------------------------------
-          !DEC$ FORCEINLINE RECURSIVE
-          inviscid_flux(1) = flux_x_mass_density(nodes,s_oneside,i,j)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          inviscid_flux(2) = flux_x_inviscid_momentum_x(nodes,s_oneside,i,j)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          inviscid_flux(3) = flux_x_inviscid_momentum_y(nodes,s_oneside,i,j)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          inviscid_flux(4) = flux_x_inviscid_total_energy(nodes,s_oneside,i,j)
-
-
-          !viscid part
-          !--------------------------------
-          !DEC$ FORCEINLINE RECURSIVE
-          viscid_flux(1) = 0.0d0
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          viscid_flux(2) = flux_x_viscid_momentum_x(nodes,s_oneside,i,j,dx,dy)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          viscid_flux(3) = flux_x_viscid_momentum_y(nodes,s_oneside,i,j,dx,dy)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          viscid_flux(4) = flux_x_viscid_total_energy(nodes,s_oneside,i,j,dx,dy)
-
-
-          !total flux
-          !--------------------------------
-          flux_x(1) = inviscid_flux(1) - epsilon*viscid_flux(1)
-          flux_x(2) = inviscid_flux(2) - epsilon*viscid_flux(2)
-          flux_x(3) = inviscid_flux(3) - epsilon*viscid_flux(3)
-          flux_x(4) = inviscid_flux(4) - epsilon*viscid_flux(4)
-          
-        end function compute_flux_x_by_parts
-
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the fluxes by parts (get the inviscid and the
-        !> viscid parts)
-        !
-        !> @date
-        !> 10_11_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param dx
-        !> space step along the x-direction
-        !
-        !>@param dy
-        !> space step along the y-direction
-        !
-        !>@param i
-        !> index identifying the nodes along the x-direction
-        !
-        !>@param j
-        !> index identifying the nodes along the y-direction
-        !
-        !>@param s_oneside
-        !> space discretization operator
-        !
-        !>@param inviscid_flux
-        !> inviscid flux at (i+1/2,j)
-        !
-        !>@param viscid_flux
-        !> viscous flux computed at (i+1/2,j)
-        !
-        !>@return flux_x
-        !> flux computed at (i+1/2,j)
-        !--------------------------------------------------------------
-        function compute_flux_y_by_parts(
-     $     nodes,dx,dy,i,j,s_oneside,
-     $     inviscid_flux, viscid_flux)
-     $     result(flux_y)
-        
-          implicit none
-        
-          real(rkind), dimension(:,:,:), intent(in)   :: nodes
-          real(rkind)                  , intent(in)   :: dx
-          real(rkind)                  , intent(in)   :: dy
-          integer(ikind)               , intent(in)   :: i
-          integer(ikind)               , intent(in)   :: j
-          class(sd_operators)          , intent(in)   :: s_oneside
-          real(rkind), dimension(ne)   , intent(out)  :: inviscid_flux
-          real(rkind), dimension(ne)   , intent(out)  :: viscid_flux
-          real(rkind), dimension(ne)                  :: flux_y
-          
-
-          !inviscid part
-          !--------------------------------
-          !DEC$ FORCEINLINE RECURSIVE
-          inviscid_flux(1) = flux_y_mass_density(nodes,s_oneside,i,j)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          inviscid_flux(2) = flux_y_inviscid_momentum_x(nodes,s_oneside,i,j)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          inviscid_flux(3) = flux_y_inviscid_momentum_y(nodes,s_oneside,i,j)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          inviscid_flux(4) = flux_y_inviscid_total_energy(nodes,s_oneside,i,j)
-
-
-          !viscid part
-          !--------------------------------
-          !DEC$ FORCEINLINE RECURSIVE
-          viscid_flux(1) = 0.0d0
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          viscid_flux(2) = flux_y_viscid_momentum_x(nodes,s_oneside,i,j,dx,dy)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          viscid_flux(3) = flux_y_viscid_momentum_y(nodes,s_oneside,i,j,dx,dy)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          viscid_flux(4) = flux_y_viscid_total_energy(nodes,s_oneside,i,j,dx,dy)
-
-
-          !total flux
-          !--------------------------------
-          flux_y(1) = inviscid_flux(1) - epsilon*viscid_flux(1)
-          flux_y(2) = inviscid_flux(2) - epsilon*viscid_flux(2)
-          flux_y(3) = inviscid_flux(3) - epsilon*viscid_flux(3)
-          flux_y(4) = inviscid_flux(4) - epsilon*viscid_flux(4)
-          
-        end function compute_flux_y_by_parts
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
         !> computation of the fluxes along the x-axis
         !
         !> @date
@@ -1172,16 +1129,16 @@
 
           !<fluxes along the x-axis
           !DEC$ FORCEINLINE RECURSIVE
-          flux_x(1) = flux_y_mass_density(
+          flux_x(1) = flux_x_mass_density(
      $         nodes,s_oneside,i,j)
           
           !DEC$ FORCEINLINE RECURSIVE
-          flux_x(2) = flux_y_momentum_x(
+          flux_x(2) = flux_x_momentum_x(
      $         nodes,s_oneside,i,j,
      $         dx,dy)
           
           !DEC$ FORCEINLINE RECURSIVE
-          flux_x(3) = flux_y_momentum_y(
+          flux_x(3) = flux_x_momentum_y(
      $         nodes,s_oneside,i,j,
      $         dx,dy)
           
@@ -1263,6 +1220,232 @@
         !> Julien L. Desmarais
         !
         !> @brief
+        !> compute the fluxes by parts (get the inviscid and the
+        !> viscid parts)
+        !
+        !> @date
+        !> 12_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param dx
+        !> space step along the x-direction
+        !
+        !>@param dy
+        !> space step along the y-direction
+        !
+        !>@param i
+        !> index identifying the nodes along the x-direction
+        !
+        !>@param j
+        !> index identifying the nodes along the y-direction
+        !
+        !>@param s_oneside
+        !> space discretization operator
+        !
+        !>@param inviscid_flux
+        !> inviscid flux at (i-1/2,j)
+        !
+        !>@param viscid_flux
+        !> viscous flux computed at (i-1/2,j)
+        !
+        !>@return flux_x
+        !> flux computed at (i-1/2,j)
+        !--------------------------------------------------------------
+        function compute_flux_x_by_parts(
+     $     nodes,dx,dy,i,j,s_oneside,
+     $     inviscid_flux, viscid_flux)
+     $     result(flux_x)
+        
+          implicit none
+        
+          real(rkind), dimension(:,:,:), intent(in)   :: nodes
+          real(rkind)                  , intent(in)   :: dx
+          real(rkind)                  , intent(in)   :: dy
+          integer(ikind)               , intent(in)   :: i
+          integer(ikind)               , intent(in)   :: j
+          class(sd_operators)          , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)   , intent(out)  :: inviscid_flux
+          real(rkind), dimension(ne)   , intent(out)  :: viscid_flux
+          real(rkind), dimension(ne)                  :: flux_x
+
+
+          real(rkind), dimension(ne) :: capillarity_flux
+
+
+          !inviscid part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(1) = flux_x_mass_density(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(2) = flux_x_inviscid_momentum_x(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(3) = flux_x_inviscid_momentum_y(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(4) = flux_x_inviscid_total_energy(nodes,s_oneside,i,j)
+
+
+          !viscid part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(1) = 0.0d0
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(2) = flux_x_viscid_momentum_x(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(3) = flux_x_viscid_momentum_y(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(4) = flux_x_viscid_total_energy(nodes,s_oneside,i,j,dx,dy)
+
+
+          !capillarity part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          capillarity_flux(1) = 0.0d0
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          capillarity_flux(2) = flux_x_capillarity_momentum_x(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          capillarity_flux(3) = flux_x_capillarity_momentum_y(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          capillarity_flux(4) = flux_x_capillarity_total_energy(nodes,s_oneside,i,j,dx,dy)
+
+
+          !total flux
+          !--------------------------------
+          flux_x(1) = inviscid_flux(1)
+          flux_x(2) = inviscid_flux(2) - epsilon*viscid_flux(2) - zeta*capillarity_flux(2)
+          flux_x(3) = inviscid_flux(3) - epsilon*viscid_flux(3) - zeta*capillarity_flux(3)
+          flux_x(4) = inviscid_flux(4) - epsilon*viscid_flux(4) - zeta*capillarity_flux(4)
+          
+        end function compute_flux_x_by_parts
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the fluxes by parts (get the inviscid and the
+        !> viscid parts)
+        !
+        !> @date
+        !> 10_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param dx
+        !> space step along the x-direction
+        !
+        !>@param dy
+        !> space step along the y-direction
+        !
+        !>@param i
+        !> index identifying the nodes along the x-direction
+        !
+        !>@param j
+        !> index identifying the nodes along the y-direction
+        !
+        !>@param s_oneside
+        !> space discretization operator
+        !
+        !>@param inviscid_flux
+        !> inviscid flux at (i+1/2,j)
+        !
+        !>@param viscid_flux
+        !> viscous flux computed at (i+1/2,j)
+        !
+        !>@return flux_x
+        !> flux computed at (i+1/2,j)
+        !--------------------------------------------------------------
+        function compute_flux_y_by_parts(
+     $     nodes,dx,dy,i,j,s_oneside,
+     $     inviscid_flux, viscid_flux)
+     $     result(flux_y)
+        
+          implicit none
+        
+          real(rkind), dimension(:,:,:), intent(in)   :: nodes
+          real(rkind)                  , intent(in)   :: dx
+          real(rkind)                  , intent(in)   :: dy
+          integer(ikind)               , intent(in)   :: i
+          integer(ikind)               , intent(in)   :: j
+          class(sd_operators)          , intent(in)   :: s_oneside
+          real(rkind), dimension(ne)   , intent(out)  :: inviscid_flux
+          real(rkind), dimension(ne)   , intent(out)  :: viscid_flux
+          real(rkind), dimension(ne)                  :: flux_y
+          
+
+          real(rkind), dimension(ne) :: capillarity_flux
+
+
+          !inviscid part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(1) = flux_y_mass_density(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(2) = flux_y_inviscid_momentum_x(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(3) = flux_y_inviscid_momentum_y(nodes,s_oneside,i,j)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          inviscid_flux(4) = flux_y_inviscid_total_energy(nodes,s_oneside,i,j)
+
+
+          !viscid part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(1) = 0.0d0
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(2) = flux_y_viscid_momentum_x(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(3) = flux_y_viscid_momentum_y(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          viscid_flux(4) = flux_y_viscid_total_energy(nodes,s_oneside,i,j,dx,dy)
+
+          
+          !capillarity part
+          !--------------------------------
+          !DEC$ FORCEINLINE RECURSIVE
+          capillarity_flux(1) = 0.0d0
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          capillarity_flux(2) = flux_y_capillarity_momentum_x(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          capillarity_flux(3) = flux_y_capillarity_momentum_y(nodes,s_oneside,i,j,dx,dy)
+          
+          !DEC$ FORCEINLINE RECURSIVE
+          capillarity_flux(4) = flux_y_capillarity_total_energy(nodes,s_oneside,i,j,dx,dy)
+
+
+          !total flux
+          !--------------------------------
+          flux_y(1) = inviscid_flux(1)
+          flux_y(2) = inviscid_flux(2) - epsilon*viscid_flux(2) - zeta*capillarity_flux(2)
+          flux_y(3) = inviscid_flux(3) - epsilon*viscid_flux(3) - zeta*capillarity_flux(3)
+          flux_y(4) = inviscid_flux(4) - epsilon*viscid_flux(4) - zeta*capillarity_flux(4)
+          
+        end function compute_flux_y_by_parts
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> interface to compute the body forces
         !> acting on the cell
         !
@@ -1316,6 +1499,29 @@
           y_s = y
 
         end function compute_body_forces
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the viscous constant
+        !
+        !> @date
+        !> 12_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@return viscous_coeff
+        !> viscous coefficient: 1/Re
+        !-------------------------------------------------------------
+        function get_viscous_coeff() result(viscous_coeff)
+
+          implicit none
+
+          real(rkind) :: viscous_coeff
+
+          viscous_coeff = epsilon
+
+        end function get_viscous_coeff
 
 
         !> @author

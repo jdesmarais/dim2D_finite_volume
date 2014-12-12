@@ -58,6 +58,7 @@ test_dim2d_fluxes:	$(param_dep)\
 
 test_dim2d_eq.o:	check_data_module.o\
 			$(dim2d_dir)/dim2d_parameters.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(dim2d_dir)/pmodel_eq_class.o\

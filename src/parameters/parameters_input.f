@@ -87,7 +87,7 @@
         integer, parameter :: ic_choice = vortex
 
         !<body forces choice
-        integer, parameter :: gravity_choice = no_gravity_choice
+        integer, parameter :: gravity_choice = earth_gravity_choice
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice

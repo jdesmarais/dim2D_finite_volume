@@ -20,8 +20,10 @@
 
 
         private
-        public :: rho_c, T_c, u_c, length_c, time_c,
-     $            viscous_r, re, pr, we, cv_r, gravity
+        public ::
+     $       rho_c, T_c, u_c, length_c, time_c,
+     $       viscous_r, re, pr, we, cv_r, gravity,
+     $       epsilon, zeta
 
 
         ! input quantities for water
@@ -88,6 +90,9 @@
         real(rkind), parameter :: Pr = 20
         real(rkind), parameter :: cv_r = 2.5
         real(rkind), parameter :: gravity = 9.81
+
+        real(rkind), parameter :: epsilon = 1.0d0/Re
+        real(rkind), parameter :: zeta    = 1.0d0/We
 
       end module dim2d_parameters
 
