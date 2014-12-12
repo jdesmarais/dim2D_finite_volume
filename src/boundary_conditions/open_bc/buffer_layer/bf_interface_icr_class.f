@@ -255,8 +255,8 @@
           allocate(this%S_dct_rcoords(2,nx-2*(bc_size+dct_icr_distance)+2))          
           allocate(this%E_dct_icoords(2,ny-2*(bc_size+dct_icr_distance)))
           allocate(this%E_dct_rcoords(2,ny-2*(bc_size+dct_icr_distance)))
-          allocate(this%W_dct_icoords(2,nx-2*(bc_size+dct_icr_distance)))
-          allocate(this%W_dct_rcoords(2,nx-2*(bc_size+dct_icr_distance)))
+          allocate(this%W_dct_icoords(2,ny-2*(bc_size+dct_icr_distance)))
+          allocate(this%W_dct_rcoords(2,ny-2*(bc_size+dct_icr_distance)))
 
 
           !arrays with the coordinates of the South detectors
