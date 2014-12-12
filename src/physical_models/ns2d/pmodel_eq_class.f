@@ -50,7 +50,10 @@
      $       compute_jacobian_prim_to_cons,
      $       compute_jacobian_cons_to_prim,
      $       left_cons_lodi_matrix_x,
-     $       left_cons_lodi_matrix_y
+     $       left_cons_lodi_matrix_y,
+     $       compute_x_timedev_from_LODI_vector_ns2d,
+     $       compute_y_timedev_from_LODI_vector_ns2d,
+     $       compute_timedev_from_LODI_vectors_ns2d
 
         use ns2d_fluxes_module, only :
      $       flux_x_mass_density,
@@ -246,6 +249,9 @@
 
           procedure, nopass :: compute_x_leftConsLodiM
           procedure, nopass :: compute_y_leftConsLodiM
+          procedure, nopass :: compute_x_timedev_from_LODI_vector => compute_x_timedev_from_LODI_vector_ns2d
+          procedure, nopass :: compute_y_timedev_from_LODI_vector => compute_y_timedev_from_LODI_vector_ns2d
+          procedure, nopass :: compute_timedev_from_LODI_vectors => compute_timedev_from_LODI_vectors_ns2d
 
           !gradient computation
           procedure, nopass :: compute_x_gradient
@@ -928,7 +934,8 @@
      $               (grdpts_id(i,j).eq.bc_interior_pt)) then
 
                    !DEC$ FORCEINLINE RECURSIVE
-                   flux_y(i,j,1) = flux_y_mass_density(nodes,s,i,j)
+                   flux_y(i,j,1) = flux_y_mass_density(
+     $                  nodes,s,i,j)
                    
                    !DEC$ FORCEINLINE RECURSIVE
                    flux_y(i,j,2) = flux_y_momentum_x(

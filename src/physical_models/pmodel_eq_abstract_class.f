@@ -171,6 +171,9 @@
 
           procedure(eigenvect_proc)  , nopass, deferred :: compute_x_leftConsLodiM
           procedure(eigenvect_proc)  , nopass, deferred :: compute_y_leftConslodiM
+          procedure(lodi_td_proc)    , nopass, deferred :: compute_x_timedev_from_LODI_vector
+          procedure(lodi_td_proc)    , nopass, deferred :: compute_y_timedev_from_LODI_vector
+          procedure(lodi_tds_proc)   , nopass, deferred :: compute_timedev_from_LODI_vectors
 
           procedure(eigenvect_proc)  , nopass, deferred :: compute_x_transM
           procedure(eigenvect_proc)  , nopass, deferred :: compute_y_transM
@@ -949,6 +952,71 @@
             real(rkind), dimension(ne)            :: var
             
           end function farfield_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for the local computation of the contribution
+          !> of the LODI vector in one direction (x or y) to the time
+          !> derivatives
+          !
+          !> @date
+          !> 12_12_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param lodi
+          !> LODI vector
+          !
+          !>@return timedev
+          !> time derivatives
+          !--------------------------------------------------------------
+          function lodi_td_proc(nodes,lodi) result(timedev)
+
+            import rkind
+            import ne
+
+            real(rkind), dimension(ne), intent(in) :: nodes
+            real(rkind), dimension(ne), intent(in) :: lodi
+            real(rkind), dimension(ne)             :: timedev
+
+          end function lodi_td_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for the local computation of the contribution
+          !> of the LODI vectors in both directions (x and y) to the time
+          !> derivatives
+          !
+          !> @date
+          !> 12_12_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@param lodi
+          !> LODI vector
+          !
+          !>@return timedev
+          !> time derivatives
+          !--------------------------------------------------------------
+          function lodi_tds_proc(nodes,lodi_x,lodi_y) result(timedev)
+
+            import rkind
+            import ne
+
+            real(rkind), dimension(ne), intent(in) :: nodes
+            real(rkind), dimension(ne), intent(in) :: lodi_x
+            real(rkind), dimension(ne), intent(in) :: lodi_y
+            real(rkind), dimension(ne)             :: timedev
+
+          end function lodi_tds_proc
 
 
           !> @author

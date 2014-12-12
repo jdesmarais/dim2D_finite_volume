@@ -65,13 +65,16 @@
           procedure, nopass :: compute_n2_lefteigenvector   => compute_eigenvector_default
           procedure, nopass :: compute_n2_righteigenvector  => compute_eigenvector_default
 
-          procedure, nopass :: compute_x_leftConsLodiM  => compute_eigenvector_default
-          procedure, nopass :: compute_y_leftConsLodiM  => compute_eigenvector_default
-
           procedure, nopass :: compute_x_transM   => compute_eigenvector_default
           procedure, nopass :: compute_y_transM   => compute_eigenvector_default
           procedure, nopass :: compute_n1_transM  => compute_eigenvector_default
           procedure, nopass :: compute_n2_transM  => compute_eigenvector_default
+
+          procedure, nopass :: compute_x_leftConsLodiM  => compute_eigenvector_default
+          procedure, nopass :: compute_y_leftConsLodiM  => compute_eigenvector_default
+          procedure, nopass :: compute_x_timedev_from_LODI_vector => compute_timedev_from_LODI_vector_default
+          procedure, nopass :: compute_y_timedev_from_LODI_vector => compute_timedev_from_LODI_vector_default
+          procedure, nopass :: compute_timedev_from_LODI_vectors
 
           procedure,   pass :: get_far_field => get_far_field_default
 
@@ -388,6 +391,47 @@
           var(1) = 0.0
 
         end function get_far_field_default
+
+
+        function compute_timedev_from_LODI_vector_default(
+     $     nodes,lodi) result(timedev)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne), intent(in) :: lodi
+          real(rkind), dimension(ne)             :: timedev
+
+
+          print '(''pmodel_eq_default_class'')'
+          print '(''compute_timedev_from_LODI_vector_default'')'
+          print '(''not implemented'')'
+          stop ''
+          
+          timedev(1) = nodes(1)+lodi(1)
+
+        end function compute_timedev_from_LODI_vector_default
+
+
+        function compute_timedev_from_LODI_vectors(
+     $     nodes,lodi_x,lodi_y) result(timedev)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne), intent(in) :: lodi_x
+          real(rkind), dimension(ne), intent(in) :: lodi_y
+          real(rkind), dimension(ne)             :: timedev
+
+
+          print '(''pmodel_eq_default_class'')'
+          print '(''compute_timedev_from_LODI_vectors'')'
+          print '(''not implemented'')'
+          stop ''
+          
+          timedev(1) = nodes(1)+lodi_x(1)+lodi_y(1)
+
+        end function compute_timedev_from_LODI_vectors
 
 
 

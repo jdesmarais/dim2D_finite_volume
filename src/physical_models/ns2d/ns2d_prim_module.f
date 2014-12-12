@@ -40,13 +40,14 @@
      $       energy_inviscid_y_flux,
      $       
      $       speed_of_sound,
+     $       
      $       compute_jacobian_prim_to_cons,
      $       compute_jacobian_cons_to_prim,
      $       left_cons_lodi_matrix_x,
      $       left_cons_lodi_matrix_y,
-     $       compute_x_timedev_from_LODI_vector,
-     $       compute_y_timedev_from_LODI_vector,
-     $       compute_timedev_from_LODI_vectors
+     $       compute_x_timedev_from_LODI_vector_ns2d,
+     $       compute_y_timedev_from_LODI_vector_ns2d,
+     $       compute_timedev_from_LODI_vectors_ns2d
 
         contains
 
@@ -907,7 +908,7 @@
         !> along the x-direction to the time derivatives of
         !> the conservative variables
         !--------------------------------------------------------------
-        function compute_x_timedev_from_LODI_vector(
+        function compute_x_timedev_from_LODI_vector_ns2d(
      $     nodes, lodi) result(timedev)
 
           implicit none
@@ -944,7 +945,7 @@
 
           timedev = MATMUL(timedev,jacConsPrim)
 
-        end function compute_x_timedev_from_LODI_vector
+        end function compute_x_timedev_from_LODI_vector_ns2d
 
 
         !> @author
@@ -969,7 +970,7 @@
         !> along the x-direction to the time derivatives of
         !> the conservative variables
         !--------------------------------------------------------------
-        function compute_y_timedev_from_LODI_vector(
+        function compute_y_timedev_from_LODI_vector_ns2d(
      $     nodes, lodi) result(timedev)
 
           implicit none
@@ -1006,7 +1007,7 @@
 
           timedev = MATMUL(timedev,jacConsPrim)
 
-        end function compute_y_timedev_from_LODI_vector
+        end function compute_y_timedev_from_LODI_vector_ns2d
 
 
         !> @author
@@ -1034,7 +1035,7 @@
         !> y- directions to the time derivatives of the conservative
         !> variables
         !--------------------------------------------------------------
-        function compute_timedev_from_LODI_vectors(
+        function compute_timedev_from_LODI_vectors_ns2d(
      $     nodes, lodi_x, lodi_y) result(timedev)
 
           implicit none
@@ -1098,6 +1099,6 @@
 
           timedev = MATMUL(timedev,jacConsPrim)
 
-        end function compute_timedev_from_LODI_vectors
+        end function compute_timedev_from_LODI_vectors_ns2d
 
       end module ns2d_prim_module

@@ -47,7 +47,10 @@
      $       classical_pressure_local,
      $       speed_of_sound,
      $       compute_jacobian_cons_to_prim,
-     $       compute_jacobian_prim_to_cons
+     $       compute_jacobian_prim_to_cons,
+     $       compute_x_timedev_from_LODI_vector_dim2d,
+     $       compute_y_timedev_from_LODI_vector_dim2d,
+     $       compute_timedev_from_LODI_vectors_dim2d
 
         use dim2d_ncoords_module, only :
      $       compute_n1_eigenvalues_dim2d,
@@ -301,6 +304,18 @@
         !> compute the conservative LODI matrix for the convective part
         !> in the y-direction
         !
+        !> @param compute_x_timedev_from_LODI_vector
+        !> compute the contribution of the LODI vector in the x-direction
+        !> to the time derivatives
+        !
+        !> @param compute_y_timedev_from_LODI_vector
+        !> compute the contribution of the LODI vector in the y-direction
+        !> to the time derivatives
+        !
+        !> @param compute_timedev_from_LODI_vector
+        !> compute the contribution of the LODI vector in the x- and y-
+        !> directions to the time derivatives
+        !
         !> @param compute_x_gradient
         !> compute the gradient of the governing variables in the
         !> x-direction
@@ -375,9 +390,12 @@
           procedure, nopass :: compute_n1_transM => compute_n1_transM_dim2d
           procedure, nopass :: compute_n2_transM => compute_n2_transM_dim2d
 
-          !conservative lodi matrices
+          !lodi computations
           procedure, nopass :: compute_x_leftConsLodiM
           procedure, nopass :: compute_y_leftConsLodiM
+          procedure, nopass :: compute_x_timedev_from_LODI_vector => compute_x_timedev_from_LODI_vector_dim2d
+          procedure, nopass :: compute_y_timedev_from_LODI_vector => compute_y_timedev_from_LODI_vector_dim2d
+          procedure, nopass :: compute_timedev_from_LODI_vectors => compute_timedev_from_LODI_vectors_dim2d
           
           !gradient computation
           procedure, nopass :: compute_x_gradient

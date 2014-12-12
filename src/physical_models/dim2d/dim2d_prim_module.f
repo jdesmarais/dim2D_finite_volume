@@ -61,9 +61,9 @@
      $       speed_of_sound,
      $       compute_jacobian_prim_to_cons,
      $       compute_jacobian_cons_to_prim,
-     $       compute_x_timedev_from_LODI_vector,
-     $       compute_y_timedev_from_LODI_vector,
-     $       compute_timedev_from_LODI_vectors
+     $       compute_x_timedev_from_LODI_vector_dim2d,
+     $       compute_y_timedev_from_LODI_vector_dim2d,
+     $       compute_timedev_from_LODI_vectors_dim2d
 
 
         contains
@@ -1265,7 +1265,7 @@
         !> along the x-direction to the time derivatives of
         !> the conservative variables
         !--------------------------------------------------------------
-        function compute_x_timedev_from_LODI_vector(
+        function compute_x_timedev_from_LODI_vector_dim2d(
      $     nodes, lodi) result(timedev)
 
           implicit none
@@ -1302,7 +1302,7 @@
 
           timedev = MATMUL(timedev,jacConsPrim)
 
-        end function compute_x_timedev_from_LODI_vector
+        end function compute_x_timedev_from_LODI_vector_dim2d
 
 
         !> @author
@@ -1327,7 +1327,7 @@
         !> along the x-direction to the time derivatives of
         !> the conservative variables
         !--------------------------------------------------------------
-        function compute_y_timedev_from_LODI_vector(
+        function compute_y_timedev_from_LODI_vector_dim2d(
      $     nodes, lodi) result(timedev)
 
           implicit none
@@ -1364,7 +1364,7 @@
 
           timedev = MATMUL(timedev,jacConsPrim)
 
-        end function compute_y_timedev_from_LODI_vector
+        end function compute_y_timedev_from_LODI_vector_dim2d
 
 
         !> @author
@@ -1392,7 +1392,7 @@
         !> y- directions to the time derivatives of the conservative
         !> variables
         !--------------------------------------------------------------
-        function compute_timedev_from_LODI_vectors(
+        function compute_timedev_from_LODI_vectors_dim2d(
      $     nodes, lodi_x, lodi_y) result(timedev)
 
           implicit none
@@ -1456,6 +1456,6 @@
 
           timedev = MATMUL(timedev,jacConsPrim)
 
-        end function compute_timedev_from_LODI_vectors
+        end function compute_timedev_from_LODI_vectors_dim2d
 
       end module dim2d_prim_module
