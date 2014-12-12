@@ -368,6 +368,7 @@
           !field extension for open b.c.
           procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
+          procedure, nopass :: get_far_field
 
           !eigenquantities computation
           procedure, nopass :: compute_x_eigenvalues
@@ -1611,6 +1612,45 @@
           undermined = coeff.le.0
 
         end function are_openbc_undermined
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the governing variables imposed in the far field
+        !
+        !> @date
+        !> 12_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return var
+        !> governing variables in the far-field
+        !--------------------------------------------------------------
+        function get_far_field(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq)          , intent(in) :: this
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
+          real(rkind), dimension(ne)             :: var
+
+          var = this%initial_conditions%get_far_field(t,x,y)
+
+        end function get_far_field
 
 
         !> @author
