@@ -44,6 +44,7 @@
      $       momentum_x,
      $       momentum_y,
      $       total_energy,
+     $       classical_pressure_local,
      $       speed_of_sound,
      $       compute_jacobian_cons_to_prim,
      $       compute_jacobian_prim_to_cons
@@ -1578,18 +1579,18 @@
           real(rkind), dimension(ne), intent(in) :: nodes
           logical                                :: undermined
 
-          real(rkind) :: d_liq, d_vap
+          real(rkind) :: P
+          real(rkind) :: coeff
 
-          d_liq = 1.1-0.05*(1.1-0.1)
-          d_vap = 0.1+0.05*(1.1-0.1)
+          P = classical_pressure_local(nodes)
 
-          if((nodes(1).ge.d_vap).and.(nodes(1).le.d_liq)) then
-             undermined = .true.
+          if(rkind.eq.8) then
+             coeff = P + nodes(1)**2*(-3.0d0+2.0d0*nodes(1))
           else
-             undermined = .false.
+             coeff = P + nodes(1)**2*(-3.0+2.0*nodes(1))
           end if
 
-          !undermined = .true.
+          undermined = coeff.le.0
 
         end function are_openbc_undermined
 

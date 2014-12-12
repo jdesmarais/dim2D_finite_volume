@@ -15,6 +15,7 @@
 
         use check_data_module, only :
      $       is_test_validated,
+     $       is_vector_validated,
      $       is_matrix_validated
 
         use dim2d_prim_module
@@ -55,6 +56,9 @@
         real(rkind), dimension(22)    :: test_data
         real(rkind), dimension(ne,ne) :: test_jacPrimCons
         real(rkind), dimension(ne,ne) :: test_jacConsPrim
+        real(rkind), dimension(ne)    :: test_x_timedev_lodi
+        real(rkind), dimension(ne)    :: test_y_timedev_lodi
+        real(rkind), dimension(ne)    :: test_timedev_lodi
         logical                       :: global, local
 
 
@@ -66,7 +70,10 @@
      $       nodes,dx,dy,i,j,
      $       test_data,
      $       test_jacPrimCons,
-     $       test_jacConsPrim)
+     $       test_jacConsPrim,
+     $       test_x_timedev_lodi,
+     $       test_y_timedev_lodi,
+     $       test_timedev_lodi)
         
         !< dim2d_parameters
         if(detailled) then
@@ -283,6 +290,34 @@
 
         call print_screen(global,local,detailled,'jacConsPrim')
 
+        local = is_vector_validated(
+     $       compute_x_timedev_from_LODI_vector(
+     $          nodes(i,j,:),
+     $          [-3.0d0, 2.1d0, 4.5d0, 9.6d0]),
+     $       test_x_timedev_LODI,
+     $       detailled)
+
+        call print_screen(global,local,detailled,'x_timedev_from_LODI')
+
+        local = is_vector_validated(
+     $       compute_y_timedev_from_LODI_vector(
+     $          nodes(i,j,:),
+     $          [7.8d0, 6.23d0, -8.9d0, 1.2d0]),
+     $       test_y_timedev_LODI,
+     $       detailled)
+
+        call print_screen(global,local,detailled,'y_timedev_from_LODI')
+
+        local = is_vector_validated(
+     $       compute_timedev_from_LODI_vectors(
+     $          nodes(i,j,:),
+     $          [-3.0d0, 2.1d0, 4.5d0, 9.6d0],
+     $          [7.8d0, 6.23d0, -8.9d0, 1.2d0]),
+     $       test_timedev_LODI,
+     $       detailled)
+
+        call print_screen(global,local,detailled,'timedev_from_LODI')
+
 
         print '(''test_validated: '', 1L)', global
 
@@ -317,7 +352,10 @@
      $     nodes,dx,dy,i,j,
      $     test_data,
      $     test_jacPrimCons,
-     $     test_jacConsPrim)
+     $     test_jacConsPrim,
+     $     test_x_timedev_lodi,
+     $     test_y_timedev_lodi,
+     $     test_timedev_lodi)
 
           implicit none
 
@@ -328,6 +366,9 @@
           real(rkind), dimension(22)      , intent(out) :: test_data
           real(rkind), dimension(ne,ne)   , intent(out) :: test_jacPrimCons
           real(rkind), dimension(ne,ne)   , intent(out) :: test_jacConsPrim
+          real(rkind), dimension(ne)      , intent(out) :: test_x_timedev_lodi
+          real(rkind), dimension(ne)      , intent(out) :: test_y_timedev_lodi
+          real(rkind), dimension(ne)      , intent(out) :: test_timedev_lodi
 
           !<initialize the tables for the field
           dx=0.5
@@ -461,6 +502,11 @@
      $        -0.147392290d0, 0.0d0     , 0.238095d0,  0.0d0,
      $        -9.619727891d0, 1.380952d0, 0.619048d0, -1.0d0
      $         /), (/4,4/))
+
+          !< test timedev from lodi
+          test_x_timedev_lodi = [-0.547072222d0, -1.379002951d0,  12.26133624d0,  17.99869951d0]
+          test_y_timedev_lodi = [-0.142298567d0, -32.95650754d0,  -1.32290819d0, -48.81143723d0]
+          test_timedev_lodi   = [-0.689370789d0,  -34.3355105d0,  10.93842805d0, -30.81273772d0]
 
         end subroutine initialize_data
 

@@ -101,6 +101,12 @@
         print '(''test_get_velocity: '',L1)', test_loc
         print '()'
 
+        !test_are_open_bc_undermined
+        test_loc = test_are_openbc_undermined()
+        test_validated = test_validated.and.test_loc
+        print '(''test_are_openbc_undermined: '',L1)', test_loc
+        print '()'
+
         !test_compute_x_eigenvalues
         test_loc = test_compute_x_eigenvalues(detailled)
         test_validated = test_validated.and.test_loc
@@ -682,7 +688,7 @@
         end function test_get_viscous_coeff
 
 
-        !test: compute_body_forces
+        !test: get_velocity
         function test_get_velocity(detailled)
      $       result(test_validated)
 
@@ -707,6 +713,29 @@
      $         detailled)
           
         end function test_get_velocity
+
+
+        !test: are_openbc_undermined
+        function test_are_openbc_undermined()
+     $       result(test_validated)
+
+          implicit none
+
+          logical :: test_validated
+
+          type(pmodel_eq)            :: p_model
+          real(rkind), dimension(ne) :: nodes
+          logical                    :: undermined
+          logical                    :: undermined_test
+          
+          nodes = [4.2d0, 5.8d0, 2.6d0, 2.2d0]
+
+          undermined      = p_model%are_openbc_undermined(nodes)
+          undermined_test = .true.
+
+          test_validated = undermined.eqv.undermined_test
+          
+        end function test_are_openbc_undermined
 
 
         !test: compute_x_eigenvalues

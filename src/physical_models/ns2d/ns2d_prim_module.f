@@ -926,12 +926,12 @@
 
           if(rkind.eq.8) then
              timedev(1) = - 1.0d0/c**2*(lodi(2)+0.5d0*(lodi(3)+lodi(4)))
-             timedev(2) = - 0.5d0/(nodes(1)*c)*(lodi(4)-lodi(3))
+             timedev(2) = - 0.5d0/(nodes(1)*c)*(-lodi(3)+lodi(4))
              timedev(3) = - lodi(1)
              timedev(4) = - 0.5d0*(lodi(3)+lodi(4))
           else
              timedev(1) = - 1.0/c**2*(lodi(2)+0.5*(lodi(3)+lodi(4)))
-             timedev(2) = - 0.5/(nodes(1)*c)*(lodi(4)-lodi(3))
+             timedev(2) = - 0.5/(nodes(1)*c)*(-lodi(3)+lodi(4))
              timedev(3) = - lodi(1)
              timedev(4) = - 0.5*(lodi(3)+lodi(4))
           end if
