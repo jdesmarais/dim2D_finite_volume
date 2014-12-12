@@ -31,6 +31,13 @@ ifeq ($(strip $(pm_choice)), dim2d_choice)
 				dim2d_vortex_module.o
 	endif
 
+	ifeq ($(strip $(ic_choice)), bubble_transported)
+		ic_cdir=$(dim2d_ic)/bubble_transported
+
+		dim2d_ic_dep+=	dim2d_state_eq_module.o\
+				dim2d_dropbubble_module.o
+	endif
+
 	ifeq ($(strip $(ic_choice)), drop_collision)
 		ic_cdir=$(dim2d_ic)/drop_collision
 

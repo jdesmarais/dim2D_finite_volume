@@ -187,7 +187,8 @@ def compute_code_inputs(inputFileName):
                     'bubble_ascending',
                     'homogeneous_liquid',
                     'drop_collision',
-                    'phase_separation']
+                    'phase_separation',
+                    'bubble_transported']
 
     bc_code      = ['periodic_xy_choice',
                     'reflection_xy_choice',

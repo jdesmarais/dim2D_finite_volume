@@ -14,11 +14,21 @@
 #./default_inputs/ns2d_vortex_yoolodato_detailled.txt
 
 #settings
-INPUT=./default_inputs/ns2d_vortex_yoolodato_detailled.txt
-DEST_FOLDER=~/projects/ns2d_vortex_yoolodato
+INPUT=./default_inputs/dim2d_bubble_transported_hedstrom_xy.txt
+DEST_FOLDER=~/projects/dim2d_bubble_trs_hedstrom_xy_bf
+EXE=sim_dim2d_bf
 
 #compile code
-./config.py -i $INPUT -c
+./config.py -i $INPUT -c -b
+
+#move executable to the project folder
+mv ../$EXE $DEST_FOLDER
+
+#run simulation
+qsub scripts_pbs/run_sim_dim2d_bf.job
+
+#watch simulation
+watch qstat
 
 #move the executable to the corresponding project folder
 #mv ../sim_dim2d $DEST_FOLDER

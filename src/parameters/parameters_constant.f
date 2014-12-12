@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = 'e81958a4607df8092c020ba040cc3837ecaae924')
+        parameter (commit = 'd0ce9c5d8c629791d15c7c4afef6a69487b5bcba')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -53,6 +53,7 @@
         integer, parameter :: homogeneous_liquid=3
         integer, parameter :: drop_collision=4
         integer, parameter :: phase_separation=5
+        integer, parameter :: bubble_transported=6
 
         !>boundary conditions choice
         integer, parameter :: periodic_xy_choice=0

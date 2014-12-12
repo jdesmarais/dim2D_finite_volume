@@ -416,7 +416,7 @@
 
           !write the interior data using the function encapsulated
           !in field_abstract
-          call this%field_abstract%write_data()                    
+          call this%field_abstract%write_data()                 
 
         end subroutine write_data
 

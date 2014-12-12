@@ -169,8 +169,8 @@
         !>@param print_idetectors_on
         !> print the increasing detector positions on a matrix
         !
-        !>@param print_idetectors_on_binary
-        !> print the increasing detector positions on binary
+        !>@param print_idetectors_on_formatted_file
+        !> print the increasing detector positions on formatted
         !> output files
         !---------------------------------------------------------------
         type, extends(bf_interface) :: bf_interface_icr
@@ -206,8 +206,9 @@
           procedure, nopass, private :: check_bc_interior_pt
           procedure,   pass, private :: update_grdpts_id_for_template
 
+          procedure,   pass          :: print_netcdf
           procedure,   pass          :: print_idetectors_on
-          procedure,   pass          :: print_idetectors_on_binary
+          procedure,   pass          :: print_idetectors_on_formatted_file
 
           procedure,   pass          :: get_dct_coords
 
@@ -1439,9 +1440,10 @@
           real(rkind)   , dimension(2) , intent(out) :: d_rcoord_n
           integer(ikind), dimension(2)               :: cpt_coords
 
-          real(rkind) :: dx,dy
-          real(rkind) :: dir_x, dir_y
-          real(rkind) :: norm_velocity
+          real(rkind)               :: dx,dy
+          real(rkind)               :: dir_x, dir_y
+          real(rkind)               :: norm_velocity
+          real(rkind), dimension(2) :: d_icoord_r
 
           dx = interior_x_map(2)-interior_x_map(1)
           dy = interior_y_map(2)-interior_y_map(1)
@@ -1453,15 +1455,15 @@
 
              !2) get the point indices in the direction given
              !   by the velocity vector
-             cpt_coords(1) = d_icoord(1) + nint(velocity(1)/norm_velocity*dct_icr_distance)
-             cpt_coords(2) = d_icoord(2) + nint(velocity(2)/norm_velocity*dct_icr_distance)
+             cpt_coords(1) = d_icoord(1) + nint(velocity(1)/norm_velocity*REAL(dct_icr_distance))
+             cpt_coords(2) = d_icoord(2) + nint(velocity(2)/norm_velocity*REAL(dct_icr_distance))
 
           else
 
              !2) get the point indices in the direction given
              !   by the velocity vector
-             cpt_coords(1) = d_icoord(1) + idnint(velocity(1)/norm_velocity*dct_icr_distance)
-             cpt_coords(2) = d_icoord(2) + idnint(velocity(1)/norm_velocity*dct_icr_distance)
+             cpt_coords(1) = d_icoord(1) + idnint(velocity(1)/norm_velocity*DBLE(dct_icr_distance))
+             cpt_coords(2) = d_icoord(2) + idnint(velocity(2)/norm_velocity*DBLE(dct_icr_distance))
              
           end if
 
@@ -1473,11 +1475,39 @@
           d_rcoord_n(1) = d_rcoord(1) + dir_x
           d_rcoord_n(2) = d_rcoord(2) + dir_y
 
+          
+          !determine the coordinates of the detector according
+          !to its general index coordinates
+          if(d_icoord(1).le.0) then
+             dx = interior_x_map(2) - interior_x_map(1)
+             d_icoord_r(1) = interior_x_map(1)+(d_icoord(1)-1)*dx
+          else
+             if(d_icoord(1).le.nx) then
+                d_icoord_r(1) = interior_x_map(d_icoord(1))
+             else
+                dx = interior_x_map(nx) - interior_x_map(nx-1)
+                d_icoord_r(1) = interior_x_map(nx) + (d_icoord(1)-nx)*dx
+             end if
+          end if
+
+          if(d_icoord(2).le.0) then
+             dy = interior_y_map(2) - interior_y_map(1)
+             d_icoord_r(2) = interior_y_map(1)+(d_icoord(2)-1)*dy
+          else
+             if(d_icoord(2).le.ny) then
+                d_icoord_r(2) = interior_y_map(d_icoord(2))
+             else
+                dy = interior_y_map(ny) - interior_y_map(ny-1)
+                d_icoord_r(2) = interior_y_map(ny) + (d_icoord(2)-ny)*dy
+             end if
+          end if
+
+
           !update of the x-index for the detector
-          if((d_rcoord_n(1)-interior_x_map(d_icoord(1))).gt.dx) then
+          if((d_rcoord_n(1)-d_icoord_r(1)).gt.dx) then
              d_icoord_n(1) = d_icoord(1) + 1
           else
-             if((d_rcoord_n(1)-interior_x_map(d_icoord(1))).lt.(-dx)) then
+             if((d_rcoord_n(1)-d_icoord_r(1)).lt.(-dx)) then
                 d_icoord_n(1) = d_icoord(1)-1
              else
                 d_icoord_n(1) = d_icoord(1)
@@ -1485,10 +1515,10 @@
           end if
 
           !update of the y-index for the detector
-          if((d_rcoord_n(2)-interior_y_map(d_icoord(2))).gt.dy) then
+          if((d_rcoord_n(2)-d_icoord_r(2)).gt.dy) then
              d_icoord_n(2) = d_icoord(2) + 1
           else
-             if((d_rcoord_n(2)-interior_y_map(d_icoord(2))).lt.(-dy)) then
+             if((d_rcoord_n(2)-d_icoord_r(2)).lt.(-dy)) then
                 d_icoord_n(2) = d_icoord(2)-1
              else
                 d_icoord_n(2) = d_icoord(2)
@@ -2885,7 +2915,7 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> print the increasing detector positions on binary
+        !> print the increasing detector positions on formatted
         !> output files
         !
         !> @date
@@ -2899,7 +2929,7 @@
         !>@param index
         !> integer identifying the file
         !--------------------------------------------------------------
-        subroutine print_idetectors_on_binary(this, index)
+        subroutine print_idetectors_on_formatted_file(this, index)
 
           implicit none
 
@@ -2908,8 +2938,7 @@
 
           character(len=11) :: filename_format
           character(len=20) :: filename
-          integer :: ios
-          integer :: index_format
+          integer           :: index_format
           
 
           if(index.le.9) then
@@ -2922,90 +2951,123 @@
              end if
           end if
 
-          write(filename_format, '(''(A11,I'',I1,'',A4)'')') index_format
+          write(filename_format, '(''(A11,I'',I1,'',A6)'')') index_format
 
 
           !N detectors
-          write(filename, filename_format) 'N_detectors', index, '.dat'
-
-          open(unit=1,
-     $          file=filename,
-     $          action="write", 
-     $          status="unknown",
-     $          form='unformatted',
-     $          access='sequential',
-     $          position='rewind',
-     $          iostat=ios)
-
-           if(ios.eq.0) then
-              write(unit=1, iostat=ios) this%N_dct_icoords
-              close(unit=1)
-           else
-              stop 'file opening pb'
-           end if
-
+          print *, filename
+          write(filename, filename_format)
+     $         'N_detectors',
+     $         index,
+     $         '.curve'
+          call open_formatted_file(filename,unit=1)
+          call write_detectors_on_formatted_file(this%N_dct_rcoords,unit=1)
+          close(unit=1)
 
           !S detectors
-          write(filename, filename_format) 'S_detectors', index, '.dat'
-
-          open(unit=1,
-     $          file=filename,
-     $          action="write", 
-     $          status="unknown",
-     $          form='unformatted',
-     $          access='sequential',
-     $          position='rewind',
-     $          iostat=ios)
-
-           if(ios.eq.0) then
-              write(unit=1, iostat=ios) this%S_dct_icoords
-              close(unit=1)
-           else
-              stop 'file opening pb'
-           end if
-
+          write(filename, filename_format)
+     $         'S_detectors',
+     $         index,
+     $         '.curve'
+          call open_formatted_file(filename,unit=1)
+          call write_detectors_on_formatted_file(this%S_dct_rcoords,unit=1)
+          close(unit=1)
 
           !E detectors
-          write(filename, filename_format) 'E_detectors', index, '.dat'
-
-          open(unit=1,
-     $          file=filename,
-     $          action="write", 
-     $          status="unknown",
-     $          form='unformatted',
-     $          access='sequential',
-     $          position='rewind',
-     $          iostat=ios)
-
-           if(ios.eq.0) then
-              write(unit=1, iostat=ios) this%E_dct_icoords
-              close(unit=1)
-           else
-              stop 'file opening pb'
-           end if
-
+          write(filename, filename_format)
+     $         'E_detectors',
+     $         index,
+     $         '.curve'
+          call open_formatted_file(filename,unit=1)
+          call write_detectors_on_formatted_file(this%E_dct_rcoords,unit=1)
+          close(unit=1)
 
           !W detectors
-          write(filename, filename_format) 'W_detectors', index, '.dat'
+          write(filename, filename_format)
+     $         'W_detectors',
+     $         index,
+     $         '.curve'
+          call open_formatted_file(filename,unit=1)
+          call write_detectors_on_formatted_file(this%W_dct_rcoords,unit=1)
+          close(unit=1)
+          
+        end subroutine print_idetectors_on_formatted_file
 
-          open(unit=1,
+
+        !open formatted output file for writing
+        subroutine open_formatted_file(filename,unit)
+
+          implicit none
+
+          character(*)     , intent(in) :: filename
+          integer, optional, intent(in) :: unit
+
+          integer :: unit_op
+          integer :: ios
+
+          if(present(unit)) then
+             unit_op = unit
+          else
+             unit_op = 1
+          end if
+
+          open(unit=unit_op,
      $          file=filename,
      $          action="write", 
      $          status="unknown",
-     $          form='unformatted',
+     $          form='formatted',
      $          access='sequential',
      $          position='rewind',
      $          iostat=ios)
 
-           if(ios.eq.0) then
-              write(unit=1, iostat=ios) this%W_dct_icoords
-              close(unit=1)
-           else
-              stop 'file opening pb'
-           end if
+          if(ios.ne.0) then
+             print '(''bf_interface_icr_class'')'
+             print '(''open_formatted_file'')'
+             stop 'file opening pb'
+          end if
+
+        end subroutine open_formatted_file
 
 
-        end subroutine print_idetectors_on_binary
+        !write the detector coordinates on formatted output file
+        subroutine write_detectors_on_formatted_file(dct_rcoords,unit)
+
+          implicit none
+
+          real(rkind), dimension(:,:), intent(in) :: dct_rcoords
+          integer    , optional      , intent(in) :: unit
+
+          integer :: unit_op
+          integer :: j
+          integer :: ios
+
+          if(present(unit)) then
+             unit_op = unit
+          else
+             unit_op = 1
+          end if
+
+          if(size(dct_rcoords,1).ne.2) then
+             print '(''bf_interface_icr_class.f'')'
+             print '(''write_detectors'')'
+             print '(''size(dct_rcoords,1).ne.2'')'
+             stop 'not a detector array'
+          end if
+
+          do j=1,size(dct_rcoords,2)
+
+             write(unit=unit_op, iostat=ios, FMT='(2F8.4)')
+     $            dct_rcoords(1,j), dct_rcoords(2,j)
+
+             if(ios.ne.0) then
+                print '(''bf_interface_icr_class.f'')'
+                print '(''write_detectors'')'
+                stop 'error writing'
+             end if
+
+          end do
+
+        end subroutine write_detectors_on_formatted_file
 
 
         subroutine print_netcdf(
@@ -3034,7 +3096,7 @@
      $        time)
 
          if(write_detectors) then
-            call print_idetectors_on_binary(
+            call print_idetectors_on_formatted_file(
      $           this,
      $           timestep_written)
          end if

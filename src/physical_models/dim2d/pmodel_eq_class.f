@@ -368,7 +368,7 @@
           !field extension for open b.c.
           procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
-          procedure, nopass :: get_far_field
+          procedure,   pass :: get_far_field
 
           !eigenquantities computation
           procedure, nopass :: compute_x_eigenvalues

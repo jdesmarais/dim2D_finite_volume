@@ -2,7 +2,7 @@
 !---------------------------------------------------------
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !---------------------------------------------------------
-detail_print = 0.0008
+detail_print = 0.1
 
 
 !2.	Simulation duration
@@ -11,7 +11,7 @@ detail_print = 0.0008
 !t_max   : real    : set simulation maximum time
 !---------------------------------------------------------
 dt    = 0.0025
-t_max = 1000
+t_max = 4.0
 
 
 !3.	Space discretisation
@@ -28,12 +28,12 @@ t_max = 1000
 !npy     : integer : number of tiles in the y-direction
 !---------------------------------------------------------
 dx = 0.01
-x_min =-1.5
-x_max = 1.5
+x_min =-0.5
+x_max = 0.5
 
 dy = 0.01
-y_min = -1
-y_max = 1.5
+y_min =-0.5
+y_max = 0.5
 
 npx = 1
 npy = 1
@@ -86,8 +86,10 @@ bc_choice = 4
 ! 2 : bubble ascending
 ! 3 : homogeneous liquid
 ! 4 : drop heads-on collision
+! 5 : phase separation
+! 6 : bubble transported
 !---------------------------------------------------------
-ic_choice = 2
+ic_choice = 6
 
 
 !7.     DIM equations
@@ -98,5 +100,5 @@ ic_choice = 2
 ! 0 : no gravity
 ! 1 : earth gravity: 9.81
 !---------------------------------------------------------
-gravity_choice=1
+gravity_choice=0
 wave_forcing=0

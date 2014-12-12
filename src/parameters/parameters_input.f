@@ -22,17 +22,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -1.5000000000d0
-        real(rkind), parameter :: x_max = 1.5000000000d0
-        real(rkind), parameter :: y_min = -1.0000000000d0
-        real(rkind), parameter :: y_max = 1.5000000000d0
+        real(rkind), parameter :: x_min = -0.5000000000d0
+        real(rkind), parameter :: x_max = 0.5000000000d0
+        real(rkind), parameter :: y_min = -0.5000000000d0
+        real(rkind), parameter :: y_max = 0.5000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 4000.0000000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 4.0000000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0025000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0002000000d0
+        real(rkind), parameter :: detail_print = 0.1000000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -42,8 +42,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 304
-        integer(ikind), parameter :: nty = 254
+        integer(ikind), parameter :: ntx = 104
+        integer(ikind), parameter :: nty = 104
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -84,10 +84,10 @@
         !phase_separation   : unstable mass density
         !--------------------------------------------
         integer, parameter :: flow_direction = x_direction
-        integer, parameter :: ic_choice = bubble_ascending
+        integer, parameter :: ic_choice = bubble_transported
 
         !<body forces choice
-        integer, parameter :: gravity_choice = earth_gravity_choice
+        integer, parameter :: gravity_choice = no_gravity_choice
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
