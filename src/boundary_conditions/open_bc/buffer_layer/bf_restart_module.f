@@ -16,6 +16,7 @@
         contains
 
 
+        !get the bf_alignment corresponding to the buffer layer
         function get_restart_alignment(
      $       interior_x_map,
      $       interior_y_map,
@@ -137,5 +138,31 @@
           end if
 
         end function get_align
+
+
+        !get the number of detectors in the file
+        function get_nb_detectors(filename)
+     $     result(nb_detectors)
+
+          implicit none
+
+          character*(*), intent(in) :: filename
+          integer, dimension(4)     :: nb_detectors
+          
+          integer :: ios
+
+
+          !open for the file for reading
+          open(unit=1,
+     $         file=filename,
+     $         form='formatted',
+     $         access='direct',
+     $         action='read',
+     $         status='old',
+     $         iostat=ios)
+
+
+        end function get_nb_detectors
+        
 
       end module bf_restart_module
