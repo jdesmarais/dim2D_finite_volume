@@ -325,7 +325,8 @@
      $           nodes,dx,dy,s,
      $           grdpts_id,
      $           flux_x,
-     $           x_borders,y_borders)
+     $           [bc_size+1,size(nodes,1)-bc_size],
+     $           [bc_size+1,size(nodes,2)-bc_size])
 
 
             !FORCEINLINE RECURSIVE
@@ -333,7 +334,8 @@
      $           nodes,dx,dy,s,
      $           grdpts_id,
      $           flux_y,
-     $           x_borders,y_borders)
+     $           [bc_size+1,size(nodes,1)-bc_size],
+     $           [bc_size+1,size(nodes,2)-bc_size])
 
 
             !if the boundary conditions influence the computation

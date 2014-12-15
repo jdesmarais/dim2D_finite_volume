@@ -51,7 +51,8 @@ dim2d_flux_dep=		dim2d_parameters.o\
 			dim2d_prim_module.o\
 			dim2d_fluxes_module.o
 
-dim2d_ic_dep=		ic_class.o
+dim2d_ic_dep=		ic_abstract_class.o\
+			ic_class.o
 
 dim2d_dep=		$(dim2d_flux_dep)\
 			$(dim2d_ic_dep)\
