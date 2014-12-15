@@ -196,6 +196,7 @@ $(bf_layer_dir)/bf_interface_class.o:\
 	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(bf_layer_dir)/bf_mainlayer_pointer_class.o\
 	$(iobf_layer_dir)/bf_layer_nf90_operators_module.o\
+	$(bf_layer_dir)/bf_restart_module.o\
 	$(ti_dir)/interface_integration_step.o\
 	$(nbf_layer_dir)/nbf_interface_newgrdpt_class.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\

@@ -250,6 +250,7 @@ bf_layer_dep=		parameters_bf_layer.o\
 			bf_layer_class.o
 
 bf_interface_dep=	$(bf_layer_dep)\
+			bf_restart_module.o\
 			bf_sublayer_class.o\
 			bf_mainlayer_class.o\
 			bf_mainlayer_pointer_class.o\

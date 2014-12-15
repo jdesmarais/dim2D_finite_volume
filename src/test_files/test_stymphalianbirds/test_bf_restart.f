@@ -62,8 +62,6 @@
           call nf90_open_file_for_reading(bf_filename,ncid)
           call nf90_get_varid(ncid, p_model, coordinates_id, data_id)
           
-          print *, 'test_nf90_read_borders: 1'
-
           !read borders
           call nf90_read_borders(
      $         ncid,
@@ -71,8 +69,6 @@
      $         x_borders,
      $         y_borders,
      $         sizes)
-
-          print *, 'test_nf90_read_borders: 2'
 
           !close file
           call nf90_close_file(ncid)
