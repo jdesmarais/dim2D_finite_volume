@@ -14,7 +14,7 @@
 #./default_inputs/ns2d_vortex_yoolodato_detailled.txt
 
 #settings
-INPUT=./default_inputs/dim2d_bubble_transported_hedstrom_xy.txt
+INPUT=./default_inputs/dim2d_bubble_transported_hedstrom_xy_detailled.txt
 DEST_FOLDER=~/projects/dim2d_bubble_trs_hedstrom_xy_bf
 EXE=sim_dim2d_bf
 

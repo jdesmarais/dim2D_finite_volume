@@ -1609,7 +1609,7 @@
              coeff = P + nodes(1)**2*(-3.0+2.0*nodes(1))
           end if
 
-          undermined = coeff.le.0
+          undermined = coeff.lt.0
 
         end function are_openbc_undermined
 

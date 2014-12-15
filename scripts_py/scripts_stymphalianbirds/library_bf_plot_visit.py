@@ -6,6 +6,24 @@ import fnmatch
 import shutil
 import subprocess
 
+
+#list the files corresponding to the detectors of
+#the simulation in the directory cdir at the time step
+# given by the user
+def get_dct_files(cdir,timestep):
+
+    dct_file=[]
+
+    for file in os.listdir(cdir):
+
+        if file.endswith("detectors"+str(timestep)+".curve"):
+            dct_file.append(file)
+
+    print dct_file
+
+    return dct_file
+
+
 #list the files corresponding to the simulation
 #in the directory cdir at the time step given by
 #the user
@@ -57,7 +75,7 @@ def get_total_nb_timesteps(cdir):
 
 #open and plot the data "field" between min and max
 #using the colorTable
-def open_and_plot(
+def open_and_plot_pseudocolor(
     filePath,field,
     fieldMin,
     fieldMax,
@@ -164,11 +182,68 @@ def save_view_as_png(outputDirectory,fileName):
 
 
 #open and plot the grdpts_id for a buffer layer file
-def open_and_plot_grdpts_id(filePath,legendFlag):
-    open_and_plot(filePath,'grdpts_id',0,3,"bf_layer",legendFlag)
+def open_and_plot_pseudocolor_grdpts_id(filePath,legendFlag):
+    open_and_plot_pseudocolor(filePath,'grdpts_id',0,3,"bf_layer",legendFlag)
 
 
-#plot all the buffer layer grdpts_id at a defined timestep
+#set the detector curve attributes
+def set_dct_CurveAtts(detector_color=(255, 255, 0, 255)):
+
+    CurveAtts = visit.CurveAttributes()
+    CurveAtts.showLines = 1
+    CurveAtts.lineStyle = CurveAtts.SOLID  # SOLID, DASH, DOT, DOTDASH
+    CurveAtts.lineWidth = 0
+    CurveAtts.showPoints = 1
+    CurveAtts.symbol = CurveAtts.Point  # Point, TriangleUp, TriangleDown, Square, Circle, Plus, X
+    CurveAtts.pointSize = 5
+    CurveAtts.pointFillMode = CurveAtts.Static  # Static, Dynamic
+    CurveAtts.pointStride = 1
+    CurveAtts.symbolDensity = 50
+    CurveAtts.curveColorSource = CurveAtts.Custom  # Cycle, Custom
+    CurveAtts.curveColor = detector_color
+    CurveAtts.showLegend = 0
+    CurveAtts.showLabels = 0
+    CurveAtts.designator = ""
+    CurveAtts.doBallTimeCue = 0
+    CurveAtts.ballTimeCueColor = (0, 0, 0, 255)
+    CurveAtts.timeCueBallSize = 0.01
+    CurveAtts.doLineTimeCue = 0
+    CurveAtts.lineTimeCueColor = (0, 0, 0, 255)
+    CurveAtts.lineTimeCueWidth = 0
+    CurveAtts.doCropTimeCue = 0
+    CurveAtts.timeForTimeCue = 0
+    CurveAtts.fillMode = CurveAtts.NoFill  # NoFill, Solid, HorizontalGradient, VerticalGradient
+    CurveAtts.fillColor1 = (255, 0, 0, 255)
+    CurveAtts.fillColor2 = (255, 100, 100, 255)
+    CurveAtts.polarToCartesian = 0
+    CurveAtts.polarCoordinateOrder = CurveAtts.R_Theta  # R_Theta, Theta_R
+    CurveAtts.angleUnits = CurveAtts.Radians  # Radians, Degrees
+    visit.SetPlotOptions(CurveAtts)
+
+
+#open and plot a .curve file
+def open_and_plot_curve(filePath,
+                        N_detector_color=(255, 255, 0, 255),
+                        S_detector_color=(255, 0, 255, 255),
+                        W_detector_color=(0, 255, 0, 255),
+                        E_detector_color=(0, 255, 255, 255)):
+
+    visit.OpenDatabase(filePath, 0)
+
+    visit.AddPlot("Curve", "N_detectors", 1, 1)
+    set_dct_CurveAtts(detector_color=N_detector_colors)
+
+    visit.AddPlot("Curve", "S_detectors", 1, 1)
+    set_dct_CurveAtts(detector_color=S_detector_colors)
+
+    visit.AddPlot("Curve", "W_detectors", 1, 1)
+    set_dct_CurveAtts(detector_color=W_detector_colors)
+
+    visit.AddPlot("Curve", "E_detectors", 1, 1)
+    set_dct_CurveAtts(detector_color=E_detector_colors)
+
+
+#plot all the buffer layer and the interior grdpts_id at a defined timestep
 def plot_and_print_grdpts_id(
     dirInputNcFiles,
     dirOutputPictures,
@@ -179,13 +254,13 @@ def plot_and_print_grdpts_id(
 
 
     #plot the interior grdpts_id
-    open_and_plot_grdpts_id(
+    open_and_plot_pseudocolor_grdpts_id(
         os.path.join(dirInputNcFiles,'interior_grdpts_id.nc'),
         1)
 
     #plot each buffer layer
     for bf_file in bf_files:
-        open_and_plot_grdpts_id(
+        open_and_plot_pseudocolor_grdpts_id(
             os.path.join(dirInputNcFiles,bf_file),
             0)
 
@@ -201,14 +276,15 @@ def plot_and_print_grdpts_id(
         visit.DeleteActivePlots()
 
 
-#plot all the buffer layer file at a defined timestep
+#plot all the buffer layer and the interior fields at a defined timestep
 def plot_and_print_field(
     dirInputNcFiles,
     dirOutputPictures,
     timestep,
     field,
     fieldMin,
-    fieldMax):
+    fieldMax,
+    plotDetectors=False):
 
     #get the buffer layer netcdf files
     bf_files = get_bf_files(dirInputNcFiles,timestep)
@@ -216,9 +292,12 @@ def plot_and_print_field(
     #get the interior domain netcdf file
     interior_files = get_interior_file(dirInputNcFiles,timestep)
 
+    #get the detectors file
+    dct_files = get_dct_files(dirInputNcFiles,timestep)
+
     #plot the interior
     for interior_file in interior_files:
-        open_and_plot(
+        open_and_plot_pseudocolor(
             os.path.join(dirInputNcFiles,interior_file),
             field,
             fieldMin,
@@ -228,7 +307,7 @@ def plot_and_print_field(
 
     #plot the buffer layers
     for bf_file in bf_files:
-        open_and_plot(
+        open_and_plot_pseudocolor(
             os.path.join(dirInputNcFiles,bf_file),
             field,
             fieldMin,
@@ -236,20 +315,25 @@ def plot_and_print_field(
             "hot",
             0)
 
+    #plot the detectors
+    if(plotDetectors):
+        for dct_file in dct_files:
+            open_and_plot_curve(dct_file)
+
     #draw the plots
-    visit.AddOperator("DualMesh", 1)
+    #visit.AddOperator("DualMesh", 1)
     visit.DrawPlots()
 
     #print the view in a png file
     save_view_as_png(".",os.path.join(dirOutputPictures,field))
 
     #delete all the active plots
-    for i in range(0,len(bf_files)+len(interior_file)):
+    for i in range(0,len(bf_files)+len(interior_files)+len(dct_files)):
         visit.DeleteActivePlots()
 
   
-#print the buffer layer grdpts_id and create pictures
-#for each time step
+#print the buffer layer and the interior grdpts_id and
+#create pictures for each time step
 def create_grdpts_id_pictures(
     dirInputNcFiles,
     xmin,

@@ -2941,6 +2941,7 @@
           integer           :: index_format
           
 
+          !generate filename + open file
           if(index.le.9) then
              index_format = 1
           else
@@ -2951,44 +2952,26 @@
              end if
           end if
 
-          write(filename_format, '(''(A11,I'',I1,'',A6)'')') index_format
-
+          write(filename_format, '(''(A9,I'',I1,'',A6)'')') index_format
+          write(filename, filename_format)
+     $         'detectors',
+     $         index,
+     $         '.curve'
+          call open_formatted_file(filename,unit=1)
 
           !N detectors
-          print *, filename
-          write(filename, filename_format)
-     $         'N_detectors',
-     $         index,
-     $         '.curve'
-          call open_formatted_file(filename,unit=1)
-          call write_detectors_on_formatted_file(this%N_dct_rcoords,unit=1)
-          close(unit=1)
+          call write_detectors_on_formatted_file('N_detectors',this%N_dct_rcoords,unit=1)
 
           !S detectors
-          write(filename, filename_format)
-     $         'S_detectors',
-     $         index,
-     $         '.curve'
-          call open_formatted_file(filename,unit=1)
-          call write_detectors_on_formatted_file(this%S_dct_rcoords,unit=1)
-          close(unit=1)
+          call write_detectors_on_formatted_file('S_detectors',this%S_dct_rcoords,unit=1)
 
           !E detectors
-          write(filename, filename_format)
-     $         'E_detectors',
-     $         index,
-     $         '.curve'
-          call open_formatted_file(filename,unit=1)
-          call write_detectors_on_formatted_file(this%E_dct_rcoords,unit=1)
-          close(unit=1)
+          call write_detectors_on_formatted_file('E_detectors',this%E_dct_rcoords,unit=1)
 
           !W detectors
-          write(filename, filename_format)
-     $         'W_detectors',
-     $         index,
-     $         '.curve'
-          call open_formatted_file(filename,unit=1)
-          call write_detectors_on_formatted_file(this%W_dct_rcoords,unit=1)
+          call write_detectors_on_formatted_file('W_detectors',this%W_dct_rcoords,unit=1)
+
+          !close file
           close(unit=1)
           
         end subroutine print_idetectors_on_formatted_file
@@ -3030,10 +3013,11 @@
 
 
         !write the detector coordinates on formatted output file
-        subroutine write_detectors_on_formatted_file(dct_rcoords,unit)
+        subroutine write_detectors_on_formatted_file(var_name,dct_rcoords,unit)
 
           implicit none
 
+          character*(*)              , intent(in) :: var_name
           real(rkind), dimension(:,:), intent(in) :: dct_rcoords
           integer    , optional      , intent(in) :: unit
 
@@ -3054,6 +3038,13 @@
              stop 'not a detector array'
           end if
 
+
+          !write the variable name
+          write(unit=unit_op, iostat=ios, FMT='(A1,A11)')
+     $         '#',var_name
+
+
+          !write the detector positions
           do j=1,size(dct_rcoords,2)
 
              write(unit=unit_op, iostat=ios, FMT='(2F8.4)')
@@ -3066,6 +3057,10 @@
              end if
 
           end do
+
+          
+          !jump a line in the file
+          write(unit=unit_op, iostat=ios, FMT='(A1)') ' '
 
         end subroutine write_detectors_on_formatted_file
 
