@@ -296,3 +296,17 @@ test_field_extended_integrate:\
 			field_abstract_class.o\
 			field_class.o\
 			field_extended_class.o
+
+test_bf_restart.o:	$(bf_layer_dir)/bf_restart_module.o\
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(nf90_dir)/nf90_operators_module.o\
+			$(nf90_dir)/nf90_operators_read_module.o
+
+test_bf_restart:	$(param_dep)\
+			$(mt_dep)\
+			$(dim2d_dep)\
+			nf90_operators_module.o\
+			nf90_operators_read_module.o\
+			bf_restart_module.o

@@ -36,7 +36,8 @@
         public ::
      $       nf90_open_file_for_reading,
      $       nf90_get_varid,
-     $       nf90_get_var_model
+     $       nf90_get_var_model,
+     $       nf90_read_borders
 
 
         contains
@@ -172,5 +173,92 @@
           end do
 
         end subroutine nf90_get_var_model
+
+
+        !read the borders of the x- and y- coordinates
+        subroutine nf90_read_borders(
+     $     ncid,
+     $     coordinates_id, 
+     $     x_borders,
+     $     y_borders,
+     $     sizes)
+
+          implicit none
+
+          integer                  , intent(in)  :: ncid
+          integer, dimension(3)    , intent(in)  :: coordinates_id
+          real(rkind), dimension(2), intent(out) :: x_borders
+          real(rkind), dimension(2), intent(out) :: y_borders
+          integer    , dimension(2), intent(out) :: sizes
+
+
+          real(rkind), dimension(1)  :: x_min
+          real(rkind), dimension(1)  :: x_max
+          real(rkind), dimension(1)  :: y_min
+          real(rkind), dimension(1)  :: y_max
+
+          integer :: retval
+
+
+          !get the extension of the x variable
+          retval = nf90_inquire_dimension(
+     $         ncid,
+     $         coordinates_id(2),
+     $         len=sizes(1))
+          call nf90_handle_err(retval)
+          
+          !get the extension of the y variable
+          retval = nf90_inquire_dimension(
+     $         ncid,
+     $         coordinates_id(3),
+     $         len=sizes(2))
+          call nf90_handle_err(retval)
+          
+          !get x_min
+          retval = nf90_get_var(
+     $         ncid,
+     $         coordinates_id(2),
+     $         x_min,
+     $         START=[1],
+     $         COUNT=[1])
+          call nf90_handle_err(retval)
+          
+          !get x_max
+          retval = nf90_get_var(
+     $         ncid,
+     $         coordinates_id(2),
+     $         x_max,
+     $         START=[sizes(1)],
+     $         COUNT=[1])
+          call nf90_handle_err(retval)
+          
+          !get y_min
+          retval = nf90_get_var(
+     $         ncid,
+     $         coordinates_id(3),
+     $         y_min,
+     $         START=[1],
+     $         COUNT=[1])
+          call nf90_handle_err(retval)
+
+          !get y_max
+          retval = nf90_get_var(
+     $         ncid,
+     $         coordinates_id(3),
+     $         y_max,
+     $         START=[sizes(2)],
+     $         COUNT=[1])
+          call nf90_handle_err(retval)
+
+
+          !x-borders
+          x_borders(1) = x_min(1)
+          x_borders(2) = x_max(1)
+
+          !y-borders
+          y_borders(1) = y_min(1)
+          y_borders(2) = y_max(1)
+
+        end subroutine nf90_read_borders
 
       end module nf90_operators_read_module
