@@ -40,7 +40,11 @@
      $       bf_path_icr
 
         use bf_nbc_template_module
- 
+
+        use bf_restart_module, only :
+     $       read_detectors_from_file,
+     $       get_dct_icoords
+
         use bf_sublayer_class, only :
      $       bf_sublayer
 
@@ -188,6 +192,7 @@
           contains
 
           procedure,   pass :: ini
+          procedure,   pass :: restart
           procedure,   pass :: get_modified_grdpts_list
           procedure,   pass :: process_idetector_list
           procedure,   pass :: combine_bf_idetector_lists
@@ -316,6 +321,102 @@
           end do          
 
         end subroutine ini
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the position of the increasing detectors
+        !> and the parent object
+        !
+        !> @date
+        !> 16_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param interior_x_map
+        !> coordinate map for the interior domain along the x-axis
+        !
+        !>@param interior_y_map
+        !> coordinate map for the interior domain along the y-axis
+        !
+        !>@param interior_nodes
+        !> nodes of the interior domain
+        !
+        !>@param nb_bf_layers
+        !> number of boundary layers
+        !
+        !>@param p_model
+        !> physical model
+        !
+        !>@param timestep
+        !> time step from which the field is restarted
+        !--------------------------------------------------------------
+        subroutine restart(
+     $     this,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes,
+     $     nb_bf_layers,
+     $     p_model,
+     $     timestep)
+
+          implicit none
+
+          class(bf_interface_icr)                 , intent(inout) :: this
+          real(rkind)        , dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind)        , dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind)        , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          integer            , dimension(4)       , intent(in)    :: nb_bf_layers
+          type(pmodel_eq)                         , intent(in)    :: p_model
+          integer                                 , intent(in)    :: timestep
+
+          character(len=20) :: dct_filename
+
+          !restart the bf_interface
+          call this%bf_interface%restart(
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes,
+     $         nb_bf_layers,
+     $         p_model,
+     $         timestep)
+
+          !read and reinitialize the detector positions
+          !determine filename
+          dct_filename = generate_dct_filename(timestep)
+
+          !read the rcoords of the detectors
+          call read_detectors_from_file(
+     $         dct_filename,
+     $         this%N_dct_rcoords,
+     $         this%S_dct_rcoords,
+     $         this%E_dct_rcoords,
+     $         this%W_dct_rcoords)
+
+          !deduce the icoords for the detectors
+          allocate(this%N_dct_icoords(2,size(this%N_dct_rcoords,2)))
+          allocate(this%S_dct_icoords(2,size(this%S_dct_rcoords,2)))
+          allocate(this%E_dct_icoords(2,size(this%E_dct_rcoords,2)))
+          allocate(this%W_dct_icoords(2,size(this%W_dct_rcoords,2)))
+          
+          call get_dct_icoords(
+     $         this%N_dct_rcoords,
+     $         this%S_dct_rcoords,
+     $         this%E_dct_rcoords,
+     $         this%W_dct_rcoords,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         this%N_dct_icoords,
+     $         this%S_dct_icoords,
+     $         this%E_dct_icoords,
+     $         this%W_dct_icoords)
+
+        end subroutine restart
 
 
         !> @author
@@ -1443,7 +1544,7 @@
           real(rkind)                    :: dx,dy
           real(rkind)                    :: dir_x, dir_y
           real(rkind)                    :: norm_velocity
-          real(rkind)   , dimension(2,3) :: d_icoord_r
+          real(rkind)   , dimension(3,2) :: d_icoord_r
           integer(ikind), dimension(3)   :: d_icoord_i
           real(rkind)                    :: distance
           real(rkind)                    :: min_distance
@@ -1487,37 +1588,37 @@
           if(d_icoord(1).le.0) then
              dx = interior_x_map(2) - interior_x_map(1)
              d_icoord_r(1,1) = interior_x_map(1)+(d_icoord(1)-2)*dx
-             d_icoord_r(1,2) = interior_x_map(1)+(d_icoord(1)-1)*dx
-             d_icoord_r(1,3) = interior_x_map(1)+(d_icoord(1)  )*dx
+             d_icoord_r(2,1) = interior_x_map(1)+(d_icoord(1)-1)*dx
+             d_icoord_r(3,1) = interior_x_map(1)+(d_icoord(1)  )*dx
           else
              if(d_icoord(1).le.(nx-1)) then
                 d_icoord_r(1,1) = interior_x_map(d_icoord(1)-1)
-                d_icoord_r(1,2) = interior_x_map(d_icoord(1))
-                d_icoord_r(1,3) = interior_x_map(d_icoord(1)+1)
+                d_icoord_r(2,1) = interior_x_map(d_icoord(1))
+                d_icoord_r(3,1) = interior_x_map(d_icoord(1)+1)
              else
                 dx = interior_x_map(nx) - interior_x_map(nx-1)
                 d_icoord_r(1,1) = interior_x_map(nx) + (d_icoord(1)-nx-1)*dx
-                d_icoord_r(1,2) = interior_x_map(nx) + (d_icoord(1)-nx)*dx
-                d_icoord_r(1,3) = interior_x_map(nx) + (d_icoord(1)-nx+1)*dx
+                d_icoord_r(2,1) = interior_x_map(nx) + (d_icoord(1)-nx)*dx
+                d_icoord_r(3,1) = interior_x_map(nx) + (d_icoord(1)-nx+1)*dx
              end if
           end if
 
           !y-direction
           if(d_icoord(2).le.0) then
              dy = interior_y_map(2) - interior_y_map(1)
-             d_icoord_r(2,1) = interior_y_map(1)+(d_icoord(2)-2)*dy
+             d_icoord_r(1,2) = interior_y_map(1)+(d_icoord(2)-2)*dy
              d_icoord_r(2,2) = interior_y_map(1)+(d_icoord(2)-1)*dy
-             d_icoord_r(2,3) = interior_y_map(1)+(d_icoord(2)  )*dy
+             d_icoord_r(3,2) = interior_y_map(1)+(d_icoord(2)  )*dy
           else
              if(d_icoord(2).le.(ny-1)) then
-                d_icoord_r(2,1) = interior_y_map(d_icoord(2)-1)
+                d_icoord_r(1,2) = interior_y_map(d_icoord(2)-1)
                 d_icoord_r(2,2) = interior_y_map(d_icoord(2))
-                d_icoord_r(2,3) = interior_y_map(d_icoord(2)+1)
+                d_icoord_r(3,2) = interior_y_map(d_icoord(2)+1)
              else
                 dy = interior_y_map(ny) - interior_y_map(ny-1)
-                d_icoord_r(2,1) = interior_y_map(ny) + (d_icoord(2)-ny-1)*dy
+                d_icoord_r(1,2) = interior_y_map(ny) + (d_icoord(2)-ny-1)*dy
                 d_icoord_r(2,2) = interior_y_map(ny) + (d_icoord(2)-ny  )*dy
-                d_icoord_r(2,3) = interior_y_map(ny) + (d_icoord(2)-ny+1)*dy
+                d_icoord_r(3,2) = interior_y_map(ny) + (d_icoord(2)-ny+1)*dy
              end if
           end if
 
@@ -1526,8 +1627,9 @@
           min_distance   = abs(d_rcoord_n(1)-d_icoord_r(1,1))
           min_distance_k = 1
           do k=2,3
-             distance = abs(d_rcoord_n(1)-d_icoord_r(1,k))
+             distance = abs(d_rcoord_n(1)-d_icoord_r(k,1))
              if(distance.lt.min_distance) then
+                min_distance   = distance
                 min_distance_k = k
              end if
           end do
@@ -1540,10 +1642,10 @@
 
 
           !update of the y-index for the detector
-          min_distance   = abs(d_rcoord_n(2)-d_icoord_r(2,1))
+          min_distance   = abs(d_rcoord_n(2)-d_icoord_r(1,2))
           min_distance_k = 1
           do k=2,3
-             distance = abs(d_rcoord_n(2)-d_icoord_r(2,k))
+             distance = abs(d_rcoord_n(2)-d_icoord_r(k,2))
              if(distance.lt.min_distance) then
                 min_distance_k = k
              end if
@@ -2988,27 +3090,10 @@ c$$$          end if
           class(bf_interface_icr), intent(in) :: this
           integer                , intent(in) :: index
 
-          character(len=11) :: filename_format
           character(len=20) :: filename
-          integer           :: index_format
-          
 
-          !generate filename + open file
-          if(index.le.9) then
-             index_format = 1
-          else
-             if(index.le.99) then
-                index_format = 2
-             else
-                index_format = 3
-             end if
-          end if
-
-          write(filename_format, '(''(A9,I'',I1,'',A6)'')') index_format
-          write(filename, filename_format)
-     $         'detectors',
-     $         index,
-     $         '.curve'
+          !filename
+          filename = generate_dct_filename(index)
           call open_formatted_file(filename,unit=1)
 
           !N detectors
@@ -3027,6 +3112,37 @@ c$$$          end if
           close(unit=1)
           
         end subroutine print_idetectors_on_formatted_file
+
+      
+        function generate_dct_filename(index) result(filename)
+
+          implicit none
+
+          integer, intent(in) :: index
+          character(len=20)   :: filename
+
+          character(len=11) :: filename_format
+          integer           :: index_format
+   
+
+          !determine the number of character to print the
+          !timestep in the filename
+          if(index.eq.0) then
+             index_format = 1
+          else
+             index_format = floor(log10(real(index)))+1
+          end if
+
+          !determine the format to write the fielname
+          write(filename_format, '(''(A9,I'',I1,'',A6)'')') index_format
+
+          !determine the filename
+          write(filename, filename_format)
+     $         'detectors',
+     $         index,
+     $         '.curve'
+
+        end function generate_dct_filename
 
 
         !open formatted output file for writing

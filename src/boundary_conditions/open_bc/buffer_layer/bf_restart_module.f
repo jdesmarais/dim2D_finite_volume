@@ -13,7 +13,8 @@
         public ::
      $       get_restart_alignment,
      $       get_nb_detectors,
-     $       read_detectors_from_file
+     $       read_detectors_from_file,
+     $       get_dct_icoords
 
 
         contains
@@ -64,15 +65,19 @@
         end function get_restart_alignment
 
 
-        function get_align(x_border,interior_x_map,size_x)
+        function get_align(
+     $     x_border,
+     $     interior_x_map,
+     $     size_x)
      $     result(i_border_x)
 
           implicit none
 
-          real(rkind)              , intent(in) :: x_border
-          real(rkind), dimension(:), intent(in) :: interior_x_map
-          integer                  , intent(in) :: size_x
-          integer                               :: i_border_x
+          real(rkind)              , intent(in)  :: x_border
+          real(rkind), dimension(:), intent(in)  :: interior_x_map
+          integer                  , intent(in)  :: size_x
+          integer                                :: i_border_x
+          
 
           integer     :: i
           real(rkind) :: dx
@@ -295,6 +300,205 @@
           end do
 
         end subroutine read_detectors
-        
+
+      
+        !get the icoords cooresponding to the rcoords of the detectors
+        subroutine get_dct_icoords(
+     $     N_rcoords,
+     $     S_rcoords,
+     $     E_rcoords,
+     $     W_rcoords,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     N_icoords,
+     $     S_icoords,
+     $     E_icoords,
+     $     W_icoords)
+
+          implicit none
+
+          real(rkind)   , dimension(:,:), intent(in)  :: N_rcoords
+          real(rkind)   , dimension(:,:), intent(in)  :: S_rcoords
+          real(rkind)   , dimension(:,:), intent(in)  :: E_rcoords
+          real(rkind)   , dimension(:,:), intent(in)  :: W_rcoords
+          real(rkind)   , dimension(nx) , intent(in)  :: interior_x_map
+          real(rkind)   , dimension(ny) , intent(in)  :: interior_y_map
+          integer(ikind), dimension(:,:), intent(out) :: N_icoords
+          integer(ikind), dimension(:,:), intent(out) :: S_icoords
+          integer(ikind), dimension(:,:), intent(out) :: E_icoords
+          integer(ikind), dimension(:,:), intent(out) :: W_icoords
+          
+
+          call get_icoords(
+     $         N_rcoords,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         N_icoords)
+
+          call get_icoords(
+     $         S_rcoords,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         S_icoords)
+
+          call get_icoords(
+     $         E_rcoords,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         E_icoords)
+
+          call get_icoords(
+     $         W_rcoords,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         W_icoords)
+
+        end subroutine get_dct_icoords
+
+
+        subroutine get_icoords(
+     $     dct_rcoords,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     dct_icoords)
+
+          implicit none
+
+          real(rkind)   , dimension(:,:), intent(in)  :: dct_rcoords
+          real(rkind)   , dimension(nx) , intent(in)  :: interior_x_map
+          real(rkind)   , dimension(ny) , intent(in)  :: interior_y_map
+          integer(ikind), dimension(:,:), intent(out) :: dct_icoords
+
+
+          integer                        :: k
+          real(rkind)   , dimension(3,2) :: dct_rcoords_s
+          real(rkind)                    :: min_distance
+          integer                        :: min_distance_k
+          integer                        :: l
+          real(rkind)                    :: distance
+          integer(ikind), dimension(3)   :: i_coords
+          
+
+          !get the real general coordinates of the
+          !first point
+          dct_icoords(1,1) = get_align(
+     $         dct_rcoords(1,1),
+     $         interior_x_map,
+     $         nx)
+
+          dct_icoords(2,1) = get_align(
+     $         dct_rcoords(2,1),
+     $         interior_y_map,
+     $         ny)
+          print *, 'dct_icoords', dct_icoords(1,1), dct_icoords(2,1)
+
+
+          !get the general coordinates of the next
+          !points by comparing them to the previous
+          !point
+          do k=2, size(dct_icoords,2)
+
+             !get the real general coordinates of the
+             !surrounding points
+             dct_rcoords_s(:,1) = get_surrounding_grdpts(
+     $            dct_icoords(1,k-1),
+     $            dct_rcoords(1,k-1),
+     $            interior_x_map,
+     $            nx)
+
+             !get the real general coordinates of the
+             !surrounding points
+             dct_rcoords_s(:,2) = get_surrounding_grdpts(
+     $            dct_icoords(2,k-1),
+     $            dct_rcoords(2,k-1),
+     $            interior_y_map,
+     $            ny)
+
+             !determine the x_icoords of the current grid
+             !point
+             min_distance   = abs(dct_rcoords(1,k)-dct_rcoords_s(1,1))
+             min_distance_k = 1
+             do l=2,3
+                distance = abs(dct_rcoords(1,k)-dct_rcoords_s(l,1))
+                if(distance.lt.min_distance) then
+                   min_distance   = distance
+                   min_distance_k = l
+                end if
+             end do
+
+             i_coords(1) = dct_icoords(1,k-1)-1
+             i_coords(2) = dct_icoords(1,k-1)
+             i_coords(3) = dct_icoords(1,k-1)+1
+
+             dct_icoords(1,k) = i_coords(min_distance_k)
+
+             !determine the y_icoords of the current grid
+             !point
+             min_distance   = abs(dct_rcoords(2,k)-dct_rcoords_s(1,2))
+             min_distance_k = 1
+             do l=2,3
+                distance = abs(dct_rcoords(2,k)-dct_rcoords_s(l,2))
+                if(distance.lt.min_distance) then
+                   min_distance   = distance
+                   min_distance_k = l
+                end if
+             end do
+
+             i_coords(1) = dct_icoords(2,k-1)-1
+             i_coords(2) = dct_icoords(2,k-1)
+             i_coords(3) = dct_icoords(2,k-1)+1
+
+             dct_icoords(2,k) = i_coords(min_distance_k)             
+             
+          end do          
+
+        end subroutine get_icoords
+
+
+        !get the grdpts surrounding the central grdpt whose
+        !general coordinates are icoord and real coordinates
+        !are rcoord
+        function get_surrounding_grdpts(
+     $     icoord,
+     $     rcoord,
+     $     interior_map,
+     $     size)
+     $     result(surrounding_grdpts)
+
+          implicit none
+
+          integer(ikind)           , intent(in) :: icoord
+          real(rkind)              , intent(in) :: rcoord
+          real(rkind), dimension(:), intent(in) :: interior_map
+          integer                  , intent(in) :: size
+          real(rkind), dimension(3)             :: surrounding_grdpts
+
+          real(rkind) :: dx
+
+          if(icoord.le.1) then
+             dx = interior_map(2)-interior_map(1)
+             surrounding_grdpts(1) = rcoord-dx
+             surrounding_grdpts(2) = rcoord
+             surrounding_grdpts(3) = rcoord+dx
+
+          else
+
+             if(icoord.lt.size) then
+                surrounding_grdpts(1) = interior_map(icoord-1)
+                surrounding_grdpts(2) = interior_map(icoord)
+                surrounding_grdpts(3) = interior_map(icoord+1)
+
+             else
+                dx = interior_map(size)-interior_map(size-1)
+                surrounding_grdpts(1) = rcoord-dx
+                surrounding_grdpts(2) = rcoord
+                surrounding_grdpts(3) = rcoord+dx
+
+             end if
+          end if
+
+
+        end function get_surrounding_grdpts
 
       end module bf_restart_module
+

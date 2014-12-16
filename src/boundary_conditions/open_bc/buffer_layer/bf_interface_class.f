@@ -334,7 +334,7 @@
         !> initialize the buffer/interior domain interface
         !
         !> @date
-        !> 26_06_2014 - initial version - J.L. Desmarais
+        !> 15_12_2014 - initial version - J.L. Desmarais
         !
         !>@param this
         !> bf_interface object encapsulating the buffer layers

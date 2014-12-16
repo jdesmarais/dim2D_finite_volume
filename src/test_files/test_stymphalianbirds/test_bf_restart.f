@@ -3,7 +3,8 @@
         use bf_restart_module, only :
      $     get_restart_alignment,
      $     get_nb_detectors,
-     $     read_detectors_from_file
+     $     read_detectors_from_file,
+     $     get_dct_icoords
 
         use netcdf
 
@@ -18,15 +19,30 @@
      $       nx,ny,ne,bc_size
 
         use parameters_kind, only :
+     $       ikind,
      $       rkind
 
         character*(*), parameter :: interior_filename = 'data137.nc'
         character*(*), parameter :: bf_filename = 'E_1_137.nc'
         character*(*), parameter :: dct_filename = 'detectors136.curve'
                 
+        real(rkind), dimension(nx)               :: interior_x_map
+        real(rkind), dimension(nx)               :: interior_y_map
+        real(rkind), dimension(:,:), allocatable :: N_dct_rcoords
+        real(rkind), dimension(:,:), allocatable :: S_dct_rcoords
+        real(rkind), dimension(:,:), allocatable :: E_dct_rcoords
+        real(rkind), dimension(:,:), allocatable :: W_dct_rcoords        
+
         real(rkind), dimension(2)  :: x_borders
         real(rkind), dimension(2)  :: y_borders
         
+        if((nx.ne.104).or.(ny.ne.104).or.(ne.ne.4)) then
+           print '(''the test needs: '')'
+           print '(''nx=104: '',L1)', nx.eq.104
+           print '(''ny=104: '',L1)', ny.eq.104
+           print '(''ne=4  : '',L1)', ne.eq.4
+        end if
+           
 
         !test: nf90_read_borders
         call test_nf90_read_borders(
@@ -37,6 +53,8 @@
         !test: get_restart_alignment
         call test_get_restart_alignment(
      $       interior_filename,
+     $       interior_x_map,
+     $       interior_y_map,
      $       x_borders,
      $       y_borders)
 
@@ -44,7 +62,21 @@
         call test_get_nb_detectors(dct_filename)
 
         !test: read_detectors_from_file
-        call test_read_detectors_from_file(dct_filename)
+        call test_read_detectors_from_file(
+     $       dct_filename,
+     $       N_dct_rcoords,
+     $       S_dct_rcoords,
+     $       E_dct_rcoords,
+     $       W_dct_rcoords)
+
+        !test: get_dct_icoords
+        call test_dct_icoords(
+     $       N_dct_rcoords,
+     $       S_dct_rcoords,
+     $       E_dct_rcoords,
+     $       W_dct_rcoords,
+     $       interior_x_map,
+     $       interior_y_map)
         
 
         contains
@@ -98,14 +130,18 @@
 
        subroutine test_get_restart_alignment(
      $     interior_filename,
+     $     interior_x_map,
+     $     interior_y_map,
      $     x_borders,
      $     y_borders)
 
          implicit none
 
-         character*(*)              , intent(in) :: interior_filename
-         real(rkind)  , dimension(2), intent(in) :: x_borders
-         real(rkind)  , dimension(2), intent(in) :: y_borders
+         character*(*)               , intent(in) :: interior_filename
+         real(rkind)  , dimension(nx), intent(out):: interior_x_map
+         real(rkind)  , dimension(ny), intent(out):: interior_y_map
+         real(rkind)  , dimension(2) , intent(in) :: x_borders
+         real(rkind)  , dimension(2) , intent(in) :: y_borders
 
          type(pmodel_eq)                  :: p_model
          integer                          :: ncid
@@ -113,8 +149,6 @@
          integer    , dimension(ne)       :: data_id
          real(rkind)                      :: time
          real(rkind), dimension(nx,ny,ne) :: interior_nodes
-         real(rkind), dimension(nx)       :: interior_x_map
-         real(rkind), dimension(ny)       :: interior_y_map
 
          integer, dimension(2,2) :: bf_alignment
 
@@ -209,50 +243,123 @@
        end subroutine test_get_nb_detectors
 
 
-       subroutine test_read_detectors_from_file(dct_filename)
+       subroutine test_read_detectors_from_file(
+     $     dct_filename,
+     $     N_dct_rcoords,
+     $     S_dct_rcoords,
+     $     E_dct_rcoords,
+     $     W_dct_rcoords)
 
          implicit none
 
-         character*(*), intent(in) :: dct_filename
-
-         real(rkind), dimension(:,:), allocatable :: N_detectors
-         real(rkind), dimension(:,:), allocatable :: S_detectors
-         real(rkind), dimension(:,:), allocatable :: E_detectors
-         real(rkind), dimension(:,:), allocatable :: W_detectors
+         character*(*)                           , intent(in)  :: dct_filename
+         real(rkind), dimension(:,:), allocatable, intent(out) :: N_dct_rcoords
+         real(rkind), dimension(:,:), allocatable, intent(out) :: S_dct_rcoords
+         real(rkind), dimension(:,:), allocatable, intent(out) :: E_dct_rcoords
+         real(rkind), dimension(:,:), allocatable, intent(out) :: W_dct_rcoords
 
          call read_detectors_from_file(
      $        dct_filename,
-     $        N_detectors,
-     $        S_detectors,
-     $        E_detectors,
-     $        W_detectors)
+     $        N_dct_rcoords,
+     $        S_dct_rcoords,
+     $        E_dct_rcoords,
+     $        W_dct_rcoords)
 
          print '(''test_read_detectors_from_file'')'
          print '(''----------------------------------------'')'
          print '(''N_detectors:'')'
-         print '(2F8.4)', N_detectors(:,1)
+         print '(2F8.4)', N_dct_rcoords(:,1)
          print '(''      ...'')'
-         print '(2F8.4)', N_detectors(:,size(N_detectors,2))
+         print '(2F8.4)', N_dct_rcoords(:,size(N_dct_rcoords,2))
          print '()'
 
          print '(''S_detectors:'')'
-         print '(2F8.4)', S_detectors(:,1)
+         print '(2F8.4)', S_dct_rcoords(:,1)
          print '(''      ...'')'
-         print '(2F8.4)', S_detectors(:,size(S_detectors,2))
+         print '(2F8.4)', S_dct_rcoords(:,size(S_dct_rcoords,2))
          print '()'
 
          print '(''E_detectors:'')'
-         print '(2F8.4)', E_detectors(:,1)
+         print '(2F8.4)', E_dct_rcoords(:,1)
          print '(''      ...'')'
-         print '(2F8.4)', E_detectors(:,size(E_detectors,2))
+         print '(2F8.4)', E_dct_rcoords(:,size(E_dct_rcoords,2))
          print '()'
 
          print '(''W_detectors:'')'
-         print '(2F8.4)', W_detectors(:,1)
+         print '(2F8.4)', W_dct_rcoords(:,1)
          print '(''      ...'')'
-         print '(2F8.4)', W_detectors(:,size(W_detectors,2))
+         print '(2F8.4)', W_dct_rcoords(:,size(W_dct_rcoords,2))
          print '()'
 
        end subroutine test_read_detectors_from_file
+
+
+       subroutine test_dct_icoords(
+     $     N_rcoords,
+     $     S_rcoords,
+     $     E_rcoords,
+     $     W_rcoords,
+     $     interior_x_map,
+     $     interior_y_map)
+
+          implicit none
+
+          real(rkind)   , dimension(:,:), intent(in)  :: N_rcoords
+          real(rkind)   , dimension(:,:), intent(in)  :: S_rcoords
+          real(rkind)   , dimension(:,:), intent(in)  :: E_rcoords
+          real(rkind)   , dimension(:,:), intent(in)  :: W_rcoords
+          real(rkind)   , dimension(nx) , intent(in)  :: interior_x_map
+          real(rkind)   , dimension(ny) , intent(in)  :: interior_y_map
+
+
+          integer(ikind), dimension(:,:), allocatable :: N_icoords
+          integer(ikind), dimension(:,:), allocatable :: S_icoords
+          integer(ikind), dimension(:,:), allocatable :: E_icoords
+          integer(ikind), dimension(:,:), allocatable :: W_icoords
+
+          allocate(N_icoords(2,size(N_rcoords,2)))
+          allocate(S_icoords(2,size(S_rcoords,2)))
+          allocate(E_icoords(2,size(E_rcoords,2)))
+          allocate(W_icoords(2,size(W_rcoords,2)))
+
+          call get_dct_icoords(
+     $         N_rcoords,
+     $         S_rcoords,
+     $         E_rcoords,
+     $         W_rcoords,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         N_icoords,
+     $         S_icoords,
+     $         E_icoords,
+     $         W_icoords)
+
+          print '(''test_dct_icoords'')'
+          print '(''----------------------------------------'')'
+          print '(''N_detectors:'')'
+          print '(2I4)', N_icoords(:,1)
+          print '(''      ...'')'
+          print '(2I4)', N_icoords(:,size(N_icoords,2))
+          print '()'
+          
+          print '(''S_detectors:'')'
+          print '(2I4)', S_icoords(:,1)
+          print '(''      ...'')'
+          print '(2I4)', S_icoords(:,size(S_icoords,2))
+          print '()'
+
+          print '(''E_detectors:'')'
+          print '(2I4)', E_icoords(:,1)
+          print '(''      ...'')'
+          print '(2I4)', E_icoords(:,size(E_icoords,2))
+          print '()'
+          
+          print '(''W_detectors:'')'
+          print '(2I4)', W_icoords(:,1)
+          print '(''      ...'')'
+          print '(2I4)', W_icoords(:,size(W_icoords,2))
+          print '()'
+
+       end subroutine test_dct_icoords
 
       end program test_bf_restart
