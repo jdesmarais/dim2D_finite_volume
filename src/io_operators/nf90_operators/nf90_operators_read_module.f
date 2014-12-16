@@ -62,7 +62,12 @@
 
 
         !get the varid of the data variables based on their name
-        subroutine nf90_get_varid(ncid,p_model,coordinates_id,data_id)
+        subroutine nf90_get_varid(
+     $     ncid,
+     $     p_model,
+     $     coordinates_id,
+     $     data_id,
+     $     grdptsid_id)
 
           implicit none
 
@@ -70,6 +75,7 @@
           type(pmodel_eq)       , intent(in)  :: p_model
           integer, dimension(3) , intent(out) :: coordinates_id
           integer, dimension(ne), intent(out) :: data_id
+          integer, optional     , intent(out) :: grdptsid_id
 
           integer                          :: retval
           character(len=10), dimension(ne) :: name_var
@@ -107,6 +113,17 @@
 
           end do
 
+          !5) if the grdptsid_id is present, the ID
+          !   for this variable is also inquired
+          if(present(grdptsid_id)) then
+             
+             !get the varid for the 'grdpts_id' variable
+             retval = NF90_INQ_VARID(ncid, 'grdpts_id',grdptsid_id)
+             !DEC$ FORCEINLINE RECURSIVE
+             call nf90_handle_err(retval)
+
+          end if
+
         end subroutine nf90_get_varid
 
 
@@ -115,7 +132,10 @@
      $     ncid,
      $     coordinates_id,
      $     data_id,
-     $     time, nodes, x_map, y_map)
+     $     time,
+     $     nodes,
+     $     x_map,
+     $     y_map)
 
           implicit none
 
@@ -181,19 +201,26 @@
      $     ncid,
      $     coordinates_id,
      $     data_id,
-     $     time, nodes, x_map, y_map,
-     $     COUNT)
+     $     time,
+     $     nodes,
+     $     x_map,
+     $     y_map,
+     $     COUNT,
+     $     grdptsid_id,
+     $     grdpts_id)
 
           implicit none
 
-          integer                      , intent(in)    :: ncid
-          integer    , dimension(3)    , intent(in)    :: coordinates_id
-          integer    , dimension(ne)   , intent(in)    :: data_id
-          real(rkind)                  , intent(out)   :: time
-          real(rkind), dimension(:,:,:), intent(inout) :: nodes
-          real(rkind), dimension(:)    , intent(inout) :: x_map
-          real(rkind), dimension(:)    , intent(inout) :: y_map
-          integer    , dimension(3)    , intent(in)    :: COUNT
+          integer                                , intent(in)    :: ncid
+          integer    , dimension(3)              , intent(in)    :: coordinates_id
+          integer    , dimension(ne)             , intent(in)    :: data_id
+          real(rkind)                            , intent(out)   :: time
+          real(rkind), dimension(:,:,:)          , intent(inout) :: nodes
+          real(rkind), dimension(:)              , intent(inout) :: x_map
+          real(rkind), dimension(:)              , intent(inout) :: y_map
+          integer    , dimension(3)              , intent(in)    :: COUNT
+          integer                      , optional, intent(in)    :: grdptsid_id
+          integer    , dimension(:,:)  , optional, intent(out)   :: grdpts_id
 
           real(rkind), dimension(1) :: time_table
           integer                   :: k
@@ -240,6 +267,23 @@
              print '(''restart data('',I2,''): ok'')', k
 
           end do
+
+
+          !5) get the grdpts_id
+          if(present(grdptsid_id).and.present(grdpts_id)) then
+
+             retval = NF90_GET_VAR(
+     $            ncid,
+     $            grdptsid_id,
+     $            grdpts_id,
+     $            START=[1,1,1],
+     $            COUNT=COUNT)
+             !DEC$ FORCEINLINE RECURSIVE
+             call nf90_handle_err(retval)
+
+             print '(''restart grdpts_id: ok'')'
+
+          end if
 
         end subroutine nf90_get_var_model_nopt
 
