@@ -366,8 +366,8 @@
           integer                                          :: i
           integer                                          :: t_index_format
           integer                                          :: bf_index_format
-          character(len=11)                                :: filename_format
-          character(len=20)                                :: bf_filename
+          character(len=19)                                :: filename_format
+          character(len=25)                                :: bf_filename
           integer                                          :: ncid
           integer          , dimension(3)                  :: coordinates_id
           integer          , dimension(ne)                 :: data_id
@@ -397,21 +397,29 @@
              do i=1, nb_bf_layers(k)
 
                 !number of character to represent the timestep index
-                t_index_format  = floor(log(real(timestep))+1.0d0)
+                if(timestep.eq.0) then
+                   t_index_format = 1
+                else
+                   t_index_format  = floor(log10(real(timestep))+1.0)
+                end if
 
                 !number of character to represent the bf_layer index
-                bf_index_format = floor(log(real(i))+1.0d0)
+                if(bf_index_format.eq.0) then
+                   bf_index_format = 1
+                else
+                   bf_index_format = floor(log10(real(i))+1.0)
+                end if
 
                 !format for the filename
                 write(filename_format,
-     $               '(''(A2,I'',I1,'',A1,I'',I1,'',A3)'')')
+     $               '(''(A1,A1,I'',I1,'',A1,I'',I1,'',A3)'')')
      $               bf_index_format,
      $               t_index_format
 
                 !filename
                 write(bf_filename, filename_format)
      $               bf_mainlayer_id(k),'_',
-     $               i,
+     $               i,'_',
      $               timestep,
      $               '.nc'
 

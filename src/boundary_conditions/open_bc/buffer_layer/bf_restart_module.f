@@ -390,8 +390,7 @@
      $         dct_rcoords(2,1),
      $         interior_y_map,
      $         ny)
-          print *, 'dct_icoords', dct_icoords(1,1), dct_icoords(2,1)
-
+          
 
           !get the general coordinates of the next
           !points by comparing them to the previous
