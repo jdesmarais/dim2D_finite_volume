@@ -113,11 +113,34 @@
 
           class(field_extended)  , intent(inout) :: this
 
+          type(cmd_operators)   :: cmd_operators_used
+          integer, dimension(4) :: nb_bf_layers
+
+
           !initialize the interior domain
           call this%field_abstract%ini()
 
+          !analyse the command line arguments
+          call cmd_operators_used%analyse_cmd_line_arg()
+
           !initialize the domain extension
-          call this%domain_extension%ini(this%x_map,this%y_map)
+          if(cmd_operators_used%is_restart_activated()) then
+
+             nb_bf_layers = cmd_operators_used%get_nb_bf_layers()
+
+             call this%domain_extension%restart(
+     $            this%x_map,
+     $            this%y_map,
+     $            this%nodes,
+     $            nb_bf_layers,
+     $            this%pmodel_eq_used,
+     $            this%io_operators_used%get_nb_timesteps_written())
+             
+          else
+
+             call this%domain_extension%ini(this%x_map,this%y_map)
+
+          end if
 
           !initialize the boundary layer procedures
           !depending on the buffer layer

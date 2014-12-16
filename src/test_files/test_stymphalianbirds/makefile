@@ -321,3 +321,9 @@ test_write_netcdf_detectors:\
 			$(mt_dep)\
 			$(dim2d_dep)\
 			nf90_operators_module.o
+
+test_cmd_operators.o:	$(io_dir)/cmd_operators_class.o
+
+test_cmd_operators:	cmd_operators_class.o\
+			parameters_bf_layer.o\
+			parameters_kind.o

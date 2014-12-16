@@ -19,6 +19,9 @@
       !---------------------------------------------------------------------------
       module cmd_operators_class
 
+        use parameters_bf_layer, only :
+     $     N,S,E,W
+
         implicit none
 
 
@@ -53,7 +56,8 @@
 
           logical               :: restart_activated
           character(len=1024)   :: restart_filename
-          character(len=1024)   :: input_filename
+
+          integer, dimension(4) :: nb_bf_layers
 
           contains
 
@@ -64,6 +68,8 @@
 
           procedure,   pass :: is_restart_activated
           procedure,   pass :: get_restart_filename
+          procedure,   pass :: get_nb_bf_layers
+          procedure,   pass :: get_nb_layers
 
         end type cmd_operators
 
@@ -125,12 +131,15 @@
           
 
           !set the default options for the input
-          !file and the output generic name the
-          !default values will be replaced by the
-          !name given by the command line arguments
-          !if they are provided by the user
+          !file
           !--------------------------------------
           this%restart_activated=.false.
+
+
+          !set the default options for the number
+          !of buffer layers
+          !--------------------------------------
+          this%nb_bf_layers = [0,0,0,0]
 
 
           !get the total number of arguments given
@@ -156,6 +165,38 @@
                case('-r','--restart')
           
                   call this%activate_restart(
+     $                 arg_i,
+     $                 arg_nb)
+
+               !number North buffer layers
+               !=========================================================
+               case('--nb_bf_N')
+
+                  this%nb_bf_layers(N) = this%get_nb_layers(
+     $                 arg_i,
+     $                 arg_nb)
+
+               !number South buffer layers
+               !=========================================================
+               case('--nb_bf_S')
+
+                  this%nb_bf_layers(S) = this%get_nb_layers(
+     $                 arg_i,
+     $                 arg_nb)
+               
+               !number East buffer layers
+               !=========================================================
+               case('--nb_bf_E')
+
+                  this%nb_bf_layers(E) = this%get_nb_layers(
+     $                 arg_i,
+     $                 arg_nb)
+
+               !number West buffer layers
+               !=========================================================
+               case('--nb_bf_W')
+
+                  this%nb_bf_layers(W) = this%get_nb_layers(
      $                 arg_i,
      $                 arg_nb)
           
@@ -425,6 +466,85 @@
           restart_filename = this%restart_filename
 
         end function get_restart_filename
+
+
+        !---------------------------------------------------------------------------  
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        ! DESCRIPTION: 
+        !> get the number of buffer layers given by the option
+        !> @brief
+        !> get the number of buffer layers given by the option
+        !
+        ! REVISION HISTORY:
+        ! 16_12_2013 - initial version - J.L. Desmarais
+        !
+        !> @param[in]    this  : class(cmd_operators)
+        !> @param[inout] arg_i : integer indexing the command line arguments tested
+        !> @param[inout] arg_nb: integer giving the total number of arguments
+        !---------------------------------------------------------------------------  
+        function get_nb_layers(
+     $     this,
+     $     arg_i, arg_nb)
+     $     result(nb_bf_layers)
+
+
+          implicit none
+
+
+          !i/o variables
+          class(cmd_operators), intent(inout) :: this
+          integer             , intent(inout) :: arg_i
+          integer             , intent(in)    :: arg_nb
+          integer                             :: nb_bf_layers
+
+          logical             :: option_arg_provided
+          character(len=1024) :: option_arg
+          
+          call get_option_arg(
+     $         arg_i, arg_nb,
+     $         option_arg_provided, option_arg)
+          
+          if(option_arg_provided) then
+             read( option_arg, '(i10)' ) nb_bf_layers
+          else
+             nb_bf_layers = 0
+          end if
+
+        end function get_nb_layers
+
+
+        !---------------------------------------------------------------------------  
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        ! DESCRIPTION: 
+        !> get the number of buffer layers given by the user
+        !> @brief
+        !> get the number of buffer layers given by the user
+        !
+        ! REVISION HISTORY:
+        ! 16_12_2014 - initial version - J.L. Desmarais
+        !
+        !> @param[in]  this        : class(cmd_operators)
+        !> @param[out] nb_bf_layers: number of buffer layers
+        !---------------------------------------------------------------------------  
+        function get_nb_bf_layers(
+     $     this)
+     $     result(nb_bf_layers)
+
+
+          implicit none
+
+
+          !i/o variables
+          class(cmd_operators), intent(in) :: this
+          integer, dimension(4)            :: nb_bf_layers
+
+          nb_bf_layers = this%nb_bf_layers
+
+        end function get_nb_bf_layers
 
       end module cmd_operators_class
       

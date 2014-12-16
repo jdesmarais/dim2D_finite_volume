@@ -886,7 +886,8 @@ $(rk3tvd_dir)/td_integrator_par_class.o:\
 
 
 #io operators
-$(io_dir)/cmd_operators_class.o:
+$(io_dir)/cmd_operators_class.o:\
+			$(bf_layer_dir)/parameters_bf_layer.o
 
 $(io_dir)/io_operators_module.o:
 
