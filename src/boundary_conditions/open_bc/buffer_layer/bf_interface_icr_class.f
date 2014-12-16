@@ -1440,10 +1440,15 @@
           real(rkind)   , dimension(2) , intent(out) :: d_rcoord_n
           integer(ikind), dimension(2)               :: cpt_coords
 
-          real(rkind)               :: dx,dy
-          real(rkind)               :: dir_x, dir_y
-          real(rkind)               :: norm_velocity
-          real(rkind), dimension(2) :: d_icoord_r
+          real(rkind)                    :: dx,dy
+          real(rkind)                    :: dir_x, dir_y
+          real(rkind)                    :: norm_velocity
+          real(rkind)   , dimension(2,3) :: d_icoord_r
+          integer(ikind), dimension(3)   :: d_icoord_i
+          real(rkind)                    :: distance
+          real(rkind)                    :: min_distance
+          integer(ikind)                 :: min_distance_k
+          integer                        :: k
 
           dx = interior_x_map(2)-interior_x_map(1)
           dy = interior_y_map(2)-interior_y_map(1)
@@ -1476,54 +1481,101 @@
           d_rcoord_n(2) = d_rcoord(2) + dir_y
 
           
-          !determine the coordinates of the detector according
-          !to its general index coordinates
+          !determine the coordinates of the gridpoints surrounding
+          !the detector according to its general index coordinates
+          !x-direction
           if(d_icoord(1).le.0) then
              dx = interior_x_map(2) - interior_x_map(1)
-             d_icoord_r(1) = interior_x_map(1)+(d_icoord(1)-1)*dx
+             d_icoord_r(1,1) = interior_x_map(1)+(d_icoord(1)-2)*dx
+             d_icoord_r(1,2) = interior_x_map(1)+(d_icoord(1)-1)*dx
+             d_icoord_r(1,3) = interior_x_map(1)+(d_icoord(1)  )*dx
           else
-             if(d_icoord(1).le.nx) then
-                d_icoord_r(1) = interior_x_map(d_icoord(1))
+             if(d_icoord(1).le.(nx-1)) then
+                d_icoord_r(1,1) = interior_x_map(d_icoord(1)-1)
+                d_icoord_r(1,2) = interior_x_map(d_icoord(1))
+                d_icoord_r(1,3) = interior_x_map(d_icoord(1)+1)
              else
                 dx = interior_x_map(nx) - interior_x_map(nx-1)
-                d_icoord_r(1) = interior_x_map(nx) + (d_icoord(1)-nx)*dx
+                d_icoord_r(1,1) = interior_x_map(nx) + (d_icoord(1)-nx-1)*dx
+                d_icoord_r(1,2) = interior_x_map(nx) + (d_icoord(1)-nx)*dx
+                d_icoord_r(1,3) = interior_x_map(nx) + (d_icoord(1)-nx+1)*dx
              end if
           end if
 
+          !y-direction
           if(d_icoord(2).le.0) then
              dy = interior_y_map(2) - interior_y_map(1)
-             d_icoord_r(2) = interior_y_map(1)+(d_icoord(2)-1)*dy
+             d_icoord_r(2,1) = interior_y_map(1)+(d_icoord(2)-2)*dy
+             d_icoord_r(2,2) = interior_y_map(1)+(d_icoord(2)-1)*dy
+             d_icoord_r(2,3) = interior_y_map(1)+(d_icoord(2)  )*dy
           else
-             if(d_icoord(2).le.ny) then
-                d_icoord_r(2) = interior_y_map(d_icoord(2))
+             if(d_icoord(2).le.(ny-1)) then
+                d_icoord_r(2,1) = interior_y_map(d_icoord(2)-1)
+                d_icoord_r(2,2) = interior_y_map(d_icoord(2))
+                d_icoord_r(2,3) = interior_y_map(d_icoord(2)+1)
              else
                 dy = interior_y_map(ny) - interior_y_map(ny-1)
-                d_icoord_r(2) = interior_y_map(ny) + (d_icoord(2)-ny)*dy
+                d_icoord_r(2,1) = interior_y_map(ny) + (d_icoord(2)-ny-1)*dy
+                d_icoord_r(2,2) = interior_y_map(ny) + (d_icoord(2)-ny  )*dy
+                d_icoord_r(2,3) = interior_y_map(ny) + (d_icoord(2)-ny+1)*dy
              end if
           end if
 
 
           !update of the x-index for the detector
-          if((d_rcoord_n(1)-d_icoord_r(1)).gt.dx) then
-             d_icoord_n(1) = d_icoord(1) + 1
-          else
-             if((d_rcoord_n(1)-d_icoord_r(1)).lt.(-dx)) then
-                d_icoord_n(1) = d_icoord(1)-1
-             else
-                d_icoord_n(1) = d_icoord(1)
+          min_distance   = abs(d_rcoord_n(1)-d_icoord_r(1,1))
+          min_distance_k = 1
+          do k=2,3
+             distance = abs(d_rcoord_n(1)-d_icoord_r(1,k))
+             if(distance.lt.min_distance) then
+                min_distance_k = k
              end if
-          end if
+          end do
+
+          d_icoord_i(1) = d_icoord(1)-1
+          d_icoord_i(2) = d_icoord(1)
+          d_icoord_i(3) = d_icoord(1)+1
+
+          d_icoord_n(1) = d_icoord_i(min_distance_k)
+
 
           !update of the y-index for the detector
-          if((d_rcoord_n(2)-d_icoord_r(2)).gt.dy) then
-             d_icoord_n(2) = d_icoord(2) + 1
-          else
-             if((d_rcoord_n(2)-d_icoord_r(2)).lt.(-dy)) then
-                d_icoord_n(2) = d_icoord(2)-1
-             else
-                d_icoord_n(2) = d_icoord(2)
+          min_distance   = abs(d_rcoord_n(2)-d_icoord_r(2,1))
+          min_distance_k = 1
+          do k=2,3
+             distance = abs(d_rcoord_n(2)-d_icoord_r(2,k))
+             if(distance.lt.min_distance) then
+                min_distance_k = k
              end if
-          end if
+          end do
+
+          d_icoord_i(1) = d_icoord(2)-1
+          d_icoord_i(2) = d_icoord(2)
+          d_icoord_i(3) = d_icoord(2)+1
+          
+          d_icoord_n(2) = d_icoord_i(min_distance_k)
+          
+
+c$$$          if((d_rcoord_n(1)-d_icoord_r(1)).gt.dx) then
+c$$$             d_icoord_n(1) = d_icoord(1) + 1
+c$$$          else
+c$$$             if((d_rcoord_n(1)-d_icoord_r(1)).lt.(-dx)) then
+c$$$                d_icoord_n(1) = d_icoord(1)-1
+c$$$             else
+c$$$                d_icoord_n(1) = d_icoord(1)
+c$$$             end if
+c$$$          end if
+c$$$
+c$$$          !update of the y-index for the detector
+c$$$          if((d_rcoord_n(2)-d_icoord_r(2)).gt.dy) then
+c$$$             d_icoord_n(2) = d_icoord(2) + 1
+c$$$          else
+c$$$             if((d_rcoord_n(2)-d_icoord_r(2)).lt.(-dy)) then
+c$$$                d_icoord_n(2) = d_icoord(2)-1
+c$$$             else
+c$$$                d_icoord_n(2) = d_icoord(2)
+c$$$             end if
+c$$$          end if
 
         end function get_central_grdpt
 

@@ -16,6 +16,8 @@
       !-----------------------------------------------------------------
       module bf_interface_class
 
+        use netcdf
+
         use bc_operators_class, only :
      $       bc_operators
         
@@ -46,6 +48,15 @@
 
         use nbf_interface_newgrdpt_class, only :
      $       nbf_interface_newgrdpt
+
+        use nf90_operators_module, only :
+     $       nf90_close_file
+
+        use nf90_operators_read_module, only :
+     $       nf90_open_file_for_reading,
+     $       nf90_get_varid,
+     $       nf90_get_var_model_nopt,
+     $       nf90_read_borders
 
         use parameters_bf_layer, only :
      $       align_N,
