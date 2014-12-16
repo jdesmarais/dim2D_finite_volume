@@ -10,7 +10,10 @@
         implicit none
 
         private
-        public :: get_restart_alignment
+        public ::
+     $       get_restart_alignment,
+     $       get_nb_detectors,
+     $       read_detectors_from_file
 
 
         contains
@@ -146,23 +149,152 @@
 
           implicit none
 
-          character*(*), intent(in) :: filename
-          integer, dimension(4)     :: nb_detectors
-          
-          integer :: ios
+          character*(*), intent(in)   :: filename
+          integer      , dimension(4) :: nb_detectors
+
+          character(1) :: line
+          integer      :: ios
+          integer      :: k
+          integer      :: nb_lines
 
 
           !open for the file for reading
           open(unit=1,
      $         file=filename,
+     $         iostat=ios)
+          if(ios.ne.0) then
+             print *, 'error opening detector file'
+          end if
+
+          !read first line
+          read(1,*,iostat=ios) line
+          k=0
+          nb_lines=0
+
+          !read lines
+          do while(ios.eq.0)
+
+             if(line.eq.'#') then
+                if(k>0) then
+                   nb_detectors(k) = nb_lines-1
+                   nb_lines=0
+                end if
+                k=k+1                
+             end if
+
+             read(1,*,iostat=ios) line
+
+             if(ios.eq.0) then
+                nb_lines=nb_lines+1
+             else
+                nb_detectors(k) = nb_lines-1
+             end if
+             
+          end do
+          nb_detectors(4) = nb_detectors(4)+1
+
+          !close file
+          close(unit=1)
+
+        end function get_nb_detectors
+
+
+        !read the detectors
+        subroutine read_detectors_from_file(
+     $     filename,
+     $     N_detectors,
+     $     S_detectors,
+     $     E_detectors,
+     $     W_detectors)
+
+          implicit none
+
+          character*(*)                           , intent(in)  :: filename
+          real(rkind), dimension(:,:), allocatable, intent(out) :: N_detectors
+          real(rkind), dimension(:,:), allocatable, intent(out) :: S_detectors
+          real(rkind), dimension(:,:), allocatable, intent(out) :: E_detectors
+          real(rkind), dimension(:,:), allocatable, intent(out) :: W_detectors
+
+          
+          integer, dimension(4) :: nb_detectors
+          integer               :: ios
+          character(1)          :: line
+
+
+          !1) get the number of detectors saved
+          nb_detectors = get_nb_detectors(filename)
+
+          allocate(N_detectors(2,nb_detectors(1)))
+          allocate(S_detectors(2,nb_detectors(2)))
+          allocate(E_detectors(2,nb_detectors(3)))
+          allocate(W_detectors(2,nb_detectors(4)))
+
+
+          !2) read the detectors
+          !open for the file for reading
+          open(unit=1,
+     $         file=filename,
      $         form='formatted',
-     $         access='direct',
+     $         access='sequential',
      $         action='read',
      $         status='old',
      $         iostat=ios)
+          if(ios.ne.0) then
+             print *, 'error opening detector file'
+          end if
+
+          !skip first line
+          read(1,*,iostat=ios) line
+
+          !read N_detectors
+          call read_detectors(N_detectors,nb_detectors(1))
+          
+          !skip intermediate lines
+          read(1,*,iostat=ios) line
+
+          !read S_detectors
+          call read_detectors(S_detectors,nb_detectors(2))
+          
+          !skip intermediate lines
+          read(1,*,iostat=ios) line
+
+          !read E_detectors
+          call read_detectors(E_detectors,nb_detectors(3))
+          
+          !skip intermediate lines
+          read(1,*,iostat=ios) line
+
+          !read W_detectors
+          call read_detectors(W_detectors,nb_detectors(4))
+          
+          !close file
+          close(unit=1)
+
+        end subroutine read_detectors_from_file
 
 
-        end function get_nb_detectors
+        subroutine read_detectors(detectors,nb_detectors)
+
+          implicit none
+
+          real(rkind), dimension(:,:), intent(out) :: detectors
+          integer                    , intent(in)  :: nb_detectors
+
+          integer :: i
+          integer :: ios
+          
+          do i=1, nb_detectors
+             
+             read(1,FMT='(2F8.4)',iostat=ios) detectors(:,i)
+
+             if(ios.ne.0) then
+                print '(''error reading detectors'')'
+                stop ''
+             end if
+             
+          end do
+
+        end subroutine read_detectors
         
 
       end module bf_restart_module

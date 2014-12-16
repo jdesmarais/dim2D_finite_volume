@@ -310,3 +310,14 @@ test_bf_restart:	$(param_dep)\
 			nf90_operators_module.o\
 			nf90_operators_read_module.o\
 			bf_restart_module.o
+
+test_write_netcdf_detectors.o:\
+			$(nf90_dir)/nf90_operators_module.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_kind.o
+
+test_write_netcdf_detectors:\
+			$(param_dep)\
+			$(mt_dep)\
+			$(dim2d_dep)\
+			nf90_operators_module.o

@@ -37,7 +37,7 @@
      $       nf90_open_file_for_reading,
      $       nf90_get_varid,
      $       nf90_get_var_model,
-     $       nf90_get_var_model_opt,
+     $       nf90_get_var_model_nopt,
      $       nf90_read_borders
 
 

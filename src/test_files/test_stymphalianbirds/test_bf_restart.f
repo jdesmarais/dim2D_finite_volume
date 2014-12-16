@@ -1,7 +1,9 @@
       program test_bf_restart
 
         use bf_restart_module, only :
-     $     get_restart_alignment
+     $     get_restart_alignment,
+     $     get_nb_detectors,
+     $     read_detectors_from_file
 
         use netcdf
 
@@ -18,8 +20,9 @@
         use parameters_kind, only :
      $       rkind
 
-        character*(*), parameter   :: interior_filename = 'data137.nc'
-        character*(*), parameter   :: bf_filename       = 'E_1_137.nc'
+        character*(*), parameter :: interior_filename = 'data137.nc'
+        character*(*), parameter :: bf_filename = 'E_1_137.nc'
+        character*(*), parameter :: dct_filename = 'detectors136.curve'
                 
         real(rkind), dimension(2)  :: x_borders
         real(rkind), dimension(2)  :: y_borders
@@ -37,6 +40,12 @@
      $       x_borders,
      $       y_borders)
 
+        !test: get_nb_detectors
+        call test_get_nb_detectors(dct_filename)
+
+        !test: read_detectors_from_file
+        call test_read_detectors_from_file(dct_filename)
+        
 
         contains
 
@@ -74,12 +83,15 @@
           call nf90_close_file(ncid)
           
           !print borders
+          print '(''test_nf90_read_borders'')'
+          print '(''----------------------------------------'')'
           print *, 'size_x: ', sizes(1)
           print *, 'size_y: ', sizes(2)
           print *, 'x_min:  ', x_borders(1)
           print *, 'x_max:  ', x_borders(2)
           print *, 'y_min:  ', y_borders(1)
           print *, 'y_max:  ', y_borders(2)
+          print '()'
 
        end subroutine test_nf90_read_borders
 
@@ -141,6 +153,9 @@
 
 
          !print the alignment
+         print '()'
+         print '(''test_get_restart_alignment: '')'
+         print '(''----------------------------------------'')'
          print *, 'bf_alignment(1,1): ', bf_alignment(1,1)
          print *, 'bf_alignment(1,2): ', bf_alignment(1,2)
          print *, 'bf_alignment(2,1): ', bf_alignment(2,1)
@@ -154,7 +169,7 @@
 
          print *, 'interior_y_map(bf_alignment(2,2)+bc_size)',
      $        interior_y_map(bf_alignment(2,2)+bc_size)
-
+         print '()'
 
          !get the alignment compared to the interior
          bf_alignment = get_restart_alignment(
@@ -169,7 +184,75 @@
          print *, 'bf_alignment(1,2): ', bf_alignment(1,2)
          print *, 'bf_alignment(2,1): ', bf_alignment(2,1)
          print *, 'bf_alignment(2,2): ', bf_alignment(2,2)
+         print '()'
 
        end subroutine test_get_restart_alignment
+
+
+       subroutine test_get_nb_detectors(dct_filename)
+
+         implicit none
+
+         character*(*), intent(in) :: dct_filename
+
+         integer, dimension(4) :: nb_detectors
+
+         nb_detectors = get_nb_detectors(dct_filename)
+         print '(''test_get_nb_detectors: '')'
+         print '(''----------------------------------------'')'
+         print *, 'N_detectors: ', nb_detectors(1)
+         print *, 'S_detectors: ', nb_detectors(2)
+         print *, 'E_detectors: ', nb_detectors(3)
+         print *, 'W_detectors: ', nb_detectors(4)
+         print '()'
+
+       end subroutine test_get_nb_detectors
+
+
+       subroutine test_read_detectors_from_file(dct_filename)
+
+         implicit none
+
+         character*(*), intent(in) :: dct_filename
+
+         real(rkind), dimension(:,:), allocatable :: N_detectors
+         real(rkind), dimension(:,:), allocatable :: S_detectors
+         real(rkind), dimension(:,:), allocatable :: E_detectors
+         real(rkind), dimension(:,:), allocatable :: W_detectors
+
+         call read_detectors_from_file(
+     $        dct_filename,
+     $        N_detectors,
+     $        S_detectors,
+     $        E_detectors,
+     $        W_detectors)
+
+         print '(''test_read_detectors_from_file'')'
+         print '(''----------------------------------------'')'
+         print '(''N_detectors:'')'
+         print '(2F8.4)', N_detectors(:,1)
+         print '(''      ...'')'
+         print '(2F8.4)', N_detectors(:,size(N_detectors,2))
+         print '()'
+
+         print '(''S_detectors:'')'
+         print '(2F8.4)', S_detectors(:,1)
+         print '(''      ...'')'
+         print '(2F8.4)', S_detectors(:,size(S_detectors,2))
+         print '()'
+
+         print '(''E_detectors:'')'
+         print '(2F8.4)', E_detectors(:,1)
+         print '(''      ...'')'
+         print '(2F8.4)', E_detectors(:,size(E_detectors,2))
+         print '()'
+
+         print '(''W_detectors:'')'
+         print '(2F8.4)', W_detectors(:,1)
+         print '(''      ...'')'
+         print '(2F8.4)', W_detectors(:,size(W_detectors,2))
+         print '()'
+
+       end subroutine test_read_detectors_from_file
 
       end program test_bf_restart
