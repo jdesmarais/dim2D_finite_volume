@@ -327,3 +327,30 @@ test_cmd_operators.o:	$(io_dir)/cmd_operators_class.o
 test_cmd_operators:	cmd_operators_class.o\
 			parameters_bf_layer.o\
 			parameters_kind.o
+
+test_verify_symmetry.o:	$(io_dir)/cmd_operators_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_kind.o\
+			$(param_dir)/parameters_input.o\
+			$(nf90_dir)/nf90_operators_module.o\
+			$(nf90_dir)/nf90_operators_read_module.o\
+			$(pm_cdir)/pmodel_eq_class.o
+
+test_verify_symmetry:	cmd_operators_class.o\
+			$(param_dep)\
+			$(sd_cdep)\
+			$(pm_cdep)\
+			nf90_operators_module.o\
+			nf90_operators_read_module.o
+
+test_dct_verify_symmetry.o:\
+			$(bf_layer_dir)/bf_restart_module.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(io_dir)/cmd_operators_class.o\
+			$(param_dir)/parameters_kind.o
+
+test_dct_verify_symmetry:\
+			$(param_dep)\
+			parameters_bf_layer.o\
+			cmd_operators_class.o\
+			bf_restart_module.o

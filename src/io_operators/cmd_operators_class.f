@@ -69,7 +69,7 @@
           procedure,   pass :: is_restart_activated
           procedure,   pass :: get_restart_filename
           procedure,   pass :: get_nb_bf_layers
-          procedure,   pass :: get_nb_layers
+          procedure, nopass :: get_nb_layers
 
         end type cmd_operators
 
@@ -485,7 +485,6 @@
         !> @param[inout] arg_nb: integer giving the total number of arguments
         !---------------------------------------------------------------------------  
         function get_nb_layers(
-     $     this,
      $     arg_i, arg_nb)
      $     result(nb_bf_layers)
 
@@ -494,7 +493,6 @@
 
 
           !i/o variables
-          class(cmd_operators), intent(inout) :: this
           integer             , intent(inout) :: arg_i
           integer             , intent(in)    :: arg_nb
           integer                             :: nb_bf_layers

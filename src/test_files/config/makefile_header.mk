@@ -30,6 +30,8 @@ td_choice = finitevolume_choice          #time discretization choice
 ti_choice = rk3tvd_choice                #time integration choice
 io_choice = nf90_choice                  #writer choice
 
+sd_cdep=
+pm_cdep=
 
 #-----------------------------------------------------------------------
 #source files directories

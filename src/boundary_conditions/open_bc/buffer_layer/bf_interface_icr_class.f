@@ -3114,6 +3114,8 @@ c$$$          end if
         end subroutine print_idetectors_on_formatted_file
 
       
+        !generate the filename for the file containing
+        !the detectors from the timestep
         function generate_dct_filename(index) result(filename)
 
           implicit none
