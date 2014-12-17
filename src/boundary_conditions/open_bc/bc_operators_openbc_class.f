@@ -632,7 +632,7 @@
      $                       p_model,
      $                       t,nodes,x_map,y_map,i,j,
      $                       side_x, side_y,
-     $                       gradient_x_x_oneside_L1,
+     $                       gradient_x_x_oneside_L0,
      $                       gradient_y_y_oneside_L0)
 
                         i=i_min
@@ -643,7 +643,7 @@
      $                       t,nodes,x_map,y_map,i,j,
      $                       side_x, side_y,
      $                       gradient_x_x_oneside_L0,
-     $                       gradient_y_y_oneside_L1)
+     $                       gradient_y_y_oneside_L0)
                         
                         i=i_min+1
                         j=j_min+1
@@ -652,8 +652,8 @@
      $                       p_model,
      $                       t,nodes,x_map,y_map,i,j,
      $                       side_x, side_y,
-     $                       gradient_x_x_oneside_L1,
-     $                       gradient_y_y_oneside_L1)
+     $                       gradient_x_x_oneside_L0,
+     $                       gradient_y_y_oneside_L0)
                         
                      end if
 
@@ -678,7 +678,7 @@
      $                       p_model,
      $                       t,nodes,x_map,y_map,i,j,
      $                       side_x, side_y,
-     $                       gradient_x_x_oneside_R1,
+     $                       gradient_x_x_oneside_R0,
      $                       gradient_y_y_oneside_L0)
                         
                         i=i_min+1
@@ -698,8 +698,8 @@
      $                       p_model,
      $                       t,nodes,x_map,y_map,i,j,
      $                       side_x, side_y,
-     $                       gradient_x_x_oneside_R1,
-     $                       gradient_y_y_oneside_L1)
+     $                       gradient_x_x_oneside_R0,
+     $                       gradient_y_y_oneside_L0)
                         
                         i=i_min+1
                         j=j_min+1
@@ -709,7 +709,7 @@
      $                       t,nodes,x_map,y_map,i,j,
      $                       side_x, side_y,
      $                       gradient_x_x_oneside_R0,
-     $                       gradient_y_y_oneside_L1)
+     $                       gradient_y_y_oneside_L0)
 
                      end if
                      
@@ -735,7 +735,7 @@
      $                       t,nodes,x_map,y_map,i,j,
      $                       side_x, side_y,
      $                       gradient_x_x_oneside_L0,
-     $                       gradient_y_y_oneside_R1)
+     $                       gradient_y_y_oneside_R0)
 
                         i=i_min+1
                         j=j_min
@@ -744,8 +744,8 @@
      $                       p_model,
      $                       t,nodes,x_map,y_map,i,j,
      $                       side_x, side_y,
-     $                       gradient_x_x_oneside_L1,
-     $                       gradient_y_y_oneside_R1)
+     $                       gradient_x_x_oneside_L0,
+     $                       gradient_y_y_oneside_R0)
 
                         i=i_min
                         j=j_min+1
@@ -764,7 +764,7 @@
      $                       p_model,
      $                       t,nodes,x_map,y_map,i,j,
      $                       side_x, side_y,
-     $                       gradient_x_x_oneside_L1,
+     $                       gradient_x_x_oneside_L0,
      $                       gradient_y_y_oneside_R0)
 
                      end if
@@ -790,8 +790,8 @@
      $                       p_model,
      $                       t,nodes,x_map,y_map,i,j,
      $                       side_x, side_y,
-     $                       gradient_x_x_oneside_R1,
-     $                       gradient_y_y_oneside_R1)
+     $                       gradient_x_x_oneside_R0,
+     $                       gradient_y_y_oneside_R0)
 
                         i=i_min+1
                         j=j_min
@@ -801,7 +801,7 @@
      $                       t,nodes,x_map,y_map,i,j,
      $                       side_x, side_y,
      $                       gradient_x_x_oneside_R0,
-     $                       gradient_y_y_oneside_R1)
+     $                       gradient_y_y_oneside_R0)
 
                         i=i_min
                         j=j_min+1
@@ -810,7 +810,7 @@
      $                       p_model,
      $                       t,nodes,x_map,y_map,i,j,
      $                       side_x, side_y,
-     $                       gradient_x_x_oneside_R1,
+     $                       gradient_x_x_oneside_R0,
      $                       gradient_y_y_oneside_R0)
 
                         i=i_min+1
