@@ -1624,6 +1624,13 @@
 
 
           !update of the x-index for the detector
+          !the x-index is the general coordinate (integer)
+          !identifying the index along the x-axis to get the
+          !data at the gridpoint location to evaluate whether
+          !the detector is activated or not
+          !it is updated such that the d_rcoords_n(1) previously
+          !evaluated matches at best the x-coordinate of the
+          !x-index
           min_distance   = abs(d_rcoord_n(1)-d_icoord_r(1,1))
           min_distance_k = 1
           do k=2,3
@@ -1642,11 +1649,19 @@
 
 
           !update of the y-index for the detector
+          !the y-index is the general coordinate (integer)
+          !identifying the index along the y-axis to get the
+          !data at the gridpoint location to evaluate whether
+          !the detector is activated or not
+          !it is updated such that the d_rcoords_n(2) previously
+          !evaluated matches at best the y-coordinate of the
+          !y-index
           min_distance   = abs(d_rcoord_n(2)-d_icoord_r(1,2))
           min_distance_k = 1
           do k=2,3
              distance = abs(d_rcoord_n(2)-d_icoord_r(k,2))
              if(distance.lt.min_distance) then
+                min_distance   = distance
                 min_distance_k = k
              end if
           end do
