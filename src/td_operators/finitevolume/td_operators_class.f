@@ -266,6 +266,14 @@
         !>@param y_borders
         !> array containing the limits of the computed grid points in
         !> the y-direction
+        !
+        !>@param N_bc_sections
+        !> determine whether the last two north lines of the array
+        !> should be computed by the buffer layer itself or not
+        !
+        !>@param S_bc_sections
+        !> determine whether the last two south lines of the array
+        !> should be computed by the buffer layer itself or not
         !--------------------------------------------------------------
         subroutine compute_time_dev_nopt(
      $     t,nodes,x_map,y_map,
@@ -273,8 +281,10 @@
      $     time_dev,
      $     grdpts_id,
      $     bc_sections,
-     $     x_borders, y_borders,
-     $     N_bc_sections, S_bc_sections)
+     $     x_borders,
+     $     y_borders,
+     $     N_bc_sections,
+     $     S_bc_sections)
 
             implicit none
 

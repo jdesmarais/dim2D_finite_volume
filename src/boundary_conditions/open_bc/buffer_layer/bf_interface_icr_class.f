@@ -617,6 +617,18 @@
      $         E_dct_list_n,
      $         W_dct_list_n)
 
+
+          !7) make sure that the buffer layers sharing grid points
+          !   with other buffer layers at the interface (N <-> E,
+          !   N <-> W, S <-> E, S <-> W) do not have bc_interior_pt
+          !   at the very border of the buffer layer (due to the update
+          !   of the grid points from another buffer layer). If there is
+          !   a bc_interior_pt that is at the very border of the domain,
+          !   then the corresponding bc_pt around it cannot be computed
+          !   while they should be
+          !   --> see bug 20141217_bug_overlap_bc_at_NE
+          call this%resolve_bc_overlap_conflicts()
+
         end subroutine update_bf_layers_with_idetectors
 
 
