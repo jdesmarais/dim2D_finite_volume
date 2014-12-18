@@ -401,7 +401,6 @@
              !surrounding points
              dct_rcoords_s(:,1) = get_surrounding_grdpts(
      $            dct_icoords(1,k-1),
-     $            dct_rcoords(1,k-1),
      $            interior_x_map,
      $            nx)
 
@@ -409,7 +408,6 @@
              !surrounding points
              dct_rcoords_s(:,2) = get_surrounding_grdpts(
      $            dct_icoords(2,k-1),
-     $            dct_rcoords(2,k-1),
      $            interior_y_map,
      $            ny)
 
@@ -459,7 +457,6 @@
         !are rcoord
         function get_surrounding_grdpts(
      $     icoord,
-     $     rcoord,
      $     interior_map,
      $     size)
      $     result(surrounding_grdpts)
@@ -467,7 +464,6 @@
           implicit none
 
           integer(ikind)           , intent(in) :: icoord
-          real(rkind)              , intent(in) :: rcoord
           real(rkind), dimension(:), intent(in) :: interior_map
           integer                  , intent(in) :: size
           real(rkind), dimension(3)             :: surrounding_grdpts
@@ -476,9 +472,13 @@
 
           if(icoord.le.1) then
              dx = interior_map(2)-interior_map(1)
-             surrounding_grdpts(1) = rcoord-dx
-             surrounding_grdpts(2) = rcoord
-             surrounding_grdpts(3) = rcoord+dx
+             
+             surrounding_grdpts(1) = interior_map(1) + (icoord-2)*dx
+             surrounding_grdpts(2) = interior_map(1) + (icoord-1)*dx
+             surrounding_grdpts(3) = interior_map(1) + (icoord  )*dx
+c$$$             surrounding_grdpts(1) = rcoord-dx
+c$$$             surrounding_grdpts(2) = rcoord
+c$$$             surrounding_grdpts(3) = rcoord+dx
 
           else
 
@@ -489,9 +489,14 @@
 
              else
                 dx = interior_map(size)-interior_map(size-1)
-                surrounding_grdpts(1) = rcoord-dx
-                surrounding_grdpts(2) = rcoord
-                surrounding_grdpts(3) = rcoord+dx
+
+                surrounding_grdpts(1) = interior_map(size) + (icoord-size-1)*dx
+                surrounding_grdpts(2) = interior_map(size) + (icoord-size  )*dx
+                surrounding_grdpts(3) = interior_map(size) + (icoord-size+1)*dx
+
+c$$$                surrounding_grdpts(1) = rcoord-dx
+c$$$                surrounding_grdpts(2) = rcoord
+c$$$                surrounding_grdpts(3) = rcoord+dx
 
              end if
           end if
