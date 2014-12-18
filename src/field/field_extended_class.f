@@ -287,6 +287,13 @@
         !
         !>@param integration_step_nopt
         !> procedure for the time integration of the domain extension
+        !
+        !>@param full
+        !> logical to enforce whether the full domain is computed
+        !> discarding the x_borders and y_borders supplied
+        !> (important for the first integration step when the
+        !> previous integration step is saved temporary in another
+        !> array)
         !--------------------------------------------------------------
         subroutine compute_integration_step_ext(
      $     this, dt, nodes_tmp, time_dev,
@@ -317,7 +324,7 @@
                     
           !compute the integration step for the domain extension
           call this%domain_extension%compute_integration_step(
-     $         dt, integration_step_nopt)
+     $         dt, integration_step_nopt, full)
 
         end subroutine compute_integration_step_ext
 

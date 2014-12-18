@@ -399,7 +399,9 @@
      $     grdpts_id, nodes, dt,
      $     x_borders, y_borders,
      $     integration_step_nopt,
-     $     N_bc_sections, S_bc_sections)
+     $     N_bc_sections,
+     $     S_bc_sections,
+     $     full)
 
           implicit none
 
@@ -412,6 +414,7 @@
           procedure(timeInt_step_nopt)                               :: integration_step_nopt
           integer(ikind), dimension(:,:), allocatable, intent(in)    :: N_bc_sections
           integer(ikind), dimension(:,:), allocatable, intent(in)    :: S_bc_sections
+          logical                                    , intent(in)    :: full
 
           call integration_step_nopt(
      $         nodes,
@@ -419,6 +422,7 @@
      $         this%nodes_tmp,
      $         this%time_dev,
      $         grdpts_id,
+     $         full=full,
      $         x_borders=x_borders,
      $         y_borders=y_borders,
      $         N_bc_sections=N_bc_sections,

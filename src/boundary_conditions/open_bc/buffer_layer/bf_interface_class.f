@@ -2508,15 +2508,23 @@ c$$$          stop 'not implemented yet'
         !
         !>@param integration_step_nopt
         !> procedure performing the time integration
+        !
+        !>@param full
+        !> logical to enforce whether the full domain is computed
+        !> discarding the x_borders and y_borders supplied
+        !> (important for the first integration step when the
+        !> previous integration step is saved temporary in another
+        !> array)
         !--------------------------------------------------------------
         subroutine compute_integration_step(
-     $     this, dt, integration_step_nopt)
+     $     this, dt, integration_step_nopt, full)
 
           implicit none
 
           class(bf_interface), intent(inout) :: this
           real(rkind)        , intent(in)    :: dt
-          procedure(timeInt_step_nopt) :: integration_step_nopt
+          procedure(timeInt_step_nopt)       :: integration_step_nopt
+          logical            , intent(in)    :: full
 
           integer :: i
 
@@ -2527,7 +2535,7 @@ c$$$          stop 'not implemented yet'
              if(this%mainlayer_pointers(i)%associated_ptr()) then
                 
                 call this%mainlayer_pointers(i)%compute_integration_step(
-     $               dt, integration_step_nopt)
+     $               dt, integration_step_nopt, full)
 
              end if
           end do

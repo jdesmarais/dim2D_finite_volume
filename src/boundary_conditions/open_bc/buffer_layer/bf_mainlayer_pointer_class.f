@@ -1068,19 +1068,27 @@
         !
         !>@param integration_step_nopt
         !> procedure performing the time integration
+        !
+        !>@param full
+        !> logical to enforce whether the full domain is computed
+        !> discarding the x_borders and y_borders supplied
+        !> (important for the first integration step when the
+        !> previous integration step is saved temporary in another
+        !> array)
         !--------------------------------------------------------------
         subroutine compute_integration_step(
-     $     this, dt, integration_step_nopt)
+     $     this, dt, integration_step_nopt, full)
 
           implicit none
 
           class(bf_mainlayer_pointer), intent(inout) :: this
           real(rkind)                , intent(in)    :: dt
-          procedure(timeInt_step_nopt) :: integration_step_nopt
+          procedure(timeInt_step_nopt)               :: integration_step_nopt
+          logical                    , intent(in)    :: full
 
           if(this%associated_ptr()) then
              call this%ptr%compute_integration_step(
-     $            dt, integration_step_nopt)
+     $            dt, integration_step_nopt, full)
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''compute_integration_step'')'

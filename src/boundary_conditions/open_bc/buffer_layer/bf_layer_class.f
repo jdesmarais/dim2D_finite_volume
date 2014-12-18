@@ -3463,13 +3463,14 @@
         !> procedure performing the time integration
         !--------------------------------------------------------------
         subroutine compute_integration_step(
-     $     this, dt, integration_step_nopt)
+     $     this, dt, integration_step_nopt, full)
 
           implicit none
 
           class(bf_layer)              , intent(inout) :: this
           real(rkind)                  , intent(in)    :: dt
-          procedure(timeInt_step_nopt) :: integration_step_nopt
+          procedure(timeInt_step_nopt)                 :: integration_step_nopt
+          logical                      , intent(in)    :: full
 
           call this%bf_compute_used%compute_integration_step(
      $         this%grdpts_id,
@@ -3479,7 +3480,8 @@
      $         this%y_borders,
      $         integration_step_nopt,
      $         this%N_bc_sections,
-     $         this%S_bc_sections)
+     $         this%S_bc_sections,
+     $         full)
 
         end subroutine compute_integration_step
 
