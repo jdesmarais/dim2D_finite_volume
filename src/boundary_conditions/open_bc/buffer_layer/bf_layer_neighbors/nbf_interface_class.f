@@ -34,10 +34,12 @@
 
         use parameters_bf_layer, only :
      $       align_N, align_S,
-     $       align_E, align_W
+     $       align_E, align_W,
+     $       BF_SUCCESS
 
         use parameters_constant, only :
-     $       N,S,E,W
+     $       N,S,E,W,
+     $       left, right
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size,debug
@@ -175,6 +177,7 @@
           procedure, pass :: get_nbf_layers_sharing_grdpts_with
           procedure, pass :: bf_layer_depends_on_neighbors
           procedure, pass :: does_a_neighbor_remains
+          procedure, pass :: ask_neighbors_for_bc_overlap
 
           procedure, pass :: get_data_for_newgrdpt
           procedure, pass :: get_grdpts_id_part
@@ -1385,6 +1388,146 @@
      $         bf_sublayer_i)
 
         end function does_a_neighbor_remains
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> test whether one of the bf_sublayer neighbors is remaining
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param nbf_type
+        !> type of the neighboring bf_sublayer investigated
+        !
+        !>@param bf_sublayer_id
+        !> bf_sublayer 
+        !
+        !>@param bf_mainlayer_id
+        !> cardinal coordinate of the buffer layer investigated
+        !
+        !>@param a_neighbor_remains
+        !> logical stating whether the buffer layer cannot be removed
+        !> because a neighboring buffer layer should remain
+        !--------------------------------------------------------------
+        function ask_neighbors_for_bc_overlap(
+     $     this,
+     $     bf_localization,
+     $     bf_neighbor_type,
+     $     start_grdpt_g_coords,
+     $     side,
+     $     err)
+     $     result(x_border)
+
+          implicit none
+
+          class(nbf_interface)              , intent(in) :: this
+          integer                           , intent(in) :: bf_localization
+          integer                           , intent(in) :: bf_neighbor_type
+          integer(ikind)      , dimension(2), intent(in) :: start_grdpt_g_coords
+          logical                           , intent(in) :: side
+          logical                           , intent(out):: err
+          integer(ikind)                                 :: x_border
+
+          
+          integer                    :: nb_nbf_layers
+          type(nbf_element), pointer :: nbf_current_ele !neighboring bf_layer element
+          integer                    :: k
+          type(bf_sublayer), pointer :: nbf_sublayer    !neighboring bf layer
+          integer                    :: x_border_bf
+          integer                    :: err_bf
+
+
+          !number of neighboring buffer layers
+          nb_nbf_layers = this%nbf_links(bf_localization,1)%get_nb_elements()
+
+
+          !if there are no neighboring buffer layers, it is impossible
+          !to get the new border of the buffer layer
+          if(nb_nbf_layers.le.0) then
+             err = .not.BF_SUCCESS
+             print '(''nbf_interface_class'')'
+             print '(''ask_neighbor_for_bc_overlap'')'
+             print '(''****************************************'')'
+             print '(''there are no neighbors to determine'')'
+             print '(''the new border'')'
+             print '(''****************************************'')'
+             print '(''bf_localization: '',I2)', bf_localization
+             print '(''bf_neighbor_type: '',I2)', bf_neighbor_type
+             print '(''start_grdpt_g_coords: '',I2)', start_grdpt_g_coords
+             print '(''side: '',I2)', side
+             print '(''****************************************'')'
+             print '()'
+
+          !if there are indeed neighboring buffer layers, loop over
+          !the neighbors of type bf_neighbor_type to get the needed
+          !x_border
+          else
+
+             nbf_current_ele => this%nbf_links(bf_localization,1)%get_head()
+             
+             do k=1, nb_nbf_layers
+             
+                !get the neighboring buffer layer
+                nbf_sublayer => nbf_current_ele%get_ptr()
+             
+                !ask the neighboring buffer layer to give the
+                !new border for resolving the bc overlap conflicts
+                x_border_bf = nbf_sublayer%get_bc_overlap_x_border(
+     $               start_grdpt_g_coords,
+     $               side,
+     $               err_bf)
+
+                !check whether the x_border_bf was successfully
+                !computed
+                if(.not.(err_bf.eqv.BF_SUCCESS)) then
+
+                   print '(''nbf_interface'')'
+                   print '(''ask_neighbors_for_bc_overlap'')'
+                   print '(''******************************'')'
+                   print '(''x_border_bf incorrect'')'
+                   print '(''******************************'')'
+                   print '(''bf_localization: '',I2)', bf_localization
+                   print '(''bf_neighbor_type: '',I2)', bf_neighbor_type
+                   print '(''start_grdpt_g_coords: '',I2)', start_grdpt_g_coords
+                   print '(''side: '',I2)', side
+                   print '(''******************************'')'
+                   print '()'
+                   
+                end if
+             
+                !save the x_border given by the neighbor in the output
+                if(k.eq.1) then
+                   x_border = x_border_bf
+                   err = BF_SUCCESS.and.err_bf
+                else
+                   select case(side)
+                     case(left)
+                        x_border = min(x_border,x_border_bf)
+                     case(right)
+                        x_border = max(x_border,x_border_bf)
+                     case default
+                        print '(''nbf_interface_class'')'
+                        print '(''ask_neighbors_for_bc_overlap'')'
+                        print '(''side not recognized: '',I2)', side
+                        stop 'resolve side'
+                   end select
+                end if
+
+                !get next neighboring buffer layer
+                nbf_current_ele => nbf_current_ele%get_next()
+             
+             end do
+
+          end if          
+
+        end function ask_neighbors_for_bc_overlap
 
 
         !> @author
