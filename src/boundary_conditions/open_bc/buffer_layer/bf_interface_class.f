@@ -2319,8 +2319,17 @@ c$$$          stop 'not implemented yet'
          integer(ikind), dimension(2,2) :: bf_alignment_update
          logical                        :: should_be_reallocated
          logical                        :: update_alignment
+         integer                        :: neighbor_type
+         logical                        :: side
          integer(ikind)                 :: x_border
          integer(ikind), dimension(2)   :: sizes
+         integer                        :: threshold
+
+
+         !threshold for determining whether the alignemnt
+         !of the bf layer makes it problematic for the
+         !bc_overlap conflict
+         threshold = bc_size+1
 
 
          !get the current alignment of the buffer layer
@@ -2338,39 +2347,54 @@ c$$$          stop 'not implemented yet'
 
               !check whether there are overlap conflicts with the
               !W neighboring buffer layers
-              call resolve_bc_overlap_conflict_with_neighbor1(
-     $             this,
-     $             bf_sublayer_ptr,
-     $             bf_localization,
-     $             [1,bc_size+1],
-     $             left,
-     $             update_alignment,
-     $             x_border)
+              if(bf_alignment_update(1,1).le.(1+threshold)) then
 
-              if(update_alignment) then
-                 bf_alignment_update(1,1) = x_border+bc_size
-                 should_be_reallocated = .true.
+                 neighbor_type = 1
+                 side          = left
+
+                 call resolve_bc_overlap_conflict_with_neighbor(
+     $                this,
+     $                bf_sublayer_ptr,
+     $                bf_localization,
+     $                [1,bc_size+1],
+     $                side,
+     $                neighbor_type,
+     $                update_alignment,
+     $                x_border)
+
+                 if(update_alignment) then
+                    bf_alignment_update(1,1) = x_border+bc_size
+                    should_be_reallocated = .true.
+                 end if
+
               end if
-
 
               !check whether there are overlap conflicts with the
               !E neighboring buffer layers
-              sizes = bf_sublayer_ptr%get_sizes()
+              if(bf_alignment_update(1,2).ge.(nx-threshold)) then
 
-              call resolve_bc_overlap_conflict_with_neighbor2(
-     $             this,
-     $             bf_sublayer_ptr,
-     $             bf_localization,
-     $             [sizes(1),bc_size+1],
-     $             right,
-     $             update_alignment,
-     $             x_border)
+                 sizes = bf_sublayer_ptr%get_sizes()
 
-              if(update_alignment) then
-                 bf_alignment_update(1,2) = x_border-bc_size
-                 should_be_reallocated = .true.
+                 neighbor_type = 2
+                 side          = right
+
+                 call resolve_bc_overlap_conflict_with_neighbor(
+     $                this,
+     $                bf_sublayer_ptr,
+     $                bf_localization,
+     $                [sizes(1),bc_size+1],
+     $                side,
+     $                neighbor_type,
+     $                update_alignment,
+     $                x_border)
+
+                 if(update_alignment) then
+                    bf_alignment_update(1,2) = x_border-bc_size
+                    should_be_reallocated = .true.
+                 end if
+                 
               end if
-           
+
 
            case(S)
 
@@ -2378,36 +2402,51 @@ c$$$          stop 'not implemented yet'
               sizes = bf_sublayer_ptr%get_sizes()
 
               !check whether there are overlap conflicts with the
-              !W neighboring buffer layers
-              call resolve_bc_overlap_conflict_with_neighbor1(
-     $             this,
-     $             bf_sublayer_ptr,
-     $             bf_localization,
-     $             [1,sizes(2)-bc_size],
-     $             left,
-     $             update_alignment,
-     $             x_border)
+              !W neighboring buffer layers      
+              if(bf_alignment_update(1,1).le.(1+threshold)) then
 
-              if(update_alignment) then
-                 bf_alignment_update(1,1) = x_border+bc_size
-                 should_be_reallocated = .true.
+                 neighbor_type = 1
+                 side          = left
+
+                 call resolve_bc_overlap_conflict_with_neighbor(
+     $                this,
+     $                bf_sublayer_ptr,
+     $                bf_localization,
+     $                [1,sizes(2)-bc_size],
+     $                side,
+     $                neighbor_type,
+     $                update_alignment,
+     $                x_border)
+
+                 if(update_alignment) then
+                    bf_alignment_update(1,1) = x_border+bc_size
+                    should_be_reallocated = .true.
+                 end if
+
               end if
-
 
               !check whether there are overlap conflicts with the
               !E neighboring buffer layers
-              call resolve_bc_overlap_conflict_with_neighbor2(
-     $             this,
-     $             bf_sublayer_ptr,
-     $             bf_localization,
-     $             [sizes(1),sizes(2)-bc_size],
-     $             right,
-     $             update_alignment,
-     $             x_border)
+              if(bf_alignment_update(1,2).ge.(nx-threshold)) then
 
-              if(update_alignment) then
-                 bf_alignment_update(1,2) = x_border-bc_size
-                 should_be_reallocated = .true.
+                 neighbor_type = 2
+                 side          = right
+
+                 call resolve_bc_overlap_conflict_with_neighbor(
+     $                this,
+     $                bf_sublayer_ptr,
+     $                bf_localization,
+     $                [sizes(1),sizes(2)-bc_size],
+     $                side,
+     $                neighbor_type,
+     $                update_alignment,
+     $                x_border)
+
+                 if(update_alignment) then
+                    bf_alignment_update(1,2) = x_border-bc_size
+                    should_be_reallocated = .true.
+                 end if
+
               end if
 
 
@@ -2418,73 +2457,103 @@ c$$$          stop 'not implemented yet'
 
               !check whether there are overlap conflicts with the
               !S neighboring buffer layers
-              call resolve_bc_overlap_conflict_with_neighbor1(
-     $             this,
-     $             bf_sublayer_ptr,
-     $             bf_localization,
-     $             [sizes(1),bc_size+1],
-     $             right,
-     $             update_alignment,
-     $             x_border)
+              if(bf_alignment_update(2,1).eq.(bc_size+1)) then
 
-              if(update_alignment) then
-                 bf_alignment_update(1,2) = x_border-bc_size
-                 should_be_reallocated = .true.
+                 neighbor_type = 1
+                 side          = right
+
+                 call resolve_bc_overlap_conflict_with_neighbor(
+     $                this,
+     $                bf_sublayer_ptr,
+     $                bf_localization,
+     $                [sizes(1),bc_size+1],
+     $                side,
+     $                neighbor_type,
+     $                update_alignment,
+     $                x_border)
+
+                 if(update_alignment) then
+                    bf_alignment_update(1,2) = x_border-bc_size
+                    should_be_reallocated = .true.
+                 end if
+
               end if
-
 
               !check whether there are overlap conflicts with the
               !N neighboring buffer layers
-              call resolve_bc_overlap_conflict_with_neighbor2(
-     $             this,
-     $             bf_sublayer_ptr,
-     $             bf_localization,
-     $             [sizes(1),sizes(2)-bc_size],
-     $             right,
-     $             update_alignment,
-     $             x_border)
+              if(bf_alignment_update(2,2).eq.(ny-bc_size)) then
+                 
+                 neighbor_type = 2
+                 side          = right
 
-              if(update_alignment) then
-                 bf_alignment_update(1,2) =
-     $                max(bf_alignment_update(1,2),x_border-bc_size)
-                 should_be_reallocated = .true.
+                 call resolve_bc_overlap_conflict_with_neighbor(
+     $                this,
+     $                bf_sublayer_ptr,
+     $                bf_localization,
+     $                [sizes(1),sizes(2)-bc_size],
+     $                side,
+     $                neighbor_type,
+     $                update_alignment,
+     $                x_border)
+
+                 if(update_alignment) then
+                    bf_alignment_update(1,2) =
+     $                   max(bf_alignment_update(1,2),x_border-bc_size)
+                    should_be_reallocated = .true.
+                 end if
+                 
               end if
-
 
            case(W)
 
               !check whether there are overlap conflicts with the
               !S neighboring buffer layers
-              call resolve_bc_overlap_conflict_with_neighbor1(
-     $             this,
-     $             bf_sublayer_ptr,
-     $             bf_localization,
-     $             [1,bc_size+1],
-     $             left,
-     $             update_alignment,
-     $             x_border)
+              if(bf_alignment_update(2,1).eq.(bc_size+1)) then
 
-              if(update_alignment) then
-                 bf_alignment_update(1,1) = x_border+bc_size
-                 should_be_reallocated = .true.
+                 neighbor_type = 1
+                 side          = left
+
+                 call resolve_bc_overlap_conflict_with_neighbor(
+     $                this,
+     $                bf_sublayer_ptr,
+     $                bf_localization,
+     $                [1,bc_size+1],
+     $                side,
+     $                neighbor_type,
+     $                update_alignment,
+     $                x_border)
+
+                 if(update_alignment) then
+                    bf_alignment_update(1,1) = x_border+bc_size
+                    should_be_reallocated = .true.
+                 end if
+
               end if
 
 
               !check whether there are overlap conflicts with the
               !N neighboring buffer layers
-              call resolve_bc_overlap_conflict_with_neighbor2(
-     $             this,
-     $             bf_sublayer_ptr,
-     $             bf_localization,
-     $             [1,sizes(2)-bc_size],
-     $             left,
-     $             update_alignment,
-     $             x_border)
+              if(bf_alignment_update(2,2).eq.(ny-bc_size)) then
 
-              if(update_alignment) then
-                 bf_alignment_update(1,1) =
-     $                max(bf_alignment_update(1,1),x_border+bc_size)
-                 should_be_reallocated = .true.
+                 neighbor_type = 2
+                 side          = left
+
+                 call resolve_bc_overlap_conflict_with_neighbor(
+     $                this,
+     $                bf_sublayer_ptr,
+     $                bf_localization,
+     $                [1,sizes(2)-bc_size],
+     $                side,
+     $                neighbor_type,
+     $                update_alignment,
+     $                x_border)
+                 
+                 if(update_alignment) then
+                    bf_alignment_update(1,1) =
+     $                   max(bf_alignment_update(1,1),x_border+bc_size)
+                    should_be_reallocated = .true.
+                 end if
+
               end if
 
            case default
@@ -2512,180 +2581,180 @@ c$$$          stop 'not implemented yet'
        end subroutine resolve_bc_overlap_conflicts_for_bf_layer
 
 
-       !> @author
-       !> Julien L. Desmarais
-       !
-       !> @brief
-       !> check if whether the buffer layer is at the interface b/w
-       !> main layers (N<->E, N<->W, S<->E, S<->W) and whether the
-       !> buffer layer has boundary layers that cannot be computed due
-       !> to a lack of grid points (after the neighboring boundary
-       !> layers updated their grid points w/o updating its allocation).
-       !> If there is a lack of grid points, the new x_border is given
-       !> in the general frame
-       !
-       !> @date
-       !> 18_12_2014 - initial version - J.L. Desmarais
-       !
-       !> @param bf_sublayer_ptr
-       !> buffer layer whose grid points at the interface b/w main
-       !> layers are checked to see whether additional grid points are
-       !> needed to compute the boundary conditions
-       !
-       !> @param bf_localization
-       !> cardinal coordinate identifying to which buffer main layer
-       !> the 'bf_layer_investigated' belongs
-       !
-       !>@param l_coords
-       !> coordinates of the grid point, expressed in the local frame of
-       !> the buffer layer, and located at the edge of the buffer layer
-       !> 'bf_sublayer_ptr' to decide whether there are grid points
-       !> missing for the computation of the boundary conditions
-       !
-       !>@param side
-       !> direction in which the new x_border should be searched
-       !
-       !>@param update_alignment
-       !> logical stating whether the alignment of the buffer layer
-       !> 'bf_layer_ptr' should be updated to incorporate the missing
-       !> grid points
-       !
-       !>@param x_border
-       !> integer stating what should be the new border of the buffer
-       !> layer (general coordinate of the edge of the buffer layer not
-       !> its new alignment)
-       !--------------------------------------------------------------
-       subroutine resolve_bc_overlap_conflict_with_neighbor1(
-     $     this,
-     $     bf_sublayer_ptr,
-     $     bf_localization,
-     $     l_coords,
-     $     side,
-     $     update_alignment,
-     $     x_border)
-
-         implicit none
-
-         class(bf_interface)         , intent(in)  :: this
-         type(bf_sublayer)           , intent(in)  :: bf_sublayer_ptr
-         integer                     , intent(in)  :: bf_localization
-         integer(ikind), dimension(2), intent(in)  :: l_coords
-         logical                     , intent(in)  :: side
-         logical                     , intent(out) :: update_alignment
-         integer(ikind)              , intent(out) :: x_border         
-
-         integer :: neighbor_type
-
-         update_alignment = .false.
-         x_border = 1
-
-         !if the buffer layer exchanges with the neighboring
-         !buffer layers of type 1
-         if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
-
-            neighbor_type = 1
-
-            call resolve_bc_overlap_conflict_with_neighbor(
-     $           this,
-     $           bf_sublayer_ptr,
-     $           bf_localization,
-     $           l_coords,
-     $           side,
-     $           neighbor_type,
-     $           update_alignment,
-     $           x_border)
-
-         end if
-
-       end subroutine resolve_bc_overlap_conflict_with_neighbor1
-
-
-       !> @author
-       !> Julien L. Desmarais
-       !
-       !> @brief
-       !> check if whether the buffer layer is at the interface b/w
-       !> main layers (N<->E, N<->W, S<->E, S<->W) and whether the
-       !> buffer layer has boundary layers that cannot be computed due
-       !> to a lack of grid points (after the neighboring boundary
-       !> layers updated their grid points w/o updating its allocation).
-       !> If there is a lack of grid points, the new x_border is given
-       !> in the general frame
-       !
-       !> @date
-       !> 18_12_2014 - initial version - J.L. Desmarais
-       !
-       !> @param bf_sublayer_ptr
-       !> buffer layer whose grid points at the interface b/w main
-       !> layers are checked to see whether additional grid points are
-       !> needed to compute the boundary conditions
-       !
-       !> @param bf_localization
-       !> cardinal coordinate identifying to which buffer main layer
-       !> the 'bf_layer_investigated' belongs
-       !
-       !>@param l_coords
-       !> coordinates of the grid point, expressed in the local frame of
-       !> the buffer layer, and located at the edge of the buffer layer
-       !> 'bf_sublayer_ptr' to decide whether there are grid points
-       !> missing for the computation of the boundary conditions
-       !
-       !>@param side
-       !> direction in which the new x_border should be searched
-       !
-       !>@param update_alignment
-       !> logical stating whether the alignment of the buffer layer
-       !> 'bf_layer_ptr' should be updated to incorporate the missing
-       !> grid points
-       !
-       !>@param x_border
-       !> integer stating what should be the new border of the buffer
-       !> layer (general coordinate of the edge of the buffer layer not
-       !> its new alignment)
-       !--------------------------------------------------------------
-       subroutine resolve_bc_overlap_conflict_with_neighbor2(
-     $     this,
-     $     bf_sublayer_ptr,
-     $     bf_localization,
-     $     l_coords,
-     $     side,
-     $     update_alignment,
-     $     x_border)
-
-         implicit none
-
-         class(bf_interface)         , intent(in)  :: this
-         type(bf_sublayer)           , intent(in)  :: bf_sublayer_ptr
-         integer                     , intent(in)  :: bf_localization
-         integer(ikind), dimension(2), intent(in)  :: l_coords
-         logical                     , intent(in)  :: side
-         logical                     , intent(out) :: update_alignment
-         integer(ikind)              , intent(out) :: x_border         
-
-         integer       :: neighbor_type
-
-         update_alignment = .false.
-         x_border = 1
-
-         !if the buffer layer exchanges with the neighboring buffer layers
-         !of type 2
-         if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
-
-            neighbor_type = 2
-
-            call resolve_bc_overlap_conflict_with_neighbor(
-     $           this,
-     $           bf_sublayer_ptr,
-     $           bf_localization,
-     $           l_coords,
-     $           side,
-     $           neighbor_type,
-     $           update_alignment,
-     $           x_border)
-
-         end if
-
-       end subroutine resolve_bc_overlap_conflict_with_neighbor2
+c$$$       !> @author
+c$$$       !> Julien L. Desmarais
+c$$$       !
+c$$$       !> @brief
+c$$$       !> check if whether the buffer layer is at the interface b/w
+c$$$       !> main layers (N<->E, N<->W, S<->E, S<->W) and whether the
+c$$$       !> buffer layer has boundary layers that cannot be computed due
+c$$$       !> to a lack of grid points (after the neighboring boundary
+c$$$       !> layers updated their grid points w/o updating its allocation).
+c$$$       !> If there is a lack of grid points, the new x_border is given
+c$$$       !> in the general frame
+c$$$       !
+c$$$       !> @date
+c$$$       !> 18_12_2014 - initial version - J.L. Desmarais
+c$$$       !
+c$$$       !> @param bf_sublayer_ptr
+c$$$       !> buffer layer whose grid points at the interface b/w main
+c$$$       !> layers are checked to see whether additional grid points are
+c$$$       !> needed to compute the boundary conditions
+c$$$       !
+c$$$       !> @param bf_localization
+c$$$       !> cardinal coordinate identifying to which buffer main layer
+c$$$       !> the 'bf_layer_investigated' belongs
+c$$$       !
+c$$$       !>@param l_coords
+c$$$       !> coordinates of the grid point, expressed in the local frame of
+c$$$       !> the buffer layer, and located at the edge of the buffer layer
+c$$$       !> 'bf_sublayer_ptr' to decide whether there are grid points
+c$$$       !> missing for the computation of the boundary conditions
+c$$$       !
+c$$$       !>@param side
+c$$$       !> direction in which the new x_border should be searched
+c$$$       !
+c$$$       !>@param update_alignment
+c$$$       !> logical stating whether the alignment of the buffer layer
+c$$$       !> 'bf_layer_ptr' should be updated to incorporate the missing
+c$$$       !> grid points
+c$$$       !
+c$$$       !>@param x_border
+c$$$       !> integer stating what should be the new border of the buffer
+c$$$       !> layer (general coordinate of the edge of the buffer layer not
+c$$$       !> its new alignment)
+c$$$       !--------------------------------------------------------------
+c$$$       subroutine resolve_bc_overlap_conflict_with_neighbor1(
+c$$$     $     this,
+c$$$     $     bf_sublayer_ptr,
+c$$$     $     bf_localization,
+c$$$     $     l_coords,
+c$$$     $     side,
+c$$$     $     update_alignment,
+c$$$     $     x_border)
+c$$$
+c$$$         implicit none
+c$$$
+c$$$         class(bf_interface)         , intent(in)  :: this
+c$$$         type(bf_sublayer)           , intent(in)  :: bf_sublayer_ptr
+c$$$         integer                     , intent(in)  :: bf_localization
+c$$$         integer(ikind), dimension(2), intent(in)  :: l_coords
+c$$$         logical                     , intent(in)  :: side
+c$$$         logical                     , intent(out) :: update_alignment
+c$$$         integer(ikind)              , intent(out) :: x_border         
+c$$$
+c$$$         integer :: neighbor_type
+c$$$
+c$$$         update_alignment = .false.
+c$$$         x_border = 1
+c$$$
+c$$$         !if the buffer layer exchanges with the neighboring
+c$$$         !buffer layers of type 1
+c$$$         if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
+c$$$
+c$$$            neighbor_type = 1
+c$$$
+c$$$            call resolve_bc_overlap_conflict_with_neighbor(
+c$$$     $           this,
+c$$$     $           bf_sublayer_ptr,
+c$$$     $           bf_localization,
+c$$$     $           l_coords,
+c$$$     $           side,
+c$$$     $           neighbor_type,
+c$$$     $           update_alignment,
+c$$$     $           x_border)
+c$$$
+c$$$         end if
+c$$$
+c$$$       end subroutine resolve_bc_overlap_conflict_with_neighbor1
+c$$$
+c$$$
+c$$$       !> @author
+c$$$       !> Julien L. Desmarais
+c$$$       !
+c$$$       !> @brief
+c$$$       !> check if whether the buffer layer is at the interface b/w
+c$$$       !> main layers (N<->E, N<->W, S<->E, S<->W) and whether the
+c$$$       !> buffer layer has boundary layers that cannot be computed due
+c$$$       !> to a lack of grid points (after the neighboring boundary
+c$$$       !> layers updated their grid points w/o updating its allocation).
+c$$$       !> If there is a lack of grid points, the new x_border is given
+c$$$       !> in the general frame
+c$$$       !
+c$$$       !> @date
+c$$$       !> 18_12_2014 - initial version - J.L. Desmarais
+c$$$       !
+c$$$       !> @param bf_sublayer_ptr
+c$$$       !> buffer layer whose grid points at the interface b/w main
+c$$$       !> layers are checked to see whether additional grid points are
+c$$$       !> needed to compute the boundary conditions
+c$$$       !
+c$$$       !> @param bf_localization
+c$$$       !> cardinal coordinate identifying to which buffer main layer
+c$$$       !> the 'bf_layer_investigated' belongs
+c$$$       !
+c$$$       !>@param l_coords
+c$$$       !> coordinates of the grid point, expressed in the local frame of
+c$$$       !> the buffer layer, and located at the edge of the buffer layer
+c$$$       !> 'bf_sublayer_ptr' to decide whether there are grid points
+c$$$       !> missing for the computation of the boundary conditions
+c$$$       !
+c$$$       !>@param side
+c$$$       !> direction in which the new x_border should be searched
+c$$$       !
+c$$$       !>@param update_alignment
+c$$$       !> logical stating whether the alignment of the buffer layer
+c$$$       !> 'bf_layer_ptr' should be updated to incorporate the missing
+c$$$       !> grid points
+c$$$       !
+c$$$       !>@param x_border
+c$$$       !> integer stating what should be the new border of the buffer
+c$$$       !> layer (general coordinate of the edge of the buffer layer not
+c$$$       !> its new alignment)
+c$$$       !--------------------------------------------------------------
+c$$$       subroutine resolve_bc_overlap_conflict_with_neighbor2(
+c$$$     $     this,
+c$$$     $     bf_sublayer_ptr,
+c$$$     $     bf_localization,
+c$$$     $     l_coords,
+c$$$     $     side,
+c$$$     $     update_alignment,
+c$$$     $     x_border)
+c$$$
+c$$$         implicit none
+c$$$
+c$$$         class(bf_interface)         , intent(in)  :: this
+c$$$         type(bf_sublayer)           , intent(in)  :: bf_sublayer_ptr
+c$$$         integer                     , intent(in)  :: bf_localization
+c$$$         integer(ikind), dimension(2), intent(in)  :: l_coords
+c$$$         logical                     , intent(in)  :: side
+c$$$         logical                     , intent(out) :: update_alignment
+c$$$         integer(ikind)              , intent(out) :: x_border         
+c$$$
+c$$$         integer       :: neighbor_type
+c$$$
+c$$$         update_alignment = .false.
+c$$$         x_border = 1
+c$$$
+c$$$         !if the buffer layer exchanges with the neighboring buffer layers
+c$$$         !of type 2
+c$$$         if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
+c$$$
+c$$$            neighbor_type = 2
+c$$$
+c$$$            call resolve_bc_overlap_conflict_with_neighbor(
+c$$$     $           this,
+c$$$     $           bf_sublayer_ptr,
+c$$$     $           bf_localization,
+c$$$     $           l_coords,
+c$$$     $           side,
+c$$$     $           neighbor_type,
+c$$$     $           update_alignment,
+c$$$     $           x_border)
+c$$$
+c$$$         end if
+c$$$
+c$$$       end subroutine resolve_bc_overlap_conflict_with_neighbor2
 
 
        !> @author
@@ -2758,6 +2827,9 @@ c$$$          stop 'not implemented yet'
          integer       , dimension(2) :: match_table
          integer(ikind), dimension(2) :: start_grdpt
          logical                      :: err
+
+         update_alignment = .false.
+         x_border = 1
 
          !if there is a bc_interior_pt at the left edge of
          !the buffer layer, it will not be possible to compute

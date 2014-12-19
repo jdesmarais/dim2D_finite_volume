@@ -1583,8 +1583,8 @@
 
              !2) get the point indices in the direction given
              !   by the velocity vector
-             cpt_coords(1) = d_icoord(1) + idnint(velocity(1)/norm_velocity*DBLE(dct_icr_distance))
-             cpt_coords(2) = d_icoord(2) + idnint(velocity(2)/norm_velocity*DBLE(dct_icr_distance))
+             cpt_coords(1) = d_icoord(1) + nint(velocity(1)/norm_velocity*DBLE(dct_icr_distance))
+             cpt_coords(2) = d_icoord(2) + nint(velocity(2)/norm_velocity*DBLE(dct_icr_distance))
              
           end if
 

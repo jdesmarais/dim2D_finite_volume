@@ -1494,38 +1494,38 @@ c$$$     $       index)
           !be able to compute all the boundary grid points
           !        
           !      North buffer layer
-          !
-          !                  ___ nx-3
-          !                 |  ___ nx-2
-          !                 | |  ___ nx-1
-          !                 | | |  __  nx
-          !                 | | | |
-          !        ________________ 
-          !       |3 3 3 3 3 3 3 3 3|___
-          ! ny   -|3 2 2 2 2 2 2 2 3|3  |
-          ! ny-1 -|2 2_ _ _ _ _ _2_2|3_3|
-          ! ny-2 -          |   |  2|2 3|
-          ! ny-3 - _________|___|__ |2 3| East buffer layer
-          !                 |   |   |2 3|
-          !        interior |1 1|2 2|2 3|
-          !                 |1 1|2 3|3 3|
+          !                        
+          !             nx-2___       ___ nx+1
+          !                    |     |  ___ nx+2
+          !             nx-3_  |     | |  ___ nx+3
+          !                  | |     | | |  __  nx+4
+          !                  | |     | | | |
+          !        _________________________ 
+          !       |3 3 3 3 3 3 3 3 3 3 3 3 3|___
+          ! ny   -|3 2 2 2 2 2 2 2 2 2 2 2 3|3  |
+          ! ny-1 -|2 2_ _ _ _ _ _ _ _ _ _2_2|3_3|
+          ! ny-2 -          |   |          2|2 3|
+          ! ny-3 - _________|___|__________ |2 3| East buffer layer
+          !                 |   |           |2 3|
+          !        interior |1 1|2 2 2 2 2 2|2 3|
+          !                 |1 1|2 3 3 3 3 3|3 3|
           !                 -------------
           !------------------------------------------------
           call bf_interface_used%ini(interior_x_map,interior_y_map)
 
 
           !initialize the N buffer layer
-          allocate(grdpts_id(10,5))
+          allocate(grdpts_id(13,5))
 
           grdpts_id = reshape((/
-     $         1,1,1,1,1,1,1,1,1,1,
-     $         1,1,1,1,1,1,1,1,1,2,
-     $         1,1,1,1,1,1,1,1,2,2,
-     $         2,2,2,2,2,2,2,2,2,3,
-     $         3,3,3,3,3,3,3,3,3,3/),
-     $         (/10,5/))
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,2,
+     $         1,1,1,1,1,1,1,1,1,1,1,2,2,
+     $         2,2,2,2,2,2,2,2,2,2,2,2,3,
+     $         3,3,3,3,3,3,3,3,3,3,3,3,3/),
+     $         (/13,5/))
 
-          bf_alignment(1,2) = nx-2
+          bf_alignment(1,2) = nx+2
           bf_alignment(1,1) = bf_alignment(1,2) - size(grdpts_id,1) + (2*bc_size+1)
           bf_alignment(2,1) = ny-1
           bf_alignment(2,2) = bf_alignment(2,1) + size(grdpts_id,2) - (2*bc_size+1)
@@ -1545,17 +1545,17 @@ c$$$     $       index)
 
 
           !initialize the E buffer layer
-          allocate(grdpts_id(6,7))
+          allocate(grdpts_id(10,7))
 
           grdpts_id = reshape((/
-     $         1,1,2,3,3,3,
-     $         1,1,2,2,2,3,
-     $         1,1,1,1,2,3,
-     $         1,1,1,1,2,3,
-     $         1,1,1,2,2,3,
-     $         1,1,2,2,3,3,
-     $         2,2,2,3,3,0/),
-     $         (/6,7/))
+     $         1,1,2,3,3,3,3,3,3,3,
+     $         1,1,2,2,2,2,2,2,2,3,
+     $         1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,2,2,3,
+     $         1,1,1,1,1,1,2,2,3,3,
+     $         2,2,2,2,2,2,2,3,3,0/),
+     $         (/10,7/))
 
           bf_alignment(1,1) = nx-1
           bf_alignment(1,2) = bf_alignment(1,1) + size(grdpts_id,1) - (2*bc_size+1)
@@ -1590,8 +1590,8 @@ c$$$     $       index)
              print '(''bf_alignment_N after: '',4I4)', bf_alignment
           end if
 
-          test_validated = bf_alignment(1,1).eq.(nx-7)
-          test_validated = test_validated.and.(bf_alignment(1,2).eq.(nx-1))
+          test_validated = bf_alignment(1,1).eq.(nx-6)
+          test_validated = test_validated.and.(bf_alignment(1,2).eq.(nx+3))
           test_validated = test_validated.and.(bf_alignment(2,1).eq.(ny-1))
           test_validated = test_validated.and.(bf_alignment(2,2).eq.(ny-1))
 
@@ -1606,7 +1606,7 @@ c$$$     $       index)
           end if
 
           test_validated = test_validated.and.(bf_alignment(1,1).eq.(nx-1))
-          test_validated = test_validated.and.(bf_alignment(1,2).eq.nx)
+          test_validated = test_validated.and.(bf_alignment(1,2).eq.(nx+4))
           test_validated = test_validated.and.(bf_alignment(2,1).eq.(ny-4))
           test_validated = test_validated.and.(bf_alignment(2,2).eq.(ny-2))
 

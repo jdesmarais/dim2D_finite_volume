@@ -69,11 +69,11 @@
 
         real(rkind), parameter :: u0_x_flow  = flow_velocity
         real(rkind), parameter :: u0_y_flow  = 0.0d0
-        real(rkind), parameter :: u0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity
+        real(rkind), parameter :: u0_xy_flow = -0.5d0*SQRT(2.0d0)*flow_velocity
 
         real(rkind), parameter :: v0_x_flow  = 0.0d0
         real(rkind), parameter :: v0_y_flow  = flow_velocity
-        real(rkind), parameter :: v0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity
+        real(rkind), parameter :: v0_xy_flow = -0.5d0*SQRT(2.0d0)*flow_velocity
 
 
         !> @class ic
