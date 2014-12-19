@@ -1,230 +1,379 @@
       program test_nbf_interface_prog
 
-        use nbf_interface_class , only : nbf_interface
-        use bf_mainlayer_class  , only : bf_mainlayer
-        use bf_sublayer_class   , only : bf_sublayer
-        use parameters_constant , only : N,S,E,W
-        use parameters_input    , only : nx,ny,ne
-        use parameters_kind     , only : ikind, rkind
-        use test_bf_layer_module, only : print_interior_data,
-     $                                   ini_nodes,
-     $                                   ini_grdpts_id,
-     $                                   ini_cst_nodes
-        use test_nbf_list_module, only : ini_alignment
+        use nbf_interface_class, only :
+     $       nbf_interface
+
+        use bf_mainlayer_class, only :
+     $       bf_mainlayer
+
+        use bf_sublayer_class, only :
+     $       bf_sublayer
+
+        use parameters_constant, only :
+     $       N,S,E,W,
+     $       left,right
+
+        use parameters_input, only :
+     $       nx,ny,ne,
+     $       bc_size
+
+        use parameters_kind, only :
+     $       ikind, rkind
+
+        use test_bf_layer_module, only :
+     $       print_interior_data_wo_maps,
+     $       ini_nodes,
+     $       ini_grdpts_id,
+     $       ini_cst_nodes
+
+        use test_nbf_list_module, only :
+     $       ini_alignment
         
         implicit none
 
+c$$$        real(rkind)        , dimension(nx)       :: x_map
+c$$$        real(rkind)        , dimension(ny)       :: y_map
+c$$$        real(rkind)        , dimension(nx,ny,ne) :: nodes
+c$$$        integer            , dimension(nx,ny)    :: grdpts_id
+c$$$        integer            , dimension(4)        :: bf_layer_loc
+c$$$        character(2)       , dimension(4)        :: bf_layer_char
+c$$$                           
+c$$$        type(bf_mainlayer) , dimension(4)        :: bf_mainlayers
+c$$$        type(nbf_interface)                      :: nbf_interface_used
+c$$$        type(bf_sublayer)  , pointer             :: added_sublayer
+c$$$        !type(bf_sublayer)  , pointer             :: added_sublayer2
+c$$$                           
+c$$$        integer(ikind)     , dimension(4,5,2,2)  :: test_alignment
+c$$$        integer(ikind)     , dimension(2,2)      :: alignment
+c$$$        integer            , dimension(4,2)      :: neighbors
+c$$$        real(rkind)                              :: scale
+c$$$
+c$$$        integer :: g,h,i,j,i_max
+c$$$
+        logical :: detailled
+        logical :: test_loc
+        logical :: test_validated        
+c$$$
+c$$$
+c$$$        !initialize the nodes and the grdpts_id
+c$$$        call ini_nodes(nodes)
+c$$$        call ini_grdpts_id(grdpts_id)
+c$$$
+c$$$        !print the nodes
+c$$$        call print_interior_data_wo_maps(
+c$$$     $       nodes, grdpts_id,
+c$$$     $       'interior_nodes.dat',
+c$$$     $       'interior_grdpts_id.dat',
+c$$$     $       'interior_sizes.dat')
+c$$$
+c$$$        !buffer layers tested
+c$$$        bf_layer_loc  = [N,S,E,W]
+c$$$        bf_layer_char = ['N_','S_','E_','W_']
+c$$$        
+c$$$        neighbors(N,1) = W
+c$$$        neighbors(N,2) = E
+c$$$        neighbors(S,1) = W
+c$$$        neighbors(S,2) = E
+c$$$        neighbors(W,1) = S
+c$$$        neighbors(W,2) = N
+c$$$        neighbors(E,1) = S
+c$$$        neighbors(E,2) = N
+c$$$
+c$$$
+c$$$        !initialize the alignment for all the buffer layers
+c$$$        call ini_alignment(test_alignment)
+c$$$
+c$$$        !initialize the main layers
+c$$$        do j=1,4
+c$$$           call bf_mainlayers(j)%ini(j)           
+c$$$        end do
+c$$$        
+c$$$        !initialize the nbf_interface
+c$$$        call nbf_interface_used%ini()
+c$$$
+c$$$
+c$$$        !add the buffer layers to the mainlayers
+c$$$        !+ add the links to the nbf_lists
+c$$$        !loop over the cardinal coordinates
+c$$$        print '()'
+c$$$        print '(''buffer layer alignments'')'
+c$$$        print '(''-----------------------'')'
+c$$$        do j=1,4
+c$$$
+c$$$           select case(j)
+c$$$             case(N,S)
+c$$$                i_max = 5
+c$$$             case(E,W)
+c$$$                i_max = 3
+c$$$           end select
+c$$$
+c$$$           !loop over the number of buffer layers
+c$$$           !per main layer
+c$$$           do i=1,i_max
+c$$$
+c$$$              !alignment for the buffer layer
+c$$$              do g=1,2
+c$$$                 do h=1,2
+c$$$                    alignment(h,g) = test_alignment(j,i,h,g)
+c$$$                 end do
+c$$$              end do
+c$$$
+c$$$              !print the alignment
+c$$$              print '(A2,I1,'' ('',2I3,'')  ('',2I3,'')'')',
+c$$$     $             bf_layer_char(j), i,
+c$$$     $             alignment(1,1), alignment(1,2),
+c$$$     $             alignment(2,1), alignment(2,2)
+c$$$
+c$$$              !allocate the buffer layer
+c$$$              added_sublayer => bf_mainlayers(j)%add_sublayer(
+c$$$     $             x_map,y_map,nodes,alignment)
+c$$$
+c$$$              !set whether the buffe rlayer can exchange
+c$$$              !with neighboring layers
+c$$$              call added_sublayer%set_neighbor1_share()
+c$$$              call added_sublayer%set_neighbor2_share()
+c$$$
+c$$$              !if the buffer layer is a potential neigboring buffer
+c$$$              !layer, we add the link to the nbf_interface
+c$$$              if(added_sublayer%can_exchange_with_neighbor1()) then
+c$$$                 call nbf_interface_used%link_neighbor1_to_bf_sublayer(
+c$$$     $                added_sublayer)
+c$$$              end if
+c$$$
+c$$$              if(added_sublayer%can_exchange_with_neighbor2()) then
+c$$$                 call nbf_interface_used%link_neighbor2_to_bf_sublayer(
+c$$$     $                added_sublayer)
+c$$$              end if
+c$$$
+c$$$           end do
+c$$$        end do
+c$$$        print '(''-----------------------'')'
+c$$$        print '()'
+c$$$
+c$$$
+c$$$        !print the main layers before the tests
+c$$$        do j=1,4
+c$$$           call bf_mainlayers(j)%print_binary(
+c$$$     $          'xmap1.dat',
+c$$$     $          'ymap1.dat',
+c$$$     $          'nodes1.dat',
+c$$$     $          'grdpt_id1.dat',
+c$$$     $          'sizes1.dat')
+c$$$
+c$$$        end do
+c$$$
+c$$$        
+c$$$        !print the content of the nbf_interface
+c$$$        print '()'
+c$$$        print '(''nbf_interface content'')'
+c$$$        print '(''-----------------------'')'
+c$$$        call nbf_interface_used%print_on_screen()
+c$$$        print '(''-----------------------'')'
+c$$$        print '()'
+c$$$
+c$$$        
+c$$$        !initialization of the nodes of the different layers
+c$$$        scale = 0.07
+c$$$        do j=1,4
+c$$$           added_sublayer => bf_mainlayers(j)%get_head_sublayer()
+c$$$
+c$$$           do i=1, bf_mainlayers(j)%get_nb_sublayers()
+c$$$              
+c$$$              !initialize the nodes of the buffer layer with a constant value
+c$$$              call ini_cst_nodes(added_sublayer, (3*(j-1)+i)*scale)
+c$$$              added_sublayer => added_sublayer%get_next()
+c$$$
+c$$$           end do
+c$$$        end do
+c$$$
+c$$$
+c$$$        !test the fct update_grdpts_from_neighbors()
+c$$$        do j=1,4
+c$$$           
+c$$$           added_sublayer => bf_mainlayers(j)%get_head_sublayer()
+c$$$
+c$$$           do i=1, bf_mainlayers(j)%get_nb_sublayers()
+c$$$
+c$$$              call nbf_interface_used%update_grdpts_from_neighbors(added_sublayer)
+c$$$
+c$$$              added_sublayer => added_sublayer%get_next()
+c$$$           end do
+c$$$
+c$$$        end do
+c$$$
+c$$$
+c$$$        !print the main layers after copy from neighbors
+c$$$        do j=1,4
+c$$$           call bf_mainlayers(j)%print_binary(
+c$$$     $          'xmap2.dat',
+c$$$     $          'ymap2.dat',
+c$$$     $          'nodes2.dat',
+c$$$     $          'grdpt_id2.dat',
+c$$$     $          'sizes2.dat')
+c$$$
+c$$$        end do
+c$$$
+c$$$
+c$$$        !reinitialization of the nodes of the different layers
+c$$$        scale = 0.07
+c$$$        do j=1,4
+c$$$           added_sublayer => bf_mainlayers(j)%get_head_sublayer()
+c$$$
+c$$$           do i=1, bf_mainlayers(j)%get_nb_sublayers()
+c$$$              
+c$$$              !initialize the nodes of the buffer layer with a constant value
+c$$$              call ini_cst_nodes(added_sublayer, (4*(i-1)+j)*scale)
+c$$$              added_sublayer => added_sublayer%get_next()
+c$$$
+c$$$           end do
+c$$$        end do
+c$$$
+c$$$
+c$$$        !test the fct update_neighbors_grdpts()
+c$$$        do j=1,4
+c$$$           
+c$$$           added_sublayer => bf_mainlayers(j)%get_head_sublayer()
+c$$$
+c$$$           do i=1, bf_mainlayers(j)%get_nb_sublayers()
+c$$$
+c$$$              call nbf_interface_used%update_neighbor_grdpts(added_sublayer)
+c$$$
+c$$$              added_sublayer => added_sublayer%get_next()
+c$$$           end do
+c$$$
+c$$$        end do
+c$$$
+c$$$        !print the main layers after copy to neighbors
+c$$$        do j=1,4
+c$$$           call bf_mainlayers(j)%print_binary(
+c$$$     $          'xmap3.dat',
+c$$$     $          'ymap3.dat',
+c$$$     $          'nodes3.dat',
+c$$$     $          'grdpt_id3.dat',
+c$$$     $          'sizes3.dat')
+c$$$
+c$$$        end do
+
         
-        real(rkind)        , dimension(nx,ny,ne) :: nodes
-        integer            , dimension(nx,ny)    :: grdpts_id
-        integer            , dimension(4)        :: bf_layer_loc
-        character(2)       , dimension(4)        :: bf_layer_char
-                           
-        type(bf_mainlayer) , dimension(4)        :: bf_mainlayers
-        type(nbf_interface)                      :: nbf_interface_used
-        type(bf_sublayer)  , pointer             :: added_sublayer
-        !type(bf_sublayer)  , pointer             :: added_sublayer2
-                           
-        integer(ikind)     , dimension(4,5,2,2)  :: test_alignment
-        integer(ikind)     , dimension(2,2)      :: alignment
-        integer            , dimension(4,2)      :: neighbors
-        real(rkind)                              :: scale
-
-        integer :: g,h,i,j,i_max
-
-        real(rkind) :: dx,dy
-
-        !initialize the nodes and the grdpts_id
-        call ini_nodes(nodes)
-        call ini_grdpts_id(grdpts_id)
-
-        !print the nodes
-        call print_interior_data(
-     $       nodes, grdpts_id,
-     $       'interior_nodes.dat',
-     $       'interior_grdpts_id.dat',
-     $       'interior_sizes.dat')
-
-        !buffer layers tested
-        bf_layer_loc  = [N,S,E,W]
-        bf_layer_char = ['N_','S_','E_','W_']
-        
-        neighbors(N,1) = W
-        neighbors(N,2) = E
-        neighbors(S,1) = W
-        neighbors(S,2) = E
-        neighbors(W,1) = S
-        neighbors(W,2) = N
-        neighbors(E,1) = S
-        neighbors(E,2) = N
-
-
-        !initialize the alignment for all the buffer layers
-        call ini_alignment(test_alignment)
-
-        !initialize the main layers
-        do j=1,4
-           call bf_mainlayers(j)%ini(j)           
-        end do
-        
-        !initialize the nbf_interface
-        call nbf_interface_used%ini()
-
-
-        !add the buffer layers to the mainlayers
-        !+ add the links to the nbf_lists
-        !loop over the cardinal coordinates
+        !test: ask_neighbor_for_bc_overlap
+        detailled      = .true.
+        test_loc       = test_ask_neighbors_for_bc_overlap(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_ask_neighbors_for_bc_overlap: '',L1)', test_loc
         print '()'
-        print '(''buffer layer alignments'')'
-        print '(''-----------------------'')'
-        do j=1,4
 
-           select case(j)
-             case(N,S)
-                i_max = 5
-             case(E,W)
-                i_max = 3
-           end select
-
-           !loop over the number of buffer layers
-           !per main layer
-           do i=1,i_max
-
-              !alignment for the buffer layer
-              do g=1,2
-                 do h=1,2
-                    alignment(h,g) = test_alignment(j,i,h,g)
-                 end do
-              end do
-
-              !print the alignment
-              print '(A2,I1,'' ('',2I3,'')  ('',2I3,'')'')',
-     $             bf_layer_char(j), i,
-     $             alignment(1,1), alignment(1,2),
-     $             alignment(2,1), alignment(2,2)
-
-              !allocate the buffer layer
-              added_sublayer => bf_mainlayers(j)%add_sublayer(
-     $             nodes,alignment,dx,dy)
-
-              !set whether the buffe rlayer can exchange
-              !with neighboring layers
-              call added_sublayer%set_neighbor1_share()
-              call added_sublayer%set_neighbor2_share()
-
-              !if the buffer layer is a potential neigboring buffer
-              !layer, we add the link to the nbf_interface
-              if(added_sublayer%can_exchange_with_neighbor1()) then
-                 call nbf_interface_used%link_neighbor1_to_bf_sublayer(
-     $                added_sublayer)
-              end if
-
-              if(added_sublayer%can_exchange_with_neighbor2()) then
-                 call nbf_interface_used%link_neighbor2_to_bf_sublayer(
-     $                added_sublayer)
-              end if
-
-           end do
-        end do
-        print '(''-----------------------'')'
-        print '()'
+        contains
 
 
-        !print the main layers before the tests
-        do j=1,4
-           call bf_mainlayers(j)%print_binary(
-     $          'nodes1.dat',
-     $          'grdpt_id1.dat',
-     $          'sizes1.dat')
+        function test_ask_neighbors_for_bc_overlap(detailled)
+     $       result(test_validated)
 
-        end do
+          implicit none
 
-        
-        !print the content of the nbf_interface
-        print '()'
-        print '(''nbf_interface content'')'
-        print '(''-----------------------'')'
-        call nbf_interface_used%print_on_screen()
-        print '(''-----------------------'')'
-        print '()'
+          logical, intent(in) :: detailled
+          logical             :: test_validated
 
-        
-        !initialization of the nodes of the different layers
-        scale = 0.07
-        do j=1,4
-           added_sublayer => bf_mainlayers(j)%get_head_sublayer()
+          type(nbf_interface)        :: nbf_interface_used
+          type(bf_sublayer), pointer :: bf_layer_N_ptr
+          type(bf_sublayer), pointer :: bf_layer_E_ptr
+          
+          integer       , dimension(:,:), allocatable :: grdpts_id
+          integer(ikind), dimension(2,2)              :: bf_alignment
+          integer(ikind)                              :: x_border_data
+          integer(ikind)                              :: x_border_comp
+          logical                                     :: err
 
-           do i=1, bf_mainlayers(j)%get_nb_sublayers()
-              
-              !initialize the nodes of the buffer layer with a constant value
-              call ini_cst_nodes(added_sublayer, (3*(j-1)+i)*scale)
-              added_sublayer => added_sublayer%get_next()
-
-           end do
-        end do
-
-
-        !test the fct update_grdpts_from_neighbors()
-        do j=1,4
-           
-           added_sublayer => bf_mainlayers(j)%get_head_sublayer()
-
-           do i=1, bf_mainlayers(j)%get_nb_sublayers()
-
-              call nbf_interface_used%update_grdpts_from_neighbors(added_sublayer)
-
-              added_sublayer => added_sublayer%get_next()
-           end do
-
-        end do
+          !test case:
+          !2 buffer layers: N and E at the interface NE
+          !the North buffer layer should be increased to
+          !be able to compute all the boundary grid points
+          !        
+          !      North buffer layer
+          !
+          !                  ___ nx-3
+          !                 |  ___ nx-2
+          !                 | |  ___ nx-1
+          !                 | | |  __  nx
+          !                 | | | |
+          !        ________________ 
+          !         3 3 3 3 3 3 3 3|___
+          ! ny   -  2 2 2 2 2 2 2 3|3  |
+          ! ny-1 - _ _ _ _ _ _ _2_2|3_3|
+          ! ny-2 -         |   |  2|2 3|
+          ! ny-3 - ________|___|__ |2 3| East buffer layer
+          !                |   |   |2 3|
+          !       interior |1 1|2 2|2 3|
+          !                |1 1|2 3|3 3|
+          !------------------------------------------------
+          !initialize the nbf_interface
+          call nbf_interface_used%ini()
 
 
-        !print the main layers after copy from neighbors
-        do j=1,4
-           call bf_mainlayers(j)%print_binary(
-     $          'nodes2.dat',
-     $          'grdpt_id2.dat',
-     $          'sizes2.dat')
+          !initialize the N buffer layer
+          allocate(grdpts_id(10,5))
 
-        end do
+          grdpts_id = reshape((/
+     $         1,1,1,1,1,1,1,1,1,1,
+     $         1,1,1,1,1,1,1,1,1,2,
+     $         1,1,1,1,1,1,1,1,2,2,
+     $         2,2,2,2,2,2,2,2,2,3,
+     $         3,3,3,3,3,3,3,3,3,3/),
+     $         (/10,5/))
+
+          bf_alignment(1,2) = nx-2
+          bf_alignment(1,1) = bf_alignment(1,2) - size(grdpts_id,1) + (2*bc_size+1)
+          bf_alignment(2,1) = ny-1
+          bf_alignment(2,2) = bf_alignment(2,1) + size(grdpts_id,2) - (2*bc_size+1)
+
+          
+          allocate(bf_layer_N_ptr)
+          call bf_layer_N_ptr%ini(N)
+          call bf_layer_N_ptr%set_grdpts_id(grdpts_id)
+          call bf_layer_N_ptr%set_alignment_tab(bf_alignment)
+
+          call nbf_interface_used%link_neighbor2_to_bf_sublayer(bf_layer_N_ptr)
 
 
-        !reinitialization of the nodes of the different layers
-        scale = 0.07
-        do j=1,4
-           added_sublayer => bf_mainlayers(j)%get_head_sublayer()
+          !initialize the E buffer layer
+          allocate(grdpts_id(6,7))
 
-           do i=1, bf_mainlayers(j)%get_nb_sublayers()
-              
-              !initialize the nodes of the buffer layer with a constant value
-              call ini_cst_nodes(added_sublayer, (4*(i-1)+j)*scale)
-              added_sublayer => added_sublayer%get_next()
+          grdpts_id = reshape((/
+     $         1,1,2,3,3,3,
+     $         1,1,2,2,2,3,
+     $         1,1,1,1,2,3,
+     $         1,1,1,1,2,3,
+     $         1,1,1,2,2,3,
+     $         1,1,2,2,3,3,
+     $         2,2,2,3,3,0/),
+     $         (/6,7/))
 
-           end do
-        end do
+          bf_alignment(1,1) = nx-1
+          bf_alignment(1,2) = bf_alignment(1,1) + size(grdpts_id,1) - (2*bc_size+1)
+          bf_alignment(2,2) = ny-2
+          bf_alignment(2,1) = bf_alignment(2,2) - size(grdpts_id,2) + (2*bc_size+1)
+
+          allocate(bf_layer_E_ptr)
+          call bf_layer_E_ptr%ini(E)
+          call bf_layer_E_ptr%set_grdpts_id(grdpts_id)
+          call bf_layer_E_ptr%set_alignment_tab(bf_alignment)
+
+          call nbf_interface_used%link_neighbor2_to_bf_sublayer(bf_layer_E_ptr)
 
 
-        !test the fct update_neighbors_grdpts()
-        do j=1,4
-           
-           added_sublayer => bf_mainlayers(j)%get_head_sublayer()
+          !test: ask_neighbors_for_bc_overlap
+          x_border_data = nx+1
+          x_border_comp = nbf_interface_used%ask_neighbors_for_bc_overlap(
+     $         N,
+     $         2,
+     $         [nx,ny-1],
+     $         right,
+     $         err)
 
-           do i=1, bf_mainlayers(j)%get_nb_sublayers()
+          test_validated = x_border_data.eq.x_border_comp
+          if(detailled.and.(.not.test_validated)) then
+             print '(''x_border: '',I3,'' -> '',I3)', x_border_comp, x_border_data
+          end if
 
-              call nbf_interface_used%update_neighbor_grdpts(added_sublayer)
-
-              added_sublayer => added_sublayer%get_next()
-           end do
-
-        end do
-
-        !print the main layers after copy to neighbors
-        do j=1,4
-           call bf_mainlayers(j)%print_binary(
-     $          'nodes3.dat',
-     $          'grdpt_id3.dat',
-     $          'sizes3.dat')
-
-        end do
+        end function test_ask_neighbors_for_bc_overlap
 
       end program test_nbf_interface_prog

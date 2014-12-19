@@ -1445,8 +1445,7 @@
 
 
           !number of neighboring buffer layers
-          nb_nbf_layers = this%nbf_links(bf_localization,1)%get_nb_elements()
-
+          nb_nbf_layers = this%nbf_links(bf_localization,bf_neighbor_type)%get_nb_elements()
 
           !if there are no neighboring buffer layers, it is impossible
           !to get the new border of the buffer layer
@@ -1460,8 +1459,8 @@
              print '(''****************************************'')'
              print '(''bf_localization: '',I2)', bf_localization
              print '(''bf_neighbor_type: '',I2)', bf_neighbor_type
-             print '(''start_grdpt_g_coords: '',I2)', start_grdpt_g_coords
-             print '(''side: '',I2)', side
+             print '(''start_grdpt_g_coords: '',2I4)', start_grdpt_g_coords
+             print '(''side: '',L1)', side
              print '(''****************************************'')'
              print '()'
 
@@ -1470,7 +1469,7 @@
           !x_border
           else
 
-             nbf_current_ele => this%nbf_links(bf_localization,1)%get_head()
+             nbf_current_ele => this%nbf_links(bf_localization,bf_neighbor_type)%get_head()
              
              do k=1, nb_nbf_layers
              

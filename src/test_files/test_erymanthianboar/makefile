@@ -67,16 +67,6 @@ test_nbf_list_prog.o:\
 	test_bf_layer_module.o\
 	test_nbf_list_module.o
 
-test_nbf_interface_prog.o:\
-	$(nbf_layer_dir)/nbf_interface_class.o\
-	$(bf_layer_dir)/bf_mainlayer_class.o\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o\
-	test_bf_layer_module.o\
-	test_nbf_list_module.o
-
 test_bf_path_icr_prog.o:\
 	$(bf_layer_dir)/bf_path_icr_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
@@ -262,12 +252,24 @@ test_nbf_list_prog:\
 	test_bf_layer_module.o\
 	test_nbf_list_module.o
 
+test_nbf_interface_prog.o:\
+	$(nbf_layer_dir)/nbf_interface_class.o\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	test_bf_layer_module.o\
+	test_nbf_list_module.o
+
 test_nbf_interface_prog:\
 	$(param_dep)\
-	$(cg_dep)\
+	$(sd_cdep)\
 	$(fv_dep)\
-	$(simpletest_dep)\
+	$(pm_cdep)\
+	$(hedstrom_xy_dep)\
 	$(bf_layer_dep)\
+	bf_interior_bc_sections_module.o\
 	bf_sublayer_class.o\
 	nbf_element_class.o\
 	bf_sublayer_pointer_class.o\
