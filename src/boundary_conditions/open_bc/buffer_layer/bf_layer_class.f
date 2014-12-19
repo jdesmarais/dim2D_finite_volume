@@ -2186,6 +2186,8 @@
           integer(ikind)               :: i
 
           
+          err = BF_SUCCESS
+
           !get the match table to turn the general coordinates of the
           !start_grdpt_g_coords into local coordinates
           match_table = this%get_general_to_local_coord_tab()

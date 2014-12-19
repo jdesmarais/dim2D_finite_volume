@@ -1494,7 +1494,7 @@
                    print '(''******************************'')'
                    print '(''bf_localization: '',I2)', bf_localization
                    print '(''bf_neighbor_type: '',I2)', bf_neighbor_type
-                   print '(''start_grdpt_g_coords: '',I2)', start_grdpt_g_coords
+                   print '(''start_grdpt_g_coords: '',2I4)', start_grdpt_g_coords
                    print '(''side: '',I2)', side
                    print '(''******************************'')'
                    print '()'

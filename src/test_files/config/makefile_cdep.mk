@@ -261,7 +261,9 @@ bf_interface_dep=	$(bf_layer_dep)\
 			nbf_list_class.o\
 			nbf_interface_class.o\
 			nbf_interface_newgrdpt_class.o\
-			bf_interface_class.o
+			bf_interface_class.o\
+			nf90_operators_module.o\
+			nf90_operators_read_module.o
 
 bf_interface_icr_dep=	$(bf_interface_dep)\
 			bf_detector_module.o\

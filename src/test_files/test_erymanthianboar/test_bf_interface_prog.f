@@ -59,265 +59,283 @@
 
         implicit none
 
-        type(bf_interface)                  :: interface_tested
-        real(rkind)   , dimension(nx)       :: x_map
-        real(rkind)   , dimension(ny)       :: y_map
-        real(rkind)   , dimension(nx,ny,ne) :: nodes
-        integer       , dimension(nx,ny)    :: grdpts_id
-        integer       , dimension(2,2)      :: alignment
-        integer                             :: mainlayer_id
-        type(bf_sublayer), pointer          :: added_sublayer
-        type(bf_sublayer), pointer          :: bf_sublayer_merged1
-        type(bf_sublayer), pointer          :: bf_sublayer_merged2
-        type(bf_sublayer), pointer          :: bf_sublayer_reallocated
-        type(bf_sublayer), pointer          :: merged_sublayer
-        real(rkind)                         :: scale
+c$$$        type(bf_interface)                  :: interface_tested
+c$$$        real(rkind)   , dimension(nx)       :: x_map
+c$$$        real(rkind)   , dimension(ny)       :: y_map
+c$$$        real(rkind)   , dimension(nx,ny,ne) :: nodes
+c$$$        integer       , dimension(nx,ny)    :: grdpts_id
+c$$$        integer       , dimension(2,2)      :: alignment
+c$$$        integer                             :: mainlayer_id
+c$$$        type(bf_sublayer), pointer          :: added_sublayer
+c$$$        type(bf_sublayer), pointer          :: bf_sublayer_merged1
+c$$$        type(bf_sublayer), pointer          :: bf_sublayer_merged2
+c$$$        type(bf_sublayer), pointer          :: bf_sublayer_reallocated
+c$$$        type(bf_sublayer), pointer          :: merged_sublayer
+c$$$        real(rkind)                         :: scale
+c$$$
+c$$$
+c$$$        integer :: i, index
+c$$$
+        logical :: detailled
+        logical :: test_loc
+        logical :: test_validated
+c$$$
+c$$$
+c$$$        !initialize the nodes and print them
+c$$$        call ini_x_map(x_map)
+c$$$        call ini_y_map(y_map)
+c$$$        call ini_nodes(nodes)
+c$$$        call ini_grdpts_id(grdpts_id)
+c$$$        call print_interior_data(
+c$$$     $       x_map,
+c$$$     $       y_map,
+c$$$     $       nodes,
+c$$$     $       grdpts_id, 
+c$$$     $       'interior_x_map.dat',
+c$$$     $       'interior_y_map.dat',
+c$$$     $       'interior_nodes.dat',
+c$$$     $       'interior_grdpts_id.dat',
+c$$$     $       'interior_sizes.dat')
+c$$$        
+c$$$        !initialize the interface
+c$$$        call interface_tested%ini(x_map,y_map)
+c$$$
+c$$$        
+c$$$        !add the N_E buffer layer
+c$$$        call get_alignment(1, alignment, mainlayer_id)
+c$$$        added_sublayer => interface_tested%allocate_sublayer(
+c$$$     $       mainlayer_id, x_map, y_map, nodes, alignment)
+c$$$        scale = 0.1
+c$$$        call ini_cst_nodes(added_sublayer, scale)
+c$$$        
+c$$$        !add the W buffer layer under the N_W corner
+c$$$        call get_alignment(4, alignment, mainlayer_id)
+c$$$        added_sublayer => interface_tested%allocate_sublayer(
+c$$$     $       mainlayer_id, x_map, y_map, nodes, alignment)
+c$$$        scale = 0.2
+c$$$        call ini_cst_nodes(added_sublayer, scale)
+c$$$
+c$$$
+c$$$        !print the interface
+c$$$        call interface_tested%print_binary(
+c$$$     $       'x_map1.dat',
+c$$$     $       'y_map1.dat',
+c$$$     $       'nodes1.dat',
+c$$$     $       'grdpt_id1.dat',
+c$$$     $       'sizes1.dat',
+c$$$     $       '1.dat')
+c$$$
+c$$$        
+c$$$        !add the E buffer layer under the N_E corner
+c$$$        call get_alignment(3, alignment, mainlayer_id)
+c$$$        bf_sublayer_merged1 => interface_tested%allocate_sublayer(
+c$$$     $       mainlayer_id, x_map, y_map, nodes, alignment)
+c$$$        
+c$$$        !add the N_W buffer layer
+c$$$        call get_alignment(2, alignment, mainlayer_id)
+c$$$        added_sublayer => interface_tested%allocate_sublayer(
+c$$$     $       mainlayer_id, x_map, y_map, nodes, alignment)
+c$$$
+c$$$        
+c$$$        !print the interface
+c$$$        call interface_tested%print_binary(
+c$$$     $       'x_map2.dat',
+c$$$     $       'y_map2.dat',
+c$$$     $       'nodes2.dat',
+c$$$     $       'grdpt_id2.dat',
+c$$$     $       'sizes2.dat',
+c$$$     $       '2.dat')
+c$$$
+c$$$
+c$$$        !add the E buffer layer
+c$$$        call get_alignment(5, alignment, mainlayer_id)
+c$$$        bf_sublayer_merged2 => interface_tested%allocate_sublayer(
+c$$$     $       mainlayer_id, x_map, y_map, nodes, alignment)
+c$$$
+c$$$        !add the W buffer layer
+c$$$        call get_alignment(6, alignment, mainlayer_id)
+c$$$        bf_sublayer_reallocated => interface_tested%allocate_sublayer(
+c$$$     $       mainlayer_id, x_map, y_map, nodes, alignment)
+c$$$
+c$$$        
+c$$$        !print the interface
+c$$$        call interface_tested%print_binary(
+c$$$     $       'x_map3.dat',
+c$$$     $       'y_map3.dat',
+c$$$     $       'nodes3.dat',
+c$$$     $       'grdpt_id3.dat',
+c$$$     $       'sizes3.dat',
+c$$$     $       '3.dat')
+c$$$
+c$$$
+c$$$        !add the S_E buffer layer
+c$$$        call get_alignment(7, alignment, mainlayer_id)
+c$$$        added_sublayer => interface_tested%allocate_sublayer(
+c$$$     $       mainlayer_id, x_map, y_map, nodes, alignment)
+c$$$        scale = 0.3
+c$$$        call ini_cst_nodes(added_sublayer, scale)
+c$$$        
+c$$$
+c$$$        !add the S_W buffer layer
+c$$$        call get_alignment(8, alignment, mainlayer_id)
+c$$$        added_sublayer => interface_tested%allocate_sublayer(
+c$$$     $       mainlayer_id, x_map, y_map, nodes, alignment)
+c$$$        scale = 0.4
+c$$$        call ini_cst_nodes(added_sublayer, scale)
+c$$$
+c$$$
+c$$$        !print the interface
+c$$$        call interface_tested%print_binary(
+c$$$     $       'x_map4.dat',
+c$$$     $       'y_map4.dat',
+c$$$     $       'nodes4.dat',
+c$$$     $       'grdpt_id4.dat',
+c$$$     $       'sizes4.dat',
+c$$$     $       '4.dat')
+c$$$
+c$$$
+c$$$        !merge the E buffer layers
+c$$$        call get_alignment(9, alignment, mainlayer_id)
+c$$$        merged_sublayer => interface_tested%merge_sublayers(
+c$$$     $       bf_sublayer_merged1, bf_sublayer_merged2,
+c$$$     $       x_map, y_map, nodes, alignment)
+c$$$        
+c$$$
+c$$$        !reallocate the W buffer layer
+c$$$        call get_alignment(10, alignment, mainlayer_id)
+c$$$        call interface_tested%reallocate_sublayer(
+c$$$     $       bf_sublayer_reallocated,
+c$$$     $       x_map, y_map, nodes, alignment)
+c$$$
+c$$$
+c$$$        !print the interface
+c$$$        call interface_tested%print_binary(
+c$$$     $       'x_map5.dat',
+c$$$     $       'y_map5.dat',
+c$$$     $       'nodes5.dat',
+c$$$     $       'grdpt_id5.dat',
+c$$$     $       'sizes5.dat',
+c$$$     $       '5.dat')
+c$$$
+c$$$        
+c$$$        !add more sublayers on N,S
+c$$$        do i=11,16
+c$$$           call get_alignment(i, alignment, mainlayer_id)
+c$$$           added_sublayer => interface_tested%allocate_sublayer(
+c$$$     $          mainlayer_id, x_map, y_map, nodes, alignment)
+c$$$        end do
+c$$$
+c$$$        call interface_tested%print_binary(
+c$$$     $       'x_map6.dat',
+c$$$     $       'y_map6.dat',
+c$$$     $       'nodes6.dat',
+c$$$     $       'grdpt_id6.dat',
+c$$$     $       'sizes6.dat',
+c$$$     $       '6.dat')
+c$$$
+c$$$        index = 7
+c$$$
+c$$$
+c$$$        !test bf_depends_on_neighbors
+c$$$        !-------------------------------------------------------
+c$$$        !for each sublayer in each mainlayer, test if the buffer layer
+c$$$        !depends on neighbors
+c$$$        call test_bf_layer_depends_on_neighbors(interface_tested)
+c$$$        
+c$$$
+c$$$        !test get_nbf_layers_sharing_grdpts_with
+c$$$        !-------------------------------------------------------
+c$$$        !for each sublayer in each mainlayer, test if the buffer layer
+c$$$        !has neighbor dependencies and colorize the neighbors
+c$$$        call test_get_nbf_layers_sharing_grdpts_with(interface_tested, index)
+c$$$
+c$$$        
+c$$$        !test if the neighboring buffer layers will be removed
+c$$$        !-------------------------------------------------------
+c$$$        call test_does_a_neighbor_remains(interface_tested)
+c$$$
+c$$$
+c$$$        !test the removal of sublayer
+c$$$        !----------------------------
+c$$$        call test_remove_sublayer(
+c$$$     $       interface_tested,
+c$$$     $       merged_sublayer,
+c$$$     $       index,
+c$$$     $       x_map,
+c$$$     $       y_map)
+c$$$
+c$$$
+c$$$        !re-test if the neighboring buffer layers will be removed
+c$$$        !--------------------------------------------------------
+c$$$        call test_does_a_neighbor_remains(interface_tested)
+c$$$
+c$$$        
+c$$$        !test the netcdf writing
+c$$$        !--------------------------------------------------------
+c$$$        call test_print_netcdf(
+c$$$     $       interface_tested,1)
+c$$$
+c$$$
+c$$$        !test the determination of the bc_sections
+c$$$        !--------------------------------------------------------
+c$$$        call test_determine_interior_bc_layers(
+c$$$     $       interface_tested,
+c$$$     $       x_map,
+c$$$     $       y_map,
+c$$$     $       nodes,
+c$$$     $       grdpts_id,
+c$$$     $       index)
+c$$$
+c$$$
+c$$$        !test the determination of the bc_procedures
+c$$$        !--------------------------------------------------------
+c$$$        call test_determine_interior_bc_procedures(
+c$$$     $       interface_tested,
+c$$$     $       x_map,
+c$$$     $       y_map,
+c$$$     $       nodes,
+c$$$     $       grdpts_id,
+c$$$     $       index)
+c$$$
+c$$$
+c$$$        !test the node synchronization with the interior domain
+c$$$        !--------------------------------------------------------
+c$$$        call test_sync_nodes_with_interior(
+c$$$     $       interface_tested,
+c$$$     $       x_map,
+c$$$     $       y_map,
+c$$$     $       nodes,
+c$$$     $       grdpts_id,
+c$$$     $       index)
+c$$$
+c$$$        !test the node synchronization at the interface between
+c$$$        !buffer main layers
+c$$$        !--------------------------------------------------------
+c$$$        call test_sync_nodes_at_mainlayer_interfaces(
+c$$$     $       interface_tested,
+c$$$     $       x_map,
+c$$$     $       y_map,
+c$$$     $       nodes,
+c$$$     $       grdpts_id,
+c$$$     $       index)
+c$$$
+c$$$        !test the integration borders for the buffer layers
+c$$$        !--------------------------------------------------------
+c$$$        call test_bf_integration_borders(
+c$$$     $       interface_tested,
+c$$$     $       x_map,
+c$$$     $       y_map,
+c$$$     $       nodes,
+c$$$     $       grdpts_id,
+c$$$     $       index)
 
-
-        integer :: i, index
-
-        !initialize the nodes and print them
-        call ini_x_map(x_map)
-        call ini_y_map(y_map)
-        call ini_nodes(nodes)
-        call ini_grdpts_id(grdpts_id)
-        call print_interior_data(
-     $       x_map,
-     $       y_map,
-     $       nodes,
-     $       grdpts_id, 
-     $       'interior_x_map.dat',
-     $       'interior_y_map.dat',
-     $       'interior_nodes.dat',
-     $       'interior_grdpts_id.dat',
-     $       'interior_sizes.dat')
-        
-        !initialize the interface
-        call interface_tested%ini()
-
-        
-        !add the N_E buffer layer
-        call get_alignment(1, alignment, mainlayer_id)
-        added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, x_map, y_map, nodes, alignment)
-        scale = 0.1
-        call ini_cst_nodes(added_sublayer, scale)
-        
-        !add the W buffer layer under the N_W corner
-        call get_alignment(4, alignment, mainlayer_id)
-        added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, x_map, y_map, nodes, alignment)
-        scale = 0.2
-        call ini_cst_nodes(added_sublayer, scale)
-
-
-        !print the interface
-        call interface_tested%print_binary(
-     $       'x_map1.dat',
-     $       'y_map1.dat',
-     $       'nodes1.dat',
-     $       'grdpt_id1.dat',
-     $       'sizes1.dat',
-     $       '1.dat')
-
-        
-        !add the E buffer layer under the N_E corner
-        call get_alignment(3, alignment, mainlayer_id)
-        bf_sublayer_merged1 => interface_tested%allocate_sublayer(
-     $       mainlayer_id, x_map, y_map, nodes, alignment)
-        
-        !add the N_W buffer layer
-        call get_alignment(2, alignment, mainlayer_id)
-        added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, x_map, y_map, nodes, alignment)
-
-        
-        !print the interface
-        call interface_tested%print_binary(
-     $       'x_map2.dat',
-     $       'y_map2.dat',
-     $       'nodes2.dat',
-     $       'grdpt_id2.dat',
-     $       'sizes2.dat',
-     $       '2.dat')
-
-
-        !add the E buffer layer
-        call get_alignment(5, alignment, mainlayer_id)
-        bf_sublayer_merged2 => interface_tested%allocate_sublayer(
-     $       mainlayer_id, x_map, y_map, nodes, alignment)
-
-        !add the W buffer layer
-        call get_alignment(6, alignment, mainlayer_id)
-        bf_sublayer_reallocated => interface_tested%allocate_sublayer(
-     $       mainlayer_id, x_map, y_map, nodes, alignment)
-
-        
-        !print the interface
-        call interface_tested%print_binary(
-     $       'x_map3.dat',
-     $       'y_map3.dat',
-     $       'nodes3.dat',
-     $       'grdpt_id3.dat',
-     $       'sizes3.dat',
-     $       '3.dat')
-
-
-        !add the S_E buffer layer
-        call get_alignment(7, alignment, mainlayer_id)
-        added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, x_map, y_map, nodes, alignment)
-        scale = 0.3
-        call ini_cst_nodes(added_sublayer, scale)
-        
-
-        !add the S_W buffer layer
-        call get_alignment(8, alignment, mainlayer_id)
-        added_sublayer => interface_tested%allocate_sublayer(
-     $       mainlayer_id, x_map, y_map, nodes, alignment)
-        scale = 0.4
-        call ini_cst_nodes(added_sublayer, scale)
-
-
-        !print the interface
-        call interface_tested%print_binary(
-     $       'x_map4.dat',
-     $       'y_map4.dat',
-     $       'nodes4.dat',
-     $       'grdpt_id4.dat',
-     $       'sizes4.dat',
-     $       '4.dat')
-
-
-        !merge the E buffer layers
-        call get_alignment(9, alignment, mainlayer_id)
-        merged_sublayer => interface_tested%merge_sublayers(
-     $       bf_sublayer_merged1, bf_sublayer_merged2,
-     $       x_map, y_map, nodes, alignment)
-        
-
-        !reallocate the W buffer layer
-        call get_alignment(10, alignment, mainlayer_id)
-        call interface_tested%reallocate_sublayer(
-     $       bf_sublayer_reallocated,
-     $       x_map, y_map, nodes, alignment)
-
-
-        !print the interface
-        call interface_tested%print_binary(
-     $       'x_map5.dat',
-     $       'y_map5.dat',
-     $       'nodes5.dat',
-     $       'grdpt_id5.dat',
-     $       'sizes5.dat',
-     $       '5.dat')
-
-        
-        !add more sublayers on N,S
-        do i=11,16
-           call get_alignment(i, alignment, mainlayer_id)
-           added_sublayer => interface_tested%allocate_sublayer(
-     $          mainlayer_id, x_map, y_map, nodes, alignment)
-        end do
-
-        call interface_tested%print_binary(
-     $       'x_map6.dat',
-     $       'y_map6.dat',
-     $       'nodes6.dat',
-     $       'grdpt_id6.dat',
-     $       'sizes6.dat',
-     $       '6.dat')
-
-        index = 7
-
-
-        !test bf_depends_on_neighbors
-        !-------------------------------------------------------
-        !for each sublayer in each mainlayer, test if the buffer layer
-        !depends on neighbors
-        call test_bf_layer_depends_on_neighbors(interface_tested)
-        
-
-        !test get_nbf_layers_sharing_grdpts_with
-        !-------------------------------------------------------
-        !for each sublayer in each mainlayer, test if the buffer layer
-        !has neighbor dependencies and colorize the neighbors
-        call test_get_nbf_layers_sharing_grdpts_with(interface_tested, index)
-
-        
-        !test if the neighboring buffer layers will be removed
-        !-------------------------------------------------------
-        call test_does_a_neighbor_remains(interface_tested)
-
-
-        !test the removal of sublayer
-        !----------------------------
-        call test_remove_sublayer(interface_tested, merged_sublayer, index)
-
-
-        !re-test if the neighboring buffer layers will be removed
-        !--------------------------------------------------------
-        call test_does_a_neighbor_remains(interface_tested)
-
-        
-        !test the netcdf writing
-        !--------------------------------------------------------
-        call test_print_netcdf(
-     $       interface_tested,1)
-
-
-        !test the determination of the bc_sections
-        !--------------------------------------------------------
-        call test_determine_interior_bc_layers(
-     $       interface_tested,
-     $       x_map,
-     $       y_map,
-     $       nodes,
-     $       grdpts_id,
-     $       index)
-
-
-        !test the determination of the bc_procedures
-        !--------------------------------------------------------
-        call test_determine_interior_bc_procedures(
-     $       interface_tested,
-     $       x_map,
-     $       y_map,
-     $       nodes,
-     $       grdpts_id,
-     $       index)
-
-
-        !test the node synchronization with the interior domain
-        !--------------------------------------------------------
-        call test_sync_nodes_with_interior(
-     $       interface_tested,
-     $       x_map,
-     $       y_map,
-     $       nodes,
-     $       grdpts_id,
-     $       index)
-
-        !test the node synchronization at the interface between
-        !buffer main layers
-        !--------------------------------------------------------
-        call test_sync_nodes_at_mainlayer_interfaces(
-     $       interface_tested,
-     $       x_map,
-     $       y_map,
-     $       nodes,
-     $       grdpts_id,
-     $       index)
-
-        !test the integration borders for the buffer layers
-        !--------------------------------------------------------
-        call test_bf_integration_borders(
-     $       interface_tested,
-     $       x_map,
-     $       y_map,
-     $       nodes,
-     $       grdpts_id,
-     $       index)
+        !test the resolving of bc overlap conflicts for buffer layers
+        !------------------------------------------------------------
+        detailled = .true.
+        test_loc = test_resolve_bc_overlap_conflicts(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_resolve_bc_overlap_conflicts: '',L1)', test_loc
+        print '()'
 
 
         contains
@@ -867,18 +885,28 @@
 
 
         !test the removal of a sublayer
-        subroutine test_remove_sublayer(interface_used, sublayer_ptr, index)
+        subroutine test_remove_sublayer(
+     $     interface_used,
+     $     sublayer_ptr,
+     $     index,
+     $     interior_x_map,
+     $     interior_y_map)
         
           implicit none
 
           class(bf_interface)       , intent(inout) :: interface_used
           type(bf_sublayer), pointer, intent(inout) :: sublayer_ptr
           integer                   , intent(inout) :: index
+          real(rkind), dimension(nx), intent(in)    :: interior_x_map
+          real(rkind), dimension(ny), intent(in)    :: interior_y_map
 
           print '(''test remove_sublayer'')'
           print '(''--------------------'')'
 
-          call interface_used%remove_sublayer(sublayer_ptr)
+          call interface_used%remove_sublayer(
+     $         sublayer_ptr,
+     $         interior_x_map,
+     $         interior_y_map)
 
           call print_output(interface_used, index)
 
@@ -1438,5 +1466,150 @@
      $         time)
 
         end subroutine test_print_netcdf
+
+      
+        !test : resolve_bc_overlap_conflicts
+        function test_resolve_bc_overlap_conflicts(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_interface)                   :: bf_interface_used
+          integer, dimension(:,:), allocatable :: grdpts_id
+          integer(ikind), dimension(2,2)       :: bf_alignment
+          type(bf_sublayer), pointer           :: bf_layer_N_ptr
+          type(bf_sublayer), pointer           :: bf_layer_E_ptr
+          real(rkind), dimension(nx)           :: interior_x_map
+          real(rkind), dimension(ny)           :: interior_y_map
+          real(rkind), dimension(nx,ny,ne)     :: interior_nodes
+          type(bf_mainlayer), pointer          :: mainlayer_ptr
+
+
+          !test case:
+          !2 buffer layers: N and E at the interface NE
+          !the North buffer layer should be increased to
+          !be able to compute all the boundary grid points
+          !        
+          !      North buffer layer
+          !
+          !                  ___ nx-3
+          !                 |  ___ nx-2
+          !                 | |  ___ nx-1
+          !                 | | |  __  nx
+          !                 | | | |
+          !        ________________ 
+          !       |3 3 3 3 3 3 3 3 3|___
+          ! ny   -|3 2 2 2 2 2 2 2 3|3  |
+          ! ny-1 -|2 2_ _ _ _ _ _2_2|3_3|
+          ! ny-2 -          |   |  2|2 3|
+          ! ny-3 - _________|___|__ |2 3| East buffer layer
+          !                 |   |   |2 3|
+          !        interior |1 1|2 2|2 3|
+          !                 |1 1|2 3|3 3|
+          !                 -------------
+          !------------------------------------------------
+          call bf_interface_used%ini(interior_x_map,interior_y_map)
+
+
+          !initialize the N buffer layer
+          allocate(grdpts_id(10,5))
+
+          grdpts_id = reshape((/
+     $         1,1,1,1,1,1,1,1,1,1,
+     $         1,1,1,1,1,1,1,1,1,2,
+     $         1,1,1,1,1,1,1,1,2,2,
+     $         2,2,2,2,2,2,2,2,2,3,
+     $         3,3,3,3,3,3,3,3,3,3/),
+     $         (/10,5/))
+
+          bf_alignment(1,2) = nx-2
+          bf_alignment(1,1) = bf_alignment(1,2) - size(grdpts_id,1) + (2*bc_size+1)
+          bf_alignment(2,1) = ny-1
+          bf_alignment(2,2) = bf_alignment(2,1) + size(grdpts_id,2) - (2*bc_size+1)
+          
+          if(detailled) then
+             print '(''bf_alignment_N: '',4I4)', bf_alignment
+          end if
+
+          bf_layer_N_ptr => bf_interface_used%allocate_sublayer(
+     $         N,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes,
+     $         bf_alignment)
+
+          call bf_layer_N_ptr%set_grdpts_id(grdpts_id)
+
+
+          !initialize the E buffer layer
+          allocate(grdpts_id(6,7))
+
+          grdpts_id = reshape((/
+     $         1,1,2,3,3,3,
+     $         1,1,2,2,2,3,
+     $         1,1,1,1,2,3,
+     $         1,1,1,1,2,3,
+     $         1,1,1,2,2,3,
+     $         1,1,2,2,3,3,
+     $         2,2,2,3,3,0/),
+     $         (/6,7/))
+
+          bf_alignment(1,1) = nx-1
+          bf_alignment(1,2) = bf_alignment(1,1) + size(grdpts_id,1) - (2*bc_size+1)
+          bf_alignment(2,2) = ny-2
+          bf_alignment(2,1) = bf_alignment(2,2) - size(grdpts_id,2) + (2*bc_size+1)
+
+          if(detailled) then
+             print '(''bf_alignment_E: '',4I4)', bf_alignment
+          end if
+
+          bf_layer_E_ptr => bf_interface_used%allocate_sublayer(
+     $         E,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes,
+     $         bf_alignment)
+
+          call bf_layer_E_ptr%set_grdpts_id(grdpts_id)
+
+          call bf_interface_used%resolve_bc_overlap_conflicts(
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes)
+
+
+          !test whether the N buffer layer has been correctly updated
+          mainlayer_ptr  => bf_interface_used%get_mainlayer(N)
+          bf_layer_N_ptr => mainlayer_ptr%get_head_sublayer()
+          bf_alignment   = bf_layer_N_ptr%get_alignment_tab()
+
+          if(detailled) then
+             print '(''bf_alignment_N after: '',4I4)', bf_alignment
+          end if
+
+          test_validated = bf_alignment(1,1).eq.(nx-7)
+          test_validated = test_validated.and.(bf_alignment(1,2).eq.(nx-1))
+          test_validated = test_validated.and.(bf_alignment(2,1).eq.(ny-1))
+          test_validated = test_validated.and.(bf_alignment(2,2).eq.(ny-1))
+
+
+          !test whether the N buffer layer has been correctly updated
+          mainlayer_ptr  => bf_interface_used%get_mainlayer(E)
+          bf_layer_E_ptr => mainlayer_ptr%get_head_sublayer()
+          bf_alignment   = bf_layer_E_ptr%get_alignment_tab()
+
+          if(detailled) then
+             print '(''bf_alignment_E after: '',4I4)', bf_alignment
+          end if
+
+          test_validated = test_validated.and.(bf_alignment(1,1).eq.(nx-1))
+          test_validated = test_validated.and.(bf_alignment(1,2).eq.nx)
+          test_validated = test_validated.and.(bf_alignment(2,1).eq.(ny-4))
+          test_validated = test_validated.and.(bf_alignment(2,2).eq.(ny-2))
+
+        end function test_resolve_bc_overlap_conflicts
 
       end program test_bf_interface_prog
