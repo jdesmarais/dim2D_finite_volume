@@ -2176,7 +2176,7 @@
           class(bf_layer)              , intent(in)  :: this
           integer(ikind) , dimension(2), intent(in)  :: start_grdpt_g_coords
           logical                      , intent(in)  :: side
-          integer                      , intent(out) :: err
+          logical                      , intent(out) :: err
           integer(ikind)                             :: x_border
 
           integer(ikind), dimension(2) :: match_table

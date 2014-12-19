@@ -1441,7 +1441,7 @@
           integer                    :: k
           type(bf_sublayer), pointer :: nbf_sublayer    !neighboring bf layer
           integer                    :: x_border_bf
-          integer                    :: err_bf
+          logical                    :: err_bf
 
 
           !number of neighboring buffer layers

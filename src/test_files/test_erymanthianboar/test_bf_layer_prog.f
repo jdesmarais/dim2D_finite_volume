@@ -3,21 +3,17 @@
         use ifport
 
         use bf_layer_class, only :
-     $     bf_layer
-
-c$$$        use bf_layer_update_grdpts_module, only : update_grdpts
+     $       bf_layer
 
         use parameters_bf_layer, only :
      $       align_N,
      $       align_S,
      $       align_E,
-     $       align_W
+     $       align_W,
+     $       BF_SUCCESS
 
         use parameters_constant, only :
-     $       N,
-     $       S,
-     $       E,
-     $       W
+     $       N,S,E,W
 
         use parameters_kind, only :
      $       rkind,
@@ -419,6 +415,12 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
            end do
 
         end if
+
+
+        !test: get_bc_overlap_x_border
+        test_loc = test_get_bc_overlap_x_border(detailled)
+        print '(''test_get_bc_overlap_x_border: '',L1)', test_loc
+        print '()'
 
 
 c$$$        !test the local coordinates
@@ -905,5 +907,219 @@ c$$$          end if
           end select               
 
         end subroutine ini_using_case
+
+
+        function test_get_bc_overlap_x_border(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer)                              :: bf_layer_used
+          integer       , dimension(:,:), allocatable :: grdpts_id
+          integer(ikind), dimension(2,2)              :: bf_alignment
+          
+
+          integer(ikind), dimension(2) :: g_coords
+          integer                      :: side
+          logical                      :: err_data
+          integer(ikind)               :: x_border_data
+          logical                      :: test_loc
+          
+
+          test_validated = .true.
+
+
+          !initialize the attributes of the bf_layer needed for the test
+          allocate(grdpts_id(10,5))
+
+          grdpts_id = reshape((/
+     $         1,1,1,1,1,1,1,1,1,1,
+     $         2,2,1,1,1,1,1,1,2,2,
+     $         3,2,2,1,1,1,1,2,2,3,
+     $         3,3,2,2,2,2,2,2,3,3,
+     $         0,3,3,3,3,3,3,3,3,0/),
+     $         (/10,5/))
+
+          bf_alignment(1,1) = bc_size+1
+          bf_alignment(1,2) = bf_alignment(1,1)+size(grdpts_id,1)-(2*bc_size+1)
+          bf_alignment(2,1) = ny-bc-size+1
+          bf_alignment(2,2) = bf_alignment(2,1)+size(grdpts_id,2)-(2*bc_size+1)
+
+          call bf_layer_used%set_alignment_tab(bf_alignment)
+          call bf_layer_used%set_grdpts_id(grdpts_id)
+
+          !test 1: find the gridpoint, right side, before end
+          g_coords(1) = bc_size+4
+          g_coords(2) = ny+2
+          side = right
+          err_data = BF_SUCCESS
+          x_border_data = bc_size+7
+
+          test_loc = test_get_bc_overlap_x_border_loc(
+     $         bf_layer_used,
+     $         g_coords,
+     $         side,
+     $         err_data,
+     $         x_border_data,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''***test 1 failed***'')'
+          end if
+
+
+          !test 2: do find the gridpoint, right side
+          g_coords(1) = bc_size+6
+          g_coords(2) = ny+1
+          side = right
+          err_data = BF_SUCCESS
+          x_border_data = bc_size+8
+
+          test_loc = test_get_bc_overlap_x_border_loc(
+     $         bf_layer_used,
+     $         g_coords,
+     $         side,
+     $         err_data,
+     $         x_border_data,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''***test 2 failed***'')'
+          end if
+
+          !test 3: find the gridpoint, right side, at end
+          g_coords(1) = bc_size+7
+          g_coords(2) = ny
+          side = right
+          err_data = .not.BF_SUCCESS
+          x_border_data = bc_size+7
+
+          test_loc = test_get_bc_overlap_x_border_loc(
+     $         bf_layer_used,
+     $         g_coords,
+     $         side,
+     $         err_data,
+     $         x_border_data,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''***test 3 failed***'')'
+          end if
+
+          !test 4: find the gridpoint, left side, before end
+          g_coords(1) = bc_size+4
+          g_coords(2) = ny+4
+          side = left
+          err_data = BF_SUCCESS
+          x_border_data = bc_size
+
+          test_loc = test_get_bc_overlap_x_border_loc(
+     $         bf_layer_used,
+     $         g_coords,
+     $         side,
+     $         err_data,
+     $         x_border_data,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''***test 4 failed***'')'
+          end if
+          
+
+          !test 5: do find the gridpoint, left side
+          g_coords(1) = bc_size+1
+          g_coords(2) = ny+1
+          side = left
+          err_data = BF_SUCCESS
+          x_border_data = 1
+
+          test_loc = test_get_bc_overlap_x_border_loc(
+     $         bf_layer_used,
+     $         g_coords,
+     $         side,
+     $         err_data,
+     $         x_border_data,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''***test 5 failed***'')'
+          end if
+
+          !test 6: find the gridpoint, left side, at end
+          g_coords(1) = bc_size
+          g_coords(2) = ny
+          side = left
+          err_data = .not.BF_SUCCESS
+          x_border_data = bc_size
+
+          test_loc = test_get_bc_overlap_x_border_loc(
+     $         bf_layer_used,
+     $         g_coords,
+     $         side,
+     $         err_data,
+     $         x_border_data,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''***test 6 failed***'')'
+          end if
+
+        end function test_get_bc_overlap_x_border
+
+
+        function test_get_bc_overlap_x_border_loc(
+     $     bf_layer_used,
+     $     g_coords,
+     $     side,
+     $     err_data,
+     $     x_border_data,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          type(bf_layer)              , intent(in) :: bf_layer_used
+          integer(ikind), dimension(2), intent(in) :: g_coords
+          logical                     , intent(in) :: side
+          logical                     , intent(in) :: err_data
+          integer(ikind)              , intent(in) :: x_border_data
+          logical                     , intent(in) :: detailled
+          logical                                  :: test_validated
+
+          logical        :: err_comp
+          integer(ikind) :: x_border_comp
+
+          
+          x_border_comp = bf_layer_used%get_bc_overlap_x_border(
+     $         g_coords,
+     $         side,
+     $         err_comp)
+
+          if(err_data.eqv.BF_SUCCESS) then
+
+             test_validated = x_border_comp.eq.x_border_data
+
+             if(detailled.and.(.not.test_validated)) then
+                print '(''x_border: '',I2, '' -> '',I2)',
+     $               x_border_comp,
+     $               x_border_data
+             end if
+
+          else
+
+             test_validated = err_data.eqv.err_comp
+
+             if(detailled.and.(.not.test_validated)) then
+                print '(''err: '',L1, '' -> '',L1)',
+     $               err_comp,
+     $               err_data
+             end if
+
+          end if
+
+        end function test_get_bc_overlap_x_border_loc
 
       end program test_bf_layer_prog
