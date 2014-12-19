@@ -2210,83 +2210,72 @@
                 !depending on the side asked, either the non 
                 !bc_interior_pt is searched in the left or
                 !right direction
-                select case(side)
-                  case(left)
-                     
-                     do i=1, l_coords(1)-1,-1
+                if(side.eqv.left) then
+                   
+                   do i=l_coords(1)-1,1,-1
 
-                        if(this%grdpts_id(i,l_coords(2)).ne.bc_interior_pt) then
+                      if(this%grdpts_id(i,l_coords(2)).ne.bc_interior_pt) then
 
-                           if(this%grdpts_id(i,l_coords(2).eq.bc_pt)) then
-                              x_border_loc = i
-                              x_border_initialized = .true.
+                         if(this%grdpts_id(i,l_coords(2)).eq.bc_pt) then
+                            x_border_loc = i
+                            x_border_initialized = .true.
 
-                           else
-                              err = .not.BF_SUCCESS
-                              print '(''bf_layer_class'')'
-                              print '(''get_bc_overlap_x_border'')'
-                              print '(''***********************'')'
-                              print '(''wrong grdpt: non(bc_pt)'')'
-                              print '(''***********************'')'
-                              print '(''l_coords: '',2I4)', l_coords
-                              print '(''i: '',I4)', i
-                              print '(''j: '',I4)', l_coords(2)
-                              print '(''grdpts_id(i,j): '',I2)', this%grdpts_id(i,l_coords(2))
-                              print *, 'grdpts_id(i:start,j): ', this%grdpts_id(i:l_coords(1),l_coords(2))
-                              print '(''***********************'')'
-                              stop ''
-                              
-                           end if
-
-                           exit
+                         else
+                            err = .not.BF_SUCCESS
+                            print '(''bf_layer_class'')'
+                            print '(''get_bc_overlap_x_border'')'
+                            print '(''***********************'')'
+                            print '(''wrong grdpt: non(bc_pt)'')'
+                            print '(''***********************'')'
+                            print '(''l_coords: '',2I4)', l_coords
+                            print '(''i: '',I4)', i
+                            print '(''j: '',I4)', l_coords(2)
+                            print '(''grdpts_id(i,j): '',I2)', this%grdpts_id(i,l_coords(2))
+                            print *, 'grdpts_id(i:start,j): ', this%grdpts_id(i:l_coords(1),l_coords(2))
+                            print '(''***********************'')'
+                            stop ''
                             
-                        end if
-                        
-                     end do
+                         end if
 
-                  case(right)
+                         exit
+                         
+                      end if
+                      
+                   end do
 
-                     do i=l_coords(1)+1, size(this%grdpts_id,1),+1
+                else
 
-                        if(this%grdpts_id(i,l_coords(2)).ne.bc_interior_pt) then
+                   do i=l_coords(1)+1, size(this%grdpts_id,1),+1
 
-                           if(this%grdpts_id(i,l_coords(2)).eq.bc_pt) then
-                              x_border_loc = i
-                              x_border_initialized = .true.
-                              
-                           else
-                              err = .not.BF_SUCCESS
-                              print '(''bf_layer_class'')'
-                              print '(''get_bc_overlap_x_border'')'
-                              print '(''***********************'')'
-                              print '(''wrong grdpt: non(bc_pt)'')'
-                              print '(''***********************'')'
-                              print '(''l_coords: '',2I4)', l_coords
-                              print '(''i: '',I4)', i
-                              print '(''j: '',I4)', l_coords(2)
-                              print '(''grdpts_id(i,j): '',I2)', this%grdpts_id(i,l_coords(2))
-                              print *, 'grdpts_id(i:start,j): ', this%grdpts_id(i:l_coords(1),l_coords(2))
-                              print '(''***********************'')'
+                      if(this%grdpts_id(i,l_coords(2)).ne.bc_interior_pt) then
 
-                           end if
+                         if(this%grdpts_id(i,l_coords(2)).eq.bc_pt) then
+                            x_border_loc = i
+                            x_border_initialized = .true.
+                            
+                         else
+                            err = .not.BF_SUCCESS
+                            print '(''bf_layer_class'')'
+                            print '(''get_bc_overlap_x_border'')'
+                            print '(''***********************'')'
+                            print '(''wrong grdpt: non(bc_pt)'')'
+                            print '(''***********************'')'
+                            print '(''l_coords: '',2I4)', l_coords
+                            print '(''i: '',I4)', i
+                            print '(''j: '',I4)', l_coords(2)
+                            print '(''grdpts_id(i,j): '',I2)', this%grdpts_id(i,l_coords(2))
+                            print *, 'grdpts_id(i:start,j): ', this%grdpts_id(i:l_coords(1),l_coords(2))
+                            print '(''***********************'')'
 
-                           exit
+                         end if
 
-                        end if
+                         exit
 
-                     end do
+                      end if
 
-                  case default
+                   end do
 
-                     print '(''bf_layer_class'')'
-                     print '(''get_bc_overlap_x_border'')'
-                     print '(''************************************'')'
-                     print '(''the direction side is not recognized'')'
-                     print '(''************************************'')'
-                     print '(''side: '')', side
-                     print '(''************************************'')'
-
-                end select
+                end if
 
 
                 !check whether the x_border_loc was found
@@ -2305,7 +2294,7 @@
                    print '(''the x_border was not found'')'
                    print '(''************************************'')'
                    print '(''l_coords: '',2I4)', l_coords
-                   print '(''side: '',I2)', side
+                   print '(''side: '',L1)', side
                    print *, 'grdpts_id(:,j)', this%grdpts_id(:,l_coords(2))
                    print '(''************************************'')'
                    print '()'

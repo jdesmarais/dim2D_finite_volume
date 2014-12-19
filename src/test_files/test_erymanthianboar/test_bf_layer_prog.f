@@ -13,7 +13,8 @@
      $       BF_SUCCESS
 
         use parameters_constant, only :
-     $       N,S,E,W
+     $       N,S,E,W,
+     $       left,right
 
         use parameters_kind, only :
      $       rkind,
@@ -95,6 +96,10 @@ c$$$        integer(ikind), dimension(2)        :: general_coord
         integer :: over_alignment_y
 
         integer, dimension(4,2) :: neighbors
+
+        logical :: test_loc
+        logical :: detailled
+
 
         neighbors(N,1) = W
         neighbors(N,2) = E
@@ -418,6 +423,7 @@ c$$$        integer, dimension(8,2,2) :: test_selected_grdpts
 
 
         !test: get_bc_overlap_x_border
+        detailled = .true.
         test_loc = test_get_bc_overlap_x_border(detailled)
         print '(''test_get_bc_overlap_x_border: '',L1)', test_loc
         print '()'
@@ -923,7 +929,7 @@ c$$$          end if
           
 
           integer(ikind), dimension(2) :: g_coords
-          integer                      :: side
+          logical                      :: side
           logical                      :: err_data
           integer(ikind)               :: x_border_data
           logical                      :: test_loc
@@ -936,24 +942,25 @@ c$$$          end if
           allocate(grdpts_id(10,5))
 
           grdpts_id = reshape((/
-     $         1,1,1,1,1,1,1,1,1,1,
-     $         2,2,1,1,1,1,1,1,2,2,
-     $         3,2,2,1,1,1,1,2,2,3,
-     $         3,3,2,2,2,2,2,2,3,3,
+     $         1,1,1,1,1,1,1,1,1,1, 
+     $         2,2,1,1,1,1,1,1,2,2, 
+     $         3,2,2,1,1,1,1,2,2,3, 
+     $         3,3,2,2,2,2,2,2,3,3, 
      $         0,3,3,3,3,3,3,3,3,0/),
      $         (/10,5/))
 
           bf_alignment(1,1) = bc_size+1
           bf_alignment(1,2) = bf_alignment(1,1)+size(grdpts_id,1)-(2*bc_size+1)
-          bf_alignment(2,1) = ny-bc-size+1
+          bf_alignment(2,1) = ny-bc_size+1
           bf_alignment(2,2) = bf_alignment(2,1)+size(grdpts_id,2)-(2*bc_size+1)
 
+          call bf_layer_used%set_localization(N)
           call bf_layer_used%set_alignment_tab(bf_alignment)
           call bf_layer_used%set_grdpts_id(grdpts_id)
 
           !test 1: find the gridpoint, right side, before end
           g_coords(1) = bc_size+4
-          g_coords(2) = ny+2
+          g_coords(2) = ny
           side = right
           err_data = BF_SUCCESS
           x_border_data = bc_size+7
@@ -973,7 +980,7 @@ c$$$          end if
 
           !test 2: do find the gridpoint, right side
           g_coords(1) = bc_size+6
-          g_coords(2) = ny+1
+          g_coords(2) = ny-1
           side = right
           err_data = BF_SUCCESS
           x_border_data = bc_size+8
@@ -992,7 +999,7 @@ c$$$          end if
 
           !test 3: find the gridpoint, right side, at end
           g_coords(1) = bc_size+7
-          g_coords(2) = ny
+          g_coords(2) = ny-2
           side = right
           err_data = .not.BF_SUCCESS
           x_border_data = bc_size+7
@@ -1011,7 +1018,7 @@ c$$$          end if
 
           !test 4: find the gridpoint, left side, before end
           g_coords(1) = bc_size+4
-          g_coords(2) = ny+4
+          g_coords(2) = ny
           side = left
           err_data = BF_SUCCESS
           x_border_data = bc_size
@@ -1031,7 +1038,7 @@ c$$$          end if
 
           !test 5: do find the gridpoint, left side
           g_coords(1) = bc_size+1
-          g_coords(2) = ny+1
+          g_coords(2) = ny-1
           side = left
           err_data = BF_SUCCESS
           x_border_data = 1
@@ -1050,7 +1057,7 @@ c$$$          end if
 
           !test 6: find the gridpoint, left side, at end
           g_coords(1) = bc_size
-          g_coords(2) = ny
+          g_coords(2) = ny-2
           side = left
           err_data = .not.BF_SUCCESS
           x_border_data = bc_size

@@ -19,12 +19,6 @@ test_bf_layer_module.o:\
 	$(bf_layer_dir)/bf_layer_class.o\
 	$(bf_layer_dir)/parameters_bf_layer.o
 
-test_bf_layer_prog.o:\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_kind.o\
-	$(bf_layer_dir)/bf_layer_class.o\
-	test_bf_layer_module.o
-
 test_bf_sublayer_prog.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(param_dir)/parameters_kind.o
@@ -208,11 +202,17 @@ test_bf_layer_nf90_operators_prog.o:\
 #-----------------------------------------------------------------------
 #dependencies for the test files executables
 #-----------------------------------------------------------------------
+test_bf_layer_prog.o:\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_kind.o\
+	$(bf_layer_dir)/bf_layer_class.o\
+	test_bf_layer_module.o
+
 test_bf_layer_prog:\
 	$(param_dep)\
-	$(mt_dep)\
+	$(sd_cdep)\
 	$(fv_dep)\
-	$(wave2d_dep)\
+	$(pm_cdep)\
 	$(bf_layer_dep)\
 	$(hedstrom_xy_dep)\
 	test_bf_layer_module.o
