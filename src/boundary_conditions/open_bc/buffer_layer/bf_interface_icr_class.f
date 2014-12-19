@@ -1600,7 +1600,7 @@
           !determine the coordinates of the gridpoints surrounding
           !the detector according to its general index coordinates
           !x-direction
-          if(d_icoord(1).le.0) then
+          if(d_icoord(1).le.1) then
              dx = interior_x_map(2) - interior_x_map(1)
              d_icoord_r(1,1) = interior_x_map(1)+(d_icoord(1)-2)*dx
              d_icoord_r(2,1) = interior_x_map(1)+(d_icoord(1)-1)*dx
@@ -1619,7 +1619,7 @@
           end if
 
           !y-direction
-          if(d_icoord(2).le.0) then
+          if(d_icoord(2).le.1) then
              dy = interior_y_map(2) - interior_y_map(1)
              d_icoord_r(1,2) = interior_y_map(1)+(d_icoord(2)-2)*dy
              d_icoord_r(2,2) = interior_y_map(1)+(d_icoord(2)-1)*dy
