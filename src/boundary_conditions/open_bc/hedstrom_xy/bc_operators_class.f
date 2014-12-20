@@ -50,13 +50,13 @@
 
         use sd_operators_fd_module, only :
      $       gradient_x_x_oneside_L0,
-     $       gradient_x_x_oneside_L1,
-     $       gradient_x_x_oneside_R1,
      $       gradient_x_x_oneside_R0,
      $       gradient_y_y_oneside_L0,
-     $       gradient_y_y_oneside_L1,
-     $       gradient_y_y_oneside_R1,
      $       gradient_y_y_oneside_R0
+c$$$     $       gradient_y_y_oneside_L1,
+c$$$     $       gradient_y_y_oneside_R1,
+c$$$     $       gradient_x_x_oneside_L1,
+c$$$     $       gradient_x_x_oneside_R1,
 
         use sd_operators_x_oneside_L0_class, only :
      $       sd_operators_x_oneside_L0
@@ -313,17 +313,17 @@
           j=2
           call compute_timedev_corner_W(
      $         t,x_map,y_map, nodes, j, dx, dy, p_model,
-     $         gradient_y_y_oneside_L1, incoming_left,
+     $         gradient_y_y_oneside_L0, incoming_left,
      $         timedev)
 
           call compute_timedev_ylayer(
      $         t,x_map,y_map, nodes, j, dx, dy, p_model, flux_x,
-     $         gradient_y_y_oneside_L1, incoming_left,
+     $         gradient_y_y_oneside_L0, incoming_left,
      $         timedev)
 
           call compute_timedev_corner_E(
      $         t,x_map,y_map, nodes, j, dx, dy, p_model,
-     $         gradient_y_y_oneside_L1, incoming_left,
+     $         gradient_y_y_oneside_L0, incoming_left,
      $         timedev)
 
 
@@ -341,13 +341,13 @@
              i=bc_size
              call compute_timedev_xlayer(
      $            t,x_map,y_map, nodes, i,j, dx,dy, p_model, flux_y,
-     $            gradient_x_x_oneside_L1, incoming_left,
+     $            gradient_x_x_oneside_L0, incoming_left,
      $            timedev)
 
              i=nx-1
              call compute_timedev_xlayer(
      $            t,x_map,y_map, nodes, i,j, dx,dy, p_model, flux_y,
-     $            gradient_x_x_oneside_R1, incoming_right,
+     $            gradient_x_x_oneside_R0, incoming_right,
      $            timedev)
 
              i=nx
@@ -365,17 +365,17 @@
           j=ny-1
           call compute_timedev_corner_W(
      $         t,x_map,y_map, nodes, j, dx, dy, p_model,
-     $         gradient_y_y_oneside_R1, incoming_right,
+     $         gradient_y_y_oneside_R0, incoming_right,
      $         timedev)
 
           call compute_timedev_ylayer(
      $         t,x_map,y_map, nodes, j, dx, dy, p_model, flux_x,
-     $         gradient_y_y_oneside_R1, incoming_right,
+     $         gradient_y_y_oneside_R0, incoming_right,
      $         timedev)
 
           call compute_timedev_corner_E(
      $         t,x_map,y_map, nodes, j, dx, dy, p_model,
-     $         gradient_y_y_oneside_R1, incoming_right,
+     $         gradient_y_y_oneside_R0, incoming_right,
      $         timedev)
 
           j=ny

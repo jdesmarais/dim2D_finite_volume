@@ -23,13 +23,13 @@
 
         use sd_operators_fd_module, only :
      $     gradient_x_x_oneside_L0,
-     $     gradient_x_x_oneside_L1,
-     $     gradient_x_x_oneside_R1,
      $     gradient_x_x_oneside_R0,
      $     gradient_y_y_oneside_L0,
-     $     gradient_y_y_oneside_L1,
-     $     gradient_y_y_oneside_R1,
      $     gradient_y_y_oneside_R0
+c$$$     $     gradient_x_x_oneside_L1,
+c$$$     $     gradient_x_x_oneside_R1,
+c$$$     $     gradient_y_y_oneside_L1,
+c$$$     $     gradient_y_y_oneside_R1,
 
         use sd_operators_x_oneside_L0_class, only :
      $     sd_operators_x_oneside_L0
@@ -726,7 +726,7 @@
      $            x_map,y_map,i,j,
      $            flux_y,
      $            side_x,
-     $            gradient_x_x_oneside_R1)
+     $            gradient_x_x_oneside_R0)
              
              i=i_min+1
              timedev(i,j,:) = 
@@ -813,7 +813,7 @@
      $            x_map,y_map,i,j,
      $            flux_y,
      $            side_x,
-     $            gradient_x_x_oneside_L1)
+     $            gradient_x_x_oneside_L0)
 
           end do
 

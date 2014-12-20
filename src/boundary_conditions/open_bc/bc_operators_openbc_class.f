@@ -17,56 +17,57 @@
       module bc_operators_openbc_class
 
         use bc_operators_default_class, only :
-     $     bc_operators_default
+     $       bc_operators_default
 
         use bc_operators_nopt_module, only :
-     $     compute_edge_N,
-     $     compute_edge_S,
-     $     compute_edge_E,
-     $     compute_edge_W  
+     $       compute_edge_N,
+     $       compute_edge_S,
+     $       compute_edge_E,
+     $       compute_edge_W  
 
         use bf_layer_bc_procedure_module, only :
-     $     N_edge_type,
-     $     S_edge_type,
-     $     E_edge_type,
-     $     W_edge_type,
-     $     SW_corner_type,
-     $     SE_corner_type,
-     $     NW_corner_type,
-     $     NE_corner_type,
-     $     SW_edge_type,
-     $     SE_edge_type,
-     $     NW_edge_type,
-     $     NE_edge_type
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       SW_corner_type,
+     $       SE_corner_type,
+     $       NW_corner_type,
+     $       NE_corner_type,
+     $       SW_edge_type,
+     $       SE_edge_type,
+     $       NW_edge_type,
+     $       NE_edge_type
 
         use interface_primary, only :
-     $     gradient_x_proc,
-     $     gradient_y_proc
-
+     $       gradient_x_proc,
+     $       gradient_y_proc
+        
         use parameters_constant, only :
-     $     bc_timedev_choice,
-     $     N,S,E,W,
-     $     left,right
+     $       bc_timedev_choice,
+     $       N,S,E,W,
+     $       left,right
 
         use parameters_input, only :
-     $     nx, bc_size, ne
+     $       nx, bc_size, ne
 
         use parameters_kind, only :
-     $     ikind,
-     $     rkind
+     $       ikind,
+     $       rkind
 
         use pmodel_eq_class, only :
-     $     pmodel_eq
+     $       pmodel_eq
 
         use sd_operators_fd_module, only :
-     $     gradient_x_x_oneside_L0,
-     $     gradient_x_x_oneside_L1,
-     $     gradient_x_x_oneside_R1,
-     $     gradient_x_x_oneside_R0,
-     $     gradient_y_y_oneside_L0,
-     $     gradient_y_y_oneside_L1,
-     $     gradient_y_y_oneside_R1,
-     $     gradient_y_y_oneside_R0
+     $       gradient_x_x_oneside_L0,
+     $       gradient_x_x_oneside_R0,
+     $       gradient_y_y_oneside_L0
+     $       gradient_y_y_oneside_R0
+c$$$     $       gradient_x_x_oneside_L1,
+c$$$     $       gradient_x_x_oneside_R1,
+c$$$     $       gradient_y_y_oneside_L1,
+c$$$     $       gradient_y_y_oneside_R1
+
 
         use sd_operators_x_oneside_L0_class, only :
      $     sd_operators_x_oneside_L0
