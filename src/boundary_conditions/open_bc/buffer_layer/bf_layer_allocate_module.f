@@ -22,12 +22,22 @@
       !-----------------------------------------------------------------
       module bf_layer_allocate_module
 
-        use parameters_bf_layer, only : no_pt, interior_pt,
-     $                                  bc_interior_pt, bc_pt,
-     $                                  align_N, align_S, align_E, align_W
-        use parameters_constant, only : N,S,E,W, x_direction, y_direction
-        use parameters_input   , only : nx,ny,ne,bc_size
-        use parameters_kind    , only : ikind, rkind     
+        use parameters_bf_layer, only :
+     $     no_pt, interior_pt,
+     $     bc_interior_pt, bc_pt,
+     $     align_N, align_S, align_E, align_W
+
+        use parameters_constant, only :
+     $       N,S,E,W,
+     $       x_direction,
+     $       y_direction
+
+        use parameters_input, only :
+     $       nx,ny,ne,bc_size
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
 
         implicit none
 

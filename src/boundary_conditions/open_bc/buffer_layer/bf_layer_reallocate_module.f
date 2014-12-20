@@ -22,21 +22,32 @@
       !-----------------------------------------------------------------
       module bf_layer_reallocate_module
 
-        use bf_layer_allocate_module, only : get_additional_blocks_N,
-     $                                       get_additional_blocks_S,
-     $                                       get_additional_blocks_E,
-     $                                       get_additional_blocks_W,
-     $                                       get_match_interior
+        use bf_layer_allocate_module, only :
+     $       get_additional_blocks_N,
+     $       get_additional_blocks_S,
+     $       get_additional_blocks_E,
+     $       get_additional_blocks_W,
+     $       get_match_interior
 
-        use parameters_bf_layer     , only : interior_pt, bc_interior_pt,
-     $                                       bc_pt, no_pt
-        use parameters_constant     , only : x_direction, y_direction
-        use parameters_input        , only : nx,ny,ne,bc_size
-        use parameters_kind         , only : ikind, rkind
+        use parameters_bf_layer, only :
+     $       interior_pt,
+     $       bc_interior_pt,
+     $       bc_pt,
+     $       no_pt
 
+        use parameters_constant, only :
+     $       x_direction,
+     $       y_direction
+
+        use parameters_input, only :
+     $       nx,ny,ne,
+     $       bc_size
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
 
         implicit none
-
 
         private
         public :: reallocate_bf_layer_N,
@@ -428,7 +439,10 @@
           
           !y_map
           call create_map_right(
-     $         new_y_map, bf_y_map, interior_y_map,
+     $         new_y_map,
+     $         bf_y_map,
+     $         interior_y_map,
+     $         ny,
      $         j_max)
           
 
@@ -905,7 +919,10 @@
 
           !x_map
           call create_map_right(
-     $         new_x_map, bf_x_map, interior_x_map,
+     $         new_x_map,
+     $         bf_x_map,
+     $         interior_x_map,
+     $         nx,
      $         i_max)
 
 
@@ -1690,63 +1707,82 @@
 
           
           integer(ikind) :: i
+          integer(ikind) :: l_to_g_coord
+          integer(ikind) :: g_coord
           real(rkind)    :: dx
+          integer(ikind) :: size_interior_x
 
+
+          !convert local to general coordinates
+          l_to_g_coord = bf_alignment_i_min-(bc_size+1)
 
           !left outside domain
           dx = interior_x_map(2)-interior_x_map(1)
+
           do i=1, i_min1
-             new_x_map(i) = interior_x_map(
-     $            bf_alignment_i_min-(bc_size+1)+i_min1+1)
-     $            - (i_min1-i+1)*dx
+             g_coord      =  l_to_g_coord + i
+             new_x_map(i) = interior_x_map(1) + (g_coord-1)*dx
           end do
 
-          !copy of the previous y_map
+          !left inside domain
           do i=1, interior_i_max1
-             new_x_map(i_min1+i) = interior_x_map(
-     $            bf_alignment_i_min-(bc_size+1)+i_min1+i)
+             new_x_map(i_min1+i) = interior_x_map(l_to_g_coord+i_min1+i)
           end do
           
+          !copy of the previous x_map
           do i=1, i_max
              new_x_map(i_min3+i) = bf_x_map(i_match+i)
           end do
           
+          !right inside domain
           do i=1, interior_i_max2
-             new_x_map(i_min4+i) = interior_x_map(
-     $            bf_alignment_i_min-(bc_size+1)+i_min4+i)
+             new_x_map(i_min4+i) = interior_x_map(l_to_g_coord+i_min4+i)
           end do
 
           !right outside domain
-          dx = interior_x_map(size(interior_x_map,1))-
-     $         interior_x_map(size(interior_x_map,1)-1)
+          size_interior_x = size(interior_x_map,1)
+          dx = interior_x_map(size_interior_x)-
+     $         interior_x_map(size_interior_x-1)
+
           do i=i_min4+interior_i_max2+1, size(new_x_map,1)
-             new_x_map(i) = new_x_map(i_min4+interior_i_max2) +
-     $            (i-(i_min4+interior_i_max2))*dx
+
+             g_coord      = l_to_g_coord + i
+
+             new_x_map(i) = interior_x_map(size_interior_x) +
+     $                      (g_coord-size_interior_x)*dx
+
           end do
 
         end subroutine create_map_from_interior
 
 
         subroutine create_map_right(
-     $     new_y_map, bf_y_map, interior_y_map,
+     $     new_y_map,
+     $     bf_y_map,
+     $     interior_y_map,
+     $     size_interior_y,
      $     j_max)
 
           implicit none
 
-          real(rkind), dimension(:) , intent(out) :: new_y_map
-          real(rkind), dimension(:) , intent(in)  :: bf_y_map
-          real(rkind), dimension(ny), intent(in)  :: interior_y_map
-          integer(ikind)            , intent(in)  :: j_max
+          real(rkind), dimension(:), intent(out) :: new_y_map
+          real(rkind), dimension(:), intent(in)  :: bf_y_map
+          real(rkind), dimension(:), intent(in)  :: interior_y_map
+          integer(ikind)           , intent(in)  :: size_interior_y
+          integer(ikind)           , intent(in)  :: j_max
 
           integer(ikind) :: j
           real(rkind)    :: dy
 
+          !copy previous map
           do j=1, j_max
              new_y_map(j) = bf_y_map(j)
           end do
 
-          dy = interior_y_map(size(interior_y_map,1)) -
-     $         interior_y_map(size(interior_y_map,1)-1)
+          !extend the map to the right
+          dy = interior_y_map(size_interior_y) -
+     $         interior_y_map(size_interior_y-1)
+
           do j=j_max+1, size(new_y_map,1)
              new_y_map(j) = new_y_map(j_max) + (j-j_max)*dy
           end do
@@ -1769,11 +1805,13 @@
           real(rkind)    :: dy
           integer(ikind) :: j
 
+          !extend the map to the left
           dy = interior_y_map(2) - interior_y_map(1)
           do j=1, j_start
              new_y_map(j) = bf_y_map(j_start+1-j_min) - (j_start+1-j)*dy
           end do
 
+          !copy the previous map
           do j=j_start+1, size(new_y_map,1)
              new_y_map(j) = bf_y_map(j-j_min)
           end do

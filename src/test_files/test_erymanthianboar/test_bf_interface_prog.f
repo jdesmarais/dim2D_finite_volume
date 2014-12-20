@@ -1755,10 +1755,10 @@ c$$$     $       index)
              print '(''bf_alignment_W after: '',4I4)', bf_alignment
           end if
 
-          test_validated = test_validated.and.(bf_alignment(1,1).eq.(bc_size+1))
-          test_validated = test_validated.and.(bf_alignment(1,2).eq.(bc_size+3))
-          test_validated = test_validated.and.(bf_alignment(2,1).eq.(-3))
-          test_validated = test_validated.and.(bf_alignment(2,2).eq.2)
+          test_validated = test_validated.and.(bf_alignment(1,1).eq.(-3))
+          test_validated = test_validated.and.(bf_alignment(1,2).eq.2)
+          test_validated = test_validated.and.(bf_alignment(2,1).eq.(bc_size+1))
+          test_validated = test_validated.and.(bf_alignment(2,2).eq.(bc_size+3))
 
         end function test_resolve_bc_overlap_conflicts2
 
