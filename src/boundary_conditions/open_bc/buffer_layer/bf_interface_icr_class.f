@@ -1562,11 +1562,11 @@
           real(rkind)                    :: dir_x, dir_y
           real(rkind)                    :: norm_velocity
           real(rkind)   , dimension(3,2) :: d_icoord_r
-          integer(ikind), dimension(3)   :: d_icoord_i
-          real(rkind)                    :: distance
-          real(rkind)                    :: min_distance
-          integer(ikind)                 :: min_distance_k
-          integer                        :: k
+          !integer(ikind), dimension(3)   :: d_icoord_i
+          !real(rkind)                    :: distance
+          !real(rkind)                    :: min_distance
+          !integer(ikind)                 :: min_distance_k
+          !integer                        :: k
 
           dx = interior_x_map(2)-interior_x_map(1)
           dy = interior_y_map(2)-interior_y_map(1)

@@ -61,7 +61,7 @@
         use sd_operators_fd_module, only :
      $       gradient_x_x_oneside_L0,
      $       gradient_x_x_oneside_R0,
-     $       gradient_y_y_oneside_L0
+     $       gradient_y_y_oneside_L0,
      $       gradient_y_y_oneside_R0
 c$$$     $       gradient_x_x_oneside_L1,
 c$$$     $       gradient_x_x_oneside_R1,

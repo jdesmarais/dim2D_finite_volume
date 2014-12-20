@@ -563,7 +563,7 @@ c$$$     $     gradient_y_y_oneside_R1,
      $            x_map,y_map,i,j,
      $            flux_x,
      $            side_y,
-     $            gradient_y_y_oneside_R1)
+     $            gradient_y_y_oneside_R0)
              
           end do
           
@@ -659,7 +659,7 @@ c$$$     $     gradient_y_y_oneside_R1,
      $            x_map,y_map,i,j,
      $            flux_x,
      $            side_y,
-     $            gradient_y_y_oneside_L1)
+     $            gradient_y_y_oneside_L0)
 
           end do
 
