@@ -1,4 +1,4 @@
-      program test_dct_verify_y_symmetry
+      program test_dct_verify_x_symmetry
 
         use bf_restart_module, only :
      $       read_detectors_from_file
@@ -48,26 +48,26 @@
         
         !analyze the symmetry for the detectors
         if(nb_bf_layers(N).ne.0) then
-           call analyse_y_symmetry(N_dct_rcoords,detailled)
+           call analyse_x_symmetry(N_dct_rcoords,detailled)
         end if
 
         if(nb_bf_layers(S).ne.0) then
-           call analyse_y_symmetry(S_dct_rcoords,detailled)
+           call analyse_x_symmetry(S_dct_rcoords,detailled)
         end if
 
         if(nb_bf_layers(E).ne.0) then
-           call analyse_y_symmetry(E_dct_rcoords,detailled)
+           call analyse_x_symmetry(E_dct_rcoords,detailled)
         end if
 
         if(nb_bf_layers(W).ne.0) then
-           call analyse_y_symmetry(W_dct_rcoords,detailled)
+           call analyse_x_symmetry(W_dct_rcoords,detailled)
         end if
 
 
         contains
 
         !analyse the symmetry in the coords
-        subroutine analyse_y_symmetry(dct_rcoords,detailled)
+        subroutine analyse_x_symmetry(dct_rcoords,detailled)
 
           implicit none
 
@@ -89,8 +89,8 @@
              k_sym = nb_dct-k+1
 
              symmetric_loc = is_test_validated(
-     $            dct_rcoords(2,k),
-     $            -dct_rcoords(2,k_sym),
+     $             dct_rcoords(1,k),
+     $            -dct_rcoords(1,k_sym),
      $            .false.)
              symmetric_dct = symmetric_dct.and.symmetric_loc
 
@@ -98,8 +98,8 @@
 
                 print '(''['',I4,'']: '',F8.4,''->'',F8.4)',
      $               k,
-     $               dct_rcoords(2,k),
-     $               dct_rcoords(2,k_sym)
+     $               dct_rcoords(1,k),
+     $               dct_rcoords(1,k_sym)
 
              end if
 
@@ -108,7 +108,7 @@
           print '(''symmetric detectors?: '',L1)', symmetric_dct
           print '()'
 
-        end subroutine analyse_y_symmetry
+        end subroutine analyse_x_symmetry
 
 
         !get the detectors
@@ -201,4 +201,4 @@
           
         end function is_test_validated
 
-      end program test_dct_verify_y_symmetry
+      end program test_dct_verify_x_symmetry

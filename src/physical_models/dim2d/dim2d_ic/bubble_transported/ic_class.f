@@ -65,15 +65,17 @@
 
 
         !flow velocities for the different flow configurations
-        real(rkind), parameter :: flow_velocity = 0.1d0
+        real(rkind), parameter :: flow_velocity =  0.1d0
+        real(rkind), parameter :: flow_x_side   = -1.0d0
+        real(rkind), parameter :: flow_y_side   = -1.0d0
 
-        real(rkind), parameter :: u0_x_flow  = flow_velocity
+        real(rkind), parameter :: u0_x_flow  = flow_velocity*flow_x_side
         real(rkind), parameter :: u0_y_flow  = 0.0d0
-        real(rkind), parameter :: u0_xy_flow = -0.5d0*SQRT(2.0d0)*flow_velocity
+        real(rkind), parameter :: u0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity*flow_x_side
 
         real(rkind), parameter :: v0_x_flow  = 0.0d0
-        real(rkind), parameter :: v0_y_flow  = flow_velocity
-        real(rkind), parameter :: v0_xy_flow = -0.5d0*SQRT(2.0d0)*flow_velocity
+        real(rkind), parameter :: v0_y_flow  = flow_velocity*flow_y_side
+        real(rkind), parameter :: v0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity*flow_y_side
 
 
         !> @class ic

@@ -14,7 +14,9 @@
      $       get_restart_alignment,
      $       get_nb_detectors,
      $       read_detectors_from_file,
-     $       get_dct_icoords
+     $       get_dct_icoords,
+     $       get_surrounding_grdpts,
+     $       get_closest_icoord
 
 
         contains
@@ -372,11 +374,11 @@
 
           integer                        :: k
           real(rkind)   , dimension(3,2) :: dct_rcoords_s
-          real(rkind)                    :: min_distance
-          integer                        :: min_distance_k
-          integer                        :: l
-          real(rkind)                    :: distance
-          integer(ikind), dimension(3)   :: i_coords
+          !real(rkind)                    :: min_distance
+          !integer                        :: min_distance_k
+          !integer                        :: l
+          !real(rkind)                    :: distance
+          !integer(ikind), dimension(3)   :: i_coords
           
 
           !get the real general coordinates of the
@@ -398,54 +400,34 @@
           do k=2, size(dct_icoords,2)
 
              !get the real general coordinates of the
-             !surrounding points
+             !surrounding x-coordinates of the previous
+             !detectors
              dct_rcoords_s(:,1) = get_surrounding_grdpts(
      $            dct_icoords(1,k-1),
      $            interior_x_map,
      $            nx)
 
              !get the real general coordinates of the
-             !surrounding points
+             !surrounding y-coordinates of the previous
+             !detectors
              dct_rcoords_s(:,2) = get_surrounding_grdpts(
      $            dct_icoords(2,k-1),
      $            interior_y_map,
      $            ny)
 
-             !determine the x_icoords of the current grid
-             !point
-             min_distance   = abs(dct_rcoords(1,k)-dct_rcoords_s(1,1))
-             min_distance_k = 1
-             do l=2,3
-                distance = abs(dct_rcoords(1,k)-dct_rcoords_s(l,1))
-                if(distance.lt.min_distance) then
-                   min_distance   = distance
-                   min_distance_k = l
-                end if
-             end do
+             !determine the icoord(1) of the current grid
+             !point by getting the closest x-coordinates
+             dct_icoords(1,k) = get_closest_icoord(
+     $            dct_icoords(1,k-1),
+     $            dct_rcoords(1,k),
+     $            dct_rcoords_s(:,1))
 
-             i_coords(1) = dct_icoords(1,k-1)-1
-             i_coords(2) = dct_icoords(1,k-1)
-             i_coords(3) = dct_icoords(1,k-1)+1
-
-             dct_icoords(1,k) = i_coords(min_distance_k)
-
-             !determine the y_icoords of the current grid
-             !point
-             min_distance   = abs(dct_rcoords(2,k)-dct_rcoords_s(1,2))
-             min_distance_k = 1
-             do l=2,3
-                distance = abs(dct_rcoords(2,k)-dct_rcoords_s(l,2))
-                if(distance.lt.min_distance) then
-                   min_distance   = distance
-                   min_distance_k = l
-                end if
-             end do
-
-             i_coords(1) = dct_icoords(2,k-1)-1
-             i_coords(2) = dct_icoords(2,k-1)
-             i_coords(3) = dct_icoords(2,k-1)+1
-
-             dct_icoords(2,k) = i_coords(min_distance_k)             
+             !determine the icoord(2) of the current grid
+             !point by getting the closest y-coordinates
+             dct_icoords(2,k) = get_closest_icoord(
+     $            dct_icoords(2,k-1),
+     $            dct_rcoords(2,k),
+     $            dct_rcoords_s(:,2))
              
           end do          
 
@@ -503,6 +485,44 @@ c$$$                surrounding_grdpts(3) = rcoord+dx
 
 
         end function get_surrounding_grdpts
+
+
+        function get_closest_icoord(
+     $     icoord_prev,
+     $     rcoord,
+     $     surrounding_grdpts)
+     $     result(closest_icoord)
+
+          implicit none
+
+          integer(ikind)           , intent(in) :: icoord_prev
+          real(rkind)              , intent(in) :: rcoord
+          real(rkind), dimension(3), intent(in) :: surrounding_grdpts
+          integer(ikind)                        :: closest_icoord
+          
+          real(rkind)                  :: distance
+          real(rkind)                  :: min_distance
+          integer                      :: min_distance_k
+          integer                      :: k
+          integer(ikind), dimension(3) :: i_coords
+
+          min_distance   = abs(rcoord-surrounding_grdpts(1))
+          min_distance_k = 1
+          do k=2,3
+             distance = abs(rcoord-surrounding_grdpts(k))
+             if(distance.lt.min_distance) then
+                min_distance   = distance
+                min_distance_k = k
+             end if
+          end do
+
+          i_coords(1) = icoord_prev-1
+          i_coords(2) = icoord_prev
+          i_coords(3) = icoord_prev+1
+          
+          closest_icoord = i_coords(min_distance_k)
+        
+        end function get_closest_icoord
 
       end module bf_restart_module
 

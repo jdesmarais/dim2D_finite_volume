@@ -43,7 +43,9 @@
 
         use bf_restart_module, only :
      $       read_detectors_from_file,
-     $       get_dct_icoords
+     $       get_dct_icoords,
+     $       get_surrounding_grdpts,
+     $       get_closest_icoord
 
         use bf_sublayer_class, only :
      $       bf_sublayer
@@ -627,10 +629,10 @@
           !   then the corresponding bc_pt around it cannot be computed
           !   while they should be
           !   --> see bug 20141217_bug_overlap_bc_at_NE
-c$$$          call this%resolve_bc_overlap_conflicts(
-c$$$     $         interior_x_map,
-c$$$     $         interior_y_map,
-c$$$     $         interior_nodes1)
+          call this%resolve_bc_overlap_conflicts(
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes1)
 
         end subroutine update_bf_layers_with_idetectors
 
@@ -1600,42 +1602,52 @@ c$$$     $         interior_nodes1)
           !determine the coordinates of the gridpoints surrounding
           !the detector according to its general index coordinates
           !x-direction
-          if(d_icoord(1).le.1) then
-             dx = interior_x_map(2) - interior_x_map(1)
-             d_icoord_r(1,1) = interior_x_map(1)+(d_icoord(1)-2)*dx
-             d_icoord_r(2,1) = interior_x_map(1)+(d_icoord(1)-1)*dx
-             d_icoord_r(3,1) = interior_x_map(1)+(d_icoord(1)  )*dx
-          else
-             if(d_icoord(1).le.(nx-1)) then
-                d_icoord_r(1,1) = interior_x_map(d_icoord(1)-1)
-                d_icoord_r(2,1) = interior_x_map(d_icoord(1))
-                d_icoord_r(3,1) = interior_x_map(d_icoord(1)+1)
-             else
-                dx = interior_x_map(nx) - interior_x_map(nx-1)
-                d_icoord_r(1,1) = interior_x_map(nx) + (d_icoord(1)-nx-1)*dx
-                d_icoord_r(2,1) = interior_x_map(nx) + (d_icoord(1)-nx)*dx
-                d_icoord_r(3,1) = interior_x_map(nx) + (d_icoord(1)-nx+1)*dx
-             end if
-          end if
+          d_icoord_r(:,1) = get_surrounding_grdpts(
+     $         d_icoord(1),
+     $         interior_x_map,
+     $         nx)
 
-          !y-direction
-          if(d_icoord(2).le.1) then
-             dy = interior_y_map(2) - interior_y_map(1)
-             d_icoord_r(1,2) = interior_y_map(1)+(d_icoord(2)-2)*dy
-             d_icoord_r(2,2) = interior_y_map(1)+(d_icoord(2)-1)*dy
-             d_icoord_r(3,2) = interior_y_map(1)+(d_icoord(2)  )*dy
-          else
-             if(d_icoord(2).le.(ny-1)) then
-                d_icoord_r(1,2) = interior_y_map(d_icoord(2)-1)
-                d_icoord_r(2,2) = interior_y_map(d_icoord(2))
-                d_icoord_r(3,2) = interior_y_map(d_icoord(2)+1)
-             else
-                dy = interior_y_map(ny) - interior_y_map(ny-1)
-                d_icoord_r(1,2) = interior_y_map(ny) + (d_icoord(2)-ny-1)*dy
-                d_icoord_r(2,2) = interior_y_map(ny) + (d_icoord(2)-ny  )*dy
-                d_icoord_r(3,2) = interior_y_map(ny) + (d_icoord(2)-ny+1)*dy
-             end if
-          end if
+          d_icoord_r(:,2) = get_surrounding_grdpts(
+     $         d_icoord(2),
+     $         interior_y_map,
+     $         ny)
+          
+c$$$          if(d_icoord(1).le.1) then
+c$$$             dx = interior_x_map(2) - interior_x_map(1)
+c$$$             d_icoord_r(1,1) = interior_x_map(1)+(d_icoord(1)-2)*dx
+c$$$             d_icoord_r(2,1) = interior_x_map(1)+(d_icoord(1)-1)*dx
+c$$$             d_icoord_r(3,1) = interior_x_map(1)+(d_icoord(1)  )*dx
+c$$$          else
+c$$$             if(d_icoord(1).le.(nx-1)) then
+c$$$                d_icoord_r(1,1) = interior_x_map(d_icoord(1)-1)
+c$$$                d_icoord_r(2,1) = interior_x_map(d_icoord(1))
+c$$$                d_icoord_r(3,1) = interior_x_map(d_icoord(1)+1)
+c$$$             else
+c$$$                dx = interior_x_map(nx) - interior_x_map(nx-1)
+c$$$                d_icoord_r(1,1) = interior_x_map(nx) + (d_icoord(1)-nx-1)*dx
+c$$$                d_icoord_r(2,1) = interior_x_map(nx) + (d_icoord(1)-nx)*dx
+c$$$                d_icoord_r(3,1) = interior_x_map(nx) + (d_icoord(1)-nx+1)*dx
+c$$$             end if
+c$$$          end if
+c$$$
+c$$$          !y-direction
+c$$$          if(d_icoord(2).le.1) then
+c$$$             dy = interior_y_map(2) - interior_y_map(1)
+c$$$             d_icoord_r(1,2) = interior_y_map(1)+(d_icoord(2)-2)*dy
+c$$$             d_icoord_r(2,2) = interior_y_map(1)+(d_icoord(2)-1)*dy
+c$$$             d_icoord_r(3,2) = interior_y_map(1)+(d_icoord(2)  )*dy
+c$$$          else
+c$$$             if(d_icoord(2).le.(ny-1)) then
+c$$$                d_icoord_r(1,2) = interior_y_map(d_icoord(2)-1)
+c$$$                d_icoord_r(2,2) = interior_y_map(d_icoord(2))
+c$$$                d_icoord_r(3,2) = interior_y_map(d_icoord(2)+1)
+c$$$             else
+c$$$                dy = interior_y_map(ny) - interior_y_map(ny-1)
+c$$$                d_icoord_r(1,2) = interior_y_map(ny) + (d_icoord(2)-ny-1)*dy
+c$$$                d_icoord_r(2,2) = interior_y_map(ny) + (d_icoord(2)-ny  )*dy
+c$$$                d_icoord_r(3,2) = interior_y_map(ny) + (d_icoord(2)-ny+1)*dy
+c$$$             end if
+c$$$          end if
 
 
           !update of the x-index for the detector
@@ -1646,21 +1658,26 @@ c$$$     $         interior_nodes1)
           !it is updated such that the d_rcoords_n(1) previously
           !evaluated matches at best the x-coordinate of the
           !x-index
-          min_distance   = abs(d_rcoord_n(1)-d_icoord_r(1,1))
-          min_distance_k = 1
-          do k=2,3
-             distance = abs(d_rcoord_n(1)-d_icoord_r(k,1))
-             if(distance.lt.min_distance) then
-                min_distance   = distance
-                min_distance_k = k
-             end if
-          end do
+          d_icoord_n(1) = get_closest_icoord(
+     $         d_icoord(1),
+     $         d_rcoord_n(1),
+     $         d_icoord_r(:,1))
 
-          d_icoord_i(1) = d_icoord(1)-1
-          d_icoord_i(2) = d_icoord(1)
-          d_icoord_i(3) = d_icoord(1)+1
-
-          d_icoord_n(1) = d_icoord_i(min_distance_k)
+c$$$          min_distance   = abs(d_rcoord_n(1)-d_icoord_r(1,1))
+c$$$          min_distance_k = 1
+c$$$          do k=2,3
+c$$$             distance = abs(d_rcoord_n(1)-d_icoord_r(k,1))
+c$$$             if(distance.lt.min_distance) then
+c$$$                min_distance   = distance
+c$$$                min_distance_k = k
+c$$$             end if
+c$$$          end do
+c$$$
+c$$$          d_icoord_i(1) = d_icoord(1)-1
+c$$$          d_icoord_i(2) = d_icoord(1)
+c$$$          d_icoord_i(3) = d_icoord(1)+1
+c$$$
+c$$$          d_icoord_n(1) = d_icoord_i(min_distance_k)
 
 
           !update of the y-index for the detector
@@ -1671,21 +1688,26 @@ c$$$     $         interior_nodes1)
           !it is updated such that the d_rcoords_n(2) previously
           !evaluated matches at best the y-coordinate of the
           !y-index
-          min_distance   = abs(d_rcoord_n(2)-d_icoord_r(1,2))
-          min_distance_k = 1
-          do k=2,3
-             distance = abs(d_rcoord_n(2)-d_icoord_r(k,2))
-             if(distance.lt.min_distance) then
-                min_distance   = distance
-                min_distance_k = k
-             end if
-          end do
+          d_icoord_n(2) = get_closest_icoord(
+     $         d_icoord(2),
+     $         d_rcoord_n(2),
+     $         d_icoord_r(:,2))
 
-          d_icoord_i(1) = d_icoord(2)-1
-          d_icoord_i(2) = d_icoord(2)
-          d_icoord_i(3) = d_icoord(2)+1
-          
-          d_icoord_n(2) = d_icoord_i(min_distance_k)
+c$$$          min_distance   = abs(d_rcoord_n(2)-d_icoord_r(1,2))
+c$$$          min_distance_k = 1
+c$$$          do k=2,3
+c$$$             distance = abs(d_rcoord_n(2)-d_icoord_r(k,2))
+c$$$             if(distance.lt.min_distance) then
+c$$$                min_distance   = distance
+c$$$                min_distance_k = k
+c$$$             end if
+c$$$          end do
+c$$$
+c$$$          d_icoord_i(1) = d_icoord(2)-1
+c$$$          d_icoord_i(2) = d_icoord(2)
+c$$$          d_icoord_i(3) = d_icoord(2)+1
+c$$$          
+c$$$          d_icoord_n(2) = d_icoord_i(min_distance_k)
           
 
 c$$$          if((d_rcoord_n(1)-d_icoord_r(1)).gt.dx) then

@@ -28,11 +28,11 @@
         real(rkind), parameter :: y_max = 0.5000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 6.2100000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 10.0000000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0025000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 1.0000000000d0
+        real(rkind), parameter :: detail_print = 0.2500000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -83,7 +83,7 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer, parameter :: flow_direction = xy_direction
+        integer, parameter :: flow_direction = y_direction
         integer, parameter :: ic_choice = bubble_transported
 
         !<body forces choice
@@ -122,5 +122,8 @@
         integer    , parameter :: bc_S_type_choice = bc_timedev_choice
         integer    , parameter :: bc_E_type_choice = bc_timedev_choice
         integer    , parameter :: bc_W_type_choice = bc_timedev_choice
+
+        logical    , parameter :: use_mass_density_threshold = .false.
+        
 
       end module parameters_input
