@@ -2419,7 +2419,7 @@ c$$$          stop 'not implemented yet'
      $                x_border)
 
                  if(update_alignment) then
-                    bf_alignment_update(1,1) = x_border+bc_size
+                    bf_alignment_update(1,1) = min(bf_alignment_update(1,1),x_border+bc_size)
                     should_be_reallocated = .true.
                  end if
 
@@ -2443,7 +2443,7 @@ c$$$          stop 'not implemented yet'
      $                x_border)
 
                  if(update_alignment) then
-                    bf_alignment_update(1,2) = x_border-bc_size
+                    bf_alignment_update(1,2) = max(bf_alignment_update(1,2),x_border-bc_size)
                     should_be_reallocated = .true.
                  end if
 
@@ -2569,6 +2569,7 @@ c$$$          stop 'not implemented yet'
          !the grid points needed, the bf_interface updates
          !its allocation
          if(should_be_reallocated) then
+
             call reallocate_sublayer(
      $           this,
      $           bf_sublayer_ptr,

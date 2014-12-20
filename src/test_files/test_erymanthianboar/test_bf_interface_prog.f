@@ -332,9 +332,15 @@ c$$$     $       index)
         !test the resolving of bc overlap conflicts for buffer layers
         !------------------------------------------------------------
         detailled = .true.
-        test_loc = test_resolve_bc_overlap_conflicts(detailled)
+        test_loc = test_resolve_bc_overlap_conflicts1(detailled)
         test_validated = test_validated.and.test_loc
-        print '(''test_resolve_bc_overlap_conflicts: '',L1)', test_loc
+        print '(''test_resolve_bc_overlap_conflicts1: '',L1)', test_loc
+        print '()'
+
+        detailled = .true.
+        test_loc = test_resolve_bc_overlap_conflicts2(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_resolve_bc_overlap_conflicts2: '',L1)', test_loc
         print '()'
 
 
@@ -1469,7 +1475,7 @@ c$$$     $       index)
 
       
         !test : resolve_bc_overlap_conflicts
-        function test_resolve_bc_overlap_conflicts(detailled)
+        function test_resolve_bc_overlap_conflicts1(detailled)
      $     result(test_validated)
 
           implicit none
@@ -1610,6 +1616,150 @@ c$$$     $       index)
           test_validated = test_validated.and.(bf_alignment(2,1).eq.(ny-4))
           test_validated = test_validated.and.(bf_alignment(2,2).eq.(ny-2))
 
-        end function test_resolve_bc_overlap_conflicts
+        end function test_resolve_bc_overlap_conflicts1
+
+
+        !test : resolve_bc_overlap_conflicts
+        function test_resolve_bc_overlap_conflicts2(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_interface)                   :: bf_interface_used
+          integer, dimension(:,:), allocatable :: grdpts_id
+          integer(ikind), dimension(2,2)       :: bf_alignment
+          type(bf_sublayer), pointer           :: bf_layer_S_ptr
+          type(bf_sublayer), pointer           :: bf_layer_W_ptr
+          real(rkind), dimension(nx)           :: interior_x_map
+          real(rkind), dimension(ny)           :: interior_y_map
+          real(rkind), dimension(nx,ny,ne)     :: interior_nodes
+          type(bf_mainlayer), pointer          :: mainlayer_ptr
+
+
+          !test case:
+          !2 buffer layers: S and W at the interface SW
+          !the South buffer layer should be increased to
+          !be able to compute all the boundary grid points
+          !                              
+          !                    -------------------------------
+          !                    |3 3|3 3 3 3|3 2|1 1| 
+          !  West buffer layer |3 2|2 2 2 2|2 2|1 1| interior
+          !                    |3 2|       | _ | _ | _ _ _ _ _
+          !             4-     |3 2|       |   |   | 
+          !             3-     |3 2|2_ _ _ | _ | _ | _ _ _ _ _
+          !             2-     |3 3|2 2    |   |   |      2 2
+          !             1-     |__3|3 2 2 2|2_2|2_2|2_2_2_2_3______
+          !                        |3 3 3 3 3 3 3 3|3 3 3 3 3
+          !                        --------------------------
+          !                         | | | | | | | | 
+          !                        -3 |-1 | 1 | 3 |
+          !                          -2   0   2   4
+          !
+          !                             South buffer layer
+          !------------------------------------------------
+          call bf_interface_used%ini(interior_x_map,interior_y_map)
+
+
+          !initialize the S buffer layer
+          allocate(grdpts_id(13,5))
+
+          grdpts_id = reshape((/
+     $         3,3,3,3,3,3,3,3,3,3,3,3,3,
+     $         3,2,2,2,2,2,2,2,2,2,2,2,3,
+     $         2,2,1,1,1,1,1,1,1,1,1,2,2,
+     $         2,1,1,1,1,1,1,1,1,1,1,1,1,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1/),
+     $         (/13,5/))
+
+          bf_alignment(1,1) = -1
+          bf_alignment(1,2) = bf_alignment(1,1) + size(grdpts_id,1) - (2*bc_size+1)
+          bf_alignment(2,1) = bc_size
+          bf_alignment(2,2) = bf_alignment(2,1) + size(grdpts_id,2) - (2*bc_size+1)
+          
+          if(detailled) then
+             print '(''bf_alignment_S: '',4I4)', bf_alignment
+          end if
+
+          bf_layer_S_ptr => bf_interface_used%allocate_sublayer(
+     $         S,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes,
+     $         bf_alignment)
+
+          call bf_layer_S_ptr%set_grdpts_id(grdpts_id)
+
+
+          !initialize the W buffer layer
+          allocate(grdpts_id(10,7))
+
+          grdpts_id = reshape((/
+     $         0,3,3,2,2,2,2,2,2,2,
+     $         3,3,2,2,1,1,1,1,1,1,
+     $         3,2,2,1,1,1,1,1,1,1,
+     $         3,2,1,1,1,1,1,1,1,1,
+     $         3,2,1,1,1,1,1,1,1,1,
+     $         3,2,2,2,2,2,2,2,1,1,
+     $         3,3,3,3,3,3,3,2,1,1/),
+     $         (/10,7/))
+
+          bf_alignment(1,2) = bc_size
+          bf_alignment(1,1) = bf_alignment(1,2) - size(grdpts_id,1) + (2*bc_size+1)
+
+          bf_alignment(2,1) = bc_size+1
+          bf_alignment(2,2) = bf_alignment(2,1) + size(grdpts_id,2) - (2*bc_size+1)
+
+          if(detailled) then
+             print '(''bf_alignment_W: '',4I4)', bf_alignment
+          end if
+
+          bf_layer_W_ptr => bf_interface_used%allocate_sublayer(
+     $         W,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes,
+     $         bf_alignment)
+
+          call bf_layer_W_ptr%set_grdpts_id(grdpts_id)
+
+          call bf_interface_used%resolve_bc_overlap_conflicts(
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes)
+
+
+          !test whether the S buffer layer has been correctly updated
+          mainlayer_ptr  => bf_interface_used%get_mainlayer(S)
+          bf_layer_S_ptr => mainlayer_ptr%get_head_sublayer()
+          bf_alignment   = bf_layer_S_ptr%get_alignment_tab()
+
+          if(detailled) then
+             print '(''bf_alignment_S after: '',4I4)', bf_alignment
+          end if
+
+          test_validated = bf_alignment(1,1).eq.(-2)
+          test_validated = test_validated.and.(bf_alignment(1,2).eq.7)
+          test_validated = test_validated.and.(bf_alignment(2,1).eq.2)
+          test_validated = test_validated.and.(bf_alignment(2,2).eq.2)
+
+
+          !test whether the W buffer layer has been correctly updated
+          mainlayer_ptr  => bf_interface_used%get_mainlayer(W)
+          bf_layer_W_ptr => mainlayer_ptr%get_head_sublayer()
+          bf_alignment   = bf_layer_W_ptr%get_alignment_tab()
+
+          if(detailled) then
+             print '(''bf_alignment_W after: '',4I4)', bf_alignment
+          end if
+
+          test_validated = test_validated.and.(bf_alignment(1,1).eq.(bc_size+1))
+          test_validated = test_validated.and.(bf_alignment(1,2).eq.(bc_size+3))
+          test_validated = test_validated.and.(bf_alignment(2,1).eq.(-3))
+          test_validated = test_validated.and.(bf_alignment(2,2).eq.2)
+
+        end function test_resolve_bc_overlap_conflicts2
 
       end program test_bf_interface_prog

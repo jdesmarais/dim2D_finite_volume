@@ -627,10 +627,10 @@
           !   then the corresponding bc_pt around it cannot be computed
           !   while they should be
           !   --> see bug 20141217_bug_overlap_bc_at_NE
-          call this%resolve_bc_overlap_conflicts(
-     $         interior_x_map,
-     $         interior_y_map,
-     $         interior_nodes1)
+c$$$          call this%resolve_bc_overlap_conflicts(
+c$$$     $         interior_x_map,
+c$$$     $         interior_y_map,
+c$$$     $         interior_nodes1)
 
         end subroutine update_bf_layers_with_idetectors
 
