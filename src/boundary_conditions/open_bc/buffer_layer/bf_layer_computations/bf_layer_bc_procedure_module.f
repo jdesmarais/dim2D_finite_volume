@@ -98,7 +98,8 @@
 
                 call get_bc_interior_pt_procedure_1_1(
      $               i,j,grdpts_id,
-     $               procedure_type,i_proc,j_proc)
+     $               procedure_type,i_proc,j_proc,
+     $               ierror)
 
              else
 
@@ -391,7 +392,8 @@
 
         subroutine get_bc_interior_pt_procedure_1_1(
      $     i,j,grdpts_id,
-     $     procedure_type,i_proc,j_proc)
+     $     procedure_type,i_proc,j_proc,
+     $     ierror)
 
           implicit none
           
@@ -401,6 +403,7 @@
           integer                , intent(out) :: procedure_type
           integer                , intent(out) :: i_proc
           integer                , intent(out) :: j_proc
+          logical                , intent(out) :: ierror
 
           !  -------
           ! |       |
@@ -408,9 +411,41 @@
           ! | 2 2   |
           !  -------
           if(grdpts_id(i-1,j).eq.bc_pt) then
-             procedure_type = NW_edge_type
-             i_proc         = i-1
-             j_proc         = j-1
+
+          !  -------
+          ! |   2   |
+          ! | 3 2*  |
+          ! | 2 2   |
+          !  -------             
+             if(grdpts_id(i,j+1).eq.bc_interior_pt) then
+                procedure_type = NW_edge_type
+                i_proc         = i-1
+                j_proc         = j-1
+
+             else
+
+          !  -------
+          ! |   3   |
+          ! | 3 2*2 |
+          ! | 2 2   |
+          !  ------- 
+                if(grdpts_id(i+1,j).eq.bc_interior_pt) then
+                   procedure_type = NW_corner_type
+                   i_proc         = i-1
+                   j_proc         = j
+
+                else
+
+          !  -------
+          ! |   3   |
+          ! | 3 2*x |
+          ! | 2 2   |
+          !  ------- 
+                   call error_bc_interior_pt_procedure(
+     $                  i,j,grdpts_id,ierror)
+
+                end if
+             end if
 
           else
              
@@ -1071,12 +1106,12 @@
              j_proc         = j-1
 
           !  -------
-          ! | 3     |
+          ! | 3 2   |
           ! | 2 2*1 |
           ! | 1 1 1 |
           !  -------
           else
-             procedure_type = NW_corner_type
+             procedure_type = NW_edge_type
              i_proc         = i-1
              j_proc         = j
 
