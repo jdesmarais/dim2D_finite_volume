@@ -380,7 +380,7 @@
      $              (/3,3/))
                test_procedure = S_edge_type
                test_i_proc    = 2
-               test_j_proc    = 1
+               test_j_proc    = 2
 
             ! -------
             !| 1 1 2 |
@@ -412,7 +412,7 @@
      $              (/3,3/))
                test_procedure = S_edge_type
                test_i_proc    = 2
-               test_j_proc    = 1
+               test_j_proc    = 2
 
             ! -------
             !| 2 3 3 |
@@ -524,7 +524,7 @@
      $              (/3,3/))
                test_procedure = S_edge_type
                test_i_proc    = 2
-               test_j_proc    = 1
+               test_j_proc    = 2
 
             ! -------
             !| 2 1 1 |
@@ -863,7 +863,7 @@
      $              /),
      $              (/3,3/))
                test_procedure = W_edge_type
-               test_i_proc    = 1
+               test_i_proc    = 2
                test_j_proc    = 2
 
             ! -------
@@ -880,7 +880,7 @@
      $              (/3,3/))
                test_procedure = S_edge_type
                test_i_proc    = 2
-               test_j_proc    = 1
+               test_j_proc    = 2
 
             ! -------
             !| 1 2 3 |

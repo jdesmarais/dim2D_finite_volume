@@ -1427,6 +1427,8 @@
 
           logical                              :: test_global
 
+          logical                              :: ierror
+
 
           test_global = .true.
           
@@ -1444,7 +1446,8 @@
              new_bc_section = bc_sections%get_bc_section(
      $            test_i,
      $            test_j,
-     $            grdpts_id)
+     $            grdpts_id,
+     $            ierror)
 
 
              test_validated = test_bc_section(1).eq.new_bc_section(1)
@@ -1617,6 +1620,8 @@
 
           logical :: same
           logical :: test_global
+          
+          logical :: ierror
 
           print '(''test_analyse_grdpt()'')'          
 
@@ -1640,7 +1645,7 @@
                 do i=test_i_min,test_i_max
 
                    if(grdpts_id(i,j).eq.bc_interior_pt) then
-                      call bc_sections%analyse_grdpt(i,j,grdpts_id)
+                      call bc_sections%analyse_grdpt(i,j,grdpts_id,ierror)
                    end if
 
                 end do

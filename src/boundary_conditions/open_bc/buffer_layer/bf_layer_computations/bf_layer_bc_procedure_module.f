@@ -695,7 +695,7 @@
           !  -------
                 if(grdpts_id(i,j+1).eq.bc_interior_pt) then
                    procedure_type = W_edge_type
-                   i_proc         = i-1
+                   i_proc         = i
                    j_proc         = j
 
           !  -------
@@ -856,7 +856,7 @@
           !  -------
              if(grdpts_id(i-1,j).eq.bc_pt) then
                 procedure_type = W_edge_type
-                i_proc         = i-1
+                i_proc         = i
                 j_proc         = j
 
           !  -------
@@ -885,7 +885,7 @@
           !  -------
              if(grdpts_id(i-1,j).eq.bc_pt) then
                 procedure_type = W_edge_type
-                i_proc         = i-1
+                i_proc         = i
                 j_proc         = j
 
           !  -------
@@ -1034,7 +1034,7 @@
           if(grdpts_id(i,j-1).eq.bc_pt) then
              procedure_type = S_edge_type
              i_proc         = i
-             j_proc         = j-1
+             j_proc         = j
 
           !  -------
           ! |       |
