@@ -44,9 +44,15 @@
         !>@param nb_detectors
         !> total number of increasing detectors
         !        
-        !>@param detectors_list
+        !>@param icoords
         !> table allocated with the number of detectors at the
-        !> previous timestep where the detectors are first saved
+        !> previous timestep storing the coordinates of the detectors
+        !> as (x,y)-indices (integer(ikind))
+        !
+        !>@param rcoords
+        !> table allocated with the number of detectors at the
+        !> previous timestep storing the coordinates of the detectors
+        !> as (x,y)-coordinates (real(rkind))
         !
         !>@param ini
         !> initialize the object with the main layer id and the
@@ -56,25 +62,9 @@
         !> add the new detector and its intermediates to the mainlayer
         !> lists to ensure a continuous path
         !
-        !>@param add_new_detector_to_mainlayer
-        !> add the new detector and its intermediates to the mainlayer
-        !> lists to ensure a continuous path
-        !
         !>@param add_detector_to_mainlayer
         !> add the new detector general coordinates either to the
         !> detectors_list or the detectors_extra_list
-        !
-        !>@param get_inter_detector_param
-        !> get the parameters constraining the addition
-        !> of intermediate detectors between the previous
-        !> detectors and the new detector to be added
-        !
-        !>@param get_inter_detector_coords
-        !> from the parameters constraining the addition of
-        !> intermediate detectors, give the coordinate of 
-        !> the intermediate detector identified by the index k
-        !> varying between 1 and total number of detectors to
-        !> be added
         !
         !>@param get_nb_detectors
         !> get the nb_detectors attribute
@@ -201,7 +191,7 @@
           integer(ikind), dimension(2) :: icoord_inter
           real(rkind)   , dimension(2) :: rcoord_inter
           integer                      :: k
-          
+          real(rkind)   , dimension(2) :: rcoord_average
 
           !if other detectors were saved in the list before,
           !the new detector added should not be too far away
@@ -242,6 +232,22 @@
                 end do
 
                 call add_detector_to_mainlayer(this, icoord, rcoord)
+
+             !if the detector to be added to the list has the same
+             !(x,y)-index coordinates as the previous detector stored
+             !in the list, then the previous detector is replaced by
+             !a new detector which is an average b/w the two
+             else
+
+                if(rkind.eq.8) then
+                   rcoord_average(1) = 0.5d0*(prev_rcoord(1) + rcoord(1))
+                   rcoord_average(2) = 0.5d0*(prev_rcoord(2) + rcoord(2))
+                else
+                   rcoord_average(1) = 0.5*(prev_rcoord(1) + rcoord(1))
+                   rcoord_average(2) = 0.5*(prev_rcoord(2) + rcoord(2))
+                end if
+
+                this%rcoords(:,this%nb_detectors) = rcoord_average
 
              end if
 
