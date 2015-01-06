@@ -309,21 +309,40 @@
 
                          call get_bc_interior_pt_procedure_4_1(
      $                        i,j,grdpts_id,
-     $                        procedure_type,i_proc,j_proc)
+     $                        procedure_type,i_proc,j_proc,
+     $                        ierror)
 
+          
+          
+                      else
           !------------------------------
           !procedure 4.2
           !------------------------------
           !  -------
-          ! |       |
+          ! |   2   |
           ! | 2 2*x |
           ! | x x x |
           !  -------
-                      else
+                         if(grdpts_id(i,j+1).eq.bc_interior_pt) then
+                            
+                            call get_bc_interior_pt_procedure_4_2(
+     $                           i,j,grdpts_id,
+     $                           procedure_type,i_proc,j_proc)
 
-                         call get_bc_interior_pt_procedure_4_2(
-     $                        i,j,grdpts_id,
-     $                        procedure_type,i_proc,j_proc)
+          !------------------------------
+          !procedure 4.3
+          !------------------------------
+          !  -------
+          ! |   x   |
+          ! | 2 2*x |
+          ! | x x x |
+          !  -------
+                         else
+
+                            call error_bc_interior_pt_procedure(
+     $                           i,j,grdpts_id,ierror)
+
+                         end if
 
                       end if
 
@@ -357,9 +376,9 @@
           !procedure 5.2
           !------------------------------
           !  -------
-          ! |       |
-          ! | x 2*  |
-          ! | 2 x   |
+          ! |   x   |
+          ! | x 2*2 |
+          ! | x x x |
           !  -------                            
                          else
 
@@ -397,13 +416,13 @@
 
           implicit none
           
-          integer                , intent(in)  :: i
-          integer                , intent(in)  :: j
-          integer, dimension(:,:), intent(in)  :: grdpts_id
-          integer                , intent(out) :: procedure_type
-          integer                , intent(out) :: i_proc
-          integer                , intent(out) :: j_proc
-          logical                , intent(out) :: ierror
+          integer                , intent(in)    :: i
+          integer                , intent(in)    :: j
+          integer, dimension(:,:), intent(in)    :: grdpts_id
+          integer                , intent(out)   :: procedure_type
+          integer                , intent(out)   :: i_proc
+          integer                , intent(out)   :: j_proc
+          logical                , intent(inout) :: ierror
 
           !  -------
           ! |       |
@@ -437,7 +456,7 @@
                 else
 
           !  -------
-          ! |   3   |
+          ! |   x   |
           ! | 3 2*x |
           ! | 2 2   |
           !  ------- 
@@ -489,6 +508,14 @@
                       j_proc         = j
 
                    end if
+          !  -------
+          ! |   x   |
+          ! | 1 2*3 |
+          ! | 2 2 3 |
+          !  -------           
+                else
+                   call error_bc_interior_pt_procedure(
+     $                  i,j,grdpts_id,ierror)
                 end if
              end if
           end if
@@ -503,13 +530,13 @@
 
           implicit none
           
-          integer                , intent(in)  :: i
-          integer                , intent(in)  :: j
-          integer, dimension(:,:), intent(in)  :: grdpts_id
-          integer                , intent(out) :: procedure_type
-          integer                , intent(out) :: i_proc
-          integer                , intent(out) :: j_proc
-          logical                , intent(out) :: ierror
+          integer                , intent(in)    :: i
+          integer                , intent(in)    :: j
+          integer, dimension(:,:), intent(in)    :: grdpts_id
+          integer                , intent(out)   :: procedure_type
+          integer                , intent(out)   :: i_proc
+          integer                , intent(out)   :: j_proc
+          logical                , intent(inout) :: ierror
 
 
           !  -------
@@ -586,9 +613,33 @@
           ! | 2 3   |
           !  -------             
              if(grdpts_id(i+1,j).eq.bc_interior_pt) then
-                procedure_type = SE_edge_type
-                i_proc         = i-1
-                j_proc         = j-1
+
+          !  -------
+          ! | 1     |
+          ! | 2 2*2 |
+          ! | 2 3 2 |
+          !  -------
+                if(grdpts_id(i+1,j-1).eq.bc_interior_pt) then
+
+                   print '(''unable to differentiate:'')'
+                   print '(''SW_edge and SE_edge'')'
+                   print ''
+
+                   call error_bc_interior_pt_procedure(
+     $                  i,j,grdpts_id,ierror)
+
+          !  -------
+          ! | 1     |
+          ! | 2 2*2 |
+          ! | 2 3 3 |
+          !  -------
+                else
+
+                   procedure_type = SE_edge_type
+                   i_proc         = i-1
+                   j_proc         = j-1
+                   
+                end if
 
              else
 
@@ -622,13 +673,13 @@
 
           implicit none
           
-          integer                , intent(in)  :: i
-          integer                , intent(in)  :: j
-          integer, dimension(:,:), intent(in)  :: grdpts_id
-          integer                , intent(out) :: procedure_type
-          integer                , intent(out) :: i_proc
-          integer                , intent(out) :: j_proc 
-          logical                , intent(out) :: ierror
+          integer                , intent(in)    :: i
+          integer                , intent(in)    :: j
+          integer, dimension(:,:), intent(in)    :: grdpts_id
+          integer                , intent(out)   :: procedure_type
+          integer                , intent(out)   :: i_proc
+          integer                , intent(out)   :: j_proc 
+          logical                , intent(inout) :: ierror
 
           !  -------
           ! |       |
@@ -649,14 +700,36 @@
 
              else
           !  -------
-          ! |   2 3 |
+          ! |   2   |
           ! | x 2*3 |
           ! | x 2 2 |
           !  -------
                 if(grdpts_id(i,j+1).eq.bc_interior_pt) then
-                   procedure_type = NE_edge_type
-                   i_proc         = i
-                   j_proc         = j-1
+
+          !  -------
+          ! |   2 2 |
+          ! | x 2*3 |
+          ! | x 2 2 |
+          !  -------                   
+                   if(grdpts_id(i+1,j+1).eq.bc_interior_pt) then
+
+                      print '(''unable to differentiate:'')'
+                      print '(''SE_edge and NE_edge'')'
+
+                      call error_bc_interior_pt_procedure(
+     $                     i,j,grdpts_id,ierror)
+
+          !  -------
+          ! |   2 3 |
+          ! | x 2*3 |
+          ! | x 2 2 |
+          !  ------- 
+                   else
+                      procedure_type = NE_edge_type
+                      i_proc         = i
+                      j_proc         = j-1
+
+                   end if
 
           !  -------
           ! |   x 3 |
@@ -688,15 +761,35 @@
                 j_proc         = j-1
 
              else
+
           !  -------
           ! |   2   |
           ! | 3 2*1 |
           ! | 3 2 2 |
           !  -------
                 if(grdpts_id(i,j+1).eq.bc_interior_pt) then
-                   procedure_type = W_edge_type
-                   i_proc         = i
-                   j_proc         = j
+
+          !  -------
+          ! | 2 2   |
+          ! | 3 2*1 |
+          ! | 3 2 2 |
+          !  -------
+                   if(grdpts_id(i-1,j+1).eq.bc_interior_pt) then
+                      procedure_type = SW_edge_type
+                      i_proc         = i-1
+                      j_proc         = j
+
+          !  -------
+          ! | 3 2   |
+          ! | 3 2*1 |
+          ! | 3 2 2 |
+          !  -------
+                   else
+                      procedure_type = W_edge_type
+                      i_proc         = i
+                      j_proc         = j
+
+                   end if
 
           !  -------
           ! |   x   |
@@ -912,13 +1005,13 @@
 
           implicit none
           
-          integer                , intent(in)  :: i
-          integer                , intent(in)  :: j
-          integer, dimension(:,:), intent(in)  :: grdpts_id
-          integer                , intent(out) :: procedure_type
-          integer                , intent(out) :: i_proc
-          integer                , intent(out) :: j_proc
-          logical                , intent(out) :: ierror
+          integer                , intent(in)    :: i
+          integer                , intent(in)    :: j
+          integer, dimension(:,:), intent(in)    :: grdpts_id
+          integer                , intent(out)   :: procedure_type
+          integer                , intent(out)   :: i_proc
+          integer                , intent(out)   :: j_proc
+          logical                , intent(inout) :: ierror
  
           !  -------
           ! |     1 |
@@ -1014,16 +1107,18 @@
 
         subroutine get_bc_interior_pt_procedure_4_1(
      $     i,j,grdpts_id,
-     $     procedure_type,i_proc,j_proc)
+     $     procedure_type,i_proc,j_proc,
+     $     ierror)
 
           implicit none
           
-          integer                , intent(in)  :: i
-          integer                , intent(in)  :: j
-          integer, dimension(:,:), intent(in)  :: grdpts_id
-          integer                , intent(out) :: procedure_type
-          integer                , intent(out) :: i_proc
-          integer                , intent(out) :: j_proc
+          integer                , intent(in)    :: i
+          integer                , intent(in)    :: j
+          integer, dimension(:,:), intent(in)    :: grdpts_id
+          integer                , intent(out)   :: procedure_type
+          integer                , intent(out)   :: i_proc
+          integer                , intent(out)   :: j_proc
+          logical                , intent(inout) :: ierror
 
           
           !  -------
@@ -1049,9 +1144,32 @@
           ! | 1 1 1 |
           !  -------
              if(grdpts_id(i-1,j+1).eq.bc_interior_pt) then
-                procedure_type = NE_edge_type
-                i_proc         = i-1
-                j_proc         = j
+
+          !  -------
+          ! | 2 3 2 |
+          ! | 2 2*2 |
+          ! | 1 1 1 |
+          !  -------
+                if(grdpts_id(i+1,j+1).eq.bc_interior_pt) then
+                   print '(''unable to differentiate:'')'
+                   print '(''NE_edge or NW_edge'')'
+                   print '()'
+                   
+                   call error_bc_interior_pt_procedure(
+     $                  i,j,grdpts_id,ierror)
+
+          !  -------
+          ! | 2 3 3 |
+          ! | 2 2*2 |
+          ! | 1 1 1 |
+          !  -------
+                else
+                
+                   procedure_type = NE_edge_type
+                   i_proc         = i-1
+                   j_proc         = j
+
+                end if
 
              else
           !  -------
@@ -1096,7 +1214,7 @@
 
 
           !  -------
-          ! | 1     |
+          ! | 1 2   |
           ! | 2 2*3 |
           ! | 3 3 3 |
           !  -------

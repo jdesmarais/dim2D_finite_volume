@@ -40,7 +40,7 @@
         
         !test get_bc_interior_pt_procedure
         print '(''test get_bc_interior_pt_procedure()'')'
-        do k=1,48
+        do k=1,60
 
            call make_test_bf_layer_bc_procedure(
      $          k,
@@ -807,7 +807,7 @@
      $              /),
      $              (/3,3/))
                test_procedure = W_edge_type
-               test_i_proc    = 1
+               test_i_proc    = 2
                test_j_proc    = 2
 
             ! -------
