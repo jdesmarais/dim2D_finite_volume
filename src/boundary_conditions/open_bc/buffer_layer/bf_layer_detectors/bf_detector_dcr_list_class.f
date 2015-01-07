@@ -14,10 +14,16 @@
       !----------------------------------------------------------------
       module bf_detector_dcr_list_class
 
-        use bf_detector_module, only : get_inter_dct_param,
-     $                                 get_inter_dct_coords
-        use parameters_input  , only : bc_size
-        use parameters_kind   , only : ikind, rkind
+        use bf_detector_module, only :
+     $     get_inter_dct_param,
+     $     get_inter_dct_coords
+
+        use parameters_input, only :
+     $       bc_size
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
 
         implicit none
 
@@ -615,8 +621,13 @@
           !compute the parameters for linking the new detector
           !list with the first and the last points
           call get_inter_dct_param(
-     $         first_pt_linked, this%first_detector,
-     $         x_change1, y_change1, inter_nb1)
+     $         first_pt_linked,
+     $         this%first_detector,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         x_change1,
+     $         y_change1,
+     $         inter_nb1)
           call get_inter_dct_param(
      $         this%last_detector, last_pt_linked,
      $         x_change2, y_change2, inter_nb2)

@@ -20,6 +20,9 @@
      $       get_inter_detector_param,
      $       get_inter_detector_coords
 
+        use parameters_input, only :
+     $       nx,ny
+
         use parameters_kind, only :
      $       ikind,
      $       rkind
@@ -175,18 +178,25 @@
         !> general coordinates of the new increasing detector added
         !> to the list
         !--------------------------------------------------------------
-        subroutine add_new_detector(this, icoord, rcoord)
+        subroutine add_new_detector(
+     $     this,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     icoord,
+     $     rcoord)
 
           implicit none
 
-          class(bf_detector_icr_list) , intent(inout) :: this
-          integer(ikind), dimension(2), intent(in)    :: icoord
-          real(rkind)   , dimension(2), intent(in)    :: rcoord
+          class(bf_detector_icr_list)  , intent(inout) :: this
+          real(rkind)   , dimension(nx), intent(in)    :: interior_x_map
+          real(rkind)   , dimension(ny), intent(in)    :: interior_y_map
+          integer(ikind), dimension(2) , intent(in)    :: icoord
+          real(rkind)   , dimension(2) , intent(in)    :: rcoord
 
           integer(ikind), dimension(2) :: prev_icoord
           real(rkind)   , dimension(2) :: prev_rcoord
+
           real(rkind)   , dimension(2) :: icoord_icr
-          real(rkind)   , dimension(2) :: rcoord_icr
           integer                      :: inter_nb
 
           real(rkind)   , dimension(:), allocatable :: x_map_icr
@@ -195,7 +205,6 @@
           integer(ikind), dimension(2) :: icoord_inter
           real(rkind)   , dimension(2) :: rcoord_inter
           integer                      :: k
-          real(rkind)   , dimension(2) :: rcoord_average
 
           !if other detectors were saved in the list before,
           !the new detector added should not be too far away
@@ -211,6 +220,7 @@
 
                 !add intermediate detectors between the previous
                 !one and the new one to retain a continuous path
+                !determination of the parameters
                 call get_inter_detector_param(
      $               prev_icoord,
      $               icoord,
@@ -221,7 +231,9 @@
      $               x_map_icr,
      $               y_map_icr)
                 
+                !add intermediate detectors to the list
                 do k=1, inter_nb
+
                    call get_inter_detector_coords(
      $                  prev_icoord,
      $                  icoord_icr,
@@ -231,35 +243,20 @@
      $                  icoord_inter,
      $                  rcoord_inter)
 
-                   if((prev_icoord(1).ne.icoord_inter(1)).or.
-     $                (prev_icoord(2).ne.icoord_inter(2))) then
-                   
-                      call add_detector_to_mainlayer(
-     $                     this,
-     $                     icoord_inter,
-     $                     rcoord_inter)
-
-                      prev_icoord = icoord_inter
-                      prev_rcoord = rcoord_inter
-                      
-                   else
-
-                      call this%make_average_detector(prev_rcoord,rcoord_inter)
-
-                   end if
+                   call add_detector_to_mainlayer(
+     $                  this,
+     $                  icoord_inter,
+     $                  rcoord_inter)
 
                 end do
 
-                if((prev_icoord(1).ne.icoord(1)).or.
-     $             (prev_icoord(2).ne.icoord(2))) then
+                deallocate(x_map_icr)
+                deallocate(y_map_icr)
 
-                   call add_detector_to_mainlayer(this, icoord, rcoord)
+                !add the new detector to the list as the last detector
+                !of teh intermediate list
+                call add_detector_to_mainlayer(this, icoord, rcoord)
 
-                else
-
-                   call this%make_average_detector(prev_rcoord,rcoord)
-
-                end if
 
              !if the detector to be added to the list has the same
              !(x,y)-index coordinates as the previous detector stored

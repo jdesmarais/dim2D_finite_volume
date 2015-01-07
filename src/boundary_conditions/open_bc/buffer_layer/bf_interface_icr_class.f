@@ -614,6 +614,8 @@
           !   not make a closed path. They are now reconnected
           call combine_bf_idetector_lists(
      $         this,
+     $         interior_x_map,
+     $         interior_y_map,
      $         N_dct_list_n,
      $         S_dct_list_n,
      $         E_dct_list_n,
@@ -670,6 +672,8 @@
         !--------------------------------------------------------------
         subroutine combine_bf_idetector_lists(
      $     this,
+     $     interior_x_map,
+     $     interior_y_map,
      $     N_dct_list_n,
      $     S_dct_list_n,
      $     E_dct_list_n,
@@ -678,6 +682,8 @@
           implicit none
 
           class(bf_interface_icr)   , intent(inout) :: this
+          real(rkind), dimension(nx), intent(in)    :: interior_x_map
+          real(rkind), dimension(ny), intent(in)    :: interior_y_map
           type(bf_detector_icr_list), intent(in)    :: N_dct_list_n
           type(bf_detector_icr_list), intent(in)    :: S_dct_list_n
           type(bf_detector_icr_list), intent(in)    :: E_dct_list_n
@@ -686,34 +692,35 @@
 
           !intermediate coordinates when computing the parameters
           !for the detectors between the cardinal detector lists
-          integer(ikind), dimension(2) :: icoord_1
-          real(rkind)   , dimension(2) :: rcoord_1
-          integer(ikind), dimension(2) :: icoord_2
-          real(rkind)   , dimension(2) :: rcoord_2
+          integer(ikind), dimension(2)              :: icoord_1
+          real(rkind)   , dimension(2)              :: rcoord_1
+          integer(ikind), dimension(2)              :: icoord_2
+          real(rkind)   , dimension(2)              :: rcoord_2
 
-          integer(ikind), dimension(2) :: icoord_SW
-          real(rkind)   , dimension(2) :: rcoord_SW
-          real(rkind)   , dimension(2) :: icoord_icr_SW
-          real(rkind)   , dimension(2) :: rcoord_icr_SW
-          integer(ikind)               :: inter_nb_SW
+          integer(ikind), dimension(2)              :: icoord_SW
+          real(rkind)   , dimension(2)              :: icoord_icr_SW
+          integer(ikind)                            :: inter_nb_SW
+          real(rkind)   , dimension(:), allocatable :: x_map_icr_SW
+          real(rkind)   , dimension(:), allocatable :: y_map_icr_SW
 
-          integer(ikind), dimension(2) :: icoord_SE
-          real(rkind)   , dimension(2) :: rcoord_SE
-          real(rkind)   , dimension(2) :: icoord_icr_SE
-          real(rkind)   , dimension(2) :: rcoord_icr_SE
-          integer(ikind)               :: inter_nb_SE
+          integer(ikind), dimension(2)              :: icoord_SE
+          real(rkind)   , dimension(2)              :: icoord_icr_SE
+          integer(ikind)                            :: inter_nb_SE
+          real(rkind)   , dimension(:), allocatable :: x_map_icr_SE
+          real(rkind)   , dimension(:), allocatable :: y_map_icr_SE
 
-          integer(ikind), dimension(2) :: icoord_NE
-          real(rkind)   , dimension(2) :: rcoord_NE
-          real(rkind)   , dimension(2) :: icoord_icr_NE
-          real(rkind)   , dimension(2) :: rcoord_icr_NE
-          integer(ikind)               :: inter_nb_NE
+          integer(ikind), dimension(2)              :: icoord_NE
+          real(rkind)   , dimension(2)              :: icoord_icr_NE
+          integer(ikind)                            :: inter_nb_NE
+          real(rkind)   , dimension(:), allocatable :: x_map_icr_NE
+          real(rkind)   , dimension(:), allocatable :: y_map_icr_NE
 
-          integer(ikind), dimension(2) :: icoord_NW
-          real(rkind)   , dimension(2) :: rcoord_NW
-          real(rkind)   , dimension(2) :: icoord_icr_NW
-          real(rkind)   , dimension(2) :: rcoord_icr_NW
-          integer(ikind)               :: inter_nb_NW
+          integer(ikind), dimension(2)              :: icoord_NW
+          real(rkind)   , dimension(2)              :: icoord_icr_NW
+          integer(ikind)                            :: inter_nb_NW
+          real(rkind)   , dimension(:), allocatable :: x_map_icr_NW
+          real(rkind)   , dimension(:), allocatable :: y_map_icr_NW
+
 
           logical :: W_in_S
           logical :: S_in_E
@@ -757,12 +764,13 @@
           call S_dct_list_n%get_head(icoord_2,rcoord_2)
           call get_inter_detector_param(
      $         icoord_1,
-     $         rcoord_1,
      $         icoord_2,
-     $         rcoord_2,
+     $         interior_x_map,
+     $         interior_y_map,
      $         icoord_icr_SW,
-     $         rcoord_icr_SW,
-     $         inter_nb_SW)
+     $         inter_nb_SW,
+     $         x_map_icr_SW,
+     $         y_map_icr_SW)
 
           !remove overlap b/w S and W
           if((icoord_1(1).eq.icoord_2(1)).and.(
@@ -780,7 +788,6 @@
              W_in_S = .true.
 
              icoord_SW = icoord_1
-             rcoord_SW = rcoord_1
 
           else
 
@@ -794,12 +801,8 @@
              W_in_S = .false.
 
              icoord_SW = icoord_2
-             rcoord_SW = rcoord_2
 
              icoord_icr_SW(1) = -icoord_icr_SW(1)
-             icoord_icr_SW(2) = -icoord_icr_SW(2)
-             rcoord_icr_SW(1) = -rcoord_icr_SW(1)
-             rcoord_icr_SW(2) = -rcoord_icr_SW(2)
 
           end if
 
@@ -810,12 +813,13 @@
           call E_dct_list_n%get_head(icoord_2,rcoord_2)
           call get_inter_detector_param(
      $         icoord_1,
-     $         rcoord_1,
      $         icoord_2,
-     $         rcoord_2,
+     $         interior_x_map,
+     $         interior_y_map,
      $         icoord_icr_SE,
-     $         rcoord_icr_SE,
-     $         inter_nb_SE)
+     $         inter_nb_SE,
+     $         x_map_icr_SE,
+     $         y_map_icr_SE)
 
           !remove overlap b/w S and E
           if((icoord_1(1).eq.icoord_2(1)).and.(
@@ -825,7 +829,6 @@
 
 
           icoord_SE = icoord_1
-          rcoord_SE = rcoord_1
 
           !
           !          |E 
@@ -856,12 +859,13 @@
           call N_dct_list_n%get_head(icoord_2,rcoord_2)
           call get_inter_detector_param(
      $         icoord_1,
-     $         rcoord_1,
      $         icoord_2,
-     $         rcoord_2,
+     $         interior_x_map,
+     $         interior_y_map,
      $         icoord_icr_NW,
-     $         rcoord_icr_NW,
-     $         inter_nb_NW)
+     $         inter_nb_NW,
+     $         x_map_icr_NW,
+     $         y_map_icr_NW)
 
           !remove overlap b/w W and N
           if((icoord_1(1).eq.icoord_2(1)).and.(
@@ -870,7 +874,6 @@
           end if
 
           icoord_NW = icoord_1
-          rcoord_NW = rcoord_1
           
           !     ____N____
           !    /
@@ -896,12 +899,13 @@
           call N_dct_list_n%get_tail(icoord_2,rcoord_2)
           call get_inter_detector_param(
      $         icoord_1,
-     $         rcoord_1,
      $         icoord_2,
-     $         rcoord_2,
+     $         interior_x_map,
+     $         interior_y_map,
      $         icoord_icr_NE,
-     $         rcoord_icr_NE,
-     $         inter_nb_NE)
+     $         inter_nb_NE,
+     $         x_map_icr_NE,
+     $         y_map_icr_NE)
 
           !remove overlap b/w E and N
           if((icoord_1(1).eq.icoord_2(1)).and.(
@@ -921,7 +925,6 @@
              N_in_E = .true.
 
              icoord_NE = icoord_1
-             rcoord_NE = rcoord_1
 
           !
           !           /|
@@ -933,12 +936,10 @@
              N_in_E = .false.
 
              icoord_NE = icoord_2
-             rcoord_NE = rcoord_2
 
              icoord_icr_NE(1) = -icoord_icr_NE(1)
              icoord_icr_NE(2) = -icoord_icr_NE(2)
-             rcoord_icr_NE(1) = -rcoord_icr_NE(1)
-             rcoord_icr_NE(2) = -rcoord_icr_NE(2)
+
           end if
 
           
@@ -948,16 +949,16 @@
      $         this%S_dct_rcoords,
      $         W_in_S,
      $         icoord_SW,
-     $         rcoord_SW,
      $         icoord_icr_SW,
-     $         rcoord_icr_SW,
+     $         x_map_icr_SW,
+     $         y_map_icr_SW,
      $         inter_nb_SW,
      $         S_dct_list_n,
      $         .not.(S_in_E),
      $         icoord_SE,
-     $         rcoord_SE,
      $         icoord_icr_SE,
-     $         rcoord_icr_SE,
+     $         x_map_icr_SE,
+     $         y_map_icr_SE,
      $         inter_nb_SE)
 
           ! recombine West detector list
@@ -966,16 +967,16 @@
      $         this%W_dct_rcoords,
      $         .not.(W_in_S),
      $         icoord_SW,
-     $         rcoord_SW,
      $         icoord_icr_SW,
-     $         rcoord_icr_SW,
+     $         x_map_icr_SW,
+     $         y_map_icr_SW,
      $         inter_nb_SW,
      $         W_dct_list_n,
      $         N_in_W,
      $         icoord_NW,
-     $         rcoord_NW,
      $         icoord_icr_NW,
-     $         rcoord_icr_NW,
+     $         x_map_icr_NW,
+     $         y_map_icr_NW,
      $         inter_nb_NW)
 
           if(W_remove_first_dct.or.W_remove_last_dct) then
@@ -994,16 +995,16 @@
      $         this%E_dct_rcoords,
      $         S_in_E,
      $         icoord_SE,
-     $         rcoord_SE,
      $         icoord_icr_SE,
-     $         rcoord_icr_SE,
+     $         x_map_icr_SE,
+     $         y_map_icr_SE,
      $         inter_nb_SE,
      $         E_dct_list_n,
      $         N_in_E,
      $         icoord_NE,
-     $         rcoord_NE,
      $         icoord_icr_NE,
-     $         rcoord_icr_NE,
+     $         x_map_icr_NE,
+     $         y_map_icr_NE,
      $         inter_nb_NE)
 
           if(E_remove_first_dct.or.E_remove_last_dct) then
@@ -1022,17 +1023,27 @@
      $         this%N_dct_rcoords,
      $         .not.(N_in_W),
      $         icoord_NW,
-     $         rcoord_NW,
      $         icoord_icr_NW,
-     $         rcoord_icr_NW,
+     $         x_map_icr_NW,
+     $         y_map_icr_NW,
      $         inter_nb_NW,
      $         N_dct_list_n,
      $         .not.(N_in_E),
      $         icoord_NE,
-     $         rcoord_NE,
      $         icoord_icr_NE,
-     $         rcoord_icr_NE,
+     $         x_map_icr_NE,
+     $         y_map_icr_NE,
      $         inter_nb_NE)
+
+          deallocate(x_map_icr_NW)
+          deallocate(x_map_icr_NE)
+          deallocate(x_map_icr_SW)
+          deallocate(x_map_icr_SE)
+
+          deallocate(y_map_icr_NW)
+          deallocate(y_map_icr_NE)
+          deallocate(y_map_icr_SW)
+          deallocate(y_map_icr_SE)
              
         end subroutine combine_bf_idetector_lists  
 
@@ -1045,16 +1056,16 @@
      $     rcoords_n,
      $     add_detectors_left,
      $     icoord_left,
-     $     rcoord_left,
      $     icoord_icr_left,
-     $     rcoord_icr_left,
+     $     x_map_icr_left,
+     $     y_map_icr_left,
      $     inter_nb_left,
      $     dct_list,
      $     add_detectors_right,
      $     icoord_right,
-     $     rcoord_right,
      $     icoord_icr_right,
-     $     rcoord_icr_right,
+     $     x_map_icr_right,
+     $     y_map_icr_right,
      $     inter_nb_right)
 
           implicit none
@@ -1063,16 +1074,16 @@
           real(rkind)   , dimension(:,:), allocatable, intent(inout) :: rcoords_n
           logical                                    , intent(in)    :: add_detectors_left
           integer(ikind), dimension(2)               , intent(in)    :: icoord_left
-          real(rkind)   , dimension(2)               , intent(in)    :: rcoord_left
           real(rkind)   , dimension(2)               , intent(in)    :: icoord_icr_left
-          real(rkind)   , dimension(2)               , intent(in)    :: rcoord_icr_left
+          real(rkind)   , dimension(:)               , intent(in)    :: x_map_icr_left
+          real(rkind)   , dimension(:)               , intent(in)    :: y_map_icr_left
           integer                                    , intent(in)    :: inter_nb_left
           type(bf_detector_icr_list)                 , intent(in)    :: dct_list
           logical                                    , intent(in)    :: add_detectors_right
           integer(ikind), dimension(2)               , intent(in)    :: icoord_right
-          real(rkind)   , dimension(2)               , intent(in)    :: rcoord_right
           real(rkind)   , dimension(2)               , intent(in)    :: icoord_icr_right
-          real(rkind)   , dimension(2)               , intent(in)    :: rcoord_icr_right
+          real(rkind)   , dimension(:)               , intent(in)    :: x_map_icr_right
+          real(rkind)   , dimension(:)               , intent(in)    :: y_map_icr_right
           integer                                    , intent(in)    :: inter_nb_right
           
           integer(ikind), dimension(2) :: icoord_inter
@@ -1111,15 +1122,16 @@
              do k=1, inter_nb_left
                 call get_inter_detector_coords(
      $               icoord_left,
-     $               rcoord_left,
      $               icoord_icr_left,
-     $               rcoord_icr_left,
      $               k,
+     $               x_map_icr_left,
+     $               y_map_icr_left,
      $               icoord_inter,
      $               rcoord_inter)
                 icoords_n(:,k) = icoord_inter
                 rcoords_n(:,k) = rcoord_inter
              end do
+
              k_start = inter_nb_left+1
           end if
 
@@ -1136,10 +1148,10 @@
              do k=1, inter_nb_right
                 call get_inter_detector_coords(
      $               icoord_right,
-     $               rcoord_right,
      $               icoord_icr_right,
-     $               rcoord_icr_right,
      $               k,
+     $               x_map_icr_right,
+     $               y_map_icr_right,
      $               icoord_inter,
      $               rcoord_inter)
                 icoords_n(:,k_start+k-1) = icoord_inter
@@ -1457,7 +1469,11 @@
      $            d_rcoord_n)
              
              !add the new coordinates of the detector of the ndt_list
-             call ndt_list%add_new_detector(d_icoord_n, d_rcoord_n)
+             call ndt_list%add_new_detector(
+     $            interior_x_map,
+     $            interior_y_map,
+     $            d_icoord_n,
+     $            d_rcoord_n)
 
              !look for a bc_interior_pt around the point previously
              !computed whose coordinates are: cpt_coords
@@ -1474,7 +1490,13 @@
           !otherwise, the coordinates of the new detector are simply
           !the previous ones, and are saved in the ndt_list
           else
-             call ndt_list%add_new_detector(d_icoord,d_rcoord)
+
+             call ndt_list%add_new_detector(
+     $            interior_x_map,
+     $            interior_y_map,
+     $            d_icoord,
+     $            d_rcoord)
+
           end if
 
         end subroutine get_modified_grdpts_list
@@ -3002,9 +3024,7 @@ c$$$          end if
      $         this%N_dct_icoords,
      $         this%N_dct_rcoords,
      $         N_first_dct_icoord,
-     $         N_first_dct_rcoord,
      $         N_last_dct_icoord,
-     $         N_last_dct_rcoord,
      $         N_remove_first_dct,
      $         N_remove_last_dct)
 
@@ -3015,9 +3035,7 @@ c$$$          end if
      $         this%S_dct_icoords,
      $         this%S_dct_rcoords,
      $         S_first_dct_icoord,
-     $         S_first_dct_rcoord,
      $         S_last_dct_icoord,
-     $         S_last_dct_rcoord,
      $         S_remove_first_dct,
      $         S_remove_last_dct)
 
@@ -3028,9 +3046,7 @@ c$$$          end if
      $         this%E_dct_icoords,
      $         this%E_dct_rcoords,
      $         E_first_dct_icoord,
-     $         E_first_dct_rcoord,
      $         E_last_dct_icoord,
-     $         E_last_dct_rcoord,
      $         E_remove_first_dct,
      $         E_remove_last_dct)
 
@@ -3041,9 +3057,7 @@ c$$$          end if
      $         this%W_dct_icoords,
      $         this%W_dct_rcoords,
      $         W_first_dct_icoord,
-     $         W_first_dct_rcoord,
      $         W_last_dct_icoord,
-     $         W_last_dct_rcoord,
      $         W_remove_first_dct,
      $         W_remove_last_dct)
 

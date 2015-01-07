@@ -304,9 +304,7 @@
      $     icoords,
      $     rcoords,
      $     left_icoord,
-     $     left_rcoord,
      $     right_icoord,
-     $     right_rcoord,
      $     remove_first_dct,
      $     remove_last_dct)
 
@@ -319,9 +317,7 @@
           integer(ikind), dimension(:,:), allocatable, intent(inout) :: icoords
           real(rkind)   , dimension(:,:), allocatable, intent(inout) :: rcoords
           integer(ikind), dimension(2)               , intent(in)    :: left_icoord
-          real(rkind)   , dimension(2)               , intent(in)    :: left_rcoord
           integer(ikind), dimension(2)               , intent(in)    :: right_icoord
-          real(rkind)   , dimension(2)               , intent(in)    :: right_rcoord
           logical                                    , intent(in)    :: remove_first_dct
           logical                                    , intent(in)    :: remove_last_dct
 
@@ -335,9 +331,9 @@
      $              icoords,
      $              rcoords,
      $              left_icoord,
-     $              left_rcoord,
      $              right_icoord,
-     $              right_rcoord,
+     $              interior_x_map,
+     $              interior_y_map,
      $              interior_x_map,
      $              x_direction,
      $              remove_first_dct,
@@ -350,9 +346,9 @@
      $              icoords,
      $              rcoords,
      $              left_icoord,
-     $              left_rcoord,
      $              right_icoord,
-     $              right_rcoord,
+     $              interior_x_map,
+     $              interior_y_map,
      $              interior_y_map,
      $              y_direction,
      $              remove_first_dct,
@@ -643,10 +639,10 @@
      $     icoords,
      $     rcoords,
      $     left_icoord,
-     $     left_rcoord,
      $     right_icoord,
-     $     right_rcoord,
-     $     interior_map,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_map_dir,
      $     dir,
      $     remove_first_dct,
      $     remove_last_dct)
@@ -657,10 +653,10 @@
           integer(ikind), dimension(:,:), allocatable, intent(inout) :: icoords
           real(rkind)   , dimension(:,:), allocatable, intent(inout) :: rcoords
           integer(ikind), dimension(2)               , intent(in)    :: left_icoord
-          real(rkind)   , dimension(2)               , intent(in)    :: left_rcoord
           integer(ikind), dimension(2)               , intent(in)    :: right_icoord
-          real(rkind)   , dimension(2)               , intent(in)    :: right_rcoord
-          real(rkind)   , dimension(:)               , intent(in)    :: interior_map
+          real(rkind)   , dimension(nx)              , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(ny)              , intent(in)    :: interior_y_map
+          real(rkind)   , dimension(:)               , intent(in)    :: interior_map_dir
           integer                                    , intent(in)    :: dir
           logical                                    , intent(in)    :: remove_first_dct
           logical                                    , intent(in)    :: remove_last_dct
@@ -669,11 +665,14 @@
           integer                                     :: nb_deleted_detectors
           integer                                     :: sign_added_detectors
           real(rkind), dimension(2)                   :: left_icoord_icr
-          real(rkind), dimension(2)                   :: left_rcoord_icr
           real(rkind), dimension(2)                   :: right_icoord_icr
-          real(rkind), dimension(2)                   :: right_rcoord_icr
           integer                                     :: left_inter_nb
           integer                                     :: right_inter_nb
+          real(rkind)   , dimension(:)  , allocatable :: left_x_map_icr
+          real(rkind)   , dimension(:)  , allocatable :: left_y_map_icr
+          real(rkind)   , dimension(:)  , allocatable :: right_x_map_icr
+          real(rkind)   , dimension(:)  , allocatable :: right_y_map_icr
+          
           integer(ikind), dimension(:,:), allocatable :: icoords_n
           real(rkind)   , dimension(:,:), allocatable :: rcoords_n
 
@@ -699,21 +698,23 @@
           !list with the first and the last points
           call get_inter_detector_param(
      $         left_icoord,
-     $         left_rcoord,
      $         this%first_icoord,
-     $         this%first_rcoord,
+     $         interior_x_map,
+     $         interior_y_map,
      $         left_icoord_icr,
-     $         left_rcoord_icr,
-     $         left_inter_nb)
+     $         left_inter_nb,
+     $         left_x_map_icr,
+     $         left_y_map_icr)
 
           call get_inter_detector_param(
      $         this%last_icoord,
-     $         this%last_rcoord,
      $         right_icoord,
-     $         right_rcoord,
+     $         interior_x_map,
+     $         interior_y_map,
      $         right_icoord_icr,
-     $         right_rcoord_icr,
-     $         right_inter_nb)
+     $         right_inter_nb,
+     $         right_x_map_icr,
+     $         right_y_map_icr)
 
 
           !reallocation is needed only if new points are needed
@@ -734,7 +735,7 @@
      $               this,
      $               icoords,
      $               rcoords,
-     $               interior_map,
+     $               interior_map_dir,
      $               dir,
      $               seg_icoord,
      $               seg_rcoord)
@@ -746,7 +747,7 @@
      $               sign_added_detectors,
      $               seg_icoord,
      $               seg_rcoord,
-     $               interior_map,
+     $               interior_map_dir,
      $               dir,
      $               this%segment_borders(1)-1)
 
@@ -775,10 +776,10 @@
                    
                 call get_inter_detector_coords(
      $               left_icoord,
-     $               left_rcoord,
      $               left_icoord_icr,
-     $               left_rcoord_icr,
      $               i,
+     $               left_x_map_icr,
+     $               left_y_map_icr,
      $               icoord_inter,
      $               rcoord_inter)
                    
@@ -786,6 +787,9 @@
                 rcoords_n(:,j+i) = rcoord_inter
                 
              end do
+
+             deallocate(left_x_map_icr)
+             deallocate(left_y_map_icr)
 
 
              !2) add the detectors from the list that
@@ -809,7 +813,7 @@
      $               this,
      $               icoords,
      $               rcoords,
-     $               interior_map,
+     $               interior_map_dir,
      $               dir,
      $               seg_icoord,
      $               seg_rcoord)
@@ -821,7 +825,7 @@
      $               sign_added_detectors,
      $               seg_icoord,
      $               seg_rcoord,
-     $               interior_map,
+     $               interior_map_dir,
      $               dir,
      $               j)
 
@@ -848,10 +852,10 @@
 
                 call get_inter_detector_coords(
      $               this%last_icoord,
-     $               this%last_rcoord,
      $               right_icoord_icr,
-     $               right_rcoord_icr,
      $               i,
+     $               right_x_map_icr,
+     $               right_y_map_icr,
      $               icoord_inter,
      $               rcoord_inter)
 
@@ -860,6 +864,8 @@
                 
              end do
 
+             deallocate(right_x_map_icr)
+             deallocate(right_y_map_icr)
              
              !set the new detector list
              call MOVE_ALLOC(icoords_n,icoords)
