@@ -78,7 +78,8 @@
           integer :: k_sym
           integer :: nb_dct
           logical :: symmetric_dct
-          logical :: symmetric_loc
+          logical :: symmetric_x_loc
+          logical :: symmetric_y_loc
 
 
           symmetric_dct = .true.
@@ -88,16 +89,26 @@
 
              k_sym = nb_dct-k+1
 
-             symmetric_loc = is_test_validated(
+             symmetric_x_loc = is_test_validated(
+     $            dct_rcoords(1,k),
+     $            dct_rcoords(1,k_sym),
+     $            .false.)
+
+             symmetric_y_loc = is_test_validated(
      $            dct_rcoords(2,k),
      $            -dct_rcoords(2,k_sym),
      $            .false.)
-             symmetric_dct = symmetric_dct.and.symmetric_loc
 
-             if(detailled.and.(.not.symmetric_loc)) then
+             symmetric_dct = symmetric_dct.and.(symmetric_x_loc.and.symmetric_y_loc)
 
-                print '(''['',I4,'']: '',F8.4,''->'',F8.4)',
+             if(detailled.and.(.not.(symmetric_x_loc.and.symmetric_y_loc))) then
+
+                print '(''['',I4,'']: '',
+     $               F8.4,''->'',F8.4,3X,
+     $               F8.4,''->'',F8.4)',
      $               k,
+     $               dct_rcoords(1,k),
+     $               dct_rcoords(1,k_sym),
      $               dct_rcoords(2,k),
      $               dct_rcoords(2,k_sym)
 
