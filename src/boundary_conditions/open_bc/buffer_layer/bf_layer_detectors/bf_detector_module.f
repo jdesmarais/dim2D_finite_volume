@@ -41,11 +41,12 @@
         !to the index-coordinates of the intermediate
         !detectors
         subroutine determine_local_map_coordinates(
-     $     interior_map,
-     $     size_interior_map,
-     $     size_local_map,
-     $     first_icoord,
-     $     local_map)
+     $       interior_map,
+     $       size_interior_map,
+     $       size_local_map,
+     $       first_icoord,
+     $       icr_sign,
+     $       local_map)
 
           implicit none
 
@@ -53,6 +54,7 @@
           integer                     , intent(in)  :: size_interior_map
           integer                     , intent(in)  :: size_local_map
           integer(ikind)              , intent(in)  :: first_icoord
+          logical                     , intent(in)  :: icr_sign
           real(rkind)   , dimension(:), intent(out) :: local_map
 
 
@@ -67,66 +69,143 @@
           integer        :: k
 
 
-          !fill the local map with coordinates on
-          !the left side outside the interior_map
-          size_outside = min(size_local_map,1-first_icoord)
+          if(icr_sign) then
 
-          if(size_outside.gt.0) then
+             !fill the local map with coordinates on
+             !the left side outside the interior_map
+             size_outside = 0-min(1,first_icoord)+1
 
-             ds = interior_map(2)-interior_map(1)
-             
-             do k=1, size_outside
-                local_icoord = first_icoord+k-1
-                local_map(k) = interior_map(1) + (local_icoord-1)*ds
-             end do
-             
-             k_start = size_outside
+             if(size_outside.gt.0) then
+                
+                ds = interior_map(2)-interior_map(1)
+                
+                do k=1, size_outside
+                   local_icoord = first_icoord+(k-1)
+                   local_map(k) = interior_map(1) + (local_icoord-1)*ds
+                end do
+                
+                k_start = size_outside
+
+             else
+
+                k_start = 0
+
+             end if
+
+
+             !fill the local map with coordinates from
+             !the interior_map
+             first_icoord_inside = max(first_icoord,1)
+             last_icoord_inside  = min(first_icoord+size_local_map-1,size_interior_map)
+             size_inside         = last_icoord_inside - first_icoord_inside+1
+
+             if(size_inside.gt.0) then
+
+                do k=1, size_inside
+                   local_icoord         = first_icoord_inside+(k-1)
+                   local_map(k_start+k) = interior_map(local_icoord)
+                end do
+                
+                k_start = k_start+size_inside
+
+             end if
+
+
+             !fill the local map with coordinates on the right
+             !side outside the interior_map
+             size_outside = (first_icoord+size_local_map-1)-size_interior_map
+
+             if(size_outside.gt.0) then
+
+                ds = interior_map(size_interior_map)-
+     $               interior_map(size_interior_map-1)
+
+                if(k_start.ne.0) then
+                   first_icoord_outside = size_interior_map+1
+                else
+                   first_icoord_outside = first_icoord
+                end if
+
+                do k=1, size_outside
+                   local_icoord         = first_icoord_outside+(k-1)
+                   local_map(k_start+k) = interior_map(size_interior_map) +
+     $                  (local_icoord-size_interior_map)*ds
+                end do
+
+             end if
 
           else
 
-             k_start = 0
+             !fill the local map with coordinates on the right
+             !side outside the interior_map
+             size_outside = first_icoord-max(first_icoord-size_local_map+1,size_interior_map+1)+1
 
-          end if
+             if(size_outside.gt.0) then
 
+                ds = interior_map(size_interior_map)-
+     $               interior_map(size_interior_map-1)
 
-          !fill the local map with coordinates from
-          !the interior_map
-          first_icoord_inside = max(first_icoord,1)
-          last_icoord_inside  = min(first_icoord+size_local_map-1,size_interior_map)
-          size_inside         = last_icoord_inside - first_icoord_inside+1
-
-          if(size_inside.gt.0) then
-
-             do k=1, size_inside
-                local_icoord         = first_icoord_inside+(k-1)
-                local_map(k_start+k) = interior_map(local_icoord)
-             end do
-             
-             k_start = k_start+size_inside
-
-          end if
-
-
-          !fill the local map with coordinates on the right
-          !side outside the interior_map
-          size_outside = (first_icoord+size_local_map-1)-size_interior_map
-
-          if(size_outside.gt.0) then
-
-             ds = interior_map(size_interior_map)-
-     $            interior_map(size_interior_map-1)
-
-             if(k_start.ne.0) then
-                first_icoord_outside = local_map(k_start)+1
-             else
                 first_icoord_outside = first_icoord
+
+                do k=1, size_outside
+                   local_icoord = first_icoord_outside-(k-1)
+                   local_map(k) = interior_map(size_interior_map) +
+     $                  (local_icoord-size_interior_map)*ds
+                end do
+
+                k_start = size_outside
+
+             else
+
+                k_start = 0
+                
              end if
 
-             do k=1, size_outside
-                local_icoord         = first_icoord_outside+(k-1)
-                local_map(k_start+k) = interior_map(size_interior_map) +
-     $                                 (local_icoord-size_interior_map)*ds
-             end do
+
+             !fill the local map with coordinates from
+             !the interior_map
+             first_icoord_inside = max(first_icoord-size_local_map+1,1)
+             last_icoord_inside  = min(first_icoord,size_interior_map)
+             size_inside         = last_icoord_inside - first_icoord_inside+1
+
+             if(size_inside.gt.0) then
+
+                if(k_start.ne.0) then
+                   first_icoord_inside = size_interior_map
+                else
+                   first_icoord_inside = first_icoord
+                end if                   
+
+                do k=1, size_inside
+                   local_icoord         = first_icoord_inside-(k-1)
+                   local_map(k_start+k) = interior_map(local_icoord)
+                end do
+                
+                k_start = k_start+size_inside
+
+             end if
+             
+
+             !fill the local map with coordinates on
+             !the left side outside the interior_map
+             size_outside = -min(1,first_icoord-size_local_map+1)+1
+
+             if(size_outside.gt.0) then
+                
+                ds = interior_map(2)-interior_map(1)
+                
+                if(k_start.ne.0) then
+                   first_icoord_outside = 0
+                else
+                   first_icoord_outside = first_icoord
+                end if
+
+                do k=1, size_outside
+                   local_icoord = first_icoord_outside-(k-1)
+                   local_map(k_start+k) = interior_map(1) + (local_icoord-1)*ds
+                end do
+
+             end if
 
           end if
 
@@ -188,29 +267,13 @@
           integer :: i_inter_nb
           integer :: j_inter_nb
 
+          integer :: size_x_map_icr
+          integer :: size_y_map_icr
+
 
           !determination of the (x,y)-index differences
           i_change = next_icoord(1) - prev_icoord(1)
           j_change = next_icoord(2) - prev_icoord(2)
-
-          !allocation of the tables storing the (x,y)-
-          !coordinates corresponding of the index
-          allocate(x_map_icr(i_change+1))
-          allocate(y_map_icr(j_change+1))
-
-          !fill the x_map_icr and the y_map_icr with the
-          !coorresponding (x,y)-coordinates
-          call determine_local_map_coordinates(
-     $         interior_x_map,nx,
-     $         i_change+1,
-     $         prev_icoord(1),
-     $         x_map_icr)
-
-          call determine_local_map_coordinates(
-     $         interior_y_map,ny,
-     $         j_change+1,
-     $         prev_icoord(2),
-     $         y_map_icr)
 
           !determine the number of additional detectors
           !to be added b/w the prev and the next detectors
@@ -238,6 +301,30 @@
              end if
 
           end if
+
+          !allocation of the tables storing the (x,y)-
+          !coordinates corresponding of the index
+          size_x_map_icr = i_inter_nb+1
+          size_y_map_icr = j_inter_nb+1
+
+          allocate(x_map_icr(size_x_map_icr))
+          allocate(y_map_icr(size_y_map_icr))
+
+          !fill the x_map_icr and the y_map_icr with the
+          !coorresponding (x,y)-coordinates
+          call determine_local_map_coordinates(
+     $         interior_x_map,nx,
+     $         size_x_map_icr,
+     $         prev_icoord(1),
+     $         (i_change.gt.0),
+     $         x_map_icr)
+
+          call determine_local_map_coordinates(
+     $         interior_y_map,ny,
+     $         size_y_map_icr,
+     $         prev_icoord(2),
+     $         (j_change.gt.0),
+     $         y_map_icr)
 
         end subroutine get_inter_detector_param
 
@@ -307,8 +394,8 @@
           !(x,y)-coordinates of the intermediate detectors are such that
           !the detectors are located at the nodal points corresponding
           !to the (x,y)-index coordinates
-          rcoord_inter(1) = x_map_icr(1+icoord_local_icr(1))
-          rcoord_inter(2) = y_map_icr(1+icoord_local_icr(2))
+          rcoord_inter(1) = x_map_icr(1+abs(icoord_local_icr(1)))
+          rcoord_inter(2) = y_map_icr(1+abs(icoord_local_icr(2)))
           
         end subroutine get_inter_detector_coords
 

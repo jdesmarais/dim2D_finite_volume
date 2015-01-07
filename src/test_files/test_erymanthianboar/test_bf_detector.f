@@ -2,7 +2,8 @@
 
         use bf_detector_module, only :
      $       determine_local_map_coordinates,
-     $       get_inter_detector_param
+     $       get_inter_detector_param,
+     $       get_inter_detector_coords
 
         use check_data_module, only :
      $       is_vector_validated
@@ -34,8 +35,161 @@
         test_validated = test_validated.and.test_loc
         print '(''test_get_inter_detector_param: '',L1)', test_loc
         print '()'
+
+        test_loc = test_get_inter_detector_coords(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_get_inter_detector_coords: '',L1)', test_loc
+        print '()'
         
         contains
+
+        function test_get_inter_detector_coords(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          integer(ikind), dimension(2) :: prev_icoord
+          real(rkind)   , dimension(2) :: icoord_icr
+          integer                      :: k
+          real(rkind)   , dimension(3) :: x_map_icr
+          real(rkind)   , dimension(2) :: y_map_icr
+          
+          integer(ikind), dimension(2) :: icoord_inter
+          real(rkind)   , dimension(2) :: rcoord_inter
+          integer(ikind), dimension(2) :: test_icoord_inter
+          real(rkind)   , dimension(2) :: test_rcoord_inter
+          
+          integer :: test_id
+
+          logical :: validated_icoord_inter
+          logical :: validated_rcoord_inter
+
+          do test_id=1,2
+
+             !test presets
+             call make_test_get_inter_detector_coords(
+     $            test_id,
+     $            prev_icoord,
+     $            icoord_icr,
+     $            k,
+     $            x_map_icr,
+     $            y_map_icr,
+     $            test_icoord_inter,
+     $            test_rcoord_inter)
+
+             !compute the output with the tested function
+             call get_inter_detector_coords(
+     $            prev_icoord,
+     $            icoord_icr,
+     $            k,
+     $            x_map_icr,
+     $            y_map_icr,
+     $            icoord_inter,
+     $            rcoord_inter)
+             
+             !compare results
+             validated_icoord_inter = 
+     $            (icoord_inter(1).eq.test_icoord_inter(1)).and.
+     $            (icoord_inter(2).eq.test_icoord_inter(2))
+
+             validated_rcoord_inter = is_vector_validated(
+     $            rcoord_inter,
+     $            test_rcoord_inter,
+     $            detailled)
+
+             test_validated = validated_icoord_inter.and.
+     $                        validated_rcoord_inter
+
+             !display comparison results
+             if(detailled) then
+
+                print '(''test '',I2)', test_id
+
+                print '(''  icoord_inter: '',L1)', validated_icoord_inter
+                if(.not.validated_icoord_inter) then
+                   print '(''     - ['',2I2,''] -> ['',2I2,'']'')',
+     $                  icoord_inter, test_icoord_inter
+                   print '()'
+                end if
+
+                print '(''  rcoord_inter: '',L1)', validated_rcoord_inter
+                if(.not.validated_rcoord_inter) then
+                   print '(''     - ['',2F8.5,''] -> ['',2F8.5,'']'')',
+     $                  rcoord_inter, test_rcoord_inter
+                   print '()'
+                end if
+
+             end if
+
+          end do
+
+        end function test_get_inter_detector_coords
+
+      
+        subroutine make_test_get_inter_detector_coords(
+     $     test_id,
+     $     prev_icoord,
+     $     icoord_icr,
+     $     k,
+     $     x_map_icr,
+     $     y_map_icr,
+     $     test_icoord_inter,
+     $     test_rcoord_inter)
+
+          implicit none
+
+          integer                     , intent(in)  :: test_id
+          integer(ikind), dimension(2), intent(out) :: prev_icoord
+          real(rkind)   , dimension(2), intent(out) :: icoord_icr
+          integer(ikind)              , intent(out) :: k
+          real(rkind)   , dimension(3), intent(out) :: x_map_icr
+          real(rkind)   , dimension(2), intent(out) :: y_map_icr
+          integer(ikind), dimension(2), intent(out) :: test_icoord_inter
+          real(rkind)   , dimension(2), intent(out) :: test_rcoord_inter
+
+
+          select case(test_id)
+            case(1)
+               prev_icoord(1) = 1
+               prev_icoord(2) = 1
+               
+               icoord_icr(1) = 1.0d0
+               icoord_icr(2) = 0.5d0
+               
+               k=2
+
+               x_map_icr = [0.0d0,0.1d0,0.2d0]
+               y_map_icr = [0.1d0,0.3d0]
+
+               test_icoord_inter = [3,2]
+               test_rcoord_inter = [0.2d0,0.3d0]
+
+            case(2)
+               prev_icoord(1) = 4
+               prev_icoord(2) = 3
+               
+               icoord_icr(1) =-1.0d0
+               icoord_icr(2) =-0.5d0
+               
+               k=2
+
+               x_map_icr = [0.3d0,0.2d0,0.1d0]
+               y_map_icr = [0.6d0,0.4d0]
+
+               test_icoord_inter = [2,2]
+               test_rcoord_inter = [0.1d0,0.4d0]
+
+            case default
+               print '(''make_test_get_inter_detector_coords'')'
+               print '(''test not implemeted: '',I2)', test_id
+               stop ''
+          end select        
+
+        end subroutine make_test_get_inter_detector_coords
 
 
         function test_get_inter_detector_param(detailled)
@@ -70,7 +224,7 @@
           interior_x_map = [0.1d0,0.2d0,0.3d0,0.4d0,0.45d0]
           interior_y_map = [0.0d0,0.2d0,0.4d0,0.6d0,0.8d0,0.9d0]
           
-          do test_id=1,1
+          do test_id=1,6
 
              call make_test_get_inter_detector_param(
      $            test_id,
@@ -117,38 +271,40 @@
 
              if(detailled) then
 
-                print '(''icoord_icr: '')', validated_icoord_icr
+                print '(''test '',I2)', test_id
+
+                print '(''  icoord_icr: '',L1)', validated_icoord_icr
                 if(.not.validated_icoord_icr) then
-                   print '(''   - icoord_icr(1): '',I2,'' -> '',I2)',
+                   print '(''     - icoord_icr(1): '',F8.5,''->'',F8.5)',
      $                  icoord_icr(1), test_icoord_icr(1)
-                   print '(''   - icoord_icr(2): '',I2,'' -> '',I2)',
+                   print '(''     - icoord_icr(2): '',F8.5,''->'',F8.5)',
      $                  icoord_icr(2), test_icoord_icr(2)
                    print '()'
                 end if
 
-                print '(''inter_nb: '')', validated_inter_nb
+                print '(''  inter_nb: '',L1)', validated_inter_nb
                 if(.not.validated_inter_nb) then
-                   print '(''   - '',I2,'' -> '',I2)',
+                   print '(''     - '',I2,'' -> '',I2)',
      $                  inter_nb, test_inter_nb
                    print '()'
                 end if
 
-                print '(''x_map_icr: '')', validated_x_map_icr
+                print '(''  x_map_icr: '',L1)', validated_x_map_icr
                 if(.not.validated_x_map_icr) then
-                   print '('' -  x_map_icr: '')'
+                   print '(''   -  x_map_icr: '')'
                    print *, x_map_icr
-                   print '(''    -> '')'
-                   print '('' -  test_x_map_icr: '')'
+                   print '(''      -> '')'
+                   print '(''   -  test_x_map_icr: '')'
                    print *, test_x_map_icr
                    print '()'
                 end if
 
-                print '(''y_map_icr: '')', validated_y_map_icr
+                print '(''  y_map_icr: '',L1)', validated_y_map_icr
                 if(.not.validated_y_map_icr) then
-                   print '('' -  y_map_icr: '')'
+                   print '(''   -  y_map_icr: '')'
                    print *, y_map_icr
-                   print '(''    -> '')'
-                   print '('' -  test_y_map_icr: '')'
+                   print '(''      -> '')'
+                   print '(''   -  test_y_map_icr: '')'
                    print *, test_y_map_icr
                    print '()'
                 end if
@@ -186,6 +342,7 @@
 
 
           select case(test_id)
+            !i_icr>0, j_icr=0
             case(1)
                prev_icoord(1) = 1
                prev_icoord(2) = 1
@@ -203,6 +360,139 @@
 
                test_x_map_icr = [0.1d0,0.2d0,0.3d0]
                test_y_map_icr = [0.0d0]
+
+            !i_icr<0, j_icr=0
+            case(2)
+               prev_icoord(1) = 4
+               prev_icoord(2) = 1
+
+               next_icoord(1) = 1
+               next_icoord(2) = 1
+
+               test_icoord_icr(1) =-1.0d0
+               test_icoord_icr(2) = 0.0d0
+
+               test_inter_nb = 2
+
+               allocate(test_x_map_icr(3))
+               allocate(test_y_map_icr(1))
+
+               test_x_map_icr = [0.4d0,0.3d0,0.2d0]
+               test_y_map_icr = [0.0d0]
+
+            !i_icr=0, j_icr>0
+            case(3)
+               prev_icoord(1) = 1
+               prev_icoord(2) = 1
+
+               next_icoord(1) = 1
+               next_icoord(2) = 4
+
+               test_icoord_icr(1) = 0.0d0
+               test_icoord_icr(2) = 1.0d0
+
+               test_inter_nb = 2
+
+               allocate(test_x_map_icr(1))
+               allocate(test_y_map_icr(3))
+
+               test_x_map_icr = [0.1d0]
+               test_y_map_icr = [0.0d0,0.2d0,0.4d0]
+
+            !i_icr=0, j_icr<0
+            case(4)
+               prev_icoord(1) = 1
+               prev_icoord(2) = 4
+
+               next_icoord(1) = 1
+               next_icoord(2) = 1
+
+               test_icoord_icr(1) = 0.0d0
+               test_icoord_icr(2) =-1.0d0
+
+               test_inter_nb = 2
+
+               allocate(test_x_map_icr(1))
+               allocate(test_y_map_icr(3))
+
+               test_x_map_icr = [0.1d0]
+               test_y_map_icr = [0.6d0,0.4d0,0.2d0]
+
+            !i_icr>0, j_icr>0
+            case(5)
+               prev_icoord(1) = 1
+               prev_icoord(2) = 1
+
+               next_icoord(1) = 4
+               next_icoord(2) = 3
+
+               test_icoord_icr(1) = 1.0d0
+               test_icoord_icr(2) = 0.5d0
+
+               test_inter_nb = 2
+
+               allocate(test_x_map_icr(3))
+               allocate(test_y_map_icr(2))
+
+               test_x_map_icr = [0.1d0,0.2d0,0.3d0]
+               test_y_map_icr = [0.0d0,0.2d0]
+
+            !i_icr<0, j_icr>0
+            case(6)
+               prev_icoord(1) = 4
+               prev_icoord(2) = 1
+
+               next_icoord(1) = 1
+               next_icoord(2) = 3
+
+               test_icoord_icr(1) =-1.0d0
+               test_icoord_icr(2) = 0.5d0
+
+               test_inter_nb = 2
+
+               allocate(test_x_map_icr(3))
+               allocate(test_y_map_icr(2))
+
+               test_x_map_icr = [0.4d0,0.3d0,0.2d0]
+               test_y_map_icr = [0.0d0,0.2d0]
+
+            !i_icr>0, j_icr<0
+            case(7)
+               prev_icoord(1) = 1
+               prev_icoord(2) = 3
+
+               next_icoord(1) = 4
+               next_icoord(2) = 1
+
+               test_icoord_icr(1) = 1.0d0
+               test_icoord_icr(2) =-0.5d0
+
+               test_inter_nb = 2
+
+               allocate(test_x_map_icr(3))
+               allocate(test_y_map_icr(2))
+
+               test_x_map_icr = [0.1d0,0.2d0,0.3d0]
+               test_y_map_icr = [0.4d0,0.2d0]
+
+            !i_icr<0, j_icr<0
+            case(8)
+               prev_icoord(1) = 4
+               prev_icoord(2) = 3
+
+               next_icoord(1) = 1
+               next_icoord(2) = 1
+
+               test_icoord_icr(1) =-1.0d0
+               test_icoord_icr(2) =-0.5d0
+
+               test_inter_nb = 2
+
+               allocate(test_x_map_icr(3))
+               allocate(test_y_map_icr(2))
+
+               test_x_map_icr = [0.4d0,0.3d0,0.2d0]
+               test_y_map_icr = [0.4d0,0.2d0]
 
             case default
                print '(''make_test_get_inter_detector_param'')'
@@ -230,6 +520,7 @@
           real(rkind)   , dimension(3) :: local_map
           real(rkind)   , dimension(3) :: test_local_map
           integer(ikind)               :: first_icoord
+          logical                      :: sign
 
           integer :: test_id
 
@@ -240,11 +531,11 @@
 
           size_local_map = 3
 
-          do test_id=1,4
+          do test_id=1,12
 
              !get the test presets
              call make_test_determine_local_map_coordinates(
-     $            test_id, first_icoord, test_local_map)
+     $            test_id, first_icoord, sign, test_local_map)
 
              !compute the local map using the tested function
              call determine_local_map_coordinates(
@@ -252,6 +543,7 @@
      $            size_interior_map,
      $            size_local_map,
      $            first_icoord,
+     $            sign,
      $            local_map)
 
              !compare the results
@@ -267,6 +559,8 @@
                 print '(''local_map     : '',3F8.3)', local_map
                 print '(''test_local_map: '',3F8.3)', test_local_map
                 print ''                
+             else
+                print '(''test '',I2,'' validated'')', test_id
              end if
 
           end do          
@@ -275,32 +569,77 @@
 
         
         subroutine make_test_determine_local_map_coordinates(
-     $     test_id, first_icoord, test_local_map)
+     $     test_id, first_icoord, sign, test_local_map)
 
           implicit none
 
           integer                  , intent(in)  :: test_id
           integer                  , intent(out) :: first_icoord
+          logical                  , intent(out) :: sign
           real(rkind), dimension(3), intent(out) :: test_local_map
 
           select case(test_id)
 
             case(1)
-               first_icoord = -2
+               first_icoord   = -2
+               sign           = .true.
                test_local_map = [-0.2d0,-0.1d0,0.0d0]
 
             case(2)
-               first_icoord = 1
-               test_local_map = [0.1d0,0.2d0,0.3d0]
+               first_icoord   = 0
+               sign           = .true.
+               test_local_map = [0.0d0,0.1d0,0.2d0]
 
             case(3)
-               first_icoord = 3
-               test_local_map = [0.3d0,0.4d0,0.45d0]
+               first_icoord   = 1
+               sign           = .true.
+               test_local_map = [0.1d0,0.2d0,0.3d0]
 
             case(4)
-               first_icoord = 6
+               first_icoord   = 3
+               sign           = .true.
+               test_local_map = [0.3d0,0.4d0,0.45d0]
+
+            case(5)
+               first_icoord   = 5
+               sign           = .true.
+               test_local_map = [0.45d0,0.5d0,0.55d0]
+
+            case(6)
+               first_icoord   = 6
+               sign           = .true.
                test_local_map = [0.5d0,0.55d0,0.6d0]
+
+            case(7)
+               first_icoord   = 8
+               sign           = .false.
+               test_local_map = [0.6d0,0.55d0,0.5d0]
+
+            case(8)
+               first_icoord   = 6
+               sign           = .false.
+               test_local_map = [0.5d0,0.45d0,0.4d0]
                
+            case(9)
+               first_icoord   = 5
+               sign           = .false.
+               test_local_map = [0.45d0,0.4d0,0.3d0]
+
+            case(10)
+               first_icoord   = 3
+               sign           = .false.
+               test_local_map = [0.3d0,0.2d0,0.1d0]
+
+            case(11)
+               first_icoord   = 1
+               sign           = .false.
+               test_local_map = [0.1d0,0.0d0,-0.1d0]
+
+            case(12)
+               first_icoord   = 0
+               sign           = .false.
+               test_local_map = [0.0d0,-0.1d0,-0.2d0]
+
             case default
                print '(''make_test_determine_locla_map_coordinates'')'
                print '(''test case not implemented: '',I2)', test_id
