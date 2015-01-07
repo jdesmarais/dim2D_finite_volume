@@ -250,8 +250,10 @@
 
                 end do
 
-                deallocate(x_map_icr)
-                deallocate(y_map_icr)
+                if(inter_nb.gt.0) then
+                   deallocate(x_map_icr)
+                   deallocate(y_map_icr)
+                end if
 
                 !add the new detector to the list as the last detector
                 !of teh intermediate list

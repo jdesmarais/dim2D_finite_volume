@@ -788,8 +788,10 @@
                 
              end do
 
-             deallocate(left_x_map_icr)
-             deallocate(left_y_map_icr)
+             if(left_inter_nb.gt.0) then
+                deallocate(left_x_map_icr)
+                deallocate(left_y_map_icr)
+             end if
 
 
              !2) add the detectors from the list that
@@ -864,8 +866,10 @@
                 
              end do
 
-             deallocate(right_x_map_icr)
-             deallocate(right_y_map_icr)
+             if(right_inter_nb.gt.0) then
+                deallocate(right_x_map_icr)
+                deallocate(right_y_map_icr)
+             end if
              
              !set the new detector list
              call MOVE_ALLOC(icoords_n,icoords)

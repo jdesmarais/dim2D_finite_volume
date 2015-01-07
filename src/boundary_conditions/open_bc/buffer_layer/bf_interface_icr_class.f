@@ -1035,15 +1035,25 @@
      $         y_map_icr_NE,
      $         inter_nb_NE)
 
-          deallocate(x_map_icr_NW)
-          deallocate(x_map_icr_NE)
-          deallocate(x_map_icr_SW)
-          deallocate(x_map_icr_SE)
+          if(inter_nb_NW.gt.0) then
+             deallocate(x_map_icr_NW)
+             deallocate(y_map_icr_NW)
+          end if
 
-          deallocate(y_map_icr_NW)
-          deallocate(y_map_icr_NE)
-          deallocate(y_map_icr_SW)
-          deallocate(y_map_icr_SE)
+          if(inter_nb_NE.gt.0) then
+             deallocate(x_map_icr_NE)
+             deallocate(y_map_icr_NE)
+          end if
+
+          if(inter_nb_SW.gt.0) then
+             deallocate(x_map_icr_SW)
+             deallocate(y_map_icr_SW)
+          end if
+
+          if(inter_nb_SE.gt.0) then
+             deallocate(x_map_icr_SE)
+             deallocate(y_map_icr_SE)
+          end if
              
         end subroutine combine_bf_idetector_lists  
 
@@ -1082,8 +1092,8 @@
           logical                                    , intent(in)    :: add_detectors_right
           integer(ikind), dimension(2)               , intent(in)    :: icoord_right
           real(rkind)   , dimension(2)               , intent(in)    :: icoord_icr_right
-          real(rkind)   , dimension(:)               , intent(in)    :: x_map_icr_right
-          real(rkind)   , dimension(:)               , intent(in)    :: y_map_icr_right
+          real(rkind)   , dimension(:)  , allocatable, intent(in)    :: x_map_icr_right
+          real(rkind)   , dimension(:)  , allocatable, intent(in)    :: y_map_icr_right
           integer                                    , intent(in)    :: inter_nb_right
           
           integer(ikind), dimension(2) :: icoord_inter

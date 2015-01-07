@@ -286,6 +286,8 @@
 
           if(inter_nb.gt.0) then
 
+             !determination of the increase of the (x,y)-index
+             !coordinates
              if(i_change.ne.0) then
                 icoord_icr(1) = (real(i_change)-sign(1,i_change))/real(inter_nb)
                 !icoord_icr(1) = real(i_change)/real(i_inter_nb+1)
@@ -300,31 +302,32 @@
                 icoord_icr(2) = 0
              end if
 
-          end if
+             !allocation of the tables storing the (x,y)-
+             !coordinates corresponding of the index
+             size_x_map_icr = max(1,i_inter_nb+1)
+             size_y_map_icr = max(1,j_inter_nb+1)
+             
+             allocate(x_map_icr(size_x_map_icr))
+             allocate(y_map_icr(size_y_map_icr))
 
-          !allocation of the tables storing the (x,y)-
-          !coordinates corresponding of the index
-          size_x_map_icr = i_inter_nb+1
-          size_y_map_icr = j_inter_nb+1
+             
+             !fill the x_map_icr and the y_map_icr with the
+             !coorresponding (x,y)-coordinates
+             call determine_local_map_coordinates(
+     $            interior_x_map,nx,
+     $            size_x_map_icr,
+     $            prev_icoord(1),
+     $            (i_change.gt.0),
+     $            x_map_icr)
+             
+             call determine_local_map_coordinates(
+     $            interior_y_map,ny,
+     $            size_y_map_icr,
+     $            prev_icoord(2),
+     $            (j_change.gt.0),
+     $            y_map_icr)
 
-          allocate(x_map_icr(size_x_map_icr))
-          allocate(y_map_icr(size_y_map_icr))
-
-          !fill the x_map_icr and the y_map_icr with the
-          !coorresponding (x,y)-coordinates
-          call determine_local_map_coordinates(
-     $         interior_x_map,nx,
-     $         size_x_map_icr,
-     $         prev_icoord(1),
-     $         (i_change.gt.0),
-     $         x_map_icr)
-
-          call determine_local_map_coordinates(
-     $         interior_y_map,ny,
-     $         size_y_map_icr,
-     $         prev_icoord(2),
-     $         (j_change.gt.0),
-     $         y_map_icr)
+          end if          
 
         end subroutine get_inter_detector_param
 
