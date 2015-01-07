@@ -4,7 +4,6 @@
 include $(AUGEANSTABLES_CONFIG)/makefile_header.mk
 
 
-check_data_module.o:	$(param_dir)/parameters_kind.o
 
 
 test_cg_operators.o:	$(dim2d_dir)/dim2d_prim_module.o\

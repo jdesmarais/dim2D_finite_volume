@@ -101,3 +101,7 @@ include $(config_dir)/makefile_rules.mk
 #----------------------------------------------------------------------
 include $(config_dir)/makefile_dep.mk
 include $(config_dir)/dep/dim2d_dep.mk #DIM2D physical model
+
+$(test_dir)/test_lernaeanhydra/check_data_module.o:\
+	$(param_dir)/parameters_kind.o
+

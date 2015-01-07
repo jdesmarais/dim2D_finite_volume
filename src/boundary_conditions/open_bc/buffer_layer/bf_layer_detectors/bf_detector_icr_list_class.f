@@ -100,6 +100,7 @@
           procedure, pass :: add_new_detector
 
           procedure, pass, private :: add_detector_to_mainlayer
+          procedure, pass, private :: make_average_detector
 
           procedure,   pass :: get_nb_detectors
           procedure,   pass :: get_head
@@ -188,6 +189,9 @@
           real(rkind)   , dimension(2) :: rcoord_icr
           integer                      :: inter_nb
 
+          real(rkind)   , dimension(:), allocatable :: x_map_icr
+          real(rkind)   , dimension(:), allocatable :: y_map_icr
+
           integer(ikind), dimension(2) :: icoord_inter
           real(rkind)   , dimension(2) :: rcoord_inter
           integer                      :: k
@@ -208,30 +212,54 @@
                 !add intermediate detectors between the previous
                 !one and the new one to retain a continuous path
                 call get_inter_detector_param(
-     $               prev_icoord, 
-     $               prev_rcoord,
+     $               prev_icoord,
      $               icoord,
-     $               rcoord,
+     $               interior_x_map,
+     $               interior_y_map,
      $               icoord_icr,
-     $               rcoord_icr,
-     $               inter_nb)
+     $               inter_nb,
+     $               x_map_icr,
+     $               y_map_icr)
                 
                 do k=1, inter_nb
                    call get_inter_detector_coords(
      $                  prev_icoord,
-     $                  prev_rcoord,
      $                  icoord_icr,
-     $                  rcoord_icr,
      $                  k,
+     $                  x_map_icr,
+     $                  y_map_icr,
      $                  icoord_inter,
      $                  rcoord_inter)
-                   call add_detector_to_mainlayer(
-     $                  this,
-     $                  icoord_inter,
-     $                  rcoord_inter)
+
+                   if((prev_icoord(1).ne.icoord_inter(1)).or.
+     $                (prev_icoord(2).ne.icoord_inter(2))) then
+                   
+                      call add_detector_to_mainlayer(
+     $                     this,
+     $                     icoord_inter,
+     $                     rcoord_inter)
+
+                      prev_icoord = icoord_inter
+                      prev_rcoord = rcoord_inter
+                      
+                   else
+
+                      call this%make_average_detector(prev_rcoord,rcoord_inter)
+
+                   end if
+
                 end do
 
-                call add_detector_to_mainlayer(this, icoord, rcoord)
+                if((prev_icoord(1).ne.icoord(1)).or.
+     $             (prev_icoord(2).ne.icoord(2))) then
+
+                   call add_detector_to_mainlayer(this, icoord, rcoord)
+
+                else
+
+                   call this%make_average_detector(prev_rcoord,rcoord)
+
+                end if
 
              !if the detector to be added to the list has the same
              !(x,y)-index coordinates as the previous detector stored
@@ -239,15 +267,7 @@
              !a new detector which is an average b/w the two
              else
 
-                if(rkind.eq.8) then
-                   rcoord_average(1) = 0.5d0*(prev_rcoord(1) + rcoord(1))
-                   rcoord_average(2) = 0.5d0*(prev_rcoord(2) + rcoord(2))
-                else
-                   rcoord_average(1) = 0.5*(prev_rcoord(1) + rcoord(1))
-                   rcoord_average(2) = 0.5*(prev_rcoord(2) + rcoord(2))
-                end if
-
-                this%rcoords(:,this%nb_detectors) = rcoord_average
+                call this%make_average_detector(prev_rcoord,rcoord)
 
              end if
 
@@ -259,6 +279,55 @@
           end if
 
         end subroutine add_new_detector
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> if two detectors shared the same (x,y)-index coordinates, an
+        !> average detector is created combining the new detector with
+        !> the previous detector in the list. This function computes the
+        !> (x,y)-coordinates of the average detector and store them in the
+        !> list
+        !
+        !> @date
+        !> 07_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_detector_icr_list object encapsulating the data structure
+        !> for temporary storing the position of the new increasing
+        !> detectors
+        !
+        !>@param prev_rcoord
+        !> (x,y)-coordinates of the previous detector in the list sharing
+        !> the same (x,y)-index coordinates as the current detector
+        !
+        !>@param current_rcoord
+        !> (x,y)-coordinates of the current detector sharing the same (x,y)-
+        !> index coordinates as the previous detector stored in the list
+        !--------------------------------------------------------------
+        subroutine make_average_detector(this, prev_rcoord, current_rcoord)
+
+          implicit none
+
+          class(bf_detector_icr_list), intent(inout) :: this
+          real(rkind), dimension(2)  , intent(in)    :: prev_rcoord
+          real(rkind), dimension(2)  , intent(in)    :: current_rcoord
+
+          real(rkind), dimension(2) :: rcoord_average
+
+          if(rkind.eq.8) then
+             rcoord_average(1) = 0.5d0*(prev_rcoord(1) + current_rcoord(1))
+             rcoord_average(2) = 0.5d0*(prev_rcoord(2) + current_rcoord(2))
+          else
+             rcoord_average(1) = 0.5*(prev_rcoord(1) + current_rcoord(1))
+             rcoord_average(2) = 0.5*(prev_rcoord(2) + current_rcoord(2))
+          end if
+          
+          this%rcoords(:,this%nb_detectors) = rcoord_average
+
+        end subroutine make_average_detector
 
 
         !> @author

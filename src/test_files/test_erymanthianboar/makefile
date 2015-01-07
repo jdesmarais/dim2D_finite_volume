@@ -401,3 +401,12 @@ test_bf_detector_dcr_param:	parameters_bf_layer.o\
 				parameters_constant.o\
 				parameters_input.o\
 				parameters_kind.o
+
+test_bf_detector.o:		$(test_dir)/test_lernaeanhydra/check_data_module.o\
+				$(dbf_layer_dir)/bf_detector_module.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_detector:		check_data_module.o\
+				bf_detector_module.o\
+				parameters_input.o\
+				parameters_kind.o
