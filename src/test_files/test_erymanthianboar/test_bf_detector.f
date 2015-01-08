@@ -7,10 +7,12 @@
      $     
      $       get_rot_coords,
      $       get_minimum_block_nb,
-     $       get_inter_detector_rot_param
+     $       get_inter_detector_rot_param,
+     $       get_inter_detector_rot_coords
 
         use check_data_module, only :
-     $       is_vector_validated
+     $       is_vector_validated,
+     $       is_matrix_validated
 
         use parameters_input, only :
      $       nx,ny
@@ -67,12 +69,245 @@ c$$$        print '()'
         print '(''test_get_inter_detector_rot_param: '',L1)', test_loc
         print '()'
 
-c$$$        test_loc = test_get_inter_detector_rot_param(detailled)
-c$$$        test_validated = test_validated.and.test_loc
-c$$$        print '(''test_get_inter_detector_rot_param: '',L1)', test_loc
-c$$$        print '()'
+        test_loc = test_get_inter_detector_rot_coords(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_get_inter_detector_rot_coords: '',L1)', test_loc
+        print '()'
 
         contains
+
+        function test_get_inter_detector_rot_coords(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          integer(ikind), dimension(2)                :: prev_icoords
+          integer(ikind), dimension(2)                :: next_icoords
+          real(rkind)   , dimension(nx)               :: interior_x_map
+          real(rkind)   , dimension(ny)               :: interior_y_map
+                                                      
+          real(rkind)   , dimension(2)                :: rot_icoords_r
+          real(rkind)   , dimension(2)                :: icoords_icr
+          integer(ikind)                              :: inter_nb
+          real(rkind)   , dimension(:)  , allocatable :: x_map_icr
+          real(rkind)   , dimension(:)  , allocatable :: y_map_icr
+
+          integer(ikind), dimension(:,:), allocatable :: icoords_inter
+          integer(ikind), dimension(:,:), allocatable :: test_icoords_inter
+          real(rkind)   , dimension(:,:), allocatable :: rcoords_inter
+          real(rkind)   , dimension(:,:), allocatable :: test_rcoords_inter
+
+          integer :: test_id
+
+          logical :: validated_icoords_inter
+          logical :: validated_rcoords_inter
+
+          integer :: k
+
+          test_validated = .true.
+
+
+          interior_x_map = [0.1d0,0.2d0,0.3d0,0.4d0,0.45d0]
+          interior_y_map = [0.0d0,0.2d0,0.4d0,0.6d0,0.8d0,0.9d0]
+
+          do test_id=1,4            
+
+             call make_test_get_inter_detector_rot_coords(
+     $            test_id,
+     $            prev_icoords,
+     $            next_icoords,
+     $            test_icoords_inter,
+     $            test_rcoords_inter)
+
+             call get_inter_detector_rot_param(
+     $            prev_icoords,
+     $            next_icoords,
+     $            interior_x_map,
+     $            interior_y_map,
+     $            rot_icoords_r,
+     $            icoords_icr,
+     $            inter_nb,
+     $            x_map_icr,
+     $            y_map_icr)
+
+             allocate(icoords_inter(2,inter_nb))
+             allocate(rcoords_inter(2,inter_nb))             
+
+             do k=1, inter_nb
+
+                call get_inter_detector_rot_coords(
+     $               rot_icoords_r,
+     $               icoords_icr,
+     $               inter_nb,
+     $               x_map_icr,
+     $               y_map_icr,
+     $               k,
+     $               icoords_inter(:,k),
+     $               rcoords_inter(:,k))
+
+             end do
+
+             validated_icoords_inter = .true.
+
+             do k=1,inter_nb
+                validated_icoords_inter = 
+     $               validated_icoords_inter.and.(
+     $               (icoords_inter(1,k).eq.test_icoords_inter(1,k)).and.
+     $               (icoords_inter(2,k).eq.test_icoords_inter(2,k)))
+             end do
+             
+             validated_rcoords_inter = is_matrix_validated(
+     $            rcoords_inter,
+     $            test_rcoords_inter,
+     $            detailled)
+             
+             test_loc =
+     $            validated_icoords_inter.and.
+     $            validated_rcoords_inter
+
+             test_validated = test_validated.and.test_loc
+
+             print '(''test '',I2)', test_id
+
+             if(.not.validated_icoords_inter) then
+                print '(''icoords_inter:'')'
+                print *, icoords_inter
+                print '(''->'')'
+                print *,test_icoords_inter
+             end if
+
+             if(.not.validated_rcoords_inter) then
+                print '(''rcoords_inter:'')'
+                print *, rcoords_inter
+                print '(''->'')'
+                print *,test_rcoords_inter
+             end if
+
+             deallocate(icoords_inter)
+             deallocate(rcoords_inter)
+
+             deallocate(test_icoords_inter)
+             deallocate(test_rcoords_inter)
+
+             deallocate(x_map_icr)
+             deallocate(y_map_icr)
+
+          end do
+
+        end function test_get_inter_detector_rot_coords
+
+        
+        subroutine make_test_get_inter_detector_rot_coords(
+     $     test_id,
+     $     prev_icoords,
+     $     next_icoords,
+     $     test_icoords_inter,
+     $     test_rcoords_inter)
+
+          implicit none
+
+          integer                                    , intent(in)  :: test_id
+          integer(ikind), dimension(2)               , intent(out) :: prev_icoords
+          integer(ikind), dimension(2)               , intent(out) :: next_icoords
+          integer(ikind), dimension(:,:), allocatable, intent(out) :: test_icoords_inter
+          real(rkind)   , dimension(:,:), allocatable, intent(out) :: test_rcoords_inter
+
+          select case(test_id)
+            case(1)
+               prev_icoords = [1,1]
+               next_icoords = [2,3]
+               
+               allocate(test_icoords_inter(2,2))
+               allocate(test_rcoords_inter(2,2))
+
+               test_icoords_inter = reshape((/
+     $              1,2,
+     $              2,2
+     $              /),
+     $              (/2,2/)
+     $              )
+               
+               test_rcoords_inter = reshape((/
+     $              0.1d0,0.2d0,
+     $              0.2d0,0.2d0
+     $              /),
+     $              (/2,2/)
+     $              )
+
+            case(2)
+               prev_icoords = [1,3]
+               next_icoords = [2,1]
+               
+               allocate(test_icoords_inter(2,2))
+               allocate(test_rcoords_inter(2,2))
+
+               test_icoords_inter = reshape((/
+     $              1,2,
+     $              2,2
+     $              /),
+     $              (/2,2/)
+     $              )
+               
+               test_rcoords_inter = reshape((/
+     $              0.1d0,0.2d0,
+     $              0.2d0,0.2d0
+     $              /),
+     $              (/2,2/)
+     $              )
+
+            case(3)
+               prev_icoords = [2,1]
+               next_icoords = [1,3]
+               
+               allocate(test_icoords_inter(2,2))
+               allocate(test_rcoords_inter(2,2))
+
+               test_icoords_inter = reshape((/
+     $              2,2,
+     $              1,2
+     $              /),
+     $              (/2,2/)
+     $              )
+               
+               test_rcoords_inter = reshape((/
+     $              0.2d0,0.2d0,
+     $              0.1d0,0.2d0
+     $              /),
+     $              (/2,2/)
+     $              )
+
+            case(4)
+               prev_icoords = [2,1]
+               next_icoords = [1,3]
+               
+               allocate(test_icoords_inter(2,2))
+               allocate(test_rcoords_inter(2,2))
+
+               test_icoords_inter = reshape((/
+     $              2,2,
+     $              1,2
+     $              /),
+     $              (/2,2/)
+     $              )
+               
+               test_rcoords_inter = reshape((/
+     $              0.2d0,0.2d0,
+     $              0.1d0,0.2d0
+     $              /),
+     $              (/2,2/)
+     $              )
+
+            case default
+               print '(''make_test_get_inter_detector_rot_coords'')'
+               print '(''test not implemented: '',I2)', test_id
+          end select
+
+
+        end subroutine make_test_get_inter_detector_rot_coords
+
 
         function test_get_inter_detector_rot_param(detailled)
      $       result(test_validated)
@@ -113,7 +348,7 @@ c$$$        print '()'
           interior_x_map = [0.1d0,0.2d0,0.3d0,0.4d0,0.45d0]
           interior_y_map = [0.0d0,0.2d0,0.4d0,0.6d0,0.8d0,0.9d0]
 
-          do test_id=1,1
+          do test_id=1,11
              
              call make_test_get_inter_detector_rot_param(
      $            test_id,
@@ -247,6 +482,166 @@ c$$$        print '()'
                
                x_map_icr = [0.1d0,0.2d0]
                y_map_icr = [0.0d0,0.2d0]
+
+            case(2)
+               prev_icoords = [1,3]
+               next_icoords = [2,1]
+               
+               rot_icoords_r = [1.5d0,2.0d0]
+               
+               icoords_icr = [1.0d0/3.0d0,-2.0d0/3.0d0]
+
+               inter_nb = 2
+
+               allocate(x_map_icr(2))
+               allocate(y_map_icr(2))
+               
+               x_map_icr = [0.1d0,0.2d0]
+               y_map_icr = [0.4d0,0.2d0]
+
+            case(3)
+               prev_icoords = [2,1]
+               next_icoords = [1,3]
+               
+               rot_icoords_r = [1.5d0,2.0d0]
+               
+               icoords_icr = [-1.0d0/3.0d0,2.0d0/3.0d0]
+
+               inter_nb = 2
+
+               allocate(x_map_icr(2))
+               allocate(y_map_icr(2))
+               
+               x_map_icr = [0.2d0,0.1d0]
+               y_map_icr = [0.0d0,0.2d0]
+
+            case(4)
+               prev_icoords = [2,3]
+               next_icoords = [1,1]
+               
+               rot_icoords_r = [1.5d0,2.0d0]
+               
+               icoords_icr = [-1.0d0/3.0d0,-2.0d0/3.0d0]
+
+               inter_nb = 2
+
+               allocate(x_map_icr(2))
+               allocate(y_map_icr(2))
+               
+               x_map_icr = [0.2d0,0.1d0]
+               y_map_icr = [0.4d0,0.2d0]
+
+            case(5)
+               prev_icoords = [1,1]
+               next_icoords = [3,3]
+               
+               rot_icoords_r = [2.0d0,2.0d0]
+               
+               icoords_icr = [1.0d0,1.0d0]
+
+               inter_nb = 1
+
+               allocate(x_map_icr(2))
+               allocate(y_map_icr(2))
+               
+               x_map_icr = [0.1d0,0.2d0]
+               y_map_icr = [0.0d0,0.2d0]
+
+            case(6)
+               prev_icoords = [1,3]
+               next_icoords = [3,1]
+               
+               rot_icoords_r = [2.0d0,2.0d0]
+               
+               icoords_icr = [1.0d0,-1.0d0]
+
+               inter_nb = 1
+
+               allocate(x_map_icr(2))
+               allocate(y_map_icr(2))
+               
+               x_map_icr = [0.1d0,0.2d0]
+               y_map_icr = [0.4d0,0.2d0]
+
+            case(7)
+               prev_icoords = [3,1]
+               next_icoords = [1,3]
+               
+               rot_icoords_r = [2.0d0,2.0d0]
+               
+               icoords_icr = [-1.0d0,1.0d0]
+
+               inter_nb = 1
+
+               allocate(x_map_icr(2))
+               allocate(y_map_icr(2))
+               
+               x_map_icr = [0.3d0,0.2d0]
+               y_map_icr = [0.0d0,0.2d0]
+
+            case(8)
+               prev_icoords = [3,3]
+               next_icoords = [1,1]
+               
+               rot_icoords_r = [2.0d0,2.0d0]
+               
+               icoords_icr = [-1.0d0,-1.0d0]
+
+               inter_nb = 1
+
+               allocate(x_map_icr(2))
+               allocate(y_map_icr(2))
+               
+               x_map_icr = [0.3d0,0.2d0]
+               y_map_icr = [0.4d0,0.2d0]
+
+            case(9)
+               prev_icoords = [1,1]
+               next_icoords = [4,3]
+               
+               rot_icoords_r = [2.5d0,2.0d0]
+               
+               icoords_icr = [1.0d0,2.0d0/3.0d0]
+
+               inter_nb = 2
+
+               allocate(x_map_icr(3))
+               allocate(y_map_icr(2))
+               
+               x_map_icr = [0.1d0,0.2d0,0.3d0]
+               y_map_icr = [0.0d0,0.2d0]
+
+            case(10)
+               prev_icoords = [1,1]
+               next_icoords = [6,5]
+               
+               rot_icoords_r = [3.5d0,3.0d0]
+               
+               icoords_icr = [1.0d0,4.0d0/5.0d0]
+
+               inter_nb = 4
+
+               allocate(x_map_icr(5))
+               allocate(y_map_icr(4))
+               
+               x_map_icr = [0.1d0,0.2d0,0.3d0,0.4d0,0.45d0]
+               y_map_icr = [0.0d0,0.2d0,0.4d0,0.6d0]
+
+            case(11)
+               prev_icoords = [1,1]
+               next_icoords = [5,7]
+               
+               rot_icoords_r = [3.0d0,4.0d0]
+               
+               icoords_icr = [2.0d0/3.0d0,1.0d0]
+
+               inter_nb = 5
+
+               allocate(x_map_icr(4))
+               allocate(y_map_icr(6))
+               
+               x_map_icr = [0.1d0,0.2d0,0.3d0,0.4d0]
+               y_map_icr = [0.0d0,0.2d0,0.4d0,0.6d0,0.8d0,0.9d0]
 
             case default
                print '(''make_test_get_inter_detector_rot_param'')'

@@ -243,8 +243,8 @@
 
           k_rot = (inter_nb+1)/2
 
-          icoord_inter(1) = nint(rot_icoords_r(1)+nint(k-k_rot)*icoords_icr(1))
-          icoord_inter(2) = nint(rot_icoords_r(2)+nint(k-k_rot)*icoords_icr(2))
+          icoord_inter(1) = nint(rot_icoords_r(1)+(k-k_rot)*icoords_icr(1))
+          icoord_inter(2) = nint(rot_icoords_r(2)+(k-k_rot)*icoords_icr(2))
 
           rcoord_inter(1) = x_map_icr(k)
           rcoord_inter(2) = y_map_icr(k)
@@ -316,7 +316,7 @@
           !--------------------------------------------------------
           if((mod(prev_icoords(1)+next_icoords(1),2).eq.1).or.
      $       (mod(prev_icoords(2)+next_icoords(2),2).eq.1)) then
-             total_nb_blocks = 2*rot_block_nb
+             total_nb_blocks = 2*(rot_block_nb+1)
           else
              total_nb_blocks = 2*rot_block_nb+1
           end if
@@ -344,8 +344,8 @@
              
           end do
 
-          icoords_icr(1) = (next_icoords(1)-prev_icoords(1))/(inter_nb+1)
-          icoords_icr(2) = (next_icoords(2)-prev_icoords(2))/(inter_nb+1)
+          icoords_icr(1) = real(next_icoords(1)-prev_icoords(1))/real(inter_nb+1)
+          icoords_icr(2) = real(next_icoords(2)-prev_icoords(2))/real(inter_nb+1)
 
           
           !determine the local x_map and y_map corresponding 
@@ -358,6 +358,8 @@
      $            interior_x_map,
      $            interior_y_map,
      $            icoords_icr,
+     $            rot_icoords_r,
+     $            inter_nb,
      $            x_map_icr,
      $            y_map_icr)
              
@@ -373,6 +375,8 @@
      $     interior_x_map,
      $     interior_y_map,
      $     icoords_icr,
+     $     rot_icoords_r,
+     $     inter_nb,
      $     x_map_icr,
      $     y_map_icr)
 
@@ -383,17 +387,32 @@
           real(rkind)   , dimension(nx)             , intent(in)  :: interior_x_map
           real(rkind)   , dimension(ny)             , intent(in)  :: interior_y_map
           real(rkind)   , dimension(2)              , intent(in)  :: icoords_icr
+          real(rkind)   , dimension(2)              , intent(in)  :: rot_icoords_r
+          integer                                   , intent(in)  :: inter_nb
           real(rkind)   , dimension(:) , allocatable, intent(out) :: x_map_icr
           real(rkind)   , dimension(:) , allocatable, intent(out) :: y_map_icr
 
+          integer :: first_icoord
+          integer :: last_icoord
           integer :: size_x_map_icr
           integer :: size_y_map_icr
 
 
           !allocation of the tables storing the (x,y)-
           !coordinates corresponding of the index
-          size_x_map_icr = max(1,abs(next_icoords(1)-prev_icoords(1)))
-          size_y_map_icr = max(1,abs(next_icoords(2)-prev_icoords(2)))
+          first_icoord =nint(rot_icoords_r(1)+(1-real(inter_nb+1)/2)*icoords_icr(1))
+          last_icoord  = nint(rot_icoords_r(1)+(inter_nb-real(inter_nb+1)/2)*icoords_icr(1))
+          size_x_map_icr = abs(last_icoord-first_icoord)+1
+          if(prev_icoords(1).ne.first_icoord) then
+             size_x_map_icr = size_x_map_icr+1
+          end if
+
+          first_icoord =nint(rot_icoords_r(2)+(1-real(inter_nb+1)/2)*icoords_icr(2))
+          last_icoord  = nint(rot_icoords_r(2)+(inter_nb-real(inter_nb+1)/2)*icoords_icr(2))
+          size_y_map_icr = abs(last_icoord-first_icoord)+1
+          if(prev_icoords(1).ne.first_icoord) then
+             size_y_map_icr = size_y_map_icr+1
+          end if
           
           allocate(x_map_icr(size_x_map_icr))
           allocate(y_map_icr(size_y_map_icr))
