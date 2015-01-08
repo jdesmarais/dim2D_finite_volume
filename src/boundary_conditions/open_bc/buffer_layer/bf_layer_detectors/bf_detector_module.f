@@ -32,7 +32,13 @@
         public :: 
      $       determine_local_map_coordinates,
      $       get_inter_detector_param,
-     $       get_inter_detector_coords
+     $       get_inter_detector_coords,
+     $       
+     $       get_rot_coords,
+     $       get_minimum_block_nb,
+     $       get_intermediate_maps,
+     $       get_inter_detector_rot_param,
+     $       get_inter_detector_rot_coords
 
         contains
 
@@ -210,6 +216,295 @@
           end if
 
         end subroutine determine_local_map_coordinates
+
+
+        subroutine get_inter_detector_rot_coords(
+     $     rot_icoords_r,
+     $     icoords_icr,
+     $     inter_nb,
+     $     x_map_icr,
+     $     y_map_icr,
+     $     k,
+     $     icoord_inter,
+     $     rcoord_inter)
+
+          implicit none
+
+          real(rkind)   , dimension(2)             , intent(in)  :: rot_icoords_r
+          real(rkind)   , dimension(2)             , intent(in)  :: icoords_icr
+          integer(ikind)                           , intent(in)  :: inter_nb
+          real(rkind)   , dimension(:), allocatable, intent(in)  :: x_map_icr
+          real(rkind)   , dimension(:), allocatable, intent(in)  :: y_map_icr
+          integer                                  , intent(in)  :: k
+          integer(ikind), dimension(2)             , intent(out) :: icoord_inter
+          real(rkind)   , dimension(2)             , intent(out) :: rcoord_inter
+
+          real(rkind) :: k_rot
+
+          k_rot = (inter_nb+1)/2
+
+          icoord_inter(1) = nint(rot_icoords_r(1)+nint(k-k_rot)*icoords_icr(1))
+          icoord_inter(2) = nint(rot_icoords_r(2)+nint(k-k_rot)*icoords_icr(2))
+
+          rcoord_inter(1) = x_map_icr(k)
+          rcoord_inter(2) = y_map_icr(k)
+
+        end subroutine get_inter_detector_rot_coords
+
+
+        subroutine get_inter_detector_rot_param(
+     $     prev_icoords,
+     $     next_icoords,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     rot_icoords_r,
+     $     icoords_icr,
+     $     inter_nb,
+     $     x_map_icr,
+     $     y_map_icr)
+
+          implicit none
+
+          integer(ikind), dimension(2)             , intent(in)  :: prev_icoords
+          integer(ikind), dimension(2)             , intent(in)  :: next_icoords
+          real(rkind)   , dimension(nx)            , intent(in)  :: interior_x_map
+          real(rkind)   , dimension(ny)            , intent(in)  :: interior_y_map
+          real(rkind)   , dimension(2)             , intent(out) :: rot_icoords_r
+          real(rkind)   , dimension(2)             , intent(out) :: icoords_icr
+          integer(ikind)                           , intent(out) :: inter_nb
+          real(rkind)   , dimension(:), allocatable, intent(out) :: x_map_icr
+          real(rkind)   , dimension(:), allocatable, intent(out) :: y_map_icr
+
+          integer(ikind), dimension(2) :: rot_icoords
+          integer(ikind)               :: rot_block_nb
+          integer(ikind)               :: total_nb_blocks
+
+          integer     :: i
+          integer     :: diff
+          real(rkind) :: icr
+
+          !get the (x,y)-index coordinates of the rotation block
+          call get_rot_coords(
+     $         prev_icoords,
+     $         next_icoords,
+     $         rot_icoords,
+     $         rot_icoords_r)
+          
+          !get the minimum number of blocks needed to join the first
+          !block with prev_icoords coordinates with the last block with
+          !rot_icoords coordinates
+          rot_block_nb = get_minimum_block_nb(prev_icoords,rot_icoords)
+
+          !if the rotation point is at the intersection b/w blocks
+          !  _ _ _ _ 
+          ! |_|_|_|2|
+          ! |_|0+0|_|   : total_nb_blocks = 2*rot_block_nb
+          ! |1|_|_|_|
+          !  _ _ _ _ 
+          ! |_|_|_|2|
+          ! |_|_|0|_|   : total_nb_blocks = 2*rot_block_nb
+          ! |_|0|_|_|   
+          ! |1|_|_|_|
+          !
+          !if the rotation point is at the nodal point of a block
+          !
+          !  _ _ _ _ _ 
+          ! |_|_|_|_|2|
+          ! |_|0|+|0|_| : total_nb_blocks = 2*rot_block_nb+1
+          ! |1|_|_|_|_|
+          !
+          !--------------------------------------------------------
+          if((mod(prev_icoords(1)+next_icoords(1),2).eq.1).or.
+     $       (mod(prev_icoords(2)+next_icoords(2),2).eq.1)) then
+             total_nb_blocks = 2*rot_block_nb
+          else
+             total_nb_blocks = 2*rot_block_nb+1
+          end if
+
+          !we now need to verify that this number of blocks satisfy
+          !the following condition:
+          !when creating the path of intermediate detectors and
+          !computing the index-coordinates of these detectors, we
+          !should have a continuous path of intermediate detectors
+          !i.e. the increase of index-coordinate b/w two detectors
+          !should be lower or equal to one
+          inter_nb = total_nb_blocks
+
+          do i=1,2
+
+             diff = abs(next_icoords(i)-prev_icoords(i))
+             icr  = diff/(inter_nb+1)
+
+             do while(icr.gt.(1.0d0))
+
+                inter_nb = inter_nb + 2
+                icr = diff/(inter_nb+1)
+
+             end do
+             
+          end do
+
+          icoords_icr(1) = (next_icoords(1)-prev_icoords(1))/(inter_nb+1)
+          icoords_icr(2) = (next_icoords(2)-prev_icoords(2))/(inter_nb+1)
+
+          
+          !determine the local x_map and y_map corresponding 
+          !to the intermediate detectors
+          if(inter_nb.gt.0) then
+
+             call get_intermediate_maps(
+     $            prev_icoords,
+     $            next_icoords,
+     $            interior_x_map,
+     $            interior_y_map,
+     $            icoords_icr,
+     $            x_map_icr,
+     $            y_map_icr)
+             
+          end if
+
+
+        end subroutine get_inter_detector_rot_param
+
+
+        subroutine get_intermediate_maps(
+     $     prev_icoords,
+     $     next_icoords,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     icoords_icr,
+     $     x_map_icr,
+     $     y_map_icr)
+
+          implicit none
+
+          integer(ikind), dimension(2)              , intent(in)  :: prev_icoords
+          integer(ikind), dimension(2)              , intent(in)  :: next_icoords
+          real(rkind)   , dimension(nx)             , intent(in)  :: interior_x_map
+          real(rkind)   , dimension(ny)             , intent(in)  :: interior_y_map
+          real(rkind)   , dimension(2)              , intent(in)  :: icoords_icr
+          real(rkind)   , dimension(:) , allocatable, intent(out) :: x_map_icr
+          real(rkind)   , dimension(:) , allocatable, intent(out) :: y_map_icr
+
+          integer :: size_x_map_icr
+          integer :: size_y_map_icr
+
+
+          !allocation of the tables storing the (x,y)-
+          !coordinates corresponding of the index
+          size_x_map_icr = max(1,abs(next_icoords(1)-prev_icoords(1)))
+          size_y_map_icr = max(1,abs(next_icoords(2)-prev_icoords(2)))
+          
+          allocate(x_map_icr(size_x_map_icr))
+          allocate(y_map_icr(size_y_map_icr))
+
+          
+          !fill the x_map_icr and the y_map_icr with the
+          !coorresponding (x,y)-coordinates
+          call determine_local_map_coordinates(
+     $         interior_x_map,nx,
+     $         size_x_map_icr,
+     $         prev_icoords(1),
+     $         (icoords_icr(1).gt.0),
+     $         x_map_icr)
+          
+          call determine_local_map_coordinates(
+     $         interior_y_map,ny,
+     $         size_y_map_icr,
+     $         prev_icoords(2),
+     $         (icoords_icr(2).gt.0),
+     $         y_map_icr)
+
+        end subroutine get_intermediate_maps
+
+      
+        function get_minimum_block_nb(first_icoords,last_icoords)
+     $     result(block_nb)
+
+          implicit none
+
+          integer(ikind), dimension(2), intent(in) :: first_icoords
+          integer(ikind), dimension(2), intent(in) :: last_icoords
+          integer                                  :: block_nb
+
+          !the minimum number of blocks between two blocks whose
+          !(x,y)-index coordinates are first_icoords(:) for the
+          !first block and last_icoords(:) for the last block
+          !is the sum of the maximum number of blocks located
+          !along a diagonal and the minium number of block
+          !located along the horizontal or vertical direction:
+          !
+          !            left_block_nb
+          !                   |
+          !               |-------|
+          !    _ _ _ _ _ _ _ _ _ _ _
+          !   |_|_|_|_|_|_|_|_|_|_|_|
+          !   |_|_|_|_|_|_|0|0|0|0|2|  _
+          !   |_|_|_|_|_|0|_|_|_|_|_|  |
+          !   |_|_|_|_|0|_|_|_|_|_|_|  | 
+          !   |_|_|_|0|_|_|_|_|_|_|_|  | diagonal_block_nb
+          !   |_|_|0|_|_|_|_|_|_|_|_|  |
+          !   |_|0 _|_|_|_|_|_|_|_|_|  |
+          !   |1|_|_|_|_|_|_|_|_|_|_| 
+          !
+          !-----------------------------------------------------
+          integer(ikind) :: diagonal_block_nb
+          integer(ikind) :: horizontal_block_nb
+          integer(ikind) :: vertical_block_nb
+          integer(ikind) :: left_block_nb
+
+          !computation of the number of diagonal blocks
+          diagonal_block_nb = min(
+     $         abs(last_icoords(1)-first_icoords(1))-1,
+     $         abs(last_icoords(2)-first_icoords(2))-1)
+
+          !computation of the number of left blocks
+          horizontal_block_nb = abs(
+     $         last_icoords(1)-(first_icoords(1)+
+     $         sign(1,last_icoords(1)-first_icoords(1))*
+     $         diagonal_block_nb))-1
+
+          vertical_block_nb = abs(
+     $         last_icoords(2)-(first_icoords(2)+
+     $         sign(1,last_icoords(2)-first_icoords(2))*
+     $         diagonal_block_nb))-1
+
+          left_block_nb = max(horizontal_block_nb,vertical_block_nb)
+
+          !minimum number of blocks
+          block_nb = diagonal_block_nb + left_block_nb
+
+        end function get_minimum_block_nb
+
+
+        subroutine get_rot_coords(
+     $     prev_icoords,
+     $     next_icoords,
+     $     rot_icoords,
+     $     rot_rcoords)
+
+          implicit none
+
+          integer(ikind), dimension(2), intent(in)  :: prev_icoords
+          integer(ikind), dimension(2), intent(in)  :: next_icoords
+          integer(ikind), dimension(2), intent(out) :: rot_icoords
+          real(rkind)   , dimension(2), intent(out) :: rot_rcoords
+
+          integer :: i
+
+          do i=1,2
+
+             rot_rcoords(i) = 0.5d0*(prev_icoords(i)+next_icoords(i))
+
+             if(prev_icoords(i).le.rot_rcoords(i)) then
+                rot_icoords(i) = floor(rot_rcoords(i))
+             else
+                rot_icoords(i) = ceiling(rot_rcoords(i))
+             end if
+
+          end do
+
+        end subroutine get_rot_coords
 
 
         !> @author

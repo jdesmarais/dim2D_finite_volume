@@ -28,11 +28,11 @@
         real(rkind), parameter :: y_max = 0.5000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 2.6800000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 2.6500000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0025000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.2500000000d0
+        real(rkind), parameter :: detail_print = 1.0000000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -42,8 +42,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 100
-        integer(ikind), parameter :: nty = 80
+        integer(ikind), parameter :: ntx = 5
+        integer(ikind), parameter :: nty = 6
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy

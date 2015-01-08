@@ -3,7 +3,9 @@
         use bf_detector_module, only :
      $       determine_local_map_coordinates,
      $       get_inter_detector_param,
-     $       get_inter_detector_coords
+     $       get_inter_detector_coords,
+     $     
+     $       get_rot_coords
 
         use check_data_module, only :
      $       is_vector_validated
@@ -36,12 +38,171 @@
         print '(''test_get_inter_detector_param: '',L1)', test_loc
         print '()'
 
+c$$$        test_loc = test_get_inter_detector_param_sym(detailled)
+c$$$        test_validated = test_validated.and.test_loc
+c$$$        print '(''test_get_inter_detector_param_sym: '',L1)', test_loc
+c$$$        print '()'
+
         test_loc = test_get_inter_detector_coords(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_get_inter_detector_coords: '',L1)', test_loc
         print '()'
+
+        test_loc = test_get_rot_coords(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_get_rot_coords: '',L1)', test_loc
+        print '()'
         
         contains
+
+        
+        function test_get_rot_coords(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          integer(ikind), dimension(2) :: prev_icoords
+          integer(ikind), dimension(2) :: next_icoords
+          integer(ikind), dimension(2) :: rot_icoords
+          real(rkind)   , dimension(2) :: rot_rcoords
+          integer(ikind), dimension(2) :: test_rot_icoords
+          real(rkind)   , dimension(2) :: test_rot_rcoords
+
+          integer :: test_id
+          logical :: test_loc
+
+          logical :: validated_rot_icoords
+          logical :: validated_rot_rcoords
+
+          test_validated = .true.
+
+          do test_id=1,4
+
+             call make_test_get_rot_coords(
+     $            test_id,
+     $            prev_icoords,
+     $            next_icoords,
+     $            test_rot_icoords,
+     $            test_rot_rcoords)
+
+             call get_rot_coords(
+     $            prev_icoords,
+     $            next_icoords,
+     $            rot_icoords,
+     $            rot_rcoords)
+
+             validated_rot_icoords =
+     $            (test_rot_icoords(1).eq.rot_icoords(1)).and.
+     $            (test_rot_icoords(2).eq.rot_icoords(2))
+             
+             validated_rot_rcoords = is_vector_validated(
+     $            rot_rcoords,
+     $            test_rot_rcoords,
+     $            detailled)
+
+             test_loc = validated_rot_icoords.and.
+     $            validated_rot_rcoords
+          
+             test_validated = test_validated.and.
+     $            test_loc
+
+             if(.not.validated_rot_icoords) then
+                print '(''rot_icoords: '',2I2,''->'',2I2)',
+     $               rot_icoords,
+     $               test_rot_icoords
+             end if
+
+             if(.not.validated_rot_rcoords) then
+                print '(''rot_icoords: '',2F8.5,''->'',2F8.5)',
+     $               rot_icoords,
+     $               test_rot_icoords                
+             end if
+                
+          end do
+
+        end function test_get_rot_coords
+
+
+        subroutine make_test_get_rot_coords(
+     $     test_id,
+     $     prev_icoord,
+     $     next_icoord,
+     $     test_rot_icoords,
+     $     test_rot_rcoords)
+
+          implicit none
+
+          integer                     , intent(in)  :: test_id
+          integer(ikind), dimension(2), intent(out) :: prev_icoord
+          integer(ikind), dimension(2), intent(out) :: next_icoord
+          integer(ikind), dimension(2), intent(out) :: test_rot_icoords
+          real(rkind)   , dimension(2), intent(out) :: test_rot_rcoords
+
+          select case(test_id)
+            case(1)
+               prev_icoord(1) = 1
+               prev_icoord(2) = 1
+               
+               next_icoord(1) = 5
+               next_icoord(2) = 3
+
+               test_rot_icoords(1) = 3
+               test_rot_icoords(2) = 2
+
+               test_rot_rcoords(1) = 3.0d0
+               test_rot_rcoords(2) = 2.0d0
+
+            case(2)
+               prev_icoord(1) = 5
+               prev_icoord(2) = 1
+               
+               next_icoord(1) = 1
+               next_icoord(2) = 3
+
+               test_rot_icoords(1) = 3
+               test_rot_icoords(2) = 2
+
+               test_rot_rcoords(1) = 3.0d0
+               test_rot_rcoords(2) = 2.0d0
+
+            case(3)
+               prev_icoord(1) = 5
+               prev_icoord(2) = 3
+               
+               next_icoord(1) = 1
+               next_icoord(2) = 1
+
+               test_rot_icoords(1) = 3
+               test_rot_icoords(2) = 2
+
+               test_rot_rcoords(1) = 3.0d0
+               test_rot_rcoords(2) = 2.0d0
+
+            case(4)
+               prev_icoord(1) = 1
+               prev_icoord(2) = 3
+               
+               next_icoord(1) = 5
+               next_icoord(2) = 1
+
+               test_rot_icoords(1) = 3
+               test_rot_icoords(2) = 2
+
+               test_rot_rcoords(1) = 3.0d0
+               test_rot_rcoords(2) = 2.0d0
+
+            case default
+               print '(''make_test_get_rot_coords'')'
+               print '(''test_not_implemented: '', I2)', test_id
+               print '()'
+
+          end select
+
+        end subroutine make_test_get_rot_coords
+
 
         function test_get_inter_detector_coords(detailled)
      $       result(test_validated)
@@ -190,6 +351,128 @@
           end select        
 
         end subroutine make_test_get_inter_detector_coords
+
+
+        
+c$$$        function test_get_inter_detector_param_sym(detailled)
+c$$$     $       result(test_validated)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          logical, intent(in) :: detailled
+c$$$          logical             :: test_validated
+c$$$
+c$$$          integer(ikind), dimension(2)              :: prev_icoord
+c$$$          integer(ikind), dimension(2)              :: next_icoord
+c$$$          real(rkind)   , dimension(nx)             :: interior_x_map
+c$$$          real(rkind)   , dimension(ny)             :: interior_y_map
+c$$$
+c$$$          real(rkind)   , dimension(2)              :: icoord_icr
+c$$$          integer                                   :: inter_nb
+c$$$          real(rkind)   , dimension(:), allocatable :: x_map_icr
+c$$$          real(rkind)   , dimension(:), allocatable :: y_map_icr
+c$$$
+c$$$          integer(ikind), dimension(2)              :: icoord_inter
+c$$$          real(rkind)   , dimension(2)              :: rcoord_inter
+c$$$
+c$$$          integer :: k
+c$$$
+c$$$          interior_x_map = [0.1d0,0.2d0,0.3d0,0.4d0,0.45d0]
+c$$$          interior_y_map = [0.0d0,0.2d0,0.4d0,0.6d0,0.8d0,0.9d0]
+c$$$          
+c$$$          !  ___ ___
+c$$$          ! |XXX|   |
+c$$$          ! |XXX|___|
+c$$$          ! |   |   |
+c$$$          ! |___|___|
+c$$$          ! |   |XXX|
+c$$$          ! |___|XXX|
+c$$$          !------------------------------
+c$$$          prev_icoord=[1,3]
+c$$$          next_icoord=[2,1]
+c$$$
+c$$$          call get_inter_detector_param(
+c$$$     $         prev_icoord,
+c$$$     $         next_icoord,
+c$$$     $         interior_x_map,
+c$$$     $         interior_y_map,
+c$$$     $         icoord_icr,
+c$$$     $         inter_nb,
+c$$$     $         x_map_icr,
+c$$$     $         y_map_icr)
+c$$$
+c$$$          print '(''prev_icoord: '',2I2)', prev_icoord
+c$$$          print '(''next_icoord: '',2I2)', next_icoord
+c$$$          print '(''--------------------'')'
+c$$$          print '(''icoord_icr     :'',2F9.5)', icoord_icr
+c$$$          print '(''inter_icr      : '',I2)', inter_nb
+c$$$
+c$$$          do k=1, inter_nb
+c$$$             
+c$$$             call get_inter_detector_coords(
+c$$$     $            prev_icoord,
+c$$$     $            icoord_icr,
+c$$$     $            k,
+c$$$     $            x_map_icr,
+c$$$     $            y_map_icr,
+c$$$     $            icoord_inter,
+c$$$     $            rcoord_inter)
+c$$$
+c$$$             print '(''icoord_inter('',I1,''): '',2I2)', k,icoord_inter
+c$$$
+c$$$          end do
+c$$$
+c$$$          deallocate(x_map_icr)
+c$$$          deallocate(y_map_icr)
+c$$$
+c$$$          print '()'
+c$$$
+c$$$
+c$$$          !  ___ ___
+c$$$          ! |   |XXX|
+c$$$          ! |___|XXX|
+c$$$          ! |   |   |
+c$$$          ! |___|___|
+c$$$          ! |XXX|   |
+c$$$          ! |XXX|___|
+c$$$          !------------------------------
+c$$$          call get_inter_detector_param(
+c$$$     $         prev_icoord,
+c$$$     $         next_icoord,
+c$$$     $         interior_x_map,
+c$$$     $         interior_y_map,
+c$$$     $         icoord_icr,
+c$$$     $         inter_nb,
+c$$$     $         x_map_icr,
+c$$$     $         y_map_icr)
+c$$$
+c$$$          print '(''prev_icoord: '',2I2)', prev_icoord
+c$$$          print '(''next_icoord: '',2I2)', next_icoord
+c$$$          print '(''--------------------'')'
+c$$$          print '(''icoord_icr     :'',2F9.5)', icoord_icr
+c$$$          print '(''inter_icr      : '',I2)', inter_nb
+c$$$
+c$$$          do k=1, inter_nb
+c$$$             
+c$$$             call get_inter_detector_coords(
+c$$$     $            prev_icoord,
+c$$$     $            icoord_icr,
+c$$$     $            k,
+c$$$     $            x_map_icr,
+c$$$     $            y_map_icr,
+c$$$     $            icoord_inter,
+c$$$     $            rcoord_inter)
+c$$$
+c$$$             print '(''icoord_inter('',I1,''): '',2I2)', k,icoord_inter
+c$$$
+c$$$          end do
+c$$$
+c$$$          deallocate(x_map_icr)
+c$$$          deallocate(y_map_icr)
+c$$$          
+c$$$          print '()'
+c$$$
+c$$$        end function test_get_inter_detector_param_sym
 
 
         function test_get_inter_detector_param(detailled)
