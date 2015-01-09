@@ -224,7 +224,13 @@
 
              !fill the local map with coordinates on
              !the left side outside the interior_map
-             size_outside = -min(1,first_icoord-size_local_map+1)+1
+             if(first_icoord.le.0) then
+                size_outside = size_local_map
+             else
+                size_outside = 0-(first_icoord-size_local_map+1) + 1
+             end if
+
+             !size_outside = -min(1,first_icoord-size_local_map+1)+1
 
              if(size_outside.gt.0) then
                 
@@ -652,14 +658,14 @@
      $         inter_nb,
      $         inter_nb)
 
-        do i=1,2
+          do i=1,2
 
              size_local_map(i) = abs(last_icoord(i)-first_icoord(i))+1
-
+             
              if(prev_icoords(i).ne.first_icoord(i)) then
                 size_local_map(i) = size_local_map(i)+1
              end if
-
+             
           end do
           
           allocate(x_map_icr(size_local_map(1)))
