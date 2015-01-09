@@ -534,28 +534,27 @@
           !should be lower or equal to one
           inter_nb = total_nb_blocks
 
-          do i=1,2
-
-             diff = abs(next_icoords(i)-prev_icoords(i))
-             icr  = diff/(inter_nb+1)
-
-             do while(icr.gt.(1.0d0))
-
-                inter_nb = inter_nb + 2
-                icr = diff/(inter_nb+1)
-
-             end do
-             
-          end do
-
-          icoords_icr(1) = real(next_icoords(1)-prev_icoords(1))/real(inter_nb+1)
-          icoords_icr(2) = real(next_icoords(2)-prev_icoords(2))/real(inter_nb+1)
-
-          
-          !determine the local x_map and y_map corresponding 
-          !to the intermediate detectors
           if(inter_nb.gt.0) then
 
+             do i=1,2
+                
+                diff = abs(next_icoords(i)-prev_icoords(i))
+                icr  = diff/(inter_nb+1)
+
+                do while(icr.gt.(1.0d0))
+                   
+                   inter_nb = inter_nb + 2
+                   icr = diff/(inter_nb+1)
+                   
+                end do
+                
+             end do
+             
+             icoords_icr(1) = real(next_icoords(1)-prev_icoords(1))/real(inter_nb+1)
+             icoords_icr(2) = real(next_icoords(2)-prev_icoords(2))/real(inter_nb+1)
+             
+             !determine the local x_map and y_map corresponding 
+             !to the intermediate detectors
              call get_intermediate_maps(
      $            prev_icoords,
      $            interior_x_map,
