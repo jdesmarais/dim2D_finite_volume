@@ -113,10 +113,12 @@ c$$$        print '()'
           interior_x_map = [0.1d0,0.2d0,0.3d0,0.4d0,0.45d0]
           interior_y_map = [0.0d0,0.2d0,0.4d0,0.6d0,0.8d0,0.9d0]
 
-          do test_id=1,4            
+          do test_id=1,24
 
              call make_test_get_inter_detector_rot_coords(
      $            test_id,
+     $            interior_x_map,
+     $            interior_y_map,
      $            prev_icoords,
      $            next_icoords,
      $            test_icoords_inter,
@@ -139,6 +141,7 @@ c$$$        print '()'
              do k=1, inter_nb
 
                 call get_inter_detector_rot_coords(
+     $               prev_icoords,
      $               rot_icoords_r,
      $               icoords_icr,
      $               inter_nb,
@@ -202,6 +205,8 @@ c$$$        print '()'
         
         subroutine make_test_get_inter_detector_rot_coords(
      $     test_id,
+     $     interior_x_map,
+     $     interior_y_map,
      $     prev_icoords,
      $     next_icoords,
      $     test_icoords_inter,
@@ -210,10 +215,14 @@ c$$$        print '()'
           implicit none
 
           integer                                    , intent(in)  :: test_id
+          real(rkind)   , dimension(:)               , intent(in)  :: interior_x_map
+          real(rkind)   , dimension(:)               , intent(in)  :: interior_y_map
           integer(ikind), dimension(2)               , intent(out) :: prev_icoords
           integer(ikind), dimension(2)               , intent(out) :: next_icoords
           integer(ikind), dimension(:,:), allocatable, intent(out) :: test_icoords_inter
           real(rkind)   , dimension(:,:), allocatable, intent(out) :: test_rcoords_inter
+
+          integer :: k
 
           select case(test_id)
             case(1)
@@ -221,18 +230,10 @@ c$$$        print '()'
                next_icoords = [2,3]
                
                allocate(test_icoords_inter(2,2))
-               allocate(test_rcoords_inter(2,2))
 
                test_icoords_inter = reshape((/
      $              1,2,
      $              2,2
-     $              /),
-     $              (/2,2/)
-     $              )
-               
-               test_rcoords_inter = reshape((/
-     $              0.1d0,0.2d0,
-     $              0.2d0,0.2d0
      $              /),
      $              (/2,2/)
      $              )
@@ -242,18 +243,10 @@ c$$$        print '()'
                next_icoords = [2,1]
                
                allocate(test_icoords_inter(2,2))
-               allocate(test_rcoords_inter(2,2))
 
                test_icoords_inter = reshape((/
      $              1,2,
      $              2,2
-     $              /),
-     $              (/2,2/)
-     $              )
-               
-               test_rcoords_inter = reshape((/
-     $              0.1d0,0.2d0,
-     $              0.2d0,0.2d0
      $              /),
      $              (/2,2/)
      $              )
@@ -263,18 +256,10 @@ c$$$        print '()'
                next_icoords = [1,3]
                
                allocate(test_icoords_inter(2,2))
-               allocate(test_rcoords_inter(2,2))
 
                test_icoords_inter = reshape((/
      $              2,2,
      $              1,2
-     $              /),
-     $              (/2,2/)
-     $              )
-               
-               test_rcoords_inter = reshape((/
-     $              0.2d0,0.2d0,
-     $              0.1d0,0.2d0
      $              /),
      $              (/2,2/)
      $              )
@@ -284,7 +269,6 @@ c$$$        print '()'
                next_icoords = [1,3]
                
                allocate(test_icoords_inter(2,2))
-               allocate(test_rcoords_inter(2,2))
 
                test_icoords_inter = reshape((/
      $              2,2,
@@ -292,12 +276,277 @@ c$$$        print '()'
      $              /),
      $              (/2,2/)
      $              )
+
+            case(5)
+               prev_icoords = [1,1]
+               next_icoords = [3,3]
                
-               test_rcoords_inter = reshape((/
-     $              0.2d0,0.2d0,
-     $              0.1d0,0.2d0
+               allocate(test_icoords_inter(2,1))
+
+               test_icoords_inter = reshape((/
+     $              2,2
+     $              /),
+     $              (/2,1/)
+     $              )
+
+            case(6)
+               prev_icoords = [1,3]
+               next_icoords = [3,1]
+               
+               allocate(test_icoords_inter(2,1))
+
+               test_icoords_inter = reshape((/
+     $              2,2
+     $              /),
+     $              (/2,1/)
+     $              )
+
+            case(7)
+               prev_icoords = [3,1]
+               next_icoords = [1,3]
+               
+               allocate(test_icoords_inter(2,1))
+
+               test_icoords_inter = reshape((/
+     $              2,2
+     $              /),
+     $              (/2,1/)
+     $              )
+
+            case(8)
+               prev_icoords = [3,3]
+               next_icoords = [1,1]
+               
+               allocate(test_icoords_inter(2,1))
+
+               test_icoords_inter = reshape((/
+     $              2,2
+     $              /),
+     $              (/2,1/)
+     $              )
+
+             case(9)
+               prev_icoords = [1,1]
+               next_icoords = [4,3]
+               
+               allocate(test_icoords_inter(2,2))
+
+               test_icoords_inter = reshape((/
+     $              2,2,
+     $              3,2
      $              /),
      $              (/2,2/)
+     $              )               
+
+            case(10)
+               prev_icoords = [1,3]
+               next_icoords = [4,1]
+               
+               allocate(test_icoords_inter(2,2))
+
+               test_icoords_inter = reshape((/
+     $              2,2,
+     $              3,2
+     $              /),
+     $              (/2,2/)
+     $              )
+
+            case(11)
+               prev_icoords = [4,1]
+               next_icoords = [1,3]
+               
+               allocate(test_icoords_inter(2,2))
+
+               test_icoords_inter = reshape((/
+     $              3,2,
+     $              2,2
+     $              /),
+     $              (/2,2/)
+     $              )
+
+            case(12)
+               prev_icoords = [4,3]
+               next_icoords = [1,1]
+               
+               allocate(test_icoords_inter(2,2))
+
+               test_icoords_inter = reshape((/
+     $              3,2,
+     $              2,2
+     $              /),
+     $              (/2,2/)
+     $              )
+
+            case(13)
+               prev_icoords = [1,1]
+               next_icoords = [5,7]
+               
+               allocate(test_icoords_inter(2,5))
+
+               test_icoords_inter = reshape((/
+     $              2,2,
+     $              2,3,
+     $              3,4,
+     $              4,5,
+     $              4,6
+     $              /),
+     $              (/2,5/)
+     $              )
+
+            case(14)
+               prev_icoords = [5,1]
+               next_icoords = [1,7]
+               
+               allocate(test_icoords_inter(2,5))
+
+               test_icoords_inter = reshape((/
+     $              4,2,
+     $              4,3,
+     $              3,4,
+     $              2,5,
+     $              2,6
+     $              /),
+     $              (/2,5/)
+     $              )
+
+            case(15)
+               prev_icoords = [1,6]
+               next_icoords = [5,0]
+               
+               allocate(test_icoords_inter(2,5))
+
+               test_icoords_inter = reshape((/
+     $              2,5,
+     $              2,4,
+     $              3,3,
+     $              4,2,
+     $              4,1
+     $              /),
+     $              (/2,5/)
+     $              )
+
+            case(16)
+               prev_icoords = [5,6]
+               next_icoords = [1,0]
+               
+               allocate(test_icoords_inter(2,5))
+
+               test_icoords_inter = reshape((/
+     $              4,5,
+     $              4,4,
+     $              3,3,
+     $              2,2,
+     $              2,1
+     $              /),
+     $              (/2,5/)
+     $              )
+
+            case(17)
+               prev_icoords = [1,1]
+               next_icoords = [3,1]
+               
+               allocate(test_icoords_inter(2,1))
+
+               test_icoords_inter = reshape((/
+     $              2,1
+     $              /),
+     $              (/2,1/)
+     $              )
+
+            case(18)
+               prev_icoords = [3,1]
+               next_icoords = [1,1]
+               
+               allocate(test_icoords_inter(2,1))
+
+               test_icoords_inter = reshape((/
+     $              2,1
+     $              /),
+     $              (/2,1/)
+     $              )
+
+            case(19)
+               prev_icoords = [1,1]
+               next_icoords = [1,3]
+               
+               allocate(test_icoords_inter(2,1))
+
+               test_icoords_inter = reshape((/
+     $              1,2
+     $              /),
+     $              (/2,1/)
+     $              )
+
+            case(20)
+               prev_icoords = [1,3]
+               next_icoords = [1,1]
+               
+               allocate(test_icoords_inter(2,1))
+
+               test_icoords_inter = reshape((/
+     $              1,2
+     $              /),
+     $              (/2,1/)
+     $              )
+
+            case(21)
+               prev_icoords = [1,1]
+               next_icoords = [6,1]
+               
+               allocate(test_icoords_inter(2,4))
+
+               test_icoords_inter = reshape((/
+     $              2,1,
+     $              3,1,
+     $              4,1,
+     $              5,1
+     $              /),
+     $              (/2,4/)
+     $              )
+
+            case(22)
+               prev_icoords = [6,1]
+               next_icoords = [1,1]
+               
+               allocate(test_icoords_inter(2,4))
+
+               test_icoords_inter = reshape((/
+     $              5,1,
+     $              4,1,
+     $              3,1,
+     $              2,1
+     $              /),
+     $              (/2,4/)
+     $              )
+
+            case(23)
+               prev_icoords = [1,1]
+               next_icoords = [1,6]
+               
+               allocate(test_icoords_inter(2,4))
+
+               test_icoords_inter = reshape((/
+     $              1,2,
+     $              1,3,
+     $              1,4,
+     $              1,5
+     $              /),
+     $              (/2,4/)
+     $              )
+
+            case(24)
+               prev_icoords = [1,6]
+               next_icoords = [1,1]
+               
+               allocate(test_icoords_inter(2,4))
+
+               test_icoords_inter = reshape((/
+     $              1,5,
+     $              1,4,
+     $              1,3,
+     $              1,2
+     $              /),
+     $              (/2,4/)
      $              )
 
             case default
@@ -305,6 +554,17 @@ c$$$        print '()'
                print '(''test not implemented: '',I2)', test_id
           end select
 
+
+          allocate(test_rcoords_inter(
+     $         size(test_icoords_inter,1),
+     $         size(test_icoords_inter,2)))
+
+          do k=1, size(test_icoords_inter,2)
+
+             test_rcoords_inter(1,k) = interior_x_map(test_icoords_inter(1,k))
+             test_rcoords_inter(2,k) = interior_y_map(test_icoords_inter(2,k))
+
+          end do
 
         end subroutine make_test_get_inter_detector_rot_coords
 

@@ -14,7 +14,8 @@
       !> @date
       ! 24_11_2014 - documentation update - J.L. Desmarais
       ! 07_01_2015 - re-implementing the rcoords determination
-      !              of the intermediate detectors - J.L.Desmarais
+      !              of the intermediate detectors to be rotation
+      !              invariant - J.L.Desmarais
       !----------------------------------------------------------------
       module bf_detector_module
 
@@ -24,7 +25,6 @@
         use parameters_kind, only :
      $       ikind,
      $       rkind
-        
 
         implicit none
 
@@ -43,9 +43,39 @@
         contains
 
 
-        !determine the cartesian coordinates corresponding
-        !to the index-coordinates of the intermediate
-        !detectors
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the cartesian coordinates corresponding
+        !> to the index-coordinates of the intermediate
+        !> detectors
+        !
+        !> @date
+        !> 09_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param interior_map
+        !> coordinates of the interior point either along the direction
+        !> investigated
+        !
+        !>@param size_interior_map
+        !> size of the coordinate maps along the direction investigated
+        !> (either nx or ny)
+        !
+        !>@param size_local_map
+        !> size of the local map of coordinates manufactured from the
+        !> interior map
+        !
+        !>@param first_icoord
+        !> index coordinate identifying the first point of the local map
+        !
+        !>@param icr_sign
+        !> boolean determining whether the local map should be made in
+        !> increasing or decreasing direction
+        !
+        !>@param local_map
+        !> local map of coordinates manufactured from the interior map
+        !--------------------------------------------------------------
         subroutine determine_local_map_coordinates(
      $       interior_map,
      $       size_interior_map,
@@ -218,7 +248,75 @@
         end subroutine determine_local_map_coordinates
 
 
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the (x,y)-index coordinates and the (x,y)-coordinates of
+        !> the intermediate detector corresponding to position k on the
+        !> straight line linking the two blocks (\f$k \in
+        !> [0,\text{inter_nb}+1]\f$).
+        !> For \f$k=0\f$, the coordinates match the first block.
+        !> For \f$k=inter_nb+1\f$, the coordinates match the last block
+        !
+        !> @date
+        !> 09_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param prev_icoords
+        !> (x,y)-index coordinates of the first block to be linked
+        !
+        !>@param next_icoords
+        !> (x,y)-index coordinates of the last block to be linked
+        !
+        !>@param interior_x_map
+        !> map of the interior x-coordinates
+        !
+        !>@param interior_y_map
+        !> map of the interior y-coordinates
+        !
+        !>@param icoords_icr
+        !> slope of the (x,y)-index increase b/w two blocks when determining
+        !> the (x,y)-index coordinates of the intermediate detectors
+        !
+        !>@param rot_icoords_r
+        !> (x,y)-index coordinates of the rotation point (as it can be located
+        !> at the edge b/w two blocks, the coordinates are expressed with double
+        !> to allow for the m+0.5 case, m is an integer)
+        !
+        !>@param inter_nb
+        !> number of intermediate detectors b/w the two blocks
+        !
+        !>@param x_map_icr
+        !> local map of the x-coordinates of the intermediate points b/w
+        !> the two detectors
+        !
+        !>@param y_map_icr
+        !> local map of the y-coordinates of the intermediate points b/w
+        !> the two detectors
+        !
+        !>@param rot_icoords_r
+        !> (x,y)-index coordinates of the middle point b/w the two blocks
+        !> to be linked. In order for the path of intermediate detectors
+        !> b/w the two blocks to be rotation invariant, this point is used
+        !> as the rotation point
+        !
+        !>@param icoords_icr
+        !> slope of the straight line linking the two blocks expressed as
+        !> (x,y)-coordinates
+        !
+        !>@param k
+        !> index identifying the position of the intermediate detector on
+        !> the straight line linking the two blocks
+        !
+        !>@param icoords_inter
+        !> (x,y)-index coordinates of the intermediate detector
+        !
+        !>@param rcoords_inter
+        !> (x,y)-coordinates of the intermediate detector
+        !--------------------------------------------------------------
         subroutine get_inter_detector_rot_coords(
+     $     prev_icoord,
      $     rot_icoords_r,
      $     icoords_icr,
      $     inter_nb,
@@ -230,6 +328,7 @@
 
           implicit none
 
+          integer(ikind), dimension(2)             , intent(in)  :: prev_icoord
           real(rkind)   , dimension(2)             , intent(in)  :: rot_icoords_r
           real(rkind)   , dimension(2)             , intent(in)  :: icoords_icr
           integer(ikind)                           , intent(in)  :: inter_nb
@@ -239,19 +338,124 @@
           integer(ikind), dimension(2)             , intent(out) :: icoord_inter
           real(rkind)   , dimension(2)             , intent(out) :: rcoord_inter
 
-          real(rkind) :: k_rot
 
-          k_rot = (inter_nb+1)/2
-
-          icoord_inter(1) = nint(rot_icoords_r(1)+(k-k_rot)*icoords_icr(1))
-          icoord_inter(2) = nint(rot_icoords_r(2)+(k-k_rot)*icoords_icr(2))
-
-          rcoord_inter(1) = x_map_icr(k)
-          rcoord_inter(2) = y_map_icr(k)
+          icoord_inter = get_inter_detector_icoords(
+     $         rot_icoords_r,
+     $         icoords_icr,
+     $         inter_nb,
+     $         k)
+          
+          rcoord_inter(1) = x_map_icr(abs(icoord_inter(1)-prev_icoord(1))+1)
+          rcoord_inter(2) = y_map_icr(abs(icoord_inter(2)-prev_icoord(2))+1)
 
         end subroutine get_inter_detector_rot_coords
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the (x,y)-index coordinates of the intermediate detector
+        !> corresponding to position k on the straight line linking the
+        !> two blocks (k \f$\in [0,\text{inter_nb}+1]\$).
+        !> For \f$k=0\f$, the coordinates match the first block.
+        !> For \f$k=inter_nb+1\f$, the coordinates match the last block
+        !
+        !> @date
+        !> 09_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param rot_icoords_r
+        !> (x,y)-index coordinates of the middle point b/w the two blocks
+        !> to be linked. In order for the path of intermediate detectors
+        !> b/w the two blocks to be rotation invariant, this point is used
+        !> as the rotation point
+        !
+        !>@param icoords_icr
+        !> slope of the straight line linking the two blocks expressed as
+        !> (x,y)-coordinates
+        !
+        !>@param inter_nb
+        !> number of intermediate detectors to link the two blocks
+        !
+        !>@param k
+        !> index identifying the position of the intermediate detector on
+        !> the straight line linking the two blocks
+        !
+        !>@return icoords_inter
+        !> (x,y)-index coordinates of the intermediate detector
+        !--------------------------------------------------------------
+         function get_inter_detector_icoords(
+     $     rot_icoords_r,
+     $     icoords_icr,
+     $     inter_nb,
+     $     k)
+     $     result(icoords_inter)
+
+          implicit none
+
+          real(rkind)   , dimension(2), intent(in) :: rot_icoords_r
+          real(rkind)   , dimension(2), intent(in) :: icoords_icr
+          integer                     , intent(in) :: inter_nb
+          integer                     , intent(in) :: k
+          integer(ikind), dimension(2)             :: icoords_inter
+
+          real(rkind) :: k_rot, k_icr
+          integer :: i
+
+          k_rot = real(inter_nb+1)/2.0d0
+          k_icr = sign(abs(k-k_rot),k-k_rot)
+
+          do i=1,2
+             icoords_inter(i) = nint(rot_icoords_r(i)+k_icr*icoords_icr(i))
+          end do
+
+        end function get_inter_detector_icoords
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the parameters allowing to determine the coordinates of
+        !> the intermediate detectors linking two blocks: the path
+        !> should be rotation invariant to preserve symmetry
+        !
+        !> @date
+        !> 09_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param prev_icoords
+        !> (x,y)-index coordinates of the first block to be linked
+        !
+        !>@param next_icoords
+        !> (x,y)-index coordinates of the last block to be linked
+        !
+        !>@param interior_x_map
+        !> map of the interior x-coordinates
+        !
+        !>@param interior_y_map
+        !> map of the interior y-coordinates
+        !
+        !>@param rot_icoords_r
+        !> (x,y)-index coordinates of the middle point b/w the two blocks
+        !> to be linked. In order for the path of intermediate detectors
+        !> b/w the two blocks to be rotation invariant, this point is used
+        !> as the rotation point
+        !
+        !>@param icoords_icr
+        !> slope of the straight line linking the two blocks expressed as
+        !> (x,y)-coordinates
+        !
+        !>@param inter_nb
+        !> number of intermediate detectors to link the two blocks
+        !
+        !>@param x_map_icr
+        !> local map of the x-coordinates of the intermediate points b/w
+        !> the two detectors
+        !
+        !>@param y_map_icr
+        !> local map of the y-coordinates of the intermediate points b/w
+        !> the two detectors
+        !--------------------------------------------------------------
         subroutine get_inter_detector_rot_param(
      $     prev_icoords,
      $     next_icoords,
@@ -354,7 +558,6 @@
 
              call get_intermediate_maps(
      $            prev_icoords,
-     $            next_icoords,
      $            interior_x_map,
      $            interior_y_map,
      $            icoords_icr,
@@ -365,13 +568,53 @@
              
           end if
 
-
         end subroutine get_inter_detector_rot_param
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the local maps needed to compute the (x,y)-coordinates
+        !> of the intermediate detectors b/w two blocks
+        !
+        !> @date
+        !> 09_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param prev_icoords
+        !> (x,y)-index coordinates of the first block to be linked
+        !
+        !>@param next_icoords
+        !> (x,y)-index coordinates of the last block to be linked
+        !
+        !>@param interior_x_map
+        !> map of the interior x-coordinates
+        !
+        !>@param interior_y_map
+        !> map of the interior y-coordinates
+        !
+        !>@param icoords_icr
+        !> slope of the (x,y)-index increase b/w two blocks when determining
+        !> the (x,y)-index coordinates of the intermediate detectors
+        !
+        !>@param rot_icoords_r
+        !> (x,y)-index coordinates of the rotation point (as it can be located
+        !> at the edge b/w two blocks, the coordinates are expressed with double
+        !> to allow for the m+0.5 case, m is an integer)
+        !
+        !>@param inter_nb
+        !> number of intermediate detectors b/w the two blocks
+        !
+        !>@param x_map_icr
+        !> local map of the x-coordinates of the intermediate points b/w
+        !> the two detectors
+        !
+        !>@param y_map_icr
+        !> local map of the y-coordinates of the intermediate points b/w
+        !> the two detectors
+        !--------------------------------------------------------------
         subroutine get_intermediate_maps(
      $     prev_icoords,
-     $     next_icoords,
      $     interior_x_map,
      $     interior_y_map,
      $     icoords_icr,
@@ -383,7 +626,6 @@
           implicit none
 
           integer(ikind), dimension(2)              , intent(in)  :: prev_icoords
-          integer(ikind), dimension(2)              , intent(in)  :: next_icoords
           real(rkind)   , dimension(nx)             , intent(in)  :: interior_x_map
           real(rkind)   , dimension(ny)             , intent(in)  :: interior_y_map
           real(rkind)   , dimension(2)              , intent(in)  :: icoords_icr
@@ -392,44 +634,51 @@
           real(rkind)   , dimension(:) , allocatable, intent(out) :: x_map_icr
           real(rkind)   , dimension(:) , allocatable, intent(out) :: y_map_icr
 
-          integer :: first_icoord
-          integer :: last_icoord
-          integer :: size_x_map_icr
-          integer :: size_y_map_icr
-
+          integer(ikind), dimension(2) :: first_icoord
+          integer(ikind), dimension(2) :: last_icoord
+          integer(ikind), dimension(2) :: size_local_map
+          integer                      :: i
 
           !allocation of the tables storing the (x,y)-
           !coordinates corresponding of the index
-          first_icoord =nint(rot_icoords_r(1)+(1-real(inter_nb+1)/2)*icoords_icr(1))
-          last_icoord  = nint(rot_icoords_r(1)+(inter_nb-real(inter_nb+1)/2)*icoords_icr(1))
-          size_x_map_icr = abs(last_icoord-first_icoord)+1
-          if(prev_icoords(1).ne.first_icoord) then
-             size_x_map_icr = size_x_map_icr+1
-          end if
-
-          first_icoord =nint(rot_icoords_r(2)+(1-real(inter_nb+1)/2)*icoords_icr(2))
-          last_icoord  = nint(rot_icoords_r(2)+(inter_nb-real(inter_nb+1)/2)*icoords_icr(2))
-          size_y_map_icr = abs(last_icoord-first_icoord)+1
-          if(prev_icoords(1).ne.first_icoord) then
-             size_y_map_icr = size_y_map_icr+1
-          end if
+          first_icoord = get_inter_detector_icoords(
+     $         rot_icoords_r,
+     $         icoords_icr,
+     $         inter_nb,
+     $         1)
           
-          allocate(x_map_icr(size_x_map_icr))
-          allocate(y_map_icr(size_y_map_icr))
+          last_icoord = get_inter_detector_icoords(
+     $         rot_icoords_r,
+     $         icoords_icr,
+     $         inter_nb,
+     $         inter_nb)
+
+        do i=1,2
+
+             size_local_map(i) = abs(last_icoord(i)-first_icoord(i))+1
+
+             if(prev_icoords(i).ne.first_icoord(i)) then
+                size_local_map(i) = size_local_map(i)+1
+             end if
+
+          end do
+          
+          allocate(x_map_icr(size_local_map(1)))
+          allocate(y_map_icr(size_local_map(2)))
 
           
           !fill the x_map_icr and the y_map_icr with the
           !coorresponding (x,y)-coordinates
           call determine_local_map_coordinates(
      $         interior_x_map,nx,
-     $         size_x_map_icr,
+     $         size_local_map(1),
      $         prev_icoords(1),
      $         (icoords_icr(1).gt.0),
      $         x_map_icr)
           
           call determine_local_map_coordinates(
      $         interior_y_map,ny,
-     $         size_y_map_icr,
+     $         size_local_map(2),
      $         prev_icoords(2),
      $         (icoords_icr(2).gt.0),
      $         y_map_icr)
@@ -437,6 +686,24 @@
         end subroutine get_intermediate_maps
 
       
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the minimum number of blocks to link two blocks
+        !
+        !> @date
+        !> 09_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param first_icoords
+        !> (x,y)-index coordinates of the first block to be linked
+        !
+        !>@param last_icoords
+        !> (x,y)-index coordinates of the last block to be linked
+        !
+        !>@return block_nb
+        !> minimal number of block to link the first and the last blocks
+        !--------------------------------------------------------------
         function get_minimum_block_nb(first_icoords,last_icoords)
      $     result(block_nb)
 
@@ -496,6 +763,32 @@
         end function get_minimum_block_nb
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the position of the middle point linking the two blocks
+        !> the position is given as both the (x,y)-index coordinates in
+        !> double to express the position of the point even if at the
+        !> edge b/w two blocks and also as the (x,y)-index to identify
+        !> the block closest to the middle point in the direction of
+        !> the first block
+        !
+        !> @date
+        !> 09_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param prev_icoords
+        !> (x,y)-index coordinates of the first block to be linked
+        !
+        !>@param next_icoords
+        !> (x,y)-index coordinates of the last block to be linked
+        !
+        !>@param rot_icoords
+        !> (x,y)-coordinates of the middle point
+        !
+        !>@param rot_rcoords
+        !> (x,y)-coordinates of the middle point as double
+        !--------------------------------------------------------------
         subroutine get_rot_coords(
      $     prev_icoords,
      $     next_icoords,
