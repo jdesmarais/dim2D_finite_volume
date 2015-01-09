@@ -154,7 +154,11 @@
 
              !fill the local map with coordinates on the right
              !side outside the interior_map
-             size_outside = (first_icoord+size_local_map-1)-size_interior_map
+             if(first_icoord.ge.(size_interior_map+1)) then
+                size_outside = size_local_map
+             else
+                size_outside = (first_icoord+size_local_map-1)-(size_interior_map+1)+1
+             end if
 
              if(size_outside.gt.0) then
 
@@ -179,7 +183,11 @@
 
              !fill the local map with coordinates on the right
              !side outside the interior_map
-             size_outside = first_icoord-max(first_icoord-size_local_map+1,size_interior_map+1)+1
+             if((first_icoord-size_local_map+1).ge.(size_interior_map+1)) then
+                size_outside = size_local_map
+             else
+                size_outside = first_icoord-(size_interior_map+1)+1
+             end if
 
              if(size_outside.gt.0) then
 

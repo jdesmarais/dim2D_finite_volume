@@ -66,8 +66,8 @@
 
         !flow velocities for the different flow configurations
         real(rkind), parameter :: flow_velocity =  0.1d0
-        real(rkind), parameter :: flow_x_side   = -1.0d0
-        real(rkind), parameter :: flow_y_side   = -1.0d0
+        real(rkind), parameter :: flow_x_side   =  1.0d0
+        real(rkind), parameter :: flow_y_side   =  1.0d0
 
         real(rkind), parameter :: u0_x_flow  = flow_velocity*flow_x_side
         real(rkind), parameter :: u0_y_flow  = 0.0d0
