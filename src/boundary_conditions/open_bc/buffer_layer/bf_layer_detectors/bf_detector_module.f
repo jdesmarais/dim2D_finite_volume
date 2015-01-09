@@ -109,7 +109,12 @@
 
              !fill the local map with coordinates on
              !the left side outside the interior_map
-             size_outside = 0-min(1,first_icoord)+1
+             if((first_icoord+size_local_map-1).le.0) then
+                size_outside = size_local_map
+             else
+                size_outside = (0-first_icoord)+1
+             end if
+             !size_outside = 0-min(1,first_icoord)+1
 
              if(size_outside.gt.0) then
                 

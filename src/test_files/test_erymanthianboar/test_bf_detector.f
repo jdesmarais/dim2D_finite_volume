@@ -27,10 +27,13 @@
         logical :: test_loc
         logical :: test_validated
 
-        detailled      = .false.
+
         test_validated = .true.
 
+        detailled      = .false.
+
         call test_inputs()
+
 
         test_loc = test_determine_local_map_coordinates(detailled)
         test_validated = test_validated.and.test_loc
@@ -52,7 +55,7 @@ c$$$        print '()'
         print '(''test_get_inter_detector_coords: '',L1)', test_loc
         print '()'
 
-        detailled      = .true.
+        detailled      = .false.
 
         test_loc = test_get_rot_coords(detailled)
         test_validated = test_validated.and.test_loc
@@ -173,20 +176,22 @@ c$$$        print '()'
 
              test_validated = test_validated.and.test_loc
 
-             print '(''test '',I2)', test_id
+             if(detailled) then
+                print '(''test '',I2)', test_id
 
-             if(.not.validated_icoords_inter) then
-                print '(''icoords_inter:'')'
-                print *, icoords_inter
-                print '(''->'')'
-                print *,test_icoords_inter
-             end if
+                if(.not.validated_icoords_inter) then
+                   print '(''icoords_inter:'')'
+                   print *, icoords_inter
+                   print '(''->'')'
+                   print *,test_icoords_inter
+                end if
 
-             if(.not.validated_rcoords_inter) then
-                print '(''rcoords_inter:'')'
-                print *, rcoords_inter
-                print '(''->'')'
-                print *,test_rcoords_inter
+                if(.not.validated_rcoords_inter) then
+                   print '(''rcoords_inter:'')'
+                   print *, rcoords_inter
+                   print '(''->'')'
+                   print *,test_rcoords_inter
+                end if
              end if
 
              deallocate(icoords_inter)
@@ -662,38 +667,41 @@ c$$$        print '()'
 
              test_validated = test_validated.and.test_loc
 
-             print '(''test '',I2)', test_id
+             if(detailled) then
 
-             if(.not.validated_rot_icoords_r) then
-                print '(''rot_icoords_r: '',2F8.5,''->'',2F8.5)',
-     $               rot_icoords_r,
-     $               test_rot_icoords_r
-             end if
+                print '(''test '',I2)', test_id
 
-             if(.not.validated_icoords_icr) then
-                print '(''icoords_icr: '',2F8.5,''->'',2F8.5)',
+                if(.not.validated_rot_icoords_r) then
+                   print '(''rot_icoords_r: '',2F8.5,''->'',2F8.5)',
+     $                  rot_icoords_r,
+     $                  test_rot_icoords_r
+                end if
+                
+                if(.not.validated_icoords_icr) then
+                   print '(''icoords_icr: '',2F8.5,''->'',2F8.5)',
      $               icoords_icr,
-     $               test_icoords_icr
-             end if
-
-             if(.not.validated_inter_nb) then
-                print '(''inter_nb: '',I2,''->'',I2)',
-     $               inter_nb,
-     $               test_inter_nb
-             end if
-
-             if(.not.validated_x_map_icr) then
-                print '(''x_map_icr'')'
-                print *, x_map_icr
-                print '(''->'')'
-                print *, test_x_map_icr
-             end if
-
-             if(.not.validated_y_map_icr) then
-                print '(''y_map_icr'')'
-                print *, y_map_icr
-                print '(''->'')'
-                print *, test_y_map_icr
+     $                  test_icoords_icr
+                end if
+                
+                if(.not.validated_inter_nb) then
+                   print '(''inter_nb: '',I2,''->'',I2)',
+     $                  inter_nb,
+     $                  test_inter_nb
+                end if
+                
+                if(.not.validated_x_map_icr) then
+                   print '(''x_map_icr'')'
+                   print *, x_map_icr
+                   print '(''->'')'
+                   print *, test_x_map_icr
+                end if
+                
+                if(.not.validated_y_map_icr) then
+                   print '(''y_map_icr'')'
+                   print *, y_map_icr
+                   print '(''->'')'
+                   print *, test_y_map_icr
+                end if
              end if
 
              deallocate(x_map_icr)
