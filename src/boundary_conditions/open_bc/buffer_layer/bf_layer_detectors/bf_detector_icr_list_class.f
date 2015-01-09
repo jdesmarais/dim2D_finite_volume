@@ -13,12 +13,14 @@
       !
       !> @date
       ! 24_11_2014 - initial version      - J.L. Desmarais
+      ! 09_01_2015 - rotation invariant
+      !              intermediate detectors - J.L. Desmarais
       !----------------------------------------------------------------
       module bf_detector_icr_list_class
       
         use bf_detector_module, only :
-     $       get_inter_detector_param,
-     $       get_inter_detector_coords
+     $       get_inter_detector_rot_param,
+     $       get_inter_detector_rot_coords
 
         use parameters_input, only :
      $       nx,ny
@@ -196,6 +198,7 @@
           integer(ikind), dimension(2) :: prev_icoord
           real(rkind)   , dimension(2) :: prev_rcoord
 
+          real(rkind)   , dimension(2) :: rot_icoords_r
           real(rkind)   , dimension(2) :: icoord_icr
           integer                      :: inter_nb
 
@@ -221,11 +224,12 @@
                 !add intermediate detectors between the previous
                 !one and the new one to retain a continuous path
                 !determination of the parameters
-                call get_inter_detector_param(
+                call get_inter_detector_rot_param(
      $               prev_icoord,
      $               icoord,
      $               interior_x_map,
      $               interior_y_map,
+     $               rot_icoords_r,
      $               icoord_icr,
      $               inter_nb,
      $               x_map_icr,
@@ -234,12 +238,14 @@
                 !add intermediate detectors to the list
                 do k=1, inter_nb
 
-                   call get_inter_detector_coords(
+                   call get_inter_detector_rot_coords(
      $                  prev_icoord,
+     $                  rot_icoords_r,
      $                  icoord_icr,
-     $                  k,
+     $                  inter_nb,
      $                  x_map_icr,
      $                  y_map_icr,
+     $                  k,
      $                  icoord_inter,
      $                  rcoord_inter)
 

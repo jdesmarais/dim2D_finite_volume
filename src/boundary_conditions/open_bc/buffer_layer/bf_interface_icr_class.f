@@ -25,8 +25,8 @@
         !of intermediate detectors when combining
         !several detector lists into one closed path
         use bf_detector_module, only :
-     $       get_inter_detector_param,
-     $       get_inter_detector_coords
+     $       get_inter_detector_rot_param,
+     $       get_inter_detector_rot_coords
 
         !temporary object to store the new detectors
         !before being reduced to only the number of
@@ -698,24 +698,28 @@
           real(rkind)   , dimension(2)              :: rcoord_2
 
           integer(ikind), dimension(2)              :: icoord_SW
+          real(rkind)   , dimension(2)              :: rot_icoords_r_SW
           real(rkind)   , dimension(2)              :: icoord_icr_SW
           integer(ikind)                            :: inter_nb_SW
           real(rkind)   , dimension(:), allocatable :: x_map_icr_SW
           real(rkind)   , dimension(:), allocatable :: y_map_icr_SW
 
           integer(ikind), dimension(2)              :: icoord_SE
+          real(rkind)   , dimension(2)              :: rot_icoords_r_SE
           real(rkind)   , dimension(2)              :: icoord_icr_SE
           integer(ikind)                            :: inter_nb_SE
           real(rkind)   , dimension(:), allocatable :: x_map_icr_SE
           real(rkind)   , dimension(:), allocatable :: y_map_icr_SE
 
           integer(ikind), dimension(2)              :: icoord_NE
+          real(rkind)   , dimension(2)              :: rot_icoords_r_NE
           real(rkind)   , dimension(2)              :: icoord_icr_NE
           integer(ikind)                            :: inter_nb_NE
           real(rkind)   , dimension(:), allocatable :: x_map_icr_NE
           real(rkind)   , dimension(:), allocatable :: y_map_icr_NE
 
           integer(ikind), dimension(2)              :: icoord_NW
+          real(rkind)   , dimension(2)              :: rot_icoords_r_NW
           real(rkind)   , dimension(2)              :: icoord_icr_NW
           integer(ikind)                            :: inter_nb_NW
           real(rkind)   , dimension(:), allocatable :: x_map_icr_NW
@@ -762,11 +766,12 @@
           ! detectors between the W and S detectors
           call W_dct_list_n%get_head(icoord_1,rcoord_1)
           call S_dct_list_n%get_head(icoord_2,rcoord_2)
-          call get_inter_detector_param(
+          call get_inter_detector_rot_param(
      $         icoord_1,
      $         icoord_2,
      $         interior_x_map,
      $         interior_y_map,
+     $         rot_icoords_r_SW,
      $         icoord_icr_SW,
      $         inter_nb_SW,
      $         x_map_icr_SW,
@@ -811,11 +816,12 @@
           ! detectors between the E and S detectors
           call S_dct_list_n%get_tail(icoord_1,rcoord_1)
           call E_dct_list_n%get_head(icoord_2,rcoord_2)
-          call get_inter_detector_param(
+          call get_inter_detector_rot_param(
      $         icoord_1,
      $         icoord_2,
      $         interior_x_map,
      $         interior_y_map,
+     $         rot_icoords_r_SE,
      $         icoord_icr_SE,
      $         inter_nb_SE,
      $         x_map_icr_SE,
@@ -857,11 +863,12 @@
           ! detectors between the W and N detectors
           call W_dct_list_n%get_tail(icoord_1,rcoord_1)
           call N_dct_list_n%get_head(icoord_2,rcoord_2)
-          call get_inter_detector_param(
+          call get_inter_detector_rot_param(
      $         icoord_1,
      $         icoord_2,
      $         interior_x_map,
      $         interior_y_map,
+     $         rot_icoords_r_NW,
      $         icoord_icr_NW,
      $         inter_nb_NW,
      $         x_map_icr_NW,
@@ -897,11 +904,12 @@
           ! detectors between the E and N detectors
           call E_dct_list_n%get_tail(icoord_1,rcoord_1)
           call N_dct_list_n%get_tail(icoord_2,rcoord_2)
-          call get_inter_detector_param(
+          call get_inter_detector_rot_param(
      $         icoord_1,
      $         icoord_2,
      $         interior_x_map,
      $         interior_y_map,
+     $         rot_icoords_r_NE,
      $         icoord_icr_NE,
      $         inter_nb_NE,
      $         x_map_icr_NE,
@@ -949,6 +957,7 @@
      $         this%S_dct_rcoords,
      $         W_in_S,
      $         icoord_SW,
+     $         rot_icoords_r_SW,
      $         icoord_icr_SW,
      $         x_map_icr_SW,
      $         y_map_icr_SW,
@@ -956,6 +965,7 @@
      $         S_dct_list_n,
      $         .not.(S_in_E),
      $         icoord_SE,
+     $         rot_icoords_r_SE,
      $         icoord_icr_SE,
      $         x_map_icr_SE,
      $         y_map_icr_SE,
@@ -967,6 +977,7 @@
      $         this%W_dct_rcoords,
      $         .not.(W_in_S),
      $         icoord_SW,
+     $         rot_icoords_r_SW,
      $         icoord_icr_SW,
      $         x_map_icr_SW,
      $         y_map_icr_SW,
@@ -974,6 +985,7 @@
      $         W_dct_list_n,
      $         N_in_W,
      $         icoord_NW,
+     $         rot_icoords_r_NW,
      $         icoord_icr_NW,
      $         x_map_icr_NW,
      $         y_map_icr_NW,
@@ -995,6 +1007,7 @@
      $         this%E_dct_rcoords,
      $         S_in_E,
      $         icoord_SE,
+     $         rot_icoords_r_SE,
      $         icoord_icr_SE,
      $         x_map_icr_SE,
      $         y_map_icr_SE,
@@ -1002,6 +1015,7 @@
      $         E_dct_list_n,
      $         N_in_E,
      $         icoord_NE,
+     $         rot_icoords_r_NE,
      $         icoord_icr_NE,
      $         x_map_icr_NE,
      $         y_map_icr_NE,
@@ -1023,6 +1037,7 @@
      $         this%N_dct_rcoords,
      $         .not.(N_in_W),
      $         icoord_NW,
+     $         rot_icoords_r_NW,
      $         icoord_icr_NW,
      $         x_map_icr_NW,
      $         y_map_icr_NW,
@@ -1030,6 +1045,7 @@
      $         N_dct_list_n,
      $         .not.(N_in_E),
      $         icoord_NE,
+     $         rot_icoords_r_NE,
      $         icoord_icr_NE,
      $         x_map_icr_NE,
      $         y_map_icr_NE,
@@ -1066,6 +1082,7 @@
      $     rcoords_n,
      $     add_detectors_left,
      $     icoord_left,
+     $     rot_icoords_r_left,
      $     icoord_icr_left,
      $     x_map_icr_left,
      $     y_map_icr_left,
@@ -1073,6 +1090,7 @@
      $     dct_list,
      $     add_detectors_right,
      $     icoord_right,
+     $     rot_icoords_r_right,
      $     icoord_icr_right,
      $     x_map_icr_right,
      $     y_map_icr_right,
@@ -1084,6 +1102,7 @@
           real(rkind)   , dimension(:,:), allocatable, intent(inout) :: rcoords_n
           logical                                    , intent(in)    :: add_detectors_left
           integer(ikind), dimension(2)               , intent(in)    :: icoord_left
+          real(rkind)   , dimension(2)               , intent(in)    :: rot_icoords_r_left
           real(rkind)   , dimension(2)               , intent(in)    :: icoord_icr_left
           real(rkind)   , dimension(:)               , intent(in)    :: x_map_icr_left
           real(rkind)   , dimension(:)               , intent(in)    :: y_map_icr_left
@@ -1091,6 +1110,7 @@
           type(bf_detector_icr_list)                 , intent(in)    :: dct_list
           logical                                    , intent(in)    :: add_detectors_right
           integer(ikind), dimension(2)               , intent(in)    :: icoord_right
+          real(rkind)   , dimension(2)               , intent(in)    :: rot_icoords_r_right
           real(rkind)   , dimension(2)               , intent(in)    :: icoord_icr_right
           real(rkind)   , dimension(:)  , allocatable, intent(in)    :: x_map_icr_right
           real(rkind)   , dimension(:)  , allocatable, intent(in)    :: y_map_icr_right
@@ -1130,12 +1150,14 @@
           k_start = 1
           if(add_detectors_left) then
              do k=1, inter_nb_left
-                call get_inter_detector_coords(
+                call get_inter_detector_rot_coords(
      $               icoord_left,
+     $               rot_icoords_r_left,
      $               icoord_icr_left,
-     $               k,
+     $               inter_nb_left,
      $               x_map_icr_left,
      $               y_map_icr_left,
+     $               k,
      $               icoord_inter,
      $               rcoord_inter)
                 icoords_n(:,k) = icoord_inter
@@ -1156,12 +1178,14 @@
           !add the right detectors
           if(add_detectors_right) then
              do k=1, inter_nb_right
-                call get_inter_detector_coords(
+                call get_inter_detector_rot_coords(
      $               icoord_right,
+     $               rot_icoords_r_right,
      $               icoord_icr_right,
-     $               k,
+     $               inter_nb_right,
      $               x_map_icr_right,
      $               y_map_icr_right,
+     $               k,
      $               icoord_inter,
      $               rcoord_inter)
                 icoords_n(:,k_start+k-1) = icoord_inter

@@ -11,12 +11,13 @@
       !
       !> @date
       ! 25_11_2014 - documentation update - J.L. Desmarais
+      ! 09_01_2015 - rotation invariant detectors - J.L. Desmarais
       !----------------------------------------------------------------
       module bf_detector_dcr_param_class
 
         use bf_detector_module, only :
-     $     get_inter_detector_param,
-     $     get_inter_detector_coords
+     $     get_inter_detector_rot_param,
+     $     get_inter_detector_rot_coords
 
         use parameters_bf_layer, only :
      $       dct_icr_N_default,
@@ -664,6 +665,8 @@
           integer                                     :: nb_added_detectors
           integer                                     :: nb_deleted_detectors
           integer                                     :: sign_added_detectors
+          real(rkind), dimension(2)                   :: left_rot_icoords_r
+          real(rkind), dimension(2)                   :: right_rot_icoords_r
           real(rkind), dimension(2)                   :: left_icoord_icr
           real(rkind), dimension(2)                   :: right_icoord_icr
           integer                                     :: left_inter_nb
@@ -696,21 +699,23 @@
 
           !compute the parameters for linking the new detector
           !list with the first and the last points
-          call get_inter_detector_param(
+          call get_inter_detector_rot_param(
      $         left_icoord,
      $         this%first_icoord,
      $         interior_x_map,
      $         interior_y_map,
+     $         left_rot_icoords_r,
      $         left_icoord_icr,
      $         left_inter_nb,
      $         left_x_map_icr,
      $         left_y_map_icr)
 
-          call get_inter_detector_param(
+          call get_inter_detector_rot_param(
      $         this%last_icoord,
      $         right_icoord,
      $         interior_x_map,
      $         interior_y_map,
+     $         right_rot_icoords_r,
      $         right_icoord_icr,
      $         right_inter_nb,
      $         right_x_map_icr,
@@ -774,12 +779,14 @@
 
              do i=1, left_inter_nb
                    
-                call get_inter_detector_coords(
+                call get_inter_detector_rot_coords(
      $               left_icoord,
+     $               left_rot_icoords_r,
      $               left_icoord_icr,
-     $               i,
+     $               left_inter_nb,
      $               left_x_map_icr,
      $               left_y_map_icr,
+     $               i,
      $               icoord_inter,
      $               rcoord_inter)
                    
@@ -852,12 +859,14 @@
 
              do i=1, right_inter_nb
 
-                call get_inter_detector_coords(
+                call get_inter_detector_rot_coords(
      $               this%last_icoord,
+     $               right_rot_icoords_r,
      $               right_icoord_icr,
-     $               i,
+     $               right_inter_nb,
      $               right_x_map_icr,
      $               right_y_map_icr,
+     $               i,
      $               icoord_inter,
      $               rcoord_inter)
 

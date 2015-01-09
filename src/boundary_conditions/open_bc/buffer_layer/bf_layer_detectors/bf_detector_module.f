@@ -328,15 +328,15 @@
 
           implicit none
 
-          integer(ikind), dimension(2)             , intent(in)  :: prev_icoord
-          real(rkind)   , dimension(2)             , intent(in)  :: rot_icoords_r
-          real(rkind)   , dimension(2)             , intent(in)  :: icoords_icr
-          integer(ikind)                           , intent(in)  :: inter_nb
-          real(rkind)   , dimension(:), allocatable, intent(in)  :: x_map_icr
-          real(rkind)   , dimension(:), allocatable, intent(in)  :: y_map_icr
-          integer                                  , intent(in)  :: k
-          integer(ikind), dimension(2)             , intent(out) :: icoord_inter
-          real(rkind)   , dimension(2)             , intent(out) :: rcoord_inter
+          integer(ikind), dimension(2), intent(in)  :: prev_icoord
+          real(rkind)   , dimension(2), intent(in)  :: rot_icoords_r
+          real(rkind)   , dimension(2), intent(in)  :: icoords_icr
+          integer(ikind)              , intent(in)  :: inter_nb
+          real(rkind)   , dimension(:), intent(in)  :: x_map_icr
+          real(rkind)   , dimension(:), intent(in)  :: y_map_icr
+          integer                     , intent(in)  :: k
+          integer(ikind), dimension(2), intent(out) :: icoord_inter
+          real(rkind)   , dimension(2), intent(out) :: rcoord_inter
 
 
           icoord_inter = get_inter_detector_icoords(
