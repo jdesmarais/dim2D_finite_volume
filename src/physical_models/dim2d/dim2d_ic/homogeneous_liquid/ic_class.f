@@ -17,8 +17,7 @@
       module ic_class
        
         use dim2d_parameters, only :
-     $       cv_r,
-     $       T_c
+     $       cv_r
 
         use dim2d_state_eq_module, only :
      $       get_mass_density_liquid
@@ -29,7 +28,8 @@
         use parameters_input, only :
      $       nx,
      $       ny,
-     $       ne
+     $       ne,
+     $       T0
 
         use parameters_kind, only :
      $       ikind,
@@ -42,11 +42,6 @@
         public :: ic
 
         
-        !set the initial temperature in the field
-        real(rkind), parameter :: T0_degrees = 100
-        real(rkind), parameter :: T0         = (T0_degrees+273.15)/T_c
-
-
         !> @class ic
         !> class encapsulating operators to set the initial
         !> conditions and the conditions enforced at the edge of the

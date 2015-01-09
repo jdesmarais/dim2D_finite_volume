@@ -52,11 +52,33 @@
 
         !<initial conditions choice
         !--------------------------------------------
-        !flow_direction
+        !flow_direction:
         !--------------------------------------------
-        !x_direction        : from left to right
-        !y_direction        : from bottom to up
-        !xy_direction       : from SW to NE corner
+        !x_direction  : from left to right
+        !y_direction  : from bottom to up
+        !xy_direction : from SW to NE corner
+        !
+        !--------------------------------------------
+        !flow_x_side:
+        !--------------------------------------------
+        !-1.0d0 : from right to left
+        !+1.0d0 : from left  to right
+        !
+        !--------------------------------------------
+        !flow_y_side:
+        !--------------------------------------------
+        !-1.0d0 : from top to bottom
+        !+1.0d0 : from bottom to top
+        !
+        !--------------------------------------------
+        !flow_velocity:
+        !--------------------------------------------
+        !reduced velocity of the mean flow
+        !
+        !--------------------------------------------
+        !T0:
+        !--------------------------------------------
+        !reduced temperature of the mean flow
         !
         !--------------------------------------------
         !ic_choice:
@@ -83,8 +105,14 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer, parameter :: flow_direction = y_direction
-        integer, parameter :: ic_choice = bubble_transported
+        integer    , parameter :: flow_direction = y_direction
+        real(rkind), parameter :: flow_x_side = 1.0000000000d0
+        real(rkind), parameter :: flow_y_side = 1.0000000000d0
+        real(rkind), parameter :: flow_velocity = 0.1000000000d0
+        
+        real(rkind), parameter :: T0 = 0.9950000000d0
+
+        integer    , parameter :: ic_choice = bubble_transported
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice

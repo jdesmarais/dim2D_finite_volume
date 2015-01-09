@@ -45,7 +45,10 @@
      $       nx,
      $       ny,
      $       ne,
-     $       flow_direction
+     $       T0,
+     $       flow_direction,
+     $       flow_x_side,
+     $       flow_y_side
 
         use parameters_kind, only :
      $       ikind,
@@ -60,15 +63,7 @@
         !set the phase at the center
         integer, parameter     :: phase_at_center = vapor
         
-        !set the initial temperature in the field
-        real(rkind), parameter :: T0 = 0.995d0
-
-
         !flow velocities for the different flow configurations
-        real(rkind), parameter :: flow_velocity =  0.1d0
-        real(rkind), parameter :: flow_x_side   =  1.0d0
-        real(rkind), parameter :: flow_y_side   =  1.0d0
-
         real(rkind), parameter :: u0_x_flow  = flow_velocity*flow_x_side
         real(rkind), parameter :: u0_y_flow  = 0.0d0
         real(rkind), parameter :: u0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity*flow_x_side

@@ -31,7 +31,8 @@
         use parameters_input, only :
      $       nx,
      $       ny,
-     $       ne
+     $       ne,
+     $       T0
 
         use parameters_kind, only :
      $       ikind,
@@ -45,10 +46,8 @@
 
         
         !set the initial temperature in the field
-        real(rkind), parameter :: T0 = 0.99d0
         real(rkind), parameter :: u0_flow = 0.5d0*SQRT(2.0d0)
         real(rkind), parameter :: v0_flow = 0.5d0*SQRT(2.0d0)
-
 
 
         !> @class ic

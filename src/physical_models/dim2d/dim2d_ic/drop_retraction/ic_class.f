@@ -37,7 +37,8 @@
         use parameters_input, only :
      $       nx,
      $       ny,
-     $       ne
+     $       ne,
+     $       T0
 
         use parameters_kind, only :
      $       ikind,
@@ -50,9 +51,6 @@
         !is it a droplet of liquid in a vapor medium ? -> vapor
         !is it a bubble  of vapor in a liquid medium ? -> liquid
         integer, parameter :: phase_at_center = liquid
-
-        !set the initial temperature in the field
-        real(rkind), parameter :: T0 = 0.995d0
 
 
         private

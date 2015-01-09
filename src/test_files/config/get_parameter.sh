@@ -40,7 +40,7 @@ done
 
 #extract the line where the parameter is mentionned
 #--------------------------------------------------
-line=$(grep $PARAM_NAME[' ']*'='[' ']*[0-9\\.]* $PATH_INPUT)
+line=$(grep $PARAM_NAME[' ']*'='[' ']*[A-Za-z0-9\\.]* $PATH_INPUT)
 
 
 #extract the value out of the line

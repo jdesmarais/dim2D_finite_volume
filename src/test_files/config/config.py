@@ -7,6 +7,7 @@ import shlex
 import string
 
 
+# display the help for the program
 def display_help():
     '''
     @description:
@@ -17,16 +18,20 @@ def display_help():
     print './config -i <input_file>'
     print 'configure the augeanstables code and compile'
     print './config -i <input_file> -c'
+    print 'configure the augeanstables code by enabling buffer layers'
+    print './config -i <input_file> -b'
     print ''
 
 
+# analyze the options passed to the program
 def parse_argv(argv):
     '''
     @description:
     parse the program arguments: get the input file
     '''
     
-    #< store the options and the arguments in opts, args
+    # store the options and the arguments
+    # in opts, args
     try:
         opts, args = getopt.getopt(argv,"hi:cb", ["help","input=","buffer"])
     except getopt.GetoptError:
@@ -59,6 +64,9 @@ def parse_argv(argv):
 
     return [inputFile,compileCode,compileCodeBuffer]
 
+
+# read the SHA reference number of the last commit to 
+# the git repository
 def read_commit():
     '''
     @description:
@@ -71,6 +79,9 @@ def read_commit():
     
     return output.strip()
 
+
+# set the SHA reference number of the last commit to the
+# git repository as a parameter in parameters_constant.f
 def set_commit(file_path):
     '''
     @description:
@@ -92,25 +103,38 @@ def set_commit(file_path):
     print 'update '+file_path+' for commit '+commit_ID
     
 
+# read the parameters saved in the input text file
 def read_inputs(filename, inputs_needed):
     '''
     @description:
     read the input file
     '''    
-    #< define a dictionnary to store the inputs needed
-    #> then, if one needs the input read 'x_min', one simply
-    #> use : inputs_read['x_min']
+    # define a dictionnary to store the inputs needed
+    # then, if one needs the input read 'x_min', one simply
+    # use : inputs_read['x_min']
     inputs_read={}
 
     for input_param in inputs_needed:
         cmd="./get_parameter.sh -i "+str(filename)+" -p "+input_param
         args = shlex.split(cmd)
         output = subprocess.Popen(args,stdout=subprocess.PIPE).communicate()[0]
-        inputs_read[input_param]=float(output)
+
+        # convert the parameter read into float
+        # except for the parameter 'flow_direction'
+        # which must remain of character type
+        if(input_param!='flow_direction'):
+            inputs_read[input_param]=float(output)
+        else:
+            output=output.replace('\r','')
+            output=output.replace('\n','')
+            inputs_read[input_param]=output
 
     return inputs_read
 
 
+# compute the number of grid points in the computational domain
+# considering the borders, the space step and the extent of the
+# boundary layer
 def compute_n(x_min,x_max,dx,bc_size):
     '''
     @description:
@@ -121,6 +145,9 @@ def compute_n(x_min,x_max,dx,bc_size):
     return n
 
 
+# compute the number of grid points in the computational domain
+# considering the borders, the space step and the extent of the
+# boundary layer for a parallel computation
 def compute_n_par(npx,x_min,x_max,dx,bc_size):
     '''
     @description:
@@ -131,6 +158,9 @@ def compute_n_par(npx,x_min,x_max,dx,bc_size):
     return n
 
 
+# compute the total extent of the computational domain
+# depending on the number of processors and the number
+# of space steps
 def compute_ntx_and_nty(npx,npy,x_min,x_max,dx,y_min,y_max,dy,bc_size):
     '''
     @description:
@@ -154,15 +184,18 @@ def compute_ntx_and_nty(npx,npy,x_min,x_max,dx,y_min,y_max,dy,bc_size):
     return [ntx,nty]
 
 
+# turn the parameters read from the input file into
+# inputs saved in the parameters_input.f file of the
+# program
 def compute_code_inputs(inputFileName):
     '''
     @description
     compute all the inputs needed by the code
     '''
 
-    #< codes for ic_choice, bc_choice, bc_type_choice,
-    #> gravity_choice: these codes are defined in
-    #> parameters_constant.f
+    # codes for ic_choice, bc_choice, bc_type_choice,
+    # gravity_choice: these codes are defined in
+    # parameters_constant.f
     pm_code      = ['simpletest_choice',
                     'wave1d_choice',
                     'wave2d_choice',
@@ -211,27 +244,47 @@ def compute_code_inputs(inputFileName):
                          'oscillatory_forcing',
                          'intermittent_oscillatory_forcing']
 
+    #in order to set the correct direction of the flow
+    #(N,S,E,W,NE,NW,SE,SW) from the inputs.txt, three
+    #parameters are initialized in parameters_input.f
+    #[1]: the direction of the flow is either horizontal
+    #(x_direction), vertical (y_direction) or diagonal
+    #(xy_direction)
+    #[2]: whether the flow is right or left (1.0/-1.0)
+    #[3]: whether the flow is upward or downwards (1.0/-1.0)
+    flow_direction_code = {
+        'N':  [ 'y_direction', 1.0, 1.0],
+        'S':  [ 'y_direction', 1.0,-1.0],
+        'E':  [ 'x_direction', 1.0, 1.0],
+        'W':  [ 'x_direction',-1.0, 1.0],
+        'NE': ['xy_direction', 1.0, 1.0],
+        'NW': ['xy_direction',-1.0, 1.0],
+        'SE': ['xy_direction', 1.0,-1.0],
+        'SW': ['xy_direction',-1.0,-1.0]}
 
-    #< read the input file
+    # read the input file
     inputs_needed=['x_min','x_max','dx',
                    'y_min','y_max','dy',
                    'dt','t_max','detail_print',
                    'npx', 'npy',
                    'pm_choice',
                    'bc_choice',
+                   'flow_direction',
+                   'flow_velocity',
+                   'temperature',
                    'ic_choice',
                    'gravity_choice',
                    'wave_forcing']
     inputs=read_inputs(inputFileName, inputs_needed)
     
 
-    #< update the type of the inputs
+    # update the type of the inputs
     inputs['npx']=int(inputs['npx'])
     inputs['npy']=int(inputs['npy'])
 
 
-    #< compute the ntx and nty determining the
-    #> extent of the computational domain
+    # compute the ntx and nty determining the
+    # extent of the computational domain
     bc_size=2
     [ntx,nty]=compute_ntx_and_nty(
         inputs['npx'], inputs['npy'],
@@ -239,10 +292,10 @@ def compute_code_inputs(inputFileName):
         inputs['y_min'],inputs['y_max'],inputs['dy'],
         bc_size)
 
-    #< compute the pm_choice
+    # compute the pm_choice
     pm_choice = pm_code[int(inputs['pm_choice'])]
 
-    #< compute the ne
+    # compute the ne
     if(pm_choice=='simpletest_choice'):
         ne = 1
     if(pm_choice=='wave1d_choice'):
@@ -254,7 +307,7 @@ def compute_code_inputs(inputFileName):
     if(pm_choice=='dim2d_choice'):
         ne = 4
 
-    #< compute the ic_choice
+    # compute the ic_choice
     if(pm_choice=='wave2d_choice'):
         ic_choice = wave2d_ic_code[int(inputs['ic_choice'])]
 
@@ -267,11 +320,16 @@ def compute_code_inputs(inputFileName):
     else:
         ic_choice = ns2d_ic_code[0]
 
+    # determine the flow parameters
+    flow_direction = flow_direction_code[inputs['flow_direction']][0]
+    flow_x_side    = flow_direction_code[inputs['flow_direction']][1]
+    flow_y_side    = flow_direction_code[inputs['flow_direction']][2]
+
     
-    #< compute the bc_choice    
+    # compute the bc_choice    
     bc_choice = bc_code[int(inputs['bc_choice'])]
     
-    #< compute the bc_type_choice
+    # compute the bc_type_choice
     if(bc_choice=='periodic_xy_choice' or
        bc_choice=='reflection_xy_choice'):
 
@@ -297,36 +355,45 @@ def compute_code_inputs(inputFileName):
         bcx_type_choice = bc_type_code[2]
         bcy_type_choice = bc_type_code[0]
 
-    #< compute the gravity_choice
+    # compute the gravity_choice
     gravity_choice = gravity_code[int(inputs['gravity_choice'])]
     wave_forcing   = wave_forcing_code[int(inputs['wave_forcing'])]
 
 
-    return [inputs,ntx,nty,ne,
+    return [inputs,
+            ntx,nty,ne,
             pm_choice,
             ic_choice,
             bc_choice,
             bcx_type_choice,
             bcy_type_choice,
             gravity_choice,
-            wave_forcing]
+            wave_forcing,
+            flow_direction,
+            flow_x_side,
+            flow_y_side]
 
 
+# update the 'parameters_input.f' file with the inputs
+# of the simulation
 def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
                              pm_choice,
                              ic_choice,
                              bc_choice,
                              bcx_type_choice,bcy_type_choice,
                              gravity_choice,
-                             wave_forcing):
+                             wave_forcing,
+                             flow_direction,
+                             flow_x_side,
+                             flow_y_side):
     '''
     @description
     update the constants defined in the 'parameters_input'
     file
     '''
     
-    #< change the constant that do not require a special
-    #> output treatment (double,real,integer...)
+    # change the constant that do not require a special
+    # output treatment (double,real,integer...)
     constants_changed1={
         'npx':inputs['npx'],
         'npy':inputs['npy'],
@@ -339,7 +406,8 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         'bcx_type_choice':bcx_type_choice,
         'bcy_type_choice':bcy_type_choice,
         'gravity_choice':gravity_choice,
-        'wave_forcing':wave_forcing}
+        'wave_forcing':wave_forcing,
+        'flow_direction':flow_direction}
 
     for key, value  in constants_changed1.items():
 
@@ -351,8 +419,8 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         subprocess.call(cmd, shell=True)
 
 
-    #< change the constant that do require a special
-    #> output treatment (output format)
+    # change the constant that do require a special
+    # output treatment (output format)
     constants_changed2={
         'x_min':inputs['x_min'],
         'x_max':inputs['x_max'],
@@ -360,7 +428,11 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         'y_max':inputs['y_max'],
         't_max':inputs['t_max'],
         'dt':inputs['dt'],
-        'detail_print':inputs['detail_print']}
+        'detail_print':inputs['detail_print'],
+        'flow_x_side':flow_x_side,
+        'flow_y_side':flow_y_side,
+        'flow_velocity':inputs['flow_velocity'],
+        'T0':inputs['temperature']}
 
     for key, value in constants_changed2.items():
 
@@ -374,6 +446,8 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
     print 'update ', file_path        
 
 
+# update the makefile with the path to the folders
+# needed for the simulation
 def update_makefile(file_path,bc_choice):
     '''
     @description
@@ -381,14 +455,14 @@ def update_makefile(file_path,bc_choice):
     of the boundary conditions
     '''
 
-    #< define the constants changed in the file
+    # define the constants changed in the file
     constants_changed={
         'pm_choice':pm_choice,
         'ic_choice':ic_choice,
         'bc_choice':bc_choice}
 
 
-    #< change the constant in the file
+    # change the constant in the file
     for key, value in constants_changed.items():
 
         cmd="./change_parameter.sh"
@@ -447,8 +521,8 @@ def compile_code(inputs,compileCodeBuffer):
 
 if __name__ == "__main__":
 
-    #< define the paths for the files modified by the
-    #> configuration
+    # define the paths for the files modified by the
+    # configuration
     sim_paths={}
     sim_paths['serial']  = '../sim_dim2d.f'
     sim_paths['parallel']= '../sim_dim2d_par.f'
@@ -457,21 +531,24 @@ if __name__ == "__main__":
     makefile_path        = './makefile_header.mk'
     param_cst_path       = '../../parameters/parameters_constant.f'
 
-    #< parse the program arguments
+    # parse the program arguments
     [inputFileName,compileCode,compileCodeBuffer]=parse_argv(sys.argv[1:])
 
 
-    #< compute the code inputs
+    # compute the code inputs
     [inputs,ntx,nty,ne,
      pm_choice,
      ic_choice,
      bc_choice,
      bcx_type_choice,bcy_type_choice,
      gravity_choice,
-     wave_forcing]=compute_code_inputs(inputFileName)
+     wave_forcing,
+     flow_direction,
+     flow_x_side,
+     flow_y_side]=compute_code_inputs(inputFileName)
 
 
-    #< replace the inputs in the 'parameters_input' file
+    # replace the inputs in the 'parameters_input' file
     update_parameters_inputs(param_path,inputs,ntx,nty,ne,
                              pm_choice,
                              ic_choice,
@@ -479,27 +556,30 @@ if __name__ == "__main__":
                              bcx_type_choice,
                              bcy_type_choice,
                              gravity_choice,
-                             wave_forcing)
+                             wave_forcing,
+                             flow_direction,
+                             flow_x_side,
+                             flow_y_side)
 
 
-    #< replace the inputs in the 'makefile'
+    # replace the inputs in the 'makefile'
     update_makefile(makefile_path,bc_choice)
 
-    #< replace the commit SHA number in the
-    #> 'parameters_constant'
+    # replace the commit SHA number in the
+    # 'parameters_constant'
     set_commit(param_cst_path)
 
-    #< print the major results
+    # print the major results
     print '(ntx,nty)', ntx,nty
     print '(ne)', ne
 
 
-    #< print the end of the configuration
+    # print the end of the configuration
     print ''
     print 'end of configuration'
     print ''
     
-    #< compile the code
+    # compile the code
     if(compileCode):
         compile_code(inputs,compileCodeBuffer)
         

@@ -72,15 +72,31 @@ bc_choice = 4
 
 !6.    Initial conditions
 !---------------------------------------------------------
+!flow_direction : character
+! N: north (upward) direction
+! S: south (downward) direction
+! E: east (right) direction
+! W: west (left) direction
+! NE: north-east (upward-right) direction
+! NW: north-west (upward-left) direction
+! SE: south-east (downward-right) direction
+! SW: south-west (downward-left) direction
+!
+!flow_velocity : real
+!reduced speed of the mean flow
+!
+!temperature : real
+!temperature of the mean flow
+!
 !ic_choice : integer
 !
-!for NS:
+!for Navier-Stokes:
 ! 0 : steady state
 ! 1 : peak
 ! 2 : vortex
 ! 3 : vortex convected to the right
 !
-!for DIM:
+!for Diffuse Interface Model:
 ! 0 : steady state
 ! 1 : drop retraction
 ! 2 : bubble ascending
@@ -89,6 +105,9 @@ bc_choice = 4
 ! 5 : phase separation
 ! 6 : bubble transported
 !---------------------------------------------------------
+flow_direction = N
+flow_velocity = 0.1
+temperature = 0.995
 ic_choice = 6
 
 

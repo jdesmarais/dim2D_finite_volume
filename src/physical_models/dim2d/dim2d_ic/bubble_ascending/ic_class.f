@@ -41,7 +41,8 @@
         use parameters_input, only :
      $       nx,
      $       ny,
-     $       ne
+     $       ne,
+     $       T0
 
         use parameters_kind, only :
      $       ikind,
@@ -54,11 +55,8 @@
         public :: ic
 
         !set the phase at the center
-        integer, parameter     :: phase_at_center = vapor
+        integer, parameter :: phase_at_center = vapor
         
-        !set the initial temperature in the field
-        real(rkind), parameter :: T0 = 0.995d0
-
 
         !> @class ic
         !> class encapsulating operators to set the initial
