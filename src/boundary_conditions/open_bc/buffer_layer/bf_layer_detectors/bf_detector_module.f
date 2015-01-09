@@ -543,7 +543,7 @@
           !should have a continuous path of intermediate detectors
           !i.e. the increase of index-coordinate b/w two detectors
           !should be lower or equal to one
-          inter_nb = total_nb_blocks
+          inter_nb = max(0,total_nb_blocks)
 
           if(inter_nb.gt.0) then
 

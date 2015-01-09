@@ -763,10 +763,10 @@
              !reallocation is needed and the new size of the table is
              !computed
              new_size = size(icoords,2) +
-     $                  nb_added_detectors -
-     $                  nb_deleted_detectors +
-     $                  left_inter_nb +
-     $                  right_inter_nb
+     $                  max(0,nb_added_detectors) -
+     $                  max(0,nb_deleted_detectors) +
+     $                  max(0,left_inter_nb) +
+     $                  max(0,right_inter_nb)
 
              !allocate the new detector lists
              allocate(icoords_n(2,new_size))
@@ -798,13 +798,13 @@
              if(left_inter_nb.gt.0) then
                 deallocate(left_x_map_icr)
                 deallocate(left_y_map_icr)
+                j=left_inter_nb
              end if
 
 
              !2) add the detectors from the list that
              !   should not be removed on the left of
              !   the segment
-             j=left_inter_nb
              do i=1, this%segment_borders(1)-1
                 icoords_n(:,j+i) = icoords(:,i)
                 rcoords_n(:,j+i) = rcoords(:,i)
