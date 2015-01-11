@@ -48,7 +48,8 @@
      $       T0,
      $       flow_direction,
      $       flow_x_side,
-     $       flow_y_side
+     $       flow_y_side,
+     $       flow_velocity
 
         use parameters_kind, only :
      $       ikind,
