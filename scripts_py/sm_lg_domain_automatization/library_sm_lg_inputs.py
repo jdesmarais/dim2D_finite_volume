@@ -1,5 +1,12 @@
 #!/usr/bin/python
 
+'''
+@description
+useful functions to compute the intermediate parameters when determining
+the input parameters for the small and large domains simulations of DIM2D
+to estimate the efficiency of the buffer layer technique
+'''
+
 import sys         #for system fcts
 #import getopt
 #import subprocess
@@ -34,9 +41,41 @@ def get_mass_density_liquid(T):
     return 1.0+2.08*math.sqrt(1.0-T)
 
 
+# get the reduced constant volume heat capacity
+def get_cv_r(dim1d_M,dim1d_cv,dim1d_R):
+    '''
+    @description:
+    compute the reduced constant volume heat
+    capacity
+    '''
+    
+    return dim1d_M*dim1d_cv/dim1d_R
+
+
+# compute the reduced speed of sound from the
+# mass density, the temperature and the specific
+# heat capacity
+def get_speed_of_sound(mass,T,cv_r):
+    '''
+    @description:
+    compute the reduced speed of sound from the
+    mass density, the temperature and the specific
+    heat capacity
+    '''
+
+    pressure  = 8.0*mass*T/(3.0-mass) - 3.0*mass**2
+    b         = math.sqrt((pressure+3.0*mass**2)/
+                          (cv_r*(pressure+mass**2*(-3.0+2.0*mass))))
+    a         = 1.0/math.sqrt(1.0+b**2)
+    d         = math.sqrt(mass**3)*math.sqrt((3.0-mass)/
+                                             (pressure+mass**2*(-3.0+2.0*mass)))
+
+    return math.sqrt(3)*mass/(a*d)
+
+
 # compute the maximum reduced speed of sound in a multi-phase fluid
 # of saturated liquid and vapor at equilibrium
-def get_max_speed_of_sound(gamma,T):
+def get_max_speed_of_sound(T,cv_r):
     '''
     @description:
     compute the maximum reduced speed of sound in a
@@ -46,12 +85,10 @@ def get_max_speed_of_sound(gamma,T):
     '''
 
     mass      = get_mass_density_vapor(T)
-    pressure  = 8.0*mass*T/(3.0-mass) - 3.0*mass**2
-    speed_vap = math.sqrt(gamma*pressure/mass)
+    speed_vap = get_speed_of_sound(mass,T,cv_r)
 
     mass      = get_mass_density_liquid(T)
-    pressure  = 8.0*mass*T/(3.0-mass) - 3.0*mass**2
-    speed_liq = math.sqrt(gamma*pressure/mass)
+    speed_liq = get_speed_of_sound(mass,T,cv_r)
 
     return max(speed_vap,speed_liq)
 
@@ -122,18 +159,20 @@ def get_bubble_diameter(interface_lgh,ratio_bubble_interface):
     return ratio_bubble_interface*interface_lgh
 
 
-# compute the computational domain extent from the bubble
-# diameter and the ratio between the computational domain
-# and the bubble
-def get_domain_length(bubble_diameter,ratio_domain_bubble):
+# compute the length of the computational domain from
+# the bubble diameter and distance the bubble should be
+# from the edge of the doamin to neglect the interactions
+def get_domain_length(bubble_diameter,
+                      interface_length,
+                      ratio_interface_influence):
     '''
     @description
     compute the length of the computational domain from
-    the bubble diameter and the ratio between the
-    computational domain and the bubble
+    the bubble diameter and distance the bubble should be
+    from the edge of the doamin to neglect the interactions
     '''
     
-    return ratio_domain_bubble*bubble_diameter
+    return bubble_diameter+2.0*interface_length*ratio_interface_influence
 
 
 #determine the extent of the small domain simulation
@@ -143,7 +182,7 @@ def get_small_domain_extent(domain_length,dx):
     determine the extent of the small domain simulation
     '''
 
-    nb_grdpts_half_domain = math.ceil(domain_lgh/(2.0*dx))
+    nb_grdpts_half_domain = math.ceil(domain_length/(2.0*dx))
     
     small_domain_extent = [[0 for x in range(2)] for x in range(2)]
     small_domain_extent[0][0] = 0.0 - nb_grdpts_half_domain*dx
@@ -197,7 +236,9 @@ def get_simulation_time(domain_lgh,
     #simulation is
     total_distance = domain_lgh/2.0+ratio_interface_influence*interface_lgh+bubble_diameter/2.0
 
-    return total_distance/flow_velocity
+    return float(math.ceil(
+            total_distance/flow_velocity*
+            10**4))/(10**4)
 
 
 # get the detail_print such that the total number of files
@@ -209,14 +250,17 @@ def get_detail_print(total_nb_files, simulation_time, dt):
     written fits what is asked by the user
     '''
 
-    return dt*total_nb_files/simulation_time
+    return float(math.ceil(
+            dt*total_nb_files/simulation_time
+            *10**4))/(10**4)
 
 
 #get the extent of the large computational domain
 def get_large_domain_extent(small_domain_extent,
                             dx,dy,
                             flow_velocity,
-                            speed_of_sound):
+                            speed_of_sound,
+                            simulation_time):
     '''
     @description
     get the extent of the large domain such that the perturbations
@@ -247,15 +291,15 @@ def get_large_domain_extent(small_domain_extent,
 
 def print_comparison(name_var,var,var_test):
 
-    print '%20s'%name_var, '%6.3f'%var,'%6.3f'%var_test
+    print '%20s'%name_var, '%7.4f'%var,'%7.4f'%var_test
 
 
 def print_comparison_matrix(name_var,var,var_test):
 
-    print '%20s'%name_var, '%6.3f'%var[0][0],'%6.3f'%var_test[0][0]
-    print '%20s'%' '     , '%6.3f'%var[1][0],'%6.3f'%var_test[1][0]
-    print '%20s'%' '     , '%6.3f'%var[0][1],'%6.3f'%var_test[0][1]
-    print '%20s'%' '     , '%6.3f'%var[1][1],'%6.3f'%var_test[1][1]
+    print '%20s'%name_var, '%7.4f'%var[0][0],'%7.4f'%var_test[0][0]
+    print '%20s'%' '     , '%7.4f'%var[1][0],'%7.4f'%var_test[1][0]
+    print '%20s'%' '     , '%7.4f'%var[0][1],'%7.4f'%var_test[0][1]
+    print '%20s'%' '     , '%7.4f'%var[1][1],'%7.4f'%var_test[1][1]
     
 
 if __name__ == "__main__":
@@ -264,40 +308,41 @@ if __name__ == "__main__":
     T_test                         = 0.99
     md_vap_test                    = 0.814
     md_liq_test                    = 1.208
-    gamma_test                     = 0.5
-    speed_of_sound_test            = 0.768
+    cv_r_test                      = 0.0509
+    speed_of_sound_test            = 12.0655
     length_c_test                  = 0.5
     dim1d_a_test                   = 0.1
     dim1d_b_test                   = 0.2
     dim1d_M_test                   = 0.3
+    dim1d_cv_test                  = 1410.
+    dim1d_R_test                   = 8314.0
     dim1d_K_test                   = 0.4
-    we_test                        = 0.231
-    interface_lgh_test             = 67.799
+    we_test                        = 0.2315
+    interface_lgh_test             = 67.7994
     nb_pts_test                    = 10
-    dx_max_test                    = 6.780
+    dx_max_test                    = 6.7799
     ratio_bubble_interface_test    = 2
-    diameter_test                  = 135.599
-    ratio_domain_bubble_test       = 1.5
-    domain_lgh_test                = 203.398
+    diameter_test                  = 135.5988
+    domain_lgh_test                = 338.9970
     CFL_constant_test              = 0.1
-    dt_max_test                    = 0.882
+    dt_max_test                    = 0.0561
     ratio_interface_influence_test = 1.5
     flow_velocity_test             = 0.1
-    simulation_time_test           = 2711.976
+    simulation_time_test           = 3389.9699
     total_nb_files_test            = 10
-    detail_print_test              = 0.003
+    detail_print_test              = 0.0002
 
     small_domain_extent_test = [[0 for x in range(2)] for x in range(2)]
-    small_domain_extent_test[0][0] = -108.4784
-    small_domain_extent_test[1][0] =  108.4784
-    small_domain_extent_test[0][1] = -108.4784
-    small_domain_extent_test[1][1] =  108.4784
+    small_domain_extent_test[0][0] = -176.2774
+    small_domain_extent_test[1][0] =  176.2774
+    small_domain_extent_test[0][1] = -176.2774
+    small_domain_extent_test[1][1] =  176.2774
 
     large_domain_extent_test = [[0 for x in range(2)] for x in range(2)] 
-    large_domain_extent_test[0][0] = - 1288.181
-    large_domain_extent_test[1][0] =   1288.181
-    large_domain_extent_test[0][1] = - 1288.181
-    large_domain_extent_test[1][1] =   1288.181
+    large_domain_extent_test[0][0] = - 20800.7332
+    large_domain_extent_test[1][0] =   20800.7332
+    large_domain_extent_test[0][1] = - 20800.7332
+    large_domain_extent_test[1][1] =   20800.7332
     
 
     #test: get_mass_density_vapor
@@ -306,8 +351,11 @@ if __name__ == "__main__":
     #test: get_mass_density_liquid
     md_liq = get_mass_density_liquid(T_test)
     
+    #test: get_cv_r
+    cv_r   = get_cv_r(dim1d_M_test, dim1d_cv_test, dim1d_R_test)
+
     #test: get_max_speed_of_sound
-    speed_of_sound  = get_max_speed_of_sound(gamma_test,T_test)
+    speed_of_sound  = get_max_speed_of_sound(T_test,cv_r)
 
     #test: get_we
     we = get_we(length_c_test, dim1d_a_test, dim1d_b_test, dim1d_M_test, dim1d_K_test)
@@ -322,7 +370,7 @@ if __name__ == "__main__":
     diameter = get_bubble_diameter(interface_lgh,ratio_bubble_interface_test)
 
     #test: get_domain_length
-    domain_lgh = get_domain_length(diameter,ratio_domain_bubble_test)
+    domain_lgh = get_domain_length(diameter,interface_lgh,ratio_interface_influence_test)
 
     #test: get_dt_max
     dt_max = get_dt_max(dx_max,speed_of_sound,CFL_constant_test)
@@ -345,11 +393,13 @@ if __name__ == "__main__":
     large_domain_extent = get_large_domain_extent(small_domain_extent_test,
                                                   dx_max,dx_max,
                                                   flow_velocity_test,
-                                                  speed_of_sound)
+                                                  speed_of_sound,
+                                                  simulation_time)
 
     #compare data
     print_comparison('md_vap:',md_vap, md_vap_test)
     print_comparison('md_liq:',md_liq, md_liq_test)
+    print_comparison('cv_r:',cv_r, cv_r_test)
     print_comparison('speed_of_sound:',speed_of_sound, speed_of_sound_test)
     print_comparison('we:',we, we_test)
     print_comparison('interface_lgh:',interface_lgh, interface_lgh_test)
