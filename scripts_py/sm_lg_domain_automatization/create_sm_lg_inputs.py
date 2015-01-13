@@ -370,47 +370,63 @@ def create_inputFile(paramModified,
     return
 
 
-if __name__=="__main__":
-
-
-    # define the constants used when computing
-    # the inputs on the small and large scale
-    # domains
-    nb_pts_in_interface = 10
-    ratio_bubble_interface = 2
-    CFL_constant = 0.2
-    ratio_interface_influence = 2.0
-    total_nb_files = 1000
-
-
-    # extract the command line inputs
-    inputs = parse_argv(sys.argv[1:])
-
+#create the small and large domain inputs for the simulation
+def create_sm_lg_inputs(temperature,
+                        flow_velocity,
+                        model_input,
+                        sm_domain='inputs_sm_domain.txt',
+                        lg_domain='inputs_lg_domain.txt',
+                        nb_pts_in_interface = 10,
+                        ratio_bubble_interface = 2,
+                        CFL_constant = 0.2,
+                        ratio_interface_influence = 2.0,
+                        total_nb_files = 1000):
+    '''
+    @description:
+    create the small and large domain inputs for the simulation    
+    '''
 
     # determine the inputs to be modified in
     # template.txt to run the simulation on
     # small and large scale domains
     [inputs_sm_domain, inputs_lg_domain] = get_inputsToBeModified(
-        inputs['temperature'],
-        inputs['flow_velocity'],
+        temperature,
+        flow_velocity,
         nb_pts_in_interface,
         ratio_bubble_interface,
         CFL_constant,
         ratio_interface_influence,
         total_nb_files)
     
-    
+
     # create the input file for the small
     # domain simulation
     create_inputFile(inputs_sm_domain,
-                     inputs['model_input'],
-                     inputs['sm_domain'])
+                     model_input,
+                     sm_domain)
 
 
     # create the input file for the large
     # domain simulation
     create_inputFile(inputs_lg_domain,
-                     inputs['model_input'],
-                     inputs['lg_domain'])
+                     model_input,
+                     lg_domain)
+
+    return
+
+
+if __name__=="__main__":
+
+
+    # extract the command line inputs
+    inputs = parse_argv(sys.argv[1:])
+
+
+    # create the inputs
+    create_sm_lg_inputs(inputs['temperature'],
+                        inputs['flow_velocity'],
+                        inputs['model_input'],
+                        inputs['sm_domain'],
+                        inputs['lg_domain'])
 
     

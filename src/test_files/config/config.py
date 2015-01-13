@@ -1,10 +1,39 @@
 #!/usr/bin/python
 
+import os
 import sys
 import getopt
 import subprocess
 import shlex
 import string
+
+
+#root of the code
+augeanstablesPath=os.getenv('augeanstables')
+
+
+#sh script files used to modify the code by the configuration
+changeParameterPath=augeanstablesPath
+changeParameterPath+='/src/test_files/config/change_parameter.sh'
+
+getParameterPath=augeanstablesPath
+getParameterPath+='/src/test_files/config/get_parameter.sh'
+
+
+#files modified in the code by the configuration
+paramCstPath=augeanstablesPath
+paramCstPath+='/src/parameters/parameters_constant.f'
+
+paramInputPath=augeanstablesPath
+paramInputPath+='/src/parameters/parameters_input.f'
+
+makefileHeaderPath=augeanstablesPath
+makefileHeaderPath+='/src/test_files/config/makefile_header.mk'
+
+
+#folder where the executables are compiled
+exeDir=augeanstablesPath
+exeDir+='/src/test_files'
 
 
 # display the help for the program
@@ -92,7 +121,7 @@ def set_commit(file_path):
     commit_ID = read_commit()
     commit_ID = commit_ID
 
-    cmd="./change_parameter.sh"
+    cmd=changeParameterPath
     cmd+=" -i "+str(file_path)
     cmd+=" -o "+str(file_path)
     cmd+=" -p "+'commit'
@@ -115,7 +144,9 @@ def read_inputs(filename, inputs_needed):
     inputs_read={}
 
     for input_param in inputs_needed:
-        cmd="./get_parameter.sh -i "+str(filename)+" -p "+input_param
+        cmd=getParameterPath
+        cmd+=" -i "+str(filename)
+        cmd+=" -p "+input_param
         args = shlex.split(cmd)
         output = subprocess.Popen(args,stdout=subprocess.PIPE).communicate()[0]
 
@@ -141,7 +172,7 @@ def compute_n(x_min,x_max,dx,bc_size):
     compute the number of gridpoints for the tile
     such that the space step coresponds to dx
     '''
-    n = int((x_max-x_min)/dx+2*bc_size)
+    n = int((x_max-x_min)/dx)+2*bc_size+1
     return n
 
 
@@ -154,8 +185,12 @@ def compute_n_par(npx,x_min,x_max,dx,bc_size):
     compute the number of gridpoints for the tile
     such that the space step coresponds to dx
     '''
-    n = int(1./npx*( (x_max-x_min)/dx ) +2*bc_size)
-    return n
+
+    n_total         = int((x_max-x_min)/dx)+1           #total number of grid points w/o b.c.
+    n_per_proc      = int(float(n_total)*1./float(npx)) #number of grdpts per processor w/o the b.c.
+    n_per_proc_w_bc = n_per_proc + 2*bc_size            #number of grdpts per processor w/ the b.c.
+
+    return n_per_proc_w_bc
 
 
 # compute the total extent of the computational domain
@@ -411,7 +446,7 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
 
     for key, value  in constants_changed1.items():
 
-        cmd="./change_parameter.sh"
+        cmd=changeParameterPath
         cmd+=" -i "+str(file_path)
         cmd+=" -o "+str(file_path)
         cmd+=" -p "+key
@@ -436,7 +471,7 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
 
     for key, value in constants_changed2.items():
 
-        cmd="./change_parameter.sh"
+        cmd=changeParameterPath
         cmd+=" -i "+str(file_path)
         cmd+=" -o "+str(file_path)
         cmd+=" -p "+key
@@ -465,7 +500,7 @@ def update_makefile(file_path,bc_choice):
     # change the constant in the file
     for key, value in constants_changed.items():
 
-        cmd="./change_parameter.sh"
+        cmd=changeParameterPath
         cmd+=" -i "+str(file_path)
         cmd+=" -o "+str(file_path)
         cmd+=" -p "+key
@@ -486,11 +521,11 @@ def compile_code(inputs,compileCodeBuffer):
     fname+='_'+str(inputs['npx'])+'x'+str(inputs['npy'])
 
     #commands for compilation
-    cmd_serial  ='cd .. && make cleanall && make sim_dim2d && make clean'
+    cmd_serial  ='cd '+exeDir+' && make cleanall && make sim_dim2d && make clean'
 
-    cmd_serial_bf = 'cd .. && make cleanall && make sim_dim2d_bf && make clean'
+    cmd_serial_bf = 'cd '+exeDir+' && make cleanall && make sim_dim2d_bf && make clean'
 
-    cmd_parallel='cd .. && make cleanall && make sim_dim2d_par && make clean'
+    cmd_parallel='cd '+exeDir+' && make cleanall && make sim_dim2d_par && make clean'
     cmd_parallel+=' && mv sim_dim2d_par '+fname
 
     
@@ -523,13 +558,9 @@ if __name__ == "__main__":
 
     # define the paths for the files modified by the
     # configuration
-    sim_paths={}
-    sim_paths['serial']  = '../sim_dim2d.f'
-    sim_paths['parallel']= '../sim_dim2d_par.f'
-
-    param_path           = '../../parameters/parameters_input.f'
-    makefile_path        = './makefile_header.mk'
-    param_cst_path       = '../../parameters/parameters_constant.f'
+    param_path           = paramInputPath
+    makefile_path        = makefileHeaderPath
+    param_cst_path       = paramCstPath
 
     # parse the program arguments
     [inputFileName,compileCode,compileCodeBuffer]=parse_argv(sys.argv[1:])

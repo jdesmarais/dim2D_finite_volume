@@ -832,7 +832,7 @@
      $                      trim(header_attname_sm_domain),
      $                      att_double_var2)
                        
-                       if(.not.compare_doubles(att_float_var,att_float_var2)) then
+                       if(.not.compare_doubles(att_double_var,att_double_var2)) then
                           print *, 'WARNING attribute ',
      $                          trim(header_attname_sm_domain),
      $                          ': do not match'

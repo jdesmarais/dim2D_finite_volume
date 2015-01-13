@@ -55,8 +55,8 @@
 
           implicit none
 
-          real(rkind)          , intent(in) :: var
-          real(rkind)          , intent(in) :: cst
+          real                 , intent(in) :: var
+          real                 , intent(in) :: cst
           logical    , optional, intent(in) :: detailled
           logical                           :: same
 

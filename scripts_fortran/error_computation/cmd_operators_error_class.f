@@ -152,9 +152,11 @@
           
           do while (arg_i.le.arg_nb)
           
+
              !get the argument
              call get_command_argument(arg_i, value=cmd_argument)
-          
+             
+
              !check if the option is understood by the program
              select case(trim(cmd_argument))
           
@@ -168,6 +170,7 @@
      $                 this%filename_sm_domain,
      $                 file_sm_domain_provided)
 
+
                !large domain simulation file
                !=========================================================
                case('-l','--large_domain')
@@ -178,6 +181,7 @@
      $                 this%filename_lg_domain,
      $                 file_lg_domain_provided)
 
+
                !output simulation file
                !=========================================================
                case('-o','--output')
@@ -186,8 +190,10 @@
      $                 arg_i,
      $                 arg_nb,
      $                 this%filename_error,
-     $                 file_error_provided)
+     $                 file_error_provided,
+     $                 inquire_file=.false.)
 
+                  
                !help option
                !=========================================================
                case('-h','--help')
@@ -262,26 +268,35 @@
      $     arg_i,
      $     arg_nb,
      $     filename,
-     $     file_compatible)
+     $     file_compatible,
+     $     inquire_file)
 
           implicit none
 
           !i/o variables
-          integer                   , intent(inout) :: arg_i
-          integer                   , intent(in)    :: arg_nb
-          character(len=1024)       , intent(out)   :: filename
-          logical                   , intent(out)   :: file_compatible
+          integer                      , intent(inout) :: arg_i
+          integer                      , intent(in)    :: arg_nb
+          character(len=1024)          , intent(out)   :: filename
+          logical                      , intent(out)   :: file_compatible
+          logical            , optional, intent(in)    :: inquire_file
 
           !local variables
           logical :: file_provided
           logical :: netcdf_format
           logical :: file_exists
+          logical :: inquire_file_op
 
           integer             :: lenFilename
 
           file_provided = .true.
           file_exists   = .true.
           netcdf_format = .true.
+
+          if(present(inquire_file)) then
+             inquire_file_op = inquire_file
+          else
+             inquire_file_op = .true.
+          end if
 
 
           !increment the argument index to check if
@@ -311,7 +326,12 @@
              else
                 
                 !check if the file provided exists
-                INQUIRE(FILE=trim(filename), EXIST=file_exists)
+                if(inquire_file_op) then
+                   INQUIRE(FILE=trim(filename), EXIST=file_exists)
+                else
+                   file_exists = .true.
+                end if
+
                 if(file_exists) then
                    
                    !check if the file provided uses netcdf format

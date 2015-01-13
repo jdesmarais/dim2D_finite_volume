@@ -7,12 +7,8 @@ the input parameters for the small and large domains simulations of DIM2D
 to estimate the efficiency of the buffer layer technique
 '''
 
-import sys         #for system fcts
-#import getopt
-#import subprocess
-#import shlex
-#import string
-import math        #for mathematical fcts
+import sys  #for system fcts
+import math #for mathematical fcts
 
 
 # for the global variables of the module
