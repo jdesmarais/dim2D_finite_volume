@@ -486,7 +486,7 @@ if __name__ == "__main__":
     #mainDir='/home/jdesmarais/Code/augeanstables/scripts_py/sm_lg_domain_automatization'
     mainDir='/home/jdesmarais/projects'
 
-    temperature=0.999
+    temperature=0.99
     flow_velocity=0.1
 
     model_input=os.getenv('augeanstables')+'/src/test_files/config/'

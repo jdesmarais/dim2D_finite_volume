@@ -25,7 +25,10 @@
      $       nf90_get_time,
      $       nf90_get_gov_var,
      $       nf90_get_maps,
-     $       nf90_handle_err
+     $       nf90_put_att_value,
+     $       nf90_get_att_value,
+     $       nf90_handle_err,
+     $       nf90_get_myreal
 
 
         contains
@@ -82,7 +85,7 @@
           call nf90_handle_err(retval)
 
           
-          ! save the relative error
+          ! put the relative error
           do k=1, size(error,3)
 
              retval = NF90_PUT_VAR(
@@ -187,16 +190,7 @@
 
 
           !1) define the type of variables stored
-          select case(RKIND)
-            case(4)
-               NF_MYREAL=NF90_FLOAT
-            case(8)
-               NF_MYREAL=NF90_DOUBLE
-            case default
-               print '(''error_netcdf_file_module'')'
-               print '(''nf90_def_var_error'')'
-               stop 'NF_MYREAL'
-          end select
+          NF_MYREAL = nf90_get_myreal(rkind)
 
           
           !2) open the small domain netcdf file
@@ -570,9 +564,9 @@
 
           character(len=1028)   :: att_char_var
           integer               :: att_int_var
-          real                  :: att_float_var
+          real                  :: att_real_var
           real*8                :: att_double_var
-          real                  :: att_float_var2
+          real                  :: att_real_var2
           real*8                :: att_double_var2
 
         
@@ -662,43 +656,17 @@
              call nf90_handle_err(retval)
 
 
-             ! save the global variable in the 
-             ! new header
-             select case(header_att_type)
-               case(NF90_CHAR)
-                  retval = nf90_get_att(
-     $                 ncid_sm_domain,
-     $                 NF90_GLOBAL,
-     $                 trim(header_attname_sm_domain),
-     $                 att_char_var)
-
-               case(NF90_INT)
-                  retval = nf90_get_att(
-     $                 ncid_sm_domain,
-     $                 NF90_GLOBAL,
-     $                 trim(header_attname_sm_domain),
-     $                 att_int_var)
-
-               case(NF90_FLOAT)
-                  retval = nf90_get_att(
-     $                 ncid_sm_domain,
-     $                 NF90_GLOBAL,
-     $                 trim(header_attname_sm_domain),
-     $                 att_float_var)
-
-               case(NF90_DOUBLE)
-                  retval = nf90_get_att(
-     $                 ncid_sm_domain,
-     $                 NF90_GLOBAL,
-     $                 trim(header_attname_sm_domain),
-     $                 att_double_var)
-             
-               case default
-                  print '(''error_netcdf_file_module'')'
-                  print '(''create_common_header_from_netcdf_files'')'
-                  stop ''
-
-             end select
+             ! inquire the value of the global
+             ! variable
+             call nf90_get_att_value(
+     $            ncid_sm_domain,
+     $            NF90_GLOBAL,
+     $            header_att_type,
+     $            trim(header_attname_sm_domain),
+     $            att_char_var,
+     $            att_int_var,
+     $            att_real_var,
+     $            att_double_var)
 
 
              ! depending on the header attribute, the
@@ -735,7 +703,7 @@
                   call nf90_put_sm_lg_att(
      $                 ncid_error,
      $                 ncid_lg_domain,
-     $                 att_float_var,
+     $                 att_real_var,
      $                 att_double_var,
      $                 header_att_type,
      $                 'x_min',
@@ -747,7 +715,7 @@
                   call nf90_put_sm_lg_att(
      $                 ncid_error,
      $                 ncid_lg_domain,
-     $                 att_float_var,
+     $                 att_real_var,
      $                 att_double_var,
      $                 header_att_type,
      $                 'x_max',
@@ -759,7 +727,7 @@
                   call nf90_put_sm_lg_att(
      $                 ncid_error,
      $                 ncid_lg_domain,
-     $                 att_float_var,
+     $                 att_real_var,
      $                 att_double_var,
      $                 header_att_type,
      $                 'y_min',
@@ -771,7 +739,7 @@
                   call nf90_put_sm_lg_att(
      $                 ncid_error,
      $                 ncid_lg_domain,
-     $                 att_float_var,
+     $                 att_real_var,
      $                 att_double_var,
      $                 header_att_type,
      $                 'y_max',
@@ -785,68 +753,30 @@
                case default
 
                   select case(header_att_type)
-
-                    case(NF90_INT)
-                       retval = nf90_put_att(
-     $                      ncid_error,
-     $                      NF90_GLOBAL,
-     $                      trim(header_attname_sm_domain),
-     $                      att_int_var)
-                       call nf90_handle_err(retval)
-
-
-                    case(NF90_CHAR)
-                       retval = nf90_put_att(
-     $                      ncid_error,
-     $                      NF90_GLOBAL,
-     $                      trim(header_attname_sm_domain),
-     $                      att_char_var)
-                       call nf90_handle_err(retval)
-
-
                     case(NF90_FLOAT)
-                       retval = nf90_get_att(
-     $                      ncid_lg_domain,
-     $                      NF90_GLOBAL,
-     $                      trim(header_attname_sm_domain),
-     $                      att_float_var2)
-
-                       if(.not.compare_reals(att_float_var,att_float_var2)) then
+                       if(.not.compare_reals(att_real_var,att_real_var2)) then
                           print *, 'WARNING attribute ',
-     $                          trim(header_attname_sm_domain),
-     $                          ': do not match'
+     $                         trim(header_attname_sm_domain),
+     $                         ': do not match'
                        end if
 
-                       retval = nf90_put_att(
-     $                      ncid_error,
-     $                      NF90_GLOBAL,
-     $                      trim(header_attname_sm_domain),
-     $                      att_float_var)
-                       call nf90_handle_err(retval)
-                          
-                       
                     case(NF90_DOUBLE)
-                       retval = nf90_get_att(
-     $                      ncid_lg_domain,
-     $                      NF90_GLOBAL,
-     $                      trim(header_attname_sm_domain),
-     $                      att_double_var2)
-                       
                        if(.not.compare_doubles(att_double_var,att_double_var2)) then
                           print *, 'WARNING attribute ',
-     $                          trim(header_attname_sm_domain),
-     $                          ': do not match'
+     $                         trim(header_attname_sm_domain),
+     $                         ': do not match'
                        end if
+                  end select
 
-                       retval = nf90_put_att(
-     $                      ncid_error,
-     $                      NF90_GLOBAL,
-     $                      trim(header_attname_sm_domain),
-     $                      att_double_var)
-                       call nf90_handle_err(retval)
-
-
-                  end select                 
+                  call nf90_put_att_value(
+     $                 ncid_error,
+     $                 NF90_GLOBAL,
+     $                 header_att_type,
+     $                 trim(header_attname_sm_domain),
+     $                 att_char_var,
+     $                 att_int_var,
+     $                 att_real_var,
+     $                 att_double_var)
 
              end select
 
@@ -1163,7 +1093,141 @@
         end subroutine nf90_get_maps
 
 
-        !print the netcdf error received
+        ! put the value corresponding to the attribute with
+        ! the name 'attname'
+        subroutine nf90_put_att_value(
+     $     ncid,
+     $     varid,
+     $     att_type,
+     $     att_name,
+     $     att_char_var,
+     $     att_int_var,
+     $     att_real_var,
+     $     att_double_var)
+
+          implicit none
+
+          integer      , intent(in) :: ncid
+          integer      , intent(in) :: varid
+          integer      , intent(in) :: att_type
+          character*(*), intent(in) :: att_name
+          character*(*), intent(in) :: att_char_var
+          integer      , intent(in) :: att_int_var
+          real         , intent(in) :: att_real_var
+          real*8       , intent(in) :: att_double_var
+
+
+          integer :: retval
+
+
+          select case(att_type)
+
+            case(NF90_INT)
+               retval = nf90_put_att(
+     $              ncid,
+     $              varid,
+     $              trim(att_name),
+     $              att_int_var)
+               
+            case(NF90_CHAR)
+               retval = nf90_put_att(
+     $              ncid,
+     $              varid,
+     $              trim(att_name),
+     $              att_char_var)
+
+            case(NF90_FLOAT)
+               retval = nf90_put_att(
+     $              ncid,
+     $              varid,
+     $              trim(att_name),
+     $              att_real_var)
+
+            case(NF90_DOUBLE)
+               retval = nf90_put_att(
+     $              ncid,
+     $              varid,
+     $              trim(att_name),
+     $              att_double_var)
+                       
+          end select
+
+          call nf90_handle_err(retval)
+
+        end subroutine nf90_put_att_value
+
+
+        ! get the value corresponding to the attribute with
+        ! the name 'attname'
+        subroutine nf90_get_att_value(
+     $     ncid,
+     $     varid,
+     $     att_type,
+     $     att_name,
+     $     att_char_var,
+     $     att_int_var,
+     $     att_real_var,
+     $     att_double_var)
+
+          implicit none
+
+          integer            , intent(in) :: ncid
+          integer            , intent(in) :: varid
+          integer            , intent(in) :: att_type
+          character*(*)      , intent(in) :: att_name
+          character(len=1028), intent(out):: att_char_var
+          integer            , intent(out):: att_int_var
+          real               , intent(out):: att_real_var
+          real*8             , intent(out):: att_double_var
+
+          
+          integer :: retval
+
+
+          select case(att_type)
+
+            case(NF90_CHAR)
+               retval = nf90_get_att(
+     $              ncid,
+     $              varid,
+     $              trim(att_name),
+     $              att_char_var)
+
+            case(NF90_INT)
+               retval = nf90_get_att(
+     $              ncid,
+     $              varid,
+     $              trim(att_name),
+     $              att_int_var)
+
+            case(NF90_FLOAT)
+               retval = nf90_get_att(
+     $              ncid,
+     $              varid,
+     $              trim(att_name),
+     $              att_real_var)
+
+            case(NF90_DOUBLE)
+               retval = nf90_get_att(
+     $              ncid,
+     $              varid,
+     $              trim(att_name),
+     $              att_double_var)
+             
+            case default
+               print '(''nf90_operators_error_module'')'
+               print '(''nf90_get_att_var'')'
+               print '(''var type not recognized'')'
+               stop ''
+               
+            end select
+
+            call nf90_handle_err(retval)
+
+        end subroutine nf90_get_att_value
+
+
+        ! print the netcdf error received
         subroutine nf90_handle_err(nf90_err)
 
           implicit none
@@ -1176,5 +1240,28 @@
           end if
 
         end subroutine nf90_handle_err
+
+
+        ! get the NF90_TYPE corresponding to real(rkind)
+        function nf90_get_myreal(rkind)
+     $     result(NF_MYREAL)
+
+          implicit none
+
+          integer, intent(in) :: rkind
+          integer             :: NF_MYREAL
+
+          select case(rkind)
+            case(4)
+               NF_MYREAL=NF90_FLOAT
+            case(8)
+               NF_MYREAL=NF90_DOUBLE
+            case default
+               print '(''nf90_operators_error_module'')'
+               print '(''get_nf90_myreal'')'
+               stop 'NF_MYREAL'
+          end select
+
+        end function nf90_get_myreal
 
       end module nf90_operators_error_module
