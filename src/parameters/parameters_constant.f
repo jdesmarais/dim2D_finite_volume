@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = 'df4cf59530fcc8342581e80f7638286eb645ad2d')
+        parameter (commit = 'd6c3b3e35a6efad1264f6669968da8dd759413e9')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -39,6 +39,15 @@
 
 
         !>initial conditions choice for NS
+        character(15), dimension(7), parameter :: ns2d_ic_code =[
+     $       'steady_state   ',
+     $       'peak           ',
+     $       'vortex         ',
+     $       'sym_x          ',
+     $       'sym_y          ',
+     $       'negative_spot  ',
+     $       'not implemented']
+
         !integer, parameter :: steady_state=0
         integer, parameter :: peak=1
         integer, parameter :: vortex=2
@@ -47,6 +56,15 @@
         integer, parameter :: negative_spot=5
 
         !>initial conditions choice for DIM
+        character(18), dimension(7), parameter :: dim2d_ic_code =[
+     $       'steady_state      ',
+     $       'drop_retraction   ',
+     $       'bubble_ascending  ',
+     $       'homogeneous_liquid',
+     $       'drop_collision    ',
+     $       'phase_separation  ',
+     $       'bubble_transported']
+
         integer, parameter :: steady_state=0
         integer, parameter :: drop_retraction=1
         integer, parameter :: bubble_ascending=2
@@ -56,6 +74,17 @@
         integer, parameter :: bubble_transported=6
 
         !>boundary conditions choice
+        character(23), dimension(9), parameter :: bc_code =[
+     $       'periodic_xy            ',
+     $       'reflection_xy          ',
+     $       'wall_xy                ',
+     $       'wall_x_reflection_y    ',
+     $       'hedstrom_xy            ',
+     $       'hedstrom_xy_corners    ',
+     $       'hedstrom_x_reflection_y',
+     $       'poinsot_xy             ',
+     $       'yoolodato_xy           ']
+
         integer, parameter :: periodic_xy_choice=0
         integer, parameter :: reflection_xy_choice=1
         integer, parameter :: wall_xy_choice=2
@@ -110,6 +139,7 @@
         integer, parameter :: always_inflow=0
         integer, parameter :: always_outflow=1
         integer, parameter :: ask_flow=2
+
 
       end module parameters_constant
 

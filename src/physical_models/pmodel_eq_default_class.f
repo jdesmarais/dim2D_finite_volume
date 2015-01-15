@@ -107,7 +107,7 @@
 
           implicit none
 
-          character(10), dimension(:), allocatable, intent(out) :: param_name
+          character(20), dimension(:), allocatable, intent(out) :: param_name
           real(rkind)  , dimension(:), allocatable, intent(out) :: param_value
 
 

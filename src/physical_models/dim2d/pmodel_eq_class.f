@@ -114,7 +114,9 @@
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
      $       ic_choice,
-     $       gravity_choice
+     $       gravity_choice,
+     $       flow_velocity,
+     $       T0
 
         use parameters_kind, only :
      $       ikind,
@@ -557,19 +559,21 @@
 
           implicit none
 
-          character(10), dimension(:), allocatable, intent(out) :: param_name
+          character(20), dimension(:), allocatable, intent(out) :: param_name
           real(rkind)  , dimension(:), allocatable, intent(out) :: param_value
 
 
-          allocate(param_name(6))
-          allocate(param_value(6))
+          allocate(param_name(8))
+          allocate(param_value(8))
 
-          param_name(1) = 'viscous_r'
-          param_name(2) = 'Re'
-          param_name(3) = 'We'
-          param_name(4) = 'Pr'
-          param_name(5) = 'cv_r'
-          param_name(6) = 'gravity'
+          param_name(1)  = 'viscous_r'
+          param_name(2)  = 'Re'
+          param_name(3)  = 'We'
+          param_name(4)  = 'Pr'
+          param_name(5)  = 'cv_r'
+          param_name(6)  = 'gravity'
+          param_name(7)  = 'flow_velocity'
+          param_name(8)  = 'temperature'
 
           param_value(1) = viscous_r
           param_value(2) = Re
@@ -577,6 +581,8 @@
           param_value(4) = Pr
           param_value(5) = cv_r
           param_value(6) = gravity
+          param_value(7) = flow_velocity
+          param_value(8) = T0
 
         end subroutine get_sim_parameters
         

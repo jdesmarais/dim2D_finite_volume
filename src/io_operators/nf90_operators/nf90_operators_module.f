@@ -21,7 +21,10 @@
      $       prog_version,
      $       commit,
      $       ref,
-     $       convention
+     $       convention,
+     $       ns2d_ic_code,
+     $       dim2d_ic_code,
+     $       bc_code
 
         use parameters_kind, only :
      $       rkind,
@@ -30,7 +33,8 @@
         use parameters_input, only :
      $       npx,npy,nx,ny,ne,bc_size,
      $       x_min,x_max,y_min,y_max,
-     $       t_max,dt,detail_print
+     $       t_max,dt,detail_print,
+     $       ic_choice, bc_choice
 
         use pmodel_eq_class, only :
      $       pmodel_eq
@@ -195,8 +199,42 @@
           call nf90_handle_err(retval)
           
 
-          !<write the characteristic parameters for the DIM
+          !initial conditions
+          select case(trim(title))
+            case('NS2D')
+               retval = nf90_put_att(
+     $              ncid,
+     $              nf90_global,
+     $              'initial_conditions',
+     $              trim(ns2d_ic_code(ic_choice+1)))
+               !DEC$ FORCEINLINE RECURSIVE
+               call nf90_handle_err(retval)
+
+            case('DIM2D')
+               retval = nf90_put_att(
+     $              ncid,
+     $              nf90_global,
+     $              'initial_conditions',
+     $              trim(dim2d_ic_code(ic_choice+1)))
+               !DEC$ FORCEINLINE RECURSIVE
+               call nf90_handle_err(retval)
+
+          end select
+
+
+          !boundary conditions
+          retval = nf90_put_att(
+     $         ncid,
+     $         nf90_global,
+     $         'boundary_conditions',
+     $         trim(bc_code(bc_choice+1)))
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+
+          !<write the characteristic parameters for the physical model
           call nf90_write_sim_parameters(ncid,p_model)
+
 
         end subroutine nf90_write_header
 
@@ -225,7 +263,7 @@
           type(pmodel_eq), intent(in) :: p_model
 
 
-          character(10), dimension(:), allocatable :: param_name
+          character(20), dimension(:), allocatable :: param_name
           real(rkind)  , dimension(:), allocatable :: param_value
           integer                                  :: i, retval
 
