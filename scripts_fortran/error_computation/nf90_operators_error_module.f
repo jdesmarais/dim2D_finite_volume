@@ -566,6 +566,9 @@
           integer               :: att_int_var
           real                  :: att_real_var
           real*8                :: att_double_var
+
+          character(len=1028)   :: att_char_var2
+          integer               :: att_int_var2
           real                  :: att_real_var2
           real*8                :: att_double_var2
 
@@ -667,6 +670,16 @@
      $            att_int_var,
      $            att_real_var,
      $            att_double_var)
+
+             call nf90_get_att_value(
+     $            ncid_lg_domain,
+     $            NF90_GLOBAL,
+     $            header_att_type,
+     $            trim(header_attname_sm_domain),
+     $            att_char_var2,
+     $            att_int_var2,
+     $            att_real_var2,
+     $            att_double_var2)
 
 
              ! depending on the header attribute, the

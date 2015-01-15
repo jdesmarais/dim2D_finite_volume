@@ -23,7 +23,9 @@ error_netcdf_file_module.o:		$(param_dir)/parameters_kind.o
 
 cmd_operators_error_class.o:
 
-cmd_operators_error_max_class.o:	
+cmd_operators_error_max_class.o:
+
+cmd_operators_extract_var_class.o:	
 
 compute_error_file.o:			cmd_operators_error_class.o\
 					compare_type_module.o\
@@ -50,6 +52,15 @@ compute_error_max_file:			parameters_kind.o\
 					cmd_operators_error_max_class.o\
 					nf90_operators_error_module.o\
 					nf90_operators_error_max_module.o
+
+extract_1D_variable.o:			cmd_operators_extract_var_class.o\
+					nf90_operators_error_module.o\
+					$(param_dir)/parameters_kind.o
+
+extract_1D_variable:			cmd_operators_extract_var_class.o\
+					compare_type_module.o\
+					nf90_operators_error_module.o\
+					parameters_kind.o
 
 test_nf90_operators_error_max.o:	nf90_operators_error_module.o\
 					nf90_operators_error_max_module.o\

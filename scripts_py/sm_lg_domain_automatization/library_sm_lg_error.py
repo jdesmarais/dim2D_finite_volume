@@ -312,8 +312,8 @@ if __name__=='__main__':
     #
     ##test: compare_data
     mainDir = '/home/jdesmarais/projects'
-    mainDir+= '/dim2d_0.999_0.1'
-    #
+    mainDir+= '/dim2d_0.99_0.1'
+    ##
     #dataPath_sm_domain = mainDir+'/sm_domain/data0.nc'
     #dataPath_lg_domain = mainDir+'/lg_domain/data0.nc'
     #errorPath= mainDir+'/error0.nc'
