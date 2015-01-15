@@ -22,17 +22,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -0.5000000000d0
-        real(rkind), parameter :: x_max = 0.5000000000d0
-        real(rkind), parameter :: y_min = -0.5000000000d0
-        real(rkind), parameter :: y_max = 0.5000000000d0
+        real(rkind), parameter :: x_min = -17.8782000000d0
+        real(rkind), parameter :: x_max = 17.8782000000d0
+        real(rkind), parameter :: y_min = -17.8782000000d0
+        real(rkind), parameter :: y_max = 17.8782000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 10.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0025000000d0
+        real(rkind), parameter :: t_max = 21.5720000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0046000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.2500000000d0
+        real(rkind), parameter :: detail_print = 0.2133000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -42,8 +42,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 104
-        integer(ikind), parameter :: nty = 104
+        integer(ikind), parameter :: ntx = 1001
+        integer(ikind), parameter :: nty = 1001
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -105,12 +105,12 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer    , parameter :: flow_direction = y_direction
+        integer    , parameter :: flow_direction = x_direction
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
         real(rkind), parameter :: flow_velocity = 0.1000000000d0
         
-        real(rkind), parameter :: T0 = 0.9950000000d0
+        real(rkind), parameter :: T0 = 0.9990000000d0
 
         integer    , parameter :: ic_choice = bubble_transported
 
@@ -138,7 +138,7 @@
         !              applying the non-reflecting outflow
         !              pressure b.c.
         !--------------------------------------------
-        real(rkind), parameter :: search_nb_dt = 0.0025000000d0 !0.0500000000d0 !1.0 !0.0001000000d0
+        real(rkind), parameter :: search_nb_dt = 0.0046000000d0 !0.0500000000d0 !1.0 !0.0001000000d0
         integer    , parameter :: search_dcr = 4
         real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
         integer    , parameter :: obc_type_N = always_outflow

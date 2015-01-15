@@ -861,7 +861,7 @@
           if(timestep.eq.0) then
              len_timestep = 1
           else
-             len_timestep = nint(log10(real(timestep)))+1
+             len_timestep = floor(log10(real(timestep)))+1
           end if
 
           write (format_string, "(A2,I1,A4)")
@@ -876,8 +876,8 @@
           filename = ''
 
           filename(1:len_destDir) = trim(destDir)
-          filename(len_destDir+1:len_destDir+1+6) = '/error'
-          filename(len_destDir+7:len_destDir+7+len_suffix) = trim(timestep_str)
+          filename(len_destDir+1:len_destDir+6) = '/error'
+          filename(len_destDir+7:len_destDir+7+len_suffix-1) = trim(timestep_str)
 
         end subroutine get_error_filename
 

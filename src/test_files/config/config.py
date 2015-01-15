@@ -172,7 +172,7 @@ def compute_n(x_min,x_max,dx,bc_size):
     compute the number of gridpoints for the tile
     such that the space step coresponds to dx
     '''
-    n = int((x_max-x_min)/dx)+2*bc_size+1
+    n = int(round((x_max-x_min)/dx))+2*bc_size+1
     return n
 
 
@@ -186,9 +186,9 @@ def compute_n_par(npx,x_min,x_max,dx,bc_size):
     such that the space step coresponds to dx
     '''
 
-    n_total         = int((x_max-x_min)/dx)+1           #total number of grid points w/o b.c.
-    n_per_proc      = int(float(n_total)*1./float(npx)) #number of grdpts per processor w/o the b.c.
-    n_per_proc_w_bc = n_per_proc + 2*bc_size            #number of grdpts per processor w/ the b.c.
+    n_total         = int(round((x_max-x_min)/dx))+1           #total number of grid points w/o b.c.
+    n_per_proc      = int(round(float(n_total)*1./float(npx))) #number of grdpts per processor w/o the b.c.
+    n_per_proc_w_bc = n_per_proc + 2*bc_size                   #number of grdpts per processor w/ the b.c.
 
     return n_per_proc_w_bc
 
@@ -213,8 +213,8 @@ def compute_ntx_and_nty(npx,npy,x_min,x_max,dx,y_min,y_max,dy,bc_size):
     else:
         ny = compute_n_par(npy,y_min,y_max,dy,bc_size)
 
-    ntx=int(npx*nx)
-    nty=int(npy*ny)
+    ntx=int(round(npx*nx))
+    nty=int(round(npy*ny))
 
     return [ntx,nty]
 
