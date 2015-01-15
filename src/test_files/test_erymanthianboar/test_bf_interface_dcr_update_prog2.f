@@ -1,17 +1,29 @@
       program test_bf_interface_dcr_update_prog2
 
-        use bf_interface_dcr_class, only : bf_interface_dcr
-        use parameters_input      , only : npx,npy,ntx,nty,
-     $                                     nx,ny,ne,
-     $                                     x_min,x_max,
-     $                                     y_min,y_max,
-     $                                     dt,
-     $                                     search_nb_dt,
-     $                                     search_dcr
-        use parameters_kind       , only : rkind
-        use pmodel_eq_class       , only : pmodel_eq
-        use test_bf_layer_module  , only : ini_grdpts_id
-        use test_case_class       , only : test_case
+        use bf_interface_dcr_class, only :
+     $       bf_interface_dcr
+
+        use parameters_bf_layer, only :
+     $       search_dcr
+
+        use parameters_input, only :
+     $       npx,npy,ntx,nty,
+     $       nx,ny,ne,
+     $       x_min,x_max,
+     $       y_min,y_max,
+     $       dt
+
+        use parameters_kind, only :
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use test_bf_layer_module, only :
+     $       ini_grdpts_id
+
+        use test_case_class, only :
+     $       test_case
 
         implicit none
 
@@ -76,7 +88,7 @@
      $       (x_min.ne.-3.0d0).or.(x_max.ne.0.0d0).or.
      $       (y_min.ne.0.0d0).or.(y_max.ne.3.0d0).or.
      $       (dt.ne.0.02d0).or.(ne.ne.4).or.
-     $       (search_nb_dt.ne.1).or.(search_dcr.ne.4)) then
+     $       (search_dcr.ne.4)) then
 
            print '(''the test requires: '')'
            print '(''npx = 1'')'
@@ -89,7 +101,6 @@
            print '(''y_max = 3.0d0'')'
            print '(''dt = 0.02d0'')'
            print '(''ne = 4'')'
-           print '(''search_nb_dt = 1'')'
            print '(''search_dcr = 4'')'
            stop ''
 

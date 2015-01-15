@@ -15,14 +15,27 @@
       !-----------------------------------------------------------------
       module bf_remove_module
 
-        use bf_layer_errors_module, only : error_mainlayer_id
-        use parameters_bf_layer   , only : align_N,align_S,
-     $                                     align_E,align_W,
-     $                                     no_pt
-        use parameters_constant   , only : N,S,E,W
-        use parameters_input      , only : nx,ny,ne,bc_size,search_dcr
-        use parameters_kind       , only : ikind, rkind
-        use pmodel_eq_class       , only : pmodel_eq
+        use bf_layer_errors_module, only :
+     $     error_mainlayer_id
+
+        use parameters_bf_layer, only :
+     $       align_N,align_S,
+     $       align_E,align_W,
+     $       no_pt,
+     $       search_dcr
+
+        use parameters_constant, only :
+     $       N,S,E,W
+
+        use parameters_input, only :
+     $       nx,ny,ne,
+     $       bc_size
+
+        use parameters_kind, only :
+     $       ikind, rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
         
         implicit none
 
@@ -69,8 +82,16 @@
         !> not
         !---------------------------------------------------------------
         function check_if_bf_layer_remains(
-     $       bf_localization, bf_alignment, bf_match_table,
-     $       bf_grdpts_id, bf_nodes, interior_nodes,
+     $       bf_localization,
+     $       bf_alignment,
+     $       bf_match_table,
+     $       bf_grdpts_id,
+     $       bf_x_map,
+     $       bf_y_map,
+     $       bf_nodes,
+     $       interior_x_map,
+     $       interior_y_map,
+     $       interior_nodes,
      $       p_model)
      $       result(bf_remains)
 
@@ -80,7 +101,11 @@
           integer(ikind), dimension(2,2)   , intent(in)  :: bf_alignment
           integer(ikind), dimension(2)     , intent(in)  :: bf_match_table
           integer    , dimension(:,:)      , intent(in)  :: bf_grdpts_id
+          real(rkind), dimension(:)        , intent(in)  :: bf_x_map
+          real(rkind), dimension(:)        , intent(in)  :: bf_y_map
           real(rkind), dimension(:,:,:)    , intent(in)  :: bf_nodes
+          real(rkind), dimension(nx)       , intent(in)  :: interior_x_map
+          real(rkind), dimension(ny)       , intent(in)  :: interior_y_map
           real(rkind), dimension(nx,ny,ne) , intent(in)  :: interior_nodes
           type(pmodel_eq)                  , intent(in)  :: p_model
           logical                                        :: bf_remains
@@ -99,16 +124,26 @@
              !to see whether the region undermines the open boundary
              !conditions or not
              call get_check_line_param(
-     $            bf_localization, bf_alignment, bf_match_table,
-     $            size(bf_nodes,1), size(bf_nodes,2),
-     $            bf_coords, in_coords)
+     $            bf_localization,
+     $            bf_alignment,
+     $            bf_match_table,
+     $            size(bf_nodes,1),
+     $            size(bf_nodes,2),
+     $            bf_coords,
+     $            in_coords)
 
              !check the neighboring points around the line
              call check_line_neighbors(
      $            bf_coords, in_coords,
-     $            bf_grdpts_id, bf_nodes, interior_nodes,
+     $            bf_grdpts_id,
+     $            bf_x_map,
+     $            bf_y_map,
+     $            bf_nodes,
+     $            interior_x_map,
+     $            interior_y_map,
+     $            interior_nodes,
      $            p_model,
-     $            bf_remains)             
+     $            bf_remains)
           
           !if the buffer layer has no grid point in common with the
           !interior domain, it can be removed immediately (the
@@ -204,7 +239,8 @@
         !> checked in the interior domain grid points
         !---------------------------------------------------------------
         subroutine get_check_line_param(
-     $     bf_localization, bf_alignment, bf_match_table,
+     $     bf_localization,
+     $     bf_alignment, bf_match_table,
      $     bf_size_x, bf_size_y,
      $     bf_coords, in_coords)
 
@@ -223,63 +259,63 @@
           select case(bf_localization)
 
             case(N)
-               bf_coords(1,1) = max(1, align_W - search_dcr - bf_match_table(1))
-               bf_coords(2,1) = max(1, align_N - search_dcr - bf_match_table(2))
+               bf_coords(1,1) = max(2, align_W - search_dcr - bf_match_table(1))
+               bf_coords(2,1) = max(2, align_N - search_dcr - bf_match_table(2))
 
-               bf_coords(1,2) = min(bf_size_x, align_E + search_dcr - bf_match_table(1))
-               bf_coords(2,2) = min(bf_size_y, align_N + search_dcr - bf_match_table(2))
+               bf_coords(1,2) = min(bf_size_x-1, align_E + search_dcr - bf_match_table(1))
+               bf_coords(2,2) = min(bf_size_y-1, align_N + search_dcr - bf_match_table(2))
 
 
-               in_coords(1,1) = max(bf_alignment(1,1) - bc_size, 1)
-               in_coords(2,1) = align_N - search_dcr
+               in_coords(1,1) = max(2, bf_alignment(1,1) - bc_size)
+               in_coords(2,1) = max(2, align_N - search_dcr)
 
-               in_coords(1,2) = min(bf_alignment(1,2) + bc_size, nx)
-               in_coords(2,2) = bf_coords(2,1)-1 + bf_match_table(2)
+               in_coords(1,2) = min(nx-1, bf_alignment(1,2) + bc_size         )
+               in_coords(2,2) = min(ny-1, bf_coords(2,1)-1 + bf_match_table(2))
 
 
             case(S)
-               bf_coords(1,1) = max(1, align_W - search_dcr - bf_match_table(1))
-               bf_coords(2,1) = max(1, align_S - search_dcr - bf_match_table(2))
+               bf_coords(1,1) = max(2, align_W - search_dcr - bf_match_table(1))
+               bf_coords(2,1) = max(2, align_S - search_dcr - bf_match_table(2))
 
-               bf_coords(1,2) = min(bf_size_x, align_E + search_dcr - bf_match_table(1))
-               bf_coords(2,2) = min(bf_size_y, align_S + search_dcr - bf_match_table(2))
+               bf_coords(1,2) = min(bf_size_x-1, align_E + search_dcr - bf_match_table(1))
+               bf_coords(2,2) = min(bf_size_y-1, align_S + search_dcr - bf_match_table(2))
 
 
-               in_coords(1,1) = max(bf_alignment(1,1) - bc_size, 1)
-               in_coords(2,1) = bf_coords(2,2)+1 + bf_match_table(2)
+               in_coords(1,1) = max(2, bf_alignment(1,1) - bc_size)
+               in_coords(2,1) = max(2, bf_coords(2,2)+1 + bf_match_table(2))
 
-               in_coords(1,2) = min(bf_alignment(1,2) + bc_size, nx)
-               in_coords(2,2) = align_S + search_dcr
+               in_coords(1,2) = min(nx-1, bf_alignment(1,2) + bc_size)
+               in_coords(2,2) = min(ny-1, align_S + search_dcr)
 
 
             case(E)
-               bf_coords(1,1) = max(1, align_E - search_dcr - bf_match_table(1))
-               bf_coords(2,1) = max(1, align_S - search_dcr - bf_match_table(2))
+               bf_coords(1,1) = max(2, align_E - search_dcr - bf_match_table(1))
+               bf_coords(2,1) = max(2, align_S - search_dcr - bf_match_table(2))
 
-               bf_coords(1,2) = min(bf_size_x, align_E + search_dcr - bf_match_table(1))
-               bf_coords(2,2) = min(bf_size_y, align_N + search_dcr - bf_match_table(2))
+               bf_coords(1,2) = min(bf_size_x-1, align_E + search_dcr - bf_match_table(1))
+               bf_coords(2,2) = min(bf_size_y-1, align_N + search_dcr - bf_match_table(2))
 
 
-               in_coords(1,1) = align_E - search_dcr
-               in_coords(2,1) = max(bf_alignment(2,1) - bc_size, 1)
+               in_coords(1,1) = max(2, align_E - search_dcr)
+               in_coords(2,1) = max(2, bf_alignment(2,1) - bc_size)
 
-               in_coords(1,2) = bf_coords(1,1)-1 + bf_match_table(1)
-               in_coords(2,2) = min(bf_alignment(2,2) + bc_size, ny)
+               in_coords(1,2) = min(nx-1, bf_coords(1,1)-1 + bf_match_table(1))
+               in_coords(2,2) = min(ny-1, bf_alignment(2,2) + bc_size)
 
 
             case(W)
-               bf_coords(1,1) = max(1, align_W - search_dcr - bf_match_table(1))
-               bf_coords(2,1) = max(1, align_S - search_dcr - bf_match_table(2))
+               bf_coords(1,1) = max(2, align_W - search_dcr - bf_match_table(1))
+               bf_coords(2,1) = max(2, align_S - search_dcr - bf_match_table(2))
 
-               bf_coords(1,2) = min(bf_size_x, align_W + search_dcr - bf_match_table(1))
-               bf_coords(2,2) = min(bf_size_y, align_N + search_dcr - bf_match_table(2))
+               bf_coords(1,2) = min(bf_size_x-1, align_W + search_dcr - bf_match_table(1))
+               bf_coords(2,2) = min(bf_size_y-1, align_N + search_dcr - bf_match_table(2))
 
 
-               in_coords(1,1) = bf_coords(1,2)+1 + bf_match_table(1)
-               in_coords(2,1) = max(bf_alignment(2,1) - bc_size, 1)
+               in_coords(1,1) = max(2, bf_coords(1,2)+1 + bf_match_table(1))
+               in_coords(2,1) = max(2, bf_alignment(2,1) - bc_size)
 
-               in_coords(1,2) = align_W + search_dcr
-               in_coords(2,2) = min(bf_alignment(2,2) + bc_size, ny)
+               in_coords(1,2) = min(nx-1, align_W + search_dcr)
+               in_coords(2,2) = min(ny-1, bf_alignment(2,2) + bc_size)
 
 
             case default
@@ -329,7 +365,13 @@
         !---------------------------------------------------------------
         subroutine check_line_neighbors(
      $     bf_coords, in_coords,
-     $     bf_grdpts_id, bf_nodes, interior_nodes,
+     $     bf_grdpts_id,
+     $     bf_x_map,
+     $     bf_y_map,
+     $     bf_nodes,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes,
      $     p_model,
      $     bf_remains)
 
@@ -338,7 +380,11 @@
           integer(ikind), dimension(2,2)     , intent(in)    :: bf_coords
           integer(ikind), dimension(2,2)     , intent(in)    :: in_coords
           integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map
           real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
+          real(rkind)   , dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(ny)      , intent(in)    :: interior_y_map
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           type(pmodel_eq)                    , intent(in)    :: p_model
           logical                            , intent(out)   :: bf_remains
@@ -350,6 +396,8 @@
           !check the interior points
           call check_layer_interior(
      $         in_coords,
+     $         interior_x_map,
+     $         interior_y_map,
      $         interior_nodes,
      $         p_model,
      $         bf_remains)
@@ -360,6 +408,8 @@
              call check_layer_bf(
      $            bf_coords,
      $            bf_grdpts_id,
+     $            bf_x_map,
+     $            bf_y_map,
      $            bf_nodes,
      $            p_model,
      $            bf_remains)
@@ -392,14 +442,18 @@
         !---------------------------------------------------------------
         subroutine check_layer_interior(
      $     pt_coords,
-     $     nodes,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes,
      $     p_model,
      $     bf_remains)
         
           implicit none
           
           integer(ikind), dimension(2,2)     , intent(in)    :: pt_coords
-          real(rkind)   , dimension(:,:,:)   , intent(in)    :: nodes
+          real(rkind)   , dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           type(pmodel_eq)                    , intent(in)    :: p_model
           logical                            , intent(inout) :: bf_remains
           
@@ -407,22 +461,50 @@
           integer(ikind) :: i,j
 
 
-          do j=pt_coords(2,1), pt_coords(2,2)
-             do i=pt_coords(1,1), pt_coords(1,2)
+          if( ((pt_coords(1,2)-pt_coords(1,1)).gt.0).and.
+     $        ((pt_coords(2,2)-pt_coords(2,1)).gt.0) ) then
 
-                bf_remains = p_model%are_openbc_undermined(nodes(i,j,:))
-
-                if(bf_remains) then
-                   exit
-                end if
-
-             end do
-
-             if(bf_remains) then
-                exit
+             if(
+     $            (pt_coords(2,1).ge.2).and.(pt_coords(2,1).le.(ny-1)).and.
+     $            (pt_coords(2,2).ge.2).and.(pt_coords(2,2).le.(ny-1)).and.
+     $            (pt_coords(1,1).ge.2).and.(pt_coords(1,1).le.(nx-1)).and.
+     $            (pt_coords(1,2).ge.2).and.(pt_coords(1,2).le.(nx-1))) then
+                
+                do j=pt_coords(2,1), pt_coords(2,2)
+                   do i=pt_coords(1,1), pt_coords(1,2)
+                      
+                      bf_remains = p_model%are_openbc_undermined(
+     $                     interior_x_map(i-1:i+1),
+     $                     interior_y_map(j-1:j+1),
+     $                     interior_nodes(i-1:i+1,j-1:j+1,:))
+                      
+                      if(bf_remains) then
+                         exit
+                      end if
+                      
+                   end do
+                   
+                   if(bf_remains) then
+                      exit
+                   end if
+                   
+                end do
+                
+             else
+                
+                print '(''bf_remove_module'')'
+                print '(''check_layer_interior'')'
+                print '(''the nodes that should be checked are'')'
+                print '(''not all in the interior domain'')'
+                print '(''pt_coords(1,1): '',F6.3)', pt_coords(1,1)
+                print '(''pt_coords(1,2): '',F6.3)', pt_coords(1,2)
+                print '(''pt_coords(2,1): '',F6.3)', pt_coords(2,1)
+                print '(''pt_coords(2,2): '',F6.3)', pt_coords(2,2)
+                stop ''
+                
              end if
 
-          end do
+          end if
 
         end subroutine check_layer_interior
 
@@ -454,6 +536,8 @@
         subroutine check_layer_bf(
      $     pt_coords,
      $     grdpts_id,
+     $     x_map,
+     $     y_map,
      $     nodes,
      $     p_model,
      $     bf_remains)
@@ -462,33 +546,103 @@
           
           integer(ikind), dimension(2,2)     , intent(in)   :: pt_coords
           integer       , dimension(:,:)     , intent(in)   :: grdpts_id
+          real(rkind)   , dimension(:)       , intent(in)   :: x_map
+          real(rkind)   , dimension(:)       , intent(in)   :: y_map
           real(rkind)   , dimension(:,:,:)   , intent(in)   :: nodes
           type(pmodel_eq)                    , intent(in)   :: p_model
           logical                            , intent(inout):: bf_remains
           
           
           integer(ikind) :: i,j
+          integer(ikind) :: size_x,size_y
 
+          
+          if(  ((pt_coords(1,2)-pt_coords(1,1)).gt.0).and.
+     $         ((pt_coords(2,2)-pt_coords(2,1)).gt.0) ) then
 
-          do j=pt_coords(2,1), pt_coords(2,2)
-             do i=pt_coords(1,1), pt_coords(1,2)
+             size_x = size(x_map,1)
+             size_y = size(y_map,1)
 
-                if(grdpts_id(i,j).ne.no_pt) then
-                   bf_remains = p_model%are_openbc_undermined(nodes(i,j,:))
+             if(
+     $            (pt_coords(2,1).ge.2).and.(pt_coords(2,1).le.(size_y-1)).and.
+     $            (pt_coords(2,2).ge.2).and.(pt_coords(2,2).le.(size_y-1)).and.
+     $            (pt_coords(1,1).ge.2).and.(pt_coords(1,1).le.(size_x-1)).and.
+     $            (pt_coords(1,2).ge.2).and.(pt_coords(1,2).le.(size_x-1))) then
 
+                do j=pt_coords(2,1), pt_coords(2,2)
+                   do i=pt_coords(1,1), pt_coords(1,2)
+                      
+                      if(no_nogrdpt(grdpts_id,i,j)) then
+                         
+                         bf_remains = p_model%are_openbc_undermined(
+     $                        x_map(i-1:i+1),
+     $                        y_map(j-1:j+1),
+     $                        nodes(i-1:i+1,j-1:j+1,:))
+                         
+                         if(bf_remains) then
+                            exit
+                         end if
+                      end if
+                      
+                   end do
+                
                    if(bf_remains) then
                       exit
                    end if
+                   
+                end do
+
+             else
+                
+                print '(''bf_remove_module'')'
+                print '(''check_layer_interior'')'
+                print '(''the nodes that should be checked are'')'
+                print '(''not all in the buffer layer'')'
+                print '(''pt_coords(1,1): '',F6.3)', pt_coords(1,1)
+                print '(''pt_coords(1,2): '',F6.3)', pt_coords(1,2)
+                print '(''pt_coords(2,1): '',F6.3)', pt_coords(2,1)
+                print '(''pt_coords(2,2): '',F6.3)', pt_coords(2,2)
+                print '(''size_x: '',I6)', size_x
+                print '(''size_y: '',I6)', size_y
+                stop ''
+                
+             end if
+
+          end if
+
+        end subroutine check_layer_bf
+
+
+        function no_nogrdpt(grdpts_id,i,j)
+
+          implicit none
+
+          integer       , dimension(:,:), intent(in) :: grdpts_id
+          integer(ikind)                , intent(in) :: i
+          integer(ikind)                , intent(in) :: j
+          logical                                    :: no_nogrdpt
+
+          integer(ikind) :: i1,j1
+
+          no_nogrdpt = .true.
+
+
+          do j1=j-1,j+1
+             do i1=i-1,i+1
+                
+                if(grdpts_id(i1,j1).eq.no_pt) then
+                   no_nogrdpt = .false.
+                   exit
                 end if
 
              end do
 
-             if(bf_remains) then
+             if(.not.no_nogrdpt) then
                 exit
              end if
 
-          end do
+          end do          
 
-        end subroutine check_layer_bf
+        end function no_nogrdpt
 
       end module bf_remove_module

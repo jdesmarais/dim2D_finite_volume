@@ -24,6 +24,7 @@
       !-----------------------------------------------------------------
       module pmodel_eq_class
 
+
         !space discretization module
         use interface_primary, only :
      $       gradient_x_proc,
@@ -32,6 +33,11 @@
 
         use sd_operators_class, only :
      $       sd_operators
+
+        use sd_operators_fd_module, only :
+     $       gradient_x_interior,
+     $       gradient_y_interior
+
 
         !diffuse interface model equations
         use dim2d_parameters, only :
@@ -46,6 +52,7 @@
      $       total_energy,
      $       classical_pressure_local,
      $       speed_of_sound,
+     $       temperature_eff,
      $       compute_jacobian_cons_to_prim,
      $       compute_jacobian_prim_to_cons,
      $       compute_x_timedev_from_LODI_vector_dim2d,
@@ -90,10 +97,15 @@
      $       flux_x_capillarity_total_energy,
      $       flux_y_capillarity_total_energy
 
+        use dim2d_state_eq_module, only :
+     $       get_mass_density_liquid,
+     $       get_mass_density_vapor
+
 
         !diffuse interface model initial conditions
         use ic_class, only :
      $       ic
+
 
         !global parameters
         use parameters_bf_layer, only :
@@ -116,12 +128,16 @@
      $       ic_choice,
      $       gravity_choice,
      $       flow_velocity,
-     $       T0
+     $       T0,
+     $       bf_openbc_md_threshold_ac,
+     $       bf_openbc_md_threshold
 
         use parameters_kind, only :
      $       ikind,
      $       rkind
 
+
+        !parent class
         use pmodel_eq_default_class, only :
      $       pmodel_eq_default
 
@@ -1597,25 +1613,84 @@
         !> check if the open boundary conditions are undermined
         !> at the grid point location
         !--------------------------------------------------------------
-        function are_openbc_undermined(nodes) result(undermined)
+        function are_openbc_undermined(x_map,y_map,nodes) result(undermined)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          logical                                :: undermined
+          real(rkind), dimension(3)     , intent(in) :: x_map
+          real(rkind), dimension(3)     , intent(in) :: y_map
+          real(rkind), dimension(3,3,ne), intent(in) :: nodes
+          logical                                    :: undermined
 
           real(rkind) :: P
           real(rkind) :: coeff
 
-          P = classical_pressure_local(nodes)
+          real(rkind) :: dx,dy
+          real(rkind) :: T
+          real(rkind) :: md_liq, md_vap
+          real(rkind) :: md_mid, md_liq_thr, md_vap_thr
+
+
+          !test based on the speed of sound:
+          !if it becomes imaginary, the openbc are undermined
+          !--------------------------------------------------
+          P = classical_pressure_local(nodes(2,2,:))
 
           if(rkind.eq.8) then
-             coeff = P + nodes(1)**2*(-3.0d0+2.0d0*nodes(1))
+             coeff = P + nodes(2,2,1)**2*(-3.0d0+2.0d0*nodes(2,2,1))
           else
-             coeff = P + nodes(1)**2*(-3.0+2.0*nodes(1))
+             coeff = P + nodes(2,2,1)**2*(-3.0+2.0*nodes(2,2,1))
           end if
 
           undermined = coeff.lt.0
+
+
+          !test based on the mass density:
+          !if the mass density is located inside the multi-
+          !phase region, the openbc are set as undermined
+          !1) compute temperature
+          !2) deduce the mass densities of the saturated liquid
+          !   and vapor phases
+          !3) determine the threshold values for the mass-density
+          !   to be inside the multi-phase region
+          !--------------------------------------------------
+          if((.not.undermined).and.bf_openbc_md_threshold_ac) then
+             
+             if(rkind.eq.8) then
+
+                dx = 0.5d0*(x_map(3)-x_map(1))
+                dy = 0.5d0*(y_map(3)-y_map(1))
+                
+                T = 3.0d0/(8.0d0*cv_r)*temperature_eff(
+     $               nodes,2,2,
+     $               dx,dy,
+     $               gradient_x_interior,
+     $               gradient_y_interior)
+
+             else
+
+                dx = 0.5*(x_map(3)-x_map(1))
+                dy = 0.5*(y_map(3)-y_map(1))
+
+                T = 3.0/(8.0*cv_r)*temperature_eff(
+     $               nodes,2,2,
+     $               dx,dy,
+     $               gradient_x_interior,
+     $               gradient_y_interior)
+
+             end if
+
+             md_liq = get_mass_density_liquid(T)
+             md_vap = get_mass_density_vapor(T)
+
+             md_mid     = 0.5d0*(md_vap+md_liq)
+             md_liq_thr = md_vap+bf_openbc_md_threshold*(md_mid-md_vap)
+             md_vap_thr = md_liq-bf_openbc_md_threshold*(md_liq-md_mid)
+
+             undermined = (nodes(2,2,1).ge.md_vap_thr).and.
+     $                    (nodes(2,2,1).le.md_liq_thr)
+
+          end if
 
         end function are_openbc_undermined
 

@@ -245,7 +245,11 @@
                    if(can_be_tested) then
 
                       !check if it is possible to remove the buffer layer
-                      can_remain = sublayer_ptr%should_remain(interior_nodes,p_model)
+                      can_remain = sublayer_ptr%should_remain(
+     $                     interior_x_map,
+     $                     interior_y_map,
+     $                     interior_nodes,
+     $                     p_model)
 
                       !set the status to the buffer layer
                       call sublayer_ptr%set_remain_status(can_remain)

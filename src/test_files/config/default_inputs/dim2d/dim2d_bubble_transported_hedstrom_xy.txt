@@ -66,8 +66,34 @@ pm_choice = 4
 ! 5 : for hedstrom openbc xy with corner treatment
 ! 6 : for hedstrom x reflection y
 ! 7 : for poinsot and lele openbc xy
+!
+!---------------------------------------------------------
+!when using buffer layers with DIM, the increase of the
+!computational domain can be triggered by the mass density
+!if located in the multi-phase region
+!---------------------------------------------------------
+!openbc_md_threshold_ac : boolean
+! 1: activate the use of the mass density to trigger
+!    the increase of the computational domain
+! 0: do not use the mass density to trigger the
+!    increase of the computational domain
+!
+!openbc_md_threshold : real
+! margin expressed as percentage
+!                               --------------------------------------
+!               ---------- _1  |  1  | mass density saturated liquid  |
+!              /_2              --------------------------------------
+!             /                |  4  | mass density saturated vapor   |
+!          3_/                  --------------------------------------
+!           /                  | 2-3 | marks where the mass density   |
+! 4_--------                   |     | is considered inside the multi-|
+!                              |     | phase region                   |
+! 0%   : 2 -> 1 and 3 -> 4      --------------------------------------
+! 100% : 2 and 3 are located at the middle point between 1 and 2
 !---------------------------------------------------------
 bc_choice = 4
+openbc_md_threshold_ac = 1
+openbc_md_threshold    = 0.1
 
 
 !6.    Initial conditions

@@ -217,6 +217,10 @@
         !> get the governing variables for a specific grid point
         !> knowing its local coordinates
         !
+        !> @param get_nodes_nonlocal
+        !> get the governing variables for a specific grid point
+        !> and its nearest neighbors knowing its local coordinates
+        !
         !> @param get_grdpts_id
         !> get the grdpts_id attribute (only for tests)
         !
@@ -441,6 +445,7 @@
           procedure,   pass :: set_y_map
           procedure,   pass :: get_nodes_array
           procedure,   pass :: get_nodes
+          procedure,   pass :: get_nodes_nonlocal
           procedure,   pass :: get_grdpts_id
           
           !procedure to modify the structure of the buffer
@@ -1178,6 +1183,51 @@
           var = this%nodes(l_coords(1), l_coords(2),:)
 
         end function get_nodes
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the governing variables for a specific grid point
+        !> knowing its local coordinates
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param l_coords
+        !> local coordinate giving the indices of the grid point
+        !> in the buffer layer nodes attribute
+        !
+        !>@return var
+        !> governig variables at a specific grid point
+        !--------------------------------------------------------------
+        subroutine get_nodes_nonlocal(
+     $     this,
+     $     l_coords,
+     $     x_map_local,
+     $     y_map_local,
+     $     nodes_local)
+
+          implicit none
+
+          class(bf_layer)                  , intent(in)  :: this
+          integer(ikind), dimension(2)     , intent(in)  :: l_coords
+          real(rkind)   , dimension(3)     , intent(out) :: x_map_local
+          real(rkind)   , dimension(3)     , intent(out) :: y_map_local
+          real(rkind)   , dimension(3,3,ne), intent(out) :: nodes_local
+
+          x_map_local = this%x_map(l_coords(1)-1:l_coords(1)+1)
+          y_map_local = this%y_map(l_coords(2)-1:l_coords(2)+1)
+          nodes_local = this%nodes(l_coords(1)-1:l_coords(1)+1,
+     $                             l_coords(2)-1:l_coords(2)+1,
+     $                             :)
+
+        end subroutine get_nodes_nonlocal
 
 
         !> @author
@@ -3255,11 +3305,18 @@
         !> logical identifying whether the buffer layer should be
         !> removed or not
         !--------------------------------------------------------------
-        function should_remain(this, interior_nodes, p_model)
+        function should_remain(
+     $     this,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes,
+     $     p_model)
 
           implicit none
 
           class(bf_layer)                 , intent(in) :: this
+          real(rkind), dimension(nx)      , intent(in) :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in) :: interior_y_map
           real(rkind), dimension(nx,ny,ne), intent(in) :: interior_nodes
           type(pmodel_eq)                 , intent(in) :: p_model
           logical                                      :: should_remain
@@ -3273,7 +3330,11 @@
      $         this%alignment,
      $         bf_match_table,
      $         this%grdpts_id,
+     $         this%x_map,
+     $         this%y_map,
      $         this%nodes,
+     $         interior_x_map,
+     $         interior_y_map,
      $         interior_nodes,
      $         p_model)
 

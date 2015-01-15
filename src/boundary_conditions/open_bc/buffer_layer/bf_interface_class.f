@@ -171,6 +171,10 @@
         !> extract the governing variables at a general coordinates
         !> asked by the user
         !
+        !>@param get_nodes_nonlocal
+        !> extract the governing variables at a general coordinates
+        !> asked by the user with its nearest neighbors
+        !
         !>@param update_grdpts_from_neighbors
         !> if the buffer sublayer passed as argument has grid points
         !> in common with buffer layers from other main layers, the
@@ -270,6 +274,7 @@
           procedure, nopass :: get_mainlayer_id
           procedure, pass   :: get_sublayer
           procedure, pass   :: get_nodes
+          procedure, pass   :: get_nodes_nonlocal
 
           procedure, pass, private :: update_grdpts_from_neighbors
           procedure, pass, private :: update_neighbor_grdpts
@@ -1509,6 +1514,105 @@ c$$$          stop 'not implemented yet'
          end if
 
        end function get_nodes    
+
+
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> extract the governing variables at a general coordinates
+       !> asked by the user as well as its nearest neighbors
+       !
+       !> @date
+       !> 15_01_2015 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param g_coord
+       !> table giving the general coordinates of the point analyzed
+       !
+       !>@param interior_x_map
+       !> table encapsulating the x-coordinates of the interior domain
+       !
+       !>@param interior_y_map
+       !> table encapsulating the y-coordinates of the interior domain
+       !       
+       !>@param interior_nodes
+       !> table encapsulating the data of the grid points of the
+       !> interior domain
+       !
+       !>@param x_map_local
+       !> values of the x-coordinates for the grid point corresponding
+       !> to g_coord as well as its nearest neighbors
+       !
+       !>@param y_map_local
+       !> values of the y-coordinates for the grid point corresponding
+       !> to g_coord as well as its nearest neighbors
+       !
+       !>@param nodes_local
+       !> values of the governing variables for the grid point
+       !> corresponding to g_coord as well as its nearest neighbors
+       !--------------------------------------------------------------
+       subroutine get_nodes_nonlocal(
+     $     this,
+     $     g_coords,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes,
+     $     x_map_local,
+     $     y_map_local,
+     $     nodes_local)
+
+         implicit none
+         
+         class(bf_interface)             , intent(in)  :: this
+         integer(ikind), dimension(2)    , intent(in)  :: g_coords
+         real(rkind), dimension(ny)      , intent(in)  :: interior_x_map
+         real(rkind), dimension(nx)      , intent(in)  :: interior_y_map
+         real(rkind), dimension(nx,ny,ne), intent(in)  :: interior_nodes
+         real(rkind), dimension(3)       , intent(out) :: x_map_local
+         real(rkind), dimension(3)       , intent(out) :: y_map_local
+         real(rkind), dimension(3,3,ne)  , intent(out) :: nodes_local
+
+         integer                      :: mainlayer_id
+         type(bf_sublayer), pointer   :: sublayer
+         integer(ikind), dimension(2) :: l_coords
+         
+         mainlayer_id = this%get_mainlayer_id(g_coords)
+
+         if(
+     $        (g_coords(1).ge.2).and.
+     $        (g_coords(1).le.(nx-1)).and.
+     $        (g_coords(2).ge.2).and.
+     $        (g_coords(2).le.(ny-1))) then
+            
+            x_map_local = interior_x_map(g_coords(1)-1:g_coords(1)+1)
+            y_map_local = interior_y_map(g_coords(2)-1:g_coords(2)+1)
+            nodes_local = interior_nodes(g_coords(1)-1:g_coords(1)+1,
+     $                                   g_coords(2)-1:g_coords(2)+1,
+     $                                   :)
+         else
+            sublayer => this%get_sublayer(g_coords,
+     $                                    l_coords,
+     $                                    mainlayer_id_i=mainlayer_id)
+            if(associated(sublayer)) then
+               call sublayer%get_nodes_nonlocal(
+     $              l_coords,
+     $              x_map_local,
+     $              y_map_local,
+     $              nodes_local)
+            else
+               print '(''bf_interface_class'')'
+               print '(''get_nodes_nonlocal'')'
+               print '(''cannot get sublayer'')'
+               stop 'check way to get nodes'
+            end if               
+         end if
+
+       end subroutine get_nodes_nonlocal
 
 
        !> @author

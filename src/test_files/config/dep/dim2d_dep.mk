@@ -31,6 +31,7 @@ $(dim2d_dir)/pmodel_eq_class.o:\
 			$(dim2d_dir)/dim2d_prim_module.o\
 			$(dim2d_dir)/dim2d_ncoords_module.o\
 			$(dim2d_dir)/dim2d_fluxes_module.o\
+			$(dim2d_dir)/dim2d_state_eq_module.o\
 			$(ic_cdir)/ic_class.o\
 			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(param_dir)/parameters_constant.o\

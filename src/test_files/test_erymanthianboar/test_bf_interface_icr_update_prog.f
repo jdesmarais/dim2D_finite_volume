@@ -1,23 +1,43 @@
       program test_bf_interface_icr_update_prog
 
-        use bf_mainlayer_class        , only : bf_mainlayer
-        use bf_sublayer_class         , only : bf_sublayer
-        use bf_detector_icr_list_class, only : bf_detector_icr_list
-        use bf_interface_icr_class    , only : bf_interface_icr
-        use parameters_constant       , only : N,S,E,W
-        use parameters_input          , only : npx,npy,ntx,nty,
-     $                                         nx,ny,ne,bc_size,
-     $                                         x_min,x_max,
-     $                                         y_min,y_max,
-     $                                         dt,
-     $                                         search_nb_dt,
-     $                                         search_dcr
-        use parameters_kind           , only : rkind
-        use pmodel_eq_class           , only : pmodel_eq
-        use test_bf_layer_module      , only : ini_grdpts_id
+        use bf_mainlayer_class, only :
+     $     bf_mainlayer
 
-        use test_cases_interface_update_module, only : update_nodes,
-     $                                                 print_state
+        use bf_sublayer_class, only :
+     $       bf_sublayer
+
+        use bf_detector_icr_list_class, only :
+     $       bf_detector_icr_list
+
+        use bf_interface_icr_class, only :
+     $       bf_interface_icr
+
+        use parameters_bf_layer, only :
+     $       search_dcr
+
+        use parameters_constant, only :
+     $       N,S,E,W
+
+        use parameters_input, only :
+     $       npx,npy,ntx,nty,
+     $       nx,ny,ne,bc_size,
+     $       x_min,x_max,
+     $       y_min,y_max,
+     $       dt,
+     $       search_dcr
+
+        use parameters_kind, only :
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use test_bf_layer_module, only :
+     $       ini_grdpts_id
+
+        use test_cases_interface_update_module, only :
+     $       update_nodes,
+     $       print_state
 
         implicit none
 
@@ -43,7 +63,7 @@
      $       (x_min.ne.-3.0d0).or.(x_max.ne.0.0d0).or.
      $       (y_min.ne.0.0d0).or.(y_max.ne.3.0d0).or.
      $       (dt.ne.0.02d0).or.(ne.ne.4).or.
-     $       (search_nb_dt.ne.1).or.(search_dcr.ne.4)) then
+     $       (search_dcr.ne.4)) then
 
            print '(''the test requires: '')'
            print '(''npx = 1'')'
@@ -56,7 +76,6 @@
            print '(''y_max = 3.0d0'')'
            print '(''dt = 0.02d0'')'
            print '(''ne = 4'')'
-           print '(''search_nb_dt = 1'')'
            print '(''search_dcr = 4'')'
            stop ''
 

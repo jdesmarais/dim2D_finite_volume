@@ -9,31 +9,23 @@ import string
 
 
 #root of the code
-augeanstablesPath=os.getenv('augeanstables')
+augeanstablesPath= os.getenv('augeanstables')
 
+# main configuration directories
+configPath       = os.path.join(augeanstablesPath,'src','test_files','config')
+paramPath        = os.path.join(augeanstablesPath,'src','parameters')
 
 #sh script files used to modify the code by the configuration
-changeParameterPath=augeanstablesPath
-changeParameterPath+='/src/test_files/config/change_parameter.sh'
+changeParameterPath= os.path.join(configPath,'change_parameter.sh')
+getParameterPath   = os.path.join(configPath,'get_parameter.sh')
 
-getParameterPath=augeanstablesPath
-getParameterPath+='/src/test_files/config/get_parameter.sh'
-
-
-#files modified in the code by the configuration
-paramCstPath=augeanstablesPath
-paramCstPath+='/src/parameters/parameters_constant.f'
-
-paramInputPath=augeanstablesPath
-paramInputPath+='/src/parameters/parameters_input.f'
-
-makefileHeaderPath=augeanstablesPath
-makefileHeaderPath+='/src/test_files/config/makefile_header.mk'
-
+#files modified by the code configuration
+paramCstPath       = os.path.join(paramPath,'parameters_constant.f')
+paramInputPath     = os.path.join(paramPath,'parameters_input.f')
+makefileHeaderPath = os.path.join(configPath,'makefile_header.mk')
 
 #folder where the executables are compiled
-exeDir=augeanstablesPath
-exeDir+='/src/test_files'
+exeDir = os.path.join(augeanstablesPath,'src','test_files')
 
 
 # display the help for the program
@@ -304,6 +296,8 @@ def compute_code_inputs(inputFileName):
                    'npx', 'npy',
                    'pm_choice',
                    'bc_choice',
+                   'openbc_md_threshold_ac',
+                   'openbc_md_threshold',
                    'flow_direction',
                    'flow_velocity',
                    'temperature',
@@ -390,6 +384,12 @@ def compute_code_inputs(inputFileName):
         bcx_type_choice = bc_type_code[2]
         bcy_type_choice = bc_type_code[0]
 
+    # compute the openbc_md_threshold
+    if(int(inputs['openbc_md_threshold_ac'])==1):
+        openbc_md_threshold_ac = '.true.'
+    else:
+        openbc_md_threshold_ac = '.false.'
+
     # compute the gravity_choice
     gravity_choice = gravity_code[int(inputs['gravity_choice'])]
     wave_forcing   = wave_forcing_code[int(inputs['wave_forcing'])]
@@ -400,6 +400,7 @@ def compute_code_inputs(inputFileName):
             pm_choice,
             ic_choice,
             bc_choice,
+            openbc_md_threshold_ac,
             bcx_type_choice,
             bcy_type_choice,
             gravity_choice,
@@ -415,7 +416,9 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
                              pm_choice,
                              ic_choice,
                              bc_choice,
-                             bcx_type_choice,bcy_type_choice,
+                             openbc_md_threshold_ac,
+                             bcx_type_choice,
+                             bcy_type_choice,
                              gravity_choice,
                              wave_forcing,
                              flow_direction,
@@ -438,6 +441,7 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         'pm_choice':pm_choice,
         'ic_choice':ic_choice,
         'bc_choice':bc_choice,
+        'bf_openbc_md_threshold_ac':openbc_md_threshold_ac,
         'bcx_type_choice':bcx_type_choice,
         'bcy_type_choice':bcy_type_choice,
         'gravity_choice':gravity_choice,
@@ -467,7 +471,8 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         'flow_x_side':flow_x_side,
         'flow_y_side':flow_y_side,
         'flow_velocity':inputs['flow_velocity'],
-        'T0':inputs['temperature']}
+        'T0':inputs['temperature'],
+        'bf_openbc_md_threshold':inputs['openbc_md_threshold']}
 
     for key, value in constants_changed2.items():
 
@@ -571,7 +576,9 @@ if __name__ == "__main__":
      pm_choice,
      ic_choice,
      bc_choice,
-     bcx_type_choice,bcy_type_choice,
+     openbc_md_threshold_ac,
+     bcx_type_choice,
+     bcy_type_choice,
      gravity_choice,
      wave_forcing,
      flow_direction,
@@ -584,6 +591,7 @@ if __name__ == "__main__":
                              pm_choice,
                              ic_choice,
                              bc_choice,
+                             openbc_md_threshold_ac,
                              bcx_type_choice,
                              bcy_type_choice,
                              gravity_choice,

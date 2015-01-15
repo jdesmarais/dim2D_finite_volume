@@ -124,34 +124,75 @@
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
 
-        !< boundary conditions parameters
-        !--------------------------------------------
-        !search_nb_dt: for the open boundary conditions,
-        !              number of timesteps checked in
-        !              advance by the increasing detector
-        !
-        !search_dcr  : radius expressed as number of grid
-        !              points to check around the line for
-        !              removing a buffer layer
-        !
-        !sigma_P     : relaxation coefficient used when
-        !              applying the non-reflecting outflow
-        !              pressure b.c.
-        !--------------------------------------------
-        real(rkind), parameter :: search_nb_dt = 0.0025000000d0 !0.0500000000d0 !1.0 !0.0001000000d0
-        integer    , parameter :: search_dcr = 4
-        real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
-        integer    , parameter :: obc_type_N = always_outflow
-        integer    , parameter :: obc_type_S = always_outflow
-        integer    , parameter :: obc_type_E = always_outflow
-        integer    , parameter :: obc_type_W = always_inflow
 
+        !< boundary conditions parameters
+        !-----------------------------------------------------
+        !constrained by the bc_choice
+        !-----------------------------------------------------
+        !
+        !bc_N_type_choice : type of boundary condition applied
+        !                   at the North boundary
+        !bc_S_type_choice : type of boundary condition applied
+        !                   at the South boundary
+        !bc_E_type_choice : type of boundary condition applied
+        !                   at the East boundary
+        !bc_W_type_choice : type of boundary condition applied
+        !                   at the West boundary
+        !-----------------------------------------------------
         integer    , parameter :: bc_N_type_choice = bc_timedev_choice
         integer    , parameter :: bc_S_type_choice = bc_timedev_choice
         integer    , parameter :: bc_E_type_choice = bc_timedev_choice
         integer    , parameter :: bc_W_type_choice = bc_timedev_choice
 
-        logical    , parameter :: use_mass_density_threshold = .false.
+
+        !-----------------------------------------------------
+        !for the increase of the computational domain
+        !-----------------------------------------------------
+        !bf_openbc_md_threshold_ac : control whether the increase
+        !                            of the computational domain
+        !                            is also activated by the
+        !                            value of the mass density at
+        !                            the edge
+        !
+        !bf_openbc_md_threshold : the increase of the computational
+        !                         domain is triggered if the mass
+        !                         density is inside
+        !                         mid = (\rho_vap+\rho_liq)/2
+        !                         thr_vap = threshold*(mid-\rho_vap)
+        !                         thr_liq = threshold*(\rho_liq-mid)
+        !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
+        !
+        !-----------------------------------------------------
+        logical    , parameter :: bf_openbc_md_threshold_ac = .false.
+        real(rkind), parameter :: bf_openbc_md_threshold    = 0.2d0
+
+
+        !-----------------------------------------------------
+        !only effective for Yoo and Lodato b.c.
+        !-----------------------------------------------------
+        !
+        !sigma_P    : relaxation coefficient used when
+        !             applying the non-reflecting outflow
+        !             pressure b.c.
+        !
+        !obc_type_N : type of boundary condition applied
+        !             at the North boundary (always_outflow,
+        !             always_inflow, ask_flow)
+        !obc_type_S : type of boundary condition applied
+        !             at the South boundary (always_outflow,
+        !             always_inflow, ask_flow)
+        !obc_type_E : type of boundary condition applied
+        !             at the East boundary (always_outflow,
+        !             always_inflow, ask_flow)
+        !obc_type_W : type of boundary condition applied
+        !             at the West boundary (always_outflow,
+        !             always_inflow, ask_flow)
+        !-----------------------------------------------------
+        real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
         
+        integer    , parameter :: obc_type_N = always_outflow
+        integer    , parameter :: obc_type_S = always_outflow
+        integer    , parameter :: obc_type_E = always_outflow
+        integer    , parameter :: obc_type_W = always_inflow
 
       end module parameters_input

@@ -24,8 +24,14 @@
      $       convention,
      $       ns2d_ic_code,
      $       dim2d_ic_code,
-     $       bc_code
-
+     $       bc_code,
+     $       obc_type_code,
+     $       hedstrom_xy_choice,
+     $       hedstrom_xy_corners_choice,
+     $       hedstrom_x_reflection_y_choice,
+     $       poinsot_xy_choice,
+     $       yoolodato_xy_choice
+        
         use parameters_kind, only :
      $       rkind,
      $       ikind
@@ -34,7 +40,12 @@
      $       npx,npy,nx,ny,ne,bc_size,
      $       x_min,x_max,y_min,y_max,
      $       t_max,dt,detail_print,
-     $       ic_choice, bc_choice
+     $       ic_choice, bc_choice,
+     $       bf_openbc_md_threshold_ac,
+     $       bf_openbc_md_threshold,
+     $       sigma_P,
+     $       obc_type_N, obc_type_S,
+     $       obc_type_E, obc_type_W
 
         use pmodel_eq_class, only :
      $       pmodel_eq
@@ -140,61 +151,61 @@
 
 
           !<write the header
-          retval = nf90_put_att(ncid,nf90_global,'title',trim(title))
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'title',trim(title))
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
           
-          retval = nf90_put_att(ncid,nf90_global,'history',history)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'history',history)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'institution',institut)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'institution',institut)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'source',prog_version)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'source',prog_version)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'prog_commit',commit)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'prog_commit',commit)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'references',ref)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'references',ref)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'convention',convention)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'convention',convention)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
 
           !<write the characteristic parameters of the simulation
-          retval = nf90_put_att(ncid,nf90_global,'x_min',x_min)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'x_min',x_min)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'x_max',x_max)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'x_max',x_max)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'y_min',y_min)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'y_min',y_min)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'y_max',y_max)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'y_max',y_max)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'t_max',t_max)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'t_max',t_max)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'dt',dt)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'dt',dt)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
 
-          retval = nf90_put_att(ncid,nf90_global,'detail_print',detail_print)
+          retval = nf90_put_att(ncid,NF90_GLOBAL,'detail_print',detail_print)
           !DEC$ FORCEINLINE RECURSIVE
           call nf90_handle_err(retval)
           
@@ -204,7 +215,7 @@
             case('NS2D')
                retval = nf90_put_att(
      $              ncid,
-     $              nf90_global,
+     $              NF90_GLOBAL,
      $              'initial_conditions',
      $              trim(ns2d_ic_code(ic_choice+1)))
                !DEC$ FORCEINLINE RECURSIVE
@@ -213,7 +224,7 @@
             case('DIM2D')
                retval = nf90_put_att(
      $              ncid,
-     $              nf90_global,
+     $              NF90_GLOBAL,
      $              'initial_conditions',
      $              trim(dim2d_ic_code(ic_choice+1)))
                !DEC$ FORCEINLINE RECURSIVE
@@ -223,13 +234,8 @@
 
 
           !boundary conditions
-          retval = nf90_put_att(
-     $         ncid,
-     $         nf90_global,
-     $         'boundary_conditions',
-     $         trim(bc_code(bc_choice+1)))
-          !DEC$ FORCEINLINE RECURSIVE
-          call nf90_handle_err(retval)
+          call nf90_write_header_bc(ncid)
+          
 
 
           !<write the characteristic parameters for the physical model
@@ -237,6 +243,131 @@
 
 
         end subroutine nf90_write_header
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> function writing the b.c. parameters on the
+        !> output netcdf file
+        !
+        !> @date
+        !> 16_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param ncid
+        !> integer identifying the netcdf file
+        !--------------------------------------------------------------
+        subroutine nf90_write_header_bc(ncid)
+
+          implicit none
+
+          integer, intent(in) :: ncid
+
+          integer :: retval
+
+          ! bc_type
+          retval = nf90_put_att(
+     $         ncid,
+     $         NF90_GLOBAL,
+     $         'boundary_conditions',
+     $         trim(bc_code(bc_choice+1)))
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          ! parameters specific to the b.c.
+          ! are written
+          
+          ! open b.c.
+          select case(bc_choice)
+
+          case(hedstrom_xy_choice,
+     $         hedstrom_xy_corners_choice,
+     $         hedstrom_x_reflection_y_choice,
+     $         poinsot_xy_choice,
+     $         yoolodato_xy_choice)
+
+          if(bf_openbc_md_threshold_ac) then
+             retval = nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'openbc_md_threshold_ac',
+     $            'activated')
+             !DEC$ FORCEINLINE RECURSIVE
+             call nf90_handle_err(retval)
+
+             retval = nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'openbc_md_threshold',
+     $            bf_openbc_md_threshold)
+             !DEC$ FORCEINLINE RECURSIVE
+             call nf90_handle_err(retval)
+
+          else
+             retval = nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'openbc_md_threshold_ac',
+     $            'deactivated')
+             !DEC$ FORCEINLINE RECURSIVE
+             call nf90_handle_err(retval)
+
+          end if
+             
+          end select
+
+
+          ! poinsot and yoo-lodato open b.c.
+          select case(bc_choice)
+
+          case(poinsot_xy_choice,
+     $         yoolodato_xy_choice)
+
+          retval = nf90_put_att(
+     $         ncid,
+     $         NF90_GLOBAL,
+     $         'openbc_sigma_P',
+     $         sigma_P)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          
+          retval= nf90_put_att(
+     $         ncid,
+     $         NF90_GLOBAL,
+     $         'openbc_type_N',
+     $         trim(obc_type_code(obc_type_N+1)))
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval= nf90_put_att(
+     $         ncid,
+     $         NF90_GLOBAL,
+     $         'openbc_type_S',
+     $         trim(obc_type_code(obc_type_S+1)))
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval= nf90_put_att(
+     $         ncid,
+     $         NF90_GLOBAL,
+     $         'openbc_type_E',
+     $         trim(obc_type_code(obc_type_E+1)))
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          retval= nf90_put_att(
+     $         ncid,
+     $         NF90_GLOBAL,
+     $         'openbc_type_W',
+     $         trim(obc_type_code(obc_type_W+1)))
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+          end select
+
+        end subroutine nf90_write_header_bc
 
 
         !> @author
@@ -277,7 +408,8 @@
              do i=1, size(param_name)
 
                 retval = nf90_put_att(
-     $               ncid, nf90_global,
+     $               ncid,
+     $               NF90_GLOBAL,
      $               param_name(i),
      $               param_value(i))
                 

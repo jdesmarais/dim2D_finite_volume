@@ -1424,23 +1424,32 @@
         !> check if the open boundary conditions are undermined
         !> at the grid point location
         !--------------------------------------------------------------
-        function are_openbc_undermined(nodes) result(undermined)
+        function are_openbc_undermined(x_map,y_map,nodes) result(undermined)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          logical                                :: undermined
+          real(rkind), dimension(3)     , intent(in) :: x_map
+          real(rkind), dimension(3)     , intent(in) :: y_map
+          real(rkind), dimension(3,3,ne), intent(in) :: nodes
+          logical                                    :: undermined
+
+
+          real(rkind) :: dx
+          real(rkind) :: dy
 
           select case(ic_choice)
 
             case(vortex)
-               undermined=nodes(1).lt.0.99d0
+               undermined=nodes(2,2,1).lt.0.99d0
                !0.97d0
 
             case default
                undermined=.false.
 
           end select
+
+          dx = x_map(2)-x_map(1)
+          dy = y_map(2)-y_map(1)
 
         end function are_openbc_undermined
 

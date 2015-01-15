@@ -852,13 +852,15 @@
           !> check if the open boundary conditions are undermined
           !> at the grid point location
           !--------------------------------------------------------------
-          function openbc_proc(nodes) result(undermined)
+          function openbc_proc(x_map,y_map,nodes) result(undermined)
 
             import rkind
             import ne
 
-            real(rkind), dimension(ne), intent(in) :: nodes
-            logical                                :: undermined
+            real(rkind), dimension(3)     , intent(in) :: x_map
+            real(rkind), dimension(3)     , intent(in) :: y_map
+            real(rkind), dimension(3,3,ne), intent(in) :: nodes
+            logical                                    :: undermined
 
           end function openbc_proc
 

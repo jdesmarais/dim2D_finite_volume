@@ -66,8 +66,7 @@
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
-     $       dt,search_nb_dt,
-     $       write_detectors
+     $       dt,write_detectors
 
         use parameters_kind, only :
      $       ikind,
@@ -1468,10 +1467,12 @@
           type(bf_detector_icr_list)          , intent(inout) :: ndt_list
 
 
-          real(rkind)   , dimension(ne):: node_var
-          real(rkind)   , dimension(2) :: velocity
-          integer(ikind), dimension(2) :: d_icoord_n
-          real(rkind)   , dimension(2) :: d_rcoord_n
+          real(rkind)   , dimension(3)      :: x_map_local
+          real(rkind)   , dimension(3)      :: y_map_local
+          real(rkind)   , dimension(3,3,ne) :: nodes_local
+          real(rkind)   , dimension(2)      :: velocity
+          integer(ikind), dimension(2)      :: d_icoord_n
+          real(rkind)   , dimension(2)      :: d_rcoord_n
 
 
           !initialization of the number of modified grid points
@@ -1479,15 +1480,26 @@
 
 
           !extract the nodes at the coordinates of the detector
-          node_var = this%get_nodes(d_icoord, interior_nodes)
+          call this%get_nodes_nonlocal(
+     $         d_icoord,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes,
+     $         x_map_local,
+     $         y_map_local,
+     $         nodes_local)
 
 
           !if the detector is activated, then we check
           !whether grid points need to be modified
-          if(is_detector_icr_activated(node_var, p_model)) then
+          if(is_detector_icr_activated(
+     $         x_map_local,
+     $         y_map_local,
+     $         nodes_local,
+     $         p_model)) then
 
              !extract the velocity at the coordinates of the detector
-             velocity = p_model%get_velocity(node_var)
+             velocity = p_model%get_velocity(nodes_local(2,2,:))
              
 
              !get the first point from which we should look for a
@@ -1551,16 +1563,18 @@
         !>@return activated
         !> logical stating whether the detector is activated
         !--------------------------------------------------------------
-        function is_detector_icr_activated(nodes, p_model)
+        function is_detector_icr_activated(x_map, y_map, nodes, p_model)
      $     result(activated)
         
           implicit none
           
-          real(rkind), dimension(ne), intent(in) :: nodes
-          type(pmodel_eq)           , intent(in) :: p_model
-          logical                                :: activated
+          real(rkind), dimension(3)     , intent(in) :: x_map
+          real(rkind), dimension(3)     , intent(in) :: y_map
+          real(rkind), dimension(3,3,ne), intent(in) :: nodes
+          type(pmodel_eq)               , intent(in) :: p_model
+          logical                                    :: activated
           
-          activated = p_model%are_openbc_undermined(nodes)
+          activated = p_model%are_openbc_undermined(x_map,y_map,nodes)
 
         end function is_detector_icr_activated
 
