@@ -36,9 +36,18 @@ library_sm_lg_results.py: contain intermediate fcts useful to create the
 			  simulations, generate the PBS scripts to run
 			  the simulations and run the PBS scripts
 
+			  - the main function can be used to create and
+			    run simulations
+
 
 library_sm_lg_error.py:	  contain intermediate fcts useful to generate the
 			  error files by comparing the simulations on the
 			  small and large domains
+			  
+			  - the main function can be used to create the error
+			    graphs from the simulation output folders
+
+library_sm_lg_graph.py:	  contain functions to contain a graph representing
+			  the maximum of the error as function of time
 
 

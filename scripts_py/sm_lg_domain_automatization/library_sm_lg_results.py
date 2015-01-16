@@ -343,7 +343,10 @@ def generate_sm_lg_results(mainDir,
                            temperature,
                            flow_velocity,
                            model_input,
-                           bf_layer_option=False):
+                           bf_layer_option=False,
+                           md_threshold_ac=0,
+                           md_threshold=0.0,
+                           large_domain_run=True):
     '''
     @description
     create the directory to save the simulation results (small and large
@@ -363,6 +366,9 @@ def generate_sm_lg_results(mainDir,
     #2) create the directory to save the simulations
     destDir = mainDir
     destDir+= '/dim2d_'+str(temperature)+'_'+str(flow_velocity)
+
+    if(md_threshold_ac==1):
+        destDir+='_md'+str(md_threshold)
     
     # if there is already an existing directory, the function
     # throws an error
@@ -389,7 +395,9 @@ def generate_sm_lg_results(mainDir,
                         flow_velocity,
                         model_input,
                         sm_domain=inputPath_sm_domain,
-                        lg_domain=inputPath_lg_domain)
+                        lg_domain=inputPath_lg_domain,
+                        md_threshold_ac=md_threshold_ac,
+                        md_threshold=md_threshold)
 
 
     #4) create dir, generate executable, create PBS
@@ -405,21 +413,25 @@ def generate_sm_lg_results(mainDir,
 
     #5) create dir, generate executable, create PBS
     #   script file for large domain
-    destDir_lg_domain = destDir+'/lg_domain'
-    os.mkdir(destDir_lg_domain)
+    if(large_domain_run):
+        destDir_lg_domain = destDir+'/lg_domain'
+        os.mkdir(destDir_lg_domain)
 
-    [pbsScriptPath_lg_domain,nameRun_lg_domain] = create_simulation(destDir_lg_domain,
-                                                                    inputPath_lg_domain,
-                                                                    bf_layer_option=bf_layer_option,
-                                                                    nameRun_suffix='_lg')
-    
+        [pbsScriptPath_lg_domain,nameRun_lg_domain] = create_simulation(destDir_lg_domain,
+                                                                        inputPath_lg_domain,
+                                                                        bf_layer_option=bf_layer_option,
+                                                                        nameRun_suffix='_lg')
+    else:
+        nameRun_lg_domain='no_simulation'
+
 
     #6) run the small domain simulation
     run_simulation(pbsScriptPath_sm_domain)
 
     
     #7) run the large domain simulation
-    run_simulation(pbsScriptPath_lg_domain)
+    if(large_domain_run):
+        run_simulation(pbsScriptPath_lg_domain)
 
 
     return [destDir,nameRun_sm_domain,nameRun_lg_domain]
@@ -484,16 +496,27 @@ if __name__ == "__main__":
 
     #test: create_and_run_test
     #mainDir='/home/jdesmarais/Code/augeanstables/scripts_py/sm_lg_domain_automatization'
+
     mainDir='/home/jdesmarais/projects'
 
-    temperature=0.999
-    flow_velocity=0.1
+    temperature      = 0.999
+    flow_velocity    = 0.1
+    md_threshold_ac  = 1
+    md_threshold     = 0.3
+    large_domain_run = False
 
-    model_input=os.getenv('augeanstables')+'/src/test_files/config/'
-    model_input+='default_inputs/dim2d/dim2d_bubble_transported_hedstrom_xy.txt'
+    model_input=os.path.join(os.getenv('augeanstables'),'src','test_files','config',
+                             'default_inputs',
+                             'dim2d',
+                             'dim2d_bubble_transported_hedstrom_xy.txt')
 
     [destDir,nameRun_sm_domain,nameRun_lg_domain] = generate_sm_lg_results(mainDir,
                                                                            temperature,
                                                                            flow_velocity,
                                                                            model_input,
-                                                                           bf_layer_option=True)
+                                                                           bf_layer_option=True,
+                                                                           md_threshold_ac=md_threshold_ac,
+                                                                           md_threshold=md_threshold,
+                                                                           large_domain_run=large_domain_run)
+
+    

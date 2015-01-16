@@ -28,6 +28,17 @@ from library_sm_lg_inputs import (get_we,
                                   get_large_domain_extent)
                                        
 
+changeParameterPath = os.path.join(os.getenv('augeanstables'),
+                                   'src',
+                                   'test_files',
+                                   'config',
+                                   'change_parameter.sh')
+getParameterPath    = os.path.join(os.getenv('augeanstables'),
+                                   'src',
+                                   'test_files',
+                                   'config',
+                                   'get_parameter.sh')
+                                   
 # display the help for the program
 def display_help():
     '''
@@ -40,12 +51,14 @@ def display_help():
     print ''
     print 'options:'
     print '--------'
-    print '-h (--help)          : display this help'
-    print '-T (--temperature=)  : temperature'
-    print '-v (--flow_velocity=): flow_velocity'
-    print '-i (--model_input=)  : input file used as template'
-    print '-s (--sm_domain=)    : filename for the small domain input'
-    print '-l (--lg_domain=)    : filename for the large domain input'
+    print '-h (--help)             : display this help'
+    print '-T (--temperature=)     : temperature'
+    print '-v (--flow_velocity=)   : flow_velocity'
+    print '-i (--model_input=)     : input file used as template'
+    print '-s (--sm_domain=)       : filename for the small domain input'
+    print '-l (--lg_domain=)       : filename for the large domain input'
+    print '--md_threshold_ac=      : activate or not the mass density threshold'
+    print '--md_threshold=         : value set for the mass density threshold'
     print ''
     print 'example:'
     print '---------'
@@ -74,11 +87,13 @@ def parse_argv(argv):
         opts, args = getopt.getopt(argv,
                                    "hT:v:i:s:l:",
                                    ["help",
-                                    "temperature",
-                                    "flow_velocity",
-                                    "model_input",
-                                    "sm_domain",
-                                    "lg_domain"])
+                                    "temperature=",
+                                    "flow_velocity=",
+                                    "model_input=",
+                                    "sm_domain=",
+                                    "lg_domain=",
+                                    "md_threshold_ac=",
+                                    "md_threshold="])
     except getopt.GetoptError:
         display_help()
         sys.exit(2)
@@ -93,6 +108,9 @@ def parse_argv(argv):
     temperatureProvided  = False
     flowVelocityProvided = False
     modelInputProvided   = False
+
+    md_threshold_ac = 0
+    md_threshold    = 0.0
 
     smDomainInput = smDomainInputDefault
     lgDomainInput = lgDomainInputDefault
@@ -135,6 +153,12 @@ def parse_argv(argv):
         elif opt in ("-l", "--lg_domain"):
             lgDomainInput = arg
 
+        elif opt in ("--md_threshold"):
+            md_threshold = float(arg)
+
+        elif opt in ("--md_threshold_ac"):
+            md_threshold_ac = int(arg)        
+
     inputsProvided = temperatureProvided
     inputsProvided = inputsProvided and flowVelocityProvided
     inputsProvided = inputsProvided and modelInputProvided
@@ -144,11 +168,13 @@ def parse_argv(argv):
         sys.exit('***some inputs were not provided***')
 
     else:
-        inputs = {'temperature'  : temperature,
-                  'flow_velocity': flow_velocity,
-                  'model_input'  : modelInputPath,
-                  'sm_domain'    : smDomainInput,
-                  'lg_domain'    : lgDomainInput}
+        inputs = {'temperature'    : temperature,
+                  'flow_velocity'  : flow_velocity,
+                  'model_input'    : modelInputPath,
+                  'sm_domain'      : smDomainInput,
+                  'lg_domain'      : lgDomainInput,
+                  'md_threshold_ac': md_threshold_ac,
+                  'md_threshold'   : md_threshold}
                     
         return inputs
 
@@ -167,16 +193,13 @@ def get_parameter(param,filePath):
     # check whether the file exists
     if(os.path.isfile(filePath)):
 
-        # path for 'get_parameter.sh' script
-        getParameterScriptPath = os.getenv('augeanstables')+"/src/test_files/config/get_parameter.sh"
-        
         # check whether the 'get_parameter.sh'
         # script exists
-        if(os.path.isfile(getParameterScriptPath)):
+        if(os.path.isfile(getParameterPath)):
                
            # create process extracting the parameter
            # using the 'get_parameter.sh' script
-           cmd=getParameterScriptPath+' -p '+param+' -i '+filePath
+           cmd=getParameterPath+' -p '+param+' -i '+filePath
            args = shlex.split(cmd)
            output = subprocess.Popen(args,stdout=subprocess.PIPE).communicate()[0]
 
@@ -198,6 +221,8 @@ def get_parameter(param,filePath):
 # and on a large domains
 def get_inputsToBeModified(temperature,
                            flow_velocity,
+                           md_threshold_ac,
+                           md_threshold,
                            nb_pts_in_interface,
                            ratio_bubble_interface,
                            CFL_constant,
@@ -212,8 +237,11 @@ def get_inputsToBeModified(temperature,
 
     # extract length_c, dim2d_a, dim2d_b, dim2d_M, dim2d_cv, dim2d_R
     # and dim2d_K from the dim2d_parameters.f fortran file
-    dim2dParamPath = os.getenv('augeanstables')
-    dim2dParamPath+='/src/physical_models/dim2d/dim2d_parameters.f'
+    dim2dParamPath = os.path.join(os.getenv('augeanstables'),
+                                  'src',
+                                  'physical_models',
+                                  'dim2d',
+                                  'dim2d_parameters.f')
 
     if(os.path.isfile(dim2dParamPath)):
         length_c  = float(get_parameter('length_c', dim2dParamPath))
@@ -298,30 +326,34 @@ def get_inputsToBeModified(temperature,
 
     # gather the inputs to be modified in dictionnaries
     inputsToBeModified_sm_domain = {
-        'detail_print'    : detail_print,
-        'dt'              : dt_max,
-        't_max'           : simulation_time,
-        'dx'              : dx_max,
-        'x_min'           : small_domain_extent[0][0],
-        'x_max'           : small_domain_extent[1][0],
-        'dy'              : dx_max,
-        'y_min'           : small_domain_extent[0][1],
-        'y_max'           : small_domain_extent[1][1],
-        'flow_velocity'   : flow_velocity,
-        'temperature'     : temperature}
+        'detail_print'           : detail_print,
+        'dt'                     : dt_max,
+        't_max'                  : simulation_time,
+        'dx'                     : dx_max,
+        'x_min'                  : small_domain_extent[0][0],
+        'x_max'                  : small_domain_extent[1][0],
+        'dy'                     : dx_max,
+        'y_min'                  : small_domain_extent[0][1],
+        'y_max'                  : small_domain_extent[1][1],
+        'flow_velocity'          : flow_velocity,
+        'temperature'            : temperature,
+        'openbc_md_threshold_ac' : md_threshold_ac,
+        'openbc_md_threshold'    : md_threshold}
 
     inputsToBeModified_lg_domain = {
-        'detail_print'    : detail_print,
-        'dt'              : dt_max,
-        't_max'           : simulation_time,
-        'dx'              : dx_max,
-        'x_min'           : large_domain_extent[0][0],
-        'x_max'           : large_domain_extent[1][0],
-        'dy'              : dx_max,
-        'y_min'           : large_domain_extent[0][1],
-        'y_max'           : large_domain_extent[1][1],
-        'flow_velocity'   : flow_velocity,
-        'temperature'     : temperature}
+        'detail_print'           : detail_print,
+        'dt'                     : dt_max,
+        't_max'                  : simulation_time,
+        'dx'                     : dx_max,
+        'x_min'                  : large_domain_extent[0][0],
+        'x_max'                  : large_domain_extent[1][0],
+        'dy'                     : dx_max,
+        'y_min'                  : large_domain_extent[0][1],
+        'y_max'                  : large_domain_extent[1][1],
+        'flow_velocity'          : flow_velocity,
+        'temperature'            : temperature,
+        'openbc_md_threshold_ac' : 0,
+        'openbc_md_threshold'    : 0.0}
 
         
     return [inputsToBeModified_sm_domain,
@@ -356,7 +388,7 @@ def create_inputFile(paramModified,
         #   and replace them in newInputFilePath
         for key, value  in paramModified.items():
 
-            cmd=os.getenv('augeanstables')+"/src/test_files/config/change_parameter.sh"
+            cmd=os.path.join(changeParameterPath)
             cmd+=" -i "+str(newInputFilePath)
             cmd+=" -o "+str(newInputFilePath)
             cmd+=" -p "+key
@@ -376,6 +408,8 @@ def create_sm_lg_inputs(temperature,
                         model_input,
                         sm_domain='inputs_sm_domain.txt',
                         lg_domain='inputs_lg_domain.txt',
+                        md_threshold_ac=0,
+                        md_threshold=0.0,
                         nb_pts_in_interface = 10,
                         ratio_bubble_interface = 2,
                         CFL_constant = 0.2,
@@ -392,6 +426,8 @@ def create_sm_lg_inputs(temperature,
     [inputs_sm_domain, inputs_lg_domain] = get_inputsToBeModified(
         temperature,
         flow_velocity,
+        md_threshold_ac,
+        md_threshold,
         nb_pts_in_interface,
         ratio_bubble_interface,
         CFL_constant,
@@ -426,7 +462,9 @@ if __name__=="__main__":
     create_sm_lg_inputs(inputs['temperature'],
                         inputs['flow_velocity'],
                         inputs['model_input'],
-                        inputs['sm_domain'],
-                        inputs['lg_domain'])
+                        sm_domain=inputs['sm_domain'],
+                        lg_domain=inputs['lg_domain'],
+                        md_threshold_ac=inputs['md_threshold_ac'],
+                        md_threshold=inputs['md_threshold'])
 
     
