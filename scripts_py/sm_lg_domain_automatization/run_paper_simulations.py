@@ -23,8 +23,12 @@ and v \in [0.05, 0.1, 0.25, 0.5]
 
 '''
 
+import os
 
-if __name__="__main__":
+from library_sm_lg_results import generate_sm_lg_results
+
+
+if __name__=="__main__":
 
 
     # main directory where the simulations
@@ -80,7 +84,53 @@ if __name__="__main__":
 
 
     #3) threshold study
-    temperature_array = [0.95,0.99,0.995,0.999]
+    #temperature_array  = [0.95,0.99,0.995,0.999]
+    #flow_velocity      = 0.1
+    #md_threshold_array = [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
+    #md_threshold_ac    = 1
+    #large_domain_run   = False
+    #
+    #for md_threshold in md_threshold_array:
+    #    for temperature in temperature_array:
+    #
+    #        [destDir,
+    #         nameRun_sm_domain,
+    #         nameRun_lg_domain] =\
+    #        \
+    #            generate_sm_lg_results(mainDir,
+    #                                   temperature,
+    #                                   flow_velocity,
+    #                                   model_input,
+    #                                   bf_layer_option=True,
+    #                                   large_domain_run=large_domain_run,
+    #                                   md_threshold_ac=1,
+    #                                   md_threshold=md_threshold)
+
+    temperature         = 0.99
+    flow_velocity_array = [0.05,0.25,0.5]
+    md_threshold_array  = [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
+    large_domain_run    = False
+    
+    for md_threshold in md_threshold_array:
+        for flow_velocity in flow_velocity_array:
+    
+            [destDir,
+             nameRun_sm_domain,
+             nameRun_lg_domain] =\
+            \
+            generate_sm_lg_results(mainDir,
+                                   temperature,
+                                   flow_velocity,
+                                   model_input,
+                                   bf_layer_option=True,
+                                   large_domain_run=large_domain_run,
+                                   md_threshold_ac=1,
+                                   md_threshold=md_threshold)
+
+    
+
+    
+    
 
     
         
