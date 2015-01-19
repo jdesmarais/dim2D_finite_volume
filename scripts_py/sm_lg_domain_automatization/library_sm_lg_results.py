@@ -508,7 +508,7 @@ if __name__ == "__main__":
     model_input=os.path.join(os.getenv('augeanstables'),'src','test_files','config',
                              'default_inputs',
                              'dim2d',
-                             'dim2d_bubble_transported_hedstrom_xy.txt')
+                             'dim2d_bubble_transported_hedstrom_xy_corners.txt')
 
     [destDir,nameRun_sm_domain,nameRun_lg_domain] = generate_sm_lg_results(mainDir,
                                                                            temperature,

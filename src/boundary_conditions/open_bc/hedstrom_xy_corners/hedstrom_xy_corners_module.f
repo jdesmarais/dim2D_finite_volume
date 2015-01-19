@@ -283,7 +283,9 @@
           !to the time derivatives
           normal_timedev = MATMUL(incoming_amp, right_eigenmatrix)
           trans_timedev  = MATMUL(var_gradient_dir2, transM_dir1)
-          timedev = normal_timedev - trans_timedev
+
+          !timedev = normal_timedev - trans_timedev
+          timedev = normal_timedev
 
         end function compute_n_timedev_with_openbc_local
 

@@ -91,7 +91,7 @@ pm_choice = 4
 ! 0%   : 2 -> 1 and 3 -> 4      --------------------------------------
 ! 100% : 2 and 3 are located at the middle point between 1 and 2
 !---------------------------------------------------------
-bc_choice = 4
+bc_choice = 5
 openbc_md_threshold_ac = 1
 openbc_md_threshold    = 0.1
 
@@ -115,9 +115,6 @@ openbc_md_threshold    = 0.1
 !temperature of the mean flow
 !
 !ic_choice : integer
-!
-!for wave2D:
-! 1 : peak
 !
 !for Navier-Stokes:
 ! 0 : steady state

@@ -61,12 +61,8 @@
      $       gradient_x_interior,
      $       gradient_y_interior,
      $       gradient_x_x_oneside_L0,
-     $       gradient_x_x_oneside_L1,
-     $       gradient_x_x_oneside_R1,
      $       gradient_x_x_oneside_R0,
      $       gradient_y_y_oneside_L0,
-     $       gradient_y_y_oneside_L1,
-     $       gradient_y_y_oneside_R1,
      $       gradient_y_y_oneside_R0
 
         use sd_operators_x_oneside_L0_class, only :
@@ -374,7 +370,7 @@
           call compute_timedev_ylayer(
      $         t, x_map, y_map, nodes,
      $         j, dx, dy, p_model, flux_x,
-     $         gradient_y_y_oneside_L1, incoming_left,
+     $         gradient_y_y_oneside_L0, incoming_left,
      $         timedev)
 
           i=nx-1
@@ -409,13 +405,13 @@
              i=bc_size
              call compute_timedev_xlayer(
      $            t, x_map, y_map, nodes, i,j, dx,dy, p_model, flux_y,
-     $            gradient_x_x_oneside_L1, incoming_left,
+     $            gradient_x_x_oneside_L0, incoming_left,
      $            timedev)
 
              i=nx-1
              call compute_timedev_xlayer(
      $            t, x_map, y_map, nodes, i,j, dx,dy, p_model, flux_y,
-     $            gradient_x_x_oneside_R1, incoming_right,
+     $            gradient_x_x_oneside_R0, incoming_right,
      $            timedev)
 
              i=nx
@@ -452,7 +448,7 @@
           call compute_timedev_ylayer(
      $         t, x_map, y_map, nodes,
      $         j, dx, dy, p_model, flux_x,
-     $         gradient_y_y_oneside_R1, incoming_right,
+     $         gradient_y_y_oneside_R0, incoming_right,
      $         timedev)
 
           i=nx-1

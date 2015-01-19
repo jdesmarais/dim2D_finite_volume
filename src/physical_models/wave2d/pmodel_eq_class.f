@@ -321,7 +321,7 @@
 
           implicit none
 
-          character(10), dimension(:), allocatable, intent(out) :: param_name
+          character(20), dimension(:), allocatable, intent(out) :: param_name
           real(rkind)  , dimension(:), allocatable, intent(out) :: param_value
 
 
@@ -1141,14 +1141,16 @@ c$$$          end if
         !> check if the open boundary conditions are undermined
         !> at the grid point location
         !--------------------------------------------------------------
-        function are_openbc_undermined(nodes) result(undermined)
+        function are_openbc_undermined(x_map,y_map,nodes) result(undermined)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          logical                                :: undermined
+          real(rkind), dimension(3)     , intent(in) :: x_map
+          real(rkind), dimension(3)     , intent(in) :: y_map
+          real(rkind), dimension(3,3,ne), intent(in) :: nodes
+          logical                                    :: undermined
 
-          !real(rkind) :: node_s
+          real(rkind) :: node_s, dx_s, dy_s
 
           !real(rkind) :: d_liq, d_vap
           !
@@ -1163,8 +1165,12 @@ c$$$          end if
 
           !node_s = nodes(1)
 
-          undermined = (nodes(1).lt.0)
-          !undermined = .false.
+          !undermined = (nodes(1).lt.0)
+          undermined = .false.
+
+          node_s = nodes(2,2,1)
+          dx_s   = x_map(2)-x_map(1)
+          dy_s   = y_map(2)-y_map(1)
 
         end function are_openbc_undermined
 

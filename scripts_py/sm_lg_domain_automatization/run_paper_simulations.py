@@ -39,94 +39,107 @@ if __name__=="__main__":
     # input used as template
     model_input=os.path.join(
         os.getenv('augeanstables'),'src','test_files','config','default_inputs','dim2d',
-        'dim2d_bubble_transported_hedstrom_xy.txt')
+        'dim2d_bubble_transported_hedstrom_xy_corners.txt')
+
+
+    temperatureStudy          = False
+    velocityStudy             = False
+    thresholdTemperatureStudy = True
+    thresholdVelocityStudy    = False
 
 
     ##1) temperature study
-    #temperature_array = [0.95,0.99,0.995,0.999]
-    #flow_velocity     = 0.1
-    #md_threshold      = 0
-    #large_domain_run  = True
-    #
-    #
-    #for temperature in temperature_array:
-    #    
-    #    [destDir,
-    #     nameRun_sm_domain,
-    #     nameRun_lg_domain] =\
-    #     \
-    #     generate_sm_lg_results(mainDir,
-    #                            temperature,
-    #                            flow_velocity,
-    #                            model_input,
-    #                            bf_layer_option=True,
-    #                            large_domain_run=large_domain_run)
-         
+    if(temperatureStudy):
 
-    ##2) flow mean velocity study
-    #temperature         = 0.99
-    #flow_velocity_array = [0.05,0.1,0.25,0.5]
-    #md_threshold        = 0
-    #large_domain_run    = True
-    #
-    #for flow_velocity in flow_velocity_array:
-    #    
-    #    [destDir,
-    #     nameRun_sm_domain,
-    #     nameRun_lg_domain] =\
-    #     \
-    #     generate_sm_lg_results(mainDir,
-    #                            temperature,
-    #                            flow_velocity,
-    #                            model_input,
-    #                            bf_layer_option=True,
-    #                            large_domain_run=large_domain_run)
-
-
-    #3) threshold study
-    #temperature_array  = [0.95,0.99,0.995,0.999]
-    #flow_velocity      = 0.1
-    #md_threshold_array = [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
-    #md_threshold_ac    = 1
-    #large_domain_run   = False
-    #
-    #for md_threshold in md_threshold_array:
-    #    for temperature in temperature_array:
-    #
-    #        [destDir,
-    #         nameRun_sm_domain,
-    #         nameRun_lg_domain] =\
-    #        \
-    #            generate_sm_lg_results(mainDir,
-    #                                   temperature,
-    #                                   flow_velocity,
-    #                                   model_input,
-    #                                   bf_layer_option=True,
-    #                                   large_domain_run=large_domain_run,
-    #                                   md_threshold_ac=1,
-    #                                   md_threshold=md_threshold)
-
-    temperature         = 0.99
-    flow_velocity_array = [0.05,0.25,0.5]
-    md_threshold_array  = [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
-    large_domain_run    = False
+        temperature_array = [0.95,0.99,0.995,0.999]
+        flow_velocity     = 0.1
+        md_threshold      = 0
+        large_domain_run  = False
+        
     
-    for md_threshold in md_threshold_array:
-        for flow_velocity in flow_velocity_array:
-    
+        for temperature in temperature_array:
+            
             [destDir,
              nameRun_sm_domain,
              nameRun_lg_domain] =\
-            \
-            generate_sm_lg_results(mainDir,
-                                   temperature,
-                                   flow_velocity,
-                                   model_input,
-                                   bf_layer_option=True,
-                                   large_domain_run=large_domain_run,
-                                   md_threshold_ac=1,
-                                   md_threshold=md_threshold)
+             \
+             generate_sm_lg_results(mainDir,
+                                    temperature,
+                                    flow_velocity,
+                                    model_input,
+                                    bf_layer_option=True,
+                                    large_domain_run=large_domain_run)
+             
+    
+    #2) flow mean velocity study
+    if(velocityStudy):
 
+        temperature         = 0.99
+        flow_velocity_array = [0.05,0.25,0.5]
+        md_threshold        = 0
+        large_domain_run    = False
+        
+        for flow_velocity in flow_velocity_array:
+            
+            [destDir,
+             nameRun_sm_domain,
+             nameRun_lg_domain] =\
+             \
+             generate_sm_lg_results(mainDir,
+                                    temperature,
+                                    flow_velocity,
+                                    model_input,
+                                    bf_layer_option=True,
+                                    large_domain_run=large_domain_run)
+             
+
+    #3) threshold study
+    if(thresholdTemperatureStudy):
+
+        temperature_array  = [0.95]#,0.99,0.995,0.999]
+        flow_velocity      = 0.1
+        md_threshold_array = [0.0001]#, 0.001, 0.01, 0.1, 0.2, 0.3]
+        md_threshold_ac    = 1
+        large_domain_run   = False
+        
+        for md_threshold in md_threshold_array:
+            for temperature in temperature_array:
+                
+                [destDir,
+                 nameRun_sm_domain,
+                 nameRun_lg_domain] =\
+                 \
+                 generate_sm_lg_results(mainDir,
+                                        temperature,
+                                        flow_velocity,
+                                        model_input,
+                                        bf_layer_option=True,
+                                        large_domain_run=large_domain_run,
+                                        md_threshold_ac=1,
+                                        md_threshold=md_threshold)
+    
+    if(thresholdVelocityStudy):
+        temperature         = 0.99
+        flow_velocity_array = [0.05,0.25,0.5]
+        md_threshold_array  = [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
+        large_domain_run    = False
+    
+        for md_threshold in md_threshold_array:
+            for flow_velocity in flow_velocity_array:
+                
+                [destDir,
+                 nameRun_sm_domain,
+                 nameRun_lg_domain] =\
+                 \
+                 generate_sm_lg_results(mainDir,
+                                        temperature,
+                                        flow_velocity,
+                                        model_input,
+                                        bf_layer_option=True,
+                                        large_domain_run=large_domain_run,
+                                        md_threshold_ac=1,
+                                        md_threshold=md_threshold)
+    
     
 
     

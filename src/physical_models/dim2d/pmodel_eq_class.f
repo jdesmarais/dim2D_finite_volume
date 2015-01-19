@@ -1684,8 +1684,8 @@
              md_vap = get_mass_density_vapor(T)
 
              md_mid     = 0.5d0*(md_vap+md_liq)
-             md_liq_thr = md_vap+bf_openbc_md_threshold*(md_mid-md_vap)
-             md_vap_thr = md_liq-bf_openbc_md_threshold*(md_liq-md_mid)
+             md_vap_thr = md_vap+bf_openbc_md_threshold*(md_mid-md_vap)
+             md_liq_thr = md_liq-bf_openbc_md_threshold*(md_liq-md_mid)
 
              undermined = (nodes(2,2,1).ge.md_vap_thr).and.
      $                    (nodes(2,2,1).le.md_liq_thr)
