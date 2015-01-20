@@ -1931,10 +1931,10 @@ c$$$          stop 'not implemented yet'
      $        interior_bc_sections_W,
      $        bc_procedures)
 
-         deallocate(interior_bc_sections_N)
-         deallocate(interior_bc_sections_S)
-         deallocate(interior_bc_sections_E)
-         deallocate(interior_bc_sections_W)
+         if(allocated(interior_bc_sections_N)) deallocate(interior_bc_sections_N)
+         if(allocated(interior_bc_sections_S)) deallocate(interior_bc_sections_S)
+         if(allocated(interior_bc_sections_E)) deallocate(interior_bc_sections_E)
+         if(allocated(interior_bc_sections_W)) deallocate(interior_bc_sections_W)
 
        end subroutine determine_interior_bc_procedures
 

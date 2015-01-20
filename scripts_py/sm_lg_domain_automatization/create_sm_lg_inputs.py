@@ -457,6 +457,18 @@ if __name__=="__main__":
     # extract the command line inputs
     inputs = parse_argv(sys.argv[1:])
 
+    #inputs = {}
+    #
+    #inputs['temperature']     = 0.95
+    #inputs['flow_velocity']   = 0.1
+    #inputs['model_input']     = os.path.join(os.getenv('augeanstables'),
+    #                                         'src','test_files','config','default_inputs','dim2d',
+    #                                         'dim2d_bubble_transported_hedstrom_xy_corners_detailled.txt')
+    #inputs['sm_domain']       = 'inputs_sm_domain.txt'
+    #inputs['lg_domain']       = 'inputs_lg_domain.txt'
+    #inputs['md_threshold_ac'] = 1
+    #inputs['md_threshold']    = 0.0001
+
 
     # create the inputs
     create_sm_lg_inputs(inputs['temperature'],
@@ -467,4 +479,5 @@ if __name__=="__main__":
                         md_threshold_ac=inputs['md_threshold_ac'],
                         md_threshold=inputs['md_threshold'])
 
+    
     
