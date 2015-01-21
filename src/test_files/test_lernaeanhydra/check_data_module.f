@@ -10,7 +10,9 @@
         public ::
      $       is_test_validated,
      $       is_vector_validated,
-     $       is_matrix_validated
+     $       is_matrix_validated,
+     $       is_int_vector_validated,
+     $       is_int_matrix_validated
 
         
         contains
@@ -90,5 +92,92 @@
           end do
 
         end function is_matrix_validated
+
+
+        function is_int_vector_validated(
+     $     int_vector,
+     $     int_vector_cst,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          integer, dimension(:), intent(in) :: int_vector
+          integer, dimension(:), intent(in) :: int_vector_cst
+          logical, optional    , intent(in) :: detailled
+          logical                           :: test_validated
+
+
+          integer :: i
+          logical :: test_loc
+          logical :: detailled_op
+
+
+          if(present(detailled)) then
+             detailled_op = detailled
+          else
+             detailled_op = .false.
+          end if
+
+
+          test_validated = .true.
+
+
+          do i=1, size(int_vector)
+
+             test_loc = int_vector(i).eq.int_vector_cst(i)
+             test_validated = test_validated.and.test_loc
+
+             if(detailled_op.and.(.not.test_loc)) then
+
+                print '(''['',I2,'']: '',I5, '' -> '',I5)',
+     $               i, int_vector(i), int_vector_cst(i)
+
+             end if
+
+          end do
+
+        end function is_int_vector_validated
+
+
+        function is_int_matrix_validated(
+     $     int_matrix,
+     $     int_matrix_cst,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          integer, dimension(:,:), intent(in) :: int_matrix
+          integer, dimension(:,:), intent(in) :: int_matrix_cst
+          logical, optional      , intent(in) :: detailled
+          logical                             :: test_validated
+
+
+          integer :: j
+          logical :: test_loc
+          logical :: detailled_op
+
+
+          if(present(detailled)) then
+             detailled_op = detailled
+          else
+             detailled_op = .false.
+          end if
+
+          test_validated = .true.
+
+          do j=1, size(int_matrix,2)
+
+             test_loc = is_int_vector_validated(
+     $            int_matrix(:,j),
+     $            int_matrix_cst(:,j),
+     $            detailled=detailled_op)
+
+             test_validated = test_validated.and.test_loc
+
+          end do
+
+        end function is_int_matrix_validated
 
       end module check_data_module

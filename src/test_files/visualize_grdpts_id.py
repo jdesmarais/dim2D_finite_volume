@@ -54,7 +54,7 @@ def extract_grdpts_id_data(filename,sizes):
 
     f = open(filename)
 
-    for i in range(0,20):
+    for i in range(0,22):
         f.readline()
 
     for j in range(0,sizes[1]):

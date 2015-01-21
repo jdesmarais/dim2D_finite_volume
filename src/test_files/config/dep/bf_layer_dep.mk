@@ -301,3 +301,10 @@ $(bf_layer_dir)/bf_interface_dcr_class.o:\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o\
 	$(sbf_layer_dir)/sbf_list_class.o
+
+$(nbf_layer_dir)/bf_grdpts_id_bc_crenel_module.o:\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
