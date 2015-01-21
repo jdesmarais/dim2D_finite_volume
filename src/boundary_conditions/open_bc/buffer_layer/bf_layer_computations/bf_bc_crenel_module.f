@@ -567,7 +567,10 @@
 
              if(bc_pt_crenel_exists) then
 
-                bf_grdpts_id(i,j) = bc_interior_pt
+                bf_grdpts_id(i-1,j-1) = interior_pt
+                bf_grdpts_id(i-1,j  ) = interior_pt
+                bf_grdpts_id(i  ,j  ) = bc_interior_pt
+                bf_grdpts_id(i-1,j+1) = interior_pt
 
              end if
 
@@ -590,7 +593,10 @@
 
              if(bc_pt_crenel_exists) then
 
-                bf_grdpts_id(i,j) = bc_interior_pt
+                bf_grdpts_id(i+1,j-1) = interior_pt
+                bf_grdpts_id(i  ,j  ) = bc_interior_pt
+                bf_grdpts_id(i+1,j  ) = interior_pt
+                bf_grdpts_id(i+1,j+1) = interior_pt
 
              end if
 
@@ -613,7 +619,10 @@
 
              if(bc_pt_crenel_exists) then
 
-                bf_grdpts_id(i,j) = bc_interior_pt
+                bf_grdpts_id(i  ,j  ) = bc_interior_pt
+                bf_grdpts_id(i-1,j+1) = interior_pt
+                bf_grdpts_id(i  ,j+1) = interior_pt
+                bf_grdpts_id(i+1,j+1) = interior_pt
 
              end if
 
@@ -636,7 +645,10 @@
 
              if(bc_pt_crenel_exists) then
 
-                bf_grdpts_id(i,j) = bc_interior_pt
+                bf_grdpts_id(i-1,j-1) = interior_pt
+                bf_grdpts_id(i  ,j-1) = interior_pt
+                bf_grdpts_id(i+1,j-1) = interior_pt
+                bf_grdpts_id(i  ,j  ) = bc_interior_pt
 
              end if
 

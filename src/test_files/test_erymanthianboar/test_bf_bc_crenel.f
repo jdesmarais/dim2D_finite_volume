@@ -179,8 +179,12 @@
      $              bc_interior_pt, bc_interior_pt, bc_interior_pt/),
      $              (/3,3/))
 
-               test_bf_grdpts_id = bf_grdpts_id
-               test_bf_grdpts_id(2,2) = bc_interior_pt
+               test_bf_grdpts_id = reshape((/
+     $              bc_pt         , bc_pt         , bc_pt,
+     $              bc_interior_pt, bc_interior_pt, bc_interior_pt,
+     $              interior_pt   , interior_pt   , interior_pt/),
+     $              (/3,3/))
+
                bc_pt_crenel_exists = .true.
 
             case(6)
@@ -191,8 +195,12 @@
      $              bc_pt, bc_interior_pt, bc_interior_pt/),
      $              (/3,3/))
 
-               test_bf_grdpts_id = bf_grdpts_id
-               test_bf_grdpts_id(2,2) = bc_interior_pt
+               test_bf_grdpts_id = reshape((/
+     $              bc_pt, bc_interior_pt, interior_pt,
+     $              bc_pt, bc_interior_pt, interior_pt,
+     $              bc_pt, bc_interior_pt, interior_pt/),
+     $              (/3,3/))
+
                bc_pt_crenel_exists = .true.
 
             case(7)
@@ -203,8 +211,12 @@
      $              bc_pt         , bc_pt         , bc_pt/),
      $              (/3,3/))
 
-               test_bf_grdpts_id = bf_grdpts_id
-               test_bf_grdpts_id(2,2) = bc_interior_pt
+               test_bf_grdpts_id = reshape((/
+     $              interior_pt   , interior_pt   , interior_pt   ,
+     $              bc_interior_pt, bc_interior_pt, bc_interior_pt,
+     $              bc_pt         , bc_pt         , bc_pt/),
+     $              (/3,3/))
+
                bc_pt_crenel_exists = .true.
 
             case(8)
@@ -215,8 +227,12 @@
      $              bc_interior_pt, bc_interior_pt, bc_pt/),
      $              (/3,3/))
 
-               test_bf_grdpts_id = bf_grdpts_id
-               test_bf_grdpts_id(2,2) = bc_interior_pt
+               test_bf_grdpts_id = reshape((/
+     $              interior_pt, bc_interior_pt, bc_pt,
+     $              interior_pt, bc_interior_pt, bc_pt,
+     $              interior_pt, bc_interior_pt, bc_pt/),
+     $              (/3,3/))
+
                bc_pt_crenel_exists = .true.
 
             case default
