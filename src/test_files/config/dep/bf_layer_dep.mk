@@ -106,6 +106,7 @@ $(bf_layer_dir)/bf_layer_class.o:\
 	$(bf_layer_dir)/bf_layer_exchange_module.o\
 	$(cbf_layer_dir)/bf_remove_module.o\
 	$(cbf_layer_dir)/bf_suspicious_bc_interior_pt_module.o\
+	$(cbf_layer_dir)/bf_bc_crenel_module.o\
 	$(ti_dir)/interface_integration_step.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
@@ -302,7 +303,7 @@ $(bf_layer_dir)/bf_interface_dcr_class.o:\
 	$(pm_cdir)/pmodel_eq_class.o\
 	$(sbf_layer_dir)/sbf_list_class.o
 
-$(nbf_layer_dir)/bf_grdpts_id_bc_crenel_module.o:\
+$(cbf_layer_dir)/bf_bc_crenel_module.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\

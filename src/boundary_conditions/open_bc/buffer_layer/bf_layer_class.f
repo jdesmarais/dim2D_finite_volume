@@ -63,6 +63,9 @@
         use bf_suspicious_bc_interior_pt_module, only :
      $       verify_if_all_grdpts_exist
 
+        use bf_bc_crenel_module, only :
+     $       detect_and_curb_bc_crenel
+
         use interface_integration_step, only :
      $       timeInt_step_nopt
 
@@ -488,9 +491,12 @@
           procedure,   pass :: finalize_neighboring_grdpts_update
           procedure,   pass :: update_neighboring_grdpt
           procedure,   pass :: get_grdpts_id_part
+          procedure,   pass :: set_grdpts_id_part
           procedure,   pass :: verify_if_all_bf_grdpts_exist
           procedure,   pass :: has_a_bc_pt_neighbor
           procedure,   pass :: is_bc_interior_pt
+          procedure,   pass :: is_bc_pt
+          procedure,   pass :: detect_and_curb_bc_pt_crenel
 
           !procedures for removing the buffer layer
           procedure,   pass :: set_remain_status
@@ -3014,9 +3020,7 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> get the grdpts_id needed to evaluate whether the
-        !> bc_interior_pt investigated should be turned into
-        !> an interior_pt
+        !> get the grdpts_id matching the gen_coords
         !
         !> @date
         !> 27_11_2014 - initial version - J.L. Desmarais
@@ -3025,7 +3029,7 @@
         !> bf_layer object encapsulating the main
         !> tables extending the interior domain
         !
-        !>@param 
+        !>@param gen_coords
         !> logical identifying whether the buffer layer should be
         !> removed or not
         !--------------------------------------------------------------
@@ -3036,9 +3040,9 @@
 
           implicit none
 
-          class(bf_layer)                                    , intent(in)    :: this
-          integer, dimension(2*(bc_size+1)+1,2*(bc_size+1)+1), intent(inout) :: tmp_grdptsid
-          integer(ikind), dimension(2,2)                     , intent(in)    :: gen_coords
+          class(bf_layer)                , intent(in)    :: this
+          integer        , dimension(:,:), intent(inout) :: tmp_grdptsid
+          integer(ikind) , dimension(2,2), intent(in)    :: gen_coords
 
           
           integer(ikind) :: size_x,size_y
@@ -3066,6 +3070,62 @@
           end do
 
         end subroutine get_grdpts_id_part
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the grdpts_id matching the gen_coords
+        !
+        !> @date
+        !> 21_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param gen_coords
+        !> logical identifying whether the buffer layer should be
+        !> removed or not
+        !--------------------------------------------------------------
+        subroutine set_grdpts_id_part(
+     $     this,
+     $     tmp_grdptsid,
+     $     gen_coords)
+
+          implicit none
+
+          class(bf_layer)                , intent(inout) :: this
+          integer        , dimension(:,:), intent(in)    :: tmp_grdptsid
+          integer(ikind) , dimension(2,2), intent(in)    :: gen_coords
+
+          
+          integer(ikind) :: size_x,size_y
+          integer(ikind) :: i_recv,i_send,j_recv,j_send
+          integer(ikind) :: i,j
+
+
+          !get the synchronization indices
+          call this%bf_compute_used%get_sync_indices_for_newgrdpt_data(
+     $         this%alignment,
+     $         gen_coords,
+     $         size_x, size_y,
+     $         i_recv, j_recv,
+     $         i_send, j_send)
+
+
+          !fill the grid points asked
+          do j=1, size_y
+             do i=1, size_x
+                
+                this%grdpts_id(i_send+i-1,j_send+j-1) = 
+     $               tmp_grdptsid(i_recv+i-1,j_recv+j-1)
+
+             end do
+          end do
+
+        end subroutine set_grdpts_id_part
 
 
         !> @author
@@ -3190,6 +3250,80 @@
         !> Julien L. Desmarais
         !
         !> @brief
+        !> check if the grdpts(i,j) is a bc_interior_pt
+        !
+        !> @date
+        !> 21_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !> @param i
+        !> x-index of the grdpts_id tested
+        !
+        !> @param j
+        !> y-index of the grdpts_id tested
+        !
+        !> @return is_bc_interior_pt
+        !> logical stating whether the grdpts_id(i,j) is a bc_interior_pt
+        !--------------------------------------------------------------
+        function is_bc_interior_pt(
+     $     this, i,j)
+
+          implicit none
+
+          class(bf_layer), intent(in) :: this
+          integer(ikind) , intent(in) :: i
+          integer(ikind) , intent(in) :: j
+          logical                     :: is_bc_interior_pt
+
+          is_bc_interior_pt = this%grdpts_id(i,j).eq.bc_interior_pt
+
+        end function is_bc_interior_pt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the grdpts(i,j) is a bc_pt
+        !
+        !> @date
+        !> 21_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !> @param i
+        !> x-index of the grdpts_id tested
+        !
+        !> @param j
+        !> y-index of the grdpts_id tested
+        !
+        !> @return is_bc_pt
+        !> logical stating whether the grdpts_id(i,j) is a bc_pt
+        !--------------------------------------------------------------
+        function is_bc_pt(
+     $     this, i,j)
+
+          implicit none
+
+          class(bf_layer), intent(in) :: this
+          integer(ikind) , intent(in) :: i
+          integer(ikind) , intent(in) :: j
+          logical                     :: is_bc_pt
+
+          is_bc_pt = this%grdpts_id(i,j).eq.bc_pt
+
+        end function is_bc_pt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> check if there is a bc_pt in the neighboring grid
         !> points
         !
@@ -3208,19 +3342,25 @@
         !> logical stating whether there is a neighboring grid point 
         !> which is a bc_pt
         !--------------------------------------------------------------
-        function is_bc_interior_pt(
-     $     this, i,j)
+        function detect_and_curb_bc_pt_crenel(
+     $     this,
+     $     cpt_local_coords)
+     $     result(bc_pt_crenel_exists)
 
           implicit none
 
-          class(bf_layer), intent(in) :: this
-          integer(ikind) , intent(in) :: i
-          integer(ikind) , intent(in) :: j
-          logical                     :: is_bc_interior_pt
+          class(bf_layer)               , intent(inout) :: this
+          integer(ikind), dimension(2)  , intent(in)    :: cpt_local_coords
+          logical                                       :: bc_pt_crenel_exists
 
-          is_bc_interior_pt = this%grdpts_id(i,j).eq.bc_interior_pt
+          
+          bc_pt_crenel_exists = detect_and_curb_bc_crenel(
+     $         cpt_local_coords,
+     $         [size(this%grdpts_id,1),size(this%grdpts_id,2)],
+     $         this%grdpts_id)
 
-        end function is_bc_interior_pt
+
+        end function detect_and_curb_bc_pt_crenel
 
 
         !> @author

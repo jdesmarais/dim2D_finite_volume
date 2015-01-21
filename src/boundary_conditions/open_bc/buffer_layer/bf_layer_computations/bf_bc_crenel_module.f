@@ -9,7 +9,7 @@
       !> @date
       ! 21_01_2015 - initial version       - J.L. Desmarais
       !-----------------------------------------------------------------
-      module bf_grdpts_id_bc_crenel_module
+      module bf_bc_crenel_module
 
         use bf_layer_errors_module, only :
      $       error_mainlayer_id
@@ -455,4 +455,4 @@
 
         end function detect_and_curb_bc_crenel
 
-      end module bf_grdpts_id_bc_crenel_module
+      end module bf_bc_crenel_module

@@ -1,6 +1,6 @@
-      program test_bf_grdpts_id_bc_crenel
+      program test_bf_bc_crenel
 
-        use bf_grdpts_id_bc_crenel_module, only :
+        use bf_bc_crenel_module, only :
      $     is_temp_array_needed_for_bc_crenel,
      $     detect_bc_crenel,
      $     curb_bc_crenel
@@ -726,4 +726,4 @@
 
         end subroutine get_test_array_needed_param
 
-      end program test_bf_grdpts_id_bc_crenel
+      end program test_bf_bc_crenel

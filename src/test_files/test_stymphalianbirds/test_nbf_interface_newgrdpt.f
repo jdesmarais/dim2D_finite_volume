@@ -1,11 +1,12 @@
       program test_nbf_interface
 
         use bf_sublayer_class, only :
-     $     bf_sublayer
+     $       bf_sublayer
 
         use nbf_interface_newgrdpt_class, only :
      $       nbf_interface_newgrdpt,
-     $       finalize_grdpts_around_new_interior_pt
+     $       finalize_grdpts_around_new_interior_pt,
+     $       finalize_grdpts_for_bc_pt_crenel
 
         use parameters_constant, only :
      $       N,E,S
@@ -73,7 +74,17 @@
 
         test_validated = test_finalize_grdpts_around_new_interior_pt(2,detailled)
         print '(''test_finalize_grdpts_around_new_interior_pt-2: '',L1)', test_validated
-        print '()'        
+        print '()'
+
+        !test finalize_grdpts_for_bc_pt_crenel
+        !------------------------------------------------------------
+        test_validated = test_finalize_grdpts_for_bc_pt_crenel(1,detailled)
+        print '(''test_finalize_grdpts_for_bc_pt_crenel-1: '',L1)', test_validated
+        print '()'
+
+        test_validated = test_finalize_grdpts_for_bc_pt_crenel(2,detailled)
+        print '(''test_finalize_grdpts_for_bc_pt_crenel-2: '',L1)', test_validated
+        print '()'
 
 
         contains
@@ -1289,7 +1300,7 @@
           !============================================================
           !initialize the inputs
           !============================================================
-          call get_data_for_test_finalize_grdpts(
+          call get_data_for_test_finalize_grdpts_around(
      $         config,
      $         nbf_interface_used,
      $         bf_sublayer_used,
@@ -1321,7 +1332,7 @@
         end function test_finalize_grdpts_around_new_interior_pt
 
 
-        subroutine get_data_for_test_finalize_grdpts(
+        subroutine get_data_for_test_finalize_grdpts_around(
      $     config,
      $     nbf_interface_used,
      $     bf_sublayer_used,
@@ -1433,7 +1444,7 @@
 
           end select               
 
-        end subroutine get_data_for_test_finalize_grdpts
+        end subroutine get_data_for_test_finalize_grdpts_around
 
 
         function compare_grdpts_id(grdpts_id,test_grdpts_id,detailled)
@@ -1470,5 +1481,234 @@
           end do
 
         end function compare_grdpts_id
+
+
+        function test_finalize_grdpts_for_bc_pt_crenel(
+     $     config,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          integer, intent(in) :: config
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(nbf_interface_newgrdpt)                :: nbf_interface_used
+          type(bf_sublayer), pointer                  :: bf_sublayer_used
+          integer(ikind), dimension(2)                :: match_table
+          integer(ikind)                              :: i_center
+          integer(ikind)                              :: j_center
+          integer       , dimension(:,:), allocatable :: grdpts_id
+          integer       , dimension(:,:), allocatable :: test_grdpts_id
+
+
+          allocate(bf_sublayer_used)
+
+          !============================================================
+          !initialize the inputs
+          !============================================================
+          call get_data_for_test_finalize_grdpts_crenel(
+     $         config,
+     $         nbf_interface_used,
+     $         bf_sublayer_used,
+     $         match_table,
+     $         i_center,
+     $         j_center,
+     $         test_grdpts_id)          
+
+
+          !============================================================
+          !test finalize_grdpts_around_new_interior_pt
+          !============================================================
+          call finalize_grdpts_for_bc_pt_crenel(
+     $         nbf_interface_used,
+     $         bf_sublayer_used,
+     $         [i_center,j_center],
+     $         match_table)
+
+
+          !============================================================
+          !compare results
+          !============================================================
+          call bf_sublayer_used%get_grdpts_id(grdpts_id)
+          test_validated = compare_grdpts_id(
+     $         grdpts_id,
+     $         test_grdpts_id,
+     $         detailled)
+
+        end function test_finalize_grdpts_for_bc_pt_crenel
+
+
+        subroutine get_data_for_test_finalize_grdpts_crenel(
+     $     config,
+     $     nbf_interface_used,
+     $     bf_sublayer_used,
+     $     match_table,
+     $     i_center,
+     $     j_center,
+     $     test_grdpts_id)
+ 
+          implicit none
+
+          integer                             , intent(in)    :: config
+          type(nbf_interface_newgrdpt)        , intent(inout) :: nbf_interface_used
+          type(bf_sublayer), pointer          , intent(inout) :: bf_sublayer_used
+          integer(ikind), dimension(2)        , intent(out)   :: match_table
+          integer(ikind)                      , intent(out)   :: i_center
+          integer(ikind)                      , intent(out)   :: j_center
+          integer, dimension(:,:), allocatable, intent(out)   :: test_grdpts_id
+          
+
+          integer(ikind), dimension(2,2)              :: bf_align
+          integer       , dimension(:,:), allocatable :: grdpts_id
+
+          type(bf_sublayer), pointer :: bf_sublayer_used2
+
+          select case(config)
+
+            case(1)
+
+               !initialize the nbf_interface
+               call nbf_interface_used%ini()
+          
+               !initialize the buffer layer
+               call bf_sublayer_used%ini(E)
+
+               allocate(grdpts_id(5,10))
+               
+               grdpts_id = reshape((/
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,2,2,3,
+     $              1,1,2,3,3,
+     $              1,1,2,3,3,
+     $              1,1,2,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3
+     $              /),
+     $              (/5,10/))
+               
+               bf_align = reshape((/
+     $              9,3,
+     $              9,8/),
+     $              (/2,2/))
+               
+               call bf_sublayer_used%set_alignment_tab(bf_align)
+               call bf_sublayer_used%set_grdpts_id(grdpts_id)
+               
+               match_table = bf_sublayer_used%get_general_to_local_coord_tab()
+               i_center    = 3
+               j_center    = 4
+               
+               allocate(test_grdpts_id(5,10))
+               test_grdpts_id = reshape((/
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3/),
+     $              (/5,10/))
+
+            case(2)
+
+               !initialize the nbf_interface
+               call nbf_interface_used%ini()
+          
+               !initialize the buffer layer
+               call bf_sublayer_used%ini(E)
+
+               allocate(grdpts_id(5,10))
+               
+               grdpts_id = reshape((/
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,2,2,3,
+     $              1,1,2,3,3
+     $              /),
+     $              (/5,10/))
+               
+               bf_align = reshape((/
+     $              9,3,
+     $              9,8/),
+     $              (/2,2/))
+               
+               call bf_sublayer_used%set_alignment_tab(bf_align)
+               call bf_sublayer_used%set_grdpts_id(grdpts_id)
+               call bf_sublayer_used%set_neighbor2_share(neighbor2_share=.true.)
+
+               match_table = bf_sublayer_used%get_general_to_local_coord_tab()
+               i_center    = 3
+               j_center    = 8
+
+               allocate(test_grdpts_id(5,10))
+               test_grdpts_id = reshape((/
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3/),
+     $              (/5,10/))
+
+               !add a second buffer layer
+               allocate(bf_sublayer_used2)
+               call bf_sublayer_used2%ini(N)
+
+               allocate(grdpts_id(10,9))
+               
+               grdpts_id = reshape((/
+     $              1,1,1,1,1,1,1,1,2,3,
+     $              1,1,1,1,1,1,1,1,2,3,
+     $              2,2,1,1,1,1,1,2,2,3,
+     $              3,2,1,1,1,1,1,2,3,3,
+     $              3,2,1,1,1,1,1,2,3,3,
+     $              3,2,1,1,1,1,1,2,2,3,
+     $              3,2,1,1,1,1,1,1,2,3,
+     $              3,2,2,2,2,2,2,2,2,3,
+     $              3,3,3,3,3,3,3,3,3,3/),
+     $              (/10,9/))
+               
+               bf_align = reshape((/
+     $              4,9,
+     $              9,13/),
+     $              (/2,2/))
+               
+               call bf_sublayer_used2%set_alignment_tab(bf_align)
+               call bf_sublayer_used2%set_grdpts_id(grdpts_id)
+               call bf_sublayer_used2%set_neighbor2_share(neighbor2_share=.true.)
+
+               call nbf_interface_used%link_neighbor2_to_bf_sublayer(
+     $              bf_sublayer_used)
+
+               call nbf_interface_used%link_neighbor2_to_bf_sublayer(
+     $              bf_sublayer_used2)
+
+            case default
+               print '(''test_nbf_interface_newgrdpt'')'
+               print '(''get_data_for_test_finalize_grdpts'')'
+               print '(''config for test not recognized: '',I2)', config
+               stop ''               
+
+          end select               
+
+        end subroutine get_data_for_test_finalize_grdpts_crenel
 
       end program test_nbf_interface

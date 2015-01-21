@@ -948,8 +948,8 @@
         
           implicit none
           
-          integer, dimension(2*(bc_size+1)+1,2*(bc_size+1)+1), intent(out) :: tmp_grdpts_id
-          integer(ikind), dimension(2,2)                     , intent(in)  :: gen_coords
+          integer       , dimension(:,:), intent(out) :: tmp_grdpts_id
+          integer(ikind), dimension(2,2), intent(in)  :: gen_coords
 
           integer                        :: i,j
           integer(ikind), dimension(2,2) :: grdpts_id_coords
@@ -1007,10 +1007,10 @@
 
           implicit none
 
-          integer       , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1), intent(inout) :: grdpts_id
-          integer(ikind), dimension(2,2)                            , intent(in)    :: grdpts_id_coords
-          integer(ikind), dimension(2,2)                            , intent(in)    :: gen_coords
-          integer                                                   , intent(in)    :: pt_type
+          integer       , dimension(:,:), intent(inout) :: grdpts_id
+          integer(ikind), dimension(2,2), intent(in)    :: grdpts_id_coords
+          integer(ikind), dimension(2,2), intent(in)    :: gen_coords
+          integer                       , intent(in)    :: pt_type
 
 
           integer(ikind) :: i_min,i_max,j_min,j_max

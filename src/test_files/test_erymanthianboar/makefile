@@ -411,15 +411,15 @@ test_bf_detector:		check_data_module.o\
 				parameters_input.o\
 				parameters_kind.o
 
-test_bf_grdpts_id_bc_crenel.o:	$(test_dir)/test_lernaeanhydra/check_data_module.o\
-				$(nbf_layer_dir)/bf_grdpts_id_bc_crenel_module.o\
+test_bf_bc_crenel.o:		$(test_dir)/test_lernaeanhydra/check_data_module.o\
+				$(cbf_layer_dir)/bf_bc_crenel_module.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
 				$(param_dir)/parameters_kind.o
 
-test_bf_grdpts_id_bc_crenel:	bf_layer_errors_module.o\
+test_bf_bc_crenel:		bf_layer_errors_module.o\
 				check_data_module.o\
 				parameters_kind.o\
 				parameters_constant.o\
 				parameters_input.o\
 				parameters_bf_layer.o\
-				bf_grdpts_id_bc_crenel_module.o
+				bf_bc_crenel_module.o

@@ -28,11 +28,11 @@
         real(rkind), parameter :: y_max = 0.1519000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 2.9831000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 0.2128000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0004000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.1341000000d0
+        real(rkind), parameter :: detail_print = 1.0000000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -42,12 +42,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 67
-        integer(ikind), parameter :: nty = 67
+        integer(ikind), parameter :: ntx = 10 !67
+        integer(ikind), parameter :: nty = 10 !67
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 4
+        integer       , parameter :: ne = 3 !4
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -112,14 +112,14 @@
         
         real(rkind), parameter :: T0 = 0.9500000000d0
 
-        integer    , parameter :: ic_choice = bubble_transported
+        integer    , parameter :: ic_choice = peak
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = hedstrom_xy_corners_choice
+        integer, parameter :: bc_choice = hedstrom_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice

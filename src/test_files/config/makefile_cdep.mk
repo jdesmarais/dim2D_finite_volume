@@ -237,6 +237,7 @@ bf_layer_dep=		parameters_bf_layer.o\
 			bf_layer_bc_procedure_module.o\
 			bf_layer_newgrdpt_procedure_module.o\
 			bf_suspicious_bc_interior_pt_module.o\
+			bf_bc_crenel_module.o\
 			$(bf_newgrdpt_dep)\
 			bf_compute_class.o\
 			bf_layer_errors_module.o\

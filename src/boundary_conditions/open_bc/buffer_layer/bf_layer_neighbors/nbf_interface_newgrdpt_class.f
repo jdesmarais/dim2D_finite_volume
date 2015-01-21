@@ -24,6 +24,10 @@
         use bf_suspicious_bc_interior_pt_module, only :
      $       verify_if_all_grdpts_exist
 
+        use bf_bc_crenel_module, only :
+     $       is_temp_array_needed_for_bc_crenel,
+     $       detect_and_curb_bc_crenel
+
         use bf_newgrdpt_class, only :
      $       bf_newgrdpt
 
@@ -48,7 +52,8 @@
 
         private
         public :: nbf_interface_newgrdpt,
-     $       finalize_grdpts_around_new_interior_pt
+     $       finalize_grdpts_around_new_interior_pt,
+     $       finalize_grdpts_for_bc_pt_crenel
 
 
         !>@class nbf_interface-newgrdpt
@@ -217,6 +222,14 @@
              !check whether the neighboring bc_interior_pt
              !should be updated to interior_pt
              call finalize_grdpts_around_new_interior_pt(
+     $            this,
+     $            bf_sublayer_updated,
+     $            [i_center,j_center],
+     $            match_table)
+
+             !check whether the update the grdpts_id lead to
+             !a crenel of bc_pt
+             call finalize_grdpts_for_bc_pt_crenel(
      $            this,
      $            bf_sublayer_updated,
      $            [i_center,j_center],
@@ -633,8 +646,35 @@
         end subroutine compute_newgrdpt
 
 
-        !check whether the bc_interior_pt around the new
-        !interior_pt should be updated to interior_pt as well
+        !> @author
+        !> Julien L. Desmarais
+        !>
+        !> @brief
+        !> check whether the bc_interior_pt around the new
+        !> interior_pt should be updated to interior_pt as well
+        !
+        !> @date
+        !> 19_11_2014 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> nbf_interface_newgrdpt encapsulating the 
+        !> links to neighboring buffer layers and the
+        !> functions for the computation of the new grid
+        !> points in the buffer layer
+        !
+        !> @param bf_sublayer_updated
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !> @param newgrdpt_local_coords
+        !> coordinates of the bc_interior_pt turned into interior_pt
+        !> expressed as indices of the buffer layer bf_sublayer_updated
+        !
+        !> @param match_table
+        !> array used to convert coordinates expressed in the general
+        !> reference frame of the interior domain into local coordinates
+        !> of the buffer layer bf_sublayer_updated
+        !---------------------------------------------------------------
         subroutine finalize_grdpts_around_new_interior_pt(
      $     this,
      $     bf_sublayer_updated,
@@ -893,7 +933,8 @@
 
           !2) collect data from potential neighbors
           !- gather data from neighbor of type 1
-          if(gen_borders(1,1).le.0) then
+          !if(gen_borders(1,1).le.0) then
+          if(bf_sublayer_updated%can_exchange_with_neighbor1()) then
              
              call this%get_grdpts_id_part(
      $            bf_localization,1,
@@ -903,7 +944,8 @@
           end if
 
           !- gather data from neighbor of type 2
-          if(gen_borders(1,2).ge.(nx+1)) then
+          !if(gen_borders(1,2).ge.(nx+1)) then
+          if(bf_sublayer_updated%can_exchange_with_neighbor2()) then
 
              call this%get_grdpts_id_part(
      $            bf_localization,2,
@@ -946,5 +988,283 @@
           end do
 
         end function verify_if_has_a_bc_pt_neighbor
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !>
+        !> @brief
+        !> control whether the update the bc_interior_pt into
+        !> an interior_pt lead to a crenel of bc_pt. If so, the
+        !> crenel should be curb
+        !
+        !> @date
+        !> 21_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> nbf_interface_newgrdpt encapsulating the 
+        !> links to neighboring buffer layers and the
+        !> functions for the computation of the new grid
+        !> points in the buffer layer
+        !
+        !> @param bf_sublayer_updated
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !> @param bc_grdpt_local_coords
+        !> coordinates of the bc_pt which is checked for bc_pt_crenel
+        !
+        !> @param match_table
+        !> array used to convert coordinates expressed in the general
+        !> reference frame of the interior domain into local coordinates
+        !> of the buffer layer bf_sublayer_updated
+        !---------------------------------------------------------------
+        subroutine finalize_grdpts_for_bc_pt_crenel(
+     $     this,
+     $     bf_sublayer_updated,
+     $     cpt_local_coords,
+     $     match_table)
+
+          implicit none
+
+          class(nbf_interface_newgrdpt), intent(in)    :: this
+          type(bf_sublayer)            , intent(inout) :: bf_sublayer_updated
+          integer(ikind), dimension(2) , intent(in)    :: cpt_local_coords
+          integer(ikind), dimension(2) , intent(in)    :: match_table
+
+          
+          integer(ikind) :: i,j
+
+
+          !check whether the potential bc_pt around the cpt_local_coords
+          !lead to a bc_pt_crenel
+          j = cpt_local_coords(2)-bc_size
+          do i=cpt_local_coords(1)-bc_size,cpt_local_coords(1)+bc_size
+
+             if(bf_sublayer_updated%is_bc_pt(i,j)) then
+
+                call control_bc_pt_crenel(
+     $               this,
+     $               bf_sublayer_updated,
+     $               [i,j],
+     $               match_table)
+
+             end if
+             
+          end do
+
+          do j=cpt_local_coords(2)-bc_size+1,cpt_local_coords(2)+bc_size-1
+
+             i=cpt_local_coords(1)-bc_size
+             if(bf_sublayer_updated%is_bc_pt(i,j)) then
+
+                call control_bc_pt_crenel(
+     $               this,
+     $               bf_sublayer_updated,
+     $               [i,j],
+     $               match_table)
+
+             end if
+
+             i=cpt_local_coords(1)+bc_size
+             if(bf_sublayer_updated%is_bc_pt(i,j)) then
+
+                call control_bc_pt_crenel(
+     $               this,
+     $               bf_sublayer_updated,
+     $               [i,j],
+     $               match_table)
+
+             end if
+
+          end do
+
+          j = cpt_local_coords(2)+bc_size
+          do i=cpt_local_coords(1)-bc_size,cpt_local_coords(1)+bc_size
+
+             if(bf_sublayer_updated%is_bc_pt(i,j)) then
+
+                call control_bc_pt_crenel(
+     $               this,
+     $               bf_sublayer_updated,
+     $               [i,j],
+     $               match_table)
+
+             end if
+             
+          end do
+
+        end subroutine finalize_grdpts_for_bc_pt_crenel
+
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !>
+        !> @brief
+        !> control whether the update the bc_interior_pt into
+        !> an interior_pt lead to a crenel of bc_pt. If so, the
+        !> crenel should be curb
+        !
+        !> @date
+        !> 21_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> nbf_interface_newgrdpt encapsulating the 
+        !> links to neighboring buffer layers and the
+        !> functions for the computation of the new grid
+        !> points in the buffer layer
+        !
+        !> @param bf_sublayer_updated
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !> @param bc_grdpt_local_coords
+        !> coordinates of the bc_pt which is checked for bc_pt_crenel
+        !
+        !> @param match_table
+        !> array used to convert coordinates expressed in the general
+        !> reference frame of the interior domain into local coordinates
+        !> of the buffer layer bf_sublayer_updated
+        !---------------------------------------------------------------
+        subroutine control_bc_pt_crenel(
+     $     this,
+     $     bf_sublayer_updated,
+     $     bc_grdpt_local_coords,
+     $     match_table)
+
+          implicit none
+
+          class(nbf_interface_newgrdpt), intent(in)    :: this
+          type(bf_sublayer)            , intent(inout) :: bf_sublayer_updated
+          integer(ikind), dimension(2) , intent(in)    :: bc_grdpt_local_coords
+          integer(ikind), dimension(2) , intent(in)    :: match_table
+
+
+          integer                                            :: bf_localization
+          integer(ikind), dimension(2)                       :: bf_sizes
+          integer       , dimension(2*bc_size+1,2*bc_size+1) :: tmp_grdpts_id
+          logical                                            :: tmp_grdpts_id_needed
+          integer(ikind), dimension(2,2)                     :: gen_borders
+          logical                                            :: bc_pt_crenel_exists
+
+          bf_localization = bf_sublayer_updated%get_localization()
+          bf_sizes        = bf_sublayer_updated%get_sizes()
+
+
+          !1) determine whether the control of the bc_pt_crenel
+          !   requires grdpts_id from neighboring buffer layers
+          tmp_grdpts_id_needed = is_temp_array_needed_for_bc_crenel(
+     $         bf_localization,
+     $         bf_sizes,
+     $         bc_grdpt_local_coords)
+
+
+          !2) if a temporary array is needed, the grdpts_id are
+          !   extracted from the neighboring buffer layers, then
+          !   the bc_pt_crenel is checked. If there is a
+          !   bc_pt_crenel, it is curb and the temporary array
+          !   is substituted in the buffer layers matching the
+          !   gen_borders
+          if(tmp_grdpts_id_needed) then
+
+             !2.1) extract the grpts_id
+
+             !2.1.1) determine the general coordinates identifying
+             !       the borders of the grid points ID extracted
+             gen_borders(1,1) = match_table(1) + bc_grdpt_local_coords(1) - bc_size
+             gen_borders(1,2) = match_table(1) + bc_grdpt_local_coords(1) + bc_size
+             gen_borders(2,1) = match_table(2) + bc_grdpt_local_coords(2) - bc_size
+             gen_borders(2,2) = match_table(2) + bc_grdpt_local_coords(2) + bc_size
+
+
+             !2.1.2) collect data from interior
+             call get_grdpts_id_from_interior(
+     $            tmp_grdpts_id,
+     $            gen_borders)
+             
+
+             !2.1.3) collect data from potential neighbors
+             !- gather data from neighbor of type 1
+             !if(gen_borders(1,1).le.0) then
+             if(bf_sublayer_updated%can_exchange_with_neighbor1()) then
+                
+                call this%get_grdpts_id_part(
+     $               bf_localization,1,
+     $               tmp_grdpts_id,
+     $               gen_borders)
+                
+             end if
+   
+             !- gather data from neighbor of type 2
+             !if(gen_borders(1,2).ge.(nx+1)) then
+             if(bf_sublayer_updated%can_exchange_with_neighbor2()) then
+   
+                call this%get_grdpts_id_part(
+     $               bf_localization,2,
+     $               tmp_grdpts_id,
+     $               gen_borders)
+   
+             end if
+   
+   
+             !2.1.4) collect data from buffer layer
+             call bf_sublayer_updated%get_grdpts_id_part(
+     $            tmp_grdpts_id,
+     $            gen_borders)
+
+
+
+             !2.2) control and curb the bc_pt_crenel if any
+             bc_pt_crenel_exists = detect_and_curb_bc_crenel(
+     $            [bc_size+1,bc_size+1],
+     $            [2*bc_size+1,2*bc_size+1],
+     $            tmp_grdpts_id)
+
+
+             !2.3) if the bc_pt_crenel exists, substitute the 
+             !     grdpts_id in the buffer layers sharing
+             !     gridpoints with this temporary array
+             if(bc_pt_crenel_exists) then
+
+                !- set data in neighbors of type 1
+                if(bf_sublayer_updated%can_exchange_with_neighbor1()) then
+                
+                   call this%set_grdpts_id_part(
+     $                  bf_localization,1,
+     $                  tmp_grdpts_id,
+     $                  gen_borders)
+                   
+                end if
+   
+                !- set data in neighbors of type 2
+                if(bf_sublayer_updated%can_exchange_with_neighbor2()) then
+                   
+                   call this%set_grdpts_id_part(
+     $                  bf_localization,2,
+     $                  tmp_grdpts_id,
+     $                  gen_borders)
+                   
+                end if   
+   
+                !- set data in current buffer layer
+                call bf_sublayer_updated%set_grdpts_id_part(
+     $               tmp_grdpts_id,
+     $               gen_borders)
+
+             end if
+
+          !3) if no temporary array is needed, the grdpts_id are
+          !   directly checked in the current buffer layer
+          else
+
+             bc_pt_crenel_exists =
+     $            bf_sublayer_updated%detect_and_curb_bc_pt_crenel(
+     $            bc_grdpt_local_coords)
+
+          end if
+
+        end subroutine control_bc_pt_crenel
+
 
       end module nbf_interface_newgrdpt_class
