@@ -35,9 +35,11 @@
         private
         public ::
      $       is_temp_array_needed_for_bc_crenel,
-     $       detect_bc_crenel,
-     $       curb_bc_crenel,
-     $       detect_and_curb_bc_crenel
+     $       detect_bc_double_crenel,
+     $       curb_bc_double_crenel,
+     $       detect_and_curb_bc_double_crenel,
+     $       detect_and_curb_bc_single_crenel,
+     $       detect_and_curb_bc_crenels
 
 
         contains
@@ -120,6 +122,12 @@
         !
         !> @brief
         !> detect the position of the bc_pt crenel if any
+        !> there are four possible double crenels:
+        !>
+        !>   _|3     3|_        ___        _______
+        !>  |3 3     3 3|     _|3 3|_     |3 3 3 3|
+        !>  |3 3     3 3|    |3 3 3 3|      |3 3|
+        !>    |3     3|
         !
         !> @date
         !> 21_01_2015 - initial version - J.L. Desmarais
@@ -140,7 +148,7 @@
         !>@return bc_pt_crenel_exists
         !> check whether a bc_pt crenel exists
         !--------------------------------------------------------------
-        function detect_bc_crenel(
+        function detect_bc_double_crenel(
      $     cpt_local_coords,
      $     bf_sizes,
      $     bf_grdpts_id,
@@ -230,14 +238,29 @@
 
           end if
 
-        end function detect_bc_crenel
+        end function detect_bc_double_crenel
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> determine the direction of the bc_crenel
+        !> curb the bc double crenel: from the
+        !> identification, the grdpts are updated
+        !
+        !>   _|3     3|_        ___        _______
+        !>  |3 3     3 3|     _|3 3|_     |3 3 3 3|
+        !>  |3 3     3 3|    |3 3 3 3|      |3 3|
+        !>    |3     3|    
+        !>
+        !>     |      |          |            |
+        !>    \|/    \|/        \|/          \|/
+        !>    
+        !>    |3|    |3|      _______      _______
+        !>    |3|    |3|     |3 3 3 3|    |3 3 3 3|
+        !>    |3|    |3|      
+        !>    |3|    |3|
+        !> 
         !
         !> @date
         !> 21_01_2015 - initial version - J.L. Desmarais
@@ -254,7 +277,7 @@
         !>@return bc_pt_crenel_dir
         !> direction of the bc_crenel
         !--------------------------------------------------------------
-        subroutine curb_bc_crenel(
+        subroutine curb_bc_double_crenel(
      $     bc_pt_crenel_coords,
      $     bf_sizes,
      $     bf_grdpts_id)
@@ -393,14 +416,28 @@
 
           end if
 
-        end subroutine curb_bc_crenel
+        end subroutine curb_bc_double_crenel
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> determine the direction of the bc_crenel
+        !> detect and curb double crenel, i.e. crenels of
+        !> the form:
+        !>
+        !>   _|3     3|_        ___        _______
+        !>  |3 3     3 3|     _|3 3|_     |3 3 3 3|
+        !>  |3 3     3 3|    |3 3 3 3|      |3 3|
+        !>    |3     3|    
+        !>
+        !>     |      |          |            |
+        !>    \|/    \|/        \|/          \|/
+        !>    
+        !>    |3|    |3|      _______      _______
+        !>    |3|    |3|     |3 3 3 3|    |3 3 3 3|
+        !>    |3|    |3|      
+        !>    |3|    |3|
         !
         !> @date
         !> 21_01_2015 - initial version - J.L. Desmarais
@@ -418,7 +455,7 @@
         !>@return bc_pt_crenel_exists
         !> check whether a bc_pt crenel exists
         !--------------------------------------------------------------
-         function detect_and_curb_bc_crenel(
+         function detect_and_curb_bc_double_crenel(
      $     cpt_local_coords,
      $     bf_sizes,
      $     bf_grdpts_id)
@@ -436,7 +473,7 @@
 
 
           !1) detect whether there is a bc_pt crenel
-          bc_pt_crenel_exists = detect_bc_crenel(
+          bc_pt_crenel_exists = detect_bc_double_crenel(
      $         cpt_local_coords,
      $         bf_sizes,
      $         bf_grdpts_id,
@@ -446,13 +483,221 @@
           !2) curb the bc_pt crenel if there is one
           if(bc_pt_crenel_exists) then
 
-             call curb_bc_crenel(
+             call curb_bc_double_crenel(
      $            bc_pt_crenel_coords,
      $            bf_sizes,
      $            bf_grdpts_id)
 
           end if
 
-        end function detect_and_curb_bc_crenel
+        end function detect_and_curb_bc_double_crenel
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> detect and curb single crenel, i.e. crenels of
+        !> the form:
+        !>
+        !>   _|3     3|_        _          _____  
+        !>  |3 3     3 3|     _|3|_       |3 3 3|  
+        !>    |3     3|      |3 3 3|        |3|  
+        !>
+        !>     |      |         |            |
+        !>    \|/    \|/       \|/          \|/
+        !>
+        !>    |3|    |3|      _____        _____
+        !>    |3|    |3|     |3 3 3|      |3 3 3|
+        !>    |3|    |3|
+        !
+        !> @date
+        !> 21_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param cpt_local_coords
+        !> coordinates of the central bc_pt checked
+        !> using the indices of the buffer layer
+        !
+        !>@param bf_sizes
+        !> extents of the grdpts_id array
+        !
+        !>@param bf_grdpts_id
+        !> role of grid-points
+        !
+        !>@return bc_pt_crenel_exists
+        !> check whether a bc_pt crenel exists
+        !--------------------------------------------------------------
+         function detect_and_curb_bc_single_crenel(
+     $     cpt_local_coords,
+     $     bf_sizes,
+     $     bf_grdpts_id)
+     $     result(bc_pt_crenel_exists)
+
+          implicit none
+
+          integer(ikind), dimension(2)  , intent(in)    :: cpt_local_coords
+          integer(ikind), dimension(2)  , intent(in)    :: bf_sizes
+          integer       , dimension(:,:), intent(inout) :: bf_grdpts_id
+          logical                                       :: bc_pt_crenel_exists
+
+
+          integer(ikind) :: i,j
+          logical        :: possible_to_check
+
+
+          i = cpt_local_coords(1)
+          j = cpt_local_coords(2)
+          bc_pt_crenel_exists = .false.  
+
+
+          !>1) 
+          !>    _|3 
+          !>   |X 3  
+          !>     |3
+          !>----------
+          possible_to_check = ((i+1).le.bf_sizes(1)).and.
+     $                        ((j-1).ge.1).and.
+     $                        ((j+1).le.bf_sizes(2))
+
+          if(possible_to_check.and.(.not.bc_pt_crenel_exists)) then
+
+             bc_pt_crenel_exists = (bf_grdpts_id(i+1,j-1).eq.bc_pt).and.
+     $                             (bf_grdpts_id(i+1,j  ).eq.bc_pt).and.
+     $                             (bf_grdpts_id(i+1,j+1).eq.bc_pt)
+
+             if(bc_pt_crenel_exists) then
+
+                bf_grdpts_id(i,j) = bc_interior_pt
+
+             end if
+
+          end if
+          
+          !>2)
+          !>   3|_ 
+          !>   3 X|
+          !>   3|  
+          !>----------
+          possible_to_check = ((i-1).ge.1).and.
+     $                        ((j-1).ge.1).and.
+     $                        ((j+1).le.bf_sizes(2))
+
+          if(possible_to_check.and.(.not.bc_pt_crenel_exists)) then
+
+             bc_pt_crenel_exists = (bf_grdpts_id(i-1,j-1).eq.bc_pt).and.
+     $                             (bf_grdpts_id(i-1,j  ).eq.bc_pt).and.
+     $                             (bf_grdpts_id(i-1,j+1).eq.bc_pt)
+
+             if(bc_pt_crenel_exists) then
+
+                bf_grdpts_id(i,j) = bc_interior_pt
+
+             end if
+
+          end if
+
+          !>3)
+          !>      _   
+          !>    _|X|_ 
+          !>   |3 3 3|
+          !>----------
+          possible_to_check = ((i-1).ge.1).and.
+     $                        ((i+1).le.bf_sizes(1)).and.
+     $                        ((j-1).ge.1)
+
+          if(possible_to_check.and.(.not.bc_pt_crenel_exists)) then
+
+             bc_pt_crenel_exists = (bf_grdpts_id(i-1,j-1).eq.bc_pt).and.
+     $                             (bf_grdpts_id(i  ,j-1).eq.bc_pt).and.
+     $                             (bf_grdpts_id(i+1,j-1).eq.bc_pt)
+
+             if(bc_pt_crenel_exists) then
+
+                bf_grdpts_id(i,j) = bc_interior_pt
+
+             end if
+
+          end if
+
+          !>4)
+          !>    _____ 
+          !>   |3 3 3|
+          !>     |X|
+          !>----------
+          possible_to_check = ((i-1).ge.1).and.
+     $                        ((i+1).le.bf_sizes(1)).and.
+     $                        ((j+1).le.bf_sizes(2))
+
+          if(possible_to_check.and.(.not.bc_pt_crenel_exists)) then
+
+             bc_pt_crenel_exists = (bf_grdpts_id(i-1,j+1).eq.bc_pt).and.
+     $                             (bf_grdpts_id(i  ,j+1).eq.bc_pt).and.
+     $                             (bf_grdpts_id(i+1,j+1).eq.bc_pt)
+
+             if(bc_pt_crenel_exists) then
+
+                bf_grdpts_id(i,j) = bc_interior_pt
+
+             end if
+
+          end if          
+
+        end function detect_and_curb_bc_single_crenel
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> detect and curb single and double crenels
+        !
+        !> @date
+        !> 21_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param cpt_local_coords
+        !> coordinates of the central bc_pt checked
+        !> using the indices of the buffer layer
+        !
+        !>@param bf_sizes
+        !> extents of the grdpts_id array
+        !
+        !>@param bf_grdpts_id
+        !> role of grid-points
+        !
+        !>@return bc_pt_crenel_exists
+        !> check whether a bc_pt crenel exists
+        !--------------------------------------------------------------
+         function detect_and_curb_bc_crenels(
+     $     cpt_local_coords,
+     $     bf_sizes,
+     $     bf_grdpts_id)
+     $     result(bc_pt_crenel_exists)
+
+          implicit none
+
+          integer(ikind), dimension(2)  , intent(in)    :: cpt_local_coords
+          integer(ikind), dimension(2)  , intent(in)    :: bf_sizes
+          integer       , dimension(:,:), intent(inout) :: bf_grdpts_id
+          logical                                       :: bc_pt_crenel_exists
+
+
+          logical :: bc_pt_single_crenel_exists
+          logical :: bc_pt_double_crenel_exists
+
+
+          bc_pt_double_crenel_exists = detect_and_curb_bc_double_crenel(
+     $         cpt_local_coords,
+     $         bf_sizes,
+     $         bf_grdpts_id)
+
+          bc_pt_single_crenel_exists = detect_and_curb_bc_single_crenel(
+     $         cpt_local_coords,
+     $         bf_sizes,
+     $         bf_grdpts_id)
+
+          bc_pt_crenel_exists = bc_pt_double_crenel_exists.or.
+     $                          bc_pt_single_crenel_exists
+
+        end function detect_and_curb_bc_crenels
 
       end module bf_bc_crenel_module

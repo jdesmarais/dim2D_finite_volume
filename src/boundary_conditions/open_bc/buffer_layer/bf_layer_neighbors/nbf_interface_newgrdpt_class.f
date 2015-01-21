@@ -26,7 +26,7 @@
 
         use bf_bc_crenel_module, only :
      $       is_temp_array_needed_for_bc_crenel,
-     $       detect_and_curb_bc_crenel
+     $       detect_and_curb_bc_crenels
 
         use bf_newgrdpt_class, only :
      $       bf_newgrdpt
@@ -1216,7 +1216,7 @@
 
 
              !2.2) control and curb the bc_pt_crenel if any
-             bc_pt_crenel_exists = detect_and_curb_bc_crenel(
+             bc_pt_crenel_exists = detect_and_curb_bc_crenels(
      $            [bc_size+1,bc_size+1],
      $            [2*bc_size+1,2*bc_size+1],
      $            tmp_grdpts_id)
@@ -1259,7 +1259,7 @@
           else
 
              bc_pt_crenel_exists =
-     $            bf_sublayer_updated%detect_and_curb_bc_pt_crenel(
+     $            bf_sublayer_updated%detect_and_curb_bc_pt_crenels(
      $            bc_grdpt_local_coords)
 
           end if

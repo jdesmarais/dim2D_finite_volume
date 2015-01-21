@@ -64,7 +64,7 @@
      $       verify_if_all_grdpts_exist
 
         use bf_bc_crenel_module, only :
-     $       detect_and_curb_bc_crenel
+     $       detect_and_curb_bc_crenels
 
         use interface_integration_step, only :
      $       timeInt_step_nopt
@@ -496,7 +496,7 @@
           procedure,   pass :: has_a_bc_pt_neighbor
           procedure,   pass :: is_bc_interior_pt
           procedure,   pass :: is_bc_pt
-          procedure,   pass :: detect_and_curb_bc_pt_crenel
+          procedure,   pass :: detect_and_curb_bc_pt_crenels
 
           !procedures for removing the buffer layer
           procedure,   pass :: set_remain_status
@@ -3342,7 +3342,7 @@
         !> logical stating whether there is a neighboring grid point 
         !> which is a bc_pt
         !--------------------------------------------------------------
-        function detect_and_curb_bc_pt_crenel(
+        function detect_and_curb_bc_pt_crenels(
      $     this,
      $     cpt_local_coords)
      $     result(bc_pt_crenel_exists)
@@ -3354,13 +3354,13 @@
           logical                                       :: bc_pt_crenel_exists
 
           
-          bc_pt_crenel_exists = detect_and_curb_bc_crenel(
+          bc_pt_crenel_exists = detect_and_curb_bc_crenels(
      $         cpt_local_coords,
      $         [size(this%grdpts_id,1),size(this%grdpts_id,2)],
      $         this%grdpts_id)
 
 
-        end function detect_and_curb_bc_pt_crenel
+        end function detect_and_curb_bc_pt_crenels
 
 
         !> @author
