@@ -14,6 +14,14 @@ import subprocess
 import shlex
 import shutil
 
+from automatization_csts import (md_threshold_ac_default,
+                                 md_threshold_default,
+                                 nb_pts_in_interface_default,
+                                 ratio_buble_interface_default,
+                                 CFL_constant_default,
+                                 ratio_interface_influence_default,
+                                 total_nb_files_default)
+
 from library_sm_lg_inputs import (get_we,
                                   get_interface_length,
                                   get_bubble_diameter,
@@ -406,15 +414,15 @@ def create_inputFile(paramModified,
 def create_sm_lg_inputs(temperature,
                         flow_velocity,
                         model_input,
-                        sm_domain='inputs_sm_domain.txt',
-                        lg_domain='inputs_lg_domain.txt',
-                        md_threshold_ac=0,
-                        md_threshold=0.0,
-                        nb_pts_in_interface = 10,
-                        ratio_bubble_interface = 2,
-                        CFL_constant = 0.2,
-                        ratio_interface_influence = 2.0,
-                        total_nb_files = 1000):
+                        sm_domain                 = 'inputs_sm_domain.txt',
+                        lg_domain                 = 'inputs_lg_domain.txt',
+                        md_threshold_ac           = md_threshold_ac_default,
+                        md_threshold              = md_threshold_default,
+                        nb_pts_in_interface       = nb_pts_in_interface_default,
+                        ratio_bubble_interface    = ratio_bubble_interface_default,
+                        CFL_constant              = CFL_constant_default,
+                        ratio_interface_influence = ratio_interface_influence_default,
+                        total_nb_files            = total_nb_files_default):
     '''
     @description:
     create the small and large domain inputs for the simulation    
