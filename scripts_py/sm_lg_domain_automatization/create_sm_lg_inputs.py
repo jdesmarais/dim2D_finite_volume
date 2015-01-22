@@ -17,7 +17,7 @@ import shutil
 from automatization_csts import (md_threshold_ac_default,
                                  md_threshold_default,
                                  nb_pts_in_interface_default,
-                                 ratio_buble_interface_default,
+                                 ratio_bubble_interface_default,
                                  CFL_constant_default,
                                  ratio_interface_influence_default,
                                  total_nb_files_default)

@@ -7,6 +7,6 @@ md_threshold_ac_default           = 0    #the mass density criterion is desactiv
 md_threshold_default              = 0.0  #the mass density criterion is desactivated by default for the openbc undermined
 nb_pts_in_interface_default       = 10   #number of grid points required to resolve the interface gradient
 ratio_bubble_interface_default    = 2    #ratio between the bubble and the interface at the initialization
-CFL_constant_default              = 0.2  #CFL constant used by default
+CFL_constant_default              = 0.05 #CFL constant used by default
 ratio_interface_influence_default = 2.0  #ratio used to determine at which distance the interface is supposed not to have an influence
 total_nb_files_default            = 1000 #total number of files written
