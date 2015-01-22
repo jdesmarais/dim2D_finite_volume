@@ -45,16 +45,16 @@ if __name__=="__main__":
         'dim2d_bubble_transported_hedstrom_xy.txt')
 
 
-    temperatureStudy          = True
+    temperatureStudy          = False
     velocityStudy             = False
-    thresholdTemperatureStudy = False
+    thresholdTemperatureStudy = True
     thresholdVelocityStudy    = False
 
 
     ##1) temperature study
     if(temperatureStudy):
 
-        temperature_array = [0.95]#,0.99,0.995,0.999]
+        temperature_array = [0.95,0.99,0.995,0.999]
         flow_velocity     = 0.1
         md_threshold      = 0
         large_domain_run  = False
@@ -99,9 +99,9 @@ if __name__=="__main__":
     #3) threshold study
     if(thresholdTemperatureStudy):
 
-        temperature_array  = [0.95,0.99,0.995,0.999]
+        temperature_array  = [0.95]#,0.99,0.995,0.999]
         flow_velocity      = 0.1
-        md_threshold_array = [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
+        md_threshold_array = [0.0001]#, 0.001, 0.01, 0.1, 0.2, 0.3]
         md_threshold_ac    = 1
         large_domain_run   = False
         

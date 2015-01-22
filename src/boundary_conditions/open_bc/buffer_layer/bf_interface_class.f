@@ -28,6 +28,9 @@
      $       error_mainlayer_id,
      $       error_incompatible_neighbor
 
+        use bf_layer_newgrdpt_procedure_module, only :
+     $       get_grdpts_id_from_interior
+
         use bf_restart_module, only :
      $       get_restart_alignment
 
@@ -258,6 +261,9 @@
           procedure, pass :: reallocate_sublayer
           procedure, pass :: merge_sublayers
           procedure, pass :: remove_sublayer
+
+          !extraction of gridpoints_ID
+          procedure, pass :: extract_grdpts_id
 
           !procedure computation of new grid points
           procedure, pass :: update_bf_grdpts_after_increase
@@ -1678,6 +1684,112 @@ c$$$          stop 'not implemented yet'
          call this%border_interface%update_neighbor_grdpts(nbf_sublayer)
 
        end subroutine update_neighbor_grdpts
+
+
+       !> @author
+       !> Julien L. Desmarais
+       !
+       !> @brief
+       !> extract the gridpoints_ID corresponding to the gen_borders
+       !
+       !> @date
+       !> 22_01_2015 - initial version - J.L. Desmarais
+       !
+       !>@param this
+       !> bf_interface object encapsulating the buffer layers
+       !> around the interior domain and subroutines to synchronize
+       !> the data between them
+       !
+       !>@param gen_borders
+       !> borders of the grid point array extracted expressed in the
+       !> general coordinate reference frame
+       !
+       !>@param bf_grdpts_id
+       !> grid point array extracted
+       !--------------------------------------------------------------
+       subroutine extract_grdpts_id(this,gen_borders,bf_grdpts_id)
+
+         implicit none
+
+         class(bf_interface)           , intent(in)  :: this
+         integer(ikind), dimension(2,2), intent(in)  :: gen_borders
+         integer       , dimension(:,:), intent(out) :: bf_grdpts_id
+
+
+         integer(ikind)               :: radius_x
+         integer(ikind)               :: radius_y
+         integer(ikind)               :: bf_grdptsid_extent
+         integer(ikind), dimension(2) :: cpt_coords
+         integer(ikind), dimension(2) :: local_coords
+         integer                      :: bf_localization
+         type(bf_sublayer), pointer   :: bf_sublayer_ptr
+
+
+
+         !0) extract the coordinates of the central gridpoint
+         !   asked as well as the radius around
+         if(rkind.eq.4) then
+            radius_x = floor(REAL(gen_borders(1,2)-gen_borders(1,1))/2.0)
+            radius_y = floor(REAL(gen_borders(2,2)-gen_borders(2,1))/2.0)
+         else
+            radius_x = floor(DBLE(gen_borders(1,2)-gen_borders(1,1))/2.0)
+            radius_y = floor(DBLE(gen_borders(2,2)-gen_borders(2,1))/2.0)
+         end if
+         
+         bf_grdptsid_extent = max(radius_x,radius_y)
+
+         cpt_coords(1) = gen_borders(1,1) + radius_x
+         cpt_coords(2) = gen_borders(2,1) + radius_y
+
+
+         !1) collect the grdpts_id from the
+         !   interior computational domain
+         call get_grdpts_id_from_interior(
+     $         bf_grdpts_id,
+     $         gen_borders)
+
+
+         !2) determine whether there is a buffer layer
+         !   with which the grdpts_id share grdpts
+         bf_sublayer_ptr => this%get_sublayer(
+     $        cpt_coords,
+     $        local_coords,
+     $        tolerance_i=bf_grdptsid_extent)
+
+
+         !3) if the buffer layer exists, extract grdpts_id
+         if(associated(bf_sublayer_ptr)) then
+
+            !extract bf_localization
+            bf_localization = bf_sublayer_ptr%get_localization()
+
+            !extract from the buffer layer
+            call bf_sublayer_ptr%get_grdpts_id_part(
+     $           bf_grdpts_id,
+     $           gen_borders)
+
+            !extract from its neighbors
+            if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
+
+               call this%border_interface%get_grdpts_id_part(
+     $              bf_localization,1,
+     $              bf_grdpts_id,
+     $              gen_borders)
+
+            end if
+
+            if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
+
+               call this%border_interface%get_grdpts_id_part(
+     $              bf_localization,2,
+     $              bf_grdpts_id,
+     $              gen_borders)
+
+            end if 
+
+         end if
+
+       end subroutine extract_grdpts_id
 
 
        !> @author

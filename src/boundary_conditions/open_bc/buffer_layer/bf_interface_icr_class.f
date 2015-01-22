@@ -1473,6 +1473,7 @@
           real(rkind)   , dimension(2)      :: velocity
           integer(ikind), dimension(2)      :: d_icoord_n
           real(rkind)   , dimension(2)      :: d_rcoord_n
+          real(rkind)   , dimension(2)      :: bc_direction
 
 
           !initialization of the number of modified grid points
@@ -1498,6 +1499,12 @@
      $         nodes_local,
      $         p_model)) then
 
+
+             !extract the direction pointing towards the nearest
+             !bc_interior_pt to the detector
+             bc_direction = get_bc_direction(this,d_icoord)
+
+
              !extract the velocity at the coordinates of the detector
              velocity = p_model%get_velocity(nodes_local(2,2,:))
              
@@ -1508,6 +1515,7 @@
              cpt_coord = get_central_grdpt(
      $            d_icoord,
      $            d_rcoord,
+     $            bc_direction,
      $            velocity,
      $            interior_x_map,
      $            interior_y_map,
@@ -1610,6 +1618,7 @@
         function get_central_grdpt(
      $     d_icoord,
      $     d_rcoord,
+     $     bc_direction,
      $     velocity,
      $     interior_x_map,
      $     interior_y_map,
@@ -1621,6 +1630,7 @@
 
           integer(ikind), dimension(2) , intent(in)  :: d_icoord
           real(rkind)   , dimension(2) , intent(in)  :: d_rcoord
+          real(rkind)   , dimension(2) , intent(in)  :: bc_direction
           real(rkind)   , dimension(2) , intent(in)  :: velocity
           real(rkind)   , dimension(nx), intent(in)  :: interior_x_map
           real(rkind)   , dimension(ny), intent(in)  :: interior_y_map
@@ -1632,38 +1642,35 @@
           real(rkind)                    :: dir_x, dir_y
           real(rkind)                    :: norm_velocity
           real(rkind)   , dimension(3,2) :: d_icoord_r
-          !integer(ikind), dimension(3)   :: d_icoord_i
-          !real(rkind)                    :: distance
-          !real(rkind)                    :: min_distance
-          !integer(ikind)                 :: min_distance_k
-          !integer                        :: k
+          
 
           dx = interior_x_map(2)-interior_x_map(1)
           dy = interior_y_map(2)-interior_y_map(1)
 
-          !1) get the direction to look for a bc_interior_pt
-          norm_velocity = SQRT(velocity(1)**2+velocity(2)**2)
-          
+
+          !1) get the direction to look for a bc_interior_pt          
           if(rkind.eq.4) then
 
              !2) get the point indices in the direction given
              !   by the velocity vector
-             cpt_coords(1) = d_icoord(1) + nint(velocity(1)/norm_velocity*REAL(dct_icr_distance))
-             cpt_coords(2) = d_icoord(2) + nint(velocity(2)/norm_velocity*REAL(dct_icr_distance))
+             cpt_coords(1) = d_icoord(1) + nint(bc_direction(1)*REAL(dct_icr_distance))
+             cpt_coords(2) = d_icoord(2) + nint(bc_direction(2)*REAL(dct_icr_distance))
 
           else
 
              !2) get the point indices in the direction given
              !   by the velocity vector
-             cpt_coords(1) = d_icoord(1) + nint(velocity(1)/norm_velocity*DBLE(dct_icr_distance))
-             cpt_coords(2) = d_icoord(2) + nint(velocity(2)/norm_velocity*DBLE(dct_icr_distance))
+             cpt_coords(1) = d_icoord(1) + nint(bc_direction(1)*DBLE(dct_icr_distance))
+             cpt_coords(2) = d_icoord(2) + nint(bc_direction(2)*DBLE(dct_icr_distance))
              
           end if
 
+          norm_velocity = SQRT(velocity(1)**2+velocity(2)**2)
+
 
           !3) compute the new detector position
-          dir_x  = velocity(1)*dt
-          dir_y  = velocity(2)*dt
+          dir_x  = bc_direction(1)*norm_velocity*dt
+          dir_y  = bc_direction(2)*norm_velocity*dt
 
           d_rcoord_n(1) = d_rcoord(1) + dir_x
           d_rcoord_n(2) = d_rcoord(2) + dir_y
@@ -1682,43 +1689,6 @@
      $         interior_y_map,
      $         ny)
           
-c$$$          if(d_icoord(1).le.1) then
-c$$$             dx = interior_x_map(2) - interior_x_map(1)
-c$$$             d_icoord_r(1,1) = interior_x_map(1)+(d_icoord(1)-2)*dx
-c$$$             d_icoord_r(2,1) = interior_x_map(1)+(d_icoord(1)-1)*dx
-c$$$             d_icoord_r(3,1) = interior_x_map(1)+(d_icoord(1)  )*dx
-c$$$          else
-c$$$             if(d_icoord(1).le.(nx-1)) then
-c$$$                d_icoord_r(1,1) = interior_x_map(d_icoord(1)-1)
-c$$$                d_icoord_r(2,1) = interior_x_map(d_icoord(1))
-c$$$                d_icoord_r(3,1) = interior_x_map(d_icoord(1)+1)
-c$$$             else
-c$$$                dx = interior_x_map(nx) - interior_x_map(nx-1)
-c$$$                d_icoord_r(1,1) = interior_x_map(nx) + (d_icoord(1)-nx-1)*dx
-c$$$                d_icoord_r(2,1) = interior_x_map(nx) + (d_icoord(1)-nx)*dx
-c$$$                d_icoord_r(3,1) = interior_x_map(nx) + (d_icoord(1)-nx+1)*dx
-c$$$             end if
-c$$$          end if
-c$$$
-c$$$          !y-direction
-c$$$          if(d_icoord(2).le.1) then
-c$$$             dy = interior_y_map(2) - interior_y_map(1)
-c$$$             d_icoord_r(1,2) = interior_y_map(1)+(d_icoord(2)-2)*dy
-c$$$             d_icoord_r(2,2) = interior_y_map(1)+(d_icoord(2)-1)*dy
-c$$$             d_icoord_r(3,2) = interior_y_map(1)+(d_icoord(2)  )*dy
-c$$$          else
-c$$$             if(d_icoord(2).le.(ny-1)) then
-c$$$                d_icoord_r(1,2) = interior_y_map(d_icoord(2)-1)
-c$$$                d_icoord_r(2,2) = interior_y_map(d_icoord(2))
-c$$$                d_icoord_r(3,2) = interior_y_map(d_icoord(2)+1)
-c$$$             else
-c$$$                dy = interior_y_map(ny) - interior_y_map(ny-1)
-c$$$                d_icoord_r(1,2) = interior_y_map(ny) + (d_icoord(2)-ny-1)*dy
-c$$$                d_icoord_r(2,2) = interior_y_map(ny) + (d_icoord(2)-ny  )*dy
-c$$$                d_icoord_r(3,2) = interior_y_map(ny) + (d_icoord(2)-ny+1)*dy
-c$$$             end if
-c$$$          end if
-
 
           !update of the x-index for the detector
           !the x-index is the general coordinate (integer)
@@ -1733,22 +1703,6 @@ c$$$          end if
      $         d_rcoord_n(1),
      $         d_icoord_r(:,1))
 
-c$$$          min_distance   = abs(d_rcoord_n(1)-d_icoord_r(1,1))
-c$$$          min_distance_k = 1
-c$$$          do k=2,3
-c$$$             distance = abs(d_rcoord_n(1)-d_icoord_r(k,1))
-c$$$             if(distance.lt.min_distance) then
-c$$$                min_distance   = distance
-c$$$                min_distance_k = k
-c$$$             end if
-c$$$          end do
-c$$$
-c$$$          d_icoord_i(1) = d_icoord(1)-1
-c$$$          d_icoord_i(2) = d_icoord(1)
-c$$$          d_icoord_i(3) = d_icoord(1)+1
-c$$$
-c$$$          d_icoord_n(1) = d_icoord_i(min_distance_k)
-
 
           !update of the y-index for the detector
           !the y-index is the general coordinate (integer)
@@ -1762,44 +1716,6 @@ c$$$          d_icoord_n(1) = d_icoord_i(min_distance_k)
      $         d_icoord(2),
      $         d_rcoord_n(2),
      $         d_icoord_r(:,2))
-
-c$$$          min_distance   = abs(d_rcoord_n(2)-d_icoord_r(1,2))
-c$$$          min_distance_k = 1
-c$$$          do k=2,3
-c$$$             distance = abs(d_rcoord_n(2)-d_icoord_r(k,2))
-c$$$             if(distance.lt.min_distance) then
-c$$$                min_distance   = distance
-c$$$                min_distance_k = k
-c$$$             end if
-c$$$          end do
-c$$$
-c$$$          d_icoord_i(1) = d_icoord(2)-1
-c$$$          d_icoord_i(2) = d_icoord(2)
-c$$$          d_icoord_i(3) = d_icoord(2)+1
-c$$$          
-c$$$          d_icoord_n(2) = d_icoord_i(min_distance_k)
-          
-
-c$$$          if((d_rcoord_n(1)-d_icoord_r(1)).gt.dx) then
-c$$$             d_icoord_n(1) = d_icoord(1) + 1
-c$$$          else
-c$$$             if((d_rcoord_n(1)-d_icoord_r(1)).lt.(-dx)) then
-c$$$                d_icoord_n(1) = d_icoord(1)-1
-c$$$             else
-c$$$                d_icoord_n(1) = d_icoord(1)
-c$$$             end if
-c$$$          end if
-c$$$
-c$$$          !update of the y-index for the detector
-c$$$          if((d_rcoord_n(2)-d_icoord_r(2)).gt.dy) then
-c$$$             d_icoord_n(2) = d_icoord(2) + 1
-c$$$          else
-c$$$             if((d_rcoord_n(2)-d_icoord_r(2)).lt.(-dy)) then
-c$$$                d_icoord_n(2) = d_icoord(2)-1
-c$$$             else
-c$$$                d_icoord_n(2) = d_icoord(2)
-c$$$             end if
-c$$$          end if
 
         end function get_central_grdpt
 
@@ -2081,8 +1997,9 @@ c$$$          end if
           size_y = size(nbc_template,2)
 
 
+          !1.
           do j=max(1,-search_r+j_center-match_table(2)),
-     $         min(size_y, j_prev-search_r-1-match_table(2))
+     $         min(size_y, j_center+search_r-match_table(2), j_prev-search_r-1-match_table(2))
 
              do i=max(1,-search_r+i_center-match_table(1)),
      $            min(size_x, i_center+search_r-match_table(1))
@@ -2098,11 +2015,12 @@ c$$$          end if
           end do
 
 
-          do j=max(1,-search_r+j_center+min_j-match_table(2)),
+          !2.
+          do j=max(1,-search_r+j_center-min_j-match_table(2)),
      $         min(size_y, j_center+search_r-max_j-match_table(2))
 
              do i=max(1,-search_r+i_center-match_table(1)),
-     $            min(size_x,i_prev-search_r-1-match_table(1))
+     $            min(size_x,i_center+search_r-match_table(1),i_prev-search_r-1-match_table(1))
                 
                 call check_bc_interior_pt(
      $               i,j,
@@ -2115,10 +2033,11 @@ c$$$          end if
           end do
 
 
+          !3.
           do j=max(1,j_center-search_r-min_j-match_table(2)),
      $         min(size_y,j_center+search_r-max_j-match_table(2))
 
-             do i=max(1,i_prev+search_r+1-match_table(1)),
+             do i=max(1,i_center-search_r-match_table(1),i_prev+search_r+1-match_table(1)),
      $            min(size_x,i_center+search_r-match_table(1))
                 
                 call check_bc_interior_pt(
@@ -2132,7 +2051,8 @@ c$$$          end if
           end do
 
 
-          do j=max(1,j_prev+search_r+1-match_table(2)),
+          !4.
+          do j=max(1,j_center-search_r-match_table(2),j_prev+search_r+1-match_table(2)),
      $         min(size_y,j_center+search_r-match_table(2))
 
              do i=max(1,i_center-search_r-match_table(1)),
@@ -2200,8 +2120,22 @@ c$$$          end if
           if(nbc_template(i,j).eq.bc_interior_pt) then
 
              nb_mgrdpts = nb_mgrdpts+1
-             mgrdpts(1,nb_mgrdpts) = i+match_table(1)
-             mgrdpts(2,nb_mgrdpts) = j+match_table(2)
+
+             if(nb_mgrdpts.gt.9) then
+                print '(''bf_interface_icr'')'
+                print '(''check_bc_interior_pt'')'
+                print '(''nb_mgrdpts exceeds size(mgrdpts,2)'')'
+                print '(''nbc_template: '')'
+                print '(3I2)', nbc_template(:,3)
+                print '(3I2)', nbc_template(:,2)
+                print '(3I2)', nbc_template(:,1)
+                print '()'
+                stop ''
+
+             else
+                mgrdpts(1,nb_mgrdpts) = i+match_table(1)
+                mgrdpts(2,nb_mgrdpts) = j+match_table(2)
+             end if
              
           end if
 
@@ -3417,16 +3351,6 @@ c$$$          end if
           call copy_rarray(E_rcoords,this%E_dct_rcoords)
           call copy_rarray(W_rcoords,this%W_dct_rcoords)
 
-c$$$          allocate(N_icoords, source=this%N_dct_icoords)
-c$$$          allocate(S_icoords, source=this%S_dct_icoords)
-c$$$          allocate(E_icoords, source=this%E_dct_icoords)
-c$$$          allocate(W_icoords, source=this%W_dct_icoords)
-          
-c$$$          allocate(N_rcoords, source=this%N_dct_rcoords)
-c$$$          allocate(S_rcoords, source=this%S_dct_rcoords)
-c$$$          allocate(E_rcoords, source=this%E_dct_rcoords)
-c$$$          allocate(W_rcoords, source=this%W_dct_rcoords)
-
         end subroutine get_dct_coords
 
 
@@ -3472,5 +3396,194 @@ c$$$          allocate(W_rcoords, source=this%W_dct_rcoords)
           end do
 
         end subroutine copy_rarray
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> extract the direction towards the boundary from
+        !> the grdpts_id surrounding the detector
+        !
+        !> @date
+        !> 22_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param dct_icoords
+        !> coordinates of the detector expressed in the general
+        !> reference frame
+        !--------------------------------------------------------------
+        function get_bc_direction(this,dct_icoords)
+     $     result(direction)
+
+          implicit none
+
+          class(bf_interface_icr)     , intent(in) :: this
+          integer(ikind), dimension(2), intent(in) :: dct_icoords
+          real(rkind)   , dimension(2)             :: direction
+
+
+          integer(ikind), dimension(2,2) :: gen_borders
+          integer       , dimension(2*dct_icr_distance+1,2*dct_icr_distance+1) :: bf_grdpts_id
+
+
+          !1) determine the extent of the grdpts_id that should
+          !   be extracted around the detector (dct_icoords)
+          gen_borders(1,1) = dct_icoords(1) - dct_icr_distance
+          gen_borders(1,2) = dct_icoords(1) + dct_icr_distance
+          gen_borders(2,1) = dct_icoords(2) - dct_icr_distance
+          gen_borders(2,2) = dct_icoords(2) + dct_icr_distance
+
+
+          !2) extract the grdpts_id around the detector
+          call this%extract_grdpts_id(
+     $         gen_borders,
+     $         bf_grdpts_id)
+
+
+          !3) determine the direction towards the boundary
+          call extract_bc_direction_from_grdptsid(
+     $         bf_grdpts_id,
+     $         [dct_icr_distance+1,dct_icr_distance+1],
+     $         direction)
+
+        end function get_bc_direction
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> extract the direction towards the boundary from
+        !> the grdpts_id surrounding the detector
+        !
+        !> @date
+        !> 22_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_icr object encapsulating the position of
+        !> the increasing detectors and the subroutine controlling
+        !> the extension of the computational domain
+        !
+        !>@param cpt_coords
+        !> coordinates of the detector expressed in the general
+        !> reference frame
+        !--------------------------------------------------------------
+        subroutine extract_bc_direction_from_grdptsid(
+     $     grdpts_id,
+     $     cpt_local_coords,
+     $     direction)
+
+          implicit none
+
+          integer       , dimension(:,:), intent(in)  :: grdpts_id
+          integer(ikind), dimension(2)  , intent(in)  :: cpt_local_coords
+          real(rkind)   , dimension(2)  , intent(out) :: direction
+
+
+          integer(ikind)               :: nb_pts
+          integer(ikind)               :: i,j
+          integer(ikind)               :: distance
+          integer(ikind)               :: distance_min
+          real(rkind)   , dimension(2) :: ept_local_coords
+          real(rkind)                  :: norm
+
+          nb_pts = 0
+
+          !the direction is defined by the vector linking
+          !cpt_local_coords to its closest bc_interior_pt
+          do j=1,size(grdpts_id,2)
+             do i=1, size(grdpts_id,1)
+
+                if(grdpts_id(i,j).eq.bc_interior_pt) then
+
+                   distance = (cpt_local_coords(2)-j)**2 +
+     $                        (cpt_local_coords(1)-i)**2
+
+                   if(nb_pts.eq.0) then
+                      distance_min     = distance
+                      nb_pts           = 1
+                      if(rkind.eq.4) then
+                         ept_local_coords = [REAL(i),REAL(j)]
+                      else
+                         ept_local_coords = [DBLE(i),DBLE(j)]
+                      end if
+
+                   else
+                      if(distance.lt.distance_min) then
+                         distance_min     = distance
+                         nb_pts           = 1
+                         if(rkind.eq.4) then
+                            ept_local_coords = [REAL(i),REAL(j)]
+                         else
+                            ept_local_coords = [DBLE(i),DBLE(j)]
+                         end if
+
+                      else
+                         if(distance.eq.distance_min) then
+
+                            if(rkind.eq.4) then
+                               ept_local_coords =
+     $                              [
+     $                              REAL(nb_pts*ept_local_coords(1)+i)/REAL(nb_pts+1),
+     $                              REAL(nb_pts*ept_local_coords(2)+j)/REAL(nb_pts+1)
+     $                              ]
+
+                            else
+                               ept_local_coords =
+     $                              [
+     $                              DBLE(nb_pts*ept_local_coords(1)+i)/DBLE(nb_pts+1),
+     $                              DBLE(nb_pts*ept_local_coords(2)+j)/DBLE(nb_pts+1)
+     $                              ]
+
+                            end if
+
+                            nb_pts = nb_pts+1
+
+                         end if
+
+                      end if
+
+                   end if
+                   
+                end if
+
+             end do
+          end do
+
+          if(nb_pts.eq.0) then
+             print '(''bf_interface_icr_class'')'
+             print '(''extract_bc_direction_from_grdptsid'')'
+             print '(''direction not found'')'
+             print *, 'grdpts_id: ', grdpts_id
+             stop ''
+          end if
+
+          if(rkind.eq.4) then
+          
+             norm = SQRT(
+     $            (ept_local_coords(1)-REAL(cpt_local_coords(1)))**2 +
+     $            (ept_local_coords(2)-REAL(cpt_local_coords(2)))**2)
+             
+             direction(1) = (ept_local_coords(1)-REAL(cpt_local_coords(1)))/norm
+             direction(2) = (ept_local_coords(2)-REAL(cpt_local_coords(2)))/norm
+
+          else
+
+             norm = SQRT(
+     $            (ept_local_coords(1)-DBLE(cpt_local_coords(1)))**2 +
+     $            (ept_local_coords(2)-DBLE(cpt_local_coords(2)))**2)
+             
+             direction(1) = (ept_local_coords(1)-DBLE(cpt_local_coords(1)))/norm
+             direction(2) = (ept_local_coords(2)-DBLE(cpt_local_coords(2)))/norm
+
+          end if
+             
+        end subroutine extract_bc_direction_from_grdptsid
+      
 
       end module bf_interface_icr_class

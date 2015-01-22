@@ -201,6 +201,7 @@ $(bf_layer_dir)/bf_interface_class.o:\
 	$(ti_dir)/interface_integration_step.o\
 	$(nf90_dir)/nf90_operators_read_module.o\
 	$(nbf_layer_dir)/nbf_interface_newgrdpt_class.o\
+	$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\

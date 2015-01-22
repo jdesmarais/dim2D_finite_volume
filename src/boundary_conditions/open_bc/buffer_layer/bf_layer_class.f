@@ -2721,7 +2721,7 @@
      $         min(size_y, j_center+search_r-max_j-match_table(2))
 
              do i=max(1,i_center-search_r-match_table(1)),
-     $            min(size_x,i_center+bc_size-match_table(1), i_prev-search_r-1-match_table(1))
+     $            min(size_x,i_center+search_r-match_table(1), i_prev-search_r-1-match_table(1))
                 
                 call check_bc_interior_pt(
      $               i,j,
