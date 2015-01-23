@@ -29,10 +29,10 @@
         
         !<computational times
         real(rkind), parameter :: t_max = 2.9831000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0002000000d0
+        real(rkind), parameter :: dt = 0.0001000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0671000000d0
+        real(rkind), parameter :: detail_print = 0.0335000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -148,11 +148,6 @@
         !-----------------------------------------------------
         !for the increase of the computational domain
         !-----------------------------------------------------
-        !bf_adapt_computational_domain : control whether the edges
-        !                                of the computational domain
-        !                                are adapted once the simualtion
-        !                                starts
-        !
         !bf_openbc_md_threshold_ac : control whether the increase
         !                            of the computational domain
         !                            is also activated by the
@@ -168,7 +163,6 @@
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
         !-----------------------------------------------------
-        logical    , parameter :: bf_adapt_computational_domain = .true.
         logical    , parameter :: bf_openbc_md_threshold_ac = .true.
         real(rkind), parameter :: bf_openbc_md_threshold = 0.0001000000d0
 
@@ -200,5 +194,23 @@
         integer    , parameter :: obc_type_S = always_outflow
         integer    , parameter :: obc_type_E = always_outflow
         integer    , parameter :: obc_type_W = always_inflow
+
+
+        !-----------------------------------------------------
+        !debugging options
+        !-----------------------------------------------------
+        !debug_restart_for_geometry : control whether the
+        !                             restart option is only
+        !                             used to get the geometry
+        !                             of the previous computational
+        !                             domain
+        !
+        !debug_adapt_computational_domain : control whether the edges
+        !                                   of the computational domain
+        !                                   are adapted once the
+        !                                   simulation starts
+        !-----------------------------------------------------
+        logical    , parameter :: debug_restart_for_geometry = .true.
+        logical    , parameter :: debug_adapt_computational_domain =.false.
 
       end module parameters_input

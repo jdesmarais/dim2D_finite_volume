@@ -30,7 +30,8 @@
         use parameters_input, only :
      $       nx,ny,ne,
      $       write_domain_extension,
-     $       bf_adapt_computational_domain
+     $       debug_restart_for_geometry,
+     $       debug_adapt_computational_domain
 
         use parameters_kind, only :
      $       ikind,rkind
@@ -137,6 +138,13 @@
      $            nb_bf_layers,
      $            this%pmodel_eq_used,
      $            this%io_operators_used%get_nb_timesteps_written())
+
+             !if the restart was only used to have the geometry
+             !of the previous computational domain, the initial
+             !conditions should be reapplied
+             if(debug_restart_for_geometry) then
+                call this%apply_initial_conditions()
+             end if
              
           else
 
@@ -512,7 +520,7 @@
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes0
 
 
-          if(bf_adapt_computational_domain) then
+          if(debug_adapt_computational_domain) then
 
              !allocate memory space for the temporary tables
              !used in the time integration of the domain extension
