@@ -212,6 +212,7 @@
      $         SE_corner_type,
      $         SW_corner_type)
 
+              
               call add_to_final_bc_sections(this,bc_section)
 
             case default
@@ -549,7 +550,7 @@
           !should not be possible since bc_interior_pt are
           !always one grid point away from the border
           !this is one exception to this rule: when the buffer
-          !layer is attached to the interior and both border are 
+          !layer is attached to the interior and both borders are 
           !strictly inside the interior
           !
           !                          ____ buffer layer
@@ -826,6 +827,211 @@
           end select
 
         end function get_sorted_ele
+
+
+
+        subroutine add_overlap_between_corners_and_anti_corners(
+     $     bc_sections_sorted)
+
+          implicit none
+
+          integer, dimension(:,:), intent(inout) :: bc_sections_sorted
+
+          integer :: k               !index for the bc_section analyzed
+          integer :: k_prev_stage    !index where the bc_section for j-1 begins
+          integer :: k_current_stage !index where the bc_section for j begins
+
+          integer :: j_stage
+
+          k_prev_stage    = 1
+          k_current_stage = 1
+          j_current_stage = 1
+          
+          ! loop over the bc_sections stored in
+          ! bc_sections_sorted
+          do k=1, size(bc_sections_sorted,2)
+
+             ! get the j_stage identifying the
+             ! j_min component of the bc_section
+             j_stage = get_j_stage(bc_sections_sorted(:,k))
+             
+             ! update the indices identifying the
+             ! prev and next j-stages
+             if(j_stage.ge.j_current_stage) then
+                k_prev_stage    = k_current_stage
+                k_current_stage = k
+             end if
+
+             ! if the bc_section analyzed is a corner,
+             ! it should be compared to the bc_sections
+             ! of the previous and the next stages 
+             if(is_a_corner(bc_sections_sorted(:,k))) then
+                
+                call compare_corner_to_previous_stage_bc_sections(
+     $               bc_sections_sorted(:,k),
+     $               bc_sections_sorted,
+     $               k_prev_stage,
+     $               k-1)
+
+                call compare_corner_to_next_stage_bc_sections(
+     $               bc_sections_sorted(:,k),
+     $               bc_sections_sorted,
+     $               k+1,
+     $               j_stage)
+
+             end if
+
+          end do
+
+        end subroutine add_overlap_between_corners_and_anti_corners
+
+
+        subroutine compare_corner_to_previous_stage_bc_sections(
+     $     corner,
+     $     bc_sections_sorted,
+     $     k_min,
+     $     k_max)
+
+          implicit none
+
+          integer, dimension(4)  , intent(in)    :: corner
+          integer, dimension(:,:), intent(inout) :: bc_sections_sorted
+          integer                , intent(in)    :: k_min
+          integer                , intent(in)    :: k_max
+
+          integer :: k
+
+          do k=k_min,k_max
+
+             if(is_an_anti_corner(bc_sections_sorted(:,k))) then
+
+                call overlap(corner,bc_sections_sorted(:,k))
+
+             end if
+
+          end do
+
+        end subroutine compare_corner_to_previous_stage_bc_sections
+
+
+        subroutine compare_corner_to_next_stage_bc_sections(
+     $     corner,
+     $     bc_sections_sorted,
+     $     k_min,
+     $     j_stage)
+
+          implicit none
+
+          integer, dimension(4)  , intent(in)    :: corner
+          integer, dimension(:,:), intent(inout) :: bc_sections_sorted
+          integer                , intent(in)    :: k_min
+          integer                , intent(in)    :: j_stage
+
+          integer :: k
+          integer :: j
+
+          k=k_min
+          j=j_stage
+
+          do while((k.le.size(bc_sections_sorted,2)).and.(j.le.(j_stage+1)))
+
+             j = get_j_stage(bc_sections_sorted(:,k))
+
+             if(is_an_anti_corner(bc_sections_sorted(:,k))) then
+
+                call overlap(corner,bc_sections_sorted(:,k))
+
+             end if
+
+             k=k+1
+
+          end do
+
+        end subroutine compare_corner_to_next_stage_bc_sections
+
+
+        subroutine overlap(corner,anti_corner)
+
+          implicit none
+
+          integer, dimension(4), intent(in)    :: corner
+          integer, dimension(4), intent(inout) :: anti_corner
+
+          
+          !i_corner = i_anti_corner+1
+          if(corner(2).eq.(anti_corner(2)+1)) then
+             call overlap_E(corner,anti_corner)
+          else
+             
+          !i_corner = i_anti_corner-1
+             if(corner(2).eq.(anti_corner(2)-1)) then
+                call overlap_W(corner,anti_corner)
+             end if
+          end if
+
+          !j_corner = j_antj_corner+1
+          if(corner(3).eq.(anti_corner(3)+1)) then
+             call overlap_N(corner,anti_corner)
+          else
+             
+          !j_corner = j_anti_corner-1
+             if(corner(3).eq.(anti_corner(3)-1)) then
+                call overlap_S(corner,anti_corner)
+             end if
+          end if
+
+        end subroutine overlap
+
+
+        function is_an_anti_corner(bc_section)
+
+          implicit none
+
+          integer, dimension(4), intent(in) :: bc_section
+          logical                           :: is_a_corner
+
+          integer :: procedure_type
+
+          procedure_type = bc_section(1)
+
+          is_a_corner = (procedure_type.eq.NE_edge_type).or.
+     $                  (procedure_type.eq.NW_edge_type).or.
+     $                  (procedure_type.eq.SE_edge_type).or.
+     $                  (procedure_type.eq.SW_edge_type)
+
+        end function is_an_anti_corner
+
+
+        function is_a_corner(bc_section)
+
+          implicit none
+
+          integer, dimension(4), intent(in) :: bc_section
+          logical                           :: is_a_corner
+
+          integer :: procedure_type
+
+          procedure_type = bc_section(1)
+
+          is_a_corner = (procedure_type.eq.NE_corner_type).or.
+     $                  (procedure_type.eq.NW_corner_type).or.
+     $                  (procedure_type.eq.SE_corner_type).or.
+     $                  (procedure_type.eq.SW_corner_type)
+
+        end function is_a_corner
+
+
+        function get_j_stage(bc_section_sorted)
+
+          implicit none
+
+          integer, dimension(4), intent(in) :: bc_section_sorted
+          integer                           :: get_j_stage
+          
+          get_j_stage = bc_section_sorted(3)
+
+        end function get_j_stage
+
 
 
         function get_nb_ele_temp(this) result(nb_ele_temp)
