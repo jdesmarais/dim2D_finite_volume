@@ -1473,6 +1473,7 @@
           integer(ikind), dimension(2)      :: d_icoord_n
           real(rkind)   , dimension(2)      :: d_rcoord_n
           real(rkind)   , dimension(2)      :: bc_direction
+          real(rkind)   , dimension(2)      :: relative_bc_coords
 
 
           !initialization of the number of modified grid points
@@ -1522,12 +1523,17 @@
 
                   !extract the direction pointing towards the nearest
                   !bc_interior_pt to the detector
-                  bc_direction = get_bc_direction(this,d_icoord)
+                  call get_bc_direction(
+     $                 this,
+     $                 d_icoord,
+     $                 bc_direction,
+     $                 relative_bc_coords)
 
                   cpt_coord = get_central_grdpt_bc_direction(
      $                 d_icoord,
      $                 d_rcoord,
      $                 bc_direction,
+     $                 relative_bc_coords,
      $                 interior_x_map,
      $                 interior_y_map,
      $                 d_icoord_n,
@@ -1639,6 +1645,7 @@
      $     d_icoord,
      $     d_rcoord,
      $     bc_direction,
+     $     relative_bc_coords,
      $     interior_x_map,
      $     interior_y_map,
      $     d_icoord_n,
@@ -1650,6 +1657,7 @@
           integer(ikind), dimension(2) , intent(in)  :: d_icoord
           real(rkind)   , dimension(2) , intent(in)  :: d_rcoord
           real(rkind)   , dimension(2) , intent(in)  :: bc_direction
+          real(rkind)   , dimension(2) , intent(in)  :: relative_bc_coords
           real(rkind)   , dimension(nx), intent(in)  :: interior_x_map
           real(rkind)   , dimension(ny), intent(in)  :: interior_y_map
           integer(ikind), dimension(2) , intent(out) :: d_icoord_n
@@ -1731,8 +1739,18 @@
 
 
           ! the new position of the detector can be evaluated
-          d_icoord_n(1) = d_icoord(1) + dct_increase(1,dct_incr_i)
-          d_icoord_n(2) = d_icoord(2) + dct_increase(2,dct_incr_i)
+          if((abs(relative_bc_coords(1)).ge.dct_icr_distance).or.
+     $       (abs(relative_bc_coords(2)).ge.dct_icr_distance)) then
+
+             d_icoord_n(1) = d_icoord(1) + dct_increase(1,dct_incr_i)
+             d_icoord_n(2) = d_icoord(2) + dct_increase(2,dct_incr_i)
+
+          else
+             
+             d_icoord_n(1) = d_icoord(1) + dct_increase(1,dct_incr_i)
+             d_icoord_n(2) = d_icoord(2) + dct_increase(2,dct_incr_i)
+
+          end if
 
           
           ! determine the coordinates of the gridpoints surrounding
@@ -1756,22 +1774,38 @@
           d_rcoord_n(2) = d_icoord_r(2+dct_increase(2,dct_incr_i),2)
 
 
-          !1) get the direction to look for a bc_interior_pt          
-          if(rkind.eq.4) then
-
-             !2) get the point indices in the direction given
-             !   by the velocity vector
-             cpt_coords(1) = d_icoord(1) + nint(bc_direction(1)*REAL(dct_icr_distance))
-             cpt_coords(2) = d_icoord(2) + nint(bc_direction(2)*REAL(dct_icr_distance))
-
-          else
-
-             !2) get the point indices in the direction given
-             !   by the velocity vector
-             cpt_coords(1) = d_icoord(1) + nint(bc_direction(1)*DBLE(dct_icr_distance))
-             cpt_coords(2) = d_icoord(2) + nint(bc_direction(2)*DBLE(dct_icr_distance))
+          !1) get the direction to look for a bc_interior_pt
+          do k=1,2
              
-          end if
+             !the central point is the bc_interior_pt found when
+             !determining the direction
+             cpt_coords(k) = d_icoord(k) + nint(relative_bc_coords(k))
+
+
+             !if the cpt_coords is too far away from the detector,
+             !a penalty is adjusted
+             if(nint(abs(relative_bc_coords(k))).ge.dct_icr_distance) then
+                cpt_coords(k) = d_icoord(k) - dct_increase(k,dct_incr_i)
+             end if
+
+          end do
+
+       
+c$$$          if(rkind.eq.4) then
+c$$$
+c$$$             !2) get the point indices in the direction given
+c$$$             !   by the velocity vector
+c$$$             cpt_coords(1) = d_icoord(1) - dct_increase(1,dct_incr_i) + nint(bc_direction(1))
+c$$$             cpt_coords(2) = d_icoord(2) - dct_increase(2,dct_incr_i) + nint(bc_direction(2))
+c$$$
+c$$$          else
+c$$$
+c$$$             !2) get the point indices in the direction given
+c$$$             !   by the velocity vector
+c$$$             cpt_coords(1) = d_icoord(1) + nint(bc_direction(1)*DBLE(dct_icr_distance))
+c$$$             cpt_coords(2) = d_icoord(2) + nint(bc_direction(2)*DBLE(dct_icr_distance))
+c$$$             
+c$$$          end if
 
         end function get_central_grdpt_bc_direction
 
@@ -3604,14 +3638,14 @@
         !> coordinates of the detector expressed in the general
         !> reference frame
         !--------------------------------------------------------------
-        function get_bc_direction(this,dct_icoords)
-     $     result(direction)
+        subroutine get_bc_direction(this,dct_icoords, direction, relative_bc_coords)
 
           implicit none
 
-          class(bf_interface_icr)     , intent(in) :: this
-          integer(ikind), dimension(2), intent(in) :: dct_icoords
-          real(rkind)   , dimension(2)             :: direction
+          class(bf_interface_icr)     , intent(in)  :: this
+          integer(ikind), dimension(2), intent(in)  :: dct_icoords
+          real(rkind)   , dimension(2), intent(out) :: direction
+          real(rkind)   , dimension(2), intent(out) :: relative_bc_coords
 
           integer(ikind), parameter :: dct_size=dct_icr_distance+1
 
@@ -3637,9 +3671,10 @@
           call extract_bc_direction_from_grdptsid(
      $         bf_grdpts_id,
      $         [dct_size+1,dct_size+1],
-     $         direction)
+     $         direction,
+     $         relative_bc_coords)
 
-        end function get_bc_direction
+        end subroutine get_bc_direction
 
 
         !> @author
@@ -3664,13 +3699,15 @@
         subroutine extract_bc_direction_from_grdptsid(
      $     grdpts_id,
      $     cpt_local_coords,
-     $     direction)
+     $     direction,
+     $     relative_bc_coords)
 
           implicit none
 
           integer       , dimension(:,:), intent(in)  :: grdpts_id
           integer(ikind), dimension(2)  , intent(in)  :: cpt_local_coords
           real(rkind)   , dimension(2)  , intent(out) :: direction
+          real(rkind)   , dimension(2)  , intent(out) :: relative_bc_coords
 
 
           integer(ikind)               :: nb_pts
@@ -3751,25 +3788,35 @@
              stop ''
           end if
 
+
+c$$$          if(rkind.eq.4) then
+c$$$          
+c$$$             direction(1) = ept_local_coords(1)-REAL(cpt_local_coords(1))
+c$$$             direction(2) = ept_local_coords(2)-REAL(cpt_local_coords(2))
+c$$$
+c$$$          else
+c$$$
+c$$$             direction(1) = ept_local_coords(1)-DBLE(cpt_local_coords(1))
+c$$$             direction(2) = ept_local_coords(2)-DBLE(cpt_local_coords(2))
+c$$$
+c$$$          end if
+
           if(rkind.eq.4) then
           
-             norm = SQRT(
-     $            (ept_local_coords(1)-REAL(cpt_local_coords(1)))**2 +
-     $            (ept_local_coords(2)-REAL(cpt_local_coords(2)))**2)
-             
-             direction(1) = (ept_local_coords(1)-REAL(cpt_local_coords(1)))/norm
-             direction(2) = (ept_local_coords(2)-REAL(cpt_local_coords(2)))/norm
+             relative_bc_coords(1) = ept_local_coords(1)-REAL(cpt_local_coords(1))
+             relative_bc_coords(2) = ept_local_coords(2)-REAL(cpt_local_coords(2))
 
           else
 
-             norm = SQRT(
-     $            (ept_local_coords(1)-DBLE(cpt_local_coords(1)))**2 +
-     $            (ept_local_coords(2)-DBLE(cpt_local_coords(2)))**2)
-             
-             direction(1) = (ept_local_coords(1)-DBLE(cpt_local_coords(1)))/norm
-             direction(2) = (ept_local_coords(2)-DBLE(cpt_local_coords(2)))/norm
+             relative_bc_coords(1) = ept_local_coords(1)-DBLE(cpt_local_coords(1))
+             relative_bc_coords(2) = ept_local_coords(2)-DBLE(cpt_local_coords(2))
 
           end if
+
+          norm = SQRT( (relative_bc_coords(1))**2 + (relative_bc_coords(2))**2)
+
+          direction(1) = relative_bc_coords(1)/norm
+          direction(2) = relative_bc_coords(2)/norm          
              
         end subroutine extract_bc_direction_from_grdptsid
       
