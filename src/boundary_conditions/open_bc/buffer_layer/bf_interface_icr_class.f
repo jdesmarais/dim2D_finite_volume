@@ -59,7 +59,10 @@
      $       dct_icr_N_default,
      $       dct_icr_S_default,
      $       dct_icr_E_default,
-     $       dct_icr_W_default
+     $       dct_icr_W_default,
+     $       dct_update_strategy,
+     $       dct_velocity_strategy,
+     $       dct_bc_dir_strategy
 
         use parameters_constant, only :
      $       N,S,E,W,interior
@@ -126,9 +129,6 @@
         !> remove a sublayer
         !
         !>@param is_detector_icr_activated
-        !> check whether the detector is activated
-        !
-        !>@param get_central_grdpt
         !> check whether the detector is activated
         !
         !>@param check_neighboring_bc_interior_pts
@@ -203,7 +203,6 @@
           procedure,   pass :: remove_sublayer
 
           procedure, nopass, private :: is_detector_icr_activated
-          procedure, nopass          :: get_central_grdpt
           procedure,   pass, private :: check_neighboring_bc_interior_pts
           procedure,   pass, private :: check_neighboring_bc_interior_pts_for_interior
           procedure, nopass, private :: is_inside_border_layer
@@ -1512,15 +1511,36 @@
              !get the first point from which we should look for a
              !bc_interior_pt to be activated and the new coordinates
              !from the detector
-             cpt_coord = get_central_grdpt(
-     $            d_icoord,
-     $            d_rcoord,
-     $            bc_direction,
-     $            velocity,
-     $            interior_x_map,
-     $            interior_y_map,
-     $            d_icoord_n,
-     $            d_rcoord_n)
+             select case(dct_update_strategy)
+
+               case(dct_velocity_strategy)
+                  cpt_coord = get_central_grdpt_velocity(
+     $                 d_icoord,
+     $                 d_rcoord,
+     $                 bc_direction,
+     $                 interior_x_map,
+     $                 interior_y_map,
+     $                 d_icoord_n,
+     $                 d_rcoord_n)
+
+               case(dct_bc_dir_strategy)
+                  cpt_coord = get_central_grdpt_bc_direction(
+     $                 d_icoord,
+     $                 d_rcoord,
+     $                 bc_direction,
+     $                 interior_x_map,
+     $                 interior_y_map,
+     $                 d_icoord_n,
+     $                 d_rcoord_n)
+
+               case default
+                  print '(''bf_interface_icr'')'
+                  print '(''get_modified_grdpts_list'')'
+                  print '(''dct_update_strategy not recognized: '',I2)',
+     $                 dct_update_strategy
+                  stop ''
+
+             end select
              
              !add the new coordinates of the detector of the ndt_list
              call ndt_list%add_new_detector(
@@ -1615,11 +1635,10 @@
         !> general coordinates of the grid point activated by the
         !> detector
         !--------------------------------------------------------------
-        function get_central_grdpt(
+        function get_central_grdpt_bc_direction(
      $     d_icoord,
      $     d_rcoord,
      $     bc_direction,
-     $     velocity,
      $     interior_x_map,
      $     interior_y_map,
      $     d_icoord_n,
@@ -1631,22 +1650,22 @@
           integer(ikind), dimension(2) , intent(in)  :: d_icoord
           real(rkind)   , dimension(2) , intent(in)  :: d_rcoord
           real(rkind)   , dimension(2) , intent(in)  :: bc_direction
-          real(rkind)   , dimension(2) , intent(in)  :: velocity
           real(rkind)   , dimension(nx), intent(in)  :: interior_x_map
           real(rkind)   , dimension(ny), intent(in)  :: interior_y_map
           integer(ikind), dimension(2) , intent(out) :: d_icoord_n
           real(rkind)   , dimension(2) , intent(out) :: d_rcoord_n
           integer(ikind), dimension(2)               :: cpt_coords
 
-          real(rkind)                    :: dx,dy
-          real(rkind)                    :: dir_x, dir_y
-          real(rkind)                    :: norm_velocity
-          real(rkind)   , dimension(3,2) :: d_icoord_r
           
-
-          dx = interior_x_map(2)-interior_x_map(1)
-          dy = interior_y_map(2)-interior_y_map(1)
-
+          real(rkind), parameter      :: mid = 0.5d0*Sqrt(2.0d0)
+          real(rkind), dimension(2,3) :: potential_dir
+          integer    , dimension(2,3) :: dct_increase
+          integer                     :: k
+          integer                     :: dct_incr_i
+          real(rkind)                 :: min_distance
+          real(rkind)                 :: distance
+          real(rkind), dimension(3,2) :: d_icoord_r
+          
 
           !1) get the direction to look for a bc_interior_pt          
           if(rkind.eq.4) then
@@ -1665,12 +1684,180 @@
              
           end if
 
+
+          !3) compute the new detector position
+          !   i.e. choose in which direction the detector will be adjusted
+
+          ! to determine in which direction the detector will
+          ! be moved (E,NE,N,NW,W,SW,S,SE), the directions
+          ! corresponding to the segment are created
+          ! ex: for bc_direction(1)>0 and bc_direction(2)>0
+          !   
+          !   3                      
+          !   |   2                  
+          !   |  /                   1: [1,0]
+          !   | /                    2: [1,1]
+          !   .----- 1               3: [0,1]
+          !
+          !  potential_dir         dct_increase
+          potential_dir=reshape((/
+     $         1.0d0,0.0d0,
+     $         mid,mid,
+     $         0.0d0,1.0d0/),
+     $         (/2,3/))
+                
+          dct_increase=reshape((/
+     $         1,0,
+     $         1,1,
+     $         0,1/),
+     $         (/2,3/))
+
+          if(bc_direction(1).lt.0) then
+             do k=1,size(potential_dir,2)
+                potential_dir(1,k) = - potential_dir(1,k)
+                dct_increase(1,k)  = - dct_increase(1,k)
+             end do
+          end if
+
+          if(bc_direction(2).lt.0) then
+             do k=1,size(potential_dir,2)
+                potential_dir(2,k) = - potential_dir(2,k)
+                dct_increase(2,k)  = - dct_increase(2,k)
+             end do
+          end if          
+
+          
+          ! then the direction closest to bc_direction
+          ! is chosen by computing the distance between
+          ! bc_direction and the potential_dir and
+          ! selecting the closest one
+          dct_incr_i = 1
+          min_distance = (bc_direction(1)-potential_dir(1,dct_incr_i))**2+
+     $                   (bc_direction(2)-potential_dir(2,dct_incr_i))**2
+          
+          do k=2,3
+
+             distance = (bc_direction(1)-potential_dir(1,k))**2+
+     $                  (bc_direction(2)-potential_dir(2,k))**2
+
+             if(distance.lt.min_distance) then
+                dct_incr_i   = k
+                min_distance = distance
+             end if
+
+          end do
+
+
+          ! the new position of the detector can be evaluated
+          d_icoord_n(1) = d_icoord(1) + dct_increase(1,dct_incr_i)
+          d_icoord_n(2) = d_icoord(2) + dct_increase(2,dct_incr_i)
+
+          
+          ! determine the coordinates of the gridpoints surrounding
+          ! the detector according to its general index coordinates
+
+          ! x-direction
+          d_icoord_r(:,1) = get_surrounding_grdpts(
+     $         d_icoord(1),
+     $         interior_x_map,
+     $         nx)
+
+          ! y-direction
+          d_icoord_r(:,2) = get_surrounding_grdpts(
+     $         d_icoord(2),
+     $         interior_y_map,
+     $         ny)
+          
+
+          !update of the coordinates of the detector
+          d_rcoord_n(1) = d_icoord_r(2+dct_increase(1,dct_incr_i),1)
+          d_rcoord_n(2) = d_icoord_r(2+dct_increase(2,dct_incr_i),2)
+
+        end function get_central_grdpt_bc_direction
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the detector is activated
+        !
+        !> @date
+        !> 27_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param d_coords
+        !> detector general coordinates
+        !
+        !>@param velocity
+        !> velocity vector at the detector position
+        !
+        !>@param dx
+        !> grid size along the x-direction
+        !
+        !>@param dy
+        !> grid size along the y-direction
+        !
+        !>@param d_coords_n
+        !> new detector general coordinates
+        !
+        !>@return cpt_coords
+        !> general coordinates of the grid point activated by the
+        !> detector
+        !--------------------------------------------------------------
+        function get_central_grdpt_velocity(
+     $     d_icoord,
+     $     d_rcoord,
+     $     velocity,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     d_icoord_n,
+     $     d_rcoord_n)
+     $     result(cpt_coords)
+
+          implicit none
+
+          integer(ikind), dimension(2) , intent(in)  :: d_icoord
+          real(rkind)   , dimension(2) , intent(in)  :: d_rcoord
+          real(rkind)   , dimension(2) , intent(in)  :: velocity
+          real(rkind)   , dimension(nx), intent(in)  :: interior_x_map
+          real(rkind)   , dimension(ny), intent(in)  :: interior_y_map
+          integer(ikind), dimension(2) , intent(out) :: d_icoord_n
+          real(rkind)   , dimension(2) , intent(out) :: d_rcoord_n
+          integer(ikind), dimension(2)               :: cpt_coords
+
+          real(rkind)                    :: dx,dy
+          real(rkind)                    :: dir_x, dir_y
+          real(rkind)                    :: norm_velocity
+          real(rkind)   , dimension(3,2) :: d_icoord_r
+          
+
+          dx = interior_x_map(2)-interior_x_map(1)
+          dy = interior_y_map(2)-interior_y_map(1)
+
           norm_velocity = SQRT(velocity(1)**2+velocity(2)**2)
 
 
+          !1) get the direction to look for a bc_interior_pt
+          if(rkind.eq.4) then
+
+             !2) get the point indices in the direction given
+             !   by the velocity vector
+             cpt_coords(1) = d_icoord(1) + nint(velocity(1)/norm_velocity*REAL(dct_icr_distance))
+             cpt_coords(2) = d_icoord(2) + nint(velocity(2)/norm_velocity*REAL(dct_icr_distance))
+
+          else
+
+             !2) get the point indices in the direction given
+             !   by the velocity vector
+             cpt_coords(1) = d_icoord(1) + nint(velocity(1)/norm_velocity*DBLE(dct_icr_distance))
+             cpt_coords(2) = d_icoord(2) + nint(velocity(2)/norm_velocity*DBLE(dct_icr_distance))
+             
+          end if
+
+
           !3) compute the new detector position
-          dir_x  = bc_direction(1)*norm_velocity*dt
-          dir_y  = bc_direction(2)*norm_velocity*dt
+          dir_x  = velocity(1)*dt
+          dir_y  = velocity(2)*dt
 
           d_rcoord_n(1) = d_rcoord(1) + dir_x
           d_rcoord_n(2) = d_rcoord(2) + dir_y
@@ -1717,7 +1904,7 @@
      $         d_rcoord_n(2),
      $         d_icoord_r(:,2))
 
-        end function get_central_grdpt
+        end function get_central_grdpt_velocity
 
 
         !> @author

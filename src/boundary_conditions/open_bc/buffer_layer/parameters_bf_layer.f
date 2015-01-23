@@ -70,6 +70,18 @@
         integer(ikind), parameter :: dct_icr_W_default = bc_size+dct_icr_distance
 
 
+        !default strategy to update the position of the increasing
+        !detectors
+        ! - dct_velocity_strategy : the detectors are transported by
+        !                           local velocity field
+        ! - dct_bc_dir_strategy   : the detectors moves towards the
+        !                           boundary
+        !------------------------------------------------------------
+        integer       , parameter :: dct_velocity_strategy = 0
+        integer       , parameter :: dct_bc_dir_strategy   = 1
+        integer       , parameter :: dct_update_strategy   = dct_bc_dir_strategy
+
+
         !default parameters for the decreasing detectors
         !------------------------------------------------------------
         !search_dcr  : radius expressed as number of grid
