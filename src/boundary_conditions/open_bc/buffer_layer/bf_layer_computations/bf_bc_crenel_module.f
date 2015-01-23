@@ -499,17 +499,17 @@
         !> @brief
         !> detect and curb single crenel, i.e. crenels of
         !> the form:
+        !>                                 _____
+        !> 2 2|-     -|2 2     2 2 2      |- - -|
+        !> 2|3 -     - 3|2     2|3|2       2|3|2
+        !> 2 2|-     -|2 2    |- - -|      2 2 2
+        !>                                 
+        !>   |         |         |           |
+        !>  \|/       \|/       \|/         \|/
         !>
-        !>   _|3     3|_        _          _____  
-        !>  |3 3     3 3|     _|3|_       |3 3 3|  
-        !>    |3     3|      |3 3 3|        |3|  
-        !>
-        !>     |      |         |            |
-        !>    \|/    \|/       \|/          \|/
-        !>
-        !>    |3|    |3|      _____        _____
-        !>    |3|    |3|     |3 3 3|      |3 3 3|
-        !>    |3|    |3|
+        !> 1 2|-|   |-|2 1     1 1 1      |- - -|
+        !> 1 2|-|   |-|2 1     2 2 2       2 2 2
+        !> 1 2|-|   |-|2 1    |- - -|      1 1 1
         !
         !> @date
         !> 21_01_2015 - initial version - J.L. Desmarais
@@ -551,19 +551,21 @@
 
 
           !>1) 
-          !>    _|3 
-          !>   |X 3  
-          !>     |3
-          !>----------
-          possible_to_check = ((i+1).le.bf_sizes(1)).and.
+          !>  2 2|-            1 2|-
+          !>  2|X -  ---->     1 2|-
+          !>  2 2|-            1 2|-
+          !>--------------------------
+          possible_to_check = ((i-1).ge.1).and.
      $                        ((j-1).ge.1).and.
      $                        ((j+1).le.bf_sizes(2))
 
           if(possible_to_check.and.(.not.bc_pt_crenel_exists)) then
 
-             bc_pt_crenel_exists = (bf_grdpts_id(i+1,j-1).eq.bc_pt).and.
-     $                             (bf_grdpts_id(i+1,j  ).eq.bc_pt).and.
-     $                             (bf_grdpts_id(i+1,j+1).eq.bc_pt)
+             bc_pt_crenel_exists = (bf_grdpts_id(i-1,j-1).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i  ,j-1).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i-1,j  ).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i-1,j+1).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i  ,j+1).eq.bc_interior_pt)
 
              if(bc_pt_crenel_exists) then
 
@@ -577,19 +579,21 @@
           end if
           
           !>2)
-          !>   3|_ 
-          !>   3 X|
-          !>   3|  
-          !>----------
-          possible_to_check = ((i-1).ge.1).and.
+          !>   -|2 2           -|2 1
+          !>   - X|2  ---->    -|2 1
+          !>   -|2 2           -|2 1
+          !>--------------------------
+          possible_to_check = ((i+1).le.bf_sizes(1)).and.
      $                        ((j-1).ge.1).and.
      $                        ((j+1).le.bf_sizes(2))
 
           if(possible_to_check.and.(.not.bc_pt_crenel_exists)) then
 
-             bc_pt_crenel_exists = (bf_grdpts_id(i-1,j-1).eq.bc_pt).and.
-     $                             (bf_grdpts_id(i-1,j  ).eq.bc_pt).and.
-     $                             (bf_grdpts_id(i-1,j+1).eq.bc_pt)
+             bc_pt_crenel_exists = (bf_grdpts_id(i  ,j-1).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i+1,j-1).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i+1,j  ).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i  ,j+1).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i+1,j+1).eq.bc_interior_pt)
 
              if(bc_pt_crenel_exists) then
 
@@ -603,19 +607,22 @@
           end if
 
           !>3)
-          !>      _   
-          !>    _|X|_ 
-          !>   |3 3 3|
-          !>----------
+          !>    2 2 2           1 1 1 
+          !>    2|X|2  ---->    2 2 2 
+          !>   |- - -|         |- - -|
+          !>----------------------------
           possible_to_check = ((i-1).ge.1).and.
      $                        ((i+1).le.bf_sizes(1)).and.
-     $                        ((j-1).ge.1)
+     $                        ((j+1).le.bf_sizes(2))
 
           if(possible_to_check.and.(.not.bc_pt_crenel_exists)) then
 
-             bc_pt_crenel_exists = (bf_grdpts_id(i-1,j-1).eq.bc_pt).and.
-     $                             (bf_grdpts_id(i  ,j-1).eq.bc_pt).and.
-     $                             (bf_grdpts_id(i+1,j-1).eq.bc_pt)
+             bc_pt_crenel_exists = (bf_grdpts_id(i-1,j  ).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i+1,j  ).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i-1,j+1).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i  ,j+1).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i+1,j+1).eq.bc_interior_pt)
+
 
              if(bc_pt_crenel_exists) then
 
@@ -630,18 +637,21 @@
 
           !>4)
           !>    _____ 
-          !>   |3 3 3|
-          !>     |X|
-          !>----------
+          !>   |- - -|         |- - -|
+          !>    2|X|2  ---->    2 2 2  
+          !>    2 2 2           1 1 1 
+          !>---------------------------
           possible_to_check = ((i-1).ge.1).and.
      $                        ((i+1).le.bf_sizes(1)).and.
-     $                        ((j+1).le.bf_sizes(2))
+     $                        ((j-1).ge.1)
 
           if(possible_to_check.and.(.not.bc_pt_crenel_exists)) then
 
-             bc_pt_crenel_exists = (bf_grdpts_id(i-1,j+1).eq.bc_pt).and.
-     $                             (bf_grdpts_id(i  ,j+1).eq.bc_pt).and.
-     $                             (bf_grdpts_id(i+1,j+1).eq.bc_pt)
+             bc_pt_crenel_exists = (bf_grdpts_id(i-1,j-1).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i  ,j-1).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i+1,j-1).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i-1,j  ).eq.bc_interior_pt).and.
+     $                             (bf_grdpts_id(i+1,j  ).eq.bc_interior_pt)
 
              if(bc_pt_crenel_exists) then
 
