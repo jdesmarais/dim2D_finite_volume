@@ -1496,16 +1496,7 @@
      $         x_map_local,
      $         y_map_local,
      $         nodes_local,
-     $         p_model)) then
-
-
-             !extract the direction pointing towards the nearest
-             !bc_interior_pt to the detector
-             bc_direction = get_bc_direction(this,d_icoord)
-
-
-             !extract the velocity at the coordinates of the detector
-             velocity = p_model%get_velocity(nodes_local(2,2,:))
+     $         p_model)) then             
              
 
              !get the first point from which we should look for a
@@ -1514,6 +1505,10 @@
              select case(dct_update_strategy)
 
                case(dct_velocity_strategy)
+
+                  !extract the velocity at the coordinates of the detector
+                  velocity = p_model%get_velocity(nodes_local(2,2,:))
+
                   cpt_coord = get_central_grdpt_velocity(
      $                 d_icoord,
      $                 d_rcoord,
@@ -1524,6 +1519,11 @@
      $                 d_rcoord_n)
 
                case(dct_bc_dir_strategy)
+
+                  !extract the direction pointing towards the nearest
+                  !bc_interior_pt to the detector
+                  bc_direction = get_bc_direction(this,d_icoord)
+
                   cpt_coord = get_central_grdpt_bc_direction(
      $                 d_icoord,
      $                 d_rcoord,
@@ -1667,25 +1667,7 @@
           real(rkind), dimension(3,2) :: d_icoord_r
           
 
-          !1) get the direction to look for a bc_interior_pt          
-          if(rkind.eq.4) then
-
-             !2) get the point indices in the direction given
-             !   by the velocity vector
-             cpt_coords(1) = d_icoord(1) + nint(bc_direction(1)*REAL(dct_icr_distance))
-             cpt_coords(2) = d_icoord(2) + nint(bc_direction(2)*REAL(dct_icr_distance))
-
-          else
-
-             !2) get the point indices in the direction given
-             !   by the velocity vector
-             cpt_coords(1) = d_icoord(1) + nint(bc_direction(1)*DBLE(dct_icr_distance))
-             cpt_coords(2) = d_icoord(2) + nint(bc_direction(2)*DBLE(dct_icr_distance))
-             
-          end if
-
-
-          !3) compute the new detector position
+          !1) compute the new detector position
           !   i.e. choose in which direction the detector will be adjusted
 
           ! to determine in which direction the detector will
@@ -1772,6 +1754,24 @@
           !update of the coordinates of the detector
           d_rcoord_n(1) = d_icoord_r(2+dct_increase(1,dct_incr_i),1)
           d_rcoord_n(2) = d_icoord_r(2+dct_increase(2,dct_incr_i),2)
+
+
+          !1) get the direction to look for a bc_interior_pt          
+          if(rkind.eq.4) then
+
+             !2) get the point indices in the direction given
+             !   by the velocity vector
+             cpt_coords(1) = d_icoord(1) + nint(bc_direction(1)*REAL(dct_icr_distance))
+             cpt_coords(2) = d_icoord(2) + nint(bc_direction(2)*REAL(dct_icr_distance))
+
+          else
+
+             !2) get the point indices in the direction given
+             !   by the velocity vector
+             cpt_coords(1) = d_icoord(1) + nint(bc_direction(1)*DBLE(dct_icr_distance))
+             cpt_coords(2) = d_icoord(2) + nint(bc_direction(2)*DBLE(dct_icr_distance))
+             
+          end if
 
         end function get_central_grdpt_bc_direction
 
@@ -3613,17 +3613,18 @@
           integer(ikind), dimension(2), intent(in) :: dct_icoords
           real(rkind)   , dimension(2)             :: direction
 
+          integer(ikind), parameter :: dct_size=dct_icr_distance+1
 
           integer(ikind), dimension(2,2) :: gen_borders
-          integer       , dimension(2*dct_icr_distance+1,2*dct_icr_distance+1) :: bf_grdpts_id
+          integer       , dimension(2*dct_size+1,2*dct_size+1) :: bf_grdpts_id
 
 
           !1) determine the extent of the grdpts_id that should
           !   be extracted around the detector (dct_icoords)
-          gen_borders(1,1) = dct_icoords(1) - dct_icr_distance
-          gen_borders(1,2) = dct_icoords(1) + dct_icr_distance
-          gen_borders(2,1) = dct_icoords(2) - dct_icr_distance
-          gen_borders(2,2) = dct_icoords(2) + dct_icr_distance
+          gen_borders(1,1) = dct_icoords(1) - dct_size
+          gen_borders(1,2) = dct_icoords(1) + dct_size
+          gen_borders(2,1) = dct_icoords(2) - dct_size
+          gen_borders(2,2) = dct_icoords(2) + dct_size
 
 
           !2) extract the grdpts_id around the detector
