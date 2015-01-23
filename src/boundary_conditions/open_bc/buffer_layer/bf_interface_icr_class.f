@@ -3636,7 +3636,7 @@
           !3) determine the direction towards the boundary
           call extract_bc_direction_from_grdptsid(
      $         bf_grdpts_id,
-     $         [dct_icr_distance+1,dct_icr_distance+1],
+     $         [dct_size+1,dct_size+1],
      $         direction)
 
         end function get_bc_direction

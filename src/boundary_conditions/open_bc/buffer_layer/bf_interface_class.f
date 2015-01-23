@@ -1720,11 +1720,8 @@ c$$$          stop 'not implemented yet'
          integer(ikind)               :: radius_y
          integer(ikind)               :: bf_grdptsid_extent
          integer(ikind), dimension(2) :: cpt_coords
-         integer(ikind), dimension(2) :: local_coords
-         integer                      :: bf_localization
-         type(bf_sublayer), pointer   :: bf_sublayer_ptr
 
-
+         integer(ikind), dimension(2) :: coords_tested
 
          !0) extract the coordinates of the central gridpoint
          !   asked as well as the radius around
@@ -1749,47 +1746,123 @@ c$$$          stop 'not implemented yet'
      $         gen_borders)
 
 
-         !2) determine whether there is a buffer layer
-         !   with which the grdpts_id share grdpts
-         bf_sublayer_ptr => this%get_sublayer(
-     $        cpt_coords,
-     $        local_coords,
-     $        tolerance_i=bf_grdptsid_extent)
+         !2) test if the West buffer layers
+         !   share grdpts_id with the one
+         !   asked and if so extract the
+         !   grdpts_id
+         coords_tested = [cpt_coords(1)-radius_x,cpt_coords(2)]
+         if(coords_tested(1).le.(align_W+bc_size)) then
 
-
-         !3) if the buffer layer exists, extract grdpts_id
-         if(associated(bf_sublayer_ptr)) then
-
-            !extract bf_localization
-            bf_localization = bf_sublayer_ptr%get_localization()
-
-            !extract from the buffer layer
-            call bf_sublayer_ptr%get_grdpts_id_part(
+            call extract_grdpts_id_from_potential_sublayer(
+     $           this,
+     $           gen_borders,
      $           bf_grdpts_id,
-     $           gen_borders)
+     $           coords_tested,
+     $           W,
+     $           radius_y)
 
-            !extract from its neighbors
-            if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
+         end if
 
-               call this%border_interface%get_grdpts_id_part(
-     $              bf_localization,1,
-     $              bf_grdpts_id,
-     $              gen_borders)
 
-            end if
+         !3) test if the East buffer layers
+         !   share grdpts_id with the one
+         !   asked and if so extract the
+         !   grdpts_id
+         coords_tested = [cpt_coords(1)+radius_x,cpt_coords(2)]
+         if(coords_tested(1).ge.(align_E-bc_size)) then
 
-            if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
+            call extract_grdpts_id_from_potential_sublayer(
+     $           this,
+     $           gen_borders,
+     $           bf_grdpts_id,
+     $           coords_tested,
+     $           E,
+     $           radius_y)
 
-               call this%border_interface%get_grdpts_id_part(
-     $              bf_localization,2,
-     $              bf_grdpts_id,
-     $              gen_borders)
+         end if
 
-            end if 
+
+         !4) test if the South buffer layers
+         !   share grdpts_id with the one
+         !   asked and if so extract the
+         !   grdpts_id
+         coords_tested = [cpt_coords(1),cpt_coords(2)-radius_y]
+         if(coords_tested(2).le.(align_S+bc_size)) then
+
+            call extract_grdpts_id_from_potential_sublayer(
+     $           this,
+     $           gen_borders,
+     $           bf_grdpts_id,
+     $           coords_tested,
+     $           S,
+     $           radius_x)
+
+         end if
+
+
+         !5) test if the North buffer layers
+         !   share grdpts_id with the one
+         !   asked and if so extract the
+         !   grdpts_id
+         coords_tested = [cpt_coords(1),cpt_coords(2)+radius_y]
+         if(coords_tested(2).ge.(align_N-bc_size)) then
+
+            call extract_grdpts_id_from_potential_sublayer(
+     $           this,
+     $           gen_borders,
+     $           bf_grdpts_id,
+     $           coords_tested,
+     $           N,
+     $           radius_x)
 
          end if
 
        end subroutine extract_grdpts_id
+
+
+       !check if there is a buffer sublayer corresponding to
+       !the grdpts_id asked and if so extract the grdpts_id from
+       !this sublayer
+       subroutine extract_grdpts_id_from_potential_sublayer(
+     $     this,
+     $     gen_borders,
+     $     bf_grdpts_id,
+     $     cpt_coords,
+     $     mainlayer_id,
+     $     tolerance)
+
+         implicit none
+
+         class(bf_interface)           , intent(in)    :: this
+         integer(ikind), dimension(2,2), intent(in)    :: gen_borders
+         integer       , dimension(:,:), intent(inout) :: bf_grdpts_id
+         integer(ikind), dimension(2)  , intent(in)    :: cpt_coords
+         integer                       , intent(in)    :: mainlayer_id
+         integer(ikind)                , intent(in)    :: tolerance
+         
+         type(bf_sublayer), pointer   :: bf_sublayer_ptr
+         integer(ikind), dimension(2) :: local_coords
+
+
+         ! try to get a potential sublayer corresponding
+         ! to the cpt_coords
+         bf_sublayer_ptr => this%get_sublayer(
+     $        cpt_coords,
+     $        local_coords,
+     $        mainlayer_id_i=mainlayer_id,
+     $        tolerance_i=tolerance)
+
+
+         !if the buffer layer exists, extract grdpts_id
+         if(associated(bf_sublayer_ptr)) then
+
+            call bf_sublayer_ptr%get_grdpts_id_part(
+     $           bf_grdpts_id,
+     $           gen_borders)
+               
+         end if
+
+       end subroutine extract_grdpts_id_from_potential_sublayer
 
 
        !> @author
