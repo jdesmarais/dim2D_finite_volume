@@ -29,7 +29,8 @@
 
         use parameters_input, only :
      $       nx,ny,ne,
-     $       write_domain_extension
+     $       write_domain_extension,
+     $       bf_adapt_computational_domain
 
         use parameters_kind, only :
      $       ikind,rkind
@@ -81,6 +82,7 @@
           contains
 
           procedure, pass :: ini
+          procedure, pass :: apply_initial_conditions
           procedure, pass :: update_bc_sections
           procedure, pass :: compute_time_dev_ext
           procedure, pass :: compute_integration_step_ext
@@ -147,6 +149,35 @@
           call this%update_bc_sections()
 
         end subroutine ini
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> apply the initial conditions of the physical model on
+        !> the entire field (interior+buffer layers)
+        !
+        !> @date
+        !> 23_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main governing variables
+        !--------------------------------------------------------------
+        subroutine apply_initial_conditions(this)
+
+          implicit none
+
+          class(field_extended), intent(inout) :: this
+          
+          !interior domain
+          call this%field_abstract%apply_initial_conditions()
+
+          !buffer layers
+          call this%domain_extension%apply_initial_conditions(
+     $         this%pmodel_eq_used)          
+
+        end subroutine apply_initial_conditions
 
 
         !> @author
@@ -481,15 +512,19 @@
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes0
 
 
-          !allocate memory space for the temporary tables
-          !used in the time integration of the domain extension
-          call this%domain_extension%adapt_domain(
-     $         this%pmodel_eq_used,
-     $         this%time,dt,
-     $         this%x_map,
-     $         this%y_map,
-     $         nodes0,
-     $         this%nodes)
+          if(bf_adapt_computational_domain) then
+
+             !allocate memory space for the temporary tables
+             !used in the time integration of the domain extension
+             call this%domain_extension%adapt_domain(
+     $            this%pmodel_eq_used,
+     $            this%time,dt,
+     $            this%x_map,
+     $            this%y_map,
+     $            nodes0,
+     $            this%nodes)
+
+          end if
 
         end subroutine adapt_domain
 

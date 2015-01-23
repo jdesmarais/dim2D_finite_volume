@@ -510,6 +510,7 @@
 
           
           !for time integration: interior + boundaries
+          procedure,   pass :: apply_initial_conditions
           procedure,   pass :: allocate_before_timeInt
           procedure,   pass :: deallocate_after_timeInt
           procedure,   pass :: compute_time_dev
@@ -3752,6 +3753,35 @@
      $         time)
 
         end subroutine print_netcdf
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> allocate memory space for the intermediate
+        !> variables needed to perform the time integration
+        !
+        !> @date
+        !> 16_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
+        subroutine apply_initial_conditions(this,p_model)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+          type(pmodel_eq), intent(in)    :: p_model
+
+          call p_model%apply_ic(
+     $         this%nodes,
+     $         this%x_map,
+     $         this%y_map)
+
+        end subroutine apply_initial_conditions
 
 
         !> @author

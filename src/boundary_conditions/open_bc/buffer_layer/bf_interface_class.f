@@ -255,6 +255,7 @@
           !buffer layer interactions management
           procedure, pass :: ini
           procedure, pass :: restart
+          procedure, pass :: apply_initial_conditions
           procedure, pass :: get_mainlayer
 
           procedure, pass :: allocate_sublayer
@@ -518,6 +519,68 @@
           
 
         end subroutine restart
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the buffer/interior domain interface
+        !
+        !> @date
+        !> 15_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface object encapsulating the buffer layers
+        !> around the interior domain and subroutines to synchronize
+        ! the data between them
+        !--------------------------------------------------------------
+        subroutine apply_initial_conditions(
+     $     this,
+     $     p_model)
+
+          implicit none
+
+          class(bf_interface), intent(in) :: this
+          type(pmodel_eq)    , intent(in) :: p_model
+
+          integer                     :: i,j
+          type(bf_mainlayer), pointer :: mainlayer_ptr
+          integer                     :: nb_sublayers
+          type(bf_sublayer) , pointer :: sublayer_ptr
+
+          ! loop over the four cardinal coordinates (N,S,E,W)
+          do i=1, size(this%mainlayer_pointers,1)
+
+             ! determine whether the mainlayer corresponding
+             ! to the cardinal coordinate exists
+             if(this%mainlayer_pointers(i)%associated_ptr()) then
+
+                ! determine the pointer to the mainlayer
+                mainlayer_ptr => this%mainlayer_pointers(i)%get_ptr()
+                
+                ! determine the number of sublayer contained by
+                ! the mainlayer
+                nb_sublayers = mainlayer_ptr%get_nb_sublayers()
+
+                ! determine the head buffer layer
+                sublayer_ptr => mainlayer_ptr%get_head_sublayer()
+
+                ! loop over the buffer layers contained in the
+                ! mainlayer
+                do j=1, nb_sublayers
+
+                   call sublayer_ptr%apply_initial_conditions(
+     $                  p_model)
+
+                   sublayer_ptr => sublayer_ptr%get_next()
+
+                end do
+                
+             end if
+          end do
+
+        end subroutine apply_initial_conditions
 
 
         !> @author

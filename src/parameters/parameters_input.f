@@ -32,7 +32,7 @@
         real(rkind), parameter :: dt = 0.0002000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 1.0000000000d0
+        real(rkind), parameter :: detail_print = 0.0671000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -148,6 +148,11 @@
         !-----------------------------------------------------
         !for the increase of the computational domain
         !-----------------------------------------------------
+        !bf_adapt_computational_domain : control whether the edges
+        !                                of the computational domain
+        !                                are adapted once the simualtion
+        !                                starts
+        !
         !bf_openbc_md_threshold_ac : control whether the increase
         !                            of the computational domain
         !                            is also activated by the
@@ -163,6 +168,7 @@
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
         !-----------------------------------------------------
+        logical    , parameter :: bf_adapt_computational_domain = .true.
         logical    , parameter :: bf_openbc_md_threshold_ac = .true.
         real(rkind), parameter :: bf_openbc_md_threshold = 0.0001000000d0
 
