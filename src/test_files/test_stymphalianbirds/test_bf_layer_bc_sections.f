@@ -2032,8 +2032,8 @@ c$$$          deallocate(test_bc_sections_buffer)
 
 
           type(bf_layer_bc_sections) :: bf_layer_bc_sections_used
-          integer, dimension(4,18)   :: bc_sections_sorted
-          integer, dimension(4,18)   :: test_bc_sections_sorted
+          integer, dimension(4,29)   :: bc_sections_sorted
+          integer, dimension(4,29)   :: test_bc_sections_sorted
 
           logical :: test_validated
 
@@ -2052,11 +2052,25 @@ c$$$          deallocate(test_bc_sections_buffer)
           bc_sections_sorted(:,11) = [SW_corner_type,6, 5,0] !-> for W_overlap
           bc_sections_sorted(:,12) = [SE_edge_type  ,7, 5,0] !-> NW_overlap
           bc_sections_sorted(:,13) = [SE_corner_type,7, 6,0] !-> for N_overlap
+
           bc_sections_sorted(:,14) = [SW_corner_type,6, 8,0] !-> for W_overlap
           bc_sections_sorted(:,15) = [SE_edge_type  ,7, 8,0] !-> W_overlap
           bc_sections_sorted(:,16) = [SE_edge_type  ,8,10,0] !-> E_overlap
           bc_sections_sorted(:,17) = [W_edge_type   ,9,10,9]
           bc_sections_sorted(:,18) = [SW_corner_type,9,10,0] !-> for E_overlap
+
+          bc_sections_sorted(:,19) = [NW_corner_type,1,12,0] !-> for S_overlap
+          bc_sections_sorted(:,20) = [N_edge_type   ,2,12,3]
+          bc_sections_sorted(:,21) = [NW_edge_type  ,1,13,0] !-> S_overlap
+          bc_sections_sorted(:,22) = [S_edge_type   ,2,13,3]
+          bc_sections_sorted(:,23) = [SW_corner_type,3,15,0] !-> for S_overlap
+          bc_sections_sorted(:,24) = [SW_edge_type  ,3,16,0] !-> SE_overlap
+          bc_sections_sorted(:,25) = [SE_corner_type,4,16,0] !-> for E_overlap
+          bc_sections_sorted(:,26) = [W_edge_type   ,2,17,3]
+          bc_sections_sorted(:,27) = [SE_corner_type,7,17,0] !-> for S_overlap
+          bc_sections_sorted(:,28) = [SW_corner_type,6,18,0] !-> for W_overlap
+          bc_sections_sorted(:,29) = [SE_edge_type  ,7,18,0] !-> SW_overlap
+
           
 
           !initialization of test_bc_sections_sorted
@@ -2065,8 +2079,13 @@ c$$$          deallocate(test_bc_sections_buffer)
           test_bc_sections_sorted(4,3)  = N_overlap
           test_bc_sections_sorted(4,7)  = NE_overlap
           test_bc_sections_sorted(4,12) = NW_overlap
+
           test_bc_sections_sorted(4,15) = W_overlap
-          test_bc_sections_sorted(4,16) = E_overlap          
+          test_bc_sections_sorted(4,16) = E_overlap
+
+          test_bc_sections_sorted(4,21) = S_overlap
+          test_bc_sections_sorted(4,24) = SE_overlap
+          test_bc_sections_sorted(4,29) = SW_overlap
           
 
           !computation of the overlap
