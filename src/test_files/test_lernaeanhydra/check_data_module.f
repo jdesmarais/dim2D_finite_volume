@@ -154,7 +154,7 @@
           logical                             :: test_validated
 
 
-          integer :: j
+          integer :: i,j
           logical :: test_loc
           logical :: detailled_op
 
@@ -168,14 +168,20 @@
           test_validated = .true.
 
           do j=1, size(int_matrix,2)
+             do i=1, size(int_matrix,1)
+             
+                test_loc = int_matrix(i,j).eq.int_matrix_cst(i,j)
 
-             test_loc = is_int_vector_validated(
-     $            int_matrix(:,j),
-     $            int_matrix_cst(:,j),
-     $            detailled=detailled_op)
-
-             test_validated = test_validated.and.test_loc
-
+                if(detailled.and.(.not.test_loc)) then
+                   print '(''['',2I3'']:'',I5,'' -> '',I5)', 
+     $                  i,j,
+     $                  int_matrix(i,j),
+     $                  int_matrix_cst(i,j)
+                end if
+                
+                test_validated = test_validated.and.test_loc
+                
+             end do
           end do
 
         end function is_int_matrix_validated

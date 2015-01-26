@@ -19,16 +19,21 @@
         implicit none
 
         private
-        public :: error_mainlayer_id,
-     $            error_diff_mainlayer_id,
-     $            error_incompatible_neighbor,
-     $            error_neighbor_index
+        public ::
+     $       error_mainlayer_id,
+     $       error_diff_mainlayer_id,
+     $       error_incompatible_neighbor,
+     $       error_neighbor_index,
+     $       error_overlap_index,
+     $       error_overlap_incompatible
 
 
         integer, parameter :: ERROR_MAINLAYER_ID_CODE          = 0
         integer, parameter :: ERROR_DIFF_MAINLAYER_ID_CODE     = 1
         integer, parameter :: ERROR_INCOMPATIBLE_NEIGHBOR_CODE = 2
         integer, parameter :: ERROR_NEIGHBOR_INDEX_CODE        = 3
+        integer, parameter :: ERROR_OVERLAP_INDEX_CODE         = 4
+        integer, parameter :: ERROR_OVERLAP_INCOMPATIBLE_CODE  = 5
 
 
         contains
@@ -197,5 +202,87 @@
           stop 'error_neighbor_index'
 
         end subroutine error_neighbor_index
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !< error overlap index.ne.(0,1,2,3,4,5,6,7,8)
+        !
+        !> @date
+        !> 26_01_2014 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param overlap_index
+        !> value of the parameter trigerring the exception
+        !--------------------------------------------------------------
+        subroutine error_overlap_index(
+     $     file_name, fct_name, overlap_index)
+
+          implicit none
+
+          character(*), intent(in) :: file_name
+          character(*), intent(in) :: fct_name
+          integer     , intent(in) :: overlap_index
+
+          write(ERROR_UNIT, '(I3)') ERROR_OVERLAP_INDEX_CODE
+          write(ERROR_UNIT, '(A)') file_name
+          write(ERROR_UNIT, '(A)') fct_name
+          write(ERROR_UNIT, '(A)') 'overlap_index not recognized'
+          write(ERROR_UNIT, '(''overlap_index: '',I2)') overlap_index
+
+          stop 'error_overlap_index'
+
+        end subroutine error_overlap_index
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !< error overlap indices incompatible
+        !< (N.and.S) (E.and.W)
+        !
+        !> @date
+        !> 26_01_2014 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param overlap_index1
+        !> value of the parameter trigerring the exception
+        !
+        !>@param overlap_index2
+        !> value of the parameter trigerring the exception
+        !--------------------------------------------------------------
+        subroutine error_overlap_incompatible(
+     $     file_name, fct_name, overlap_index1, overlap_index2)
+
+          implicit none
+
+          character(*), intent(in) :: file_name
+          character(*), intent(in) :: fct_name
+          integer     , intent(in) :: overlap_index1
+          integer     , intent(in) :: overlap_index2
+
+          write(ERROR_UNIT, '(I3)') ERROR_OVERLAP_INCOMPATIBLE_CODE
+          write(ERROR_UNIT, '(A)') file_name
+          write(ERROR_UNIT, '(A)') fct_name
+          write(ERROR_UNIT, '(A)') 'overlap indices incompatible'
+          write(ERROR_UNIT, '(''overlap_index1: '',I2)') overlap_index1
+          write(ERROR_UNIT, '(''overlap_index2: '',I2)') overlap_index2
+
+          stop 'error_overlap_incompatible'
+
+        end subroutine error_overlap_incompatible
 
       end module bf_layer_errors_module

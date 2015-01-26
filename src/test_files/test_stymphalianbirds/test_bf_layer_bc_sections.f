@@ -1,27 +1,39 @@
       program test_bf_layer_bc_sections
 
         use bf_layer_bc_procedure_module, only : 
-     $     N_edge_type,
-     $     S_edge_type,
-     $     E_edge_type,
-     $     W_edge_type,
-     $     NE_corner_type,
-     $     NW_corner_type,
-     $     SE_corner_type,
-     $     SW_corner_type,
-     $     NE_edge_type,
-     $     NW_edge_type,
-     $     SE_edge_type,
-     $     SW_edge_type
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       NE_corner_type,
+     $       NW_corner_type,
+     $       SE_corner_type,
+     $       SW_corner_type,
+     $       NE_edge_type,
+     $       NW_edge_type,
+     $       SE_edge_type,
+     $       SW_edge_type
 
         use bf_layer_bc_sections_class, only :
-     $     bf_layer_bc_sections
+     $       bf_layer_bc_sections,
+     $       no_overlap,
+     $       N_overlap,
+     $       S_overlap,
+     $       E_overlap,
+     $       W_overlap,
+     $       NE_overlap,
+     $       NW_overlap,
+     $       SE_overlap,
+     $       SW_overlap
+
+        use check_data_module, only :
+     $       is_int_matrix_validated
 
         use parameters_bf_layer, only :
-     $     interior_pt,
-     $     bc_interior_pt,
-     $     bc_pt,
-     $     no_pt
+     $       interior_pt,
+     $       bc_interior_pt,
+     $       bc_pt,
+     $       no_pt
 
 
         implicit none
@@ -40,7 +52,7 @@
         !test remove_from_bc_sections_temp()
         call test_remove_bc_section()
 
-        !test deallocate_tables
+        !test deallocate_tables()
         call bc_sections%deallocate_tables()
 
 
@@ -50,8 +62,11 @@
         !test analyse_grdpt_with_bc_section()
         call test_analyse_grdpt_with_bc_section(.false.)
 
-        !test analyse_grdpt
+        !test analyse_grdpt()
         call test_analyse_grdpt(.false.)
+
+        !test add_overlap_between_corners_and_anti_corners()
+        call test_add_overlap_between_corners_and_anti_corners(.true.)
         
         contains
 
@@ -2007,5 +2022,68 @@ c$$$          allocate(test_bc_sections_buffer(1,1))
 c$$$          deallocate(test_bc_sections_buffer)
 
         end subroutine make_test_analyse_grdpt
+
+
+        subroutine test_add_overlap_between_corners_and_anti_corners(detailled)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+
+
+          type(bf_layer_bc_sections) :: bf_layer_bc_sections_used
+          integer, dimension(4,18)   :: bc_sections_sorted
+          integer, dimension(4,18)   :: test_bc_sections_sorted
+
+          logical :: test_validated
+
+
+          !initialization of bc_sections_sorted
+          bc_sections_sorted(:, 1) = [NE_edge_type  ,1,1,0] !-> no_overlap
+          bc_sections_sorted(:, 2) = [E_edge_type   ,1,1,3]
+          bc_sections_sorted(:, 3) = [NW_edge_type  ,1,2,0] !-> N_overlap
+          bc_sections_sorted(:, 4) = [N_edge_type   ,2,2,3]
+          bc_sections_sorted(:, 5) = [NW_corner_type,1,3,0] !-> for N_overlap
+          bc_sections_sorted(:, 6) = [S_edge_type   ,2,3,3]
+          bc_sections_sorted(:, 7) = [SW_edge_type  ,3,3,0] !-> NE_overlap
+          bc_sections_sorted(:, 8) = [SE_corner_type,4,3,0] !-> for E_overlap
+          bc_sections_sorted(:, 9) = [SW_corner_type,3,4,0] !-> for N_overlap
+          bc_sections_sorted(:,10) = [W_edge_type   ,2,5,3]
+          bc_sections_sorted(:,11) = [SW_corner_type,6,5,0] !-> for W_overlap
+          bc_sections_sorted(:,12) = [SE_edge_type  ,7,5,0] !-> NW_overlap
+          bc_sections_sorted(:,13) = [SE_corner_type,7,6,0] !-> for N_overlap
+          bc_sections_sorted(:,14) = [SW_corner_type,6,7,0] !-> for W_overlap
+          bc_sections_sorted(:,15) = [SE_edge_type  ,7,7,0] !-> W_overlap
+          bc_sections_sorted(:,16) = [SE_edge_type  ,8,9,0] !-> E_overlap
+          bc_sections_sorted(:,17) = [W_edge_type   ,9,9,9]
+          bc_sections_sorted(:,18) = [SW_corner_type,9,9,0] !-> for E_overlap
+          
+
+          !initialization of test_bc_sections_sorted
+          test_bc_sections_sorted       = bc_sections_sorted
+
+          test_bc_sections_sorted(4,3)  = N_overlap
+          test_bc_sections_sorted(4,7)  = NE_overlap
+          test_bc_sections_sorted(4,12) = NW_overlap
+          test_bc_sections_sorted(4,15) = W_overlap
+          test_bc_sections_sorted(4,16) = E_overlap          
+          
+
+          !computation of the overlap
+          call bf_layer_bc_sections_used%add_overlap_between_corners_and_anti_corners(
+     $         bc_sections_sorted)
+
+
+          !check the result of the computation of the overlap
+          test_validated = is_int_matrix_validated(
+     $         bc_sections_sorted,
+     $         test_bc_sections_sorted,
+     $         detailled)
+
+          print '(''add_overlap_between_corners_and_anti_corners'')'
+          print '(''test_validated: '',L1)', test_validated
+          print '()'
+
+        end subroutine test_add_overlap_between_corners_and_anti_corners
 
       end program test_bf_layer_bc_sections

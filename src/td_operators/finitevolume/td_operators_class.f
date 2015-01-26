@@ -485,8 +485,7 @@
 
 
                !finalize the identification of the boundary layers
-               call bc_sections_id%sort_bc_sections(bc_sections)
-               call bc_sections_id%deallocate_tables()
+               call bc_sections_id%finalize_bc_sections(bc_sections)
 
             !compute the time derivaties WITHOUT identifying
             !the boundary layers

@@ -1,3 +1,23 @@
+      !> @file
+      !> module encapsulating the bf_layer_bc_sections object. It
+      !> encapsulates the functions needed to analyze the grdpts_id
+      !> and determine where the boundary layers are located. The
+      !> procedures needed to compute the boundary points are then
+      !> deduced
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> module encapsulating the bf_layer_bc_sections object. It
+      !> encapsulates the functions needed to analyze the grdpts_id
+      !> and determine where the boundary layers are located. The
+      !> procedures needed to compute the boundary points are then
+      !> deduced
+      !
+      !> @date
+      ! 26_01_2015 - documentation update  - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_layer_bc_sections_class
 
         use parameters_bf_layer, only :
@@ -20,15 +40,129 @@
      $     SW_edge_type,
      $     get_bc_interior_pt_procedure
 
+        use bf_layer_errors_module, only :
+     $       error_overlap_index,
+     $       error_overlap_incompatible
+
         implicit none
 
         private
-        public :: bf_layer_bc_sections
+        public ::
+     $       bf_layer_bc_sections,
+     $       no_overlap,
+     $       N_overlap,
+     $       S_overlap,
+     $       E_overlap,
+     $       W_overlap,
+     $       NE_overlap,
+     $       NW_overlap,
+     $       SE_overlap,
+     $       SW_overlap
 
 
         integer, parameter :: max_bc_sections_temp = 6
 
+        integer, parameter :: no_overlap = 0
+        integer, parameter :: N_overlap  = 1
+        integer, parameter :: S_overlap  = 2
+        integer, parameter :: E_overlap  = 3
+        integer, parameter :: W_overlap  = 4
+        integer, parameter :: NE_overlap = 5
+        integer, parameter :: NW_overlap = 6
+        integer, parameter :: SE_overlap = 7
+        integer, parameter :: SW_overlap = 8
 
+
+        !> @class bf_layer_bc_sections
+        !> class encapsulating the bf_layer_bc_sections object. It
+        !> encapsulates the functions needed to analyze the grdpts_id
+        !> and determine where the boundary layers are located. The
+        !> procedures needed to compute the boundary points are then
+        !> deduced. When analyzing the grdpts_id, to prevent numerous
+        !> re-allocation, is used
+        !
+        !> @param nb_ele_temp
+        !> number of bc_sections stored in the temporary
+        !> bc_sections_temp attribute waiting to be completed by
+        !> other grdpts_id before being finalized in bc_sections_final
+        !
+        !> @param bc_sections_temp
+        !> the bc_setions waiting to be completed by other grdpts_id
+        !> are stored in an array made of two array: bc_sections_temp
+        !> and bc_sctions_buffer. The size of bc_sections_temp is
+        !> fixed by max_bc_sections_temp whike bc_sections_buffer can
+        !> be reallocated depending on the needs
+        !
+        !> @param bc_sections_buffer
+        !> array that can be reallocated depending on the needs to
+        !> store the temporary bc_sections
+        !
+        !> @param nb_ele_final
+        !> number of elements stored in the bc_sections_final table
+        !
+        !> @param bc_sections_final
+        !> array where the bc_scetions once completed are stored
+        !
+        !> @param ini
+        !> initialize the main attributes of bf_bc_sections_class
+        !
+        !> @param deallocate_tables
+        !> deallocate the array attributes
+        !
+        !> @param add_to_temporary_bc_sections
+        !> add the bc_section to the bc_sections_temp or
+        !> bc_sections_buffer attribute depending on the number of 
+        !> temporary bc_sections already stored
+        !
+        !> @param add_to_final_bc_sections
+        !> add the bc_section to the bc_sections_final array
+        !
+        !> @param add_to_bc_sections
+        !> add the bc_sections iether to the temporary bc_sections
+        !> or the final bc_sections
+        !
+        !> @param remove_from_bc_sections_temp
+        !> remove a bc_section from the bc_sections_temp array
+        !
+        !> @param remove_from_bc_sections_buffer
+        !> remove a bc_section from the bc_sections_buffer array
+        !
+        !> @param get_bc_section
+        !> analyze the grid point ID and determine the corresponding
+        !> bc_section (alone if there is no bc_section stoerd in the
+        !> temporary array or with the existing bc_section)
+        !
+        !> @param analyse_grdpt_with_bc_section
+        !> analyze the grid point ID and compare it to previous bc_section
+        !> to know whether the bc_section can be completed
+        !
+        !> @param analyze_grdpt
+        !> analyze the grid point ID and determine the corresponding
+        !> bc_section w/o comparing it to the existing bc_sections
+        !
+        !> @param sort_bc_sections
+        !> gather the bc_sections saved in final and temporary arrays
+        !> and order them in increasing j and increasing i
+        !
+        !> @param add_overlap_between_corners_and_anti_corners
+        !> analyze the ordered bc_sections and mark the overlapping
+        !> gridpoints b/w the corner and anti-corner boundary layers
+        !
+        !> @param get_nb_ele_temp
+        !> get the nb_ele_temp attribute
+        !
+        !> @param get_nb_ele_final
+        !> get the nb_ele_final attribute
+        !
+        !> @param get_bc_sections_temp
+        !> get the bc_sections_temp attribute
+        !
+        !> @param get_bc_sections_buffer
+        !> get the bc_sections_buffer attribute
+        !
+        !> @param print_bc_sections
+        !> display the bc_sections in a graphical form
+        !------------------------------------------------------------
         type :: bf_layer_bc_sections
 
           integer                              :: nb_ele_temp
@@ -51,6 +185,8 @@
           procedure, nopass :: analyse_grdpt_with_bc_section
           procedure,   pass :: analyse_grdpt
           procedure,   pass :: sort_bc_sections
+          procedure, nopass :: add_overlap_between_corners_and_anti_corners
+          procedure,   pass :: finalize_bc_sections
 
           !only for tests
           procedure,   pass :: get_nb_ele_temp
@@ -66,7 +202,19 @@
         contains
 
 
-        !initialize the number of elements in the object
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the number of elements in the object
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !--------------------------------------------------------------
         subroutine ini(this)
 
           implicit none
@@ -79,7 +227,19 @@
         end subroutine ini
 
 
-        !deallocate the allocatable atributes
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> deallocate the allocatable atributes
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !--------------------------------------------------------------
         subroutine deallocate_tables(this)
 
           implicit none
@@ -102,9 +262,23 @@
         end subroutine deallocate_tables
 
 
-        !add a boundary section to list of boundary layers
-        !bc_section, integer, dimension(5)
-        ![procedure_type,edge_min,edge_max,coord,match_nb]
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add a boundary section to list of boundary layers
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !> @param bc_section
+        !> representation of a boundary layer: integer, dimension(5)
+        !> [procedure_type,edge_min,edge_max,coord,match_nb]
+        !--------------------------------------------------------------
         subroutine add_to_temporary_bc_sections(this,bc_section)
 
           implicit none
@@ -158,8 +332,24 @@
         end subroutine add_to_temporary_bc_sections
 
 
-        !add the boundary section to the list of final boundary
-        !sections
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add the boundary section to the list of final boundary
+        !> sections
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !> @param bc_section
+        !> representation of a boundary layer: integer, dimension(5)
+        !> [procedure_type,edge_min,edge_max,coord,match_nb]
+        !--------------------------------------------------------------
         subroutine add_to_final_bc_sections(this,bc_section)
 
           implicit none
@@ -192,8 +382,24 @@
         end subroutine add_to_final_bc_sections
 
 
-        !add the boundary section to the list of final boundary
-        !sections
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> add the boundary section to the list of final boundary
+        !> sections
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !> @param bc_section
+        !> representation of a boundary layer: integer, dimension(5)
+        !> [procedure_type,edge_min,edge_max,coord,match_nb]
+        !--------------------------------------------------------------
         subroutine add_to_bc_sections(this,bc_section)
 
           implicit none
@@ -224,6 +430,23 @@
         end subroutine add_to_bc_sections
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the element (k) from the temporary bc_section
+        !> array
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !> @param k
+        !> index identifying the element in the temporary bc_section
+        !--------------------------------------------------------------
         subroutine remove_from_bc_sections_temp(this,k)
 
           implicit none
@@ -266,6 +489,22 @@
         end subroutine remove_from_bc_sections_temp
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the element (k) from the bc_sections_buffer
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !> @param k
+        !> index identifying the element in the temporary bc_section
+        !--------------------------------------------------------------
         subroutine remove_from_bc_sections_buffer(this,k)
 
           implicit none
@@ -299,8 +538,32 @@
         end subroutine remove_from_bc_sections_buffer
 
 
-        !using the boundary procedure given by bf_layer_bc_prcoedure
-        !one can get the bc_section corresponding to the grid point(i,j)
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> using the boundary procedure given by bf_layer_bc_procedure
+        !> one can get the bc_section corresponding to the grid-
+        !> point(i,j)
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param i
+        !> integer identifying the x-coordinate of the grdpts_id
+        !> analyzed
+        !
+        !> @param j
+        !> integer identifying the y-coordinate of the grdpts_id
+        !> analyzed
+        !
+        !> @param grdpts_id
+        !> identity of the grid-point
+        !
+        !> @param ierror
+        !> integer identifying whether the identification of the 
+        !> bc_section was successful or not
+        !--------------------------------------------------------------
         function get_bc_section(i,j,grdpts_id,ierror) result(bc_section)
 
           implicit none
@@ -360,9 +623,41 @@
         end function get_bc_section
 
 
-        !check if the gridpoint tested (i,j) is compatible with an existing
-        !boundary layer bc_section
-        !the compatibility depends on the type of boundary layer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check if the gridpoint tested (i,j) is compatible with
+        !> an existing boundary layer bc_section, the compatibility
+        !> critrion depends on the type of boundary layer
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param i
+        !> integer identifying the x-coordinate of the grdpts_id
+        !> analyzed
+        !
+        !> @param j
+        !> integer identifying the y-coordinate of the grdpts_id
+        !> analyzed
+        !
+        !> @param grdpts_id
+        !> identity of the grid-point
+        !
+        !> @param bc_section
+        !> representation of a boundary layer: integer, dimension(5)
+        !> [procedure_type,edge_min,edge_max,coord,match_nb]
+        !
+        !> @param remove_ele
+        !> integer identifying whether the bc_section analyzed is not
+        !> complete and should be transfered to the bc_sections_final
+        !> array
+        !
+        !> @return compatible
+        !> logical identifying whether the grdpts_id(i,j) was compatible
+        !> with the bc_section
+        !--------------------------------------------------------------
         function analyse_grdpt_with_bc_section(
      $     i,j,grdpts_id,bc_section,remove_ele)
      $     result(compatible)
@@ -526,9 +821,36 @@
         end function analyse_grdpt_with_bc_section
 
 
-        !analyse the grid point and decide whether it is part of an existing
-        !boundary layer or whether it is the starting point of another boundary
-        !layer
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> analyse the grid point and decide whether it is part of
+        !> an existing boundary layer or whether it is the starting
+        !> point of another boundary layer
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !> @param i
+        !> integer identifying the x-coordinate of the grdpts_id
+        !> analyzed
+        !
+        !> @param j
+        !> integer identifying the y-coordinate of the grdpts_id
+        !> analyzed
+        !
+        !> @param grdpts_id
+        !> identity of the grid-point
+        !
+        !> @param ierror
+        !> integer identifying whether the analyze of the grdpt was
+        !> successful
+        !--------------------------------------------------------------
         subroutine analyse_grdpt(this,i,j,grdpts_id,ierror)
 
           implicit none
@@ -663,6 +985,82 @@
         end subroutine analyse_grdpt
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> finalize the bc_sections analyzed by the
+        !> bf_layer_bc_sections object:
+        !> 1) keep only the information needed to compute the
+        !>    boundary grid-points
+        !> 2) sort the bc_sections in increasing j and i to
+        !>    improve cache efficieny when computing the
+        !>    boundary layer gridpoints
+        !> 3) determine the overlap b/w the corner and anti-corner
+        !>    boundary procedures to prevent interactions and symetry
+        !>    violation when applying the boundary procedures
+        !> 4) deallocate the intermediate attributes used to analyze
+        !>    the boundary layers
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !> @param sorted_bc_sections
+        !> array with the boundary sections sorted in increasing j
+        !> and increasing i
+        !--------------------------------------------------------------
+        subroutine finalize_bc_sections(this,sorted_bc_sections)
+
+          implicit none
+
+          class(bf_layer_bc_sections)        , intent(inout) :: this
+          integer, dimension(:,:),allocatable, intent(out)   :: sorted_bc_sections
+
+
+          !> 1) keep only the information needed to compute the
+          !>    boundary grid-points
+          !> 2) sort the bc_sections in increasing j and i to
+          !>    improve cache efficieny when computing the
+          !>    boundary layer gridpoints
+          call this%sort_bc_sections(sorted_bc_sections)
+
+
+          !4) deallocate the intermediate attributes used to analyze
+          !>  the boundary layers
+          call this%deallocate_tables()
+
+
+          !3) determine the overlap b/w the corner and anti-corner
+          !>    boundary procedures to prevent interactions and symetry
+          !>    violation when applying the boundary procedures
+          call this%add_overlap_between_corners_and_anti_corners(
+     $         sorted_bc_sections)
+          
+        end subroutine finalize_bc_sections
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> sort the boundary layers with increasing j and
+        !> increasing i
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !> @param sorted_bc_sections
+        !> array with the boundary sections sorted in increasing j
+        !> and increasing i
+        !--------------------------------------------------------------
         subroutine sort_bc_sections(this,sorted_bc_sections)
 
           implicit none
@@ -714,6 +1112,26 @@
         end subroutine sort_bc_sections
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> operator ordering two bc_sections
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param p
+        !> representation of a boundary layer: integer, dimension(5)
+        !> [procedure_type,edge_min,edge_max,coord,match_nb]
+        !
+        !> @param q
+        !> representation of a boundary layer: integer, dimension(5)
+        !> [procedure_type,edge_min,edge_max,coord,match_nb]
+        !
+        !> @return p_larger_than_q
+        !> logical indicating whether p>q
+        !--------------------------------------------------------------
         function order_bc_sections(p,q)
      $     result(p_larger_than_q)
         
@@ -742,6 +1160,23 @@
         end function order_bc_sections
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> permutation of two bc_sections
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param p
+        !> representation of a boundary layer: integer, dimension(5)
+        !> [procedure_type,edge_min,edge_max,coord,match_nb]
+        !
+        !> @param q
+        !> representation of a boundary layer: integer, dimension(5)
+        !> [procedure_type,edge_min,edge_max,coord,match_nb]
+        !--------------------------------------------------------------
         subroutine exchange_bc_sections(p,q)
 
           implicit none
@@ -757,6 +1192,18 @@
         end subroutine exchange_bc_sections
 
         
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> use bubble sorting to order the bc_section array
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param a
+        !> bc_section array sorted
+        !--------------------------------------------------------------
         subroutine bubble_sort(a)
 
           implicit none
@@ -786,6 +1233,27 @@
         end subroutine bubble_sort
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> turn a boundary layer represented with 
+        !> [procedure_type,edge_min,edge_max,coord,match_nb]
+        !> into a reduced element where only the information needed
+        !> to compute the boundary points are kept:
+        !> [procedure_type,i_min,j_min,extent]
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param bc_section
+        !> boundary layer represented as
+        !> [procedure_type,edge_min,edge_max,coord,match_nb]
+        !
+        !> @param sorted_ele
+        !> boundary layer represented as
+        !> [procedure_type,i_min,j_min,extent]
+        !--------------------------------------------------------------
         function get_sorted_ele(bc_section) result(sorted_ele)
 
           implicit none
@@ -816,7 +1284,12 @@
      $              NW_edge_type,
      $              SE_edge_type,
      $              SW_edge_type)
-               sorted_ele = [bc_section(1),bc_section(2),bc_section(3),0]
+
+               sorted_ele = [
+     $           bc_section(1),
+     $           bc_section(2),
+     $           bc_section(3),
+     $           no_overlap]
 
             case default
                print '(''bf_layer_bc_sections_class'')'
@@ -829,7 +1302,25 @@
         end function get_sorted_ele
 
 
+        
 
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> analyse the sorted elements of boundary layers to identify
+        !> whether some boundary elements overlap (corners and
+        !> anti-corners)
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param bc_sections_sorted
+        !> boundary layer represented as
+        !> [procedure_type,i_min,j_min,extent]
+        !> and ordered with increasing i and increasing j
+        !--------------------------------------------------------------
         subroutine add_overlap_between_corners_and_anti_corners(
      $     bc_sections_sorted)
 
@@ -837,15 +1328,18 @@
 
           integer, dimension(:,:), intent(inout) :: bc_sections_sorted
 
-          integer :: k               !index for the bc_section analyzed
           integer :: k_prev_stage    !index where the bc_section for j-1 begins
           integer :: k_current_stage !index where the bc_section for j begins
 
-          integer :: j_stage
+          integer :: j_current_stage !index for the y-coordinate of the current stage
+          integer :: j_stage         !index for the y-coordinate of the bc_section analyzed
+
+          integer :: k               !index for the bc_section analyzed
+
 
           k_prev_stage    = 1
           k_current_stage = 1
-          j_current_stage = 1
+          j_current_stage = get_j_stage(bc_sections_sorted(:,1))
           
           ! loop over the bc_sections stored in
           ! bc_sections_sorted
@@ -853,6 +1347,11 @@
 
              ! get the j_stage identifying the
              ! j_min component of the bc_section
+             ! this way, we can determine how far
+             ! in the bc_sections_sorted list we
+             ! need to look for to get potential
+             ! anti-corner bc_sections overlaped
+             ! by the corner bc_sections
              j_stage = get_j_stage(bc_sections_sorted(:,k))
              
              ! update the indices identifying the
@@ -864,7 +1363,9 @@
 
              ! if the bc_section analyzed is a corner,
              ! it should be compared to the bc_sections
-             ! of the previous and the next stages 
+             ! of the previous and the next stages
+             ! corresponding to the stages where an
+             ! overlap is possible
              if(is_a_corner(bc_sections_sorted(:,k))) then
                 
                 call compare_corner_to_previous_stage_bc_sections(
@@ -886,6 +1387,32 @@
         end subroutine add_overlap_between_corners_and_anti_corners
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compare the corner located at (i,j) with the boundary layer
+        !> elements located b/w k_min an k_max in bc_sections_sorted
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param corner
+        !> boundary layer represented as [corner_type,i_min,j_min,extent]
+        !
+        !> @param bc_sections_sorted
+        !> boundary layers represented as
+        !> [procedure_type,i_min,j_min,extent]
+        !> and ordered with increasing i and increasing j
+        !
+        !> @param k_min
+        !> index identifying the first element compared in
+        !> bc_sections_sorted
+        !
+        !> @param k_max
+        !> index identifying the last element compared in
+        !> bc_sections_sorted
+        !--------------------------------------------------------------
         subroutine compare_corner_to_previous_stage_bc_sections(
      $     corner,
      $     bc_sections_sorted,
@@ -914,6 +1441,33 @@
         end subroutine compare_corner_to_previous_stage_bc_sections
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compare the corner located at (i,j) with the boundary layer
+        !> elements located from k_min and whose y-position j is such
+        !> that j.le.(j_stage+1) to allow an overlap b/w the corner
+        !> element and the bc_section element
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param corner
+        !> boundary layer represented as [corner_type,i_min,j_min,extent]
+        !
+        !> @param bc_sections_sorted
+        !> boundary layers represented as
+        !> [procedure_type,i_min,j_min,extent]
+        !> and ordered with increasing i and increasing j
+        !
+        !> @param k_min
+        !> index identifying the first element compared in
+        !> bc_sections_sorted
+        !
+        !> @param j_stage
+        !> index identifying the y-position of the corner
+        !--------------------------------------------------------------
         subroutine compare_corner_to_next_stage_bc_sections(
      $     corner,
      $     bc_sections_sorted,
@@ -950,6 +1504,23 @@
         end subroutine compare_corner_to_next_stage_bc_sections
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> modify the properties of the anti_corner boundary layer
+        !> to remove the computation of the grid-points in common
+        !> with the corner boundary layer
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param corner
+        !> boundary layer represented as [corner_type,i_min,j_min,extent]
+        !
+        !> @param anti-corner
+        !> boundary layer represented as [anti_corner_type,i_min,j_min,extent]
+        !--------------------------------------------------------------
         subroutine overlap(corner,anti_corner)
 
           implicit none
@@ -957,51 +1528,294 @@
           integer, dimension(4), intent(in)    :: corner
           integer, dimension(4), intent(inout) :: anti_corner
 
-          
-          !i_corner = i_anti_corner+1
-          if(corner(2).eq.(anti_corner(2)+1)) then
-             call overlap_E(corner,anti_corner)
-          else
+
+          if(corner(3).eq.anti_corner(3)) then
+
+          !i_corner = i_anti_corner+1 AND j_corner = j_anti_corner
+             if(corner(2).eq.(anti_corner(2)+1)) then
+                call overlap_E(anti_corner)
+             else
              
-          !i_corner = i_anti_corner-1
-             if(corner(2).eq.(anti_corner(2)-1)) then
-                call overlap_W(corner,anti_corner)
+          !i_corner = i_anti_corner-1 AND j_corner = j_anti_corner
+                if(corner(2).eq.(anti_corner(2)-1)) then
+                   call overlap_W(anti_corner)
+                end if
              end if
           end if
 
-          !j_corner = j_antj_corner+1
-          if(corner(3).eq.(anti_corner(3)+1)) then
-             call overlap_N(corner,anti_corner)
-          else
+
+          if(corner(2).eq.anti_corner(2)) then
+
+          !j_corner = j_anti_corner+1 AND i_corner = i_anti_corner
+             if(corner(3).eq.(anti_corner(3)+1)) then
+                call overlap_N(anti_corner)
+             else
              
-          !j_corner = j_anti_corner-1
-             if(corner(3).eq.(anti_corner(3)-1)) then
-                call overlap_S(corner,anti_corner)
+          !j_corner = j_anti_corner-1 AND i_corner = i_anti_corner
+                if(corner(3).eq.(anti_corner(3)-1)) then
+                   call overlap_S(anti_corner)
+                end if
              end if
           end if
 
         end subroutine overlap
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> modify the properties of the anti_corner boundary layer
+        !> to remove the computation of North the grid-points in
+        !> common with the corner boundary layer
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param anti-corner
+        !> boundary layer represented as [anti_corner_type,i_min,j_min,extent]
+        !--------------------------------------------------------------
+        subroutine overlap_N(anti_corner)
+
+          implicit none
+
+          integer, dimension(4), intent(inout) :: anti_corner
+
+          
+          select case(anti_corner(4))
+
+            case(no_overlap)
+               anti_corner(4) = N_overlap
+
+            case(N_overlap,NE_overlap,NW_overlap)
+               anti_corner(4) = anti_corner(4)
+
+            case(S_overlap)
+               call error_overlap_incompatible(
+     $              'bf_layer_bc_sections_class',
+     $              'overlap_N',
+     $              anti_corner(4),
+     $              N_overlap)
+
+            case(E_overlap)
+               anti_corner(4) = NE_overlap
+
+            case(W_overlap)
+               anti_corner(4) = NW_overlap
+
+            case default
+               call error_overlap_index(
+     $              'bf_layer_bc_sections_class',
+     $              'overlap_N',
+     $              anti_corner(4))
+
+          end select
+
+        end subroutine overlap_N
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> modify the properties of the anti_corner boundary layer
+        !> to remove the computation of South the grid-points in
+        !> common with the corner boundary layer
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param anti-corner
+        !> boundary layer represented as [anti_corner_type,i_min,j_min,extent]
+        !--------------------------------------------------------------
+        subroutine overlap_S(anti_corner)
+
+          implicit none
+
+          integer, dimension(4), intent(inout) :: anti_corner
+
+          
+          select case(anti_corner(4))
+
+            case(no_overlap)
+               anti_corner(4) = S_overlap
+
+            case(S_overlap,SE_overlap,SW_overlap)
+               anti_corner(4) = anti_corner(4)
+
+            case(N_overlap)
+               call error_overlap_incompatible(
+     $              'bf_layer_bc_sections_class',
+     $              'overlap_S',
+     $              anti_corner(4),
+     $              S_overlap)
+
+            case(E_overlap)
+               anti_corner(4) = SE_overlap
+
+            case(W_overlap)
+               anti_corner(4) = SW_overlap
+
+            case default
+               call error_overlap_index(
+     $              'bf_layer_bc_sections_class',
+     $              'overlap_S',
+     $              anti_corner(4))
+
+          end select
+
+        end subroutine overlap_S
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> modify the properties of the anti_corner boundary layer
+        !> to remove the computation of East the grid-points in
+        !> common with the corner boundary layer
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param anti-corner
+        !> boundary layer represented as [anti_corner_type,i_min,j_min,extent]
+        !--------------------------------------------------------------
+        subroutine overlap_E(anti_corner)
+
+          implicit none
+
+          integer, dimension(4), intent(inout) :: anti_corner
+
+          
+          select case(anti_corner(4))
+
+            case(no_overlap)
+               anti_corner(4) = E_overlap
+
+            case(E_overlap,SE_overlap,NE_overlap)
+               anti_corner(4) = anti_corner(4)
+               
+            case(W_overlap)
+               call error_overlap_incompatible(
+     $              'bf_layer_bc_sections_class',
+     $              'overlap_E',
+     $              anti_corner(4),
+     $              E_overlap)
+
+            case(N_overlap)
+               anti_corner(4) = NE_overlap
+
+            case(S_overlap)
+               anti_corner(4) = SE_overlap
+
+            case default
+               call error_overlap_index(
+     $              'bf_layer_bc_sections_class',
+     $              'overlap_E',
+     $              anti_corner(4))
+
+          end select
+
+        end subroutine overlap_E
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> modify the properties of the anti_corner boundary layer
+        !> to remove the computation of West the grid-points in
+        !> common with the corner boundary layer
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param anti-corner
+        !> boundary layer represented as [anti_corner_type,i_min,j_min,extent]
+        !--------------------------------------------------------------
+        subroutine overlap_W(anti_corner)
+
+          implicit none
+
+          integer, dimension(4), intent(inout) :: anti_corner
+
+          
+          select case(anti_corner(4))
+
+            case(no_overlap)
+               anti_corner(4) = W_overlap
+
+            case(W_overlap,SW_overlap,NW_overlap)
+               anti_corner(4) = anti_corner(4)
+               
+            case(E_overlap)
+               call error_overlap_incompatible(
+     $              'bf_layer_bc_sections_class',
+     $              'overlap_W',
+     $              anti_corner(4),
+     $              W_overlap)
+
+            case(N_overlap)
+               anti_corner(4) = NW_overlap
+
+            case(S_overlap)
+               anti_corner(4) = SW_overlap
+
+            case default
+               call error_overlap_index(
+     $              'bf_layer_bc_sections_class',
+     $              'overlap_W',
+     $              anti_corner(4))
+
+          end select
+
+        end subroutine overlap_W
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the boundary layer is an anti-corner
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param bc_section
+        !> boundary layer represented as [procedure_type,i_min,j_min,extent]
+        !--------------------------------------------------------------
         function is_an_anti_corner(bc_section)
 
           implicit none
 
           integer, dimension(4), intent(in) :: bc_section
-          logical                           :: is_a_corner
+          logical                           :: is_an_anti_corner
 
           integer :: procedure_type
 
           procedure_type = bc_section(1)
 
-          is_a_corner = (procedure_type.eq.NE_edge_type).or.
-     $                  (procedure_type.eq.NW_edge_type).or.
-     $                  (procedure_type.eq.SE_edge_type).or.
-     $                  (procedure_type.eq.SW_edge_type)
+          is_an_anti_corner = (procedure_type.eq.NE_edge_type).or.
+     $                        (procedure_type.eq.NW_edge_type).or.
+     $                        (procedure_type.eq.SE_edge_type).or.
+     $                        (procedure_type.eq.SW_edge_type)
 
         end function is_an_anti_corner
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the boundary layer is a corner
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param bc_section
+        !> boundary layer represented as [procedure_type,i_min,j_min,extent]
+        !--------------------------------------------------------------
         function is_a_corner(bc_section)
 
           implicit none
@@ -1021,6 +1835,19 @@
         end function is_a_corner
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the index identifying the y-position of the boundary
+        !> layer
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param bc_section_sorted
+        !> boundary layer represented as [procedure_type,i_min,j_min,extent]
+        !--------------------------------------------------------------
         function get_j_stage(bc_section_sorted)
 
           implicit none
@@ -1033,7 +1860,22 @@
         end function get_j_stage
 
 
-
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the 'nb_ele_temp' attribute
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !> @return nb_ele_temp
+        !> 'nb_ele_temp' attribute
+        !--------------------------------------------------------------
         function get_nb_ele_temp(this) result(nb_ele_temp)
 
           implicit none
@@ -1046,6 +1888,22 @@
         end function get_nb_ele_temp
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the 'nb_ele_final' attribute
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !> @return nb_ele_temp
+        !> 'nb_ele_final' attribute
+        !--------------------------------------------------------------
         function get_nb_ele_final(this) result(nb_ele_final)
 
           implicit none
@@ -1058,7 +1916,19 @@
         end function get_nb_ele_final
 
 
-        !print the boundary layers saved in the bc_sections
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the boundary layers saved in the bc_sections
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !--------------------------------------------------------------
         subroutine print_bc_sections(this)
         
           implicit none
@@ -1100,6 +1970,22 @@
         end subroutine print_bc_sections
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the 'bc_sections_temp' attribute
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !>@return bc_sections_temp
+        !> 'bc_sections_temp' attribute
+        !--------------------------------------------------------------
         subroutine get_bc_sections_temp(this,bc_sections_temp)
 
           implicit none
@@ -1119,6 +2005,22 @@
         end subroutine get_bc_sections_temp
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the 'bc_sections_buffer' attribute
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !>@return bc_sections_buffer
+        !> 'bc_sections_buffer' attribute
+        !--------------------------------------------------------------
         subroutine get_bc_sections_buffer(this,bc_sections_buffer)
 
           implicit none
@@ -1138,6 +2040,22 @@
         end subroutine get_bc_sections_buffer
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the 'bc_sections_final' attribute
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !  
+        !> @return bc_sections_final
+        !> 'bc_sections_final' attribute
+        !--------------------------------------------------------------
         subroutine get_bc_sections_final(this,bc_sections_final)
 
           implicit none
@@ -1157,6 +2075,22 @@
         end subroutine get_bc_sections_final
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the boundary layer information in a human
+        !> readable format
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param k
+        !> index identifying the boundary layer printed
+        !
+        !> @param bc_section represented as
+        !> [procedure_type,edge_min,edge_max,coord,match_nb]
+        !--------------------------------------------------------------
         subroutine print_bc_procedure(k,bc_section)
 
           implicit none
