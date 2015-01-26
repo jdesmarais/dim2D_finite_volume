@@ -2204,22 +2204,30 @@
           compute_point1 = .not.(
      $         (overlap_type.eq.S_overlap).or.
      $         (overlap_type.eq.W_overlap).or.
-     $         (overlap_type.eq.SW_overlap))
+     $         (overlap_type.eq.SE_overlap).or.
+     $         (overlap_type.eq.SW_overlap).or.
+     $         (overlap_type.eq.NW_overlap))
 
           compute_point2 = .not.(
      $         (overlap_type.eq.S_overlap).or.
      $         (overlap_type.eq.E_overlap).or.
-     $         (overlap_type.eq.SE_overlap))
+     $         (overlap_type.eq.SE_overlap).or.
+     $         (overlap_type.eq.SW_overlap).or.
+     $         (overlap_type.eq.NE_overlap))
 
           compute_point3 = .not.(
-     $         (overlap_type.eq.E_overlap).or.
+     $         (overlap_type.eq.N_overlap).or.
      $         (overlap_type.eq.W_overlap).or.
-     $         (overlap_type.eq.NW_overlap))
+     $         (overlap_type.eq.NW_overlap).or.
+     $         (overlap_type.eq.NE_overlap).or.
+     $         (overlap_type.eq.SW_overlap))
 
           compute_point4 = .not.(
      $         (overlap_type.eq.N_overlap).or.
      $         (overlap_type.eq.E_overlap).or.
-     $         (overlap_type.eq.NE_overlap))
+     $         (overlap_type.eq.NE_overlap).or.
+     $         (overlap_type.eq.NW_overlap).or.
+     $         (overlap_type.eq.SE_overlap))
 
         end subroutine determine_edge_points_computed
 
