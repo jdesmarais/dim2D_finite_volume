@@ -1356,9 +1356,10 @@
              
              ! update the indices identifying the
              ! prev and next j-stages
-             if(j_stage.ge.j_current_stage) then
+             if(j_stage.gt.j_current_stage) then
                 k_prev_stage    = k_current_stage
                 k_current_stage = k
+                j_current_stage = j_stage
              end if
 
              ! if the bc_section analyzed is a corner,

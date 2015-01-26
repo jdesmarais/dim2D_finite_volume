@@ -2039,24 +2039,24 @@ c$$$          deallocate(test_bc_sections_buffer)
 
 
           !initialization of bc_sections_sorted
-          bc_sections_sorted(:, 1) = [NE_edge_type  ,1,1,0] !-> no_overlap
-          bc_sections_sorted(:, 2) = [E_edge_type   ,1,1,3]
-          bc_sections_sorted(:, 3) = [NW_edge_type  ,1,2,0] !-> N_overlap
-          bc_sections_sorted(:, 4) = [N_edge_type   ,2,2,3]
-          bc_sections_sorted(:, 5) = [NW_corner_type,1,3,0] !-> for N_overlap
-          bc_sections_sorted(:, 6) = [S_edge_type   ,2,3,3]
-          bc_sections_sorted(:, 7) = [SW_edge_type  ,3,3,0] !-> NE_overlap
-          bc_sections_sorted(:, 8) = [SE_corner_type,4,3,0] !-> for E_overlap
-          bc_sections_sorted(:, 9) = [SW_corner_type,3,4,0] !-> for N_overlap
-          bc_sections_sorted(:,10) = [W_edge_type   ,2,5,3]
-          bc_sections_sorted(:,11) = [SW_corner_type,6,5,0] !-> for W_overlap
-          bc_sections_sorted(:,12) = [SE_edge_type  ,7,5,0] !-> NW_overlap
-          bc_sections_sorted(:,13) = [SE_corner_type,7,6,0] !-> for N_overlap
-          bc_sections_sorted(:,14) = [SW_corner_type,6,7,0] !-> for W_overlap
-          bc_sections_sorted(:,15) = [SE_edge_type  ,7,7,0] !-> W_overlap
-          bc_sections_sorted(:,16) = [SE_edge_type  ,8,9,0] !-> E_overlap
-          bc_sections_sorted(:,17) = [W_edge_type   ,9,9,9]
-          bc_sections_sorted(:,18) = [SW_corner_type,9,9,0] !-> for E_overlap
+          bc_sections_sorted(:, 1) = [NE_edge_type  ,1, 1,0] !-> no_overlap
+          bc_sections_sorted(:, 2) = [E_edge_type   ,1, 1,3]
+          bc_sections_sorted(:, 3) = [NW_edge_type  ,1, 2,0] !-> N_overlap
+          bc_sections_sorted(:, 4) = [N_edge_type   ,2, 2,3]
+          bc_sections_sorted(:, 5) = [NW_corner_type,1, 3,0] !-> for N_overlap
+          bc_sections_sorted(:, 6) = [S_edge_type   ,2, 3,3]
+          bc_sections_sorted(:, 7) = [SW_edge_type  ,3, 3,0] !-> NE_overlap
+          bc_sections_sorted(:, 8) = [SE_corner_type,4, 3,0] !-> for E_overlap
+          bc_sections_sorted(:, 9) = [SW_corner_type,3, 4,0] !-> for N_overlap
+          bc_sections_sorted(:,10) = [W_edge_type   ,2, 5,3]
+          bc_sections_sorted(:,11) = [SW_corner_type,6, 5,0] !-> for W_overlap
+          bc_sections_sorted(:,12) = [SE_edge_type  ,7, 5,0] !-> NW_overlap
+          bc_sections_sorted(:,13) = [SE_corner_type,7, 6,0] !-> for N_overlap
+          bc_sections_sorted(:,14) = [SW_corner_type,6, 8,0] !-> for W_overlap
+          bc_sections_sorted(:,15) = [SE_edge_type  ,7, 8,0] !-> W_overlap
+          bc_sections_sorted(:,16) = [SE_edge_type  ,8,10,0] !-> E_overlap
+          bc_sections_sorted(:,17) = [W_edge_type   ,9,10,9]
+          bc_sections_sorted(:,18) = [SW_corner_type,9,10,0] !-> for E_overlap
           
 
           !initialization of test_bc_sections_sorted
