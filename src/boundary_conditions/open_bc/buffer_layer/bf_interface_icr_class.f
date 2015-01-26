@@ -1531,7 +1531,6 @@
 
                   cpt_coord = get_central_grdpt_bc_direction(
      $                 d_icoord,
-     $                 d_rcoord,
      $                 bc_direction,
      $                 relative_bc_coords,
      $                 interior_x_map,
@@ -1643,7 +1642,6 @@
         !--------------------------------------------------------------
         function get_central_grdpt_bc_direction(
      $     d_icoord,
-     $     d_rcoord,
      $     bc_direction,
      $     relative_bc_coords,
      $     interior_x_map,
@@ -1655,7 +1653,6 @@
           implicit none
 
           integer(ikind), dimension(2) , intent(in)  :: d_icoord
-          real(rkind)   , dimension(2) , intent(in)  :: d_rcoord
           real(rkind)   , dimension(2) , intent(in)  :: bc_direction
           real(rkind)   , dimension(2) , intent(in)  :: relative_bc_coords
           real(rkind)   , dimension(nx), intent(in)  :: interior_x_map

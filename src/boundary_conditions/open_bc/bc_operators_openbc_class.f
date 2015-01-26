@@ -23,7 +23,7 @@
      $       compute_edge_N,
      $       compute_edge_S,
      $       compute_edge_E,
-     $       compute_edge_W  
+     $       compute_edge_W
 
         use bf_layer_bc_procedure_module, only :
      $       N_edge_type,
@@ -38,6 +38,9 @@
      $       SE_edge_type,
      $       NW_edge_type,
      $       NE_edge_type
+
+        use bf_layer_errors_module, only :
+     $       error_bc_section_type
 
         use interface_primary, only :
      $       gradient_x_proc,
@@ -63,11 +66,6 @@
      $       gradient_x_x_oneside_R0,
      $       gradient_y_y_oneside_L0,
      $       gradient_y_y_oneside_R0
-c$$$     $       gradient_x_x_oneside_L1,
-c$$$     $       gradient_x_x_oneside_R1,
-c$$$     $       gradient_y_y_oneside_L1,
-c$$$     $       gradient_y_y_oneside_R1
-
 
         use sd_operators_x_oneside_L0_class, only :
      $     sd_operators_x_oneside_L0
@@ -121,6 +119,9 @@ c$$$     $       gradient_y_y_oneside_R1
            procedure(tdev_x_edge)   , pass, deferred :: apply_bc_on_timedev_E_edge
            procedure(tdev_x_edge)   , pass, deferred :: apply_bc_on_timedev_W_edge
            procedure(tdev_xy_corner), pass, deferred :: apply_bc_on_timedev_xy_corner
+
+           procedure                , pass           :: compute_timedev_corner
+           procedure(tdev_xy_edge)  , pass, deferred :: compute_timedev_anti_corner
 
         end type bc_operators_openbc
 
@@ -332,6 +333,124 @@ c$$$     $       gradient_y_y_oneside_R1
            
            end subroutine tdev_y_edge
 
+
+           !> @author
+           !> Julien L. Desmarais
+           !
+           !> @brief
+           !> compute the time derivatives at (i,j) resulting
+           !> of the application of the boundary condition on
+           !> an xy edge: NE_edge, NW_edge, SE_edge, SW_edge
+           !
+           !> @date
+           !> 26_01_2014 - initial version - J.L. Desmarais
+           !
+           !>@param p_model
+           !> object encapsulating the physical model
+           !
+           !>@param t
+           !> simulation time for boundary conditions depending
+           !> on time
+           !
+           !>@param nodes
+           !> object encapsulating the main variables
+           !
+           !>@param x_map
+           !> coordinates along the x-direction
+           !
+           !>@param y_map
+           !> coordinates along the y-direction
+           !
+           !>@param flux_x
+           !> fluxes along the x-direction
+           !
+           !>@param flux_y
+           !> fluxes along the y-direction
+           !
+           !>@param s_y_L0
+           !> space discretization operator with no grid points
+           !> on the left side
+           !
+           !>@param s_y_L1
+           !> space discretization operator with one grid point
+           !> on the left side
+           !
+           !>@param s_y_R1
+           !> space discretization operator with one grid point
+           !> on the right side
+           !
+           !>@param s_y_R0
+           !> space discretization operator with no grid point
+           !> on the right side
+           !
+           !>@param dx
+           !> space step along the x-direction
+           !
+           !>@param dy
+           !> space step along the y-direction
+           !
+           !>@param i_min
+           !> lower border of the bc_section along the x-direction
+           !
+           !>@param j_min
+           !> lower border of the bc_section along the y-direction
+           !
+           !>@param edge_type
+           !> type of edge (NE_edge_type, NW_edge_type, SE_edge_type,
+           !> SW_edge_type)
+           !
+           !>@param timedev
+           !> time derivatives of the grid points
+           !--------------------------------------------------------------
+           subroutine tdev_xy_edge(
+     $        this,
+     $        p_model,
+     $        t, nodes, x_map, y_map,
+     $        flux_x, flux_y,
+     $        s_x_L0, s_x_L1, s_x_R1, s_x_R0,
+     $        s_y_L0, s_y_L1, s_y_R1, s_y_R0,
+     $        dx, dy,
+     $        bc_section,
+     $        timedev)
+           
+             import bc_operators_openbc
+             import pmodel_eq
+             import ikind
+             import rkind
+
+             import sd_operators_x_oneside_L0
+             import sd_operators_x_oneside_L1
+             import sd_operators_x_oneside_R1
+             import sd_operators_x_oneside_R0
+
+             import sd_operators_y_oneside_L0
+             import sd_operators_y_oneside_L1
+             import sd_operators_y_oneside_R1
+             import sd_operators_y_oneside_R0
+           
+             class(bc_operators_openbc)     , intent(in)    :: this
+             type(pmodel_eq)                , intent(in)    :: p_model
+             real(rkind)                    , intent(in)    :: t
+             real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
+             real(rkind), dimension(:)      , intent(in)    :: x_map
+             real(rkind), dimension(:)      , intent(in)    :: y_map
+             real(rkind), dimension(:,:,:)  , intent(inout) :: flux_x
+             real(rkind), dimension(:,:,:)  , intent(inout) :: flux_y
+             type(sd_operators_x_oneside_L0), intent(in)    :: s_x_L0
+             type(sd_operators_x_oneside_L1), intent(in)    :: s_x_L1
+             type(sd_operators_x_oneside_R1), intent(in)    :: s_x_R1
+             type(sd_operators_x_oneside_R0), intent(in)    :: s_x_R0
+             type(sd_operators_y_oneside_L0), intent(in)    :: s_y_L0
+             type(sd_operators_y_oneside_L1), intent(in)    :: s_y_L1
+             type(sd_operators_y_oneside_R1), intent(in)    :: s_y_R1
+             type(sd_operators_y_oneside_R0), intent(in)    :: s_y_R0
+             real(rkind)                    , intent(in)    :: dx
+             real(rkind)                    , intent(in)    :: dy
+             integer    , dimension(4)      , intent(in)    :: bc_section
+             real(rkind), dimension(:,:,:)  , intent(inout) :: timedev
+           
+           end subroutine tdev_xy_edge
+
            
            !> @author
            !> Julien L. Desmarais
@@ -452,9 +571,7 @@ c$$$     $       gradient_y_y_oneside_R1
           real(rkind)    :: dx,dy
           integer(ikind) :: i_min, i_max
           integer(ikind) :: j_min, j_max
-          integer(ikind) :: i,j
           integer        :: k
-          logical        :: side_x, side_y
           logical        :: compute_edge
           
 
@@ -568,6 +685,7 @@ c$$$     $       gradient_y_y_oneside_R1
      $                       timedev)
                   
                      end if
+
                   
                   case(W_edge_type)
                   
@@ -599,232 +717,41 @@ c$$$     $       gradient_y_y_oneside_R1
                   
                      end if
 
+                  ! corner type bc_section
+                  case(NE_corner_type,
+     $                 NW_corner_type,
+     $                 SE_corner_type,
+     $                 SW_corner_type)
 
-                  case(SW_corner_type,SW_edge_type)
+                    call this%compute_timedev_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,
+     $                 bc_sections(:,k),
+     $                 timedev)
 
-                     i_min=bc_sections(2,k)
-                     j_min=bc_sections(3,k)
 
-                     compute_edge =
-     $                    compute_edge_S(j_min,y_map,bc_timedev_choice).and.
-     $                    compute_edge_W(i_min,x_map,bc_timedev_choice)
+                  ! anti-corner type bc_section
+                  case(NE_edge_type,
+     $                 NW_edge_type,
+     $                 SE_edge_type,
+     $                 SW_edge_type)
 
-                     !determine the extent of the edge from the
-                     !bc_section and compute the time derivatives
-                     if(compute_edge) then
-
-                        side_x = left
-                        side_y = left
-
-                        i=i_min
-                        j=j_min
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_L0,
-     $                       gradient_y_y_oneside_L0)
-                        
-                        i=i_min+1
-                        j=j_min
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_L0,
-     $                       gradient_y_y_oneside_L0)
-
-                        i=i_min
-                        j=j_min+1
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_L0,
-     $                       gradient_y_y_oneside_L0)
-                        
-                        i=i_min+1
-                        j=j_min+1
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_L0,
-     $                       gradient_y_y_oneside_L0)
-                        
-                     end if
-
-                  case(SE_corner_type,SE_edge_type)
-
-                     i_min=bc_sections(2,k)
-                     j_min=bc_sections(3,k)
+                    call this%compute_timedev_anti_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,
+     $                 flux_x,flux_y,
+     $                 s_x_L0, s_x_L1, s_x_R1, s_x_R0,
+     $                 s_y_L0, s_y_L1, s_y_R1, s_y_R0,
+     $                 dx,dy,
+     $                 bc_sections(:,k),
+     $                 timedev)
                      
-                     compute_edge =
-     $                    compute_edge_S(j_min,y_map,bc_timedev_choice).and.
-     $                    compute_edge_E(i_min,x_map,bc_timedev_choice)
-                     
-                     if(compute_edge) then
 
-                        side_x = right
-                        side_y = left
-
-                        i=i_min
-                        j=j_min
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_R0,
-     $                       gradient_y_y_oneside_L0)
-                        
-                        i=i_min+1
-                        j=j_min
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_R0,
-     $                       gradient_y_y_oneside_L0)
-                        
-                        i=i_min
-                        j=j_min+1
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_R0,
-     $                       gradient_y_y_oneside_L0)
-                        
-                        i=i_min+1
-                        j=j_min+1
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_R0,
-     $                       gradient_y_y_oneside_L0)
-
-                     end if
-                     
-                  case(NW_corner_type,NW_edge_type)
-
-                     i_min=bc_sections(2,k)
-                     j_min=bc_sections(3,k)
-
-                     compute_edge =
-     $                    compute_edge_N(j_min,y_map,bc_timedev_choice).and.
-     $                    compute_edge_W(i_min,x_map,bc_timedev_choice)
-                     
-                     if(compute_edge) then
-
-                        side_x = left
-                        side_y = right
-                        
-                        i=i_min
-                        j=j_min
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_L0,
-     $                       gradient_y_y_oneside_R0)
-
-                        i=i_min+1
-                        j=j_min
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_L0,
-     $                       gradient_y_y_oneside_R0)
-
-                        i=i_min
-                        j=j_min+1
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_L0,
-     $                       gradient_y_y_oneside_R0)
-
-                        i=i_min+1
-                        j=j_min+1
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_L0,
-     $                       gradient_y_y_oneside_R0)
-
-                     end if
-
-                  case(NE_corner_type,NE_edge_type)
-
-                     i_min=bc_sections(2,k)
-                     j_min=bc_sections(3,k)
-
-                     compute_edge =
-     $                    compute_edge_N(j_min,y_map,bc_timedev_choice).and.
-     $                    compute_edge_E(i_min,x_map,bc_timedev_choice)
-                     
-                     if(compute_edge) then
-
-                        side_x = right
-                        side_y = right
-
-                        i=i_min
-                        j=j_min
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_R0,
-     $                       gradient_y_y_oneside_R0)
-
-                        i=i_min+1
-                        j=j_min
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_R0,
-     $                       gradient_y_y_oneside_R0)
-
-                        i=i_min
-                        j=j_min+1
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_R0,
-     $                       gradient_y_y_oneside_R0)
-
-                        i=i_min+1
-                        j=j_min+1
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y,
-     $                       gradient_x_x_oneside_R0,
-     $                       gradient_y_y_oneside_R0)
-
-                     end if
+                  case default
+                     call error_bc_section_type(
+     $                    'bc_operators_openbc_class',
+     $                    'apply_bc_on_timedev_nopt',
+     $                    bc_sections(1,k))
 
                   end select
 
@@ -833,5 +760,296 @@ c$$$     $       gradient_y_y_oneside_R1
             end if
            
         end subroutine apply_bc_on_timedev_nopt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives at (i,j) resulting
+        !> of the application of the boundary condition on
+        !> an xy edge: NE_edge, NW_edge, SE_edge, SW_edge
+        !
+        !> @date
+        !> 26_01_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> simulation time for boundary conditions depending
+        !> on time
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param x_map
+        !> coordinates along the x-direction
+        !
+        !>@param y_map
+        !> coordinates along the y-direction
+        !
+        !>@param bc_section
+        !> type of corner + properties on the location
+        !
+        !>@param timedev
+        !> time derivatives of the grid points
+        !--------------------------------------------------------------
+        subroutine compute_timedev_corner(
+     $     this,
+     $     p_model, t,
+     $     nodes, x_map, y_map,
+     $     bc_section,
+     $     timedev)
+        
+          implicit none
+        
+          class(bc_operators_openbc)      , intent(in)    :: this
+          type(pmodel_eq)                , intent(in)    :: p_model
+          real(rkind)                    , intent(in)    :: t
+          real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
+          real(rkind), dimension(:)      , intent(in)    :: x_map
+          real(rkind), dimension(:)      , intent(in)    :: y_map
+          integer    , dimension(4)      , intent(in)    :: bc_section
+          real(rkind), dimension(:,:,:)  , intent(inout) :: timedev
+          
+          
+          integer(ikind) :: i,j
+          integer(ikind) :: i_min, j_min
+          logical        :: compute_edge
+          logical        :: side_x, side_y
+
+
+          i_min=bc_section(2)
+          j_min=bc_section(3)
+
+          select case(bc_section(1))
+
+            case(SW_corner_type)
+
+               compute_edge =
+     $              compute_edge_S(j_min,y_map,bc_timedev_choice).and.
+     $              compute_edge_W(i_min,x_map,bc_timedev_choice)
+
+               !determine the extent of the edge from the
+               !bc_section and compute the time derivatives
+               if(compute_edge) then
+
+                  side_x = left
+                  side_y = left
+
+                  i=i_min
+                  j=j_min
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_L0,
+     $                 gradient_y_y_oneside_L0)
+                  
+                  i=i_min+1
+                  j=j_min
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_L0,
+     $                 gradient_y_y_oneside_L0)
+
+                  i=i_min
+                  j=j_min+1
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_L0,
+     $                 gradient_y_y_oneside_L0)
+                  
+                  i=i_min+1
+                  j=j_min+1
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_L0,
+     $                 gradient_y_y_oneside_L0)
+                  
+               end if
+
+
+            case(SE_corner_type)
+               
+               compute_edge =
+     $              compute_edge_S(j_min,y_map,bc_timedev_choice).and.
+     $              compute_edge_E(i_min,x_map,bc_timedev_choice)
+               
+               if(compute_edge) then
+
+                  side_x = right
+                  side_y = left
+
+                  i=i_min
+                  j=j_min
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_R0,
+     $                 gradient_y_y_oneside_L0)
+                  
+                  i=i_min+1
+                  j=j_min
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_R0,
+     $                 gradient_y_y_oneside_L0)
+                  
+                  i=i_min
+                  j=j_min+1
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_R0,
+     $                 gradient_y_y_oneside_L0)
+                  
+                  i=i_min+1
+                  j=j_min+1
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_R0,
+     $                 gradient_y_y_oneside_L0)
+
+               end if
+
+                     
+            case(NW_corner_type)
+
+               compute_edge =
+     $              compute_edge_N(j_min,y_map,bc_timedev_choice).and.
+     $              compute_edge_W(i_min,x_map,bc_timedev_choice)
+               
+               if(compute_edge) then
+
+                  side_x = left
+                  side_y = right
+                  
+                  i=i_min
+                  j=j_min
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_L0,
+     $                 gradient_y_y_oneside_R0)
+
+                  i=i_min+1
+                  j=j_min
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_L0,
+     $                 gradient_y_y_oneside_R0)
+
+                  i=i_min
+                  j=j_min+1
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_L0,
+     $                 gradient_y_y_oneside_R0)
+
+                  i=i_min+1
+                  j=j_min+1
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_L0,
+     $                 gradient_y_y_oneside_R0)
+
+               end if
+
+
+            case(NE_corner_type)
+
+               compute_edge =
+     $              compute_edge_N(j_min,y_map,bc_timedev_choice).and.
+     $              compute_edge_E(i_min,x_map,bc_timedev_choice)
+               
+               if(compute_edge) then
+
+                  side_x = right
+                  side_y = right
+
+                  i=i_min
+                  j=j_min
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_R0,
+     $                 gradient_y_y_oneside_R0)
+
+                  i=i_min+1
+                  j=j_min
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_R0,
+     $                 gradient_y_y_oneside_R0)
+
+                  i=i_min
+                  j=j_min+1
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_R0,
+     $                 gradient_y_y_oneside_R0)
+
+                  i=i_min+1
+                  j=j_min+1
+                  timedev(i,j,:) =
+     $                 this%apply_bc_on_timedev_xy_corner(
+     $                 p_model,
+     $                 t,nodes,x_map,y_map,i,j,
+     $                 side_x, side_y,
+     $                 gradient_x_x_oneside_R0,
+     $                 gradient_y_y_oneside_R0)
+
+               end if
+
+            case default
+               call error_bc_section_type(
+     $              'bc_operators_openbc_class',
+     $              'compute_timedev_corner',
+     $              bc_section(1))
+
+          end select
+
+        end subroutine compute_timedev_corner
 
       end module bc_operators_openbc_class 

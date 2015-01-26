@@ -25,7 +25,8 @@
      $       error_incompatible_neighbor,
      $       error_neighbor_index,
      $       error_overlap_index,
-     $       error_overlap_incompatible
+     $       error_overlap_incompatible,
+     $       error_bc_section_type
 
 
         integer, parameter :: ERROR_MAINLAYER_ID_CODE          = 0
@@ -34,6 +35,7 @@
         integer, parameter :: ERROR_NEIGHBOR_INDEX_CODE        = 3
         integer, parameter :: ERROR_OVERLAP_INDEX_CODE         = 4
         integer, parameter :: ERROR_OVERLAP_INCOMPATIBLE_CODE  = 5
+        integer, parameter :: ERROR_BC_SECTION_TYPE_CODE       = 6
 
 
         contains
@@ -284,5 +286,43 @@
           stop 'error_overlap_incompatible'
 
         end subroutine error_overlap_incompatible
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !< error overlap index.ne.(0,1,2,3,4,5,6,7,8)
+        !
+        !> @date
+        !> 26_01_2014 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param overlap_index
+        !> value of the parameter trigerring the exception
+        !--------------------------------------------------------------
+        subroutine error_bc_section_type(
+     $     file_name, fct_name, bc_section_type)
+
+          implicit none
+
+          character(*), intent(in) :: file_name
+          character(*), intent(in) :: fct_name
+          integer     , intent(in) :: bc_section_type
+
+          write(ERROR_UNIT, '(I3)') ERROR_BC_SECTION_TYPE_CODE
+          write(ERROR_UNIT, '(A)') file_name
+          write(ERROR_UNIT, '(A)') fct_name
+          write(ERROR_UNIT, '(A)') 'bc_section_type not recognized'
+          write(ERROR_UNIT, '(''bc_section_type: '',I2)') bc_section_type
+
+          stop 'error_bc_section_type'
+
+        end subroutine error_bc_section_type
 
       end module bf_layer_errors_module

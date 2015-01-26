@@ -17,6 +17,28 @@
         use bc_operators_openbc_normal_class, only :
      $       bc_operators_openbc_normal
 
+        use bc_operators_nopt_module, only :
+     $       compute_edge_N,
+     $       compute_edge_S,
+     $       compute_edge_E,
+     $       compute_edge_W
+
+        use bf_layer_bc_procedure_module, only :
+     $       SE_edge_type,
+     $       SW_edge_type,
+     $       NE_edge_type,
+     $       NW_edge_type,
+     $       SE_corner_type,
+     $       SW_corner_type,
+     $       NE_corner_type,
+     $       NW_corner_type
+
+        use bf_layer_bc_sections_class, only :
+     $       determine_edge_points_computed
+
+        use bf_layer_errors_module, only :
+     $       error_bc_section_type
+
         use hedstrom_xy_module, only :
      $       compute_timedev_xlayer,
      $       compute_timedev_ylayer,
@@ -40,10 +62,13 @@
         use parameters_constant, only :
      $       bc_timedev_choice,
      $       left,right,
-     $       N,S,E,W
+     $       N,S,E,W,
+     $       obc_edge_xy_corner,
+     $       obc_edge_xy_flux
 
         use parameters_input, only :
-     $       nx,ny,ne,bc_size
+     $       nx,ny,ne,bc_size,
+     $       obc_edge_xy_strategy
 
         use parameters_kind, only :
      $       rkind,ikind
@@ -53,10 +78,6 @@
      $       gradient_x_x_oneside_R0,
      $       gradient_y_y_oneside_L0,
      $       gradient_y_y_oneside_R0
-c$$$     $       gradient_y_y_oneside_L1,
-c$$$     $       gradient_y_y_oneside_R1,
-c$$$     $       gradient_x_x_oneside_L1,
-c$$$     $       gradient_x_x_oneside_R1,
 
         use sd_operators_x_oneside_L0_class, only :
      $       sd_operators_x_oneside_L0
@@ -117,6 +138,8 @@ c$$$     $       gradient_x_x_oneside_R1,
           procedure, pass :: apply_bc_on_timedev_x_edge
           procedure, pass :: apply_bc_on_timedev_y_edge
           procedure, pass :: apply_bc_on_timedev_xy_corner
+
+          procedure, pass :: compute_timedev_anti_corner
 
         end type bc_operators        
       
@@ -569,6 +592,812 @@ c$$$     $       gradient_x_x_oneside_R1,
      $         side_y)
 
         end function apply_bc_on_timedev_y_edge
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives at (i,j) resulting
+        !> of the application of the boundary condition on
+        !> an xy edge: NE_edge, NW_edge, SE_edge, SW_edge
+        !
+        !> @date
+        !> 26_01_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> simulation time for boundary conditions depending
+        !> on time
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param x_map
+        !> coordinates along the x-direction
+        !
+        !>@param y_map
+        !> coordinates along the y-direction
+        !
+        !>@param flux_x
+        !> fluxes along the x-direction
+        !
+        !>@param flux_y
+        !> fluxes along the y-direction
+        !
+        !>@param s_y_L0
+        !> space discretization operator with no grid points
+        !> on the left side
+        !
+        !>@param s_y_L1
+        !> space discretization operator with one grid point
+        !> on the left side
+        !
+        !>@param s_y_R1
+        !> space discretization operator with one grid point
+        !> on the right side
+        !
+        !>@param s_y_R0
+        !> space discretization operator with no grid point
+        !> on the right side
+        !
+        !>@param dx
+        !> space step along the x-direction
+        !
+        !>@param dy
+        !> space step along the y-direction
+        !
+        !>@param bc_section
+        !> type of edge (NE_edge_type, NW_edge_type, SE_edge_type,
+        !> SW_edge_type) and localization of the edge
+        !
+        !>@param timedev
+        !> time derivatives of the grid points
+        !--------------------------------------------------------------
+        subroutine compute_timedev_anti_corner(
+     $     this,
+     $     p_model, t,
+     $     nodes, x_map, y_map,
+     $     flux_x, flux_y,
+     $     s_x_L0, s_x_L1, s_x_R1, s_x_R0,
+     $     s_y_L0, s_y_L1, s_y_R1, s_y_R0,
+     $     dx, dy,
+     $     bc_section,
+     $     timedev)
+        
+          implicit none
+        
+          class(bc_operators)            , intent(in)    :: this
+          type(pmodel_eq)                , intent(in)    :: p_model
+          real(rkind)                    , intent(in)    :: t
+          real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
+          real(rkind), dimension(:)      , intent(in)    :: x_map
+          real(rkind), dimension(:)      , intent(in)    :: y_map
+          real(rkind), dimension(:,:,:)  , intent(inout) :: flux_x
+          real(rkind), dimension(:,:,:)  , intent(inout) :: flux_y
+          type(sd_operators_x_oneside_L0), intent(in)    :: s_x_L0
+          type(sd_operators_x_oneside_L1), intent(in)    :: s_x_L1
+          type(sd_operators_x_oneside_R1), intent(in)    :: s_x_R1
+          type(sd_operators_x_oneside_R0), intent(in)    :: s_x_R0
+          type(sd_operators_y_oneside_L0), intent(in)    :: s_y_L0
+          type(sd_operators_y_oneside_L1), intent(in)    :: s_y_L1
+          type(sd_operators_y_oneside_R1), intent(in)    :: s_y_R1
+          type(sd_operators_y_oneside_R0), intent(in)    :: s_y_R0
+          real(rkind)                    , intent(in)    :: dx
+          real(rkind)                    , intent(in)    :: dy
+          integer    , dimension(4)      , intent(in)    :: bc_section
+          real(rkind), dimension(:,:,:)  , intent(inout) :: timedev
+        
+
+          integer, dimension(4) :: bc_section_modified
+
+
+          select case(obc_edge_xy_strategy)
+
+            !compute the anti-corner as if it was a corner
+            case(obc_edge_xy_corner)
+
+               bc_section_modified = bc_section
+               
+               select case(bc_section(1))
+
+                 case(NW_edge_type)
+                    bc_section_modified(1) = NW_corner_type
+
+                 case(NE_edge_type)
+                    bc_section_modified(1) = NE_corner_type
+
+                 case(SW_edge_type)
+                    bc_section_modified(1) = SW_corner_type
+
+                 case(SE_edge_type)
+                    bc_section_modified(1) = SE_corner_type
+                    
+                 case default
+                    call error_bc_section_type(
+     $                   'hedstrom_xy/bc_operators_class',
+     $                   'compute_timedev_anti_corner',
+     $                   bc_section(1))
+
+               end select
+
+               call this%compute_timedev_corner(
+     $              p_model,
+     $              t,nodes,x_map,y_map,
+     $              bc_section_modified,
+     $              timedev)
+
+
+            ! compute the anti-corner using the fluxes
+            case(obc_edge_xy_flux)
+
+               call compute_timedev_anti_corner_with_fluxes(
+     $              this,
+     $              p_model, t,
+     $              nodes, x_map, y_map, flux_x, flux_y,
+     $              s_x_L0, s_x_L1, s_x_R1, s_x_R0,
+     $              s_y_L0, s_y_L1, s_y_R1, s_y_R0,
+     $              dx, dy,
+     $              bc_section,
+     $              timedev)
+
+
+            case default
+               print '(''bc_operators_class'')'
+               print '(''apply_bc_on_timedev_xy_edge'')'
+               print '(''obc_edge_xy_strategy not recognized'')'
+               print '(''obc_edge_xy_strategy: '',I2)', obc_edge_xy_strategy
+
+               stop 'obc_edge_xy_strategy'
+
+          end select          
+
+        end subroutine compute_timedev_anti_corner
+        
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the time derivatives at (i,j) resulting
+        !> of the application of the boundary condition on
+        !> an xy edge: NE_edge, NW_edge, SE_edge, SW_edge
+        !> using the fluxes
+        !
+        !> @date
+        !> 26_01_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> simulation time for boundary conditions depending
+        !> on time
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !
+        !>@param x_map
+        !> coordinates along the x-direction
+        !
+        !>@param y_map
+        !> coordinates along the y-direction
+        !
+        !>@param flux_x
+        !> fluxes along the x-direction
+        !
+        !>@param flux_y
+        !> fluxes along the y-direction
+        !
+        !>@param s_y_L0
+        !> space discretization operator with no grid points
+        !> on the left side
+        !
+        !>@param s_y_L1
+        !> space discretization operator with one grid point
+        !> on the left side
+        !
+        !>@param s_y_R1
+        !> space discretization operator with one grid point
+        !> on the right side
+        !
+        !>@param s_y_R0
+        !> space discretization operator with no grid point
+        !> on the right side
+        !
+        !>@param dx
+        !> space step along the x-direction
+        !
+        !>@param dy
+        !> space step along the y-direction
+        !
+        !>@param bc_section
+        !> type of edge (NE_edge_type, NW_edge_type, SE_edge_type,
+        !> SW_edge_type) and localization of the edge
+        !
+        !>@param timedev
+        !> time derivatives of the grid points
+        !--------------------------------------------------------------
+        subroutine compute_timedev_anti_corner_with_fluxes(
+     $     this,
+     $     p_model, t,
+     $     nodes, x_map, y_map,
+     $     flux_x, flux_y,
+     $     s_x_L0, s_x_L1, s_x_R1, s_x_R0,
+     $     s_y_L0, s_y_L1, s_y_R1, s_y_R0,
+     $     dx, dy,
+     $     bc_section,
+     $     timedev)
+        
+          implicit none
+        
+          class(bc_operators)            , intent(in)    :: this
+          type(pmodel_eq)                , intent(in)    :: p_model
+          real(rkind)                    , intent(in)    :: t
+          real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
+          real(rkind), dimension(:)      , intent(in)    :: x_map
+          real(rkind), dimension(:)      , intent(in)    :: y_map
+          real(rkind), dimension(:,:,:)  , intent(inout) :: flux_x
+          real(rkind), dimension(:,:,:)  , intent(inout) :: flux_y
+          type(sd_operators_x_oneside_L0), intent(in)    :: s_x_L0
+          type(sd_operators_x_oneside_L1), intent(in)    :: s_x_L1
+          type(sd_operators_x_oneside_R1), intent(in)    :: s_x_R1
+          type(sd_operators_x_oneside_R0), intent(in)    :: s_x_R0
+          type(sd_operators_y_oneside_L0), intent(in)    :: s_y_L0
+          type(sd_operators_y_oneside_L1), intent(in)    :: s_y_L1
+          type(sd_operators_y_oneside_R1), intent(in)    :: s_y_R1
+          type(sd_operators_y_oneside_R0), intent(in)    :: s_y_R0
+          real(rkind)                    , intent(in)    :: dx
+          real(rkind)                    , intent(in)    :: dy
+          integer    , dimension(4)      , intent(in)    :: bc_section
+          real(rkind), dimension(:,:,:)  , intent(inout) :: timedev
+
+          
+          integer(ikind) :: i_min,j_min
+          integer(ikind) :: i,j
+          logical        :: side_x,side_y
+          logical        :: compute_edge
+
+          logical :: compute_point1
+          logical :: compute_point2
+          logical :: compute_point3
+          logical :: compute_point4
+
+
+          i_min = bc_section(2)
+          j_min = bc_section(3)
+
+          
+          call determine_edge_points_computed(
+     $         bc_section(4),
+     $         compute_point1,
+     $         compute_point2,
+     $         compute_point3,
+     $         compute_point4)
+
+
+          select case(bc_section(1))
+
+            !  ___ ___
+            ! |   |CCC|
+            ! |___|CCC|
+            ! |   |   |  NE_edge
+            ! |___|___|
+            !------------
+            case(NE_edge_type)               
+               
+               compute_edge =
+     $              compute_edge_N(j_min,y_map,bc_timedev_choice).and.
+     $              compute_edge_E(i_min,x_map,bc_timedev_choice)
+               
+               if(compute_edge) then
+
+                  side_x = right
+                  side_y = right
+
+                  !  ___ ___
+                  ! |   |   |
+                  ! |___|___|
+                  ! |CCC|   |  NE_edge(1,1): like NE_corner(1,1)
+                  ! |CCC|___|
+                  !------------
+                  if(compute_point1) then
+
+                     i=i_min
+                     j=j_min
+                     
+                     timedev(i,j,:) =
+     $                    this%apply_bc_on_timedev_xy_corner(
+     $                    p_model,
+     $                    t,nodes,x_map,y_map,i,j,
+     $                    side_x, side_y,
+     $                    gradient_x_x_oneside_R0,
+     $                    gradient_y_y_oneside_R0)
+
+                  end if
+
+
+                  !  ___ ___
+                  ! |   |   |
+                  ! |___|___|
+                  ! |   |CCC|  NE_edge(2,1): like N_edge
+                  ! |___|CCC|
+                  !------------
+                  if(compute_point2) then
+
+                     i=i_min+1
+                     j=j_min
+
+                     call this%compute_fluxes_for_bc_y_edge(
+     $                    p_model,
+     $                    nodes,
+     $                    s_y_L0, s_y_L1,
+     $                    s_y_R1, s_y_R0,
+     $                    dx, dy,
+     $                    i, i+1, j,
+     $                    N,
+     $                    flux_x)
+                     
+                     timedev(i,j,:) = 
+     $                    this%apply_bc_on_timedev_y_edge(
+     $                    p_model,
+     $                    t,nodes,
+     $                    x_map,y_map,i,j,
+     $                    flux_x,
+     $                    side_y,
+     $                    gradient_y_y_oneside_R0)
+                     
+                  end if
+
+
+                  !  ___ ___
+                  ! |CCC|   |
+                  ! |CCC|___|
+                  ! |   |   |  NE_edge(2,1): like E_edge
+                  ! |___|___|
+                  !------------
+                  if(compute_point3) then
+
+                     i=i_min
+                     j=j_min+1
+                     
+                     call this%compute_fluxes_for_bc_x_edge(
+     $                    p_model,
+     $                    nodes,
+     $                    s_x_L0, s_x_L1,
+     $                    s_x_R1, s_x_R0,
+     $                    dx, dy,
+     $                    j, j+1, i,
+     $                    E,
+     $                    flux_y)
+
+                     timedev(i,j,:) = 
+     $                    this%apply_bc_on_timedev_x_edge(
+     $                    p_model,
+     $                    t,nodes,
+     $                    x_map,y_map,i,j,
+     $                    flux_y,
+     $                    side_x,
+     $                    gradient_x_x_oneside_R0)
+
+                  end if
+
+
+                  !  ___ ___
+                  ! |   |CCC|
+                  ! |___|CCC|
+                  ! |   |   |  NE_edge(2,2): like NE_corner(2,2)
+                  ! |___|___|
+                  !------------
+                  if(compute_point4) then
+
+                     i=i_min+1
+                     j=j_min+1
+
+                     timedev(i,j,:) =
+     $                    this%apply_bc_on_timedev_xy_corner(
+     $                    p_model,
+     $                    t,nodes,x_map,y_map,i,j,
+     $                    side_x, side_y,
+     $                    gradient_x_x_oneside_R0,
+     $                    gradient_y_y_oneside_R0)
+
+                  end if
+                     
+               end if
+
+
+            !  ___ ___
+            ! |CCC|   |
+            ! |CCC|___|
+            ! |   |   |  NW_edge
+            ! |___|___|
+            !------------
+            case(NW_edge_type)
+
+               compute_edge =
+     $              compute_edge_N(j_min,y_map,bc_timedev_choice).and.
+     $              compute_edge_W(i_min,x_map,bc_timedev_choice)
+               
+               if(compute_edge) then
+
+                  side_x = left
+                  side_y = right
+
+                  !  ___ ___
+                  ! |   |   |
+                  ! |___|___|
+                  ! |CCC|   |  NW_edge(1,1): like N_edge
+                  ! |CCC|___|
+                  !------------
+                  if(compute_point1) then
+
+                     i=i_min
+                     j=j_min
+
+                     call this%compute_fluxes_for_bc_y_edge(
+     $                    p_model,
+     $                    nodes,
+     $                    s_y_L0, s_y_L1,
+     $                    s_y_R1, s_y_R0,
+     $                    dx, dy,
+     $                    i, i+1, j,
+     $                    N,
+     $                    flux_x)
+                     
+                     timedev(i,j,:) = 
+     $                    this%apply_bc_on_timedev_y_edge(
+     $                    p_model,
+     $                    t,nodes,
+     $                    x_map,y_map,i,j,
+     $                    flux_x,
+     $                    side_y,
+     $                    gradient_y_y_oneside_R0)
+
+                  end if
+
+
+                  !  ___ ___
+                  ! |   |   |
+                  ! |___|___|
+                  ! |   |CCC|  NW_edge(2,1): like NW_corner(2,1)
+                  ! |___|CCC|
+                  !------------
+                  if(compute_point2) then
+
+                     i=i_min+1
+                     j=j_min
+
+                     timedev(i,j,:) =
+     $                    this%apply_bc_on_timedev_xy_corner(
+     $                    p_model,
+     $                    t,nodes,x_map,y_map,i,j,
+     $                    side_x, side_y,
+     $                    gradient_x_x_oneside_L0,
+     $                    gradient_y_y_oneside_R0)
+
+                  end if
+
+
+                  !  ___ ___
+                  ! |CCC|   |
+                  ! |CCC|___|
+                  ! |   |   |  NW_edge(1,2): like NW_corner(1,2)
+                  ! |___|___|
+                  !------------
+                  if(compute_point3) then
+
+                     i=i_min
+                     j=j_min+1
+
+                     timedev(i,j,:) =
+     $                    this%apply_bc_on_timedev_xy_corner(
+     $                    p_model,
+     $                    t,nodes,x_map,y_map,i,j,
+     $                    side_x, side_y,
+     $                    gradient_x_x_oneside_L0,
+     $                    gradient_y_y_oneside_R0)                     
+
+                  end if
+
+
+                  !  ___ ___
+                  ! |   |CCC|
+                  ! |___|CCC|
+                  ! |   |   |  NW_edge(2,2): like W_edge
+                  ! |___|___|
+                  !------------
+                  if(compute_point4) then
+
+                     i=i_min+1
+                     j=j_min+1
+
+                     call this%compute_fluxes_for_bc_x_edge(
+     $                    p_model,
+     $                    nodes,
+     $                    s_x_L0, s_x_L1,
+     $                    s_x_R1, s_x_R0,
+     $                    dx, dy,
+     $                    j,j+1,i,
+     $                    W,
+     $                    flux_y)
+
+                     timedev(i,j,:) = 
+     $                    this%apply_bc_on_timedev_x_edge(
+     $                    p_model,
+     $                    t,nodes,
+     $                    x_map,y_map,i,j,
+     $                    flux_y,
+     $                    side_x,
+     $                    gradient_x_x_oneside_L0)
+
+                  end if
+
+               end if
+
+
+            !  ___ ___
+            ! |   |   |
+            ! |___|___|
+            ! |CCC|   |  SW_edge
+            ! |CCC|___|
+            !------------
+            case(SW_edge_type)
+
+               compute_edge =
+     $              compute_edge_S(j_min,y_map,bc_timedev_choice).and.
+     $              compute_edge_W(i_min,x_map,bc_timedev_choice)
+               
+               if(compute_edge) then
+
+                  side_x = left
+                  side_y = left
+
+                  !  ___ ___
+                  ! |   |   |
+                  ! |___|___|
+                  ! |CCC|   |  SW_edge(1,1): like SW_corner(1,1)
+                  ! |CCC|___|
+                  !------------
+                  if(compute_point1) then
+
+                     i=i_min
+                     j=j_min
+                     
+                     timedev(i,j,:) =
+     $                    this%apply_bc_on_timedev_xy_corner(
+     $                    p_model,
+     $                    t,nodes,x_map,y_map,i,j,
+     $                    side_x, side_y,
+     $                    gradient_x_x_oneside_L0,
+     $                    gradient_y_y_oneside_L0)
+
+                  end if
+                     
+
+                  !  ___ ___
+                  ! |   |   |
+                  ! |___|___|
+                  ! |   |CCC|  SW_edge(2,1): like W_edge
+                  ! |___|CCC|
+                  !------------
+                  if(compute_point2) then
+
+                     i=i_min+1
+                     j=j_min
+                     
+                     call this%compute_fluxes_for_bc_x_edge(
+     $                    p_model,
+     $                    nodes,
+     $                    s_x_L0, s_x_L1,
+     $                    s_x_R1, s_x_R0,
+     $                    dx, dy,
+     $                    j,j+1,i,
+     $                    W,
+     $                    flux_y)
+
+                     timedev(i,j,:) = 
+     $                    this%apply_bc_on_timedev_x_edge(
+     $                    p_model,
+     $                    t,nodes,
+     $                    x_map,y_map,i,j,
+     $                    flux_y,
+     $                    side_x,
+     $                    gradient_x_x_oneside_L0)
+
+                  end if
+
+
+                  !  ___ ___
+                  ! |CCC|   |
+                  ! |CCC|___|
+                  ! |   |   |  SW_edge(2,1): like S_edge
+                  ! |___|___|
+                  !------------
+                  if(compute_point3) then
+
+                     i=i_min
+                     j=j_min+1
+
+                     call this%compute_fluxes_for_bc_y_edge(
+     $                    p_model,
+     $                    nodes,
+     $                    s_y_L0, s_y_L1,
+     $                    s_y_R1, s_y_R0,
+     $                    dx, dy,
+     $                    i,i+1,j,
+     $                    S,
+     $                    flux_x)
+                     
+                     timedev(i,j,:) = 
+     $                    this%apply_bc_on_timedev_y_edge(
+     $                    p_model,
+     $                    t,nodes,
+     $                    x_map,y_map,i,j,
+     $                    flux_x,
+     $                    side_y,
+     $                    gradient_y_y_oneside_L0)
+
+                  end if
+
+
+                  !  ___ ___
+                  ! |   |CCC|
+                  ! |___|CCC|
+                  ! |   |   |  SW_edge(2,2): like SW_corner(2,2)
+                  ! |___|___|
+                  !------------
+                  if(compute_point4) then
+
+                     i=i_min+1
+                     j=j_min+1
+                     
+                     timedev(i,j,:) =
+     $                    this%apply_bc_on_timedev_xy_corner(
+     $                    p_model,
+     $                    t,nodes,x_map,y_map,i,j,
+     $                    side_x, side_y,
+     $                    gradient_x_x_oneside_L0,
+     $                    gradient_y_y_oneside_L0)
+
+                  end if
+
+               end if
+
+
+            !  ___ ___
+            ! |   |   |
+            ! |___|___|
+            ! |   |CCC|  SE_edge
+            ! |___|CCC|
+            !------------
+            case(SE_edge_type)
+
+               compute_edge =
+     $              compute_edge_S(j_min,y_map,bc_timedev_choice).and.
+     $              compute_edge_E(i_min,x_map,bc_timedev_choice)
+               
+               if(compute_edge) then
+
+                  side_x = right
+                  side_y = left
+
+                  !  ___ ___
+                  ! |   |   |
+                  ! |___|___|
+                  ! |CCC|   |  SE_edge(1,1): like E_edge
+                  ! |CCC|___|
+                  !------------
+                  if(compute_point1) then
+
+                     i=i_min
+                     j=j_min
+                     
+                     call this%compute_fluxes_for_bc_x_edge(
+     $                    p_model,
+     $                    nodes,
+     $                    s_x_L0, s_x_L1,
+     $                    s_x_R1, s_x_R0,
+     $                    dx, dy,
+     $                    j,j+1,i,
+     $                    E,
+     $                    flux_y)
+
+                     timedev(i,j,:) = 
+     $                    this%apply_bc_on_timedev_x_edge(
+     $                    p_model,
+     $                    t,nodes,
+     $                    x_map,y_map,i,j,
+     $                    flux_y,
+     $                    side_x,
+     $                    gradient_x_x_oneside_R0)
+
+                  end if
+                  
+
+                  !  ___ ___
+                  ! |   |   |
+                  ! |___|___|
+                  ! |   |CCC|  SE_edge(2,1): like SE_corner(2,1)
+                  ! |___|CCC|
+                  !------------
+                  if(compute_point2) then
+
+                     i=i_min+1
+                     j=j_min
+                     
+                     timedev(i,j,:) =
+     $                    this%apply_bc_on_timedev_xy_corner(
+     $                    p_model,
+     $                    t,nodes,x_map,y_map,i,j,
+     $                    side_x, side_y,
+     $                    gradient_x_x_oneside_R0,
+     $                    gradient_y_y_oneside_L0)
+
+                  end if
+                     
+
+                  !  ___ ___
+                  ! |CCC|   |
+                  ! |CCC|___|
+                  ! |   |   |  SE_edge(2,1): like SE_corner(1,2)
+                  ! |___|___|
+                  !------------
+                  if(compute_point3) then
+                     
+                     i=i_min
+                     j=j_min+1
+                     
+                     timedev(i,j,:) =
+     $                    this%apply_bc_on_timedev_xy_corner(
+     $                    p_model,
+     $                    t,nodes,x_map,y_map,i,j,
+     $                    side_x, side_y,
+     $                    gradient_x_x_oneside_R0,
+     $                    gradient_y_y_oneside_L0)
+
+                  end if
+                     
+                     
+                  !  ___ ___
+                  ! |   |CCC|
+                  ! |___|CCC|
+                  ! |   |   |  SE_edge(2,2): like S_edge
+                  ! |___|___|
+                  !------------
+                  if(compute_point4) then
+
+                     i=i_min+1
+                     j=j_min+1
+                     
+                     call this%compute_fluxes_for_bc_y_edge(
+     $                    p_model,
+     $                    nodes,
+     $                    s_y_L0, s_y_L1,
+     $                    s_y_R1, s_y_R0,
+     $                    dx, dy,
+     $                    i,i+1,j,
+     $                    S,
+     $                    flux_x)
+                     
+                     timedev(i,j,:) = 
+     $                    this%apply_bc_on_timedev_y_edge(
+     $                    p_model,
+     $                    t,nodes,
+     $                    x_map,y_map,i,j,
+     $                    flux_x,
+     $                    side_y,
+     $                    gradient_y_y_oneside_L0)
+
+                  end if
+
+               end if
+
+          end select
+
+        end subroutine compute_timedev_anti_corner_with_fluxes
 
 
         !> @author

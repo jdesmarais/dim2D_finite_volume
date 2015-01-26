@@ -496,6 +496,7 @@ $(obc_dir)/bc_operators_openbc_class.o:\
 			$(bc_dir)/bc_operators_default_class.o\
 			$(bc_dir)/bc_operators_nopt_module.o\
 			$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
+			$(bf_layer_dir)/bf_layer_errors_module.o\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
@@ -553,6 +554,9 @@ $(hobc_dir)/hedstrom_xy_module.o:\
 
 $(hobc_dir)/bc_operators_class.o:\
 			$(obc_dir)/bc_operators_openbc_normal_class.o\
+			$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
+			$(cbf_layer_dir)/bf_layer_bc_sections_class.o\
+			$(bf_layer_dir)/bf_layer_errors_module.o\
 			$(hobc_dir)/hedstrom_xy_module.o\
 			$(sd_dir)/interface_primary.o\
 			$(obc_dir)/openbc_operators_module.o\

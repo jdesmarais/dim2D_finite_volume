@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '74f5975bd5f075788b68bf608be643d9f925093c')
+        parameter (commit = 'ad897088feb99ea1d0a1ce5b7ab8a1c682120449')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -135,6 +135,9 @@
 
         logical, parameter :: inflow_type=.false.
         logical, parameter :: outflow_type=.true.
+
+        integer, parameter :: obc_edge_xy_corner = 0
+        integer, parameter :: obc_edge_xy_flux   = 1
 
         character(14), dimension(3), parameter :: obc_type_code =[
      $       'always_inflow ',

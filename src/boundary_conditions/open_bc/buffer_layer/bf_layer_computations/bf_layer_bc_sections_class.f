@@ -57,7 +57,8 @@
      $       NE_overlap,
      $       NW_overlap,
      $       SE_overlap,
-     $       SW_overlap
+     $       SW_overlap,
+     $       determine_edge_points_computed
 
 
         integer, parameter :: max_bc_sections_temp = 6
@@ -2151,5 +2152,75 @@
           end select
 
         end subroutine print_bc_procedure
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine which grid-points are computed when
+        !> the anti-corner bc_section is overlap by corner
+        !> bc_section
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param overlap_type
+        !> index identifying how the anti-corner bc_section
+        !> is overlaped by a neighboring corner bc_section
+        !
+        !> @param compute_point1
+        !> logical indicating whether the SW grid-point of
+        !> the bc_section should be computed
+        !
+        !> @param compute_point2
+        !> logical indicating whether the SE grid-point of
+        !> the bc_section should be computed
+        !
+        !> @param compute_point3
+        !> logical indicating whether the NW grid-point of
+        !> the bc_section should be computed
+        !
+        !> @param compute_point4
+        !> logical indicating whether the NE grid-point of
+        !> the bc_section should be computed
+        !--------------------------------------------------------------
+        subroutine determine_edge_points_computed(
+     $     overlap_type,
+     $     compute_point1,
+     $     compute_point2,
+     $     compute_point3,
+     $     compute_point4)
+
+          implicit none
+
+          integer, intent(in)  :: overlap_type
+          logical, intent(out) :: compute_point1
+          logical, intent(out) :: compute_point2
+          logical, intent(out) :: compute_point3
+          logical, intent(out) :: compute_point4
+
+
+          compute_point1 = .not.(
+     $         (overlap_type.eq.S_overlap).or.
+     $         (overlap_type.eq.W_overlap).or.
+     $         (overlap_type.eq.SW_overlap))
+
+          compute_point2 = .not.(
+     $         (overlap_type.eq.S_overlap).or.
+     $         (overlap_type.eq.E_overlap).or.
+     $         (overlap_type.eq.SE_overlap))
+
+          compute_point3 = .not.(
+     $         (overlap_type.eq.E_overlap).or.
+     $         (overlap_type.eq.W_overlap).or.
+     $         (overlap_type.eq.NW_overlap))
+
+          compute_point4 = .not.(
+     $         (overlap_type.eq.N_overlap).or.
+     $         (overlap_type.eq.E_overlap).or.
+     $         (overlap_type.eq.NE_overlap))
+
+        end subroutine determine_edge_points_computed
 
       end module bf_layer_bc_sections_class
