@@ -1512,11 +1512,6 @@
                         x_border = min(x_border,x_border_bf)
                      case(right)
                         x_border = max(x_border,x_border_bf)
-                     case default
-                        print '(''nbf_interface_class'')'
-                        print '(''ask_neighbors_for_bc_overlap'')'
-                        print '(''side not recognized: '',I2)', side
-                        stop 'resolve side'
                    end select
                 end if
 

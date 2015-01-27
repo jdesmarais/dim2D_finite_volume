@@ -555,12 +555,15 @@
 
           integer(ikind), dimension(:,:), allocatable :: bc_sections_temp
 
-          if(nb_bc_sections.ne.size(bc_sections_temp,2)) then
-
-             allocate(bc_sections_temp(2,nb_bc_sections))
-             bc_sections_temp(:,:) = bc_sections(:,1:nb_bc_sections)
-             call MOVE_ALLOC(bc_sections_temp,bc_sections)
-             
+          if(allocated(bc_sections)) then
+             if((nb_bc_sections.ne.size(bc_sections,2)).and.
+     $          (nb_bc_sections.ne.0)) then
+                
+                allocate(bc_sections_temp(2,nb_bc_sections))
+                bc_sections_temp(:,:) = bc_sections(:,1:nb_bc_sections)
+                call MOVE_ALLOC(bc_sections_temp,bc_sections)
+                
+             end if
           end if
 
         end subroutine minimize_interior_bc_section

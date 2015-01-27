@@ -623,7 +623,7 @@
 
                    print '(''unable to differentiate:'')'
                    print '(''SW_edge and SE_edge'')'
-                   print ''
+                   print '()'
 
                    call error_bc_interior_pt_procedure(
      $                  i,j,grdpts_id,ierror)
