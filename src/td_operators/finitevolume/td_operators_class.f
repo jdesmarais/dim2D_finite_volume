@@ -485,7 +485,13 @@
 
 
                !finalize the identification of the boundary layers
-               call bc_sections_id%finalize_bc_sections(bc_sections)
+               call bc_sections_id%finalize_bc_sections(
+     $              x_borders,
+     $              y_borders,
+     $              N_bc_sections,
+     $              S_bc_sections,
+     $              size(nodes,2),
+     $              bc_sections)
 
             !compute the time derivaties WITHOUT identifying
             !the boundary layers
