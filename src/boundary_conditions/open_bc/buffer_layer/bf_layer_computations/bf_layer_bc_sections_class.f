@@ -1528,35 +1528,21 @@
           
           integer(ikind) :: i_min
           integer(ikind) :: j_min
-          logical        :: inside
+          logical        :: compute_first_pt
+          logical        :: compute_second_pt
+          logical        :: compute_third_pt
+          logical        :: compute_fourth_pt
 
           
           i_min = anti_corner(2)
           j_min = anti_corner(3)
 
 
-          ! check if [i_min,i_min+1]x[j_min+1,j_min+1] is
+          ! check if the first gridpoint (SW) is computed
           ! inside the time integrated domain
           !--------------------------------------------------
-          inside = is_inside_time_integrated_domain(
-     $         [i_min,i_min+1],
-     $         [j_min+1,j_min+1],
-     $         x_borders,
-     $         y_borders,
-     $         N_bc_sections,
-     $         S_bc_sections,
-     $         size_y)
-
-          if(.not.inside) then
-             call overlap_N(anti_corner)
-          end if
-
-          
-          ! check if [i_min,i_min+1]x[j_min,j_min] is
-          ! inside the time integrated domain
-          !--------------------------------------------------
-          inside = is_inside_time_integrated_domain(
-     $         [i_min,i_min+1],
+          compute_first_pt = is_inside_time_integrated_domain(
+     $         [i_min,i_min],
      $         [j_min,j_min],
      $         x_borders,
      $         y_borders,
@@ -1564,42 +1550,60 @@
      $         S_bc_sections,
      $         size_y)
 
-          if(.not.inside) then
+          
+          ! check if the first gridpoint (SE) is computed
+          ! inside the time integrated domain
+          !--------------------------------------------------
+          compute_second_pt = is_inside_time_integrated_domain(
+     $         [i_min+1,i_min+1],
+     $         [j_min,j_min],
+     $         x_borders,
+     $         y_borders,
+     $         N_bc_sections,
+     $         S_bc_sections,
+     $         size_y)
+
+
+          ! check if the first gridpoint (NW) is computed
+          ! inside the time integrated domain
+          !--------------------------------------------------
+          compute_third_pt = is_inside_time_integrated_domain(
+     $         [i_min,i_min],
+     $         [j_min+1,j_min+1],
+     $         x_borders,
+     $         y_borders,
+     $         N_bc_sections,
+     $         S_bc_sections,
+     $         size_y)
+
+
+          ! check if the first gridpoint (NE) is computed
+          ! inside the time integrated domain
+          !--------------------------------------------------
+          compute_fourth_pt = is_inside_time_integrated_domain(
+     $         [i_min+1,i_min+1],
+     $         [j_min+1,j_min+1],
+     $         x_borders,
+     $         y_borders,
+     $         N_bc_sections,
+     $         S_bc_sections,
+     $         size_y)
+
+
+          if((.not.compute_first_pt).and.(.not.compute_second_pt)) then
              call overlap_S(anti_corner)
           end if
 
-
-          ! check if [i_min,i_min+1]x[j_min,j_min] is
-          ! inside the time integrated domain
-          !--------------------------------------------------
-          inside = is_inside_time_integrated_domain(
-     $         [i_min+1,i_min+1],
-     $         [j_min,j_min+1],
-     $         x_borders,
-     $         y_borders,
-     $         N_bc_sections,
-     $         S_bc_sections,
-     $         size_y)
-
-          if(.not.inside) then
-             call overlap_E(anti_corner)
+          if((.not.compute_third_pt).and.(.not.compute_fourth_pt)) then
+             call overlap_N(anti_corner)
           end if
 
-
-          ! check if [i_min,i_min+1]x[j_min,j_min] is
-          ! inside the time integrated domain
-          !--------------------------------------------------
-          inside = is_inside_time_integrated_domain(
-     $         [i_min,i_min],
-     $         [j_min,j_min+1],
-     $         x_borders,
-     $         y_borders,
-     $         N_bc_sections,
-     $         S_bc_sections,
-     $         size_y)
-
-          if(.not.inside) then
+          if((.not.compute_first_pt).and.(.not.compute_third_pt)) then
              call overlap_W(anti_corner)
+          end if
+
+          if((.not.compute_second_pt).and.(.not.compute_fourth_pt)) then
+             call overlap_E(anti_corner)
           end if
 
         end subroutine overlap_anti_corner_with_integration_borders
