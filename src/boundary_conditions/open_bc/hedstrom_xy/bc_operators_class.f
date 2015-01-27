@@ -930,15 +930,25 @@
                      i=i_min+1
                      j=j_min
 
-                     call this%compute_fluxes_for_bc_y_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_y_L0, s_y_L1,
-     $                    s_y_R1, s_y_R0,
-     $                    dx, dy,
-     $                    i, i+1, j,
-     $                    N,
-     $                    flux_x)
+                     flux_x(i,j,:) = p_model%compute_flux_x_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_y_R1)
+
+                     flux_x(i+1,j,:) = p_model%compute_flux_x_oneside(
+     $                    nodes,dx,dy,
+     $                    i+1,j,
+     $                    s_y_R1)
+                     
+c$$$                     call this%compute_fluxes_for_bc_y_edge(
+c$$$     $                    p_model,
+c$$$     $                    nodes,
+c$$$     $                    s_y_L0, s_y_L1,
+c$$$     $                    s_y_R1, s_y_R0,
+c$$$     $                    dx, dy,
+c$$$     $                    i, i+1, j,
+c$$$     $                    N,
+c$$$     $                    flux_x)
                      
                      timedev(i,j,:) = 
      $                    this%apply_bc_on_timedev_y_edge(
@@ -963,15 +973,25 @@
                      i=i_min
                      j=j_min+1
                      
-                     call this%compute_fluxes_for_bc_x_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_x_L0, s_x_L1,
-     $                    s_x_R1, s_x_R0,
-     $                    dx, dy,
-     $                    j, j+1, i,
-     $                    E,
-     $                    flux_y)
+                     flux_y(i,j,:)   = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_x_R1)
+
+                     flux_y(i,j+1,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j+1,
+     $                    s_x_R1)
+
+c$$$                     call this%compute_fluxes_for_bc_x_edge(
+c$$$     $                    p_model,
+c$$$     $                    nodes,
+c$$$     $                    s_x_L0, s_x_L1,
+c$$$     $                    s_x_R1, s_x_R0,
+c$$$     $                    dx, dy,
+c$$$     $                    j, j+1, i,
+c$$$     $                    E,
+c$$$     $                    flux_y)
 
                      timedev(i,j,:) = 
      $                    this%apply_bc_on_timedev_x_edge(
@@ -1037,15 +1057,25 @@
                      i=i_min
                      j=j_min
 
-                     call this%compute_fluxes_for_bc_y_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_y_L0, s_y_L1,
-     $                    s_y_R1, s_y_R0,
-     $                    dx, dy,
-     $                    i, i+1, j,
-     $                    N,
-     $                    flux_x)
+                     flux_x(i,j,:)   = p_model%compute_flux_x_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_y_R1)
+
+                     flux_x(i+1,j,:) = p_model%compute_flux_x_oneside(
+     $                    nodes,dx,dy,
+     $                    i+1,j,
+     $                    s_y_R1)
+
+c$$$                     call this%compute_fluxes_for_bc_y_edge(
+c$$$     $                    p_model,
+c$$$     $                    nodes,
+c$$$     $                    s_y_L0, s_y_L1,
+c$$$     $                    s_y_R1, s_y_R0,
+c$$$     $                    dx, dy,
+c$$$     $                    i, i+1, j,
+c$$$     $                    N,
+c$$$     $                    flux_x)
                      
                      timedev(i,j,:) = 
      $                    this%apply_bc_on_timedev_y_edge(
@@ -1114,15 +1144,25 @@
                      i=i_min+1
                      j=j_min+1
 
-                     call this%compute_fluxes_for_bc_x_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_x_L0, s_x_L1,
-     $                    s_x_R1, s_x_R0,
-     $                    dx, dy,
-     $                    j,j+1,i,
-     $                    W,
-     $                    flux_y)
+                     flux_y(i,j,:)   = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_x_L1)
+
+                     flux_y(i,j+1,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j+1,
+     $                    s_x_L1)
+
+c$$$                     call this%compute_fluxes_for_bc_x_edge(
+c$$$     $                    p_model,
+c$$$     $                    nodes,
+c$$$     $                    s_x_L0, s_x_L1,
+c$$$     $                    s_x_R1, s_x_R0,
+c$$$     $                    dx, dy,
+c$$$     $                    j,j+1,i,
+c$$$     $                    W,
+c$$$     $                    flux_y)
 
                      timedev(i,j,:) = 
      $                    this%apply_bc_on_timedev_x_edge(
@@ -1188,15 +1228,25 @@
                      i=i_min+1
                      j=j_min
                      
-                     call this%compute_fluxes_for_bc_x_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_x_L0, s_x_L1,
-     $                    s_x_R1, s_x_R0,
-     $                    dx, dy,
-     $                    j,j+1,i,
-     $                    W,
-     $                    flux_y)
+                     flux_y(i,j,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_x_L1)
+
+                     flux_y(i,j+1,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j+1,
+     $                    s_x_L1)
+
+c$$$                     call this%compute_fluxes_for_bc_x_edge(
+c$$$     $                    p_model,
+c$$$     $                    nodes,
+c$$$     $                    s_x_L0, s_x_L1,
+c$$$     $                    s_x_R1, s_x_R0,
+c$$$     $                    dx, dy,
+c$$$     $                    j,j+1,i,
+c$$$     $                    W,
+c$$$     $                    flux_y)
 
                      timedev(i,j,:) = 
      $                    this%apply_bc_on_timedev_x_edge(
@@ -1221,15 +1271,25 @@
                      i=i_min
                      j=j_min+1
 
-                     call this%compute_fluxes_for_bc_y_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_y_L0, s_y_L1,
-     $                    s_y_R1, s_y_R0,
-     $                    dx, dy,
-     $                    i,i+1,j,
-     $                    S,
-     $                    flux_x)
+                     flux_x(i,j,:) = p_model%compute_flux_x_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_y_L1)
+
+                     flux_x(i+1,j,:) = p_model%compute_flux_x_oneside(
+     $                    nodes,dx,dy,
+     $                    i+1,j,
+     $                    s_y_L1)
+
+c$$$                     call this%compute_fluxes_for_bc_y_edge(
+c$$$     $                    p_model,
+c$$$     $                    nodes,
+c$$$     $                    s_y_L0, s_y_L1,
+c$$$     $                    s_y_R1, s_y_R0,
+c$$$     $                    dx, dy,
+c$$$     $                    i,i+1,j,
+c$$$     $                    S,
+c$$$     $                    flux_x)
                      
                      timedev(i,j,:) = 
      $                    this%apply_bc_on_timedev_y_edge(
@@ -1295,15 +1355,25 @@
                      i=i_min
                      j=j_min
                      
-                     call this%compute_fluxes_for_bc_x_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_x_L0, s_x_L1,
-     $                    s_x_R1, s_x_R0,
-     $                    dx, dy,
-     $                    j,j+1,i,
-     $                    E,
-     $                    flux_y)
+                     flux_y(i,j,:)   = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_x_R1)
+
+                     flux_y(i,j+1,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j+1,
+     $                    s_x_R1)
+
+c$$$                     call this%compute_fluxes_for_bc_x_edge(
+c$$$     $                    p_model,
+c$$$     $                    nodes,
+c$$$     $                    s_x_L0, s_x_L1,
+c$$$     $                    s_x_R1, s_x_R0,
+c$$$     $                    dx, dy,
+c$$$     $                    j,j+1,i,
+c$$$     $                    E,
+c$$$     $                    flux_y)
 
                      timedev(i,j,:) = 
      $                    this%apply_bc_on_timedev_x_edge(
@@ -1372,15 +1442,25 @@
                      i=i_min+1
                      j=j_min+1
                      
-                     call this%compute_fluxes_for_bc_y_edge(
-     $                    p_model,
-     $                    nodes,
-     $                    s_y_L0, s_y_L1,
-     $                    s_y_R1, s_y_R0,
-     $                    dx, dy,
-     $                    i,i+1,j,
-     $                    S,
-     $                    flux_x)
+                     flux_x(i,j,:) = p_model%compute_flux_x_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_y_L1)
+
+                     flux_x(i+1,j,:) = p_model%compute_flux_x_oneside(
+     $                    nodes,dx,dy,
+     $                    i+1,j,
+     $                    s_y_L1)
+
+c$$$                     call this%compute_fluxes_for_bc_y_edge(
+c$$$     $                    p_model,
+c$$$     $                    nodes,
+c$$$     $                    s_y_L0, s_y_L1,
+c$$$     $                    s_y_R1, s_y_R0,
+c$$$     $                    dx, dy,
+c$$$     $                    i,i+1,j,
+c$$$     $                    S,
+c$$$     $                    flux_x)
                      
                      timedev(i,j,:) = 
      $                    this%apply_bc_on_timedev_y_edge(
