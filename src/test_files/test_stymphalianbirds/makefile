@@ -386,3 +386,47 @@ test_dct_verify_x_symmetry:\
 			parameters_bf_layer.o\
 			cmd_operators_class.o\
 			bf_restart_module.o
+
+test_sd_scheme_patterns.o:\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(sd_cdir)/sd_operators_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_L0_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_L1_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_R1_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_R0_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_L0_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
+
+test_sd_scheme_patterns:\
+			parameters_kind.o\
+			parameters_constant.o\
+			parameters_input.o\
+			parameters_bf_layer.o\
+			interface_primary.o\
+			sd_operators_fd_module.o\
+			sd_operators_abstract_class.o\
+			sd_operators_class.o\
+			dim2d_parameters.o\
+			dim2d_prim_module.o\
+			dim2d_ncoords_module.o\
+			dim2d_fluxes_module.o\
+			dim2d_state_eq_module.o\
+			dim2d_dropbubble_module.o\
+			ic_abstract_class.o\
+			ic_class.o\
+			pmodel_eq_abstract_class.o\
+			pmodel_eq_default_class.o\
+			pmodel_eq_class.o\
+			sd_operators_x_oneside_L0_class.o\
+			sd_operators_x_oneside_L1_class.o\
+			sd_operators_x_oneside_R1_class.o\
+			sd_operators_x_oneside_R0_class.o\
+			sd_operators_y_oneside_L0_class.o\
+			sd_operators_y_oneside_L1_class.o\
+			sd_operators_y_oneside_R1_class.o\
+			sd_operators_y_oneside_R0_class.o
