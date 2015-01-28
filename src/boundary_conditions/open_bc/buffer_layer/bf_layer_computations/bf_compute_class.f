@@ -328,7 +328,9 @@
      $     t, nodes, x_map, y_map,
      $     s,
      $     p_model,bc_used,
+     $     bf_alignment,
      $     grdpts_id,
+     $     interior_nodes,
      $     x_borders, y_borders,
      $     N_bc_sections, S_bc_sections)
 
@@ -343,7 +345,9 @@
           type(sd_operators)                         , intent(in)    :: s
           type(pmodel_eq)                            , intent(in)    :: p_model
           type(bc_operators)                         , intent(in)    :: bc_used
-          integer    , dimension(:,:)                , intent(in)    :: grdpts_id
+          integer(ikind), dimension(2,2)             , intent(in)    :: bf_alignment
+          integer       , dimension(:,:)             , intent(in)    :: grdpts_id
+          real(rkind)   , dimension(nx,ny,ne)        , intent(in)    :: interior_nodes
           integer(ikind), dimension(2)               , intent(in)    :: x_borders
           integer(ikind), dimension(2)               , intent(in)    :: y_borders
           integer(ikind), dimension(:,:), allocatable, intent(in)    :: N_bc_sections
@@ -353,7 +357,9 @@
      $         t,nodes,x_map,y_map,
      $         s,p_model,bc_used,
      $         this%time_dev,
+     $         bf_alignment,
      $         grdpts_id,
+     $         interior_nodes,
      $         this%bc_sections,
      $         x_borders, y_borders,
      $         N_bc_sections=N_bc_sections,

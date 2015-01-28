@@ -28,7 +28,7 @@
         real(rkind), parameter :: y_max = 0.1519000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 0.0588000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 0.0252000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0002000000d0
         
         !<output writing
@@ -220,7 +220,7 @@
         !                                   are adapted once the
         !                                   simulation starts
         !-----------------------------------------------------
-        logical    , parameter :: debug_restart_for_geometry = .true.
-        logical    , parameter :: debug_adapt_computational_domain =.false.
+        logical    , parameter :: debug_restart_for_geometry = .false.
+        logical    , parameter :: debug_adapt_computational_domain =.true.
 
       end module parameters_input

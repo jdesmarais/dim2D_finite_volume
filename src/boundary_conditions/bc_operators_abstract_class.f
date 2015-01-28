@@ -283,8 +283,10 @@
            !-------------------------------------------------------------
            subroutine tdev_nopt_proc(
      $       this,
-     $       p_model,
-     $       t,nodes,x_map,y_map,
+     $       p_model,t,
+     $       interior_nodes,
+     $       bf_alignment,
+     $       nodes,x_map,y_map,
      $       flux_x,flux_y,
      $       timedev,
      $       bc_sections)
@@ -298,6 +300,8 @@
              class(bc_operators_abstract)                   , intent(in)    :: this
              type(pmodel_eq)                                , intent(in)    :: p_model
              real(rkind)                                    , intent(in)    :: t
+             real(rkind)   , dimension(nx,ny,ne)            , intent(in)    :: interior_nodes
+             integer(ikind), dimension(2,2)                 , intent(in)    :: bf_alignment
              real(rkind)   , dimension(:,:,:)               , intent(in)    :: nodes
              real(rkind)   , dimension(:)                   , intent(in)    :: x_map
              real(rkind)   , dimension(:)                   , intent(in)    :: y_map

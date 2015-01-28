@@ -52,7 +52,8 @@
      $       left,right
 
         use parameters_input, only :
-     $       nx, bc_size, ne
+     $       nx,ny,ne,
+     $       bc_size
 
         use parameters_kind, only :
      $       ikind,
@@ -404,11 +405,13 @@
            !--------------------------------------------------------------
            subroutine tdev_xy_edge(
      $        this,
-     $        p_model,
-     $        t, nodes, x_map, y_map,
+     $        p_model,t,
+     $        interior_nodes,
+     $        bf_alignment,
+     $        nodes, x_map, y_map,
      $        flux_x, flux_y,
-     $        s_x_L0, s_x_L1, s_x_R1, s_x_R0,
-     $        s_y_L0, s_y_L1, s_y_R1, s_y_R0,
+     $        s_x_L1, s_x_R1,
+     $        s_y_L1, s_y_R1,
      $        dx, dy,
      $        bc_section,
      $        timedev)
@@ -418,36 +421,32 @@
              import ikind
              import rkind
 
-             import sd_operators_x_oneside_L0
+             import nx,ny,ne
+
              import sd_operators_x_oneside_L1
              import sd_operators_x_oneside_R1
-             import sd_operators_x_oneside_R0
 
-             import sd_operators_y_oneside_L0
              import sd_operators_y_oneside_L1
              import sd_operators_y_oneside_R1
-             import sd_operators_y_oneside_R0
            
-             class(bc_operators_openbc)     , intent(in)    :: this
-             type(pmodel_eq)                , intent(in)    :: p_model
-             real(rkind)                    , intent(in)    :: t
-             real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
-             real(rkind), dimension(:)      , intent(in)    :: x_map
-             real(rkind), dimension(:)      , intent(in)    :: y_map
-             real(rkind), dimension(:,:,:)  , intent(inout) :: flux_x
-             real(rkind), dimension(:,:,:)  , intent(inout) :: flux_y
-             type(sd_operators_x_oneside_L0), intent(in)    :: s_x_L0
-             type(sd_operators_x_oneside_L1), intent(in)    :: s_x_L1
-             type(sd_operators_x_oneside_R1), intent(in)    :: s_x_R1
-             type(sd_operators_x_oneside_R0), intent(in)    :: s_x_R0
-             type(sd_operators_y_oneside_L0), intent(in)    :: s_y_L0
-             type(sd_operators_y_oneside_L1), intent(in)    :: s_y_L1
-             type(sd_operators_y_oneside_R1), intent(in)    :: s_y_R1
-             type(sd_operators_y_oneside_R0), intent(in)    :: s_y_R0
-             real(rkind)                    , intent(in)    :: dx
-             real(rkind)                    , intent(in)    :: dy
-             integer    , dimension(4)      , intent(in)    :: bc_section
-             real(rkind), dimension(:,:,:)  , intent(inout) :: timedev
+             class(bc_operators_openbc)         , intent(in)    :: this
+             type(pmodel_eq)                    , intent(in)    :: p_model
+             real(rkind)                        , intent(in)    :: t
+             real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+             integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+             real(rkind)   , dimension(:,:,:)   , intent(in)    :: nodes
+             real(rkind)   , dimension(:)       , intent(in)    :: x_map
+             real(rkind)   , dimension(:)       , intent(in)    :: y_map
+             real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_x
+             real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_y
+             type(sd_operators_x_oneside_L1)    , intent(in)    :: s_x_L1
+             type(sd_operators_x_oneside_R1)    , intent(in)    :: s_x_R1
+             type(sd_operators_y_oneside_L1)    , intent(in)    :: s_y_L1
+             type(sd_operators_y_oneside_R1)    , intent(in)    :: s_y_R1
+             real(rkind)                        , intent(in)    :: dx
+             real(rkind)                        , intent(in)    :: dy
+             integer    , dimension(4)          , intent(in)    :: bc_section
+             real(rkind), dimension(:,:,:)      , intent(inout) :: timedev
            
            end subroutine tdev_xy_edge
 
@@ -537,24 +536,28 @@
         !apply the boundary conditions on the time derivatives
         subroutine apply_bc_on_timedev_nopt(
      $       this,
-     $       p_model,
-     $       t, nodes, x_map, y_map,
+     $       p_model, t,
+     $       interior_nodes,
+     $       bf_alignment,
+     $       nodes, x_map, y_map,
      $       flux_x, flux_y,
      $       timedev,
      $       bc_sections)
         
           implicit none
 
-          class(bc_operators_openbc)              , intent(in)    :: this
-          type(pmodel_eq)                         , intent(in)    :: p_model
-          real(rkind)                             , intent(in)    :: t
-          real(rkind), dimension(:,:,:)           , intent(in)    :: nodes
-          real(rkind), dimension(:)               , intent(in)    :: x_map
-          real(rkind), dimension(:)               , intent(in)    :: y_map
-          real(rkind), dimension(:,:,:)           , intent(inout) :: flux_x
-          real(rkind), dimension(:,:,:)           , intent(inout) :: flux_y
-          real(rkind), dimension(:,:,:)           , intent(inout) :: timedev
-          integer    , dimension(:,:), allocatable, intent(in)    :: bc_sections
+          class(bc_operators_openbc)                     , intent(in)    :: this
+          type(pmodel_eq)                                , intent(in)    :: p_model
+          real(rkind)                                    , intent(in)    :: t
+          real(rkind)   , dimension(nx,ny,ne)            , intent(in)    :: interior_nodes
+          integer(ikind), dimension(2,2)                 , intent(in)    :: bf_alignment
+          real(rkind)   , dimension(:,:,:)               , intent(in)    :: nodes
+          real(rkind)   , dimension(:)                   , intent(in)    :: x_map
+          real(rkind)   , dimension(:)                   , intent(in)    :: y_map
+          real(rkind)   , dimension(:,:,:)               , intent(inout) :: flux_x
+          real(rkind)   , dimension(:,:,:)               , intent(inout) :: flux_y
+          real(rkind)   , dimension(:,:,:)               , intent(inout) :: timedev
+          integer(ikind), dimension(:,:)    , allocatable, intent(in)    :: bc_sections
 
           
           !spatial discretisation operators
@@ -737,12 +740,14 @@
      $                 SW_edge_type)
 
                     call this%compute_timedev_anti_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,
+     $                 p_model,t,
+     $                 interior_nodes,
+     $                 bf_alignment,
+     $                 nodes,x_map,y_map,
      $                 flux_x,flux_y,
-     $                 s_x_L0, s_x_L1, s_x_R1, s_x_R0,
-     $                 s_y_L0, s_y_L1, s_y_R1, s_y_R0,
-     $                 dx,dy,
+     $                 s_x_L1, s_x_R1,
+     $                 s_y_L1, s_y_R1,
+     $                 dx, dy,
      $                 bc_sections(:,k),
      $                 timedev)
                      

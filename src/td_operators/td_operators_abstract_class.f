@@ -160,13 +160,16 @@
      $      t,nodes,x_map,y_map,
      $      s,p_model,bc_used,
      $      time_dev,
+     $      bf_alignment,
      $      grdpts_id,
+     $      interior_nodes,
      $      bc_sections,
      $      x_borders, y_borders,
      $      N_bc_sections, S_bc_sections)
 
             import bc_operators
             import ikind
+            import nx,ny,ne
             import pmodel_eq
             import rkind
             import sd_operators
@@ -179,7 +182,9 @@
             type(pmodel_eq)                                      , intent(in)    :: p_model
             type(bc_operators)                                   , intent(in)    :: bc_used
             real(rkind)   , dimension(:,:,:)                     , intent(out)   :: time_dev
+            integer(ikind), dimension(2,2)                       , intent(in)    :: bf_alignment
             integer       , dimension(:,:)                       , intent(in)    :: grdpts_id
+            real(rkind)   , dimension(nx,ny,ne)                  , intent(in)    :: interior_nodes
             integer       , dimension(:,:), allocatable          , intent(inout) :: bc_sections
             integer(ikind), dimension(2)                         , intent(in)    :: x_borders
             integer(ikind), dimension(2)                         , intent(in)    :: y_borders

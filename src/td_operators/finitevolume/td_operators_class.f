@@ -137,6 +137,7 @@
           real(rkind), dimension(nx+1,ny,ne) :: flux_x
           real(rkind), dimension(nx,ny+1,ne) :: flux_y
 
+          integer(ikind), dimension(2,2) :: bf_alignment
 
 
           dx = x_map(2) - x_map(1)
@@ -198,9 +199,17 @@
              !derivatives to be computed are given by
              !bc_sections
              if(present(bc_sections)) then
+
+                bf_alignment(1,1) = bc_size+1
+                bf_alignment(1,2) = nx-bc_size
+                bf_alignment(2,1) = bc_size+1
+                bf_alignment(2,2) = ny-bc_size
+
                 call bc_used%apply_bc_on_timedev_nopt(
-     $               p_model,
-     $               t,nodes,x_map,y_map,
+     $               p_model,t,
+     $               nodes,
+     $               bf_alignment,
+     $               nodes,x_map,y_map,
      $               flux_x,flux_y,
      $               time_dev,
      $               bc_sections)
@@ -279,7 +288,9 @@
      $     t,nodes,x_map,y_map,
      $     s,p_model,bc_used,
      $     time_dev,
+     $     bf_alignment,
      $     grdpts_id,
+     $     interior_nodes,
      $     bc_sections,
      $     x_borders,
      $     y_borders,
@@ -296,7 +307,9 @@
             type(pmodel_eq)                                        , intent(in)    :: p_model
             type(bc_operators)                                     , intent(in)    :: bc_used
             real(rkind)   , dimension(:,:,:)                       , intent(out)   :: time_dev
+            integer(ikind), dimension(2,2)                         , intent(in)    :: bf_alignment
             integer       , dimension(:,:)                         , intent(in)    :: grdpts_id
+            real(rkind)   , dimension(nx,ny,ne)                    , intent(in)    :: interior_nodes
             integer       , dimension(:,:)  , allocatable          , intent(inout) :: bc_sections
             integer(ikind), dimension(2)                           , intent(in)    :: x_borders
             integer(ikind), dimension(2)                           , intent(in)    :: y_borders
@@ -531,8 +544,10 @@
      $         (bc_W_type_choice.eq.bc_timedev_choice)) then
 
                call bc_used%apply_bc_on_timedev_nopt(
-     $              p_model,
-     $              t,nodes,x_map,y_map,
+     $              p_model,t,
+     $              interior_nodes,
+     $              bf_alignment,
+     $              nodes,x_map,y_map,
      $              flux_x,flux_y,
      $              time_dev,
      $              bc_sections)

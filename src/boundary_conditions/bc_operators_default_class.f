@@ -266,8 +266,10 @@
         !--------------------------------------------------------------
         subroutine apply_bc_on_timedev_nopt(
      $     this,
-     $     p_model,
-     $     t,nodes,x_map,y_map,
+     $     p_model,t,
+     $     interior_nodes,
+     $     bf_alignment,
+     $     nodes,x_map,y_map,
      $     flux_x,flux_y,
      $     timedev,
      $     bc_sections)
@@ -277,6 +279,8 @@
           class(bc_operators_default)                  , intent(in)    :: this
           type(pmodel_eq)                              , intent(in)    :: p_model
           real(rkind)                                  , intent(in)    :: t
+          real(rkind)   , dimension(nx,ny,ne)          , intent(in)    :: interior_nodes
+          integer(ikind), dimension(2,2)               , intent(in)    :: bf_alignment
           real(rkind)   , dimension(:,:,:)             , intent(in)    :: nodes
           real(rkind)   , dimension(:)                 , intent(in)    :: x_map
           real(rkind)   , dimension(:)                 , intent(in)    :: y_map
@@ -293,11 +297,11 @@
           stop 'bc_operator%apply_bc_on_time_dev() not implemented'
 
           !to prevent unused param warnings
-          node=nodes(1,1,1)
+          node=nodes(1,1,1)+interior_nodes(1,1,1)
           dx_s = x_map(2)-x_map(1)
           dy_s = y_map(2)-y_map(1)
           t_s  = t
-          neq  = p_model%get_eq_nb()
+          neq  = p_model%get_eq_nb() + bf_alignment(1,1)
           flux=flux_x(1,1,1)
           flux=flux_y(1,1,1)
           timedev_s = timedev(1,1,1)
