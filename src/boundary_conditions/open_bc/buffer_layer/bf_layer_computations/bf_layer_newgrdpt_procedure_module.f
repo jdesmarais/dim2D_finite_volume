@@ -31,6 +31,9 @@
         use bf_layer_errors_module, only : 
      $       error_mainlayer_id
 
+        use bf_layer_sync_module, only :
+     $       get_sync_indices_to_extract_interior_data
+
         use parameters_bf_layer, only :
      $       no_pt,
      $       bc_pt,
@@ -871,7 +874,6 @@
           integer(ikind) , dimension(2,2)                               , intent(in)    :: gen_coords
 
 
-          integer(ikind)                 :: i_min,i_max,j_min,j_max
           integer(ikind)                 :: size_x,size_y
           integer(ikind)                 :: i_recv,i_send,j_recv,j_send
           integer(ikind)                 :: i,j
@@ -879,19 +881,11 @@
 
 
           !synchronize the nodes
-          i_min = max(1 ,gen_coords(1,1))
-          i_max = min(nx,gen_coords(1,2))
-          j_min = max(1 ,gen_coords(2,1))
-          j_max = min(ny,gen_coords(2,2))
-
-          size_x = i_max-i_min+1
-          size_y = j_max-j_min+1 
-
-          i_recv = i_min-gen_coords(1,1)+1
-          i_send = i_min
-
-          j_recv = j_min-gen_coords(2,1)+1
-          j_send = j_min
+          call get_sync_indices_to_extract_interior_data(
+     $         gen_coords,
+     $         size_x, size_y,
+     $         i_recv, j_recv,
+     $         i_send, j_send)
 
 
           do k=1,ne

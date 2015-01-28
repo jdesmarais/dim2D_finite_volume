@@ -57,6 +57,10 @@
         use bf_layer_nf90_operators_module, only :
      $       print_bf_layer_on_netcdf
 
+        use bf_layer_sync_module, only :
+     $       get_sync_indices_to_extract_bf_layer_data,
+     $       get_bf_layer_match_table
+
         use bf_remove_module, only :
      $       check_if_bf_layer_remains
 
@@ -974,27 +978,9 @@
           class(bf_layer), intent(in)  :: this
           integer(ikind), dimension(2) :: match_table
           
-          select case(this%localization)
-            case(N)
-               match_table(1) = this%alignment(1,1) - bc_size - 1
-               match_table(2) = ny - 2*bc_size
-            case(S)
-               match_table(1) = this%alignment(1,1) - bc_size - 1
-               !match_table(2) = -size(this%nodes,2) + bc_size
-               match_table(2) = this%alignment(2,1) - bc_size - 1
-            case(E)
-               match_table(1) = nx - 2*bc_size
-               match_table(2) = this%alignment(2,1) - bc_size - 1
-            case(W)
-               !match_table(1) = -size(this%nodes,1) + bc_size
-               match_table(1) = this%alignment(1,1) - bc_size - 1
-               match_table(2) = this%alignment(2,1) - bc_size - 1
-           case default
-              call error_mainlayer_id(
-     $             'bf_layer_class.f',
-     $             'get_general_to_local_coord_tab',
-     $             this%localization)
-          end select
+          
+          match_table = get_bf_layer_match_table(
+     $         this%alignment)
 
         end function get_general_to_local_coord_tab
 
@@ -2451,7 +2437,7 @@
 
 
           !synchronize the overlapping at t=t
-          call this%bf_compute_used%get_sync_indices_for_newgrdpt_data(
+          call get_sync_indices_to_extract_bf_layer_data(
      $         this%alignment,
      $         gen_coords,
      $         size_x, size_y,
@@ -3052,7 +3038,7 @@
 
 
           !get the synchronization indices
-          call this%bf_compute_used%get_sync_indices_for_newgrdpt_data(
+          call get_sync_indices_to_extract_bf_layer_data(
      $         this%alignment,
      $         gen_coords,
      $         size_x, size_y,
@@ -3108,7 +3094,7 @@
 
 
           !get the synchronization indices
-          call this%bf_compute_used%get_sync_indices_for_newgrdpt_data(
+          call get_sync_indices_to_extract_bf_layer_data(
      $         this%alignment,
      $         gen_coords,
      $         size_x, size_y,

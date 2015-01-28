@@ -33,7 +33,11 @@
      $       interior_pt,
      $       bc_interior_pt,
      $       bc_pt,
-     $       no_pt
+     $       no_pt,
+     $       align_N,
+     $       align_S,
+     $       align_E,
+     $       align_W
 
         use parameters_constant, only :
      $       x_direction,
@@ -1592,7 +1596,7 @@
           border_changes(2,2) = final_alignment(2,2) - bf_alignment(2,2)
 
           bf_alignment(1,1) = final_alignment(1,1)
-          !bf_alignment(2,1) = final_alignment(2,1)
+          bf_alignment(2,1) = align_N
           bf_alignment(1,2) = final_alignment(1,2)
           bf_alignment(2,2) = final_alignment(2,2)
 
@@ -1617,7 +1621,7 @@
           bf_alignment(1,1) = final_alignment(1,1)
           bf_alignment(2,1) = final_alignment(2,1)
           bf_alignment(1,2) = final_alignment(1,2)
-          !bf_alignment(2,2) = final_alignment(2,2)
+          bf_alignment(2,2) = align_S
 
         end subroutine get_border_changes_and_new_alignment_S
 
@@ -1636,7 +1640,7 @@
           border_changes(1,2) = final_alignment(1,2) - bf_alignment(1,2)
           border_changes(2,2) = final_alignment(2,2) - bf_alignment(2,2)
 
-          !bf_alignment(1,1) = final_alignment(1,1)
+          bf_alignment(1,1) = align_E
           bf_alignment(2,1) = final_alignment(2,1)
           bf_alignment(1,2) = final_alignment(1,2)
           bf_alignment(2,2) = final_alignment(2,2)
@@ -1660,7 +1664,7 @@
 
           bf_alignment(1,1) = final_alignment(1,1)
           bf_alignment(2,1) = final_alignment(2,1)
-          !bf_alignment(1,2) = final_alignment(1,2)
+          bf_alignment(1,2) = align_W
           bf_alignment(2,2) = final_alignment(2,2)
 
         end subroutine get_border_changes_and_new_alignment_W

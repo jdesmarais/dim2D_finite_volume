@@ -23,6 +23,9 @@
         use bf_layer_newgrdpt_procedure_module, only :
      $       get_newgrdpt_procedure
 
+        use bf_layer_sync_module, only :
+     $       get_sync_indices_to_extract_bf_layer_data
+
         use bf_newgrdpt_class, only : 
      $       bf_newgrdpt
 
@@ -117,7 +120,6 @@
           procedure,   pass :: compute_time_dev
           procedure,   pass :: compute_integration_step
 
-          procedure, nopass :: get_sync_indices_for_newgrdpt_data
           procedure,   pass :: get_data_for_newgrdpt
           procedure,   pass :: compute_newgrdpt
 
@@ -484,7 +486,7 @@
           if(allocated(this%alignment_tmp)) then
 
              !get th esynchronization indices
-             call get_sync_indices_for_newgrdpt_data(
+             call get_sync_indices_to_extract_bf_layer_data(
      $            this%alignment_tmp,
      $            gen_coords,
      $            size_x,
@@ -520,46 +522,7 @@
 
           end if
 
-        end subroutine get_data_for_newgrdpt
-
-
-        !determine the synchronization indices when copying data
-        !from the buffer layer arrays to the gridpoint asked
-        subroutine get_sync_indices_for_newgrdpt_data(
-     $     bf_align,
-     $     gen_coords,
-     $     size_x, size_y,
-     $     i_recv, j_recv,
-     $     i_send, j_send)
-
-          implicit none
-
-          integer(ikind), dimension(2,2), intent(in)  :: bf_align
-          integer(ikind), dimension(2,2), intent(in)  :: gen_coords
-          integer(ikind)                , intent(out) :: size_x
-          integer(ikind)                , intent(out) :: size_y
-          integer(ikind)                , intent(out) :: i_recv
-          integer(ikind)                , intent(out) :: j_recv
-          integer(ikind)                , intent(out) :: i_send
-          integer(ikind)                , intent(out) :: j_send
-
-          integer(ikind) :: i_min, i_max, j_min, j_max
-
-          i_min = max(bf_align(1,1)-bc_size,gen_coords(1,1))
-          i_max = min(bf_align(1,2)+bc_size,gen_coords(1,2))
-          j_min = max(bf_align(2,1)-bc_size,gen_coords(2,1))
-          j_max = min(bf_align(2,2)+bc_size,gen_coords(2,2))
-
-          size_x = i_max-i_min+1
-          size_y = j_max-j_min+1 
-
-          i_recv = i_min-gen_coords(1,1)+1
-          i_send = i_min-(bf_align(1,1)-bc_size)+1
-
-          j_recv = j_min-gen_coords(2,1)+1
-          j_send = j_min-(bf_align(2,1)-bc_size)+1
-
-        end subroutine get_sync_indices_for_newgrdpt_data
+        end subroutine get_data_for_newgrdpt        
 
 
         !> @author

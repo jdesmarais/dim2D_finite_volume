@@ -440,16 +440,19 @@ $(hobc_dir)/hedstrom_xy_module.o:\
 
 $(hobc_dir)/bc_operators_class.o:\
 			$(obc_dir)/bc_operators_openbc_normal_class.o\
+			$(bc_dir)/bc_operators_nopt_module.o\
 			$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
 			$(cbf_layer_dir)/bf_layer_bc_sections_class.o\
 			$(bf_layer_dir)/bf_layer_errors_module.o\
+			$(cbf_layer_dir)/bf_layer_sync_module.o\
 			$(hobc_dir)/hedstrom_xy_module.o\
 			$(sd_dir)/interface_primary.o\
 			$(obc_dir)/openbc_operators_module.o\
-			$(pm_cdir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(sd_cdir)/sd_operators_class.o\
 			$(sd_cdir)/sd_operators_fd_module.o\
 			$(sd_cdir)/sd_operators_x_oneside_L0_class.o\
 			$(sd_cdir)/sd_operators_x_oneside_L1_class.o\

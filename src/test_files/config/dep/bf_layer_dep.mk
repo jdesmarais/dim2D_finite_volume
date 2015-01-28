@@ -68,6 +68,7 @@ $(cbf_layer_dir)/bf_interior_bc_sections_module.o:\
 $(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o:\
 	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(cbf_layer_dir)/bf_layer_sync_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
@@ -88,6 +89,7 @@ $(cbf_layer_dir)/bf_newgrdpt_class.o:\
 $(cbf_layer_dir)/bf_compute_class.o:\
 	$(bc_cdir)/bc_operators_class.o\
 	$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\
+	$(cbf_layer_dir)/bf_layer_sync_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(cbf_layer_dir)/bf_newgrdpt_class.o\
 	$(ti_dir)/interface_integration_step.o\
@@ -97,6 +99,11 @@ $(cbf_layer_dir)/bf_compute_class.o:\
 	$(sd_cdir)/sd_operators_class.o\
 	$(td_cdir)/td_operators_class.o
 
+$(cbf_layer_dir)/bf_layer_sync_module.o:\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
 
 $(bf_layer_dir)/bf_layer_class.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
@@ -108,6 +115,7 @@ $(bf_layer_dir)/bf_layer_class.o:\
 	$(bf_layer_dir)/bf_layer_merge_module.o\
 	$(iobf_layer_dir)/bf_layer_nf90_operators_module.o\
 	$(bf_layer_dir)/bf_layer_exchange_module.o\
+	$(cbf_layer_dir)/bf_layer_sync_module.o\
 	$(cbf_layer_dir)/bf_remove_module.o\
 	$(cbf_layer_dir)/bf_suspicious_bc_interior_pt_module.o\
 	$(cbf_layer_dir)/bf_bc_crenel_module.o\
