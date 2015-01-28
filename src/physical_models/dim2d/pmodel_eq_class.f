@@ -667,23 +667,23 @@
           select case(operator_type)
             case(sd_interior_type)
                pattern = reshape((/
-     $              -2,2,-2,2/),
+     $              -2,-2,2,2/),
      $              (/2,2/))
             case(sd_L0_type)
                pattern = reshape((/
-     $              -2,2,0,2/),
+     $              -2,0,2,2/),
      $              (/2,2/))
             case(sd_L1_type)
                pattern = reshape((/
-     $              -2,2,-1,1/),
+     $              -2,-1,2,1/),
      $              (/2,2/))
             case(sd_R1_type)
                pattern = reshape((/
-     $              -2,2,-1,1/),
+     $              -2,-1,2,1/),
      $              (/2,2/))
             case(sd_R0_type)
                pattern = reshape((/
-     $              -2,2,-2,0/),
+     $              -2,-2,2,0/),
      $              (/2,2/))
             case default
                print '(''dim2d/pmodel_eq_class'')'
@@ -723,23 +723,23 @@
           select case(operator_type)
             case(sd_interior_type)
                pattern = reshape((/
-     $              -2,2,-2,2/),
+     $              -2,-2,2,2/),
      $              (/2,2/))
             case(sd_L0_type)
                pattern = reshape((/
-     $              0,2,-2,2/),
+     $              0,-2,2,2/),
      $              (/2,2/))
             case(sd_L1_type)
                pattern = reshape((/
-     $              -1,1,-2,2/),
+     $              -1,-2,1,2/),
      $              (/2,2/))
             case(sd_R1_type)
                pattern = reshape((/
-     $              -1,1,-2,2/),
+     $              -1,-2,1,2/),
      $              (/2,2/))
             case(sd_R0_type)
                pattern = reshape((/
-     $              -2,0,-2,2/),
+     $              -2,-2,0,2/),
      $              (/2,2/))
             case default
                print '(''dim2d/pmodel_eq_class'')'
