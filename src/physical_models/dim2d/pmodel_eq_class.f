@@ -113,6 +113,11 @@
      $       interior_pt
 
         use parameters_constant, only :
+     $       sd_interior_type,
+     $       sd_L0_type,
+     $       sd_L1_type,
+     $       sd_R1_type,
+     $       sd_R0_type,
      $       scalar,
      $       vector_x, vector_y,
      $       steady_state,
@@ -179,6 +184,14 @@
         !
         !> @param get_eq_nb
         !> get the number of governing equations: 4
+        !
+        !> @param get_sd_pattern_flux_x
+        !> gridpoints needed around the central grid point
+        !> to compute the fluxes in the x-direction in/out
+        !
+        !> @param get_sd_pattern_flux_y
+        !> gridpoints needed around the central grid point
+        !> to compute the fluxes in the y-direction in/out
         !
         !> @param apply_ic
         !> initialize the main variables of the governing equations
@@ -361,6 +374,10 @@
           procedure, nopass :: get_var_type
           procedure, nopass :: get_sim_parameters
           procedure, nopass :: get_eq_nb
+
+          !sd operators pattern for the fluxes
+          procedure, nopass :: get_sd_pattern_flux_x
+          procedure, nopass :: get_sd_pattern_flux_y
 
           !initial conditions procedures
           procedure,   pass :: apply_ic
@@ -620,7 +637,119 @@
           implicit none
           integer :: eq_nb
           eq_nb=4
-        end function get_eq_nb      
+        end function get_eq_nb
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> gridpoints needed around the central grid point
+        !> to compute the fluxes in the x-direction in/out
+        !
+        !> @date
+        !> 27_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param operator_type
+        !> type of operator used to compute the flux
+        !
+        !> @return pattern
+        !> space discretization pattern around the central point
+        !---------------------------------------------------------------
+        function get_sd_pattern_flux_x(operator_type) result(pattern)
+
+          implicit none
+
+          integer, intent(in)     :: operator_type
+          integer, dimension(2,2) :: pattern
+
+          
+          select case(operator_type)
+            case(sd_interior_type)
+               pattern = reshape((/
+     $              -2,2,-2,2/),
+     $              (/2,2/))
+            case(sd_L0_type)
+               pattern = reshape((/
+     $              -2,2,0,2/),
+     $              (/2,2/))
+            case(sd_L1_type)
+               pattern = reshape((/
+     $              -2,2,-1,1/),
+     $              (/2,2/))
+            case(sd_R1_type)
+               pattern = reshape((/
+     $              -2,2,-1,1/),
+     $              (/2,2/))
+            case(sd_R0_type)
+               pattern = reshape((/
+     $              -2,2,-2,0/),
+     $              (/2,2/))
+            case default
+               print '(''dim2d/pmodel_eq_class'')'
+               print '(''get_sd_pattern_flux_x'')'
+               print '(''operator_type not recognized'')'
+               print '(''operator_type: '',I2)', operator_type
+               stop ''
+          end select
+
+        end function get_sd_pattern_flux_x
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> gridpoints needed around the central grid point
+        !> to compute the fluxes in the y-direction in/out
+        !
+        !> @date
+        !> 27_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param operator_type
+        !> type of operator used to compute the flux
+        !
+        !> @param pattern
+        !> space discretization pattern around the central point
+        !---------------------------------------------------------------
+        function get_sd_pattern_flux_y(operator_type) result(pattern)
+
+          implicit none
+
+          integer, intent(in)     :: operator_type
+          integer, dimension(2,2) :: pattern
+
+          
+          select case(operator_type)
+            case(sd_interior_type)
+               pattern = reshape((/
+     $              -2,2,-2,2/),
+     $              (/2,2/))
+            case(sd_L0_type)
+               pattern = reshape((/
+     $              0,2,-2,2/),
+     $              (/2,2/))
+            case(sd_L1_type)
+               pattern = reshape((/
+     $              -1,1,-2,2/),
+     $              (/2,2/))
+            case(sd_R1_type)
+               pattern = reshape((/
+     $              -1,1,-2,2/),
+     $              (/2,2/))
+            case(sd_R0_type)
+               pattern = reshape((/
+     $              -2,0,-2,2/),
+     $              (/2,2/))
+            case default
+               print '(''dim2d/pmodel_eq_class'')'
+               print '(''get_sd_pattern_flux_y'')'
+               print '(''operator_type not recognized'')'
+               print '(''operator_type: '',I2)', operator_type
+               stop ''
+          end select
+
+        end function get_sd_pattern_flux_y
         
         
         !> @author

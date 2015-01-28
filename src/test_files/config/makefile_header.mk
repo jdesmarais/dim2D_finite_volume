@@ -100,6 +100,7 @@ include $(config_dir)/makefile_rules.mk
 #main code dependencies (w/o the test files)
 #----------------------------------------------------------------------
 include $(config_dir)/makefile_dep.mk
+include $(config_dir)/dep/sd_dep.mk    #space discretization operators
 include $(config_dir)/dep/dim2d_dep.mk #DIM2D physical model
 
 $(test_dir)/test_lernaeanhydra/check_data_module.o:\

@@ -141,6 +141,10 @@
           procedure(type_var)        , nopass, deferred :: get_var_type
           procedure(param_sim)       , nopass, deferred :: get_sim_parameters
           procedure(gov_eq_nb)       , nopass, deferred :: get_eq_nb
+
+          procedure(sd_pattern)      , nopass, deferred :: get_sd_pattern_flux_x
+          procedure(sd_pattern)      , nopass, deferred :: get_sd_pattern_flux_y
+
           procedure(ini_cond)        ,   pass, deferred :: apply_ic
           procedure(fluxes_x)        , nopass, deferred :: compute_flux_x
           procedure(fluxes_y)        , nopass, deferred :: compute_flux_y
@@ -320,6 +324,33 @@
           function gov_eq_nb() result(eq_nb)
             integer :: eq_nb
           end function gov_eq_nb
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface to get the pattern of gridpoints needed
+          !> when computing fluxes
+          !
+          !> @date
+          !> 27_01_2015 - initial version - J.L. Desmarais
+          !
+          !> @param operator_type
+          !> type of operator used
+          !
+          !> @return pattern
+          !> gridpoints needed around the central gridpoint to compute
+          !> the fluxes
+          !--------------------------------------------------------------
+          function sd_pattern(operator_type) result(pattern)
+
+            implicit none
+
+            integer    , intent(in) :: operator_type
+            integer, dimension(2,2) :: pattern
+
+          end function sd_pattern
 
 
           !> @author

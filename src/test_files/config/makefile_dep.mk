@@ -54,123 +54,6 @@ $(field_dir)/field_par_class.o:\
 			$(ti_cdir)/td_integrator_par_class.o
 
 
-#space discretization operators
-$(sd_dir)/interface_primary.o:\
-			$(param_dir)/parameters_kind.o
-
-$(sd_dir)/sd_operators_fd_n_module.o:\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(sd_cdir)/sd_operators_fd_module.o
-
-
-#cockburn and gau operators
-$(sd_dir)/sd_operators_abstract_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o
-
-$(cg_dir)/sd_operators_fd_module.o:\
-
-$(cg_dir)/sd_operators_x_oneside_R1_class.o:\
-			$(cg_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(cg_dir)/sd_operators_class.o
-
-$(cg_dir)/sd_operators_x_oneside_R0_class.o:\
-			$(cg_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(cg_dir)/sd_operators_class.o
-
-$(cg_dir)/sd_operators_y_oneside_L0_class.o:\
-			$(cg_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(cg_dir)/sd_operators_class.o
-
-$(cg_dir)/sd_operators_y_oneside_L1_class.o:\
-			$(cg_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(cg_dir)/sd_operators_class.o
-
-$(cg_dir)/sd_operators_y_oneside_R1_class.o:\
-			$(cg_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(cg_dir)/sd_operators_class.o
-
-$(cg_dir)/sd_operators_y_oneside_R0_class.o:\
-			$(cg_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(cg_dir)/sd_operators_class.o
-
-#mattsson operators
-$(mt_dir)/sd_operators_fd_module.o:\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o
-
-$(mt_dir)/sd_operators_fd_ncoords_module.o:\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o
-
-$(mt_dir)/sd_operators_class.o:\
-			$(mt_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(sd_dir)/sd_operators_abstract_class.o
-
-$(mt_dir)/sd_operators_x_oneside_L0_class.o:\
-			$(mt_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(mt_dir)/sd_operators_class.o
-
-$(mt_dir)/sd_operators_x_oneside_L1_class.o:\
-			$(mt_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(mt_dir)/sd_operators_class.o
-
-$(mt_dir)/sd_operators_x_oneside_R1_class.o:\
-			$(mt_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(mt_dir)/sd_operators_class.o
-
-$(mt_dir)/sd_operators_x_oneside_R0_class.o:\
-			$(mt_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(mt_dir)/sd_operators_class.o
-
-$(mt_dir)/sd_operators_y_oneside_L0_class.o:\
-			$(mt_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(mt_dir)/sd_operators_class.o
-
-$(mt_dir)/sd_operators_y_oneside_L1_class.o:\
-			$(mt_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(mt_dir)/sd_operators_class.o
-
-$(mt_dir)/sd_operators_y_oneside_R1_class.o:\
-			$(mt_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(mt_dir)/sd_operators_class.o
-
-$(mt_dir)/sd_operators_y_oneside_R0_class.o:\
-			$(mt_dir)/sd_operators_fd_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_kind.o\
-			$(mt_dir)/sd_operators_class.o
-
-
 #physical models
 $(phy_eq_dir)/pmodel_eq_abstract_class.o:\
 			$(sd_dir)/interface_primary.o\
@@ -341,8 +224,11 @@ $(bc_dir)/bc_operators_abstract_par_class.o:\
 			$(pm_cdir)/pmodel_eq_class.o
 
 $(bc_dir)/bc_operators_nopt_module.o:\
+			$(cbf_layer_dir)/bf_layer_sync_module.o\
 			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o
+
 
 #periodic boundary conditions
 $(pbc_dir)/bc_operators_class.o:\

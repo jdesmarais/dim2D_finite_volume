@@ -32,6 +32,9 @@
         !> @param get_bc_size
         !> get the boundary layer size
         !
+        !> @param get_operator_type
+        !> get the type of operator
+        !
         !> @param f
         !> evaluate data at [i-1/2,j]
         !
@@ -75,6 +78,7 @@
           contains
           
           procedure(get_bc_size_proc)      , nopass, deferred :: get_bc_size
+          procedure(get_operator_proc)     , nopass, deferred :: get_operator_type
 
           procedure(space_operator_proc)   , nopass, deferred :: f
           procedure(space_operator_proc_x) , nopass, deferred :: dfdx
@@ -116,10 +120,25 @@
 
         end function get_bc_size_proc
 
-        end interface
 
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the type of operator
+        !
+        !> @date
+        !> 28_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param operator_type
+        !> integer identifying the type of operator
+        !---------------------------------------------------------------
+        function get_operator_proc() result(operator_type)
 
-        abstract interface
+          integer :: operator_type
+
+        end function get_operator_proc
+
 
         !> @author 
         !> Julien L. Desmarais

@@ -18,12 +18,23 @@
       !-----------------------------------------------------------------
       module sd_operators_class
 
-        use sd_operators_fd_module     , only : gradient_x_interior,
-     $                                          gradient_y_interior
-        use interface_primary          , only : get_primary_var,
-     $                                          get_secondary_var
-        use parameters_kind            , only : ikind, rkind
-        use sd_operators_abstract_class, only : sd_operators_abstract
+        use sd_operators_fd_module, only :
+     $       gradient_x_interior,
+     $       gradient_y_interior
+
+        use interface_primary, only :
+     $       get_primary_var,
+     $       get_secondary_var
+
+        use parameters_constant, only :
+     $       sd_interior_type
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use sd_operators_abstract_class, only :
+     $       sd_operators_abstract
 
         implicit none
 
@@ -37,6 +48,9 @@
         !
         !> @param get_bc_size
         !> get the boundary layer size
+        !
+        !> @param get_operator_type
+        !> get the type of operator
         !
         !> @param f
         !> evaluate data at [i-1/2,j]
@@ -81,6 +95,7 @@
           contains
 
           procedure, nopass :: get_bc_size => get_bc_size_mattsson
+          procedure, nopass :: get_operator_type
 
           procedure, nopass :: f           => f_mattsson
           procedure, nopass :: dfdx        => dfdx_mattsson
@@ -118,6 +133,27 @@
           integer :: bc_size_op
           bc_size_op = 2
         end function get_bc_size_mattsson
+
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the type of operator
+        !
+        !> @date
+        !> 28_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param operator_type
+        !> integer identifying the type of operator
+        !---------------------------------------------------------------
+        function get_operator_type() result(operator_type)
+
+          integer :: operator_type
+
+          operator_type = sd_interior_type
+
+        end function get_operator_type
 
 
         !> @author

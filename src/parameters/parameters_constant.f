@@ -23,10 +23,18 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '543e9c992031abdc6d8b00ebb188fbb176aacaac')
+        parameter (commit = 'fe2e56a37e75e159e006b74197312dfb07920923')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
+
+        !>type of sd_operators
+        integer, parameter :: sd_interior_type=0
+        integer, parameter :: sd_L0_type=1
+        integer, parameter :: sd_L1_type=2
+        integer, parameter :: sd_R1_type=3
+        integer, parameter :: sd_R0_type=4
+
 
         !>main variable types
         integer, parameter :: scalar=0

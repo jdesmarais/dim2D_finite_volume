@@ -18,13 +18,24 @@
       !-----------------------------------------------------------------
       module sd_operators_x_oneside_R1_class
 
-        use sd_operators_fd_module, only : gradient_x_x_oneside_R0,
-     $                                     gradient_x_interior,
-     $                                     gradient_y_interior
-        use interface_primary     , only : get_primary_var,
-     $                                     get_secondary_var
-        use parameters_kind       , only : ikind, rkind
-        use sd_operators_class    , only : sd_operators
+        use sd_operators_fd_module, only :
+     $     gradient_x_x_oneside_R0,
+     $     gradient_x_interior,
+     $     gradient_y_interior
+
+        use interface_primary, only :
+     $       get_primary_var,
+     $       get_secondary_var
+
+        use parameters_constant, only :
+     $       sd_R1_type
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use sd_operators_class, only :
+     $       sd_operators
 
         implicit none
 
@@ -80,12 +91,34 @@
 
           contains
 
+          procedure, nopass :: get_operator_type
+
           procedure, nopass :: dfdx_nl => dfdx_x_oneside_R1_nl
           procedure, nopass :: d2fdx2  => d2fdx2_x_oneside_R1
 
         end type sd_operators_x_oneside_R1
 
         contains
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the type of operator
+        !
+        !> @date
+        !> 28_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param operator_type
+        !> integer identifying the type of operator
+        !---------------------------------------------------------------
+        function get_operator_type() result(operator_type)
+
+          integer :: operator_type
+
+          operator_type = sd_R1_type
+
+        end function get_operator_type
 
 
         !> @author

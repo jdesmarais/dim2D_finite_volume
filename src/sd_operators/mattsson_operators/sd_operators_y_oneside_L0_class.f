@@ -17,13 +17,24 @@
       !-----------------------------------------------------------------
       module sd_operators_y_oneside_L0_class
 
-        use sd_operators_fd_module, only : gradient_x_interior,
-     $                                     gradient_y_interior,
-     $                                     gradient_y_y_oneside_L0
-        use interface_primary     , only : get_primary_var,
-     $                                     get_secondary_var
-        use parameters_kind       , only : ikind, rkind
-        use sd_operators_class    , only : sd_operators
+        use sd_operators_fd_module, only :
+     $       gradient_x_interior,
+     $       gradient_y_interior,
+     $       gradient_y_y_oneside_L0
+
+        use interface_primary, only :
+     $       get_primary_var,
+     $       get_secondary_var
+
+        use parameters_constant, only :
+     $       sd_L0_type
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use sd_operators_class, only :
+     $       sd_operators
 
         implicit none
 
@@ -36,6 +47,9 @@
         !
         !> @param get_bc_size
         !> get the boundary layer size
+        !
+        !> @param get_operator_type
+        !> get the type of operator
         !
         !> @param f
         !> evaluate data at [i-1/2,j]
@@ -77,7 +91,9 @@
         !---------------------------------------------------------------
         type, extends(sd_operators) :: sd_operators_y_oneside_L0
 
-          contains          
+          contains
+
+          procedure, nopass :: get_operator_type
 
           procedure, nopass :: dfdx_nl     => dfdx_y_oneside_L0_nl
           procedure, nopass :: dfdy        => dfdy_y_oneside_L0
@@ -95,6 +111,27 @@
         end type sd_operators_y_oneside_L0
 
         contains
+
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the type of operator
+        !
+        !> @date
+        !> 28_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param operator_type
+        !> integer identifying the type of operator
+        !---------------------------------------------------------------
+        function get_operator_type() result(operator_type)
+
+          integer :: operator_type
+
+          operator_type = sd_L0_type
+
+        end function get_operator_type
 
 
         !> @author

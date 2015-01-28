@@ -46,6 +46,10 @@
           contains
 
           procedure, nopass :: get_sim_parameters => get_sim_parameters_default
+
+          procedure, nopass :: get_sd_pattern_flux_x => get_sd_pattern_flux_default
+          procedure, nopass :: get_sd_pattern_flux_y => get_sd_pattern_flux_default
+
           procedure, nopass :: get_viscous_coeff
 
           procedure, nopass :: compute_flux_x_by_parts
@@ -120,6 +124,42 @@
           end if
 
         end subroutine get_sim_parameters_default
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface to get the pattern of gridpoints needed
+        !> when computing fluxes
+        !
+        !> @date
+        !> 27_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param operator_type
+        !> type of operator used
+        !
+        !> @return pattern
+        !> gridpoints needed around the central gridpoint to compute
+        !> the fluxes
+        !--------------------------------------------------------------
+        function get_sd_pattern_flux_default(operator_type) result(pattern)
+
+          implicit none
+
+          integer    , intent(in) :: operator_type
+          integer, dimension(2,2) :: pattern
+
+          integer :: operator_type_s
+
+          print '(''get_sd_pattern_flux_default'')'
+          stop 'get_sd_pattern not implemented'
+
+          operator_type_s = operator_type
+          pattern(1,1)    = 0
+
+        end function get_sd_pattern_flux_default
+
 
 
         !> @author
