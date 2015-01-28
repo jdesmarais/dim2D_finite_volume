@@ -17,6 +17,7 @@
        module bc_operators_nopt_module
 
         use bf_layer_sync_module, only :
+     $       get_sync_indices_to_extract_interior_data,
      $       get_sync_indices_to_extract_bf_layer_data
 
         use parameters_input, only :

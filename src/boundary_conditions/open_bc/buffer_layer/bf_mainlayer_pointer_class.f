@@ -1026,21 +1026,25 @@
         subroutine compute_time_dev(
      $     this,
      $     td_operators_used,
-     $     t,s,p_model,bc_used)
+     $     t,s,p_model,bc_used,
+     $     interior_nodes)
 
           implicit none
 
-          class(bf_mainlayer_pointer), intent(inout) :: this
-          type(td_operators)         , intent(in)    :: td_operators_used
-          real(rkind)                , intent(in)    :: t
-          type(sd_operators)         , intent(in)    :: s
-          type(pmodel_eq)            , intent(in)    :: p_model
-          type(bc_operators)         , intent(in)    :: bc_used
+          class(bf_mainlayer_pointer)     , intent(inout) :: this
+          type(td_operators)              , intent(in)    :: td_operators_used
+          real(rkind)                     , intent(in)    :: t
+          type(sd_operators)              , intent(in)    :: s
+          type(pmodel_eq)                 , intent(in)    :: p_model
+          type(bc_operators)              , intent(in)    :: bc_used
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
+
 
           if(this%associated_ptr()) then
              call this%ptr%compute_time_dev(
      $            td_operators_used,
-     $            t,s,p_model,bc_used)
+     $            t,s,p_model,bc_used,
+     $            interior_nodes)
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''compute_time_dev'')'

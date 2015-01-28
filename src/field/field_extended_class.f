@@ -293,7 +293,8 @@
      $         this%time,
      $         this%sd_operators_used,
      $         this%pmodel_eq_used,
-     $         this%bc_operators_used)
+     $         this%bc_operators_used,
+     $         this%nodes)
 
         end function compute_time_dev_ext
 

@@ -23,7 +23,8 @@
      $       compute_edge_E,
      $       compute_edge_W,
      $       are_grdpts_needed_for_flux_x,
-     $       are_grdpts_needed_for_flux_y
+     $       are_grdpts_needed_for_flux_y,
+     $       combine_grdpts_to_compute_fluxes
 
         use bf_layer_bc_procedure_module, only :
      $       SE_edge_type,
@@ -949,7 +950,7 @@
 
 
                      ! compute fluxes N_edge
-                     call compute_anti_corner_flux_x(
+                     call compute_flux_x_anti_corner(
      $                    bf_alignment, nodes,
      $                    interior_nodes,
      $                    dx,dy,
