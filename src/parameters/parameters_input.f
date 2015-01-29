@@ -220,7 +220,7 @@
         !                                   are adapted once the
         !                                   simulation starts
         !-----------------------------------------------------
-        logical    , parameter :: debug_restart_for_geometry = .true.
+        logical    , parameter :: debug_restart_for_geometry = .false.
         logical    , parameter :: debug_adapt_computational_domain =.false.
 
       end module parameters_input

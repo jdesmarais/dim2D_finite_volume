@@ -53,6 +53,8 @@
      $       sd_operators
 
         use sd_operators_fd_module, only :
+     $       gradient_x_interior,
+     $       gradient_y_interior,
      $       gradient_x_x_oneside_L0,
      $       gradient_x_x_oneside_R0,
      $       gradient_y_y_oneside_L0,
@@ -88,6 +90,8 @@
         private
         public :: compute_timedev_anti_corner_with_diag_fluxes
 
+
+        logical :: use_interior_gradients=.true.
 
 
         contains
@@ -232,18 +236,37 @@
                      i=i_min
                      j=j_min
                      
-                     timedev(i,j,:) = compute_time_dev_openbc(
-     $                    interior_nodes,
-     $                    bf_alignment,
-     $                    nodes,
-     $                    i,j,
-     $                    dx,dy,dn,
-     $                    sd_n2_R1,
-     $                    p_model,
-     $                    n2_direction,
-     $                    incoming_right,
-     $                    gradient_x_x_oneside_R0,
-     $                    gradient_y_y_oneside_R0)
+                     if(use_interior_gradients) then
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n2_R1,
+     $                       p_model,
+     $                       n2_direction,
+     $                       incoming_right,
+     $                       gradient_x_interior,
+     $                       gradient_y_interior)
+
+                     else
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n2_R1,
+     $                       p_model,
+     $                       n2_direction,
+     $                       incoming_right,
+     $                       gradient_x_x_oneside_R0,
+     $                       gradient_y_y_oneside_R0)
+
+                     end if
 
                   end if
 
@@ -260,18 +283,37 @@
                      j=j_min
 
 
-                     timedev(i,j,:) = compute_time_dev_openbc(
-     $                    interior_nodes,
-     $                    bf_alignment,
-     $                    nodes,
-     $                    i,j,
-     $                    dx,dy,dn,
-     $                    sd_n2_R1,
-     $                    p_model,
-     $                    n2_direction,
-     $                    incoming_right,
-     $                    gradient_x_x_oneside_R0,
-     $                    gradient_y_y_oneside_R0)
+                     if(use_interior_gradients) then
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n2_R1,
+     $                       p_model,
+     $                       n2_direction,
+     $                       incoming_right,
+     $                       gradient_x_interior,
+     $                       gradient_y_y_oneside_R0)
+
+                     else
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n2_R1,
+     $                       p_model,
+     $                       n2_direction,
+     $                       incoming_right,
+     $                       gradient_x_x_oneside_R0,
+     $                       gradient_y_y_oneside_R0)
+
+                     end if
                      
                   end if
 
@@ -287,18 +329,37 @@
                      i=i_min
                      j=j_min+1
                      
-                     timedev(i,j,:) = compute_time_dev_openbc(
-     $                    interior_nodes,
-     $                    bf_alignment,
-     $                    nodes,
-     $                    i,j,
-     $                    dx,dy,dn,
-     $                    sd_n2_R1,
-     $                    p_model,
-     $                    n2_direction,
-     $                    incoming_right,
-     $                    gradient_x_x_oneside_R0,
-     $                    gradient_y_y_oneside_R0)
+                     if(use_interior_gradients) then
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n2_R1,
+     $                       p_model,
+     $                       n2_direction,
+     $                       incoming_right,
+     $                       gradient_x_x_oneside_R0,
+     $                       gradient_y_interior)
+
+                     else
+                        
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n2_R1,
+     $                       p_model,
+     $                       n2_direction,
+     $                       incoming_right,
+     $                       gradient_x_x_oneside_R0,
+     $                       gradient_y_y_oneside_R0)
+
+                     end if
 
                   end if
 
@@ -358,18 +419,37 @@
                      i=i_min
                      j=j_min
 
-                     timedev(i,j,:) = compute_time_dev_openbc(
-     $                    interior_nodes,
-     $                    bf_alignment,
-     $                    nodes,
-     $                    i,j,
-     $                    dx,dy,dn,
-     $                    sd_n1_L1,
-     $                    p_model,
-     $                    n1_direction,
-     $                    incoming_left,
-     $                    gradient_x_x_oneside_L0,
-     $                    gradient_y_y_oneside_R0)
+                     if(use_interior_gradients) then
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n1_L1,
+     $                       p_model,
+     $                       n1_direction,
+     $                       incoming_left,
+     $                       gradient_x_interior,
+     $                       gradient_y_y_oneside_R0)
+
+                     else
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n1_L1,
+     $                       p_model,
+     $                       n1_direction,
+     $                       incoming_left,
+     $                       gradient_x_x_oneside_L0,
+     $                       gradient_y_y_oneside_R0)
+
+                     end if
 
                   end if
 
@@ -385,18 +465,37 @@
                      i=i_min+1
                      j=j_min
 
-                     timedev(i,j,:) = compute_time_dev_openbc(
-     $                    interior_nodes,
-     $                    bf_alignment,
-     $                    nodes,
-     $                    i,j,
-     $                    dx,dy,dn,
-     $                    sd_n1_L1,
-     $                    p_model,
-     $                    n1_direction,
-     $                    incoming_left,
-     $                    gradient_x_x_oneside_L0,
-     $                    gradient_y_y_oneside_R0)
+                     if(use_interior_gradients) then
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n1_L1,
+     $                       p_model,
+     $                       n1_direction,
+     $                       incoming_left,
+     $                       gradient_x_interior,
+     $                       gradient_y_interior)
+
+                     else
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n1_L1,
+     $                       p_model,
+     $                       n1_direction,
+     $                       incoming_left,
+     $                       gradient_x_x_oneside_L0,
+     $                       gradient_y_y_oneside_R0)
+
+                     end if
 
                   end if
 
@@ -439,18 +538,37 @@
                      i=i_min+1
                      j=j_min+1
 
-                     timedev(i,j,:) = compute_time_dev_openbc(
-     $                    interior_nodes,
-     $                    bf_alignment, 
-     $                    nodes,
-     $                    i,j,
-     $                    dx,dy,dn,
-     $                    sd_n1_L1,
-     $                    p_model,
-     $                    n1_direction,
-     $                    incoming_left,
-     $                    gradient_x_x_oneside_L0,
-     $                    gradient_y_y_oneside_R0)
+                     if(use_interior_gradients) then
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment, 
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n1_L1,
+     $                       p_model,
+     $                       n1_direction,
+     $                       incoming_left,
+     $                       gradient_x_x_oneside_L0,
+     $                       gradient_y_interior)
+
+                     else
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment, 
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n1_L1,
+     $                       p_model,
+     $                       n1_direction,
+     $                       incoming_left,
+     $                       gradient_x_x_oneside_L0,
+     $                       gradient_y_y_oneside_R0)
+
+                     end if
 
                   end if
 
@@ -509,18 +627,37 @@
                      i=i_min+1
                      j=j_min
                      
-                     timedev(i,j,:) = compute_time_dev_openbc(
-     $                    interior_nodes,
-     $                    bf_alignment,
-     $                    nodes,
-     $                    i,j,
-     $                    dx,dy,dn,
-     $                    sd_n2_L1,
-     $                    p_model,
-     $                    n2_direction,
-     $                    incoming_left,
-     $                    gradient_x_x_oneside_L0,
-     $                    gradient_y_y_oneside_L0)
+                     if(use_interior_gradients) then
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n2_L1,
+     $                       p_model,
+     $                       n2_direction,
+     $                       incoming_left,
+     $                       gradient_x_x_oneside_L0,
+     $                       gradient_y_interior)
+
+                     else
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n2_L1,
+     $                       p_model,
+     $                       n2_direction,
+     $                       incoming_left,
+     $                       gradient_x_x_oneside_L0,
+     $                       gradient_y_y_oneside_L0)
+
+                     end if
 
                   end if
 
@@ -536,7 +673,9 @@
                      i=i_min
                      j=j_min+1
 
-                     timedev(i,j,:) = compute_time_dev_openbc(
+                     if(use_interior_gradients) then
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
      $                    interior_nodes,
      $                    bf_alignment,
      $                    nodes,
@@ -546,8 +685,25 @@
      $                    p_model,
      $                    n2_direction,
      $                    incoming_left,
-     $                    gradient_x_x_oneside_L0,
+     $                    gradient_x_interior,
      $                    gradient_y_y_oneside_L0)
+
+                     else
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n2_L1,
+     $                       p_model,
+     $                       n2_direction,
+     $                       incoming_left,
+     $                       gradient_x_x_oneside_L0,
+     $                       gradient_y_y_oneside_L0)
+
+                     end if
 
                   end if
 
@@ -563,18 +719,37 @@
                      i=i_min+1
                      j=j_min+1
                      
-                     timedev(i,j,:) = compute_time_dev_openbc(
-     $                    interior_nodes,
-     $                    bf_alignment,
-     $                    nodes,
-     $                    i,j,
-     $                    dx,dy,dn,
-     $                    sd_n2_L1,
-     $                    p_model,
-     $                    n2_direction,
-     $                    incoming_left,
-     $                    gradient_x_x_oneside_L0,
-     $                    gradient_y_y_oneside_L0)
+                     if(use_interior_gradients) then
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n2_L1,
+     $                       p_model,
+     $                       n2_direction,
+     $                       incoming_left,
+     $                       gradient_x_interior,
+     $                       gradient_y_interior)
+
+                     else
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n2_L1,
+     $                       p_model,
+     $                       n2_direction,
+     $                       incoming_left,
+     $                       gradient_x_x_oneside_L0,
+     $                       gradient_y_y_oneside_L0)
+
+                     end if
 
                   end if
 
@@ -606,18 +781,37 @@
                      i=i_min
                      j=j_min
                      
-                     timedev(i,j,:) = compute_time_dev_openbc(
-     $                    interior_nodes,
-     $                    bf_alignment,
-     $                    nodes,
-     $                    i,j,
-     $                    dx,dy,dn,
-     $                    sd_n1_R1,
-     $                    p_model,
-     $                    n1_direction,
-     $                    incoming_right,
-     $                    gradient_x_x_oneside_R0,
-     $                    gradient_y_y_oneside_L0)
+                     if(use_interior_gradients) then
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n1_R1,
+     $                       p_model,
+     $                       n1_direction,
+     $                       incoming_right,
+     $                       gradient_x_x_oneside_R0,
+     $                       gradient_y_interior)
+
+                     else
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n1_R1,
+     $                       p_model,
+     $                       n1_direction,
+     $                       incoming_right,
+     $                       gradient_x_x_oneside_R0,
+     $                       gradient_y_y_oneside_L0)
+
+                     end if
 
                   end if
                   
@@ -660,18 +854,37 @@
                      i=i_min
                      j=j_min+1
                      
-                     timedev(i,j,:) = compute_time_dev_openbc(
-     $                    interior_nodes,
-     $                    bf_alignment,
-     $                    nodes,
-     $                    i,j,
-     $                    dx,dy,dn,
-     $                    sd_n1_R1,
-     $                    p_model,
-     $                    n1_direction,
-     $                    incoming_right,
-     $                    gradient_x_x_oneside_R0,
-     $                    gradient_y_y_oneside_L0)
+                     if(use_interior_gradients) then
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n1_R1,
+     $                       p_model,
+     $                       n1_direction,
+     $                       incoming_right,
+     $                       gradient_x_interior,
+     $                       gradient_y_interior)
+
+                     else
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n1_R1,
+     $                       p_model,
+     $                       n1_direction,
+     $                       incoming_right,
+     $                       gradient_x_x_oneside_R0,
+     $                       gradient_y_y_oneside_L0)
+
+                     end if
 
                   end if
                      
@@ -686,19 +899,38 @@
 
                      i=i_min+1
                      j=j_min+1
-                     
-                     timedev(i,j,:) = compute_time_dev_openbc(
-     $                    interior_nodes,
-     $                    bf_alignment,
-     $                    nodes,
-     $                    i,j,
-     $                    dx,dy,dn,
-     $                    sd_n1_R1,
-     $                    p_model,
-     $                    n1_direction,
-     $                    incoming_right,
-     $                    gradient_x_x_oneside_R0,
-     $                    gradient_y_y_oneside_L0)
+
+                     if(use_interior_gradients) then
+
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n1_R1,
+     $                       p_model,
+     $                       n1_direction,
+     $                       incoming_right,
+     $                       gradient_x_interior,
+     $                       gradient_y_y_oneside_L0)
+
+                     else
+                        
+                        timedev(i,j,:) = compute_time_dev_openbc(
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n1_R1,
+     $                       p_model,
+     $                       n1_direction,
+     $                       incoming_right,
+     $                       gradient_x_x_oneside_R0,
+     $                       gradient_y_y_oneside_L0)
+
+                     end if
 
                   end if
 
@@ -762,22 +994,11 @@
           integer(ikind) :: j_c          
 
 
-          !1) compute the contribution of the outward direction
-          !   to the time derivatives
-          timedev = compute_n_timedev_with_openbc_local(
-     $         bf_nodes, i,j,
-     $         p_model, dx,dy,
-     $         gradient_x,
-     $         gradient_y,
-     $         incoming_wave,
-     $         outward_dir)
+          
 
           
-          !2) compute the contribution of the direction normal
-          !   to the outward direction to the time derivatives
-
-          !2.1) determine whether there are enough grid points
-          !     to compute the fluxes
+          !1) determine whether there are enough grid points
+          !   to compute the time derivatives
           !---------------------------------------------------
           select case(outward_dir)
 
@@ -811,7 +1032,7 @@
           end select
 
 
-          !2.2) if grid points are needed, combine nodes from the
+          !2) if grid points are needed, combine nodes from the
           !     interior and the buffer layer and compute the
           !     fluxes using the tmp_nodes
           !------------------------------------------------------
@@ -842,10 +1063,22 @@
      $            gen_coords,
      $            tmp_nodes)
 
-             ! compute the fluxes using the tmp_nodes
+             ! determine the central pt computed
              i_c = cpt_coords(1)
              j_c = cpt_coords(2)
 
+             ! compute the contribution of the outward direction
+             ! to the time derivatives with the tmp_nodes
+             timedev = compute_n_timedev_with_openbc_local(
+     $            tmp_nodes, i_c,j_c,
+     $            p_model, dx,dy,
+     $            gradient_x,
+     $            gradient_y,
+     $            incoming_wave,
+     $            outward_dir)
+
+
+             ! compute the fluxes using the tmp_nodes
              select case(outward_dir)
 
                case(n1_direction)
@@ -870,6 +1103,16 @@
           !     the fluxes using the bf_nodes
           !------------------------------------------------------
           else
+
+             ! compute the contribution of the outward direction
+             ! to the time derivatives
+             timedev = compute_n_timedev_with_openbc_local(
+     $            bf_nodes, i,j,
+     $            p_model, dx,dy,
+     $            gradient_x,
+     $            gradient_y,
+     $            incoming_wave,
+     $            outward_dir)
              
              ! compute the fluxes using the bf_nodes
              select case(outward_dir)

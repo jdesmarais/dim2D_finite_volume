@@ -92,6 +92,7 @@ wall_x_reflection_dep=	$(bc_dep)\
 hedstrom_xy_dep=	$(bc_dep)\
 			bf_layer_sync_module.o\
 			bc_operators_nopt_module.o\
+			bf_layer_errors_module.o\
 			bc_operators_openbc_class.o\
 			openbc_operators_module.o\
 			bc_operators_openbc_normal_class.o\
