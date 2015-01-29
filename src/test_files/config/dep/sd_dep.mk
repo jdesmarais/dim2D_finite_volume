@@ -130,7 +130,7 @@ $(mt_dir)/sd_operators_n_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_kind.o\
-			$(sd_dir)/sd_operators_abstract_class.o
+			$(sd_cdir)/sd_operators_class.o
 
 $(mt_dir)/sd_operators_n1_oneside_L0_class.o:\
 			$(sd_cdir)/sd_operators_fd_ncoords_module.o\

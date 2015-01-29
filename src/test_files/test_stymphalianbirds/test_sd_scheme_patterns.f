@@ -39,49 +39,104 @@
         use sd_operators_y_oneside_R0_class, only :
      $       sd_operators_y_oneside_R0
 
+        use sd_operators_n1_oneside_L0_class, only :
+     $       sd_operators_n1_oneside_L0
+
+        use sd_operators_n1_oneside_L1_class, only :
+     $       sd_operators_n1_oneside_L1
+
+        use sd_operators_n1_oneside_R1_class, only :
+     $       sd_operators_n1_oneside_R1
+
+        use sd_operators_n1_oneside_R0_class, only :
+     $       sd_operators_n1_oneside_R0
+
+        use sd_operators_n2_oneside_L0_class, only :
+     $       sd_operators_n2_oneside_L0
+
+        use sd_operators_n2_oneside_L1_class, only :
+     $       sd_operators_n2_oneside_L1
+
+        use sd_operators_n2_oneside_R1_class, only :
+     $       sd_operators_n2_oneside_R1
+
+        use sd_operators_n2_oneside_R0_class, only :
+     $       sd_operators_n2_oneside_R0
+
 
         implicit none        
 
-        integer, dimension(5,5)         :: grdpts_interior
+        integer, dimension(5,5)          :: grdpts_interior
+                                         
+        integer, dimension(5,5)          :: grdpts_x_L0
+        integer, dimension(5,5)          :: grdpts_x_L1
+        integer, dimension(5,5)          :: grdpts_x_R1
+        integer, dimension(5,5)          :: grdpts_x_R0
+                                         
+        integer, dimension(5,5)          :: grdpts_y_L0
+        integer, dimension(5,5)          :: grdpts_y_L1
+        integer, dimension(5,5)          :: grdpts_y_R1
+        integer, dimension(5,5)          :: grdpts_y_R0
+                                         
+        integer, dimension(5,5)          :: grdpts_n1_L0
+        integer, dimension(5,5)          :: grdpts_n1_L1
+        integer, dimension(5,5)          :: grdpts_n1_R1
+        integer, dimension(5,5)          :: grdpts_n1_R0
+                                         
+        integer, dimension(5,5)          :: grdpts_n2_L0
+        integer, dimension(5,5)          :: grdpts_n2_L1
+        integer, dimension(5,5)          :: grdpts_n2_R1
+        integer, dimension(5,5)          :: grdpts_n2_R0
+                                         
+                                         
+        type(sd_operators)               :: sd_interior
+                                         
+        type(sd_operators_x_oneside_L0)  :: sd_x_L0
+        type(sd_operators_x_oneside_L1)  :: sd_x_L1
+        type(sd_operators_x_oneside_R1)  :: sd_x_R1
+        type(sd_operators_x_oneside_R0)  :: sd_x_R0
+                                         
+        type(sd_operators_y_oneside_L0)  :: sd_y_L0
+        type(sd_operators_y_oneside_L1)  :: sd_y_L1
+        type(sd_operators_y_oneside_R1)  :: sd_y_R1
+        type(sd_operators_y_oneside_R0)  :: sd_y_R0
 
-        integer, dimension(5,5)         :: grdpts_x_L0
-        integer, dimension(5,5)         :: grdpts_x_L1
-        integer, dimension(5,5)         :: grdpts_x_R1
-        integer, dimension(5,5)         :: grdpts_x_R0
+        type(sd_operators_n1_oneside_L0) :: sd_n1_L0
+        type(sd_operators_n1_oneside_L1) :: sd_n1_L1
+        type(sd_operators_n1_oneside_R1) :: sd_n1_R1
+        type(sd_operators_n1_oneside_R0) :: sd_n1_R0
 
-        integer, dimension(5,5)         :: grdpts_y_L0
-        integer, dimension(5,5)         :: grdpts_y_L1
-        integer, dimension(5,5)         :: grdpts_y_R1
-        integer, dimension(5,5)         :: grdpts_y_R0
-       
-
-        type(sd_operators)              :: sd_interior
-
-        type(sd_operators_x_oneside_L0) :: sd_x_L0
-        type(sd_operators_x_oneside_L1) :: sd_x_L1
-        type(sd_operators_x_oneside_R1) :: sd_x_R1
-        type(sd_operators_x_oneside_R0) :: sd_x_R0
-
-        type(sd_operators_y_oneside_L0) :: sd_y_L0
-        type(sd_operators_y_oneside_L1) :: sd_y_L1
-        type(sd_operators_y_oneside_R1) :: sd_y_R1
-        type(sd_operators_y_oneside_R0) :: sd_y_R0
+        type(sd_operators_n2_oneside_L0) :: sd_n2_L0
+        type(sd_operators_n2_oneside_L1) :: sd_n2_L1
+        type(sd_operators_n2_oneside_R1) :: sd_n2_R1
+        type(sd_operators_n2_oneside_R0) :: sd_n2_R0
 
 
         !for each space discretization scheme, determine
         !which gridpoints are used for the computation of
         !the fluxes
-        grdpts_interior = get_grdpts_int(sd_interior)
+        grdpts_interior   = get_grdpts_int(sd_interior)
+                          
+        grdpts_x_L0       = get_grdpts_x_oneside(sd_x_L0)
+        grdpts_x_L1       = get_grdpts_x_oneside(sd_x_L1)
+        grdpts_x_R1       = get_grdpts_x_oneside(sd_x_R1)
+        grdpts_x_R0       = get_grdpts_x_oneside(sd_x_R0)
+                          
+        grdpts_y_L0       = get_grdpts_y_oneside(sd_y_L0)
+        grdpts_y_L1       = get_grdpts_y_oneside(sd_y_L1)
+        grdpts_y_R1       = get_grdpts_y_oneside(sd_y_R1)
+        grdpts_y_R0       = get_grdpts_y_oneside(sd_y_R0)
 
-        grdpts_x_L0     = get_grdpts_x_oneside(sd_x_L0)
-        grdpts_x_L1     = get_grdpts_x_oneside(sd_x_L1)
-        grdpts_x_R1     = get_grdpts_x_oneside(sd_x_R1)
-        grdpts_x_R0     = get_grdpts_x_oneside(sd_x_R0)
+        grdpts_n1_L0      = get_grdpts_n1_oneside(sd_n1_L0)
+        grdpts_n1_L1      = get_grdpts_n1_oneside(sd_n1_L1)
+        grdpts_n1_R1      = get_grdpts_n1_oneside(sd_n1_R1)
+        grdpts_n1_R0      = get_grdpts_n1_oneside(sd_n1_R0)
+                          
+        grdpts_n2_L0      = get_grdpts_n2_oneside(sd_n2_L0)
+        grdpts_n2_L1      = get_grdpts_n2_oneside(sd_n2_L1)
+        grdpts_n2_R1      = get_grdpts_n2_oneside(sd_n2_R1)
+        grdpts_n2_R0      = get_grdpts_n2_oneside(sd_n2_R0)
 
-        grdpts_y_L0     = get_grdpts_y_oneside(sd_y_L0)
-        grdpts_y_L1     = get_grdpts_y_oneside(sd_y_L1)
-        grdpts_y_R1     = get_grdpts_y_oneside(sd_y_R1)
-        grdpts_y_R0     = get_grdpts_y_oneside(sd_y_R0)
         
         call print_grdpts_used('sd_int' ,grdpts_interior)
 
@@ -96,6 +151,17 @@
         call print_grdpts_used('sd_y_R0',grdpts_y_R0)
 
 
+        call print_grdpts_used('sd_n1_L0',grdpts_n1_L0)
+        call print_grdpts_used('sd_n1_L1',grdpts_n1_L1)
+        call print_grdpts_used('sd_n1_R1',grdpts_n1_R1)
+        call print_grdpts_used('sd_n1_R0',grdpts_n1_R0)
+
+        call print_grdpts_used('sd_n2_L0',grdpts_n2_L0)
+        call print_grdpts_used('sd_n2_L1',grdpts_n2_L1)
+        call print_grdpts_used('sd_n2_R1',grdpts_n2_R1)
+        call print_grdpts_used('sd_n2_R0',grdpts_n2_R0)
+
+
         contains
 
 
@@ -104,9 +170,9 @@
 
           implicit none
 
-          type(sd_operators), intent(in) :: sd_used
-          integer, dimension(5,5)        :: grdpts
-          integer, dimension(5,5)        :: grdpts_id
+          class(sd_operators), intent(in) :: sd_used
+          integer, dimension(5,5)         :: grdpts
+          integer, dimension(5,5)         :: grdpts_id
 
           real(rkind)                     :: dx
           real(rkind)                     :: dy
@@ -326,7 +392,163 @@
              end do
           end do
 
-        end function get_grdpts_y_oneside
+        end function get_grdpts_y_oneside        
+
+
+        function get_grdpts_n1_oneside(sd_used)
+     $       result(grdpts)
+
+          implicit none
+
+          class(sd_operators), intent(in) :: sd_used
+          integer, dimension(5,5)         :: grdpts
+
+          real(rkind)                     :: dx
+          real(rkind)                     :: dy
+          real(rkind), dimension(5)       :: x_map
+          real(rkind), dimension(5)       :: y_map
+          real(rkind), dimension(5,5,ne)  :: nodes
+
+          type(pmodel_eq)                 :: p_model
+
+          real(rkind), dimension(6,5,ne)  :: flux_x
+          real(rkind), dimension(5,6,ne)  :: flux_y 
+
+          logical :: grdpt_needed
+
+          integer(ikind) :: i,j
+          integer        :: k
+
+          integer(ikind) :: i_f,j_f
+
+
+          call ini_grdpts(grdpts)
+
+          do j=1,5
+             do i=1,5
+                
+                !initialize the x_map and y_map
+                call initialize_maps(dx,dy,x_map,y_map)
+
+                
+                !initialize the nodes with one wrong grdpt
+                call initialize_nodes(nodes)
+
+                do k=1,ne
+                   nodes(i,j,k) = 1e20
+                end do
+                
+                i_f = 3
+                j_f = 3
+
+
+                !compute the x-fluxes and the y-fluxes needed
+                !to compute the time derivatives at (3,3)
+                flux_x(i_f,j_f,:)   = [0,0,0,0]
+                flux_x(i_f+1,j_f,:) = [0,0,0,0]
+
+                flux_y(i_f,j_f,:)   = p_model%compute_flux_y_oneside(
+     $               nodes,dx,dy,
+     $               i_f,j_f,
+     $               sd_used)
+
+                flux_y(i_f,j_f+1,:) = p_model%compute_flux_y_oneside(
+     $               nodes,dx,dy,
+     $               i_f+1,j_f+1,
+     $               sd_used)
+
+
+                !test if there is one flux which could not be
+                !computed such that the nodes(i,j,:) were needed
+                !for the computation of the fluxes
+                grdpt_needed = check_if_grdpt_is_needed(flux_x,flux_y)
+
+                if(grdpt_needed) then
+                   grdpts(i,j)=1
+                end if
+                
+             end do
+          end do
+
+        end function get_grdpts_n1_oneside
+
+
+        function get_grdpts_n2_oneside(sd_used)
+     $       result(grdpts)
+
+          implicit none
+
+          class(sd_operators), intent(in) :: sd_used
+          integer, dimension(5,5)         :: grdpts
+
+          real(rkind)                     :: dx
+          real(rkind)                     :: dy
+          real(rkind), dimension(5)       :: x_map
+          real(rkind), dimension(5)       :: y_map
+          real(rkind), dimension(5,5,ne)  :: nodes
+
+          type(pmodel_eq)                 :: p_model
+
+          real(rkind), dimension(6,5,ne)  :: flux_x
+          real(rkind), dimension(5,6,ne)  :: flux_y 
+
+          logical :: grdpt_needed
+
+          integer(ikind) :: i,j
+          integer        :: k
+
+          integer(ikind) :: i_f,j_f
+
+
+          call ini_grdpts(grdpts)
+
+          do j=1,5
+             do i=1,5
+                
+                !initialize the x_map and y_map
+                call initialize_maps(dx,dy,x_map,y_map)
+
+
+                !initialize the nodes with one wrong grdpt
+                call initialize_nodes(nodes)
+
+                do k=1,ne
+                   nodes(i,j,k) = 1e20
+                end do
+                
+                i_f = 3
+                j_f = 3
+                
+
+                !compute the x-fluxes and the y-fluxes needed
+                !to compute the time derivatives at (3,3)
+                flux_x(i_f,j_f,:)   = p_model%compute_flux_x_oneside(
+     $               nodes,dx,dy,
+     $               i_f,j_f,
+     $               sd_used)
+
+                flux_x(i_f+1,j_f,:) = p_model%compute_flux_x_oneside(
+     $               nodes,dx,dy,
+     $               i_f+1,j_f-1,
+     $               sd_used)
+
+                flux_y(i_f,j_f,:)   = [0,0,0,0]
+                flux_y(i_f,j_f+1,:) = [0,0,0,0]
+
+
+                !test if there is one flux which could not be
+                !computed such that the nodes(i,j,:) were needed
+                !for the computation of the fluxes
+                grdpt_needed = check_if_grdpt_is_needed(flux_x,flux_y)
+
+                if(grdpt_needed) then
+                   grdpts(i,j)=1
+                end if
+                
+             end do
+          end do
+
+        end function get_grdpts_n2_oneside
 
 
         function check_if_grdpt_is_needed(flux_x,flux_y)

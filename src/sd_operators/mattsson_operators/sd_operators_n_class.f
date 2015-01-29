@@ -33,8 +33,8 @@
      $       ikind,
      $       rkind
 
-        use sd_operators_abstract_class, only :
-     $       sd_operators_abstract
+        use sd_operators_class, only :
+     $       sd_operators
 
         implicit none
 
@@ -90,7 +90,7 @@
         !> evaluate \f$\frac{\partial}{\partial n_1 \partial n_2}\f$
         !> at [i-1/2,j-1/2]
         !---------------------------------------------------------------
-        type, extends(sd_operators_abstract) :: sd_operators_n
+        type, extends(sd_operators) :: sd_operators_n
 
           contains
 

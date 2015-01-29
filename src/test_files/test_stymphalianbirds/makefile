@@ -400,7 +400,16 @@ test_sd_scheme_patterns.o:\
 			$(sd_cdir)/sd_operators_y_oneside_L0_class.o\
 			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
 			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
+			$(sd_cdir)/sd_operators_y_oneside_R0_class.o\
+			$(sd_cdir)/sd_operators_n_class.o\
+			$(sd_cdir)/sd_operators_n1_oneside_L0_class.o\
+			$(sd_cdir)/sd_operators_n1_oneside_L1_class.o\
+			$(sd_cdir)/sd_operators_n1_oneside_R1_class.o\
+			$(sd_cdir)/sd_operators_n1_oneside_R0_class.o\
+			$(sd_cdir)/sd_operators_n2_oneside_L0_class.o\
+			$(sd_cdir)/sd_operators_n2_oneside_L1_class.o\
+			$(sd_cdir)/sd_operators_n2_oneside_R1_class.o\
+			$(sd_cdir)/sd_operators_n2_oneside_R0_class.o
 
 test_sd_scheme_patterns:\
 			parameters_kind.o\
@@ -409,8 +418,10 @@ test_sd_scheme_patterns:\
 			parameters_bf_layer.o\
 			interface_primary.o\
 			sd_operators_fd_module.o\
+			sd_operators_fd_ncoords_module.o\
 			sd_operators_abstract_class.o\
 			sd_operators_class.o\
+			sd_operators_n_class.o\
 			dim2d_parameters.o\
 			dim2d_prim_module.o\
 			dim2d_ncoords_module.o\
@@ -429,4 +440,12 @@ test_sd_scheme_patterns:\
 			sd_operators_y_oneside_L0_class.o\
 			sd_operators_y_oneside_L1_class.o\
 			sd_operators_y_oneside_R1_class.o\
-			sd_operators_y_oneside_R0_class.o
+			sd_operators_y_oneside_R0_class.o\
+			sd_operators_n1_oneside_L0_class.o\
+			sd_operators_n1_oneside_L1_class.o\
+			sd_operators_n1_oneside_R1_class.o\
+			sd_operators_n1_oneside_R0_class.o\
+			sd_operators_n2_oneside_L0_class.o\
+			sd_operators_n2_oneside_L1_class.o\
+			sd_operators_n2_oneside_R1_class.o\
+			sd_operators_n2_oneside_R0_class.o
