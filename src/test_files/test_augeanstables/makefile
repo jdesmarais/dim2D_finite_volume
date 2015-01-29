@@ -81,6 +81,7 @@ test_mattsson_operators.o:\
 			$(mt_dir)/sd_operators_y_oneside_R0_class.o\
 			$(mt_dir)/sd_operators_fd_module.o\
 			$(mt_dir)/sd_operators_fd_ncoords_module.o\
+			$(mt_dir)/sd_operators_n_class.o\
 			$(dim2d_dir)/dim2d_prim_module.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
@@ -99,6 +100,7 @@ test_mattsson_operators:\
 			interface_primary.o\
 			sd_operators_fd_module.o\
 			sd_operators_fd_ncoords_module.o\
+			sd_operators_n_class.o\
 			dim2d_parameters.o\
 			dim2d_prim_module.o
 

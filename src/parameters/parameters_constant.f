@@ -35,6 +35,12 @@
         integer, parameter :: sd_R1_type=3
         integer, parameter :: sd_R0_type=4
 
+        integer, parameter :: sd_interior_n_type=5
+        integer, parameter :: sd_L0_n_type=6
+        integer, parameter :: sd_L1_n_type=7
+        integer, parameter :: sd_R1_n_type=8
+        integer, parameter :: sd_R0_n_type=9
+
 
         !>main variable types
         integer, parameter :: scalar=0
