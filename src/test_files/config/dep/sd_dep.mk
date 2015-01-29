@@ -138,3 +138,31 @@ $(mt_dir)/sd_operators_n1_oneside_L0_class.o:\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_kind.o\
 			$(sd_cdir)/sd_operators_n_class.o
+
+$(mt_dir)/sd_operators_n1_oneside_L1_class.o:\
+			$(sd_cdir)/sd_operators_fd_ncoords_module.o\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_kind.o\
+			$(sd_cdir)/sd_operators_n_class.o
+
+$(mt_dir)/sd_operators_n1_oneside_R1_class.o:\
+			$(sd_cdir)/sd_operators_fd_ncoords_module.o\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_kind.o\
+			$(sd_cdir)/sd_operators_n_class.o
+
+$(mt_dir)/sd_operators_n1_oneside_R0_class.o:\
+			$(sd_cdir)/sd_operators_fd_ncoords_module.o\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_kind.o\
+			$(sd_cdir)/sd_operators_n_class.o
+
+$(mt_dir)/sd_operators_n2_oneside_L0_class.o:\
+			$(sd_cdir)/sd_operators_fd_ncoords_module.o\
+			$(sd_dir)/interface_primary.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_kind.o\
+			$(sd_cdir)/sd_operators_n_class.o

@@ -83,6 +83,18 @@
         use sd_operators_n1_oneside_L0_class, only :
      $       sd_operators_n1_oneside_L0
 
+        use sd_operators_n1_oneside_L1_class, only :
+     $       sd_operators_n1_oneside_L1
+
+        use sd_operators_n1_oneside_R1_class, only :
+     $       sd_operators_n1_oneside_R1
+
+        use sd_operators_n1_oneside_R0_class, only :
+     $       sd_operators_n1_oneside_R0
+
+        use sd_operators_n2_oneside_L0_class, only :
+     $       sd_operators_n2_oneside_L0
+
         
         implicit none
 
@@ -105,7 +117,13 @@
         type(sd_operators_y_oneside_R0) :: sd_y_oneside_R0
 
         type(sd_operators_n)            :: sd_interior_n
+
         type(sd_operators_n1_oneside_L0):: sd_n1_L0
+        type(sd_operators_n1_oneside_L1):: sd_n1_L1
+        type(sd_operators_n1_oneside_R1):: sd_n1_R1
+        type(sd_operators_n1_oneside_R0):: sd_n1_R0
+
+        type(sd_operators_n2_oneside_L0):: sd_n2_L0
 
 
         !<CPU recorded times
@@ -670,6 +688,146 @@
      $       gradient_n2_interior,
      $       3,3, 3,3, test_data, detailled,
      $       test_only_g=.true.)
+        print '()'
+
+
+        print '()'
+        print '(''test n1_oneside_L1'')'
+        print '(''----------------------------------------'')'
+
+        !<test the operators
+        !test_data(1) = 5.0d0        !<test f
+        !test_data(2) = 19.2d0       !<test dfdx
+        !test_data(3) =  9.041667d0  !<test dfdy
+        !test_data(4) =  8.4d0       !<test d2fdx2
+        !test_data(5) =-25.4167d0    !<test d2fdy2
+        !test_data(6) =-32.1667d0    !<test d2fdxdy
+        !test_data(7) = 10.4d0       !<test gradient_x
+
+        test_data(8) =  7.0d0       !<test g
+        test_data(9) = 12.9d0       !<test dgdx
+        test_data(10)= 9.333333d0   !<test dgdy
+        test_data(11)= -60.4d0      !<test d2gdx2
+        test_data(12)= -11.25d0     !<test d2gdy2
+        test_data(13)= -8.33333d0   !<test d2gdxdy
+        test_data(14)= 1.0d0        !<test gradient_y
+
+        !test_data(15)=-23.7667d0    !<test dfdx_nl
+        test_data(16)=-19.5833d0    !<test dgdy_nl
+
+        detailled = .false.
+        
+        call test_operator(
+     $       sd_n1_L1,
+     $       gradient_n1_interior,
+     $       gradient_n2_interior,
+     $       3,3, 3,3, test_data, detailled,
+     $       test_only_g=.true.)
+        print '()'
+
+
+        print '()'
+        print '(''test n1_oneside_R1'')'
+        print '(''----------------------------------------'')'
+
+        !<test the operators
+        !test_data(1) = 5.0d0        !<test f
+        !test_data(2) = 19.2d0       !<test dfdx
+        !test_data(3) =  9.041667d0  !<test dfdy
+        !test_data(4) =  8.4d0       !<test d2fdx2
+        !test_data(5) =-25.4167d0    !<test d2fdy2
+        !test_data(6) =-32.1667d0    !<test d2fdxdy
+        !test_data(7) = 10.4d0       !<test gradient_x
+
+        test_data(8) =  7.0d0       !<test g
+        test_data(9) = 12.9d0       !<test dgdx
+        test_data(10)= 9.333333d0   !<test dgdy
+        test_data(11)= -60.4d0      !<test d2gdx2
+        test_data(12)= -11.25d0     !<test d2gdy2
+        test_data(13)= -8.33333d0   !<test d2gdxdy
+        test_data(14)= 1.0d0        !<test gradient_y
+
+        !test_data(15)=-23.7667d0    !<test dfdx_nl
+        test_data(16)=-19.5833d0    !<test dgdy_nl
+
+        detailled = .false.
+        
+        call test_operator(
+     $       sd_n1_R1,
+     $       gradient_n1_interior,
+     $       gradient_n2_interior,
+     $       3,3, 3,3, test_data, detailled,
+     $       test_only_g=.true.)
+        print '()'
+
+
+        print '()'
+        print '(''test n1_oneside_R0'')'
+        print '(''----------------------------------------'')'
+
+        !<test the operators
+        !test_data(1) = 5.0d0        !<test f
+        !test_data(2) = 19.2d0       !<test dfdx
+        !test_data(3) =  9.041667d0  !<test dfdy
+        !test_data(4) =  8.4d0       !<test d2fdx2
+        !test_data(5) =-25.4167d0    !<test d2fdy2
+        !test_data(6) =-32.1667d0    !<test d2fdxdy
+        !test_data(7) = 10.4d0       !<test gradient_x
+
+        test_data(8) =  7.0d0       !<test g
+        test_data(9) = 28.0d0       !<test dgdx
+        test_data(10)= 9.333333d0   !<test dgdy
+        test_data(11)= -736.0d0     !<test d2gdx2
+        test_data(12)= -11.25d0     !<test d2gdy2
+        test_data(13)= -29.33333d0  !<test d2gdxdy
+        test_data(14)=  1.0d0       !<test gradient_y
+
+        !test_data(15)=-23.7667d0    !<test dfdx_nl
+        test_data(16)= -40.5833d0    !<test dgdy_nl
+
+        detailled = .false.
+        
+        call test_operator(
+     $       sd_n1_R0,
+     $       gradient_n1_oneside_R0,
+     $       gradient_n2_interior,
+     $       3,3, 3,3, test_data, detailled,
+     $       test_only_g=.true.)
+        print '()'
+
+
+        print '()'
+        print '(''test n2_oneside_L0'')'
+        print '(''----------------------------------------'')'
+
+        !<test the operators
+        test_data(1) = 5.0d0        !<test f
+        test_data(2) = 19.2d0       !<test dfdx
+        test_data(3) = 1.416667d0  !<test dfdy
+        test_data(4) =  8.4d0       !<test d2fdx2
+        test_data(5) =-79.4444d0    !<test d2fdy2
+        test_data(6) =-35.0d0       !<test d2fdxdy
+        test_data(7) = 10.4d0       !<test gradient_x
+
+        !test_data(8) =  7.0d0       !<test g
+        !test_data(9) = -2.2d0       !<test dgdx
+        !test_data(10)= 9.333333d0   !<test dgdy
+        !test_data(11)= -145.6d0     !<test d2gdx2
+        !test_data(12)= -11.25d0     !<test d2gdy2
+        !test_data(13)=  12.66667d0  !<test d2gdxdy
+        !test_data(14)=  1.0d0       !<test gradient_y
+
+        test_data(15)= -26.6d0      !<test dfdx_nl
+        !test_data(16)= 1.416667d0    !<test dgdy_nl
+
+        detailled = .false.
+        
+        call test_operator(
+     $       sd_n2_L0,
+     $       gradient_n1_interior,
+     $       gradient_n2_oneside_L0,
+     $       3,3, 3,3, test_data, detailled,
+     $       test_only_f=.true.)
         print '()'
 
 
