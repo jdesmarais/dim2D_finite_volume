@@ -80,6 +80,9 @@
         use sd_operators_n_class, only :
      $       sd_operators_n
 
+        use sd_operators_n1_oneside_L0_class, only :
+     $       sd_operators_n1_oneside_L0
+
         
         implicit none
 
@@ -102,6 +105,7 @@
         type(sd_operators_y_oneside_R0) :: sd_y_oneside_R0
 
         type(sd_operators_n)            :: sd_interior_n
+        type(sd_operators_n1_oneside_L0):: sd_n1_L0
 
 
         !<CPU recorded times
@@ -634,6 +638,41 @@
         print '()'
 
 
+        print '()'
+        print '(''test n1_oneside_L0'')'
+        print '(''----------------------------------------'')'
+
+        !<test the operators
+        !test_data(1) = 5.0d0        !<test f
+        !test_data(2) = 19.2d0       !<test dfdx
+        !test_data(3) =  9.041667d0  !<test dfdy
+        !test_data(4) =  8.4d0       !<test d2fdx2
+        !test_data(5) =-25.4167d0    !<test d2fdy2
+        !test_data(6) =-32.1667d0    !<test d2fdxdy
+        !test_data(7) = 10.4d0       !<test gradient_x
+
+        test_data(8) =  7.0d0       !<test g
+        test_data(9) = -2.2d0       !<test dgdx
+        test_data(10)= 9.333333d0   !<test dgdy
+        test_data(11)= -145.6d0     !<test d2gdx2
+        test_data(12)= -11.25d0     !<test d2gdy2
+        test_data(13)=  12.66667d0  !<test d2gdxdy
+        test_data(14)=  1.0d0       !<test gradient_y
+
+        !test_data(15)=-23.7667d0    !<test dfdx_nl
+        test_data(16)= 1.416667d0    !<test dgdy_nl
+
+        detailled = .false.
+        
+        call test_operator(
+     $       sd_n1_L0,
+     $       gradient_n1_oneside_L0,
+     $       gradient_n2_interior,
+     $       3,3, 3,3, test_data, detailled,
+     $       test_only_g=.true.)
+        print '()'
+
+
         !<get the last CPU time
         call CPU_TIME(time2)
         print *, 'time elapsed: ', time2-time1
@@ -952,7 +991,9 @@
      $     gradient_y,
      $     i1,j1, i2,j2,
      $     test_data,
-     $     detailled)
+     $     detailled,
+     $     test_only_f,
+     $     test_only_g)
 
           implicit none
 
@@ -962,205 +1003,241 @@
           integer                     , intent(in) :: i1,j1, i2,j2
           real(rkind), dimension(:)   , intent(in) :: test_data
           logical                     , intent(in) :: detailled
+          logical    , optional       , intent(in) :: test_only_f
+          logical    , optional       , intent(in) :: test_only_g
 
           logical :: loc
           logical :: test_validated
 
+          logical :: test_only_f_op
+          logical :: test_only_g_op
+
+
+          if(present(test_only_f)) then
+             test_only_f_op = test_only_f
+          else
+             test_only_f_op = .false.
+          end if
+
+
+          if(present(test_only_g)) then
+             test_only_g_op = test_only_g
+          else
+             test_only_g_op = .false.
+          end if
+          
+
           test_validated = .true.
 
+          if(.not.test_only_g_op) then
 
-          loc = is_test_validated(
-     $         sd_operators_tested%f(
-     $         nodes,
-     $         i1,j1,
-     $         mass_density),
-     $         test_data(1),
-     $         detailled)
-          if(detailled) print '(''test %f: '',L3)', loc
-          test_validated = test_validated.and.loc
-          
-          
-          loc = is_test_validated(
-     $         sd_operators_tested%dfdx(
-     $         nodes,
-     $         i1,j1,
-     $         mass_density,
-     $         dx),
-     $         test_data(2),
-     $         detailled)
-          if(detailled) print '(''test %dfdx: '',L3)', loc
-          test_validated = test_validated.and.loc
-          
+             loc = is_test_validated(
+     $            sd_operators_tested%f(
+     $            nodes,
+     $            i1,j1,
+     $            mass_density),
+     $            test_data(1),
+     $            detailled)
+             if(detailled) print '(''test %f: '',L3)', loc
+             test_validated = test_validated.and.loc
+             
+             
+             loc = is_test_validated(
+     $            sd_operators_tested%dfdx(
+     $            nodes,
+     $            i1,j1,
+     $            mass_density,
+     $            dx),
+     $            test_data(2),
+     $            detailled)
+             if(detailled) print '(''test %dfdx: '',L3)', loc
+             test_validated = test_validated.and.loc
+             
 
-          loc = is_test_validated(
-     $         sd_operators_tested%dfdy(
-     $         nodes,
-     $         i1,j1,
-     $         mass_density,
-     $         dy),
-     $         test_data(3),
-     $         detailled)
-          if(detailled) print '(''test %dfdy: '',L3)', loc
-          test_validated = test_validated.and.loc          
-                 
+             loc = is_test_validated(
+     $            sd_operators_tested%dfdy(
+     $            nodes,
+     $            i1,j1,
+     $            mass_density,
+     $            dy),
+     $            test_data(3),
+     $            detailled)
+             if(detailled) print '(''test %dfdy: '',L3)', loc
+             test_validated = test_validated.and.loc          
+             
 
-          loc = is_test_validated(
-     $         sd_operators_tested%d2fdx2(
-     $         nodes,
-     $         i1,j1,
-     $         mass_density,
-     $         dx),
-     $         test_data(4),
-     $         detailled)
-          if(detailled) print '(''test %d2fdx2: '',L3)', loc
-          test_validated = test_validated.and.loc  
-                 
+             loc = is_test_validated(
+     $            sd_operators_tested%d2fdx2(
+     $            nodes,
+     $            i1,j1,
+     $            mass_density,
+     $            dx),
+     $            test_data(4),
+     $            detailled)
+             if(detailled) print '(''test %d2fdx2: '',L3)', loc
+             test_validated = test_validated.and.loc  
+             
+             
+             loc = is_test_validated(
+     $            sd_operators_tested%d2fdy2(
+     $            nodes,
+     $            i1,j1,
+     $            mass_density,
+     $            dy),
+     $            test_data(5),
+     $            detailled)
+             if(detailled) print '(''test %d2fdy2: '',L3)', loc
+             test_validated = test_validated.and.loc
+             
+             
+             loc = is_test_validated(
+     $            sd_operators_tested%d2fdxdy(
+     $            nodes,
+     $            i1,j1,
+     $            mass_density,
+     $            dx,
+     $            dy),
+     $            test_data(6),
+     $            detailled)
+             if(detailled) print '(''test %d2fdxdy: '',L3)', loc
+             test_validated = test_validated.and.loc
+
+
+             loc = is_test_validated(
+     $            gradient_x(
+     $            nodes,
+     $            i1,j1,
+     $            mass_density,
+     $            dx),
+     $            test_data(7),
+     $            detailled)
+             if(detailled) print '(''test %gradient_x: '',L3)', loc
+             test_validated = test_validated.and.loc
+
+          end if
+
+
+          if(.not.test_only_f_op) then
           
-          loc = is_test_validated(
-     $         sd_operators_tested%d2fdy2(
-     $         nodes,
-     $         i1,j1,
-     $         mass_density,
-     $         dy),
-     $         test_data(5),
-     $         detailled)
-          if(detailled) print '(''test %d2fdy2: '',L3)', loc
-          test_validated = test_validated.and.loc
-                 
-          
-          loc = is_test_validated(
-     $         sd_operators_tested%d2fdxdy(
-     $         nodes,
-     $         i1,j1,
-     $         mass_density,
-     $         dx,
-     $         dy),
-     $         test_data(6),
-     $         detailled)
-          if(detailled) print '(''test %d2fdxdy: '',L3)', loc
-          test_validated = test_validated.and.loc
+             loc = is_test_validated(
+     $            sd_operators_tested%g(
+     $            nodes,
+     $            i2,j2,
+     $            mass_density),
+     $            test_data(8),
+     $            detailled)
+             if(detailled) print '(''test %g: '',L3)', loc
+             test_validated = test_validated.and.loc
+             
 
-
-          loc = is_test_validated(
-     $         gradient_x(
-     $         nodes,
-     $         i1,j1,
-     $         mass_density,
-     $         dx),
-     $         test_data(7),
-     $         detailled)
-          if(detailled) print '(''test %gradient_x: '',L3)', loc
-          test_validated = test_validated.and.loc
-          
-
-          loc = is_test_validated(
-     $         sd_operators_tested%g(
-     $         nodes,
-     $         i2,j2,
-     $         mass_density),
-     $         test_data(8),
-     $         detailled)
-          if(detailled) print '(''test %g: '',L3)', loc
-          test_validated = test_validated.and.loc
-          
-
-          loc = is_test_validated(
-     $         sd_operators_tested%dgdx(
-     $         nodes,
-     $         i2,j2,
-     $         mass_density,
-     $         dx),
-     $         test_data(9),
-     $         detailled)
-          if(detailled) print '(''test %dgdx: '',L3)', loc
-          test_validated = test_validated.and.loc
+             loc = is_test_validated(
+     $            sd_operators_tested%dgdx(
+     $            nodes,
+     $            i2,j2,
+     $            mass_density,
+     $            dx),
+     $            test_data(9),
+     $            detailled)
+             if(detailled) print '(''test %dgdx: '',L3)', loc
+             test_validated = test_validated.and.loc
      $            
-          
-          loc = is_test_validated(
-     $         sd_operators_tested%dgdy(
-     $         nodes,
-     $         i2,j2,
-     $         mass_density,
-     $         dy),
-     $         test_data(10),
-     $         detailled)
-          if(detailled) print '(''test %dgdy: '',L3)', loc
-          test_validated = test_validated.and.loc
-          
-          
-          loc = is_test_validated(
-     $         sd_operators_tested%d2gdx2(
-     $         nodes,
-     $         i2,j2,
-     $         mass_density,
-     $         dx),
-     $         test_data(11),
-     $         detailled)
-          if(detailled) print '(''test %d2gdx2: '',L3)', loc
-          test_validated = test_validated.and.loc
-          
-          
-          loc = is_test_validated(
-     $         sd_operators_tested%d2gdy2(
-     $         nodes,
-     $         i2,j2,
-     $         mass_density,
-     $         dy),
-     $         test_data(12),
-     $         detailled)
-          if(detailled) print '(''test %d2gdy2: '',L3)', loc
-          test_validated = test_validated.and.loc          
-          
+             
+             loc = is_test_validated(
+     $            sd_operators_tested%dgdy(
+     $            nodes,
+     $            i2,j2,
+     $            mass_density,
+     $            dy),
+     $            test_data(10),
+     $            detailled)
+             if(detailled) print '(''test %dgdy: '',L3)', loc
+             test_validated = test_validated.and.loc
+             
+             
+             loc = is_test_validated(
+     $            sd_operators_tested%d2gdx2(
+     $            nodes,
+     $            i2,j2,
+     $            mass_density,
+     $            dx),
+     $            test_data(11),
+     $            detailled)
+             if(detailled) print '(''test %d2gdx2: '',L3)', loc
+             test_validated = test_validated.and.loc
+             
+             
+             loc = is_test_validated(
+     $            sd_operators_tested%d2gdy2(
+     $            nodes,
+     $            i2,j2,
+     $            mass_density,
+     $            dy),
+     $            test_data(12),
+     $            detailled)
+             if(detailled) print '(''test %d2gdy2: '',L3)', loc
+             test_validated = test_validated.and.loc          
+             
 
-          loc = is_test_validated(
-     $         sd_operators_tested%d2gdxdy(
-     $         nodes,
-     $         i2,j2,
-     $         mass_density,
-     $         dx,
-     $         dy),
-     $         test_data(13),
-     $         detailled)
-          if(detailled) print '(''test %d2gdxdy: '',L3)', loc
-          test_validated = test_validated.and.loc
+             loc = is_test_validated(
+     $            sd_operators_tested%d2gdxdy(
+     $            nodes,
+     $            i2,j2,
+     $            mass_density,
+     $            dx,
+     $            dy),
+     $            test_data(13),
+     $            detailled)
+             if(detailled) print '(''test %d2gdxdy: '',L3)', loc
+             test_validated = test_validated.and.loc
 
-          
-          loc = is_test_validated(
-     $         gradient_y(
-     $         nodes,
-     $         i2,j2,
-     $         mass_density,
-     $         dy),
-     $         test_data(14),
-     $         detailled)
-          if(detailled) print '(''test %gradient_y: '',L3)', loc
-          test_validated = test_validated.and.loc
+             
+             loc = is_test_validated(
+     $            gradient_y(
+     $            nodes,
+     $            i2,j2,
+     $            mass_density,
+     $            dy),
+     $            test_data(14),
+     $            detailled)
+             if(detailled) print '(''test %gradient_y: '',L3)', loc
+             test_validated = test_validated.and.loc
 
-
-          loc = is_test_validated(
-     $         sd_operators_tested%dfdx_nl(
-     $         nodes,
-     $         i1,j1,
-     $         gradient_av,
-     $         dx,
-     $         dy),
-     $         test_data(15),
-     $         detailled)
-          if(detailled) print '(''test %dfdx_nl: '',L3)', loc
-          test_validated = test_validated.and.loc
+          end if
 
 
-          loc = is_test_validated(
-     $         sd_operators_tested%dgdy_nl(
-     $         nodes,
-     $         i2,j2,
-     $         gradient_av,
-     $         dx,
-     $         dy),
-     $         test_data(16),
-     $         detailled)
-          if(detailled) print '(''test %dgdy_nl: '',L3)', loc
-          test_validated = test_validated.and.loc
+          if(.not.test_only_g_op) then
+
+
+             loc = is_test_validated(
+     $            sd_operators_tested%dfdx_nl(
+     $            nodes,
+     $            i1,j1,
+     $            gradient_av,
+     $            dx,
+     $            dy),
+     $            test_data(15),
+     $            detailled)
+             if(detailled) print '(''test %dfdx_nl: '',L3)', loc
+             test_validated = test_validated.and.loc
+
+          end if
+
+          
+          if(.not.test_only_f_op) then
+
+             loc = is_test_validated(
+     $            sd_operators_tested%dgdy_nl(
+     $            nodes,
+     $            i2,j2,
+     $            gradient_av,
+     $            dx,
+     $            dy),
+     $            test_data(16),
+     $            detailled)
+             if(detailled) print '(''test %dgdy_nl: '',L3)', loc
+             test_validated = test_validated.and.loc
+
+          end if
 
           if(.not.detailled) print '(''test validated: '',L3)', test_validated
 
