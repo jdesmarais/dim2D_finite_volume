@@ -54,6 +54,9 @@
      $       compute_timedev_ylayer_local_hedstrom,
      $       compute_timedev_corner_local
 
+        use hedstrom_xy_diag_fluxes_module, only :
+     $       compute_timedev_anti_corner_with_diag_fluxes
+
         use interface_primary, only :
      $       gradient_x_proc,
      $       gradient_y_proc
@@ -67,7 +70,8 @@
      $       left,right,
      $       N,S,E,W,
      $       obc_edge_xy_corner,
-     $       obc_edge_xy_flux
+     $       obc_edge_xy_flux,
+     $       obc_edge_xy_diag_flux
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
@@ -754,6 +758,17 @@
      $              bc_section,
      $              timedev)
 
+            ! compute the anti-corner using the diagonal fluxes
+            case(obc_edge_xy_diag_flux)
+
+               call compute_timedev_anti_corner_with_diag_fluxes(
+     $              p_model,
+     $              interior_nodes,
+     $              bf_alignment,
+     $              nodes, x_map, y_map,
+     $              dx, dy,
+     $              bc_section,
+     $              timedev)
 
             case default
                print '(''bc_operators_class'')'

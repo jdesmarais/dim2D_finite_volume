@@ -15,6 +15,17 @@ sd_oneside_dep=		sd_operators_x_oneside_L0_class.o\
 			sd_operators_y_oneside_R1_class.o\
 			sd_operators_y_oneside_R0_class.o
 
+sd_oneside_n_dep=	sd_operators_n_class.o\
+			sd_operators_fd_ncoords_module.o\
+			sd_operators_n1_oneside_L0_class.o\
+			sd_operators_n1_oneside_L1_class.o\
+			sd_operators_n1_oneside_R1_class.o\
+			sd_operators_n1_oneside_R0_class.o\
+			sd_operators_n2_oneside_L0_class.o\
+			sd_operators_n2_oneside_L1_class.o\
+			sd_operators_n2_oneside_R1_class.o\
+			sd_operators_n2_oneside_R0_class.o
+
 cg_dep=			$(sd_dep)\
 			sd_operators_fd_module.o
 
@@ -84,9 +95,13 @@ hedstrom_xy_dep=	$(bc_dep)\
 			bc_operators_openbc_class.o\
 			openbc_operators_module.o\
 			bc_operators_openbc_normal_class.o\
-			$(sd_oneside_dep)\
 			sd_operators_fd_module.o\
-			hedstrom_xy_module.o
+			$(sd_oneside_dep)\
+			sd_operators_fd_n_module.o\
+			$(sd_oneside_n_dep)\
+			hedstrom_xy_module.o\
+			hedstrom_xy_corners_module.o\
+			hedstrom_xy_diag_fluxes_module.o
 
 hedstrom_xy_corners_dep=\
 			$(bc_dep)\
