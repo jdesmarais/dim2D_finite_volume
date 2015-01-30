@@ -70,6 +70,7 @@
      $       left,right,
      $       N,S,E,W,
      $       obc_edge_xy_corner,
+     $       obc_edge_xy_inversed_corner,
      $       obc_edge_xy_flux,
      $       obc_edge_xy_diag_flux
 
@@ -741,7 +742,6 @@
      $              t,nodes,x_map,y_map,
      $              bc_section_modified,
      $              timedev)
-
 
             ! compute the anti-corner using the fluxes
             case(obc_edge_xy_flux)

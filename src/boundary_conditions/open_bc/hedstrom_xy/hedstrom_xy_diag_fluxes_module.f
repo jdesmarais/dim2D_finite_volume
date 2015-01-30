@@ -982,9 +982,6 @@
           real(rkind), dimension(:,:,:), allocatable :: tmp_nodes
           real(rkind), dimension(:,:,:), allocatable :: tmp_nodes_n
 
-          real(rkind), dimension(2*bc_size+1,2*bc_size+1,ne) :: nodes
-          real(rkind), dimension(2*bc_size+1,2*bc_size+1,ne) :: nodes_n
-
           integer(ikind), dimension(2)   :: match_table
           integer(ikind), dimension(2,2) :: gen_coords
 
@@ -1037,18 +1034,18 @@
           end select
 
 
-          !2) if grid points are needed, combine nodes from the
-          !     interior and the buffer layer and compute the
-          !     fluxes using the tmp_nodes
-          !------------------------------------------------------
-          if(grdpts_needed) then
+          ! allocate space for the temporary gridpoints
+          ! extracted
+          allocate(tmp_nodes(
+     $         border_coords(1,2)-border_coords(1,1)+1,
+     $         border_coords(2,2)-border_coords(2,1)+1,
+     $         ne))
 
-             ! allocate space for the temporary gridpoints
-             ! extracted
-             allocate(tmp_nodes(
-     $            border_coords(1,2)-border_coords(1,1)+1,
-     $            border_coords(2,2)-border_coords(2,1)+1,
-     $            ne))
+
+          !2) if grid points are needed, combine nodes from the
+          !     interior and the buffer layer
+          !------------------------------------------------------
+          if(grdpts_needed) then             
 
              ! compute the general coordinates identifying the
              ! the borders of the gridpoints extracted
@@ -1068,114 +1065,81 @@
      $            gen_coords,
      $            tmp_nodes)
 
-             ! determine the central pt computed
-             i_c = cpt_coords(1)
-             j_c = cpt_coords(2)
-
-             ! compute the contribution of the outward direction
-             ! to the time derivatives with the tmp_nodes
-             timedev = compute_n_timedev_with_openbc_local(
-     $            tmp_nodes, i_c,j_c,
-     $            p_model, dx,dy,
-     $            gradient_x,
-     $            gradient_y,
-     $            incoming_wave,
-     $            outward_dir)
-
-             ! convert the nodes into nodes_n
-             ! (momentum_x,momentum_y) -> (momentum_n1,momentum_n2)
-             allocate(tmp_nodes_n(size(tmp_nodes,1),size(tmp_nodes,2),ne))
-             do j_l=1,size(tmp_nodes_n,2)
-                do i_l=1, size(tmp_nodes_n,1)
-                   tmp_nodes_n(i_l,j_l,:) = p_model%compute_xy_to_n_var(tmp_nodes(i_l,j_l,:))
-                end do
-             end do
-
-             ! compute the fluxes using the tmp_nodes
-             select case(outward_dir)
-
-               case(n1_direction)
-
-                  flux_diag1 = p_model%compute_flux_y_oneside(
-     $                 tmp_nodes_n,dn,dn, i_c  , j_c  , sd_used)
-             
-                  flux_diag2 = p_model%compute_flux_y_oneside(
-     $                 tmp_nodes_n,dn,dn, i_c+1, j_c+1, sd_used)
-
-               case(n2_direction)
-
-                  flux_diag1 = p_model%compute_flux_x_oneside(
-     $                 tmp_nodes_n,dn,dn, i_c  , j_c  , sd_used)
-             
-                  flux_diag2 = p_model%compute_flux_x_oneside(
-     $                 tmp_nodes_n,dn,dn, i_c+1, j_c-1, sd_used)
-
-             end select
-
-             deallocate(tmp_nodes)
-             deallocate(tmp_nodes_n)
-
-
-          !2.3) if grid points are not needed, compute directly
-          !     the fluxes using the bf_nodes
+          !3) otherwise simply use the nodes from bf_nodes
           !------------------------------------------------------
           else
 
-             ! compute the contribution of the outward direction
-             ! to the time derivatives
-             timedev = compute_n_timedev_with_openbc_local(
-     $            bf_nodes, i,j,
-     $            p_model, dx,dy,
-     $            gradient_x,
-     $            gradient_y,
-     $            incoming_wave,
-     $            outward_dir)
-
-             nodes = bf_nodes(i-bc_size:i+bc_size,
-     $                        j-bc_size:j+bc_size,
-     $                        :)
-
-             do j_l=1, size(nodes,2)
-                do i_l=1,size(nodes,1)
-                   nodes_n(i_l,j_l,:) = p_model%compute_xy_to_n_var(nodes(i_l,j_l,:))
-                end do
-             end do
-                
-             i_c = bc_size+1
-             j_c = bc_size+1
-
-             ! compute the fluxes using the bf_nodes
-             select case(outward_dir)
-
-               case(n1_direction)
-
-                  flux_diag1 = p_model%compute_flux_y_oneside(
-     $                 nodes_n,dn,dn, i_c   , j_c  , sd_used)
-             
-                  flux_diag2 = p_model%compute_flux_y_oneside(
-     $                 bf_nodes,dn,dn, i_c+1, j_c+1, sd_used)
-
-               case(n2_direction)
-
-                  flux_diag1 = p_model%compute_flux_x_oneside(
-     $                 bf_nodes,dn,dn, i_c  , j_c  , sd_used)
-             
-                  flux_diag2 = p_model%compute_flux_x_oneside(
-     $                 bf_nodes,dn,dn, i_c+1, j_c-1, sd_used)
-
-             end select
-             
+             tmp_nodes = bf_nodes(
+     $            border_coords(1,1):border_coords(1,2),
+     $            border_coords(2,1):border_coords(2,2),
+     $            :)
 
           end if
 
-          !2.4) add the contribution of the diagonal transverse
-          !     fluxes to the time derivatives
+          
+          !4) compute the contribution of the outgoing waves
+          !   to the time derivatives
+          !------------------------------------------------------
+          ! determine the central pt computed
+          i_c = cpt_coords(1)
+          j_c = cpt_coords(2)
+
+          ! compute the contribution of the outward direction
+          ! to the time derivatives with the tmp_nodes
+          timedev = compute_n_timedev_with_openbc_local(
+     $         tmp_nodes, i_c,j_c,
+     $         p_model, dx,dy,
+     $         gradient_x,
+     $         gradient_y,
+     $         incoming_wave,
+     $         outward_dir)
+
+
+          !5) compute the contribution of the transverse diagonal
+          !   fluxes to the time derivatives
+          !------------------------------------------------------
+          ! convert the nodes into nodes_n
+          ! (momentum_x,momentum_y) -> (momentum_n1,momentum_n2)
+          allocate(tmp_nodes_n(size(tmp_nodes,1),size(tmp_nodes,2),ne))
+          do j_l=1,size(tmp_nodes_n,2)
+             do i_l=1, size(tmp_nodes_n,1)
+                tmp_nodes_n(i_l,j_l,:) = p_model%compute_xy_to_n_var(tmp_nodes(i_l,j_l,:))
+             end do
+          end do
+
+          ! compute the fluxes using the tmp_nodes
+          select case(outward_dir)
+
+            case(n1_direction)
+
+               flux_diag1 = p_model%compute_flux_y_oneside(
+     $              tmp_nodes_n,dn,dn, i_c  , j_c  , sd_used)
+          
+               flux_diag2 = p_model%compute_flux_y_oneside(
+     $              tmp_nodes_n,dn,dn, i_c+1, j_c+1, sd_used)
+
+            case(n2_direction)
+
+               flux_diag1 = p_model%compute_flux_x_oneside(
+     $              tmp_nodes_n,dn,dn, i_c  , j_c  , sd_used)
+          
+               flux_diag2 = p_model%compute_flux_x_oneside(
+     $              tmp_nodes_n,dn,dn, i_c+1, j_c-1, sd_used)
+
+          end select
+
+          deallocate(tmp_nodes)
+          deallocate(tmp_nodes_n)
+          
+
+          !6) add the contribution of the diagonal transverse
+          !   fluxes to the time derivatives
           !------------------------------------------------------
           do k=1,ne
              timedev_n(k) = 1.0d0/dn*(flux_diag1(k)-flux_diag2(k))
           end do
 
-          timedev_f = p_model%compute_xy_to_n_var(timedev_n)
+          timedev_f = p_model%compute_n_to_xy_var(timedev_n)
 
           do k=1,ne
              timedev(k) = timedev(k) + timedev_f(k)
