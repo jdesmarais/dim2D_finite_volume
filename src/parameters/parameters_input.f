@@ -173,7 +173,7 @@
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
         !-----------------------------------------------------
-        logical    , parameter :: bf_openbc_md_threshold_ac = .true.
+        logical    , parameter :: bf_openbc_md_threshold_ac = .false.
         real(rkind), parameter :: bf_openbc_md_threshold = 0.0001000000d0
 
 
@@ -220,7 +220,7 @@
         !                                   are adapted once the
         !                                   simulation starts
         !-----------------------------------------------------
-        logical    , parameter :: debug_restart_for_geometry = .true.
-        logical    , parameter :: debug_adapt_computational_domain =.false.
+        logical    , parameter :: debug_restart_for_geometry = .false.
+        logical    , parameter :: debug_adapt_computational_domain =.true.
 
       end module parameters_input

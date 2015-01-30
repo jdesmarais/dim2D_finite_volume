@@ -91,7 +91,7 @@
         public :: compute_timedev_anti_corner_with_diag_fluxes
 
 
-        logical :: use_interior_gradients=.true.
+        logical :: use_interior_gradients=.false.
 
 
         contains
