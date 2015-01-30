@@ -118,6 +118,10 @@
      $       sd_L1_type,
      $       sd_R1_type,
      $       sd_R0_type,
+     $       sd_L0_n_type,
+     $       sd_L1_n_type,
+     $       sd_R1_n_type,
+     $       sd_R0_n_type,
      $       scalar,
      $       vector_x, vector_y,
      $       steady_state,
@@ -685,6 +689,16 @@
                pattern = reshape((/
      $              -2,-2,2,0/),
      $              (/2,2/))
+
+            case(sd_L0_n_type,
+     $           sd_L1_n_type,
+     $           sd_R1_n_type,
+     $           sd_R0_n_type)
+
+               pattern = reshape((/
+     $              -2,-2,2,2/),
+     $              (/2,2/))
+
             case default
                print '(''dim2d/pmodel_eq_class'')'
                print '(''get_sd_pattern_flux_x'')'
@@ -741,6 +755,16 @@
                pattern = reshape((/
      $              -2,-2,0,2/),
      $              (/2,2/))
+
+            case(sd_L0_n_type,
+     $           sd_L1_n_type,
+     $           sd_R1_n_type,
+     $           sd_R0_n_type)
+
+               pattern = reshape((/
+     $              -2,-2,2,2/),
+     $              (/2,2/))
+
             case default
                print '(''dim2d/pmodel_eq_class'')'
                print '(''get_sd_pattern_flux_y'')'

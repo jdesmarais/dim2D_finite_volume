@@ -153,7 +153,7 @@
         !                       at the anti-corner boundary
         !                       section
         !-----------------------------------------------------
-        integer    , parameter :: obc_edge_xy_strategy = obc_edge_xy_flux
+        integer    , parameter :: obc_edge_xy_strategy = obc_edge_xy_diag_flux
 
         !-----------------------------------------------------
         !for the increase of the computational domain
@@ -220,7 +220,7 @@
         !                                   are adapted once the
         !                                   simulation starts
         !-----------------------------------------------------
-        logical    , parameter :: debug_restart_for_geometry = .false.
+        logical    , parameter :: debug_restart_for_geometry = .true.
         logical    , parameter :: debug_adapt_computational_domain =.false.
 
       end module parameters_input
