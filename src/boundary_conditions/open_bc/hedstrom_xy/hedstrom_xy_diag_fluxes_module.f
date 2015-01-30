@@ -40,7 +40,7 @@
      $       n2_direction
 
         use parameters_input, only :
-     $       nx,ny,ne
+     $       nx,ny,ne,bc_size
 
         use parameters_kind, only :
      $       ikind,
@@ -980,6 +980,10 @@
           integer(ikind), dimension(2)   :: cpt_coords
 
           real(rkind), dimension(:,:,:), allocatable :: tmp_nodes
+          real(rkind), dimension(:,:,:), allocatable :: tmp_nodes_n
+
+          real(rkind), dimension(2*bc_size+1,2*bc_size+1,ne) :: nodes
+          real(rkind), dimension(2*bc_size+1,2*bc_size+1,ne) :: nodes_n
 
           integer(ikind), dimension(2)   :: match_table
           integer(ikind), dimension(2,2) :: gen_coords
@@ -987,14 +991,15 @@
           
           real(rkind), dimension(ne) :: flux_diag1
           real(rkind), dimension(ne) :: flux_diag2
+          real(rkind), dimension(ne) :: timedev_n
+          real(rkind), dimension(ne) :: timedev_f
 
           integer :: k
 
           integer(ikind) :: i_c
-          integer(ikind) :: j_c          
-
-
-          
+          integer(ikind) :: j_c
+          integer(ikind) :: i_l
+          integer(ikind) :: j_l          
 
           
           !1) determine whether there are enough grid points
@@ -1077,6 +1082,14 @@
      $            incoming_wave,
      $            outward_dir)
 
+             ! convert the nodes into nodes_n
+             ! (momentum_x,momentum_y) -> (momentum_n1,momentum_n2)
+             allocate(tmp_nodes_n(size(tmp_nodes,1),size(tmp_nodes,2),ne))
+             do j_l=1,size(tmp_nodes_n,2)
+                do i_l=1, size(tmp_nodes_n,1)
+                   tmp_nodes_n(i_l,j_l,:) = p_model%compute_xy_to_n_var(tmp_nodes(i_l,j_l,:))
+                end do
+             end do
 
              ! compute the fluxes using the tmp_nodes
              select case(outward_dir)
@@ -1084,20 +1097,24 @@
                case(n1_direction)
 
                   flux_diag1 = p_model%compute_flux_y_oneside(
-     $                 tmp_nodes,dn,dn,i_c  ,j_c  ,sd_used)
+     $                 tmp_nodes_n,dn,dn, i_c  , j_c  , sd_used)
              
                   flux_diag2 = p_model%compute_flux_y_oneside(
-     $                 tmp_nodes,dn,dn,i_c+1,j_c+1,sd_used)
+     $                 tmp_nodes_n,dn,dn, i_c+1, j_c+1, sd_used)
 
                case(n2_direction)
 
                   flux_diag1 = p_model%compute_flux_x_oneside(
-     $                 tmp_nodes,dn,dn,i_c  ,j_c  ,sd_used)
+     $                 tmp_nodes_n,dn,dn, i_c  , j_c  , sd_used)
              
                   flux_diag2 = p_model%compute_flux_x_oneside(
-     $                 tmp_nodes,dn,dn,i_c+1,j_c-1,sd_used)
+     $                 tmp_nodes_n,dn,dn, i_c+1, j_c-1, sd_used)
 
              end select
+
+             deallocate(tmp_nodes)
+             deallocate(tmp_nodes_n)
+
 
           !2.3) if grid points are not needed, compute directly
           !     the fluxes using the bf_nodes
@@ -1113,25 +1130,38 @@
      $            gradient_y,
      $            incoming_wave,
      $            outward_dir)
-             
+
+             nodes = bf_nodes(i-bc_size:i+bc_size,
+     $                        j-bc_size:j+bc_size,
+     $                        :)
+
+             do j_l=1, size(nodes,2)
+                do i_l=1,size(nodes,1)
+                   nodes_n(i_l,j_l,:) = p_model%compute_xy_to_n_var(nodes(i_l,j_l,:))
+                end do
+             end do
+                
+             i_c = bc_size+1
+             j_c = bc_size+1
+
              ! compute the fluxes using the bf_nodes
              select case(outward_dir)
 
                case(n1_direction)
 
                   flux_diag1 = p_model%compute_flux_y_oneside(
-     $                 bf_nodes,dn,dn,i  ,j  ,sd_used)
+     $                 nodes_n,dn,dn, i_c   , j_c  , sd_used)
              
                   flux_diag2 = p_model%compute_flux_y_oneside(
-     $                 bf_nodes,dn,dn,i+1,j+1,sd_used)
+     $                 bf_nodes,dn,dn, i_c+1, j_c+1, sd_used)
 
                case(n2_direction)
 
                   flux_diag1 = p_model%compute_flux_x_oneside(
-     $                 bf_nodes,dn,dn,i  ,j  ,sd_used)
+     $                 bf_nodes,dn,dn, i_c  , j_c  , sd_used)
              
                   flux_diag2 = p_model%compute_flux_x_oneside(
-     $                 bf_nodes,dn,dn,i+1,j-1,sd_used)
+     $                 bf_nodes,dn,dn, i_c+1, j_c-1, sd_used)
 
              end select
              
@@ -1142,7 +1172,13 @@
           !     fluxes to the time derivatives
           !------------------------------------------------------
           do k=1,ne
-             timedev(k) = timedev(k) + 1.0d0/dn*(flux_diag1(k)-flux_diag2(k))
+             timedev_n(k) = 1.0d0/dn*(flux_diag1(k)-flux_diag2(k))
+          end do
+
+          timedev_f = p_model%compute_xy_to_n_var(timedev_n)
+
+          do k=1,ne
+             timedev(k) = timedev(k) + timedev_f(k)
           end do
 
         end function compute_time_dev_openbc

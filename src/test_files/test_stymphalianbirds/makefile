@@ -449,3 +449,20 @@ test_sd_scheme_patterns:\
 			sd_operators_n2_oneside_L1_class.o\
 			sd_operators_n2_oneside_R1_class.o\
 			sd_operators_n2_oneside_R0_class.o
+
+test_diag_flux_symetry.o:\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(sd_cdir)/sd_operators_n1_oneside_R1_class.o\
+			$(sd_cdir)/sd_operators_n2_oneside_R1_class.o
+
+test_diag_flux_symetry:\
+			$(param_dep)\
+			$(mt_dep)\
+			sd_operators_n_class.o\
+			sd_operators_fd_ncoords_module.o\
+			sd_operators_n1_oneside_R1_class.o\
+			sd_operators_n2_oneside_R1_class.o\
+			$(dim2d_dep)

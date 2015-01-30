@@ -441,6 +441,10 @@
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
           procedure, nopass :: compute_n_gradient
+
+          !variables in the rotated frame
+          procedure, nopass :: compute_xy_to_n_var
+          procedure, nopass :: compute_n_to_xy_var
           
         end type pmodel_eq
 
@@ -2872,5 +2876,50 @@
           grad_var(4) = gradient(nodes,i,j,total_energy,dx,dy)
 
         end function compute_n_gradient
+
+
+
+        function compute_xy_to_n_var(nodes) result(nodes_n)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne)             :: nodes_n
+
+          if(rkind.eq.8) then
+             nodes_n(1) = nodes(1)
+             nodes_n(2) = 0.5d0*Sqrt(2.0d0)*(nodes(2)-nodes(3))
+             nodes_n(3) = 0.5d0*Sqrt(2.0d0)*(nodes(2)+nodes(3))
+             nodes_n(4) = nodes(4)
+          else
+             nodes_n(1) = nodes(1)
+             nodes_n(2) = 0.5*Sqrt(2.0)*(nodes(2)-nodes(3))
+             nodes_n(3) = 0.5*Sqrt(2.0)*(nodes(2)+nodes(3))
+             nodes_n(4) = nodes(4)
+          end if
+
+        end function compute_xy_to_n_var
+
+
+        function compute_n_to_xy_var(nodes_n) result(nodes)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes_n
+          real(rkind), dimension(ne)             :: nodes
+
+          if(rkind.eq.8) then
+             nodes(1) = nodes_n(1)
+             nodes(2) = 0.5d0*Sqrt(2.0d0)*(nodes_n(2)+nodes_n(3))
+             nodes(3) = 0.5d0*Sqrt(2.0d0)*(nodes_n(3)-nodes_n(2))
+             nodes(4) = nodes_n(4)
+          else
+             nodes(1) = nodes_n(1)
+             nodes(2) = 0.5d0*Sqrt(2.0d0)*(nodes_n(2)+nodes_n(3))
+             nodes(3) = 0.5d0*Sqrt(2.0d0)*(nodes_n(3)-nodes_n(2))
+             nodes(4) = nodes_n(4)
+          end if
+
+        end function compute_n_to_xy_var
 
       end module pmodel_eq_class
