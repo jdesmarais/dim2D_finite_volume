@@ -1120,18 +1120,18 @@
                case(n1_direction)
 
                   flux_diag1 = p_model%compute_flux_y_oneside(
-     $                 tmp_nodes,dn,dn,i  ,j  ,sd_used)
+     $                 bf_nodes,dn,dn,i  ,j  ,sd_used)
              
                   flux_diag2 = p_model%compute_flux_y_oneside(
-     $                 tmp_nodes,dn,dn,i+1,j+1,sd_used)
+     $                 bf_nodes,dn,dn,i+1,j+1,sd_used)
 
                case(n2_direction)
 
                   flux_diag1 = p_model%compute_flux_x_oneside(
-     $                 tmp_nodes,dn,dn,i  ,j  ,sd_used)
+     $                 bf_nodes,dn,dn,i  ,j  ,sd_used)
              
                   flux_diag2 = p_model%compute_flux_x_oneside(
-     $                 tmp_nodes,dn,dn,i+1,j-1,sd_used)
+     $                 bf_nodes,dn,dn,i+1,j-1,sd_used)
 
              end select
              
