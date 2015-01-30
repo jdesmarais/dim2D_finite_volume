@@ -147,6 +147,10 @@ ic_choice = 6
 !gravity_choice : integer
 ! 0 : no gravity
 ! 1 : earth gravity: 9.81
+!wave_forcing : integer
+! 0 : no forcing
+! 1 : oscillatory forcing
+! 2 : intermittent forcing
 !---------------------------------------------------------
 gravity_choice=0
 wave_forcing=0

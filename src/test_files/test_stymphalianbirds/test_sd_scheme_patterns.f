@@ -288,8 +288,10 @@
 
                 !compute the x-fluxes and the y-fluxes needed
                 !to compute the time derivatives at (3,3)
-                flux_x(i_f,j_f,:)   = [0,0,0,0]
-                flux_x(i_f+1,j_f,:) = [0,0,0,0]
+                do k=1,ne
+                   flux_x(i_f  ,j_f,k) = 0
+                   flux_x(i_f+1,j_f,0) = 0
+                end do
 
                 flux_y(i_f,j_f,:)   = p_model%compute_flux_y_oneside(
      $               nodes,dx,dy,
@@ -376,8 +378,10 @@
      $               i_f+1,j_f,
      $               sd_used)
 
-                flux_y(i_f,j_f,:)   = [0,0,0,0]
-                flux_y(i_f,j_f+1,:) = [0,0,0,0]
+                do k=1,ne
+                   flux_y(i_f,j_f  ,k) = 0
+                   flux_y(i_f,j_f+1,k) = 0
+                end do
 
 
                 !test if there is one flux which could not be
@@ -444,8 +448,10 @@
 
                 !compute the x-fluxes and the y-fluxes needed
                 !to compute the time derivatives at (3,3)
-                flux_x(i_f,j_f,:)   = [0,0,0,0]
-                flux_x(i_f+1,j_f,:) = [0,0,0,0]
+                do k=1,ne
+                   flux_x(i_f  ,j_f,k) = 0
+                   flux_x(i_f+1,j_f,k) = 0
+                end do
 
                 flux_y(i_f,j_f,:)   = p_model%compute_flux_y_oneside(
      $               nodes,dx,dy,
@@ -532,8 +538,10 @@
      $               i_f+1,j_f-1,
      $               sd_used)
 
-                flux_y(i_f,j_f,:)   = [0,0,0,0]
-                flux_y(i_f,j_f+1,:) = [0,0,0,0]
+                do k=1,ne
+                   flux_y(i_f,j_f  ,k) = 0
+                   flux_y(i_f,j_f+1,:) = 0
+                end do
 
 
                 !test if there is one flux which could not be

@@ -9,6 +9,8 @@
       !> run a simulation using the physical model
       !> (in makefile_header choices) on a computational
       !> domain with buffer layers
+      !> first configure the source code with ./config.py
+      !> -i ./default/inputs/wave2d/wave2d_intermittent_forcing.txt
       !-----------------------------------------------------------------
       program test_fixed_field_extended
 
@@ -70,7 +72,16 @@
         !         |    ____|
         !         |____|
         !
-        bf_config = 2
+        ! 3 : anti-corners
+        !      __________
+        !     |          |_ 
+        !     |            |__
+        !     |               |
+        !     |             __|
+        !     |           _| 
+        !     |__________|
+        !--------------------------------------
+        bf_config = 3
 
         call make_test_fixed_field_extended(bf_config)
 
@@ -178,6 +189,9 @@
             case(2)
                call difficult_bf_layer_config(field_ext_used,size_bf)
 
+            case(3)
+               call anti_corner_bf_config(field_ext_used)
+
             case default
                print '(''test_field_extended_wave2d'')'
                print '(''add_buffer_layers_for_test'')'
@@ -186,6 +200,107 @@
           end select
 
         end subroutine add_buffer_layers_for_test
+
+
+        subroutine anti_corner_bf_config(field_ext_tested)
+
+          implicit none
+
+          class(field_extended), intent(inout) :: field_ext_tested
+
+          real(rkind)   , dimension(nx)       :: interior_x_map
+          real(rkind)   , dimension(ny)       :: interior_y_map
+          real(rkind)   , dimension(nx,ny,ne) :: interior_nodes
+          integer(ikind), dimension(2,2)      :: alignment
+
+          integer(ikind) :: size_bf_x
+          integer(ikind) :: size_bf_y
+          integer(ikind) :: half_size_bf_y
+
+          integer(ikind), dimension(2) :: cpt_coords
+
+          type(bf_sublayer), pointer :: added_sublayer
+
+          real(rkind)   , dimension(:)    , allocatable :: bf_x_map
+          real(rkind)   , dimension(:)    , allocatable :: bf_y_map
+          real(rkind)   , dimension(:,:,:), allocatable :: bf_nodes
+          integer(ikind), dimension(:,:)  , allocatable :: bf_grdpts_id
+
+          
+          interior_x_map = field_ext_tested%get_x_map()
+          interior_y_map = field_ext_tested%get_y_map()
+          interior_nodes = field_ext_tested%get_nodes()
+
+          size_bf_x = 17
+          size_bf_y = 49
+
+
+          !extend the interior domain to have
+          !one east buffer layer with several
+          !anti-corners
+          !----------------------------------
+          !determine the alignment of the
+          !buffer layer
+          !----------------------------------
+          if(mod(nx,2).eq.0) then
+             print '(''nx should be even'')'
+             stop ''
+          end if
+          cpt_coords(1) = (nx-1)/2 + 1
+          cpt_coords(2) = (ny-1)/2 + 1
+
+          half_size_bf_y = (size_bf_y-1)/2
+
+          alignment(1,1) = align_E
+          alignment(1,2) = align_E+size_bf_x-2*bc_size-1
+          alignment(2,1) = cpt_coords(2)-half_size_bf_y+bc_size
+          alignment(2,2) = cpt_coords(2)+half_size_bf_y-bc_size
+
+
+          !determine the nodes of the buffer
+          !layer
+          !----------------------------------
+          !get x_map and y_map
+          added_sublayer => field_ext_tested%domain_extension%allocate_sublayer(
+     $         E,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes,
+     $         alignment)
+
+          call added_sublayer%get_x_map(bf_x_map)
+          call added_sublayer%get_y_map(bf_y_map)
+
+          !set nodes
+          allocate(bf_nodes(size(bf_x_map,1),size(bf_y_map,1),ne))
+          call initialize_nodes(
+     $         field_ext_tested,
+     $         bf_x_map,
+     $         bf_y_map,
+     $         bf_nodes)
+
+          call added_sublayer%set_nodes(bf_nodes)
+
+
+          !determine the grdpts_id
+          !----------------------------------
+          allocate(bf_grdpts_id(
+     $         size(bf_x_map,1),
+     $         size(bf_y_map,1)))
+
+          deallocate(bf_x_map)
+          deallocate(bf_y_map)
+
+
+          bf_grdpts_id = initialize_grdpts_id_anti_corner()
+          call added_sublayer%set_grdpts_id(bf_grdpts_id)
+          
+
+          ! update the integration borders
+          !----------------------------------
+          call field_ext_tested%domain_extension%update_integration_borders(added_sublayer)
+
+        end subroutine anti_corner_bf_config
 
 
         subroutine four_bf_layer_config(field_ext_tested,size_bf)
@@ -753,5 +868,66 @@
      $         y_map)
 
         end subroutine initialize_nodes
+
+
+        function initialize_grdpts_id_anti_corner()
+     $     result(bf_grdpts_id)
+        
+          integer, dimension(17,49) :: bf_grdpts_id
+
+
+          bf_grdpts_id = reshape((/
+     $         1,1,2,3,3,3,3,0,0,0,0,0,0,0,0,0,0,
+     $         1,1,2,2,2,2,3,3,0,0,0,0,0,0,0,0,0,
+     $         1,1,1,1,1,2,2,3,3,0,0,0,0,0,0,0,0,
+     $         1,1,1,1,1,1,2,2,3,3,3,0,0,0,0,0,0,
+     $         1,1,1,1,1,1,1,2,2,2,3,3,0,0,0,0,0,
+     $         1,1,1,1,1,1,1,1,1,2,2,3,0,0,0,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,2,3,0,0,0,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,2,3,3,0,0,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,2,2,3,0,0,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,1,2,3,0,0,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,1,2,3,3,0,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,1,2,2,3,3,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,2,2,3,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,3,0,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,3,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,3,3,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,3,0,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,2,2,3,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,1,2,2,3,3,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,1,2,3,3,0,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,1,2,3,0,0,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,2,2,3,0,0,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,2,3,3,0,0,0,0,
+     $         1,1,1,1,1,1,1,1,1,1,2,3,0,0,0,0,0,
+     $         1,1,1,1,1,1,1,1,1,2,2,3,0,0,0,0,0,
+     $         1,1,1,1,1,1,1,2,2,2,3,3,0,0,0,0,0,
+     $         1,1,1,1,1,1,2,2,3,3,3,0,0,0,0,0,0,
+     $         1,1,1,1,1,2,2,3,3,0,0,0,0,0,0,0,0,
+     $         1,1,2,2,2,2,3,3,0,0,0,0,0,0,0,0,0,
+     $         1,1,2,3,3,3,3,0,0,0,0,0,0,0,0,0,0/),
+     $         (/17,49/))
+        
+        end function initialize_grdpts_id_anti_corner
 
       end program test_fixed_field_extended

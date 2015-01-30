@@ -189,6 +189,7 @@ test_fixed_field_extended.o:\
 test_fixed_field_extended:\
 			$(sim_dep)\
 			$(bf_interface_dcr_dep)\
+			cmd_operators_class.o\
 			surrogate_class.o\
 			field_abstract_class.o\
 			field_extended_class.o
@@ -422,17 +423,10 @@ test_sd_scheme_patterns:\
 			sd_operators_abstract_class.o\
 			sd_operators_class.o\
 			sd_operators_n_class.o\
-			dim2d_parameters.o\
-			dim2d_prim_module.o\
-			dim2d_ncoords_module.o\
-			dim2d_fluxes_module.o\
-			dim2d_state_eq_module.o\
-			dim2d_dropbubble_module.o\
-			ic_abstract_class.o\
-			ic_class.o\
 			pmodel_eq_abstract_class.o\
 			pmodel_eq_default_class.o\
 			pmodel_eq_class.o\
+			$(wave2d_dep)\
 			sd_operators_x_oneside_L0_class.o\
 			sd_operators_x_oneside_L1_class.o\
 			sd_operators_x_oneside_R1_class.o\

@@ -190,6 +190,10 @@
           procedure(y_gradient_proc) , nopass, deferred :: compute_y_gradient
           procedure(n_gradient_proc) , nopass, deferred :: compute_n_gradient
 
+          !variables in the rotated frame
+          procedure(xy_to_n_proc)    , nopass, deferred :: compute_xy_to_n_var
+          procedure(n_to_xy_proc)    , nopass, deferred :: compute_n_to_xy_var
+
         end type pmodel_eq_abstract
 
 
@@ -1188,6 +1192,27 @@
 
           end function n_gradient_proc
 
+      
+          function xy_to_n_proc(nodes) result(nodes_n)
+
+            import rkind
+            import ne
+          
+            real(rkind), dimension(ne), intent(in) :: nodes
+            real(rkind), dimension(ne)             :: nodes_n
+
+          end function xy_to_n_proc
+
+
+          function n_to_xy_proc(nodes_n) result(nodes)
+
+            import rkind
+            import ne
+
+            real(rkind), dimension(ne), intent(in) :: nodes_n
+            real(rkind), dimension(ne)             :: nodes
+
+          end function n_to_xy_proc
 
         end interface        
 

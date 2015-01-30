@@ -84,6 +84,9 @@
 
           procedure, nopass :: compute_n_gradient => compute_gradient_default
 
+          procedure, nopass :: compute_xy_to_n_var
+          procedure, nopass :: compute_n_to_xy_var
+
         end type pmodel_eq_default
 
 
@@ -561,5 +564,40 @@
           var = nodes(i,j,1)
           
         end function basic
+
+
+
+        function compute_xy_to_n_var(nodes) result(nodes_n)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(ne)             :: nodes_n
+
+          print '(''pmodel_eq_default'')'
+          print '(''compute_xy_to_n_var'')'
+          print '(''not implemented'')'
+          stop ''
+          
+          nodes_n(1) = nodes(1)
+
+        end function compute_xy_to_n_var
+
+
+        function compute_n_to_xy_var(nodes_n) result(nodes)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes_n
+          real(rkind), dimension(ne)             :: nodes
+
+          print '(''pmodel_eq_default'')'
+          print '(''compute_n_to_xy_var'')'
+          print '(''not implemented'')'
+          stop ''
+          
+          nodes(1) = nodes_n(1)
+
+        end function compute_n_to_xy_var
 
       end module pmodel_eq_default_class
