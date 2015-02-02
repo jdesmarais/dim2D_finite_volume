@@ -1744,8 +1744,8 @@
 
           else
              
-             d_icoord_n(1) = d_icoord(1) + dct_increase(1,dct_incr_i)
-             d_icoord_n(2) = d_icoord(2) + dct_increase(2,dct_incr_i)
+             d_icoord_n(1) = d_icoord(1)
+             d_icoord_n(2) = d_icoord(2)
 
           end if
 
@@ -3644,10 +3644,11 @@ c$$$          end if
           real(rkind)   , dimension(2), intent(out) :: direction
           real(rkind)   , dimension(2), intent(out) :: relative_bc_coords
 
-          integer(ikind), parameter :: dct_size=dct_icr_distance+1
+          integer(ikind), parameter :: dct_size = dct_icr_distance+2
+          integer(ikind), parameter :: nb_grdpts= 2*dct_size+1
 
-          integer(ikind), dimension(2,2) :: gen_borders
-          integer       , dimension(2*dct_size+1,2*dct_size+1) :: bf_grdpts_id
+          integer(ikind), dimension(2,2)                 :: gen_borders
+          integer       , dimension(nb_grdpts,nb_grdpts) :: bf_grdpts_id
 
 
           !1) determine the extent of the grdpts_id that should
