@@ -209,6 +209,7 @@
           real(rkind)                :: mach_ux_infty
           real(rkind)                :: relaxation_lodiT
           real(rkind)                :: relaxation_P
+          real(rkind), dimension(ne) :: nodes_eigenqties
           real(rkind), dimension(ne) :: eigenvalues
           real(rkind)                :: dx
           real(rkind)                :: dmdx
@@ -230,7 +231,17 @@
      $         ix_in, ix_out, sign_out,
      $         P_set, P,
      $         c,u,v)
+          print '(''lodi_edge_outflow_class'')'
+          print '(''compute speed of sound: should be linearized to have Roe average'')'
+          stop ''
           
+
+          !determine the nodes for the computation of the
+          !eigenquantities
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
+     $                          t,x_map(i),y_map(j),nodes(i,j,:))
+
+
 
           !get the variables specific to the x-direction
           L_domain_x       = x_map(size(x_map,1))-x_map(1)
@@ -240,7 +251,7 @@
           relaxation_lodiT = get_relaxation_lodiT(mach_local)
           relaxation_P     = get_relaxation_pressure(L_domain_x,mach_ux_infty)
 
-          eigenvalues      = p_model%compute_x_eigenvalues(nodes(i,j,:))
+          eigenvalues      = p_model%compute_x_eigenvalues(nodes_eigenqties)
           dx               = x_map(2)-x_map(1)
           dmdx             = gradient(nodes,i,j,mass_density,dx)
           dudx             = gradient(nodes,i,j,velocity_x,dx)
@@ -355,6 +366,7 @@
           real(rkind)                :: mach_uy_infty
           real(rkind)                :: relaxation_lodiT
           real(rkind)                :: relaxation_P
+          real(rkind), dimension(ne) :: nodes_eigenqties
           real(rkind), dimension(ne) :: eigenvalues
           real(rkind)                :: dy
           real(rkind)                :: dmdy
@@ -376,7 +388,16 @@
      $         iy_in, iy_out, sign_out,
      $         P_set, P,
      $         c,u,v)
+          print '(''lodi_edge_outflow_class'')'
+          print '(''compute speed of sound: should be linearized to have Roe average'')'
+          stop ''
           
+
+          !determine the nodes for the computation of the eigenqties
+          !at the edge
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
+     $                          t,x_map(i),y_map(j),nodes(i,j,:))
+
 
           !get the variables specific to the x-direction
           L_domain_y       = y_map(size(y_map,1))-y_map(1)
@@ -386,7 +407,7 @@
           relaxation_lodiT = get_relaxation_lodiT(mach_local)
           relaxation_P     = get_relaxation_pressure(L_domain_y,mach_uy_infty)
 
-          eigenvalues      = p_model%compute_y_eigenvalues(nodes(i,j,:))
+          eigenvalues      = p_model%compute_y_eigenvalues(nodes_eigenqties)
           dy               = y_map(2)-y_map(1)
           dmdy             = gradient(nodes,i,j,mass_density,dy)
           dudy             = gradient(nodes,i,j,velocity_x,dy)
@@ -461,6 +482,9 @@
           c = speed_of_sound(nodes(i,j,:))
           u = nodes(i,j,2)/nodes(i,j,1)
           v = nodes(i,j,3)/nodes(i,j,1)
+          print '(''lodi_edge_outflow_class'')'
+          print '(''compute speed of sound: should be linearized to have Roe average'')'
+          stop ''
 
         end subroutine get_lodi_outflow_intermediate_variables
 

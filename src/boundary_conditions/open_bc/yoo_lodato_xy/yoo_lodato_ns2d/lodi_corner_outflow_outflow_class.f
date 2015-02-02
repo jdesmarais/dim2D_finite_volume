@@ -208,6 +208,7 @@
           integer :: sign_y_out
 
           real(rkind)                :: c
+          real(rkind), dimension(ne) :: nodes_eigenqties
           real(rkind), dimension(ne) :: eigenvalues
           real(rkind)                :: dx
           real(rkind)                :: dy
@@ -258,10 +259,18 @@
           sign_y_out = get_sign_acoustic_component(iy_out)
 
 
+          !get the nodes to evaluate the eigenquantities
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
+     $                          t,x_map(i),y_map(j),nodes(i,j,:))
+
+
           !compute the outgoing components of the lodi_x vector
           c              = speed_of_sound(nodes(i,j,:))
+          print '(''lodi_corner_outflow_outflow_class'')'
+          print '(''compute speed of sound: should be linearized to have Roe average'')'
+          stop ''
 
-          eigenvalues    = p_model%compute_x_eigenvalues(nodes(i,j,:))
+          eigenvalues    = p_model%compute_x_eigenvalues(nodes_eigenqties)
           dx             = x_map(2)-x_map(1)
           dmdx           = gradient_x(nodes,i,j,mass_density,dx)
           dudx           = gradient_x(nodes,i,j,velocity_x,dx)
@@ -273,7 +282,7 @@
           lodi_x(ix_out) = eigenvalues(ix_out)*(dPdx + sign_x_out*nodes(i,j,1)*c*dudx)
 
           !compute the outgoing components of the lodi_y vector
-          eigenvalues    = p_model%compute_y_eigenvalues(nodes(i,j,:))
+          eigenvalues    = p_model%compute_y_eigenvalues(nodes_eigenqties)
           dy             = y_map(2)-y_map(1)
           dmdy           = gradient_y(nodes,i,j,mass_density,dy)
           dudy           = gradient_y(nodes,i,j,velocity_x,dy)
@@ -287,12 +296,20 @@
 
           !get the set values
           P     = pressure(nodes,i,j)
+          print '(''lodi_corner_outflow_outflow_class'')'
+          print '(''compute pressure: should be linearized to have Roe average'')'
+          stop ''
+
           P_set = p_model%get_P_out(t,x_map(i),y_map(j))
 
 
           !get the relaxation coefficients
           u    = nodes(i,j,2)/nodes(i,j,1)
           v    = nodes(i,j,3)/nodes(i,j,1)
+          print '(''lodi_corner_outflow_outflow_class'')'
+          print '(''compute velocity: should be linearized to have Roe average'')'
+          stop ''
+
           mach_local = get_local_mach(u,v,c)
           relaxation_lodiT = get_relaxation_lodiT(mach_local)
 

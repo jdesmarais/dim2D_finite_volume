@@ -213,6 +213,7 @@
           integer :: iy_out
           integer :: sign_y_out
 
+          real(rkind), dimension(ne) :: nodes_eigenqties
           real(rkind), dimension(ne) :: eigenvalues
           real(rkind)                :: dx
           real(rkind)                :: dPdx
@@ -268,6 +269,9 @@
           v    = nodes(i,j,3)/nodes(i,j,1)
           temp = temperature(nodes,i,j)
           c    = speed_of_sound(nodes(i,j,:))
+          print '(''lodi_corner_inflow_inflow_class'')'
+          print '(''compute speed of sound: should be linearized to have Roe average'')'
+          stop ''
 
 
           !get the indices corresponding to the LODI acoustic components
@@ -279,15 +283,20 @@
           iy_out     = get_other_acoustic_component(iy_in)
           sign_y_out = get_sign_acoustic_component(iy_out)
 
+          
+          !nodes for the computation of the eigenquantities
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
+     $                          t,x_map(i),y_map(j),nodes(i,j,:))
+
 
           !compute the outgoing LODI acoustics components in both directions
-          eigenvalues      = p_model%compute_x_eigenvalues(nodes(i,j,:))
+          eigenvalues      = p_model%compute_x_eigenvalues(nodes_eigenqties)
           dx               = x_map(2)-x_map(1)
           dPdx             = gradient_x(nodes,i,j,pressure,dx)
           dudx             = gradient_x(nodes,i,j,velocity_x,dx)
           lodi_x(ix_out)   = eigenvalues(ix_out)*(dPdx + sign_x_out*nodes(i,j,1)*c*dudx)
 
-          eigenvalues      = p_model%compute_y_eigenvalues(nodes(i,j,:))
+          eigenvalues      = p_model%compute_y_eigenvalues(nodes_eigenqties)
           dy               = y_map(2)-y_map(1)
           dPdy             = gradient_y(nodes,i,j,pressure,dy)
           dvdy             = gradient_y(nodes,i,j,velocity_y,dy)

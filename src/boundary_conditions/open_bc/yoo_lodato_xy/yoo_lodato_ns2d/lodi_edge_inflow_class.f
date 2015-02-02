@@ -217,6 +217,7 @@
           real(rkind)                :: relaxation_v
           real(rkind)                :: relaxation_T
           real(rkind)                :: relaxation_lodiT
+          real(rkind), dimension(ne) :: nodes_eigenqties
           real(rkind), dimension(ne) :: eigenvalues
           real(rkind)                :: dx
           real(rkind)                :: dPdx
@@ -235,6 +236,14 @@
      $         u_set,v_set,T_set,
      $         c,u,v)
           temp = temperature(nodes,i,j)
+          print '(''lodi_edge_inflow_class'')'
+          print '(''compute speed of sound: should be linearized to have Roe average'')'
+          stop ''
+
+          
+          !get the nodes for the evaluation of the eigenquantities
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
+     $                          t,x_map(i),y_map(j),nodes(i,j,:))
 
 
           !get the variables specific to the x-direction
@@ -247,7 +256,7 @@
           relaxation_T     = get_relaxation_temperature(L_domain_x, mach_local)
           relaxation_lodiT = get_relaxation_lodiT(mach_local)
 
-          eigenvalues      = p_model%compute_x_eigenvalues(nodes(i,j,:))
+          eigenvalues      = p_model%compute_x_eigenvalues(nodes_eigenqties)
           dx               = x_map(2)-x_map(1)
           dPdx             = gradient(nodes,i,j,pressure,dx)
           dudx             = gradient(nodes,i,j,velocity_x,dx)
@@ -256,6 +265,9 @@
           transv_velocity_forcing = relaxation_v*(v-v_set)
           temperature_forcing     = relaxation_T*(temp-T_set)
           outgoing_component      = eigenvalues(ix_out)*(dPdx + sign_out*nodes(i,j,1)*c*dudx)
+          print '(''lodi_edge_inflow_class'')'
+          print '(''compute speed of soundnodes(i,j,1): should be linearized to have Roe average'')'
+          stop ''
 
 
           !computation of the LODI components
@@ -365,6 +377,7 @@
           real(rkind)                :: relaxation_v
           real(rkind)                :: relaxation_T
           real(rkind)                :: relaxation_lodiT
+          real(rkind), dimension(ne) :: nodes_eigenqties
           real(rkind), dimension(ne) :: eigenvalues
           real(rkind)                :: dy
           real(rkind)                :: dPdy
@@ -383,6 +396,14 @@
      $         u_set,v_set,T_set,
      $         c,u,v)
           temp = temperature(nodes,i,j)
+          print '(''lodi_edge_inflow_class'')'
+          print '(''compute speed of sound: should be linearized to have Roe average'')'
+          stop ''
+
+          
+          !get the nodes for the evaluation of the eigenquantities
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
+     $                          t,x_map(i),y_map(j),nodes(i,j,:))
 
 
           !get the variables specific to the x-direction
@@ -395,7 +416,7 @@
           relaxation_T     = get_relaxation_temperature(L_domain_y, mach_local)
           relaxation_lodiT = get_relaxation_lodiT(mach_local)
 
-          eigenvalues      = p_model%compute_y_eigenvalues(nodes(i,j,:))
+          eigenvalues      = p_model%compute_y_eigenvalues(nodes_eigenqties)
           dy               = y_map(2)-y_map(1)
           dPdy             = gradient(nodes,i,j,pressure,dy)
           dvdy             = gradient(nodes,i,j,velocity_y,dy)
@@ -404,7 +425,9 @@
           transv_velocity_forcing = relaxation_u*(u-u_set)
           temperature_forcing     = relaxation_T*(temp-T_set)
           outgoing_component      = eigenvalues(iy_out)*(dPdy + sign_out*nodes(i,j,1)*c*dvdy)
-
+          print '(''lodi_edge_inflow_class'')'
+          print '(''compute nodes(i,j,1): should be linearized to have Roe average'')'
+          stop ''
 
           !computation of the LODI components
           lodi = compute_lodi_inflow_components(
@@ -468,6 +491,9 @@
           c = speed_of_sound(nodes)
           u = nodes(2)/nodes(1)
           v = nodes(3)/nodes(1)
+          print '(''lodi_edge_inflow_class'')'
+          print '(''compute speed of sound: should be linearized to have Roe average'')'
+          stop ''
 
         end subroutine get_LODI_inflow_intermediate_variables
 

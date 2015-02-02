@@ -223,6 +223,7 @@
           real(rkind) :: mach_local
           real(rkind) :: relaxation_lodiT
 
+          real(rkind), dimension(ne) :: nodes_eigenqties
           real(rkind), dimension(ne) :: eigenvalues
           real(rkind)                :: dx
           real(rkind)                :: dy
@@ -267,6 +268,9 @@
           v    = nodes(i,j,3)/nodes(i,j,1)
           temp = temperature(nodes,i,j)
           c    = speed_of_sound(nodes(i,j,:))
+          print '(''lodi_corner_inflow_inflow_class'')'
+          print '(''compute speed of sound: should be linearized to have Roe average'')'
+          stop ''
 
 
           !get the indices corresponding to the LODI acoustic components
@@ -290,11 +294,16 @@
           relaxation_lodiT = get_relaxation_lodiT(mach_local)
 
 
+          !get the nodes to evaluate the eigenqties
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
+     $                          t,x_map(i),y_map(j),nodes(i,j,:))
+
+
           !inflow along x-direction and outflow along y-direction
           if(flow_x.eqv.inflow_type) then
 
              !compute the LODI components in the y-direction
-             eigenvalues      = p_model%compute_y_eigenvalues(nodes(i,j,:))
+             eigenvalues      = p_model%compute_y_eigenvalues(nodes_eigenqties)
              dy               = y_map(2)-y_map(1)
              dmdy             = gradient_y(nodes,i,j,mass_density,dy)
              dudy             = gradient_y(nodes,i,j,velocity_x,dy)
@@ -308,7 +317,7 @@
              
              
              !compute the outgoing LODI acoustics component in the x-direction
-             eigenvalues      = p_model%compute_x_eigenvalues(nodes(i,j,:))
+             eigenvalues      = p_model%compute_x_eigenvalues(nodes_eigenqties)
              dx               = x_map(2)-x_map(1)
              dPdx             = gradient_x(nodes,i,j,pressure,dx)
              dudx             = gradient_x(nodes,i,j,velocity_x,dx)
@@ -341,7 +350,7 @@
           else
 
              !compute the LODI components in the y-direction
-             eigenvalues      = p_model%compute_x_eigenvalues(nodes(i,j,:))
+             eigenvalues      = p_model%compute_x_eigenvalues(nodes_eigenqties)
              dx               = x_map(2)-x_map(1)
              dmdx             = gradient_x(nodes,i,j,mass_density,dx)
              dudx             = gradient_x(nodes,i,j,velocity_x,dx)
@@ -355,7 +364,7 @@
              
              
              !compute the outgoing LODI acoustics component in the x-direction
-             eigenvalues      = p_model%compute_y_eigenvalues(nodes(i,j,:))
+             eigenvalues      = p_model%compute_y_eigenvalues(nodes_eigenqties)
              dy               = y_map(2)-y_map(1)
              dPdy             = gradient_y(nodes,i,j,pressure,dy)
              dvdy             = gradient_y(nodes,i,j,velocity_y,dy)
