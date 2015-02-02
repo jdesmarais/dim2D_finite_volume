@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '2730964202925318f6fe7d93764bdf6e650e885d')
+        parameter (commit = 'e3077239174f04492825b87ebda77932dacf21cc')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -149,6 +149,24 @@
 
         logical, parameter :: inflow_type=.false.
         logical, parameter :: outflow_type=.true.
+
+
+        !> open b.c. oneside fluxes
+        !-------------------------------------------------------
+        !control how the fluxes are computed at the edges
+        !-------------------------------------------------------
+        ! obc_edge_flux_capillarity:     the capillarity terms
+        !                                are included in the
+        !                                computation of the edge
+        !                                fluxes
+        !
+        ! obc_edge_flux_no_capillarity:  the capillarity terms
+        !                                are not_included in the
+        !                                computation of the edge
+        !                                fluxes
+        !-------------------------------------------------------
+        integer, parameter :: obc_edge_flux_capillarity = 0
+        integer, parameter :: obc_edge_flux_no_capillarity = 1
 
 
         !> open b.c. eigenquantities

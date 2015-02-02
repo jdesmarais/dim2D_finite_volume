@@ -152,16 +152,18 @@
         !> time derivatives of the grid points
         !--------------------------------------------------------------
         subroutine compute_timedev_anti_corner_with_diag_fluxes(
-     $     p_model,
-     $     interior_nodes,
-     $     bf_alignment,
-     $     nodes, x_map, y_map,
-     $     dx, dy,
-     $     bc_section,
-     $     timedev)
+     $       t,
+     $       p_model,
+     $       interior_nodes,
+     $       bf_alignment,
+     $       nodes, x_map, y_map,
+     $       dx, dy,
+     $       bc_section,
+     $       timedev)
         
           implicit none
         
+          real(rkind)                        , intent(in)    :: t
           type(pmodel_eq)                    , intent(in)    :: p_model
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
@@ -184,6 +186,8 @@
           logical :: compute_point4
 
           real(rkind) :: dn
+          
+          real(rkind) :: x,y
 
           type(sd_operators_n1_oneside_L0) :: sd_n1_L0
           type(sd_operators_n1_oneside_L1) :: sd_n1_L1
@@ -235,10 +239,14 @@
 
                      i=i_min
                      j=j_min
+
+                     x = x_map(i)
+                     y = y_map(j)
                      
                      if(use_interior_gradients) then
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -254,6 +262,7 @@
                      else
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -282,10 +291,13 @@
                      i=i_min+1
                      j=j_min
 
+                     x = x_map(i)
+                     y = y_map(j)
 
                      if(use_interior_gradients) then
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -301,6 +313,7 @@
                      else
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -329,9 +342,13 @@
                      i=i_min
                      j=j_min+1
                      
+                     x = x_map(i)
+                     y = y_map(j)
+
                      if(use_interior_gradients) then
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -347,6 +364,7 @@
                      else
                         
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -375,7 +393,11 @@
                      i=i_min+1
                      j=j_min+1
 
+                     x = x_map(i)
+                     y = y_map(j)
+
                      timedev(i,j,:) = compute_time_dev_openbc(
+     $                    t,x,y,
      $                    interior_nodes,
      $                    bf_alignment,
      $                    nodes,
@@ -419,9 +441,13 @@
                      i=i_min
                      j=j_min
 
+                     x = x_map(i)
+                     y = y_map(j)
+
                      if(use_interior_gradients) then
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -437,6 +463,7 @@
                      else
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -465,9 +492,13 @@
                      i=i_min+1
                      j=j_min
 
+                     x = x_map(i)
+                     y = y_map(j)
+
                      if(use_interior_gradients) then
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -483,6 +514,7 @@
                      else
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -511,7 +543,11 @@
                      i=i_min
                      j=j_min+1
 
+                     x = x_map(i)
+                     y = y_map(j)
+
                      timedev(i,j,:) = compute_time_dev_openbc(
+     $                    t,x,y,
      $                    interior_nodes,
      $                    bf_alignment,
      $                    nodes,
@@ -538,9 +574,13 @@
                      i=i_min+1
                      j=j_min+1
 
+                     x = x_map(i)
+                     y = y_map(j)
+
                      if(use_interior_gradients) then
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment, 
      $                       nodes,
@@ -556,6 +596,7 @@
                      else
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment, 
      $                       nodes,
@@ -599,8 +640,12 @@
 
                      i=i_min
                      j=j_min
+
+                     x = x_map(i)
+                     y = y_map(j)
                      
                      timedev(i,j,:) = compute_time_dev_openbc(
+     $                    t,x,y,
      $                    interior_nodes,
      $                    bf_alignment,
      $                    nodes,
@@ -626,10 +671,14 @@
 
                      i=i_min+1
                      j=j_min
+
+                     x = x_map(i)
+                     y = y_map(j)
                      
                      if(use_interior_gradients) then
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -645,6 +694,7 @@
                      else
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -673,24 +723,29 @@
                      i=i_min
                      j=j_min+1
 
+                     x = x_map(i)
+                     y = y_map(j)
+
                      if(use_interior_gradients) then
 
                         timedev(i,j,:) = compute_time_dev_openbc(
-     $                    interior_nodes,
-     $                    bf_alignment,
-     $                    nodes,
-     $                    i,j,
-     $                    dx,dy,dn,
-     $                    sd_n2_L1,
-     $                    p_model,
-     $                    n2_direction,
-     $                    incoming_left,
-     $                    gradient_x_interior,
-     $                    gradient_y_y_oneside_L0)
+     $                       t,x,y,
+     $                       interior_nodes,
+     $                       bf_alignment,
+     $                       nodes,
+     $                       i,j,
+     $                       dx,dy,dn,
+     $                       sd_n2_L1,
+     $                       p_model,
+     $                       n2_direction,
+     $                       incoming_left,
+     $                       gradient_x_interior,
+     $                       gradient_y_y_oneside_L0)
 
                      else
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -718,10 +773,14 @@
 
                      i=i_min+1
                      j=j_min+1
+
+                     x = x_map(i)
+                     y = y_map(j)
                      
                      if(use_interior_gradients) then
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -737,6 +796,7 @@
                      else
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -780,10 +840,14 @@
 
                      i=i_min
                      j=j_min
+
+                     x = x_map(i)
+                     y = y_map(j)
                      
                      if(use_interior_gradients) then
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -799,6 +863,7 @@
                      else
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -826,8 +891,12 @@
 
                      i=i_min+1
                      j=j_min
+
+                     x = x_map(i)
+                     y = y_map(j)
                      
                      timedev(i,j,:) = compute_time_dev_openbc(
+     $                    t,x,y,
      $                    interior_nodes,
      $                    bf_alignment,
      $                    nodes,
@@ -853,10 +922,14 @@
                      
                      i=i_min
                      j=j_min+1
+
+                     x = x_map(i)
+                     y = y_map(j)
                      
                      if(use_interior_gradients) then
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -872,6 +945,7 @@
                      else
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -900,9 +974,13 @@
                      i=i_min+1
                      j=j_min+1
 
+                     x = x_map(i)
+                     y = y_map(j)
+
                      if(use_interior_gradients) then
 
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -918,6 +996,7 @@
                      else
                         
                         timedev(i,j,:) = compute_time_dev_openbc(
+     $                       t,x,y,
      $                       interior_nodes,
      $                       bf_alignment,
      $                       nodes,
@@ -943,6 +1022,7 @@
 
 
         function compute_time_dev_openbc(
+     $     t,x,y,
      $     interior_nodes,
      $     bf_alignment,
      $     bf_nodes,
@@ -958,6 +1038,9 @@
 
           implicit none
 
+          real(rkind)                        , intent(in) :: t
+          real(rkind)                        , intent(in) :: x
+          real(rkind)                        , intent(in) :: y
           real(rkind)   , dimension(nx,ny,ne), intent(in) :: interior_nodes
           integer(ikind), dimension(2,2)     , intent(in) :: bf_alignment
           real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes
@@ -1087,6 +1170,7 @@
           ! compute the contribution of the outward direction
           ! to the time derivatives with the tmp_nodes
           timedev = compute_n_timedev_with_openbc_local(
+     $         t,x,y,
      $         tmp_nodes, i_c,j_c,
      $         p_model, dx,dy,
      $         gradient_x,

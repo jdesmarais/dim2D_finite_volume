@@ -57,8 +57,7 @@
      $       compute_jacobian_prim_to_cons,
      $       compute_x_timedev_from_LODI_vector_dim2d,
      $       compute_y_timedev_from_LODI_vector_dim2d,
-     $       compute_timedev_from_LODI_vectors_dim2d,
-     $       get_roe_average
+     $       compute_timedev_from_LODI_vectors_dim2d
 
         use dim2d_ncoords_module, only :
      $       compute_n1_eigenvalues_dim2d,
@@ -133,7 +132,9 @@
      $       phase_separation,
      $       earth_gravity_choice,
      $       obc_eigenqties_bc,
-     $       obc_eigenqties_lin
+     $       obc_eigenqties_lin,
+     $       obc_edge_flux_capillarity,
+     $       obc_edge_flux_no_capillarity
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
@@ -143,7 +144,8 @@
      $       T0,
      $       obc_eigenqties_strategy,
      $       bf_openbc_md_threshold_ac,
-     $       bf_openbc_md_threshold
+     $       bf_openbc_md_threshold,
+     $       obc_edge_flux_strategy
 
         use parameters_kind, only :
      $       ikind,
@@ -1331,25 +1333,76 @@
           class(sd_operators)          , intent(in)   :: s_oneside
           real(rkind), dimension(ne)                  :: flux_x
 
-          !<fluxes along the x-axis
-          !DEC$ FORCEINLINE RECURSIVE
-          flux_x(1) = flux_x_mass_density(
-     $         nodes,s_oneside,i,j)
+          real(rkind), dimension(ne) :: inviscid_flux
+          real(rkind), dimension(ne) :: viscid_flux
+
           
-          !DEC$ FORCEINLINE RECURSIVE
-          flux_x(2) = flux_x_momentum_x(
-     $         nodes,s_oneside,i,j,
-     $         dx,dy)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          flux_x(3) = flux_x_momentum_y(
-     $         nodes,s_oneside,i,j,
-     $         dx,dy)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          flux_x(4) = flux_x_total_energy(
-     $         nodes,s_oneside,i,j,
-     $         dx,dy)
+          select case(obc_edge_flux_strategy)
+
+            case(obc_edge_flux_capillarity)
+
+               !<fluxes along the x-axis
+               !DEC$ FORCEINLINE RECURSIVE
+               flux_x(1) = flux_x_mass_density(
+     $              nodes,s_oneside,i,j)
+             
+               !DEC$ FORCEINLINE RECURSIVE
+               flux_x(2) = flux_x_momentum_x(
+     $              nodes,s_oneside,i,j,
+     $              dx,dy)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               flux_x(3) = flux_x_momentum_y(
+     $              nodes,s_oneside,i,j,
+     $              dx,dy)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               flux_x(4) = flux_x_total_energy(
+     $              nodes,s_oneside,i,j,
+     $              dx,dy)
+
+            case(obc_edge_flux_no_capillarity)
+
+               !DEC$ FORCEINLINE RECURSIVE
+               inviscid_flux(1) = flux_x_mass_density(nodes,s_oneside,i,j)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               inviscid_flux(2) = flux_x_inviscid_momentum_x(nodes,s_oneside,i,j)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               inviscid_flux(3) = flux_x_inviscid_momentum_y(nodes,s_oneside,i,j)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               inviscid_flux(4) = flux_x_inviscid_total_energy(nodes,s_oneside,i,j)
+               
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               viscid_flux(1) = 0.0d0
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               viscid_flux(2) = flux_x_viscid_momentum_x(nodes,s_oneside,i,j,dx,dy)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               viscid_flux(3) = flux_x_viscid_momentum_y(nodes,s_oneside,i,j,dx,dy)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               viscid_flux(4) = flux_x_viscid_total_energy(nodes,s_oneside,i,j,dx,dy)
+               
+               
+               !total flux
+               flux_x(1) = inviscid_flux(1)
+               flux_x(2) = inviscid_flux(2) - epsilon*viscid_flux(2)
+               flux_x(3) = inviscid_flux(3) - epsilon*viscid_flux(3)
+               flux_x(4) = inviscid_flux(4) - epsilon*viscid_flux(4)
+
+            case default
+               print '(''pmodel_eq_class'')'
+               print '(''compute_flux_x_oneside'')'
+               print '(''obc_edge_flux_strategy not recognized'')'
+               print '(''obc_edge_flux_strategy: '',I2)', obc_edge_flux_strategy
+               stop ''
+
+          end select
 
         end function compute_flux_x_oneside
 
@@ -1398,24 +1451,80 @@
           real(rkind), dimension(ne)                  :: flux_y
 
 
-          !DEC$ FORCEINLINE RECURSIVE
-          flux_y(1) = flux_y_mass_density(
-     $         nodes,s_oneside,i,j)
+          real(rkind), dimension(ne) :: inviscid_flux
+          real(rkind), dimension(ne) :: viscid_flux
+
+
+          select case(obc_edge_flux_strategy)
+
+            case(obc_edge_flux_capillarity)
+
+               !DEC$ FORCEINLINE RECURSIVE
+               flux_y(1) = flux_y_mass_density(
+     $              nodes,s_oneside,i,j)
           
-          !DEC$ FORCEINLINE RECURSIVE
-          flux_y(2) = flux_y_momentum_x(
-     $         nodes,s_oneside,i,j,
-     $         dx,dy)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          flux_y(3) = flux_y_momentum_y(
-     $         nodes,s_oneside,i,j,
-     $         dx,dy)
-          
-          !DEC$ FORCEINLINE RECURSIVE
-          flux_y(4) = flux_y_total_energy(
-     $         nodes,s_oneside,i,j,
-     $         dx,dy)
+               !DEC$ FORCEINLINE RECURSIVE
+               flux_y(2) = flux_y_momentum_x(
+     $              nodes,s_oneside,i,j,
+     $              dx,dy)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               flux_y(3) = flux_y_momentum_y(
+     $              nodes,s_oneside,i,j,
+     $              dx,dy)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               flux_y(4) = flux_y_total_energy(
+     $              nodes,s_oneside,i,j,
+     $              dx,dy)
+
+            case(obc_edge_flux_no_capillarity)
+
+               !inviscid part
+               !--------------------------------
+               !DEC$ FORCEINLINE RECURSIVE
+               inviscid_flux(1) = flux_y_mass_density(nodes,s_oneside,i,j)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               inviscid_flux(2) = flux_y_inviscid_momentum_x(nodes,s_oneside,i,j)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               inviscid_flux(3) = flux_y_inviscid_momentum_y(nodes,s_oneside,i,j)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               inviscid_flux(4) = flux_y_inviscid_total_energy(nodes,s_oneside,i,j)
+               
+               
+               !viscid part
+               !--------------------------------
+               !DEC$ FORCEINLINE RECURSIVE
+               viscid_flux(1) = 0.0d0
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               viscid_flux(2) = flux_y_viscid_momentum_x(nodes,s_oneside,i,j,dx,dy)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               viscid_flux(3) = flux_y_viscid_momentum_y(nodes,s_oneside,i,j,dx,dy)
+               
+               !DEC$ FORCEINLINE RECURSIVE
+               viscid_flux(4) = flux_y_viscid_total_energy(nodes,s_oneside,i,j,dx,dy)
+               
+               
+               !total flux
+               !--------------------------------
+               flux_y(1) = inviscid_flux(1)
+               flux_y(2) = inviscid_flux(2) - epsilon*viscid_flux(2)
+               flux_y(3) = inviscid_flux(3) - epsilon*viscid_flux(3)
+               flux_y(4) = inviscid_flux(4) - epsilon*viscid_flux(4)
+
+            case default
+               print '(''pmodel_eq_class'')'
+               print '(''compute_flux_y_oneside'')'
+               print '(''obc_edge_flux_strategy not recognized'')'
+               print '(''obc_edge_flux_strategy: '',I2)', obc_edge_flux_strategy
+               stop ''
+
+          end select
 
         end function compute_flux_y_oneside
 

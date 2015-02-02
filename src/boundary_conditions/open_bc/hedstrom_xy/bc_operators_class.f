@@ -70,7 +70,6 @@
      $       left,right,
      $       N,S,E,W,
      $       obc_edge_xy_corner,
-     $       obc_edge_xy_inversed_corner,
      $       obc_edge_xy_flux,
      $       obc_edge_xy_diag_flux
 
@@ -762,6 +761,7 @@
             case(obc_edge_xy_diag_flux)
 
                call compute_timedev_anti_corner_with_diag_fluxes(
+     $              t,
      $              p_model,
      $              interior_nodes,
      $              bf_alignment,

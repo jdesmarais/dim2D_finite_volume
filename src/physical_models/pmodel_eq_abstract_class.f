@@ -953,8 +953,9 @@
           !--------------------------------------------------------------
           function openbc_nodes_proc(this,t,x,y,nodes_bc) result(nodes_eigenqties)
 
-            import rkind
             import ne
+            import pmodel_eq_abstract
+            import rkind
 
             class(pmodel_eq_abstract) , intent(in) :: this
             real(rkind)               , intent(in) :: t

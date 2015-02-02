@@ -22,17 +22,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -12.0000000000d0
-        real(rkind), parameter :: x_max = 12.0000000000d0
-        real(rkind), parameter :: y_min = -12.0000000000d0
-        real(rkind), parameter :: y_max = 12.0000000000d0
+        real(rkind), parameter :: x_min = -0.1519000000d0
+        real(rkind), parameter :: x_max = 0.1519000000d0
+        real(rkind), parameter :: y_min = -0.1519000000d0
+        real(rkind), parameter :: y_max = 0.1519000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 200.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0500000000d0
+        real(rkind), parameter :: t_max = 2.9831000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0001000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0400000000d0
+        real(rkind), parameter :: detail_print = 0.0335000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -42,12 +42,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 65
-        integer(ikind), parameter :: nty = 65
+        integer(ikind), parameter :: ntx = 67
+        integer(ikind), parameter :: nty = 67
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 3
+        integer       , parameter :: ne = 4
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -110,13 +110,13 @@
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
         real(rkind), parameter :: flow_velocity = 0.1000000000d0
         
-        real(rkind), parameter :: T0 = 0.9950000000d0
+        real(rkind), parameter :: T0 = 0.9500000000d0
 
-        integer    , parameter :: ic_choice = peak
+        integer    , parameter :: ic_choice = bubble_transported
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
-        integer, parameter :: wave_forcing = oscillatory_forcing
+        integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
         integer, parameter :: bc_choice = hedstrom_xy_choice
@@ -164,9 +164,18 @@
         ! 
         !                          1) obc_eigenqties_bc
         !                          2) obc_eigenqties_lin
+        !
+        !obc_edge_flux_strategy: control whether the capillarity
+        !                        terms are included when computing
+        !                        the one-side fluxes used for the
+        !                        open boundary conditions
+        !
+        !                        1) obc_edge_flux_capillarity
+        !                        2) obc_edge_flux_no_capillarity
         !-----------------------------------------------------
-        integer    , parameter :: obc_edge_xy_strategy = obc_edge_xy_diag_flux
-        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
+        integer    , parameter :: obc_edge_xy_strategy = obc_edge_xy_flux
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
+        integer    , parameter :: obc_edge_flux_strategy = obc_edge_flux_no_capillarity
 
         !-----------------------------------------------------
         !for the increase of the computational domain
@@ -186,8 +195,8 @@
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
         !-----------------------------------------------------
-        logical    , parameter :: bf_openbc_md_threshold_ac = .false.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
+        logical    , parameter :: bf_openbc_md_threshold_ac = .true.
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.0500000000d0
 
 
         !-----------------------------------------------------
@@ -233,7 +242,7 @@
         !                                   are adapted once the
         !                                   simulation starts
         !-----------------------------------------------------
-        logical    , parameter :: debug_restart_for_geometry = .true.
-        logical    , parameter :: debug_adapt_computational_domain =.false.
+        logical    , parameter :: debug_restart_for_geometry = .false.
+        logical    , parameter :: debug_adapt_computational_domain =.true.
 
       end module parameters_input
