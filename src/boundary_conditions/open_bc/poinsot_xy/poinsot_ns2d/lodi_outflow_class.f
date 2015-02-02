@@ -193,21 +193,24 @@ c$$$          end if
           real(rkind)                :: pressure_grad
           real(rkind)                :: P
           real(rkind)                :: P_out
+          real(rkind), dimension(ne) :: nodes_eigenqties
           real(rkind), dimension(ne) :: eigenvalues
 
 
           c  = speed_of_sound(nodes(i,j,:))
           dx = x_map(2)-x_map(1)
 
-          mass_grad       = gradient(nodes,i,j,mass_density,dx)
-          velocity_x_grad = gradient(nodes,i,j,velocity_x,dx)
-          velocity_y_grad = gradient(nodes,i,j,velocity_y,dx)
-          pressure_grad   = gradient(nodes,i,j,pressure,dx)
+          mass_grad        = gradient(nodes,i,j,mass_density,dx)
+          velocity_x_grad  = gradient(nodes,i,j,velocity_x,dx)
+          velocity_y_grad  = gradient(nodes,i,j,velocity_y,dx)
+          pressure_grad    = gradient(nodes,i,j,pressure,dx)
+                           
+          P                = pressure(nodes,i,j)
+          P_out            = this%compute_Pout(x_map(i),y_map(j),t)
 
-          P               = pressure(nodes,i,j)
-          P_out           = this%compute_Pout(x_map(i),y_map(j),t)
-
-          eigenvalues     = p_model%compute_x_eigenvalues(nodes(i,j,:))
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
+     $                          t,x_map(i),y_map(j),nodes(i,j,:))
+          eigenvalues      = p_model%compute_x_eigenvalues(nodes_eigenqties)
 
 
           !computation of the LODI vector
@@ -294,21 +297,24 @@ c$$$          end if
           real(rkind)                :: pressure_grad
           real(rkind)                :: P
           real(rkind)                :: P_out
+          real(rkind), dimension(ne) :: nodes_eigenqties
           real(rkind), dimension(ne) :: eigenvalues
 
 
           c  = speed_of_sound(nodes(i,j,:))
           dy = y_map(2)-y_map(1)
 
-          mass_grad       = gradient(nodes,i,j,mass_density,dy)
-          velocity_x_grad = gradient(nodes,i,j,velocity_x,dy)
-          velocity_y_grad = gradient(nodes,i,j,velocity_y,dy)
-          pressure_grad   = gradient(nodes,i,j,pressure,dy)
+          mass_grad        = gradient(nodes,i,j,mass_density,dy)
+          velocity_x_grad  = gradient(nodes,i,j,velocity_x,dy)
+          velocity_y_grad  = gradient(nodes,i,j,velocity_y,dy)
+          pressure_grad    = gradient(nodes,i,j,pressure,dy)
+                           
+          P                = pressure(nodes,i,j)
+          P_out            = this%compute_Pout(x_map(i),y_map(j),t)
 
-          P               = pressure(nodes,i,j)
-          P_out           = this%compute_Pout(x_map(i),y_map(j),t)
-
-          eigenvalues     = p_model%compute_y_eigenvalues(nodes(i,j,:))
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
+     $                          t,x_map(i),y_map(j),nodes(i,j,:))
+          eigenvalues      = p_model%compute_y_eigenvalues(nodes_eigenqties)
        
 
           !computation of the LODI vector

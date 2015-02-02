@@ -192,20 +192,23 @@
           real(rkind)                :: duindt
           real(rkind)                :: dvindt
           real(rkind)                :: dTindt
+          real(rkind), dimension(ne) :: nodes_eigenqties
           real(rkind), dimension(ne) :: eigenvalues
 
 
           c  = speed_of_sound(nodes(i,j,:))
           dx = x_map(2)-x_map(1)
 
-          velocity_x_grad = gradient(nodes,i,j,velocity_x,dx)
-          pressure_grad   = gradient(nodes,i,j,pressure,dx)
+          velocity_x_grad  = gradient(nodes,i,j,velocity_x,dx)
+          pressure_grad    = gradient(nodes,i,j,pressure,dx)
+                           
+          duindt           = this%compute_duindt(x_map(i),y_map(j),t)
+          dvindt           = this%compute_dvindt(x_map(i),y_map(j),t)
+          dTindt           = this%compute_dTindt(x_map(i),y_map(j),t)
 
-          duindt          = this%compute_duindt(x_map(i),y_map(j),t)
-          dvindt          = this%compute_dvindt(x_map(i),y_map(j),t)
-          dTindt          = this%compute_dTindt(x_map(i),y_map(j),t)
-
-          eigenvalues     = p_model%compute_x_eigenvalues(nodes(i,j,:))
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
+     $                          t,x_map(i),y_map(j),nodes(i,j,:))
+          eigenvalues      = p_model%compute_x_eigenvalues(nodes_eigenqties)
        
 
           !computation of the LODI vector
@@ -302,6 +305,7 @@
           real(rkind)                :: duindt
           real(rkind)                :: dvindt
           real(rkind)                :: dTindt
+          real(rkind), dimension(ne) :: nodes_eigenqties
           real(rkind), dimension(ne) :: eigenvalues
 
 
@@ -315,7 +319,9 @@
           dvindt          = this%compute_dvindt(x_map(i),y_map(j),t)
           dTindt          = this%compute_dTindt(x_map(i),y_map(j),t)
 
-          eigenvalues     = p_model%compute_y_eigenvalues(nodes(i,j,:))
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
+     $                          t,x_map(i),y_map(j),nodes(i,j,:))
+          eigenvalues     = p_model%compute_y_eigenvalues(nodes_eigenqties)
 
 
           !computation of the LODI vector
