@@ -55,6 +55,8 @@
           procedure, nopass :: compute_flux_x_by_parts
           procedure, nopass :: compute_flux_y_by_parts
 
+          procedure,   pass :: get_nodes_obc_eigenqties
+
           procedure, nopass :: compute_x_eigenvalues  => compute_eigenvalues_default
           procedure, nopass :: compute_y_eigenvalues  => compute_eigenvalues_default
           procedure, nopass :: compute_n1_eigenvalues => compute_eigenvalues_default
@@ -335,6 +337,64 @@
           flux_y(1)        = nodes(i,j,1)        
           
         end function compute_flux_y_by_parts
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the grid points used to evaluate
+        !> the eigenquantities at the edge of the
+        !> computational domain
+        !
+        !> @date
+        !> 02_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate of the grid points at the boundary
+        !
+        !>@param y
+        !> y-coordinate of the grid points at the boundary
+        !
+        !>@param nodes_bc
+        !> array with the grid point data at the boundary
+        !
+        !>@param nodes_bc
+        !> array with the grid point data at the boundary
+        !
+        !>@param nodes_bc
+        !> array with the grid point data at the boundary
+        !
+        !>@param nodes_eigenqties
+        !> grid points used to evaluate the eigenquantities at the
+        !> boundary
+        !--------------------------------------------------------------
+        function get_nodes_obc_eigenqties(this,t,x,y,nodes_bc) result(nodes_eigenqties)
+
+          implicit none
+
+          class(pmodel_eq_default)  , intent(in) :: this
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
+          real(rkind), dimension(ne), intent(in) :: nodes_bc
+          real(rkind), dimension(ne)             :: nodes_eigenqties
+
+
+          print '(''pmodel_eq_default_class'')'
+          print '(''get_nodes_obc_eigenqties'')'
+          print '(''not implemented'')'
+          stop ''
+          
+          nodes_eigenqties(1) = nodes_bc(1)+t+x+y+real(this%get_eq_nb())
+
+        end function get_nodes_obc_eigenqties
 
 
         !> @author

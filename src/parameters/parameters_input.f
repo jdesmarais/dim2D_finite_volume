@@ -152,8 +152,21 @@
         !                       when computing the gridpoints
         !                       at the anti-corner boundary
         !                       section
+        !
+        !                       1) obc_edge_xy_corner
+        !                       2) obc_edge_xy_flux
+        !                       3) obc_edge_xy_diag_flux
+        !
+        !
+        !obc_eigenqties_strategy : control how the eigenquantities
+        !                          are computed at the edge for the
+        !                          open boundary conditions:
+        ! 
+        !                          1) obc_eigenqties_bc
+        !                          2) obc_eigenqties_lin
         !-----------------------------------------------------
         integer    , parameter :: obc_edge_xy_strategy = obc_edge_xy_diag_flux
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
 
         !-----------------------------------------------------
         !for the increase of the computational domain

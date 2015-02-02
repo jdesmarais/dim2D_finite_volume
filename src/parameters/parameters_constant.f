@@ -150,18 +150,75 @@
         logical, parameter :: inflow_type=.false.
         logical, parameter :: outflow_type=.true.
 
-        integer, parameter :: obc_edge_xy_corner          = 0
-        integer, parameter :: obc_edge_xy_inversed_corner = 1
-        integer, parameter :: obc_edge_xy_flux            = 2
-        integer, parameter :: obc_edge_xy_diag_flux       = 3
 
+        !> open b.c. eigenquantities
+        !-------------------------------------------------------
+        !control how the eigenquantities are computed for open b.c.
+        !-------------------------------------------------------
+        ! obc_eigenqties_bc:     the eigenquantities are computed
+        !                        using the conservative variables
+        !                        at the edge
+        !
+        ! obc_eigenqties_lin:    the eigenquantities are computed
+        !                        using the values imposed in the
+        !                        far field determined by the
+        !                        initial conditions
+        !
+        ! obc_eigenqties_roe:    the eigenquantities are computed
+        !                        using the Roe's average of the
+        !                        values imposed in the far field
+        !                        and the values at the edge
+        !-------------------------------------------------------
+        integer, parameter :: obc_eigenqties_bc  = 0
+        integer, parameter :: obc_eigenqties_lin = 1
+        integer, parameter :: obc_eigenqties_roe = 2
+
+
+        !> open b.c. anti_corners
+        !-------------------------------------------------------
+        !control how the anti-corners are computed for open b.c.
+        !-------------------------------------------------------
+        ! obc_edge_xy_corner:    like there were corners
+        !
+        ! obc_edge_xy_flux:      the off-diagonal points are computed
+        !                        as if there were N/S/E/W edge points
+        !                        and the diagonal points are computed
+        !                        like corners
+        !
+        ! obc_edge_xy_diag_flux: the quantities are computed in the
+        !                        rotated frame such that the outward
+        !                        direction to the boundary matches one
+        !                        of the direction of the rotated frame
+        !                        the terms in the outward direction
+        !                        are approximated by the gradients and
+        !                        in the transverse direction, there
+        !                        are computed using the rotated
+        !                        operators s_n1_L0...
+        !-------------------------------------------------------
+        integer, parameter :: obc_edge_xy_corner    = 0
+        integer, parameter :: obc_edge_xy_flux      = 1
+        integer, parameter :: obc_edge_xy_diag_flux = 2
+
+
+        !> open b.c. edge_type
+        !-----------------------------------------------------------
+        !control how the type of open b.c. can be fixed at the edges
+        !-----------------------------------------------------------
+        ! always_inflow:    force the open b.c. to be always inflow
+        !
+        ! always_outflow:   force the open b.c. to be always outflow
+        !
+        ! ask_flow:         ask the open b.c to check the velocity
+        !                   vector at the edge to know whether the
+        !                   open b.c is inflow or outflow
+        !-----------------------------------------------------------
         character(14), dimension(3), parameter :: obc_type_code =[
      $       'always_inflow ',
      $       'always_outflow',
      $       'ask_flow      ']
-        integer, parameter :: always_inflow=0
-        integer, parameter :: always_outflow=1
-        integer, parameter :: ask_flow=2
+        integer, parameter :: always_inflow  = 0
+        integer, parameter :: always_outflow = 1
+        integer, parameter :: ask_flow       = 2
 
 
       end module parameters_constant

@@ -14,12 +14,20 @@
       !-----------------------------------------------------------------
       module pmodel_eq_abstract_class
       
-        use interface_primary , only : gradient_x_proc,
-     $                                 gradient_y_proc,
-     $                                 gradient_n_proc
-        use parameters_input  , only : nx,ny,ne
-        use parameters_kind   , only : ikind, rkind
-        use sd_operators_class, only : sd_operators
+        use interface_primary , only :
+     $       gradient_x_proc,
+     $       gradient_y_proc,
+     $       gradient_n_proc
+
+        use parameters_input, only :
+     $       nx,ny,ne
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use sd_operators_class, only :
+     $       sd_operators
 
         implicit none
 
@@ -134,65 +142,69 @@
           
           contains
 
-          procedure(name_model)      , nopass, deferred :: get_model_name
-          procedure(name_var)        , nopass, deferred :: get_var_name
-          procedure(lname_var)       , nopass, deferred :: get_var_longname
-          procedure(mname_var)       , nopass, deferred :: get_var_unit
-          procedure(type_var)        , nopass, deferred :: get_var_type
-          procedure(param_sim)       , nopass, deferred :: get_sim_parameters
-          procedure(gov_eq_nb)       , nopass, deferred :: get_eq_nb
+          procedure(name_model)       , nopass, deferred :: get_model_name
+          procedure(name_var)         , nopass, deferred :: get_var_name
+          procedure(lname_var)        , nopass, deferred :: get_var_longname
+          procedure(mname_var)        , nopass, deferred :: get_var_unit
+          procedure(type_var)         , nopass, deferred :: get_var_type
+          procedure(param_sim)        , nopass, deferred :: get_sim_parameters
+          procedure(gov_eq_nb)        , nopass, deferred :: get_eq_nb
+                                      
+          procedure(sd_pattern)       , nopass, deferred :: get_sd_pattern_flux_x
+          procedure(sd_pattern)       , nopass, deferred :: get_sd_pattern_flux_y
+                                      
+          procedure(ini_cond)         ,   pass, deferred :: apply_ic
+                                      
+          procedure(fluxes_x)         , nopass, deferred :: compute_flux_x
+          procedure(fluxes_y)         , nopass, deferred :: compute_flux_y
+          procedure(fluxes_x_n)       , nopass, deferred :: compute_flux_x_nopt
+          procedure(fluxes_y_n)       , nopass, deferred :: compute_flux_y_nopt
+          procedure(fluxes_x_oneside) , nopass, deferred :: compute_flux_x_oneside
+          procedure(fluxes_y_oneside) , nopass, deferred :: compute_flux_y_oneside
+          procedure(fluxes_x_byparts) , nopass, deferred :: compute_flux_x_by_parts
+          procedure(fluxes_y_byparts) , nopass, deferred :: compute_flux_y_by_parts
+          procedure(bodyforces)       , nopass, deferred :: compute_body_forces
 
-          procedure(sd_pattern)      , nopass, deferred :: get_sd_pattern_flux_x
-          procedure(sd_pattern)      , nopass, deferred :: get_sd_pattern_flux_y
+          procedure(velocity_proc)    , nopass, deferred :: get_velocity
+          procedure(v_coeff_proc)     , nopass, deferred :: get_viscous_coeff
+          procedure(openbc_proc)      , nopass, deferred :: are_openbc_undermined
+          procedure(openbc_nodes_proc),   pass, deferred :: get_nodes_obc_eigenqties
+          
 
-          procedure(ini_cond)        ,   pass, deferred :: apply_ic
-          procedure(fluxes_x)        , nopass, deferred :: compute_flux_x
-          procedure(fluxes_y)        , nopass, deferred :: compute_flux_y
-          procedure(fluxes_x_n)      , nopass, deferred :: compute_flux_x_nopt
-          procedure(fluxes_y_n)      , nopass, deferred :: compute_flux_y_nopt
-          procedure(fluxes_x_oneside), nopass, deferred :: compute_flux_x_oneside
-          procedure(fluxes_y_oneside), nopass, deferred :: compute_flux_y_oneside
-          procedure(fluxes_x_byparts), nopass, deferred :: compute_flux_x_by_parts
-          procedure(fluxes_y_byparts), nopass, deferred :: compute_flux_y_by_parts
-          procedure(bodyforces)      , nopass, deferred :: compute_body_forces
-          procedure(velocity_proc)   , nopass, deferred :: get_velocity
-          procedure(v_coeff_proc)    , nopass, deferred :: get_viscous_coeff
-          procedure(openbc_proc)     , nopass, deferred :: are_openbc_undermined
-
-          procedure(eigenvalues_proc), nopass, deferred :: compute_x_eigenvalues
-          procedure(eigenvalues_proc), nopass, deferred :: compute_y_eigenvalues
-          procedure(eigenvalues_proc), nopass, deferred :: compute_n1_eigenvalues
-          procedure(eigenvalues_proc), nopass, deferred :: compute_n2_eigenvalues
-
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_x_lefteigenvector
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_x_righteigenvector
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_y_lefteigenvector
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_y_righteigenvector
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_n1_lefteigenvector
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_n1_righteigenvector
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_n2_lefteigenvector
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_n2_righteigenvector
-
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_x_leftConsLodiM
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_y_leftConslodiM
-          procedure(lodi_td_proc)    , nopass, deferred :: compute_x_timedev_from_LODI_vector
-          procedure(lodi_td_proc)    , nopass, deferred :: compute_y_timedev_from_LODI_vector
-          procedure(lodi_tds_proc)   , nopass, deferred :: compute_timedev_from_LODI_vectors
-
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_x_transM
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_y_transM
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_n1_transM
-          procedure(eigenvect_proc)  , nopass, deferred :: compute_n2_transM
-
-          procedure(farfield_proc)   ,   pass, deferred :: get_far_field
-
-          procedure(x_gradient_proc) , nopass, deferred :: compute_x_gradient
-          procedure(y_gradient_proc) , nopass, deferred :: compute_y_gradient
-          procedure(n_gradient_proc) , nopass, deferred :: compute_n_gradient
+          procedure(eigenvalues_proc) , nopass, deferred :: compute_x_eigenvalues
+          procedure(eigenvalues_proc) , nopass, deferred :: compute_y_eigenvalues
+          procedure(eigenvalues_proc) , nopass, deferred :: compute_n1_eigenvalues
+          procedure(eigenvalues_proc) , nopass, deferred :: compute_n2_eigenvalues
+                                      
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_x_lefteigenvector
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_x_righteigenvector
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_y_lefteigenvector
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_y_righteigenvector
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_n1_lefteigenvector
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_n1_righteigenvector
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_n2_lefteigenvector
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_n2_righteigenvector
+                                      
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_x_leftConsLodiM
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_y_leftConslodiM
+          procedure(lodi_td_proc)     , nopass, deferred :: compute_x_timedev_from_LODI_vector
+          procedure(lodi_td_proc)     , nopass, deferred :: compute_y_timedev_from_LODI_vector
+          procedure(lodi_tds_proc)    , nopass, deferred :: compute_timedev_from_LODI_vectors
+                                      
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_x_transM
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_y_transM
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_n1_transM
+          procedure(eigenvect_proc)   , nopass, deferred :: compute_n2_transM
+                                      
+          procedure(farfield_proc)    ,   pass, deferred :: get_far_field
+                                      
+          procedure(x_gradient_proc)  , nopass, deferred :: compute_x_gradient
+          procedure(y_gradient_proc)  , nopass, deferred :: compute_y_gradient
+          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradient
 
           !variables in the rotated frame
-          procedure(xy_to_n_proc)    , nopass, deferred :: compute_xy_to_n_var
-          procedure(n_to_xy_proc)    , nopass, deferred :: compute_n_to_xy_var
+          procedure(xy_to_n_proc)     , nopass, deferred :: compute_xy_to_n_var
+          procedure(n_to_xy_proc)     , nopass, deferred :: compute_n_to_xy_var
 
         end type pmodel_eq_abstract
 
@@ -381,6 +393,9 @@
             real(rkind), dimension(:)    , intent(in)    :: y_map
           end subroutine ini_cond
 
+
+          
+          
 
           !> @author
           !> Julien L. Desmarais
@@ -898,6 +913,57 @@
             logical                                    :: undermined
 
           end function openbc_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface determining the grid points used to evaluate
+          !> the eigenquantities at the edge of the computational
+          !> domain
+          !
+          !> @date
+          !> 02_02_2015 - initial version - J.L. Desmarais
+          !
+          !>@param this
+          !> physical model
+          !
+          !>@param t
+          !> time
+          !
+          !>@param x
+          !> x-coordinate of the grid points at the boundary
+          !
+          !>@param y
+          !> y-coordinate of the grid points at the boundary
+          !
+          !>@param nodes_bc
+          !> array with the grid point data at the boundary
+          !
+          !>@param nodes_bc
+          !> array with the grid point data at the boundary
+          !
+          !>@param nodes_bc
+          !> array with the grid point data at the boundary
+          !
+          !>@param nodes_eigenqties
+          !> grid points used to evaluate the eigenquantities at the
+          !> boundary
+          !--------------------------------------------------------------
+          function openbc_nodes_proc(this,t,x,y,nodes_bc) result(nodes_eigenqties)
+
+            import rkind
+            import ne
+
+            class(pmodel_eq_abstract) , intent(in) :: this
+            real(rkind)               , intent(in) :: t
+            real(rkind)               , intent(in) :: x
+            real(rkind)               , intent(in) :: y
+            real(rkind), dimension(ne), intent(in) :: nodes_bc
+            real(rkind), dimension(ne)             :: nodes_eigenqties
+
+          end function openbc_nodes_proc
 
 
           !> @author

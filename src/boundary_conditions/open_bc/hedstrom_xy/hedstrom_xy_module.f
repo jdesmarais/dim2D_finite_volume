@@ -291,14 +291,15 @@ c$$$     $       gradient_x_x_oneside_R1,
 
           timedev =
      $         compute_x_timedev_with_openbc(
-     $         nodes, i, j, p_model, dx,
-     $         gradient_x, incoming_x) +
+     $            t, x_map(i), y_map(j),
+     $            nodes, i, j, p_model, dx,
+     $            gradient_x, incoming_x) +
      $         
      $         1.0d0/dy*(flux_y(i,j,:) - flux_y(i,j+1,:)) +
      $         
      $         add_body_forces(
-     $         p_model,
-     $         t, x_map(i), y_map(j), nodes(i,j,:))
+     $            p_model,
+     $            t, x_map(i), y_map(j), nodes(i,j,:))
 
         end function compute_timedev_xlayer_local
 
@@ -379,12 +380,13 @@ c$$$     $       gradient_x_x_oneside_R1,
      $         1.0d0/dx*(flux_x(i,j,:) - flux_x(i+1,j,:)) +
      $         
      $         compute_y_timedev_with_openbc(
+     $            t, x_map(i), y_map(j),
      $            nodes, i, j, p_model, dy,
      $            gradient_y, incoming_y) +
      $            
      $         add_body_forces(
-     $         p_model,
-     $         t, x_map(i), y_map(j), nodes(i,j,:))
+     $            p_model,
+     $            t, x_map(i), y_map(j), nodes(i,j,:))
 
         end function compute_timedev_ylayer_local
 
@@ -804,10 +806,12 @@ c$$$     $       gradient_x_x_oneside_R1,
           real(rkind), dimension(ne)                        :: timedev
 
           timedev = compute_x_timedev_with_openbc(
+     $         t,x_map(i),y_map(j),
      $         nodes, i, j, p_model, dx,
      $         gradient_x, incoming_x) + 
      $         
      $         compute_y_timedev_with_openbc(
+     $         t,x_map(i),y_map(j),
      $         nodes, i, j, p_model, dy,
      $         gradient_y, incoming_y) +
      $         
@@ -828,6 +832,15 @@ c$$$     $       gradient_x_x_oneside_R1,
         !
         !> @date
         !> 04_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y_coordinate
         !
         !>@param nodes
         !> array of grid points
@@ -852,12 +865,17 @@ c$$$     $       gradient_x_x_oneside_R1,
         !> outgoing the edge of the computational domain
         !-------------------------------------------------------------
         function compute_x_timedev_with_openbc(
-     $     nodes, i, j, p_model, dx,
+     $     t,x,y,
+     $     nodes, i,j,
+     $     p_model, dx,
      $     gradient, incoming_wave)
      $     result(timedev)
 
           implicit none
 
+          real(rkind)                  , intent(in) :: t
+          real(rkind)                  , intent(in) :: x
+          real(rkind)                  , intent(in) :: y
           real(rkind), dimension(:,:,:), intent(in) :: nodes
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
@@ -868,6 +886,7 @@ c$$$     $       gradient_x_x_oneside_R1,
           real(rkind), dimension(ne)                :: timedev
 
 
+          real(rkind), dimension(ne)    :: nodes_eigenqties
           real(rkind), dimension(ne)    :: eigenvalues
           integer                       :: k
           real(rkind), dimension(ne)    :: incoming_amp
@@ -877,10 +896,15 @@ c$$$     $       gradient_x_x_oneside_R1,
           real(rkind), dimension(ne)    :: var_gradient
 
 
+          !determine the nodes for the computation of the
+          !eigenquantities
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(t,x,y,nodes(i,j,:))
+
+
           !determination of the speed of the amplitude waves
           !along the x-direction
-          eigenvalues      = p_model%compute_x_eigenvalues(nodes(i,j,:))
-          left_eigenmatrix = p_model%compute_x_lefteigenvector(nodes(i,j,:))
+          eigenvalues      = p_model%compute_x_eigenvalues(nodes_eigenqties)
+          left_eigenmatrix = p_model%compute_x_lefteigenvector(nodes_eigenqties)
 
 
           !construction of the vector of characteristic amplitudes
@@ -912,7 +936,7 @@ c$$$     $       gradient_x_x_oneside_R1,
 
           !determination of the contribution of the hyperbolic terms
           !to the time derivatives
-          right_eigenmatrix= p_model%compute_x_righteigenvector(nodes(i,j,:))
+          right_eigenmatrix= p_model%compute_x_righteigenvector(nodes_eigenqties)
           timedev = MATMUL(incoming_amp, right_eigenmatrix)
 
         end function compute_x_timedev_with_openbc
@@ -928,6 +952,15 @@ c$$$     $       gradient_x_x_oneside_R1,
         !
         !> @date
         !> 04_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y_coordinate
         !
         !>@param nodes
         !> array of grid points
@@ -952,12 +985,17 @@ c$$$     $       gradient_x_x_oneside_R1,
         !> outgoing the edge of the computational domain
         !-------------------------------------------------------------
         function compute_y_timedev_with_openbc(
-     $     nodes, i, j, p_model, dy,
+     $     t,x,y,
+     $     nodes, i,j,
+     $     p_model, dy,
      $     gradient, incoming_wave)
      $     result(timedev)
 
           implicit none
 
+          real(rkind)                  , intent(in) :: t
+          real(rkind)                  , intent(in) :: x
+          real(rkind)                  , intent(in) :: y
           real(rkind), dimension(:,:,:), intent(in) :: nodes
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
@@ -968,6 +1006,7 @@ c$$$     $       gradient_x_x_oneside_R1,
           real(rkind), dimension(ne)                :: timedev
 
 
+          real(rkind), dimension(ne)    :: nodes_eigenqties
           real(rkind), dimension(ne)    :: eigenvalues
           integer                       :: k
           real(rkind), dimension(ne)    :: incoming_amp
@@ -977,10 +1016,15 @@ c$$$     $       gradient_x_x_oneside_R1,
           real(rkind), dimension(ne)    :: var_gradient
 
 
+          !determine the nodes for the computation of the
+          !eigenquantities
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(t,x,y,nodes(i,j,:))
+
+
           !determination of the speed of the amplitude waves
           !along the x-direction
-          eigenvalues      = p_model%compute_y_eigenvalues(nodes(i,j,:))
-          left_eigenmatrix = p_model%compute_y_lefteigenvector(nodes(i,j,:))
+          eigenvalues      = p_model%compute_y_eigenvalues(nodes_eigenqties)
+          left_eigenmatrix = p_model%compute_y_lefteigenvector(nodes_eigenqties)
 
 
           !construction of the vector of characteristic amplitudes
@@ -1012,7 +1056,7 @@ c$$$     $       gradient_x_x_oneside_R1,
 
           !determination of the contribution of the hyperbolic terms
           !to the time derivatives
-          right_eigenmatrix= p_model%compute_y_righteigenvector(nodes(i,j,:))
+          right_eigenmatrix= p_model%compute_y_righteigenvector(nodes_eigenqties)
           timedev = MATMUL(incoming_amp, right_eigenmatrix)
 
         end function compute_y_timedev_with_openbc        

@@ -850,6 +850,7 @@
           
           integer                       :: dir, dir2
           integer(ikind)                :: i_eigen
+          real(rkind), dimension(ne)    :: nodes_eigenqties
           real(rkind), dimension(ne)    :: eigenvalues_x
           real(rkind), dimension(ne,ne) :: left_eigenM
           real(rkind), dimension(ne,ne) :: right_eigenM
@@ -959,12 +960,17 @@
           t_amp1 = interpolate_1D(x1,inter_trans1)
 
 
+          !4) determine the nodes for the computation of the
+          !eigenquantities at t+dt
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(t,x1,y1,bf_nodes1(i_eigen,j1,:))
+
+
           !5) evaluate the eigenvalues at t+dt
-          eigenvalues_x = p_model%compute_x_eigenvalues(bf_nodes1(i_eigen,j1,:))
+          eigenvalues_x = p_model%compute_x_eigenvalues(nodes_eigenqties)
 
 
           !6) determine the left eigenvector corresponding to the eigenvalue
-          left_eigenM = p_model%compute_x_lefteigenvector(bf_nodes1(i_eigen,j1,:))
+          left_eigenM = p_model%compute_x_lefteigenvector(nodes_eigenqties)
              
 
           !7) determine the characteristic amplitude
@@ -1029,7 +1035,7 @@
 
 
           !8) determine the right eigenmatrix
-          right_eigenM = p_model%compute_x_righteigenvector(bf_nodes1(i_eigen,j1,:))
+          right_eigenM = p_model%compute_x_righteigenvector(nodes_eigenqties)
 
 
           !9) determine the new grid point
@@ -1122,6 +1128,7 @@
           
           integer                       :: dir, dir2
           integer(ikind)                :: j_eigen
+          real(rkind), dimension(ne)    :: nodes_eigenqties
           real(rkind), dimension(ne)    :: eigenvalues_y
           real(rkind), dimension(ne,ne) :: left_eigenM
           real(rkind), dimension(ne,ne) :: right_eigenM
@@ -1231,12 +1238,17 @@
           t_amp1 = interpolate_1D(y1,inter_trans1)
 
 
+          !4) determine the nodes for the computation of the
+          !eigenquantities at t+dt
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(t,x1,y1,bf_nodes1(i1,j_eigen,:))
+
+
           !5) evaluate the eigenvalues at t+dt
-          eigenvalues_y = p_model%compute_y_eigenvalues(bf_nodes1(i1,j_eigen,:))
+          eigenvalues_y = p_model%compute_y_eigenvalues(nodes_eigenqties)
 
 
           !6) determine the left eigenvector corresponding to the eigenvalue
-          left_eigenM = p_model%compute_y_lefteigenvector(bf_nodes1(i1,j_eigen,:))
+          left_eigenM = p_model%compute_y_lefteigenvector(nodes_eigenqties)
              
 
           !7) determine the characteristic amplitude
@@ -1300,7 +1312,7 @@
 
 
           !8) determine the right eigenmatrix
-          right_eigenM = p_model%compute_y_righteigenvector(bf_nodes1(i1,j_eigen,:))
+          right_eigenM = p_model%compute_y_righteigenvector(nodes_eigenqties)
 
 
           !9) determine the new grid point
@@ -1446,6 +1458,9 @@
           integer                       :: k,l
 
        
+          !nodes_eigenqties
+          !grdpts used to evaluate the eigenquantities
+          !
           !eigenvalues_n
           !eigenvalues in the direction dir
           !
@@ -1474,6 +1489,7 @@
           !char_amp
           !characteristic wave which is assumed constant in time
           !----------------------------------------------------
+          real(rkind), dimension(ne)    :: nodes_eigenqties
           real(rkind), dimension(ne)    :: eigenvalues_n
           real(rkind), dimension(ne,ne) :: left_eigenM
           real(rkind), dimension(ne,ne) :: right_eigenM
@@ -1653,28 +1669,29 @@
           t_amp1 = interpolate_2D(n1_1,n2_1,inter_trans1)
 
 
+          !4) determine the nodes for the computation of the
+          !eigenquantities at t
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
+     $         t,x1,y1,
+     $         bf_nodes1(eigen_indices(1),eigen_indices(2),:))
+
+
           !5) evaluate the eigen data at t
           select case(n_direction)
 
             case(n1_direction)
-               eigenvalues_n = p_model%compute_n1_eigenvalues(
-     $              bf_nodes1(eigen_indices(1),eigen_indices(2),:))
+               eigenvalues_n = p_model%compute_n1_eigenvalues(nodes_eigenqties)
 
-               left_eigenM = p_model%compute_n1_lefteigenvector(
-     $              bf_nodes1(eigen_indices(1),eigen_indices(2),:))
+               left_eigenM = p_model%compute_n1_lefteigenvector(nodes_eigenqties)
 
-               right_eigenM = p_model%compute_n1_righteigenvector(
-     $              bf_nodes1(eigen_indices(1),eigen_indices(2),:))
+               right_eigenM = p_model%compute_n1_righteigenvector(nodes_eigenqties)
 
             case(n2_direction)
-               eigenvalues_n = p_model%compute_n2_eigenvalues(
-     $              bf_nodes1(eigen_indices(1),eigen_indices(2),:))
+               eigenvalues_n = p_model%compute_n2_eigenvalues(nodes_eigenqties)
 
-               left_eigenM = p_model%compute_n2_lefteigenvector(
-     $              bf_nodes1(eigen_indices(1),eigen_indices(2),:))
+               left_eigenM = p_model%compute_n2_lefteigenvector(nodes_eigenqties)
 
-               right_eigenM = p_model%compute_n2_righteigenvector(
-     $              bf_nodes1(eigen_indices(1),eigen_indices(2),:))
+               right_eigenM = p_model%compute_n2_righteigenvector(nodes_eigenqties)
 
             case default
                print '(''bf_newgrdpt_class'')'

@@ -103,14 +103,19 @@
         !> the computational domain
         !-------------------------------------------------------------
         function compute_n_timedev_with_openbc(
-     $     nodes, i, j, p_model, dx, dy,
-     $     gradient_x, gradient_y,
-     $     incoming_wave,
-     $     dir1)
-     $     result(timedev)
+     $       t,x,y,
+     $       nodes, i,j,
+     $       p_model, dx,dy,
+     $       gradient_x, gradient_y,
+     $       incoming_wave,
+     $       dir1)
+     $       result(timedev)
 
           implicit none
 
+          real(rkind)                     , intent(in) :: t
+          real(rkind)                     , intent(in) :: x
+          real(rkind)                     , intent(in) :: y
           real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
           integer(ikind)                  , intent(in) :: i
           integer(ikind)                  , intent(in) :: j
@@ -125,6 +130,7 @@
 
           
           timedev =  compute_n_timedev_with_openbc_local(
+     $         t,x,y,
      $         nodes, i, j, p_model, dx, dy,
      $         gradient_x, gradient_y,
      $         incoming_wave,
@@ -177,7 +183,9 @@
         !> the computational domain
         !-------------------------------------------------------------
         function compute_n_timedev_with_openbc_local(
-     $     nodes, i, j, p_model, dx, dy,
+     $     t,x,y,
+     $     nodes, i,j,
+     $     p_model, dx,dy,
      $     gradient_x, gradient_y,
      $     incoming_wave,
      $     dir1)
@@ -185,6 +193,9 @@
 
           implicit none
 
+          real(rkind)                  , intent(in) :: t
+          real(rkind)                  , intent(in) :: x
+          real(rkind)                  , intent(in) :: y
           real(rkind), dimension(:,:,:), intent(in) :: nodes
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
@@ -201,6 +212,7 @@
           real(rkind), dimension(ne)    :: var_gradient_x
           real(rkind), dimension(ne)    :: var_gradient_y
 
+          real(rkind), dimension(ne)    :: nodes_eigenqties
           real(rkind), dimension(ne)    :: eigenvalues
           real(rkind), dimension(ne,ne) :: left_eigenmatrix
           real(rkind), dimension(ne,ne) :: right_eigenmatrix
@@ -214,6 +226,10 @@
           real(rkind), dimension(ne)    :: normal_timedev
           real(rkind), dimension(ne)    :: trans_timedev
                                                         
+          
+          !determination of the nodes for computing the eigen-quantities
+          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(t,x,y,nodes(i,j,:))
+
 
           !determination of the gradient
           var_gradient_x = p_model%compute_x_gradient(
@@ -228,19 +244,19 @@
           select case(dir1)
 
             case(n1_direction)
-               eigenvalues       = p_model%compute_n1_eigenvalues(nodes(i,j,:))
-               left_eigenmatrix  = p_model%compute_n1_lefteigenvector(nodes(i,j,:))
-               right_eigenmatrix = p_model%compute_n1_righteigenvector(nodes(i,j,:))
-               transM_dir1       = p_model%compute_n1_transM(nodes(i,j,:))
+               eigenvalues       = p_model%compute_n1_eigenvalues(nodes_eigenqties)
+               left_eigenmatrix  = p_model%compute_n1_lefteigenvector(nodes_eigenqties)
+               right_eigenmatrix = p_model%compute_n1_righteigenvector(nodes_eigenqties)
+               transM_dir1       = p_model%compute_n1_transM(nodes_eigenqties)
 
                var_gradient_dir1 = get_gradient_n1(var_gradient_x,var_gradient_y)
                var_gradient_dir2 = get_gradient_n2(var_gradient_x,var_gradient_y)
 
             case(n2_direction)
-               eigenvalues       = p_model%compute_n2_eigenvalues(nodes(i,j,:))
-               left_eigenmatrix  = p_model%compute_n2_lefteigenvector(nodes(i,j,:))
-               right_eigenmatrix = p_model%compute_n2_righteigenvector(nodes(i,j,:))
-               transM_dir1       = p_model%compute_n2_transM(nodes(i,j,:))
+               eigenvalues       = p_model%compute_n2_eigenvalues(nodes_eigenqties)
+               left_eigenmatrix  = p_model%compute_n2_lefteigenvector(nodes_eigenqties)
+               right_eigenmatrix = p_model%compute_n2_righteigenvector(nodes_eigenqties)
+               transM_dir1       = p_model%compute_n2_transM(nodes_eigenqties)
 
                var_gradient_dir1 = get_gradient_n2(var_gradient_x,var_gradient_y)
                var_gradient_dir2 = get_gradient_n1(var_gradient_x,var_gradient_y)

@@ -57,7 +57,8 @@
      $       compute_jacobian_prim_to_cons,
      $       compute_x_timedev_from_LODI_vector_dim2d,
      $       compute_y_timedev_from_LODI_vector_dim2d,
-     $       compute_timedev_from_LODI_vectors_dim2d
+     $       compute_timedev_from_LODI_vectors_dim2d,
+     $       get_roe_average
 
         use dim2d_ncoords_module, only :
      $       compute_n1_eigenvalues_dim2d,
@@ -130,7 +131,9 @@
      $       homogeneous_liquid,
      $       drop_collision,
      $       phase_separation,
-     $       earth_gravity_choice
+     $       earth_gravity_choice,
+     $       obc_eigenqties_bc,
+     $       obc_eigenqties_lin
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
@@ -138,6 +141,7 @@
      $       gravity_choice,
      $       flow_velocity,
      $       T0,
+     $       obc_eigenqties_strategy,
      $       bf_openbc_md_threshold_ac,
      $       bf_openbc_md_threshold
 
@@ -408,6 +412,7 @@
           procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
           procedure,   pass :: get_far_field
+          procedure,   pass :: get_nodes_obc_eigenqties
 
           !eigenquantities computation
           procedure, nopass :: compute_x_eigenvalues
@@ -1889,6 +1894,75 @@
           var = this%initial_conditions%get_far_field(t,x,y)
 
         end function get_far_field
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the grid points used to evaluate
+        !> the eigenquantities at the edge of the
+        !> computational domain
+        !
+        !> @date
+        !> 02_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate of the grid points at the boundary
+        !
+        !>@param y
+        !> y-coordinate of the grid points at the boundary
+        !
+        !>@param nodes_bc
+        !> array with the grid point data at the boundary
+        !
+        !>@param nodes_bc
+        !> array with the grid point data at the boundary
+        !
+        !>@param nodes_bc
+        !> array with the grid point data at the boundary
+        !
+        !>@param nodes_eigenqties
+        !> grid points used to evaluate the eigenquantities at the
+        !> boundary
+        !--------------------------------------------------------------
+        function get_nodes_obc_eigenqties(this,t,x,y,nodes_bc) result(nodes_eigenqties)
+
+          implicit none
+
+          class(pmodel_eq)          , intent(in) :: this
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
+          real(rkind), dimension(ne), intent(in) :: nodes_bc
+          real(rkind), dimension(ne)             :: nodes_eigenqties
+
+
+          select case(obc_eigenqties_strategy)
+
+            case(obc_eigenqties_bc)
+               nodes_eigenqties = nodes_bc
+
+            case(obc_eigenqties_lin)
+               nodes_eigenqties = this%get_far_field(t,x,y)
+
+            case default
+               print '(''dim2d/pmodel_eq_class'')'
+               print '(''get_nodes_obc_eigenqties'')'
+               print '(''obc_eigenqties_strategy not recognized'')'
+               print '(''obc_eigenqties_strategy: '',I2)', obc_eigenqties_strategy
+               stop ''
+
+          end select
+
+
+        end function get_nodes_obc_eigenqties
 
 
         !> @author
