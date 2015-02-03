@@ -28,11 +28,11 @@
         real(rkind), parameter :: y_max = 0.1519000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 0.3509000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 2.9831000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0001000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 1.0000000000d0
+        real(rkind), parameter :: detail_print = 0.0335000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -182,7 +182,7 @@
         integer    , parameter :: obc_outgoing_strategy   = obc_outgoing_prim
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
         integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
-        integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_no_capillarity
+        integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
 
         !-----------------------------------------------------
         !for the increase of the computational domain
