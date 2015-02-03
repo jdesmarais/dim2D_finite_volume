@@ -971,7 +971,7 @@
 
           !6) determine the left eigenvector corresponding to the eigenvalue
           left_eigenM = p_model%compute_x_lefteigenvector(nodes_eigenqties)
-             
+
 
           !7) determine the characteristic amplitude
           y0 = y1

@@ -24,6 +24,11 @@ $(dim2d_dir)/dim2d_state_eq_module.o:\
 			$(dim2d_dir)/dim2d_parameters.o\
 			$(param_dir)/parameters_kind.o
 
+$(dim2d_dir)/ns_vdw2d_prim_module.o:\
+			$(dim2d_dir)/dim2d_parameters.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
 $(dim2d_dir)/pmodel_eq_class.o:\
 			$(sd_dir)/interface_primary.o\
 			$(sd_cdir)/sd_operators_class.o\
@@ -33,6 +38,7 @@ $(dim2d_dir)/pmodel_eq_class.o:\
 			$(dim2d_dir)/dim2d_fluxes_module.o\
 			$(dim2d_dir)/dim2d_state_eq_module.o\
 			$(ic_cdir)/ic_class.o\
+			$(dim2d_dir)/ns_vdw2d_prim_module.o\
 			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\

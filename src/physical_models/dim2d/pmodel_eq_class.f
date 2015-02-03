@@ -38,6 +38,17 @@
      $       gradient_x_interior,
      $       gradient_y_interior
 
+        !NS-VDW equations
+        use ns_vdw2d_prim_module, only :
+     $       compute_x_eigenvalues_ns_vdw2d,
+     $       compute_y_eigenvalues_ns_vdw2d,
+     $       compute_x_lefteigenvector_ns_vdw2d,
+     $       compute_x_righteigenvector_ns_vdw2d,
+     $       compute_y_lefteigenvector_ns_vdw2d,
+     $       compute_y_righteigenvector_ns_vdw2d,
+     $       compute_jacobian_prim_to_cons_ns_vdw2d,
+     $       compute_jacobian_cons_to_prim_ns_vdw2d
+
 
         !diffuse interface model equations
         use dim2d_parameters, only :
@@ -50,6 +61,9 @@
      $       momentum_x,
      $       momentum_y,
      $       total_energy,
+     $       velocity_x,
+     $       velocity_y,
+     $       classical_pressure,
      $       classical_pressure_local,
      $       speed_of_sound,
      $       temperature_eff,
@@ -415,10 +429,24 @@
           procedure, nopass :: are_openbc_undermined
           procedure,   pass :: get_far_field
           procedure,   pass :: get_nodes_obc_eigenqties
+          procedure,   pass :: get_prim_obc_eigenqties
 
-          !eigenquantities computation
+          !computations with primitive variables
+          procedure, nopass :: compute_jacobian_prim_to_cons => compute_jacobian_prim_to_cons_ns_vdw2d
+          procedure, nopass :: compute_jacobian_cons_to_prim => compute_jacobian_cons_to_prim_ns_vdw2d
+
+          procedure, nopass :: compute_x_eigenvalues_prim => compute_x_eigenvalues_ns_vdw2d
+          procedure, nopass :: compute_y_eigenvalues_prim => compute_y_eigenvalues_ns_vdw2d
+
+          procedure, nopass :: compute_x_lefteigenvector_prim  => compute_x_lefteigenvector_ns_vdw2d 
+          procedure, nopass :: compute_x_righteigenvector_prim => compute_x_righteigenvector_ns_vdw2d
+          procedure, nopass :: compute_y_lefteigenvector_prim  => compute_y_lefteigenvector_ns_vdw2d 
+          procedure, nopass :: compute_y_righteigenvector_prim => compute_y_righteigenvector_ns_vdw2d
+
+          !eigenquantities computation with conservative variables
           procedure, nopass :: compute_x_eigenvalues
           procedure, nopass :: compute_y_eigenvalues
+
           procedure, nopass :: compute_x_lefteigenvector
           procedure, nopass :: compute_x_righteigenvector
           procedure, nopass :: compute_y_lefteigenvector
@@ -448,6 +476,9 @@
           procedure, nopass :: compute_x_gradient
           procedure, nopass :: compute_y_gradient
           procedure, nopass :: compute_n_gradient
+
+          procedure, nopass :: compute_x_gradient_prim
+          procedure, nopass :: compute_y_gradient_prim
 
           !variables in the rotated frame
           procedure, nopass :: compute_xy_to_n_var
@@ -2030,13 +2061,7 @@
         !
         !>@param nodes_bc
         !> array with the grid point data at the boundary
-        !
-        !>@param nodes_bc
-        !> array with the grid point data at the boundary
-        !
-        !>@param nodes_bc
-        !> array with the grid point data at the boundary
-        !
+        
         !>@param nodes_eigenqties
         !> grid points used to evaluate the eigenquantities at the
         !> boundary
@@ -2072,6 +2097,89 @@
 
 
         end function get_nodes_obc_eigenqties
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the grid points used to evaluate
+        !> the eigenquantities at the edge of the
+        !> computational domain
+        !
+        !> @date
+        !> 02_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate of the grid points at the boundary
+        !
+        !>@param y
+        !> y-coordinate of the grid points at the boundary
+        !
+        !>@param nodes_bc
+        !> array with the grid point data at the boundary
+        
+        !>@param nodes_eigenqties
+        !> grid points used to evaluate the eigenquantities at the
+        !> boundary
+        !--------------------------------------------------------------
+        subroutine get_prim_obc_eigenqties(
+     $     this,t,x,y,nodes_bc,
+     $     md_lin,ux_lin,uy_lin,P_lin,c_lin)
+
+          implicit none
+
+          class(pmodel_eq)          , intent(in)  :: this
+          real(rkind)               , intent(in)  :: t
+          real(rkind)               , intent(in)  :: x
+          real(rkind)               , intent(in)  :: y
+          real(rkind), dimension(ne), intent(in)  :: nodes_bc
+          real(rkind)               , intent(out) :: md_lin
+          real(rkind)               , intent(out) :: ux_lin
+          real(rkind)               , intent(out) :: uy_lin
+          real(rkind)               , intent(out) :: P_lin
+          real(rkind)               , intent(out) :: c_lin          
+
+          
+          real(rkind), dimension(ne) :: nodes_far_field
+
+
+          select case(obc_eigenqties_strategy)
+
+            case(obc_eigenqties_bc)
+
+               md_lin = nodes_bc(1)
+               ux_lin = nodes_bc(2)/nodes_bc(1)
+               uy_lin = nodes_bc(3)/nodes_bc(1)
+               P_lin  = classical_pressure_local(nodes_bc)
+               c_lin  = speed_of_sound(nodes_bc)
+
+            case(obc_eigenqties_lin)
+
+               nodes_far_field = this%get_far_field(t,x,y)
+
+               md_lin = nodes_far_field(1)
+               ux_lin = nodes_far_field(2)/nodes_far_field(1)
+               uy_lin = nodes_far_field(3)/nodes_far_field(1)
+               P_lin  = classical_pressure_local(nodes_far_field)
+               c_lin  = speed_of_sound(nodes_far_field)
+
+            case default
+               print '(''dim2d/pmodel_eq_class'')'
+               print '(''get_nodes_obc_eigenqties'')'
+               print '(''obc_eigenqties_strategy not recognized'')'
+               print '(''obc_eigenqties_strategy: '',I2)', obc_eigenqties_strategy
+               stop ''
+
+          end select
+
+        end subroutine get_prim_obc_eigenqties
 
 
         !> @author
@@ -2147,7 +2255,7 @@
 
         end function compute_y_eigenvalues
 
-
+      
         !> @author
         !> Julien L. Desmarais
         !
@@ -2177,7 +2285,6 @@
           real(rkind), dimension(ne,ne) :: jacPrimCons
           real(rkind), dimension(ne,ne) :: leftEigenMPrim
           real(rkind)                   :: c
-          real(rkind)                   :: q_c
 
 
           !computation of J, the jacobian matrix from primitive
@@ -2187,54 +2294,9 @@
 
           !left eigenmatrix for the primitive
           !variables, L_p
-          c   = speed_of_sound(nodes)
-          q_c = 0.5d0*nodes(1)*c
-
-          if(rkind.eq.8) then
-
-             leftEigenMPrim(1,1) = 0.0d0
-             leftEigenMPrim(2,1) = 0.0d0
-             leftEigenMPrim(3,1) = 1.0d0
-             leftEigenMPrim(4,1) = 0.0d0
-
-             leftEigenMPrim(1,2) = 1.0d0
-             leftEigenMPrim(2,2) = 0.0d0
-             leftEigenMPrim(3,2) = 0.0d0
-             leftEigenMPrim(4,2) =-1.0d0/c**2
-
-             leftEigenMPrim(1,3) = 0.0d0
-             leftEigenMPrim(2,3) =-q_c
-             leftEigenMPrim(3,3) = 0.0d0
-             leftEigenMPrim(4,3) = 0.5d0
-
-             leftEigenMPrim(1,4) = 0.0d0
-             leftEigenMPrim(2,4) = q_c
-             leftEigenMPrim(3,4) = 0.0d0
-             leftEigenMPrim(4,4) = 0.5d0
-
-          else
-
-             leftEigenMPrim(1,1) = 0.0
-             leftEigenMPrim(2,1) = 0.0
-             leftEigenMPrim(3,1) = 1.0
-             leftEigenMPrim(4,1) = 0.0
-
-             leftEigenMPrim(1,2) = 1.0
-             leftEigenMPrim(2,2) = 0.0
-             leftEigenMPrim(3,2) = 0.0
-             leftEigenMPrim(4,2) =-1.0/c**2
-
-             leftEigenMPrim(1,3) = 0.0
-             leftEigenMPrim(2,3) =-q_c
-             leftEigenMPrim(3,3) = 0.0
-             leftEigenMPrim(4,3) = 0.5
-
-             leftEigenMPrim(1,4) = 0.0
-             leftEigenMPrim(2,4) = q_c
-             leftEigenMPrim(3,4) = 0.0
-             leftEigenMPrim(4,4) = 0.5
-
-          end if
+          c              = speed_of_sound(nodes)      
+          leftEigenMPrim = compute_x_lefteigenvector_ns_vdw2d(nodes(1),c)
+          
 
           !compute the left eigenmatrix by L = L_p.J
           eigenvect = MATMUL(jacPrimCons,leftEigenMPrim)
@@ -2269,8 +2331,6 @@
           real(rkind), dimension(ne,ne) :: jacConsPrim
           real(rkind), dimension(ne,ne) :: rightEigenMPrim
           real(rkind)                   :: c
-          real(rkind)                   :: inv_c
-          real(rkind)                   :: inv_q_c
 
 
           !computation of J, the jacobian matrix from conservative
@@ -2280,55 +2340,9 @@
 
           !right eigenmatrix for the primitive
           !variables, R_p
-          c       = speed_of_sound(nodes)
-          inv_c   = 1.0d0/c**2
-          inv_q_c = 1.0d0/(nodes(1)*c)
+          c               = speed_of_sound(nodes)
+          rightEigenMPrim = compute_x_righteigenvector_ns_vdw2d(nodes(1),c)
 
-          if(rkind.eq.8) then
-
-             rightEigenMPrim(1,1) = 0.0d0
-             rightEigenMPrim(2,1) = 1.0d0
-             rightEigenMPrim(3,1) = inv_c
-             rightEigenMPrim(4,1) = inv_c
-             
-             rightEigenMPrim(1,2) = 0.0d0
-             rightEigenMPrim(2,2) = 0.0d0
-             rightEigenMPrim(3,2) =-inv_q_c
-             rightEigenMPrim(4,2) = inv_q_c
-
-             rightEigenMPrim(1,3) = 1.0d0
-             rightEigenMPrim(2,3) = 0.0d0
-             rightEigenMPrim(3,3) = 0.0d0
-             rightEigenMPrim(4,3) = 0.0d0
-
-             rightEigenMPrim(1,4) = 0.0d0
-             rightEigenMPrim(2,4) = 0.0d0
-             rightEigenMPrim(3,4) = 1.0d0
-             rightEigenMPrim(4,4) = 1.0d0
-
-          else
-
-             rightEigenMPrim(1,1) = 0.0
-             rightEigenMPrim(2,1) = 1.0
-             rightEigenMPrim(3,1) = inv_c
-             rightEigenMPrim(4,1) = inv_c
-             
-             rightEigenMPrim(1,2) = 0.0
-             rightEigenMPrim(2,2) = 0.0
-             rightEigenMPrim(3,2) =-inv_q_c
-             rightEigenMPrim(4,2) = inv_q_c
-
-             rightEigenMPrim(1,3) = 1.0
-             rightEigenMPrim(2,3) = 0.0
-             rightEigenMPrim(3,3) = 0.0
-             rightEigenMPrim(4,3) = 0.0
-
-             rightEigenMPrim(1,4) = 0.0
-             rightEigenMPrim(2,4) = 0.0
-             rightEigenMPrim(3,4) = 1.0
-             rightEigenMPrim(4,4) = 1.0
-
-          end if
 
           !right eigenmatrix computed as R = J.R_p
           eigenvect = MATMUL(rightEigenMPrim,jacConsPrim)
@@ -2372,53 +2386,8 @@
 
           !left eigenmatrix for the primitive
           !variables, L_p
-          c  = speed_of_sound(nodes)
-
-          if(rkind.eq.8) then
-
-             leftEigenMPrim(1,1) = 0.0d0
-             leftEigenMPrim(2,1) = 1.0d0
-             leftEigenMPrim(3,1) = 0.0d0
-             leftEigenMPrim(4,1) = 0.0d0
-
-             leftEigenMPrim(1,2) = 1.0d0
-             leftEigenMPrim(2,2) = 0.0d0
-             leftEigenMPrim(3,2) = 0.0d0
-             leftEigenMPrim(4,2) =-1.0d0/c**2
-
-             leftEigenMPrim(1,3) = 0.0d0
-             leftEigenMPrim(2,3) = 0.0d0
-             leftEigenMPrim(3,3) =-0.5d0*nodes(1)*c
-             leftEigenMPrim(4,3) = 0.5d0
-
-             leftEigenMPrim(1,4) = 0.0d0
-             leftEigenMPrim(2,4) = 0.0d0
-             leftEigenMPrim(3,4) = 0.5d0*nodes(1)*c
-             leftEigenMPrim(4,4) = 0.5d0
-
-          else
-
-             leftEigenMPrim(1,1) = 0.0
-             leftEigenMPrim(2,1) = 1.0
-             leftEigenMPrim(3,1) = 0.0
-             leftEigenMPrim(4,1) = 0.0
-
-             leftEigenMPrim(1,2) = 1.0
-             leftEigenMPrim(2,2) = 0.0
-             leftEigenMPrim(3,2) = 0.0
-             leftEigenMPrim(4,2) =-1.0/c**2
-
-             leftEigenMPrim(1,3) = 0.0
-             leftEigenMPrim(2,3) = 0.0
-             leftEigenMPrim(3,3) =-0.5*nodes(1)*c
-             leftEigenMPrim(4,3) = 0.5
-
-             leftEigenMPrim(1,4) = 0.0
-             leftEigenMPrim(2,4) = 0.0
-             leftEigenMPrim(3,4) = 0.5*nodes(1)*c
-             leftEigenMPrim(4,4) = 0.5
-
-          end if
+          c              = speed_of_sound(nodes)
+          leftEigenMPrim = compute_y_lefteigenvector_ns_vdw2d(nodes(1),c)
 
 
           !compute the left eigenmatrix by L = L_p.J
@@ -2454,7 +2423,6 @@
           real(rkind), dimension(ne,ne) :: jacConsPrim
           real(rkind), dimension(ne,ne) :: rightEigenMPrim
           real(rkind)                   :: c
-          real(rkind)                   :: inv_q_c
 
 
           !computation of J, the jacobian matrix from conservative
@@ -2464,54 +2432,9 @@
 
           !right eigenmatrix for the primitive
           !variables, R_p
-          c   = speed_of_sound(nodes)
-          inv_q_c = 1.0d0/(nodes(1)*c)
+          c               = speed_of_sound(nodes)
+          rightEigenMPrim = compute_y_righteigenvector_ns_vdw2d(nodes(1),c)
 
-          if(rkind.eq.8) then
-
-             rightEigenMPrim(1,1) = 0.0d0
-             rightEigenMPrim(2,1) = 1.0d0
-             rightEigenMPrim(3,1) = 1.0d0/c**2
-             rightEigenMPrim(4,1) = 1.0d0/c**2
-
-             rightEigenMPrim(1,2) = 1.0d0
-             rightEigenMPrim(2,2) = 0.0d0
-             rightEigenMPrim(3,2) = 0.0d0
-             rightEigenMPrim(4,2) = 0.0d0
-
-             rightEigenMPrim(1,3) = 0.0d0
-             rightEigenMPrim(2,3) = 0.0d0
-             rightEigenMPrim(3,3) =-inv_q_c
-             rightEigenMPrim(4,3) = inv_q_c
-
-             rightEigenMPrim(1,4) = 0.0d0
-             rightEigenMPrim(2,4) = 0.0d0
-             rightEigenMPrim(3,4) = 1.0d0
-             rightEigenMPrim(4,4) = 1.0d0
-
-          else
-
-             rightEigenMPrim(1,1) = 0.0
-             rightEigenMPrim(2,1) = 1.0
-             rightEigenMPrim(3,1) = 1.0/c**2
-             rightEigenMPrim(4,1) = 1.0/c**2
-
-             rightEigenMPrim(1,2) = 1.0
-             rightEigenMPrim(2,2) = 0.0
-             rightEigenMPrim(3,2) = 0.0
-             rightEigenMPrim(4,2) = 0.0
-
-             rightEigenMPrim(1,3) = 0.0
-             rightEigenMPrim(2,3) = 0.0
-             rightEigenMPrim(3,3) =-inv_q_c
-             rightEigenMPrim(4,3) = inv_q_c
-
-             rightEigenMPrim(1,4) = 0.0
-             rightEigenMPrim(2,4) = 0.0
-             rightEigenMPrim(3,4) = 1.0
-             rightEigenMPrim(4,4) = 1.0
-
-          end if
 
           !right eigenmatrix computed as R = J.R_p
           eigenvect = MATMUL(rightEigenMPrim,jacConsPrim)
@@ -2962,6 +2885,46 @@
         end function compute_x_gradient
 
 
+        function compute_x_gradient_prim(nodes,i,j,gradient,dx)
+     $     result(grad_var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(gradient_x_proc)                :: gradient
+          real(rkind)                  , intent(in) :: dx
+          real(rkind), dimension(ne)                :: grad_var
+
+          grad_var(1) = gradient(nodes,i,j, mass_density      ,dx)
+          grad_var(2) = gradient(nodes,i,j, velocity_x        ,dx)
+          grad_var(3) = gradient(nodes,i,j, velocity_y        ,dx)
+          grad_var(4) = gradient(nodes,i,j, classical_pressure,dx)
+
+        end function compute_x_gradient_prim
+
+
+        function compute_y_gradient_prim(nodes,i,j,gradient,dy)
+     $     result(grad_var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(gradient_y_proc)                :: gradient
+          real(rkind)                  , intent(in) :: dy
+          real(rkind), dimension(ne)                :: grad_var
+
+          grad_var(1) = gradient(nodes,i,j, mass_density      ,dy)
+          grad_var(2) = gradient(nodes,i,j, velocity_x        ,dy)
+          grad_var(3) = gradient(nodes,i,j, velocity_y        ,dy)
+          grad_var(4) = gradient(nodes,i,j, classical_pressure,dy)
+
+        end function compute_y_gradient_prim
+
+
         !> @author
         !> Julien L. Desmarais
         !
@@ -3106,3 +3069,4 @@
         end function compute_n_to_xy_var
 
       end module pmodel_eq_class
+

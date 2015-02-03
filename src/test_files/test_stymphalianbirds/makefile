@@ -460,3 +460,26 @@ test_diag_flux_symetry:\
 			sd_operators_n1_oneside_R1_class.o\
 			sd_operators_n2_oneside_R1_class.o\
 			$(dim2d_dep)
+
+test_hedstrom_xy_prim.o:\
+			$(hobc_dir)/hedstrom_xy_module.o\
+			$(obc_dir)/openbc_operators_module.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(dim2d_dir)/pmodel_eq_class.o\
+			$(mt_dir)/sd_operators_fd_module.o
+
+test_hedstrom_xy_prim:\
+			$(param_dep)\
+			$(mt_dep)\
+			sd_operators_x_oneside_L0_class.o\
+			sd_operators_x_oneside_L1_class.o\
+			sd_operators_x_oneside_R1_class.o\
+			sd_operators_x_oneside_R0_class.o\
+			sd_operators_y_oneside_L0_class.o\
+			sd_operators_y_oneside_L1_class.o\
+			sd_operators_y_oneside_R1_class.o\
+			sd_operators_y_oneside_R0_class.o\
+			$(dim2d_dep)\
+			openbc_operators_module.o\
+			hedstrom_xy_module.o

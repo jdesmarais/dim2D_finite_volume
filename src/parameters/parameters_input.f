@@ -28,11 +28,11 @@
         real(rkind), parameter :: y_max = 0.1519000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 2.9831000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 0.3509000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0001000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0335000000d0
+        real(rkind), parameter :: detail_print = 1.0000000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -148,6 +148,12 @@
         !-----------------------------------------------------
         !for the open boundary conditions
         !-----------------------------------------------------
+        !obc_outgoing_strategy : control how the information of the
+        !                        outgoing waves are computed
+        !
+        !                        1) obc_outgoing_cons
+        !                        2) obc_outgoing_prim
+        !
         !obc_edge_xy_strategy : control which strategy is used
         !                       when computing the gridpoints
         !                       at the anti-corner boundary
@@ -173,9 +179,10 @@
         !                        1) obc_edge_flux_capillarity
         !                        2) obc_edge_flux_no_capillarity
         !-----------------------------------------------------
-        integer    , parameter :: obc_edge_xy_strategy = obc_edge_xy_flux
+        integer    , parameter :: obc_outgoing_strategy   = obc_outgoing_prim
+        integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
         integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
-        integer    , parameter :: obc_edge_flux_strategy = obc_edge_flux_no_capillarity
+        integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_no_capillarity
 
         !-----------------------------------------------------
         !for the increase of the computational domain
@@ -196,7 +203,7 @@
         !
         !-----------------------------------------------------
         logical    , parameter :: bf_openbc_md_threshold_ac = .true.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.0500000000d0
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
 
 
         !-----------------------------------------------------

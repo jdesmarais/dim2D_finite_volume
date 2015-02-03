@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = 'ed088cb13c1da3682734055c6c1f1cfb085f6117')
+        parameter (commit = '8ef35c2f70d280690dd1916c053e1d6b26d9ef91')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -149,6 +149,23 @@
 
         logical, parameter :: inflow_type=.false.
         logical, parameter :: outflow_type=.true.
+
+
+        !> open b.c. 
+        !-------------------------------------------------------
+        !control how the contribution of the outgoing waves 
+        !is computed
+        !-------------------------------------------------------
+        ! obc_outgoing_cons: the contribution is computed using
+        !                    the gradient of the conservative
+        !                    variables
+        !
+        ! obc_outgoing_prim: the contribution is computed using
+        !                    the gradient of the primitive
+        !                    variables
+        !-------------------------------------------------------
+        integer, parameter :: obc_outgoing_cons = 0
+        integer, parameter :: obc_outgoing_prim = 1
 
 
         !> open b.c. oneside fluxes
