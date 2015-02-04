@@ -2,6 +2,9 @@
 $(sd_dir)/interface_primary.o:\
 			$(param_dir)/parameters_kind.o
 
+$(sd_dir)/n_coords_module.o:\
+			$(param_dir)/parameters_kind.o
+
 $(sd_dir)/sd_operators_fd_n_module.o:\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_kind.o\

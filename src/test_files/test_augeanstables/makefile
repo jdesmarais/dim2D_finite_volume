@@ -68,6 +68,7 @@ test_bf_interface_prog:	$(param_dep)\
 			$(bf_interface_dep)
 
 test_mattsson_operators.o:\
+			$(test_dir)/test_lernaeanhydra/check_data_module.o\
 			$(sd_dir)/interface_primary.o\
 			$(sd_dir)/sd_operators_abstract_class.o\
 			$(mt_dir)/sd_operators_class.o\
@@ -95,6 +96,7 @@ test_mattsson_operators.o:\
 			$(param_dir)/parameters_kind.o
 
 test_mattsson_operators:\
+			check_data_module.o\
 			$(param_dep)\
 			$(mt_dep)\
 			sd_operators_x_oneside_L0_class.o\

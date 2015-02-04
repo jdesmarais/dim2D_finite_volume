@@ -8,9 +8,9 @@
 
         private
         public ::
-     $       is_test_validated,
-     $       is_vector_validated,
-     $       is_matrix_validated,
+     $       is_real_validated,
+     $       is_real_vector_validated,
+     $       is_real_matrix_validated,
      $       is_int_vector_validated,
      $       is_int_matrix_validated
 
@@ -18,7 +18,7 @@
         contains
 
 
-        function is_test_validated(var,cst,detailled) result(test_validated)
+        function is_real_validated(var,cst,detailled) result(test_validated)
 
           implicit none
 
@@ -36,10 +36,10 @@
      $         nint(var*1e13)-
      $         nint(cst*1e13)).le.1
           
-        end function is_test_validated
+        end function is_real_validated
 
 
-        function is_vector_validated(var,cst,detailled) result(test_validated)
+        function is_real_vector_validated(var,cst,detailled) result(test_validated)
 
           implicit none
 
@@ -54,7 +54,7 @@
           test_validated = .true.
 
           do i=1,size(var,1)
-             test_loc = is_test_validated(var(i),cst(i),.false.)
+             test_loc = is_real_validated(var(i),cst(i),.false.)
              test_validated = test_validated.and.test_loc
              if(detailled.and.(.not.test_loc)) then
                 print '(''['',I2'']:'',F8.3,'' -> '',F8.3)', 
@@ -62,10 +62,10 @@
              end if
           end do
 
-        end function is_vector_validated
+        end function is_real_vector_validated
 
 
-        function is_matrix_validated(var,cst,detailled) result(test_validated)
+        function is_real_matrix_validated(var,cst,detailled) result(test_validated)
 
           implicit none
 
@@ -81,7 +81,7 @@
 
           do j=1,size(var,2)
              do i=1,size(var,1)
-                test_loc = is_test_validated(var(i,j),cst(i,j),.false.)
+                test_loc = is_real_validated(var(i,j),cst(i,j),.false.)
                 test_validated = test_validated.and.test_loc
                 if(detailled.and.(.not.test_loc)) then
                    print '(''['',2I2'']:'',F8.3,'' -> '',F8.3)', 
@@ -91,7 +91,7 @@
              end do
           end do
 
-        end function is_matrix_validated
+        end function is_real_matrix_validated
 
 
         function is_int_vector_validated(

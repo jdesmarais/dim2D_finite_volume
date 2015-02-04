@@ -22,8 +22,7 @@
 
         use interface_primary, only :
      $       get_primary_var,
-     $       gradient_x_proc,
-     $       gradient_y_proc
+     $       gradient_proc
 
         use parameters_input, only :
      $       ne
@@ -441,8 +440,8 @@
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
           real(rkind)                  , intent(in) :: dy
-          procedure(gradient_x_proc)                :: gradient_x
-          procedure(gradient_y_proc)                :: gradient_y
+          procedure(gradient_proc)                  :: gradient_x
+          procedure(gradient_proc)                  :: gradient_y
           real(rkind)                               :: var
 
           if(rkind.eq.8) then
@@ -499,8 +498,8 @@
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
           real(rkind)                  , intent(in) :: dy
-          procedure(gradient_x_proc)                :: gradient_x
-          procedure(gradient_y_proc)                :: gradient_y
+          procedure(gradient_proc)                  :: gradient_x
+          procedure(gradient_proc)                  :: gradient_y
           real(rkind)                               :: var
 
           if(rkind.eq.8) then

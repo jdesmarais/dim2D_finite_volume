@@ -7,12 +7,25 @@
 
         private
         public :: 
+     $       get_dn,
      $       get_x_coord,
      $       get_y_coord,
      $       get_n1_coord,
      $       get_n2_coord
         
         contains
+
+        function get_dn(dx,dy) result(dn)
+
+          implicit none
+
+          real(rkind), intent(in) :: dx
+          real(rkind), intent(in) :: dy
+          real(rkind)             :: dn
+
+          dn = SQRT(2.0d0)*0.5d0*(dx+dy)
+
+        end function get_dn
 
 
         function get_x_coord(n1,n2) result(x)

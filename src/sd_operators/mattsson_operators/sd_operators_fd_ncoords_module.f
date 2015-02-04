@@ -14,8 +14,12 @@
       !-----------------------------------------------------------------
       module sd_operators_fd_ncoords_module
 
-        use interface_primary, only : get_primary_var
-        use parameters_kind  , only : ikind, rkind
+        use interface_primary, only :
+     $       get_primary_var
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
 
         implicit none
 
@@ -59,14 +63,14 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
-        !>@param dx
+        !>@param dn
         !> grid step along the (x-y)-axis
         !
         !>@return var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function gradient_n1_interior(
-     $     nodes,i,j,proc,dx)
+     $     nodes,i,j,proc,dn)
      $     result(var)
 
           implicit none
@@ -75,17 +79,17 @@
           integer(ikind), intent(in) :: i
           integer(ikind), intent(in) :: j
           procedure(get_primary_var) :: proc
-          real(rkind)   , intent(in) :: dx
+          real(rkind)   , intent(in) :: dn
           real(rkind)                :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = 0.5d0/dx*(
+             var = 0.5d0/dn*(
      $            - proc(nodes,i-1,j+1)
      $            + proc(nodes,i+1,j-1))
           else
-             var = 0.5d0/dx*(
+             var = 0.5d0/dn*(
      $            - proc(nodes,i-1,j+1)
      $            + proc(nodes,i+1,j-1))
           end if
@@ -116,14 +120,14 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
-        !>@param dy
+        !>@param dn
         !> grid step along the (x+y)-axis
         !
         !>@return var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function gradient_n2_interior(
-     $     nodes,i,j,proc,dy)
+     $     nodes,i,j,proc,dn)
      $     result(var)
 
           implicit none
@@ -132,17 +136,17 @@
           integer(ikind), intent(in) :: i
           integer(ikind), intent(in) :: j
           procedure(get_primary_var) :: proc
-          real(rkind)   , intent(in) :: dy
+          real(rkind)   , intent(in) :: dn
           real(rkind)                :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = 0.5d0/dy*(
+             var = 0.5d0/dn*(
      $            - proc(nodes,i-1,j-1)
      $            + proc(nodes,i+1,j+1))
           else
-             var = 0.5d0/dy*(
+             var = 0.5d0/dn*(
      $            - proc(nodes,i-1,j-1)
      $            + proc(nodes,i+1,j+1))
           end if
@@ -173,14 +177,14 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
-        !>@param dx
+        !>@param dn
         !> grid step along the (x-y)-axis
         !
         !>@return var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function gradient_n1_oneside_L0(
-     $     nodes,i,j,proc,dx)
+     $     nodes,i,j,proc,dn)
      $     result(var)
 
           implicit none
@@ -189,17 +193,17 @@
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           procedure(get_primary_var)                :: proc
-          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dn
           real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = 1.0d0/dx*(
+             var = 1.0d0/dn*(
      $            -proc(nodes,i,j)
      $            +proc(nodes,i+1,j-1))
           else
-             var = 1.0/dx*(
+             var = 1.0/dn*(
      $            -proc(nodes,i,j)
      $            +proc(nodes,i+1,j-1))
           end if
@@ -208,7 +212,7 @@
 
 
         function gradient_n1_oneside_L1(
-     $     nodes,i,j,proc,dx)
+     $     nodes,i,j,proc,dn)
      $     result(var)
 
           implicit none
@@ -217,16 +221,16 @@
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           procedure(get_primary_var)                :: proc
-          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dn
           real(rkind)                               :: var
 
-          var = gradient_n1_interior(nodes,i,j,proc,dx)
+          var = gradient_n1_interior(nodes,i,j,proc,dn)
 
         end function gradient_n1_oneside_L1
 
 
         function gradient_n1_oneside_R1(
-     $     nodes,i,j,proc,dx)
+     $     nodes,i,j,proc,dn)
      $     result(var)
 
           implicit none
@@ -235,10 +239,10 @@
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           procedure(get_primary_var)                :: proc
-          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dn
           real(rkind)                               :: var
 
-          var = gradient_n1_interior(nodes,i,j,proc,dx)
+          var = gradient_n1_interior(nodes,i,j,proc,dn)
 
         end function gradient_n1_oneside_R1
 
@@ -266,14 +270,14 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
-        !>@param dx
+        !>@param dn
         !> grid step along the (x-y)-axis
         !
         !>@return var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function gradient_n1_oneside_R0(
-     $     nodes,i,j,proc,dx)
+     $     nodes,i,j,proc,dn)
      $     result(var)
 
           implicit none
@@ -282,17 +286,17 @@
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           procedure(get_primary_var)                :: proc
-          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dn
           real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = 1.0d0/dx*(
+             var = 1.0d0/dn*(
      $            - proc(nodes,i-1,j+1)
      $            + proc(nodes,i,j))
           else
-             var = 1.0/dx*(
+             var = 1.0/dn*(
      $            - proc(nodes,i-1,j+1)
      $            + proc(nodes,i,j))
           end if
@@ -323,14 +327,14 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
-        !>@param dy
+        !>@param dn
         !> grid step along the (x+y)-axis
         !
         !>@return var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function gradient_n2_oneside_L0(
-     $     nodes,i,j,proc,dy)
+     $     nodes,i,j,proc,dn)
      $     result(var)
 
           implicit none
@@ -339,17 +343,17 @@
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           procedure(get_primary_var)                :: proc
-          real(rkind)                  , intent(in) :: dy
+          real(rkind)                  , intent(in) :: dn
           real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = 1.0d0/dy*(
+             var = 1.0d0/dn*(
      $            -proc(nodes,i,j)
      $            +proc(nodes,i+1,j+1))
           else
-             var = 1.0/dy*(
+             var = 1.0/dn*(
      $            -proc(nodes,i,j)
      $            +proc(nodes,i+1,j+1))
           end if
@@ -358,7 +362,7 @@
 
 
         function gradient_n2_oneside_L1(
-     $     nodes,i,j,proc,dy)
+     $     nodes,i,j,proc,dn)
      $     result(var)
 
           implicit none
@@ -367,16 +371,16 @@
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           procedure(get_primary_var)                :: proc
-          real(rkind)                  , intent(in) :: dy
+          real(rkind)                  , intent(in) :: dn
           real(rkind)                               :: var
 
-          var = gradient_n2_interior(nodes,i,j,proc,dy)
+          var = gradient_n2_interior(nodes,i,j,proc,dn)
 
         end function gradient_n2_oneside_L1
 
 
         function gradient_n2_oneside_R1(
-     $     nodes,i,j,proc,dy)
+     $     nodes,i,j,proc,dn)
      $     result(var)
 
           implicit none
@@ -385,10 +389,10 @@
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           procedure(get_primary_var)                :: proc
-          real(rkind)                  , intent(in) :: dy
+          real(rkind)                  , intent(in) :: dn
           real(rkind)                               :: var
 
-          var = gradient_n2_interior(nodes,i,j,proc,dy)
+          var = gradient_n2_interior(nodes,i,j,proc,dn)
 
         end function gradient_n2_oneside_R1
 
@@ -416,14 +420,14 @@
         !> procedure computing the special quantity evaluated at [i,j]
         !> (ex: pressure, temperature,...)
         !
-        !>@param dy
+        !>@param dn
         !> grid step along the (x+y)-axis
         !
         !>@return var
         !> data evaluated at [i,j]
         !---------------------------------------------------------------
         function gradient_n2_oneside_R0(
-     $     nodes,i,j,proc,dy)
+     $     nodes,i,j,proc,dn)
      $     result(var)
 
           implicit none
@@ -432,17 +436,17 @@
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           procedure(get_primary_var)                :: proc
-          real(rkind)                  , intent(in) :: dy
+          real(rkind)                  , intent(in) :: dn
           real(rkind)                               :: var
 
           if(rkind.eq.8) then
 
              !TAG INLINE
-             var = 1.0d0/dy*(
+             var = 1.0d0/dn*(
      $            - proc(nodes,i-1,j-1)
      $            + proc(nodes,i,j))
           else
-             var = 1.0/dy*(
+             var = 1.0/dn*(
      $            - proc(nodes,i-1,j-1)
      $            + proc(nodes,i,j))
           end if

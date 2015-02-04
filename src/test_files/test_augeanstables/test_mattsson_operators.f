@@ -13,6 +13,27 @@
       !-----------------------------------------------------------------
       program test_mattsson_operators
 
+        use check_data_module, only :
+     $       is_real_validated
+
+        use dim2d_prim_module, only :
+     $       mass_density
+
+        use interface_primary, only :
+     $       gradient_proc
+
+        use parameters_input, only :
+     $       nx,ny,ne
+
+        use parameters_kind, only :
+     $       ikind, rkind
+
+        use sd_operators_abstract_class, only :
+     $       sd_operators_abstract
+
+        use sd_operators_class, only :
+     $       sd_operators
+
         use sd_operators_fd_module, only :
      $       gradient_x_interior,
      $       gradient_y_interior,
@@ -32,50 +53,6 @@
      $       gradient_n2_oneside_L1,
      $       gradient_n2_oneside_R1,
      $       gradient_n2_oneside_R0
-
-        use dim2d_prim_module, only :
-     $       mass_density
-
-        use interface_primary, only :
-     $       gradient_x_proc,
-     $       gradient_y_proc,
-     $       gradient_n_proc
-
-        use parameters_input, only :
-     $       nx,ny,ne
-
-        use parameters_kind, only :
-     $       ikind, rkind
-
-        use sd_operators_abstract_class, only :
-     $       sd_operators_abstract
-
-        use sd_operators_class, only :
-     $       sd_operators
-
-        use sd_operators_x_oneside_L0_class, only :
-     $       sd_operators_x_oneside_L0
-
-        use sd_operators_x_oneside_L1_class, only :
-     $       sd_operators_x_oneside_L1
-
-        use sd_operators_x_oneside_R1_class, only :
-     $       sd_operators_x_oneside_R1
-
-        use sd_operators_x_oneside_R0_class, only :
-     $       sd_operators_x_oneside_R0
-
-        use sd_operators_y_oneside_L0_class, only :
-     $       sd_operators_y_oneside_L0
-
-        use sd_operators_y_oneside_L1_class, only :
-     $       sd_operators_y_oneside_L1
-
-        use sd_operators_y_oneside_R1_class, only :
-     $       sd_operators_y_oneside_R1
-
-        use sd_operators_y_oneside_R0_class, only :
-     $       sd_operators_y_oneside_R0
 
         use sd_operators_n_class, only :
      $       sd_operators_n
@@ -104,38 +81,61 @@
         use sd_operators_n2_oneside_R0_class, only :
      $       sd_operators_n2_oneside_R0
 
+        use sd_operators_x_oneside_L0_class, only :
+     $       sd_operators_x_oneside_L0
+
+        use sd_operators_x_oneside_L1_class, only :
+     $       sd_operators_x_oneside_L1
+
+        use sd_operators_x_oneside_R1_class, only :
+     $       sd_operators_x_oneside_R1
+
+        use sd_operators_x_oneside_R0_class, only :
+     $       sd_operators_x_oneside_R0
+
+        use sd_operators_y_oneside_L0_class, only :
+     $       sd_operators_y_oneside_L0
+
+        use sd_operators_y_oneside_L1_class, only :
+     $       sd_operators_y_oneside_L1
+
+        use sd_operators_y_oneside_R1_class, only :
+     $       sd_operators_y_oneside_R1
+
+        use sd_operators_y_oneside_R0_class, only :
+     $       sd_operators_y_oneside_R0
         
         implicit none
 
 
         !<operators tested
         real(rkind), dimension(nx,ny,ne) :: nodes
-        real(rkind) :: dx
-        real(rkind) :: dy
+        real(rkind)                      :: dx
+        real(rkind)                      :: dy
 
-        type(sd_operators)              :: sd_interior
-
-        type(sd_operators_x_oneside_L0) :: sd_x_oneside_L0
-        type(sd_operators_x_oneside_L1) :: sd_x_oneside_L1
-        type(sd_operators_x_oneside_R1) :: sd_x_oneside_R1
-        type(sd_operators_x_oneside_R0) :: sd_x_oneside_R0
-
-        type(sd_operators_y_oneside_L0) :: sd_y_oneside_L0
-        type(sd_operators_y_oneside_L1) :: sd_y_oneside_L1
-        type(sd_operators_y_oneside_R1) :: sd_y_oneside_R1
-        type(sd_operators_y_oneside_R0) :: sd_y_oneside_R0
-
-        type(sd_operators_n)            :: sd_interior_n
-
-        type(sd_operators_n1_oneside_L0):: sd_n1_L0
-        type(sd_operators_n1_oneside_L1):: sd_n1_L1
-        type(sd_operators_n1_oneside_R1):: sd_n1_R1
-        type(sd_operators_n1_oneside_R0):: sd_n1_R0
-
-        type(sd_operators_n2_oneside_L0):: sd_n2_L0
-        type(sd_operators_n2_oneside_L1):: sd_n2_L1
-        type(sd_operators_n2_oneside_R1):: sd_n2_R1
-        type(sd_operators_n2_oneside_R0):: sd_n2_R0
+        type(sd_operators)               :: sd_interior
+                                         
+        type(sd_operators_x_oneside_L0)  :: sd_x_oneside_L0
+        type(sd_operators_x_oneside_L1)  :: sd_x_oneside_L1
+        type(sd_operators_x_oneside_R1)  :: sd_x_oneside_R1
+        type(sd_operators_x_oneside_R0)  :: sd_x_oneside_R0
+                                         
+        type(sd_operators_y_oneside_L0)  :: sd_y_oneside_L0
+        type(sd_operators_y_oneside_L1)  :: sd_y_oneside_L1
+        type(sd_operators_y_oneside_R1)  :: sd_y_oneside_R1
+        type(sd_operators_y_oneside_R0)  :: sd_y_oneside_R0
+                                         
+        type(sd_operators_n)             :: sd_interior_n
+                                         
+        type(sd_operators_n1_oneside_L0) :: sd_n1_L0
+        type(sd_operators_n1_oneside_L1) :: sd_n1_L1
+        type(sd_operators_n1_oneside_R1) :: sd_n1_R1
+        type(sd_operators_n1_oneside_R0) :: sd_n1_R0
+                                         
+        type(sd_operators_n2_oneside_L0) :: sd_n2_L0
+        type(sd_operators_n2_oneside_L1) :: sd_n2_L1
+        type(sd_operators_n2_oneside_R1) :: sd_n2_R1
+        type(sd_operators_n2_oneside_R0) :: sd_n2_R0
 
 
         !<CPU recorded times
@@ -594,7 +594,7 @@
         test_data(5) =  19.2d0  !<test gradient_n1_R0
 
         detailled = .false.
-        call test_n1_operators(
+        call test_n_operators(
      $       gradient_n1_interior,
      $       gradient_n1_oneside_L0,
      $       gradient_n1_oneside_L1,
@@ -621,7 +621,7 @@
         test_data(5) =  9.333333d0  !<test gradient_n2_R0
 
         detailled = .false.
-        call test_n2_operators(
+        call test_n_operators(
      $       gradient_n2_interior,
      $       gradient_n2_oneside_L0,
      $       gradient_n2_oneside_L1,
@@ -954,28 +954,6 @@
 
         contains
 
-
-        function is_test_validated(var,cst,detailled) result(test_validated)
-
-          implicit none
-
-          real(rkind), intent(in) :: var
-          real(rkind), intent(in) :: cst
-          logical    , intent(in) :: detailled
-          logical                 :: test_validated
-
-          if(detailled) then
-             print *, int(var*1e5)
-             print *, int(cst*1e5)
-          end if
-          
-          test_validated=abs(
-     $         int(var*10000.)-
-     $         sign(int(abs(cst*10000.)),int(cst*10000.))).le.1
-          
-        end function is_test_validated
-
-
         subroutine test_dfdx(nodes, dx, j, test_data, detailled)
 
           real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
@@ -1220,14 +1198,14 @@
 
           if(detailled) then
              do i=1, size(dev,1)
-                loc = is_test_validated(dev(i), test_data(i), detailled)
+                loc = is_real_validated(dev(i), test_data(i), detailled)
                 print '(''test dev('',I2,''): '', L3)', i, loc
              end do
           else
              i=1
-             test_validated=is_test_validated(dev(i), test_data(i), detailled)
+             test_validated=is_real_validated(dev(i), test_data(i), detailled)
              do i=2, size(dev,1)
-                loc = is_test_validated(dev(i), test_data(i), detailled)
+                loc = is_real_validated(dev(i), test_data(i), detailled)
                 test_validated = test_validated.and.loc
              end do
              print '(''test validated: '',L3)', loc
@@ -1249,8 +1227,8 @@
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
           real(rkind)                  , intent(in) :: dy
-          procedure(gradient_x_proc)                :: gradient_x
-          procedure(gradient_y_proc)                :: gradient_y
+          procedure(gradient_proc)                  :: gradient_x
+          procedure(gradient_proc)                  :: gradient_y
           real(rkind)                               :: var
 
 
@@ -1273,8 +1251,8 @@
           implicit none
 
           class(sd_operators_abstract), intent(in) :: sd_operators_tested
-          procedure(gradient_x_proc)               :: gradient_x
-          procedure(gradient_y_proc)               :: gradient_y
+          procedure(gradient_proc)                 :: gradient_x
+          procedure(gradient_proc)                 :: gradient_y
           integer                     , intent(in) :: i1,j1, i2,j2
           real(rkind), dimension(:)   , intent(in) :: test_data
           logical                     , intent(in) :: detailled
@@ -1306,7 +1284,7 @@
 
           if(.not.test_only_g_op) then
 
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%f(
      $            nodes,
      $            i1,j1,
@@ -1317,7 +1295,7 @@
              test_validated = test_validated.and.loc
              
              
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%dfdx(
      $            nodes,
      $            i1,j1,
@@ -1329,7 +1307,7 @@
              test_validated = test_validated.and.loc
              
 
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%dfdy(
      $            nodes,
      $            i1,j1,
@@ -1341,7 +1319,7 @@
              test_validated = test_validated.and.loc          
              
 
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%d2fdx2(
      $            nodes,
      $            i1,j1,
@@ -1353,7 +1331,7 @@
              test_validated = test_validated.and.loc  
              
              
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%d2fdy2(
      $            nodes,
      $            i1,j1,
@@ -1365,7 +1343,7 @@
              test_validated = test_validated.and.loc
              
              
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%d2fdxdy(
      $            nodes,
      $            i1,j1,
@@ -1378,7 +1356,7 @@
              test_validated = test_validated.and.loc
 
 
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            gradient_x(
      $            nodes,
      $            i1,j1,
@@ -1394,7 +1372,7 @@
 
           if(.not.test_only_f_op) then
           
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%g(
      $            nodes,
      $            i2,j2,
@@ -1405,7 +1383,7 @@
              test_validated = test_validated.and.loc
              
 
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%dgdx(
      $            nodes,
      $            i2,j2,
@@ -1417,7 +1395,7 @@
              test_validated = test_validated.and.loc
      $            
              
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%dgdy(
      $            nodes,
      $            i2,j2,
@@ -1429,7 +1407,7 @@
              test_validated = test_validated.and.loc
              
              
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%d2gdx2(
      $            nodes,
      $            i2,j2,
@@ -1441,7 +1419,7 @@
              test_validated = test_validated.and.loc
              
              
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%d2gdy2(
      $            nodes,
      $            i2,j2,
@@ -1453,7 +1431,7 @@
              test_validated = test_validated.and.loc          
              
 
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%d2gdxdy(
      $            nodes,
      $            i2,j2,
@@ -1466,7 +1444,7 @@
              test_validated = test_validated.and.loc
 
              
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            gradient_y(
      $            nodes,
      $            i2,j2,
@@ -1483,7 +1461,7 @@
           if(.not.test_only_g_op) then
 
 
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%dfdx_nl(
      $            nodes,
      $            i1,j1,
@@ -1500,7 +1478,7 @@
           
           if(.not.test_only_f_op) then
 
-             loc = is_test_validated(
+             loc = is_real_validated(
      $            sd_operators_tested%dgdy_nl(
      $            nodes,
      $            i2,j2,
@@ -1519,7 +1497,7 @@
         end subroutine test_operator
 
 
-        subroutine test_n1_operators(
+        subroutine test_n_operators(
      $     gradient_interior,
      $     gradient_L0,
      $     gradient_L1,
@@ -1532,11 +1510,11 @@
 
           implicit none
 
-          procedure(gradient_x_proc)               :: gradient_interior
-          procedure(gradient_x_proc)               :: gradient_L0
-          procedure(gradient_x_proc)               :: gradient_L1
-          procedure(gradient_x_proc)               :: gradient_R1
-          procedure(gradient_x_proc)               :: gradient_R0
+          procedure(gradient_proc)                 :: gradient_interior
+          procedure(gradient_proc)                 :: gradient_L0
+          procedure(gradient_proc)                 :: gradient_L1
+          procedure(gradient_proc)                 :: gradient_R1
+          procedure(gradient_proc)                 :: gradient_R0
           integer                     , intent(in) :: i,j
           real(rkind)                 , intent(in) :: dn
           real(rkind), dimension(:)   , intent(in) :: test_data
@@ -1549,7 +1527,7 @@
           test_validated = .true.
 
 
-          loc = is_test_validated(
+          loc = is_real_validated(
      $         gradient_interior(
      $         nodes,
      $         i,j,
@@ -1561,7 +1539,7 @@
           test_validated=test_validated.and.loc
 
           
-          loc = is_test_validated(
+          loc = is_real_validated(
      $         gradient_L0(
      $         nodes,
      $         i,j,
@@ -1573,7 +1551,7 @@
           test_validated=test_validated.and.loc
 
 
-          loc = is_test_validated(
+          loc = is_real_validated(
      $         gradient_L1(
      $         nodes,
      $         i,j,
@@ -1585,7 +1563,7 @@
           test_validated=test_validated.and.loc
 
 
-          loc = is_test_validated(
+          loc = is_real_validated(
      $         gradient_R1(
      $         nodes,
      $         i,j,
@@ -1597,7 +1575,7 @@
           test_validated=test_validated.and.loc
 
           
-          loc = is_test_validated(
+          loc = is_real_validated(
      $         gradient_R0(
      $         nodes,
      $         i,j,
@@ -1610,101 +1588,7 @@
 
           if(.not.detailled) print '(''test validated: '', L1)', loc
 
-        end subroutine test_n1_operators
-
-
-        subroutine test_n2_operators(
-     $     gradient_interior,
-     $     gradient_L0,
-     $     gradient_L1,
-     $     gradient_R1,
-     $     gradient_R0,
-     $     i,j,
-     $     dn,
-     $     test_data,
-     $     detailled)
-
-          implicit none
-
-          procedure(gradient_y_proc)               :: gradient_interior
-          procedure(gradient_y_proc)               :: gradient_L0
-          procedure(gradient_y_proc)               :: gradient_L1
-          procedure(gradient_y_proc)               :: gradient_R1
-          procedure(gradient_y_proc)               :: gradient_R0
-          integer                     , intent(in) :: i,j
-          real(rkind)                 , intent(in) :: dn
-          real(rkind), dimension(:)   , intent(in) :: test_data
-          logical                     , intent(in) :: detailled
-
-          logical :: loc
-          logical :: test_validated
-
-
-          test_validated = .true.
-
-
-          loc = is_test_validated(
-     $         gradient_interior(
-     $         nodes,
-     $         i,j,
-     $         mass_density,
-     $         dn),
-     $         test_data(1),
-     $         detailled)
-          if(detailled) print '(''test interior: '',L3)', loc
-          test_validated=test_validated.and.loc
-
-          
-          loc = is_test_validated(
-     $         gradient_L0(
-     $         nodes,
-     $         i,j,
-     $         mass_density,
-     $         dn),
-     $         test_data(2),
-     $         detailled)
-          if(detailled) print '(''test L0: '',L3)', loc
-          test_validated=test_validated.and.loc
-
-
-          loc = is_test_validated(
-     $         gradient_L1(
-     $         nodes,
-     $         i,j,
-     $         mass_density,
-     $         dn),
-     $         test_data(3),
-     $         detailled)
-          if(detailled) print '(''test L1: '',L3)', loc
-          test_validated=test_validated.and.loc
-
-
-          loc = is_test_validated(
-     $         gradient_R1(
-     $         nodes,
-     $         i,j,
-     $         mass_density,
-     $         dn),
-     $         test_data(4),
-     $         detailled)
-          if(detailled) print '(''test R1: '',L3)', loc
-          test_validated=test_validated.and.loc
-
-          
-          loc = is_test_validated(
-     $         gradient_R0(
-     $         nodes,
-     $         i,j,
-     $         mass_density,
-     $         dn),
-     $         test_data(5),
-     $         detailled)
-          if(detailled) print '(''test R0: '',L3)', loc
-          test_validated=test_validated.and.loc
-
-          if(.not.detailled) print '(''test validated: '', L1)', loc
-
-        end subroutine test_n2_operators
+        end subroutine test_n_operators
 
 
         subroutine initialize_nodes_x(nodes,dx,dy)

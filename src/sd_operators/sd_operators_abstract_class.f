@@ -17,8 +17,13 @@
       !-----------------------------------------------------------------
       module sd_operators_abstract_class
 
-        use interface_primary, only : get_primary_var, get_secondary_var
-        use parameters_kind  , only : ikind, rkind
+        use interface_primary, only :
+     $       get_primary_var,
+     $       get_secondary_var
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
 
         implicit none
 

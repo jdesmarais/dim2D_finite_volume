@@ -1,6 +1,6 @@
       !> @file
       !> module implementing the abstract interface for procedures
-      !> computing primary variables
+      !> computing variable out of the conservative variables
       !
       !> @author 
       !> Julien L. Desmarais
@@ -20,10 +20,8 @@
 
         private
         public :: get_primary_var,
-     $            gradient_x_proc,
-     $            gradient_y_proc,
-     $            get_secondary_var,
-     $            gradient_n_proc
+     $            gradient_proc,
+     $            get_secondary_var
 
 
         abstract interface
@@ -33,8 +31,8 @@
           !> Julien L. Desmarais
           !
           !> @brief
-          !> interface for procedure computing primary variables at [i,j]
-          !> (ex: pressure, temperature)
+          !> interface for procedure computing any variable out of
+          !> the conservative variables
           !
           !> @date
           !> 07_08_2013 - initial version - J.L. Desmarais
@@ -68,8 +66,7 @@
           !> Julien L. Desmarais
           !
           !> @brief
-          !> interface for computing the gradient of a primitive
-          !> variable along the y-axis
+          !> interface for computing the gradient
           !
           !> @date
           !> 31_07_2014 - initial version - J.L. Desmarais
@@ -87,16 +84,13 @@
           !> interface to compute the primitive variable from
           !> the governing variables
           !
-          !>@param dx
-          !> grid step along the x-axis
-          !
-          !>@param dy
-          !> grid step along the y-axis
+          !>@param dn
+          !> grid space step
           !
           !>@param var
           !> primary variable evaluated at [i,j]
           !--------------------------------------------------------------
-          function gradient_x_proc(nodes,i,j,proc,dx) result(var)
+          function gradient_proc(nodes,i,j,proc,dn) result(var)
 
             import get_primary_var
             import ikind
@@ -106,58 +100,10 @@
             integer(ikind)               , intent(in) :: i
             integer(ikind)               , intent(in) :: j
             procedure(get_primary_var)                :: proc
-            real(rkind)                  , intent(in) :: dx
+            real(rkind)                  , intent(in) :: dn
             real(rkind)                               :: var
 
-          end function gradient_x_proc
-
-
-          !> @author
-          !> Julien L. Desmarais
-          !
-          !> @brief
-          !> interface for computing the gradient of a primitive
-          !> variable along the x-axis
-          !
-          !> @date
-          !> 31_07_2014 - initial version - J.L. Desmarais
-          !
-          !>@param nodes
-          !> array with the grid point data
-          !
-          !>@param i
-          !> index along x-axis where the gradient is evaluated
-          !
-          !>@param j
-          !> index along y-axis where the gradient is evaluated
-          !
-          !>@param proc
-          !> interface to compute the primitive variable from
-          !> the governing variables
-          !
-          !>@param dx
-          !> grid step along the x-axis
-          !
-          !>@param dy
-          !> grid step along the y-axis
-          !
-          !>@param var
-          !> primary variable evaluated at [i,j]
-          !--------------------------------------------------------------
-          function gradient_y_proc(nodes,i,j,proc,dy) result(var)
-
-            import get_primary_var
-            import ikind
-            import rkind
-
-            real(rkind), dimension(:,:,:), intent(in) :: nodes
-            integer(ikind)               , intent(in) :: i
-            integer(ikind)               , intent(in) :: j
-            procedure(get_primary_var)                :: proc
-            real(rkind)                  , intent(in) :: dy
-            real(rkind)                               :: var
-
-          end function gradient_y_proc
+          end function gradient_proc
 
 
           !> @author
@@ -186,6 +132,12 @@
           !>@param dy
           !> grid step along the y-axis
           !
+          !>@param gradient_x
+          !> procedure to compute the gradient along the x-direction
+          !
+          !>@param gradient_y
+          !> procedure to compute the gradient along the y-direction
+          !
           !>@param var
           !> primary variable evaluated at [i,j]
           !--------------------------------------------------------------
@@ -193,8 +145,7 @@
      $     nodes,i,j,dx,dy,gradient_x,gradient_y)
      $     result(var)
 
-            import gradient_x_proc
-            import gradient_y_proc
+            import gradient_proc
             import ikind
             import rkind            
 
@@ -203,60 +154,11 @@
             integer(ikind)               , intent(in) :: j
             real(rkind)                  , intent(in) :: dx
             real(rkind)                  , intent(in) :: dy
-            procedure(gradient_x_proc)                :: gradient_x
-            procedure(gradient_y_proc)                :: gradient_y
+            procedure(gradient_proc)                  :: gradient_x
+            procedure(gradient_proc)                  :: gradient_y
             real(rkind)                               :: var
 
           end function get_secondary_var
-
-
-          !> @author
-          !> Julien L. Desmarais
-          !
-          !> @brief
-          !> interface for computing the gradient of a primitive
-          !> variable along a diagonal direction
-          !
-          !> @date
-          !> 31_07_2014 - initial version - J.L. Desmarais
-          !
-          !>@param nodes
-          !> array with the grid point data
-          !
-          !>@param i
-          !> index along x-axis where the gradient is evaluated
-          !
-          !>@param j
-          !> index along y-axis where the gradient is evaluated
-          !
-          !>@param proc
-          !> interface to compute the primitive variable from
-          !> the governing variables
-          !
-          !>@param dx
-          !> grid step along the x-axis
-          !
-          !>@param dy
-          !> grid step along the y-axis
-          !
-          !>@param var
-          !> primary variable evaluated at [i,j]
-          !--------------------------------------------------------------
-          function gradient_n_proc(nodes,i,j,proc,dx,dy) result(var)
-
-            import get_primary_var
-            import ikind
-            import rkind
-
-            real(rkind), dimension(:,:,:), intent(in) :: nodes
-            integer(ikind)               , intent(in) :: i
-            integer(ikind)               , intent(in) :: j
-            procedure(get_primary_var)                :: proc
-            real(rkind)                  , intent(in) :: dx
-            real(rkind)                  , intent(in) :: dy
-            real(rkind)                               :: var
-
-          end function gradient_n_proc
 
         end interface
 
