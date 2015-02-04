@@ -18,8 +18,7 @@
       module hedstrom_xy_module
 
         use interface_primary, only :
-     $       gradient_x_proc,
-     $       gradient_y_proc
+     $       gradient_proc
 
         use openbc_operators_module, only :
      $       incoming_proc,
@@ -123,7 +122,7 @@
           real(rkind)                       , intent(in)    :: dy
           type(pmodel_eq)                   , intent(in)    :: p_model
           real(rkind), dimension(nx,ny+1,ne), intent(in)    :: flux_y
-          procedure(gradient_x_proc)                        :: gradient_x
+          procedure(gradient_proc)                          :: gradient_x
           procedure(incoming_proc)                          :: incoming_x
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
 
@@ -193,7 +192,7 @@
           real(rkind)                       , intent(in)    :: dy
           type(pmodel_eq)                   , intent(in)    :: p_model
           real(rkind), dimension(nx+1,ny,ne), intent(in)    :: flux_x
-          procedure(gradient_y_proc)                        :: gradient_y
+          procedure(gradient_proc)                          :: gradient_y
           procedure(incoming_proc)                          :: incoming_y
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
 
@@ -285,7 +284,7 @@
           type(pmodel_eq)                   , intent(in)    :: p_model
           real(rkind), dimension(:,:,:)     , intent(in)    :: flux_y
           procedure(incoming_proc)                          :: incoming_x
-          procedure(gradient_x_proc)                        :: gradient_x
+          procedure(gradient_proc)                          :: gradient_x
           real(rkind), dimension(ne)                        :: timedev
 
           timedev =
@@ -372,7 +371,7 @@
           type(pmodel_eq)                   , intent(in)    :: p_model
           real(rkind), dimension(:,:,:)     , intent(in)    :: flux_x
           procedure(incoming_proc)                          :: incoming_y
-          procedure(gradient_y_proc)                        :: gradient_y
+          procedure(gradient_proc)                          :: gradient_y
           real(rkind), dimension(ne)                        :: timedev
 
           timedev =
@@ -451,7 +450,7 @@
           integer(ikind)                    , intent(in)    :: i
           integer(ikind)                    , intent(in)    :: j
           real(rkind), dimension(:,:,:)     , intent(in)    :: flux_y
-          procedure(gradient_x_proc)                        :: gradient_x
+          procedure(gradient_proc)                          :: gradient_x
           logical                           , intent(in)    :: side_x
           real(rkind), dimension(ne)                        :: timedev
 
@@ -539,7 +538,7 @@
           integer(ikind)                    , intent(in) :: i
           integer(ikind)                    , intent(in) :: j
           real(rkind), dimension(:,:,:)     , intent(in) :: flux_x
-          procedure(gradient_y_proc)                     :: gradient_y
+          procedure(gradient_proc)                       :: gradient_y
           logical                           , intent(in) :: side_y
           real(rkind), dimension(ne)                     :: timedev
 
@@ -617,7 +616,7 @@
           real(rkind)                       , intent(in)    :: dx
           real(rkind)                       , intent(in)    :: dy
           type(pmodel_eq)                   , intent(in)    :: p_model
-          procedure(gradient_y_proc)                        :: gradient_y
+          procedure(gradient_proc)                          :: gradient_y
           procedure(incoming_proc)                          :: incoming_y
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
 
@@ -703,7 +702,7 @@
           real(rkind)                       , intent(in)    :: dx
           real(rkind)                       , intent(in)    :: dy
           type(pmodel_eq)                   , intent(in)    :: p_model
-          procedure(gradient_y_proc)                        :: gradient_y
+          procedure(gradient_proc)                          :: gradient_y
           procedure(incoming_proc)                          :: incoming_y
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
 
@@ -800,8 +799,8 @@
           integer(ikind)                    , intent(in)    :: j
           procedure(incoming_proc)                          :: incoming_x
           procedure(incoming_proc)                          :: incoming_y
-          procedure(gradient_x_proc)                        :: gradient_x
-          procedure(gradient_y_proc)                        :: gradient_y
+          procedure(gradient_proc)                          :: gradient_x
+          procedure(gradient_proc)                          :: gradient_y
           real(rkind), dimension(ne)                        :: timedev
 
           timedev = compute_x_timedev_with_openbc(
@@ -819,434 +818,6 @@
      $         t, x_map(i), y_map(j), nodes(i,j,:))
 
         end function compute_timedev_corner_local
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the contribution of the hyperbolic terms of the
-        !> governing equations in the x-direction to the time
-        !> derivatives of the governing variables
-        !
-        !> @date
-        !> 03_02_2014 - initial version - J.L. Desmarais
-        !
-        !>@param t
-        !> time
-        !
-        !>@param x
-        !> x-coordinate
-        !
-        !>@param y
-        !> y_coordinate
-        !
-        !>@param nodes
-        !> array of grid points
-        !
-        !>@param i
-        !> index identifying the grid point position along the x-axis
-        !
-        !>@param j
-        !> index identifying the grid point position along the y-axis
-        !
-        !>@param p_model
-        !> governing equations of the physical model
-        !
-        !>@param dx
-        !> space step along the x-direction
-        !
-        !>@param gradient
-        !> procedure computing the gradient along the x-direction
-        !
-        !>@param incoming_wave
-        !> procedure identifying whether the wave is incoming or
-        !> outgoing the edge of the computational domain
-        !-------------------------------------------------------------
-        function compute_x_timedev_with_openbc(
-     $     t,x,y,
-     $     nodes, i,j,
-     $     p_model, dx,
-     $     gradient, incoming_wave)
-     $     result(timedev)
-
-          implicit none
-
-          real(rkind)                  , intent(in) :: t
-          real(rkind)                  , intent(in) :: x
-          real(rkind)                  , intent(in) :: y
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          type(pmodel_eq)              , intent(in) :: p_model
-          real(rkind)                  , intent(in) :: dx
-          procedure(gradient_x_proc)                :: gradient
-          procedure(incoming_proc)                  :: incoming_wave
-          real(rkind), dimension(ne)                :: timedev
-
-          
-          select case(obc_outgoing_strategy)
-            case(obc_outgoing_cons)
-               timedev = compute_x_timedev_with_openbc_cons(
-     $              t,x,y,
-     $              nodes, i,j,
-     $              p_model, dx,
-     $              gradient, incoming_wave)
-
-
-            case(obc_outgoing_prim)
-               timedev = compute_x_timedev_with_openbc_prim(
-     $              t,x,y,
-     $              nodes, i,j,
-     $              p_model, dx,
-     $              gradient, incoming_wave)
-
-
-            case default
-               print '(''hedstrom_xy_module'')'
-               print '(''compute_x_timedev_with_openbc'')'
-               print '(''obc_outgoing_strategy not recognized'')'
-               print '(''obc_outgoing_strategy: '',I2)', obc_outgoing_strategy
-               stop ''
-
-          end select
-
-
-        end function compute_x_timedev_with_openbc
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the contribution of the hyperbolic terms of the
-        !> governing equations in the x-direction to the time
-        !> derivatives of the governing variables
-        !
-        !> @date
-        !> 03_02_2015 - initial version - J.L. Desmarais
-        !
-        !>@param t
-        !> time
-        !
-        !>@param x
-        !> x-coordinate
-        !
-        !>@param y
-        !> y_coordinate
-        !
-        !>@param nodes
-        !> array of grid points
-        !
-        !>@param i
-        !> index identifying the grid point position along the x-axis
-        !
-        !>@param j
-        !> index identifying the grid point position along the y-axis
-        !
-        !>@param p_model
-        !> governing equations of the physical model
-        !
-        !>@param dx
-        !> space step along the x-direction
-        !
-        !>@param gradient
-        !> procedure computing the gradient along the x-direction
-        !
-        !>@param incoming_wave
-        !> procedure identifying whether the wave is incoming or
-        !> outgoing the edge of the computational domain
-        !-------------------------------------------------------------
-        function compute_y_timedev_with_openbc(
-     $     t,x,y,
-     $     nodes, i,j,
-     $     p_model, dy,
-     $     gradient, incoming_wave)
-     $     result(timedev)
-
-          implicit none
-
-          real(rkind)                  , intent(in) :: t
-          real(rkind)                  , intent(in) :: x
-          real(rkind)                  , intent(in) :: y
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          type(pmodel_eq)              , intent(in) :: p_model
-          real(rkind)                  , intent(in) :: dy
-          procedure(gradient_y_proc)                :: gradient
-          procedure(incoming_proc)                  :: incoming_wave
-          real(rkind), dimension(ne)                :: timedev
-
-          
-          select case(obc_outgoing_strategy)
-            case(obc_outgoing_cons)
-               timedev = compute_y_timedev_with_openbc_cons(
-     $              t,x,y,
-     $              nodes, i,j,
-     $              p_model, dy,
-     $              gradient, incoming_wave)
-
-
-            case(obc_outgoing_prim)
-               timedev = compute_y_timedev_with_openbc_prim(
-     $              t,x,y,
-     $              nodes, i,j,
-     $              p_model, dy,
-     $              gradient, incoming_wave)
-
-
-            case default
-               print '(''hedstrom_xy_module'')'
-               print '(''compute_x_timedev_with_openbc'')'
-               print '(''obc_outgoing_strategy not recognized'')'
-               print '(''obc_outgoing_strategy: '',I2)', obc_outgoing_strategy
-               stop ''
-
-          end select
-
-
-        end function compute_y_timedev_with_openbc
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the contribution of the hyperbolic terms of the
-        !> governing equations in the x-direction to the time
-        !> derivatives of the governing variables
-        !
-        !> @date
-        !> 04_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param t
-        !> time
-        !
-        !>@param x
-        !> x-coordinate
-        !
-        !>@param y
-        !> y_coordinate
-        !
-        !>@param nodes
-        !> array of grid points
-        !
-        !>@param i
-        !> index identifying the grid point position along the x-axis
-        !
-        !>@param j
-        !> index identifying the grid point position along the y-axis
-        !
-        !>@param p_model
-        !> governing equations of the physical model
-        !
-        !>@param dx
-        !> space step along the x-direction
-        !
-        !>@param gradient
-        !> procedure computing the gradient along the x-direction
-        !
-        !>@param incoming_wave
-        !> procedure identifying whether the wave is incoming or
-        !> outgoing the edge of the computational domain
-        !-------------------------------------------------------------
-        function compute_x_timedev_with_openbc_cons(
-     $     t,x,y,
-     $     nodes, i,j,
-     $     p_model, dx,
-     $     gradient, incoming_wave)
-     $     result(timedev)
-
-          implicit none
-
-          real(rkind)                  , intent(in) :: t
-          real(rkind)                  , intent(in) :: x
-          real(rkind)                  , intent(in) :: y
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          type(pmodel_eq)              , intent(in) :: p_model
-          real(rkind)                  , intent(in) :: dx
-          procedure(gradient_x_proc)                :: gradient
-          procedure(incoming_proc)                  :: incoming_wave
-          real(rkind), dimension(ne)                :: timedev
-
-
-          real(rkind), dimension(ne)    :: nodes_eigenqties
-          real(rkind), dimension(ne)    :: eigenvalues
-          integer                       :: k
-          real(rkind), dimension(ne)    :: incoming_amp
-          real(rkind), dimension(ne,ne) :: left_eigenmatrix
-          real(rkind), dimension(ne,ne) :: right_eigenmatrix
-          real(rkind), dimension(ne)    :: left_eigenvector
-          real(rkind), dimension(ne)    :: var_gradient
-
-
-          !determine the nodes for the computation of the
-          !eigenquantities
-          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(t,x,y,nodes(i,j,:))
-
-
-          !determination of the speed of the amplitude waves
-          !along the x-direction
-          eigenvalues      = p_model%compute_x_eigenvalues(nodes_eigenqties)
-          left_eigenmatrix = p_model%compute_x_lefteigenvector(nodes_eigenqties)
-
-
-          !construction of the vector of characteristic amplitudes
-          do k=1, ne
-
-             !distinction of the characteristic waves between the
-             !incoming and outgoing
-             !if the wave is incoming, its amplitude is set to zero
-             if(incoming_wave(eigenvalues(k))) then
-                if(rkind.eq.8) then
-                   incoming_amp(k) = 0.0d0
-                else
-                   incoming_amp(k) = 0.0
-                end if
-
-             !otherwise, the characteristic amplitude is computed using
-             !one-side differentiation
-             else
-                left_eigenvector = left_eigenmatrix(:,k)
-                var_gradient     = p_model%compute_x_gradient(
-     $               nodes, i,j, gradient, dx)
-                incoming_amp(k)  =  - eigenvalues(k)*
-     $               DOT_PRODUCT(left_eigenvector, var_gradient)
-
-             end if
-
-          end do
-
-
-          !determination of the contribution of the hyperbolic terms
-          !to the time derivatives
-          right_eigenmatrix= p_model%compute_x_righteigenvector(nodes_eigenqties)
-          timedev = MATMUL(incoming_amp, right_eigenmatrix)
-
-        end function compute_x_timedev_with_openbc_cons
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the contribution of the hyperbolic terms of the
-        !> governing equations in the y-direction to the time
-        !> derivatives of the governing variables
-        !
-        !> @date
-        !> 04_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param t
-        !> time
-        !
-        !>@param x
-        !> x-coordinate
-        !
-        !>@param y
-        !> y_coordinate
-        !
-        !>@param nodes
-        !> array of grid points
-        !
-        !>@param i
-        !> index identifying the grid point position along the x-axis
-        !
-        !>@param j
-        !> index identifying the grid point position along the y-axis
-        !
-        !>@param p_model
-        !> governing equations of the physical model
-        !
-        !>@param dy
-        !> space step along the y-direction
-        !
-        !>@param gradient
-        !> procedure computing the gradient along the y-direction
-        !
-        !>@param incoming_wave
-        !> procedure identifying whether the wave is incoming or
-        !> outgoing the edge of the computational domain
-        !-------------------------------------------------------------
-        function compute_y_timedev_with_openbc_cons(
-     $     t,x,y,
-     $     nodes, i,j,
-     $     p_model, dy,
-     $     gradient, incoming_wave)
-     $     result(timedev)
-
-          implicit none
-
-          real(rkind)                  , intent(in) :: t
-          real(rkind)                  , intent(in) :: x
-          real(rkind)                  , intent(in) :: y
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          type(pmodel_eq)              , intent(in) :: p_model
-          real(rkind)                  , intent(in) :: dy
-          procedure(gradient_y_proc)                :: gradient
-          procedure(incoming_proc)                  :: incoming_wave
-          real(rkind), dimension(ne)                :: timedev
-
-
-          real(rkind), dimension(ne)    :: nodes_eigenqties
-          real(rkind), dimension(ne)    :: eigenvalues
-          integer                       :: k
-          real(rkind), dimension(ne)    :: incoming_amp
-          real(rkind), dimension(ne,ne) :: left_eigenmatrix
-          real(rkind), dimension(ne,ne) :: right_eigenmatrix
-          real(rkind), dimension(ne)    :: left_eigenvector
-          real(rkind), dimension(ne)    :: var_gradient
-
-
-          !determine the nodes for the computation of the
-          !eigenquantities
-          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(t,x,y,nodes(i,j,:))
-
-
-          !determination of the speed of the amplitude waves
-          !along the x-direction
-          eigenvalues      = p_model%compute_y_eigenvalues(nodes_eigenqties)
-          left_eigenmatrix = p_model%compute_y_lefteigenvector(nodes_eigenqties)
-
-
-          !construction of the vector of characteristic amplitudes
-          do k=1, ne
-
-             !distinction of the characteristic waves between the
-             !incoming and outgoing
-             !if the wave is incoming, its amplitude is set to zero
-             if(incoming_wave(eigenvalues(k))) then
-                if(rkind.eq.8) then
-                   incoming_amp(k) = 0.0d0
-                else
-                   incoming_amp(k) = 0.0
-                end if
-
-             !otherwise, the characteristic amplitude is computed using
-             !one-side differentiation
-             else
-                left_eigenvector = left_eigenmatrix(:,k)
-                var_gradient     = p_model%compute_y_gradient(
-     $               nodes, i,j, gradient, dy)
-                incoming_amp(k)  =  - eigenvalues(k)*
-     $               DOT_PRODUCT(left_eigenvector, var_gradient)
-
-             end if
-
-          end do
-
-
-          !determination of the contribution of the hyperbolic terms
-          !to the time derivatives
-          right_eigenmatrix= p_model%compute_y_righteigenvector(nodes_eigenqties)
-          timedev = MATMUL(incoming_amp, right_eigenmatrix)
-
-        end function compute_y_timedev_with_openbc_cons
 
 
         !> @author
@@ -1308,7 +879,7 @@
           integer(ikind)               , intent(in) :: j
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: dx
-          procedure(gradient_x_proc)                :: gradient
+          procedure(gradient_proc)                  :: gradient
           procedure(incoming_proc)                  :: incoming_wave
           real(rkind), dimension(ne)                :: timedev
 
@@ -1465,7 +1036,7 @@
           integer(ikind)               , intent(in) :: j
           type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: dy
-          procedure(gradient_y_proc)                :: gradient
+          procedure(gradient_proc)                  :: gradient
           procedure(incoming_proc)                  :: incoming_wave
           real(rkind), dimension(ne)                :: timedev
 
@@ -1499,7 +1070,7 @@
 
 
           !determination of the speed of the amplitude waves
-          !along the x-direction
+          !along the y-direction
           eigenvalues           = p_model%compute_y_eigenvalues_prim(
      $                                uy_lin,
      $                                c_lin)
@@ -1528,7 +1099,7 @@
 
                 left_eigenvector_prim = left_eigenmatrix_prim(:,k)
 
-                gradient_prim         = p_model%compute_y_gradient_prim(
+                gradient_prim         = p_model%compute_gradient_prim(
      $                                      nodes,i,j,
      $                                      gradient,dy)
 

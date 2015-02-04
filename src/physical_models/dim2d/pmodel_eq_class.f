@@ -24,12 +24,9 @@
       !-----------------------------------------------------------------
       module pmodel_eq_class
 
-
         !space discretization module
         use interface_primary, only :
-     $       gradient_x_proc,
-     $       gradient_y_proc,
-     $       gradient_n_proc
+     $       gradient_proc
 
         use sd_operators_class, only :
      $       sd_operators
@@ -40,6 +37,10 @@
 
         !NS-VDW equations
         use ns_vdw2d_prim_module, only :
+     $       compute_prim_var_ns_vdw2d,
+     $       compute_cons_var_ns_vdw2d,
+     $       compute_x_transM_ns_vdw2d,
+     $       compute_y_transM_ns_vdw2d,
      $       compute_x_eigenvalues_ns_vdw2d,
      $       compute_y_eigenvalues_ns_vdw2d,
      $       compute_x_lefteigenvector_ns_vdw2d,
@@ -67,8 +68,6 @@
      $       classical_pressure_local,
      $       speed_of_sound,
      $       temperature_eff,
-     $       compute_jacobian_cons_to_prim,
-     $       compute_jacobian_prim_to_cons,
      $       compute_x_timedev_from_LODI_vector_dim2d,
      $       compute_y_timedev_from_LODI_vector_dim2d,
      $       compute_timedev_from_LODI_vectors_dim2d
@@ -431,26 +430,36 @@
           procedure,   pass :: get_nodes_obc_eigenqties
           procedure,   pass :: get_prim_obc_eigenqties
 
+
           !computations with primitive variables
-          procedure, nopass :: compute_jacobian_prim_to_cons => compute_jacobian_prim_to_cons_ns_vdw2d
-          procedure, nopass :: compute_jacobian_cons_to_prim => compute_jacobian_cons_to_prim_ns_vdw2d
+          procedure, nopass :: compute_prim_var => compute_prim_var_ns_vdw2d
+          procedure, nopass :: compute_cons_var => compute_cons_var_ns_vdw2d
 
-          procedure, nopass :: compute_x_eigenvalues_prim => compute_x_eigenvalues_ns_vdw2d
-          procedure, nopass :: compute_y_eigenvalues_prim => compute_y_eigenvalues_ns_vdw2d
+          procedure, nopass :: compute_jacobian_prim_to_cons
+          procedure, nopass :: compute_jacobian_cons_to_prim
 
-          procedure, nopass :: compute_x_lefteigenvector_prim  => compute_x_lefteigenvector_ns_vdw2d 
-          procedure, nopass :: compute_x_righteigenvector_prim => compute_x_righteigenvector_ns_vdw2d
-          procedure, nopass :: compute_y_lefteigenvector_prim  => compute_y_lefteigenvector_ns_vdw2d 
-          procedure, nopass :: compute_y_righteigenvector_prim => compute_y_righteigenvector_ns_vdw2d
+          procedure, nopass :: compute_x_transM_prim
+          procedure, nopass :: compute_y_transM_prim
+
+          procedure, nopass :: compute_x_eigenvalues_prim
+          procedure, nopass :: compute_y_eigenvalues_prim
+
+          procedure, nopass :: compute_x_lefteigenvector_prim  
+          procedure, nopass :: compute_x_righteigenvector_prim 
+          procedure, nopass :: compute_y_lefteigenvector_prim  
+          procedure, nopass :: compute_y_righteigenvector_prim 
+
+          procedure, nopass :: compute_gradient_prim
+
 
           !eigenquantities computation with conservative variables
-          procedure, nopass :: compute_x_eigenvalues
-          procedure, nopass :: compute_y_eigenvalues
-
-          procedure, nopass :: compute_x_lefteigenvector
-          procedure, nopass :: compute_x_righteigenvector
-          procedure, nopass :: compute_y_lefteigenvector
-          procedure, nopass :: compute_y_righteigenvector
+c$$$          procedure, nopass :: compute_x_eigenvalues
+c$$$          procedure, nopass :: compute_y_eigenvalues
+c$$$
+c$$$          procedure, nopass :: compute_x_lefteigenvector
+c$$$          procedure, nopass :: compute_x_righteigenvector
+c$$$          procedure, nopass :: compute_y_lefteigenvector
+c$$$          procedure, nopass :: compute_y_righteigenvector
 
           procedure, nopass :: compute_n1_eigenvalues => compute_n1_eigenvalues_dim2d
           procedure, nopass :: compute_n2_eigenvalues => compute_n2_eigenvalues_dim2d
@@ -460,26 +469,18 @@
           procedure, nopass :: compute_n2_righteigenvector => compute_n2_righteigenvector_dim2d
 
           !transverse matrices
-          procedure, nopass :: compute_x_transM
-          procedure, nopass :: compute_y_transM
+c$$$          procedure, nopass :: compute_x_transM
+c$$$          procedure, nopass :: compute_y_transM
           procedure, nopass :: compute_n1_transM => compute_n1_transM_dim2d
           procedure, nopass :: compute_n2_transM => compute_n2_transM_dim2d
 
           !lodi computations
-          procedure, nopass :: compute_x_leftConsLodiM
-          procedure, nopass :: compute_y_leftConsLodiM
+c$$$          procedure, nopass :: compute_x_leftConsLodiM
+c$$$          procedure, nopass :: compute_y_leftConsLodiM
           procedure, nopass :: compute_x_timedev_from_LODI_vector => compute_x_timedev_from_LODI_vector_dim2d
           procedure, nopass :: compute_y_timedev_from_LODI_vector => compute_y_timedev_from_LODI_vector_dim2d
           procedure, nopass :: compute_timedev_from_LODI_vectors => compute_timedev_from_LODI_vectors_dim2d
           
-          !gradient computation
-          procedure, nopass :: compute_x_gradient
-          procedure, nopass :: compute_y_gradient
-          procedure, nopass :: compute_n_gradient
-
-          procedure, nopass :: compute_x_gradient_prim
-          procedure, nopass :: compute_y_gradient_prim
-
           !variables in the rotated frame
           procedure, nopass :: compute_xy_to_n_var
           procedure, nopass :: compute_n_to_xy_var
@@ -856,7 +857,7 @@
         !
         !>@result var
         !> far field Mach number in the x-direction
-        !---------------------------------------------------------------
+        !--------------------------------------------------------------
         function get_mach_ux_infty(this,side) result(var)
 
           implicit none
@@ -2124,28 +2125,29 @@
         !
         !>@param nodes_bc
         !> array with the grid point data at the boundary
-        
-        !>@param nodes_eigenqties
-        !> grid points used to evaluate the eigenquantities at the
-        !> boundary
+        !
+        !>@param nodes_prim_extended
+        !> primitive variables extended
+        !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$c\f$]
         !--------------------------------------------------------------
-        subroutine get_prim_obc_eigenqties(
-     $     this,t,x,y,nodes_bc,
-     $     md_lin,ux_lin,uy_lin,P_lin,c_lin)
+        function get_prim_obc_eigenqties(
+     $     this,t,x,y,nodes_bc)
+     $     result(nodes_prim_extended)
 
           implicit none
 
-          class(pmodel_eq)          , intent(in)  :: this
-          real(rkind)               , intent(in)  :: t
-          real(rkind)               , intent(in)  :: x
-          real(rkind)               , intent(in)  :: y
-          real(rkind), dimension(ne), intent(in)  :: nodes_bc
-          real(rkind)               , intent(out) :: md_lin
-          real(rkind)               , intent(out) :: ux_lin
-          real(rkind)               , intent(out) :: uy_lin
-          real(rkind)               , intent(out) :: P_lin
-          real(rkind)               , intent(out) :: c_lin          
+          class(pmodel_eq)            , intent(in)  :: this
+          real(rkind)                 , intent(in)  :: t
+          real(rkind)                 , intent(in)  :: x
+          real(rkind)                 , intent(in)  :: y
+          real(rkind), dimension(ne)  , intent(in)  :: nodes_bc
+          real(rkind), dimension(ne+1)              :: nodes_prim_extended
 
+          real(rkind) :: md_lin
+          real(rkind) :: ux_lin
+          real(rkind) :: uy_lin
+          real(rkind) :: P_lin
+          real(rkind) :: c_lin
           
           real(rkind), dimension(ne) :: nodes_far_field
 
@@ -2179,7 +2181,143 @@
 
           end select
 
-        end subroutine get_prim_obc_eigenqties
+          nodes_prim_extended = [md_lin,ux_lin,uy_lin,P_lin,c_lin]
+
+        end function get_prim_obc_eigenqties
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the Jacobian matrix for primitive to
+        !> to conservative variables
+        !
+        !> @date
+        !> 03_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param nodes_prim_extended
+        !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
+        !
+        !>@return jac_matrix
+        !> jacobian matrix for primitive to conservative
+        !> variables \f$ J^p_v = \frac{\partial p}{\partial v} \f$
+        !--------------------------------------------------------------
+        function compute_jacobian_prim_to_cons(nodes_prim_extended)
+     $     result(jac_matrix)
+
+          implicit none
+
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: jac_matrix
+
+          jac_matrix = compute_jacobian_prim_to_cons_ns_vdw2d(
+     $         nodes_prim_extended(1),
+     $         nodes_prim_extended(2),
+     $         nodes_prim_extended(3),
+     $         nodes_prim_extended(4))
+
+        end function compute_jacobian_prim_to_cons
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the Jacobian matrix for conservative
+        !> to primitive variables
+        !
+        !> @date
+        !> 03_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param nodes_prim_extended
+        !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
+        !
+        !>@return jac_matrix
+        !> jacobian matrix for conservative to primitive
+        !> variables \f$ J^x_p = \frac{\partial x}{\partial p} \f$
+        !--------------------------------------------------------------
+        function compute_jacobian_cons_to_prim(nodes_prim_extended)
+     $     result(jac_matrix)
+
+          implicit none
+
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: jac_matrix
+
+          jac_matrix = compute_jacobian_cons_to_prim_ns_vdw2d(
+     $         nodes_prim_extended(1),
+     $         nodes_prim_extended(2),
+     $         nodes_prim_extended(3),
+     $         nodes_prim_extended(4))
+
+        end function compute_jacobian_cons_to_prim
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of $A^2$, the hyperbolic matrix in the
+        !> y-direction
+        !
+        !> @date
+        !> 04_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param nodes_extended_prim
+        !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
+        !
+        !>@return transM
+        !> hyperbolic matrix in the y-direction
+        !--------------------------------------------------------------
+        function compute_x_transM_prim(nodes_prim_extended)
+     $     result(transM)
+
+          implicit none
+
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: transM
+
+
+          transM = compute_x_transM_ns_vdw2d(
+     $         nodes_prim_extended(1),
+     $         nodes_prim_extended(3),
+     $         nodes_prim_extended(5))
+
+        end function compute_x_transM_prim
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of $A^1$, the hyperbolic matrix in the
+        !> x-direction
+        !
+        !> @date
+        !> 04_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param nodes_extended_prim
+        !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
+        !
+        !>@return transM
+        !> hyperbolic matrix in the x-direction
+        !--------------------------------------------------------------
+        function compute_y_transM_prim(nodes_prim_extended)
+     $     result(transM)
+
+          implicit none
+
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: transM
+
+
+          transM = compute_y_transM_ns_vdw2d(
+     $         nodes_prim_extended(1),
+     $         nodes_prim_extended(2),
+     $         nodes_prim_extended(5))
+
+        end function compute_y_transM_prim
 
 
         !> @author
@@ -2187,167 +2325,61 @@
         !
         !> @brief
         !> computation of the eigenvalues for the hyperbolic terms
-        !> in the x-direction
+        !> in the x-direction in primitive form
         !
         !> @date
-        !> 10_12_2014 - initial version - J.L. Desmarais
+        !> 03_02_2015 - initial version - J.L. Desmarais
         !
-        !>@param nodes
-        !> array with the grid point data
+        !>@param nodes_extended_prim
+        !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
         !
         !>@return eigenvalues
         !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_eigenvalues(nodes) result(eigenvalues)
+        function compute_x_eigenvalues_prim(nodes_prim_extended) result(eigenvalues)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne)             :: eigenvalues
+          real(rkind), dimension(ne+1), intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne)               :: eigenvalues
 
-          real(rkind) :: ux
-          real(rkind) :: c
-
-          ux = nodes(2)/nodes(1)
-          c  = speed_of_sound(nodes)
-
-          eigenvalues(1) = ux
-          eigenvalues(2) = ux
-          eigenvalues(3) = ux-c
-          eigenvalues(4) = ux+c
-
-        end function compute_x_eigenvalues
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> computation of the eigenvalues for the hyperbolic terms
-        !> in the y-direction
-        !
-        !> @date
-        !> 10_12_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
-        !--------------------------------------------------------------
-        function compute_y_eigenvalues(nodes) result(eigenvalues)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne)             :: eigenvalues
-
-          real(rkind) :: uy
-          real(rkind) :: c
-
-          uy = nodes(3)/nodes(1)
-          c  = speed_of_sound(nodes)
-
-          eigenvalues(1) = uy
-          eigenvalues(2) = uy
-          eigenvalues(3) = uy-c
-          eigenvalues(4) = uy+c
-
-        end function compute_y_eigenvalues
-
-      
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> computation of the left eigenmatrix for the hyperbolic
-        !> terms in the x-direction
-        !
-        !> @date
-        !> 10_12_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param k
-        !> integer identifying the eigenvector
-        !
-        !>@return eigenvect
-        !> left eigenmatrix
-        !--------------------------------------------------------------
-        function compute_x_lefteigenvector(nodes) result(eigenvect)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
-
-          real(rkind), dimension(ne,ne) :: jacPrimCons
-          real(rkind), dimension(ne,ne) :: leftEigenMPrim
-          real(rkind)                   :: c
-
-
-          !computation of J, the jacobian matrix from primitive
-          !to conservative variables
-          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
-
-
-          !left eigenmatrix for the primitive
-          !variables, L_p
-          c              = speed_of_sound(nodes)      
-          leftEigenMPrim = compute_x_lefteigenvector_ns_vdw2d(nodes(1),c)
           
+          eigenvalues = compute_x_eigenvalues_ns_vdw2d(
+     $         nodes_prim_extended(2),
+     $         nodes_prim_extended(5))
 
-          !compute the left eigenmatrix by L = L_p.J
-          eigenvect = MATMUL(jacPrimCons,leftEigenMPrim)
-
-        end function compute_x_lefteigenvector
+        end function compute_x_eigenvalues_prim
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> computation of the left eigenmatrixr for the hyperbolic
-        !> terms in the x-direction
+        !> computation of the eigenvalues for the hyperbolic terms
+        !> in the y-direction in primitive form
         !
         !> @date
-        !> 10_12_2014 - initial version - J.L. Desmarais
+        !> 03_02_2015 - initial version - J.L. Desmarais
         !
-        !>@param nodes
-        !> array with the grid point data
+        !>@param nodes_extended_prim
+        !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
         !
-        !>@return eigenvect
-        !> right eigenmatrix
+        !>@return eigenvalues
+        !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_righteigenvector(nodes) result(eigenvect)
+        function compute_y_eigenvalues_prim(nodes_prim_extended) result(eigenvalues)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
+          real(rkind), dimension(ne+1), intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne)               :: eigenvalues
 
+          
+          eigenvalues = compute_y_eigenvalues_ns_vdw2d(
+     $         nodes_prim_extended(3),
+     $         nodes_prim_extended(5))
 
-          real(rkind), dimension(ne,ne) :: jacConsPrim
-          real(rkind), dimension(ne,ne) :: rightEigenMPrim
-          real(rkind)                   :: c
-
-
-          !computation of J, the jacobian matrix from conservative
-          !to primitive variables
-          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
-
-
-          !right eigenmatrix for the primitive
-          !variables, R_p
-          c               = speed_of_sound(nodes)
-          rightEigenMPrim = compute_x_righteigenvector_ns_vdw2d(nodes(1),c)
-
-
-          !right eigenmatrix computed as R = J.R_p
-          eigenvect = MATMUL(rightEigenMPrim,jacConsPrim)
-
-        end function compute_x_righteigenvector
+        end function compute_y_eigenvalues_prim
 
 
         !> @author
@@ -2355,45 +2387,30 @@
         !
         !> @brief
         !> computation of the left eigenmatrix for the hyperbolic
-        !> terms in the y-direction
+        !> terms in the x-direction in primitive form
         !
         !> @date
-        !> 10_12_2014 - initial version - J.L. Desmarais
+        !> 03_02_2015 - initial version - J.L. Desmarais
         !
-        !>@param nodes
-        !> array with the grid point data
+        !>@param nodes_prim_extended
+        !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
         !
         !>@return eigenvect
         !> left eigenmatrix
         !--------------------------------------------------------------
-        function compute_y_lefteigenvector(nodes) result(eigenvect)
+        function compute_x_lefteigenvector_prim(nodes_prim_extended) result(eigenvect)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: eigenvect
 
 
-          real(rkind), dimension(ne,ne) :: jacPrimCons
-          real(rkind), dimension(ne,ne) :: leftEigenMPrim
-          real(rkind)                   :: c
+          eigenvect = compute_x_lefteigenvector_ns_vdw2d(
+     $         nodes_prim_extended(1),
+     $         nodes_prim_extended(5))
 
-
-          !computation of J, the jacobian matrix from primitive
-          !to conservative variables
-          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
-
-
-          !left eigenmatrix for the primitive
-          !variables, L_p
-          c              = speed_of_sound(nodes)
-          leftEigenMPrim = compute_y_lefteigenvector_ns_vdw2d(nodes(1),c)
-
-
-          !compute the left eigenmatrix by L = L_p.J
-          eigenvect = MATMUL(jacPrimCons,leftEigenMPrim)
-
-        end function compute_y_lefteigenvector
+        end function compute_x_lefteigenvector_prim
 
 
         !> @author
@@ -2401,491 +2418,690 @@
         !
         !> @brief
         !> computation of the right eigenmatrix for the hyperbolic
-        !> terms in the y-direction
+        !> terms in the x-direction in primitive form
         !
         !> @date
-        !> 10_12_2014 - initial version - J.L. Desmarais
+        !> 03_02_2015 - initial version - J.L. Desmarais
         !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@return eigenvalues
-        !> right eigenmatrix
-        !--------------------------------------------------------------
-        function compute_y_righteigenvector(nodes) result(eigenvect)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
-
-
-          real(rkind), dimension(ne,ne) :: jacConsPrim
-          real(rkind), dimension(ne,ne) :: rightEigenMPrim
-          real(rkind)                   :: c
-
-
-          !computation of J, the jacobian matrix from conservative
-          !to primitive variables
-          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
-
-
-          !right eigenmatrix for the primitive
-          !variables, R_p
-          c               = speed_of_sound(nodes)
-          rightEigenMPrim = compute_y_righteigenvector_ns_vdw2d(nodes(1),c)
-
-
-          !right eigenmatrix computed as R = J.R_p
-          eigenvect = MATMUL(rightEigenMPrim,jacConsPrim)
-
-        end function compute_y_righteigenvector
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> computation of the transverse matrix in the x-direction
-        !> if the convective part of the governing equations is
-        !> written as
-        !> \f$ \frac{\partial v}{\partial t} +
-        !>    A^x_v \frac{\partial v}{\partial x} + 
-        !>    A^y_v \frac{\partial v}{\partial y}
-        !> \f$
-        !> then the transverse matrix in the x-direction is
-        !> \f$ A^y_p = J^v_p \cdot A^y_p \cdot J^p_v\f$
-        !> where $J^v_p$ and $J^p_v$ are the Jacobian matrices
-        !> and $A^y_p$ is the transverse matrix for the primitive
-        !> variables
-        !
-        !> @date
-        !> 10_12_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
+        !>@param nodes_prim_extended
+        !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
         !
         !>@return eigenvect
-        !> transverse matrix in the x-direction
+        !> left eigenmatrix
         !--------------------------------------------------------------
-        function compute_x_transM(nodes) result(eigenvect)
+        function compute_x_righteigenvector_prim(nodes_prim_extended) result(eigenvect)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: eigenvect
 
 
-          real(rkind), dimension(ne,ne) :: jacConsPrim
-          real(rkind), dimension(ne,ne) :: jacPrimCons
-          real(rkind), dimension(ne,ne) :: xTransMPrim
+          eigenvect = compute_x_righteigenvector_ns_vdw2d(
+     $         nodes_prim_extended(1),
+     $         nodes_prim_extended(5))
 
-          real(rkind)                   :: uy
-          real(rkind)                   :: c
-
-
-          !computation of J, the jacobian matrix from conservative
-          !to primitive variables
-          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
-          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
-
-
-          !transverse matrix for the primitive variables
-          uy = nodes(3)/nodes(1)         !velocity_y
-          c  = speed_of_sound(nodes)     !speed of sound
-          
-
-          if(rkind.eq.8) then
-
-             xTransMPrim(1,1) = uy
-             xTransMPrim(2,1) = 0.0d0
-             xTransMPrim(3,1) = nodes(1)
-             xTransMPrim(4,1) = 0.0d0
-
-             xTransMPrim(1,2) = 0.0d0
-             xTransMPrim(2,2) = uy
-             xTransMPrim(3,2) = 0.0d0
-             xTransMPrim(4,2) = 0.0d0
-
-             xTransMPrim(1,3) = 0.0d0
-             xTransMPrim(2,3) = 0.0d0
-             xTransMPrim(3,3) = uy
-             xTransMPrim(4,3) = 1.0d0/nodes(1)
-
-             xTransMPrim(1,4) = 0.0d0
-             xTransMPrim(2,4) = 0.0d0
-             xTransMPrim(3,4) = c**2*nodes(1)
-             xTransMPrim(4,4) = uy
-
-          else
-             
-             xTransMPrim(1,1) = uy
-             xTransMPrim(2,1) = 0.0
-             xTransMPrim(3,1) = nodes(1)
-             xTransMPrim(4,1) = 0.0
-
-             xTransMPrim(1,2) = 0.0
-             xTransMPrim(2,2) = uy
-             xTransMPrim(3,2) = 0.0
-             xTransMPrim(4,2) = 0.0
-
-             xTransMPrim(1,3) = 0.0
-             xTransMPrim(2,3) = 0.0
-             xTransMPrim(3,3) = uy
-             xTransMPrim(4,3) = 1.0/nodes(1)
-
-             xTransMPrim(1,4) = 0.0
-             xTransMPrim(2,4) = 0.0
-             xTransMPrim(3,4) = c**2*nodes(1)
-             xTransMPrim(4,4) = uy
-
-          end if
-
-          !transverse matrix computed as A^y_v = J^v_p.A^y_p.J^p_v
-          eigenvect = MATMUL(MATMUL(jacPrimCons,xTransMPrim),jacConsPrim)
-
-        end function compute_x_transM
+        end function compute_x_righteigenvector_prim
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> computation of the transverse matrix in the x-direction
-        !> if the convective part of the governing equations is
-        !> written as
-        !> \f$ \frac{\partial v}{\partial t} +
-        !>    A_x \frac{\partial v}{\partial x} + 
-        !>    A_y \frac{\partial v}{\partial y}
-        !> \f$
-        !> then the transverse matrix in the y-direction is
-        !> \f$ A^x_p = J^v_p \cdot A^x_p \cdot J^p_v\f$
-        !> where $J^v_p$ and $J^p_v$ are the Jacobian matrices
-        !> and $A^x_p$ is the transverse matrix for the primitive
-        !> variables
+        !> computation of the left eigenmatrix for the hyperbolic
+        !> terms in the y-direction in primitive form
         !
         !> @date
-        !> 10_12_2014 - initial version - J.L. Desmarais
+        !> 03_02_2015 - initial version - J.L. Desmarais
         !
-        !>@param nodes
-        !> array with the grid point data
+        !>@param nodes_prim_extended
+        !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
         !
         !>@return eigenvect
-        !> transverse matrix in the y-direction
+        !> left eigenmatrix
         !--------------------------------------------------------------
-        function compute_y_transM(nodes) result(eigenvect)
+        function compute_y_lefteigenvector_prim(nodes_prim_extended) result(eigenvect)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: eigenvect
 
 
-          real(rkind), dimension(ne,ne) :: jacConsPrim
-          real(rkind), dimension(ne,ne) :: jacPrimCons
-          real(rkind), dimension(ne,ne) :: yTransMPrim
+          eigenvect = compute_y_lefteigenvector_ns_vdw2d(
+     $         nodes_prim_extended(1),
+     $         nodes_prim_extended(5))
 
-          real(rkind)                   :: ux
-          real(rkind)                   :: c
-
-
-          !computation of J, the jacobian matrix from conservative
-          !to primitive variables
-          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
-          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
-
-
-          !transverse matrix for the primitive variables
-          ux = nodes(2)/nodes(1)         !velocity_x
-          c  = speed_of_sound(nodes)     !speed of sound
-          
-
-          if(rkind.eq.8) then
-             
-             yTransMPrim(1,1) = ux
-             yTransMPrim(2,1) = nodes(1)
-             yTransMPrim(3,1) = 0.0d0
-             yTransMPrim(4,1) = 0.0d0
-
-             yTransMPrim(1,2) = 0.0d0
-             yTransMPrim(2,2) = ux
-             yTransMPrim(3,2) = 0.0d0
-             yTransMPrim(4,2) = 1.0d0/nodes(1)
-
-             yTransMPrim(1,3) = 0.0d0
-             yTransMPrim(2,3) = 0.0d0
-             yTransMPrim(3,3) = ux
-             yTransMPrim(4,3) = 0.0d0
-
-             yTransMPrim(1,4) = 0.0d0
-             yTransMPrim(2,4) = c**2*nodes(1)
-             yTransMPrim(3,4) = 0.0d0
-             yTransMPrim(4,4) = ux
-
-          else
-             
-             yTransMPrim(1,1) = ux
-             yTransMPrim(2,1) = nodes(1)
-             yTransMPrim(3,1) = 0.0
-             yTransMPrim(4,1) = 0.0
-
-             yTransMPrim(1,2) = 0.0
-             yTransMPrim(2,2) = ux
-             yTransMPrim(3,2) = 0.0
-             yTransMPrim(4,2) = 1.0/nodes(1)
-
-             yTransMPrim(1,3) = 0.0
-             yTransMPrim(2,3) = 0.0
-             yTransMPrim(3,3) = ux
-             yTransMPrim(4,3) = 0.0
-
-             yTransMPrim(1,4) = 0.0
-             yTransMPrim(2,4) = c**2*nodes(1)
-             yTransMPrim(3,4) = 0.0
-             yTransMPrim(4,4) = ux
-
-          end if
-
-          !transverse matrix computed as A^x_v = J^v_p.A^x_p.J^p_v
-          eigenvect = MATMUL(MATMUL(jacPrimCons,yTransMPrim),jacConsPrim)
-
-        end function compute_y_transM
+        end function compute_y_lefteigenvector_prim
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> computation of the left LODI conservative matrix in the
-        !> x-direction
+        !> computation of the right eigenmatrix for the hyperbolic
+        !> terms in the y-direction in primitive form
+        !
+        !> @date
+        !> 03_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param nodes_prim_extended
+        !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
+        !
+        !>@return eigenvect
+        !> left eigenmatrix
+        !--------------------------------------------------------------
+        function compute_y_righteigenvector_prim(nodes_prim_extended) result(eigenvect)
+
+          implicit none
+
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: eigenvect
+
+
+          eigenvect = compute_y_righteigenvector_ns_vdw2d(
+     $         nodes_prim_extended(1),
+     $         nodes_prim_extended(5))
+
+        end function compute_y_righteigenvector_prim
+
+
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> computation of the eigenvalues for the hyperbolic terms
+c$$$        !> in the x-direction
+c$$$        !
+c$$$        !> @date
+c$$$        !> 10_12_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid point data
+c$$$        !
+c$$$        !>@return eigenvalues
+c$$$        !> eigenvalues at the location of the grid point
+c$$$        !--------------------------------------------------------------
+c$$$        function compute_x_eigenvalues(nodes) result(eigenvalues)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(ne), intent(in) :: nodes
+c$$$          real(rkind), dimension(ne)             :: eigenvalues
+c$$$
+c$$$          real(rkind) :: ux
+c$$$          real(rkind) :: c
+c$$$
+c$$$          ux = nodes(2)/nodes(1)
+c$$$          c  = speed_of_sound(nodes)
+c$$$
+c$$$          eigenvalues(1) = ux
+c$$$          eigenvalues(2) = ux
+c$$$          eigenvalues(3) = ux-c
+c$$$          eigenvalues(4) = ux+c
+c$$$
+c$$$        end function compute_x_eigenvalues
+c$$$
+c$$$
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> computation of the eigenvalues for the hyperbolic terms
+c$$$        !> in the y-direction
+c$$$        !
+c$$$        !> @date
+c$$$        !> 10_12_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid point data
+c$$$        !
+c$$$        !>@return eigenvalues
+c$$$        !> eigenvalues at the location of the grid point
+c$$$        !--------------------------------------------------------------
+c$$$        function compute_y_eigenvalues(nodes) result(eigenvalues)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(ne), intent(in) :: nodes
+c$$$          real(rkind), dimension(ne)             :: eigenvalues
+c$$$
+c$$$          real(rkind) :: uy
+c$$$          real(rkind) :: c
+c$$$
+c$$$          uy = nodes(3)/nodes(1)
+c$$$          c  = speed_of_sound(nodes)
+c$$$
+c$$$          eigenvalues(1) = uy
+c$$$          eigenvalues(2) = uy
+c$$$          eigenvalues(3) = uy-c
+c$$$          eigenvalues(4) = uy+c
+c$$$
+c$$$        end function compute_y_eigenvalues
+c$$$
+c$$$      
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> computation of the left eigenmatrix for the hyperbolic
+c$$$        !> terms in the x-direction
+c$$$        !
+c$$$        !> @date
+c$$$        !> 10_12_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid point data
+c$$$        !
+c$$$        !>@param k
+c$$$        !> integer identifying the eigenvector
+c$$$        !
+c$$$        !>@return eigenvect
+c$$$        !> left eigenmatrix
+c$$$        !--------------------------------------------------------------
+c$$$        function compute_x_lefteigenvector(nodes) result(eigenvect)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(ne), intent(in) :: nodes
+c$$$          real(rkind), dimension(ne,ne)          :: eigenvect
+c$$$
+c$$$          real(rkind), dimension(ne,ne) :: jacPrimCons
+c$$$          real(rkind), dimension(ne,ne) :: leftEigenMPrim
+c$$$          real(rkind)                   :: c
+c$$$
+c$$$
+c$$$          !computation of J, the jacobian matrix from primitive
+c$$$          !to conservative variables
+c$$$          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
+c$$$
+c$$$
+c$$$          !left eigenmatrix for the primitive
+c$$$          !variables, L_p
+c$$$          c              = speed_of_sound(nodes)      
+c$$$          leftEigenMPrim = compute_x_lefteigenvector_ns_vdw2d(nodes(1),c)
+c$$$          
+c$$$
+c$$$          !compute the left eigenmatrix by L = L_p.J
+c$$$          eigenvect = MATMUL(jacPrimCons,leftEigenMPrim)
+c$$$
+c$$$        end function compute_x_lefteigenvector
+c$$$
+c$$$
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> computation of the left eigenmatrixr for the hyperbolic
+c$$$        !> terms in the x-direction
+c$$$        !
+c$$$        !> @date
+c$$$        !> 10_12_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid point data
+c$$$        !
+c$$$        !>@return eigenvect
+c$$$        !> right eigenmatrix
+c$$$        !--------------------------------------------------------------
+c$$$        function compute_x_righteigenvector(nodes) result(eigenvect)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(ne), intent(in) :: nodes
+c$$$          real(rkind), dimension(ne,ne)          :: eigenvect
+c$$$
+c$$$
+c$$$          real(rkind), dimension(ne,ne) :: jacConsPrim
+c$$$          real(rkind), dimension(ne,ne) :: rightEigenMPrim
+c$$$          real(rkind)                   :: c
+c$$$
+c$$$
+c$$$          !computation of J, the jacobian matrix from conservative
+c$$$          !to primitive variables
+c$$$          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
+c$$$
+c$$$
+c$$$          !right eigenmatrix for the primitive
+c$$$          !variables, R_p
+c$$$          c               = speed_of_sound(nodes)
+c$$$          rightEigenMPrim = compute_x_righteigenvector_ns_vdw2d(nodes(1),c)
+c$$$
+c$$$
+c$$$          !right eigenmatrix computed as R = J.R_p
+c$$$          eigenvect = MATMUL(rightEigenMPrim,jacConsPrim)
+c$$$
+c$$$        end function compute_x_righteigenvector
+c$$$
+c$$$
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> computation of the left eigenmatrix for the hyperbolic
+c$$$        !> terms in the y-direction
+c$$$        !
+c$$$        !> @date
+c$$$        !> 10_12_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid point data
+c$$$        !
+c$$$        !>@return eigenvect
+c$$$        !> left eigenmatrix
+c$$$        !--------------------------------------------------------------
+c$$$        function compute_y_lefteigenvector(nodes) result(eigenvect)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(ne), intent(in) :: nodes
+c$$$          real(rkind), dimension(ne,ne)          :: eigenvect
+c$$$
+c$$$
+c$$$          real(rkind), dimension(ne,ne) :: jacPrimCons
+c$$$          real(rkind), dimension(ne,ne) :: leftEigenMPrim
+c$$$          real(rkind)                   :: c
+c$$$
+c$$$
+c$$$          !computation of J, the jacobian matrix from primitive
+c$$$          !to conservative variables
+c$$$          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
+c$$$
+c$$$
+c$$$          !left eigenmatrix for the primitive
+c$$$          !variables, L_p
+c$$$          c              = speed_of_sound(nodes)
+c$$$          leftEigenMPrim = compute_y_lefteigenvector_ns_vdw2d(nodes(1),c)
+c$$$
+c$$$
+c$$$          !compute the left eigenmatrix by L = L_p.J
+c$$$          eigenvect = MATMUL(jacPrimCons,leftEigenMPrim)
+c$$$
+c$$$        end function compute_y_lefteigenvector
+c$$$
+c$$$
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> computation of the right eigenmatrix for the hyperbolic
+c$$$        !> terms in the y-direction
+c$$$        !
+c$$$        !> @date
+c$$$        !> 10_12_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid point data
+c$$$        !
+c$$$        !>@return eigenvalues
+c$$$        !> right eigenmatrix
+c$$$        !--------------------------------------------------------------
+c$$$        function compute_y_righteigenvector(nodes) result(eigenvect)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(ne), intent(in) :: nodes
+c$$$          real(rkind), dimension(ne,ne)          :: eigenvect
+c$$$
+c$$$
+c$$$          real(rkind), dimension(ne,ne) :: jacConsPrim
+c$$$          real(rkind), dimension(ne,ne) :: rightEigenMPrim
+c$$$          real(rkind)                   :: c
+c$$$
+c$$$
+c$$$          !computation of J, the jacobian matrix from conservative
+c$$$          !to primitive variables
+c$$$          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
+c$$$
+c$$$
+c$$$          !right eigenmatrix for the primitive
+c$$$          !variables, R_p
+c$$$          c               = speed_of_sound(nodes)
+c$$$          rightEigenMPrim = compute_y_righteigenvector_ns_vdw2d(nodes(1),c)
+c$$$
+c$$$
+c$$$          !right eigenmatrix computed as R = J.R_p
+c$$$          eigenvect = MATMUL(rightEigenMPrim,jacConsPrim)
+c$$$
+c$$$        end function compute_y_righteigenvector
+c$$$
+c$$$
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> computation of the transverse matrix in the x-direction
+c$$$        !> if the convective part of the governing equations is
+c$$$        !> written as
+c$$$        !> \f$ \frac{\partial v}{\partial t} +
+c$$$        !>    A^x_v \frac{\partial v}{\partial x} + 
+c$$$        !>    A^y_v \frac{\partial v}{\partial y}
+c$$$        !> \f$
+c$$$        !> then the transverse matrix in the x-direction is
+c$$$        !> \f$ A^y_p = J^v_p \cdot A^y_p \cdot J^p_v\f$
+c$$$        !> where $J^v_p$ and $J^p_v$ are the Jacobian matrices
+c$$$        !> and $A^y_p$ is the transverse matrix for the primitive
+c$$$        !> variables
+c$$$        !
+c$$$        !> @date
+c$$$        !> 10_12_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid point data
+c$$$        !
+c$$$        !>@return eigenvect
+c$$$        !> transverse matrix in the x-direction
+c$$$        !--------------------------------------------------------------
+c$$$        function compute_x_transM(nodes) result(eigenvect)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(ne), intent(in) :: nodes
+c$$$          real(rkind), dimension(ne,ne)          :: eigenvect
+c$$$
+c$$$
+c$$$          real(rkind), dimension(ne,ne) :: jacConsPrim
+c$$$          real(rkind), dimension(ne,ne) :: jacPrimCons
+c$$$          real(rkind), dimension(ne,ne) :: xTransMPrim
+c$$$
+c$$$          real(rkind)                   :: uy
+c$$$          real(rkind)                   :: c
+c$$$
+c$$$
+c$$$          !computation of J, the jacobian matrix from conservative
+c$$$          !to primitive variables
+c$$$          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
+c$$$          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
+c$$$
+c$$$
+c$$$          !transverse matrix for the primitive variables
+c$$$          uy = nodes(3)/nodes(1)         !velocity_y
+c$$$          c  = speed_of_sound(nodes)     !speed of sound
+c$$$          xTransMPrim = compute_x_transM_ns_vdw2d(nodes(1),uy,c)
+c$$$          
+c$$$
+c$$$          !transverse matrix computed as A^y_v = J^v_p.A^y_p.J^p_v
+c$$$          eigenvect = MATMUL(MATMUL(jacPrimCons,xTransMPrim),jacConsPrim)
+c$$$
+c$$$        end function compute_x_transM
+c$$$
+c$$$
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> computation of the transverse matrix in the x-direction
+c$$$        !> if the convective part of the governing equations is
+c$$$        !> written as
+c$$$        !> \f$ \frac{\partial v}{\partial t} +
+c$$$        !>    A_x \frac{\partial v}{\partial x} + 
+c$$$        !>    A_y \frac{\partial v}{\partial y}
+c$$$        !> \f$
+c$$$        !> then the transverse matrix in the y-direction is
+c$$$        !> \f$ A^x_p = J^v_p \cdot A^x_p \cdot J^p_v\f$
+c$$$        !> where $J^v_p$ and $J^p_v$ are the Jacobian matrices
+c$$$        !> and $A^x_p$ is the transverse matrix for the primitive
+c$$$        !> variables
+c$$$        !
+c$$$        !> @date
+c$$$        !> 10_12_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid point data
+c$$$        !
+c$$$        !>@return eigenvect
+c$$$        !> transverse matrix in the y-direction
+c$$$        !--------------------------------------------------------------
+c$$$        function compute_y_transM(nodes) result(eigenvect)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(ne), intent(in) :: nodes
+c$$$          real(rkind), dimension(ne,ne)          :: eigenvect
+c$$$
+c$$$
+c$$$          real(rkind), dimension(ne,ne) :: jacConsPrim
+c$$$          real(rkind), dimension(ne,ne) :: jacPrimCons
+c$$$          real(rkind), dimension(ne,ne) :: yTransMPrim
+c$$$
+c$$$          real(rkind)                   :: ux
+c$$$          real(rkind)                   :: c
+c$$$
+c$$$
+c$$$          !computation of J, the jacobian matrix from conservative
+c$$$          !to primitive variables
+c$$$          jacConsPrim = compute_jacobian_cons_to_prim(nodes)
+c$$$          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
+c$$$
+c$$$
+c$$$          !transverse matrix for the primitive variables
+c$$$          ux = nodes(2)/nodes(1)         !velocity_x
+c$$$          c  = speed_of_sound(nodes)     !speed of sound
+c$$$          yTransMPrim = compute_y_transM_ns_vdw2d(nodes(1),ux,c)
+c$$$          
+c$$$
+c$$$          !transverse matrix computed as A^x_v = J^v_p.A^x_p.J^p_v
+c$$$          eigenvect = MATMUL(MATMUL(jacPrimCons,yTransMPrim),jacConsPrim)
+c$$$
+c$$$        end function compute_y_transM
+c$$$
+c$$$
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> computation of the left LODI conservative matrix in the
+c$$$        !> x-direction
+c$$$        !
+c$$$        !> @date
+c$$$        !> 11_12_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid point data
+c$$$        !
+c$$$        !>@return eigenvect
+c$$$        !> conservative LODI matrix in the x-direction
+c$$$        !--------------------------------------------------------------
+c$$$        function compute_x_leftConsLodiM(nodes) result(eigenvect)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(ne), intent(in) :: nodes
+c$$$          real(rkind), dimension(ne,ne)          :: eigenvect
+c$$$
+c$$$
+c$$$          real(rkind), dimension(ne,ne) :: jacPrimCons
+c$$$          real(rkind), dimension(ne,ne) :: leftLodiM
+c$$$
+c$$$          real(rkind)                   :: c
+c$$$          real(rkind)                   :: q_c
+c$$$
+c$$$
+c$$$          !computation of J, the jacobian matrix from primitive
+c$$$          !to conservative variables
+c$$$          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
+c$$$
+c$$$
+c$$$          !left LODI matrix for the primitive variables
+c$$$          c   = speed_of_sound(nodes)     !speed of sound
+c$$$          q_c = nodes(1)*c
+c$$$          
+c$$$
+c$$$          if(rkind.eq.8) then
+c$$$
+c$$$             leftLodiM(1,1) = 0.0d0
+c$$$             leftLodiM(2,1) = 0.0d0
+c$$$             leftLodiM(3,1) = 1.0d0
+c$$$             leftLodiM(4,1) = 0.0d0
+c$$$
+c$$$             leftLodiM(1,2) = c**2
+c$$$             leftLodiM(2,2) = 0.0d0
+c$$$             leftLodiM(3,2) = 0.0d0
+c$$$             leftLodiM(4,2) =-1.0d0
+c$$$
+c$$$             leftLodiM(1,3) = 0.0d0
+c$$$             leftLodiM(2,3) =-q_c
+c$$$             leftLodiM(3,3) = 0.0d0
+c$$$             leftLodiM(4,3) = 1.0d0
+c$$$
+c$$$             leftLodiM(1,4) = 0.0d0
+c$$$             leftLodiM(2,4) = q_c
+c$$$             leftLodiM(3,4) = 0.0d0
+c$$$             leftLodiM(4,4) = 1.0d0
+c$$$
+c$$$          else
+c$$$             
+c$$$             leftLodiM(1,1) = 0.0
+c$$$             leftLodiM(2,1) = 0.0
+c$$$             leftLodiM(3,1) = 1.0
+c$$$             leftLodiM(4,1) = 0.0
+c$$$
+c$$$             leftLodiM(1,2) = c**2
+c$$$             leftLodiM(2,2) = 0.0
+c$$$             leftLodiM(3,2) = 0.0
+c$$$             leftLodiM(4,2) =-1.0
+c$$$
+c$$$             leftLodiM(1,3) = 0.0
+c$$$             leftLodiM(2,3) =-q_c
+c$$$             leftLodiM(3,3) = 0.0
+c$$$             leftLodiM(4,3) = 1.0
+c$$$
+c$$$             leftLodiM(1,4) = 0.0
+c$$$             leftLodiM(2,4) = q_c
+c$$$             leftLodiM(3,4) = 0.0
+c$$$             leftLodiM(4,4) = 1.0
+c$$$
+c$$$          end if
+c$$$
+c$$$          !conservative LODI matrix computed as N^x_L = M^x_L.J^p_v
+c$$$          eigenvect = MATMUL(jacPrimCons,leftLodiM)
+c$$$
+c$$$        end function compute_x_leftConsLodiM
+c$$$
+c$$$
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> computation of the left LODI conservative matrix in the
+c$$$        !> y-direction
+c$$$        !
+c$$$        !> @date
+c$$$        !> 11_12_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid point data
+c$$$        !
+c$$$        !>@return eigenvect
+c$$$        !> conservative LODI matrix in the y-direction
+c$$$        !--------------------------------------------------------------
+c$$$        function compute_y_leftConsLodiM(nodes) result(eigenvect)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(ne), intent(in) :: nodes
+c$$$          real(rkind), dimension(ne,ne)          :: eigenvect
+c$$$
+c$$$
+c$$$          real(rkind), dimension(ne,ne) :: jacPrimCons
+c$$$          real(rkind), dimension(ne,ne) :: leftLodiM
+c$$$
+c$$$          real(rkind)                   :: c
+c$$$          real(rkind)                   :: q_c
+c$$$
+c$$$
+c$$$          !computation of J, the jacobian matrix from primitive
+c$$$          !to conservative variables
+c$$$          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
+c$$$
+c$$$
+c$$$          !left LODI matrix for the primitive variables
+c$$$          c   = speed_of_sound(nodes)     !speed of sound
+c$$$          q_c = nodes(1)*c
+c$$$          
+c$$$
+c$$$          if(rkind.eq.8) then
+c$$$
+c$$$             leftLodiM(1,1) = 0.0d0
+c$$$             leftLodiM(2,1) = 1.0d0
+c$$$             leftLodiM(3,1) = 0.0d0
+c$$$             leftLodiM(4,1) = 0.0d0
+c$$$
+c$$$             leftLodiM(1,2) = c**2
+c$$$             leftLodiM(2,2) = 0.0d0
+c$$$             leftLodiM(3,2) = 0.0d0
+c$$$             leftLodiM(4,2) =-1.0d0
+c$$$
+c$$$             leftLodiM(1,3) = 0.0d0
+c$$$             leftLodiM(2,3) = 0.0d0
+c$$$             leftLodiM(3,3) =-q_c
+c$$$             leftLodiM(4,3) = 1.0d0
+c$$$
+c$$$             leftLodiM(1,4) = 0.0d0
+c$$$             leftLodiM(2,4) = 0.0d0
+c$$$             leftLodiM(3,4) = q_c
+c$$$             leftLodiM(4,4) = 1.0d0
+c$$$
+c$$$          else
+c$$$             
+c$$$             leftLodiM(1,1) = 0.0
+c$$$             leftLodiM(2,1) = 1.0
+c$$$             leftLodiM(3,1) = 0.0
+c$$$             leftLodiM(4,1) = 0.0
+c$$$
+c$$$             leftLodiM(1,2) = c**2
+c$$$             leftLodiM(2,2) = 0.0
+c$$$             leftLodiM(3,2) = 0.0
+c$$$             leftLodiM(4,2) =-1.0
+c$$$
+c$$$             leftLodiM(1,3) = 0.0
+c$$$             leftLodiM(2,3) = 0.0
+c$$$             leftLodiM(3,3) =-q_c
+c$$$             leftLodiM(4,3) = 1.0
+c$$$
+c$$$             leftLodiM(1,4) = 0.0
+c$$$             leftLodiM(2,4) = 0.0
+c$$$             leftLodiM(3,4) = q_c
+c$$$             leftLodiM(4,4) = 1.0
+c$$$
+c$$$          end if
+c$$$
+c$$$          !conservative LODI matrix computed as N^y_L = M^y_L.J^p_v
+c$$$          eigenvect = MATMUL(jacPrimCons,leftLodiM)
+c$$$
+c$$$        end function compute_y_leftConsLodiM
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the gradient of the primitive variables
+        !> from the conservative variables and the procedure
+        !> computing the gradient
         !
         !> @date
         !> 11_12_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
-        !
-        !>@return eigenvect
-        !> conservative LODI matrix in the x-direction
-        !--------------------------------------------------------------
-        function compute_x_leftConsLodiM(nodes) result(eigenvect)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
-
-
-          real(rkind), dimension(ne,ne) :: jacPrimCons
-          real(rkind), dimension(ne,ne) :: leftLodiM
-
-          real(rkind)                   :: c
-          real(rkind)                   :: q_c
-
-
-          !computation of J, the jacobian matrix from primitive
-          !to conservative variables
-          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
-
-
-          !left LODI matrix for the primitive variables
-          c   = speed_of_sound(nodes)     !speed of sound
-          q_c = nodes(1)*c
-          
-
-          if(rkind.eq.8) then
-
-             leftLodiM(1,1) = 0.0d0
-             leftLodiM(2,1) = 0.0d0
-             leftLodiM(3,1) = 1.0d0
-             leftLodiM(4,1) = 0.0d0
-
-             leftLodiM(1,2) = c**2
-             leftLodiM(2,2) = 0.0d0
-             leftLodiM(3,2) = 0.0d0
-             leftLodiM(4,2) =-1.0d0
-
-             leftLodiM(1,3) = 0.0d0
-             leftLodiM(2,3) =-q_c
-             leftLodiM(3,3) = 0.0d0
-             leftLodiM(4,3) = 1.0d0
-
-             leftLodiM(1,4) = 0.0d0
-             leftLodiM(2,4) = q_c
-             leftLodiM(3,4) = 0.0d0
-             leftLodiM(4,4) = 1.0d0
-
-          else
-             
-             leftLodiM(1,1) = 0.0
-             leftLodiM(2,1) = 0.0
-             leftLodiM(3,1) = 1.0
-             leftLodiM(4,1) = 0.0
-
-             leftLodiM(1,2) = c**2
-             leftLodiM(2,2) = 0.0
-             leftLodiM(3,2) = 0.0
-             leftLodiM(4,2) =-1.0
-
-             leftLodiM(1,3) = 0.0
-             leftLodiM(2,3) =-q_c
-             leftLodiM(3,3) = 0.0
-             leftLodiM(4,3) = 1.0
-
-             leftLodiM(1,4) = 0.0
-             leftLodiM(2,4) = q_c
-             leftLodiM(3,4) = 0.0
-             leftLodiM(4,4) = 1.0
-
-          end if
-
-          !conservative LODI matrix computed as N^x_L = M^x_L.J^p_v
-          eigenvect = MATMUL(jacPrimCons,leftLodiM)
-
-        end function compute_x_leftConsLodiM
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> computation of the left LODI conservative matrix in the
-        !> y-direction
-        !
-        !> @date
-        !> 11_12_2014 - initial version - J.L. Desmarais
+        !> conservative variables in the (x,y) reference frame
         !
         !>@param nodes
-        !> array with the grid point data
-        !
-        !>@return eigenvect
-        !> conservative LODI matrix in the y-direction
-        !--------------------------------------------------------------
-        function compute_y_leftConsLodiM(nodes) result(eigenvect)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
-
-
-          real(rkind), dimension(ne,ne) :: jacPrimCons
-          real(rkind), dimension(ne,ne) :: leftLodiM
-
-          real(rkind)                   :: c
-          real(rkind)                   :: q_c
-
-
-          !computation of J, the jacobian matrix from primitive
-          !to conservative variables
-          jacPrimCons = compute_jacobian_prim_to_cons(nodes)
-
-
-          !left LODI matrix for the primitive variables
-          c   = speed_of_sound(nodes)     !speed of sound
-          q_c = nodes(1)*c
-          
-
-          if(rkind.eq.8) then
-
-             leftLodiM(1,1) = 0.0d0
-             leftLodiM(2,1) = 1.0d0
-             leftLodiM(3,1) = 0.0d0
-             leftLodiM(4,1) = 0.0d0
-
-             leftLodiM(1,2) = c**2
-             leftLodiM(2,2) = 0.0d0
-             leftLodiM(3,2) = 0.0d0
-             leftLodiM(4,2) =-1.0d0
-
-             leftLodiM(1,3) = 0.0d0
-             leftLodiM(2,3) = 0.0d0
-             leftLodiM(3,3) =-q_c
-             leftLodiM(4,3) = 1.0d0
-
-             leftLodiM(1,4) = 0.0d0
-             leftLodiM(2,4) = 0.0d0
-             leftLodiM(3,4) = q_c
-             leftLodiM(4,4) = 1.0d0
-
-          else
-             
-             leftLodiM(1,1) = 0.0
-             leftLodiM(2,1) = 1.0
-             leftLodiM(3,1) = 0.0
-             leftLodiM(4,1) = 0.0
-
-             leftLodiM(1,2) = c**2
-             leftLodiM(2,2) = 0.0
-             leftLodiM(3,2) = 0.0
-             leftLodiM(4,2) =-1.0
-
-             leftLodiM(1,3) = 0.0
-             leftLodiM(2,3) = 0.0
-             leftLodiM(3,3) =-q_c
-             leftLodiM(4,3) = 1.0
-
-             leftLodiM(1,4) = 0.0
-             leftLodiM(2,4) = 0.0
-             leftLodiM(3,4) = q_c
-             leftLodiM(4,4) = 1.0
-
-          end if
-
-          !conservative LODI matrix computed as N^y_L = M^y_L.J^p_v
-          eigenvect = MATMUL(jacPrimCons,leftLodiM)
-
-        end function compute_y_leftConsLodiM
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> interface for the computation of the gradient of the
-        !> governing variables in the x-direction
-        !
-        !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
+        !> conservative variables in the (x,y) reference frame
         !
         !>@param i
-        !> integer identifying the index in the x-direction
+        !> x-index where the gradient is computed
         !
         !>@param j
-        !> integer identifying the index in the y-direction
+        !> y-index where the gradient is computed
         !
-        !>@param gradient
-        !> procedure used to compute the gradient along the x-axis
-        !
-        !>@param dx
-        !> grid space step along the x-axis
+        !>@param dn
+        !> grid space step in the direction of the gradient
         !
         !>@return grad_var
-        !> gradient of the governing variables along the x-axis
+        !> gradient of the primitive variables
         !--------------------------------------------------------------
-        function compute_x_gradient(nodes,i,j,gradient,dx) result(grad_var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          procedure(gradient_x_proc)                :: gradient
-          real(rkind)                  , intent(in) :: dx
-          real(rkind), dimension(ne)                :: grad_var
-
-          grad_var(1) = gradient(nodes,i,j,mass_density,dx)
-          grad_var(2) = gradient(nodes,i,j,momentum_x  ,dx)
-          grad_var(3) = gradient(nodes,i,j,momentum_y  ,dx)
-          grad_var(4) = gradient(nodes,i,j,total_energy,dx)
-
-        end function compute_x_gradient
-
-
-        function compute_x_gradient_prim(nodes,i,j,gradient,dx)
+        function compute_gradient_prim(nodes,i,j,gradient,dn)
      $     result(grad_var)
 
           implicit none
@@ -2893,138 +3109,35 @@
           real(rkind), dimension(:,:,:), intent(in) :: nodes
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
-          procedure(gradient_x_proc)                :: gradient
-          real(rkind)                  , intent(in) :: dx
+          procedure(gradient_proc)                  :: gradient
+          real(rkind)                  , intent(in) :: dn
           real(rkind), dimension(ne)                :: grad_var
 
-          grad_var(1) = gradient(nodes,i,j, mass_density      ,dx)
-          grad_var(2) = gradient(nodes,i,j, velocity_x        ,dx)
-          grad_var(3) = gradient(nodes,i,j, velocity_y        ,dx)
-          grad_var(4) = gradient(nodes,i,j, classical_pressure,dx)
+          grad_var(1) = gradient(nodes,i,j, mass_density      ,dn)
+          grad_var(2) = gradient(nodes,i,j, velocity_x        ,dn)
+          grad_var(3) = gradient(nodes,i,j, velocity_y        ,dn)
+          grad_var(4) = gradient(nodes,i,j, classical_pressure,dn)
 
-        end function compute_x_gradient_prim
-
-
-        function compute_y_gradient_prim(nodes,i,j,gradient,dy)
-     $     result(grad_var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          procedure(gradient_y_proc)                :: gradient
-          real(rkind)                  , intent(in) :: dy
-          real(rkind), dimension(ne)                :: grad_var
-
-          grad_var(1) = gradient(nodes,i,j, mass_density      ,dy)
-          grad_var(2) = gradient(nodes,i,j, velocity_x        ,dy)
-          grad_var(3) = gradient(nodes,i,j, velocity_y        ,dy)
-          grad_var(4) = gradient(nodes,i,j, classical_pressure,dy)
-
-        end function compute_y_gradient_prim
+        end function compute_gradient_prim
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> interface for the computation of the gradient of the
-        !> governing variables in the y-direction 
+        !> computation of the variables in the (n1,n2) rotated
+        !> frame from the variables in the (n1,n2) reference frame
+        !> (only the vector_x and vector_y variables are affected)
         !
         !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
+        !> 11_12_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
-        !> array with the grid point data
+        !> variables in the (x,y) reference frame
         !
-        !>@param i
-        !> integer identifying the index in the x-direction
-        !
-        !>@param j
-        !> integer identifying the index in the y-direction
-        !
-        !>@param gradient
-        !> procedure used to compute the gradient along the y-axis
-        !
-        !>@param dy
-        !> grid space step along the y-axis
-        !
-        !>@return grad_var
-        !> gradient of the governing variables along the x-axis
+        !>@return nodes_n
+        !> variables in the (n1,n2) rotated frame
         !--------------------------------------------------------------
-        function compute_y_gradient(nodes,i,j,gradient,dy) result(grad_var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          procedure(gradient_y_proc)                :: gradient
-          real(rkind)                  , intent(in) :: dy
-          real(rkind), dimension(ne)                :: grad_var
-
-          grad_var(1) = gradient(nodes,i,j,mass_density,dy)
-          grad_var(2) = gradient(nodes,i,j,momentum_x  ,dy)
-          grad_var(3) = gradient(nodes,i,j,momentum_y  ,dy)
-          grad_var(4) = gradient(nodes,i,j,total_energy,dy)
-
-        end function compute_y_gradient
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> interface for the computation of the gradient of the
-        !> governing variables in the n-direction (either (x-y)
-        !> or (x+y) direction depending on the procedure passed)
-        !
-        !> @date
-        !> 10_12_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param i
-        !> integer identifying the index in the x-direction
-        !
-        !>@param j
-        !> integer identifying the index in the y-direction
-        !
-        !>@param gradient
-        !> procedure used to compute the gradient along the y-axis
-        !
-        !>@param dx
-        !> grid space step along the x-axis
-        !
-        !>@param dy
-        !> grid space step along the y-axis
-        !
-        !>@return grad_var
-        !> gradient of the governing variables along the x-axis
-        !--------------------------------------------------------------
-        function compute_n_gradient(nodes,i,j,gradient,dx,dy) result(grad_var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          procedure(gradient_n_proc)                :: gradient
-          real(rkind)                  , intent(in) :: dx
-          real(rkind)                  , intent(in) :: dy
-          real(rkind), dimension(ne)                :: grad_var
-
-          grad_var(1) = gradient(nodes,i,j,mass_density,dx,dy)
-          grad_var(2) = gradient(nodes,i,j,momentum_x  ,dx,dy)
-          grad_var(3) = gradient(nodes,i,j,momentum_y  ,dx,dy)
-          grad_var(4) = gradient(nodes,i,j,total_energy,dx,dy)
-
-        end function compute_n_gradient
-
-
-
         function compute_xy_to_n_var(nodes) result(nodes_n)
 
           implicit none
@@ -3047,6 +3160,23 @@
         end function compute_xy_to_n_var
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the variables in the (x,y) reference
+        !> frame from the variables in the (n1,n2) rotated frame
+        !> (only the vector_x and vector_y variables are affected)
+        !
+        !> @date
+        !> 11_12_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes_n
+        !> variables in the (n1,n2) rotated frame
+        !
+        !>@return nodes
+        !> variables in the (x,y) reference frame
+        !--------------------------------------------------------------
         function compute_n_to_xy_var(nodes_n) result(nodes)
 
           implicit none

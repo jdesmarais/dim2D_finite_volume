@@ -15,9 +15,7 @@
       module pmodel_eq_abstract_class
       
         use interface_primary , only :
-     $       gradient_x_proc,
-     $       gradient_y_proc,
-     $       gradient_n_proc
+     $       gradient_proc
 
         use parameters_input, only :
      $       nx,ny,ne
@@ -171,36 +169,38 @@
           procedure(openbc_nodes_proc),   pass, deferred :: get_nodes_obc_eigenqties
           
 
-          procedure(eigenvalues_proc) , nopass, deferred :: compute_x_eigenvalues
-          procedure(eigenvalues_proc) , nopass, deferred :: compute_y_eigenvalues
-          procedure(eigenvalues_proc) , nopass, deferred :: compute_n1_eigenvalues
-          procedure(eigenvalues_proc) , nopass, deferred :: compute_n2_eigenvalues
-                                      
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_x_lefteigenvector
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_x_righteigenvector
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_y_lefteigenvector
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_y_righteigenvector
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_n1_lefteigenvector
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_n1_righteigenvector
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_n2_lefteigenvector
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_n2_righteigenvector
-                                      
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_x_leftConsLodiM
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_y_leftConslodiM
-          procedure(lodi_td_proc)     , nopass, deferred :: compute_x_timedev_from_LODI_vector
-          procedure(lodi_td_proc)     , nopass, deferred :: compute_y_timedev_from_LODI_vector
-          procedure(lodi_tds_proc)    , nopass, deferred :: compute_timedev_from_LODI_vectors
-                                      
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_x_transM
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_y_transM
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_n1_transM
-          procedure(eigenvect_proc)   , nopass, deferred :: compute_n2_transM
-                                      
-          procedure(farfield_proc)    ,   pass, deferred :: get_far_field
-                                      
-          procedure(x_gradient_proc)  , nopass, deferred :: compute_x_gradient
-          procedure(y_gradient_proc)  , nopass, deferred :: compute_y_gradient
-          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradient
+c$$$          procedure(eigenvalues_proc) , nopass, deferred :: compute_x_eigenvalues
+c$$$          procedure(eigenvalues_proc) , nopass, deferred :: compute_y_eigenvalues
+c$$$          procedure(eigenvalues_proc) , nopass, deferred :: compute_n1_eigenvalues
+c$$$          procedure(eigenvalues_proc) , nopass, deferred :: compute_n2_eigenvalues
+c$$$                                      
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_x_lefteigenvector
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_x_righteigenvector
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_y_lefteigenvector
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_y_righteigenvector
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_n1_lefteigenvector
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_n1_righteigenvector
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_n2_lefteigenvector
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_n2_righteigenvector
+c$$$                                      
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_x_leftConsLodiM
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_y_leftConslodiM
+c$$$          procedure(lodi_td_proc)     , nopass, deferred :: compute_x_timedev_from_LODI_vector
+c$$$          procedure(lodi_td_proc)     , nopass, deferred :: compute_y_timedev_from_LODI_vector
+c$$$          procedure(lodi_tds_proc)    , nopass, deferred :: compute_timedev_from_LODI_vectors
+c$$$                                      
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_x_transM
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_y_transM
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_n1_transM
+c$$$          procedure(eigenvect_proc)   , nopass, deferred :: compute_n2_transM
+c$$$                                      
+c$$$          procedure(farfield_proc)    ,   pass, deferred :: get_far_field
+c$$$                                      
+c$$$          procedure(x_gradient_proc)  , nopass, deferred :: compute_x_gradient
+c$$$          procedure(y_gradient_proc)  , nopass, deferred :: compute_y_gradient
+c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradient
+
+          procedure(gradient_prim_proc), nopass, deferred :: compute_gradient_prim
 
           !variables in the rotated frame
           procedure(xy_to_n_proc)     , nopass, deferred :: compute_xy_to_n_var
@@ -1151,113 +1151,20 @@
           !>@return grad_var
           !> gradient of the governing variables along the x-axis
           !--------------------------------------------------------------
-          function x_gradient_proc(nodes,i,j,gradient,dx) result(grad_var)
+          function gradient_prim_proc(nodes,i,j,gradient,dn) result(grad_var)
 
-            import gradient_x_proc
+            import gradient_proc
             import ikind,rkind
             import ne
 
             real(rkind), dimension(:,:,:), intent(in) :: nodes
             integer(ikind)               , intent(in) :: i
             integer(ikind)               , intent(in) :: j
-            procedure(gradient_x_proc)                :: gradient
-            real(rkind)                  , intent(in) :: dx
+            procedure(gradient_proc)                  :: gradient
+            real(rkind)                  , intent(in) :: dn
             real(rkind), dimension(ne)                :: grad_var
 
-          end function x_gradient_proc
-
-
-          !> @author
-          !> Julien L. Desmarais
-          !
-          !> @brief
-          !> interface for the computation of the gradient of the
-          !> governing variables in the y-direction 
-          !
-          !> @date
-          !> 01_08_2014 - initial version - J.L. Desmarais
-          !
-          !>@param nodes
-          !> array with the grid point data
-          !
-          !>@param i
-          !> integer identifying the index in the x-direction
-          !
-          !>@param j
-          !> integer identifying the index in the y-direction
-          !
-          !>@param gradient
-          !> procedure used to compute the gradient along the y-axis
-          !
-          !>@param dy
-          !> grid space step along the y-axis
-          !
-          !>@return grad_var
-          !> gradient of the governing variables along the x-axis
-          !--------------------------------------------------------------
-          function y_gradient_proc(nodes,i,j,gradient,dy) result(grad_var)
-
-            import gradient_y_proc
-            import ikind,rkind
-            import ne
-
-            real(rkind), dimension(:,:,:), intent(in) :: nodes
-            integer(ikind)               , intent(in) :: i
-            integer(ikind)               , intent(in) :: j
-            procedure(gradient_y_proc)                :: gradient
-            real(rkind)                  , intent(in) :: dy
-            real(rkind), dimension(ne)                :: grad_var
-
-          end function y_gradient_proc
-
-
-          !> @author
-          !> Julien L. Desmarais
-          !
-          !> @brief
-          !> interface for the computation of the gradient of the
-          !> governing variables in a diagonal direction
-          !
-          !> @date
-          !> 01_08_2014 - initial version - J.L. Desmarais
-          !
-          !>@param nodes
-          !> array with the grid point data
-          !
-          !>@param i
-          !> integer identifying the index in the x-direction
-          !
-          !>@param j
-          !> integer identifying the index in the y-direction
-          !
-          !>@param gradient
-          !> procedure used to compute the gradient along the diagonal
-          !> direction
-          !
-          !>@param dx
-          !> grid space step along the x-axis
-          !
-          !>@param dy
-          !> grid space step along the y-axis
-          !
-          !>@return grad_var
-          !> gradient of the governing variables along the x-axis
-          !--------------------------------------------------------------
-          function n_gradient_proc(nodes,i,j,gradient,dx,dy) result(grad_var)
-
-            import gradient_n_proc
-            import ikind,rkind
-            import nx,ny,ne
-
-            real(rkind), dimension(:,:,:), intent(in) :: nodes
-            integer(ikind)               , intent(in) :: i
-            integer(ikind)               , intent(in) :: j
-            procedure(gradient_n_proc)                :: gradient
-            real(rkind)                  , intent(in) :: dx
-            real(rkind)                  , intent(in) :: dy
-            real(rkind), dimension(ne)                :: grad_var            
-
-          end function n_gradient_proc
+          end function gradient_prim_proc
 
       
           function xy_to_n_proc(nodes) result(nodes_n)

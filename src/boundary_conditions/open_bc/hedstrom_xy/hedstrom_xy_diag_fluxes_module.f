@@ -211,7 +211,7 @@
      $         compute_point3,
      $         compute_point4)
 
-          dn = Sqrt(dx**2+dy**2)
+          dn = 0.5d0*Sqrt(2.0d0)*(dx+dy)
 
           select case(bc_section(1))
 

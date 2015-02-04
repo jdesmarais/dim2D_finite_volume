@@ -850,7 +850,7 @@
           
           integer                       :: dir, dir2
           integer(ikind)                :: i_eigen
-          real(rkind), dimension(ne)    :: nodes_eigenqties
+          real(rkind), dimension(ne)    :: obc_prim_nodes
           real(rkind), dimension(ne)    :: eigenvalues_x
           real(rkind), dimension(ne,ne) :: left_eigenM
           real(rkind), dimension(ne,ne) :: right_eigenM
@@ -870,30 +870,40 @@
           real(rkind), dimension(2,ne)  :: inter_trans0
           real(rkind), dimension(2,ne)  :: inter_trans1
 
+          real(rkind), dimension(ne)    :: new_grdpt_prim
+
+
+          !--------------------------------------------------
           !0) determine the direction
+          !--------------------------------------------------
           dir  = x_direction
           dir2 = y_direction
 
 
-          !1) determine the x-coordinate of the new grid point computed
+          !--------------------------------------------------
+          !1) determine the x-coordinate of the new
+          !   grid point computed
+          !--------------------------------------------------
           x1   = bf_x_map1(i1)
           y1   = bf_y_map1(j1)
 
 
-          !2) determine where the eigenvalues are evaluated
-          !   and which indices are needed for the interpolation
-          !   of the grid points
+          !--------------------------------------------------
+          !2) determine where the eigenvalues are
+          !   evaluated and which indices are needed
+          !   for the interpolation of the grid points
+          !--------------------------------------------------
           if(side_x.eqv.right) then
 
              !x-index for the evaluation of the eigenvalues
              i_eigen = i1-1
              
-             !indices for the interpolation of the data at t
+             !indices for the interpolation of the data at t-dt
              i0_inter1 = bf_align1(dir,1) -bf_align0(dir,1) + i_eigen-1
              i0_inter2 = bf_align1(dir,1) -bf_align0(dir,1) + i_eigen
              j0_inter  = bf_align1(dir2,1)-bf_align0(dir2,1)+ j1
              
-             !indices for the interpolation of the data at t+dt
+             !indices for the interpolation of the data at t
              i1_inter1 = i_eigen-1
              i1_inter2 = i_eigen
              j1_inter  = j1
@@ -903,12 +913,12 @@
              !x-index for the evaluation of the eigenvalues
              i_eigen = i1+1
 
-             !indices for the interpolation of the data at t
+             !indices for the interpolation of the data at t-dt
              i0_inter1 = bf_align1(dir,1) -bf_align0(dir,1) +i_eigen
              i0_inter2 = bf_align1(dir,1) -bf_align0(dir,1) +i_eigen+1
              j0_inter  = bf_align1(dir2,1)-bf_align0(dir2,1)+j1
              
-             !indices for the interpolation of the data at t+dt
+             !indices for the interpolation of the data at t
              i1_inter1 = i_eigen
              i1_inter2 = i_eigen+1
              j1_inter  = j1
@@ -919,73 +929,122 @@
           dy = bf_y_map1(2)-bf_y_map1(1)
 
 
-          !3) create the interpolation coefficients for the data at t
+          !--------------------------------------------------
+          !3) create the interpolation coefficients for
+          !   the data at t
+          !--------------------------------------------------
 
           !3.1) create the interpolation coefficients for the nodes
           x_map_inter(1) = bf_x_map0(i0_inter1)
           x_map_inter(2) = bf_x_map0(i0_inter2)
           
-          nodes_inter(1,:) = bf_nodes0(i0_inter1,j0_inter,:)
-          nodes_inter(2,:) = bf_nodes0(i0_inter2,j0_inter,:)
+          nodes_inter(1,:) = p_model%compute_prim_var(bf_nodes0(i0_inter1,j0_inter,:))
+          nodes_inter(2,:) = p_model%compute_prim_var(bf_nodes0(i0_inter2,j0_inter,:))
 
           inter_nodes0 = get_interpolation_coeff_1D(x_map_inter,nodes_inter)
 
 
           !3.2) create the interpolation coefficients for the transverse terms
+
+          !3.2.1) transverse terms at (i0_inter, j0_inter1) at t-dt
+          obc_prim_nodes = p_model%get_prim_obc_eigenqties(
+     $                        t-dt,x_map_inter(1),y0,
+     $                        bf_nodes0(i0_inter1,j0_inter,:))
+
           nodes_inter(1,:) = MATMUL(
-     $         p_model%compute_y_gradient(bf_nodes0,i0_inter1,j0_inter,gradient_y,dy),
-     $         p_model%compute_x_transM(bf_nodes0(i0_inter1,j0_inter,:)))
+     $         p_model%compute_y_gradient_prim(bf_nodes0,i0_inter1,j0_inter,gradient_y,dy),
+     $         p_model%compute_x_transM_prim(obc_prim_nodes))
+
+          !3.2.2) transverse terms at (i0_inter, j0_inter2) at t-dt
+          obc_prim_nodes = p_model%get_prim_obc_eigenqties(
+     $                        t-dt,x_map_inter(2),y0,
+     $                        bf_nodes0(i0_inter2,j0_inter,:))
 
           nodes_inter(2,:) = MATMUL(
-     $         p_model%compute_y_gradient(bf_nodes0,i0_inter2,j0_inter,gradient_y,dy),
-     $         p_model%compute_x_transM(bf_nodes0(i0_inter2,j0_inter,:)))
+     $         p_model%compute_y_gradient_prim(bf_nodes0,i0_inter2,j0_inter,gradient_y,dy),
+     $         p_model%compute_x_transM_prim(obc_prim_nodes))
 
+          !3.2.3) interpolation coefficients for the transverse terms at t
           inter_trans0 = get_interpolation_coeff_1D(x_map_inter,nodes_inter)
 
 
-          !4) create the interpolation coefficients for the data at t+dt
+          !--------------------------------------------------
+          !4) create the interpolation coefficients for
+          !   the data at t+dt
+          !--------------------------------------------------
           x_map_inter(1) = bf_x_map1(i1_inter1)
           x_map_inter(2) = bf_x_map1(i1_inter2)
 
+          !4.1) transverse terms at (i1_inter, j1_inter1) at t
+          obc_prim_nodes = p_model%get_prim_obc_eigenqties(
+     $                        t,x_map_inter(1),y1,
+     $                        bf_nodes1(i1_inter1,j1_inter,:))
+
           nodes_inter(1,:) = MATMUL(
-     $         p_model%compute_y_gradient(bf_nodes1,i1_inter1,j1_inter,gradient_y,dy),
-     $         p_model%compute_x_transM(bf_nodes1(i1_inter1,j1_inter,:)))
+     $         p_model%compute_y_gradient_prim(bf_nodes1,i1_inter1,j1_inter,gradient_y,dy),
+     $         p_model%compute_x_transM_prim(obc_prim_nodes))
+
+          !4.2) transverse terms at (i1_inter, j1_inter2) at t+dt
+          obc_prim_nodes = p_model%get_prim_obc_eigenqties(
+     $                         t,x_map_inter(2),y1,
+     $                         bf_nodes1(i1_inter2,j1_inter,:))
 
           nodes_inter(2,:) = MATMUL(
-     $         p_model%compute_y_gradient(bf_nodes1,i1_inter2,j1_inter,gradient_y,dy),
-     $         p_model%compute_x_transM(bf_nodes1(i1_inter2,j1_inter,:)))
+     $         p_model%compute_y_gradient_prim(bf_nodes1,i1_inter2,j1_inter,gradient_y,dy),
+     $         p_model%compute_x_transM_prim(obc_prim_nodes))
 
+          !4.3) interpolation coefficients for the transverse terms at t+dt
           inter_trans1 = get_interpolation_coeff_1D(x_map_inter,nodes_inter)
 
+
+          !--------------------------------------------------
+          !5) interpolate the transverse terms
+          !   at (x1,y1)
+          !--------------------------------------------------
           t_amp1 = interpolate_1D(x1,inter_trans1)
 
 
-          !4) determine the nodes for the computation of the
-          !eigenquantities at t+dt
-          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(t,x1,y1,bf_nodes1(i_eigen,j1,:))
+          !--------------------------------------------------
+          !6) determine the nodes for the computation
+          !   of the eigenquantities at t+dt
+          !--------------------------------------------------
+          obc_prim_nodes = p_model%get_prim_obc_eigenqties(
+     $                        t,bf_x_map1(i_eigen),y1,
+     $                        bf_nodes1(i_eigen,j1,:))
 
 
-          !5) evaluate the eigenvalues at t+dt
-          eigenvalues_x = p_model%compute_x_eigenvalues(nodes_eigenqties)
+          !--------------------------------------------------
+          !7) evaluate the eigenvalues at t+dt
+          !--------------------------------------------------
+          eigenvalues_x  = p_model%compute_x_eigenvalues_prim(
+     $                        obc_prim_nodes)
 
 
-          !6) determine the left eigenvector corresponding to the eigenvalue
-          left_eigenM = p_model%compute_x_lefteigenvector(nodes_eigenqties)
+          !--------------------------------------------------
+          !8) determine the left eigenvector
+          !   corresponding to the eigenvalue
+          !--------------------------------------------------
+          left_eigenM    = p_model%compute_x_lefteigenvector_prim(
+     $                        obc_prim_nodes)
 
 
-          !7) determine the characteristic amplitude
+          !--------------------------------------------------
+          !9) determine the characteristic amplitude
+          !--------------------------------------------------
           y0 = y1
 
           do k=1,ne
 
 
-             !7.1) determine the position where the characteristic
-             !     amplitude should be estimated
+             !9.1) determine the position where the
+             !     characteristic amplitude should
+             !     be estimated
              x0 = x1 - eigenvalues_x(k)*dt
 
 
-             !7.2) determine the normal and transverse contributions of
-             !     the hyperbolic terms to the characteristic amplitude
+             !9.2) determine the normal and transverse
+             !     contributions of the hyperbolic
+             !     terms to the characteristic amplitude
              if(side_x.eqv.right) then
 
                 if(eigenvalues_x(k).ge.0) then
@@ -995,7 +1054,8 @@
                    
                 else
 
-                   n_amp0 = p_model%get_far_field(t,x0,y0)
+                   n_amp0 = p_model%compute_prim_var(
+     $                         p_model%get_far_field(t-dt,x0,y0))
                    do l=1,ne
                       t_amp0(l) = 0.0d0
                    end do
@@ -1006,7 +1066,8 @@
                 
                 if(eigenvalues_x(k).gt.0) then
 
-                   n_amp0 = p_model%get_far_field(t,x0,y0)
+                   n_amp0 = p_model%compute_prim_var(
+     $                         p_model%get_far_field(t-dt,x0,y0))
                    do l=1,ne
                       t_amp0(l) = 0.0d0
                    end do
@@ -1014,33 +1075,43 @@
                 else
 
                    n_amp0 = interpolate_1D(x0,inter_nodes0)
-                   t_amp0 = interpolate_1D(x0,inter_trans0)                   
+                   t_amp0 = interpolate_1D(x0,inter_trans0)
 
                 end if
              end if
 
 
-             !7.3) combine the information on the nodes at t-dt and the approximation
-             !     of the integration of the transverse terms from t-dt to t
+             !9.3) combine the information on the nodes
+             !     at t-dt and the approximation of the
+             !     integration of the transverse terms
+             !     from t-dt to t
              amp =
      $            n_amp0 -
      $            compute_NewtonCotes_integration(t_amp0, t_amp1, dt)
 
              
-             !7.4) compute the scalar product of the left eigenvector corresponding
-             !     to the eigenvalue with the characteristic amplitude
+             !9.4) compute the scalar product of the
+             !     left eigenvector corresponding to
+             !     the eigenvalue with the
+             !     characteristic amplitude
              char_amp(k) = DOT_PRODUCT(amp,left_eigenM(:,k))
              
           end do
 
 
-          !8) determine the right eigenmatrix
-          right_eigenM = p_model%compute_x_righteigenvector(nodes_eigenqties)
+          !--------------------------------------------------
+          !10) determine the right eigenmatrix
+          !--------------------------------------------------
+          right_eigenM = p_model%compute_x_righteigenvector_prim(
+     $                      obc_prim_nodes)
 
 
-          !9) determine the new grid point
-          new_grdpt = MATMUL(char_amp,right_eigenM)
-
+          !--------------------------------------------------
+          !11) determine the new grid point
+          !--------------------------------------------------
+          new_grdpt_prim = MATMUL(char_amp,right_eigenM)
+          new_grdpt      = p_model%compute_cons_var(new_grdpt_prim)
+          
 
         end function compute_newgrdpt_x
 
@@ -1128,7 +1199,7 @@
           
           integer                       :: dir, dir2
           integer(ikind)                :: j_eigen
-          real(rkind), dimension(ne)    :: nodes_eigenqties
+          real(rkind), dimension(ne)    :: obc_prim_nodes
           real(rkind), dimension(ne)    :: eigenvalues_y
           real(rkind), dimension(ne,ne) :: left_eigenM
           real(rkind), dimension(ne,ne) :: right_eigenM
@@ -1148,30 +1219,37 @@
           real(rkind), dimension(2,ne)  :: inter_trans0
           real(rkind), dimension(2,ne)  :: inter_trans1
 
+          !--------------------------------------------------
           !0) determine the direction
+          !--------------------------------------------------
           dir  = y_direction
           dir2 = x_direction
 
 
-          !1) determine the x-coordinate of the new grid point computed
+          !--------------------------------------------------
+          !1) determine the x-coordinate of the new
+          !   grid point computed
+          !--------------------------------------------------
           x1   = bf_x_map1(i1)
           y1   = bf_y_map1(j1)
 
 
-          !2) determine where the eigenvalues are evaluated
-          !   and which indices are needed for the interpolation
-          !   of the grid points
+          !--------------------------------------------------
+          !2) determine where the eigenvalues are
+          !   evaluated and which indices are needed
+          !   for the interpolation of the grid points
+          !--------------------------------------------------
           if(side_y.eqv.right) then
 
              !x-index for the evaluation of the eigenvalues
              j_eigen = j1-1
              
-             !indices for the interpolation of the data at t
+             !indices for the interpolation of the data at t-dt
              j0_inter1 = bf_align1(dir,1) -bf_align0(dir,1) + j_eigen-1
              j0_inter2 = bf_align1(dir,1) -bf_align0(dir,1) + j_eigen
              i0_inter  = bf_align1(dir2,1)-bf_align0(dir2,1)+ i1
              
-             !indices for the interpolation of the data at t+dt
+             !indices for the interpolation of the data at t
              j1_inter1 = j_eigen-1
              j1_inter2 = j_eigen
              i1_inter  = i1
@@ -1181,12 +1259,12 @@
              !x-index for the evaluation of the eigenvalues
              j_eigen = j1+1
 
-             !indices for the interpolation of the data at t
+             !indices for the interpolation of the data at t-dt
              j0_inter1 = bf_align1(dir,1) -bf_align0(dir,1) +j_eigen
              j0_inter2 = bf_align1(dir,1) -bf_align0(dir,1) +j_eigen+1
              i0_inter  = bf_align1(dir2,1)-bf_align0(dir2,1)+i1
              
-             !indices for the interpolation of the data at t+dt
+             !indices for the interpolation of the data at t
              j1_inter1 = j_eigen
              j1_inter2 = j_eigen+1
              i1_inter  = i1
@@ -1197,72 +1275,123 @@
           dx = bf_x_map1(2)-bf_x_map1(1)
 
 
-          !3) create the interpolation coefficients for the data at t
+          !--------------------------------------------------
+          !3) create the interpolation coefficients for
+          !   the data at t
+          !--------------------------------------------------
 
           !3.1) create the interpolation coefficients for the nodes
           y_map_inter(1) = bf_y_map0(j0_inter1)
           y_map_inter(2) = bf_y_map0(j0_inter2)
           
-          nodes_inter(1,:) = bf_nodes0(i0_inter,j0_inter1,:)
-          nodes_inter(2,:) = bf_nodes0(i0_inter,j0_inter2,:)
+          nodes_inter(1,:) = p_model%compute_prim_var(bf_nodes0(i0_inter,j0_inter1,:))
+          nodes_inter(2,:) = p_model%compute_prim_var(bf_nodes0(i0_inter,j0_inter2,:))
 
           inter_nodes0 = get_interpolation_coeff_1D(y_map_inter,nodes_inter)
 
 
           !3.2) create the interpolation coefficients for the transverse terms
+
+          !3.2.1) transverse terms at (i0_inter, j0_inter1) at t-dt
+          obc_prim_nodes = p_model%get_prim_obc_eigenqties(
+     $                        t-dt,x0,y_map_inter(1),
+     $                        bf_nodes0(i0_inter,j0_inter1,:))
+
           nodes_inter(1,:) = MATMUL(
-     $         p_model%compute_x_gradient(bf_nodes0,i0_inter,j0_inter1,gradient_x,dx),
-     $         p_model%compute_y_transM(bf_nodes0(i0_inter,j0_inter1,:)))
+     $         p_model%compute_x_gradient_prim(bf_nodes0,i0_inter,j0_inter1,gradient_x,dx),
+     $         p_model%compute_y_transM_prim(obc_prim_nodes))
+
+
+          !3.2.2) transverse terms at (i0_inter, j0_inter2) at t-dt
+          obc_prim_nodes = p_model%get_prim_obc_eigenqties(
+     $                        t-dt,x0,y_map_inter(2),
+     $                        bf_nodes0(i0_inter,j0_inter2,:))
 
           nodes_inter(2,:) = MATMUL(
-     $         p_model%compute_x_gradient(bf_nodes0,i0_inter,j0_inter2,gradient_x,dx),
-     $         p_model%compute_y_transM(bf_nodes0(i0_inter,j0_inter2,:)))
+     $         p_model%compute_x_gradient_prim(bf_nodes0,i0_inter,j0_inter2,gradient_x,dx),
+     $         p_model%compute_y_transM_prim(obc_prim_nodes)
 
+          !3.2.3) interpolation coefficients for the transverse terms at t-dt
           inter_trans0 = get_interpolation_coeff_1D(y_map_inter,nodes_inter)
 
 
-          !4) create the interpolation coefficients for the data at t+dt
+          !--------------------------------------------------
+          !4) create the interpolation coefficients for
+          !   the data at t
+          !--------------------------------------------------
           y_map_inter(1) = bf_y_map1(j1_inter1)
           y_map_inter(2) = bf_y_map1(j1_inter2)
 
+          !4.1) transverse terms at (i1_inter, j1_inter1) at t
+          obc_prim_nodes = p_model%get_prim_obc_eigenqties(
+     $                        t,x1,y_map_inter(1),
+     $                        bf_nodes1(i1_inter,j1_inter1,:))
+
           nodes_inter(1,:) = MATMUL(
-     $         p_model%compute_x_gradient(bf_nodes1,i1_inter,j1_inter1,gradient_x,dx),
-     $         p_model%compute_y_transM(bf_nodes1(i1_inter,j1_inter1,:)))
+     $         p_model%compute_x_gradient_prim(bf_nodes1,i1_inter,j1_inter1,gradient_x,dx),
+     $         p_model%compute_y_transM_prim(obc_prim_nodes)
+
+          !4.2) transverse terms at (i1_inter, j1_inter2) at t
+          obc_prim_nodes = p_model%get_prim_obc_eigenqties(
+     $                        t,x1,y_map_inter(2),
+     $                        bf_nodes1(i1_inter,j1_inter2,:))
 
           nodes_inter(2,:) = MATMUL(
-     $         p_model%compute_x_gradient(bf_nodes1,i1_inter,j1_inter2,gradient_x,dx),
-     $         p_model%compute_y_transM(bf_nodes1(i1_inter,j1_inter2,:)))
+     $         p_model%compute_x_gradient_prim(bf_nodes1,i1_inter,j1_inter2,gradient_x,dx),
+     $         p_model%compute_y_transM_prim(obc_prim_nodes))
 
+          !4.3) interpolation coefficients for the transverse terms at t
           inter_trans1 = get_interpolation_coeff_1D(y_map_inter,nodes_inter)
 
+
+          !--------------------------------------------------
+          !5) interpolate the transverse terms
+          !   at (x1,y1)
+          !--------------------------------------------------
           t_amp1 = interpolate_1D(y1,inter_trans1)
 
 
-          !4) determine the nodes for the computation of the
-          !eigenquantities at t+dt
-          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(t,x1,y1,bf_nodes1(i1,j_eigen,:))
+          !--------------------------------------------------
+          !6) determine the nodes for the computation
+          !   of the eigenquantities at t
+          !--------------------------------------------------
+          obc_prim_nodes = p_model%get_nodes_obc_eigenqties(
+     $                        t,x1,bf_y_map1(j_eigen),
+     $                        bf_nodes1(i1,j_eigen,:))
 
 
-          !5) evaluate the eigenvalues at t+dt
-          eigenvalues_y = p_model%compute_y_eigenvalues(nodes_eigenqties)
+          !--------------------------------------------------
+          !7) evaluate the eigenvalues at t
+          !--------------------------------------------------
+          eigenvalues_y  = p_model%compute_y_eigenvalues_prim(
+     $                        obc_prim_nodes)
 
 
-          !6) determine the left eigenvector corresponding to the eigenvalue
-          left_eigenM = p_model%compute_y_lefteigenvector(nodes_eigenqties)
+          !--------------------------------------------------
+          !8) determine the left eigenvector
+          !   corresponding to the eigenvalue
+          !--------------------------------------------------
+          left_eigenM    = p_model%compute_y_lefteigenvector_prim(
+     $                        obc_prim_nodes)
              
 
-          !7) determine the characteristic amplitude
+          !--------------------------------------------------
+          !9) determine the characteristic amplitude
+          !--------------------------------------------------
           x0 = x1
+
           do k=1,ne
 
 
-             !7.1) determine the position where the characteristic
-             !     amplitude should be estimated
+             !9.1) determine the position where the
+             !     characteristic amplitude should
+             !     be estimated
              y0 = y1 - eigenvalues_y(k)*dt
 
 
-             !7.2) determine the normal and transverse contributions of
-             !     the hyperbolic terms to the characteristic amplitude
+             !9.2) determine the normal and transverse
+             !     contributions of the hyperbolic
+             !     terms to the characteristic amplitude
              if(side_y.eqv.right) then
 
                 if(eigenvalues_y(k).ge.0) then
@@ -1272,7 +1401,8 @@
                    
                 else
 
-                   n_amp0 = p_model%get_far_field(t,x0,y0)
+                   n_amp0 = p_model%compute_prim_var(
+     $                         p_model%get_far_field(t-dt,x0,y0))
                    do l=1,ne
                       t_amp0(l) = 0.0d0
                    end do
@@ -1283,7 +1413,8 @@
                 
                 if(eigenvalues_y(k).gt.0) then
 
-                   n_amp0 = p_model%get_far_field(t,x0,y0)
+                   n_amp0 = p_model%compute_prim_var(
+     $                         p_model%get_far_field(t-dt,x0,y0))
                    do l=1,ne
                       t_amp0(l) = 0.0d0
                    end do
@@ -1297,26 +1428,36 @@
              end if
 
 
-             !7.3) combine the information on the nodes at t-dt and the approximation
-             !     of the integration of the transverse terms from t-dt to t
+             !9.3) combine the information on the nodes
+             !     at t-dt and the approximation of the
+             !     integration of the transverse terms
+             !     from t-dt to t
              amp =
      $            n_amp0 -
      $            compute_NewtonCotes_integration(t_amp0, t_amp1, dt)
 
              
-             !7.4) compute the scalar product of the left eigenvector corresponding
-             !     to the eigenvalue with the characteristic amplitude
+             !9.4) compute the scalar product of the
+             !     left eigenvector corresponding to
+             !     the eigenvalue with the
+             !     characteristic amplitude
              char_amp(k) = DOT_PRODUCT(amp,left_eigenM(:,k))
              
           end do
 
 
-          !8) determine the right eigenmatrix
-          right_eigenM = p_model%compute_y_righteigenvector(nodes_eigenqties)
+          !--------------------------------------------------
+          !10) determine the right eigenmatrix
+          !--------------------------------------------------
+          right_eigenM = p_model%compute_y_righteigenvector_prim(
+     $                      obc_prim_nodes)
 
 
-          !9) determine the new grid point
-          new_grdpt = MATMUL(char_amp,right_eigenM)
+          !--------------------------------------------------
+          !11) determine the new grid point
+          !--------------------------------------------------
+          new_grdpt_prim = MATMUL(char_amp,right_eigenM)
+          new_grdpt      = p_model%compute_cons_var(new_grdpt_prim)
 
         end function compute_newgrdpt_y
 
@@ -1441,15 +1582,15 @@
           !
           !x0,y0
           !cartesian coordinates of the grid point where the
-          !characteristic amplitude can be evaluated at t=t
+          !characteristic amplitude can be evaluated at t=t-dt
           !
           !n1_1, n2_1
           !(n1,n2)-coordinates of the new grid point computed
-          !at t=t+dt
+          !at t=t
           !
           !n1_0, n2_0
           !(n1,n2)-coordinates of the grid point where the
-          !characteristic amplitude can be evaluated at t=t
+          !characteristic amplitude can be evaluated at t=t-dt
           !----------------------------------------------------
           real(rkind)                   :: x1,y1
           real(rkind)                   :: x0,y0
@@ -1472,15 +1613,15 @@
           !
           !n_amp0
           !normal contribution to the characteristic amplitude
-          !at t=t
+          !at t=t-dt
           !
           !t_amp0
           !transverse contribution to the characteristic amplitude
-          !at t=t
+          !at t=t-dt
           !
           !t_amp1
           !transverse contribution to the characteristic amplitude
-          !at t=t+dt
+          !at t=t
           !
           !amp
           !amplitude computed as the sum of the normal and the time
@@ -1503,7 +1644,7 @@
           !inter_indices_0
           !integer identifying the interpolation points for the
           !computation of the new grid points on the grdpts_id
-          !array at t=t
+          !array at t=t-dt
           !
           !i_x_inter:
           !index identifying the x-coordinate of the interpolation
@@ -1533,15 +1674,15 @@
           !
           !inter_nodes0:
           !interpolation coefficient for the plane by the
-          !nodes at t
+          !nodes at t-dt
           !
           !inter_trans0:
           !interpolation coefficient for the plane by the
-          !transverse terms at t
+          !transverse terms at t-dt
           !
           !inter_trans1:
           !interpolation coefficient for the plane by the
-          !transverse terms at t+dt
+          !transverse terms at t
           !------------------------------------------------
           integer(ikind), dimension(2,3)  :: inter_indices0
           integer(ikind)                  :: i_x_inter
@@ -1557,8 +1698,10 @@
           real(rkind)                     :: dx,dy
 
 
-          !1) determine the (x,y)-coordinates of the new grid
-          !   point computed
+          !--------------------------------------------------
+          !1) determine the (x,y)-coordinates
+          !   of the new grid point computed
+          !--------------------------------------------------
           x1 = bf_x_map1(i1)
           y1 = bf_y_map1(j1)
 
@@ -1566,16 +1709,23 @@
           dy = bf_y_map1(2)-bf_y_map1(1)
 
 
-          !2) convert them into (n1,n2) coordinates
+          !--------------------------------------------------
+          !2) convert them into (n1,n2)
+          !   coordinates
+          !--------------------------------------------------
           n1_1 = get_n1_coord(x1,y1)
           n2_1 = get_n2_coord(x1,y1)
 
 
-          !3) determine where the eigenvalues are evaluated
-          !   and which indices are needed for the interpolation
+          !--------------------------------------------------
+          !3) determine where the eigenvalues
+          !   are evaluated and which indices
+          !   are needed for the interpolation
           !   of the grid points
-          !   i.e. convert the interpolation indices at t into
-          !   interpolation indices at t-dt
+          !   i.e. convert the interpolation
+          !   indices at t into interpolation
+          !   indices at t-dt
+          !--------------------------------------------------
           do k=1, 3
              
              inter_indices0(1,k) = bf_align1(1,1) - bf_align0(1,1) + inter_indices1(1,k)
@@ -1584,9 +1734,19 @@
           end do
 
 
-          !3) create the interpolation coefficients for the data at t-dt
+          !--------------------------------------------------
+          !4) create the interpolation
+          !   coefficients for the data at
+          !   t-dt
+          !
+          !   the interpolation data are the
+          !   primitive variables converted
+          !   into primitive variables in the
+          !   (n1,n2) reference frame
+          !--------------------------------------------------
 
-          !3.1) create the interpolation coefficients for the nodes
+          !4.1) extract the interpolation
+          !     data for the nodes at t-dt
           do k=1,3
              
              i_x_inter        = inter_indices0(1,k)
@@ -1597,19 +1757,28 @@
 
              n1_inter(k)      = get_n1_coord(x_inter,y_inter)
              n2_inter(k)      = get_n2_coord(x_inter,y_inter)
-             nodes_inter(k,:) = bf_nodes0(i_x_inter,i_y_inter,:)
+
+             nodes_inter(k,:) = p_model%compute_xy_to_n_var(
+     $                             p_model%compute_prim_var(
+     $                                bf_nodes0(i_x_inter,i_y_inter,:)))
 
           end do
+
+          !4.2) create the interpolation
+          !     coefficients for the nodes
+          !     at t-dt
           inter_nodes0 = get_interpolation_coeff_2D(
      $         n1_inter,
      $         n2_inter,
      $         nodes_inter)
 
 
-          !3.2) create the interpolation coefficients for the
-          !     transverse terms
+          !4.3) create the interpolation
+          !     coefficients for the
+          !     transverse terms at t-dt
 
-          !3.2.1) create the data at the interpolation grid points
+          !4.3.1) create the data at the
+          !       interpolation grid points
           call get_n_transverse_data_for_interpolation(
      $         p_model,
      $         bf_nodes0,
@@ -1621,18 +1790,28 @@
      $         dx,dy,
      $         nodes_inter)
           
-          !3.2.2) create the interpolation plane for the
-          !       contribution of the transverse term at t-dt
+          !4.3.2) create the interpolation
+          !       plane for the contribution
+          !       of the transverse term at t-dt
           inter_trans0 = get_interpolation_coeff_2D(
      $         n1_inter,
      $         n2_inter,
      $         nodes_inter)
 
 
-          !4) create the interpolation coefficients for the data at t+dt
-
-          !4.1) create the coordinate maps (n1,n2) identifying the
-          !     position of the interpolation points
+          !--------------------------------------------------
+          !5) create the interpolation coefficients
+          !   for the data at t+dt
+          !
+          !   the interpolation data are the
+          !   primitive variables converted
+          !   into primitive variables in the
+          !   (n1,n2) reference frame
+          !--------------------------------------------------
+          
+          !5.1) create the coordinate maps (n1,n2)
+          !     identifying the position of the
+          !     interpolation points
           do k=1,3
              
              i_x_inter        = inter_indices1(1,k)
@@ -1646,8 +1825,8 @@
 
           end do
 
-          !4.2) compute the transverse terms at the interpolation
-          !     points
+          !5.2) compute the transverse terms at
+          !     the interpolation points
           call get_n_transverse_data_for_interpolation(
      $         p_model,
      $         bf_nodes1,
@@ -1659,21 +1838,30 @@
      $         dx,dy,
      $         nodes_inter)
 
-          !4.3) create the interpolation plane for the
-          !     contribution of the transverse term at t
+          !5.3) create the interpolation plane
+          !     for the contribution of the
+          !     transverse term at t
           inter_trans1 = get_interpolation_coeff_2D(
      $         n1_inter,
      $         n2_inter,
      $         nodes_inter)
 
+
+          !--------------------------------------------------
+          !6) interpolate the transverse terms
+          !   at t
+          !--------------------------------------------------
           t_amp1 = interpolate_2D(n1_1,n2_1,inter_trans1)
 
 
-          !4) determine the nodes for the computation of the
-          !eigenquantities at t
-          nodes_eigenqties = p_model%get_nodes_obc_eigenqties(
-     $         t,x1,y1,
-     $         bf_nodes1(eigen_indices(1),eigen_indices(2),:))
+          !--------------------------------------------------
+          !7) determine the nodes for the
+          !   computation of the eigenquantities
+          !   at t
+          !--------------------------------------------------
+          obc_prim_nodes = p_model%get_prim_obc_eigenqties(
+     $                        t,x1,y1,
+     $                        bf_nodes1(eigen_indices(1),eigen_indices(2),:))
 
 
           !5) evaluate the eigen data at t
@@ -1865,9 +2053,12 @@
      $     bf_nodes,
      $     inter_indices,
      $     n_direction,
-     $     gradient_n_index1,
-     $     gradient_n_index2,
-     $     gradient_n_index3,
+     $     gradient_x_index1,
+     $     gradient_x_index2,
+     $     gradient_x_index3,
+     $     gradient_y_index1,
+     $     gradient_y_index2,
+     $     gradient_y_index3,
      $     dx,dy,
      $     nodes_inter)
 
@@ -1877,30 +2068,42 @@
           real(rkind)    , dimension(:,:,:), intent(in)  :: bf_nodes
           integer(ikind) , dimension(2,3)  , intent(in)  :: inter_indices
           integer                          , intent(in)  :: n_direction
-          procedure(gradient_n_proc)                     :: gradient_n_index1
-          procedure(gradient_n_proc)                     :: gradient_n_index2
-          procedure(gradient_n_proc)                     :: gradient_n_index3
+          procedure(gradient_x_proc)                     :: gradient_x_index1
+          procedure(gradient_x_proc)                     :: gradient_x_index2
+          procedure(gradient_x_proc)                     :: gradient_x_index3
+          procedure(gradient_y_proc)                     :: gradient_y_index1
+          procedure(gradient_y_proc)                     :: gradient_y_index2
+          procedure(gradient_y_proc)                     :: gradient_y_index3
           real(rkind)                      , intent(in)  :: dx
           real(rkind)                      , intent(in)  :: dy
           real(rkind)    , dimension(3,ne) , intent(out) :: nodes_inter
 
+
+          real(rkind)                   :: dn
           integer                       :: k
           real(rkind), dimension(ne)    :: n_gradient
           real(rkind), dimension(ne,ne) :: n_transM
           
 
+          dn = 0.5d0*SQRT(2.0d0)*(dx+dy)
+
           select case(n_direction)
             case(n1_direction)
                
-               !compute the transverse terms along the n2 direction at
-               !the grid point 1
+               !compute the transverse terms
+               !along the n2 direction at the
+               !grid point 1
                k=1
-               n_gradient = p_model%compute_n_gradient(
+
+               n_gradient = p_model%compute_x_gradient_prim(
      $              bf_nodes,
      $              inter_indices(1,k),
      $              inter_indices(2,k),
      $              gradient_n_index1,
-     $              dx,dy)
+     $              dn)
+
+               obc_prim_nodes = 
+
                n_transM   = p_model%compute_n1_transM(
      $              bf_nodes(
      $              inter_indices(1,k),

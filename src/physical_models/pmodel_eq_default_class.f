@@ -15,7 +15,7 @@
       module pmodel_eq_default_class
       
         use interface_primary, only :
-     $       gradient_n_proc
+     $       gradient_proc
 
         use parameters_input, only :
      $       nx,ny,ne
@@ -57,34 +57,32 @@
 
           procedure,   pass :: get_nodes_obc_eigenqties
 
-          procedure, nopass :: compute_x_eigenvalues  => compute_eigenvalues_default
-          procedure, nopass :: compute_y_eigenvalues  => compute_eigenvalues_default
-          procedure, nopass :: compute_n1_eigenvalues => compute_eigenvalues_default
-          procedure, nopass :: compute_n2_eigenvalues => compute_eigenvalues_default
-
-          procedure, nopass :: compute_x_lefteigenvector    => compute_eigenvector_default
-          procedure, nopass :: compute_x_righteigenvector   => compute_eigenvector_default
-          procedure, nopass :: compute_y_lefteigenvector    => compute_eigenvector_default
-          procedure, nopass :: compute_y_righteigenvector   => compute_eigenvector_default
-          procedure, nopass :: compute_n1_lefteigenvector   => compute_eigenvector_default
-          procedure, nopass :: compute_n1_righteigenvector  => compute_eigenvector_default
-          procedure, nopass :: compute_n2_lefteigenvector   => compute_eigenvector_default
-          procedure, nopass :: compute_n2_righteigenvector  => compute_eigenvector_default
-
-          procedure, nopass :: compute_x_transM   => compute_eigenvector_default
-          procedure, nopass :: compute_y_transM   => compute_eigenvector_default
-          procedure, nopass :: compute_n1_transM  => compute_eigenvector_default
-          procedure, nopass :: compute_n2_transM  => compute_eigenvector_default
-
-          procedure, nopass :: compute_x_leftConsLodiM  => compute_eigenvector_default
-          procedure, nopass :: compute_y_leftConsLodiM  => compute_eigenvector_default
-          procedure, nopass :: compute_x_timedev_from_LODI_vector => compute_timedev_from_LODI_vector_default
-          procedure, nopass :: compute_y_timedev_from_LODI_vector => compute_timedev_from_LODI_vector_default
-          procedure, nopass :: compute_timedev_from_LODI_vectors
+c$$$          procedure, nopass :: compute_x_eigenvalues  => compute_eigenvalues_default
+c$$$          procedure, nopass :: compute_y_eigenvalues  => compute_eigenvalues_default
+c$$$          procedure, nopass :: compute_n1_eigenvalues => compute_eigenvalues_default
+c$$$          procedure, nopass :: compute_n2_eigenvalues => compute_eigenvalues_default
+c$$$
+c$$$          procedure, nopass :: compute_x_lefteigenvector    => compute_eigenvector_default
+c$$$          procedure, nopass :: compute_x_righteigenvector   => compute_eigenvector_default
+c$$$          procedure, nopass :: compute_y_lefteigenvector    => compute_eigenvector_default
+c$$$          procedure, nopass :: compute_y_righteigenvector   => compute_eigenvector_default
+c$$$          procedure, nopass :: compute_n1_lefteigenvector   => compute_eigenvector_default
+c$$$          procedure, nopass :: compute_n1_righteigenvector  => compute_eigenvector_default
+c$$$          procedure, nopass :: compute_n2_lefteigenvector   => compute_eigenvector_default
+c$$$          procedure, nopass :: compute_n2_righteigenvector  => compute_eigenvector_default
+c$$$
+c$$$          procedure, nopass :: compute_x_transM   => compute_eigenvector_default
+c$$$          procedure, nopass :: compute_y_transM   => compute_eigenvector_default
+c$$$          procedure, nopass :: compute_n1_transM  => compute_eigenvector_default
+c$$$          procedure, nopass :: compute_n2_transM  => compute_eigenvector_default
+c$$$
+c$$$          procedure, nopass :: compute_x_leftConsLodiM  => compute_eigenvector_default
+c$$$          procedure, nopass :: compute_y_leftConsLodiM  => compute_eigenvector_default
+c$$$          procedure, nopass :: compute_x_timedev_from_LODI_vector => compute_timedev_from_LODI_vector_default
+c$$$          procedure, nopass :: compute_y_timedev_from_LODI_vector => compute_timedev_from_LODI_vector_default
+c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
 
           procedure,   pass :: get_far_field => get_far_field_default
-
-          procedure, nopass :: compute_n_gradient => compute_gradient_default
 
           procedure, nopass :: compute_xy_to_n_var
           procedure, nopass :: compute_n_to_xy_var
@@ -538,56 +536,56 @@
 
 
 
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> default computation of the gradient of the
-        !> governing variables in a diagonal direction
-        !
-        !> @date
-        !> 11_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param i
-        !> integer identifying the index in the x-direction
-        !
-        !>@param j
-        !> integer identifying the index in the y-direction
-        !
-        !>@param gradient
-        !> procedure used to compute the gradient along the diagonal
-        !> direction
-        !
-        !>@param dx
-        !> grid space step along the x-axis
-        !
-        !>@param dy
-        !> grid space step along the y-axis
-        !
-        !>@return grad_var
-        !> gradient of the governing variables along the x-axis
-        !--------------------------------------------------------------
-        function compute_gradient_default(nodes,i,j,gradient,dx,dy) result(grad_var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          procedure(gradient_n_proc)                :: gradient
-          real(rkind)                  , intent(in) :: dx
-          real(rkind)                  , intent(in) :: dy
-          real(rkind), dimension(ne)                :: grad_var
-          
-
-          stop '(''compute_n_gradient: not implemented'')'
-          
-          grad_var = gradient(nodes,i,j,basic,dx,dy)
-          
-        end function compute_gradient_default
+c$$$        !> @author
+c$$$        !> Julien L. Desmarais
+c$$$        !
+c$$$        !> @brief
+c$$$        !> default computation of the gradient of the
+c$$$        !> governing variables in a diagonal direction
+c$$$        !
+c$$$        !> @date
+c$$$        !> 11_08_2014 - initial version - J.L. Desmarais
+c$$$        !
+c$$$        !>@param nodes
+c$$$        !> array with the grid point data
+c$$$        !
+c$$$        !>@param i
+c$$$        !> integer identifying the index in the x-direction
+c$$$        !
+c$$$        !>@param j
+c$$$        !> integer identifying the index in the y-direction
+c$$$        !
+c$$$        !>@param gradient
+c$$$        !> procedure used to compute the gradient along the diagonal
+c$$$        !> direction
+c$$$        !
+c$$$        !>@param dx
+c$$$        !> grid space step along the x-axis
+c$$$        !
+c$$$        !>@param dy
+c$$$        !> grid space step along the y-axis
+c$$$        !
+c$$$        !>@return grad_var
+c$$$        !> gradient of the governing variables along the x-axis
+c$$$        !--------------------------------------------------------------
+c$$$        function compute_gradient_default(nodes,i,j,gradient,dx,dy) result(grad_var)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          real(rkind), dimension(:,:,:), intent(in) :: nodes
+c$$$          integer(ikind)               , intent(in) :: i
+c$$$          integer(ikind)               , intent(in) :: j
+c$$$          procedure(gradient_n_proc)                :: gradient
+c$$$          real(rkind)                  , intent(in) :: dx
+c$$$          real(rkind)                  , intent(in) :: dy
+c$$$          real(rkind), dimension(ne)                :: grad_var
+c$$$          
+c$$$
+c$$$          stop '(''compute_n_gradient: not implemented'')'
+c$$$          
+c$$$          grad_var = gradient(nodes,i,j,basic,dx,dy)
+c$$$          
+c$$$        end function compute_gradient_default
 
 
         !> @author
