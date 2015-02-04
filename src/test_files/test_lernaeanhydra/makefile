@@ -15,6 +15,18 @@ test_cg_operators:	$(param_dep)\
 			$(sd_dep)\
 			dim2d_prim_module.o
 
+test_ns_vdw2d_prim.o:	$(test_dir)/test_lernaeanhydra/check_data_module.o\
+			$(dim2d_dir)/dim2d_parameters.o\
+			$(dim2d_dir)/ns_vdw2d_prim_module.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+test_ns_vdw2d_prim:	$(param_dep)\
+			check_data_module.o\
+			dim2d_parameters.o\
+			interface_primary.o\
+			dim2d_prim_module.o\
+			ns_vdw2d_prim_module.o
 
 test_dim2d_prim.o:	$(dim2d_dir)/dim2d_parameters.o\
 			$(dim2d_dir)/dim2d_prim_module.o\

@@ -28,13 +28,13 @@
           logical                 :: test_validated
 
           if(detailled) then
-             print *, nint(var*1e13)
-             print *, nint(cst*1e13)
+             print *, nint(var*10**7)
+             print *, nint(cst*10**7)
           end if
           
           test_validated=abs(
-     $         nint(var*1e13)-
-     $         nint(cst*1e13)).le.1
+     $         nint(var*10**7)-
+     $         nint(cst*10**7)).le.1
           
         end function is_real_validated
 
@@ -54,7 +54,7 @@
           test_validated = .true.
 
           do i=1,size(var,1)
-             test_loc = is_real_validated(var(i),cst(i),.false.)
+             test_loc = is_real_validated(var(i),cst(i),detailled)
              test_validated = test_validated.and.test_loc
              if(detailled.and.(.not.test_loc)) then
                 print '(''['',I2'']:'',F8.3,'' -> '',F8.3)', 
@@ -81,7 +81,7 @@
 
           do j=1,size(var,2)
              do i=1,size(var,1)
-                test_loc = is_real_validated(var(i,j),cst(i,j),.false.)
+                test_loc = is_real_validated(var(i,j),cst(i,j),detailled)
                 test_validated = test_validated.and.test_loc
                 if(detailled.and.(.not.test_loc)) then
                    print '(''['',2I2'']:'',F8.3,'' -> '',F8.3)', 
