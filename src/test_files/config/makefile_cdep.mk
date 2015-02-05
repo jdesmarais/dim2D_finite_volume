@@ -70,7 +70,7 @@ dim2d_ic_dep=		ic_abstract_class.o\
 dim2d_dep=		$(ns_vdw2d_dep)\
 			$(dim2d_flux_dep)\
 			$(dim2d_ic_dep)\
-			dim2d_ncoords_module.o\
+			n_coords_module.o\
 			parameters_bf_layer.o\
 			$(pm_dep)
 

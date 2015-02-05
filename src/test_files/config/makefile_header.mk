@@ -100,8 +100,9 @@ include $(config_dir)/makefile_rules.mk
 #main code dependencies (w/o the test files)
 #----------------------------------------------------------------------
 include $(config_dir)/makefile_dep.mk
-include $(config_dir)/dep/sd_dep.mk    #space discretization operators
-include $(config_dir)/dep/dim2d_dep.mk #DIM2D physical model
+include $(config_dir)/dep/sd_dep.mk          #space discretization operators
+include $(config_dir)/dep/dim2d_dep.mk       #DIM2D physical model
+include $(config_dir)/dep/hedstrom_xy_dep.mk #hedstrom_xy b.c.
 
 $(test_dir)/test_lernaeanhydra/check_data_module.o:\
 	$(param_dir)/parameters_kind.o

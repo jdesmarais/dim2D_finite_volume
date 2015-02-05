@@ -25,7 +25,13 @@
      $       compute_edge_E,
      $       compute_edge_W
 
-        use bf_layer_bc_procedure_module, only :
+        use bf_layer_errors_module, only :
+     $       error_bc_section_type
+
+        use interface_primary, only :
+     $       gradient_proc
+        
+        use parameters_bf_layer, only :
      $       N_edge_type,
      $       S_edge_type,
      $       E_edge_type,
@@ -39,13 +45,6 @@
      $       NW_edge_type,
      $       NE_edge_type
 
-        use bf_layer_errors_module, only :
-     $       error_bc_section_type
-
-        use interface_primary, only :
-     $       gradient_x_proc,
-     $       gradient_y_proc
-        
         use parameters_constant, only :
      $       bc_timedev_choice,
      $       N,S,E,W,
@@ -501,13 +500,11 @@
      $        this,
      $        p_model, t,
      $        nodes, x_map, y_map, i,j,
-     $        side_x, side_y,
-     $        gradient_x, gradient_y)
+     $        side_x, side_y)
      $        result(timedev)
            
              import bc_operators_openbc
-             import gradient_x_proc
-             import gradient_y_proc
+             import gradient_proc
              import ikind
              import ne
              import pmodel_eq
@@ -523,8 +520,6 @@
              integer(ikind)               , intent(in) :: j
              logical                      , intent(in) :: side_x
              logical                      , intent(in) :: side_y
-             procedure(gradient_x_proc)                :: gradient_x
-             procedure(gradient_y_proc)                :: gradient_y
              real(rkind), dimension(ne)                :: timedev
            
            end function tdev_xy_corner
@@ -843,45 +838,17 @@
                   side_x = left
                   side_y = left
 
-                  i=i_min
-                  j=j_min
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_L0,
-     $                 gradient_y_y_oneside_L0)
-                  
-                  i=i_min+1
-                  j=j_min
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_L0,
-     $                 gradient_y_y_oneside_L0)
+                  do j=j_min,j_min+1
+                     do i=i_min,i_min+1
 
-                  i=i_min
-                  j=j_min+1
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_L0,
-     $                 gradient_y_y_oneside_L0)
-                  
-                  i=i_min+1
-                  j=j_min+1
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_L0,
-     $                 gradient_y_y_oneside_L0)
+                        timedev(i,j,:) =
+     $                       this%apply_bc_on_timedev_xy_corner(
+     $                       p_model,
+     $                       t,nodes,x_map,y_map,i,j,
+     $                       side_x, side_y)
+
+                     end do
+                  end do
                   
                end if
 
@@ -897,45 +864,17 @@
                   side_x = right
                   side_y = left
 
-                  i=i_min
-                  j=j_min
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_R0,
-     $                 gradient_y_y_oneside_L0)
-                  
-                  i=i_min+1
-                  j=j_min
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_R0,
-     $                 gradient_y_y_oneside_L0)
-                  
-                  i=i_min
-                  j=j_min+1
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_R0,
-     $                 gradient_y_y_oneside_L0)
-                  
-                  i=i_min+1
-                  j=j_min+1
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_R0,
-     $                 gradient_y_y_oneside_L0)
+                  do j=j_min,j_min+1
+                     do i=i_min,i_min+1
+
+                        timedev(i,j,:) =
+     $                       this%apply_bc_on_timedev_xy_corner(
+     $                       p_model,
+     $                       t,nodes,x_map,y_map,i,j,
+     $                       side_x, side_y)
+
+                     end do
+                  end do
 
                end if
 
@@ -951,45 +890,17 @@
                   side_x = left
                   side_y = right
                   
-                  i=i_min
-                  j=j_min
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_L0,
-     $                 gradient_y_y_oneside_R0)
+                  do j=j_min,j_min+1
+                     do i=i_min,i_min+1
 
-                  i=i_min+1
-                  j=j_min
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_L0,
-     $                 gradient_y_y_oneside_R0)
+                        timedev(i,j,:) =
+     $                       this%apply_bc_on_timedev_xy_corner(
+     $                       p_model,
+     $                       t,nodes,x_map,y_map,i,j,
+     $                       side_x, side_y)
 
-                  i=i_min
-                  j=j_min+1
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_L0,
-     $                 gradient_y_y_oneside_R0)
-
-                  i=i_min+1
-                  j=j_min+1
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_L0,
-     $                 gradient_y_y_oneside_R0)
+                     end do
+                  end do
 
                end if
 
@@ -1005,45 +916,17 @@
                   side_x = right
                   side_y = right
 
-                  i=i_min
-                  j=j_min
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_R0,
-     $                 gradient_y_y_oneside_R0)
+                  do j=j_min,j_min+1
+                     do i=i_min,i_min+1
 
-                  i=i_min+1
-                  j=j_min
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_R0,
-     $                 gradient_y_y_oneside_R0)
+                        timedev(i,j,:) =
+     $                       this%apply_bc_on_timedev_xy_corner(
+     $                       p_model,
+     $                       t,nodes,x_map,y_map,i,j,
+     $                       side_x, side_y)
 
-                  i=i_min
-                  j=j_min+1
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_R0,
-     $                 gradient_y_y_oneside_R0)
-
-                  i=i_min+1
-                  j=j_min+1
-                  timedev(i,j,:) =
-     $                 this%apply_bc_on_timedev_xy_corner(
-     $                 p_model,
-     $                 t,nodes,x_map,y_map,i,j,
-     $                 side_x, side_y,
-     $                 gradient_x_x_oneside_R0,
-     $                 gradient_y_y_oneside_R0)
+                     end do
+                  end do
 
                end if
 

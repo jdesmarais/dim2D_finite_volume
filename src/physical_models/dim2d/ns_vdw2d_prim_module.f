@@ -48,18 +48,18 @@
         !>@return nodes_prim
         !> primitive variables
         !--------------------------------------------------------------
-        function compute_prim_var_ns_vdw2d(nodes_cons) result(nodes_prim)
+        function compute_prim_var_ns_vdw2d(nodes_in) result(nodes_out)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes_cons
-          real(rkind), dimension(ne)             :: nodes_prim
+          real(rkind), dimension(ne), intent(in) :: nodes_in
+          real(rkind), dimension(ne)             :: nodes_out
 
 
-          nodes_prim(1) = nodes_cons(1)                        !mass density
-          nodes_prim(2) = nodes_cons(2)/nodes_cons(1)          !velocity-x
-          nodes_prim(3) = nodes_cons(3)/nodes_cons(1)          !velocity-y
-          nodes_prim(4) = classical_pressure_local(nodes_cons) !pressure
+          nodes_out(1) = nodes_in(1)                        !mass density
+          nodes_out(2) = nodes_in(2)/nodes_in(1)            !velocity-x
+          nodes_out(3) = nodes_in(3)/nodes_in(1)            !velocity-y
+          nodes_out(4) = classical_pressure_local(nodes_in) !pressure
 
         end function compute_prim_var_ns_vdw2d
 
@@ -80,29 +80,29 @@
         !>@return nodes_cons
         !> conservative variables
         !--------------------------------------------------------------
-        function compute_cons_var_ns_vdw2d(nodes_prim) result(nodes_cons)
+        function compute_cons_var_ns_vdw2d(nodes_in) result(nodes_out)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes_prim
-          real(rkind), dimension(ne)             :: nodes_cons
+          real(rkind), dimension(ne), intent(in) :: nodes_in
+          real(rkind), dimension(ne)             :: nodes_out
 
           real(rkind) :: T
 
-          nodes_cons(1) = nodes_prim(1)
-          nodes_cons(2) = nodes_prim(1)*nodes_prim(2)
-          nodes_cons(3) = nodes_prim(1)*nodes_prim(3)
+          nodes_out(1) = nodes_in(1)
+          nodes_out(2) = nodes_in(1)*nodes_in(2)
+          nodes_out(3) = nodes_in(1)*nodes_in(3)
 
-          T = (nodes_prim(4) + 3.0d0*nodes_prim(1)**2)*
-     $        (3.0d0 - nodes_prim(1))/
-     $        (8.0d0*nodes_prim(1))
+          T = (nodes_in(4) + 3.0d0*nodes_in(1)**2)*
+     $        (3.0d0 - nodes_in(1))/
+     $        (8.0d0*nodes_in(1))
 
-          nodes_cons(4) = 0.5d0*nodes_prim(1)*(
-     $                       nodes_prim(2)**2+
-     $                       nodes_prim(3)**2) + 
-     $                    nodes_prim(1)*(
+          nodes_out(4) = 0.5d0*nodes_in(1)*(
+     $                       nodes_in(2)**2+
+     $                       nodes_in(3)**2) + 
+     $                    nodes_in(1)*(
      $                       8.0d0/3.0d0*cv_r*T -
-     $                       3.0d0*nodes_prim(1))
+     $                       3.0d0*nodes_in(1))
 
 
         end function compute_cons_var_ns_vdw2d

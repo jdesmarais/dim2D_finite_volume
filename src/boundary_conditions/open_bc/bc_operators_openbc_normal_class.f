@@ -4,8 +4,7 @@
      $       bc_operators_openbc
 
         use interface_primary, only :
-     $     gradient_x_proc,
-     $     gradient_y_proc
+     $     gradient_proc
 
         use parameters_constant, only :
      $     N,S,E,W,
@@ -133,7 +132,7 @@
      $        result(timedev)
            
              import bc_operators_openbc_normal
-             import gradient_x_proc
+             import gradient_proc
              import ikind
              import ne
              import pmodel_eq
@@ -149,7 +148,7 @@
              integer(ikind)                   , intent(in) :: j
              real(rkind), dimension(:,:,:)    , intent(in) :: flux_y
              logical                          , intent(in) :: side_x
-             procedure(gradient_x_proc)                    :: gradient_x
+             procedure(gradient_proc)                      :: gradient_x
              real(rkind), dimension(ne)                    :: timedev
            
            end function tdev_x_edge_l
@@ -209,7 +208,7 @@
      $        result(timedev)
            
              import bc_operators_openbc_normal
-             import gradient_y_proc
+             import gradient_proc
              import ne
              import pmodel_eq
              import ikind
@@ -225,7 +224,7 @@
              integer(ikind)                   , intent(in) :: j
              real(rkind), dimension(:,:,:)    , intent(in) :: flux_x
              logical                          , intent(in) :: side_y
-             procedure(gradient_y_proc)                    :: gradient_y
+             procedure(gradient_proc)                      :: gradient_y
              real(rkind), dimension(ne)                    :: timedev
            
            end function tdev_y_edge_l
@@ -236,7 +235,7 @@
         contains
 
 
-                !> @author
+        !> @author
         !> Julien L. Desmarais
         !
         !> @brief

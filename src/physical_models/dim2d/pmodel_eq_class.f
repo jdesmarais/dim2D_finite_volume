@@ -64,6 +64,8 @@
      $       total_energy,
      $       velocity_x,
      $       velocity_y,
+     $       velocity_n1,
+     $       velocity_n2,
      $       classical_pressure,
      $       classical_pressure_local,
      $       speed_of_sound,
@@ -71,16 +73,16 @@
      $       compute_x_timedev_from_LODI_vector_dim2d,
      $       compute_y_timedev_from_LODI_vector_dim2d,
      $       compute_timedev_from_LODI_vectors_dim2d
-
-        use dim2d_ncoords_module, only :
-     $       compute_n1_eigenvalues_dim2d,
-     $       compute_n2_eigenvalues_dim2d,
-     $       compute_n1_lefteigenvector_dim2d,
-     $       compute_n1_righteigenvector_dim2d,
-     $       compute_n2_lefteigenvector_dim2d,
-     $       compute_n2_righteigenvector_dim2d,
-     $       compute_n1_transM_dim2d,
-     $       compute_n2_transM_dim2d
+c$$$
+c$$$        use dim2d_ncoords_module, only :
+c$$$     $       compute_n1_eigenvalues_dim2d,
+c$$$     $       compute_n2_eigenvalues_dim2d,
+c$$$     $       compute_n1_lefteigenvector_dim2d,
+c$$$     $       compute_n1_righteigenvector_dim2d,
+c$$$     $       compute_n2_lefteigenvector_dim2d,
+c$$$     $       compute_n2_righteigenvector_dim2d,
+c$$$     $       compute_n1_transM_dim2d,
+c$$$     $       compute_n2_transM_dim2d
 
         use dim2d_fluxes_module, only :
      $       flux_x_mass_density,
@@ -398,9 +400,11 @@
           procedure, nopass :: get_sim_parameters
           procedure, nopass :: get_eq_nb
 
+
           !sd operators pattern for the fluxes
           procedure, nopass :: get_sd_pattern_flux_x
           procedure, nopass :: get_sd_pattern_flux_y
+
 
           !initial conditions procedures
           procedure,   pass :: apply_ic
@@ -410,6 +414,7 @@
           procedure,   pass :: get_v_in
           procedure,   pass :: get_T_in
           procedure,   pass :: get_P_out
+
 
           !flux computation
           procedure, nopass :: compute_flux_x
@@ -423,11 +428,11 @@
           procedure, nopass :: compute_body_forces
           procedure, nopass :: get_viscous_coeff
 
+
           !field extension for open b.c.
           procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
           procedure,   pass :: get_far_field
-          procedure,   pass :: get_nodes_obc_eigenqties
           procedure,   pass :: get_prim_obc_eigenqties
 
 
@@ -451,6 +456,11 @@
 
           procedure, nopass :: compute_gradient_prim
 
+          
+          !variables in the rotated frame
+          procedure, nopass :: compute_xy_to_n_var
+          procedure, nopass :: compute_n_to_xy_var
+
 
           !eigenquantities computation with conservative variables
 c$$$          procedure, nopass :: compute_x_eigenvalues
@@ -460,19 +470,19 @@ c$$$          procedure, nopass :: compute_x_lefteigenvector
 c$$$          procedure, nopass :: compute_x_righteigenvector
 c$$$          procedure, nopass :: compute_y_lefteigenvector
 c$$$          procedure, nopass :: compute_y_righteigenvector
-
-          procedure, nopass :: compute_n1_eigenvalues => compute_n1_eigenvalues_dim2d
-          procedure, nopass :: compute_n2_eigenvalues => compute_n2_eigenvalues_dim2d
-          procedure, nopass :: compute_n1_lefteigenvector  => compute_n1_lefteigenvector_dim2d
-          procedure, nopass :: compute_n1_righteigenvector => compute_n1_righteigenvector_dim2d
-          procedure, nopass :: compute_n2_lefteigenvector  => compute_n2_lefteigenvector_dim2d
-          procedure, nopass :: compute_n2_righteigenvector => compute_n2_righteigenvector_dim2d
+c$$$
+c$$$          procedure, nopass :: compute_n1_eigenvalues => compute_n1_eigenvalues_dim2d
+c$$$          procedure, nopass :: compute_n2_eigenvalues => compute_n2_eigenvalues_dim2d
+c$$$          procedure, nopass :: compute_n1_lefteigenvector  => compute_n1_lefteigenvector_dim2d
+c$$$          procedure, nopass :: compute_n1_righteigenvector => compute_n1_righteigenvector_dim2d
+c$$$          procedure, nopass :: compute_n2_lefteigenvector  => compute_n2_lefteigenvector_dim2d
+c$$$          procedure, nopass :: compute_n2_righteigenvector => compute_n2_righteigenvector_dim2d
 
           !transverse matrices
 c$$$          procedure, nopass :: compute_x_transM
 c$$$          procedure, nopass :: compute_y_transM
-          procedure, nopass :: compute_n1_transM => compute_n1_transM_dim2d
-          procedure, nopass :: compute_n2_transM => compute_n2_transM_dim2d
+c$$$          procedure, nopass :: compute_n1_transM => compute_n1_transM_dim2d
+c$$$          procedure, nopass :: compute_n2_transM => compute_n2_transM_dim2d
 
           !lodi computations
 c$$$          procedure, nopass :: compute_x_leftConsLodiM
@@ -480,11 +490,7 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
           procedure, nopass :: compute_x_timedev_from_LODI_vector => compute_x_timedev_from_LODI_vector_dim2d
           procedure, nopass :: compute_y_timedev_from_LODI_vector => compute_y_timedev_from_LODI_vector_dim2d
           procedure, nopass :: compute_timedev_from_LODI_vectors => compute_timedev_from_LODI_vectors_dim2d
-          
-          !variables in the rotated frame
-          procedure, nopass :: compute_xy_to_n_var
-          procedure, nopass :: compute_n_to_xy_var
-          
+
         end type pmodel_eq
 
 
@@ -2034,70 +2040,7 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
 
           var = this%initial_conditions%get_far_field(t,x,y)
 
-        end function get_far_field
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> determine the grid points used to evaluate
-        !> the eigenquantities at the edge of the
-        !> computational domain
-        !
-        !> @date
-        !> 02_02_2015 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> physical model
-        !
-        !>@param t
-        !> time
-        !
-        !>@param x
-        !> x-coordinate of the grid points at the boundary
-        !
-        !>@param y
-        !> y-coordinate of the grid points at the boundary
-        !
-        !>@param nodes_bc
-        !> array with the grid point data at the boundary
-        
-        !>@param nodes_eigenqties
-        !> grid points used to evaluate the eigenquantities at the
-        !> boundary
-        !--------------------------------------------------------------
-        function get_nodes_obc_eigenqties(this,t,x,y,nodes_bc) result(nodes_eigenqties)
-
-          implicit none
-
-          class(pmodel_eq)          , intent(in) :: this
-          real(rkind)               , intent(in) :: t
-          real(rkind)               , intent(in) :: x
-          real(rkind)               , intent(in) :: y
-          real(rkind), dimension(ne), intent(in) :: nodes_bc
-          real(rkind), dimension(ne)             :: nodes_eigenqties
-
-
-          select case(obc_eigenqties_strategy)
-
-            case(obc_eigenqties_bc)
-               nodes_eigenqties = nodes_bc
-
-            case(obc_eigenqties_lin)
-               nodes_eigenqties = this%get_far_field(t,x,y)
-
-            case default
-               print '(''dim2d/pmodel_eq_class'')'
-               print '(''get_nodes_obc_eigenqties'')'
-               print '(''obc_eigenqties_strategy not recognized'')'
-               print '(''obc_eigenqties_strategy: '',I2)', obc_eigenqties_strategy
-               stop ''
-
-          end select
-
-
-        end function get_nodes_obc_eigenqties
+        end function get_far_field        
 
 
         !> @author
@@ -2199,19 +2142,19 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
         !>@param nodes_prim_extended
         !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
         !
-        !>@return jac_matrix
+        !>@return matrix
         !> jacobian matrix for primitive to conservative
         !> variables \f$ J^p_v = \frac{\partial p}{\partial v} \f$
         !--------------------------------------------------------------
         function compute_jacobian_prim_to_cons(nodes_prim_extended)
-     $     result(jac_matrix)
+     $     result(matrix)
 
           implicit none
 
           real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
-          real(rkind), dimension(ne,ne)             :: jac_matrix
+          real(rkind), dimension(ne,ne)             :: matrix
 
-          jac_matrix = compute_jacobian_prim_to_cons_ns_vdw2d(
+          matrix = compute_jacobian_prim_to_cons_ns_vdw2d(
      $         nodes_prim_extended(1),
      $         nodes_prim_extended(2),
      $         nodes_prim_extended(3),
@@ -2233,19 +2176,19 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
         !>@param nodes_prim_extended
         !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
         !
-        !>@return jac_matrix
+        !>@return matrix
         !> jacobian matrix for conservative to primitive
         !> variables \f$ J^x_p = \frac{\partial x}{\partial p} \f$
         !--------------------------------------------------------------
         function compute_jacobian_cons_to_prim(nodes_prim_extended)
-     $     result(jac_matrix)
+     $     result(matrix)
 
           implicit none
 
           real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
-          real(rkind), dimension(ne,ne)             :: jac_matrix
+          real(rkind), dimension(ne,ne)             :: matrix
 
-          jac_matrix = compute_jacobian_cons_to_prim_ns_vdw2d(
+          matrix = compute_jacobian_cons_to_prim_ns_vdw2d(
      $         nodes_prim_extended(1),
      $         nodes_prim_extended(2),
      $         nodes_prim_extended(3),
@@ -2398,15 +2341,15 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
         !>@return eigenvect
         !> left eigenmatrix
         !--------------------------------------------------------------
-        function compute_x_lefteigenvector_prim(nodes_prim_extended) result(eigenvect)
+        function compute_x_lefteigenvector_prim(nodes_prim_extended) result(matrix)
 
           implicit none
 
           real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
-          real(rkind), dimension(ne,ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)             :: matrix
 
 
-          eigenvect = compute_x_lefteigenvector_ns_vdw2d(
+          matrix = compute_x_lefteigenvector_ns_vdw2d(
      $         nodes_prim_extended(1),
      $         nodes_prim_extended(5))
 
@@ -2426,18 +2369,18 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
         !>@param nodes_prim_extended
         !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
         !
-        !>@return eigenvect
+        !>@return matrix
         !> left eigenmatrix
         !--------------------------------------------------------------
-        function compute_x_righteigenvector_prim(nodes_prim_extended) result(eigenvect)
+        function compute_x_righteigenvector_prim(nodes_prim_extended) result(matrix)
 
           implicit none
 
           real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
-          real(rkind), dimension(ne,ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)             :: matrix
 
 
-          eigenvect = compute_x_righteigenvector_ns_vdw2d(
+          matrix = compute_x_righteigenvector_ns_vdw2d(
      $         nodes_prim_extended(1),
      $         nodes_prim_extended(5))
 
@@ -2457,18 +2400,18 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
         !>@param nodes_prim_extended
         !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
         !
-        !>@return eigenvect
+        !>@return matrix
         !> left eigenmatrix
         !--------------------------------------------------------------
-        function compute_y_lefteigenvector_prim(nodes_prim_extended) result(eigenvect)
+        function compute_y_lefteigenvector_prim(nodes_prim_extended) result(matrix)
 
           implicit none
 
           real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
-          real(rkind), dimension(ne,ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)             :: matrix
 
 
-          eigenvect = compute_y_lefteigenvector_ns_vdw2d(
+          matrix = compute_y_lefteigenvector_ns_vdw2d(
      $         nodes_prim_extended(1),
      $         nodes_prim_extended(5))
 
@@ -2488,18 +2431,18 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
         !>@param nodes_prim_extended
         !> [\f$\rho\f$,\f$u_x\f$,\f$u_y\f$,\f$P\f$,\f$c\f$]
         !
-        !>@return eigenvect
+        !>@return matrix
         !> left eigenmatrix
         !--------------------------------------------------------------
-        function compute_y_righteigenvector_prim(nodes_prim_extended) result(eigenvect)
+        function compute_y_righteigenvector_prim(nodes_prim_extended) result(matrix)
 
           implicit none
 
           real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
-          real(rkind), dimension(ne,ne)             :: eigenvect
+          real(rkind), dimension(ne,ne)             :: matrix
 
 
-          eigenvect = compute_y_righteigenvector_ns_vdw2d(
+          matrix = compute_y_righteigenvector_ns_vdw2d(
      $         nodes_prim_extended(1),
      $         nodes_prim_extended(5))
 
@@ -3101,7 +3044,7 @@ c$$$        end function compute_y_leftConsLodiM
         !>@return grad_var
         !> gradient of the primitive variables
         !--------------------------------------------------------------
-        function compute_gradient_prim(nodes,i,j,gradient,dn)
+        function compute_gradient_prim(nodes,i,j,gradient,dn,use_n_dir)
      $     result(grad_var)
 
           implicit none
@@ -3111,12 +3054,35 @@ c$$$        end function compute_y_leftConsLodiM
           integer(ikind)               , intent(in) :: j
           procedure(gradient_proc)                  :: gradient
           real(rkind)                  , intent(in) :: dn
+          logical    , optional        , intent(in) :: use_n_dir
           real(rkind), dimension(ne)                :: grad_var
 
-          grad_var(1) = gradient(nodes,i,j, mass_density      ,dn)
-          grad_var(2) = gradient(nodes,i,j, velocity_x        ,dn)
-          grad_var(3) = gradient(nodes,i,j, velocity_y        ,dn)
-          grad_var(4) = gradient(nodes,i,j, classical_pressure,dn)
+
+          logical :: use_n_dir_op
+
+
+          if(present(use_n_dir)) then
+             use_n_dir_op = use_n_dir
+          else
+             use_n_dir_op = .false.
+          end if
+
+
+          if(use_n_dir_op) then
+
+             grad_var(1) = gradient(nodes,i,j, mass_density      ,dn)
+             grad_var(2) = gradient(nodes,i,j, velocity_n1       ,dn)
+             grad_var(3) = gradient(nodes,i,j, velocity_n2       ,dn)
+             grad_var(4) = gradient(nodes,i,j, classical_pressure,dn)
+
+          else
+
+             grad_var(1) = gradient(nodes,i,j, mass_density      ,dn)
+             grad_var(2) = gradient(nodes,i,j, velocity_x        ,dn)
+             grad_var(3) = gradient(nodes,i,j, velocity_y        ,dn)
+             grad_var(4) = gradient(nodes,i,j, classical_pressure,dn)
+             
+          end if             
 
         end function compute_gradient_prim
 

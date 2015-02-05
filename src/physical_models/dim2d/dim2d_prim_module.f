@@ -24,6 +24,10 @@
      $       get_primary_var,
      $       gradient_proc
 
+        use n_coords_module, only :
+     $       get_n1_coord,
+     $       get_n2_coord
+
         use parameters_input, only :
      $       ne
 
@@ -41,6 +45,8 @@
      $       total_energy,
      $       velocity_x,
      $       velocity_y,
+     $       velocity_n1,
+     $       velocity_n2,
      $       classical_pressure,
      $       classical_pressure_local,
      $       classical_temperature_eff,
@@ -280,6 +286,82 @@
           var=nodes(i,j,3)/nodes(i,j,1)
 
         end function velocity_y
+
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the velocity along the n1-axis
+        !> \f$ u_{n_1} = \frac{\sqrt{2}}{2} (u_x - u_y) \f$
+        !
+        !> @date
+        !> 05_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !>
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !>
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !>
+        !>@param var
+        !> \f$ u_{n_1} \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function velocity_n1(nodes,i,j) result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
+
+          var = get_n1_coord(
+     $         nodes(i,j,2)/nodes(i,j,1),
+     $         nodes(i,j,3)/nodes(i,j,1))
+
+        end function velocity_n1
+
+
+        !> @author 
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the velocity along the n2-axis
+        !> \f$ u_{n_2} = \frac{\sqrt{2}}{2} (u_x + u_y) \f$\f$
+        !
+        !> @date
+        !> 05_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !>
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !>
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !>
+        !>@param var
+        !> \f$ u_{n_2} \f$ evaluated at [i,j]
+        !---------------------------------------------------------------
+        function velocity_n2(nodes,i,j) result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
+
+          var = get_n2_coord(
+     $         nodes(i,j,2)/nodes(i,j,1),
+     $         nodes(i,j,3)/nodes(i,j,1))
+
+        end function velocity_n2
 
 
         !> @author 

@@ -462,14 +462,17 @@ test_diag_flux_symetry:\
 			$(dim2d_dep)
 
 test_hedstrom_xy_prim.o:\
+			$(test_dir)/test_lernaeanhydra/check_data_module.o\
 			$(hobc_dir)/hedstrom_xy_module.o\
 			$(obc_dir)/openbc_operators_module.o\
+			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(dim2d_dir)/pmodel_eq_class.o\
 			$(mt_dir)/sd_operators_fd_module.o
 
 test_hedstrom_xy_prim:\
+			check_data_module.o\
 			$(param_dep)\
 			$(mt_dep)\
 			sd_operators_x_oneside_L0_class.o\

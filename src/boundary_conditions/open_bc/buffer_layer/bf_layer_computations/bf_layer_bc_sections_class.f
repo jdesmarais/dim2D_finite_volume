@@ -20,29 +20,40 @@
       !-----------------------------------------------------------------
       module bf_layer_bc_sections_class
 
-        use parameters_bf_layer, only :
-     $     bc_interior_pt,
-     $     bc_pt,
-     $     BF_SUCCESS
-
         use bf_layer_bc_procedure_module, only : 
-     $     N_edge_type,
-     $     S_edge_type,
-     $     E_edge_type,
-     $     W_edge_type,
-     $     NE_corner_type,
-     $     NW_corner_type,
-     $     SE_corner_type,
-     $     SW_corner_type,
-     $     NE_edge_type,
-     $     NW_edge_type,
-     $     SE_edge_type,
-     $     SW_edge_type,
      $     get_bc_interior_pt_procedure
 
         use bf_layer_errors_module, only :
      $       error_overlap_index,
      $       error_overlap_incompatible
+
+        use parameters_bf_layer, only :
+     $       bc_interior_pt,
+     $       bc_pt,
+     $       BF_SUCCESS,
+     $       
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       NE_corner_type,
+     $       NW_corner_type,
+     $       SE_corner_type,
+     $       SW_corner_type,
+     $       NE_edge_type,
+     $       NW_edge_type,
+     $       SE_edge_type,
+     $       SW_edge_type,
+     $       
+     $       no_overlap,
+     $       N_overlap,
+     $       S_overlap,
+     $       E_overlap,
+     $       W_overlap,
+     $       NE_overlap,
+     $       NW_overlap,
+     $       SE_overlap,
+     $       SW_overlap
 
         use parameters_input, only :
      $       bc_size
@@ -55,30 +66,10 @@
         private
         public ::
      $       bf_layer_bc_sections,
-     $       no_overlap,
-     $       N_overlap,
-     $       S_overlap,
-     $       E_overlap,
-     $       W_overlap,
-     $       NE_overlap,
-     $       NW_overlap,
-     $       SE_overlap,
-     $       SW_overlap,
      $       determine_edge_points_computed
 
 
         integer, parameter :: max_bc_sections_temp = 6
-
-        integer, parameter :: no_overlap = 0
-        integer, parameter :: N_overlap  = 1
-        integer, parameter :: S_overlap  = 2
-        integer, parameter :: E_overlap  = 3
-        integer, parameter :: W_overlap  = 4
-        integer, parameter :: NE_overlap = 5
-        integer, parameter :: NW_overlap = 6
-        integer, parameter :: SE_overlap = 7
-        integer, parameter :: SW_overlap = 8
-
 
         !> @class bf_layer_bc_sections
         !> class encapsulating the bf_layer_bc_sections object. It

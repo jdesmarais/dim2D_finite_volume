@@ -15,9 +15,7 @@
       module pmodel_eq_class
       
         use interface_primary, only :
-     $     gradient_x_proc,
-     $     gradient_y_proc,
-     $     gradient_n_proc
+     $       gradient_proc
 
         use parameters_bf_layer, only :
      $       bc_interior_pt,
@@ -61,14 +59,14 @@
         use sd_operators_class, only :
      $       sd_operators
 
-        use wave2d_ncoords_module, only :
-     $       compute_n_eigenvalues_wave2d,
-     $       compute_n1_lefteigenvector_wave2d,
-     $       compute_n1_righteigenvector_wave2d,
-     $       compute_n2_lefteigenvector_wave2d,
-     $       compute_n2_righteigenvector_wave2d,
-     $       compute_n1_transM_wave2d,
-     $       compute_n2_transM_wave2d
+c$$$        use wave2d_ncoords_module, only :
+c$$$     $       compute_n_eigenvalues_wave2d,
+c$$$     $       compute_n1_lefteigenvector_wave2d,
+c$$$     $       compute_n1_righteigenvector_wave2d,
+c$$$     $       compute_n2_lefteigenvector_wave2d,
+c$$$     $       compute_n2_righteigenvector_wave2d,
+c$$$     $       compute_n1_transM_wave2d,
+c$$$     $       compute_n2_transM_wave2d
 
         use wave2d_parameters, only :
      $       c,
@@ -88,7 +86,9 @@
         use wave2d_prim_module, only :
      $       position,
      $       velocity_x,
-     $       velocity_y
+     $       velocity_y,
+     $       velocity_n1,
+     $       velocity_n2
         
         implicit none
 
@@ -138,6 +138,8 @@
           
           contains
 
+
+          !description of the model
           procedure, nopass :: get_model_name
           procedure, nopass :: get_var_name
           procedure, nopass :: get_var_longname
@@ -145,14 +147,18 @@
           procedure, nopass :: get_var_type
           procedure, nopass :: get_sim_parameters
           procedure, nopass :: get_eq_nb
+
           
           !sd operators pattern for the fluxes
           procedure, nopass :: get_sd_pattern_flux_x
           procedure, nopass :: get_sd_pattern_flux_y
 
+
           !initial conditions procedures
           procedure,   pass :: apply_ic
 
+
+          !flux computation
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
           procedure, nopass :: compute_flux_x_nopt
@@ -161,36 +167,36 @@
           procedure, nopass :: compute_flux_y_oneside
           procedure, nopass :: compute_body_forces
 
+
+          !field extension for openb b.c.
           procedure, nopass :: get_velocity
           procedure, nopass :: are_openbc_undermined
           procedure,   pass :: get_far_field
-          procedure,   pass :: get_nodes_obc_eigenqties
-
-          procedure, nopass :: compute_x_eigenvalues
-          procedure, nopass :: compute_y_eigenvalues
-          procedure, nopass :: compute_x_lefteigenvector
-          procedure, nopass :: compute_x_righteigenvector
-          procedure, nopass :: compute_y_lefteigenvector
-          procedure, nopass :: compute_y_righteigenvector
-
-          procedure, nopass :: compute_n1_eigenvalues       => compute_n_eigenvalues_wave2d
-          procedure, nopass :: compute_n2_eigenvalues       => compute_n_eigenvalues_wave2d
-          procedure, nopass :: compute_n1_lefteigenvector   => compute_n1_lefteigenvector_wave2d
-          procedure, nopass :: compute_n1_righteigenvector  => compute_n1_righteigenvector_wave2d
-          procedure, nopass :: compute_n2_lefteigenvector   => compute_n2_lefteigenvector_wave2d
-          procedure, nopass :: compute_n2_righteigenvector  => compute_n2_righteigenvector_wave2d
-
-          procedure, nopass :: compute_x_transM
-          procedure, nopass :: compute_y_transM
-          procedure, nopass :: compute_n1_transM => compute_n1_transM_wave2d
-          procedure, nopass :: compute_n2_transM => compute_n2_transM_wave2d
-
-          procedure, nopass :: compute_x_gradient
-          procedure, nopass :: compute_y_gradient
-          procedure, nopass :: compute_n_gradient
+          procedure,   pass :: get_prim_obc_eigenqties
 
 
-          ! for the transverse diagonal fluxes
+          !computations with primitive variables
+          procedure, nopass :: compute_prim_var => compute_var
+          procedure, nopass :: compute_cons_var => compute_var
+          
+          procedure, nopass :: compute_jacobian_prim_to_cons => compute_identity_matrix
+          procedure, nopass :: compute_jacobian_cons_to_prim => compute_identity_matrix
+
+          procedure, nopass :: compute_x_transM_prim
+          procedure, nopass :: compute_y_transM_prim
+
+          procedure, nopass :: compute_x_eigenvalues_prim
+          procedure, nopass :: compute_y_eigenvalues_prim
+
+          procedure, nopass :: compute_x_lefteigenvector_prim
+          procedure, nopass :: compute_x_righteigenvector_prim
+          procedure, nopass :: compute_y_lefteigenvector_prim
+          procedure, nopass :: compute_y_righteigenvector_prim
+
+          procedure, nopass :: compute_gradient_prim
+
+
+          !variables in the rotated frame
           procedure, nopass :: compute_xy_to_n_var
           procedure, nopass :: compute_n_to_xy_var
 
@@ -557,60 +563,6 @@
                stop ''
 
           end select
-
-          
-
-
-c$$$          if(.true.) then
-c$$$             nodes(1,1,1) = 0.2
-c$$$             nodes(2,1,1) = 2.3
-c$$$             nodes(3,1,1) = -6.3
-c$$$             nodes(4,1,1) = 7.8
-c$$$             nodes(5,1,1) = -4.1
-c$$$             nodes(6,1,1) = 6.9
-c$$$
-c$$$             nodes(1,2,1) = 3.6
-c$$$             nodes(2,2,1) = 5.2
-c$$$             nodes(3,2,1) = 2.7
-c$$$             nodes(4,2,1) = -5.23
-c$$$             nodes(5,2,1) = 1.2
-c$$$             nodes(6,1,1) = -7.26
-c$$$
-c$$$             nodes(1,3,1) = 9.26
-c$$$             nodes(2,3,1) = -3.2
-c$$$             nodes(3,3,1) = 7.89
-c$$$             nodes(4,3,1) = -2.3
-c$$$             nodes(5,3,1) = 8.62
-c$$$             nodes(6,3,1) = 6.23
-c$$$
-c$$$             nodes(1,4,1) = 0.23
-c$$$             nodes(2,4,1) = 9.26
-c$$$             nodes(3,4,1) = 7.12
-c$$$             nodes(4,4,1) = -5.6
-c$$$             nodes(5,4,1) = -6.98
-c$$$             nodes(6,4,1) = -4.56
-c$$$
-c$$$             nodes(1,5,1) = 1.25
-c$$$             nodes(2,5,1) =-4.53
-c$$$             nodes(3,5,1) = 9.42
-c$$$             nodes(4,5,1) = 8.15
-c$$$             nodes(5,5,1) = -8.152
-c$$$             nodes(6,5,1) = 9.785
-c$$$
-c$$$             nodes(1,6,1) = 3.12
-c$$$             nodes(2,6,1) = 5.146
-c$$$             nodes(3,6,1) =-7.584
-c$$$             nodes(4,6,1) = 2.36
-c$$$             nodes(5,6,1) = 1.20
-c$$$             nodes(6,6,1) = -8.12
-c$$$
-c$$$             do j=1,6
-c$$$                do i=1,6
-c$$$                   nodes(i,j,2) = nodes(i,j,1)+1.0
-c$$$                   nodes(i,j,3) = nodes(i,j,1)*10-5
-c$$$                end do
-c$$$             end do
-c$$$          end if
 
         end subroutine apply_ic
 
@@ -1301,6 +1253,187 @@ c$$$          end if
         !> Julien L. Desmarais
         !
         !> @brief
+        !> nodes_in = nodes_out
+        !
+        !> @date
+        !> 05_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param nodes_in
+        !> array with the grid point data
+        !
+        !>@return nodes_out
+        !> array with the grid point data
+        !--------------------------------------------------------------
+        function compute_var(nodes_in) result(nodes_out)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes_in
+          real(rkind), dimension(ne)             :: nodes_out
+
+          nodes_out = nodes_in
+
+        end function compute_var
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> nodes_in = nodes_out
+        !
+        !> @date
+        !> 05_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param nodes_in
+        !> array with the grid point data
+        !
+        !>@return nodes_out
+        !> array with the grid point data
+        !--------------------------------------------------------------
+        function compute_identity_matrix(nodes_prim_extended)
+     $     result(matrix)
+
+          implicit none
+
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: matrix
+
+          real(rkind) :: node_s
+
+          node_s = nodes_prim_extended(1)
+
+          matrix = reshape((/
+     $         1,0,0,
+     $         0,1,0,
+     $         0,0,1/),
+     $         (/ne,ne/))
+
+        end function compute_identity_matrix
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the transverse matrix in the x-direction
+        !
+        !> @date
+        !> 13_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvect
+        !> transverse matrix in the x-direction
+        !--------------------------------------------------------------
+        function compute_x_transM_prim(nodes_prim_extended) result(matrix)
+
+          implicit none
+
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: matrix
+
+          real(rkind) :: node_s
+
+          node_s = nodes_prim_extended(1)
+
+          if(rkind.eq.8) then
+
+             matrix(1,1) = 0.0d0
+             matrix(2,1) = 0.0d0
+             matrix(3,1) = -c**2
+
+             matrix(1,2) = 0.0d0
+             matrix(2,2) = 0.0d0
+             matrix(3,2) = 0.0d0
+
+             matrix(1,3) = -c**2
+             matrix(2,3) = 0.0d0
+             matrix(3,3) = 0.0d0
+
+          else
+
+             matrix(1,1) = 0.0
+             matrix(2,1) = 0.0
+             matrix(3,1) = -c**2
+
+             matrix(1,2) = 0.0
+             matrix(2,2) = 0.0
+             matrix(3,2) = 0.0
+
+             matrix(1,3) = -c**2
+             matrix(2,3) = 0.0
+             matrix(3,3) = 0.0
+
+          end if
+
+        end function compute_x_transM_prim
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> computation of the transverse matrix in the y-direction
+        !
+        !> @date
+        !> 13_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@return eigenvect
+        !> transverse matrix in the y-direction
+        !--------------------------------------------------------------
+        function compute_y_transM_prim(nodes_prim_extended) result(matrix)
+
+          implicit none
+
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: matrix
+
+          real(rkind) :: node_s
+
+          node_s = nodes_prim_extended(1)
+
+          if(rkind.eq.8) then
+
+             matrix(1,1) = 0.0d0
+             matrix(2,1) = -c**2
+             matrix(3,1) = 0.0d0
+
+             matrix(1,2) = -c**2
+             matrix(2,2) = 0.0d0
+             matrix(3,2) = 0.0d0
+
+             matrix(1,3) = 0.0d0
+             matrix(2,3) = 0.0d0
+             matrix(3,3) = 0.0d0
+
+          else
+
+             matrix(1,1) = 0.0
+             matrix(2,1) = -c**2
+             matrix(3,1) = 0.0
+
+             matrix(1,2) = -c**2
+             matrix(2,2) = 0.0
+             matrix(3,2) = 0.0
+
+             matrix(1,3) = 0.0
+             matrix(2,3) = 0.0
+             matrix(3,3) = 0.0
+
+          end if
+
+        end function compute_y_transM_prim
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> computation of the eigenvalues for the hyperbolic terms
         !> in the x-direction
         !
@@ -1313,27 +1446,27 @@ c$$$          end if
         !>@return eigenvalues
         !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_eigenvalues(nodes) result(eigenvalues)
+        function compute_x_eigenvalues_prim(nodes_prim_extended) result(vector)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne)             :: eigenvalues
+          real(rkind), dimension(ne+1), intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne)               :: vector
 
 
           real(rkind) :: node_s
 
-          node_s = nodes(1)
+          node_s = nodes_prim_extended(1)
 
           if(rkind.eq.8) then
-             eigenvalues(1) = 0.0d0
+             vector(1) = 0.0d0
           else
-             eigenvalues(1) = 0.0
+             vector(1) = 0.0
           end if
-          eigenvalues(2) = -c**2
-          eigenvalues(3) =  c**2
+          vector(2) = -c**2
+          vector(3) =  c**2
 
-        end function compute_x_eigenvalues
+        end function compute_x_eigenvalues_prim
 
 
         !> @author
@@ -1349,29 +1482,29 @@ c$$$          end if
         !>@param nodes
         !> array with the grid point data
         !
-        !>@return eigenvalues
-        !> eigenvalues at the location of the grid point
+        !>@return vector
+        !> vector at the location of the grid point
         !--------------------------------------------------------------
-        function compute_y_eigenvalues(nodes) result(eigenvalues)
+        function compute_y_eigenvalues_prim(nodes_prim_extended) result(vector)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne)             :: eigenvalues
+          real(rkind), dimension(ne+1), intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne)               :: vector
 
           real(rkind) :: node_s
 
-          node_s = nodes(1)
+          node_s = nodes_prim_extended(1)
 
           if(rkind.eq.8) then
-             eigenvalues(1) = 0.0d0
+             vector(1) = 0.0d0
           else
-             eigenvalues(1) = 0.0
+             vector(1) = 0.0
           end if
-          eigenvalues(2) = -c**2
-          eigenvalues(3) =  c**2
+          vector(2) = -c**2
+          vector(3) =  c**2
 
-        end function compute_y_eigenvalues
+        end function compute_y_eigenvalues_prim
 
 
         !> @author
@@ -1390,48 +1523,48 @@ c$$$          end if
         !>@return eigenvalues
         !> eigenvectors at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_lefteigenvector(nodes) result(eigenvect)
+        function compute_x_lefteigenvector_prim(nodes_prim_extended) result(matrix)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: matrix
 
 
           real(rkind) :: node_s
 
-          node_s = nodes(1)
+          node_s = nodes_prim_extended(1)
 
 
           if(rkind.eq.8) then
-             eigenvect(1,1) =  0.0d0
-             eigenvect(2,1) =  0.0d0
-             eigenvect(3,1) =  1.0d0
+             matrix(1,1) =  0.0d0
+             matrix(2,1) =  0.0d0
+             matrix(3,1) =  1.0d0
                                
-             eigenvect(1,2) =  0.5d0
-             eigenvect(2,2) =  0.5d0
-             eigenvect(3,2) =  0.0d0
+             matrix(1,2) =  0.5d0
+             matrix(2,2) =  0.5d0
+             matrix(3,2) =  0.0d0
              
-             eigenvect(1,3) = -0.5d0
-             eigenvect(2,3) =  0.5d0
-             eigenvect(3,3) =  0.0d0
+             matrix(1,3) = -0.5d0
+             matrix(2,3) =  0.5d0
+             matrix(3,3) =  0.0d0
              
           else
-             eigenvect(1,1) =  0.0
-             eigenvect(2,1) =  0.0
-             eigenvect(3,1) =  1.0
+             matrix(1,1) =  0.0
+             matrix(2,1) =  0.0
+             matrix(3,1) =  1.0
                                
-             eigenvect(1,2) =  0.5
-             eigenvect(2,2) =  0.5
-             eigenvect(3,2) =  0.0
+             matrix(1,2) =  0.5
+             matrix(2,2) =  0.5
+             matrix(3,2) =  0.0
 
-             eigenvect(1,3) = -0.5
-             eigenvect(2,3) =  0.5
-             eigenvect(3,3) =  0.0
+             matrix(1,3) = -0.5
+             matrix(2,3) =  0.5
+             matrix(3,3) =  0.0
 
           end if
 
-        end function compute_x_lefteigenvector
+        end function compute_x_lefteigenvector_prim
 
 
         !> @author
@@ -1450,47 +1583,47 @@ c$$$          end if
         !>@return eigenvect
         !> eigenvectors at the location of the grid point
         !--------------------------------------------------------------
-        function compute_x_righteigenvector(nodes) result(eigenvect)
+        function compute_x_righteigenvector_prim(nodes_prim_extended) result(matrix)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: matrix
 
 
           real(rkind) :: node_s
 
-          node_s = nodes(1)
+          node_s = nodes_prim_extended(1)
 
           if(rkind.eq.8) then
-             eigenvect(1,1) =  0.0d0
-             eigenvect(2,1) =  1.0d0
-             eigenvect(3,1) = -1.0d0
+             matrix(1,1) =  0.0d0
+             matrix(2,1) =  1.0d0
+             matrix(3,1) = -1.0d0
              
-             eigenvect(1,2) =  0.0d0
-             eigenvect(2,2) =  1.0d0
-             eigenvect(3,2) =  1.0d0
+             matrix(1,2) =  0.0d0
+             matrix(2,2) =  1.0d0
+             matrix(3,2) =  1.0d0
                                
-             eigenvect(1,3) =  1.0d0
-             eigenvect(2,3) =  0.0d0
-             eigenvect(3,3) =  0.0d0
+             matrix(1,3) =  1.0d0
+             matrix(2,3) =  0.0d0
+             matrix(3,3) =  0.0d0
              
           else
-             eigenvect(1,1) =  0.0
-             eigenvect(2,1) =  1.0
-             eigenvect(3,1) = -1.0
+             matrix(1,1) =  0.0
+             matrix(2,1) =  1.0
+             matrix(3,1) = -1.0
              
-             eigenvect(1,2) =  0.0
-             eigenvect(2,2) =  1.0
-             eigenvect(3,2) =  1.0
+             matrix(1,2) =  0.0
+             matrix(2,2) =  1.0
+             matrix(3,2) =  1.0
                                
-             eigenvect(1,3) =  1.0
-             eigenvect(2,3) =  0.0
-             eigenvect(3,3) =  0.0
+             matrix(1,3) =  1.0
+             matrix(2,3) =  0.0
+             matrix(3,3) =  0.0
 
           end if
 
-        end function compute_x_righteigenvector
+        end function compute_x_righteigenvector_prim
 
 
         !> @author
@@ -1509,47 +1642,51 @@ c$$$          end if
         !>@return eigenvect
         !> eigenvectors at the location of the grid point
         !--------------------------------------------------------------
-        function compute_y_lefteigenvector(nodes) result(eigenvect)
+        function compute_y_lefteigenvector_prim(nodes_prim_extended)
+     $     result(matrix)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: matrix
 
 
           real(rkind) :: node_s
 
-          node_s = nodes(1)
+          node_s = nodes_prim_extended(1)
 
 
           if(rkind.eq.8) then
-             eigenvect(1,1) =  0.0d0
-             eigenvect(2,1) =  1.0d0
-             eigenvect(3,1) =  0.0d0
-                               
-             eigenvect(1,2) =  0.5d0
-             eigenvect(2,2) =  0.0d0
-             eigenvect(3,2) =  0.5d0
 
-             eigenvect(1,3) = -0.5d0
-             eigenvect(2,3) =  0.0d0
-             eigenvect(3,3) =  0.5d0
+             matrix(1,1) =  0.0d0
+             matrix(2,1) =  1.0d0
+             matrix(3,1) =  0.0d0
+                               
+             matrix(1,2) =  0.5d0
+             matrix(2,2) =  0.0d0
+             matrix(3,2) =  0.5d0
+
+             matrix(1,3) = -0.5d0
+             matrix(2,3) =  0.0d0
+             matrix(3,3) =  0.5d0
 
           else
-             eigenvect(1,1) =  0.0
-             eigenvect(2,1) =  1.0
-             eigenvect(3,1) =  0.0
-                               
-             eigenvect(1,2) =  0.5
-             eigenvect(2,2) =  0.0
-             eigenvect(3,2) =  0.5
 
-             eigenvect(1,3) = -0.5
-             eigenvect(2,3) =  0.0
-             eigenvect(3,3) =  0.5
+             matrix(1,1) =  0.0
+             matrix(2,1) =  1.0
+             matrix(3,1) =  0.0
+                               
+             matrix(1,2) =  0.5
+             matrix(2,2) =  0.0
+             matrix(3,2) =  0.5
+
+             matrix(1,3) = -0.5
+             matrix(2,3) =  0.0
+             matrix(3,3) =  0.5
+
           end if
 
-        end function compute_y_lefteigenvector
+        end function compute_y_lefteigenvector_prim
 
 
         !> @author
@@ -1568,164 +1705,119 @@ c$$$          end if
         !>@return eigenvect
         !> eigenvectors at the location of the grid point
         !--------------------------------------------------------------
-        function compute_y_righteigenvector(nodes) result(eigenvect)
+        function compute_y_righteigenvector_prim(nodes_prim_extended)
+     $     result(matrix)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: matrix
 
 
           real(rkind) :: node_s
 
-          node_s = nodes(1)
+          node_s = nodes_prim_extended(1)
 
           if(rkind.eq.8) then
-             eigenvect(1,1) =  0.0d0
-             eigenvect(2,1) =  1.0d0
-             eigenvect(3,1) = -1.0d0
 
-             eigenvect(1,2) =  1.0d0
-             eigenvect(2,2) =  0.0d0
-             eigenvect(3,2) =  0.0d0
+             matrix(1,1) =  0.0d0
+             matrix(2,1) =  1.0d0
+             matrix(3,1) = -1.0d0
+
+             matrix(1,2) =  1.0d0
+             matrix(2,2) =  0.0d0
+             matrix(3,2) =  0.0d0
                                
-             eigenvect(1,3) =  0.0d0
-             eigenvect(2,3) =  1.0d0
-             eigenvect(3,3) =  1.0d0
+             matrix(1,3) =  0.0d0
+             matrix(2,3) =  1.0d0
+             matrix(3,3) =  1.0d0
 
           else
-             eigenvect(1,1) =  0.0
-             eigenvect(2,1) =  1.0
-             eigenvect(3,1) = -1.0
 
-             eigenvect(1,2) =  1.0
-             eigenvect(2,2) =  0.0
-             eigenvect(3,2) =  0.0
+             matrix(1,1) =  0.0
+             matrix(2,1) =  1.0
+             matrix(3,1) = -1.0
+
+             matrix(1,2) =  1.0
+             matrix(2,2) =  0.0
+             matrix(3,2) =  0.0
                                
-             eigenvect(1,3) =  0.0
-             eigenvect(2,3) =  1.0
-             eigenvect(3,3) =  1.0
+             matrix(1,3) =  0.0
+             matrix(2,3) =  1.0
+             matrix(3,3) =  1.0
+
           end if
 
-        end function compute_y_righteigenvector
+        end function compute_y_righteigenvector_prim
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> computation of the transverse matrix in the x-direction
+        !> interface for the computation of the gradient of the
+        !> governing variables in the x-direction
         !
         !> @date
-        !> 13_11_2014 - initial version - J.L. Desmarais
+        !> 01_08_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
         !> array with the grid point data
         !
-        !>@return eigenvect
-        !> transverse matrix in the x-direction
+        !>@param i
+        !> integer identifying the index in the x-direction
+        !
+        !>@param j
+        !> integer identifying the index in the y-direction
+        !
+        !>@param gradient
+        !> procedure used to compute the gradient along the x-axis
+        !
+        !>@param dx
+        !> grid space step along the x-axis
+        !
+        !>@return grad_var
+        !> gradient of the governing variables along the x-axis
         !--------------------------------------------------------------
-        function compute_x_transM(nodes) result(eigenvect)
+        function compute_gradient_prim(nodes,i,j,gradient,dn,use_n_dir)
+     $     result(grad_var)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(gradient_proc)                  :: gradient
+          real(rkind)                  , intent(in) :: dn
+          logical    , optional        , intent(in) :: use_n_dir
+          real(rkind), dimension(ne)                :: grad_var
 
-          real(rkind) :: node_s
 
-          node_s = nodes(1)
+          logical :: use_n_dir_op
 
-          if(rkind.eq.8) then
 
-             eigenvect(1,1) = 0.0d0
-             eigenvect(2,1) = 0.0d0
-             eigenvect(3,1) = -c**2
+          if(present(use_n_dir)) then
+             use_n_dir_op = use_n_dir
+          else
+             use_n_dir_op = .false.
+          end if
 
-             eigenvect(1,2) = 0.0d0
-             eigenvect(2,2) = 0.0d0
-             eigenvect(3,2) = 0.0d0
 
-             eigenvect(1,3) = -c**2
-             eigenvect(2,3) = 0.0d0
-             eigenvect(3,3) = 0.0d0
+          if(use_n_dir_op) then
+             
+             grad_var(1) = gradient(nodes,i,j,position   ,dn)
+             grad_var(2) = gradient(nodes,i,j,velocity_n1,dn)
+             grad_var(3) = gradient(nodes,i,j,velocity_n2,dn)
 
           else
 
-             eigenvect(1,1) = 0.0
-             eigenvect(2,1) = 0.0
-             eigenvect(3,1) = -c**2
-
-             eigenvect(1,2) = 0.0
-             eigenvect(2,2) = 0.0
-             eigenvect(3,2) = 0.0
-
-             eigenvect(1,3) = -c**2
-             eigenvect(2,3) = 0.0
-             eigenvect(3,3) = 0.0
+             grad_var(1) = gradient(nodes,i,j,position  ,dn)
+             grad_var(2) = gradient(nodes,i,j,velocity_x,dn)
+             grad_var(3) = gradient(nodes,i,j,velocity_y,dn)
 
           end if
 
-        end function compute_x_transM
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> computation of the transverse matrix in the y-direction
-        !
-        !> @date
-        !> 13_11_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@return eigenvect
-        !> transverse matrix in the y-direction
-        !--------------------------------------------------------------
-        function compute_y_transM(nodes) result(eigenvect)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
-
-          real(rkind) :: node_s
-
-          node_s = nodes(1)
-
-          if(rkind.eq.8) then
-
-             eigenvect(1,1) = 0.0d0
-             eigenvect(2,1) = -c**2
-             eigenvect(3,1) = 0.0d0
-
-             eigenvect(1,2) = -c**2
-             eigenvect(2,2) = 0.0d0
-             eigenvect(3,2) = 0.0d0
-
-             eigenvect(1,3) = 0.0d0
-             eigenvect(2,3) = 0.0d0
-             eigenvect(3,3) = 0.0d0
-
-          else
-
-             eigenvect(1,1) = 0.0
-             eigenvect(2,1) = -c**2
-             eigenvect(3,1) = 0.0
-
-             eigenvect(1,2) = -c**2
-             eigenvect(2,2) = 0.0
-             eigenvect(3,2) = 0.0
-
-             eigenvect(1,3) = 0.0
-             eigenvect(2,3) = 0.0
-             eigenvect(3,3) = 0.0
-
-          end if
-
-        end function compute_y_transM
+        end function compute_gradient_prim
 
 
         !> @author
@@ -1838,28 +1930,30 @@ c$$$          end if
         !> grid points used to evaluate the eigenquantities at the
         !> boundary
         !--------------------------------------------------------------
-        function get_nodes_obc_eigenqties(this,t,x,y,nodes_bc) result(nodes_eigenqties)
+        function get_prim_obc_eigenqties(
+     $     this,t,x,y,nodes_bc)
+     $     result(nodes_prim_extended)
 
           implicit none
 
-          class(pmodel_eq)          , intent(in) :: this
-          real(rkind)               , intent(in) :: t
-          real(rkind)               , intent(in) :: x
-          real(rkind)               , intent(in) :: y
-          real(rkind), dimension(ne), intent(in) :: nodes_bc
-          real(rkind), dimension(ne)             :: nodes_eigenqties
+          class(pmodel_eq)            , intent(in) :: this
+          real(rkind)                 , intent(in) :: t
+          real(rkind)                 , intent(in) :: x
+          real(rkind)                 , intent(in) :: y
+          real(rkind), dimension(ne)  , intent(in) :: nodes_bc
+          real(rkind), dimension(ne+1)             :: nodes_prim_extended
 
 
           select case(obc_eigenqties_strategy)
 
             case(obc_eigenqties_bc)
-               nodes_eigenqties = nodes_bc
+               nodes_prim_extended(1:ne) = nodes_bc
 
             case(obc_eigenqties_lin)
-               nodes_eigenqties = this%get_far_field(t,x,y)
+               nodes_prim_extended(1:ne) = this%get_far_field(t,x,y)
 
            case default
-               print '(''dim2d/pmodel_eq_class'')'
+               print '(''wave2d/pmodel_eq_class'')'
                print '(''get_nodes_obc_eigenqties'')'
                print '(''obc_eigenqties_strategy not recognized'')'
                print '(''obc_eigenqties_strategy: '',I2)', obc_eigenqties_strategy
@@ -1868,153 +1962,7 @@ c$$$          end if
           end select
 
 
-        end function get_nodes_obc_eigenqties
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> interface for the computation of the gradient of the
-        !> governing variables in the x-direction
-        !
-        !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param i
-        !> integer identifying the index in the x-direction
-        !
-        !>@param j
-        !> integer identifying the index in the y-direction
-        !
-        !>@param gradient
-        !> procedure used to compute the gradient along the x-axis
-        !
-        !>@param dx
-        !> grid space step along the x-axis
-        !
-        !>@return grad_var
-        !> gradient of the governing variables along the x-axis
-        !--------------------------------------------------------------
-        function compute_x_gradient(nodes,i,j,gradient,dx) result(grad_var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          procedure(gradient_x_proc)                :: gradient
-          real(rkind)                  , intent(in) :: dx
-          real(rkind), dimension(ne)                :: grad_var
-
-
-          grad_var(1) = gradient(nodes,i,j,position  ,dx)
-          grad_var(2) = gradient(nodes,i,j,velocity_x,dx)
-          grad_var(3) = gradient(nodes,i,j,velocity_y,dx)
-
-        end function compute_x_gradient
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> interface for the computation of the gradient of the
-        !> governing variables in the y-direction 
-        !
-        !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param i
-        !> integer identifying the index in the x-direction
-        !
-        !>@param j
-        !> integer identifying the index in the y-direction
-        !
-        !>@param gradient
-        !> procedure used to compute the gradient along the y-axis
-        !
-        !>@param dy
-        !> grid space step along the y-axis
-        !
-        !>@return grad_var
-        !> gradient of the governing variables along the x-axis
-        !--------------------------------------------------------------
-        function compute_y_gradient(nodes,i,j,gradient,dy) result(grad_var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          procedure(gradient_y_proc)                :: gradient
-          real(rkind)                  , intent(in) :: dy
-          real(rkind), dimension(ne)                :: grad_var
-
-          grad_var(1) = gradient(nodes,i,j,position  ,dy)
-          grad_var(2) = gradient(nodes,i,j,velocity_x,dy)
-          grad_var(3) = gradient(nodes,i,j,velocity_y,dy)
-
-        end function compute_y_gradient
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> interface for the computation of the gradient of the
-        !> governing variables in the (x-y)-direction
-        !
-        !> @date
-        !> 17_11_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param i
-        !> integer identifying the index in the x-direction
-        !
-        !>@param j
-        !> integer identifying the index in the y-direction
-        !
-        !>@param gradient
-        !> procedure used to compute the gradient along the
-        !> diagonal direction
-        !
-        !>@param dx
-        !> grid space step along the x-axis
-        !
-        !>@param dy
-        !> grid space step along the y-axis
-        !
-        !>@return grad_var
-        !> gradient of the governing variables along the x-axis
-        !--------------------------------------------------------------
-        function compute_n_gradient(nodes,i,j,gradient,dx,dy) result(grad_var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          procedure(gradient_n_proc)                :: gradient
-          real(rkind)                  , intent(in) :: dx
-          real(rkind)                  , intent(in) :: dy
-          real(rkind), dimension(ne)                :: grad_var
-
-
-          grad_var(1) = gradient(nodes,i,j,position  ,dx,dy)
-          grad_var(2) = gradient(nodes,i,j,velocity_x,dx,dy)
-          grad_var(3) = gradient(nodes,i,j,velocity_y,dx,dy)
-
-        end function compute_n_gradient
-
+        end function get_prim_obc_eigenqties
 
 
         function compute_xy_to_n_var(nodes) result(nodes_n)

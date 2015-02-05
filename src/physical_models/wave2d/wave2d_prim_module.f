@@ -14,12 +14,23 @@
       !-----------------------------------------------------------------
       module wave2d_prim_module
 
-        use parameters_kind , only : ikind, rkind
+        use n_coords_module, only :
+     $     get_n1_coord,
+     $     get_n2_coord
+
+        use parameters_kind , only :
+     $     ikind,
+     $     rkind
 
         implicit none
 
         private
-        public :: position, velocity_x, velocity_y
+        public ::
+     $       position,
+     $       velocity_x,
+     $       velocity_y,
+     $       velocity_n1,
+     $       velocity_n2
 
         contains
 
@@ -129,5 +140,33 @@
           var=nodes(i,j,3)
 
         end function velocity_y
+
+
+        function velocity_n1(nodes,i,j) result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
+
+          var = get_n1_coord(nodes(i,j,2), nodes(i,j,3))
+
+        end function velocity_n1
+
+
+        function velocity_n2(nodes,i,j) result(var)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
+
+          var = get_n2_coord(nodes(i,j,2), nodes(i,j,3))
+
+        end function velocity_n2
 
       end module wave2d_prim_module

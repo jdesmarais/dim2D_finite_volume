@@ -3,41 +3,30 @@
       module bf_layer_bc_procedure_module
       
         use parameters_bf_layer, only :
+     $     
      $     interior_pt,
      $     bc_interior_pt,
      $     bc_pt,
-     $     BF_SUCCESS
+     $     
+     $     BF_SUCCESS,
+     $     
+     $     SW_corner_type,
+     $     SE_corner_type,
+     $     NW_corner_type,
+     $     NE_corner_type,
+     $     S_edge_type,
+     $     E_edge_type,
+     $     W_edge_type,
+     $     N_edge_type,
+     $     SE_edge_type,
+     $     SW_edge_type,
+     $     NE_edge_type,
+     $     NW_edge_type
 
         implicit none
 
-        integer, parameter :: no_bc_procedure_type=0
-        integer, parameter :: SW_corner_type=1
-        integer, parameter :: SE_corner_type=2
-        integer, parameter :: NW_corner_type=3
-        integer, parameter :: NE_corner_type=4
-        integer, parameter :: S_edge_type=5
-        integer, parameter :: E_edge_type=6
-        integer, parameter :: W_edge_type=7
-        integer, parameter :: N_edge_type=8
-        integer, parameter :: SE_edge_type=9
-        integer, parameter :: SW_edge_type=10
-        integer, parameter :: NE_edge_type=11
-        integer, parameter :: NW_edge_type=12
-
         private
         public ::
-     $       SW_corner_type,
-     $       SE_corner_type,
-     $       NW_corner_type,
-     $       NE_corner_type,
-     $       S_edge_type,
-     $       E_edge_type,
-     $       W_edge_type,
-     $       N_edge_type,
-     $       SE_edge_type,
-     $       SW_edge_type,
-     $       NE_edge_type,
-     $       NW_edge_type,
      $       get_bc_interior_pt_procedure
 
         contains

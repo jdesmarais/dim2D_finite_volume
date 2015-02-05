@@ -140,34 +140,70 @@
           
           contains
 
-          procedure(name_model)       , nopass, deferred :: get_model_name
-          procedure(name_var)         , nopass, deferred :: get_var_name
-          procedure(lname_var)        , nopass, deferred :: get_var_longname
-          procedure(mname_var)        , nopass, deferred :: get_var_unit
-          procedure(type_var)         , nopass, deferred :: get_var_type
-          procedure(param_sim)        , nopass, deferred :: get_sim_parameters
-          procedure(gov_eq_nb)        , nopass, deferred :: get_eq_nb
-                                      
-          procedure(sd_pattern)       , nopass, deferred :: get_sd_pattern_flux_x
-          procedure(sd_pattern)       , nopass, deferred :: get_sd_pattern_flux_y
-                                      
-          procedure(ini_cond)         ,   pass, deferred :: apply_ic
-                                      
-          procedure(fluxes_x)         , nopass, deferred :: compute_flux_x
-          procedure(fluxes_y)         , nopass, deferred :: compute_flux_y
-          procedure(fluxes_x_n)       , nopass, deferred :: compute_flux_x_nopt
-          procedure(fluxes_y_n)       , nopass, deferred :: compute_flux_y_nopt
-          procedure(fluxes_x_oneside) , nopass, deferred :: compute_flux_x_oneside
-          procedure(fluxes_y_oneside) , nopass, deferred :: compute_flux_y_oneside
-          procedure(fluxes_x_byparts) , nopass, deferred :: compute_flux_x_by_parts
-          procedure(fluxes_y_byparts) , nopass, deferred :: compute_flux_y_by_parts
-          procedure(bodyforces)       , nopass, deferred :: compute_body_forces
+          !description of the model
+          procedure(name_model)        , nopass, deferred :: get_model_name
+          procedure(name_var)          , nopass, deferred :: get_var_name
+          procedure(lname_var)         , nopass, deferred :: get_var_longname
+          procedure(mname_var)         , nopass, deferred :: get_var_unit
+          procedure(type_var)          , nopass, deferred :: get_var_type
+          procedure(param_sim)         , nopass, deferred :: get_sim_parameters
+          procedure(gov_eq_nb)         , nopass, deferred :: get_eq_nb
+              
 
-          procedure(velocity_proc)    , nopass, deferred :: get_velocity
-          procedure(v_coeff_proc)     , nopass, deferred :: get_viscous_coeff
-          procedure(openbc_proc)      , nopass, deferred :: are_openbc_undermined
-          procedure(openbc_nodes_proc),   pass, deferred :: get_nodes_obc_eigenqties
+          !sd operators pattern for the fluxes
+          procedure(sd_pattern)        , nopass, deferred :: get_sd_pattern_flux_x
+          procedure(sd_pattern)        , nopass, deferred :: get_sd_pattern_flux_y
+            
+
+          !initial conditions procedures
+          procedure(ini_cond)          ,   pass, deferred :: apply_ic
+               
+
+          !flux computation
+          procedure(fluxes_x)          , nopass, deferred :: compute_flux_x
+          procedure(fluxes_y)          , nopass, deferred :: compute_flux_y
+          procedure(fluxes_x_n)        , nopass, deferred :: compute_flux_x_nopt
+          procedure(fluxes_y_n)        , nopass, deferred :: compute_flux_y_nopt
+          procedure(fluxes_x_oneside)  , nopass, deferred :: compute_flux_x_oneside
+          procedure(fluxes_y_oneside)  , nopass, deferred :: compute_flux_y_oneside
+          procedure(fluxes_x_byparts)  , nopass, deferred :: compute_flux_x_by_parts
+          procedure(fluxes_y_byparts)  , nopass, deferred :: compute_flux_y_by_parts
+          procedure(bodyforces)        , nopass, deferred :: compute_body_forces
+
+
+          !field extension for openb b.c.
+          procedure(velocity_proc)     , nopass, deferred :: get_velocity
+          procedure(v_coeff_proc)      , nopass, deferred :: get_viscous_coeff
+          procedure(openbc_proc)       , nopass, deferred :: are_openbc_undermined
+          procedure(farfield_proc)     ,   pass, deferred :: get_far_field
+          procedure(openbc_prim_proc)  ,   pass, deferred :: get_prim_obc_eigenqties
           
+
+          !computations with primitive variables
+          procedure(openbc_var_proc)   , nopass, deferred :: compute_prim_var
+          procedure(openbc_var_proc)   , nopass, deferred :: compute_cons_var
+          
+          procedure(openbc_matrix_proc), nopass, deferred :: compute_jacobian_prim_to_cons
+          procedure(openbc_matrix_proc), nopass, deferred :: compute_jacobian_cons_to_prim
+
+          procedure(openbc_matrix_proc), nopass, deferred :: compute_x_transM_prim
+          procedure(openbc_matrix_proc), nopass, deferred :: compute_y_transM_prim
+
+          procedure(openbc_vector_proc), nopass, deferred :: compute_x_eigenvalues_prim
+          procedure(openbc_vector_proc), nopass, deferred :: compute_y_eigenvalues_prim
+
+          procedure(openbc_matrix_proc), nopass, deferred :: compute_x_lefteigenvector_prim
+          procedure(openbc_matrix_proc), nopass, deferred :: compute_x_righteigenvector_prim
+          procedure(openbc_matrix_proc), nopass, deferred :: compute_y_lefteigenvector_prim
+          procedure(openbc_matrix_proc), nopass, deferred :: compute_y_righteigenvector_prim
+
+          procedure(grad_prim_proc)    , nopass, deferred :: compute_gradient_prim
+
+
+          !variables in the rotated frame
+          procedure(xy_to_n_proc)     , nopass, deferred :: compute_xy_to_n_var
+          procedure(n_to_xy_proc)     , nopass, deferred :: compute_n_to_xy_var
+
 
 c$$$          procedure(eigenvalues_proc) , nopass, deferred :: compute_x_eigenvalues
 c$$$          procedure(eigenvalues_proc) , nopass, deferred :: compute_y_eigenvalues
@@ -200,11 +236,7 @@ c$$$          procedure(x_gradient_proc)  , nopass, deferred :: compute_x_gradie
 c$$$          procedure(y_gradient_proc)  , nopass, deferred :: compute_y_gradient
 c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradient
 
-          procedure(gradient_prim_proc), nopass, deferred :: compute_gradient_prim
-
-          !variables in the rotated frame
-          procedure(xy_to_n_proc)     , nopass, deferred :: compute_xy_to_n_var
-          procedure(n_to_xy_proc)     , nopass, deferred :: compute_n_to_xy_var
+          
 
         end type pmodel_eq_abstract
 
@@ -392,8 +424,6 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
             real(rkind), dimension(:)    , intent(in)    :: x_map
             real(rkind), dimension(:)    , intent(in)    :: y_map
           end subroutine ini_cond
-
-
           
           
 
@@ -919,112 +949,6 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> Julien L. Desmarais
           !
           !> @brief
-          !> interface determining the grid points used to evaluate
-          !> the eigenquantities at the edge of the computational
-          !> domain
-          !
-          !> @date
-          !> 02_02_2015 - initial version - J.L. Desmarais
-          !
-          !>@param this
-          !> physical model
-          !
-          !>@param t
-          !> time
-          !
-          !>@param x
-          !> x-coordinate of the grid points at the boundary
-          !
-          !>@param y
-          !> y-coordinate of the grid points at the boundary
-          !
-          !>@param nodes_bc
-          !> array with the grid point data at the boundary
-          !
-          !>@param nodes_bc
-          !> array with the grid point data at the boundary
-          !
-          !>@param nodes_bc
-          !> array with the grid point data at the boundary
-          !
-          !>@param nodes_eigenqties
-          !> grid points used to evaluate the eigenquantities at the
-          !> boundary
-          !--------------------------------------------------------------
-          function openbc_nodes_proc(this,t,x,y,nodes_bc) result(nodes_eigenqties)
-
-            import ne
-            import pmodel_eq_abstract
-            import rkind
-
-            class(pmodel_eq_abstract) , intent(in) :: this
-            real(rkind)               , intent(in) :: t
-            real(rkind)               , intent(in) :: x
-            real(rkind)               , intent(in) :: y
-            real(rkind), dimension(ne), intent(in) :: nodes_bc
-            real(rkind), dimension(ne)             :: nodes_eigenqties
-
-          end function openbc_nodes_proc
-
-
-          !> @author
-          !> Julien L. Desmarais
-          !
-          !> @brief
-          !> interface for the local computation of the eigenvalues
-          !> for the hyperbolic terms in the x-direction
-          !
-          !> @date
-          !> 01_08_2014 - initial version - J.L. Desmarais
-          !
-          !>@param nodes
-          !> array with the grid point data
-          !
-          !>@return eigenvalues
-          !> eigenvalues at the location of the grid point
-          !--------------------------------------------------------------
-          function eigenvalues_proc(nodes) result(eigenvalues)
-
-            import rkind
-            import ne
-
-            real(rkind), dimension(ne), intent(in) :: nodes
-            real(rkind), dimension(ne)             :: eigenvalues
-
-          end function eigenvalues_proc
-
-
-          !> @author
-          !> Julien L. Desmarais
-          !
-          !> @brief
-          !> interface for the local computation of the eigenvalues
-          !> for the hyperbolic terms in the x-direction
-          !
-          !> @date
-          !> 01_08_2014 - initial version - J.L. Desmarais
-          !
-          !>@param nodes
-          !> array with the grid point data
-          !
-          !>@return eigenvalues
-          !> eigenvalues at the location of the grid point
-          !--------------------------------------------------------------
-          function eigenvect_proc(nodes) result(eigenvect)
-
-            import rkind
-            import ne
-
-            real(rkind), dimension(ne), intent(in) :: nodes
-            real(rkind), dimension(ne,ne)          :: eigenvect
-
-          end function eigenvect_proc
-
-      
-          !> @author
-          !> Julien L. Desmarais
-          !
-          !> @brief
           !> interface for the computation of the governing variables
           !> in the far field as chosen by the initial conditions
           !
@@ -1062,65 +986,199 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !> Julien L. Desmarais
           !
           !> @brief
-          !> interface for the local computation of the contribution
-          !> of the LODI vector in one direction (x or y) to the time
-          !> derivatives
+          !> interface determining the grid points used to evaluate
+          !> the eigenquantities at the edge of the computational
+          !> domain
           !
           !> @date
-          !> 12_12_2014 - initial version - J.L. Desmarais
+          !> 02_02_2015 - initial version - J.L. Desmarais
           !
-          !>@param nodes
-          !> array with the grid point data
+          !>@param this
+          !> physical model
           !
-          !>@param lodi
-          !> LODI vector
+          !>@param t
+          !> time
           !
-          !>@return timedev
-          !> time derivatives
+          !>@param x
+          !> x-coordinate of the grid points at the boundary
+          !
+          !>@param y
+          !> y-coordinate of the grid points at the boundary
+          !
+          !>@param nodes_bc
+          !> array with the grid point data at the boundary
+          !
+          !>@param nodes_bc
+          !> array with the grid point data at the boundary
+          !
+          !>@param nodes_bc
+          !> array with the grid point data at the boundary
+          !
+          !>@param nodes_eigenqties
+          !> grid points used to evaluate the eigenquantities at the
+          !> boundary
           !--------------------------------------------------------------
-          function lodi_td_proc(nodes,lodi) result(timedev)
+          function openbc_prim_proc(this,t,x,y,nodes_bc)
+     $      result(nodes_prim_extended)
 
-            import rkind
             import ne
+            import pmodel_eq_abstract
+            import rkind
 
-            real(rkind), dimension(ne), intent(in) :: nodes
-            real(rkind), dimension(ne), intent(in) :: lodi
-            real(rkind), dimension(ne)             :: timedev
+            class(pmodel_eq_abstract)   , intent(in) :: this
+            real(rkind)                 , intent(in) :: t
+            real(rkind)                 , intent(in) :: x
+            real(rkind)                 , intent(in) :: y
+            real(rkind), dimension(ne)  , intent(in) :: nodes_bc
+            real(rkind), dimension(ne+1)             :: nodes_prim_extended
 
-          end function lodi_td_proc
+          end function openbc_prim_proc
 
 
           !> @author
           !> Julien L. Desmarais
           !
           !> @brief
-          !> interface for the local computation of the contribution
-          !> of the LODI vectors in both directions (x and y) to the time
-          !> derivatives
+          !> interface for the local computation of the eigenvalues
+          !> for the hyperbolic terms in the x-direction
           !
           !> @date
-          !> 12_12_2014 - initial version - J.L. Desmarais
+          !> 01_08_2014 - initial version - J.L. Desmarais
           !
           !>@param nodes
           !> array with the grid point data
           !
-          !>@param lodi
-          !> LODI vector
-          !
-          !>@return timedev
-          !> time derivatives
+          !>@return eigenvalues
+          !> eigenvalues at the location of the grid point
           !--------------------------------------------------------------
-          function lodi_tds_proc(nodes,lodi_x,lodi_y) result(timedev)
+          function openbc_var_proc(nodes_in) result(nodes_out)
 
             import rkind
             import ne
 
-            real(rkind), dimension(ne), intent(in) :: nodes
-            real(rkind), dimension(ne), intent(in) :: lodi_x
-            real(rkind), dimension(ne), intent(in) :: lodi_y
-            real(rkind), dimension(ne)             :: timedev
+            real(rkind), dimension(ne), intent(in) :: nodes_in
+            real(rkind), dimension(ne)             :: nodes_out
 
-          end function lodi_tds_proc
+          end function openbc_var_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for the local computation of the eigenvalues
+          !> for the hyperbolic terms in the x-direction
+          !
+          !> @date
+          !> 01_08_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@return eigenvalues
+          !> eigenvalues at the location of the grid point
+          !--------------------------------------------------------------
+          function openbc_matrix_proc(nodes_prim_extended) result(matrix)
+
+            import rkind
+            import ne
+
+            real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+            real(rkind), dimension(ne,ne)             :: matrix
+
+          end function openbc_matrix_proc
+
+
+          !> @author
+          !> Julien L. Desmarais
+          !
+          !> @brief
+          !> interface for the local computation of the eigenvalues
+          !> for the hyperbolic terms in the x-direction
+          !
+          !> @date
+          !> 01_08_2014 - initial version - J.L. Desmarais
+          !
+          !>@param nodes
+          !> array with the grid point data
+          !
+          !>@return eigenvalues
+          !> eigenvalues at the location of the grid point
+          !--------------------------------------------------------------
+          function openbc_vector_proc(nodes_prim_extended) result(vector)
+
+            import rkind
+            import ne
+
+            real(rkind), dimension(ne+1), intent(in) :: nodes_prim_extended
+            real(rkind), dimension(ne)               :: vector
+
+          end function openbc_vector_proc
+
+
+c$$$          !> @author
+c$$$          !> Julien L. Desmarais
+c$$$          !
+c$$$          !> @brief
+c$$$          !> interface for the local computation of the contribution
+c$$$          !> of the LODI vector in one direction (x or y) to the time
+c$$$          !> derivatives
+c$$$          !
+c$$$          !> @date
+c$$$          !> 12_12_2014 - initial version - J.L. Desmarais
+c$$$          !
+c$$$          !>@param nodes
+c$$$          !> array with the grid point data
+c$$$          !
+c$$$          !>@param lodi
+c$$$          !> LODI vector
+c$$$          !
+c$$$          !>@return timedev
+c$$$          !> time derivatives
+c$$$          !--------------------------------------------------------------
+c$$$          function lodi_td_proc(nodes,lodi) result(timedev)
+c$$$
+c$$$            import rkind
+c$$$            import ne
+c$$$
+c$$$            real(rkind), dimension(ne), intent(in) :: nodes
+c$$$            real(rkind), dimension(ne), intent(in) :: lodi
+c$$$            real(rkind), dimension(ne)             :: timedev
+c$$$
+c$$$          end function lodi_td_proc
+c$$$
+c$$$
+c$$$          !> @author
+c$$$          !> Julien L. Desmarais
+c$$$          !
+c$$$          !> @brief
+c$$$          !> interface for the local computation of the contribution
+c$$$          !> of the LODI vectors in both directions (x and y) to the time
+c$$$          !> derivatives
+c$$$          !
+c$$$          !> @date
+c$$$          !> 12_12_2014 - initial version - J.L. Desmarais
+c$$$          !
+c$$$          !>@param nodes
+c$$$          !> array with the grid point data
+c$$$          !
+c$$$          !>@param lodi
+c$$$          !> LODI vector
+c$$$          !
+c$$$          !>@return timedev
+c$$$          !> time derivatives
+c$$$          !--------------------------------------------------------------
+c$$$          function lodi_tds_proc(nodes,lodi_x,lodi_y) result(timedev)
+c$$$
+c$$$            import rkind
+c$$$            import ne
+c$$$
+c$$$            real(rkind), dimension(ne), intent(in) :: nodes
+c$$$            real(rkind), dimension(ne), intent(in) :: lodi_x
+c$$$            real(rkind), dimension(ne), intent(in) :: lodi_y
+c$$$            real(rkind), dimension(ne)             :: timedev
+c$$$
+c$$$          end function lodi_tds_proc
 
 
           !> @author
@@ -1151,7 +1209,8 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !>@return grad_var
           !> gradient of the governing variables along the x-axis
           !--------------------------------------------------------------
-          function gradient_prim_proc(nodes,i,j,gradient,dn) result(grad_var)
+          function grad_prim_proc(nodes,i,j,gradient,dn,use_n_dir)
+     $      result(grad_var)
 
             import gradient_proc
             import ikind,rkind
@@ -1162,9 +1221,10 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
             integer(ikind)               , intent(in) :: j
             procedure(gradient_proc)                  :: gradient
             real(rkind)                  , intent(in) :: dn
+            logical    , optional        , intent(in) :: use_n_dir
             real(rkind), dimension(ne)                :: grad_var
 
-          end function gradient_prim_proc
+          end function grad_prim_proc
 
       
           function xy_to_n_proc(nodes) result(nodes_n)
