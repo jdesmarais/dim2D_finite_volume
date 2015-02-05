@@ -38,7 +38,7 @@
         logical :: detailled
 
         
-        detailled = .true.
+        detailled = .false.
 
 
         test_loc       = test_compute_timedev_with_openbc(detailled)
@@ -95,10 +95,10 @@
           test_validated = 
      $         is_real_vector_validated(
      $         timedev_L0,
-     $         [-1.204635014d0,
-     $           1.737621779d0,
-     $          -1.858085280d0,
-     $          -2.824803294d0],
+     $         [-1.151763244d0,
+     $          -0.081441960d0,
+     $           2.430955661d0,
+     $          -2.700821882d0],
      $         detailled)
 
        end function test_compute_timedev_with_openbc
