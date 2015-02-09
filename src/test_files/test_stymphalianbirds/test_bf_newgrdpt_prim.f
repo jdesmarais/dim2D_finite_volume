@@ -37,6 +37,7 @@
 
         use parameters_constant, only :
      $       left,right,
+     $       n1_direction,
      $       n2_direction
 
         use parameters_input, only :
@@ -131,10 +132,13 @@ c$$$        print '(''test_compute_newgrdpt_y: '', L1)', test_validated
 
         detailled = .true.
 
+        !test of the symmetry in compute_newgrdpt_xy
+        test_validated = test_sym_compute_newgrdpt_xy(bf_newgrdpt_used,detailled)
+        print '(''test_sym_compute_newgrdpt_xy: '', L1)', test_validated
 
-        !test of compute_newgrdpt_xy
-        test_validated = test_compute_newgrdpt_xy(bf_newgrdpt_used,detailled)
-        print '(''test_compute_newgrdpt_xy: '', L1)', test_validated
+c$$$        !test of compute_newgrdpt_xy
+c$$$        test_validated = test_compute_newgrdpt_xy(bf_newgrdpt_used,detailled)
+c$$$        print '(''test_compute_newgrdpt_xy: '', L1)', test_validated
 c$$$
 c$$$
 c$$$        !test of compute_newgrdpt
@@ -492,6 +496,7 @@ c$$$
 
           real(rkind), dimension(ne)     :: newgrdpt_data
           real(rkind), dimension(ne)     :: newgrdpt
+          real(rkind), dimension(ne)     :: newgrdpt_sym
           integer(ikind)                 :: i1
           integer(ikind)                 :: j1
           integer                        :: n_direction
@@ -499,7 +504,6 @@ c$$$
           integer, dimension(2)          :: eigen_indices
           integer, dimension(2,3)        :: inter_indices1
 
-          integer                        :: k
           logical                        :: test_loc
           
 
@@ -575,18 +579,32 @@ c$$$
      $         i1,j1,
      $         n_direction,
      $         side_n,
-     $         gradient_n1_xR0_yR1,
-     $         gradient_n1_xR1_yR0,
-     $         gradient_n1_xR0_yR0,
+     $         gradient_x_x_oneside_R0,
+     $         gradient_y_interior,
+     $         gradient_x_interior,
+     $         gradient_y_y_oneside_R0,
+     $         gradient_x_x_oneside_R0,
+     $         gradient_y_y_oneside_R0,
      $         eigen_indices,
      $         inter_indices1)
+
+          newgrdpt_data = [
+     $          2.167837666d0, 
+     $         -0.664269503d0,
+     $         -0.147230210d0,
+     $          0.855877482d0]
+
+          test_loc = is_real_vector_validated(
+     $         newgrdpt,
+     $         newgrdpt_data,
+     $         detailled)
 
 
           !compute the symmetrized newgrdpt
           bf_align0(1,1) = 0
           bf_align0(2,1) = 1
-          bf_x_map0 = [0.5d0, 1.5d0 , 2.5d0]
-          bf_y_map0 = [0.0d0, 0.25d0, 0.5d0]
+          bf_x_map0 = [ 0.5d0,   1.5d0, 2.5d0]
+          bf_y_map0 = [-0.5d0, -0.25d0, 0.0d0]
           bf_nodes0 = reshape((/
      $         1.48d0, 1.30d0, 1.35d0,
      $         1.26d0, 1.45d0, 1.4d0,
@@ -608,7 +626,7 @@ c$$$
           bf_align1(1,1) = 0
           bf_align0(2,1) = 0
           bf_x_map1 = [  0.5d0, 1.5d0, 2.5d0, 3.5d0]
-          bf_y_map1 = [-0.25d0, 0.0d0, 0.25d0,0.5d0]
+          bf_y_map1 = [-0.75d0,-0.5d0,-0.25d0,0.0d0]
           bf_nodes1 = reshape((/
      $         0.00d0, 0.000d0, 0.00d0, 0.0d0,
      $         1.49d0, 1.250d0, 1.40d0, 0.0d0,
@@ -625,14 +643,14 @@ c$$$
      $        -0.000d0,	-0.0028d0, -0.035d0, -0.0d0,
      $        -0.006d0,	-0.0600d0, -0.020d0, -0.0d0,
      $         
-     $         0.000d0, 0.0000d0, 0.000d0, 0.0d0
+     $         0.000d0, 0.0000d0, 0.000d0, 0.0d0,
      $         4.865d0, 4.757d0, 4.895d0, 0.0d0,
      $         4.890d0, 4.871d0, 4.892d0, 0.0d0,
      $         4.876d0, 4.825d0, 4.862d0, 0.0d0
      $         /),
      $         (/4,4,ne/))
 
-          i1 = 1
+          i1 = 4
           j1 = 1
 
           n_direction         = n1_direction
@@ -642,20 +660,31 @@ c$$$
           inter_indices1(:,2) = [3,2]
           inter_indices1(:,3) = [3,3]
 
-          newgrdpt = bf_newgrdpt_used%compute_newgrdpt_xy(
+          newgrdpt_sym = bf_newgrdpt_used%compute_newgrdpt_xy(
      $         p_model, t,dt,
      $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
      $         i1,j1,
      $         n_direction,
      $         side_n,
-     $         gradient_n1_xR0_yR1,
-     $         gradient_n1_xR1_yR0,
-     $         gradient_n1_xR0_yR0,
+     $         gradient_x_interior,
+     $         gradient_y_y_oneside_L0,
+     $         gradient_x_x_oneside_R0,
+     $         gradient_y_y_oneside_L0,
+     $         gradient_x_x_oneside_L0,
+     $         gradient_y_interior,
      $         eigen_indices,
      $         inter_indices1)
-          
 
+
+          newgrdpt_sym(3) = -newgrdpt_sym(3)
+
+          test_loc = is_real_vector_validated(
+     $         newgrdpt,
+     $         newgrdpt_sym,
+     $         detailled)
+
+          test_validated = test_validated.and.test_loc
 
         end function test_sym_compute_newgrdpt_xy
 
@@ -2490,7 +2519,6 @@ c$$$
           real(rkind), dimension(3,ne) :: nodes
           real(rkind), dimension(3,ne) :: nodes_inter
           real(rkind), dimension(3,ne) :: nodes_inter_data
-          logical                      :: test_loc
 
 
           x_map = [1.0d0,1.0d0,2.0d0]
