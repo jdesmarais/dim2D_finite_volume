@@ -181,7 +181,7 @@
         !-----------------------------------------------------
         integer    , parameter :: obc_outgoing_strategy   = obc_outgoing_prim
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
-        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
 
         !-----------------------------------------------------

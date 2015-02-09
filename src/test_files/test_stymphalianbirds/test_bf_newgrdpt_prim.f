@@ -38,10 +38,13 @@
         use parameters_constant, only :
      $       left,right,
      $       n1_direction,
-     $       n2_direction
+     $       n2_direction,
+     $       obc_eigenqties_bc,
+     $       obc_eigenqties_lin
 
         use parameters_input, only :
-     $       ne
+     $       ne,
+     $       obc_eigenqties_strategy
 
         use parameters_kind, only :
      $       ikind,
@@ -84,7 +87,7 @@
         if(.not.is_real_vector_validated(
      $       far_field,
      $       [1.465102139d0,0.146510214d0,0.0d0,2.84673289d0],
-     $       .true.)) then
+     $       .false.)) then
            print '(''the test requires p_model%get_far_field(t,x,y)='')'
            print '(''[1.465102139d0,0.14651021d0,0.0d0,2.84673289d0]'')'
            stop ''
@@ -588,11 +591,30 @@ c$$$
      $         eigen_indices,
      $         inter_indices1)
 
-          newgrdpt_data = [
-     $          1.557420912d0,
-     $          0.562248987d0,
-     $         -0.145047656d0,
-     $          4.6364745d0]
+          select case(obc_eigenqties_strategy)
+
+            case(obc_eigenqties_bc)
+               newgrdpt_data = [
+     $              1.557420912d0,
+     $              0.562248987d0,
+     $              -0.145047656d0,
+     $              4.6364745d0]
+
+            case(obc_eigenqties_lin)
+               newgrdpt_data = [
+     $              1.427429219d0,
+     $              0.744885407d0,
+     $             -0.032747125d0,
+     $              4.271215698d0]
+               
+            case default
+               print '(''test_bf_newgrdpt_prim'')'
+               print '(''test_sym_compute_newgrdpt_xy'')'
+               print '(''obc_eigenqties_strategy not recognized'')'
+               stop ''
+               
+          end select
+
 
           test_loc = is_real_vector_validated(
      $         newgrdpt,

@@ -1939,12 +1939,14 @@ c$$$     $       gradient_n2_xR0_yR0
           !   computation of the eigenquantities
           !   at t
           !--------------------------------------------------
-          obc_prim_nodes = p_model%get_prim_obc_eigenqties(
+          obc_prim_nodes =  p_model%get_prim_obc_eigenqties(
      $                        t,x1,y1,
-     $                        p_model%compute_xy_to_n_var(
-     $                            bf_nodes1(eigen_indices(1),
-     $                                      eigen_indices(2),
-     $                                      :)))
+     $                        bf_nodes1(eigen_indices(1),
+     $                                   eigen_indices(2),
+     $                                   :))
+
+          obc_prim_nodes(1:ne) = p_model%compute_xy_to_n_var(
+     $                              obc_prim_nodes(1:ne))
 
 
           !--------------------------------------------------
@@ -2206,17 +2208,18 @@ c$$$     $       gradient_n2_xR0_yR0
 
              n_gradient = p_model%compute_xy_to_n_var(n_gradient_prim)
 
-             obc_prim_nodes = 
-     $            p_model%get_prim_obc_eigenqties(
-     $               t,
-     $               bf_x_map(inter_indices(1,k)),
-     $               bf_y_map(inter_indices(2,k)),
-     $               p_model%compute_xy_to_n_var(
-     $                  bf_nodes(inter_indices(1,k),
-     $                           inter_indices(2,k),
-     $                           :)
-     $               )
-     $            )
+             obc_prim_nodes = p_model%get_prim_obc_eigenqties(
+     $                           t,
+     $                           bf_x_map(inter_indices(1,k)),
+     $                           bf_y_map(inter_indices(2,k)),
+     $                           bf_nodes(inter_indices(1,k),
+     $                                    inter_indices(2,k),
+     $                                    :)
+     $                           )
+
+             obc_prim_nodes(1:ne) = p_model%compute_xy_to_n_var(
+     $                                 obc_prim_nodes(1:ne))
+
 
              select case(n_direction)
                case(n1_direction)
