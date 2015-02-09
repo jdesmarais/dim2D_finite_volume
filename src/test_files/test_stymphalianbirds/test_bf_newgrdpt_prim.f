@@ -86,12 +86,12 @@
      $       [1.465102139d0,0.146510214d0,0.0d0,2.84673289d0],
      $       .true.)) then
            print '(''the test requires p_model%get_far_field(t,x,y)='')'
-           print '(''[1.465102139d0,0.146510214d0,0.0d0,2.84673289d0]'')'
+           print '(''[1.465102139d0,0.14651021d0,0.0d0,2.84673289d0]'')'
            stop ''
            
         end if
 
-        !tes config
+        !test config
         detailled = .false.
 
 
@@ -536,7 +536,7 @@ c$$$
      $         (/3,3,ne/))
 
           bf_align1(1,1) = 0
-          bf_align0(2,1) = 0
+          bf_align1(2,1) = 0
           bf_x_map1 = [0.5d0, 1.5d0,2.5d0, 3.5d0]
           bf_y_map1 = [0.0d0,0.25d0,0.5d0,0.75d0]
           bf_nodes1 = reshape((/
@@ -589,16 +589,18 @@ c$$$
      $         inter_indices1)
 
           newgrdpt_data = [
-     $          2.167837666d0, 
-     $         -0.664269503d0,
-     $         -0.147230210d0,
-     $          0.855877482d0]
+     $          1.557420912d0,
+     $          0.562248987d0,
+     $         -0.145047656d0,
+     $          4.6364745d0]
 
           test_loc = is_real_vector_validated(
      $         newgrdpt,
      $         newgrdpt_data,
      $         detailled)
-
+          test_validated = test_loc
+          print '(''compute_newgrdpt_xy: '',L1)', test_loc
+          
 
           !compute the symmetrized newgrdpt
           bf_align0(1,1) = 0
@@ -606,25 +608,25 @@ c$$$
           bf_x_map0 = [ 0.5d0,   1.5d0, 2.5d0]
           bf_y_map0 = [-0.5d0, -0.25d0, 0.0d0]
           bf_nodes0 = reshape((/
-     $         1.48d0, 1.30d0, 1.35d0,
-     $         1.26d0, 1.45d0, 1.4d0,
      $         1.46d0, 1.27d0, 1.47d0,
+     $         1.26d0, 1.45d0, 1.4d0,
+     $         1.48d0, 1.30d0, 1.35d0,
      $         
-     $         0.128d0, 0.127d0, 0.142d0,
-     $         1.138d0, 0.148d0, 0.132d0,
      $         0.146d0, 0.143d0, 0.145d0,
+     $         1.138d0, 0.148d0, 0.132d0,
+     $         0.128d0, 0.127d0, 0.142d0,
      $         
-     $         0.0050d0, 0.020d0, 0.060d0,
-     $         0.0025d0, 0.001d0, 0.015d0,
-     $         0.0100d0, 0.002d0, 0.050d0,
+     $        -0.0100d0,-0.002d0,-0.050d0,
+     $        -0.0025d0,-0.001d0,-0.015d0,
+     $        -0.0050d0,-0.020d0,-0.060d0,
      $         
-     $         4.88d0, 4.870d0,	4.855d0,
+     $         4.89d0, 4.870d0, 4.860d0,
      $         4.85d0, 4.865d0, 4.845d0,
-     $         4.89d0, 4.870d0, 4.860d0/),
+     $         4.88d0, 4.870d0,	4.855d0/),
      $         (/3,3,ne/))
 
           bf_align1(1,1) = 0
-          bf_align0(2,1) = 0
+          bf_align1(2,1) = 0
           bf_x_map1 = [  0.5d0, 1.5d0, 2.5d0, 3.5d0]
           bf_y_map1 = [-0.75d0,-0.5d0,-0.25d0,0.0d0]
           bf_nodes1 = reshape((/
@@ -671,7 +673,7 @@ c$$$
      $         gradient_y_y_oneside_L0,
      $         gradient_x_x_oneside_R0,
      $         gradient_y_y_oneside_L0,
-     $         gradient_x_x_oneside_L0,
+     $         gradient_x_x_oneside_R0,
      $         gradient_y_interior,
      $         eigen_indices,
      $         inter_indices1)
@@ -685,6 +687,7 @@ c$$$
      $         detailled)
 
           test_validated = test_validated.and.test_loc
+          print '(''symmetry_newgrdpt_xy: '',L1)', test_loc
 
         end function test_sym_compute_newgrdpt_xy
 
