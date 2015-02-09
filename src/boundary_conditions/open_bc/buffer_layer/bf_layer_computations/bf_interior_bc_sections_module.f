@@ -16,7 +16,7 @@
       !-----------------------------------------------------------------
       module bf_interior_bc_sections_module
       
-        use bf_layer_bc_procedure_module, only :
+        use parameters_bf_layer, only :
      $       N_edge_type,
      $       S_edge_type,
      $       E_edge_type,

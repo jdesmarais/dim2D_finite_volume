@@ -14,7 +14,17 @@
       !----------------------------------------------------------------
       module bf_layer_newgrdpt_procedure_module
 
-        use bf_layer_bc_procedure_module, only : 
+        use bf_layer_errors_module, only : 
+     $       error_mainlayer_id
+
+        use bf_layer_sync_module, only :
+     $       get_sync_indices_to_extract_interior_data
+
+        use parameters_bf_layer, only :
+     $       no_pt,
+     $       bc_pt,
+     $       bc_interior_pt,
+     $       interior_pt,
      $       N_edge_type,
      $       S_edge_type,
      $       E_edge_type,
@@ -26,19 +36,14 @@
      $       NE_corner_type,
      $       NW_corner_type,
      $       SE_corner_type,
-     $       SW_corner_type
-
-        use bf_layer_errors_module, only : 
-     $       error_mainlayer_id
-
-        use bf_layer_sync_module, only :
-     $       get_sync_indices_to_extract_interior_data
-
-        use parameters_bf_layer, only :
-     $       no_pt,
-     $       bc_pt,
-     $       bc_interior_pt,
-     $       interior_pt
+     $       SW_corner_type,
+     $       no_gradient_type,
+     $       gradient_I_type,
+     $       gradient_L0_type,
+     $       gradient_R0_type,
+     $       gradient_xLR0_yI_type,
+     $       gradient_xI_yLR0_type,
+     $       gradient_xLR0_yLR0_type
 
         use parameters_constant, only :
      $       N,S,E,W
@@ -53,14 +58,7 @@
         implicit none
 
         private
-        public :: 
-     $       no_gradient_type,
-     $       gradient_I_type,
-     $       gradient_L0_type,
-     $       gradient_R0_type,
-     $       gradient_xLR0_yI_type,
-     $       gradient_xI_yLR0_type,
-     $       gradient_xLR0_yLR0_type,
+        public ::
      $       get_newgrdpt_procedure,
      $       error_gradient_type,
      $       get_grdpts_id_from_interior,
@@ -68,16 +66,6 @@
      $       are_intermediate_newgrdpt_data_needed,
      $       get_x_map_for_newgrdpt,
      $       get_y_map_for_newgrdpt
-
-
-        integer, parameter :: no_gradient_type=0
-        integer, parameter :: gradient_I_type=1
-        integer, parameter :: gradient_L0_type=2
-        integer, parameter :: gradient_R0_type=3
-        integer, parameter :: gradient_xLR0_yI_type=4
-        integer, parameter :: gradient_xI_yLR0_type=5
-        integer, parameter :: gradient_xLR0_yLR0_type=6
-
 
         contains
 

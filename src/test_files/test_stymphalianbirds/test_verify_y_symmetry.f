@@ -74,13 +74,13 @@
           logical                 :: test_validated
 
           if(detailled) then
-             print *, nint(var*1e13)
-             print *, nint(cst*1e13)
+             print *, nint(var*10**13)
+             print *, nint(cst*10**13)
           end if
           
           test_validated=abs(
-     $         nint(var*1e13)-
-     $         nint(cst*1e13)).le.1
+     $         nint(var*10**13)-
+     $         nint(cst*10**13)).le.1
           
         end function is_test_validated
 

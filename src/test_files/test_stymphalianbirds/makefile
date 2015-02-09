@@ -368,13 +368,20 @@ test_dct_verify_y_symmetry.o:\
 			$(bf_layer_dir)/bf_restart_module.o\
 			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(io_dir)/cmd_operators_class.o\
-			$(param_dir)/parameters_kind.o
+			$(param_dir)/parameters_kind.o\
+			$(nf90_dir)/nf90_operators_module.o\
+			$(nf90_dir)/nf90_operators_read_module.o\
+			$(pm_cdir)/pmodel_eq_class.o
 
 test_dct_verify_y_symmetry:\
 			$(param_dep)\
+			$(sd_cdep)\
+			$(pm_cdep)\
 			parameters_bf_layer.o\
 			cmd_operators_class.o\
-			bf_restart_module.o
+			bf_restart_module.o\
+			nf90_operators_module.o\
+			nf90_operators_read_module.o
 
 test_dct_verify_x_symmetry.o:\
 			$(bf_layer_dir)/bf_restart_module.o\
@@ -515,3 +522,24 @@ test_hedstrom_xy_corners_prim:\
 			$(dim2d_dep)\
 			openbc_operators_module.o\
 			hedstrom_xy_corners_module.o
+
+test_bf_newgrdpt_prim.o:$(cbf_layer_dir)/bf_compute_class.o\
+			$(bf_layer_dir)/bf_layer_class.o\
+			$(cbf_layer_dir)/bf_newgrdpt_class.o\
+			$(test_dir)/test_lernaeanhydra/check_data_module.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(dim2d_dir)/pmodel_eq_class.o\
+			$(mt_dir)/sd_operators_fd_module.o\
+			$(dim2d_dir)/dim2d_parameters.o
+
+test_bf_newgrdpt_prim:	check_data_module.o\
+			$(param_dep)\
+			$(mt_dep)\
+			$(dim2d_dep)\
+			$(fv_dep)\
+			$(hedstrom_xy_dep)\
+			$(bf_layer_dep)\
+			n_coords_module.o

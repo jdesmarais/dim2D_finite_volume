@@ -3,20 +3,6 @@
         use bf_compute_class, only :
      $       bf_compute
 
-        use bf_layer_bc_procedure_module, only : 
-     $       N_edge_type,
-     $       S_edge_type,
-     $       E_edge_type,
-     $       W_edge_type,
-     $       NE_edge_type,
-     $       NW_edge_type,
-     $       SE_edge_type,
-     $       SW_edge_type,
-     $       NE_corner_type,
-     $       NW_corner_type,
-     $       SE_corner_type,
-     $       SW_corner_type
-
         use bf_layer_class, only :
      $       bf_layer
 
@@ -31,6 +17,20 @@
 
         use bf_newgrdpt_class, only :
      $       bf_newgrdpt
+
+        use parameters_bf_layer, only :
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       NE_edge_type,
+     $       NW_edge_type,
+     $       SE_edge_type,
+     $       SW_edge_type,
+     $       NE_corner_type,
+     $       NW_corner_type,
+     $       SE_corner_type,
+     $       SW_corner_type
 
         use parameters_constant, only :
      $       left,right,
@@ -49,11 +49,6 @@
         use sd_operators_fd_module, only :
      $       gradient_x_x_oneside_R0,
      $       gradient_y_y_oneside_R0
-
-        use sd_operators_fd_n_module, only :
-     $       gradient_n1_xR0_yR1,
-     $       gradient_n1_xR1_yR0,
-     $       gradient_n1_xR0_yR0
 
         use wave2d_parameters, only :
      $       c

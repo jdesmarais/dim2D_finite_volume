@@ -14,9 +14,14 @@
       !----------------------------------------------------------------
       module parameters_bf_layer
 
-        use parameters_constant, only : N,S,E,W
-        use parameters_input   , only : nx, ny, bc_size
-        use parameters_kind    , only : ikind
+        use parameters_constant, only :
+     $       N,S,E,W
+
+        use parameters_input, only :
+     $       nx,ny,bc_size
+
+        use parameters_kind, only :
+     $       ikind
 
         implicit none
 
@@ -90,6 +95,17 @@
         integer, parameter :: NW_overlap = 6
         integer, parameter :: SE_overlap = 7
         integer, parameter :: SW_overlap = 8
+
+
+        !convention for new grid-point procedures
+        !-------------------------------------------------------------
+        integer, parameter :: no_gradient_type        = 0
+        integer, parameter :: gradient_I_type         = 1
+        integer, parameter :: gradient_L0_type        = 2
+        integer, parameter :: gradient_R0_type        = 3
+        integer, parameter :: gradient_xLR0_yI_type   = 4
+        integer, parameter :: gradient_xI_yLR0_type   = 5
+        integer, parameter :: gradient_xLR0_yLR0_type = 6
 
 
         !default positions for the increasing detectors

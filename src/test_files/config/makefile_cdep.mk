@@ -101,11 +101,11 @@ hedstrom_xy_dep=	$(bc_dep)\
 			bc_operators_openbc_normal_class.o\
 			sd_operators_fd_module.o\
 			$(sd_oneside_dep)\
-			sd_operators_fd_n_module.o\
 			$(sd_oneside_n_dep)\
 			hedstrom_xy_module.o\
 			hedstrom_xy_corners_module.o\
-			hedstrom_xy_diag_fluxes_module.o
+			hedstrom_xy_anti_corner_flux_module.o\
+			hedstrom_xy_anti_corner_diag_flux_module.o
 
 hedstrom_xy_corners_dep=\
 			$(bc_dep)\
@@ -116,7 +116,6 @@ hedstrom_xy_corners_dep=\
 			$(sd_oneside_dep)\
 			sd_operators_fd_module.o\
 			hedstrom_xy_module.o\
-			sd_operators_fd_n_module.o\
 			hedstrom_xy_corners_module.o
 
 hedstrom_x_reflection_y_dep=\
@@ -249,8 +248,7 @@ wall_x_refl_y_par_dep=	$(mpi_dep)\
 			bc_operators_par_class.o
 
 bf_newgrdpt_dep=	bf_newgrdpt_class.o\
-			n_coords_module.o\
-			sd_operators_fd_n_module.o
+			n_coords_module.o
 
 bf_layer_dep=		parameters_bf_layer.o\
 			bf_remove_module.o\
