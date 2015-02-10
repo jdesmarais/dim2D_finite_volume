@@ -22,14 +22,14 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -0.1519000000d0
-        real(rkind), parameter :: x_max = 0.1519000000d0
-        real(rkind), parameter :: y_min = -0.1519000000d0
-        real(rkind), parameter :: y_max = 0.1519000000d0
+        real(rkind), parameter :: x_min = -1.1129000000d0
+        real(rkind), parameter :: x_max = 1.1129000000d0
+        real(rkind), parameter :: y_min = -1.1129000000d0
+        real(rkind), parameter :: y_max = 1.1129000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 0.3500000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0001000000d0
+        real(rkind), parameter :: t_max = 16.6700000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0023000000d0
         
         !<output writing
         real(rkind), parameter :: detail_print = 1.0000000000d0
@@ -110,7 +110,7 @@
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
         real(rkind), parameter :: flow_velocity = 0.1000000000d0
         
-        real(rkind), parameter :: T0 = 0.9500000000d0
+        real(rkind), parameter :: T0 = 0.9990000000d0
 
         integer    , parameter :: ic_choice = bubble_transported
 
@@ -202,8 +202,8 @@
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
         !-----------------------------------------------------
-        logical    , parameter :: bf_openbc_md_threshold_ac = .true.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
+        logical    , parameter :: bf_openbc_md_threshold_ac = .false.
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.0001000000d0
 
 
         !-----------------------------------------------------

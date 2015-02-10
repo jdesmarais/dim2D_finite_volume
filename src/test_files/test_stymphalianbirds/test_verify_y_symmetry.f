@@ -73,14 +73,18 @@
           logical                 :: detailled
           logical                 :: test_validated
 
+          real(rkind) :: diff
+
           if(detailled) then
-             print *, nint(var*10**13)
-             print *, nint(cst*10**13)
+             print *, nint(var*10**8)
+             print *, nint(cst*10**8)
           end if
           
-          test_validated=abs(
-     $         nint(var*10**13)-
-     $         nint(cst*10**13)).le.1
+          diff = abs(
+     $         nint(var*10**8)-
+     $         nint(cst*10**8))
+
+          test_validated=diff.le.1
           
         end function is_test_validated
 

@@ -10,16 +10,16 @@ on small domains with an equivalent simulation on
 a large domain where the perturbations do not have
 time to reach the edges and to come back
 
-1) temperature study
-T \in [0.95,0.99,0.995,0.999] at v=0.1
+1) temperature studyT
+\f$ T \in [0.95,0.99,0.995,0.999]\f$ at \f$v=0.1\f$
 
 2) flow mean velocity study
-v \in [0.05, 0.1, 0.25, 0.5] at T=0.99
+\f$ v \in [0.05, 0.1, 0.25, 0.5]\f$ at \f$T=0.99\f$
 
 3) threshold study
 threshold \in [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
-for T \in [0.95,0.99,0.995,0.999]
-and v \in [0.05, 0.1, 0.25, 0.5]
+for \f$ T \in [0.95,0.99,0.995,0.999] \f$
+and \f$ v \in [0.05, 0.1, 0.25, 0.5]  \f$
 
 '''
 
@@ -37,26 +37,23 @@ if __name__=="__main__":
 
 
     # input used as template
-#    model_input=os.path.join(
-#        os.getenv('augeanstables'),'src','test_files','config','default_inputs','dim2d',
-#        'dim2d_bubble_transported_hedstrom_xy_corners.txt')
     model_input=os.path.join(
         os.getenv('augeanstables'),'src','test_files','config','default_inputs','dim2d',
         'dim2d_bubble_transported_hedstrom_xy.txt')
 
 
-    temperatureStudy          = False
-    velocityStudy             = False
+    temperatureStudy          = True
+    velocityStudy             = True
     thresholdTemperatureStudy = True
-    thresholdVelocityStudy    = False
+    thresholdVelocityStudy    = True
 
 
-    ##1) temperature study
+    #1) temperature study
     if(temperatureStudy):
 
         temperature_array = [0.95,0.99,0.995,0.999]
         flow_velocity     = 0.1
-        md_threshold      = 0
+        md_threshold_ac   = 0
         large_domain_run  = False
         
     
@@ -79,7 +76,7 @@ if __name__=="__main__":
 
         temperature         = 0.99
         flow_velocity_array = [0.05,0.25,0.5]
-        md_threshold        = 0
+        md_threshold_ac     = 0
         large_domain_run    = False
         
         for flow_velocity in flow_velocity_array:
@@ -99,9 +96,9 @@ if __name__=="__main__":
     #3) threshold study
     if(thresholdTemperatureStudy):
 
-        temperature_array  = [0.95]#,0.99,0.995,0.999]
+        temperature_array  = [0.95,0.99,0.995,0.999]
         flow_velocity      = 0.1
-        md_threshold_array = [0.0001]#, 0.001, 0.01, 0.1, 0.2, 0.3]
+        md_threshold_array = [0.01, 0.05, 0.1, 0.2, 0.3]
         md_threshold_ac    = 1
         large_domain_run   = False
         
@@ -118,13 +115,14 @@ if __name__=="__main__":
                                         model_input,
                                         bf_layer_option=True,
                                         large_domain_run=large_domain_run,
-                                        md_threshold_ac=1,
+                                        md_threshold_ac=md_threshold_ac,
                                         md_threshold=md_threshold)
     
     if(thresholdVelocityStudy):
         temperature         = 0.99
         flow_velocity_array = [0.05,0.25,0.5]
-        md_threshold_array  = [0.0001, 0.001, 0.01, 0.1, 0.2, 0.3]
+        md_threshold_array  = [0.01, 0.05, 0.1, 0.2, 0.3]
+        md_threshold_ac     = 1
         large_domain_run    = False
     
         for md_threshold in md_threshold_array:
@@ -140,7 +138,7 @@ if __name__=="__main__":
                                         model_input,
                                         bf_layer_option=True,
                                         large_domain_run=large_domain_run,
-                                        md_threshold_ac=1,
+                                        md_threshold_ac=md_threshold_ac,
                                         md_threshold=md_threshold)
     
     
