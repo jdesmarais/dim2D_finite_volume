@@ -76,13 +76,13 @@
           real(rkind) :: diff
 
           if(detailled) then
-             print *, nint(var*10**8)
-             print *, nint(cst*10**8)
+             print *, nint(var*10**13)
+             print *, nint(cst*10**13)
           end if
           
           diff = abs(
-     $         nint(var*10**8)-
-     $         nint(cst*10**8))
+     $         nint(var*10**13)-
+     $         nint(cst*10**13))
 
           test_validated=diff.le.1
           

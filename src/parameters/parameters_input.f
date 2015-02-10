@@ -28,11 +28,11 @@
         real(rkind), parameter :: y_max = 1.1129000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 21.5720000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 14.1600000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0023000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.1067000000d0
+        real(rkind), parameter :: detail_print = 1.0000000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -203,7 +203,7 @@
         !
         !-----------------------------------------------------
         logical    , parameter :: bf_openbc_md_threshold_ac = .true.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.3000000000d0
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.0500000000d0
 
 
         !-----------------------------------------------------
