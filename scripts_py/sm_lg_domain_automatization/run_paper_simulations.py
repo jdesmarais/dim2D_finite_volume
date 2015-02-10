@@ -42,10 +42,10 @@ if __name__=="__main__":
         'dim2d_bubble_transported_hedstrom_xy.txt')
 
 
-    temperatureStudy          = True
-    velocityStudy             = True
+    temperatureStudy          = False
+    velocityStudy             = False
     thresholdTemperatureStudy = True
-    thresholdVelocityStudy    = True
+    thresholdVelocityStudy    = False
 
 
     #1) temperature study

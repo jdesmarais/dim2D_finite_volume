@@ -202,8 +202,8 @@
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
         !-----------------------------------------------------
-        logical    , parameter :: bf_openbc_md_threshold_ac = .false.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.0001000000d0
+        logical    , parameter :: bf_openbc_md_threshold_ac = .true.
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.3000000000d0
 
 
         !-----------------------------------------------------

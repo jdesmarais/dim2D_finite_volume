@@ -1210,14 +1210,14 @@
 
           class(bf_layer)                  , intent(in)  :: this
           integer(ikind), dimension(2)     , intent(in)  :: l_coords
-          real(rkind)   , dimension(3)     , intent(out) :: x_map_local
-          real(rkind)   , dimension(3)     , intent(out) :: y_map_local
-          real(rkind)   , dimension(3,3,ne), intent(out) :: nodes_local
+          real(rkind)   , dimension(5)     , intent(out) :: x_map_local
+          real(rkind)   , dimension(5)     , intent(out) :: y_map_local
+          real(rkind)   , dimension(5,5,ne), intent(out) :: nodes_local
 
-          x_map_local = this%x_map(l_coords(1)-1:l_coords(1)+1)
-          y_map_local = this%y_map(l_coords(2)-1:l_coords(2)+1)
-          nodes_local = this%nodes(l_coords(1)-1:l_coords(1)+1,
-     $                             l_coords(2)-1:l_coords(2)+1,
+          x_map_local = this%x_map(l_coords(1)-2:l_coords(1)+2)
+          y_map_local = this%y_map(l_coords(2)-2:l_coords(2)+2)
+          nodes_local = this%nodes(l_coords(1)-2:l_coords(1)+2,
+     $                             l_coords(2)-2:l_coords(2)+2,
      $                             :)
 
         end subroutine get_nodes_nonlocal

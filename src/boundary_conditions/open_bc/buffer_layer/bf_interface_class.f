@@ -1642,9 +1642,9 @@ c$$$          stop 'not implemented yet'
          real(rkind), dimension(ny)      , intent(in)  :: interior_x_map
          real(rkind), dimension(nx)      , intent(in)  :: interior_y_map
          real(rkind), dimension(nx,ny,ne), intent(in)  :: interior_nodes
-         real(rkind), dimension(3)       , intent(out) :: x_map_local
-         real(rkind), dimension(3)       , intent(out) :: y_map_local
-         real(rkind), dimension(3,3,ne)  , intent(out) :: nodes_local
+         real(rkind), dimension(5)       , intent(out) :: x_map_local
+         real(rkind), dimension(5)       , intent(out) :: y_map_local
+         real(rkind), dimension(5,5,ne)  , intent(out) :: nodes_local
 
          integer                      :: mainlayer_id
          type(bf_sublayer), pointer   :: sublayer
@@ -1653,15 +1653,15 @@ c$$$          stop 'not implemented yet'
          mainlayer_id = this%get_mainlayer_id(g_coords)
 
          if(
-     $        (g_coords(1).ge.2).and.
-     $        (g_coords(1).le.(nx-1)).and.
-     $        (g_coords(2).ge.2).and.
-     $        (g_coords(2).le.(ny-1))) then
+     $        ((g_coords(1)-1).ge.2).and.
+     $        ((g_coords(1)+1).le.(nx-1)).and.
+     $        ((g_coords(2)-1).ge.2).and.
+     $        ((g_coords(2)+1).le.(ny-1))) then
             
-            x_map_local = interior_x_map(g_coords(1)-1:g_coords(1)+1)
-            y_map_local = interior_y_map(g_coords(2)-1:g_coords(2)+1)
-            nodes_local = interior_nodes(g_coords(1)-1:g_coords(1)+1,
-     $                                   g_coords(2)-1:g_coords(2)+1,
+            x_map_local = interior_x_map(g_coords(1)-2:g_coords(1)+2)
+            y_map_local = interior_y_map(g_coords(2)-2:g_coords(2)+2)
+            nodes_local = interior_nodes(g_coords(1)-2:g_coords(1)+2,
+     $                                   g_coords(2)-2:g_coords(2)+2,
      $                                   :)
          else
             sublayer => this%get_sublayer(g_coords,

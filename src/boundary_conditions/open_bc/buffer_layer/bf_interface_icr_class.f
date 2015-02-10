@@ -1468,7 +1468,7 @@
           real(rkind)    , dimension(ny)      , intent(in)    :: interior_y_map
           real(rkind)    , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           type(pmodel_eq)                     , intent(in)    :: p_model
-          integer(ikind) , dimension(2)       , intent(in)    :: grdpt_undermined_p
+          integer(ikind) , dimension(2)       , intent(inout) :: grdpt_undermined_p
           integer(ikind) , dimension(2)       , intent(in)    :: cpt_coord_p
           integer(ikind) , dimension(2)       , intent(out)   :: cpt_coord
           integer                             , intent(out)   :: nb_mgrdpts
@@ -1476,9 +1476,9 @@
           type(bf_detector_icr_list)          , intent(inout) :: ndt_list
 
 
-          real(rkind)   , dimension(3)      :: x_map_local
-          real(rkind)   , dimension(3)      :: y_map_local
-          real(rkind)   , dimension(3,3,ne) :: nodes_local
+          real(rkind)   , dimension(5)      :: x_map_local
+          real(rkind)   , dimension(5)      :: y_map_local
+          real(rkind)   , dimension(5,5,ne) :: nodes_local
           real(rkind)   , dimension(2)      :: velocity
           integer(ikind), dimension(2)      :: d_icoord_n
           real(rkind)   , dimension(2)      :: d_rcoord_n
@@ -1486,6 +1486,7 @@
           real(rkind)   , dimension(2)      :: relative_bc_coords
 
           logical :: detector_activated
+          integer :: i,j
 
 
           !initialization of the number of modified grid points
@@ -1511,19 +1512,37 @@
      $            y_map_local,
      $            nodes_local)
 
-             !check whether the detector is activated
-             detector_activated = is_detector_icr_activated(
-     $            x_map_local,
-     $            y_map_local,
-     $            nodes_local,
-     $            p_model)
+             !check if the detector is activated
+             detector_activated = .false.
+             j=2
+             do while((j.le.4).and.(.not.detector_activated))
+
+                i=2
+                do while((i.le.4).and.(.not.detector_activated))
+
+                   detector_activated = is_detector_icr_activated(
+     $                  x_map_local(i-1:i+1),
+     $                  y_map_local(j-1:j+1),
+     $                  nodes_local(i-1:i+1,j-1:j+1,:),
+     $                  p_model)
+
+                   if(detector_activated) then
+                      grdpt_undermined_p(1) = d_icoord(1)+i-3
+                      grdpt_undermined_p(2) = d_icoord(2)+j-3
+                   end if
+
+                   i=i+1
+                   
+                end do
+
+                j=j+1
+             end do             
 
           end if
 
           !if the detector is activated, then we check
           !whether grid points need to be modified
-          if(detector_activated) then
-             
+          if(detector_activated) then             
 
              !get the first point from which we should look for a
              !bc_interior_pt to be activated and the new coordinates
