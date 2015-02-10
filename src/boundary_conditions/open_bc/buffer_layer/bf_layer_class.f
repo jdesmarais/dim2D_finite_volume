@@ -3023,38 +3023,59 @@
         subroutine get_grdpts_id_part(
      $     this,
      $     tmp_grdptsid,
-     $     gen_coords)
+     $     gen_coords,
+     $     previous_step)
 
           implicit none
 
           class(bf_layer)                , intent(in)    :: this
           integer        , dimension(:,:), intent(inout) :: tmp_grdptsid
           integer(ikind) , dimension(2,2), intent(in)    :: gen_coords
+          logical        , optional      , intent(in)    :: previous_step
 
           
           integer(ikind) :: size_x,size_y
           integer(ikind) :: i_recv,i_send,j_recv,j_send
           integer(ikind) :: i,j
 
+          logical :: previous_step_op
 
-          !get the synchronization indices
-          call get_sync_indices_to_extract_bf_layer_data(
-     $         this%alignment,
-     $         gen_coords,
-     $         size_x, size_y,
-     $         i_recv, j_recv,
-     $         i_send, j_send)
+          if(present(previous_step)) then
+             previous_step_op = previous_step_op
+          else
+             previous_step_op = .false.
+          end if
 
 
-          !fill the grid points asked
-          do j=1, size_y
-             do i=1, size_x
-                
-                tmp_grdptsid(i_recv+i-1,j_recv+j-1) =
-     $               this%grdpts_id(i_send+i-1,j_send+j-1)
+          if(previous_step_op) then
 
+            !get the grdpts_id from the previous time step
+             call this%bf_compute_used%get_grdpts_id_part(
+     $            tmp_grdptsid,
+     $            gen_coords)
+
+          else
+
+             !get the synchronization indices
+             call get_sync_indices_to_extract_bf_layer_data(
+     $            this%alignment,
+     $            gen_coords,
+     $            size_x, size_y,
+     $            i_recv, j_recv,
+     $            i_send, j_send)
+             
+             
+             !fill the grid points asked
+             do j=1, size_y
+                do i=1, size_x
+                   
+                   tmp_grdptsid(i_recv+i-1,j_recv+j-1) =
+     $                  this%grdpts_id(i_send+i-1,j_send+j-1)
+             
+                end do
              end do
-          end do
+
+          end if
 
         end subroutine get_grdpts_id_part
 

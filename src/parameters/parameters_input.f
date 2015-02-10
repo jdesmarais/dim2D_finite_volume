@@ -28,11 +28,11 @@
         real(rkind), parameter :: y_max = 1.1129000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 16.6700000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 21.5720000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0023000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 1.0000000000d0
+        real(rkind), parameter :: detail_print = 0.1067000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 

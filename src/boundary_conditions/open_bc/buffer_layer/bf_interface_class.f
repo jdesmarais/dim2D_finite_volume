@@ -1770,13 +1770,14 @@ c$$$          stop 'not implemented yet'
        !>@param bf_grdpts_id
        !> grid point array extracted
        !--------------------------------------------------------------
-       subroutine extract_grdpts_id(this,gen_borders,bf_grdpts_id)
+       subroutine extract_grdpts_id(this,gen_borders,bf_grdpts_id,previous_step)
 
          implicit none
 
          class(bf_interface)           , intent(in)  :: this
          integer(ikind), dimension(2,2), intent(in)  :: gen_borders
          integer       , dimension(:,:), intent(out) :: bf_grdpts_id
+         logical       , optional      , intent(in)  :: previous_step
 
 
          integer(ikind)               :: radius_x
@@ -1785,6 +1786,16 @@ c$$$          stop 'not implemented yet'
          integer(ikind), dimension(2) :: cpt_coords
 
          integer(ikind), dimension(2) :: coords_tested
+
+         logical :: previous_step_op
+
+
+         if(present(previous_step)) then
+            previous_step_op = previous_step
+         else
+            previous_step_op = .false.
+         end if
+
 
          !0) extract the coordinates of the central gridpoint
          !   asked as well as the radius around
@@ -1822,7 +1833,8 @@ c$$$          stop 'not implemented yet'
      $           bf_grdpts_id,
      $           coords_tested,
      $           W,
-     $           radius_y)
+     $           radius_y,
+     $           previous_step_op)
 
          end if
 
@@ -1840,7 +1852,8 @@ c$$$          stop 'not implemented yet'
      $           bf_grdpts_id,
      $           coords_tested,
      $           E,
-     $           radius_y)
+     $           radius_y,
+     $           previous_step_op)
 
          end if
 
@@ -1858,7 +1871,8 @@ c$$$          stop 'not implemented yet'
      $           bf_grdpts_id,
      $           coords_tested,
      $           S,
-     $           radius_x)
+     $           radius_x,
+     $           previous_step_op)
 
          end if
 
@@ -1876,7 +1890,8 @@ c$$$          stop 'not implemented yet'
      $           bf_grdpts_id,
      $           coords_tested,
      $           N,
-     $           radius_x)
+     $           radius_x,
+     $           previous_step_op)
 
          end if
 
@@ -1892,7 +1907,8 @@ c$$$          stop 'not implemented yet'
      $     bf_grdpts_id,
      $     cpt_coords,
      $     mainlayer_id,
-     $     tolerance)
+     $     tolerance,
+     $     previous_step)
 
          implicit none
 
@@ -1902,6 +1918,7 @@ c$$$          stop 'not implemented yet'
          integer(ikind), dimension(2)  , intent(in)    :: cpt_coords
          integer                       , intent(in)    :: mainlayer_id
          integer(ikind)                , intent(in)    :: tolerance
+         logical                       , intent(in)    :: previous_step
          
          type(bf_sublayer), pointer   :: bf_sublayer_ptr
          integer(ikind), dimension(2) :: local_coords
@@ -1921,7 +1938,8 @@ c$$$          stop 'not implemented yet'
 
             call bf_sublayer_ptr%get_grdpts_id_part(
      $           bf_grdpts_id,
-     $           gen_borders)
+     $           gen_borders,
+     $           previous_step=previous_step)
                
          end if
 

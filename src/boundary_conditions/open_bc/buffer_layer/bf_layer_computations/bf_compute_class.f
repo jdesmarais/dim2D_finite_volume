@@ -123,6 +123,8 @@
           procedure,   pass :: get_data_for_newgrdpt
           procedure,   pass :: compute_newgrdpt
 
+          procedure,   pass :: get_grdpts_id_part
+
           procedure,   pass :: set_alignment   !only for tests
           procedure,   pass :: set_grdpts_id   !only for tests
           procedure,   pass :: set_x_map       !only for tests
@@ -658,6 +660,47 @@
      $         procedure_type, gradient_type)
 
         end function compute_newgrdpt
+
+
+        subroutine get_grdpts_id_part(
+     $     this,
+     $     tmp_grdptsid,
+     $     gen_coords)
+
+          implicit none
+
+          class(bf_compute)              , intent(in)    :: this
+          integer        , dimension(:,:), intent(inout) :: tmp_grdptsid
+          integer(ikind) , dimension(2,2), intent(in)    :: gen_coords
+
+          integer(ikind) :: size_x,size_y
+          integer(ikind) :: i_recv,i_send,j_recv,j_send
+          integer(ikind) :: i,j
+
+
+          if(allocated(this%alignment_tmp)) then
+
+             !get the synchronization indices
+             call get_sync_indices_to_extract_bf_layer_data(
+     $            this%alignment_tmp,
+     $            gen_coords,
+     $            size_x, size_y,
+     $            i_recv, j_recv,
+     $            i_send, j_send)
+          
+             !fill the grid points asked
+             do j=1, size_y
+                do i=1, size_x
+                   
+                   tmp_grdptsid(i_recv+i-1,j_recv+j-1) =
+     $                  this%grdpts_id_tmp(i_send+i-1,j_send+j-1)
+                   
+                end do
+             end do
+
+          end if
+
+        end subroutine get_grdpts_id_part
 
 
         !> @author
