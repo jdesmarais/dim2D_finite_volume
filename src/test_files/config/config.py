@@ -269,7 +269,8 @@ def compute_code_inputs(inputFileName):
 
     wave_forcing_code = ['no_wave_forcing',
                          'oscillatory_forcing',
-                         'intermittent_oscillatory_forcing']
+                         'intermittent_oscillatory_forcing',
+                         'moving_oscillatory_forcing']
 
     #in order to set the correct direction of the flow
     #(N,S,E,W,NE,NW,SE,SW) from the inputs.txt, three

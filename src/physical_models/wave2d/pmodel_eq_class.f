@@ -39,6 +39,7 @@
      $       no_wave_forcing,
      $       oscillatory_forcing,
      $       intermittent_oscillatory_forcing,
+     $       moving_oscillatory_forcing,
      $       obc_eigenqties_bc,
      $       obc_eigenqties_lin
 
@@ -81,7 +82,8 @@ c$$$     $       compute_n2_transM_wave2d
      $       period_force,
      $       x_center_force,
      $       y_center_force,
-     $       period_intermittent
+     $       period_intermittent,
+     $       velocity_center_force
 
         use wave2d_prim_module, only :
      $       position,
@@ -1119,12 +1121,16 @@ c$$$     $       compute_n2_transM_wave2d
           real(rkind) :: node_s
           real(rkind) :: t2
 
+          real(rkind) :: x_center
+          real(rkind) :: y_center          
+
 
           select case(wave_forcing)
 
             case(no_wave_forcing)
 
                body_forces = 0
+
 
             case(oscillatory_forcing)
 
@@ -1138,6 +1144,7 @@ c$$$     $       compute_n2_transM_wave2d
                else
                   body_forces = 0
                end if
+
 
             case(intermittent_oscillatory_forcing)
 
@@ -1155,6 +1162,26 @@ c$$$     $       compute_n2_transM_wave2d
                else
                   body_forces = 0
                end if
+
+
+            case(moving_oscillatory_forcing)
+               
+               x_center = velocity_center_force*t
+               y_center = y_center_force
+
+               if(k.eq.1) then
+
+                  omega = 2.0d0*ACOS(-1.0d0)/period_force
+                  body_forces = peak_ic(
+     $                 amplitude_force*SIN(omega*t),
+     $                 period,
+     $                 x-x_center,
+     $                 y-y_center)
+
+               else
+                  body_forces = 0
+               end if
+
 
             case default
                print '(''pmodel_eq_class'')'
@@ -1239,8 +1266,8 @@ c$$$     $       compute_n2_transM_wave2d
 
           !node_s = nodes(1)
 
-          !undermined = (nodes(1).lt.0)
-          undermined = .false.
+          undermined = (nodes(1).lt.0)
+          !undermined = .false.
 
           node_s = nodes(2,2,1)
           dx_s   = x_map(2)-x_map(1)

@@ -1423,6 +1423,7 @@
      $     bf_neighbor_type,
      $     start_grdpt_g_coords,
      $     side,
+     $     update_alignment,
      $     err)
      $     result(x_border)
 
@@ -1433,6 +1434,7 @@
           integer                           , intent(in) :: bf_neighbor_type
           integer(ikind)      , dimension(2), intent(in) :: start_grdpt_g_coords
           logical                           , intent(in) :: side
+          logical                           , intent(out):: update_alignment
           logical                           , intent(out):: err
           integer(ikind)                                 :: x_border
 
@@ -1444,6 +1446,8 @@
           integer                    :: x_border_bf
           logical                    :: err_bf
 
+          logical                    :: update_alignment_loc
+
 
           !number of neighboring buffer layers
           nb_nbf_layers = this%nbf_links(bf_localization,bf_neighbor_type)%get_nb_elements()
@@ -1451,19 +1455,24 @@
           !if there are no neighboring buffer layers, it is impossible
           !to get the new border of the buffer layer
           if(nb_nbf_layers.le.0) then
-             err = .not.BF_SUCCESS
-             print '(''nbf_interface_class'')'
-             print '(''ask_neighbor_for_bc_overlap'')'
-             print '(''****************************************'')'
-             print '(''there are no neighbors to determine'')'
-             print '(''the new border'')'
-             print '(''****************************************'')'
-             print '(''bf_localization: '',I2)', bf_localization
-             print '(''bf_neighbor_type: '',I2)', bf_neighbor_type
-             print '(''start_grdpt_g_coords: '',2I4)', start_grdpt_g_coords
-             print '(''side: '',L1)', side
-             print '(''****************************************'')'
-             print '()'
+
+             err = BF_SUCCESS
+
+             update_alignment = .false.
+
+c$$$             err = .not.BF_SUCCESS
+c$$$             print '(''nbf_interface_class'')'
+c$$$             print '(''ask_neighbor_for_bc_overlap'')'
+c$$$             print '(''****************************************'')'
+c$$$             print '(''there are no neighbors to determine'')'
+c$$$             print '(''the new border'')'
+c$$$             print '(''****************************************'')'
+c$$$             print '(''bf_localization: '',I2)', bf_localization
+c$$$             print '(''bf_neighbor_type: '',I2)', bf_neighbor_type
+c$$$             print '(''start_grdpt_g_coords: '',2I4)', start_grdpt_g_coords
+c$$$             print '(''side: '',L1)', side
+c$$$             print '(''****************************************'')'
+c$$$             print '()'
 
           !if there are indeed neighboring buffer layers, loop over
           !the neighbors of type bf_neighbor_type to get the needed
@@ -1472,6 +1481,8 @@
 
              nbf_current_ele => this%nbf_links(bf_localization,bf_neighbor_type)%get_head()
              
+             update_alignment = .false.
+
              do k=1, nb_nbf_layers
              
                 !get the neighboring buffer layer
@@ -1482,6 +1493,7 @@
                 x_border_bf = nbf_sublayer%get_bc_overlap_x_border(
      $               start_grdpt_g_coords,
      $               side,
+     $               update_alignment_loc,
      $               err_bf)
 
                 !check whether the x_border_bf was successfully
@@ -1502,19 +1514,26 @@
                    
                 end if
              
-                !save the x_border given by the neighbor in the output
-                if(k.eq.1) then
-                   x_border = x_border_bf
-                   err = BF_SUCCESS.and.err_bf
-                else
-                   select case(side)
-                     case(left)
-                        x_border = min(x_border,x_border_bf)
-                     case(right)
-                        x_border = max(x_border,x_border_bf)
-                   end select
+                if(update_alignment_loc) then
+
+                   !save the x_border given by the neighbor in the output
+                   if(.not.update_alignment) then
+                      x_border = x_border_bf
+                   else
+                      select case(side)
+                        case(left)
+                           x_border = min(x_border,x_border_bf)
+                        case(right)
+                           x_border = max(x_border,x_border_bf)
+                      end select
+                   end if
+
                 end if
 
+                update_alignment = update_alignment.or.update_alignment_loc
+                
+                err = BF_SUCCESS.and.err_bf
+                
                 !get next neighboring buffer layer
                 nbf_current_ele => nbf_current_ele%get_next()
              

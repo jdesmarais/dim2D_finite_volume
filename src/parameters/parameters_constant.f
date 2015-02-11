@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '68eee3a1cf691dd624056995f3e70c9659878b81')
+        parameter (commit = 'a3f8dcecb1cce572eb4f84fec44e8f178b951c90')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -120,6 +120,7 @@
         integer, parameter :: no_wave_forcing=0
         integer, parameter :: oscillatory_forcing=1
         integer, parameter :: intermittent_oscillatory_forcing=2
+        integer, parameter :: moving_oscillatory_forcing=3
 
         !>i/o management choice
         integer, parameter :: netcdf_choice=0

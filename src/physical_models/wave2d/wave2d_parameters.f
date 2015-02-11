@@ -24,5 +24,7 @@
         real(rkind), parameter :: y_center_force  = y_center
 
         real(rkind), parameter :: period_intermittent = 3*period_force
+        real(rkind), parameter :: velocity_center_force = 0.2d0
+
 
       end module wave2d_parameters

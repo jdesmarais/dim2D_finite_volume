@@ -2211,6 +2211,7 @@
      $     this,
      $     start_grdpt_g_coords,
      $     side,
+     $     update_alignment,
      $     err)
      $     result(x_border)
 
@@ -2219,6 +2220,7 @@
           class(bf_layer)              , intent(in)  :: this
           integer(ikind) , dimension(2), intent(in)  :: start_grdpt_g_coords
           logical                      , intent(in)  :: side
+          logical                      , intent(out) :: update_alignment
           logical                      , intent(out) :: err
           integer(ikind)                             :: x_border
 
@@ -2245,6 +2247,7 @@
      $         (l_coords(2).ge.1).and.
      $         (l_coords(2).le.size(this%grdpts_id,2))) then
 
+             update_alignment = .true.
              
              !check whether the starting point is indeed a bc_interior_pt
              !otherwise there is an error
@@ -2361,18 +2364,19 @@
           !otherwise there is an error
           else
 
-             err = .not.BF_SUCCESS
-             print '(''bf_layer_class'')'
-             print '(''get_bc_overlap_x_border'')'
-             print '(''************************************'')'
-             print '(''the starting point is not inside the'')'
-             print '(''buffer layer'')'
-             print '(''************************************'')'
-             print '(''g_coords: '', 2I4)', start_grdpt_g_coords
-             print '(''l_coords: '', 2I4)', l_coords
-             print '(''************************************'')'
-             print '()'
-             stop ''
+             update_alignment = .false.
+             
+c$$$             print '(''bf_layer_class'')'
+c$$$             print '(''get_bc_overlap_x_border'')'
+c$$$             print '(''************************************'')'
+c$$$             print '(''the starting point is not inside the'')'
+c$$$             print '(''buffer layer'')'
+c$$$             print '(''************************************'')'
+c$$$             print '(''g_coords: '', 2I4)', start_grdpt_g_coords
+c$$$             print '(''l_coords: '', 2I4)', l_coords
+c$$$             print '(''************************************'')'
+c$$$             print '()'
+c$$$             stop ''
              
           end if
 

@@ -3050,6 +3050,7 @@ c$$$          stop 'not implemented yet'
      $           neighbor_type,
      $           start_grdpt,
      $           side,
+     $           update_alignment,
      $           err)
 
             if(.not.(err.eqv.BF_SUCCESS)) then
@@ -3067,8 +3068,6 @@ c$$$          stop 'not implemented yet'
                print '()'
                stop ''
             end if
-
-            update_alignment = .true.
             
          end if
 
