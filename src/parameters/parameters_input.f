@@ -28,11 +28,11 @@
         real(rkind), parameter :: y_max = 1.1129000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 14.1600000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 21.5720000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0023000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 1.0000000000d0
+        real(rkind), parameter :: detail_print = 0.1067000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -105,7 +105,7 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer    , parameter :: flow_direction = x_direction
+        integer    , parameter :: flow_direction = y_direction
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
         real(rkind), parameter :: flow_velocity = 0.1000000000d0

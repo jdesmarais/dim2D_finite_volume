@@ -134,7 +134,7 @@ openbc_md_threshold    = 0.1
 ! 5 : phase separation
 ! 6 : bubble transported
 !---------------------------------------------------------
-flow_direction = E
+flow_direction = N
 flow_velocity = 0.1
 temperature = 0.995
 ic_choice = 6
