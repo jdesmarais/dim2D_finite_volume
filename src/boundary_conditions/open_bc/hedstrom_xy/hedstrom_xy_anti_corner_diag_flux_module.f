@@ -12,7 +12,7 @@
         use bf_layer_bc_sections_class, only :
      $       determine_edge_points_computed
 
-        use bf_layer_sync_module, only :
+        use bf_layer_extract_module, only :
      $       get_bf_layer_match_table
 
         use hedstrom_xy_corners_module, only :

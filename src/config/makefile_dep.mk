@@ -224,7 +224,7 @@ $(bc_dir)/bc_operators_abstract_par_class.o:\
 			$(pm_cdir)/pmodel_eq_class.o
 
 $(bc_dir)/bc_operators_nopt_module.o:\
-			$(cbf_layer_dir)/bf_layer_sync_module.o\
+			$(sbf_layer_dir)/bf_layer_extract_module.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(pm_cdir)/pmodel_eq_class.o

@@ -16,9 +16,9 @@
       !-----------------------------------------------------------------
        module bc_operators_nopt_module
 
-        use bf_layer_sync_module, only :
-     $       get_sync_indices_to_extract_interior_data,
-     $       get_sync_indices_to_extract_bf_layer_data
+        use bf_layer_extract_module, only :
+     $       get_indices_to_extract_interior_data,
+     $       get_indices_to_extract_bf_layer_data
 
         use parameters_input, only :
      $       nx,ny,ne,
@@ -487,7 +487,7 @@
 
 
           ! synchronize the nodes of the buffer layer with the tmp_nodes
-          call get_sync_indices_to_extract_bf_layer_data(
+          call get_indices_to_extract_bf_layer_data(
      $         bf_alignment,
      $         gen_coords,
      $         size_x, size_y,
@@ -507,7 +507,7 @@
 
 
           ! synchronize the nodes of the interior with the tmp nodes
-          call get_sync_indices_to_extract_interior_data(
+          call get_indices_to_extract_interior_data(
      $         gen_coords,
      $         size_x, size_y,
      $         i_recv, j_recv,

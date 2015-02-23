@@ -10,7 +10,7 @@ $(hobc_dir)/hedstrom_xy_module.o:\
 $(hobc_dir)/hedstrom_xy_anti_corner_flux_module.o:\
 			$(bc_dir)/bc_operators_nopt_module.o\
 			$(cbf_layer_dir)/bf_layer_bc_sections_class.o\
-			$(cbf_layer_dir)/bf_layer_sync_module.o\
+			$(sbf_layer_dir)/bf_layer_extract_module.o\
 			$(hobc_dir)/hedstrom_xy_module.o\
 			$(obc_dir)/openbc_operators_module.o\
 			$(bf_layer_dir)/parameters_bf_layer.o\
@@ -28,7 +28,7 @@ $(hobc_dir)/hedstrom_xy_anti_corner_flux_module.o:\
 $(hobc_dir)/hedstrom_xy_anti_corner_diag_flux_module.o:\
 			$(bc_dir)/bc_operators_nopt_module.o\
 			$(cbf_layer_dir)/bf_layer_bc_sections_class.o\
-			$(cbf_layer_dir)/bf_layer_sync_module.o\
+			$(sbf_layer_dir)/bf_layer_extract_module.o\
 			$(hcobc_dir)/hedstrom_xy_corners_module.o\
 			$(sd_dir)/interface_primary.o\
 			$(sd_dir)/n_coords_module.o\
@@ -52,15 +52,13 @@ $(hobc_dir)/hedstrom_xy_anti_corner_diag_flux_module.o:\
 $(hobc_dir)/bc_operators_class.o:\
 			$(obc_dir)/bc_operators_openbc_normal_class.o\
 			$(bc_dir)/bc_operators_nopt_module.o\
-			$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
-			$(cbf_layer_dir)/bf_layer_bc_sections_class.o\
 			$(bf_layer_dir)/bf_layer_errors_module.o\
-			$(cbf_layer_dir)/bf_layer_sync_module.o\
 			$(hobc_dir)/hedstrom_xy_module.o\
 			$(hobc_dir)/hedstrom_xy_anti_corner_flux_module.o\
 			$(hobc_dir)/hedstrom_xy_anti_corner_diag_flux_module.o\
 			$(sd_dir)/interface_primary.o\
 			$(obc_dir)/openbc_operators_module.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\

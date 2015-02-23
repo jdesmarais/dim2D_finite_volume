@@ -54,12 +54,12 @@
      $       get_sync_indices_with_neighbor1,
      $       get_sync_indices_with_neighbor2
 
-        use bf_layer_nf90_operators_module, only :
-     $       print_bf_layer_on_netcdf
-
-        use bf_layer_sync_module, only :
-     $       get_sync_indices_to_extract_bf_layer_data,
+        use bf_layer_extract_module, only :
+     $       get_indices_to_extract_bf_layer_data,
      $       get_bf_layer_match_table
+
+        use bf_layer_nf90_operators_module, only :
+     $       print_bf_layer_on_netcdf        
 
         use bf_remove_module, only :
      $       check_if_bf_layer_remains
@@ -441,7 +441,7 @@
           procedure,   pass :: get_alignment
           procedure,   pass :: get_alignment_tab
           procedure,   pass :: set_alignment_tab
-                       
+
           !procedure to localize the buffer layer:
           !coordinates and coordinate maps
           procedure,   pass :: get_local_coord
@@ -461,7 +461,7 @@
           procedure,   pass :: reallocate_bf_layer
           procedure,   pass :: merge_bf_layer
 
-          !procedures for the exchange of data b/n the buffer
+          !procedures for the exchange of data b/w the buffer
           !layers at the interface b/w main buffer layers and
           !for the exchanges b/w the buffer layers and the
           !interior domain
@@ -2441,7 +2441,7 @@ c$$$             stop ''
 
 
           !synchronize the overlapping at t=t
-          call get_sync_indices_to_extract_bf_layer_data(
+          call get_indices_to_extract_bf_layer_data(
      $         this%alignment,
      $         gen_coords,
      $         size_x, size_y,
@@ -3061,7 +3061,7 @@ c$$$             stop ''
           else
 
              !get the synchronization indices
-             call get_sync_indices_to_extract_bf_layer_data(
+             call get_indices_to_extract_bf_layer_data(
      $            this%alignment,
      $            gen_coords,
      $            size_x, size_y,
@@ -3119,7 +3119,7 @@ c$$$             stop ''
 
 
           !get the synchronization indices
-          call get_sync_indices_to_extract_bf_layer_data(
+          call get_indices_to_extract_bf_layer_data(
      $         this%alignment,
      $         gen_coords,
      $         size_x, size_y,

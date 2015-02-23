@@ -17,8 +17,8 @@
         use bf_layer_errors_module, only : 
      $       error_mainlayer_id
 
-        use bf_layer_sync_module, only :
-     $       get_sync_indices_to_extract_interior_data
+        use bf_layer_extract_module, only :
+     $       get_indices_to_extract_interior_data
 
         use parameters_bf_layer, only :
      $       no_pt,
@@ -869,7 +869,7 @@
 
 
           !synchronize the nodes
-          call get_sync_indices_to_extract_interior_data(
+          call get_indices_to_extract_interior_data(
      $         gen_coords,
      $         size_x, size_y,
      $         i_recv, j_recv,

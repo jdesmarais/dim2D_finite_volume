@@ -845,7 +845,7 @@
                 bf_alignment(2) = bf_alignments(dir,2)
 
                 !update the extent of the interior boundary
-                !layers
+                !sections
                 call determine_interior_bc_sections(
      $               bf_alignment,
      $               interior_inf,

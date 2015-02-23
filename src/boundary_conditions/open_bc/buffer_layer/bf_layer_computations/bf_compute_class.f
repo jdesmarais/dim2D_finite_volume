@@ -23,8 +23,8 @@
         use bf_layer_newgrdpt_procedure_module, only :
      $       get_newgrdpt_procedure
 
-        use bf_layer_sync_module, only :
-     $       get_sync_indices_to_extract_bf_layer_data
+        use bf_layer_extract_module, only :
+     $       get_indices_to_extract_bf_layer_data
 
         use bf_newgrdpt_class, only : 
      $       bf_newgrdpt
@@ -494,7 +494,7 @@
           if(allocated(this%alignment_tmp)) then
 
              !get th esynchronization indices
-             call get_sync_indices_to_extract_bf_layer_data(
+             call get_indices_to_extract_bf_layer_data(
      $            this%alignment_tmp,
      $            gen_coords,
      $            size_x,
@@ -681,7 +681,7 @@
           if(allocated(this%alignment_tmp)) then
 
              !get the synchronization indices
-             call get_sync_indices_to_extract_bf_layer_data(
+             call get_indices_to_extract_bf_layer_data(
      $            this%alignment_tmp,
      $            gen_coords,
      $            size_x, size_y,
