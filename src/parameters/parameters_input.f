@@ -22,17 +22,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -1.1129000000d0
-        real(rkind), parameter :: x_max = 1.1129000000d0
-        real(rkind), parameter :: y_min = -1.1129000000d0
-        real(rkind), parameter :: y_max = 1.1129000000d0
+        real(rkind), parameter :: x_min = -0.5000000000d0
+        real(rkind), parameter :: x_max = 0.5000000000d0
+        real(rkind), parameter :: y_min = -0.5000000000d0
+        real(rkind), parameter :: y_max = 0.5000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 21.5720000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0023000000d0
+        real(rkind), parameter :: t_max = 10.0000000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0025000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.1067000000d0
+        real(rkind), parameter :: detail_print = 0.2500000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -42,8 +42,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 67
-        integer(ikind), parameter :: nty = 67
+        integer(ikind), parameter :: ntx = 105
+        integer(ikind), parameter :: nty = 105
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -110,7 +110,7 @@
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
         real(rkind), parameter :: flow_velocity = 0.1000000000d0
         
-        real(rkind), parameter :: T0 = 0.9990000000d0
+        real(rkind), parameter :: T0 = 0.9950000000d0
 
         integer    , parameter :: ic_choice = bubble_transported
 
@@ -203,7 +203,7 @@
         !
         !-----------------------------------------------------
         logical    , parameter :: bf_openbc_md_threshold_ac = .true.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.0500000000d0
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
 
 
         !-----------------------------------------------------

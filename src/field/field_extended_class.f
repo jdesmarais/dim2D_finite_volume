@@ -141,7 +141,8 @@
 
              !if the restart was only used to have the geometry
              !of the previous computational domain, the initial
-             !conditions should be reapplied
+             !conditions should be re-applied on the complete
+             !computational domain
              if(debug_restart_for_geometry) then
                 call this%apply_initial_conditions()
              end if
