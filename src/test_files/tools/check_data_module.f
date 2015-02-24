@@ -11,8 +11,10 @@
      $       is_real_validated,
      $       is_real_vector_validated,
      $       is_real_matrix_validated,
+     $       is_real_matrix3D_validated,
      $       is_int_vector_validated,
-     $       is_int_matrix_validated
+     $       is_int_matrix_validated,
+     $       is_int_matrix3D_validated
 
         
         contains
@@ -27,14 +29,12 @@
           logical                 :: detailled
           logical                 :: test_validated
 
-          if(detailled) then
-             print *, nint(var*10**7)
-             print *, nint(cst*10**7)
+          test_validated = abs(var-cst)<1e-10
+
+          if(detailled.and.(.not.test_validated)) then
+             print *, var
+             print *, cst
           end if
-          
-          test_validated=abs(
-     $         nint(var*10**7)-
-     $         nint(cst*10**7)).le.1
           
         end function is_real_validated
 
@@ -92,6 +92,37 @@
           end do
 
         end function is_real_matrix_validated
+
+
+        function is_real_matrix3D_validated(var,cst,detailled) result(test_validated)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(in) :: var
+          real(rkind), dimension(:,:,:), intent(in) :: cst
+          logical                      , intent(in) :: detailled
+          logical                                   :: test_validated
+
+          logical :: test_loc
+          integer :: i,j,k
+
+          test_validated = .true.
+
+          do k=1,size(var,3)
+             do j=1,size(var,2)
+                do i=1,size(var,1)
+                   test_loc = is_real_validated(var(i,j,k),cst(i,j,k),detailled)
+                   test_validated = test_validated.and.test_loc
+                   if(detailled.and.(.not.test_loc)) then
+                      print '(''['',3I3'']:'',F8.3,'' -> '',F8.3)', 
+     $                     i,j,k,
+     $                     var(i,j,k), cst(i,j,k)
+                   end if
+                end do
+             end do
+          end do
+
+        end function is_real_matrix3D_validated
 
 
         function is_int_vector_validated(
@@ -185,5 +216,54 @@
           end do
 
         end function is_int_matrix_validated
+
+
+        function is_int_matrix3D_validated(
+     $     int_matrix,
+     $     int_matrix_cst,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          integer, dimension(:,:,:), intent(in) :: int_matrix
+          integer, dimension(:,:,:), intent(in) :: int_matrix_cst
+          logical, optional        , intent(in) :: detailled
+          logical                               :: test_validated
+
+
+          integer :: i,j,k
+          logical :: test_loc
+          logical :: detailled_op
+
+
+          if(present(detailled)) then
+             detailled_op = detailled
+          else
+             detailled_op = .false.
+          end if
+
+          test_validated = .true.
+
+          do k=1, size(int_matrix,3)
+             do j=1, size(int_matrix,2)
+                do i=1, size(int_matrix,1)
+             
+                   test_loc = int_matrix(i,j,k).eq.int_matrix_cst(i,j,k)
+                   
+                   if(detailled.and.(.not.test_loc)) then
+                      print '(''['',3I3'']:'',I5,'' -> '',I5)',
+     $                     i,j,k,
+     $                     int_matrix(i,j,k),
+     $                     int_matrix_cst(i,j,k)
+                   end if
+                   
+                   test_validated = test_validated.and.test_loc
+                
+                end do
+             end do
+          end do
+
+        end function is_int_matrix3D_validated
 
       end module check_data_module

@@ -107,26 +107,7 @@
           integer(ikind) :: i,j
           integer        :: k
 
-          
-c$$$          do k=1, ne
-c$$$             do j=bf1_j_min, bf1_j_min+bf_copy_size_y-1
-c$$$                do i=bf1_i_min, bf1_i_min+bf_copy_size_x-1
-c$$$                   bf2_nodes(i-bf1_i_min+bf2_i_min,
-c$$$     $                       j-bf1_j_min+bf2_j_min,
-c$$$     $                       k) = bf1_nodes(i,j,k)
-c$$$                end do
-c$$$             end do
-c$$$          end do
-c$$$
-c$$$          do j=bf1_j_min, bf1_j_min+bf_copy_size_y-1
-c$$$             do i=bf1_i_min, bf1_i_min+bf_copy_size_x-1
-c$$$                bf2_grdpts_id(
-c$$$     $               i-bf1_i_min+bf2_i_min,
-c$$$     $               j-bf1_j_min+bf2_j_min) = bf1_grdpts_id(i,j)
-c$$$             end do
-c$$$          end do
-
-
+          !nodes copy
           do k=1, ne
              do j=1, bf_copy_size_y
                 do i=1, bf_copy_size_x
@@ -138,6 +119,7 @@ c$$$          end do
              end do
           end do
 
+          !grdpts_id copy
           do j=1,bf_copy_size_y
              do i=1, bf_copy_size_x
                 bf2_grdpts_id(
@@ -254,24 +236,6 @@ c$$$          end do
      $         bf_j_min, nbf_j_min,
      $         bf_copy_size_y)
           
-c$$$          !get the local min and max borders along the y-direction as
-c$$$          !local coordinates
-c$$$          select case(localization)
-c$$$            case(N,E,W)
-c$$$               call get_S_exch_indices(bf_j_min)
-c$$$               call get_N_exch_indices(nbf_size_y, nbf_j_min)
-c$$$            case(S)
-c$$$               call get_N_exch_indices(bf_size_y, bf_j_min)
-c$$$               call get_S_exch_indices(nbf_j_min)
-c$$$            case default
-c$$$               call error_mainlayer_id(
-c$$$     $              'bf_layer_exchange_module',
-c$$$     $              'get_match_indices_for_exchange_with_neighbor1',
-c$$$     $              localization)
-c$$$          end select
-c$$$
-c$$$          bf_copy_size_y = 2*bc_size
-
         end subroutine get_match_indices_for_exchange_with_neighbor1    
 
 
@@ -488,64 +452,6 @@ c$$$        end subroutine get_S_exch_indices
         end function do_grdpts_overlap_along_x_dir
 
 
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> get the indices identifying teh borders of the layer
-c$$$        !> exchanged in the x-direction
-c$$$        !
-c$$$        !> @date
-c$$$        !> 27_05_2014 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param bf_alignment
-c$$$        !> alignment of the first buffer layer
-c$$$        !
-c$$$        !>@param nbf_alignment
-c$$$        !> alignment of the neighboring buffer layer
-c$$$        !
-c$$$        !>@param bf_i_min
-c$$$        !> integer identifying the min x-border of the layer exchanged
-c$$$        !> for the first buffer layer
-c$$$        !
-c$$$        !>@param nbf_i_min
-c$$$        !> integer identifying the min x-border of the layer exchanged
-c$$$        !> for the neighboring buffer layer
-c$$$        !
-c$$$        !>@param bf_copy_size_x
-c$$$        !> extent of the layer exchanged in the x-direction
-c$$$        !--------------------------------------------------------------
-c$$$        subroutine get_x_exchange_indices(
-c$$$     $     bf_alignment, nbf_alignment,
-c$$$     $     bf_i_min, nbf_i_min, bf_copy_size_x)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          integer(ikind), dimension(2,2), intent(in)  :: bf_alignment
-c$$$          integer(ikind), dimension(2,2), intent(in)  :: nbf_alignment
-c$$$          integer(ikind)                , intent(out) :: bf_i_min
-c$$$          integer(ikind)                , intent(out) :: nbf_i_min
-c$$$          integer(ikind)                , intent(out) :: bf_copy_size_x
-c$$$
-c$$$          integer(ikind) :: min_border, max_border
-c$$$
-c$$$
-c$$$          !get the min and max borders along the x-direction as
-c$$$          !x-component of the general coordinates
-c$$$          min_border = max(bf_alignment(1,1), nbf_alignment(1,1)) - bc_size
-c$$$          max_border = min(bf_alignment(1,2), nbf_alignment(1,2)) + bc_size
-c$$$
-c$$$          !convert the previous data into local coordinates for the current
-c$$$          !buffer layer and the neighbor1
-c$$$          bf_i_min  = get_x_local_coord(min_border, bf_alignment)
-c$$$          nbf_i_min = get_x_local_coord(min_border, nbf_alignment)
-c$$$
-c$$$          !copy size x
-c$$$          bf_copy_size_x = max_border-min_border+1
-c$$$
-c$$$        end subroutine get_x_exchange_indices
-
-
         !> @author
         !> Julien L. Desmarais
         !
@@ -714,7 +620,7 @@ c$$$        end subroutine get_x_exchange_indices
      $              bc_size+1]
 
                bf_recv = 
-     $             [in_send(1) - (bf_alignment(1,1)-(bc_size+1)),
+     $             [bf_send(1),
      $              1]
 
                ex_size =
@@ -858,7 +764,6 @@ c$$$        end subroutine get_x_exchange_indices
 
           if((ex_size(1).gt.0).and.(ex_size(2).gt.0)) then
 
-             !send from interior to the buffer layer
              do k=1, ne
                 do j=1, ex_size(2)
                    do i=1, ex_size(1)

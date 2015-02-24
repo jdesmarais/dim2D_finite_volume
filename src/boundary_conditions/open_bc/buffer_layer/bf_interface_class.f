@@ -666,12 +666,21 @@
 
          select case(mainlayer_id)
            case(N,S)
-              share_grdpts = bf_final_alignment(1,1).le.(align_W+bc_size+1)
+
+              share_grdpts = (bf_final_alignment(1,1)-bc_size).le.(align_W+bc_size)
+
+              if((bf_final_alignment(1,1)-bc_size).eq.align_W) then
+                 bf_final_alignment(1,1)=align_W+1
+              end if
+
            case(E,W)
-              share_grdpts = bf_final_alignment(2,1).le.(align_S+bc_size+1)
-              if(bf_final_alignment(2,1).eq.(align_S+bc_size)) then
+
+              share_grdpts = (bf_final_alignment(2,1)-bc_size).le.(align_S+bc_size)
+
+              if((bf_final_alignment(2,1)-bc_size).eq.align_S) then
                  bf_final_alignment(2,1)=align_S+1
               end if
+
            case default
               call error_mainlayer_id(
      $             'bf_layer_class.f',
@@ -718,10 +727,15 @@
 
          select case(mainlayer_id)
            case(N,S)
-              share_grdpts = bf_final_alignment(1,2).ge.(align_E-bc_size-1)
+
+              share_grdpts = (bf_final_alignment(1,2)+bc_size).ge.(align_E-bc_size)
+              if((bf_final_alignment(1,2)+bc_size).eq.align_E) then
+                 bf_final_alignment(1,2)=align_E-1
+              end if
+
            case(E,W)
-              share_grdpts = bf_final_alignment(2,2).ge.(align_N-bc_size-1)
-              if(bf_final_alignment(2,2).eq.(align_N-bc_size)) then
+              share_grdpts = (bf_final_alignment(2,2)+bc_size).ge.(align_N-bc_size)
+              if((bf_final_alignment(2,2)+bc_size).eq.align_N) then
                  bf_final_alignment(2,2)=align_N-1
               end if
            case default

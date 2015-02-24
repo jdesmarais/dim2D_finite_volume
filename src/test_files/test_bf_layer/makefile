@@ -55,3 +55,17 @@ test_bf_layer_print:		$(param_dep)\
 				bf_layer_basic_class.o\
 				bf_layer_nf90_operators_module.o\
 				bf_layer_print_class.o
+
+test_bf_layer_exchange.o:	$(sbf_layer_dir)/bf_layer_exchange_module.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_layer_exchange:		bf_layer_errors_module.o\
+				parameters_kind.o\
+				parameters_constant.o\
+				parameters_input.o\
+				parameters_bf_layer.o\
+				bf_layer_exchange_module.o\
+				check_data_module.o
