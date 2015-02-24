@@ -992,7 +992,7 @@
         !> 1) keep only the information needed to compute the
         !>    boundary grid-points
         !> 2) sort the bc_sections in increasing j and i to
-        !>    improve cache efficieny when computing the
+        !>    improve cache efficiency when computing the
         !>    boundary layer gridpoints
         !> 3) determine the overlap b/w the corner and anti-corner
         !>    boundary procedures to prevent interactions and symetry
