@@ -31,9 +31,7 @@
         use parameters_input, only :
      $       bc_size,
      $       debug,
-     $       nx,
-     $       ny,
-     $       ne
+     $       nx,ny,ne
         
         use parameters_kind, only :
      $       ikind,
@@ -64,14 +62,6 @@
         !
         !> @param y_borders
         !> y_borders for the time integration
-        !
-        !> @param N_bc_sections
-        !> North bc_section added to the [x_border,y_borders] for
-        !> time integration
-        !
-        !> @param S_bc_sections
-        !> South bc_section added to the [x_border,y_borders] for
-        !> time integration
         !
         !> @param get_data_for_newgrdpt
         !> extract the data needed to compute the new grid point
@@ -150,11 +140,9 @@
         !-------------------------------------------------------------
         type, extends(bf_layer_dyn) :: bf_layer_time
 
-           type(bf_compute)                            :: bf_compute_used
-           integer(ikind), dimension(2)                :: x_borders
-           integer(ikind), dimension(2)                :: y_borders
-           integer(ikind), dimension(:,:), allocatable :: N_bc_sections
-           integer(ikind), dimension(:,:), allocatable :: S_bc_sections
+           type(bf_compute)             :: bf_compute_used
+           integer(ikind), dimension(2) :: x_borders
+           integer(ikind), dimension(2) :: y_borders
 
            contains
 
@@ -179,13 +167,6 @@
            procedure,   pass :: set_y_borders
            procedure,   pass :: get_x_borders
            procedure,   pass :: get_y_borders
-
-           procedure,   pass :: set_N_bc_sections
-           procedure,   pass :: set_S_bc_sections
-           procedure,   pass :: remove_N_bc_sections
-           procedure,   pass :: remove_S_bc_sections
-           procedure,   pass :: get_N_bc_sections
-           procedure,   pass :: get_S_bc_sections
 
         end type bf_layer_time
 
@@ -794,180 +775,5 @@
           y_borders = this%y_borders
 
         end function get_y_borders
-
-        
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> set the N_bc_section attribute
-        !
-        !> @date
-        !> 30_10_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer object encapsulating the main
-        !> tables extending the interior domain
-        !
-        !>@param N_bc_section
-        !> north boundary section
-        !--------------------------------------------------------------
-        subroutine set_N_bc_sections(this,N_bc_sections)
-
-          implicit none
-
-          class(bf_layer_time)                             , intent(inout) :: this
-          integer(ikind)      , dimension(:,:), allocatable, intent(inout) :: N_bc_sections
-
-          call MOVE_ALLOC(N_bc_sections,this%N_bc_sections)
-
-        end subroutine set_N_bc_sections
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> set the S_bc_section attribute
-        !
-        !> @date
-        !> 30_10_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer object encapsulating the main
-        !> tables extending the interior domain
-        !
-        !>@param S_bc_section
-        !> south boundary section
-        !--------------------------------------------------------------
-        subroutine set_S_bc_sections(this,S_bc_sections)
-
-          implicit none
-
-          class(bf_layer_time)                             , intent(inout) :: this
-          integer(ikind)      , dimension(:,:), allocatable, intent(inout) :: S_bc_sections
-
-          call MOVE_ALLOC(S_bc_sections,this%S_bc_sections)
-
-        end subroutine set_S_bc_sections
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> remove the N_bc_section attribute
-        !
-        !> @date
-        !> 30_10_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer object encapsulating the main
-        !> tables extending the interior domain
-        !--------------------------------------------------------------
-        subroutine remove_N_bc_sections(this)
-
-          implicit none
-
-          class(bf_layer_time), intent(inout) :: this
-
-          if(allocated(this%N_bc_sections)) then
-             deallocate(this%N_bc_sections)
-          end if
-
-        end subroutine remove_N_bc_sections
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> remove the S_bc_section attribute
-        !
-        !> @date
-        !> 30_10_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer object encapsulating the main
-        !> tables extending the interior domain
-        !--------------------------------------------------------------
-        subroutine remove_S_bc_sections(this)
-
-          implicit none
-
-          class(bf_layer_time), intent(inout) :: this
-
-          if(allocated(this%S_bc_sections)) then
-             deallocate(this%S_bc_sections)
-          end if
-
-        end subroutine remove_S_bc_sections
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> get the N_bc_section attribute
-        !
-        !> @date
-        !> 31_10_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer object encapsulating the main
-        !> tables extending the interior domain
-        !
-        !>@param N_bc_section
-        !> south boundary section
-        !--------------------------------------------------------------
-        subroutine get_N_bc_sections(this,N_bc_sections)
-
-          implicit none
-
-          class(bf_layer_time)                       , intent(inout) :: this
-          integer(ikind), dimension(:,:), allocatable, intent(out)   :: N_bc_sections
-
-          if(allocated(this%N_bc_sections)) then
-             allocate(N_bc_sections(
-     $            size(this%N_bc_sections,1),
-     $            size(this%N_bc_sections,2)))
-             N_bc_sections(:,:) = this%N_bc_sections(:,:)
-          end if
-
-        end subroutine get_N_bc_sections
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> get the S_bc_section attribute
-        !
-        !> @date
-        !> 31_10_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer object encapsulating the main
-        !> tables extending the interior domain
-        !
-        !>@param S_bc_section
-        !> south boundary section
-        !--------------------------------------------------------------
-        subroutine get_S_bc_sections(this,S_bc_sections)
-
-          implicit none
-
-          class(bf_layer_time)                       , intent(inout) :: this
-          integer(ikind), dimension(:,:), allocatable, intent(out)   :: S_bc_sections
-
-          if(allocated(this%S_bc_sections)) then
-             allocate(S_bc_sections(
-     $            size(this%S_bc_sections,1),
-     $            size(this%S_bc_sections,2)))
-             S_bc_sections(:,:) = this%S_bc_sections(:,:)
-          end if
-
-        end subroutine get_S_bc_sections
-
 
       end module bf_layer_time_class

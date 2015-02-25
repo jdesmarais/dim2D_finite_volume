@@ -70,14 +70,15 @@
         integer, parameter :: negative_spot=5
 
         !>initial conditions choice for DIM
-        character(18), dimension(7), parameter :: dim2d_ic_code =[
+        character(18), dimension(8), parameter :: dim2d_ic_code =[
      $       'steady_state      ',
      $       'drop_retraction   ',
      $       'bubble_ascending  ',
      $       'homogeneous_liquid',
      $       'drop_collision    ',
      $       'phase_separation  ',
-     $       'bubble_transported']
+     $       'bubble_transported',
+     $       'newgrdpt_test     ']
 
         integer, parameter :: steady_state=0
         integer, parameter :: drop_retraction=1
@@ -86,6 +87,7 @@
         integer, parameter :: drop_collision=4
         integer, parameter :: phase_separation=5
         integer, parameter :: bubble_transported=6
+        integer, parameter :: newgrdpt_test=7
 
         !>boundary conditions choice
         character(23), dimension(9), parameter :: bc_code =[

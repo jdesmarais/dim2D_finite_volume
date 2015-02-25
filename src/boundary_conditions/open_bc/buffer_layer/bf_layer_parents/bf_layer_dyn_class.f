@@ -109,51 +109,62 @@
         !> correspondance between the interior grid points
         !> and the buffer layer elements
         !--------------------------------------------------------------
-        subroutine allocate_bf_layer(this, x_map, y_map, nodes, alignment)
+        subroutine allocate_bf_layer(
+     $       this,
+     $       interior_x_map,
+     $       interior_y_map,
+     $       interior_nodes,
+     $       alignment)
 
           implicit none
           
-          class(bf_layer_dyn)             , intent(inout) :: this
-          real(rkind)   , dimension(:)    , intent(in)    :: x_map
-          real(rkind)   , dimension(:)    , intent(in)    :: y_map
-          real(rkind)   , dimension(:,:,:), intent(in)    :: nodes
-          integer(ikind), dimension(2,2)  , intent(in)    :: alignment
+          class(bf_layer_dyn)                , intent(inout) :: this
+          real(rkind)   , dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind)   , dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          integer(ikind), dimension(2,2)     , intent(in)    :: alignment
 
 
           select case(this%localization)
+
             case(N)
                call allocate_bf_layer_N(
-     $              this%x_map, x_map,
-     $              this%y_map, y_map,
-     $              this%nodes, nodes,
+     $              this%x_map, interior_x_map,
+     $              this%y_map, interior_y_map,
+     $              this%nodes, interior_nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
+
             case(S)
                call allocate_bf_layer_S(
-     $              this%x_map, x_map,
-     $              this%y_map, y_map,
-     $              this%nodes, nodes,
+     $              this%x_map, interior_x_map,
+     $              this%y_map, interior_y_map,
+     $              this%nodes, interior_nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
+
             case(E)
                call allocate_bf_layer_E(
-     $              this%x_map, x_map,
-     $              this%y_map, y_map,
-     $              this%nodes, nodes,
+     $              this%x_map, interior_x_map,
+     $              this%y_map, interior_y_map,
+     $              this%nodes, interior_nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
+
             case(W)
                call allocate_bf_layer_W(
-     $              this%x_map, x_map,
-     $              this%y_map, y_map,
-     $              this%nodes, nodes,
+     $              this%x_map, interior_x_map,
+     $              this%y_map, interior_y_map,
+     $              this%nodes, interior_nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
+
             case default
                call error_mainlayer_id(
      $              'bf_layer_class.f',
      $              'allocate_bf_layer',
      $              this%localization)
+
           end select
 
         end subroutine allocate_bf_layer
@@ -184,47 +195,52 @@
         !> correspondance between the interior grid points
         !> and the buffer layer elements
         !--------------------------------------------------------------
-        subroutine reallocate_bf_layer(this, x_map, y_map, nodes, alignment)
+        subroutine reallocate_bf_layer(
+     $     this,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes,
+     $     alignment)
 
           implicit none
 
           class(bf_layer_dyn)             , intent(inout) :: this
-          real(rkind), dimension(nx)      , intent(in)    :: x_map
-          real(rkind), dimension(ny)      , intent(in)    :: y_map
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes
+          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
           integer    , dimension(2,2)     , intent(in)    :: alignment
 
           select case(this%localization)
 
             case(N)
                call reallocate_bf_layer_N(
-     $              this%x_map, x_map,
-     $              this%y_map, y_map,
-     $              this%nodes, nodes,
+     $              this%x_map, interior_x_map,
+     $              this%y_map, interior_y_map,
+     $              this%nodes, interior_nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
 
             case(S)
                call reallocate_bf_layer_S(
-     $              this%x_map, x_map,
-     $              this%y_map, y_map,
-     $              this%nodes, nodes,
+     $              this%x_map, interior_x_map,
+     $              this%y_map, interior_y_map,
+     $              this%nodes, interior_nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
 
             case(E)
                call reallocate_bf_layer_E(
-     $              this%x_map, x_map,
-     $              this%y_map, y_map,
-     $              this%nodes, nodes,
+     $              this%x_map, interior_x_map,
+     $              this%y_map, interior_y_map,
+     $              this%nodes, interior_nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
 
             case(W)
                call reallocate_bf_layer_W(
-     $              this%x_map, x_map,
-     $              this%y_map, y_map,
-     $              this%nodes, nodes,
+     $              this%x_map, interior_x_map,
+     $              this%y_map, interior_y_map,
+     $              this%nodes, interior_nodes,
      $              this%grdpts_id,
      $              this%alignment, alignment)
 

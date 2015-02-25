@@ -105,6 +105,8 @@
         !---------------------------------------------------------------
         type, extends(ic_abstract) :: ic
 
+          real(rkind), dimension(ne) :: far_field
+
           contains
 
           procedure, nopass :: apply_ic
@@ -114,7 +116,10 @@
           procedure, nopass :: get_v_in
           procedure, nopass :: get_T_in
           procedure, nopass :: get_P_out
-          procedure, nopass :: get_far_field
+
+          procedure,   pass :: ini_far_field
+          procedure,   pass :: get_far_field
+          procedure,   pass :: set_far_field
 
         end type ic
 
@@ -377,25 +382,18 @@
         !>@return var
         !> governing variables in the far-field
         !--------------------------------------------------------------
-        function get_far_field(this,t,x,y) result(var)
+        subroutine ini_far_field(this)
 
           implicit none
 
-          class(ic)     , intent(in) :: this
-          real(rkind)   , intent(in) :: t
-          real(rkind)   , intent(in) :: x
-          real(rkind)   , intent(in) :: y
+          class(ic), intent(inout) :: this
+
           real(rkind), dimension(ne) :: var
-
-
-          real(rkind) :: t_s,x_s,y_s
+          
           real(rkind) :: mass
           real(rkind) :: velocity_x
           real(rkind) :: velocity_y
           
-          t_s = t
-          x_s = x
-          y_s = y
 
           mass       = get_mass_far_field()
           velocity_x = get_velocity_x()
@@ -419,7 +417,42 @@
 
           end if
 
+          this%far_field = var
+
+        end subroutine ini_far_field
+
+
+        function get_far_field(this,t,x,y) result(far_field)
+        
+          implicit none
+
+          class(ic)                 , intent(in) :: this
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
+          real(rkind), dimension(ne)             :: far_field
+
+          real(rkind) :: t_s,x_s,y_s
+
+          t_s = t
+          x_s = x
+          y_s = y
+
+          far_field = this%far_field
+
         end function get_far_field
+
+
+        subroutine set_far_field(this,far_field)
+        
+          implicit none
+
+          class(ic)                 , intent(inout) :: this
+          real(rkind), dimension(ne), intent(in)    :: far_field
+
+          this%far_field = far_field
+
+        end subroutine set_far_field
 
 
         function get_velocity_x() result(velocity_x)

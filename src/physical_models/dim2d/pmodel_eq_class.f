@@ -73,16 +73,6 @@
      $       compute_x_timedev_from_LODI_vector_dim2d,
      $       compute_y_timedev_from_LODI_vector_dim2d,
      $       compute_timedev_from_LODI_vectors_dim2d
-c$$$
-c$$$        use dim2d_ncoords_module, only :
-c$$$     $       compute_n1_eigenvalues_dim2d,
-c$$$     $       compute_n2_eigenvalues_dim2d,
-c$$$     $       compute_n1_lefteigenvector_dim2d,
-c$$$     $       compute_n1_righteigenvector_dim2d,
-c$$$     $       compute_n2_lefteigenvector_dim2d,
-c$$$     $       compute_n2_righteigenvector_dim2d,
-c$$$     $       compute_n1_transM_dim2d,
-c$$$     $       compute_n2_transM_dim2d
 
         use dim2d_fluxes_module, only :
      $       flux_x_mass_density,

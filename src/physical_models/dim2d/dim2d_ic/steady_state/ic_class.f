@@ -90,7 +90,7 @@
           procedure, nopass :: get_v_in
           procedure, nopass :: get_T_in
           procedure, nopass :: get_P_out
-          procedure, nopass :: get_far_field
+          procedure,   pass :: get_far_field
 
         end type ic
 
@@ -135,7 +135,7 @@
           x = x_map(1)
           y = y_map(1)
 
-          cst_nodes = get_far_field(t,x,y)
+          cst_nodes = get_far_field_cst(t,x,y)
 
           do k=1,ne
              do j=1, size(nodes,2)
@@ -309,10 +309,11 @@
         !>@return var
         !> governing variables in the far-field
         !--------------------------------------------------------------
-        function get_far_field(t,x,y) result(var)
+        function get_far_field(this,t,x,y) result(var)
 
           implicit none
 
+          class(ic)     , intent(in) :: this
           real(rkind)   , intent(in) :: t
           real(rkind)   , intent(in) :: x
           real(rkind)   , intent(in) :: y
@@ -348,6 +349,45 @@
         end function get_far_field
 
 
+        function get_far_field_cst(t,x,y) result(var)
+
+          implicit none
+
+          real(rkind)   , intent(in) :: t
+          real(rkind)   , intent(in) :: x
+          real(rkind)   , intent(in) :: y
+          real(rkind), dimension(ne) :: var
+
+
+          real(rkind) :: t_s,x_s,y_s
+          real(rkind) :: d_liq
+          
+          t_s = t
+          x_s = x
+          y_s = y
+
+
+          d_liq = get_mass_density_liquid(T0)
+
+          if(rkind.eq.8) then
+
+             var(1) = d_liq
+             var(2) = d_liq*u0_flow
+             var(3) = d_liq*v0_flow
+             var(4) = 0.5d0*d_liq*((u0_flow)**2 + (v0_flow)**2) + d_liq*(8.0d0/3.0d0*cv_r*T0-3.0d0*d_liq)
+
+          else
+
+             var(1) = d_liq
+             var(2) = d_liq*u0_flow
+             var(3) = d_liq*v0_flow
+             var(4) = 0.5*d_liq*((u0_flow)**2 + (v0_flow)**2) + d_liq*(8.0/3.0*cv_r*T0-3.0*d_liq)
+
+          end if
+
+        end function get_far_field_cst
+
+
         function speed_of_sound_liquid() result(c)
 
           implicit none
@@ -357,7 +397,7 @@
 
           real(rkind) :: t,x,y
 
-          nodes = get_far_field(t,x,y)
+          nodes = get_far_field_cst(t,x,y)
           c = speed_of_sound(nodes)
 
         end function speed_of_sound_liquid

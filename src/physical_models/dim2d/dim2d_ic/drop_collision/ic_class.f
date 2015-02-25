@@ -375,10 +375,11 @@
         !>@return var
         !> governing variables in the far-field
         !--------------------------------------------------------------
-        function get_far_field(t,x,y) result(var)
+        function get_far_field(this,t,x,y) result(var)
 
           implicit none
 
+          class(ic)     , intent(in) :: this
           real(rkind)   , intent(in) :: t
           real(rkind)   , intent(in) :: x
           real(rkind)   , intent(in) :: y

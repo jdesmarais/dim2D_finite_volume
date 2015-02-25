@@ -461,9 +461,8 @@ test_hedstrom_xy_corners_prim:\
 			hedstrom_xy_corners_module.o
 
 test_bf_newgrdpt_prim.o:$(cbf_layer_dir)/bf_compute_class.o\
-			$(bf_layer_dir)/bf_layer_class.o\
 			$(cbf_layer_dir)/bf_newgrdpt_class.o\
-			$(test_dir)/test_lernaeanhydra/check_data_module.o\
+			$(test_dir)/tools/check_data_module.o\
 			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
@@ -478,5 +477,6 @@ test_bf_newgrdpt_prim:	check_data_module.o\
 			$(dim2d_dep)\
 			$(fv_dep)\
 			$(hedstrom_xy_dep)\
-			$(bf_layer_dep)\
-			n_coords_module.o
+			n_coords_module.o\
+			bf_newgrdpt_class.o\
+			bf_layer_newgrdpt_procedure_module.o

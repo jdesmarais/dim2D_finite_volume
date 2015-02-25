@@ -3,8 +3,8 @@
         use bf_compute_class, only :
      $       bf_compute
 
-        use bf_layer_class, only :
-     $       bf_layer
+c$$$        use bf_layer_class, only :
+c$$$     $       bf_layer
 
         use bf_newgrdpt_class, only :
      $       bf_newgrdpt
@@ -68,7 +68,8 @@
 
 
         type(bf_newgrdpt) :: bf_newgrdpt_used
-        logical           :: test_validated
+        logical           :: test_loc
+        logical           :: test_validated        
         logical           :: detailled
 
         type(pmodel_eq)            :: p_model
@@ -84,79 +85,75 @@
         end if
 
         far_field = p_model%get_far_field(0.0d0,1.0d0,1.0d0)
+
         if(.not.is_real_vector_validated(
      $       far_field,
-     $       [1.465102139d0,0.146510214d0,0.0d0,2.84673289d0],
-     $       .false.)) then
+     $       [1.46510213931996d0,0.146510214d0,0.0d0,2.84673289046992d0],
+     $       .true.)) then
            print '(''the test requires p_model%get_far_field(t,x,y)='')'
            print '(''[1.465102139d0,0.14651021d0,0.0d0,2.84673289d0]'')'
+           print '()'
+           print '(''T0 should be 0.95'')'
+           print '(''flow_direction should be x-direction'')'
+           print '(''ic_choice should be bubble_transported'')'
+           print '()'
            stop ''
            
         end if
 
         !test config
         detailled = .false.
+        test_validated = .true.
 
 
         !test of get_interpolation_coeff_1D
-        test_validated = test_get_interpolation_coeff_1D(bf_newgrdpt_used,detailled)
-        print '(''test_get_interpolation_coeff_1D: '', L1)', test_validated
+        test_loc = test_get_interpolation_coeff_1D(bf_newgrdpt_used,detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_get_interpolation_coeff_1D: '', L1)', test_loc
 
 
         !test of interpolate_1D
-        test_validated = test_interpolate_1D(bf_newgrdpt_used,detailled)
-        print '(''test_interpolate_1D: '', L1)', test_validated
+        test_loc = test_interpolate_1D(bf_newgrdpt_used,detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_interpolate_1D: '', L1)', test_loc
 
 
         !test of compute_NewtonCotes_integration
-        test_validated = test_compute_NewtonCotes_integration(bf_newgrdpt_used,detailled)
-        print '(''test_compute_NewtonCotes_integration: '', L1)', test_validated
-c$$$
-c$$$
-c$$$        !test of compute_newgrdpt_x
-c$$$        test_validated = test_compute_newgrdpt_x(bf_newgrdpt_used,detailled)
-c$$$        print '(''test_compute_newgrdpt_x: '', L1)', test_validated
-c$$$
-c$$$
-c$$$        !test of compute_newgrdpt_y
-c$$$        test_validated = test_compute_newgrdpt_y(bf_newgrdpt_used,detailled)
-c$$$        print '(''test_compute_newgrdpt_y: '', L1)', test_validated
-
+        test_loc = test_compute_NewtonCotes_integration(bf_newgrdpt_used,detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_compute_NewtonCotes_integration: '', L1)', test_loc
 
         !test of get_interpolation_coeff_2D
-        test_validated = test_get_interpolation_coeff_2D(bf_newgrdpt_used,detailled)
-        print '(''test_get_interpolation_coeff_2D: '', L1)', test_validated
+        test_loc = test_get_interpolation_coeff_2D(bf_newgrdpt_used,detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_get_interpolation_coeff_2D: '', L1)', test_loc
 
 
         !test of interpolate_2D
-        test_validated = test_interpolate_2D(bf_newgrdpt_used,detailled)
-        print '(''test_interpolate_2D: '', L1)', test_validated
-
+        test_loc = test_interpolate_2D(bf_newgrdpt_used,detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_interpolate_2D: '', L1)', test_loc
+        print '()'
 
         detailled = .true.
 
-        !test of the symmetry in compute_newgrdpt_xy
-        test_validated = test_sym_compute_newgrdpt_xy(bf_newgrdpt_used,detailled)
-        print '(''test_sym_compute_newgrdpt_xy: '', L1)', test_validated
+        !test of compute_newgrdpt_x + symmetry check
+        test_loc = test_sym_compute_newgrdpt_x(bf_newgrdpt_used,detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_sym_compute_newgrdpt_x: '', L1)', test_loc
+        print '()'
 
-c$$$        !test of compute_newgrdpt_xy
-c$$$        test_validated = test_compute_newgrdpt_xy(bf_newgrdpt_used,detailled)
-c$$$        print '(''test_compute_newgrdpt_xy: '', L1)', test_validated
-c$$$
-c$$$
-c$$$        !test of compute_newgrdpt
-c$$$        test_validated = test_compute_newgrdpt(bf_newgrdpt_used,detailled)
-c$$$        print '(''test_compute_newgrdpt: '', L1)', test_validated
-c$$$
-c$$$
-c$$$        !test of bf_compute/compute_newgrdpt
-c$$$        test_validated = test_bf_compute_compute_newgrdpt(detailled)
-c$$$        print '(''test_bf_compute_compute_newgrdpt: '',L1)', test_validated
-c$$$
-c$$$
-c$$$        !test of bf_layer/compute_newgrdpt
-c$$$        test_validated = test_bf_layer_compute_newgrdpt(detailled)
-c$$$        print '(''test_bf_layer_compute_newgrdpt: '',L1)', test_validated
+        !to test this use, flow_direction=y_direction
+c$$$        !test of compute_newgrdpt_y + symmetry check
+c$$$        test_loc = test_sym_compute_newgrdpt_y(bf_newgrdpt_used,detailled)
+c$$$        test_validated = test_validated.and.test_loc
+c$$$        print '(''test_sym_compute_newgrdpt_y: '', L1)', test_loc
+c$$$        print '()'
+
+        !test of compute_newgrdpt_xy + symmetry check
+        test_loc = test_sym_compute_newgrdpt_xy(bf_newgrdpt_used,detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_sym_compute_newgrdpt_xy: '', L1)', test_loc
 
         contains
 
@@ -276,202 +273,474 @@ c$$$        print '(''test_bf_layer_compute_newgrdpt: '',L1)', test_validated
         end function test_compute_NewtonCotes_integration
 
 
-c$$$        function test_compute_newgrdpt_x(bf_newgrdpt_used, detailled)
-c$$$     $     result(test_validated)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_newgrdpt), intent(in) :: bf_newgrdpt_used
-c$$$          logical           , intent(in) :: detailled
-c$$$          logical                        :: test_validated
-c$$$
-c$$$          type(pmodel_eq)                :: p_model
-c$$$          real(rkind)                    :: t
-c$$$          real(rkind)                    :: dt
-c$$$          
-c$$$          integer(ikind), dimension(2,2) :: bf_align0
-c$$$          real(rkind), dimension(3)      :: bf_x_map0
-c$$$          real(rkind), dimension(2)      :: bf_y_map0
-c$$$          real(rkind), dimension(3,2,ne) :: bf_nodes0
-c$$$
-c$$$          integer(ikind), dimension(2,2) :: bf_align1
-c$$$          real(rkind), dimension(3)      :: bf_x_map1
-c$$$          real(rkind), dimension(2)      :: bf_y_map1
-c$$$          real(rkind), dimension(3,2,ne) :: bf_nodes1
-c$$$
-c$$$          real(rkind), dimension(ne)     :: newgrdpt_data
-c$$$          real(rkind), dimension(ne)     :: newgrdpt
-c$$$          integer(ikind)                 :: i1
-c$$$          integer(ikind)                 :: j1
-c$$$          logical                        :: side_x
-c$$$
-c$$$          integer                        :: k
-c$$$          logical                        :: test_loc
-c$$$          
-c$$$
-c$$$          test_validated = .true.
-c$$$
-c$$$          !initialization of the inputs
-c$$$          t=0.0d0
-c$$$          dt=0.25d0
-c$$$          
-c$$$          bf_align0(1,1) = 0
-c$$$          bf_x_map0 = [0.5d0,1.5d0,2.5d0]
-c$$$          bf_y_map0 = [0.25d0,0.5d0]
-c$$$          bf_nodes0 = reshape((/
-c$$$     $         1.0d0,2.0d0, 3.0d0,
-c$$$     $         0.5d0,-0.5d0,1.25d0,
-c$$$     $         0.25d0,-0.75d0,3.26d0,
-c$$$     $         0.1d0 ,-0.45d0,6.15d0,
-c$$$     $         2.05d0,-8.25d0,3.26d0,
-c$$$     $         9.26d0, 7.85d0,9.23d0
-c$$$     $         /),
-c$$$     $         (/3,2,ne/))
-c$$$
-c$$$          bf_align1(1,1) = 1
-c$$$          bf_x_map1 = [1.5d0,2.5d0,3.5d0]
-c$$$          bf_y_map1 = [0.25d0,0.5d0]
-c$$$          bf_nodes1 = reshape((/
-c$$$     $         1.0d0,2.45d0, 3.0d0,
-c$$$     $         0.5d0,-0.26d0,2.25d0,
-c$$$     $         0.25d0,-0.75d0,3.26d0,
-c$$$     $         0.1d0 ,-8.52d0,7.15d0,
-c$$$     $         2.05d0,-2.15d0,3.26d0,
-c$$$     $         9.26d0, 7.85d0,6.23d0
-c$$$     $         /),
-c$$$     $         (/3,2,ne/))
-c$$$
-c$$$          i1 = 3
-c$$$          j1 = 2
-c$$$
-c$$$          side_x = right
-c$$$
-c$$$          !tested data
-c$$$          newgrdpt_data = [-3.345117188d0,4.943867188d0,9.87d0]
-c$$$
-c$$$          !test
-c$$$          newgrdpt = bf_newgrdpt_used%compute_newgrdpt_x(
-c$$$     $         p_model, t,dt,
-c$$$     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
-c$$$     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
-c$$$     $         i1,j1, side_x, gradient_y_y_oneside_R0)
-c$$$
-c$$$
-c$$$          !comparison
-c$$$          do k=1,ne
-c$$$
-c$$$             test_loc = is_test_validated(
-c$$$     $            newgrdpt_data(k),
-c$$$     $            newgrdpt(k),
-c$$$     $            detailled)
-c$$$             test_validated = test_validated.and.test_loc
-c$$$
-c$$$          end do
-c$$$
-c$$$        end function test_compute_newgrdpt_x
-c$$$
-c$$$
-c$$$        function test_compute_newgrdpt_y(bf_newgrdpt_used, detailled)
-c$$$     $     result(test_validated)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_newgrdpt), intent(in) :: bf_newgrdpt_used
-c$$$          logical           , intent(in) :: detailled
-c$$$          logical                        :: test_validated
-c$$$
-c$$$          type(pmodel_eq)                :: p_model
-c$$$          real(rkind)                    :: t
-c$$$          real(rkind)                    :: dt
-c$$$          
-c$$$          integer(ikind), dimension(2,2) :: bf_align0
-c$$$          real(rkind), dimension(2)      :: bf_x_map0
-c$$$          real(rkind), dimension(3)      :: bf_y_map0
-c$$$          real(rkind), dimension(2,3,ne) :: bf_nodes0
-c$$$
-c$$$          integer(ikind), dimension(2,2) :: bf_align1
-c$$$          real(rkind), dimension(2)      :: bf_x_map1
-c$$$          real(rkind), dimension(3)      :: bf_y_map1
-c$$$          real(rkind), dimension(2,3,ne) :: bf_nodes1
-c$$$
-c$$$          real(rkind), dimension(ne)     :: newgrdpt_data
-c$$$          real(rkind), dimension(ne)     :: newgrdpt
-c$$$          integer(ikind)                 :: i1
-c$$$          integer(ikind)                 :: j1
-c$$$          logical                        :: side_y
-c$$$
-c$$$          integer                        :: k
-c$$$          logical                        :: test_loc
-c$$$          
-c$$$
-c$$$          test_validated = .true.
-c$$$
-c$$$          !initialization of the inputs
-c$$$          t=0.0d0
-c$$$          dt=0.25d0
-c$$$          
-c$$$          bf_align0(2,1) = 0
-c$$$          bf_x_map0 = [0.25d0,0.5d0]
-c$$$          bf_y_map0 = [0.5d0,1.5d0,2.5d0]
-c$$$          bf_nodes0 = reshape((/
-c$$$     $         1.0d0, 0.5d0,
-c$$$     $         2.0d0,-0.5d0,
-c$$$     $         3.0d0, 1.25d0,
-c$$$     $         2.05d0,9.26d0,
-c$$$     $         -8.25d0,7.85d0,
-c$$$     $         3.26d0,9.23d0,
-c$$$     $         0.25d0,0.1d0,
-c$$$     $         -0.75d0,-0.45d0,
-c$$$     $         3.26d0,6.15d0
-c$$$     $         /),
-c$$$     $         (/2,3,ne/))
-c$$$
-c$$$          bf_align1(2,1) = 1
-c$$$          bf_x_map1 = [0.25d0,0.5d0]
-c$$$          bf_y_map1 = [1.5d0,2.5d0,3.5d0]
-c$$$          bf_nodes1 = reshape((/
-c$$$     $         1.0d0,0.5d0,
-c$$$     $         2.45d0,-0.26d0,
-c$$$     $         3.0d0,2.25d0,
-c$$$     $         2.05d0,9.26d0,
-c$$$     $         -2.15d0,7.85d0,
-c$$$     $         3.26d0,6.23d0,
-c$$$     $         0.25d0,0.1d0,
-c$$$     $         -0.75d0,-8.52d0,
-c$$$     $         3.26d0,7.15d0
-c$$$     $         /),
-c$$$     $         (/2,3,ne/))
-c$$$
-c$$$          i1 = 2
-c$$$          j1 = 3
-c$$$
-c$$$          side_y = right
-c$$$
-c$$$          !tested data
-c$$$          newgrdpt_data = [-3.345117188d0,9.87d0,4.943867188d0]
-c$$$
-c$$$          !test
-c$$$          newgrdpt = bf_newgrdpt_used%compute_newgrdpt_y(
-c$$$     $         p_model, t,dt,
-c$$$     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
-c$$$     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
-c$$$     $         i1,j1, side_y, gradient_x_x_oneside_R0)
-c$$$
-c$$$
-c$$$          !comparison
-c$$$          do k=1,ne
-c$$$
-c$$$             test_loc = is_test_validated(
-c$$$     $            newgrdpt_data(k),
-c$$$     $            newgrdpt(k),
-c$$$     $            detailled)
-c$$$             test_validated = test_validated.and.test_loc
-c$$$
-c$$$          end do
-c$$$
-c$$$        end function test_compute_newgrdpt_y
-c$$$
-c$$$
+        function test_sym_compute_newgrdpt_x(
+     $     bf_newgrdpt_used,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          class(bf_newgrdpt), intent(in) :: bf_newgrdpt_used
+          logical           , intent(in) :: detailled
+          logical                        :: test_validated
+
+
+          type(pmodel_eq)                :: p_model
+          real(rkind)                    :: t
+          real(rkind)                    :: dt
+          
+          integer(ikind), dimension(2,2) :: bf_align0
+          real(rkind), dimension(3)      :: bf_x_map0
+          real(rkind), dimension(3)      :: bf_y_map0
+          real(rkind), dimension(3,3,ne) :: bf_nodes0
+
+          integer(ikind), dimension(2,2) :: bf_align1
+          real(rkind), dimension(4)      :: bf_x_map1
+          real(rkind), dimension(4)      :: bf_y_map1
+          real(rkind), dimension(4,4,ne) :: bf_nodes1
+
+          real(rkind), dimension(ne)     :: newgrdpt_data
+          real(rkind), dimension(ne)     :: newgrdpt
+          real(rkind), dimension(ne)     :: newgrdpt_sym
+          integer(ikind)                 :: i1
+          integer(ikind)                 :: j1
+          logical                        :: side_x
+
+          logical                        :: test_loc
+          
+
+          !initialization of the inputs
+          t=0.0d0
+          dt=0.25d0
+
+
+          !computation of the new grdpt          
+          bf_align0(1,1) = 0
+          bf_align0(2,1) = 0
+          bf_x_map0 = [0.5d0, 1.5d0 , 2.5d0]
+          bf_y_map0 = [0.0d0, 0.25d0, 0.5d0]
+          bf_nodes0 = reshape((/
+     $         1.48d0, 1.30d0, 1.35d0,
+     $         1.26d0, 1.45d0, 1.4d0,
+     $         1.46d0, 1.27d0, 1.47d0,
+     $         
+     $         0.128d0, 0.127d0, 0.142d0,
+     $         1.138d0, 0.148d0, 0.132d0,
+     $         0.146d0, 0.143d0, 0.145d0,
+     $         
+     $         0.0050d0, 0.020d0, 0.060d0,
+     $         0.0025d0, 0.001d0, 0.015d0,
+     $         0.0100d0, 0.002d0, 0.050d0,
+     $         
+     $         4.88d0, 4.870d0,	4.855d0,
+     $         4.85d0, 4.865d0, 4.845d0,
+     $         4.89d0, 4.870d0, 4.860d0/),
+     $         (/3,3,ne/))
+
+          bf_align1(1,1) = 0
+          bf_align1(2,1) = 0
+          bf_x_map1 = [0.5d0, 1.5d0,2.5d0, 3.5d0]
+          bf_y_map1 = [0.0d0,0.25d0,0.5d0,0.75d0]
+          bf_nodes1 = reshape((/
+     $         1.50d0, 1.455d0, 1.48d0, 0.0d0,
+     $         1.20d0, 1.350d0, 1.25d0, 0.0d0,
+     $         1.49d0, 1.250d0, 1.40d0, 0.0d0,
+     $         0.00d0, 0.000d0, 0.00d0, 0.0d0,
+     $         
+     $         0.128d0, 0.450d0, 0.135d0, 0.0d0,
+     $         0.148d0, 0.150d0, 0.122d0, 0.0d0,
+     $         0.142d0, 1.152d0, 0.236d0, 0.0d0,
+     $         0.000d0, 0.000d0, 0.000d0, 0.0d0,
+     $         
+     $         0.006d0,	0.0600d0, 0.020d0, 0.0d0,
+     $         0.000d0,	0.0028d0, 0.035d0, 0.0d0,
+     $         0.020d0,	0.0030d0, 0.040d0, 0.0d0,
+     $         0.000d0, 0.0000d0, 0.000d0, 0.0d0,
+     $         
+     $         4.876d0, 4.825d0, 4.862d0, 0.0d0,
+     $         4.890d0, 4.871d0, 4.892d0, 0.0d0,
+     $         4.865d0, 4.757d0, 4.895d0, 0.0d0,
+     $         0.000d0, 0.0000d0, 0.000d0, 0.0d0
+     $         /),
+     $         (/4,4,ne/))
+
+          i1 = 4
+          j1 = 2
+
+          side_x = right
+
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt_x(
+     $         p_model, t,dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,side_x,gradient_y_interior)
+
+          select case(obc_eigenqties_strategy)
+
+            case(obc_eigenqties_bc)
+               newgrdpt_data = [
+     $               1.22383078395524d0,
+     $               0.39531842478603d0,
+     $              -0.21050217290879d0,
+     $               4.19684181018688d0]
+
+            case(obc_eigenqties_lin)
+               newgrdpt_data = [
+     $              1.21167555521982d0,
+     $              0.35901827468671d0,
+     $             -0.20475732388332d0,
+     $              4.20002914561351d0]
+               
+            case default
+               print '(''test_bf_newgrdpt_prim'')'
+               print '(''test_sym_compute_newgrdpt_x'')'
+               print '(''obc_eigenqties_strategy not recognized'')'
+               stop ''
+               
+          end select
+
+
+          test_loc = is_real_vector_validated(
+     $         newgrdpt,
+     $         newgrdpt_data,
+     $         detailled)
+          test_validated = test_loc
+          print '(''compute_newgrdpt_x: '',L1)', test_loc
+          
+
+          !compute the symmetrized newgrdpt
+          bf_align0(1,1) = 1
+          bf_align0(2,1) = 0
+          bf_x_map0 = [-2.5d0, -1.5d0, -0.5d0]
+          bf_y_map0 = [ 0.0d0, 0.25d0,  0.5d0]
+          bf_nodes0 = reshape((/
+     $         1.35d0, 1.30d0, 1.48d0, 
+     $         1.4d0,  1.45d0, 1.26d0, 
+     $         1.47d0, 1.27d0, 1.46d0, 
+     $         
+     $        -0.142d0,-0.127d0,-0.128d0,
+     $        -0.132d0,-0.148d0,-1.138d0,
+     $        -0.145d0,-0.143d0,-0.146d0,
+     $         
+     $         0.060d0, 0.020d0, 0.0050d0,
+     $         0.015d0, 0.001d0, 0.0025d0,
+     $         0.050d0, 0.002d0, 0.0100d0,
+     $         
+     $         4.855d0, 4.870d0, 4.88d0, 
+     $         4.845d0, 4.865d0, 4.85d0, 
+     $         4.860d0, 4.870d0, 4.89d0/),
+     $         (/3,3,ne/))
+
+          bf_align1(1,1) = 0
+          bf_align1(2,1) = 0
+          bf_x_map1 = [ -3.5d0,-2.5d0,-1.5d0,-0.5d0]
+          bf_y_map1 = [  0.0d0,0.25d0, 0.5d0,0.75d0]
+          bf_nodes1 = reshape((/
+     $         0.0d0, 1.48d0, 1.455d0, 1.50d0,
+     $         0.0d0, 1.25d0, 1.350d0, 1.20d0,
+     $         0.0d0, 1.40d0, 1.250d0, 1.49d0,
+     $         0.0d0, 0.00d0, 0.000d0, 0.00d0,
+     $         
+     $         0.0d0, -0.135d0, -0.450d0, -0.128d0,
+     $         0.0d0, -0.122d0, -0.150d0, -0.148d0,
+     $         0.0d0, -0.236d0, -1.152d0, -0.142d0,
+     $         0.0d0,  0.000d0,  0.000d0,  0.000d0,
+     $         
+     $         0.0d0,  0.020d0, 0.0600d0, 0.006d0,
+     $         0.0d0,  0.035d0, 0.0028d0, 0.000d0,
+     $         0.0d0,  0.040d0, 0.0030d0, 0.020d0,
+     $         0.0d0,  0.000d0, 0.0000d0, 0.000d0,
+     $         
+     $         0.0d0,  4.862d0,  4.825d0, 4.876d0,
+     $         0.0d0,  4.892d0,  4.871d0, 4.890d0,
+     $         0.0d0,  4.895d0,  4.757d0, 4.865d0,
+     $         0.0d0,  0.000d0, 0.0000d0, 0.000d0
+     $         /),
+     $         (/4,4,ne/))
+
+          i1 = 1
+          j1 = 2
+
+          side_x = left
+
+          newgrdpt_sym = bf_newgrdpt_used%compute_newgrdpt_x(
+     $         p_model, t,dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,side_x,gradient_y_interior)
+
+          newgrdpt_sym(2) = -newgrdpt_sym(2)
+
+          select case(obc_eigenqties_strategy)
+
+            case(obc_eigenqties_bc)
+               newgrdpt_data = [
+     $              1.279162121036500d0,
+     $              0.285275187690879d0,
+     $              -0.220019311093461d0,
+     $              4.48274912783283d0]
+
+            case(obc_eigenqties_lin)
+               newgrdpt_data = [
+     $              1.63776226955242d0,
+     $              0.318825439971472d0,
+     $             -8.980834765273495E-002,
+     $              2.97904706359555d0]
+               
+            case default
+               print '(''test_bf_newgrdpt_prim'')'
+               print '(''test_sym_compute_newgrdpt_x'')'
+               print '(''obc_eigenqties_strategy not recognized'')'
+               stop ''
+               
+          end select
+
+          test_loc = is_real_vector_validated(
+     $         newgrdpt_sym,
+     $         newgrdpt_data,
+     $         detailled)
+
+          test_validated = test_validated.and.test_loc
+          print '(''symmetry_newgrdpt_x: '',L1)', test_loc
+
+        end function test_sym_compute_newgrdpt_x
+
+
+        function test_sym_compute_newgrdpt_y(
+     $     bf_newgrdpt_used,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          class(bf_newgrdpt), intent(in) :: bf_newgrdpt_used
+          logical           , intent(in) :: detailled
+          logical                        :: test_validated
+
+
+          type(pmodel_eq)                :: p_model
+          real(rkind)                    :: t
+          real(rkind)                    :: dt
+          
+          integer(ikind), dimension(2,2) :: bf_align0
+          real(rkind), dimension(3)      :: bf_x_map0
+          real(rkind), dimension(3)      :: bf_y_map0
+          real(rkind), dimension(3,3,ne) :: bf_nodes0
+
+          integer(ikind), dimension(2,2) :: bf_align1
+          real(rkind), dimension(4)      :: bf_x_map1
+          real(rkind), dimension(4)      :: bf_y_map1
+          real(rkind), dimension(4,4,ne) :: bf_nodes1
+
+          real(rkind), dimension(ne)     :: newgrdpt_data
+          real(rkind), dimension(ne)     :: newgrdpt
+          real(rkind), dimension(ne)     :: newgrdpt_sym
+          integer(ikind)                 :: i1
+          integer(ikind)                 :: j1
+          logical                        :: side_y
+
+          logical                        :: test_loc
+          
+
+          !initialization of the inputs
+          t=0.0d0
+          dt=0.25d0
+
+
+          !computation of the new grdpt          
+          bf_align0(1,1) = 0
+          bf_align0(2,1) = 0
+          bf_x_map0 = [0.0d0, 0.25d0, 0.5d0]
+          bf_y_map0 = [0.5d0, 1.5d0 , 2.5d0]
+          bf_nodes0 = reshape((/
+     $         1.48d0, 1.26d0, 1.46d0,
+     $         1.30d0, 1.45d0, 1.27d0,
+     $         1.35d0,  1.4d0, 1.47d0,
+     $         
+     $         0.0050d0, 0.0025d0, 0.01d0,
+     $         0.02d0 , 0.001d0 , 0.002d0,
+     $         0.06d0  , 0.015d0 , 0.050d0,
+     $         
+     $         0.128d0, 1.138d0, 0.146d0,
+     $         0.127d0, 0.148d0, 0.143d0,
+     $         0.142d0, 0.132d0, 0.145d0,
+     $         
+     $         4.88d0, 4.850d0,	4.89d0,
+     $         4.87d0, 4.865d0, 4.87d0,
+     $         4.855d0,4.845d0, 4.86d0/),
+     $         (/3,3,ne/))
+
+          bf_align1(1,1) = 0
+          bf_align1(2,1) = 0
+          bf_x_map1 = [0.0d0,0.25d0,0.5d0,0.75d0]
+          bf_y_map1 = [0.5d0, 1.5d0,2.5d0, 3.5d0]
+          bf_nodes1 = reshape((/
+     $         1.50d0 , 1.20d0 , 1.49d0, 0.0d0,
+     $         1.455d0, 1.350d0, 1.25d0, 0.0d0,
+     $         1.48d0 , 1.250d0, 1.40d0, 0.0d0,
+     $         0.00d0 , 0.000d0, 0.00d0, 0.0d0,
+     $         
+     $         0.006d0,	0.0000d0, 0.020d0, 0.0d0,
+     $         0.060d0,	0.0028d0, 0.003d0, 0.0d0,
+     $         0.020d0,	0.0350d0, 0.040d0, 0.0d0,
+     $         0.000d0, 0.0000d0, 0.000d0, 0.0d0,
+     $         
+     $         0.128d0, 0.148d0, 0.142d0, 0.0d0,
+     $         0.450d0, 0.150d0, 1.152d0, 0.0d0,
+     $         0.135d0, 0.122d0, 0.236d0, 0.0d0,
+     $         0.000d0, 0.000d0, 0.000d0, 0.0d0,
+     $         
+     $         4.876d0, 4.890d0, 4.865d0, 0.0d0,
+     $         4.825d0, 4.871d0, 4.757d0, 0.0d0,
+     $         4.862d0, 4.892d0, 4.895d0, 0.0d0,
+     $         0.000d0, 0.0000d0, 0.000d0, 0.0d0
+     $         /),
+     $         (/4,4,ne/))
+
+          i1 = 2
+          j1 = 4
+
+          side_y = right
+
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt_y(
+     $         p_model, t,dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,side_y,gradient_x_interior)
+
+          select case(obc_eigenqties_strategy)
+
+            case(obc_eigenqties_bc)
+               newgrdpt_data = [
+     $               1.22383078395524d0,
+     $              -0.21050217290879d0,
+     $               0.39531842478603d0,
+     $               4.19684181018688d0]
+
+            case(obc_eigenqties_lin)
+               newgrdpt_data = [
+     $              1.21167555521982d0,
+     $             -0.20475732388332d0,
+     $              0.35901827468671d0,
+     $              4.20002914561351d0]
+               
+            case default
+               print '(''test_bf_newgrdpt_prim'')'
+               print '(''test_sym_compute_newgrdpt_y'')'
+               print '(''obc_eigenqties_strategy not recognized'')'
+               stop ''
+               
+          end select
+
+
+          test_loc = is_real_vector_validated(
+     $         newgrdpt,
+     $         newgrdpt_data,
+     $         detailled)
+          test_validated = test_loc
+          print '(''compute_newgrdpt_y: '',L1)', test_loc
+          
+
+          !compute the symmetrized newgrdpt
+          bf_align0(1,1) = 0
+          bf_align0(2,1) = 1
+          bf_x_map0 = [ 0.0d0, 0.25d0,  0.5d0]
+          bf_y_map0 = [-2.5d0, -1.5d0, -0.5d0]
+          bf_nodes0 = reshape((/
+     $         1.35d0,  1.4d0, 1.47d0,
+     $         1.30d0, 1.45d0, 1.27d0,
+     $         1.48d0, 1.26d0, 1.46d0,
+     $         
+     $         0.06d0  , 0.015d0 , 0.050d0,
+     $         0.02d0  , 0.001d0 , 0.002d0,
+     $         0.0050d0, 0.0025d0, 0.01d0,
+     $         
+     $        -0.142d0, -0.132d0, -0.145d0,
+     $        -0.127d0, -0.148d0, -0.143d0,
+     $        -0.128d0, -1.138d0, -0.146d0,
+     $         
+     $         4.855d0,4.845d0, 4.86d0,
+     $         4.87d0, 4.865d0, 4.87d0,
+     $         4.88d0, 4.850d0,	4.89d0/),
+     $         (/3,3,ne/))
+
+
+          bf_align1(1,1) = 0
+          bf_align1(2,1) = 0
+          bf_x_map1 = [  0.0d0,0.25d0, 0.5d0, 0.75d0]
+          bf_y_map1 = [ -3.5d0,-2.5d0,-1.5d0,-0.500 ]
+          bf_nodes1 = reshape((/
+     $         0.00d0 , 0.000d0, 0.00d0, 0.0d0,
+     $         1.48d0 , 1.250d0, 1.40d0, 0.0d0,
+     $         1.455d0, 1.350d0, 1.25d0, 0.0d0,
+     $         1.50d0 , 1.20d0 , 1.49d0, 0.0d0,
+     $         
+     $         0.000d0, 0.0000d0, 0.000d0, 0.0d0,
+     $         0.020d0,	0.0350d0, 0.040d0, 0.0d0,
+     $         0.060d0,	0.0028d0, 0.003d0, 0.0d0,
+     $         0.006d0,	0.0000d0, 0.020d0, 0.0d0,
+     $         
+     $        -0.000d0, -0.000d0, -0.000d0, -0.0d0,
+     $        -0.135d0, -0.122d0, -0.236d0, -0.0d0,
+     $        -0.450d0, -0.150d0, -1.152d0, -0.0d0,
+     $        -0.128d0, -0.148d0, -0.142d0, -0.0d0,
+     $         
+     $         0.000d0, 0.0000d0, 0.000d0, 0.0d0,
+     $         4.862d0, 4.892d0, 4.895d0, 0.0d0,
+     $         4.825d0, 4.871d0, 4.757d0, 0.0d0,
+     $         4.876d0, 4.890d0, 4.865d0, 0.0d0
+     $         /),
+     $         (/4,4,ne/))
+
+          i1 = 2
+          j1 = 1
+
+          side_y = left
+
+          newgrdpt_sym = bf_newgrdpt_used%compute_newgrdpt_y(
+     $         p_model, t,dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,side_y,gradient_x_interior)
+
+          newgrdpt_sym(3) = -newgrdpt_sym(3)
+
+          select case(obc_eigenqties_strategy)
+
+            case(obc_eigenqties_bc)
+
+               test_loc = is_real_vector_validated(
+     $              newgrdpt_sym,
+     $              [1.27916212103650d0,
+     $             -0.220019311093461d0,
+     $              0.285275187690879d0,
+     $               4.48274912783283d0],
+     $              detailled)
+
+            case(obc_eigenqties_lin)
+
+               test_loc = is_real_vector_validated(
+     $              newgrdpt_sym,
+     $              [1.63776226955242d0,
+     $             -8.980834765273495E-002,
+     $              0.318825439971472d0,
+     $              2.97904706359555d0],
+     $              detailled)
+
+            case default
+               print '(''test_bf_newgrdpt_prim'')'
+               print '(''test_sym_compute_newgrdpt_y'')'
+               print '(''obc_eigenqties_strategy not recognized'')'
+               stop ''
+               
+          end select
+
+
+          test_validated = test_validated.and.test_loc
+          print '(''symmetry_newgrdpt_x: '',L1)', test_loc
+
+        end function test_sym_compute_newgrdpt_y
+
 
         function test_sym_compute_newgrdpt_xy(bf_newgrdpt_used, detailled)
      $     result(test_validated)
@@ -595,17 +864,17 @@ c$$$
 
             case(obc_eigenqties_bc)
                newgrdpt_data = [
-     $              1.557420912d0,
-     $              0.562248987d0,
-     $              -0.145047656d0,
-     $              4.6364745d0]
+     $              1.55742091189301d0,
+     $              0.56224898725725d0,
+     $             -0.14504765609975d0,
+     $              4.63647450016455d0]
 
             case(obc_eigenqties_lin)
                newgrdpt_data = [
-     $              1.427429219d0,
-     $              0.744885407d0,
-     $             -0.032747125d0,
-     $              4.271215698d0]
+     $              1.42742921947925d0,
+     $              0.74488540650052d0,
+     $             -0.03274712450770d0,
+     $              4.27121569817512d0]
                
             case default
                print '(''test_bf_newgrdpt_prim'')'

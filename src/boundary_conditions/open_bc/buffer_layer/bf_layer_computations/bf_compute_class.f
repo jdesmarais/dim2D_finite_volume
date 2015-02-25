@@ -639,7 +639,7 @@
           
 
           !compute the procedure_type and the gradient_type identifying
-          !the procedure thta needs to be applied to compute the new grid
+          !the procedure that needs to be applied to compute the new grid
           !point
           call get_newgrdpt_procedure(
      $         2,2,
@@ -651,13 +651,21 @@
           !compute the new grid point
           new_grdpt = bf_newgrdpt_used%compute_newgrdpt(
      $         p_model, t, dt,
+     $         
      $         this%alignment_tmp,
      $         this%x_map_tmp,
      $         this%y_map_tmp,
      $         this%nodes_tmp,
-     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         
+     $         bf_align1,
+     $         bf_x_map1,
+     $         bf_y_map1,
+     $         bf_nodes1,
+     $         
      $         i1,j1,
-     $         procedure_type, gradient_type)
+     $         
+     $         procedure_type,
+     $         gradient_type)
 
         end function compute_newgrdpt
 

@@ -98,7 +98,7 @@
           procedure, nopass :: get_v_in
           procedure, nopass :: get_T_in
           procedure, nopass :: get_P_out
-          procedure, nopass :: get_far_field
+          procedure,   pass :: get_far_field
 
         end type ic
 
@@ -411,10 +411,11 @@
         !>@return var
         !> governing variables in the far-field
         !--------------------------------------------------------------
-        function get_far_field(t,x,y) result(var)
+        function get_far_field(this,t,x,y) result(var)
 
           implicit none
 
+          class(ic)     , intent(in) :: this
           real(rkind)   , intent(in) :: t
           real(rkind)   , intent(in) :: x
           real(rkind)   , intent(in) :: y

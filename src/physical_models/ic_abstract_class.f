@@ -69,7 +69,7 @@
           procedure(var_proc)      , nopass, deferred :: get_v_in
           procedure(var_proc)      , nopass, deferred :: get_T_in
           procedure(var_proc)      , nopass, deferred :: get_P_out
-          procedure(far_field_proc), nopass, deferred :: get_far_field
+          procedure(far_field_proc),   pass, deferred :: get_far_field
 
         end type ic_abstract
 
@@ -116,15 +116,17 @@
 
           !get the variable enforced at the edge of the
           !computational domain
-          function far_field_proc(t,x,y) result(var)
+          function far_field_proc(this,t,x,y) result(var)
 
+            import ic_abstract
             import ne
             import rkind
 
-            real(rkind)   , intent(in) :: t
-            real(rkind)   , intent(in) :: x
-            real(rkind)   , intent(in) :: y
-            real(rkind), dimension(ne) :: var
+            class(ic_abstract)        , intent(in) :: this
+            real(rkind)               , intent(in) :: t
+            real(rkind)               , intent(in) :: x
+            real(rkind)               , intent(in) :: y
+            real(rkind), dimension(ne)             :: var
 
           end function far_field_proc
 

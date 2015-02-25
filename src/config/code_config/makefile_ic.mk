@@ -71,4 +71,11 @@ ifeq ($(strip $(pm_choice)), dim2d_choice)
 		dim2d_ic_dep+=	dim2d_state_eq_module.o
 	endif
 
+	ifeq ($(strip $(ic_choice)), newgrdpt_test)
+		ic_cdir=$(dim2d_ic)/newgrdpt_test
+
+		dim2d_ic_dep+=	dim2d_state_eq_module.o\
+				dim2d_dropbubble_module.o
+	endif
+
 endif

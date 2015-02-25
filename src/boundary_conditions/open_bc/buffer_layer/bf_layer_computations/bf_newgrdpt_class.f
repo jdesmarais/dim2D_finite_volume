@@ -72,38 +72,6 @@
      $       gradient_y_y_oneside_L0,
      $       gradient_y_y_oneside_R0
 
-c$$$        use sd_operators_fd_n_module, only :
-c$$$     $       gradient_n1_xL0_yL0,
-c$$$     $       gradient_n1_xL0_yL1,
-c$$$     $       
-c$$$     $       gradient_n1_xL1_yL0,
-c$$$     $       gradient_n1_xL1_yL1,
-c$$$     $       gradient_n1_xL1_yR0,
-c$$$     $       
-c$$$     $       gradient_n1_xR1_yR1,
-c$$$     $       gradient_n1_xR1_yR0,
-c$$$     $       
-c$$$     $       gradient_n1_xR0_yR0,
-c$$$     $       gradient_n1_xR0_yR1,
-c$$$     $       gradient_n1_xR0_yL1,
-c$$$     $       
-c$$$     $       gradient_n2_xL0_yL1,
-c$$$     $       gradient_n2_xL0_yR1,
-c$$$     $       gradient_n2_xL0_yR0,
-c$$$     $       
-c$$$     $       gradient_n2_xL1_yL0,
-c$$$     $       gradient_n2_xL1_yL1,
-c$$$     $       gradient_n2_xL1_yR1,
-c$$$     $       gradient_n2_xL1_yR0,
-c$$$     $       
-c$$$     $       gradient_n2_xR1_yL0,
-c$$$     $       gradient_n2_xR1_yR0,
-c$$$     $       
-c$$$     $       gradient_n2_xR0_yL0,
-c$$$     $       gradient_n2_xR0_yL1,
-c$$$     $       gradient_n2_xR0_yR0
-
-
         implicit none
 
         private
@@ -154,6 +122,63 @@ c$$$     $       gradient_n2_xR0_yR0
         contains
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the new grid point obtained by extension of the
+        !> computational domain in the x-direction
+        !
+        !> @date
+        !> 14_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param dt
+        !> time step
+        !
+        !>@param bf_align0
+        !> alignment of the buffer layer at t=t-dt
+        !
+        !>@param bf_x_map0
+        !> x-coordinates of the buffer layer at t=t-dt
+        !
+        !>@param bf_y_map0
+        !> y-coordinates of the buffer layer at t=t-dt
+        !
+        !>@param bf_nodes0
+        !> nodes of the buffer layer at t=t-dt
+        !
+        !>@param bf_align1
+        !> alignment of the buffer layer at t=t
+        !
+        !>@param bf_x_map1
+        !> x-coordinates of the buffer layer at t=t
+        !
+        !>@param bf_y_map1
+        !> y-coordinates of the buffer layer at t=t
+        !
+        !>@param bf_nodes1
+        !> nodes of the buffer layer at t=t
+        !              
+        !>@param i1
+        !> x-index identifying the new grdpt at t=t
+        !
+        !>@param j1
+        !> y-index identifying the new grdpt at t=t
+        !              
+        !>@param procedure_type
+        !> integer identifying the procedure that should be
+        !> applied to compute the new grid point
+        !
+        !>@param gradient_type
+        !> integer identifying the gradient procedure needed
+        !> to compute the transverse terms
+        !--------------------------------------------------------------
         function compute_newgrdpt(
      $       p_model, t, dt,
      $       bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
@@ -510,7 +535,7 @@ c$$$     $       gradient_n2_xR0_yR0
      $                   gradient_x_x_oneside_R0,
      $                   gradient_y_y_oneside_L0,
      $                   eigen_indices,
-     $                   inter_indices1)                    
+     $                   inter_indices1)
 
                  case(gradient_xLR0_yLR0_type)
 
