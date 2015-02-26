@@ -221,7 +221,7 @@
 
              !check whether the neighboring bc_interior_pt
              !should be updated to interior_pt
-             call finalize_grdpts_around_new_interior_pt(
+             call finalize_grdpts_for_suspicious_bc_interior_pt(
      $            this,
      $            bf_sublayer_updated,
      $            [i_center,j_center],
@@ -675,7 +675,7 @@
         !> reference frame of the interior domain into local coordinates
         !> of the buffer layer bf_sublayer_updated
         !---------------------------------------------------------------
-        subroutine finalize_grdpts_around_new_interior_pt(
+        subroutine finalize_grdpts_for_suspicious_bc_interior_pt(
      $     this,
      $     bf_sublayer_updated,
      $     newgrdpt_local_coords,
@@ -761,7 +761,7 @@
              end do
           end do
           
-        end subroutine finalize_grdpts_around_new_interior_pt
+        end subroutine finalize_grdpts_for_suspicious_bc_interior_pt
 
 
         !update the bc_interior_pt to interior_pt if all the

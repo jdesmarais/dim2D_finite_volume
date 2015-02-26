@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '036511e9b2479d0022c9db3c0e87b8bdb33885fc')
+        parameter (commit = '88da7f6aba02b1188cd6c8f44d8d614ac6e90015')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -137,8 +137,8 @@
         integer, parameter :: xy_direction=3
         integer, parameter :: n1_direction=4
         integer, parameter :: n2_direction=5
-        integer, parameter :: min_border=1
-        integer, parameter :: max_border=2
+        integer, parameter :: min_border_type=1
+        integer, parameter :: max_border_type=2
 
         integer, parameter :: only_compute_proc=0
         integer, parameter :: compute_and_exchange_proc=1

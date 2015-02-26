@@ -60,6 +60,7 @@ gbf_layer_dir           = $(bf_layer_dir)/bf_layer_grdptsid
 iobf_layer_dir		= $(bf_layer_dir)/bf_layer_io_operators
 lbf_layer_dir           = $(bf_layer_dir)/bf_layer_list
 nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors
+pbf_layer_dir		= $(bf_layer_dir)/bf_layer_parents
 rbf_layer_dir           = $(bf_layer_dir)/bf_layer_restart
 sbf_layer_dir           = $(bf_layer_dir)/bf_layer_sync
 

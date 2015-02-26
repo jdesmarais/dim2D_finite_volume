@@ -266,6 +266,12 @@ bf_layer_dep=		parameters_bf_layer.o\
 			bf_layer_nf90_operators_module.o\
 			bf_layer_bc_sections_class.o\
 			bf_layer_bc_procedure_module.o\
+			bf_layer_basic_class.o\
+			bf_layer_print_class.o\
+			bf_layer_grdpts_id_update_class.o\
+			bf_layer_sync_class.o\
+			bf_layer_dyn_class.o\
+			bf_layer_time_class.o\
 			bf_layer_class.o
 
 bf_interface_dep=	$(bf_layer_dep)\

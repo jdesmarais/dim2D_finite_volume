@@ -20,7 +20,10 @@
         use netcdf                
 
         use parameters_bf_layer   , only :
-     $       bc_pt,bc_interior_pt,interior_pt,no_pt
+     $       bc_pt,
+     $       bc_interior_pt,
+     $       interior_pt,
+     $       no_pt
 
         use parameters_constant   , only :
      $       institut,

@@ -3108,8 +3108,7 @@ c$$$          stop 'not implemented yet'
      $     suffix_nodes,
      $     suffix_grdid,
      $     suffix_sizes,
-     $     suffix_nb_sublayers_max,
-     $     timedev)
+     $     suffix_nb_sublayers_max)
 
          implicit none
 
@@ -3120,20 +3119,12 @@ c$$$          stop 'not implemented yet'
          character(*)       , intent(in) :: suffix_grdid
          character(*)       , intent(in) :: suffix_sizes
          character(*)       , intent(in) :: suffix_nb_sublayers_max
-         logical, optional  , intent(in) :: timedev
-
-         logical :: timedev_op
 
          integer           :: i
          integer           :: nb_sublayers_max
          character(len=18) :: filename_format
          character(len=28) :: nb_sublayers_filename
 
-         if(present(timedev)) then
-            timedev_op = timedev
-         else
-            timedev_op = .false.
-         end if
                   
 
          !go through the buffer main layers and
@@ -3150,8 +3141,7 @@ c$$$          stop 'not implemented yet'
      $              suffix_y_map,
      $              suffix_nodes,
      $              suffix_grdid,
-     $              suffix_sizes,
-     $              timedev=timedev_op)
+     $              suffix_sizes)
 
                nb_sublayers_max = max(
      $              nb_sublayers_max,

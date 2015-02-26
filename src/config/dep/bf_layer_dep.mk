@@ -12,27 +12,63 @@ $(bf_layer_dir)/bf_nbc_template_module.o:\
 
 
 #main objects
-$(bf_layer_dir)/bf_layer_class.o:\
+$(pbf_layer_dir)/bf_layer_basic_class.o:\
+	$(sbf_layer_dir)/bf_layer_extract_module.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(pbf_layer_dir)/bf_layer_print_class.o:\
+	$(pbf_layer_dir)/bf_layer_basic_class.o\
+	$(iobf_layer_dir)/bf_layer_nf90_operators_module.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(pbf_layer_dir)/bf_layer_grdpts_id_update_class.o:\
+	$(gbf_layer_dir)/bf_bc_crenel_module.o\
+	$(pbf_layer_dir)/bf_layer_print_class.o\
+	$(gbf_layer_dir)/bf_suspicious_bc_interior_pt_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(bc_cdir)/bc_operators_class.o\
-	$(cbf_layer_dir)/bf_compute_class.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(pbf_layer_dir)/bf_layer_sync_class.o:\
+	$(pbf_layer_dir)/bf_layer_grdpts_id_update_class.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(sbf_layer_dir)/bf_layer_exchange_module.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(pbf_layer_dir)/bf_layer_dyn_class.o:\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(pbf_layer_dir)/bf_layer_sync_class.o\
 	$(gbf_layer_dir)/bf_layer_allocate_module.o\
 	$(gbf_layer_dir)/bf_layer_reallocate_module.o\
 	$(gbf_layer_dir)/bf_layer_merge_module.o\
-	$(iobf_layer_dir)/bf_layer_nf90_operators_module.o\
-	$(sbf_layer_dir)/bf_layer_exchange_module.o\
-	$(sbf_layer_dir)/bf_layer_extract_module.o\
-	$(cbf_layer_dir)/bf_remove_module.o\
-	$(gbf_layer_dir)/bf_suspicious_bc_interior_pt_module.o\
-	$(gbf_layer_dir)/bf_bc_crenel_module.o\
-	$(ti_dir)/interface_integration_step.o\
 	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(pbf_layer_dir)/bf_layer_time_class.o:\
+	$(pbf_layer_dir)/bf_layer_dyn_class.o\
+	$(sbf_layer_dir)/bf_layer_extract_module.o\
+	$(bc_cdir)/bc_operators_class.o\
+	$(cbf_layer_dir)/bf_compute_class.o\
+	$(ti_dir)/interface_integration_step.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o\
 	$(sd_cdir)/sd_operators_class.o\
 	$(td_cdir)/td_operators_class.o
+
+$(bf_layer_dir)/bf_layer_class.o:\
+	$(pbf_layer_dir)/bf_layer_time_class.o\
+	$(cbf_layer_dir)/bf_remove_module.o\
+	$(pm_cdir)/pmodel_eq_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
 
 $(bf_layer_dir)/bf_sublayer_class.o:\
 	$(bf_layer_dir)/bf_layer_class.o\
