@@ -597,24 +597,21 @@
           integer(ikind) :: nbf_i_min, nbf_j_min
           integer(ikind) :: bf_copy_size_x, bf_copy_size_y
           
-          if(this%shares_grdpts_with_neighbor2) then
-             
-             !get the indices for the match between the tables
-             !of the current buffer layer and the neighbor1
-             call get_match_indices_for_exchange_with_neighbor2(
-     $            this%alignment,
-     $            neighbor2%alignment,
-     $            bf_i_min, bf_j_min,
-     $            nbf_i_min, nbf_j_min,
-     $            bf_copy_size_x, bf_copy_size_y)
-            
-             !copy from the current buffer layer to neighbor1
-             call copy_from_bf1_to_bf2(
-     $            bf_i_min, bf_j_min, nbf_i_min, nbf_j_min,
-     $            bf_copy_size_x, bf_copy_size_y,
-     $            this%nodes, this%grdpts_id,
-     $            neighbor2%nodes, neighbor2%grdpts_id)
-          end if
+          !get the indices for the match between the tables
+          !of the current buffer layer and the neighbor1
+          call get_match_indices_for_exchange_with_neighbor2(
+     $         this%alignment,
+     $         neighbor2%alignment,
+     $         bf_i_min, bf_j_min,
+     $         nbf_i_min, nbf_j_min,
+     $         bf_copy_size_x, bf_copy_size_y)
+          
+          !copy from the current buffer layer to neighbor1
+          call copy_from_bf1_to_bf2(
+     $         bf_i_min, bf_j_min, nbf_i_min, nbf_j_min,
+     $         bf_copy_size_x, bf_copy_size_y,
+     $         this%nodes, this%grdpts_id,
+     $         neighbor2%nodes, neighbor2%grdpts_id)          
 
         end subroutine copy_to_neighbor2
 

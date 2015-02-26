@@ -16,13 +16,19 @@
 
         use parameters_input, only :
      $       bc_size,
-     $       ne
+     $       nx,ny,ne
 
         use parameters_kind, only :
      $       ikind,
      $       rkind
 
         implicit none
+
+        integer, parameter :: test_id_copy_to_neighbor1   = 1
+        integer, parameter :: test_id_copy_from_neighbor1 = 2
+        integer, parameter :: test_id_copy_to_neighbor2   = 3
+        integer, parameter :: test_id_copy_from_neighbor2 = 4
+        integer, parameter :: test_id_sync_with_neighbor  = 5
 
         
         logical :: detailled
@@ -66,6 +72,36 @@
         test_loc = test_copy_to_neighbor1(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_copy_to_neighbor1: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_copy_from_neighbor2(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_copy_from_neighbor2: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_copy_to_neighbor2(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_copy_to_neighbor2: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_sync_nodes_with_interior(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_sync_nodes_with_interior: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_sync_nodes_with_neighbor1(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_sync_nodes_with_neighbor1: '',L1)', test_loc
+        print '()'
+
+        
+        test_loc = test_sync_nodes_with_neighbor2(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_sync_nodes_with_neighbor2: '',L1)', test_loc
         print '()'
 
 
@@ -441,7 +477,7 @@
           test_validated = .true.
 
           !input
-          call ini_for_neighbor1_test(
+          call ini_for_neighbor_test(
      $         bf_layer_used,
      $         nbf_layer_used,
      $         bf_nodes,
@@ -451,7 +487,8 @@
      $         nbf_nodes,
      $         nbf_nodes_test,
      $         nbf_grdpts_id,
-     $         nbf_grdpts_id_test)
+     $         nbf_grdpts_id_test,
+     $         test_id_copy_from_neighbor1)
 
           !output
           call bf_layer_used%copy_from_neighbor1(nbf_layer_used)
@@ -501,7 +538,7 @@
           test_validated = .true.
 
           !input
-          call ini_for_neighbor1_test(
+          call ini_for_neighbor_test(
      $         bf_layer_used,
      $         nbf_layer_used,
      $         bf_nodes,
@@ -511,10 +548,11 @@
      $         nbf_nodes,
      $         nbf_nodes_test,
      $         nbf_grdpts_id,
-     $         nbf_grdpts_id_test)
+     $         nbf_grdpts_id_test,
+     $         test_id_copy_to_neighbor1)
 
           !output
-          call nbf_layer_used%copy_to_neighbor1(bf_layer_used)
+          call bf_layer_used%copy_to_neighbor1(nbf_layer_used)
           call bf_layer_used%get_nodes_array(bf_nodes)
           call bf_layer_used%get_grdpts_id(bf_grdpts_id)
           call nbf_layer_used%get_nodes_array(nbf_nodes)
@@ -536,7 +574,7 @@
        end function test_copy_to_neighbor1
 
 
-       subroutine ini_for_neighbor1_test(
+       subroutine ini_for_neighbor_test(
      $     bf_layer_used,
      $     nbf_layer_used,
      $     bf_nodes,
@@ -546,7 +584,8 @@
      $     nbf_nodes,
      $     nbf_nodes_test,
      $     nbf_grdpts_id,
-     $     nbf_grdpts_id_test)
+     $     nbf_grdpts_id_test,
+     $     test_id)
 
          implicit none
 
@@ -560,6 +599,7 @@
          real(rkind)   , dimension(:,:,:), allocatable, intent(out)   :: nbf_nodes_test
          integer       , dimension(:,:)  , allocatable, intent(out)   :: nbf_grdpts_id
          integer       , dimension(:,:)  , allocatable, intent(out)   :: nbf_grdpts_id_test
+         integer                                      , intent(in)    :: test_id
 
          integer                                       :: bf_localization
          integer                                       :: nbf_localization
@@ -570,7 +610,9 @@
          integer        :: k
          
          integer(ikind), dimension(2) :: bf_recv
+         integer(ikind), dimension(2) :: bf_send
          integer(ikind), dimension(2) :: nbf_send
+         integer(ikind), dimension(2) :: nbf_recv
          integer(ikind), dimension(2) :: ex_size
 
          bf_localization  = N
@@ -639,28 +681,144 @@
          allocate(bf_grdpts_id_test,source=bf_grdpts_id)
          allocate(nbf_grdpts_id_test,source=nbf_grdpts_id)
 
-         nbf_send = [1,3]
-         ex_size  = [6,4]
-         bf_recv  = [3,1]
+         select case(test_id)
+           case(test_id_copy_from_neighbor1)
+              nbf_send = [1,3]
+              ex_size  = [6,4]
+              bf_recv  = [3,1]
 
-         bf_nodes_test(
-     $        bf_recv(1):bf_recv(1)+ex_size(1)-1,
-     $        bf_recv(2):bf_recv(2)+ex_size(2)-1,
-     $        :)
-     $        =
-     $        nbf_nodes_test(
-     $        nbf_send(1):nbf_send(1)+ex_size(1)-1,
-     $        nbf_send(2):nbf_send(2)+ex_size(2)-1,
-     $        :)
+              bf_nodes_test(
+     $             bf_recv(1):bf_recv(1)+ex_size(1)-1,
+     $             bf_recv(2):bf_recv(2)+ex_size(2)-1,
+     $             :)
+     $             =
+     $             nbf_nodes_test(
+     $             nbf_send(1):nbf_send(1)+ex_size(1)-1,
+     $             nbf_send(2):nbf_send(2)+ex_size(2)-1,
+     $             :)
+              
+              bf_grdpts_id_test(
+     $             bf_recv(1):bf_recv(1)+ex_size(1)-1,
+     $             bf_recv(2):bf_recv(2)+ex_size(2)-1)
+     $             =
+     $             nbf_grdpts_id_test(
+     $             nbf_send(1):nbf_send(1)+ex_size(1)-1,
+     $             nbf_send(2):nbf_send(2)+ex_size(2)-1)
 
-         bf_grdpts_id_test(
-     $        bf_recv(1):bf_recv(1)+ex_size(1)-1,
-     $        bf_recv(2):bf_recv(2)+ex_size(2)-1)
-     $        =
-     $        nbf_grdpts_id_test(
-     $        nbf_send(1):nbf_send(1)+ex_size(1)-1,
-     $        nbf_send(2):nbf_send(2)+ex_size(2)-1)
+           case(test_id_copy_to_neighbor1)
+              nbf_recv = [1,3]
+              ex_size  = [6,4]
+              bf_send  = [3,1]
 
+              nbf_nodes_test(
+     $             nbf_recv(1):nbf_recv(1)+ex_size(1)-1,
+     $             nbf_recv(2):nbf_recv(2)+ex_size(2)-1,
+     $             :)
+     $             =
+     $             bf_nodes_test(
+     $             bf_send(1):bf_send(1)+ex_size(1)-1,
+     $             bf_send(2):bf_send(2)+ex_size(2)-1,
+     $             :)
+              
+              nbf_grdpts_id_test(
+     $             nbf_recv(1):nbf_recv(1)+ex_size(1)-1,
+     $             nbf_recv(2):nbf_recv(2)+ex_size(2)-1)
+     $             =
+     $             bf_grdpts_id_test(
+     $             bf_send(1):bf_send(1)+ex_size(1)-1,
+     $             bf_send(2):bf_send(2)+ex_size(2)-1)
+
+           case(test_id_copy_from_neighbor2)
+              nbf_recv = [1,3]
+              ex_size  = [6,4]
+              bf_send  = [3,1]
+
+              nbf_nodes_test(
+     $             nbf_recv(1):nbf_recv(1)+ex_size(1)-1,
+     $             nbf_recv(2):nbf_recv(2)+ex_size(2)-1,
+     $             :)
+     $             =
+     $             bf_nodes_test(
+     $             bf_send(1):bf_send(1)+ex_size(1)-1,
+     $             bf_send(2):bf_send(2)+ex_size(2)-1,
+     $             :)
+              
+              nbf_grdpts_id_test(
+     $             nbf_recv(1):nbf_recv(1)+ex_size(1)-1,
+     $             nbf_recv(2):nbf_recv(2)+ex_size(2)-1)
+     $             =
+     $             bf_grdpts_id_test(
+     $             bf_send(1):bf_send(1)+ex_size(1)-1,
+     $             bf_send(2):bf_send(2)+ex_size(2)-1)
+
+           case(test_id_copy_to_neighbor2)
+              nbf_send = [1,3]
+              ex_size  = [6,4]
+              bf_recv  = [3,1]
+
+              bf_nodes_test(
+     $             bf_recv(1):bf_recv(1)+ex_size(1)-1,
+     $             bf_recv(2):bf_recv(2)+ex_size(2)-1,
+     $             :)
+     $             =
+     $             nbf_nodes_test(
+     $             nbf_send(1):nbf_send(1)+ex_size(1)-1,
+     $             nbf_send(2):nbf_send(2)+ex_size(2)-1,
+     $             :)
+              
+              bf_grdpts_id_test(
+     $             bf_recv(1):bf_recv(1)+ex_size(1)-1,
+     $             bf_recv(2):bf_recv(2)+ex_size(2)-1)
+     $             =
+     $             nbf_grdpts_id_test(
+     $             nbf_send(1):nbf_send(1)+ex_size(1)-1,
+     $             nbf_send(2):nbf_send(2)+ex_size(2)-1)
+
+           case(test_id_sync_with_neighbor)
+              bf_send  = [3,3]
+              bf_recv  = [3,1]
+              nbf_send = [1,3]
+              nbf_recv = [1,5]
+              ex_size  = [6,2]
+
+              bf_nodes_test(
+     $             bf_recv(1):bf_recv(1)+ex_size(1)-1,
+     $             bf_recv(2):bf_recv(2)+ex_size(2)-1,
+     $             :)
+     $             =
+     $             nbf_nodes_test(
+     $             nbf_send(1):nbf_send(1)+ex_size(1)-1,
+     $             nbf_send(2):nbf_send(2)+ex_size(2)-1,
+     $             :)
+
+              nbf_nodes_test(
+     $             nbf_recv(1):nbf_recv(1)+ex_size(1)-1,
+     $             nbf_recv(2):nbf_recv(2)+ex_size(2)-1,
+     $             :)
+     $             =
+     $             bf_nodes_test(
+     $             bf_send(1):bf_send(1)+ex_size(1)-1,
+     $             bf_send(2):bf_send(2)+ex_size(2)-1,
+     $             :)
+              
+              bf_grdpts_id_test(
+     $             bf_recv(1):bf_recv(1)+ex_size(1)-1,
+     $             bf_recv(2):bf_recv(2)+ex_size(2)-1)
+     $             =
+     $             nbf_grdpts_id_test(
+     $             nbf_send(1):nbf_send(1)+ex_size(1)-1,
+     $             nbf_send(2):nbf_send(2)+ex_size(2)-1)
+
+              nbf_grdpts_id_test(
+     $             nbf_recv(1):nbf_recv(1)+ex_size(1)-1,
+     $             nbf_recv(2):nbf_recv(2)+ex_size(2)-1)
+     $             =
+     $             bf_grdpts_id_test(
+     $             bf_send(1):bf_send(1)+ex_size(1)-1,
+     $             bf_send(2):bf_send(2)+ex_size(2)-1)
+
+         end select
+              
          call bf_layer_used%ini(bf_localization)
          call nbf_layer_used%ini(nbf_localization)
 
@@ -672,6 +830,350 @@
          call bf_layer_used%set_grdpts_id(bf_grdpts_id)
          call nbf_layer_used%set_grdpts_id(nbf_grdpts_id)
 
-       end subroutine ini_for_neighbor1_test
+       end subroutine ini_for_neighbor_test
+
+
+       function test_copy_from_neighbor2(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_sync) :: bf_layer_used
+          type(bf_layer_sync) :: nbf_layer_used
+
+          real(rkind)   , dimension(:,:,:), allocatable :: bf_nodes
+          real(rkind)   , dimension(:,:,:), allocatable :: nbf_nodes
+          integer       , dimension(:,:)  , allocatable :: bf_grdpts_id
+          integer       , dimension(:,:)  , allocatable :: nbf_grdpts_id
+          real(rkind)   , dimension(:,:,:), allocatable :: bf_nodes_test
+          real(rkind)   , dimension(:,:,:), allocatable :: nbf_nodes_test
+          integer       , dimension(:,:)  , allocatable :: bf_grdpts_id_test
+          integer       , dimension(:,:)  , allocatable :: nbf_grdpts_id_test
+          
+          logical        :: test_loc
+
+          test_validated = .true.
+
+          !input
+          call ini_for_neighbor_test(
+     $         bf_layer_used,
+     $         nbf_layer_used,
+     $         bf_nodes,
+     $         bf_nodes_test,
+     $         bf_grdpts_id,
+     $         bf_grdpts_id_test,
+     $         nbf_nodes,
+     $         nbf_nodes_test,
+     $         nbf_grdpts_id,
+     $         nbf_grdpts_id_test,
+     $         test_id_copy_from_neighbor2)
+
+          !output
+          call nbf_layer_used%copy_from_neighbor2(bf_layer_used)
+          call bf_layer_used%get_nodes_array(bf_nodes)
+          call bf_layer_used%get_grdpts_id(bf_grdpts_id)
+          call nbf_layer_used%get_nodes_array(nbf_nodes)
+          call nbf_layer_used%get_grdpts_id(nbf_grdpts_id)
+
+          !validation
+          test_loc = is_real_matrix3D_validated(bf_nodes,bf_nodes_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+          test_loc = is_real_matrix3D_validated(nbf_nodes,nbf_nodes_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+          test_loc = is_int_matrix_validated(bf_grdpts_id,bf_grdpts_id_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+          test_loc = is_int_matrix_validated(nbf_grdpts_id,nbf_grdpts_id_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+       end function test_copy_from_neighbor2
+
+
+       function test_copy_to_neighbor2(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_sync)          :: bf_layer_used
+          type(bf_layer_sync)          :: nbf_layer_used
+
+          real(rkind)   , dimension(:,:,:), allocatable :: bf_nodes
+          real(rkind)   , dimension(:,:,:), allocatable :: nbf_nodes
+          integer       , dimension(:,:)  , allocatable :: bf_grdpts_id
+          integer       , dimension(:,:)  , allocatable :: nbf_grdpts_id
+          real(rkind)   , dimension(:,:,:), allocatable :: bf_nodes_test
+          real(rkind)   , dimension(:,:,:), allocatable :: nbf_nodes_test
+          integer       , dimension(:,:)  , allocatable :: bf_grdpts_id_test
+          integer       , dimension(:,:)  , allocatable :: nbf_grdpts_id_test
+          
+          logical        :: test_loc          
+
+          test_validated = .true.
+
+          !input
+          call ini_for_neighbor_test(
+     $         bf_layer_used,
+     $         nbf_layer_used,
+     $         bf_nodes,
+     $         bf_nodes_test,
+     $         bf_grdpts_id,
+     $         bf_grdpts_id_test,
+     $         nbf_nodes,
+     $         nbf_nodes_test,
+     $         nbf_grdpts_id,
+     $         nbf_grdpts_id_test,
+     $         test_id_copy_to_neighbor2)
+
+          !output
+          call nbf_layer_used%copy_to_neighbor2(bf_layer_used)
+          call bf_layer_used%get_nodes_array(bf_nodes)
+          call bf_layer_used%get_grdpts_id(bf_grdpts_id)
+          call nbf_layer_used%get_nodes_array(nbf_nodes)
+          call nbf_layer_used%get_grdpts_id(nbf_grdpts_id)
+
+          !validation
+          test_loc = is_real_matrix3D_validated(bf_nodes,bf_nodes_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+          test_loc = is_real_matrix3D_validated(nbf_nodes,nbf_nodes_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+          test_loc = is_int_matrix_validated(bf_grdpts_id,bf_grdpts_id_test,detailled)
+          test_validated = test_validated.and.test_loc
+          
+          test_loc = is_int_matrix_validated(nbf_grdpts_id,nbf_grdpts_id_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+       end function test_copy_to_neighbor2
+
+
+       function test_sync_nodes_with_interior(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_sync)                           :: bf_layer_used
+          integer                                       :: bf_localization
+          integer(ikind), dimension(2,2)                :: bf_alignment
+          real(rkind)   , dimension(:,:,:), allocatable :: bf_nodes
+          real(rkind)   , dimension(nx,ny,ne)           :: interior_nodes
+          real(rkind)   , dimension(:,:,:), allocatable :: bf_nodes_test
+          real(rkind)   , dimension(nx,ny,ne)           :: interior_nodes_test
+
+          integer(ikind) :: i,j
+          integer        :: k
+         
+          integer(ikind), dimension(2) :: bf_recv
+          integer(ikind), dimension(2) :: bf_send
+          integer(ikind), dimension(2) :: int_recv
+          integer(ikind), dimension(2) :: int_send
+          integer(ikind), dimension(2) :: ex_size
+
+          logical :: test_loc
+
+          test_validated = .true.
+
+
+          !input
+          bf_localization  = W
+
+          bf_alignment(1,1) = align_W-1
+          bf_alignment(1,2) = align_W
+          bf_alignment(2,1) = align_S+5
+          bf_alignment(2,2) = align_S+8
+
+          allocate(bf_nodes(
+     $         bf_alignment(1,2)-bf_alignment(1,1)+1+2*bc_size,
+     $         bf_alignment(2,2)-bf_alignment(2,1)+1+2*bc_size,
+     $         ne))
+
+          do k=1,ne
+             do j=1, size(bf_nodes,2)
+                do i=1, size(bf_nodes,1)
+                   bf_nodes(i,j,k) = (i-1) + 10*(j-1) + 100*k
+                end do
+             end do
+          end do
+
+          do k=1,ne
+             do j=1, size(interior_nodes,2)
+                do i=1, size(interior_nodes,1)
+                   interior_nodes(i,j,k) = -(i-1) - 10*(j-1) - 100*k
+                end do
+             end do
+          end do
+
+          allocate(bf_nodes_test,source=bf_nodes)
+          interior_nodes_test = interior_nodes
+          
+          if((align_S+10)>ny) then
+             print '(''in test_sync_nodes_with_interior, align_S+10>ny'')'
+             stop 'change inputs to have align_S+10.le.ny'
+          end if
+
+          bf_send  = [3,1]
+          bf_recv  = [5,1]
+          int_send = [3,align_S+3]
+          int_recv = [1,align_S+3]
+          ex_size  = [bc_size,size(bf_nodes,2)]
+
+          bf_nodes_test(
+     $         bf_recv(1):bf_recv(1)+ex_size(1)-1,
+     $         bf_recv(2):bf_recv(2)+ex_size(2)-1,
+     $         :)
+     $         =
+     $         interior_nodes_test(
+     $         int_send(1):int_send(1)+ex_size(1)-1,
+     $         int_send(2):int_send(2)+ex_size(2)-1,
+     $         :)
+
+          interior_nodes_test(
+     $         int_recv(1):int_recv(1)+ex_size(1)-1,
+     $         int_recv(2):int_recv(2)+ex_size(2)-1,
+     $         :)
+     $         =
+     $         bf_nodes_test(
+     $         bf_send(1):bf_send(1)+ex_size(1)-1,
+     $         bf_send(2):bf_send(2)+ex_size(2)-1,
+     $         :)
+
+          call bf_layer_used%ini(bf_localization)
+          call bf_layer_used%set_alignment_tab(bf_alignment)
+          call bf_layer_used%set_nodes(bf_nodes)
+          
+
+          !output
+          call bf_layer_used%sync_nodes_with_interior(interior_nodes)
+          call bf_layer_used%get_nodes_array(bf_nodes)
+
+          !validation
+          test_loc = is_real_matrix3D_validated(interior_nodes,interior_nodes_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+          test_loc = is_real_matrix3D_validated(bf_nodes,bf_nodes_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+        end function test_sync_nodes_with_interior
+
+
+        function test_sync_nodes_with_neighbor1(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_sync) :: bf_layer_used
+          type(bf_layer_sync) :: nbf_layer_used
+
+          real(rkind)   , dimension(:,:,:), allocatable :: bf_nodes
+          real(rkind)   , dimension(:,:,:), allocatable :: nbf_nodes
+          integer       , dimension(:,:)  , allocatable :: bf_grdpts_id
+          integer       , dimension(:,:)  , allocatable :: nbf_grdpts_id
+          real(rkind)   , dimension(:,:,:), allocatable :: bf_nodes_test
+          real(rkind)   , dimension(:,:,:), allocatable :: nbf_nodes_test
+          integer       , dimension(:,:)  , allocatable :: bf_grdpts_id_test
+          integer       , dimension(:,:)  , allocatable :: nbf_grdpts_id_test
+          
+          logical        :: test_loc
+
+          test_validated = .true.
+
+          !input
+          call ini_for_neighbor_test(
+     $         bf_layer_used,
+     $         nbf_layer_used,
+     $         bf_nodes,
+     $         bf_nodes_test,
+     $         bf_grdpts_id,
+     $         bf_grdpts_id_test,
+     $         nbf_nodes,
+     $         nbf_nodes_test,
+     $         nbf_grdpts_id,
+     $         nbf_grdpts_id_test,
+     $         test_id_sync_with_neighbor)
+
+          !output
+          call bf_layer_used%sync_nodes_with_neighbor1(nbf_layer_used)
+          call bf_layer_used%get_nodes_array(bf_nodes)
+          call bf_layer_used%get_grdpts_id(bf_grdpts_id)
+          call nbf_layer_used%get_nodes_array(nbf_nodes)
+          call nbf_layer_used%get_grdpts_id(nbf_grdpts_id)
+
+          !validation
+          test_loc = is_real_matrix3D_validated(bf_nodes,bf_nodes_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+          test_loc = is_real_matrix3D_validated(nbf_nodes,nbf_nodes_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+       end function test_sync_nodes_with_neighbor1
+
+
+       function test_sync_nodes_with_neighbor2(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_sync) :: bf_layer_used
+          type(bf_layer_sync) :: nbf_layer_used
+
+          real(rkind)   , dimension(:,:,:), allocatable :: bf_nodes
+          real(rkind)   , dimension(:,:,:), allocatable :: nbf_nodes
+          integer       , dimension(:,:)  , allocatable :: bf_grdpts_id
+          integer       , dimension(:,:)  , allocatable :: nbf_grdpts_id
+          real(rkind)   , dimension(:,:,:), allocatable :: bf_nodes_test
+          real(rkind)   , dimension(:,:,:), allocatable :: nbf_nodes_test
+          integer       , dimension(:,:)  , allocatable :: bf_grdpts_id_test
+          integer       , dimension(:,:)  , allocatable :: nbf_grdpts_id_test
+          
+          logical        :: test_loc
+
+          test_validated = .true.
+
+          !input
+          call ini_for_neighbor_test(
+     $         bf_layer_used,
+     $         nbf_layer_used,
+     $         bf_nodes,
+     $         bf_nodes_test,
+     $         bf_grdpts_id,
+     $         bf_grdpts_id_test,
+     $         nbf_nodes,
+     $         nbf_nodes_test,
+     $         nbf_grdpts_id,
+     $         nbf_grdpts_id_test,
+     $         test_id_sync_with_neighbor)
+
+          !output
+          call nbf_layer_used%sync_nodes_with_neighbor2(bf_layer_used)
+          call bf_layer_used%get_nodes_array(bf_nodes)
+          call bf_layer_used%get_grdpts_id(bf_grdpts_id)
+          call nbf_layer_used%get_nodes_array(nbf_nodes)
+          call nbf_layer_used%get_grdpts_id(nbf_grdpts_id)
+
+          !validation
+          test_loc = is_real_matrix3D_validated(bf_nodes,bf_nodes_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+          test_loc = is_real_matrix3D_validated(nbf_nodes,nbf_nodes_test,detailled)
+          test_validated = test_validated.and.test_loc
+
+       end function test_sync_nodes_with_neighbor2
 
       end program test_bf_layer_sync
