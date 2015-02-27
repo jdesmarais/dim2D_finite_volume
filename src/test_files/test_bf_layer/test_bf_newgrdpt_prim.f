@@ -1,8 +1,5 @@
       program test_bf_newgrdpt_prim
 
-        use bf_compute_class, only :
-     $       bf_compute
-
         use bf_newgrdpt_class, only :
      $       bf_newgrdpt
 
@@ -158,10 +155,17 @@
         print '(''test_sym_compute_newgrdpt_xy: '', L1)', test_loc
         print '()'
 
+        !test of compute_newgrdpt_local
+        test_loc = test_compute_newgrdpt_local(bf_newgrdpt_used,p_model,detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_compute_newgrdpt_local: '', L1)', test_loc
+        print '()'
+
         !test of compute_newgrdpt
         test_loc = test_compute_newgrdpt(bf_newgrdpt_used,p_model,detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_compute_newgrdpt: '', L1)', test_loc
+        print '()'
 
         contains
 
@@ -1048,7 +1052,7 @@
         end function test_interpolate_2D
 
 
-        function test_compute_newgrdpt(bf_newgrdpt_used, p_model, detailled)
+        function test_compute_newgrdpt_local(bf_newgrdpt_used, p_model, detailled)
      $     result(test_validated)
 
           implicit none
@@ -1598,7 +1602,7 @@
      $         test_validated,
      $         detailled)
 
-        end function test_compute_newgrdpt
+        end function test_compute_newgrdpt_local
 
 
         subroutine test_procedure_and_gradient_type(
@@ -1648,7 +1652,7 @@
 
           do k=1,size(procedure_type_test,1)
 
-             newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+             newgrdpt = bf_newgrdpt_used%compute_newgrdpt_local(
      $            p_model, t,dt,
      $            bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $            bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -1669,7 +1673,7 @@
 
                   test_validated = test_validated.and.test_loc
 
-                  print '(''test_compute_newgrdpt ('',A12,'',''A12''): '',L1)',
+                  print '(''test_compute_newgrdpt_local('',A12,'',''A12''): '',L1)',
      $                 procedure_type_char_test(k),
      $                 gradient_type_char_test(k),
      $                 test_loc
@@ -2067,5 +2071,109 @@
           end do
 
         end subroutine transpose_data
+
+
+        function test_compute_newgrdpt(
+     $     bf_newgrdpt_used,
+     $     p_model,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          class(bf_newgrdpt), intent(in)    :: bf_newgrdpt_used
+          type(pmodel_eq)   , intent(inout) :: p_model
+          logical           , intent(in)    :: detailled
+          logical                           :: test_validated
+
+          real(rkind)                       :: t
+          real(rkind)                       :: dt
+                                            
+          integer(ikind), dimension(2,2)    :: bf_align0
+          real(rkind), dimension(5)         :: bf_x_map0
+          real(rkind), dimension(5)         :: bf_y_map0
+          real(rkind), dimension(5,5,ne)    :: bf_nodes0
+                                            
+          integer(ikind), dimension(2,2)    :: bf_align1
+          real(rkind), dimension(5)         :: bf_x_map1
+          real(rkind), dimension(5)         :: bf_y_map1
+          real(rkind), dimension(5,5,ne)    :: bf_nodes1
+                                            
+          integer(ikind)                    :: i1
+          integer(ikind)                    :: j1
+
+          integer                           :: nb_procedures
+          integer, dimension(4)             :: procedure_type_test
+          integer, dimension(4)             :: gradient_type_test
+          real(rkind), dimension(ne)        :: newgrdpt_data
+          real(rkind), dimension(ne)        :: newgrdpt
+
+          logical :: test_loc
+
+
+          test_validated = .true.
+
+
+          !initialization of the inputs
+          t=0.0d0
+          dt=0.25d0
+
+
+          !computation of the new grdpt
+          bf_align0(1,1) = 0
+          bf_align0(2,1) = 0
+
+          bf_align1(1,1) = 0
+          bf_align1(2,1) = 0
+
+
+          call initialize_nodes_and_maps(
+     $         bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_x_map1, bf_y_map1, bf_nodes1)
+
+          call p_model%initial_conditions%ini_far_field()
+
+          i1 = 3
+          j1 = 3
+
+          nb_procedures = 2
+
+          !E_edge, gradient_I_type
+          procedure_type_test(1) = E_edge_type
+          gradient_type_test(1)  = gradient_I_type
+
+          !NE_edge, gradient_I_type
+          procedure_type_test(2) = NE_edge_type
+          gradient_type_test(2)  = gradient_I_type
+
+          newgrdpt_data = [
+     $         1.074480119644000d0,
+     $         0.329290386619994d0,
+     $         0.348253524846378d0,
+     $         4.067781653469950d0]
+
+          !output
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model, t,dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         nb_procedures,
+     $         procedure_type_test,
+     $         gradient_type_test)
+
+          !validation
+          test_loc = is_real_vector_validated(
+     $         newgrdpt,
+     $         newgrdpt_data,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+
+          !detailled
+          if((.not.test_loc).and.test_validated) then
+             print '(''test_compute_newgrdpt: '',L1)', test_loc
+          end if
+
+        end function test_compute_newgrdpt
 
       end program test_bf_newgrdpt_prim

@@ -92,10 +92,11 @@ test_bf_newgrdpt_prim:		check_data_module.o\
 				$(param_dep)\
 				$(mt_dep)\
 				$(dim2d_dep)\
-				$(fv_dep)\
-				$(hedstrom_xy_dep)\
 				n_coords_module.o\
-				bf_newgrdpt_class.o
+				bf_newgrdpt_class.o\
+				bf_layer_errors_module.o\
+				bf_layer_extract_module.o\
+				bf_layer_newgrdpt_procedure_module.o
 
 test_bf_newgrdpt_procedure.o:	$(cbf_layer_dir)/bf_newgrdpt_class.o\
 				$(cbf_layer_dir)/bf_newgrdpt_procedure_module.o\

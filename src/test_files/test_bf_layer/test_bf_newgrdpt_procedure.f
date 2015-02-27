@@ -321,9 +321,7 @@
           integer, dimension(4)   :: procedure_type
           integer, dimension(4)   :: gradient_type
 
-          integer                      :: k,l
           type(bf_newgrdpt)            :: bf_newgrdpt_used
-          real(rkind), dimension(ne,4) :: newgrdpt_data
 
           !1) ask for the procedures needed to compute
           !   the new grid point
@@ -334,31 +332,13 @@
      $         gradient_type)
 
           !2) compute the new grid point
-          if(nb_procedures.ge.1) then
-
-             !compute the new grid point according to each procedure
-             do k=1, nb_procedures
-
-                newgrdpt_data(:,k) = bf_newgrdpt_used%compute_newgrdpt(
-     $               p_model,t,dt,
-     $               bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
-     $               bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
-     $               i1,j1,
-     $               procedure_type(k), gradient_type(k))
-
-             end do
-
-             !compute the new grid point as an average of the
-             !grid points given by the procedures
-             do l=1,ne
-                newgrdpt(l) = 0.0d0
-                do k=1,nb_procedures
-                   newgrdpt(l) = newgrdpt(l) + newgrdpt_data(l,k)
-                end do
-                newgrdpt(l) = newgrdpt(l)/nb_procedures
-             end do
-
-          end if
+          newgrdpt = bf_newgrdpt_used%compute_newgrdpt(
+     $         p_model,t,dt,
+     $         bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $         bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $         i1,j1,
+     $         nb_procedures,
+     $         procedure_type, gradient_type)
 
         end subroutine compute_newgrdpt
 

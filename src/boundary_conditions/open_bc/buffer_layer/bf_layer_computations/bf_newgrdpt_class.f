@@ -103,7 +103,8 @@
           contains
 
           procedure, nopass :: compute_newgrdpt
-
+          
+          procedure, nopass :: compute_newgrdpt_local
           procedure, nopass :: compute_newgrdpt_x
           procedure, nopass :: compute_newgrdpt_y
           procedure, nopass :: compute_newgrdpt_xy
@@ -180,6 +181,126 @@
         !> to compute the transverse terms
         !--------------------------------------------------------------
         function compute_newgrdpt(
+     $       p_model, t, dt,
+     $       bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $       bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $       i1,j1,
+     $       nb_procedures, procedure_type, gradient_type)
+     $       result(new_grdpt)
+
+          implicit none
+
+          type(pmodel_eq)                    , intent(in) :: p_model
+          real(rkind)                        , intent(in) :: t
+          real(rkind)                        , intent(in) :: dt
+          integer(ikind), dimension(2,2)     , intent(in) :: bf_align0
+          real(rkind)   , dimension(:)       , intent(in) :: bf_x_map0
+          real(rkind)   , dimension(:)       , intent(in) :: bf_y_map0
+          real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes0
+          integer(ikind), dimension(2,2)     , intent(in) :: bf_align1
+          real(rkind)   , dimension(:)       , intent(in) :: bf_x_map1
+          real(rkind)   , dimension(:)       , intent(in) :: bf_y_map1
+          real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes1
+          integer(ikind)                     , intent(in) :: i1
+          integer(ikind)                     , intent(in) :: j1
+          integer                            , intent(in) :: nb_procedures
+          integer       , dimension(4)       , intent(in) :: procedure_type
+          integer       , dimension(4)       , intent(in) :: gradient_type
+          real(rkind)   , dimension(ne)                   :: new_grdpt
+
+
+          integer                      :: k
+          integer                      :: l
+          real(rkind), dimension(ne,4) :: new_grdpt_data
+
+
+          if(nb_procedures.ge.1) then
+
+             !compute the new grid point according to each procedure
+             do k=1, nb_procedures
+
+                new_grdpt_data(:,k) = compute_newgrdpt_local(
+     $               p_model,t,dt,
+     $               bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
+     $               bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
+     $               i1,j1,
+     $               procedure_type(k), gradient_type(k))
+
+             end do
+
+             !compute the new grid point as an average of the
+             !grid points given by the procedures
+             do l=1,ne
+                new_grdpt(l) = 0.0d0
+                do k=1,nb_procedures
+                   new_grdpt(l) = new_grdpt(l) + new_grdpt_data(l,k)
+                end do
+                new_grdpt(l) = new_grdpt(l)/nb_procedures
+             end do
+
+          end if
+
+        end function compute_newgrdpt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the new grid point obtained by extension of the
+        !> computational domain in the x-direction
+        !
+        !> @date
+        !> 14_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param dt
+        !> time step
+        !
+        !>@param bf_align0
+        !> alignment of the buffer layer at t=t-dt
+        !
+        !>@param bf_x_map0
+        !> x-coordinates of the buffer layer at t=t-dt
+        !
+        !>@param bf_y_map0
+        !> y-coordinates of the buffer layer at t=t-dt
+        !
+        !>@param bf_nodes0
+        !> nodes of the buffer layer at t=t-dt
+        !
+        !>@param bf_align1
+        !> alignment of the buffer layer at t=t
+        !
+        !>@param bf_x_map1
+        !> x-coordinates of the buffer layer at t=t
+        !
+        !>@param bf_y_map1
+        !> y-coordinates of the buffer layer at t=t
+        !
+        !>@param bf_nodes1
+        !> nodes of the buffer layer at t=t
+        !              
+        !>@param i1
+        !> x-index identifying the new grdpt at t=t
+        !
+        !>@param j1
+        !> y-index identifying the new grdpt at t=t
+        !              
+        !>@param procedure_type
+        !> integer identifying the procedure that should be
+        !> applied to compute the new grid point
+        !
+        !>@param gradient_type
+        !> integer identifying the gradient procedure needed
+        !> to compute the transverse terms
+        !--------------------------------------------------------------
+        function compute_newgrdpt_local(
      $       p_model, t, dt,
      $       bf_align0, bf_x_map0, bf_y_map0, bf_nodes0,
      $       bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
@@ -849,7 +970,7 @@
 
           end select
 
-        end function compute_newgrdpt
+        end function compute_newgrdpt_local
 
 
         !> @author
