@@ -78,8 +78,7 @@ test_bf_layer_sync:		$(param_dep)\
 				$(bf_layer_sync_dep)\
 				check_data_module.o
 
-test_bf_newgrdpt_prim.o:	$(cbf_layer_dir)/bf_compute_class.o\
-				$(cbf_layer_dir)/bf_newgrdpt_class.o\
+test_bf_newgrdpt_prim.o:	$(cbf_layer_dir)/bf_newgrdpt_class.o\
 				$(test_dir)/tools/check_data_module.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
 				$(param_dir)/parameters_constant.o\
@@ -96,5 +95,28 @@ test_bf_newgrdpt_prim:		check_data_module.o\
 				$(fv_dep)\
 				$(hedstrom_xy_dep)\
 				n_coords_module.o\
+				bf_newgrdpt_class.o
+
+test_bf_newgrdpt_procedure.o:	$(cbf_layer_dir)/bf_newgrdpt_class.o\
+				$(cbf_layer_dir)/bf_newgrdpt_procedure_module.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(dim2d_dir)/pmodel_eq_class.o\
+				$(mt_dir)/sd_operators_fd_module.o\
+				$(dim2d_dir)/dim2d_parameters.o
+
+
+
+test_bf_newgrdpt_procedure:	check_data_module.o\
+				$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				n_coords_module.o\
 				bf_newgrdpt_class.o\
-				bf_layer_newgrdpt_procedure_module.o
+				bf_layer_errors_module.o\
+				bf_layer_extract_module.o\
+				bf_layer_newgrdpt_procedure_module.o\
+				bf_newgrdpt_procedure_module.o
