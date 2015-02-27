@@ -530,7 +530,7 @@
 
           end if
 
-        end subroutine get_data_for_newgrdpt        
+        end subroutine get_data_for_newgrdpt
 
 
         !> @author
@@ -588,67 +588,45 @@
           integer(ikind)                     , intent(in) :: j1
           real(rkind)   , dimension(ne)                   :: new_grdpt
 
-          integer(ikind)          :: i0,j0
-          integer, dimension(3,3) :: tmp_grdpts_id
-          integer(ikind)          :: i_min,i_max,j_min,j_max
-          integer(ikind)          :: size_x,size_y
-          integer(ikind)          :: i_recv,j_recv
-          integer(ikind)          :: i_send,j_send
-          integer(ikind)          :: i,j
-
-          type(bf_newgrdpt)       :: bf_newgrdpt_used
-          integer                 :: procedure_type
-          integer                 :: gradient_type
+          integer(ikind)        :: i0,j0
+          integer               :: ierror
+          type(bf_newgrdpt)     :: bf_newgrdpt_used
+          integer               :: nb_procedures
+          integer, dimension(4) :: procedure_type
+          integer, dimension(4) :: gradient_type
 
           
-          !get the indices of the new gridpoint for the grdpts_id_tmp
+          ! get the indices of the new gridpoint for the
+          ! grdpts_id_tmp
           i0 = bf_align1(1,1) - this%alignment_tmp(1,1) + i1
           j0 = bf_align1(2,1) - this%alignment_tmp(2,1) + j1
 
 
-          !create a temporary array for the grid points surrounding the
-          !central grid point identified by (i0,j0)
-          tmp_grdpts_id = reshape((/
-     $         no_pt,no_pt,no_pt,
-     $         no_pt,no_pt,no_pt,
-     $         no_pt,no_pt,no_pt/),
-     $         (/3,3/))
-
-
-          !copy the overlapping grid points from this%grdpts_id_tmp
-          i_min = max(i0-1, 1)
-          i_max = min(i0+1, size(this%grdpts_id_tmp,1))
-          j_min = max(j0-1, 1)
-          j_max = min(j0+1, size(this%grdpts_id_tmp,2))
-
-          size_x = i_max-i_min+1
-          size_y = j_max-j_min+1 
-
-          i_send = i_min
-          j_send = j_min
-          i_recv = i_min-(i0-1)+1
-          j_recv = j_min-(j0-1)+1
-
-          
-          do j=1, size_y
-             do i=1, size_x
-                tmp_grdpts_id(i_recv+i-1,j_recv+j-1) =
-     $               this%grdpts_id_tmp(i_send+i-1,j_send+j-1)
-             end do
-          end do
-          
-
-          !compute the procedure_type and the gradient_type identifying
-          !the procedure that needs to be applied to compute the new grid
-          !point
-          call get_newgrdpt_procedure(
-     $         2,2,
-     $         tmp_grdpts_id,
+          ! compute the procedure_type and the gradient_type
+          ! identifying the procedure that needs to be applied
+          ! to compute the new grid point
+          ierror = get_newgrdpt_procedure(
+     $         i0,j0,
+     $         this%grdpts_id_tmp,
+     $         nb_procedures,
      $         procedure_type,
      $         gradient_type)
 
+          if(ierror.ne.BF_SUCCESS) then
+             print '(''bf_compute_class'')'
+             print '(''compute_newgrdpt'')'
+             print '(''in get_newgrdpt_procedure()'')'
+             print '(''configuration around newgrdpt not recognized'')'
+             stop ''
+          end if
 
-          !compute the new grid point
+
+          ! verify that there are enough grid points around the
+          ! new grid point for its computation
+          stop 'add the verification of grid points'
+
+
+          ! compute the new grid point
           new_grdpt = bf_newgrdpt_used%compute_newgrdpt(
      $         p_model, t, dt,
      $         
@@ -664,6 +642,7 @@
      $         
      $         i1,j1,
      $         
+     $         nb_procedures,
      $         procedure_type,
      $         gradient_type)
 

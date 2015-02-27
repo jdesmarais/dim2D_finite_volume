@@ -178,6 +178,9 @@ $(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
+$(cbf_layer_dir)/bf_newgrdpt_verification_module.o:\
+	$(bf_layer_dir)/parameters_bf_layer.o
+
 $(cbf_layer_dir)/bf_newgrdpt_class.o:\
 	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
 	$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\

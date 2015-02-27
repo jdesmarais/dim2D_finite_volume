@@ -121,3 +121,12 @@ test_bf_newgrdpt_procedure:	check_data_module.o\
 				bf_layer_extract_module.o\
 				bf_layer_newgrdpt_procedure_module.o\
 				bf_newgrdpt_procedure_module.o
+
+test_bf_newgrdpt_verification.o:$(cbf_layer_dir)/bf_newgrdpt_verification_module.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o
+
+
+test_bf_newgrdpt_verification:	parameters_bf_layer.o\
+				bf_newgrdpt_verification_module.o\
+				check_data_module.o
