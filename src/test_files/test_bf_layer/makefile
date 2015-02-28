@@ -130,3 +130,12 @@ test_bf_newgrdpt_verification.o:$(cbf_layer_dir)/bf_newgrdpt_verification_module
 test_bf_newgrdpt_verification:	parameters_bf_layer.o\
 				bf_newgrdpt_verification_module.o\
 				check_data_module.o
+
+test_bf_layer_bc_procedure.o:\
+			$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
+			$(bf_layer_dir)/parameters_bf_layer.o
+
+test_bf_layer_bc_procedure:\
+			parameters_kind.o\
+			parameters_bf_layer.o\
+			bf_layer_bc_procedure_module.o

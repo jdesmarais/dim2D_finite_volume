@@ -1,95 +1,142 @@
       program test_bf_layer_bc_procedure
 
         use parameters_bf_layer, only :
-     $     bc_pt,
-     $     bc_interior_pt,
-     $     interior_pt,
-     $     BF_SUCCESS
+     $       bc_pt,
+     $       bc_interior_pt,
+     $       interior_pt,
+     $       BF_SUCCESS,
+     $       SW_corner_type,
+     $       SE_corner_type,
+     $       NW_corner_type,
+     $       NE_corner_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       N_edge_type,
+     $       SE_edge_type,
+     $       SW_edge_type,
+     $       NE_edge_type,
+     $       NW_edge_type
 
         use bf_layer_bc_procedure_module, only :
-     $     SW_corner_type,
-     $     SE_corner_type,
-     $     NW_corner_type,
-     $     NE_corner_type,
-     $     S_edge_type,
-     $     E_edge_type,
-     $     W_edge_type,
-     $     N_edge_type,
-     $     SE_edge_type,
-     $     SW_edge_type,
-     $     NE_edge_type,
-     $     NW_edge_type,
-     $     get_bc_interior_pt_procedure
+     $       get_bc_interior_pt_procedure
 
         implicit none
 
-        integer                              :: k
-        integer, dimension(:,:), allocatable :: grdpts_id
-        integer                              :: test_i
-        integer                              :: test_j
-        integer                              :: test_procedure_type
-        integer                              :: test_i_proc
-        integer                              :: test_j_proc
-        integer                              :: procedure_type
-        integer                              :: i_proc
-        integer                              :: j_proc
-        logical                              :: ierror
-
-        logical                              :: test_validated
-
+        logical :: detailled
+        logical :: test_loc
+        logical :: test_validated
         
-        !test get_bc_interior_pt_procedure
-        print '(''test get_bc_interior_pt_procedure()'')'
-        do k=1,60
+        detailled = .true.
+        test_validated = .true.
 
-           call make_test_bf_layer_bc_procedure(
-     $          k,
-     $          grdpts_id,
-     $          test_i,
-     $          test_j,
-     $          test_procedure_type,
-     $          test_i_proc,
-     $          test_j_proc)
 
-           call get_bc_interior_pt_procedure(
-     $          test_i,
-     $          test_j,
-     $          grdpts_id,
-     $          procedure_type,
-     $          i_proc,
-     $          j_proc,
-     $          ierror)
+        test_loc = test_get_bc_interior_pt_procedure(detailled)
+        test_validated = test_validated.and.test_loc
 
-           if(ierror.eq.BF_SUCCESS) then
-
-              test_validated = test_procedure_type.eq.procedure_type
-              test_validated = test_validated.and.(test_i_proc.eq.i_proc)
-              test_validated = test_validated.and.(test_j_proc.eq.j_proc)
-              
-              print '(''test '',I2,'': '', L1)', k, test_validated
-
-              if(.not.test_validated) then
-                 print '(''    procedure_type: '', I2, '' -> '', I2)',
-     $                procedure_type, test_procedure_type
-                 print '(''    i_proc        : '', I2, '' -> '', I2)',
-     $                i_proc, test_i_proc
-                 print '(''    j_proc        : '', I2, '' -> '', I2)',
-     $                j_proc, test_j_proc
-                 
-              end if
-              
-              deallocate(grdpts_id) 
-
-           else
-              print '(''test '',I2,'': failed'')',k
-
-           end if
-
-        end do 
+        print '(''test_get_bc_interior_pt_procedure: '',L1)', test_loc
         print '()'
 
-        
+
         contains
+
+
+        function test_get_bc_interior_pt_procedure(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          integer                              :: k
+          integer, dimension(:,:), allocatable :: grdpts_id
+          integer                              :: test_i
+          integer                              :: test_j
+          integer                              :: test_procedure_type
+          integer                              :: test_i_proc
+          integer                              :: test_j_proc
+          integer                              :: procedure_type
+          integer                              :: i_proc
+          integer                              :: j_proc
+          logical                              :: ierror
+
+
+          test_validated = .true.
+
+          
+          do k=1,60
+
+             !input
+             call make_test_bf_layer_bc_procedure(
+     $            k,
+     $            grdpts_id,
+     $            test_i,
+     $            test_j,
+     $            test_procedure_type,
+     $            test_i_proc,
+     $            test_j_proc)
+
+             !output
+             call get_bc_interior_pt_procedure(
+     $            test_i,
+     $            test_j,
+     $            grdpts_id,
+     $            procedure_type,
+     $            i_proc,
+     $            j_proc,
+     $            ierror)
+
+             !validation
+             if(ierror.eq.BF_SUCCESS) then
+
+                test_loc = test_procedure_type.eq.procedure_type
+                test_loc = test_loc.and.(test_i_proc.eq.i_proc)
+                test_loc = test_loc.and.(test_j_proc.eq.j_proc)
+
+             else
+
+                test_loc = .false.
+
+             end if
+
+             test_validated = test_validated.and.test_loc
+
+
+             if(allocated(grdpts_id)) then
+                deallocate(grdpts_id)
+             end if
+
+             !detailled
+             if(detailled) then
+
+                if(ierror.eq.BF_SUCCESS) then
+
+                   if(.not.test_loc) then
+
+                      print '(''test '',I2,'': failed'')', k
+
+                      print '(''  -  procedure_type: '', I2, '' -> '', I2)',
+     $                     procedure_type, test_procedure_type
+                      print '(''  -  i_proc        : '', I2, '' -> '', I2)',
+     $                     i_proc, test_i_proc
+                      print '(''  -  j_proc        : '', I2, '' -> '', I2)',
+     $                     j_proc, test_j_proc
+                   
+                   end if
+
+                else
+                   print '(''test '',I2,'': failed'')',k
+                end if
+
+             end if
+
+          end do          
+ 
+          print '()'
+
+        end function test_get_bc_interior_pt_procedure        
+
 
         subroutine make_test_bf_layer_bc_procedure(
      $       test_id,
@@ -175,7 +222,7 @@
             case(4)
                grdpts_id = reshape( (/
      $              interior_pt,bc_interior_pt,bc_pt,
-     $              bc_pt,bc_interior_pt,bc_interior_pt,
+     $              interior_pt,bc_interior_pt,bc_interior_pt,
      $              interior_pt,interior_pt,interior_pt
      $              /),
      $              (/3,3/))

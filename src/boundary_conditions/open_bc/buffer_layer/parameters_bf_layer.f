@@ -137,4 +137,18 @@
         !------------------------------------------------------------
         integer, parameter :: search_dcr = 4
 
+
+        !extra checks when determining the bc_procedures
+        !------------------------------------------------------------
+        !bc_procedure_extra_checks : when determining the boundary
+        !                            procedures for the buffer layer,
+        !                            assumptions can be made for
+        !                            optimizations. However, for extra
+        !                            security, i.e. to detect wrong updates
+        !                            of the grdpts_id b/f they interfere
+        !                            with the computations, extra checks
+        !                            can be performed
+        !------------------------------------------------------------
+        integer, parameter :: bc_procedure_extra_checks = .true.
+
       end module parameters_bf_layer
