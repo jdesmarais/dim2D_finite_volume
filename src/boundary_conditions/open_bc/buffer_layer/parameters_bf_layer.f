@@ -95,6 +95,8 @@
         integer, parameter :: NW_overlap = 6
         integer, parameter :: SE_overlap = 7
         integer, parameter :: SW_overlap = 8
+        integer, parameter :: NS_overlap = 9
+        integer, parameter :: EW_overlap = 10
 
 
         !convention for new grid-point procedures

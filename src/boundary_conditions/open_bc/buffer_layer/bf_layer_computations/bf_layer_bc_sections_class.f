@@ -21,7 +21,7 @@
       module bf_layer_bc_sections_class
 
         use bf_layer_bc_procedure_module, only : 
-     $     get_bc_interior_pt_procedure
+     $       get_bc_interior_pt_procedure
 
         use bf_layer_errors_module, only :
      $       error_overlap_index,
@@ -179,11 +179,14 @@
           procedure,   pass :: add_to_bc_sections
           procedure,   pass :: remove_from_bc_sections_temp
           procedure,   pass :: remove_from_bc_sections_buffer
+
           procedure, nopass :: get_bc_section
           procedure, nopass :: analyse_grdpt_with_bc_section
           procedure,   pass :: analyse_grdpt
+
           procedure,   pass :: sort_bc_sections
           procedure, nopass :: check_anti_corners_overlap
+          
           procedure,   pass :: finalize_bc_sections
 
           !only for tests
@@ -2063,216 +2066,7 @@
         end subroutine overlap
 
 
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> modify the properties of the anti_corner boundary layer
-        !> to remove the computation of North the grid-points in
-        !> common with the corner boundary layer
-        !
-        !> @date
-        !> 26_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param anti-corner
-        !> boundary layer represented as [anti_corner_type,i_min,j_min,extent]
-        !--------------------------------------------------------------
-        subroutine overlap_N(anti_corner)
-
-          implicit none
-
-          integer, dimension(4), intent(inout) :: anti_corner
-
-          
-          select case(anti_corner(4))
-
-            case(no_overlap)
-               anti_corner(4) = N_overlap
-
-            case(N_overlap,NE_overlap,NW_overlap)
-               anti_corner(4) = anti_corner(4)
-
-            case(S_overlap)
-               call error_overlap_incompatible(
-     $              'bf_layer_bc_sections_class',
-     $              'overlap_N',
-     $              anti_corner(4),
-     $              N_overlap)
-
-            case(E_overlap)
-               anti_corner(4) = NE_overlap
-
-            case(W_overlap)
-               anti_corner(4) = NW_overlap
-
-            case default
-               call error_overlap_index(
-     $              'bf_layer_bc_sections_class',
-     $              'overlap_N',
-     $              anti_corner(4))
-
-          end select
-
-        end subroutine overlap_N
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> modify the properties of the anti_corner boundary layer
-        !> to remove the computation of South the grid-points in
-        !> common with the corner boundary layer
-        !
-        !> @date
-        !> 26_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param anti-corner
-        !> boundary layer represented as [anti_corner_type,i_min,j_min,extent]
-        !--------------------------------------------------------------
-        subroutine overlap_S(anti_corner)
-
-          implicit none
-
-          integer, dimension(4), intent(inout) :: anti_corner
-
-          
-          select case(anti_corner(4))
-
-            case(no_overlap)
-               anti_corner(4) = S_overlap
-
-            case(S_overlap,SE_overlap,SW_overlap)
-               anti_corner(4) = anti_corner(4)
-
-            case(N_overlap)
-               call error_overlap_incompatible(
-     $              'bf_layer_bc_sections_class',
-     $              'overlap_S',
-     $              anti_corner(4),
-     $              S_overlap)
-
-            case(E_overlap)
-               anti_corner(4) = SE_overlap
-
-            case(W_overlap)
-               anti_corner(4) = SW_overlap
-
-            case default
-               call error_overlap_index(
-     $              'bf_layer_bc_sections_class',
-     $              'overlap_S',
-     $              anti_corner(4))
-
-          end select
-
-        end subroutine overlap_S
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> modify the properties of the anti_corner boundary layer
-        !> to remove the computation of East the grid-points in
-        !> common with the corner boundary layer
-        !
-        !> @date
-        !> 26_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param anti-corner
-        !> boundary layer represented as [anti_corner_type,i_min,j_min,extent]
-        !--------------------------------------------------------------
-        subroutine overlap_E(anti_corner)
-
-          implicit none
-
-          integer, dimension(4), intent(inout) :: anti_corner
-
-          
-          select case(anti_corner(4))
-
-            case(no_overlap)
-               anti_corner(4) = E_overlap
-
-            case(E_overlap,SE_overlap,NE_overlap)
-               anti_corner(4) = anti_corner(4)
-               
-            case(W_overlap)
-               call error_overlap_incompatible(
-     $              'bf_layer_bc_sections_class',
-     $              'overlap_E',
-     $              anti_corner(4),
-     $              E_overlap)
-
-            case(N_overlap)
-               anti_corner(4) = NE_overlap
-
-            case(S_overlap)
-               anti_corner(4) = SE_overlap
-
-            case default
-               call error_overlap_index(
-     $              'bf_layer_bc_sections_class',
-     $              'overlap_E',
-     $              anti_corner(4))
-
-          end select
-
-        end subroutine overlap_E
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> modify the properties of the anti_corner boundary layer
-        !> to remove the computation of West the grid-points in
-        !> common with the corner boundary layer
-        !
-        !> @date
-        !> 26_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param anti-corner
-        !> boundary layer represented as [anti_corner_type,i_min,j_min,extent]
-        !--------------------------------------------------------------
-        subroutine overlap_W(anti_corner)
-
-          implicit none
-
-          integer, dimension(4), intent(inout) :: anti_corner
-
-          
-          select case(anti_corner(4))
-
-            case(no_overlap)
-               anti_corner(4) = W_overlap
-
-            case(W_overlap,SW_overlap,NW_overlap)
-               anti_corner(4) = anti_corner(4)
-               
-            case(E_overlap)
-               call error_overlap_incompatible(
-     $              'bf_layer_bc_sections_class',
-     $              'overlap_W',
-     $              anti_corner(4),
-     $              W_overlap)
-
-            case(N_overlap)
-               anti_corner(4) = NW_overlap
-
-            case(S_overlap)
-               anti_corner(4) = SW_overlap
-
-            case default
-               call error_overlap_index(
-     $              'bf_layer_bc_sections_class',
-     $              'overlap_W',
-     $              anti_corner(4))
-
-          end select
-
-        end subroutine overlap_W
+        
 
 
         !> @author
