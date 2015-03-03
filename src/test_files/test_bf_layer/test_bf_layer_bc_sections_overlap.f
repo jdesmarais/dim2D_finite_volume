@@ -70,7 +70,12 @@
      $       cpt2not_and_cpt3overlap,
      $       cpt2overlap_and_cpt3normal,
      $       cpt2overlap_and_cpt3not,
-     $       cpt2overlap_and_cpt3overlap
+     $       cpt2overlap_and_cpt3overlap,
+     $       
+     $       cptnormal_type,
+     $       cptnot_type,
+     $       cptoverlap_type
+
 
         use parameters_kind, only :
      $       ikind
@@ -88,7 +93,7 @@
         
         test_loc = test_determine_corner_or_anti_corner_grdpts_computed(detailled)
         test_validated = test_validated.and.test_loc
-        print '(''test_bf_bc_sections_overlap: '',L1)', test_loc
+        print '(''test_determine_corner_or_anti_corner_grdpts_computed: '',L1)', test_loc
         print '()'
 
 
@@ -212,21 +217,23 @@
           logical, intent(in) :: detailled
           logical             :: test_validated
 
-
-          integer                  :: k
+          integer, dimension(18)   :: cpt_overlap_type
           integer, dimension(11)   :: overlap_test
-          integer, dimension(4,11) :: compute_pt_test
-          logical                  :: compute_point1
-          logical                  :: compute_point2
-          logical                  :: compute_point3
-          logical                  :: compute_point4
+          integer, dimension(4,18) :: compute_pt_test
+          integer                  :: k
+          integer, dimension(4)    :: compute_pt
           logical                  :: test_loc
 
           
           test_validated = .true.
 
 
+          !test of the general overlap
+          !==================================================
+
           !input
+          cpt_overlap_type(1) = no_overlap
+
           overlap_test = [
      $         no_overlap,
      $         N_overlap,
@@ -240,17 +247,17 @@
      $         NS_overlap,
      $         EW_overlap]
 
-          compute_pt_test(:,1) = [.true.,.true.,.true.,.true.]     !no_overlap
-          compute_pt_test(:,2) = [.true.,.true.,.false.,.false.]   !N
-          compute_pt_test(:,3) = [.false.,.false.,.true.,.true.]   !S
-          compute_pt_test(:,4) = [.true.,.false.,.true.,.false.]   !E
-          compute_pt_test(:,5) = [.false.,.true.,.false.,.true.]   !W
-          compute_pt_test(:,6) = [.true.,.false.,.false.,.false.]  !NE
-          compute_pt_test(:,7) = [.false.,.true.,.false.,.false.]  !NW
-          compute_pt_test(:,8) = [.false.,.false.,.true.,.false.]  !SE
-          compute_pt_test(:,9) = [.false.,.false.,.false.,.true.]  !SW
-          compute_pt_test(:,10)= [.false.,.false.,.false.,.false.] !NS
-          compute_pt_test(:,11)= [.false.,.false.,.false.,.false.] !EW
+          compute_pt_test(:,1) = [cptnormal_type,cptnormal_type,cptnormal_type,cptnormal_type]!no_overlap
+          compute_pt_test(:,2) = [cptnormal_type,cptnormal_type,cptnot_type,cptnot_type]      !N
+          compute_pt_test(:,3) = [cptnot_type,cptnot_type,cptnormal_type,cptnormal_type]      !S
+          compute_pt_test(:,4) = [cptnormal_type,cptnot_type,cptnormal_type,cptnot_type]      !E
+          compute_pt_test(:,5) = [cptnot_type,cptnormal_type,cptnot_type,cptnormal_type]      !W
+          compute_pt_test(:,6) = [cptnormal_type,cptnot_type,cptnot_type,cptnot_type]         !NE
+          compute_pt_test(:,7) = [cptnot_type,cptnormal_type,cptnot_type,cptnot_type]         !NW
+          compute_pt_test(:,8) = [cptnot_type,cptnot_type,cptnormal_type,cptnot_type]         !SE
+          compute_pt_test(:,9) = [cptnot_type,cptnot_type,cptnot_type,cptnormal_type]         !SW
+          compute_pt_test(:,10)= [cptnot_type,cptnot_type,cptnot_type,cptnot_type]            !NS
+          compute_pt_test(:,11)= [cptnot_type,cptnot_type,cptnot_type,cptnot_type]            !EW
 
 
           do k=1, size(overlap_test,1)
@@ -258,32 +265,92 @@
 
              !output
              call determine_corner_or_anti_corner_grdpts_computed(
+     $            cpt_overlap_type(1),
      $            overlap_test(k),
-     $            compute_point1,
-     $            compute_point2,
-     $            compute_point3,
-     $            compute_point4)
-
+     $            compute_pt)
              
              !validation
-             test_loc =
-     $            (compute_point1.eqv.compute_pt_test(1,k)).and.
-     $            (compute_point2.eqv.compute_pt_test(2,k)).and.
-     $            (compute_point3.eqv.compute_pt_test(3,k)).and.
-     $            (compute_point4.eqv.compute_pt_test(4,k))
+             test_loc = is_int_vector_validated(
+     $            compute_pt,
+     $            compute_pt_test(:,k),
+     $            detailled)
              test_validated = test_validated.and.test_loc
              
 
              !detailled
              if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'',1) failed'')', k
+             end if
 
-                print '(''test '',I2,'' failed'')', k
-                print '(''    compute_point1: '',L1,'' -> '',L1)', compute_point1, compute_pt_test(1,k)
-                print '(''    compute_point2: '',L1,'' -> '',L1)', compute_point2, compute_pt_test(2,k)
-                print '(''    compute_point3: '',L1,'' -> '',L1)', compute_point3, compute_pt_test(3,k)
-                print '(''    compute_point4: '',L1,'' -> '',L1)', compute_point4, compute_pt_test(4,k)
-                print '()'
+          end do
 
+
+          !test of the compute overlap
+          !==================================================
+          !input
+          cpt_overlap_type = [
+     $         cpt1normal_and_cpt4normal,   
+     $         cpt1normal_and_cpt4not,  
+     $         cpt1normal_and_cpt4overlap,
+     $         cpt1not_and_cpt4normal,
+     $         cpt1not_and_cpt4not,
+     $         cpt1not_and_cpt4overlap,
+     $         cpt1overlap_and_cpt4normal,
+     $         cpt1overlap_and_cpt4not,
+     $         cpt1overlap_and_cpt4overlap,
+     $         cpt2normal_and_cpt3normal,
+     $         cpt2normal_and_cpt3not,  
+     $         cpt2normal_and_cpt3overlap,
+     $         cpt2not_and_cpt3normal, 
+     $         cpt2not_and_cpt3not,     
+     $         cpt2not_and_cpt3overlap,
+     $         cpt2overlap_and_cpt3normal,
+     $         cpt2overlap_and_cpt3not,
+     $         cpt2overlap_and_cpt3overlap]
+
+          overlap_test(1) = no_overlap
+
+          compute_pt_test(:,1)  = [cptnormal_type , cptnormal_type, cptnormal_type, cptnormal_type ]
+          compute_pt_test(:,2)  = [cptnormal_type , cptnormal_type, cptnormal_type, cptnot_type    ]      
+          compute_pt_test(:,3)  = [cptnormal_type , cptnormal_type, cptnormal_type, cptoverlap_type]
+          compute_pt_test(:,4)  = [cptnot_type    , cptnormal_type, cptnormal_type, cptnormal_type ]
+          compute_pt_test(:,5)  = [cptnot_type    , cptnormal_type, cptnormal_type, cptnot_type    ]
+          compute_pt_test(:,6)  = [cptnot_type    , cptnormal_type, cptnormal_type, cptoverlap_type]
+          compute_pt_test(:,7)  = [cptoverlap_type, cptnormal_type, cptnormal_type, cptnormal_type ]
+          compute_pt_test(:,8)  = [cptoverlap_type, cptnormal_type, cptnormal_type, cptnot_type    ]
+          compute_pt_test(:,9)  = [cptoverlap_type, cptnormal_type, cptnormal_type, cptoverlap_type]
+
+          compute_pt_test(:,10) = [cptnormal_type, cptnormal_type , cptnormal_type , cptnormal_type]
+          compute_pt_test(:,11) = [cptnormal_type, cptnormal_type , cptnot_type    , cptnormal_type]      
+          compute_pt_test(:,12) = [cptnormal_type, cptnormal_type , cptoverlap_type, cptnormal_type]
+          compute_pt_test(:,13) = [cptnormal_type, cptnot_type    , cptnormal_type , cptnormal_type]
+          compute_pt_test(:,14) = [cptnormal_type, cptnot_type    , cptnot_type    , cptnormal_type]
+          compute_pt_test(:,15) = [cptnormal_type, cptnot_type    , cptoverlap_type, cptnormal_type]
+          compute_pt_test(:,16) = [cptnormal_type, cptoverlap_type, cptnormal_type , cptnormal_type]
+          compute_pt_test(:,17) = [cptnormal_type, cptoverlap_type, cptnot_type    , cptnormal_type]
+          compute_pt_test(:,18) = [cptnormal_type, cptoverlap_type, cptoverlap_type, cptnormal_type]
+
+          do k=1, size(cpt_overlap_type,1)
+
+
+             !output
+             call determine_corner_or_anti_corner_grdpts_computed(
+     $            cpt_overlap_type(k),
+     $            overlap_test(1),
+     $            compute_pt)
+
+             
+             !validation
+             test_loc = is_int_vector_validated(
+     $            compute_pt,
+     $            compute_pt_test(:,k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+             
+
+             !detailled
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'',2) failed'')', k
              end if
 
           end do

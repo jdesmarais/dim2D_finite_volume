@@ -34,14 +34,93 @@
      $       gradient_xI_yLR0_type,
      $       gradient_xLR0_yLR0_type
 
+        use parameters_kind, only :
+     $       ikind
 
         implicit none
 
         private
         public ::
+     $       verify_data_for_newgrdpt,
      $       get_newgrdpt_verification_bounds
 
         contains
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the procedures needed to compute the new grid points
+        !> in association with the configuration of the grid points
+        !> around it, given by grdpts_id
+        !
+        !> @date
+        !> 27_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param procedure_type
+        !> type of procedure used to compute the new grid point
+        !
+        !>@param gradient_type
+        !> type of gradient used to compute the transverse terms
+        !> when computing the new grid points
+        !
+        !>@param nb_bounds
+        !> number of loops needed to check the grid points around
+        !> the new grid point
+        !
+        !>@param bounds
+        !> loop bounds for checking the grid points around the new
+        !> grid point
+        !--------------------------------------------------------------
+        function verify_data_for_newgrdpt(
+     $       i,j,grdpts_id,
+     $       procedure_type,
+     $       gradient_type)
+     $       result(ierror)
+
+          implicit none
+
+          integer                , intent(in) :: i
+          integer                , intent(in) :: j
+          integer, dimension(:,:), intent(in) :: grdpts_id
+          integer                , intent(in) :: procedure_type
+          integer                , intent(in) :: gradient_type
+
+          integer                   :: nb_bounds
+          integer, dimension(2,2,2) :: bounds
+
+          integer        :: k
+          integer(ikind) :: i,j
+
+          print '(''TO BE VALIDATED'')'
+          stop 'bf_newgrdpt_verification_module: verify_data_for_newgrdpt'
+
+          !determine the grid points thta should be checked
+          call get_newgrdpt_verification_bounds(
+     $         procedure_type,
+     $         gradient_type,
+     $         nb_bounds,
+     $         bounds)
+
+          !verify that the grid points exists
+          all_grdpts_exists = .true.
+          do k=1,nb_bounds
+             do j=j+bounds(2,1,k),j+bounds(2,2,k)
+                do i=i+bounds(1,1,k),i+bounds(1,2,k)
+                   if(
+     $                  (grdpts_id(i,j).ne.interior_pt).or.
+     $                  (grdpts_id(i,j).ne.bc_interior_pt).or.
+     $                  (grdpts_id(i,j).ne.bc_pt))) then
+
+                      all_grdpts_exists = .false.
+
+                   end if
+                end do
+             end do
+          end do
+
+        end function verify_data_for_newgrdpt
+
 
         !> @author
         !> Julien L. Desmarais

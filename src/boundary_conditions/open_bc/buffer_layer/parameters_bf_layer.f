@@ -101,6 +101,10 @@
         !convention for the overlap of grid-points between corners
         !or between anti-corners
         !-------------------------------------------------------------
+        integer, parameter :: cptnot_type     = 0
+        integer, parameter :: cptnormal_type  = 1
+        integer, parameter :: cptoverlap_type = 2
+
         integer, parameter :: cpt1normal_and_cpt4normal   = 0
         integer, parameter :: cpt1normal_and_cpt4not      = 1
         integer, parameter :: cpt1normal_and_cpt4overlap  = 2
@@ -111,15 +115,15 @@
         integer, parameter :: cpt1overlap_and_cpt4not     = 7
         integer, parameter :: cpt1overlap_and_cpt4overlap = 8
 
-        integer, parameter :: cpt2normal_and_cpt3normal   = 0
-        integer, parameter :: cpt2normal_and_cpt3not      = 1
-        integer, parameter :: cpt2normal_and_cpt3overlap  = 2
-        integer, parameter :: cpt2not_and_cpt3normal      = 3
-        integer, parameter :: cpt2not_and_cpt3not         = 4
-        integer, parameter :: cpt2not_and_cpt3overlap     = 5
-        integer, parameter :: cpt2overlap_and_cpt3normal  = 6
-        integer, parameter :: cpt2overlap_and_cpt3not     = 7
-        integer, parameter :: cpt2overlap_and_cpt3overlap = 8
+        integer, parameter :: cpt2normal_and_cpt3normal   =  0
+        integer, parameter :: cpt2normal_and_cpt3not      = 11
+        integer, parameter :: cpt2normal_and_cpt3overlap  = 12
+        integer, parameter :: cpt2not_and_cpt3normal      = 13
+        integer, parameter :: cpt2not_and_cpt3not         = 14
+        integer, parameter :: cpt2not_and_cpt3overlap     = 15
+        integer, parameter :: cpt2overlap_and_cpt3normal  = 16
+        integer, parameter :: cpt2overlap_and_cpt3not     = 17
+        integer, parameter :: cpt2overlap_and_cpt3overlap = 18
 
 
         !convention for new grid-point procedures

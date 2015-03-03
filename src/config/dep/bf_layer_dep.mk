@@ -207,11 +207,9 @@ $(ngbf_layer_dir)/bf_newgrdpt_procedure_module.o:\
 #functions for the time integration of the buffer layer
 $(cbf_layer_dir)/bf_compute_class.o:\
 	$(bc_cdir)/bc_operators_class.o\
-	$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\
 	$(sbf_layer_dir)/bf_layer_extract_module.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(cbf_layer_dir)/bf_newgrdpt_class.o\
 	$(ti_dir)/interface_integration_step.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o\

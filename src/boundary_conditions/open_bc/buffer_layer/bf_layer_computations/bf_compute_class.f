@@ -20,14 +20,8 @@
         use bc_operators_class, only :
      $       bc_operators
 
-        use bf_layer_newgrdpt_procedure_module, only :
-     $       get_newgrdpt_procedure
-
         use bf_layer_extract_module, only :
      $       get_indices_to_extract_bf_layer_data
-
-        use bf_newgrdpt_class, only : 
-     $       bf_newgrdpt
 
         use interface_integration_step, only :
      $       timeInt_step_nopt
@@ -71,8 +65,20 @@
         !> class encapsulating the main temporary tables for the time 
         !> integration of the buffer layer
         !
-        !>@param bc_sections
-        !> identification of the boundary layers
+        !>@param alignment_tmp
+        !> temporary alignment saving the alignment of the buffer layer at
+        !> the previous time step
+        !
+        !>@param grdpts_id_tmp
+        !> temporary array saving the grdpts_id at the previous time step
+        !
+        !>@param x_map
+        !> temporary array saving the x-coordinates of the buffer layer at
+        !> the previous time step
+        !
+        !>@param y_map
+        !> temporary array saving the y-coordinates of the buffer layer at
+        !> the previous time step
         !
         !>@param grdpts_id_tmp
         !> temporary array saving the grdpts_id at the previous time step
@@ -85,6 +91,9 @@
         !> temporary array containing the time derivatives and whose size
         !> is the same as the array containing the grid points integrated
         !> in time
+        !
+        !>@param does_previous_timestep_exist
+        !> determine whether the previous time step was stored in this object
         !
         !>@param allocate_tables
         !> allocate the grdpts_id_tmp, nodes_tmp and time_dev attributes
@@ -101,14 +110,12 @@
         !---------------------------------------------------------------
         type :: bf_compute
 
-          integer       , dimension(:,:)  , allocatable, private :: bc_sections
-
-          integer(ikind), dimension(:,:)  , allocatable, private :: alignment_tmp
-          integer       , dimension(:,:)  , allocatable, private :: grdpts_id_tmp
-          real(rkind)   , dimension(:)    , allocatable, private :: x_map_tmp
-          real(rkind)   , dimension(:)    , allocatable, private :: y_map_tmp
-          real(rkind)   , dimension(:,:,:), allocatable, private :: nodes_tmp
-          real(rkind)   , dimension(:,:,:), allocatable, private :: time_dev
+          integer(ikind), dimension(:,:)  , allocatable :: alignment_tmp
+          integer       , dimension(:,:)  , allocatable :: grdpts_id_tmp
+          real(rkind)   , dimension(:)    , allocatable :: x_map_tmp
+          real(rkind)   , dimension(:)    , allocatable :: y_map_tmp
+          real(rkind)   , dimension(:,:,:), allocatable :: nodes_tmp
+          real(rkind)   , dimension(:,:,:), allocatable :: time_dev
 
           contains
 
@@ -120,9 +127,6 @@
           procedure,   pass :: compute_time_dev
           procedure,   pass :: compute_integration_step
 
-          procedure,   pass :: get_data_for_newgrdpt
-          procedure,   pass :: compute_newgrdpt
-
           procedure,   pass :: get_grdpts_id_part
 
           procedure,   pass :: set_alignment   !only for tests
@@ -130,7 +134,6 @@
           procedure,   pass :: set_x_map       !only for tests
           procedure,   pass :: set_y_map       !only for tests
           procedure,   pass :: set_nodes       !only for tests
-          procedure,   pass :: set_bc_sections !only for tests
           procedure,   pass :: get_time_dev    !only for tests
 
         end type bf_compute
@@ -253,10 +256,6 @@
 
           class(bf_compute), intent(inout) :: this
 
-          if(allocated(this%bc_sections)) then
-             deallocate(this%bc_sections)
-          end if
-
           if(allocated(this%alignment_tmp)) then
              deallocate(this%alignment_tmp)
              deallocate(this%x_map_tmp)
@@ -333,8 +332,8 @@
      $     bf_alignment,
      $     grdpts_id,
      $     interior_nodes,
-     $     x_borders, y_borders,
-     $     N_bc_sections, S_bc_sections)
+     $     bc_sections,
+     $     x_borders, y_borders)
 
           implicit none
 
@@ -350,10 +349,9 @@
           integer(ikind), dimension(2,2)             , intent(in)    :: bf_alignment
           integer       , dimension(:,:)             , intent(in)    :: grdpts_id
           real(rkind)   , dimension(nx,ny,ne)        , intent(in)    :: interior_nodes
+          integer(ikind), dimension(:,:)             , intent(in)    :: bc_sections
           integer(ikind), dimension(2)               , intent(in)    :: x_borders
           integer(ikind), dimension(2)               , intent(in)    :: y_borders
-          integer(ikind), dimension(:,:), allocatable, intent(in)    :: N_bc_sections
-          integer(ikind), dimension(:,:), allocatable, intent(in)    :: S_bc_sections
           
           call td_operators_used%compute_time_dev_nopt(
      $         t,nodes,x_map,y_map,
@@ -362,10 +360,9 @@
      $         bf_alignment,
      $         grdpts_id,
      $         interior_nodes,
-     $         this%bc_sections,
-     $         x_borders, y_borders,
-     $         N_bc_sections=N_bc_sections,
-     $         S_bc_sections=S_bc_sections)
+     $         bc_sections,
+     $         x_borders,
+     $         y_borders)
 
         end subroutine compute_time_dev
 
@@ -445,7 +442,7 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compute the integration step
+        !> extract partially the grdpts_id
         !
         !> @date
         !> 27_10_2014 - initial version - J.L. Desmarais
@@ -454,201 +451,13 @@
         !> bf_compute object encapsulating the main
         !> tables extending the interior domain
         !
-        !>@param grdpts_id
-        !> identification of the role of the grid points
+        !>@param tmp_grdpts_id
+        !> array of grdpts_id extracted
         !
-        !>@param nodes
-        !> grid points of the buffer layer whose time derivatives
-        !> are computed
-        !
-        !>@param dt
-        !> time
-        !
-        !>@param x_borders
-        !> border indices along the x-direction for the time 
-        !> integration
-        !
-        !>@param y_borders
-        !> border indices along the y-direction for the time 
-        !> integration
-        !
-        !>@param integration_step_nopt
-        !> function determining the procedure for the time integration
+        !>@param gen_coords
+        !> SW and NE corners of the grdpts_id extracted expressed
+        !> using general coordinates
         !--------------------------------------------------------------
-        subroutine get_data_for_newgrdpt(
-     $     this, tmp_grdpts_id0, tmp_nodes0, gen_coords)
-
-          implicit none
-
-          class(bf_compute)                                             , intent(in)    :: this
-          integer        , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1)   , intent(inout) :: tmp_grdpts_id0
-          real(rkind)    , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1,ne), intent(inout) :: tmp_nodes0
-          integer(ikind) , dimension(2,2)                               , intent(in)    :: gen_coords
-
-          integer(ikind) :: size_x,size_y
-          integer(ikind) :: i_recv,i_send,j_recv,j_send
-          integer(ikind) :: i,j
-          integer        :: k
-
-          
-          if(allocated(this%alignment_tmp)) then
-
-             !get th esynchronization indices
-             call get_indices_to_extract_bf_layer_data(
-     $            this%alignment_tmp,
-     $            gen_coords,
-     $            size_x,
-     $            size_y,
-     $            i_recv,
-     $            j_recv,
-     $            i_send,
-     $            j_send)
-
-             
-             !synchronize the grdpts_id
-             do j=1, size_y
-                do i=1, size_x
-             
-                   tmp_grdpts_id0(i_recv+i-1,j_recv+j-1) =
-     $                  this%grdpts_id_tmp(i_send+i-1,j_send+j-1)
-                   
-                end do
-             end do
-             
-             
-             !synchronize the nodes
-             do k=1,ne
-                do j=1, size_y
-                   do i=1, size_x
-             
-                      tmp_nodes0(i_recv+i-1,j_recv+j-1,k) =
-     $                     this%nodes_tmp(i_send+i-1,j_send+j-1,k)
-             
-                   end do
-                end do
-             end do
-
-          end if
-
-        end subroutine get_data_for_newgrdpt
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the new grid points
-        !
-        !> @date
-        !> 18_11_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_compute object encapsulating the main
-        !> tables extending the interior domain
-        !
-        !>@param grdpts_id
-        !> identification of the role of the grid points
-        !
-        !>@param nodes
-        !> grid points of the buffer layer whose time derivatives
-        !> are computed
-        !
-        !>@param dt
-        !> time
-        !
-        !>@param x_borders
-        !> border indices along the x-direction for the time 
-        !> integration
-        !
-        !>@param y_borders
-        !> border indices along the y-direction for the time 
-        !> integration
-        !
-        !>@param integration_step_nopt
-        !> function determining the procedure for the time integration
-        !--------------------------------------------------------------
-        function compute_newgrdpt(
-     $     this,
-     $     p_model, t, dt,
-     $     bf_align1, bf_x_map1, bf_y_map1, bf_nodes1,
-     $     i1,j1)
-     $     result(new_grdpt)
-
-          implicit none
-
-          class(bf_compute)                  , intent(in) :: this
-          type(pmodel_eq)                    , intent(in) :: p_model
-          real(rkind)                        , intent(in) :: t
-          real(rkind)                        , intent(in) :: dt
-          integer(ikind), dimension(2,2)     , intent(in) :: bf_align1
-          real(rkind)   , dimension(:)       , intent(in) :: bf_x_map1
-          real(rkind)   , dimension(:)       , intent(in) :: bf_y_map1
-          real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes1
-          integer(ikind)                     , intent(in) :: i1
-          integer(ikind)                     , intent(in) :: j1
-          real(rkind)   , dimension(ne)                   :: new_grdpt
-
-          integer(ikind)        :: i0,j0
-          integer               :: ierror
-          type(bf_newgrdpt)     :: bf_newgrdpt_used
-          integer               :: nb_procedures
-          integer, dimension(4) :: procedure_type
-          integer, dimension(4) :: gradient_type
-
-          
-          ! get the indices of the new gridpoint for the
-          ! grdpts_id_tmp
-          i0 = bf_align1(1,1) - this%alignment_tmp(1,1) + i1
-          j0 = bf_align1(2,1) - this%alignment_tmp(2,1) + j1
-
-
-          ! compute the procedure_type and the gradient_type
-          ! identifying the procedure that needs to be applied
-          ! to compute the new grid point
-          ierror = get_newgrdpt_procedure(
-     $         i0,j0,
-     $         this%grdpts_id_tmp,
-     $         nb_procedures,
-     $         procedure_type,
-     $         gradient_type)
-
-          if(ierror.ne.BF_SUCCESS) then
-             print '(''bf_compute_class'')'
-             print '(''compute_newgrdpt'')'
-             print '(''in get_newgrdpt_procedure()'')'
-             print '(''configuration around newgrdpt not recognized'')'
-             stop ''
-          end if
-
-
-          ! verify that there are enough grid points around the
-          ! new grid point for its computation
-          stop 'add the verification of grid points'
-
-
-          ! compute the new grid point
-          new_grdpt = bf_newgrdpt_used%compute_newgrdpt(
-     $         p_model, t, dt,
-     $         
-     $         this%alignment_tmp,
-     $         this%x_map_tmp,
-     $         this%y_map_tmp,
-     $         this%nodes_tmp,
-     $         
-     $         bf_align1,
-     $         bf_x_map1,
-     $         bf_y_map1,
-     $         bf_nodes1,
-     $         
-     $         i1,j1,
-     $         
-     $         nb_procedures,
-     $         procedure_type,
-     $         gradient_type)
-
-        end function compute_newgrdpt
-
-
         subroutine get_grdpts_id_part(
      $     this,
      $     tmp_grdptsid,
@@ -830,35 +639,6 @@
         end subroutine set_nodes
 
       
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> set the bc_sections attribute
-        !
-        !> @date
-        !> 27_10_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_compute object encapsulating the main
-        !> tables extending the interior domain
-        !
-        !>@param bc_sections
-        !> array identifying the boundary layers of the buffer layer
-        !> integrated in time
-        !--------------------------------------------------------------
-        subroutine set_bc_sections(this, bc_sections)
-
-          implicit none
-
-          class(bf_compute)                   , intent(inout) :: this
-          integer, dimension(:,:), allocatable, intent(inout) :: bc_sections
-
-          call MOVE_ALLOC(bc_sections,this%bc_sections)
-
-        end subroutine set_bc_sections
-
-
         !> @author
         !> Julien L. Desmarais
         !

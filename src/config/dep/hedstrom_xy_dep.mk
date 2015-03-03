@@ -27,7 +27,6 @@ $(hobc_dir)/hedstrom_xy_anti_corner_flux_module.o:\
 
 $(hobc_dir)/hedstrom_xy_anti_corner_diag_flux_module.o:\
 			$(bc_dir)/bc_operators_nopt_module.o\
-			$(cbf_layer_dir)/bf_layer_bc_sections_class.o\
 			$(sbf_layer_dir)/bf_layer_extract_module.o\
 			$(hcobc_dir)/hedstrom_xy_corners_module.o\
 			$(sd_dir)/interface_primary.o\

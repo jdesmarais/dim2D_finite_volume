@@ -23,8 +23,8 @@
      $       are_grdpts_needed_for_flux_y,
      $       combine_grdpts_to_compute_fluxes
 
-        use bf_layer_bc_sections_class, only :
-     $       determine_edge_points_computed
+        use bf_layer_bc_sections_overlap_module, only :
+     $       determine_corner_or_anti_corner_grdpts_computed
 
         use bf_layer_extract_module, only :
      $       get_bf_layer_match_table

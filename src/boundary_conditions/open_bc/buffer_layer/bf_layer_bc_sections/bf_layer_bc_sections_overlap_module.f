@@ -62,7 +62,11 @@
      $       cpt2not_and_cpt3overlap,
      $       cpt2overlap_and_cpt3normal,
      $       cpt2overlap_and_cpt3not,
-     $       cpt2overlap_and_cpt3overlap
+     $       cpt2overlap_and_cpt3overlap,
+     $       
+     $       cptnormal_type,
+     $       cptnot_type,
+     $       cptoverlap_type
 
 
         use parameters_kind, only :
@@ -1040,22 +1044,23 @@
         !> the bc_section should be computed
         !--------------------------------------------------------------
         subroutine determine_corner_or_anti_corner_grdpts_computed(
+     $     cpt_overlap_type,
      $     overlap_type,
-     $     compute_point1,
-     $     compute_point2,
-     $     compute_point3,
-     $     compute_point4)
+     $     compute_point)
 
           implicit none
 
-          integer, intent(in)  :: overlap_type
-          logical, intent(out) :: compute_point1
-          logical, intent(out) :: compute_point2
-          logical, intent(out) :: compute_point3
-          logical, intent(out) :: compute_point4
+          integer              , intent(in)  :: cpt_overlap_type
+          integer              , intent(in)  :: overlap_type
+          integer, dimension(4), intent(out) :: compute_point
 
 
-          compute_point1 = .not.(
+          logical :: compute_pt
+          
+
+          !1st point
+          !--------------------------------------------------
+          compute_pt = .not.(
      $         (overlap_type.eq.S_overlap).or.
      $         (overlap_type.eq.W_overlap).or.
      $         (overlap_type.eq.SE_overlap).or.
@@ -1064,7 +1069,60 @@
      $         (overlap_type.eq.NS_overlap).or.
      $         (overlap_type.eq.EW_overlap))
 
-          compute_point2 = .not.(
+          if(compute_pt) then
+             
+             select case(cpt_overlap_type)
+
+               case(
+     $            cpt1normal_and_cpt4normal,
+     $            cpt1normal_and_cpt4not,
+     $            cpt1normal_and_cpt4overlap)
+
+                 compute_point(1) = cptnormal_type
+
+               case(
+     $                cpt1not_and_cpt4normal,
+     $                cpt1not_and_cpt4not,
+     $                cpt1not_and_cpt4overlap)
+
+                 compute_point(1) = cptnot_type
+
+               case(
+     $                cpt1overlap_and_cpt4normal,
+     $                cpt1overlap_and_cpt4not,
+     $                cpt1overlap_and_cpt4overlap)
+
+                 compute_point(1) = cptoverlap_type
+
+               case(
+     $                cpt2normal_and_cpt3not,
+     $                cpt2normal_and_cpt3overlap,
+     $                cpt2not_and_cpt3normal,
+     $                cpt2not_and_cpt3not,    
+     $                cpt2not_and_cpt3overlap,
+     $                cpt2overlap_and_cpt3normal,
+     $                cpt2overlap_and_cpt3not,    
+     $                cpt2overlap_and_cpt3overlap)
+
+                 compute_point(1) = cptnormal_type
+
+               case default
+
+                  call error_cpt_overlap_index(
+     $                 'bf_layer_bc_scetions_overlap_module',
+     $                 'determine_corner_or_anti_corner_grdpts_computed',
+     $                 cpt_overlap_type)
+                  
+             end select
+
+          else
+             compute_point(1) = cptnot_type
+          end if
+
+
+          !2nd point
+          !--------------------------------------------------
+          compute_pt = .not.(
      $         (overlap_type.eq.S_overlap).or.
      $         (overlap_type.eq.E_overlap).or.
      $         (overlap_type.eq.SE_overlap).or.
@@ -1073,7 +1131,60 @@
      $         (overlap_type.eq.NS_overlap).or.
      $         (overlap_type.eq.EW_overlap))
 
-          compute_point3 = .not.(
+          if(compute_pt) then
+             
+             select case(cpt_overlap_type)
+
+               case(
+     $            cpt2normal_and_cpt3normal,
+     $            cpt2normal_and_cpt3not,
+     $            cpt2normal_and_cpt3overlap)
+
+                 compute_point(2) = cptnormal_type
+
+               case(
+     $                cpt2not_and_cpt3normal,
+     $                cpt2not_and_cpt3not,
+     $                cpt2not_and_cpt3overlap)
+
+                 compute_point(2) = cptnot_type
+
+               case(
+     $                cpt2overlap_and_cpt3normal,
+     $                cpt2overlap_and_cpt3not,
+     $                cpt2overlap_and_cpt3overlap)
+
+                 compute_point(2) = cptoverlap_type
+
+               case(
+     $                cpt1normal_and_cpt4not,
+     $                cpt1normal_and_cpt4overlap,
+     $                cpt1not_and_cpt4normal,
+     $                cpt1not_and_cpt4not,    
+     $                cpt1not_and_cpt4overlap,
+     $                cpt1overlap_and_cpt4normal, 
+     $                cpt1overlap_and_cpt4not,    
+     $                cpt1overlap_and_cpt4overlap)
+
+                 compute_point(2) = cptnormal_type
+
+               case default
+
+                  call error_cpt_overlap_index(
+     $                 'bf_layer_bc_scetions_overlap_module',
+     $                 'determine_corner_or_anti_corner_grdpts_computed',
+     $                 cpt_overlap_type)
+                  
+             end select
+
+          else
+             compute_point(2) = cptnot_type
+          end if
+
+
+          !3rd point
+          !--------------------------------------------------
+          compute_pt = .not.(
      $         (overlap_type.eq.N_overlap).or.
      $         (overlap_type.eq.W_overlap).or.
      $         (overlap_type.eq.NW_overlap).or.
@@ -1082,7 +1193,60 @@
      $         (overlap_type.eq.NS_overlap).or.
      $         (overlap_type.eq.EW_overlap))
 
-          compute_point4 = .not.(
+          if(compute_pt) then
+             
+             select case(cpt_overlap_type)
+
+               case(
+     $            cpt2normal_and_cpt3normal,
+     $            cpt2not_and_cpt3normal,
+     $            cpt2overlap_and_cpt3normal)
+
+                 compute_point(3) = cptnormal_type
+
+               case(
+     $                cpt2normal_and_cpt3not,
+     $                cpt2not_and_cpt3not,
+     $                cpt2overlap_and_cpt3not)
+
+                 compute_point(3) = cptnot_type
+
+               case(
+     $                cpt2normal_and_cpt3overlap,
+     $                cpt2not_and_cpt3overlap,
+     $                cpt2overlap_and_cpt3overlap)
+
+                 compute_point(3) = cptoverlap_type
+
+               case(
+     $                cpt1normal_and_cpt4not,
+     $                cpt1normal_and_cpt4overlap,
+     $                cpt1not_and_cpt4normal,
+     $                cpt1not_and_cpt4not,    
+     $                cpt1not_and_cpt4overlap,
+     $                cpt1overlap_and_cpt4normal, 
+     $                cpt1overlap_and_cpt4not,    
+     $                cpt1overlap_and_cpt4overlap)
+
+                 compute_point(3) = cptnormal_type
+
+               case default
+
+                  call error_cpt_overlap_index(
+     $                 'bf_layer_bc_scetions_overlap_module',
+     $                 'determine_corner_or_anti_corner_grdpts_computed',
+     $                 cpt_overlap_type)
+                  
+             end select
+
+          else
+             compute_point(3) = cptnot_type
+          end if
+
+
+          !4th point
+          !--------------------------------------------------
+          compute_pt = .not.(
      $         (overlap_type.eq.N_overlap).or.
      $         (overlap_type.eq.E_overlap).or.
      $         (overlap_type.eq.NE_overlap).or.
@@ -1090,6 +1254,56 @@
      $         (overlap_type.eq.SE_overlap).or.
      $         (overlap_type.eq.NS_overlap).or.
      $         (overlap_type.eq.EW_overlap))
+
+          if(compute_pt) then
+             
+             select case(cpt_overlap_type)
+
+               case(
+     $            cpt1normal_and_cpt4normal,
+     $            cpt1not_and_cpt4normal,
+     $            cpt1overlap_and_cpt4normal)
+
+                 compute_point(4) = cptnormal_type
+
+               case(
+     $                cpt1normal_and_cpt4not,
+     $                cpt1not_and_cpt4not,
+     $                cpt1overlap_and_cpt4not)
+
+                 compute_point(4) = cptnot_type
+
+               case(
+     $                cpt1normal_and_cpt4overlap,
+     $                cpt1not_and_cpt4overlap,
+     $                cpt1overlap_and_cpt4overlap)
+
+                 compute_point(4) = cptoverlap_type
+
+               case(
+     $                cpt2normal_and_cpt3not,
+     $                cpt2normal_and_cpt3overlap,
+     $                cpt2not_and_cpt3normal,
+     $                cpt2not_and_cpt3not,    
+     $                cpt2not_and_cpt3overlap,
+     $                cpt2overlap_and_cpt3normal, 
+     $                cpt2overlap_and_cpt3not,    
+     $                cpt2overlap_and_cpt3overlap)
+
+                 compute_point(4) = cptnormal_type
+
+               case default
+
+                  call error_cpt_overlap_index(
+     $                 'bf_layer_bc_scetions_overlap_module',
+     $                 'determine_corner_or_anti_corner_grdpts_computed',
+     $                 cpt_overlap_type)
+                  
+             end select
+
+          else
+             compute_point(4) = cptnot_type
+          end if
 
         end subroutine determine_corner_or_anti_corner_grdpts_computed
 
