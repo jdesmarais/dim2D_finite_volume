@@ -796,11 +796,11 @@
           type(sd_operators_y_oneside_R1)    , intent(in)    :: s_y_R1
           real(rkind)                        , intent(in)    :: dx
           real(rkind)                        , intent(in)    :: dy
-          integer       , dimension(4)       , intent(in)    :: bc_section
+          integer       , dimension(5)       , intent(in)    :: bc_section
           real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
         
 
-          integer, dimension(4) :: bc_section_modified
+          integer, dimension(5) :: bc_section_modified
 
 
           select case(obc_edge_xy_strategy)

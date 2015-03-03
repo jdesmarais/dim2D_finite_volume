@@ -46,7 +46,11 @@
      $       SE_corner_type,
      $       SW_corner_type,
      $       NE_corner_type,
-     $       NW_corner_type
+     $       NW_corner_type,
+     $       
+     $       cptnormal_type,
+     $       cptnot_type,
+     $       cptoverlap_type
 
         use parameters_constant, only :
      $       bc_timedev_choice
@@ -187,7 +191,7 @@
           type(sd_operators_y_oneside_R1)    , intent(in)    :: s_y_R1
           real(rkind)                        , intent(in)    :: dx
           real(rkind)                        , intent(in)    :: dy
-          integer       , dimension(4)       , intent(in)    :: bc_section
+          integer       , dimension(5)       , intent(in)    :: bc_section
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
 
@@ -195,24 +199,13 @@
           integer(ikind) :: i,j
           logical        :: compute_edge
 
-          logical :: compute_point1
-          logical :: compute_point2
-          logical :: compute_point3
-          logical :: compute_point4
+          integer, dimension(4) :: compute_point
 
 
           i_min = bc_section(2)
           j_min = bc_section(3)
 
           
-          call determine_edge_points_computed(
-     $         bc_section(4),
-     $         compute_point1,
-     $         compute_point2,
-     $         compute_point3,
-     $         compute_point4)
-
-
           select case(bc_section(1))
 
             !  ___ ___
@@ -229,13 +222,18 @@
                
                if(compute_edge) then
 
+                  call determine_corner_or_anti_corner_grdpts_computed(
+     $                 bc_section(4),
+     $                 bc_section(5),
+     $                 compute_point)
+
                   !  ___ ___
                   ! |   |   |
                   ! |___|___|
                   ! |CCC|   |  NE_edge(1,1): like NE_corner(1,1)
                   ! |CCC|___|
                   !------------
-                  if(compute_point1) then
+                  if(compute_point(1).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min
@@ -244,8 +242,9 @@
      $                    p_model,
      $                    t, x_map, y_map, nodes,
      $                    dx,dy, i,j,
-     $                    incoming_right, incoming_right,
-     $                    gradient_x_x_oneside_R0, gradient_y_y_oneside_R0)
+     $                    incoming_right,
+     $                    incoming_right,
+     $                    gradient_x_x_oneside_R0,gradient_y_y_oneside_R0)
 
                   end if
 
@@ -256,7 +255,7 @@
                   ! |   |CCC|  NE_edge(2,1): like N_edge
                   ! |___|CCC|
                   !------------
-                  if(compute_point2) then
+                  if(compute_point(2).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min
@@ -289,7 +288,7 @@
                   ! |   |   |  NE_edge(2,1): like E_edge
                   ! |___|___|
                   !------------
-                  if(compute_point3) then
+                  if(compute_point(3).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min+1
@@ -322,7 +321,7 @@
                   ! |   |   |  NE_edge(2,2): like NE_corner(2,2)
                   ! |___|___|
                   !------------
-                  if(compute_point4) then
+                  if(compute_point(4).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min+1
@@ -353,13 +352,18 @@
                
                if(compute_edge) then
 
+                  call determine_corner_or_anti_corner_grdpts_computed(
+     $                 bc_section(4),
+     $                 bc_section(5),
+     $                 compute_point)
+
                   !  ___ ___
                   ! |   |   |
                   ! |___|___|
                   ! |CCC|   |  NW_edge(1,1): like N_edge
                   ! |CCC|___|
                   !------------
-                  if(compute_point1) then
+                  if(compute_point(1).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min
@@ -392,7 +396,7 @@
                   ! |   |CCC|  NW_edge(2,1): like NW_corner(2,1)
                   ! |___|CCC|
                   !------------
-                  if(compute_point2) then
+                  if(compute_point(2).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min
@@ -413,7 +417,7 @@
                   ! |   |   |  NW_edge(1,2): like NW_corner(1,2)
                   ! |___|___|
                   !------------
-                  if(compute_point3) then
+                  if(compute_point(3).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min+1
@@ -434,7 +438,7 @@
                   ! |   |   |  NW_edge(2,2): like W_edge
                   ! |___|___|
                   !------------
-                  if(compute_point4) then
+                  if(compute_point(4).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min+1
@@ -478,13 +482,18 @@
                
                if(compute_edge) then
 
+                  call determine_corner_or_anti_corner_grdpts_computed(
+     $                 bc_section(4),
+     $                 bc_section(5),
+     $                 compute_point)
+
                   !  ___ ___
                   ! |   |   |
                   ! |___|___|
                   ! |CCC|   |  SW_edge(1,1): like SW_corner(1,1)
                   ! |CCC|___|
                   !------------
-                  if(compute_point1) then
+                  if(compute_point(1).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min
@@ -505,7 +514,7 @@
                   ! |   |CCC|  SW_edge(2,1): like W_edge
                   ! |___|CCC|
                   !------------
-                  if(compute_point2) then
+                  if(compute_point(2).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min
@@ -538,7 +547,7 @@
                   ! |   |   |  SW_edge(2,1): like S_edge
                   ! |___|___|
                   !------------
-                  if(compute_point3) then
+                  if(compute_point(3).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min+1
@@ -571,7 +580,7 @@
                   ! |   |   |  SW_edge(2,2): like SW_corner(2,2)
                   ! |___|___|
                   !------------
-                  if(compute_point4) then
+                  if(compute_point(4).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min+1
@@ -602,13 +611,18 @@
                
                if(compute_edge) then
 
+                  call determine_corner_or_anti_corner_grdpts_computed(
+     $                 bc_section(4),
+     $                 bc_section(5),
+     $                 compute_point)
+
                   !  ___ ___
                   ! |   |   |
                   ! |___|___|
                   ! |CCC|   |  SE_edge(1,1): like E_edge
                   ! |CCC|___|
                   !------------
-                  if(compute_point1) then
+                  if(compute_point(1).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min
@@ -641,7 +655,7 @@
                   ! |   |CCC|  SE_edge(2,1): like SE_corner(2,1)
                   ! |___|CCC|
                   !------------
-                  if(compute_point2) then
+                  if(compute_point(2).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min
@@ -662,7 +676,7 @@
                   ! |   |   |  SE_edge(2,1): like SE_corner(1,2)
                   ! |___|___|
                   !------------
-                  if(compute_point3) then
+                  if(compute_point(3).ne.cptnot_type) then
                      
                      i=i_min
                      j=j_min+1
@@ -683,7 +697,7 @@
                   ! |   |   |  SE_edge(2,2): like S_edge
                   ! |___|___|
                   !------------
-                  if(compute_point4) then
+                  if(compute_point(4).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min+1

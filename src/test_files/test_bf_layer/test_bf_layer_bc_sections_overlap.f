@@ -20,9 +20,12 @@
      $     overlap_S,
      $     overlap_E,
      $     overlap_W,
-     $     overlap_bc_section_by_integration_borders
+     $     overlap_bc_section_by_integration_borders,
+     $     
+     $     determine_edge_grdpts_computed
 
         use check_data_module, only :
+     $       is_boolean_vector_validated,
      $       is_int_vector_validated,
      $       is_int_matrix_validated
 
@@ -94,6 +97,12 @@
         test_loc = test_determine_corner_or_anti_corner_grdpts_computed(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_determine_corner_or_anti_corner_grdpts_computed: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_determine_edge_grdpts_computed(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_determine_edge_grdpts_computed: '',L1)', test_loc
         print '()'
 
 
@@ -356,6 +365,71 @@
           end do
 
         end function test_determine_corner_or_anti_corner_grdpts_computed
+
+
+        function test_determine_edge_grdpts_computed(
+     $       detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          
+          integer, dimension(7)   :: overlap_test
+          logical, dimension(2,7) :: compute_edge_test
+          integer                 :: k
+          logical, dimension(2)   :: compute_edge
+          logical                 :: test_loc
+
+
+          test_validated = .true.
+
+          
+          !input
+          overlap_test = [
+     $         no_overlap,
+     $         N_overlap,
+     $         S_overlap,
+     $         E_overlap,
+     $         W_overlap,
+     $         NS_overlap,
+     $         EW_overlap]
+
+          compute_edge_test = reshape((/
+     $         .true.,.true.,
+     $         .true.,.false.,
+     $         .false.,.true.,
+     $         .true., .false.,
+     $         .false., .true.,
+     $         .false., .false.,
+     $         .false., .false./),
+     $         (/2,7/))
+
+          
+          do k=1, size(overlap_test,1)
+
+             !output
+             call determine_edge_grdpts_computed(
+     $            overlap_test(k),
+     $            compute_edge)
+
+             !validation
+             test_loc = is_boolean_vector_validated(
+     $            compute_edge,
+     $            compute_edge_test(:,k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+             !detailled
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'') failed'')', k
+             end if
+
+          end do          
+
+        end function test_determine_edge_grdpts_computed
 
 
         function test_overlap_N(detailled)

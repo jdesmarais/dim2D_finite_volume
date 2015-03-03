@@ -14,7 +14,8 @@
      $       is_real_matrix3D_validated,
      $       is_int_vector_validated,
      $       is_int_matrix_validated,
-     $       is_int_matrix3D_validated
+     $       is_int_matrix3D_validated,
+     $       is_boolean_vector_validated
 
         
         contains
@@ -209,7 +210,7 @@
 
           if(size(int_vector,1).eq.size(int_vector_cst,1)) then
 
-             do i=1, size(int_vector)
+             do i=1, size(int_vector,1)
 
                 test_loc = int_vector(i).eq.int_vector_cst(i)
                 test_validated = test_validated.and.test_loc
@@ -356,5 +357,64 @@
           end if
 
         end function is_int_matrix3D_validated
+
+
+        function is_boolean_vector_validated(
+     $     boolean_vector,
+     $     boolean_vector_cst,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, dimension(:), intent(in) :: boolean_vector
+          logical, dimension(:), intent(in) :: boolean_vector_cst
+          logical, optional    , intent(in) :: detailled
+          logical                           :: test_validated
+
+
+          integer :: i
+          logical :: test_loc
+          logical :: detailled_op
+
+
+          if(present(detailled)) then
+             detailled_op = detailled
+          else
+             detailled_op = .false.
+          end if
+
+
+          test_validated = .true.
+
+
+          if(size(boolean_vector,1).eq.size(boolean_vector_cst,1)) then
+
+             do i=1, size(boolean_vector,1)
+
+                test_loc = boolean_vector(i).eqv.boolean_vector_cst(i)
+                test_validated = test_validated.and.test_loc
+
+                if(detailled_op.and.(.not.test_loc)) then
+
+                   print '(''['',I2,'']: '',L1, '' -> '',L1)',
+     $                  i, boolean_vector(i), boolean_vector_cst(i)
+
+                end if
+
+             end do
+
+          else
+
+             test_validated = .false.
+             print '(''sizes do not match'')'
+             print '(''  - size_x : '',I2,'' -> '',I2)',
+     $            size(boolean_vector,1),
+     $            size(boolean_vector_cst,1)
+             print '()'
+
+          end if
+
+        end function is_boolean_vector_validated
 
       end module check_data_module

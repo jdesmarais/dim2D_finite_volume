@@ -810,14 +810,15 @@
           real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
           real(rkind), dimension(:)      , intent(in)    :: x_map
           real(rkind), dimension(:)      , intent(in)    :: y_map
-          integer    , dimension(4)      , intent(in)    :: bc_section
+          integer    , dimension(5)      , intent(in)    :: bc_section
           real(rkind), dimension(:,:,:)  , intent(inout) :: timedev
           
           
-          integer(ikind) :: i,j
-          integer(ikind) :: i_min, j_min
-          logical        :: compute_edge
-          logical        :: side_x, side_y
+          integer(ikind)        :: i,j
+          integer(ikind)        :: i_min, j_min
+          logical               :: compute_edge
+          logical               :: side_x, side_y
+          integer, dimension(4) :: compute_pt
 
 
           i_min=bc_section(2)
@@ -831,26 +832,8 @@
      $              compute_edge_S(j_min,y_map,bc_timedev_choice).and.
      $              compute_edge_W(i_min,x_map,bc_timedev_choice)
 
-               !determine the extent of the edge from the
-               !bc_section and compute the time derivatives
-               if(compute_edge) then
-
-                  side_x = left
-                  side_y = left
-
-                  do j=j_min,j_min+1
-                     do i=i_min,i_min+1
-
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y)
-
-                     end do
-                  end do
-                  
-               end if
+               side_x = left
+               side_y = left
 
 
             case(SE_corner_type)
@@ -859,24 +842,8 @@
      $              compute_edge_S(j_min,y_map,bc_timedev_choice).and.
      $              compute_edge_E(i_min,x_map,bc_timedev_choice)
                
-               if(compute_edge) then
-
-                  side_x = right
-                  side_y = left
-
-                  do j=j_min,j_min+1
-                     do i=i_min,i_min+1
-
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y)
-
-                     end do
-                  end do
-
-               end if
+               side_x = right
+               side_y = left
 
                      
             case(NW_corner_type)
@@ -885,24 +852,8 @@
      $              compute_edge_N(j_min,y_map,bc_timedev_choice).and.
      $              compute_edge_W(i_min,x_map,bc_timedev_choice)
                
-               if(compute_edge) then
-
-                  side_x = left
-                  side_y = right
-                  
-                  do j=j_min,j_min+1
-                     do i=i_min,i_min+1
-
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y)
-
-                     end do
-                  end do
-
-               end if
+               side_x = left
+               side_y = right
 
 
             case(NE_corner_type)
@@ -911,24 +862,9 @@
      $              compute_edge_N(j_min,y_map,bc_timedev_choice).and.
      $              compute_edge_E(i_min,x_map,bc_timedev_choice)
                
-               if(compute_edge) then
+               side_x = right
+               side_y = right
 
-                  side_x = right
-                  side_y = right
-
-                  do j=j_min,j_min+1
-                     do i=i_min,i_min+1
-
-                        timedev(i,j,:) =
-     $                       this%apply_bc_on_timedev_xy_corner(
-     $                       p_model,
-     $                       t,nodes,x_map,y_map,i,j,
-     $                       side_x, side_y)
-
-                     end do
-                  end do
-
-               end if
 
             case default
                call error_bc_section_type(
@@ -938,6 +874,108 @@
 
           end select
 
+          !computation of the corner pts
+          if(compute_edge) then
+
+             call determine_corner_or_anti_corner_grdpts_computed(
+     $            bc_section(4),
+     $            bc_section(5),
+     $            compute_point)             
+             
+             call compute_timedev_corner_pts(
+     $            this,
+     $            p_model,
+     $            t,nodes,x_map,y_map,
+     $            side_x, side_y,
+     $            i_min, j_min,
+     $            compute_point,
+     $            timedev)
+
+          end if
+
         end subroutine compute_timedev_corner
+
+
+        subroutine compute_timedev_corner_pts(
+     $     this,
+     $     p_model,
+     $     t,nodes,x_map,y_map,
+     $     side_x, side_y,
+     $     i_min, j_min,
+     $     compute_point,
+     $     timedev)
+
+          implicit none
+
+          class(bc_operators_openbc)     , intent(in)    :: this
+          type(pmodel_eq)                , intent(in)    :: p_model
+          real(rkind)                    , intent(in)    :: t
+          real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
+          real(rkind), dimension(:)      , intent(in)    :: x_map
+          real(rkind), dimension(:)      , intent(in)    :: y_map
+          logical                        , intent(in)    :: side_x
+          logical                        , intent(in)    :: side_y
+          integer(ikind)                 , intent(in)    :: i_min
+          integer(ikind)                 , intent(in)    :: j_min
+          integer    , dimension(4)      , intent(in)    :: compute_point
+          real(rkind), dimension(:,:,:)  , intent(inout) :: timedev
+
+
+          integer(ikind) :: i,j
+
+
+          if(compute_point(1).ne.cptnot_type) then
+
+             i=i_min
+             j=j_min
+
+             timedev(i,j,:) =
+     $            this%apply_bc_on_timedev_xy_corner(
+     $            p_model,
+     $            t,nodes,x_map,y_map,i,j,
+     $            side_x, side_y)
+
+          end if
+
+          if(compute_point(2).ne.cptnot_type) then
+
+             i=i_min+1
+             j=j_min
+
+             timedev(i,j,:) =
+     $            this%apply_bc_on_timedev_xy_corner(
+     $            p_model,
+     $            t,nodes,x_map,y_map,i,j,
+     $            side_x, side_y)
+
+          end if
+
+          if(compute_point(3).ne.cptnot_type) then
+
+             i=i_min
+             j=j_min+1
+
+             timedev(i,j,:) =
+     $            this%apply_bc_on_timedev_xy_corner(
+     $            p_model,
+     $            t,nodes,x_map,y_map,i,j,
+     $            side_x, side_y)
+
+          end if
+
+          if(compute_point(4).ne.cptnot_type) then
+
+             i=i_min+1
+             j=j_min+1
+
+             timedev(i,j,:) =
+     $            this%apply_bc_on_timedev_xy_corner(
+     $            p_model,
+     $            t,nodes,x_map,y_map,i,j,
+     $            side_x, side_y)
+
+          end if
+
+        end subroutine compute_timedev_corner_pts
 
       end module bc_operators_openbc_class 
