@@ -26,7 +26,9 @@
      $       error_neighbor_index,
      $       error_overlap_index,
      $       error_overlap_incompatible,
-     $       error_bc_section_type
+     $       error_bc_section_type,
+     $       error_gradient_type,
+     $       error_cpt_overlap_index
 
 
         integer, parameter :: ERROR_MAINLAYER_ID_CODE          = 0
@@ -36,6 +38,8 @@
         integer, parameter :: ERROR_OVERLAP_INDEX_CODE         = 4
         integer, parameter :: ERROR_OVERLAP_INCOMPATIBLE_CODE  = 5
         integer, parameter :: ERROR_BC_SECTION_TYPE_CODE       = 6
+        integer, parameter :: ERROR_GRADIENT_TYPE_CODE         = 7
+        integer, parameter :: ERROR_CPT_OVERLAP_INDEX_CODE     = 8
 
 
         contains
@@ -324,5 +328,85 @@
           stop 'error_bc_section_type'
 
         end subroutine error_bc_section_type
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !< error gradient_type
+        !
+        !> @date
+        !> 02_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param gradient_type
+        !> value of the parameter trigerring the exception
+        !--------------------------------------------------------------
+        subroutine error_gradient_type(
+     $     file_name,
+     $     fct_name,
+     $     gradient_type)
+
+          implicit none
+
+          character(*), intent(in) :: file_name
+          character(*), intent(in) :: fct_name
+          integer     , intent(in) :: gradient_type
+
+          write(ERROR_UNIT, '(I3)') ERROR_GRADIENT_TYPE_CODE
+          write(ERROR_UNIT, '(A)') file_name
+          write(ERROR_UNIT, '(A)') fct_name
+          write(ERROR_UNIT, '(A)') 'gradient_type not recognized'
+          write(ERROR_UNIT, '(''gradient_type: '',I2)') gradient_type
+
+          stop 'error_gradient_type'
+
+        end subroutine error_gradient_type
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !< error cpt_overlap_type
+        !
+        !> @date
+        !> 02_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param cpt_overlap_type
+        !> value of the parameter trigerring the exception
+        !--------------------------------------------------------------
+        subroutine error_cpt_overlap_index(
+     $     file_name,
+     $     fct_name,
+     $     cpt_overlap_type)
+
+          implicit none
+
+          character(*), intent(in) :: file_name
+          character(*), intent(in) :: fct_name
+          integer     , intent(in) :: cpt_overlap_type
+
+          write(ERROR_UNIT, '(I3)') ERROR_CPT_OVERLAP_INDEX_CODE
+          write(ERROR_UNIT, '(A)') file_name
+          write(ERROR_UNIT, '(A)') fct_name
+          write(ERROR_UNIT, '(A)') 'cpt_overlap_type not recognized'
+          write(ERROR_UNIT, '(''cpt_overlap_type: '',I2)') cpt_overlap_type
+
+          stop 'error_cpt_overlap_index'
+
+        end subroutine error_cpt_overlap_index
 
       end module bf_layer_errors_module

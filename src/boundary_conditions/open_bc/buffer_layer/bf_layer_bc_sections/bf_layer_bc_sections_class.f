@@ -23,6 +23,13 @@
         use bf_layer_bc_procedure_module, only : 
      $       get_bc_interior_pt_procedure
 
+        use bf_layer_bc_sections_overlap_module, only :
+     $       overlap_bc_section_by_integration_borders,
+     $       overlap_N,
+     $       overlap_S,
+     $       overlap_E,
+     $       overlap_W
+
         use bf_layer_errors_module, only :
      $       error_overlap_index,
      $       error_overlap_incompatible
@@ -53,8 +60,28 @@
      $       NE_overlap,
      $       NW_overlap,
      $       SE_overlap,
-     $       SW_overlap
-
+     $       SW_overlap,
+     $       
+     $       cpt1not_and_cpt4not,
+     $       cpt1not_and_cpt4normal,
+     $       cpt1not_and_cpt4overlap,
+     $       cpt1normal_and_cpt4not,
+     $       cpt1normal_and_cpt4normal,
+     $       cpt1normal_and_cpt4overlap,
+     $       cpt1overlap_and_cpt4not,
+     $       cpt1overlap_and_cpt4normal,
+     $       cpt1overlap_and_cpt4overlap,
+     $       
+     $       cpt2not_and_cpt3not,
+     $       cpt2not_and_cpt3normal,
+     $       cpt2not_and_cpt3overlap,
+     $       cpt2normal_and_cpt3not,
+     $       cpt2normal_and_cpt3normal,
+     $       cpt2normal_and_cpt3overlap,
+     $       cpt2overlap_and_cpt3not,
+     $       cpt2overlap_and_cpt3normal,
+     $       cpt2overlap_and_cpt3overlap
+        
         use parameters_input, only :
      $       bc_size
 
@@ -65,11 +92,11 @@
 
         private
         public ::
-     $       bf_layer_bc_sections,
-     $       determine_edge_points_computed
+     $       bf_layer_bc_sections
 
 
         integer, parameter :: max_bc_sections_temp = 6
+
 
         !> @class bf_layer_bc_sections
         !> class encapsulating the bf_layer_bc_sections object. It
@@ -1064,15 +1091,18 @@
 
 
           !3) determine the overlap b/w the corner and anti-corner
-          !>    boundary procedures to prevent interactions and symetry
-          !>    violation when applying the boundary procedures
-          call this%check_anti_corners_overlap(
+          !>  boundary procedures to prevent interactions and symetry
+          !>  violation when applying the boundary procedures
+          call this%check_square_overlap(
+     $         sorted_bc_sections)
+
+
+          !4) determine the overlap b/w the bc_sections and the
+          !>  integration borders
+          call this%check_integration_overlap(
      $         sorted_bc_sections,
      $         x_borders,
-     $         y_borders,
-     $         N_bc_sections,
-     $         S_bc_sections,
-     $         size_y)
+     $         y_borders)          
           
         end subroutine finalize_bc_sections
 
@@ -1116,7 +1146,7 @@
           !   extent = corner for other
           nb_ele_tot = this%nb_ele_temp + this%nb_ele_final
           if(nb_ele_tot.gt.0) then
-             allocate(sorted_bc_sections(4,nb_ele_tot))
+             allocate(sorted_bc_sections(5,nb_ele_tot))
           end if
           
           if(allocated(this%bc_sections_temp)) then
@@ -1171,8 +1201,8 @@
         
           implicit none
 
-          integer, dimension(4), intent(in) :: p
-          integer, dimension(4), intent(in) :: q
+          integer, dimension(5), intent(in) :: p
+          integer, dimension(5), intent(in) :: q
           logical                           :: p_larger_than_q
 
           p_larger_than_q = .false.
@@ -1215,9 +1245,9 @@
 
           implicit none
 
-          integer, dimension(4), intent(inout) :: p
-          integer, dimension(4), intent(inout) :: q
-          integer, dimension(4)                :: temp
+          integer, dimension(5), intent(inout) :: p
+          integer, dimension(5), intent(inout) :: q
+          integer, dimension(5)                :: temp
 
           temp = p
           p    = q
@@ -1293,21 +1323,21 @@
           implicit none
 
           integer, dimension(5), intent(in) :: bc_section
-          integer, dimension(4)             :: sorted_ele
+          integer, dimension(5)             :: sorted_ele
 
           select case(bc_section(1))
 
             case(N_edge_type)
-               sorted_ele = [bc_section(1),bc_section(2),bc_section(4),bc_section(3)]
+               sorted_ele = [bc_section(1),bc_section(2),bc_section(4),bc_section(3),no_overlap]
 
             case(S_edge_type)
-               sorted_ele = [bc_section(1),bc_section(2),bc_section(4)-1,bc_section(3)]
+               sorted_ele = [bc_section(1),bc_section(2),bc_section(4)-1,bc_section(3),no_overlap]
 
             case(E_edge_type)
-               sorted_ele = [bc_section(1),bc_section(4),bc_section(2),bc_section(3)]
+               sorted_ele = [bc_section(1),bc_section(4),bc_section(2),bc_section(3),no_overlap]
 
             case(W_edge_type)
-               sorted_ele = [bc_section(1),bc_section(4)-1,bc_section(2),bc_section(3)]
+               sorted_ele = [bc_section(1),bc_section(4)-1,bc_section(2),bc_section(3),no_overlap]
 
             case(
      $              NW_corner_type,
@@ -1323,6 +1353,7 @@
      $           bc_section(1),
      $           bc_section(2),
      $           bc_section(3),
+     $           bc_sections(4),
      $           no_overlap]
 
             case default
@@ -1369,22 +1400,12 @@
         !> x-borders of the South gridpoints [1,bc_size] computed with
         !> the time integration scheme
         !--------------------------------------------------------------
-        subroutine check_anti_corners_overlap(
-     $     bc_sections_sorted,
-     $     x_borders,
-     $     y_borders,
-     $     N_bc_sections,
-     $     S_bc_sections,
-     $     size_y)
+        subroutine check_square_overlap(
+     $     bc_sections_sorted)
 
           implicit none
 
-          integer       , dimension(:,:)             , intent(inout) :: bc_sections_sorted
-          integer(ikind), dimension(2)               , intent(in)    :: x_borders
-          integer(ikind), dimension(2)               , intent(in)    :: y_borders
-          integer       , dimension(:,:), allocatable, intent(in)    :: N_bc_sections
-          integer       , dimension(:,:), allocatable, intent(in)    :: S_bc_sections
-          integer(ikind)                             , intent(in)    :: size_y
+          integer       , dimension(:,:), intent(inout) :: bc_sections_sorted
 
           integer :: k_prev_stage    !index where the bc_section for j-1 begins
           integer :: k_current_stage !index where the bc_section for j begins
@@ -1405,7 +1426,8 @@
 
              !=============================================
              ! checking the overlap between the corner
-             ! bc_section and the anti-corner bc_section
+             ! b.c. sections and the anti-corner b.c.
+             ! sections
              !=============================================
 
              ! get the j_stage identifying the
@@ -1430,466 +1452,25 @@
              ! of the previous and the next stages
              ! corresponding to the stages where an
              ! overlap is possible
-             if(is_a_corner(bc_sections_sorted(:,k))) then
+             if(is_a_square(bc_sections_sorted(:,k))) then
                 
-                call compare_corner_to_previous_stage_bc_sections(
+                call compare_square_to_previous_stage_bc_sections(
      $               bc_sections_sorted(:,k),
      $               bc_sections_sorted,
      $               k_prev_stage,
      $               k-1)
 
-                call compare_corner_to_next_stage_bc_sections(
+                call compare_square_to_next_stage_bc_sections(
      $               bc_sections_sorted(:,k),
      $               bc_sections_sorted,
      $               k+1,
      $               j_stage)
 
-             else
-
-             !=============================================
-             ! overlap the anti-corner bc_sections with the
-             ! integration borders
-             !=============================================
-
-                if(is_an_anti_corner(bc_sections_sorted(:,k))) then
-
-                   call overlap_anti_corner_with_integration_borders(
-     $                  bc_sections_sorted(:,k),
-     $                  x_borders,
-     $                  y_borders,
-     $                  N_bc_sections,
-     $                  S_bc_sections,
-     $                  size_y)
-
-                end if
-
              end if
 
           end do
 
-        end subroutine check_anti_corners_overlap
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> analyse the anti-corners and retain only the gridpoints
-        !> that are in common with the time integration borders
-        !> [x_borders] x [y_borders] U N_bc_sections U S_bc_sections
-        !
-        !> @date
-        !> 27_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param anti_corner
-        !> boundary layer represented as
-        !> [procedure_type,i_min,j_min,extent]
-        !
-        !> @param x_borders
-        !> x-borders for the time integration of the gridpoints
-        !
-        !> @param y_borders
-        !> y-borders for the time integration of the gridpoints
-        !
-        !> @param N_bc_sections
-        !> x-borders of the North gridpoints [size(2)-bc_size+1,size(2)]
-        !> computed with the time integration scheme
-        !
-        !> @param S_bc_sections
-        !> x-borders of the South gridpoints [1,bc_size] computed with
-        !> the time integration scheme
-        !
-        !> @param size_y
-        !> extent of the array for the time integration in the y-direction
-        !--------------------------------------------------------------
-        subroutine overlap_anti_corner_with_integration_borders(
-     $     anti_corner,
-     $     x_borders,
-     $     y_borders,
-     $     N_bc_sections,
-     $     S_bc_sections,
-     $     size_y)
-
-          implicit none
-
-          integer       , dimension(4)               , intent(inout) :: anti_corner
-          integer(ikind), dimension(2)               , intent(in)    :: x_borders
-          integer(ikind), dimension(2)               , intent(in)    :: y_borders
-          integer(ikind), dimension(:,:), allocatable, intent(in)    :: N_bc_sections
-          integer(ikind), dimension(:,:), allocatable, intent(in)    :: S_bc_sections
-          integer(ikind)                             , intent(in)    :: size_y
-
-          
-          integer(ikind) :: i_min
-          integer(ikind) :: j_min
-          logical        :: compute_first_pt
-          logical        :: compute_second_pt
-          logical        :: compute_third_pt
-          logical        :: compute_fourth_pt
-
-          
-          i_min = anti_corner(2)
-          j_min = anti_corner(3)
-
-
-          ! check if the first gridpoint (SW) is computed
-          ! inside the time integrated domain
-          !--------------------------------------------------
-          compute_first_pt = is_inside_time_integrated_domain(
-     $         [i_min,i_min],
-     $         [j_min,j_min],
-     $         x_borders,
-     $         y_borders,
-     $         N_bc_sections,
-     $         S_bc_sections,
-     $         size_y)
-
-          
-          ! check if the first gridpoint (SE) is computed
-          ! inside the time integrated domain
-          !--------------------------------------------------
-          compute_second_pt = is_inside_time_integrated_domain(
-     $         [i_min+1,i_min+1],
-     $         [j_min,j_min],
-     $         x_borders,
-     $         y_borders,
-     $         N_bc_sections,
-     $         S_bc_sections,
-     $         size_y)
-
-
-          ! check if the first gridpoint (NW) is computed
-          ! inside the time integrated domain
-          !--------------------------------------------------
-          compute_third_pt = is_inside_time_integrated_domain(
-     $         [i_min,i_min],
-     $         [j_min+1,j_min+1],
-     $         x_borders,
-     $         y_borders,
-     $         N_bc_sections,
-     $         S_bc_sections,
-     $         size_y)
-
-
-          ! check if the first gridpoint (NE) is computed
-          ! inside the time integrated domain
-          !--------------------------------------------------
-          compute_fourth_pt = is_inside_time_integrated_domain(
-     $         [i_min+1,i_min+1],
-     $         [j_min+1,j_min+1],
-     $         x_borders,
-     $         y_borders,
-     $         N_bc_sections,
-     $         S_bc_sections,
-     $         size_y)
-
-
-          if((.not.compute_first_pt).and.(.not.compute_second_pt)) then
-             call overlap_S(anti_corner)
-          end if
-
-          if((.not.compute_third_pt).and.(.not.compute_fourth_pt)) then
-             call overlap_N(anti_corner)
-          end if
-
-          if((.not.compute_first_pt).and.(.not.compute_third_pt)) then
-             call overlap_W(anti_corner)
-          end if
-
-          if((.not.compute_second_pt).and.(.not.compute_fourth_pt)) then
-             call overlap_E(anti_corner)
-          end if
-
-        end subroutine overlap_anti_corner_with_integration_borders
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> check if the bc_section whose extents are given is
-        !> located inside the domain [x_borders] x [y_borders]
-        !> U N_bc_sections U S_bc_sections
-        !
-        !> @date
-        !> 27_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param corner_x_edge
-        !> x-borders of the bc_section investigated
-        !
-        !> @param corner_y_edge
-        !> y-borders of the bc_section investigated
-        !
-        !> @param x_borders
-        !> x-borders for the time integration of the gridpoints
-        !
-        !> @param y_borders
-        !> y-borders for the time integration of the gridpoints
-        !
-        !> @param N_bc_sections
-        !> x-borders of the North gridpoints [size(2)-bc_size+1,size(2)]
-        !> computed with the time integration scheme
-        !
-        !> @param S_bc_sections
-        !> x-borders of the South gridpoints [1,bc_size] computed with
-        !> the time integration scheme
-        !
-        !> @param size_y
-        !> extent of the array for the time integration in the y-direction
-        !
-        !> @return inside
-        !> whether the bc_section is inside the [x_borders]x[y_borders]
-        !> domain
-        !--------------------------------------------------------------
-        function is_inside_time_integrated_domain(
-     $     corner_x_edge,
-     $     corner_y_edge,
-     $     x_borders,
-     $     y_borders,
-     $     N_bc_sections,
-     $     S_bc_sections,
-     $     size_y)
-     $     result(inside)
-
-          implicit none
-
-          integer(ikind), dimension(2)               , intent(in) :: corner_x_edge
-          integer(ikind), dimension(2)               , intent(in) :: corner_y_edge
-          integer(ikind), dimension(2)               , intent(in) :: x_borders
-          integer(ikind), dimension(2)               , intent(in) :: y_borders
-          integer(ikind), dimension(:,:), allocatable, intent(in) :: N_bc_sections
-          integer(ikind), dimension(:,:), allocatable, intent(in) :: S_bc_sections
-          integer(ikind)                             , intent(in) :: size_y
-          logical                                                 :: inside
-
-
-          ! check if inside domain [x_borders]x[y_borders]
-          inside = is_inside_xy_borders(
-     $         corner_x_edge,
-     $         corner_y_edge,
-     $         x_borders,
-     $         y_borders)
-
-          ! check if inside N_bc_sections
-          if(.not.inside) then
-
-             inside = is_inside_N_bc_sections(
-     $            corner_x_edge,
-     $            corner_y_edge,
-     $            N_bc_sections,
-     $            size_y)
-
-          end if
-
-          ! check if inside S_bc_sections
-          if(.not.inside) then
-
-             inside = is_inside_S_bc_sections(
-     $            corner_x_edge,
-     $            corner_y_edge,
-     $            S_bc_sections)
-
-          end if
-
-
-        end function is_inside_time_integrated_domain
-
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> check if the bc_section whose extents are given is
-        !> located inside the domain [x_borders] x [y_borders]
-        !
-        !> @date
-        !> 27_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param corner_x_edge
-        !> x-borders of the bc_section investigated
-        !
-        !> @param corner_y_edge
-        !> y-borders of the bc_section investigated
-        !
-        !> @param x_borders
-        !> x-borders for the time integration of the gridpoints
-        !
-        !> @param y_borders
-        !> y-borders for the time integration of the gridpoints
-        !
-        !> @return inside
-        !> whether the bc_section is inside the [x_borders]x[y_borders]
-        !> domain
-        !--------------------------------------------------------------
-        function is_inside_xy_borders(
-     $     corner_x_edge,
-     $     corner_y_edge,
-     $     x_borders,
-     $     y_borders)
-     $     result(inside)
-
-          implicit none
-
-          integer(ikind), dimension(2), intent(in) :: corner_x_edge
-          integer(ikind), dimension(2), intent(in) :: corner_y_edge
-          integer(ikind), dimension(2), intent(in) :: x_borders
-          integer(ikind), dimension(2), intent(in) :: y_borders
-          logical                                  :: inside
-
-
-          inside =
-     $         (x_borders(1).le.corner_x_edge(1)).and.
-     $         (corner_x_edge(2).le.x_borders(2)).and.
-     $         (y_borders(1).le.corner_y_edge(1)).and.
-     $         (corner_y_edge(2).le.y_borders(2))
-
-        end function is_inside_xy_borders
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> check if the bc_section whose extents are given is
-        !> located inside the N_bc_sections
-        !
-        !> @date
-        !> 27_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param corner_x_edge
-        !> x-borders of the bc_section investigated
-        !
-        !> @param corner_y_edge
-        !> y-borders of the bc_section investigated
-        !
-        !> @param N_bc_sections
-        !> x-borders of the North gridpoints [size(2)-bc_size+1,size(2)]
-        !> computed with the time integration scheme
-        !
-        !> @param size_y
-        !> extent of the array for the time integration in the y-direction
-        !
-        !> @return inside
-        !> whether the bc_section is inside the [x_borders]x[y_borders]
-        !> domain
-        !--------------------------------------------------------------
-        function is_inside_N_bc_sections(
-     $     corner_x_edge,
-     $     corner_y_edge,
-     $     N_bc_sections,
-     $     size_y)
-     $     result(inside)
-
-          integer(ikind), dimension(2)               , intent(in) :: corner_x_edge
-          integer(ikind), dimension(2)               , intent(in) :: corner_y_edge
-          integer(ikind), dimension(:,:), allocatable, intent(in) :: N_bc_sections
-          integer(ikind)                             , intent(in) :: size_y
-          logical                                                 :: inside
-
-          integer :: k
-          logical :: i_inside
-          logical :: j_inside
-
-
-          inside = .false.
-
-          if(allocated(N_bc_sections)) then
-
-             j_inside =
-     $            ((size_y-bc_size+1).le.corner_y_edge(1)).and.
-     $            (corner_y_edge(2).le.size_y)
-
-             if(j_inside) then
-
-                do k=1, size(N_bc_sections,2)
-
-                   i_inside =
-     $                  (N_bc_sections(1,k).le.corner_x_edge(1)).and.
-     $                  (corner_x_edge(2).le.N_bc_sections(2,k))
-
-                   if(i_inside) then
-                      inside = .true.
-                      exit
-                   end if
-
-                end do
-
-             end if
-
-          end if
-
-        end function is_inside_N_bc_sections
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> check if the bc_section whose extents are given is
-        !> located inside the S_bc_sections
-        !
-        !> @date
-        !> 27_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param corner_x_edge
-        !> x-borders of the bc_section investigated
-        !
-        !> @param corner_y_edge
-        !> y-borders of the bc_section investigated
-        !
-        !> @param S_bc_sections
-        !> x-borders of the South gridpoints [1,bc_size] computed with
-        !> the time integration scheme
-        !
-        !> @return inside
-        !> whether the bc_section is inside the [x_borders]x[y_borders]
-        !> domain
-        !--------------------------------------------------------------
-        function is_inside_S_bc_sections(
-     $     corner_x_edge,
-     $     corner_y_edge,
-     $     S_bc_sections)
-     $     result(inside)
-
-          integer(ikind), dimension(2)               , intent(in) :: corner_x_edge
-          integer(ikind), dimension(2)               , intent(in) :: corner_y_edge
-          integer(ikind), dimension(:,:), allocatable, intent(in) :: S_bc_sections
-          logical                                                 :: inside
-
-          integer :: k
-          logical :: i_inside
-          logical :: j_inside
-
-
-          inside = .false.
-
-          if(allocated(S_bc_sections)) then
-
-             j_inside =
-     $            (1.le.corner_y_edge(1)).and.
-     $            (corner_y_edge(2).le.bc_size)
-
-             if(j_inside) then
-
-                do k=1, size(S_bc_sections,2)
-
-                   i_inside =
-     $                  (S_bc_sections(1,k).le.corner_x_edge(1)).and.
-     $                  (corner_x_edge(2).le.S_bc_sections(2,k))
-
-                   if(i_inside) then
-                      inside = .true.
-                      exit
-                   end if
-
-                end do
-
-             end if
-
-          end if
-
-        end function is_inside_S_bc_sections
+        end subroutine check_square_overlap
 
 
         !> @author
@@ -1918,15 +1499,15 @@
         !> index identifying the last element compared in
         !> bc_sections_sorted
         !--------------------------------------------------------------
-        subroutine compare_corner_to_previous_stage_bc_sections(
-     $     corner,
+        subroutine compare_square_to_previous_stage_bc_sections(
+     $     square,
      $     bc_sections_sorted,
      $     k_min,
      $     k_max)
 
           implicit none
 
-          integer, dimension(4)  , intent(in)    :: corner
+          integer, dimension(5)  , intent(in)    :: square
           integer, dimension(:,:), intent(inout) :: bc_sections_sorted
           integer                , intent(in)    :: k_min
           integer                , intent(in)    :: k_max
@@ -1935,15 +1516,15 @@
 
           do k=k_min,k_max
 
-             if(is_an_anti_corner(bc_sections_sorted(:,k))) then
+             if(is_a_square(bc_sections_sorted(:,k))) then
 
-                call overlap(corner,bc_sections_sorted(:,k))
+                call overlap_sqare_bc_sections(square,bc_sections_sorted(:,k))
 
              end if
 
           end do
 
-        end subroutine compare_corner_to_previous_stage_bc_sections
+        end subroutine compare_square_to_previous_stage_bc_sections
 
 
         !> @author
@@ -1973,15 +1554,15 @@
         !> @param j_stage
         !> index identifying the y-position of the corner
         !--------------------------------------------------------------
-        subroutine compare_corner_to_next_stage_bc_sections(
-     $     corner,
+        subroutine compare_square_to_next_stage_bc_sections(
+     $     square,
      $     bc_sections_sorted,
      $     k_min,
      $     j_stage)
 
           implicit none
 
-          integer, dimension(4)  , intent(in)    :: corner
+          integer, dimension(5)  , intent(in)    :: square
           integer, dimension(:,:), intent(inout) :: bc_sections_sorted
           integer                , intent(in)    :: k_min
           integer                , intent(in)    :: j_stage
@@ -1996,9 +1577,9 @@
 
              j = get_j_stage(bc_sections_sorted(:,k))
 
-             if(is_an_anti_corner(bc_sections_sorted(:,k))) then
+             if(is_a_square(bc_sections_sorted(:,k))) then
 
-                call overlap(corner,bc_sections_sorted(:,k))
+                call overlap(square,bc_sections_sorted(:,k))
 
              end if
 
@@ -2006,98 +1587,7 @@
 
           end do
 
-        end subroutine compare_corner_to_next_stage_bc_sections
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> modify the properties of the anti_corner boundary layer
-        !> to remove the computation of the grid-points in common
-        !> with the corner boundary layer
-        !
-        !> @date
-        !> 26_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param corner
-        !> boundary layer represented as [corner_type,i_min,j_min,extent]
-        !
-        !> @param anti-corner
-        !> boundary layer represented as [anti_corner_type,i_min,j_min,extent]
-        !--------------------------------------------------------------
-        subroutine overlap(corner,anti_corner)
-
-          implicit none
-
-          integer, dimension(4), intent(in)    :: corner
-          integer, dimension(4), intent(inout) :: anti_corner
-
-
-          if(corner(3).eq.anti_corner(3)) then
-
-          !i_corner = i_anti_corner+1 AND j_corner = j_anti_corner
-             if(corner(2).eq.(anti_corner(2)+1)) then
-                call overlap_E(anti_corner)
-             else
-             
-          !i_corner = i_anti_corner-1 AND j_corner = j_anti_corner
-                if(corner(2).eq.(anti_corner(2)-1)) then
-                   call overlap_W(anti_corner)
-                end if
-             end if
-          end if
-
-
-          if(corner(2).eq.anti_corner(2)) then
-
-          !j_corner = j_anti_corner+1 AND i_corner = i_anti_corner
-             if(corner(3).eq.(anti_corner(3)+1)) then
-                call overlap_N(anti_corner)
-             else
-             
-          !j_corner = j_anti_corner-1 AND i_corner = i_anti_corner
-                if(corner(3).eq.(anti_corner(3)-1)) then
-                   call overlap_S(anti_corner)
-                end if
-             end if
-          end if
-
-        end subroutine overlap
-
-
-        
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> check whether the boundary layer is an anti-corner
-        !
-        !> @date
-        !> 26_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param bc_section
-        !> boundary layer represented as [procedure_type,i_min,j_min,extent]
-        !--------------------------------------------------------------
-        function is_an_anti_corner(bc_section)
-
-          implicit none
-
-          integer, dimension(4), intent(in) :: bc_section
-          logical                           :: is_an_anti_corner
-
-          integer :: procedure_type
-
-          procedure_type = bc_section(1)
-
-          is_an_anti_corner = (procedure_type.eq.NE_edge_type).or.
-     $                        (procedure_type.eq.NW_edge_type).or.
-     $                        (procedure_type.eq.SE_edge_type).or.
-     $                        (procedure_type.eq.SW_edge_type)
-
-        end function is_an_anti_corner
+        end subroutine compare_square_to_next_stage_bc_sections        
 
 
         !> @author
@@ -2112,23 +1602,27 @@
         !> @param bc_section
         !> boundary layer represented as [procedure_type,i_min,j_min,extent]
         !--------------------------------------------------------------
-        function is_a_corner(bc_section)
+        function is_a_square(bc_section)
 
           implicit none
 
-          integer, dimension(4), intent(in) :: bc_section
-          logical                           :: is_a_corner
+          integer, dimension(5), intent(in) :: bc_section
+          logical                           :: is_a_square
 
           integer :: procedure_type
 
           procedure_type = bc_section(1)
 
-          is_a_corner = (procedure_type.eq.NE_corner_type).or.
+          is_a_square = (procedure_type.eq.NE_corner_type).or.
      $                  (procedure_type.eq.NW_corner_type).or.
      $                  (procedure_type.eq.SE_corner_type).or.
-     $                  (procedure_type.eq.SW_corner_type)
+     $                  (procedure_type.eq.SW_corner_type).or.
+     $                  (procedure_type.eq.NE_edge_type).or.
+     $                  (procedure_type.eq.NW_edge_type).or.
+     $                  (procedure_type.eq.SE_edge_type).or.
+     $                  (procedure_type.eq.SW_edge_type)
 
-        end function is_a_corner
+        end function is_a_square        
 
 
         !> @author
@@ -2447,82 +1941,5 @@
 
         end subroutine print_bc_procedure
 
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> determine which grid-points are computed when
-        !> the anti-corner bc_section is overlap by corner
-        !> bc_section
-        !
-        !> @date
-        !> 26_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param overlap_type
-        !> index identifying how the anti-corner bc_section
-        !> is overlaped by a neighboring corner bc_section
-        !
-        !> @param compute_point1
-        !> logical indicating whether the SW grid-point of
-        !> the bc_section should be computed
-        !
-        !> @param compute_point2
-        !> logical indicating whether the SE grid-point of
-        !> the bc_section should be computed
-        !
-        !> @param compute_point3
-        !> logical indicating whether the NW grid-point of
-        !> the bc_section should be computed
-        !
-        !> @param compute_point4
-        !> logical indicating whether the NE grid-point of
-        !> the bc_section should be computed
-        !--------------------------------------------------------------
-        subroutine determine_edge_points_computed(
-     $     overlap_type,
-     $     compute_point1,
-     $     compute_point2,
-     $     compute_point3,
-     $     compute_point4)
-
-          implicit none
-
-          integer, intent(in)  :: overlap_type
-          logical, intent(out) :: compute_point1
-          logical, intent(out) :: compute_point2
-          logical, intent(out) :: compute_point3
-          logical, intent(out) :: compute_point4
-
-
-          compute_point1 = .not.(
-     $         (overlap_type.eq.S_overlap).or.
-     $         (overlap_type.eq.W_overlap).or.
-     $         (overlap_type.eq.SE_overlap).or.
-     $         (overlap_type.eq.SW_overlap).or.
-     $         (overlap_type.eq.NW_overlap))
-
-          compute_point2 = .not.(
-     $         (overlap_type.eq.S_overlap).or.
-     $         (overlap_type.eq.E_overlap).or.
-     $         (overlap_type.eq.SE_overlap).or.
-     $         (overlap_type.eq.SW_overlap).or.
-     $         (overlap_type.eq.NE_overlap))
-
-          compute_point3 = .not.(
-     $         (overlap_type.eq.N_overlap).or.
-     $         (overlap_type.eq.W_overlap).or.
-     $         (overlap_type.eq.NW_overlap).or.
-     $         (overlap_type.eq.NE_overlap).or.
-     $         (overlap_type.eq.SW_overlap))
-
-          compute_point4 = .not.(
-     $         (overlap_type.eq.N_overlap).or.
-     $         (overlap_type.eq.E_overlap).or.
-     $         (overlap_type.eq.NE_overlap).or.
-     $         (overlap_type.eq.NW_overlap).or.
-     $         (overlap_type.eq.SE_overlap))
-
-        end subroutine determine_edge_points_computed
 
       end module bf_layer_bc_sections_class

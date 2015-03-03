@@ -83,8 +83,7 @@
         integer, parameter :: NW_edge_type=12
 
 
-        !convention for the overlap between anti-corners and corner
-        !bc_sections
+        !convention for the overlap of bc_sections
         !-------------------------------------------------------------
         integer, parameter :: no_overlap = 0
         integer, parameter :: N_overlap  = 1
@@ -97,6 +96,30 @@
         integer, parameter :: SW_overlap = 8
         integer, parameter :: NS_overlap = 9
         integer, parameter :: EW_overlap = 10
+
+
+        !convention for the overlap of grid-points between corners
+        !or between anti-corners
+        !-------------------------------------------------------------
+        integer, parameter :: cpt1normal_and_cpt4normal   = 0
+        integer, parameter :: cpt1normal_and_cpt4not      = 1
+        integer, parameter :: cpt1normal_and_cpt4overlap  = 2
+        integer, parameter :: cpt1not_and_cpt4normal      = 3
+        integer, parameter :: cpt1not_and_cpt4not         = 4
+        integer, parameter :: cpt1not_and_cpt4overlap     = 5
+        integer, parameter :: cpt1overlap_and_cpt4normal  = 6
+        integer, parameter :: cpt1overlap_and_cpt4not     = 7
+        integer, parameter :: cpt1overlap_and_cpt4overlap = 8
+
+        integer, parameter :: cpt2normal_and_cpt3normal   = 0
+        integer, parameter :: cpt2normal_and_cpt3not      = 1
+        integer, parameter :: cpt2normal_and_cpt3overlap  = 2
+        integer, parameter :: cpt2not_and_cpt3normal      = 3
+        integer, parameter :: cpt2not_and_cpt3not         = 4
+        integer, parameter :: cpt2not_and_cpt3overlap     = 5
+        integer, parameter :: cpt2overlap_and_cpt3normal  = 6
+        integer, parameter :: cpt2overlap_and_cpt3not     = 7
+        integer, parameter :: cpt2overlap_and_cpt3overlap = 8
 
 
         !convention for new grid-point procedures

@@ -54,12 +54,14 @@ yobc_dir		= $(obc_dir)/yoo_lodato_xy
 yobc_ns2d_dir		= $(yobc_dir)/yoo_lodato_ns2d
 
 bf_layer_dir		= $(obc_dir)/buffer_layer
+bbf_layer_dir		= $(bf_layer_dir)/bf_layer_bc_sections
 cbf_layer_dir		= $(bf_layer_dir)/bf_layer_computations
 dbf_layer_dir           = $(bf_layer_dir)/bf_layer_detectors
 gbf_layer_dir           = $(bf_layer_dir)/bf_layer_grdptsid
 iobf_layer_dir		= $(bf_layer_dir)/bf_layer_io_operators
 lbf_layer_dir           = $(bf_layer_dir)/bf_layer_list
 nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors
+ngbf_layer_dir		= $(bf_layer_dir)/bf_layer_newgrdpt
 pbf_layer_dir		= $(bf_layer_dir)/bf_layer_parents
 rbf_layer_dir           = $(bf_layer_dir)/bf_layer_restart
 sbf_layer_dir           = $(bf_layer_dir)/bf_layer_sync

@@ -12,6 +12,7 @@ test_bf_layer_extract:		bf_layer_extract_module.o\
 				parameters_kind.o
 
 
+#bf_layer_parents
 test_bf_layer_basic.o:		$(pbf_layer_dir)/bf_layer_basic_class.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
@@ -78,7 +79,9 @@ test_bf_layer_sync:		$(param_dep)\
 				$(bf_layer_sync_dep)\
 				check_data_module.o
 
-test_bf_newgrdpt_prim.o:	$(cbf_layer_dir)/bf_newgrdpt_class.o\
+
+#buffer_layer/bf_layer_newgrdpt
+test_bf_newgrdpt_prim.o:	$(ngbf_layer_dir)/bf_newgrdpt_class.o\
 				$(test_dir)/tools/check_data_module.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
 				$(param_dir)/parameters_constant.o\
@@ -94,12 +97,10 @@ test_bf_newgrdpt_prim:		check_data_module.o\
 				$(dim2d_dep)\
 				n_coords_module.o\
 				bf_newgrdpt_class.o\
-				bf_layer_errors_module.o\
-				bf_layer_extract_module.o\
-				bf_layer_newgrdpt_procedure_module.o
+				bf_layer_errors_module.o
 
-test_bf_newgrdpt_procedure.o:	$(cbf_layer_dir)/bf_newgrdpt_class.o\
-				$(cbf_layer_dir)/bf_newgrdpt_procedure_module.o\
+test_bf_newgrdpt_procedure.o:	$(ngbf_layer_dir)/bf_newgrdpt_class.o\
+				$(ngbf_layer_dir)/bf_newgrdpt_procedure_module.o\
 				$(test_dir)/tools/check_data_module.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
 				$(param_dir)/parameters_constant.o\
@@ -109,8 +110,6 @@ test_bf_newgrdpt_procedure.o:	$(cbf_layer_dir)/bf_newgrdpt_class.o\
 				$(mt_dir)/sd_operators_fd_module.o\
 				$(dim2d_dir)/dim2d_parameters.o
 
-
-
 test_bf_newgrdpt_procedure:	check_data_module.o\
 				$(param_dep)\
 				$(mt_dep)\
@@ -118,34 +117,53 @@ test_bf_newgrdpt_procedure:	check_data_module.o\
 				n_coords_module.o\
 				bf_newgrdpt_class.o\
 				bf_layer_errors_module.o\
-				bf_layer_extract_module.o\
-				bf_layer_newgrdpt_procedure_module.o\
 				bf_newgrdpt_procedure_module.o
 
-test_bf_newgrdpt_verification.o:$(cbf_layer_dir)/bf_newgrdpt_verification_module.o\
+test_bf_newgrdpt_verification.o:$(ngbf_layer_dir)/bf_newgrdpt_verification_module.o\
 				$(test_dir)/tools/check_data_module.o\
 				$(bf_layer_dir)/parameters_bf_layer.o
-
 
 test_bf_newgrdpt_verification:	parameters_bf_layer.o\
 				bf_newgrdpt_verification_module.o\
 				check_data_module.o
 
-test_bf_layer_bc_procedure.o:\
-			$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
-			$(bf_layer_dir)/parameters_bf_layer.o
 
-test_bf_layer_bc_procedure:\
-			parameters_kind.o\
-			parameters_bf_layer.o\
-			bf_layer_bc_procedure_module.o
+#buffer_layer/bf_layer_bc_sections
+test_bf_layer_bc_procedure.o:	$(bbf_layer_dir)/bf_layer_bc_procedure_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o
 
-test_bf_bc_sections_overlap.o:	$(cbf_layer_dir)/bf_bc_sections_overlap_module.o\
+test_bf_layer_bc_procedure:	parameters_kind.o\
+				parameters_bf_layer.o\
+				bf_layer_bc_procedure_module.o
+
+test_bf_layer_bc_sections_overlap.o:\
+				$(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
 				$(param_dir)/parameters_kind.o\
 				$(test_dir)/tools/check_data_module.o
 
-test_bf_bc_sections_overlap:	bf_bc_sections_overlap_module.o\
+test_bf_layer_bc_sections_overlap:\
+				bf_layer_bc_sections_overlap_module.o\
 				bf_layer_errors_module.o\
 				parameters_bf_layer.o\
+				check_data_module.o
+
+test_bf_interior_bc_sections.o:	$(bbf_layer_dir)/bf_interior_bc_sections_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_interior_bc_sections:	$(param_dep)\
+				parameters_bf_layer.o\
+				bf_interior_bc_sections_module.o
+
+test_bf_layer_bc_sections.o:	$(bbf_layer_dir)/bf_layer_bc_sections_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o
+
+test_bf_layer_bc_sections:	$(param_dep)\
+				bf_layer_bc_procedure_module.o\
+				bf_layer_errors_module.o\
+				bf_layer_bc_sections_overlap_module.o\
+				bf_layer_bc_sections_class.o\
 				check_data_module.o

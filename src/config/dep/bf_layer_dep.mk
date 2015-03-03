@@ -155,39 +155,41 @@ $(cbf_layer_dir)/bf_remove_module.o:\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o
 
-$(cbf_layer_dir)/bf_layer_bc_procedure_module.o:\
+#buffer layer bc_sections
+$(bbf_layer_dir)/bf_layer_bc_procedure_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o
 
-$(cbf_layer_dir)/bf_bc_sections_overlap_module.o:\
+$(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o
 
-$(cbf_layer_dir)/bf_layer_bc_sections_class.o:\
-	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
+$(bbf_layer_dir)/bf_layer_bc_sections_class.o:\
+	$(bbf_layer_dir)/bf_layer_bc_procedure_module.o\
+	$(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
-$(cbf_layer_dir)/bf_interior_bc_sections_module.o:\
+$(bbf_layer_dir)/bf_interior_bc_sections_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
-$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o:\
-	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
-	$(bf_layer_dir)/bf_layer_errors_module.o\
-	$(sbf_layer_dir)/bf_layer_extract_module.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
+#buffer layer computation of a new grid-point
+#$(ngbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o:\
+#	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
+#	$(bf_layer_dir)/bf_layer_errors_module.o\
+#	$(sbf_layer_dir)/bf_layer_extract_module.o\
+#	$(bf_layer_dir)/parameters_bf_layer.o\
+#	$(param_dir)/parameters_input.o\
+#	$(param_dir)/parameters_kind.o
 
-$(cbf_layer_dir)/bf_newgrdpt_verification_module.o:\
+$(ngbf_layer_dir)/bf_newgrdpt_verification_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o
 
-$(cbf_layer_dir)/bf_newgrdpt_class.o:\
-	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
-	$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\
+$(ngbf_layer_dir)/bf_newgrdpt_class.o:\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(sd_dir)/interface_primary.o\
 	$(sd_dir)/n_coords_module.o\
 	$(obc_dir)/openbc_operators_module.o\
@@ -197,10 +199,12 @@ $(cbf_layer_dir)/bf_newgrdpt_class.o:\
 	$(pm_cdir)/pmodel_eq_class.o\
 	$(sd_cdir)/sd_operators_fd_module.o
 
-$(cbf_layer_dir)/bf_newgrdpt_procedure_module.o:\
+$(ngbf_layer_dir)/bf_newgrdpt_procedure_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_kind.o
 
+
+#functions for the time integration of the buffer layer
 $(cbf_layer_dir)/bf_compute_class.o:\
 	$(bc_cdir)/bc_operators_class.o\
 	$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\

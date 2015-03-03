@@ -14,7 +14,7 @@
       !-----------------------------------------------------------------
       module bf_newgrdpt_class
 
-        use bf_layer_newgrdpt_procedure_module, only :
+        use bf_layer_errors_module, only :
      $       error_gradient_type
 
         use interface_primary, only :

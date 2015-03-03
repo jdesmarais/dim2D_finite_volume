@@ -42,8 +42,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 105
-        integer(ikind), parameter :: nty = 105
+        integer(ikind), parameter :: ntx = 10
+        integer(ikind), parameter :: nty = 10
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy

@@ -108,15 +108,15 @@ test_bf_layer_bc_sections:\
 			bf_layer_errors_module.o
 
 test_bf_interior_bc_sections.o:\
+			$(bbf_layer_dir)/bf_interior_bc_sections_module.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(cbf_layer_dir)/bf_interior_bc_sections_module.o\
-			$(cbf_layer_dir)/bf_layer_bc_procedure_module.o
+			$(param_dir)/parameters_kind.o
 
 test_bf_interior_bc_sections:\
 			$(param_dep)\
-			bf_interior_bc_sections_module.o\
-			bf_layer_bc_procedure_module.o
+			parameters_bf_layer.o\
+			bf_interior_bc_sections_module.o
 
 test_bf_compute.o:	$(bc_cdir)/bc_operators_class.o\
 			$(cbf_layer_dir)/bf_compute_class.o\
