@@ -24,13 +24,11 @@
      $       get_bc_interior_pt_procedure
 
         use bf_layer_bc_sections_overlap_module, only :
-     $       overlap_bc_section_by_integration_borders,
-     $       overlap_N,
-     $       overlap_S,
-     $       overlap_E,
-     $       overlap_W
+     $       overlap_square_bc_sections,
+     $       overlap_bc_section_by_integration_borders
 
         use bf_layer_errors_module, only :
+     $       error_bc_section_type,
      $       error_overlap_index,
      $       error_overlap_incompatible
 
@@ -52,35 +50,7 @@
      $       SE_edge_type,
      $       SW_edge_type,
      $       
-     $       no_overlap,
-     $       N_overlap,
-     $       S_overlap,
-     $       E_overlap,
-     $       W_overlap,
-     $       NE_overlap,
-     $       NW_overlap,
-     $       SE_overlap,
-     $       SW_overlap,
-     $       
-     $       cpt1not_and_cpt4not,
-     $       cpt1not_and_cpt4normal,
-     $       cpt1not_and_cpt4overlap,
-     $       cpt1normal_and_cpt4not,
-     $       cpt1normal_and_cpt4normal,
-     $       cpt1normal_and_cpt4overlap,
-     $       cpt1overlap_and_cpt4not,
-     $       cpt1overlap_and_cpt4normal,
-     $       cpt1overlap_and_cpt4overlap,
-     $       
-     $       cpt2not_and_cpt3not,
-     $       cpt2not_and_cpt3normal,
-     $       cpt2not_and_cpt3overlap,
-     $       cpt2normal_and_cpt3not,
-     $       cpt2normal_and_cpt3normal,
-     $       cpt2normal_and_cpt3overlap,
-     $       cpt2overlap_and_cpt3not,
-     $       cpt2overlap_and_cpt3normal,
-     $       cpt2overlap_and_cpt3overlap
+     $       no_overlap
         
         use parameters_input, only :
      $       bc_size
@@ -91,8 +61,7 @@
         implicit none
 
         private
-        public ::
-     $       bf_layer_bc_sections
+        public :: bf_layer_bc_sections
 
 
         integer, parameter :: max_bc_sections_temp = 6
@@ -169,9 +138,9 @@
         !> gather the bc_sections saved in final and temporary arrays
         !> and order them in increasing j and increasing i
         !
-        !> @param add_overlap_between_corners_and_anti_corners
+        !> @param check_square_overlap
         !> analyze the ordered bc_sections and mark the overlapping
-        !> gridpoints b/w the corner and anti-corner boundary layers
+        !> gridpoints b/w corner and anti-corner boundary layers
         !
         !> @param get_nb_ele_temp
         !> get the nb_ele_temp attribute
@@ -212,8 +181,9 @@
           procedure,   pass :: analyse_grdpt
 
           procedure,   pass :: sort_bc_sections
-          procedure, nopass :: check_anti_corners_overlap
-          
+          procedure, nopass :: check_square_overlap
+          procedure, nopass :: check_integration_overlap
+          procedure, nopass :: check_overlaps
           procedure,   pass :: finalize_bc_sections
 
           !only for tests
@@ -445,7 +415,6 @@
      $         NW_corner_type,
      $         SE_corner_type,
      $         SW_corner_type)
-
               
               call add_to_final_bc_sections(this,bc_section)
 
@@ -613,40 +582,51 @@
      $         grdpts_id,
      $         procedure_type,
      $         i_proc,
-     $         j_proc,ierror)
+     $         j_proc,
+     $         ierror)
 
-          bc_section(1)=procedure_type
+          if(ierror.eqv.BF_SUCCESS) then
+             bc_section(1)=procedure_type
 
-          select case(procedure_type)
-            case(N_edge_type,S_edge_type)
-               bc_section(2) = i_proc
-               bc_section(3) = i_proc
-               bc_section(4) = j_proc
 
-            case(E_edge_type,W_edge_type)
-               bc_section(2) = j_proc
-               bc_section(3) = j_proc
-               bc_section(4) = i_proc
+             select case(procedure_type)
 
-            case(SE_edge_type,SW_edge_type,NE_edge_type,NW_edge_type)
-               bc_section(2)=i_proc
-               bc_section(3)=j_proc
-               bc_section(5)=1
+               case(N_edge_type,S_edge_type)
+                  bc_section(2) = i_proc
+                  bc_section(3) = i_proc
+                  bc_section(4) = j_proc
 
-            case(SE_corner_type,SW_corner_type,NE_corner_type,NW_corner_type)
-               bc_section(2)=i_proc
-               bc_section(3)=j_proc
+               case(E_edge_type,W_edge_type)
+                  bc_section(2) = j_proc
+                  bc_section(3) = j_proc
+                  bc_section(4) = i_proc
 
-            case default
-               print '(''bf_layer_bc_sections'')'
-               print '(''get_bc_section'')'
-               print '(''procedure type: '',I2)', procedure_type
-               print '(''procedure not recognized'')'
-               print '(''****************************************'')'
-               print '()'
-               ierror = .not.BF_SUCCESS
-               
-          end select
+                case(SE_corner_type, SW_corner_type,
+     $               NE_corner_type, NW_corner_type,
+     $               SE_edge_type  , SW_edge_type,
+     $               NE_edge_type  , NW_edge_type)
+                  bc_section(2)=i_proc
+                  bc_section(3)=j_proc
+
+                case default
+                   print '(''bf_layer_bc_sections'')'
+                   print '(''get_bc_section'')'
+                   print '(''procedure type: '',I3)', procedure_type
+                   print '(''procedure not recognized'')'
+                   print '(''****************************************'')'
+                   print '()'
+                   ierror = .not.BF_SUCCESS
+             
+              end select
+
+           else
+              print '(''bf_layer_bc_sections'')'
+              print '(''get_bc_section'')'
+              print '(''get_bc_interior_pt_procedure failed'')'
+              print '(''****************************************'')'
+              print '()'
+              ierror = .not.BF_SUCCESS
+           end if
 
         end function get_bc_section
 
@@ -700,6 +680,7 @@
           logical                                :: compatible
 
           remove_ele = .false.
+          compatible = .false.
 
 
           !type of procedure
@@ -785,12 +766,7 @@
      $              (((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3))).and.(grdpts_id(i+1,j).eq.bc_interior_pt)).or.
      $              (((i.eq.bc_section(2)).and.(j.eq.(bc_section(3)+1))).and.(grdpts_id(i,j+1).eq.bc_interior_pt))
 
-               if(compatible) then
-                  bc_section(5) = bc_section(5)+1
-                  remove_ele = bc_section(5).eq.3
-               else
-                  remove_ele = j.gt.(bc_section(3)+1)
-               end if
+               remove_ele = j.gt.(bc_section(3)+1)
 
 
             !bc_section(2): i_min
@@ -802,12 +778,7 @@
      $              ((i.eq.bc_section(2)).and.(j.eq.(bc_section(3)+1))).or.
      $              (((i.eq.(bc_section(2)+1)).and.(j.eq.(bc_section(3)+1))).and.(grdpts_id(i+1,j).eq.bc_interior_pt))
 
-               if(compatible) then
-                  bc_section(5) = bc_section(5)+1
-                  remove_ele = bc_section(5).eq.3
-               else
-                  remove_ele = j.gt.(bc_section(3)+1)
-               end if
+               remove_ele = j.gt.(bc_section(3)+1)
 
 
             !bc_section(2): i_min
@@ -819,12 +790,7 @@
      $              (((i.eq.(bc_section(2))).and.(j.eq.(bc_section(3)+1))).and.(grdpts_id(i-1,j).eq.bc_interior_pt)).or.
      $              ((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3)+1))
 
-               if(compatible) then
-                  bc_section(5) = bc_section(5)+1
-                  remove_ele = bc_section(5).eq.3
-               else
-                  remove_ele = j.gt.(bc_section(3)+1)
-               end if
+               remove_ele = j.gt.(bc_section(3)+1)
 
 
             !bc_section(2): i_min
@@ -836,13 +802,7 @@
      $              ((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3))).or.
      $              (((i.eq.(bc_section(2)+1)).and.(j.eq.(bc_section(3)+1))).and.(grdpts_id(i,j+1).eq.bc_interior_pt))
 
-               if(compatible) then
-                  bc_section(5) = bc_section(5)+1
-                  remove_ele = bc_section(5).eq.3
-               else
-                  remove_ele = j.gt.(bc_section(3)+1)
-               end if
-
+               remove_ele = j.gt.(bc_section(3)+1)
 
           end select
 
@@ -1008,103 +968,17 @@
              
              end if
 
+          else
+             
+             print '(''bf_layer_bc_sections_class'')'
+             print '(''analyse_grdpt'')'
+             print '(''wrong indices (i,j)'')'
+             print '(''i.eq.1 or i.eq.size_x or j.eq.1 or j.eq.size_y'')'
+             stop ''
+
           end if
 
         end subroutine analyse_grdpt
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> finalize the bc_sections analyzed by the
-        !> bf_layer_bc_sections object:
-        !> 1) keep only the information needed to compute the
-        !>    boundary grid-points
-        !> 2) sort the bc_sections in increasing j and i to
-        !>    improve cache efficiency when computing the
-        !>    boundary layer gridpoints
-        !> 3) determine the overlap b/w the corner and anti-corner
-        !>    boundary procedures to prevent interactions and symetry
-        !>    violation when applying the boundary procedures
-        !> 4) determine the overlap b/w the anti-corners and the
-        !>    time integration borders
-        !> 5) deallocate the intermediate attributes used to analyze
-        !>    the boundary layers
-        !
-        !> @date
-        !> 26_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param this
-        !> bf_layer_bc_sections object encapsulating the
-        !> localization of the boundary layers
-        !
-        !> @param x_borders
-        !> x-borders for the time integration of the gridpoints
-        !
-        !> @param y_borders
-        !> y-borders for the time integration of the gridpoints
-        !
-        !> @param N_bc_sections
-        !> x-borders of the North gridpoints [size(2)-bc_size+1,size(2)]
-        !> computed with the time integration scheme
-        !
-        !> @param S_bc_sections
-        !> x-borders of the South gridpoints [1,bc_size] computed with
-        !> the time integration scheme
-        !
-        !> @param sorted_bc_sections
-        !> array with the boundary sections sorted in increasing j
-        !> and increasing i
-        !--------------------------------------------------------------
-        subroutine finalize_bc_sections(
-     $     this,
-     $     x_borders,
-     $     y_borders,
-     $     N_bc_sections,
-     $     S_bc_sections,
-     $     size_y,
-     $     sorted_bc_sections)
-
-          implicit none
-
-          class(bf_layer_bc_sections)                , intent(inout) :: this
-          integer(ikind), dimension(2)               , intent(in)    :: x_borders
-          integer(ikind), dimension(2)               , intent(in)    :: y_borders
-          integer       , dimension(:,:), allocatable, intent(in)    :: N_bc_sections
-          integer       , dimension(:,:), allocatable, intent(in)    :: S_bc_sections
-          integer(ikind)                             , intent(in)    :: size_y
-          integer       , dimension(:,:), allocatable, intent(out)   :: sorted_bc_sections
-          
-
-          !> 1) keep only the information needed to compute the
-          !>    boundary grid-points
-          !> 2) sort the bc_sections in increasing j and i to
-          !>    improve cache efficieny when computing the
-          !>    boundary layer gridpoints
-          call this%sort_bc_sections(sorted_bc_sections)
-
-
-          !4) deallocate the intermediate attributes used to analyze
-          !>  the boundary layers
-          call this%deallocate_tables()
-
-
-          !3) determine the overlap b/w the corner and anti-corner
-          !>  boundary procedures to prevent interactions and symetry
-          !>  violation when applying the boundary procedures
-          call this%check_square_overlap(
-     $         sorted_bc_sections)
-
-
-          !4) determine the overlap b/w the bc_sections and the
-          !>  integration borders
-          call this%check_integration_overlap(
-     $         sorted_bc_sections,
-     $         x_borders,
-     $         y_borders)          
-          
-        end subroutine finalize_bc_sections
 
 
         !> @author
@@ -1353,7 +1227,7 @@
      $           bc_section(1),
      $           bc_section(2),
      $           bc_section(3),
-     $           bc_sections(4),
+     $           no_overlap,
      $           no_overlap]
 
             case default
@@ -1373,10 +1247,7 @@
         !> @brief
         !> analyse the sorted elements of boundary layers to identify
         !> whether some boundary elements overlap (corners and
-        !> anti-corners) and whether all the gridpoints of the
-        !> anti-corners should be computed considering the integration
-        !> borders (.i.e. the borders identifying the gridpoints
-        !> computed by the time integration scheme in the buffer layer)
+        !> anti-corners)
         !
         !> @date
         !> 26_01_2015 - initial version - J.L. Desmarais
@@ -1400,12 +1271,16 @@
         !> x-borders of the South gridpoints [1,bc_size] computed with
         !> the time integration scheme
         !--------------------------------------------------------------
-        subroutine check_square_overlap(
-     $     bc_sections_sorted)
+        subroutine check_overlaps(
+     $     bc_sections_sorted,
+     $     x_borders,
+     $     y_borders)
 
           implicit none
 
-          integer       , dimension(:,:), intent(inout) :: bc_sections_sorted
+          integer, dimension(:,:), intent(inout) :: bc_sections_sorted
+          integer, dimension(2)  , intent(in)    :: x_borders
+          integer, dimension(2)  , intent(in)    :: y_borders
 
           integer :: k_prev_stage    !index where the bc_section for j-1 begins
           integer :: k_current_stage !index where the bc_section for j begins
@@ -1424,12 +1299,6 @@
           ! bc_sections_sorted
           do k=1, size(bc_sections_sorted,2)
 
-             !=============================================
-             ! checking the overlap between the corner
-             ! b.c. sections and the anti-corner b.c.
-             ! sections
-             !=============================================
-
              ! get the j_stage identifying the
              ! j_min component of the bc_section
              ! this way, we can determine how far
@@ -1447,6 +1316,11 @@
                 j_current_stage = j_stage
              end if
 
+             !=============================================
+             ! checking the overlap between the corner
+             ! b.c. sections and the anti-corner b.c.
+             ! sections
+             !=============================================
              ! if the bc_section analyzed is a corner,
              ! it should be compared to the bc_sections
              ! of the previous and the next stages
@@ -1454,23 +1328,26 @@
              ! overlap is possible
              if(is_a_square(bc_sections_sorted(:,k))) then
                 
-                call compare_square_to_previous_stage_bc_sections(
+                call check_square_overlap(
      $               bc_sections_sorted(:,k),
      $               bc_sections_sorted,
      $               k_prev_stage,
      $               k-1)
 
-                call compare_square_to_next_stage_bc_sections(
-     $               bc_sections_sorted(:,k),
-     $               bc_sections_sorted,
-     $               k+1,
-     $               j_stage)
-
              end if
+
+             !=============================================
+             ! checking the overlap between the bc_section
+             ! and the time integration borders
+             !=============================================
+             call check_integration_overlap(
+     $            bc_sections_sorted(:,k),
+     $            x_borders,
+     $            y_borders)
 
           end do
 
-        end subroutine check_square_overlap
+        end subroutine check_overlaps
 
 
         !> @author
@@ -1499,7 +1376,7 @@
         !> index identifying the last element compared in
         !> bc_sections_sorted
         !--------------------------------------------------------------
-        subroutine compare_square_to_previous_stage_bc_sections(
+        subroutine check_square_overlap(
      $     square,
      $     bc_sections_sorted,
      $     k_min,
@@ -1507,7 +1384,7 @@
 
           implicit none
 
-          integer, dimension(5)  , intent(in)    :: square
+          integer, dimension(5)  , intent(inout) :: square
           integer, dimension(:,:), intent(inout) :: bc_sections_sorted
           integer                , intent(in)    :: k_min
           integer                , intent(in)    :: k_max
@@ -1518,76 +1395,112 @@
 
              if(is_a_square(bc_sections_sorted(:,k))) then
 
-                call overlap_sqare_bc_sections(square,bc_sections_sorted(:,k))
+                call overlap_square_bc_sections(square,bc_sections_sorted(:,k))
 
              end if
 
           end do
 
-        end subroutine compare_square_to_previous_stage_bc_sections
+        end subroutine check_square_overlap        
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> compare the corner located at (i,j) with the boundary layer
-        !> elements located from k_min and whose y-position j is such
-        !> that j.le.(j_stage+1) to allow an overlap b/w the corner
-        !> element and the bc_section element
+        !> overlap the bc_section with the time integration borders
         !
         !> @date
         !> 26_01_2015 - initial version - J.L. Desmarais
         !
-        !> @param corner
-        !> boundary layer represented as [corner_type,i_min,j_min,extent]
+        !> @param bc_section
+        !> boundary section represented as [bc_section_type,i_min,j_min,extent,overlap]
+        
+        !> @param x_borders
+        !> [i_min,i_max] in the time integration
         !
-        !> @param bc_sections_sorted
-        !> boundary layers represented as
-        !> [procedure_type,i_min,j_min,extent]
-        !> and ordered with increasing i and increasing j
-        !
-        !> @param k_min
-        !> index identifying the first element compared in
-        !> bc_sections_sorted
-        !
-        !> @param j_stage
-        !> index identifying the y-position of the corner
+        !> @param y_borders
+        !> [j_min,j_max] in the time integration
         !--------------------------------------------------------------
-        subroutine compare_square_to_next_stage_bc_sections(
-     $     square,
-     $     bc_sections_sorted,
-     $     k_min,
-     $     j_stage)
+        subroutine check_integration_overlap(
+     $     bc_section,
+     $     x_borders,
+     $     y_borders)
 
           implicit none
 
-          integer, dimension(5)  , intent(in)    :: square
-          integer, dimension(:,:), intent(inout) :: bc_sections_sorted
-          integer                , intent(in)    :: k_min
-          integer                , intent(in)    :: j_stage
+          integer, dimension(5), intent(inout) :: bc_section
+          integer, dimension(2), intent(in)    :: x_borders
+          integer, dimension(2), intent(in)    :: y_borders
 
-          integer :: k
-          integer :: j
+          
+          integer, dimension(2,2) :: gen_borders
+          integer, dimension(2,2) :: bc_section_borders
 
-          k=k_min
-          j=j_stage
+          gen_borders(1,1) = x_borders(1)
+          gen_borders(1,2) = x_borders(2)
+          gen_borders(2,1) = y_borders(1)
+          gen_borders(2,2) = y_borders(2)
 
-          do while((k.le.size(bc_sections_sorted,2)).and.(j.le.(j_stage+1)))
 
-             j = get_j_stage(bc_sections_sorted(:,k))
+          select case(bc_section(1))
+            case(N_edge_type,S_edge_type)
+               bc_section_borders(1,1) = bc_section(2)
+               bc_section_borders(2,1) = bc_section(3)
+               bc_section_borders(1,2) = bc_section(4)
+               bc_section_borders(2,2) = bc_section(3)+1
 
-             if(is_a_square(bc_sections_sorted(:,k))) then
+               call overlap_bc_section_by_integration_borders(
+     $              bc_section(1),
+     $              bc_section_borders,
+     $              bc_section(5),
+     $              gen_borders)
 
-                call overlap(square,bc_sections_sorted(:,k))
+               bc_section(2) = bc_section_borders(1,1)
+               bc_section(3) = bc_section_borders(2,1)
+               bc_section(4) = bc_section_borders(1,2)
 
-             end if
+            case(E_edge_type,W_edge_type)
+               bc_section_borders(1,1) = bc_section(2)
+               bc_section_borders(2,1) = bc_section(3)
+               bc_section_borders(1,2) = bc_section(2)+1
+               bc_section_borders(2,2) = bc_section(4)
 
-             k=k+1
+               call overlap_bc_section_by_integration_borders(
+     $              bc_section(1),
+     $              bc_section_borders,
+     $              bc_section(5),
+     $              gen_borders)
 
-          end do
+               bc_section(2) = bc_section_borders(1,1)
+               bc_section(3) = bc_section_borders(2,1)
+               bc_section(4) = bc_section_borders(2,2)
 
-        end subroutine compare_square_to_next_stage_bc_sections        
+            case(   NE_corner_type, NW_corner_type,
+     $              SE_corner_type, SW_corner_type,
+     $              NE_edge_type,   NW_edge_type,
+     $              SE_edge_type,   SW_edge_type)
+
+               bc_section_borders(1,1) = bc_section(2)
+               bc_section_borders(2,1) = bc_section(3)
+               bc_section_borders(1,2) = bc_section(2)+1
+               bc_section_borders(2,2) = bc_section(3)+1
+
+               call overlap_bc_section_by_integration_borders(
+     $              bc_section(1),
+     $              bc_section_borders,
+     $              bc_section(5),
+     $              gen_borders)
+
+            case default
+               call error_bc_section_type(
+     $              'bf_layer_bc_sections_class',
+     $              'check_overlap_integration_borders',
+     $              bc_section(1))
+
+          end select
+
+        end subroutine check_integration_overlap
 
 
         !> @author
@@ -1654,6 +1567,85 @@
         !> Julien L. Desmarais
         !
         !> @brief
+        !> finalize the bc_sections analyzed by the
+        !> bf_layer_bc_sections object:
+        !> 1) keep only the information needed to compute the
+        !>    boundary grid-points
+        !> 2) sort the bc_sections in increasing j and i to
+        !>    improve cache efficiency when computing the
+        !>    boundary layer gridpoints
+        !> 3) determine the overlap b/w the corner and anti-corner
+        !>    boundary procedures to prevent interactions and symetry
+        !>    violation when applying the boundary procedures
+        !> 4) determine the overlap b/w the anti-corners and the
+        !>    time integration borders
+        !> 5) deallocate the intermediate attributes used to analyze
+        !>    the boundary layers
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !
+        !> @param x_borders
+        !> x-borders for the time integration of the gridpoints
+        !
+        !> @param y_borders
+        !> y-borders for the time integration of the gridpoints
+        !
+        !> @param N_bc_sections
+        !> x-borders of the North gridpoints [size(2)-bc_size+1,size(2)]
+        !> computed with the time integration scheme
+        !
+        !> @param S_bc_sections
+        !> x-borders of the South gridpoints [1,bc_size] computed with
+        !> the time integration scheme
+        !
+        !> @param sorted_bc_sections
+        !> array with the boundary sections sorted in increasing j
+        !> and increasing i
+        !--------------------------------------------------------------
+        subroutine finalize_bc_sections(
+     $     this,
+     $     x_borders,
+     $     y_borders,
+     $     sorted_bc_sections)
+
+          implicit none
+
+          class(bf_layer_bc_sections)                , intent(inout) :: this
+          integer(ikind), dimension(2)               , intent(in)    :: x_borders
+          integer(ikind), dimension(2)               , intent(in)    :: y_borders
+          integer       , dimension(:,:), allocatable, intent(out)   :: sorted_bc_sections
+          
+
+          !> 1) keep only the information needed to compute the
+          !>    boundary grid-points
+          !> 2) sort the bc_sections in increasing j and i to
+          !>    improve cache efficieny when computing the
+          !>    boundary layer gridpoints
+          call sort_bc_sections(this,sorted_bc_sections)
+
+
+          !4) deallocate the intermediate attributes used to analyze
+          !>  the boundary layers
+          call this%deallocate_tables()
+
+
+          !3) determine the overlap b/w the corner and anti-corner
+          !>  boundary procedures to prevent interactions and symetry
+          !>  violation when applying the boundary procedures
+          call check_overlaps(sorted_bc_sections,x_borders,y_borders)
+
+        end subroutine finalize_bc_sections
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> get the 'nb_ele_temp' attribute
         !
         !> @date
@@ -1705,59 +1697,6 @@
 
         end function get_nb_ele_final
 
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> print the boundary layers saved in the bc_sections
-        !
-        !> @date
-        !> 26_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param this
-        !> bf_layer_bc_sections object encapsulating the
-        !> localization of the boundary layers
-        !--------------------------------------------------------------
-        subroutine print_bc_sections(this)
-        
-          implicit none
-
-          class(bf_layer_bc_sections), intent(in) :: this
-
-          integer :: k
-
-
-          !print the bc_sections saved in this%bc_sections_temp
-          !and this%bc_sections_buffer
-          print '()'
-          print '(''temporary bc_sections'')'
-          do k=1, min(size(this%bc_sections_temp,2),this%nb_ele_temp)
-             call print_bc_procedure(
-     $            k,
-     $            this%bc_sections_temp(:,k))
-          end do
-
-          do k=1, min(size(this%bc_sections_buffer,2),
-     $         this%nb_ele_temp-max_bc_sections_temp)
-             call print_bc_procedure(
-     $            max_bc_sections_temp+k,
-     $            this%bc_sections_buffer(:,k))
-          end do
-          print '()'
-
-
-          !print the bc_sections saved in this%bc_sections_final
-          print '()'
-          print '(''final bc_sections'')'
-          do k=1, min(this%nb_ele_final,size(this%bc_sections_final,2))
-             call print_bc_procedure(
-     $            k,
-     $            this%bc_sections_final(:,k))
-          end do
-          print '()'
-
-        end subroutine print_bc_sections
 
 
         !> @author
@@ -1863,6 +1802,60 @@
           end if
 
         end subroutine get_bc_sections_final
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> print the boundary layers saved in the bc_sections
+        !
+        !> @date
+        !> 26_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_layer_bc_sections object encapsulating the
+        !> localization of the boundary layers
+        !--------------------------------------------------------------
+        subroutine print_bc_sections(this)
+        
+          implicit none
+
+          class(bf_layer_bc_sections), intent(in) :: this
+
+          integer :: k
+
+
+          !print the bc_sections saved in this%bc_sections_temp
+          !and this%bc_sections_buffer
+          print '()'
+          print '(''temporary bc_sections'')'
+          do k=1, min(size(this%bc_sections_temp,2),this%nb_ele_temp)
+             call print_bc_procedure(
+     $            k,
+     $            this%bc_sections_temp(:,k))
+          end do
+
+          do k=1, min(size(this%bc_sections_buffer,2),
+     $         this%nb_ele_temp-max_bc_sections_temp)
+             call print_bc_procedure(
+     $            max_bc_sections_temp+k,
+     $            this%bc_sections_buffer(:,k))
+          end do
+          print '()'
+
+
+          !print the bc_sections saved in this%bc_sections_final
+          print '()'
+          print '(''final bc_sections'')'
+          do k=1, min(this%nb_ele_final,size(this%bc_sections_final,2))
+             call print_bc_procedure(
+     $            k,
+     $            this%bc_sections_final(:,k))
+          end do
+          print '()'
+
+        end subroutine print_bc_sections
 
 
         !> @author

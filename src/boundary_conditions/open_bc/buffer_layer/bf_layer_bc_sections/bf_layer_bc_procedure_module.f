@@ -654,9 +654,15 @@
           !  -------
                    else
 
+          !  ---------
+          ! | 1/2 2 3 |
+          ! | 1   2*3 |
+          ! | 2   2 3 |
+          !  ---------
                       if(bc_procedure_extra_checks) then
                          if(.not.(
-     $                        (grdpts_id(i-1,j+1).eq.interior_pt).and.
+     $                        ((grdpts_id(i-1,j+1).eq.interior_pt).or.
+     $                         (grdpts_id(i-1,j+1).eq.bc_interior_pt)).and.
      $                        (grdpts_id(i+1,j+1).eq.bc_pt))) then
 
                             call error_bc_interior_pt_procedure(
@@ -766,6 +772,11 @@
           !  -------
                    if(grdpts_id(i+1,j+1).eq.bc_interior_pt) then
 
+          !  -------
+          ! | 3 3 2 |
+          ! | 2 2*2 |
+          ! | 2 1 1 |
+          !  -------
                       if(bc_procedure_extra_checks) then
                          if(grdpts_id(i+1,j-1).ne.interior_pt) then
                             call error_bc_interior_pt_procedure(
@@ -776,15 +787,19 @@
                       procedure_type = NW_edge_type
                       i_proc         = i
                       j_proc         = j
-          !  -------
-          ! | 3 3 3 |
-          ! | 2 2*2 |
-          ! | 2 1   |
-          !  -------                   
+
+          !  --------
+          ! | 3 3 3  |
+          ! | 2 2*2  |
+          ! | 2 1 1/2|
+          !  --------                  
                    else
 
                       if(bc_procedure_extra_checks) then
-                         if(grdpts_id(i+1,j-1).ne.interior_pt) then
+                         if(.not.(
+     $                        (grdpts_id(i+1,j-1).ne.interior_pt).or.
+     $                        (grdpts_id(i+1,j-1).ne.bc_interior_pt)
+     $                        ))then
                             call error_bc_interior_pt_procedure(
      $                           i,j,grdpts_id,ierror)
                          end if
@@ -950,11 +965,11 @@
                 end if
              end if
 
-          !  -------
+          !  ---------
           ! | 2/3 3 3 |
           ! | 2   2*3 |
           ! | 1   2 2 |
-          !  -------
+          !  ---------
              if(grdpts_id(i-1,j).eq.bc_interior_pt) then
 
                 if(bc_procedure_extra_checks) then
@@ -962,8 +977,8 @@
                    if(.not.(
      $                  ((grdpts_id(i-1,j+1).eq.bc_interior_pt).or.
      $                   (grdpts_id(i-1,j+1).eq.bc_pt)).and.
-     $                  (grdpts_id(i,j+1).eq.bc_pt).and.
-     $                  (grdpts_id(i+1,j+1).eq.bc_pt))) then
+     $                   (grdpts_id(i,j+1).eq.bc_pt).and.
+     $                   (grdpts_id(i+1,j+1).eq.bc_pt))) then
 
                       call error_bc_interior_pt_procedure(
      $                     i,j,grdpts_id,ierror)
@@ -1117,17 +1132,18 @@
                       i_proc         = i-1
                       j_proc         = j
 
-          !  -------
-          ! | 3 2 1 |
-          ! | 3 2*1 |
-          ! | 3 2 2 |
-          !  -------
+          !  --------
+          ! | 3 2 2/1|
+          ! | 3 2*1  |
+          ! | 3 2 2  |
+          !  --------
                    else
 
                       if(bc_procedure_extra_checks) then
                          if(.not.(
      $                        (grdpts_id(i-1,j+1).eq.bc_pt).and.
-     $                        (grdpts_id(i+1,j+1).eq.interior_pt)))then
+     $                        ((grdpts_id(i+1,j+1).eq.interior_pt).or.
+     $                         (grdpts_id(i+1,j+1).eq.bc_interior_pt))))then
                             call error_bc_interior_pt_procedure(
      $                           i,j,grdpts_id,ierror)
                          end if
@@ -1206,11 +1222,11 @@
           !  -------
           ! |   1 1 |
           ! | 2 2*1 |
-          ! | 3 2   |
+          ! | 3 2 x |
           !  -------
           else
 
-             !  -------
+             !  ---------
              ! | 2/1 1 1 |
              ! | 2   2*1 |
              ! | 3   2 1 |
@@ -1342,6 +1358,11 @@
           !  -------
           if(grdpts_id(i+1,j).eq.bc_pt) then
 
+          !  -------
+          ! | 2 2 3 |
+          ! | 1 2*3 |
+          ! | 1 2 3 |
+          !  -------
              if(bc_procedure_extra_checks) then
 
                 if(.not.(
@@ -1488,6 +1509,19 @@
           ! | 3 2 x |
           !  -------
              if(grdpts_id(i-1,j).eq.bc_pt) then
+
+                if(bc_procedure_extra_checks) then
+                   if(.not.(
+     $                  (grdpts_id(i-1,j-1).eq.bc_pt).and.
+     $                  (grdpts_id(i+1,j-1).eq.interior_pt).and.
+     $                  (grdpts_id(i+1,j).eq.interior_pt).and.
+     $                  (grdpts_id(i-1,j+1).eq.bc_pt).and.
+     $                  (grdpts_id(i+1,j+1).eq.interior_pt))) then
+                      call error_bc_interior_pt_procedure(
+     $                     i,j,grdpts_id,ierror)
+                   end if
+                end if
+
                 procedure_type = W_edge_type
                 i_proc         = i
                 j_proc         = j
@@ -1498,6 +1532,20 @@
           ! | 1 2 3 |
           !  -------
              else
+                
+                if(bc_procedure_extra_checks) then
+                   if(.not.(
+     $                  (grdpts_id(i-1,j-1).eq.interior_pt).and.
+     $                  (grdpts_id(i+1,j-1).eq.bc_pt).and.
+     $                  (grdpts_id(i-1,j).eq.interior_pt).and.
+     $                  (grdpts_id(i+1,j).eq.bc_pt).and.
+     $                  (grdpts_id(i-1,j+1).eq.interior_pt).and.
+     $                  (grdpts_id(i+1,j+1).eq.bc_pt))) then
+                      call error_bc_interior_pt_procedure(
+     $                     i,j,grdpts_id,ierror)
+                   end if
+                end if
+
                 procedure_type = E_edge_type
                 i_proc         = i
                 j_proc         = j

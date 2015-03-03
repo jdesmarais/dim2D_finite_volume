@@ -4,6 +4,7 @@
      $       bf_layer_bc_sections
 
         use check_data_module, only :
+     $       is_int_vector_validated,
      $       is_int_matrix_validated
 
         use parameters_bf_layer, only : 
@@ -29,11 +30,35 @@
      $       NW_overlap,
      $       SE_overlap,
      $       SW_overlap,
+     $       NS_overlap,
+     $       EW_overlap,
      $       
      $       interior_pt,
      $       bc_interior_pt,
      $       bc_pt,
-     $       no_pt
+     $       no_pt,
+     $       
+     $       BF_SUCCESS,
+     $       
+     $       cpt1normal_and_cpt4normal,   
+     $       cpt1normal_and_cpt4not,  
+     $       cpt1normal_and_cpt4overlap,
+     $       cpt1not_and_cpt4normal,
+     $       cpt1not_and_cpt4not,
+     $       cpt1not_and_cpt4overlap,
+     $       cpt1overlap_and_cpt4normal,
+     $       cpt1overlap_and_cpt4not,
+     $       cpt1overlap_and_cpt4overlap,
+     $       
+     $       cpt2normal_and_cpt3normal,
+     $       cpt2normal_and_cpt3not,  
+     $       cpt2normal_and_cpt3overlap,
+     $       cpt2not_and_cpt3normal, 
+     $       cpt2not_and_cpt3not,     
+     $       cpt2not_and_cpt3overlap,
+     $       cpt2overlap_and_cpt3normal,
+     $       cpt2overlap_and_cpt3not,
+     $       cpt2overlap_and_cpt3overlap
 
 
         implicit none
@@ -41,6 +66,9 @@
         logical :: detailled
         logical :: test_loc
         logical :: test_validated
+
+        detailled      = .true.
+        test_validated = .true.
 
 
         test_loc = test_ini(detailled)
@@ -53,29 +81,47 @@
         print '(''test_deallocate_tables: '',L1)', test_loc
         print '()'
 
-c$$$        test_loc = test_add_temporary_bc_section()
-c$$$        call test_add_final_bc_section()
-c$$$        call test_add_bc_sections()
-c$$$
-c$$$        !test remove_from_bc_sections_temp()
-c$$$        call test_remove_bc_section()
-c$$$
-c$$$        !test deallocate_tables()
-c$$$        call bc_sections%deallocate_tables()
-c$$$
-c$$$
-c$$$        !test get_bc_section()
-c$$$        call test_get_bc_section(.false.)
-c$$$
-c$$$        !test analyse_grdpt_with_bc_section()
-c$$$        call test_analyse_grdpt_with_bc_section(.false.)
-c$$$
-c$$$        !test analyse_grdpt()
-c$$$        call test_analyse_grdpt(.false.)
-c$$$
-c$$$        !test add_overlap_between_corners_and_anti_corners()
-c$$$        call test_add_overlap_between_corners_and_anti_corners(.true.)
-c$$$        
+        test_loc = test_add_to_temporary_bc_section(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_add_to_temporary_bc_section: '',L1)', test_loc
+        print '()'
+
+        test_loc = test_add_to_final_bc_section(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_add_to_final_bc_section: '',L1)', test_loc
+        print '()'
+
+        test_loc = test_add_to_bc_sections(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_add_to_bc_sections: '',L1)', test_loc
+        print '()'
+
+        test_loc = test_remove_from_bc_sections_temp(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_remove_from_bc_sections_temp: '',L1)', test_loc
+        print '()'
+
+        test_loc = test_remove_from_bc_sections_buffer(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_remove_from_bc_sections_buffer: '',L1)', test_loc
+        print '()'
+
+        test_loc = test_get_bc_section(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_get_bc_section: '',L1)', test_loc
+        print '()'
+
+        test_loc = test_analyse_grdpt_with_bc_section(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_analyse_grdpt_with_bc_section: '',L1)', test_loc
+        print '()'
+
+        test_loc = test_finalize_bc_sections(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_finalize_bc_sections: '',L1)', test_loc
+        print '()'        
+
+
         contains
 
         
@@ -133,165 +179,411 @@ c$$$
         end function test_deallocate_tables
 
 
-c$$$        function get_test_bc_section(k)
-c$$$     $       result(bc_section)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          integer, intent(in)   :: k
-c$$$          integer, dimension(5) :: bc_section
-c$$$
-c$$$          integer, dimension(12) :: proc_type
-c$$$
-c$$$          proc_type = [
-c$$$     $         N_edge_type,
-c$$$     $         S_edge_type,
-c$$$     $         E_edge_type,
-c$$$     $         W_edge_type,
-c$$$     $         NE_edge_type,
-c$$$     $         NW_edge_type,
-c$$$     $         SE_edge_type,
-c$$$     $         SW_edge_type,
-c$$$     $         NE_corner_type,
-c$$$     $         NW_corner_type,
-c$$$     $         SE_corner_type,
-c$$$     $         SW_corner_type]
-c$$$
-c$$$          bc_section = [
-c$$$     $         proc_type(k),
-c$$$     $         k,
-c$$$     $         k,
-c$$$     $         k+1,
-c$$$     $         mod(k,3)]
-c$$$
-c$$$        end function get_test_bc_section
-c$$$
-c$$$      
-c$$$        subroutine test_add_temporary_bc_section()
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          type(bf_layer_bc_sections)           :: bc_sections
-c$$$          integer                              :: k
-c$$$          integer, dimension(5)                :: new_bc_section
-c$$$          integer, dimension(5,6)              :: test_bc_sections_temp
-c$$$          integer, dimension(:,:), allocatable :: test_bc_sections_buffer
-c$$$          logical                              :: same
-c$$$
-c$$$
-c$$$          print '(''test add_to_temporary_bc_sections()'')'
-c$$$
-c$$$          !initialization
-c$$$          call bc_sections%ini()
-c$$$          
-c$$$          do k=1,9
-c$$$             new_bc_section = get_test_bc_section(k)
-c$$$             call bc_sections%add_to_temporary_bc_sections(new_bc_section)
-c$$$          end do
-c$$$
-c$$$          !test
-c$$$          test_bc_sections_temp = reshape(
-c$$$     $         (/
-c$$$     $         N_edge_type,1,1,2,0,
-c$$$     $         S_edge_type,2,2,3,1,
-c$$$     $         E_edge_type,3,3,4,2,
-c$$$     $         W_edge_type,4,4,5,0,
-c$$$     $         NE_edge_type,5,5,0,2,
-c$$$     $         NW_edge_type,6,6,0,0
-c$$$     $         /),
-c$$$     $         (/5,6/))
-c$$$          allocate(test_bc_sections_buffer(5,3))
-c$$$          test_bc_sections_buffer = reshape(
-c$$$     $         (/
-c$$$     $         SE_edge_type,7,7,0,1,
-c$$$     $         SW_edge_type,8,8,0,2,
-c$$$     $         NE_corner_type,9,9,0,0
-c$$$     $         /),
-c$$$     $         (/5,3/))
-c$$$
-c$$$          same = compare_bc_sections_temporary(
-c$$$     $         bc_sections,
-c$$$     $         test_bc_sections_temp,
-c$$$     $         test_bc_sections_buffer)
-c$$$
-c$$$          deallocate(test_bc_sections_buffer)
-c$$$
-c$$$          print '(''add_temporary_bc_sections: '',L1)', same
-c$$$          print '()'
-c$$$
-c$$$        end subroutine test_add_temporary_bc_section
-c$$$
-c$$$
-c$$$        subroutine test_add_final_bc_section()
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          type(bf_layer_bc_sections)           :: bc_sections
-c$$$          integer                              :: k
-c$$$          integer                              :: nb_ele_final
-c$$$          integer, dimension(:,:), allocatable :: bc_sections_final
-c$$$          integer, dimension(5,9)              :: test_bc_sections_final
-c$$$          logical                              :: same
-c$$$
-c$$$          integer, dimension(5) :: new_bc_section
-c$$$
-c$$$          print '(''test add_to_final_bc_sections()'')'
-c$$$
-c$$$          !initialization
-c$$$          call bc_sections%ini()
-c$$$          
-c$$$          do k=1,9
-c$$$             new_bc_section = get_test_bc_section(k)
-c$$$             call bc_sections%add_to_final_bc_sections(new_bc_section)
-c$$$          end do
-c$$$
-c$$$          !test
-c$$$          test_bc_sections_final = reshape(
-c$$$     $         (/
-c$$$     $         N_edge_type,1,1,2,0,
-c$$$     $         S_edge_type,2,2,3,1,
-c$$$     $         E_edge_type,3,3,4,2,
-c$$$     $         W_edge_type,4,4,5,0,
-c$$$     $         NE_edge_type,5,5,0,2,
-c$$$     $         NW_edge_type,6,6,0,0,
-c$$$     $         SE_edge_type,7,7,0,1,
-c$$$     $         SW_edge_type,8,8,0,2,
-c$$$     $         NE_corner_type,9,9,0,0
-c$$$     $         /),
-c$$$     $         (/5,9/))
-c$$$
-c$$$          same = .true.
-c$$$
-c$$$          nb_ele_final = bc_sections%get_nb_ele_final()
-c$$$          call bc_sections%get_bc_sections_final(bc_sections_final)
-c$$$
-c$$$          if(allocated(bc_sections_final)) then
-c$$$
-c$$$             do k=1, min(size(bc_sections_final,2),nb_ele_final)
-c$$$
-c$$$                same = compare_bc_procedure(
-c$$$     $               bc_sections_final(:,k),
-c$$$     $               test_bc_sections_final(:,k))
-c$$$
-c$$$                if(.not.same) then
-c$$$                   print '(''   k                    : '', I3)' , k
-c$$$                   print '(''   bc_section_final     : '', 5I3)', bc_sections_final(:,k)
-c$$$                   print '(''   test_bc_section_final: '', 5I3)', test_bc_sections_final(:,k)
-c$$$                   exit
-c$$$                end if
-c$$$
-c$$$             end do
-c$$$
-c$$$             deallocate(bc_sections_final)
-c$$$
-c$$$          end if
-c$$$
-c$$$          print '(''add_final_bc_sections: '',L1)', same
-c$$$          print '()'
-c$$$
-c$$$        end subroutine test_add_final_bc_section
-c$$$
-c$$$
+        function test_add_to_temporary_bc_section(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_bc_sections)           :: bc_sections
+          integer                              :: k
+          integer, dimension(5,12)             :: test_bc_section
+          integer, dimension(5,6)              :: test_bc_sections_temp
+          integer, dimension(5,6)              :: test_bc_sections_buffer
+          integer, dimension(:,:), allocatable :: bc_sections_temp
+          integer, dimension(:,:), allocatable :: bc_sections_buffer
+          logical                              :: test_loc
+
+
+          test_validated = .true.
+
+
+          !input
+          call bc_sections%ini()
+
+          test_bc_section = reshape((/
+     $         N_edge_type   ,1,1,2,0, 
+     $         S_edge_type   ,2,2,3,1, 
+     $         E_edge_type   ,3,3,4,2, 
+     $         W_edge_type   ,4,4,5,0, 
+     $         NE_edge_type  ,5,5,0,2, 
+     $         NW_edge_type  ,6,6,0,0, 
+     $         SE_edge_type  ,7,7,0,1, 
+     $         SW_edge_type  ,8,8,0,2, 
+     $         NE_corner_type,9,9,0,0, 
+     $         NW_corner_type,9,9,0,0, 
+     $         SE_corner_type,9,9,0,0,  
+     $         SW_corner_type,9,9,0,0/),
+     $         (/5,12/))
+          
+          test_bc_sections_temp = reshape(
+     $         (/
+     $         N_edge_type ,1,1,2,0,
+     $         S_edge_type ,2,2,3,1,
+     $         E_edge_type ,3,3,4,2,
+     $         W_edge_type ,4,4,5,0,
+     $         NE_edge_type,5,5,0,2,
+     $         NW_edge_type,6,6,0,0
+     $         /),
+     $         (/5,6/))
+
+          test_bc_sections_buffer = reshape((/
+     $         SE_edge_type  ,7,7,0,1,
+     $         SW_edge_type  ,8,8,0,2,
+     $         NE_corner_type,9,9,0,0,
+     $         NW_corner_type,9,9,0,0,
+     $         SE_corner_type,9,9,0,0, 
+     $         SW_corner_type,9,9,0,0
+     $         /),
+     $         (/5,6/))
+
+          !output
+          do k=1,size(test_bc_section,2)
+             call bc_sections%add_to_temporary_bc_sections(test_bc_section(:,k))
+          end do
+
+          !validation
+          call bc_sections%get_bc_sections_temp(bc_sections_temp)
+          call bc_sections%get_bc_sections_buffer(bc_sections_buffer)
+
+          test_loc = is_int_matrix_validated(bc_sections_temp,test_bc_sections_temp,detailled)
+          test_loc = test_loc.and.is_int_matrix_validated(bc_sections_buffer,test_bc_sections_buffer,detailled)
+          test_validated = test_validated.and.test_loc
+
+          !detailled
+          if(detailled.and.(.not.test_loc)) then
+             print '(''bc_sections_temp  : '',L1)', is_int_matrix_validated(bc_sections_temp  ,test_bc_sections_temp)
+             print '(''bc_sections_buffer: '',L1)', is_int_matrix_validated(bc_sections_buffer,test_bc_sections_buffer)
+          end if
+
+          deallocate(bc_sections_temp)
+          deallocate(bc_sections_buffer)
+
+        end function test_add_to_temporary_bc_section
+
+
+        function test_add_to_final_bc_section(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_bc_sections)           :: bc_sections
+          integer                              :: k
+          integer, dimension(5,12)             :: test_bc_section
+          integer, dimension(5,12)             :: test_bc_sections_final
+          integer, dimension(:,:), allocatable :: bc_sections_final
+          logical                              :: test_loc
+
+          test_validated = .true.
+
+
+          !input
+          call bc_sections%ini()
+
+          test_bc_section = reshape((/
+     $         N_edge_type   ,1,1,2,0, 
+     $         S_edge_type   ,2,2,3,1, 
+     $         E_edge_type   ,3,3,4,2, 
+     $         W_edge_type   ,4,4,5,0, 
+     $         NE_edge_type  ,5,5,0,2, 
+     $         NW_edge_type  ,6,6,0,0, 
+     $         SE_edge_type  ,7,7,0,1, 
+     $         SW_edge_type  ,8,8,0,2, 
+     $         NE_corner_type,9,9,0,0, 
+     $         NW_corner_type,9,9,0,0, 
+     $         SE_corner_type,9,9,0,0,  
+     $         SW_corner_type,9,9,0,0/),
+     $         (/5,12/))
+          
+          test_bc_sections_final = reshape(
+     $         (/
+     $         N_edge_type   ,1,1,2,0, 
+     $         S_edge_type   ,2,2,3,1, 
+     $         E_edge_type   ,3,3,4,2, 
+     $         W_edge_type   ,4,4,5,0, 
+     $         NE_edge_type  ,5,5,0,2, 
+     $         NW_edge_type  ,6,6,0,0, 
+     $         SE_edge_type  ,7,7,0,1, 
+     $         SW_edge_type  ,8,8,0,2, 
+     $         NE_corner_type,9,9,0,0, 
+     $         NW_corner_type,9,9,0,0, 
+     $         SE_corner_type,9,9,0,0,  
+     $         SW_corner_type,9,9,0,0/),
+     $         (/5,12/))
+
+
+          !output
+          do k=1,size(test_bc_section,2)
+             call bc_sections%add_to_final_bc_sections(test_bc_section(:,k))
+          end do
+
+          !validation
+          call bc_sections%get_bc_sections_final(bc_sections_final)
+          test_loc = is_int_matrix_validated(bc_sections_final,test_bc_sections_final)
+          test_validated = test_validated.and.test_loc
+
+          !detailled
+          if(detailled.and.(.not.test_loc)) then
+             print '(''bc_sections_final: '',L1)', is_int_matrix_validated(bc_sections_final,test_bc_sections_final)
+          end if
+
+          deallocate(bc_sections_final)
+
+        end function test_add_to_final_bc_section
+
+
+        function test_add_to_bc_sections(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_bc_sections)           :: bc_sections
+          integer                              :: k
+          integer, dimension(5,12)             :: test_bc_section
+          integer, dimension(5,6)              :: test_bc_sections_temp
+          integer, dimension(5,2)              :: test_bc_sections_buffer
+          integer, dimension(5,4)              :: test_bc_sections_final
+          integer, dimension(:,:), allocatable :: bc_sections_temp
+          integer, dimension(:,:), allocatable :: bc_sections_buffer
+          integer, dimension(:,:), allocatable :: bc_sections_final
+          logical                              :: test_loc
+
+          test_validated = .true.
+
+
+          !input
+          call bc_sections%ini()
+
+          test_bc_section = reshape((/
+     $         N_edge_type   ,1,1,2,0, 
+     $         S_edge_type   ,2,2,3,1, 
+     $         E_edge_type   ,3,3,4,2, 
+     $         W_edge_type   ,4,4,5,0, 
+     $         NE_edge_type  ,5,5,0,2, 
+     $         NW_edge_type  ,6,6,0,0, 
+     $         SE_edge_type  ,7,7,0,1, 
+     $         SW_edge_type  ,8,8,0,2, 
+     $         NE_corner_type,9,9,0,0, 
+     $         NW_corner_type,9,9,0,0, 
+     $         SE_corner_type,9,9,0,0,  
+     $         SW_corner_type,9,9,0,0/),
+     $         (/5,12/))
+
+          test_bc_sections_temp = reshape((/
+     $         N_edge_type   ,1,1,2,0, 
+     $         S_edge_type   ,2,2,3,1, 
+     $         E_edge_type   ,3,3,4,2, 
+     $         W_edge_type   ,4,4,5,0, 
+     $         NE_edge_type  ,5,5,0,2, 
+     $         NW_edge_type  ,6,6,0,0/),
+     $         (/5,6/))
+
+          test_bc_sections_buffer = reshape((/
+     $         SE_edge_type  ,7,7,0,1, 
+     $         SW_edge_type  ,8,8,0,2/),
+     $         (/5,2/))
+
+          test_bc_sections_final = reshape((/
+     $         NE_corner_type,9,9,0,0, 
+     $         NW_corner_type,9,9,0,0, 
+     $         SE_corner_type,9,9,0,0,  
+     $         SW_corner_type,9,9,0,0/),
+     $         (/5,4/))
+
+          !output
+          do k=1,size(test_bc_section,2)
+             call bc_sections%add_to_bc_sections(test_bc_section(:,k))
+          end do
+
+          !validation
+          call bc_sections%get_bc_sections_temp(bc_sections_temp)
+          test_loc = is_int_matrix_validated(bc_sections_temp,test_bc_sections_temp)
+          test_validated = test_validated.and.test_loc
+
+          call bc_sections%get_bc_sections_buffer(bc_sections_buffer)
+          test_loc = is_int_matrix_validated(bc_sections_buffer,test_bc_sections_buffer)
+          test_validated = test_validated.and.test_loc
+
+          call bc_sections%get_bc_sections_final(bc_sections_final)
+          test_loc = is_int_matrix_validated(bc_sections_final(:,1:4),test_bc_sections_final)
+          test_validated = test_validated.and.test_loc
+
+          !detailled
+          if(detailled.and.(.not.test_loc)) then
+             print '(''bc_sections_temp: '',L1)', is_int_matrix_validated(bc_sections_temp,test_bc_sections_temp)
+             print '(''bc_sections_buffer: '',L1)', is_int_matrix_validated(bc_sections_buffer,test_bc_sections_buffer)
+             print '(''bc_sections_final: '',L1)', is_int_matrix_validated(bc_sections_final(:,1:4),test_bc_sections_final)
+          end if
+
+          deallocate(bc_sections_final)
+
+        end function test_add_to_bc_sections
+
+
+        function test_remove_from_bc_sections_temp(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_bc_sections)           :: bc_sections
+          integer                              :: k
+          integer, dimension(5,8)              :: test_bc_section
+          integer, dimension(5,6)              :: test_bc_sections_temp
+          integer, dimension(5,1)              :: test_bc_sections_buffer
+          integer, dimension(:,:), allocatable :: bc_sections_temp
+          integer, dimension(:,:), allocatable :: bc_sections_buffer
+          logical                              :: test_loc
+
+          test_validated = .true.
+
+
+          !input
+          call bc_sections%ini()
+
+          test_bc_section = reshape((/
+     $         N_edge_type   ,1,1,2,0, 
+     $         S_edge_type   ,2,2,3,1, 
+     $         E_edge_type   ,3,3,4,2, 
+     $         W_edge_type   ,4,4,5,0, 
+     $         NE_edge_type  ,5,5,0,2, 
+     $         NW_edge_type  ,6,6,0,0, 
+     $         SE_edge_type  ,7,7,0,1, 
+     $         SW_edge_type  ,8,8,0,2/),
+     $         (/5,8/))
+
+          test_bc_sections_temp = reshape((/
+     $         N_edge_type   ,1,1,2,0,
+     $         E_edge_type   ,3,3,4,2, 
+     $         W_edge_type   ,4,4,5,0, 
+     $         NE_edge_type  ,5,5,0,2, 
+     $         NW_edge_type  ,6,6,0,0,
+     $         SE_edge_type  ,7,7,0,1/),
+     $         (/5,6/))
+
+          test_bc_sections_buffer = reshape((/
+     $         SW_edge_type  ,8,8,0,2/),
+     $         (/5,1/))
+
+          !output
+          do k=1,size(test_bc_section,2)
+             call bc_sections%add_to_bc_sections(test_bc_section(:,k))
+          end do
+          call bc_sections%remove_from_bc_sections_temp(2)
+
+          !validation
+          call bc_sections%get_bc_sections_temp(bc_sections_temp)
+          test_loc = is_int_matrix_validated(bc_sections_temp,test_bc_sections_temp)
+          test_validated = test_validated.and.test_loc
+
+          call bc_sections%get_bc_sections_buffer(bc_sections_buffer)
+          test_loc = is_int_matrix_validated(bc_sections_buffer(:,1:1),test_bc_sections_buffer)
+          test_validated = test_validated.and.test_loc
+
+          !detailled
+          if(detailled.and.(.not.test_loc)) then
+             print '(''bc_sections_temp: '',L1)', is_int_matrix_validated(bc_sections_temp,test_bc_sections_temp)
+             print '(''bc_sections_buffer: '',L1)', is_int_matrix_validated(bc_sections_buffer(:,1:1),test_bc_sections_buffer)
+          end if
+
+          deallocate(bc_sections_temp)
+          deallocate(bc_sections_buffer)
+
+        end function test_remove_from_bc_sections_temp
+
+
+        function test_remove_from_bc_sections_buffer(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_bc_sections)           :: bc_sections
+          integer                              :: k
+          integer, dimension(5,12)             :: test_bc_section
+          integer, dimension(5,6)              :: test_bc_sections_temp
+          integer, dimension(5,5)              :: test_bc_sections_buffer
+          integer, dimension(:,:), allocatable :: bc_sections_temp
+          integer, dimension(:,:), allocatable :: bc_sections_buffer
+          logical                              :: test_loc
+
+          test_validated = .true.
+
+
+          !input
+          call bc_sections%ini()
+
+          test_bc_section = reshape((/
+     $         N_edge_type   ,1,1,2,0, 
+     $         S_edge_type   ,2,2,3,1, 
+     $         E_edge_type   ,3,3,4,2, 
+     $         W_edge_type   ,4,4,5,0, 
+     $         NE_edge_type  ,5,5,0,2, 
+     $         NW_edge_type  ,6,6,0,0, 
+     $         SE_edge_type  ,7,7,0,1, 
+     $         SW_edge_type  ,8,8,0,2,
+     $         NE_corner_type,9,9,0,0, 
+     $         NW_corner_type,9,9,0,0, 
+     $         SE_corner_type,9,9,0,0,  
+     $         SW_corner_type,9,9,0,0/),
+     $         (/5,12/))
+
+          test_bc_sections_temp = reshape((/
+     $         N_edge_type   ,1,1,2,0,
+     $         S_edge_type   ,2,2,3,1, 
+     $         E_edge_type   ,3,3,4,2, 
+     $         W_edge_type   ,4,4,5,0, 
+     $         NE_edge_type  ,5,5,0,2, 
+     $         NW_edge_type  ,6,6,0,0/),
+     $         (/5,6/))
+
+          test_bc_sections_buffer = reshape((/
+     $         SE_edge_type  ,7,7,0,1,
+     $         SW_edge_type  ,8,8,0,2,
+     $         NE_corner_type,9,9,0,0, 
+     $         NW_corner_type,9,9,0,0, 
+     $         SW_corner_type,9,9,0,0/),
+     $         (/5,5/))
+
+          !output
+          do k=1,size(test_bc_section,2)
+             call bc_sections%add_to_temporary_bc_sections(test_bc_section(:,k))
+          end do
+          call bc_sections%remove_from_bc_sections_buffer(5)
+
+          !validation
+          call bc_sections%get_bc_sections_temp(bc_sections_temp)
+          test_loc = is_int_matrix_validated(bc_sections_temp,test_bc_sections_temp)
+          test_validated = test_validated.and.test_loc
+
+          call bc_sections%get_bc_sections_buffer(bc_sections_buffer)
+          test_loc = is_int_matrix_validated(bc_sections_buffer(:,1:5),test_bc_sections_buffer)
+          test_validated = test_validated.and.test_loc
+
+          !detailled
+          if(detailled.and.(.not.test_loc)) then
+             print '(''bc_sections_temp: '',L1)', is_int_matrix_validated(bc_sections_temp,test_bc_sections_temp)
+             print '(''bc_sections_buffer: '',L1)', is_int_matrix_validated(bc_sections_buffer(:,1:5),test_bc_sections_buffer)
+          end if
+
+          deallocate(bc_sections_temp)
+          deallocate(bc_sections_buffer)
+
+        end function test_remove_from_bc_sections_buffer
+
+
 c$$$        subroutine test_add_bc_sections()
 c$$$
 c$$$          implicit none
@@ -742,923 +1034,717 @@ c$$$             stop 'case not recognized'
 c$$$        end select
 c$$$
 c$$$      end function compare_bc_procedure
-c$$$
-c$$$
-c$$$      subroutine make_test_get_bc_section(
-c$$$     $       test_id,
-c$$$     $       grdpts_id,
-c$$$     $       test_i,
-c$$$     $       test_j,
-c$$$     $       test_bc_section)
-c$$$        
-c$$$          implicit none
-c$$$
-c$$$          integer                             , intent(in)  :: test_id
-c$$$          integer, dimension(:,:), allocatable, intent(out) :: grdpts_id
-c$$$          integer                             , intent(out) :: test_i
-c$$$          integer                             , intent(out) :: test_j
-c$$$          integer, dimension(5)               , intent(out) :: test_bc_section
-c$$$
-c$$$          
-c$$$          allocate(grdpts_id(3,3))
-c$$$          test_i = 2
-c$$$          test_j = 2
-c$$$
-c$$$          select case(test_id)
-c$$$            case(1)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              bc_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,interior_pt,
-c$$$     $              interior_pt,interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = SW_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(5) = 1
-c$$$
-c$$$            case(2)
-c$$$               grdpts_id =  reshape(
-c$$$     $              (/
-c$$$     $              interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              bc_pt,bc_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = NE_corner_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$
-c$$$            case(3)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              bc_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = NW_corner_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 2
-c$$$
-c$$$            case(4)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              interior_pt,interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = SE_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(5) = 1
-c$$$
-c$$$            case(5)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = E_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 2
-c$$$
-c$$$            case(6)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_interior_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = NW_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(5) = 1
-c$$$
-c$$$            case(7)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = NE_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(5) = 1
-c$$$
-c$$$            case(8)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = W_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 2
-c$$$               
-c$$$            case(9)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = E_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 2
-c$$$
-c$$$            case(10)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = SW_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(5) = 1
-c$$$
-c$$$            case(11)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = SE_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(5) = 1
-c$$$
-c$$$            case(12)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,bc_interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = W_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 2
-c$$$
-c$$$            case(13)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = E_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 2
-c$$$
-c$$$            case(14)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = W_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 2
-c$$$
-c$$$            case(15)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_pt,bc_pt,bc_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = SE_corner_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 1
-c$$$
-c$$$            case(16)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              interior_pt,interior_pt,interior_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = NW_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(5) = 1
-c$$$
-c$$$            case(17)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_interior_pt,bc_pt,bc_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              interior_pt,interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = SE_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(5) = 1
-c$$$
-c$$$            case(18)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_interior_pt,interior_pt,interior_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = N_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 2
-c$$$
-c$$$            case(19)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              interior_pt,interior_pt,bc_interior_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = N_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 2
-c$$$
-c$$$            case(20)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_pt,bc_pt,bc_interior_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              interior_pt,interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = SW_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(5) = 1
-c$$$
-c$$$            case(21)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_pt,bc_pt,bc_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              bc_interior_pt,interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = S_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 2
-c$$$
-c$$$            case(22)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              interior_pt,interior_pt,interior_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              bc_interior_pt,bc_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = NE_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(5) = 1
-c$$$
-c$$$            case(23)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              interior_pt,interior_pt,interior_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_pt,bc_interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = NW_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(5) = 1
-c$$$
-c$$$            case(24)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_pt,bc_pt,bc_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              interior_pt,interior_pt,bc_interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = S_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 2
-c$$$
-c$$$            case(25)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_pt,bc_pt,bc_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              interior_pt,interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = S_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 2
-c$$$
-c$$$            case(26)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              interior_pt,interior_pt,interior_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = N_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 2
-c$$$
-c$$$            case(27)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              bc_pt,bc_pt,bc_pt,
-c$$$     $              bc_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = SW_corner_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 1
-c$$$
-c$$$            case(28)
-c$$$               grdpts_id = reshape( (/
-c$$$     $              interior_pt,interior_pt,interior_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$               test_bc_section(1) = NE_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(5) = 1
-c$$$
-c$$$            case default
-c$$$               print '(''test_bf_layer_bc_procedure'')'
-c$$$               print '(''make_test_bf_layer_bc_procedure'')'
-c$$$               print '(''test case not implemented: '', I2)', test_id
-c$$$               stop ''
-c$$$
-c$$$          end select
-c$$$
-c$$$        end subroutine make_test_get_bc_section
-c$$$
-c$$$
-c$$$        subroutine make_test_analyse_grdpt_with_bc_section(
-c$$$     $       test_id,
-c$$$     $       grdpts_id,
-c$$$     $       test_i,
-c$$$     $       test_j,
-c$$$     $       test_bc_section,
-c$$$     $       test_compatible,
-c$$$     $       test_remove_ele)
-c$$$        
-c$$$          implicit none
-c$$$
-c$$$          integer                             , intent(in)  :: test_id
-c$$$          integer, dimension(:,:), allocatable, intent(out) :: grdpts_id
-c$$$          integer                             , intent(out) :: test_i
-c$$$          integer                             , intent(out) :: test_j
-c$$$          integer, dimension(5)               , intent(out) :: test_bc_section
-c$$$          logical                             , intent(out) :: test_compatible
-c$$$          logical                             , intent(out) :: test_remove_ele
-c$$$
-c$$$          
-c$$$          allocate(grdpts_id(3,3))
-c$$$
-c$$$          select case(test_id)
-c$$$
-c$$$            !test W_edge: compatible
-c$$$
-c$$$            !  -------    
-c$$$            ! | 2 1 0 |
-c$$$            ! | 2 1*0 |
-c$$$            ! | 2 1 0 |
-c$$$            !  -------
-c$$$            case(1)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              bc_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,interior_pt,
-c$$$     $              bc_pt,bc_interior_pt,interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$
-c$$$               test_i             = 2
-c$$$               test_j             = 2
-c$$$
-c$$$               test_bc_section(1) = W_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(4) = 2
-c$$$               test_bc_section(5) = 0
-c$$$               test_compatible    = .true.
-c$$$               test_remove_ele    = .false.
-c$$$
-c$$$            !test E_edge: compatible
-c$$$
-c$$$            !  -------    
-c$$$            ! | 1 2   |
-c$$$            ! | 1*2   |
-c$$$            ! | 1 2   |
-c$$$            !  -------
-c$$$            case(2)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              bc_interior_pt,bc_pt,no_pt,
-c$$$     $              bc_interior_pt,bc_pt,no_pt,
-c$$$     $              bc_interior_pt,bc_pt,no_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$
-c$$$               test_i             = 1
-c$$$               test_j             = 2
-c$$$
-c$$$               test_bc_section(1) = E_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(4) = 1
-c$$$               test_bc_section(5) = 0
-c$$$               test_compatible    = .true.
-c$$$               test_remove_ele    = .false.
-c$$$
-c$$$            !test N_edge: compatible
-c$$$
-c$$$            !  -------    
-c$$$            ! |       |
-c$$$            ! | 2 2 2 |
-c$$$            ! | 1 1*1 |
-c$$$            !  -------
-c$$$            case(3)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_pt,bc_pt,
-c$$$     $              no_pt,no_pt,no_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$
-c$$$               test_i             = 2
-c$$$               test_j             = 1
-c$$$
-c$$$               test_bc_section(1) = N_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(4) = 1
-c$$$               test_bc_section(5) = 0
-c$$$               test_compatible    = .true.
-c$$$               test_remove_ele    = .false.
-c$$$
-c$$$            !test S_edge: compatible
-c$$$
-c$$$            !  -------    
-c$$$            ! | 1 1*1 |
-c$$$            ! | 2 2 2 |
-c$$$            ! |       |
-c$$$            !  -------
-c$$$            case(4)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              no_pt,no_pt,no_pt,
-c$$$     $              bc_pt,bc_pt,bc_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$
-c$$$               test_i             = 2
-c$$$               test_j             = 3
-c$$$
-c$$$               test_bc_section(1) = S_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(4) = 3
-c$$$               test_bc_section(5) = 0
-c$$$               test_compatible    = .true.
-c$$$               test_remove_ele    = .false.
-c$$$
-c$$$            !test W_edge: not compatible
-c$$$
-c$$$            !  -------
-c$$$            ! | 1 1 1 |
-c$$$            ! | 2 2 1*|
-c$$$            ! |   2 1 |
-c$$$            !  -------
-c$$$            case(5)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              no_pt,bc_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_pt,bc_interior_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$
-c$$$               test_i             = 3
-c$$$               test_j             = 2
-c$$$
-c$$$               test_bc_section(1) = W_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(4) = 3
-c$$$               test_bc_section(5) = 0
-c$$$               test_compatible    = .false.
-c$$$               test_remove_ele    = .false.
-c$$$
-c$$$            !test E_edge: not compatible
-c$$$
-c$$$            !  -------    
-c$$$            ! | 1 1 1 |
-c$$$            ! | 1*2 2 |
-c$$$            ! | 1 2   |
-c$$$            !  -------
-c$$$            case(6)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              bc_interior_pt,bc_pt,no_pt,
-c$$$     $              bc_interior_pt,bc_pt,bc_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$
-c$$$               test_i             = 1
-c$$$               test_j             = 2
-c$$$
-c$$$               test_bc_section(1) = E_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(4) = 1
-c$$$               test_bc_section(5) = 0
-c$$$               test_compatible    = .false.
-c$$$               test_remove_ele    = .false.
-c$$$
-c$$$            !test N_edge: not compatible
-c$$$
-c$$$            !  -------    
-c$$$            ! |   2 1 |
-c$$$            ! | 2 2 1 |
-c$$$            ! | 1 1*1 |
-c$$$            !  -------
-c$$$            case(7)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_pt,bc_interior_pt,
-c$$$     $              no_pt,bc_pt,bc_interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$
-c$$$               test_i             = 2
-c$$$               test_j             = 1
-c$$$
-c$$$               test_bc_section(1) = N_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(4) = 1
-c$$$               test_bc_section(5) = 0
-c$$$               test_compatible    = .false.
-c$$$               test_remove_ele    = .false.
-c$$$
-c$$$            !test S_edge: not compatible
-c$$$
-c$$$            !  -------    
-c$$$            ! | 1 1*1 |
-c$$$            ! | 2 2 1 |
-c$$$            ! |   2 1 |
-c$$$            !  -------
-c$$$            case(8)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              no_pt,bc_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_pt,bc_interior_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$
-c$$$               test_i             = 2
-c$$$               test_j             = 3
-c$$$
-c$$$               test_bc_section(1) = S_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(4) = 3
-c$$$               test_bc_section(5) = 0
-c$$$               test_compatible    = .false.
-c$$$               test_remove_ele    = .false.
-c$$$
-c$$$            !test SW_edge: compatible
-c$$$
-c$$$            !  -------    
-c$$$            ! | 1 1 1 |
-c$$$            ! | 2 2 1*|
-c$$$            ! |   2 1 |
-c$$$            !  -------
-c$$$            case(9)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              no_pt,bc_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_pt,bc_interior_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$
-c$$$               test_i             = 3
-c$$$               test_j             = 2
-c$$$
-c$$$               test_bc_section(1) = SW_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 0
-c$$$               test_bc_section(5) = 1
-c$$$               test_compatible    = .true.
-c$$$               test_remove_ele    = .false.
-c$$$
-c$$$            !test SE_edge: compatible
-c$$$
-c$$$            !  -------    
-c$$$            ! | 1 1 1 |
-c$$$            ! | 1*2 2 |
-c$$$            ! | 1 2   |
-c$$$            !  -------
-c$$$            case(10)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              bc_interior_pt,bc_pt,no_pt,
-c$$$     $              bc_interior_pt,bc_pt,bc_pt,
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$
-c$$$               test_i             = 1
-c$$$               test_j             = 2
-c$$$
-c$$$               test_bc_section(1) = SE_edge_type
-c$$$               test_bc_section(2) = 1
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 0
-c$$$               test_bc_section(5) = 2
-c$$$               test_compatible    = .true.
-c$$$               test_remove_ele    = .true.
-c$$$
-c$$$            !test NW_edge: compatible
-c$$$
-c$$$            !  -------    
-c$$$            ! |   2 1 |
-c$$$            ! | 2 2 1 |
-c$$$            ! | 1 1*1 |
-c$$$            !  -------
-c$$$            case(11)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              bc_interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              bc_pt,bc_pt,bc_interior_pt,
-c$$$     $              no_pt,bc_pt,bc_interior_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$
-c$$$               test_i             = 2
-c$$$               test_j             = 1
-c$$$
-c$$$               test_bc_section(1) = NW_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 1
-c$$$               test_bc_section(4) = 0
-c$$$               test_bc_section(5) = 2
-c$$$               test_compatible    = .true.
-c$$$               test_remove_ele    = .true.
-c$$$
-c$$$            !test NE_edge: compatible
-c$$$
-c$$$            !  -------    
-c$$$            ! | 0 1 2 |
-c$$$            ! | 0 1*1 |
-c$$$            ! | 0 0 0 |
-c$$$            !  -------
-c$$$            case(12)
-c$$$               grdpts_id = reshape(
-c$$$     $              (/
-c$$$     $              interior_pt,interior_pt,interior_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_interior_pt,
-c$$$     $              interior_pt,bc_interior_pt,bc_pt
-c$$$     $              /),
-c$$$     $              (/3,3/))
-c$$$
-c$$$               test_i             = 2
-c$$$               test_j             = 2
-c$$$
-c$$$               test_bc_section(1) = NE_edge_type
-c$$$               test_bc_section(2) = 2
-c$$$               test_bc_section(3) = 2
-c$$$               test_bc_section(4) = 0
-c$$$               test_bc_section(5) = 2
-c$$$               test_compatible    = .true.
-c$$$               test_remove_ele    = .true.
-c$$$
-c$$$            end select
-c$$$
-c$$$        end subroutine make_test_analyse_grdpt_with_bc_section
-c$$$
-c$$$
-c$$$        subroutine test_get_bc_section(detailled)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          logical                 , intent(in) :: detailled
-c$$$
-c$$$          type(bf_layer_bc_sections)           :: bc_sections
-c$$$
-c$$$          integer, dimension(5)                :: new_bc_section
-c$$$          integer                              :: k
-c$$$
-c$$$          integer, dimension(:,:), allocatable :: grdpts_id
-c$$$          integer                              :: test_i
-c$$$          integer                              :: test_j
-c$$$          integer, dimension(5)                :: test_bc_section
-c$$$          logical                              :: test_validated
-c$$$
-c$$$          logical                              :: test_global
-c$$$
-c$$$          logical                              :: ierror
-c$$$
-c$$$
-c$$$          test_global = .true.
-c$$$          
-c$$$          print '(''test get_bc_section()'')'
-c$$$
-c$$$          do k=1,26
-c$$$
-c$$$             call make_test_get_bc_section(
-c$$$     $            k,
-c$$$     $            grdpts_id,
-c$$$     $            test_i,
-c$$$     $            test_j,
-c$$$     $            test_bc_section)
-c$$$
-c$$$             new_bc_section = bc_sections%get_bc_section(
-c$$$     $            test_i,
-c$$$     $            test_j,
-c$$$     $            grdpts_id,
-c$$$     $            ierror)
-c$$$
-c$$$
-c$$$             test_validated = test_bc_section(1).eq.new_bc_section(1)
-c$$$
-c$$$             select case(test_bc_section(1))
-c$$$
-c$$$               !if this is an edge procedure, only the 2:4
-c$$$               !elements should be tested
-c$$$               case(N_edge_type,S_edge_type,E_edge_type,W_edge_type)
-c$$$                  
-c$$$                  test_validated = test_validated.and.(
-c$$$     $                 test_bc_section(2).eq.new_bc_section(2))
-c$$$                  test_validated = test_validated.and.(
-c$$$     $                 test_bc_section(3).eq.new_bc_section(3))
-c$$$                  test_validated = test_validated.and.(
-c$$$     $                 test_bc_section(4).eq.new_bc_section(4))
-c$$$
-c$$$                  if(detailled) then
-c$$$                     print '(''test '',I2,'':'',L1)', k, test_validated
-c$$$                  end if
-c$$$
-c$$$                  if(.not.test_validated) then
-c$$$                     print '(''procedure_type: '',I2, 2X,I2)', test_bc_section(1), new_bc_section(1)
-c$$$                     print '(''edge_min      : '',I2, 2X,I2)', test_bc_section(2), new_bc_section(2)
-c$$$                     print '(''edge_max      : '',I2, 2X,I2)', test_bc_section(3), new_bc_section(3)
-c$$$                     print '(''coord         : '',I2, 2X,I2)', test_bc_section(4), new_bc_section(4)
-c$$$                  end if
-c$$$
-c$$$               !if this is a corner procedure, only the 2:3
-c$$$               !elements should be tested
-c$$$               case(NE_corner_type, NW_corner_type, SE_corner_type, SW_corner_type)
-c$$$
-c$$$                  test_validated = test_validated.and.(
-c$$$     $                 test_bc_section(2).eq.new_bc_section(2))
-c$$$                  test_validated = test_validated.and.(
-c$$$     $                 test_bc_section(3).eq.new_bc_section(3))
-c$$$
-c$$$                  if(detailled) then
-c$$$                     print '(''test '',I2,'':'',L1)', k, test_validated
-c$$$                  end if
-c$$$
-c$$$                  if(.not.test_validated) then
-c$$$                     print '(''procedure_type: '',I2, 2X,I2)', test_bc_section(1), new_bc_section(1)
-c$$$                     print '(''i_min         : '',I2, 2X,I2)', test_bc_section(2), new_bc_section(2)
-c$$$                     print '(''j_min         : '',I2, 2X,I2)', test_bc_section(3), new_bc_section(3)
-c$$$                  end if
-c$$$
-c$$$               !if this is a special edge procedure, only the 2:3 and 5
-c$$$               !elements should be tested
-c$$$               case(NE_edge_type,NW_edge_type,SE_edge_type,SW_edge_type)
-c$$$
-c$$$                  test_validated = test_validated.and.(
-c$$$     $                 test_bc_section(2).eq.new_bc_section(2))
-c$$$                  test_validated = test_validated.and.(
-c$$$     $                 test_bc_section(3).eq.new_bc_section(3))
-c$$$                  test_validated = test_validated.and.(
-c$$$     $                 test_bc_section(5).eq.new_bc_section(5))
-c$$$
-c$$$                  if(detailled) then
-c$$$                     print '(''test '',I2,'':'',L1)', k, test_validated
-c$$$                  end if
-c$$$
-c$$$                  if(.not.test_validated) then
-c$$$                     print '(''procedure_type: '',I2, 2X,I2)', test_bc_section(1), new_bc_section(1)
-c$$$                     print '(''i_min         : '',I2, 2X,I2)', test_bc_section(2), new_bc_section(2)
-c$$$                     print '(''j_min         : '',I2, 2X,I2)', test_bc_section(3), new_bc_section(3)
-c$$$                     print '(''match_nb      : '',I2, 2X,I2)', test_bc_section(5), new_bc_section(5)
-c$$$                  end if
-c$$$
-c$$$               case default
-c$$$                  
-c$$$                  print '(''test_bf_layer_bc_sections'')'
-c$$$                  print '(''test_get_bc-sections()'')'
-c$$$                  print '(''case '', I2, ''not recognized'')', k
-c$$$                  stop ''
-c$$$
-c$$$             end select
-c$$$
-c$$$             deallocate(grdpts_id)
-c$$$
-c$$$             test_global = test_global.and.test_validated
-c$$$             
-c$$$          end do
-c$$$
-c$$$          print '(''test_validated: '',L1)', test_global
-c$$$          print '()'
-c$$$
-c$$$        end subroutine test_get_bc_section
-c$$$
-c$$$
-c$$$        subroutine test_analyse_grdpt_with_bc_section(detailled)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          logical                 , intent(in) :: detailled
-c$$$
-c$$$          type(bf_layer_bc_sections)           :: bc_sections
-c$$$
-c$$$          integer                              :: k
-c$$$          integer, dimension(:,:), allocatable :: grdpts_id
-c$$$          logical                              :: compatible
-c$$$          logical                              :: remove_ele
-c$$$
-c$$$          integer                              :: test_i
-c$$$          integer                              :: test_j
-c$$$          integer, dimension(5)                :: test_bc_section
-c$$$          logical                              :: test_validated
-c$$$          logical                              :: test_compatible
-c$$$          logical                              :: test_remove_ele
-c$$$
-c$$$          logical :: test_global
-c$$$
-c$$$          test_global = .true.          
-c$$$
-c$$$          
-c$$$          print '(''test analyse_grdpt_with_bc_section()'')'
-c$$$          do k=1,12
-c$$$
-c$$$             call make_test_analyse_grdpt_with_bc_section(
-c$$$     $            k,
-c$$$     $            grdpts_id,
-c$$$     $            test_i,
-c$$$     $            test_j,
-c$$$     $            test_bc_section,
-c$$$     $            test_compatible,
-c$$$     $            test_remove_ele)
-c$$$
-c$$$             compatible = bc_sections%analyse_grdpt_with_bc_section(
-c$$$     $            test_i,test_j,grdpts_id,test_bc_section,remove_ele)
-c$$$
-c$$$             test_validated = compatible.eqv.test_compatible
-c$$$             test_validated = test_validated.and.(remove_ele.eqv.test_remove_ele)
-c$$$
-c$$$             if(detailled) then
-c$$$                print '(''test '',I2,'':'',L1)', k, test_validated
-c$$$             end if
-c$$$
-c$$$             if(.not.test_validated) then
-c$$$                print '(''  compatible    : '',L1, 2X,L1)', test_compatible, compatible
-c$$$                print '(''  remove_ele    : '',L1, 2X,L1)', test_remove_ele, remove_ele
-c$$$             end if
-c$$$
-c$$$             deallocate(grdpts_id)
-c$$$
-c$$$             test_global = test_global.and.test_validated
-c$$$
-c$$$          end do
-c$$$          print '(''test_validated: '',L1)', test_global
-c$$$          print '()'
-c$$$
-c$$$        end subroutine test_analyse_grdpt_with_bc_section
-c$$$
-c$$$
+
+
+      function test_get_bc_section(detailled)
+     $     result(test_validated)
+        
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_bc_sections) :: bf_layer_bc_sections_used
+          integer                    :: test_i
+          integer                    :: test_j
+          integer, dimension(3,3,12) :: test_grdpts_id
+          integer, dimension(5,12)   :: test_bc_section
+          integer, dimension(5)      :: bc_section
+          integer                    :: k
+          logical                    :: test_loc
+          logical                    :: ierror
+
+
+          test_validated = .true.
+
+
+          !input
+          test_i = 2
+          test_j = 2
+
+          !N_edge
+          test_grdpts_id(:,:,1) = reshape((/
+     $         interior_pt,interior_pt,interior_pt,
+     $         bc_interior_pt,bc_interior_pt,bc_interior_pt,
+     $         bc_pt,bc_pt,bc_pt/),
+     $         (/3,3/))
+
+          test_bc_section(:,1) = [N_edge_type,2,2,2,1]
+
+          !S_edge
+          test_grdpts_id(:,:,2) = reshape((/
+     $         bc_pt,bc_pt,bc_pt,
+     $         bc_interior_pt,bc_interior_pt,bc_interior_pt,
+     $         interior_pt,interior_pt,interior_pt/),
+     $         (/3,3/))
+
+          test_bc_section(:,2) = [S_edge_type,2,2,2,1]
+
+          !E_edge
+          test_grdpts_id(:,:,3) = reshape((/
+     $         interior_pt,bc_interior_pt,bc_pt,
+     $         interior_pt,bc_interior_pt,bc_pt,
+     $         interior_pt,bc_interior_pt,bc_pt/),
+     $         (/3,3/))
+
+          test_bc_section(:,3) = [E_edge_type,2,2,2,1]
+
+          !W_edge
+          test_grdpts_id(:,:,4) = reshape((/
+     $         bc_pt,bc_interior_pt,interior_pt,
+     $         bc_pt,bc_interior_pt,interior_pt,
+     $         bc_pt,bc_interior_pt,interior_pt/),
+     $         (/3,3/))
+
+          test_bc_section(:,4) = [W_edge_type,2,2,2,1]
+
+
+          !NE_corner
+          test_grdpts_id(:,:,5) = reshape((/
+     $         interior_pt,bc_interior_pt,bc_pt,
+     $         bc_interior_pt,bc_interior_pt,bc_pt,
+     $         bc_pt,bc_pt,bc_pt/),
+     $         (/3,3/))
+
+          test_bc_section(:,5) = [NE_corner_type,2,2,2,1]
+
+          !NW_corner
+          test_grdpts_id(:,:,6) = reshape((/
+     $         bc_pt,bc_interior_pt,interior_pt,
+     $         bc_pt,bc_interior_pt,bc_interior_pt,
+     $         bc_pt,bc_pt,bc_pt/),
+     $         (/3,3/))
+
+          test_bc_section(:,6) = [NW_corner_type,1,2,2,1]
+
+          !SE_corner
+          test_grdpts_id(:,:,7) = reshape((/
+     $         bc_pt,bc_pt,bc_pt,
+     $         bc_interior_pt,bc_interior_pt,bc_pt,
+     $         interior_pt,bc_interior_pt,bc_pt/),
+     $         (/3,3/))
+
+          test_bc_section(:,7) = [SE_corner_type,2,1,2,1]
+
+          !SW_corner
+          test_grdpts_id(:,:,8) = reshape((/
+     $         bc_pt,bc_pt,bc_pt,
+     $         bc_pt,bc_interior_pt,bc_interior_pt,
+     $         bc_pt,bc_interior_pt,interior_pt/),
+     $         (/3,3/))
+
+          test_bc_section(:,8) = [SW_corner_type,1,1,2,1]
+
+
+          !NE_edge
+          test_grdpts_id(:,:,9) = reshape((/
+     $         interior_pt,interior_pt,interior_pt,
+     $         interior_pt,bc_interior_pt,bc_interior_pt,
+     $         interior_pt,bc_interior_pt,bc_pt/),
+     $         (/3,3/))
+
+          test_bc_section(:,9) = [NE_edge_type,2,2,2,1]
+
+          !NW_edge
+          test_grdpts_id(:,:,10) = reshape((/
+     $         interior_pt,interior_pt,interior_pt,
+     $         bc_interior_pt,bc_interior_pt,interior_pt,
+     $         bc_pt,bc_interior_pt,interior_pt/),
+     $         (/3,3/))
+
+          test_bc_section(:,10) = [NW_edge_type,1,2,2,1]
+
+          !SE_edge
+          test_grdpts_id(:,:,11) = reshape((/
+     $         interior_pt,bc_interior_pt,bc_pt,
+     $         interior_pt,bc_interior_pt,bc_interior_pt,
+     $         interior_pt,interior_pt,interior_pt/),
+     $         (/3,3/))
+
+          test_bc_section(:,11) = [SE_edge_type,2,1,2,1]
+
+          !SW_edge
+          test_grdpts_id(:,:,12) = reshape((/
+     $         bc_pt,bc_interior_pt,interior_pt,
+     $         bc_interior_pt,bc_interior_pt,interior_pt,
+     $         interior_pt,interior_pt,interior_pt/),
+     $         (/3,3/))
+
+          test_bc_section(:,12) = [SW_edge_type,1,1,2,1]
+          
+          
+          do k=1,4
+
+             !output
+             bc_section = bf_layer_bc_sections_used%get_bc_section(
+     $            test_i,
+     $            test_j,
+     $            test_grdpts_id(:,:,k),
+     $            ierror)
+
+             !validation
+             if(ierror.eqv.BF_SUCCESS) then
+                test_loc = is_int_vector_validated(
+     $               bc_section(1:4),
+     $               test_bc_section(1:4,k),
+     $               detailled)                
+             else
+                test_loc = .false.
+             end if
+
+             test_validated = test_validated.and.test_loc
+             
+             !detailled
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test '',I2,'' failed'')', k
+             end if
+
+          end do
+
+
+          do k=5,size(test_grdpts_id,3)
+
+             !output
+             bc_section = bf_layer_bc_sections_used%get_bc_section(
+     $            test_i,
+     $            test_j,
+     $            test_grdpts_id(:,:,k),
+     $            ierror)
+
+             !validation
+             if(ierror.eqv.BF_SUCCESS) then
+                test_loc = is_int_vector_validated(
+     $               bc_section(1:3),
+     $               test_bc_section(1:3,k),
+     $               detailled)
+             else
+                test_loc = .false.
+             end if
+
+             test_validated = test_validated.and.test_loc
+             
+             !detailled
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test '',I2,'' failed'')', k
+             end if
+
+          end do
+
+        end function test_get_bc_section
+
+
+        function test_analyse_grdpt_with_bc_section(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_bc_sections) :: bf_layer_bc_sections_used
+          integer                    :: test_i
+          integer                    :: test_j
+          integer, dimension(3,3,36) :: test_grdpts_id
+          integer, dimension(5,36)   :: test_bc_section
+          integer, dimension(5,36)   :: test_bc_section_after
+          logical, dimension(36)     :: test_compatible
+          logical, dimension(36)     :: test_remove_ele
+                                     
+          integer                    :: k
+          logical                    :: test_loc
+          logical                    :: compatible
+          logical                    :: remove_ele
+
+          test_i = 2
+          test_j = 2
+
+          test_validated = .true.
+          
+
+          !test N_edge
+
+          !compatible
+          !  -------    
+          ! | 3 3 3 |
+          ! | 2 2*2 |
+          ! | 1 1 1 |
+          !  -------
+          test_grdpts_id(:,:,1) = reshape((/
+     $         interior_pt,interior_pt,interior_pt,
+     $         bc_interior_pt,bc_interior_pt,bc_interior_pt,
+     $         bc_pt,bc_pt,bc_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,1)       = [N_edge_type,1,1,2,0]
+          test_bc_section_after(:,1) = [N_edge_type,1,2,2,0]
+          
+          test_compatible(1)   = .true.
+          test_remove_ele(1)   = .false.
+
+          !incompatible
+          !  -------    
+          ! | 3 3 2 |
+          ! | 2 2*2 |
+          ! | 1 1 1 |
+          !  -------
+          test_grdpts_id(:,:,2) = reshape((/
+     $         interior_pt,interior_pt,interior_pt,
+     $         bc_interior_pt,bc_interior_pt,bc_interior_pt,
+     $         bc_pt,bc_pt,bc_interior_pt
+     $         /),
+     $         (/3,3/))
+          
+          test_bc_section(:,2)       = test_bc_section(:,1)
+          test_bc_section_after(:,2) = test_bc_section(:,1)
+          
+          test_compatible(2)   = .false.
+          test_remove_ele(2)   = .false.
+
+          !remove_ele
+          !  -------    
+          ! | 3 3 2 |
+          ! | 2 2*2 |
+          ! | 1 1 1 |
+          !  -------
+          test_grdpts_id(:,:,3) = reshape((/
+     $         interior_pt,interior_pt,interior_pt,
+     $         bc_interior_pt,bc_interior_pt,bc_interior_pt,
+     $         bc_pt,bc_pt,bc_interior_pt
+     $         /),
+     $         (/3,3/))
+          
+          test_bc_section(:,3)       = [N_edge_type,1,1,1,0]
+          test_bc_section_after(:,3) = test_bc_section(:,3)
+          
+          test_compatible(3)   = .false.
+          test_remove_ele(3)   = .true.
+
+
+          !test S_edge
+
+          !compatible
+          !  -------    
+          ! | 1 1 1 |
+          ! | 2 2*2 |
+          ! | 3 3 3 |
+          !  -------
+          test_grdpts_id(:,:,4) = reshape((/
+     $         bc_pt,bc_pt,bc_pt,
+     $         bc_interior_pt,bc_interior_pt,bc_interior_pt,
+     $         interior_pt,interior_pt,interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,4)       = [S_edge_type,1,1,2,0]
+          test_bc_section_after(:,4) = [S_edge_type,1,2,2,0]
+          
+          test_compatible(4)   = .true.
+          test_remove_ele(4)   = .false.
+
+          !incompatible
+          !  -------    
+          ! | 1 1 1 |
+          ! | 2 2*2 |
+          ! | 3 3 2 |
+          !  -------
+          test_grdpts_id(:,:,5) = reshape((/
+     $         bc_pt,bc_pt,bc_interior_pt,
+     $         bc_interior_pt,bc_interior_pt,bc_interior_pt,
+     $         interior_pt,interior_pt,interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,5)       = test_bc_section(:,4)
+          test_bc_section_after(:,5) = test_bc_section(:,4)
+          
+          test_compatible(5)   = .false.
+          test_remove_ele(5)   = .false.
+
+          !remove_ele
+          !  -------    
+          ! | 1 1 1 |
+          ! | 2 2*2 |
+          ! | 3 3 2 |
+          !  -------
+          test_grdpts_id(:,:,6) = reshape((/
+     $         bc_pt,bc_pt,bc_interior_pt,
+     $         bc_interior_pt,bc_interior_pt,bc_interior_pt,
+     $         interior_pt,interior_pt,interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,6)       = [S_edge_type,1,1,1,0]
+          test_bc_section_after(:,6) = test_bc_section(:,6)
+          
+          test_compatible(6)   = .false.
+          test_remove_ele(6)   = .true.
+
+
+          !test E_edge
+
+          !compatible
+          !  -------    
+          ! | 1 2 3 |
+          ! | 1 2*3 |
+          ! | 1 2 3 |
+          !  -------
+          test_grdpts_id(:,:,7) = reshape((/
+     $         interior_pt,bc_interior_pt,bc_pt,
+     $         interior_pt,bc_interior_pt,bc_pt,
+     $         interior_pt,bc_interior_pt,bc_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,7)       = [E_edge_type,1,1,2,0]
+          test_bc_section_after(:,7) = [E_edge_type,1,2,2,0]
+          
+          test_compatible(7)   = .true.
+          test_remove_ele(7)   = .false.
+
+          !incompatible
+          !  -------    
+          ! | 1 2 2 |
+          ! | 1 2*3 |
+          ! | 1 2 3 |
+          !  -------
+          test_grdpts_id(:,:,8) = reshape((/
+     $         interior_pt,bc_interior_pt,bc_pt,
+     $         interior_pt,bc_interior_pt,bc_pt,
+     $         interior_pt,bc_interior_pt,bc_interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,8)       = test_bc_section(:,7)
+          test_bc_section_after(:,8) = test_bc_section(:,7)
+          
+          test_compatible(8)   = .false.
+          test_remove_ele(8)   = .false.
+
+          !remove_ele
+          !  -------
+          ! | 1 1 1 |
+          ! | 2 2*2 |
+          ! | 3 3 2 |
+          !  -------
+          test_grdpts_id(:,:,9) = reshape((/
+     $         interior_pt,bc_interior_pt,bc_pt,
+     $         interior_pt,bc_interior_pt,bc_pt,
+     $         interior_pt,bc_interior_pt,bc_interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,9)       = [E_edge_type,0,0,2,0]
+          test_bc_section_after(:,9) = test_bc_section(:,9)
+          
+          test_compatible(9)   = .false.
+          test_remove_ele(9)   = .true.
+
+          !test W_edge
+
+          !compatible
+          !  -------    
+          ! | 3 2 1 |
+          ! | 3 2*1 |
+          ! | 3 2 1 |
+          !  -------
+          test_grdpts_id(:,:,10) = reshape((/
+     $         bc_pt,bc_interior_pt,interior_pt,
+     $         bc_pt,bc_interior_pt,interior_pt,
+     $         bc_pt,bc_interior_pt,interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,10)      = [W_edge_type,1,1,2,0]
+          test_bc_section_after(:,10)= [W_edge_type,1,2,2,0]
+          
+          test_compatible(10)   = .true.
+          test_remove_ele(10)   = .false.
+
+          !incompatible
+          !  -------    
+          ! | 2 2 1 |
+          ! | 3 2*1 |
+          ! | 3 2 1 |
+          !  -------
+          test_grdpts_id(:,:,11) = reshape((/
+     $         bc_pt,bc_interior_pt,interior_pt,
+     $         bc_pt,bc_interior_pt,interior_pt,
+     $         bc_interior_pt,bc_interior_pt,interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,11)      = test_bc_section(:,10)
+          test_bc_section_after(:,11)= test_bc_section(:,10)
+          
+          test_compatible(11)  = .false.
+          test_remove_ele(11)  = .false.
+
+          !remove_ele
+          !  -------
+          ! | 2 2 1 |
+          ! | 3 2*1 |
+          ! | 3 2 1 |
+          !  -------
+          test_grdpts_id(:,:,12) = reshape((/
+     $         bc_pt,bc_interior_pt,interior_pt,
+     $         bc_pt,bc_interior_pt,interior_pt,
+     $         bc_interior_pt,bc_interior_pt,interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,12)       = [W_edge_type,0,0,2,0]
+          test_bc_section_after(:,12) = test_bc_section(:,12)
+          
+          test_compatible(12)  = .false.
+          test_remove_ele(12)  = .true.
+
+          !test NE_edge
+
+          !compatible
+          !  -------    
+          ! | 2 3 3 |
+          ! | 2 2*2 |
+          ! | 1 1 1 |
+          !  -------
+          test_grdpts_id(:,:,13) = reshape((/
+     $         interior_pt, interior_pt, interior_pt,
+     $         bc_interior_pt, bc_interior_pt, bc_interior_pt,
+     $         bc_interior_pt, bc_pt, bc_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,13)      = [NW_edge_type,1,2,0,0]
+          test_bc_section_after(:,13)= test_bc_section(:,13)
+          
+          test_compatible(13)   = .true.
+          test_remove_ele(13)   = .false.
+
+          !incompatible
+          !  -------
+          ! | 3 3 3 |
+          ! | 2 2*2 |
+          ! | 1 1 1 |
+          !  -------
+          test_grdpts_id(:,:,14) = reshape((/
+     $         interior_pt, interior_pt, interior_pt,
+     $         bc_interior_pt, bc_interior_pt, bc_interior_pt,
+     $         bc_pt, bc_pt, bc_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,14)      = [NW_edge_type,0,2,0,0]
+          test_bc_section_after(:,14)= test_bc_section(:,14)
+          
+          test_compatible(14)   = .false.
+          test_remove_ele(14)   = .false.
+
+          !remove_ele
+          !  -------
+          ! | 3 3 3 |
+          ! | 2 2*2 |
+          ! | 1 1 1 |
+          !  -------
+          test_grdpts_id(:,:,15) = reshape((/
+     $         interior_pt, interior_pt, interior_pt,
+     $         bc_interior_pt, bc_interior_pt, bc_interior_pt,
+     $         bc_pt, bc_pt, bc_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,15)      = [NW_edge_type,0,0,0,0]
+          test_bc_section_after(:,15)= test_bc_section(:,15)
+          
+          test_compatible(15)   = .false.
+          test_remove_ele(15)   = .true.
+
+
+          !test NW_edge
+
+          !compatible
+          !  -------    
+          ! | 3 2 1 |
+          ! | 2 2*1 |
+          ! | 1 1 1 |
+          !  -------
+          test_grdpts_id(:,:,16) = reshape((/
+     $         interior_pt, interior_pt, interior_pt,
+     $         bc_interior_pt, bc_interior_pt, interior_pt,
+     $         bc_pt, bc_interior_pt, interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,16)      = [NW_edge_type,1,2,0,0]
+          test_bc_section_after(:,16)= test_bc_section(:,16)
+          
+          test_compatible(16)   = .true.
+          test_remove_ele(16)   = .false.
+
+          !incompatible
+          !  -------
+          ! | 3 3 3 |
+          ! | 2 2*2 |
+          ! | 1 1 1 |
+          !  -------
+          test_grdpts_id(:,:,17) = reshape((/
+     $         interior_pt, interior_pt, interior_pt,
+     $         bc_interior_pt, bc_interior_pt, bc_interior_pt,
+     $         bc_pt, bc_pt, bc_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,17)      = [NW_edge_type,0,2,0,0]
+          test_bc_section_after(:,17)= test_bc_section(:,17)
+          
+          test_compatible(14)   = .false.
+          test_remove_ele(14)   = .false.
+
+          !remove_ele
+          !  -------
+          ! | 3 3 3 |
+          ! | 2 2*2 |
+          ! | 1 1 1 |
+          !  -------
+          test_grdpts_id(:,:,18) = reshape((/
+     $         interior_pt, interior_pt, interior_pt,
+     $         bc_interior_pt, bc_interior_pt, bc_interior_pt,
+     $         bc_pt, bc_pt, bc_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,18)      = [NW_edge_type,0,0,0,0]
+          test_bc_section_after(:,18)= test_bc_section(:,18)
+          
+          test_compatible(18)   = .false.
+          test_remove_ele(18)   = .true.
+
+
+          !test SW_edge
+
+          !compatible
+          !  -------    
+          ! | 1 1 1 |
+          ! | 2 2*1 |
+          ! | 3 2 1 |
+          !  -------
+          test_grdpts_id(:,:,19) = reshape((/
+     $         bc_pt, bc_interior_pt, interior_pt,
+     $         bc_interior_pt, bc_interior_pt, interior_pt,
+     $         interior_pt, interior_pt, interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,19)      = [SW_edge_type,1,1,0,0]
+          test_bc_section_after(:,19)= test_bc_section(:,19)
+          
+          test_compatible(19)   = .true.
+          test_remove_ele(19)   = .false.
+
+          !incompatible
+          !  -------
+          ! | 2 1 1 |
+          ! | 2 2*2 |
+          ! | 3 3 3 |
+          !  -------
+          test_grdpts_id(:,:,20) = reshape((/
+     $         bc_pt, bc_pt, bc_pt,
+     $         bc_interior_pt, bc_interior_pt, bc_interior_pt,
+     $         bc_interior_pt, interior_pt, interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,20)      = [SW_edge_type,0,2,0,0]
+          test_bc_section_after(:,20)= test_bc_section(:,20)
+          
+          test_compatible(20) = .false.
+          test_remove_ele(20) = .false.
+
+          !remove_ele
+          !  -------
+          ! | 1 1 1 |
+          ! | 2 2*2 |
+          ! | 3 3 3 |
+          !  -------
+          test_grdpts_id(:,:,21) = reshape((/
+     $         bc_pt, bc_pt, bc_pt,
+     $         bc_interior_pt, bc_interior_pt, bc_interior_pt,
+     $         interior_pt, interior_pt, interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,21)      = [SW_edge_type,0,0,0,0]
+          test_bc_section_after(:,21)= test_bc_section(:,21)
+          
+          test_compatible(21)   = .false.
+          test_remove_ele(21)   = .true.
+
+          !test SW_edge
+
+          !compatible
+          !  -------    
+          ! | 1 1 1 |
+          ! | 1 2*2 |
+          ! | 2 2 3 |
+          !  -------
+          test_grdpts_id(:,:,22) = reshape((/
+     $         bc_interior_pt, bc_interior_pt, bc_pt,
+     $         interior_pt, bc_interior_pt, bc_interior_pt,
+     $         interior_pt, interior_pt, interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,22)      = [SE_edge_type,2,1,0,0]
+          test_bc_section_after(:,22)= test_bc_section(:,22)
+          
+          test_compatible(22)   = .true.
+          test_remove_ele(22)   = .false.
+
+          !incompatible
+          !  -------
+          ! | 1 1 2 |
+          ! | 2 2*2 |
+          ! | 3 3 3 |
+          !  -------
+          test_grdpts_id(:,:,23) = reshape((/
+     $         bc_pt, bc_pt, bc_pt,
+     $         bc_interior_pt, bc_interior_pt, bc_interior_pt,
+     $         interior_pt, interior_pt, bc_interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,23)      = [SE_edge_type,3,2,0,0]
+          test_bc_section_after(:,23)= test_bc_section(:,23)
+          
+          test_compatible(23) = .false.
+          test_remove_ele(23) = .false.
+
+          !remove_ele
+          !  -------
+          ! | 1 1 2 |
+          ! | 2 2*2 |
+          ! | 3 3 3 |
+          !  -------
+          test_grdpts_id(:,:,24) = reshape((/
+     $         bc_pt, bc_pt, bc_pt,
+     $         bc_interior_pt, bc_interior_pt, bc_interior_pt,
+     $         interior_pt, interior_pt, bc_interior_pt/),
+     $         (/3,3/))
+          
+          test_bc_section(:,24)      = [SE_edge_type,0,0,0,0]
+          test_bc_section_after(:,24)= test_bc_section(:,24)
+          
+          test_compatible(24)   = .false.
+          test_remove_ele(24)   = .true.
+
+
+          do k=1,24
+
+             !output
+             compatible = bf_layer_bc_sections_used%analyse_grdpt_with_bc_section(
+     $            test_i,
+     $            test_j,
+     $            test_grdpts_id(:,:,k),
+     $            test_bc_section(:,k),
+     $            remove_ele)
+
+             !validation
+             test_loc = is_int_vector_validated(test_bc_section(:,k),test_bc_section_after(:,k))
+             test_loc = test_loc.and.(compatible.eqv.test_compatible(k))
+             test_loc = test_loc.and.(remove_ele.eqv.test_remove_ele(k))
+             test_validated = test_validated.and.test_loc
+
+             !detailled
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'') failed'')',k
+                print '('' - bc_section: '',L1)', is_int_vector_validated(test_bc_section(:,k),test_bc_section_after(:,k))
+                print '('' - compatible: '',L1)', compatible.eqv.test_compatible(k)
+                print '('' - remove_ele: '',L1)', remove_ele.eqv.test_remove_ele(k)
+                print '()'
+             end if
+
+          end do
+
+        end function test_analyse_grdpt_with_bc_section
+
 c$$$        subroutine test_analyse_grdpt(detailled)
 c$$$
 c$$$          implicit none
@@ -2147,5 +2233,176 @@ c$$$          print '(''test_validated: '',L1)', test_validated
 c$$$          print '()'
 c$$$
 c$$$        end subroutine test_add_overlap_between_corners_and_anti_corners
+
+
+        function test_finalize_bc_sections(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          type(bf_layer_bc_sections)           :: bf_layer_bc_sections_used
+          integer, dimension(26,22)            :: grdpts_id
+          integer                              :: i_min
+          integer                              :: i_max
+          integer                              :: j_min
+          integer                              :: j_max
+          integer, dimension(2)                :: x_borders
+          integer, dimension(2)                :: y_borders
+          integer, dimension(5,60)             :: test_bc_sections
+          integer                              :: i
+          integer                              :: j
+          logical                              :: ierror          
+          integer, dimension(:,:), allocatable :: sorted_bc_sections
+
+
+          !22- |     |                    3 3 3 3 3 3                     |    |
+          !    |     |            3 3 3 3 3 2 2 2 2 3 3 3 3 3             |    |
+          !20- |     |            3 2 2 2 2 2     2 2 2 2 2 3             |    |
+          !    |     |    3 3 3 3 3 2                     2 3 3 3 3 3     |    |
+          !18- |     |  3 3 2 2 2 2 2                     2 2 2 2 2 3 3   |    |
+          !17- |     |3 3 2 2                                     2 2 3 3 |    |
+          !    |     |3 2 2                                         2 2 3 |    |
+          !15- |     |3 2                                             2 3 |    |
+          !    |     |3 2                                             2 3 |    |
+          !13- |     |3 2 2                                         2 2 3 |    |
+          !    |     |3 3 2 2                                     2 2 3 3 |    |
+          !11- |     |  3 3 2 2 2 2 2                     2 2 2 2 2 3 3   |    |
+          !10- |     |    3 3 3 3 3 2                     2 3 3 3 3 3     |    |
+          !    |     |            3 2                     2 3             |    |
+          ! 8- |     |            3 2 2 2 2 2     2 2 2 2 2 3             |    |
+          !    |     |            3 3 3 3 3 2     2 3 3 3 3 3             |    |
+          !    |     |                    3 2     2 3                     |    |
+          !    |     |        3 3 3 3 3 3 3 2     2 3 3 3 3 3 3 3         |    |
+          ! 4- |     |        3 2 2 2 2 2 2 2     2 2 2 2 2 2 2 3         |    |
+          !    |     |        3 2                             2 3         |    |
+          ! 2- |     |        3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 3         |    |
+          !    |     |        3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3         |    |
+          !     ---- | ---------------------------------------------------------
+          !           | | |   |   |       |       |         | |     | | |
+          !           1 2 3   5   7       11      15        2021    242526
+          ! --------------------------------------------------
+          i_min = 2
+          i_max = 25
+          j_min = 2
+          j_max = 21
+
+          x_borders = [3,26]
+          y_borders = [3,22]
+
+          grdpts_id = reshape(
+     $         (/
+     $         0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 2, 1, 1, 2, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 2, 1, 1, 2, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 3, 3, 3, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 0, 0,
+     $         0, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 0,
+     $         3, 3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 3,
+     $         3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3,
+     $         3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3,
+     $         3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3,
+     $         3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3,
+     $         3, 3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 3,
+     $         0, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 0,
+     $         0, 0, 3, 3, 3, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0/),
+     $         (/26,22/))
+          
+          test_bc_sections = reshape((/
+     $         SW_corner_type, 5 ,  1, no_overlap                , NS_overlap,
+     $         S_edge_type   , 7 ,  1, 20                        , NS_overlap,
+     $         SE_corner_type, 21,  1, no_overlap                , NS_overlap,
+     $         W_edge_type   , 5 ,  3, 3                         , no_overlap,
+     $         E_edge_type   , 21,  3, 3                         , no_overlap,
+     $         NW_corner_type, 5 ,  4, no_overlap                , no_overlap,
+     $         N_edge_type   , 7 ,  4, 10                        , no_overlap,
+     $         NW_edge_type  , 11,  4, no_overlap                , no_overlap,
+     $         NE_edge_type  , 15,  4, no_overlap                , no_overlap,
+     $         N_edge_type   , 17,  4, 20                        , no_overlap,
+     $         NE_corner_type, 21,  4, no_overlap                , no_overlap,
+     $         W_edge_type   , 11,  6, 6                         , no_overlap,
+     $         E_edge_type   , 15,  6, 6                         , no_overlap,
+     $         SW_corner_type, 7 ,  7, no_overlap                , no_overlap,
+     $         S_edge_type   , 9 ,  7, 10                        , no_overlap,
+     $         SW_edge_type  , 11,  7, no_overlap                , no_overlap,
+     $         SE_edge_type  , 15,  7, no_overlap                , no_overlap,
+     $         S_edge_type   , 17,  7, 18                        , no_overlap,
+     $         SE_corner_type, 19,  7, no_overlap                , no_overlap,
+     $         W_edge_type   , 7 ,  9, 9                         , no_overlap,
+     $         E_edge_type   , 19,  9, 9                         , no_overlap,
+     $         SW_corner_type, 3 , 10, cpt2normal_and_cpt3not    , no_overlap,
+     $         S_edge_type   , 5 , 10, 6                         , no_overlap,
+     $         SW_edge_type  , 7 , 10, no_overlap                , no_overlap,
+     $         SE_edge_type  , 19, 10, no_overlap                , no_overlap,
+     $         S_edge_type   , 21, 10, 22                        , no_overlap,
+     $         SE_corner_type, 23, 10, cpt1normal_and_cpt4not    , no_overlap,
+     $         SW_corner_type, 2 , 11, cpt2overlap_and_cpt3not   , W_overlap,
+     $         SW_edge_type  , 3 , 11, cpt2normal_and_cpt3not    , SW_overlap,
+     $         SE_edge_type  , 23, 11, cpt1normal_and_cpt4not    , SE_overlap,
+     $         SE_corner_type, 24, 11, cpt1overlap_and_cpt4not   , no_overlap,
+     $         SW_corner_type, 1 , 12, cpt2overlap_and_cpt3normal, EW_overlap,
+     $         SW_edge_type  , 2 , 12, cpt2overlap_and_cpt3normal, SW_overlap,
+     $         SE_edge_type  , 24, 12, cpt1overlap_and_cpt4normal, SE_overlap,
+     $         SE_corner_type, 25, 12, cpt1overlap_and_cpt4normal, no_overlap,
+     $         W_edge_type   , 1 , 14, 15                        , EW_overlap,
+     $         E_edge_type   , 25, 14, 15                        , no_overlap,
+     $         NW_corner_type, 1 , 16, cpt1normal_and_cpt4not    , EW_overlap,
+     $         NW_edge_type  , 2,  16, cpt1normal_and_cpt4not    , NW_overlap,
+     $         NE_edge_type  , 24, 16, cpt2normal_and_cpt3not    , NE_overlap,
+     $         NE_corner_type, 25, 16, cpt2normal_and_cpt3not    , no_overlap,
+     $         NW_corner_type, 2 , 17, cpt1overlap_and_cpt4not   , W_overlap,
+     $         NW_edge_type  , 3 , 17, cpt1overlap_and_cpt4normal, NW_overlap,
+     $         NE_edge_type  , 23, 17, cpt2overlap_and_cpt3normal, NE_overlap,
+     $         NE_corner_type, 24, 17, cpt2overlap_and_cpt3not   , no_overlap,
+     $         NW_corner_type,  3, 18, cpt1overlap_and_cpt4normal, no_overlap,
+     $         N_edge_type   ,  5, 18, 6                         , no_overlap,
+     $         NW_edge_type  ,  7, 18, no_overlap                , no_overlap,
+     $         NE_edge_type  , 19, 18, no_overlap                , no_overlap,
+     $         N_edge_type   , 21, 18, 22                        , no_overlap,
+     $         NE_corner_type, 23, 18, cpt2overlap_and_cpt3normal, no_overlap,
+     $         NW_corner_type, 7 , 20, no_overlap                , no_overlap,
+     $         N_edge_type   , 9 , 20, 10                        , no_overlap,
+     $         NW_edge_type  , 11, 20, no_overlap                , N_overlap,
+     $         NE_edge_type  , 15, 20, no_overlap                , N_overlap,
+     $         N_edge_type   , 17, 20, 18                        , no_overlap,
+     $         NE_corner_type, 19, 20, no_overlap                , no_overlap,
+     $         NW_corner_type, 11, 21, no_overlap                , no_overlap,
+     $         N_edge_type   , 13, 21, 14                        , no_overlap,
+     $         NE_corner_type, 15, 21, no_overlap                , no_overlap
+     $         /),
+     $         (/5,60/))
+
+          !output
+          call bf_layer_bc_sections_used%ini()
+          do j=j_min,j_max
+             do i=i_min,i_max
+                if(grdpts_id(i,j).eq.bc_interior_pt) then
+                   call bf_layer_bc_sections_used%analyse_grdpt(i,j,grdpts_id,ierror)
+                end if
+             end do
+          end do
+
+          call bf_layer_bc_sections_used%finalize_bc_sections(
+     $         x_borders,
+     $         y_borders,
+     $         sorted_bc_sections)
+
+          test_validated = is_int_matrix_validated(
+     $         sorted_bc_sections,
+     $         test_bc_sections,
+     $         detailled)
+
+        end function test_finalize_bc_sections
 
       end program test_bf_layer_bc_sections
