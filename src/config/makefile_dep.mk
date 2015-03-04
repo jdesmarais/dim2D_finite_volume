@@ -400,6 +400,7 @@ $(obc_dir)/bc_operators_openbc_class.o:\
 
 $(obc_dir)/bc_operators_openbc_normal_class.o:\
 			$(obc_dir)/bc_operators_openbc_class.o\
+			$(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o\
 			$(sd_dir)/interface_primary.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\

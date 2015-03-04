@@ -176,6 +176,10 @@ $(bbf_layer_dir)/bf_interior_bc_sections_module.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
+$(bbf_layer_dir)/bf_layer_bc_checks_module.o:\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
 #buffer layer computation of a new grid-point
 #$(ngbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o:\
 #	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\

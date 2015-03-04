@@ -167,3 +167,13 @@ test_bf_layer_bc_sections:	$(param_dep)\
 				bf_layer_bc_sections_overlap_module.o\
 				bf_layer_bc_sections_class.o\
 				check_data_module.o
+
+test_bf_layer_bc_checks.o:	$(bbf_layer_dir)/bf_layer_bc_checks_module.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_layer_bc_checks:	parameters_kind.o\
+				parameters_constant.o\
+				parameters_input.o\
+				bf_layer_bc_checks_module.o
