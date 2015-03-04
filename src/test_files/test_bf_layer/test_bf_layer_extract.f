@@ -3,7 +3,11 @@
         use bf_layer_extract_module, only :
      $     get_indices_to_extract_interior_data,
      $     get_indices_to_extract_bf_layer_data,
-     $     get_bf_layer_match_table
+     $     get_bf_layer_match_table,
+     $     get_grdpts_id_from_interior
+
+        use check_data_module, only :
+     $       is_int_matrix_validated
 
         use parameters_input, only :
      $       nx,ny
@@ -34,6 +38,11 @@
         test_loc = test_get_bf_layer_match_table(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_get_bf_layer_match_table: '',L1)', test_loc
+        print '()'
+
+        test_loc = test_get_grdpts_id_from_interior(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_get_grdpts_id_from_interior: '',L1)', test_loc
         print '()'
 
 
@@ -199,5 +208,72 @@
           end if
 
         end function test_get_bf_layer_match_table
+
+
+        function test_get_grdpts_id_from_interior(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          integer, dimension(5,5,3) :: grdpts_id_test
+          integer, dimension(2,2,3) :: gen_coords_test
+          
+          integer, dimension(5,5)   :: grdpts_id
+          integer                   :: k
+          logical                   :: test_loc
+          
+          test_validated = .true.
+
+          !input
+          grdpts_id_test = reshape((/
+     $         0,0,0,3,2,
+     $         0,0,0,3,3,
+     $         0,0,0,0,0,
+     $         0,0,0,0,0,
+     $         0,0,0,0,0,
+     $         
+     $         1,1,2,3,0,
+     $         1,1,2,3,0,
+     $         2,2,2,3,0,
+     $         3,3,3,3,0,
+     $         0,0,0,0,0,
+     $         
+     $         0,0,0,0,0,
+     $         3,3,3,3,3,
+     $         2,2,2,2,2,
+     $         1,1,1,1,1,
+     $         1,1,1,1,1/),
+     $         (/5,5,3/))
+
+          gen_coords_test = reshape((/
+     $         -2,ny-1,2,ny+3,
+     $         nx-3,ny-3,nx+1,ny+1,
+     $         3,0,7,4/),
+     $         (/2,2,3/))
+          
+
+          do k=1, size(gen_coords_test,3)
+
+             !output
+             call get_grdpts_id_from_interior(
+     $            grdpts_id,
+     $            gen_coords_test(:,:,k))
+
+             !validation
+             test_loc = is_int_matrix_validated(
+     $            grdpts_id,grdpts_id_test(:,:,k),detailled)
+             test_validated = test_validated.and.test_loc
+
+             !detailled
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'') failed'')'
+             end if
+
+          end do
+
+        end function test_get_grdpts_id_from_interior
 
       end program test_bf_layer_extract

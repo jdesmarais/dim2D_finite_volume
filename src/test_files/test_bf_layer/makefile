@@ -3,14 +3,31 @@
 #-----------------------------------------------------------------------
 include $(AUGEANSTABLES_CONFIG)/makefile_header.mk
 
+#bf_layer_sync
 test_bf_layer_extract.o:	$(sbf_layer_dir)/bf_layer_extract_module.o\
 				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o
+				$(param_dir)/parameters_kind.o\
+				$(test_dir)/tools/check_data_module.o
 
 test_bf_layer_extract:		bf_layer_extract_module.o\
+				check_data_module.o\
+				parameters_bf_layer.o\
 				parameters_input.o\
 				parameters_kind.o
 
+test_bf_layer_exchange.o:	$(sbf_layer_dir)/bf_layer_exchange_module.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_layer_exchange:		bf_layer_errors_module.o\
+				parameters_kind.o\
+				parameters_constant.o\
+				parameters_input.o\
+				parameters_bf_layer.o\
+				bf_layer_exchange_module.o\
+				check_data_module.o
 
 #bf_layer_parents
 test_bf_layer_basic.o:		$(pbf_layer_dir)/bf_layer_basic_class.o\
@@ -53,19 +70,6 @@ test_bf_layer_print:		$(param_dep)\
 				$(dim2d_dep)\
 				$(bf_layer_print_dep)
 
-test_bf_layer_exchange.o:	$(sbf_layer_dir)/bf_layer_exchange_module.o\
-				$(test_dir)/tools/check_data_module.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o
-
-test_bf_layer_exchange:		bf_layer_errors_module.o\
-				parameters_kind.o\
-				parameters_constant.o\
-				parameters_input.o\
-				parameters_bf_layer.o\
-				bf_layer_exchange_module.o\
-				check_data_module.o
 
 test_bf_layer_sync.o:		$(pbf_layer_dir)/bf_layer_sync_class.o\
 				$(test_dir)/tools/check_data_module.o\
@@ -177,3 +181,19 @@ test_bf_layer_bc_checks:	parameters_kind.o\
 				parameters_constant.o\
 				parameters_input.o\
 				bf_layer_bc_checks_module.o
+
+test_bf_layer_bc_anticorner.o:	$(bbf_layer_dir)/bf_layer_bc_anticorner_module.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(dim2d_dir)/pmodel_eq_class.o\
+				$(test_dir)/tools/check_data_module.o
+
+test_bf_layer_bc_anticorner:	$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				n_coords_module.o\
+				check_data_module.o\
+				bf_layer_extract_module.o\
+				bf_layer_bc_anticorner_module.o
+
