@@ -32,6 +32,9 @@ cg_dep=			$(sd_dep)\
 mt_dep=			$(sd_dep)\
 			sd_operators_fd_module.o
 
+mt_ext_dep=		$(mt_dep)\
+			$(sd_oneside_dep)
+
 pm_dep=			pmodel_eq_abstract_class.o\
 			pmodel_eq_default_class.o\
 			pmodel_eq_class.o

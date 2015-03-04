@@ -8,8 +8,9 @@ $(hobc_dir)/hedstrom_xy_module.o:\
 			$(sd_cdir)/sd_operators_fd_module.o
 
 $(hobc_dir)/hedstrom_xy_anti_corner_flux_module.o:\
-			$(bc_dir)/bc_operators_nopt_module.o\
-			$(bbf_layer_dir)/bf_layer_bc_sections_class.o\
+			$(bbf_layer_dir)/bf_layer_bc_checks_module.o\
+			$(bbf_layer_dir)/bf_layer_bc_anticorner_module.o\
+			$(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o\
 			$(sbf_layer_dir)/bf_layer_extract_module.o\
 			$(hobc_dir)/hedstrom_xy_module.o\
 			$(obc_dir)/openbc_operators_module.o\

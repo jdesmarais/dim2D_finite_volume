@@ -114,7 +114,7 @@
           procedure, nopass :: get_v_in
           procedure, nopass :: get_T_in
           procedure, nopass :: get_P_out
-          procedure, nopass :: get_far_field
+          procedure,   pass :: get_far_field
 
         end type ic
 

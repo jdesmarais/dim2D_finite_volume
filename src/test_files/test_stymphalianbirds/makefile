@@ -407,7 +407,7 @@ test_diag_flux_symetry:\
 
 
 test_hedstrom_xy_prim.o:\
-			$(test_dir)/test_lernaeanhydra/check_data_module.o\
+			$(test_dir)/tools/check_data_module.o\
 			$(hobc_dir)/hedstrom_xy_module.o\
 			$(obc_dir)/openbc_operators_module.o\
 			$(param_dir)/parameters_constant.o\
@@ -419,15 +419,7 @@ test_hedstrom_xy_prim.o:\
 test_hedstrom_xy_prim:\
 			check_data_module.o\
 			$(param_dep)\
-			$(mt_dep)\
-			sd_operators_x_oneside_L0_class.o\
-			sd_operators_x_oneside_L1_class.o\
-			sd_operators_x_oneside_R1_class.o\
-			sd_operators_x_oneside_R0_class.o\
-			sd_operators_y_oneside_L0_class.o\
-			sd_operators_y_oneside_L1_class.o\
-			sd_operators_y_oneside_R1_class.o\
-			sd_operators_y_oneside_R0_class.o\
+			$(mt_ext_dep)\
 			$(dim2d_dep)\
 			openbc_operators_module.o\
 			hedstrom_xy_module.o

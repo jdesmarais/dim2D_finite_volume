@@ -14,14 +14,16 @@
       !-----------------------------------------------------------------
       module hedstrom_xy_anti_corner_flux_module
 
-        use bc_operators_nopt_module, only :
+        use bf_layer_bc_checks_module, only :
      $       compute_edge_N,
      $       compute_edge_S,
      $       compute_edge_E,
-     $       compute_edge_W,
+     $       compute_edge_W
+
+        use bf_layer_bc_anticorner_module, only :
      $       are_grdpts_needed_for_flux_x,
      $       are_grdpts_needed_for_flux_y,
-     $       combine_grdpts_to_compute_fluxes
+     $       extract_grdpts_to_compute_anticorner_fluxes
 
         use bf_layer_bc_sections_overlap_module, only :
      $       determine_corner_or_anti_corner_grdpts_computed
@@ -88,6 +90,9 @@
 
 
         implicit none
+
+        private
+        public :: compute_timedev_anti_corner_with_fluxes
 
 
         contains
@@ -165,7 +170,7 @@
         !--------------------------------------------------------------
         subroutine compute_timedev_anti_corner_with_fluxes(
      $       p_model,
-     $       t,nodes,x_map,y_map,
+     $       t,grdpts_id,nodes,x_map,y_map,
      $       flux_x, flux_y,
      $       timedev,
      $       s_x_L1, s_x_R1,
@@ -179,6 +184,7 @@
         
           type(pmodel_eq)                    , intent(in)    :: p_model
           real(rkind)                        , intent(in)    :: t
+          integer       , dimension(:,:)     , intent(in)    :: grdpts_id
           real(rkind)   , dimension(:,:,:)   , intent(in)    :: nodes
           real(rkind)   , dimension(:)       , intent(in)    :: x_map
           real(rkind)   , dimension(:)       , intent(in)    :: y_map
@@ -217,8 +223,8 @@
             case(NE_edge_type)
                
                compute_edge =
-     $              compute_edge_N(j_min,y_map,bc_timedev_choice).and.
-     $              compute_edge_E(i_min,x_map,bc_timedev_choice)
+     $              compute_edge_N(y_map(j_min),bc_timedev_choice).and.
+     $              compute_edge_E(x_map(i_min),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -263,7 +269,9 @@
 
                      ! compute fluxes N_edge
                      call compute_flux_x_anti_corner(
-     $                    bf_alignment, nodes,
+     $                    bf_alignment,
+     $                    grdpts_id,
+     $                    nodes,
      $                    interior_nodes,
      $                    dx,dy,
      $                    s_y_R1,
@@ -296,6 +304,7 @@
                      ! compute fluxes E_edge
                      call compute_flux_y_anti_corner(
      $                    bf_alignment,
+     $                    grdpts_id,
      $                    nodes,
      $                    interior_nodes,
      $                    dx,dy,
@@ -347,8 +356,8 @@
             case(NW_edge_type)
 
                compute_edge =
-     $              compute_edge_N(j_min,y_map,bc_timedev_choice).and.
-     $              compute_edge_W(i_min,x_map,bc_timedev_choice)
+     $              compute_edge_N(y_map(j_min),bc_timedev_choice).and.
+     $              compute_edge_W(x_map(i_min),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -371,6 +380,7 @@
                      ! compute the x-fluxes
                      call compute_flux_x_anti_corner(
      $                    bf_alignment,
+     $                    grdpts_id,
      $                    nodes,
      $                    interior_nodes,
      $                    dx,dy,
@@ -447,6 +457,7 @@
                      ! compute the y-fluxes
                      call compute_flux_y_anti_corner(
      $                    bf_alignment,
+     $                    grdpts_id,
      $                    nodes,
      $                    interior_nodes,
      $                    dx,dy,
@@ -477,8 +488,8 @@
             case(SW_edge_type)
 
                compute_edge =
-     $              compute_edge_S(j_min,y_map,bc_timedev_choice).and.
-     $              compute_edge_W(i_min,x_map,bc_timedev_choice)
+     $              compute_edge_S(y_map(j_min+1),bc_timedev_choice).and.
+     $              compute_edge_W(x_map(i_min+1),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -522,6 +533,7 @@
                      ! compute the y-fluxes
                      call compute_flux_y_anti_corner(
      $                    bf_alignment,
+     $                    grdpts_id,
      $                    nodes,
      $                    interior_nodes,
      $                    dx,dy,
@@ -555,6 +567,7 @@
                      ! compute the x-fluxes
                      call compute_flux_x_anti_corner(
      $                    bf_alignment,
+     $                    grdpts_id,
      $                    nodes,
      $                    interior_nodes,
      $                    dx,dy,
@@ -606,8 +619,8 @@
             case(SE_edge_type)
 
                compute_edge =
-     $              compute_edge_S(j_min,y_map,bc_timedev_choice).and.
-     $              compute_edge_E(i_min,x_map,bc_timedev_choice)
+     $              compute_edge_S(y_map(j_min),bc_timedev_choice).and.
+     $              compute_edge_E(x_map(i_min),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -630,6 +643,7 @@
                      ! compute the y-fluxes
                      call compute_flux_y_anti_corner(
      $                    bf_alignment,
+     $                    grdpts_id,
      $                    nodes,
      $                    interior_nodes,
      $                    dx,dy,
@@ -705,6 +719,7 @@
                      ! compute the x-fluxes
                      call compute_flux_x_anti_corner(
      $                    bf_alignment,
+     $                    grdpts_id,
      $                    nodes,
      $                    interior_nodes,
      $                    dx,dy,
@@ -773,6 +788,7 @@
         !--------------------------------------------------------------
         subroutine compute_flux_x_anti_corner(
      $     bf_alignment,
+     $     bf_grdpts_id,
      $     bf_nodes,
      $     interior_nodes,
      $     dx,dy,
@@ -784,6 +800,7 @@
           implicit none
 
           integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+          integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
           real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           real(rkind)                        , intent(in)    :: dx
@@ -840,8 +857,10 @@
 
              ! extract the grid points from the current nodes of
              ! the buffer layer and the interior domain
-             call combine_grdpts_to_compute_fluxes(
-     $            bf_alignment, bf_nodes,
+             call extract_grdpts_to_compute_anticorner_fluxes(
+     $            bf_alignment,
+     $            bf_grdpts_id,
+     $            bf_nodes,
      $            interior_nodes,
      $            gen_coords,
      $            tmp_nodes)
@@ -924,6 +943,7 @@
         !--------------------------------------------------------------
         subroutine compute_flux_y_anti_corner(
      $     bf_alignment,
+     $     bf_grdpts_id,
      $     bf_nodes,
      $     interior_nodes,
      $     dx,dy,
@@ -935,6 +955,7 @@
           implicit none
 
           integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+          integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
           real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           real(rkind)                        , intent(in)    :: dx
@@ -991,8 +1012,10 @@
 
              ! extract the grid points from the current nodes of
              ! the buffer layer and the interior domain
-             call combine_grdpts_to_compute_fluxes(
-     $            bf_alignment, bf_nodes,
+             call extract_grdpts_to_compute_anticorner_fluxes(
+     $            bf_alignment,
+     $            bf_grdpts_id,
+     $            bf_nodes,
      $            interior_nodes,
      $            gen_coords,
      $            tmp_nodes)

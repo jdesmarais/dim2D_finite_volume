@@ -1,4 +1,4 @@
-      program test_hedstrom_xy_prim
+      program test_hedstrom_xy
 
         use check_data_module, only :
      $       is_real_validated,
@@ -39,7 +39,8 @@
         logical :: detailled
 
         
-        detailled = .false.
+        detailled = .true.
+        test_validated = .true.
 
 
         test_loc       = test_compute_timedev_with_openbc(detailled)
@@ -116,19 +117,19 @@
           test_validated = 
      $         is_real_vector_validated(
      $         timedev_L0,
-     $         [-1.187641157d0,
+     $         [-1.18764115727727d0,
      $           2.471895756d0,
      $           0.0d0,
-     $          -2.709074958d0],
+     $          -2.70907495789801d0],
      $         detailled)
 
           test_validated = test_validated.and.
      $         is_real_vector_validated(
      $         timedev_R0,
-     $         [-1.386102884d0,
-     $          -2.978210616d0,
-     $          -0.007727699d0,
-     $          -3.234784863d0],
+     $         [-1.38610288419910d0,
+     $          -2.97821061646847d0,
+     $          -0.007727698696229735d0,
+     $          -3.23478486279010d0],
      $         detailled)
 
        end function test_compute_timedev_with_openbc
@@ -154,4 +155,4 @@
 
        end subroutine test_inputs
 
-      end program test_hedstrom_xy_prim
+      end program test_hedstrom_xy
