@@ -3,6 +3,9 @@
         use bc_operators_openbc_class, only :
      $       bc_operators_openbc
 
+        use bf_layer_bc_sections_overlap_module, only :
+     $       determine_edge_grdpts_computed
+
         use interface_primary, only :
      $     gradient_proc
 
@@ -278,6 +281,9 @@
         !> cardinal coordinate identifying the type of
         !> edge boundary layer
         !
+        !>@param compute_edge
+        !> determine which grid points are computed
+        !
         !>@param flux_y
         !> fluxes along the y-direction
         !-------------------------------------------------------------
@@ -289,6 +295,7 @@
      $       dx, dy,
      $       j_min, j_max, i,
      $       edge_card_coord,
+     $       compute_edge,
      $       flux_y)
         
           implicit none            
@@ -305,6 +312,7 @@
           integer(ikind)                   , intent(in)    :: j_max
           integer(ikind)                   , intent(in)    :: i
           integer                          , intent(in)    :: edge_card_coord
+          logical    , dimension(2)        , intent(in)    :: compute_edge
           real(rkind), dimension(:,:,:)    , intent(inout) :: flux_y
 
           integer(ikind)        :: i_f
@@ -313,34 +321,94 @@
 
           select case(edge_card_coord)
             case(W)
-               do j=j_min,j_max
 
-                  flux_y(i,j,:) = p_model%compute_flux_y_oneside(
-     $                 nodes,dx,dy,
-     $                 i,j,
-     $                 s_x_L0)
+               !both edges: i and i+1
+               if(compute_edge(1).and.compute_edge(2)) then
+                  do j=j_min,j_max
+                     
+                     flux_y(i,j,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_x_L0)
 
-                  flux_y(i+1,j,:) = p_model%compute_flux_y_oneside(
-     $                 nodes,dx,dy,
-     $                 i+1,j,
-     $                 s_x_L1)
+                     flux_y(i+1,j,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i+1,j,
+     $                    s_x_L1)
 
-               end do
+                  end do
+               end if
+
+               !only edge(1): i
+               if(compute_edge(1).and.(.not.compute_edge(2))) then
+                  do j=j_min,j_max
+
+                     flux_y(i,j,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_x_L0)
+                     
+                  end do
+               end if
+
+               
+               !only edge(2): i+1
+               if((.not.compute_edge(1)).and.compute_edge(2)) then
+                  do j=j_min,j_max
+                     
+                     flux_y(i+1,j,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i+1,j,
+     $                    s_x_L1)
+                     
+                  end do
+               end if
+
                
             case(E)
-               do j=j_min,j_max
+               
+               !both edges: i and i+1
+               if(compute_edge(1).and.compute_edge(2)) then
+                  do j=j_min,j_max
 
-                  flux_y(i,j,:) = p_model%compute_flux_y_oneside(
-     $                 nodes,dx,dy,
-     $                 i,j,
-     $                 s_x_R1)
+                     flux_y(i,j,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_x_R1)
+                     
+                     flux_y(i+1,j,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i+1,j,
+     $                    s_x_R0)
+                     
+                  end do
+               end if
 
-                  flux_y(i+1,j,:) = p_model%compute_flux_y_oneside(
-     $                 nodes,dx,dy,
-     $                 i+1,j,
-     $                 s_x_R0)
+               
+               !only edge(1): i
+               if(compute_edge(1).and.(.not.compute_edge(2))) then
+                  do j=j_min,j_max
 
-               end do
+                     flux_y(i,j,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_x_R1)
+                     
+                  end do
+               end if
+
+
+               !only edge(2): i+1
+               if((.not.compute_edge(1)).and.(compute_edge(2))) then
+                  do j=j_min,j_max
+
+                     flux_y(i+1,j,:) = p_model%compute_flux_y_oneside(
+     $                    nodes,dx,dy,
+     $                    i+1,j,
+     $                    s_x_R0)
+                     
+                  end do
+               end if
 
             case(E+W)
                do j=j_min,j_max
@@ -425,6 +493,9 @@
         !> cardinal coordinate identifying the type of
         !> edge boundary layer
         !
+        !>@param compute_edge
+        !> determine which grid points are computed
+        !
         !>@param flux_x
         !> fluxes along the x-direction
         !-------------------------------------------------------------
@@ -436,56 +507,80 @@
      $     dx, dy,
      $     i_min, i_max, j,
      $     edge_card_coord,
+     $     compute_edge,
      $     flux_x)
         
           implicit none
         
-          type(pmodel_eq)                , intent(in)    :: p_model
-          real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
-          type(sd_operators_y_oneside_L0), intent(in)    :: s_y_L0
-          type(sd_operators_y_oneside_L1), intent(in)    :: s_y_L1
-          type(sd_operators_y_oneside_R1), intent(in)    :: s_y_R1
-          type(sd_operators_y_oneside_R0), intent(in)    :: s_y_R0
-          real(rkind)                    , intent(in)    :: dx
-          real(rkind)                    , intent(in)    :: dy
-          integer(ikind)                 , intent(in)    :: i_min
-          integer(ikind)                 , intent(in)    :: i_max
-          integer(ikind)                 , intent(in)    :: j
-          integer                        , intent(in)    :: edge_card_coord
-          real(rkind), dimension(:,:,:)  , intent(inout) :: flux_x
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          real(rkind)   , dimension(:,:,:)  , intent(in)    :: nodes
+          type(sd_operators_y_oneside_L0)   , intent(in)    :: s_y_L0
+          type(sd_operators_y_oneside_L1)   , intent(in)    :: s_y_L1
+          type(sd_operators_y_oneside_R1)   , intent(in)    :: s_y_R1
+          type(sd_operators_y_oneside_R0)   , intent(in)    :: s_y_R0
+          real(rkind)                       , intent(in)    :: dx
+          real(rkind)                       , intent(in)    :: dy
+          integer(ikind)                    , intent(in)    :: i_min
+          integer(ikind)                    , intent(in)    :: i_max
+          integer(ikind)                    , intent(in)    :: j
+          integer                           , intent(in)    :: edge_card_coord
+          logical       , dimension(2)      , intent(in)    :: compute_edge
+          real(rkind)   , dimension(:,:,:)  , intent(inout) :: flux_x
 
-          integer(ikind)        :: i
+          integer(ikind) :: i
 
           select case(edge_card_coord)
             case(S)
-               do i=i_min, i_max
-                  flux_x(i,j,:) = p_model%compute_flux_x_oneside(
-     $                 nodes,dx,dy,
-     $                 i,j,
-     $                 s_y_L0)
-               end do
 
-               do i=i_min, i_max
-                  flux_x(i,j+1,:) = p_model%compute_flux_x_oneside(
-     $                 nodes,dx,dy,
-     $                 i,j+1,
-     $                 s_y_L1)
-               end do
+               !1st section:j
+               if(compute_edge(1)) then
+                  do i=i_min, i_max
+
+                     flux_x(i,j,:) = p_model%compute_flux_x_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_y_L0)
+
+                  end do
+               end if
+
+               !2nd section: j+1
+               if(compute_edge(2)) then
+                  do i=i_min, i_max
+
+                     flux_x(i,j+1,:) = p_model%compute_flux_x_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j+1,
+     $                    s_y_L1)
+
+                  end do
+               end if
 
             case(N)
-               do i=i_min,i_max
-                  flux_x(i,j,:) = p_model%compute_flux_x_oneside(
-     $                 nodes,dx,dy,
-     $                 i,j,
-     $                 s_y_R1)
-               end do
+
+               !1st section: j
+               if(compute_edge(1)) then
+                  do i=i_min,i_max
+
+                     flux_x(i,j,:) = p_model%compute_flux_x_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j,
+     $                    s_y_R1)
+
+                  end do
+               end if
           
-               do i=i_min, i_max
-                  flux_x(i,j+1,:) = p_model%compute_flux_x_oneside(
-     $                 nodes,dx,dy,
-     $                 i,j+1,
-     $                 s_y_R0)
-               end do
+               !2nd section: j+1
+               if(compute_edge(2)) then
+                  do i=i_min, i_max
+
+                     flux_x(i,j+1,:) = p_model%compute_flux_x_oneside(
+     $                    nodes,dx,dy,
+     $                    i,j+1,
+     $                    s_y_R0)
+                     
+                  end do
+               end if
 
             case default
                print '(''bc_operators_openbc_class'')'
@@ -496,28 +591,99 @@
         end subroutine compute_fluxes_for_bc_y_edge
 
 
-
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for a
+        !> North edge bc_section
+        !
+        !> @date
+        !> 22_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> abstract boundary conditions
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param nodes
+        !> array containing the grid point data
+        !
+        !>@param x_map
+        !> x-coordinates
+        !
+        !>@param y_map
+        !> y-coordinates
+        !
+        !>@param flux_x
+        !> fluxes along the x-direction
+        !
+        !>@param s_y_L0
+        !> space operators needed to compute the fluxes
+        !> when no grid point is available in the (-y)-direction
+        !
+        !>@param s_y_L1
+        !> space operators needed to compute the fluxes
+        !> when only one grid point is available in the (-y)-direction
+        !
+        !>@param s_y_R1
+        !> space operators needed to compute the fluxes
+        !> when only one grid point is available in the (+y)-direction
+        !
+        !>@param s_y_R0
+        !> space operators needed to compute the fluxes
+        !> when no grid point is available in the (+y)-direction
+        !
+        !>@param dx
+        !> space step in the x-direction
+        !
+        !>@param dy
+        !> space step in the y-direction
+        !
+        !>@param i_min
+        !> index min along the x-direction corresponding
+        !> to the beginning of the edge layer computed
+        !
+        !>@param i_max
+        !> index max along the x-direction corresponding
+        !> to the end of the edge layer computed
+        !
+        !>@param j_min
+        !> index along the y-direction positioning the
+        !> the edge boundary layer
+        !
+        !>@param overlap_type
+        !> determine which grid points are computed
+        !
+        !>@param timedev
+        !> time derivatives
+        !-------------------------------------------------------------
         subroutine apply_bc_on_timedev_N_edge(
-     $       this,
-     $       p_model,
-     $       t,nodes,
-     $       x_map, y_map,
-     $       flux_x,
-     $       s_y_L0, s_y_L1,
-     $       s_y_R1, s_y_R0,
-     $       dx,dy,
-     $       i_min, i_max, j_min,
-     $       timedev)
+     $     this,
+     $     p_model,
+     $     t,nodes,
+     $     x_map, y_map,
+     $     flux_x,
+     $     s_y_L0, s_y_L1,
+     $     s_y_R1, s_y_R0,
+     $     dx,dy,
+     $     i_min, i_max, j_min,
+     $     overlap_type,
+     $     timedev)
 
           implicit none
 
           class(bc_operators_openbc_normal), intent(in)    :: this
           type(pmodel_eq)                  , intent(in)    :: p_model
           real(rkind)                      , intent(in)    :: t
-          real(rkind), dimension(:,:,:)    , intent(in)    :: nodes
-          real(rkind), dimension(:)        , intent(in)    :: x_map
-          real(rkind), dimension(:)        , intent(in)    :: y_map
-          real(rkind), dimension(:,:,:)    , intent(inout) :: flux_x
+          real(rkind)   , dimension(:,:,:) , intent(in)    :: nodes
+          real(rkind)   , dimension(:)     , intent(in)    :: x_map
+          real(rkind)   , dimension(:)     , intent(in)    :: y_map
+          real(rkind)   , dimension(:,:,:) , intent(inout) :: flux_x
           type(sd_operators_y_oneside_L0)  , intent(in)    :: s_y_L0
           type(sd_operators_y_oneside_L1)  , intent(in)    :: s_y_L1
           type(sd_operators_y_oneside_R1)  , intent(in)    :: s_y_R1
@@ -527,58 +693,146 @@
           integer(ikind)                   , intent(in)    :: i_min
           integer(ikind)                   , intent(in)    :: i_max
           integer(ikind)                   , intent(in)    :: j_min
-          real(rkind), dimension(:,:,:)    , intent(inout) :: timedev
+          integer                          , intent(in)    :: overlap_type
+          real(rkind)   , dimension(:,:,:) , intent(inout) :: timedev
 
-          logical        :: side_y
-          integer(ikind) :: i,j
+          logical, dimension(2) :: compute_edge
+          logical               :: side_y
+          integer(ikind)        :: i,j
 
-
-          !compute the fluxes at the edges
-          call compute_fluxes_for_bc_y_edge(
-     $         p_model,
-     $         nodes,
-     $         s_y_L0, s_y_L1,
-     $         s_y_R1, s_y_R0,
-     $         dx, dy,
-     $         i_min, i_max+1, j_min,
-     $         N,
-     $         flux_x)
-
-
-          !compute the time derivatives
-          side_y = right
           
-          j=j_min
-          do i=i_min,i_max
-             
-             timedev(i,j,:) = 
-     $            this%apply_bc_on_timedev_y_edge(
-     $            p_model,
-     $            t,nodes,
-     $            x_map,y_map,i,j,
-     $            flux_x,
-     $            side_y,
-     $            gradient_y_y_oneside_R0)
-             
-          end do
-          
-          j=j_min+1
-          do i=i_min,i_max
-             
-             timedev(i,j,:) = 
-     $            this%apply_bc_on_timedev_y_edge(
-     $            p_model,
-     $            t,nodes,
-     $            x_map,y_map,i,j,
-     $            flux_x,
-     $            side_y,
-     $            gradient_y_y_oneside_R0)
+          call determine_edge_grdpts_computed(overlap_type,compute_edge)
 
-          end do
+
+          if((compute_edge(1).or.compute_edge(2)).and.
+     $       ((i_max-i_min+1).gt.0)) then
+
+             !compute the fluxes at the edges
+             call compute_fluxes_for_bc_y_edge(
+     $            p_model,
+     $            nodes,
+     $            s_y_L0, s_y_L1,
+     $            s_y_R1, s_y_R0,
+     $            dx, dy,
+     $            i_min, i_max+1, j_min,
+     $            N,
+     $            compute_edge,
+     $            flux_x)
+
+
+             !compute the time derivatives
+             side_y = right
+          
+             !1st section: j=j_min
+             if(compute_edge(1)) then
+                j=j_min
+                do i=i_min,i_max
+                
+                   timedev(i,j,:) = 
+     $                  this%apply_bc_on_timedev_y_edge(
+     $                  p_model,
+     $                  t,nodes,
+     $                  x_map,y_map,i,j,
+     $                  flux_x,
+     $                  side_y,
+     $                  gradient_y_y_oneside_R0)
+                
+                end do
+             end if
+             
+             !2nd section: j=j_min+1
+             if(compute_edge(2)) then
+                j=j_min+1
+                do i=i_min,i_max
+                   
+                   timedev(i,j,:) = 
+     $                  this%apply_bc_on_timedev_y_edge(
+     $                  p_model,
+     $                  t,nodes,
+     $                  x_map,y_map,i,j,
+     $                  flux_x,
+     $                  side_y,
+     $                  gradient_y_y_oneside_R0)
+                   
+                end do
+             end if
+
+          end if
 
         end subroutine apply_bc_on_timedev_N_edge
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for a
+        !> South edge bc_section
+        !
+        !> @date
+        !> 22_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> abstract boundary conditions
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param nodes
+        !> array containing the grid point data
+        !
+        !>@param x_map
+        !> x-coordinates
+        !
+        !>@param y_map
+        !> y-coordinates
+        !
+        !>@param flux_x
+        !> fluxes along the x-direction
+        !
+        !>@param s_y_L0
+        !> space operators needed to compute the fluxes
+        !> when no grid point is available in the (-y)-direction
+        !
+        !>@param s_y_L1
+        !> space operators needed to compute the fluxes
+        !> when only one grid point is available in the (-y)-direction
+        !
+        !>@param s_y_R1
+        !> space operators needed to compute the fluxes
+        !> when only one grid point is available in the (+y)-direction
+        !
+        !>@param s_y_R0
+        !> space operators needed to compute the fluxes
+        !> when no grid point is available in the (+y)-direction
+        !
+        !>@param dx
+        !> space step in the x-direction
+        !
+        !>@param dy
+        !> space step in the y-direction
+        !
+        !>@param i_min
+        !> index min along the x-direction corresponding
+        !> to the beginning of the edge layer computed
+        !
+        !>@param i_max
+        !> index max along the x-direction corresponding
+        !> to the end of the edge layer computed
+        !
+        !>@param j_min
+        !> index along the y-direction positioning the
+        !> the edge boundary layer
+        !
+        !>@param overlap_type
+        !> determine which grid points are computed
+        !
+        !>@param timedev
+        !> time derivatives
+        !-------------------------------------------------------------
         subroutine apply_bc_on_timedev_S_edge(
      $     this,
      $     p_model,
@@ -589,6 +843,7 @@
      $     s_y_R1, s_y_R0,
      $     dx,dy,
      $     i_min, i_max, j_min,
+     $     overlap_type,
      $     timedev)
 
           implicit none
@@ -609,58 +864,146 @@
           integer(ikind)                   , intent(in)    :: i_min
           integer(ikind)                   , intent(in)    :: i_max
           integer(ikind)                   , intent(in)    :: j_min
+          integer                          , intent(in)    :: overlap_type
           real(rkind), dimension(:,:,:)    , intent(inout) :: timedev
 
-          logical        :: side_y
-          integer(ikind) :: i,j
+          logical, dimension(2) :: compute_edge
+          logical               :: side_y
+          integer(ikind)        :: i,j
 
 
-          !compute the fluxes at the edges
-          call compute_fluxes_for_bc_y_edge(
-     $         p_model,
-     $         nodes,
-     $         s_y_L0, s_y_L1,
-     $         s_y_R1, s_y_R0,
-     $         dx, dy,
-     $         i_min, i_max+1, j_min,
-     $         S,
-     $         flux_x)
+          call determine_edge_grdpts_computed(overlap_type,compute_edge)
 
 
-          !compute the time derivatives
-          side_y = left
+          if((compute_edge(1).or.compute_edge(2)).and.
+     $       ((i_max-i_min+1).gt.0)) then
 
-          j=j_min
-          do i=i_min,i_max
-
-             timedev(i,j,:) = 
-     $            this%apply_bc_on_timedev_y_edge(
+             !compute the fluxes at the edges
+             call compute_fluxes_for_bc_y_edge(
      $            p_model,
-     $            t,nodes,
-     $            x_map,y_map,i,j,
-     $            flux_x,
-     $            side_y,
-     $            gradient_y_y_oneside_L0)
+     $            nodes,
+     $            s_y_L0, s_y_L1,
+     $            s_y_R1, s_y_R0,
+     $            dx, dy,
+     $            i_min, i_max+1, j_min,
+     $            S,
+     $            compute_edge,
+     $            flux_x)
 
-          end do
 
-          j=j_min+1
-          do i=i_min,i_max
+             !compute the time derivatives
+             side_y = left
 
-             timedev(i,j,:) = 
-     $            this%apply_bc_on_timedev_y_edge(
-     $            p_model,
-     $            t,nodes,
-     $            x_map,y_map,i,j,
-     $            flux_x,
-     $            side_y,
-     $            gradient_y_y_oneside_L0)
+             !1st section: j=j_min
+             if(compute_edge(1)) then
+                j=j_min
+                do i=i_min,i_max
+                   
+                   timedev(i,j,:) = 
+     $                  this%apply_bc_on_timedev_y_edge(
+     $                  p_model,
+     $                  t,nodes,
+     $                  x_map,y_map,i,j,
+     $                  flux_x,
+     $                  side_y,
+     $                  gradient_y_y_oneside_L0)
 
-          end do
+                end do
+             end if
+
+             !2nd section: j=j_min+1
+             if(compute_edge(2)) then
+                j=j_min+1
+                do i=i_min,i_max
+
+                   timedev(i,j,:) = 
+     $                  this%apply_bc_on_timedev_y_edge(
+     $                  p_model,
+     $                  t,nodes,
+     $                  x_map,y_map,i,j,
+     $                  flux_x,
+     $                  side_y,
+     $                  gradient_y_y_oneside_L0)
+
+                end do
+             end if
+
+          end if
 
         end subroutine apply_bc_on_timedev_S_edge
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for a
+        !> East edge bc_section
+        !
+        !> @date
+        !> 22_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> abstract boundary conditions
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param nodes
+        !> array containing the grid point data
+        !
+        !>@param x_map
+        !> x-coordinates
+        !
+        !>@param y_map
+        !> y-coordinates
+        !
+        !>@param flux_y
+        !> fluxes along the y-direction
+        !
+        !>@param s_x_L0
+        !> space operators needed to compute the fluxes
+        !> when no grid point is available in the (-x)-direction
+        !
+        !>@param s_x_L1
+        !> space operators needed to compute the fluxes
+        !> when only one grid point is available in the (-x)-direction
+        !
+        !>@param s_x_R1
+        !> space operators needed to compute the fluxes
+        !> when only one grid point is available in the (+x)-direction
+        !
+        !>@param s_x_R0
+        !> space operators needed to compute the fluxes
+        !> when no grid point is available in the (+x)-direction
+        !
+        !>@param dx
+        !> space step in the x-direction
+        !
+        !>@param dy
+        !> space step in the y-direction
+        !
+        !>@param j_min
+        !> index min along the y-direction corresponding
+        !> to the beginning of the edge layer computed
+        !
+        !>@param j_max
+        !> index max along the y-direction corresponding
+        !> to the end of the edge layer computed
+        !
+        !>@param i_min
+        !> index along the x-direction positioning the
+        !> the edge boundary section
+        !
+        !>@param overlap_type
+        !> determine which grid points are computed
+        !
+        !>@param timedev
+        !> time derivatives
+        !-------------------------------------------------------------
         subroutine apply_bc_on_timedev_E_edge(
      $     this,
      $     p_model,
@@ -671,6 +1014,7 @@
      $     s_x_R1, s_x_R0,
      $     dx,dy,
      $     j_min, j_max, i_min,
+     $     overlap_type,
      $     timedev)
 
           implicit none
@@ -691,53 +1035,172 @@
           integer(ikind)                   , intent(in)    :: j_min
           integer(ikind)                   , intent(in)    :: j_max
           integer(ikind)                   , intent(in)    :: i_min
+          integer                          , intent(in)    :: overlap_type
           real(rkind), dimension(:,:,:)    , intent(inout) :: timedev
 
-          logical        :: side_x
-          integer(ikind) :: i,j
+          logical, dimension(2) :: compute_edge
+          logical               :: side_x
+          integer(ikind)        :: i,j
 
 
-          !compute the fluxes at the edges
-          call compute_fluxes_for_bc_x_edge(
-     $         p_model,
-     $         nodes,
-     $         s_x_L0, s_x_L1,
-     $         s_x_R1, s_x_R0,
-     $         dx, dy,
-     $         j_min, j_max+1, i_min,
-     $         E,
-     $         flux_y)
+          call determine_edge_grdpts_computed(overlap_type,compute_edge)
 
-          !compute the time derivatives
-          side_x = right
+
+          if((compute_edge(1).or.compute_edge(2)).and.
+     $       ((j_max-j_min+1).gt.0)) then
+
+             !compute the fluxes at the edges
+             call compute_fluxes_for_bc_x_edge(
+     $            p_model,
+     $            nodes,
+     $            s_x_L0, s_x_L1,
+     $            s_x_R1, s_x_R0,
+     $            dx, dy,
+     $            j_min, j_max+1, i_min,
+     $            E,
+     $            compute_edge,
+     $            flux_y)
+
+             !compute the time derivatives
+             side_x = right
           
-          do j=j_min, j_max
+             !both sides: i_min and i_min+1
+             if(compute_edge(1).and.compute_edge(2)) then
+                do j=j_min,j_max
              
-             i=i_min
-             timedev(i,j,:) = 
-     $            this%apply_bc_on_timedev_x_edge(
-     $            p_model,
-     $            t,nodes,
-     $            x_map,y_map,i,j,
-     $            flux_y,
-     $            side_x,
-     $            gradient_x_x_oneside_R0)
+                   i=i_min
+                   timedev(i,j,:) = 
+     $                  this%apply_bc_on_timedev_x_edge(
+     $                  p_model,
+     $                  t,nodes,
+     $                  x_map,y_map,i,j,
+     $                  flux_y,
+     $                  side_x,
+     $                  gradient_x_x_oneside_R0)
+                   
+                   i=i_min+1
+                   timedev(i,j,:) = 
+     $                  this%apply_bc_on_timedev_x_edge(
+     $                  p_model,
+     $                  t,nodes,
+     $                  x_map,y_map,i,j,
+     $                  flux_y,
+     $                  side_x,
+     $                  gradient_x_x_oneside_R0)
+                   
+                end do
+             end if
+
+             !W side: only i_min
+             if(compute_edge(1).and.(.not.compute_edge(2))) then
+                do j=j_min,j_max
              
-             i=i_min+1
-             timedev(i,j,:) = 
-     $            this%apply_bc_on_timedev_x_edge(
-     $            p_model,
-     $            t,nodes,
-     $            x_map,y_map,i,j,
-     $            flux_y,
-     $            side_x,
-     $            gradient_x_x_oneside_R0)
+                   i=i_min
+                   timedev(i,j,:) = 
+     $                  this%apply_bc_on_timedev_x_edge(
+     $                  p_model,
+     $                  t,nodes,
+     $                  x_map,y_map,i,j,
+     $                  flux_y,
+     $                  side_x,
+     $                  gradient_x_x_oneside_R0)
+                   
+                end do
+             end if
+
+             !E side: only i_min+1
+             if((.not.compute_edge(1)).and.compute_edge(2)) then
+                do j=j_min,j_max
              
-          end do
+                   i=i_min+1
+                   timedev(i,j,:) = 
+     $                  this%apply_bc_on_timedev_x_edge(
+     $                  p_model,
+     $                  t,nodes,
+     $                  x_map,y_map,i,j,
+     $                  flux_y,
+     $                  side_x,
+     $                  gradient_x_x_oneside_R0)
+                   
+                end do
+             end if
+
+          end if
 
         end subroutine apply_bc_on_timedev_E_edge
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine computing the time derivatives for a
+        !> West edge bc_section
+        !
+        !> @date
+        !> 22_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> abstract boundary conditions
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param nodes
+        !> array containing the grid point data
+        !
+        !>@param x_map
+        !> x-coordinates
+        !
+        !>@param y_map
+        !> y-coordinates
+        !
+        !>@param flux_y
+        !> fluxes along the y-direction
+        !
+        !>@param s_x_L0
+        !> space operators needed to compute the fluxes
+        !> when no grid point is available in the (-x)-direction
+        !
+        !>@param s_x_L1
+        !> space operators needed to compute the fluxes
+        !> when only one grid point is available in the (-x)-direction
+        !
+        !>@param s_x_R1
+        !> space operators needed to compute the fluxes
+        !> when only one grid point is available in the (+x)-direction
+        !
+        !>@param s_x_R0
+        !> space operators needed to compute the fluxes
+        !> when no grid point is available in the (+x)-direction
+        !
+        !>@param dx
+        !> space step in the x-direction
+        !
+        !>@param dy
+        !> space step in the y-direction
+        !
+        !>@param j_min
+        !> index min along the y-direction corresponding
+        !> to the beginning of the edge layer computed
+        !
+        !>@param j_max
+        !> index max along the y-direction corresponding
+        !> to the end of the edge layer computed
+        !
+        !>@param i_min
+        !> index along the x-direction positioning the
+        !> the edge boundary section
+        !
+        !>@param overlap_type
+        !> determine which grid-points are computed
+        !
+        !>@param timedev
+        !> time derivatives
+        !-------------------------------------------------------------
         subroutine apply_bc_on_timedev_W_edge(
      $     this,
      $     p_model,
@@ -748,6 +1211,7 @@
      $     s_x_R1, s_x_R0,
      $     dx,dy,
      $     j_min, j_max, i_min,
+     $     overlap_type,
      $     timedev)
 
           implicit none
@@ -768,49 +1232,104 @@
           integer(ikind)                   , intent(in)    :: j_min
           integer(ikind)                   , intent(in)    :: j_max
           integer(ikind)                   , intent(in)    :: i_min
+          integer                          , intent(in)    :: overlap_type
           real(rkind), dimension(:,:,:)    , intent(inout) :: timedev
 
-          logical        :: side_x
-          integer(ikind) :: i,j
+          logical, dimension(2) :: compute_edge
+          logical               :: side_x
+          integer(ikind)        :: i,j
 
 
-          !compute the fluxes
-          call compute_fluxes_for_bc_x_edge(
-     $         p_model,
-     $         nodes,
-     $         s_x_L0, s_x_L1,
-     $         s_x_R1, s_x_R0,
-     $         dx, dy,
-     $         j_min, j_max+1, i_min,
-     $         W,
-     $         flux_y)
+          call determine_edge_grdpts_computed(overlap_type,compute_edge)
 
-          !compute the time derivatives
-          side_x = left
 
-          do j=j_min,j_max
+          if((compute_edge(1).or.compute_edge(2)).and.
+     $       ((j_max-j_min+1).gt.0)) then
 
-             i=i_min
-             timedev(i,j,:) = 
-     $            this%apply_bc_on_timedev_x_edge(
+             !compute the fluxes
+             call compute_fluxes_for_bc_x_edge(
      $            p_model,
-     $            t,nodes,
-     $            x_map,y_map,i,j,
-     $            flux_y,
-     $            side_x,
-     $            gradient_x_x_oneside_L0)
+     $            nodes,
+     $            s_x_L0, s_x_L1,
+     $            s_x_R1, s_x_R0,
+     $            dx, dy,
+     $            j_min, j_max+1, i_min,
+     $            W,
+     $            compute_edge,
+     $            flux_y)
 
-             i=i_min+1
-             timedev(i,j,:) = 
-     $            this%apply_bc_on_timedev_x_edge(
-     $            p_model,
-     $            t,nodes,
-     $            x_map,y_map,i,j,
-     $            flux_y,
-     $            side_x,
-     $            gradient_x_x_oneside_L0)
 
-          end do
+             !compute the time derivatives
+             side_x = left
+
+             !both sides: i_min and i_min+1
+             if(compute_edge(1).and.compute_edge(2)) then
+
+                do j=j_min,j_max
+
+                   i=i_min
+                   timedev(i,j,:) = 
+     $                  this%apply_bc_on_timedev_x_edge(
+     $                  p_model,
+     $                  t,nodes,
+     $                  x_map,y_map,i,j,
+     $                  flux_y,
+     $                  side_x,
+     $                  gradient_x_x_oneside_L0)
+                   
+                   i=i_min+1
+                   timedev(i,j,:) = 
+     $                  this%apply_bc_on_timedev_x_edge(
+     $                  p_model,
+     $                  t,nodes,
+     $                  x_map,y_map,i,j,
+     $                  flux_y,
+     $                  side_x,
+     $                  gradient_x_x_oneside_L0)
+
+                end do
+
+             end if
+
+             !W side: only i_min
+             if(compute_edge(1).and.(.not.compute_edge(2))) then
+
+                do j=j_min,j_max
+
+                   i=i_min
+                   timedev(i,j,:) = 
+     $                  this%apply_bc_on_timedev_x_edge(
+     $                  p_model,
+     $                  t,nodes,
+     $                  x_map,y_map,i,j,
+     $                  flux_y,
+     $                  side_x,
+     $                  gradient_x_x_oneside_L0)
+
+                end do
+
+             end if
+
+             !E side: only i_min+1
+             if((.not.compute_edge(1)).and.compute_edge(2)) then
+
+                do j=j_min,j_max
+
+                   i=i_min+1
+                   timedev(i,j,:) = 
+     $                  this%apply_bc_on_timedev_x_edge(
+     $                  p_model,
+     $                  t,nodes,
+     $                  x_map,y_map,i,j,
+     $                  flux_y,
+     $                  side_x,
+     $                  gradient_x_x_oneside_L0)
+
+                end do
+
+             end if
+
+          end if
 
         end subroutine apply_bc_on_timedev_W_edge
           

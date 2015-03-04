@@ -289,7 +289,8 @@
      $       nodes,x_map,y_map,
      $       flux_x,flux_y,
      $       timedev,
-     $       bc_sections)
+     $       bc_sections,
+     $       grdpts_id)
            
              import bc_operators_abstract
              import nx,ny,ne
@@ -309,7 +310,8 @@
              real(rkind)   , dimension(:,:,:)               , intent(inout) :: flux_y
              real(rkind)   , dimension(:,:,:)               , intent(inout) :: timedev
              integer(ikind), dimension(:,:)    , allocatable, intent(in)    :: bc_sections
-           
+             integer       , dimension(:,:)    , optional   , intent(in)    :: grdpts_id
+
            end subroutine tdev_nopt_proc
 
         end interface

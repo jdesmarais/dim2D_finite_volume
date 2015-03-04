@@ -380,7 +380,8 @@ include $(AUGEANSTABLES_CONFIG)/dep/bf_layer_dep.mk
 
 $(obc_dir)/bc_operators_openbc_class.o:\
 			$(bc_dir)/bc_operators_default_class.o\
-			$(bc_dir)/bc_operators_nopt_module.o\
+			$(bbf_layer_dir)/bf_layer_bc_checks_module.o\
+			$(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o\
 			$(bf_layer_dir)/bf_layer_errors_module.o\
 			$(sd_dir)/interface_primary.o\
 			$(bf_layer_dir)/parameters_bf_layer.o\

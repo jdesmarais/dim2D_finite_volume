@@ -17,12 +17,6 @@
         use bc_operators_openbc_normal_class, only :
      $       bc_operators_openbc_normal
 
-        use bc_operators_nopt_module, only :
-     $       compute_edge_N,
-     $       compute_edge_S,
-     $       compute_edge_E,
-     $       compute_edge_W
-
         use bf_layer_errors_module, only :
      $       error_bc_section_type
 
@@ -279,6 +273,7 @@
      $         dx, dy,
      $         i_min, i_max, j,
      $         S,
+     $         [.true.,.true.],
      $         flux_x)
           
           
@@ -294,6 +289,7 @@
      $         dx, dy,
      $         j_min, j_max, i,
      $         E+W,
+     $         [.true.,.true.],
      $         flux_y)
           
           
@@ -310,6 +306,7 @@
      $         dx, dy,
      $         i_min, i_max, j,
      $         N,
+     $         [.true.,.true.],
      $         flux_x)
 
           !3) compute the time derivatives at the
@@ -770,7 +767,7 @@
      $     p_model, t,
      $     interior_nodes,
      $     bf_alignment,
-     $     nodes, x_map, y_map,
+     $     grdpts_id, nodes, x_map, y_map,
      $     flux_x, flux_y,
      $     s_x_L1, s_x_R1,
      $     s_y_L1, s_y_R1,
@@ -785,6 +782,7 @@
           real(rkind)                        , intent(in)    :: t
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment 
+          integer       , dimension(:,:)     , intent(in)    :: grdpts_id
           real(rkind)   , dimension(:,:,:)   , intent(in)    :: nodes
           real(rkind)   , dimension(:)       , intent(in)    :: x_map
           real(rkind)   , dimension(:)       , intent(in)    :: y_map
@@ -843,7 +841,7 @@
 
                call compute_timedev_anti_corner_with_fluxes(
      $              p_model,
-     $              t,nodes,x_map,y_map,
+     $              t,grdpts_id,nodes,x_map,y_map,
      $              flux_x, flux_y,
      $              timedev,
      $              s_x_L1, s_x_R1,
@@ -858,7 +856,7 @@
 
                call compute_timedev_anti_corner_with_diag_fluxes(
      $              p_model,
-     $              t,nodes,x_map,y_map,
+     $              t,grdpts_id,nodes,x_map,y_map,
      $              timedev,
      $              dx,dy,
      $              bc_section,

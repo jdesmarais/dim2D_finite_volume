@@ -272,7 +272,8 @@
      $     nodes,x_map,y_map,
      $     flux_x,flux_y,
      $     timedev,
-     $     bc_sections)
+     $     bc_sections,
+     $     grdpts_id)
         
           implicit none
           
@@ -288,6 +289,7 @@
           real(rkind)   , dimension(:,:,:)             , intent(inout) :: flux_y
           real(rkind)   , dimension(:,:,:)             , intent(inout) :: timedev
           integer(ikind), dimension(:,:)  , allocatable, intent(in)    :: bc_sections
+          integer       , dimension(:,:)  , optional   , intent(in)    :: grdpts_id
 
           real(rkind)           :: node,flux,dx_s,dy_s,timedev_s,t_s
           integer               :: neq
@@ -297,7 +299,9 @@
           stop 'bc_operator%apply_bc_on_time_dev() not implemented'
 
           !to prevent unused param warnings
-          node=nodes(1,1,1)+interior_nodes(1,1,1)
+          if(present(grdpts_id)) then
+             node=nodes(1,1,1)+interior_nodes(1,1,1)
+          end if
           dx_s = x_map(2)-x_map(1)
           dy_s = y_map(2)-y_map(1)
           t_s  = t

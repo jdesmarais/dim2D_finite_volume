@@ -1,16 +1,18 @@
       module hedstrom_xy_anti_corner_diag_flux_module
 
-        use bc_operators_nopt_module, only :
+        use bf_layer_bc_checks_module, only :
      $       compute_edge_N,
      $       compute_edge_S,
      $       compute_edge_E,
-     $       compute_edge_W,
+     $       compute_edge_W
+
+        use bf_layer_bc_anticorner_module, only :
      $       are_grdpts_needed_for_flux_x,
      $       are_grdpts_needed_for_flux_y,
-     $       combine_grdpts_to_compute_fluxes
+     $       extract_grdpts_to_compute_anticorner_fluxes
 
-        use bf_layer_bc_sections_class, only :
-     $       determine_edge_points_computed
+        use bf_layer_bc_sections_overlap_module, only :
+     $       determine_corner_or_anti_corner_grdpts_computed
 
         use bf_layer_extract_module, only :
      $       get_bf_layer_match_table
@@ -33,7 +35,9 @@
      $       SE_edge_type,
      $       SW_edge_type,
      $       NE_edge_type,
-     $       NW_edge_type
+     $       NW_edge_type,
+     $       
+     $       cptnot_type
 
         use parameters_constant, only :
      $       bc_timedev_choice,
@@ -150,7 +154,7 @@
         !--------------------------------------------------------------
         subroutine compute_timedev_anti_corner_with_diag_fluxes(
      $       p_model,
-     $       t,nodes,x_map,y_map,
+     $       t,grdpts_id,nodes,x_map,y_map,
      $       timedev,
      $       dx,dy,
      $       bc_section,
@@ -161,13 +165,14 @@
         
           type(pmodel_eq)                    , intent(in)    :: p_model
           real(rkind)                        , intent(in)    :: t
+          integer       , dimension(:,:)     , intent(in)    :: grdpts_id
           real(rkind)   , dimension(:,:,:)   , intent(in)    :: nodes
           real(rkind)   , dimension(:)       , intent(in)    :: x_map
           real(rkind)   , dimension(:)       , intent(in)    :: y_map
           real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
           real(rkind)                        , intent(in)    :: dx
           real(rkind)                        , intent(in)    :: dy
-          integer       , dimension(4)       , intent(in)    :: bc_section
+          integer       , dimension(5)       , intent(in)    :: bc_section
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
 
@@ -176,10 +181,7 @@
           integer(ikind) :: i,j
           logical        :: compute_edge
 
-          logical :: compute_point1
-          logical :: compute_point2
-          logical :: compute_point3
-          logical :: compute_point4
+          integer, dimension(4) :: compute_point
 
           real(rkind) :: dn
           
@@ -200,12 +202,10 @@
           j_min = bc_section(3)
 
           
-          call determine_edge_points_computed(
+          call determine_corner_or_anti_corner_grdpts_computed(
      $         bc_section(4),
-     $         compute_point1,
-     $         compute_point2,
-     $         compute_point3,
-     $         compute_point4)
+     $         bc_section(5),
+     $         compute_point)
 
           dn =  get_dn(dx,dy)
 
@@ -220,8 +220,8 @@
             case(NE_edge_type)               
                
                compute_edge =
-     $              compute_edge_N(j_min,y_map,bc_timedev_choice).and.
-     $              compute_edge_E(i_min,x_map,bc_timedev_choice)
+     $              compute_edge_N(y_map(j_min),bc_timedev_choice).and.
+     $              compute_edge_E(x_map(i_min),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -231,7 +231,7 @@
                   ! |CCC|   |  NE_edge(1,1): like NE_corner(1,1)
                   ! |CCC|___|
                   !------------
-                  if(compute_point1) then
+                  if(compute_point(1).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min
@@ -241,6 +241,7 @@
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n2_direction,
@@ -259,7 +260,7 @@
                   ! |   |CCC|  NE_edge(2,1): like N_edge
                   ! |___|CCC|
                   !------------
-                  if(compute_point2) then
+                  if(compute_point(2).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min
@@ -269,6 +270,7 @@
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n2_direction,
@@ -287,7 +289,7 @@
                   ! |   |   |  NE_edge(2,1): like E_edge
                   ! |___|___|
                   !------------
-                  if(compute_point3) then
+                  if(compute_point(3).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min+1
@@ -297,6 +299,7 @@
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n2_direction,
@@ -315,7 +318,7 @@
                   ! |   |   |  NE_edge(2,2): like NE_corner(2,2)
                   ! |___|___|
                   !------------
-                  if(compute_point4) then
+                  if(compute_point(4).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min+1
@@ -325,6 +328,7 @@
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n2_direction,
@@ -348,8 +352,8 @@
             case(NW_edge_type)
 
                compute_edge =
-     $              compute_edge_N(j_min,y_map,bc_timedev_choice).and.
-     $              compute_edge_W(i_min,x_map,bc_timedev_choice)
+     $              compute_edge_N(y_map(j_min),bc_timedev_choice).and.
+     $              compute_edge_W(x_map(i_min+1),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -360,7 +364,7 @@
                   ! |CCC|   |  NW_edge(1,1): like N_edge
                   ! |CCC|___|
                   !------------
-                  if(compute_point1) then
+                  if(compute_point(1).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min
@@ -370,6 +374,7 @@
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n1_direction,
@@ -388,7 +393,7 @@
                   ! |   |CCC|  NW_edge(2,1): like NW_corner(2,1)
                   ! |___|CCC|
                   !------------
-                  if(compute_point2) then
+                  if(compute_point(2).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min
@@ -398,6 +403,7 @@
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n1_direction,
@@ -416,7 +422,7 @@
                   ! |   |   |  NW_edge(1,2): like NW_corner(1,2)
                   ! |___|___|
                   !------------
-                  if(compute_point3) then
+                  if(compute_point(3).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min+1
@@ -426,6 +432,7 @@
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n1_direction,
@@ -444,7 +451,7 @@
                   ! |   |   |  NW_edge(2,2): like W_edge
                   ! |___|___|
                   !------------
-                  if(compute_point4) then
+                  if(compute_point(4).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min+1
@@ -454,6 +461,7 @@
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n1_direction,
@@ -477,8 +485,8 @@
             case(SW_edge_type)
 
                compute_edge =
-     $              compute_edge_S(j_min,y_map,bc_timedev_choice).and.
-     $              compute_edge_W(i_min,x_map,bc_timedev_choice)
+     $              compute_edge_S(y_map(j_min+1),bc_timedev_choice).and.
+     $              compute_edge_W(x_map(i_min+1),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -488,7 +496,7 @@
                   ! |CCC|   |  SW_edge(1,1): like SW_corner(1,1)
                   ! |CCC|___|
                   !------------
-                  if(compute_point1) then
+                  if(compute_point(1).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min
@@ -498,6 +506,7 @@
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n1_direction,
@@ -516,7 +525,7 @@
                   ! |   |CCC|  SW_edge(2,1): like W_edge
                   ! |___|CCC|
                   !------------
-                  if(compute_point2) then
+                  if(compute_point(2).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min
@@ -526,6 +535,7 @@
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n1_direction,
@@ -544,7 +554,7 @@
                   ! |   |   |  SW_edge(2,1): like S_edge
                   ! |___|___|
                   !------------
-                  if(compute_point3) then
+                  if(compute_point(3).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min+1
@@ -554,6 +564,7 @@
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n1_direction,
@@ -572,7 +583,7 @@
                   ! |   |   |  SW_edge(2,2): like SW_corner(2,2)
                   ! |___|___|
                   !------------
-                  if(compute_point4) then
+                  if(compute_point(4).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min+1
@@ -582,6 +593,7 @@
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n1_direction,
@@ -605,8 +617,8 @@
             case(SE_edge_type)
 
                compute_edge =
-     $              compute_edge_S(j_min,y_map,bc_timedev_choice).and.
-     $              compute_edge_E(i_min,x_map,bc_timedev_choice)
+     $              compute_edge_S(y_map(j_min+1),bc_timedev_choice).and.
+     $              compute_edge_E(x_map(i_min),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -616,7 +628,7 @@
                   ! |CCC|   |  SE_edge(1,1): like E_edge
                   ! |CCC|___|
                   !------------
-                  if(compute_point1) then
+                  if(compute_point(1).ne.cptnot_type) then
 
                      i=i_min
                      j=j_min
@@ -626,6 +638,7 @@
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n1_direction,
@@ -644,7 +657,7 @@
                   ! |   |CCC|  SE_edge(2,1): like SE_corner(2,1)
                   ! |___|CCC|
                   !------------
-                  if(compute_point2) then
+                  if(compute_point(2).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min
@@ -654,6 +667,7 @@
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n1_direction,
@@ -672,7 +686,7 @@
                   ! |   |   |  SE_edge(2,1): like SE_corner(1,2)
                   ! |___|___|
                   !------------
-                  if(compute_point3) then
+                  if(compute_point(3).ne.cptnot_type) then
                      
                      i=i_min
                      j=j_min+1
@@ -682,6 +696,7 @@
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n1_direction,
@@ -700,7 +715,7 @@
                   ! |   |   |  SE_edge(2,2): like S_edge
                   ! |___|___|
                   !------------
-                  if(compute_point4) then
+                  if(compute_point(4).ne.cptnot_type) then
 
                      i=i_min+1
                      j=j_min+1
@@ -710,6 +725,7 @@
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
+     $                    grdpts_id,
      $                    nodes,i,j,
      $                    p_model,
      $                    n1_direction,
@@ -730,7 +746,9 @@
 
         function compute_timedev_local(
      $     t,x,y,
-     $     bf_nodes,i,j,
+     $     bf_grdpts_id,
+     $     bf_nodes,
+     $     i,j,
      $     p_model,
      $     outward_dir,
      $     gradient_n,dn,
@@ -745,6 +763,7 @@
           real(rkind)                        , intent(in) :: t
           real(rkind)                        , intent(in) :: x
           real(rkind)                        , intent(in) :: y
+          integer       , dimension(:,:)     , intent(in) :: bf_grdpts_id
           real(rkind)   , dimension(:,:,:)   , intent(in) :: bf_nodes
           integer(ikind)                     , intent(in) :: i
           integer(ikind)                     , intent(in) :: j
@@ -842,8 +861,10 @@
 
              ! extract the grid points from the current nodes of
              ! the buffer layer and the interior domain
-             call combine_grdpts_to_compute_fluxes(
-     $            bf_alignment, bf_nodes,
+             call extract_grdpts_to_compute_anticorner_fluxes(
+     $            bf_alignment,
+     $            bf_grdpts_id,
+     $            bf_nodes,
      $            interior_nodes,
      $            gen_coords,
      $            tmp_nodes)

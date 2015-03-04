@@ -550,7 +550,8 @@
      $              nodes,x_map,y_map,
      $              flux_x,flux_y,
      $              time_dev,
-     $              bc_sections)
+     $              bc_sections,
+     $              grdpts_id=grdpts_id)
 
             end if
 
