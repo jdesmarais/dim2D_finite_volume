@@ -1,15 +1,13 @@
       !> @file
-      !> abstract class encapsulating subroutine to compute
-      !> the fluxes at the edges of the computational domain
-      !> for open boundary conditions
+      !> bc_operators_abstract augmented with interfaces to compute
+      !> the time derivatives at the egdes, corners and anti-corners
       !
       !> @author 
       !> Julien L. Desmarais
       !
       !> @brief
-      !> class encapsulating subroutine to compute
-      !> the fluxes at the edges of the computational domain
-      !> for open boundary conditions
+      !> bc_operators_abstract augmented with interfaces to compute
+      !> the time derivatives at the egdes, corners and anti-corners
       !
       !> @date
       !> 22_10_2014 - initial version - J.L. Desmarais
@@ -103,15 +101,15 @@
 
 
         !> @class bc_operators_openbc
-        !> abstract class encapsulating subroutine to compute
-        !> the fluxes at the edges of the computational domain
-        !> for open boundary conditions
+        !> abstract class encapsulating interfaces to compute the 
+        !> time derivatives at the egdes, corners and anti-corners
         !
-        !>@param compute_fluxes_for_bc_x_edge
-        !> compute the fluxes at an x-like boundary edge
+        !>@param apply_bc_on_timedev_nopt
+        !> compute the time derivatives based on the boundary conditions
+        !> using the bc_section
         !
-        !>@param compute_fluxes_for_bc_y_edge
-        !> compute the fluxes at an y-like boundary edge
+        !>@param compute_timedev_corner
+        !> compute the time derivatives for a corner
         !---------------------------------------------------------------
         type, extends(bc_operators_default), abstract :: bc_operators_openbc
 

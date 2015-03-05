@@ -1,3 +1,17 @@
+      !> @file
+      !> bc_operators_openbc augmented with subroutines computing
+      !> the fluxes and the time derivatives at the egdes
+      !
+      !> @author 
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> bc_operators_openbc augmented with subroutines computing
+      !> the fluxes and the time derivatives at the egdes
+      !
+      !> @date
+      !> 22_10_2014 - initial version - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bc_operators_openbc_normal_class
       
         use bc_operators_openbc_class, only :
@@ -59,6 +73,23 @@
         public  :: bc_operators_openbc_normal
 
 
+        !> @class bc_operators_openbc_normal
+        !> abstract class encapsulating subroutine to compute
+        !> the fluxes at the edges of the computational domain
+        !> for open boundary conditions
+        !
+        !>@param compute_fluxes_for_bc_x_edge
+        !> compute the fluxes at an x-like boundary edge
+        !
+        !>@param compute_fluxes_for_bc_y_edge
+        !> compute the fluxes at an y-like boundary edge
+        !
+        !>@param apply_bc_on_timedev_x_edge
+        !> compute the time derivatives for an x-edge (E or W)
+        !
+        !>@param apply_bc_on_timedev_y_edge
+        !> compute the time derivatives for an y-edge (N or S)
+        !---------------------------------------------------------------
         type, abstract, extends(bc_operators_openbc) :: bc_operators_openbc_normal
 
           contains

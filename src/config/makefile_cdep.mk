@@ -168,10 +168,7 @@ yoo_ns2d_dep=		$(yoo_xy_dep)\
 td_dep=			td_operators_abstract_class.o\
 			td_operators_class.o
 
-fv_dep=			$(td_dep)\
-			bf_layer_bc_procedure_module.o\
-			bf_layer_bc_sections_class.o
-
+fv_dep=			$(td_dep)
 
 td_par_dep=		td_operators_abstract_par_class.o\
 			td_operators_par_class.o

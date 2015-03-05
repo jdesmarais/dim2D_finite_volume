@@ -14,8 +14,9 @@
       !-----------------------------------------------------------------
       module pmodel_eq_class
       
-        use interface_primary      , only : gradient_x_proc,
-     $                                      gradient_y_proc
+        use interface_primary, only :
+     $     gradient_proc
+
         use parameters_bf_layer    , only : bc_interior_pt, interior_pt
         use parameters_constant    , only : scalar
         use parameters_input       , only : nx,ny,ne,bc_size
@@ -74,7 +75,7 @@
           procedure, nopass :: get_var_unit
           procedure, nopass :: get_var_type
           procedure, nopass :: get_eq_nb
-          procedure,   pass :: apply_ic
+
           procedure, nopass :: compute_flux_x
           procedure, nopass :: compute_flux_y
           procedure, nopass :: compute_flux_x_nopt
@@ -82,10 +83,6 @@
           procedure, nopass :: compute_flux_x_oneside
           procedure, nopass :: compute_flux_y_oneside
           procedure, nopass :: compute_body_forces
-          procedure, nopass :: get_velocity
-          procedure, nopass :: are_openbc_undermined
-          procedure, nopass :: compute_x_gradient
-          procedure, nopass :: compute_y_gradient
 
         end type pmodel_eq
 
@@ -232,40 +229,6 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> apply the initial conditions to the main
-        !> variables of the governing equations
-        !
-        !> @date
-        !> 08_08_2013 - initial version - J.L. Desmarais
-        !
-        !>@param field_used
-        !> object encapsulating the main variables
-        !---------------------------------------------------------------
-        subroutine apply_ic(this,nodes,x_map,y_map)
-
-          implicit none
-
-          class(pmodel_eq)             , intent(in)    :: this
-          real(rkind), dimension(:,:,:), intent(inout) :: nodes
-          real(rkind), dimension(:)    , intent(in)    :: x_map
-          real(rkind), dimension(:)    , intent(in)    :: y_map
-
-          real(rkind) :: node_s,x_s,y_s
-          character(len=10) :: model_name
-
-          node_s = nodes(1,1,1)
-          x_s    = x_map(1)
-          y_s    = y_map(1)
-
-         model_name = this%get_model_name()
-
-        end subroutine apply_ic
-        
-        
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
         !> interface to apply the initial conditions
         !> to the main variables of the governing
         !> equations
@@ -302,10 +265,10 @@
           do j=bc_size+1, ny-bc_size
              do i=bc_size+1, nx+1-bc_size
 
-c$$$                flux_x(i,j,1) = 10*s%f(nodes,i,j,basic)+
-c$$$     $               s%dfdx(nodes,i,j,basic,dx)
+                flux_x(i,j,1) = 10*s%f(nodes,i,j,basic)+
+     $               s%dfdx(nodes,i,j,basic,dx)
 
-                flux_x(i,j,1) = s%f(nodes,i,j,basic)
+c$$$                flux_x(i,j,1) = s%f(nodes,i,j,basic)
 
              end do
           end do
@@ -353,10 +316,10 @@ c$$$     $               s%dfdx(nodes,i,j,basic,dx)
           do j=bc_size+1, ny+1-bc_size
              do i=bc_size+1, nx-bc_size
 
-c$$$                flux_y(i,j,1) = s%g(nodes,i,j,basic)+
-c$$$     $               10*s%dgdy(nodes,i,j,basic,dy)
+                flux_y(i,j,1) = s%g(nodes,i,j,basic)+
+     $               10*s%dgdy(nodes,i,j,basic,dy)
 
-                flux_y(i,j,1) = s%g(nodes,i,j,basic)
+c$$$                flux_y(i,j,1) = s%g(nodes,i,j,basic)
 
              end do
           end do
@@ -391,15 +354,15 @@ c$$$     $               10*s%dgdy(nodes,i,j,basic,dy)
           !<fluxes along the x-axis
           do j=y_borders(1), y_borders(2)
              !DEC$ IVDEP
-             do i=x_borders(1), x_borders(1)+1
+             do i=x_borders(1), x_borders(2)+1
 
                 if((grdpts_id(i,j).eq.interior_pt).or.
      $               (grdpts_id(i,j).eq.bc_interior_pt))then
 
-c$$$                   flux_x(i,j,1) = 10*s%f(nodes,i,j,basic)+
-c$$$     $               s%dfdx(nodes,i,j,basic,dx)
+                   flux_x(i,j,1) = 10*s%f(nodes,i,j,basic)+
+     $               s%dfdx(nodes,i,j,basic,dx)
 
-                   flux_x(i,j,1) = s%f(nodes,i,j,basic)
+c$$$                   flux_x(i,j,1) = s%f(nodes,i,j,basic)
 
                 end if
 
@@ -434,17 +397,17 @@ c$$$     $               s%dfdx(nodes,i,j,basic,dx)
           dy_s = dy
 
           !<fluxes along the y-axis
-          do j=y_borders(1), y_borders(1)+1
+          do j=y_borders(1), y_borders(2)+1
              !DEC$ IVDEP
-             do i=x_borders(1), x_borders(1)
+             do i=x_borders(1), x_borders(2)
 
                 if((grdpts_id(i,j).eq.interior_pt).or.
      $               (grdpts_id(i,j).eq.bc_interior_pt))then
 
-c$$$                   flux_y(i,j,1) = s%g(nodes,i,j,basic)+
-c$$$     $                  10*s%dgdy(nodes,i,j,basic,dy)
+                   flux_y(i,j,1) = s%g(nodes,i,j,basic)+
+     $                  10*s%dgdy(nodes,i,j,basic,dy)
 
-                   flux_y(i,j,1) = s%g(nodes,i,j,basic)
+c$$$                   flux_y(i,j,1) = s%g(nodes,i,j,basic)
 
                 end if
 
@@ -473,10 +436,10 @@ c$$$     $                  10*s%dgdy(nodes,i,j,basic,dy)
           dy_s = dy
 
           !<fluxes along the x-axis
-c$$$          flux_x(1) = 10*s_oneside%f(nodes,i,j,basic)+
-c$$$     $               s_oneside%dfdx(nodes,i,j,basic,dx)
+          flux_x(1) = 10*s_oneside%f(nodes,i,j,basic)+
+     $               s_oneside%dfdx(nodes,i,j,basic,dx)
 
-          flux_x(1) = s_oneside%f(nodes,i,j,basic)
+c$$$          flux_x(1) = s_oneside%f(nodes,i,j,basic)
 
         end function compute_flux_x_oneside
 
@@ -501,10 +464,10 @@ c$$$     $               s_oneside%dfdx(nodes,i,j,basic,dx)
 
 
           !<fluxes along the x-axis
-c$$$          flux_y(1) = s_oneside%g(nodes,i,j,basic)+
-c$$$     $         10*s_oneside%dgdy(nodes,i,j,basic,dy)
+          flux_y(1) = s_oneside%g(nodes,i,j,basic)+
+     $         10*s_oneside%dgdy(nodes,i,j,basic,dy)
 
-          flux_y(1) = s_oneside%g(nodes,i,j,basic)
+c$$$          flux_y(1) = s_oneside%g(nodes,i,j,basic)
 
         end function compute_flux_y_oneside
 
@@ -521,6 +484,25 @@ c$$$     $         10*s_oneside%dgdy(nodes,i,j,basic,dy)
         end function basic
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface to compute the body forces
+        !> acting on the cell
+        !
+        !> @date
+        !> 23_09_2013 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param k
+        !> governing variables identifier
+        !
+        !>@param body_forces
+        !> body forces
+        !--------------------------------------------------------------
         function compute_body_forces(t,x,y,nodes,k) result(body_forces)
 
           implicit none
@@ -532,176 +514,20 @@ c$$$     $         10*s_oneside%dgdy(nodes,i,j,basic,dy)
           integer                   , intent(in) :: k
           real(rkind)                            :: body_forces
 
-          real(rkind) :: t_s,x_s,y_s
+
+          real(rkind) :: t_s
+          real(rkind) :: x_s
+          real(rkind) :: y_s
           real(rkind) :: node_s
-          integer :: k_s
 
-          body_forces = 0
-
-          node_s = nodes(1)
-          k_s = k
           t_s = t
           x_s = x
           y_s = y
+          node_s = nodes(k)
+
+          body_forces = 0.0d0
 
         end function compute_body_forces
 
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> interface to compute the body forces
-        !> acting on the cell
-        !
-        !> @date
-        !> 17_07_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> governing variables at the grid point location
-        !
-        !>@param velocity
-        !> velocity vector at the grid point location
-        !--------------------------------------------------------------
-        function get_velocity(nodes) result(velocity)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(2)              :: velocity
-
-          velocity(1) = nodes(1)
-          velocity(2) = nodes(1)
-
-        end function get_velocity
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> check whether the open boundary conditions
-        !> are undermined at the grid point location
-        !
-        !> @date
-        !> 17_07_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param undermined
-        !> check if the open boundary conditions are undermined
-        !> at the grid point location
-        !--------------------------------------------------------------
-        function are_openbc_undermined(nodes) result(undermined)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          logical                                :: undermined
-
-          real(rkind) :: d_liq, d_vap
-
-          d_liq = 1.1-0.05*(1.1-0.1)
-          d_vap = 0.1+0.05*(1.1-0.1)
-
-          if((nodes(1).ge.d_vap).and.(nodes(1).le.d_liq)) then
-             undermined = .true.
-          else
-             undermined = .false.
-          end if
-
-          !undermined = .true.
-
-        end function are_openbc_undermined
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> interface for the computation of the gradient of the
-        !> governing variables in the x-direction
-        !
-        !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param i
-        !> integer identifying the index in the x-direction
-        !
-        !>@param j
-        !> integer identifying the index in the y-direction
-        !
-        !>@param gradient
-        !> procedure used to compute the gradient along the x-axis
-        !
-        !>@param dx
-        !> grid space step along the x-axis
-        !
-        !>@return grad_var
-        !> gradient of the governing variables along the x-axis
-        !--------------------------------------------------------------
-        function compute_x_gradient(nodes,i,j,gradient,dx) result(grad_var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          procedure(gradient_x_proc)                :: gradient
-          real(rkind)                  , intent(in) :: dx
-          real(rkind), dimension(ne)                :: grad_var
-
-
-          grad_var(1) = gradient(nodes,i,j,basic,dx)
-
-        end function compute_x_gradient
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> interface for the computation of the gradient of the
-        !> governing variables in the y-direction 
-        !
-        !> @date
-        !> 01_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param nodes
-        !> array with the grid point data
-        !
-        !>@param i
-        !> integer identifying the index in the x-direction
-        !
-        !>@param j
-        !> integer identifying the index in the y-direction
-        !
-        !>@param gradient
-        !> procedure used to compute the gradient along the y-axis
-        !
-        !>@param dy
-        !> grid space step along the y-axis
-        !
-        !>@return grad_var
-        !> gradient of the governing variables along the x-axis
-        !--------------------------------------------------------------
-        function compute_y_gradient(nodes,i,j,gradient,dy) result(grad_var)
-
-          implicit none
-
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          integer(ikind)               , intent(in) :: i
-          integer(ikind)               , intent(in) :: j
-          procedure(gradient_y_proc)                :: gradient
-          real(rkind)                  , intent(in) :: dy
-          real(rkind), dimension(ne)                :: grad_var
-
-          grad_var(1) = gradient(nodes,i,j,basic,dy)
-
-        end function compute_y_gradient
 
       end module pmodel_eq_class

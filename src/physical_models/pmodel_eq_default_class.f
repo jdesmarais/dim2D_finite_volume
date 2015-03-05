@@ -50,42 +50,40 @@
           procedure, nopass :: get_sd_pattern_flux_x => get_sd_pattern_flux_default
           procedure, nopass :: get_sd_pattern_flux_y => get_sd_pattern_flux_default
 
-          procedure, nopass :: get_viscous_coeff
+          procedure,   pass :: apply_ic => apply_ic_default
 
-          procedure, nopass :: compute_flux_x_by_parts
-          procedure, nopass :: compute_flux_y_by_parts
+          procedure, nopass :: compute_flux_x_by_parts => compute_flux_x_by_parts_default
+          procedure, nopass :: compute_flux_y_by_parts => compute_flux_y_by_parts_default
 
-          procedure,   pass :: get_nodes_obc_eigenqties
+          procedure, nopass :: get_velocity      => get_velocity_default
+          procedure, nopass :: get_viscous_coeff => get_viscous_coeff_default
+          
+          procedure, nopass :: are_openbc_undermined   => are_openbc_undermined_default
+          procedure,   pass :: get_far_field           => get_far_field_default
+          procedure,   pass :: get_prim_obc_eigenqties => get_prim_obc_eigenqties_default
+          
+          !computations with primitive variables
+          procedure, nopass :: compute_prim_var => compute_openbc_var_default
+          procedure, nopass :: compute_cons_var => compute_openbc_var_default
+          
+          procedure, nopass :: compute_jacobian_prim_to_cons => compute_openbc_matrix_default
+          procedure, nopass :: compute_jacobian_cons_to_prim => compute_openbc_matrix_default
 
-c$$$          procedure, nopass :: compute_x_eigenvalues  => compute_eigenvalues_default
-c$$$          procedure, nopass :: compute_y_eigenvalues  => compute_eigenvalues_default
-c$$$          procedure, nopass :: compute_n1_eigenvalues => compute_eigenvalues_default
-c$$$          procedure, nopass :: compute_n2_eigenvalues => compute_eigenvalues_default
-c$$$
-c$$$          procedure, nopass :: compute_x_lefteigenvector    => compute_eigenvector_default
-c$$$          procedure, nopass :: compute_x_righteigenvector   => compute_eigenvector_default
-c$$$          procedure, nopass :: compute_y_lefteigenvector    => compute_eigenvector_default
-c$$$          procedure, nopass :: compute_y_righteigenvector   => compute_eigenvector_default
-c$$$          procedure, nopass :: compute_n1_lefteigenvector   => compute_eigenvector_default
-c$$$          procedure, nopass :: compute_n1_righteigenvector  => compute_eigenvector_default
-c$$$          procedure, nopass :: compute_n2_lefteigenvector   => compute_eigenvector_default
-c$$$          procedure, nopass :: compute_n2_righteigenvector  => compute_eigenvector_default
-c$$$
-c$$$          procedure, nopass :: compute_x_transM   => compute_eigenvector_default
-c$$$          procedure, nopass :: compute_y_transM   => compute_eigenvector_default
-c$$$          procedure, nopass :: compute_n1_transM  => compute_eigenvector_default
-c$$$          procedure, nopass :: compute_n2_transM  => compute_eigenvector_default
-c$$$
-c$$$          procedure, nopass :: compute_x_leftConsLodiM  => compute_eigenvector_default
-c$$$          procedure, nopass :: compute_y_leftConsLodiM  => compute_eigenvector_default
-c$$$          procedure, nopass :: compute_x_timedev_from_LODI_vector => compute_timedev_from_LODI_vector_default
-c$$$          procedure, nopass :: compute_y_timedev_from_LODI_vector => compute_timedev_from_LODI_vector_default
-c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
+          procedure, nopass :: compute_x_transM_prim => compute_openbc_matrix_default
+          procedure, nopass :: compute_y_transM_prim => compute_openbc_matrix_default
 
-          procedure,   pass :: get_far_field => get_far_field_default
+          procedure, nopass :: compute_x_eigenvalues_prim => compute_openbc_vector_default
+          procedure, nopass :: compute_y_eigenvalues_prim => compute_openbc_vector_default
 
-          procedure, nopass :: compute_xy_to_n_var
-          procedure, nopass :: compute_n_to_xy_var
+          procedure, nopass :: compute_x_lefteigenvector_prim  => compute_openbc_matrix_default
+          procedure, nopass :: compute_x_righteigenvector_prim => compute_openbc_matrix_default
+          procedure, nopass :: compute_y_lefteigenvector_prim  => compute_openbc_matrix_default
+          procedure, nopass :: compute_y_righteigenvector_prim => compute_openbc_matrix_default
+
+          procedure, nopass :: compute_gradient_prim => compute_gradient_prim_default
+
+          procedure, nopass :: compute_xy_to_n_var => compute_xy_to_n_var_default
+          procedure, nopass :: compute_n_to_xy_var => compute_n_to_xy_var_default
 
         end type pmodel_eq_default
 
@@ -117,6 +115,9 @@ c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
           character(20), dimension(:), allocatable, intent(out) :: param_name
           real(rkind)  , dimension(:), allocatable, intent(out) :: param_value
 
+
+          print '(''pmodel_eq_default'')'
+          print '(''get_sim_parameters'')'
 
           if(allocated(param_name)) then
              stop 'get_sim_parameter: param_name allocated'
@@ -155,6 +156,7 @@ c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
 
           integer :: operator_type_s
 
+          print '(''pmodel_eq_default'')'
           print '(''get_sd_pattern_flux_default'')'
           stop 'get_sd_pattern not implemented'
 
@@ -164,32 +166,44 @@ c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
         end function get_sd_pattern_flux_default
 
 
-
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> get the viscous constant
+        !> interface to apply the initial conditions
+        !> to the main variables of the governing
+        !> equations
         !
         !> @date
-        !> 11_11_2014 - initial version - J.L. Desmarais
+        !> 08_08_2013 - initial version - J.L. Desmarais
         !
-        !>@return viscous_coeff
-        !> viscous coefficient
-        !-------------------------------------------------------------
-        function get_viscous_coeff() result(viscous_coeff)
+        !>@param nodes
+        !> array with the grid point data
+        !--------------------------------------------------------------
+        subroutine apply_ic_default(this,nodes,x_map,y_map)
 
           implicit none
+          
+          class(pmodel_eq_default)     , intent(in)    :: this
+          real(rkind), dimension(:,:,:), intent(inout) :: nodes
+          real(rkind), dimension(:)    , intent(in)    :: x_map
+          real(rkind), dimension(:)    , intent(in)    :: y_map
 
-          real(rkind) :: viscous_coeff
+          integer     :: nb_eq
+          real(rkind) :: node_s
+          real(rkind) :: x_s
+          real(rkind) :: y_s
 
-          print '(''pmodel_eq_default_class'')'
-          print '(''get_viscous_coeff'')'
+          print '(''pmodel_eq_default'')'
+          print '(''apply_ic_default'')'
           stop 'not implemented'
 
-          viscous_coeff = 0.0d0
+          nb_eq  = this%get_eq_nb()
+          node_s = nodes(1,1,1)
+          x_s    = x_map(1)
+          y_s    = y_map(1)
 
-        end function get_viscous_coeff
+        end subroutine apply_ic_default
 
 
         !> @author
@@ -229,7 +243,7 @@ c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
         !>@return flux_x
         !> flux computed at (i+1/2,j)
         !--------------------------------------------------------------
-        function compute_flux_x_by_parts(
+        function compute_flux_x_by_parts_default(
      $     nodes,dx,dy,i,j,s_oneside,
      $     inviscid_flux, viscid_flux)
      $     result(flux_x)
@@ -251,7 +265,7 @@ c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
           real(rkind)    :: ds
           integer(ikind) :: bc_s
 
-          print '(''pmodel_eq_abstract_class'')'
+          print '(''pmodel_eq_default_class'')'
           print '(''compute_flux_x_by_parts'')'
           stop 'not implemented'
 
@@ -262,7 +276,7 @@ c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
           viscid_flux(1)   = nodes(i,j,1)
           flux_x(1)        = nodes(i,j,1)
           
-        end function compute_flux_x_by_parts
+        end function compute_flux_x_by_parts_default
 
 
         !> @author
@@ -302,7 +316,7 @@ c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
         !>@return flux_x
         !> flux computed at (i+1/2,j)
         !--------------------------------------------------------------
-        function compute_flux_y_by_parts(
+        function compute_flux_y_by_parts_default(
      $     nodes,dx,dy,i,j,s_oneside,
      $     inviscid_flux, viscid_flux)
      $     result(flux_y)
@@ -323,7 +337,7 @@ c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
           real(rkind)    :: ds
           integer(ikind) :: bc_s
 
-          print '(''pmodel_eq_abstract_class'')'
+          print '(''pmodel_eq_default_class'')'
           print '(''compute_flux_y_by_parts'')'
           stop 'not implemented'
 
@@ -334,16 +348,169 @@ c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
           viscid_flux(1)   = nodes(i,j,1)
           flux_y(1)        = nodes(i,j,1)        
           
-        end function compute_flux_y_by_parts
+        end function compute_flux_y_by_parts_default
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> determine the grid points used to evaluate
-        !> the eigenquantities at the edge of the
-        !> computational domain
+        !> interface to compute the body forces
+        !> acting on the cell
+        !
+        !> @date
+        !> 23_09_2013 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param k
+        !> governing variables identifier
+        !
+        !>@param body_forces
+        !> body forces
+        !--------------------------------------------------------------
+        function get_velocity_default(nodes) result(velocity)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes
+          real(rkind), dimension(2)              :: velocity
+
+          print '(''pmodel_eq_default_class'')'
+          print '(''get_velocity'')'
+          stop 'not implemented'   
+
+          velocity(1) = nodes(1)
+
+        end function get_velocity_default
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the viscous constant
+        !
+        !> @date
+        !> 11_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@return viscous_coeff
+        !> viscous coefficient
+        !-------------------------------------------------------------
+        function get_viscous_coeff_default() result(viscous_coeff)
+
+          implicit none
+
+          real(rkind) :: viscous_coeff
+
+          print '(''pmodel_eq_default_class'')'
+          print '(''get_viscous_coeff'')'
+          stop 'not implemented'
+
+          viscous_coeff = 0.0d0
+
+        end function get_viscous_coeff_default
+
+        
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface checking whether the open boundary conditions
+        !> are undermined at the grid point location
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param undermined
+        !> check if the open boundary conditions are undermined
+        !> at the grid point location
+        !--------------------------------------------------------------
+        function are_openbc_undermined_default(x_map,y_map,nodes) result(undermined)
+
+          implicit none
+
+          real(rkind), dimension(3)     , intent(in) :: x_map
+          real(rkind), dimension(3)     , intent(in) :: y_map
+          real(rkind), dimension(3,3,ne), intent(in) :: nodes
+          logical                                    :: undermined
+
+          real(rkind) :: x_s,y_s,node_s
+
+          print '(''pmodel_eq_default_class'')'
+          print '(''are_openbc_undermined_default'')'
+          stop 'not implemented'
+          
+          x_s        = x_map(1)
+          y_s        = y_map(1)
+          node_s     = nodes(1,1,1)
+          undermined = .false.
+
+        end function are_openbc_undermined_default
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface for the computation of the governing variables
+        !> in the far field as chosen by the initial conditions
+        !
+        !> @date
+        !> 13_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate
+        !
+        !>@param y
+        !> y-coordinate
+        !
+        !>@return var
+        !> governing variables in the far field
+        !--------------------------------------------------------------
+        function get_far_field_default(this,t,x,y) result(var)
+
+          implicit none
+
+          class(pmodel_eq_default)  , intent(in) :: this
+          real(rkind)               , intent(in) :: t
+          real(rkind)               , intent(in) :: x
+          real(rkind)               , intent(in) :: y
+          real(rkind), dimension(ne)             :: var
+
+          real(rkind) :: viscous_coeff
+          real(rkind) :: t_s
+          real(rkind) :: x_s
+          real(rkind) :: y_s
+
+          print '(''pmodel_eq_default_class'')'
+          print '(''get_far_field'')'
+          stop 'not implemented'
+
+          viscous_coeff = this%get_viscous_coeff()
+          t_s = t
+          x_s = x
+          y_s = y
+
+          var(1) = 0.0
+
+        end function get_far_field_default
+        
+      
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface determining the grid points used to evaluate
+        !> the eigenquantities at the edge of the computational
+        !> domain
         !
         !> @date
         !> 02_02_2015 - initial version - J.L. Desmarais
@@ -373,37 +540,95 @@ c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
         !> grid points used to evaluate the eigenquantities at the
         !> boundary
         !--------------------------------------------------------------
-        function get_nodes_obc_eigenqties(this,t,x,y,nodes_bc) result(nodes_eigenqties)
+        function get_prim_obc_eigenqties_default(this,t,x,y,nodes_bc)
+     $    result(nodes_prim_extended)
 
           implicit none
 
-          class(pmodel_eq_default)  , intent(in) :: this
-          real(rkind)               , intent(in) :: t
-          real(rkind)               , intent(in) :: x
-          real(rkind)               , intent(in) :: y
-          real(rkind), dimension(ne), intent(in) :: nodes_bc
-          real(rkind), dimension(ne)             :: nodes_eigenqties
+          class(pmodel_eq_default)    , intent(in) :: this
+          real(rkind)                 , intent(in) :: t
+          real(rkind)                 , intent(in) :: x
+          real(rkind)                 , intent(in) :: y
+          real(rkind), dimension(ne)  , intent(in) :: nodes_bc
+          real(rkind), dimension(ne+1)             :: nodes_prim_extended
 
+          integer     :: nb_eq
+          real(rkind) :: t_s,x_s,y_s
 
           print '(''pmodel_eq_default_class'')'
-          print '(''get_nodes_obc_eigenqties'')'
-          print '(''not implemented'')'
-          stop ''
-          
-          nodes_eigenqties(1) = nodes_bc(1)+t+x+y+real(this%get_eq_nb())
+          print '(''get_prim_obc_eigenqties_default'')'
+          stop 'not implemented'
 
-        end function get_nodes_obc_eigenqties
+          nb_eq = this%get_eq_nb()
+          t_s = t
+          x_s = x
+          y_s = y
+          nodes_prim_extended(1) = nodes_bc(1)          
+
+        end function get_prim_obc_eigenqties_default
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> computation of the eigenvalues at the location of the
-        !> grid point
+        !> interface determining the grid points used to evaluate
+        !> the eigenquantities at the edge of the computational
+        !> domain
         !
         !> @date
-        !> 11_08_2014 - initial version - J.L. Desmarais
+        !> 02_02_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> x-coordinate of the grid points at the boundary
+        !
+        !>@param y
+        !> y-coordinate of the grid points at the boundary
+        !
+        !>@param nodes_bc
+        !> array with the grid point data at the boundary
+        !
+        !>@param nodes_bc
+        !> array with the grid point data at the boundary
+        !
+        !>@param nodes_bc
+        !> array with the grid point data at the boundary
+        !
+        !>@param nodes_eigenqties
+        !> grid points used to evaluate the eigenquantities at the
+        !> boundary
+        !--------------------------------------------------------------
+        function compute_openbc_var_default(nodes_in) result(nodes_out)
+
+          implicit none
+
+          real(rkind), dimension(ne), intent(in) :: nodes_in
+          real(rkind), dimension(ne)             :: nodes_out
+          
+          print '(''pmodel_eq_default'')'
+          print '(''compute_var_default'')'
+          stop 'not implemented'
+
+          nodes_out = nodes_in
+
+        end function compute_openbc_var_default
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface for the local computation of the eigenvalues
+        !> for the hyperbolic terms in the x-direction
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
         !> array with the grid point data
@@ -411,181 +636,107 @@ c$$$          procedure, nopass :: compute_timedev_from_LODI_vectors
         !>@return eigenvalues
         !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_eigenvalues_default(nodes) result(eigenvalues)
+        function compute_openbc_matrix_default(nodes_prim_extended) result(matrix)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne)             :: eigenvalues
+          real(rkind), dimension(ne+1) , intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne,ne)             :: matrix
 
-          
-          real(rkind) :: node_s
+          print '(''pmodel_eq_default_class'')'
+          print '(''compute_openbc_matrix_default'')'
+          stop 'not implemented'
 
+          matrix(1,1) = nodes_prim_extended(1)
 
-          stop 'compute_eigenvalues: not implemented'
-
-          node_s = nodes(1)
-          eigenvalues(1) = nodes(1)
-
-        end function compute_eigenvalues_default
+        end function compute_openbc_matrix_default
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> computation of the eigenvectors at the location of the
-        !> grid point
+        !> interface for the local computation of the eigenvalues
+        !> for the hyperbolic terms in the x-direction
         !
         !> @date
-        !> 11_08_2014 - initial version - J.L. Desmarais
+        !> 01_08_2014 - initial version - J.L. Desmarais
         !
         !>@param nodes
         !> array with the grid point data
         !
-        !>@return eigenvect
-        !> eigenvect at the location of the grid point
+        !>@return eigenvalues
+        !> eigenvalues at the location of the grid point
         !--------------------------------------------------------------
-        function compute_eigenvector_default(nodes) result(eigenvect)
+        function compute_openbc_vector_default(nodes_prim_extended) result(vector)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne,ne)          :: eigenvect
-
-          
-          real(rkind) :: node_s
-
-
-          stop 'compute_eigenvector: not implemented'
-
-          node_s = nodes(1)
-          eigenvect(1,1) = nodes(1)
-
-        end function compute_eigenvector_default
-
-
-        function get_far_field_default(this,t,x,y) result(var)
-
-          implicit none
-
-          class(pmodel_eq_default)  , intent(in) :: this
-          real(rkind)               , intent(in) :: t
-          real(rkind)               , intent(in) :: x
-          real(rkind)               , intent(in) :: y
-          real(rkind), dimension(ne)             :: var
-
-          real(rkind) :: viscous_coeff
-          real(rkind) :: t_s
-          real(rkind) :: x_s
-          real(rkind) :: y_s
+          real(rkind), dimension(ne+1), intent(in) :: nodes_prim_extended
+          real(rkind), dimension(ne)               :: vector
 
           print '(''pmodel_eq_default_class'')'
-          print '(''get_far_field'')'
+          print '(''compute_openbc_vector_default'')'
           stop 'not implemented'
 
-          viscous_coeff = this%get_viscous_coeff()
-          t_s = t
-          x_s = x
-          y_s = y
+          vector(1) = nodes_prim_extended(1)
 
-          var(1) = 0.0
-
-        end function get_far_field_default
+        end function compute_openbc_vector_default
 
 
-        function compute_timedev_from_LODI_vector_default(
-     $     nodes,lodi) result(timedev)
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> interface for the computation of the gradient of the
+        !> governing variables in the x-direction
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> array with the grid point data
+        !
+        !>@param i
+        !> integer identifying the index in the x-direction
+        !
+        !>@param j
+        !> integer identifying the index in the y-direction
+        !
+        !>@param gradient
+        !> procedure used to compute the gradient along the x-axis
+        !
+        !>@param dx
+        !> grid space step along the x-axis
+        !
+        !>@return grad_var
+        !> gradient of the governing variables along the x-axis
+        !--------------------------------------------------------------
+        function compute_gradient_prim_default(nodes,i,j,gradient,dn,use_n_dir)
+     $    result(grad_var)
 
           implicit none
 
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne), intent(in) :: lodi
-          real(rkind), dimension(ne)             :: timedev
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          procedure(gradient_proc)                  :: gradient
+          real(rkind)                  , intent(in) :: dn
+          logical    , optional        , intent(in) :: use_n_dir
+          real(rkind), dimension(ne)                :: grad_var
 
 
           print '(''pmodel_eq_default_class'')'
-          print '(''compute_timedev_from_LODI_vector_default'')'
-          print '(''not implemented'')'
-          stop ''
-          
-          timedev(1) = nodes(1)+lodi(1)
+          print '(''compute_gradient_prim_default'')'
+          stop 'not implemented'
 
-        end function compute_timedev_from_LODI_vector_default
+          if(present(use_n_dir)) then
+             grad_var = gradient(nodes,i,j,basic,dn)
+          else
+             grad_var(1) = nodes(1,1,1)
+          end if
 
-
-        function compute_timedev_from_LODI_vectors(
-     $     nodes,lodi_x,lodi_y) result(timedev)
-
-          implicit none
-
-          real(rkind), dimension(ne), intent(in) :: nodes
-          real(rkind), dimension(ne), intent(in) :: lodi_x
-          real(rkind), dimension(ne), intent(in) :: lodi_y
-          real(rkind), dimension(ne)             :: timedev
-
-
-          print '(''pmodel_eq_default_class'')'
-          print '(''compute_timedev_from_LODI_vectors'')'
-          print '(''not implemented'')'
-          stop ''
-          
-          timedev(1) = nodes(1)+lodi_x(1)+lodi_y(1)
-
-        end function compute_timedev_from_LODI_vectors
-
-
-
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> default computation of the gradient of the
-c$$$        !> governing variables in a diagonal direction
-c$$$        !
-c$$$        !> @date
-c$$$        !> 11_08_2014 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param nodes
-c$$$        !> array with the grid point data
-c$$$        !
-c$$$        !>@param i
-c$$$        !> integer identifying the index in the x-direction
-c$$$        !
-c$$$        !>@param j
-c$$$        !> integer identifying the index in the y-direction
-c$$$        !
-c$$$        !>@param gradient
-c$$$        !> procedure used to compute the gradient along the diagonal
-c$$$        !> direction
-c$$$        !
-c$$$        !>@param dx
-c$$$        !> grid space step along the x-axis
-c$$$        !
-c$$$        !>@param dy
-c$$$        !> grid space step along the y-axis
-c$$$        !
-c$$$        !>@return grad_var
-c$$$        !> gradient of the governing variables along the x-axis
-c$$$        !--------------------------------------------------------------
-c$$$        function compute_gradient_default(nodes,i,j,gradient,dx,dy) result(grad_var)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          real(rkind), dimension(:,:,:), intent(in) :: nodes
-c$$$          integer(ikind)               , intent(in) :: i
-c$$$          integer(ikind)               , intent(in) :: j
-c$$$          procedure(gradient_n_proc)                :: gradient
-c$$$          real(rkind)                  , intent(in) :: dx
-c$$$          real(rkind)                  , intent(in) :: dy
-c$$$          real(rkind), dimension(ne)                :: grad_var
-c$$$          
-c$$$
-c$$$          stop '(''compute_n_gradient: not implemented'')'
-c$$$          
-c$$$          grad_var = gradient(nodes,i,j,basic,dx,dy)
-c$$$          
-c$$$        end function compute_gradient_default
+        end function compute_gradient_prim_default
 
 
         !> @author
@@ -624,8 +775,7 @@ c$$$        end function compute_gradient_default
         end function basic
 
 
-
-        function compute_xy_to_n_var(nodes) result(nodes_n)
+        function compute_xy_to_n_var_default(nodes) result(nodes_n)
 
           implicit none
 
@@ -639,10 +789,10 @@ c$$$        end function compute_gradient_default
           
           nodes_n(1) = nodes(1)
 
-        end function compute_xy_to_n_var
+        end function compute_xy_to_n_var_default
 
 
-        function compute_n_to_xy_var(nodes_n) result(nodes)
+        function compute_n_to_xy_var_default(nodes_n) result(nodes)
 
           implicit none
 
@@ -656,6 +806,6 @@ c$$$        end function compute_gradient_default
           
           nodes(1) = nodes_n(1)
 
-        end function compute_n_to_xy_var
+        end function compute_n_to_xy_var_default
 
       end module pmodel_eq_default_class

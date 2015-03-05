@@ -20,9 +20,6 @@
         use bc_operators_class, only :
      $       bc_operators
 
-        use bf_layer_bc_sections_class , only :
-     $       bf_layer_bc_sections
-
         use sd_operators_class, only :
      $       sd_operators
 
@@ -293,35 +290,29 @@
      $     interior_nodes,
      $     bc_sections,
      $     x_borders,
-     $     y_borders,
-     $     N_bc_sections,
-     $     S_bc_sections)
+     $     y_borders)
 
             implicit none
 
-            real(rkind)                                            , intent(in)    :: t
-            real(rkind)   , dimension(:,:,:)                       , intent(in)    :: nodes
-            real(rkind)   , dimension(:)                           , intent(in)    :: x_map
-            real(rkind)   , dimension(:)                           , intent(in)    :: y_map
-            type(sd_operators)                                     , intent(in)    :: s
-            type(pmodel_eq)                                        , intent(in)    :: p_model
-            type(bc_operators)                                     , intent(in)    :: bc_used
-            real(rkind)   , dimension(:,:,:)                       , intent(out)   :: time_dev
-            integer(ikind), dimension(2,2)                         , intent(in)    :: bf_alignment
-            integer       , dimension(:,:)                         , intent(in)    :: grdpts_id
-            real(rkind)   , dimension(nx,ny,ne)                    , intent(in)    :: interior_nodes
-            integer       , dimension(:,:)  , allocatable          , intent(inout) :: bc_sections
-            integer(ikind), dimension(2)                           , intent(in)    :: x_borders
-            integer(ikind), dimension(2)                           , intent(in)    :: y_borders
-            integer(ikind), dimension(:,:)  , allocatable, optional, intent(in)    :: N_bc_sections
-            integer(ikind), dimension(:,:)  , allocatable, optional, intent(in)    :: S_bc_sections
+            real(rkind)                                  , intent(in)    :: t
+            integer(ikind), dimension(2,2)               , intent(in)    :: bf_alignment
+            integer       , dimension(:,:)               , intent(in)    :: grdpts_id
+            real(rkind)   , dimension(:)                 , intent(in)    :: x_map
+            real(rkind)   , dimension(:)                 , intent(in)    :: y_map
+            real(rkind)   , dimension(:,:,:)             , intent(in)    :: nodes
+            type(sd_operators)                           , intent(in)    :: s
+            type(pmodel_eq)                              , intent(in)    :: p_model
+            type(bc_operators)                           , intent(in)    :: bc_used
+            real(rkind)   , dimension(:,:,:)             , intent(out)   :: time_dev
+            real(rkind)   , dimension(nx,ny,ne)          , intent(in)    :: interior_nodes
+            integer       , dimension(:,:)  , allocatable, intent(inout) :: bc_sections
+            integer(ikind), dimension(2)                 , intent(in)    :: x_borders
+            integer(ikind), dimension(2)                 , intent(in)    :: y_borders
 
             real(rkind), dimension(:,:,:), allocatable :: flux_x
             real(rkind), dimension(:,:,:), allocatable :: flux_y
             real(rkind)                                :: dx
             real(rkind)                                :: dy
-            logical                                    :: create_bc_sections
-            type(bf_layer_bc_sections)                 :: bc_sections_id
             integer(ikind)                             :: i,j
             integer                                    :: k
 
@@ -376,54 +367,13 @@
             end if
 
 
-            !decide whether the boundary layers should be
-            !identified or not
-            create_bc_sections = .not.allocated(bc_sections)
-
-            
-            !compute the time derivatives AND identify the 
-            !boundary layers
-            if(create_bc_sections) then
-
-               !initialize the object which will gather
-               !the boundary layers
-               call bc_sections_id%ini()
-
-               !if the S_bc_sections is present and allocated,
-               !identify the bc_sections also in the
-               !S_bc_sections
-               if(present(S_bc_sections)) then
-                  if(allocated(S_bc_sections)) then
-                     do k=1, size(S_bc_sections,2)
-                        do j=1,bc_size
-                           do i=S_bc_sections(1,k), S_bc_sections(2,k)
-                              if(grdpts_id(i,j).eq.bc_interior_pt) then
-                                 call bc_sections_id%analyse_grdpt(i,j,grdpts_id,ierror)
-                                 if(ierror.neqv.BF_SUCCESS) then
-                                    print '(''td_operators_class'')'
-                                    print '(''compute_time_dev_nopt'')'
-                                    print '(''S_bc_sections failed'')'
-                                    print '(''[i,j,k]: '',3I4)', i,j,k
-                                    print '(''*************************'')'
-                                    stop ''
-                                 end if
-                              end if
-                           end do
-                        end do
-                     end do
-                  end if
-               end if
-               
-
-               !compute the time derivatives and collect the
-               !grid points belonging to the same boundary
-               !layers
-               k=1
+            !compute the time derivatives
+            do k=1, ne
                do j=y_borders(1), y_borders(2)
                   do i=x_borders(1), x_borders(2)
-
-                     if(grdpts_id(i,j).eq.interior_pt) then
                         
+                     if(grdpts_id(i,j).eq.interior_pt) then
+                              
                         time_dev(i,j,k)=
      $                       (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
      $                       (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
@@ -431,108 +381,14 @@
                         time_dev(i,j,k)=
      $                       time_dev(i,j,k)+
      $                       p_model%compute_body_forces(
-     $                       t,x_map(i),y_map(j),
+     $                       t, x_map(i), y_map(j),
      $                       nodes(i,j,:),k)
+                           
                      end if
                         
-                     if(grdpts_id(i,j).eq.bc_interior_pt) then
-                        call bc_sections_id%analyse_grdpt(i,j,grdpts_id,ierror)
-                        if(ierror.neqv.BF_SUCCESS) then
-                           print '(''td_operators_class'')'
-                           print '(''compute_time_dev_nopt'')'
-                           print '(''bc_sections failed'')'
-                           print '(''[i,j]: '',2I4)', i,j
-                           print '(''*************************'')'
-                           stop ''
-                        end if
-                     end if
-
                   end do
                end do
-               
-               do k=2,ne
-                  do j=y_borders(1), y_borders(2)
-                     do i=x_borders(1), x_borders(2)
-                        
-                        if(grdpts_id(i,j).eq.interior_pt) then
-                              
-                           time_dev(i,j,k)=
-     $                          (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
-     $                          (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
-                           
-                           time_dev(i,j,k)=
-     $                          time_dev(i,j,k)+
-     $                          p_model%compute_body_forces(
-     $                          t, x_map(i), y_map(j),
-     $                          nodes(i,j,:),k)
-                        end if                        
-                     end do
-                  end do
-               end do
-
-
-               !if the N_bc_sections is present and allocated,
-               !identify the bc_sections also in the
-               !N_bc_sections
-               if(present(N_bc_sections)) then
-                  if(allocated(N_bc_sections)) then
-                     do k=1, size(N_bc_sections,2)
-                        do j=size(nodes,2)-bc_size+1, size(nodes,2)
-                           do i=N_bc_sections(1,k), N_bc_sections(2,k)
-                              if(grdpts_id(i,j).eq.bc_interior_pt) then
-                                 call bc_sections_id%analyse_grdpt(i,j,grdpts_id,ierror)
-                                 if(ierror.neqv.BF_SUCCESS) then
-                                    print '(''td_operators_class'')'
-                                    print '(''compute_time_dev_nopt'')'
-                                    print '(''N_bc_sections failed'')'
-                                    print '(''[i,j,k]: '', 3I4)',i,j,k
-                                    print '(''*************************'')'
-                                    stop ''
-                                 end if
-                              end if
-                           end do
-                        end do
-                     end do
-                  end if
-               end if
-
-
-               !finalize the identification of the boundary layers
-               call bc_sections_id%finalize_bc_sections(
-     $              x_borders,
-     $              y_borders,
-     $              N_bc_sections,
-     $              S_bc_sections,
-     $              size(nodes,2),
-     $              bc_sections)
-
-            !compute the time derivaties WITHOUT identifying
-            !the boundary layers
-            else
-
-               do k=1, ne
-                  do j=y_borders(1), y_borders(2)
-                     do i=x_borders(1), x_borders(2)
-                        
-                        if(grdpts_id(i,j).eq.interior_pt) then
-                              
-                           time_dev(i,j,k)=
-     $                          (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
-     $                          (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
-                           
-                           time_dev(i,j,k)=
-     $                          time_dev(i,j,k)+
-     $                          p_model%compute_body_forces(
-     $                          t, x_map(i), y_map(j),
-     $                          nodes(i,j,:),k)
-                           
-                        end if
-                        
-                     end do
-                  end do
-               end do
-               
-            end if
+            end do
 
 
             !if the boundary conditions influence the computation
