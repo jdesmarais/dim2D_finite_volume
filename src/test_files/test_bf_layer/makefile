@@ -84,6 +84,28 @@ test_bf_layer_sync:		$(param_dep)\
 				check_data_module.o
 
 
+test_bf_layer_time.o:		$(hobc_dir)/bc_operators_class.o\
+				$(pbf_layer_dir)/bf_layer_time_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(pm_cdir)/pmodel_eq_class.o\
+				$(rk3tvd_dir)/rk3tvd_steps_module.o\
+				$(mt_dir)/sd_operators_class.o\
+				$(fv_dir)/td_operators_class.o
+
+test_bf_layer_time:		$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				rk3tvd_steps_module.o\
+				$(bf_layer_time_dep)\
+				check_data_module.o
+
+
 #buffer_layer/bf_layer_newgrdpt
 test_bf_newgrdpt_prim.o:	$(ngbf_layer_dir)/bf_newgrdpt_class.o\
 				$(test_dir)/tools/check_data_module.o\

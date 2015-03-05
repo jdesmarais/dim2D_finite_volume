@@ -17,14 +17,20 @@
         use bf_compute_class, only :
      $       bf_compute
 
-        use bf_layer_newgrdpt_procedure_module, only :
-     $       get_newgrdpt_procedure
-
         use bf_layer_extract_module, only :
      $       get_indices_to_extract_bf_layer_data
 
+        use bf_newgrdpt_procedure_module, only :
+     $       get_newgrdpt_procedure
+
+        use bf_newgrdpt_verification_module, only :
+     $       verify_data_for_newgrdpt
+
         use bf_newgrdpt_class, only : 
      $       bf_newgrdpt
+
+        use parameters_bf_layer, only :
+     $       BF_SUCCESS
 
         use parameters_input, only :
      $       ne
@@ -219,6 +225,7 @@
           integer               :: nb_procedures
           integer, dimension(4) :: procedure_type
           integer, dimension(4) :: gradient_type
+          integer               :: k
 
           
           print '(''bf_compute_newgrdpt_class'')'
@@ -252,10 +259,14 @@
 
           ! verify that there are enough grid points around the
           ! new grid point for its computation
-          ierror = verify_data_for_newgrdpt(
-     $         i0,j0,this%grdpts_id_tmp,
-     $         procedure_type,
-     $         gradient_type)
+          ierror = BF_SUCCESS
+          do k=1, nb_procedures
+             ierror = ierror.and.
+     $            verify_data_for_newgrdpt(
+     $            i0,j0,this%grdpts_id_tmp,
+     $            procedure_type(k),
+     $            gradient_type(k))
+          end do
 
           if(ierror.eqv.BF_SUCCESS) then
 

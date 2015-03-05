@@ -184,3 +184,13 @@ make test_bf_compute > /dev/null
 ./test_bf_compute
 make cleanall > /dev/null
 echo ''
+
+
+#test_bf_layer_time
+echo ''
+echo 'test_bf_layer_time'
+echo '------------------------------------------------------------'
+make test_bf_layer_time > /dev/null
+./test_bf_layer_time
+make cleanall > /dev/null
+echo ''
