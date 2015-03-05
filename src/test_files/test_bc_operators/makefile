@@ -89,3 +89,29 @@ test_bc_operators_openbc:\
 			$(mt_ext_dep)\
 			$(dim2d_dep)\
 			$(hedstrom_xy_dep)
+
+test_bc_operators_openbc_normal.o:\
+			$(hobc_dir)/bc_operators_class.o\
+			$(test_dir)/tools/check_data_module.o\
+			$(hobc_dir)/hedstrom_xy_module.o\
+			$(obc_dir)/openbc_operators_module.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_kind.o\
+			$(dim2d_dir)/pmodel_eq_class.o\
+			$(sd_cdir)/sd_operators_fd_module.o\
+			$(sd_cdir)/sd_operators_x_oneside_L0_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_L1_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_R1_class.o\
+			$(sd_cdir)/sd_operators_x_oneside_R0_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_L0_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
+			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
+
+test_bc_operators_openbc_normal:\
+			check_data_module.o\
+			$(param_dep)\
+			$(mt_ext_dep)\
+			$(dim2d_dep)\
+			$(hedstrom_xy_dep)
