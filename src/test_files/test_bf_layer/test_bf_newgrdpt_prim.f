@@ -1560,7 +1560,7 @@
      $         detailled)
 
           !SE_anti_corner
-          call reflect_X(
+          call reflect_x(
      $         p_model,
      $         bf_x_map0, bf_nodes0,
      $         bf_x_map1, bf_nodes1,

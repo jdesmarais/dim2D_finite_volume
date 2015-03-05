@@ -32,7 +32,13 @@
      $       gradient_R0_type,
      $       gradient_xLR0_yI_type,
      $       gradient_xI_yLR0_type,
-     $       gradient_xLR0_yLR0_type
+     $       gradient_xLR0_yLR0_type,
+     $     
+     $       interior_pt,
+     $       bc_interior_pt,
+     $       bc_pt,
+     $     
+     $       BF_SUCCESS
 
         use parameters_kind, only :
      $       ikind
@@ -73,24 +79,28 @@
         !> grid point
         !--------------------------------------------------------------
         function verify_data_for_newgrdpt(
-     $       i,j,grdpts_id,
+     $       i_c,j_c,grdpts_id,
      $       procedure_type,
      $       gradient_type)
      $       result(ierror)
 
           implicit none
 
-          integer                , intent(in) :: i
-          integer                , intent(in) :: j
+          integer                , intent(in) :: i_c
+          integer                , intent(in) :: j_c
           integer, dimension(:,:), intent(in) :: grdpts_id
           integer                , intent(in) :: procedure_type
           integer                , intent(in) :: gradient_type
+          logical                             :: ierror
 
           integer                   :: nb_bounds
           integer, dimension(2,2,2) :: bounds
 
           integer        :: k
           integer(ikind) :: i,j
+
+          logical :: all_grdpts_exists
+
 
           print '(''TO BE VALIDATED'')'
           stop 'bf_newgrdpt_verification_module: verify_data_for_newgrdpt'
@@ -105,12 +115,12 @@
           !verify that the grid points exists
           all_grdpts_exists = .true.
           do k=1,nb_bounds
-             do j=j+bounds(2,1,k),j+bounds(2,2,k)
-                do i=i+bounds(1,1,k),i+bounds(1,2,k)
+             do j=j_c+bounds(2,1,k),j_c+bounds(2,2,k)
+                do i=i_c+bounds(1,1,k),i_c+bounds(1,2,k)
                    if(
      $                  (grdpts_id(i,j).ne.interior_pt).or.
      $                  (grdpts_id(i,j).ne.bc_interior_pt).or.
-     $                  (grdpts_id(i,j).ne.bc_pt))) then
+     $                  (grdpts_id(i,j).ne.bc_pt)) then
 
                       all_grdpts_exists = .false.
 
@@ -118,6 +128,12 @@
                 end do
              end do
           end do
+
+          if(all_grdpts_exists) then
+             ierror = BF_SUCCESS
+          else
+             ierror = .not.BF_SUCCESS
+          end if
 
         end function verify_data_for_newgrdpt
 

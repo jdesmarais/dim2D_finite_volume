@@ -32,16 +32,27 @@
       !-----------------------------------------------------------------
       module td_integrator_class
 
-        use field_abstract_class        , only : field_abstract
-        use parameters_input            , only : nx,ny,ne,bc_size
-        use parameters_kind             , only : rkind, ikind
-        use rk3tvd_steps_module         , only : compute_1st_step,
-     $                                           compute_2nd_step,
-     $                                           compute_3rd_step,
-     $                                           compute_1st_step_nopt,
-     $                                           compute_2nd_step_nopt,
-     $                                           compute_3rd_step_nopt
-        use td_integrator_abstract_class, only : td_integrator_abstract
+        use field_abstract_class, only :
+     $       field_abstract
+
+        use parameters_input, only :
+     $       nx,ny,ne,
+     $       bc_size
+
+        use parameters_kind, only :
+     $       rkind,
+     $       ikind
+
+        use rk3tvd_steps_module, only :
+     $       compute_1st_step,
+     $       compute_2nd_step,
+     $       compute_3rd_step,
+     $       compute_1st_step_nopt,
+     $       compute_2nd_step_nopt,
+     $       compute_3rd_step_nopt
+
+        use td_integrator_abstract_class, only :
+     $       td_integrator_abstract
 
         implicit none
 
@@ -194,8 +205,7 @@
           !DEC$ FORCEINLINE RECURSIVE
           call field_used%compute_integration_step_ext(
      $         dt, nodes_tmp, time_dev,
-     $         compute_1st_step, compute_1st_step_nopt,
-     $         full=.true.)
+     $         compute_1st_step, compute_1st_step_nopt)
 
           !apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE

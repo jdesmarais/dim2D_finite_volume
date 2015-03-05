@@ -42,12 +42,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 10
+        integer(ikind), parameter :: ntx = 6
         integer(ikind), parameter :: nty = 6
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 1
+        integer       , parameter :: ne = 4
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -112,14 +112,14 @@
         
         real(rkind), parameter :: T0 = 0.950000000d0
 
-        integer    , parameter :: ic_choice = bubble_transported
+        integer    , parameter :: ic_choice = newgrdpt_test
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = periodic_xy_choice
+        integer, parameter :: bc_choice = hedstrom_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
@@ -139,10 +139,10 @@
         !bc_W_type_choice : type of boundary condition applied
         !                   at the West boundary
         !-----------------------------------------------------
-        integer    , parameter :: bc_N_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_S_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_E_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_W_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_N_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_S_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_E_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_W_type_choice = bc_timedev_choice
 
 
         !-----------------------------------------------------
@@ -181,7 +181,7 @@
         !-----------------------------------------------------
         integer    , parameter :: obc_outgoing_strategy   = obc_outgoing_prim
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
-        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
 
         !-----------------------------------------------------

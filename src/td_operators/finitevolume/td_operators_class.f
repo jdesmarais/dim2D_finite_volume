@@ -294,20 +294,20 @@
 
             implicit none
 
-            real(rkind)                                  , intent(in)    :: t
-            integer(ikind), dimension(2,2)               , intent(in)    :: bf_alignment
-            integer       , dimension(:,:)               , intent(in)    :: grdpts_id
-            real(rkind)   , dimension(:)                 , intent(in)    :: x_map
-            real(rkind)   , dimension(:)                 , intent(in)    :: y_map
-            real(rkind)   , dimension(:,:,:)             , intent(in)    :: nodes
-            type(sd_operators)                           , intent(in)    :: s
-            type(pmodel_eq)                              , intent(in)    :: p_model
-            type(bc_operators)                           , intent(in)    :: bc_used
-            real(rkind)   , dimension(:,:,:)             , intent(out)   :: time_dev
-            real(rkind)   , dimension(nx,ny,ne)          , intent(in)    :: interior_nodes
-            integer       , dimension(:,:)  , allocatable, intent(inout) :: bc_sections
-            integer(ikind), dimension(2)                 , intent(in)    :: x_borders
-            integer(ikind), dimension(2)                 , intent(in)    :: y_borders
+            real(rkind)                                  , intent(in)  :: t
+            integer(ikind), dimension(2,2)               , intent(in)  :: bf_alignment
+            integer       , dimension(:,:)               , intent(in)  :: grdpts_id
+            real(rkind)   , dimension(:)                 , intent(in)  :: x_map
+            real(rkind)   , dimension(:)                 , intent(in)  :: y_map
+            real(rkind)   , dimension(:,:,:)             , intent(in)  :: nodes
+            type(sd_operators)                           , intent(in)  :: s
+            type(pmodel_eq)                              , intent(in)  :: p_model
+            type(bc_operators)                           , intent(in)  :: bc_used
+            real(rkind)   , dimension(:,:,:)             , intent(out) :: time_dev
+            real(rkind)   , dimension(nx,ny,ne)          , intent(in)  :: interior_nodes
+            integer       , dimension(:,:)  , allocatable, intent(in)  :: bc_sections
+            integer(ikind), dimension(2)                 , intent(in)  :: x_borders
+            integer(ikind), dimension(2)                 , intent(in)  :: y_borders
 
             real(rkind), dimension(:,:,:), allocatable :: flux_x
             real(rkind), dimension(:,:,:), allocatable :: flux_y

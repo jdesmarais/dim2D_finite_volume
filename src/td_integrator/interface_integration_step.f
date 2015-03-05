@@ -1,7 +1,23 @@
+      !> @file
+      !> interfaces for the intermediate steps in the time integration
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> interfaces for the intermediate steps in the time integration
+      !
+      !> @date
+      !> 05_03_2015 - initial version - J.L. Desmarais
+      !-----------------------------------------------------------------
       module interface_integration_step
 
-        use parameters_input, only : nx,ny,ne
-        use parameters_kind , only : ikind,rkind
+        use parameters_input, only :
+     $       nx,ny,ne
+
+        use parameters_kind , only :
+     $       ikind,
+     $       rkind
 
         implicit none
 
@@ -13,8 +29,12 @@
         abstract interface
 
           subroutine timeInt_step(
-     $       nodes, dt, nodes_tmp, time_dev,
-     $       x_borders, y_borders)
+     $       nodes,
+     $       dt,
+     $       nodes_tmp,
+     $       time_dev,
+     $       x_borders,
+     $       y_borders)
            
              import ikind,rkind
              import nx,ny,ne
@@ -30,23 +50,23 @@
 
 
           subroutine timeInt_step_nopt(
-     $     nodes, dt, nodes_tmp, time_dev, grdpts_id,
-     $     full,
-     $     x_borders, y_borders,
-     $     N_bc_sections, S_bc_sections)
+     $       nodes,
+     $       dt,
+     $       nodes_tmp,
+     $       time_dev,
+     $       grdpts_id,
+     $       x_borders,
+     $       y_borders)
            
              import ikind,rkind
 
-             real(rkind), dimension(:,:,:)                        , intent(inout) :: nodes
-             real(rkind)                                          , intent(in)    :: dt
-             real(rkind), dimension(:,:,:)                        , intent(inout) :: nodes_tmp
-             real(rkind), dimension(:,:,:)                        , intent(in)    :: time_dev
-             integer    , dimension(:,:)                          , intent(in)    :: grdpts_id
-             logical                                    , optional, intent(in)    :: full
-             integer(ikind), dimension(2)               , optional, intent(in)    :: x_borders
-             integer(ikind), dimension(2)               , optional, intent(in)    :: y_borders
-             integer(ikind), dimension(:,:), allocatable, optional, intent(in)    :: N_bc_sections
-             integer(ikind), dimension(:,:), allocatable, optional, intent(in)    :: S_bc_sections
+             real(rkind), dimension(:,:,:)          , intent(inout) :: nodes
+             real(rkind)                            , intent(in)    :: dt
+             real(rkind), dimension(:,:,:)          , intent(inout) :: nodes_tmp
+             real(rkind), dimension(:,:,:)          , intent(in)    :: time_dev
+             integer    , dimension(:,:)            , intent(in)    :: grdpts_id
+             integer(ikind), dimension(2) , optional, intent(in)    :: x_borders
+             integer(ikind), dimension(2) , optional, intent(in)    :: y_borders
 
           end subroutine timeInt_step_nopt
 

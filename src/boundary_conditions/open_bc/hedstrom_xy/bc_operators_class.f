@@ -352,7 +352,7 @@
           end do
 
           ! N layer
-          do j=1,bc_size
+          do j=ny-bc_size+1,ny
              call compute_timedev_y_layer_interior(
      $            p_model,
      $            t,nodes,x_map,y_map,

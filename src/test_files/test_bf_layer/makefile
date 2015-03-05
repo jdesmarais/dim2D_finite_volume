@@ -140,6 +140,7 @@ test_bf_layer_bc_procedure:	parameters_kind.o\
 				parameters_bf_layer.o\
 				bf_layer_bc_procedure_module.o
 
+
 test_bf_layer_bc_sections_overlap.o:\
 				$(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
@@ -152,6 +153,7 @@ test_bf_layer_bc_sections_overlap:\
 				parameters_bf_layer.o\
 				check_data_module.o
 
+
 test_bf_interior_bc_sections.o:	$(bbf_layer_dir)/bf_interior_bc_sections_module.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
 				$(param_dir)/parameters_input.o\
@@ -160,6 +162,7 @@ test_bf_interior_bc_sections.o:	$(bbf_layer_dir)/bf_interior_bc_sections_module.
 test_bf_interior_bc_sections:	$(param_dep)\
 				parameters_bf_layer.o\
 				bf_interior_bc_sections_module.o
+
 
 test_bf_layer_bc_sections.o:	$(bbf_layer_dir)/bf_layer_bc_sections_class.o\
 				$(test_dir)/tools/check_data_module.o\
@@ -172,6 +175,7 @@ test_bf_layer_bc_sections:	$(param_dep)\
 				bf_layer_bc_sections_class.o\
 				check_data_module.o
 
+
 test_bf_layer_bc_checks.o:	$(bbf_layer_dir)/bf_layer_bc_checks_module.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
@@ -182,6 +186,7 @@ test_bf_layer_bc_checks:	parameters_kind.o\
 				parameters_input.o\
 				bf_layer_bc_checks_module.o
 
+
 test_bf_layer_bc_anticorner.o:	$(bbf_layer_dir)/bf_layer_bc_anticorner_module.o\
 				$(test_dir)/tools/check_data_module.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
@@ -189,7 +194,6 @@ test_bf_layer_bc_anticorner.o:	$(bbf_layer_dir)/bf_layer_bc_anticorner_module.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(dim2d_dir)/pmodel_eq_class.o
-
 
 test_bf_layer_bc_anticorner:	$(param_dep)\
 				$(mt_dep)\
@@ -200,3 +204,25 @@ test_bf_layer_bc_anticorner:	$(param_dep)\
 				bf_layer_extract_module.o\
 				bf_layer_bc_anticorner_module.o
 
+
+#buffer_layer/bf_layer_computations
+test_bf_compute.o:		$(hobc_dir)/bc_operators_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(cbf_layer_dir)/bf_compute_class.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(pm_cdir)/pmodel_eq_class.o\
+				$(rk3tvd_dir)/rk3tvd_steps_module.o\
+				$(mt_dir)/sd_operators_class.o\
+				$(fv_dir)/td_operators_class.o
+
+test_bf_compute:		$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				rk3tvd_steps_module.o\
+				bf_compute_class.o\
+				check_data_module.o
