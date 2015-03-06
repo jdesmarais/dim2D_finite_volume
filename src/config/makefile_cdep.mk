@@ -297,6 +297,12 @@ bf_layer_dep=		$(bf_layer_newgrdpt_dep)\
 			bf_remove_module.o\
 			bf_layer_class.o
 
+bf_sublayer_dep=	$(bf_layer_dep)\
+			bf_sublayer_class.o
+
+bf_mainlayer_dep=	$(bf_sublayer_dep)\
+			bf_mainlayer_class.o
+
 bf_interface_dep=	$(bf_layer_dep)\
 			bf_restart_module.o\
 			bf_sublayer_class.o\

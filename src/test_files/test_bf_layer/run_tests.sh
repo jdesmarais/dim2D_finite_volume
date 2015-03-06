@@ -194,3 +194,23 @@ make test_bf_layer_time > /dev/null
 ./test_bf_layer_time
 make cleanall > /dev/null
 echo ''
+
+
+#test bf_sublayer_class
+echo ''
+echo 'test_bf_sublayer_class'
+echo '------------------------------------------------------------'
+make test_bf_sublayer > /dev/null
+./test_bf_sublayer
+make cleanall > /dev/null
+echo ''
+
+
+#test bf_mainlayer_basic_class
+echo ''
+echo 'test_bf_mainlayer_basic_class'
+echo '------------------------------------------------------------'
+make test_bf_mainlayer_basic > /dev/null
+./test_bf_mainlayer_basic
+make cleanall > /dev/null
+echo ''
