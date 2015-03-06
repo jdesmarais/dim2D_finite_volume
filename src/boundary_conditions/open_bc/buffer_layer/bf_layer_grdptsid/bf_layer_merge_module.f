@@ -3513,9 +3513,9 @@
 
          implicit none
          
-         real(rkind), dimension(:) , intent(out) :: new_y_map
-         real(rkind), dimension(:) , intent(in)  :: bf_y_map
-         real(rkind), dimension(ny), intent(in)  :: interior_y_map
+         real(rkind), dimension(:), intent(out) :: new_y_map
+         real(rkind), dimension(:), intent(in)  :: bf_y_map
+         real(rkind), dimension(:), intent(in)  :: interior_y_map
 
          integer(ikind) :: j
          real(rkind)    :: dy
@@ -3537,9 +3537,9 @@
 
          implicit none
          
-         real(rkind), dimension(:) , intent(out) :: new_y_map
-         real(rkind), dimension(:) , intent(in)  :: bf_y_map
-         real(rkind), dimension(ny), intent(in)  :: interior_y_map
+         real(rkind), dimension(:), intent(out) :: new_y_map
+         real(rkind), dimension(:), intent(in)  :: bf_y_map
+         real(rkind), dimension(:), intent(in)  :: interior_y_map
 
          integer(ikind) :: j
          real(rkind)    :: dy

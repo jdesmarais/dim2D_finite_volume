@@ -45,7 +45,7 @@ wave1d_dep=		wave1d_parameters.o\
 			wave1d_prim_module.o\
 			$(pm_dep)
 
-wave2d_dep=		wave2d_ncoords_module.o\
+wave2d_dep=		n_coords_module.o\
 			wave2d_parameters.o\
 			wave2d_prim_module.o\
 			$(pm_dep)

@@ -16,7 +16,7 @@
       module bf_remove_module
 
         use bf_layer_errors_module, only :
-     $     error_mainlayer_id
+     $       error_mainlayer_id
 
         use parameters_bf_layer, only :
      $       align_N,align_S,
@@ -40,8 +40,14 @@
         implicit none
 
         private
-        public :: check_if_bf_layer_remains,
-     $            get_check_line_param
+        public ::
+     $       check_if_bf_layer_remains,
+     $       grdpts_common_with_check_layer,     
+     $       get_check_line_param,
+     $       check_line_neighbors,
+     $       check_layer_interior,
+     $       check_layer_bf,
+     $       no_nogrdpt
 
 
         contains
@@ -461,6 +467,9 @@
           integer(ikind) :: i,j
 
 
+          bf_remains = .false.
+
+
           if( ((pt_coords(1,2)-pt_coords(1,1)).gt.0).and.
      $        ((pt_coords(2,2)-pt_coords(2,1)).gt.0) ) then
 
@@ -557,6 +566,9 @@
           integer(ikind) :: size_x,size_y
 
           
+          bf_remains = .false.
+          
+
           if(  ((pt_coords(1,2)-pt_coords(1,1)).gt.0).and.
      $         ((pt_coords(2,2)-pt_coords(2,1)).gt.0) ) then
 

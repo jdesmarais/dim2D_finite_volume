@@ -149,8 +149,7 @@
 
           procedure, pass :: copy_grdpts_id_to_temp
 
-
-          !procedure to localize the buffer layer:
+          !procedures to localize the buffer layer:
           !coordinates and coordinate maps
           procedure, pass :: get_local_coord
           procedure, pass :: get_general_to_local_coord_tab
@@ -162,6 +161,9 @@
           procedure, pass :: get_nodes
           procedure, pass :: get_nodes_nonlocal
           procedure, pass :: get_grdpts_id
+
+          !procedures to remove the buffer layer
+          procedure, pass :: remove
 
         end type bf_layer_basic
 
@@ -966,6 +968,33 @@
           end do
 
         end subroutine get_grdpts_id
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove the buffer layer by deallocating the main tables
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
+        subroutine remove(this)
+
+          implicit none
+
+          class(bf_layer_basic), intent(inout) :: this
+
+          if(allocated(this%x_map)) deallocate(this%x_map)
+          if(allocated(this%y_map)) deallocate(this%y_map)
+          if(allocated(this%nodes)) deallocate(this%nodes)
+          if(allocated(this%grdpts_id)) deallocate(this%grdpts_id)
+
+        end subroutine remove
 
       end module bf_layer_basic_class
 

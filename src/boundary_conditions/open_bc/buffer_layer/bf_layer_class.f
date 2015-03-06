@@ -13,8 +13,8 @@
       !-----------------------------------------------------------------
       module bf_layer_class
 
-        use bf_layer_time_class, only :
-     $       bf_layer_time
+        use bf_layer_newgrdpt_class, only :
+     $       bf_layer_newgrdpt
 
         use bf_remove_module, only :
      $       check_if_bf_layer_remains
@@ -57,7 +57,7 @@
         !> @param remove
         !> remove the buffer layer by deallocating the main tables
         !-------------------------------------------------------------
-        type, extends(bf_layer_time) :: bf_layer
+        type, extends(bf_layer_newgrdpt) :: bf_layer
 
           logical, private :: can_remain
 
@@ -66,7 +66,6 @@
           procedure, pass :: set_remain_status
           procedure, pass :: get_remain_status
           procedure, pass :: should_remain
-          procedure, pass :: remove
 
         end type bf_layer
 
@@ -189,40 +188,6 @@
      $         p_model)
 
         end function should_remain
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> remove the buffe rlayer by deallocating the main tables
-        !
-        !> @date
-        !> 26_06_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer object encapsulating the main
-        !> tables extending the interior domain
-        !--------------------------------------------------------------
-        subroutine remove(this)
-
-          implicit none
-
-          class(bf_layer), intent(inout) :: this
-
-          deallocate(this%x_map)
-          deallocate(this%y_map)
-          deallocate(this%nodes)
-          deallocate(this%grdpts_id)
-
-          call this%remove_N_bc_sections()
-          call this%remove_S_bc_sections()
-
-          if(this%does_previous_timestep_exist()) then
-             call this%bf_compute_used%deallocate_tables()
-          end if
-
-        end subroutine remove
 
       end module bf_layer_class
 

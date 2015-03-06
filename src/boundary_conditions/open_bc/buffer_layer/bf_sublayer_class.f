@@ -17,13 +17,11 @@
       !-----------------------------------------------------------------
       module bf_sublayer_class
 
-        use bf_layer_class     , only : bf_layer
+        use bf_layer_class, only :
+     $       bf_layer
 
-        use parameters_constant, only : N,S,E,W,
-     $                                  x_direction, y_direction,
-     $                                  min_border
-        use parameters_input   , only : nx,ny,ne
-        use parameters_kind    , only : ikind, rkind
+        use parameters_kind, only :
+     $       ikind
 
         implicit none
 
@@ -311,7 +309,11 @@
 
           class(bf_sublayer), intent(inout) :: this
 
-          
+
+          !remove bf_layer
+          call this%bf_layer%remove()
+
+          !nullify the links
           if(associated(this%prev)) then
              if(associated(this%next)) then
                 this%prev%next => this%next

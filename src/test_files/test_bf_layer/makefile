@@ -248,3 +248,22 @@ test_bf_compute:		$(param_dep)\
 				rk3tvd_steps_module.o\
 				bf_compute_class.o\
 				check_data_module.o
+
+
+test_bf_remove.o:		$(cbf_layer_dir)/bf_remove_module.o\
+				$(sbf_layer_dir)/bf_layer_extract_module.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(wave2d_dir)/pmodel_eq_class.o
+
+test_bf_remove:			$(param_dep)\
+				$(mt_dep)\
+				$(wave2d_dep)\
+				parameters_bf_layer.o\
+				bf_layer_errors_module.o\
+				bf_layer_extract_module.o\
+				check_data_module.o\
+				bf_remove_module.o

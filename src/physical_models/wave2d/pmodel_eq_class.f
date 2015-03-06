@@ -1266,7 +1266,7 @@ c$$$     $       compute_n2_transM_wave2d
 
           !node_s = nodes(1)
 
-          undermined = (nodes(1).lt.0)
+          undermined = (nodes(2,2,1).lt.0)
           !undermined = .false.
 
           node_s = nodes(2,2,1)
