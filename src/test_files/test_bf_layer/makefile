@@ -267,3 +267,15 @@ test_bf_remove:			$(param_dep)\
 				bf_layer_extract_module.o\
 				check_data_module.o\
 				bf_remove_module.o
+
+#main objects
+test_bf_sublayer.o:		$(bf_layer_dir)/bf_sublayer_class.o
+
+test_bf_sublayer:		$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(bf_layer_dep)\
+				bf_sublayer_class.o\
+				td_operators_class.o
+

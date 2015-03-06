@@ -253,7 +253,8 @@ bf_newgrdpt_dep=	bf_newgrdpt_class.o\
 			n_coords_module.o
 
 bf_layer_basic_dep=	bf_layer_extract_module.o\
-			bf_layer_basic_class.o
+			bf_layer_basic_class.o\
+			bf_layer_errors_module.o
 
 bf_layer_print_dep=	$(bf_layer_basic_dep)\
 			bf_layer_nf90_operators_module.o\
@@ -289,28 +290,11 @@ bf_layer_time_dep=	$(bf_layer_dyn_dep)\
 			$(bf_bc_sections_dep)\
 			bf_layer_time_class.o
 
-bf_layer_dep=		parameters_bf_layer.o\
+bf_layer_newgrdpt_dep=	$(bf_layer_time_dep)\
+			bf_layer_newgrdpt_class.o
+
+bf_layer_dep=		$(bf_layer_newgrdpt_dep)\
 			bf_remove_module.o\
-			bf_layer_bc_procedure_module.o\
-			bf_layer_newgrdpt_procedure_module.o\
-			bf_suspicious_bc_interior_pt_module.o\
-			bf_bc_crenel_module.o\
-			$(bf_newgrdpt_dep)\
-			bf_compute_class.o\
-			bf_layer_errors_module.o\
-			bf_layer_allocate_module.o\
-			bf_layer_reallocate_module.o\
-			bf_layer_merge_module.o\
-			bf_layer_exchange_module.o\
-			bf_layer_nf90_operators_module.o\
-			bf_layer_bc_sections_class.o\
-			bf_layer_bc_procedure_module.o\
-			bf_layer_basic_class.o\
-			bf_layer_print_class.o\
-			bf_layer_grdpts_id_update_class.o\
-			bf_layer_sync_class.o\
-			bf_layer_dyn_class.o\
-			bf_layer_time_class.o\
 			bf_layer_class.o
 
 bf_interface_dep=	$(bf_layer_dep)\

@@ -69,7 +69,8 @@
 
         use parameters_constant, only :
      $       bc_timedev_choice,
-     $       hedstrom_xy_choice
+     $       hedstrom_xy_choice,
+     $       N,S,E,W
         
         use parameters_input, only :
      $       x_min, x_max,
@@ -113,6 +114,12 @@
         test_loc = test_update_bc_sections(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_update_bc_sections: '',L1)', test_loc
+        print '()'
+
+        
+        test_loc = test_update_integration_borders(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_update_integration_borders: '',L1)', test_loc
         print '()'
 
 
@@ -303,6 +310,131 @@
      $         detailled)
 
         end function test_update_bc_sections
+
+
+
+        function test_update_integration_borders(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_time)        :: bf_layer_used
+          integer, dimension(4)      :: test_localization
+          logical, dimension(2,4)    :: test_neighbors
+          integer, dimension(2,2,10) :: test_borders
+          integer                    :: i,k,l
+          logical                    :: test_loc
+
+
+          test_validated = .true.
+
+
+          test_localization = [N,S,E,W]
+          test_neighbors    = reshape((/
+     $         .false.,.false.,
+     $         .true. ,.false.,
+     $         .false.,.true.,
+     $         .true. ,.true./),
+     $         (/2,4/))
+          test_borders = reshape((/
+     $         1,3,7,6,
+     $         1,1,7,4,
+     $         
+     $         3,1,7,6,
+     $         3,3,7,6,
+     $         3,1,7,4,
+     $         3,3,7,4,
+     $         
+     $         1,1,5,6,
+     $         1,3,5,6,
+     $         1,1,5,4,
+     $         1,3,5,4/),
+     $         (/2,2,10/))
+
+          allocate(bf_layer_used%nodes(7,6,ne))
+
+          !N,S
+          do k=1,2
+
+             !input
+             call bf_layer_used%ini(test_localization(k))
+
+             !output
+             call bf_layer_used%update_integration_borders()
+
+             !validation
+             test_loc = is_int_vector_validated(
+     $            bf_layer_used%x_borders,
+     $            test_borders(1,:,k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'',1) failed'')',k
+             end if
+
+             test_loc = is_int_vector_validated(
+     $            bf_layer_used%y_borders,
+     $            test_borders(2,:,k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'',2) failed'')',k
+             end if
+             
+          end do
+
+
+          !E,W
+          do k=3,4
+
+             !input
+             call bf_layer_used%ini(test_localization(k))
+
+             do l=1, size(test_neighbors,2)
+
+                call bf_layer_used%set_neighbor1_share(test_neighbors(1,l))
+                call bf_layer_used%set_neighbor2_share(test_neighbors(2,l))
+
+                !output
+                call bf_layer_used%update_integration_borders()
+
+                !validation
+                if(k.eq.3) then
+                   i=3+(l-1)
+                else
+                   i=7+(l-1)
+                end if
+                test_loc = is_int_vector_validated(
+     $               bf_layer_used%x_borders,
+     $               test_borders(1,:,i),
+     $               detailled)
+                test_validated = test_validated.and.test_loc
+                
+                if(detailled.and.(.not.test_loc)) then
+                   print '(''test('',2I2,'',1) failed'')',k,l
+                end if
+
+                test_loc = is_int_vector_validated(
+     $               bf_layer_used%y_borders,
+     $               test_borders(2,:,i),
+     $               detailled)
+                test_validated = test_validated.and.test_loc
+
+                if(detailled.and.(.not.test_loc)) then
+                   print '(''test('',2I2,'',2) failed'')',k,l
+                end if
+
+             end do
+
+          end do
+
+        end function test_update_integration_borders
+
 
 
         function test_compute_time_dev(detailled)

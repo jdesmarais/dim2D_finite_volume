@@ -19,6 +19,9 @@
         use bf_layer_dyn_class, only :
      $       bf_layer_dyn
 
+        use bf_layer_errors_module, only :
+     $       error_mainlayer_id
+
         use bc_operators_class, only :
      $       bc_operators
 
@@ -31,6 +34,9 @@
         use parameters_bf_layer, only :
      $       BF_SUCCESS,
      $       bc_interior_pt
+
+        use parameters_constant, only :
+     $       N,S,E,W
 
         use parameters_input, only :
      $       bc_size,
@@ -153,6 +159,7 @@
            procedure,   pass :: does_previous_timestep_exist
            procedure,   pass :: apply_initial_conditions
            procedure,   pass :: update_bc_sections
+           procedure,   pass :: update_integration_borders
            procedure,   pass :: allocate_before_timeInt
            procedure,   pass :: deallocate_after_timeInt
            procedure,   pass :: compute_time_dev
@@ -309,6 +316,72 @@
           end if
 
         end subroutine update_bc_sections
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> identify the integration borders for the buffer layer
+        !
+        !> @date
+        !> 06_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !--------------------------------------------------------------
+        subroutine update_integration_borders(this)
+
+          implicit none
+
+          class(bf_layer_time), intent(inout) :: this
+
+          integer(ikind), dimension(2) :: x_borders
+          integer(ikind), dimension(2) :: y_borders
+
+
+          select case(this%localization)
+
+            case(N)
+               x_borders = [1,size(this%nodes,1)]
+               y_borders = [bc_size+1,size(this%nodes,2)]
+
+            case(S)
+               x_borders = [1,size(this%nodes,1)]
+               y_borders = [1,size(this%nodes,2)-bc_size]
+
+            case(E,W)
+               if(this%localization.eq.E) then
+                  x_borders = [bc_size+1,size(this%nodes,1)]
+               else
+                  x_borders = [1,size(this%nodes,1)-bc_size]
+               end if
+
+               if(this%can_exchange_with_neighbor1()) then
+                  y_borders(1) = bc_size+1
+               else
+                  y_borders(1) = 1
+               end if
+
+               if(this%can_exchange_with_neighbor2()) then
+                  y_borders(2) = size(this%nodes,2)-bc_size
+               else
+                  y_borders(2) = size(this%nodes,2)
+               end if
+
+            case default
+               call error_mainlayer_id(
+     $              'nbf_interface_class.f',
+     $              'define_integration_borders',
+     $              this%localization)
+
+          end select
+
+          call this%set_x_borders(x_borders)
+          call this%set_y_borders(y_borders)
+        
+        end subroutine update_integration_borders
 
 
         !> @author

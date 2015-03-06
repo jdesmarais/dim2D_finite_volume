@@ -53,11 +53,13 @@ $(pbf_layer_dir)/bf_layer_dyn_class.o:\
 $(pbf_layer_dir)/bf_layer_time_class.o:\
 	$(bbf_layer_dir)/bf_layer_bc_sections_class.o\
 	$(pbf_layer_dir)/bf_layer_dyn_class.o\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(sbf_layer_dir)/bf_layer_extract_module.o\
 	$(cbf_layer_dir)/bf_compute_newgrdpt_class.o\
 	$(bc_cdir)/bc_operators_class.o\
 	$(ti_dir)/interface_integration_step.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o\
@@ -220,17 +222,20 @@ $(bbf_layer_dir)/bf_layer_bc_anticorner_module.o:\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o
 
-#buffer layer computation of a new grid-point
-#$(ngbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o:\
-#	$(cbf_layer_dir)/bf_layer_bc_procedure_module.o\
-#	$(bf_layer_dir)/bf_layer_errors_module.o\
-#	$(sbf_layer_dir)/bf_layer_extract_module.o\
-#	$(bf_layer_dir)/parameters_bf_layer.o\
-#	$(param_dir)/parameters_input.o\
-#	$(param_dir)/parameters_kind.o
 
+#buffer layer computation of a new grid-point
 $(ngbf_layer_dir)/bf_newgrdpt_verification_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o
+
+$(ngbf_layer_dir)/bf_newgrdpt_procedure_module.o:\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_kind.o
+
+$(ngbf_layer_dir)/bf_newgrdpt_extract_module.o:\
+	$(sbf_layer_dir)/bf_layer_extract_module.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
 
 $(ngbf_layer_dir)/bf_newgrdpt_class.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
@@ -242,10 +247,6 @@ $(ngbf_layer_dir)/bf_newgrdpt_class.o:\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o\
 	$(sd_cdir)/sd_operators_fd_module.o
-
-$(ngbf_layer_dir)/bf_newgrdpt_procedure_module.o:\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_kind.o
 
 
 #functions for the time integration of the buffer layer
@@ -394,7 +395,7 @@ $(nbf_layer_dir)/nbf_element_class.o:\
 	$(param_dir)/parameters_kind.o
 
 $(nbf_layer_dir)/nbf_list_class.o:\
-	$(cbf_layer_dir)/bf_interior_bc_sections_module.o\
+	$(bbf_layer_dir)/bf_interior_bc_sections_module.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(nbf_layer_dir)/nbf_element_class.o\
@@ -402,29 +403,39 @@ $(nbf_layer_dir)/nbf_list_class.o:\
 	$(param_dir)/parameters_kind.o\
 	$(lbf_layer_dir)/sbf_list_class.o
 
-$(nbf_layer_dir)/nbf_interface_class.o:\
-	$(cbf_layer_dir)/bf_interior_bc_sections_module.o\
-	$(bf_layer_dir)/bf_layer_errors_module.o\
+$(nbf_layer_dir)/nbf_interface_basic_class.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(nbf_layer_dir)/nbf_element_class.o\
 	$(nbf_layer_dir)/nbf_list_class.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_kind.o
+
+$(nbf_layer_dir)/nbf_interface_sync_class.o:\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(nbf_layer_dir)/nbf_interface_basic_class.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o\
-	$(pm_cdir)/pmodel_eq_class.o\
-	$(lbf_layer_dir)/sbf_list_class.o
+	$(param_dir)/parameters_kind.o
 
 $(nbf_layer_dir)/nbf_interface_newgrdpt_class.o:\
-	$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\
+	$(sbf_layer_dir)/bf_layer_extract_module.o\
+	$(ngbf_layer_dir)/bf_newgrdpt_extract_module.o\
+	$(ngbf_layer_dir)/bf_newgrdpt_procedure_module.o\
 	$(gbf_layer_dir)/bf_suspicious_bc_interior_pt_module.o\
-	$(cbf_layer_dir)/bf_newgrdpt_class.o\
+	$(gbf_layer_dir)/bf_bc_crenel_module.o\
+	$(ngbf_layer_dir)/bf_newgrdpt_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(nbf_layer_dir)/nbf_interface_class.o\
+	$(nbf_layer_dir)/nbf_interface_sync_class.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
-	$(pm_cdir)/pmodel_eq_class.o	
+	$(pm_cdir)/pmodel_eq_class.o
+
+$(nbf_layer_dir)/nbf_interface_class.o:\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(nbf_layer_dir)/nbf_interface_newgrdpt_class.o\
+	$(lbf_layer_dir)/sbf_list_class.o
+
 
 #buffer layer restart
 $(rbf_layer_dir)/bf_restart_module.o:\
