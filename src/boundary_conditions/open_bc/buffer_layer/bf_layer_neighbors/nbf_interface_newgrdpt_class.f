@@ -13,13 +13,17 @@
       !-----------------------------------------------------------------
       module nbf_interface_newgrdpt_class
 
-        use bf_layer_newgrdpt_procedure_module, only :
-     $       get_newgrdpt_procedure,
-     $       get_grdpts_id_from_interior,
+        use bf_layer_extract_module, only :
+     $       get_grdpts_id_from_interior
+
+        use bf_newgrdpt_extract_module, only :
      $       get_interior_data_for_newgrdpt,
      $       are_intermediate_newgrdpt_data_needed,
      $       get_x_map_for_newgrdpt,
      $       get_y_map_for_newgrdpt
+
+        use bf_newgrdpt_procedure_module, only :
+     $       get_newgrdpt_procedure
 
         use bf_suspicious_bc_interior_pt_module, only :
      $       verify_if_all_grdpts_exist
@@ -34,8 +38,8 @@
         use bf_sublayer_class, only :
      $       bf_sublayer
 
-        use nbf_interface_class, only :
-     $       nbf_interface
+        use nbf_interface_sync_class, only :
+     $       nbf_interface_sync
 
         use parameters_bf_layer, only :
      $       BF_SUCCESS, bc_pt
@@ -51,9 +55,8 @@
      $       pmodel_eq
 
         private
-        public :: nbf_interface_newgrdpt,
-     $       finalize_grdpts_around_new_interior_pt,
-     $       finalize_grdpts_for_bc_pt_crenel
+        public ::
+     $       nbf_interface_newgrdpt
 
 
         !>@class nbf_interface-newgrdpt
@@ -70,9 +73,13 @@
         !> compute the new grid point in the buffer layer resulting
         !> from the computational domain extension
         !--------------------------------------------------------------
-        type, extends(nbf_interface) :: nbf_interface_newgrdpt
+        type, extends(nbf_interface_sync) :: nbf_interface_newgrdpt
 
           contains
+
+          procedure, pass :: get_data_for_newgrdpt
+          procedure, pass :: get_grdpts_id_part
+          procedure, pass :: set_grdpts_id_part
 
           procedure, pass :: update_bf_grdpts_after_increase
           procedure, pass :: update_grdpts_around_new_interior_pt
@@ -82,6 +89,174 @@
 
 
         contains
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> complete the temporary arrays containing the grid point ID
+        !> and the nodes needed for the computation of new grid points
+        !> using the grid points of the neighboring buffer layers
+        !
+        !> @date
+        !> 21_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param bf_localization
+        !> cardinal coordinate identifying the buffer layer position
+        !
+        !>@param bf_neighbor_id
+        !> integer identifying the type of neighbor
+        !
+        !>@param tmp_grdpts_id0
+        !> temporary array with the grid point ID at t=t-dt
+        !
+        !>@param tmp_nodes0
+        !> temporary array with the nodes at t=t-dt
+        !
+        !>@param tmp_nodes1
+        !> temporary array with the nodes at t=t
+        !
+        !>@param gen_borders
+        !> array with integers identifying the extent of the data
+        !> extracted using general coordinates
+        !--------------------------------------------------------------
+        subroutine get_data_for_newgrdpt(
+     $     this,
+     $     bf_localization,
+     $     bf_neighbor_id,
+     $     tmp_grdpts_id0,
+     $     tmp_nodes0,
+     $     tmp_nodes1,
+     $     gen_borders)
+
+          implicit none
+
+          class(nbf_interface_newgrdpt)                             , intent(in)    :: this
+          integer                                                   , intent(in)    :: bf_localization
+          integer                                                   , intent(in)    :: bf_neighbor_id
+          integer    , dimension(2*(bc_size+1)+1,2*(bc_size+1)+1)   , intent(inout) :: tmp_grdpts_id0
+          real(rkind), dimension(2*(bc_size+1)+1,2*(bc_size+1)+1,ne), intent(inout) :: tmp_nodes0
+          real(rkind), dimension(2*(bc_size+1)+1,2*(bc_size+1)+1,ne), intent(inout) :: tmp_nodes1
+          integer(ikind), dimension(2,2)                            , intent(in)    :: gen_borders
+
+
+          call this%nbf_links(bf_localization,bf_neighbor_id)%get_data_for_newgrdpt(
+     $         tmp_grdpts_id0,
+     $         tmp_nodes0,
+     $         tmp_nodes1,
+     $         gen_borders)
+
+        end subroutine get_data_for_newgrdpt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> substitute the content of the the temporary array
+        !> containing the grid point ID at t by the content
+        !> of grdpts_id matching the gen_borders from the
+        !> neighboring buffer layer identified by
+        !> (bf_localization,bf_neighbor_id)
+        !
+        !> @date
+        !> 27_11_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param bf_localization
+        !> cardinal coordinate identifying the buffer layer position
+        !
+        !>@param bf_neighbor_id
+        !> integer identifying the type of neighbor
+        !
+        !>@param tmp_grdpts_id1
+        !> temporary array with the grid point ID at t=t
+        !
+        !>@param gen_borders
+        !> array with integers identifying the extent of the data
+        !> extracted using general coordinates
+        !--------------------------------------------------------------
+        subroutine get_grdpts_id_part(
+     $     this,
+     $     bf_localization,
+     $     bf_neighbor_id,
+     $     tmp_grdpts_id1,
+     $     gen_borders)
+
+          implicit none
+
+          class(nbf_interface_newgrdpt) , intent(in)    :: this
+          integer                       , intent(in)    :: bf_localization
+          integer                       , intent(in)    :: bf_neighbor_id
+          integer       , dimension(:,:), intent(inout) :: tmp_grdpts_id1
+          integer(ikind), dimension(2,2), intent(in)    :: gen_borders
+
+
+          call this%nbf_links(bf_localization,bf_neighbor_id)%get_grdpts_id_part(
+     $         tmp_grdpts_id1,
+     $         gen_borders)
+
+        end subroutine get_grdpts_id_part
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> replace the content of the grdpts_id of the neighboring
+        !> buffer layer identified by (bf_localization,bf_neighbor_id)
+        !> matching the gen_borders by the the temporary array
+        !> containing the grid point id
+        !
+        !> @date
+        !> 21_01_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> nbf_interface object encapsulting links to buffer
+        !> layers at the edge between different main layers
+        !
+        !>@param bf_localization
+        !> cardinal coordinate identifying the buffer layer position
+        !
+        !>@param bf_neighbor_id
+        !> integer identifying the type of neighbor
+        !
+        !>@param tmp_grdpts_id1
+        !> temporary array with the grid point ID at t=t
+        !
+        !>@param gen_borders
+        !> array with integers identifying the extent of the data
+        !> extracted using general coordinates
+        !--------------------------------------------------------------
+        subroutine set_grdpts_id_part(
+     $     this,
+     $     bf_localization,
+     $     bf_neighbor_id,
+     $     tmp_grdpts_id1,
+     $     gen_borders)
+
+          implicit none
+
+          class(nbf_interface_newgrdpt) , intent(in) :: this
+          integer                       , intent(in) :: bf_localization
+          integer                       , intent(in) :: bf_neighbor_id
+          integer       , dimension(:,:), intent(in) :: tmp_grdpts_id1
+          integer(ikind), dimension(2,2), intent(in) :: gen_borders
+
+
+          call this%nbf_links(bf_localization,bf_neighbor_id)%set_grdpts_id_part(
+     $         tmp_grdpts_id1,
+     $         gen_borders)
+
+        end subroutine set_grdpts_id_part
 
 
         !> @author
@@ -1097,7 +1272,6 @@
         end subroutine finalize_grdpts_for_bc_pt_crenel
 
 
-
         !> @author
         !> Julien L. Desmarais
         !>
@@ -1265,6 +1439,5 @@
           end if
 
         end subroutine control_bc_pt_crenel
-
 
       end module nbf_interface_newgrdpt_class

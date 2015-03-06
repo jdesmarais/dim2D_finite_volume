@@ -91,6 +91,7 @@ $(mpbf_layer_dir)/bf_mainlayer_print_class.o:\
 
 $(mpbf_layer_dir)/bf_mainlayer_sync_class.o:\
 	$(bbf_layer_dir)/bf_interior_bc_sections_module.o\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(mpbf_layer_dir)/bf_mainlayer_print_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(param_dir)/parameters_constant.o\

@@ -22,6 +22,9 @@
      $     set_full_interior_bc_section,
      $     minimize_interior_bc_section
 
+        use bf_layer_errors_module, only :
+     $       error_mainlayer_id
+
         use bf_mainlayer_print_class, only :
      $       bf_mainlayer_print
 
@@ -65,7 +68,7 @@
 
           contains
 
-          procedure, pass :: determine_interior_bc_layers
+          procedure, pass :: update_interior_bc_sections
           procedure, pass :: sync_nodes_with_interior
 
         end type bf_mainlayer_sync
@@ -93,7 +96,7 @@
         !> extent of the boundary layers computed by the interior
         !> nodes
         !--------------------------------------------------------------
-        subroutine determine_interior_bc_layers(this, bc_sections)
+        subroutine update_interior_bc_sections(this, bc_sections)
 
           implicit none
 
@@ -208,7 +211,7 @@
 
           end if
 
-        end subroutine determine_interior_bc_layers
+        end subroutine update_interior_bc_sections
 
 
         !> @author

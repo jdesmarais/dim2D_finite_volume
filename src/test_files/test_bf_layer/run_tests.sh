@@ -214,3 +214,15 @@ make test_bf_mainlayer_basic > /dev/null
 ./test_bf_mainlayer_basic
 make cleanall > /dev/null
 echo ''
+
+
+#test_bf_mainlayer_sync_class
+echo ''
+echo 'test_bf_mainlayer_sync_class'
+echo '------------------------------------------------------------'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '20'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '25'
+make test_bf_mainlayer_sync > /dev/null
+./test_bf_mainlayer_sync
+make cleanall > /dev/null
+echo ''

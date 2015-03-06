@@ -296,3 +296,20 @@ test_bf_mainlayer_basic:	$(param_dep)\
 				$(bf_sublayer_dep)\
 				bf_mainlayer_basic_class.o\
 				check_data_module.o
+
+test_bf_mainlayer_sync.o:	$(mpbf_layer_dir)/bf_mainlayer_sync_class.o\
+				$(bf_layer_dir)/bf_sublayer_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_mainlayer_sync:		$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_sublayer_dep)\
+				$(bf_mainlayer_sync_dep)\
+				check_data_module.o
