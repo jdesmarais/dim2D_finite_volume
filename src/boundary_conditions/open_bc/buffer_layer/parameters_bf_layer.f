@@ -126,6 +126,14 @@
         integer, parameter :: cpt2overlap_and_cpt3overlap = 18
 
 
+        !convention for the identification of the mainlayer interfaces
+        !-------------------------------------------------------------
+        integer, parameter :: NE_interface_type = 1
+        integer, parameter :: NW_interface_type = 2
+        integer, parameter :: SE_interface_type = 3
+        integer, parameter :: SW_interface_type = 4
+
+
         !convention for new grid-point procedures
         !-------------------------------------------------------------
         integer, parameter :: no_gradient_type        = 0

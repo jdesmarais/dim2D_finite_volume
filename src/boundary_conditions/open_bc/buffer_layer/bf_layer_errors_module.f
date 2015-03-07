@@ -29,19 +29,23 @@
      $       error_bc_section_type,
      $       error_gradient_type,
      $       error_cpt_overlap_index,
-     $       error_cpt_type
+     $       error_cpt_type,
+     $       error_mainlayer_interface_type,
+     $       error_mainlayer_interface_incompatible
 
 
-        integer, parameter :: ERROR_MAINLAYER_ID_CODE          = 0
-        integer, parameter :: ERROR_DIFF_MAINLAYER_ID_CODE     = 1
-        integer, parameter :: ERROR_INCOMPATIBLE_NEIGHBOR_CODE = 2
-        integer, parameter :: ERROR_NEIGHBOR_INDEX_CODE        = 3
-        integer, parameter :: ERROR_OVERLAP_INDEX_CODE         = 4
-        integer, parameter :: ERROR_OVERLAP_INCOMPATIBLE_CODE  = 5
-        integer, parameter :: ERROR_BC_SECTION_TYPE_CODE       = 6
-        integer, parameter :: ERROR_GRADIENT_TYPE_CODE         = 7
-        integer, parameter :: ERROR_CPT_OVERLAP_INDEX_CODE     = 8
-        integer, parameter :: ERROR_CPT_TYPE_CODE              = 9
+        integer, parameter :: ERROR_MAINLAYER_ID_CODE                     = 0
+        integer, parameter :: ERROR_DIFF_MAINLAYER_ID_CODE                = 1
+        integer, parameter :: ERROR_INCOMPATIBLE_NEIGHBOR_CODE            = 2
+        integer, parameter :: ERROR_NEIGHBOR_INDEX_CODE                   = 3
+        integer, parameter :: ERROR_OVERLAP_INDEX_CODE                    = 4
+        integer, parameter :: ERROR_OVERLAP_INCOMPATIBLE_CODE             = 5
+        integer, parameter :: ERROR_BC_SECTION_TYPE_CODE                  = 6
+        integer, parameter :: ERROR_GRADIENT_TYPE_CODE                    = 7
+        integer, parameter :: ERROR_CPT_OVERLAP_INDEX_CODE                = 8
+        integer, parameter :: ERROR_CPT_TYPE_CODE                         = 9
+        integer, parameter :: ERROR_MAINLAYER_INTERFACE_TYPE_CODE         = 10
+        integer, parameter :: ERROR_MAINLAYER_INTERFACE_INCOMPATIBLE_CODE = 11
         
         contains
 
@@ -449,5 +453,90 @@
           stop 'error_cpt_type'
 
         end subroutine error_cpt_type
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> error mainlayer_interface_type
+        !
+        !> @date
+        !> 03_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param cpt_type
+        !> value of the parameter trigerring the exception
+        !--------------------------------------------------------------
+        subroutine error_mainlayer_interface_type(
+     $     file_name,
+     $     fct_name,
+     $     mainlayer_interface_type)
+
+          implicit none
+
+          character(*), intent(in) :: file_name
+          character(*), intent(in) :: fct_name
+          integer     , intent(in) :: mainlayer_interface_type
+
+          write(ERROR_UNIT, '(I3)') ERROR_MAINLAYER_INTERFACE_TYPE_CODE
+          write(ERROR_UNIT, '(A)') file_name
+          write(ERROR_UNIT, '(A)') fct_name
+          write(ERROR_UNIT, '(A)') 'mainlayer_interface_type not recognized'
+          write(ERROR_UNIT, '(''mainlayer_interface_type: '',I2)') mainlayer_interface_type
+
+          stop 'error_mainlayer_interface_type'
+
+        end subroutine error_mainlayer_interface_type
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> error incompatible mainlayer_interface
+        !
+        !> @date
+        !> 09_03_2014 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param mainlayer_interface_type
+        !> identification of the mainlayer_interface
+        !
+        !>@param mainlayer_localization
+        !> cardinal coordinate of the mainlayer
+        !--------------------------------------------------------------
+        subroutine error_mainlayer_interface_incompatible(
+     $     file_name, fct_name,
+     $     mainlayer_interface_type, 
+     $     mainlayer_localization)
+
+          implicit none
+
+          character(*), intent(in) :: file_name
+          character(*), intent(in) :: fct_name
+          integer     , intent(in) :: mainlayer_interface_type
+          integer     , intent(in) :: mainlayer_localization
+
+          write(ERROR_UNIT, '(I3)') ERROR_MAINLAYER_INTERFACE_INCOMPATIBLE_CODE
+          write(ERROR_UNIT, '(A)') file_name
+          write(ERROR_UNIT, '(A)') fct_name
+          write(ERROR_UNIT, '(A)') 'incompatible mainlayer_interface and localization'
+          write(ERROR_UNIT, '(''mainlayer_interface_type: '',I2)') mainlayer_interface_type
+          write(ERROR_UNIT, '(''mainlayer_localization: '',I2)') mainlayer_localization
+          
+          stop 'error_mainlayer_interface_incompatible'  
+
+        end subroutine error_mainlayer_interface_incompatible
 
       end module bf_layer_errors_module
