@@ -55,11 +55,11 @@
         !> bf_mainlayer_sync augmented with time integration
         !> procedures
         !
-        !> @param allocate_before_timeInt
+        !> @param initialize_before_timeInt
         !> allocate memory space for the intermediate
         !> variables needed to perform the time integration
         !
-        !> @param deallocate_after_timeInt
+        !> @param finalize_after_timeInt
         !> deallocate memory space for the intermediate
         !> variables needed to perform the time integration
         !
@@ -73,8 +73,8 @@
 
           contains
 
-          procedure, pass :: allocate_before_timeInt
-          procedure, pass :: deallocate_after_timeInt
+          procedure, pass :: initialize_before_timeInt
+          procedure, pass :: finalize_after_timeInt
           procedure, pass :: compute_time_dev
           procedure, pass :: compute_integration_step
 
@@ -88,19 +88,21 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> allocate memory space for the intermediate
-        !> variables needed to perform the time integration
-        !> for each sublayer contained in this main layer
+        !> initialize the necessary attributes of the buffer layers
+        !> before the time integration
+        !>     - update the time integration borders
+        !>     - update the localization of the bc_sections
+        !>     - allocate the intermediate arrays for the integration
         !
         !> @date
-        !> 17_07_2014 - initial version - J.L. Desmarais
+        !> 07_03_2015 - initial version - J.L. Desmarais
         !
         !> @param this
         !> object encapsulating the double chained list of sublayers,
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !--------------------------------------------------------------
-        subroutine allocate_before_timeInt(this)
+        subroutine initialize_before_timeInt(this)
 
           implicit none
 
@@ -120,6 +122,11 @@
           !temporary variables for the time integration
           do i=1, this%nb_sublayers
 
+             !update the time integration borders
+             call current_sublayer%update_integration_borders()
+
+             !update the position of the bc_sections
+             call current_sublayer%update_bc_sections()
 
              !allocate the temporary variables for the 
              !time integration
@@ -130,7 +137,7 @@
 
           end do
 
-        end subroutine allocate_before_timeInt
+        end subroutine initialize_before_timeInt
 
 
         !> @author
@@ -149,7 +156,7 @@
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !--------------------------------------------------------------
-        subroutine deallocate_after_timeInt(this)
+        subroutine finalize_after_timeInt(this)
 
           implicit none
 
@@ -179,7 +186,7 @@
 
           end do
 
-        end subroutine deallocate_after_timeInt
+        end subroutine finalize_after_timeInt
 
 
         !> @author
@@ -206,7 +213,7 @@
           implicit none
 
           class(bf_mainlayer)             , intent(inout) :: this
-           type(td_operators)             , intent(in)    :: td_operators_used
+          type(td_operators)              , intent(in)    :: td_operators_used
           real(rkind)                     , intent(in)    :: t
           type(sd_operators)              , intent(in)    :: s
           type(pmodel_eq)                 , intent(in)    :: p_model

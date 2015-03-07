@@ -216,6 +216,18 @@ make cleanall > /dev/null
 echo ''
 
 
+#test_bf_mainlayer_print_class
+echo ''
+echo 'test_bf_mainlayer_print_class'
+echo '------------------------------------------------------------'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '20'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '25'
+make test_bf_mainlayer_print > /dev/null
+./test_bf_mainlayer_print
+make cleanall > /dev/null
+echo ''
+
+
 #test_bf_mainlayer_sync_class
 echo ''
 echo 'test_bf_mainlayer_sync_class'
@@ -224,5 +236,15 @@ $config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '20'
 $config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '25'
 make test_bf_mainlayer_sync > /dev/null
 ./test_bf_mainlayer_sync
+make cleanall > /dev/null
+echo ''
+
+
+#test_bf_mainlayer_class
+echo ''
+echo 'test_bf_mainlayer_class'
+echo '------------------------------------------------------------'
+make test_bf_mainlayer > /dev/null
+./test_bf_mainlayer
 make cleanall > /dev/null
 echo ''

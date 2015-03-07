@@ -588,9 +588,10 @@
 
           integer(ikind) :: i,j
           logical        :: test_loc
-
+          integer :: k
 
           test_validated = .true.
+
 
 
           !input
@@ -697,6 +698,22 @@
      $         interior_timedev,
      $         [1,nx],
      $         [1,ny])
+
+c$$$          print '(''timedev'')'
+c$$$          do k=1,ne
+c$$$             do j=1,6
+c$$$                print '(6F20.14)', interior_timedev(1:6,7-j,k)
+c$$$             end do
+c$$$             print '()'
+c$$$          end do
+c$$$
+c$$$          print '(''interior_nodes'')'
+c$$$          do k=1,ne
+c$$$             do j=1,6
+c$$$                print '(6F20.14)', interior_nodes(1:6,7-j,k)
+c$$$             end do
+c$$$             print '()'
+c$$$          end do
 
           test_loc = is_real_matrix3D_validated(
      $         bf_layer_used%bf_compute_used%nodes_tmp,

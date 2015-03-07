@@ -252,6 +252,8 @@ wall_x_refl_y_par_dep=	$(mpi_dep)\
 bf_newgrdpt_dep=	bf_newgrdpt_class.o\
 			n_coords_module.o
 
+
+#bf_layer objects
 bf_layer_basic_dep=	bf_layer_extract_module.o\
 			bf_layer_basic_class.o\
 			bf_layer_errors_module.o
@@ -300,6 +302,8 @@ bf_layer_dep=		$(bf_layer_newgrdpt_dep)\
 bf_sublayer_dep=	$(bf_layer_dep)\
 			bf_sublayer_class.o
 
+
+#bf_mainlayer objects
 bf_mainlayer_basic_dep= $(bf_sublayer_dep)\
 			bf_mainlayer_basic_class.o
 
@@ -310,9 +314,11 @@ bf_mainlayer_sync_dep=	$(bf_mainlayer_print_dep)\
 			bf_interior_bc_sections_module.o\
 			bf_mainlayer_sync_class.o
 
-bf_mainlayer_dep=	$(bf_sublayer_dep)\
+bf_mainlayer_dep=	$(bf_mainlayer_sync_dep)\
 			bf_mainlayer_class.o
 
+
+#bf_interface objects
 bf_interface_dep=	$(bf_layer_dep)\
 			bf_restart_module.o\
 			bf_sublayer_class.o\
