@@ -10,11 +10,17 @@
         use bf_sublayer_class, only :
      $       bf_sublayer
 
+        use check_data_module, only :
+     $       is_int_matrix_validated
+
         use parameters_bf_layer, only :
      $       NE_interface_type,
      $       NW_interface_type,
      $       SE_interface_type,
-     $       SW_interface_type
+     $       SW_interface_type,
+     $       
+     $       align_N, align_S,
+     $       align_E, align_W
 
         use parameters_constant, only :
      $       N,S,E,W
@@ -47,6 +53,12 @@
         test_loc = test_remove_mainlayer_interface_bf_layer(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_remove_mainlayer_interface_bf_layer: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_get_neighbor_sublayer_ptr(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_get_neighbor_sublayer_ptr: '',L1)', test_loc
         print '()'
 
 
@@ -983,5 +995,129 @@
           end select
 
         end subroutine get_param_test_remove_mainlayer_interface_bf_layer
+
+
+        function test_get_neighbor_sublayer_ptr(detailled)
+     $     result(test_validated)
+
+          implicit none
+          
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          type(mainlayer_interface_basic) :: mainlayer_interface_used
+
+          integer, dimension(2,2) :: NW_interface_N_alignment
+          integer, dimension(2,2) :: NW_interface_W_alignment
+          integer, dimension(2,2) :: NE_interface_N_alignment
+          integer, dimension(2,2) :: NE_interface_E_alignment
+
+          integer, dimension(2,2) :: SW_interface_S_alignment
+          integer, dimension(2,2) :: SW_interface_W_alignment
+          integer, dimension(2,2) :: SE_interface_S_alignment
+          integer, dimension(2,2) :: SE_interface_E_alignment
+
+          integer, dimension(2,2,4,2) :: test_alignment
+
+          integer                    :: k,l
+          type(bf_sublayer), pointer :: bf_sublayer_ptr
+          integer, dimension(2,2)    :: alignment
+
+          logical :: test_loc
+
+
+          test_validated = .true.
+          
+
+          !input
+          NW_interface_N_alignment = reshape(
+     $         (/align_W-3, align_N, align_W+2, align_N+1/),
+     $         (/2,2/))
+
+          NW_interface_W_alignment = reshape(
+     $         (/align_W-3, align_N-2, align_W, align_N-1/),
+     $         (/2,2/))
+
+          NE_interface_N_alignment = reshape(
+     $         (/align_E-2, align_N, align_E+3, align_N+1/),
+     $         (/2,2/))
+
+          NE_interface_E_alignment = reshape(
+     $         (/align_E, align_N-2, align_E+3, align_N-1/),
+     $         (/2,2/))
+
+          SW_interface_S_alignment = reshape(
+     $         (/align_W-3, align_S-1, align_W+2, align_S/),
+     $         (/2,2/))
+
+          SW_interface_W_alignment = reshape(
+     $         (/align_W-3, align_S+1, align_W, align_S+2/),
+     $         (/2,2/))
+
+          SE_interface_S_alignment = reshape(
+     $         (/align_E-2, align_S-1, align_E+3, align_S/),
+     $         (/2,2/))
+
+          SE_interface_E_alignment = reshape(
+     $         (/align_E, align_S+1, align_E+3, align_S+2/),
+     $         (/2,2/))
+
+
+          call mainlayer_interface_used%ini()
+          allocate(mainlayer_interface_used%NW_interface_N_ptr)
+          mainlayer_interface_used%NW_interface_N_ptr%alignment = NW_interface_N_alignment
+          allocate(mainlayer_interface_used%NW_interface_W_ptr)
+          mainlayer_interface_used%NW_interface_W_ptr%alignment = NW_interface_W_alignment
+
+          allocate(mainlayer_interface_used%NE_interface_N_ptr)
+          mainlayer_interface_used%NE_interface_N_ptr%alignment = NE_interface_N_alignment
+          allocate(mainlayer_interface_used%NE_interface_E_ptr)
+          mainlayer_interface_used%NE_interface_E_ptr%alignment = NE_interface_E_alignment
+          
+          allocate(mainlayer_interface_used%SW_interface_S_ptr)
+          mainlayer_interface_used%SW_interface_S_ptr%alignment = SW_interface_S_alignment
+          allocate(mainlayer_interface_used%SW_interface_W_ptr)
+          mainlayer_interface_used%SW_interface_W_ptr%alignment = SW_interface_W_alignment
+
+          allocate(mainlayer_interface_used%SE_interface_S_ptr)
+          mainlayer_interface_used%SE_interface_S_ptr%alignment = SE_interface_S_alignment
+          allocate(mainlayer_interface_used%SE_interface_E_ptr)
+          mainlayer_interface_used%SE_interface_E_ptr%alignment = SE_interface_E_alignment
+
+
+          test_alignment(:,:,N,1) = NW_interface_W_alignment
+          test_alignment(:,:,N,2) = NE_interface_E_alignment
+          test_alignment(:,:,S,1) = SW_interface_W_alignment
+          test_alignment(:,:,S,2) = SE_interface_E_alignment
+          test_alignment(:,:,E,1) = SE_interface_S_alignment
+          test_alignment(:,:,E,2) = NE_interface_N_alignment
+          test_alignment(:,:,W,1) = SW_interface_S_alignment
+          test_alignment(:,:,W,2) = NW_interface_N_alignment
+
+
+          !loop over the cardinal coordinates
+          do k=1,4
+             !loop over the neighbor types
+             do l=1,2
+
+                !output
+                bf_sublayer_ptr => mainlayer_interface_used%get_neighbor_sublayer_ptr(k,l)
+                alignment = bf_sublayer_ptr%alignment
+
+                !validation
+                test_loc = is_int_matrix_validated(
+     $               alignment,
+     $               test_alignment(:,:,k,l),
+     $               detailled)
+                test_validated = test_validated.and.test_loc
+                if(detailled.and.(.not.test_loc)) then
+                   print '(''test('',2I2,'') failed'')', k,l
+                end if
+
+             end do
+          end do
+
+        end function test_get_neighbor_sublayer_ptr
 
       end program test_mainlayer_interface_basic

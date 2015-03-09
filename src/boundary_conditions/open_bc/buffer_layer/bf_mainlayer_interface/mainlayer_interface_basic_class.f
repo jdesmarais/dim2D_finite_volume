@@ -18,8 +18,11 @@
      $       bf_sublayer
 
         use bf_layer_errors_module, only :
+     $       error_mainlayer_id,
+     $       error_neighbor_index,
      $       error_mainlayer_interface_type,
      $       error_mainlayer_interface_incompatible
+
 
         use parameters_bf_layer, only :
      $       NE_interface_type,
@@ -90,6 +93,8 @@
 
           procedure, pass :: enable_mainlayer_interface
           procedure, pass :: disable_mainlayer_interface
+
+          procedure, pass :: get_neighbor_sublayer_ptr
 
         end type mainlayer_interface_basic
 
@@ -532,5 +537,151 @@
 
         end subroutine disable_mainlayer_interface
         
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the pointer to the buffer layer neighboring the
+        !> main layer identified by its cardinal coordinate
+        !
+        !> @date
+        !> 09_03_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> object encapsulating links to buffer layers at the edge
+        !> between different main layers
+        !
+        !> @param mainlayer_id
+        !> integer identifying the main layer
+        !
+        !> @param neighbor_type
+        !> type of neighbor (1 or 2)
+        !------------------------------------------------------------
+        function get_neighbor_sublayer_ptr(
+     $     this,
+     $     mainlayer_id,
+     $     neighbor_type)
+     $     result(bf_sublayer_ptr)
+
+          implicit none
+
+          class(mainlayer_interface_basic), intent(in) :: this
+          integer                         , intent(in) :: mainlayer_id
+          integer                         , intent(in) :: neighbor_type
+          type(bf_sublayer), pointer                   :: bf_sublayer_ptr
+          
+
+          select case(mainlayer_id)
+
+          !neighbors of the North main layer
+            case(N)
+               select case(neighbor_type)
+                 case(1)
+                    if(associated(this%NW_interface_W_ptr)) then
+                       bf_sublayer_ptr => this%NW_interface_W_ptr
+                    else
+                       nullify(bf_sublayer_ptr)
+                    end if
+
+                 case(2)
+                    if(associated(this%NE_interface_E_ptr)) then
+                       bf_sublayer_ptr => this%NE_interface_E_ptr
+                    else
+                       nullify(bf_sublayer_ptr)
+                    end if
+
+                 case default
+                    call error_neighbor_index(
+     $                   'mainlayer_interface_basic_class',
+     $                   'get_neighbor_sublayer_ptr',
+     $                   neighbor_type)
+
+               end select
+
+          !neighbors of the South main layer
+            case(S)
+               select case(neighbor_type)
+                 case(1)
+                    if(associated(this%SW_interface_W_ptr)) then
+                       bf_sublayer_ptr => this%SW_interface_W_ptr
+                    else
+                       nullify(bf_sublayer_ptr)
+                    end if
+
+                 case(2)
+                    if(associated(this%SE_interface_E_ptr)) then
+                       bf_sublayer_ptr => this%SE_interface_E_ptr
+                    else
+                       nullify(bf_sublayer_ptr)
+                    end if
+
+                 case default
+                    call error_neighbor_index(
+     $                   'mainlayer_interface_basic_class',
+     $                   'get_neighbor_sublayer_ptr',
+     $                   neighbor_type)
+
+               end select
+
+          !neighbors of the East main layer
+            case(E)
+               select case(neighbor_type)
+                 case(1)
+                    if(associated(this%SE_interface_S_ptr)) then
+                       bf_sublayer_ptr => this%SE_interface_S_ptr
+                    else
+                       nullify(bf_sublayer_ptr)
+                    end if
+
+                 case(2)
+                    if(associated(this%NE_interface_N_ptr)) then
+                       bf_sublayer_ptr => this%NE_interface_N_ptr
+                    else
+                       nullify(bf_sublayer_ptr)
+                    end if
+
+                 case default
+                    call error_neighbor_index(
+     $                   'mainlayer_interface_basic_class',
+     $                   'get_neighbor_sublayer_ptr',
+     $                   neighbor_type)
+
+               end select
+
+          !neighbors of the West main layer
+            case(W)
+               select case(neighbor_type)
+                 case(1)
+                    if(associated(this%SW_interface_S_ptr)) then
+                       bf_sublayer_ptr => this%SW_interface_S_ptr
+                    else
+                       nullify(bf_sublayer_ptr)
+                    end if
+
+                 case(2)
+                    if(associated(this%NW_interface_N_ptr)) then
+                       bf_sublayer_ptr => this%NW_interface_N_ptr
+                    else
+                       nullify(bf_sublayer_ptr)
+                    end if
+
+                 case default
+                    call error_neighbor_index(
+     $                   'mainlayer_interface_basic_class',
+     $                   'get_neighbor_sublayer_ptr',
+     $                   neighbor_type)
+
+               end select
+
+            case default
+               call error_mainlayer_id(
+     $              'mainlayer_interface_basic_class',
+     $              'get_neighbor_sublayer_ptr',
+     $              mainlayer_id)
+
+          end select
+
+        end function get_neighbor_sublayer_ptr
 
       end module mainlayer_interface_basic_class
