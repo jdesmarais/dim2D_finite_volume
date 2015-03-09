@@ -248,3 +248,23 @@ make test_bf_mainlayer > /dev/null
 ./test_bf_mainlayer
 make cleanall > /dev/null
 echo ''
+
+
+#test_mainlayer_interface_basic_class
+echo ''
+echo 'test_mainlayer_interface_basic_class'
+echo '------------------------------------------------------------'
+make test_mainlayer_interface_basic > /dev/null
+./test_mainlayer_interface_basic
+make cleanall > /dev/null
+echo ''
+
+
+#test_mainlayer_interface_sync_class
+echo ''
+echo 'test_mainlayer_interface_sync_class'
+echo '------------------------------------------------------------'
+make test_mainlayer_interface_sync > /dev/null
+./test_mainlayer_interface_sync
+make cleanall > /dev/null
+echo ''

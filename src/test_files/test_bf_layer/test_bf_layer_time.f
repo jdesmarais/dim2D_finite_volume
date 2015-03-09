@@ -588,7 +588,6 @@
 
           integer(ikind) :: i,j
           logical        :: test_loc
-          integer :: k
 
           test_validated = .true.
 
