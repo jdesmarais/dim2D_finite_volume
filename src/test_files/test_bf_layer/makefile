@@ -304,7 +304,7 @@ test_bf_mainlayer:		$(param_dep)\
 				rk3tvd_steps_module.o
 
 
-#buffer mainlayer parents
+#bf_mainlayer parents
 test_bf_mainlayer_basic.o:	$(mpbf_layer_dir)/bf_mainlayer_basic_class.o\
 				$(bf_layer_dir)/bf_sublayer_class.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
@@ -353,7 +353,6 @@ test_bf_mainlayer_sync:		$(param_dep)\
 				$(bf_mainlayer_sync_dep)\
 				check_data_module.o
 
-
 #mainlayer_interface parents
 test_mainlayer_interface_basic.o:\
 				$(mbf_layer_dir)/mainlayer_interface_basic_class.o\
@@ -399,3 +398,29 @@ test_mainlayer_interface_dyn:	$(param_dep)\
 				$(fv_dep)\
 				$(mainlayer_interface_dyn_dep)\
 				check_data_module.o
+
+#bf_interface parents
+test_bf_interface_basic.o:	$(ipbf_layer_dir)/bf_interface_basic_class.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_interface_basic:	$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_interface_basic_dep)
+
+test_bf_interface_print.o:	$(ipbf_layer_dir)/bf_interface_print_class.o\
+				$(bf_layer_dir)/bf_sublayer_class.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_interface_print:	$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_interface_print_dep)

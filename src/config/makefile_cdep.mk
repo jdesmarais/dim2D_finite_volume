@@ -328,8 +328,22 @@ bf_mainlayer_sync_dep=	$(bf_mainlayer_print_dep)\
 bf_mainlayer_dep=	$(bf_mainlayer_sync_dep)\
 			bf_mainlayer_class.o
 
+bf_mainlayer_pointer_dep=$(bf_mainlayer_dep)\
+			bf_mainlayer_pointer_class.o
+
 
 #bf_interface objects
+bf_interface_basic_dep=	$(bf_mainlayer_pointer_dep)\
+			$(mainlayer_interface_dyn_dep)\
+			bf_interface_basic_class.o
+
+bf_interface_print_dep= $(bf_interface_basic_dep)\
+			bf_interface_print_class.o
+
+bf_interface_sync_dep=	$(bf_interface_print_dep)\
+			bf_interface_sync_class.o
+
+
 bf_interface_dep=	$(bf_layer_dep)\
 			bf_restart_module.o\
 			bf_sublayer_class.o\

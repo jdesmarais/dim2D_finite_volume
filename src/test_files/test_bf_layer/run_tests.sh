@@ -268,3 +268,33 @@ make test_mainlayer_interface_sync > /dev/null
 ./test_mainlayer_interface_sync
 make cleanall > /dev/null
 echo ''
+
+
+#test_mainlayer_interface_dyn_class
+echo ''
+echo 'test_mainlayer_interface_dyn_class'
+echo '------------------------------------------------------------'
+make test_mainlayer_interface_dyn > /dev/null
+./test_mainlayer_interface_dyn
+make cleanall > /dev/null
+echo ''
+
+
+#test_bf_interface_basic_class
+echo ''
+echo 'test_bf_interface_basic_class'
+echo '------------------------------------------------------------'
+make test_bf_interface_basic > /dev/null
+./test_bf_interface_basic
+make cleanall > /dev/null
+echo ''
+
+
+#test_bf_interface_print_class
+echo ''
+echo 'test_bf_interface_print_class'
+echo '------------------------------------------------------------'
+make test_bf_interface_print > /dev/null
+./test_bf_interface_print
+make cleanall > /dev/null
+echo ''

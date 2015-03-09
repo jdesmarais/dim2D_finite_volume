@@ -137,6 +137,7 @@
 
           contains
 
+          !bf_mainlayer_pointer procedures
           procedure, pass :: ini
           procedure, pass :: get_ptr
           procedure, pass :: set_ptr
@@ -145,6 +146,7 @@
           procedure, pass :: deallocate_ptr
           procedure, pass :: associated_ptr
 
+          !bf_mainlayer_basic procedures
           procedure, pass :: ini_mainlayer
           procedure, pass :: get_mainlayer_id
           procedure, pass :: get_nb_sublayers
@@ -154,14 +156,17 @@
           procedure, pass :: merge_sublayers
           procedure, pass :: remove_sublayer
 
-          procedure, pass :: determine_interior_bc_layers
-          procedure, pass :: sync_nodes_with_interior
-
+          !bf_mainlayer_print procedures
           procedure, pass :: print_binary
           procedure, pass :: print_netcdf
 
-          procedure, pass :: allocate_before_timeInt
-          procedure, pass :: deallocate_after_timeInt
+          !bf_mainlayer_sync_procedures
+          procedure, pass :: update_interior_bc_sections
+          procedure, pass :: sync_nodes_with_interior
+
+          !bf_mainlayer_time procedures
+          procedure, pass :: initialize_before_timeInt
+          procedure, pass :: finalize_after_timeInt
           procedure, pass :: compute_time_dev
           procedure, pass :: compute_integration_step
           
@@ -437,8 +442,8 @@
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''get_mainlayer_id'')'
-             stop 'ptr attribute not associated'
-          end if             
+             stop 'ptr not associated'
+          end if
 
         end function get_mainlayer_id
 
@@ -509,7 +514,7 @@
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''get_head_sublayer'')'
-             stop 'ptr attribute not associated'
+             stop 'ptr not associated'
           end if
 
         end function get_head_sublayer
@@ -547,7 +552,7 @@
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''get_tail_sublayer'')'
-             stop 'ptr attribute not associated'
+             stop 'ptr not associated'
           end if
 
         end function get_tail_sublayer
@@ -607,7 +612,7 @@
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''add_sublayer'')'
-             stop 'ptr attribute not associated'
+             stop 'ptr not associated'
           end if
           
         end function add_sublayer
@@ -678,7 +683,7 @@
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''merge_sublayers'')'
-             stop 'ptr attribute not associated'
+             stop 'ptr not associated'
           end if
 
         end function merge_sublayers
@@ -716,7 +721,7 @@
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''remove_sublayer'')'
-             stop 'ptr attribute not associated'
+             stop 'ptr not associated'
           end if
 
         end subroutine remove_sublayer
@@ -741,7 +746,7 @@
         !> extent of the boundary layers computed by the interior
         !> nodes
         !--------------------------------------------------------------
-        subroutine determine_interior_bc_layers(
+        subroutine update_interior_bc_sections(
      $     this,
      $     bc_sections)
 
@@ -751,11 +756,16 @@
           integer(ikind), dimension(:,:), allocatable, intent(inout) :: bc_sections
 
           if(this%associated_ptr()) then
-             call this%ptr%determine_interior_bc_layers(
+             call this%ptr%update_interior_bc_sections(
      $            bc_sections)
+          else
+             print '(''bf_mainlayer_pointer_class'')'
+             print '(''update_interior_bc_sections'')'
+             print '(''ptr is not associated'')'
+             stop ''
           end if
 
-        end subroutine determine_interior_bc_layers
+        end subroutine update_interior_bc_sections
 
 
         !> @author
@@ -784,6 +794,10 @@
           if(this%associated_ptr()) then
              call this%ptr%sync_nodes_with_interior(
      $            interior_nodes)
+          else
+             print '(''bf_mainlayer_pointer_class'')'
+             print '(''sync_nodes_with_interior'')'
+             stop 'ptr not associated'
           end if
 
         end subroutine sync_nodes_with_interior
@@ -843,8 +857,8 @@
      $            suffix_sizes)
           else
              print '(''bf_mainlayer_pointer_class'')'
-             print '(''merge_sublayers'')'
-             stop 'ptr attribute not associated'
+             print '(''print_binary'')'
+             stop 'ptr not associated'
           end if
 
         end subroutine print_binary
@@ -925,7 +939,7 @@
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''print_netcdf'')'
-             stop 'ptr attribute not associated'
+             stop 'ptr not associated'
           end if
 
         end subroutine print_netcdf
@@ -947,21 +961,21 @@
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !--------------------------------------------------------------
-        subroutine allocate_before_timeInt(this)
+        subroutine initialize_before_timeInt(this)
 
           implicit none
 
           class(bf_mainlayer_pointer), intent(inout) :: this
 
           if(this%associated_ptr()) then
-             call this%ptr%allocate_before_timeInt()
+             call this%ptr%initialize_before_timeInt()
           else
              print '(''bf_mainlayer_pointer_class'')'
-             print '(''allocate_before_timeInt'')'
-             stop 'ptr attribute not associated'
+             print '(''initialize_before_timeInt'')'
+             stop 'ptr not associated'
           end if
 
-        end subroutine allocate_before_timeInt
+        end subroutine initialize_before_timeInt
 
 
         !> @author
@@ -980,21 +994,21 @@
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !--------------------------------------------------------------
-        subroutine deallocate_after_timeInt(this)
+        subroutine finalize_after_timeInt(this)
 
           implicit none
 
           class(bf_mainlayer_pointer), intent(inout) :: this
 
           if(this%associated_ptr()) then
-             call this%ptr%deallocate_after_timeInt()
+             call this%ptr%finalize_after_timeInt()
           else
              print '(''bf_mainlayer_pointer_class'')'
-             print '(''deallocate_after_timeInt'')'
-             stop 'ptr attribute not associated'
+             print '(''finalize_after_timeInt'')'
+             stop 'ptr not associated'
           end if
 
-        end subroutine deallocate_after_timeInt
+        end subroutine finalize_after_timeInt
 
 
         !> @author
@@ -1037,7 +1051,7 @@
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''compute_time_dev'')'
-             stop 'ptr attribute not associated'
+             stop 'ptr not associated'
           end if
 
         end subroutine compute_time_dev
@@ -1070,24 +1084,23 @@
         !> array)
         !--------------------------------------------------------------
         subroutine compute_integration_step(
-     $     this, dt, integration_step_nopt, full)
+     $     this, dt, integration_step_nopt)
 
           implicit none
 
-          class(bf_mainlayer_pointer), intent(inout) :: this
-          real(rkind)                , intent(in)    :: dt
-          procedure(timeInt_step_nopt)               :: integration_step_nopt
-          logical                    , intent(in)    :: full
+          class(bf_mainlayer_pointer) , intent(inout) :: this
+          real(rkind)                 , intent(in)    :: dt
+          procedure(timeInt_step_nopt)                :: integration_step_nopt
 
           if(this%associated_ptr()) then
              call this%ptr%compute_integration_step(
-     $            dt, integration_step_nopt, full)
+     $            dt, integration_step_nopt)
           else
              print '(''bf_mainlayer_pointer_class'')'
              print '(''compute_integration_step'')'
-             stop 'ptr attribute not associated'
+             stop 'ptr not associated'
           end if
 
-        end subroutine compute_integration_step        
+        end subroutine compute_integration_step
 
       end module bf_mainlayer_pointer_class
