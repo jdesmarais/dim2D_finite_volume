@@ -310,6 +310,9 @@ mainlayer_interface_basic_dep=	$(bf_sublayer_dep)\
 mainlayer_interface_sync_dep=	$(mainlayer_interface_basic_dep)\
 				mainlayer_interface_sync_class.o
 
+mainlayer_interface_dyn_dep=	$(mainlayer_interface_sync_dep)\
+				mainlayer_interface_dyn_class.o
+
 
 #bf_mainlayer objects
 bf_mainlayer_basic_dep= $(bf_sublayer_dep)\

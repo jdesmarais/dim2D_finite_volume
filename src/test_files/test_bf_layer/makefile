@@ -386,3 +386,16 @@ test_mainlayer_interface_sync:	$(param_dep)\
 				$(fv_dep)\
 				$(mainlayer_interface_sync_dep)\
 				check_data_module.o
+
+test_mainlayer_interface_dyn.o:	$(test_dir)/tools/check_data_module.o\
+				$(mbf_layer_dir)/mainlayer_interface_dyn_class.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o
+
+test_mainlayer_interface_dyn:	$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(mainlayer_interface_dyn_dep)\
+				check_data_module.o
