@@ -134,6 +134,12 @@ $(ipbf_layer_dir)/bf_interface_print_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
+$(ipbf_layer_dir)/bf_interface_sync_class.o:\
+	$(ipbf_layer_dir)/bf_interface_print_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
 
 #main objects
 $(bf_layer_dir)/bf_layer_class.o:\

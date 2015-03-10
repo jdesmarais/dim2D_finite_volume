@@ -298,3 +298,13 @@ make test_bf_interface_print > /dev/null
 ./test_bf_interface_print
 make cleanall > /dev/null
 echo ''
+
+
+#test_bf_interface_sync_class
+echo ''
+echo 'test_bf_interface_sync_class'
+echo '------------------------------------------------------------'
+make test_bf_interface_sync > /dev/null
+./test_bf_interface_sync
+make cleanall > /dev/null
+echo ''
