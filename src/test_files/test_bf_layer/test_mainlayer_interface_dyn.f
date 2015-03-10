@@ -39,6 +39,7 @@
         test_validated = .true.
 
 
+
         test_loc = test_update_alignment_and_sync_properties(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_update_alignment_and_sync_properties: '',L1)', test_loc
@@ -85,19 +86,20 @@
           test_alignment(:,:,N,2) = reshape((/ align_W+4, align_N  , align_E-4, align_N+1 /),(/2,2/))
           test_alignment(:,:,S,1) = reshape((/ align_W+5, align_S-1, align_E-5, align_S   /),(/2,2/))
           test_alignment(:,:,S,2) = reshape((/ align_W+4, align_S-1, align_E-4, align_S   /),(/2,2/))
-          test_alignment(:,:,E,1) = reshape((/ align_W-5, align_S+5, align_W  , align_N-5 /),(/2,2/))
-          test_alignment(:,:,E,2) = reshape((/ align_W-5, align_S+4, align_W  , align_N-4 /),(/2,2/))
-          test_alignment(:,:,W,1) = reshape((/ align_E  , align_S+5, align_E+5, align_N-5 /),(/2,2/))
-          test_alignment(:,:,W,2) = reshape((/ align_E  , align_S+4, align_E+5, align_N-4 /),(/2,2/))
+          test_alignment(:,:,E,1) = reshape((/ align_E  , align_S+5, align_E+5, align_N-5 /),(/2,2/))
+          test_alignment(:,:,E,2) = reshape((/ align_E  , align_S+4, align_E+5, align_N-4 /),(/2,2/))
+          test_alignment(:,:,W,1) = reshape((/ align_W-5, align_S+5, align_W  , align_N-5 /),(/2,2/))
+          test_alignment(:,:,W,2) = reshape((/ align_W-5, align_S+4, align_W  , align_N-4 /),(/2,2/))
 
           test_alignment_after(:,:,N,1) = reshape((/ align_W+5, align_N  , align_E-5, align_N+1 /),(/2,2/))
           test_alignment_after(:,:,N,2) = reshape((/ align_W+1, align_N  , align_E-1, align_N+1 /),(/2,2/))
           test_alignment_after(:,:,S,1) = reshape((/ align_W+5, align_S-1, align_E-5, align_S   /),(/2,2/))
           test_alignment_after(:,:,S,2) = reshape((/ align_W+1, align_S-1, align_E-1, align_S   /),(/2,2/))
-          test_alignment_after(:,:,E,1) = reshape((/ align_W-5, align_S+5, align_W  , align_N-5 /),(/2,2/))
-          test_alignment_after(:,:,E,2) = reshape((/ align_W-5, align_S+1, align_W  , align_N-1 /),(/2,2/))
-          test_alignment_after(:,:,W,1) = reshape((/ align_E  , align_S+5, align_E+5, align_N-5 /),(/2,2/))
-          test_alignment_after(:,:,W,2) = reshape((/ align_E  , align_S+1, align_E+5, align_N-1 /),(/2,2/))
+          test_alignment_after(:,:,E,1) = reshape((/ align_E  , align_S+5, align_E+5, align_N-5 /),(/2,2/))
+          test_alignment_after(:,:,E,2) = reshape((/ align_E  , align_S+1, align_E+5, align_N-1 /),(/2,2/))
+          test_alignment_after(:,:,W,1) = reshape((/ align_W-5, align_S+5, align_W  , align_N-5 /),(/2,2/))
+          test_alignment_after(:,:,W,2) = reshape((/ align_W-5, align_S+1, align_W  , align_N-1 /),(/2,2/))
+
 
           test_sync_after(:,N,1) = [0,0,0,0]
           test_sync_after(:,N,2) = [1,NW_interface_type,1,NE_interface_type]

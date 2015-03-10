@@ -134,6 +134,62 @@
           mainlayer_interface_type2 = 0
 
 
+          !alignment verification
+          !------------------------------------------------------------
+          !verify that the alignment corresponds to the bf_mainlayer_id
+          !------------------------------------------------------------
+          select case(bf_mainlayer_id)
+            case(N)
+               if(bf_alignment(2,1).ne.align_N) then
+                  print '(''mainlayer_interface_dyn_class'')'
+                  print '(''update_alignment_and_sync_properties'')'
+                  stop 'bf_alignment(2,1).ne.align_N for N buffer layer'
+               end if
+
+            case(S)
+               if(bf_alignment(2,2).ne.align_S) then
+                  print '(''mainlayer_interface_dyn_class'')'
+                  print '(''update_alignment_and_sync_properties'')'
+                  stop 'bf_alignment(2,2).ne.align_S for S buffer layer'
+               end if
+
+            case(E)
+               if(
+     $              (bf_alignment(1,1).ne.align_E).or.
+     $              (bf_alignment(2,1).lt.(align_S+1)).or.
+     $              (bf_alignment(2,2).gt.(align_N-1)))then
+                  print '(''mainlayer_interface_dyn_class'')'
+                  print '(''update_alignment_and_sync_properties'')'
+                  print '(''bf_alignment(1,1).ne.align_E    : '',L1)', bf_alignment(1,1).ne.align_E
+                  print '(''bf_alignment(2,1).lt.(align_S+1): '',L1)', bf_alignment(2,1).lt.(align_S+1)
+                  print '(''bf_alignment(2,2).gt.(align_N-1): '',L1)', bf_alignment(2,2).gt.(align_N-1)
+                  print '(''for E buffer layer'')'
+                  stop ''
+               end if
+
+            case(W)
+               if(
+     $              (bf_alignment(1,2).ne.align_W).or.
+     $              (bf_alignment(2,1).lt.(align_S+1)).or.
+     $              (bf_alignment(2,2).gt.(align_N-1)))then
+                  print '(''mainlayer_interface_dyn_class'')'
+                  print '(''update_alignment_and_sync_properties'')'
+                  print '(''bf_alignment(1,2).ne.align_W    : '',L1)', bf_alignment(1,2).ne.align_W
+                  print '(''bf_alignment(2,1).lt.(align_S+1): '',L1)', bf_alignment(2,1).lt.(align_S+1)
+                  print '(''bf_alignment(2,2).gt.(align_N-1): '',L1)', bf_alignment(2,2).gt.(align_N-1)
+                  print '(''for W buffer layer'')'
+                  stop ''
+               end if
+
+            case default
+               call error_mainlayer_id(
+     $              'mainlayer_interface_dyn_class',
+     $              'update_alignment_and_sync_properties',
+     $              bf_mainlayer_id)
+
+          end select
+
+
           !alignment update
           !------------------------------------------------------------
           !if the buffer layer is almost at the edge of mainlayer

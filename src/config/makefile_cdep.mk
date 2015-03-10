@@ -343,6 +343,9 @@ bf_interface_print_dep= $(bf_interface_basic_dep)\
 bf_interface_sync_dep=	$(bf_interface_print_dep)\
 			bf_interface_sync_class.o
 
+bf_interface_dyn_dep=	$(bf_interface_sync_dep)\
+			bf_interface_dyn_class.o
+
 
 bf_interface_dep=	$(bf_layer_dep)\
 			bf_restart_module.o\
