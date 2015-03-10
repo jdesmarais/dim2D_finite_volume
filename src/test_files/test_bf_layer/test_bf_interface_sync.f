@@ -39,6 +39,9 @@
         test_validated = .true.
 
 
+        call check_inputs()
+
+
         test_loc = test_sync_nodes(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_sync_nodes: '',L1)', test_loc
