@@ -61,6 +61,7 @@
           contains
 
           procedure, pass :: update_alignment_and_sync_properties
+          procedure, pass :: uniformize_alignment_for_mainlayer_interface
 
         end type mainlayer_interface_dyn
 
@@ -337,5 +338,246 @@
           end select
 
         end subroutine update_alignment_and_sync_properties
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update the alignment and the synchronization properties
+        !> of the parameters for the buffer layer
+        !
+        !> @date
+        !> 09_03_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> object encapsulating links to buffer layers at the edge
+        !> between different main layers
+        !
+        !> @param bf_sublayer_ptr
+        !> sublayer whose alignment may be updated to match
+        !> the alignment of the mainlayer interfaces
+        !
+        !> @param bf_mainlayer_id
+        !> integer identifying the main layer
+        !------------------------------------------------------------
+        function uniformize_alignment_for_mainlayer_interface(
+     $     this,
+     $     bf_sublayer_ptr,
+     $     should_be_reallocated,
+     $     mainlayer_id)
+     $     result(bf_alignment)
+
+          implicit none
+
+          class(mainlayer_interface_dyn), intent(in) :: this
+          type(bf_sublayer), pointer    , intent(in) :: bf_sublayer_ptr
+          logical                       , intent(out):: should_be_reallocated
+          integer, optional             , intent(in) :: mainlayer_id
+          integer(ikind), dimension(2,2)             :: bf_alignment
+
+          integer :: bf_mainlayer_id
+          integer(ikind), dimension(2,2) :: bf_alignment_ini
+
+          
+          if(present(mainlayer_id)) then
+             bf_mainlayer_id = mainlayer_id
+          else
+             bf_mainlayer_id = bf_sublayer_ptr%get_localization()
+          end if
+
+
+          bf_alignment_ini = bf_sublayer_ptr%get_alignment_tab()
+          bf_alignment     = bf_alignment_ini
+
+
+          select case(bf_mainlayer_id)
+            case(N)
+
+               if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
+
+                  bf_alignment(1,1) = min(
+     $                 bf_alignment(1,1),
+     $                 this%NW_interface_W_ptr%get_alignment(1,1))
+                  !
+                  !   _______
+                  !  |___N___|
+                  !   ___   _____
+                  !  |   | |     |
+                  !  | W | | int |
+                  !  |___| |_____|
+                  !   _____
+                  !  |__S__|
+                  !
+                  if(associated(this%SW_interface_W_ptr)) then
+                     if(associated(
+     $                    this%NW_interface_W_ptr,
+     $                    this%SW_interface_W_ptr)) then
+                        if(associated(this%SW_interface_S_ptr)) then
+                           bf_alignment(1,1) = min(
+     $                          bf_alignment(1,1),
+     $                          this%SW_interface_S_ptr%get_alignment(1,1))
+                        end if
+                     end if
+                  end if
+
+               end if
+
+               if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
+
+                  bf_alignment(1,2) = max(
+     $                 bf_alignment(1,2),
+     $                 this%NE_interface_E_ptr%get_alignment(1,2))
+                  !
+                  !       _______
+                  !      |___N___|
+                  !   _____   ___  
+                  !  |     | |   |
+                  !  | int | | E |
+                  !  |_____| |___|
+                  !         _____
+                  !        |__S__|
+                  !
+                  if(associated(this%SE_interface_E_ptr)) then
+                     if(associated(
+     $                    this%NE_interface_E_ptr,
+     $                    this%SE_interface_E_ptr)) then
+                        if(associated(this%SE_interface_S_ptr)) then
+                           bf_alignment(1,2) = max(
+     $                          bf_alignment(1,2),
+     $                          this%SE_interface_S_ptr%get_alignment(1,2))
+                        end if
+                     end if
+                  end if
+
+               end if
+               
+
+            case(S)
+
+               if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
+
+                  bf_alignment(1,1) = min(
+     $                 bf_alignment(1,1),
+     $                 this%SW_interface_W_ptr%get_alignment(1,1))
+                  !
+                  !   _______
+                  !  |___N___|
+                  !   ___   _____
+                  !  |   | |     |
+                  !  | W | | int |
+                  !  |___| |_____|
+                  !   _____
+                  !  |__S__|
+                  !
+                  if(associated(this%NW_interface_W_ptr)) then
+                     if(associated(
+     $                    this%NW_interface_W_ptr,
+     $                    this%SW_interface_W_ptr)) then
+                        if(associated(this%NW_interface_N_ptr)) then
+                           bf_alignment(1,1) = min(
+     $                          bf_alignment(1,1),
+     $                          this%NW_interface_N_ptr%get_alignment(1,1))
+                        end if
+                     end if
+                  end if
+
+               end if
+
+               if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
+
+                  bf_alignment(1,2) = max(
+     $                 bf_alignment(1,2),
+     $                 this%SE_interface_E_ptr%get_alignment(1,2))
+                  !
+                  !       _______
+                  !      |___N___|
+                  !   _____   ___  
+                  !  |     | |   |
+                  !  | int | | E |
+                  !  |_____| |___|
+                  !         _____
+                  !        |__S__|
+                  !
+                  if(associated(this%NE_interface_E_ptr)) then
+                     if(associated(
+     $                    this%NE_interface_E_ptr,
+     $                    this%SE_interface_E_ptr)) then
+                        if(associated(this%NE_interface_N_ptr)) then
+                           bf_alignment(1,2) = max(
+     $                          bf_alignment(1,2),
+     $                          this%NE_interface_N_ptr%get_alignment(1,2))
+                        end if
+                     end if
+                  end if
+
+               end if
+
+            case(E)
+
+               !
+               !       _______
+               !      |___N___|
+               !   _____   ___  
+               !  |     | |   |
+               !  | int | | E |
+               !  |_____| |___|
+               !         _____
+               !        |__S__|
+               !
+               if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
+                  bf_alignment(1,2) = max(
+     $                 bf_alignment(1,2),
+     $                 this%SE_interface_S_ptr%get_alignment(1,2))
+
+               end if
+
+               if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
+                  bf_alignment(1,2) = max(
+     $                 bf_alignment(1,2),
+     $                 this%NE_interface_N_ptr%get_alignment(1,2))
+               end if
+
+            case(W)
+
+               !
+               !   _______
+               !  |___N___|
+               !   ___   _____
+               !  |   | |     |
+               !  | W | | int |
+               !  |___| |_____|
+               !   _____
+               !  |__S__|
+               !
+               if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
+                  bf_alignment(1,1) = min(
+     $                 bf_alignment(1,1),
+     $                 this%SW_interface_S_ptr%get_alignment(1,1))
+
+               end if
+
+               if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
+                  bf_alignment(1,1) = min(
+     $                 bf_alignment(1,1),
+     $                 this%NW_interface_N_ptr%get_alignment(1,1))
+               end if
+
+            case default
+               call error_mainlayer_id(
+     $              'mainlayer_interface_dyn_class',
+     $              'uniformize_alignment_for_mainlayer_interface',
+     $              bf_mainlayer_id)
+
+          end select
+
+
+          should_be_reallocated = 
+     $         (bf_alignment_ini(1,1).ne.bf_alignment(1,1)).or.
+     $         (bf_alignment_ini(2,1).ne.bf_alignment(2,1)).or.
+     $         (bf_alignment_ini(1,2).ne.bf_alignment(1,2)).or.
+     $         (bf_alignment_ini(2,2).ne.bf_alignment(2,2))
+
+        end function uniformize_alignment_for_mainlayer_interface
 
       end module mainlayer_interface_dyn_class

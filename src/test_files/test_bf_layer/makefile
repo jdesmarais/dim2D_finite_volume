@@ -386,10 +386,13 @@ test_mainlayer_interface_sync:	$(param_dep)\
 				$(mainlayer_interface_sync_dep)\
 				check_data_module.o
 
-test_mainlayer_interface_dyn.o:	$(test_dir)/tools/check_data_module.o\
+test_mainlayer_interface_dyn.o:	$(bf_layer_dir)/bf_sublayer_class.o\
+				$(test_dir)/tools/check_data_module.o\
 				$(mbf_layer_dir)/mainlayer_interface_dyn_class.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
-				$(param_dir)/parameters_constant.o
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
 
 test_mainlayer_interface_dyn:	$(param_dep)\
 				$(mt_dep)\

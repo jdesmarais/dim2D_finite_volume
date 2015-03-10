@@ -1,5 +1,8 @@
       program test_mainlayer_interface_dyn
 
+        use bf_sublayer_class, only :
+     $       bf_sublayer
+
         use check_data_module, only :
      $       is_int_vector_validated,
      $       is_int_matrix_validated
@@ -17,6 +20,13 @@
         use parameters_constant, only :
      $       N,S,E,W
 
+        use parameters_input, only :
+     $       nx,ny,ne
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
         implicit none
 
 
@@ -32,6 +42,12 @@
         test_loc = test_update_alignment_and_sync_properties(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_update_alignment_and_sync_properties: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_uniformize_alignment_for_mainlayer_interface(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_uniformize_alignment_for_mainlayer_interface: '',L1)', test_loc
         print '()'
 
 
@@ -507,5 +523,930 @@
          end if
 
         end function perform_test_with_W_neighbors
+
+
+        function test_uniformize_alignment_for_mainlayer_interface(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          integer :: k
+          logical :: test_loc
+
+
+          test_validated = .true.
+
+
+          do k=1,20
+
+             test_loc = perform_test_uniformize(k,detailled)
+             test_validated = test_validated.and.test_loc
+
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'') failed'')', k
+             end if
+
+          end do
+
+        end function test_uniformize_alignment_for_mainlayer_interface
+
+
+        function perform_test_uniformize(test_id,detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          integer, intent(in) :: test_id
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(mainlayer_interface_dyn)  :: mainlayer_interface_used
+          type(bf_sublayer), pointer     :: bf_sublayer_tested
+          logical                        :: test_should_be_reallocated
+          integer(ikind), dimension(2,2) :: test_bf_alignment
+          logical                        :: should_be_reallocated
+          integer(ikind), dimension(2,2) :: bf_alignment
+
+          logical :: test_loc
+
+
+          test_validated = .true.
+
+
+          !input
+          call get_param_test_uniformize(
+     $         test_id,mainlayer_interface_used,
+     $         bf_sublayer_tested,
+     $         test_should_be_reallocated,
+     $         test_bf_alignment)
+
+          !output
+          bf_alignment = mainlayer_interface_used%uniformize_alignment_for_mainlayer_interface(
+     $         bf_sublayer_tested,
+     $         should_be_reallocated)
+
+          !validation
+          test_loc = should_be_reallocated.eqv.test_should_be_reallocated
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''should_be_reallocated failed'')'
+          end if
+
+          test_loc = is_int_matrix_validated(
+     $         bf_alignment,
+     $         test_bf_alignment,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''bf_alignment failed'')'
+          end if
+
+        end function perform_test_uniformize
+
+
+        subroutine get_param_test_uniformize(
+     $     test_id,
+     $     mainlayer_interface_used,
+     $     bf_sublayer_tested,
+     $     test_should_be_reallocated,
+     $     test_bf_alignment)
+
+          implicit none
+
+          integer                       , intent(in)    :: test_id
+          type(mainlayer_interface_dyn) , intent(inout) :: mainlayer_interface_used
+          type(bf_sublayer), pointer    , intent(out)   :: bf_sublayer_tested
+          logical                       , intent(out)   :: test_should_be_reallocated
+          integer(ikind), dimension(2,2), intent(out)   :: test_bf_alignment
+
+
+          type(bf_sublayer), pointer       :: bf_sublayer_ptr
+          real(rkind), dimension(nx)       :: interior_x_map
+          real(rkind), dimension(ny)       :: interior_y_map
+          real(rkind), dimension(nx,ny,ne) :: interior_nodes
+          
+
+
+          call mainlayer_interface_used%ini()
+
+
+          select case(test_id)
+            case(1)
+
+               !north buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(N)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-5,align_N,align_W+6,align_N+1/),
+     $                (/2,2/)))               
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NW_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               test_should_be_reallocated = .false.
+               test_bf_alignment = reshape(
+     $              (/align_W-5,align_N,align_W+6,align_N+1/),
+     $              (/2,2/))
+
+            case(2)
+
+               !north buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(N)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-5,align_N,align_W+6,align_N+1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NW_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !west buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(W)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-10,align_N-2,align_W,align_N-1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NW_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_W-10,align_N,align_W+6,align_N+1/),
+     $              (/2,2/))
+
+            case(3)
+
+               !north buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(N)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-5,align_N,align_W+6,align_N+1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NW_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !west buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(W)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-10,align_S+1,align_W,align_N-1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NW_interface_type,
+     $              bf_sublayer_ptr)
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SW_interface_type,
+     $              bf_sublayer_ptr)
+
+               !south buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(S)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-15,align_S-1,align_W+6,align_S/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SW_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_W-15,align_N,align_W+6,align_N+1/),
+     $              (/2,2/))
+
+            case(4)
+
+               !north buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(N)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E-6,align_N,align_E+5,align_N+1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NE_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               test_should_be_reallocated = .false.
+               test_bf_alignment = reshape(
+     $              (/align_E-6,align_N,align_E+5,align_N+1/),
+     $              (/2,2/))
+
+            case(5)
+
+               !north buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(N)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E-6,align_N,align_E+5,align_N+1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NE_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               test_should_be_reallocated = .false.
+               test_bf_alignment = reshape(
+     $              (/align_E-6,align_N,align_E+5,align_N+1/),
+     $              (/2,2/))
+
+               !east buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(E)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E,align_N-2,align_E+10,align_N-1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NE_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_E-6,align_N,align_E+10,align_N+1/),
+     $              (/2,2/))
+
+            case(6)
+
+               !north buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(N)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E-6,align_N,align_E+5,align_N+1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NE_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !west buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(E)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E,align_S+1,align_E+10,align_N-1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NE_interface_type,
+     $              bf_sublayer_ptr)
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SE_interface_type,
+     $              bf_sublayer_ptr)
+
+               !south buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(S)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E-6,align_S-1,align_E+15,align_S/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SE_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_E-6,align_N,align_E+15,align_N+1/),
+     $              (/2,2/))
+
+            case(7)
+
+               !south buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(S)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-5,align_S-1,align_W+6,align_S/),
+     $                (/2,2/)))               
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SW_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               test_should_be_reallocated = .false.
+               test_bf_alignment = reshape(
+     $              (/align_W-5,align_S-1,align_W+6,align_S/),
+     $              (/2,2/))
+
+            case(8)
+
+               !south buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(S)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-5,align_S-1,align_W+6,align_S/),
+     $                (/2,2/)))               
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SW_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !west buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(W)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-10,align_S+1,align_W,align_S+2/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SW_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_W-10,align_S-1,align_W+6,align_S/),
+     $              (/2,2/))
+
+            case(9)
+
+               !south buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(S)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-5,align_S-1,align_W+6,align_S/),
+     $                (/2,2/)))               
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SW_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !west buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(W)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-10,align_S+1,align_W,align_N-1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NW_interface_type,
+     $              bf_sublayer_ptr)
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SW_interface_type,
+     $              bf_sublayer_ptr)
+
+               !north buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(N)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-15,align_N,align_W+6,align_N+1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NW_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_W-15,align_S-1,align_W+6,align_S/),
+     $              (/2,2/))
+
+            case(10)
+
+               !south buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(S)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E-6,align_S-1,align_E+5,align_S/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SE_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               test_should_be_reallocated = .false.
+               test_bf_alignment = reshape(
+     $              (/align_E-6,align_S-1,align_E+5,align_S/),
+     $              (/2,2/))
+
+            case(11)
+
+               !south buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(S)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E-6,align_S-1,align_E+5,align_S/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SE_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !east buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(E)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E,align_S+1,align_E+10,align_S+2/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SE_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_E-6,align_S-1,align_E+10,align_S/),
+     $              (/2,2/))
+
+            case(12)
+
+               !south buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(S)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E-6,align_S-1,align_E+5,align_S/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SE_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !east buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(E)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E,align_S+1,align_E+10,align_N-1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NE_interface_type,
+     $              bf_sublayer_ptr)
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SE_interface_type,
+     $              bf_sublayer_ptr)
+
+               !north buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(N)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E-6,align_N,align_E+15,align_N+1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NE_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_E-6,align_S-1,align_E+15,align_S/),
+     $              (/2,2/))
+
+
+            case(13)
+
+               !east buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(E)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E,align_S+1,align_E+5,align_S+2/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SE_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               test_should_be_reallocated = .false.
+               test_bf_alignment = reshape(
+     $              (/align_E,align_S+1,align_E+5,align_S+2/),
+     $              (/2,2/))
+
+            case(14)
+
+               !east buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(E)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E,align_S+1,align_E+5,align_S+2/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SE_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !south buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(S)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E-5,align_S-1,align_E+10,align_S/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SE_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_E,align_S+1,align_E+10,align_S+2/),
+     $              (/2,2/))
+
+            case(15)
+
+               !east buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(E)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E,align_N-2,align_E+5,align_N-1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NE_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !north buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(N)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E-5,align_N,align_E+10,align_N+1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NE_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_E,align_N-2,align_E+10,align_N-1/),
+     $              (/2,2/))
+
+            case(16)
+
+               !east buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(E)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E,align_S+1,align_E+5,align_N-1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NE_interface_type,
+     $              bf_sublayer_ptr)
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SE_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !south buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(S)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E-5,align_S-1,align_E+15,align_S/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SE_interface_type,
+     $              bf_sublayer_ptr)
+
+               !north buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(N)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_E-5,align_N,align_E+10,align_N+1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NE_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_E,align_S+1,align_E+15,align_N-1/),
+     $              (/2,2/))
+
+            case(17)
+
+               !west buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(W)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-5,align_S+1,align_W,align_S+2/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SW_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               test_should_be_reallocated = .false.
+               test_bf_alignment = reshape(
+     $              (/align_W-5,align_S+1,align_W,align_S+2/),
+     $              (/2,2/))
+
+            case(18)
+
+               !west buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(W)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-5,align_S+1,align_W,align_S+2/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SW_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !south buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(S)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-10,align_S-1,align_W+5,align_S/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SW_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_W-10,align_S+1,align_W,align_S+2/),
+     $              (/2,2/))
+
+            case(19)
+
+               !west buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(W)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-5,align_N-2,align_W,align_N-1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NW_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !north buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(N)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-10,align_N,align_W+5,align_N+1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NW_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_W-10,align_N-2,align_W,align_N-1/),
+     $              (/2,2/))
+
+            case(20)
+
+               !west buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(W)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-5,align_S+1,align_W,align_N-1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NW_interface_type,
+     $              bf_sublayer_ptr)
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SW_interface_type,
+     $              bf_sublayer_ptr)
+
+               bf_sublayer_tested => bf_sublayer_ptr
+
+               !south buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(S)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-15,align_S-1,align_W+5,align_S/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              SW_interface_type,
+     $              bf_sublayer_ptr)
+
+               !north buffer layer
+               allocate(bf_sublayer_ptr)
+               call bf_sublayer_ptr%ini(N)
+               call bf_sublayer_ptr%allocate_bf_layer(
+     $              interior_x_map,
+     $              interior_y_map,
+     $              interior_nodes,
+     $              reshape(
+     $                (/align_W-10,align_N,align_W+5,align_N+1/),
+     $                (/2,2/)))
+
+               call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $              NW_interface_type,
+     $              bf_sublayer_ptr)
+
+               test_should_be_reallocated = .true.
+               test_bf_alignment = reshape(
+     $              (/align_W-15,align_S+1,align_W,align_N-1/),
+     $              (/2,2/))
+
+            end select
+
+        end subroutine get_param_test_uniformize
+
 
       end program test_mainlayer_interface_dyn
