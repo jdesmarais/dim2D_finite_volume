@@ -133,7 +133,7 @@
         !---------------------------------------------------------------
         type :: bf_mainlayer_pointer
 
-          type(bf_mainlayer), pointer, private :: ptr
+          type(bf_mainlayer), pointer :: ptr
 
           contains
 

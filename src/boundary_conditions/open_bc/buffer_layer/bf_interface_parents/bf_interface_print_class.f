@@ -1,8 +1,50 @@
+      !> @file
+      !> bf_interface_basic augmented with print functions
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> bf_interface_basic augmented with print functions
+      !
+      !> @date
+      ! 10_03_2015 - documentation update - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_interface_print_class
 
-        use bf_interface_basic_class, only :
-     $     bf_interface_basic
+        use bf_layer_nf90_operators_module, only :
+     $       print_interior_grdpts_id_on_netcdf
 
+        use bf_interface_basic_class, only :
+     $       bf_interface_basic
+
+        use parameters_input, only :
+     $       nx,ny,ne
+
+        use parameters_kind, only :
+     $       rkind
+
+        implicit none
+
+        private
+        public :: bf_interface_print
+        
+
+        !>@class bf_interface_print
+        !> bf_interface_basic augmented with print functions
+        !
+        !>@param ini
+        !> initialize and print the interior gridpoints for
+        !> visualization purposes
+        !
+        !>@param print_binary
+        !> print the content of the buffer layers on
+        !> binary files
+        !
+        !>@param print_netcdf
+        !> print the content of the buffer layers on
+        !> netcdf files
+        !---------------------------------------------------------------
         type, extends(bf_interface_basic) :: bf_interface_print
 
           contains
@@ -58,7 +100,7 @@
         end subroutine ini
 
 
-               !> @author
+       !> @author
        !> Julien L. Desmarais
        !
        !> @brief
