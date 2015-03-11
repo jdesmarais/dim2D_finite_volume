@@ -1,6 +1,6 @@
       !> @file
       !> module encapsulating the subroutines for the determination of
-      !> the boundary layers computed in the interior domain when some
+      !> the boundary layers sections in the interior domain if some
       !> buffer layers are activated
       !
       !> @author
@@ -12,7 +12,7 @@
       !> buffer layers are activated
       !
       !> @date
-      !> 29_10_2014 - initial version         - J.L. Desmarais
+      !> 29_10_2014 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module bf_interior_bc_sections_module
       
@@ -24,7 +24,8 @@
      $       SW_corner_type,
      $       SE_corner_type,
      $       NW_corner_type,
-     $       NE_corner_type
+     $       NE_corner_type,
+     $       no_overlap
 
         use parameters_input, only :
      $       nx,
@@ -44,7 +45,8 @@
      $       close_last_bc_section,
      $       set_full_interior_bc_section,
      $       minimize_interior_bc_section,
-     $       process_bc_sections_into_bc_procedure
+     $       
+     $       process_interior_bc_sections_into_bc_procedures
 
 
         contains
@@ -602,7 +604,7 @@
         !> integer table with the procedures to be applied for each
         !> interior boundary section
         !--------------------------------------------------------------
-        subroutine process_bc_sections_into_bc_procedure(
+        subroutine process_interior_bc_sections_into_bc_procedures(
      $     interior_bc_sections_N,
      $     interior_bc_sections_S,
      $     interior_bc_sections_E,
@@ -638,10 +640,10 @@
              if(allocated(interior_bc_sections)) then
                 if(size(interior_bc_sections,2).ne.nb_bc_sections) then
                    deallocate(interior_bc_sections)
-                   allocate(interior_bc_sections(4,nb_bc_sections))
+                   allocate(interior_bc_sections(5,nb_bc_sections))
                 end if
              else
-                allocate(interior_bc_sections(4,nb_bc_sections))
+                allocate(interior_bc_sections(5,nb_bc_sections))
              end if
 
              !fill the bc_sections with the procedures
@@ -708,7 +710,7 @@
           end if
           
 
-        end subroutine process_bc_sections_into_bc_procedure
+        end subroutine process_interior_bc_sections_into_bc_procedures
 
 
         !> @author
@@ -865,7 +867,7 @@
              nb_bc_sections=nb_bc_sections+1
 
              interior_bc_sections(:,nb_bc_sections) = 
-     $            [left_corner_type,1,j_min,0]
+     $            [left_corner_type,1,j_min,no_overlap,no_overlap]
              
              if(interior_bc_sections_NS(2,1).ge.(bc_size+1)) then
 
@@ -902,7 +904,8 @@
      $            edge_type,
      $            interior_bc_sections_NS(1,k),
      $            j_min,
-     $            interior_bc_sections_NS(2,k)]
+     $            interior_bc_sections_NS(2,k),
+     $            no_overlap]
           end do
 
           if(nb_sec.ge.3) then
@@ -923,7 +926,8 @@
      $                  edge_type,
      $                  interior_bc_sections_NS(1,nb_sec),
      $                  j_min,
-     $                  nx-bc_size]
+     $                  nx-bc_size,
+     $                  no_overlap]
 
                    nb_bc_sections=nb_bc_sections+1
                 
@@ -931,7 +935,8 @@
      $                  right_corner_type,
      $                  nx-bc_size+1,
      $                  j_min,
-     $                  0]
+     $                  no_overlap,
+     $                  no_overlap]
 
                 else
                    nb_bc_sections=nb_bc_sections+1
@@ -940,7 +945,8 @@
      $                  edge_type,
      $                  interior_bc_sections_NS(1,nb_sec),
      $                  j_min,
-     $                  interior_bc_sections_NS(2,nb_sec)]
+     $                  interior_bc_sections_NS(2,nb_sec),
+     $                  no_overlap]
 
                 end if
              
@@ -953,7 +959,8 @@
      $                  right_corner_type,
      $                  nx-bc_size+1,
      $                  j_min,
-     $                  0]
+     $                  no_overlap,
+     $                  no_overlap]
 
                 end if
              end if
@@ -963,7 +970,7 @@
         end subroutine process_bc_sections_NS
 
 
-                !> @author
+        !> @author
         !> Julien L. Desmarais
         !
         !> @brief
@@ -1019,7 +1026,8 @@
      $            edge_type,
      $            i_min,
      $            interior_bc_sections_EW(1,k),
-     $            interior_bc_sections_EW(2,k)]
+     $            interior_bc_sections_EW(2,k),
+     $            no_overlap]
 
           end do
 
@@ -1097,7 +1105,8 @@
      $               edge_type,
      $               i_min,
      $               j_min,
-     $               nx-bc_size]
+     $               nx-bc_size,
+     $               no_overlap]
              end if
              
              nb_bc_sections = nb_bc_sections+1
@@ -1105,7 +1114,8 @@
      $            corner_type,
      $            nx-bc_size+1,
      $            j_min,
-     $            0]
+     $            no_overlap,
+     $            no_overlap]
              
           else
              nb_bc_sections = nb_bc_sections+1
@@ -1113,7 +1123,8 @@
      $            edge_type,
      $            i_min,
      $            j_min,
-     $            interior_bc_sections_NS(2,1)]
+     $            interior_bc_sections_NS(2,1),
+     $            no_overlap]
              
           end if
 

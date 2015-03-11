@@ -18,7 +18,10 @@
      $       close_last_bc_section,
      $       set_full_interior_bc_section,
      $       minimize_interior_bc_section,
-     $       process_bc_sections_into_bc_procedure
+     $       process_interior_bc_sections_into_bc_procedures
+
+        use check_data_module, only :
+     $       is_int_matrix_validated
 
         use parameters_bf_layer, only :
      $       N_edge_type,
@@ -28,7 +31,9 @@
      $       SW_corner_type,
      $       SE_corner_type,
      $       NW_corner_type,
-     $       NE_corner_type
+     $       NE_corner_type,
+     $       
+     $       no_overlap
 
         use parameters_input, only :
      $       nx,
@@ -158,10 +163,10 @@
                 allocate(test_bc_sections(2,1))
                 test_bc_sections(:,1) = [1,nx]
                 
-                allocate(test_bc_procedures(4,3))
-                test_bc_procedures(:,1) = [NW_corner_type,1,ny-bc_size+1,bc_size]
-                test_bc_procedures(:,2) = [N_edge_type,bc_size+1,ny-bc_size+1,nx-bc_size]
-                test_bc_procedures(:,3) = [NE_corner_type,nx-bc_size+1,ny-bc_size+1,nx]
+                allocate(test_bc_procedures(5,3))
+                test_bc_procedures(:,1) = [NW_corner_type, 1           , ny-bc_size+1, no_overlap, no_overlap]
+                test_bc_procedures(:,2) = [N_edge_type   , bc_size+1   , ny-bc_size+1, nx-bc_size, no_overlap]
+                test_bc_procedures(:,3) = [NE_corner_type, nx-bc_size+1, ny-bc_size+1, no_overlap, no_overlap]
 
                 test_interior_inf = 1
                 test_interior_sup = nx
@@ -175,9 +180,9 @@
                 test_bc_sections(:,1) = [1,2]
                 test_bc_sections(:,2) = [nx-1,nx]
                 
-                allocate(test_bc_procedures(4,2))
-                test_bc_procedures(:,1) = [NW_corner_type,1,ny-bc_size+1,2]
-                test_bc_procedures(:,2) = [NE_corner_type,nx-1,ny-bc_size+1,nx]
+                allocate(test_bc_procedures(5,2))
+                test_bc_procedures(:,1) = [NW_corner_type, 1   , ny-bc_size+1, no_overlap, no_overlap]
+                test_bc_procedures(:,2) = [NE_corner_type, nx-1, ny-bc_size+1, no_overlap, no_overlap]
 
                 test_interior_inf = 1
                 test_interior_sup = nx
@@ -190,8 +195,8 @@
                 allocate(test_bc_sections(2,1))
                 test_bc_sections(:,1) = [nx-1,nx]
 
-                allocate(test_bc_procedures(4,1))
-                test_bc_procedures(:,1) = [NE_corner_type,nx-1,ny-bc_size+1,nx]
+                allocate(test_bc_procedures(5,1))
+                test_bc_procedures(:,1) = [NE_corner_type, nx-1, ny-bc_size+1, no_overlap, no_overlap]
 
                 test_interior_inf = 1
                 test_interior_sup = nx
@@ -204,8 +209,8 @@
                 allocate(test_bc_sections(2,1))
                 test_bc_sections(:,1) = [1,nx-8]
 
-                allocate(test_bc_procedures(4,1))
-                test_bc_procedures(:,1) = [NW_corner_type,1,ny-bc_size+1,bc_size]
+                allocate(test_bc_procedures(5,1))
+                test_bc_procedures(:,1) = [NW_corner_type, 1, ny-bc_size+1, no_overlap, no_overlap]
 
                 test_interior_inf = 1
                 test_interior_sup = nx
@@ -218,9 +223,9 @@
                 allocate(test_bc_sections(2,1))
                 test_bc_sections(:,1) = [nx-2,nx]
 
-                allocate(test_bc_procedures(4,2))
-                test_bc_procedures(:,1) = [N_edge_type,nx-2,ny-bc_size+1,nx-2]
-                test_bc_procedures(:,2) = [NE_corner_type,nx-1,ny-bc_size+1,nx]
+                allocate(test_bc_procedures(5,2))
+                test_bc_procedures(:,1) = [N_edge_type   , nx-2, ny-bc_size+1, nx-2      , no_overlap]
+                test_bc_procedures(:,2) = [NE_corner_type, nx-1, ny-bc_size+1, no_overlap, no_overlap]
 
                 test_interior_inf = 1
                 test_interior_sup = nx
@@ -233,9 +238,9 @@
                 allocate(test_bc_sections(2,1))
                 test_bc_sections(:,1) = [1,nx-7]
 
-                allocate(test_bc_procedures(4,2))
-                test_bc_procedures(:,1) = [NW_corner_type,1,ny-bc_size+1,bc_size]
-                test_bc_procedures(:,2) = [N_edge_type,bc_size+1,ny-bc_size+1,nx-7]
+                allocate(test_bc_procedures(5,2))
+                test_bc_procedures(:,1) = [NW_corner_type, 1        , ny-bc_size+1, no_overlap, no_overlap]
+                test_bc_procedures(:,2) = [N_edge_type   , bc_size+1, ny-bc_size+1, nx-7      , no_overlap]
 
                 test_interior_inf = 1
                 test_interior_sup = nx
@@ -266,9 +271,9 @@
                 test_bc_sections(:,1) = [1,2]
                 test_bc_sections(:,2) = [nx-1,nx]
 
-                allocate(test_bc_procedures(4,2))
-                test_bc_procedures(:,1) = [NW_corner_type,1,ny-bc_size+1,bc_size]
-                test_bc_procedures(:,2) = [NE_corner_type,nx-1,ny-bc_size+1,nx]
+                allocate(test_bc_procedures(5,2))
+                test_bc_procedures(:,1) = [NW_corner_type, 1   , ny-bc_size+1, no_overlap, no_overlap]
+                test_bc_procedures(:,2) = [NE_corner_type, nx-1, ny-bc_size+1, no_overlap, no_overlap]
 
                 test_interior_inf = 1
                 test_interior_sup = nx
@@ -283,10 +288,10 @@
                 allocate(test_bc_sections(2,1))
                 test_bc_sections(:,1) = [1,nx]
 
-                allocate(test_bc_procedures(4,3))
-                test_bc_procedures(:,1) = [NW_corner_type,1,ny-bc_size+1,bc_size]
-                test_bc_procedures(:,2) = [N_edge_type,bc_size+1,ny-bc_size+1,nx-bc_size]
-                test_bc_procedures(:,3) = [NE_corner_type,nx-1,ny-bc_size+1,nx]
+                allocate(test_bc_procedures(5,3))
+                test_bc_procedures(:,1) = [NW_corner_type, 1        , ny-bc_size+1, no_overlap, no_overlap]
+                test_bc_procedures(:,2) = [N_edge_type   , bc_size+1, ny-bc_size+1, nx-bc_size, no_overlap]
+                test_bc_procedures(:,3) = [NE_corner_type, nx-1     , ny-bc_size+1, no_overlap, no_overlap]
 
                 test_interior_inf = 1
                 test_interior_sup = nx
@@ -302,9 +307,9 @@
                 test_bc_sections(:,1) = [3,3]
                 test_bc_sections(:,2) = [9,10]
 
-                allocate(test_bc_procedures(4,2))
-                test_bc_procedures(:,1) = [N_edge_type,3,ny-bc_size+1,3]
-                test_bc_procedures(:,2) = [NE_corner_type,nx-1,ny-bc_size+1,nx]
+                allocate(test_bc_procedures(5,2))
+                test_bc_procedures(:,1) = [N_edge_type   , 3   , ny-bc_size+1, 3         , no_overlap]
+                test_bc_procedures(:,2) = [NE_corner_type, nx-1, ny-bc_size+1, no_overlap, no_overlap]
 
                 test_interior_inf = 1
                 test_interior_sup = nx
@@ -320,9 +325,9 @@
                 test_bc_sections(:,1) = [1,2]
                 test_bc_sections(:,2) = [8,8]
 
-                allocate(test_bc_procedures(4,2))
-                test_bc_procedures(:,1) = [NW_corner_type,1,ny-bc_size+1,bc_size]
-                test_bc_procedures(:,2) = [N_edge_type,8,ny-bc_size+1,8]
+                allocate(test_bc_procedures(5,2))
+                test_bc_procedures(:,1) = [NW_corner_type, 1, ny-bc_size+1, no_overlap, no_overlap]
+                test_bc_procedures(:,2) = [N_edge_type   , 8, ny-bc_size+1, 8         , no_overlap]
 
                 test_interior_inf = 1
                 test_interior_sup = nx
@@ -436,7 +441,7 @@
 
 
           !compute the bc_procedures
-          call process_bc_sections_into_bc_procedure(
+          call process_interior_bc_sections_into_bc_procedures(
      $         bc_sections,
      $         bc_sections_tmp,
      $         bc_sections_tmp,
@@ -445,7 +450,8 @@
 
           test_bc_proc = compare_bc_procedures(
      $         test_bc_procedures,
-     $         bc_procedures)
+     $         bc_procedures,
+     $         detailled)
 
           if(detailled) then
              print '(''test_bc_procedures: '',L1)', test_bc_proc
@@ -484,33 +490,12 @@
           logical                                                 :: test_validated
           
           
-          integer :: k
-          logical :: loc
-
-
           if(allocated(test_bc_sections)) then
              
-             test_validated = .true.
-
-             do k=1, size(test_bc_sections,2)
-
-                loc =
-     $               (test_bc_sections(1,k).eq.bc_sections(1,k)).and.
-     $               (test_bc_sections(2,k).eq.bc_sections(2,k))
-                
-                if(detailled.and.(.not.loc)) then
-                   
-                   print '(''  k='',I2,'','',1X,2I3,''|'',2I3)',
-     $                  k,
-     $                  test_bc_sections(:,k),
-     $                  bc_sections(:,k)
-
-                end if
-
-                test_validated = test_validated.and.loc
-
-             end do
-
+             test_validated = is_int_matrix_validated(
+     $            bc_sections,
+     $            test_bc_sections,
+     $            detailled)
           else
 
              test_validated = (nb_bc_sections.eq.0)
@@ -522,58 +507,29 @@
 
         function compare_bc_procedures(
      $     bc_procedures,
-     $     test_bc_procedures)
+     $     test_bc_procedures,
+     $     detailled)
      $     result(test_validated)
 
           implicit none
 
           integer(ikind), dimension(:,:), allocatable, intent(in) :: bc_procedures
           integer(ikind), dimension(:,:), allocatable, intent(in) :: test_bc_procedures
+          logical                                    , intent(in) :: detailled
           logical                                                 :: test_validated
 
 
-          integer :: k
-
-          
           if(allocated(test_bc_procedures)) then
              
-             test_validated = .true.
-
-             do k=1, size(test_bc_procedures,2)
-
-                test_validated = test_validated.and.
-     $               (test_bc_procedures(1,k).eq.bc_procedures(1,k))
-
-                select case(test_bc_procedures(1,k))
-                  case(N_edge_type,S_edge_type,
-     $                 E_edge_type,W_edge_type)
-                  
-                  test_validated = test_validated.and.
-     $                 (test_bc_procedures(2,k).eq.bc_procedures(2,k))
-                  test_validated = test_validated.and.
-     $                 (test_bc_procedures(3,k).eq.bc_procedures(3,k))
-                  test_validated = test_validated.and.
-     $                 (test_bc_procedures(4,k).eq.bc_procedures(4,k))
-                  
-                  case(NE_corner_type,NW_corner_type,
-     $                 SE_corner_type, SW_corner_type)
-
-                  test_validated = test_validated.and.
-     $                 (test_bc_procedures(2,k).eq.bc_procedures(2,k))
-                  test_validated = test_validated.and.
-     $                 (test_bc_procedures(3,k).eq.bc_procedures(3,k))
-
-                  case default
-                     print '(''test_bf_interior_bc_sections'')'
-                     print '(''compare_bc_procedures'')'
-                     stop 'case not recognized'
-
-                end select
-
-             end do
+             test_validated = is_int_matrix_validated(
+     $            bc_procedures,
+     $            test_bc_procedures,
+     $            detailled)
 
           else
+
              test_validated = .not.allocated(bc_procedures)
+
           end if
 
         end function compare_bc_procedures
