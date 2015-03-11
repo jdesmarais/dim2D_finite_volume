@@ -228,6 +228,23 @@ test_bf_layer_bc_anticorner:	$(param_dep)\
 				bf_layer_extract_module.o\
 				bf_layer_bc_anticorner_module.o
 
+test_bf_mainlayer_bc_sections.o:$(bbf_layer_dir)/bf_mainlayer_bc_sections_module.o\
+				$(bf_layer_dir)/bf_mainlayer_pointer_class.o\
+				$(bf_layer_dir)/bf_sublayer_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_mainlayer_bc_sections:	$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_mainlayer_pointer_dep)\
+				bf_mainlayer_bc_sections_module.o\
+				check_data_module.o
 
 #buffer_layer/bf_layer_computations
 test_bf_compute.o:		$(hobc_dir)/bc_operators_class.o\

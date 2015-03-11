@@ -320,3 +320,15 @@ make test_bf_interface_dyn > /dev/null
 ./test_bf_interface_dyn
 make cleanall > /dev/null
 echo ''
+
+
+#test_bf_mainlayer_bc_sections_module
+echo ''
+echo 'test_bf_mainlayer_bc_sections_module'
+echo '------------------------------------------------------------'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '30'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '35'
+make test_bf_mainlayer_bc_sections > /dev/null
+./test_bf_mainlayer_bc_sections
+make cleanall > /dev/null
+echo ''

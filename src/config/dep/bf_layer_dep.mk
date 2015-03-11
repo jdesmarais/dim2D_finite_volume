@@ -275,6 +275,14 @@ $(bbf_layer_dir)/bf_layer_bc_anticorner_module.o:\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o
 
+$(bbf_layer_dir)/bf_mainlayer_bc_sections_module.o:\
+	$(bbf_layer_dir)/bf_interior_bc_sections_module.o\
+	$(bf_layer_dir)/bf_mainlayer_pointer_class.o\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
 
 #buffer layer computation of a new grid-point
 $(ngbf_layer_dir)/bf_newgrdpt_verification_module.o:\
