@@ -60,7 +60,7 @@
                 test_loc = is_real_validated(var(i),cst(i),detailled)
                 test_validated = test_validated.and.test_loc
                 if(detailled.and.(.not.test_loc)) then
-                   print '(''['',I2'']:'',F8.3,'' -> '',F8.3)', 
+                   print '(''['',I4'']:'',F8.3,'' -> '',F8.3)', 
      $                  i, var(i), cst(i)
                 end if
              end do
@@ -69,7 +69,7 @@
 
              test_validated = .false.
              print '(''sizes do not match'')'
-             print '(''  - size_x : '',I2,'' -> '',I2)', size(var,1), size(cst,1)
+             print '(''  - size_x : '',I4,'' -> '',I4)', size(var,1), size(cst,1)
              print '()'
 
           end if
@@ -106,7 +106,7 @@
                    test_loc = is_real_validated(var(i,j),cst(i,j),detailled)
                    test_validated = test_validated.and.test_loc
                    if(detailled_op.and.(.not.test_loc)) then
-                      print '(''['',2I2'']:'',F8.3,'' -> '',F8.3)', 
+                      print '(''['',2I4'']:'',F8.3,'' -> '',F8.3)', 
      $                     i,j,
      $                     var(i,j), cst(i,j)
                    end if
@@ -117,8 +117,8 @@
 
              test_validated = .false.
              print '(''sizes do not match'')'
-             print '(''  - size_x : '',I2,'' -> '',I2)', size(var,1), size(cst,1)
-             print '(''  - size_y : '',I2,'' -> '',I2)', size(var,2), size(cst,2)
+             print '(''  - size_x : '',I4,'' -> '',I4)', size(var,1), size(cst,1)
+             print '(''  - size_y : '',I4,'' -> '',I4)', size(var,2), size(cst,2)
              print '()'
 
           end if
@@ -169,9 +169,9 @@
 
              test_validated = .false.
              print '(''sizes do not match'')'
-             print '(''  - size_x : '',I2,'' -> '',I2)', size(var,1), size(cst,1)
-             print '(''  - size_y : '',I2,'' -> '',I2)', size(var,2), size(cst,2)
-             print '(''  - size_z : '',I2,'' -> '',I2)', size(var,3), size(cst,3)
+             print '(''  - size_x : '',I4,'' -> '',I4)', size(var,1), size(cst,1)
+             print '(''  - size_y : '',I4,'' -> '',I4)', size(var,2), size(cst,2)
+             print '(''  - size_z : '',I4,'' -> '',I4)', size(var,3), size(cst,3)
              print '()'
 
           end if
@@ -217,7 +217,7 @@
 
                 if(detailled_op.and.(.not.test_loc)) then
 
-                   print '(''['',I2,'']: '',I5, '' -> '',I5)',
+                   print '(''['',I4,'']: '',I5, '' -> '',I5)',
      $                  i, int_vector(i), int_vector_cst(i)
 
                 end if
@@ -228,7 +228,7 @@
 
              test_validated = .false.
              print '(''sizes do not match'')'
-             print '(''  - size_x : '',I2,'' -> '',I2)', size(int_vector,1), size(int_vector_cst,1)
+             print '(''  - size_x : '',I4,'' -> '',I4)', size(int_vector,1), size(int_vector_cst,1)
              print '()'
 
           end if
@@ -287,8 +287,8 @@
 
              test_validated = .false.
              print '(''sizes do not match'')'
-             print '(''  - size_x : '',I2,'' -> '',I2)', size(int_matrix,1), size(int_matrix_cst,1)
-             print '(''  - size_y : '',I2,'' -> '',I2)', size(int_matrix,2), size(int_matrix_cst,2)
+             print '(''  - size_x : '',I4,'' -> '',I4)', size(int_matrix,1), size(int_matrix_cst,1)
+             print '(''  - size_y : '',I4,'' -> '',I4)', size(int_matrix,2), size(int_matrix_cst,2)
              print '()'
           end if
 
@@ -349,9 +349,9 @@
 
              test_validated = .false.
              print '(''sizes do not match'')'
-             print '(''  - size_x : '',I2,'' -> '',I2)', size(int_matrix,1), size(int_matrix_cst,1)
-             print '(''  - size_y : '',I2,'' -> '',I2)', size(int_matrix,2), size(int_matrix_cst,2)
-             print '(''  - size_z : '',I2,'' -> '',I2)', size(int_matrix,3), size(int_matrix_cst,3)
+             print '(''  - size_x : '',I4,'' -> '',I4)', size(int_matrix,1), size(int_matrix_cst,1)
+             print '(''  - size_y : '',I4,'' -> '',I4)', size(int_matrix,2), size(int_matrix_cst,2)
+             print '(''  - size_z : '',I4,'' -> '',I4)', size(int_matrix,3), size(int_matrix_cst,3)
              print '()'
 
           end if
@@ -397,7 +397,7 @@
 
                 if(detailled_op.and.(.not.test_loc)) then
 
-                   print '(''['',I2,'']: '',L1, '' -> '',L1)',
+                   print '(''['',I4,'']: '',L1, '' -> '',L1)',
      $                  i, boolean_vector(i), boolean_vector_cst(i)
 
                 end if
@@ -408,7 +408,7 @@
 
              test_validated = .false.
              print '(''sizes do not match'')'
-             print '(''  - size_x : '',I2,'' -> '',I2)',
+             print '(''  - size_x : '',I4,'' -> '',I4)',
      $            size(boolean_vector,1),
      $            size(boolean_vector_cst,1)
              print '()'

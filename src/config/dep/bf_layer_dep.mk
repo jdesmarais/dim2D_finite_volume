@@ -150,6 +150,17 @@ $(ipbf_layer_dir)/bf_interface_dyn_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
+$(ipbf_layer_dir)/bf_interface_time_class.o:\
+	$(bc_cdir)/bc_operators_class.o\
+	$(ipbf_layer_dir)/bf_interface_dyn_class.o\
+	$(bbf_layer_dir)/bf_mainlayer_bc_sections_module.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(ti_dir)/interface_integration_step.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	$(pm_cdir)/pmodel_eq_class.o\
+	$(sd_cdir)/sd_operators_class.o\
+	$(td_cdir)/td_operators_class.o
 
 #main objects
 $(bf_layer_dir)/bf_layer_class.o:\

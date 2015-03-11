@@ -254,7 +254,8 @@ bf_newgrdpt_dep=	bf_newgrdpt_class.o\
 
 
 #bf_layer objects
-bf_layer_basic_dep=	bf_layer_extract_module.o\
+bf_layer_basic_dep=	parameters_bf_layer.o\
+			bf_layer_extract_module.o\
 			bf_layer_basic_class.o\
 			bf_layer_errors_module.o
 
@@ -345,6 +346,10 @@ bf_interface_sync_dep=	$(bf_interface_print_dep)\
 
 bf_interface_dyn_dep=	$(bf_interface_sync_dep)\
 			bf_interface_dyn_class.o
+
+bf_interface_time_dep=	$(bf_interface_dyn_dep)\
+			bf_mainlayer_bc_sections_module.o\
+			bf_interface_time_class.o
 
 
 bf_interface_dep=	$(bf_layer_dep)\

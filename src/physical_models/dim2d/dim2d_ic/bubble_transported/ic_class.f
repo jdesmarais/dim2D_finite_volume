@@ -105,6 +105,8 @@
         !---------------------------------------------------------------
         type, extends(ic_abstract) :: ic
 
+          character(18) :: name = 'bubble_transported'
+
           contains
 
           procedure, nopass :: apply_ic
@@ -392,10 +394,13 @@
           real(rkind) :: mass
           real(rkind) :: velocity_x
           real(rkind) :: velocity_y
+
+          character(10) :: name_s
           
           t_s = t
           x_s = x
           y_s = y
+          name_s = this%name
 
           mass       = get_mass_far_field()
           velocity_x = get_velocity_x()
