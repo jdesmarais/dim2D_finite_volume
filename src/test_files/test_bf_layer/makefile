@@ -153,6 +153,15 @@ test_bf_newgrdpt_verification:	parameters_bf_layer.o\
 				bf_newgrdpt_verification_module.o\
 				check_data_module.o
 
+test_bf_newgrdpt_dispatch.o:	$(ngbf_layer_dir)/bf_newgrdpt_dispatch_module.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_newgrdpt_dispatch:	bf_layer_errors_module.o\
+				parameters_kind.o\
+				parameters_constant.o\
+				bf_newgrdpt_dispatch_module.o
+
 
 #buffer_layer/bf_layer_bc_sections
 test_bf_layer_bc_procedure.o:	$(bbf_layer_dir)/bf_layer_bc_procedure_module.o\

@@ -1,6 +1,7 @@
       program test_bf_newgrdpt_verification
 
         use bf_newgrdpt_verification_module, only :
+     $       are_grdpts_available,
      $       get_newgrdpt_verification_bounds
 
         use check_data_module, only :
@@ -25,7 +26,10 @@
      $       gradient_R0_type,
      $       gradient_xLR0_yI_type,
      $       gradient_xI_yLR0_type,
-     $       gradient_xLR0_yLR0_type
+     $       gradient_xLR0_yLR0_type,
+     $       
+     $       interior_pt,
+     $       no_pt
 
         implicit none
 
@@ -36,11 +40,89 @@
         detailled = .true.
         test_validated = .true.
 
+        test_loc = test_are_grdpts_available(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_are_grdpts_available: '',L1)', test_loc
+        print '()'
+
         test_loc = test_get_newgrdpt_verification_bounds(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_get_newgrdpt_verification_bounds: '',L1)', test_loc
+        print '()'
 
         contains
+
+
+        function test_are_grdpts_available(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          integer, dimension(4,6) :: grdpts_id
+          integer, dimension(2,2) :: gen_coords
+          integer, dimension(6)   :: grdpts_id_replaced
+
+          integer :: i,j
+          integer :: k
+
+
+          test_validated = .true.
+
+
+          gen_coords = reshape((/2,4,3,6/),(/2,2/))
+
+          grdpts_id = reshape((/((no_pt,i=1,4),j=1,6)/),(/4,6/))
+          grdpts_id_replaced = (/(interior_pt,i=1,6)/)
+          grdpts_id(2:3,4:6) = reshape(grdpts_id_replaced,(/2,3/))
+
+          test_loc = are_grdpts_available(grdpts_id,gen_coords)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test( 0) failed'')'
+          end if
+
+          do k=1,6
+             grdpts_id_replaced    = (/(interior_pt,i=1,6)/)
+             grdpts_id_replaced(k) = no_pt
+
+             grdpts_id(2:3,4:6) = reshape(grdpts_id_replaced,(/2,3/))
+
+             test_loc = .not.are_grdpts_available(grdpts_id,gen_coords)
+             test_validated = test_validated.and.test_loc
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'') failed'')',k
+             end if
+          end do
+
+          grdpts_id = reshape((/((interior_pt,i=1,4),j=1,6)/),(/4,6/))
+          grdpts_id_replaced = (/(interior_pt,i=1,6)/)
+          grdpts_id(2:3,4:6) = reshape(grdpts_id_replaced,(/2,3/))
+
+          test_loc = are_grdpts_available(grdpts_id,gen_coords)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test( 7) failed'')'
+          end if
+
+          do k=1,6
+             grdpts_id_replaced    = (/(interior_pt,i=1,6)/)
+             grdpts_id_replaced(k) = no_pt
+
+             grdpts_id(2:3,4:6) = reshape(grdpts_id_replaced,(/2,3/))
+
+             test_loc = .not.are_grdpts_available(grdpts_id,gen_coords)
+             test_validated = test_validated.and.test_loc
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'') failed'')',7+k
+             end if
+          end do
+
+        end function test_are_grdpts_available
+
 
         function test_get_newgrdpt_verification_bounds(detailled)
      $       result(test_validated)

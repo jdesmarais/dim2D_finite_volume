@@ -13,8 +13,8 @@
       !-----------------------------------------------------------------
       module bf_layer_class
 
-        use bf_layer_newgrdpt_class, only :
-     $       bf_layer_newgrdpt
+        use bf_layer_grdpts_id_update_class, only :
+     $       bf_layer_grdpts_id_update
 
         use bf_remove_module, only :
      $       check_if_bf_layer_remains
@@ -57,7 +57,7 @@
         !> @param remove
         !> remove the buffer layer by deallocating the main tables
         !-------------------------------------------------------------
-        type, extends(bf_layer_newgrdpt) :: bf_layer
+        type, extends(bf_layer_grdpts_id_update) :: bf_layer
 
           logical, private :: can_remain
 

@@ -24,16 +24,8 @@ $(pbf_layer_dir)/bf_layer_print_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
-$(pbf_layer_dir)/bf_layer_grdpts_id_update_class.o:\
-	$(gbf_layer_dir)/bf_bc_crenel_module.o\
-	$(pbf_layer_dir)/bf_layer_print_class.o\
-	$(gbf_layer_dir)/bf_suspicious_bc_interior_pt_module.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
 $(pbf_layer_dir)/bf_layer_sync_class.o:\
-	$(pbf_layer_dir)/bf_layer_grdpts_id_update_class.o\
+	$(pbf_layer_dir)/bf_layer_print_class.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(sbf_layer_dir)/bf_layer_exchange_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
@@ -73,6 +65,29 @@ $(pbf_layer_dir)/bf_layer_newgrdpt_class.o:\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o
 
+$(pbf_layer_dir)/bf_layer_grdpts_id_update_class.o:\
+	$(gbf_layer_dir)/bf_bc_crenel_module.o\
+	$(pbf_layer_dir)/bf_layer_newgrdpt_class.o\
+	$(gbf_layer_dir)/bf_suspicious_bc_interior_pt_module.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(bf_layer_dir)/bf_layer_class.o:\
+	$(pbf_layer_dir)/bf_layer_grdpts_id_update_class.o\
+	$(cbf_layer_dir)/bf_remove_module.o\
+	$(pm_cdir)/pmodel_eq_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(bf_layer_dir)/bf_sublayer_class.o:\
+	$(bf_layer_dir)/bf_layer_class.o\
+	$(param_dir)/parameters_kind.o
+
+$(lbf_layer_dir)/bf_sublayer_pointer_class.o:\
+	$(bf_layer_dir)/bf_sublayer_class.o
+
 
 #bf_mainlayer_parents
 $(mpbf_layer_dir)/bf_mainlayer_basic_class.o:\
@@ -94,6 +109,24 @@ $(mpbf_layer_dir)/bf_mainlayer_sync_class.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(mpbf_layer_dir)/bf_mainlayer_print_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(bf_layer_dir)/bf_mainlayer_class.o:\
+	$(bc_cdir)/bc_operators_class.o\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(mpbf_layer_dir)/bf_mainlayer_sync_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(ti_dir)/interface_integration_step.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(bf_layer_dir)/bf_mainlayer_pointer_class.o:\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
+	$(ti_dir)/interface_integration_step.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
@@ -162,40 +195,6 @@ $(ipbf_layer_dir)/bf_interface_time_class.o:\
 	$(sd_cdir)/sd_operators_class.o\
 	$(td_cdir)/td_operators_class.o
 
-#main objects
-$(bf_layer_dir)/bf_layer_class.o:\
-	$(pbf_layer_dir)/bf_layer_newgrdpt_class.o\
-	$(cbf_layer_dir)/bf_remove_module.o\
-	$(pm_cdir)/pmodel_eq_class.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
-$(bf_layer_dir)/bf_sublayer_class.o:\
-	$(bf_layer_dir)/bf_layer_class.o\
-	$(param_dir)/parameters_kind.o
-
-$(lbf_layer_dir)/bf_sublayer_pointer_class.o:\
-	$(bf_layer_dir)/bf_sublayer_class.o
-
-$(bf_layer_dir)/bf_mainlayer_class.o:\
-	$(bc_cdir)/bc_operators_class.o\
-	$(bf_layer_dir)/bf_layer_errors_module.o\
-	$(mpbf_layer_dir)/bf_mainlayer_sync_class.o\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(ti_dir)/interface_integration_step.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
-$(bf_layer_dir)/bf_mainlayer_pointer_class.o:\
-	$(bf_layer_dir)/bf_layer_errors_module.o\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(bf_layer_dir)/bf_mainlayer_class.o\
-	$(ti_dir)/interface_integration_step.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
 $(bf_layer_dir)/bf_interface_class.o:\
 	$(cbf_layer_dir)/bf_interior_bc_sections_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
@@ -213,6 +212,8 @@ $(bf_layer_dir)/bf_interface_class.o:\
 	$(param_dir)/parameters_kind.o\
 	$(lbf_layer_dir)/sbf_list_class.o
 
+
+#main objects
 $(bf_layer_dir)/bf_path_icr_class.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(bf_layer_dir)/bf_interface_class.o\
@@ -295,7 +296,7 @@ $(bbf_layer_dir)/bf_mainlayer_bc_sections_module.o:\
 	$(param_dir)/parameters_kind.o
 
 
-#buffer layer computation of a new grid-point
+#bf_layer_newgrdpt folder
 $(ngbf_layer_dir)/bf_newgrdpt_verification_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o
 
@@ -319,6 +320,12 @@ $(ngbf_layer_dir)/bf_newgrdpt_class.o:\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o\
 	$(sd_cdir)/sd_operators_fd_module.o
+
+$(ngbf_layer_dir)/bf_newgrdpt_dispatch_module.o:\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(ngbf_layer_dir)/bf_newgrdpt_verification_module.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_kind.o
 
 
 #functions for the time integration of the buffer layer

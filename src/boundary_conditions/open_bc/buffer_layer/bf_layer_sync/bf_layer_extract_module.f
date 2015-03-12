@@ -40,7 +40,8 @@
      $       get_indices_to_extract_interior_data,
      $       get_indices_to_extract_bf_layer_data,
      $       get_bf_layer_match_table,
-     $       get_grdpts_id_from_interior
+     $       get_grdpts_id_from_interior,
+     $       get_grdpts_id_from_bf_layer
 
 
         contains
@@ -403,5 +404,52 @@
           end do
 
         end subroutine set_grdptid
+
+
+        subroutine get_grdpts_id_from_bf_layer(
+     $     tmp_grdpts_id,
+     $     gen_coords,
+     $     bf_alignment,
+     $     bf_grdpts_id)
+
+          implicit none
+
+          integer       , dimension(:,:), intent(inout) :: tmp_grdpts_id
+          integer(ikind), dimension(2,2), intent(in)    :: gen_coords
+          integer(ikind), dimension(2,2), intent(in)    :: bf_alignment
+          integer       , dimension(:,:), intent(in)    :: bf_grdpts_id
+
+
+          integer(ikind) :: size_x
+          integer(ikind) :: size_y
+          integer(ikind) :: i_recv
+          integer(ikind) :: i_send
+          integer(ikind) :: j_recv
+          integer(ikind) :: j_send
+          integer(ikind) :: i
+          integer(ikind) :: j
+          
+          
+          print '(''bf_extract_module'')'
+          print '(''get_grdpts_id_from_bf_layer'')'
+          print '(''not validated'')'
+          stop ''
+
+
+          call get_indices_to_extract_bf_layer_data(
+     $         bf_alignment,
+     $         gen_coords,
+     $         size_x, size_y,
+     $         i_recv, j_recv,
+     $         i_send, j_send)
+
+          do j=1, size_y
+             do i=1, size_x
+                tmp_grdpts_id(i_recv+i-1,j_recv+j-1) =
+     $               bf_grdpts_id(i_send+i-1,j_send+j-1)
+             end do
+          end do
+
+        end subroutine get_grdpts_id_from_bf_layer
 
       end module bf_layer_extract_module

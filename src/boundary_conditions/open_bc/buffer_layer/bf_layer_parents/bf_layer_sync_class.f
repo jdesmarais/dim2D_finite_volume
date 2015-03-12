@@ -13,8 +13,8 @@
       !-----------------------------------------------------------------
       module bf_layer_sync_class
 
-        use bf_layer_grdpts_id_update_class, only :
-     $       bf_layer_grdpts_id_update
+        use bf_layer_print_class, only :
+     $       bf_layer_print
 
         use bf_layer_errors_module, only :
      $       error_mainlayer_id
@@ -128,7 +128,7 @@
         !> is obtained to set the correct overlap between buffer layers
         !> at the edge between two main layers
         !-------------------------------------------------------------
-        type, extends(bf_layer_grdpts_id_update) :: bf_layer_sync
+        type, extends(bf_layer_print) :: bf_layer_sync
 
           logical, private :: shares_grdpts_with_neighbor1
           logical, private :: shares_grdpts_with_neighbor2
@@ -151,8 +151,6 @@
           procedure,   pass :: sync_nodes_with_interior
           procedure,   pass :: sync_nodes_with_neighbor1
           procedure,   pass :: sync_nodes_with_neighbor2
-
-          procedure,   pass :: get_bc_overlap_x_border
 
         end type bf_layer_sync
 
@@ -785,208 +783,5 @@
      $         ex_size)
 
         end subroutine sync_nodes_with_neighbor2
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> get the 'x_border', the general coordinate stating
-        !> how far should the border of the the neighboring
-        !> buffer layer be updated to resolve the bc_overlap
-        !> conflict, i.e. such that the neighboring buffer layer
-        !> has all the needed grid points to compute its own
-        !> boundry conditions
-        !
-        !> @date
-        !> 19_12_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer object encapsulating the main
-        !> tables extending the interior domain
-        !
-        !>@param start_grdpt_g_coords
-        !> coordinates of the grid point expressed in the
-        !> general frame
-        !
-        !>@param side
-        !> logical stating in which direction the grid points
-        !> needed to resolve the bc_overlap conflict should be
-        !> searched
-        !--------------------------------------------------------------
-        function get_bc_overlap_x_border(
-     $     this,
-     $     start_grdpt_g_coords,
-     $     side,
-     $     update_alignment,
-     $     err)
-     $     result(x_border)
-
-          implicit none
-
-          class(bf_layer_sync)              , intent(in)  :: this
-          integer(ikind)      , dimension(2), intent(in)  :: start_grdpt_g_coords
-          logical                           , intent(in)  :: side
-          logical                           , intent(out) :: update_alignment
-          logical                           , intent(out) :: err
-          integer(ikind)                                  :: x_border
-
-          integer(ikind), dimension(2) :: match_table
-          integer(ikind), dimension(2) :: l_coords
-          logical                      :: x_border_initialized
-          integer(ikind)               :: x_border_loc
-          integer(ikind)               :: i
-
-          
-          err = BF_SUCCESS
-
-          !get the match table to turn the general coordinates of the
-          !start_grdpt_g_coords into local coordinates
-          match_table = this%get_general_to_local_coord_tab()
-          l_coords(1) = start_grdpt_g_coords(1) - match_table(1)
-          l_coords(2) = start_grdpt_g_coords(2) - match_table(2)
-
-
-          !check whether the l_coords are contained in the buffer layer
-          if(
-     $         (l_coords(1).ge.1).and.
-     $         (l_coords(1).le.size(this%grdpts_id,1)).and.
-     $         (l_coords(2).ge.1).and.
-     $         (l_coords(2).le.size(this%grdpts_id,2))) then
-
-             update_alignment = .true.
-             
-             !check whether the starting point is indeed a bc_interior_pt
-             !otherwise there is an error
-             if(this%grdpts_id(l_coords(1),l_coords(2)).eq.bc_interior_pt) then
-             
-                x_border_initialized = .false.
-
-                !depending on the side asked, either the non 
-                !bc_interior_pt is searched in the left or
-                !right direction
-                if(side.eqv.left) then
-                   
-                   do i=l_coords(1)-1,1,-1
-
-                      if(this%grdpts_id(i,l_coords(2)).ne.bc_interior_pt) then
-
-                         if(this%grdpts_id(i,l_coords(2)).eq.bc_pt) then
-                            x_border_loc = i
-                            x_border_initialized = .true.
-
-                         else
-                            err = .not.BF_SUCCESS
-                            print '(''bf_layer_class'')'
-                            print '(''get_bc_overlap_x_border'')'
-                            print '(''***********************'')'
-                            print '(''wrong grdpt: non(bc_pt)'')'
-                            print '(''***********************'')'
-                            print '(''l_coords: '',2I4)', l_coords
-                            print '(''i: '',I4)', i
-                            print '(''j: '',I4)', l_coords(2)
-                            print '(''grdpts_id(i,j): '',I2)', this%grdpts_id(i,l_coords(2))
-                            print *, 'grdpts_id(i:start,j): ', this%grdpts_id(i:l_coords(1),l_coords(2))
-                            print '(''***********************'')'
-                            stop ''
-                            
-                         end if
-
-                         exit
-                         
-                      end if
-                      
-                   end do
-
-                else
-
-                   do i=l_coords(1)+1, size(this%grdpts_id,1),+1
-
-                      if(this%grdpts_id(i,l_coords(2)).ne.bc_interior_pt) then
-
-                         if(this%grdpts_id(i,l_coords(2)).eq.bc_pt) then
-                            x_border_loc = i
-                            x_border_initialized = .true.
-                            
-                         else
-                            err = .not.BF_SUCCESS
-                            print '(''bf_layer_class'')'
-                            print '(''get_bc_overlap_x_border'')'
-                            print '(''***********************'')'
-                            print '(''wrong grdpt: non(bc_pt)'')'
-                            print '(''***********************'')'
-                            print '(''l_coords: '',2I4)', l_coords
-                            print '(''i: '',I4)', i
-                            print '(''j: '',I4)', l_coords(2)
-                            print '(''grdpts_id(i,j): '',I2)', this%grdpts_id(i,l_coords(2))
-                            print *, 'grdpts_id(i:start,j): ', this%grdpts_id(i:l_coords(1),l_coords(2))
-                            print '(''***********************'')'
-
-                         end if
-
-                         exit
-
-                      end if
-
-                   end do
-
-                end if
-
-
-                !check whether the x_border_loc was found
-                if(x_border_initialized) then
-
-                   !convert the local coordinates of the
-                   !x_border into general coordinates
-                   x_border = x_border_loc + match_table(1)
-
-                !otherwise, there is an error
-                else
-                   err = .not.BF_SUCCESS
-                   print '(''bf_layer_class'')'
-                   print '(''get_bc_overlap_x_border'')'
-                   print '(''************************************'')'
-                   print '(''the x_border was not found'')'
-                   print '(''************************************'')'
-                   print '(''l_coords: '',2I4)', l_coords
-                   print '(''side: '',L1)', side
-                   print *, 'grdpts_id(:,j)', this%grdpts_id(:,l_coords(2))
-                   print '(''************************************'')'
-                   print '()'
-
-                end if
-
-
-             else
-                err = .not.BF_SUCCESS
-                print '(''bf_layer_class'')'
-                print '(''get_bc_overlap_x_border'')'
-                print '(''************************************'')'
-                print '(''the starting point is not recognized'')'
-                print '(''as a bc_interior_pt'')'
-                print '(''************************************'')'
-                
-             end if
-
-          !otherwise there is an error
-          else
-
-             update_alignment = .false.
-             
-c$$$             print '(''bf_layer_class'')'
-c$$$             print '(''get_bc_overlap_x_border'')'
-c$$$             print '(''************************************'')'
-c$$$             print '(''the starting point is not inside the'')'
-c$$$             print '(''buffer layer'')'
-c$$$             print '(''************************************'')'
-c$$$             print '(''g_coords: '', 2I4)', start_grdpt_g_coords
-c$$$             print '(''l_coords: '', 2I4)', l_coords
-c$$$             print '(''************************************'')'
-c$$$             print '()'
-c$$$             stop ''
-             
-          end if
-
-        end function get_bc_overlap_x_border
 
       end module bf_layer_sync_class

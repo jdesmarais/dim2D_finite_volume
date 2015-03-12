@@ -37,6 +37,7 @@
      $       interior_pt,
      $       bc_interior_pt,
      $       bc_pt,
+     $       no_pt,
      $     
      $       BF_SUCCESS
 
@@ -47,10 +48,40 @@
 
         private
         public ::
+     $       are_grdpts_available,
      $       verify_data_for_newgrdpt,
      $       get_newgrdpt_verification_bounds
 
         contains
+
+
+        function are_grdpts_available(
+     $       grdpts_id,
+     $       gen_coords)
+     $       result(grdpts_available)
+
+          implicit none
+
+          integer       , dimension(:,:), intent(in) :: grdpts_id
+          integer(ikind), dimension(2,2), intent(in) :: gen_coords
+          logical                                    :: grdpts_available
+
+
+          integer(ikind) :: i,j
+
+          grdpts_available = .true.
+
+          do j=gen_coords(2,1),gen_coords(2,2)
+             do i=gen_coords(1,1), gen_coords(1,2)
+                if(grdpts_id(i,j).eq.no_pt) then
+                   grdpts_available = .false.
+                end if
+             end do
+          end do
+
+        end function are_grdpts_available
+
+
 
         !> @author
         !> Julien L. Desmarais

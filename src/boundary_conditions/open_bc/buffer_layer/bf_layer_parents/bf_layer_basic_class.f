@@ -118,8 +118,6 @@
         !
         !> @param get_grdpts_id
         !> get the grdpts_id attribute (only for tests)
-        !
-        !
         !-------------------------------------------------------------
         type :: bf_layer_basic
 

@@ -18,8 +18,8 @@
         use bf_bc_crenel_module, only :
      $      detect_and_curb_bc_crenels
 
-        use bf_layer_newgrdpt_class, only :
-     $       bf_layer_newgrdpt
+        use bf_layer_print_class, only :
+     $       bf_layer_print
 
         use bf_suspicious_bc_interior_pt_module, only :
      $       verify_if_all_grdpts_exist
@@ -80,20 +80,21 @@
         !> @param detect_and_curb_bc_pt_crenels
         !> remove the crenels of grid points of type bc_pt
         !-------------------------------------------------------------
-        type, extends(bf_layer_newgrdpt) :: bf_layer_grdpts_id_update
+        type, extends(bf_layer_print) :: bf_layer_grdpts_id_update
         
           contains
 
+          !simple checks
           procedure,   pass :: is_bc_interior_pt
           procedure,   pass :: is_bc_pt
-          procedure,   pass :: set_new_interior_pt
 
           !for detecting bc_interior_pt to be turned into interior_pt
           procedure,   pass :: check_neighboring_bc_interior_pts
           procedure, nopass :: check_bc_interior_pt
 
           !for updating the bc_interior_pt and bc_pt around a new
-          !interior_pt          
+          !interior_pt
+          procedure,   pass :: set_new_interior_pt
           procedure,   pass :: update_neighboring_grdpt
           procedure,   pass :: finalize_neighboring_grdpts_update
 
