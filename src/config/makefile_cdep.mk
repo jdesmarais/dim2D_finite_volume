@@ -253,6 +253,11 @@ bf_newgrdpt_dep=	bf_newgrdpt_class.o\
 			n_coords_module.o
 
 #bf_compute
+bf_compute_basic_dep=	bf_compute_basic_class.o
+
+bf_compute_time_dep=	$(bf_compute_basic_dep)\
+			bf_compute_time_class.o
+
 bf_compute_dep=		bf_newgrdpt_procedure_module.o\
 			bf_newgrdpt_verification_module.o\
 			bf_newgrdpt_class.o\

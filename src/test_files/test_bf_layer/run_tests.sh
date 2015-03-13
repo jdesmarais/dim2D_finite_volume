@@ -180,15 +180,28 @@ make cleanall > /dev/null
 echo ''
 
 
-#test_bf_compute
+#test_bf_compute_basic
 echo ''
-echo 'test_bf_compute'
+echo 'test_bf_compute_basic'
 echo '------------------------------------------------------------'
 $config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '6'
 $config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '6'
 $config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne' -v '4'
-make test_bf_compute > /dev/null
-./test_bf_compute
+make test_bf_compute_basic > /dev/null
+./test_bf_compute_basic
+make cleanall > /dev/null
+echo ''
+
+
+#test_bf_compute_time
+echo ''
+echo 'test_bf_compute_time'
+echo '------------------------------------------------------------'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '6'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '6'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne' -v '4'
+make test_bf_compute_time > /dev/null
+./test_bf_compute_time
 make cleanall > /dev/null
 echo ''
 
@@ -374,3 +387,19 @@ rm timedev.out
 rm nodes1st.out
 
 echo ''
+
+
+#test_bf_newgrdpt_dispatch_module
+echo ''
+echo 'test_bf_newgrdpt_dispatch_module'
+echo '------------------------------------------------------------'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice' -v 'dim2d_choice'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'bc_choice' -v 'hedstrom_xy_choice'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'ic_choice' -v 'newgrdpt_test'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ic_choice' -v 'newgrdpt_test'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '64'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '54'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'  -v '3'
+make test_bf_newgrdpt_dispatch > /dev/null
+./test_bf_newgrdpt_dispatch
+make cleanall > /dev/null

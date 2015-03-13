@@ -270,9 +270,21 @@ test_bf_mainlayer_bc_sections:	$(param_dep)\
 				check_data_module.o
 
 #buffer_layer/bf_layer_computations
-test_bf_compute.o:		$(hobc_dir)/bc_operators_class.o\
+test_bf_compute_basic.o:	$(cbf_layer_dir)/bf_compute_basic_class.o\
 				$(test_dir)/tools/check_data_module.o\
-				$(cbf_layer_dir)/bf_compute_class.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_compute_basic:		$(bf_compute_basic_dep)\
+				check_data_module.o\
+				parameters_bf_layer.o\
+				parameters_input.o\
+				parameters_kind.o
+
+test_bf_compute_time.o:		$(hobc_dir)/bc_operators_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(cbf_layer_dir)/bf_compute_time_class.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
 				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
@@ -282,13 +294,13 @@ test_bf_compute.o:		$(hobc_dir)/bc_operators_class.o\
 				$(mt_dir)/sd_operators_class.o\
 				$(fv_dir)/td_operators_class.o
 
-test_bf_compute:		$(param_dep)\
+test_bf_compute_time:		$(param_dep)\
 				$(mt_dep)\
 				$(dim2d_dep)\
 				$(hedstrom_xy_dep)\
 				$(fv_dep)\
 				rk3tvd_steps_module.o\
-				bf_compute_class.o\
+				$(bf_compute_time_dep)\
 				check_data_module.o
 
 
