@@ -399,7 +399,7 @@ $config_dir/change_parameter.sh -i $make_header -o $make_header -p 'ic_choice' -
 $config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ic_choice' -v 'newgrdpt_test'
 $config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '64'
 $config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '54'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'  -v '3'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'  -v '4'
 make test_bf_newgrdpt_dispatch > /dev/null
 ./test_bf_newgrdpt_dispatch
 make cleanall > /dev/null

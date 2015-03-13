@@ -32,6 +32,7 @@
         integer, parameter :: NEWGRDPT_NO_ERROR=0
         integer, parameter :: NEWGRDPT_PROC_NBGRDPTS_ERROR=1
         integer, parameter :: NEWGRDPT_DATA_NBGRDPTS_ERROR=2
+        integer, parameter :: NEWGRDPT_NO_PREVIOUS_DATA_ERROR=3
 
 
         !identification of the grid points in the buffer layer

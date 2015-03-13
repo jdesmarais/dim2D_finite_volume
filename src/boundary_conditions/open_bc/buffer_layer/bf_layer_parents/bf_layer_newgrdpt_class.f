@@ -19,6 +19,9 @@
         use bf_layer_extract_module, only :
      $       get_indices_to_extract_bf_layer_data
 
+        use parameters_bf_layer, only :
+     $       NEWGRDPT_NO_PREVIOUS_DATA_ERROR
+
         use parameters_input, only :
      $       ne
 
@@ -328,11 +331,12 @@ c$$$        end subroutine get_data_for_newgrdpt
      $       p_model,
      $       t,
      $       dt,
-     $       newgrdpt_coords,
-     $       interior_x_map,
-     $       interior_y_map,
-     $       interior_nodes0,
-     $       interior_nodes1)
+     $       bf_newgrdpt_coords1,
+     $       nb_procedures,
+     $       procedure_type,
+     $       gradient_type,
+     $       grdpts_available,
+     $       data_needed_bounds0)
      $       result(ierror)
 
           implicit none
@@ -341,30 +345,43 @@ c$$$        end subroutine get_data_for_newgrdpt
           type(pmodel_eq)                    , intent(in)    :: p_model
           real(rkind)                        , intent(in)    :: t
           real(rkind)                        , intent(in)    :: dt
-          integer(ikind), dimension(2)       , intent(in)    :: newgrdpt_coords
-          real(rkind)   , dimension(nx)      , intent(in)    :: interior_x_map
-          real(rkind)   , dimension(ny)      , intent(in)    :: interior_y_map
-          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes0
-          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes1
+          integer(ikind), dimension(2)       , intent(in)    :: bf_newgrdpt_coords1
+          integer                            , intent(out)   :: nb_procedures
+          integer       , dimension(4)       , intent(out)   :: procedure_type
+          integer       , dimension(4)       , intent(out)   :: gradient_type
+          logical       , dimension(4)       , intent(out)   :: grdpts_available
+          integer(ikind), dimension(2,2)     , intent(out)   :: data_needed_bounds0
           integer                                            :: ierror
+
+
+          logical :: bf_can_exchange_with_neighbor1
+          logical :: bf_can_exchange_with_neighbor2
 
 
           if(this%does_previous_timestep_exist()) then
 
+             bf_can_exchange_with_neighbor1 = this%can_exchange_with_neighbor1()
+             bf_can_exchange_with_neighbor2 = this%can_exchange_with_neighbor2()
+
              ierror = this%bf_compute_used%compute_newgrdpt(
      $            p_model, t, dt,
-     $            newgrdpt_coords,
-     $            interior_x_map,
-     $            interior_y_map,
-     $            interior_nodes0,
-     $            interior_nodes1,
      $            this%localization,
+     $            bf_can_exchange_with_neighbor1,
+     $            bf_can_exchange_with_neighbor2,
      $            this%alignment,
-     $            this%nodes)
+     $            this%x_map,
+     $            this%y_map,
+     $            this%nodes,
+     $            bf_newgrdpt_coords1,
+     $            nb_procedures,
+     $            procedure_type,
+     $            gradient_type,
+     $            grdpts_available,
+     $            data_needed_bounds0)
              
           else
 
-             ierror = no_data0_available_error
+             ierror = NEWGRDPT_NO_PREVIOUS_DATA_ERROR
 
           end if
 

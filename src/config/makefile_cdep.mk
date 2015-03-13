@@ -258,11 +258,14 @@ bf_compute_basic_dep=	bf_compute_basic_class.o
 bf_compute_time_dep=	$(bf_compute_basic_dep)\
 			bf_compute_time_class.o
 
-bf_compute_dep=		bf_newgrdpt_procedure_module.o\
-			bf_newgrdpt_verification_module.o\
+bf_compute_newgrdpt_dep=$(bf_compute_time_dep)\
 			bf_newgrdpt_class.o\
-			bf_compute_class.o\
+			bf_newgrdpt_dispatch_module.o\
+			bf_newgrdpt_procedure_module.o\
+			bf_newgrdpt_verification_module.o\
 			bf_compute_newgrdpt_class.o
+
+bf_compute_dep=		$(bf_compute_newgrdpt_dep)
 
 bf_bc_sections_dep=	bf_layer_bc_procedure_module.o\
 			bf_layer_bc_sections_overlap_module.o\

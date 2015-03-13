@@ -303,6 +303,24 @@ test_bf_compute_time:		$(param_dep)\
 				$(bf_compute_time_dep)\
 				check_data_module.o
 
+test_bf_compute_newgrdpt.o:	$(cbf_layer_dir)/bf_compute_newgrdpt_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(dim2d_dir)/dim2d_parameters.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(dim2d_dir)/pmodel_eq_class.o
+
+test_bf_compute_newgrdpt:	$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_compute_newgrdpt_dep)\
+				check_data_module.o
+
 
 test_bf_remove.o:		$(cbf_layer_dir)/bf_remove_module.o\
 				$(sbf_layer_dir)/bf_layer_extract_module.o\

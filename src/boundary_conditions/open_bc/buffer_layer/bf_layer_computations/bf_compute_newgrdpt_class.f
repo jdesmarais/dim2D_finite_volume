@@ -16,8 +16,8 @@
       !-----------------------------------------------------------------
       module bf_compute_newgrdpt_class
 
-        use bf_compute_class, only :
-     $       bf_compute
+        use bf_compute_time_class, only :
+     $       bf_compute_time
 
         use bf_newgrdpt_dispatch_module, only :
      $       ask_bf_layer_to_compute_newgrdpt
@@ -42,7 +42,7 @@
         !> @param compute_newgrdpt
         !> attempt to compute the new grid point
         !---------------------------------------------------------------
-        type, extends(bf_compute) :: bf_compute_newgrdpt
+        type, extends(bf_compute_time) :: bf_compute_newgrdpt
 
           contains
 

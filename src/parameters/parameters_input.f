@@ -42,8 +42,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 6!64!100!
-        integer(ikind), parameter :: nty = 6!54!110!
+        integer(ikind), parameter :: ntx = 64!64!100!
+        integer(ikind), parameter :: nty = 54!54!110!
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -112,7 +112,7 @@
         
         real(rkind), parameter :: T0 = 0.950000000d0
 
-        integer    , parameter :: ic_choice = peak
+        integer    , parameter :: ic_choice = newgrdpt_test
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
