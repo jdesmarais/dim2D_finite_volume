@@ -26,7 +26,11 @@
         use parameters_bf_layer, only :
      $       BF_SUCCESS,
      $       no_bc_procedure_type,
-     $       no_gradient_type
+     $       no_gradient_type,
+     $       
+     $       NEWGRDPT_NO_ERROR,
+     $       NEWGRDPT_PROC_NBGRDPTS_ERROR,
+     $       NEWGRDPT_DATA_NBGRDPTS_ERROR
 
         use parameters_constant, only :
      $       N,S,E,W
@@ -41,6 +45,7 @@
 
         private
         public ::
+     $       ask_bf_layer_to_compute_newgrdpt,
      $       get_newgrdpt_procedure_from_bf_layer,
      $       compute_newgrdpt_from_bf_layer,
      $       are_grdpts_available_to_get_newgrdpt_data,
@@ -48,6 +53,233 @@
 
 
         contains
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> ask the buffer layer to compute the new grid point,
+        !> if the buffer layer does not have enough grid points
+        !> to determine the procedure to apply or enough grid
+        !> points to compute the new grid point itself, it sends
+        !> an error explaining the limitations encountered
+        !
+        !> @date
+        !> 13_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param p_model
+        !> physical model
+        !
+        !>@param t
+        !> time
+        !
+        !>@param dt
+        !> time step
+        !
+        !>@param bf_localization
+        !> cardinal coordinate identifying the position of the
+        !> buffer layer
+        !
+        !>@param bf_can_exchange_with_neighbor1
+        !> logical identifying whether the buffer layer can
+        !> exchange grid points with another buffer layer of
+        !> type neighbor1
+        !
+        !>@param bf_can_exchange_with_neighbor2
+        !> logical identifying whether the buffer layer can
+        !> exchange grid points with another buffer layer of
+        !> type neighbor2
+        !
+        !>@param bf_alignment0
+        !> relative position of the buffer layer compared to
+        !> the interior domain at t-dt
+        !
+        !>@param bf_grdpts_id0
+        !> integer array identifying the configuration of the
+        !> grid-points at t-dt
+        !
+        !>@param bf_x_map0
+        !> x-coordinates for the buffer layer at t-dt
+        !
+        !>@param bf_y_map0
+        !> y-coordinates for the buffer layer at t-dt
+        !
+        !>@param bf_nodes0
+        !> nodes for the buffer layer at t-dt
+        !
+        !>@param bf_alignment1
+        !> relative position of the buffer layer compared to
+        !> the interior domain at t
+        !
+        !>@param bf_x_map1
+        !> x-coordinates for the buffer layer at t
+        !
+        !>@param bf_y_map1
+        !> y-coordinates for the buffer layer at t
+        !
+        !>@param bf_nodes1
+        !> nodes for the buffer layer at t
+        !
+        !>@param bf_newgrdpt_coords1
+        !> coordinates of the new grid-point in the reference
+        !> frame of the buffer layer at t
+        !
+        !>@param nb_procedures
+        !> number of procedures needed to compute the new
+        !> grid-point
+        !
+        !>@param procedure_type
+        !> integer identifying the procedure used to compute
+        !> the new grid point
+        !
+        !>@param gradient_type
+        !> integer identifying the gradient used to compute
+        !> the new grid point
+        !
+        !>@param grdpts_available
+        !> logical determining whether there are enough grid points
+        !> to compute the new grid point
+        !
+        !>@param data_needed_bounds0
+        !> bounds determining the extent of the data needed around
+        !> the position of the new grid point for its computation
+        !
+        !>@return ierror
+        !> logical determining whether the buffer layer managed to
+        !> compute the new grid point or whether a temporary array
+        !> collecting the data is required
+        !--------------------------------------------------------------
+        function ask_bf_layer_to_compute_newgrdpt(
+     $       p_model,
+     $       t,
+     $       dt,
+     $       bf_localization,
+     $       bf_can_exchange_with_neighbor1,
+     $       bf_can_exchange_with_neighbor2,
+     $       bf_alignment0,
+     $       bf_grdpts_id0,
+     $       bf_x_map0,
+     $       bf_y_map0,
+     $       bf_nodes0,
+     $       bf_alignment1,
+     $       bf_x_map1,
+     $       bf_y_map1,
+     $       bf_nodes1,
+     $       bf_newgrdpt_coords1,
+     $       nb_procedures,
+     $       procedure_type,
+     $       gradient_type,
+     $       grdpts_available,
+     $       data_needed_bounds0)
+     $       result(ierror)
+
+          implicit none
+
+          type(pmodel_eq)                    , intent(in)    :: p_model
+          real(rkind)                        , intent(in)    :: t
+          real(rkind)                        , intent(in)    :: dt
+          integer                            , intent(in)    :: bf_localization
+          logical                            , intent(in)    :: bf_can_exchange_with_neighbor1
+          logical                            , intent(in)    :: bf_can_exchange_with_neighbor2
+          integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment0
+          integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id0
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map0
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map0
+          real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes0
+          integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment1
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map1
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map1
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: bf_nodes1
+          integer(ikind), dimension(2)       , intent(in)    :: bf_newgrdpt_coords1
+          integer                            , intent(out)   :: nb_procedures
+          integer       , dimension(4)       , intent(out)   :: procedure_type
+          integer       , dimension(4)       , intent(out)   :: gradient_type
+          logical       , dimension(4)       , intent(out)   :: grdpts_available
+          integer(ikind), dimension(2,2)     , intent(out)   :: data_needed_bounds0
+          integer                                            :: ierror
+
+          integer               :: k
+          integer, dimension(2) :: bf_newgrdpt_coords0
+          logical               :: ierror_proc
+
+
+          !> get the coordinates of the new grdpt in the
+          !> reference frame at t-dt such that we can
+          !> estimate the procedure needed for the 
+          !> computation of the new grid point with the
+          !> grdpts_id configuration at t-dt
+          do k=1,2
+             bf_newgrdpt_coords0(k) = bf_newgrdpt_coords1(k) + bf_alignment1(k,1) - bf_alignment0(k,1)
+          end do
+
+
+          !> determine which procedure should be used
+          !> to compute the new grid point if this is
+          !> possible to estimate the procedure
+          ierror_proc = get_newgrdpt_procedure_from_bf_layer(
+     $         bf_localization,
+     $         bf_alignment0,
+     $         bf_grdpts_id0,
+     $         bf_newgrdpt_coords0,
+     $         bf_can_exchange_with_neighbor1,
+     $         bf_can_exchange_with_neighbor2,
+     $         nb_procedures,
+     $         procedure_type,
+     $         gradient_type)
+
+          
+          !> if there were not enough grid points available
+          !> to determine the procedure to compute the new
+          !> grid point, the error message is initialized
+          if(ierror_proc.neqv.BF_SUCCESS) then
+
+             ierror = NEWGRDPT_PROC_NBGRDPTS_ERROR
+
+          !> otherwise we try to compute the data for the
+          !> new grid point using the available data in
+          !> the buffer layer and the interior domain
+          else
+             
+             ierror_proc = compute_newgrdpt_from_bf_layer(
+     $            p_model,
+     $            t,
+     $            dt,
+     $            bf_alignment0,
+     $            bf_grdpts_id0,
+     $            bf_x_map0,
+     $            bf_y_map0,
+     $            bf_nodes0,
+     $            bf_alignment1,
+     $            bf_x_map1,
+     $            bf_y_map1,
+     $            bf_nodes1,
+     $            bf_newgrdpt_coords0,
+     $            bf_newgrdpt_coords1,
+     $            nb_procedures,
+     $            procedure_type,
+     $            gradient_type,
+     $            grdpts_available,
+     $            data_needed_bounds0)
+
+             !> if there were not enough grid points to
+             !> compute the new gridpoint, the error
+             !> message is initialized
+             if(ierror_proc.neqv.BF_SUCCESS) then
+
+                ierror = NEWGRDPT_DATA_NBGRDPTS_ERROR
+
+             !> otherwise, the error is initialized
+             !> to success
+             else
+
+                ierror = NEWGRDPT_NO_ERROR
+
+             end if
+
+          end if
+
+        end function ask_bf_layer_to_compute_newgrdpt
 
 
         !> @author

@@ -29,6 +29,9 @@
         !if a function returns successfully
         !------------------------------------------------------------
         logical, parameter :: BF_SUCCESS=.true.
+        integer, parameter :: NEWGRDPT_NO_ERROR=0
+        integer, parameter :: NEWGRDPT_PROC_NBGRDPTS_ERROR=1
+        integer, parameter :: NEWGRDPT_DATA_NBGRDPTS_ERROR=2
 
 
         !identification of the grid points in the buffer layer

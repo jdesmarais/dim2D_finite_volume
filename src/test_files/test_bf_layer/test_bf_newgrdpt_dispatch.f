@@ -1,6 +1,7 @@
       program test_bf_newgrdpt_dispatch
 
         use bf_newgrdpt_dispatch_module, only :
+     $     ask_bf_layer_to_compute_newgrdpt,
      $     get_newgrdpt_procedure_from_bf_layer,
      $     compute_newgrdpt_from_bf_layer,
      $     are_grdpts_available_to_get_newgrdpt_data,
@@ -28,7 +29,11 @@
      $       gradient_xI_yLR0_type,
      $       
      $       BF_SUCCESS,
-     $       no_pt
+     $       no_pt,
+     $       
+     $       NEWGRDPT_NO_ERROR,
+     $       NEWGRDPT_PROC_NBGRDPTS_ERROR,
+     $       NEWGRDPT_DATA_NBGRDPTS_ERROR
 
         use parameters_constant, only :
      $       N,S,E,W
@@ -82,7 +87,292 @@
         print '()'
 
 
+        test_loc = test_ask_bf_layer_to_compute_newgrdpt(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_ask_bf_layer_to_compute_newgrdpt: '',L1)', test_loc
+        print '()'
+
+
         contains
+
+
+        function test_ask_bf_layer_to_compute_newgrdpt(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          integer :: k
+          logical :: test_loc
+
+          type(pmodel_eq)                  :: p_model
+          real(rkind)                      :: t
+          real(rkind)                      :: dt
+          integer                          :: bf_localization
+          logical                          :: bf_can_exchange_with_neighbor1
+          logical                          :: bf_can_exchange_with_neighbor2
+          integer(ikind), dimension(2,2)   :: bf_alignment0
+          integer       , dimension(6,5)   :: bf_grdpts_id0
+          real(rkind)   , dimension(6)     :: bf_x_map0
+          real(rkind)   , dimension(5)     :: bf_y_map0
+          real(rkind)   , dimension(6,5,ne):: bf_nodes0
+          integer(ikind), dimension(2,2)   :: bf_alignment1
+          real(rkind)   , dimension(8)     :: bf_x_map1
+          real(rkind)   , dimension(6)     :: bf_y_map1
+          real(rkind)   , dimension(8,6,ne):: bf_nodes1
+          integer(ikind), dimension(2)     :: bf_newgrdpt_coords1
+
+          integer                          :: test_nb_procedures
+          integer       , dimension(4)     :: test_procedure_type
+          integer       , dimension(4)     :: test_gradient_type
+          logical       , dimension(4)     :: test_grdpts_available
+          integer(ikind), dimension(2,2)   :: test_data_needed_bounds0
+          integer                          :: test_ierror
+          real(rkind)   , dimension(ne)    :: test_newgrdpt
+
+          integer                          :: nb_procedures
+          integer       , dimension(4)     :: procedure_type
+          integer       , dimension(4)     :: gradient_type
+          logical       , dimension(4)     :: grdpts_available
+          integer(ikind), dimension(2,2)   :: data_needed_bounds0
+          integer                          :: ierror
+
+          
+          test_validated = .true.
+
+
+          call p_model%initial_conditions%ini_far_field()
+
+
+          do k=1,3
+
+             !input
+             call get_param_test_ask_bf_layer(
+     $            k,
+     $            t,
+     $            dt,
+     $            bf_localization,
+     $            bf_can_exchange_with_neighbor1,
+     $            bf_can_exchange_with_neighbor2,
+     $            bf_alignment0,
+     $            bf_grdpts_id0,
+     $            bf_x_map0,
+     $            bf_y_map0,
+     $            bf_nodes0,
+     $            bf_alignment1,
+     $            bf_x_map1,
+     $            bf_y_map1,
+     $            bf_nodes1,
+     $            bf_newgrdpt_coords1,
+     $            test_nb_procedures,
+     $            test_procedure_type,
+     $            test_gradient_type,
+     $            test_grdpts_available,
+     $            test_data_needed_bounds0,
+     $            test_ierror,
+     $            test_newgrdpt)
+
+             !output
+             ierror = ask_bf_layer_to_compute_newgrdpt(
+     $            p_model,
+     $            t,
+     $            dt,
+     $            bf_localization,
+     $            bf_can_exchange_with_neighbor1,
+     $            bf_can_exchange_with_neighbor2,
+     $            bf_alignment0,
+     $            bf_grdpts_id0,
+     $            bf_x_map0,
+     $            bf_y_map0,
+     $            bf_nodes0,
+     $            bf_alignment1,
+     $            bf_x_map1,
+     $            bf_y_map1,
+     $            bf_nodes1,
+     $            bf_newgrdpt_coords1,
+     $            nb_procedures,
+     $            procedure_type,
+     $            gradient_type,
+     $            grdpts_available,
+     $            data_needed_bounds0)
+
+             !validation
+             test_loc = ierror.eq.test_ierror
+             test_validated = test_validated.and.test_loc
+             if(detailled.and.(.not.test_loc)) then
+                print '(''ierror('',I2,'') failed'')',k
+             end if
+
+             select case(ierror)
+               case(NEWGRDPT_NO_ERROR)
+                  test_loc = is_real_vector_validated(
+     $                 bf_nodes1(bf_newgrdpt_coords1(1),
+     $                           bf_newgrdpt_coords1(2),
+     $                           :),
+     $                 test_newgrdpt,
+     $                 detailled)
+                  test_validated = test_validated.and.test_loc
+                  if(detailled.and.(.not.test_loc)) then
+                     print '(''newgrdpt('',I2,'') failed'')',k
+                  end if
+
+               case(NEWGRDPT_DATA_NBGRDPTS_ERROR)
+                  test_loc = nb_procedures.eq.test_nb_procedures
+                  test_validated = test_validated.and.test_loc
+                  if(detailled.and.(.not.test_loc)) then
+                     print '(''nb_procedures('',I2,'') failed'')',k
+                  end if
+
+                  test_loc = is_int_vector_validated(
+     $                 procedure_type(1:nb_procedures),
+     $                 test_procedure_type(1:nb_procedures),
+     $                 detailled)
+                  test_validated = test_validated.and.test_loc
+                  if(detailled.and.(.not.test_loc)) then
+                     print '(''procedure_type('',I2,'') failed'')',k
+                  end if
+
+                  test_loc = is_int_vector_validated(
+     $                 gradient_type(1:nb_procedures),
+     $                 test_gradient_type(1:nb_procedures),
+     $                 detailled)
+                  test_validated = test_validated.and.test_loc
+                  if(detailled.and.(.not.test_loc)) then
+                     print '(''gradient_type('',I2,'') failed'')',k
+                  end if
+
+                  test_loc = is_boolean_vector_validated(
+     $                 grdpts_available(1:nb_procedures),
+     $                 test_grdpts_available(1:nb_procedures),
+     $                 detailled)
+                  test_validated = test_validated.and.test_loc
+                  if(detailled.and.(.not.test_loc)) then
+                     print '(''grdpts_available('',I2,'') failed'')',k
+                  end if
+
+                  test_loc = is_int_matrix_validated(
+     $                 data_needed_bounds0,
+     $                 test_data_needed_bounds0,
+     $                 detailled)
+                  test_validated = test_validated.and.test_loc
+                  if(detailled.and.(.not.test_loc)) then
+                     print '(''data_needed_bounds0('',I2,'') failed'')',k
+                  end if
+
+             end select
+
+          end do
+
+        end function test_ask_bf_layer_to_compute_newgrdpt
+
+
+        subroutine get_param_test_ask_bf_layer(
+     $     test_id,
+     $     t,
+     $     dt,
+     $     bf_localization,
+     $     bf_can_exchange_with_neighbor1,
+     $     bf_can_exchange_with_neighbor2,
+     $     bf_alignment0,
+     $     bf_grdpts_id0,
+     $     bf_x_map0,
+     $     bf_y_map0,
+     $     bf_nodes0,
+     $     bf_alignment1,
+     $     bf_x_map1,
+     $     bf_y_map1,
+     $     bf_nodes1,
+     $     bf_newgrdpt_coords1,
+     $     test_nb_procedures,
+     $     test_procedure_type,
+     $     test_gradient_type,
+     $     test_grdpts_available,
+     $     test_data_needed_bounds0,
+     $     test_ierror,
+     $     test_newgrdpt)
+
+          implicit none
+
+          integer                          , intent(in)  :: test_id
+          real(rkind)                      , intent(out) :: t
+          real(rkind)                      , intent(out) :: dt
+          integer                          , intent(out) :: bf_localization
+          logical                          , intent(out) :: bf_can_exchange_with_neighbor1
+          logical                          , intent(out) :: bf_can_exchange_with_neighbor2
+          integer(ikind), dimension(2,2)   , intent(out) :: bf_alignment0
+          integer       , dimension(6,5)   , intent(out) :: bf_grdpts_id0
+          real(rkind)   , dimension(6)     , intent(out) :: bf_x_map0
+          real(rkind)   , dimension(5)     , intent(out) :: bf_y_map0
+          real(rkind)   , dimension(6,5,ne), intent(out) :: bf_nodes0
+          integer(ikind), dimension(2,2)   , intent(out) :: bf_alignment1
+          real(rkind)   , dimension(8)     , intent(out) :: bf_x_map1
+          real(rkind)   , dimension(6)     , intent(out) :: bf_y_map1
+          real(rkind)   , dimension(8,6,ne), intent(out) :: bf_nodes1
+          integer(ikind), dimension(2)     , intent(out) :: bf_newgrdpt_coords1
+
+          integer                          , intent(out) :: test_nb_procedures
+          integer       , dimension(4)     , intent(out) :: test_procedure_type
+          integer       , dimension(4)     , intent(out) :: test_gradient_type
+          logical       , dimension(4)     , intent(out) :: test_grdpts_available
+          integer(ikind), dimension(2,2)   , intent(out) :: test_data_needed_bounds0
+          integer                          , intent(out) :: test_ierror
+          real(rkind)   , dimension(ne)    , intent(out) :: test_newgrdpt
+
+          
+          integer(ikind), dimension(2) :: bf_newgrdpt_coords0
+          logical                      :: test_ierror_proc
+
+
+          call get_param_test_compute_from_bf_layer(
+     $         test_id,
+     $         t,dt,
+     $         bf_alignment0,
+     $         bf_grdpts_id0,
+     $         bf_x_map0,
+     $         bf_y_map0,
+     $         bf_nodes0,
+     $         bf_alignment1,
+     $         bf_x_map1,
+     $         bf_y_map1,
+     $         bf_nodes1,
+     $         bf_newgrdpt_coords0,
+     $         bf_newgrdpt_coords1,
+     $         test_nb_procedures,
+     $         test_procedure_type,
+     $         test_gradient_type,
+     $         test_grdpts_available,
+     $         test_data_needed_bounds0,
+     $         test_ierror_proc,
+     $         test_newgrdpt)
+
+          bf_localization = E
+
+          bf_alignment0 = reshape(
+     $         (/align_E, align_N-2, align_E+1, align_N-2/),
+     $         (/2,2/))
+          bf_alignment1 = reshape(
+     $         (/align_E-1, align_N-2, align_E+2, align_N-1/),
+     $         (/2,2/))
+
+          bf_can_exchange_with_neighbor1 = .false.
+          bf_can_exchange_with_neighbor2 = .false.
+
+          
+
+          select case(test_id)
+            case(1)
+               test_ierror = NEWGRDPT_NO_ERROR
+            case(2)
+               test_ierror = NEWGRDPT_DATA_NBGRDPTS_ERROR
+            case(3)
+               test_ierror = NEWGRDPT_PROC_NBGRDPTS_ERROR
+               bf_newgrdpt_coords1 = [4,5]
+               bf_can_exchange_with_neighbor2 = .true.
+          end select
+
+        end subroutine get_param_test_ask_bf_layer
 
 
         function test_get_newgrdpt_procedure_from_buffer_layer(detailled)
@@ -270,7 +560,7 @@
 
                bf_can_exchange_with_neighbor2 = .true.
 
-               bf_newgrdpt_coords0 = [7,4]
+               bf_newgrdpt_coords0 = [4,7]
 
                test_ierror = .not.BF_SUCCESS
 
@@ -614,13 +904,16 @@
                bf_newgrdpt_coords0 = [5,4]
                bf_newgrdpt_coords1 = [6,4]
 
+               bf_grdpts_id0 = reshape((/
+     $              ((no_pt,i=1,6),j=1,5)/),(/6,5/))
+
                bf_grdpts_id0(2:4,1:3) = reshape((/
      $              2,2,3,
      $              2,2,3,
      $              3,3,3/),
      $              (/3,3/))
 
-               bf_grdpts_id0(5:5,3:5) = reshape((/
+               bf_grdpts_id0(6:6,3:5) = reshape((/
      $              3,
      $              3,
      $              3/),
@@ -632,6 +925,9 @@
             case(3)
                bf_newgrdpt_coords0 = [3,4]
                bf_newgrdpt_coords1 = [4,4]
+
+               bf_grdpts_id0 = reshape((/
+     $              ((no_pt,i=1,6),j=1,5)/),(/6,5/))
 
                bf_grdpts_id0(1:2,2:4) = reshape((/
      $              2,3,
