@@ -430,12 +430,6 @@
           integer(ikind) :: j
           
           
-          print '(''bf_extract_module'')'
-          print '(''get_grdpts_id_from_bf_layer'')'
-          print '(''not validated'')'
-          stop ''
-
-
           call get_indices_to_extract_bf_layer_data(
      $         bf_alignment,
      $         gen_coords,

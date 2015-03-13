@@ -420,8 +420,8 @@
           real(rkind)   , dimension(:)       , intent(in) :: bf_x_map1
           real(rkind)   , dimension(:)       , intent(in) :: bf_y_map1
           real(rkind)   , dimension(:)       , intent(in) :: bf_nodes1
-          integer(ikind), dimension(2)       , intent(in) :: newgrdpt_coords0
-          integer(ikind), dimension(2)       , intent(in) :: newgrdpt_coords1
+          integer(ikind), dimension(2)       , intent(in) :: bf_newgrdpt_coords0
+          integer(ikind), dimension(2)       , intent(in) :: bf_newgrdpt_coords1
           integer                            , intent(in) :: nb_procedures
           integer       , dimension(4)       , intent(in) :: procedure_type
           integer       , dimension(4)       , intent(in) :: gradient_type
@@ -460,14 +460,14 @@
           if(all_grdpts_available) then
 
              bf_nodes1(
-     $            newgrdpt_coords1(1),
-     $            newgrdpt_coords1(2),
+     $            bf_newgrdpt_coords1(1),
+     $            bf_newgrdpt_coords1(2),
      $            :) =
      $       bf_newgrdpt_used%compute_newgrdpt(
      $            p_model, t, dt,
      $            bf_alignment0, bf_x_map0, bf_y_map0, bf_nodes0,
      $            bf_alignment1, bf_x_map1, bf_y_map1, bf_nodes1,
-     $            newgrdpt_coords1(1),newgrdpt_coords1(2),
+     $            bf_newgrdpt_coords1(1),bf_newgrdpt_coords1(2),
      $            nb_procedures, procedure_type, gradient_type)
 
              ierror = BF_SUCCESS

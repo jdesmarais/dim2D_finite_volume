@@ -5,6 +5,7 @@ include $(AUGEANSTABLES_CONFIG)/makefile_header.mk
 
 #bf_layer_sync
 test_bf_layer_extract.o:	$(sbf_layer_dir)/bf_layer_extract_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(test_dir)/tools/check_data_module.o
@@ -154,13 +155,26 @@ test_bf_newgrdpt_verification:	parameters_bf_layer.o\
 				check_data_module.o
 
 test_bf_newgrdpt_dispatch.o:	$(ngbf_layer_dir)/bf_newgrdpt_dispatch_module.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(dim2d_dir)/dim2d_parameters.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_kind.o
+				$(param_dir)/parameters_kind.o\
+				$(dim2d_dir)/pmodel_eq_class.o
 
 test_bf_newgrdpt_dispatch:	bf_layer_errors_module.o\
+				check_data_module.o\
+				parameters_bf_layer.o\
 				parameters_kind.o\
 				parameters_constant.o\
-				bf_newgrdpt_dispatch_module.o
+				bf_layer_extract_module.o\
+				bf_newgrdpt_class.o\
+				bf_newgrdpt_procedure_module.o\
+				bf_newgrdpt_verification_module.o\
+				bf_newgrdpt_dispatch_module.o\
+				$(mt_ext_dep)\
+				$(dim2d_dep)
 
 
 #buffer_layer/bf_layer_bc_sections

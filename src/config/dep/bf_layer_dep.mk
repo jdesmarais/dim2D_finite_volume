@@ -323,7 +323,11 @@ $(ngbf_layer_dir)/bf_newgrdpt_class.o:\
 
 $(ngbf_layer_dir)/bf_newgrdpt_dispatch_module.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(sbf_layer_dir)/bf_layer_extract_module.o\
+	$(ngbf_layer_dir)/bf_newgrdpt_class.o\
+	$(ngbf_layer_dir)/bf_newgrdpt_procedure_module.o\
 	$(ngbf_layer_dir)/bf_newgrdpt_verification_module.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_kind.o
 
