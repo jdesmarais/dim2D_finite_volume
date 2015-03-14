@@ -10,7 +10,7 @@
       !> to check the dynamic nature of the buffer layer interfaces
       !
       !> @date
-      ! 09_03_2015 - documentation update - J.L. Desmarais
+      ! 09_03_2015 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module mainlayer_interface_dyn_class
 
@@ -46,13 +46,16 @@
         public :: mainlayer_interface_dyn
 
 
-
         !>@class mainlayer_interface_dyn
         !> mainlayer_interface_sync enhanced with procedures
         !> enabling to check the dynamic nature of the
         !> mainlayer interfaces
         !
-        !>@param verify_bf_alignment_and_sync
+        !>@param update_alignment_and_sync_properties
+        !> check whether the alignment should be modified to
+        !> set the buffer layer at the interface between mainlayers
+        !
+        !>@param uniformize_alignment_for_mainlayer_interface
         !> check whether the alignment should be modified to fit
         !> its neighboring buffer layers
         !------------------------------------------------------------

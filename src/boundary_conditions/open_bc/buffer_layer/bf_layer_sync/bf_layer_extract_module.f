@@ -44,7 +44,8 @@
      $       get_grdpts_id_from_interior,
      $       get_grdpts_id_from_bf_layer,
      $       get_nodes_from_interior,
-     $       get_nodes_from_bf_layer
+     $       get_nodes_from_bf_layer,
+     $       get_map_from_interior
 
 
         contains
@@ -431,20 +432,31 @@
         !
         !>@param bf_grdpts_id
         !> grdpts_id of the buffer layer
+        !
+        !>@param extract_param_in
+        !> optional argument to avoid computing the parameters
+        !> needed for the extraction
+        !
+        !>@param extract_param_out
+        !> optional argument to get the parameters needed for the
+        !> extraction
         !--------------------------------------------------------------
         subroutine get_grdpts_id_from_bf_layer(
      $     tmp_grdpts_id,
      $     gen_coords,
      $     bf_alignment,
-     $     bf_grdpts_id)
+     $     bf_grdpts_id,
+     $     extract_param_in,
+     $     extract_param_out)
 
           implicit none
 
-          integer       , dimension(:,:), intent(inout) :: tmp_grdpts_id
-          integer(ikind), dimension(2,2), intent(in)    :: gen_coords
-          integer(ikind), dimension(2,2), intent(in)    :: bf_alignment
-          integer       , dimension(:,:), intent(in)    :: bf_grdpts_id
-
+          integer       , dimension(:,:)          , intent(inout) :: tmp_grdpts_id
+          integer(ikind), dimension(2,2)          , intent(in)    :: gen_coords
+          integer(ikind), dimension(2,2)          , intent(in)    :: bf_alignment
+          integer       , dimension(:,:)          , intent(in)    :: bf_grdpts_id
+          integer(ikind), dimension(6)  , optional, intent(in)    :: extract_param_in
+          integer(ikind), dimension(6)  , optional, intent(out)   :: extract_param_out
 
           integer(ikind) :: size_x
           integer(ikind) :: size_y
@@ -456,12 +468,32 @@
           integer(ikind) :: j
           
           
-          call get_indices_to_extract_bf_layer_data(
-     $         bf_alignment,
-     $         gen_coords,
-     $         size_x, size_y,
-     $         i_recv, j_recv,
-     $         i_send, j_send)
+          if(present(extract_param_in)) then
+             size_x = extract_param_in(1)
+             size_y = extract_param_in(2)
+             i_recv = extract_param_in(3)
+             j_recv = extract_param_in(4)
+             i_send = extract_param_in(5)
+             j_send = extract_param_in(6)
+
+          else
+             call get_indices_to_extract_bf_layer_data(
+     $            bf_alignment,
+     $            gen_coords,
+     $            size_x, size_y,
+     $            i_recv, j_recv,
+     $            i_send, j_send)
+
+             if(present(extract_param_out)) then
+                extract_param_out(1) = size_x
+                extract_param_out(2) = size_y
+                extract_param_out(3) = i_recv
+                extract_param_out(4) = j_recv
+                extract_param_out(5) = i_send
+                extract_param_out(6) = j_send
+             end if
+
+          end if
 
           do j=1, size_y
              do i=1, size_x
@@ -491,30 +523,64 @@
         !
         !>@param interior_nodes
         !> nodes of the interior domain
+        !
+        !>@param extract_param_in
+        !> optional argument to avoid computing the parameters
+        !> needed for the extraction
+        !
+        !>@param extract_param_out
+        !> optional argument to get the parameters needed for the
+        !> extraction
         !--------------------------------------------------------------
         subroutine get_nodes_from_interior(
      $     tmp_nodes,
      $     gen_coords,
-     $     interior_nodes)
+     $     interior_nodes,
+     $     extract_param_in,
+     $     extract_param_out)
 
           implicit none
 
-          real(rkind)   , dimension(:,:,:)   , intent(inout) :: tmp_nodes
-          integer(ikind), dimension(2,2)     , intent(in)    :: gen_coords
-          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          real(rkind)   , dimension(:,:,:)             , intent(inout) :: tmp_nodes
+          integer(ikind), dimension(2,2)               , intent(in)    :: gen_coords
+          real(rkind)   , dimension(nx,ny,ne)          , intent(in)    :: interior_nodes
+          integer(ikind), dimension(6)       , optional, intent(in)    :: extract_param_in
+          integer(ikind), dimension(6)       , optional, intent(out)   :: extract_param_out
+
+          integer(ikind), dimension(2,2) :: alignment
 
 
-          print '(''bf_extract_module'')'
-          print '(''get_nodes_from_interior'')'
-          print '(''NOT VALIDATED'')'
-          stop ''
+          alignment = reshape((/bc_size+1,bc_size+1,nx-bc_size,ny-bc_size/),(/2,2/))
+
           
-          
-          call get_nodes_from_bf_layer(
-     $         tmp_nodes,
-     $         gen_coords,
-     $         reshape((/bc_size+1,bc_size+1,nx-bc_size,ny-bc_size/),(/2,2/)),
-     $         interior_nodes)
+          if(present(extract_param_in)) then
+             call get_nodes_from_bf_layer(
+     $            tmp_nodes,
+     $            gen_coords,
+     $            alignment,
+     $            interior_nodes,
+     $            extract_param_in=extract_param_in)
+
+          else
+
+             if(present(extract_param_out)) then
+                call get_nodes_from_bf_layer(
+     $               tmp_nodes,
+     $               gen_coords,
+     $               alignment,
+     $               interior_nodes,
+     $               extract_param_out=extract_param_out)
+
+             else
+                call get_nodes_from_bf_layer(
+     $               tmp_nodes,
+     $               gen_coords,
+     $               alignment,
+     $               interior_nodes)
+
+             end if
+
+          end if
 
         end subroutine get_nodes_from_interior
 
@@ -542,20 +608,31 @@
         !
         !>@param bf_nodes
         !> nodes of the buffer layer
+        !
+        !>@param extract_param_in
+        !> optional argument to avoid computing the parameters
+        !> needed for the extraction
+        !
+        !>@param extract_param_out
+        !> optional argument to get the parameters needed for the
+        !> extraction
         !--------------------------------------------------------------
         subroutine get_nodes_from_bf_layer(
      $     tmp_nodes,
      $     gen_coords,
      $     bf_alignment,
-     $     bf_nodes)
+     $     bf_nodes,
+     $     extract_param_in,
+     $     extract_param_out)
 
           implicit none
 
-          real(rkind)   , dimension(:,:,:), intent(inout) :: tmp_nodes
-          integer(ikind), dimension(2,2)  , intent(in)    :: gen_coords
-          integer(ikind), dimension(2,2)  , intent(in)    :: bf_alignment
-          real(rkind)   , dimension(:,:,:), intent(in)    :: bf_nodes
-
+          real(rkind)   , dimension(:,:,:)          , intent(inout) :: tmp_nodes
+          integer(ikind), dimension(2,2)            , intent(in)    :: gen_coords
+          integer(ikind), dimension(2,2)            , intent(in)    :: bf_alignment
+          real(rkind)   , dimension(:,:,:)          , intent(in)    :: bf_nodes
+          integer(ikind), dimension(6)    , optional, intent(in)    :: extract_param_in
+          integer(ikind), dimension(6)    , optional, intent(out)   :: extract_param_out
 
           integer(ikind) :: size_x
           integer(ikind) :: size_y
@@ -568,18 +645,32 @@
           integer        :: k
           
           
-          print '(''bf_extract_module'')'
-          print '(''get_nodes_from_bf_layer'')'
-          print '(''NOT VALIDATED'')'
-          stop ''
-          
+          if(present(extract_param_in)) then
+             size_x = extract_param_in(1)
+             size_y = extract_param_in(2)
+             i_recv = extract_param_in(3)
+             j_recv = extract_param_in(4)
+             i_send = extract_param_in(5)
+             j_send = extract_param_in(6)
 
-          call get_indices_to_extract_bf_layer_data(
-     $         bf_alignment,
-     $         gen_coords,
-     $         size_x, size_y,
-     $         i_recv, j_recv,
-     $         i_send, j_send)
+          else
+             call get_indices_to_extract_bf_layer_data(
+     $            bf_alignment,
+     $            gen_coords,
+     $            size_x, size_y,
+     $            i_recv, j_recv,
+     $            i_send, j_send)
+
+             if(present(extract_param_out)) then
+                extract_param_out(1) = size_x
+                extract_param_out(2) = size_y
+                extract_param_out(3) = i_recv
+                extract_param_out(4) = j_recv
+                extract_param_out(5) = i_send
+                extract_param_out(6) = j_send
+             end if
+
+          end if
 
           do k=1,ne
              do j=1, size_y
@@ -588,8 +679,124 @@
      $                  bf_nodes(i_send+i-1,j_send+j-1,k)
                 end do
              end do
-          end do
+          end do          
 
         end subroutine get_nodes_from_bf_layer
+
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> extract the map corresponding to the gen_coords
+        !> if the interior map is provided
+        !
+        !> @date
+        !> 14_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param tmp_map
+        !> array with the nodes extracted
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> domain extracted
+        !
+        !>@param bf_alignment
+        !> relative position of the buffer layer compared to the
+        !> interior domain
+        !
+        !>@param bf_nodes
+        !> nodes of the buffer layer
+        !--------------------------------------------------------------
+        subroutine get_map_from_interior(
+     $     tmp_map,
+     $     gen_coords,
+     $     interior_s_map)
+
+          implicit none
+
+          real(rkind), dimension(:), intent(out) :: tmp_map
+          integer    , dimension(2), intent(in)  :: gen_coords
+          real(rkind), dimension(:), intent(in)  :: interior_s_map
+
+          real(rkind) :: ds
+          integer     :: i
+          integer     :: size_tmp
+          integer     :: size_map
+
+
+          size_map = size(interior_s_map,1)
+
+
+          ! --[-----]---|-------|--------
+          if(gen_coords(2).le.0) then
+
+             ds = interior_s_map(2)-interior_s_map(1)
+
+             do i=gen_coords(1),gen_coords(2)
+                
+                tmp_map(i-gen_coords(1)+1) = interior_s_map(1) + (i-1)*ds
+
+             end do
+
+          else
+          ! --------[--|--]-----|--------
+             if(gen_coords(1).le.0) then
+
+                ds = interior_s_map(2)-interior_s_map(1)
+
+                do i=gen_coords(1),0
+                   tmp_map(i-gen_coords(1)+1) = interior_s_map(1) + (i-1)*ds
+                end do
+
+                size_tmp = -gen_coords(1) + 1
+
+                do i=1,gen_coords(2)
+                   tmp_map(size_tmp+i) = interior_s_map(i)
+                end do
+
+          ! -----------|-[-----]|--------
+             else
+                if(gen_coords(2).le.size_map) then
+
+                   do i=gen_coords(1),gen_coords(2)
+                      tmp_map(i-gen_coords(1)+1) = interior_s_map(i)
+                   end do
+
+          ! -----------|-----[--|--]-----
+                else
+
+                   ds = interior_s_map(size_map) -
+     $                  interior_s_map(size_map-1)
+
+                   if(gen_coords(1).le.size_map) then
+                      
+                      do i=gen_coords(1),size_map
+                         tmp_map(i-gen_coords(1)+1) = interior_s_map(i)
+                      end do
+
+                      size_tmp = size_map - gen_coords(1) + 1
+
+                      do i=size_map+1,gen_coords(2)
+                         tmp_map(size_tmp+i) = interior_s_map(size_map) +
+     $                                         (i-size_map)*ds
+                      end do
+
+           ! -----------|--------|-[-----]
+                   else
+
+                      do i=gen_coords(1),gen_coords(2)
+                         tmp_map(i-gen_coords(1)+1) = interior_s_map(size_map) +
+     $                                                (i-size_map)*ds
+                      end do
+
+                   end if
+                end if
+             end if
+          end if
+
+
+        end subroutine get_map_from_interior
 
       end module bf_layer_extract_module

@@ -155,6 +155,17 @@ $(mbf_layer_dir)/mainlayer_interface_dyn_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
+$(mbf_layer_dir)/mainlayer_interface_newgrdpt_class.o:\
+	$(sbf_layer_dir)/bf_layer_extract_module.o\
+	$(ngbf_layer_dir)/bf_newgrdpt_class.o\
+	$(ngbf_layer_dir)/bf_newgrdpt_procedure_module.o\
+	$(ngbf_layer_dir)/bf_newgrdpt_verification_module.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(mbf_layer_dir)/mainlayer_interface_dyn_class.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	$(pm_cdir)/pmodel_eq_class.o
+
 
 #bf_interface parents
 $(ipbf_layer_dir)/bf_interface_basic_class.o:\
@@ -360,6 +371,7 @@ $(cbf_layer_dir)/bf_compute_class.o:\
 
 $(cbf_layer_dir)/bf_compute_newgrdpt_class.o:\
 	$(cbf_layer_dir)/bf_compute_time_class.o\
+	$(sbf_layer_dir)/bf_layer_extract_module.o\
 	$(ngbf_layer_dir)/bf_newgrdpt_dispatch_module.o\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o

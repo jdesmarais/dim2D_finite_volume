@@ -5,19 +5,25 @@
      $     get_indices_to_extract_bf_layer_data,
      $     get_bf_layer_match_table,
      $     get_grdpts_id_from_interior,
-     $     get_grdpts_id_from_bf_layer
+     $     get_grdpts_id_from_bf_layer,
+     $     get_nodes_from_interior,
+     $     get_nodes_from_bf_layer,
+     $     get_map_from_interior
 
         use check_data_module, only :
-     $       is_int_matrix_validated
+     $       is_int_matrix_validated,
+     $       is_real_vector_validated,
+     $       is_real_matrix3D_validated
 
         use parameters_bf_layer, only :
      $       align_N,align_W
 
         use parameters_input, only :
-     $       nx,ny
+     $       nx,ny,ne
 
         use parameters_kind, only :
-     $       ikind
+     $       ikind,
+     $       rkind
 
 
         logical :: detailled
@@ -52,6 +58,21 @@
         test_loc = test_get_grdpts_id_from_bf_layer(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_get_grdpts_id_from_bf_layer: '',L1)', test_loc
+        print '()'
+
+        test_loc = test_get_nodes_from_interior(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_get_nodes_from_interior: '',L1)', test_loc
+        print '()'
+
+        test_loc = test_get_nodes_from_bf_layer(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_get_nodes_from_bf_layer: '',L1)', test_loc
+        print '()'
+
+        test_loc = test_get_map_from_interior(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_get_map_from_interior: '',L1)', test_loc
         print '()'
 
 
@@ -351,5 +372,298 @@
      $         detailled)
 
         end function test_get_grdpts_id_from_bf_layer
+
+
+        function test_get_nodes_from_interior(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          real(rkind)   , dimension(7,6,ne)   :: tmp_nodes
+          real(rkind)   , dimension(7,6,ne)   :: tmp_nodes_test
+          integer(ikind), dimension(2,2)      :: gen_coords
+          real(rkind)   , dimension(nx,ny,ne) :: interior_nodes
+
+          integer(ikind), dimension(6)        :: extract_param
+          
+          logical        :: test_loc
+          integer(ikind) :: i,j
+          integer        :: k
+
+          test_validated = .true.
+
+
+          gen_coords = reshape(
+     $         (/align_W,align_N-4,align_W+6,align_N+1/),(/2,2/))
+
+          interior_nodes = reshape((/
+     $         (((200*(k-1)+20*(j-1)+(i-1),i=1,nx),j=1,ny),k=1,ne)/),
+     $         (/nx,ny,ne/))
+
+          tmp_nodes_test = reshape((/
+     $         (((200*(k-1)+20*(align_N-5+j-1)+(align_W-1+i-1),i=1,7),j=1,6),k=1,ne)/),
+     $         (/7,6,ne/))
+
+
+          !no optional arguments test
+          !------------------------------------------------------------
+          call get_nodes_from_interior(
+     $         tmp_nodes,
+     $         gen_coords,
+     $         interior_nodes)
+
+          test_loc = is_real_matrix3D_validated(
+     $         tmp_nodes,
+     $         tmp_nodes_test,
+     $         detailled)
+          test_loc = test_loc.and.test_validated
+          if(detailled.and.(.not.test_loc)) then
+             print '(''no optional arg failed'')'
+          end if
+
+
+          !extract_param_out optional argument
+          !------------------------------------------------------------
+          tmp_nodes = reshape((/
+     $         (((-99.0d0,i=1,7),j=1,6),k=1,ne)/),
+     $         (/7,6,ne/))
+
+          call get_nodes_from_interior(
+     $         tmp_nodes,
+     $         gen_coords,
+     $         interior_nodes,
+     $         extract_param_out=extract_param)
+
+          test_loc = is_real_matrix3D_validated(
+     $         tmp_nodes,
+     $         tmp_nodes_test,
+     $         detailled)
+          test_loc = test_loc.and.test_validated
+          if(detailled.and.(.not.test_loc)) then
+             print '(''extract_param_out optional arg failed'')'
+          end if
+
+
+          !extract_param_in optional argument
+          !------------------------------------------------------------
+          tmp_nodes = reshape((/
+     $         (((-99.0d0,i=1,7),j=1,6),k=1,ne)/),
+     $         (/7,6,ne/))
+
+          call get_nodes_from_interior(
+     $         tmp_nodes,
+     $         gen_coords,
+     $         interior_nodes,
+     $         extract_param_in=extract_param)
+
+          test_loc = is_real_matrix3D_validated(
+     $         tmp_nodes,
+     $         tmp_nodes_test,
+     $         detailled)
+          test_loc = test_loc.and.test_validated
+          if(detailled.and.(.not.test_loc)) then
+             print '(''extract_param_in optional arg failed'')'
+          end if
+
+        end function test_get_nodes_from_interior
+
+
+        function test_get_nodes_from_bf_layer(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          real(rkind)   , dimension(7,6,ne) :: tmp_nodes
+          real(rkind)   , dimension(7,6,ne) :: tmp_nodes_test
+          integer(ikind), dimension(2,2)    :: gen_coords
+          integer(ikind), dimension(2,2)    :: bf_alignment
+          real(rkind)   , dimension(9,8,ne) :: bf_nodes
+
+          integer(ikind), dimension(6)      :: extract_param
+          
+          logical        :: test_loc
+          integer(ikind) :: i,j
+          integer        :: k
+
+          test_validated = .true.
+
+
+          gen_coords   = reshape((/align_W-4, align_N-1, align_W+2, align_N+4/),(/2,2/))
+
+          bf_alignment = reshape((/align_W-3, align_N  , align_W+1, align_N+3/),(/2,2/))
+
+          bf_nodes = reshape((/
+     $         (((200*(k-1)+20*(align_N-3+j-1)+(align_W-6+i-1),i=1,9),j=1,8),k=1,ne)/),
+     $         (/9,8,ne/))
+
+          tmp_nodes_test = reshape((/
+     $         (((200*(k-1)+20*(align_N-2+j-1)+(align_W-5+i-1),i=1,7),j=1,6),k=1,ne)/),
+     $         (/7,6,ne/))
+
+
+          !no optional arguments test
+          !------------------------------------------------------------
+          call get_nodes_from_bf_layer(
+     $         tmp_nodes,
+     $         gen_coords,
+     $         bf_alignment,
+     $         bf_nodes)
+
+          test_loc = is_real_matrix3D_validated(
+     $         tmp_nodes,
+     $         tmp_nodes_test,
+     $         detailled)
+          test_loc = test_loc.and.test_validated
+          if(detailled.and.(.not.test_loc)) then
+             print '(''no optional arg failed'')'
+          end if
+
+
+          !extract_param_out optional argument
+          !------------------------------------------------------------
+          tmp_nodes = reshape((/
+     $         (((-99.0d0,i=1,7),j=1,6),k=1,ne)/),
+     $         (/7,6,ne/))
+
+          call get_nodes_from_bf_layer(
+     $         tmp_nodes,
+     $         gen_coords,
+     $         bf_alignment,
+     $         bf_nodes,
+     $         extract_param_out=extract_param)
+
+          test_loc = is_real_matrix3D_validated(
+     $         tmp_nodes,
+     $         tmp_nodes_test,
+     $         detailled)
+          test_loc = test_loc.and.test_validated
+          if(detailled.and.(.not.test_loc)) then
+             print '(''extract_param_out optional arg failed'')'
+          end if
+
+
+          !extract_param_in optional argument
+          !------------------------------------------------------------
+          tmp_nodes = reshape((/
+     $         (((-99.0d0,i=1,7),j=1,6),k=1,ne)/),
+     $         (/7,6,ne/))
+
+          call get_nodes_from_bf_layer(
+     $         tmp_nodes,
+     $         gen_coords,
+     $         bf_alignment,
+     $         bf_nodes,
+     $         extract_param_in=extract_param)
+
+          test_loc = is_real_matrix3D_validated(
+     $         tmp_nodes,
+     $         tmp_nodes_test,
+     $         detailled)
+          test_loc = test_loc.and.test_validated
+          if(detailled.and.(.not.test_loc)) then
+             print '(''extract_param_in optional arg failed'')'
+          end if
+
+        end function test_get_nodes_from_bf_layer
+
+
+        function test_get_map_from_interior(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          real(rkind)   , dimension(5)  :: tmp_map_test
+          real(rkind)   , dimension(5)  :: tmp_map
+          integer(ikind), dimension(2)  :: gen_coords
+          real(rkind)   , dimension(20) :: interior_map
+
+          integer :: k
+          logical :: test_loc
+
+
+          test_validated = .true.
+
+
+          do k=1,5
+
+             !input
+             call get_param_test_get_map_from_interior(
+     $            k,
+     $            tmp_map_test,
+     $            gen_coords,
+     $            interior_map)
+
+
+             !output
+             call get_map_from_interior(
+     $            tmp_map,
+     $            gen_coords,
+     $            interior_map)
+
+
+             !validation
+             test_loc = is_real_vector_validated(
+     $            tmp_map,
+     $            tmp_map_test,
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+             if(detailled.and.(.not.test_validated)) then
+                print '(''test('',I1,'') failed'')',k
+             end if
+
+          end do
+
+        end function test_get_map_from_interior
+
+
+        subroutine get_param_test_get_map_from_interior(
+     $     test_id,
+     $     tmp_map_test,
+     $     gen_coords,
+     $     interior_map)
+
+          implicit none
+
+          integer                      , intent(in)  :: test_id
+          real(rkind)   , dimension(5) , intent(out) :: tmp_map_test
+          integer(ikind), dimension(2) , intent(out) :: gen_coords
+          real(rkind)   , dimension(20), intent(out) :: interior_map
+
+          integer :: i
+
+
+          interior_map = (/(i,i=1,20)/)
+
+          select case(test_id)
+
+            case(1)
+               gen_coords = [-10,-6]
+
+            case(2)
+               gen_coords = [-2,2]
+
+            case(3)
+               gen_coords = [5,9]
+
+            case(4)
+               gen_coords = [8,12]
+
+            case(5)
+               gen_coords = [13,17]
+
+          end select
+
+          tmp_map_test = (/ (gen_coords(1)-1+i,i=1,5) /)
+
+        end subroutine get_param_test_get_map_from_interior
 
       end program test_bf_layer_extract

@@ -17,7 +17,8 @@
      $       bf_layer_time
 
         use bf_layer_extract_module, only :
-     $       get_indices_to_extract_bf_layer_data
+     $       get_grdpts_id_from_bf_layer,
+     $       get_nodes_from_bf_layer
 
         use parameters_bf_layer, only :
      $       NEWGRDPT_NO_PREVIOUS_DATA_ERROR
@@ -56,250 +57,16 @@
 
            contains           
 
-c$$$           !procedures for updating the gridpts_id
-c$$$           procedure,   pass :: get_grdpts_id_part
-c$$$           procedure,   pass :: set_grdpts_id_part
-c$$$
            !procedures for the computation of new grid points
-c$$$           procedure,   pass :: get_data_for_newgrdpt
-           procedure,   pass :: compute_newgrdpt
+           procedure, pass :: compute_newgrdpt
+
+           !procedure for the extraction of the grdpts_id or nodes
+           procedure, pass :: extract_grdpts_id
+           procedure, pass :: extract_nodes           
 
         end type bf_layer_newgrdpt
 
         contains
-
-
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> get the grdpts_id matching the gen_coords
-c$$$        !
-c$$$        !> @date
-c$$$        !> 27_11_2014 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param this
-c$$$        !> bf_layer object encapsulating the main
-c$$$        !> tables extending the interior domain
-c$$$        !
-c$$$        !>@param gen_coords
-c$$$        !> logical identifying whether the buffer layer should be
-c$$$        !> removed or not
-c$$$        !--------------------------------------------------------------
-c$$$        subroutine get_grdpts_id_part(
-c$$$     $     this,
-c$$$     $     tmp_grdptsid,
-c$$$     $     gen_coords,
-c$$$     $     previous_step)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer_newgrdpt)            , intent(in)    :: this
-c$$$          integer             , dimension(:,:), intent(inout) :: tmp_grdptsid
-c$$$          integer(ikind)      , dimension(2,2), intent(in)    :: gen_coords
-c$$$          logical             , optional      , intent(in)    :: previous_step
-c$$$
-c$$$          
-c$$$          integer(ikind) :: size_x,size_y
-c$$$          integer(ikind) :: i_recv,i_send,j_recv,j_send
-c$$$          integer(ikind) :: i,j
-c$$$
-c$$$          logical :: previous_step_op
-c$$$
-c$$$          if(present(previous_step)) then
-c$$$             previous_step_op = previous_step
-c$$$          else
-c$$$             previous_step_op = .false.
-c$$$          end if
-c$$$
-c$$$
-c$$$          if(previous_step_op) then
-c$$$
-c$$$            !get the grdpts_id at the previous time step
-c$$$             call this%bf_compute_used%get_grdpts_id_part(
-c$$$     $            tmp_grdptsid,
-c$$$     $            gen_coords)
-c$$$
-c$$$          else
-c$$$
-c$$$             !get the synchronization indices
-c$$$             call get_indices_to_extract_bf_layer_data(
-c$$$     $            this%alignment,
-c$$$     $            gen_coords,
-c$$$     $            size_x, size_y,
-c$$$     $            i_recv, j_recv,
-c$$$     $            i_send, j_send)
-c$$$             
-c$$$             
-c$$$             !fill the grid points asked
-c$$$             do j=1, size_y
-c$$$                do i=1, size_x
-c$$$                   
-c$$$                   tmp_grdptsid(i_recv+i-1,j_recv+j-1) =
-c$$$     $                  this%grdpts_id(i_send+i-1,j_send+j-1)
-c$$$             
-c$$$                end do
-c$$$             end do
-c$$$
-c$$$          end if
-c$$$
-c$$$        end subroutine get_grdpts_id_part
-c$$$
-c$$$
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> set the grdpts_id matching the gen_coords
-c$$$        !
-c$$$        !> @date
-c$$$        !> 21_01_2015 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param this
-c$$$        !> bf_layer object encapsulating the main
-c$$$        !> tables extending the interior domain
-c$$$        !
-c$$$        !>@param gen_coords
-c$$$        !> logical identifying whether the buffer layer should be
-c$$$        !> removed or not
-c$$$        !--------------------------------------------------------------
-c$$$        subroutine set_grdpts_id_part(
-c$$$     $     this,
-c$$$     $     tmp_grdptsid,
-c$$$     $     gen_coords)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer_newgrdpt)            , intent(inout) :: this
-c$$$          integer             , dimension(:,:), intent(in)    :: tmp_grdptsid
-c$$$          integer(ikind)      , dimension(2,2), intent(in)    :: gen_coords
-c$$$
-c$$$          
-c$$$          integer(ikind) :: size_x,size_y
-c$$$          integer(ikind) :: i_recv,i_send,j_recv,j_send
-c$$$          integer(ikind) :: i,j
-c$$$
-c$$$
-c$$$          !get the synchronization indices
-c$$$          call get_indices_to_extract_bf_layer_data(
-c$$$     $         this%alignment,
-c$$$     $         gen_coords,
-c$$$     $         size_x, size_y,
-c$$$     $         i_recv, j_recv,
-c$$$     $         i_send, j_send)
-c$$$
-c$$$
-c$$$          !fill the grid points asked
-c$$$          do j=1, size_y
-c$$$             do i=1, size_x
-c$$$                
-c$$$                this%grdpts_id(i_send+i-1,j_send+j-1) = 
-c$$$     $               tmp_grdptsid(i_recv+i-1,j_recv+j-1)
-c$$$
-c$$$             end do
-c$$$          end do
-c$$$
-c$$$        end subroutine set_grdpts_id_part
-c$$$
-c$$$
-c$$$        !> @author
-c$$$        !> Julien L. Desmarais
-c$$$        !
-c$$$        !> @brief
-c$$$        !> get the grdpts_id, the coordinate maps and the
-c$$$        !> nodes at t-dt and t corresponding to the general
-c$$$        !> coordinates gen_coords
-c$$$        !    ___________________
-c$$$        !   |                  _|_________
-c$$$        !   |    buffer layer |/|         |
-c$$$        !   |                 |/|  tmp    |
-c$$$        !   !                 !/!         !
-c$$$        !                   overlapping which is copied
-c$$$        !                     from buffer layer to tmp
-c$$$        !
-c$$$        !> @date
-c$$$        !> 18_11_2014 - initial version - J.L. Desmarais
-c$$$        !
-c$$$        !>@param this
-c$$$        !> bf_layer object encapsulating the main
-c$$$        !> tables extending the interior domain
-c$$$        !
-c$$$        !>@param tmp_grdpts_id0
-c$$$        !> array with the grdpts_id data
-c$$$        !
-c$$$        !>@param tmp_nodes0
-c$$$        !> array with the grid points data at t-dt
-c$$$        !
-c$$$        !>@param tmp_nodes1
-c$$$        !> array with the grid points data at t
-c$$$        !
-c$$$        !>@param gen_coords
-c$$$        !> coordinates of the SW corner and the NE corners of the
-c$$$        !> tmp arrays computed
-c$$$        !--------------------------------------------------------------
-c$$$        subroutine get_data_for_newgrdpt(
-c$$$     $     this,
-c$$$     $     tmp_grdpts_id0,
-c$$$     $     tmp_nodes0,
-c$$$     $     tmp_nodes1,
-c$$$     $     gen_coords)
-c$$$
-c$$$          implicit none
-c$$$
-c$$$          class(bf_layer_newgrdpt)        , intent(in)    :: this
-c$$$          integer       , dimension(:,:)  , intent(inout) :: tmp_grdpts_id0
-c$$$          real(rkind)   , dimension(:,:,:), intent(inout) :: tmp_nodes0
-c$$$          real(rkind)   , dimension(:,:,:), intent(inout) :: tmp_nodes1
-c$$$          integer(ikind), dimension(2,2)  , intent(in)    :: gen_coords
-c$$$
-c$$$
-c$$$          integer(ikind) :: size_x,size_y
-c$$$          integer(ikind) :: i_recv,i_send,j_recv,j_send
-c$$$          integer(ikind) :: i,j
-c$$$          integer        :: k
-c$$$
-c$$$
-c$$$          if(allocated(this%nodes)) then
-c$$$
-c$$$             !get the synchronization indices
-c$$$             !for nodes at t
-c$$$             call get_indices_to_extract_bf_layer_data(
-c$$$     $            this%alignment,
-c$$$     $            gen_coords,
-c$$$     $            size_x, size_y,
-c$$$     $            i_recv, j_recv,
-c$$$     $            i_send, j_send)        
-c$$$
-c$$$
-c$$$             !extract nodes at t
-c$$$             do k=1,ne
-c$$$                do j=1, size_y
-c$$$                   do i=1, size_x
-c$$$
-c$$$                      tmp_nodes1(i_recv+i-1,j_recv+j-1,k) =
-c$$$     $                     this%nodes(i_send+i-1,j_send+j-1,k)
-c$$$
-c$$$                   end do
-c$$$                end do
-c$$$             end do
-c$$$
-c$$$
-c$$$             !extract nodes and grdpts_id at t-dt
-c$$$             call this%bf_compute_used%get_data_for_newgrdpt(
-c$$$     $            tmp_grdpts_id0,
-c$$$     $            tmp_nodes0,
-c$$$     $            gen_coords)
-c$$$
-c$$$          else
-c$$$
-c$$$             print '(''bf_layer_time_class'')'
-c$$$             print '(''get_data_for_newgrdpt'')'
-c$$$             print '(''nodes is not allocated'')'
-c$$$             stop ''
-c$$$
-c$$$          end if
-c$$$
-c$$$        end subroutine get_data_for_newgrdpt
 
 
         !> @author
@@ -386,5 +153,261 @@ c$$$        end subroutine get_data_for_newgrdpt
           end if
 
         end function compute_newgrdpt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> extract the grdpts_id at t-dt or t
+        !
+        !> @date
+        !> 14_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param tmp_grdpts_id
+        !> array with the grdpts_id data extracted
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> domain extracted
+        !
+        !>@param extract_param_in
+        !> optional argument to avoid computing the parameters
+        !> needed for the extraction
+        !
+        !>@param extract_param_out
+        !> optional argument to get the parameters needed for the
+        !> extraction
+        !
+        !>@param previous_step
+        !> logical identifying whether the grdpts_id at the previous step (t-dt)
+        !> or the current grdpts_id (t) are extracted
+        !--------------------------------------------------------------
+        subroutine extract_grdpts_id(
+     $     this,
+     $     tmp_grdpts_id,
+     $     gen_coords,
+     $     extract_param_in,
+     $     extract_param_out,
+     $     previous_step)
+
+          implicit none
+          
+          class(bf_layer_newgrdpt)                , intent(in)    :: this
+          integer       , dimension(:,:)          , intent(inout) :: tmp_grdpts_id
+          integer(ikind), dimension(2,2)          , intent(in)    :: gen_coords
+          integer(ikind), dimension(6)  , optional, intent(in)    :: extract_param_in
+          integer(ikind), dimension(6)  , optional, intent(out)   :: extract_param_out
+          logical                       , optional, intent(in)    :: previous_step
+
+
+          logical :: previous_step_op
+
+
+          print '(''bf_layer_newgrdpt_class'')'
+          print '(''extract_grdpts_id'')'
+          stop 'NOT VALIDATED'
+
+
+          if(present(previous_step)) then
+             previous_step_op = previous_step
+          else
+             previous_step_op = .false.
+          end if
+
+
+          if(previous_step_op) then
+             if(this%does_previous_timestep_exist()) then
+
+                if(present(extract_param_in)) then
+                   call this%bf_compute_used%extract_grdpts_id(
+     $                  tmp_grdpts_id,
+     $                  gen_coords,
+     $                  extract_param_in=extract_param_in)
+
+                else
+
+                   if(present(extract_param_out)) then
+                      call this%bf_compute_used%extract_grdpts_id(
+     $                  tmp_grdpts_id,
+     $                  gen_coords,
+     $                  extract_param_out=extract_param_out)
+
+                   else
+                      call this%bf_compute_used%extract_grdpts_id(
+     $                  tmp_grdpts_id,
+     $                  gen_coords)
+
+                   end if
+
+                end if
+
+             end if
+
+          else
+
+             if(present(extract_param_in)) then
+                
+                call get_grdpts_id_from_bf_layer(
+     $               tmp_grdpts_id,
+     $               gen_coords,
+     $               this%alignment,
+     $               this%grdpts_id,
+     $               extract_param_in=extract_param_in)
+
+             else
+
+                if(present(extract_param_out)) then
+
+                   call get_grdpts_id_from_bf_layer(
+     $                  tmp_grdpts_id,
+     $                  gen_coords,
+     $                  this%alignment,
+     $                  this%grdpts_id,
+     $                  extract_param_out=extract_param_out)
+
+                else
+
+                   call get_grdpts_id_from_bf_layer(
+     $                  tmp_grdpts_id,
+     $                  gen_coords,
+     $                  this%alignment,
+     $                  this%grdpts_id)
+
+                end if
+
+             end if
+
+          end if
+
+        end subroutine extract_grdpts_id
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> extract the nodes at t-dt or t
+        !
+        !> @date
+        !> 14_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param tmp_nodes
+        !> array with the nodes data extracted
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> domain extracted
+        !
+        !>@param extract_param_in
+        !> optional argument to avoid computing the parameters
+        !> needed for the extraction
+        !
+        !>@param extract_param_out
+        !> optional argument to get the parameters needed for the
+        !> extraction
+        !
+        !>@param previous_step
+        !> logical identifying whether the nodes at the previous step (t-dt)
+        !> or the current nodes (t) are extracted
+        !--------------------------------------------------------------
+        subroutine extract_nodes(
+     $     this,
+     $     tmp_nodes,
+     $     gen_coords,
+     $     extract_param_in,
+     $     extract_param_out,
+     $     previous_step)
+
+          implicit none
+          
+          class(bf_layer_newgrdpt)                , intent(in)    :: this
+          real(rkind)   , dimension(:,:,:)        , intent(inout) :: tmp_nodes
+          integer(ikind), dimension(2,2)          , intent(in)    :: gen_coords
+          integer(ikind), dimension(6)  , optional, intent(in)    :: extract_param_in
+          integer(ikind), dimension(6)  , optional, intent(out)   :: extract_param_out
+          logical                       , optional, intent(in)    :: previous_step
+
+
+          logical :: previous_step_op
+
+
+          print '(''bf_layer_newgrdpt_class'')'
+          print '(''extract_nodes'')'
+          stop 'NOT VALIDATED'
+
+
+          if(present(previous_step)) then
+             previous_step_op = previous_step
+          else
+             previous_step_op = .false.
+          end if
+
+
+          if(previous_step_op) then
+             if(this%does_previous_timestep_exist()) then
+
+                if(present(extract_param_in)) then
+                   call this%bf_compute_used%extract_nodes(
+     $                  tmp_nodes,
+     $                  gen_coords,
+     $                  extract_param_in=extract_param_in)
+
+                else
+
+                   if(present(extract_param_out)) then
+                      call this%bf_compute_used%extract_nodes(
+     $                  tmp_nodes,
+     $                  gen_coords,
+     $                  extract_param_out=extract_param_out)
+
+                   else
+                      call this%bf_compute_used%extract_nodes(
+     $                  tmp_nodes,
+     $                  gen_coords)
+
+                   end if
+
+                end if
+
+             end if
+
+          else
+
+             if(present(extract_param_in)) then
+                
+                call get_nodes_from_bf_layer(
+     $               tmp_nodes,
+     $               gen_coords,
+     $               this%alignment,
+     $               this%nodes,
+     $               extract_param_in=extract_param_in)
+
+             else
+
+                if(present(extract_param_out)) then
+
+                   call get_nodes_from_bf_layer(
+     $                  tmp_nodes,
+     $                  gen_coords,
+     $                  this%alignment,
+     $                  this%nodes,
+     $                  extract_param_out=extract_param_out)
+
+                else
+
+                   call get_nodes_from_bf_layer(
+     $                  tmp_nodes,
+     $                  gen_coords,
+     $                  this%alignment,
+     $                  this%nodes)
+
+                end if
+
+             end if
+
+          end if
+
+        end subroutine extract_nodes      
 
       end module bf_layer_newgrdpt_class

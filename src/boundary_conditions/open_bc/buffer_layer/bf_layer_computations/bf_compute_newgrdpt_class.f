@@ -19,6 +19,10 @@
         use bf_compute_time_class, only :
      $       bf_compute_time
 
+        use bf_layer_extract_module, only :
+     $       get_grdpts_id_from_bf_layer,
+     $       get_nodes_from_bf_layer
+
         use bf_newgrdpt_dispatch_module, only :
      $       ask_bf_layer_to_compute_newgrdpt
 
@@ -47,6 +51,9 @@
           contains
 
           procedure, pass :: compute_newgrdpt
+
+          procedure, pass :: extract_grdpts_id
+          procedure, pass :: extract_nodes
 
         end type bf_compute_newgrdpt
 
@@ -200,5 +207,165 @@
      $         data_needed_bounds0)
 
         end function compute_newgrdpt
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> extract the grdpts_id at t-dt
+        !
+        !> @date
+        !> 14_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param tmp_grdpts_id
+        !> array with the grdpts_id data
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> domain extracted
+        !
+        !>@param extract_param_in
+        !> optional argument to avoid computing the parameters
+        !> needed for the extraction
+        !
+        !>@param extract_param_out
+        !> optional argument to get the parameters needed for the
+        !> extraction
+        !--------------------------------------------------------------
+        subroutine extract_grdpts_id(
+     $     this,
+     $     tmp_grdpts_id,
+     $     gen_coords,
+     $     extract_param_in,
+     $     extract_param_out)
+
+          implicit none
+
+          class(bf_compute_newgrdpt)              , intent(in)    :: this
+          integer       , dimension(:,:)          , intent(inout) :: tmp_grdpts_id
+          integer(ikind), dimension(2,2)          , intent(in)    :: gen_coords
+          integer(ikind), dimension(6)  , optional, intent(in)    :: extract_param_in
+          integer(ikind), dimension(6)  , optional, intent(out)   :: extract_param_out
+
+          
+          print '(''bf_compute_newgrdpt_class'')'
+          print '(''extract_grdpts_id'')'
+          stop 'NOT VALIDATED'
+
+
+          if(present(extract_param_in)) then
+             
+             call get_grdpts_id_from_bf_layer(
+     $            tmp_grdpts_id,
+     $            gen_coords,
+     $            this%alignment_tmp,
+     $            this%grdpts_id_tmp,
+     $            extract_param_in=extract_param_in)
+
+          else
+
+             if(present(extract_param_out)) then
+
+                call get_grdpts_id_from_bf_layer(
+     $               tmp_grdpts_id,
+     $               gen_coords,
+     $               this%alignment_tmp,
+     $               this%grdpts_id_tmp,
+     $               extract_param_out=extract_param_out)
+
+             else
+
+                call get_grdpts_id_from_bf_layer(
+     $               tmp_grdpts_id,
+     $               gen_coords,
+     $               this%alignment_tmp,
+     $               this%grdpts_id_tmp)
+
+             end if
+
+          end if
+
+        end subroutine extract_grdpts_id
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> extract the nodes at t-dt
+        !
+        !> @date
+        !> 14_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param tmp_nodes
+        !> array with the nodes extracted
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> domain extracted
+        !
+        !>@param extract_param_in
+        !> optional argument to avoid computing the parameters
+        !> needed for the extraction
+        !
+        !>@param extract_param_out
+        !> optional argument to get the parameters needed for the
+        !> extraction
+        !--------------------------------------------------------------
+        subroutine extract_nodes(
+     $     this,
+     $     tmp_nodes,
+     $     gen_coords,
+     $     extract_param_in,
+     $     extract_param_out)
+
+          implicit none
+
+          class(bf_compute_newgrdpt)              , intent(in)    :: this
+          real(rkind)   , dimension(:,:,:)        , intent(inout) :: tmp_nodes
+          integer(ikind), dimension(2,2)          , intent(in)    :: gen_coords
+          integer(ikind), dimension(6)  , optional, intent(in)    :: extract_param_in
+          integer(ikind), dimension(6)  , optional, intent(out)   :: extract_param_out
+
+          
+          print '(''bf_compute_newgrdpt_class'')'
+          print '(''extract_nodes'')'
+          stop 'NOT VALIDATED'
+
+
+          if(present(extract_param_in)) then
+             
+             call get_nodes_from_bf_layer(
+     $            tmp_nodes,
+     $            gen_coords,
+     $            this%alignment_tmp,
+     $            this%nodes_tmp,
+     $            extract_param_in=extract_param_in)
+
+          else
+
+             if(present(extract_param_out)) then
+
+                call get_nodes_from_bf_layer(
+     $               tmp_nodes,
+     $               gen_coords,
+     $               this%alignment_tmp,
+     $               this%nodes_tmp,
+     $               extract_param_out=extract_param_out)
+
+             else
+
+                call get_nodes_from_bf_layer(
+     $               tmp_nodes,
+     $               gen_coords,
+     $               this%alignment_tmp,
+     $               this%nodes_tmp)
+
+             end if
+
+          end if
+
+        end subroutine extract_nodes
 
       end module bf_compute_newgrdpt_class
