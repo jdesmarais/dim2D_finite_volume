@@ -385,7 +385,6 @@ make cleanall > /dev/null
 rm nodes0.out
 rm timedev.out
 rm nodes1st.out
-
 echo ''
 
 
@@ -403,3 +402,24 @@ $config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'  -v '4'
 make test_bf_newgrdpt_dispatch > /dev/null
 ./test_bf_newgrdpt_dispatch
 make cleanall > /dev/null
+echo ''
+
+
+#test_bf_compute_newgrdpt_class
+echo ''
+echo 'test_bf_compute_newgrdpt_class'
+echo '------------------------------------------------------------'
+make test_bf_compute_newgrdpt > /dev/null
+./test_bf_compute_newgrdpt
+make cleanall > /dev/null
+echo ''
+
+
+#test_bf_layer_newgrdpt_class
+echo ''
+echo 'test_bf_layer_newgrdpt_class'
+echo '------------------------------------------------------------'
+make test_bf_layer_newgrdpt > /dev/null
+./test_bf_layer_newgrdpt
+make cleanall > /dev/null
+echo ''

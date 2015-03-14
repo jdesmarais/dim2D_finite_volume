@@ -27,10 +27,11 @@
      $       N,S,E,W
 
         use parameters_input, only : 
-     $       nx,ny,bc_size
+     $       nx,ny,ne,bc_size
 
         use parameters_kind, only :
-     $       ikind
+     $       ikind,
+     $       rkind
 
         implicit none
 
@@ -41,7 +42,9 @@
      $       get_indices_to_extract_bf_layer_data,
      $       get_bf_layer_match_table,
      $       get_grdpts_id_from_interior,
-     $       get_grdpts_id_from_bf_layer
+     $       get_grdpts_id_from_bf_layer,
+     $       get_nodes_from_interior,
+     $       get_nodes_from_bf_layer
 
 
         contains
@@ -406,6 +409,29 @@
         end subroutine set_grdptid
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> extract grdpts_id from a buffer layer
+        !
+        !> @date
+        !> 14_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param tmp_grdpts_id
+        !> array with the grdpts_id data
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> domain extracted
+        !
+        !>@param bf_alignment
+        !> relative position of the buffer layer compared to the
+        !> interior domain
+        !
+        !>@param bf_grdpts_id
+        !> grdpts_id of the buffer layer
+        !--------------------------------------------------------------
         subroutine get_grdpts_id_from_bf_layer(
      $     tmp_grdpts_id,
      $     gen_coords,
@@ -445,5 +471,125 @@
           end do
 
         end subroutine get_grdpts_id_from_bf_layer
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> extract nodes from the interior domain
+        !
+        !> @date
+        !> 14_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param tmp_nodes
+        !> array with the nodes extracted
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> domain extracted
+        !
+        !>@param interior_nodes
+        !> nodes of the interior domain
+        !--------------------------------------------------------------
+        subroutine get_nodes_from_interior(
+     $     tmp_nodes,
+     $     gen_coords,
+     $     interior_nodes)
+
+          implicit none
+
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: tmp_nodes
+          integer(ikind), dimension(2,2)     , intent(in)    :: gen_coords
+          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+
+
+          print '(''bf_extract_module'')'
+          print '(''get_nodes_from_interior'')'
+          print '(''NOT VALIDATED'')'
+          stop ''
+          
+          
+          call get_nodes_from_bf_layer(
+     $         tmp_nodes,
+     $         gen_coords,
+     $         reshape((/bc_size+1,bc_size+1,nx-bc_size,ny-bc_size/),(/2,2/)),
+     $         interior_nodes)
+
+        end subroutine get_nodes_from_interior
+
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> extract nodes from a buffer layer
+        !
+        !> @date
+        !> 14_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param tmp_nodes
+        !> array with the nodes extracted
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> domain extracted
+        !
+        !>@param bf_alignment
+        !> relative position of the buffer layer compared to the
+        !> interior domain
+        !
+        !>@param bf_nodes
+        !> nodes of the buffer layer
+        !--------------------------------------------------------------
+        subroutine get_nodes_from_bf_layer(
+     $     tmp_nodes,
+     $     gen_coords,
+     $     bf_alignment,
+     $     bf_nodes)
+
+          implicit none
+
+          real(rkind)   , dimension(:,:,:), intent(inout) :: tmp_nodes
+          integer(ikind), dimension(2,2)  , intent(in)    :: gen_coords
+          integer(ikind), dimension(2,2)  , intent(in)    :: bf_alignment
+          real(rkind)   , dimension(:,:,:), intent(in)    :: bf_nodes
+
+
+          integer(ikind) :: size_x
+          integer(ikind) :: size_y
+          integer(ikind) :: i_recv
+          integer(ikind) :: i_send
+          integer(ikind) :: j_recv
+          integer(ikind) :: j_send
+          integer(ikind) :: i
+          integer(ikind) :: j
+          integer        :: k
+          
+          
+          print '(''bf_extract_module'')'
+          print '(''get_nodes_from_bf_layer'')'
+          print '(''NOT VALIDATED'')'
+          stop ''
+          
+
+          call get_indices_to_extract_bf_layer_data(
+     $         bf_alignment,
+     $         gen_coords,
+     $         size_x, size_y,
+     $         i_recv, j_recv,
+     $         i_send, j_send)
+
+          do k=1,ne
+             do j=1, size_y
+                do i=1, size_x
+                   tmp_nodes(i_recv+i-1,j_recv+j-1,k) =
+     $                  bf_nodes(i_send+i-1,j_send+j-1,k)
+                end do
+             end do
+          end do
+
+        end subroutine get_nodes_from_bf_layer
 
       end module bf_layer_extract_module

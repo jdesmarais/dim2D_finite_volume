@@ -107,6 +107,25 @@ test_bf_layer_time:		$(param_dep)\
 				check_data_module.o
 
 
+test_bf_layer_newgrdpt.o:	$(pbf_layer_dir)/bf_layer_newgrdpt_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(dim2d_dir)/dim2d_parameters.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(dim2d_dir)/pmodel_eq_class.o
+
+test_bf_layer_newgrdpt:		$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_layer_newgrdpt_dep)\
+				check_data_module.o
+
+
 #buffer_layer/bf_layer_newgrdpt
 test_bf_newgrdpt_prim.o:	$(ngbf_layer_dir)/bf_newgrdpt_class.o\
 				$(test_dir)/tools/check_data_module.o\
