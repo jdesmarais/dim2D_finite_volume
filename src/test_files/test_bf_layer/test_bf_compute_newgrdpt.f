@@ -6,6 +6,7 @@
         use check_data_module, only :
      $       is_real_validated,
      $       is_real_vector_validated,
+     $       is_real_matrix3D_validated,
      $       is_int_vector_validated,
      $       is_int_matrix_validated,
      $       is_boolean_vector_validated
@@ -57,6 +58,18 @@
         test_loc = test_compute_newgrdpt(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_compute_newgrdpt: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_extract_grdpts_id(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_extract_grdpts_id: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_extract_nodes(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_extract_nodes: '',L1)', test_loc
         print '()'
 
 
@@ -424,6 +437,191 @@
         end subroutine get_param_test_compute_newgrdpt
 
 
+        function test_extract_grdpts_id(detailled) result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_compute_newgrdpt)      :: bf_compute_used
+          integer(ikind), dimension(2,2) :: gen_coords
+          integer(ikind), dimension(6)   :: extract_param
+          integer       , dimension(6,7) :: tmp_grdpts_id_test
+          integer       , dimension(6,7) :: tmp_grdpts_id
+
+          integer(ikind) :: i,j
+
+
+          test_validated = .true.
+
+
+          !input
+          gen_coords = reshape((/align_W+10,align_N+2,align_W+15,align_N+8/),(/2,2/))
+
+          allocate(bf_compute_used%alignment_tmp(2,2))
+          bf_compute_used%alignment_tmp = reshape((/
+     $         align_W,align_N,align_W+10,align_N+2/),
+     $         (/2,2/))          
+
+          allocate(bf_compute_used%grdpts_id_tmp(15,7))
+          bf_compute_used%grdpts_id_tmp = reshape((/
+     $         ((20*(align_N-3+j-1)+(align_W-3+i-1),i=1,15),j=1,7)/),
+     $         (/15,7/))
+
+          tmp_grdpts_id_test = reshape((/((20*(align_N+1+j-1)+align_W+9+(i-1),i=1,6),j=1,7)/),(/6,7/))
+
+
+          !test w/o optional arg
+          !------------------------------------------------------------
+          call bf_compute_used%extract_grdpts_id(
+     $         tmp_grdpts_id,
+     $         gen_coords)
+
+          test_loc = is_int_matrix_validated(
+     $         tmp_grdpts_id(1:3,1:3),
+     $         tmp_grdpts_id_test(1:3,1:3),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''w/o optional arg failed'')'
+          end if
+          
+
+          !test w/ optional arg extract_param_out
+          !------------------------------------------------------------
+          tmp_grdpts_id = reshape((/
+     $         ((-999,i=1,6),j=1,7)/),(/6,7/))
+          call bf_compute_used%extract_grdpts_id(
+     $         tmp_grdpts_id,
+     $         gen_coords,
+     $         extract_param_out=extract_param)
+
+          test_loc = is_int_matrix_validated(
+     $         tmp_grdpts_id(1:3,1:3),
+     $         tmp_grdpts_id_test(1:3,1:3),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''w/ optional arg extract_param_out failed'')'
+          end if
+
+
+          !test w/ optional arg extract_param_in
+          !------------------------------------------------------------
+          tmp_grdpts_id = reshape((/
+     $         ((-999,i=1,6),j=1,7)/),(/6,7/))
+          call bf_compute_used%extract_grdpts_id(
+     $         tmp_grdpts_id,
+     $         gen_coords,
+     $         extract_param_in=extract_param)
+
+          test_loc = is_int_matrix_validated(
+     $         tmp_grdpts_id(1:3,1:3),
+     $         tmp_grdpts_id_test(1:3,1:3),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''w/ optional arg extract_param_in failed'')'
+          end if
+
+        end function test_extract_grdpts_id
+
+
+        function test_extract_nodes(detailled) result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_compute_newgrdpt)         :: bf_compute_used
+          integer(ikind), dimension(2,2)    :: gen_coords
+          integer(ikind), dimension(6)      :: extract_param
+          real(rkind)   , dimension(6,7,ne) :: tmp_nodes_test
+          real(rkind)   , dimension(6,7,ne) :: tmp_nodes
+
+          integer(ikind) :: i,j
+          integer        :: k
+
+
+          test_validated = .true.
+
+
+          !input
+          gen_coords = reshape((/align_W+10,align_N+2,align_W+15,align_N+8/),(/2,2/))
+
+          allocate(bf_compute_used%alignment_tmp(2,2))
+          bf_compute_used%alignment_tmp = reshape((/
+     $         align_W,align_N,align_W+10,align_N+2/),
+     $         (/2,2/))          
+
+          allocate(bf_compute_used%nodes_tmp(15,7,ne))
+          bf_compute_used%nodes_tmp = reshape((/
+     $         (((200*(k-1)+20*(align_N-3+j-1)+(align_W-3+i-1),i=1,15),j=1,7),k=1,ne)/),
+     $         (/15,7,ne/))
+
+          tmp_nodes_test = reshape((/
+     $         (((200*(k-1)+20*(align_N+1+j-1)+align_W+9+(i-1),i=1,6),j=1,7),k=1,ne)/),
+     $         (/6,7,ne/))
+
+
+          !test w/o optional arg
+          !------------------------------------------------------------
+          call bf_compute_used%extract_nodes(
+     $         tmp_nodes,
+     $         gen_coords)
+
+          test_loc = is_real_matrix3D_validated(
+     $         tmp_nodes(1:3,1:3,:),
+     $         tmp_nodes_test(1:3,1:3,:),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''w/o optional arg failed'')'
+          end if
+          
+
+          !test w/ optional arg extract_param_out
+          !------------------------------------------------------------
+          tmp_nodes = reshape((/
+     $         (((-999,i=1,6),j=1,7),k=1,ne)/),(/6,7,ne/))
+          call bf_compute_used%extract_nodes(
+     $         tmp_nodes,
+     $         gen_coords,
+     $         extract_param_out=extract_param)
+
+          test_loc = is_real_matrix3D_validated(
+     $         tmp_nodes(1:3,1:3,:),
+     $         tmp_nodes_test(1:3,1:3,:),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''w/ optional arg extract_param_out failed'')'
+          end if
+
+
+          !test w/ optional arg extract_param_in
+          !------------------------------------------------------------
+          tmp_nodes = reshape((/
+     $         (((-999,i=1,6),j=1,7),k=1,ne)/),(/6,7,ne/))
+          call bf_compute_used%extract_nodes(
+     $         tmp_nodes,
+     $         gen_coords,
+     $         extract_param_in=extract_param)
+
+          test_loc = is_real_matrix3D_validated(
+     $         tmp_nodes(1:3,1:3,:),
+     $         tmp_nodes_test(1:3,1:3,:),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''w/ optional arg extract_param_in failed'')'
+          end if
+
+        end function test_extract_nodes
+
+
         subroutine check_inputs()
 
           implicit none
@@ -458,6 +656,6 @@
              
           end if
 
-        end subroutine check_inputs        
+        end subroutine check_inputs
 
       end program test_bf_compute_newgrdpt

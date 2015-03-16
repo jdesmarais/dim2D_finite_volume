@@ -249,11 +249,6 @@
           integer(ikind), dimension(6)  , optional, intent(out)   :: extract_param_out
 
           
-          print '(''bf_compute_newgrdpt_class'')'
-          print '(''extract_grdpts_id'')'
-          stop 'NOT VALIDATED'
-
-
           if(present(extract_param_in)) then
              
              call get_grdpts_id_from_bf_layer(
@@ -329,11 +324,6 @@
           integer(ikind), dimension(6)  , optional, intent(out)   :: extract_param_out
 
           
-          print '(''bf_compute_newgrdpt_class'')'
-          print '(''extract_nodes'')'
-          stop 'NOT VALIDATED'
-
-
           if(present(extract_param_in)) then
              
              call get_nodes_from_bf_layer(
