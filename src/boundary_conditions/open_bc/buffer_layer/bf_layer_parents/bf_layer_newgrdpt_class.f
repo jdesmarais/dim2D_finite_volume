@@ -204,11 +204,6 @@
           logical :: previous_step_op
 
 
-          print '(''bf_layer_newgrdpt_class'')'
-          print '(''extract_grdpts_id'')'
-          stop 'NOT VALIDATED'
-
-
           if(present(previous_step)) then
              previous_step_op = previous_step
           else
@@ -330,11 +325,6 @@
 
 
           logical :: previous_step_op
-
-
-          print '(''bf_layer_newgrdpt_class'')'
-          print '(''extract_nodes'')'
-          stop 'NOT VALIDATED'
 
 
           if(present(previous_step)) then
