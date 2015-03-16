@@ -752,9 +752,28 @@
 
                 size_tmp = -gen_coords(1) + 1
 
-                do i=1,gen_coords(2)
-                   tmp_map(size_tmp+i) = interior_s_map(i)
-                end do
+                if(gen_coords(2).le.size_map) then
+                   do i=1,gen_coords(2)
+                      tmp_map(size_tmp+i) = interior_s_map(i)
+                   end do
+
+                else
+                   do i=1,size_map
+                      tmp_map(size_tmp+i) = interior_s_map(i)
+                   end do
+
+                   size_tmp = size_map+size_tmp
+
+                   ds = interior_s_map(size_map) -
+     $                  interior_s_map(size_map-1)
+
+                   do i=size_map+1,gen_coords(2)
+                      tmp_map(size_tmp+i-size_map) = interior_s_map(size_map) +
+     $                                               (i-size_map)*ds
+                   end do
+
+                end if
+
 
           ! -----------|-[-----]|--------
              else
@@ -779,7 +798,7 @@
                       size_tmp = size_map - gen_coords(1) + 1
 
                       do i=size_map+1,gen_coords(2)
-                         tmp_map(size_tmp+i) = interior_s_map(size_map) +
+                         tmp_map(size_tmp+i-size_map) = interior_s_map(size_map) +
      $                                         (i-size_map)*ds
                       end do
 

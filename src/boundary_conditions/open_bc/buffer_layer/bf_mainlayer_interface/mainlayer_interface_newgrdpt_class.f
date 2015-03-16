@@ -636,6 +636,7 @@
      $            extract_param_out=extract_param,
      $            previous_step=.true.)
 
+
           ! nodes0
           !------------------------------------------------------------
              call bf_neighbor_ptr%extract_nodes(
@@ -649,7 +650,6 @@
              call bf_neighbor_ptr%extract_nodes(
      $            tmp_nodes1,
      $            gen_coords,
-     $            extract_param_in=extract_param,
      $            previous_step=.false.)
 
           end if
@@ -683,7 +683,6 @@
              call bf_neighbor_ptr%extract_nodes(
      $            tmp_nodes1,
      $            gen_coords,
-     $            extract_param_in=extract_param,
      $            previous_step=.false.)
 
           end if
@@ -712,7 +711,6 @@
           call bf_sublayer_ptr%extract_nodes(
      $         tmp_nodes1,
      $         gen_coords,
-     $         extract_param_in=extract_param,
      $         previous_step=.false.)
 
 

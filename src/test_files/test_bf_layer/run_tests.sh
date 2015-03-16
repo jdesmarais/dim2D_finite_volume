@@ -423,3 +423,20 @@ make test_bf_layer_newgrdpt > /dev/null
 ./test_bf_layer_newgrdpt
 make cleanall > /dev/null
 echo ''
+
+
+#test_mainlayer_interface_newgrdpt
+echo ''
+echo 'test_mainlayer_interface_newgrdpt_class'
+echo '------------------------------------------------------------'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice' -v 'dim2d_choice'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'bc_choice' -v 'hedstrom_xy_choice'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'ic_choice' -v 'newgrdpt_test'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ic_choice' -v 'newgrdpt_test'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '64'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '54'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'  -v '4'
+make test_mainlayer_interface_newgrdpt > /dev/null
+./test_mainlayer_interface_newgrdpt
+make cleanall > /dev/null
+echo ''
