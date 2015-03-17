@@ -126,6 +126,19 @@ test_bf_layer_newgrdpt:		$(param_dep)\
 				check_data_module.o
 
 
+test_bf_layer_grdpts_id_update.o:$(pbf_layer_dir)/bf_layer_grdpts_id_update_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o
+
+test_bf_layer_grdpts_id_update:	$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_layer_grdpts_id_update_dep)\
+				check_data_module.o
+
+
 #buffer_layer/bf_layer_newgrdpt
 test_bf_newgrdpt_prim.o:	$(ngbf_layer_dir)/bf_newgrdpt_class.o\
 				$(test_dir)/tools/check_data_module.o\
@@ -512,6 +525,27 @@ test_mainlayer_interface_newgrdpt:\
 				$(mainlayer_interface_newgrdpt_dep)\
 				check_data_module.o
 
+
+test_mainlayer_interface_grdpts_id_update.o:\
+				$(bf_layer_dir)/bf_sublayer_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(dim2d_dir)/dim2d_parameters.o\
+				$(mbf_layer_dir)/mainlayer_interface_grdpts_id_update_class.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(dim2d_dir)/pmodel_eq_class.o
+
+test_mainlayer_interface_grdpts_id_update:\
+				$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(mainlayer_interface_grdpts_id_update_dep)\
+				check_data_module.o
+
 #bf_interface parents
 test_bf_interface_basic.o:	$(ipbf_layer_dir)/bf_interface_basic_class.o\
 				$(param_dir)/parameters_input.o\
@@ -591,3 +625,19 @@ test_bf_interface_time:		$(param_dep)\
 				$(bf_interface_time_dep)\
 				check_data_module.o\
 				rk3tvd_steps_module.o
+
+#test bc_crenels
+test_bf_bc_interior_pt_crenel.o:$(gbf_layer_dir)/bf_bc_interior_pt_crenel_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o
+
+test_bf_bc_interior_pt_crenel:	$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				bf_layer_errors_module.o\
+				bf_layer_extract_module.o\
+				bf_newgrdpt_class.o\
+				bf_newgrdpt_procedure_module.o\
+				bf_newgrdpt_verification_module.o\
+				bf_newgrdpt_dispatch_module.o\
+				bf_bc_interior_pt_crenel_module.o\
+				parameters_bf_layer.o

@@ -301,8 +301,6 @@ bf_layer_newgrdpt_dep=	$(bf_layer_time_dep)\
 
 bf_layer_grdpts_id_update_dep=\
 			$(bf_layer_newgrdpt_dep)\
-			bf_suspicious_bc_interior_pt_module.o\
-			bf_bc_crenel_module.o\
 			bf_layer_grdpts_id_update_class.o
 
 bf_layer_dep=		$(bf_layer_grdpts_id_update_dep)\
@@ -326,6 +324,9 @@ mainlayer_interface_dyn_dep=	$(mainlayer_interface_sync_dep)\
 mainlayer_interface_newgrdpt_dep=$(mainlayer_interface_dyn_dep)\
 				mainlayer_interface_newgrdpt_class.o
 
+mainlayer_interface_grdpts_id_update_dep=\
+				$(mainlayer_interface_newgrdpt_dep)\
+				mainlayer_interface_grdpts_id_update_class.o
 
 #bf_mainlayer objects
 bf_mainlayer_basic_dep= $(bf_sublayer_dep)\

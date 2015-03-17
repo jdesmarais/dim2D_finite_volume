@@ -160,7 +160,7 @@
           real(rkind)      , dimension(ny)      , intent(in)    :: interior_y_map
           real(rkind)      , dimension(nx,ny,ne), intent(in)    :: interior_nodes0
           real(rkind)      , dimension(nx,ny,ne), intent(in)    :: interior_nodes1
-          type(bf_sublayer), pointer            , intent(inout) :: bf_sublayer_ptr
+          type(bf_sublayer)                     , intent(inout) :: bf_sublayer_ptr
           integer(ikind)   , dimension(2)       , intent(in)    :: gen_newgrdpt_coords
           integer                                               :: ierror
 
@@ -553,7 +553,7 @@
           implicit none
 
           class(mainlayer_interface_newgrdpt), intent(in)  :: this
-          type(bf_sublayer), pointer         , intent(in)  :: bf_sublayer_ptr
+          type(bf_sublayer)                  , intent(in)  :: bf_sublayer_ptr
           real(rkind), dimension(nx)         , intent(in)  :: interior_x_map
           real(rkind), dimension(ny)         , intent(in)  :: interior_y_map
           real(rkind), dimension(nx,ny,ne)   , intent(in)  :: interior_nodes0

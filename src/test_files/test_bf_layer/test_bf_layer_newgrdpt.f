@@ -852,6 +852,6 @@
              
           end if
 
-        end subroutine check_inputs        
+        end subroutine check_inputs
 
       end program test_bf_layer_newgrdpt

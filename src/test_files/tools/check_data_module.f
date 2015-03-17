@@ -15,7 +15,8 @@
      $       is_int_vector_validated,
      $       is_int_matrix_validated,
      $       is_int_matrix3D_validated,
-     $       is_boolean_vector_validated
+     $       is_boolean_vector_validated,
+     $       is_boolean_matrix_validated
 
         
         contains
@@ -416,5 +417,64 @@
           end if
 
         end function is_boolean_vector_validated
+
+
+        function is_boolean_matrix_validated(
+     $     boolean_matrix,
+     $     boolean_matrix_cst,
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, dimension(:,:), intent(in) :: boolean_matrix
+          logical, dimension(:,:), intent(in) :: boolean_matrix_cst
+          logical, optional      , intent(in) :: detailled
+          logical                             :: test_validated
+
+
+          integer :: i,j
+          logical :: test_loc
+          logical :: detailled_op
+
+
+          if(present(detailled)) then
+             detailled_op = detailled
+          else
+             detailled_op = .false.
+          end if
+
+          test_validated = .true.
+
+          if((size(boolean_matrix,1).eq.size(boolean_matrix_cst,1)).and.
+     $       (size(boolean_matrix,2).eq.size(boolean_matrix_cst,2))) then
+
+             do j=1, size(boolean_matrix,2)
+                do i=1, size(boolean_matrix,1)
+                   
+                   test_loc = boolean_matrix(i,j).eqv.boolean_matrix_cst(i,j)
+                   
+                   if(detailled_op.and.(.not.test_loc)) then
+                      print '(''['',2I3'']:'',L1,'' -> '',L1)', 
+     $                     i,j,
+     $                     boolean_matrix(i,j),
+     $                     boolean_matrix_cst(i,j)
+                   end if
+                
+                   test_validated = test_validated.and.test_loc
+                   
+                end do
+             end do
+
+          else
+
+             test_validated = .false.
+             print '(''sizes do not match'')'
+             print '(''  - size_x : '',I4,'' -> '',I4)', size(boolean_matrix,1), size(boolean_matrix_cst,1)
+             print '(''  - size_y : '',I4,'' -> '',I4)', size(boolean_matrix,2), size(boolean_matrix_cst,2)
+             print '()'
+          end if
+
+        end function is_boolean_matrix_validated
 
       end module check_data_module

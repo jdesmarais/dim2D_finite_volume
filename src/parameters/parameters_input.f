@@ -184,9 +184,9 @@
         integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
 
-        !-----------------------------------------------------
+        !------------------------------------------------------------
         !for the increase of the computational domain
-        !-----------------------------------------------------
+        !------------------------------------------------------------
         !bf_openbc_md_threshold_ac : control whether the increase
         !                            of the computational domain
         !                            is also activated by the
@@ -201,14 +201,14 @@
         !                         thr_liq = threshold*(\rho_liq-mid)
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
-        !-----------------------------------------------------
+        !------------------------------------------------------------
         logical    , parameter :: bf_openbc_md_threshold_ac = .true.
         real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
 
 
-        !-----------------------------------------------------
+        !------------------------------------------------------------
         !only effective for Yoo and Lodato b.c.
-        !-----------------------------------------------------
+        !------------------------------------------------------------
         !
         !sigma_P    : relaxation coefficient used when
         !             applying the non-reflecting outflow
@@ -226,7 +226,7 @@
         !obc_type_W : type of boundary condition applied
         !             at the West boundary (always_outflow,
         !             always_inflow, ask_flow)
-        !-----------------------------------------------------
+        !------------------------------------------------------------
         real(rkind), parameter :: sigma_P = 0.25d0 !0.278d0
         
         integer    , parameter :: obc_type_N = always_outflow
@@ -235,21 +235,24 @@
         integer    , parameter :: obc_type_W = always_inflow
 
 
-        !-----------------------------------------------------
+        !------------------------------------------------------------
         !debugging options
-        !-----------------------------------------------------
-        !debug_restart_for_geometry : control whether the
-        !                             restart option is only
-        !                             used to get the geometry
-        !                             of the previous computational
-        !                             domain
+        !------------------------------------------------------------
+        !debug_restart_for_geometry :
+        !    control whether the restart option is only used to get
+        !    the geometry of the previous computational domain
         !
-        !debug_adapt_computational_domain : control whether the edges
-        !                                   of the computational domain
-        !                                   are adapted once the
-        !                                   simulation starts
-        !-----------------------------------------------------
+        !debug_adapt_computational_domain :
+        !    control whether the edges of the computational domain
+        !    are adapted once the simulation starts
+        !
+        !debug_geometry_update :
+        !    control whether the new grid points are computed when
+        !    increasing the computational domain (only use for tests,
+        !    should be set to .false. by default)
+        !------------------------------------------------------------
         logical    , parameter :: debug_restart_for_geometry = .false.
-        logical    , parameter :: debug_adapt_computational_domain =.true.
+        logical    , parameter :: debug_adapt_computational_domain = .true.
+        logical    , parameter :: debug_geometry_update = .false.
 
       end module parameters_input
