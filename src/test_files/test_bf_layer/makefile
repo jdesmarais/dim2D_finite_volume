@@ -628,7 +628,8 @@ test_bf_interface_time:		$(param_dep)\
 
 #test bc_crenels
 test_bf_bc_interior_pt_crenel.o:$(gbf_layer_dir)/bf_bc_interior_pt_crenel_module.o\
-				$(bf_layer_dir)/parameters_bf_layer.o
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o
 
 test_bf_bc_interior_pt_crenel:	$(param_dep)\
 				$(mt_dep)\
@@ -641,3 +642,22 @@ test_bf_bc_interior_pt_crenel:	$(param_dep)\
 				bf_newgrdpt_dispatch_module.o\
 				bf_bc_interior_pt_crenel_module.o\
 				parameters_bf_layer.o
+
+
+test_bf_bc_pt_crenel.o:		$(gbf_layer_dir)/bf_bc_pt_crenel_module.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o
+
+test_bf_bc_pt_crenel:		$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				bf_layer_errors_module.o\
+				bf_layer_extract_module.o\
+				bf_newgrdpt_class.o\
+				bf_newgrdpt_procedure_module.o\
+				bf_newgrdpt_verification_module.o\
+				bf_newgrdpt_dispatch_module.o\
+				bf_bc_pt_crenel_module.o\
+				parameters_bf_layer.o\
+				check_data_module.o

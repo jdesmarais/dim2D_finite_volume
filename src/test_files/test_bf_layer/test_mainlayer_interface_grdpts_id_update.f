@@ -19,12 +19,13 @@
      $       bc_interior_pt,
      $       bc_pt,
      $       no_pt,
-     $       align_E, align_S
+     $       align_E, align_S,
+     $       SE_interface_type
 
         use parameters_constant, only :
      $       obc_eigenqties_bc,
      $       obc_eigenqties_lin,
-     $       E
+     $       E,S
 
         use parameters_input, only :
      $       nx,ny,ne,
@@ -56,7 +57,437 @@
         print '()'
 
 
+        test_loc = test_detect_bc_interior_pt_crenel(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_detect_bc_interior_pt_crenel: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_curb_bc_interior_pt_crenel(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_can_interior_crenel_be_curbed: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_finalize_for_bc_interior_pt_crenel(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_finalize_for_bc_interior_pt_crenel: '',L1)', test_loc
+        print '()'
+
+
         contains
+
+        function test_finalize_for_bc_interior_pt_crenel(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          type(mainlayer_interface_grdpts_id_update) :: mainlayer_interface_used
+          type(bf_sublayer), pointer                 :: bf_sublayer_ptr
+          integer(ikind)                             :: gen_i
+          integer(ikind)                             :: gen_j
+          integer(ikind), dimension(2)               :: match_table
+          integer       , dimension(5,6)             :: test_grdpts_id
+
+
+          !input
+          call get_param_finalize_for_interior_crenel(
+     $         mainlayer_interface_used,
+     $         bf_sublayer_ptr,
+     $         gen_i,
+     $         gen_j,
+     $         match_table,
+     $         test_grdpts_id)
+
+
+          !output
+          call mainlayer_interface_used%finalize_for_bc_interior_pt_crenel(
+     $         bf_sublayer_ptr,
+     $         [gen_i,gen_j],
+     $         match_table)
+
+
+          !validation
+          test_validated = is_int_matrix_validated(
+     $         bf_sublayer_ptr%grdpts_id,
+     $         test_grdpts_id,
+     $         detailled)
+
+
+        end function test_finalize_for_bc_interior_pt_crenel
+
+      
+        subroutine get_param_finalize_for_interior_crenel(
+     $     mainlayer_interface_used,
+     $     bf_sublayer_ptr,
+     $     gen_i,
+     $     gen_j,
+     $     match_table,
+     $     test_grdpts_id)
+
+          implicit none
+
+          type(mainlayer_interface_grdpts_id_update), intent(inout) :: mainlayer_interface_used
+          type(bf_sublayer), pointer                , intent(inout) :: bf_sublayer_ptr
+          integer(ikind)                            , intent(out)   :: gen_i
+          integer(ikind)                            , intent(out)   :: gen_j
+          integer(ikind), dimension(2)              , intent(out)   :: match_table
+          integer       , dimension(5,6)            , intent(out)   :: test_grdpts_id
+        
+          type(bf_sublayer), pointer :: nbf_sublayer_ptr
+
+
+          gen_i = align_E
+          gen_j = align_S+1
+          match_table = [align_E-3,align_S+1-3]          
+
+          test_grdpts_id = reshape((/
+     $         1,1,1,2,3,
+     $         1,1,1,2,3,
+     $         1,1,1,2,3,
+     $         1,1,1,2,3,
+     $         1,1,1,2,3,
+     $         1,1,1,2,3/),
+     $         (/5,6/))
+
+
+          !East buffer layer
+          allocate(bf_sublayer_ptr)
+
+          bf_sublayer_ptr%localization = E
+
+          bf_sublayer_ptr%alignment = reshape((/
+     $         align_E,align_S+1,align_E,align_S+2/),
+     $         (/2,2/))
+
+          allocate(bf_sublayer_ptr%grdpts_id(5,6))
+          bf_sublayer_ptr%grdpts_id = reshape((/
+     $         1,1,1,2,3,
+     $         1,1,2,2,3,
+     $         1,1,1,2,3,
+     $         1,1,2,2,3,
+     $         1,1,1,2,3,
+     $         1,1,1,2,3/),
+     $         (/5,6/))
+
+          call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $         SE_interface_type,
+     $         bf_sublayer_ptr)
+
+
+          !South buffer layer
+          allocate(nbf_sublayer_ptr)
+
+          nbf_sublayer_ptr%localization = S
+
+          nbf_sublayer_ptr%alignment = reshape((/
+     $         align_E-4,align_S-2,align_E,align_S/),
+     $         (/2,2/))
+
+          allocate(nbf_sublayer_ptr%grdpts_id(9,7))
+          nbf_sublayer_ptr%grdpts_id = reshape((/
+     $         3,3,3,3,3,3,3,3,3,
+     $         3,2,2,2,2,2,2,2,3,
+     $         3,2,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,2,3,
+     $         2,2,1,1,1,1,1,2,3/),
+     $         (/9,7/))
+
+          call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $         SE_interface_type,
+     $         nbf_sublayer_ptr)
+
+        end subroutine get_param_finalize_for_interior_crenel
+
+
+        function test_curb_bc_interior_pt_crenel(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          type(mainlayer_interface_grdpts_id_update) :: mainlayer_interface_used
+          type(bf_sublayer), pointer                 :: bf_sublayer_ptr
+          integer(ikind)                             :: gen_i
+          integer(ikind)                             :: gen_j
+          integer(ikind), dimension(2)               :: match_table
+          logical                                    :: test_can_be_curbed
+          logical                                    :: can_be_curbed
+
+          integer :: k
+          logical :: test_loc
+
+
+          test_validated = .true.
+
+
+          do k=1,2
+
+             !input
+             call get_test_param_curb_interior_crenel(
+     $            k,
+     $            mainlayer_interface_used,
+     $            bf_sublayer_ptr,
+     $            gen_i,
+     $            gen_j,
+     $            match_table,
+     $            test_can_be_curbed)
+
+             !output
+             can_be_curbed = mainlayer_interface_used%can_bc_interior_pt_crenel_be_curbed(
+     $            bf_sublayer_ptr,
+     $            gen_i,
+     $            gen_j,
+     $            match_table)
+
+             !validation
+             test_loc = can_be_curbed.eqv.test_can_be_curbed
+             test_validated = test_validated.and.test_loc
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'') failed'')', k
+             end if
+
+          end do
+
+        end function test_curb_bc_interior_pt_crenel
+
+
+        subroutine get_test_param_curb_interior_crenel(
+     $     test_id,
+     $     mainlayer_interface_used,
+     $     bf_sublayer_ptr,
+     $     gen_i,
+     $     gen_j,
+     $     match_table,
+     $     test_can_be_curbed)
+
+          implicit none
+
+          integer                                   , intent(in)    :: test_id
+          type(mainlayer_interface_grdpts_id_update), intent(inout) :: mainlayer_interface_used
+          type(bf_sublayer), pointer                , intent(inout) :: bf_sublayer_ptr
+          integer(ikind)                            , intent(out)   :: gen_i
+          integer(ikind)                            , intent(out)   :: gen_j
+          integer(ikind), dimension(2)              , intent(out)   :: match_table
+          logical                                   , intent(out)   :: test_can_be_curbed
+        
+          type(bf_sublayer), pointer :: nbf_sublayer_ptr
+
+
+          !East buffer layer
+          allocate(bf_sublayer_ptr)
+
+          bf_sublayer_ptr%localization = E
+
+          bf_sublayer_ptr%alignment = reshape((/
+     $         align_E,align_S+1,align_E,align_S+1/),
+     $         (/2,2/))
+
+          allocate(bf_sublayer_ptr%grdpts_id(5,5))
+          bf_sublayer_ptr%grdpts_id = reshape((/
+     $         1,1,1,2,3,
+     $         1,1,2,2,3,
+     $         1,1,2,3,3,
+     $         1,1,2,3,0,
+     $         1,1,2,3,0/),
+     $         (/5,5/))
+
+          call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $         SE_interface_type,
+     $         bf_sublayer_ptr)
+
+          match_table(1) = align_E-3
+          match_table(2) = align_S+1-3
+
+
+          !South buffer layer
+          allocate(nbf_sublayer_ptr)
+
+          nbf_sublayer_ptr%localization = S
+
+          nbf_sublayer_ptr%alignment = reshape((/
+     $         align_E-4,align_S-2,align_E,align_S/),
+     $         (/2,2/))
+
+          allocate(nbf_sublayer_ptr%grdpts_id(9,7))
+          nbf_sublayer_ptr%grdpts_id = reshape((/
+     $         3,3,3,3,3,3,3,3,3,
+     $         3,2,2,2,2,2,2,2,3,
+     $         3,2,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,2,2,3,
+     $         3,2,1,1,1,1,2,3,3,
+     $         2,2,1,1,1,1,2,3,0/),
+     $         (/9,7/))
+
+          call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $         SE_interface_type,
+     $         nbf_sublayer_ptr)
+
+
+          select case(test_id)
+            case(1)
+               gen_i = align_E
+               gen_j = align_S+1
+               test_can_be_curbed = .false.
+            case(2)
+               gen_i = align_E
+               gen_j = align_S-1
+               test_can_be_curbed = .true.
+          end select
+
+        end subroutine get_test_param_curb_interior_crenel
+
+
+        function test_detect_bc_interior_pt_crenel(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          type(mainlayer_interface_grdpts_id_update) :: mainlayer_interface_used
+          type(bf_sublayer), pointer                 :: bf_sublayer_ptr
+          integer(ikind)                             :: gen_i
+          integer(ikind)                             :: gen_j
+          integer(ikind), dimension(2)               :: match_table
+          logical                                    :: test_crenel
+          logical                                    :: crenel          
+
+          integer :: k
+          logical :: test_loc
+
+
+          test_validated = .true.
+
+
+          do k=1,2
+
+             !input
+             call get_test_param_detect_interior_crenel(
+     $            k,
+     $            mainlayer_interface_used,
+     $            bf_sublayer_ptr,
+     $            gen_i,
+     $            gen_j,
+     $            match_table,
+     $            test_crenel)
+
+             !output
+             crenel = mainlayer_interface_used%detect_bc_interior_pt_crenel(
+     $            bf_sublayer_ptr,
+     $            gen_i,
+     $            gen_j,
+     $            match_table)
+
+             !validation
+             test_loc = crenel.eqv.test_crenel
+             test_validated = test_validated.and.test_loc
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'') failed'')', k
+             end if
+
+          end do
+
+        end function test_detect_bc_interior_pt_crenel
+
+
+        subroutine get_test_param_detect_interior_crenel(
+     $     test_id,
+     $     mainlayer_interface_used,
+     $     bf_sublayer_ptr,
+     $     gen_i,
+     $     gen_j,
+     $     match_table,
+     $     test_crenel)
+
+          implicit none
+
+          integer                                   , intent(in)    :: test_id
+          type(mainlayer_interface_grdpts_id_update), intent(inout) :: mainlayer_interface_used
+          type(bf_sublayer), pointer                , intent(inout) :: bf_sublayer_ptr
+          integer(ikind)                            , intent(out)   :: gen_i
+          integer(ikind)                            , intent(out)   :: gen_j
+          integer(ikind), dimension(2)              , intent(out)   :: match_table
+          logical                                   , intent(out)   :: test_crenel
+        
+          type(bf_sublayer), pointer :: nbf_sublayer_ptr
+
+
+          !East buffer layer
+          allocate(bf_sublayer_ptr)
+
+          bf_sublayer_ptr%localization = E
+
+          bf_sublayer_ptr%alignment = reshape((/
+     $         align_E,align_S+1,align_E,align_S+1/),
+     $         (/2,2/))
+
+          allocate(bf_sublayer_ptr%grdpts_id(5,5))
+          bf_sublayer_ptr%grdpts_id = reshape((/
+     $         1,1,1,2,3,
+     $         1,1,2,2,3,
+     $         1,1,2,3,3,
+     $         1,1,2,3,0,
+     $         1,1,2,3,0/),
+     $         (/5,5/))
+
+          call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $         SE_interface_type,
+     $         bf_sublayer_ptr)
+
+          match_table(1) = align_E-3
+          match_table(2) = align_S+1-3
+
+
+          !South buffer layer
+          allocate(nbf_sublayer_ptr)
+
+          nbf_sublayer_ptr%localization = S
+
+          nbf_sublayer_ptr%alignment = reshape((/
+     $         align_E-4,align_S-2,align_E,align_S/),
+     $         (/2,2/))
+
+          allocate(nbf_sublayer_ptr%grdpts_id(9,7))
+          nbf_sublayer_ptr%grdpts_id = reshape((/
+     $         3,3,3,3,3,3,3,3,3,
+     $         3,2,2,2,2,2,2,2,3,
+     $         3,2,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,2,2,3,
+     $         3,2,1,1,1,1,2,3,3,
+     $         2,2,1,1,1,1,2,3,0/),
+     $         (/9,7/))
+
+          call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $         SE_interface_type,
+     $         nbf_sublayer_ptr)
+
+
+          select case(test_id)
+            case(1)
+               gen_i = align_E
+               gen_j = align_S+1
+               test_crenel = .false.
+            case(2)
+               gen_i = align_E
+               gen_j = align_S-1
+               test_crenel = .true.
+          end select
+
+        end subroutine get_test_param_detect_interior_crenel
 
 
         function test_update_grdpts_id_around(detailled)

@@ -73,6 +73,12 @@
         print '()'
 
 
+        test_loc = test_insert_grdpts_id(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_insert_grdpts_id: '',L1)', test_loc
+        print '()'
+
+
         contains
 
 
@@ -816,6 +822,254 @@
           end if
 
         end function validate_test_extract_nodes
+
+      
+        function test_insert_grdpts_id(detailled) result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(bf_layer_newgrdpt)         :: bf_layer_used
+          integer(ikind), dimension(2,2)  :: gen_coords
+          integer       , dimension(6,7)  :: tmp_grdpts_id
+          integer       , dimension(15,7) :: bf_grdpts_id_test
+          logical                         :: previous_step_test
+
+          integer :: k
+          logical :: test_loc
+
+          test_validated = .true.
+
+
+          do k=1,2
+
+             !input
+             !============================================================
+             call get_param_test_insert(
+     $            k,
+     $            bf_layer_used,
+     $            gen_coords,
+     $            tmp_grdpts_id,
+     $            bf_grdpts_id_test,
+     $            previous_step_test)
+
+             !output+validation
+             !============================================================
+             test_loc = validate_test_insert_grdpts_id(
+     $            bf_layer_used,
+     $            gen_coords,
+     $            previous_step_test,
+     $            tmp_grdpts_id,
+     $            bf_grdpts_id_test)
+             test_validated = test_validated.and.test_loc
+
+
+             !detailled
+             !============================================================
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I1,'') failed'')',k
+             end if
+
+          end do
+
+        end function test_insert_grdpts_id
+
+
+        subroutine get_param_test_insert(
+     $     test_id,
+     $     bf_layer_used,
+     $     gen_coords,
+     $     tmp_grdpts_id,
+     $     bf_grdpts_id_test,
+     $     previous_step_test)
+
+          implicit none
+
+          integer                        , intent(in)    :: test_id
+          type(bf_layer_newgrdpt)        , intent(inout) :: bf_layer_used
+          integer(ikind), dimension(2,2) , intent(out)   :: gen_coords
+          integer       , dimension(6,7) , intent(out)   :: tmp_grdpts_id
+          integer       , dimension(15,7), intent(out)   :: bf_grdpts_id_test
+          logical                        , intent(out)   :: previous_step_test
+
+          integer(ikind) :: i,j
+          
+
+          gen_coords = reshape((/align_W+10,align_N+2,align_W+15,align_N+8/),(/2,2/))
+
+          tmp_grdpts_id = reshape((/
+     $         ((i+(j-1)*6,i=1,6),j=1,7)/),
+     $         (/6,7/))
+
+
+          select case(test_id)
+
+          !previous time
+            case(1)
+
+               allocate(bf_layer_used%bf_compute_used%alignment_tmp(2,2))
+               bf_layer_used%bf_compute_used%alignment_tmp = reshape((/
+     $              align_W,align_N,align_W+10,align_N+2/),
+     $              (/2,2/))          
+               
+               allocate(bf_layer_used%bf_compute_used%grdpts_id_tmp(15,7))
+               bf_layer_used%bf_compute_used%grdpts_id_tmp = reshape((/
+     $              ((-20*(align_N-3+j-1)-(align_W-3+(i-1)),i=1,15),j=1,7)/),
+     $              (/15,7/))
+
+               allocate(bf_layer_used%bf_compute_used%nodes_tmp(15,7,ne))
+
+               bf_grdpts_id_test = bf_layer_used%bf_compute_used%grdpts_id_tmp
+               bf_grdpts_id_test(13:15,5:7) = reshape((/
+     $              ((i+(j-1)*6,i=1,3),j=1,3)/),
+     $              (/3,3/))
+               
+               previous_step_test = .true.
+
+          !this time step
+            case(2)
+
+               bf_layer_used%alignment = reshape((/
+     $              align_W,align_N,align_W+10,align_N+2/),
+     $              (/2,2/))          
+               
+               allocate(bf_layer_used%grdpts_id(15,7))
+               bf_layer_used%grdpts_id = reshape((/
+     $              ((20*(align_N-3+j-1)+(align_W-3+(i-1)),i=1,15),j=1,7)/),
+     $              (/15,7/))
+
+               bf_grdpts_id_test = bf_layer_used%grdpts_id
+               bf_grdpts_id_test(13:15,5:7) = reshape((/
+     $              ((i+(j-1)*6,i=1,3),j=1,3)/),
+     $              (/3,3/))
+
+               previous_step_test = .false.
+
+          end select
+
+        end subroutine get_param_test_insert
+
+
+        function validate_test_insert_grdpts_id(
+     $     bf_layer_used,
+     $     gen_coords,
+     $     previous_step_test,
+     $     tmp_grdpts_id,
+     $     bf_grdpts_id_test)
+     $     result(test_validated)
+
+          implicit none
+
+          type(bf_layer_newgrdpt)        , intent(inout) :: bf_layer_used
+          integer(ikind), dimension(2,2) , intent(in)    :: gen_coords
+          logical                        , intent(in)    :: previous_step_test
+          integer       , dimension(6,7) , intent(in)    :: tmp_grdpts_id
+          integer       , dimension(15,7), intent(in)    :: bf_grdpts_id_test
+          logical                                        :: test_validated
+
+
+          integer(ikind)                 :: i,j
+          integer(ikind), dimension(6)   :: insert_param
+          logical                        :: test_loc
+
+
+          test_validated = .true.
+
+
+          !test w/o optional arg
+          !------------------------------------------------------------
+          call bf_layer_used%insert_grdpts_id(
+     $         tmp_grdpts_id,
+     $         gen_coords,
+     $         previous_step=previous_step_test)
+          
+          if(previous_step_test) then
+             test_loc = is_int_matrix_validated(
+     $            bf_layer_used%bf_compute_used%grdpts_id_tmp,
+     $            bf_grdpts_id_test,
+     $            detailled)
+          else
+             test_loc = is_int_matrix_validated(
+     $            bf_layer_used%grdpts_id,
+     $            bf_grdpts_id_test,
+     $            detailled)
+          end if
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''w/o optional arg failed'')'
+          end if
+          
+          
+          !test w/ optional arg insert_param_out
+          !------------------------------------------------------------
+          bf_layer_used%bf_compute_used%grdpts_id_tmp = reshape((/
+     $         ((-20*(align_N-3+j-1)-(align_W-3+i-1),i=1,15),j=1,7)/),
+     $         (/15,7/))
+          if(allocated(bf_layer_used%grdpts_id)) then
+             bf_layer_used%grdpts_id = reshape((/
+     $            ((20*(align_N-3+j-1)+(align_W-3+i-1),i=1,15),j=1,7)/),
+     $            (/15,7/))
+          end if
+
+          call bf_layer_used%insert_grdpts_id(
+     $         tmp_grdpts_id,
+     $         gen_coords,
+     $         insert_param_out=insert_param,
+     $         previous_step=previous_step_test)
+          
+          if(previous_step_test) then
+             test_loc = is_int_matrix_validated(
+     $            bf_layer_used%bf_compute_used%grdpts_id_tmp,
+     $            bf_grdpts_id_test,
+     $            detailled)
+          else
+             test_loc = is_int_matrix_validated(
+     $            bf_layer_used%grdpts_id,
+     $            bf_grdpts_id_test,
+     $            detailled)
+          end if
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''w/ optional arg insert_param_out failed'')'
+          end if
+          
+          
+          !test w/ optional arg insert_param_in
+          !------------------------------------------------------------
+          bf_layer_used%bf_compute_used%grdpts_id_tmp = reshape((/
+     $         ((-20*(align_N-3+j-1)-(align_W-3+i-1),i=1,15),j=1,7)/),
+     $         (/15,7/))
+          if(allocated(bf_layer_used%grdpts_id)) then
+             bf_layer_used%grdpts_id = reshape((/
+     $            ((20*(align_N-3+j-1)+(align_W-3+i-1),i=1,15),j=1,7)/),
+     $            (/15,7/))
+          end if
+
+          call bf_layer_used%insert_grdpts_id(
+     $         tmp_grdpts_id,
+     $         gen_coords,
+     $         insert_param_in=insert_param,
+     $         previous_step=previous_step_test)
+          
+          if(previous_step_test) then
+             test_loc = is_int_matrix_validated(
+     $            bf_layer_used%bf_compute_used%grdpts_id_tmp,
+     $            bf_grdpts_id_test,
+     $            detailled)
+          else
+             test_loc = is_int_matrix_validated(
+     $            bf_layer_used%grdpts_id,
+     $            bf_grdpts_id_test,
+     $            detailled)
+          end if
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''w/ optional arg insert_param_in failed'')'
+          end if
+
+        end function validate_test_insert_grdpts_id
 
 
         subroutine check_inputs()

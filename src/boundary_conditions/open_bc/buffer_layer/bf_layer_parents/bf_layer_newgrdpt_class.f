@@ -18,7 +18,8 @@
 
         use bf_layer_extract_module, only :
      $       get_grdpts_id_from_bf_layer,
-     $       get_nodes_from_bf_layer
+     $       get_nodes_from_bf_layer,
+     $       set_grdpts_id_in_bf_layer
 
         use parameters_bf_layer, only :
      $       NEWGRDPT_NO_PREVIOUS_DATA_ERROR
@@ -62,7 +63,10 @@
 
            !procedure for the extraction of the grdpts_id or nodes
            procedure, pass :: extract_grdpts_id
-           procedure, pass :: extract_nodes           
+           procedure, pass :: extract_nodes
+
+           !procedure for the insertion of the grdpts_id
+           procedure, pass :: insert_grdpts_id
 
         end type bf_layer_newgrdpt
 
@@ -399,5 +403,128 @@
           end if
 
         end subroutine extract_nodes      
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> insert the grdpts_id at t-dt or t
+        !
+        !> @date
+        !> 14_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param tmp_grdpts_id
+        !> array with the grdpts_id data inserted
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> domain inserted
+        !
+        !>@param insert_param_in
+        !> optional argument to avoid computing the parameters
+        !> needed for the insertion
+        !
+        !>@param insert_param_out
+        !> optional argument to get the parameters needed for the
+        !> insertion
+        !
+        !>@param previous_step
+        !> logical identifying whether the grdpts_id at the previous step (t-dt)
+        !> or the current grdpts_id (t) are inserted
+        !--------------------------------------------------------------
+        subroutine insert_grdpts_id(
+     $     this,
+     $     tmp_grdpts_id,
+     $     gen_coords,
+     $     insert_param_in,
+     $     insert_param_out,
+     $     previous_step)
+
+          implicit none
+          
+          class(bf_layer_newgrdpt)                , intent(inout) :: this
+          integer       , dimension(:,:)          , intent(in)    :: tmp_grdpts_id
+          integer(ikind), dimension(2,2)          , intent(in)    :: gen_coords
+          integer(ikind), dimension(6)  , optional, intent(in)    :: insert_param_in
+          integer(ikind), dimension(6)  , optional, intent(out)   :: insert_param_out
+          logical                       , optional, intent(in)    :: previous_step
+
+
+          logical :: previous_step_op
+
+
+          if(present(previous_step)) then
+             previous_step_op = previous_step
+          else
+             previous_step_op = .false.
+          end if
+
+
+          if(previous_step_op) then
+             if(this%does_previous_timestep_exist()) then
+
+                if(present(insert_param_in)) then
+                   call this%bf_compute_used%insert_grdpts_id(
+     $                  tmp_grdpts_id,
+     $                  gen_coords,
+     $                  insert_param_in=insert_param_in)
+
+                else
+
+                   if(present(insert_param_out)) then
+                      call this%bf_compute_used%insert_grdpts_id(
+     $                  tmp_grdpts_id,
+     $                  gen_coords,
+     $                  insert_param_out=insert_param_out)
+
+                   else
+                      call this%bf_compute_used%insert_grdpts_id(
+     $                  tmp_grdpts_id,
+     $                  gen_coords)
+
+                   end if
+
+                end if
+
+             end if
+
+          else
+
+             if(present(insert_param_in)) then
+                
+                call set_grdpts_id_in_bf_layer(
+     $               tmp_grdpts_id,
+     $               gen_coords,
+     $               this%alignment,
+     $               this%grdpts_id,
+     $               insert_param_in=insert_param_in)
+
+             else
+
+                if(present(insert_param_out)) then
+
+                   call set_grdpts_id_in_bf_layer(
+     $                  tmp_grdpts_id,
+     $                  gen_coords,
+     $                  this%alignment,
+     $                  this%grdpts_id,
+     $                  insert_param_out=insert_param_out)
+
+                else
+
+                   call set_grdpts_id_in_bf_layer(
+     $                  tmp_grdpts_id,
+     $                  gen_coords,
+     $                  this%alignment,
+     $                  this%grdpts_id)
+
+                end if
+
+             end if
+
+          end if
+
+        end subroutine insert_grdpts_id
 
       end module bf_layer_newgrdpt_class

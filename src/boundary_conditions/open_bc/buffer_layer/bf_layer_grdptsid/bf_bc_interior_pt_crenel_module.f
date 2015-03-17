@@ -47,10 +47,10 @@
         !> configuration of the grid points around the suspicious
         !> bc_interior_pt
         !
-        !> @param i
+        !> @param i_center
         !> x-index of the bc_interior_pt checked
         !
-        !> @param j
+        !> @param j_center4
         !> y-index of the bc_interior_pt checked
         !
         !> @return is_bc_interior_crenel

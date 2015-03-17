@@ -440,3 +440,44 @@ make test_mainlayer_interface_newgrdpt > /dev/null
 ./test_mainlayer_interface_newgrdpt
 make cleanall > /dev/null
 echo ''
+
+
+#test_bf_bc_interior_pt_crenel
+echo ''
+echo 'test_bf_bc_interior_pt_crenel'
+echo '------------------------------------------------------------'
+make test_bf_bc_interior_pt_crenel > /dev/null
+./test_bf_bc_interior_pt_crenel
+make cleanall > /dev/null
+echo ''
+
+
+#test_bf_bc_pt_crenel
+echo ''
+echo 'test_bf_bc_pt_crenel'
+echo '------------------------------------------------------------'
+make test_bf_bc_pt_crenel > /dev/null
+./test_bf_bc_pt_crenel
+make cleanall > /dev/null
+echo ''
+
+
+#test_bf_layer_grdpts_id_update
+echo ''
+echo 'test_bf_layer_grdpts_id_update'
+echo '------------------------------------------------------------'
+make test_bf_layer_grdpts_id_update > /dev/null
+./test_bf_layer_grdpts_id_update
+make cleanall > /dev/null
+echo ''
+
+
+#test_mainlayer_interface_grdpts_id_update
+echo ''
+echo 'test_mainlayer_interface_grdpts_id_update'
+echo '------------------------------------------------------------'
+make test_mainlayer_interface_grdpts_id_update > /dev/null
+./test_mainlayer_interface_grdpts_id_update
+make cleanall > /dev/null
+echo ''
+

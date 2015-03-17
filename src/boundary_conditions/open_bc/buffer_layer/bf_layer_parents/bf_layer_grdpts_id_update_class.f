@@ -21,15 +21,19 @@
         use bf_layer_extract_module, only :
      $     get_bf_layer_match_table,
      $     get_grdpts_id_from_interior,
-     $     get_grdpts_id_from_buffer_layer
+     $     get_grdpts_id_from_bf_layer
 
         use bf_layer_newgrdpt_class, only :
      $       bf_layer_newgrdpt
 
+        use bf_newgrdpt_verification_module, only :
+     $       are_grdpts_available
+
         use parameters_bf_layer, only :
      $       bc_interior_pt,
      $       bc_pt,
-     $       no_pt
+     $       no_pt,
+     $       BF_SUCCESS
 
         use parameters_input, only :
      $       bc_size
@@ -68,8 +72,7 @@
 
           ! for detecting and curbing bc_interior_pt crenels
           procedure, pass :: detect_bc_interior_pt_crenel
-          
-
+          procedure, pass :: can_bc_interior_pt_crenel_be_curbed
 
         end type bf_layer_grdpts_id_update
 
@@ -326,8 +329,11 @@
 
           logical                        :: grdpts_available
           integer(ikind), dimension(2)   :: match_table
-          integer(ikind), dimension(2)   :: gen_coords
+          integer(ikind), dimension(2,2) :: gen_coords
           integer       , dimension(3,3) :: grdpts_id_tmp
+
+
+          is_bc_interior_crenel = .false.
 
 
           !1) check whether there are enough grid points to check whether
@@ -335,9 +341,9 @@
           !   if there are enough grid points, the presence of a bc_interior_pt
           !   crenel is directly checked on the data of the buffer layer
           if(
-     $         ((i-1).le.1).and.
+     $         ((i-1).ge.1).and.
      $         ((i+1).le.(size(this%grdpts_id,1))).and.
-     $         ((j-1).le.1).and.
+     $         ((j-1).ge.1).and.
      $         ((j+1).le.(size(this%grdpts_id,2)))) then
 
              ierror = BF_SUCCESS
@@ -399,5 +405,69 @@
           end if
 
         end function detect_bc_interior_pt_crenel
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !>
+        !> @brief
+        !> check whether the bc_interior_pt crenel can be removed
+        !
+        !> @date
+        !> 18_03_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !> @param i
+        !> x-index of the bc_interior_pt checked
+        !
+        !> @param j
+        !> y-index of the bc_interior_pt checked
+        !
+        !> @param ierror
+        !> logical stating whether the detection was successful or not
+        !
+        !> @return can_be_curbed
+        !> logical determining whether the bc_crenel can be removed
+        !--------------------------------------------------------------
+        function can_bc_interior_pt_crenel_be_curbed(this,i,j,ierror)
+     $     result(can_be_curbed)
+
+          implicit none
+
+          class(bf_layer_grdpts_id_update), intent(in)  :: this
+          integer(ikind)                  , intent(in)  :: i
+          integer(ikind)                  , intent(in)  :: j
+          logical                         , intent(out) :: ierror
+          logical                                       :: can_be_curbed
+
+
+          integer, dimension(2,2) :: gen_coords
+
+
+          if(
+     $         ((i-bc_size).ge.1).and.
+     $         ((i+bc_size).le.(size(this%grdpts_id,1))).and.
+     $         ((j-bc_size).ge.1).and.
+     $         ((j+bc_size).le.(size(this%grdpts_id,2)))) then
+
+             ierror = BF_SUCCESS
+
+             gen_coords = reshape((/
+     $            i-bc_size,j-bc_size,i+bc_size,j+bc_size/),
+     $            (/2,2/))
+
+             can_be_curbed = are_grdpts_available(
+     $            this%grdpts_id,
+     $            gen_coords)
+
+          else
+             can_be_curbed = .false.
+             ierror = .not.BF_SUCCESS
+          end if
+
+        end function can_bc_interior_pt_crenel_be_curbed
 
       end module bf_layer_grdpts_id_update_class

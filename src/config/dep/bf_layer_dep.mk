@@ -66,7 +66,10 @@ $(pbf_layer_dir)/bf_layer_newgrdpt_class.o:\
 	$(pm_cdir)/pmodel_eq_class.o
 
 $(pbf_layer_dir)/bf_layer_grdpts_id_update_class.o:\
+	$(gbf_layer_dir)/bf_bc_interior_pt_crenel_module.o\
+	$(sbf_layer_dir)/bf_layer_extract_module.o\
 	$(pbf_layer_dir)/bf_layer_newgrdpt_class.o\
+	$(ngbf_layer_dir)/bf_newgrdpt_verification_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
@@ -165,6 +168,9 @@ $(mbf_layer_dir)/mainlayer_interface_newgrdpt_class.o:\
 	$(pm_cdir)/pmodel_eq_class.o
 
 $(mbf_layer_dir)/mainlayer_interface_grdpts_id_update_class.o:\
+	$(gbf_layer_dir)/bf_bc_interior_pt_crenel_module.o\
+	$(sbf_layer_dir)/bf_layer_extract_module.o\
+	$(ngbf_layer_dir)/bf_newgrdpt_verification_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(mbf_layer_dir)/mainlayer_interface_newgrdpt_class.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
@@ -471,13 +477,10 @@ $(gbf_layer_dir)/bf_bc_interior_pt_crenel_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_kind.o
 
-$(gbf_layer_dir)/bf_bc_crenel_module.o:\
-	$(bf_layer_dir)/bf_layer_errors_module.o\
+$(gbf_layer_dir)/bf_bc_pt_crenel_module.o:\
+	$(ngbf_layer_dir)/bf_newgrdpt_dispatch_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
-
 
 #buffer layer i/o
 $(iobf_layer_dir)/bf_layer_nf90_operators_module.o:\

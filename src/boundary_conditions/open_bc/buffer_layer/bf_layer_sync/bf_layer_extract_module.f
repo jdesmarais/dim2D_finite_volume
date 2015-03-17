@@ -45,7 +45,8 @@
      $       get_grdpts_id_from_bf_layer,
      $       get_nodes_from_interior,
      $       get_nodes_from_bf_layer,
-     $       get_map_from_interior
+     $       get_map_from_interior,
+     $       set_grdpts_id_in_bf_layer
 
 
         contains
@@ -817,5 +818,100 @@
 
 
         end subroutine get_map_from_interior
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> insert grdpts_id in a buffer layer
+        !
+        !> @date
+        !> 18_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param tmp_grdpts_id
+        !> array with the grdpts_id data
+        !
+        !>@param gen_coords
+        !> coordinates of the SW corner and the NE corners of the
+        !> domain inserted
+        !
+        !>@param bf_alignment
+        !> relative position of the buffer layer compared to the
+        !> interior domain
+        !
+        !>@param bf_grdpts_id
+        !> grdpts_id of the buffer layer
+        !
+        !>@param extract_param_in
+        !> optional argument to avoid computing the parameters
+        !> needed for the extraction
+        !
+        !>@param extract_param_out
+        !> optional argument to get the parameters needed for the
+        !> extraction
+        !--------------------------------------------------------------
+        subroutine set_grdpts_id_in_bf_layer(
+     $     tmp_grdpts_id,
+     $     gen_coords,
+     $     bf_alignment,
+     $     bf_grdpts_id,
+     $     insert_param_in,
+     $     insert_param_out)
+
+          implicit none
+
+          integer       , dimension(:,:)          , intent(in)    :: tmp_grdpts_id
+          integer(ikind), dimension(2,2)          , intent(in)    :: gen_coords
+          integer(ikind), dimension(2,2)          , intent(in)    :: bf_alignment
+          integer       , dimension(:,:)          , intent(inout) :: bf_grdpts_id
+          integer(ikind), dimension(6)  , optional, intent(in)    :: insert_param_in
+          integer(ikind), dimension(6)  , optional, intent(out)   :: insert_param_out
+
+          integer(ikind) :: size_x
+          integer(ikind) :: size_y
+          integer(ikind) :: i_recv
+          integer(ikind) :: i_send
+          integer(ikind) :: j_recv
+          integer(ikind) :: j_send
+          integer(ikind) :: i
+          integer(ikind) :: j
+          
+          
+          if(present(insert_param_in)) then
+             size_x = insert_param_in(1)
+             size_y = insert_param_in(2)
+             i_recv = insert_param_in(3)
+             j_recv = insert_param_in(4)
+             i_send = insert_param_in(5)
+             j_send = insert_param_in(6)
+
+          else
+             call get_indices_to_extract_bf_layer_data(
+     $            bf_alignment,
+     $            gen_coords,
+     $            size_x, size_y,
+     $            i_recv, j_recv,
+     $            i_send, j_send)
+
+             if(present(insert_param_out)) then
+                insert_param_out(1) = size_x
+                insert_param_out(2) = size_y
+                insert_param_out(3) = i_recv
+                insert_param_out(4) = j_recv
+                insert_param_out(5) = i_send
+                insert_param_out(6) = j_send
+             end if
+
+          end if
+
+          do j=1, size_y
+             do i=1, size_x
+                bf_grdpts_id(i_send+i-1,j_send+j-1) = 
+     $               tmp_grdpts_id(i_recv+i-1,j_recv+j-1)
+             end do
+          end do
+
+        end subroutine set_grdpts_id_in_bf_layer
 
       end module bf_layer_extract_module

@@ -8,7 +8,8 @@
      $     get_grdpts_id_from_bf_layer,
      $     get_nodes_from_interior,
      $     get_nodes_from_bf_layer,
-     $     get_map_from_interior
+     $     get_map_from_interior,
+     $     set_grdpts_id_in_bf_layer
 
         use check_data_module, only :
      $       is_int_matrix_validated,
@@ -73,6 +74,11 @@
         test_loc = test_get_map_from_interior(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_get_map_from_interior: '',L1)', test_loc
+        print '()'
+
+        test_loc = test_set_grdpts_id_in_bf_layer(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_set_grdpts_id_in_bf_layer: '',L1)', test_loc
         print '()'
 
 
@@ -665,5 +671,73 @@
           tmp_map_test = (/ (gen_coords(1)-1+i,i=1,5) /)
 
         end subroutine get_param_test_get_map_from_interior
+
+
+        function test_set_grdpts_id_in_bf_layer(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          integer                         :: i,j
+          integer       , dimension(4,7)  :: tmp_grdpts_id
+          integer       , dimension(2,2)  :: gen_coords
+          integer(ikind), dimension(2,2)  :: bf_alignment
+          integer       , dimension(12,9) :: bf_grdpts_id
+          integer       , dimension(12,9) :: bf_grdpts_id_test
+
+          !input
+          tmp_grdpts_id = reshape((/
+     $         ((i+4*(j-1), i=1,4),j=1,7)/),
+     $         (/4,7/))
+
+          gen_coords = reshape((/
+     $         align_W+9,align_N+2,align_W+12,align_N+8/),
+     $         (/2,2/))
+
+          bf_alignment = reshape((/
+     $         align_W+5,align_N,align_W+12,align_N+4/),
+     $         (/2,2/))
+
+          bf_grdpts_id = reshape((/
+     $         1,1,1,1,1,1,1,1,1,1,1,1,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,
+     $         2,2,1,1,1,1,1,1,1,1,2,2,
+     $         3,2,1,1,1,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,2,2,2,2,3,
+     $         3,2,1,1,1,1,1,2,3,3,3,3,
+     $         3,2,2,2,2,2,2,2,3,0,0,0,
+     $         3,3,3,3,3,3,3,3,3,0,0,0/),
+     $         (/12,9/))
+
+          bf_grdpts_id_test = reshape((/
+     $         1,1,1,1,1,1, 1, 1, 1, 1,1,1,
+     $         1,1,1,1,1,1, 1, 1, 1, 1,1,1,
+     $         2,2,1,1,1,1, 1, 1, 1, 1,2,2,
+     $         3,2,1,1,1,1, 1, 1, 1, 1,2,3,
+     $         3,2,1,1,1,1, 1, 2, 3, 4,2,3,
+     $         3,2,1,1,1,1, 5, 6, 7, 8,2,3,
+     $         3,2,1,1,1,1, 9,10,11,12,3,3,
+     $         3,2,2,2,2,2,13,14,15,16,0,0,
+     $         3,3,3,3,3,3,17,18,19,20,0,0/),
+     $         (/12,9/))
+
+          !output
+          call set_grdpts_id_in_bf_layer(
+     $         tmp_grdpts_id,
+     $         gen_coords,
+     $         bf_alignment,
+     $         bf_grdpts_id)
+
+          !validation
+          test_validated = is_int_matrix_validated(
+     $         bf_grdpts_id,
+     $         bf_grdpts_id_test,
+     $         detailled)
+
+        end function test_set_grdpts_id_in_bf_layer
 
       end program test_bf_layer_extract
