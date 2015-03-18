@@ -17,6 +17,10 @@
         use bf_bc_interior_pt_crenel_module, only :
      $       check_if_bc_interior_pt_crenel
 
+        use bf_bc_pt_crenel_module, only :
+     $       check_if_bc_pt_crenel,
+     $       remove_bc_pt_crenel
+
         use bf_layer_extract_module, only :
      $       get_grdpts_id_from_interior
 
@@ -30,6 +34,7 @@
      $       mainlayer_interface_newgrdpt
 
         use parameters_bf_layer, only :
+     $       bc_pt,
      $       bc_interior_pt,
      $       interior_pt,
      $       BF_SUCCESS
@@ -71,11 +76,16 @@
           procedure, pass :: update_grdpts_id_around_new_interior_pt
           procedure, pass :: update_grdpts_id_around_new_interior_pt_local
 
-          ! procedures for the finalization of crenels
+          ! procedures for the finalization of bc_interior_pt crenels
           procedure, pass :: detect_bc_interior_pt_crenel
           procedure, pass :: can_bc_interior_pt_crenel_be_curbed
           procedure, pass :: finalize_for_bc_interior_pt_crenel_local
           procedure, pass :: finalize_for_bc_interior_pt_crenel
+          
+          ! procedures for the finalization of bc_pt crenels
+          procedure, pass :: detect_and_curb_bc_pt_crenel
+          procedure, pass :: finalize_for_bc_pt_crenel_local
+          procedure, pass :: finalize_for_bc_pt_crenel
 
         end type mainlayer_interface_grdpts_id_update
 
@@ -229,13 +239,13 @@
      $            match_table)
 
 
-c$$$             !check whether the update the grdpts_id lead to
-c$$$             !a crenel of bc_pt
-c$$$             call finalize_grdpts_id_for_bc_pt_crenel(
-c$$$     $            this,
-c$$$     $            bf_sublayer_ptr,
-c$$$     $            [gen_i_center,gen_j_center],
-c$$$     $            match_table)
+             !check whether the update the grdpts_id lead to
+             !a crenel of bc_pt
+             call finalize_for_bc_pt_crenel(
+     $            this,
+     $            bf_sublayer_ptr,
+     $            [gen_i_center,gen_j_center],
+     $            match_table)
 
 
           end do
@@ -994,5 +1004,334 @@ c$$$     $            match_table)
 
         end subroutine finalize_for_bc_interior_pt_crenel_local
 
+
+        !> @author
+        !> Julien L. Desmarais
+        !>
+        !> @brief
+        !> verify whether the bc_pt localized by its coordinates in
+        !> the general frame is part of a bc_pt crenel, and if so
+        !> curb the crenel
+        !
+        !> @date
+        !> 18_03_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> mainlayer_interface_newgrdpt augmented with procedures
+        !> for the update of teh grdpts_id
+        !
+        !>@param bf_sublayer_ptr
+        !> buffer layer whose grdpts_id are investigated
+        !
+        !> @param gen_coords
+        !> general coordinates of the new interior pt created
+        !
+        !> @param match_table
+        !> correspondance between the local coordinates in the buffer
+        !> layer and the general coordiantes in the general frame
+        !--------------------------------------------------------------
+        subroutine detect_and_curb_bc_pt_crenel(
+     $     this,
+     $     bf_sublayer_ptr,
+     $     gen_coords,
+     $     match_table)
+
+          implicit none
+
+          class(mainlayer_interface_grdpts_id_update), intent(inout) :: this
+          type(bf_sublayer)                          , intent(inout) :: bf_sublayer_ptr
+          integer(ikind), dimension(2)               , intent(in)    :: gen_coords
+          integer(ikind), dimension(2)               , intent(in)    :: match_table
+
+
+          integer(ikind)                 :: loc_i
+          integer(ikind)                 :: loc_j
+          logical                        :: ierror
+          integer(ikind), dimension(2,2) :: gen_coords_crenel
+          type(bf_sublayer), pointer     :: bf_neighbor_ptr
+          integer       , dimension(3,3) :: tmp_grdpts_id
+          logical                        :: is_bc_pt_crenel
+          
+
+          loc_i = gen_coords(1) - match_table(1)
+          loc_j = gen_coords(2) - match_table(2)
+
+
+          !1) ask the buffer layer to which the bc_pt is belonging
+          !   whether the bc_pt is part of a bc_pt crenel and if so
+          !   ask to remove it
+          call bf_sublayer_ptr%detect_and_curb_bc_pt_crenel(loc_i,loc_j,ierror)
+
+
+          !2) if the buffer layer was unable to check the presence 
+          !   of bc_pt crenel, a temporary array is created to check
+          !   and remove the presence of bc_pt crenel
+          if(ierror.neqv.BF_SUCCESS) then
+
+
+             !extraction of the grdpts_id
+             !=======================================================
+             gen_coords_crenel(1,1) = gen_coords(1)-1
+             gen_coords_crenel(1,2) = gen_coords(1)+1
+             gen_coords_crenel(2,1) = gen_coords(2)-1
+             gen_coords_crenel(2,2) = gen_coords(2)+1
+
+             !extract the grdpts_id from the interior
+             !-------------------------------------------------------
+             call get_grdpts_id_from_interior(
+     $            tmp_grdpts_id,
+     $            gen_coords_crenel)
+
+             !extract the grdpts_id from the neighbor1 if any
+             !-------------------------------------------------------
+             if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
+             
+                bf_neighbor_ptr => this%get_neighbor_sublayer_ptr(
+     $               bf_sublayer_ptr%get_localization(),1)
+
+                call bf_neighbor_ptr%extract_grdpts_id(
+     $               tmp_grdpts_id,
+     $               gen_coords_crenel)
+
+             end if
+
+             !extract the grdpts_id from the neighbor2 if any
+             !-------------------------------------------------------
+             if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
+             
+                bf_neighbor_ptr => this%get_neighbor_sublayer_ptr(
+     $               bf_sublayer_ptr%get_localization(),2)
+
+                call bf_neighbor_ptr%extract_grdpts_id(
+     $               tmp_grdpts_id,
+     $               gen_coords_crenel)
+
+             end if
+
+             !extract the grdpts_id from the buffer layer itself
+             !-------------------------------------------------------
+             call bf_sublayer_ptr%extract_grdpts_id(
+     $            tmp_grdpts_id,
+     $            gen_coords_crenel)
+             
+
+             !detection of the bc_pt crenel
+             !=======================================================
+             is_bc_pt_crenel = check_if_bc_pt_crenel(
+     $            tmp_grdpts_id,
+     $            2,2)
+
+
+             !removal of the bc_pt crenel
+             !=======================================================
+             if(is_bc_pt_crenel) then
+
+                call remove_bc_pt_crenel(tmp_grdpts_id,2,2)
+
+                
+             !update of the grdpts_id
+             !=======================================================
+             !update of the grdpts_id in the neighbor1
+             !-------------------------------------------------------
+                if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
+                
+                   bf_neighbor_ptr => this%get_neighbor_sublayer_ptr(
+     $               bf_sublayer_ptr%get_localization(),1)
+
+                   call bf_neighbor_ptr%insert_grdpts_id(
+     $                  tmp_grdpts_id,
+     $                  gen_coords_crenel)
+                   
+                end if
+
+             !update of the grdpts_id in the neighbor2
+             !-------------------------------------------------------
+                if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
+                
+                   bf_neighbor_ptr => this%get_neighbor_sublayer_ptr(
+     $               bf_sublayer_ptr%get_localization(),2)
+
+                   call bf_neighbor_ptr%insert_grdpts_id(
+     $                  tmp_grdpts_id,
+     $                  gen_coords_crenel)
+                   
+                end if
+
+             !update of the grdpts_id in the current buffer layer
+             !-------------------------------------------------------
+                call bf_sublayer_ptr%insert_grdpts_id(
+     $               tmp_grdpts_id,
+     $               gen_coords_crenel)
+
+             end if
+
+          end if
+
+        end subroutine detect_and_curb_bc_pt_crenel
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !>
+        !> @brief
+        !> check that the bc_interior_pt is not a crenel,
+        !> oherwise, it is curbed
+        !
+        !> @date
+        !> 18_03_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> mainlayer_interface_newgrdpt augmented with procedures
+        !> for the update of teh grdpts_id
+        !
+        !>@param bf_sublayer_ptr
+        !> buffer layer whose grdpts_id are investigated
+        !
+        !> @param gen_coords
+        !> general coordinates of the new interior pt created
+        !
+        !> @param match_table
+        !> correspondance between the local coordinates in the buffer
+        !> layer and the general coordiantes in the general frame
+        !--------------------------------------------------------------
+        subroutine finalize_for_bc_pt_crenel_local(
+     $     this,
+     $     bf_sublayer_ptr,
+     $     gen_coords,
+     $     match_table)
+
+          implicit none
+
+          class(mainlayer_interface_grdpts_id_update), intent(inout) :: this
+          type(bf_sublayer)                          , intent(inout) :: bf_sublayer_ptr
+          integer(ikind), dimension(2)               , intent(in)    :: gen_coords
+          integer(ikind), dimension(2)               , intent(in)    :: match_table
+
+
+          integer(ikind) :: loc_i
+          integer(ikind) :: loc_j
+
+          
+          loc_i = gen_coords(1) - match_table(1)
+          loc_j = gen_coords(2) - match_table(2)
+
+
+          !1) the existence of the bc_pt crenel is only
+          !   checked if the central point is a bc_pt
+          if(bf_sublayer_ptr%check_grdpts_id_pt(loc_i,loc_j,bc_pt)) then
+
+          
+          !2) the existence of the bc_pt crenel is checked
+          !   and if it exists, it is removed
+             call detect_and_curb_bc_pt_crenel(
+     $            this,
+     $            bf_sublayer_ptr,
+     $            gen_coords,
+     $            match_table)
+
+          end if
+
+        end subroutine finalize_for_bc_pt_crenel_local
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !>
+        !> @brief
+        !> finalize the grdpts_id updated by checking that
+        !> no bc_pt crenel was created, otherwise the crenel
+        !> is curbed
+        !
+        !> @date
+        !> 18_03_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> mainlayer_interface_newgrdpt augmented with procedures
+        !> for the update of teh grdpts_id
+        !
+        !>@param bf_sublayer_ptr
+        !> buffer layer whose grdpts_id are investigated
+        !
+        !> @param gen_coords
+        !> general coordinates of the new interior pt created
+        !
+        !> @param match_table
+        !> correspondance between the local coordinates in the buffer
+        !> layer and the general coordiantes in the general frame
+        !--------------------------------------------------------------
+        subroutine finalize_for_bc_pt_crenel(
+     $     this,
+     $     bf_sublayer_ptr,
+     $     gen_coords,
+     $     match_table)
+
+          implicit none
+
+          class(mainlayer_interface_grdpts_id_update), intent(inout) :: this
+          type(bf_sublayer)                          , intent(inout) :: bf_sublayer_ptr
+          integer(ikind), dimension(2)               , intent(in)    :: gen_coords
+          integer(ikind), dimension(2)               , intent(in)    :: match_table
+
+          integer(ikind) :: i,j
+
+          !  ______
+          ! |      |
+          ! |      |
+          ! |******|
+          !
+          j = gen_coords(2)-bc_size
+          do i=gen_coords(1)-bc_size, gen_coords(1)+bc_size
+
+             call finalize_for_bc_pt_crenel_local(
+     $            this,
+     $            bf_sublayer_ptr,
+     $            [i,j],
+     $            match_table)
+
+          end do
+
+          !  ______
+          ! *      *
+          ! *      *
+          ! *______*
+          !
+          do j=gen_coords(2)-1, gen_coords(2)+1
+
+             i=gen_coords(1)-bc_size
+
+             call finalize_for_bc_pt_crenel_local(
+     $            this,
+     $            bf_sublayer_ptr,
+     $            [i,j],
+     $            match_table)
+
+             i=gen_coords(1)+bc_size
+
+             call finalize_for_bc_pt_crenel_local(
+     $            this,
+     $            bf_sublayer_ptr,
+     $            [i,j],
+     $            match_table)
+
+          end do
+
+          !
+          ! |******|
+          ! |      |
+          ! |______|
+          !
+          j = gen_coords(2)+bc_size
+          do i=gen_coords(1)-bc_size, gen_coords(1)+bc_size
+
+             call finalize_for_bc_pt_crenel_local(
+     $            this,
+     $            bf_sublayer_ptr,
+     $            [i,j],
+     $            match_table)
+
+          end do
+          
+
+        end subroutine finalize_for_bc_pt_crenel
 
       end module mainlayer_interface_grdpts_id_update_class

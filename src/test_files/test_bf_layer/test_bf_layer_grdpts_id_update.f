@@ -58,8 +58,138 @@
         print '(''test_can_interior_crenel_be_curbed: '',L1)', test_loc
         print '()'
 
+
+        test_loc = test_detect_and_curb_bc_pt_crenel(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_detect_and_curb_bc_pt_crenel: '',L1)', test_loc
+        print '()'
+
         
         contains
+
+        function test_detect_and_curb_bc_pt_crenel(detailled)
+     $       result(test_validated)
+        
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          type(bf_layer_grdpts_id_update) :: bf_layer_used
+          integer                         :: test_i
+          integer                         :: test_j
+          integer, dimension(5,5)         :: test_grdpts_id
+          logical                         :: ierror
+          logical                         :: test_ierror
+
+          logical :: test_loc
+          integer :: k
+
+
+          test_validated = .true.
+          
+
+          do k=1,3
+
+             !input
+             call get_test_param_detect_crenel(
+     $            k,
+     $            bf_layer_used,
+     $            test_i,
+     $            test_j,
+     $            test_grdpts_id,
+     $            test_ierror)
+
+
+             !output
+             call bf_layer_used%detect_and_curb_bc_pt_crenel(
+     $            test_i,test_j,ierror)
+             
+
+             !validation
+             test_loc = ierror.eqv.test_ierror
+             test_validated = test_validated.and.test_loc
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'') ierror failed'')'
+             end if
+
+             if(ierror.eqv.BF_SUCCESS) then
+                test_loc = is_int_matrix_validated(
+     $               bf_layer_used%grdpts_id,
+     $               test_grdpts_id,
+     $               detailled)
+                test_validated = test_validated.and.test_loc
+                if(detailled.and.(.not.test_loc)) then
+                   print '(''test('',I2,'') grdpts_id failed'')'
+                end if
+             end if
+
+          end do
+
+
+        end function test_detect_and_curb_bc_pt_crenel
+
+
+        subroutine get_test_param_detect_crenel(
+     $     test_id,
+     $     bf_layer_used,
+     $     test_i,
+     $     test_j,
+     $     test_grdpts_id,
+     $     test_ierror)
+
+          implicit none
+
+          integer                        , intent(in)    :: test_id
+          type(bf_layer_grdpts_id_update), intent(inout) :: bf_layer_used
+          integer                        , intent(out)   :: test_i
+          integer                        , intent(out)   :: test_j
+          integer, dimension(5,5)        , intent(out)   :: test_grdpts_id
+          logical                        , intent(out)   :: test_ierror
+
+
+          test_grdpts_id = reshape((/
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3,
+     $              1,1,1,2,3/),
+     $              (/5,5/))
+
+          select case(test_id)
+            case(1)
+               bf_layer_used%localization=E
+               allocate(bf_layer_used%grdpts_id(5,5))
+               bf_layer_used%grdpts_id = reshape((/
+     $              1,1,1,2,3,
+     $              1,1,2,2,3,
+     $              1,1,2,3,3,
+     $              1,1,2,2,3,
+     $              1,1,1,2,3/),
+     $              (/5,5/))
+
+               call bf_layer_used%set_neighbor1_share(.false.)
+               call bf_layer_used%set_neighbor2_share(.false.)
+               test_i = 4
+               test_j = 3               
+               test_ierror = BF_SUCCESS
+
+            case(2)
+               test_i = 5
+               test_j = 2
+               test_ierror = BF_SUCCESS
+
+            case(3)
+               call bf_layer_used%set_neighbor1_share(.true.)
+               test_i = 3
+               test_j = 1
+               test_ierror = .not.BF_SUCCESS
+
+          end select
+
+        end subroutine get_test_param_detect_crenel
+
 
         function test_finalize_update_grdpts_id(detailled)
      $       result(test_validated)

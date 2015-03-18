@@ -302,6 +302,7 @@ bf_layer_newgrdpt_dep=	$(bf_layer_time_dep)\
 bf_layer_grdpts_id_update_dep=\
 			$(bf_layer_newgrdpt_dep)\
 			bf_bc_interior_pt_crenel_module.o\
+			bf_bc_pt_crenel_module.o\
 			bf_layer_grdpts_id_update_class.o
 
 bf_layer_dep=		$(bf_layer_grdpts_id_update_dep)\

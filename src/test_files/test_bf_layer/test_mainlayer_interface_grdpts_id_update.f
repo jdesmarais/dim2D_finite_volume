@@ -19,13 +19,18 @@
      $       bc_interior_pt,
      $       bc_pt,
      $       no_pt,
-     $       align_E, align_S,
+     $       
+     $       align_N,
+     $       align_S,
+     $       align_E,
+     $       
+     $       NE_interface_type,
      $       SE_interface_type
 
         use parameters_constant, only :
      $       obc_eigenqties_bc,
      $       obc_eigenqties_lin,
-     $       E,S
+     $       N,S,E
 
         use parameters_input, only :
      $       nx,ny,ne,
@@ -75,7 +80,579 @@
         print '()'
 
 
+        test_loc = test_detect_and_curb_bc_pt_crenel(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_detect_and_curb_bc_pt_crenel: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_finalize_for_bc_pt_crenel_local(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_finalize_for_bc_pt_crenel_local: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_finalize_for_bc_pt_crenel(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_finalize_for_bc_pt_crenel: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_update_grdpts_id_in_bf_layer(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_update_grdpts_id_in_bf_layer: '',L1)', test_loc
+        print '()'
+
+
         contains
+
+
+        function test_update_grdpts_id_in_bf_layer(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(mainlayer_interface_grdpts_id_update) :: mainlayer_interface_used
+          type(pmodel_eq)                            :: p_model
+          real(rkind)                                :: t
+          real(rkind)                                :: dt
+          real(rkind), dimension(nx)                 :: interior_x_map
+          real(rkind), dimension(ny)                 :: interior_y_map
+          real(rkind), dimension(nx,ny,ne)           :: interior_nodes0
+          real(rkind), dimension(nx,ny,ne)           :: interior_nodes1
+          type(bf_sublayer)                          :: bf_sublayer_ptr
+          integer       , dimension(6,5)             :: test_grdpts_id
+          real(rkind)   , dimension(ne)              :: test_newgrdpt
+
+          logical :: test_loc
+          integer :: k
+          
+
+          test_validated = .true.
+
+          
+          !input
+          !------------------------------------------------------------
+          call ini_for_test_update_grdpts_id_around_edge(
+     $         t,dt,
+     $         p_model,
+     $         bf_sublayer_ptr,
+     $         test_newgrdpt,
+     $         test_grdpts_id)
+
+
+          !output
+          !------------------------------------------------------------
+          call mainlayer_interface_used%update_grdpts_id_in_bf_layer(
+     $         p_model,
+     $         t,dt,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes0,
+     $         interior_nodes1,
+     $         bf_sublayer_ptr,
+     $         reshape((/align_E+1,align_S+10/),(/2,1/)))
+
+
+          !validation
+          !------------------------------------------------------------
+          test_loc = is_int_matrix_validated(
+     $         bf_sublayer_ptr%grdpts_id,
+     $         test_grdpts_id,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test grdpts_id failed'')'
+             print '(''grdpts_id:'')'
+             do k=1,5
+                print '(6I2)', bf_sublayer_ptr%grdpts_id(:,5-(k-1))
+             end do
+             print '()'
+
+             print '(''test_grdpts_id:'')'
+             do k=1,5
+                print '(6I2)', test_grdpts_id(:,5-(k-1))
+             end do
+             print '()'
+          end if
+
+          if(.not.debug_geometry_update) then
+             test_loc = is_real_vector_validated(
+     $            bf_sublayer_ptr%nodes(6,3,:),
+     $            test_newgrdpt,
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test newgrdpt failed'')'
+             end if
+          end if
+
+        end function test_update_grdpts_id_in_bf_layer
+
+        
+        function test_finalize_for_bc_pt_crenel(detailled)
+     $     result(test_validated)
+          
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(mainlayer_interface_grdpts_id_update) :: mainlayer_interface_used
+          type(bf_sublayer), pointer                 :: N_sublayer_ptr
+          type(bf_sublayer), pointer                 :: S_sublayer_ptr
+          type(bf_sublayer), pointer                 :: E_sublayer_ptr
+          integer(ikind), dimension(2)               :: gen_coords
+          integer(ikind), dimension(2)               :: match_table
+          integer       , dimension(5,ny)            :: test_grdpts_id
+
+          logical :: test_loc
+          integer :: k
+
+
+          test_validated = .true.
+
+
+          call ini_mainlayer_interface_for_bc_pt_crenel(
+     $         mainlayer_interface_used,
+     $         N_sublayer_ptr,
+     $         S_sublayer_ptr,
+     $         E_sublayer_ptr)
+
+
+          do k=1,4
+
+             !input
+             call get_test_param_bc_pt_crenel_nl(
+     $            k,
+     $            N_sublayer_ptr,
+     $            S_sublayer_ptr,
+     $            E_sublayer_ptr,
+     $            gen_coords,
+     $            match_table,
+     $            test_grdpts_id)
+
+             !output
+             call mainlayer_interface_used%finalize_for_bc_pt_crenel(
+     $            E_sublayer_ptr,
+     $            gen_coords,
+     $            match_table)
+
+             !validation
+             test_loc = is_int_matrix_validated(
+     $            E_sublayer_ptr%grdpts_id,
+     $            test_grdpts_id,
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'') failed'')'
+             end if
+
+          end do
+
+        end function test_finalize_for_bc_pt_crenel
+
+
+        function test_finalize_for_bc_pt_crenel_local(detailled)
+     $     result(test_validated)
+          
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(mainlayer_interface_grdpts_id_update) :: mainlayer_interface_used
+          type(bf_sublayer), pointer                 :: N_sublayer_ptr
+          type(bf_sublayer), pointer                 :: S_sublayer_ptr
+          type(bf_sublayer), pointer                 :: E_sublayer_ptr
+          integer(ikind), dimension(2)               :: gen_coords
+          integer(ikind), dimension(2)               :: match_table
+          integer       , dimension(5,ny)            :: test_grdpts_id
+
+          logical :: test_loc
+          integer :: k
+
+
+          test_validated = .true.
+
+
+          call ini_mainlayer_interface_for_bc_pt_crenel(
+     $         mainlayer_interface_used,
+     $         N_sublayer_ptr,
+     $         S_sublayer_ptr,
+     $         E_sublayer_ptr)
+
+
+          do k=1,4
+
+             !input
+             call get_test_param_bc_pt_crenel(
+     $            k,
+     $            N_sublayer_ptr,
+     $            S_sublayer_ptr,
+     $            E_sublayer_ptr,
+     $            gen_coords,
+     $            match_table,
+     $            test_grdpts_id)
+
+             !output
+             call mainlayer_interface_used%finalize_for_bc_pt_crenel_local(
+     $            E_sublayer_ptr,
+     $            gen_coords,
+     $            match_table)
+
+             !validation
+             test_loc = is_int_matrix_validated(
+     $            E_sublayer_ptr%grdpts_id,
+     $            test_grdpts_id,
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'') failed'')'
+             end if
+
+          end do
+
+        end function test_finalize_for_bc_pt_crenel_local
+
+
+        function test_detect_and_curb_bc_pt_crenel(detailled)
+     $     result(test_validated)
+          
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          type(mainlayer_interface_grdpts_id_update) :: mainlayer_interface_used
+          type(bf_sublayer), pointer                 :: N_sublayer_ptr
+          type(bf_sublayer), pointer                 :: S_sublayer_ptr
+          type(bf_sublayer), pointer                 :: E_sublayer_ptr
+          integer(ikind), dimension(2)               :: gen_coords
+          integer(ikind), dimension(2)               :: match_table
+          integer       , dimension(5,ny)            :: test_grdpts_id
+
+          logical :: test_loc
+          integer :: k
+
+
+          test_validated = .true.
+
+
+          call ini_mainlayer_interface_for_bc_pt_crenel(
+     $         mainlayer_interface_used,
+     $         N_sublayer_ptr,
+     $         S_sublayer_ptr,
+     $         E_sublayer_ptr)
+
+
+          do k=1,3
+
+             !input
+             call get_test_param_bc_pt_crenel(
+     $            k,
+     $            N_sublayer_ptr,
+     $            S_sublayer_ptr,
+     $            E_sublayer_ptr,
+     $            gen_coords,
+     $            match_table,
+     $            test_grdpts_id)
+
+             !output
+             call mainlayer_interface_used%detect_and_curb_bc_pt_crenel(
+     $            E_sublayer_ptr,
+     $            gen_coords,
+     $            match_table)
+
+             !validation
+             test_loc = is_int_matrix_validated(
+     $            E_sublayer_ptr%grdpts_id,
+     $            test_grdpts_id,
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'') failed'')'
+             end if
+
+          end do
+
+        end function test_detect_and_curb_bc_pt_crenel
+
+
+        subroutine ini_mainlayer_interface_for_bc_pt_crenel(
+     $     mainlayer_interface_used,
+     $     N_sublayer_ptr,
+     $     S_sublayer_ptr,
+     $     E_sublayer_ptr)
+
+          implicit none
+
+          type(mainlayer_interface_grdpts_id_update), intent(out) :: mainlayer_interface_used
+          type(bf_sublayer), pointer                , intent(out) :: N_sublayer_ptr
+          type(bf_sublayer), pointer                , intent(out) :: S_sublayer_ptr
+          type(bf_sublayer), pointer                , intent(out) :: E_sublayer_ptr
+
+
+          integer :: j
+
+
+          !North buffer layer
+          !------------------------------------------------------------
+          allocate(N_sublayer_ptr)
+          N_sublayer_ptr%localization = N
+          N_sublayer_ptr%alignment = reshape((/
+     $         align_E-5, align_N, align_E, align_N+3/),
+     $         (/2,2/))
+          allocate(N_sublayer_ptr%grdpts_id(10,8))
+          N_sublayer_ptr%grdpts_id = reshape((/
+     $         1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,2,3,
+     $         2,2,1,1,1,1,1,1,2,3,          
+     $         3,2,1,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,1,2,3,
+     $         3,2,2,2,2,2,2,2,2,3,
+     $         3,3,3,3,3,3,3,3,3,3/),
+     $         (/10,8/))
+
+          call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $         NE_interface_type,
+     $         N_sublayer_ptr)
+
+
+          !South buffer layer
+          !------------------------------------------------------------
+          allocate(S_sublayer_ptr)
+          S_sublayer_ptr%localization = S
+          S_sublayer_ptr%alignment = reshape((/
+     $         align_E-5, align_S-3, align_E, align_S/),
+     $         (/2,2/))
+          allocate(S_sublayer_ptr%grdpts_id(10,8))
+          S_sublayer_ptr%grdpts_id = reshape((/
+     $         3,3,3,3,3,3,3,3,3,3,
+     $         3,2,2,2,2,2,2,2,2,3,
+     $         3,2,1,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,1,2,3,
+     $         2,2,1,1,1,1,1,1,2,3,          
+     $         1,1,1,1,1,1,1,1,2,3,
+     $         1,1,1,1,1,1,1,1,2,3/),
+     $         (/10,8/))
+          
+          call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $         SE_interface_type,
+     $         S_sublayer_ptr)
+
+          
+          !East buffer layer
+          !------------------------------------------------------------
+          allocate(E_sublayer_ptr)
+          E_sublayer_ptr%localization = E
+          E_sublayer_ptr%alignment = reshape((/
+     $         align_E,align_S+1,align_E,align_N-1/),
+     $         (/2,2/))
+          allocate(E_sublayer_ptr%grdpts_id(5,ny))
+          
+          do j=1,ny
+             E_sublayer_ptr%grdpts_id(:,j) = [1,1,1,2,3]
+          end do
+
+          call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $         SE_interface_type,
+     $         E_sublayer_ptr)
+
+          call mainlayer_interface_used%set_mainlayer_interface_bf_layer(
+     $         NE_interface_type,
+     $         E_sublayer_ptr)
+
+
+        end subroutine ini_mainlayer_interface_for_bc_pt_crenel
+
+
+        subroutine get_test_param_bc_pt_crenel(
+     $     test_id,
+     $     N_sublayer_ptr,
+     $     S_sublayer_ptr,
+     $     E_sublayer_ptr,
+     $     gen_coords,
+     $     match_table,
+     $     test_grdpts_id)
+
+          implicit none
+
+          integer                        , intent(in)    :: test_id
+          type(bf_sublayer)              , intent(inout) :: N_sublayer_ptr
+          type(bf_sublayer)              , intent(inout) :: S_sublayer_ptr
+          type(bf_sublayer)              , intent(inout) :: E_sublayer_ptr
+          integer(ikind), dimension(2)   , intent(out)   :: gen_coords
+          integer(ikind), dimension(2)   , intent(out)   :: match_table
+          integer       , dimension(5,ny), intent(out)   :: test_grdpts_id
+
+          integer :: j
+
+          match_table = [align_E-3,align_S+1-3]
+          
+          do j=1,ny
+             test_grdpts_id(:,j) = [1,1,1,2,3]
+          end do
+
+          select case(test_id)
+
+            case(1)
+               E_sublayer_ptr%grdpts_id(1:5,align_S+4:align_S+8) =
+     $              reshape((/
+     $              1,1,1,2,3,
+     $              1,1,2,2,3,
+     $              1,1,2,3,3,
+     $              1,1,2,2,3,
+     $              1,1,1,2,3/),
+     $              (/5,5/))
+
+               gen_coords = [align_E+1,align_S+6]
+
+            case(2)
+               E_sublayer_ptr%grdpts_id(1:5,1:3) =
+     $              reshape((/
+     $              1,1,2,3,3,
+     $              1,1,2,2,3,
+     $              1,1,1,2,3/),
+     $              (/5,3/))
+
+               gen_coords = [align_E+1,align_S-1]
+
+               S_sublayer_ptr%grdpts_id = reshape((/
+     $              3,3,3,3,3,3,3,3,3,3,
+     $              3,2,2,2,2,2,2,2,2,3,
+     $              3,2,1,1,1,1,1,1,2,3,
+     $              3,2,1,1,1,1,1,2,2,3,
+     $              3,2,1,1,1,1,1,2,3,3,
+     $              2,2,1,1,1,1,1,2,2,3,          
+     $              1,1,1,1,1,1,1,1,2,3,
+     $              1,1,1,1,1,1,1,1,2,3/),
+     $              (/10,8/))
+
+            case(3)
+               E_sublayer_ptr%grdpts_id(1:5,ny-2:ny) =
+     $              reshape((/
+     $              1,1,1,2,3,
+     $              1,1,2,2,3,
+     $              1,1,2,3,3/),
+     $              (/5,3/))
+
+               gen_coords = [align_E+1,align_N+1]
+
+               N_sublayer_ptr%grdpts_id = reshape((/
+     $              1,1,1,1,1,1,1,1,2,3,
+     $              1,1,1,1,1,1,1,1,2,3,
+     $              2,2,1,1,1,1,1,2,2,3,          
+     $              3,2,1,1,1,1,1,2,3,3,
+     $              3,2,1,1,1,1,1,2,2,3,
+     $              3,2,1,1,1,1,1,1,2,3,
+     $              3,2,2,2,2,2,2,2,2,3,
+     $              3,3,3,3,3,3,3,3,3,3/),
+     $              (/10,8/))
+
+            case(4)
+               gen_coords = [align_E+2,align_N-1]
+
+            end select
+
+        end subroutine get_test_param_bc_pt_crenel
+
+
+        subroutine get_test_param_bc_pt_crenel_nl(
+     $     test_id,
+     $     N_sublayer_ptr,
+     $     S_sublayer_ptr,
+     $     E_sublayer_ptr,
+     $     gen_coords,
+     $     match_table,
+     $     test_grdpts_id)
+
+          implicit none
+
+          integer                        , intent(in)    :: test_id
+          type(bf_sublayer)              , intent(inout) :: N_sublayer_ptr
+          type(bf_sublayer)              , intent(inout) :: S_sublayer_ptr
+          type(bf_sublayer)              , intent(inout) :: E_sublayer_ptr
+          integer(ikind), dimension(2)   , intent(out)   :: gen_coords
+          integer(ikind), dimension(2)   , intent(out)   :: match_table
+          integer       , dimension(5,ny), intent(out)   :: test_grdpts_id
+
+          integer :: j
+
+          match_table = [align_E-3,align_S+1-3]
+          
+          do j=1,ny
+             test_grdpts_id(:,j) = [1,1,1,2,3]
+          end do
+
+          select case(test_id)
+
+            case(1)
+               E_sublayer_ptr%grdpts_id(1:5,align_S+4:align_S+8) =
+     $              reshape((/
+     $              1,1,1,2,3,
+     $              1,1,2,2,3,
+     $              1,1,2,3,3,
+     $              1,1,2,2,3,
+     $              1,1,1,2,3/),
+     $              (/5,5/))
+
+               gen_coords = [align_E,align_S+4]
+
+            case(2)
+               E_sublayer_ptr%grdpts_id(1:5,1:3) =
+     $              reshape((/
+     $              1,1,2,3,3,
+     $              1,1,2,2,3,
+     $              1,1,1,2,3/),
+     $              (/5,3/))
+
+               gen_coords = [align_E,align_S+1]
+
+               S_sublayer_ptr%grdpts_id = reshape((/
+     $              3,3,3,3,3,3,3,3,3,3,
+     $              3,2,2,2,2,2,2,2,2,3,
+     $              3,2,1,1,1,1,1,1,2,3,
+     $              3,2,1,1,1,1,1,2,2,3,
+     $              3,2,1,1,1,1,1,2,3,3,
+     $              2,2,1,1,1,1,1,2,2,3,          
+     $              1,1,1,1,1,1,1,1,2,3,
+     $              1,1,1,1,1,1,1,1,2,3/),
+     $              (/10,8/))
+
+            case(3)
+               E_sublayer_ptr%grdpts_id(1:5,ny-2:ny) =
+     $              reshape((/
+     $              1,1,1,2,3,
+     $              1,1,2,2,3,
+     $              1,1,2,3,3/),
+     $              (/5,3/))
+
+               gen_coords = [align_E,align_N-1]
+
+               N_sublayer_ptr%grdpts_id = reshape((/
+     $              1,1,1,1,1,1,1,1,2,3,
+     $              1,1,1,1,1,1,1,1,2,3,
+     $              2,2,1,1,1,1,1,2,2,3,          
+     $              3,2,1,1,1,1,1,2,3,3,
+     $              3,2,1,1,1,1,1,2,2,3,
+     $              3,2,1,1,1,1,1,1,2,3,
+     $              3,2,2,2,2,2,2,2,2,3,
+     $              3,3,3,3,3,3,3,3,3,3/),
+     $              (/10,8/))
+
+            case(4)
+               gen_coords = [align_E,align_N-1]
+
+            end select
+
+        end subroutine get_test_param_bc_pt_crenel_nl
+
 
         function test_finalize_for_bc_interior_pt_crenel(detailled)
      $       result(test_validated)
@@ -600,7 +1177,6 @@
           type(bf_sublayer)                          :: bf_sublayer_ptr
           integer(ikind), dimension(2)               :: match_table
           integer       , dimension(6,5)             :: test_grdpts_id
-          
           real(rkind)   , dimension(ne)              :: test_newgrdpt
 
           logical :: test_loc
@@ -609,7 +1185,88 @@
 
           test_validated = .true.
 
+          
+          !input
+          !------------------------------------------------------------
+          call ini_for_test_update_grdpts_id_around_edge(
+     $         t,dt,
+     $         p_model,
+     $         bf_sublayer_ptr,
+     $         test_newgrdpt,
+     $         test_grdpts_id)
 
+          match_table(1) = align_E+3-6
+          match_table(2) = align_S+10-3
+
+
+          !output
+          !------------------------------------------------------------
+          call mainlayer_interface_used%update_grdpts_id_around_new_interior_pt(
+     $         p_model,
+     $         t,dt,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes0,
+     $         interior_nodes1,
+     $         bf_sublayer_ptr,
+     $         nx/2,
+     $         ny/2,
+     $         align_E+1,align_S+10,
+     $         match_table)
+
+
+          !validation
+          !------------------------------------------------------------
+          test_loc = is_int_matrix_validated(
+     $         bf_sublayer_ptr%grdpts_id,
+     $         test_grdpts_id,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test grdpts_id failed'')'
+             print '(''grdpts_id:'')'
+             do k=1,5
+                print '(6I2)', bf_sublayer_ptr%grdpts_id(:,5-(k-1))
+             end do
+             print '()'
+
+             print '(''test_grdpts_id:'')'
+             do k=1,5
+                print '(6I2)', test_grdpts_id(:,5-(k-1))
+             end do
+             print '()'
+          end if
+
+
+          test_loc = is_real_vector_validated(
+     $         bf_sublayer_ptr%nodes(6,3,:),
+     $         test_newgrdpt,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test newgrdpt failed'')'
+          end if
+
+        end function test_update_grdpts_id_around_edge
+
+
+        subroutine ini_for_test_update_grdpts_id_around_edge(
+     $     t,dt,
+     $     p_model,
+     $     bf_sublayer_ptr,
+     $     test_newgrdpt,
+     $     test_grdpts_id)
+
+          implicit none
+
+          real(rkind)                , intent(out) :: t
+          real(rkind)                , intent(out) :: dt
+          type(pmodel_eq)            , intent(out) :: p_model
+          type(bf_sublayer)          , intent(out) :: bf_sublayer_ptr
+          real(rkind), dimension(ne) , intent(out) :: test_newgrdpt
+          integer    , dimension(6,5), intent(out) :: test_grdpts_id
+
+          
           !initialization
           !------------------------------------------------------------
           t  = 0.0d0
@@ -729,29 +1386,8 @@
                stop ''
                
           end select
+          
 
-          match_table(1) = align_E+3-6
-          match_table(2) = align_S+10-3
-
-
-          !output
-          !------------------------------------------------------------
-          call mainlayer_interface_used%update_grdpts_id_around_new_interior_pt(
-     $         p_model,
-     $         t,dt,
-     $         interior_x_map,
-     $         interior_y_map,
-     $         interior_nodes0,
-     $         interior_nodes1,
-     $         bf_sublayer_ptr,
-     $         nx/2,
-     $         ny/2,
-     $         align_E+1,align_S+10,
-     $         match_table)
-
-
-          !validation
-          !------------------------------------------------------------
           test_grdpts_id = reshape((/
      $         1,1,1,2,3,3,
      $         1,1,1,2,2,3,
@@ -760,37 +1396,7 @@
      $         1,1,1,2,3,3/),
      $         (/6,5/))
 
-          test_loc = is_int_matrix_validated(
-     $         bf_sublayer_ptr%grdpts_id,
-     $         test_grdpts_id,
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test grdpts_id failed'')'
-             print '(''grdpts_id:'')'
-             do k=1,5
-                print '(6I2)', bf_sublayer_ptr%grdpts_id(:,5-(k-1))
-             end do
-             print '()'
-
-             print '(''test_grdpts_id:'')'
-             do k=1,5
-                print '(6I2)', test_grdpts_id(:,5-(k-1))
-             end do
-             print '()'
-          end if
-
-
-          test_loc = is_real_vector_validated(
-     $         bf_sublayer_ptr%nodes(6,3,:),
-     $         test_newgrdpt,
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test newgrdpt failed'')'
-          end if
-
-        end function test_update_grdpts_id_around_edge
+        end subroutine ini_for_test_update_grdpts_id_around_edge
 
 
         subroutine get_param_test_update_grdpts_id(

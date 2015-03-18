@@ -15,13 +15,18 @@
       module bf_layer_grdpts_id_update_class
 
         use bf_bc_interior_pt_crenel_module, only :
-     $     check_if_bc_interior_pt_crenel,
-     $     are_grdpts_available_to_detect_bc_interior_pt_crenel
+     $       check_if_bc_interior_pt_crenel,
+     $       are_grdpts_available_to_detect_bc_interior_pt_crenel
+
+        use bf_bc_pt_crenel_module, only :
+     $       check_if_bc_pt_crenel,
+     $       remove_bc_pt_crenel,
+     $       are_grdpts_available_to_detect_bc_pt_crenel
 
         use bf_layer_extract_module, only :
-     $     get_bf_layer_match_table,
-     $     get_grdpts_id_from_interior,
-     $     get_grdpts_id_from_bf_layer
+     $       get_bf_layer_match_table,
+     $       get_grdpts_id_from_interior,
+     $       get_grdpts_id_from_bf_layer
 
         use bf_layer_newgrdpt_class, only :
      $       bf_layer_newgrdpt
@@ -73,6 +78,9 @@
           ! for detecting and curbing bc_interior_pt crenels
           procedure, pass :: detect_bc_interior_pt_crenel
           procedure, pass :: can_bc_interior_pt_crenel_be_curbed
+
+          ! for detecting and curbing bc_pt crenels
+          procedure, pass :: detect_and_curb_bc_pt_crenel
 
         end type bf_layer_grdpts_id_update
 
@@ -469,5 +477,92 @@
           end if
 
         end function can_bc_interior_pt_crenel_be_curbed
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !>
+        !> @brief
+        !> detect and curb bc_pt crenel
+        !
+        !> @date
+        !> 18_03_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !> @param i
+        !> x-index of the bc_interior_pt checked
+        !
+        !> @param j
+        !> y-index of the bc_interior_pt checked
+        !
+        !> @param ierror
+        !> logical stating whether the detection was successful or not
+        !
+        !> @return is_bc_interior_crenel
+        !> logical determining whether this is a bc_crenel or not
+        !--------------------------------------------------------------
+        subroutine detect_and_curb_bc_pt_crenel(this,i,j,ierror)
+
+          implicit none
+
+          class(bf_layer_grdpts_id_update), intent(inout):: this
+          integer(ikind)                  , intent(in)   :: i
+          integer(ikind)                  , intent(in)   :: j
+          logical                         , intent(out)  :: ierror
+
+          logical :: grdpts_available
+          logical :: is_bc_pt_crenel
+
+
+          !1) check whether there are enough grid points to check whether
+          !   there is a bc_interior_pt crenel or not
+          !   if there are enough grid points, the presence of a bc_pt
+          !   crenel is directly checked on the data of the buffer layer
+          !   then the crenel is curbed
+          if(
+     $         ((i-1).ge.1).and.
+     $         ((i+1).le.(size(this%grdpts_id,1))).and.
+     $         ((j-1).ge.1).and.
+     $         ((j+1).le.(size(this%grdpts_id,2)))) then
+
+             ierror = BF_SUCCESS
+
+             is_bc_pt_crenel = check_if_bc_pt_crenel(
+     $            this%grdpts_id,
+     $            i,j)
+
+             if(is_bc_pt_crenel) then
+                call remove_bc_pt_crenel(this%grdpts_id,i,j)
+             end if
+
+          !2) otherwise, we check whether it is possible to create a temporary
+          !   array gathering data from the buffer layer
+          else
+
+             grdpts_available = are_grdpts_available_to_detect_bc_pt_crenel(
+     $            this%localization,
+     $            size(this%grdpts_id,1), size(this%grdpts_id,2),
+     $            this%can_exchange_with_neighbor1(),
+     $            this%can_exchange_with_neighbor2(),
+     $            [i,j])
+
+             if(grdpts_available) then
+
+                ierror = BF_SUCCESS
+
+                !if grid points are available, it means that there
+                !is at least one no_pt neighbor and so the bc_pt
+                !investigated is not part of a bc_pt crenel
+
+             else
+                ierror = .not.BF_SUCCESS
+             end if
+
+          end if
+
+        end subroutine detect_and_curb_bc_pt_crenel
 
       end module bf_layer_grdpts_id_update_class
