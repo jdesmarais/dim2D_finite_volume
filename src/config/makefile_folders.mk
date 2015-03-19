@@ -65,6 +65,7 @@ nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors
 ngbf_layer_dir		= $(bf_layer_dir)/bf_layer_newgrdpt
 rbf_layer_dir           = $(bf_layer_dir)/bf_layer_restart
 sbf_layer_dir           = $(bf_layer_dir)/bf_layer_sync
+ibf_layer_dir		= $(bf_layer_dir)/bf_layer_increase
 
 pbf_layer_dir		= $(bf_layer_dir)/bf_layer_parents
 mpbf_layer_dir		= $(bf_layer_dir)/bf_mainlayer_parents

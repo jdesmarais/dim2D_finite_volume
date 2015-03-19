@@ -661,3 +661,13 @@ test_bf_bc_pt_crenel:		$(param_dep)\
 				bf_bc_pt_crenel_module.o\
 				parameters_bf_layer.o\
 				check_data_module.o
+
+#test bf_layer_increase
+test_bf_increase_coords.o:	$(ibf_layer_dir)/bf_increase_coords_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_increase_coords:	$(param_dep)\
+				parameters_bf_layer.o\
+				bf_increase_coords_module.o
