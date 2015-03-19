@@ -491,3 +491,22 @@ make test_bf_increase_coords > /dev/null
 make cleanall > /dev/null
 echo ''
 
+
+#test_bf_mainlayer_class
+echo ''
+echo 'test_bf_mainlayer_class'
+echo '------------------------------------------------------------'
+make test_bf_mainlayer > /dev/null
+./test_bf_mainlayer
+make cleanall > /dev/null
+echo ''
+
+
+#test_bf_interface_coords_class
+echo ''
+echo 'test_bf_interface_coords_class'
+echo '------------------------------------------------------------'
+make test_bf_interface_coords > /dev/null
+./test_bf_interface_coords
+make cleanall > /dev/null
+echo ''

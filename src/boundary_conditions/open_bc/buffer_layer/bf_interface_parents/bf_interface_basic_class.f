@@ -17,8 +17,8 @@
         use bf_mainlayer_pointer_class, only :
      $       bf_mainlayer_pointer
 
-        use mainlayer_interface_dyn_class, only :
-     $       mainlayer_interface_dyn
+        use mainlayer_interface_grdpts_id_update_class, only :
+     $       mainlayer_interface_grdpts_id_update
 
         use parameters_input, only :
      $       nx,ny
@@ -50,8 +50,8 @@
         !---------------------------------------------------------------
         type :: bf_interface_basic
 
-          type(bf_mainlayer_pointer), dimension(4) :: mainlayer_pointers
-          type(mainlayer_interface_dyn)            :: mainlayer_interfaces
+          type(bf_mainlayer_pointer), dimension(4)   :: mainlayer_pointers
+          type(mainlayer_interface_grdpts_id_update) :: mainlayer_interfaces
 
           contains
 

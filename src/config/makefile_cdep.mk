@@ -354,7 +354,7 @@ bf_mainlayer_pointer_dep=$(bf_mainlayer_dep)\
 
 #bf_interface objects
 bf_interface_basic_dep=	$(bf_mainlayer_pointer_dep)\
-			$(mainlayer_interface_dyn_dep)\
+			$(mainlayer_interface_grdpts_id_update_dep)\
 			bf_interface_basic_class.o
 
 bf_interface_print_dep= $(bf_interface_basic_dep)\
@@ -369,6 +369,14 @@ bf_interface_dyn_dep=	$(bf_interface_sync_dep)\
 bf_interface_time_dep=	$(bf_interface_dyn_dep)\
 			bf_mainlayer_bc_sections_module.o\
 			bf_interface_time_class.o
+
+bf_interface_grdpts_id_update_dep=\
+			$(bf_interface_time_dep)\
+			bf_interface_grdpts_id_update_class.o
+
+bf_interface_coords_dep=$(bf_interface_grdpts_id_update_dep)\
+			bf_increase_coords_module.o\
+			bf_interface_coords_class.o
 
 
 bf_interface_dep=	$(bf_layer_dep)\

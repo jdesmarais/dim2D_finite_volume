@@ -169,6 +169,9 @@
           procedure, pass :: finalize_after_timeInt
           procedure, pass :: compute_time_dev
           procedure, pass :: compute_integration_step
+
+          !bf_mainlayer_coords procedure
+          procedure, pass :: get_sublayer_from_gen_coords
           
         end type bf_mainlayer_pointer
 
@@ -1102,5 +1105,75 @@
           end if
 
         end subroutine compute_integration_step
+
+
+!> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the integration step
+        !
+        !> @date
+        !> 17_07_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param dt
+        !> integration time step
+        !
+        !>@param integration_step_nopt
+        !> procedure performing the time integration
+        !
+        !>@param full
+        !> logical to enforce whether the full domain is computed
+        !> discarding the x_borders and y_borders supplied
+        !> (important for the first integration step when the
+        !> previous integration step is saved temporary in another
+        !> array)
+        !--------------------------------------------------------------
+        function get_sublayer_from_gen_coords(
+     $     this, gen_coords, tolerance, no_check_ID)
+     $     result(bf_sublayer_ptr)
+
+          implicit none
+
+          class(bf_mainlayer_pointer) , intent(in) :: this
+          integer(ikind), dimension(2), intent(in) :: gen_coords
+          integer(ikind), optional    , intent(in) :: tolerance
+          logical       , optional    , intent(in) :: no_check_ID
+          type(bf_sublayer), pointer               :: bf_sublayer_ptr
+
+
+          integer :: tolerance_op
+          logical :: no_check_ID_op
+
+          
+          if(present(tolerance)) then
+             tolerance_op = tolerance
+          else
+             tolerance_op = 0
+          end if
+
+          if(present(no_check_ID)) then
+             no_check_ID_op = no_check_ID
+          else
+             no_check_ID_op = .false.
+          end if
+
+
+          if(this%associated_ptr()) then
+             bf_sublayer_ptr => this%ptr%get_sublayer_from_gen_coords(
+     $            gen_coords,
+     $            tolerance=tolerance_op,
+     $            no_check_ID=no_check_ID_op)
+          else
+             print '(''bf_mainlayer_pointer_class'')'
+             print '(''get_sublayer_from_gen_coords'')'
+             stop 'ptr not associated'
+          end if
+
+        end function get_sublayer_from_gen_coords
 
       end module bf_mainlayer_pointer_class

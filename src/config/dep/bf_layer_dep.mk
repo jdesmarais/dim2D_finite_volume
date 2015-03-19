@@ -192,7 +192,7 @@ $(mbf_layer_dir)/mainlayer_interface_grdpts_id_update_class.o:\
 #bf_interface parents
 $(ipbf_layer_dir)/bf_interface_basic_class.o:\
 	$(bf_layer_dir)/bf_mainlayer_pointer_class.o\
-	$(mbf_layer_dir)/mainlayer_interface_dyn_class.o\
+	$(mbf_layer_dir)/mainlayer_interface_grdpts_id_update_class.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
@@ -227,6 +227,19 @@ $(ipbf_layer_dir)/bf_interface_time_class.o:\
 	$(pm_cdir)/pmodel_eq_class.o\
 	$(sd_cdir)/sd_operators_class.o\
 	$(td_cdir)/td_operators_class.o
+
+$(ipbf_layer_dir)/bf_interface_grdpts_id_update_class.o:\
+	$(ipbf_layer_dir)/bf_interface_time_class.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	$(pm_cdir)/pmodel_eq_class.o
+
+$(ipbf_layer_dir)/bf_interface_coords_class.o:\
+	$(ibf_layer_dir)/bf_increase_coords_module.o\
+	$(ipbf_layer_dir)/bf_interface_grdpts_id_update_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_kind.o
 
 $(bf_layer_dir)/bf_interface_class.o:\
 	$(cbf_layer_dir)/bf_interior_bc_sections_module.o\
