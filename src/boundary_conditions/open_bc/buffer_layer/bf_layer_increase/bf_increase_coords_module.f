@@ -33,7 +33,7 @@
 
         private
         public ::
-     $       get_mainlayer_id
+     $       get_mainlayer_coord
 
 
         contains
@@ -59,7 +59,7 @@
         !> cardinal coordinate identifying the main layer to which
         !> the grid-point belongs
         !--------------------------------------------------------------
-        function get_mainlayer_id(gen_coords)
+        function get_mainlayer_coord(gen_coords)
      $       result(mainlayer_id)
         
           implicit none
@@ -91,6 +91,6 @@
              end if
           end if
 
-        end function get_mainlayer_id
+        end function get_mainlayer_coord
 
       end module bf_increase_coords_module

@@ -341,7 +341,11 @@ bf_mainlayer_sync_dep=	$(bf_mainlayer_print_dep)\
 			bf_interior_bc_sections_module.o\
 			bf_mainlayer_sync_class.o
 
-bf_mainlayer_dep=	$(bf_mainlayer_sync_dep)\
+bf_mainlayer_time_dep=	$(bf_mainlayer_sync_dep)\
+			bf_mainlayer_time_class.o
+
+bf_mainlayer_dep=	$(bf_mainlayer_time_dep)\
+			bf_increase_coords_module.o\
 			bf_mainlayer_class.o
 
 bf_mainlayer_pointer_dep=$(bf_mainlayer_dep)\

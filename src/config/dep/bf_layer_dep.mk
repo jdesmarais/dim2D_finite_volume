@@ -115,12 +115,21 @@ $(mpbf_layer_dir)/bf_mainlayer_sync_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
-$(bf_layer_dir)/bf_mainlayer_class.o:\
+$(mpbf_layer_dir)/bf_mainlayer_time_class.o:\
 	$(bc_cdir)/bc_operators_class.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(mpbf_layer_dir)/bf_mainlayer_sync_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(ti_dir)/interface_integration_step.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(bf_layer_dir)/bf_mainlayer_class.o:\
+	$(mpbf_layer_dir)/bf_mainlayer_time_class.o\
+	$(ibf_layer_dir)/bf_increase_coords_module.o\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 

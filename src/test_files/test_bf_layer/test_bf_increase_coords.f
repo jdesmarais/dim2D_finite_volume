@@ -1,7 +1,7 @@
       program test_bf_increase_coords
 
         use bf_increase_coords_module, only :
-     $       get_mainlayer_id
+     $       get_mainlayer_coord
 
         use parameters_bf_layer, only :
      $       align_N, align_S,
@@ -25,16 +25,16 @@
         test_validated = .true.
 
 
-        test_loc = test_get_mainlayer_id(detailled)
+        test_loc = test_get_mainlayer_coord(detailled)
         test_validated = test_validated.and.test_loc
-        print '(''test_get_mainlayer_id: '',L1)', test_loc
+        print '(''test_get_mainlayer_coord: '',L1)', test_loc
         print '()'
 
 
         contains
 
 
-        function test_get_mainlayer_id(detailled)
+        function test_get_mainlayer_coord(detailled)
      $       result(test_validated)
         
           implicit none
@@ -77,7 +77,7 @@
           do k=1, nb_tests
 
              !output
-             mainlayer_id = get_mainlayer_id(test_gen_coords(:,k))
+             mainlayer_id = get_mainlayer_coord(test_gen_coords(:,k))
 
              !validation
              test_loc = mainlayer_id.eq.test_mainlayer_id(k)
@@ -90,6 +90,6 @@
 
           end do
 
-        end function test_get_mainlayer_id
+        end function test_get_mainlayer_coord
 
       end program test_bf_increase_coords

@@ -260,12 +260,12 @@ make cleanall > /dev/null
 echo ''
 
 
-#test_bf_mainlayer_class
+#test_bf_mainlayer_time_class
 echo ''
-echo 'test_bf_mainlayer_class'
+echo 'test_bf_mainlayer_time_class'
 echo '------------------------------------------------------------'
-make test_bf_mainlayer > /dev/null
-./test_bf_mainlayer
+make test_bf_mainlayer_time > /dev/null
+./test_bf_mainlayer_time
 make cleanall > /dev/null
 echo ''
 
@@ -478,6 +478,16 @@ echo 'test_mainlayer_interface_grdpts_id_update'
 echo '------------------------------------------------------------'
 make test_mainlayer_interface_grdpts_id_update > /dev/null
 ./test_mainlayer_interface_grdpts_id_update
+make cleanall > /dev/null
+echo ''
+
+
+#test_bf_increase_coords_module
+echo ''
+echo 'test_bf_increase_coords_module'
+echo '------------------------------------------------------------'
+make test_bf_increase_coords > /dev/null
+./test_bf_increase_coords
 make cleanall > /dev/null
 echo ''
 

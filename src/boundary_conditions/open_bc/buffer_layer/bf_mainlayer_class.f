@@ -1,49 +1,42 @@
       !> @file
-      !> bf_mainlayer_sync augmented with time integration
-      !> procedures
+      !> bf_mainlayer_time augmented with procedures to
+      !> extract sublayer using coordinates
       !
       !> @author
       !> Julien L. Desmarais
       !
       !> @brief
-      !> bf_mainlayer_sync augmented with time integration
-      !> procedures
+      !> bf_mainlayer_time augmented with procedures to
+      !> extract sublayer using coordinates
       !
       !> @date
-      ! 11_04_2014 - initial version - J.L. Desmarais
+      ! 19_03_2015 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module bf_mainlayer_class
 
-        use bc_operators_class, only :
-     $       bc_operators
+        use bf_increase_coords_module, only :
+     $       get_mainlayer_coord
+
+        use bf_mainlayer_time_class, only :
+     $       bf_mainlayer_time
 
         use bf_layer_errors_module, only :
      $       error_mainlayer_id
 
-        use bf_mainlayer_sync_class, only :
-     $       bf_mainlayer_sync
-
         use bf_sublayer_class, only :
      $       bf_sublayer
 
-        use interface_integration_step, only :
-     $       timeInt_step_nopt
+        use parameters_constant, only :
+     $       N,S,E,W,
+     $       x_direction,
+     $       y_direction
 
         use parameters_input, only :
-     $       nx,ny,ne
+     $       bc_size
 
         use parameters_kind, only :
      $       ikind,
      $       rkind
-
-        use pmodel_eq_class, only :
-     $       pmodel_eq
-
-        use sd_operators_class, only :
-     $       sd_operators
-
-        use td_operators_class, only :
-     $       td_operators
 
         implicit none
 
@@ -52,31 +45,16 @@
         
         
         !> @class bf_mainlayer
-        !> bf_mainlayer_sync augmented with time integration
-        !> procedures
+        !> bf_mainlayer_time augmented with procedures to
+        !> extract sublayer using coordinates
         !
-        !> @param initialize_before_timeInt
-        !> allocate memory space for the intermediate
-        !> variables needed to perform the time integration
-        !
-        !> @param finalize_after_timeInt
-        !> deallocate memory space for the intermediate
-        !> variables needed to perform the time integration
-        !
-        !> @param compute_time_dev
-        !> compute the time derivatives
-        !
-        !> @param compute_integration_step
-        !> compute the integration step
+        !> @param get_sublayer_from_coords
         !---------------------------------------------------------------
-        type, extends(bf_mainlayer_sync) :: bf_mainlayer
+        type, extends(bf_mainlayer_time) :: bf_mainlayer
 
           contains
 
-          procedure, pass :: initialize_before_timeInt
-          procedure, pass :: finalize_after_timeInt
-          procedure, pass :: compute_time_dev
-          procedure, pass :: compute_integration_step
+          procedure, pass :: get_sublayer_from_gen_coords
 
         end type bf_mainlayer
 
@@ -88,229 +66,122 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> initialize the necessary attributes of the buffer layers
-        !> before the time integration
-        !>     - update the time integration borders
-        !>     - update the localization of the bc_sections
-        !>     - allocate the intermediate arrays for the integration
+        !> extract the sublayer whose coordinates match the
+        !> buffer layer inside the mainlayer
         !
         !> @date
-        !> 07_03_2015 - initial version - J.L. Desmarais
-        !
-        !> @param this
-        !> object encapsulating the double chained list of sublayers,
-        !> pointers to the head and tail elements of the list and the
-        !> total number of elements in the list
-        !--------------------------------------------------------------
-        subroutine initialize_before_timeInt(this)
-
-          implicit none
-
-          class(bf_mainlayer), intent(inout) :: this
-
-
-          type(bf_sublayer), pointer :: current_sublayer
-          integer                    :: i
-
-          
-          !initialize to the pointer to the first sublayer
-          !written
-          current_sublayer => this%head_sublayer
-
-
-          !go through the chained list and allocate the 
-          !temporary variables for the time integration
-          do i=1, this%nb_sublayers
-
-             !update the time integration borders
-             call current_sublayer%update_integration_borders()
-
-             !update the position of the bc_sections
-             call current_sublayer%update_bc_sections()
-
-             !allocate the temporary variables for the 
-             !time integration
-             call current_sublayer%allocate_before_timeInt()
-
-             !get the next sublayer in the mainlayer
-             current_sublayer => current_sublayer%get_next()
-
-          end do
-
-        end subroutine initialize_before_timeInt
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> deallocate the memory space for the intermediate
-        !> variables needed to perform the time integration
-        !> for each sublayer contained in this main layer
-        !
-        !> @date
-        !> 17_07_2014 - initial version - J.L. Desmarais
-        !
-        !> @param this
-        !> object encapsulating the double chained list of sublayers,
-        !> pointers to the head and tail elements of the list and the
-        !> total number of elements in the list
-        !--------------------------------------------------------------
-        subroutine finalize_after_timeInt(this)
-
-          implicit none
-
-          class(bf_mainlayer), intent(inout) :: this
-
-
-          type(bf_sublayer), pointer :: current_sublayer
-          integer                    :: i
-
-          
-          !initialize to the pointer to the first sublayer
-          !written
-          current_sublayer => this%head_sublayer
-
-
-          !go through the chained list and allocate the 
-          !temporary variables for the time integration
-          do i=1, this%nb_sublayers
-
-
-             !allocate the temporary variables for the 
-             !time integration
-             call current_sublayer%deallocate_after_timeInt()
-
-             !get the next sublayer in the mainlayer
-             current_sublayer => current_sublayer%get_next()
-
-          end do
-
-        end subroutine finalize_after_timeInt
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the time derivatives of the sublayers
-        !> contained in this main layer
-        !
-        !> @date
-        !> 17_07_2014 - initial version - J.L. Desmarais
-        !
-        !> @param this
-        !> object encapsulating the double chained list of sublayers,
-        !> pointers to the head and tail elements of the list and the
-        !> total number of elements in the list
-        !--------------------------------------------------------------
-        subroutine compute_time_dev(
-     $     this,
-     $     td_operators_used,
-     $     t,s,p_model,bc_used,
-     $     interior_nodes)
-
-          implicit none
-
-          class(bf_mainlayer)             , intent(inout) :: this
-          type(td_operators)              , intent(in)    :: td_operators_used
-          real(rkind)                     , intent(in)    :: t
-          type(sd_operators)              , intent(in)    :: s
-          type(pmodel_eq)                 , intent(in)    :: p_model
-          type(bc_operators)              , intent(in)    :: bc_used
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
-
-          type(bf_sublayer), pointer :: current_sublayer
-          integer                    :: i
-
-          
-          !initialize to the pointer to the first sublayer
-          !written
-          current_sublayer => this%head_sublayer
-
-
-          !go through the chained list and allocate the 
-          !temporary variables for the time integration
-          do i=1, this%nb_sublayers
-
-
-             !allocate the temporary variables for the 
-             !time integration
-             call current_sublayer%compute_time_dev(
-     $            td_operators_used,
-     $            t,s,p_model,bc_used,
-     $            interior_nodes)
-
-             !get the next sublayer in the mainlayer
-             current_sublayer => current_sublayer%get_next()
-
-          end do
-
-        end subroutine compute_time_dev
-
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the time derivatives of the sublayers
-        !> contained in this main layer
-        !
-        !> @date
-        !> 17_07_2014 - initial version - J.L. Desmarais
+        !> 19_03_2015 - initial version - J.L. Desmarais
         !
         !> @param this
         !> object encapsulating the double chained list of sublayers,
         !> pointers to the head and tail elements of the list and the
         !> total number of elements in the list
         !
-        !> @param dt
-        !> integration time step
+        !> @param gen_coords
+        !> general coordinates identifying the position of the grid
+        !> point in the general reference frame
         !
-        !> @param integration_step_nopt
-        !> procedure performing the time integration
+        !> @param tolerance
+        !> integer identifying the distance allowed between the grid
+        !> point and the buffer layer such that it is considered inside
+        !> (along the x-direction for N and S buffer layers and along the
+        !> y-direction for the E and W buffer layers), 0 by default
         !
-        !>@param full
-        !> logical to enforce whether the full domain is computed
-        !> discarding the x_borders and y_borders supplied
-        !> (important for the first integration step when the
-        !> previous integration step is saved temporary in another
-        !> array)
+        !> @param no_check_ID
+        !> logical determining whether the mainlayer_id of the grid-point
+        !> is computed to see if it matches the mainlayer_interface
+        !> coordinate, .false. by default
         !--------------------------------------------------------------
-        subroutine compute_integration_step(
-     $     this, dt, integration_step_nopt)
+        function get_sublayer_from_gen_coords(
+     $       this,
+     $       gen_coords,
+     $       tolerance,
+     $       no_check_ID)
+     $       result(bf_sublayer_ptr)
 
           implicit none
-
-          class(bf_mainlayer), intent(inout) :: this
-          real(rkind)        , intent(in)    :: dt
-          procedure(timeInt_step_nopt)       :: integration_step_nopt
-
-          type(bf_sublayer), pointer :: current_sublayer
-          integer                    :: i
-
           
-          !initialize to the pointer to the first sublayer
-          !written
+          class(bf_mainlayer)         , intent(in) :: this
+          integer(ikind), dimension(2), intent(in) :: gen_coords
+          integer(ikind), optional    , intent(in) :: tolerance
+          logical       , optional    , intent(in) :: no_check_ID
+          type(bf_sublayer), pointer               :: bf_sublayer_ptr
+
+          integer                    :: tolerance_op
+          logical                    :: no_check_ID_op
+          integer                    :: mainlayer_id
+          integer                    :: dir
+          integer(ikind)             :: min_i
+          integer(ikind)             :: max_i
+          integer                    :: k
+          type(bf_sublayer), pointer :: current_sublayer
+          
+
+          if(present(tolerance)) then
+             tolerance_op = tolerance
+          else
+             tolerance_op = 0
+          end if
+
+          if(present(no_check_ID)) then
+             no_check_ID_op = no_check_ID
+          else
+             no_check_ID_op = .false.
+          end if
+
+
+          if(.not.no_check_ID_op) then
+             mainlayer_id = get_mainlayer_coord(gen_coords)
+             if(mainlayer_id.ne.this%mainlayer_id) then
+                print '(''bf_mainlayer_class'')'
+                print '(''get_sublayer_from_coords'')'
+                print '(''the mainlayer ID do not match:'')'
+                print '(I2,''->'',I2)', mainlayer_id, this%mainlayer_id
+                stop ''
+             end if
+          end if
+
+
+          select case(this%mainlayer_id)
+            case(N,S)
+               dir = x_direction
+            case(E,W)
+               dir = y_direction
+            case default
+               call error_mainlayer_id(
+     $              'bf_mainlayer_class',
+     $              'get_sublayer_from_coords',
+     $              this%mainlayer_id)
+          end select
+
+
+          nullify(bf_sublayer_ptr)
+
+
           current_sublayer => this%head_sublayer
 
+          do k=1, this%nb_sublayers
 
-          !go through the chained list and allocate the 
-          !temporary variables for the time integration
-          do i=1, this%nb_sublayers
+             min_i = current_sublayer%get_alignment(dir,1) - bc_size
+             max_i = current_sublayer%get_alignment(dir,2) + bc_size
 
+             !if there is some overlap between
+             ![gen_coords(dir)-tolerance_op,gen_coords(dir)+tolerance_op]
+             !and [min_i,max_i], the grid point belongs to the buffer
+             !layer
+             if((
+     $            min(gen_coords(dir)+tolerance_op,max_i)-
+     $            max(gen_coords(dir)-tolerance_op,min_i)+1).gt.0) then
 
-             !allocate the temporary variables for the 
-             !time integration
-             call current_sublayer%compute_integration_step(
-     $            dt, integration_step_nopt)
+                bf_sublayer_ptr => current_sublayer
+                exit
 
-             !get the next sublayer in the mainlayer
+             end if
+
              current_sublayer => current_sublayer%get_next()
 
           end do
 
-        end subroutine compute_integration_step        
+        end function get_sublayer_from_gen_coords
 
       end module bf_mainlayer_class

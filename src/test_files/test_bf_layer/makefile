@@ -384,28 +384,6 @@ test_bf_sublayer:		$(param_dep)\
 				bf_sublayer_class.o
 
 
-test_bf_mainlayer.o:		$(hobc_dir)/bc_operators_class.o\
-				$(bf_layer_dir)/bf_mainlayer_class.o\
-				$(bf_layer_dir)/bf_sublayer_class.o\
-				$(test_dir)/tools/check_data_module.o\
-				$(bf_layer_dir)/parameters_bf_layer.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(dim2d_dir)/pmodel_eq_class.o\
-				$(rk3tvd_dir)/rk3tvd_steps_module.o\
-				$(mt_dir)/sd_operators_class.o\
-				$(fv_dir)/td_operators_class.o
-
-test_bf_mainlayer:		$(param_dep)\
-				$(mt_dep)\
-				$(dim2d_dep)\
-				$(hedstrom_xy_dep)\
-				$(bf_layer_dep)\
-				$(fv_dep)\
-				$(bf_mainlayer_dep)\
-				check_data_module.o\
-				rk3tvd_steps_module.o
 
 
 #bf_mainlayer parents
@@ -456,6 +434,45 @@ test_bf_mainlayer_sync:		$(param_dep)\
 				$(bf_sublayer_dep)\
 				$(bf_mainlayer_sync_dep)\
 				check_data_module.o
+
+test_bf_mainlayer_time.o:	$(hobc_dir)/bc_operators_class.o\
+				$(mpbf_layer_dir)/bf_mainlayer_time_class.o\
+				$(bf_layer_dir)/bf_sublayer_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(dim2d_dir)/pmodel_eq_class.o\
+				$(rk3tvd_dir)/rk3tvd_steps_module.o\
+				$(mt_dir)/sd_operators_class.o\
+				$(fv_dir)/td_operators_class.o
+
+test_bf_mainlayer_time:		$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(bf_layer_dep)\
+				$(fv_dep)\
+				$(bf_mainlayer_time_dep)\
+				check_data_module.o\
+				rk3tvd_steps_module.o
+
+test_bf_mainlayer.o:		$(bf_layer_dir)/bf_mainlayer_class.o\
+				$(bf_layer_dir)/bf_sublayer_class.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_mainlayer:		$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(bf_layer_dep)\
+				$(fv_dep)\
+				$(bf_mainlayer_dep)
+
 
 #mainlayer_interface parents
 test_mainlayer_interface_basic.o:\
