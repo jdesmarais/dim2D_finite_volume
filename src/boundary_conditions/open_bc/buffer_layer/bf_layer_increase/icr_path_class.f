@@ -14,6 +14,9 @@
       !> 20_03_2015 - update          - J.L. Desmarais
       !-----------------------------------------------------------------
       module icr_path_class
+
+        use bf_layer_errors_module, only :
+     $       error_mainlayer_id
        
         use bf_layer_exchange_module, only :
      $       update_alignment_for_exchanges
@@ -95,7 +98,7 @@
         !> add the general coordinates of a point
         !> to the current path
         !
-        !>@param shares_update_operations_with
+        !>@param share_update_operations_with
         !> check whether the two paths have update operations
         !> in common
         !
@@ -351,6 +354,11 @@
                      dir = x_direction
                   case(E,W)
                      dir = y_direction
+                  case default
+                     call error_mainlayer_id(
+     $                    'icr_path_class.f',
+     $                    'share_update_operations_with',
+     $                    this%mainlayer_id)
                 end select
 
                 share_updates = (
@@ -506,6 +514,11 @@
                dir = x_direction
             case(E,W)
                dir = y_direction
+            case default
+               call error_mainlayer_id(
+     $              'icr_path_class',
+     $              'are_pts_in_same_path',
+     $              this%mainlayer_id)
           end select
 
           are_pts_in_same_path = (
@@ -642,6 +655,10 @@
 
           logical :: same_mainlayer
           logical :: pts_in_same_path
+
+
+          !initialize the boolean for the state of the path
+          this%ends = .false.
 
 
           !check whether the bc_interior_pt analyzed belongs to the same
@@ -812,6 +829,11 @@
                direction = x_direction
             case(E,W)
                direction = y_direction
+            case default
+               call error_mainlayer_id(
+     $              'icr_path_class',
+     $              'should_bf_layers_be_merged',
+     $              this%mainlayer_id)
           end select          
 
 

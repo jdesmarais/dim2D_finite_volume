@@ -520,3 +520,23 @@ make test_icr_path > /dev/null
 ./test_icr_path
 make cleanall > /dev/null
 echo ''
+
+
+#test_icr_path_chain_class
+echo ''
+echo 'test_icr_path_chain_class'
+echo '------------------------------------------------------------'
+make test_icr_path_chain > /dev/null
+./test_icr_path_chain
+make cleanall > /dev/null
+echo ''
+
+
+#test_icr_interface_class
+#echo ''
+#echo 'test_icr_interface_class'
+#echo '------------------------------------------------------------'
+#make test_icr_interface > /dev/null
+#./test_icr_interface
+#make cleanall > /dev/null
+#echo ''
