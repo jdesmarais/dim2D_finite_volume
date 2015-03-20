@@ -379,6 +379,11 @@ bf_interface_coords_dep=$(bf_interface_grdpts_id_update_dep)\
 			bf_interface_coords_class.o
 
 
+#bf_increase objects
+icr_path_dep= 		icr_path_class.o
+
+
+
 bf_interface_dep=	$(bf_layer_dep)\
 			bf_restart_module.o\
 			bf_sublayer_class.o\

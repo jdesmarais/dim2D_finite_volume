@@ -1169,9 +1169,7 @@
      $            tolerance=tolerance_op,
      $            no_check_ID=no_check_ID_op)
           else
-             print '(''bf_mainlayer_pointer_class'')'
-             print '(''get_sublayer_from_gen_coords'')'
-             stop 'ptr not associated'
+             nullify(bf_sublayer_ptr)
           end if
 
         end function get_sublayer_from_gen_coords

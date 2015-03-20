@@ -17,6 +17,9 @@
         use bf_layer_errors_module, only :
      $       error_mainlayer_id
 
+        use bf_layer_exchange_module, only : 
+     $       update_alignment_for_exchanges
+
         use bf_sublayer_class, only :
      $       bf_sublayer
 
@@ -198,40 +201,9 @@
           !if the buffer layer is almost at the edge of mainlayer
           !interfaces, the alignment is modified to fit the edge
           !------------------------------------------------------------
-          select case(bf_mainlayer_id)
-
-            case(N,S)
-               if(  ((bf_alignment(1,1)-bc_size).le.(align_W+bc_size)).and.
-     $              ((bf_alignment(1,1)-bc_size).ge.(align_W))) then
-                  bf_alignment(1,1) = align_W+1
-               end if
-
-               if(  ((bf_alignment(1,2)+bc_size).ge.(align_E-bc_size)).and.
-     $              ((bf_alignment(1,2)+bc_size).le.(align_E))) then
-                  bf_alignment(1,2) = align_E-1
-               end if
-
-
-            case(E,W)
-               if(  ((bf_alignment(2,1)-bc_size).le.(align_S+bc_size)).and.
-     $              ((bf_alignment(2,1)-bc_size).ge.(align_S))) then
-                  bf_alignment(2,1) = align_S+1
-               end if
-
-               if(  ((bf_alignment(2,2)+bc_size).ge.(align_N-bc_size)).and.
-     $              ((bf_alignment(2,2)+bc_size).le.(align_N))) then
-                  bf_alignment(2,2) = align_N-1
-               end if
-
-
-            case default
-
-               call error_mainlayer_id(
-     $              'mainlayer_interface_dyn_class',
-     $              'update_alignment_and_sync_properties',
-     $              bf_mainlayer_id)
-
-          end select
+          call update_alignment_for_exchanges(
+     $         bf_mainlayer_id,
+     $         bf_alignment)
 
 
           !------------------------------------------------------------

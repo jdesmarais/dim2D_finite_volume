@@ -510,3 +510,13 @@ make test_bf_interface_coords > /dev/null
 ./test_bf_interface_coords
 make cleanall > /dev/null
 echo ''
+
+
+#test_icr_path_class
+echo ''
+echo 'test_icr_path_class'
+echo '------------------------------------------------------------'
+make test_icr_path > /dev/null
+./test_icr_path
+make cleanall > /dev/null
+echo ''

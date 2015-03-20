@@ -69,7 +69,11 @@
         !> bf_interface_grdpts_id_update augmented with procedures
         !> identifying the sublayer corresponding to grid points
         !--------------------------------------------------------------
-        function get_bf_layer_from_gen_coords(this,gen_coords,tolerance)
+        function get_bf_layer_from_gen_coords(
+     $       this,
+     $       gen_coords,
+     $       tolerance,
+     $       mainlayer_id)
      $       result(bf_sublayer_ptr)
 
           implicit none
@@ -77,11 +81,11 @@
           class(bf_interface_coords)  , intent(in) :: this
           integer(ikind), dimension(2), intent(in) :: gen_coords
           integer(ikind), optional    , intent(in) :: tolerance
+          integer       , optional    , intent(in) :: mainlayer_id
           type(bf_sublayer), pointer               :: bf_sublayer_ptr
 
-          
-          integer :: mainlayer_id
           integer :: tolerance_op
+          integer :: mainlayer_id_op
 
 
           if(present(tolerance)) then
@@ -94,9 +98,13 @@
           !1) identify the mainlayer to which the grid-point
           !   as well as the neighboring grid points in a radius
           !   of bc_size should belong
-          mainlayer_id = get_mainlayer_coord(gen_coords)
+          if(present(mainlayer_id)) then
+             mainlayer_id_op = mainlayer_id
+          else
+             mainlayer_id_op = get_mainlayer_coord(gen_coords)
+          end if
 
-          if(mainlayer_id.eq.interior) then
+          if(mainlayer_id_op.eq.interior) then
              print '(''bf_interface_coords'')'
              print '(''get_bf_layer_from_gen_coords'')'
              print '(''this grid-point belongs to the interior'')'
@@ -107,7 +115,7 @@
 
           !2) extract the sublayer to which the grid point can
           !   belong
-          bf_sublayer_ptr => this%mainlayer_pointers(mainlayer_id)%get_sublayer_from_gen_coords(
+          bf_sublayer_ptr => this%mainlayer_pointers(mainlayer_id_op)%get_sublayer_from_gen_coords(
      $         gen_coords,
      $         tolerance=tolerance_op,
      $         no_check_ID=.true.)

@@ -17,6 +17,10 @@
         use bf_layer_errors_module, only :
      $       error_mainlayer_id
 
+        use parameters_bf_layer, only :
+     $       align_N, align_S,
+     $       align_E, align_W
+
         use parameters_constant, only :
      $       N,S,E,W,
      $       x_direction,y_direction
@@ -40,7 +44,8 @@
      $       get_sync_indices_with_interior,
      $       sync_nodes,
      $       get_sync_indices_with_neighbor1,
-     $       get_sync_indices_with_neighbor2
+     $       get_sync_indices_with_neighbor2,
+     $       update_alignment_for_exchanges
 
         contains
 
@@ -1058,5 +1063,53 @@ c$$$        end subroutine get_S_exch_indices
           ex_size(2) = bc_size
 
         end subroutine get_x_sync_indices
+
+
+        subroutine update_alignment_for_exchanges(
+     $     bf_mainlayer_id,
+     $     bf_alignment)
+
+          implicit none
+
+          integer                       , intent(in)    :: bf_mainlayer_id
+          integer(ikind), dimension(2,2), intent(inout) :: bf_alignment
+
+
+          select case(bf_mainlayer_id)
+
+            case(N,S)
+               if(  ((bf_alignment(1,1)-bc_size).le.(align_W+bc_size)).and.
+     $              ((bf_alignment(1,1)-bc_size).ge.(align_W))) then
+                  bf_alignment(1,1) = align_W+1
+               end if
+
+               if(  ((bf_alignment(1,2)+bc_size).ge.(align_E-bc_size)).and.
+     $              ((bf_alignment(1,2)+bc_size).le.(align_E))) then
+                  bf_alignment(1,2) = align_E-1
+               end if
+
+
+            case(E,W)
+               if(  ((bf_alignment(2,1)-bc_size).le.(align_S+bc_size)).and.
+     $              ((bf_alignment(2,1)-bc_size).ge.(align_S))) then
+                  bf_alignment(2,1) = align_S+1
+               end if
+
+               if(  ((bf_alignment(2,2)+bc_size).ge.(align_N-bc_size)).and.
+     $              ((bf_alignment(2,2)+bc_size).le.(align_N))) then
+                  bf_alignment(2,2) = align_N-1
+               end if
+
+
+            case default
+
+               call error_mainlayer_id(
+     $              'bf_layer_exchange_module',
+     $              'update_alignment_for_exchanges',
+     $              bf_mainlayer_id)
+
+          end select
+
+        end subroutine update_alignment_for_exchanges
 
       end module bf_layer_exchange_module
