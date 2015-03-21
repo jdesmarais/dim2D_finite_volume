@@ -618,6 +618,9 @@ $(ibf_layer_dir)/icr_path_class.o:\
 $(ibf_layer_dir)/icr_path_chain_class.o:\
 	$(ibf_layer_dir)/icr_path_class.o
 
+$(ibf_layer_dir)/icr_path_list_class.o:\
+	$(ibf_layer_dir)/icr_path_chain_class.o
+
 $(ibf_layer_dir)/icr_interface_class.o:\
 	$(ibf_layer_dir)/icr_path_class.o\
 	$(ipbf_layer_dir)/bf_interface_coords_class.o\

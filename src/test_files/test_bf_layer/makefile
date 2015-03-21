@@ -735,6 +735,17 @@ test_icr_path_chain:		$(param_dep)\
 				$(icr_path_chain_dep)
 
 
+test_icr_path_list.o:		$(ibf_layer_dir)/icr_path_list_class.o
+
+test_icr_path_list:		$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_interface_coords_dep)\
+				$(icr_path_list_dep)
+
+
 test_icr_interface.o:		$(ipbf_layer_dir)/bf_interface_coords_class.o\
 				$(bf_layer_dir)/bf_sublayer_class.o\
 				$(dim2d_dir)/dim2d_parameters.o\

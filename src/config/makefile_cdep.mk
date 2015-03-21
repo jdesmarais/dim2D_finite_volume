@@ -385,6 +385,9 @@ icr_path_dep= 		icr_path_class.o
 icr_path_chain_dep=	$(icr_path_dep)\
 			icr_path_chain_class.o
 
+icr_path_list_dep=	$(icr_path_chain_dep)\
+			icr_path_list_class.o
+
 icr_interface_dep= 	$(icr_path_dep)\
 			icr_interface_class.o
 
