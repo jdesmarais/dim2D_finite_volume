@@ -56,7 +56,7 @@
         !-------------------------------------------------------------
         type, extends(bf_layer_time) :: bf_layer_newgrdpt
 
-           contains           
+           contains
 
            !procedures for the computation of new grid points
            procedure, pass :: compute_newgrdpt
@@ -430,8 +430,8 @@
         !> insertion
         !
         !>@param previous_step
-        !> logical identifying whether the grdpts_id at the previous step (t-dt)
-        !> or the current grdpts_id (t) are inserted
+        !> logical identifying whether the grdpts_id at the previous step
+        !> (t-dt) or the current grdpts_id (t) are inserted
         !--------------------------------------------------------------
         subroutine insert_grdpts_id(
      $     this,

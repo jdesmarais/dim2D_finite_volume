@@ -305,7 +305,10 @@ bf_layer_grdpts_id_update_dep=\
 			bf_bc_pt_crenel_module.o\
 			bf_layer_grdpts_id_update_class.o
 
-bf_layer_dep=		$(bf_layer_grdpts_id_update_dep)\
+bf_layer_icr_dep=	$(bf_layer_grdpts_id_update_dep)\
+			bf_layer_icr_class.o
+
+bf_layer_dep=		$(bf_layer_icr_dep)\
 			bf_remove_module.o\
 			bf_layer_class.o
 
@@ -380,7 +383,8 @@ bf_interface_coords_dep=$(bf_interface_grdpts_id_update_dep)\
 
 
 #bf_increase objects
-icr_path_dep= 		icr_path_class.o
+icr_path_dep= 		bf_sorting_module.o\
+			icr_path_class.o
 
 icr_path_chain_dep=	$(icr_path_dep)\
 			icr_path_chain_class.o

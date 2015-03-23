@@ -533,10 +533,20 @@ echo ''
 
 
 #test_icr_interface_class
-#echo ''
-#echo 'test_icr_interface_class'
-#echo '------------------------------------------------------------'
-#make test_icr_interface > /dev/null
-#./test_icr_interface
-#make cleanall > /dev/null
-#echo ''
+echo ''
+echo 'test_icr_interface_class'
+echo '------------------------------------------------------------'
+make test_icr_interface > /dev/null
+./test_icr_interface
+make cleanall > /dev/null
+echo ''
+
+
+#test_bf_sorting_module
+echo ''
+echo 'test_bf_sorting_module'
+echo '------------------------------------------------------------'
+make test_bf_sorting_module > /dev/null
+./test_bf_sorting_module
+make cleanall > /dev/null
+echo ''

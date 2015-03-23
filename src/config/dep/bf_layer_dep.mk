@@ -75,8 +75,15 @@ $(pbf_layer_dir)/bf_layer_grdpts_id_update_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
-$(bf_layer_dir)/bf_layer_class.o:\
+$(pbf_layer_dir)/bf_layer_icr_class.o:\
 	$(pbf_layer_dir)/bf_layer_grdpts_id_update_class.o\
+	$(ngbf_layer_dir)/bf_newgrdpt_verification_module.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_kind.o\
+	$(pm_cdir)/pmodel_eq_class.o
+
+$(bf_layer_dir)/bf_layer_class.o:\
+	$(pbf_layer_dir)/bf_layer_icr_class.o\
 	$(cbf_layer_dir)/bf_remove_module.o\
 	$(pm_cdir)/pmodel_eq_class.o\
 	$(param_dir)/parameters_constant.o\
@@ -604,11 +611,15 @@ $(ibf_layer_dir)/bf_increase_coords_module.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
+$(ibf_layer_dir)/bf_sorting_module.o:\
+	$(param_dir)/parameters_kind.o
+
 $(ibf_layer_dir)/icr_path_class.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(sbf_layer_dir)/bf_layer_exchange_module.o\
 	$(ibf_layer_dir)/bf_increase_coords_module.o\
 	$(ipbf_layer_dir)/bf_interface_coords_class.o\
+	$(ibf_layer_dir)/bf_sorting_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(pm_cdir)/pmodel_eq_class.o\
 	$(param_dir)/parameters_constant.o\
@@ -630,3 +641,13 @@ $(ibf_layer_dir)/icr_interface_class.o:\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
+
+$(ibf_layer_dir)/icr_interior_bc_section_module.o:\
+	$(ipbf_layer_dir)/bf_interface_coords_class.o\
+	$(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o\
+	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(ibf_layer_dir)/icr_interface_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	$(pm_cdir)/pmodel_eq_class.o

@@ -139,6 +139,22 @@ test_bf_layer_grdpts_id_update:	$(param_dep)\
 				check_data_module.o
 
 
+test_bf_layer_icr.o:		$(pbf_layer_dir)/bf_layer_icr_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(pm_cdir)/pmodel_eq_class.o
+
+test_bf_layer_icr:		$(param_dep)\
+				$(mt_dep)\
+				$(wave2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_layer_icr_dep)\
+				check_data_module.o
+
+
 #buffer_layer/bf_layer_newgrdpt
 test_bf_newgrdpt_prim.o:	$(ngbf_layer_dir)/bf_newgrdpt_class.o\
 				$(test_dir)/tools/check_data_module.o\
@@ -704,6 +720,15 @@ test_bf_increase_coords:	$(param_dep)\
 				bf_increase_coords_module.o
 
 
+test_bf_sorting_module.o:	$(ibf_layer_dir)/bf_sorting_module.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_sorting_module:		parameters_kind.o\
+				check_data_module.o\
+				bf_sorting_module.o
+
+
 test_icr_path.o:		$(ipbf_layer_dir)/bf_interface_coords_class.o\
 				$(bf_layer_dir)/bf_sublayer_class.o\
 				$(dim2d_dir)/dim2d_parameters.o\
@@ -766,4 +791,25 @@ test_icr_interface:		$(param_dep)\
 				$(fv_dep)\
 				$(bf_interface_coords_dep)\
 				$(icr_interface_dep)\
+				check_data_module.o
+
+
+test_icr_interior_bc_section.o:	$(ipbf_layer_dir)/bf_interface_coords_class.o\
+				$(ibf_layer_dir)/icr_interface_class.o\
+				$(ibf_layer_dir)/icr_interior_bc_section_module.o\
+				$(ibf_layer_dir)/icr_path_chain_class.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(pm_cdir)/pmodel_eq_class.o\
+				$(test_dir)/tools/check_data_module.o
+
+test_icr_interior_bc_section:	$(param_dep)\
+				$(mt_dep)\
+				$(wave2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_interface_coords_dep)\
+				$(icr_interface_dep)\
+				icr_interior_bc_section_module.o\
 				check_data_module.o

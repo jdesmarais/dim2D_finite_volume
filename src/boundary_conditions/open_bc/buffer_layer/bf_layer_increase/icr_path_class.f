@@ -27,6 +27,9 @@
         use bf_interface_coords_class, only :
      $       bf_interface_coords
 
+        use bf_sorting_module, only :
+     $       bubble_sort_grdpts
+
         use bf_sublayer_class, only :
      $       bf_sublayer
 
@@ -1073,9 +1076,11 @@
      $            interior_x_map,
      $            interior_y_map,
      $            interior_nodes1)
-             
+
+             !2) sort the gridpts activated
+             call bubble_sort_grdpts(this%pts(:,1:this%nb_pts))
           
-             !2) update the configuration of the grid points
+             !3) update the configuration of the grid points
              !   in the buffer layer
              call bf_interface_used%update_grdpts_id_in_bf_layer(
      $            p_model,
@@ -1088,7 +1093,7 @@
      $            bf_sublayer_ptr,
      $            this%pts(:,1:this%nb_pts))
 
-             !3) reinitialize the path
+             !4) reinitialize the path
              call reinitialize(this)
 
           end if
