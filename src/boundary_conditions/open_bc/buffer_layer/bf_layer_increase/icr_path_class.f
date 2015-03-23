@@ -130,6 +130,10 @@
         !>@param should_bf_layers_be_merged
         !> check whether the two buffer layers should be merged
         !
+        !>@param lead_to_merge_sublayers
+        !> check whether the commit of the path leads to the merge
+        !> of sublayers
+        !
         !>@param update_allocation_bf_layer
         !> update the allocation of the buffer layer to have
         !> memory for the new grid points
@@ -177,12 +181,17 @@
           ! procedure for applying changes on the buffer
           ! layer
           procedure, pass :: should_bf_layers_be_merged
+          procedure, pass :: lead_to_merge_sublayers
           procedure, pass :: update_allocation_bf_layer
           procedure, pass :: commit
 
           ! merge and finalization procedures
           procedure, pass :: merge
           procedure, pass :: remove
+
+          ! get attributes
+          procedure, pass :: get_mainlayer_id
+          procedure, pass :: get_matching_sublayer
 
         end type icr_path
 
@@ -657,10 +666,6 @@
           logical :: pts_in_same_path
 
 
-          !initialize the boolean for the state of the path
-          this%ends = .false.
-
-
           !check whether the bc_interior_pt analyzed belongs to the same
           !mainlayer as the previous path
           same_mainlayer = this%are_pts_in_same_mainlayer(gen_coords)
@@ -758,6 +763,9 @@
           integer, parameter :: tolerance_pts_same_sublayer = 2*bc_size
           integer, parameter :: tolerance_pts_same_path     = 3*bc_size
 
+          
+          this%ends = .false.
+
 
           if(this%nb_pts.eq.0) then
              
@@ -852,6 +860,56 @@
         !> Julien L. Desmarais
         !
         !> @brief
+        !> check whether the current buffer layer lead to merge
+        !> buffer layers 
+        !
+        !> @date
+        !> 23_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object gathering the update operations to be applied on
+        !> one buffer layer
+        !
+        !>@return merge
+        !--------------------------------------------------------------
+        function lead_to_merge_sublayers(
+     $     this)
+     $     result(merge)
+
+          implicit none
+
+          class(icr_path), intent(in) :: this
+          logical                     :: merge
+
+          type(bf_sublayer), pointer :: neighboring_sublayer
+
+          !does the current path have a matching sublayer ?
+          !if it has one, then the matching sublayer will be reallocated
+          if(associated(this%matching_sublayer)) then
+
+             !we need to check whether the reallocation of the matching
+             !sublayer with the alignment of the current path will not
+             !lead to a merge with the neighboring buffer layer
+             neighboring_sublayer => this%matching_sublayer%get_next()
+
+             if(associated(neighboring_sublayer)) then
+                merge = this%should_bf_layers_be_merged(
+     $               neighboring_sublayer)
+             else
+                merge = .false.
+             end if
+
+          else
+             merge = .false.
+          end if
+
+        end function lead_to_merge_sublayers
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> update the allocation of the buffer layer to add
         !> new grid points
         !
@@ -898,20 +956,12 @@
           !if it has one, then the matching sublayer will be reallocated
           if(associated(this%matching_sublayer)) then
 
-             !we need to check whether the reallocation of the matching
-             !sublayer with the alignment of the current path will not
-             !lead to a merge with the neighboring buffer layer
-             neighboring_sublayer => this%matching_sublayer%get_next()
-
-             if(associated(neighboring_sublayer)) then
-                merge = this%should_bf_layers_be_merged(
-     $               neighboring_sublayer)
-             else
-                merge = .false.
-             end if
-
+             merge = lead_to_merge_sublayers(this)
 
              if(merge) then
+
+                neighboring_sublayer => this%matching_sublayer%get_next()
+
                 modified_sublayer => bf_interface_used%merge_sublayers(
      $               this%matching_sublayer,
      $               neighboring_sublayer,
@@ -919,6 +969,7 @@
      $               interior_y_map,
      $               interior_nodes,
      $               this%alignment)
+
              else
                 
                 call bf_interface_used%reallocate_sublayer(
@@ -927,6 +978,7 @@
      $               interior_y_map,
      $               interior_nodes,
      $               this%alignment)
+
                 modified_sublayer => this%matching_sublayer
                 
              end if
@@ -1156,5 +1208,65 @@
           end if
 
         end subroutine remove
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the mainlayer_id of the path
+        !
+        !> @date
+        !> 23_03_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> object gathering the update operations to be applied on
+        !> one buffer layer
+        !
+        !> @return mainlayer_id
+        !> get the mainlayer_id attribute of the path
+        !--------------------------------------------------------------  
+        function get_mainlayer_id(this) result(mainlayer_id)
+          
+          implicit none
+
+          class(icr_path), intent(in) :: this
+          integer                     :: mainlayer_id
+
+          mainlayer_id = this%mainlayer_id
+
+        end function get_mainlayer_id
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the matching_sublayer of the path
+        !
+        !> @date
+        !> 23_03_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> object gathering the update operations to be applied on
+        !> one buffer layer
+        !
+        !> @return matching_sublayer
+        !> get the matching_sublayer attribute of the path
+        !--------------------------------------------------------------  
+        function get_matching_sublayer(this) result(matching_sublayer)
+          
+          implicit none
+
+          class(icr_path), intent(in) :: this
+          type(bf_sublayer), pointer  :: matching_sublayer
+          
+          if(associated(this%matching_sublayer)) then
+             matching_sublayer => this%matching_sublayer
+          else
+             nullify(matching_sublayer)
+          end if
+
+        end function get_matching_sublayer
           
       end module icr_path_class

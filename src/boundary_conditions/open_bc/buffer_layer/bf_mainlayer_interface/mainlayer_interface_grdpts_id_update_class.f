@@ -893,8 +893,8 @@
 
 
           ! check the grid points around the new interior_pt
-          do j=gen_coords(2)-1, gen_coords(2)+1
-             do i=gen_coords(1)-1, gen_coords(1)+1
+          do j=gen_coords(2)-bc_size, gen_coords(2)+bc_size
+             do i=gen_coords(1)-bc_size, gen_coords(1)+bc_size
 
                 call finalize_for_bc_interior_pt_crenel_local(
      $               this,
@@ -1113,58 +1113,64 @@
              call bf_sublayer_ptr%extract_grdpts_id(
      $            tmp_grdpts_id,
      $            gen_coords_crenel)
-             
 
-             !detection of the bc_pt crenel
+             
+             !check the bc_crenel only if the central gridpoint 
+             !is a bc_pt
              !=======================================================
-             is_bc_pt_crenel = check_if_bc_pt_crenel(
+             if(tmp_grdpts_id(2,2).eq.bc_pt) then
+
+
+                !detection of the bc_pt crenel
+                !----------------------------------------------------
+                is_bc_pt_crenel = check_if_bc_pt_crenel(
      $            tmp_grdpts_id,
      $            2,2)
 
 
-             !removal of the bc_pt crenel
-             !=======================================================
-             if(is_bc_pt_crenel) then
-
-                call remove_bc_pt_crenel(tmp_grdpts_id,2,2)
-
+                !removal of the bc_pt crenel
+                !----------------------------------------------------
+                if(is_bc_pt_crenel) then
+                   
+                   call remove_bc_pt_crenel(tmp_grdpts_id,2,2)
                 
-             !update of the grdpts_id
-             !=======================================================
-             !update of the grdpts_id in the neighbor1
-             !-------------------------------------------------------
-                if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
                 
-                   bf_neighbor_ptr => this%get_neighbor_sublayer_ptr(
-     $               bf_sublayer_ptr%get_localization(),1)
+                !update of the grdpts_id
+                !----------------------------------------------------
+                !update of the grdpts_id in the neighbor1
+                !....................................................
+                   if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
+                      
+                      bf_neighbor_ptr => this%get_neighbor_sublayer_ptr(
+     $                     bf_sublayer_ptr%get_localization(),1)
+                      
+                      call bf_neighbor_ptr%insert_grdpts_id(
+     $                     tmp_grdpts_id,
+     $                     gen_coords_crenel)
+                      
+                   end if
 
-                   call bf_neighbor_ptr%insert_grdpts_id(
+                !update of the grdpts_id in the neighbor2
+                !....................................................
+                   if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
+                
+                      bf_neighbor_ptr => this%get_neighbor_sublayer_ptr(
+     $                     bf_sublayer_ptr%get_localization(),2)
+                      
+                      call bf_neighbor_ptr%insert_grdpts_id(
+     $                     tmp_grdpts_id,
+     $                     gen_coords_crenel)
+                      
+                   end if
+
+                !update of the grdpts_id in the current buffer layer
+                !....................................................
+                   call bf_sublayer_ptr%insert_grdpts_id(
      $                  tmp_grdpts_id,
      $                  gen_coords_crenel)
-                   
+
                 end if
-
-             !update of the grdpts_id in the neighbor2
-             !-------------------------------------------------------
-                if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
-                
-                   bf_neighbor_ptr => this%get_neighbor_sublayer_ptr(
-     $               bf_sublayer_ptr%get_localization(),2)
-
-                   call bf_neighbor_ptr%insert_grdpts_id(
-     $                  tmp_grdpts_id,
-     $                  gen_coords_crenel)
-                   
-                end if
-
-             !update of the grdpts_id in the current buffer layer
-             !-------------------------------------------------------
-                call bf_sublayer_ptr%insert_grdpts_id(
-     $               tmp_grdpts_id,
-     $               gen_coords_crenel)
-
-             end if
-
+             end if             
           end if
 
         end subroutine detect_and_curb_bc_pt_crenel
@@ -1208,28 +1214,13 @@
           integer(ikind), dimension(2)               , intent(in)    :: match_table
 
 
-          integer(ikind) :: loc_i
-          integer(ikind) :: loc_j
-
-          
-          loc_i = gen_coords(1) - match_table(1)
-          loc_j = gen_coords(2) - match_table(2)
-
-
-          !1) the existence of the bc_pt crenel is only
-          !   checked if the central point is a bc_pt
-          if(bf_sublayer_ptr%check_grdpts_id_pt(loc_i,loc_j,bc_pt)) then
-
-          
-          !2) the existence of the bc_pt crenel is checked
-          !   and if it exists, it is removed
-             call detect_and_curb_bc_pt_crenel(
-     $            this,
-     $            bf_sublayer_ptr,
-     $            gen_coords,
-     $            match_table)
-
-          end if
+          ! the existence of the bc_pt crenel is checked
+          ! and if it exists, it is removed
+          call detect_and_curb_bc_pt_crenel(
+     $         this,
+     $         bf_sublayer_ptr,
+     $         gen_coords,
+     $         match_table)
 
         end subroutine finalize_for_bc_pt_crenel_local
 
@@ -1279,15 +1270,16 @@
           ! |      |
           ! |******|
           !
-          j = gen_coords(2)-bc_size
-          do i=gen_coords(1)-bc_size, gen_coords(1)+bc_size
+          do j=gen_coords(2)-bc_size-1, gen_coords(2)-bc_size
+             do i=gen_coords(1)-bc_size-1, gen_coords(1)+bc_size+1
 
-             call finalize_for_bc_pt_crenel_local(
-     $            this,
-     $            bf_sublayer_ptr,
-     $            [i,j],
-     $            match_table)
+                call finalize_for_bc_pt_crenel_local(
+     $               this,
+     $               bf_sublayer_ptr,
+     $               [i,j],
+     $               match_table)
 
+             end do
           end do
 
           !  ______
@@ -1297,21 +1289,25 @@
           !
           do j=gen_coords(2)-1, gen_coords(2)+1
 
-             i=gen_coords(1)-bc_size
+             do i=gen_coords(1)-bc_size-1,gen_coords(1)-bc_size
 
-             call finalize_for_bc_pt_crenel_local(
-     $            this,
-     $            bf_sublayer_ptr,
-     $            [i,j],
-     $            match_table)
+                call finalize_for_bc_pt_crenel_local(
+     $               this,
+     $               bf_sublayer_ptr,
+     $               [i,j],
+     $               match_table)
 
-             i=gen_coords(1)+bc_size
+             end do
 
-             call finalize_for_bc_pt_crenel_local(
-     $            this,
-     $            bf_sublayer_ptr,
-     $            [i,j],
-     $            match_table)
+             do i=gen_coords(1)+bc_size, gen_coords(1)+bc_size+1
+
+                call finalize_for_bc_pt_crenel_local(
+     $               this,
+     $               bf_sublayer_ptr,
+     $               [i,j],
+     $               match_table)
+
+             end do
 
           end do
 
@@ -1320,15 +1316,16 @@
           ! |      |
           ! |______|
           !
-          j = gen_coords(2)+bc_size
-          do i=gen_coords(1)-bc_size, gen_coords(1)+bc_size
+          do j=gen_coords(2)+bc_size, gen_coords(2)+bc_size+1
+             do i=gen_coords(1)-bc_size-1, gen_coords(1)+bc_size+1
 
-             call finalize_for_bc_pt_crenel_local(
-     $            this,
-     $            bf_sublayer_ptr,
-     $            [i,j],
-     $            match_table)
+                call finalize_for_bc_pt_crenel_local(
+     $               this,
+     $               bf_sublayer_ptr,
+     $               [i,j],
+     $               match_table)
 
+             end do
           end do
           
 

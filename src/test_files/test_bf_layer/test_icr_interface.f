@@ -21,12 +21,15 @@
         use icr_path_class, only :
      $       icr_path
 
+        use icr_path_chain_class, only :
+     $       icr_path_chain
+
         use parameters_bf_layer, only :
      $       align_N, align_S,
      $       align_E, align_W
 
         use parameters_constant, only :
-     $       N,S,E,
+     $       N,S,E,W,
      $       obc_eigenqties_bc,
      $       obc_eigenqties_lin
 
@@ -68,9 +71,15 @@
         print '()'
 
 
+        test_loc = test_commit(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_commit: '',L1)', test_loc
+        print '()'
+
+
         test_loc = test_finalize_domain_increase(detailled)
         test_validated = test_validated.and.test_loc
-        print '(''test_finalize_domain_extension: '',L1)', test_loc
+        print '(''test_finalize_domain_increase: '',L1)', test_loc
         print '()'
 
 
@@ -93,24 +102,31 @@
 
           call icr_interface_used%ini()
 
-          test_loc = icr_interface_used%current_path_is_head_path
+          test_loc = icr_interface_used%paths%get_nb_paths().eq.0
           test_validated = test_validated.and.test_loc
           if(detailled.and.(.not.test_loc)) then
-             print '(''current_path_is_head_path failed'')'
+             print '(''paths%get_nb_paths failed'')'
           end if
 
 
-          test_loc = icr_interface_used%head_path%nb_pts.eq.0
+          test_loc = .not.associated(icr_interface_used%paths%get_head_path())
           test_validated = test_validated.and.test_loc
           if(detailled.and.(.not.test_loc)) then
-             print '(''head_path%nb_pts failed'')'
+             print '(''paths%get_head_path failed'')'
           end if
 
 
-          test_loc = icr_interface_used%current_path%nb_pts.eq.0
+          test_loc = .not.associated(icr_interface_used%paths%get_tail_path())
           test_validated = test_validated.and.test_loc
           if(detailled.and.(.not.test_loc)) then
-             print '(''current_path%nb_pts failed'')'
+             print '(''paths%get_tail_path failed'')'
+          end if
+
+
+          test_loc = .not.associated(icr_interface_used%current_path)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''current_path failed'')'
           end if
 
         end function test_ini
@@ -124,19 +140,14 @@
           logical, intent(in) :: detailled
           logical             :: test_validated
 
-          type(icr_interface)              :: icr_interface_used
-          type(bf_interface_coords)        :: bf_interface_used
-          type(pmodel_eq)                  :: p_model
-          real(rkind)                      :: t
-          real(rkind)                      :: dt
-          real(rkind), dimension(nx)       :: interior_x_map
-          real(rkind), dimension(ny)       :: interior_y_map
-          real(rkind), dimension(nx,ny,ne) :: interior_nodes0
-          real(rkind), dimension(nx,ny,ne) :: interior_nodes1
+          type(icr_interface)        :: icr_interface_used
+          type(bf_interface_coords)  :: bf_interface_used
+          real(rkind), dimension(nx) :: interior_x_map
+          real(rkind), dimension(ny) :: interior_y_map
 
           
-          type(icr_path)             :: icr_path_test
-          type(bf_sublayer), pointer :: new_sublayer
+          type(icr_path)                :: icr_path_test
+          type(icr_path_chain), pointer :: icr_path_tested
           logical :: test_loc
 
 
@@ -151,242 +162,196 @@
 
           !output
           !============================================================
-          !this first grid point should be saved in the head_path
+          !this first grid point should be saved in paths(1)
           call icr_interface_used%stage(
      $         [align_E,align_S+8],
-     $         bf_interface_used,
-     $         p_model,
-     $         t,
-     $         dt,
-     $         interior_x_map,
-     $         interior_y_map,
-     $         interior_nodes0,
-     $         interior_nodes1)
+     $         bf_interface_used)
 
-          !this second grid-point should be saved in the current_path
+          !this second grid-point should be saved in paths(2)
           !as it is too far from the first grid-point
           call icr_interface_used%stage(
      $         [align_E,align_S+15],
-     $         bf_interface_used,
-     $         p_model,
-     $         t,
-     $         dt,
-     $         interior_x_map,
-     $         interior_y_map,
-     $         interior_nodes0,
-     $         interior_nodes1)
+     $         bf_interface_used)
 
-          !this third grid-point should force the current_path to
-          !commit its changes to the domain extension. It should be
-          !saved in a reinitialized current_path, once its update
-          !operations have been commit
+          !this third grid-point should be saved in paths(1)
           call icr_interface_used%stage(
      $         [align_E,align_S+7],
-     $         bf_interface_used,
-     $         p_model,
-     $         t,
-     $         dt,
-     $         interior_x_map,
-     $         interior_y_map,
-     $         interior_nodes0,
-     $         interior_nodes1)
+     $         bf_interface_used)
 
-          !this fourth grid-point should force the current path to
-          !commit its changes to the domain extension. As the third
-          !grid point is closed to the first grid-point in the
-          !head_path, the head_path and the current_path should be
-          !merged for the update
+          !this fourth grid-point should be saved in paths(2)
           call icr_interface_used%stage(
      $         [align_E,align_S+16],
-     $         bf_interface_used,
-     $         p_model,
-     $         t,
-     $         dt,
-     $         interior_x_map,
-     $         interior_y_map,
-     $         interior_nodes0,
-     $         interior_nodes1)
+     $         bf_interface_used)
 
 
           !validation
           !============================================================
-          !verify the content of the head path
+          !verify the number of activated paths
           !------------------------------------------------------------
+          test_loc = icr_interface_used%paths%get_nb_paths().eq.2
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test paths%nb_paths failed'')'
+          end if
+
+
+          !verify the content of the paths(1)
+          !------------------------------------------------------------
+          icr_path_tested => icr_interface_used%paths%get_head_path()
           call icr_path_test%ini()
+          call icr_path_test%stage([align_E,align_S+8],bf_interface_used)
+          call icr_path_test%stage([align_E,align_S+7],bf_interface_used)
+          test_loc = is_path_validated(
+     $         icr_path_test,
+     $         icr_path_tested,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test paths(1) failed'')'
+          end if
+
+
+          !verify the content of the paths(2)
+          !------------------------------------------------------------
+          icr_path_tested => icr_interface_used%paths%get_head_path()
+          icr_path_tested => icr_path_tested%get_next()
+          call icr_path_test%ini()
+          call icr_path_test%stage([align_E,align_S+15],bf_interface_used)
           call icr_path_test%stage([align_E,align_S+16],bf_interface_used)
           test_loc = is_path_validated(
      $         icr_path_test,
-     $         icr_interface_used%head_path,
+     $         icr_path_tested,
      $         detailled)
           test_validated = test_validated.and.test_loc
           if(detailled.and.(.not.test_loc)) then
-             print '(''test head_path failed'')'
-          end if
-
-
-          !verify the content of the current_path
-          !------------------------------------------------------------
-          call icr_path_test%ini()
-          test_loc = is_path_validated(
-     $         icr_path_test,
-     $         icr_interface_used%current_path,
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test head_path failed'')'
-          end if
-
-
-          !verify the content of the mainlayer_pointers(E)
-          !------------------------------------------------------------
-          !nb_sublayers
-          !............................................................
-          test_loc = bf_interface_used%mainlayer_pointers(E)%get_nb_sublayers().eq.2
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test nb_sublayers failed'')'
-          end if
-
-          !first sublayer: alignment
-          !............................................................
-          new_sublayer => bf_interface_used%mainlayer_pointers(E)%get_head_sublayer()
-          test_loc = is_int_matrix_validated(
-     $         new_sublayer%alignment,
-     $         reshape((/
-     $            align_E,align_S+7,align_E,align_S+8/),
-     $            (/2,2/)),
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test alignment(1) failed'')'
-          end if
-
-          !first sublayer: grdpts_id
-          !............................................................
-          test_loc = is_int_matrix_validated(
-     $         new_sublayer%grdpts_id,
-     $         reshape((/
-     $            1,1,2,3,3,
-     $            1,1,2,2,3,
-     $            1,1,1,2,3,
-     $            1,1,1,2,3,
-     $            1,1,2,2,3,
-     $            1,1,2,3,3/),
-     $            (/5,6/)),
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test alignment(1) failed'')'
-          end if
-
-          !second sublayer: alignment
-          !............................................................
-          new_sublayer => new_sublayer%get_next()
-          test_loc = is_int_matrix_validated(
-     $         new_sublayer%alignment,
-     $         reshape((/
-     $            align_E,align_S+15,align_E,align_S+15/),
-     $            (/2,2/)),
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test alignment(2) failed'')'
-          end if
-
-          !second sublayer: grdpts_id
-          !............................................................
-          test_loc = is_int_matrix_validated(
-     $         new_sublayer%grdpts_id,
-     $         reshape((/
-     $            1,1,2,3,3,
-     $            1,1,2,2,3,
-     $            1,1,1,2,3,
-     $            1,1,2,2,3,
-     $            1,1,2,3,3/),
-     $            (/5,5/)),
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test alignment(2) failed'')'
+             print '(''test paths(2) failed'')'
           end if
 
         end function test_stage
 
 
-        function test_finalize_domain_increase(detailled)
-     $       result(test_validated)
+        function test_commit(detailled)
+     $     result(test_validated)
 
           implicit none
 
           logical, intent(in) :: detailled
           logical             :: test_validated
 
+          type(icr_interface)              :: icr_interface_used
+          type(bf_interface_coords)        :: bf_interface_used
+          real(rkind), dimension(nx)       :: interior_x_map
+          real(rkind), dimension(ny)       :: interior_y_map
+          real(rkind), dimension(nx,ny,ne) :: interior_nodes0
+          real(rkind), dimension(nx,ny,ne) :: interior_nodes1
+          real(rkind)                      :: t
+          real(rkind)                      :: dt
+          type(pmodel_eq)                  :: p_model
+
+
+
+          test_validated = .true.
+
+
+          test_loc = test_commit_wo_merge(
+     $         detailled,
+     $         icr_interface_used,
+     $         bf_interface_used,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes0,
+     $         interior_nodes1,
+     $         t,dt,
+     $         p_model)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test_commit_wo_merge failed'')'
+          end if
+
+
+          test_loc = test_commit_w_merge(
+     $         detailled,
+     $         icr_interface_used,
+     $         bf_interface_used,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes0,
+     $         interior_nodes1,
+     $         t,dt,
+     $         p_model)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test_commit_w_merge failed'')'
+          end if    
+
+        end function test_commit
+
+
+        function test_commit_wo_merge(
+     $     detailled,
+     $     icr_interface_used,
+     $     bf_interface_used,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes0,
+     $     interior_nodes1,
+     $     t,dt,
+     $     p_model)
+     $     result(test_validated)
+
+          implicit none
+
+          logical                         , intent(in)    :: detailled
+          type(icr_interface)             , intent(inout) :: icr_interface_used
+          type(bf_interface_coords)       , intent(inout) :: bf_interface_used
+          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes0
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes1
+          real(rkind)                     , intent(in)    :: t
+          real(rkind)                     , intent(in)    :: dt
+          type(pmodel_eq)                 , intent(in)    :: p_model
+          logical                                         :: test_validated
+
+          type(bf_sublayer), pointer :: bf_sublayer_ptr
           logical :: test_loc
 
 
           test_validated = .true.
 
 
-          test_loc = test_finalize_domain_increase_test1(detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test_finalize_domain_increase_test1 failed'')'
-          end if
-
-          test_loc = test_finalize_domain_increase_test2(detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test_finalize_domain_increase_test2 failed'')'
-          end if
-
-        end function test_finalize_domain_increase
-
-
-        function test_finalize_domain_increase_test1(detailled)
-     $       result(test_validated)
-
-          implicit none
-
-          logical, intent(in) :: detailled
-          logical             :: test_validated
-
-
-          type(icr_interface)              :: icr_interface_used
-          type(bf_interface_coords)        :: bf_interface_used
-          type(pmodel_eq)                  :: p_model
-          real(rkind), dimension(nx)       :: interior_x_map
-          real(rkind), dimension(ny)       :: interior_y_map
-          real(rkind), dimension(nx,ny,ne) :: interior_nodes0
-          real(rkind), dimension(nx,ny,ne) :: interior_nodes1
-
-          real(rkind) :: t
-          real(rkind) :: dt
-
-          type(bf_sublayer), pointer :: new_sublayer
-
-          real(rkind), dimension(ne) :: test_newgrdpt
-          
-
-          test_validated = .true.
-
-          
           !input
           !============================================================
-          call ini_for_test_finalize(
-     $         1,
-     $         icr_interface_used,
-     $         bf_interface_used,
-     $         p_model,
-     $         t,dt,
-     $         interior_x_map,
-     $         interior_y_map,
-     $         interior_nodes0,
-     $         interior_nodes1,
-     $         test_newgrdpt)
+          call bf_interface_used%ini(interior_x_map,interior_y_map)
+          call icr_interface_used%ini()
+
+
+          !this first grid point should be saved in paths(1)
+          call icr_interface_used%stage(
+     $         [align_E,align_S+8],
+     $         bf_interface_used)
+
+          !this second grid-point should be saved in paths(2)
+          !as it is too far from the first grid-point
+          call icr_interface_used%stage(
+     $         [align_E,align_S+15],
+     $         bf_interface_used)
+
+          !this third grid-point should be saved in paths(1)
+          call icr_interface_used%stage(
+     $         [align_E,align_S+7],
+     $         bf_interface_used)
+
+          !this fourth grid-point should be saved in paths(2)
+          call icr_interface_used%stage(
+     $         [align_E,align_S+16],
+     $         bf_interface_used)
+
 
           !output
           !============================================================
-          call icr_interface_used%finalize_domain_increase(
+          call icr_interface_used%commit(
+     $         N,
      $         bf_interface_used,
      $         p_model,
      $         t,
@@ -395,127 +360,9 @@
      $         interior_y_map,
      $         interior_nodes0,
      $         interior_nodes1)
-          
-          !validation
-          !============================================================
-          new_sublayer => bf_interface_used%mainlayer_pointers(E)%get_head_sublayer()
-          
-          !test the number of sublayers
-          !------------------------------------------------------------
-          test_loc = bf_interface_used%mainlayer_pointers(E)%get_nb_sublayers().eq.1
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test nb_sublayers failed'')'
-          end if
 
-          !test the alignment
-          !------------------------------------------------------------
-          test_loc = is_int_matrix_validated(
-     $         new_sublayer%alignment,
-     $         reshape((/
-     $            align_E, align_S+8, align_E, align_S+14/),
-     $            (/2,2/)),
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test alignment failed'')'
-          end if
-
-          !test the configuration of the grid points
-          !------------------------------------------------------------
-          test_loc = is_int_matrix_validated(
-     $         new_sublayer%grdpts_id,
-     $         reshape((/
-     $            1,1,2,3,3,
-     $            1,1,2,2,3,
-     $            1,1,1,2,3,
-     $            1,1,2,2,3,
-     $            1,1,2,3,3,
-     $         
-     $            1,1,2,3,0,
-     $         
-     $            1,1,2,3,3,
-     $            1,1,2,2,3,
-     $            1,1,1,2,3,
-     $            1,1,2,2,3,
-     $            1,1,2,3,3/),
-     $            (/5,11/)),
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test alignment failed'')'
-          end if
-
-
-          !test some new grid points
-          !------------------------------------------------------------
-          test_loc = is_real_vector_validated(
-     $         new_sublayer%nodes(5,3,:),
-     $         test_newgrdpt,
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test newgrdpt(1) failed'')'
-          end if
-          
-           test_loc = is_real_vector_validated(
-     $         new_sublayer%nodes(5,9,:),
-     $         test_newgrdpt,
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test newgrdpt(2) failed'')'
-          end if
-
-
-       end function test_finalize_domain_increase_test1
-
-
-       function test_finalize_domain_increase_test2(detailled)
-     $       result(test_validated)
-
-          implicit none
-
-          logical, intent(in) :: detailled
-          logical             :: test_validated
-
-
-          type(icr_interface)              :: icr_interface_used
-          type(bf_interface_coords)        :: bf_interface_used
-          type(pmodel_eq)                  :: p_model
-          real(rkind), dimension(nx)       :: interior_x_map
-          real(rkind), dimension(ny)       :: interior_y_map
-          real(rkind), dimension(nx,ny,ne) :: interior_nodes0
-          real(rkind), dimension(nx,ny,ne) :: interior_nodes1
-
-          real(rkind) :: t
-          real(rkind) :: dt
-
-          type(bf_sublayer), pointer :: new_sublayer
-
-          real(rkind), dimension(ne) :: test_newgrdpt
-          
-
-          test_validated = .true.
-
-          
-          !input
-          !============================================================
-          call ini_for_test_finalize(
-     $         2,
-     $         icr_interface_used,
-     $         bf_interface_used,
-     $         p_model,
-     $         t,dt,
-     $         interior_x_map,
-     $         interior_y_map,
-     $         interior_nodes0,
-     $         interior_nodes1,
-     $         test_newgrdpt)
-
-          !output
-          !============================================================
-          call icr_interface_used%finalize_domain_increase(
+          call icr_interface_used%commit(
+     $         E,
      $         bf_interface_used,
      $         p_model,
      $         t,
@@ -523,280 +370,447 @@
      $         interior_x_map,
      $         interior_y_map,
      $         interior_nodes0,
-     $         interior_nodes1)
-          
+     $         interior_nodes1)          
+
+
           !validation
           !============================================================
-          !test the number of sublayers
+          !verify the number of sublayers in N,S,E,W
           !------------------------------------------------------------
+          test_loc = bf_interface_used%mainlayer_pointers(N)%get_nb_sublayers().eq.0
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test mainlayer_pointers(N)%get_nb_sublayers failed'')'
+          end if
+
+          test_loc = bf_interface_used%mainlayer_pointers(S)%get_nb_sublayers().eq.0
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test mainlayer_pointers(S)%get_nb_sublayers failed'')'
+          end if
+
           test_loc = bf_interface_used%mainlayer_pointers(E)%get_nb_sublayers().eq.2
           test_validated = test_validated.and.test_loc
           if(detailled.and.(.not.test_loc)) then
-             print '(''test nb_sublayers failed'')'
+             print '(''test mainlayer_pointers(E)%get_nb_sublayers failed'')'
           end if
 
-          !test of the first sublayer
+          test_loc = bf_interface_used%mainlayer_pointers(W)%get_nb_sublayers().eq.0
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test mainlayer_pointers(W)%get_nb_sublayers failed'')'
+          end if
+
+
+          !verify the configuration of the buffer layer E
           !------------------------------------------------------------
-          new_sublayer => bf_interface_used%mainlayer_pointers(E)%get_head_sublayer()
-
-          !test the alignment
+          bf_sublayer_ptr => bf_interface_used%mainlayer_pointers(E)%ptr%get_head_sublayer()
+          
+          !alignment (E,1)
           !............................................................
           test_loc = is_int_matrix_validated(
-     $         new_sublayer%alignment,
-     $         reshape((/
-     $            align_E, align_S+8, align_E, align_S+8/),
-     $            (/2,2/)),
-     $         detailled)
+     $         bf_sublayer_ptr%alignment,
+     $         reshape((/align_E, align_S+7, align_E, align_S+8/),(/2,2/)))
           test_validated = test_validated.and.test_loc
           if(detailled.and.(.not.test_loc)) then
-             print '(''test alignment failed'')'
+             print '(''test alignment(E,1) failed'')'
           end if
 
-          !test the configuration of the grid points
+          !grdpts_id (E,1)
           !............................................................
           test_loc = is_int_matrix_validated(
-     $         new_sublayer%grdpts_id,
+     $         bf_sublayer_ptr%grdpts_id,
      $         reshape((/
-     $            1,1,2,3,3,
-     $            1,1,2,2,3,
-     $            1,1,1,2,3,
-     $            1,1,2,2,3,
-     $            1,1,2,3,3/),
-     $            (/5,5/)),
-     $         detailled)
+     $           1,1,2,3,3,
+     $           1,1,2,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,2,2,3,
+     $           1,1,2,3,3/),
+     $         (/5,6/)))
           test_validated = test_validated.and.test_loc
           if(detailled.and.(.not.test_loc)) then
-             print '(''test alignment failed'')'
+             print '(''test grdpts_id(E,1) failed'')'
           end if
 
 
-          !test some new grid points
-          !............................................................
-          test_loc = is_real_vector_validated(
-     $         new_sublayer%nodes(5,3,:),
-     $         test_newgrdpt,
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test newgrdpt failed'')'
-          end if
-
-
-          !test of the second sublayer
-          !------------------------------------------------------------
-          new_sublayer => new_sublayer%get_next()
-
-          !test the alignment
+          bf_sublayer_ptr => bf_sublayer_ptr%get_next()
+          
+          !alignment (E,2)
           !............................................................
           test_loc = is_int_matrix_validated(
-     $         new_sublayer%alignment,
-     $         reshape((/
-     $            align_E, align_S+15, align_E, align_S+15/),
-     $            (/2,2/)),
-     $         detailled)
+     $         bf_sublayer_ptr%alignment,
+     $         reshape((/align_E, align_S+15, align_E, align_S+16/),(/2,2/)))
           test_validated = test_validated.and.test_loc
           if(detailled.and.(.not.test_loc)) then
-             print '(''test alignment failed'')'
+             print '(''test alignment(E,2) failed'')'
           end if
 
-          !test the configuration of the grid points
+          !grdpts_id (E,2)
           !............................................................
           test_loc = is_int_matrix_validated(
-     $         new_sublayer%grdpts_id,
+     $         bf_sublayer_ptr%grdpts_id,
      $         reshape((/
-     $            1,1,2,3,3,
-     $            1,1,2,2,3,
-     $            1,1,1,2,3,
-     $            1,1,2,2,3,
-     $            1,1,2,3,3/),
-     $            (/5,5/)),
-     $         detailled)
+     $           1,1,2,3,3,
+     $           1,1,2,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,2,2,3,
+     $           1,1,2,3,3/),
+     $         (/5,6/)))
           test_validated = test_validated.and.test_loc
           if(detailled.and.(.not.test_loc)) then
-             print '(''test alignment failed'')'
+             print '(''test grdpts_id(E,2) failed'')'
           end if
+          
+        end function test_commit_wo_merge
 
 
-          !test some new grid points
-          !............................................................
-          test_loc = is_real_vector_validated(
-     $         new_sublayer%nodes(5,3,:),
-     $         test_newgrdpt,
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test newgrdpt failed'')'
-          end if
-
-       end function test_finalize_domain_increase_test2
-
-
-       subroutine ini_for_test_finalize(
-     $     test_id,
+        function test_commit_w_merge(
+     $     detailled,
      $     icr_interface_used,
      $     bf_interface_used,
-     $     p_model,
-     $     t,dt,
      $     interior_x_map,
      $     interior_y_map,
      $     interior_nodes0,
      $     interior_nodes1,
-     $     test_newgrdpt)
+     $     t,dt,
+     $     p_model)
+     $     result(test_validated)
 
-         implicit none
+          implicit none
 
-         integer                         , intent(in)  :: test_id
-         type(icr_interface)             , intent(out) :: icr_interface_used
-         type(bf_interface_coords)       , intent(out) :: bf_interface_used
-         type(pmodel_eq)                 , intent(out) :: p_model
-         real(rkind)                     , intent(out) :: t
-         real(rkind)                     , intent(out) :: dt
-         real(rkind), dimension(nx)      , intent(out) :: interior_x_map
-         real(rkind), dimension(ny)      , intent(out) :: interior_y_map
-         real(rkind), dimension(nx,ny,ne), intent(out) :: interior_nodes0
-         real(rkind), dimension(nx,ny,ne), intent(out) :: interior_nodes1
-         real(rkind), dimension(ne)      , intent(out) :: test_newgrdpt
+          logical                         , intent(in)    :: detailled
+          type(icr_interface)             , intent(inout) :: icr_interface_used
+          type(bf_interface_coords)       , intent(inout) :: bf_interface_used
+          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes0
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes1
+          real(rkind)                     , intent(in)    :: t
+          real(rkind)                     , intent(in)    :: dt
+          type(pmodel_eq)                 , intent(in)    :: p_model
+          logical                                         :: test_validated
 
-         integer(ikind) :: i,j
-
-
-         call icr_interface_used%ini()
-         
-         call bf_interface_used%ini(interior_x_map,interior_y_map)
-         
-         call p_model%initial_conditions%ini_far_field()
-
-         t  = 0.0d0
-         dt = 0.25d0
-
-         interior_x_map = (/ ((i-1)*1.00d0,i=1,nx) /)
-         interior_y_map = (/ ((j-1)*0.25d0,j=1,ny) /)
-
-         interior_nodes0(align_E-1:align_E+1,
-     $        align_S+7:align_S+9,:)
-     $        = reshape((/
-     $        1.48d0, 1.30d0, 1.35d0,
-     $        1.26d0, 1.45d0, 1.40d0,
-     $        1.46d0, 1.27d0, 1.47d0,
-     $        
-     $        0.128d0, 0.127d0, 0.142d0,
-     $        1.138d0, 0.148d0, 0.132d0,
-     $        0.146d0, 0.143d0, 0.145d0,
-     $        
-     $        0.0050d0, 0.020d0, 0.060d0,
-     $        0.0025d0, 0.001d0, 0.015d0,
-     $        0.0100d0, 0.002d0, 0.050d0,
-     $        
-     $        4.88d0, 4.870d0, 4.855d0,
-     $        4.85d0, 4.865d0, 4.845d0,
-     $        4.89d0, 4.870d0, 4.860d0/),
-     $        (/3,3,ne/))               
-               
-         interior_nodes1(align_E-1:align_E+1,
-     $        align_S+7:align_S+9,:)
-     $        = reshape((/
-     $        1.50d0, 1.455d0, 1.48d0,
-     $        1.20d0, 1.350d0, 1.25d0,
-     $        1.49d0, 1.250d0, 1.40d0,
-     $        
-     $        0.128d0, 0.450d0, 0.135d0,
-     $        0.148d0, 0.150d0, 0.122d0,
-     $        0.142d0, 1.152d0, 0.236d0,
-     $        
-     $        0.006d0, 0.0600d0, 0.020d0,
-     $        0.000d0, 0.0028d0, 0.035d0,
-     $        0.020d0, 0.0030d0, 0.040d0,
-     $        
-     $        4.876d0, 4.825d0, 4.862d0,
-     $        4.890d0, 4.871d0, 4.892d0,
-     $        4.865d0, 4.757d0, 4.895d0/),
-     $        (/3,3,ne/))         
-
-         select case(obc_eigenqties_strategy)
-
-            case(obc_eigenqties_bc)
-               test_newgrdpt = [
-     $              1.22383078395524d0,
-     $              0.39531842478603d0,
-     $              -0.21050217290879d0,
-     $              4.19684181018688d0]
-               
-            case(obc_eigenqties_lin)
-               test_newgrdpt = [
-     $              1.21167555521982d0,
-     $              0.35901827468671d0,
-     $              -0.20475732388332d0,
-     $              4.20002914561351d0]
-               
-            case default
-               print '(''test_bf_newgrdpt_prim'')'
-               print '(''test_sym_compute_newgrdpt_x'')'
-               print '(''obc_eigenqties_strategy not recognized'')'
-               stop ''
-               
-          end select
+          type(bf_sublayer), pointer :: bf_sublayer_ptr
+          logical :: test_loc
 
 
-          select case(test_id)
-            case(1)
+          test_validated = .true.
 
-               !interior nodes
-               !----------------------------------------
-               interior_nodes0(align_E-1:align_E+1,
-     $              align_S+13:align_S+15,:)
-     $         = interior_nodes0(align_E-1:align_E+1,
-     $              align_S+7:align_S+9,:)
-               
-               interior_nodes1(align_E-1:align_E+1,
-     $              align_S+13:align_S+15,:)
-     $         = interior_nodes1(align_E-1:align_E+1,
-     $              align_S+7:align_S+9,:)
 
-               !head path
-               !----------------------------------------
-               call icr_interface_used%head_path%ini()
-               call icr_interface_used%head_path%stage(
-     $              [align_E,align_S+8],
-     $              bf_interface_used)
-               
-               !currrent path
-               !----------------------------------------
-               call icr_interface_used%current_path%ini()
-               call icr_interface_used%current_path%stage(
-     $              [align_E,align_S+14],
-     $              bf_interface_used)
+          !input
+          !============================================================
 
-            case(2)
+          !this first grid point should be saved in paths(1)
+          call icr_interface_used%stage(
+     $         [align_E,align_S+9],
+     $         bf_interface_used)
 
-               !interior nodes
-               !----------------------------------------
-               interior_nodes0(align_E-1:align_E+1,
-     $              align_S+14:align_S+16,:)
-     $         = interior_nodes0(align_E-1:align_E+1,
-     $              align_S+7:align_S+9,:)
-               
-               interior_nodes1(align_E-1:align_E+1,
-     $              align_S+14:align_S+16,:)
-     $         = interior_nodes1(align_E-1:align_E+1,
-     $              align_S+7:align_S+9,:)
+          !this second grid-point should be saved in paths(2)
+          !as it is too far from the first grid-point
+          call icr_interface_used%stage(
+     $         [align_E,align_S+17],
+     $         bf_interface_used)
 
-               !head path
-               !----------------------------------------
-               call icr_interface_used%head_path%ini()
-               call icr_interface_used%head_path%stage(
-     $              [align_E,align_S+8],
-     $              bf_interface_used)
-               
-               !currrent path
-               !----------------------------------------
-               call icr_interface_used%current_path%ini()
-               call icr_interface_used%current_path%stage(
-     $              [align_E,align_S+15],
-     $              bf_interface_used)
-               
-         end select
+          !this third grid-point should be saved in paths(1)
+          call icr_interface_used%stage(
+     $         [align_E,align_S+10],
+     $         bf_interface_used)
 
-        end subroutine ini_for_test_finalize
+          !this fourth grid-point should be saved in paths(3)
+          call icr_interface_used%stage(
+     $         [align_E,align_S+24],
+     $         bf_interface_used)
+
+
+          !output
+          !============================================================
+          call icr_interface_used%commit(
+     $         N,
+     $         bf_interface_used,
+     $         p_model,
+     $         t,
+     $         dt,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes0,
+     $         interior_nodes1)
+
+          call icr_interface_used%commit(
+     $         E,
+     $         bf_interface_used,
+     $         p_model,
+     $         t,
+     $         dt,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes0,
+     $         interior_nodes1)          
+
+
+          !validation
+          !============================================================
+          !verify the number of sublayers in N,S,E,W
+          !------------------------------------------------------------
+          test_loc = bf_interface_used%mainlayer_pointers(N)%get_nb_sublayers().eq.0
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test mainlayer_pointers(N)%get_nb_sublayers failed'')'
+          end if
+
+          test_loc = bf_interface_used%mainlayer_pointers(S)%get_nb_sublayers().eq.0
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test mainlayer_pointers(S)%get_nb_sublayers failed'')'
+          end if
+
+          test_loc = bf_interface_used%mainlayer_pointers(E)%get_nb_sublayers().eq.2
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test mainlayer_pointers(E)%get_nb_sublayers failed'')'
+          end if
+
+          test_loc = bf_interface_used%mainlayer_pointers(W)%get_nb_sublayers().eq.0
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test mainlayer_pointers(W)%get_nb_sublayers failed'')'
+          end if
+
+
+          !verify the configuration of the buffer layer E
+          !------------------------------------------------------------
+          bf_sublayer_ptr => bf_interface_used%mainlayer_pointers(E)%ptr%get_head_sublayer()
+          
+          !alignment (E,1)
+          !............................................................
+          test_loc = is_int_matrix_validated(
+     $         bf_sublayer_ptr%alignment,
+     $         reshape((/align_E, align_S+7, align_E, align_S+17/),(/2,2/)))
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test alignment(E,1) failed'')'
+          end if
+
+          !grdpts_id (E,1)
+          !............................................................
+          test_loc = is_int_matrix_validated(
+     $         bf_sublayer_ptr%grdpts_id,
+     $         reshape((/
+     $           1,1,2,3,3,
+     $           1,1,2,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,2,2,3,
+     $           1,1,2,3,3/),
+     $         (/5,15/)),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test grdpts_id(E,1) failed'')'
+          end if
+
+
+          bf_sublayer_ptr => bf_sublayer_ptr%get_next()
+          
+          !alignment (E,2)
+          !............................................................
+          test_loc = is_int_matrix_validated(
+     $         bf_sublayer_ptr%alignment,
+     $         reshape((/align_E, align_S+24, align_E, align_S+24/),(/2,2/)))
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test alignment(E,2) failed'')'
+          end if
+
+          !grdpts_id (E,2)
+          !............................................................
+          test_loc = is_int_matrix_validated(
+     $         bf_sublayer_ptr%grdpts_id,
+     $         reshape((/
+     $           1,1,2,3,3,
+     $           1,1,2,2,3,
+     $           1,1,1,2,3,
+     $           1,1,2,2,3,
+     $           1,1,2,3,3/),
+     $         (/5,5/)))
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test grdpts_id(E,2) failed'')'
+          end if
+          
+        end function test_commit_w_merge
+
+
+
+        function test_finalize_domain_increase(
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in)    :: detailled
+          logical                :: test_validated
+
+          type(icr_interface)              :: icr_interface_used
+          type(bf_interface_coords)        :: bf_interface_used
+          real(rkind), dimension(nx)       :: interior_x_map
+          real(rkind), dimension(ny)       :: interior_y_map
+          real(rkind), dimension(nx,ny,ne) :: interior_nodes0
+          real(rkind), dimension(nx,ny,ne) :: interior_nodes1
+          real(rkind)                      :: t
+          real(rkind)                      :: dt
+          type(pmodel_eq)                  :: p_model
+
+
+          type(bf_sublayer), pointer :: bf_sublayer_ptr
+          logical :: test_loc
+
+
+          test_validated = .true.
+
+
+          !input
+          !============================================================
+          call bf_interface_used%ini(interior_x_map,interior_y_map)
+          call icr_interface_used%ini()
+
+
+          !this first grid point should be saved in paths(1)
+          call icr_interface_used%stage(
+     $         [align_E,align_S+8],
+     $         bf_interface_used)
+
+          !this second grid-point should be saved in paths(2)
+          !as it is too far from the first grid-point
+          call icr_interface_used%stage(
+     $         [align_E,align_S+15],
+     $         bf_interface_used)
+
+          !this third grid-point should be saved in paths(1)
+          call icr_interface_used%stage(
+     $         [align_E,align_S+7],
+     $         bf_interface_used)
+
+          !this fourth grid-point should be saved in paths(2)
+          call icr_interface_used%stage(
+     $         [align_E,align_S+16],
+     $         bf_interface_used)
+
+
+          !output
+          !============================================================
+          call icr_interface_used%finalize_domain_increase(
+     $         bf_interface_used,
+     $         p_model,
+     $         t,
+     $         dt,
+     $         interior_x_map,
+     $         interior_y_map,
+     $         interior_nodes0,
+     $         interior_nodes1)
+
+
+          !validation
+          !============================================================
+          !verify the number of sublayers in N,S,E,W
+          !------------------------------------------------------------
+          test_loc = bf_interface_used%mainlayer_pointers(N)%get_nb_sublayers().eq.0
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test mainlayer_pointers(N)%get_nb_sublayers failed'')'
+          end if
+
+          test_loc = bf_interface_used%mainlayer_pointers(S)%get_nb_sublayers().eq.0
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test mainlayer_pointers(S)%get_nb_sublayers failed'')'
+          end if
+
+          test_loc = bf_interface_used%mainlayer_pointers(E)%get_nb_sublayers().eq.2
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test mainlayer_pointers(E)%get_nb_sublayers failed'')'
+          end if
+
+          test_loc = bf_interface_used%mainlayer_pointers(W)%get_nb_sublayers().eq.0
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test mainlayer_pointers(W)%get_nb_sublayers failed'')'
+          end if
+
+
+          !verify the configuration of the buffer layer E
+          !------------------------------------------------------------
+          bf_sublayer_ptr => bf_interface_used%mainlayer_pointers(E)%ptr%get_head_sublayer()
+          
+          !alignment (E,1)
+          !............................................................
+          test_loc = is_int_matrix_validated(
+     $         bf_sublayer_ptr%alignment,
+     $         reshape((/align_E, align_S+7, align_E, align_S+8/),(/2,2/)))
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test alignment(E,1) failed'')'
+          end if
+
+          !grdpts_id (E,1)
+          !............................................................
+          test_loc = is_int_matrix_validated(
+     $         bf_sublayer_ptr%grdpts_id,
+     $         reshape((/
+     $           1,1,2,3,3,
+     $           1,1,2,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,2,2,3,
+     $           1,1,2,3,3/),
+     $         (/5,6/)))
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test grdpts_id(E,1) failed'')'
+          end if
+
+
+          bf_sublayer_ptr => bf_sublayer_ptr%get_next()
+          
+          !alignment (E,2)
+          !............................................................
+          test_loc = is_int_matrix_validated(
+     $         bf_sublayer_ptr%alignment,
+     $         reshape((/align_E, align_S+15, align_E, align_S+16/),(/2,2/)))
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test alignment(E,2) failed'')'
+          end if
+
+          !grdpts_id (E,2)
+          !............................................................
+          test_loc = is_int_matrix_validated(
+     $         bf_sublayer_ptr%grdpts_id,
+     $         reshape((/
+     $           1,1,2,3,3,
+     $           1,1,2,2,3,
+     $           1,1,1,2,3,
+     $           1,1,1,2,3,
+     $           1,1,2,2,3,
+     $           1,1,2,3,3/),
+     $         (/5,6/)))
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''test grdpts_id(E,2) failed'')'
+          end if
+          
+        end function test_finalize_domain_increase
 
 
         function is_path_validated(path1,path2,detailled)
@@ -804,10 +818,10 @@
 
           implicit none
 
-          type(icr_path), intent(in) :: path1
-          type(icr_path), intent(in) :: path2
-          logical       , intent(in) :: detailled
-          logical                    :: test_validated
+          class(icr_path), intent(in) :: path1
+          class(icr_path), intent(in) :: path2
+          logical        , intent(in) :: detailled
+          logical                     :: test_validated
 
           logical :: test_loc
 

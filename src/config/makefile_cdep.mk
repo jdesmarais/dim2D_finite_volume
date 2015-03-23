@@ -388,7 +388,7 @@ icr_path_chain_dep=	$(icr_path_dep)\
 icr_path_list_dep=	$(icr_path_chain_dep)\
 			icr_path_list_class.o
 
-icr_interface_dep= 	$(icr_path_dep)\
+icr_interface_dep= 	$(icr_path_list_dep)\
 			icr_interface_class.o
 
 bf_interface_dep=	$(bf_layer_dep)\

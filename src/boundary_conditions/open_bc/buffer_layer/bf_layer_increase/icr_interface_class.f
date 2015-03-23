@@ -10,19 +10,28 @@
       !> the domain extension
       !
       !> @date
-      !> 20_03_2015 - initial version - J.L. Desmarais
+      !> 23_03_2015 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module icr_interface_class
 
         use bf_interface_coords_class, only :
      $       bf_interface_coords
 
-        use icr_path_class, only :
-     $       icr_path
+        use bf_sublayer_class, only :
+     $       bf_sublayer
+
+        use icr_path_chain_class, only :
+     $       icr_path_chain
+
+        use icr_path_list_class, only :
+     $       icr_path_list
 
         use pmodel_eq_class, only :
      $       pmodel_eq
 
+        use parameters_constant, only :
+     $       N,S,E,W
+        
         use parameters_input, only :
      $       nx,ny,ne
 
@@ -40,36 +49,33 @@
         !> object gathering the increase operations to be applied on
         !> the domain extension
         !
-        !> @param current_path_is_head_path
-        !> logical indicating whether the path to consider to store
-        !> update procedures is the head_path or the current_path
-        !
-        !> @param head_path
-        !> object gathering the update operations to be applied on
-        !> one buffer layer
-        !
-        !> @param current_path
-        !> object gathering the update operations to be applied on
-        !> one buffer layer
+        !> @param paths
+        !> objects gathering the update operations to be applied on
+        !> each buffer layer
         !
         !> @param ini
         !> initialize the paths
+        !
+        !> @param stage
+        !> stage the grid-point for the update of the buffer layers
         !
         !> @param finalize_domain_increase
         !> commit the non-empty paths for domain update
         !---------------------------------------------------------------
         type :: icr_interface
 
-          logical        :: current_path_is_head_path
-          type(icr_path) :: head_path
-          type(icr_path) :: current_path
+          type(icr_path_list)           :: paths
+          type(icr_path_chain), pointer :: current_path
 
           contains
 
           procedure, pass :: ini
           procedure, pass :: stage
-          procedure, pass :: finalize_domain_increase
-          
+          procedure, pass :: commit
+          procedure, pass :: finalize_domain_increase          
+
+          procedure, pass :: check_path_before_commit
+          procedure, pass :: check_paths_before_commit
 
         end type icr_interface
 
@@ -84,7 +90,7 @@
         !> initialize the paths
         !
         !> @date
-        !> 20_03_2015 - initial version - J.L. Desmarais
+        !> 23_03_2015 - initial version - J.L. Desmarais
         !
         !>@param this
         !> object gathering the increase operations to be applied on
@@ -96,9 +102,8 @@
 
           class(icr_interface), intent(inout) :: this
 
-          this%current_path_is_head_path = .true.
-          call this%head_path%ini()
-          call this%current_path%ini()
+          call this%paths%ini()
+          nullify(this%current_path)
 
         end subroutine ini
 
@@ -110,7 +115,7 @@
         !> stage the grid-point for update
         !
         !> @date
-        !> 21_03_2015 - initial version - J.L. Desmarais
+        !> 23_03_2015 - initial version - J.L. Desmarais
         !
         !>@param this
         !> object gathering the increase operations to be applied on
@@ -118,6 +123,202 @@
         !
         !>@param gen_coords
         !> general coordinates of the bc_interior_pt analyzed
+        !--------------------------------------------------------------
+        subroutine stage(
+     $     this,
+     $     gen_coords,
+     $     bf_interface_used)
+
+          implicit none
+
+          class(icr_interface)        , intent(inout) :: this
+          integer(ikind), dimension(2), intent(in)    :: gen_coords
+          class(bf_interface_coords)  , intent(in)    :: bf_interface_used
+
+          type(icr_path_chain), pointer :: path_checked
+          logical :: create_new_path
+          integer :: k
+
+
+          !1) stage the grid-point activated identified by gen_coords
+          !   in the current path or create a new path to stage the
+          !   grid-point if there is no path in this%paths
+          if(this%paths%get_nb_paths().eq.0) then
+             this%current_path => this%paths%add_path()
+          end if
+          call this%current_path%stage(gen_coords,bf_interface_used)
+
+
+          !2) if the grid point cannot be staged in the current path,
+          !   we check whether it can be stage in another path stored
+          !   in this%paths
+          if(this%current_path%is_ended()) then
+
+             create_new_path = .true.
+
+             !check whether a new path should be created to store the
+             !activated grid-point or find an existing  path where it
+             !can be saved
+             path_checked => this%paths%get_head_path()
+             do k=1, this%paths%get_nb_paths()
+                
+                call path_checked%stage(gen_coords,bf_interface_used)
+                if(.not.path_checked%is_ended()) then
+                   create_new_path = .false.
+                   this%current_path => path_checked
+                   exit
+                end if
+
+                path_checked => path_checked%get_next()
+
+             end do
+
+             !create a new path to store the activated grid-point
+             if(create_new_path) then
+                this%current_path => this%paths%add_path()
+                call this%current_path%stage(gen_coords,bf_interface_used)
+             end if
+             
+          end if
+
+        end subroutine stage
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the current path should be merged with other
+        !> paths of this%paths
+        !
+        !> @date
+        !> 23_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object gathering the increase operations to be applied on
+        !> the domain extension
+        !
+        !>@param path_checked
+        !> pointer to the path checked
+        !--------------------------------------------------------------
+        subroutine check_path_before_commit(this,path_checked)
+
+          implicit none
+
+          class(icr_interface)         , intent(inout) :: this
+          type(icr_path_chain), pointer, intent(inout) :: path_checked
+
+          type(bf_sublayer)   , pointer :: merge_sublayer
+          type(icr_path_chain), pointer :: current_path
+          type(icr_path_chain), pointer :: path_removed
+
+
+          !check whether the current path lead to the
+          !merge of buffer layers
+          if(path_checked%lead_to_merge_sublayers()) then
+
+
+             !get the buffer layer with which the current buffer
+             !layer will be merged
+             merge_sublayer => path_checked%get_matching_sublayer()
+             merge_sublayer => merge_sublayer%get_next()
+
+
+             !if another path stored in this%paths as a matching
+             !sublayer pointing to merge_sublayer, the path
+             !should be merged with the current path
+             current_path => this%paths%get_head_path()
+             do while(associated(current_path))
+
+                if(associated(current_path%get_matching_sublayer(),
+     $                        merge_sublayer)) then
+
+                   call path_checked%merge(current_path,check_for_merge=.false.)
+
+                   if(associated(current_path%get_next())) then
+                      path_removed => current_path
+                      current_path => current_path%get_next()
+                      call this%paths%remove_path(path_removed)
+
+                   else
+                      path_removed => current_path
+                      nullify(current_path)
+                      call this%paths%remove_path(path_removed)
+
+                   end if
+
+                else
+                   current_path => current_path%get_next()
+                end if
+
+             end do             
+
+          end if                     
+
+        end subroutine check_path_before_commit
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the paths saved in this%paths should be
+        !> merged with other paths of this%paths for a specific
+        !> mainlayer_id
+        !
+        !> @date
+        !> 23_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object gathering the increase operations to be applied on
+        !> the domain extension
+        !
+        !>@param mainlayer_id
+        !> cardinal coordinate identfying the buffer main layer
+        !> investigated
+        !--------------------------------------------------------------
+        subroutine check_paths_before_commit(this,mainlayer_id)
+
+          implicit none
+
+          class(icr_interface), intent(inout) :: this
+          integer             , intent(in)    :: mainlayer_id
+
+          type(icr_path_chain), pointer :: path_checked
+
+
+          path_checked => this%paths%get_head_path()
+
+          do while(associated(path_checked))
+
+             if(path_checked%get_mainlayer_id().eq.mainlayer_id) then
+
+                call this%check_path_before_commit(path_checked)
+
+             end if
+
+             path_checked => path_checked%get_next()
+
+          end do
+
+        end subroutine check_paths_before_commit
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> commit the grid-points belonging to a main layer for update
+        !
+        !> @date
+        !> 23_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object gathering the increase operations to be applied on
+        !> the domain extension
+        !
+        !>@param mainlayer_id
+        !> cardinal coordinate identifying the buffer main layer updated
         !
         !>@param bf_interface_used
         !> bf_interface object encapsulating the references
@@ -144,9 +345,9 @@
         !> @param interior_nodes1
         !> array with the grid point data at t=t
         !--------------------------------------------------------------
-        subroutine stage(
+        subroutine commit(
      $     this,
-     $     gen_coords,
+     $     mainlayer_id,
      $     bf_interface_used,
      $     p_model,
      $     t,
@@ -158,68 +359,32 @@
 
           implicit none
 
-          class(icr_interface)               , intent(inout) :: this
-          integer(ikind), dimension(2)       , intent(in)    :: gen_coords
-          class(bf_interface_coords)         , intent(inout) :: bf_interface_used
-          type(pmodel_eq)                    , intent(in)    :: p_model
-          real(rkind)                        , intent(in)    :: t
-          real(rkind)                        , intent(in)    :: dt
-          real(rkind)   , dimension(nx)      , intent(in)    :: interior_x_map
-          real(rkind)   , dimension(ny)      , intent(in)    :: interior_y_map
-          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes0
-          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes1
+          class(icr_interface)            , intent(inout) :: this
+          integer                         , intent(in)    :: mainlayer_id
+          class(bf_interface_coords)      , intent(inout) :: bf_interface_used
+          type(pmodel_eq)                 , intent(in)    :: p_model
+          real(rkind)                     , intent(in)    :: t
+          real(rkind)                     , intent(in)    :: dt
+          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes0
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes1
 
 
-          !1) if the path used to gather the activated grid points
-          !   is the head_path, then the grid-point is staged in
-          !   the head_path
-          if(this%current_path_is_head_path) then
-             
-             call this%head_path%stage(gen_coords,bf_interface_used)
+          type(icr_path_chain), pointer :: path_checked
+          integer :: k
 
+          
+          call this%check_paths_before_commit(mainlayer_id)
+          
 
-             !1.1) if the grid-point can not belong to the head_path
-             !     the head_path is ended and the grid-point is staged
-             !     in the current_path
-             if(this%head_path%is_ended()) then
+          path_checked => this%paths%get_head_path()
+          
+          do k=1, this%paths%get_nb_paths()
 
-                this%current_path_is_head_path = .false.
+             if(path_checked%get_mainlayer_id().eq.mainlayer_id) then
 
-             end if
-
-          end if
-
-
-          !2) if the path used to gather the activated grid points
-          !   is the current_path, thne the grid-point is staged in
-          !   the current_path
-          if(.not.(this%current_path_is_head_path)) then
-             
-             call this%current_path%stage(gen_coords,bf_interface_used)
-
-
-             !2.1) if the grid-point can not belong to the current_path
-             !     the current_path is ended and the grid-point is staged
-             !     once the current_path has been commit
-             if(this%current_path%is_ended()) then
-
-                
-                !2.1.1) before committing the current_path, we need to
-                !       check whether both paths can be merged to have
-                !       one common update operation on the same buffer
-                !       layer
-                if(this%current_path%share_update_operations_with(this%head_path)) then
-                   
-                   call this%current_path%merge(this%head_path)
-
-                   call this%head_path%reinitialize()
-                   this%current_path_is_head_path = .true.
-
-                end if
-
-                !2.1.2) the current_path is commit to apply the update
-                !       operations on the buffer layer
-                call this%current_path%commit(
+                call path_checked%commit(
      $               bf_interface_used,
      $               p_model,
      $               t,
@@ -229,30 +394,26 @@
      $               interior_nodes0,
      $               interior_nodes1)
 
-                !2.1.3) the gen_coords still need to be stored in either
-                !       the head_path or the current_path
-                if(this%current_path_is_head_path) then
-                   call this%head_path%stage(gen_coords,bf_interface_used)
-                else
-                   call this%current_path%stage(gen_coords,bf_interface_used)
-                end if
-
              end if
 
-          end if
+             path_checked => path_checked%get_next()
 
-        end subroutine stage
+          end do
+
+          this%current_path => this%paths%get_head_path()
+
+        end subroutine commit
 
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> finalize the domain increase by applying the remaining
-        !> update operations on the domain extension
+        !> commmit the remaining paths for the update of the
+        !> buffer layers
         !
         !> @date
-        !> 20_03_2015 - initial version - J.L. Desmarais
+        !> 23_03_2015 - initial version - J.L. Desmarais
         !
         !>@param this
         !> object gathering the increase operations to be applied on
@@ -281,12 +442,17 @@
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes0
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes1
 
-          
-          if(this%head_path%share_update_operations_with(this%current_path)) then
 
-             call this%head_path%merge(this%current_path)
+          integer, dimension(4) :: mainlayer_id
+          integer               :: k
 
-             call this%head_path%commit(
+
+          mainlayer_id = [N,S,E,W]
+
+          do k=1,4
+
+             call this%commit(
+     $            mainlayer_id(k),
      $            bf_interface_used,
      $            p_model,
      $            t,
@@ -294,35 +460,12 @@
      $            interior_x_map,
      $            interior_y_map,
      $            interior_nodes0,
-     $            interior_nodes1)
+     $            interior_nodes1)          
+             
+          end do
 
-          else
+          nullify(this%current_path)
 
-             call this%head_path%commit(
-     $            bf_interface_used,
-     $            p_model,
-     $            t,
-     $            dt,
-     $            interior_x_map,
-     $            interior_y_map,
-     $            interior_nodes0,
-     $            interior_nodes1)
-
-             call this%current_path%commit(
-     $            bf_interface_used,
-     $            p_model,
-     $            t,
-     $            dt,
-     $            interior_x_map,
-     $            interior_y_map,
-     $            interior_nodes0,
-     $            interior_nodes1)
-
-          end if
-
-          call this%head_path%remove()
-          call this%current_path%remove()
-
-        end subroutine finalize_domain_increase        
+        end subroutine finalize_domain_increase
 
       end module icr_interface_class

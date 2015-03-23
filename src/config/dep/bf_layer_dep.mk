@@ -622,8 +622,11 @@ $(ibf_layer_dir)/icr_path_list_class.o:\
 	$(ibf_layer_dir)/icr_path_chain_class.o
 
 $(ibf_layer_dir)/icr_interface_class.o:\
-	$(ibf_layer_dir)/icr_path_class.o\
 	$(ipbf_layer_dir)/bf_interface_coords_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(ibf_layer_dir)/icr_path_chain_class.o\
+	$(ibf_layer_dir)/icr_path_list_class.o\
 	$(pm_cdir)/pmodel_eq_class.o\
+	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o

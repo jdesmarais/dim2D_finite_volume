@@ -517,51 +517,71 @@
           logical :: is_bc_pt_crenel
 
 
-          !1) check whether there are enough grid points to check whether
-          !   there is a bc_interior_pt crenel or not
-          !   if there are enough grid points, the presence of a bc_pt
-          !   crenel is directly checked on the data of the buffer layer
-          !   then the crenel is curbed
-          if(
-     $         ((i-1).ge.1).and.
-     $         ((i+1).le.(size(this%grdpts_id,1))).and.
-     $         ((j-1).ge.1).and.
-     $         ((j+1).le.(size(this%grdpts_id,2)))) then
+           !1) only check and curb the bc_pt crenel if the central
+           !   point is a bc_pt
+           if(
+     $         (i.ge.1).and.
+     $         (i.le.(size(this%grdpts_id,1))).and.
+     $         (j.ge.1).and.
+     $         (j.le.(size(this%grdpts_id,2)))) then
 
-             ierror = BF_SUCCESS
+              if(this%grdpts_id(i,j).eq.bc_pt) then
 
-             is_bc_pt_crenel = check_if_bc_pt_crenel(
-     $            this%grdpts_id,
-     $            i,j)
+                 !2) check whether there are enough grid points to check whether
+                 !   there is a bc_interior_pt crenel or not
+                 !   if there are enough grid points, the presence of a bc_pt
+                 !   crenel is directly checked on the data of the buffer layer
+                 !   then the crenel is curbed
+                 if(
+     $                ((i-1).ge.1).and.
+     $                ((i+1).le.(size(this%grdpts_id,1))).and.
+     $                ((j-1).ge.1).and.
+     $                ((j+1).le.(size(this%grdpts_id,2)))) then
 
-             if(is_bc_pt_crenel) then
-                call remove_bc_pt_crenel(this%grdpts_id,i,j)
-             end if
+                    ierror = BF_SUCCESS
 
-          !2) otherwise, we check whether it is possible to create a temporary
-          !   array gathering data from the buffer layer
-          else
+                    is_bc_pt_crenel = check_if_bc_pt_crenel(
+     $                   this%grdpts_id,
+     $                   i,j)
 
-             grdpts_available = are_grdpts_available_to_detect_bc_pt_crenel(
-     $            this%localization,
-     $            size(this%grdpts_id,1), size(this%grdpts_id,2),
-     $            this%can_exchange_with_neighbor1(),
-     $            this%can_exchange_with_neighbor2(),
-     $            [i,j])
+                    if(is_bc_pt_crenel) then
+                       call remove_bc_pt_crenel(this%grdpts_id,i,j)
+                    end if
 
-             if(grdpts_available) then
+                 !3) otherwise, we check whether it is possible to create a temporary
+                 !   array gathering data from the buffer layer
+                 else
 
-                ierror = BF_SUCCESS
+                    grdpts_available = are_grdpts_available_to_detect_bc_pt_crenel(
+     $                   this%localization,
+     $                   size(this%grdpts_id,1), size(this%grdpts_id,2),
+     $                   this%can_exchange_with_neighbor1(),
+     $                   this%can_exchange_with_neighbor2(),
+     $                   [i,j])
 
-                !if grid points are available, it means that there
-                !is at least one no_pt neighbor and so the bc_pt
-                !investigated is not part of a bc_pt crenel
+                    if(grdpts_available) then
 
-             else
-                ierror = .not.BF_SUCCESS
-             end if
+                       ierror = BF_SUCCESS
 
-          end if
+                 !4) if grid points are available, it means that there
+                 !   is at least one no_pt neighbor and so the bc_pt
+                 !   investigated is not part of a bc_pt crenel
+                    else
+                       ierror = .not.BF_SUCCESS
+
+                    end if
+                    
+                 end if
+
+              else
+                 ierror = BF_SUCCESS
+
+              end if
+
+           else
+              ierror = .not.BF_SUCCESS
+
+           end if
 
         end subroutine detect_and_curb_bc_pt_crenel
 

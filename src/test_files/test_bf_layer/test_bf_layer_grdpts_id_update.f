@@ -111,7 +111,7 @@
              test_loc = ierror.eqv.test_ierror
              test_validated = test_validated.and.test_loc
              if(detailled.and.(.not.test_loc)) then
-                print '(''test('',I2,'') ierror failed'')'
+                print '(''test('',I2,'') ierror failed'')',k
              end if
 
              if(ierror.eqv.BF_SUCCESS) then
@@ -182,7 +182,7 @@
 
             case(3)
                call bf_layer_used%set_neighbor1_share(.true.)
-               test_i = 3
+               test_i = 5
                test_j = 1
                test_ierror = .not.BF_SUCCESS
 

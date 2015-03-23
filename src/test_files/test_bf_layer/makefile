@@ -751,6 +751,7 @@ test_icr_interface.o:		$(ipbf_layer_dir)/bf_interface_coords_class.o\
 				$(dim2d_dir)/dim2d_parameters.o\
 				$(test_dir)/tools/check_data_module.o\
 				$(ibf_layer_dir)/icr_interface_class.o\
+				$(ibf_layer_dir)/icr_path_chain_class.o\
 				$(ibf_layer_dir)/icr_path_class.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
 				$(param_dir)/parameters_constant.o\

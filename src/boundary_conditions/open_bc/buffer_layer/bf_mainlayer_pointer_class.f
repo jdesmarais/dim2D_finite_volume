@@ -477,9 +477,7 @@
           if(this%associated_ptr()) then
              get_nb_sublayers = this%ptr%get_nb_sublayers()
           else
-             print '(''bf_mainlayer_pointer_class'')'
-             print '(''get_nb_sublayers'')'
-             stop 'ptr attribute not associated'
+             get_nb_sublayers = 0
           end if
 
         end function get_nb_sublayers
