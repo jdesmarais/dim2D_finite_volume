@@ -112,7 +112,7 @@
         
         real(rkind), parameter :: T0 = 0.950000000d0
 
-        integer    , parameter :: ic_choice = newgrdpt_test
+        integer    , parameter :: ic_choice = peak
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
@@ -127,7 +127,8 @@
 
         !< boundary conditions parameters
         !-----------------------------------------------------
-        !constrained by the bc_choice
+        !type of boundary conditions applied at the edge
+        !(constrained by the bc_choice parameter)
         !-----------------------------------------------------
         !
         !bc_N_type_choice : type of boundary condition applied
@@ -184,30 +185,9 @@
         integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
 
-        !------------------------------------------------------------
-        !for the increase of the computational domain
-        !------------------------------------------------------------
-        !bf_openbc_md_threshold_ac : control whether the increase
-        !                            of the computational domain
-        !                            is also activated by the
-        !                            value of the mass density at
-        !                            the edge
-        !
-        !bf_openbc_md_threshold : the increase of the computational
-        !                         domain is triggered if the mass
-        !                         density is inside
-        !                         mid = (\rho_vap+\rho_liq)/2
-        !                         thr_vap = threshold*(mid-\rho_vap)
-        !                         thr_liq = threshold*(\rho_liq-mid)
-        !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
-        !
-        !------------------------------------------------------------
-        logical    , parameter :: bf_openbc_md_threshold_ac = .true.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
-
 
         !------------------------------------------------------------
-        !only effective for Yoo and Lodato b.c.
+        !for the Yoo and Lodato open boundary conditions
         !------------------------------------------------------------
         !
         !sigma_P    : relaxation coefficient used when
@@ -233,6 +213,52 @@
         integer    , parameter :: obc_type_S = always_outflow
         integer    , parameter :: obc_type_E = always_outflow
         integer    , parameter :: obc_type_W = always_inflow
+
+
+        !< domain adaptation parameters
+        !-----------------------------------------------------
+        !determination of the directiosn in which the
+        !computational domain can be extended
+        !-----------------------------------------------------
+        !
+        !adapt_N_choice : choose whether the North boundary 
+        !                 can be extended
+        !
+        !adapt_S_choice : choose whether the South boundary 
+        !                 can be extended
+        !
+        !adapt_E_choice : choose whether the East boundary 
+        !                 can be extended
+        !
+        !adapt_W_choice : choose whether the West boundary 
+        !                 can be extended
+        !-----------------------------------------------------
+        integer, parameter :: adapt_N_choice = adapt_domain_choice
+        integer, parameter :: adapt_S_choice = adapt_domain_choice
+        integer, parameter :: adapt_E_choice = adapt_domain_choice
+        integer, parameter :: adapt_W_choice = adapt_domain_choice
+
+
+        !------------------------------------------------------------
+        ! criterion to decide whether nodes are activated
+        !------------------------------------------------------------
+        !bf_openbc_md_threshold_ac : control whether the increase
+        !                            of the computational domain
+        !                            is also activated by the
+        !                            value of the mass density at
+        !                            the edge
+        !
+        !bf_openbc_md_threshold : the increase of the computational
+        !                         domain is triggered if the mass
+        !                         density is inside
+        !                         mid = (\rho_vap+\rho_liq)/2
+        !                         thr_vap = threshold*(mid-\rho_vap)
+        !                         thr_liq = threshold*(\rho_liq-mid)
+        !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
+        !
+        !------------------------------------------------------------
+        logical    , parameter :: bf_openbc_md_threshold_ac = .true.
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
 
 
         !------------------------------------------------------------

@@ -550,3 +550,30 @@ make test_bf_sorting_module > /dev/null
 ./test_bf_sorting_module
 make cleanall > /dev/null
 echo ''
+
+
+#test_bf_layer_icr_class
+echo ''
+echo 'test_bf_layer_icr_class'
+echo '------------------------------------------------------------'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice' -v 'wave2d_choice'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'bc_choice' -v 'hedstrom_xy_choice'
+$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'ic_choice' -v 'peak'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ic_choice' -v 'peak'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '64'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '54'
+$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'  -v '3'
+make test_bf_layer_icr > /dev/null
+./test_bf_layer_icr
+make cleanall > /dev/null
+echo ''
+
+
+#test_bf_interface_icr_class
+echo ''
+echo 'test_bf_interface_icr_class'
+echo '------------------------------------------------------------'
+make test_bf_interface_icr > /dev/null
+./test_bf_interface_icr
+make cleanall > /dev/null
+echo ''

@@ -133,6 +133,7 @@
         integer, parameter :: E=3
         integer, parameter :: W=4
         integer, parameter :: interior=5
+        integer, parameter :: no_interior_mainlayer=6
 
         integer, parameter :: x_direction=1
         integer, parameter :: y_direction=2
@@ -258,6 +259,18 @@
         integer, parameter :: always_outflow = 1
         integer, parameter :: ask_flow       = 2
 
+
+        !> domain adaptation
+        !-----------------------------------------------------------
+        !control whether the boundary can be extended
+        !-----------------------------------------------------------
+        ! fixed_domain_choice: the boundary remains fixed
+        !
+        ! adapt_domain_choice: the boundary can be extended
+        !
+        !-----------------------------------------------------------
+        integer, parameter :: fixed_domain_choice = 0
+        integer, parameter :: adapt_domain_choice = 1
 
       end module parameters_constant
 

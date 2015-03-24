@@ -381,6 +381,10 @@ bf_interface_coords_dep=$(bf_interface_grdpts_id_update_dep)\
 			bf_increase_coords_module.o\
 			bf_interface_coords_class.o
 
+bf_interface_icr_dep=	$(bf_interface_coords_dep)\
+			$(icr_interface_dep)\
+			bf_interface_icr_class.o
+
 
 #bf_increase objects
 icr_path_dep= 		bf_sorting_module.o\
@@ -394,30 +398,3 @@ icr_path_list_dep=	$(icr_path_chain_dep)\
 
 icr_interface_dep= 	$(icr_path_list_dep)\
 			icr_interface_class.o
-
-bf_interface_dep=	$(bf_layer_dep)\
-			bf_restart_module.o\
-			bf_sublayer_class.o\
-			bf_mainlayer_class.o\
-			bf_mainlayer_pointer_class.o\
-			bf_interior_bc_sections_module.o\
-			nbf_element_class.o\
-			bf_sublayer_pointer_class.o\
-			sbf_list_class.o\
-			nbf_list_class.o\
-			nbf_interface_class.o\
-			nbf_interface_newgrdpt_class.o\
-			bf_interface_class.o\
-			nf90_operators_module.o\
-			nf90_operators_read_module.o
-
-bf_interface_icr_dep=	$(bf_interface_dep)\
-			bf_detector_module.o\
-			bf_detector_icr_list_class.o\
-			bf_detector_dcr_param_class.o\
-			bf_path_icr_class.o\
-			bf_nbc_template_module.o\
-			bf_interface_icr_class.o
-
-bf_interface_dcr_dep=	$(bf_interface_icr_dep)\
-			bf_interface_dcr_class.o
