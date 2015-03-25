@@ -192,11 +192,11 @@
           integer(ikind) :: common_layer_size_y
 
 
-          common_layer_size_x = min(nx+search_dcr,bf_alignment(1,2)+bc_size)-
-     $                          max(1-search_dcr, bf_alignment(1,1)-bc_size)+1
+          common_layer_size_x = min(align_E+search_dcr-1, bf_alignment(1,2)+bc_size)-
+     $                          max(align_W-search_dcr+1, bf_alignment(1,1)-bc_size)+1
 
-          common_layer_size_y = min(ny+search_dcr,bf_alignment(2,2)+bc_size)-
-     $                          max(1-search_dcr, bf_alignment(2,1)-bc_size)+1
+          common_layer_size_y = min(align_N+search_dcr-1, bf_alignment(2,2)+bc_size)-
+     $                          max(align_S-search_dcr+1, bf_alignment(2,1)-bc_size)+1
 
           grdpts_common = (common_layer_size_x.gt.0).and.
      $                    (common_layer_size_y.gt.0)
@@ -260,69 +260,81 @@
           integer(ikind)                , intent(in)  :: bf_size_y
           integer(ikind), dimension(2,2), intent(out) :: bf_coords
           integer(ikind), dimension(2,2), intent(out) :: in_coords
+
+
+          integer(ikind), dimension(2,2) :: bf_gen_coords
+          integer(ikind), dimension(2,2) :: in_gen_coords
           
 
+          !------------------------------------------------------------
+          !bf_gen_coords : borders of the grid-points to be checked
+          !                for a general buffer layer using the general
+          !                reference frame
+          !
+          !in_gen_coords : borders of the grid-points to be checked
+          !                for the interior corresponding to general
+          !                buffer layer using the general reference
+          !                frame 
+          !------------------------------------------------------------
           select case(bf_localization)
 
-            case(N)
-               bf_coords(1,1) = max(2, align_W - search_dcr - bf_match_table(1))
-               bf_coords(2,1) = max(2, align_N - search_dcr - bf_match_table(2))
+            case(N,S)
 
-               bf_coords(1,2) = min(bf_size_x-1, align_E + search_dcr - bf_match_table(1))
-               bf_coords(2,2) = min(bf_size_y-1, align_N + search_dcr - bf_match_table(2))
+               bf_gen_coords(1,1) = max(align_W-search_dcr+1, bf_alignment(1,1)-bc_size)
+               bf_gen_coords(1,2) = min(align_E+search_dcr-1, bf_alignment(1,2)+bc_size)
 
-
-               in_coords(1,1) = max(2, bf_alignment(1,1) - bc_size)
-               in_coords(2,1) = max(2, align_N - search_dcr)
-
-               in_coords(1,2) = min(nx-1, bf_alignment(1,2) + bc_size         )
-               in_coords(2,2) = min(ny-1, bf_coords(2,1)-1 + bf_match_table(2))
+               in_gen_coords(1,1) = bf_gen_coords(1,1)
+               in_gen_coords(1,2) = bf_gen_coords(1,2)
 
 
-            case(S)
-               bf_coords(1,1) = max(2, align_W - search_dcr - bf_match_table(1))
-               bf_coords(2,1) = max(2, align_S - search_dcr - bf_match_table(2))
+               !north buffer layers
+               if(bf_localization.eq.N) then
 
-               bf_coords(1,2) = min(bf_size_x-1, align_E + search_dcr - bf_match_table(1))
-               bf_coords(2,2) = min(bf_size_y-1, align_S + search_dcr - bf_match_table(2))
+                  bf_gen_coords(2,1) = align_N
+                  bf_gen_coords(2,2) = min(align_N+search_dcr-1,bf_alignment(2,2)+bc_size)
 
+                  in_gen_coords(2,1) = align_N-search_dcr
+                  in_gen_coords(2,2) = align_N-1
 
-               in_coords(1,1) = max(2, bf_alignment(1,1) - bc_size)
-               in_coords(2,1) = max(2, bf_coords(2,2)+1 + bf_match_table(2))
+               !south buffer layers
+               else
 
-               in_coords(1,2) = min(nx-1, bf_alignment(1,2) + bc_size)
-               in_coords(2,2) = min(ny-1, align_S + search_dcr)
+                  bf_gen_coords(2,1) = max(align_S-search_dcr+1, bf_alignment(2,1)-bc_size)
+                  bf_gen_coords(2,2) = align_S
 
+                  in_gen_coords(2,1) = align_S+1
+                  in_gen_coords(2,2) = align_S+search_dcr
 
-            case(E)
-               bf_coords(1,1) = max(2, align_E - search_dcr - bf_match_table(1))
-               bf_coords(2,1) = max(2, align_S - search_dcr - bf_match_table(2))
-
-               bf_coords(1,2) = min(bf_size_x-1, align_E + search_dcr - bf_match_table(1))
-               bf_coords(2,2) = min(bf_size_y-1, align_N + search_dcr - bf_match_table(2))
+               end if
 
 
-               in_coords(1,1) = max(2, align_E - search_dcr)
-               in_coords(2,1) = max(2, bf_alignment(2,1) - bc_size)
+            case(E,W)
 
-               in_coords(1,2) = min(nx-1, bf_coords(1,1)-1 + bf_match_table(1))
-               in_coords(2,2) = min(ny-1, bf_alignment(2,2) + bc_size)
+               bf_gen_coords(2,1) = max(align_S-search_dcr  , bf_alignment(2,1)-bc_size)
+               bf_gen_coords(2,2) = min(align_N+search_dcr-1, bf_alignment(2,2)+bc_size)
 
-
-            case(W)
-               bf_coords(1,1) = max(2, align_W - search_dcr - bf_match_table(1))
-               bf_coords(2,1) = max(2, align_S - search_dcr - bf_match_table(2))
-
-               bf_coords(1,2) = min(bf_size_x-1, align_W + search_dcr - bf_match_table(1))
-               bf_coords(2,2) = min(bf_size_y-1, align_N + search_dcr - bf_match_table(2))
+               in_gen_coords(2,1) = bf_gen_coords(2,1)
+               in_gen_coords(2,2) = bf_gen_coords(2,2)
 
 
-               in_coords(1,1) = max(2, bf_coords(1,2)+1 + bf_match_table(1))
-               in_coords(2,1) = max(2, bf_alignment(2,1) - bc_size)
+               !east buffer layers
+               if(bf_localization.eq.E) then
+                  bf_gen_coords(1,1) = align_E
+                  bf_gen_coords(1,2) = min(align_E+search_dcr-1, bf_alignment(1,2)+bc_size)
 
-               in_coords(1,2) = min(nx-1, align_W + search_dcr)
-               in_coords(2,2) = min(ny-1, bf_alignment(2,2) + bc_size)
+                  in_gen_coords(1,1) = align_E-search_dcr
+                  in_gen_coords(1,2) = align_E-1
 
+               !west buffer layers
+               else
+                  
+                  bf_gen_coords(1,1) = max(align_W-search_dcr+1, bf_alignment(1,1)-bc_size)
+                  bf_gen_coords(1,2) = align_W
+
+                  in_gen_coords(1,1) = align_W+1
+                  in_gen_coords(1,2) = align_W+search_dcr
+
+               end if
 
             case default
                call error_mainlayer_id(
@@ -331,6 +343,20 @@
      $              bf_localization)
 
           end select
+
+          !the borders are now expressed in the local reference
+          !frame of the buffer layer and adapted to its size
+          bf_coords(1,1) = max(bf_gen_coords(1,1) - bf_match_table(1), 2)
+          bf_coords(1,2) = min(bf_gen_coords(1,2) - bf_match_table(1), bf_size_x-1)
+          bf_coords(2,1) = max(bf_gen_coords(2,1) - bf_match_table(2), 2)
+          bf_coords(2,2) = min(bf_gen_coords(2,2) - bf_match_table(2), bf_size_y-1)
+
+
+          !the borders are then adapted for the interior domain
+          in_coords(1,1) = max(in_gen_coords(1,1), 2   )
+          in_coords(1,2) = min(in_gen_coords(1,2), nx-1)
+          in_coords(2,1) = max(in_gen_coords(2,1), 2   )
+          in_coords(2,2) = min(in_gen_coords(2,2), ny-1)
           
         end subroutine get_check_line_param
 

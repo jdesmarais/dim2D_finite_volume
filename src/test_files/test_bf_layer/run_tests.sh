@@ -577,3 +577,14 @@ make test_bf_interface_icr > /dev/null
 ./test_bf_interface_icr
 make cleanall > /dev/null
 echo ''
+
+
+#test_bf_remove_module
+echo ''
+echo 'test_bf_remove_module'
+echo '------------------------------------------------------------'
+
+make test_bf_remove_module > /dev/null
+./test_bf_remove_module
+make cleanall > /dev/null
+echo ''
