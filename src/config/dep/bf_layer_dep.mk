@@ -660,3 +660,7 @@ $(dbf_layer_dir)/bf_decrease_module.o:\
 
 $(dbf_layer_dir)/dcr_chain_class.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o
+
+$(dbf_layer_dir)/dcr_list_class.o:\
+	$(dbf_layer_dir)/dcr_chain_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o

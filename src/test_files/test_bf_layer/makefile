@@ -155,6 +155,21 @@ test_bf_layer_icr:		$(param_dep)\
 				check_data_module.o
 
 
+test_bf_layer.o:		$(bf_layer_dir)/bf_layer_class.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(pm_cdir)/pmodel_eq_class.o
+
+test_bf_layer:			$(param_dep)\
+				$(mt_dep)\
+				$(wave2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_layer_dep)
+
+
 #buffer_layer/bf_layer_newgrdpt
 test_bf_newgrdpt_prim.o:	$(ngbf_layer_dir)/bf_newgrdpt_class.o\
 				$(test_dir)/tools/check_data_module.o\
@@ -823,4 +838,15 @@ test_dcr_chain:			$(param_dep)\
 				$(hedstrom_xy_dep)\
 				$(fv_dep)\
 				$(bf_sublayer_dep)\
-				dcr_chain_class.o
+				$(dcr_chain_dep)
+
+test_dcr_list.o:		$(dbf_layer_dir)/dcr_list_class.o\
+				$(bf_layer_dir)/bf_sublayer_class.o
+
+test_dcr_list:			$(param_dep)\
+				$(mt_dep)\
+				$(wave2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_sublayer_dep)\
+				$(dcr_list_dep)

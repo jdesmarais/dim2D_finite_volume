@@ -599,3 +599,25 @@ make test_dcr_chain > /dev/null
 ./test_dcr_chain
 make cleanall > /dev/null
 echo ''
+
+
+#test_dcr_list_class
+echo ''
+echo 'test_dcr_list_class'
+echo '------------------------------------------------------------'
+
+make test_dcr_list > /dev/null
+./test_dcr_list
+make cleanall > /dev/null
+echo ''
+
+
+#test_bf_layer_class
+echo ''
+echo 'test_bf_layer_class'
+echo '------------------------------------------------------------'
+
+make test_bf_layer > /dev/null
+./test_bf_layer
+make cleanall > /dev/null
+echo ''

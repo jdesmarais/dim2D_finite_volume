@@ -18,8 +18,8 @@
         use bf_sublayer_class, only :
      $      bf_sublayer
 
-        use bf_sublayer_pointer_class, only :
-     $       bf_sublayer_pointer
+        use dcr_chain_class, only :
+     $       dcr_chain
 
         implicit none
 
@@ -60,7 +60,7 @@
         !--------------------------------------------------------------
         type :: dcr_list
 
-          type(bf_sublayer_pointer), dimension(:), allocatable :: list
+          type(dcr_chain), dimension(:), allocatable :: list
           integer :: nb_ele
                     
           contains

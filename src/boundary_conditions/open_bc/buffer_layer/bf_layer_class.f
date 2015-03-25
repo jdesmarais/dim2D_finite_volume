@@ -1,12 +1,13 @@
       !> @file
-      !> module encapsulating the bf_layer object.
-      !> bf_layer_time enhanced with removal procedures
+      !> bf_layer_icr augmented with procedures checking whether
+      !> the buffer layer can be removed
       !
       !> @author
       !> Julien L. Desmarais
       !
       !> @brief
-      !> bf_layer_time enhanced with removal procedures
+      !> bf_layer_icr augmented with procedures checking whether
+      !> the buffer layer can be removed
       !
       !> @date
       ! 23_02_2015 - initial version - J.L. Desmarais
@@ -35,15 +36,13 @@
 
 
         !> @class bf_layer
-        !> class encapsulating the buffer layer which extends the
-        !> interior nodes in a definite direction
+        !> bf_layer_icr augmented with procedures checking whether
+        !> the buffer layer can be removed
         !
         !> @param can_remain
         !> logical identifying whether the buffer layer based on its
         !> grid points at the edge with the interior domain are such
         !> that the buffer layer can be removed
-        !> @param set_remain_status
-        !> set the can_remain attribute
         !
         !> @param get_remain_status
         !> get the can_remain attribute
@@ -53,9 +52,6 @@
         !> and the interior domain and compute whether they undermine
         !> the open boundary conditions. This determines whether the
         !> buffer layer should be removed or not
-        !
-        !> @param remove
-        !> remove the buffer layer by deallocating the main tables
         !-------------------------------------------------------------
         type, extends(bf_layer_icr) :: bf_layer
 
@@ -63,42 +59,12 @@
 
           contains
 
-          procedure, pass :: set_remain_status
           procedure, pass :: get_remain_status
           procedure, pass :: should_remain
 
         end type bf_layer
 
         contains
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> set the can_remain attribute
-        !
-        !> @date
-        !> 26_06_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_layer object encapsulating the main
-        !> tables extending the interior domain
-        !
-        !>@param remain_state
-        !> logical identifying whether the buffer layer should be
-        !> removed or not
-        !--------------------------------------------------------------
-        subroutine set_remain_status(this, remain_state)
-
-          implicit none
-
-          class(bf_layer), intent(inout) :: this
-          logical        , intent(in)    :: remain_state
-
-          this%can_remain = remain_state
-          
-        end subroutine set_remain_status
 
 
         !> @author
@@ -163,12 +129,12 @@
 
           implicit none
 
-          class(bf_layer)                 , intent(in) :: this
-          real(rkind), dimension(nx)      , intent(in) :: interior_x_map
-          real(rkind), dimension(ny)      , intent(in) :: interior_y_map
-          real(rkind), dimension(nx,ny,ne), intent(in) :: interior_nodes
-          type(pmodel_eq)                 , intent(in) :: p_model
-          logical                                      :: should_remain
+          class(bf_layer)                 , intent(inout) :: this
+          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          type(pmodel_eq)                 , intent(in)    :: p_model
+          logical                                         :: should_remain
           
           integer(ikind), dimension(2) :: bf_match_table
 
@@ -186,6 +152,8 @@
      $         interior_y_map,
      $         interior_nodes,
      $         p_model)
+
+          this%can_remain = should_remain
 
         end function should_remain
 
