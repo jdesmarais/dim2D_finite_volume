@@ -13,7 +13,10 @@
       module bf_interface_sync_class
 
         use bf_interface_print_class, only :
-     $     bf_interface_print
+     $      bf_interface_print
+
+        use bf_sublayer_class, only :
+     $       bf_sublayer
 
         use parameters_constant, only :
      $       N,S,E,W
@@ -42,6 +45,7 @@
           contains
 
           procedure, pass :: sync_nodes
+          procedure, pass :: get_neighbor_sublayer
 
         end type bf_interface_sync
 
@@ -99,5 +103,52 @@
           call this%mainlayer_interfaces%sync_nodes_at_mainlayer_interfaces()
 
         end subroutine sync_nodes
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the reference to the neighboring buffer layer of the
+        !> buffer layer passed as argument
+        !
+        !> @date
+        !> 25_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface object encapsulating the buffer layers
+        !> around the interior domain and subroutines to synchronize
+        !> the data between them
+        !
+        !>@param mainlayer_id
+        !> cardinal coordinate identifying the main layer to which the
+        !> bf_sublayer is belonging
+        !
+        !>@param neighbor_type
+        !> type of neighbor (1 or 2) for the neihgboring buffer layer
+        !
+        !>@return bf_sublayer_ptr
+        !> reference to the neighboring buffer layer
+        !--------------------------------------------------------------!
+        function get_neighbor_sublayer(
+     $     this,
+     $     mainlayer_id,
+     $     neighbor_type)
+     $     result(bf_sublayer_ptr)
+
+          implicit none
+
+          class(bf_interface_sync)  , intent(in) :: this
+          integer                   , intent(in) :: mainlayer_id
+          integer                   , intent(in) :: neighbor_type
+          type(bf_sublayer), pointer             :: bf_sublayer_ptr
+
+
+          bf_sublayer_ptr => this%mainlayer_interfaces%get_neighbor_sublayer_ptr(
+     $         mainlayer_id, neighbor_type)
+
+
+        end function get_neighbor_sublayer
+          
 
       end module bf_interface_sync_class

@@ -59,12 +59,42 @@
 
           contains
 
+          procedure, pass :: set_remain_status
           procedure, pass :: get_remain_status
           procedure, pass :: should_remain
 
         end type bf_layer
 
         contains
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> set the can_remain attribute
+        !
+        !> @date
+        !> 26_06_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@param remain_status
+        !> logical identifying whether the buffer layer should be
+        !> removed or not
+        !--------------------------------------------------------------
+        subroutine set_remain_status(this,remain_status)
+
+          implicit none
+
+          class(bf_layer), intent(inout) :: this
+          logical                        :: remain_status
+
+          this%can_remain = remain_status
+
+        end subroutine set_remain_status
 
 
         !> @author

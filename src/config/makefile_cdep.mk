@@ -405,3 +405,6 @@ dcr_chain_dep= 		dcr_chain_class.o
 
 dcr_list_dep=		$(dcr_chain_dep)\
 			dcr_list_class.o
+
+dcr_interface_dep=	$(dcr_list_dep)\
+			dcr_interface_class.o

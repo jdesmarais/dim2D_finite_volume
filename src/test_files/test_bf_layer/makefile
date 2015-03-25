@@ -578,6 +578,8 @@ test_mainlayer_interface_grdpts_id_update:\
 
 #bf_interface parents
 test_bf_interface_basic.o:	$(ipbf_layer_dir)/bf_interface_basic_class.o\
+				$(bf_layer_dir)/bf_mainlayer_class.o\
+				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o
 
@@ -829,6 +831,7 @@ test_bf_decrease:		$(param_dep)\
 				check_data_module.o\
 				bf_decrease_module.o
 
+
 test_dcr_chain.o:		$(dbf_layer_dir)/dcr_chain_class.o\
 				$(bf_layer_dir)/bf_sublayer_class.o
 
@@ -840,6 +843,7 @@ test_dcr_chain:			$(param_dep)\
 				$(bf_sublayer_dep)\
 				$(dcr_chain_dep)
 
+
 test_dcr_list.o:		$(dbf_layer_dir)/dcr_list_class.o\
 				$(bf_layer_dir)/bf_sublayer_class.o
 
@@ -850,3 +854,21 @@ test_dcr_list:			$(param_dep)\
 				$(fv_dep)\
 				$(bf_sublayer_dep)\
 				$(dcr_list_dep)
+
+
+test_dcr_interface.o:		$(dbf_layer_dir)/dcr_interface_class.o\
+				$(ipbf_layer_dir)/bf_interface_icr_class.o\
+				$(bf_layer_dir)/bf_sublayer_class.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_input.o\
+				$(param_dir)/parameters_kind.o\
+				$(wave2d_dir)/pmodel_eq_class.o
+
+test_dcr_interface:		$(param_dep)\
+				$(mt_dep)\
+				$(wave2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(bf_interface_icr_dep)\
+				$(dcr_interface_dep)

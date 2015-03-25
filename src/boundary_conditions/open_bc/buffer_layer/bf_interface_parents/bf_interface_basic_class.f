@@ -14,6 +14,9 @@
 
         use netcdf
 
+        use bf_mainlayer_class, only :
+     $       bf_mainlayer
+
         use bf_mainlayer_pointer_class, only :
      $       bf_mainlayer_pointer
 
@@ -56,6 +59,7 @@
           contains
 
           procedure, pass :: ini
+          procedure, pass :: get_mainlayer_ptr
 
         end type bf_interface_basic
 
@@ -102,5 +106,38 @@
 
         end subroutine ini
 
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get a reference to the mainlayer corresponding to
+        !> the cardinal coordinate passed
+        !
+        !> @date
+        !> 25_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface object encapsulating the buffer layers
+        !> around the interior domain and subroutines to synchronize
+        ! the data between them
+        !
+        !>@param mainlayer_id
+        !> cardinal coordinate identifying the main layer asked
+        !--------------------------------------------------------------
+        function get_mainlayer_ptr(this,mainlayer_id)
+     $     result(bf_mainlayer_ptr)
+
+          implicit none
+
+          class(bf_interface_basic), intent(in) :: this
+          integer                  , intent(in) :: mainlayer_id
+          type(bf_mainlayer), pointer           :: bf_mainlayer_ptr
+
+
+          bf_mainlayer_ptr => this%mainlayer_pointers(mainlayer_id)%get_ptr()
+
+        end function get_mainlayer_ptr
+      
 
       end module bf_interface_basic_class

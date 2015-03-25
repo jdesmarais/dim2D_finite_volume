@@ -48,6 +48,12 @@
         print '()'
 
 
+        test_loc = test_get_neighbor_sublayer(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_get_neighbor_sublayer: '',L1)', test_loc
+        print '()'
+
+
         contains
 
         function test_sync_nodes(detailled)
@@ -449,6 +455,44 @@
           end if
 
         end function test_sync_nodes
+
+
+        function test_get_neighbor_sublayer(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          type(bf_interface_sync)    :: bf_interface_used
+          real(rkind), dimension(nx) :: interior_x_map
+          real(rkind), dimension(ny) :: interior_y_map
+          type(bf_sublayer), pointer :: bf_sublayer1_ptr
+          type(bf_sublayer), pointer :: bf_sublayer2_ptr
+
+
+          !input
+          call bf_interface_used%ini(
+     $         interior_x_map,
+     $         interior_y_map)
+
+          allocate(bf_sublayer1_ptr)
+          bf_interface_used%mainlayer_interfaces%NE_interface_N_ptr =>
+     $         bf_sublayer1_ptr
+
+          !output
+          bf_sublayer2_ptr => bf_interface_used%get_neighbor_sublayer(
+     $         E,2)
+
+          !validation
+          test_validated = associated(bf_sublayer1_ptr,bf_sublayer2_ptr)
+          if(detailled.and.(.not.test_loc)) then
+             print '(''association failed'')'
+          end if             
+
+        end function test_get_neighbor_sublayer
 
 
         subroutine check_inputs()

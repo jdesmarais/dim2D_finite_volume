@@ -199,6 +199,7 @@ $(mbf_layer_dir)/mainlayer_interface_grdpts_id_update_class.o:\
 
 #bf_interface parents
 $(ipbf_layer_dir)/bf_interface_basic_class.o:\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(bf_layer_dir)/bf_mainlayer_pointer_class.o\
 	$(mbf_layer_dir)/mainlayer_interface_grdpts_id_update_class.o\
 	$(param_dir)/parameters_input.o\
@@ -212,6 +213,7 @@ $(ipbf_layer_dir)/bf_interface_print_class.o:\
 
 $(ipbf_layer_dir)/bf_interface_sync_class.o:\
 	$(ipbf_layer_dir)/bf_interface_print_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
@@ -664,3 +666,9 @@ $(dbf_layer_dir)/dcr_chain_class.o:\
 $(dbf_layer_dir)/dcr_list_class.o:\
 	$(dbf_layer_dir)/dcr_chain_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o
+
+$(dbf_layer_dir)/dcr_interface_class.o:\
+	$(ipbf_layer_dir)/bf_interface_icr_class.o\
+	$(bf_layer_dir)/bf_mainlayer_class.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(dbf_layer_dir)/dcr_list_class.o
