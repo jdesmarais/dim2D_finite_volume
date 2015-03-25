@@ -13,7 +13,7 @@
       ! 27_06_2014 - documentation update - J.L. Desmarais
       ! 17_07_2014 - openbc_undermined in p_model - J.L. Desmarais
       !-----------------------------------------------------------------
-      module bf_remove_module
+      module bf_decrease_module
 
         use bf_layer_errors_module, only :
      $       error_mainlayer_id
@@ -527,7 +527,7 @@
                 
              else
                 
-                print '(''bf_remove_module'')'
+                print '(''bf_decrease_module'')'
                 print '(''check_layer_interior'')'
                 print '(''the nodes that should be checked are'')'
                 print '(''not all in the interior domain'')'
@@ -632,7 +632,7 @@
 
              else
                 
-                print '(''bf_remove_module'')'
+                print '(''bf_decrease_module'')'
                 print '(''check_layer_interior'')'
                 print '(''the nodes that should be checked are'')'
                 print '(''not all in the buffer layer'')'
@@ -683,4 +683,4 @@
 
         end function no_nogrdpt
 
-      end module bf_remove_module
+      end module bf_decrease_module

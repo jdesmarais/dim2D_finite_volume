@@ -57,15 +57,14 @@ bf_layer_dir		= $(obc_dir)/buffer_layer
 
 bbf_layer_dir		= $(bf_layer_dir)/bf_layer_bc_sections
 cbf_layer_dir		= $(bf_layer_dir)/bf_layer_computations
-dbf_layer_dir           = $(bf_layer_dir)/bf_layer_detectors
 gbf_layer_dir           = $(bf_layer_dir)/bf_layer_grdptsid
 iobf_layer_dir		= $(bf_layer_dir)/bf_layer_io_operators
-lbf_layer_dir           = $(bf_layer_dir)/bf_layer_list
 nbf_layer_dir		= $(bf_layer_dir)/bf_layer_neighbors
 ngbf_layer_dir		= $(bf_layer_dir)/bf_layer_newgrdpt
 rbf_layer_dir           = $(bf_layer_dir)/bf_layer_restart
 sbf_layer_dir           = $(bf_layer_dir)/bf_layer_sync
 ibf_layer_dir		= $(bf_layer_dir)/bf_layer_increase
+dbf_layer_dir		= $(bf_layer_dir)/bf_layer_decrease
 
 pbf_layer_dir		= $(bf_layer_dir)/bf_layer_parents
 mpbf_layer_dir		= $(bf_layer_dir)/bf_mainlayer_parents

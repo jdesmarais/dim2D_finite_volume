@@ -84,7 +84,7 @@ $(pbf_layer_dir)/bf_layer_icr_class.o:\
 
 $(bf_layer_dir)/bf_layer_class.o:\
 	$(pbf_layer_dir)/bf_layer_icr_class.o\
-	$(cbf_layer_dir)/bf_remove_module.o\
+	$(dbf_layer_dir)/bf_decrease_module.o\
 	$(pm_cdir)/pmodel_eq_class.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
@@ -314,14 +314,6 @@ $(bf_layer_dir)/bf_interface_dcr_class.o:\
 	$(lbf_layer_dir)/sbf_list_class.o
 
 
-#buffer layer computations
-$(cbf_layer_dir)/bf_remove_module.o:\
-	$(bf_layer_dir)/bf_layer_errors_module.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o\
-	$(pm_cdir)/pmodel_eq_class.o
 
 #buffer layer bc_sections
 $(bbf_layer_dir)/bf_layer_bc_procedure_module.o:\
@@ -656,12 +648,15 @@ $(ibf_layer_dir)/icr_interface_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
-$(ibf_layer_dir)/icr_interior_bc_section_module.o:\
-	$(ipbf_layer_dir)/bf_interface_coords_class.o\
-	$(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o\
+
+#bf_layer decrease
+$(dbf_layer_dir)/bf_decrease_module.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
-	$(ibf_layer_dir)/icr_interface_class.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o
+
+$(dbf_layer_dir)/dcr_chain_class.o:\
+	$(bf_layer_dir)/bf_sublayer_class.o

@@ -1,6 +1,6 @@
-      program test_bf_remove
+      program test_bf_decrease
 
-        use bf_remove_module, only :
+        use bf_decrease_module, only :
      $     check_if_bf_layer_remains,
      $     grdpts_common_with_check_layer,     
      $     get_check_line_param,
@@ -769,4 +769,4 @@
 
         end subroutine check_inputs
 
-      end program test_bf_remove
+      end program test_bf_decrease

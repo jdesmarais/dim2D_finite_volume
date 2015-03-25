@@ -16,7 +16,7 @@
         use bf_layer_icr_class, only :
      $       bf_layer_icr
 
-        use bf_remove_module, only :
+        use bf_decrease_module, only :
      $       check_if_bf_layer_remains
 
         use parameters_input, only :

@@ -579,12 +579,23 @@ make cleanall > /dev/null
 echo ''
 
 
-#test_bf_remove_module
+#test_bf_decrease_module
 echo ''
-echo 'test_bf_remove_module'
+echo 'test_bf_decrease_module'
 echo '------------------------------------------------------------'
 
-make test_bf_remove_module > /dev/null
-./test_bf_remove_module
+make test_bf_decrease_module > /dev/null
+./test_bf_decrease_module
+make cleanall > /dev/null
+echo ''
+
+
+#test_dcr_chain_class
+echo ''
+echo 'test_dcr_chain_class'
+echo '------------------------------------------------------------'
+
+make test_dcr_chain > /dev/null
+./test_dcr_chain
 make cleanall > /dev/null
 echo ''

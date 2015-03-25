@@ -370,23 +370,7 @@ test_bf_compute_newgrdpt:	$(param_dep)\
 				check_data_module.o
 
 
-test_bf_remove.o:		$(cbf_layer_dir)/bf_remove_module.o\
-				$(sbf_layer_dir)/bf_layer_extract_module.o\
-				$(test_dir)/tools/check_data_module.o\
-				$(bf_layer_dir)/parameters_bf_layer.o\
-				$(param_dir)/parameters_constant.o\
-				$(param_dir)/parameters_input.o\
-				$(param_dir)/parameters_kind.o\
-				$(wave2d_dir)/pmodel_eq_class.o
 
-test_bf_remove:			$(param_dep)\
-				$(mt_dep)\
-				$(wave2d_dep)\
-				parameters_bf_layer.o\
-				bf_layer_errors_module.o\
-				bf_layer_extract_module.o\
-				check_data_module.o\
-				bf_remove_module.o
 
 #main objects
 test_bf_sublayer.o:		$(bf_layer_dir)/bf_sublayer_class.o
@@ -398,8 +382,6 @@ test_bf_sublayer:		$(param_dep)\
 				$(bf_layer_dep)\
 				$(fv_dep)\
 				bf_sublayer_class.o
-
-
 
 
 #bf_mainlayer parents
@@ -813,22 +795,32 @@ test_icr_interface:		$(param_dep)\
 				check_data_module.o
 
 
-test_icr_interior_bc_section.o:	$(ipbf_layer_dir)/bf_interface_coords_class.o\
-				$(ibf_layer_dir)/icr_interface_class.o\
-				$(ibf_layer_dir)/icr_interior_bc_section_module.o\
-				$(ibf_layer_dir)/icr_path_chain_class.o\
+#test bf_layer_decrease
+test_bf_decrease.o:		$(dbf_layer_dir)/bf_decrease_module.o\
+				$(sbf_layer_dir)/bf_layer_extract_module.o\
+				$(test_dir)/tools/check_data_module.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
-				$(pm_cdir)/pmodel_eq_class.o\
-				$(test_dir)/tools/check_data_module.o
+				$(wave2d_dir)/pmodel_eq_class.o
 
-test_icr_interior_bc_section:	$(param_dep)\
+test_bf_decrease:		$(param_dep)\
+				$(mt_dep)\
+				$(wave2d_dep)\
+				parameters_bf_layer.o\
+				bf_layer_errors_module.o\
+				bf_layer_extract_module.o\
+				check_data_module.o\
+				bf_decrease_module.o
+
+test_dcr_chain.o:		$(dbf_layer_dir)/dcr_chain_class.o\
+				$(bf_layer_dir)/bf_sublayer_class.o
+
+test_dcr_chain:			$(param_dep)\
 				$(mt_dep)\
 				$(wave2d_dep)\
 				$(hedstrom_xy_dep)\
 				$(fv_dep)\
-				$(bf_interface_coords_dep)\
-				$(icr_interface_dep)\
-				icr_interior_bc_section_module.o\
-				check_data_module.o
+				$(bf_sublayer_dep)\
+				dcr_chain_class.o

@@ -309,7 +309,7 @@ bf_layer_icr_dep=	$(bf_layer_grdpts_id_update_dep)\
 			bf_layer_icr_class.o
 
 bf_layer_dep=		$(bf_layer_icr_dep)\
-			bf_remove_module.o\
+			bf_decrease_module.o\
 			bf_layer_class.o
 
 bf_sublayer_dep=	$(bf_layer_dep)\
