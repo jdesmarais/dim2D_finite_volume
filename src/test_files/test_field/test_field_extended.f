@@ -1,10 +1,13 @@
-      program test_bf_interface_time
+      program test_field_extended
 
         use bc_operators_class, only :
      $       bc_operators
 
-        use bf_interface_time_class, only :
-     $       bf_interface_time
+        use field_class, only :
+     $       field
+
+        use field_extended_class, only :
+     $       field_extended
 
         use bf_sublayer_class, only :
      $       bf_sublayer
@@ -83,25 +86,25 @@
            detailled = .true.
            test_validated = .true.
 
-           test_loc = test_initialize_before_timeInt(detailled)
+           test_loc = test_ini(detailled)
            test_validated = test_validated.and.test_loc
-           print '(''test_initialize_before_timeInt: '',L1)', test_loc
+           print '(''test_ini: '',L1)', test_loc
            print '()'
 
-           test_loc = test_finalize_after_timeInt(detailled)
-           test_validated = test_validated.and.test_loc
-           print '(''test_finalize_after_timeInt: '',L1)', test_loc
-           print '()'
-
-           test_loc = test_compute_time_dev(detailled)
-           test_validated = test_validated.and.test_loc
-           print '(''test_compute_time_dev: '',L1)', test_loc
-           print '()'
-
-           test_loc = test_compute_integration_step(detailled)
-           test_validated = test_validated.and.test_loc
-           print '(''test_compute_integration_step: '',L1)', test_loc
-           print '()'
+c$$$           test_loc = test_finalize_after_timeInt(detailled)
+c$$$           test_validated = test_validated.and.test_loc
+c$$$           print '(''test_finalize_after_timeInt: '',L1)', test_loc
+c$$$           print '()'
+c$$$
+c$$$           test_loc = test_compute_time_dev(detailled)
+c$$$           test_validated = test_validated.and.test_loc
+c$$$           print '(''test_compute_time_dev: '',L1)', test_loc
+c$$$           print '()'
+c$$$
+c$$$           test_loc = test_compute_integration_step(detailled)
+c$$$           test_validated = test_validated.and.test_loc
+c$$$           print '(''test_compute_integration_step: '',L1)', test_loc
+c$$$           print '()'
            
            print '(''test_validated: '',L1)', test_validated
 
@@ -114,36 +117,23 @@
 
           implicit none
 
-          real(rkind), dimension(nx)       :: interior_x_map
-          real(rkind), dimension(ny)       :: interior_y_map
-          real(rkind), dimension(nx,ny,ne) :: interior_nodes
-          real(rkind), dimension(nx,ny,ne) :: interior_nodes_tmp
+          type(field) :: field_used
+
           real(rkind), dimension(nx,ny,ne) :: time_dev
-
-          type(sd_operators) :: s
-          type(pmodel_eq)    :: p_model
-          type(bc_operators) :: bc_used
-          type(td_operators) :: td_operators_used
-
-          integer(ikind) :: i,j
+          real(rkind), dimension(nx,ny,ne) :: nodes_tmp
 
           integer :: ios
+
 
           call check_inputs_small_domain()
 
 
           !> initialization
-          interior_x_map = (/(x_min+dx*(i-1),i=1,nx)/)
-          interior_y_map = (/(y_min+dy*(j-1),j=1,ny)/)
-          
-          call apply_ic(
-     $         interior_nodes,
-     $         interior_x_map,
-     $         interior_y_map)
+          call field_used%ini()
 
           !> write the nodes0 on an output file
           open(unit=2,
-     $         file='nodes0.out',
+     $         file='field_nodes0.out',
      $         action="write",
      $         status="unknown",
      $         form='unformatted',
@@ -152,28 +142,21 @@
      $         iostat=ios)
           
           if(ios.eq.0) then
-             write(unit=2, iostat=ios) interior_nodes
+             write(unit=2, iostat=ios) field_used%nodes
              close(unit=2)
           else
              stop 'file opening pb'
           end if
 
-          print '(''nodes0 written in nodes0.out'')'
+          print '(''field%nodes written in field_nodes0.out'')'
 
 
           !> compute the time derivatives
-          time_dev = td_operators_used%compute_time_dev(
-     $         t,
-     $         interior_nodes,
-     $         interior_x_map,
-     $         interior_y_map,
-     $         s,
-     $         p_model,
-     $         bc_used)
+          time_dev = td_operators_used%compute_time_dev()
 
           !> write the time derivatives on an output file
           open(unit=2,
-     $         file='timedev.out',
+     $         file='field_timedev.out',
      $         action="write", 
      $         status="unknown",
      $         form='unformatted',
@@ -188,21 +171,20 @@
              stop 'file opening pb'
           end if
 
-          print '(''timedev written in timedev.out'')'
+          print '(''time derivatives written in field_timedev.out'')'
 
 
           !> compute the time integration step
-          call compute_1st_step(
-     $         interior_nodes,
+          call field_used%compute_integration_step(
      $         dt,
+     $         nodes_tmp,
      $         interior_nodes_tmp,
      $         time_dev,
-     $         x_borders=[1,nx],
-     $         y_borders=[1,ny])
+     $         compute_1st_step)
 
           !> write the nodes1st on an output file
           open(unit=2,
-     $         file='nodes1st.out',
+     $         file='field_nodes1st.out',
      $         action="write",
      $         status="unknown",
      $         form='unformatted',
@@ -211,13 +193,39 @@
      $         iostat=ios)
           
           if(ios.eq.0) then
-             write(unit=2, iostat=ios) interior_nodes
+             write(unit=2, iostat=ios) field_used%nodes
              close(unit=2)
           else
              stop 'file opening pb'
           end if
 
-          print '(''nodes1st written in nodes1st.out'')'
+          print '(''field%nodes written in field_nodes1st.out'')'
+
+
+          !> re-initialization
+          call field_used%ini()
+
+          !> complete integration cycle
+          call field_used%integrate(dt)
+
+          !> write the nodes1st on an output file
+          open(unit=2,
+     $         file='field_nodesInt.out',
+     $         action="write",
+     $         status="unknown",
+     $         form='unformatted',
+     $         access='sequential',
+     $         position='rewind',
+     $         iostat=ios)
+          
+          if(ios.eq.0) then
+             write(unit=2, iostat=ios) field_used%nodes
+             close(unit=2)
+          else
+             stop 'file opening pb'
+          end if
+
+          print '(''field%nodes after integration written in field_nodesInt.out'')'
 
         end subroutine generate_small_domain_results
 
@@ -875,37 +883,26 @@
         end function test_compute_integration_step          
           
 
-        subroutine ini_bf_interface_for_tests(bf_interface_used)
+        subroutine ini_bf_interface_for_tests(field_used)
 
           implicit none
 
-          type(bf_interface_time), intent(inout) :: bf_interface_used
+          type(field_extended), intent(inout) :: field_used
 
-          type(bf_sublayer), pointer     :: added_sublayer
-          
-          real(rkind), dimension(nx)       :: interior_x_map
-          real(rkind), dimension(ny)       :: interior_y_map
-          real(rkind), dimension(nx,ny,ne) :: interior_nodes
+          type(bf_sublayer), pointer :: bf_sublayer_ptr
 
           integer(ikind), dimension(2,2) :: bf_alignment_tmp
           integer, dimension(:,:), allocatable :: grdpts_id
 
           integer(ikind) :: i,j
 
-          
-          interior_x_map = (/(x_min+(28+i-1)*dx,i=1,nx)/)
-          interior_y_map = (/(y_min+(18+j-1)*dy,j=1,ny)/)
-
-
-          call bf_interface_used%ini(
-     $         interior_x_map,
-     $         interior_y_map)
-
 
           !north buffer layer
           bf_alignment_tmp = reshape((/
      $         align_W+1, align_N, align_E-1, align_N/),
      $         (/2,2/))
+
+          bf_sublayer_ptr => 
 
           added_sublayer => bf_interface_used%allocate_sublayer(
      $         N,
@@ -1051,7 +1048,6 @@
           end do
 
         end subroutine apply_ic
-
 
 
         subroutine check_inputs_small_domain()

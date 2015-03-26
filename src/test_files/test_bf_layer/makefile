@@ -756,11 +756,11 @@ test_bf_increase_coords:	$(param_dep)\
 				bf_increase_coords_module.o
 
 
-test_bf_sorting_module.o:	$(ibf_layer_dir)/bf_sorting_module.o\
+test_bf_sorting.o:		$(ibf_layer_dir)/bf_sorting_module.o\
 				$(test_dir)/tools/check_data_module.o\
 				$(param_dir)/parameters_kind.o
 
-test_bf_sorting_module:		parameters_kind.o\
+test_bf_sorting:		parameters_kind.o\
 				check_data_module.o\
 				bf_sorting_module.o
 

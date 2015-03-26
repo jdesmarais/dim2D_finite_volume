@@ -14,19 +14,24 @@
         logical              :: test_loc
         logical              :: test_validated
 
+
         detailled      = .true.
         test_validated = .true.
+
 
         test_loc = test_get_local_coords(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_get_local_coord: '',L1)', test_loc
         print '()'
 
+
         test_loc = test_get_general_to_local_coord_tab(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_get_general_to_local_coord_tab: '',L1)', test_loc
         print '()'
 
+
+        print '(''test_validated: '',L1)', test_validated
         
         contains
 

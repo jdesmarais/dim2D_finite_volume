@@ -30,6 +30,7 @@
         print '(''test_get_mainlayer_coord: '',L1)', test_loc
         print '()'
 
+        print '(''test_validated: '',L1)', test_validated
 
         contains
 

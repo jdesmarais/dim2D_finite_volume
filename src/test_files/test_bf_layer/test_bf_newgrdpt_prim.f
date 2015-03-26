@@ -134,6 +134,9 @@
         print '(''test_interpolate_2D: '', L1)', test_loc
         print '()'
 
+
+        print '(''test_validated: '',L1)', test_validated
+
         detailled = .true.
 
         !test of compute_newgrdpt_x + symmetry check

@@ -93,6 +93,7 @@
         print '(''test_check_if_bf_layer_remains: '',L1)', test_loc
         print '()'
 
+        print '(''test_validated: '',L1)', test_validated
 
         contains
 

@@ -121,30 +121,6 @@
         !> @param get_y_borders
         !> get the index borders for time integration in the
         !> y-direction
-        !
-        !> @param set_N_bc_sections
-        !> set the borders of the north boundary layer computed
-        !> by time integration
-        !
-        !> @param set_S_bc_sections
-        !> set the borders of the south boundary layer computed
-        !> by time integration
-        !
-        !> @param remove_N_bc_sections
-        !> remove the borders of the north boundary layer computed
-        !> by time integration
-        !
-        !> @param remove_S_bc_sections
-        !> remove the borders of the south boundary layer computed
-        !> by time integration
-        !
-        !> @param get_N_bc_sections
-        !> get the borders of the north boundary layer computed
-        !> by time integration
-        !
-        !> @param get_S_bc_sections
-        !> get the borders of the south boundary layer computed
-        !> by time integration
         !-------------------------------------------------------------
         type, extends(bf_layer_dyn) :: bf_layer_time
 

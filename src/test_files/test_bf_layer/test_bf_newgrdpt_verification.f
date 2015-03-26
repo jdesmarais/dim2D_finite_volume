@@ -50,6 +50,9 @@
         print '(''test_get_newgrdpt_verification_bounds: '',L1)', test_loc
         print '()'
 
+
+        print '(''test_validated: '',L1)', test_validated
+
         contains
 
 

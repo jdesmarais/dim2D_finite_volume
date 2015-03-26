@@ -33,6 +33,8 @@
         print '(''test_print_netcdf: check N_1_10.nc...'')'
         print '()'
 
+        
+        print '(''test_validated: '',L1)', .true.
 
         contains
 

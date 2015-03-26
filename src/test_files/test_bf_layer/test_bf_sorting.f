@@ -1,4 +1,4 @@
-      program test_bf_sorting_module
+      program test_bf_sorting
 
         use bf_sorting_module, only :
      $       bubble_sort_grdpts
@@ -24,6 +24,9 @@
         test_loc = test_bubble_sort_grdpts(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_bubble_sort_grdpts: '',L1)', test_loc
+
+
+        print '(''test_validated: '',L1)', test_validated
 
         contains
 
@@ -68,4 +71,4 @@
 
         end function test_bubble_sort_grdpts
 
-      end program test_bf_sorting_module
+      end program test_bf_sorting

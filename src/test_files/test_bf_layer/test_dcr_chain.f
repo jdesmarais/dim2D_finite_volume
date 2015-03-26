@@ -34,6 +34,8 @@
         print '()'
 
 
+        print '(''test_validated: '',L1)', test_validated
+
         contains
 
 

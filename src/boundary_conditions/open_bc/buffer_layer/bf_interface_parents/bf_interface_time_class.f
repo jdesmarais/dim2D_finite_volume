@@ -53,6 +53,10 @@
         !> bf_interface_dyn augmented with time integration
         !> procedures
         !
+        !> @param apply_initial_conditions
+        !> apply the initial conditions of the physical model
+        !> in the domain extension
+        !
         !> @param initialize_before_timeInt
         !> allocate memory space for the intermediate
         !> variables needed to perform the time integration
@@ -70,6 +74,8 @@
         type, extends(bf_interface_dyn) :: bf_interface_time
 
           contains
+          
+          procedure, pass :: apply_initial_conditions
 
           procedure, pass :: initialize_before_timeInt
           procedure, pass :: finalize_after_timeInt
@@ -80,6 +86,58 @@
 
 
         contains
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> apply the initial conditions of the physical model
+        !> in the domain extension
+        !
+        !> @date
+        !> 26_03_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> bf_interface_dyn with time integration procedures
+        !
+        !> @param p_model
+        !> physical model
+        !--------------------------------------------------------------
+        subroutine apply_initial_conditions(this,p_model)
+
+          implicit none
+
+          class(bf_interface_time), intent(inout) :: this
+          type(pmodel_eq)         , intent(in)    :: p_model
+
+          integer :: k
+          integer :: nb_sublayers
+          integer :: m
+
+          type(bf_sublayer), pointer :: bf_sublayer_ptr
+
+
+          !> loop over the main layers and apply the initial
+          !> conditions on each buffer layer of the domain
+          !> extension
+          do k=1,4
+
+             nb_sublayers = this%mainlayer_pointers(k)%get_nb_sublayers()
+
+             bf_sublayer_ptr = this%mainlayer_pointers(k)%get_head_sublayer()
+
+             do m=1, nb_sublayers
+
+                call bf_sublayer_ptr%apply_initial_conditions(p_model)
+
+                bf_sublayer_ptr => bf_sublayer_ptr%get_next()
+
+             end do
+          
+          end do
+
+        end subroutine apply_initial_conditions
 
 
         !> @author
@@ -254,10 +312,8 @@
 
           !> synchronize the nodes between the interior
           !> domain and the buffer layers
-          call this%sync_nodes(interior_nodes)
-          
+          call this%sync_nodes(interior_nodes)          
 
-        end subroutine compute_integration_step
-          
+        end subroutine compute_integration_step          
 
       end module bf_interface_time_class

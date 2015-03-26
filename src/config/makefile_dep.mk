@@ -42,7 +42,7 @@ $(field_dir)/field_class.o:\
 			$(ti_cdir)/td_integrator_class.o
 
 $(field_dir)/field_extended_class.o:\
-			$(bf_layer_dir)/bf_interface_dcr_class.o\
+			$(bf_layer_dir)/bf_interface_class.o\
 			$(field_dir)/field_abstract_class.o\
 			$(ti_dir)/interface_integration_step.o\
 			$(param_dir)/parameters_kind.o\

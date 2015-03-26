@@ -56,6 +56,7 @@
         print '(''test_bf_interior_bc_sections: '',L1)', test_loc
         print '()'
 
+        print '(''test_validated: '',L1)', test_validated
 
         contains
 

@@ -58,6 +58,8 @@
         print '(''test_extract_grdpts_to_compute_anticorner_fluxes: '',L1)', test_loc
         print '()'
 
+        print '(''test_validated: '',L1)', test_validated
+
         contains
 
 

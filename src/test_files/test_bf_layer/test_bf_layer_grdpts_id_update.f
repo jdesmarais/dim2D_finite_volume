@@ -65,6 +65,8 @@
         print '()'
 
         
+        print '(''test_validated: '',L1)', test_validated
+
         contains
 
         function test_detect_and_curb_bc_pt_crenel(detailled)

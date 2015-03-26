@@ -546,8 +546,7 @@
      $     dt,
      $     nodes_tmp,
      $     time_dev,
-     $     integration_step,
-     $     full)
+     $     integration_step)
 
           implicit none
 
@@ -556,51 +555,34 @@
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes_tmp
           real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
           procedure(timeInt_step)                         :: integration_step
-          logical    , optional           , intent(in)    :: full
-
-          logical :: all_domain
 
 
           integer(ikind), dimension(2) :: x_borders
           integer(ikind), dimension(2) :: y_borders
 
           
-          if(present(full)) then
-             all_domain = full
-          else
-             all_domain = .false.
-          end if
-
-          if(.not.all_domain) then
-
-             select case(bc_choice)
-
-               case(reflection_xy_choice, periodic_xy_choice,
-     $              wall_xy_choice, wall_x_reflection_y_choice)
-                  x_borders=[bc_size+1,nx-bc_size]
-                  y_borders=[bc_size+1,ny-bc_size]
-               
-               case(hedstrom_xy_choice,hedstrom_xy_corners_choice,
+          select case(bc_choice)
+          
+            case(reflection_xy_choice, periodic_xy_choice,
+     $           wall_xy_choice, wall_x_reflection_y_choice)
+               x_borders=[bc_size+1,nx-bc_size]
+               y_borders=[bc_size+1,ny-bc_size]
+                  
+            case(hedstrom_xy_choice,hedstrom_xy_corners_choice,
      $              poinsot_xy_choice,yoolodato_xy_choice)
-                  x_borders=[1,nx]
-                  y_borders=[1,ny]
+               x_borders=[1,nx]
+               y_borders=[1,ny]
                
-               case(hedstrom_x_reflection_y_choice)
-                  x_borders=[1,nx]
-                  y_borders=[bc_size+1,ny-bc_size]
-               
-               case default
-                  print '(''field_abstract: compute_integration_step'')'
-                  stop 'bc not implemented'
-               
-             end select
-             
-          else
+            case(hedstrom_x_reflection_y_choice)
+               x_borders=[1,nx]
+               y_borders=[bc_size+1,ny-bc_size]
+            
+            case default
+               print '(''field_abstract: compute_integration_step'')'
+               stop 'bc not implemented'
+            
+          end select
 
-             x_borders = [1,nx]
-             y_borders = [1,ny]
-
-          end if
 
           call integration_step(
      $         this%nodes, dt, nodes_tmp, time_dev,
@@ -644,8 +626,7 @@
      $     nodes_tmp,
      $     time_dev,
      $     integration_step,
-     $     integration_step_nopt,
-     $     full)
+     $     integration_step_nopt)
 
           implicit none
 
@@ -655,11 +636,9 @@
           real(rkind), dimension(nx,ny,ne), intent(in)    :: time_dev
           procedure(timeInt_step)                         :: integration_step
           procedure(timeInt_step_nopt)                    :: integration_step_nopt
-          logical    , optional           , intent(in)    :: full
 
           
           integer, dimension(nx,ny) :: grdpts_id
-          logical :: full_s
 
           
           print '(''********************************'')'
@@ -677,10 +656,6 @@
 
           call integration_step_nopt(
      $         this%nodes, dt, nodes_tmp, time_dev, grdpts_id)
-
-          if(present(full)) then
-             full_s = full
-          end if
 
         end subroutine compute_integration_step_ext
 

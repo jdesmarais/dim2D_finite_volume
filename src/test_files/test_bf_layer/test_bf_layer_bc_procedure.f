@@ -37,6 +37,7 @@
         print '(''test_get_bc_interior_pt_procedure: '',L1)', test_loc
         print '()'
 
+        print '(''test_validated: '',L1)', test_validated
 
         contains
 
