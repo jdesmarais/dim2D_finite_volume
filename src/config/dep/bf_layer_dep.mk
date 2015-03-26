@@ -266,21 +266,12 @@ $(ipbf_layer_dir)/bf_interface_icr_class.o:\
 	$(pm_cdir)/pmodel_eq_class.o
 
 $(bf_layer_dir)/bf_interface_class.o:\
-	$(cbf_layer_dir)/bf_interior_bc_sections_module.o\
+	$(ipbf_layer_dir)/bf_interface_icr_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(bf_layer_dir)/bf_mainlayer_class.o\
-	$(bf_layer_dir)/bf_mainlayer_pointer_class.o\
-	$(iobf_layer_dir)/bf_layer_nf90_operators_module.o\
-	$(rbf_layer_dir)/bf_restart_module.o\
-	$(ti_dir)/interface_integration_step.o\
-	$(nf90_dir)/nf90_operators_read_module.o\
-	$(nbf_layer_dir)/nbf_interface_newgrdpt_class.o\
-	$(cbf_layer_dir)/bf_layer_newgrdpt_procedure_module.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_constant.o\
+	$(dbf_layer_dir)/dcr_interface_class.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
-	$(lbf_layer_dir)/sbf_list_class.o
+	$(pm_cdir)/pmodel_eq_class.o
 
 
 #main objects

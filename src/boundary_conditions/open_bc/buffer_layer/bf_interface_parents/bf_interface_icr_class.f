@@ -99,12 +99,72 @@
         !> bf_interface_grdpts_id_update augmented with procedures
         !> detecting how the domain extension should be increased
         !
-        !> @param is_node_activated
-        !> determine whether a grid-point is activated
+        !> @param analyze_and_update_boundary
+        !> analyze and update the boundary identified by its
+        !> mainlayer_id
+        !
+        !> @param adapt_domain_extension
+        !> adapt the configuration and extents of the domain
+        !> extension by increasing the buffer layers where
+        !> bc_interior_pt are activated
+        !  
+        !> @param get_interior_bcs_mainlayer_id
+        !> determine the cardinal coordinate (N,S,E,W) identifying
+        !> to which interiro boundary a bc_sction is belonging
+        !
+        !> @param analyze_interior_bc_sections
+        !> analyze the bc_interior_pt of an interior bc_section
+        !> and stage for update the ones triggered by nodes 
+        !> activated in the interior domain
+        !
+        !> @param analyze_bf_layer_bc_sections
+        !> analyze the bc_interior_pt of a buffer layer bc_section
+        !> and stage for update the ones triggered by nodes 
+        !> activated
+        !  
+        !> @param stage
+        !> stage a bc_interior_pt for update
+        !
+        !> @param analyze_bc_section_edge_y
+        !> analyze a bc_section of type edge_y (N_edge_type or
+        !> S_edge_type)
+        !
+        !> @param analyze_bc_section_edge_x
+        !> analyze a bc_section of type edge_x (E_edge_type or
+        !> W_edge_type)
+        !
+        !> @param analyze_bc_section_xy
+        !> analyze a bc_section of type square
+        !> (NE_corner_type, NW_crner_type, SE_corner_type,
+        !>  SW_corner_type, NE_edge_type, NW_edge_type,
+        !>  SW_edge_type, SE_edge_type)
+        !
+        !> @param analyze_bc_section_square_bounds
+        !> determine the grid-points triggering the activation of
+        !> the bc_interior_pt in a square-like bc_section
+        !> (NE_corner_type, NW_crner_type, SE_corner_type,
+        !>  SW_corner_type, NE_edge_type, NW_edge_type,
+        !>  SW_edge_type, SE_edge_type)
+        !
+        !> @param analyze_bc_section_square_xy
+        !> check the gridpoints triggering the activation of the
+        !> bc_interior_pt in a square-like bc_section
+        !
+        !> @param analyze_bc_section
+        !> analyze the bc_interior_pt of an interior or buffer
+        !> layer bc_section and stage for update the ones
+        !> triggered by the activation of upstream grid-points
+        !
+        !> @param is_interior_node_activated
+        !> determine whether a grid-point belonging to the interior
+        !> domain is activated
         !
         !> @param is_bf_layer_node_activated
         !> determine whether a grid-point belonging to a buffer
         !> layer is activated
+        !
+        !> @param is_node_activated
+        !> determine whether a grid-point is activated
         !-------------------------------------------------------------
         type, extends(bf_interface_coords) :: bf_interface_icr
 

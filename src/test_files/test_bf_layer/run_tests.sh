@@ -621,3 +621,14 @@ make test_bf_layer > /dev/null
 ./test_bf_layer
 make cleanall > /dev/null
 echo ''
+
+
+#test_dcr_interface_class
+echo ''
+echo 'test_dcr_interface_class'
+echo '------------------------------------------------------------'
+
+make test_dcr_interface > /dev/null
+./test_dcr_interface
+make cleanall > /dev/null
+echo ''

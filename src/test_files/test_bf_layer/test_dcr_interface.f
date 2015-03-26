@@ -348,12 +348,12 @@
      $         bf_alignment)
 
           added_sublayer%grdpts_id = reshape(
-     $         (/((interior_pt, i=1,9), j=1,6)/),
-     $         (/9,6/))
+     $         (/((interior_pt, i=1,9), j=1,10)/),
+     $         (/9,10/))
 
           added_sublayer%nodes(:,:,1) = reshape((/
-     $         ((1.0d0,i=1,9),j=1,6)/),(/9,6/))
-          added_sublayer%nodes(2,3,1) = -1.0d0
+     $         ((1.0d0,i=1,9),j=1,10)/),(/9,10/))
+          added_sublayer%nodes(4,3,1) = -1.0d0
 
 
           !second West buffer layer: cannot be removed b/c of N neighbor
@@ -370,11 +370,11 @@
      $         bf_alignment)
 
           added_sublayer%grdpts_id = reshape(
-     $         (/((interior_pt, i=1,9), j=1,6)/),
-     $         (/9,6/))
+     $         (/((interior_pt, i=1,9), j=1,10)/),
+     $         (/9,10/))
 
           added_sublayer%nodes(:,:,1) = reshape((/
-     $         ((1.0d0,i=1,9),j=1,6)/),(/9,6/))
+     $         ((1.0d0,i=1,9),j=1,10)/),(/9,10/))
           added_sublayer%nodes(2,3,1) = -1.0d0
 
 
@@ -392,11 +392,11 @@
      $         bf_alignment)
 
           added_sublayer%grdpts_id = reshape(
-     $         (/((interior_pt, i=1,9), j=1,6)/),
-     $         (/9,6/))
+     $         (/((interior_pt, i=1,9), j=1,10)/),
+     $         (/9,10/))
 
           added_sublayer%nodes(:,:,1) = reshape((/
-     $         ((1.0d0,i=1,9),j=1,6)/),(/9,6/))
+     $         ((1.0d0,i=1,9),j=1,10)/),(/9,10/))
 
 
           !second East buffer layer: cannot be removed
@@ -413,11 +413,11 @@
      $         bf_alignment)
 
           added_sublayer%grdpts_id = reshape(
-     $         (/((interior_pt, i=1,9), j=1,6)/),
-     $         (/9,6/))
+     $         (/((interior_pt, i=1,9), j=1,10)/),
+     $         (/9,10/))
 
           added_sublayer%nodes(:,:,1) = reshape((/
-     $         ((1.0d0,i=1,9),j=1,6)/),(/9,6/))
+     $         ((1.0d0,i=1,9),j=1,10)/),(/9,10/))
           added_sublayer%nodes(5,3,1) = -1.0d0
 
         end subroutine ini_bf_interface_for_tests

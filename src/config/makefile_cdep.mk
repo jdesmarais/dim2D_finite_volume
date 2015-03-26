@@ -385,6 +385,10 @@ bf_interface_icr_dep=	$(bf_interface_coords_dep)\
 			$(icr_interface_dep)\
 			bf_interface_icr_class.o
 
+bf_interface_dep=	$(bf_interface_icr_dep)\
+			$(dcr_interface_dep)\
+			bf_interface_class.o
+
 
 #bf_increase objects
 icr_path_dep= 		bf_sorting_module.o\
