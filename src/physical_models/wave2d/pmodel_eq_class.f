@@ -36,6 +36,7 @@
      $       vector_y,
      $       peak,
      $       negative_spot,
+     $       sincos,
      $       no_wave_forcing,
      $       oscillatory_forcing,
      $       intermittent_oscillatory_forcing,
@@ -558,6 +559,12 @@ c$$$     $       compute_n2_transM_wave2d
      $              x_map,
      $              y_map)
 
+            case(sincos)
+               call apply_sincos_ic(
+     $              nodes,
+     $              x_map,
+     $              y_map)
+
             case default
                print '(''pmodel_eq_class'')'
                print '(''apply_ic'')'
@@ -613,6 +620,38 @@ c$$$     $       compute_n2_transM_wave2d
           end if
 
         end subroutine apply_peak_ic
+
+
+        subroutine apply_sincos_ic(nodes,x_map,y_map)
+
+          implicit none
+
+          real(rkind), dimension(:,:,:), intent(inout) :: nodes
+          real(rkind), dimension(:)    , intent(in)    :: x_map
+          real(rkind), dimension(:)    , intent(in)    :: y_map
+
+
+          integer(ikind) :: i,j
+          real(rkind)    :: x,y
+
+          
+          do j=1, size(y_map,1)
+
+             y = y_map(j)/10.0d0*(2.0d0*ACOS(-1.0d0))
+
+             do i=1,size(x_map,1)
+
+                x = x_map(i)/10.0d0*(2.0d0*ACOS(-1.0d0))
+
+                nodes(i,j,1) = SIN(x)*SIN(y)
+                nodes(i,j,2) = COS(x)*SIN(y)
+                nodes(i,j,3) = SIN(x)*COS(y)
+
+             end do
+
+          end do
+
+        end subroutine apply_sincos_ic
 
 
         subroutine apply_negative_spot_ic(nodes,x_map,y_map)

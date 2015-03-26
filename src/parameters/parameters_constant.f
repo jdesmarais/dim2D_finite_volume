@@ -60,7 +60,7 @@
      $       'sym_x          ',
      $       'sym_y          ',
      $       'negative_spot  ',
-     $       'not implemented']
+     $       'sincos         ']
 
         !integer, parameter :: steady_state=0
         integer, parameter :: peak=1
@@ -68,6 +68,7 @@
         integer, parameter :: sym_x=3
         integer, parameter :: sym_y=4
         integer, parameter :: negative_spot=5
+        integer, parameter :: sincos=6
 
         !>initial conditions choice for DIM
         character(18), dimension(8), parameter :: dim2d_ic_code =[

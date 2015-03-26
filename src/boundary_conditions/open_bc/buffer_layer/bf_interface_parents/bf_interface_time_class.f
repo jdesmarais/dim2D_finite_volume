@@ -125,7 +125,7 @@
 
              nb_sublayers = this%mainlayer_pointers(k)%get_nb_sublayers()
 
-             bf_sublayer_ptr = this%mainlayer_pointers(k)%get_head_sublayer()
+             bf_sublayer_ptr => this%mainlayer_pointers(k)%get_head_sublayer()
 
              do m=1, nb_sublayers
 

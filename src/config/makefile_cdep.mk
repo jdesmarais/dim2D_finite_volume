@@ -412,3 +412,13 @@ dcr_list_dep=		$(dcr_chain_dep)\
 
 dcr_interface_dep=	$(dcr_list_dep)\
 			dcr_interface_class.o
+
+
+#field
+field_dep=		cmd_operators_class.o\
+			field_abstract_class.o\
+			field_class.o
+
+field_extended_dep=	$(field_dep)\
+			$(bf_interface_dep)\
+			field_extended_class.o
