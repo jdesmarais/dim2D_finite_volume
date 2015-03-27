@@ -29,7 +29,7 @@
      $       align_E, align_W
 
         use parameters_constant, only :
-     $       N,S,E,W,
+     $       N,S,E,W,no_mainlayer_id,
      $       obc_eigenqties_bc,
      $       obc_eigenqties_lin
 
@@ -74,6 +74,12 @@
         test_loc = test_commit(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_commit: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_check_path_for_same_sublayer(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_check_path_for_same_sublayer: '',L1)', test_loc
         print '()'
 
 
@@ -316,6 +322,7 @@
           logical                                         :: test_validated
 
           type(bf_sublayer), pointer :: bf_sublayer_ptr
+          type(icr_path_chain), pointer :: icr_path_used
           logical :: test_loc
 
 
@@ -347,6 +354,12 @@
           !this fourth grid-point should be saved in paths(2)
           call icr_interface_used%stage(
      $         [align_E,align_S+16],
+     $         bf_interface_used)
+
+          !this fifth grid-point should be saved in paths(3)
+          !as it is too far from all paths
+          call icr_interface_used%stage(
+     $         [align_W,align_S+15],
      $         bf_interface_used)
 
 
@@ -464,6 +477,98 @@
           if(detailled.and.(.not.test_loc)) then
              print '(''test grdpts_id(E,2) failed'')'
           end if
+
+          !verify the paths saved:
+          ! there should be three paths saved:
+          !  - the path for the mainlayer W: it used to be the 3rd path
+          !    and it should be the first path now
+          !  - the two paths that used to be for N and S and that should
+          !    be reinitialized and put at the end
+          !------------------------------------------------------------
+          test_loc = icr_interface_used%paths%nb_paths.eq.3
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''nb_paths failed'')'
+          end if
+
+          test_loc = icr_interface_used%paths%head_path%mainlayer_id.eq.W
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''head_path failed'')'
+          end if
+
+
+          icr_path_used => icr_interface_used%paths%get_head_path()
+          icr_path_used => icr_path_used%get_next()
+          
+          test_loc = associated(icr_path_used%prev,icr_interface_used%paths%head_path)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path2_prev failed'')'
+          end if
+
+          test_loc = associated(icr_path_used%next)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path2_next failed'')'
+          end if
+
+          test_loc = icr_path_used%mainlayer_id.eq.no_mainlayer_id
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path2_mainlayer_id failed'')'
+          end if
+
+          test_loc = icr_path_used%nb_pts.eq.0
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path2_nb_pts failed'')'
+          end if
+
+          test_loc = .not.associated(icr_path_used%matching_sublayer)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path2_matching_sublayer failed'')'
+          end if
+          
+
+          icr_path_used => icr_path_used%get_next()
+          
+          test_loc = associated(icr_path_used,icr_interface_used%paths%tail_path)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''tail_path failed'')'
+          end if
+
+          test_loc = associated(icr_path_used%prev,icr_interface_used%paths%head_path%next)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path3_prev failed'')'
+          end if
+
+          test_loc = .not.associated(icr_path_used%next)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path3_next failed'')'
+          end if
+
+          test_loc = icr_path_used%mainlayer_id.eq.no_mainlayer_id
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path3_mainlayer_id failed'')'
+          end if
+
+          test_loc = icr_path_used%nb_pts.eq.0
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path3_nb_pts failed'')'
+          end if
+
+          test_loc = .not.associated(icr_path_used%matching_sublayer)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path3_matching_sublayer failed'')'
+          end if          
           
         end function test_commit_wo_merge
 
@@ -652,6 +757,163 @@
           
         end function test_commit_w_merge
 
+
+        function test_check_path_for_same_sublayer(
+     $     detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in)    :: detailled
+          logical                :: test_validated
+
+          type(icr_interface)           :: icr_interface_used
+          type(icr_path_chain), pointer :: path_N1
+          type(icr_path_chain), pointer :: path_N2
+          type(icr_path_chain), pointer :: path_N3
+
+          logical :: test_loc
+
+
+          test_validated = .true.
+
+
+          ! we initialize the paths with three paths
+          ! after application of the function checking for
+          ! paths updating the same sublayer, path_N1 and path_N2
+          ! are merged
+
+          path_N1 => icr_interface_used%paths%add_path()
+          path_N1%mainlayer_id = N
+          path_N1%nb_pts = 1
+          allocate(path_N1%pts(2,3))
+          path_N1%pts(:,1) = [2,3]
+          path_N1%alignment = reshape((/
+     $         align_W+5,align_N,align_W+5,align_N/),
+     $         (/2,2/))
+
+          path_N2 => icr_interface_used%paths%add_path()
+          path_N2%mainlayer_id = N
+          path_N2%nb_pts = 1
+          allocate(path_N2%pts(2,4))
+          path_N2%pts(:,1) = [2,4]
+          path_N2%alignment = reshape((/
+     $         align_W+11,align_N,align_W+11,align_N/),
+     $         (/2,2/))
+
+          path_N3 => icr_interface_used%paths%add_path()
+          path_N3%mainlayer_id = N
+          path_N3%nb_pts = 1
+          allocate(path_N3%pts(2,5))
+          path_N3%pts(:,1) = [2,5]
+          path_N3%alignment = reshape((/
+     $         align_W+18,align_N,align_W+18,align_N/),
+     $         (/2,2/))
+
+
+          !output
+          call icr_interface_used%check_path_for_same_sublayer(
+     $         path_N1)
+          call icr_interface_used%check_path_for_same_sublayer(
+     $         path_N3)
+          call icr_interface_used%check_path_for_same_sublayer(
+     $         path_N2)
+
+
+          !valication
+          !paths arrangement
+          !------------------------------------------------------------
+          test_loc = icr_interface_used%paths%nb_paths.eq.3
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''nb_paths failed'')'
+          end if
+          
+          test_loc = associated(icr_interface_used%paths%head_path,path_N1)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path(1) failed'')'
+          end if
+
+          test_loc = associated(icr_interface_used%paths%head_path%next,path_N3)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path(2) failed'')'
+          end if
+
+          test_loc = associated(icr_interface_used%paths%tail_path,path_N2)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path(3) failed'')'
+          end if
+
+          !path1 content
+          !------------------------------------------------------------
+          test_loc = is_int_matrix_validated(
+     $         path_N1%alignment, 
+     $         reshape((/align_W+5,align_N,align_W+11,align_N/),(/2,2/)),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path(1), alignment failed'')'
+          end if
+
+          test_loc = path_N1%nb_pts.eq.2
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path(1), nb_pts failed'')'
+          end if
+
+          test_loc = is_int_matrix_validated(
+     $         path_N1%pts(:,1:path_N1%nb_pts), 
+     $         reshape((/2,3,2,4/),(/2,2/)),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path(1), pts failed'')'
+          end if
+
+          !path2 content
+          !------------------------------------------------------------
+          test_loc = is_int_matrix_validated(
+     $         path_N3%alignment, 
+     $         reshape((/align_W+18,align_N,align_W+18,align_N/),(/2,2/)),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path(2), alignment failed'')'
+          end if
+
+          test_loc = path_N3%nb_pts.eq.1
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path(2), nb_pts failed'')'
+          end if
+
+          test_loc = is_int_matrix_validated(
+     $         path_N3%pts(:,1:path_N3%nb_pts),
+     $         reshape((/2,5/),(/2,1/)),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path(2), pts failed'')'
+          end if
+
+          !path3 content
+          !------------------------------------------------------------
+          test_loc = path_N2%mainlayer_id.eq.no_mainlayer_id
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path(3), mainlayer_id failed'')'
+          end if
+
+          test_loc = path_N2%nb_pts.eq.0
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''path(2), nb_pts failed'')'
+          end if
+
+        end function test_check_path_for_same_sublayer
 
 
         function test_finalize_domain_increase(

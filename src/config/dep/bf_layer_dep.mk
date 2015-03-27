@@ -265,10 +265,21 @@ $(ipbf_layer_dir)/bf_interface_icr_class.o:\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o
 
-$(bf_layer_dir)/bf_interface_class.o:\
+$(ipbf_layer_dir)/bf_interface_dcr_class.o:\
 	$(ipbf_layer_dir)/bf_interface_icr_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(dbf_layer_dir)/dcr_interface_class.o\
+	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o\
+	$(pm_cdir)/pmodel_eq_class.o
+
+$(bf_layer_dir)/bf_interface_class.o:\
+	$(ipbf_layer_dir)/bf_interface_dcr_class.o\
+	$(rbf_layer_dir)/bf_restart_module.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(nf90_dir)/nf90_operators_module.o\
+	$(nf90_dir)/nf90_operators_read_module.o\
+	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o

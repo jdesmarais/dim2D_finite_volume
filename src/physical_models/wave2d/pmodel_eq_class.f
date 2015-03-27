@@ -1187,17 +1187,24 @@ c$$$     $       compute_n2_transM_wave2d
 
             case(intermittent_oscillatory_forcing)
 
-               t2 = t - nint(t/(period_force+period_intermittent))*
-     $              (period_force+period_intermittent)
+               if(k.eq.1) then
 
-               if((t2.lt.period_force).and.(k.eq.1)) then
+                  t2 = t - nint(t/(period_force+period_intermittent))*
+     $                 (period_force+period_intermittent)
+
+                  if(t2.lt.period_force) then
                   
-                  omega = 2.0d0*ACOS(-1.0d0)/period_force
-                  body_forces = peak_ic(
-     $                 amplitude_force*SIN(omega*t),
-     $                 period,
-     $                 x-x_center_force,
-     $                 y-y_center_force)
+                     omega = 2.0d0*ACOS(-1.0d0)/period_force
+                     body_forces = peak_ic(
+     $                    amplitude_force*SIN(omega*t),
+     $                    period,
+     $                    x-x_center_force,
+     $                    y-y_center_force)
+
+                  else
+                     body_forces = 0
+                  end if
+
                else
                   body_forces = 0
                end if

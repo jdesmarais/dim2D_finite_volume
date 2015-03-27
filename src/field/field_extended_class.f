@@ -141,16 +141,13 @@
 
              nb_bf_layers = cmd_operators_used%get_nb_bf_layers()
 
-             print '(''field_extended_class'')'
-             stop 'domain extension restart not implemented'
-
-c$$$             call this%domain_extension%restart(
-c$$$     $            this%x_map,
-c$$$     $            this%y_map,
-c$$$     $            this%nodes,
-c$$$     $            nb_bf_layers,
-c$$$     $            this%pmodel_eq_used,
-c$$$     $            this%io_operators_used%get_nb_timesteps_written())
+             call this%domain_extension%restart(
+     $            this%x_map,
+     $            this%y_map,
+     $            this%nodes,
+     $            nb_bf_layers,
+     $            this%pmodel_eq_used,
+     $            this%io_operators_used%get_nb_timesteps_written())
 
              !if the restart was only used to have the geometry
              !of the previous computational domain, the initial

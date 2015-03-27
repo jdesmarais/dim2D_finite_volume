@@ -62,8 +62,8 @@
         !---------------------------------------------------------------
         type, extends(icr_path) :: icr_path_chain
 
-          type(icr_path_chain), pointer, private :: next
-          type(icr_path_chain), pointer, private :: prev
+          type(icr_path_chain), pointer :: next
+          type(icr_path_chain), pointer :: prev
 
           contains
 

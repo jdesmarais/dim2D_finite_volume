@@ -13,16 +13,21 @@
 #./default_inputs/ns2d_vortex_yoolodato.txt
 #./default_inputs/ns2d_vortex_yoolodato_detailled.txt
 
+main_dir=$augeanstables/src/main
+
 #settings
-INPUT=./default_inputs/dim2d_bubble_transported_hedstrom_xy.txt #_detailled.txt
-DEST_FOLDER=~/projects/dim2d_bubble_trs_hedstrom_xy_bf
+#INPUT=./default_inputs/dim2d_bubble_transported_hedstrom_xy.txt #_detailled.txt
+#DEST_FOLDER=~/projects/dim2d_bubble_trs_hedstrom_xy_bf
+INPUT=./default_inputs/wave2d/wave2d_hedstrom_xy_intermittentforcing.txt #_detailled.txt
+DEST_FOLDER=~/projects/test_wave2d_bf
 EXE=sim_dim2d_bf
 
 #compile code
-./config.py -i $INPUT -c -b
+#./config.py -i $INPUT -c
+./config.py -i $INPUT -c -b #buffer layers
 
 #move executable to the project folder
-mv ../$EXE $DEST_FOLDER
+mv $main_dir/$EXE $DEST_FOLDER
 
 #run simulation
 qsub scripts_pbs/run_sim_dim2d_bf.job

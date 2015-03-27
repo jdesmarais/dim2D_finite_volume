@@ -34,7 +34,7 @@
      $       bf_sublayer
 
         use parameters_constant, only :
-     $       N,S,E,W,
+     $       N,S,E,W,no_mainlayer_id,
      $       x_direction,
      $       y_direction
 
@@ -223,8 +223,9 @@
 
           nullify(this%matching_sublayer)
           
-          this%ends   = .false.
-          this%nb_pts = 0
+          this%mainlayer_id = no_mainlayer_id
+          this%ends         = .false.
+          this%nb_pts       = 0
 
         end subroutine ini
 
@@ -248,7 +249,11 @@
 
           class(icr_path), intent(inout) :: this
 
-          call ini(this)
+          nullify(this%matching_sublayer)
+          
+          this%mainlayer_id = no_mainlayer_id
+          this%ends         = .false.
+          this%nb_pts       = 0
 
         end subroutine reinitialize
 

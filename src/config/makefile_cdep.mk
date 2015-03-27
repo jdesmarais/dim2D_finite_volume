@@ -385,8 +385,12 @@ bf_interface_icr_dep=	$(bf_interface_coords_dep)\
 			$(icr_interface_dep)\
 			bf_interface_icr_class.o
 
-bf_interface_dep=	$(bf_interface_icr_dep)\
+bf_interface_dcr_dep=	$(bf_interface_icr_dep)\
 			$(dcr_interface_dep)\
+			bf_interface_dcr_class.o
+
+bf_interface_dep=	$(bf_interface_dcr_dep)\
+			bf_restart_module.o\
 			bf_interface_class.o
 
 
@@ -419,6 +423,7 @@ field_dep=		cmd_operators_class.o\
 			field_abstract_class.o\
 			field_class.o
 
-field_extended_dep=	$(field_dep)\
+field_extended_dep=	cmd_operators_class.o\
+			field_abstract_class.o\
 			$(bf_interface_dep)\
 			field_extended_class.o

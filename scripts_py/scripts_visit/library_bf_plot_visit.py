@@ -1,6 +1,6 @@
 import sys
 import os
-sys.path.insert(0,os.environ['VISIT_PYTHON_LIB'])
+sys.path.append(os.environ['VISIT_PYTHON_LIB'])
 import visit
 import fnmatch
 import shutil
@@ -183,7 +183,7 @@ def save_view_as_png(outputDirectory,fileName):
 
 #open and plot the grdpts_id for a buffer layer file
 def open_and_plot_pseudocolor_grdpts_id(filePath,legendFlag):
-    open_and_plot_pseudocolor(filePath,'grdpts_id',0,3,"bf_layer",legendFlag)
+    open_and_plot_pseudocolor(filePath,'as_zonal/grdpts_id',0,3,"bf_layer",legendFlag)
 
 
 #set the detector curve attributes
@@ -265,7 +265,6 @@ def plot_and_print_grdpts_id(
             0)
 
     #draw the plots
-    visit.AddOperator("DualMesh", 1)
     visit.DrawPlots()
 
     #print the view in a png file
@@ -341,7 +340,6 @@ def create_grdpts_id_pictures(
     ymin,
     ymax,
     step=1):
-
 
     #determine the total number of timesteps
     nbTimesteps = get_total_nb_timesteps(dirInputNcFiles)

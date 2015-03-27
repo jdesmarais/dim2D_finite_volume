@@ -49,7 +49,10 @@
 
           contains
 
+          !print the interior grdpts_id
           procedure, pass :: ini
+
+          !print the outputs on binary or netcdf files
           procedure, pass :: print_binary
           procedure, pass :: print_netcdf
 
@@ -307,5 +310,4 @@
          end do
 
         end subroutine print_netcdf
-
       end module bf_interface_print_class

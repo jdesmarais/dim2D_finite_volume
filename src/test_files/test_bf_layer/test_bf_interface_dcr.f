@@ -17,10 +17,10 @@
       !    preventing the removal of the corresponding buffer
       !    layer
       !------------------------------------------------------------
-      program test_bf_interface
+      program test_bf_interface_dcr
 
-        use bf_interface_class, only :
-     $       bf_interface
+        use bf_interface_dcr_class, only :
+     $       bf_interface_dcr
 
         use bf_sublayer_class, only :
      $       bf_sublayer
@@ -80,7 +80,7 @@
           logical, intent(in) :: detailled
           logical             :: test_validated
           
-          type(bf_interface)               :: bf_interface_used
+          type(bf_interface_dcr)           :: bf_interface_used
           type(bf_sublayer), pointer       :: bf_sublayer_ptr
           type(pmodel_eq)                  :: p_model
           real(rkind), dimension(nx)       :: interior_x_map
@@ -767,4 +767,4 @@
 
         end subroutine check_inputs
 
-      end program test_bf_interface
+      end program test_bf_interface_dcr

@@ -14,14 +14,26 @@
       !-----------------------------------------------------------------
       module bf_interface_class
 
-        use bf_interface_icr_class, only :
-     $       bf_interface_icr
+        use bf_interface_dcr_class, only :
+     $       bf_interface_dcr
+
+        use bf_restart_module, only :
+     $       get_restart_alignment
 
         use bf_sublayer_class, only :
      $       bf_sublayer
 
-        use dcr_interface_class, only :
-     $       dcr_interface
+        use nf90_operators_module, only :
+     $       nf90_close_file
+
+        use nf90_operators_read_module, only :
+     $       nf90_open_file_for_reading,
+     $       nf90_get_varid,
+     $       nf90_get_var_model_nopt,
+     $       nf90_read_borders
+
+        use parameters_constant, only :
+     $       N,S,E,W
 
         use parameters_input, only :
      $       nx,ny,ne
@@ -50,12 +62,11 @@
         !>@param adapt_domain_extension
         !> adapt the configuration and extents of the domain extension
         !---------------------------------------------------------------
-        type, extends(bf_interface_icr) :: bf_interface
+        type, extends(bf_interface_dcr) :: bf_interface
 
            contains
 
-           procedure, pass :: remove_inactivated_bf_layers
-           procedure, pass :: adapt_domain_extension
+           procedure, pass :: restart
 
         end type bf_interface
 
@@ -66,241 +77,158 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> adapt the extent of the domain extension by updating
-        !> the bc_interior_pt at the edge of the computational
-        !> domain and removing unactivated buffer layers
+        !> re-initialize the buffer layers
         !
         !> @date
-        !> 26_03_2015 - initial version - J.L. Desmarais
+        !> 29_03_2015 - initial version - J.L. Desmarais
         !
         !>@param this
-        !> bf_interface_grdpts_id_update augmented with procedures
-        !> detecting how the domain extension should be increased
-        !
-        !>@param interior_x_map
-        !> x-coordinates of the interior domain
-        !
-        !>@param interior_y_map
-        !> y-coordinates of the interior domain
-        !
-        !>@param interior_nodes0
-        !> nodes of the interior domain at t-dt
-        !
-        !>@param interior_nodes1
-        !> nodes of the interior domain at t
-        !
-        !>@param p_model
-        !> physical model
-        !
-        !>@param t
-        !> time
-        !
-        !>@param dt
-        !> timestep
-        !
-        !>@param interior_bc_sections
-        !> boundary sections for the interior domain
+        !> bf_interface object encapsulating the buffer layers
+        !> around the interior domain and subroutines to synchronize
+        ! the data between them
         !--------------------------------------------------------------
-        subroutine remove_inactivated_bf_layers(
-     $       this,
-     $       interior_x_map,
-     $       interior_y_map,
-     $       interior_nodes,
-     $       p_model)
+        subroutine restart(
+     $     this,
+     $     interior_x_map,
+     $     interior_y_map,
+     $     interior_nodes,
+     $     nb_bf_layers,
+     $     p_model,
+     $     timestep)
 
           implicit none
 
-          class(bf_interface)             , intent(inout) :: this
-          real(rkind), dimension(nx)      , intent(in)    :: interior_x_map
-          real(rkind), dimension(ny)      , intent(in)    :: interior_y_map
-          real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          type(pmodel_eq)                 , intent(in)    :: p_model
-
-          
-          type(dcr_interface) :: dcr_interface_used
-
-          type(bf_sublayer), pointer :: bf_sublayer_ptr
-          type(bf_sublayer), pointer :: bf_sublayer_next
-
-          integer :: k
-          integer :: m
-          integer :: nb_sublayers
-          logical :: can_be_checked
-          logical :: can_remain
+          class(bf_interface)                     , intent(inout) :: this
+          real(rkind)        , dimension(nx)      , intent(in)    :: interior_x_map
+          real(rkind)        , dimension(ny)      , intent(in)    :: interior_y_map
+          real(rkind)        , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          integer            , dimension(4)       , intent(in)    :: nb_bf_layers
+          type(pmodel_eq)                         , intent(in)    :: p_model
+          integer                                 , intent(in)    :: timestep
 
 
-          !> initialize the dcr_interface by allocating
-          !> space for references to the buffer layers
-          !> analyzed for removal
-          call dcr_interface_used%ini(this)
+          character(len=1) , dimension(4)                  :: bf_mainlayer_id
+          integer                                          :: k
+          integer                                          :: i
+          integer                                          :: t_index_format
+          integer                                          :: bf_index_format
+          character(len=19)                                :: filename_format
+          character(len=25)                                :: bf_filename
+          integer                                          :: ncid
+          integer          , dimension(3)                  :: coordinates_id
+          integer          , dimension(ne)                 :: data_id
+          integer                                          :: grdptsid_id
+          real(rkind)      , dimension(2)                  :: x_borders
+          real(rkind)      , dimension(2)                  :: y_borders
+          integer          , dimension(2)                  :: sizes
+          integer          , dimension(2,2)                :: bf_alignment
+          type(bf_sublayer), pointer                       :: bf_sublayer_restart
+          real(rkind)                                      :: time
+          real(rkind)      , dimension(:)    , allocatable :: bf_x_map
+          real(rkind)      , dimension(:)    , allocatable :: bf_y_map
+          real(rkind)      , dimension(:,:,:), allocatable :: bf_nodes
+          integer          , dimension(:,:)  , allocatable :: bf_grdpts_id
 
 
-          !> the buffer layers of the domain extension
-          !> are analyzed to see whether they can be removed
-          !> or whether their removal is conditioned by its
-          !> neighbors
+          bf_mainlayer_id(N) = 'N'
+          bf_mainlayer_id(S) = 'S'
+          bf_mainlayer_id(E) = 'E'
+          bf_mainlayer_id(W) = 'W'
+
+
+          !initialize the nbf_interface + pointers to main layers
+          call this%ini(interior_x_map,interior_y_map)
+
+          !initialize the buffer layers
+          !1) extract the number of buffer layers for each localization
+          !2) extract the buffer layer interior_map and the nodes
           do k=1,4
+             do i=1, nb_bf_layers(k)
 
-             nb_sublayers = this%mainlayer_pointers(k)%get_nb_sublayers()
-
-             bf_sublayer_ptr  => this%mainlayer_pointers(k)%get_head_sublayer()
-
-             do m=1, nb_sublayers
-
-                !> the reference to the next sublayer in the main layer
-                !> is initialized at the beginning as if the buffer layer
-                !> is removed, the reference is lost
-                bf_sublayer_next => bf_sublayer_ptr%get_next()
-
-                
-                !> check whether the removal of the buffer layer
-                !> should be checked
-                can_be_checked = dcr_interface_used%not_in_no_check_list(k,bf_sublayer_ptr)
-
-
-                !> if the removal of the buffer layer can be checked
-                if(can_be_checked) then
-
-                   !> check whether the buffer layer can be removed
-                   can_remain = bf_sublayer_ptr%should_remain(
-     $                  interior_x_map,
-     $                  interior_y_map,
-     $                  interior_nodes,
-     $                  p_model)
-
-                   !> if it can not be removed, we prevent its neighbors
-                   !> from being removed either
-                   if(can_remain) then
-                      
-                      call dcr_interface_used%prevent_neighbor_removal(
-     $                     this,
-     $                     k,
-     $                     bf_sublayer_ptr)
-
-                   !> if it can be removed, we stage the buffer layer
-                   !> for removal: if the buffer layer does not depends
-                   !> on its neighbors, it is removed immediately;
-                   !> otheriwse, its removal can be unlocked in a
-                   !> second check later (finalize_domain_decrease)
-                   else
-
-                      call dcr_interface_used%stage(
-     $                     this,
-     $                     k,
-     $                     bf_sublayer_ptr)
-
-                   end if
-                      
+                !number of character to represent the timestep index
+                if(timestep.eq.0) then
+                   t_index_format = 1
+                else
+                   t_index_format  = floor(log10(real(timestep))+1.0)
                 end if
 
-                !> get the next buffer layer in the main layer
-                bf_sublayer_ptr => bf_sublayer_next
+                !number of character to represent the bf_layer index
+                bf_index_format = floor(log10(real(i))+1.0)
+
+                !format for the filename
+                write(filename_format,
+     $               '(''(A1,A1,I'',I1,'',A1,I'',I1,'',A3)'')')
+     $               bf_index_format,
+     $               t_index_format
+
+                !filename
+                write(bf_filename, filename_format)
+     $               bf_mainlayer_id(k),'_',
+     $               i,'_',
+     $               timestep,
+     $               '.nc'
+
+                !extract [x_min,x_max]x[y_min,y_max]
+                call nf90_open_file_for_reading(
+     $               trim(bf_filename),
+     $               ncid)
+
+                call nf90_get_varid(
+     $               ncid,
+     $               p_model,
+     $               coordinates_id,
+     $               data_id,
+     $               grdptsid_id=grdptsid_id)
+
+                !read borders
+                call nf90_read_borders(
+     $               ncid,
+     $               coordinates_id, 
+     $               x_borders,
+     $               y_borders,
+     $               sizes)
+
+                !determine the alignment of the buffer layer
+                bf_alignment = get_restart_alignment(
+     $               interior_x_map,
+     $               interior_y_map,
+     $               x_borders,
+     $               y_borders)
+
+                !allocate the new buffer layer
+                bf_sublayer_restart => this%allocate_sublayer(
+     $               k,
+     $               interior_x_map,
+     $               interior_y_map,
+     $               interior_nodes,
+     $               bf_alignment)
+
+                !determine the x_map,y_map and nodes for
+                !the buffer layer
+                allocate(bf_x_map(sizes(1)))
+                allocate(bf_y_map(sizes(2)))
+                allocate(bf_nodes(sizes(1),sizes(2),ne))
+                allocate(bf_grdpts_id(sizes(1),sizes(2)))
+
+                call nf90_get_var_model_nopt(
+     $               ncid,
+     $               coordinates_id,
+     $               data_id,
+     $               time, bf_nodes, bf_x_map, bf_y_map,
+     $               [1,sizes(1),sizes(2)],
+     $               grdptsid_id=grdptsid_id,grdpts_id=bf_grdpts_id)
+
+                call bf_sublayer_restart%set_x_map(bf_x_map)
+                call bf_sublayer_restart%set_y_map(bf_y_map)
+                call bf_sublayer_restart%set_nodes(bf_nodes)
+                call bf_sublayer_restart%set_grdpts_id(bf_grdpts_id)
+
+                !close file
+                call nf90_close_file(ncid)
 
              end do
+          end do          
 
-          end do             
-
-
-          !> the buffer layers of the domain extension
-          !> that could have been removed if they did not
-          !> depend on thier neighbors are checked for the
-          !> second time and the removal can be unlocked
-          !> the dcr_interface object is also finalized:
-          !> the array allocated to store the references
-          !> to the buffer layer to be removed are
-          !> deallocated
-          call dcr_interface_used%finalize_domain_decrease(
-     $         this)
-
-
-        end subroutine remove_inactivated_bf_layers
-
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> adapt the extent of the domain extension by updating
-        !> the bc_interior_pt at the edge of the computational
-        !> domain and removing unactivated buffer layers
-        !
-        !> @date
-        !> 26_03_2015 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> bf_interface_grdpts_id_update augmented with procedures
-        !> detecting how the domain extension should be increased
-        !
-        !>@param interior_x_map
-        !> x-coordinates of the interior domain
-        !
-        !>@param interior_y_map
-        !> y-coordinates of the interior domain
-        !
-        !>@param interior_nodes0
-        !> nodes of the interior domain at t-dt
-        !
-        !>@param interior_nodes1
-        !> nodes of the interior domain at t
-        !
-        !>@param p_model
-        !> physical model
-        !
-        !>@param t
-        !> time
-        !
-        !>@param dt
-        !> timestep
-        !
-        !>@param interior_bc_sections
-        !> boundary sections for the interior domain
-        !--------------------------------------------------------------
-        subroutine adapt_domain_extension(
-     $       this,
-     $       interior_x_map,
-     $       interior_y_map,
-     $       interior_nodes0,
-     $       interior_nodes1,
-     $       p_model,
-     $       t,
-     $       dt,
-     $       interior_bc_sections)
-
-          implicit none
-
-          class(bf_interface)                        , intent(inout) :: this
-          real(rkind), dimension(nx)                 , intent(in)    :: interior_x_map
-          real(rkind), dimension(ny)                 , intent(in)    :: interior_y_map
-          real(rkind), dimension(nx,ny,ne)           , intent(in)    :: interior_nodes0
-          real(rkind), dimension(nx,ny,ne)           , intent(in)    :: interior_nodes1
-          type(pmodel_eq)                            , intent(in)    :: p_model
-          real(rkind)                                , intent(in)    :: t
-          real(rkind)                                , intent(in)    :: dt
-          integer(ikind), dimension(:,:), allocatable, intent(in)    :: interior_bc_sections
-
-
-          !> remove the buffer layers whose grid-points at the edge
-          !> with the interior domain are desactivated
-          call remove_inactivated_bf_layers(
-     $         this,
-     $         interior_x_map,
-     $         interior_y_map,
-     $         interior_nodes1,
-     $         p_model)
-
-
-          !> increase the buffer layers whose bc_interior_pt are
-          !> activated
-          call this%bf_interface_icr%adapt_domain_extension(
-     $         interior_x_map,
-     $         interior_y_map,
-     $         interior_nodes0,
-     $         interior_nodes1,
-     $         p_model,
-     $         t,
-     $         dt,
-     $         interior_bc_sections)
-
-        end subroutine adapt_domain_extension
+        end subroutine restart
 
       end module bf_interface_class

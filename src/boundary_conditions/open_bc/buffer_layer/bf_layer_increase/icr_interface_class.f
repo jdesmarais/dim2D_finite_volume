@@ -74,6 +74,8 @@
           procedure, pass :: commit
           procedure, pass :: finalize_domain_increase          
 
+          procedure, pass :: check_path_for_merging_sublayers
+          procedure, pass :: check_path_for_same_sublayer
           procedure, pass :: check_path_before_commit
           procedure, pass :: check_paths_before_commit
 
@@ -208,9 +210,105 @@
           class(icr_interface)         , intent(inout) :: this
           type(icr_path_chain), pointer, intent(inout) :: path_checked
 
+          call check_path_for_merging_sublayers(this,path_checked)
+          call check_path_for_same_sublayer(this,path_checked)
+
+        end subroutine check_path_before_commit
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the current path should be merged with other
+        !> paths of this%paths because both paths are sharing update
+        !> operations on the same buffer layer
+        !
+        !> @date
+        !> 27_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object gathering the increase operations to be applied on
+        !> the domain extension
+        !
+        !>@param path_checked
+        !> pointer to the path checked
+        !--------------------------------------------------------------
+        subroutine check_path_for_same_sublayer(this,path_checked)
+
+          implicit none
+
+          class(icr_interface)         , intent(inout) :: this
+          type(icr_path_chain), pointer, intent(inout) :: path_checked
+
+          integer :: nb_paths
+          integer :: k
+
+          type(icr_path_chain), pointer :: current_path
+          type(icr_path_chain), pointer :: next_path
+
+
+          !if another path stored in this%paths as a matching
+          !sublayer pointing to merge_sublayer, the path
+          !should be merged with the current path
+          nb_paths = this%paths%get_nb_paths()
+          current_path => this%paths%get_head_path()
+
+          do k=1, nb_paths
+             
+             next_path => current_path%get_next()
+             
+             if(.not.associated(path_checked,current_path)) then
+
+                if(path_checked%share_update_operations_with(current_path)) then
+                
+                   call path_checked%merge(current_path,check_for_merge=.false.)
+                
+                   call current_path%reinitialize()
+                
+                   call this%paths%move_path_to_end(current_path)
+                
+                end if
+
+             end if
+             
+             current_path => next_path
+             
+          end do
+
+        end subroutine check_path_for_same_sublayer
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the current path should be merged with other
+        !> paths of this%paths
+        !
+        !> @date
+        !> 23_03_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object gathering the increase operations to be applied on
+        !> the domain extension
+        !
+        !>@param path_checked
+        !> pointer to the path checked
+        !--------------------------------------------------------------
+        subroutine check_path_for_merging_sublayers(this,path_checked)
+
+          implicit none
+
+          class(icr_interface)         , intent(inout) :: this
+          type(icr_path_chain), pointer, intent(inout) :: path_checked
+
+          integer :: nb_paths
+          integer :: k
+
           type(bf_sublayer)   , pointer :: merge_sublayer
           type(icr_path_chain), pointer :: current_path
-          type(icr_path_chain), pointer :: path_removed
+          type(icr_path_chain), pointer :: next_path
 
 
           !check whether the current path lead to the
@@ -227,35 +325,32 @@
              !if another path stored in this%paths as a matching
              !sublayer pointing to merge_sublayer, the path
              !should be merged with the current path
+             nb_paths = this%paths%get_nb_paths()
              current_path => this%paths%get_head_path()
-             do while(associated(current_path))
 
+             do k=1, nb_paths
+                
+                next_path => current_path%get_next()
+                
                 if(associated(current_path%get_matching_sublayer(),
-     $                        merge_sublayer)) then
-
+     $               merge_sublayer)) then
+                   
                    call path_checked%merge(current_path,check_for_merge=.false.)
-
-                   if(associated(current_path%get_next())) then
-                      path_removed => current_path
-                      current_path => current_path%get_next()
-                      call this%paths%remove_path(path_removed)
-
-                   else
-                      path_removed => current_path
-                      nullify(current_path)
-                      call this%paths%remove_path(path_removed)
-
-                   end if
-
-                else
-                   current_path => current_path%get_next()
+                   
+                   call current_path%reinitialize()
+                   
+                   call this%paths%move_path_to_end(current_path)
+                   
                 end if
+                
+                current_path => next_path
+                
+             end do
 
-             end do             
 
           end if                     
 
-        end subroutine check_path_before_commit
+        end subroutine check_path_for_merging_sublayers
 
 
         !> @author
@@ -372,6 +467,7 @@
 
 
           type(icr_path_chain), pointer :: path_checked
+          type(icr_path_chain), pointer :: path_next
           integer :: k
 
           
@@ -381,6 +477,8 @@
           path_checked => this%paths%get_head_path()
           
           do k=1, this%paths%get_nb_paths()
+
+             path_next => path_checked%get_next()
 
              if(path_checked%get_mainlayer_id().eq.mainlayer_id) then
 
@@ -394,9 +492,11 @@
      $               interior_nodes0,
      $               interior_nodes1)
 
+                call this%paths%move_path_to_end(path_checked)
+
              end if
 
-             path_checked => path_checked%get_next()
+             path_checked => path_next
 
           end do
 
@@ -449,6 +549,8 @@
 
           mainlayer_id = [N,S,E,W]
 
+
+          ! commit all the changes to the buffer layers
           do k=1,4
 
              call this%commit(
@@ -464,6 +566,11 @@
              
           end do
 
+
+          ! remove the paths
+          call this%paths%remove_all()
+
+          ! remove current_path
           nullify(this%current_path)
 
         end subroutine finalize_domain_increase

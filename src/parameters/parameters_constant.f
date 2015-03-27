@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '88da7f6aba02b1188cd6c8f44d8d614ac6e90015')
+        parameter (commit = '630aa105b38c122ab46cb90306f76797f54f8a1a')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -134,7 +134,9 @@
         integer, parameter :: E=3
         integer, parameter :: W=4
         integer, parameter :: interior=5
-        integer, parameter :: no_interior_mainlayer=6
+
+        integer, parameter :: no_interior_mainlayer= -1
+        integer, parameter :: no_mainlayer_id      = -2
 
         integer, parameter :: x_direction=1
         integer, parameter :: y_direction=2

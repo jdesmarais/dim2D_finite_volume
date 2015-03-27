@@ -513,9 +513,7 @@
                 nullify(get_head_sublayer)
              end if
           else
-             print '(''bf_mainlayer_pointer_class'')'
-             print '(''get_head_sublayer'')'
-             stop 'ptr not associated'
+             nullify(get_head_sublayer)
           end if
 
         end function get_head_sublayer
@@ -970,10 +968,6 @@
 
           if(this%associated_ptr()) then
              call this%ptr%initialize_before_timeInt()
-          else
-             print '(''bf_mainlayer_pointer_class'')'
-             print '(''initialize_before_timeInt'')'
-             stop 'ptr not associated'
           end if
 
         end subroutine initialize_before_timeInt
@@ -1003,10 +997,6 @@
 
           if(this%associated_ptr()) then
              call this%ptr%finalize_after_timeInt()
-          else
-             print '(''bf_mainlayer_pointer_class'')'
-             print '(''finalize_after_timeInt'')'
-             stop 'ptr not associated'
           end if
 
         end subroutine finalize_after_timeInt

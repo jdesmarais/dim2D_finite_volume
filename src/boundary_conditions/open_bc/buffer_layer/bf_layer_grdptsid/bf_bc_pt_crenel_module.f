@@ -241,19 +241,16 @@
           integer(ikind)         , intent(in)    :: j
           logical                                :: remove_crenel
 
-          
+
           remove_crenel = .true.
 
           ! -------       ------- 
-          !| 3 - - |     | 3 - 1 |
+          !| - - - |     | - - 1 |
           !| 3 3 2 | ->  | 3 2 1 |
-          !| 3 - - |     | 3 - 1 |
+          !| - - - |     | - - 1 |
           ! -------       ------- 
-          if(
-     $         (grdpts_id(i-1,j-1).eq.bc_pt).and.
-     $         (grdpts_id(i-1,j).eq.bc_pt).and.
-     $         (grdpts_id(i+1,j).eq.bc_interior_pt).and.
-     $         (grdpts_id(i-1,j+1).eq.bc_pt)) then
+          if( (grdpts_id(i-1,j).eq.bc_pt).and.
+     $        (grdpts_id(i+1,j).eq.bc_interior_pt) ) then
              
              grdpts_id(i+1,j-1) = interior_pt
              grdpts_id(i,j)     = bc_interior_pt
@@ -261,17 +258,14 @@
              grdpts_id(i+1,j+1) = interior_pt
 
           ! -------       ------- 
-          !| - - 3 |     | 1 - 3 |
+          !| - - - |     | 1 - - |
           !| 2 3 3 | ->  | 1 2 3 |
-          !| - - 3 |     | 1 - 3 |
+          !| - - - |     | 1 - - |
           ! -------       ------- 
           else
              
-             if(
-     $            (grdpts_id(i+1,j-1).eq.bc_pt).and.
-     $            (grdpts_id(i-1,j).eq.bc_interior_pt).and.
-     $            (grdpts_id(i+1,j).eq.bc_pt).and.
-     $            (grdpts_id(i+1,j+1).eq.bc_pt)) then
+             if( (grdpts_id(i-1,j).eq.bc_interior_pt).and.
+     $           (grdpts_id(i+1,j).eq.bc_pt)) then
              
                 grdpts_id(i-1,j-1) = interior_pt
                 grdpts_id(i-1,j)   = interior_pt
@@ -281,15 +275,12 @@
           ! -------       ------- 
           !| - 2 - |     | 1 1 1 |
           !| - 3 - | ->  | - 2 - |
-          !| 3 3 3 |     | 3 3 3 |
+          !| - 3 - |     | - 3 - |
           ! -------       ------- 
              else
 
-                if(
-     $               (grdpts_id(i-1,j-1).eq.bc_pt).and.
-     $               (grdpts_id(i,j-1).eq.bc_pt).and.
-     $               (grdpts_id(i+1,j-1).eq.bc_pt).and.
-     $               (grdpts_id(i,j+1).eq.bc_interior_pt)) then
+                if( (grdpts_id(i,j-1).eq.bc_pt).and.
+     $              (grdpts_id(i,j+1).eq.bc_interior_pt)) then
              
                    grdpts_id(i,j)     = bc_interior_pt
                    grdpts_id(i-1,j+1) = interior_pt
@@ -297,16 +288,13 @@
                    grdpts_id(i+1,j+1) = interior_pt
 
           ! -------       ------- 
-          !| 3 3 3 |     | 3 3 3 |
+          !| - 3 - |     | - 3 - |
           !| - 3 - | ->  | - 2 - |
           !| - 2 - |     | 1 1 1 |
           ! -------       ------- 
                 else
-                   if(
-     $                  (grdpts_id(i,j-1).eq.bc_interior_pt).and.
-     $                  (grdpts_id(i-1,j+1).eq.bc_pt).and.
-     $                  (grdpts_id(i,j+1).eq.bc_pt).and.
-     $                  (grdpts_id(i+1,j+1).eq.bc_pt)) then
+                   if( (grdpts_id(i,j-1).eq.bc_interior_pt).and.
+     $                 (grdpts_id(i,j+1).eq.bc_pt)) then
                       
                       grdpts_id(i-1,j-1) = interior_pt
                       grdpts_id(i,j-1)   = interior_pt

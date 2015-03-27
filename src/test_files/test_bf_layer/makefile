@@ -692,7 +692,7 @@ test_bf_interface_icr:		$(param_dep)\
 				check_data_module.o
 
 
-test_bf_interface.o:		$(bf_layer_dir)/bf_interface_class.o\
+test_bf_interface_dcr.o:	$(ipbf_layer_dir)/bf_interface_dcr_class.o\
 				$(bf_layer_dir)/bf_sublayer_class.o\
 				$(test_dir)/tools/check_data_module.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
@@ -701,12 +701,12 @@ test_bf_interface.o:		$(bf_layer_dir)/bf_interface_class.o\
 				$(param_dir)/parameters_kind.o\
 				$(wave2d_dir)/pmodel_eq_class.o
 
-test_bf_interface:		$(param_dep)\
+test_bf_interface_dcr:		$(param_dep)\
 				$(mt_dep)\
 				$(wave2d_dep)\
 				$(hedstrom_xy_dep)\
 				$(fv_dep)\
-				$(bf_interface_dep)\
+				$(bf_interface_dcr_dep)\
 				check_data_module.o
 
 #test bc_crenels

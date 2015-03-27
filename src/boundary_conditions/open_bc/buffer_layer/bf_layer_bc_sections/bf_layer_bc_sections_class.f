@@ -65,6 +65,8 @@
 
 
         integer, parameter :: max_bc_sections_temp = 6
+        integer, parameter :: reallocation_ele_nb  = 5
+        
 
 
         !> @class bf_layer_bc_sections
@@ -510,6 +512,7 @@
           integer                    , intent(in)    :: k
 
           integer :: l
+          integer :: l_buffer
 
           !before:             ------------------------
           !bf_sections_buffer |  |  |  | k |  |  |  |  |
@@ -523,11 +526,12 @@
           !bf_sections_buffer |  |  |  |  |  |  |  |  |
           !                    ------------------------
           !
-          do l=k+1,
-     $         min(this%nb_ele_temp,
-     $             this%nb_ele_temp-size(this%bc_sections_temp,2))
-             this%bc_sections_buffer(:,l-1) =
-     $            this%bc_sections_buffer(:,l)
+          do l=k+1, this%nb_ele_temp
+
+             l_buffer = l-size(this%bc_sections_temp,2)
+
+             this%bc_sections_buffer(:,l_buffer-1) =
+     $            this%bc_sections_buffer(:,l_buffer)
           end do
 
           this%nb_ele_temp = this%nb_ele_temp-1

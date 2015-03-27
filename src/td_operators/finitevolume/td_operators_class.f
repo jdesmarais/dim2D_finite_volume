@@ -37,7 +37,9 @@
      $       bc_N_type_choice,
      $       bc_S_type_choice,
      $       bc_E_type_choice,
-     $       bc_W_type_choice
+     $       bc_W_type_choice,
+     $       debug_initialize_timedev,
+     $       debug_real
 
         use parameters_kind, only :
      $       rkind, ikind
@@ -135,6 +137,16 @@
           real(rkind), dimension(nx,ny+1,ne) :: flux_y
 
           integer(ikind), dimension(2,2) :: bf_alignment
+
+          
+          !for debuggging: initialize the timedev with
+          !a large initial value
+          if(debug_initialize_timedev) then
+             time_dev = reshape((/
+     $            (((debug_real,i=1,nx),j=1,ny),k=1,ne)/),
+     $            (/nx,ny,ne/))
+          end if
+
 
 
           dx = x_map(2) - x_map(1)
@@ -318,6 +330,17 @@
 
             real(rkind) :: t_s
             logical     :: ierror
+
+            
+            !for debuggging: initialize the timedev with
+            !a large initial value
+            if(debug_initialize_timedev) then
+               time_dev = reshape((/
+     $              (((debug_real,i=1,size(time_dev,1)),j=1,size(time_dev,2)),k=1,ne)/),
+     $              (/size(time_dev,1),size(time_dev,2),ne/))
+            end if
+
+
 
             t_s = t
             ierror = BF_SUCCESS          

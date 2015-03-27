@@ -133,6 +133,12 @@
           integer(ikind), dimension(:,:)      , intent(in)    :: selected_grdpts
 
 
+          integer                    :: mainlayer_id
+          type(bf_sublayer), pointer :: nbf_sublayer_ptr
+
+
+          ! update the configuration of the grid-points in the buffer
+          ! layer and compute the new grid points needed
           call this%mainlayer_interfaces%update_grdpts_id_in_bf_layer(
      $         p_model,
      $         t,
@@ -143,6 +149,23 @@
      $         interior_nodes1,
      $         bf_sublayer_ptr,
      $         selected_grdpts)
+
+          ! synchronize the nodes with the neighboring buffer layers
+          mainlayer_id = bf_sublayer_ptr%get_localization()
+
+          if(bf_sublayer_ptr%can_exchange_with_neighbor1()) then
+
+             nbf_sublayer_ptr => this%get_neighbor_sublayer(mainlayer_id,1)
+             call bf_sublayer_ptr%copy_to_neighbor1(nbf_sublayer_ptr)
+
+          end if
+
+          if(bf_sublayer_ptr%can_exchange_with_neighbor2()) then
+
+             nbf_sublayer_ptr => this%get_neighbor_sublayer(mainlayer_id,2)
+             call bf_sublayer_ptr%copy_to_neighbor2(nbf_sublayer_ptr)
+
+          end if
 
         end subroutine update_grdpts_id_in_bf_layer
 

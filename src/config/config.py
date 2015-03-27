@@ -556,7 +556,7 @@ def compile_code(inputs,compileCodeBuffer):
     subprocess.call(cmd, shell=True)
 
     print ''
-    print 'executable ready: '+name_exe
+    print 'executable ready: '+name_exe+' in '+exeDir
     print ''
 
 

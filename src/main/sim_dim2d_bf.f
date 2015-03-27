@@ -17,7 +17,7 @@
       program sim_dim2d_bf
 
         use field_extended_class, only :
-     $     field_extended
+     $       field_extended
 
         use parameters_input, only :
      $       t_max,dt,detail_print

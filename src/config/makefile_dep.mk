@@ -731,6 +731,12 @@ $(ti_dir)/td_integrator_abstract_par_class.o:\
 			$(field_dir)/field_abstract_par_class.o\
 			$(param_dir)/parameters_kind.o
 
+$(rk3tvd_dir)/rk3tvd_steps_module.o:\
+			$(test_dir)/tools/check_data_module.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
 $(rk3tvd_dir)/td_integrator_class.o:\
 			$(field_dir)/field_abstract_class.o\
 			$(param_dir)/parameters_input.o\
@@ -859,13 +865,11 @@ sim_dim2d:		$(sim_dep)\
 			surrogate_class.o\
 			field_abstract_class.o\
 			field_class.o\
+			check_data_module.o
 
 sim_dim2d_bf:		$(sim_dep)\
-			$(bf_interface_dcr_dep)\
-			cmd_operators_class.o\
-			surrogate_class.o\
-			field_abstract_class.o\
-			field_extended_class.o
+			$(field_extended_dep)\
+			check_data_module.o
 
 sim_dim2d_par:		$(sim_par_dep)\
 			surrogate_class.o\

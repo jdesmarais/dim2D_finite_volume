@@ -58,7 +58,9 @@
      $       bc_timedev_choice
 
         use parameters_input, only :
-     $       nx,ny,ne
+     $       nx,ny,ne,
+     $       debug_initialize_nodes,
+     $       debug_real
 
         use parameters_kind, only :
      $       ikind,
@@ -821,6 +823,9 @@
           integer(ikind), dimension(2)   :: match_table
           integer(ikind), dimension(2,2) :: gen_coords
 
+          integer(ikind) :: i_s,j_s
+          integer        :: k_s
+
 
           ! determine whether there are enough grid points
           grdpts_needed = are_grdpts_needed_for_flux_x(
@@ -843,6 +848,15 @@
      $            border_coords(1,2)-border_coords(1,1)+1,
      $            border_coords(2,2)-border_coords(2,1)+1,
      $            ne))
+
+             if(debug_initialize_nodes) then
+                tmp_nodes = reshape((/
+     $               (((debug_real,
+     $               i_s=1,size(tmp_nodes,1)),
+     $               j_s=1,size(tmp_nodes,2)),
+     $               k_s=1,ne)/),
+     $               (/size(tmp_nodes,1),size(tmp_nodes,2),ne/))
+             end if
 
              ! compute the general coordinates identifying the
              ! the borders of the gridpoints extracted
@@ -976,6 +990,9 @@
           integer(ikind), dimension(2)   :: match_table
           integer(ikind), dimension(2,2) :: gen_coords
 
+          integer(ikind) :: i_s,j_s
+          integer        :: k_s
+
 
           ! determine whether there are enough grid points
           grdpts_needed = are_grdpts_needed_for_flux_y(
@@ -998,6 +1015,17 @@
      $            border_coords(1,2)-border_coords(1,1)+1,
      $            border_coords(2,2)-border_coords(2,1)+1,
      $            ne))
+
+             
+             if(debug_initialize_nodes) then
+                tmp_nodes = reshape((/
+     $               (((debug_real,
+     $               i_s=1,size(tmp_nodes,1)),
+     $               j_s=1,size(tmp_nodes,2)),
+     $               k_s=1,ne)/),
+     $               (/size(tmp_nodes,1),size(tmp_nodes,2),ne/))
+             end if
+
 
              ! compute the general coordinates identifying the
              ! the borders of the gridpoints extracted

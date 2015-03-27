@@ -45,7 +45,27 @@ make_title(){
     esac
 }
 
+change_param(){
+    $config_dir/change_parameter.sh -i $1 -o $1 -p $2 -v $3
+}
+
+
+change_param_makefile(){
+    change_param $make_header $1 $2
+}
+
+
+change_param_input(){
+    change_param $param_input $1 $2
+}
+
+
 perform_test(){
     make_title $title_op $1
     $runtest $1 $runtest_op
+}
+
+
+plot_domain(){
+    python -i $augeanstables/scripts_py/scripts_visit/plot_domain.py $1
 }

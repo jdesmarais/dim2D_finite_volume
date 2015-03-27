@@ -75,6 +75,10 @@
           !add/remove a path
           procedure, pass :: add_path
           procedure, pass :: remove_path
+          procedure, pass :: move_path_to_end
+
+          !remove all paths
+          procedure, pass :: remove_all
 
         end type icr_path_list
 
@@ -274,13 +278,20 @@
           class(icr_path_list)         , intent(inout) :: this
           type(icr_path_chain), pointer, intent(inout) :: path_ptr
 
+          logical :: nullify_head
+          logical :: nullify_tail
+
+          
+          nullify_head = .false.
+          nullify_tail = .false.
+
 
           !check if the head of the mainlayer should be changed
           if(associated(this%head_path,path_ptr)) then
              if(associated(path_ptr%get_next())) then
                 this%head_path => path_ptr%get_next()
              else
-                nullify(this%head_path)
+                nullify_head = .true.
              end if
           end if
 
@@ -290,20 +301,135 @@
              if(associated(path_ptr%get_prev())) then
                 this%tail_path => path_ptr%get_prev()
              else
-                nullify(this%tail_path)
+                nullify_tail = .true.
              end if
           end if
 
 
-          !remove the buffer layer
+          !remove the path itself
           call path_ptr%remove()
           deallocate(path_ptr)
           nullify(path_ptr)
+
+
+          !nullify head and tails here, otherwise,
+          !if the head and tail and the ones passed
+          !as arguments, they are nullified before
+          !the content can be destroyed
+          if(nullify_head) nullify(this%head_path)
+          if(nullify_tail) nullify(this%tail_path)
 
 
           !update the number of paths in the mainlayer
           this%nb_paths = this%nb_paths-1
 
         end subroutine remove_path
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> move the current path to the end of the list
+        !
+        !> @date
+        !> 27_03_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> double chained list of icr_path_chain elements
+        !
+        !> @param path_ptr
+        !> pointer to the path to be removed
+        !--------------------------------------------------------------
+        subroutine move_path_to_end(this, path_ptr)
+
+          implicit none
+
+          class(icr_path_list)         , intent(inout) :: this
+          type(icr_path_chain), pointer, intent(inout) :: path_ptr
+
+          type(icr_path_chain), pointer :: prev
+          type(icr_path_chain), pointer :: next          
+
+
+          !check if there should be some changes
+          if(this%nb_paths.gt.1) then
+
+             prev => path_ptr%get_prev()
+             next => path_ptr%get_next()
+
+             !check whether the path is not already at
+             !the end of the list
+             if(associated(next)) then
+                
+                !check whether the head path is modified
+                if(associated(this%head_path,path_ptr)) then
+                   this%head_path => next
+                   call next%nullify_prev()
+                end if
+                
+                !remove the path from its location and
+                !relink the next and prev elements
+                if(associated(prev)) then
+                   
+                   call prev%set_next(next)
+                   call next%set_prev(prev)
+
+                else
+
+                   call next%nullify_prev()
+
+                end if
+
+                !place the path at the end of the list
+                prev => this%tail_path
+
+                call prev%set_next(path_ptr)
+                call path_ptr%set_prev(prev)
+                call path_ptr%nullify_next()
+
+                this%tail_path => path_ptr
+
+             end if
+
+          end if
+
+        end subroutine move_path_to_end
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove all the paths in the list
+        !
+        !> @date
+        !> 27_03_2015 - initial version - J.L. Desmarais
+        !
+        !> @param this
+        !> double chained list of icr_path_chain elements
+        !--------------------------------------------------------------
+        subroutine remove_all(this)
+
+          implicit none
+
+          class(icr_path_list), intent(inout) :: this
+
+          
+          integer :: k
+          integer :: nb_paths
+          type(icr_path_chain), pointer :: path_removed
+
+
+          nb_paths = this%nb_paths
+
+          do k=1, nb_paths
+
+             path_removed => this%head_path
+             call this%remove_path(path_removed)
+
+          end do
+
+        end subroutine remove_all
 
       end module icr_path_list_class

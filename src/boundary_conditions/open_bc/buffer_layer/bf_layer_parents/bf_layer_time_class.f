@@ -33,15 +33,17 @@
 
         use parameters_bf_layer, only :
      $       BF_SUCCESS,
-     $       bc_interior_pt
+     $       bc_interior_pt,
+     $       no_pt
 
         use parameters_constant, only :
      $       N,S,E,W
 
         use parameters_input, only :
      $       bc_size,
-     $       debug,
-     $       nx,ny,ne
+     $       nx,ny,ne,
+     $       debug_initialize_nodes,
+     $       debug_real
         
         use parameters_kind, only :
      $       ikind,
@@ -380,6 +382,11 @@
 
           class(bf_layer_time), intent(inout) :: this
 
+
+          integer(ikind) :: i,j
+          integer        :: k
+
+
           if(allocated(this%nodes)) then
 
              call this%bf_compute_used%allocate_tables(
@@ -389,6 +396,26 @@
      $            this%x_map,
      $            this%y_map,
      $            this%grdpts_id)
+
+             
+             if(debug_initialize_nodes) then
+
+                do k=1, ne
+                   do j=1, size(this%nodes,2)
+                      do i=1, size(this%nodes,1)
+                         
+                         if(this%grdpts_id(i,j).eq.no_pt) then
+                            this%nodes(i,j,k) = debug_real
+                            this%bf_compute_used%nodes_tmp(i,j,k) = debug_real
+                         end if
+
+                      end do
+                   end do
+                end do
+
+
+             end if
+
 
           else
 
@@ -525,6 +552,11 @@
           real(rkind)                 , intent(in)    :: dt
           procedure(timeInt_step_nopt)                :: integration_step_nopt
 
+
+          integer(ikind) :: i,j
+          integer :: k
+
+
           call this%bf_compute_used%compute_integration_step(
      $         this%grdpts_id,
      $         this%nodes,
@@ -532,6 +564,23 @@
      $         this%x_borders,
      $         this%y_borders,
      $         integration_step_nopt)
+
+          
+          if(debug_initialize_nodes) then
+             if(allocated(this%nodes)) then
+
+                do k=1, ne
+                   do j=1, size(this%nodes,2)
+                      do i=1, size(this%nodes,1)
+                         if(this%grdpts_id(i,j).eq.no_pt) then
+                            this%nodes(i,j,k) = debug_real
+                         end if
+                      end do
+                   end do
+                end do
+
+             end if             
+          end if
 
         end subroutine compute_integration_step
         

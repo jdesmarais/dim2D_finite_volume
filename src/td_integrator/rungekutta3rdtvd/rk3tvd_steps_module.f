@@ -1,8 +1,20 @@
       module rk3tvd_steps_module
+      
+        use check_data_module, only :
+     $       is_real_validated
 
-        use parameters_bf_layer, only : no_pt
-        use parameters_input   , only : nx,ny,ne, bc_size
-        use parameters_kind    , only : ikind, rkind
+        use parameters_bf_layer, only :
+     $       no_pt
+
+        use parameters_input, only :
+     $       nx,ny,ne,
+     $       bc_size,
+     $       debug_initialize_timedev,
+     $       debug_real
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
 
         implicit none
 
@@ -153,8 +165,10 @@
              do j=1, size(nodes,2)
                 do i=1, size(nodes,1)
                    if(grdpts_id(i,j).ne.no_pt) then
+
                       nodes_tmp(i,j,k) = nodes(i,j,k)
                       nodes(i,j,k)     = nodes(i,j,k) + dt*time_dev(i,j,k)
+
                    end if
                 end do
              end do
@@ -349,6 +363,25 @@
                 do i=i_min, i_max
 
                    if(grdpts_id(i,j).ne.no_pt) then
+
+                      if(debug_initialize_timedev) then
+                         if(is_real_validated(time_dev(i,j,k),debug_real,.false.)) then
+                            print '(''rk3tvd_steps_module'')'
+                            print '(''compute_2nd_step_nopt'')'
+                            print '(''this time derivative is not computed:'')'
+                            print '(''timedev('',3I4,'')'')',i,j,k
+                            print '()'
+                            print *, time_dev(i,j,k)
+                            print '()'
+                            print '(''size(nodes,1): '',I4)', size(nodes,1)
+                            print '(''size(nodes,2): '',I4)', size(nodes,2)
+                            print '(''x_borders: '',2I4)', x_borders
+                            print '(''y_borders: '',2I4)', y_borders
+                            print '()'
+                            stop ''
+                         end if
+                      end if
+
                       nodes(i,j,k) =
      $                     b2*nodes_tmp(i,j,k)+
      $                     b2_m*(nodes(i,j,k)+dt*time_dev(i,j,k))
@@ -550,6 +583,24 @@
 
                    if(grdpts_id(i,j).ne.no_pt) then
 
+                      if(debug_initialize_timedev) then
+                         if(is_real_validated(time_dev(i,j,k),debug_real,.false.)) then
+                            print '(''rk3tvd_steps_module'')'
+                            print '(''compute_3rd_step_nopt'')'
+                            print '(''this time derivative is not computed:'')'
+                            print '(''timedev('',3I4,'')'')',i,j,k
+                            print '()'
+                            print *, time_dev(i,j,k)
+                            print '()'
+                            print '(''size(nodes,1): '',I4)', size(nodes,1)
+                            print '(''size(nodes,2): '',I4)', size(nodes,2)
+                            print '(''x_borders: '',2I4)', x_borders
+                            print '(''y_borders: '',2I4)', y_borders
+                            print '()'
+                            stop ''
+                         end if
+                      end if
+                      
                       nodes(i,j,k) =
      $                     b3*nodes_tmp(i,j,k)+
      $                     b3_m*(nodes(i,j,k)+dt*time_dev(i,j,k))
