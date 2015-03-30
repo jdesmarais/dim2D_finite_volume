@@ -22,17 +22,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -12.0000000000d0
-        real(rkind), parameter :: x_max = 12.0000000000d0
-        real(rkind), parameter :: y_min = -12.0000000000d0
-        real(rkind), parameter :: y_max = 12.0000000000d0
+        real(rkind), parameter :: x_min = -1.8309000000d0
+        real(rkind), parameter :: x_max = 1.8309000000d0
+        real(rkind), parameter :: y_min = -1.8309000000d0
+        real(rkind), parameter :: y_max = 1.8309000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 300.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0500000000d0
+        real(rkind), parameter :: t_max = 35.9533000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0023000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0200000000d0
+        real(rkind), parameter :: detail_print = 1.0000000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -42,12 +42,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 65
-        integer(ikind), parameter :: nty = 65
+        integer(ikind), parameter :: ntx = 6
+        integer(ikind), parameter :: nty = 6
 
-        integer(ikind), parameter :: nx = ntx/npx
-        integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 3
+        integer(ikind), parameter :: nx = 6/npx
+        integer(ikind), parameter :: ny = 6/npy
+        integer       , parameter :: ne = 4
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -106,17 +106,17 @@
         !phase_separation   : unstable mass density
         !--------------------------------------------
         integer    , parameter :: flow_direction = x_direction
-        real(rkind), parameter :: flow_x_side = 1.0000000000d0
-        real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.1000000000d0
+        real(rkind), parameter :: flow_x_side = 1.0d0
+        real(rkind), parameter :: flow_y_side = 0.0d0
+        real(rkind), parameter :: flow_velocity = 0.1d0
         
-        real(rkind), parameter :: T0 = 0.9950000000d0
+        real(rkind), parameter :: T0 = 0.95d0
 
-        integer    , parameter :: ic_choice = peak
+        integer    , parameter :: ic_choice = newgrdpt_test
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
-        integer, parameter :: wave_forcing = intermittent_oscillatory_forcing
+        integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
         integer, parameter :: bc_choice = hedstrom_xy_choice
@@ -182,7 +182,7 @@
         !-----------------------------------------------------
         integer    , parameter :: obc_outgoing_strategy   = obc_outgoing_prim
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
-        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
 
 
@@ -257,7 +257,7 @@
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
         !------------------------------------------------------------
-        logical    , parameter :: bf_openbc_md_threshold_ac = .false.
+        logical    , parameter :: bf_openbc_md_threshold_ac = .true.
         real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
 
 

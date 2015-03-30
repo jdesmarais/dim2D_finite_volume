@@ -100,7 +100,7 @@ hedstrom_xy_dep=	$(bc_dep)\
 			bf_layer_extract_module.o\
 			bf_layer_bc_sections_overlap_module.o\
 			bf_layer_bc_checks_module.o\
-			bf_layer_bc_anticorner_module.o\
+			bf_layer_bc_fluxes_module.o\
 			bc_operators_openbc_class.o\
 			openbc_operators_module.o\
 			bc_operators_openbc_normal_class.o\

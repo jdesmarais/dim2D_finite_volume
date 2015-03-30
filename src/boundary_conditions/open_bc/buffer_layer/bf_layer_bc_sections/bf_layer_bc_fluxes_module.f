@@ -13,7 +13,7 @@
       !> @date
       ! 04_03_2015 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      module bf_layer_bc_anticorner_module
+      module bf_layer_bc_fluxes_module
 
         use bf_layer_extract_module, only :
      $       get_indices_to_extract_interior_data,
@@ -41,9 +41,87 @@
      $       get_coords_from_pattern,
      $       are_grdpts_needed_for_flux_x,
      $       are_grdpts_needed_for_flux_y,
-     $       extract_grdpts_to_compute_anticorner_fluxes
+     $       extract_grdpts_to_compute_bc_fluxes
 
         contains
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the coords of the borders of the grid points needed
+        !> as well as the coords of the central gridpoint and if
+        !> grid points are needed
+        !
+        !> @date
+        !> 28_01_2015 - initial version - J.L. Desmarais
+        !
+        !> @param pattern
+        !> integers identifying the extent of the grid points needed
+        !> around the central grid point
+        !
+        !> @param i
+        !> x-index of the central grid point
+        !
+        !> @param j
+        !> y-index of the central grid point
+        !
+        !> @param size_x
+        !> x-extent of the array used to potentially compute the y-fluxes
+        !
+        !> @param size_y
+        !> y-extent of the array used to potentially compute the y-fluxes
+        !
+        !> @return border_coords
+        !> indices identifying the SW and NE corners of the grid points
+        !> needed to compute the fluxes
+        !
+        !> @return cpt_coords
+        !> indices identifying the position of the central gridpoint
+        !> in the temporary array of gridpoints created around
+        !
+        !> @return grdpts_needed
+        !> logical identifying whether additional gridpoints are needed
+        !> to potentially compute the y-fluxes
+        !--------------------------------------------------------------        
+        subroutine get_coords_from_pattern(
+     $     pattern,
+     $     i_min, i_max,
+     $     j_min, j_max,
+     $     size_x, size_y,
+     $     border_coords,
+     $     cpt_coords,
+     $     grdpts_needed)
+
+          implicit none
+
+          integer       , dimension(2,2), intent(in)  :: pattern
+          integer(ikind)                , intent(in)  :: i_min
+          integer(ikind)                , intent(in)  :: i_max
+          integer(ikind)                , intent(in)  :: j_min
+          integer(ikind)                , intent(in)  :: j_max
+          integer(ikind)                , intent(in)  :: size_x
+          integer(ikind)                , intent(in)  :: size_y
+          integer(ikind), dimension(2,2), intent(out) :: border_coords
+          integer(ikind), dimension(2)  , intent(out) :: cpt_coords
+          logical                                     :: grdpts_needed
+
+          border_coords(1,1) = i_min+pattern(1,1)
+          border_coords(1,2) = i_max+pattern(1,2)
+          border_coords(2,1) = j_min+pattern(2,1)
+          border_coords(2,2) = j_max+pattern(2,2)
+
+          cpt_coords(1)   = -pattern(1,1)+1
+          cpt_coords(2)   = -pattern(2,1)+1
+
+          grdpts_needed =
+     $         (border_coords(1,1).lt.1).or.
+     $         (border_coords(1,2).gt.size_x).or.
+     $         (border_coords(2,1).lt.1).or.
+     $         (border_coords(2,2).gt.size_y)
+
+        end subroutine get_coords_from_pattern
 
 
         !> @author
@@ -91,7 +169,7 @@
         function are_grdpts_needed_for_flux_x(
      $     p_model,
      $     operator_type,
-     $     i,j,
+     $     i_min,i_max,j,
      $     size_x,size_y,
      $     border_coords,
      $     cpt_coords)
@@ -101,7 +179,8 @@
 
           type(pmodel_eq)               , intent(in)  :: p_model
           integer                       , intent(in)  :: operator_type
-          integer(ikind)                , intent(in)  :: i
+          integer(ikind)                , intent(in)  :: i_min
+          integer(ikind)                , intent(in)  :: i_max
           integer(ikind)                , intent(in)  :: j
           integer(ikind)                , intent(in)  :: size_x
           integer(ikind)                , intent(in)  :: size_y
@@ -114,7 +193,9 @@
           pattern = p_model%get_sd_pattern_flux_x(operator_type)
 
           call get_coords_from_pattern(
-     $         pattern,i,j,size_x,size_y,
+     $         pattern,
+     $         i_min,i_max,j,j,
+     $         size_x,size_y,
      $         border_coords,
      $         cpt_coords,
      $         grdpts_needed)          
@@ -167,7 +248,7 @@
         function are_grdpts_needed_for_flux_y(
      $     p_model,
      $     operator_type,
-     $     i,j,
+     $     i,j_min,j_max,
      $     size_x,size_y,
      $     border_coords,
      $     cpt_coords)
@@ -178,7 +259,8 @@
           type(pmodel_eq)               , intent(in)  :: p_model
           integer                       , intent(in)  :: operator_type
           integer(ikind)                , intent(in)  :: i
-          integer(ikind)                , intent(in)  :: j
+          integer(ikind)                , intent(in)  :: j_min
+          integer(ikind)                , intent(in)  :: j_max
           integer(ikind)                , intent(in)  :: size_x
           integer(ikind)                , intent(in)  :: size_y
           integer(ikind), dimension(2,2), intent(out) :: border_coords
@@ -190,85 +272,16 @@
           pattern = p_model%get_sd_pattern_flux_y(operator_type)
 
           call get_coords_from_pattern(
-     $         pattern,i,j,size_x,size_y,
+     $         pattern,
+     $         i,i,
+     $         j_min,j_max,
+     $         size_x,size_y,
      $         border_coords,
      $         cpt_coords,
      $         grdpts_needed)
 
         end function are_grdpts_needed_for_flux_y
 
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> compute the coords of the borders of the grid points needed
-        !> as well as the coords of the central gridpoint and if
-        !> grid points are needed
-        !
-        !> @date
-        !> 28_01_2015 - initial version - J.L. Desmarais
-        !
-        !> @param pattern
-        !> integers identifying the extent of the grid points needed
-        !> around the central grid point
-        !
-        !> @param i
-        !> x-index of the central grid point
-        !
-        !> @param j
-        !> y-index of the central grid point
-        !
-        !> @param size_x
-        !> x-extent of the array used to potentially compute the y-fluxes
-        !
-        !> @param size_y
-        !> y-extent of the array used to potentially compute the y-fluxes
-        !
-        !> @return border_coords
-        !> indices identifying the SW and NE corners of the grid points
-        !> needed to compute the fluxes
-        !
-        !> @return cpt_coords
-        !> indices identifying the position of the central gridpoint
-        !> in the temporary array of gridpoints created around
-        !
-        !> @return grdpts_needed
-        !> logical identifying whether additional gridpoints are needed
-        !> to potentially compute the y-fluxes
-        !--------------------------------------------------------------        
-        subroutine get_coords_from_pattern(
-     $     pattern, i,j, size_x, size_y,
-     $     border_coords,
-     $     cpt_coords,
-     $     grdpts_needed)
-
-          implicit none
-
-          integer       , dimension(2,2), intent(in)  :: pattern
-          integer(ikind)                , intent(in)  :: i
-          integer(ikind)                , intent(in)  :: j
-          integer(ikind)                , intent(in)  :: size_x
-          integer(ikind)                , intent(in)  :: size_y
-          integer(ikind), dimension(2,2), intent(out) :: border_coords
-          integer(ikind), dimension(2)  , intent(out) :: cpt_coords
-          logical                                     :: grdpts_needed
-
-          border_coords(1,1) = i+pattern(1,1)
-          border_coords(1,2) = i+pattern(1,2)
-          border_coords(2,1) = j+pattern(2,1)
-          border_coords(2,2) = j+pattern(2,2)
-
-          cpt_coords(1)   = -pattern(1,1)+1
-          cpt_coords(2)   = -pattern(2,1)+1
-
-          grdpts_needed =
-     $         (border_coords(1,1).lt.1).or.
-     $         (border_coords(1,2).gt.size_x).or.
-     $         (border_coords(2,1).lt.1).or.
-     $         (border_coords(2,2).gt.size_y)
-
-        end subroutine get_coords_from_pattern
 
 
         !> @author
@@ -301,7 +314,7 @@
         !> temporary array containing the nodes needed to compute 
         !> the fluxes
         !--------------------------------------------------------------        
-        subroutine extract_grdpts_to_compute_anticorner_fluxes(
+        subroutine extract_grdpts_to_compute_bc_fluxes(
      $     bf_alignment,
      $     bf_grdpts_id,
      $     bf_nodes,
@@ -394,8 +407,8 @@
           end do
 
           if(.not.grdpts_available) then
-             print '(''bf_layer_bc_anticorner_module'')'
-             print '(''extract_grdpts_to_compute_anticorner_fluxes'')'
+             print '(''bf_layer_bc_fluxes_module'')'
+             print '(''extract_grdpts_to_compute_bc_fluxes'')'
              print '(''not all grid points are available'')'
              print '(''grdpts_id: '')'
              print *, tmp_grdpts_id
@@ -404,7 +417,7 @@
 
           deallocate(tmp_grdpts_id)
 
-        end subroutine extract_grdpts_to_compute_anticorner_fluxes
+        end subroutine extract_grdpts_to_compute_bc_fluxes
 
-      end module bf_layer_bc_anticorner_module
+      end module bf_layer_bc_fluxes_module
       

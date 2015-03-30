@@ -38,12 +38,10 @@ from library_sm_lg_inputs import (get_we,
 
 changeParameterPath = os.path.join(os.getenv('augeanstables'),
                                    'src',
-                                   'test_files',
                                    'config',
                                    'change_parameter.sh')
 getParameterPath    = os.path.join(os.getenv('augeanstables'),
                                    'src',
-                                   'test_files',
                                    'config',
                                    'get_parameter.sh')
                                    
@@ -463,19 +461,19 @@ if __name__=="__main__":
 
 
     # extract the command line inputs
-    inputs = parse_argv(sys.argv[1:])
+    #inputs = parse_argv(sys.argv[1:])
 
-    #inputs = {}
-    #
-    #inputs['temperature']     = 0.999
-    #inputs['flow_velocity']   = 0.1
-    #inputs['model_input']     = os.path.join(os.getenv('augeanstables'),
-    #                                         'src','test_files','config','default_inputs','dim2d',
-    #                                         'dim2d_bubble_transported_hedstrom_xy.txt')
-    #inputs['sm_domain']       = 'inputs_sm_domain.txt'
-    #inputs['lg_domain']       = 'inputs_lg_domain.txt'
-    #inputs['md_threshold_ac'] = 0
-    #inputs['md_threshold']    = 0.0001
+    inputs = {}
+    
+    inputs['temperature']     = 0.999
+    inputs['flow_velocity']   = 0.1
+    inputs['model_input']     = os.path.join(os.getenv('augeanstables'),
+                                             'src','config','default_inputs','dim2d',
+                                             'dim2d_bubble_transported_hedstrom_xy.txt')
+    inputs['sm_domain']       = 'inputs_sm_domain.txt'
+    inputs['lg_domain']       = 'inputs_lg_domain.txt'
+    inputs['md_threshold_ac'] = 1
+    inputs['md_threshold']    = 0.1
 
 
     # create the inputs

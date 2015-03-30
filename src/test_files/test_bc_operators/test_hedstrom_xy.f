@@ -10,12 +10,9 @@
         use hedstrom_xy_module, only :
      $       compute_timedev_with_openbc
 
-        use openbc_operators_module, only :
-     $       incoming_left,
-     $       incoming_right
-
         use parameters_constant, only :
      $       x_direction,
+     $       left,right,
      $       obc_eigenqties_lin
 
         use parameters_input, only :
@@ -48,6 +45,8 @@
         print '(''test_compute_timedev_with_openbc: '',L1)', test_loc
         print '()'
 
+
+        print '(''test_validated: '',L1)', test_validated
 
         contains
 
@@ -97,6 +96,8 @@
           x  = 1.0
           y  = 1.5
           dx = 0.1
+
+          call p_model%initial_conditions%ini_far_field()
           
           timedev_L0 = compute_timedev_with_openbc(
      $         t,x,y,
@@ -104,7 +105,7 @@
      $         p_model,
      $         x_direction,
      $         gradient_x_x_oneside_L0, dx,
-     $         incoming_left)
+     $         left)
           
           timedev_R0 = compute_timedev_with_openbc(
      $         t,x,y,
@@ -112,7 +113,7 @@
      $         p_model,
      $         x_direction,
      $         gradient_x_x_oneside_R0, dx,
-     $         incoming_right)
+     $         right)
 
           test_validated = 
      $         is_real_vector_validated(
@@ -140,7 +141,10 @@
 
          implicit none
 
-         logical :: test_parameters
+         logical     :: test_parameters
+         real(rkind) :: t,x,y
+
+         type(pmodel_eq) :: p_model
 
          test_parameters = ne.eq.4
          test_parameters = test_parameters.and.is_real_validated(cv_r,2.5d0,.false.)
@@ -151,6 +155,24 @@
             print '(''cv_r=2.5          : '',L1)', is_real_validated(cv_r,2.5d0,.false.)
             print '(''obc_eigenqties_lin: '',L1)', obc_eigenqties_strategy.eq.obc_eigenqties_lin
             print '()'
+         end if
+
+         call p_model%initial_conditions%ini_far_field()
+
+         test_parameters = is_real_vector_validated(
+     $        p_model%get_prim_obc_eigenqties(
+     $            t,x,y,[1.46d0,0.146d0,0.01d0,4.89d0]),
+     $        [1.46510213931996d0,0.1d0,0.0d0,0.814835776d0,2.18134901757932d0],
+     $        .true.)
+
+         if(.not.test_parameters) then
+            print '(''get_far_field not adjusted'')'
+            print '(''flow_direction=x_direction?'')'
+            print '(''flow_x_side=1.0d0?'')'
+            print '(''flow_y_side=0.0d0?'')'
+            print '(''flow_velocity=0.1d0?'')'
+            print '(''T0=0.95d0?'')'
+            print '(''ic_choice=newgrdpt_test?'')'
          end if
 
        end subroutine test_inputs

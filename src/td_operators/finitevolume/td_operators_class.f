@@ -137,6 +137,7 @@
           real(rkind), dimension(nx,ny+1,ne) :: flux_y
 
           integer(ikind), dimension(2,2) :: bf_alignment
+          integer       , dimension(1,1) :: bf_grdpts_id
 
           
           !for debuggging: initialize the timedev with
@@ -215,20 +216,22 @@
                 bf_alignment(2,2) = ny-bc_size
 
                 call bc_used%apply_bc_on_timedev_nopt(
-     $               p_model,t,
-     $               nodes,
+     $               t,
      $               bf_alignment,
-     $               nodes,x_map,y_map,
+     $               bf_grdpts_id,
+     $               x_map,y_map,nodes,
+     $               nodes,
+     $               p_model,
      $               flux_x,flux_y,
-     $               time_dev,
-     $               bc_sections)
+     $               bc_sections,
+     $               time_dev)
 
              !if all the time derivatives of the boundary
              !layers are computed
              else
                 call bc_used%apply_bc_on_timedev(
+     $               t,x_map,y_map,nodes,
      $               p_model,
-     $               t,nodes,x_map,y_map,
      $               flux_x,flux_y,
      $               time_dev)
              end if          
@@ -423,14 +426,15 @@
      $         (bc_W_type_choice.eq.bc_timedev_choice)) then
 
                call bc_used%apply_bc_on_timedev_nopt(
-     $              p_model,t,
-     $              interior_nodes,
+     $              t,
      $              bf_alignment,
-     $              nodes,x_map,y_map,
+     $              grdpts_id,
+     $              x_map,y_map,nodes,
+     $              interior_nodes,
+     $              p_model,
      $              flux_x,flux_y,
-     $              time_dev,
      $              bc_sections,
-     $              grdpts_id=grdpts_id)
+     $              time_dev)
 
             end if
 

@@ -27,7 +27,6 @@ test_openbc_operators:	$(param_dep)\
 #hedstrom_xy
 test_hedstrom_xy.o:	$(test_dir)/tools/check_data_module.o\
 			$(hobc_dir)/hedstrom_xy_module.o\
-			$(obc_dir)/openbc_operators_module.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
@@ -68,7 +67,7 @@ test_hedstrom_xy_anti_corner_flux:\
 			bf_layer_extract_module.o\
 			bf_layer_bc_sections_overlap_module.o\
 			bf_layer_bc_checks_module.o\
-			bf_layer_bc_anticorner_module.o\
+			bf_layer_bc_fluxes_module.o\
 			hedstrom_xy_anti_corner_flux_module.o
 
 

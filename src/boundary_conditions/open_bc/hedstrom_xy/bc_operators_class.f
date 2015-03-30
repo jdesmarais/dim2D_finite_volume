@@ -35,10 +35,6 @@
         use interface_primary, only :
      $       gradient_proc
 
-        use openbc_operators_module, only :
-     $       incoming_left,
-     $       incoming_right
-
         use parameters_bf_layer, only : 
      $       SE_edge_type,
      $       SW_edge_type,
@@ -47,7 +43,9 @@
      $       SE_corner_type,
      $       SW_corner_type,
      $       NE_corner_type,
-     $       NW_corner_type
+     $       NW_corner_type,
+     $       align_N,align_S,
+     $       align_E,align_W
 
         use parameters_constant, only :
      $       bc_timedev_choice,
@@ -215,19 +213,19 @@
         !-------------------------------------------------------------
         subroutine apply_bc_on_timedev_2ndorder(
      $     this,
+     $     t,x_map,y_map,nodes,
      $     p_model,
-     $     t,nodes,x_map,y_map,
      $     flux_x,flux_y,
      $     timedev)
         
           implicit none
         
           class(bc_operators)               , intent(in)    :: this
-          type(pmodel_eq)                   , intent(in)    :: p_model
-          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
           real(rkind)                       , intent(in)    :: t
           real(rkind), dimension(nx)        , intent(in)    :: x_map
           real(rkind), dimension(ny)        , intent(in)    :: y_map
+          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
+          type(pmodel_eq)                   , intent(in)    :: p_model
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
           real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
@@ -243,10 +241,17 @@
           type(sd_operators_y_oneside_R0) :: s_y_R0
 
 
-          real(rkind)    :: dx,dy
-          integer(ikind) :: i,j
-          integer(ikind) :: i_min, i_max
-          integer(ikind) :: j_min, j_max
+          integer(ikind), dimension(2,2) :: bf_alignment
+          integer       , dimension(1,1) :: bf_grdpts_id
+          real(rkind)                    :: dx,dy
+          integer(ikind)                 :: i,j
+          integer(ikind)                 :: i_min, i_max
+          integer(ikind)                 :: j_min, j_max
+
+          
+          bf_alignment = reshape((/
+     $         align_W+1,align_S+1,align_E-1,align_N-1/),
+     $         (/2,2/))
 
 
           !1) determine the space step for the
@@ -265,32 +270,49 @@
           i_max = nx-bc_size+1
           j     = 1
           
-          call this%compute_fluxes_for_bc_y_edge(
-     $         p_model,
+          call this%compute_fluxes_x_for_bc_y_edge(
+     $         bf_alignment,
+     $         bf_grdpts_id,
      $         nodes,
+     $         nodes,
+     $         dx,dy,
      $         s_y_L0, s_y_L1,
-     $         s_y_R1, s_y_R0,
-     $         dx, dy,
+     $         p_model,
      $         i_min, i_max, j,
-     $         S,
      $         [.true.,.true.],
      $         flux_x)
           
           
           ! E+W_edge
+          i     = 1
           j_min = bc_size+1
           j_max = ny-bc_size+1
           
-          call this%compute_fluxes_for_bc_x_edge(
-     $         p_model,
+          call this%compute_fluxes_y_for_bc_x_edge(
+     $         bf_alignment,
+     $         bf_grdpts_id,
      $         nodes,
+     $         nodes,
+     $         dx,dy,
      $         s_x_L0, s_x_L1,
-     $         s_x_R1, s_x_R0,
-     $         dx, dy,
-     $         j_min, j_max, i,
-     $         E+W,
+     $         p_model,
+     $         i, j_min, j_max,
      $         [.true.,.true.],
-     $         flux_y)
+     $         flux_x)
+          
+          i = nx-bc_size+1
+
+          call this%compute_fluxes_y_for_bc_x_edge(
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         nodes,
+     $         nodes,
+     $         dx,dy,
+     $         s_x_R1, s_x_R0,
+     $         p_model,
+     $         i, j_min, j_max,
+     $         [.true.,.true.],
+     $         flux_x)
           
           
           ! N_edge
@@ -298,16 +320,18 @@
           i_max = nx-bc_size+1
           j     = ny-bc_size+1
           
-          call this%compute_fluxes_for_bc_y_edge(
-     $         p_model,
+          call this%compute_fluxes_x_for_bc_y_edge(
+     $         bf_alignment,
+     $         bf_grdpts_id,
      $         nodes,
-     $         s_y_L0, s_y_L1,
+     $         nodes,
+     $         dx,dy,
      $         s_y_R1, s_y_R0,
-     $         dx, dy,
+     $         p_model,
      $         i_min, i_max, j,
-     $         N,
      $         [.true.,.true.],
      $         flux_x)
+
 
           !3) compute the time derivatives at the
           !   edge of the computational domain
@@ -315,13 +339,13 @@
           ! S layer
           do j=1,bc_size
              call compute_timedev_y_layer_interior(
+     $            t,x_map,y_map,nodes,
      $            p_model,
-     $            t,nodes,x_map,y_map,
-     $            flux_x,
-     $            timedev,
-     $            j,dx,dy,
-     $            gradient_y_y_oneside_L0,
-     $            incoming_left)
+     $            gradient_y_y_oneside_L0,dy,
+     $            j,
+     $            flux_x,dx,
+     $            left,
+     $            timedev)
           end do
 
           ! E+W layers
@@ -330,37 +354,39 @@
              ! W layer
              do i=1,bc_size
                 timedev(i,j,:) = compute_timedev_x_edge_local(
+     $               t,x_map,y_map,nodes,
      $               p_model,
-     $               t,x_map,y_map,
-     $               nodes,dx,dy,i,j,
-     $               flux_y,
-     $               incoming_left,
-     $               gradient_x_x_oneside_L0)
+     $               gradient_x_x_oneside_L0,dx,
+     $               i,j,
+     $               flux_y,dy,
+     $               left)
              end do
 
              ! E layer
              do i=nx-bc_size+1,nx
                 timedev(i,j,:) = compute_timedev_x_edge_local(
+     $               t,x_map,y_map,nodes,
      $               p_model,
-     $               t,x_map,y_map,
-     $               nodes,dx,dy,i,j,
-     $               flux_y,
-     $               incoming_right,
-     $               gradient_x_x_oneside_R0)
+     $               gradient_x_x_oneside_R0,dx,
+     $               i,j,
+     $               flux_y,dy,
+     $               right)
              end do
 
           end do
 
           ! N layer
           do j=ny-bc_size+1,ny
+
              call compute_timedev_y_layer_interior(
+     $            t,x_map,y_map,nodes,
      $            p_model,
-     $            t,nodes,x_map,y_map,
-     $            flux_x,
-     $            timedev,
-     $            j,dx,dy,
-     $            gradient_y_y_oneside_R0,
-     $            incoming_right)
+     $            gradient_y_y_oneside_R0,dy,
+     $            j,
+     $            flux_x,dx,
+     $            right,
+     $            timedev)
+
           end do
         
         end subroutine apply_bc_on_timedev_2ndorder
@@ -414,58 +440,43 @@
         !--------------------------------------------------------------
         function apply_bc_on_timedev_x_edge(
      $     this,
-     $     p_model, t,
-     $     nodes, x_map, y_map, i,j,
+     $     t, bf_x_map, bf_y_map, bf_nodes,
+     $     p_model,
+     $     gradient_x,
+     $     i,j,
      $     flux_y,
-     $     side_x,
-     $     gradient_x)
+     $     side_x)
      $     result(timedev)
 
           implicit none
 
           class(bc_operators)          , intent(in) :: this
-          type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          real(rkind), dimension(:)    , intent(in) :: x_map
-          real(rkind), dimension(:)    , intent(in) :: y_map
+          real(rkind), dimension(:)    , intent(in) :: bf_x_map
+          real(rkind), dimension(:)    , intent(in) :: bf_y_map
+          real(rkind), dimension(:,:,:), intent(in) :: bf_nodes
+          type(pmodel_eq)              , intent(in) :: p_model
+          procedure(gradient_proc)                  :: gradient_x
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind), dimension(:,:,:), intent(in) :: flux_y
           logical                      , intent(in) :: side_x
-          procedure(gradient_proc)                  :: gradient_x
           real(rkind), dimension(ne)                :: timedev
 
           integer, dimension(4) :: bc_s
           real(rkind)           :: dx,dy
 
           bc_s = this%bc_type
-          dx   = x_map(2)-x_map(1)
-          dy   = y_map(2)-y_map(1)
+          dx   = bf_x_map(2)-bf_x_map(1)
+          dy   = bf_y_map(2)-bf_y_map(1)
 
-          ! W edge
-          if(side_x.eqv.left) then
-               
-             timedev = compute_timedev_x_edge_local(
-     $            p_model,
-     $            t,x_map,y_map,
-     $            nodes,dx,dy,i,j,
-     $            flux_y,
-     $            incoming_left,
-     $            gradient_x_x_oneside_L0)
-
-          ! E edge
-          else
-
-             timedev = compute_timedev_x_edge_local(
-     $            p_model,
-     $            t,x_map,y_map,
-     $            nodes,dx,dy,i,j,
-     $            flux_y,
-     $            incoming_right,
-     $            gradient_x_x_oneside_R0)
-             
-          end if
+          timedev = compute_timedev_x_edge_local(
+     $         t,bf_x_map,bf_y_map,bf_nodes,
+     $         p_model,
+     $         gradient_x,dx,
+     $         i,j,
+     $         flux_y,dy,
+     $         side_x)
                
         end function apply_bc_on_timedev_x_edge
 
@@ -517,59 +528,44 @@
         !> time derivatives of the grid points
         !--------------------------------------------------------------
         function apply_bc_on_timedev_y_edge(
-     $     this, 
-     $     p_model, t,
-     $     nodes, x_map, y_map, i,j,
+     $     this,
+     $     t, bf_x_map, bf_y_map, bf_nodes,
+     $     p_model,
+     $     gradient_y,
+     $     i,j,
      $     flux_x,
-     $     side_y,
-     $     gradient_y)
+     $     side_y)
      $     result(timedev)
 
           implicit none
 
           class(bc_operators)          , intent(in) :: this
-          type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          real(rkind), dimension(:)    , intent(in) :: x_map
-          real(rkind), dimension(:)    , intent(in) :: y_map
+          real(rkind), dimension(:)    , intent(in) :: bf_x_map
+          real(rkind), dimension(:)    , intent(in) :: bf_y_map
+          real(rkind), dimension(:,:,:), intent(in) :: bf_nodes
+          type(pmodel_eq)              , intent(in) :: p_model
+          procedure(gradient_proc)                  :: gradient_y
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind), dimension(:,:,:), intent(in) :: flux_x
           logical                      , intent(in) :: side_y
-          procedure(gradient_proc)                  :: gradient_y
           real(rkind), dimension(ne)                :: timedev
 
           integer, dimension(4) :: bc_s
           real(rkind)           :: dx,dy
 
           bc_s = this%bc_type
-          dx   = x_map(2) - x_map(1)
-          dy   = y_map(2) - y_map(1)
+          dx   = bf_x_map(2) - bf_x_map(1)
+          dy   = bf_y_map(2) - bf_y_map(1)
 
-          ! S edge
-          if(side_y.eqv.left) then
-               
-             timedev = compute_timedev_y_edge_local(
-     $            p_model,
-     $            t,x_map,y_map,
-     $            nodes,dx,dy,i,j,
-     $            flux_x,
-     $            incoming_left,
-     $            gradient_y_y_oneside_L0)
-
-          ! N edge
-          else
-
-             timedev = compute_timedev_y_edge_local(
-     $            p_model,
-     $            t,x_map,y_map,
-     $            nodes,dx,dy,i,j,
-     $            flux_x,
-     $            incoming_right,
-     $            gradient_y_y_oneside_R0)
-             
-          end if
+          timedev = compute_timedev_y_edge_local(
+     $         t,bf_x_map,bf_y_map,bf_nodes,
+     $         p_model,
+     $         gradient_y,dy,
+     $         i,j,
+     $         flux_x,dx,
+     $         side_y)
 
         end function apply_bc_on_timedev_y_edge
 
@@ -622,19 +618,23 @@
         !--------------------------------------------------------------
         function apply_bc_on_timedev_xy_corner(
      $     this,
-     $     p_model, t,
-     $     nodes, x_map, y_map, i,j,
+     $     t,
+     $     bf_x_map,
+     $     bf_y_map,
+     $     bf_nodes,
+     $     p_model,
+     $     i,j,
      $     side_x, side_y)
      $     result(timedev)
 
           implicit none
 
           class(bc_operators)          , intent(in) :: this
-          type(pmodel_eq)              , intent(in) :: p_model
           real(rkind)                  , intent(in) :: t
-          real(rkind), dimension(:,:,:), intent(in) :: nodes
-          real(rkind), dimension(:)    , intent(in) :: x_map
-          real(rkind), dimension(:)    , intent(in) :: y_map
+          real(rkind), dimension(:)    , intent(in) :: bf_x_map
+          real(rkind), dimension(:)    , intent(in) :: bf_y_map
+          real(rkind), dimension(:,:,:), intent(in) :: bf_nodes
+          type(pmodel_eq)              , intent(in) :: p_model
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           logical                      , intent(in) :: side_x
@@ -646,8 +646,8 @@
           real(rkind)           :: dy          
 
           bc_s = this%bc_type
-          dx   = x_map(2)-x_map(1)
-          dy   = y_map(2)-y_map(1)
+          dx   = bf_x_map(2)-bf_x_map(1)
+          dy   = bf_y_map(2)-bf_y_map(1)
 
           if(side_x.eqv.left) then
 
@@ -655,21 +655,24 @@
              if(side_y.eqv.left) then
 
                 timedev = compute_timedev_corner_local(
+     $               t,bf_x_map,bf_y_map,bf_nodes,
      $               p_model,
-     $               t,x_map,y_map, nodes,
-     $               dx,dy, i,j,
-     $               incoming_left, incoming_left,
-     $               gradient_x_x_oneside_L0, gradient_y_y_oneside_L0)
+     $               gradient_x_x_oneside_L0, gradient_y_y_oneside_L0,
+     $               dx,dy,
+     $               i,j,
+     $               left, left)
+
 
              ! NW corner
              else
                 
                 timedev = compute_timedev_corner_local(
+     $               t,bf_x_map,bf_y_map,bf_nodes,
      $               p_model,
-     $               t,x_map,y_map, nodes,
-     $               dx,dy, i,j,
-     $               incoming_left, incoming_right,
-     $               gradient_x_x_oneside_L0, gradient_y_y_oneside_R0)
+     $               gradient_x_x_oneside_L0, gradient_y_y_oneside_R0,
+     $               dx,dy,
+     $               i,j,
+     $               left, right)
                 
              end if
 
@@ -679,20 +682,24 @@
              if(side_y.eqv.left) then
 
                 timedev = compute_timedev_corner_local(
+     $               t,bf_x_map,bf_y_map,bf_nodes,
      $               p_model,
-     $               t,x_map,y_map, nodes,
-     $               dx,dy, i,j,
-     $               incoming_right, incoming_left,
-     $               gradient_x_x_oneside_R0, gradient_y_y_oneside_L0)
+     $               gradient_x_x_oneside_R0, gradient_y_y_oneside_L0,
+     $               dx,dy,
+     $               i,j,
+     $               right, left)
+
 
              ! NE corner
              else
                 timedev = compute_timedev_corner_local(
+     $               t,bf_x_map,bf_y_map,bf_nodes,
      $               p_model,
-     $               t,x_map,y_map, nodes,
-     $               dx,dy, i,j,
-     $               incoming_right, incoming_right,
-     $               gradient_x_x_oneside_R0, gradient_y_y_oneside_R0)
+     $               gradient_x_x_oneside_R0, gradient_y_y_oneside_R0,
+     $               dx,dy,
+     $               i,j,
+     $               right, right)
+
              end if
 
           end if
@@ -764,39 +771,39 @@
         !--------------------------------------------------------------
         subroutine compute_timedev_anti_corner(
      $     this,
-     $     p_model, t,
-     $     interior_nodes,
+     $     t,
      $     bf_alignment,
-     $     grdpts_id, nodes, x_map, y_map,
-     $     flux_x, flux_y,
+     $     bf_grdpts_id,
+     $     bf_x_map,
+     $     bf_y_map,
+     $     bf_nodes, 
+     $     interior_nodes,
      $     s_x_L1, s_x_R1,
      $     s_y_L1, s_y_R1,
-     $     dx, dy,
+     $     p_model,
      $     bc_section,
+     $     flux_x, flux_y,
      $     timedev)
         
           implicit none
         
           class(bc_operators)                , intent(in)    :: this
-          type(pmodel_eq)                    , intent(in)    :: p_model
           real(rkind)                        , intent(in)    :: t
+          integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+          integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map
+          real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment 
-          integer       , dimension(:,:)     , intent(in)    :: grdpts_id
-          real(rkind)   , dimension(:,:,:)   , intent(in)    :: nodes
-          real(rkind)   , dimension(:)       , intent(in)    :: x_map
-          real(rkind)   , dimension(:)       , intent(in)    :: y_map
-          real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_x
-          real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_y
           type(sd_operators_x_oneside_L1)    , intent(in)    :: s_x_L1
           type(sd_operators_x_oneside_R1)    , intent(in)    :: s_x_R1
           type(sd_operators_y_oneside_L1)    , intent(in)    :: s_y_L1
           type(sd_operators_y_oneside_R1)    , intent(in)    :: s_y_R1
-          real(rkind)                        , intent(in)    :: dx
-          real(rkind)                        , intent(in)    :: dy
+          type(pmodel_eq)                    , intent(in)    :: p_model
           integer       , dimension(5)       , intent(in)    :: bc_section
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_x
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_y
           real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
-        
 
           integer, dimension(5) :: bc_section_modified
 
@@ -831,8 +838,8 @@
                end select
 
                call this%compute_timedev_corner(
+     $              t,bf_x_map,bf_y_map,bf_nodes,
      $              p_model,
-     $              t,nodes,x_map,y_map,
      $              bc_section_modified,
      $              timedev)
 
@@ -840,28 +847,34 @@
             case(obc_edge_xy_flux)
 
                call compute_timedev_anti_corner_with_fluxes(
-     $              p_model,
-     $              t,grdpts_id,nodes,x_map,y_map,
-     $              flux_x, flux_y,
-     $              timedev,
+     $              t,
+     $              bf_alignment,
+     $              bf_grdpts_id,
+     $              bf_x_map,
+     $              bf_y_map,
+     $              bf_nodes,
+     $              interior_nodes,
      $              s_x_L1, s_x_R1,
      $              s_y_L1, s_y_R1,
-     $              dx, dy,
+     $              p_model,
      $              bc_section,
-     $              interior_nodes,
-     $              bf_alignment)
+     $              flux_x, flux_y,
+     $              timedev)
 
             ! compute the anti-corner using the diagonal fluxes
             case(obc_edge_xy_diag_flux)
 
                call compute_timedev_anti_corner_with_diag_fluxes(
-     $              p_model,
-     $              t,grdpts_id,nodes,x_map,y_map,
-     $              timedev,
-     $              dx,dy,
-     $              bc_section,
+     $              t,
+     $              bf_alignment,
+     $              bf_grdpts_id,
+     $              bf_x_map,
+     $              bf_y_map,
+     $              bf_nodes,
      $              interior_nodes,
-     $              bf_alignment)
+     $              p_model,
+     $              bc_section,
+     $              timedev)
 
             case default
                print '(''bc_operators_class'')'

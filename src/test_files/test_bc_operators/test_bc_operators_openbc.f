@@ -11,10 +11,6 @@
         use hedstrom_xy_module, only :
      $       compute_timedev_corner_local
 
-        use openbc_operators_module, only :
-     $       incoming_left,
-     $       incoming_right
-
         use parameters_bf_layer, only :
      $       NE_corner_type,
      $       NW_corner_type,
@@ -24,7 +20,9 @@
 
         use parameters_constant, only :
      $       vector_x,
-     $       vector_y
+     $       vector_y,
+     $       left,
+     $       right
 
         use parameters_input, only :
      $       ne
@@ -58,6 +56,9 @@
         test_validated = test_validated.and.test_loc
         print '(''test_compute_timedev_corner: '',L1)', test_loc
         print '()'
+
+
+        print '(''test_validated: '',L1)', test_validated
 
 
         contains
@@ -152,19 +153,27 @@
 
           !output
           call bc_operators_openbc_used%compute_timedev_corner(
-     $         p_model,t,
-     $         nodes,x_map,y_map,
+     $         t,
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         p_model,
      $         bc_section,
      $         timedev)
 
           do j=3,4
              do i=3,4
                 timedev_ref(i-2,j-2,:) = compute_timedev_corner_local(
+     $               t,
+     $               x_map,
+     $               y_map,
+     $               nodes,
      $               p_model,
-     $               t, x_map, y_map, nodes,
-     $               dx,dy, i,j,
-     $               incoming_right, incoming_right,
-     $               gradient_x_x_oneside_R0, gradient_y_y_oneside_R0)
+     $               gradient_x_x_oneside_R0, gradient_y_y_oneside_R0,
+     $               dx,dy,
+     $               i,j,
+     $               right, right)
+
              end do
           end do
 
@@ -206,8 +215,11 @@
 
           !output
           call bc_operators_openbc_used%compute_timedev_corner(
-     $         p_model,t,
-     $         nodes,x_map,y_map,
+     $         t,
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         p_model,
      $         bc_section,
      $         timedev)
 
@@ -249,8 +261,11 @@
 
           !output
           call bc_operators_openbc_used%compute_timedev_corner(
-     $         p_model,t,
-     $         nodes,x_map,y_map,
+     $         t,
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         p_model,
      $         bc_section,
      $         timedev)
 
@@ -292,8 +307,11 @@
 
           !output
           call bc_operators_openbc_used%compute_timedev_corner(
-     $         p_model,t,
-     $         nodes,x_map,y_map,
+     $         t,
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         p_model,
      $         bc_section,
      $         timedev)
 

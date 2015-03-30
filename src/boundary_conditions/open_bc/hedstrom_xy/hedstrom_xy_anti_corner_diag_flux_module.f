@@ -6,10 +6,10 @@
      $       compute_edge_E,
      $       compute_edge_W
 
-        use bf_layer_bc_anticorner_module, only :
+        use bf_layer_bc_fluxes_module, only :
      $       are_grdpts_needed_for_flux_x,
      $       are_grdpts_needed_for_flux_y,
-     $       extract_grdpts_to_compute_anticorner_fluxes
+     $       extract_grdpts_to_compute_bc_fluxes
 
         use bf_layer_bc_sections_overlap_module, only :
      $       determine_corner_or_anti_corner_grdpts_computed
@@ -153,29 +153,30 @@
         !> time derivatives of the grid points
         !--------------------------------------------------------------
         subroutine compute_timedev_anti_corner_with_diag_fluxes(
-     $       p_model,
-     $       t,grdpts_id,nodes,x_map,y_map,
-     $       timedev,
-     $       dx,dy,
-     $       bc_section,
+     $       t,
+     $       bf_alignment,
+     $       bf_grdpts_id,
+     $       bf_x_map,
+     $       bf_y_map,
+     $       bf_nodes,
      $       interior_nodes,
-     $       bf_alignment)
+     $       p_model,
+     $       bc_section,
+     $       timedev)
+
         
           implicit none
         
-          type(pmodel_eq)                    , intent(in)    :: p_model
           real(rkind)                        , intent(in)    :: t
-          integer       , dimension(:,:)     , intent(in)    :: grdpts_id
-          real(rkind)   , dimension(:,:,:)   , intent(in)    :: nodes
-          real(rkind)   , dimension(:)       , intent(in)    :: x_map
-          real(rkind)   , dimension(:)       , intent(in)    :: y_map
-          real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
-          real(rkind)                        , intent(in)    :: dx
-          real(rkind)                        , intent(in)    :: dy
-          integer       , dimension(5)       , intent(in)    :: bc_section
-          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
-
+          integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map
+          real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
+          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          type(pmodel_eq)                    , intent(in)    :: p_model
+          integer       , dimension(5)       , intent(in)    :: bc_section
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
           
           integer(ikind) :: i_min,j_min
           integer(ikind) :: i,j
@@ -186,6 +187,7 @@
           real(rkind) :: dn
           
           real(rkind) :: x,y
+          real(rkind) :: dx,dy
 
           type(sd_operators_n1_oneside_L0) :: sd_n1_L0
           type(sd_operators_n1_oneside_L1) :: sd_n1_L1
@@ -200,6 +202,9 @@
 
           i_min = bc_section(2)
           j_min = bc_section(3)
+
+          dx = bf_x_map(2) - bf_x_map(1)
+          dy = bf_y_map(2) - bf_y_map(1)
 
           
           call determine_corner_or_anti_corner_grdpts_computed(
@@ -220,8 +225,8 @@
             case(NE_edge_type)               
                
                compute_edge =
-     $              compute_edge_N(y_map(j_min),bc_timedev_choice).and.
-     $              compute_edge_E(x_map(i_min),bc_timedev_choice)
+     $              compute_edge_N(bf_y_map(j_min),bc_timedev_choice).and.
+     $              compute_edge_E(bf_x_map(i_min),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -236,13 +241,13 @@
                      i=i_min
                      j=j_min
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n2_direction,
      $                    gradient_n2_oneside_R0,dn,
@@ -265,13 +270,13 @@
                      i=i_min+1
                      j=j_min
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n2_direction,
      $                    gradient_n2_oneside_R0,dn,
@@ -294,13 +299,13 @@
                      i=i_min
                      j=j_min+1
                      
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n2_direction,
      $                    gradient_n2_oneside_R0,dn,
@@ -323,13 +328,13 @@
                      i=i_min+1
                      j=j_min+1
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n2_direction,
      $                    gradient_n2_oneside_R0,dn,
@@ -352,8 +357,8 @@
             case(NW_edge_type)
 
                compute_edge =
-     $              compute_edge_N(y_map(j_min),bc_timedev_choice).and.
-     $              compute_edge_W(x_map(i_min+1),bc_timedev_choice)
+     $              compute_edge_N(bf_y_map(j_min),bc_timedev_choice).and.
+     $              compute_edge_W(bf_x_map(i_min+1),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -369,13 +374,13 @@
                      i=i_min
                      j=j_min
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n1_direction,
      $                    gradient_n1_oneside_L0,dn,
@@ -398,13 +403,13 @@
                      i=i_min+1
                      j=j_min
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n1_direction,
      $                    gradient_n1_oneside_L0,dn,
@@ -427,13 +432,13 @@
                      i=i_min
                      j=j_min+1
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n1_direction,
      $                    gradient_n1_oneside_L0,dn,
@@ -456,13 +461,13 @@
                      i=i_min+1
                      j=j_min+1
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n1_direction,
      $                    gradient_n1_oneside_L0,dn,
@@ -485,8 +490,8 @@
             case(SW_edge_type)
 
                compute_edge =
-     $              compute_edge_S(y_map(j_min+1),bc_timedev_choice).and.
-     $              compute_edge_W(x_map(i_min+1),bc_timedev_choice)
+     $              compute_edge_S(bf_y_map(j_min+1),bc_timedev_choice).and.
+     $              compute_edge_W(bf_x_map(i_min+1),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -501,13 +506,13 @@
                      i=i_min
                      j=j_min
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n1_direction,
      $                    gradient_n2_oneside_L0,dn,
@@ -530,13 +535,13 @@
                      i=i_min+1
                      j=j_min
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n1_direction,
      $                    gradient_n2_oneside_L0,dn,
@@ -559,13 +564,13 @@
                      i=i_min
                      j=j_min+1
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n1_direction,
      $                    gradient_n2_oneside_L0,dn,
@@ -588,13 +593,13 @@
                      i=i_min+1
                      j=j_min+1
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n1_direction,
      $                    gradient_n2_oneside_L0,dn,
@@ -617,8 +622,8 @@
             case(SE_edge_type)
 
                compute_edge =
-     $              compute_edge_S(y_map(j_min+1),bc_timedev_choice).and.
-     $              compute_edge_E(x_map(i_min),bc_timedev_choice)
+     $              compute_edge_S(bf_y_map(j_min+1),bc_timedev_choice).and.
+     $              compute_edge_E(bf_x_map(i_min),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -633,13 +638,13 @@
                      i=i_min
                      j=j_min
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n1_direction,
      $                    gradient_n1_oneside_R0,dn,
@@ -662,13 +667,13 @@
                      i=i_min+1
                      j=j_min
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n1_direction,
      $                    gradient_n1_oneside_R0,dn,
@@ -691,13 +696,13 @@
                      i=i_min
                      j=j_min+1
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
                      
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n1_direction,
      $                    gradient_n1_oneside_R0,dn,
@@ -720,13 +725,13 @@
                      i=i_min+1
                      j=j_min+1
 
-                     x = x_map(i)
-                     y = y_map(j)
+                     x = bf_x_map(i)
+                     y = bf_y_map(j)
 
                      timedev(i,j,:) = compute_timedev_local(
      $                    t,x,y,
-     $                    grdpts_id,
-     $                    nodes,i,j,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,i,j,
      $                    p_model,
      $                    n1_direction,
      $                    gradient_n1_oneside_R0,dn,
@@ -814,7 +819,7 @@
                grdpts_needed = are_grdpts_needed_for_flux_y(
      $              p_model,
      $              sd_used%get_operator_type(),
-     $              i,j,
+     $              i,j,j,
      $              size(bf_nodes,1),size(bf_nodes,2),
      $              border_coords,
      $              cpt_coords)
@@ -828,7 +833,7 @@
                grdpts_needed = are_grdpts_needed_for_flux_x(
      $              p_model,
      $              sd_used%get_operator_type(),
-     $              i,j,
+     $              i,i,j,
      $              size(bf_nodes,1),size(bf_nodes,2),
      $              border_coords,
      $              cpt_coords)
@@ -861,7 +866,7 @@
 
              ! extract the grid points from the current nodes of
              ! the buffer layer and the interior domain
-             call extract_grdpts_to_compute_anticorner_fluxes(
+             call extract_grdpts_to_compute_bc_fluxes(
      $            bf_alignment,
      $            bf_grdpts_id,
      $            bf_nodes,

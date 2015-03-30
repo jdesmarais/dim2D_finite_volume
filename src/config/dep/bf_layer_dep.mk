@@ -344,7 +344,7 @@ $(bbf_layer_dir)/bf_layer_bc_checks_module.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
-$(bbf_layer_dir)/bf_layer_bc_anticorner_module.o:\
+$(bbf_layer_dir)/bf_layer_bc_fluxes_module.o:\
 	$(sbf_layer_dir)/bf_layer_extract_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\

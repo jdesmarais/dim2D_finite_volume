@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '630aa105b38c122ab46cb90306f76797f54f8a1a')
+        parameter (commit = 'f74aa2225e742fd7879854772754a2302ae2acfb')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -53,14 +53,15 @@
 
 
         !>initial conditions choice for NS
-        character(15), dimension(7), parameter :: ns2d_ic_code =[
+        character(15), dimension(8), parameter :: ns2d_ic_code =[
      $       'steady_state   ',
      $       'peak           ',
      $       'vortex         ',
      $       'sym_x          ',
      $       'sym_y          ',
      $       'negative_spot  ',
-     $       'sincos         ']
+     $       'sincos         ',
+     $       'not_implemented']
 
         !integer, parameter :: steady_state=0
         integer, parameter :: peak=1

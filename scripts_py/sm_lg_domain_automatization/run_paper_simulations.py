@@ -38,14 +38,14 @@ if __name__=="__main__":
 
     # input used as template
     model_input=os.path.join(
-        os.getenv('augeanstables'),'src','test_files','config','default_inputs','dim2d',
+        os.getenv('augeanstables'),'src','config','default_inputs','dim2d',
         'dim2d_bubble_transported_hedstrom_xy.txt')
 
 
     temperatureStudy          = False
     velocityStudy             = False
-    thresholdTemperatureStudy = True
-    thresholdVelocityStudy    = False
+    thresholdTemperatureStudy = False
+    thresholdVelocityStudy    = True
 
 
     #1) temperature study
@@ -96,9 +96,9 @@ if __name__=="__main__":
     #3) threshold study
     if(thresholdTemperatureStudy):
 
-        temperature_array  = [0.999]#0.95,0.99,0.995,0.999]
+        temperature_array  = [0.95]#0.95,0.99,0.995,0.999]
         flow_velocity      = 0.1
-        md_threshold_array = [0.05]#0.01, 0.05, 0.1, 0.2, 0.3]
+        md_threshold_array = [0.01, 0.05, 0.1, 0.2, 0.3]
         md_threshold_ac    = 1
         large_domain_run   = False
         
@@ -120,7 +120,7 @@ if __name__=="__main__":
     
     if(thresholdVelocityStudy):
         temperature         = 0.99
-        flow_velocity_array = [0.05,0.25,0.5]
+        flow_velocity_array = [0.05,0.25,0.1,0.5]
         md_threshold_array  = [0.01, 0.05, 0.1, 0.2, 0.3]
         md_threshold_ac     = 1
         large_domain_run    = False

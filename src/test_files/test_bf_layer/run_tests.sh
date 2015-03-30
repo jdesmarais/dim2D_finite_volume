@@ -13,8 +13,8 @@ echo ''
 
 #test_bf_interior_bc_sections
 file='test_bf_interior_bc_sections'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '10'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '10'
+change_param_input 'ntx' '10'
+change_param_input 'nty' '10'
 perform_test $file
 
 
@@ -23,21 +23,21 @@ file='test_bf_layer_basic'
 perform_test $file
 
 
-#test_bf_layer_bc_anticorner
-file='test_bf_layer_bc_anticorner'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice' -v 'dim2d_choice'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'ic_choice' -v 'bubble_transported'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne' -v '4'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ic_choice' -v 'bubble_transported'
+#test_bf_layer_bc_fluxes
+file='test_bf_layer_bc_fluxes'
+change_param_makefile 'pm_choice' 'dim2d_choice'
+change_param_makefile 'ic_choice' 'bubble_transported'
+change_param_input 'ne' '4'
+change_param_input 'ic_choice' 'bubble_transported'
 perform_test $file
 
 
 #test_bf_layer_bc_checks
 file='test_bf_layer_bc_checks'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'bc_N_type_choice' -v 'bc_timedev_choice'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'bc_S_type_choice' -v 'bc_timedev_choice'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'bc_E_type_choice' -v 'bc_timedev_choice'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'bc_W_type_choice' -v 'bc_timedev_choice'
+change_param_input 'bc_N_type_choice' 'bc_timedev_choice'
+change_param_input 'bc_S_type_choice' 'bc_timedev_choice'
+change_param_input 'bc_E_type_choice' 'bc_timedev_choice'
+change_param_input 'bc_W_type_choice' 'bc_timedev_choice'
 perform_test $file
 
 
@@ -78,23 +78,23 @@ perform_test $file
 
 #test_bf_layer_sync
 file=test_bf_layer_sync
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '100'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '150'
+change_param_input 'ntx' '100'
+change_param_input 'nty' '150'
 perform_test $file
 
 
 #test_bf_newgrdpt_prim
 file=test_bf_newgrdpt_prim
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'obc_eigenqties_strategy' -v 'obc_eigenqties_bc'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'ic_choice' -v 'newgrdpt_test'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ic_choice' -v 'newgrdpt_test'
+change_param_input 'obc_eigenqties_strategy' 'obc_eigenqties_bc'
+change_param_makefile 'ic_choice' 'newgrdpt_test'
+change_param_input 'ic_choice' 'newgrdpt_test'
 perform_test $file
 
 
 #test_bf_newgrdpt_procedure
 file=test_bf_newgrdpt_procedure
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'ic_choice' -v 'newgrdpt_test'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ic_choice' -v 'newgrdpt_test'
+change_param_makefile 'ic_choice' 'newgrdpt_test'
+change_param_input 'ic_choice' 'newgrdpt_test'
 perform_test $file
 
 
@@ -105,17 +105,17 @@ perform_test $file
 
 #test_bf_compute_basic
 file=test_bf_compute_basic
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '6'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '6'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne' -v '4'
+change_param_input 'ntx' '6'
+change_param_input 'nty' '6'
+change_param_input 'ne' '4'
 perform_test $file
 
 
 #test_bf_compute_time
 file=test_bf_compute_time
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '6'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '6'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne' -v '4'
+change_param_input 'ntx' '6'
+change_param_input 'nty' '6'
+change_param_input 'ne' '4'
 perform_test $file
 
 
@@ -136,15 +136,15 @@ perform_test $file
 
 #test_bf_mainlayer_print_class
 file=test_bf_mainlayer_print
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '20'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '25'
+change_param_input 'ntx' '20'
+change_param_input 'nty' '25'
 perform_test $file
 
 
 #test_bf_mainlayer_sync_class
 file=test_bf_mainlayer_sync
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '20'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '25'
+change_param_input 'ntx' '20'
+change_param_input 'nty' '25'
 perform_test $file
 
 
@@ -185,40 +185,40 @@ perform_test $file
 
 #test_bf_interface_dyn_class
 file=test_bf_interface_dyn
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '30'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '35'
+change_param_input 'ntx' '30'
+change_param_input 'nty' '35'
 perform_test $file
 
 
 #test_bf_mainlayer_bc_sections_module
 file=test_bf_mainlayer_bc_sections
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '30'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '35'
+change_param_input 'ntx' '30'
+change_param_input 'nty' '35'
 perform_test $file
 
 
 #test_bf_interface_time_class
 file=test_bf_interface_time
 
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice' -v 'wave2d_choice'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'bc_choice' -v 'hedstrom_xy_choice'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'ic_choice' -v 'peak'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ic_choice' -v 'peak'
+change_param_makefile 'pm_choice' 'wave2d_choice'
+change_param_makefile 'bc_choice' 'hedstrom_xy_choice'
+change_param_makefile 'ic_choice' 'peak'
+change_param_input 'ic_choice' 'peak'
 
 #generate one domain results
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '100'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '110'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'  -v '3'
-$config_dir/change_parameter.sh -i $test_dir/test_bf_interface_time.f -o $test_dir/test_bf_interface_time.f -p 'generate_small_domain'  -v '.true.'
+change_param_input 'ntx' '100'
+change_param_input 'nty' '110'
+change_param_input 'ne'  '3'
+$config_dir/change_parameter.sh -i $test_dir/test_bf_interface_time.f -o $test_dir/test_bf_interface_time.f -p 'generate_small_domain'  '.true.'
 make test_bf_interface_time > /dev/null
 ./test_bf_interface_time >/dev/null
 make cleanall > /dev/null
 
 #compare with interior+buffer layer results
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '64'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '54'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'  -v '3'
-$config_dir/change_parameter.sh -i $test_dir/test_bf_interface_time.f -o $test_dir/test_bf_interface_time.f -p 'generate_small_domain'  -v '.false.'
+change_param_input 'ntx' '64'
+change_param_input 'nty' '54'
+change_param_input 'ne'  '3'
+$config_dir/change_parameter.sh -i $test_dir/test_bf_interface_time.f -o $test_dir/test_bf_interface_time.f -p 'generate_small_domain'  '.false.'
 perform_test $file
 
 #remove unnecessary files
@@ -229,13 +229,13 @@ rm nodes1st.out
 
 #test_bf_newgrdpt_dispatch_module
 file=test_bf_newgrdpt_dispatch
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice' -v 'dim2d_choice'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'bc_choice' -v 'hedstrom_xy_choice'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'ic_choice' -v 'newgrdpt_test'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ic_choice' -v 'newgrdpt_test'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '64'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '54'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'  -v '4'
+change_param_makefile 'pm_choice' 'dim2d_choice'
+change_param_makefile 'bc_choice' 'hedstrom_xy_choice'
+change_param_makefile 'ic_choice' 'newgrdpt_test'
+change_param_input 'ic_choice' 'newgrdpt_test'
+change_param_input 'ntx' '64'
+change_param_input 'nty' '54'
+change_param_input 'ne'  '4'
 perform_test $file
 
 
@@ -251,13 +251,13 @@ perform_test $file
 
 #test_mainlayer_interface_newgrdpt
 file=test_mainlayer_interface_newgrdpt
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice' -v 'dim2d_choice'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'bc_choice' -v 'hedstrom_xy_choice'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'ic_choice' -v 'newgrdpt_test'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ic_choice' -v 'newgrdpt_test'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '64'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '54'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'  -v '4'
+change_param_makefile 'pm_choice' 'dim2d_choice'
+change_param_makefile 'bc_choice' 'hedstrom_xy_choice'
+change_param_makefile 'ic_choice' 'newgrdpt_test'
+change_param_input 'ic_choice' 'newgrdpt_test'
+change_param_input 'ntx' '64'
+change_param_input 'nty' '54'
+change_param_input 'ne'  '4'
 perform_test $file
 
 
@@ -318,13 +318,13 @@ perform_test $file
 
 #test_bf_layer_icr_class
 file=test_bf_layer_icr
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice' -v 'wave2d_choice'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'bc_choice' -v 'hedstrom_xy_choice'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'ic_choice' -v 'peak'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ic_choice' -v 'peak'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '64'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '54'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne'  -v '3'
+change_param_makefile 'pm_choice' 'wave2d_choice'
+change_param_makefile 'bc_choice' 'hedstrom_xy_choice'
+change_param_makefile 'ic_choice' 'peak'
+change_param_input 'ic_choice' 'peak'
+change_param_input 'ntx' '64'
+change_param_input 'nty' '54'
+change_param_input 'ne'  '3'
 perform_test $file
 
 

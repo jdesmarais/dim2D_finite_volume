@@ -117,10 +117,10 @@
 
            procedure                , pass           :: apply_bc_on_timedev_nopt
 
-           procedure(tdev_y_edge)   , pass, deferred :: apply_bc_on_timedev_N_edge
-           procedure(tdev_y_edge)   , pass, deferred :: apply_bc_on_timedev_S_edge
-           procedure(tdev_x_edge)   , pass, deferred :: apply_bc_on_timedev_E_edge
-           procedure(tdev_x_edge)   , pass, deferred :: apply_bc_on_timedev_W_edge
+           procedure(tdev_N_edge)   , pass, deferred :: apply_bc_on_timedev_N_edge
+           procedure(tdev_S_edge)   , pass, deferred :: apply_bc_on_timedev_S_edge
+           procedure(tdev_E_edge)   , pass, deferred :: apply_bc_on_timedev_E_edge
+           procedure(tdev_W_edge)   , pass, deferred :: apply_bc_on_timedev_W_edge
            procedure(tdev_xy_corner), pass, deferred :: apply_bc_on_timedev_xy_corner
 
            procedure                , pass           :: compute_timedev_corner
@@ -131,406 +131,268 @@
 
         abstract interface
 
-           !> @author
-           !> Julien L. Desmarais
-           !
-           !> @brief
-           !> compute the time derivatives at (i,j) resulting
-           !> of the application of the boundary condition on
-           !> an y edge: N_edge or S_edge
-           !
-           !> @date
-           !> 21_10_2014 - initial version - J.L. Desmarais
-           !
-           !>@param p_model
-           !> object encapsulating the physical model
-           !
-           !>@param t
-           !> simulation time for boundary conditions depending
-           !> on time
-           !
-           !>@param nodes
-           !> object encapsulating the main variables
-           !
-           !>@param x_map
-           !> coordinates along the x-direction
-           !
-           !>@param y_map
-           !> coordinates along the y-direction
-           !
-           !>@param flux_y
-           !> fluxes along the y-direction
-           !
-           !>@param s_x_L0
-           !> space discretization operator with no grid points
-           !> on the left side
-           !
-           !>@param s_x_L1
-           !> space discretization operator with one grid point
-           !> on the left side
-           !
-           !>@param s_x_R1
-           !> space discretization operator with one grid point
-           !> on the right side
-           !
-           !>@param s_x_R0
-           !> space discretization operator with no grid point
-           !> on the right side
-           !
-           !>@param dx
-           !> space step along the x-direction
-           !
-           !>@param dy
-           !> space step along the y-direction
-           !
-           !>@param j_min
-           !> lower border of the bc_section along the y-direction
-           !
-           !>@param j_max
-           !> upper border of the bc_section along the y-direction
-           !
-           !>@param i_min
-           !> lower border of the bc_section along the x-direction
-           !
-           !>@param timedev
-           !> time derivatives of the grid points
-           !--------------------------------------------------------------
-           subroutine tdev_x_edge(
-     $        this,
-     $        p_model, t,
-     $        nodes, x_map, y_map, flux_y,
-     $        s_x_L0, s_x_L1, s_x_R1, s_x_R0,
-     $        dx, dy,
-     $        j_min, j_max, i_min,
-     $        overlap_type,
-     $        timedev)
+           subroutine tdev_N_edge(
+     $       this,
+     $       t,
+     $       bf_alignment,
+     $       bf_grdpts_id,
+     $       bf_x_map,
+     $       bf_y_map,
+     $       bf_nodes,
+     $       interior_nodes,
+     $       s_y_R1, s_y_R0,
+     $       p_model,
+     $       i_min, i_max, j_min,
+     $       overlap_type,
+     $       flux_x,
+     $       timedev)
+
+            import bc_operators_openbc
+            import ikind
+            import nx,ny,ne
+            import pmodel_eq
+            import rkind
+            import sd_operators_y_oneside_R1
+            import sd_operators_y_oneside_R0
+            
+            class(bc_operators_openbc)         , intent(in)    :: this
+            real(rkind)                        , intent(in)    :: t
+            integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+            integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
+            real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map
+            real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map
+            real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
+            real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+            type(sd_operators_y_oneside_R1)    , intent(in)    :: s_y_R1
+            type(sd_operators_y_oneside_R0)    , intent(in)    :: s_y_R0
+            type(pmodel_eq)                    , intent(in)    :: p_model
+            integer(ikind)                     , intent(in)    :: i_min
+            integer(ikind)                     , intent(in)    :: i_max
+            integer(ikind)                     , intent(in)    :: j_min
+            integer                            , intent(in)    :: overlap_type
+            real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_x
+            real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
            
-             import bc_operators_openbc
-             import pmodel_eq
-             import ikind
-             import rkind
-             import sd_operators_x_oneside_L0
-             import sd_operators_x_oneside_L1
-             import sd_operators_x_oneside_R1
-             import sd_operators_x_oneside_R0
-           
-             class(bc_operators_openbc)     , intent(in)    :: this
-             type(pmodel_eq)                , intent(in)    :: p_model
-             real(rkind)                    , intent(in)    :: t
-             real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
-             real(rkind), dimension(:)      , intent(in)    :: x_map
-             real(rkind), dimension(:)      , intent(in)    :: y_map
-             real(rkind), dimension(:,:,:)  , intent(inout) :: flux_y
-             type(sd_operators_x_oneside_L0), intent(in)    :: s_x_L0
-             type(sd_operators_x_oneside_L1), intent(in)    :: s_x_L1
-             type(sd_operators_x_oneside_R1), intent(in)    :: s_x_R1
-             type(sd_operators_x_oneside_R0), intent(in)    :: s_x_R0
-             real(rkind)                    , intent(in)    :: dx
-             real(rkind)                    , intent(in)    :: dy
-             integer(ikind)                 , intent(in)    :: j_min
-             integer(ikind)                 , intent(in)    :: j_max
-             integer(ikind)                 , intent(in)    :: i_min
-             integer                        , intent(in)    :: overlap_type
-             real(rkind), dimension(:,:,:)  , intent(inout) :: timedev
-           
-           end subroutine tdev_x_edge
+          end subroutine tdev_N_edge
 
 
-           !> @author
-           !> Julien L. Desmarais
-           !
-           !> @brief
-           !> compute the time derivatives at (i,j) resulting
-           !> of the application of the boundary condition on
-           !> an y edge: N_edge or S_edge
-           !
-           !> @date
-           !> 21_10_2014 - initial version - J.L. Desmarais
-           !
-           !>@param p_model
-           !> object encapsulating the physical model
-           !
-           !>@param t
-           !> simulation time for boundary conditions depending
-           !> on time
-           !
-           !>@param nodes
-           !> object encapsulating the main variables
-           !
-           !>@param x_map
-           !> coordinates along the x-direction
-           !
-           !>@param y_map
-           !> coordinates along the y-direction
-           !
-           !>@param flux_x
-           !> fluxes along the x-direction
-           !
-           !>@param s_y_L0
-           !> space discretization operator with no grid points
-           !> on the left side
-           !
-           !>@param s_y_L1
-           !> space discretization operator with one grid point
-           !> on the left side
-           !
-           !>@param s_y_R1
-           !> space discretization operator with one grid point
-           !> on the right side
-           !
-           !>@param s_y_R0
-           !> space discretization operator with no grid point
-           !> on the right side
-           !
-           !>@param dx
-           !> space step along the x-direction
-           !
-           !>@param dy
-           !> space step along the y-direction
-           !
-           !>@param i_min
-           !> lower border of the bc_section along the x-direction
-           !
-           !>@param i_max
-           !> upper border of the bc_section along the x-direction
-           !
-           !>@param j_min
-           !> lower border of the bc_section along the y-direction
-           !
-           !>@param timedev
-           !> time derivatives of the grid points
-           !--------------------------------------------------------------
-           subroutine tdev_y_edge(
-     $        this,
-     $        p_model, t,
-     $        nodes, x_map, y_map, flux_x,
-     $        s_y_L0, s_y_L1, s_y_R1, s_y_R0,
-     $        dx, dy,
-     $        i_min, i_max, j_min,
-     $        overlap_type,
-     $        timedev)
-           
-             import bc_operators_openbc
-             import pmodel_eq
-             import ikind
-             import rkind
-             import sd_operators_y_oneside_L0
-             import sd_operators_y_oneside_L1
-             import sd_operators_y_oneside_R1
-             import sd_operators_y_oneside_R0
-           
-             class(bc_operators_openbc)     , intent(in)    :: this
-             type(pmodel_eq)                , intent(in)    :: p_model
-             real(rkind)                    , intent(in)    :: t
-             real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
-             real(rkind), dimension(:)      , intent(in)    :: x_map
-             real(rkind), dimension(:)      , intent(in)    :: y_map
-             real(rkind), dimension(:,:,:)  , intent(inout) :: flux_x
-             type(sd_operators_y_oneside_L0), intent(in)    :: s_y_L0
-             type(sd_operators_y_oneside_L1), intent(in)    :: s_y_L1
-             type(sd_operators_y_oneside_R1), intent(in)    :: s_y_R1
-             type(sd_operators_y_oneside_R0), intent(in)    :: s_y_R0
-             real(rkind)                    , intent(in)    :: dx
-             real(rkind)                    , intent(in)    :: dy
-             integer(ikind)                 , intent(in)    :: i_min
-             integer(ikind)                 , intent(in)    :: i_max
-             integer(ikind)                 , intent(in)    :: j_min
-             integer                        , intent(in)    :: overlap_type
-             real(rkind), dimension(:,:,:)  , intent(inout) :: timedev
-           
-           end subroutine tdev_y_edge
+          subroutine tdev_S_edge(
+     $       this,
+     $       t,
+     $       bf_alignment,
+     $       bf_grdpts_id,
+     $       bf_x_map,
+     $       bf_y_map,
+     $       bf_nodes,
+     $       interior_nodes,
+     $       s_y_L0, s_y_L1,
+     $       p_model,
+     $       i_min, i_max, j_min,
+     $       overlap_type,
+     $       flux_x,
+     $       timedev)
+
+            import bc_operators_openbc
+            import ikind
+            import nx,ny,ne
+            import pmodel_eq
+            import rkind
+            import sd_operators_y_oneside_L0
+            import sd_operators_y_oneside_L1          
+            
+            class(bc_operators_openbc)         , intent(in)    :: this
+            real(rkind)                        , intent(in)    :: t
+            integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+            integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
+            real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map
+            real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map
+            real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
+            real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+            type(sd_operators_y_oneside_L0)    , intent(in)    :: s_y_L0
+            type(sd_operators_y_oneside_L1)    , intent(in)    :: s_y_L1
+            type(pmodel_eq)                    , intent(in)    :: p_model
+            integer(ikind)                     , intent(in)    :: i_min
+            integer(ikind)                     , intent(in)    :: i_max
+            integer(ikind)                     , intent(in)    :: j_min
+            integer                            , intent(in)    :: overlap_type
+            real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_x
+            real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
+
+          end subroutine tdev_S_edge
 
 
-           !> @author
-           !> Julien L. Desmarais
-           !
-           !> @brief
-           !> compute the time derivatives at (i,j) resulting
-           !> of the application of the boundary condition on
-           !> an xy edge: NE_edge, NW_edge, SE_edge, SW_edge
-           !
-           !> @date
-           !> 26_01_2014 - initial version - J.L. Desmarais
-           !
-           !>@param p_model
-           !> object encapsulating the physical model
-           !
-           !>@param t
-           !> simulation time for boundary conditions depending
-           !> on time
-           !
-           !>@param nodes
-           !> object encapsulating the main variables
-           !
-           !>@param x_map
-           !> coordinates along the x-direction
-           !
-           !>@param y_map
-           !> coordinates along the y-direction
-           !
-           !>@param flux_x
-           !> fluxes along the x-direction
-           !
-           !>@param flux_y
-           !> fluxes along the y-direction
-           !
-           !>@param s_y_L0
-           !> space discretization operator with no grid points
-           !> on the left side
-           !
-           !>@param s_y_L1
-           !> space discretization operator with one grid point
-           !> on the left side
-           !
-           !>@param s_y_R1
-           !> space discretization operator with one grid point
-           !> on the right side
-           !
-           !>@param s_y_R0
-           !> space discretization operator with no grid point
-           !> on the right side
-           !
-           !>@param dx
-           !> space step along the x-direction
-           !
-           !>@param dy
-           !> space step along the y-direction
-           !
-           !>@param i_min
-           !> lower border of the bc_section along the x-direction
-           !
-           !>@param j_min
-           !> lower border of the bc_section along the y-direction
-           !
-           !>@param edge_type
-           !> type of edge (NE_edge_type, NW_edge_type, SE_edge_type,
-           !> SW_edge_type)
-           !
-           !>@param timedev
-           !> time derivatives of the grid points
-           !--------------------------------------------------------------
-           subroutine tdev_xy_edge(
-     $        this,
-     $        p_model,t,
-     $        interior_nodes,
-     $        bf_alignment,
-     $        grdpts_id, nodes, x_map, y_map,
-     $        flux_x, flux_y,
-     $        s_x_L1, s_x_R1,
-     $        s_y_L1, s_y_R1,
-     $        dx, dy,
-     $        bc_section,
-     $        timedev)
+          subroutine tdev_E_edge(
+     $      this,
+     $      t,
+     $      bf_alignment,
+     $      bf_grdpts_id,
+     $      bf_x_map,
+     $      bf_y_map,
+     $      bf_nodes,
+     $      interior_nodes,
+     $      s_x_R1, s_x_R0,
+     $      p_model,
+     $      i_min, j_min, j_max,
+     $      overlap_type,
+     $      flux_y,
+     $      timedev)
            
-             import bc_operators_openbc
-             import pmodel_eq
-             import ikind
-             import rkind
+            import bc_operators_openbc
+            import nx,ny,ne
+            import pmodel_eq
+            import ikind
+            import rkind
+            import sd_operators_x_oneside_R1
+            import sd_operators_x_oneside_R0
+           
+            class(bc_operators_openbc)         , intent(in)    :: this
+            real(rkind)                        , intent(in)    :: t
+            integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+            integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
+            real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map
+            real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map
+            real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
+            real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+            type(sd_operators_x_oneside_R1)    , intent(in)    :: s_x_R1
+            type(sd_operators_x_oneside_R0)    , intent(in)    :: s_x_R0
+            type(pmodel_eq)                    , intent(in)    :: p_model
+            integer(ikind)                     , intent(in)    :: i_min
+            integer(ikind)                     , intent(in)    :: j_min
+            integer(ikind)                     , intent(in)    :: j_max
+            integer                            , intent(in)    :: overlap_type
+            real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_y
+            real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
+           
+          end subroutine tdev_E_edge
 
-             import nx,ny,ne
 
-             import sd_operators_x_oneside_L1
-             import sd_operators_x_oneside_R1
+          subroutine tdev_W_edge(
+     $      this,
+     $      t,
+     $      bf_alignment,
+     $      bf_grdpts_id,
+     $      bf_x_map,
+     $      bf_y_map,
+     $      bf_nodes,
+     $      interior_nodes,
+     $      s_x_L0, s_x_L1,
+     $      p_model,
+     $      i_min, j_min, j_max,
+     $      overlap_type,
+     $      flux_y,
+     $      timedev)
+           
+            import bc_operators_openbc
+            import nx,ny,ne
+            import pmodel_eq
+            import ikind
+            import rkind
+            import sd_operators_x_oneside_L0
+            import sd_operators_x_oneside_L1
+           
+            class(bc_operators_openbc)         , intent(in)    :: this
+            real(rkind)                        , intent(in)    :: t
+            integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+            integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
+            real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map
+            real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map
+            real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
+            real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+            type(sd_operators_x_oneside_L0)    , intent(in)    :: s_x_L0
+            type(sd_operators_x_oneside_L1)    , intent(in)    :: s_x_L1
+            type(pmodel_eq)                    , intent(in)    :: p_model
+            integer(ikind)                     , intent(in)    :: i_min
+            integer(ikind)                     , intent(in)    :: j_min
+            integer(ikind)                     , intent(in)    :: j_max
+            integer                            , intent(in)    :: overlap_type
+            real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_y
+            real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
+           
+         end subroutine tdev_W_edge
 
-             import sd_operators_y_oneside_L1
-             import sd_operators_y_oneside_R1
-           
-             class(bc_operators_openbc)         , intent(in)    :: this
-             type(pmodel_eq)                    , intent(in)    :: p_model
-             real(rkind)                        , intent(in)    :: t
-             real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
-             integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
-             integer       , dimension(:,:)     , intent(in)    :: grdpts_id
-             real(rkind)   , dimension(:,:,:)   , intent(in)    :: nodes
-             real(rkind)   , dimension(:)       , intent(in)    :: x_map
-             real(rkind)   , dimension(:)       , intent(in)    :: y_map
-             real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_x
-             real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_y
-             type(sd_operators_x_oneside_L1)    , intent(in)    :: s_x_L1
-             type(sd_operators_x_oneside_R1)    , intent(in)    :: s_x_R1
-             type(sd_operators_y_oneside_L1)    , intent(in)    :: s_y_L1
-             type(sd_operators_y_oneside_R1)    , intent(in)    :: s_y_R1
-             real(rkind)                        , intent(in)    :: dx
-             real(rkind)                        , intent(in)    :: dy
-             integer    , dimension(5)          , intent(in)    :: bc_section
-             real(rkind), dimension(:,:,:)      , intent(inout) :: timedev
-           
-           end subroutine tdev_xy_edge
 
+         function tdev_xy_corner(
+     $     this,
+     $     t,
+     $     bf_x_map,
+     $     bf_y_map,
+     $     bf_nodes,
+     $     p_model,
+     $     i,j,
+     $     side_x, side_y)
+     $     result(timedev)
+         
+           import bc_operators_openbc
+           import ikind
+           import ne
+           import pmodel_eq
+           import rkind
            
-           !> @author
-           !> Julien L. Desmarais
-           !
-           !> @brief
-           !> compute the time derivatives at (i,j) resulting
-           !> of the application of the boundary condition on
-           !> a corner: SE_corner, SW_corner, NE_corner, NW_corner
-           !
-           !> @date
-           !> 21_10_2014 - initial version - J.L. Desmarais
-           !
-           !>@param p_model
-           !> object encapsulating the physical model
-           !
-           !>@param t
-           !> simulation time for boundary conditions depending
-           !> on time
-           !
-           !>@param nodes
-           !> object encapsulating the main variables
-           !
-           !>@param dx
-           !> grid size along the x-axis
-           !
-           !>@param dy
-           !> grid size along the y-axis
-           !
-           !>@param i
-           !> grid point index along the x-axis
-           !
-           !>@param j
-           !> grid point index along the y-axis
-           !
-           !>@param flux_x
-           !> fluxes along the y-direction
-           !
-           !>@param side_y
-           !> edge side to determine the boundary normal vector
-           !
-           !>@param gradient_y
-           !> procedure to compute the gradient along the y-direction
-           !> at (i,j)
-           !
-           !>@param timedev
-           !> time derivatives of the grid points
-           !--------------------------------------------------------------
-           function tdev_xy_corner(
-     $        this,
-     $        p_model, t,
-     $        nodes, x_map, y_map, i,j,
-     $        side_x, side_y)
-     $        result(timedev)
+           class(bc_operators_openbc)   , intent(in) :: this
+           real(rkind)                  , intent(in) :: t
+           real(rkind), dimension(:)    , intent(in) :: bf_x_map
+           real(rkind), dimension(:)    , intent(in) :: bf_y_map
+           real(rkind), dimension(:,:,:), intent(in) :: bf_nodes
+           type(pmodel_eq)              , intent(in) :: p_model
+           integer(ikind)               , intent(in) :: i
+           integer(ikind)               , intent(in) :: j
+           logical                      , intent(in) :: side_x
+           logical                      , intent(in) :: side_y
+           real(rkind), dimension(ne)                :: timedev
            
-             import bc_operators_openbc
-             import gradient_proc
-             import ikind
-             import ne
-             import pmodel_eq
-             import rkind
+         end function tdev_xy_corner
+
+
+         subroutine tdev_xy_edge(
+     $     this,
+     $     t,
+     $     bf_alignment,
+     $     bf_grdpts_id,
+     $     bf_x_map,
+     $     bf_y_map,
+     $     bf_nodes,
+     $     interior_nodes,
+     $     s_x_L1,
+     $     s_x_R1,
+     $     s_y_L1,
+     $     s_y_R1,
+     $     p_model,
+     $     bc_section,
+     $     flux_x,
+     $     flux_y,
+     $     timedev)
            
-             class(bc_operators_openbc)   , intent(in) :: this
-             type(pmodel_eq)              , intent(in) :: p_model
-             real(rkind)                  , intent(in) :: t
-             real(rkind), dimension(:,:,:), intent(in) :: nodes
-             real(rkind), dimension(:)    , intent(in) :: x_map
-             real(rkind), dimension(:)    , intent(in) :: y_map
-             integer(ikind)               , intent(in) :: i
-             integer(ikind)               , intent(in) :: j
-             logical                      , intent(in) :: side_x
-             logical                      , intent(in) :: side_y
-             real(rkind), dimension(ne)                :: timedev
+           import bc_operators_openbc
+           import pmodel_eq
+           import ikind
+           import rkind
+
+           import nx,ny,ne
+
+           import sd_operators_x_oneside_L1
+           import sd_operators_x_oneside_R1
+           import sd_operators_y_oneside_L1
+           import sd_operators_y_oneside_R1
            
-           end function tdev_xy_corner
+           class(bc_operators_openbc)         , intent(in)    :: this
+           real(rkind)                        , intent(in)    :: t
+           integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+           integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
+           real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map
+           real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map
+           real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
+           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+           type(sd_operators_x_oneside_L1)    , intent(in)    :: s_x_L1
+           type(sd_operators_x_oneside_R1)    , intent(in)    :: s_x_R1
+           type(sd_operators_y_oneside_L1)    , intent(in)    :: s_y_L1
+           type(sd_operators_y_oneside_R1)    , intent(in)    :: s_y_R1
+           type(pmodel_eq)                    , intent(in)    :: p_model
+           integer       , dimension(5)       , intent(in)    :: bc_section
+           real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_x
+           real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_y
+           real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
+           
+         end subroutine tdev_xy_edge
 
         end interface
 
@@ -539,30 +401,33 @@
         !apply the boundary conditions on the time derivatives
         subroutine apply_bc_on_timedev_nopt(
      $       this,
-     $       p_model, t,
-     $       interior_nodes,
+     $       t,
      $       bf_alignment,
-     $       nodes, x_map, y_map,
+     $       bf_grdpts_id,
+     $       bf_x_map,
+     $       bf_y_map,
+     $       bf_nodes,
+     $       interior_nodes,
+     $       p_model,
      $       flux_x, flux_y,
-     $       timedev,
      $       bc_sections,
-     $       grdpts_id)
+     $       timedev)
         
           implicit none
 
           class(bc_operators_openbc)                     , intent(in)    :: this
-          type(pmodel_eq)                                , intent(in)    :: p_model
           real(rkind)                                    , intent(in)    :: t
-          real(rkind)   , dimension(nx,ny,ne)            , intent(in)    :: interior_nodes
           integer(ikind), dimension(2,2)                 , intent(in)    :: bf_alignment
-          real(rkind)   , dimension(:,:,:)               , intent(in)    :: nodes
-          real(rkind)   , dimension(:)                   , intent(in)    :: x_map
-          real(rkind)   , dimension(:)                   , intent(in)    :: y_map
+          integer       , dimension(:,:)                 , intent(in)    :: bf_grdpts_id
+          real(rkind)   , dimension(:)                   , intent(in)    :: bf_x_map
+          real(rkind)   , dimension(:)                   , intent(in)    :: bf_y_map
+          real(rkind)   , dimension(:,:,:)               , intent(in)    :: bf_nodes
+          real(rkind)   , dimension(nx,ny,ne)            , intent(in)    :: interior_nodes
+          type(pmodel_eq)                                , intent(in)    :: p_model
           real(rkind)   , dimension(:,:,:)               , intent(inout) :: flux_x
           real(rkind)   , dimension(:,:,:)               , intent(inout) :: flux_y
-          real(rkind)   , dimension(:,:,:)               , intent(inout) :: timedev
           integer(ikind), dimension(:,:)    , allocatable, intent(in)    :: bc_sections
-          integer       , dimension(:,:)    , optional   , intent(in)    :: grdpts_id
+          real(rkind)   , dimension(:,:,:)               , intent(inout) :: timedev
 
           
           !spatial discretisation operators
@@ -590,8 +455,8 @@
           !grid points are computed
           if(allocated(bc_sections)) then
           
-             dx = x_map(2) - x_map(1)
-             dy = y_map(2) - y_map(1)
+             dx = bf_x_map(2) - bf_x_map(1)
+             dy = bf_y_map(2) - bf_y_map(1)
 
 
              !go through the boundary layers
@@ -613,7 +478,7 @@
 
                      j_min = bc_sections(3,k)
 
-                     compute_edge = compute_edge_N(y_map(j_min),bc_timedev_choice)
+                     compute_edge = compute_edge_N(bf_y_map(j_min),bc_timedev_choice)
                   
                      !determine the extent of the edge from the
                      !bc_section
@@ -623,15 +488,18 @@
                         i_max = bc_sections(4,k)
 
                         call this%apply_bc_on_timedev_N_edge(
-     $                       p_model,
-     $                       t, nodes,
-     $                       x_map, y_map,
-     $                       flux_x,
-     $                       s_y_L0, s_y_L1,
+     $                       t,
+     $                       bf_alignment,
+     $                       bf_grdpts_id,
+     $                       bf_x_map,
+     $                       bf_y_map,
+     $                       bf_nodes,
+     $                       interior_nodes,
      $                       s_y_R1, s_y_R0,
-     $                       dx, dy,
+     $                       p_model,
      $                       i_min, i_max, j_min,
      $                       overlap_type,
+     $                       flux_x,
      $                       timedev)
                   
                      end if
@@ -645,7 +513,7 @@
                   
                      j_min = bc_sections(3,k)
                   
-                     compute_edge = compute_edge_S(y_map(j_min+1),bc_timedev_choice)
+                     compute_edge = compute_edge_S(bf_y_map(j_min+1),bc_timedev_choice)
                   
                      !determine the extent of the edge from the
                      !bc_section
@@ -655,16 +523,19 @@
                         i_max = bc_sections(4,k)
                   
                         call this%apply_bc_on_timedev_S_edge(
-     $                       p_model,
-     $                       t,nodes,
-     $                       x_map, y_map,
-     $                       flux_x,
+     $                       t,
+     $                       bf_alignment,
+     $                       bf_grdpts_id,
+     $                       bf_x_map,
+     $                       bf_y_map,
+     $                       bf_nodes,
+     $                       interior_nodes,
      $                       s_y_L0, s_y_L1,
-     $                       s_y_R1, s_y_R0,
-     $                       dx,dy,
+     $                       p_model,
      $                       i_min, i_max, j_min,
      $                       overlap_type,
-     $                       timedev)                        
+     $                       flux_x,
+     $                       timedev)
                   
                      end if
 
@@ -677,7 +548,7 @@
                   
                      i_min = bc_sections(2,k)
                   
-                     compute_edge = compute_edge_E(x_map(i_min),bc_timedev_choice)
+                     compute_edge = compute_edge_E(bf_x_map(i_min),bc_timedev_choice)
                   
                      !determine the extent of the edge from the
                      !bc_section and compute the fluxes
@@ -687,15 +558,18 @@
                         j_max = bc_sections(4,k)
                   
                         call this%apply_bc_on_timedev_E_edge(
-     $                       p_model,
-     $                       t,nodes,
-     $                       x_map, y_map,
-     $                       flux_y,
-     $                       s_x_L0, s_x_L1,
+     $                       t,
+     $                       bf_alignment,
+     $                       bf_grdpts_id,
+     $                       bf_x_map,
+     $                       bf_y_map,
+     $                       bf_nodes,
+     $                       interior_nodes,
      $                       s_x_R1, s_x_R0,
-     $                       dx,dy,
-     $                       j_min, j_max, i_min,
+     $                       p_model,
+     $                       i_min, j_min, j_max,
      $                       overlap_type,
+     $                       flux_y,
      $                       timedev)
                   
                      end if
@@ -709,7 +583,7 @@
                   
                      i_min = bc_sections(2,k)
                   
-                     compute_edge = compute_edge_W(x_map(i_min+1),bc_timedev_choice)
+                     compute_edge = compute_edge_W(bf_x_map(i_min+1),bc_timedev_choice)
                   
                      !determine the extent of the edge from the
                      !bc_section
@@ -719,18 +593,22 @@
                         j_max = bc_sections(4,k)
                   
                         call this%apply_bc_on_timedev_W_edge(
-     $                       p_model,
-     $                       t,nodes,
-     $                       x_map, y_map,
-     $                       flux_y,
+     $                       t,
+     $                       bf_alignment,
+     $                       bf_grdpts_id,
+     $                       bf_x_map,
+     $                       bf_y_map,
+     $                       bf_nodes,
+     $                       interior_nodes,
      $                       s_x_L0, s_x_L1,
-     $                       s_x_R1, s_x_R0,
-     $                       dx,dy,
-     $                       j_min, j_max, i_min,
+     $                       p_model,
+     $                       i_min, j_min, j_max,
      $                       overlap_type,
+     $                       flux_y,
      $                       timedev)
                   
                      end if
+
 
                   ! corner type bc_section
                   case(NE_corner_type,
@@ -739,8 +617,11 @@
      $                 SW_corner_type)
 
                     call this%compute_timedev_corner(
+     $                 t,
+     $                 bf_x_map,
+     $                 bf_y_map,
+     $                 bf_nodes,
      $                 p_model,
-     $                 t,nodes,x_map,y_map,
      $                 bc_sections(:,k),
      $                 timedev)
 
@@ -752,17 +633,23 @@
      $                 SW_edge_type)
 
                     call this%compute_timedev_anti_corner(
-     $                 p_model,t,
-     $                 interior_nodes,
+     $                 t,
      $                 bf_alignment,
-     $                 grdpts_id,nodes,x_map,y_map,
-     $                 flux_x,flux_y,
-     $                 s_x_L1, s_x_R1,
-     $                 s_y_L1, s_y_R1,
-     $                 dx, dy,
+     $                 bf_grdpts_id,
+     $                 bf_x_map,
+     $                 bf_y_map,
+     $                 bf_nodes,
+     $                 interior_nodes,
+     $                 s_x_L1,
+     $                 s_x_R1,
+     $                 s_y_L1,
+     $                 s_y_R1,
+     $                 p_model,
      $                 bc_sections(:,k),
+     $                 flux_x,
+     $                 flux_y,
      $                 timedev)
-                     
+
 
                   case default
                      call error_bc_section_type(
@@ -814,19 +701,22 @@
         !--------------------------------------------------------------
         subroutine compute_timedev_corner(
      $     this,
-     $     p_model, t,
-     $     nodes, x_map, y_map,
+     $     t,
+     $     bf_x_map,
+     $     bf_y_map,
+     $     bf_nodes,
+     $     p_model,
      $     bc_section,
      $     timedev)
         
           implicit none
         
-          class(bc_operators_openbc)      , intent(in)    :: this
-          type(pmodel_eq)                , intent(in)    :: p_model
+          class(bc_operators_openbc)     , intent(in)    :: this
           real(rkind)                    , intent(in)    :: t
-          real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
-          real(rkind), dimension(:)      , intent(in)    :: x_map
-          real(rkind), dimension(:)      , intent(in)    :: y_map
+          real(rkind), dimension(:)      , intent(in)    :: bf_x_map
+          real(rkind), dimension(:)      , intent(in)    :: bf_y_map
+          real(rkind), dimension(:,:,:)  , intent(in)    :: bf_nodes
+          type(pmodel_eq)                , intent(in)    :: p_model
           integer    , dimension(5)      , intent(in)    :: bc_section
           real(rkind), dimension(:,:,:)  , intent(inout) :: timedev
           
@@ -845,8 +735,8 @@
             case(SW_corner_type)
 
                compute_edge =
-     $              compute_edge_S(y_map(j_min+1),bc_timedev_choice).and.
-     $              compute_edge_W(x_map(i_min+1),bc_timedev_choice)
+     $              compute_edge_S(bf_y_map(j_min+1),bc_timedev_choice).and.
+     $              compute_edge_W(bf_x_map(i_min+1),bc_timedev_choice)
 
                side_x = left
                side_y = left
@@ -855,8 +745,8 @@
             case(SE_corner_type)
                
                compute_edge =
-     $              compute_edge_S(y_map(j_min+1),bc_timedev_choice).and.
-     $              compute_edge_E(x_map(i_min),bc_timedev_choice)
+     $              compute_edge_S(bf_y_map(j_min+1),bc_timedev_choice).and.
+     $              compute_edge_E(bf_x_map(i_min),bc_timedev_choice)
                
                side_x = right
                side_y = left
@@ -865,8 +755,8 @@
             case(NW_corner_type)
 
                compute_edge =
-     $              compute_edge_N(y_map(j_min),bc_timedev_choice).and.
-     $              compute_edge_W(x_map(i_min),bc_timedev_choice)
+     $              compute_edge_N(bf_y_map(j_min),bc_timedev_choice).and.
+     $              compute_edge_W(bf_x_map(i_min),bc_timedev_choice)
                
                side_x = left
                side_y = right
@@ -875,8 +765,8 @@
             case(NE_corner_type)
 
                compute_edge =
-     $              compute_edge_N(y_map(j_min),bc_timedev_choice).and.
-     $              compute_edge_E(x_map(i_min),bc_timedev_choice)
+     $              compute_edge_N(bf_y_map(j_min),bc_timedev_choice).and.
+     $              compute_edge_E(bf_x_map(i_min),bc_timedev_choice)
                
                side_x = right
                side_y = right
@@ -900,10 +790,13 @@
              
              call compute_timedev_corner_pts(
      $            this,
+     $            t,
+     $            bf_x_map,
+     $            bf_y_map,
+     $            bf_nodes,
      $            p_model,
-     $            t,nodes,x_map,y_map,
-     $            side_x, side_y,
      $            i_min, j_min,
+     $            side_x, side_y,
      $            compute_point,
      $            timedev)
 
@@ -963,25 +856,28 @@
         !--------------------------------------------------------------
         subroutine compute_timedev_corner_pts(
      $     this,
+     $     t,
+     $     bf_x_map,
+     $     bf_y_map,
+     $     bf_nodes,
      $     p_model,
-     $     t,nodes,x_map,y_map,
-     $     side_x, side_y,
      $     i_min, j_min,
+     $     side_x, side_y,
      $     compute_point,
      $     timedev)
 
           implicit none
 
           class(bc_operators_openbc)     , intent(in)    :: this
-          type(pmodel_eq)                , intent(in)    :: p_model
           real(rkind)                    , intent(in)    :: t
-          real(rkind), dimension(:,:,:)  , intent(in)    :: nodes
-          real(rkind), dimension(:)      , intent(in)    :: x_map
-          real(rkind), dimension(:)      , intent(in)    :: y_map
-          logical                        , intent(in)    :: side_x
-          logical                        , intent(in)    :: side_y
+          real(rkind), dimension(:)      , intent(in)    :: bf_x_map
+          real(rkind), dimension(:)      , intent(in)    :: bf_y_map
+          real(rkind), dimension(:,:,:)  , intent(in)    :: bf_nodes
+          type(pmodel_eq)                , intent(in)    :: p_model
           integer(ikind)                 , intent(in)    :: i_min
           integer(ikind)                 , intent(in)    :: j_min
+          logical                        , intent(in)    :: side_x
+          logical                        , intent(in)    :: side_y
           integer    , dimension(4)      , intent(in)    :: compute_point
           real(rkind), dimension(:,:,:)  , intent(inout) :: timedev
 
@@ -994,10 +890,13 @@
              i=i_min
              j=j_min
 
-             timedev(i,j,:) =
-     $            this%apply_bc_on_timedev_xy_corner(
+             timedev(i,j,:) = this%apply_bc_on_timedev_xy_corner(
+     $            t,
+     $            bf_x_map,
+     $            bf_y_map,
+     $            bf_nodes,
      $            p_model,
-     $            t,nodes,x_map,y_map,i,j,
+     $            i,j,
      $            side_x, side_y)
 
           end if
@@ -1007,10 +906,13 @@
              i=i_min+1
              j=j_min
 
-             timedev(i,j,:) =
-     $            this%apply_bc_on_timedev_xy_corner(
+             timedev(i,j,:) = this%apply_bc_on_timedev_xy_corner(
+     $            t,
+     $            bf_x_map,
+     $            bf_y_map,
+     $            bf_nodes,
      $            p_model,
-     $            t,nodes,x_map,y_map,i,j,
+     $            i,j,
      $            side_x, side_y)
 
           end if
@@ -1020,10 +922,13 @@
              i=i_min
              j=j_min+1
 
-             timedev(i,j,:) =
-     $            this%apply_bc_on_timedev_xy_corner(
+             timedev(i,j,:) = this%apply_bc_on_timedev_xy_corner(
+     $            t,
+     $            bf_x_map,
+     $            bf_y_map,
+     $            bf_nodes,
      $            p_model,
-     $            t,nodes,x_map,y_map,i,j,
+     $            i,j,
      $            side_x, side_y)
 
           end if
@@ -1033,10 +938,13 @@
              i=i_min+1
              j=j_min+1
 
-             timedev(i,j,:) =
-     $            this%apply_bc_on_timedev_xy_corner(
+             timedev(i,j,:) = this%apply_bc_on_timedev_xy_corner(
+     $            t,
+     $            bf_x_map,
+     $            bf_y_map,
+     $            bf_nodes,
      $            p_model,
-     $            t,nodes,x_map,y_map,i,j,
+     $            i,j,
      $            side_x, side_y)
 
           end if

@@ -21,11 +21,15 @@
      $       NW_corner_type,
      $       SE_corner_type,
      $       SW_corner_type,
-     $       no_overlap
+     $       no_overlap,
+     $       align_N, align_S,
+     $       align_E, align_W
 
         use parameters_constant, only :
      $       vector_x,
-     $       vector_y
+     $       vector_y,
+     $       left,
+     $       right
 
         use parameters_input, only :
      $       nx,ny,ne
@@ -80,13 +84,814 @@
         call check_inputs()
 
 
+        test_loc = test_compute_fluxes_x_for_bc_y_edge(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_compute_fluxes_x_for_bc_y_edge: '',L1)', test_loc
+        print '()'
+
+
+        test_loc = test_compute_fluxes_y_for_bc_x_edge(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_compute_fluxes_y_for_bc_x_edge: '',L1)', test_loc
+        print '()'
+
+
         test_loc = test_apply_bc_on_timedev_edge(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_apply_bc_on_timedev_edge: '',L1)', test_loc
         print '()'
 
+        print '(''test_validated: '',L1)', test_validated
+
 
         contains
+
+
+        function test_compute_fluxes_x_for_bc_y_edge(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          type(bc_operators)                 :: bc_operators_openbc_normal_used
+          type(pmodel_eq)                    :: p_model
+          real(rkind)                        :: t          
+          type(sd_operators_x_oneside_L0)    :: s_x_L0
+          type(sd_operators_x_oneside_L1)    :: s_x_L1
+          type(sd_operators_x_oneside_R1)    :: s_x_R1
+          type(sd_operators_x_oneside_R0)    :: s_x_R0
+          type(sd_operators_y_oneside_L0)    :: s_y_L0
+          type(sd_operators_y_oneside_L1)    :: s_y_L1
+          type(sd_operators_y_oneside_R1)    :: s_y_R1
+          type(sd_operators_y_oneside_R0)    :: s_y_R0  
+          real(rkind)                        :: dx
+          real(rkind)                        :: dy
+          integer(ikind)                     :: i_min
+          integer(ikind)                     :: i_max
+          integer(ikind)                     :: j_min
+          
+          real(rkind)   , dimension(nx)         :: interior_x_map
+          real(rkind)   , dimension(ny)         :: interior_y_map
+          real(rkind)   , dimension(nx,ny,ne)   :: interior_nodes
+          real(rkind)   , dimension(nx+1,ny,ne) :: flux_x_ref
+          real(rkind)   , dimension(nx,ny+1,ne) :: flux_y_ref
+          
+          integer(ikind), dimension(2,2)    :: bf_alignment
+          integer       , dimension(6,5)    :: bf_grdpts_id
+          real(rkind)   , dimension(6)      :: bf_x_map
+          real(rkind)   , dimension(5)      :: bf_y_map
+          real(rkind)   , dimension(6,5,ne) :: bf_nodes
+          real(rkind)   , dimension(7,5,ne) :: bf_flux_x
+
+
+          integer :: i,j,k
+
+          test_validated = .true.
+
+
+          !N_edge: left missing grid-points
+          !============================================================
+          ! in this test, we want to compare the computation of the
+          ! fluxes by the buffer layer where only a limited number of
+          ! grid-points are available (and so require to extract nodes
+          ! from the interior domain) with the reference function
+          ! computing the fluxes directly from the interior nodes
+          !           _________________
+          !          |     |     |     | ____ north buffer layer
+          !     _____|_____|_____|_____|
+          !    |/////////////////|__________ interior_domain
+          !    |//|__|__|__|__|//|
+          !    |//|           |//|
+          !    |//|           |//|
+          !
+          !initialize the nodes
+          call p_model%initial_conditions%ini_far_field()
+
+          t=0.0d0
+          
+          interior_x_map = [0.5d0, 1.5d0 , 2.5d0,  3.5d0, 4.5d0, 5.5d0 ]
+          interior_y_map = [0.0d0, 0.25d0, 0.5d0, 0.75d0, 1.0d0, 1.25d0]
+
+          interior_nodes = reshape((/
+     $         1.48d0, 1.30d0, 1.35d0, 1.31d0, 1.43d0, 1.31d0,
+     $         1.26d0, 1.45d0, 1.40d0, 1.29d0, 1.37d0, 1.41d0,
+     $         1.46d0, 1.27d0, 1.47d0, 1.28d0, 1.25d0, 1.43d0,
+     $         1.48d0, 1.26d0, 1.41d0, 1.34d0, 1.31d0, 1.39d0,
+     $         1.42d0, 1.46d0, 1.38d0, 1.26d0, 1.37d0, 1.33d0,
+     $         1.41d0, 1.22d0, 1.42d0, 1.23d0, 1.21d0, 1.40d0,
+     $         
+     $         0.128d0, 0.127d0, 0.142d0, 0.129d0, 0.136d0, 0.124d0,
+     $         1.138d0, 0.148d0, 0.132d0, 0.125d0, 0.175d0, 0.123d0,
+     $         0.146d0, 0.143d0, 0.145d0, 0.182d0, 0.135d0, 0.154d0,
+     $         0.123d0, 0.129d0, 0.124d0, 0.162d0, 0.152d0, 0.142d0,
+     $         0.168d0, 0.198d0, 0.186d0, 0.163d0, 0.126d0, 0.168d0,
+     $         0.164d0, 0.134d0, 0.154d0, 0.128d0, 0.153d0, 0.145d0,
+     $         
+     $         0.0050d0, 0.020d0, 0.060d0, 0.056d0, 0.062d0, 0.062d0,
+     $         0.0025d0, 0.001d0, 0.015d0, 0.070d0, 0.085d0, 0.011d0,
+     $         0.0100d0, 0.002d0, 0.050d0, 0.080d0, 0.015d0, 0.057d0,
+     $         0.0800d0, 0.015d0, 0.090d0, 0.065d0, 0.042d0, 0.067d0,
+     $         0.0260d0, 0.030d0, 0.045d0, 0.052d0, 0.023d0, 0.051d0,
+     $         0.0200d0, 0.012d0, 0.098d0, 0.056d0, 0.024d0, 0.090d0,
+     $         
+     $         4.88d0, 4.870d0,	4.855d0, 4.834d0, 4.592d0, 4.834d0,
+     $         4.85d0, 4.865d0, 4.845d0, 4.875d0, 4.815d0, 4.875d0,
+     $         4.89d0, 4.870d0, 4.860d0, 4.826d0, 4.723d0, 4.826d0,
+     $         4.83d0, 4.950d0, 4.620d0, 4.952d0, 4.852d0, 4.952d0,
+     $         4.81d0, 4.758d0, 4.762d0, 4.950d0, 4.703d0, 4.950d0,
+     $         4.98d0, 4.780d0, 4.608d0, 4.628d0, 4.237d0, 4.862d0
+     $         /),
+     $         (/6,6,ne/))
+
+          bf_alignment = reshape((/
+     $         align_E,align_N,align_E+1,align_N/),
+     $         (/2,2/))
+
+          bf_grdpts_id = reshape((/
+     $         1,1,2,3,0,0,
+     $         1,1,2,3,0,0,
+     $         2,2,2,3,0,0,
+     $         3,3,3,3,0,0,
+     $         0,0,0,0,0,0/),
+     $         (/6,5/))
+
+          bf_x_map = [2.5d0,  3.5d0, 4.5d0, 5.5d0, 6.5d0, 7.5d0 ]
+          bf_y_map = [0.5d0, 0.75d0, 1.0d0, 1.25d0, 1.50d0]
+
+          bf_nodes = reshape((/
+     $         1.47d0, 1.28d0, 1.25d0, 1.43d0, -99.0d0, -99.0d0,
+     $         1.41d0, 1.34d0, 1.31d0, 1.39d0, -99.0d0, -99.0d0,
+     $         1.38d0, 1.26d0, 1.37d0, 1.33d0, -99.0d0, -99.0d0,
+     $         1.42d0, 1.23d0, 1.21d0, 1.40d0, -99.0d0, -99.0d0,
+     $        -99.0d0,-99.0d0,-99.0d0,-99.0d0, -99.0d0, -99.0d0,
+     $         
+     $         0.145d0, 0.182d0, 0.135d0, 0.154d0, -99.0d0, -99.0d0,
+     $         0.124d0, 0.162d0, 0.152d0, 0.142d0, -99.0d0, -99.0d0,
+     $         0.186d0, 0.163d0, 0.126d0, 0.168d0, -99.0d0, -99.0d0,
+     $         0.154d0, 0.128d0, 0.153d0, 0.145d0, -99.0d0, -99.0d0,
+     $         -99.0d0, -99.0d0, -99.0d0, -99.0d0, -99.0d0, -99.0d0,
+     $         
+     $         0.050d0,  0.08d0, 0.015d0, 0.057d0, -99.0d0, -99.0d0,
+     $         0.090d0, 0.065d0, 0.042d0, 0.067d0, -99.0d0, -99.0d0,
+     $         0.045d0, 0.052d0, 0.023d0, 0.051d0, -99.0d0, -99.0d0,
+     $         0.098d0, 0.056d0, 0.024d0, 0.090d0, -99.0d0, -99.0d0,
+     $         -99.0d0, -99.0d0, -99.0d0, -99.0d0, -99.0d0, -99.0d0,
+     $         
+     $         4.860d0, 4.826d0, 4.723d0, 4.826d0, -99.0d0, -99.0d0,
+     $         4.620d0, 4.952d0, 4.852d0, 4.952d0, -99.0d0, -99.0d0,
+     $         4.762d0, 4.950d0, 4.703d0, 4.950d0, -99.0d0, -99.0d0,
+     $         4.608d0, 4.628d0, 4.237d0, 4.862d0, -99.0d0, -99.0d0,
+     $         -99.0d0, -99.0d0, -99.0d0, -99.0d0, -99.0d0, -99.0d0
+     $         /),
+     $         (/6,5,ne/))
+
+          dx = bf_x_map(2) - bf_x_map(1)
+          dy = bf_y_map(2) - bf_y_map(1)
+
+
+          ! verify that the nodes are correctly initialized
+          test_loc = is_real_matrix3D_validated(
+     $         interior_nodes(3:6,3:6,:),
+     $         bf_nodes(1:4,1:4,:),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''bf_nodes and interior_nodes not matching'')'
+          end if
+
+
+          ! compute the reference fluxes
+          call compute_fluxes_at_the_edges_2ndorder(
+     $         interior_nodes,dx,dy,
+     $         s_x_L0,s_x_L1,s_x_R1,s_x_R0,
+     $         s_y_L0,s_y_L1,s_y_R1,s_y_R0,
+     $         p_model,
+     $         flux_x_ref,flux_y_ref)
+
+
+          ! computation of the fluxes using the buffer layer
+          i_min = 1
+          i_max = 3
+          j_min = 3
+
+          call bc_operators_openbc_normal_used%compute_fluxes_x_for_bc_y_edge(
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         bf_nodes,
+     $         interior_nodes,
+     $         dx,dy,
+     $         s_y_R1,s_y_R0,
+     $         p_model,
+     $         i_min, i_max, j_min,
+     $         [.true.,.true.],
+     $         bf_flux_x)
+
+          ! validation
+          test_loc = is_real_matrix3D_validated(
+     $         bf_flux_x(1:3,3:4,:),
+     $         flux_x_ref(3:5,5:6,:),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''flux N left failed'')'
+          end if
+
+
+          !N_edge: right missing grid-points
+          !============================================================
+          ! in this test, we want to compare the computation of the
+          ! fluxes by the buffer layer where only a limited number of
+          ! grid-points are available (and so require to extract nodes
+          ! from the interior domain) with the reference function
+          ! computing the fluxes directly from the interior nodes
+          !        _________________
+          !       |     |     |     | ____ north buffer layer
+          !       |_____|_____|_____|______
+          !             |/////////////////|__________ interior_domain
+          !             |//|__|__|__|__|//|
+          !             |//|           |//|
+          !             |//|           |//|
+          !
+          !initialize the nodes
+          bf_alignment = reshape((/
+     $         align_W-1,align_N,align_W,align_N/),
+     $         (/2,2/))
+
+          bf_grdpts_id = reshape((/
+     $         0,0,3,2,1,1,
+     $         0,0,3,2,1,1,
+     $         0,0,3,2,2,2,
+     $         0,0,3,3,3,3,
+     $         0,0,0,0,0,0/),
+     $         (/6,5/))
+
+          bf_x_map = [-1.5d0, -0.5d0, 0.5d0, 1.5d0, 2.5d0, 3.5d0]
+          bf_y_map = [0.5d0, 0.75d0, 1.0d0, 1.25d0, 1.50d0]
+
+          bf_nodes = reshape((/
+     $         (((-99.0d0,i=1,6),j=1,5),k=1,ne)/),
+     $         (/6,5,ne/))
+          
+          bf_nodes(3:6,1:4,:) = interior_nodes(1:4,3:6,:)
+
+          dx = bf_x_map(2) - bf_x_map(1)
+          dy = bf_y_map(2) - bf_y_map(1)
+
+
+          ! computation of the fluxes using the buffer layer
+          i_min = 5
+          i_max = 7
+          j_min = 3
+
+          call bc_operators_openbc_normal_used%compute_fluxes_x_for_bc_y_edge(
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         bf_nodes,
+     $         interior_nodes,
+     $         dx,dy,
+     $         s_y_R1,s_y_R0,
+     $         p_model,
+     $         i_min, i_max, j_min,
+     $         [.true.,.true.],
+     $         bf_flux_x)
+
+          ! validation
+          test_loc = is_real_matrix3D_validated(
+     $         bf_flux_x(5:7,3:4,:),
+     $         flux_x_ref(3:5,5:6,:),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''flux N right failed'')'
+          end if
+
+
+          !S_edge: left missing grid-points
+          !============================================================
+          ! in this test, we want to compare the computation of the
+          ! fluxes by the buffer layer where only a limited number of
+          ! grid-points are available (and so require to extract nodes
+          ! from the interior domain) with the reference function
+          ! computing the fluxes directly from the interior nodes
+          !                             
+          !    |//|           |//|__________ interior_domain
+          !    |//|__ __ __ __|//|
+          !    |//|__|__|__|__|//|
+          !    |/////////////////|________
+          !             |     |     |     |__south buffer layer
+          !             |_____|_____|_____|
+          !
+          !initialize the nodes
+          bf_alignment = reshape((/
+     $         align_E,align_S,align_E+1,align_S/),
+     $         (/2,2/))
+
+          bf_grdpts_id = reshape((/
+     $         0,0,0,0,0,0,
+     $         3,3,3,3,0,0,
+     $         2,2,2,3,0,0,
+     $         1,1,2,3,0,0,
+     $         1,1,2,3,0,0/),
+     $         (/6,5/))
+
+          bf_x_map = [2.5d0,  3.5d0, 4.5d0, 5.5d0, 6.5d0, 7.5d0 ]
+          bf_y_map = [0.25d0, 0.5d0, 0.75d0, 1.0d0, 1.25d0]
+
+          dx = bf_x_map(2) - bf_x_map(1)
+          dy = bf_y_map(2) - bf_y_map(1)
+
+          bf_nodes(1:4,2:5,:) = interior_nodes(3:6,1:4,:)
+
+          ! computation of the fluxes using the buffer layer
+          i_min = 1
+          i_max = 3
+          j_min = 2
+
+          call bc_operators_openbc_normal_used%compute_fluxes_x_for_bc_y_edge(
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         bf_nodes,
+     $         interior_nodes,
+     $         dx,dy,
+     $         s_y_L0,s_y_L1,
+     $         p_model,
+     $         i_min, i_max, j_min,
+     $         [.true.,.true.],
+     $         bf_flux_x)
+
+          ! validation
+          test_loc = is_real_matrix3D_validated(
+     $         bf_flux_x(1:3,2:3,:),
+     $         flux_x_ref(3:5,1:2,:),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''flux S left failed'')'
+          end if
+
+
+          !S_edge: right missing grid-points
+          !============================================================
+          ! in this test, we want to compare the computation of the
+          ! fluxes by the buffer layer where only a limited number of
+          ! grid-points are available (and so require to extract nodes
+          ! from the interior domain) with the reference function
+          ! computing the fluxes directly from the interior nodes
+          !                                   
+          !          |//|           |//|__________ interior_domain
+          !          |//|__ __ __ __|//|
+          !          |//|__|__|__|__|//|
+          !     _____|/////////////////|
+          !    |     |     |     |________________south buffer layer
+          !    |_____|_____|_____|
+          !          
+          !initialize the nodes
+          bf_alignment = reshape((/
+     $         align_W-1,align_S,align_W,align_S/),
+     $         (/2,2/))
+
+          bf_grdpts_id = reshape((/
+     $         0,0,0,0,0,0,
+     $         0,0,3,3,3,3,
+     $         0,0,3,2,2,2,
+     $         0,0,3,2,1,1,
+     $         0,0,3,2,1,1/),
+     $         (/6,5/))
+
+          bf_x_map = [-1.5d0, -0.5d0, 0.5d0, 1.5d0, 2.5d0,  3.5d0]
+          bf_y_map = [0.25d0, 0.5d0, 0.75d0, 1.0d0, 1.25d0]
+
+          dx = bf_x_map(2) - bf_x_map(1)
+          dy = bf_y_map(2) - bf_y_map(1)
+
+          bf_nodes(3:6,2:5,:) = interior_nodes(1:4,1:4,:)
+
+          ! computation of the fluxes using the buffer layer
+          i_min = 5
+          i_max = 7
+          j_min = 2
+
+          call bc_operators_openbc_normal_used%compute_fluxes_x_for_bc_y_edge(
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         bf_nodes,
+     $         interior_nodes,
+     $         dx,dy,
+     $         s_y_L0,s_y_L1,
+     $         p_model,
+     $         i_min, i_max, j_min,
+     $         [.true.,.true.],
+     $         bf_flux_x)
+
+          ! validation
+          test_loc = is_real_matrix3D_validated(
+     $         bf_flux_x(5:7,2:3,:),
+     $         flux_x_ref(3:5,1:2,:),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''flux S right failed'')'
+          end if
+
+        end function test_compute_fluxes_x_for_bc_y_edge
+
+
+        function test_compute_fluxes_y_for_bc_x_edge(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          type(bc_operators)                 :: bc_operators_openbc_normal_used
+          type(pmodel_eq)                    :: p_model
+          real(rkind)                        :: t          
+          type(sd_operators_x_oneside_L0)    :: s_x_L0
+          type(sd_operators_x_oneside_L1)    :: s_x_L1
+          type(sd_operators_x_oneside_R1)    :: s_x_R1
+          type(sd_operators_x_oneside_R0)    :: s_x_R0
+          type(sd_operators_y_oneside_L0)    :: s_y_L0
+          type(sd_operators_y_oneside_L1)    :: s_y_L1
+          type(sd_operators_y_oneside_R1)    :: s_y_R1
+          type(sd_operators_y_oneside_R0)    :: s_y_R0  
+          real(rkind)                        :: dx
+          real(rkind)                        :: dy
+          integer(ikind)                     :: i_min
+          integer(ikind)                     :: j_min
+          integer(ikind)                     :: j_max
+
+          real(rkind)   , dimension(nx)         :: interior_x_map
+          real(rkind)   , dimension(ny)         :: interior_y_map
+          real(rkind)   , dimension(nx,ny,ne)   :: interior_nodes
+          real(rkind)   , dimension(nx+1,ny,ne) :: flux_x_ref
+          real(rkind)   , dimension(nx,ny+1,ne) :: flux_y_ref
+          
+          integer(ikind), dimension(2,2)    :: bf_alignment
+          integer       , dimension(5,6)    :: bf_grdpts_id
+          real(rkind)   , dimension(5)      :: bf_x_map
+          real(rkind)   , dimension(6)      :: bf_y_map
+          real(rkind)   , dimension(5,6,ne) :: bf_nodes
+          real(rkind)   , dimension(5,7,ne) :: bf_flux_y
+
+
+          test_validated = .true.
+
+
+          !E_edge: left missing grid-points
+          !============================================================
+          ! in this test, we want to compare the computation of the
+          ! fluxes by the buffer layer where only a limited number of
+          ! grid-points are available (and so require to extract nodes
+          ! from the interior domain) with the reference function
+          ! computing the fluxes directly from the interior nodes
+          !                 _____      
+          !                |     | 
+          !     ___________|_____|
+          !    ////////////|     |____ east buffer layer
+          !    |__|__|__|//|_____|
+          !             |//|     |
+          !             |//|_____|
+          !             |//|
+          !             |//|__________ interior_domain
+          !    
+          !
+          !initialize the nodes
+          call p_model%initial_conditions%ini_far_field()
+
+          t=0.0d0
+          
+          interior_x_map = [0.5d0, 1.5d0 , 2.5d0,  3.5d0, 4.5d0, 5.5d0 ]
+          interior_y_map = [0.0d0, 0.25d0, 0.5d0, 0.75d0, 1.0d0, 1.25d0]
+
+          interior_nodes = reshape((/
+     $         1.48d0, 1.30d0, 1.35d0, 1.31d0, 1.43d0, 1.31d0,
+     $         1.26d0, 1.45d0, 1.40d0, 1.29d0, 1.37d0, 1.41d0,
+     $         1.46d0, 1.27d0, 1.47d0, 1.28d0, 1.25d0, 1.43d0,
+     $         1.48d0, 1.26d0, 1.41d0, 1.34d0, 1.31d0, 1.39d0,
+     $         1.42d0, 1.46d0, 1.38d0, 1.26d0, 1.37d0, 1.33d0,
+     $         1.41d0, 1.22d0, 1.42d0, 1.23d0, 1.21d0, 1.40d0,
+     $         
+     $         0.128d0, 0.127d0, 0.142d0, 0.129d0, 0.136d0, 0.124d0,
+     $         1.138d0, 0.148d0, 0.132d0, 0.125d0, 0.175d0, 0.123d0,
+     $         0.146d0, 0.143d0, 0.145d0, 0.182d0, 0.135d0, 0.154d0,
+     $         0.123d0, 0.129d0, 0.124d0, 0.162d0, 0.152d0, 0.142d0,
+     $         0.168d0, 0.198d0, 0.186d0, 0.163d0, 0.126d0, 0.168d0,
+     $         0.164d0, 0.134d0, 0.154d0, 0.128d0, 0.153d0, 0.145d0,
+     $         
+     $         0.0050d0, 0.020d0, 0.060d0, 0.056d0, 0.062d0, 0.062d0,
+     $         0.0025d0, 0.001d0, 0.015d0, 0.070d0, 0.085d0, 0.011d0,
+     $         0.0100d0, 0.002d0, 0.050d0, 0.080d0, 0.015d0, 0.057d0,
+     $         0.0800d0, 0.015d0, 0.090d0, 0.065d0, 0.042d0, 0.067d0,
+     $         0.0260d0, 0.030d0, 0.045d0, 0.052d0, 0.023d0, 0.051d0,
+     $         0.0200d0, 0.012d0, 0.098d0, 0.056d0, 0.024d0, 0.090d0,
+     $         
+     $         4.88d0, 4.870d0,	4.855d0, 4.834d0, 4.592d0, 4.834d0,
+     $         4.85d0, 4.865d0, 4.845d0, 4.875d0, 4.815d0, 4.875d0,
+     $         4.89d0, 4.870d0, 4.860d0, 4.826d0, 4.723d0, 4.826d0,
+     $         4.83d0, 4.950d0, 4.620d0, 4.952d0, 4.852d0, 4.952d0,
+     $         4.81d0, 4.758d0, 4.762d0, 4.950d0, 4.703d0, 4.950d0,
+     $         4.98d0, 4.780d0, 4.608d0, 4.628d0, 4.237d0, 4.862d0
+     $         /),
+     $         (/6,6,ne/))
+
+          bf_alignment = reshape((/
+     $         align_E,align_N,align_E,align_N+1/),
+     $         (/2,2/))
+
+          bf_grdpts_id = reshape((/
+     $         1,1,2,3,0,
+     $         1,1,2,3,0,
+     $         2,2,2,3,0,
+     $         3,3,3,3,0,
+     $         0,0,0,0,0,
+     $         0,0,0,0,0/),
+     $         (/5,6/))
+
+          bf_x_map = [3.5d0, 4.5d0, 5.5d0, 6.5d0, 7.5d0 ]
+          bf_y_map = [0.5d0, 0.75d0, 1.0d0, 1.25d0, 1.50d0, 1.75d0]
+
+          bf_nodes(1:4,1:4,:) = interior_nodes(3:6,3:6,:)
+
+          dx = bf_x_map(2) - bf_x_map(1)
+          dy = bf_y_map(2) - bf_y_map(1)
+
+          ! compute the reference fluxes
+          call compute_fluxes_at_the_edges_2ndorder(
+     $         interior_nodes,dx,dy,
+     $         s_x_L0,s_x_L1,s_x_R1,s_x_R0,
+     $         s_y_L0,s_y_L1,s_y_R1,s_y_R0,
+     $         p_model,
+     $         flux_x_ref,flux_y_ref)
+
+
+          ! computation of the fluxes using the buffer layer
+          i_min = 3
+          j_min = 1
+          j_max = 3
+
+
+          call bc_operators_openbc_normal_used%compute_fluxes_y_for_bc_x_edge(
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         bf_nodes,
+     $         interior_nodes,
+     $         dx,dy,
+     $         s_x_R1,s_x_R0,
+     $         p_model,
+     $         i_min, j_min, j_max,
+     $         [.true.,.true.],
+     $         bf_flux_y)
+
+          ! validation
+          test_loc = is_real_matrix3D_validated(
+     $         bf_flux_y(3:4,1:3,:),
+     $         flux_y_ref(5:6,3:5,:),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''flux E left failed'')'
+          end if
+
+
+          !E_edge: right missing grid-points
+          !============================================================
+          ! in this test, we want to compare the computation of the
+          ! fluxes by the buffer layer where only a limited number of
+          ! grid-points are available (and so require to extract nodes
+          ! from the interior domain) with the reference function
+          ! computing the fluxes directly from the interior nodes
+          !                 
+          !             |//|
+          !             |//|_____ 
+          !             |//|     |
+          !     ________|//|_____|
+          !    |  |  |  |//|     |__________ interior_domain
+          !    |///////////|_____|
+          !                |     |
+          !                |_____|
+          !
+          !initialize the nodes
+          call p_model%initial_conditions%ini_far_field()
+
+          t=0.0d0
+
+          bf_alignment = reshape((/
+     $         align_E,align_S-1,align_E,align_S/),
+     $         (/2,2/))
+
+          bf_grdpts_id = reshape((/
+     $         0,0,0,0,0,
+     $         0,0,0,0,0,
+     $         3,3,3,3,0,
+     $         2,2,2,3,0,
+     $         1,1,2,3,0,
+     $         1,1,2,3,0/),
+     $         (/5,6/))
+
+          bf_x_map = [3.5d0, 4.50d0, 5.5d0, 6.50d0, 7.5d0]
+          bf_y_map = [0.0d0, 0.25d0, 0.5d0, 0.75d0, 1.0d0, 1.25d0]
+
+          bf_nodes(1:4,3:6,:) = interior_nodes(3:6,1:4,:)
+
+          dx = bf_x_map(2) - bf_x_map(1)
+          dy = bf_y_map(2) - bf_y_map(1)
+
+          ! compute the reference fluxes
+          call compute_fluxes_at_the_edges_2ndorder(
+     $         interior_nodes,dx,dy,
+     $         s_x_L0,s_x_L1,s_x_R1,s_x_R0,
+     $         s_y_L0,s_y_L1,s_y_R1,s_y_R0,
+     $         p_model,
+     $         flux_x_ref,flux_y_ref)
+
+
+          ! computation of the fluxes using the buffer layer
+          i_min = 3
+          j_min = 5
+          j_max = 7
+
+          call bc_operators_openbc_normal_used%compute_fluxes_y_for_bc_x_edge(
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         bf_nodes,
+     $         interior_nodes,
+     $         dx,dy,
+     $         s_x_R1,s_x_R0,
+     $         p_model,
+     $         i_min, j_min, j_max,
+     $         [.true.,.true.],
+     $         bf_flux_y)
+
+          ! validation
+          test_loc = is_real_matrix3D_validated(
+     $         bf_flux_y(3:4,5:7,:),
+     $         flux_y_ref(5:6,3:5,:),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''flux E right failed'')'
+          end if
+
+
+          !W_edge: left missing grid-points
+          !============================================================
+          ! in this test, we want to compare the computation of the
+          ! fluxes by the buffer layer where only a limited number of
+          ! grid-points are available (and so require to extract nodes
+          ! from the interior domain) with the reference function
+          ! computing the fluxes directly from the interior nodes
+          !                 _____      
+          !                |     | 
+          !                |_____|_____________
+          !                |     |/////////////
+          !    W_edge______|_____|//|
+          !                |     |//|  
+          !                |_____|//|___ interior_domain
+          !                      |//|
+          !                      |//|
+          !    
+          !
+          !initialize the nodes
+          call p_model%initial_conditions%ini_far_field()
+
+          bf_alignment = reshape((/
+     $         align_W,align_N,align_W,align_N+1/),
+     $         (/2,2/))
+
+          bf_grdpts_id = reshape((/
+     $         0,3,2,1,1,
+     $         0,3,2,1,1,
+     $         0,3,2,2,2,
+     $         0,3,3,3,3,
+     $         0,0,0,0,0,
+     $         0,0,0,0,0/),
+     $         (/5,6/))
+
+          bf_x_map = [0.5d0, 1.5d0, 2.5d0, 3.5d0, 4.5d0]
+          bf_y_map = [0.5d0, 0.75d0, 1.0d0, 1.25d0, 1.50d0, 1.75d0]
+
+          bf_nodes(2:5,1:4,:) = interior_nodes(1:4,3:6,:)
+
+          dx = bf_x_map(2) - bf_x_map(1)
+          dy = bf_y_map(2) - bf_y_map(1)
+
+          ! compute the reference fluxes
+          call compute_fluxes_at_the_edges_2ndorder(
+     $         interior_nodes,dx,dy,
+     $         s_x_L0,s_x_L1,s_x_R1,s_x_R0,
+     $         s_y_L0,s_y_L1,s_y_R1,s_y_R0,
+     $         p_model,
+     $         flux_x_ref,flux_y_ref)
+
+
+          ! computation of the fluxes using the buffer layer
+          i_min = 2
+          j_min = 1
+          j_max = 3
+
+          call bc_operators_openbc_normal_used%compute_fluxes_y_for_bc_x_edge(
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         bf_nodes,
+     $         interior_nodes,
+     $         dx,dy,
+     $         s_x_L0,s_x_L1,
+     $         p_model,
+     $         i_min, j_min, j_max,
+     $         [.true.,.true.],
+     $         bf_flux_y)
+
+          ! validation
+          test_loc = is_real_matrix3D_validated(
+     $         bf_flux_y(2:3,1:3,:),
+     $         flux_y_ref(1:2,3:5,:),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''flux W left failed'')'
+          end if
+
+
+          !W_edge: left missing grid-points
+          !============================================================
+          ! in this test, we want to compare the computation of the
+          ! fluxes by the buffer layer where only a limited number of
+          ! grid-points are available (and so require to extract nodes
+          ! from the interior domain) with the reference function
+          ! computing the fluxes directly from the interior nodes
+          !                 _____      
+          !                |     |//| 
+          !                |_____|//|__________
+          !                |     |/////////////
+          !    W_edge______|_____|/////////////
+          !                |     |
+          !                |_____|
+          !    
+          !
+          !initialize the nodes
+          bf_alignment = reshape((/
+     $         align_W,align_S-1,align_W,align_S/),
+     $         (/2,2/))
+
+          bf_grdpts_id = reshape((/
+     $         0,0,0,0,0,
+     $         0,0,0,0,0,
+     $         0,3,3,3,3,
+     $         0,3,2,2,2,
+     $         0,3,2,1,1,
+     $         0,3,2,1,1/),
+     $         (/5,6/))
+
+          bf_x_map = [0.5d0, 1.5d0, 2.5d0, 3.5d0, 4.5d0]
+          bf_y_map = [-0.5d0, -0.25d0, 0.0d0, 0.25d0, 0.5d0, 0.75d0]
+
+          bf_nodes(2:5,3:6,:) = interior_nodes(1:4,1:4,:)
+
+          dx = bf_x_map(2) - bf_x_map(1)
+          dy = bf_y_map(2) - bf_y_map(1)
+
+          ! compute the reference fluxes
+          call compute_fluxes_at_the_edges_2ndorder(
+     $         interior_nodes,dx,dy,
+     $         s_x_L0,s_x_L1,s_x_R1,s_x_R0,
+     $         s_y_L0,s_y_L1,s_y_R1,s_y_R0,
+     $         p_model,
+     $         flux_x_ref,flux_y_ref)
+
+
+          ! computation of the fluxes using the buffer layer
+          i_min = 2
+          j_min = 5
+          j_max = 7
+
+          call bc_operators_openbc_normal_used%compute_fluxes_y_for_bc_x_edge(
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         bf_nodes,
+     $         interior_nodes,
+     $         dx,dy,
+     $         s_x_L0,s_x_L1,
+     $         p_model,
+     $         i_min, j_min, j_max,
+     $         [.true.,.true.],
+     $         bf_flux_y)
+
+          ! validation
+          test_loc = is_real_matrix3D_validated(
+     $         bf_flux_y(2:3,5:7,:),
+     $         flux_y_ref(1:2,3:5,:),
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+          if(detailled.and.(.not.test_loc)) then
+             print '(''flux W right failed'')'
+          end if
+
+        end function test_compute_fluxes_y_for_bc_x_edge
 
 
         function test_apply_bc_on_timedev_edge(detailled)
@@ -128,6 +933,10 @@
 
           integer(ikind) :: i,j
           integer        :: k
+
+          integer(ikind), dimension(2,2)      :: bf_alignment
+          integer       , dimension(1,1)      :: bf_grdpts_id
+          real(rkind)   , dimension(nx,ny,ne) :: interior_nodes
 
 
           test_validated = .true.
@@ -194,15 +1003,16 @@
           i_max = 4
           j_min = 5
           call bc_operators_openbc_normal_used%apply_bc_on_timedev_N_edge(
-     $         p_model,
-     $         t,nodes,
-     $         x_map, y_map,
-     $         flux_x,
-     $         s_y_L0, s_y_L1,
+     $         t,
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         x_map,y_map,nodes,
+     $         interior_nodes,
      $         s_y_R1, s_y_R0,
-     $         dx,dy,
+     $         p_model,
      $         i_min, i_max, j_min,
      $         no_overlap,
+     $         flux_x,
      $         timedev)
 
           call compute_fluxes_at_the_edges_2ndorder(
@@ -215,18 +1025,16 @@
           do j=5,6
              do i=3,4
                 timedev_ref(i-2,j-4,:) = compute_timedev_y_edge_local(
-     $               p_model,
      $               t,
      $               x_map,
      $               y_map,
      $               nodes,
-     $               dx,
-     $               dy,
-     $               i,
-     $               j,
-     $               flux_x_ref,
-     $               incoming_right,
-     $               gradient_y_y_oneside_R0)
+     $               p_model,
+     $               gradient_y_y_oneside_R0,dy,
+     $               i,j,
+     $               flux_x_ref,dx,
+     $               right)
+
              end do
           end do
 
@@ -273,15 +1081,16 @@
           i_max = 4
           j_min = 1
           call bc_operators_openbc_normal_used%apply_bc_on_timedev_S_edge(
-     $         p_model,
-     $         t,nodes,
-     $         x_map, y_map,
-     $         flux_x,
+     $         t,
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         x_map, y_map, nodes,
+     $         interior_nodes,
      $         s_y_L0, s_y_L1,
-     $         s_y_R1, s_y_R0,
-     $         dx,dy,
+     $         p_model,
      $         i_min, i_max, j_min,
      $         no_overlap,
+     $         flux_x,
      $         timedev)
           
           !validation
@@ -332,15 +1141,16 @@
           j_max = 4
           i_min = 1
           call bc_operators_openbc_normal_used%apply_bc_on_timedev_W_edge(
-     $         p_model,
-     $         t,nodes,
-     $         x_map, y_map,
-     $         flux_y,
+     $         t,
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         x_map, y_map, nodes,
+     $         interior_nodes,
      $         s_x_L0, s_x_L1,
-     $         s_x_R1, s_x_R0,
-     $         dx,dy,
-     $         j_min, j_max, i_min,
+     $         p_model,
+     $         i_min, j_min, j_max,
      $         no_overlap,
+     $         flux_y,
      $         timedev)
           
           !validation
@@ -390,15 +1200,16 @@
           j_max = 4
           i_min = 5
           call bc_operators_openbc_normal_used%apply_bc_on_timedev_E_edge(
-     $         p_model,
-     $         t,nodes,
-     $         x_map, y_map,
-     $         flux_y,
-     $         s_x_L0, s_x_L1,
+     $         t,
+     $         bf_alignment,
+     $         bf_grdpts_id,
+     $         x_map, y_map, nodes,
+     $         interior_nodes,
      $         s_x_R1, s_x_R0,
-     $         dx,dy,
-     $         j_min, j_max, i_min,
+     $         p_model,
+     $         i_min, j_min, j_max,
      $         no_overlap,
+     $         flux_y,
      $         timedev)
           
           !validation

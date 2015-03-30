@@ -297,7 +297,7 @@ test_bf_layer_bc_checks:	parameters_kind.o\
 				bf_layer_bc_checks_module.o
 
 
-test_bf_layer_bc_anticorner.o:	$(bbf_layer_dir)/bf_layer_bc_anticorner_module.o\
+test_bf_layer_bc_fluxes.o:	$(bbf_layer_dir)/bf_layer_bc_fluxes_module.o\
 				$(test_dir)/tools/check_data_module.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
 				$(param_dir)/parameters_constant.o\
@@ -305,14 +305,14 @@ test_bf_layer_bc_anticorner.o:	$(bbf_layer_dir)/bf_layer_bc_anticorner_module.o\
 				$(param_dir)/parameters_kind.o\
 				$(dim2d_dir)/pmodel_eq_class.o
 
-test_bf_layer_bc_anticorner:	$(param_dep)\
+test_bf_layer_bc_fluxes:	$(param_dep)\
 				$(mt_dep)\
 				$(dim2d_dep)\
 				parameters_bf_layer.o\
 				n_coords_module.o\
 				check_data_module.o\
 				bf_layer_extract_module.o\
-				bf_layer_bc_anticorner_module.o
+				bf_layer_bc_fluxes_module.o
 
 test_bf_mainlayer_bc_sections.o:$(bbf_layer_dir)/bf_mainlayer_bc_sections_module.o\
 				$(bf_layer_dir)/bf_mainlayer_pointer_class.o\

@@ -82,6 +82,9 @@
         print '(''test_compute_fluxes_at_the_edges_2ndorder: '',L1)', test_loc
         print '()'
 
+
+        print '(''test_validated: '',L1)', test_validated
+
         contains
 
         function test_incoming_left(detailled)

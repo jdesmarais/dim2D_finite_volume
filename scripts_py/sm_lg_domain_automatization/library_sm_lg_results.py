@@ -43,7 +43,7 @@ def generate_exe(inputPath,bf_layer_option=False):
 
         #3) create the executable depending on the buffer layer
         #   option
-        cmd = os.getenv('augeanstables')+"/src/test_files/config/config.py"
+        cmd = os.getenv('augeanstables')+"/src/config/config.py"
         cmd+= " -i "+str(inputPath)
         cmd+= " -c "
         if(bf_layer_option):
@@ -52,7 +52,7 @@ def generate_exe(inputPath,bf_layer_option=False):
 
 
         #4) get the executable name
-        exePath = os.getenv('augeanstables')+"/src/test_files/"
+        exePath = os.getenv('augeanstables')+"/src/main/"
         if(bf_layer_option):
             exePath += "sim_dim2d_bf"
         else:

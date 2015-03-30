@@ -18,8 +18,9 @@ main_dir=$augeanstables/src/main
 #settings
 #INPUT=./default_inputs/dim2d_bubble_transported_hedstrom_xy.txt #_detailled.txt
 #DEST_FOLDER=~/projects/dim2d_bubble_trs_hedstrom_xy_bf
-INPUT=./default_inputs/wave2d/wave2d_hedstrom_xy_intermittentforcing.txt #_detailled.txt
-DEST_FOLDER=~/projects/test_wave2d_bf
+INPUT=./default_inputs/dim2d/dim2d_debug_timedev.txt
+#INPUT=./default_inputs/wave2d/wave2d_hedstrom_xy_intermittentforcing.txt #_detailled.txt
+DEST_FOLDER=~/projects/test_dim2d_bf
 EXE=sim_dim2d_bf
 
 #compile code

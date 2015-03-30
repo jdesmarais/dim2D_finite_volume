@@ -31,7 +31,8 @@
 
         use parameters_constant, only :
      $       vector_x,
-     $       vector_y
+     $       vector_y,
+     $       left, right
 
         use parameters_input, only :
      $       nx,ny,ne
@@ -77,6 +78,8 @@
         test_validated = test_validated.and.test_loc
         print '(''test_compute_timedev_anti_corner_with_fluxes: '',L1)', test_loc
         print '()'
+
+        print '(''test_validated: '',L1)', test_validated
         
 
         contains
@@ -186,16 +189,19 @@
 
           !compute the NE_edge
           call compute_timedev_anti_corner_with_fluxes(
-     $         p_model,
-     $         t,grdpts_id,nodes,x_map,y_map,
-     $         flux_x, flux_y,
-     $         timedev,
+     $         t,
+     $         bf_alignment,
+     $         grdpts_id,
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         interior_nodes,
      $         s_x_L1, s_x_R1,
      $         s_y_L1, s_y_R1,
-     $         dx, dy,
+     $         p_model,
      $         bc_section,
-     $         interior_nodes,
-     $         bf_alignment)
+     $         flux_x, flux_y,
+     $         timedev)
           
           !check that only the time derivatives of the edge are
           !modified
@@ -214,55 +220,49 @@
           i=3
           j=3
           timedev_ref(1,1,:) = compute_timedev_corner_local(
-     $         p_model,
      $         t, x_map, y_map, nodes,
-     $         dx,dy, i,j,
-     $         incoming_right, incoming_right,
-     $         gradient_x_x_oneside_R0, gradient_y_y_oneside_R0)
+     $         p_model,
+     $         gradient_x_x_oneside_R0, gradient_y_y_oneside_R0,
+     $         dx,dy,
+     $         i,j,
+     $         right, right)
+
 
           !compute the N edge at (4,3)
           i=4
           j=3
           timedev_ref(2,1,:) = compute_timedev_y_edge_local(
+     $         t, x_map, y_map, nodes,
      $         p_model,
-     $         t,
-     $         x_map,
-     $         y_map,
-     $         nodes,
-     $         dx,
-     $         dy,
-     $         i,
-     $         j,
-     $         flux_x,
-     $         incoming_right,
-     $         gradient_y_y_oneside_R0)
+     $         gradient_y_y_oneside_R0, dy,
+     $         i,j,
+     $         flux_x,dx,
+     $         right)
+
 
           !compute the E edge at (3,4)
           i=3
           j=4
           timedev_ref(1,2,:) = compute_timedev_x_edge_local(
+     $         t, x_map, y_map, nodes,
      $         p_model,
-     $         t,
-     $         x_map,
-     $         y_map,
-     $         nodes,
-     $         dx,
-     $         dy,
-     $         i,
-     $         j,
-     $         flux_y,
-     $         incoming_right,
-     $         gradient_x_x_oneside_R0)
+     $         gradient_x_x_oneside_R0, dx,
+     $         i,j,
+     $         flux_y, dy,
+     $         right)
+
 
           !compute the NE_corner at (4,4)
           i=4
           j=4
           timedev_ref(2,2,:) = compute_timedev_corner_local(
-     $         p_model,
      $         t, x_map, y_map, nodes,
-     $         dx,dy, i,j,
-     $         incoming_right, incoming_right,
-     $         gradient_x_x_oneside_R0, gradient_y_y_oneside_R0)
+     $         p_model,
+     $         gradient_x_x_oneside_R0, gradient_y_y_oneside_R0,
+     $         dx,dy,
+     $         i,j,
+     $         right, right)
+
 
           !compare both
           test_loc = is_real_matrix3D_validated(timedev_ref,timedev(3:4,3:4,:),detailled)
@@ -297,16 +297,19 @@
           bc_section = [NW_edge_type,3,3,no_overlap,no_overlap]
 
           call compute_timedev_anti_corner_with_fluxes(
-     $         p_model,
-     $         t,grdpts_id,nodes,x_map,y_map,
-     $         flux_x, flux_y,
-     $         timedev,
+     $         t,
+     $         bf_alignment,
+     $         grdpts_id,
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         interior_nodes,
      $         s_x_L1, s_x_R1,
      $         s_y_L1, s_y_R1,
-     $         dx, dy,
+     $         p_model,
      $         bc_section,
-     $         interior_nodes,
-     $         bf_alignment)
+     $         flux_x, flux_y,
+     $         timedev)
           
           !check that only the time derivatives of the edge are
           !modified
@@ -354,16 +357,19 @@
           bc_section = [SW_edge_type,3,3,no_overlap,no_overlap]
 
           call compute_timedev_anti_corner_with_fluxes(
-     $         p_model,
-     $         t,grdpts_id,nodes,x_map,y_map,
-     $         flux_x, flux_y,
-     $         timedev,
+     $         t,
+     $         bf_alignment,
+     $         grdpts_id,
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         interior_nodes,
      $         s_x_L1, s_x_R1,
      $         s_y_L1, s_y_R1,
-     $         dx, dy,
+     $         p_model,
      $         bc_section,
-     $         interior_nodes,
-     $         bf_alignment)
+     $         flux_x, flux_y,
+     $         timedev)
           
           !check that only the time derivatives of the edge are
           !modified
@@ -411,16 +417,19 @@
           bc_section = [SE_edge_type,3,3,no_overlap,no_overlap]
 
           call compute_timedev_anti_corner_with_fluxes(
-     $         p_model,
-     $         t,grdpts_id,nodes,x_map,y_map,
-     $         flux_x, flux_y,
-     $         timedev,
+     $         t,
+     $         bf_alignment,
+     $         grdpts_id,
+     $         x_map,
+     $         y_map,
+     $         nodes,
+     $         interior_nodes,
      $         s_x_L1, s_x_R1,
      $         s_y_L1, s_y_R1,
-     $         dx, dy,
+     $         p_model,
      $         bc_section,
-     $         interior_nodes,
-     $         bf_alignment)
+     $         flux_x, flux_y,
+     $         timedev)
           
           !check that only the time derivatives of the edge are
           !modified

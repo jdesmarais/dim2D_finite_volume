@@ -20,10 +20,10 @@
      $       compute_edge_E,
      $       compute_edge_W
 
-        use bf_layer_bc_anticorner_module, only :
+        use bf_layer_bc_fluxes_module, only :
      $       are_grdpts_needed_for_flux_x,
      $       are_grdpts_needed_for_flux_y,
-     $       extract_grdpts_to_compute_anticorner_fluxes
+     $       extract_grdpts_to_compute_bc_fluxes
 
         use bf_layer_bc_sections_overlap_module, only :
      $       determine_corner_or_anti_corner_grdpts_computed
@@ -36,10 +36,6 @@
      $       compute_timedev_y_edge_local,
      $       compute_timedev_corner_local
 
-        use openbc_operators_module, only :
-     $       incoming_left,
-     $       incoming_right
-        
         use parameters_bf_layer, only : 
      $       SE_edge_type,
      $       SW_edge_type,
@@ -55,7 +51,8 @@
      $       cptoverlap_type
 
         use parameters_constant, only :
-     $       bc_timedev_choice
+     $       bc_timedev_choice,
+     $       left,right
 
         use parameters_input, only :
      $       nx,ny,ne,
@@ -171,43 +168,49 @@
         !> time derivatives of the grid points
         !--------------------------------------------------------------
         subroutine compute_timedev_anti_corner_with_fluxes(
-     $       p_model,
-     $       t,grdpts_id,nodes,x_map,y_map,
-     $       flux_x, flux_y,
-     $       timedev,
+     $       t,
+     $       bf_alignment,
+     $       bf_grdpts_id,
+     $       bf_x_map,
+     $       bf_y_map,
+     $       bf_nodes,
+     $       interior_nodes,
      $       s_x_L1, s_x_R1,
      $       s_y_L1, s_y_R1,
-     $       dx, dy,
+     $       p_model,
      $       bc_section,
-     $       interior_nodes,
-     $       bf_alignment)
+     $       flux_x, flux_y,
+     $       timedev)
 
           implicit none
         
-          type(pmodel_eq)                    , intent(in)    :: p_model
           real(rkind)                        , intent(in)    :: t
-          integer       , dimension(:,:)     , intent(in)    :: grdpts_id
-          real(rkind)   , dimension(:,:,:)   , intent(in)    :: nodes
-          real(rkind)   , dimension(:)       , intent(in)    :: x_map
-          real(rkind)   , dimension(:)       , intent(in)    :: y_map
-          real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_x
-          real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_y
-          real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
+          integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+          integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map
+          real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
+          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
           type(sd_operators_x_oneside_L1)    , intent(in)    :: s_x_L1
           type(sd_operators_x_oneside_R1)    , intent(in)    :: s_x_R1
           type(sd_operators_y_oneside_L1)    , intent(in)    :: s_y_L1
           type(sd_operators_y_oneside_R1)    , intent(in)    :: s_y_R1
-          real(rkind)                        , intent(in)    :: dx
-          real(rkind)                        , intent(in)    :: dy
+          type(pmodel_eq)                    , intent(in)    :: p_model
           integer       , dimension(5)       , intent(in)    :: bc_section
-          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_x
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_y
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
+          
 
           integer(ikind) :: i_min,j_min
           integer(ikind) :: i,j
           logical        :: compute_edge
+          real(rkind)    :: dx,dy
 
           integer, dimension(4) :: compute_point
+
+          dx = bf_x_map(2)-bf_x_map(1)
+          dy = bf_y_map(2)-bf_y_map(1)
 
 
           i_min = bc_section(2)
@@ -225,8 +228,8 @@
             case(NE_edge_type)
                
                compute_edge =
-     $              compute_edge_N(y_map(j_min),bc_timedev_choice).and.
-     $              compute_edge_E(x_map(i_min),bc_timedev_choice)
+     $              compute_edge_N(bf_y_map(j_min),bc_timedev_choice).and.
+     $              compute_edge_E(bf_x_map(i_min),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -247,12 +250,15 @@
                      j=j_min
                      
                      timedev(i,j,:) = compute_timedev_corner_local(
+     $                    t, bf_x_map, bf_y_map, bf_nodes,
      $                    p_model,
-     $                    t, x_map, y_map, nodes,
-     $                    dx,dy, i,j,
-     $                    incoming_right,
-     $                    incoming_right,
-     $                    gradient_x_x_oneside_R0,gradient_y_y_oneside_R0)
+     $                    gradient_x_x_oneside_R0,
+     $                    gradient_y_y_oneside_R0,
+     $                    dx,dy,
+     $                    i,j,
+     $                    right,
+     $                    right)
+
 
                   end if
 
@@ -272,22 +278,22 @@
                      ! compute fluxes N_edge
                      call compute_flux_x_anti_corner(
      $                    bf_alignment,
-     $                    grdpts_id,
-     $                    nodes,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,
      $                    interior_nodes,
-     $                    dx,dy,
-     $                    s_y_R1,
      $                    p_model,
+     $                    s_y_R1,dy,
      $                    i,j,
-     $                    flux_x)
+     $                    flux_x,dx)
                      
                      ! deduce the time derivatives
                      timedev(i,j,:) = compute_timedev_y_edge_local(
+     $                    t,bf_x_map,bf_y_map,bf_nodes,
      $                    p_model,
-     $                    t,x_map,y_map,
-     $                    nodes, dx,dy, i,j,
-     $                    flux_x,
-     $                    incoming_right, gradient_y_y_oneside_R0)
+     $                    gradient_y_y_oneside_R0,dy,
+     $                    i,j,
+     $                    flux_x,dx,
+     $                    right)
                      
                   end if
 
@@ -306,22 +312,23 @@
                      ! compute fluxes E_edge
                      call compute_flux_y_anti_corner(
      $                    bf_alignment,
-     $                    grdpts_id,
-     $                    nodes,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,
      $                    interior_nodes,
-     $                    dx,dy,
-     $                    s_x_R1,
      $                    p_model,
+     $                    s_x_R1,dx,
      $                    i,j,
-     $                    flux_y)
+     $                    flux_y,dy)
                      
                      ! deduce the time derivatives
                      timedev(i,j,:) = compute_timedev_x_edge_local(
+     $                    t,bf_x_map,bf_y_map,
+     $                    bf_nodes,
      $                    p_model,
-     $                    t,x_map,y_map,
-     $                    nodes, dx,dy, i,j,
-     $                    flux_y,
-     $                    incoming_right, gradient_x_x_oneside_R0)
+     $                    gradient_x_x_oneside_R0,dx,
+     $                    i,j,
+     $                    flux_y,dy,
+     $                    right)
 
                   end if
 
@@ -338,11 +345,14 @@
                      j=j_min+1
 
                      timedev(i,j,:) = compute_timedev_corner_local(
+     $                    t, bf_x_map, bf_y_map, bf_nodes,
      $                    p_model,
-     $                    t, x_map, y_map, nodes,
-     $                    dx,dy, i,j,
-     $                    incoming_right, incoming_right,
-     $                    gradient_x_x_oneside_R0, gradient_y_y_oneside_R0)
+     $                    gradient_x_x_oneside_R0,
+     $                    gradient_y_y_oneside_R0,
+     $                    dx,dy,
+     $                    i,j,
+     $                    right, right)
+
 
                   end if
                      
@@ -358,8 +368,8 @@
             case(NW_edge_type)
 
                compute_edge =
-     $              compute_edge_N(y_map(j_min),bc_timedev_choice).and.
-     $              compute_edge_W(x_map(i_min),bc_timedev_choice)
+     $              compute_edge_N(bf_y_map(j_min),bc_timedev_choice).and.
+     $              compute_edge_W(bf_x_map(i_min),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -382,22 +392,22 @@
                      ! compute the x-fluxes
                      call compute_flux_x_anti_corner(
      $                    bf_alignment,
-     $                    grdpts_id,
-     $                    nodes,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,
      $                    interior_nodes,
-     $                    dx,dy,
-     $                    s_y_R1,
      $                    p_model,
+     $                    s_y_R1,dy,
      $                    i,j,
-     $                    flux_x)
+     $                    flux_x,dx)
 
                      ! deduce the time derivatives
                      timedev(i,j,:) = compute_timedev_y_edge_local(
+     $                    t,bf_x_map,bf_y_map,bf_nodes,
      $                    p_model,
-     $                    t,x_map,y_map,
-     $                    nodes, dx,dy, i,j,
-     $                    flux_x,
-     $                    incoming_right, gradient_y_y_oneside_R0)
+     $                    gradient_y_y_oneside_R0,dy,
+     $                    i,j,
+     $                    flux_x,dx,
+     $                    right)
 
                   end if
 
@@ -414,11 +424,13 @@
                      j=j_min
 
                      timedev(i,j,:) = compute_timedev_corner_local(
+     $                    t, bf_x_map, bf_y_map, bf_nodes,
      $                    p_model,
-     $                    t, x_map, y_map, nodes,
-     $                    dx,dy, i,j,
-     $                    incoming_left, incoming_right,
-     $                    gradient_x_x_oneside_L0, gradient_y_y_oneside_R0)
+     $                    gradient_x_x_oneside_L0, gradient_y_y_oneside_R0,
+     $                    dx,dy,
+     $                    i,j,
+     $                    left, right)
+
 
                   end if
 
@@ -435,11 +447,12 @@
                      j=j_min+1
 
                      timedev(i,j,:) = compute_timedev_corner_local(
+     $                    t, bf_x_map, bf_y_map, bf_nodes,
      $                    p_model,
-     $                    t, x_map, y_map, nodes,
-     $                    dx,dy, i,j,
-     $                    incoming_left, incoming_right,
-     $                    gradient_x_x_oneside_L0, gradient_y_y_oneside_R0)
+     $                    gradient_x_x_oneside_L0, gradient_y_y_oneside_R0,
+     $                    dx,dy,
+     $                    i,j,
+     $                    left, right)
 
                   end if
 
@@ -459,22 +472,23 @@
                      ! compute the y-fluxes
                      call compute_flux_y_anti_corner(
      $                    bf_alignment,
-     $                    grdpts_id,
-     $                    nodes,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,
      $                    interior_nodes,
-     $                    dx,dy,
-     $                    s_x_L1,
      $                    p_model,
+     $                    s_x_L1,dx,
      $                    i,j,
-     $                    flux_y)
+     $                    flux_y,dy)
 
                      ! deduce the time derivatives
                      timedev(i,j,:) = compute_timedev_x_edge_local(
+     $                    t,bf_x_map,bf_y_map,
+     $                    bf_nodes,
      $                    p_model,
-     $                    t,x_map,y_map,
-     $                    nodes, dx,dy, i,j,
-     $                    flux_y,
-     $                    incoming_left, gradient_x_x_oneside_L0)
+     $                    gradient_x_x_oneside_L0, dx,
+     $                    i,j,
+     $                    flux_y, dy,
+     $                    left)
 
                   end if
 
@@ -490,8 +504,8 @@
             case(SW_edge_type)
 
                compute_edge =
-     $              compute_edge_S(y_map(j_min+1),bc_timedev_choice).and.
-     $              compute_edge_W(x_map(i_min+1),bc_timedev_choice)
+     $              compute_edge_S(bf_y_map(j_min+1),bc_timedev_choice).and.
+     $              compute_edge_W(bf_x_map(i_min+1),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -512,11 +526,13 @@
                      j=j_min
                      
                      timedev(i,j,:) = compute_timedev_corner_local(
+     $                    t, bf_x_map, bf_y_map, bf_nodes,
      $                    p_model,
-     $                    t, x_map, y_map, nodes,
-     $                    dx,dy, i,j,
-     $                    incoming_left, incoming_left,
-     $                    gradient_x_x_oneside_L0, gradient_y_y_oneside_L0)
+     $                    gradient_x_x_oneside_L0, gradient_y_y_oneside_L0,
+     $                    dx,dy,
+     $                    i,j,
+     $                    left, left)
+
 
                   end if
                      
@@ -535,22 +551,22 @@
                      ! compute the y-fluxes
                      call compute_flux_y_anti_corner(
      $                    bf_alignment,
-     $                    grdpts_id,
-     $                    nodes,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,
      $                    interior_nodes,
-     $                    dx,dy,
-     $                    s_x_L1,
      $                    p_model,
+     $                    s_x_L1,dx,
      $                    i,j,
-     $                    flux_y)
+     $                    flux_y,dy)
 
                      ! deduce the time derivatives
                      timedev(i,j,:) = compute_timedev_x_edge_local(
+     $                    t,bf_x_map,bf_y_map,bf_nodes,
      $                    p_model,
-     $                    t,x_map,y_map,
-     $                    nodes, dx,dy, i,j,
-     $                    flux_y,
-     $                    incoming_left, gradient_x_x_oneside_L0)
+     $                    gradient_x_x_oneside_L0,dx,
+     $                    i,j,
+     $                    flux_y,dy,
+     $                    left)
 
                   end if
 
@@ -569,22 +585,22 @@
                      ! compute the x-fluxes
                      call compute_flux_x_anti_corner(
      $                    bf_alignment,
-     $                    grdpts_id,
-     $                    nodes,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,
      $                    interior_nodes,
-     $                    dx,dy,
-     $                    s_y_L1,
      $                    p_model,
+     $                    s_y_L1,dy,
      $                    i,j,
-     $                    flux_x)
+     $                    flux_x, dx)
                      
                      ! deduce the time derivatives
                      timedev(i,j,:) = compute_timedev_y_edge_local(
+     $                    t,bf_x_map,bf_y_map,bf_nodes,
      $                    p_model,
-     $                    t,x_map,y_map,
-     $                    nodes, dx,dy, i,j,
-     $                    flux_x,
-     $                    incoming_left, gradient_y_y_oneside_L0)
+     $                    gradient_y_y_oneside_L0,dy,
+     $                    i,j,
+     $                    flux_x,dx,
+     $                    left)
 
                   end if
 
@@ -601,11 +617,12 @@
                      j=j_min+1
                      
                      timedev(i,j,:) = compute_timedev_corner_local(
+     $                    t, bf_x_map, bf_y_map, bf_nodes,
      $                    p_model,
-     $                    t, x_map, y_map, nodes,
-     $                    dx,dy, i,j,
-     $                    incoming_left, incoming_left,
-     $                    gradient_x_x_oneside_L0, gradient_y_y_oneside_L0)
+     $                    gradient_x_x_oneside_L0, gradient_y_y_oneside_L0,
+     $                    dx,dy,
+     $                    i,j,
+     $                    left, left)
 
                   end if
 
@@ -621,8 +638,8 @@
             case(SE_edge_type)
 
                compute_edge =
-     $              compute_edge_S(y_map(j_min),bc_timedev_choice).and.
-     $              compute_edge_E(x_map(i_min),bc_timedev_choice)
+     $              compute_edge_S(bf_y_map(j_min),bc_timedev_choice).and.
+     $              compute_edge_E(bf_x_map(i_min),bc_timedev_choice)
                
                if(compute_edge) then
 
@@ -645,22 +662,22 @@
                      ! compute the y-fluxes
                      call compute_flux_y_anti_corner(
      $                    bf_alignment,
-     $                    grdpts_id,
-     $                    nodes,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,
      $                    interior_nodes,
-     $                    dx,dy,
-     $                    s_x_R1,
      $                    p_model,
+     $                    s_x_R1,dx,
      $                    i,j,
-     $                    flux_y)
+     $                    flux_y,dy)
 
                      ! deduce the time derivatives
                      timedev(i,j,:) = compute_timedev_x_edge_local(
+     $                    t,bf_x_map,bf_y_map,bf_nodes,
      $                    p_model,
-     $                    t,x_map,y_map,
-     $                    nodes, dx,dy, i,j,
-     $                    flux_y,
-     $                    incoming_right, gradient_x_x_oneside_R0)
+     $                    gradient_x_x_oneside_R0,dx,
+     $                    i,j,
+     $                    flux_y,dy,
+     $                    right)
 
                   end if
                   
@@ -677,11 +694,13 @@
                      j=j_min
                      
                      timedev(i,j,:) = compute_timedev_corner_local(
+     $                    t, bf_x_map, bf_y_map, bf_nodes,
      $                    p_model,
-     $                    t, x_map, y_map, nodes,
-     $                    dx,dy, i,j,
-     $                    incoming_right, incoming_left,
-     $                    gradient_x_x_oneside_R0, gradient_y_y_oneside_L0)
+     $                    gradient_x_x_oneside_R0,
+     $                    gradient_y_y_oneside_L0,
+     $                    dx,dy,
+     $                    i,j,
+     $                    right, left)
 
                   end if
                      
@@ -698,11 +717,13 @@
                      j=j_min+1
                      
                      timedev(i,j,:) = compute_timedev_corner_local(
+     $                    t, bf_x_map, bf_y_map, bf_nodes,
      $                    p_model,
-     $                    t, x_map, y_map, nodes,
-     $                    dx,dy, i,j,
-     $                    incoming_right, incoming_left,
-     $                    gradient_x_x_oneside_R0, gradient_y_y_oneside_L0)
+     $                    gradient_x_x_oneside_R0,
+     $                    gradient_y_y_oneside_L0,
+     $                    dx,dy,
+     $                    i,j,
+     $                    right, left)
 
                   end if
                      
@@ -721,22 +742,22 @@
                      ! compute the x-fluxes
                      call compute_flux_x_anti_corner(
      $                    bf_alignment,
-     $                    grdpts_id,
-     $                    nodes,
+     $                    bf_grdpts_id,
+     $                    bf_nodes,
      $                    interior_nodes,
-     $                    dx,dy,
-     $                    s_y_L1,
      $                    p_model,
+     $                    s_y_L1,dy,
      $                    i,j,
-     $                    flux_x)
+     $                    flux_x,dx)
                      
                      ! deduce the time derivatives
                      timedev(i,j,:) = compute_timedev_y_edge_local(
+     $                    t,bf_x_map,bf_y_map,bf_nodes,
      $                    p_model,
-     $                    t,x_map,y_map,
-     $                    nodes, dx,dy, i,j,
-     $                    flux_x,
-     $                    incoming_left, gradient_y_y_oneside_L0)
+     $                    gradient_y_y_oneside_L0,dy,
+     $                    i,j,
+     $                    flux_x,dx,
+     $                    left)
 
                   end if
 
@@ -793,11 +814,10 @@
      $     bf_grdpts_id,
      $     bf_nodes,
      $     interior_nodes,
-     $     dx,dy,
-     $     sd_used,
      $     p_model,
+     $     sd_used,dy,
      $     i,j,
-     $     flux_x)
+     $     flux_x,dx)
 
           implicit none
 
@@ -805,13 +825,13 @@
           integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
           real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          real(rkind)                        , intent(in)    :: dx
-          real(rkind)                        , intent(in)    :: dy
-          class(sd_operators)                , intent(in)    :: sd_used
           type(pmodel_eq)                    , intent(in)    :: p_model
+          class(sd_operators)                , intent(in)    :: sd_used
+          real(rkind)                        , intent(in)    :: dy          
           integer(ikind)                     , intent(in)    :: i
           integer(ikind)                     , intent(in)    :: j
           real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_x
+          real(rkind)                        , intent(in)    :: dx
 
 
           logical                        :: grdpts_needed
@@ -831,7 +851,7 @@
           grdpts_needed = are_grdpts_needed_for_flux_x(
      $         p_model,
      $         sd_used%get_operator_type(),
-     $         i,j,
+     $         i,i,j,
      $         size(bf_nodes,1),size(bf_nodes,2),
      $         border_coords,
      $         cpt_coords)
@@ -871,7 +891,7 @@
 
              ! extract the grid points from the current nodes of
              ! the buffer layer and the interior domain
-             call extract_grdpts_to_compute_anticorner_fluxes(
+             call extract_grdpts_to_compute_bc_fluxes(
      $            bf_alignment,
      $            bf_grdpts_id,
      $            bf_nodes,
@@ -960,11 +980,10 @@
      $     bf_grdpts_id,
      $     bf_nodes,
      $     interior_nodes,
-     $     dx,dy,
-     $     sd_used,
      $     p_model,
+     $     sd_used,dx,
      $     i,j,
-     $     flux_y)
+     $     flux_y,dy)
 
           implicit none
 
@@ -972,13 +991,13 @@
           integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
           real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
           real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
-          real(rkind)                        , intent(in)    :: dx
-          real(rkind)                        , intent(in)    :: dy
-          class(sd_operators)                , intent(in)    :: sd_used
           type(pmodel_eq)                    , intent(in)    :: p_model
+          class(sd_operators)                , intent(in)    :: sd_used
+          real(rkind)                        , intent(in)    :: dx
           integer(ikind)                     , intent(in)    :: i
           integer(ikind)                     , intent(in)    :: j
           real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_y
+          real(rkind)                        , intent(in)    :: dy
 
 
           logical                        :: grdpts_needed
@@ -998,7 +1017,7 @@
           grdpts_needed = are_grdpts_needed_for_flux_y(
      $         p_model,
      $         sd_used%get_operator_type(),
-     $         i,j,
+     $         i,j,j,
      $         size(bf_nodes,1),size(bf_nodes,2),
      $         border_coords,
      $         cpt_coords)
@@ -1040,7 +1059,7 @@
 
              ! extract the grid points from the current nodes of
              ! the buffer layer and the interior domain
-             call extract_grdpts_to_compute_anticorner_fluxes(
+             call extract_grdpts_to_compute_bc_fluxes(
      $            bf_alignment,
      $            bf_grdpts_id,
      $            bf_nodes,

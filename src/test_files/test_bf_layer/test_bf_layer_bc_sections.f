@@ -563,7 +563,7 @@
           do k=1,size(test_bc_section,2)
              call bc_sections%add_to_temporary_bc_sections(test_bc_section(:,k))
           end do
-          call bc_sections%remove_from_bc_sections_buffer(5)
+          call bc_sections%remove_from_bc_sections_buffer(11)
 
           !validation
           call bc_sections%get_bc_sections_temp(bc_sections_temp)

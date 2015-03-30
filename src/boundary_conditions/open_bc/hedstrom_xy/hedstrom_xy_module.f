@@ -21,7 +21,6 @@
      $       gradient_proc
 
         use openbc_operators_module, only :
-     $       incoming_proc,
      $       incoming_left,
      $       incoming_right,
      $       add_body_forces
@@ -61,28 +60,29 @@
         contains
 
         subroutine compute_timedev_y_layer_interior(
+     $       t,x_map,y_map,nodes,
      $       p_model,
-     $       t,nodes,x_map,y_map,
-     $       flux_x,
-     $       timedev,
-     $       j,dx,dy,
-     $       gradient_y,
-     $       incoming_y)
+     $       gradient_y,dy,
+     $       j,
+     $       flux_x,dx,
+     $       side_y,
+     $       timedev)
 
           implicit none
 
-          type(pmodel_eq)                   , intent(in)    :: p_model
+
           real(rkind)                       , intent(in)    :: t
-          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
           real(rkind), dimension(nx)        , intent(in)    :: x_map
           real(rkind), dimension(ny)        , intent(in)    :: y_map
-          real(rkind), dimension(nx+1,ny,ne), intent(in)    :: flux_x
-          real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
-          integer(ikind)                    , intent(in)    :: j
-          real(rkind)                       , intent(in)    :: dx
-          real(rkind)                       , intent(in)    :: dy
+          real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
+          type(pmodel_eq)                   , intent(in)    :: p_model
           procedure(gradient_proc)                          :: gradient_y
-          procedure(incoming_proc)                          :: incoming_y
+          real(rkind)                       , intent(in)    :: dy
+          integer(ikind)                    , intent(in)    :: j
+          real(rkind), dimension(nx+1,ny,ne), intent(in)    :: flux_x
+          real(rkind)                       , intent(in)    :: dx
+          logical                           , intent(in)    :: side_y
+          real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
           
           integer(ikind) :: i
 
@@ -91,11 +91,12 @@
           do i=1,bc_size
 
              timedev(i,j,:) = compute_timedev_corner_local(
-     $            p_model,
      $            t, x_map, y_map, nodes,
-     $            dx,dy, i,j,
-     $            incoming_left, incoming_y,
-     $            gradient_x_x_oneside_L0, gradient_y)
+     $            p_model,
+     $            gradient_x_x_oneside_L0, gradient_y,
+     $            dx,dy,
+     $            i,j,
+     $            left, side_y)
              
           end do
 
@@ -104,24 +105,26 @@
           do i=bc_size+1,nx-bc_size
 
              timedev(i,j,:) = compute_timedev_y_edge_local(
-     $            p_model,
      $            t,x_map,y_map,nodes,
-     $            dx,dy, i,j,
-     $            flux_x,
-     $            incoming_y,
-     $            gradient_y)
+     $            p_model,
+     $            gradient_y, dy,
+     $            i,j,
+     $            flux_x, dx,
+     $            side_y)
 
           end do
+
 
           !E corner
           do i=nx-bc_size+1,nx
 
              timedev(i,j,:) = compute_timedev_corner_local(
-     $            p_model,
      $            t, x_map, y_map, nodes,
-     $            dx,dy, i,j,
-     $            incoming_right, incoming_y,
-     $            gradient_x_x_oneside_R0, gradient_y)
+     $            p_model,
+     $            gradient_x_x_oneside_R0, gradient_y,
+     $            dx,dy,
+     $            i,j,
+     $            right, side_y)
 
           end do
 
@@ -170,18 +173,15 @@
         !> time derivatives modified
         !-------------------------------------------------------------
         function compute_timedev_x_edge_local(
-     $     p_model,
      $     t,
      $     x_map,
      $     y_map,
      $     nodes,
-     $     dx,
-     $     dy,
-     $     i,
-     $     j,
-     $     flux_y,
-     $     incoming_x,
-     $     gradient_x)
+     $     p_model,
+     $     gradient_x,dx,
+     $     i,j,
+     $     flux_y,dy,
+     $     side_x)
      $     result(timedev)
 
           implicit none
@@ -191,24 +191,23 @@
           real(rkind), dimension(:)         , intent(in)    :: x_map
           real(rkind), dimension(:)         , intent(in)    :: y_map
           real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          procedure(gradient_proc)                          :: gradient_x
+          real(rkind)                       , intent(in)    :: dx
           integer(ikind)                    , intent(in)    :: i
           integer(ikind)                    , intent(in)    :: j
-          real(rkind)                       , intent(in)    :: dx
-          real(rkind)                       , intent(in)    :: dy
-          type(pmodel_eq)                   , intent(in)    :: p_model
           real(rkind), dimension(:,:,:)     , intent(in)    :: flux_y
-          procedure(incoming_proc)                          :: incoming_x
-          procedure(gradient_proc)                          :: gradient_x
+          real(rkind)                       , intent(in)    :: dy
+          logical                           , intent(in)    :: side_x
           real(rkind), dimension(ne)                        :: timedev
 
-          timedev =
-     $         compute_timedev_with_openbc(
+          timedev = compute_timedev_with_openbc(
      $            t,x_map(i),y_map(j),
      $            nodes,i,j,
      $            p_model,
      $            x_direction,
      $            gradient_x, dx,
-     $            incoming_x) +
+     $            side_x) +
      $         
      $         1.0d0/dy*(flux_y(i,j,:) - flux_y(i,j+1,:)) +
      $         
@@ -261,18 +260,15 @@
         !> time derivatives modified
         !-------------------------------------------------------------
         function compute_timedev_y_edge_local(
-     $     p_model,
      $     t,
      $     x_map,
      $     y_map,
      $     nodes,
-     $     dx,
-     $     dy,
-     $     i,
-     $     j,
-     $     flux_x,
-     $     incoming_y,
-     $     gradient_y)
+     $     p_model,
+     $     gradient_y,dy,
+     $     i,j,
+     $     flux_x,dx,
+     $     side_y)
      $     result(timedev)
 
           implicit none
@@ -281,14 +277,14 @@
           real(rkind), dimension(:)         , intent(in)    :: x_map
           real(rkind), dimension(:)         , intent(in)    :: y_map
           real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          procedure(gradient_proc)                          :: gradient_y
+          real(rkind)                       , intent(in)    :: dy
           integer(ikind)                    , intent(in)    :: i
           integer(ikind)                    , intent(in)    :: j
-          real(rkind)                       , intent(in)    :: dx
-          real(rkind)                       , intent(in)    :: dy
-          type(pmodel_eq)                   , intent(in)    :: p_model
           real(rkind), dimension(:,:,:)     , intent(in)    :: flux_x
-          procedure(incoming_proc)                          :: incoming_y
-          procedure(gradient_proc)                          :: gradient_y
+          real(rkind)                       , intent(in)    :: dx
+          logical                                           :: side_y
           real(rkind), dimension(ne)                        :: timedev
 
           timedev =
@@ -300,7 +296,7 @@
      $            p_model,
      $            y_direction,
      $            gradient_y, dy,
-     $            incoming_y) +
+     $            side_y) +
      $            
      $         add_body_forces(
      $            p_model,
@@ -351,28 +347,32 @@
         !> time derivatives modified
         !-------------------------------------------------------------
         function compute_timedev_corner_local(
+     $     t,
+     $     x_map,
+     $     y_map,
+     $     nodes,
      $     p_model,
-     $     t, x_map, y_map, nodes,
-     $     dx,dy, i,j,
-     $     incoming_x, incoming_y,
-     $     gradient_x, gradient_y)
+     $     gradient_x, gradient_y,
+     $     dx,dy,
+     $     i,j,
+     $     side_x, side_y)
      $     result(timedev)
 
           implicit none
 
-          type(pmodel_eq)                   , intent(in)    :: p_model
           real(rkind)                       , intent(in)    :: t
           real(rkind), dimension(:)         , intent(in)    :: x_map
           real(rkind), dimension(:)         , intent(in)    :: y_map
           real(rkind), dimension(:,:,:)     , intent(in)    :: nodes
+          type(pmodel_eq)                   , intent(in)    :: p_model
+          procedure(gradient_proc)                          :: gradient_x
+          procedure(gradient_proc)                          :: gradient_y
           real(rkind)                       , intent(in)    :: dx
           real(rkind)                       , intent(in)    :: dy
           integer(ikind)                    , intent(in)    :: i
           integer(ikind)                    , intent(in)    :: j
-          procedure(incoming_proc)                          :: incoming_x
-          procedure(incoming_proc)                          :: incoming_y
-          procedure(gradient_proc)                          :: gradient_x
-          procedure(gradient_proc)                          :: gradient_y
+          logical                           , intent(in)    :: side_x
+          logical                           , intent(in)    :: side_y
           real(rkind), dimension(ne)                        :: timedev
 
           timedev =
@@ -382,7 +382,7 @@
      $            p_model,
      $            x_direction,
      $            gradient_x, dx,
-     $            incoming_x) + 
+     $            side_x) + 
      $         
      $         compute_timedev_with_openbc(
      $            t,x_map(i),y_map(j),
@@ -390,7 +390,7 @@
      $            p_model,
      $            y_direction,
      $            gradient_y,dy,
-     $            incoming_y) +
+     $            side_y) +
      $         
      $         add_body_forces(
      $            p_model,
@@ -448,7 +448,7 @@
      $     p_model,
      $     direction,
      $     gradient, dn,
-     $     incoming_wave)
+     $     side)
      $     result(timedev)
 
           implicit none
@@ -463,7 +463,7 @@
           integer                      , intent(in) :: direction
           procedure(gradient_proc)                  :: gradient
           real(rkind)                  , intent(in) :: dn
-          procedure(incoming_proc)                  :: incoming_wave
+          logical                      , intent(in) :: side
           real(rkind), dimension(ne)                :: timedev
 
 
@@ -520,7 +520,7 @@
              !between the incoming and outgoing. If
              !the wave is incoming, its amplitude is
              !set to zero
-             if(incoming_wave(eigenvalues(k))) then
+             if(incoming_wave(eigenvalues(k),side)) then
 
                 if(rkind.eq.8) then
                    incoming_amp(k) = 0.0d0
@@ -556,5 +556,23 @@
           timedev     = MATMUL(timedev_prim, jacConsPrim)
 
         end function compute_timedev_with_openbc
+
+
+        function incoming_wave(var,side)
+
+          implicit none
+
+          real(rkind), intent(in) :: var
+          logical    , intent(in) :: side
+          logical                 :: incoming_wave
+
+
+          if(side.eqv.left) then
+             incoming_wave = incoming_left(var)
+          else
+             incoming_wave = incoming_right(var)
+          end if
+
+        end function incoming_wave
 
       end module hedstrom_xy_module

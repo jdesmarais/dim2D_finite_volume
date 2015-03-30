@@ -217,9 +217,13 @@
            !-------------------------------------------------------------
            subroutine tdev_proc(
      $       this,
+     $       t,
+     $       x_map,
+     $       y_map,
+     $       nodes,
      $       p_model,
-     $       t,nodes,x_map,y_map,
-     $       flux_x,flux_y,
+     $       flux_x,
+     $       flux_y,
      $       timedev)
            
              import bc_operators_abstract
@@ -228,11 +232,11 @@
              import rkind
            
              class(bc_operators_abstract)      , intent(in)    :: this
-             type(pmodel_eq)                   , intent(in)    :: p_model
              real(rkind)                       , intent(in)    :: t
-             real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
              real(rkind), dimension(nx)        , intent(in)    :: x_map
              real(rkind), dimension(ny)        , intent(in)    :: y_map
+             real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
+             type(pmodel_eq)                   , intent(in)    :: p_model
              real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
              real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
              real(rkind), dimension(nx,ny,ne)  , intent(inout) :: timedev
@@ -283,14 +287,17 @@
            !-------------------------------------------------------------
            subroutine tdev_nopt_proc(
      $       this,
-     $       p_model,t,
-     $       interior_nodes,
+     $       t,
      $       bf_alignment,
-     $       nodes,x_map,y_map,
-     $       flux_x,flux_y,
-     $       timedev,
+     $       bf_grdpts_id,
+     $       bf_x_map,
+     $       bf_y_map,
+     $       bf_nodes,
+     $       interior_nodes,
+     $       p_model,
+     $       flux_x, flux_y,
      $       bc_sections,
-     $       grdpts_id)
+     $       timedev)
            
              import bc_operators_abstract
              import nx,ny,ne
@@ -299,18 +306,18 @@
              import rkind
            
              class(bc_operators_abstract)                   , intent(in)    :: this
-             type(pmodel_eq)                                , intent(in)    :: p_model
              real(rkind)                                    , intent(in)    :: t
-             real(rkind)   , dimension(nx,ny,ne)            , intent(in)    :: interior_nodes
              integer(ikind), dimension(2,2)                 , intent(in)    :: bf_alignment
-             real(rkind)   , dimension(:,:,:)               , intent(in)    :: nodes
-             real(rkind)   , dimension(:)                   , intent(in)    :: x_map
-             real(rkind)   , dimension(:)                   , intent(in)    :: y_map
+             integer       , dimension(:,:)                 , intent(in)    :: bf_grdpts_id
+             real(rkind)   , dimension(:)                   , intent(in)    :: bf_x_map
+             real(rkind)   , dimension(:)                   , intent(in)    :: bf_y_map
+             real(rkind)   , dimension(:,:,:)               , intent(in)    :: bf_nodes
+             real(rkind)   , dimension(nx,ny,ne)            , intent(in)    :: interior_nodes
+             type(pmodel_eq)                                , intent(in)    :: p_model
              real(rkind)   , dimension(:,:,:)               , intent(inout) :: flux_x
              real(rkind)   , dimension(:,:,:)               , intent(inout) :: flux_y
-             real(rkind)   , dimension(:,:,:)               , intent(inout) :: timedev
              integer(ikind), dimension(:,:)    , allocatable, intent(in)    :: bc_sections
-             integer       , dimension(:,:)    , optional   , intent(in)    :: grdpts_id
+             real(rkind)   , dimension(:,:,:)               , intent(inout) :: timedev
 
            end subroutine tdev_nopt_proc
 

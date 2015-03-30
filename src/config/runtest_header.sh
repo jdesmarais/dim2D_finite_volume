@@ -29,6 +29,7 @@ param_dir=$augeanstables/src/parameters
 #file paths
 make_header=$config_dir/makefile_header.mk
 param_input=$param_dir/parameters_input.f
+param_dim2d=$augeanstables/src/physical_models/dim2d/dim2d_parameters.f
 
 
 #============================================================
@@ -57,6 +58,10 @@ change_param_makefile(){
 
 change_param_input(){
     change_param $param_input $1 $2
+}
+
+change_param_dim2d(){
+    change_param $param_dim2d $1 $2
 }
 
 
