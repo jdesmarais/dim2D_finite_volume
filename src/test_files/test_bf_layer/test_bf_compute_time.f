@@ -18,7 +18,7 @@
      $       bc_interior_pt,
      $       interior_pt,
      $       
-     $       align_S,align_E,
+     $       align_S,align_E,align_W,
      $       
      $       SW_corner_type,
      $       S_edge_type,
@@ -166,10 +166,10 @@
           y_map = (/ (y_min+(j-1)*dy,j=1,ny) /)
 
           bf_alignment = reshape((/
-     $         align_E,
+     $         align_W+1,
      $         align_S+1,
-     $         align_E+nx-2*bc_size,
-     $         align_S+1+ny-2*bc_size/),
+     $         align_W+2,
+     $         align_S+2/),
      $         (/2,2/))
 
           grdpts_id = reshape(

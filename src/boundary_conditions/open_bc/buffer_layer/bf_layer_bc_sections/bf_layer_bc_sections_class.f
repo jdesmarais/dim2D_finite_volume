@@ -32,6 +32,12 @@
      $       error_overlap_index,
      $       error_overlap_incompatible
 
+        use bf_layer_extract_module, only :
+     $       get_bf_layer_match_table,
+     $       get_indices_to_extract_interior_data,
+     $       get_indices_to_extract_bf_layer_data,
+     $       get_grdpts_id_from_interior
+
         use parameters_bf_layer, only :
      $       bc_interior_pt,
      $       bc_pt,
@@ -180,6 +186,7 @@
 
           procedure, nopass :: get_bc_section
           procedure, nopass :: analyse_grdpt_with_bc_section
+          procedure, nopass :: create_tmp_grdpts_id_for_analyse
           procedure,   pass :: analyse_grdpt
 
           procedure,   pass :: sort_bc_sections
@@ -565,15 +572,21 @@
         !> integer identifying whether the identification of the 
         !> bc_section was successful or not
         !--------------------------------------------------------------
-        function get_bc_section(i,j,grdpts_id,ierror) result(bc_section)
+        function get_bc_section(
+     $     i,j,grdpts_id,
+     $     tmp_grdpts_id, use_tmp_grdpts_id,
+     $     ierror)
+     $     result(bc_section)
 
           implicit none
 
-          integer                , intent(in)  :: i
-          integer                , intent(in)  :: j
-          integer, dimension(:,:), intent(in)  :: grdpts_id
-          logical                , intent(out) :: ierror
-          integer, dimension(5)                :: bc_section
+          integer(ikind)                , intent(in)  :: i
+          integer(ikind)                , intent(in)  :: j
+          integer       , dimension(:,:), intent(in)  :: grdpts_id
+          integer       , dimension(:,:), intent(in)  :: tmp_grdpts_id
+          logical                       , intent(in)  :: use_tmp_grdpts_id
+          logical                       , intent(out) :: ierror
+          integer       , dimension(5)                :: bc_section
 
           integer :: procedure_type
           integer :: i_proc
@@ -581,17 +594,45 @@
 
           ierror = BF_SUCCESS                    
 
-          call get_bc_interior_pt_procedure(
-     $         i,j,
-     $         grdpts_id,
-     $         procedure_type,
-     $         i_proc,
-     $         j_proc,
-     $         ierror)
 
+          ! analyse the procedure from the grdpts_id
+          if(use_tmp_grdpts_id) then
+
+             call get_bc_interior_pt_procedure(
+     $            2,2,
+     $            tmp_grdpts_id,
+     $            procedure_type,
+     $            i_proc,
+     $            j_proc,
+     $            ierror)
+
+             ! the i_proc and j_proc extracted from
+             ! tmp_grdpts_id are expressed in a reference
+             ! frame where (2,2) <-> (i,j)
+             ! we need to turn (i_proc,j_proc) bask to the
+             ! general frame
+             ! i_gen = (i_loc-2) + i
+             ! j_gen = (j_loc-2) + j
+             !------------------------------------------------------------
+             i_proc = i_proc-2+i
+             j_proc = j_proc-2+j
+
+          else
+
+             call get_bc_interior_pt_procedure(
+     $            i,j,
+     $            grdpts_id,
+     $            procedure_type,
+     $            i_proc,
+     $            j_proc,
+     $            ierror)
+
+          end if
+
+
+          ! determine the bc_section from the procedure
           if(ierror.eqv.BF_SUCCESS) then
              bc_section(1)=procedure_type
-
 
              select case(procedure_type)
 
@@ -671,7 +712,9 @@
         !> with the bc_section
         !--------------------------------------------------------------
         function analyse_grdpt_with_bc_section(
-     $     i,j,grdpts_id,bc_section,remove_ele)
+     $     i,j,grdpts_id,
+     $     tmp_grdpts_id,use_tmp_grdpts_id,
+     $     bc_section,remove_ele)
      $     result(compatible)
 
           implicit none
@@ -679,6 +722,8 @@
           integer                , intent(in)    :: i
           integer                , intent(in)    :: j
           integer, dimension(:,:), intent(in)    :: grdpts_id
+          integer, dimension(:,:), intent(in)    :: tmp_grdpts_id
+          logical                , intent(in)    :: use_tmp_grdpts_id
           integer, dimension(5)  , intent(inout) :: bc_section
           logical                , intent(out)   :: remove_ele
           logical                                :: compatible
@@ -696,13 +741,25 @@
             case(N_edge_type)
                compatible =
      $              ((j-bc_section(4)).eq.0).and.
-     $              ((i-bc_section(3)).eq.1).and.
-     $              (grdpts_id(i,j+1).eq.bc_pt).and.
-     $              (grdpts_id(i+1,j+1).eq.bc_pt).and.
-     $              (grdpts_id(i+1,j).eq.bc_interior_pt)
+     $              ((i-bc_section(3)).eq.1)
 
                if(compatible) then
-                  bc_section(3)=i
+                  if(use_tmp_grdpts_id) then
+                     compatible = 
+     $                    (tmp_grdpts_id(2,2+1).eq.bc_pt).and.
+     $                    (tmp_grdpts_id(2+1,2+1).eq.bc_pt).and.
+     $                    (tmp_grdpts_id(2+1,2).eq.bc_interior_pt)
+                  else
+                     compatible = 
+     $                    (grdpts_id(i,j+1).eq.bc_pt).and.
+     $                    (grdpts_id(i+1,j+1).eq.bc_pt).and.
+     $                    (grdpts_id(i+1,j).eq.bc_interior_pt)
+                  end if
+                     
+                  if(compatible) then
+                     bc_section(3)=i
+                  end if
+
                end if
 
                remove_ele = j.gt.bc_section(4)
@@ -714,13 +771,24 @@
             case(S_edge_type)
                compatible = 
      $              ((j-bc_section(4)).eq.0).and.
-     $              ((i-bc_section(3)).eq.1).and.
-     $              (grdpts_id(i,j-1).eq.bc_pt).and.
-     $              (grdpts_id(i+1,j-1).eq.bc_pt).and.
-     $              (grdpts_id(i+1,j).eq.bc_interior_pt)
+     $              ((i-bc_section(3)).eq.1)
 
                if(compatible) then
-                  bc_section(3)=i
+                  if(use_tmp_grdpts_id) then
+                     compatible = 
+     $                    (tmp_grdpts_id(2,2-1).eq.bc_pt).and.
+     $                    (tmp_grdpts_id(2+1,2-1).eq.bc_pt).and.
+     $                    (tmp_grdpts_id(2+1,2).eq.bc_interior_pt)
+                  else
+                     compatible = 
+     $                    (grdpts_id(i,j-1).eq.bc_pt).and.
+     $                    (grdpts_id(i+1,j-1).eq.bc_pt).and.
+     $                    (grdpts_id(i+1,j).eq.bc_interior_pt)
+                  end if
+
+                  if(compatible) then
+                     bc_section(3)=i
+                  end if
                end if
 
                remove_ele = j.gt.bc_section(4)
@@ -731,13 +799,24 @@
             case(E_edge_type)
                compatible =
      $              ((i-bc_section(4)).eq.0).and.
-     $              ((j-bc_section(3)).eq.1).and.
-     $              (grdpts_id(i+1,j).eq.bc_pt).and.
-     $              (grdpts_id(i,j+1).eq.bc_interior_pt).and.
-     $              (grdpts_id(i+1,j+1).eq.bc_pt)
+     $              ((j-bc_section(3)).eq.1)
 
                if(compatible) then
-                  bc_section(3)=j
+                  if(use_tmp_grdpts_id) then
+                     compatible =
+     $                    (tmp_grdpts_id(2+1,2).eq.bc_pt).and.
+     $                    (tmp_grdpts_id(2,2+1).eq.bc_interior_pt).and.
+     $                    (tmp_grdpts_id(2+1,2+1).eq.bc_pt)
+                  else
+                     compatible = 
+     $                    (grdpts_id(i+1,j).eq.bc_pt).and.
+     $                    (grdpts_id(i,j+1).eq.bc_interior_pt).and.
+     $                    (grdpts_id(i+1,j+1).eq.bc_pt)
+                  end if
+                     
+                  if(compatible) then
+                     bc_section(3)=j
+                  end if
                end if
 
                remove_ele=j.gt.(bc_section(3)+1)
@@ -749,13 +828,24 @@
             case(W_edge_type)
                compatible = 
      $              ((i-bc_section(4)).eq.0).and.
-     $              ((j-bc_section(3)).eq.1).and.
-     $              (grdpts_id(i-1,j).eq.bc_pt).and.
-     $              (grdpts_id(i-1,j+1).eq.bc_pt).and.
-     $              (grdpts_id(i,j+1).eq.bc_interior_pt)
+     $              ((j-bc_section(3)).eq.1)
 
                if(compatible) then
-                  bc_section(3)=j
+                  if(use_tmp_grdpts_id) then
+                     compatible = 
+     $                    (tmp_grdpts_id(2-1,2).eq.bc_pt).and.
+     $                    (tmp_grdpts_id(2-1,2+1).eq.bc_pt).and.
+     $                    (tmp_grdpts_id(2,2+1).eq.bc_interior_pt)
+                  else
+                     compatible = 
+     $                    (grdpts_id(i-1,j).eq.bc_pt).and.
+     $                    (grdpts_id(i-1,j+1).eq.bc_pt).and.
+     $                    (grdpts_id(i,j+1).eq.bc_interior_pt)
+                  end if
+
+                  if(compatible) then
+                     bc_section(3)=j
+                  end if
                end if
 
                remove_ele=j.gt.(bc_section(3)+1)
@@ -765,11 +855,18 @@
             !bc_section(3): j_min
             !bc_section(5): match_nb
             case(NE_edge_type)
-               compatible = 
-     $              ((i.eq.bc_section(2)).and.(j.eq.bc_section(3))).or.
-     $              (((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3))).and.(grdpts_id(i+1,j).eq.bc_interior_pt)).or.
-     $              (((i.eq.bc_section(2)).and.(j.eq.(bc_section(3)+1))).and.(grdpts_id(i,j+1).eq.bc_interior_pt))
-
+               if(use_tmp_grdpts_id) then
+                  compatible = 
+     $                 ((i.eq.bc_section(2)).and.(j.eq.bc_section(3))).or.
+     $                 (((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3))).and.(tmp_grdpts_id(2+1,2).eq.bc_interior_pt)).or.
+     $                 (((i.eq.bc_section(2)).and.(j.eq.(bc_section(3)+1))).and.(tmp_grdpts_id(2,2+1).eq.bc_interior_pt))
+               else
+                  compatible = 
+     $                 ((i.eq.bc_section(2)).and.(j.eq.bc_section(3))).or.
+     $                 (((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3))).and.(grdpts_id(i+1,j).eq.bc_interior_pt)).or.
+     $                 (((i.eq.bc_section(2)).and.(j.eq.(bc_section(3)+1))).and.(grdpts_id(i,j+1).eq.bc_interior_pt))
+               end if
+                  
                remove_ele = j.gt.(bc_section(3)+1)
 
 
@@ -777,10 +874,17 @@
             !bc_section(3): j_min
             !bc_section(5): match_nb
             case(SE_edge_type)
-               compatible = 
-     $              (((i.eq.bc_section(2)).and.(j.eq.bc_section(3))).and.(grdpts_id(i,j-1).eq.bc_interior_pt)).or.
-     $              ((i.eq.bc_section(2)).and.(j.eq.(bc_section(3)+1))).or.
-     $              (((i.eq.(bc_section(2)+1)).and.(j.eq.(bc_section(3)+1))).and.(grdpts_id(i+1,j).eq.bc_interior_pt))
+               if(use_tmp_grdpts_id) then
+                  compatible = 
+     $                 (((i.eq.bc_section(2)).and.(j.eq.bc_section(3))).and.(tmp_grdpts_id(2,2-1).eq.bc_interior_pt)).or.
+     $                 ((i.eq.bc_section(2)).and.(j.eq.(bc_section(3)+1))).or.
+     $                 (((i.eq.(bc_section(2)+1)).and.(j.eq.(bc_section(3)+1))).and.(tmp_grdpts_id(2+1,2).eq.bc_interior_pt))
+               else
+                  compatible = 
+     $                 (((i.eq.bc_section(2)).and.(j.eq.bc_section(3))).and.(grdpts_id(i,j-1).eq.bc_interior_pt)).or.
+     $                 ((i.eq.bc_section(2)).and.(j.eq.(bc_section(3)+1))).or.
+     $                 (((i.eq.(bc_section(2)+1)).and.(j.eq.(bc_section(3)+1))).and.(grdpts_id(i+1,j).eq.bc_interior_pt))
+               end if
 
                remove_ele = j.gt.(bc_section(3)+1)
 
@@ -789,10 +893,17 @@
             !bc_section(3): j_min
             !bc_section(5): match_nb
             case(SW_edge_type)
-               compatible = 
-     $              (((i.eq.bc_section(2)+1).and.(j.eq.(bc_section(3)))).and.(grdpts_id(i,j-1).eq.bc_interior_pt)).or.
-     $              (((i.eq.(bc_section(2))).and.(j.eq.(bc_section(3)+1))).and.(grdpts_id(i-1,j).eq.bc_interior_pt)).or.
-     $              ((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3)+1))
+               if(use_tmp_grdpts_id) then
+                  compatible = 
+     $                 (((i.eq.bc_section(2)+1).and.(j.eq.(bc_section(3)))).and.(tmp_grdpts_id(2,2-1).eq.bc_interior_pt)).or.
+     $                 (((i.eq.(bc_section(2))).and.(j.eq.(bc_section(3)+1))).and.(tmp_grdpts_id(2-1,2).eq.bc_interior_pt)).or.
+     $                 ((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3)+1))
+               else
+                  compatible = 
+     $                 (((i.eq.bc_section(2)+1).and.(j.eq.(bc_section(3)))).and.(grdpts_id(i,j-1).eq.bc_interior_pt)).or.
+     $                 (((i.eq.(bc_section(2))).and.(j.eq.(bc_section(3)+1))).and.(grdpts_id(i-1,j).eq.bc_interior_pt)).or.
+     $                 ((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3)+1))
+               end if
 
                remove_ele = j.gt.(bc_section(3)+1)
 
@@ -801,10 +912,17 @@
             !bc_section(3): j_min
             !bc_section(5): match_nb
             case(NW_edge_type)
-               compatible = 
-     $              (((i.eq.bc_section(2)).and.(j.eq.bc_section(3))).and.(grdpts_id(i-1,j).eq.bc_interior_pt)).or.
-     $              ((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3))).or.
-     $              (((i.eq.(bc_section(2)+1)).and.(j.eq.(bc_section(3)+1))).and.(grdpts_id(i,j+1).eq.bc_interior_pt))
+               if(use_tmp_grdpts_id) then
+                  compatible = 
+     $                 (((i.eq.bc_section(2)).and.(j.eq.bc_section(3))).and.(tmp_grdpts_id(2-1,2).eq.bc_interior_pt)).or.
+     $                 ((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3))).or.
+     $                 (((i.eq.(bc_section(2)+1)).and.(j.eq.(bc_section(3)+1))).and.(tmp_grdpts_id(2,2+1).eq.bc_interior_pt))
+               else
+                  compatible = 
+     $                 (((i.eq.bc_section(2)).and.(j.eq.bc_section(3))).and.(grdpts_id(i-1,j).eq.bc_interior_pt)).or.
+     $                 ((i.eq.(bc_section(2)+1)).and.(j.eq.bc_section(3))).or.
+     $                 (((i.eq.(bc_section(2)+1)).and.(j.eq.(bc_section(3)+1))).and.(grdpts_id(i,j+1).eq.bc_interior_pt))
+               end if
 
                remove_ele = j.gt.(bc_section(3)+1)
 
@@ -843,20 +961,28 @@
         !> integer identifying whether the analyze of the grdpt was
         !> successful
         !--------------------------------------------------------------
-        subroutine analyse_grdpt(this,i,j,grdpts_id,ierror)
+        subroutine analyse_grdpt(
+     $     this,
+     $     bf_alignment,
+     $     i,j,grdpts_id,
+     $     ierror)
 
           implicit none
 
-          class(bf_layer_bc_sections), intent(inout) :: this
-          integer                    , intent(in)    :: i
-          integer                    , intent(in)    :: j
-          integer, dimension(:,:)    , intent(in)    :: grdpts_id
-          logical                    , intent(out)   :: ierror
+          class(bf_layer_bc_sections)   , intent(inout) :: this
+          integer(ikind), dimension(2,2), intent(in)    :: bf_alignment
+          integer(ikind)                , intent(in)    :: i
+          integer(ikind)                , intent(in)    :: j
+          integer       , dimension(:,:), intent(in)    :: grdpts_id
+          logical                       , intent(out)   :: ierror
 
           integer               :: k,k_buffer
           integer, dimension(5) :: new_bc_section
           logical               :: compatible
           logical               :: remove_ele
+
+          integer, dimension(3,3) :: tmp_grdpts_id
+          logical                 :: use_tmp_grdpts_id
 
 
           !this condition prevents to test the grid points
@@ -877,109 +1003,117 @@
           !         | 1 1 1 1 1 1 1 |
           !         -----------------  
           !          interior
-          !
-          !the left bc_interior_pt which is at the edge
-          !belongs to an NW_edge. As this edge is treated
-          !as a corner, the grid points outside the buffer
-          !layer are not needed for the computation and as
-          !the grid point next to it can used to determine
-          !that it is a corner, the condition below is
-          !justified
-          !the only restriction is if the NW_edge should be 
-          !treated in a way different from the corner
-          if((i.ne.1).and.(i.ne.size(grdpts_id,1)).and.(j.ne.1).and.(j.ne.size(grdpts_id,2))) then
-             
+          
 
-             !if there are already boundary layers, check whether the
-             !grid point analysed is compatible with one of them
-             if(this%nb_ele_temp.gt.0) then
+          ! determine whether the grid-point analyzed is at the edge
+          ! of the grdpts_id array. In this case, for the analysis,
+          ! we need to create a temporary array containing the grdpts_id
+          ! around the grid-point asked
+          use_tmp_grdpts_id = .false.
+
+          if((i.eq.1).or.(i.eq.size(grdpts_id,1)).or.(j.eq.1).or.(j.eq.size(grdpts_id,2))) then
+
+             tmp_grdpts_id = create_tmp_grdpts_id_for_analyse(
+     $            bf_alignment,
+     $            [i,j],grdpts_id)
+
+             use_tmp_grdpts_id = .true.
+
+          end if
+
+
+          !if there are already boundary layers, check whether the
+          !grid point analysed is compatible with one of them
+          if(this%nb_ele_temp.gt.0) then
              
-                compatible = .false.
+             compatible = .false.
              
-                !is the grid point compatible with the boundary layers
-                !saved in this%bc_sections_temp
-                k=1
-                do while (k.le.min(this%nb_ele_temp,size(this%bc_sections_temp,2)))
+             ! is the grid point compatible with the boundary layers
+             ! saved in this%bc_sections_temp ?
+             k=1
+             do while (k.le.min(this%nb_ele_temp,size(this%bc_sections_temp,2)))
+                
+                compatible = this%analyse_grdpt_with_bc_section(
+     $               i,j,grdpts_id,
+     $               tmp_grdpts_id, use_tmp_grdpts_id,
+     $               this%bc_sections_temp(:,k),
+     $               remove_ele)
+             
+                if(remove_ele) then
+                   call this%add_to_final_bc_sections(this%bc_sections_temp(:,k))
+                   call this%remove_from_bc_sections_temp(k)
+                   k = k-1
+                end if
+             
+                if(compatible) then
+                   ierror = BF_SUCCESS
+                   exit
+                end if
+                
+                k=k+1
+             
+             end do
+             
+             if(.not.compatible) then
+             
+                ! is the grid point compatible with the boundary layers
+                ! saved in this%bc_sections_buffer ?
+                k=size(this%bc_sections_temp,2)+1
+                do while(k.le.this%nb_ele_temp)
+                      
+                   k_buffer = k-size(this%bc_sections_temp,2)
              
                    compatible = this%analyse_grdpt_with_bc_section(
      $                  i,j,grdpts_id,
-     $                  this%bc_sections_temp(:,k),
+     $                  tmp_grdpts_id, use_tmp_grdpts_id,
+     $                  this%bc_sections_buffer(:,k_buffer),
      $                  remove_ele)
              
                    if(remove_ele) then
-                      call this%add_to_final_bc_sections(this%bc_sections_temp(:,k))
-                      call this%remove_from_bc_sections_temp(k)
+                      call this%add_to_final_bc_sections(this%bc_sections_buffer(:,k_buffer))
+                      call this%remove_from_bc_sections_buffer(k)
                       k = k-1
                    end if
              
                    if(compatible) then
+                      ierror = BF_SUCCESS
                       exit
                    end if
-             
+                   
                    k=k+1
-             
+                      
                 end do
              
+             
+                ! if no boundary layer matches the current grid point
+                ! the grid point is used as the starting point of a new
+                ! boundary layer
                 if(.not.compatible) then
              
-                  !is the grid point compatible with the boundary layers
-                  !saved in this%bc_sections_buffer
-                   k=size(this%bc_sections_temp,2)+1
-                   do while(k.le.this%nb_ele_temp)
-                      
-                      k_buffer = k-size(this%bc_sections_temp,2)
-             
-                      compatible = this%analyse_grdpt_with_bc_section(
-     $                     i,j,grdpts_id,
-     $                     this%bc_sections_buffer(:,k_buffer),
-     $                     remove_ele)
-             
-                      if(remove_ele) then
-                         call this%add_to_final_bc_sections(this%bc_sections_buffer(:,k_buffer))
-                         call this%remove_from_bc_sections_buffer(k)
-                         k = k-1
-                      end if
-             
-                      if(compatible) then
-                         exit
-                      end if
-             
-                      k=k+1
-             
-                   end do
-             
-             
-                   !if no boundary layer matches the current grid point
-                   !the grid point is used as the starting point of a new
-                   !boundary layer
-                   if(.not.compatible) then
-             
-                      new_bc_section = this%get_bc_section(i,j,grdpts_id,ierror)
-                      call this%add_to_bc_sections(new_bc_section)
-             
-                   end if
+                   new_bc_section = this%get_bc_section(
+     $                  i,j,grdpts_id,
+     $                  tmp_grdpts_id, use_tmp_grdpts_id,
+     $                  ierror)
+
+                   call this%add_to_bc_sections(new_bc_section)
              
                 end if
              
-             !if there is no existing boundary layers, the grid point
-             !is analysed to know what type of starting point for a
-             !boundary layer it is and then added to the boundary
-             !layers of the object
-             else
-             
-                new_bc_section = this%get_bc_section(i,j,grdpts_id,ierror)
-                call this%add_to_bc_sections(new_bc_section)
-             
              end if
-
+             
+          !if there is no existing boundary layers, the grid point
+          !is analysed to know what type of starting point for a
+          !boundary layer it is and then added to the boundary
+          !layers of the object
           else
              
-             print '(''bf_layer_bc_sections_class'')'
-             print '(''analyse_grdpt'')'
-             print '(''wrong indices (i,j)'')'
-             print '(''i.eq.1 or i.eq.size_x or j.eq.1 or j.eq.size_y'')'
-             stop ''
+             new_bc_section = this%get_bc_section(
+     $            i,j,grdpts_id,
+     $            tmp_grdpts_id, use_tmp_grdpts_id,
+     $            ierror)
 
+             call this%add_to_bc_sections(new_bc_section)
+             
           end if
 
         end subroutine analyse_grdpt
@@ -1237,7 +1371,7 @@
             case default
                print '(''bf_layer_bc_sections_class'')'
                print '(''get_sorted_ele'')'
-               print '(''case not recognized: '',I2)', bc_section(1)
+               print '(''case not recognized: '',I10)', bc_section(1)
                stop
 
           end select
@@ -1938,5 +2072,80 @@
 
         end subroutine print_bc_procedure
 
+
+        
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> create a temporary array of grdpts_id around the
+        !> grid-point (i,j)
+        !
+        !> @date
+        !> 01_04_2015 - initial version - J.L. Desmarais
+        !
+        !> @param bf_alignment
+        !> relative position of the buffer layer compared to the
+        !> interior domain
+        !
+        !> @param central_coords
+        !> indices identifying the central grid-point along the
+        !> x- and y- directions
+        !
+        !> @param grdpts_id
+        !> confiugration of the grid-points in the buffer layer
+        !--------------------------------------------------------------
+        function create_tmp_grdpts_id_for_analyse(
+     $     bf_alignment,
+     $     central_coords,grdpts_id)
+     $     result(tmp_grdpts_id)
+
+           implicit none
+
+           integer(ikind), dimension(2,2), intent(in) :: bf_alignment
+           integer(ikind), dimension(2)  , intent(in) :: central_coords
+           integer       , dimension(:,:), intent(in) :: grdpts_id
+           integer       , dimension(3,3)             :: tmp_grdpts_id
+
+           integer(ikind), dimension(2)   :: match_table
+           integer(ikind), dimension(2,2) :: gen_coords
+           integer(ikind)                 :: i,j
+           integer(ikind)                 :: size_x,size_y
+           integer(ikind)                 :: i_recv,i_send,j_recv,j_send          
+
+
+           ! determination of the borders for the extraction
+           !============================================================
+           match_table = get_bf_layer_match_table(bf_alignment)
+
+           gen_coords(1,1) = central_coords(1) -1 + match_table(1)
+           gen_coords(2,1) = central_coords(2) -1 + match_table(2)
+           gen_coords(1,2) = central_coords(1) +1 + match_table(1)
+           gen_coords(2,2) = central_coords(2) +1 + match_table(2)
+
+
+           ! grid-point extraction
+           !============================================================
+           ! from the interior
+           call get_grdpts_id_from_interior(tmp_grdpts_id,gen_coords)
+
+           ! from the buffer layer
+           call get_indices_to_extract_bf_layer_data(
+     $          bf_alignment,
+     $          gen_coords,
+     $          size_x, size_y,
+     $          i_recv, j_recv,
+     $          i_send, j_send)
+
+           do j=1, size_y
+              do i=1, size_x
+                 
+                 tmp_grdpts_id(i_recv+i-1,j_recv+j-1) = 
+     $                grdpts_id(i_send+i-1,j_send+j-1)
+ 
+              end do
+           end do
+
+        end function create_tmp_grdpts_id_for_analyse
 
       end module bf_layer_bc_sections_class

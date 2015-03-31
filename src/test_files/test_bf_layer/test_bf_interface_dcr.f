@@ -486,7 +486,7 @@
 
           implicit none
 
-          type(bf_interface), intent(inout) :: bf_interface_used
+          type(bf_interface_dcr), intent(inout) :: bf_interface_used
 
           real(rkind)   , dimension(nx)       :: interior_x_map
           real(rkind)   , dimension(ny)       :: interior_y_map

@@ -150,7 +150,7 @@
      $            detailled)
              test_validated = test_validated.and.test_loc
              if(detailled.and.(.not.test_loc)) then
-                print '(''x_borders failed'')'
+                print '(''x_borders('',I2,'') failed'')',k
              end if
 
              test_loc = is_int_vector_validated(
@@ -159,7 +159,7 @@
      $            detailled)
              test_validated = test_validated.and.test_loc
              if(detailled.and.(.not.test_loc)) then
-                print '(''y_borders failed'')'
+                print '(''y_borders('',I2,'') failed'')',k
              end if
 
              !bc_sections
@@ -169,32 +169,32 @@
      $            detailled)
              test_validated = test_validated.and.test_loc
              if(detailled.and.(.not.test_loc)) then
-                print '(''bc_sections failed'')'
+                print '(''bc_sections('',I2,'') failed'')',k
              end if
 
              !arrays for time integration allocated
              test_loc = allocated(current_sublayer%bf_compute_used%alignment_tmp)
              test_validated = test_validated.and.test_loc
              if(detailled.and.(.not.test_loc)) then
-                print '(''alignment_tmp failed'')'
+                print '(''alignment_tmp('',I2,'') failed'')',k
              end if
 
              test_loc = allocated(current_sublayer%bf_compute_used%grdpts_id_tmp)
              test_validated = test_validated.and.test_loc
              if(detailled.and.(.not.test_loc)) then
-                print '(''grdpts_id_tmp failed'')'
+                print '(''grdpts_id_tmp('',I2,'') failed'')',k
              end if
 
              test_loc = allocated(current_sublayer%bf_compute_used%nodes_tmp)
              test_validated = test_validated.and.test_loc
              if(detailled.and.(.not.test_loc)) then
-                print '(''nodes_tmp failed'')'
+                print '(''nodes_tmp('',I2,'') failed'')',k
              end if
 
              test_loc = allocated(current_sublayer%bf_compute_used%time_dev)
              test_validated = test_validated.and.test_loc
              if(detailled.and.(.not.test_loc)) then
-                print '(''timedev_tmp failed'')'
+                print '(''timedev_tmp('',I2,'' failed'')',k
              end if
 
              !next sublayer

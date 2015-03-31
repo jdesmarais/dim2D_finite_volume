@@ -331,6 +331,7 @@ $(bbf_layer_dir)/bf_layer_bc_sections_class.o:\
 	$(bbf_layer_dir)/bf_layer_bc_procedure_module.o\
 	$(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
+	$(sbf_layer_dir)/bf_layer_extract_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o

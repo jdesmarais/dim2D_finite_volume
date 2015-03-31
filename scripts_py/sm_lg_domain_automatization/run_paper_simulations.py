@@ -44,8 +44,8 @@ if __name__=="__main__":
 
     temperatureStudy          = False
     velocityStudy             = False
-    thresholdTemperatureStudy = False
-    thresholdVelocityStudy    = True
+    thresholdTemperatureStudy = True
+    thresholdVelocityStudy    = False
 
 
     #1) temperature study
@@ -96,9 +96,9 @@ if __name__=="__main__":
     #3) threshold study
     if(thresholdTemperatureStudy):
 
-        temperature_array  = [0.95]#0.95,0.99,0.995,0.999]
+        temperature_array  = [0.999]#0.95,0.99,0.995,0.999]
         flow_velocity      = 0.1
-        md_threshold_array = [0.01, 0.05, 0.1, 0.2, 0.3]
+        md_threshold_array = [0.1]#01, 0.05, 0.1, 0.2, 0.3]
         md_threshold_ac    = 1
         large_domain_run   = False
         

@@ -85,9 +85,15 @@ perform_test $file
 
 #test_bf_newgrdpt_prim
 file=test_bf_newgrdpt_prim
+change_param_input 'flow_direction' 'x_direction'
+change_param_input 'flow_x_side' '1.0d0'
+change_param_input 'flow_y_side' '1.0d0'
+change_param_input 'flow_velocity' '0.1d0'
+change_param_input 'T0' '0.95d0'
+change_param_input 'ic_choice' 'newgrdpt_test'
 change_param_input 'obc_eigenqties_strategy' 'obc_eigenqties_bc'
 change_param_makefile 'ic_choice' 'newgrdpt_test'
-change_param_input 'ic_choice' 'newgrdpt_test'
+
 perform_test $file
 
 
@@ -209,7 +215,7 @@ change_param_input 'ic_choice' 'peak'
 change_param_input 'ntx' '100'
 change_param_input 'nty' '110'
 change_param_input 'ne'  '3'
-$config_dir/change_parameter.sh -i $test_dir/test_bf_interface_time.f -o $test_dir/test_bf_interface_time.f -p 'generate_small_domain'  '.true.'
+change_param $test_dir/test_bf_interface_time.f 'generate_small_domain' ".true."
 make test_bf_interface_time > /dev/null
 ./test_bf_interface_time >/dev/null
 make cleanall > /dev/null
@@ -218,7 +224,7 @@ make cleanall > /dev/null
 change_param_input 'ntx' '64'
 change_param_input 'nty' '54'
 change_param_input 'ne'  '3'
-$config_dir/change_parameter.sh -i $test_dir/test_bf_interface_time.f -o $test_dir/test_bf_interface_time.f -p 'generate_small_domain'  '.false.'
+change_param $test_dir/test_bf_interface_time.f 'generate_small_domain' ".false."
 perform_test $file
 
 #remove unnecessary files
@@ -359,5 +365,5 @@ perform_test $file
 
 
 #test_bf_interface_class
-file=test_bf_interface
+file=test_bf_interface_dcr
 perform_test $file

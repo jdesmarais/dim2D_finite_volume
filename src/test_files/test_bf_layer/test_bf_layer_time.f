@@ -18,7 +18,8 @@
      $       bc_interior_pt,
      $       interior_pt,
      $       
-     $       align_S,align_E,
+     $       align_N,align_S,
+     $       align_E,align_W,
      $       
      $       N_edge_type,
      $       S_edge_type,
@@ -177,142 +178,192 @@
           integer(ikind), dimension(2)    :: y_borders
           integer       , dimension(5,60) :: test_bc_sections
           
-          allocate(bf_layer_used%grdpts_id(26,22))
+          logical :: test_loc
 
-          x_borders = [3,26]
-          y_borders = [3,22]
+
+          test_validated = .true.
+
+
+          allocate(bf_layer_used%grdpts_id(30,26))
+
+          bf_layer_used%localization = N
+
+          x_borders = [5,30]
+          y_borders = [3,24]
 
           call bf_layer_used%set_x_borders(x_borders)
           call bf_layer_used%set_y_borders(y_borders)
 
-
-          !22- |     |                    3 3 3 3 3 3                     |    |
-          !    |     |            3 3 3 3 3 2 2 2 2 3 3 3 3 3             |    |
-          !20- |     |            3 2 2 2 2 2     2 2 2 2 2 3             |    |
-          !    |     |    3 3 3 3 3 2                     2 3 3 3 3 3     |    |
-          !18- |     |  3 3 2 2 2 2 2                     2 2 2 2 2 3 3   |    |
-          !17- |     |3 3 2 2                                     2 2 3 3 |    |
-          !    |     |3 2 2                                         2 2 3 |    |
-          !15- |     |3 2                                             2 3 |    |
-          !    |     |3 2                                             2 3 |    |
-          !13- |     |3 2 2                                         2 2 3 |    |
-          !    |     |3 3 2 2                                     2 2 3 3 |    |
-          !11- |     |  3 3 2 2 2 2 2                     2 2 2 2 2 3 3   |    |
-          !10- |     |    3 3 3 3 3 2                     2 3 3 3 3 3     |    |
-          !    |     |            3 2                     2 3             |    |
-          ! 8- |     |            3 2 2 2 2 2     2 2 2 2 2 3             |    |
-          !    |     |            3 3 3 3 3 2     2 3 3 3 3 3             |    |
-          !    |     |                    3 2     2 3                     |    |
-          !    |     |        3 3 3 3 3 3 3 2     2 3 3 3 3 3 3 3         |    |
-          ! 4- |     |        3 2 2 2 2 2 2 2     2 2 2 2 2 2 2 3         |    |
-          !    |     |        3 2                             2 3         |    |
-          ! 2- |     |        3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 3         |    |
-          !    |     |        3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3         |    |
-          !     ---- | ---------------------------------------------------------
-          !           | | |   |   |       |       |         | |     | | |
-          !           1 2 3   5   7       11      15        2021    242526
+          
+          !          ________________________________________________________
+          !    |     |                                                      |    |
+          !    |     |                                                      |    |
+          !24- |     |                      3 3 3 3 3 3                     |    |
+          !    |     |              3 3 3 3 3 2 2 2 2 3 3 3 3 3             |    |
+          !22- |     |              3 2 2 2 2 2     2 2 2 2 2 3             |    |
+          !    |     |      3 3 3 3 3 2                     2 3 3 3 3 3     |    |
+          !20- |     |    3 3 2 2 2 2 2                     2 2 2 2 2 3 3   |    |
+          !19- |     |  3 3 2 2                                     2 2 3 3 |    |
+          !    |     |  3 2 2                                         2 2 3 |    |
+          !17- |     |  3 2                                             2 3 |    |
+          !    |     |  3 2                                             2 3 |    |
+          !15- |     |  3 2 2                                         2 2 3 |    |
+          !    |     |  3 3 2 2                                     2 2 3 3 |    |
+          !13- |     |    3 3 2 2 2 2 2                     2 2 2 2 2 3 3   |    |
+          !12- |     |      3 3 3 3 3 2                     2 3 3 3 3 3     |    |
+          !    |     |              3 2                     2 3             |    |
+          !10- |     |              3 2 2 2 2 2     2 2 2 2 2 3             |    |
+          !    |     |              3 3 3 3 3 2     2 3 3 3 3 3             |    |
+          !    |     |                      3 2     2 3                     |    |
+          !    |     |          3 3 3 3 3 3 3 2     2 3 3 3 3 3 3 3         |    |
+          ! 6- |     |          3 2 2 2 2 2 2 2     2 2 2 2 2 2 2 3         |    |
+          !    |     |          3 2                             2 3         |    |
+          ! 4- |     |          3 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 3         |    |
+          !    |     |          3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3         |    |
+          !    |     |                                                      |    |
+          !    |     |                                                      |    |
+          !     ---- |------------------------------------------------------|-----
+          !             | | |   |   |       |       |         | |     | | |
+          !             3 4 5   7   9       13      17        2223    262728
           ! --------------------------------------------------
           bf_layer_used%grdpts_id = reshape(
      $         (/
-     $         0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0,
-     $         0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0,
-     $         0, 0, 0, 0, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 0, 0, 0, 0,
-     $         0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0,
-     $         0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 2, 1, 1, 2, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0,
-     $         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-     $         0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 2, 1, 1, 2, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0,
-     $         0, 0, 0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0,
-     $         0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 0, 0, 0, 0, 0, 0,
-     $         0, 0, 3, 3, 3, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 0, 0,
-     $         0, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 0,
-     $         3, 3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 3,
-     $         3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3,
-     $         3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3,
-     $         3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3,
-     $         3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3,
-     $         3, 3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 3,
-     $         0, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 0,
-     $         0, 0, 3, 3, 3, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 0, 0,
-     $         0, 0, 0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0,
-     $         0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0,
-     $         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0/),
-     $         (/26,22/))
-          
+     $         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 2, 1, 1, 2, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 2, 1, 1, 2, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 3, 3, 3, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 0, 0, 0, 0,
+     $         0, 0, 0, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 0, 0, 0,
+     $         0, 0, 3, 3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 3, 0, 0,
+     $         0, 0, 3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 0, 0,
+     $         0, 0, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 0, 0,
+     $         0, 0, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 0, 0,
+     $         0, 0, 3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 0, 0,
+     $         0, 0, 3, 3, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 3, 3, 0, 0,
+     $         0, 0, 0, 3, 3, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 0, 0, 0,
+     $         0, 0, 0, 0, 3, 3, 3, 3, 3, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 0, 0, 3, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+     $         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0/),
+     $         (/30,26/))
+
           test_bc_sections = reshape((/
-     $         SW_corner_type, 5 ,  1, no_overlap                , NS_overlap,
-     $         S_edge_type   , 7 ,  1, 20                        , NS_overlap,
-     $         SE_corner_type, 21,  1, no_overlap                , NS_overlap,
-     $         W_edge_type   , 5 ,  3, 3                         , no_overlap,
-     $         E_edge_type   , 21,  3, 3                         , no_overlap,
-     $         NW_corner_type, 5 ,  4, no_overlap                , no_overlap,
-     $         N_edge_type   , 7 ,  4, 10                        , no_overlap,
-     $         NW_edge_type  , 11,  4, no_overlap                , no_overlap,
-     $         NE_edge_type  , 15,  4, no_overlap                , no_overlap,
-     $         N_edge_type   , 17,  4, 20                        , no_overlap,
-     $         NE_corner_type, 21,  4, no_overlap                , no_overlap,
-     $         W_edge_type   , 11,  6, 6                         , no_overlap,
-     $         E_edge_type   , 15,  6, 6                         , no_overlap,
-     $         SW_corner_type, 7 ,  7, no_overlap                , no_overlap,
-     $         S_edge_type   , 9 ,  7, 10                        , no_overlap,
-     $         SW_edge_type  , 11,  7, no_overlap                , no_overlap,
-     $         SE_edge_type  , 15,  7, no_overlap                , no_overlap,
-     $         S_edge_type   , 17,  7, 18                        , no_overlap,
-     $         SE_corner_type, 19,  7, no_overlap                , no_overlap,
-     $         W_edge_type   , 7 ,  9, 9                         , no_overlap,
-     $         E_edge_type   , 19,  9, 9                         , no_overlap,
-     $         SW_corner_type, 3 , 10, cpt2normal_and_cpt3not    , no_overlap,
-     $         S_edge_type   , 5 , 10, 6                         , no_overlap,
-     $         SW_edge_type  , 7 , 10, no_overlap                , no_overlap,
-     $         SE_edge_type  , 19, 10, no_overlap                , no_overlap,
-     $         S_edge_type   , 21, 10, 22                        , no_overlap,
-     $         SE_corner_type, 23, 10, cpt1normal_and_cpt4not    , no_overlap,
-     $         SW_corner_type, 2 , 11, cpt2overlap_and_cpt3not   , W_overlap,
-     $         SW_edge_type  , 3 , 11, cpt2normal_and_cpt3not    , SW_overlap,
-     $         SE_edge_type  , 23, 11, cpt1normal_and_cpt4not    , SE_overlap,
-     $         SE_corner_type, 24, 11, cpt1overlap_and_cpt4not   , no_overlap,
-     $         SW_corner_type, 1 , 12, cpt2overlap_and_cpt3normal, EW_overlap,
-     $         SW_edge_type  , 2 , 12, cpt2overlap_and_cpt3normal, SW_overlap,
-     $         SE_edge_type  , 24, 12, cpt1overlap_and_cpt4normal, SE_overlap,
-     $         SE_corner_type, 25, 12, cpt1overlap_and_cpt4normal, no_overlap,
-     $         W_edge_type   , 1 , 14, 15                        , EW_overlap,
-     $         E_edge_type   , 25, 14, 15                        , no_overlap,
-     $         NW_corner_type, 1 , 16, cpt1normal_and_cpt4not    , EW_overlap,
-     $         NW_edge_type  , 2,  16, cpt1normal_and_cpt4not    , NW_overlap,
-     $         NE_edge_type  , 24, 16, cpt2normal_and_cpt3not    , NE_overlap,
-     $         NE_corner_type, 25, 16, cpt2normal_and_cpt3not    , no_overlap,
-     $         NW_corner_type, 2 , 17, cpt1overlap_and_cpt4not   , W_overlap,
-     $         NW_edge_type  , 3 , 17, cpt1overlap_and_cpt4normal, NW_overlap,
-     $         NE_edge_type  , 23, 17, cpt2overlap_and_cpt3normal, NE_overlap,
-     $         NE_corner_type, 24, 17, cpt2overlap_and_cpt3not   , no_overlap,
-     $         NW_corner_type,  3, 18, cpt1overlap_and_cpt4normal, no_overlap,
-     $         N_edge_type   ,  5, 18, 6                         , no_overlap,
-     $         NW_edge_type  ,  7, 18, no_overlap                , no_overlap,
-     $         NE_edge_type  , 19, 18, no_overlap                , no_overlap,
-     $         N_edge_type   , 21, 18, 22                        , no_overlap,
-     $         NE_corner_type, 23, 18, cpt2overlap_and_cpt3normal, no_overlap,
-     $         NW_corner_type, 7 , 20, no_overlap                , no_overlap,
-     $         N_edge_type   , 9 , 20, 10                        , no_overlap,
-     $         NW_edge_type  , 11, 20, no_overlap                , N_overlap,
-     $         NE_edge_type  , 15, 20, no_overlap                , N_overlap,
-     $         N_edge_type   , 17, 20, 18                        , no_overlap,
-     $         NE_corner_type, 19, 20, no_overlap                , no_overlap,
-     $         NW_corner_type, 11, 21, no_overlap                , no_overlap,
-     $         N_edge_type   , 13, 21, 14                        , no_overlap,
-     $         NE_corner_type, 15, 21, no_overlap                , no_overlap
+     $         SW_corner_type, 7 ,  3, no_overlap                , no_overlap,
+     $         S_edge_type   , 9 ,  3, 22                        , no_overlap,
+     $         SE_corner_type, 23,  3, no_overlap                , no_overlap,
+     $         W_edge_type   , 7 ,  5, 5                         , no_overlap,
+     $         E_edge_type   , 23,  5, 5                         , no_overlap,
+     $         NW_corner_type, 7 ,  6, no_overlap                , no_overlap,
+     $         N_edge_type   , 9 ,  6, 12                        , no_overlap,
+     $         NW_edge_type  , 13,  6, no_overlap                , no_overlap,
+     $         NE_edge_type  , 17,  6, no_overlap                , no_overlap,
+     $         N_edge_type   , 19,  6, 22                        , no_overlap,
+     $         NE_corner_type, 23,  6, no_overlap                , no_overlap,
+     $         W_edge_type   , 13,  8, 8                         , no_overlap,
+     $         E_edge_type   , 17,  8, 8                         , no_overlap,
+     $         SW_corner_type, 9 ,  9, no_overlap                , no_overlap,
+     $         S_edge_type   , 11,  9, 12                        , no_overlap,
+     $         SW_edge_type  , 13,  9, no_overlap                , no_overlap,
+     $         SE_edge_type  , 17,  9, no_overlap                , no_overlap,
+     $         S_edge_type   , 19,  9, 20                        , no_overlap,
+     $         SE_corner_type, 21,  9, no_overlap                , no_overlap,
+     $         W_edge_type   , 9 , 11, 11                        , no_overlap,
+     $         E_edge_type   , 21, 11, 11                        , no_overlap,
+     $         SW_corner_type, 5 , 12, cpt2normal_and_cpt3not    , no_overlap,
+     $         S_edge_type   , 7 , 12, 8                         , no_overlap,
+     $         SW_edge_type  , 9 , 12, no_overlap                , no_overlap,
+     $         SE_edge_type  , 21, 12, no_overlap                , no_overlap,
+     $         S_edge_type   , 23, 12, 24                        , no_overlap,
+     $         SE_corner_type, 25, 12, cpt1normal_and_cpt4not    , no_overlap,
+     $         SW_corner_type, 4 , 13, cpt2overlap_and_cpt3not   , W_overlap,
+     $         SW_edge_type  , 5 , 13, cpt2normal_and_cpt3not    , SW_overlap,
+     $         SE_edge_type  , 25, 13, cpt1normal_and_cpt4not    , SE_overlap,
+     $         SE_corner_type, 26, 13, cpt1overlap_and_cpt4not   , no_overlap,
+     $         SW_corner_type, 3 , 14, cpt2overlap_and_cpt3normal, EW_overlap,
+     $         SW_edge_type  , 4 , 14, cpt2overlap_and_cpt3normal, SW_overlap,
+     $         SE_edge_type  , 26, 14, cpt1overlap_and_cpt4normal, SE_overlap,
+     $         SE_corner_type, 27, 14, cpt1overlap_and_cpt4normal, no_overlap,
+     $         W_edge_type   , 3 , 16, 17                        , EW_overlap,
+     $         E_edge_type   , 27, 16, 17                        , no_overlap,
+     $         NW_corner_type, 3 , 18, cpt1normal_and_cpt4not    , EW_overlap,
+     $         NW_edge_type  , 4,  18, cpt1normal_and_cpt4not    , NW_overlap,
+     $         NE_edge_type  , 26, 18, cpt2normal_and_cpt3not    , NE_overlap,
+     $         NE_corner_type, 27, 18, cpt2normal_and_cpt3not    , no_overlap,
+     $         NW_corner_type, 4 , 19, cpt1overlap_and_cpt4not   , W_overlap,
+     $         NW_edge_type  , 5 , 19, cpt1overlap_and_cpt4normal, NW_overlap,
+     $         NE_edge_type  , 25, 19, cpt2overlap_and_cpt3normal, NE_overlap,
+     $         NE_corner_type, 26, 19, cpt2overlap_and_cpt3not   , no_overlap,
+     $         NW_corner_type,  5, 20, cpt1overlap_and_cpt4normal, no_overlap,
+     $         N_edge_type   ,  7, 20, 8                         , no_overlap,
+     $         NW_edge_type  ,  9, 20, no_overlap                , no_overlap,
+     $         NE_edge_type  , 21, 20, no_overlap                , no_overlap,
+     $         N_edge_type   , 23, 20, 24                        , no_overlap,
+     $         NE_corner_type, 25, 20, cpt2overlap_and_cpt3normal, no_overlap,
+     $         NW_corner_type, 9 , 22, no_overlap                , no_overlap,
+     $         N_edge_type   , 11, 22, 12                        , no_overlap,
+     $         NW_edge_type  , 13, 22, no_overlap                , N_overlap,
+     $         NE_edge_type  , 17, 22, no_overlap                , N_overlap,
+     $         N_edge_type   , 19, 22, 20                        , no_overlap,
+     $         NE_corner_type, 21, 22, no_overlap                , no_overlap,
+     $         NW_corner_type, 13, 23, no_overlap                , no_overlap,
+     $         N_edge_type   , 15, 23, 16                        , no_overlap,
+     $         NE_corner_type, 17, 23, no_overlap                , no_overlap
      $         /),
      $         (/5,60/))
 
-          !output
+          !North
+          bf_layer_used%localization = N
           call bf_layer_used%update_bc_sections()
 
-          !validation
-          test_validated = is_int_matrix_validated(
+          test_loc = is_int_matrix_validated(
      $         bf_layer_used%bc_sections,
      $         test_bc_sections,
      $         detailled)
+          test_validated = test_validated.and.test_loc
+
+
+          !South
+          bf_layer_used%localization = S
+          call bf_layer_used%update_bc_sections()
+
+          test_loc = is_int_matrix_validated(
+     $         bf_layer_used%bc_sections,
+     $         test_bc_sections,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+
+
+          !East
+          bf_layer_used%localization = E
+          call bf_layer_used%update_bc_sections()
+
+          test_loc = is_int_matrix_validated(
+     $         bf_layer_used%bc_sections,
+     $         test_bc_sections,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
+
+          
+          !West
+          bf_layer_used%localization = W
+          call bf_layer_used%update_bc_sections()
+
+          test_loc = is_int_matrix_validated(
+     $         bf_layer_used%bc_sections,
+     $         test_bc_sections,
+     $         detailled)
+          test_validated = test_validated.and.test_loc
 
         end function test_update_bc_sections
-
 
 
         function test_update_integration_borders(detailled)

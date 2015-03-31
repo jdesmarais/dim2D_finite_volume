@@ -42,12 +42,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 6
-        integer(ikind), parameter :: nty = 6
+        integer(ikind), parameter :: ntx = 64
+        integer(ikind), parameter :: nty = 54
 
-        integer(ikind), parameter :: nx = 6/npx
-        integer(ikind), parameter :: ny = 6/npy
-        integer       , parameter :: ne = 4
+        integer(ikind), parameter :: nx = ntx/npx
+        integer(ikind), parameter :: ny = nty/npy
+        integer       , parameter :: ne = 3
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -107,12 +107,12 @@
         !--------------------------------------------
         integer    , parameter :: flow_direction = x_direction
         real(rkind), parameter :: flow_x_side = 1.0d0
-        real(rkind), parameter :: flow_y_side = 0.0d0
+        real(rkind), parameter :: flow_y_side = 1.0d0
         real(rkind), parameter :: flow_velocity = 0.1d0
         
         real(rkind), parameter :: T0 = 0.95d0
 
-        integer    , parameter :: ic_choice = newgrdpt_test
+        integer    , parameter :: ic_choice = peak
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
@@ -182,7 +182,7 @@
         !-----------------------------------------------------
         integer    , parameter :: obc_outgoing_strategy   = obc_outgoing_prim
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
-        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
 
 

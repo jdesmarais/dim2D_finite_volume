@@ -298,7 +298,7 @@
      $         p_model,
      $         i, j_min, j_max,
      $         [.true.,.true.],
-     $         flux_x)
+     $         flux_y)
           
           i = nx-bc_size+1
 
@@ -312,7 +312,7 @@
      $         p_model,
      $         i, j_min, j_max,
      $         [.true.,.true.],
-     $         flux_x)
+     $         flux_y)
           
           
           ! N_edge

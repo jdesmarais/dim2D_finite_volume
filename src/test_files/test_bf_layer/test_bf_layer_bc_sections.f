@@ -8,6 +8,9 @@
      $       is_int_matrix_validated
 
         use parameters_bf_layer, only : 
+     $       align_N, align_S,
+     $       align_E, align_W,
+     $       
      $       N_edge_type,
      $       S_edge_type,
      $       E_edge_type,
@@ -60,6 +63,12 @@
      $       cpt2overlap_and_cpt3not,
      $       cpt2overlap_and_cpt3overlap
 
+
+        use parameters_input, only :
+     $       nx,ny
+
+        use parameters_kind, only :
+     $       ikind
 
         implicit none
 
@@ -116,10 +125,15 @@
         print '(''test_analyse_grdpt_with_bc_section: '',L1)', test_loc
         print '()'
 
+        test_loc = test_create_tmp_grdpts_id_for_analyse(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_create_tmp_grdpts_id_for_analyse: '',L1)', test_loc
+        print '()'
+
         test_loc = test_finalize_bc_sections(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_finalize_bc_sections: '',L1)', test_loc
-        print '()'        
+        print '()'
 
 
         print '(''test_validated: '',L1)', test_validated
@@ -1056,6 +1070,9 @@ c$$$      end function compare_bc_procedure
           logical                    :: test_loc
           logical                    :: ierror
 
+          integer, dimension(3,3) :: tmp_grdpts_id
+          logical                 :: use_tmp_grdpts_id
+
 
           test_validated = .true.
 
@@ -1175,6 +1192,11 @@ c$$$      end function compare_bc_procedure
           test_bc_section(:,12) = [SW_edge_type,1,1,2,1]
           
           
+          !test the edge detection
+          !============================================================
+          ! test w/o the tmp_grdpts_id
+          !------------------------------------------------------------
+          use_tmp_grdpts_id = .false.
           do k=1,4
 
              !output
@@ -1182,6 +1204,7 @@ c$$$      end function compare_bc_procedure
      $            test_i,
      $            test_j,
      $            test_grdpts_id(:,:,k),
+     $            tmp_grdpts_id, use_tmp_grdpts_id,
      $            ierror)
 
              !validation
@@ -1198,12 +1221,52 @@ c$$$      end function compare_bc_procedure
              
              !detailled
              if(detailled.and.(.not.test_loc)) then
-                print '(''test '',I2,'' failed'')', k
+                print '(''test ('',I2,'',1) failed'')', k
+             end if
+
+          end do
+
+          ! test w/ the tmp_grdpts_id
+          !------------------------------------------------------------
+          use_tmp_grdpts_id = .true.
+          do k=1,4
+
+             !input
+             tmp_grdpts_id = test_grdpts_id(:,:,k)
+
+             !output
+             bc_section = bf_layer_bc_sections_used%get_bc_section(
+     $            test_i,
+     $            test_j,
+     $            test_grdpts_id(:,:,1),
+     $            tmp_grdpts_id, use_tmp_grdpts_id,
+     $            ierror)
+
+             !validation
+             if(ierror.eqv.BF_SUCCESS) then
+                test_loc = is_int_vector_validated(
+     $               bc_section(1:4),
+     $               test_bc_section(1:4,k),
+     $               detailled)                
+             else
+                test_loc = .false.
+             end if
+
+             test_validated = test_validated.and.test_loc
+             
+             !detailled
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test ('',I2,'',2) failed'')', k
              end if
 
           end do
 
 
+          ! test the corner and anti-corner detection
+          !============================================================
+          !test w/o tmp_grdpts_id
+          !------------------------------------------------------------
+          use_tmp_grdpts_id = .false.
           do k=5,size(test_grdpts_id,3)
 
              !output
@@ -1211,6 +1274,7 @@ c$$$      end function compare_bc_procedure
      $            test_i,
      $            test_j,
      $            test_grdpts_id(:,:,k),
+     $            tmp_grdpts_id, use_tmp_grdpts_id,
      $            ierror)
 
              !validation
@@ -1227,7 +1291,42 @@ c$$$      end function compare_bc_procedure
              
              !detailled
              if(detailled.and.(.not.test_loc)) then
-                print '(''test '',I2,'' failed'')', k
+                print '(''test ('',I2,'',1) failed'')', k
+             end if
+
+          end do
+
+          !test w/ tmp_grdpts_id
+          !------------------------------------------------------------
+          use_tmp_grdpts_id = .true.
+          do k=5,size(test_grdpts_id,3)
+
+             !input
+             tmp_grdpts_id = test_grdpts_id(:,:,k)
+
+             !output
+             bc_section = bf_layer_bc_sections_used%get_bc_section(
+     $            test_i,
+     $            test_j,
+     $            test_grdpts_id(:,:,1),
+     $            tmp_grdpts_id, use_tmp_grdpts_id,
+     $            ierror)
+
+             !validation
+             if(ierror.eqv.BF_SUCCESS) then
+                test_loc = is_int_vector_validated(
+     $               bc_section(1:3),
+     $               test_bc_section(1:3,k),
+     $               detailled)
+             else
+                test_loc = .false.
+             end if
+
+             test_validated = test_validated.and.test_loc
+             
+             !detailled
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test ('',I2,'',2) failed'')', k
              end if
 
           end do
@@ -1256,6 +1355,10 @@ c$$$      end function compare_bc_procedure
           logical                    :: test_loc
           logical                    :: compatible
           logical                    :: remove_ele
+
+          integer, dimension(5)      :: bc_section_in
+          integer, dimension(3,3)    :: tmp_grdpts_id
+          logical                    :: use_tmp_grdpts_id
 
           test_i = 2
           test_j = 2
@@ -1718,25 +1821,68 @@ c$$$      end function compare_bc_procedure
           test_remove_ele(24)   = .true.
 
 
+          ! test w/o tmp_grdpts_id
+          !============================================================
+          use_tmp_grdpts_id = .false.
           do k=1,24
+
+             !input
+             bc_section_in = test_bc_section(:,k)
 
              !output
              compatible = bf_layer_bc_sections_used%analyse_grdpt_with_bc_section(
      $            test_i,
      $            test_j,
      $            test_grdpts_id(:,:,k),
-     $            test_bc_section(:,k),
+     $            tmp_grdpts_id, use_tmp_grdpts_id,
+     $            bc_section_in,
      $            remove_ele)
 
              !validation
-             test_loc = is_int_vector_validated(test_bc_section(:,k),test_bc_section_after(:,k))
+             test_loc = is_int_vector_validated(bc_section_in,test_bc_section_after(:,k))
              test_loc = test_loc.and.(compatible.eqv.test_compatible(k))
              test_loc = test_loc.and.(remove_ele.eqv.test_remove_ele(k))
              test_validated = test_validated.and.test_loc
 
              !detailled
              if(detailled.and.(.not.test_loc)) then
-                print '(''test('',I2,'') failed'')',k
+                print '(''test('',I2,'',1) failed'')',k
+                print '('' - bc_section: '',L1)', is_int_vector_validated(test_bc_section(:,k),test_bc_section_after(:,k))
+                print '('' - compatible: '',L1)', compatible.eqv.test_compatible(k)
+                print '('' - remove_ele: '',L1)', remove_ele.eqv.test_remove_ele(k)
+                print '()'
+             end if
+
+          end do
+
+
+          ! test w/ tmp_grdpts_id
+          !============================================================
+          use_tmp_grdpts_id = .true.
+          do k=1,24
+
+             !input
+             tmp_grdpts_id = test_grdpts_id(:,:,k)
+             bc_section_in = test_bc_section(:,k)
+
+             !output
+             compatible = bf_layer_bc_sections_used%analyse_grdpt_with_bc_section(
+     $            test_i,
+     $            test_j,
+     $            test_grdpts_id(:,:,1),
+     $            tmp_grdpts_id, use_tmp_grdpts_id,
+     $            bc_section_in,
+     $            remove_ele)
+
+             !validation
+             test_loc = is_int_vector_validated(bc_section_in,test_bc_section_after(:,k))
+             test_loc = test_loc.and.(compatible.eqv.test_compatible(k))
+             test_loc = test_loc.and.(remove_ele.eqv.test_remove_ele(k))
+             test_validated = test_validated.and.test_loc
+
+             !detailled
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test('',I2,'',2) failed'')',k
                 print '('' - bc_section: '',L1)', is_int_vector_validated(test_bc_section(:,k),test_bc_section_after(:,k))
                 print '('' - compatible: '',L1)', compatible.eqv.test_compatible(k)
                 print '('' - remove_ele: '',L1)', remove_ele.eqv.test_remove_ele(k)
@@ -2237,6 +2383,82 @@ c$$$
 c$$$        end subroutine test_add_overlap_between_corners_and_anti_corners
 
 
+        function test_create_tmp_grdpts_id_for_analyse(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          type(bf_layer_bc_sections)       :: bf_layer_bc_sections_used
+          integer(ikind), dimension(2,2)   :: bf_alignment
+          integer       , dimension(6,5)   :: grdpts_id
+          integer(ikind), dimension(2,2)   :: central_coords
+          integer       , dimension(3,3,2) :: test_grdpts_id
+          integer       , dimension(3,3)   :: tmp_grdpts_id
+
+          integer :: k
+          logical :: test_loc
+
+          
+          test_validated = .true.
+
+
+          bf_alignment = reshape((/
+     $         align_E-2, align_N,
+     $         align_E-1, align_N/),
+     $         (/2,2/))
+
+          grdpts_id = reshape((/
+     $         1,1,1,1,2,3,
+     $         1,1,1,1,2,3,
+     $         2,2,2,2,2,3,
+     $         3,2,2,2,3,3,
+     $         3,3,3,3,3,0/),
+     $         (/6,5/))
+
+          
+          central_coords(:,1) = [1,3]
+
+          test_grdpts_id(:,:,1) = reshape((/
+     $         1,1,1,
+     $         2,2,2,
+     $         3,3,2/),
+     $         (/3,3/))
+
+          central_coords(:,2) = [1,4]
+
+          test_grdpts_id(:,:,2) = reshape((/
+     $         2,2,2,
+     $         3,3,2,
+     $         0,3,3/),
+     $         (/3,3/))
+
+          do k=1,2
+
+             !output
+             tmp_grdpts_id = bf_layer_bc_sections_used%create_tmp_grdpts_id_for_analyse(
+     $            bf_alignment,
+     $            central_coords(:,k),
+     $            grdpts_id)
+
+             !validation
+             test_loc = is_int_matrix_validated(
+     $            tmp_grdpts_id,
+     $            test_grdpts_id(:,:,k),
+     $            detailled)
+             test_validated = test_validated.and.test_loc
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test '',I2,'' failed'')', k
+             end if
+                
+          end do
+
+        end function test_create_tmp_grdpts_id_for_analyse
+
+
         function test_finalize_bc_sections(detailled)
      $     result(test_validated)
 
@@ -2259,6 +2481,8 @@ c$$$        end subroutine test_add_overlap_between_corners_and_anti_corners
           integer                              :: j
           logical                              :: ierror          
           integer, dimension(:,:), allocatable :: sorted_bc_sections
+
+          integer(ikind), dimension(2,2) :: bf_alignment
 
 
           !22- |     |                    3 3 3 3 3 3                     |    |
@@ -2390,7 +2614,10 @@ c$$$        end subroutine test_add_overlap_between_corners_and_anti_corners
           do j=j_min,j_max
              do i=i_min,i_max
                 if(grdpts_id(i,j).eq.bc_interior_pt) then
-                   call bf_layer_bc_sections_used%analyse_grdpt(i,j,grdpts_id,ierror)
+                   call bf_layer_bc_sections_used%analyse_grdpt(
+     $                  bf_alignment,
+     $                  i,j,grdpts_id,
+     $                  ierror)
                 end if
              end do
           end do
@@ -2406,5 +2633,22 @@ c$$$        end subroutine test_add_overlap_between_corners_and_anti_corners
      $         detailled)
 
         end function test_finalize_bc_sections
+
+
+        subroutine check_inputs()
+
+          implicit none
+
+          if((nx.le.10).or.
+     $       (ny.le.10)) then
+
+             print '(''the test requires: '')'
+             print '(''nx>10: '',L1)', (nx.gt.10)
+             print '(''ny>10: '',L1)', (ny.gt.10)
+             stop ''
+
+          end if
+
+        end subroutine check_inputs
 
       end program test_bf_layer_bc_sections

@@ -243,7 +243,6 @@
 
           type(bf_layer_bc_sections) :: bf_layer_bc_sections_used
           integer(ikind)             :: i,j
-          logical                    :: ierror
           
 
           if(allocated(this%grdpts_id)) then
@@ -254,27 +253,170 @@
              call bf_layer_bc_sections_used%ini()
 
              !identify the boundary sections
-             do j=2,size(this%grdpts_id,2)-1
-                do i=2, size(this%grdpts_id,1)-1
+             select case(this%localization)
 
-                   if(this%grdpts_id(i,j).eq.bc_interior_pt) then
+               !    _______________    __              
+               !   |  ___________  |  |__| non-analysed
+               !   | |///////////| |  |//| analyzed    
+               !   | |///////////| | 
+               !   |_|///////////|_|  
+               !   |///////////////|
+               !   |///////////////|------ align_N
+               !   | |///////////| |
+               !   |_______________|
+               !
+               case(N)
 
-                      call bf_layer_bc_sections_used%analyse_grdpt(
-     $                     i,j,
-     $                     this%grdpts_id,
-     $                     ierror)
+                  ! inside the buffer layer
+                  j=bc_size
+                     
+                  do i=bc_size, size(this%grdpts_id,1)-1
+                     call analyse_grdpt_for_bc_section(
+     $                    this,bf_layer_bc_sections_used,i,j)
+                  end do
 
-                      if(ierror.neqv.BF_SUCCESS) then
-                         print '(''bf_layer_time_class'')'
-                         print '(''update_bc_sections'')'
-                         print '(''failed identifying the bc_section'')'
-                         print '(''at (i,j)=('',2I4,'')'')', i,j
-                         stop ''
-                      end if
+                  ! layer in common with the interior domain
+                  do j=bc_size+1,2*bc_size
 
-                   end if
-                end do
-             end do
+                     do i=1, size(this%grdpts_id,1)
+                        call analyse_grdpt_for_bc_section(
+     $                       this,bf_layer_bc_sections_used,i,j)
+                     end do
+
+                  end do
+
+                  ! inside the buffer layer
+                  do j=2*bc_size+1, size(this%grdpts_id,2)-1
+                     
+                     do i=bc_size, size(this%grdpts_id,1)-1
+                        call analyse_grdpt_for_bc_section(
+     $                       this,bf_layer_bc_sections_used,i,j)
+                     end do
+
+                  end do
+
+               !    _______________
+               !   |  ___________  |
+               !   |_|///////////|_|
+               !   |///////////////|----- align_S
+               !   |///////////////|
+               !   | |///////////| |  
+               !   | |///////////| | 
+               !   | |///////////| |  |__| non-analysed
+               !   | |///////////| |  |//| analyzed    
+               !   |_______________|
+               !
+               case(S)
+
+                  ! inside the buffer layer
+                  do j=bc_size, size(this%grdpts_id,2)-2*bc_size
+                     
+                     do i=bc_size, size(this%grdpts_id,1)-1
+                        call analyse_grdpt_for_bc_section(
+     $                       this,bf_layer_bc_sections_used,i,j)
+                     end do
+
+                  end do
+
+                  ! layer in common with the interior domain
+                  do j=size(this%grdpts_id,2)-2*bc_size+1, size(this%grdpts_id,2)-bc_size
+                     
+                     do i=1, size(this%grdpts_id,1)
+                        call analyse_grdpt_for_bc_section(
+     $                       this,bf_layer_bc_sections_used,i,j)
+                     end do
+
+                  end do
+
+                  ! inside the buffer layer
+                  j=size(this%grdpts_id,2)-bc_size+1
+                     
+                  do i=bc_size, size(this%grdpts_id,1)-1
+                     call analyse_grdpt_for_bc_section(
+     $                    this,bf_layer_bc_sections_used,i,j)
+                  end do
+
+
+               !        align_E
+               !    ____|_____________
+               !   |  _|//|          |
+               !   | |/|///////////| |
+               !   | |/|///////////| |  
+               !   | |/|///////////| |   __
+               !   | |/|///////////| |  |__| non-analysed
+               !   | |/|///////////| |  |//| analyzed
+               !   |___|//|__________|
+               !
+               case(E)
+
+                  ! layer in common with the interior domain
+                  j=1
+                  do i=bc_size+1,2*bc_size
+                     call analyse_grdpt_for_bc_section(
+     $                       this,bf_layer_bc_sections_used,i,j)
+                  end do
+
+                  ! inside the buffer layer
+                  do j=bc_size, size(this%grdpts_id,2)-1
+                     
+                     do i=bc_size, size(this%grdpts_id,1)-1
+                        call analyse_grdpt_for_bc_section(
+     $                       this,bf_layer_bc_sections_used,i,j)
+                     end do
+
+                  end do
+
+                  ! layer in common with the interior domain
+                  j=size(this%grdpts_id,2)
+                  do i=bc_size+1,2*bc_size
+                     call analyse_grdpt_for_bc_section(
+     $                       this,bf_layer_bc_sections_used,i,j)
+                  end do
+
+               !              align_W
+               !    ____________|____
+               !   |          |//|_  |
+               !   | |///////////|/| |
+               !   | |///////////|/| |  
+               !   | |///////////|/| |   __
+               !   | |///////////|/| |  |__| non-analysed
+               !   | |///////////|/| |  |//| analyzed
+               !   |__________|//|___|
+               !
+               case(W)
+
+                  ! layer in common with the interior domain
+                  j=1
+                  do i=size(this%grdpts_id,1)-2*bc_size+1,size(this%grdpts_id,1)-bc_size
+                     call analyse_grdpt_for_bc_section(
+     $                       this,bf_layer_bc_sections_used,i,j)
+                  end do
+
+                  ! inside the buffer layer
+                  do j=bc_size, size(this%grdpts_id,2)-1
+                     
+                     do i=bc_size, size(this%grdpts_id,1)-1
+                        call analyse_grdpt_for_bc_section(
+     $                       this,bf_layer_bc_sections_used,i,j)
+                     end do
+
+                  end do
+
+                  ! layer in common with the interior domain
+                  j=size(this%grdpts_id,2)
+                  do i=size(this%grdpts_id,1)-2*bc_size+1,size(this%grdpts_id,1)-bc_size
+                     call analyse_grdpt_for_bc_section(
+     $                    this,bf_layer_bc_sections_used,i,j)
+                  end do
+
+               case default
+                  
+                  call error_mainlayer_id(
+     $                 'bf_layer_time_class',
+     $                 'update_bc_sections',
+     $                 this%localization)
+
+             end select
 
              !finalize the identification of the bc_sections
              if(allocated(this%bc_sections)) then
@@ -294,6 +436,39 @@
           end if
 
         end subroutine update_bc_sections
+
+
+        subroutine analyse_grdpt_for_bc_section(
+     $     this,
+     $     bf_layer_bc_sections_used,
+     $     i,j)
+
+          class(bf_layer_time)      , intent(in)    :: this
+          type(bf_layer_bc_sections), intent(inout) :: bf_layer_bc_sections_used
+          integer(ikind)            , intent(in)    :: i
+          integer(ikind)            , intent(in)    :: j
+
+          logical :: ierror
+
+
+          if(this%grdpts_id(i,j).eq.bc_interior_pt) then
+
+             call bf_layer_bc_sections_used%analyse_grdpt(
+     $            this%alignment,
+     $            i,j,this%grdpts_id,
+     $            ierror)
+             
+             if(ierror.neqv.BF_SUCCESS) then
+                print '(''bf_layer_time_class'')'
+                print '(''analyse_grdpt_for_bc_section'')'
+                print '(''failed identifying the bc_section'')'
+                print '(''at (i,j)=('',2I4,'')'')', i,j
+                stop ''
+             end if
+             
+          end if
+
+        end subroutine analyse_grdpt_for_bc_section
 
 
         !> @author
