@@ -43,8 +43,8 @@ if __name__=="__main__":
 
 
     temperatureStudy          = False
-    velocityStudy             = False
-    thresholdTemperatureStudy = True
+    velocityStudy             = True
+    thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
 
 
@@ -54,7 +54,7 @@ if __name__=="__main__":
         temperature_array = [0.95,0.99,0.995,0.999]
         flow_velocity     = 0.1
         md_threshold_ac   = 0
-        large_domain_run  = False
+        large_domain_run  = True
         
     
         for temperature in temperature_array:
@@ -75,9 +75,9 @@ if __name__=="__main__":
     if(velocityStudy):
 
         temperature         = 0.99
-        flow_velocity_array = [0.05,0.25,0.5]
+        flow_velocity_array = [0.25,0.5] #[0.05,0.25,0.5]
         md_threshold_ac     = 0
-        large_domain_run    = False
+        large_domain_run    = True
         
         for flow_velocity in flow_velocity_array:
             
@@ -96,9 +96,9 @@ if __name__=="__main__":
     #3) threshold study
     if(thresholdTemperatureStudy):
 
-        temperature_array  = [0.999]#0.95,0.99,0.995,0.999]
+        temperature_array  = [0.95,0.99,0.995,0.999]
         flow_velocity      = 0.1
-        md_threshold_array = [0.1]#01, 0.05, 0.1, 0.2, 0.3]
+        md_threshold_array = [0.01, 0.05, 0.1, 0.2, 0.3]
         md_threshold_ac    = 1
         large_domain_run   = False
         
@@ -120,7 +120,7 @@ if __name__=="__main__":
     
     if(thresholdVelocityStudy):
         temperature         = 0.99
-        flow_velocity_array = [0.05,0.25,0.1,0.5]
+        flow_velocity_array = [0.05,0.25,0.5]
         md_threshold_array  = [0.01, 0.05, 0.1, 0.2, 0.3]
         md_threshold_ac     = 1
         large_domain_run    = False

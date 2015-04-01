@@ -96,4 +96,4 @@ scripts_sh
 src/test_files/config/run_ns2d_vortex_sim.sh
 src/test_files/test_geometry_updates/*/*
 *visitlog.py
-
+scripts_py/sm_lg_domain_automatization/*.txt

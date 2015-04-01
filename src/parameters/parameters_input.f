@@ -22,17 +22,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -1.8309000000d0
-        real(rkind), parameter :: x_max = 1.8309000000d0
-        real(rkind), parameter :: y_min = -1.8309000000d0
-        real(rkind), parameter :: y_max = 1.8309000000d0
+        real(rkind), parameter :: x_min = -2.9456000000d0
+        real(rkind), parameter :: x_max = 2.9456000000d0
+        real(rkind), parameter :: y_min = -2.9456000000d0
+        real(rkind), parameter :: y_max = 2.9456000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 35.9533000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0023000000d0
+        real(rkind), parameter :: t_max = 2.2560000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0005000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 1.0000000000d0
+        real(rkind), parameter :: detail_print = 0.2217000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -42,12 +42,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 64
-        integer(ikind), parameter :: nty = 54
+        integer(ikind), parameter :: ntx = 531
+        integer(ikind), parameter :: nty = 531
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 3
+        integer       , parameter :: ne = 4
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -105,14 +105,14 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer    , parameter :: flow_direction = x_direction
-        real(rkind), parameter :: flow_x_side = 1.0d0
-        real(rkind), parameter :: flow_y_side = 1.0d0
-        real(rkind), parameter :: flow_velocity = 0.1d0
+        integer    , parameter :: flow_direction = y_direction
+        real(rkind), parameter :: flow_x_side = 1.0000000000d0
+        real(rkind), parameter :: flow_y_side = 1.0000000000d0
+        real(rkind), parameter :: flow_velocity = 0.5000000000d0
         
-        real(rkind), parameter :: T0 = 0.95d0
+        real(rkind), parameter :: T0 = 0.9900000000d0
 
-        integer    , parameter :: ic_choice = peak
+        integer    , parameter :: ic_choice = bubble_transported
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
@@ -257,8 +257,8 @@
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
         !------------------------------------------------------------
-        logical    , parameter :: bf_openbc_md_threshold_ac = .true.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
+        logical    , parameter :: bf_openbc_md_threshold_ac = .false.
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.0000000000d0
 
 
         !------------------------------------------------------------

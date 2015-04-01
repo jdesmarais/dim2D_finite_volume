@@ -21,6 +21,24 @@ from automatization_csts import bc_size
 from create_sm_lg_inputs import (get_parameter,
                                  create_sm_lg_inputs)
 
+# get the name of the folder for the simulation
+def get_simulation_dir(temperature,flow_velocity,md_threshold):
+    '''
+    @description
+    get the name of the folder where the simulation results
+    are saved
+    '''
+
+    simDir =\
+        'dim2d_'+\
+        str(temperature)+'_'+\
+        str(flow_velocity)
+                
+    if(md_threshold!=0):
+        simDir+='_md'+str(md_threshold)
+
+    return simDir
+
 
 # generate exe
 def generate_exe(inputPath,bf_layer_option=False):
@@ -364,11 +382,13 @@ def generate_sm_lg_results(mainDir,
 
 
     #2) create the directory to save the simulations
-    destDir = mainDir
-    destDir+= '/dim2d_'+str(temperature)+'_'+str(flow_velocity)
-
     if(md_threshold_ac==1):
-        destDir+='_md'+str(md_threshold)
+        destDir = get_simulation_dir(temperature,flow_velocity,md_threshold)
+    else:
+        destDir = get_simulation_dir(temperature,flow_velocity,0)
+
+    destDir = os.path.join(mainDir,destDir)
+
     
     # if there is already an existing directory, the function
     # throws an error
