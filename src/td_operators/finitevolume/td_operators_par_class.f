@@ -97,26 +97,43 @@
         !> time derivatives
         !--------------------------------------------------------------
         function compute_time_dev(
-     $     comm_2d, usr_rank,
-     $     nodes,dx,dy,s,p_model,bc_par_used)
-     $     result(time_dev)
+     $       comm_2d, usr_rank,
+     $       t, nodes, x_map, y_map, 
+     $       s, p_model, bc_par_used)
+     $       result(time_dev)
 
            implicit none
 
            integer                         , intent(in) :: comm_2d
            integer                         , intent(in) :: usr_rank
+           real(rkind)                     , intent(in) :: t
            real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
-           real(rkind)                     , intent(in) :: dx
-           real(rkind)                     , intent(in) :: dy
+           real(rkind), dimension(nx)      , intent(in) :: x_map
+           real(rkind), dimension(ny)      , intent(in) :: y_map
            type(sd_operators)              , intent(in) :: s
            type(pmodel_eq)                 , intent(in) :: p_model
            type(bc_operators_par)          , intent(in) :: bc_par_used
            real(rkind), dimension(nx,ny,ne)             :: time_dev
 
+           real(rkind)                        :: dx
+           real(rkind)                        :: dy
            integer                            :: k
            integer(ikind)                     :: i,j
            real(rkind), dimension(nx+1,ny,ne) :: flux_x
            real(rkind), dimension(nx,ny+1,ne) :: flux_y
+
+
+           !for debuggging: initialize the timedev with
+           !a large initial value
+           if(debug_initialize_timedev) then
+              time_dev = reshape((/
+     $             (((debug_real,i=1,nx),j=1,ny),k=1,ne)/),
+     $             (/nx,ny,ne/))
+           end if
+
+           
+           dx = x_map(2) - x_map(1)
+           dy = y_map(2) - y_map(1)
 
 
            !<compute the fluxes
@@ -137,8 +154,7 @@
      $     ) then
               call bc_par_used%apply_bc_on_fluxes(
      $             comm_2d, usr_rank,
-     $             nodes, dx, dy, s,
-     $             flux_x,flux_y)
+     $             nodes, dx, dy, s, flux_x,flux_y)
            end if
 
 
@@ -146,16 +162,52 @@
            do k=1, ne
               do j=1+bc_size, ny-bc_size
                  do i=1+bc_size, nx-bc_size
+
                     time_dev(i,j,k)=
      $                   (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
      $                   (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
 
-                    time_dev(i,j,k)=
-     $                   p_model%compute_body_forces(nodes(i,j,:),k)
+                    time_dev(i,j,k)=time_dev(i,j,k)+
+     $                   p_model%compute_body_forces(
+     $                   t,x_map(i),y_map(j),
+     $                   nodes(i,j,:),k)
+
                  end do
               end do
            end do
 
+
+           !< if the boundary conditions influence the computation
+           !> of the time derivatives, then we need to compute the
+           !> time derivatives at the boundary
+           if(
+     $          (bc_N_type_choice.eq.bc_timedev_choice).or.
+     $          (bc_S_type_choice.eq.bc_timedev_choice).or.
+     $          (bc_E_type_choice.eq.bc_timedev_choice).or.
+     $          (bc_W_type_choice.eq.bc_timedev_choice)
+     $     ) then
+
+             !in parallel not all the time derivatives of the
+             !boundary : the selected time derivatives to be
+             !computed are given by bc_sections
+              bf_alignment(1,1) = bc_size+1
+              bf_alignment(1,2) = nx-bc_size
+              bf_alignment(2,1) = bc_size+1
+              bf_alignment(2,2) = ny-bc_size
+              
+              call bc_par_used%apply_bc_on_timedev_nopt(
+     $             t,
+     $             bf_alignment,
+     $             bf_grdpts_id,
+     $             x_map,y_map,nodes,
+     $             nodes,
+     $             p_model,
+     $             flux_x,flux_y,
+     $             bc_sections,
+     $             time_dev)
+
+           end if
+              
         end function compute_time_dev
 
       end module td_operators_par_class

@@ -189,6 +189,7 @@
           procedure, pass          :: ini
           procedure, pass, private :: check_inputs
           procedure, pass, private :: ini_coordinates
+
           procedure, pass          :: apply_initial_conditions
           procedure, pass          :: compute_time_dev
           procedure, pass          :: compute_time_dev_ext

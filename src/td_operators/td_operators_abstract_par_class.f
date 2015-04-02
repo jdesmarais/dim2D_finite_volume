@@ -18,11 +18,20 @@
       !-----------------------------------------------------------------
       module td_operators_abstract_par_class
 
-        use bc_operators_par_class, only : bc_operators_par
-        use sd_operators_class    , only : sd_operators
-        use pmodel_eq_class       , only : pmodel_eq
-        use parameters_input      , only : nx,ny,ne
-        use parameters_kind       , only : rkind
+        use bc_operators_par_class, only :
+     $       bc_operators_par
+
+        use parameters_input, only :
+     $       nx,ny,ne
+
+        use parameters_kind, only :
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use sd_operators_class, only :
+     $       sd_operators
 
         implicit none
 
@@ -78,7 +87,8 @@
           !--------------------------------------------------------------
           function time_proc(
      $       comm_2d, usr_rank,
-     $       nodes,dx,dy,s,p_model,bc_par_used)
+     $       time, nodes, x_map, y_map,
+     $       s,p_model,bc_par_used)
      $       result(time_dev)
 
             import bc_operators_par
@@ -89,9 +99,10 @@
 
             integer                         , intent(in) :: comm_2d
             integer                         , intent(in) :: usr_rank
+            real(rkind)                     , intent(in) :: time
             real(rkind), dimension(nx,ny,ne), intent(in) :: nodes
-            real(rkind)                     , intent(in) :: dx
-            real(rkind)                     , intent(in) :: dy
+            real(rkind), dimension(nx)      , intent(in) :: x_map
+            real(rkind), dimension(ny)      , intent(in) :: y_map
             type(sd_operators)              , intent(in) :: s
             type(pmodel_eq)                 , intent(in) :: p_model
             type(bc_operators_par)          , intent(in) :: bc_par_used

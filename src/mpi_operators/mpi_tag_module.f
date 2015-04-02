@@ -59,18 +59,6 @@
           integer, intent(in) :: nb_procs
           integer             :: tag
 
-
-          !procedure
-          !the tag has to be unique
-          !as rank_send \in [0, nb_procs-1]
-          !as rank_recv \in [0, nb_procs-1]
-          !rank*nb_procs + rank_recv \in [0, nb_procs^2-1]
-          !then the euclidian division of tag by nb_procs^2 defines
-          !uniquely comm_id and (rank_send*nb_procs + rank_recv)
-          !then the euclidian division of (rank_send*nb_procs + rank_recv)
-          !by nb_procs gives uniquely rank_send and rank_recv
-
-          !tag = comm_id*nb_procs**2 + (rank_send*nb_procs + rank_recv)
           tag = rank_send*nb_procs + rank_recv
 
         end function compute_mpi_tag

@@ -16,19 +16,40 @@
       !-----------------------------------------------------------------
       module field_abstract_par_class
 
-        use bc_operators_par_class    , only : bc_operators_par      
-        use interface_integration_step, only : timeInt_step
-        use io_operators_par_class    , only : io_operators_par
+        use bc_operators_par_class, only :
+     $       bc_operators_par
+
+        use interface_integration_step, only :
+     $       timeInt_step
+
+        use io_operators_par_class, only :
+     $       io_operators_par
+
         use mpi
-        use mpi_process_class         , only : mpi_process        
-        use parameters_input          , only : ntx,nty,npx,npy,bc_size,
-     $                                         bc_choice,nx,ny,ne,
-     $                                         x_min,x_max,y_min,y_max
-        use parameters_kind           , only : ikind, rkind
-        use pmodel_eq_class           , only : pmodel_eq
-        use sd_operators_class        , only : sd_operators
-        use surrogate_class           , only : surrogate
-        use td_operators_par_class    , only : td_operators_par
+
+        use mpi_process_class, only :
+     $       mpi_process
+
+        use parameters_input, only :
+     $       ntx,nty,npx,npy,bc_size,
+     $       bc_choice,nx,ny,ne,
+     $       x_min,x_max,y_min,y_max
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use sd_operators_class, only :
+     $       sd_operators
+
+        use surrogate_class, only :
+     $       surrogate
+
+        use td_operators_par_class, only :
+     $       td_operators_par
 
         implicit none
 
@@ -55,9 +76,10 @@
           type(td_operators_par), private :: td_operators_used
           type(io_operators_par), private :: io_operators_used
 
-          integer                         , private :: comm_2d
-          integer                         , private :: usr_rank
+          integer , private :: comm_2d
+          integer , private :: usr_rank
 
+          real(rkind)                     , private :: time
           real(rkind), dimension(nx,ny,ne), private :: nodes
           real(rkind), dimension(nx)      , private :: x_map
           real(rkind), dimension(ny)      , private :: y_map
@@ -105,10 +127,15 @@
 
           class(field_abstract_par), intent(inout) :: this
 
+
           call this%check_inputs()
           call this%ini_cartesian_communicator()
+
           call this%bc_operators_used%ini(
      $         this%comm_2d, this%pmodel_eq_used)
+
+          this%time = 0.0
+
           call this%ini_coordinates()
           call this%apply_initial_conditions()
           call this%io_operators_used%ini(this%comm_2d,this%usr_rank)
@@ -304,9 +331,10 @@
           time_dev = this%td_operators_used%compute_time_dev(
      $         this%comm_2d,
      $         this%usr_rank,
+     $         this%time,
      $         this%nodes,
-     $         this%dx,
-     $         this%dy,
+     $         this%x_map,
+     $         this%y_map,
      $         this%sd_operators_used,
      $         this%pmodel_eq_used,
      $         this%bc_operators_used)
@@ -347,12 +375,11 @@
 
 
         !write the data on output files
-        subroutine write_data(this, time)
+        subroutine write_data(this)
 
           implicit none
 
           class(field_abstract_par), intent(inout) :: this
-          real(rkind)              , intent(in)    :: time
 
           call this%io_operators_used%write_data(
      $         this%comm_2d,
@@ -360,7 +387,7 @@
      $         this%x_map,
      $         this%y_map,
      $         this%pmodel_eq_used,
-     $         time)
+     $         this%time)
 
         end subroutine write_data
 

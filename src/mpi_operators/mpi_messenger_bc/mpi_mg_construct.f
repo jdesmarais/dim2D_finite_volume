@@ -18,8 +18,13 @@
       module mpi_mg_construct
 
         use mpi
-        use mpi_process_class  , only : mpi_process
-        use parameters_constant, only : N,S,E,W,only_exchange_proc
+
+        use mpi_process_class, only :
+     $       mpi_process
+
+        use parameters_constant, only :
+     $       N,S,E,W,
+     $       only_exchange_proc
 
         implicit none
 
