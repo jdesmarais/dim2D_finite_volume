@@ -15,9 +15,16 @@
       module mpi_mg_bc_class
 
         use mpi
-        use mpi_mg_neighbours   , only : ini_neighbours_proc_id
-        use mpi_mg_derived_types, only : ini_mpi_derived_types
-        use parameters_input    , only : nx,ny,ne,npx,npy
+
+        use mpi_mg_neighbours, only :
+     $       ini_neighbours_proc_id
+
+        use mpi_mg_derived_types, only :
+     $       ini_mpi_derived_types
+
+        use parameters_input, only :
+     $       nx,ny,ne,
+     $       npx,npy
         
         implicit none
 

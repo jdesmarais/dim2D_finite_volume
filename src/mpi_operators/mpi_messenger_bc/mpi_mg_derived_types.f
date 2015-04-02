@@ -14,10 +14,17 @@
       !-----------------------------------------------------------------
       module mpi_mg_derived_types
 
-        use parameters_constant, only : N,S,E,W
-        use parameters_input   , only : bc_size
-        use parameters_kind    , only : ikind, rkind
         use mpi
+
+        use parameters_constant, only :
+     $       N,S,E,W
+
+        use parameters_input, only :
+     $       bc_size
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind        
 
         implicit none
 

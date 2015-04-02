@@ -203,13 +203,15 @@ nf90_par_dep=		$(io_par_dep)\
 			io_operators_module.o\
 			nf90_operators_module.o
 
+
+#mpi_operators
 mpi_dep=		mpi_process_class.o
 
-mpi_mg_dep=		mpi_mg_neighbours.o\
+mpi_mg_bc_dep=		mpi_mg_neighbours.o\
 			mpi_mg_derived_types.o\
 			mpi_mg_bc_class.o
 
-mpi_mg_ext_dep=		$(mpi_mg_dep)\
+mpi_mg_bc_ext_dep=	$(mpi_mg_bc_dep)\
 			mpi_mg_construct.o\
 			mpi_mg_ini_bc_proc.o\
 			mpi_mg_bc_ext_class.o
@@ -251,6 +253,7 @@ wall_x_refl_y_par_dep=	$(mpi_dep)\
 
 bf_newgrdpt_dep=	bf_newgrdpt_class.o\
 			n_coords_module.o
+
 
 #bf_compute
 bf_compute_basic_dep=	bf_compute_basic_class.o

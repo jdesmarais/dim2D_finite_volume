@@ -15,11 +15,22 @@
       module mpi_requests_module
 
         use mpi
-        use mpi_mg_bc_class  , only : mpi_mg_bc
-        use mpi_process_class, only : mpi_process
-        use mpi_tag_module   , only : compute_mpi_tag
-        use parameters_input , only : nx,ny,ne,npx,npy
-        use parameters_kind  , only : rkind
+
+        use mpi_mg_bc_class, only :
+     $       mpi_mg_bc
+
+        use mpi_process_class, only :
+     $       mpi_process
+
+        use mpi_tag_module, only :
+     $       compute_mpi_tag
+
+        use parameters_input, only :
+     $       nx,ny,ne,
+     $       npx,npy
+
+        use parameters_kind, only :
+     $       rkind
 
         implicit none
 

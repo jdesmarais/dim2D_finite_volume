@@ -12,24 +12,38 @@
         logical :: test_loc
         logical :: test_validated
 
+        type(mpi_process) :: mpi_process_used
+        integer           :: rank
+        integer           :: ierror
+
         detailled = .true.
         test_validated = .true.
 
 
         test_loc = test_ini_mpi(detailled)
         test_validated = test_validated.and.test_loc
-        print '(''test_ini_mpi: '',L1)', test_loc
-        print '()'
+        call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierror)
+        if(rank.eq.0) then
+           print '(''test_ini_mpi: '',L1)', test_loc
+           print '()'
+        end if
 
 
         test_loc = test_ini_cartesian_communicator(detailled)
         test_validated = test_validated.and.test_loc
-        print '(''test_cartesian_communicator: '',L1)', test_loc
-        print '()'
+        call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierror)
+        if(rank.eq.0) then
+           print '(''test_cartesian_communicator: '',L1)', test_loc
+           print '()'
+        end if
 
 
-        print '(''test_validated: '',L1)', test_validated
-        print '()'
+        call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierror)
+        if(rank.eq.0) then
+           print '(''test_validated: '',L1)', test_validated
+        end if
+
+        call mpi_process_used%finalize_mpi()
 
 
         contains
@@ -94,9 +108,7 @@
           test_validated = test_validated.and.test_loc
           if(detailled.and.(.not.test_validated)) then
              print '(''test rank failed'')'
-          end if          
-
-          call mpi_process_used%finalize_mpi()
+          end if
 
         end function test_ini_cartesian_communicator
 

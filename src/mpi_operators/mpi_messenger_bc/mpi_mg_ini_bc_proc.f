@@ -17,13 +17,17 @@
       module mpi_mg_ini_bc_proc
 
         use mpi
-        use parameters_constant, only : N,S,E,W,
-     $                                  periodic_xy_choice,
-     $                                  only_compute_proc,
-     $                                  compute_and_exchange_proc,
-     $                                  only_exchange_proc,
-     $                                  x_direction, y_direction
-        use parameters_input   , only : npx,npy,bc_choice
+        use parameters_constant, only :
+     $       N,S,E,W,
+     $       periodic_xy_choice,
+     $       only_compute_proc,
+     $       compute_and_exchange_proc,
+     $       only_exchange_proc,
+     $       x_direction, y_direction
+
+        use parameters_input, only :
+     $       npx,npy,
+     $       bc_choice
         
         implicit none
 

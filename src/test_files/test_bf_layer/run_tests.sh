@@ -9,6 +9,10 @@ test_dir=$augeanstables/src/test_files/test_bf_layer
 #============================================================
 #main body
 #============================================================
+AUGEANSTABLES_PARALLEL=false
+change_param_input 'npx' '1'
+change_param_input 'npy' '1'
+
 echo ''
 
 #test_bf_interior_bc_sections

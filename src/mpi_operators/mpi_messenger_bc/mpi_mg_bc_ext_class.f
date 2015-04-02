@@ -18,10 +18,17 @@
       !-----------------------------------------------------------------
       module mpi_mg_bc_ext_class
 
-        use mpi_mg_bc_class   , only : mpi_mg_bc
-        use mpi_mg_ini_bc_proc, only : ini_bc_procedures
-        use mpi_mg_construct  , only : update_mpi_derived_types
-        use parameters_input  , only : nx,ny,ne
+        use mpi_mg_bc_class, only :
+     $       mpi_mg_bc
+
+        use mpi_mg_ini_bc_proc, only :
+     $       ini_bc_procedures
+
+        use mpi_mg_construct, only :
+     $       update_mpi_derived_types
+
+        use parameters_input, only :
+     $       nx,ny,ne
 
         implicit none
 

@@ -37,17 +37,17 @@
         logical    , parameter :: write_detectors = .true.
 
         !<mpi choice
-        integer, parameter :: npx = 1 !<number of processors along x
+        integer, parameter :: npx = 3 !<number of processors along x
         integer, parameter :: npy = 2 !<number of processors along y
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 10
-        integer(ikind), parameter :: nty = 10
+        integer(ikind), parameter :: ntx = 18
+        integer(ikind), parameter :: nty = 16
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 4
+        integer       , parameter :: ne = 2
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -112,14 +112,14 @@
         
         real(rkind), parameter :: T0 = 0.9900000000d0
 
-        integer    , parameter :: ic_choice = bubble_transported
+        integer    , parameter :: ic_choice = newgrdpt_test
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = hedstrom_xy_choice
+        integer, parameter :: bc_choice = periodic_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
