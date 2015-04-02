@@ -13,7 +13,7 @@
       !> distributed system
       !
       !> @date
-      ! 28_08_2013 - initial version - J.L. Desmarais
+      ! 02_04_2015 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       program sim_dim2d_par
 
@@ -26,8 +26,8 @@
 
 
         !<operators needed for the simulation
-        type(field_par)             :: f_simulated !< field simulated
-        type(mpi_process)           :: mpi_op      !< mpi process
+        type(field_par)    :: f_simulated !< field simulated
+        type(mpi_process)  :: mpi_op      !< mpi process
 
         !<intermediate variables for the simulation
         integer(ikind) :: nt,t,output_print
@@ -55,7 +55,7 @@
         !> initialize the variables determining the total number
         !> of timesteps for the simulation
         !>------------------------------------------------------
-        nt           = int(t_max/dt)
+        nt = int(t_max/dt)
         if(detail_print.eq.0) then
            output_print=0
         else

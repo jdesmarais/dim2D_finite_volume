@@ -63,11 +63,17 @@ include $(config_dir)/code_config/makefile_io.mk  #writer choice
 #compiler and options
 #-----------------------------------------------------------------------
 PREP	=
-FC	= $(AUGEANSTABLES_COMPILER)
+FC	=
 FFLAGS	= 
 LDFLAGS =
 INCLUDE =
 LIBS	=
+
+ifeq ($(AUGEANSTABLES_PARALLEL),true)
+	FC= $(AUGEANSTABLES_COMPILER_PAR)
+else
+	FC= $(AUGEANSTABLES_COMPILER)
+endif
 
 #compiler options------------------------------------------------
 include $(config_dir)/compiler_config/options_ifort.mk

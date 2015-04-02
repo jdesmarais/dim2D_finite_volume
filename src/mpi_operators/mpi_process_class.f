@@ -16,11 +16,20 @@
       module mpi_process_class
 
         use mpi
-        use parameters_constant, only : periodic_xy_choice,
-     $                                  reflection_xy_choice,
-     $                                  wall_xy_choice,
-     $                                  wall_x_reflection_y_choice
-        use parameters_input   , only : npx,npy,bc_choice
+
+        use parameters_constant, only :
+     $       periodic_xy_choice,
+     $       reflection_xy_choice,
+     $       wall_xy_choice,
+     $       wall_x_reflection_y_choice,
+     $       hedstrom_xy_choice,
+     $       hedstrom_xy_corners_choice,
+     $       hedstrom_x_reflection_y_choice,
+     $       poinsot_xy_choice,
+     $       yoolodato_xy_choice
+
+        use parameters_input, only :
+     $       npx,npy,bc_choice
 
         implicit none
 
@@ -140,20 +149,19 @@
                periods(1)     = .true.
                periods(2)     = .true.
 
-            case(reflection_xy_choice)
-               periods(1)     = .false.
-               periods(2)     = .false.
-
-            case(wall_xy_choice)
-               periods(1)     = .false.
-               periods(2)     = .false.
-
-            case(wall_x_reflection_y_choice)
+            case(reflection_xy_choice,
+     $           wall_xy_choice,
+     $           wall_x_reflection_y_choice,
+     $           hedstrom_xy_choice,
+     $           hedstrom_xy_corners_choice,
+     $           hedstrom_x_reflection_y_choice,
+     $           poinsot_xy_choice,
+     $           yoolodato_xy_choice)
                periods(1)     = .false.
                periods(2)     = .false.
 
             case default
-               print *, 'field_abstract_par_class:'
+               print *, 'mpi_process_class:'
                print *, 'bc_choice not implemented in'
                stop 'splitting the field into tiles'
 

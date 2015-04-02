@@ -67,7 +67,12 @@ change_param_dim2d(){
 
 perform_test(){
     make_title $title_op $1
-    $runtest $1 $runtest_op
+    if [ -z "$2" ]
+    then
+	$runtest $1 $runtest_op
+    else
+	$runtest $1 $runtest_op $2
+    fi
 }
 
 
