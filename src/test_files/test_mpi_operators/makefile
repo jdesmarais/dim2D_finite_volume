@@ -118,3 +118,19 @@ test_mpi_mg_bc_ext:	$(param_dep)\
 			mpi_tag_module.o\
 			check_data_module.o
 
+
+#test_mpi_interface
+test_mpi_interface.o:	$(test_dir)/tools/check_data_module.o\
+			$(mpi_dir)/mpi_interface_class.o\
+			$(mpi_dir)/mpi_process_class.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
+test_mpi_interface:	$(param_dep)\
+			$(mpi_interface_dep)\
+			mpi_process_class.o\
+			parameters_bf_layer.o\
+			check_data_module.o
+

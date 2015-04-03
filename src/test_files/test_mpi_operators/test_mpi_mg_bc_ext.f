@@ -3,7 +3,7 @@
         use check_data_module, only :
      $      is_real_matrix3D_validated
 
-        use mpi        
+        use mpi
         
         use mpi_mg_bc_ext_class, only :
      $       mpi_mg_bc_ext

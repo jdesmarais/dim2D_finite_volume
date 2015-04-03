@@ -95,3 +95,16 @@ change_param_input 'npx' '3'
 change_param_input 'npy' '2'
 change_param_input 'bc_choice' 'periodic_xy_choice'
 perform_test $file 6
+
+
+
+#test_mpi_mg_bc_ext
+AUGEANSTABLES_PARALLEL=true
+file='test_mpi_interface'
+change_param_input 'ntx' '18'
+change_param_input 'nty' '16'
+change_param_input 'ne'  '2'
+change_param_input 'npx' '3'
+change_param_input 'npy' '2'
+change_param_input 'bc_choice' 'reflection_xy_choice'
+perform_test $file 6

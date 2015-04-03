@@ -214,7 +214,12 @@ mpi_mg_bc_dep=		mpi_mg_neighbours.o\
 mpi_mg_bc_ext_dep=	$(mpi_mg_bc_dep)\
 			mpi_mg_construct.o\
 			mpi_mg_ini_bc_proc.o\
-			mpi_mg_bc_ext_class.o
+			mpi_mg_bc_ext_class.o\
+
+mpi_interface_dep=	$(mpi_mg_bc_ext_dep)\
+			mpi_requests_module.o\
+			mpi_tag_module.o\
+			mpi_interface_class.o
 
 mpi_bc_dep=		$(mpi_mg_ext_dep)\
 			mpi_tag_module.o\

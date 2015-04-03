@@ -94,7 +94,7 @@
           !< compute the tag identifying the sending MPI request
           tag = compute_mpi_tag(
      $         usr_rank, this%com_rank(card_pt), nb_procs)
-   
+
 
           !< create a sending request
           call MPI_ISSEND(
@@ -107,7 +107,6 @@
           end if
              
 
-          
           !< compute the tag identifying the receving MPI request
           tag = compute_mpi_tag(
      $         this%com_rank(card_pt), usr_rank, nb_procs)
@@ -193,6 +192,7 @@
               tag = compute_mpi_tag(
      $             usr_rank, this%com_rank(card_pt(k)), nb_procs)
            
+
               !< create a send request
               call MPI_ISSEND(
      $             nodes, 1, this%com_send(card_pt(k)),
@@ -200,13 +200,14 @@
      $             comm_2d, mpi_requests(2*k-1),ierror)
               if(ierror.ne.MPI_SUCCESS) then
                  call mpi_op%finalize_mpi()
-                 stop 'reflection_xy_par_module: MPI_ISSEND failed'
+                 stop 'mpi_requests_module: MPI_ISSEND failed'
               end if
               
               !< compute the tag identifying the receving MPI request
               tag = compute_mpi_tag(
      $             this%com_rank(card_pt(k)), usr_rank, nb_procs)
            
+
               !< create a receive request
               call MPI_IRECV(
      $             nodes, 1, this%com_recv(card_pt(k)),
@@ -214,7 +215,7 @@
      $             comm_2d, mpi_requests(2*k),ierror)
               if(ierror.ne.MPI_SUCCESS) then
                  call mpi_op%finalize_mpi()
-                 stop 'reflection_xy_par_module: MPI_IRECV failed'
+                 stop 'mpi_requests_module: MPI_IRECV failed'
               end if
            
            end do
@@ -224,7 +225,7 @@
            call MPI_WAITALL(4, mpi_requests, status, ierror)
            if(ierror.ne.MPI_SUCCESS) then
               call mpi_op%finalize_mpi()
-              print *, 'reflection_xy_par_model'
+              print *, 'mpi_requests_module'
               print *, 'only_exchange'
               stop 'MPI_WAITALL failed'
            end if
