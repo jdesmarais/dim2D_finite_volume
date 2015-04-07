@@ -100,7 +100,8 @@
         !> reduced simulation time
         !--------------------------------------------------------------
         subroutine write_data(
-     $     this, nodes, x_map, y_map, p_model, time)
+     $       this, nodes, x_map, y_map, p_model, time,
+     $       rank)
 
           implicit none
 
@@ -110,6 +111,7 @@
           real(rkind), dimension(ny)      , intent(in)    :: y_map
           type(pmodel_eq)                 , intent(in)    :: p_model
           real(rkind)                     , intent(in)    :: time
+          integer, optional               , intent(in)    :: rank
 
           integer                :: ncid
           integer, dimension(3)  :: coord_id
@@ -118,7 +120,11 @@
 
 
           !<get the name for the netcdf file
-          call get_filename(filename, this%nb_timesteps_written)
+          if(present(rank)) then
+             call get_filename(filename, this%nb_timesteps_written, rank=rank)
+          else
+             call get_filename(filename, this%nb_timesteps_written)
+          end if
 
 
           !<create the netcdf file

@@ -13,6 +13,14 @@ AUGEANSTABLES_PARALLEL=false
 change_param_input 'npx' '1'
 change_param_input 'npy' '1'
 
+change_param_input 'bc_N_type_choice' 'bc_timedev_choice'
+change_param_input 'bc_S_type_choice' 'bc_timedev_choice'
+change_param_input 'bc_E_type_choice' 'bc_timedev_choice'
+change_param_input 'bc_W_type_choice' 'bc_timedev_choice'
+
+change_param_input 'bc_choice' 'hedstrom_xy_choice'
+change_param_makefile 'bc_choice' 'hedstrom_xy_choice'
+
 echo ''
 
 #test_bf_interior_bc_sections

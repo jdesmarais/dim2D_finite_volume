@@ -41,28 +41,54 @@
         !> integer identifying the number of timesteps
         !> written before writing this file
         !--------------------------------------------------------------
-        subroutine get_filename(filename, timestep)
+        subroutine get_filename(filename, timestep, rank)
 
           implicit none
 
           integer          , intent(in)  :: timestep
           character(len=16), intent(out) :: filename
+          integer, optional, intent(in)  :: rank
 
-          character(len=16) :: format_string
           integer           :: size_timestep
+          integer           :: size_rank
+          character(len=16) :: format_string
 
+
+          ! determine the character size to write the timestep
           if (timestep.eq.0) then
              size_timestep  = 1
           else
              size_timestep  = floor(log(float(timestep))/log(10.))+1
           end if
 
-         !create the format string
-         write (format_string, "(A5,I1,A4)")
-     $         '(A4,I', size_timestep, ',A3)'
+          if(present(rank)) then
 
-         !create the name of the file
-         write (filename, trim(format_string)) 'data', timestep, '.nc'
+             ! determine the character size to write the timestep
+             if (rank.eq.0) then
+                size_rank  = 1
+             else
+                size_rank  = floor(log(float(rank))/log(10.))+1
+             end if
+
+             !create the format string
+             write (format_string, "(A5,I1,A5,I1,A4)")
+     $            '(A4,I', size_timestep,
+     $            ',A1,I', size_rank,
+     $            ',A3)'
+
+             !create the name of the file
+             write (filename, trim(format_string)) 'data', timestep, '_', rank, '.nc'
+
+          else
+
+             !create the format string
+             write (format_string, "(A5,I1,A4)")
+     $            '(A4,I', size_timestep, ',A3)'
+
+             !create the name of the file
+             write (filename, trim(format_string)) 'data', timestep, '.nc'
+
+          end if
 
         end subroutine get_filename
 

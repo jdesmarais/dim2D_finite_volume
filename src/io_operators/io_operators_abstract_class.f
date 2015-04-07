@@ -56,7 +56,7 @@
 
         interface
 
-           subroutine write_proc(this,nodes,x_map,y_map,p_model,time)
+           subroutine write_proc(this,nodes,x_map,y_map,p_model,time,rank)
 
              import io_operators_abstract
              import pmodel_eq
@@ -69,6 +69,7 @@
              real(rkind), dimension(ny)      , intent(in)    :: y_map
              type(pmodel_eq)                 , intent(in)    :: p_model
              real(rkind)                     , intent(in)    :: time
+             integer, optional               , intent(in)    :: rank
 
            end subroutine write_proc
 

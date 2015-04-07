@@ -16,7 +16,8 @@
      $       is_int_matrix_validated,
      $       is_int_matrix3D_validated,
      $       is_boolean_vector_validated,
-     $       is_boolean_matrix_validated
+     $       is_boolean_matrix_validated,
+     $       is_char_validated
 
         
         contains
@@ -476,5 +477,24 @@
           end if
 
         end function is_boolean_matrix_validated
+
+
+        function is_char_validated(var,cst,detailled) result(test_validated)
+
+          implicit none
+
+          character(len=*), intent(in) :: var
+          character(len=*), intent(in) :: cst
+          logical                      :: detailled
+          logical                      :: test_validated
+
+          test_validated = var.eq.cst
+
+          if(detailled.and.(.not.test_validated)) then
+             print *, var
+             print *, cst
+          end if
+          
+        end function is_char_validated
 
       end module check_data_module

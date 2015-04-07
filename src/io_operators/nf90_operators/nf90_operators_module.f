@@ -522,8 +522,13 @@
 
 
           !<define the dimensions
-          nx_domain = npx*(nx-2*bc_size) + 2*bc_size
-          ny_domain = npy*(ny-2*bc_size) + 2*bc_size
+          if() then
+             nx_domain = npx*(nx-2*bc_size) + 2*bc_size
+             ny_domain = npy*(ny-2*bc_size) + 2*bc_size
+          else
+             nx_domain = nx
+             ny_domain = ny
+          end if
 
           retval = NF90_DEF_DIM(ncid, T_NAME, 1, t_dimid)
           !DEC$ FORCEINLINE RECURSIVE

@@ -1,32 +1,30 @@
 #!/bin/bash
 
-runtest=~/local/runtest/runtest.sh
+source $augeanstables/src/config/runtest_header.sh
 
-#dir paths
-config_dir=$augeanstables/src/config
-param_dir=$augeanstables/src/parameters
+#test_dir
+test_dir=$augeanstables/src/test_files/test_bf_layer
 
-#file paths
-make_header=$config_dir/makefile_header.mk
-param_input=$param_dir/parameters_input.f
 
-runtest=~/local/runtest/runtest.sh
+#============================================================
+#main body
+#============================================================
+AUGEANSTABLES_PARALLEL=false
+change_param_input 'npx' '1'
+change_param_input 'npy' '1'
 
-#test_td_operators.f
 echo ''
-echo 'test_td_operators'
-echo '------------------------------------------------------------'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'pm_choice' -v 'simpletest_choice'
-$config_dir/change_parameter.sh -i $make_header -o $make_header -p 'bc_choice' -v 'periodic_xy_choice'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'bc_choice' -v 'periodic_xy_choice'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'bc_N_type_choice' -v 'bc_nodes_choice'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'bc_S_type_choice' -v 'bc_nodes_choice'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'bc_E_type_choice' -v 'bc_nodes_choice'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'bc_W_type_choice' -v 'bc_nodes_choice'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ntx' -v '10'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'nty' -v '6'
-$config_dir/change_parameter.sh -i $param_input -o $param_input -p 'ne' -v '1'
-make test_td_operators > /dev/null
-./test_td_operators
-make cleanall > /dev/null
-echo ''
+
+#test_td_operators
+file='test_td_operators'
+change_param_makefile 'pm_choice' 'simpletest_choice'
+change_param_makefile 'bc_choice' 'periodic_xy_choice'
+change_param_input 'bc_choice' 'periodic_xy_choice'
+change_param_input 'bc_N_type_choice' 'bc_nodes_choice'
+change_param_input 'bc_S_type_choice' 'bc_nodes_choice'
+change_param_input 'bc_E_type_choice' 'bc_nodes_choice'
+change_param_input 'bc_W_type_choice' 'bc_nodes_choice'
+change_param_input 'ntx' '10'
+change_param_input 'nty' '6'
+change_param_input 'ne' '1'
+perform_test $file

@@ -699,9 +699,6 @@
         !
         !>@param this
         !> object encapsulating the main variables
-        !
-        !>@param time
-        !> simulation time
         !--------------------------------------------------------------
         subroutine write_data(this)
 

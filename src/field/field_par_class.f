@@ -84,6 +84,7 @@
           procedure, pass :: ini
           procedure, pass :: ini_coordinates
           procedure, pass :: apply_bc_on_nodes
+          procedure, pass :: write_data
 
         end type field_par
 
@@ -368,5 +369,35 @@
      $         y_borders=this%y_borders)
           
         end subroutine compute_integration_step
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> write the interior domain data on output files depending
+        !> on the i/o operators used
+        !
+        !> @date
+        !> 07_04_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables
+        !--------------------------------------------------------------
+        subroutine write_data(this)
+
+          implicit none
+
+          class(field_par), intent(inout) :: this
+
+          call this%io_operators_used%write_data(
+     $         this%nodes,
+     $         this%x_map,
+     $         this%y_map,
+     $         this%pmodel_eq_used,
+     $         this%time,
+     $         rank=this%usr_rank)
+
+        end subroutine write_data      
 
       end module field_par_class

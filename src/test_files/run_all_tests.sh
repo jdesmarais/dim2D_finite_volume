@@ -22,6 +22,16 @@ folder=$augeanstables/src/test_files/test_bc_operators
 runtest_folder $folder
 
 
+# tests for the time discretization operators
+folder=$augeanstables/src/test_files/test_td_operators
+runtest_folder $folder
+
+
+# tests for the i/o operators
+folder=$augeanstables/src/test_files/test_io_operators
+runtest_folder $folder
+
+
 # test for the mpi_operators
 folder=$augeanstables/src/test_files/test_mpi_operators
 runtest_folder $folder

@@ -37,13 +37,13 @@
         logical    , parameter :: write_detectors = .true.
 
         !<mpi choice
-        integer, parameter :: npx = 1 !<number of processors along x
-        integer, parameter :: npy = 1 !<number of processors along y
+        integer, parameter :: npx = 2 !<number of processors along x
+        integer, parameter :: npy = 2 !<number of processors along y
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 6
-        integer(ikind), parameter :: nty = 8
+        integer(ikind), parameter :: ntx = 104
+        integer(ikind), parameter :: nty = 114
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -112,7 +112,7 @@
         
         real(rkind), parameter :: T0 = 0.95d0
 
-        integer    , parameter :: ic_choice = peak
+        integer    , parameter :: ic_choice = sincos
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
