@@ -55,6 +55,10 @@ generate_geometry_update_case(){
 #============================================================
 #main body
 #============================================================
+AUGEANSTABLES_PARALLEL=false
+change_param_input 'npx' '1'
+change_param_input 'npy' '1'
+
 echo ''
 
 # spot transported cases

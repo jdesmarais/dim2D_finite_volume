@@ -265,190 +265,190 @@
 
 
           !compare both
-          test_loc = is_real_matrix3D_validated(timedev_ref,timedev(3:4,3:4,:),detailled)
+          test_loc = is_real_matrix3D_validated(timedev(3:4,3:4,:),timedev_ref,detailled)
           test_validated = test_validated.and.test_loc
           if(detailled.and.(.not.test_loc)) then
              print '(''timedev(NE) failed'')'
           end if
 
-          !compute the NW_corner
-          call reflect_x(
-     $         p_model,
-     $         x_map,
-     $         grdpts_id,
-     $         nodes,
-     $         timedev_ref)
-
-          flux_x = reshape(
-     $         (/ (((-99.0d0,i=1,7), j=1,6), k=1,ne) /),
-     $         (/ 7,6,ne /))
-
-          flux_y = reshape(
-     $         (/ (((-99.0d0,i=1,6), j=1,7), k=1,ne) /),
-     $         (/ 6,7,ne /))
-
-          timedev = reshape(
-     $         (/ (((-99.0d0,i=1,6), j=1,6), k=1,ne) /),
-     $         (/ 6,6,ne /))
-
-          dx = x_map(2) - x_map(1)
-          dy = y_map(2) - y_map(1)
-
-          bc_section = [NW_edge_type,3,3,no_overlap,no_overlap]
-
-          call compute_timedev_anti_corner_with_fluxes(
-     $         t,
-     $         bf_alignment,
-     $         grdpts_id,
-     $         x_map,
-     $         y_map,
-     $         nodes,
-     $         interior_nodes,
-     $         s_x_L1, s_x_R1,
-     $         s_y_L1, s_y_R1,
-     $         p_model,
-     $         bc_section,
-     $         flux_x, flux_y,
-     $         timedev)
-          
-          !check that only the time derivatives of the edge are
-          !modified
-          test_loc = check_around_timedev(
-     $         timedev,
-     $         reshape((/3,3,4,4/),(/2,2/)),
-     $         -99.0d0,
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''check_around_timedev(NW): failed'')'
-          end if
-
-          !compare with the reference
-          test_loc = is_real_matrix3D_validated(timedev_ref,timedev(3:4,3:4,:),detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''timedev(NW) failed'')'
-          end if
-
-
-          !compute the SW_corner
-          call reflect_y(
-     $         p_model,
-     $         y_map,
-     $         grdpts_id,
-     $         nodes,
-     $         timedev_ref)
-
-          flux_x = reshape(
-     $         (/ (((-99.0d0,i=1,7), j=1,6), k=1,ne) /),
-     $         (/ 7,6,ne /))
-
-          flux_y = reshape(
-     $         (/ (((-99.0d0,i=1,6), j=1,7), k=1,ne) /),
-     $         (/ 6,7,ne /))
-
-          timedev = reshape(
-     $         (/ (((-99.0d0,i=1,6), j=1,6), k=1,ne) /),
-     $         (/ 6,6,ne /))
-
-          dx = x_map(2) - x_map(1)
-          dy = y_map(2) - y_map(1)
-
-          bc_section = [SW_edge_type,3,3,no_overlap,no_overlap]
-
-          call compute_timedev_anti_corner_with_fluxes(
-     $         t,
-     $         bf_alignment,
-     $         grdpts_id,
-     $         x_map,
-     $         y_map,
-     $         nodes,
-     $         interior_nodes,
-     $         s_x_L1, s_x_R1,
-     $         s_y_L1, s_y_R1,
-     $         p_model,
-     $         bc_section,
-     $         flux_x, flux_y,
-     $         timedev)
-          
-          !check that only the time derivatives of the edge are
-          !modified
-          test_loc = check_around_timedev(
-     $         timedev,
-     $         reshape((/3,3,4,4/),(/2,2/)),
-     $         -99.0d0,
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''check_around_timedev(SW): failed'')'
-          end if
-
-          !compare with the reference
-          test_loc = is_real_matrix3D_validated(timedev_ref,timedev(3:4,3:4,:),detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''timedev(SW) failed'')'
-          end if
-
-
-          !compute the SE_corner
-          call reflect_x(
-     $         p_model,
-     $         x_map,
-     $         grdpts_id,
-     $         nodes,
-     $         timedev_ref)
-
-          flux_x = reshape(
-     $         (/ (((-99.0d0,i=1,7), j=1,6), k=1,ne) /),
-     $         (/ 7,6,ne /))
-
-          flux_y = reshape(
-     $         (/ (((-99.0d0,i=1,6), j=1,7), k=1,ne) /),
-     $         (/ 6,7,ne /))
-
-          timedev = reshape(
-     $         (/ (((-99.0d0,i=1,6), j=1,6), k=1,ne) /),
-     $         (/ 6,6,ne /))
-
-          dx = x_map(2) - x_map(1)
-          dy = y_map(2) - y_map(1)
-
-          bc_section = [SE_edge_type,3,3,no_overlap,no_overlap]
-
-          call compute_timedev_anti_corner_with_fluxes(
-     $         t,
-     $         bf_alignment,
-     $         grdpts_id,
-     $         x_map,
-     $         y_map,
-     $         nodes,
-     $         interior_nodes,
-     $         s_x_L1, s_x_R1,
-     $         s_y_L1, s_y_R1,
-     $         p_model,
-     $         bc_section,
-     $         flux_x, flux_y,
-     $         timedev)
-          
-          !check that only the time derivatives of the edge are
-          !modified
-          test_loc = check_around_timedev(
-     $         timedev,
-     $         reshape((/3,3,4,4/),(/2,2/)),
-     $         -99.0d0,
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''check_around_timedev(SE): failed'')'
-          end if
-
-          !compare with the reference
-          test_loc = is_real_matrix3D_validated(timedev_ref,timedev(3:4,3:4,:),detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''timedev(SE) failed'')'
-          end if
+c$$$          !compute the NW_corner
+c$$$          call reflect_x(
+c$$$     $         p_model,
+c$$$     $         x_map,
+c$$$     $         grdpts_id,
+c$$$     $         nodes,
+c$$$     $         timedev_ref)
+c$$$
+c$$$          flux_x = reshape(
+c$$$     $         (/ (((-99.0d0,i=1,7), j=1,6), k=1,ne) /),
+c$$$     $         (/ 7,6,ne /))
+c$$$
+c$$$          flux_y = reshape(
+c$$$     $         (/ (((-99.0d0,i=1,6), j=1,7), k=1,ne) /),
+c$$$     $         (/ 6,7,ne /))
+c$$$
+c$$$          timedev = reshape(
+c$$$     $         (/ (((-99.0d0,i=1,6), j=1,6), k=1,ne) /),
+c$$$     $         (/ 6,6,ne /))
+c$$$
+c$$$          dx = x_map(2) - x_map(1)
+c$$$          dy = y_map(2) - y_map(1)
+c$$$
+c$$$          bc_section = [NW_edge_type,3,3,no_overlap,no_overlap]
+c$$$
+c$$$          call compute_timedev_anti_corner_with_fluxes(
+c$$$     $         t,
+c$$$     $         bf_alignment,
+c$$$     $         grdpts_id,
+c$$$     $         x_map,
+c$$$     $         y_map,
+c$$$     $         nodes,
+c$$$     $         interior_nodes,
+c$$$     $         s_x_L1, s_x_R1,
+c$$$     $         s_y_L1, s_y_R1,
+c$$$     $         p_model,
+c$$$     $         bc_section,
+c$$$     $         flux_x, flux_y,
+c$$$     $         timedev)
+c$$$          
+c$$$          !check that only the time derivatives of the edge are
+c$$$          !modified
+c$$$          test_loc = check_around_timedev(
+c$$$     $         timedev,
+c$$$     $         reshape((/3,3,4,4/),(/2,2/)),
+c$$$     $         -99.0d0,
+c$$$     $         detailled)
+c$$$          test_validated = test_validated.and.test_loc
+c$$$          if(detailled.and.(.not.test_loc)) then
+c$$$             print '(''check_around_timedev(NW): failed'')'
+c$$$          end if
+c$$$
+c$$$          !compare with the reference
+c$$$          test_loc = is_real_matrix3D_validated(timedev_ref,timedev(3:4,3:4,:),detailled)
+c$$$          test_validated = test_validated.and.test_loc
+c$$$          if(detailled.and.(.not.test_loc)) then
+c$$$             print '(''timedev(NW) failed'')'
+c$$$          end if
+c$$$
+c$$$
+c$$$          !compute the SW_corner
+c$$$          call reflect_y(
+c$$$     $         p_model,
+c$$$     $         y_map,
+c$$$     $         grdpts_id,
+c$$$     $         nodes,
+c$$$     $         timedev_ref)
+c$$$
+c$$$          flux_x = reshape(
+c$$$     $         (/ (((-99.0d0,i=1,7), j=1,6), k=1,ne) /),
+c$$$     $         (/ 7,6,ne /))
+c$$$
+c$$$          flux_y = reshape(
+c$$$     $         (/ (((-99.0d0,i=1,6), j=1,7), k=1,ne) /),
+c$$$     $         (/ 6,7,ne /))
+c$$$
+c$$$          timedev = reshape(
+c$$$     $         (/ (((-99.0d0,i=1,6), j=1,6), k=1,ne) /),
+c$$$     $         (/ 6,6,ne /))
+c$$$
+c$$$          dx = x_map(2) - x_map(1)
+c$$$          dy = y_map(2) - y_map(1)
+c$$$
+c$$$          bc_section = [SW_edge_type,3,3,no_overlap,no_overlap]
+c$$$
+c$$$          call compute_timedev_anti_corner_with_fluxes(
+c$$$     $         t,
+c$$$     $         bf_alignment,
+c$$$     $         grdpts_id,
+c$$$     $         x_map,
+c$$$     $         y_map,
+c$$$     $         nodes,
+c$$$     $         interior_nodes,
+c$$$     $         s_x_L1, s_x_R1,
+c$$$     $         s_y_L1, s_y_R1,
+c$$$     $         p_model,
+c$$$     $         bc_section,
+c$$$     $         flux_x, flux_y,
+c$$$     $         timedev)
+c$$$          
+c$$$          !check that only the time derivatives of the edge are
+c$$$          !modified
+c$$$          test_loc = check_around_timedev(
+c$$$     $         timedev,
+c$$$     $         reshape((/3,3,4,4/),(/2,2/)),
+c$$$     $         -99.0d0,
+c$$$     $         detailled)
+c$$$          test_validated = test_validated.and.test_loc
+c$$$          if(detailled.and.(.not.test_loc)) then
+c$$$             print '(''check_around_timedev(SW): failed'')'
+c$$$          end if
+c$$$
+c$$$          !compare with the reference
+c$$$          test_loc = is_real_matrix3D_validated(timedev_ref,timedev(3:4,3:4,:),detailled)
+c$$$          test_validated = test_validated.and.test_loc
+c$$$          if(detailled.and.(.not.test_loc)) then
+c$$$             print '(''timedev(SW) failed'')'
+c$$$          end if
+c$$$
+c$$$
+c$$$          !compute the SE_corner
+c$$$          call reflect_x(
+c$$$     $         p_model,
+c$$$     $         x_map,
+c$$$     $         grdpts_id,
+c$$$     $         nodes,
+c$$$     $         timedev_ref)
+c$$$
+c$$$          flux_x = reshape(
+c$$$     $         (/ (((-99.0d0,i=1,7), j=1,6), k=1,ne) /),
+c$$$     $         (/ 7,6,ne /))
+c$$$
+c$$$          flux_y = reshape(
+c$$$     $         (/ (((-99.0d0,i=1,6), j=1,7), k=1,ne) /),
+c$$$     $         (/ 6,7,ne /))
+c$$$
+c$$$          timedev = reshape(
+c$$$     $         (/ (((-99.0d0,i=1,6), j=1,6), k=1,ne) /),
+c$$$     $         (/ 6,6,ne /))
+c$$$
+c$$$          dx = x_map(2) - x_map(1)
+c$$$          dy = y_map(2) - y_map(1)
+c$$$
+c$$$          bc_section = [SE_edge_type,3,3,no_overlap,no_overlap]
+c$$$
+c$$$          call compute_timedev_anti_corner_with_fluxes(
+c$$$     $         t,
+c$$$     $         bf_alignment,
+c$$$     $         grdpts_id,
+c$$$     $         x_map,
+c$$$     $         y_map,
+c$$$     $         nodes,
+c$$$     $         interior_nodes,
+c$$$     $         s_x_L1, s_x_R1,
+c$$$     $         s_y_L1, s_y_R1,
+c$$$     $         p_model,
+c$$$     $         bc_section,
+c$$$     $         flux_x, flux_y,
+c$$$     $         timedev)
+c$$$          
+c$$$          !check that only the time derivatives of the edge are
+c$$$          !modified
+c$$$          test_loc = check_around_timedev(
+c$$$     $         timedev,
+c$$$     $         reshape((/3,3,4,4/),(/2,2/)),
+c$$$     $         -99.0d0,
+c$$$     $         detailled)
+c$$$          test_validated = test_validated.and.test_loc
+c$$$          if(detailled.and.(.not.test_loc)) then
+c$$$             print '(''check_around_timedev(SE): failed'')'
+c$$$          end if
+c$$$
+c$$$          !compare with the reference
+c$$$          test_loc = is_real_matrix3D_validated(timedev_ref,timedev(3:4,3:4,:),detailled)
+c$$$          test_validated = test_validated.and.test_loc
+c$$$          if(detailled.and.(.not.test_loc)) then
+c$$$             print '(''timedev(SE) failed'')'
+c$$$          end if
 
         end function test_compute_timedev_anti_corner_with_fluxes
 

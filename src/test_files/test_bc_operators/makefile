@@ -114,3 +114,17 @@ test_bc_operators_openbc_normal:\
 			$(mt_ext_dep)\
 			$(dim2d_dep)\
 			$(hedstrom_xy_dep)
+
+
+# reflection_xy
+test_reflection_xy.o:	$(rbc_dir)/bc_operators_class.o\
+			$(test_dir)/tools/check_data_module.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_kind.o\
+			$(wave2d_dir)/pmodel_eq_class.o
+
+test_reflection_xy:	check_data_module.o\
+			$(param_dep)\
+			$(mt_dep)\
+			$(wave2d_dep)\
+			$(reflection_dep)

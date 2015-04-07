@@ -17,13 +17,9 @@ echo ''
 
 #test_openbc_operators
 file='test_openbc_operators'
-perform_test $file
-
-
-#test_hedstrom_xy
-file='test_hedstrom_xy'
 change_param_makefile 'pm_choice' 'dim2d_choice'
 change_param_makefile 'ic_choice' 'newgrdpt_test'
+change_param_makefile 'bc_choice' 'hedstrom_xy_choice'
 change_param_dim2d 'cv_r' '2.5d0'
 change_param_input 'ntx' '6'
 change_param_input 'nty' '6'
@@ -35,6 +31,16 @@ change_param_input 'flow_velocity' '0.1d0'
 change_param_input 'T0' '0.95d0'
 change_param_input 'ic_choice' 'newgrdpt_test'
 change_param_input 'obc_eigenqties_strategy' 'obc_eigenqties_lin'
+change_param_input 'bc_choice' 'hedstrom_xy_choice'
+change_param_input 'bc_N_type_choice' 'bc_timedev_choice'
+change_param_input 'bc_S_type_choice' 'bc_timedev_choice'
+change_param_input 'bc_E_type_choice' 'bc_timedev_choice'
+change_param_input 'bc_W_type_choice' 'bc_timedev_choice'
+perform_test $file
+
+
+#test_hedstrom_xy
+file='test_hedstrom_xy'
 perform_test $file
 
 
@@ -52,3 +58,19 @@ perform_test $file
 file='test_bc_operators_openbc_normal'
 perform_test $file
 
+
+#test_reflection_xy
+file='test_reflection_xy'
+change_param_makefile 'pm_choice' 'wave2d_choice'
+change_param_makefile 'ic_choice' 'peak'
+change_param_input 'ntx' '6'
+change_param_input 'nty' '8'
+change_param_input 'ne' '3'
+change_param_input 'ic_choice' 'peak'
+change_param_input 'bc_choice' 'reflection_xy_choice'
+change_param_input 'bc_N_type_choice' 'bc_nodes_choice'
+change_param_input 'bc_S_type_choice' 'bc_nodes_choice'
+change_param_input 'bc_E_type_choice' 'bc_nodes_choice'
+change_param_input 'bc_W_type_choice' 'bc_nodes_choice'
+
+perform_test $file

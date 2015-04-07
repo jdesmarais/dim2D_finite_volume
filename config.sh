@@ -31,22 +31,8 @@ cd $AUGEANSTABLES_CONFIG/default_gen_config
 chmod 777 *.sh
 
 
-#enable the scripts for testing the erymanthianboar project
-echo 'enable the scripts for testing the erymanthianboar project'
-cd $augeanstables/src/test_files/test_erymanthianboar
+#enable the scripts for testing the source code
+echo 'enable the scripts for testing the source code'
+cd $augeanstables/src/test_files
 chmod 777 *.sh
-
-
-#modify the files for testing the erymanthianboar project
-echo 'modify erymanthianboar test files for ifport module'
-if [ "$AUGEANSTABLES_COMPILER" != "*ifort*" ]
-    then
-    sed -i 's/ use ifport/ !use ifport/g' $augeanstables/src/test_files/test_erymanthianboar/test_bf_layer_module.f
-    sed -i 's/ use ifport/ !use ifport/g' $augeanstables/src/test_files/test_erymanthianboar/test_bf_layer_prog.f
-    sed -i 's/ use ifport/ !use ifport/g' $augeanstables/src/test_files/test_erymanthianboar/test_bf_mainlayer_prog.f
-else
-    sed -i 's/!use ifport/ use ifport/g' $augeanstables/src/test_files/test_erymanthianboar/test_bf_layer_module.f
-    sed -i 's/!use ifport/ use ifport/g' $augeanstables/src/test_files/test_erymanthianboar/test_bf_layer_prog.f
-    sed -i 's/!use ifport/ use ifport/g' $augeanstables/src/test_files/test_erymanthianboar/test_bf_mainlayer_prog.f
-fi
 

@@ -6,23 +6,45 @@
       !> Julien L. Desmarais
       !
       !> @brief
-      !> class encapsulating subroutines to compute the 
-      !> gridpoints at the edge of the computational domain
+      !> class encapsulating subroutines to apply reflection boundary
+      !> conditions at the edge of the computational domain
       !
       !> @date
-      !> 24_09_2013 - initial version                   - J.L. Desmarais
+      !> 07_04_2015 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
       module bc_operators_class
 
-        use bc_operators_default_class, only : bc_operators_default
-        use pmodel_eq_class           , only : pmodel_eq
-        use parameters_constant       , only : bc_nodes_choice
-        use parameters_input          , only : nx,ny,ne,bc_size
-        use parameters_kind           , only : rkind,ikind
-        use reflection_xy_module      , only : reflection_x_prefactor,
-     $                                         reflection_y_prefactor
-        use sd_operators_class        , only : sd_operators
-        
+        use bc_operators_default_class, only :
+     $       bc_operators_default
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use parameters_bf_layer, only :
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       NE_corner_type,
+     $       NW_corner_type,
+     $       SE_corner_type,
+     $       SW_corner_type
+
+        use parameters_constant, only :
+     $       bc_nodes_choice
+
+        use parameters_input, only :
+     $       nx,ny,ne,
+     $       bc_size
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use reflection_xy_module, only :
+     $       reflection_x_prefactor,
+     $       reflection_y_prefactor
+
         implicit none
 
 
@@ -66,6 +88,7 @@
 
           procedure,   pass :: ini
           procedure,   pass :: apply_bc_on_nodes
+          procedure,   pass :: apply_bc_on_nodes_nopt
 
         end type bc_operators
 
@@ -172,5 +195,164 @@
           end do
 
         end subroutine apply_bc_on_nodes
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine applying the boundary conditions
+        !> along the x and y directions at the edge of the
+        !> computational domain
+        !
+        !> @date
+        !> 23_09_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> boundary conditions
+        !
+        !>@param f
+        !> object encapsulating the main variables
+        !
+        !>@param s
+        !> space discretization operators
+        !--------------------------------------------------------------
+        subroutine apply_bc_on_nodes_nopt(this,nodes,bc_sections)
+
+          implicit none
+
+          class(bc_operators)                        , intent(in)    :: this
+          real(rkind)   , dimension(nx,ny,ne)        , intent(inout) :: nodes
+          integer(ikind), dimension(:,:), allocatable, intent(in)    :: bc_sections
+
+
+          integer(ikind) :: i,j
+          integer(ikind) :: i_r,j_r
+          integer        :: k
+          integer        :: m
+
+
+          integer(ikind) :: i_min,j_min
+          integer(ikind) :: i_max,j_max
+
+
+          if(allocated(bc_sections)) then
+             
+             do m=1, size(bc_sections,2)
+
+                i_min = bc_sections(2,m)
+                j_min = bc_sections(3,m)
+
+                select case(bc_sections(1,m))
+
+                  case(NE_corner_type,NW_corner_type)
+                     do k=1,ne
+                        do j=j_min,j_min+1
+
+                           j_r = 2*j_min-(j+1)
+
+                           do i=i_min,i_min+1
+                              
+                              nodes(i,j,k) = 
+     $                             this%prefactor_y(k)*nodes(i,j_r,k)
+                              
+                           end do
+                        end do
+                     end do
+
+                  case(SE_corner_type,SW_corner_type)
+                     do k=1,ne
+                        do j=j_min,j_min+1
+
+                           j_r = 2*j_min+3-j
+
+                           do i=i_min,i_min+1
+                              
+                              nodes(i,j,k) = 
+     $                             this%prefactor_y(k)*nodes(i,j_r,k)
+                              
+                           end do
+                        end do
+                     end do
+
+                  case(N_edge_type)
+
+                     i_max = bc_sections(4,m)
+
+                     do k=1,ne
+                        do j=j_min,j_min+1
+
+                           j_r = 2*j_min-(j+1)
+
+                           do i=i_min,i_max
+                              
+                              nodes(i,j,k) = 
+     $                             this%prefactor_y(k)*nodes(i,j_r,k)
+                              
+                           end do
+                        end do
+                     end do
+
+                  case(S_edge_type)
+
+                     i_max = bc_sections(4,m)
+
+                     do k=1,ne
+                        do j=j_min,j_min+1
+
+                           j_r = 2*j_min+3-j
+
+                           do i=i_min,i_max
+                              
+                              nodes(i,j,k) = 
+     $                             this%prefactor_y(k)*nodes(i,j_r,k)
+                              
+                           end do
+                        end do
+                     end do
+
+                  case(E_edge_type)
+
+                     j_max = bc_sections(4,m)
+
+                     do k=1,ne
+                        do j=j_min,j_max
+
+                           do i=i_min,i_min+1
+
+                              i_r = 2*i_min-(i+1)
+                              
+                              nodes(i,j,k) = 
+     $                             this%prefactor_x(k)*nodes(i_r,j,k)
+                              
+                           end do
+                        end do
+                     end do
+
+                  case(W_edge_type)
+
+                     j_max = bc_sections(4,m)
+
+                     do k=1,ne
+                        do j=j_min,j_max
+
+                           do i=i_min,i_min+1
+
+                              i_r = 2*i_min+3-i
+                              
+                              nodes(i,j,k) = 
+     $                             this%prefactor_x(k)*nodes(i_r,j,k)
+                              
+                           end do
+                        end do
+                     end do
+
+                end select
+
+             end do
+
+          end if
+
+        end subroutine apply_bc_on_nodes_nopt
 
       end module bc_operators_class

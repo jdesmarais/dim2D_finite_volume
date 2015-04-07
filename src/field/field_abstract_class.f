@@ -184,11 +184,16 @@
           real(rkind)                      :: dx
           real(rkind)                      :: dy
 
+          integer(ikind), dimension(2) :: x_borders
+          integer(ikind), dimension(2) :: y_borders
+
+
           contains
 
           procedure, pass          :: ini
-          procedure, pass, private :: check_inputs
+          procedure, pass          :: check_inputs
           procedure, pass, private :: ini_coordinates
+          procedure, pass          :: ini_for_timeInt
 
           procedure, pass          :: apply_initial_conditions
           procedure, pass          :: compute_time_dev
@@ -250,11 +255,13 @@
 
           !initialize the field
           !========================================
+          !1) initialize the integration borders
+          call this%ini_for_timeInt()
 
-          !1) initialize the boundary conditions
+          !2) initialize the boundary conditions
           call this%bc_operators_used%ini(this%pmodel_eq_used)
 
-          !2) initialize the time+x_map,y_map+nodes+io_operators
+          !3) initialize the time+x_map,y_map+nodes+io_operators
           if(cmd_operators_used%is_restart_activated()) then
 
              call this%io_operators_used%read_data(
@@ -275,7 +282,7 @@
 
           end if
 
-          !3) verify the inputs
+          !4) verify the inputs
           call this%check_inputs()
 
         end subroutine ini
@@ -328,6 +335,52 @@
           end if
           
         end subroutine check_inputs
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> initialize the space discretization map for the field
+        !
+        !> @date
+        !> 27_08_2013 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main governing variables
+        !--------------------------------------------------------------
+        subroutine ini_for_timeInt(this)
+
+          implicit none
+
+          class(field_abstract), intent(inout) :: this
+
+          
+          select case(bc_choice)
+          
+            case(reflection_xy_choice, periodic_xy_choice,
+     $           wall_xy_choice, wall_x_reflection_y_choice)
+               this%x_borders=[bc_size+1,nx-bc_size]
+               this%y_borders=[bc_size+1,ny-bc_size]
+                  
+            case(hedstrom_xy_choice,
+     $           hedstrom_xy_corners_choice,
+     $           poinsot_xy_choice,
+     $           yoolodato_xy_choice)
+               this%x_borders=[1,nx]
+               this%y_borders=[1,ny]
+               
+            case(hedstrom_x_reflection_y_choice)
+               this%x_borders=[1,nx]
+               this%y_borders=[bc_size+1,ny-bc_size]
+            
+            case default
+               print '(''field_abstract: compute_integration_step'')'
+               stop 'bc not implemented'
+            
+          end select
+
+        end subroutine ini_for_timeInt
 
 
         !> @author
@@ -558,37 +611,10 @@
           procedure(timeInt_step)                         :: integration_step
 
 
-          integer(ikind), dimension(2) :: x_borders
-          integer(ikind), dimension(2) :: y_borders
-
-          
-          select case(bc_choice)
-          
-            case(reflection_xy_choice, periodic_xy_choice,
-     $           wall_xy_choice, wall_x_reflection_y_choice)
-               x_borders=[bc_size+1,nx-bc_size]
-               y_borders=[bc_size+1,ny-bc_size]
-                  
-            case(hedstrom_xy_choice,hedstrom_xy_corners_choice,
-     $              poinsot_xy_choice,yoolodato_xy_choice)
-               x_borders=[1,nx]
-               y_borders=[1,ny]
-               
-            case(hedstrom_x_reflection_y_choice)
-               x_borders=[1,nx]
-               y_borders=[bc_size+1,ny-bc_size]
-            
-            case default
-               print '(''field_abstract: compute_integration_step'')'
-               stop 'bc not implemented'
-            
-          end select
-
-
           call integration_step(
      $         this%nodes, dt, nodes_tmp, time_dev,
-     $         x_borders=x_borders,
-     $         y_borders=y_borders)
+     $         x_borders=this%x_borders,
+     $         y_borders=this%y_borders)
           
         end subroutine compute_integration_step
 

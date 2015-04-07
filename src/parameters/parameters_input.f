@@ -22,10 +22,10 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -2.9456000000d0
-        real(rkind), parameter :: x_max = 2.9456000000d0
-        real(rkind), parameter :: y_min = -2.9456000000d0
-        real(rkind), parameter :: y_max = 2.9456000000d0
+        real(rkind), parameter :: x_min = -10.0d0
+        real(rkind), parameter :: x_max = -0.5d0
+        real(rkind), parameter :: y_min = -10.0d0
+        real(rkind), parameter :: y_max = 11.0d0
         
         !<computational times
         real(rkind), parameter :: t_max = 2.2560000000d0 !10.0d0
@@ -37,17 +37,17 @@
         logical    , parameter :: write_detectors = .true.
 
         !<mpi choice
-        integer, parameter :: npx = 3 !<number of processors along x
-        integer, parameter :: npy = 2 !<number of processors along y
+        integer, parameter :: npx = 1 !<number of processors along x
+        integer, parameter :: npy = 1 !<number of processors along y
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 18
-        integer(ikind), parameter :: nty = 16
+        integer(ikind), parameter :: ntx = 6
+        integer(ikind), parameter :: nty = 8
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 2
+        integer       , parameter :: ne = 3
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -105,14 +105,14 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer    , parameter :: flow_direction = y_direction
-        real(rkind), parameter :: flow_x_side = 1.0000000000d0
-        real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.5000000000d0
+        integer    , parameter :: flow_direction = x_direction
+        real(rkind), parameter :: flow_x_side = 1.0d0
+        real(rkind), parameter :: flow_y_side = 0.0d0
+        real(rkind), parameter :: flow_velocity = 0.1d0
         
-        real(rkind), parameter :: T0 = 0.9900000000d0
+        real(rkind), parameter :: T0 = 0.95d0
 
-        integer    , parameter :: ic_choice = newgrdpt_test
+        integer    , parameter :: ic_choice = peak
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
@@ -140,10 +140,10 @@
         !bc_W_type_choice : type of boundary condition applied
         !                   at the West boundary
         !-----------------------------------------------------
-        integer    , parameter :: bc_N_type_choice = bc_timedev_choice
-        integer    , parameter :: bc_S_type_choice = bc_timedev_choice
-        integer    , parameter :: bc_E_type_choice = bc_timedev_choice
-        integer    , parameter :: bc_W_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_N_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_S_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_E_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_W_type_choice = bc_nodes_choice
 
 
         !-----------------------------------------------------
@@ -182,7 +182,7 @@
         !-----------------------------------------------------
         integer    , parameter :: obc_outgoing_strategy   = obc_outgoing_prim
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
-        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
 
 
@@ -278,7 +278,7 @@
         !    should be set to .false. by default)
         !------------------------------------------------------------
         logical    , parameter :: debug_restart_for_geometry = .false.
-        logical    , parameter :: debug_adapt_computational_domain = .true.
+        logical    , parameter :: debug_adapt_computational_domain = .false.
         logical    , parameter :: debug_geometry_update = .false.
 
         logical    , parameter :: debug_initialize_nodes   = .true.

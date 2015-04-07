@@ -225,6 +225,8 @@ mpi_bc_dep=		$(mpi_mg_ext_dep)\
 			mpi_tag_module.o\
 			mpi_requests_module.o
 
+
+
 reflection_xy_par_dep=	$(mpi_dep)\
 			$(mpi_bc_dep)\
 			reflection_xy_module.o\
@@ -435,3 +437,8 @@ field_extended_dep=	cmd_operators_class.o\
 			field_abstract_class.o\
 			$(bf_interface_dep)\
 			field_extended_class.o
+
+field_par_dep=		$(field_dep)\
+			$(mpi_dep)\
+			$(mpi_interface_dep)\
+			field_par_class.o

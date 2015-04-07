@@ -1934,7 +1934,7 @@ c$$$     $       compute_n2_transM_wave2d
           t_s = t
 
           select case(ic_choice)
-            case(peak)
+            case(peak,sincos)
                if(rkind.eq.8) then
                   var(1) = 0.0d0
                   var(2) = 0.0d0

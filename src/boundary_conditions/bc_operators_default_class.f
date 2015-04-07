@@ -35,6 +35,10 @@
         !> default application of the boundary conditions on
         !> the nodes : program stops
         !
+        !> @param apply_bc_on_nodes_nopt
+        !> default application of the boundary conditions on
+        !> the nodes : program stops
+        !
         !> @param apply_bc_on_fluxes
         !> default application of the boundary conditions on
         !> the fluxes : program stops
@@ -43,24 +47,19 @@
         !> default application of the boundary conditions on
         !> the time derivatives : program stops
         !
-        !> @param apply_bc_on_timedev_x_edge
+        !> @param apply_bc_on_timedev_nopt
         !> default application of the boundary conditions on
-        !> the time derivatives for E and W edges: program stops
-        !
-        !> @param apply_bc_on_timedev_y_edge
-        !> default application of the boundary conditions on
-        !> the time derivatives for N and S edges: program stops
-        !
-        !> @param apply_bc_on_timedev_xy_corner
-        !> default application of the boundary conditions on
-        !> the time derivatives for corners: program stops
+        !> the time derivatives : program stops
         !---------------------------------------------------------------
         type, abstract, extends(bc_operators_abstract) :: bc_operators_default
 
           contains
 
           procedure,   pass :: apply_bc_on_nodes
+          procedure,   pass :: apply_bc_on_nodes_nopt
+
           procedure, nopass :: apply_bc_on_fluxes
+
           procedure,   pass :: apply_bc_on_timedev
           procedure,   pass :: apply_bc_on_timedev_nopt
 
@@ -103,6 +102,44 @@
           
 
         end subroutine apply_bc_on_nodes
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> default subroutine applying the boundary conditions
+        !> on the grid point governing variables
+        !
+        !> @date
+        !> 01_08_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> boundary conditions
+        !
+        !>@param nodes
+        !> object encapsulating the main variables
+        !--------------------------------------------------------------
+        subroutine apply_bc_on_nodes_nopt(this,nodes,bc_sections)
+
+          implicit none
+
+          class(bc_operators_default)                , intent(in)    :: this
+          real(rkind)   , dimension(nx,ny,ne)        , intent(inout) :: nodes
+          integer(ikind), dimension(:,:), allocatable, intent(in)    :: bc_sections
+
+          real(rkind)           :: node_s          
+          integer, dimension(4) :: bc_type
+
+          stop 'bc_operator%apply_bc_on_nodes_opt() not implemented'
+
+          node_s  = nodes(1,1,1)
+
+          if(allocated(bc_sections)) then
+             bc_type = this%bc_type
+          end if
+
+        end subroutine apply_bc_on_nodes_nopt
 
 
         !> @author

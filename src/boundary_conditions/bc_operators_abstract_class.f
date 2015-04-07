@@ -17,9 +17,7 @@
       module bc_operators_abstract_class
 
         use parameters_input, only :
-     $       nx,
-     $       ny,
-     $       ne
+     $       nx,ny,ne
 
         use parameters_kind, only :
      $       ikind,
@@ -68,13 +66,17 @@
 
           contains
 
-          procedure                ,   pass           :: get_bc_type
+          procedure                 ,   pass           :: get_bc_type
 
-          procedure(ini_proc)      ,   pass, deferred :: ini
-          procedure(nodes_proc)    ,   pass, deferred :: apply_bc_on_nodes
-          procedure(fluxes_proc)   , nopass, deferred :: apply_bc_on_fluxes
-          procedure(tdev_proc)     ,   pass, deferred :: apply_bc_on_timedev
-          procedure(tdev_nopt_proc),   pass, deferred :: apply_bc_on_timedev_nopt
+          procedure(ini_proc)       ,   pass, deferred :: ini
+
+          procedure(nodes_proc)     ,   pass, deferred :: apply_bc_on_nodes
+          procedure(nodes_nopt_proc),   pass, deferred :: apply_bc_on_nodes_nopt
+
+          procedure(fluxes_proc)    , nopass, deferred :: apply_bc_on_fluxes
+
+          procedure(tdev_proc)      ,   pass, deferred :: apply_bc_on_timedev
+          procedure(tdev_nopt_proc) ,   pass, deferred :: apply_bc_on_timedev_nopt
 
         end type bc_operators_abstract
 
@@ -142,6 +144,40 @@
              real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
 
            end subroutine nodes_proc
+
+
+           !> @author
+           !> Julien L. Desmarais
+           !
+           !> @brief
+           !> subroutine applying the boundary conditions
+           !> along the x and y directions at the edge of the
+           !> computational domain
+           !
+           !> @date
+           !> 24_09_2013 - initial version - J.L. Desmarais
+           !
+           !>@param this
+           !> abstract boundary conditions
+           !
+           !>@param f_used
+           !> object encapsulating the main variables
+           !
+           !>@param s
+           !> space discretization operators
+           !-------------------------------------------------------------
+           subroutine nodes_nopt_proc(this,nodes,bc_sections)
+           
+             import bc_operators_abstract
+             import nx,ny,ne
+             import ikind
+             import rkind
+           
+             class(bc_operators_abstract)               , intent(in)    :: this
+             real(rkind)   , dimension(nx,ny,ne)        , intent(inout) :: nodes
+             integer(ikind), dimension(:,:), allocatable, intent(in)    :: bc_sections
+
+           end subroutine nodes_nopt_proc
 
       
            !> @author
