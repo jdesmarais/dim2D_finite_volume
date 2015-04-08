@@ -42,9 +42,10 @@ if __name__=="__main__":
         'dim2d_bubble_transported_periodic.txt')
 
     small_domain_run          = False
+    nb_tiles_option           = [8,8]
 
-    temperatureStudy          = True
-    velocityStudy             = False
+    temperatureStudy          = False
+    velocityStudy             = True
     thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
 
@@ -52,7 +53,7 @@ if __name__=="__main__":
     #1) temperature study
     if(temperatureStudy):
 
-        temperature_array = [0.95] #[0.95,0.99,0.995,0.999]
+        temperature_array = [0.95,0.99,0.995,0.999]
         flow_velocity     = 0.1
         md_threshold_ac   = 0
         large_domain_run  = True
@@ -70,14 +71,15 @@ if __name__=="__main__":
                                     model_input,
                                     bf_layer_option=True,
                                     small_domain_run=small_domain_run,
-                                    large_domain_run=large_domain_run)
+                                    large_domain_run=large_domain_run,
+                                    nb_tiles_option=nb_tiles_option)
              
     
     #2) flow mean velocity study
     if(velocityStudy):
 
         temperature         = 0.99
-        flow_velocity_array = [0.25,0.5] #[0.05,0.25,0.5]
+        flow_velocity_array = [0.05] #[0.05,0.25,0.5]
         md_threshold_ac     = 0
         large_domain_run    = True
         
@@ -93,7 +95,8 @@ if __name__=="__main__":
                                     model_input,
                                     bf_layer_option=True,
                                     small_domain_run=small_domain_run,
-                                    large_domain_run=large_domain_run)
+                                    large_domain_run=large_domain_run,
+                                    nb_tiles_option=nb_tiles_option)
              
 
     #3) threshold study
@@ -119,6 +122,7 @@ if __name__=="__main__":
                                         bf_layer_option=True,
                                         small_domain_run=small_domain_run,
                                         large_domain_run=large_domain_run,
+                                        nb_tiles_option=nb_tiles_option,
                                         md_threshold_ac=md_threshold_ac,
                                         md_threshold=md_threshold)
     
@@ -143,6 +147,7 @@ if __name__=="__main__":
                                         bf_layer_option=True,
                                         small_domain_run=small_domain_run,
                                         large_domain_run=large_domain_run,
+                                        nb_tiles_option=nb_tiles_option,
                                         md_threshold_ac=md_threshold_ac,
                                         md_threshold=md_threshold)
     

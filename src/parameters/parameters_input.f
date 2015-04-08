@@ -22,32 +22,32 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -5.5076000000d0
-        real(rkind), parameter :: x_max = 5.5076000000d0
-        real(rkind), parameter :: y_min = -5.5076000000d0
-        real(rkind), parameter :: y_max = 5.5076000000d0
+        real(rkind), parameter :: x_min = -19.2416000000d0
+        real(rkind), parameter :: x_max = 19.2416000000d0
+        real(rkind), parameter :: y_min = -19.2416000000d0
+        real(rkind), parameter :: y_max = 19.2416000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 4.9718000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0002000000d0
+        real(rkind), parameter :: t_max = 22.5592000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0006000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0403000000d0
+        real(rkind), parameter :: detail_print = 0.0266000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
         !<mpi choice
-        integer, parameter :: npx = 1 !<number of processors along x
-        integer, parameter :: npy = 1 !<number of processors along y
+        integer, parameter :: npx = 8 !<number of processors along x
+        integer, parameter :: npy = 8 !<number of processors along y
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 8
-        integer(ikind), parameter :: nty = 10
+        integer(ikind), parameter :: ntx = 3472
+        integer(ikind), parameter :: nty = 3472
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 3
+        integer       , parameter :: ne = 4
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -105,14 +105,14 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer    , parameter :: flow_direction = x_direction
-        real(rkind), parameter :: flow_x_side = 1.0d0
-        real(rkind), parameter :: flow_y_side = 0.0d0
-        real(rkind), parameter :: flow_velocity = 0.1d0
+        integer    , parameter :: flow_direction = y_direction
+        real(rkind), parameter :: flow_x_side = 1.0000000000d0
+        real(rkind), parameter :: flow_y_side = 1.0000000000d0
+        real(rkind), parameter :: flow_velocity = 0.0500000000d0
         
-        real(rkind), parameter :: T0 = 0.95d0
+        real(rkind), parameter :: T0 = 0.9900000000d0
 
-        integer    , parameter :: ic_choice = peak
+        integer    , parameter :: ic_choice = bubble_transported
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
