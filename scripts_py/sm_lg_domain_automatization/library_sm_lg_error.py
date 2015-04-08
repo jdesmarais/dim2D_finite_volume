@@ -14,6 +14,15 @@ import subprocess  #for running processes in shell
 import shutil      #for additional os based functions (rm -rf)
 import fnmatch
 
+# print a progress message which can be overwriten
+def create_mg_progress(mg_progress):
+    sys.stdout.write('%s\r' % mg_progress)
+    sys.stdout.flush()
+
+def create_mg_final(mg_progress):
+    sys.stdout.write('%s' % mg_progress)
+    sys.stdout.flush()
+    print '\n'
 
 # compile the executable able to create the error_max file
 def generate_error_max_exe():
@@ -26,12 +35,13 @@ def generate_error_max_exe():
     exePath+= '/scripts_fortran/error_computation'
     exePath+= '/compute_error_max_file'
 
-    print 'generating the fortran executable to compute the error_max: ...'
+    mg_progress = 'generating the fortran executable to compute the error max: ...'
+    create_mg_progress(mg_progress)
 
     generate_fortran_exe(exePath)
 
-    print 'generating the fortran executable to compute the error_max: done'
-    print ''
+    mg_progress = 'generating the fortran executable to compute the error max: done'
+    create_mg_final(mg_progress)
 
     return exePath
 
@@ -47,11 +57,13 @@ def generate_error_exe():
     exePath+= '/scripts_fortran/error_computation'
     exePath+= '/compute_error_file'
     
-    print 'generating the fortran executable to compute the error: ...'
+    mg_progress = 'generating the fortran executable to compute the error: ...'
+    create_mg_progress(mg_progress)
 
     generate_fortran_exe(exePath)
 
-    print 'generating the fortran executable to compute the error: done'
+    mg_progress = 'generating the fortran executable to compute the error: done'
+    create_mg_final(mg_progress)
 
     return exePath
 
@@ -181,13 +193,15 @@ def compare_folders(exePath,
         print 'library_sm_lg_error'
         print 'compare_folders'
         sys.exit('different number of files in small and large folders')
+
         
-    print 'generating error files: ...'
-    print str(nbFiles_sm_domain)+' file to be processed'
+    mg_progress = 'generating error files: ...'
+    create_mg_progress(mg_progress)
 
 
     #4) generate the error files for matching files
-    for i in range(0,min(nbFiles_sm_domain,nbFiles_lg_domain)+1):
+    nbFiles = min(nbFiles_sm_domain,nbFiles_lg_domain)+1
+    for i in range(0,nbFiles):
         
         dataPath_sm_domain = dataDir_sm_domain+'/data'+str(i)+'.nc'
         dataPath_lg_domain = dataDir_lg_domain+'/data'+str(i)+'.nc'
@@ -198,7 +212,11 @@ def compare_folders(exePath,
                      dataPath_lg_domain,
                      errorPath)
 
-    print 'generating error files: done'
+        mg_progress = 'generating error files: '+str(i)+' / '+str(nbFiles)
+        create_mg_progress(mg_progress)
+
+    mg_progress = 'generating error files: done              '
+    create_mg_final(mg_progress)
 
     return errorDir
 
@@ -225,6 +243,8 @@ def create_error_max_file(errorDir,exePath):
         print 'create_error_max_file'
         sys.exit('executable '+exePath+' does not exist')
 
+    mg_progress = 'generating error_max file: ...'
+    create_mg_progress(mg_progress)
 
     #3) determine the total number of error
     #    files in the errorDir
@@ -244,8 +264,6 @@ def create_error_max_file(errorDir,exePath):
     cmd+=' -o '+errorMaxFile
     cmd+=' -n '+str(nb_files)
 
-    print 'cmd: '+cmd
-    
     subprocess.call(cmd, shell=True)
 
 
@@ -257,7 +275,12 @@ def create_error_max_file(errorDir,exePath):
         sys.exit('error when generating the error_max file '+
                  errorMaxFile)
 
-    print 'error_max file generated: '+errorMaxFile
+    mg_progress = 'generating error_max file: done'
+    create_mg_final(mg_progress)
+
+    print 'error_max file in: \n'
+    print errorMaxFile
+    print '\n'
 
     return
 

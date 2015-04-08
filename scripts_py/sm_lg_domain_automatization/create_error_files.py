@@ -29,30 +29,56 @@ from library_sm_lg_results import get_simulation_dir
 from library_sm_lg_error import generate_error_files
 
 
-if __name__=="__main__":
+def get_paths_lg_simulations(temperature_array,
+                             flow_velocity_array,
+                             temperature_dict,
+                             flow_velocity_dict):
+    '''@description
+    create the paths to the results of the large domain
+    '''
 
-
-    # main directory where the simulations
-    # are saved
-    mainDir = os.path.join(os.getenv('HOME'),'projects')
-
-
-    #paths for the large domain simulations
-    flow_velocity_dict = {'0.05':0, '0.1':1, '0.25':2,  '0.5':3}
-    temperature_dict   = {'0.95':0,'0.99':1,'0.995':2,'0.999':3}
-
-    main_lg_dirs = os.path.join(mainDir,'dim2d_hedstrom_xy')
     lg_dirs = []
     lg_dirs.append([])
-    for temperature in [0.95,0.99,0.995,0.999]:
-        for flow_velocity in [0.05,0.1,0.25,0.5]:
+    for temperature in temperature_array:
+        for flow_velocity in flow_velocity_array:
 
             dir_name = get_simulation_dir(temperature,flow_velocity,0)
             lg_dir   = os.path.join(main_lg_dirs,dir_name,'lg_domain')
-
+            
             lg_dirs[temperature_dict[str(temperature)]].append(lg_dir)
 
         lg_dirs.append([])
+
+    return lg_dirs
+
+
+if __name__=="__main__":
+
+
+    # main directory where the simulations are saved
+    #------------------------------------------------------------
+    mainDir = os.path.join(os.getenv('HOME'),
+                           'projects')
+
+    main_sm_dirs = os.path.join(mainDir,
+                                '20150401_dim2d_bubble_transported')
+
+    main_lg_dirs = os.path.join(mainDir)
+
+
+    #paths for the large domain simulations
+    #------------------------------------------------------------
+    flow_velocity_dict = {'0.05':0, '0.1':1, '0.25':2,  '0.5':3}
+    temperature_dict   = {'0.95':0,'0.99':1,'0.995':2,'0.999':3}
+
+
+    #create paths for large domani simulation results
+    #------------------------------------------------------------
+    lg_dirs = get_paths_lg_simulations([0.95,0.99,0.995,0.999],
+                                       [0.05,0.1,0.25,0.5],
+                                       temperature_dict,
+                                       flow_velocity_dict)
+    
 
 
     # options for the creation of the error files
@@ -123,16 +149,14 @@ if __name__=="__main__":
 
         temperature_array  = [0.999]#0.95,0.99,0.995,0.999]
         flow_velocity      = 0.1
-        md_threshold_array = [0.01, 0.05, 0.1, 0.2, 0.3]
-        md_threshold_ac    = 1
-        large_domain_run   = False
+        md_threshold_array = [0.05, 0.1, 0.2, 0.3]
         
         for md_threshold in md_threshold_array:
             for temperature in temperature_array:
                 
                 #small domain simulation results
                 dir_name          = get_simulation_dir(temperature,flow_velocity,md_threshold)
-                dataDir_sm_domain = os.path.join(mainDir,dir_name,'sm_domain')
+                dataDir_sm_domain = os.path.join(main_sm_dirs,dir_name,'sm_domain')
 
                 #large domain simulation results
                 T_i = temperature_dict[str(temperature)]

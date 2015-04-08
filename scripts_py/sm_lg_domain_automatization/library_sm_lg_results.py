@@ -37,7 +37,7 @@ def get_simulation_dir(temperature,flow_velocity,md_threshold):
     if(md_threshold!=0):
         simDir+='_md'+str(md_threshold)
 
-    simDir+='_parallel'
+    #simDir+='_parallel'
 
     return simDir
 

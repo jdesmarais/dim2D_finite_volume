@@ -246,7 +246,7 @@ def create_error_graph(
 
     #add the legend
     if(not legendParam=='None'):
-        plt.legend(legendParam)
+        plt.legend(legendParam,loc='lower right')
 
     # show plot
     if(show):

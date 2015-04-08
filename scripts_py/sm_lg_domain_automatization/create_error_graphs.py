@@ -41,7 +41,7 @@ if __name__=="__main__":
     #------------------------------------------------------------
     mainDir = os.path.join(os.getenv('HOME'),
                            'projects',
-                           'dim2d_hedstrom_xy')
+                           '20150401_dim2d_bubble_transported')
 
 
     # dictionnaries to associate a temperature parameter with
@@ -49,8 +49,7 @@ if __name__=="__main__":
     #------------------------------------------------------------
     temperature_dict   = {'0.95':0,'0.99':1,'0.995':2,'0.999':3}
     flow_velocity_dict = {'0.05':0, '0.1':1, '0.25':2,  '0.5':3}
-    md_threshold_dict  = {   '0':0,'0.01':1, '0.05':2,  '0.1':3,\
-                           '0.2':4, '0.3':5}
+    md_threshold_dict  = {   '0':0,'0.05':1,  '0.1':2,  '0.2':3, '0.3':4}
 
 
 
@@ -65,9 +64,9 @@ if __name__=="__main__":
     # - thresholdVelocityStudy    : create error graph for the
     #                               threshold study on velocity
     #------------------------------------------------------------
-    temperatureStudy          = True
+    temperatureStudy          = False
     velocityStudy             = False
-    thresholdTemperatureStudy = False
+    thresholdTemperatureStudy = True
     thresholdVelocityStudy    = False
 
 
@@ -93,7 +92,7 @@ if __name__=="__main__":
         grayscale_to_RGB(0.75),
         grayscale_to_RGB(0.90)]
 
-    style_threshold = ['+','.','--','-']
+    style_threshold = ['+','.','--','-','^']
 
     width = 3
 
@@ -103,7 +102,7 @@ if __name__=="__main__":
 
     plot_ylim_T           = [0.00001,0.1]
     plot_ylim_v           = 'None'
-    plot_ylim_T_threshold = 'None'
+    plot_ylim_T_threshold = [0.000001,0.1]
     plot_ylim_v_threshold = 'None'
 
     fig_T           = 'fig_error_temperature.eps'
@@ -131,7 +130,7 @@ if __name__=="__main__":
 
             v_i = flow_velocity_dict[str(flow_velocity)]
 
-            for md_threshold in [0,0.01,0.05,0.1,0.2,0.3]:
+            for md_threshold in [0,0.05,0.1,0.2,0.3]:
 
                 dir_name = get_simulation_dir(temperature,flow_velocity,md_threshold)
                 err_dir  = os.path.join(main_err_dirs,dir_name,'error','error_max.nc')
@@ -181,7 +180,7 @@ if __name__=="__main__":
             legendParam=legendParam,
             graphPties=graphPties,
             width=width,
-            figPath=os.path.join(mainDir,fig_T)
+            figPath=os.path.join(mainDir,fig_T),
             show=show,
             logScale=logScale,
             plot_ylim=plot_ylim_T)
@@ -229,7 +228,7 @@ if __name__=="__main__":
             legendParam=legendParam,
             graphPties=graphPties,
             width=width,
-            figPath=os.path.join(mainDir,fig_v)
+            figPath=os.path.join(mainDir,fig_v),
             show=show,
             logScale=logScale,
             plot_ylim=plot_ylim_v)
@@ -240,11 +239,11 @@ if __name__=="__main__":
     #============================================================
     if(thresholdTemperatureStudy):
 
-        temperature_array  = [0.95,0.99,0.995,0.999]
+        temperature_array  = [0.995]#[0.95,0.99,0.995,0.999]
         flow_velocity      = 0.1
         md_threshold_array = [0.05, 0.1, 0.2, 0.3]
         
-        v_i  = flow_velocity_dict[str(flow_velocity)]        
+        v_i  = flow_velocity_dict[str(flow_velocity)]
 
         # extract the error data for the temperature threshold study
         data = []
@@ -259,6 +258,7 @@ if __name__=="__main__":
 
                 # indices for the extraction of the error path
                 T_i  = temperature_dict[str(temperature)]
+                errorPath = err_dirs[T_i][v_i][md_i]
                 
                 # extract the error data
                 [time_rescaled,error] = extract_max_error_in_time(errorPath)
@@ -267,7 +267,7 @@ if __name__=="__main__":
                 data.append([time_rescaled,error])
 
                 #legend
-                legendParam.append(str(temperature)+'_'+str(md_threshold))
+                legendParam.append(str(temperature)+'\_'+str(md_threshold))
 
                 # create the graph properties
                 graphPties.append([color_temperature[T_i],
@@ -279,7 +279,7 @@ if __name__=="__main__":
             legendParam=legendParam,
             graphPties=graphPties,
             width=width,
-            figPath=os.path.join(mainDir,fig_T_threshold)
+            figPath=os.path.join(mainDir,fig_T_threshold),
             show=show,
             logScale=logScale,
             plot_ylim=plot_ylim_T_threshold)
@@ -326,7 +326,7 @@ if __name__=="__main__":
             legendParam=legendParam,
             graphPties=graphPties,
             width=width,
-            figPath=os.path.join(mainDir,fig_v_threshold)
+            figPath=os.path.join(mainDir,fig_v_threshold),
             show=show,
             logScale=logScale,
             plot_ylim=plot_ylim_v_threshold)

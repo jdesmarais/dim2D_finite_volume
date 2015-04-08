@@ -151,6 +151,6 @@
         deallocate(y_error_max_id)
 
         !8) error_max file created
-        print '(''output file created'')'
+        !print '(''output file created'')'
 
       end program compute_error_max_file

@@ -107,6 +107,8 @@
      $            y_map,
      $            nodes)
 
+             print '(''timestep: '', I3)', timestep
+
           end do
 
           deallocate(x_map)

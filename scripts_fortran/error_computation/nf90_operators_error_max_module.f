@@ -527,7 +527,7 @@
 
              ! inquire the value of the global
              ! variable
-             call nf90_get_att_value(
+             retval = nf90_get_att_value(
      $            ncid_error_file,
      $            NF90_GLOBAL,
      $            att_type,
@@ -536,6 +536,7 @@
      $            att_int_var,
      $            att_real_var,
      $            att_double_var)
+             call nf90_handle_err(retval)
                                     
 
              ! depending on the header attribute, the

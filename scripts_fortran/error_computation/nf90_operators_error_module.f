@@ -572,7 +572,9 @@
           real                  :: att_real_var2
           real*8                :: att_double_var2
 
-        
+          logical               :: compare_att
+
+
           if(present(ierror)) then
              ierror = NOT_SUCCESS
           end if
@@ -661,7 +663,7 @@
 
              ! inquire the value of the global
              ! variable
-             call nf90_get_att_value(
+             retval = nf90_get_att_value(
      $            ncid_sm_domain,
      $            NF90_GLOBAL,
      $            header_att_type,
@@ -670,8 +672,9 @@
      $            att_int_var,
      $            att_real_var,
      $            att_double_var)
+             call nf90_handle_err(retval)
 
-             call nf90_get_att_value(
+             retval = nf90_get_att_value(
      $            ncid_lg_domain,
      $            NF90_GLOBAL,
      $            header_att_type,
@@ -680,6 +683,15 @@
      $            att_int_var2,
      $            att_real_var2,
      $            att_double_var2)
+
+             if(retval.ne.NF90_NOERR) then
+                compare_att = .false.
+                !print '(''WARNING att_not_found: '')'
+                !print *, trim(header_attname_sm_domain)
+                !print '()'
+             else
+                compare_att = .true.
+             end if
 
 
              ! depending on the header attribute, the
@@ -765,21 +777,25 @@
                ! with the same properties
                case default
 
-                  select case(header_att_type)
-                    case(NF90_FLOAT)
-                       if(.not.compare_reals(att_real_var,att_real_var2)) then
-                          print *, 'WARNING attribute ',
-     $                         trim(header_attname_sm_domain),
-     $                         ': do not match'
-                       end if
+                  if(compare_att) then
 
-                    case(NF90_DOUBLE)
-                       if(.not.compare_doubles(att_double_var,att_double_var2)) then
-                          print *, 'WARNING attribute ',
-     $                         trim(header_attname_sm_domain),
-     $                         ': do not match'
-                       end if
-                  end select
+                     select case(header_att_type)
+                       case(NF90_FLOAT)
+                          if(.not.compare_reals(att_real_var,att_real_var2)) then
+                             print *, 'WARNING attribute ',
+     $                            trim(header_attname_sm_domain),
+     $                            ': do not match'
+                          end if
+
+                       case(NF90_DOUBLE)
+                          if(.not.compare_doubles(att_double_var,att_double_var2)) then
+                             print *, 'WARNING attribute ',
+     $                            trim(header_attname_sm_domain),
+     $                            ': do not match'
+                          end if
+                     end select
+
+                  end if
 
                   call nf90_put_att_value(
      $                 ncid_error,
@@ -1172,7 +1188,7 @@
 
         ! get the value corresponding to the attribute with
         ! the name 'attname'
-        subroutine nf90_get_att_value(
+        function nf90_get_att_value(
      $     ncid,
      $     varid,
      $     att_type,
@@ -1181,21 +1197,20 @@
      $     att_int_var,
      $     att_real_var,
      $     att_double_var)
+     $     result(retval)
 
           implicit none
 
-          integer            , intent(in) :: ncid
-          integer            , intent(in) :: varid
-          integer            , intent(in) :: att_type
-          character*(*)      , intent(in) :: att_name
-          character(len=1028), intent(out):: att_char_var
-          integer            , intent(out):: att_int_var
-          real               , intent(out):: att_real_var
-          real*8             , intent(out):: att_double_var
-
+          integer            , intent(in)  :: ncid
+          integer            , intent(in)  :: varid
+          integer            , intent(in)  :: att_type
+          character*(*)      , intent(in)  :: att_name
+          character(len=1028), intent(out) :: att_char_var
+          integer            , intent(out) :: att_int_var
+          real               , intent(out) :: att_real_var
+          real*8             , intent(out) :: att_double_var
+          integer                          :: retval
           
-          integer :: retval
-
 
           select case(att_type)
 
@@ -1233,11 +1248,9 @@
                print '(''var type not recognized'')'
                stop ''
                
-            end select
+            end select            
 
-            call nf90_handle_err(retval)
-
-        end subroutine nf90_get_att_value
+        end function nf90_get_att_value
 
 
         ! print the netcdf error received
