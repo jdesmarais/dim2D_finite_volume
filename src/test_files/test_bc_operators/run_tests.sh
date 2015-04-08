@@ -74,3 +74,20 @@ change_param_input 'bc_E_type_choice' 'bc_nodes_choice'
 change_param_input 'bc_W_type_choice' 'bc_nodes_choice'
 
 perform_test $file
+
+
+#test_periodic_xy
+file='test_periodic_xy'
+change_param_makefile 'pm_choice' 'wave2d_choice'
+change_param_makefile 'ic_choice' 'peak'
+change_param_input 'ntx' '8'
+change_param_input 'nty' '10'
+change_param_input 'ne' '3'
+change_param_input 'ic_choice' 'peak'
+change_param_input 'bc_choice' 'periodic_xy_choice'
+change_param_input 'bc_N_type_choice' 'bc_nodes_choice'
+change_param_input 'bc_S_type_choice' 'bc_nodes_choice'
+change_param_input 'bc_E_type_choice' 'bc_nodes_choice'
+change_param_input 'bc_W_type_choice' 'bc_nodes_choice'
+
+perform_test $file

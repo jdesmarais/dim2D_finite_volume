@@ -12,9 +12,11 @@
      $       is_real_vector_validated,
      $       is_real_matrix_validated,
      $       is_real_matrix3D_validated,
+     $       is_int_validated,
      $       is_int_vector_validated,
      $       is_int_matrix_validated,
      $       is_int_matrix3D_validated,
+     $       is_boolean_validated,
      $       is_boolean_vector_validated,
      $       is_boolean_matrix_validated,
      $       is_char_validated
@@ -179,6 +181,25 @@
           end if
 
         end function is_real_matrix3D_validated
+
+
+        function is_int_validated(var,cst,detailled) result(test_validated)
+
+          implicit none
+
+          integer, intent(in) :: var
+          integer, intent(in) :: cst
+          logical             :: detailled
+          logical             :: test_validated
+
+          test_validated = var.eq.cst
+
+          if(detailled.and.(.not.test_validated)) then
+             print *, var
+             print *, cst
+          end if
+          
+        end function is_int_validated
 
 
         function is_int_vector_validated(
@@ -359,6 +380,25 @@
           end if
 
         end function is_int_matrix3D_validated
+
+
+        function is_boolean_validated(var,cst,detailled) result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: var
+          logical, intent(in) :: cst
+          logical             :: detailled
+          logical             :: test_validated
+
+          test_validated = var.eqv.cst
+
+          if(detailled.and.(.not.test_validated)) then
+             print *, var
+             print *, cst
+          end if
+          
+        end function is_boolean_validated
 
 
         function is_boolean_vector_validated(

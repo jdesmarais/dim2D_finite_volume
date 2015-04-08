@@ -39,11 +39,12 @@ if __name__=="__main__":
     # input used as template
     model_input=os.path.join(
         os.getenv('augeanstables'),'src','config','default_inputs','dim2d',
-        'dim2d_bubble_transported_hedstrom_xy.txt')
+        'dim2d_bubble_transported_periodic.txt')
 
+    small_domain_run          = False
 
-    temperatureStudy          = False
-    velocityStudy             = True
+    temperatureStudy          = True
+    velocityStudy             = False
     thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
 
@@ -51,7 +52,7 @@ if __name__=="__main__":
     #1) temperature study
     if(temperatureStudy):
 
-        temperature_array = [0.95,0.99,0.995,0.999]
+        temperature_array = [0.95] #[0.95,0.99,0.995,0.999]
         flow_velocity     = 0.1
         md_threshold_ac   = 0
         large_domain_run  = True
@@ -68,6 +69,7 @@ if __name__=="__main__":
                                     flow_velocity,
                                     model_input,
                                     bf_layer_option=True,
+                                    small_domain_run=small_domain_run,
                                     large_domain_run=large_domain_run)
              
     
@@ -90,6 +92,7 @@ if __name__=="__main__":
                                     flow_velocity,
                                     model_input,
                                     bf_layer_option=True,
+                                    small_domain_run=small_domain_run,
                                     large_domain_run=large_domain_run)
              
 
@@ -114,6 +117,7 @@ if __name__=="__main__":
                                         flow_velocity,
                                         model_input,
                                         bf_layer_option=True,
+                                        small_domain_run=small_domain_run,
                                         large_domain_run=large_domain_run,
                                         md_threshold_ac=md_threshold_ac,
                                         md_threshold=md_threshold)
@@ -137,6 +141,7 @@ if __name__=="__main__":
                                         flow_velocity,
                                         model_input,
                                         bf_layer_option=True,
+                                        small_domain_run=small_domain_run,
                                         large_domain_run=large_domain_run,
                                         md_threshold_ac=md_threshold_ac,
                                         md_threshold=md_threshold)

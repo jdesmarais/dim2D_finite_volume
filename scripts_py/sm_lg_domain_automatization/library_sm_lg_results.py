@@ -37,11 +37,13 @@ def get_simulation_dir(temperature,flow_velocity,md_threshold):
     if(md_threshold!=0):
         simDir+='_md'+str(md_threshold)
 
+    simDir+='_parallel'
+
     return simDir
 
 
 # generate exe
-def generate_exe(inputPath,bf_layer_option=False):
+def generate_exe(inputPath,bf_layer_option=False,nb_tiles_option=[1,1]):
     '''
     @description:
     generate an optimized executable for the simulation
@@ -61,11 +63,15 @@ def generate_exe(inputPath,bf_layer_option=False):
 
         #3) create the executable depending on the buffer layer
         #   option
-        cmd = os.getenv('augeanstables')+"/src/config/config.py"
-        cmd+= " -i "+str(inputPath)
-        cmd+= " -c "
+        nb_procs = nb_tiles_option[0]*nb_tiles_option[1]
+
+        cmd = os.path.join(os.getenv('augeanstables'),'src','config','config.py')
+        cmd+= " --input "+str(inputPath)
+        cmd+= " --compile "
         if(bf_layer_option):
-            cmd+=" -b "
+            cmd+=" --buffer "
+        if(nb_procs>1):
+            cmd+=" --parallel "+str(nb_tiles_option[0])+' '+str(nb_tiles_option[1])
         subprocess.call(cmd, shell=True)
 
 
@@ -74,7 +80,12 @@ def generate_exe(inputPath,bf_layer_option=False):
         if(bf_layer_option):
             exePath += "sim_dim2d_bf"
         else:
-            exePath += "sim_dim2d"
+            if(nb_procs>1):
+                exePath += "sim_dim2d_"
+                exePath += str(nb_tiles_option[0])+'x'
+                exePath += str(nb_tiles_option[1])
+            else:
+                exePath += "sim_dim2d"
 
 
         #5) verify that the executable has been created
@@ -149,7 +160,9 @@ def estimate_simulation_duration(inputPath):
         
     
 # convert the simulation duration in wall time
-def estimate_wall_time(simulation_time,safety_ratio=1.0):
+def estimate_wall_time(simulation_time,
+                       safety_ratio=1.0,
+                       nb_tiles_option=[1,1]):
     '''
     @description:
     convert the simulation duration in wall time for the
@@ -157,7 +170,7 @@ def estimate_wall_time(simulation_time,safety_ratio=1.0):
     '''
 
     #use a safety margin
-    wall_time = simulation_time*safety_ratio
+    wall_time = simulation_time*safety_ratio/(nb_tiles_option[0]*nb_tiles_option[1])
 
     #estimate the number of hours
     hours = math.floor(wall_time/3600.0)
@@ -188,7 +201,8 @@ def create_pbs_script(
     walltime='01:00:00',
     nodes=1,
     ppn=1,
-    email='j.desmarais@tue.nl'):
+    email='j.desmarais@tue.nl',
+    nb_tiles_option=[1,1]):
     '''
     @description:
     create the pbs script needed to run the simulation
@@ -206,7 +220,21 @@ def create_pbs_script(
         print 'create_pbs_script'
         sys.exit('***exe file '+exePath+' does not exist***')
 
-    #3) open the output file and write the PBS script
+
+    #3) determine the number of processors
+    nb_procs = nb_tiles_option[0]*nb_tiles_option[1]
+    if(nb_procs>1):
+        nodes = nb_procs/16
+        if(not nodes*16==nb_procs):
+            print 'nodes= ', nodes
+            print 'ppn=  ', 16
+            print 'nb_tiles= ', nb_tiles_option
+            print 'wrong configuration asked'
+            sys.exit(2)
+        ppn = 16
+
+
+    #4) open the output file and write the PBS script
     f = open(outputPath,'w')
     
     f.write('#!/bin/bash\n')
@@ -218,8 +246,14 @@ def create_pbs_script(
     f.write('#PBS -M <'+email+'>\n')                           #email
     f.write('#PBS -m e\n')                                     #send email at the end
     f.write('\n')
-    f.write('cd '+os.path.dirname(exePath)+'\n')
-    f.write('./'+os.path.splitext(os.path.basename(exePath))[0]+' 1>sim_dim2d.out 2>sim_dim2d.err \n')
+    f.write('cd '+os.path.dirname(exePath)+'\n')               #change directory to the simulation directory
+
+    
+    if(nb_procs>1): #if the program is run in parallel, use mpirun
+        f.write('mpirun -np '+str(nb_procs)+' '+os.path.splitext(os.path.basename(exePath))[0]+' 1>sim_dim2d.out 2>sim_dim2d.err \n')
+
+    else:           #otherwise, run sequentially the program
+        f.write('./'+os.path.splitext(os.path.basename(exePath))[0]+' 1>sim_dim2d.out 2>sim_dim2d.err \n')
 
     f.close()
 
@@ -228,6 +262,7 @@ def create_pbs_script(
 def create_simulation(destDir,
                       inputPath,
                       bf_layer_option=False,
+                      nb_tiles_option=[1,1],
                       nameRun_suffix=''):
     '''
     @description
@@ -245,7 +280,8 @@ def create_simulation(destDir,
     
     #1) create the executable corresponding to the inputPath
     exePath = generate_exe(inputPath,
-                           bf_layer_option=bf_layer_option)
+                           bf_layer_option=bf_layer_option,
+                           nb_tiles_option=nb_tiles_option)
 
 
     #2) move the executable to destDir
@@ -265,7 +301,9 @@ def create_simulation(destDir,
     nameRun = get_name_run(temperature,flow_velocity)
     nameRun+= nameRun_suffix
     simulation_duration = estimate_simulation_duration(inputPath)
-    walltime = estimate_wall_time(simulation_duration,safety_ratio=1.5)
+    walltime = estimate_wall_time(simulation_duration,
+                                  safety_ratio=1.5,
+                                  nb_tiles_option=nb_tiles_option)
 
     pbsScriptPath = destDir+'/run_sim.job'
 
@@ -273,7 +311,8 @@ def create_simulation(destDir,
         pbsScriptPath,
         newExePath,
         nameRun=nameRun,
-        walltime=walltime)
+        walltime=walltime,
+        nb_tiles_option=nb_tiles_option)
 
     return [pbsScriptPath,nameRun]
 
@@ -364,7 +403,9 @@ def generate_sm_lg_results(mainDir,
                            bf_layer_option=False,
                            md_threshold_ac=0,
                            md_threshold=0.0,
-                           large_domain_run=True):
+                           small_domain_run=True,
+                           large_domain_run=True,
+                           nb_tiles_option=[4,4]):
     '''
     @description
     create the directory to save the simulation results (small and large
@@ -422,31 +463,38 @@ def generate_sm_lg_results(mainDir,
 
     #4) create dir, generate executable, create PBS
     #   script file for small domain
-    destDir_sm_domain = destDir+'/sm_domain'
-    os.mkdir(destDir_sm_domain)
-    
-    [pbsScriptPath_sm_domain,nameRun_sm_domain] = create_simulation(destDir_sm_domain,
-                                                                    inputPath_sm_domain,
-                                                                    bf_layer_option=bf_layer_option,
-                                                                    nameRun_suffix='_sm')
-     
+    if(small_domain_run):
+
+        destDir_sm_domain = destDir+'/sm_domain'
+        os.mkdir(destDir_sm_domain)
+
+        [pbsScriptPath_sm_domain,nameRun_sm_domain] = create_simulation(destDir_sm_domain,
+                                                                        inputPath_sm_domain,
+                                                                        bf_layer_option=bf_layer_option,
+                                                                        nameRun_suffix='_sm')
+    else:
+        nameRun_sm_domain='no_simulation'
+
 
     #5) create dir, generate executable, create PBS
     #   script file for large domain
     if(large_domain_run):
+
         destDir_lg_domain = destDir+'/lg_domain'
         os.mkdir(destDir_lg_domain)
 
         [pbsScriptPath_lg_domain,nameRun_lg_domain] = create_simulation(destDir_lg_domain,
                                                                         inputPath_lg_domain,
-                                                                        bf_layer_option=bf_layer_option,
+                                                                        bf_layer_option=False,
+                                                                        nb_tiles_option=nb_tiles_option,
                                                                         nameRun_suffix='_lg')
     else:
         nameRun_lg_domain='no_simulation'
 
 
     #6) run the small domain simulation
-    run_simulation(pbsScriptPath_sm_domain)
+    if(small_domain_run):
+        run_simulation(pbsScriptPath_sm_domain)
 
     
     #7) run the large domain simulation
@@ -517,7 +565,7 @@ if __name__ == "__main__":
     #test: create_and_run_test
     #mainDir='/home/jdesmarais/Code/augeanstables/scripts_py/sm_lg_domain_automatization'
 
-    mainDir='/home/jdesmarais/projects'
+    mainDir=os.path.join(os.getenv('HOME'),'projects')
 
     temperature      = 0.999
     flow_velocity    = 0.1
@@ -525,7 +573,8 @@ if __name__ == "__main__":
     md_threshold     = 0.3
     large_domain_run = False
 
-    model_input=os.path.join(os.getenv('augeanstables'),'src','test_files','config',
+    model_input=os.path.join(os.getenv('augeanstables'),
+                             'src','test_files','config',
                              'default_inputs',
                              'dim2d',
                              'dim2d_bubble_transported_hedstrom_xy_corners.txt')

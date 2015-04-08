@@ -128,3 +128,17 @@ test_reflection_xy:	check_data_module.o\
 			$(mt_dep)\
 			$(wave2d_dep)\
 			$(reflection_dep)
+
+
+# periodic_xy
+test_periodic_xy.o:	$(pbc_dir)/bc_operators_class.o\
+			$(test_dir)/tools/check_data_module.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_kind.o\
+			$(wave2d_dir)/pmodel_eq_class.o
+
+test_periodic_xy:	check_data_module.o\
+			$(param_dep)\
+			$(mt_dep)\
+			$(wave2d_dep)\
+			$(periodic_dep)

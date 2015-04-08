@@ -75,9 +75,11 @@
         !> the x and y directions at the edge of the
         !> computational domain for the field
         !>
-        !> @param apply_bc_on_fluxes
-        !> apply the reflection boundary conditions for
-        !> the fluxes
+        !> @param apply_bc_on_nodes_nopt
+        !> apply the reflection boundary conditions along
+        !> the x and y directions at the edge of the
+        !> computational domain for the field but only 
+        !> on the bc_sections
         !---------------------------------------------------------------
         type, extends(bc_operators_default) :: bc_operators
 
