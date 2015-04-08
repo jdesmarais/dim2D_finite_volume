@@ -73,6 +73,7 @@
         print '(''test_compute_time_dev_nopt: '',L1)', test_loc
         print '()'
 
+        print '(''test_validated: '',L1)', test_loc
 
         contains
 

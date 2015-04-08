@@ -50,6 +50,7 @@ test_field_par:			$(param_dep)\
 				$(fv_dep)\
 				$(rk_dep)\
 				$(nf90_dep)\
+				$(nf90_par_dep)\
 				$(field_dep)\
 				$(field_par_dep)\
 				check_data_module.o\

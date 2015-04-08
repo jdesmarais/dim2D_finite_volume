@@ -7,6 +7,8 @@ import subprocess
 import shlex
 import string
 
+import argparse
+
 
 #root of the code
 augeanstablesPath= os.getenv('augeanstables')
@@ -28,62 +30,58 @@ makefileHeaderPath = os.path.join(configPath,'makefile_header.mk')
 exeDir = os.path.join(augeanstablesPath,'src','main')
 
 
-# display the help for the program
-def display_help():
-    '''
-    @description:
-    display program help
-    '''
-    print ''
-    print 'configure the augeanstables code with the input'
-    print './config -i <input_file>'
-    print 'configure the augeanstables code and compile'
-    print './config -i <input_file> -c'
-    print 'configure the augeanstables code by enabling buffer layers'
-    print './config -i <input_file> -b'
-    print ''
-
-
 # analyze the options passed to the program
 def parse_argv(argv):
     '''
     @description:
     parse the program arguments: get the input file
     '''
+
+    #definition of the potential options
+    parser = argparse.ArgumentParser(description='Configuration of the source code')
+
+    parser.add_argument("-c", "--compile", action="store_true",
+                        help="ask to compile the code")
+
+    parser.add_argument("-i", "--input", default='None', type=str, nargs=1,
+                        help="input file describing the test case")
+
+    parser.add_argument("-b", "--buffer", action="store_true",
+                        help="enable the use of domain extension")
+
+    parser.add_argument("-p", "--parallel", default=[1,1], type=int, nargs=2,
+                        help="number of tiles for parallel run")
+
+    args = parser.parse_args()
+
+
+    # process the options
+    ## input file
+    inputFile= args.input[0]
+    if(not os.path.isfile(inputFile)):
+        print 'input file supplied does not exist'
+        print 'input:', inputFile
+        sys.exit(2)
     
-    # store the options and the arguments
-    # in opts, args
-    try:
-        opts, args = getopt.getopt(argv,"hi:cb", ["help","input=","buffer"])
-    except getopt.GetoptError:
-        display_help()
-        sys.exit(2)
+    ## compilation
+    compileCode=args.compile
 
-    if(len(opts)==0):
-        display_help()
-        sys.exit(2)
+    ## buffer layer
+    compileCodeBuffer=args.buffer
+    
+    ## parallel
+    nbTiles = args.parallel
 
-    compileCode=False
 
-    compileCodeBuffer=False
+    # print the configuration
+    print ''
+    print 'input file      : ', inputFile.replace(configPath,".")
+    print 'code_compilation: ', compileCode
+    print 'domain_extension: ', compileCodeBuffer
+    print 'number of tiles : ', args.parallel
+    print ''
 
-    for opt, arg in opts:
-
-        if opt == '-h':
-            display_help()
-            sys.exit(2)
-
-        elif opt in ("-i", "--input"):
-            inputFile = arg
-            print 'input file: ', arg
-
-        elif opt in ("-c"):
-            compileCode=True
-
-        elif opt in ("-b", "--buffer"):
-            compileCodeBuffer=True
-
-    return [inputFile,compileCode,compileCodeBuffer]
+    return [inputFile,compileCode,compileCodeBuffer,nbTiles]
 
 
 # read the SHA reference number of the last commit to 
@@ -121,7 +119,7 @@ def set_commit(file_path):
     cmd+=" -q"
     subprocess.call(cmd, shell=True)
 
-    print 'update '+file_path+' for commit '+commit_ID
+    print 'update parameters_constant.f for commit '+commit_ID
     
 
 # read the parameters saved in the input text file
@@ -214,7 +212,7 @@ def compute_ntx_and_nty(npx,npy,x_min,x_max,dx,y_min,y_max,dy,bc_size):
 # turn the parameters read from the input file into
 # inputs saved in the parameters_input.f file of the
 # program
-def compute_code_inputs(inputFileName):
+def compute_code_inputs(inputFileName,nbTiles):
     '''
     @description
     compute all the inputs needed by the code
@@ -294,7 +292,6 @@ def compute_code_inputs(inputFileName):
     inputs_needed=['x_min','x_max','dx',
                    'y_min','y_max','dy',
                    'dt','t_max','detail_print',
-                   'npx', 'npy',
                    'pm_choice',
                    'bc_choice',
                    'openbc_md_threshold_ac',
@@ -309,8 +306,8 @@ def compute_code_inputs(inputFileName):
     
 
     # update the type of the inputs
-    inputs['npx']=int(inputs['npx'])
-    inputs['npy']=int(inputs['npy'])
+    inputs['npx']=nbTiles[0]
+    inputs['npy']=nbTiles[1]
 
 
     # compute the ntx and nty determining the
@@ -484,7 +481,7 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         cmd+=" -v "+"%10.10fd0"%value
         subprocess.call(cmd, shell=True)    
 
-    print 'update ', file_path        
+    print 'update parameters_input.f'
 
 
 # update the makefile with the path to the folders
@@ -513,7 +510,7 @@ def update_makefile(file_path,bc_choice):
         cmd+=" -v "+value
         subprocess.call(cmd, shell=True)
 
-    print 'update ', file_path
+    print 'update makefile_header.mk'
 
 
 def compile_code(inputs,compileCodeBuffer):
@@ -555,9 +552,18 @@ def compile_code(inputs,compileCodeBuffer):
         
     subprocess.call(cmd, shell=True)
 
-    print ''
-    print 'executable ready: '+name_exe+' in '+exeDir
-    print ''
+
+    if(os.path.isfile(os.path.join(exeDir,name_exe))):
+
+        print ''
+        print 'executable ready: '+name_exe+' in '+exeDir
+        print ''
+
+    else:
+
+        print ''
+        print 'compilation error'
+        print ''
 
 
 if __name__ == "__main__":
@@ -569,8 +575,7 @@ if __name__ == "__main__":
     param_cst_path       = paramCstPath
 
     # parse the program arguments
-    [inputFileName,compileCode,compileCodeBuffer]=parse_argv(sys.argv[1:])
-
+    [inputFileName,compileCode,compileCodeBuffer,nbTiles]=parse_argv(sys.argv[1:])
 
     # compute the code inputs
     [inputs,ntx,nty,ne,
@@ -584,11 +589,13 @@ if __name__ == "__main__":
      wave_forcing,
      flow_direction,
      flow_x_side,
-     flow_y_side]=compute_code_inputs(inputFileName)
+     flow_y_side]=compute_code_inputs(inputFileName,nbTiles)
 
 
     # replace the inputs in the 'parameters_input' file
-    update_parameters_inputs(param_path,inputs,ntx,nty,ne,
+    update_parameters_inputs(param_path,
+                             inputs,
+                             ntx,nty,ne,
                              pm_choice,
                              ic_choice,
                              bc_choice,
@@ -610,9 +617,8 @@ if __name__ == "__main__":
     set_commit(param_cst_path)
 
     # print the major results
-    print '(ntx,nty)', ntx,nty
-    print '(ne)', ne
-
+    print ''
+    print '(ntx,nty,ne)', ntx,nty,ne
 
     # print the end of the configuration
     print ''

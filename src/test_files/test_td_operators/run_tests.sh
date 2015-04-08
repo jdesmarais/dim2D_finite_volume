@@ -3,7 +3,7 @@
 source $augeanstables/src/config/runtest_header.sh
 
 #test_dir
-test_dir=$augeanstables/src/test_files/test_bf_layer
+test_dir=$augeanstables/src/test_files/test_td_operators
 
 
 #============================================================

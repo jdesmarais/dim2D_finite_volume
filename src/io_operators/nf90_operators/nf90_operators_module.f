@@ -45,7 +45,8 @@
      $       bf_openbc_md_threshold,
      $       sigma_P,
      $       obc_type_N, obc_type_S,
-     $       obc_type_E, obc_type_W
+     $       obc_type_E, obc_type_W,
+     $       io_onefile_per_proc
 
         use pmodel_eq_class, only :
      $       pmodel_eq
@@ -522,12 +523,12 @@
 
 
           !<define the dimensions
-          if() then
-             nx_domain = npx*(nx-2*bc_size) + 2*bc_size
-             ny_domain = npy*(ny-2*bc_size) + 2*bc_size
-          else
+          if(io_onefile_per_proc) then
              nx_domain = nx
              ny_domain = ny
+          else
+             nx_domain = npx*(nx-2*bc_size) + 2*bc_size
+             ny_domain = npy*(ny-2*bc_size) + 2*bc_size
           end if
 
           retval = NF90_DEF_DIM(ncid, T_NAME, 1, t_dimid)

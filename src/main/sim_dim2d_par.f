@@ -17,10 +17,20 @@
       !-----------------------------------------------------------------
       program sim_dim2d_par
 
-        use mpi_process_class, only : mpi_process
-        use field_par_class  , only : field_par
-        use parameters_input , only : t_max,dt,detail_print
-        use parameters_kind  , only : ikind, rkind
+        use mpi_process_class, only :
+     $       mpi_process
+
+        use field_par_class, only :
+     $       field_par
+
+        use parameters_input, only :
+     $       t_max,
+     $       dt, 
+     $       detail_print
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
 
         implicit none
 
@@ -72,7 +82,7 @@
         time = 0
         call f_simulated%ini()
         call f_simulated%apply_bc_on_nodes()
-        call f_simulated%write_data(time)
+        call f_simulated%write_data()
 
 
         !<initialization time
@@ -101,7 +111,7 @@
            !< write the output data
            if((output_print.eq.1).or.
      $        ((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
-              call f_simulated%write_data(time)
+              call f_simulated%write_data()
            end if
 
         end do
@@ -123,7 +133,7 @@
         !> and the last state of the simulation are written
         !>------------------------------------------------------        
         if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
-           call f_simulated%write_data(time)
+           call f_simulated%write_data()
         end if
 
 

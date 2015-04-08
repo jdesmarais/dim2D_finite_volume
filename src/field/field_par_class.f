@@ -19,6 +19,9 @@
         use field_class, only :
      $       field
 
+        use io_operators_par_class, only :
+     $       io_operators_par
+
         use interface_integration_step, only :
      $       timeInt_step
 
@@ -44,7 +47,8 @@
      $       bc_size,
      $       x_min,x_max,
      $       y_min,y_max,
-     $       bc_choice
+     $       bc_choice,
+     $       io_onefile_per_proc
 
         use parameters_kind, only :
      $       ikind,
@@ -75,6 +79,8 @@
           integer             :: comm2d
           integer             :: usr_rank
           type(mpi_interface) :: mpi_interface_used
+
+          type(io_operators_par) :: io_operators_par_used
 
           integer(ikind), dimension(:,:), allocatable :: bc_sections_x
           integer(ikind), dimension(:,:), allocatable :: bc_sections_y
@@ -159,8 +165,9 @@
 
           call this%ini_coordinates()
           call this%apply_initial_conditions()
-          call this%io_operators_used%ini()
 
+          call this%io_operators_used%ini()
+          call this%io_operators_par_used%ini(this%comm2d,this%usr_rank)
 
         end subroutine ini
 
@@ -390,13 +397,27 @@
 
           class(field_par), intent(inout) :: this
 
-          call this%io_operators_used%write_data(
-     $         this%nodes,
-     $         this%x_map,
-     $         this%y_map,
-     $         this%pmodel_eq_used,
-     $         this%time,
-     $         rank=this%usr_rank)
+          if(io_onefile_per_proc) then
+
+             call this%io_operators_used%write_data(
+     $            this%nodes,
+     $            this%x_map,
+     $            this%y_map,
+     $            this%pmodel_eq_used,
+     $            this%time,
+     $            rank=this%usr_rank)
+
+          else
+
+             call this%io_operators_par_used%write_data(
+     $            this%comm2d,
+     $            this%nodes,
+     $            this%x_map,
+     $            this%y_map,
+     $            this%pmodel_eq_used,
+     $            this%time)
+
+          end if
 
         end subroutine write_data      
 

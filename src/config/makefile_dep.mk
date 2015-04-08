@@ -51,6 +51,7 @@ $(field_dir)/field_extended_class.o:\
 $(field_dir)/field_par_class.o:\
 			$(field_dir)/field_class.o\
 			$(ti_dir)/interface_integration_step.o\
+			$(io_cdir)/io_operators_par_class.o\
 			$(mpi_dir)/mpi_interface_class.o\
 			$(mpi_dir)/mpi_process_class.o\
 			$(param_dir)/parameters_input.o\
@@ -877,10 +878,8 @@ sim_dim2d_par.o:	$(field_dir)/field_par_class.o\
 
 #dependencies for the executable code
 sim_dim2d:		$(sim_dep)\
+			$(field_dep)\
 			cmd_operators_class.o\
-			surrogate_class.o\
-			field_abstract_class.o\
-			field_class.o\
 			check_data_module.o
 
 sim_dim2d_bf:		$(sim_dep)\
@@ -888,9 +887,8 @@ sim_dim2d_bf:		$(sim_dep)\
 			check_data_module.o
 
 sim_dim2d_par:		$(sim_par_dep)\
-			surrogate_class.o\
-			field_abstract_par_class.o\
-			field_par_class.o
+			$(field_par_dep)\
+			check_data_module.o
 
 #include $(sim_dim2d_dep)
 #include $(sim_dim2d_par_dep)
