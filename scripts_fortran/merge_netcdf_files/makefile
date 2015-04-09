@@ -17,6 +17,13 @@ merge_netcdf_files:		cmd_operators_merge_class.o\
 				nf90_operators_merge_module.o\
 				parameters_cst.o
 
+merge_netcdf_files_par.o:	cmd_operators_merge_class.o\
+				nf90_operators_merge_module.o
+
+merge_netcdf_files_par:		cmd_operators_merge_class.o\
+				nf90_operators_merge_module.o\
+				parameters_cst.o
+
 # test files
 #-----------------------------------------------------------------------
 test_nf90_operators_merge.o:	nf90_operators_merge_module.o\

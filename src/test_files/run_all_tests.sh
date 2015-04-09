@@ -12,8 +12,8 @@ runtest_folder(){
 }
 
 
-# tests for the extension of the interior domain
-folder=$augeanstables/src/test_files/test_bf_layer
+# tests for the physical models
+folder=$augeanstables/src/test_files/test_physical_models
 runtest_folder $folder
 
 
@@ -24,6 +24,11 @@ runtest_folder $folder
 
 # tests for the time discretization operators
 folder=$augeanstables/src/test_files/test_td_operators
+runtest_folder $folder
+
+
+# tests for the extension of the interior domain
+folder=$augeanstables/src/test_files/test_bf_layer
 runtest_folder $folder
 
 

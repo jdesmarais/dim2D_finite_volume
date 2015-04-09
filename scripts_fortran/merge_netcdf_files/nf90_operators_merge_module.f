@@ -26,17 +26,22 @@
 
 
         ! merge all files corresponding to a simulation
+        ! usign processors working in parallel
         subroutine nf90_merge_files(
      $       nb_tiles,
      $       ne,bc_size,
-     $       nb_timesteps)
+     $       nb_timesteps,
+     $       timestep_start,
+     $       timestep_increment)
 
           implicit none
 
           integer, dimension(2), intent(in) :: nb_tiles
           integer              , intent(in) :: ne
           integer              , intent(in) :: bc_size
-          integer              , intent(in) :: nb_timesteps          
+          integer              , intent(in) :: nb_timesteps  
+          integer, optional    , intent(in) :: timestep_start
+          integer, optional    , intent(in) :: timestep_increment
           
 
           character(len=16) :: filename_rank0
@@ -57,6 +62,23 @@
           integer :: size_x
           integer :: size_y
 
+          integer :: timestep_start_op
+          integer :: timestep_increment_op
+
+
+          if(present(timestep_start)) then
+             timestep_start_op = timestep_start
+          else
+             timestep_start_op = 0
+          end if
+
+
+          if(present(timestep_increment)) then
+             timestep_increment_op = timestep_increment
+          else
+             timestep_increment_op = 1
+          end if
+
 
           ! this is just to get the size_x and size_y
           ! such that the allocation of x_map, y_map,
@@ -64,18 +86,22 @@
           ! subroutine instead of at each timestep
           call get_filename(
      $         filename_rank0,
-     $         0,
+     $         timestep_start_op,
      $         rank=0)
 
           call get_filename(
      $         filename_merge,
-     $         0)
+     $         timestep_start_op)
 
           call nf90_def_header_merge(
      $         filename_rank0,
      $         filename_merge,
      $         ncid_merge,
      $         ierror=ierror)
+
+          if(ierror.ne.SUCCESS) then
+             print '(''error nf90_def_header_merge0: '',A16)', filename_rank0
+          end if
 
           call nf90_def_var_merge(
      $         filename_rank0,
@@ -87,6 +113,10 @@
      $         size_y=size_y,
      $         ierror=ierror)
 
+          if(ierror.ne.SUCCESS) then
+             print '(''error nf90_def_var_merge0: '',A16)', filename_rank0
+          end if
+
           call nf90_handle_err(NF90_CLOSE(ncid_merge))
 
           allocate(x_map(size_x))
@@ -95,7 +125,7 @@
 
 
           ! merge the files for all timesteps
-          do timestep=0,nb_timesteps-1
+          do timestep=timestep_start_op,nb_timesteps-1,timestep_increment_op
 
              call nf90_merge_files_at_timestep(
      $            nb_tiles,
@@ -106,8 +136,6 @@
      $            x_map,
      $            y_map,
      $            nodes)
-
-             print '(''timestep: '', I3)', timestep
 
           end do
 
@@ -171,6 +199,10 @@
      $         ncid_merge,
      $         ierror=ierror)
 
+          if(ierror.ne.SUCCESS) then
+             print '(''error nf90_def_header_merge: '',A16)', filename_rank
+          end if
+
           ! define the variables stored in the merged file
           call nf90_def_var_merge(
      $         filename_rank,
@@ -179,6 +211,10 @@
      $         coordinates_id,
      $         var_id,
      $         ierror=ierror)
+
+          if(ierror.ne.SUCCESS) then
+             print '(''error nf90_def_var_merge: '',A16)', filename_rank
+          end if
 
 
           ! combine the data from the different processor files 
@@ -203,6 +239,10 @@
      $            y_map,
      $            nodes,
      $            ierror=ierror)
+
+             if(ierror.ne.SUCCESS) then
+                print '(''error nf90_put_var_merge: '',A16)', filename_rank
+             end if
 
           end do
           

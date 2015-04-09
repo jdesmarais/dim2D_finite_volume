@@ -119,6 +119,10 @@ $(dim2d_ic)/newgrdpt_test/ic_class.o:\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
+$(dim2d_ic)/gaussian_perturbation/gaussian_perturbation_module.o:\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
 
 #common subroutines for the initial conditions
 $(dim2d_ic)/dim2d_dropbubble_module.o:\

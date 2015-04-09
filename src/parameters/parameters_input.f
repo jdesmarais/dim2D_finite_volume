@@ -14,7 +14,9 @@
       module parameters_input
 
         use parameters_constant
-        use parameters_kind, only : ikind, rkind
+
+        use parameters_kind, only :
+     $       ikind, rkind
 
         implicit none
 
@@ -22,28 +24,28 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -19.2416000000d0
-        real(rkind), parameter :: x_max = 19.2416000000d0
-        real(rkind), parameter :: y_min = -19.2416000000d0
-        real(rkind), parameter :: y_max = 19.2416000000d0
+        real(rkind), parameter :: x_min = -0.5
+        real(rkind), parameter :: x_max = 0.5
+        real(rkind), parameter :: y_min = -0.5
+        real(rkind), parameter :: y_max = 0.5
         
         !<computational times
-        real(rkind), parameter :: t_max = 22.5592000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0006000000d0
+        real(rkind), parameter :: t_max = 10.0000000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0025000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0266000000d0
+        real(rkind), parameter :: detail_print = 0.2500000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
         !<mpi choice
-        integer, parameter :: npx = 8 !<number of processors along x
-        integer, parameter :: npy = 8 !<number of processors along y
+        integer, parameter :: npx = 1 !<number of processors along x
+        integer, parameter :: npy = 1 !<number of processors along y
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 3472
-        integer(ikind), parameter :: nty = 3472
+        integer(ikind), parameter :: ntx = 105
+        integer(ikind), parameter :: nty = 105
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -108,11 +110,13 @@
         integer    , parameter :: flow_direction = y_direction
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.0500000000d0
+        real(rkind), parameter :: flow_velocity = 0.1000000000d0
         
-        real(rkind), parameter :: T0 = 0.9900000000d0
+        real(rkind), parameter :: T0 = 0.995d0
 
-        integer    , parameter :: ic_choice = bubble_transported
+        integer    , parameter :: ic_choice = homogeneous_liquid
+        integer    , parameter :: ic_perturbation_ac = .false.
+        real(rkind), parameter :: ic_perturbation_amp = 0.1d0
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
@@ -257,8 +261,8 @@
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
         !------------------------------------------------------------
-        logical    , parameter :: bf_openbc_md_threshold_ac = .false.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.0000000000d0
+        logical    , parameter :: bf_openbc_md_threshold_ac = .true.
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
 
 
         !------------------------------------------------------------
