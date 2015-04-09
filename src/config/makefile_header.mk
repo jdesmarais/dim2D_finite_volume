@@ -24,7 +24,7 @@ dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 
 sd_choice = mt_choice            #space discretization choice
 pm_choice = dim2d_choice         #physical model choice
-ic_choice = bubble_transported        #initial conditions choice
+ic_choice = homogeneous_liquid        #initial conditions choice
 bc_choice = periodic_xy_choice   #boundary condition choice
 td_choice = finitevolume_choice  #time discretization choice
 ti_choice = rk3tvd_choice        #time integration choice

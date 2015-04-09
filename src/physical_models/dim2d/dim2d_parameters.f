@@ -60,9 +60,9 @@
         !@param length_c       length scale               [m]    
         !@param time_c         time scale                 [s]
         !--------------------------------------------------------
-        real(rkind), parameter :: rho_c   = dim2d_M/(3*dim2d_b)
-        real(rkind), parameter :: p_c     = dim2d_a/(27*dim2d_b**2)
-        real(rkind), parameter :: T_c     = 8*dim2d_a/(27*dim2d_b*dim2d_R)
+        real(rkind), parameter :: rho_c    = dim2d_M/(3*dim2d_b)
+        real(rkind), parameter :: p_c      = dim2d_a/(27*dim2d_b**2)
+        real(rkind), parameter :: T_c      = 8*dim2d_a/(27*dim2d_b*dim2d_R)
         real(rkind), parameter :: u_c      = (p_c/rho_c)**0.5
         real(rkind), parameter :: length_c = 1.0e-6
         real(rkind), parameter :: time_c   = length_c/u_c
@@ -83,7 +83,7 @@
         real(rkind), parameter :: Re = rho_c*u_c*length_c/dim2d_mu
         real(rkind), parameter :: We =(length_c**2*u_c**2)/(rho_c*dim2d_K)
         real(rkind), parameter :: Pr = dim2d_mu*dim2d_cv/dim2d_lambda
-        real(rkind), parameter :: cv_r = 2.5d0*dim2d_cv/dim2d_R
+        real(rkind), parameter :: cv_r = dim2d_M*dim2d_cv/dim2d_R
         real(rkind), parameter :: gravity = 0.03d0 !time_c/u_c*dim2d_g
        
         !real(rkind), parameter :: viscous_r= -1.5
@@ -95,6 +95,7 @@
 
         real(rkind), parameter :: epsilon = 1.0d0/Re
         real(rkind), parameter :: zeta    = 1.0d0/We
+
 
       end module dim2d_parameters
 

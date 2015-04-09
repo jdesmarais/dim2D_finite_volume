@@ -465,7 +465,7 @@ if __name__=="__main__":
 
     inputs = {}
     
-    inputs['temperature']     = 0.999
+    inputs['temperature']     = 0.95
     inputs['flow_velocity']   = 0.1
     inputs['model_input']     = os.path.join(os.getenv('augeanstables'),
                                              'src','config','default_inputs','dim2d',

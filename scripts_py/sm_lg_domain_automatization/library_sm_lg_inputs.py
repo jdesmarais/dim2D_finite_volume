@@ -180,11 +180,13 @@ def get_small_domain_extent(domain_length,dx):
 
     nb_grdpts_half_domain = math.ceil(domain_length/(2.0*dx))
     
+    center = float(math.floor( dx/2.0*10**5 ))/(10**5)
+
     small_domain_extent = [[0 for x in range(2)] for x in range(2)]
-    small_domain_extent[0][0] = 0.0 - nb_grdpts_half_domain*dx
-    small_domain_extent[1][0] = 0.0 + nb_grdpts_half_domain*dx
-    small_domain_extent[0][1] = 0.0 - nb_grdpts_half_domain*dx
-    small_domain_extent[1][1] = 0.0 + nb_grdpts_half_domain*dx
+    small_domain_extent[0][0] = -center - nb_grdpts_half_domain*dx
+    small_domain_extent[1][0] =  center + nb_grdpts_half_domain*dx
+    small_domain_extent[0][1] = -center - nb_grdpts_half_domain*dx
+    small_domain_extent[1][1] =  center + nb_grdpts_half_domain*dx
     
     return small_domain_extent
 

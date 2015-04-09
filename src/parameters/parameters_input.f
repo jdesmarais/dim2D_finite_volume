@@ -107,10 +107,10 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer    , parameter :: flow_direction = y_direction
-        real(rkind), parameter :: flow_x_side = 1.0000000000d0
-        real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.1000000000d0
+        integer    , parameter :: flow_direction = x_direction
+        real(rkind), parameter :: flow_x_side = 1.0d0
+        real(rkind), parameter :: flow_y_side = 0.0d0
+        real(rkind), parameter :: flow_velocity = 0.1d0
         
         real(rkind), parameter :: T0 = 0.995d0
 
@@ -123,7 +123,7 @@
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = periodic_xy_choice
+        integer, parameter :: bc_choice = reflection_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
