@@ -174,13 +174,24 @@ $(mbf_layer_dir)/mainlayer_interface_dyn_class.o:\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
+$(mbf_layer_dir)/mainlayer_interface_time_class.o:\
+	$(bbf_layer_dir)/bf_layer_bc_sections_class.o\
+	$(bbf_layer_dir)/bf_layer_bc_sections_merge_module.o\
+	$(bf_layer_dir)/bf_layer_class.o\
+	$(sbf_layer_dir)/bf_layer_extract_module.o\
+	$(bf_layer_dir)/bf_sublayer_class.o\
+	$(mbf_layer_dir)/mainlayer_interface_dyn_class.o\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_kind.o
+
 $(mbf_layer_dir)/mainlayer_interface_newgrdpt_class.o:\
 	$(sbf_layer_dir)/bf_layer_extract_module.o\
 	$(ngbf_layer_dir)/bf_newgrdpt_class.o\
 	$(ngbf_layer_dir)/bf_newgrdpt_procedure_module.o\
 	$(ngbf_layer_dir)/bf_newgrdpt_verification_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(mbf_layer_dir)/mainlayer_interface_dyn_class.o\
+	$(mbf_layer_dir)/mainlayer_interface_time_class.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o
@@ -358,6 +369,11 @@ $(bbf_layer_dir)/bf_mainlayer_bc_sections_module.o:\
 	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
+	$(param_dir)/parameters_kind.o
+
+$(bbf_layer_dir)/bf_layer_bc_sections_merge_module.o:\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_kind.o
 
 

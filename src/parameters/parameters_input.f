@@ -24,17 +24,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -0.2523500000d0
-        real(rkind), parameter :: x_max = 0.2523500000d0
-        real(rkind), parameter :: y_min = -0.2523500000d0
-        real(rkind), parameter :: y_max = 0.2523500000d0
+        real(rkind), parameter :: x_min = -1.8488500000d0
+        real(rkind), parameter :: x_max = 1.8488500000d0
+        real(rkind), parameter :: y_min = -1.8488500000d0
+        real(rkind), parameter :: y_max = 1.8488500000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 4.9718000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0002000000d0
+        real(rkind), parameter :: t_max = 35.9533000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0023000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0403000000d0
+        real(rkind), parameter :: detail_print = 0.0640000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -44,8 +44,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 108
-        integer(ikind), parameter :: nty = 108
+        integer(ikind), parameter :: ntx = 6
+        integer(ikind), parameter :: nty = 6
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -107,14 +107,14 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer    , parameter :: flow_direction = y_direction
-        real(rkind), parameter :: flow_x_side = 1.0000000000d0
-        real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.1000000000d0
+        integer    , parameter :: flow_direction = x_direction
+        real(rkind), parameter :: flow_x_side = 1.0d0
+        real(rkind), parameter :: flow_y_side = 1.0d0
+        real(rkind), parameter :: flow_velocity = 0.1d0
         
-        real(rkind), parameter :: T0 = 0.9500000000d0
+        real(rkind), parameter :: T0 = 0.95d0
 
-        integer    , parameter :: ic_choice = bubble_transported
+        integer    , parameter :: ic_choice = newgrdpt_test
         integer    , parameter :: ic_perturbation_ac = .false.
         real(rkind), parameter :: ic_perturbation_amp = 0.1d0
 
@@ -186,7 +186,7 @@
         !-----------------------------------------------------
         integer    , parameter :: obc_outgoing_strategy   = obc_outgoing_prim
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
-        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
 
 
@@ -262,7 +262,7 @@
         !
         !------------------------------------------------------------
         logical    , parameter :: bf_openbc_md_threshold_ac = .true.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.0100000000d0
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.3000000000d0
 
 
         !------------------------------------------------------------

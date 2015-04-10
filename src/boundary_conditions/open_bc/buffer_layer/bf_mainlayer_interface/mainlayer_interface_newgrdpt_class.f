@@ -33,8 +33,8 @@
         use bf_sublayer_class, only :
      $       bf_sublayer
 
-        use mainlayer_interface_dyn_class, only :
-     $       mainlayer_interface_dyn
+        use mainlayer_interface_time_class, only :
+     $       mainlayer_interface_time
 
         use parameters_bf_layer, only :
      $       NEWGRDPT_NO_ERROR,
@@ -75,7 +75,7 @@
         !> @param collect_data_to_compute_newgrdpt
         !> collect the data needed to compute the new grid-point
         !------------------------------------------------------------
-        type, extends(mainlayer_interface_dyn) :: mainlayer_interface_newgrdpt
+        type, extends(mainlayer_interface_time) :: mainlayer_interface_newgrdpt
 
           contains
 

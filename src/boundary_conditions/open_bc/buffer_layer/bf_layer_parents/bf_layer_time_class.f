@@ -147,8 +147,10 @@
            !and the boundary sections
            procedure,   pass :: set_x_borders
            procedure,   pass :: set_y_borders
+           procedure,   pass :: set_bc_sections
            procedure,   pass :: get_x_borders
-           procedure,   pass :: get_y_borders           
+           procedure,   pass :: get_y_borders
+           procedure,   pass :: get_bc_sections
 
            !for tests
            procedure,   pass :: get_time_dev !only for tests
@@ -425,7 +427,7 @@
              call bf_layer_bc_sections_used%finalize_bc_sections(
      $            this%x_borders,
      $            this%y_borders,
-     $            this%bc_sections)             
+     $            this%bc_sections)
 
           else
              print '(''bf_layer_time_class'')'
@@ -820,6 +822,34 @@
         !> Julien L. Desmarais
         !
         !> @brief
+        !> set the bc_sections
+        !
+        !> @date
+        !> 10_04_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@return bc_sections
+        !> the bc_sections of the buffer layer
+        !--------------------------------------------------------------
+        subroutine set_bc_sections(this, bc_sections)
+
+          implicit none
+
+          class(bf_layer_time)                       , intent(inout) :: this
+          integer(ikind), dimension(:,:), allocatable, intent(inout) :: bc_sections
+
+          call MOVE_ALLOC(bc_sections,this%bc_sections)
+
+        end subroutine set_bc_sections
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
         !> get the x-borders for the integration 
         !
         !> @date
@@ -870,6 +900,36 @@
           y_borders = this%y_borders
 
         end function get_y_borders
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the bc_sections
+        !
+        !> @date
+        !> 10_04_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_layer object encapsulating the main
+        !> tables extending the interior domain
+        !
+        !>@return bc_sections
+        !> the bc_sections of the buffer layer
+        !--------------------------------------------------------------
+        subroutine get_bc_sections(this, bc_sections)
+
+          implicit none
+
+          class(bf_layer_time)                       , intent(inout) :: this
+          integer(ikind), dimension(:,:), allocatable, intent(inout) :: bc_sections
+
+          if(allocated(this%bc_sections)) then
+             call MOVE_ALLOC(this%bc_sections,bc_sections)
+          end if
+
+        end subroutine get_bc_sections
 
 
         !> @author

@@ -336,7 +336,11 @@ mainlayer_interface_sync_dep=	$(mainlayer_interface_basic_dep)\
 mainlayer_interface_dyn_dep=	$(mainlayer_interface_sync_dep)\
 				mainlayer_interface_dyn_class.o
 
-mainlayer_interface_newgrdpt_dep=$(mainlayer_interface_dyn_dep)\
+mainlayer_interface_time_dep=	$(mainlayer_interface_dyn_dep)\
+				bf_layer_bc_sections_merge_module.o\
+				mainlayer_interface_time_class.o
+
+mainlayer_interface_newgrdpt_dep=$(mainlayer_interface_time_dep)\
 				mainlayer_interface_newgrdpt_class.o
 
 mainlayer_interface_grdpts_id_update_dep=\

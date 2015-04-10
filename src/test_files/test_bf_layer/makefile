@@ -334,6 +334,19 @@ test_bf_mainlayer_bc_sections:	$(param_dep)\
 				bf_mainlayer_bc_sections_module.o\
 				check_data_module.o
 
+test_bf_layer_bc_sections_merge.o:\
+				$(bbf_layer_dir)/bf_layer_bc_sections_merge_module.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_layer_bc_sections_merge:bf_layer_bc_sections_merge_module.o\
+				check_data_module.o\
+				parameters_bf_layer.o\
+				parameters_constant.o\
+				parameters_kind.o
+
 #buffer_layer/bf_layer_computations
 test_bf_compute_basic.o:	$(cbf_layer_dir)/bf_compute_basic_class.o\
 				$(test_dir)/tools/check_data_module.o\
@@ -536,6 +549,21 @@ test_mainlayer_interface_dyn:	$(param_dep)\
 				$(hedstrom_xy_dep)\
 				$(fv_dep)\
 				$(mainlayer_interface_dyn_dep)\
+				check_data_module.o
+
+test_mainlayer_interface_time.o:$(bf_layer_dir)/bf_layer_class.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(mbf_layer_dir)/mainlayer_interface_time_class.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_kind.o
+
+test_mainlayer_interface_time:	$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(mainlayer_interface_time_dep)\
 				check_data_module.o
 
 test_mainlayer_interface_newgrdpt.o:\

@@ -165,6 +165,10 @@
 
 
           integer :: k
+          integer :: m
+          integer :: nb_sublayers
+
+          type(bf_sublayer), pointer :: bf_sublayer_ptr
           
           
           !> update the bc_sections for the interior domain
@@ -179,7 +183,22 @@
 
              if(this%mainlayer_pointers(k)%associated_ptr()) then
 
+                ! initialize by taking into account only data
+                ! from the buffer layer
                 call this%mainlayer_pointers(k)%initialize_before_timeInt()
+
+                ! modify the bc_sections initialized by the buffer layer
+                ! by overlapping edge and anti-corners using information
+                ! from the neighboring buffer layers
+                bf_sublayer_ptr => this%mainlayer_pointers(k)%get_head_sublayer()
+                nb_sublayers = this%mainlayer_pointers(k)%get_nb_sublayers()
+
+                do m=1, nb_sublayers
+
+                   call this%mainlayer_interfaces%update_bc_sections(bf_sublayer_ptr)
+                   bf_sublayer_ptr => bf_sublayer_ptr%get_next()
+
+                end do
 
              end if
              

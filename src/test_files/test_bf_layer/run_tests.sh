@@ -186,6 +186,11 @@ file=test_mainlayer_interface_dyn
 perform_test $file
 
 
+#test_mainlayer_interface_time_class
+file=test_mainlayer_interface_time
+perform_test $file
+
+
 #test_bf_interface_basic_class
 file=test_bf_interface_basic
 perform_test $file
