@@ -360,27 +360,36 @@ def compute_code_inputs(inputFileName,nbTiles):
     if(bc_choice=='periodic_xy_choice' or
        bc_choice=='reflection_xy_choice'):
 
-        bcx_type_choice = bc_type_code[0]
-        bcy_type_choice = bc_type_code[0]
+        bc_N_type_choice = bc_type_code[0]
+        bc_S_type_choice = bc_type_code[0]
+        bc_E_type_choice = bc_type_code[0]
+        bc_W_type_choice = bc_type_code[0]
+        
 
     if(bc_choice=='wall_xy_choice' or
        bc_choice=='wall_x_reflection_y_choice'):
 
-        bcx_type_choice = bc_type_code[1]
-        bcy_type_choice = bc_type_code[1]
+        bc_N_type_choice = bc_type_code[1]
+        bc_S_type_choice = bc_type_code[1]
+        bc_E_type_choice = bc_type_code[1]
+        bc_W_type_choice = bc_type_code[1]
 
     if(bc_choice=='hedstrom_xy_choice' or
        bc_choice=='hedstrom_xy_corners_choice' or
        bc_choice=='poinsot_xy_choice' or
        bc_choice=='yoolodato_xy_choice'):
 
-        bcx_type_choice = bc_type_code[2]
-        bcy_type_choice = bc_type_code[2]
+        bc_N_type_choice = bc_type_code[2]
+        bc_S_type_choice = bc_type_code[2]
+        bc_E_type_choice = bc_type_code[2]
+        bc_W_type_choice = bc_type_code[2]
 
     if(bc_choice=='hedstrom_x_reflection_y_choice'):
 
-        bcx_type_choice = bc_type_code[2]
-        bcy_type_choice = bc_type_code[0]
+        bc_N_type_choice = bc_type_code[0]
+        bc_S_type_choice = bc_type_code[0]
+        bc_E_type_choice = bc_type_code[2]
+        bc_W_type_choice = bc_type_code[2]
 
     # compute the openbc_md_threshold
     if(int(inputs['openbc_md_threshold_ac'])==1):
@@ -399,8 +408,10 @@ def compute_code_inputs(inputFileName,nbTiles):
             ic_choice,
             bc_choice,
             openbc_md_threshold_ac,
-            bcx_type_choice,
-            bcy_type_choice,
+            bc_N_type_choice,
+            bc_S_type_choice,
+            bc_E_type_choice,
+            bc_W_type_choice,
             gravity_choice,
             wave_forcing,
             flow_direction,
@@ -415,8 +426,10 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
                              ic_choice,
                              bc_choice,
                              openbc_md_threshold_ac,
-                             bcx_type_choice,
-                             bcy_type_choice,
+                             bc_N_type_choice,
+                             bc_S_type_choice,
+                             bc_E_type_choice,
+                             bc_W_type_choice,
                              gravity_choice,
                              wave_forcing,
                              flow_direction,
@@ -429,7 +442,7 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
     '''
     
     # change the constant that do not require a special
-    # output treatment (double,real,integer...)
+    # output treatment (integer,character...)
     constants_changed1={
         'npx':inputs['npx'],
         'npy':inputs['npy'],
@@ -440,8 +453,10 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         'ic_choice':ic_choice,
         'bc_choice':bc_choice,
         'bf_openbc_md_threshold_ac':openbc_md_threshold_ac,
-        'bcx_type_choice':bcx_type_choice,
-        'bcy_type_choice':bcy_type_choice,
+        'bc_N_type_choice':bc_N_type_choice,
+        'bc_S_type_choice':bc_S_type_choice,
+        'bc_E_type_choice':bc_E_type_choice,
+        'bc_W_type_choice':bc_W_type_choice,
         'gravity_choice':gravity_choice,
         'wave_forcing':wave_forcing,
         'flow_direction':flow_direction}
@@ -583,8 +598,10 @@ if __name__ == "__main__":
      ic_choice,
      bc_choice,
      openbc_md_threshold_ac,
-     bcx_type_choice,
-     bcy_type_choice,
+     bc_N_type_choice,
+     bc_S_type_choice,
+     bc_E_type_choice,
+     bc_W_type_choice,
      gravity_choice,
      wave_forcing,
      flow_direction,
@@ -600,8 +617,10 @@ if __name__ == "__main__":
                              ic_choice,
                              bc_choice,
                              openbc_md_threshold_ac,
-                             bcx_type_choice,
-                             bcy_type_choice,
+                             bc_N_type_choice,
+                             bc_S_type_choice,
+                             bc_E_type_choice,
+                             bc_W_type_choice,
                              gravity_choice,
                              wave_forcing,
                              flow_direction,

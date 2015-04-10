@@ -715,6 +715,15 @@
                    index = i
                    ierror_op = SUCCESS
                    exit
+                else
+                   if(coord_map(i).lt.coord) then
+                      index = i+1
+                      if(index.gt.size(coord_map,1)) then
+                         index=size(coord_map,1)
+                      end if
+                      ierror_op = SUCCESS
+                      exit
+                   end if
                 end if
 
              end do
@@ -729,6 +738,15 @@
                    index = i
                    ierror_op = SUCCESS
                    exit
+                else
+                   if(coord_map(i).gt.coord) then
+                      index = i-1
+                      if(index.lt.0) then
+                         index=1
+                      end if
+                      ierror_op = SUCCESS
+                      exit
+                   end if
                 end if
 
              end do

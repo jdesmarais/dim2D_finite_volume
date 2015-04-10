@@ -39,14 +39,15 @@ if __name__=="__main__":
     # input used as template
     model_input=os.path.join(
         os.getenv('augeanstables'),'src','config','default_inputs','dim2d',
-        'dim2d_bubble_transported_periodic.txt')
+        'dim2d_bubble_transported_hedstrom_xy.txt')
 
-    small_domain_run          = False
+    large_domain_run          = False
+    small_domain_run          = True
     nb_tiles_option           = [8,8]
 
     temperatureStudy          = False
-    velocityStudy             = True
-    thresholdTemperatureStudy = False
+    velocityStudy             = False
+    thresholdTemperatureStudy = True
     thresholdVelocityStudy    = False
 
 
@@ -56,7 +57,6 @@ if __name__=="__main__":
         temperature_array = [0.95,0.99,0.995,0.999]
         flow_velocity     = 0.1
         md_threshold_ac   = 0
-        large_domain_run  = True
         
     
         for temperature in temperature_array:
@@ -81,7 +81,6 @@ if __name__=="__main__":
         temperature         = 0.99
         flow_velocity_array = [0.05] #[0.05,0.25,0.5]
         md_threshold_ac     = 0
-        large_domain_run    = True
         
         for flow_velocity in flow_velocity_array:
             
@@ -102,11 +101,10 @@ if __name__=="__main__":
     #3) threshold study
     if(thresholdTemperatureStudy):
 
-        temperature_array  = [0.95,0.99,0.995,0.999]
+        temperature_array  = [0.95] #[0.95,0.99,0.995,0.999]
         flow_velocity      = 0.1
-        md_threshold_array = [0.01, 0.05, 0.1, 0.2, 0.3]
+        md_threshold_array = [0.01] #,0.05, 0.1, 0.2, 0.3]
         md_threshold_ac    = 1
-        large_domain_run   = False
         
         for md_threshold in md_threshold_array:
             for temperature in temperature_array:
@@ -121,7 +119,7 @@ if __name__=="__main__":
                                         model_input,
                                         bf_layer_option=True,
                                         small_domain_run=small_domain_run,
-                                        large_domain_run=large_domain_run,
+                                        large_domain_run=False,
                                         nb_tiles_option=nb_tiles_option,
                                         md_threshold_ac=md_threshold_ac,
                                         md_threshold=md_threshold)
@@ -131,7 +129,6 @@ if __name__=="__main__":
         flow_velocity_array = [0.05,0.25,0.5]
         md_threshold_array  = [0.01, 0.05, 0.1, 0.2, 0.3]
         md_threshold_ac     = 1
-        large_domain_run    = False
     
         for md_threshold in md_threshold_array:
             for flow_velocity in flow_velocity_array:
@@ -146,7 +143,7 @@ if __name__=="__main__":
                                         model_input,
                                         bf_layer_option=True,
                                         small_domain_run=small_domain_run,
-                                        large_domain_run=large_domain_run,
+                                        large_domain_run=False,
                                         nb_tiles_option=nb_tiles_option,
                                         md_threshold_ac=md_threshold_ac,
                                         md_threshold=md_threshold)

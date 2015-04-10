@@ -24,17 +24,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -0.5
-        real(rkind), parameter :: x_max = 0.5
-        real(rkind), parameter :: y_min = -0.5
-        real(rkind), parameter :: y_max = 0.5
+        real(rkind), parameter :: x_min = -0.2523500000d0
+        real(rkind), parameter :: x_max = 0.2523500000d0
+        real(rkind), parameter :: y_min = -0.2523500000d0
+        real(rkind), parameter :: y_max = 0.2523500000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 10.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0025000000d0
+        real(rkind), parameter :: t_max = 4.9718000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0002000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.2500000000d0
+        real(rkind), parameter :: detail_print = 0.0403000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -44,8 +44,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 105
-        integer(ikind), parameter :: nty = 105
+        integer(ikind), parameter :: ntx = 108
+        integer(ikind), parameter :: nty = 108
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -107,14 +107,14 @@
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
         !--------------------------------------------
-        integer    , parameter :: flow_direction = x_direction
-        real(rkind), parameter :: flow_x_side = 1.0d0
-        real(rkind), parameter :: flow_y_side = 0.0d0
-        real(rkind), parameter :: flow_velocity = 0.1d0
+        integer    , parameter :: flow_direction = y_direction
+        real(rkind), parameter :: flow_x_side = 1.0000000000d0
+        real(rkind), parameter :: flow_y_side = 1.0000000000d0
+        real(rkind), parameter :: flow_velocity = 0.1000000000d0
         
-        real(rkind), parameter :: T0 = 0.995d0
+        real(rkind), parameter :: T0 = 0.9500000000d0
 
-        integer    , parameter :: ic_choice = homogeneous_liquid
+        integer    , parameter :: ic_choice = bubble_transported
         integer    , parameter :: ic_perturbation_ac = .false.
         real(rkind), parameter :: ic_perturbation_amp = 0.1d0
 
@@ -123,7 +123,7 @@
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = reflection_xy_choice
+        integer, parameter :: bc_choice = hedstrom_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
@@ -144,10 +144,10 @@
         !bc_W_type_choice : type of boundary condition applied
         !                   at the West boundary
         !-----------------------------------------------------
-        integer    , parameter :: bc_N_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_S_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_E_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_W_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_N_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_S_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_E_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_W_type_choice = bc_timedev_choice
 
 
         !-----------------------------------------------------
@@ -262,7 +262,7 @@
         !
         !------------------------------------------------------------
         logical    , parameter :: bf_openbc_md_threshold_ac = .true.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.0100000000d0
 
 
         !------------------------------------------------------------
@@ -275,6 +275,7 @@
         !debug_adapt_computational_domain :
         !    control whether the edges of the computational domain
         !    are adapted once the simulation starts
+        !    should be set to .true. by default
         !
         !debug_geometry_update :
         !    control whether the new grid points are computed when
@@ -282,7 +283,7 @@
         !    should be set to .false. by default)
         !------------------------------------------------------------
         logical    , parameter :: debug_restart_for_geometry = .false.
-        logical    , parameter :: debug_adapt_computational_domain = .false.
+        logical    , parameter :: debug_adapt_computational_domain = .true.
         logical    , parameter :: debug_geometry_update = .false.
 
         logical    , parameter :: debug_initialize_nodes   = .true.
