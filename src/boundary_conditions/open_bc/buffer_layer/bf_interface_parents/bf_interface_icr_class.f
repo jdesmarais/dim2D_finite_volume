@@ -578,7 +578,7 @@
 
                 match_table = bf_sublayer_ptr%get_general_to_local_coord_tab()
 
-                call bf_sublayer_ptr%get_bc_sections(bf_layer_bc_sections)
+                call bf_sublayer_ptr%get_dct_sections(bf_layer_bc_sections)
 
                 if(allocated(bf_layer_bc_sections)) then
 

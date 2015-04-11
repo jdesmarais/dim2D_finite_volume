@@ -5,7 +5,8 @@
      $       update_corner_for_merge,
      $       update_anticorner_for_merge,
      $       test_grdpts_id_config,
-     $       get_edge_test_param
+     $       get_edge_test_param,
+     $       get_anticorner_test_param
 
         use check_data_module, only :
      $       is_int_validated,
@@ -52,6 +53,12 @@
 
         detailled = .true.
         test_validated = .true.
+
+
+        test_loc = test_get_anticorner_test_param(detailled)
+        test_validated=test_validated.and.test_loc
+        print '(''test_get_anticorner_test_param: '',L1)', test_loc
+        print '()'
 
 
         test_loc = test_get_edge_test_param(detailled)
@@ -451,12 +458,12 @@
 
           test_over_array(:,:,1,1) = reshape((/2,2,0,0,2,3,0,0,3,3,0,0,0,0,0,0/),(/4,4/))
           test_over_array(:,:,2,1) = reshape((/2,2,0,0,3,2,0,0,3,3,0,0,0,0,0,0/),(/4,4/))
-          test_over_array(:,:,1,2) = reshape((/3,3,0,0,2,3,0,0,2,2,0,0,0,0,0,0/),(/4,4/))
-          test_over_array(:,:,2,2) = reshape((/3,3,0,0,3,2,0,0,2,2,0,0,0,0,0,0/),(/4,4/))
+          test_over_array(:,:,1,2) = reshape((/0,0,0,0,3,3,0,0,2,3,0,0,2,2,0,0/),(/4,4/))
+          test_over_array(:,:,2,2) = reshape((/0,0,0,0,3,3,0,0,3,2,0,0,2,2,0,0/),(/4,4/))
           test_over_array(:,:,1,3) = reshape((/2,2,3,0,2,3,3,0,0,0,0,0,0,0,0,0/),(/4,4/))
           test_over_array(:,:,2,3) = reshape((/2,3,3,0,2,2,3,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test_over_array(:,:,1,4) = reshape((/3,2,2,0,3,3,2,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test_over_array(:,:,2,4) = reshape((/3,3,2,0,3,2,2,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test_over_array(:,:,1,4) = reshape((/0,3,2,2,0,3,3,2,0,0,0,0,0,0,0,0/),(/4,4/))
+          test_over_array(:,:,2,4) = reshape((/0,3,3,2,0,3,2,2,0,0,0,0,0,0,0,0/),(/4,4/))
 
           test_merge_anticorner_type(:,1) = [NE_edge_type,NW_edge_type]
           test_merge_anticorner_type(:,2) = [SE_edge_type,SW_edge_type]
@@ -642,5 +649,176 @@
 
         end function test_get_edge_test_param
 
+
+        function test_get_anticorner_test_param(detailled)
+     $       result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+          logical       , dimension(2)   :: side
+          integer(ikind), dimension(5,4) :: bc_sections
+
+          integer(ikind), dimension(2,2,2,4) :: test_grdpts_ex_borders
+          integer(ikind), dimension(2,2,4)   :: test1_loc_borders
+          integer(ikind), dimension(4,4,2,4) :: test1_array
+          integer(ikind), dimension(2,2,2,4) :: test2_loc_borders
+          integer(ikind), dimension(4,4,2,4) :: test2_array
+          integer(ikind), dimension(4)       :: test_new_anticorner_type
+
+          integer(ikind), dimension(2,2) :: grdpts_ex_borders
+          integer(ikind), dimension(2,2) :: loc_borders1
+          integer(ikind), dimension(4,4) :: array1
+          integer(ikind), dimension(2,2) :: loc_borders2
+          integer(ikind), dimension(4,4) :: array2
+          integer(ikind)                 :: new_anticorner_type
+
+          integer :: k,l
+          logical :: test_loc
+
+
+          side = [left,right]
+
+          bc_sections(:,1) = [NW_edge_type,1,2,no_overlap,no_overlap]
+          bc_sections(:,2) = [NE_edge_type,1,2,no_overlap,no_overlap]
+          bc_sections(:,3) = [SW_edge_type,1,2,no_overlap,no_overlap]
+          bc_sections(:,4) = [SE_edge_type,1,2,no_overlap,no_overlap]
+
+
+          test_grdpts_ex_borders(:,:,1,1) = reshape((/-1, 2,0,3/),(/2,2/))
+          test_grdpts_ex_borders(:,:,2,1) = reshape((/ 1, 3,2,4/),(/2,2/))
+          test_grdpts_ex_borders(:,:,1,2) = reshape((/ 3, 2,4,3/),(/2,2/))
+          test_grdpts_ex_borders(:,:,2,2) = reshape((/ 1, 4,2,5/),(/2,2/))
+          test_grdpts_ex_borders(:,:,1,3) = reshape((/-1, 2,0,3/),(/2,2/))
+          test_grdpts_ex_borders(:,:,2,3) = reshape((/ 1, 0,2,1/),(/2,2/))
+          test_grdpts_ex_borders(:,:,1,4) = reshape((/ 3, 2,4,3/),(/2,2/))
+          test_grdpts_ex_borders(:,:,2,4) = reshape((/ 1, 0,2,1/),(/2,2/))
+
+          test1_loc_borders(:,:,1) = reshape((/1,1,2,2/),(/2,2/))
+          test1_loc_borders(:,:,2) = reshape((/1,1,2,2/),(/2,2/))
+          test1_loc_borders(:,:,3) = reshape((/1,1,2,2/),(/2,2/))
+          test1_loc_borders(:,:,4) = reshape((/1,1,2,2/),(/2,2/))
+
+          test1_array(:,:,1,1) = reshape((/3,2,0,0,3,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test1_array(:,:,2,1) = reshape((/3,2,0,0,3,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test1_array(:,:,1,2) = reshape((/2,3,0,0,3,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test1_array(:,:,2,2) = reshape((/2,3,0,0,3,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test1_array(:,:,1,3) = reshape((/3,3,0,0,3,2,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test1_array(:,:,2,3) = reshape((/3,3,0,0,3,2,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test1_array(:,:,1,4) = reshape((/3,3,0,0,2,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test1_array(:,:,2,4) = reshape((/3,3,0,0,2,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+
+          test2_loc_borders(:,:,1,1) = reshape((/2,1,2,2/),(/2,2/))
+          test2_loc_borders(:,:,2,1) = reshape((/1,1,2,1/),(/2,2/))
+          test2_loc_borders(:,:,1,2) = reshape((/1,1,1,2/),(/2,2/))
+          test2_loc_borders(:,:,2,2) = reshape((/1,1,2,1/),(/2,2/))
+          test2_loc_borders(:,:,1,3) = reshape((/2,1,2,2/),(/2,2/))
+          test2_loc_borders(:,:,2,3) = reshape((/1,2,2,2/),(/2,2/))
+          test2_loc_borders(:,:,1,4) = reshape((/1,1,1,2/),(/2,2/))
+          test2_loc_borders(:,:,2,4) = reshape((/1,2,2,2/),(/2,2/))
+
+          test2_array(:,:,1,1) = reshape((/0,3,0,0,0,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test2_array(:,:,2,1) = reshape((/3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test2_array(:,:,1,2) = reshape((/3,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test2_array(:,:,2,2) = reshape((/3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test2_array(:,:,1,3) = reshape((/0,3,0,0,0,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test2_array(:,:,2,3) = reshape((/0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test2_array(:,:,1,4) = reshape((/3,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test2_array(:,:,2,4) = reshape((/0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+
+          test_new_anticorner_type(1) = NW_corner_type
+          test_new_anticorner_type(2) = NE_corner_type
+          test_new_anticorner_type(3) = SW_corner_type
+          test_new_anticorner_type(4) = SE_corner_type
+
+          
+          test_validated = .true.
+
+
+          do k=1,4
+             do l=1,2
+
+                array1 = reshape((/
+     $               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+
+                array2 =  reshape((/
+     $               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+
+                ! output
+                call get_anticorner_test_param(
+     $               bc_sections(:,k),
+     $               side(l),
+     $               
+     $               grdpts_ex_borders,
+     $               
+     $               loc_borders1,
+     $               array1,
+     $               
+     $               loc_borders2,
+     $               array2,
+     $               
+     $               new_anticorner_type)
+
+                ! validation
+                test_loc = is_int_matrix_validated(
+     $               grdpts_ex_borders,
+     $               test_grdpts_ex_borders(:,:,l,k),
+     $               detailled)
+                test_validated = test_validated.and.test_loc
+                if(detailled.and.(.not.test_loc)) then
+                   print '(''grdpts_ex_borders('',2I2,'') failed'')', k,l
+                end if
+
+                test_loc = is_int_matrix_validated(
+     $               loc_borders1,
+     $               test1_loc_borders(:,:,k),
+     $               detailled)
+                test_validated = test_validated.and.test_loc
+                if(detailled.and.(.not.test_loc)) then
+                   print '(''loc_borders1('',2I2,'') failed'')', k,l
+                end if
+
+                test_loc = is_int_matrix_validated(
+     $               array1,
+     $               test1_array(:,:,l,k),
+     $               detailled)
+                test_validated = test_validated.and.test_loc
+                if(detailled.and.(.not.test_loc)) then
+                   print '(''array1('',2I2,'') failed'')', k,l
+                end if
+
+                test_loc = is_int_matrix_validated(
+     $               loc_borders2,
+     $               test2_loc_borders(:,:,l,k),
+     $               detailled)
+                test_validated = test_validated.and.test_loc
+                if(detailled.and.(.not.test_loc)) then
+                   print '(''loc_borders2('',2I2,'') failed'')', k,l
+                end if
+
+                test_loc = is_int_matrix_validated(
+     $               array2,
+     $               test2_array(:,:,l,k),
+     $               detailled)
+                test_validated = test_validated.and.test_loc
+                if(detailled.and.(.not.test_loc)) then
+                   print '(''array2('',2I2,'') failed'')', k,l
+                end if
+
+                test_loc = is_int_validated(
+     $               new_anticorner_type,
+     $               test_new_anticorner_type(k),
+     $               detailled)
+                test_validated = test_validated.and.test_loc
+                if(detailled.and.(.not.test_loc)) then
+                   print '(''new_anticorner_type('',2I2,'') failed'')', k,l
+                end if
+
+             end do
+          end do
+
+        end function test_get_anticorner_test_param
 
       end program test_bf_layer_bc_sections_merge

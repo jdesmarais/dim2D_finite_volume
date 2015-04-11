@@ -188,6 +188,8 @@ perform_test $file
 
 #test_mainlayer_interface_time_class
 file=test_mainlayer_interface_time
+change_param_input 'ntx' '100'
+change_param_input 'nty' '110'
 perform_test $file
 
 
@@ -203,6 +205,8 @@ perform_test $file
 
 #test_bf_interface_sync_class
 file=test_bf_interface_sync
+change_param_input 'ntx' '20'
+change_param_input 'nty' '25'
 perform_test $file
 
 

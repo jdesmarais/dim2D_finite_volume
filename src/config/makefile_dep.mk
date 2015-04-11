@@ -778,6 +778,7 @@ $(io_dir)/io_operators_abstract_par_class.o:\
 			$(pm_cdir)/pmodel_eq_class.o
 
 $(nf90_dir)/nf90_operators_module.o:\
+			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\

@@ -189,6 +189,7 @@
           procedure, nopass :: create_tmp_grdpts_id_for_analyse
           procedure,   pass :: analyse_grdpt
 
+          procedure, nopass :: bubble_sort
           procedure,   pass :: sort_bc_sections
           procedure, nopass :: check_square_overlap
           procedure, nopass :: check_integration_overlap

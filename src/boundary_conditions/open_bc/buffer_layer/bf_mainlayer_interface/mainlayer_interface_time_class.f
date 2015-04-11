@@ -42,7 +42,17 @@
      $       N_edge_type,
      $       S_edge_type,
      $       E_edge_type,
-     $       W_edge_type
+     $       W_edge_type,
+     $       NE_edge_type,
+     $       NW_edge_type,
+     $       SE_edge_type,
+     $       SW_edge_type,
+     $       NE_corner_type,
+     $       NW_corner_type,
+     $       SE_corner_type,
+     $       SW_corner_type,
+     $       no_overlap
+
 
         use parameters_constant, only :
      $       left,
@@ -145,6 +155,12 @@
           ! update the elements
           if(allocated(bc_sections)) then
 
+
+             ! reinitialize the overlaps in the bc_sections
+             call reinitialize_overlaps(bc_sections)
+
+
+             ! check whether edge casn overlap anti-corners
              nb_ele_removed = 0
 
              side = [left,right]
@@ -285,13 +301,16 @@
      $               bc_sections,
      $               nb_ele_removed)
 
-                call bf_layer_bc_sections_used%check_overlaps(
-     $               bc_sections,
-     $               bf_layer_used%get_x_borders(),
-     $               bf_layer_used%get_y_borders())
-
              end if
 
+
+             call bf_layer_bc_sections_used%bubble_sort(bc_sections)
+
+             call bf_layer_bc_sections_used%check_overlaps(
+     $            bc_sections,
+     $            bf_layer_used%get_x_borders(),
+     $            bf_layer_used%get_y_borders())
+             
 
              ! set the bc_sections inside the buffer layer
              call bf_layer_used%set_bc_sections(bc_sections)
@@ -385,5 +404,68 @@
      $          gen_coords)
 
         end subroutine extract_grdpts_id_for_merge
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> reinitialize the overlaps of the bc_sections
+        !
+        !> @date
+        !> 11_04_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> mainlayer_interface_dyn enhanced with procedures enabling
+        !> the reorganization of the bc_sections initialized by
+        !> the buffer layer
+        !
+        !>@param bc_sections
+        !> buffer layer whose bc_sections are investigated
+        !
+        !>@param gen_coords
+        !> coordinates expressed in the general frame identifying the
+        !> SW and NE corners of the grid-points extracted
+        !
+        !>@param grdpts_id
+        !> configuration of the grid-points
+        !--------------------------------------------------------------
+        subroutine reinitialize_overlaps(bc_sections)
+
+          implicit none
+
+          integer(ikind), dimension(:,:), intent(inout) :: bc_sections
+
+          integer :: k
+
+
+          do k=1, size(bc_sections,2)
+
+             select case(bc_sections(1,k))
+               case(N_edge_type,S_edge_type,
+     $              E_edge_type,W_edge_type)
+
+                 bc_sections(5,k) = no_overlap
+
+               case(NE_corner_type,NW_corner_type,
+     $              SE_corner_type,SW_corner_type,
+     $              NE_edge_type,NW_edge_type,
+     $              SE_edge_type,SW_edge_type)
+               
+                 bc_sections(4,k) = no_overlap
+                 bc_sections(5,k) = no_overlap
+
+              case default
+
+                 print '(''mainlayer_interface_time'')'
+                 print '(''reinitialize_overlaps'')'
+                 print '(''bc_section not recognized'')'
+                 stop ''
+
+            end select
+
+          end do
+
+        end subroutine reinitialize_overlaps
         
       end module mainlayer_interface_time_class

@@ -16,6 +16,10 @@
 
         use netcdf
 
+        use parameters_bf_layer, only :
+     $       dct_icr_distance,
+     $       search_dcr
+
         use parameters_constant, only :
      $       institut,
      $       prog_version,
@@ -30,7 +34,14 @@
      $       hedstrom_xy_corners_choice,
      $       hedstrom_x_reflection_y_choice,
      $       poinsot_xy_choice,
-     $       yoolodato_xy_choice
+     $       yoolodato_xy_choice,
+     $       obc_edge_flux_capillarity,
+     $       obc_edge_flux_no_capillarity,
+     $       obc_eigenqties_bc,
+     $       obc_eigenqties_lin,
+     $       obc_edge_xy_corner,
+     $       obc_edge_xy_flux,
+     $       obc_edge_xy_diag_flux
         
         use parameters_kind, only :
      $       rkind,
@@ -46,7 +57,12 @@
      $       sigma_P,
      $       obc_type_N, obc_type_S,
      $       obc_type_E, obc_type_W,
-     $       io_onefile_per_proc
+     $       obc_eigenqties_strategy,
+     $       obc_edge_xy_strategy,
+     $       obc_edge_flux_strategy,
+     $       obc_edge_overlap_ac,
+     $       io_onefile_per_proc,
+     $       debug_adapt_computational_domain
 
         use pmodel_eq_class, only :
      $       pmodel_eq
@@ -288,6 +304,110 @@
      $         poinsot_xy_choice,
      $         yoolodato_xy_choice)
 
+
+          ! how the eigenquantities are computed at the
+          ! borders
+          select case(obc_eigenqties_strategy)
+
+            case(obc_eigenqties_bc)
+
+               call nf90_handle_err(
+     $              nf90_put_att(
+     $              ncid,
+     $              NF90_GLOBAL,
+     $              'obc_eigenqties_strategy',
+     $              'obc_eigenqties_bc'))
+
+            case(obc_eigenqties_lin)
+
+               call nf90_handle_err(
+     $              nf90_put_att(
+     $              ncid,
+     $              NF90_GLOBAL,
+     $              'obc_eigenqties_strategy',
+     $              'obc_eigenqties_lin'))
+
+          end select
+
+
+          ! type of obc_edge_xy_strategy: strategy for anti-corners
+          select case(obc_edge_xy_strategy)
+
+            case(obc_edge_xy_corner)
+
+               call nf90_handle_err(
+     $              nf90_put_att(
+     $              ncid,
+     $              NF90_GLOBAL,
+     $              'obc_edge_xy_strategy',
+     $              'obc_edge_xy_corner'))
+
+            case(obc_edge_xy_flux)
+
+               call nf90_handle_err(
+     $              nf90_put_att(
+     $              ncid,
+     $              NF90_GLOBAL,
+     $              'obc_edge_xy_strategy',
+     $              'obc_edge_xy_flux'))
+
+            case(obc_edge_xy_diag_flux)
+
+               call nf90_handle_err(
+     $              nf90_put_att(
+     $              ncid,
+     $              NF90_GLOBAL,
+     $              'obc_edge_xy_strategy',
+     $              'obc_edge_xy_diag_flux'))
+
+          end select
+
+
+          ! how the fluxes are computed in the
+          ! b.c.
+          select case(obc_edge_flux_strategy)
+
+            case(obc_edge_flux_capillarity)
+
+               call nf90_handle_err(
+     $              nf90_put_att(
+     $              ncid,
+     $              NF90_GLOBAL,
+     $              'obc_edge_flux_strategy',
+     $              'obc_edge_flux_capillarity'))
+
+            case(obc_edge_flux_no_capillarity)
+
+               call nf90_handle_err(
+     $              nf90_put_att(
+     $              ncid,
+     $              NF90_GLOBAL,
+     $              'obc_edge_flux_strategy',
+     $              'obc_edge_flux_no_capillarity'))
+
+          end select
+
+
+          ! whether edge overlap anti-corners
+          ! for the treatment of the bc_sections
+          if(obc_edge_overlap_ac) then
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'obc_edge_overlap_ac',
+     $            'activated'))
+          else
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'obc_edge_overlap_ac',
+     $            'deactivated'))
+          end if
+
+
+          ! threshold for detection of interafce
           if(bf_openbc_md_threshold_ac) then
              retval = nf90_put_att(
      $            ncid,
@@ -367,6 +487,33 @@
           call nf90_handle_err(retval)
 
           end select
+
+
+          ! for the adaptation of the computational domain
+          if(debug_adapt_computational_domain) then
+             
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'adapt_computational_domain',
+     $            'activated'))
+
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'dct_icr_distance',
+     $            dct_icr_distance))
+
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'dct_dcr_distance',
+     $            search_dcr))
+
+          end if             
 
         end subroutine nf90_write_header_bc
 

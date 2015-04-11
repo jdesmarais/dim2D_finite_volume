@@ -39,7 +39,8 @@
      $       update_corner_for_merge,
      $       update_anticorner_for_merge,
      $       test_grdpts_id_config,
-     $       get_edge_test_param
+     $       get_edge_test_param,
+     $       get_anticorner_test_param
 
 
         contains
@@ -169,11 +170,11 @@
                 nb_ele_removed = nb_ele_removed+1
                 exit
 
-             else
-
-                if(j_min.gt.anticorner_position(2)) then
-                   exit
-                end if
+c$$$             else
+c$$$
+c$$$                if(j_min.gt.anticorner_position(2)) then
+c$$$                   exit
+c$$$                end if
 
              end if
 
@@ -401,7 +402,7 @@
      $                 bc_interior_pt, bc_interior_pt/),
      $                 (/2,4/))
 
-                  test_over_array(1:2,1:3) = reshape((/
+                  test_over_array(1:2,2:4) = reshape((/
      $                 bc_pt         , bc_pt,
      $                 bc_interior_pt, bc_pt,
      $                 bc_interior_pt, bc_interior_pt/),
@@ -428,7 +429,7 @@
      $                 bc_interior_pt, bc_interior_pt/),
      $                 (/2,4/))
 
-                  test_over_array(1:2,1:3) = reshape((/
+                  test_over_array(1:2,2:4) = reshape((/
      $                 bc_pt         , bc_pt,
      $                 bc_pt         , bc_interior_pt,
      $                 bc_interior_pt, bc_interior_pt/),
@@ -529,7 +530,7 @@
      $                 bc_pt, bc_pt         , bc_pt         , bc_interior_pt/),
      $                 (/4,2/))
 
-                  test_over_array(1:3,1:2) = reshape((/
+                  test_over_array(2:4,1:2) = reshape((/
      $                 bc_pt, bc_interior_pt, bc_interior_pt, 
      $                 bc_pt, bc_pt         , bc_interior_pt/),
      $                 (/3,2/))
@@ -553,7 +554,7 @@
      $                 bc_pt, bc_interior_pt, bc_interior_pt, bc_interior_pt/),
      $                 (/4,2/))
 
-                  test_over_array(1:3,1:2) = reshape((/
+                  test_over_array(2:4,1:2) = reshape((/
      $                 bc_pt, bc_pt         , bc_interior_pt,
      $                 bc_pt, bc_interior_pt, bc_interior_pt/), 
      $                 (/3,2/))
@@ -578,5 +579,293 @@
 
         end subroutine get_edge_test_param
 
+
+        ! anticorner_bc_section: anticorner bc_section whose
+        !  neighboring corners is investigated
+        !
+        ! side: either left or right, indicating which side of 
+        !  the bc_section is studied
+        !
+        ! grdpts_ex_borders: [i_min,i_max]x[j_min,j_max] of the
+        !  grdpts_id to be extracted
+        !
+        ! test1_loc_borders: which grdpts from the test_merge
+        !  array are tested
+        !
+        ! test1_array: what is the pattern the grdpts_id should
+        !  match
+        !
+        ! test2_loc_borders: which grdpts from the test_over
+        !  array are tested
+        !
+        ! test2_array: what is the pattern the grdpts_id should
+        !  match
+        !
+        ! new_anticorner_type: determine the type of anticorner that
+        !  should be merged if the test is validated
+        !------------------------------------------------------------
+        subroutine get_anticorner_test_param(
+     $       anticorner_bc_section,
+     $       side,
+     $       
+     $       grdpts_ex_borders,
+     $       
+     $       test1_loc_borders,
+     $       test1_array,
+     $       
+     $       test2_loc_borders,
+     $       test2_array,
+     $       
+     $       new_anticorner_type)
+
+          implicit none
+
+          integer(ikind), dimension(5)  , intent(in)  :: anticorner_bc_section
+          logical                       , intent(in)  :: side
+          integer(ikind), dimension(2,2), intent(out) :: grdpts_ex_borders
+          integer(ikind), dimension(2,2), intent(out) :: test1_loc_borders
+          integer(ikind), dimension(4,4), intent(out) :: test1_array
+          integer(ikind), dimension(2,2), intent(out) :: test2_loc_borders
+          integer(ikind), dimension(4,4), intent(out) :: test2_array
+          integer(ikind)                , intent(out) :: new_anticorner_type
+          
+          
+          integer(ikind) :: i_min
+          integer(ikind) :: j_min
+
+
+          i_min = anticorner_bc_section(2)
+          j_min = anticorner_bc_section(3)
+
+          select case(anticorner_bc_section(1))
+
+            case(NW_edge_type)
+
+               new_anticorner_type = NW_corner_type
+
+               if(side.eqv.left) then
+
+                  grdpts_ex_borders = reshape((/
+     $                 i_min-2,j_min,i_min-1,j_min+1/),
+     $                 (/2,2/))
+                  
+                  test1_loc_borders = reshape((/
+     $                 1,1,2,2/),
+     $                 (/2,2/))
+                  
+                  test1_array(1:2,1:2) = reshape((/
+     $                 bc_pt, bc_interior_pt,
+     $                 bc_pt, bc_pt/),
+     $                 (/2,2/))
+                  
+                  test2_loc_borders = reshape((/
+     $                 2,1,2,2/),
+     $                 (/2,2/))
+                  
+                  test2_array(2:2,1:2) = reshape((/
+     $                 bc_pt,
+     $                 bc_pt/),
+     $                 (/1,2/))
+
+               else
+
+                  grdpts_ex_borders = reshape((/
+     $                 i_min,j_min+1,i_min+1,j_min+2/),
+     $                 (/2,2/))
+                  
+                  test1_loc_borders = reshape((/
+     $                 1,1,2,2/),
+     $                 (/2,2/))
+                  
+                  test1_array(1:2,1:2) = reshape((/
+     $                 bc_pt, bc_interior_pt,
+     $                 bc_pt, bc_pt/),
+     $                 (/2,2/))
+                  
+                  test2_loc_borders = reshape((/
+     $                 1,1,2,1/),
+     $                 (/2,2/))
+                  
+                  test2_array(1:2,1:1) = reshape((/
+     $                 bc_pt,
+     $                 bc_pt/),
+     $                 (/2,1/))
+
+               end if
+
+
+            case(NE_edge_type)
+
+               new_anticorner_type = NE_corner_type
+
+               if(side.eqv.left) then
+
+                  grdpts_ex_borders = reshape((/
+     $                 i_min+2,j_min,i_min+3,j_min+1/),
+     $                 (/2,2/))
+                  
+                  test1_loc_borders = reshape((/
+     $                 1,1,2,2/),
+     $                 (/2,2/))
+                  
+                  test1_array(1:2,1:2) = reshape((/
+     $                 bc_interior_pt, bc_pt,
+     $                 bc_pt, bc_pt/),
+     $                 (/2,2/))
+                  
+                  test2_loc_borders = reshape((/
+     $                 1,1,1,2/),
+     $                 (/2,2/))
+                  
+                  test2_array(1:1,1:2) = reshape((/
+     $                 bc_pt,
+     $                 bc_pt/),
+     $                 (/1,2/))
+
+               else
+
+                  grdpts_ex_borders = reshape((/
+     $                 i_min,j_min+2,i_min+1,j_min+3/),
+     $                 (/2,2/))
+                  
+                  test1_loc_borders = reshape((/
+     $                 1,1,2,2/),
+     $                 (/2,2/))
+                  
+                  test1_array(1:2,1:2) = reshape((/
+     $                 bc_interior_pt, bc_pt,
+     $                 bc_pt         , bc_pt/),
+     $                 (/2,2/))
+                  
+                  test2_loc_borders = reshape((/
+     $                 1,1,2,1/),
+     $                 (/2,2/))
+                  
+                  test2_array(1:2,1:1) = reshape((/
+     $                 bc_pt,
+     $                 bc_pt/),
+     $                 (/2,1/))
+
+               end if
+
+
+            case(SW_edge_type)
+
+               new_anticorner_type = SW_corner_type
+
+               if(side.eqv.left) then
+
+                  grdpts_ex_borders = reshape((/
+     $                 i_min-2,j_min,i_min-1,j_min+1/),
+     $                 (/2,2/))
+                  
+                  test1_loc_borders = reshape((/
+     $                 1,1,2,2/),
+     $                 (/2,2/))
+                  
+                  test1_array(1:2,1:2) = reshape((/
+     $                 bc_pt, bc_pt,
+     $                 bc_pt, bc_interior_pt/),
+     $                 (/2,2/))
+                  
+                  test2_loc_borders = reshape((/
+     $                 2,1,2,2/),
+     $                 (/2,2/))
+                  
+                  test2_array(2:2,1:2) = reshape((/
+     $                 bc_pt,
+     $                 bc_pt/),
+     $                 (/1,2/))
+
+               else
+
+                  grdpts_ex_borders = reshape((/
+     $                 i_min,j_min-2,i_min+1,j_min-1/),
+     $                 (/2,2/))
+                  
+                  test1_loc_borders = reshape((/
+     $                 1,1,2,2/),
+     $                 (/2,2/))
+                  
+                  test1_array(1:2,1:2) = reshape((/
+     $                 bc_pt, bc_pt,
+     $                 bc_pt, bc_interior_pt/),
+     $                 (/2,2/))
+                  
+                  test2_loc_borders = reshape((/
+     $                 1,2,2,2/),
+     $                 (/2,2/))
+                  
+                  test2_array(1:2,2:2) = reshape((/
+     $                 bc_pt,
+     $                 bc_pt/),
+     $                 (/2,1/))
+
+               end if
+
+
+            case(SE_edge_type)
+
+               new_anticorner_type = SE_corner_type
+
+               if(side.eqv.left) then
+
+                  grdpts_ex_borders = reshape((/
+     $                 i_min+2,j_min,i_min+3,j_min+1/),
+     $                 (/2,2/))
+                  
+                  test1_loc_borders = reshape((/
+     $                 1,1,2,2/),
+     $                 (/2,2/))
+                  
+                  test1_array(1:2,1:2) = reshape((/
+     $                 bc_pt         , bc_pt,
+     $                 bc_interior_pt, bc_pt/),
+     $                 (/2,2/))
+                  
+                  test2_loc_borders = reshape((/
+     $                 1,1,1,2/),
+     $                 (/2,2/))
+                  
+                  test2_array(1:1,1:2) = reshape((/
+     $                 bc_pt,
+     $                 bc_pt/),
+     $                 (/1,2/))
+
+               else
+
+                  grdpts_ex_borders = reshape((/
+     $                 i_min,j_min-2,i_min+1,j_min-1/),
+     $                 (/2,2/))
+                  
+                  test1_loc_borders = reshape((/
+     $                 1,1,2,2/),
+     $                 (/2,2/))
+                  
+                  test1_array(1:2,1:2) = reshape((/
+     $                 bc_pt         , bc_pt,
+     $                 bc_interior_pt, bc_pt/),
+     $                 (/2,2/))
+                  
+                  test2_loc_borders = reshape((/
+     $                 1,2,2,2/),
+     $                 (/2,2/))
+                  
+                  test2_array(1:2,2:2) = reshape((/
+     $                 bc_pt,
+     $                 bc_pt/),
+     $                 (/2,1/))
+
+               end if
+
+            case default
+               print '(''bf_layer_bc_sections_merge_module'')'
+               print '(''get_anticorner_test_param'')'
+               print '(''anticorner type not recognized: '',I2)', anticorner_bc_section(1)
+               stop ''
+
+          end select
+
+        end subroutine get_anticorner_test_param
 
       end module bf_layer_bc_sections_merge_module
