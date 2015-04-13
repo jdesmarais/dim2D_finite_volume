@@ -663,16 +663,16 @@
 
           integer(ikind), dimension(2,2,2,4) :: test_grdpts_ex_borders
           integer(ikind), dimension(2,2,4)   :: test1_loc_borders
-          integer(ikind), dimension(4,4,2,4) :: test1_array
+          integer(ikind), dimension(2,2,2,4) :: test1_array
           integer(ikind), dimension(2,2,2,4) :: test2_loc_borders
-          integer(ikind), dimension(4,4,2,4) :: test2_array
+          integer(ikind), dimension(2,2,2,4) :: test2_array
           integer(ikind), dimension(4)       :: test_new_anticorner_type
 
           integer(ikind), dimension(2,2) :: grdpts_ex_borders
           integer(ikind), dimension(2,2) :: loc_borders1
-          integer(ikind), dimension(4,4) :: array1
+          integer(ikind), dimension(2,2) :: array1
           integer(ikind), dimension(2,2) :: loc_borders2
-          integer(ikind), dimension(4,4) :: array2
+          integer(ikind), dimension(2,2) :: array2
           integer(ikind)                 :: new_anticorner_type
 
           integer :: k,l
@@ -688,7 +688,7 @@
 
 
           test_grdpts_ex_borders(:,:,1,1) = reshape((/-1, 2,0,3/),(/2,2/))
-          test_grdpts_ex_borders(:,:,2,1) = reshape((/ 1, 3,2,4/),(/2,2/))
+          test_grdpts_ex_borders(:,:,2,1) = reshape((/ 1, 4,2,5/),(/2,2/))
           test_grdpts_ex_borders(:,:,1,2) = reshape((/ 3, 2,4,3/),(/2,2/))
           test_grdpts_ex_borders(:,:,2,2) = reshape((/ 1, 4,2,5/),(/2,2/))
           test_grdpts_ex_borders(:,:,1,3) = reshape((/-1, 2,0,3/),(/2,2/))
@@ -701,14 +701,14 @@
           test1_loc_borders(:,:,3) = reshape((/1,1,2,2/),(/2,2/))
           test1_loc_borders(:,:,4) = reshape((/1,1,2,2/),(/2,2/))
 
-          test1_array(:,:,1,1) = reshape((/3,2,0,0,3,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test1_array(:,:,2,1) = reshape((/3,2,0,0,3,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test1_array(:,:,1,2) = reshape((/2,3,0,0,3,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test1_array(:,:,2,2) = reshape((/2,3,0,0,3,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test1_array(:,:,1,3) = reshape((/3,3,0,0,3,2,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test1_array(:,:,2,3) = reshape((/3,3,0,0,3,2,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test1_array(:,:,1,4) = reshape((/3,3,0,0,2,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test1_array(:,:,2,4) = reshape((/3,3,0,0,2,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test1_array(:,:,1,1) = reshape((/3,2,3,3/),(/2,2/))
+          test1_array(:,:,2,1) = reshape((/3,2,3,3/),(/2,2/))
+          test1_array(:,:,1,2) = reshape((/2,3,3,3/),(/2,2/))
+          test1_array(:,:,2,2) = reshape((/2,3,3,3/),(/2,2/))
+          test1_array(:,:,1,3) = reshape((/3,3,3,2/),(/2,2/))
+          test1_array(:,:,2,3) = reshape((/3,3,3,2/),(/2,2/))
+          test1_array(:,:,1,4) = reshape((/3,3,2,3/),(/2,2/))
+          test1_array(:,:,2,4) = reshape((/3,3,2,3/),(/2,2/))
 
           test2_loc_borders(:,:,1,1) = reshape((/2,1,2,2/),(/2,2/))
           test2_loc_borders(:,:,2,1) = reshape((/1,1,2,1/),(/2,2/))
@@ -719,14 +719,14 @@
           test2_loc_borders(:,:,1,4) = reshape((/1,1,1,2/),(/2,2/))
           test2_loc_borders(:,:,2,4) = reshape((/1,2,2,2/),(/2,2/))
 
-          test2_array(:,:,1,1) = reshape((/0,3,0,0,0,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test2_array(:,:,2,1) = reshape((/3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test2_array(:,:,1,2) = reshape((/3,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test2_array(:,:,2,2) = reshape((/3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test2_array(:,:,1,3) = reshape((/0,3,0,0,0,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test2_array(:,:,2,3) = reshape((/0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test2_array(:,:,1,4) = reshape((/3,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
-          test2_array(:,:,2,4) = reshape((/0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+          test2_array(:,:,1,1) = reshape((/0,3,0,3/),(/2,2/))
+          test2_array(:,:,2,1) = reshape((/3,3,0,0/),(/2,2/))
+          test2_array(:,:,1,2) = reshape((/3,0,3,0/),(/2,2/))
+          test2_array(:,:,2,2) = reshape((/3,3,0,0/),(/2,2/))
+          test2_array(:,:,1,3) = reshape((/0,3,0,3/),(/2,2/))
+          test2_array(:,:,2,3) = reshape((/0,0,3,3/),(/2,2/))
+          test2_array(:,:,1,4) = reshape((/3,0,3,0/),(/2,2/))
+          test2_array(:,:,2,4) = reshape((/0,0,3,3/),(/2,2/))
 
           test_new_anticorner_type(1) = NW_corner_type
           test_new_anticorner_type(2) = NE_corner_type
@@ -740,11 +740,9 @@
           do k=1,4
              do l=1,2
 
-                array1 = reshape((/
-     $               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+                array1 = reshape((/0,0,0,0/),(/2,2/))
 
-                array2 =  reshape((/
-     $               0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/),(/4,4/))
+                array2 = reshape((/0,0,0,0/),(/2,2/))
 
                 ! output
                 call get_anticorner_test_param(

@@ -624,9 +624,9 @@ c$$$                end if
           logical                       , intent(in)  :: side
           integer(ikind), dimension(2,2), intent(out) :: grdpts_ex_borders
           integer(ikind), dimension(2,2), intent(out) :: test1_loc_borders
-          integer(ikind), dimension(4,4), intent(out) :: test1_array
+          integer(ikind), dimension(2,2), intent(out) :: test1_array
           integer(ikind), dimension(2,2), intent(out) :: test2_loc_borders
-          integer(ikind), dimension(4,4), intent(out) :: test2_array
+          integer(ikind), dimension(2,2), intent(out) :: test2_array
           integer(ikind)                , intent(out) :: new_anticorner_type
           
           
@@ -670,7 +670,7 @@ c$$$                end if
                else
 
                   grdpts_ex_borders = reshape((/
-     $                 i_min,j_min+1,i_min+1,j_min+2/),
+     $                 i_min,j_min+2,i_min+1,j_min+3/),
      $                 (/2,2/))
                   
                   test1_loc_borders = reshape((/

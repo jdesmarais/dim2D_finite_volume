@@ -24,7 +24,8 @@
      $       update_corner_for_merge,
      $       update_anticorner_for_merge,
      $       test_grdpts_id_config,
-     $       get_edge_test_param
+     $       get_edge_test_param,
+     $       get_anticorner_test_param
 
         use bf_layer_class, only :
      $       bf_layer
@@ -119,30 +120,9 @@
 
 
           integer(ikind), dimension(:,:), allocatable :: bc_sections
-          logical, dimension(2) :: side
-          integer :: i
-          integer :: j
-
-          
-          integer(ikind), dimension(2,2) :: grdpts_ex_borders
-          integer(ikind), dimension(2,2) :: test_merge_loc_borders
-          integer(ikind), dimension(4,4) :: test_merge_array
-          integer(ikind), dimension(2,2) :: test_over_loc_borders
-          integer(ikind), dimension(4,4) :: test_over_array
-          integer(ikind)                 :: merge_anticorner_type
-          integer(ikind), dimension(2)   :: merge_anticorner_position
-          integer(ikind)                 :: over_corner_type
-          integer(ikind), dimension(2)   :: over_corner_position
-          integer                        :: over_corner_overlap
-          integer(ikind), dimension(3)   :: edge_new_position
-
-          integer(ikind), dimension(2)   :: match_table
-          integer(ikind), dimension(2,2) :: gen_coords
-          integer       , dimension(4,4) :: grdptsid_side
-          integer                        :: size_x
-          integer                        :: size_y
-          logical                        :: modify_edge
-          integer                        :: nb_ele_removed
+          logical       , dimension(2) :: side
+          integer                      :: i
+          integer                      :: nb_ele_removed
 
           type(bf_layer_bc_sections) :: bf_layer_bc_sections_used
 
@@ -167,123 +147,24 @@
              
              do i=1, size(bc_sections,2)
 
-                ! if the bc_section is an edge, we check whether
-                ! this edge can be merged with neighboring
-                ! anti-corners and overlap corners
-                if(  (bc_sections(1,i).eq.N_edge_type).or.
-     $               (bc_sections(1,i).eq.S_edge_type).or.
-     $               (bc_sections(1,i).eq.E_edge_type).or.
-     $               (bc_sections(1,i).eq.W_edge_type) ) then
+                select case(bc_sections(1,i))
 
-                   ! loop over the potential sides of the edge
-                   do j=1,2
+                  ! if the bc_section is an edge, we check whether
+                  ! this edge can be merged with neighboring
+                  ! anti-corners and overlap corners
+                  case(N_edge_type,S_edge_type,E_edge_type,W_edge_type)
+                  
+                     call overlap_anticorners_with_edges(
+     $                    this,
+     $                    bc_sections,i,
+     $                    side,
+     $                    bf_layer_used,
+     $                    nb_ele_removed)
+                  
+                  
 
-                      ! determine which grid points should be
-                      ! checked on the side of the bc_section
-                      call get_edge_test_param(
-     $                     bc_sections(:,i),
-     $                     side(j),
-     $                     
-     $                     grdpts_ex_borders,
-     $                     
-     $                     test_merge_loc_borders,
-     $                     test_merge_array,
-     $                     
-     $                     test_over_loc_borders,
-     $                     test_over_array,
-     $                     
-     $                     merge_anticorner_type,
-     $                     merge_anticorner_position,
-     $                     
-     $                     over_corner_type,
-     $                     over_corner_position,
-     $                     over_corner_overlap,
-     $                     
-     $                     edge_new_position)
-
-
-                      ! convert the borders asked expressed
-                      ! in the local coordinates of the buffer
-                      ! layer, into coordinates in the general
-                      ! reference frame
-                      match_table = bf_layer_used%get_general_to_local_coord_tab()
-                      gen_coords(1,1) = grdpts_ex_borders(1,1) + match_table(1)
-                      gen_coords(1,2) = grdpts_ex_borders(1,2) + match_table(1)
-                      gen_coords(2,1) = grdpts_ex_borders(2,1) + match_table(2)
-                      gen_coords(2,2) = grdpts_ex_borders(2,2) + match_table(2)
-
-                      size_x = gen_coords(1,2)-gen_coords(1,1)+1
-                      size_y = gen_coords(2,2)-gen_coords(2,1)+1
-
-
-                      ! extract the grid points on the side
-                      ! of the edge bc_section to determine
-                      ! whether it could overlap an anti-corner
-                      call this%extract_grdpts_id_for_merge(
-     $                     bf_layer_used,
-     $                     gen_coords,
-     $                     grdptsid_side(1:size_x,1:size_y))
-
-                      ! test whether the grdpts_id on the side
-                      ! leads to the merge with an anti-corner
-                      modify_edge = test_grdpts_id_config(
-     $                     grdptsid_side(
-     $                        test_merge_loc_borders(1,1):test_merge_loc_borders(1,2),
-     $                        test_merge_loc_borders(2,1):test_merge_loc_borders(2,2)),
-     $                     test_merge_array(
-     $                        test_merge_loc_borders(1,1):test_merge_loc_borders(1,2),
-     $                        test_merge_loc_borders(2,1):test_merge_loc_borders(2,2)))
-
-                      ! if the configuration of the grdpts_id on the side
-                      ! of the edge leads to the merge with an anti-corner
-                      ! the bc_sections are updated
-                      if(modify_edge) then
-
-                         call update_anticorner_for_merge(
-     $                        merge_anticorner_type,
-     $                        merge_anticorner_position,
-     $                        bc_sections,
-     $                        nb_ele_removed)
-
-                         bc_sections(2:4,i) = edge_new_position
-
-                      ! otherwise, we check whether the configuration of the
-                      ! grdpts_id on the side of the edge leads to the merge
-                      ! with an anti-corner and the overlap of a corner
-                      else
-
-                         ! if the configuration of the grdpts_id on the side
-                         ! of the edge leads to the merge with an anti-corner
-                         ! and the overlap of a corner, the bc_sections should
-                         ! be updated
-                         modify_edge = test_grdpts_id_config(
-     $                        grdptsid_side(
-     $                           test_over_loc_borders(1,1):test_over_loc_borders(1,2),
-     $                           test_over_loc_borders(2,1):test_over_loc_borders(2,2)),
-     $                        test_over_array(
-     $                           test_over_loc_borders(1,1):test_over_loc_borders(1,2),
-     $                           test_over_loc_borders(2,1):test_over_loc_borders(2,2)))
-
-                         if(modify_edge) then
-
-                            call update_corner_for_merge(
-     $                           merge_anticorner_type,
-     $                           merge_anticorner_position,
-     $                           over_corner_type,
-     $                           over_corner_position,
-     $                           over_corner_overlap,
-     $                           bc_sections,
-     $                           nb_ele_removed)
-
-                            bc_sections(2:4,i) = edge_new_position
-
-                         end if
-
-                      end if
-
-                   end do
-
-                end if
+                end select
+                  
 
              end do
 
@@ -312,14 +193,353 @@
      $            bf_layer_used%get_y_borders())
              
 
+             ! turn the anti-corners into corners
+             if(allocated(bc_sections)) then
+                do i=1, size(bc_sections,2)
+
+                   select case(bc_sections(1,i))
+
+                     ! if the bc_section is an anti-corner, we check
+                     ! whether this anti-corner should behave as a
+                     ! corner
+                     case(NE_edge_type,NW_edge_type,SE_edge_type,SW_edge_type)
+
+                        call identify_anticorners_as_corners(
+     $                       this,
+     $                       bc_sections(:,i),
+     $                       side,
+     $                       bf_layer_used)
+
+                   end select
+
+                end do
+             end if
+
+
              ! set the bc_sections inside the buffer layer
              call bf_layer_used%set_bc_sections(bc_sections)
 
 
           end if
 
-
         end subroutine update_bc_sections
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> overlap the anti-corners located at the crossing between
+        !> an edge and a corner by the edge
+        !
+        !> @date
+        !> 13_04_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> mainlayer_interface_dyn enhanced with procedures enabling
+        !> the reorganization of the bc_sections initialized by
+        !> the buffer layer
+        !
+        !>@param bc_sections
+        !> boundary sections identifying the edge of the computational
+        !> domain
+        !
+        !>@param i
+        !> index of the boundary section investigated
+        !
+        !>@param side
+        !> convention for the identification of the left and right
+        !
+        !>@param bf_layer_used
+        !> buffer layer whose bc_sections are investigated
+        !
+        !>@param nb_ele_removed
+        !> number of elements removed when the 
+        !--------------------------------------------------------------
+        subroutine overlap_anticorners_with_edges(
+     $     this,
+     $     bc_sections,i,
+     $     side,
+     $     bf_layer_used,
+     $     nb_ele_removed)
+
+          implicit none
+
+          class(mainlayer_interface_time), intent(in)    :: this
+          integer(ikind), dimension(:,:) , intent(inout) :: bc_sections
+          integer                        , intent(in)    :: i
+          logical       , dimension(2)   , intent(in)    :: side
+          type(bf_layer)                 , intent(in)    :: bf_layer_used
+          integer                        , intent(inout) :: nb_ele_removed
+          
+          integer(ikind), dimension(2,2) :: grdpts_ex_borders
+          integer(ikind), dimension(2,2) :: test_merge_loc_borders
+          integer(ikind), dimension(4,4) :: test_merge_array
+          integer(ikind), dimension(2,2) :: test_over_loc_borders
+          integer(ikind), dimension(4,4) :: test_over_array
+          integer(ikind)                 :: merge_anticorner_type
+          integer(ikind), dimension(2)   :: merge_anticorner_position
+          integer(ikind)                 :: over_corner_type
+          integer(ikind), dimension(2)   :: over_corner_position
+          integer                        :: over_corner_overlap
+          integer(ikind), dimension(3)   :: edge_new_position
+
+          integer(ikind), dimension(2)   :: match_table
+          integer(ikind), dimension(2,2) :: gen_coords
+          integer       , dimension(4,4) :: grdptsid_side
+          integer                        :: size_x
+          integer                        :: size_y
+          logical                        :: modify_edge
+
+          integer :: j
+
+
+          ! loop over the potential sides of the edge
+          do j=1,2
+
+             ! determine which grid points should be
+             ! checked on the side of the bc_section
+             call get_edge_test_param(
+     $            bc_sections(:,i),
+     $            side(j),
+     $            
+     $            grdpts_ex_borders,
+     $            
+     $            test_merge_loc_borders,
+     $            test_merge_array,
+     $            
+     $            test_over_loc_borders,
+     $            test_over_array,
+     $            
+     $            merge_anticorner_type,
+     $            merge_anticorner_position,
+     $            
+     $            over_corner_type,
+     $            over_corner_position,
+     $            over_corner_overlap,
+     $            
+     $            edge_new_position)
+
+
+             ! convert the borders asked expressed
+             ! in the local coordinates of the buffer
+             ! layer, into coordinates in the general
+             ! reference frame
+             match_table = bf_layer_used%get_general_to_local_coord_tab()
+             gen_coords(1,1) = grdpts_ex_borders(1,1) + match_table(1)
+             gen_coords(1,2) = grdpts_ex_borders(1,2) + match_table(1)
+             gen_coords(2,1) = grdpts_ex_borders(2,1) + match_table(2)
+             gen_coords(2,2) = grdpts_ex_borders(2,2) + match_table(2)
+
+             size_x = gen_coords(1,2)-gen_coords(1,1)+1
+             size_y = gen_coords(2,2)-gen_coords(2,1)+1
+
+
+             ! extract the grid points on the side
+             ! of the edge bc_section to determine
+             ! whether it could overlap an anti-corner
+             call this%extract_grdpts_id_for_merge(
+     $            bf_layer_used,
+     $            gen_coords,
+     $            grdptsid_side(1:size_x,1:size_y))
+
+             ! test whether the grdpts_id on the side
+             ! leads to the merge with an anti-corner
+             modify_edge = test_grdpts_id_config(
+     $            grdptsid_side(
+     $               test_merge_loc_borders(1,1):test_merge_loc_borders(1,2),
+     $               test_merge_loc_borders(2,1):test_merge_loc_borders(2,2)),
+     $            test_merge_array(
+     $               test_merge_loc_borders(1,1):test_merge_loc_borders(1,2),
+     $               test_merge_loc_borders(2,1):test_merge_loc_borders(2,2)))
+
+             ! if the configuration of the grdpts_id on the side
+             ! of the edge leads to the merge with an anti-corner
+             ! the bc_sections are updated
+             if(modify_edge) then
+
+                call update_anticorner_for_merge(
+     $               merge_anticorner_type,
+     $               merge_anticorner_position,
+     $               bc_sections,
+     $               nb_ele_removed)
+
+                bc_sections(2:4,i) = edge_new_position
+
+             ! otherwise, we check whether the configuration of the
+             ! grdpts_id on the side of the edge leads to the merge
+             ! with an anti-corner and the overlap of a corner
+             else
+
+                ! if the configuration of the grdpts_id on the side
+                ! of the edge leads to the merge with an anti-corner
+                ! and the overlap of a corner, the bc_sections should
+                ! be updated
+                modify_edge = test_grdpts_id_config(
+     $               grdptsid_side(
+     $                  test_over_loc_borders(1,1):test_over_loc_borders(1,2),
+     $                  test_over_loc_borders(2,1):test_over_loc_borders(2,2)),
+     $               test_over_array(
+     $                  test_over_loc_borders(1,1):test_over_loc_borders(1,2),
+     $                  test_over_loc_borders(2,1):test_over_loc_borders(2,2)))
+
+                if(modify_edge) then
+
+                   call update_corner_for_merge(
+     $                  merge_anticorner_type,
+     $                  merge_anticorner_position,
+     $                  over_corner_type,
+     $                  over_corner_position,
+     $                  over_corner_overlap,
+     $                  bc_sections,
+     $                  nb_ele_removed)
+
+                   bc_sections(2:4,i) = edge_new_position
+
+                end if
+
+             end if
+
+          end do
+
+        end subroutine overlap_anticorners_with_edges
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether an anti-corner is surrounded by corners
+        !> and so whether it should compute its grid points as if
+        !> it was a corner
+        !
+        !> @date
+        !> 13_04_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> mainlayer_interface_dyn enhanced with procedures enabling
+        !> the reorganization of the bc_sections initialized by
+        !> the buffer layer
+        !
+        !>@param bc_section
+        !> boundary section investigated
+        !
+        !>@param side
+        !> convention for the identification of the left and right
+        !
+        !>@param bf_layer_used
+        !> buffer layer whose bc_sections are investigated
+        !--------------------------------------------------------------
+        subroutine identify_anticorners_as_corners(
+     $     this,
+     $     bc_section,
+     $     side,
+     $     bf_layer_used)
+
+          implicit none
+
+          class(mainlayer_interface_time), intent(inout) :: this
+          integer(ikind), dimension(5)   , intent(inout) :: bc_section
+          logical       , dimension(2)   , intent(in)    :: side
+          class(bf_layer)                , intent(in)    :: bf_layer_used
+
+          
+          integer :: j
+
+          integer(ikind), dimension(2,2) :: grdpts_ex_borders
+          integer(ikind), dimension(2,2) :: test1_loc_borders
+          integer       , dimension(2,2) :: test1_array
+          integer       , dimension(2,2) :: test2_loc_borders
+          integer       , dimension(2,2) :: test2_array
+          integer                        :: new_anticorner_type
+
+          logical :: modify_anticorner
+
+          integer(ikind), dimension(2)   :: match_table
+          integer(ikind), dimension(2,2) :: gen_coords
+          integer(ikind)                 :: size_x
+          integer(ikind)                 :: size_y
+
+          integer       , dimension(2,2) :: grdptsid_side
+
+
+          do j=1,2
+
+             ! determine the parameters for testing
+             ! whether the anti-corner should be computed
+             ! as a corner
+             call get_anticorner_test_param(
+     $            bc_section,
+     $            side(j),
+     $       
+     $            grdpts_ex_borders,
+     $            
+     $            test1_loc_borders,
+     $            test1_array,
+     $            
+     $            test2_loc_borders,
+     $            test2_array,
+     $            
+     $            new_anticorner_type)
+
+             ! convert the borders asked expressed
+             ! in the local coordinates of the buffer
+             ! layer, into coordinates in the general
+             ! reference frame
+             match_table = bf_layer_used%get_general_to_local_coord_tab()
+             gen_coords(1,1) = grdpts_ex_borders(1,1) + match_table(1)
+             gen_coords(1,2) = grdpts_ex_borders(1,2) + match_table(1)
+             gen_coords(2,1) = grdpts_ex_borders(2,1) + match_table(2)
+             gen_coords(2,2) = grdpts_ex_borders(2,2) + match_table(2)
+
+             size_x = gen_coords(1,2)-gen_coords(1,1)+1
+             size_y = gen_coords(2,2)-gen_coords(2,1)+1
+
+
+             ! extract the grid points on the side
+             ! of the edge bc_section to determine
+             ! whether it could overlap an anti-corner
+             call this%extract_grdpts_id_for_merge(
+     $            bf_layer_used,
+     $            gen_coords,
+     $            grdptsid_side(1:size_x,1:size_y))
+
+             ! test whether the grdpts_id on the side
+             ! leads to considering the anti-corner as
+             ! a corner
+             modify_anticorner = test_grdpts_id_config(
+     $            grdptsid_side(
+     $               test1_loc_borders(1,1):test1_loc_borders(1,2),
+     $               test1_loc_borders(2,1):test1_loc_borders(2,2)),
+     $            test1_array(
+     $               test1_loc_borders(1,1):test1_loc_borders(1,2),
+     $               test1_loc_borders(2,1):test1_loc_borders(2,2)))
+
+             if(.not.modify_anticorner) then
+
+                modify_anticorner = test_grdpts_id_config(
+     $            grdptsid_side(
+     $               test2_loc_borders(1,1):test2_loc_borders(1,2),
+     $               test2_loc_borders(2,1):test2_loc_borders(2,2)),
+     $            test2_array(
+     $               test2_loc_borders(1,1):test2_loc_borders(1,2),
+     $               test2_loc_borders(2,1):test2_loc_borders(2,2)))
+
+                if(.not.modify_anticorner) then
+                   exit
+                end if
+
+             end if
+
+          end do
+
+
+          if(modify_anticorner) then
+             bc_section(1) = new_anticorner_type
+          end if
+
+
+        end subroutine identify_anticorners_as_corners
 
 
         !> @author
