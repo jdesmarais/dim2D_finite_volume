@@ -31,6 +31,9 @@
         use dim2d_prim_module, only :
      $       speed_of_sound
 
+        use far_field_perturbation_module, only :
+     $       add_far_field_perturbation
+
         use ic_abstract_class, only :
      $       ic_abstract
 
@@ -347,7 +350,7 @@
           x_s = x
           y_s = y
 
-          mass = get_mass_far_field()
+          mass = get_mass_far_field(T0)
 
           if(rkind.eq.8) then
              var = 8.0d0*mass*T0/(3.0d0-mass) - 3.0d0*mass**2
@@ -394,6 +397,7 @@
           real(rkind) :: mass
           real(rkind) :: velocity_x
           real(rkind) :: velocity_y
+          real(rkind) :: temperature
 
           character(10) :: name_s
           
@@ -402,9 +406,19 @@
           y_s = y
           name_s = this%name
 
-          mass       = get_mass_far_field()
-          velocity_x = get_velocity_x()
-          velocity_y = get_velocity_y()
+          velocity_x  = get_velocity_x()
+          velocity_y  = get_velocity_y()
+          temperature = T0
+
+
+          ! add the perturbation
+          call add_far_field_perturbation(
+     $         velocity_x,
+     $         velocity_y,
+     $         temperature)
+
+
+          mass = get_mass_far_field(temperature)
 
           if(rkind.eq.8) then
 
@@ -412,7 +426,7 @@
              var(2) = mass*velocity_x
              var(3) = mass*velocity_y
              var(4) = 0.5d0*mass*(velocity_x**2+velocity_y**2) +
-     $                mass*(8.0d0/3.0d0*cv_r*T0-3.0d0*mass)
+     $                mass*(8.0d0/3.0d0*cv_r*temperature-3.0d0*mass)
 
           else
 
@@ -420,7 +434,7 @@
              var(2) = mass*velocity_x
              var(3) = mass*velocity_y
              var(4) = 0.5*mass*(velocity_x**2+velocity_y**2) +
-     $                mass*(8.0/3.0*cv_r*T0-3.0*mass)
+     $                mass*(8.0/3.0*cv_r*temperature-3.0*mass)
 
           end if
 
@@ -475,18 +489,19 @@
         end function get_velocity_y
 
 
-        function get_mass_far_field()
+        function get_mass_far_field(temperature)
      $     result(mass)
 
           implicit none
 
-          real(rkind) :: mass
+          real(rkind), intent(in) :: temperature
+          real(rkind)             :: mass
 
           select case(phase_at_center)
             case(vapor)
-               mass = get_mass_density_liquid(T0)
+               mass = get_mass_density_liquid(temperature)
             case(liquid)
-               mass = get_mass_density_vapor(T0)
+               mass = get_mass_density_vapor(temperature)
             case default
                print '(''bubble_transported/ic_class'')'
                print '(''get_speed_of_sound'')'
@@ -508,7 +523,7 @@
           real(rkind), dimension(ne) :: nodes
           real(rkind)                :: mass
 
-          mass = get_mass_far_field()
+          mass = get_mass_far_field(T0)
 
           if(rkind.eq.8) then
              nodes(1) = mass

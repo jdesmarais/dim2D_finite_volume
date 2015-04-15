@@ -268,8 +268,8 @@ def get_large_domain_extent(small_domain_extent,
     
     #distance travelled by the perturbations during the simulation
     distance_travelled = (abs(flow_velocity)+speed_of_sound)*simulation_time
-    nb_add_x_grdpts    = math.ceil(distance_travelled/(2.0*dx))
-    nb_add_y_grdpts    = math.ceil(distance_travelled/(2.0*dy))
+    nb_add_x_grdpts    = int(math.ceil(distance_travelled/(2.0*dx)))
+    nb_add_y_grdpts    = int(math.ceil(distance_travelled/(2.0*dy)))
     
 
     #extent of the large domain
@@ -279,6 +279,21 @@ def get_large_domain_extent(small_domain_extent,
     y_max = small_domain_extent[1][1]
     
     large_domain_extent = [[0 for x in range(2)] for x in range(2)]
+
+
+    #the total number of grdpts for the large domain
+    #should be a multiple of 8 such that the total number
+    #of grdpts is not modified when run in parallel
+    nb_pts_x = int(round((x_max-x_min)/dx))+1+2*nb_add_x_grdpts
+    while (not nb_pts_x%8==0):
+        nb_add_x_grdpts+=1
+        nb_pts_x = int(round((x_max-x_min)/dx))+1+2*nb_add_x_grdpts
+
+    nb_pts_y = int(round((x_max-x_min)/dx))+1+2*nb_add_y_grdpts
+    while (not nb_pts_y%8==0):
+        nb_add_y_grdpts+=1
+        nb_pts_y = int(round((x_max-x_min)/dx))+1+2*nb_add_y_grdpts
+    
     large_domain_extent[0][0] = x_min - nb_add_x_grdpts*dx
     large_domain_extent[1][0] = x_max + nb_add_x_grdpts*dx
     large_domain_extent[0][1] = y_min - nb_add_y_grdpts*dy

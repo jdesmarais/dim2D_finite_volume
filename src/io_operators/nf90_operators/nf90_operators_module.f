@@ -61,8 +61,16 @@
      $       obc_edge_xy_strategy,
      $       obc_edge_flux_strategy,
      $       obc_edge_overlap_ac,
+     $       obc_perturbation_T0_ac,
+     $       obc_perturbation_vx0_ac,
+     $       obc_perturbation_vy0_ac,
+     $       obc_perturbation_T0_amp,
+     $       obc_perturbation_vx0_amp,
+     $       obc_perturbation_vy0_amp,
      $       io_onefile_per_proc,
-     $       debug_adapt_computational_domain
+     $       debug_adapt_computational_domain,
+     $       ic_perturbation_ac,
+     $       ic_perturbation_amp
 
         use pmodel_eq_class, only :
      $       pmodel_eq
@@ -247,12 +255,36 @@
                !DEC$ FORCEINLINE RECURSIVE
                call nf90_handle_err(retval)
 
+
+               if(ic_perturbation_ac) then
+                  call nf90_handle_err(
+     $                 nf90_put_att(
+     $                 ncid,
+     $                 NF90_GLOBAL,
+     $                 'ic_perturbation_ac',
+     $                 'activated'))
+
+                  call nf90_handle_err(
+     $                 nf90_put_att(
+     $                 ncid,
+     $                 NF90_GLOBAL,
+     $                 'ic_perturbation_amp',
+     $                 ic_perturbation_amp))
+
+               else
+                  call nf90_handle_err(
+     $                 nf90_put_att(
+     $                 ncid,
+     $                 NF90_GLOBAL,
+     $                 'ic_perturbation_ac',
+     $                 'deactivated'))
+               end if
+
           end select
 
 
           !boundary conditions
-          call nf90_write_header_bc(ncid)
-          
+          call nf90_write_header_bc(ncid)          
 
 
           !<write the characteristic parameters for the physical model
@@ -407,7 +439,79 @@
           end if
 
 
-          ! threshold for detection of interafce
+          ! activation of the perturbations
+          ! in the far field values
+          if(obc_perturbation_T0_ac) then
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'obc_perturbation_T0_ac',
+     $            'activated'))
+
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'obc_perturbation_T0_amp',
+     $            obc_perturbation_T0_amp))
+          else
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'obc_perturbation_T0_ac',
+     $            'deactivated'))
+          end if
+
+          if(obc_perturbation_vx0_ac) then
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'obc_perturbation_vx0_ac',
+     $            'activated'))
+
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'obc_perturbation_vx0_amp',
+     $            obc_perturbation_vx0_amp))
+          else
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'obc_perturbation_vx0_ac',
+     $            'deactivated'))
+          end if
+
+          if(obc_perturbation_vy0_ac) then
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'obc_perturbation_vy0_ac',
+     $            'activated'))
+
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'obc_perturbation_vy0_amp',
+     $            obc_perturbation_vy0_amp))
+          else
+             call nf90_handle_err(
+     $            nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'obc_perturbation_vy0_ac',
+     $            'deactivated'))
+          end if
+
+
+          ! threshold for detection of interface
           if(bf_openbc_md_threshold_ac) then
              retval = nf90_put_att(
      $            ncid,
@@ -435,7 +539,8 @@
              call nf90_handle_err(retval)
 
           end if
-             
+
+
           end select
 
 

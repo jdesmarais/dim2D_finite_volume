@@ -24,17 +24,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -0.2523500000d0
-        real(rkind), parameter :: x_max = 0.2523500000d0
-        real(rkind), parameter :: y_min = -0.2523500000d0
-        real(rkind), parameter :: y_max = 0.2523500000d0
+        real(rkind), parameter :: x_min = -1.8488500000d0
+        real(rkind), parameter :: x_max = 1.8488500000d0
+        real(rkind), parameter :: y_min = -1.8488500000d0
+        real(rkind), parameter :: y_max = 1.8488500000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 2.5632000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0002000000d0
+        real(rkind), parameter :: t_max = 35.9533000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0023000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 1.0000000000d0
+        real(rkind), parameter :: detail_print = 0.0640000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -112,7 +112,7 @@
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
         real(rkind), parameter :: flow_velocity = 0.1000000000d0
         
-        real(rkind), parameter :: T0 = 0.9500000000d0
+        real(rkind), parameter :: T0 = 0.9990000000d0
 
         integer    , parameter :: ic_choice = bubble_transported
         integer    , parameter :: ic_perturbation_ac = .false.
@@ -177,11 +177,61 @@
         !
         !                        1) obc_edge_flux_capillarity
         !                        2) obc_edge_flux_no_capillarity
-        !-----------------------------------------------------
+        !
+        !------------------------------------------------------------
+        !openbc_perturbation_T0_ac : integer
+        !------------------------------------------------------------
+        ! 1: activate the perturbation of the temperature used to 
+        !    determine the far field values
+        ! 0: do not activate the perturbation of the temperature used
+        !    to determine the far field values
+        !
+        !------------------------------------------------------------
+        !openbc_perturbation_vx0_ac : integer
+        !------------------------------------------------------------
+        ! 1: activate the perturbation of the x-component of the
+        !    velocity used to determine the far field values
+        ! 0: do not activate the perturbation of the x-component of
+        !    the velocity used to determine the far field values
+        !
+        !------------------------------------------------------------
+        !openbc_perturbation_vy0_ac : integer
+        !------------------------------------------------------------
+        ! 1: activate the perturbation of the y-component of the
+        !    velocity used to determine the far field values
+        ! 0: do not activate the perturbation of the y-component of
+        !    the velocity used to determine the far field values
+        !
+        !------------------------------------------------------------
+        !openbc_perturbation_T0_amp : real
+        !------------------------------------------------------------
+        ! amplitude of the perturbation applied to the temperature
+        ! used to compute the far field values
+        !
+        !------------------------------------------------------------
+        !openbc_perturbation_vx0_amp : real
+        !------------------------------------------------------------
+        ! amplitude of the perturbation applied to the x-component of
+        ! the velocity used to compute the far field values
+        !
+        !------------------------------------------------------------
+        !openbc_perturbation_vy0_amp : real
+        !------------------------------------------------------------
+        ! amplitude of the perturbation applied to the y-component of
+        ! the velocity used to compute the far field values
+        !------------------------------------------------------------
         integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
-        integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
+        integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_diag_flux
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
-        integer    , parameter :: obc_edge_overlap_ac     = .false.
+        integer    , parameter :: obc_edge_overlap_ac     = .true.
+        
+        integer    , parameter :: openbc_perturbation_T0_ac  = 0
+        integer    , parameter :: openbc_perturbation_vx0_ac = 0
+        integer    , parameter :: openbc_perturbation_vy0_ac = 0
+
+        real(rkind), parameter :: openbc_perturbation_T0_amp  = 0.0d0
+        real(rkind), parameter :: openbc_perturbation_vx0_amp = 0.0d0
+        real(rkind), parameter :: openbc_perturbation_vy0_amp = 0.0d0
 
 
         !------------------------------------------------------------
@@ -256,7 +306,7 @@
         !
         !------------------------------------------------------------
         logical    , parameter :: bf_openbc_md_threshold_ac = .true.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.3000000000d0
 
 
         !------------------------------------------------------------

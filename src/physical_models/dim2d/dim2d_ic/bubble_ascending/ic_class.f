@@ -31,6 +31,9 @@
         use dim2d_vortex_module, only :
      $       get_vortex_velocity
 
+        use far_field_perturbation_module, only :
+     $       add_far_field_perturbation
+
         use ic_abstract_class, only :
      $       ic_abstract
 
@@ -424,18 +427,41 @@
 
           real(rkind) :: t_s,x_s,y_s
           real(rkind) :: mass
+          real(rkind) :: velocity_x
+          real(rkind) :: velocity_y
+          real(rkind) :: temperature          
           
           t_s = t
           x_s = x
           y_s = y
 
-           select case(phase_at_center)
+          if(rkind.eq.8) then
+             velocity_x = 0.0d0
+             velocity_y = 0.0d0
+
+          else
+             velocity_x = 0.0
+             velocity_y = 0.0
+
+          end if
+
+          temperature = T0
+
+
+          ! add the perturbation
+          call add_far_field_perturbation(
+     $         velocity_x,
+     $         velocity_y,
+     $         temperature)
+
+
+          select case(phase_at_center)
 
             case(liquid)
-               mass = get_mass_density_vapor(T0)
+               mass = get_mass_density_vapor(temperature)
 
             case(vapor)
-               mass = get_mass_density_liquid(T0)
+               mass = get_mass_density_liquid(temperature)
 
             case default
                print '(''dim2d/dim2d_ic/bubble_ascending'')'
@@ -443,21 +469,21 @@
                print '(''phase_at_center not recognized'')'
                stop ''
 
-          end select
+          end select          
 
           if(rkind.eq.8) then
 
              var(1) = mass
-             var(2) = 0.0d0
-             var(3) = 0.0d0
-             var(4) = mass*(8.0d0/3.0d0*cv_r*T0-3.0d0*mass)
+             var(2) = velocity_x
+             var(3) = velocity_y
+             var(4) = mass*(8.0d0/3.0d0*cv_r*temperature-3.0d0*mass)
 
           else
 
              var(1) = mass
-             var(2) = 0.0d0
-             var(3) = 0.0d0
-             var(4) = mass*(8.0/3.0*cv_r*T0-3.0*mass)
+             var(2) = velocity_x
+             var(3) = velocity_y
+             var(4) = mass*(8.0/3.0*cv_r*temperature-3.0*mass)
 
           end if
 

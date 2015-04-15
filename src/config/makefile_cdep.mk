@@ -68,7 +68,9 @@ dim2d_flux_dep=		dim2d_parameters.o\
 			dim2d_fluxes_module.o
 
 dim2d_ic_dep=		ic_abstract_class.o\
-			ic_class.o
+			ic_class.o\
+			gaussian_perturbation_module.o\
+			far_field_perturbation_module.o
 
 dim2d_dep=		$(ns_vdw2d_dep)\
 			$(dim2d_flux_dep)\

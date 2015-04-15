@@ -106,6 +106,14 @@
      $       get_mass_density_liquid,
      $       get_mass_density_vapor
 
+        ! perturbation for the far-field values
+        use far_field_perturbation_module, only :
+     $       add_far_field_perturbation
+
+        !gaussian perturbation for the initial conditions
+        use gaussian_perturbation_module, only :
+     $       add_gaussian_perturbation
+
 
         !diffuse interface model initial conditions
         use ic_class, only :
@@ -150,7 +158,9 @@
      $       obc_eigenqties_strategy,
      $       bf_openbc_md_threshold_ac,
      $       bf_openbc_md_threshold,
-     $       obc_edge_flux_strategy
+     $       obc_edge_flux_strategy,
+     $       ic_perturbation_ac,
+     $       ic_perturbation_amp
 
         use parameters_kind, only :
      $       ikind,
@@ -837,7 +847,34 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
           real(rkind), dimension(:)    , intent(in)    :: x_map
           real(rkind), dimension(:)    , intent(in)    :: y_map
 
+
+          real(rkind) :: md_vap
+          real(rkind) :: md_liq
+          real(rkind) :: amplitude
+
+
+          ! apply the initial conditions on the nodes
+          ! depending on the I.C. chosen (bubble transported...)
           call this%initial_conditions%apply_ic(nodes,x_map,y_map)
+
+
+          ! if the addition of perturbations is activated, we
+          ! compute the maximum of the perturbation amplitude
+          ! as a ratio of the difference between the liquid
+          ! and vapor mass densities
+          if(ic_perturbation_ac) then
+
+             md_vap = get_mass_density_vapor(T0)
+             md_liq = get_mass_density_liquid(T0)
+             amplitude = abs((md_liq-md_vap)*ic_perturbation_amp)
+             
+             call add_gaussian_perturbation(
+     $            x_map,
+     $            y_map,
+     $            nodes(:,:,1),
+     $            amplitude)
+
+          end if
 
         end subroutine apply_ic
 

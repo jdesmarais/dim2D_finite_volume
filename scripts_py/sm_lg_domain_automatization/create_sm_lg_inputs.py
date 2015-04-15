@@ -16,6 +16,14 @@ import shutil
 
 from automatization_csts import (md_threshold_ac_default,
                                  md_threshold_default,
+                                 ic_perturbation_ac_default,
+                                 ic_perturbation_amp_default,
+                                 bc_perturbation_T0_ac_default,
+                                 bc_perturbation_T0_amp_default,
+                                 bc_perturbation_vx0_ac_default,
+                                 bc_perturbation_vx0_amp_default,
+                                 bc_perturbation_vy0_ac_default,
+                                 bc_perturbation_vy0_amp_default,
                                  nb_pts_in_interface_default,
                                  ratio_bubble_interface_default,
                                  CFL_constant_default,
@@ -229,6 +237,14 @@ def get_inputsToBeModified(temperature,
                            flow_velocity,
                            md_threshold_ac,
                            md_threshold,
+                           ic_perturbation_ac,
+                           ic_perturbation_amp,
+                           bc_perturbation_T0_ac,
+                           bc_perturbation_T0_amp,
+                           bc_perturbation_vx0_ac,
+                           bc_perturbation_vx0_amp,
+                           bc_perturbation_vy0_ac,
+                           bc_perturbation_vy0_amp,
                            nb_pts_in_interface,
                            ratio_bubble_interface,
                            CFL_constant,
@@ -332,34 +348,50 @@ def get_inputsToBeModified(temperature,
 
     # gather the inputs to be modified in dictionnaries
     inputsToBeModified_sm_domain = {
-        'detail_print'           : detail_print,
-        'dt'                     : dt_max,
-        't_max'                  : simulation_time,
-        'dx'                     : dx_max,
-        'x_min'                  : small_domain_extent[0][0],
-        'x_max'                  : small_domain_extent[1][0],
-        'dy'                     : dx_max,
-        'y_min'                  : small_domain_extent[0][1],
-        'y_max'                  : small_domain_extent[1][1],
-        'flow_velocity'          : flow_velocity,
-        'temperature'            : temperature,
-        'openbc_md_threshold_ac' : md_threshold_ac,
-        'openbc_md_threshold'    : md_threshold}
+        'detail_print'                : detail_print,
+        'dt'                          : dt_max,
+        't_max'                       : simulation_time,
+        'dx'                          : dx_max,
+        'x_min'                       : small_domain_extent[0][0],
+        'x_max'                       : small_domain_extent[1][0],
+        'dy'                          : dx_max,
+        'y_min'                       : small_domain_extent[0][1],
+        'y_max'                       : small_domain_extent[1][1],
+        'flow_velocity'               : flow_velocity,
+        'temperature'                 : temperature,
+        'openbc_md_threshold_ac'      : md_threshold_ac,
+        'openbc_md_threshold'         : md_threshold,
+        'ic_perturbation_ac'          : ic_perturbation_ac,
+        'ic_perturbation_amp'         : ic_perturbation_amp,
+        'openbc_perturbation_T0_ac'   : bc_perturbation_T0_ac,
+        'openbc_perturbation_T0_amp'  : bc_perturbation_T0_amp,
+        'openbc_perturbation_vx0_ac'  : bc_perturbation_vx0_ac,
+        'openbc_perturbation_vx0_amp' : bc_perturbation_vx0_amp,
+        'openbc_perturbation_vy0_ac'  : bc_perturbation_vy0_ac,
+        'openbc_perturbation_vy0_amp' : bc_perturbation_vy0_amp}
 
     inputsToBeModified_lg_domain = {
-        'detail_print'           : detail_print,
-        'dt'                     : dt_max,
-        't_max'                  : simulation_time,
-        'dx'                     : dx_max,
-        'x_min'                  : large_domain_extent[0][0],
-        'x_max'                  : large_domain_extent[1][0],
-        'dy'                     : dx_max,
-        'y_min'                  : large_domain_extent[0][1],
-        'y_max'                  : large_domain_extent[1][1],
-        'flow_velocity'          : flow_velocity,
-        'temperature'            : temperature,
-        'openbc_md_threshold_ac' : 0,
-        'openbc_md_threshold'    : 0.0}
+        'detail_print'                : detail_print,
+        'dt'                          : dt_max,
+        't_max'                       : simulation_time,
+        'dx'                          : dx_max,
+        'x_min'                       : large_domain_extent[0][0],
+        'x_max'                       : large_domain_extent[1][0],
+        'dy'                          : dx_max,
+        'y_min'                       : large_domain_extent[0][1],
+        'y_max'                       : large_domain_extent[1][1],
+        'flow_velocity'               : flow_velocity,
+        'temperature'                 : temperature,
+        'openbc_md_threshold_ac'      : 0,
+        'openbc_md_threshold'         : 0.0,
+        'ic_perturbation_ac'          : 0,
+        'ic_perturbation_amp'         : 0.0,
+        'openbc_perturbation_T0_ac'   : 0,
+        'openbc_perturbation_T0_amp'  : 0.0,
+        'openbc_perturbation_vx0_ac'  : 0,
+        'openbc_perturbation_vx0_amp' : 0.0,
+        'openbc_perturbation_vy0_ac'  : 0,
+        'openbc_perturbation_vy0_amp' : 0.0}
 
         
     return [inputsToBeModified_sm_domain,
@@ -416,6 +448,14 @@ def create_sm_lg_inputs(temperature,
                         lg_domain                 = 'inputs_lg_domain.txt',
                         md_threshold_ac           = md_threshold_ac_default,
                         md_threshold              = md_threshold_default,
+                        ic_perturbation_ac        = ic_perturbation_ac_default,
+                        ic_perturbation_amp       = ic_perturbation_amp_default,
+                        bc_perturbation_T0_ac     = bc_perturbation_T0_ac_default,
+                        bc_perturbation_T0_amp    = bc_perturbation_T0_amp_default,
+                        bc_perturbation_vx0_ac    = bc_perturbation_vx0_ac_default,
+                        bc_perturbation_vx0_amp   = bc_perturbation_vx0_amp_default,
+                        bc_perturbation_vy0_ac    = bc_perturbation_vy0_ac_default,
+                        bc_perturbation_vy0_amp   = bc_perturbation_vy0_amp_default,
                         nb_pts_in_interface       = nb_pts_in_interface_default,
                         ratio_bubble_interface    = ratio_bubble_interface_default,
                         CFL_constant              = CFL_constant_default,
@@ -434,6 +474,14 @@ def create_sm_lg_inputs(temperature,
         flow_velocity,
         md_threshold_ac,
         md_threshold,
+        ic_perturbation_ac,
+        ic_perturbation_amp,
+        bc_perturbation_T0_ac,
+        bc_perturbation_T0_amp,
+        bc_perturbation_vx0_ac,
+        bc_perturbation_vx0_amp,
+        bc_perturbation_vy0_ac,
+        bc_perturbation_vy0_amp,
         nb_pts_in_interface,
         ratio_bubble_interface,
         CFL_constant,
@@ -470,10 +518,20 @@ if __name__=="__main__":
     inputs['model_input']     = os.path.join(os.getenv('augeanstables'),
                                              'src','config','default_inputs','dim2d',
                                              'dim2d_bubble_transported_hedstrom_xy.txt')
-    inputs['sm_domain']       = 'inputs_sm_domain.txt'
-    inputs['lg_domain']       = 'inputs_lg_domain.txt'
-    inputs['md_threshold_ac'] = 1
-    inputs['md_threshold']    = 0.1
+
+    inputs['sm_domain']           = 'inputs_sm_domain.txt'
+    inputs['lg_domain']           = 'inputs_lg_domain.txt'
+    inputs['md_threshold_ac']     = 1
+    inputs['md_threshold']        = 0.1
+    inputs['ic_perturbation_ac']  = 1
+    inputs['ic_perturbation_amp'] = 0.1
+
+    inputs['bc_perturbation_T0']      = 1
+    inputs['bc_perturbation_T0_amp']  = 1.0
+    inputs['bc_perturbation_vx0']     = 1
+    inputs['bc_perturbation_vx0_amp'] = 2.0
+    inputs['bc_perturbation_vy0']     = 1
+    inputs['bc_perturbation_vy0_amp'] = 3.0
 
 
     # create the inputs
@@ -483,7 +541,15 @@ if __name__=="__main__":
                         sm_domain=inputs['sm_domain'],
                         lg_domain=inputs['lg_domain'],
                         md_threshold_ac=inputs['md_threshold_ac'],
-                        md_threshold=inputs['md_threshold'])
+                        md_threshold=inputs['md_threshold'],
+                        ic_perturbation_ac=inputs['ic_perturbation_ac'],
+                        ic_perturbation_amp=inputs['ic_perturbation_amp'],
+                        bc_perturbation_T0_ac=inputs['bc_perturbation_T0'],
+                        bc_perturbation_T0_amp=inputs['bc_perturbation_T0_amp'],
+                        bc_perturbation_vx0_ac=inputs['bc_perturbation_vx0'],
+                        bc_perturbation_vx0_amp=inputs['bc_perturbation_vx0_amp'],
+                        bc_perturbation_vy0_ac=inputs['bc_perturbation_vy0'],
+                        bc_perturbation_vy0_amp=inputs['bc_perturbation_vy0_amp'])
 
     
     

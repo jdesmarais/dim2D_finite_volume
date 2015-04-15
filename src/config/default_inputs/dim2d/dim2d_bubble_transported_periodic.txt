@@ -87,10 +87,61 @@ pm_choice = 4
 !                              |     | phase region                   |
 ! 0%   : 2 -> 1 and 3 -> 4      --------------------------------------
 ! 100% : 2 and 3 are located at the middle point between 1 and 2
+!
+!------------------------------------------------------------
+!openbc_perturbation_T0_ac : integer
+!------------------------------------------------------------
+! 1: activate the perturbation of the temperature used to 
+!    determine the far field values
+! 0: do not activate the perturbation of the temperature used to 
+!    determine the far field values
+!
+!------------------------------------------------------------
+!openbc_perturbation_vx0_ac : integer
+!------------------------------------------------------------
+! 1: activate the perturbation of the x-component of the
+!    velocity used to determine the far field values
+! 0: do not activate the perturbation of the x-component of the
+!    velocity used to determine the far field values
+!
+!------------------------------------------------------------
+!openbc_perturbation_vy0_ac : integer
+!------------------------------------------------------------
+! 1: activate the perturbation of the y-component of the
+!    velocity used to determine the far field values
+! 0: do not activate the perturbation of the y-component of the
+!    velocity used to determine the far field values
+!
+!------------------------------------------------------------
+!openbc_perturbation_T0_amp : real
+!------------------------------------------------------------
+! amplitude of the perturbation applied to the temperature
+! used to compute the far field values
+!
+!------------------------------------------------------------
+!openbc_perturbation_vx0_amp : real
+!------------------------------------------------------------
+! amplitude of the perturbation applied to the x-component of
+! the velocity used to compute the far field values
+!
+!------------------------------------------------------------
+!openbc_perturbation_vy0_amp : real
+!------------------------------------------------------------
+! amplitude of the perturbation applied to the y-component of
+! the velocity used to compute the far field values
+!
 !---------------------------------------------------------
 bc_choice = 0
 openbc_md_threshold_ac = 1
 openbc_md_threshold    = 0.1
+
+openbc_perturbation_T0_ac  = 0
+openbc_perturbation_vx0_ac = 0
+openbc_perturbation_vy0_ac = 0
+
+openbc_perturbation_T0_amp  = 0.0d0
+openbc_perturbation_vx0_amp = 0.0d0
+openbc_perturbation_vy0_amp = 0.0d0
 
 
 !6.    Initial conditions
@@ -130,12 +181,28 @@ openbc_md_threshold    = 0.1
 ! 4 : drop heads-on collision
 ! 5 : phase separation
 ! 6 : bubble transported
+!
+!------------------------------------------------------------
+!ic_perturbation_ac : integer
+!------------------------------------------------------------
+! 1: activate the superposition of perturbation in the initial
+!    conditions
+! 0: do not activate the superposition of perturbation in the
+!    initial conditions
+!
+!------------------------------------------------------------
+!ic_perturbation_amp : real
+!------------------------------------------------------------
+! maximum amplitude of the perturbation in the initial
+! conditions
+!
 !---------------------------------------------------------
 flow_direction = N
 flow_velocity = 0.1
 temperature = 0.995
 ic_choice = 6
-
+ic_perturbation_ac = 0
+ic_perturbation_amp = 0.0
 
 !7.     DIM equations
 !---------------------------------------------------------

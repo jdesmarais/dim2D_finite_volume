@@ -22,7 +22,13 @@ from create_sm_lg_inputs import (get_parameter,
                                  create_sm_lg_inputs)
 
 # get the name of the folder for the simulation
-def get_simulation_dir(temperature,flow_velocity,md_threshold):
+def get_simulation_dir(temperature,
+                       flow_velocity,
+                       md_threshold=0,
+                       ic_perturbation_amp=0,
+                       bc_perturbation_T0_amp=0,
+                       bc_perturbation_vx0_amp=0,
+                       bc_perturbation_vy0_amp=0):
     '''
     @description
     get the name of the folder where the simulation results
@@ -36,6 +42,18 @@ def get_simulation_dir(temperature,flow_velocity,md_threshold):
                 
     if(md_threshold!=0):
         simDir+='_md'+str(md_threshold)
+
+    if(ic_perturbation_amp!=0):
+        simDir+='_ic'+str(ic_perturbation_amp)
+
+    if(bc_perturbation_T0_amp!=0):
+        simDir+='_T0'+str(bc_perturbation_T0_amp)
+
+    if(bc_perturbation_vx0_amp!=0):
+        simDir+='_vx0'+str(bc_perturbation_vx0_amp)
+
+    if(bc_perturbation_vy0_amp!=0):
+        simDir+='_vy0'+str(bc_perturbation_vy0_amp)
 
     #simDir+='_parallel'
 
@@ -302,7 +320,7 @@ def create_simulation(destDir,
     nameRun+= nameRun_suffix
     simulation_duration = estimate_simulation_duration(inputPath)
     walltime = estimate_wall_time(simulation_duration,
-                                  safety_ratio=1.5,
+                                  safety_ratio=2.0,
                                   nb_tiles_option=nb_tiles_option)
 
     pbsScriptPath = destDir+'/run_sim.job'
@@ -403,6 +421,14 @@ def generate_sm_lg_results(mainDir,
                            bf_layer_option=False,
                            md_threshold_ac=0,
                            md_threshold=0.0,
+                           ic_perturbation_ac=0,
+                           ic_perturbation_amp=0.0,
+                           bc_perturbation_T0_ac=0,
+                           bc_perturbation_T0_amp=0.0,
+                           bc_perturbation_vx0_ac=0,
+                           bc_perturbation_vx0_amp=0.0,
+                           bc_perturbation_vy0_ac=0,
+                           bc_perturbation_vy0_amp=0.0,
                            small_domain_run=True,
                            large_domain_run=True,
                            nb_tiles_option=[4,4]):
@@ -423,11 +449,18 @@ def generate_sm_lg_results(mainDir,
 
 
     #2) create the directory to save the simulations
-    if(md_threshold_ac==1):
-        destDir = get_simulation_dir(temperature,flow_velocity,md_threshold)
-    else:
-        destDir = get_simulation_dir(temperature,flow_velocity,0)
-
+    if(md_threshold_ac==0):
+        md_threshold=0
+    if(ic_perturbation_ac==0):
+        ic_perturbation_amp=0
+    
+    destDir = get_simulation_dir(temperature,
+                                 flow_velocity,
+                                 md_threshold=md_threshold,
+                                 ic_perturbation_amp=ic_perturbation_amp,
+                                 bc_perturbation_T0_amp=bc_perturbation_T0_amp,
+                                 bc_perturbation_vx0_amp=bc_perturbation_vx0_amp,
+                                 bc_perturbation_vy0_amp=bc_perturbation_vy0_amp)
     destDir = os.path.join(mainDir,destDir)
 
     
@@ -458,8 +491,16 @@ def generate_sm_lg_results(mainDir,
                         sm_domain=inputPath_sm_domain,
                         lg_domain=inputPath_lg_domain,
                         md_threshold_ac=md_threshold_ac,
-                        md_threshold=md_threshold)
-
+                        md_threshold=md_threshold,
+                        ic_perturbation_ac=ic_perturbation_ac,
+                        ic_perturbation_amp=ic_perturbation_amp,
+                        bc_perturbation_T0_ac=0,
+                        bc_perturbation_T0_amp=0.0,
+                        bc_perturbation_vx0_ac=0,
+                        bc_perturbation_vx0_amp=0.0,
+                        bc_perturbation_vy0_ac=0,
+                        bc_perturbation_vy0_amp=0.0)
+    
 
     #4) create dir, generate executable, create PBS
     #   script file for small domain

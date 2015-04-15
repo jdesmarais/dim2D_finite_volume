@@ -122,6 +122,21 @@ def set_commit(file_path):
     print 'update parameters_constant.f for commit '+commit_ID
     
 
+# convert an integer into a logical string
+def int_to_logical_str(input_int):
+    '''
+    @description:
+    convert an integer into a logical string
+    '''    
+
+    if(input_int==1):
+        input_loc = '.true.'
+    else:
+        input_loc = '.false.'
+    
+    return input_loc
+
+
 # read the parameters saved in the input text file
 def read_inputs(filename, inputs_needed):
     '''
@@ -179,6 +194,10 @@ def compute_n_par(npx,x_min,x_max,dx,bc_size):
     n_total         = int(round((x_max-x_min)/dx))+1           #total number of grid points w/o b.c.
     n_per_proc      = int(round(float(n_total)*1./float(npx))) #number of grdpts per processor w/o the b.c.
     n_per_proc_w_bc = n_per_proc + 2*bc_size                   #number of grdpts per processor w/ the b.c.
+
+    
+    if(not n_per_proc*npx==n_total):
+        print '****total number of grdpts different b/w sequential and parallel****'
 
     return n_per_proc_w_bc
 
@@ -296,10 +315,18 @@ def compute_code_inputs(inputFileName,nbTiles):
                    'bc_choice',
                    'openbc_md_threshold_ac',
                    'openbc_md_threshold',
+                   'openbc_perturbation_T0_ac',
+                   'openbc_perturbation_vx0_ac',
+                   'openbc_perturbation_vy0_ac',
+                   'openbc_perturbation_T0_amp',
+                   'openbc_perturbation_vx0_amp',
+                   'openbc_perturbation_vy0_amp',
                    'flow_direction',
                    'flow_velocity',
                    'temperature',
                    'ic_choice',
+                   'ic_perturbation_ac',
+                   'ic_perturbation_amp',
                    'gravity_choice',
                    'wave_forcing']
     inputs=read_inputs(inputFileName, inputs_needed)
@@ -347,6 +374,10 @@ def compute_code_inputs(inputFileName,nbTiles):
     else:
         ic_choice = ns2d_ic_code[0]
 
+    # compute the ic_perturbation_ac
+    ic_perturbation_ac = int_to_logical_str(
+        int(inputs['ic_perturbation_ac']))
+
     # determine the flow parameters
     flow_direction = flow_direction_code[inputs['flow_direction']][0]
     flow_x_side    = flow_direction_code[inputs['flow_direction']][1]
@@ -391,11 +422,21 @@ def compute_code_inputs(inputFileName,nbTiles):
         bc_E_type_choice = bc_type_code[2]
         bc_W_type_choice = bc_type_code[2]
 
-    # compute the openbc_md_threshold
-    if(int(inputs['openbc_md_threshold_ac'])==1):
-        openbc_md_threshold_ac = '.true.'
-    else:
-        openbc_md_threshold_ac = '.false.'
+    # compute the openbc_md_threshold_ac
+    openbc_md_threshold_ac = int_to_logical_str(
+        int(inputs['openbc_md_threshold_ac']))
+
+    # compute the openbc_perturbation_T0_ac
+    openbc_perturbation_T0_ac = int_to_logical_str(
+        int(inputs['openbc_perturbation_T0_ac']))
+
+    # compute the openbc_perturbation_vx0_ac
+    openbc_perturbation_vx0_ac = int_to_logical_str(
+        int(inputs['openbc_perturbation_vx0_ac']))
+
+    # compute the openbc_perturbation_vy0_ac
+    openbc_perturbation_vy0_ac = int_to_logical_str(
+        int(inputs['openbc_perturbation_vy0_ac']))
 
     # compute the gravity_choice
     gravity_choice = gravity_code[int(inputs['gravity_choice'])]
@@ -406,8 +447,12 @@ def compute_code_inputs(inputFileName,nbTiles):
             ntx,nty,ne,
             pm_choice,
             ic_choice,
+            ic_perturbation_ac,
             bc_choice,
             openbc_md_threshold_ac,
+            openbc_perturbation_T0_ac,
+            openbc_perturbation_vx0_ac,
+            openbc_perturbation_vy0_ac,
             bc_N_type_choice,
             bc_S_type_choice,
             bc_E_type_choice,
@@ -424,8 +469,12 @@ def compute_code_inputs(inputFileName,nbTiles):
 def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
                              pm_choice,
                              ic_choice,
+                             ic_perturbation_ac,
                              bc_choice,
                              openbc_md_threshold_ac,
+                             openbc_perturbation_T0_ac,
+                             openbc_perturbation_vx0_ac,
+                             openbc_perturbation_vy0_ac,
                              bc_N_type_choice,
                              bc_S_type_choice,
                              bc_E_type_choice,
@@ -451,8 +500,12 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         'ne':ne,
         'pm_choice':pm_choice,
         'ic_choice':ic_choice,
+        'ic_perturbation_ac':ic_perturbation_ac,
         'bc_choice':bc_choice,
         'bf_openbc_md_threshold_ac':openbc_md_threshold_ac,
+        'obc_perturbation_T0_ac':openbc_perturbation_T0_ac,
+        'obc_perturbation_vx0_ac':openbc_perturbation_vx0_ac,
+        'obc_perturbation_vy0_ac':openbc_perturbation_vy0_ac,
         'bc_N_type_choice':bc_N_type_choice,
         'bc_S_type_choice':bc_S_type_choice,
         'bc_E_type_choice':bc_E_type_choice,
@@ -474,18 +527,22 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
     # change the constant that do require a special
     # output treatment (output format)
     constants_changed2={
-        'x_min':inputs['x_min'],
-        'x_max':inputs['x_max'],
-        'y_min':inputs['y_min'],
-        'y_max':inputs['y_max'],
-        't_max':inputs['t_max'],
-        'dt':inputs['dt'],
-        'detail_print':inputs['detail_print'],
-        'flow_x_side':flow_x_side,
-        'flow_y_side':flow_y_side,
-        'flow_velocity':inputs['flow_velocity'],
-        'T0':inputs['temperature'],
-        'bf_openbc_md_threshold':inputs['openbc_md_threshold']}
+        'x_min'                   : inputs['x_min'],
+        'x_max'                   : inputs['x_max'],
+        'y_min'                   : inputs['y_min'],
+        'y_max'                   : inputs['y_max'],
+        't_max'                   : inputs['t_max'],
+        'dt'                      : inputs['dt'],
+        'detail_print'            : inputs['detail_print'],
+        'flow_x_side'             : flow_x_side,
+        'flow_y_side'             : flow_y_side,
+        'flow_velocity'           : inputs['flow_velocity'],
+        'T0'                      : inputs['temperature'],
+        'ic_perturbation_amp'     : inputs['ic_perturbation_amp'],
+        'bf_openbc_md_threshold'  : inputs['openbc_md_threshold'],
+        'obc_perturbation_T0_amp' : inputs['openbc_perturbation_T0_amp'],
+        'obc_perturbation_vx0_amp': inputs['openbc_perturbation_vx0_amp'],
+        'obc_perturbation_vy0_amp': inputs['openbc_perturbation_vy0_amp']}
 
     for key, value in constants_changed2.items():
 
@@ -596,8 +653,12 @@ if __name__ == "__main__":
     [inputs,ntx,nty,ne,
      pm_choice,
      ic_choice,
+     ic_perturbation_ac,
      bc_choice,
      openbc_md_threshold_ac,
+     openbc_perturbation_T0_ac,
+     openbc_perturbation_vx0_ac,
+     openbc_perturbation_vy0_ac,
      bc_N_type_choice,
      bc_S_type_choice,
      bc_E_type_choice,
@@ -615,8 +676,12 @@ if __name__ == "__main__":
                              ntx,nty,ne,
                              pm_choice,
                              ic_choice,
+                             ic_perturbation_ac,
                              bc_choice,
                              openbc_md_threshold_ac,
+                             openbc_perturbation_T0_ac,
+                             openbc_perturbation_vx0_ac,
+                             openbc_perturbation_vy0_ac,
                              bc_N_type_choice,
                              bc_S_type_choice,
                              bc_E_type_choice,

@@ -37,18 +37,31 @@ if __name__=="__main__":
 
 
     # input used as template
-    model_input=os.path.join(
-        os.getenv('augeanstables'),'src','config','default_inputs','dim2d',
-        'dim2d_bubble_transported_hedstrom_xy.txt')
+    #------------------------------------------------------------
+    maindir_input = os.path.join(os.getenv('augeanstables'),
+                                 'src','config',
+                                 'default_inputs','dim2d')
+    ##for small domain simulations
+    #model_input=os.path.join(maindir_input,
+    #    'dim2d_bubble_transported_hedstrom_xy.txt')
 
-    large_domain_run          = False
-    small_domain_run          = True
+    #for large domain simulations
+    model_input=os.path.join(maindir_input,
+        'dim2d_bubble_transported_periodic.txt')
+    
+
+    large_domain_run          = True
+    small_domain_run          = False
     nb_tiles_option           = [8,8]
 
-    temperatureStudy          = False
-    velocityStudy             = False
-    thresholdTemperatureStudy = True
+    temperatureStudy          = True
+    velocityStudy             = True
+    thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
+    icPerturbationStudy       = False
+    bcPerturbationStudy_T0    = False
+    bcPerturbationStudy_vx0   = False
+    bcPerturbationStudy_vy0   = False
 
 
     #1) temperature study
@@ -75,11 +88,11 @@ if __name__=="__main__":
                                     nb_tiles_option=nb_tiles_option)
              
     
-    #2) flow mean velocity study
+    #2) meanflow velocity study
     if(velocityStudy):
 
         temperature         = 0.99
-        flow_velocity_array = [0.05] #[0.05,0.25,0.5]
+        flow_velocity_array = [0.05,0.25,0.5]
         md_threshold_ac     = 0
         
         for flow_velocity in flow_velocity_array:
@@ -147,11 +160,112 @@ if __name__=="__main__":
                                         nb_tiles_option=nb_tiles_option,
                                         md_threshold_ac=md_threshold_ac,
                                         md_threshold=md_threshold)
-    
-    
 
-    
-    
 
-    
+    #4) perturbation study
+    if(icPerturbationStudy):
+
+        temperature_array     = [0.95,0.99,0.995,0.999]
+        flow_velocity         = 0.1
+        ic_perturbation_array = [0.00001,0.0001,0.001,0.01,0.1]
+        ic_perturbation_ac    = 1
         
+        for ic_perturbation in ic_perturbation_array:
+            for temperature in temperature_array:
+
+                [destDir,
+                 nameRun_sm_domain,
+                 nameRun_lg_domain] =\
+                 \
+                 generate_sm_lg_results(mainDir,
+                                        temperature,
+                                        flow_velocity,
+                                        model_input,
+                                        bf_layer_option=True,
+                                        small_domain_run=small_domain_run,
+                                        large_domain_run=False,
+                                        nb_tiles_option=nb_tiles_option,
+                                        ic_perturbation_ac=ic_perturbation_ac,
+                                        ic_perturbation_amp=ic_perturbation)
+    
+    if(bcPerturbationStudy_T0):
+
+        temperature_array     = [0.95,0.99,0.995,0.999]
+        flow_velocity         = 0.1
+        bc_perturbation_array = [0.000005,0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05]
+        bc_perturbation_ac    = 1
+        
+        for bc_perturbation in bc_perturbation_array:
+            for temperature in temperature_array:
+
+                bc_perturbation_amp = temperature*bc_perturbation
+
+                [destDir,
+                 nameRun_sm_domain,
+                 nameRun_lg_domain] =\
+                 \
+                 generate_sm_lg_results(mainDir,
+                                        temperature,
+                                        flow_velocity,
+                                        model_input,
+                                        bf_layer_option=True,
+                                        small_domain_run=small_domain_run,
+                                        large_domain_run=False,
+                                        nb_tiles_option=nb_tiles_option,
+                                        bc_perturbation_T0_ac=bc_perturbation_ac,
+                                        bc_perturbation_T0_amp=bc_perturbation_amp)
+
+    if(bcPerturbationStudy_vx0):
+
+        temperature           = [0.95,0.99,0.995,0.999]
+        flow_velocity         = 0.1
+        bc_perturbation_array = [0.000005,0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05]
+        bc_perturbation_ac    = 1
+        
+        for bc_perturbation in bc_perturbation_array:
+            for temperature in temperature_array:
+
+                bc_perturbation_amp = bc_perturbation
+
+                [destDir,
+                 nameRun_sm_domain,
+                 nameRun_lg_domain] =\
+                 \
+                 generate_sm_lg_results(mainDir,
+                                        temperature,
+                                        flow_velocity,
+                                        model_input,
+                                        bf_layer_option=True,
+                                        small_domain_run=small_domain_run,
+                                        large_domain_run=False,
+                                        nb_tiles_option=nb_tiles_option,
+                                        bc_perturbation_vx0_ac=bc_perturbation_ac,
+                                        bc_perturbation_vx0_amp=bc_perturbation_amp)
+
+    if(bcPerturbationStudy_vy0):
+
+        temperature           = [0.95,0.99,0.995,0.999]
+        flow_velocity         = 0.1
+        bc_perturbation_array = [0.000005,0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05]
+        bc_perturbation_ac    = 1
+        
+        for bc_perturbation in bc_perturbation_array:
+            for temperature in temperature_array:
+
+                bc_perturbation_amp = flow_velocity*bc_perturbation
+
+                [destDir,
+                 nameRun_sm_domain,
+                 nameRun_lg_domain] =\
+                 \
+                 generate_sm_lg_results(mainDir,
+                                        temperature,
+                                        flow_velocity,
+                                        model_input,
+                                        bf_layer_option=True,
+                                        small_domain_run=small_domain_run,
+                                        large_domain_run=False,
+                                        nb_tiles_option=nb_tiles_option,
+                                        bc_perturbation_vy0_ac=bc_perturbation_ac,
+                                        bc_perturbation_vy0_amp=bc_perturbation_amp)
+
