@@ -1027,6 +1027,8 @@
           integer           :: size_rank
           character(len=16) :: format_string
 
+          integer :: ierror
+
 
           ! determine the character size to write the timestep
           if (timestep.eq.0) then
@@ -1051,7 +1053,16 @@
      $            ',A3)'
 
              !create the name of the file
-             write (filename, trim(format_string)) 'data', timestep, '_', rank, '.nc'
+             write (filename, trim(format_string), iostat=ierror) 'data', timestep, '_', rank, '.nc'
+
+             if(ierror.ne.0) then
+                print '(''error when writing the name of the file'')'
+                print '(''size_timestep : '',I5)', size_timestep
+                print '(''size_rank     : '',I5)', size_rank
+                print '(''timestep      : '',I5)', timestep
+                print '(''rank          : '',I5)', rank
+                stop ''
+             end if
 
           else
 

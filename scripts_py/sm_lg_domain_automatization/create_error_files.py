@@ -29,11 +29,13 @@ from library_sm_lg_results import get_simulation_dir
 from library_sm_lg_error import generate_error_files
 
 
-def get_paths_lg_simulations(temperature_array,
+def get_paths_lg_simulations(main_lg_dirs,
+                             temperature_array,
                              flow_velocity_array,
                              temperature_dict,
                              flow_velocity_dict):
-    '''@description
+    '''
+    @description
     create the paths to the results of the large domain
     '''
 
@@ -43,13 +45,87 @@ def get_paths_lg_simulations(temperature_array,
         for flow_velocity in flow_velocity_array:
 
             dir_name = get_simulation_dir(temperature,flow_velocity,0)
-            lg_dir   = os.path.join(main_lg_dirs,dir_name,'lg_domain')
+            lg_dir   = os.path.join(main_lg_dirs,dir_name,'lg_domain','tr_files')
             
             lg_dirs[temperature_dict[str(temperature)]].append(lg_dir)
 
         lg_dirs.append([])
 
     return lg_dirs
+
+
+def generate_simulation_error_files(
+    main_sm_dirs,
+    main_lg_dirs,
+    temperature_dict,
+    flow_velocity_dict,
+    lg_dirs,
+    temperature_array,
+    flow_velocity_array,
+    md_threshold_array=[0],
+    ic_perturbation_array=[0],
+    bc_perturbation_T0_array=[0],
+    bc_perturbation_vx0_array=[0],
+    bc_perturbation_vy0_array=[0]
+    ):
+    '''
+    @description
+    generate the error files for the results
+    '''
+
+    for bc_perturbation_T0 in bc_perturbation_T0_array:
+        for bc_perturbation_vx0 in bc_perturbation_vx0_array:
+            for bc_perturbation_vy0 in bc_perturbation_vy0_array:
+                for ic_perturbation in ic_perturbation_array:
+                    for md_threshold in md_threshold_array:
+                        for flow_velocity in flow_velocity_array:
+                            for temperature in temperature_array:
+            
+                                #print the parameters for which the error files are generated
+                                print 'temperature        : '+str(temperature)
+                                print 'velocity           : '+str(flow_velocity)
+                                print 'threshold          : '+str(md_threshold)
+                                print 'ic_perturbation    : '+str(ic_perturbation)
+                                print 'bc_perturbation_vy0: '+str(bc_perturbation_vy0)
+                                print 'bc_perturbation_vx0: '+str(bc_perturbation_vx0)
+                                print 'bc_perturbation_T0 : '+str(bc_perturbation_T0)
+                                print '------------------------------------------------------------'
+
+                                #small domain simulation results
+                                dir_name = get_simulation_dir(temperature,
+                                                              flow_velocity,
+                                                              md_threshold,
+                                                              ic_perturbation_amp=ic_perturbation,
+                                                              bc_perturbation_T0_amp=bc_perturbation_T0*temperature,
+                                                              bc_perturbation_vx0_amp=bc_perturbation_vx0,
+                                                              bc_perturbation_vy0_amp=bc_perturbation_vy0*flow_velocity)
+
+                                dataDir_sm_domain = os.path.join(main_sm_dirs,dir_name,'sm_domain')
+
+                                #large domain simulation results
+                                T_i = temperature_dict[str(temperature)]
+                                v_i = flow_velocity_dict[str(flow_velocity)]
+                                dataDir_lg_domain = lg_dirs[T_i][v_i]
+
+                                #check whether the sm_domain path exists
+                                sm_domain_exists = os.path.isdir(dataDir_sm_domain)
+                                if(not sm_domain_exists):
+                                    print 'sm_domain_path: ', dataDir_sm_domain
+                                    print '**** path does not exist ****'
+                
+                                #check whether the lg_domain path exists
+                                lg_domain_exists = os.path.isdir(dataDir_lg_domain)
+                                if(not lg_domain_exists):
+                                    print 'lg_domain_path: ', dataDir_lg_domain
+                                    print '**** path does not exist ****'
+
+                                #generate the error files by comparing the
+                                #two simulations
+                                if(sm_domain_exists and lg_domain_exists):
+
+                                    generate_error_files(
+                                        dataDir_sm_domain,
+                                        dataDir_lg_domain)
 
 
 if __name__=="__main__":
@@ -61,9 +137,11 @@ if __name__=="__main__":
                            'projects')
 
     main_sm_dirs = os.path.join(mainDir,
-                                '20150401_dim2d_bubble_transported')
+                                '20150414_dim2d_bb_trans_cv_r3.5_search4_over2_lin')
 
-    main_lg_dirs = os.path.join(mainDir)
+    main_lg_dirs = mainDir
+    #os.path.join(mainDir,
+    #                            '20150422_dim2d_bb_trans_cv_r3.5_lg')
 
 
     #paths for the large domain simulations
@@ -74,7 +152,8 @@ if __name__=="__main__":
 
     #create paths for large domani simulation results
     #------------------------------------------------------------
-    lg_dirs = get_paths_lg_simulations([0.95,0.99,0.995,0.999],
+    lg_dirs = get_paths_lg_simulations(main_lg_dirs,
+                                       [0.95,0.99,0.995,0.999],
                                        [0.05,0.1,0.25,0.5],
                                        temperature_dict,
                                        flow_velocity_dict)
@@ -94,124 +173,148 @@ if __name__=="__main__":
     #------------------------------------------------------------
     temperatureStudy          = False
     velocityStudy             = False
-    thresholdTemperatureStudy = True
+    thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
+    icPerturbationStudy       = False
+    bcPerturbationStudy_T0    = True
+    bcPerturbationStudy_vx0   = False
+    bcPerturbationStudy_vy0   = False
 
 
-#    #1) temperature study
-#    if(temperatureStudy):
-#
-#        temperature_array = [0.95,0.99,0.995,0.999]
-#        flow_velocity     = 0.1
-#        md_threshold_ac   = 0
-#        large_domain_run  = False
-#        
-#    
-#        for temperature in temperature_array:
-#            
-#            
-#            [destDir,
-#             nameRun_sm_domain,
-#             nameRun_lg_domain] =\
-#             \
-#             generate_sm_lg_results(mainDir,
-#                                    temperature,
-#                                    flow_velocity,
-#                                    model_input,
-#                                    bf_layer_option=True,
-#                                    large_domain_run=large_domain_run)
-#             
-#    
-#    #2) flow mean velocity study
-#    if(velocityStudy):
-#
-#        temperature         = 0.99
-#        flow_velocity_array = [0.05,0.25,0.5]
-#        md_threshold_ac     = 0
-#        large_domain_run    = False
-#        
-#        for flow_velocity in flow_velocity_array:
-#            
-#            [destDir,
-#             nameRun_sm_domain,
-#             nameRun_lg_domain] =\
-#             \
-#             generate_sm_lg_results(mainDir,
-#                                    temperature,
-#                                    flow_velocity,
-#                                    model_input,
-#                                    bf_layer_option=True,
-#                                    large_domain_run=large_domain_run)
-#             
-#
-    #3) threshold study
+    #1) temperature study
+    if(temperatureStudy):
+
+        temperature_array   = [0.95,0.99,0.995,0.999]
+        flow_velocity_array = [0.1]
+        
+        generate_simulation_error_files(
+            main_sm_dirs,
+            main_lg_dirs,
+            temperature_dict,
+            flow_velocity_dict,
+            lg_dirs,
+            temperature_array,
+            flow_velocity_array)
+
+    
+    #2) flow mean velocity study
+    if(velocityStudy):
+
+        temperature_array   = [0.99]
+        flow_velocity_array = [0.05,0.25,0.5]
+        
+        generate_simulation_error_files(
+            main_sm_dirs,
+            main_lg_dirs,
+            temperature_dict,
+            flow_velocity_dict,
+            lg_dirs,
+            temperature_array,
+            flow_velocity_array)
+
+
+    #3) threshold studies
     if(thresholdTemperatureStudy):
 
-        temperature_array  = [0.95]#0.95,0.99,0.995,0.999]
-        flow_velocity      = 0.1
-        md_threshold_array = [0.1, 0.2, 0.3]
+        temperature_array   = [0.95,0.99,0.995,0.999]
+        flow_velocity_array = [0.1]
+        md_threshold_array  = [0.05, 0.1, 0.2, 0.3]
         
-        for md_threshold in md_threshold_array:
-            for temperature in temperature_array:
-                
-                #small domain simulation results
-                dir_name          = get_simulation_dir(temperature,flow_velocity,md_threshold)
-                dataDir_sm_domain = os.path.join(main_sm_dirs,dir_name,'sm_domain')
-
-                #large domain simulation results
-                T_i = temperature_dict[str(temperature)]
-                v_i = flow_velocity_dict[str(flow_velocity)]
-                dataDir_lg_domain = lg_dirs[T_i][v_i]
-
-                #check whether the sm_domain path exists
-                sm_domain_exists = os.path.isdir(dataDir_sm_domain)
-                if(not sm_domain_exists):
-                    print 'sm_domain_path: ', dataDir_sm_domain
-                    print '**** path does not exist ****'
-                    
-                
-                #check whether the lg_domain path exists
-                lg_domain_exists = os.path.isdir(dataDir_lg_domain)
-                if(not lg_domain_exists):
-                    print 'lg_domain_path: ', dataDir_lg_domain
-                    print '**** path does not exist ****'
-                    exit
-
-                #generate the error files by comparing the
-                #two simulations
-                if(sm_domain_exists and lg_domain_exists):
-                    generate_error_files(
-                        dataDir_sm_domain,
-                        dataDir_lg_domain)
-
-
-#    if(thresholdVelocityStudy):
-#        temperature         = 0.99
-#        flow_velocity_array = [0.05,0.25,0.1,0.5]
-#        md_threshold_array  = [0.01, 0.05, 0.1, 0.2, 0.3]
-#        md_threshold_ac     = 1
-#        large_domain_run    = False
-#    
-#        for md_threshold in md_threshold_array:
-#            for flow_velocity in flow_velocity_array:
-#                
-#                [destDir,
-#                 nameRun_sm_domain,
-#                 nameRun_lg_domain] =\
-#                 \
-#                 generate_sm_lg_results(mainDir,
-#                                        temperature,
-#                                        flow_velocity,
-#                                        model_input,
-#                                        bf_layer_option=True,
-#                                        large_domain_run=large_domain_run,
-#                                        md_threshold_ac=md_threshold_ac,
-#                                        md_threshold=md_threshold)
-    
-    
-
-    
-    
-
-    
         
+        generate_simulation_error_files(
+            main_sm_dirs,
+            main_lg_dirs,
+            temperature_dict,
+            flow_velocity_dict,
+            lg_dirs,
+            temperature_array,
+            flow_velocity_array,
+            md_threshold_array=md_threshold_array)
+
+
+    if(thresholdVelocityStudy):
+        
+        temperature_array   = [0.99]
+        flow_velocity_array = [0.25,0.5]
+        md_threshold_array  = [0.05, 0.1, 0.2, 0.3]
+        
+        
+        generate_simulation_error_files(
+            main_sm_dirs,
+            main_lg_dirs,
+            temperature_dict,
+            flow_velocity_dict,
+            lg_dirs,
+            temperature_array,
+            flow_velocity_array,
+            md_threshold_array=md_threshold_array)
+
+    
+    #4) perturbation studies
+    if(icPerturbationStudy):
+
+        temperature_array     = [0.95,0.99,0.995,0.999]
+        flow_velocity_array   = [0.1]
+        ic_perturbation_array = [0.00001,0.0001,0.001,0.01,0.1]
+
+
+        generate_simulation_error_files(
+            main_sm_dirs,
+            main_lg_dirs,
+            temperature_dict,
+            flow_velocity_dict,
+            lg_dirs,
+            temperature_array,
+            flow_velocity_array,
+            ic_perturbation_array=ic_perturbation_array)
+
+        
+    if(bcPerturbationStudy_T0):
+
+        temperature_array     = [0.95,0.99,0.995,0.999]
+        flow_velocity_array   = [0.1]
+        bc_perturbation_array = [0.000005,0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05]
+
+        generate_simulation_error_files(
+            main_sm_dirs,
+            main_lg_dirs,
+            temperature_dict,
+            flow_velocity_dict,
+            lg_dirs,
+            temperature_array,
+            flow_velocity_array,
+            bc_perturbation_T0_array=bc_perturbation_array)
+
+     
+    if(bcPerturbationStudy_vx0):
+
+        temperature_array     = [0.95,0.99,0.995,0.999]
+        flow_velocity_array   = [0.1]
+        bc_perturbation_array = [0.000005,0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05]
+
+        generate_simulation_error_files(
+            main_sm_dirs,
+            main_lg_dirs,
+            temperature_dict,
+            flow_velocity_dict,
+            lg_dirs,
+            temperature_array,
+            flow_velocity_array,
+            bc_perturbation_vx0_array=bc_perturbation_array)
+
+    
+    if(bcPerturbationStudy_vy0):
+
+        temperature_array     = [0.95,0.99,0.995,0.999]
+        flow_velocity_array   = [0.1]
+        bc_perturbation_array = [0.000005,0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05]
+
+        generate_simulation_error_files(
+            main_sm_dirs,
+            main_lg_dirs,
+            temperature_dict,
+            flow_velocity_dict,
+            lg_dirs,
+            temperature_array,
+            flow_velocity_array,
+            bc_perturbation_vy0_array=bc_perturbation_array)        

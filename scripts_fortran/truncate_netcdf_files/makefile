@@ -16,6 +16,16 @@ cmd_operators_truncate_class.o:	$(param_dir)/parameters_kind.o
 
 
 
+truncate_netcdf_file.o:	cmd_operators_truncate_class.o\
+				nf90_operators_truncate_module.o
+
+truncate_netcdf_file:		check_data_module.o\
+				cmd_operators_truncate_class.o\
+				nf90_operators_truncate_module.o\
+				parameters_cst.o\
+				parameters_kind.o
+
+
 truncate_netcdf_files_par.o:	cmd_operators_truncate_class.o\
 				nf90_operators_truncate_module.o
 

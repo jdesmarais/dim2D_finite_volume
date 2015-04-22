@@ -41,7 +41,7 @@ if __name__=="__main__":
     #------------------------------------------------------------
     mainDir = os.path.join(os.getenv('HOME'),
                            'projects',
-                           '20150401_dim2d_bubble_transported')
+                           '20150414_dim2d_bb_trans_cv_r3.5_search4_over2_lin')
 
 
     # dictionnaries to associate a temperature parameter with
@@ -65,8 +65,8 @@ if __name__=="__main__":
     #                               threshold study on velocity
     #------------------------------------------------------------
     temperatureStudy          = False
-    velocityStudy             = False
-    thresholdTemperatureStudy = True
+    velocityStudy             = True
+    thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
 
 
@@ -100,9 +100,9 @@ if __name__=="__main__":
 
     logScale = True
 
-    plot_ylim_T           = [0.00001,0.1]
-    plot_ylim_v           = 'None'
-    plot_ylim_T_threshold = [0.000001,0.1]
+    plot_ylim_T           = [0.00001 , 0.1  ]
+    plot_ylim_v           = [0.000001, 0.005]
+    plot_ylim_T_threshold = [0.000001, 0.1  ]
     plot_ylim_v_threshold = 'None'
 
     fig_T           = 'fig_error_temperature.eps'
@@ -143,7 +143,7 @@ if __name__=="__main__":
     #============================================================
     if(temperatureStudy):
 
-        temperature_array = [0.99,0.995,0.999]
+        temperature_array = [0.95,0.99,0.995,0.999]
         flow_velocity     = 0.1
         md_threshold      = 0
         
