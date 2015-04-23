@@ -24,28 +24,28 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -2.9512000000d0
-        real(rkind), parameter :: x_max = 2.9512000000d0
-        real(rkind), parameter :: y_min = -2.9512000000d0
-        real(rkind), parameter :: y_max = 2.9512000000d0
+        real(rkind), parameter :: x_min = -0.5768000000d0
+        real(rkind), parameter :: x_max = 0.5768000000d0
+        real(rkind), parameter :: y_min = -0.5768000000d0
+        real(rkind), parameter :: y_max = 0.5768000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 2.2560000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0005000000d0
+        real(rkind), parameter :: t_max = 22.5592000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0006000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.2217000000d0
+        real(rkind), parameter :: detail_print = 1.0000000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
         !<mpi choice
-        integer, parameter :: npx = 8 !<number of processors along x
-        integer, parameter :: npy = 8 !<number of processors along y
+        integer, parameter :: npx = 1 !<number of processors along x
+        integer, parameter :: npy = 1 !<number of processors along y
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 560
-        integer(ikind), parameter :: nty = 560
+        integer(ikind), parameter :: ntx = 108
+        integer(ikind), parameter :: nty = 108
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -110,7 +110,7 @@
         integer    , parameter :: flow_direction = y_direction
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.5000000000d0
+        real(rkind), parameter :: flow_velocity = 0.0500000000d0
         
         real(rkind), parameter :: T0 = 0.9900000000d0
 
@@ -123,7 +123,7 @@
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = periodic_xy_choice
+        integer, parameter :: bc_choice = hedstrom_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
@@ -144,10 +144,10 @@
         !bc_W_type_choice : type of boundary condition applied
         !                   at the West boundary
         !-----------------------------------------------------
-        integer    , parameter :: bc_N_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_S_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_E_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_W_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_N_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_S_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_E_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_W_type_choice = bc_timedev_choice
 
 
         !-----------------------------------------------------
@@ -221,7 +221,7 @@
         ! the velocity used to compute the far field values
         !------------------------------------------------------------
         integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
-        integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_diag_flux
+        integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
         integer    , parameter :: obc_edge_overlap_ac     = .true.
         
@@ -305,8 +305,8 @@
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
         !------------------------------------------------------------
-        logical    , parameter :: bf_openbc_md_threshold_ac = .false.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.0000000000d0
+        logical    , parameter :: bf_openbc_md_threshold_ac = .true.
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.2000000000d0
 
 
         !------------------------------------------------------------

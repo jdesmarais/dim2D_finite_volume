@@ -349,6 +349,9 @@ mainlayer_interface_grdpts_id_update_dep=\
 				$(mainlayer_interface_newgrdpt_dep)\
 				mainlayer_interface_grdpts_id_update_class.o
 
+mainlayer_interface_icr_dep=	$(mainlayer_interface_grdpts_id_update_dep)\
+				mainlayer_interface_icr_class.o
+
 #bf_mainlayer objects
 bf_mainlayer_basic_dep= $(bf_sublayer_dep)\
 			bf_mainlayer_basic_class.o

@@ -40,7 +40,8 @@
      $       update_anticorner_for_merge,
      $       test_grdpts_id_config,
      $       get_edge_test_param,
-     $       get_anticorner_test_param
+     $       get_anticorner_test_param,
+     $       get_extent_bc_section_edge
 
 
         contains
@@ -867,5 +868,52 @@ c$$$                end if
           end select
 
         end subroutine get_anticorner_test_param
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the extent of the bc_section of type edge
+        !
+        !> @date
+        !> 23_04_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> mainlayer_interface_dyn enhanced with procedures enabling
+        !> the reorganization of the bc_sections initialized by
+        !> the buffer layer
+        !
+        !>@param bc_section
+        !> parameters characterizing the bc_section
+        !> [type of bc_section,i_min,j_min,max,overlap]
+        !
+        !>@return extent 
+        !> extent of the edge (in the x-direction for N and S edges,
+        !> in the y-direction for E and W edges)
+        !--------------------------------------------------------------
+        function get_extent_bc_section_edge(bc_section)
+     $     result(extent)
+
+          integer(ikind), dimension(5), intent(in) :: bc_section
+          integer(ikind)                           :: extent
+
+
+          select case(bc_section(1))
+            case(N_edge_type,S_edge_type)
+               extent = bc_section(4) - bc_section(2) + 1
+
+            case(E_edge_type,W_edge_type)
+               extent = bc_section(4) - bc_section(3) + 1
+
+            case default
+               print '(''bf_layer_bc_sections_merge_module'')'
+               print '(''get_extent_bc_section_edge'')'
+               print '(''edge_bc_section not recognized: '',I2)', bc_section(1)
+               stop ''
+
+          end select
+
+        end function get_extent_bc_section_edge
 
       end module bf_layer_bc_sections_merge_module

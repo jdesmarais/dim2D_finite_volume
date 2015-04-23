@@ -42,20 +42,20 @@ if __name__=="__main__":
                                  'src','config',
                                  'default_inputs','dim2d')
     ##for small domain simulations
-    #model_input=os.path.join(maindir_input,
-    #    'dim2d_bubble_transported_hedstrom_xy.txt')
+    model_input=os.path.join(maindir_input,
+        'dim2d_bubble_transported_hedstrom_xy.txt')
 
     #for large domain simulations
-    model_input=os.path.join(maindir_input,
-        'dim2d_bubble_transported_periodic.txt')
+    #model_input=os.path.join(maindir_input,
+    #    'dim2d_bubble_transported_periodic.txt')
     
 
-    large_domain_run          = True
-    small_domain_run          = False
+    large_domain_run          = False
+    small_domain_run          = True
     nb_tiles_option           = [8,8]
 
     temperatureStudy          = True
-    velocityStudy             = True
+    velocityStudy             = False
     thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
     icPerturbationStudy       = False
@@ -67,7 +67,7 @@ if __name__=="__main__":
     #1) temperature study
     if(temperatureStudy):
 
-        temperature_array = [0.95,0.99,0.995,0.999]
+        temperature_array = [0.999]#[0.95,0.99,0.995,0.999]
         flow_velocity     = 0.1
         md_threshold_ac   = 0
         

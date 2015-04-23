@@ -606,6 +606,20 @@ test_mainlayer_interface_grdpts_id_update:\
 				$(mainlayer_interface_grdpts_id_update_dep)\
 				check_data_module.o
 
+test_mainlayer_interface_icr.o:\
+				$(bf_layer_dir)/bf_layer_class.o\
+				$(mbf_layer_dir)/mainlayer_interface_icr_class.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_kind.o
+
+test_mainlayer_interface_icr:	$(param_dep)\
+				$(mt_dep)\
+				$(dim2d_dep)\
+				$(hedstrom_xy_dep)\
+				$(fv_dep)\
+				$(mainlayer_interface_icr_dep)
+
 #bf_interface parents
 test_bf_interface_basic.o:	$(ipbf_layer_dir)/bf_interface_basic_class.o\
 				$(bf_layer_dir)/bf_mainlayer_class.o\

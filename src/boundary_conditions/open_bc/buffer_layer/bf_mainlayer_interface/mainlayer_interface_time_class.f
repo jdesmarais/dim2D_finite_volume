@@ -140,7 +140,7 @@
              call reinitialize_overlaps(bc_sections)
 
 
-             ! check whether edge casn overlap anti-corners
+             ! check whether edge can overlap anti-corners
              nb_ele_removed = 0
 
              side = [left,right]
@@ -159,9 +159,7 @@
      $                    bc_sections,i,
      $                    side,
      $                    bf_layer_used,
-     $                    nb_ele_removed)
-                  
-                  
+     $                    nb_ele_removed)                  
 
                 end select
                   

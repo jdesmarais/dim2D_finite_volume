@@ -308,6 +308,11 @@ file=test_mainlayer_interface_grdpts_id_update
 perform_test $file
 
 
+#test_mainlayer_interface_icr
+file=test_mainlayer_interface_icr
+perform_test $file
+
+
 #test_bf_increase_coords_module
 file=test_bf_increase_coords
 perform_test $file

@@ -513,8 +513,8 @@ if __name__=="__main__":
 
     inputs = {}
     
-    inputs['temperature']     = 0.95
-    inputs['flow_velocity']   = 0.1
+    inputs['temperature']     = 0.99
+    inputs['flow_velocity']   = 0.05
     inputs['model_input']     = os.path.join(os.getenv('augeanstables'),
                                              'src','config','default_inputs','dim2d',
                                              'dim2d_bubble_transported_hedstrom_xy.txt')
@@ -522,16 +522,16 @@ if __name__=="__main__":
     inputs['sm_domain']           = 'inputs_sm_domain.txt'
     inputs['lg_domain']           = 'inputs_lg_domain.txt'
     inputs['md_threshold_ac']     = 1
-    inputs['md_threshold']        = 0.1
-    inputs['ic_perturbation_ac']  = 1
-    inputs['ic_perturbation_amp'] = 0.1
+    inputs['md_threshold']        = 0.2
+    inputs['ic_perturbation_ac']  = 0
+    inputs['ic_perturbation_amp'] = 0.0
 
-    inputs['bc_perturbation_T0']      = 1
-    inputs['bc_perturbation_T0_amp']  = 1.0
-    inputs['bc_perturbation_vx0']     = 1
-    inputs['bc_perturbation_vx0_amp'] = 2.0
-    inputs['bc_perturbation_vy0']     = 1
-    inputs['bc_perturbation_vy0_amp'] = 3.0
+    inputs['bc_perturbation_T0']      = 0
+    inputs['bc_perturbation_T0_amp']  = 0.0
+    inputs['bc_perturbation_vx0']     = 0
+    inputs['bc_perturbation_vx0_amp'] = 0.0
+    inputs['bc_perturbation_vy0']     = 0
+    inputs['bc_perturbation_vy0_amp'] = 0.0
 
 
     # create the inputs

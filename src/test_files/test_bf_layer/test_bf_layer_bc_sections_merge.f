@@ -6,7 +6,8 @@
      $       update_anticorner_for_merge,
      $       test_grdpts_id_config,
      $       get_edge_test_param,
-     $       get_anticorner_test_param
+     $       get_anticorner_test_param,
+     $       get_extent_bc_section_edge
 
         use check_data_module, only :
      $       is_int_validated,
@@ -53,6 +54,12 @@
 
         detailled = .true.
         test_validated = .true.
+
+
+        test_loc = test_get_extent_bc_section_edge(detailled)
+        test_validated=test_validated.and.test_loc
+        print '(''test_get_extent_bc_section_edge: '',L1)', test_loc
+        print '()'
 
 
         test_loc = test_get_anticorner_test_param(detailled)
@@ -818,5 +825,53 @@
           end do
 
         end function test_get_anticorner_test_param
+
+
+        function test_get_extent_bc_section_edge(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          integer       , parameter             :: nb_tests = 4
+          integer(ikind), dimension(5,nb_tests) :: test_bc_sections
+          integer(ikind), dimension(nb_tests)   :: test_extent
+
+          integer :: k
+          logical :: test_loc
+
+
+          test_bc_sections = reshape((/
+     $         N_edge_type,1,2,4, no_overlap,
+     $         S_edge_type,1,2,3, no_overlap,
+     $         E_edge_type,7,1,9, no_overlap,
+     $         W_edge_type,1,5,9, no_overlap/),
+     $         (/5,4/))
+
+          test_extent = [4,3,9,5]
+
+          
+          test_validated = .true.
+
+
+          do k=1, nb_tests
+
+             test_loc = is_int_validated(
+     $            get_extent_bc_section_edge(test_bc_sections(:,k)),
+     $            test_extent(k),
+     $            detailled)
+
+             test_validated = test_validated.and.test_loc
+
+             if(detailled.and.(.not.test_loc)) then
+                print '(''test( '',I2,'' ) failed'')', k
+             end if
+
+          end do
+
+        end function test_get_extent_bc_section_edge
 
       end program test_bf_layer_bc_sections_merge
