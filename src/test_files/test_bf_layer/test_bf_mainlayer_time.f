@@ -81,12 +81,12 @@
         test_validated = test_validated.and.test_loc
         print '(''test_compute_time_dev: '',L1)', test_loc
         print '()'
-
-
-        test_loc = test_compute_integration_step(detailled)
-        test_validated = test_validated.and.test_loc
-        print '(''test_compute_integration_step: '',L1)', test_loc
-        print '()'
+        !
+        !
+        !test_loc = test_compute_integration_step(detailled)
+        !test_validated = test_validated.and.test_loc
+        !print '(''test_compute_integration_step: '',L1)', test_loc
+        !print '()'
 
 
         print '(''test_validated: '',L1)', test_validated

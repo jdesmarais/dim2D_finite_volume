@@ -51,7 +51,8 @@
      $       N,S,E,W
 
         use parameters_input, only :
-     $       nx,ny,ne
+     $       nx,ny,ne,
+     $       obc_crenel_removal_ac
 
         use parameters_kind, only :
      $       ikind,
@@ -69,6 +70,12 @@
 
         detailled = .true.
         test_validated = .true.
+
+
+        test_loc = test_update_entire_edge(detailled)
+        test_validated = test_validated.and.test_loc
+        print '(''test_update_entire_edge: '',L1)', test_loc
+        print ''
 
 
         test_loc = test_is_interior_node_activated(detailled)
@@ -385,9 +392,9 @@
      $         interior_nodes,
      $         bf_alignment_tmp)
 
-          allocate(added_sublayer%bc_sections(5,1))
+          allocate(added_sublayer%dct_sections(5,1))
 
-          added_sublayer%bc_sections(:,1) = [N_edge_type,1,3,6,no_overlap]
+          added_sublayer%dct_sections(:,1) = [N_edge_type,1,3,6,no_overlap]
 
           interior_nodes(align_W+3:align_W+8,align_N-dct_icr_distance,1) = 
      $         [A,A,A,A,A,A]
@@ -405,9 +412,9 @@
      $         interior_nodes,
      $         bf_alignment_tmp)
 
-          allocate(added_sublayer%bc_sections(5,1))
+          allocate(added_sublayer%dct_sections(5,1))
 
-          added_sublayer%bc_sections(:,1) = [N_edge_type,1,3,7,no_overlap]
+          added_sublayer%dct_sections(:,1) = [N_edge_type,1,3,7,no_overlap]
 
           interior_nodes(align_W+15:align_W+21,align_N-dct_icr_distance,1) = 
      $         [A,A,A,A,A,A,A]
@@ -559,9 +566,9 @@
      $         interior_nodes,
      $         bf_alignment_tmp)
 
-          allocate(added_sublayer%bc_sections(5,1))
+          allocate(added_sublayer%dct_sections(5,1))
 
-          added_sublayer%bc_sections(:,1) = [N_edge_type,1,3,6,no_overlap]
+          added_sublayer%dct_sections(:,1) = [N_edge_type,1,3,6,no_overlap]
 
           test_nb_pts(1) = 6
           test_pts(:,1:6) = reshape((/
@@ -589,9 +596,9 @@
      $         interior_nodes,
      $         bf_alignment_tmp)
 
-          allocate(added_sublayer%bc_sections(5,1))
+          allocate(added_sublayer%dct_sections(5,1))
 
-          added_sublayer%bc_sections(:,1) = [N_edge_type,1,3,7,no_overlap]
+          added_sublayer%dct_sections(:,1) = [N_edge_type,1,3,7,no_overlap]
 
           test_nb_pts(2) = 7
           test_pts(:,7:13) = reshape((/
@@ -2349,6 +2356,67 @@
         end function test_is_interior_node_activated
 
 
+        function test_update_entire_edge(detailled)
+     $     result(test_validated)
+
+          implicit none
+
+          logical, intent(in) :: detailled
+          logical             :: test_validated
+
+
+          type(bf_interface_icr)       :: bf_interface_used
+          type(bf_sublayer), pointer   :: bf_sublayer_ptr
+          integer(ikind), dimension(5) :: bc_section
+
+
+          if(detailled.and.(.not.obc_crenel_removal_ac)) then
+             print '(''obc_crenel_removal_ac: '',L1)', obc_crenel_removal_ac
+          end if
+
+
+          ! we test whether an edge with two
+          ! anti-cornersof type (merge+overlap) is
+          ! present at the sides of an edge-like
+          ! bc_section is adapted
+          !
+          !  3 3 3 3 3_3_____3_3 3 3 3 3
+          !  3 2 2 2|2 3|3 3|3 2|2 2 2 3
+          !  3 2    |2_2|2_2|2_2|    2 3
+          !  3 2                     2 3
+          !  3 2                     2 3
+          !  2 2                     2 2
+          !--------------------------------------------
+          allocate(bf_sublayer_ptr)
+          bf_sublayer_ptr%alignment = reshape((/
+     $         align_W+5, align_N, align_W+14, align_N+4/),
+     $         (/2,2/))
+
+          bf_sublayer_ptr%localization = N
+
+          allocate(bf_sublayer_ptr%grdpts_id(14,9))
+
+          bf_sublayer_ptr%grdpts_id = reshape((/
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+     $         1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+     $         2,2,1,1,1,1,1,1,1,1,1,1,2,2,
+     $         3,2,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         3,2,1,1,1,1,1,1,1,1,1,1,2,3,
+     $         3,2,1,1,2,2,2,2,2,2,1,1,2,3,
+     $         3,2,2,2,2,3,3,3,3,2,2,2,2,3,
+     $         3,3,3,3,3,3,0,0,3,3,3,3,3,3,
+     $         0,0,0,0,0,0,0,0,0,0,0,0,0,0/),
+     $         (/14,9/))
+
+          bc_section = [N_edge_type,7,6,8,no_overlap]
+
+          test_validated = bf_interface_used%update_entire_edge(
+     $         bf_sublayer_ptr,
+     $         bc_section)
+
+        end function test_update_entire_edge
+
+
         subroutine check_inputs()
 
           implicit none
@@ -2379,6 +2447,5 @@
           end if
 
         end subroutine check_inputs
-
 
       end program test_bf_interface_icr

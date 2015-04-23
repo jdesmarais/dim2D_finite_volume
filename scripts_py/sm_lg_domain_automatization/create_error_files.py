@@ -26,7 +26,7 @@ and \f$ v \in [0.05, 0.1, 0.25, 0.5]  \f$
 import os
 
 from library_sm_lg_results import get_simulation_dir
-from library_sm_lg_error import generate_error_files
+from library_sm_lg_error   import generate_error_files
 
 
 def get_paths_lg_simulations(main_lg_dirs,
@@ -171,12 +171,12 @@ if __name__=="__main__":
     # - thresholdVelocityStudy    : create error files for the
     #                               threshold study on velocity
     #------------------------------------------------------------
-    temperatureStudy          = False
+    temperatureStudy          = True
     velocityStudy             = False
     thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
     icPerturbationStudy       = False
-    bcPerturbationStudy_T0    = True
+    bcPerturbationStudy_T0    = False
     bcPerturbationStudy_vx0   = False
     bcPerturbationStudy_vy0   = False
 
@@ -184,7 +184,7 @@ if __name__=="__main__":
     #1) temperature study
     if(temperatureStudy):
 
-        temperature_array   = [0.95,0.99,0.995,0.999]
+        temperature_array   = [0.999] #[0.95,0.99,0.995,0.999]
         flow_velocity_array = [0.1]
         
         generate_simulation_error_files(

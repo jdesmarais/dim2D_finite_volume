@@ -64,8 +64,8 @@ if __name__=="__main__":
     # - thresholdVelocityStudy    : create error graph for the
     #                               threshold study on velocity
     #------------------------------------------------------------
-    temperatureStudy          = False
-    velocityStudy             = True
+    temperatureStudy          = True
+    velocityStudy             = False
     thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
 

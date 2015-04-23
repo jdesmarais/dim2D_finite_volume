@@ -60,8 +60,75 @@ change_param_input(){
     change_param $param_input $1 $2
 }
 
-change_param_dim2d(){
-    change_param $param_dim2d $1 $2
+comment_param_dim2d(){
+    tmp=temp.f
+    sed -e s/"$1"/"!$1"/g < $param_dim2d > $tmp
+    mv $tmp $param_dim2d
+}
+
+uncomment_param_dim2d(){
+    tmp=temp.f
+    sed -e s/"!$1"/"$1"/g < $param_dim2d > $tmp
+    mv $tmp $param_dim2d
+}
+
+use_test_cv_r_dim2d(){
+
+    comment_param_dim2d 'real(rkind), parameter :: cv_r = dim2d_M'
+    uncomment_param_dim2d 'real(rkind), parameter :: cv_r = 2.5d0'
+
+}
+
+use_normal_cv_r_dim2d(){
+
+    uncomment_param_dim2d 'real(rkind), parameter :: cv_r = dim2d_M'
+    comment_param_dim2d 'real(rkind), parameter :: cv_r = 2.5d0'
+
+}
+
+use_test_param_dim2d(){
+
+    echo '******************************************************'
+    echo '*WARNING: using test parameters in dim2d_parameters.f*'
+    echo '******************************************************'
+
+    use_test_cv_r_dim2d
+
+    comment_param_dim2d 'real(rkind), parameter :: viscous_r = dim2d_nu'
+    comment_param_dim2d 'real(rkind), parameter :: Re = rho_c'
+    comment_param_dim2d 'real(rkind), parameter :: We = (length_c'
+    comment_param_dim2d 'real(rkind), parameter :: Pr = dim2d_mu'
+    comment_param_dim2d 'real(rkind), parameter :: gravity = 0.03d0'
+
+    uncomment_param_dim2d 'real(rkind), parameter :: viscous_r = -1.5d0'
+    uncomment_param_dim2d 'real(rkind), parameter :: Re = 5.0d0'
+    uncomment_param_dim2d 'real(rkind), parameter :: We = 10.0d0'
+    uncomment_param_dim2d 'real(rkind), parameter :: Pr = 20.0d0'
+    uncomment_param_dim2d 'real(rkind), parameter :: gravity = 9.81d0'
+
+}
+
+
+use_normal_param_dim2d(){
+
+    echo '********************************************************'
+    echo '*WARNING: using normal parameters in dim2d_parameters.f*'
+    echo '********************************************************'
+
+    use_normal_cv_r_dim2d
+
+    uncomment_param_dim2d 'real(rkind), parameter :: viscous_r = dim2d_nu'
+    uncomment_param_dim2d 'real(rkind), parameter :: Re = rho_c'
+    uncomment_param_dim2d 'real(rkind), parameter :: We = (length_c'
+    uncomment_param_dim2d 'real(rkind), parameter :: Pr = dim2d_mu'
+    uncomment_param_dim2d 'real(rkind), parameter :: gravity = 0.03d0'
+
+    comment_param_dim2d 'real(rkind), parameter :: viscous_r = -1.5d0'
+    comment_param_dim2d 'real(rkind), parameter :: Re = 5.0d0'
+    comment_param_dim2d 'real(rkind), parameter :: We = 10.0d0'
+    comment_param_dim2d 'real(rkind), parameter :: Pr = 20.0d0'
+    comment_param_dim2d 'real(rkind), parameter :: gravity = 9.81d0'
+
 }
 
 

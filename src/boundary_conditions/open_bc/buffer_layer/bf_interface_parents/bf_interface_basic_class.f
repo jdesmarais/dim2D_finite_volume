@@ -20,8 +20,8 @@
         use bf_mainlayer_pointer_class, only :
      $       bf_mainlayer_pointer
 
-        use mainlayer_interface_grdpts_id_update_class, only :
-     $       mainlayer_interface_grdpts_id_update
+        use mainlayer_interface_icr_class, only :
+     $       mainlayer_interface_icr
 
         use parameters_input, only :
      $       nx,ny
@@ -53,8 +53,8 @@
         !---------------------------------------------------------------
         type :: bf_interface_basic
 
-          type(bf_mainlayer_pointer), dimension(4)   :: mainlayer_pointers
-          type(mainlayer_interface_grdpts_id_update) :: mainlayer_interfaces
+          type(bf_mainlayer_pointer), dimension(4) :: mainlayer_pointers
+          type(mainlayer_interface_icr)            :: mainlayer_interfaces
 
           contains
 

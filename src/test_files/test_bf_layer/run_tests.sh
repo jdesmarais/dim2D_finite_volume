@@ -9,6 +9,13 @@ test_dir=$augeanstables/src/test_files/test_bf_layer
 #============================================================
 #main body
 #============================================================
+
+#************************************************************
+#use the test parameters for dim2d_parameters.f
+#************************************************************
+use_test_cv_r_dim2d
+
+
 AUGEANSTABLES_PARALLEL=false
 change_param_input 'npx' '1'
 change_param_input 'npy' '1'
@@ -393,3 +400,9 @@ perform_test $file
 #test_bf_interface_class
 file=test_bf_interface_dcr
 perform_test $file
+
+
+#************************************************************
+# replace back the normal dim2d_parameters.f
+#************************************************************
+use_normal_cv_r_dim2d

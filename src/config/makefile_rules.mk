@@ -145,6 +145,8 @@ tests_par: test_field_par\
 sims:	sim_dim2d
 
 #objects
+#$(eval file := $(shell basename $@))
+#@(printf "compilation: %-60s\r" $(file))
 %.o:	%.f
 	@(basename $@)
 	@($(PREP) $(FC) $(FFLAGS) -c $< $(INCLUDE))

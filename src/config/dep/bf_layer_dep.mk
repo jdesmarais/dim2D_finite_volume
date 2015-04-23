@@ -220,7 +220,7 @@ $(mbf_layer_dir)/mainlayer_interface_icr_class.o:\
 $(ipbf_layer_dir)/bf_interface_basic_class.o:\
 	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(bf_layer_dir)/bf_mainlayer_pointer_class.o\
-	$(mbf_layer_dir)/mainlayer_interface_grdpts_id_update_class.o\
+	$(mbf_layer_dir)/mainlayer_interface_icr_class.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 

@@ -75,7 +75,8 @@
      $       adapt_N_choice,
      $       adapt_S_choice,
      $       adapt_E_choice,
-     $       adapt_W_choice
+     $       adapt_W_choice,
+     $       obc_crenel_removal_ac
 
         use parameters_constant, only :
      $       interior,
@@ -165,6 +166,10 @@
         !
         !> @param is_node_activated
         !> determine whether a grid-point is activated
+        !
+        !> @param update_entire_edge
+        !> check whether the entire edge should be updated
+        !> to prevent boundary crenel
         !-------------------------------------------------------------
         type, extends(bf_interface_coords) :: bf_interface_icr
 
@@ -186,6 +191,7 @@
           ! procedures to know which bc_interior_pt are
           ! activated in a bc_section
           procedure,   pass :: stage
+          procedure,   pass :: update_entire_edge
           procedure,   pass :: analyze_bc_section_edge_y
           procedure,   pass :: analyze_bc_section_edge_x
           procedure,   pass :: analyze_bc_section_xy
@@ -198,7 +204,6 @@
           procedure, nopass :: is_interior_node_activated
           procedure,   pass :: is_bf_layer_node_activated
           procedure,   pass :: is_node_activated
-
 
         end type bf_interface_icr
 
@@ -1618,6 +1623,8 @@
           logical                      :: node_activated
           integer(ikind)               :: last_j_added
           integer(ikind)               :: j
+
+          logical :: update_edge
           
 
           call determine_edge_grdpts_computed(
@@ -1659,74 +1666,96 @@
           ! are analyzed
           if(analyze) then
 
-             loc_i_analyzed =
-     $            i_analyzed +
-     $            dir_analyzed*dct_icr_distance
+             ! check whether the entire edge is activated to
+             ! prevent a crenel to the inside of the computational
+             ! domain
+             update_edge = update_entire_edge(this,bf_sublayer_ptr,bc_section)
 
-             ! loop over the bc_interior_pt in the x-direction
-             j=bc_section(3)
-             last_j_added=j-3
-             do j=bc_section(3), bc_section(4)
+             if(update_edge) then
 
-                loc_central_coords = [loc_i_analyzed,j]
+                do j=bc_section(3), bc_section(4)
 
-                !check whether the node from which the grid-point
-                !depends is activated
-                node_activated = this%is_node_activated(
-     $               loc_central_coords,
-     $               bf_sublayer_ptr,
-     $               match_table,
-     $               interior_x_map,
-     $               interior_y_map,
-     $               interior_nodes,
-     $               p_model,
-     $               interior_domain)
+                   call this%stage(
+     $                  icr_interface_used,
+     $                  [i_analyzed,j],
+     $                  match_table,
+     $                  interior_domain)
 
-                ! if the node is activated, the current grid-point
-                ! and its nearest neighbors are staged
-                if(node_activated) then
-                   
-                   if(j.ge.(last_j_added+3)) then
-                   
-                     ! grid-point [i,j-1] is staged
-                      if(j.gt.bc_section(3)) then
+                end do
 
+             ! otherwise, analyze the bc_interior_pt individually
+             else
+
+                loc_i_analyzed =
+     $               i_analyzed +
+     $               dir_analyzed*dct_icr_distance
+
+                ! loop over the bc_interior_pt in the x-direction
+                j=bc_section(3)
+                last_j_added=j-3
+                do j=bc_section(3), bc_section(4)
+                
+                   loc_central_coords = [loc_i_analyzed,j]
+                
+                   !check whether the node from which the grid-point
+                   !depends is activated
+                   node_activated = this%is_node_activated(
+     $                  loc_central_coords,
+     $                  bf_sublayer_ptr,
+     $                  match_table,
+     $                  interior_x_map,
+     $                  interior_y_map,
+     $                  interior_nodes,
+     $                  p_model,
+     $                  interior_domain)
+                
+                   ! if the node is activated, the current grid-point
+                   ! and its nearest neighbors are staged
+                   if(node_activated) then
+                      
+                      if(j.ge.(last_j_added+3)) then
+                      
+                        ! grid-point [i,j-1] is staged
+                         if(j.gt.bc_section(3)) then
+                
+                            call this%stage(
+     $                           icr_interface_used,
+     $                           [i_analyzed,j-1],
+     $                           match_table,
+     $                           interior_domain)
+                            
+                         end if
+                      end if
+                
+                      if(j.ge.(last_j_added+2)) then
+                
+                         ! grid-point [i,j] is staged
+                         call this%stage(
+     $                           icr_interface_used,
+     $                           [i_analyzed,j],
+     $                           match_table,
+     $                           interior_domain)
+                
+                      end if
+                
+                      last_j_added = j
+                
+                      ! grid-point [i,j+1] is staged
+                      if(j.lt.bc_section(4)) then
+                
                          call this%stage(
      $                        icr_interface_used,
-     $                        [i_analyzed,j-1],
+     $                        [i_analyzed,j+1],
      $                        match_table,
      $                        interior_domain)
-                         
+                
                       end if
+                         
                    end if
+                
+                end do
 
-                   if(j.ge.(last_j_added+2)) then
-
-                      ! grid-point [i,j] is staged
-                      call this%stage(
-     $                        icr_interface_used,
-     $                        [i_analyzed,j],
-     $                        match_table,
-     $                        interior_domain)
-
-                   end if
-
-                   last_j_added = j
-
-                   ! grid-point [i,j+1] is staged
-                   if(j.lt.bc_section(4)) then
-
-                      call this%stage(
-     $                     icr_interface_used,
-     $                     [i_analyzed,j+1],
-     $                     match_table,
-     $                     interior_domain)
-
-                   end if
-                      
-                end if
-
-             end do
+             end if
 
           end if
 
@@ -1812,6 +1841,8 @@
           logical                      :: node_activated
           integer(ikind)               :: last_i_added
           integer(ikind)               :: i
+
+          logical :: update_edge
           
           
           call determine_edge_grdpts_computed(
@@ -1851,74 +1882,96 @@
           ! are analyzed
           if(analyze) then
 
-             loc_j_analyzed =
-     $            j_analyzed +
-     $            dir_analyzed*dct_icr_distance
+             ! check whether the entire edge is activated to
+             ! prevent a crenel to the inside of the computational
+             ! domain
+             update_edge = update_entire_edge(this,bf_sublayer_ptr,bc_section)
 
-             ! loop over the bc_interior_pt in the x-direction
-             i=bc_section(2)
-             last_i_added=i-3
-             do i=bc_section(2),bc_section(4)
+             if(update_edge) then
 
-                loc_central_coords = [i,loc_j_analyzed]
+                do i=bc_section(2), bc_section(4)
 
-                !check whether the node from which the grid-point
-                !depends is activated
-                node_activated = this%is_node_activated(
-     $               loc_central_coords,
-     $               bf_sublayer_ptr,
-     $               match_table,
-     $               interior_x_map,
-     $               interior_y_map,
-     $               interior_nodes,
-     $               p_model,
-     $               interior_domain)
+                   call this%stage(
+     $                  icr_interface_used,
+     $                  [i,j_analyzed],
+     $                  match_table,
+     $                  interior_domain)
 
-                ! if the node is activated, the current grid-point
-                ! and its nearest neighbors are staged
-                if(node_activated) then
-                   
-                   if(i.ge.(last_i_added+3)) then
-                   
-                     ! grid-point [i-1,j] is staged
-                      if(i.gt.bc_section(2)) then
+                end do
 
+             ! otherwise, analyze the bc_interior_pt individually
+             else             
+
+                loc_j_analyzed =
+     $               j_analyzed +
+     $               dir_analyzed*dct_icr_distance
+                
+                ! loop over the bc_interior_pt in the x-direction
+                i=bc_section(2)
+                last_i_added=i-3
+                do i=bc_section(2),bc_section(4)
+                
+                   loc_central_coords = [i,loc_j_analyzed]
+                
+                   !check whether the node from which the grid-point
+                   !depends is activated
+                   node_activated = this%is_node_activated(
+     $                  loc_central_coords,
+     $                  bf_sublayer_ptr,
+     $                  match_table,
+     $                  interior_x_map,
+     $                  interior_y_map,
+     $                  interior_nodes,
+     $                  p_model,
+     $                  interior_domain)
+                
+                   ! if the node is activated, the current grid-point
+                   ! and its nearest neighbors are staged
+                   if(node_activated) then
+                      
+                      if(i.ge.(last_i_added+3)) then
+                      
+                        ! grid-point [i-1,j] is staged
+                         if(i.gt.bc_section(2)) then
+                
+                            call this%stage(
+     $                           icr_interface_used,
+     $                           [i-1,j_analyzed],
+     $                           match_table,
+     $                           interior_domain)
+                            
+                         end if
+                      end if
+                
+                      if(i.ge.(last_i_added+2)) then
+                
+                        ! grid-point [i,j] is staged
                          call this%stage(
      $                        icr_interface_used,
-     $                        [i-1,j_analyzed],
+     $                        [i,j_analyzed],
      $                        match_table,
      $                        interior_domain)
-                         
+                
                       end if
+                
+                      last_i_added = i
+                
+                      ! grid-point [i+1,j] is staged
+                      if(i.lt.bc_section(4)) then
+                
+                         call this%stage(
+     $                        icr_interface_used,
+     $                        [i+1,j_analyzed],
+     $                        match_table,
+     $                        interior_domain)
+                
+                      end if
+                         
                    end if
+                
+                end do
 
-                   if(i.ge.(last_i_added+2)) then
-
-                     ! grid-point [i,j] is staged
-                      call this%stage(
-     $                     icr_interface_used,
-     $                     [i,j_analyzed],
-     $                     match_table,
-     $                     interior_domain)
-
-                   end if
-
-                   last_i_added = i
-
-                   ! grid-point [i+1,j] is staged
-                   if(i.lt.bc_section(4)) then
-
-                      call this%stage(
-     $                     icr_interface_used,
-     $                     [i+1,j_analyzed],
-     $                     match_table,
-     $                     interior_domain)
-
-                   end if
-                      
-                end if
-
-             end do
+             end if
 
           end if
 
@@ -2282,5 +2335,61 @@
      $         interior_nodes(i_min:i_max,j_min:j_max,:))
 
         end function is_interior_node_activated
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether a crenel to the inside of the computational
+        !> should be removed by activating all the bc_interior_pt of
+        !> the edge-like bc_section
+        !
+        !> @date
+        !> 23_04_2015 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> bf_interface_grdpts_id_update augmented with procedures
+        !> detecting how the domain extension should be increased
+        !
+        !>@param bf_sublayer_ptr
+        !> pointer to the buffer layer where the edge is checked
+        !
+        !>@param bc_section
+        !> edge-like bc_section
+        !
+        !> @return update_entire_edge
+        !> check whether the entire edge should be activated to remove
+        !> a crenel to the inside of the computational domain
+        !--------------------------------------------------------------
+        function update_entire_edge(this,bf_sublayer_ptr,bc_section)
+
+          implicit none
+
+          class(bf_interface_icr)     , intent(in) :: this
+          type(bf_sublayer), pointer  , intent(in) :: bf_sublayer_ptr
+          integer(ikind), dimension(5), intent(in) :: bc_section
+          logical                                  :: update_entire_edge
+
+          ! check if the removal of crenel
+          ! to the inside of the computational
+          ! domain is activated
+          if(obc_crenel_removal_ac) then
+
+             ! check whether there is a crenel to
+             ! the inside of the computational domain
+             if(associated(bf_sublayer_ptr)) then
+                update_entire_edge = this%mainlayer_interfaces%analyze_bc_section_edge(
+     $               bc_section,
+     $               bf_sublayer_ptr)
+             else
+                update_entire_edge = .false.
+             end if
+             
+          else
+             update_entire_edge = .false.
+          end if          
+
+        end function update_entire_edge
 
       end module bf_interface_icr_class

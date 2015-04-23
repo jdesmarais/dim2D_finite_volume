@@ -212,7 +212,7 @@
           
 
           ! fifth test:
-          ! we test whether an edge with only two
+          ! we test whether an edge with two
           ! anti-cornersof type (merge+overlap) is
           ! present at the sides of an edge-like
           ! bc_section is adapted
