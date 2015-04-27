@@ -143,7 +143,7 @@
           extent = get_extent_bc_section_edge(bc_section)
 
 
-          if((extent.gt.0).and.(extent.le.edge_extent_limit)) then
+          if((extent.gt.0)) then !.and.(extent.le.edge_extent_limit)) then
 
 
              update_entire_bc_section = .true.
