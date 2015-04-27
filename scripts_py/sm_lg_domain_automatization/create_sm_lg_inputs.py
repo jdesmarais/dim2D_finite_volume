@@ -526,8 +526,8 @@ if __name__=="__main__":
     inputs['ic_perturbation_ac']  = 0
     inputs['ic_perturbation_amp'] = 0.0
 
-    inputs['bc_perturbation_T0']      = 0
-    inputs['bc_perturbation_T0_amp']  = 0.0
+    inputs['bc_perturbation_T0']      = 1
+    inputs['bc_perturbation_T0_amp']  = 0.00005
     inputs['bc_perturbation_vx0']     = 0
     inputs['bc_perturbation_vx0_amp'] = 0.0
     inputs['bc_perturbation_vy0']     = 0

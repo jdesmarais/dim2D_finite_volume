@@ -494,12 +494,12 @@ def generate_sm_lg_results(mainDir,
                         md_threshold=md_threshold,
                         ic_perturbation_ac=ic_perturbation_ac,
                         ic_perturbation_amp=ic_perturbation_amp,
-                        bc_perturbation_T0_ac=0,
-                        bc_perturbation_T0_amp=0.0,
-                        bc_perturbation_vx0_ac=0,
-                        bc_perturbation_vx0_amp=0.0,
-                        bc_perturbation_vy0_ac=0,
-                        bc_perturbation_vy0_amp=0.0)
+                        bc_perturbation_T0_ac=bc_perturbation_T0_ac,
+                        bc_perturbation_T0_amp=bc_perturbation_T0_amp,
+                        bc_perturbation_vx0_ac=bc_perturbation_vx0_ac,
+                        bc_perturbation_vx0_amp=bc_perturbation_vx0_amp,
+                        bc_perturbation_vy0_ac=bc_perturbation_vy0_ac,
+                        bc_perturbation_vy0_amp=bc_perturbation_vy0_amp)
     
 
     #4) create dir, generate executable, create PBS

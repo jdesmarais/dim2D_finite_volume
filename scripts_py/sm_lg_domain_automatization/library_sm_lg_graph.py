@@ -127,7 +127,7 @@ def extract_var(exePath, ncFile, varName):
 
 
 # extract the error properties from netcdf file
-def extract_max_error_in_time(errorPath, var_name='max_error_mass'):
+def extract_max_error_in_time(errorPath, var_names=['time','max_error_mass']):
     '''
     @description:
     extract the maximum of the error over the domain as function
@@ -136,38 +136,40 @@ def extract_max_error_in_time(errorPath, var_name='max_error_mass'):
     to a rescaled time from 0 to 1 and the 'error' is the error over
     space
     '''
+
+    data = []
     
     #1) verify that the error_file exists
     if(not os.path.isfile(errorPath)):
         print 'library_sm_lg_graph'
-        print 'generate_graph_max_error_in_time'
+        print 'extract_max_error_in_time'
         sys.exit('***errorFile '+errorPath+' was not found***')
 
 
     #2) generate the executable to extract the 
     #   variables from the file
-    exePath = generate_extract_1D_real_exe()
+    exePath = extract_1D_var
+    if(not os.path.isfile(exePath)):
+        exePath = generate_extract_1D_real_exe()
 
 
-    #3) extract the time variable
-    time = extract_var(exePath, errorPath, 'time')
+    #3) extract the other variables asked
+    for var_name in var_names:
 
+        var = extract_var(exePath, errorPath, var_name)
+        if(var_name=='time'):
+            time_rescaled = var/var[len(var)-1]
+            var = time_rescaled
 
-    #4) extract the maximum of the error over
-    #   space ('max_error_mass' by default)
-    error = extract_var(exePath, errorPath, var_name)
+        data.append(var)
 
-
-    #5) rescale the time variable to be b/w [0,1]
-    time_rescaled = time/time[len(time)-1]
-
-
-    return [time_rescaled,error]
+    return data
 
 
 # create a graph with the different error in time
 def create_error_graph(
     data,
+    legendPosition='best',
     legendParam='None',
     graphPties='None',
     width=3,
@@ -246,7 +248,208 @@ def create_error_graph(
 
     #add the legend
     if(not legendParam=='None'):
+        plt.legend(legendParam,loc=legendPosition)
+
+    # show plot
+    if(show):
+        plt.show()
+
+    # save figure
+    if(not figPath==''):
+        plt.savefig(figPath)
+
+
+# create a graph with the different error in time
+def create_error_graph_with_location(
+    dataError,
+    dataPosition,
+    legendParam='None',
+    graphPties='None',
+    width=3,
+    figPath='',
+    show=True,
+    logScale=False,
+    plot_ylim='None'):
+    '''
+    @description:
+    create a graph showing the maximum error as function of time
+    and the location of the error in time
+
+    - dataError   :[ time, error ]
+                   where time and error are 1D-arrays
+
+    - dataPosition:[ time, position ]
+                   where time and position are 1D-arrays
+
+    - legendParam: [ leg1, leg2, ...]
+                   text associated with each line
+
+    - graphPties : [ [color1,lineType1], [color2,lineType2] ]
+                   where color1,lineType1] corresponds to the
+                   set of data [time,error] and [color2,lineType2]
+                   corresponds to the set of data [time,position]
+                   the graph properties indicates how the lines
+                   should be displayed, by default, a gradient
+                   of color will be used, but it can be set
+                   explicitly by the user
+                     - color1    : the color
+                     - lineType1 : the type of line ('+', '-', '-+')
+                     
+    - width      : the default width for the lines
+
+    - figPath    : the default path to save the figure
+    '''
+    
+    if(graphPties=='None'):
+        graphPties = [['black','-'],['grey','-s']]        
+
+    
+    # create the figure for the plot
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    fig = plt.figure(figsize=(8,4))
+
+
+    # add the data lines on the plot
+    ax1 = plt.subplot(111)
+
+    # plot the maximum of the error
+    ax1.plot(dataError[0],
+             dataError[1],
+             graphPties[0][1],
+             linewidth=width,
+             color=graphPties[0][0])
+    ax1.set_xlabel(r"$ t $")
+    ax1.set_ylabel(r"Maximum error",color=graphPties[0][0])
+    for tl in ax1.get_yticklabels():
+        tl.set_color(graphPties[0][0])
+
+
+    # plot the location of the maximum of the error
+    ax2 = ax1.twinx()
+    ax2.plot(dataPosition[0],
+             dataPosition[1],
+             graphPties[1][1],
+             linewidth=width,
+             color=graphPties[1][0])
+    ax2.set_ylabel(r"Maximum error location ($y$-axis)",color='black')#graphPties[1][0])
+    ax2.plot(dataPosition[0][0:len(dataPosition[0]-1):10],
+             dataPosition[1][0:len(dataPosition[1]-1):10],
+             's',
+             linewidth=width,
+             color=graphPties[1][0])
+    for tl in ax2.get_yticklabels():
+        tl.set_color(graphPties[1][0])
+
+
+    # add a log scale
+    if(logScale):
+        ax1.set_yscale('log')
+
+    # add the plot limits
+    if(not plot_ylim=='None'):
+        ax1.set_ylim(plot_ylim)
+
+    #add the legend
+    if(not legendParam=='None'):
         plt.legend(legendParam,loc='lower right')
+
+    # show plot
+    if(show):
+        plt.show()
+
+    # save figure
+    if(not figPath==''):
+        plt.savefig(figPath)
+
+
+# create a graph with the different error in time
+def create_error_graph_perturbation(
+    data,
+    legendPosition='best',
+    legendParam='None',
+    graphPties='None',
+    width=3,
+    figPath='',
+    show=True,
+    logScale=True,
+    plot_ylim='None',
+    xlabel='None'):
+    '''
+    @description:
+    create a graph gathering the error max over time for different
+    conditions
+
+    - data       : [ [time1,error1] , [time2,error2] , ...]
+                   where time1,...,error1,... are 1D-arrays
+
+    - legendParam: [ leg1, leg2, ...]
+                   text associated with each line
+
+    - graphPties : [ [color1,lineType1], [color2,lineType2] , ... ]
+                   where color1,lineType1] corresponds to the
+                   set of data [time1,error1]
+                   the graph properties indicates how the lines
+                   should be displayed, by default, a gradient
+                   of color will be used, but it can be set
+                   explicitly by the user
+                     - color1    : the color
+                     - lineType1 : the type of line ('+', '-', '-+')
+                     
+    - width      : the default width for the lines
+
+    - figPath    : the default path to save the figure
+    '''
+    
+    
+    # create the figure for the plot
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    plt.figure(figsize=(8,4))
+    ax = plt.subplot(111)
+
+
+    # add the data on the plot
+    if(graphPties=='None'):
+
+        # add the data lines on the plot
+        for graph_data,graph_pties in zip(data, graphPties):
+        
+            plt.plot(
+                graph_data[0],
+                graph_data[1],
+                '-',
+                linewidth=width,
+                color='black')
+    else:
+
+        # add the data lines on the plot
+        for graph_data,graph_pties in zip(data, graphPties):
+        
+            plt.plot(
+                graph_data[0],
+                graph_data[1],
+                graph_pties[1],
+                linewidth=width,
+                color=graph_pties[0])
+        
+    # add the labels
+    if(not xlabel=='None'):
+        plt.xlabel(r""+xlabel)
+    plt.ylabel(r"Maximum error")
+
+    # add a log scale
+    if(logScale):
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+
+    # add the plot limits
+    if(not plot_ylim=='None'):
+        ax.set_ylim(plot_ylim)
+
+    #add the legend
+    if(not legendParam=='None'):
+        plt.legend(legendParam,loc=legendPosition)
 
     # show plot
     if(show):
@@ -259,7 +462,7 @@ def create_error_graph(
 
 # create a graph for the maximum error in time
 def generate_graph_max_error_in_time(errorPath,
-                                     var_name='max_error_mass',
+                                     var_name=['time','max_error_mass'],
                                      width=3,
                                      figPath=''):
     '''
