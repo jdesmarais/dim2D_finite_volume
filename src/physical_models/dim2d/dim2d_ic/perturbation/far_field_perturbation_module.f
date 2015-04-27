@@ -40,11 +40,11 @@
           end if
 
           if(obc_perturbation_vx0_ac) then
-             velocity_x =  velocity_x + obc_perturbation_vx0_amp
+             velocity_x =  velocity_x  + obc_perturbation_vx0_amp
           end if
 
           if(obc_perturbation_vy0_ac) then
-             velocity_y =  velocity_y + obc_perturbation_vy0_amp
+             velocity_y =  velocity_y  + obc_perturbation_vy0_amp
           end if
 
         end subroutine add_far_field_perturbation

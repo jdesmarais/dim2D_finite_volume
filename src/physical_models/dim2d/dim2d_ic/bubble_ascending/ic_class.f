@@ -450,9 +450,9 @@
 
           ! add the perturbation
           call add_far_field_perturbation(
+     $         temperature,
      $         velocity_x,
-     $         velocity_y,
-     $         temperature)
+     $         velocity_y)
 
 
           select case(phase_at_center)

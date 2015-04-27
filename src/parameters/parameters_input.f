@@ -24,17 +24,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -1.8488500000d0
-        real(rkind), parameter :: x_max = 1.8488500000d0
-        real(rkind), parameter :: y_min = -1.8488500000d0
-        real(rkind), parameter :: y_max = 1.8488500000d0
+        real(rkind), parameter :: x_min = -0.5768000000d0
+        real(rkind), parameter :: x_max = 0.5768000000d0
+        real(rkind), parameter :: y_min = -0.5768000000d0
+        real(rkind), parameter :: y_max = 0.5768000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 35.9533000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0023000000d0
+        real(rkind), parameter :: t_max = 22.5592000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0006000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0640000000d0
+        real(rkind), parameter :: detail_print = 0.0266000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -110,9 +110,9 @@
         integer    , parameter :: flow_direction = y_direction
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.1000000000d0
+        real(rkind), parameter :: flow_velocity = 0.0500000000d0
         
-        real(rkind), parameter :: T0 = 0.9990000000d0
+        real(rkind), parameter :: T0 = 0.9900000000d0
 
         integer    , parameter :: ic_choice = bubble_transported
         integer    , parameter :: ic_perturbation_ac = .false.
@@ -220,17 +220,17 @@
         ! amplitude of the perturbation applied to the y-component of
         ! the velocity used to compute the far field values
         !------------------------------------------------------------
-        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
         logical    , parameter :: obc_edge_overlap_ac     = .true.
-        logical    , parameter :: obc_crenel_removal_ac   = .true.
+        logical    , parameter :: obc_crenel_removal_ac   = .true. !no_edge_limit (pb at interfaces between bf_layers)
         
-        integer    , parameter :: obc_perturbation_T0_ac = .false.
+        integer    , parameter :: obc_perturbation_T0_ac = .true.
         integer    , parameter :: obc_perturbation_vx0_ac = .false.
         integer    , parameter :: obc_perturbation_vy0_ac = .false.
 
-        real(rkind), parameter :: obc_perturbation_T0_amp = 0.0000000000d0
+        real(rkind), parameter :: obc_perturbation_T0_amp = 0.0000500000d0
         real(rkind), parameter :: obc_perturbation_vx0_amp = 0.0000000000d0
         real(rkind), parameter :: obc_perturbation_vy0_amp = 0.0000000000d0
 
@@ -306,8 +306,8 @@
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
         !------------------------------------------------------------
-        logical    , parameter :: bf_openbc_md_threshold_ac = .false.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.0000000000d0
+        logical    , parameter :: bf_openbc_md_threshold_ac = .true.
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.2000000000d0
 
 
         !------------------------------------------------------------
@@ -328,7 +328,7 @@
         !    should be set to .false. by default)
         !------------------------------------------------------------
         logical    , parameter :: debug_restart_for_geometry = .false.
-        logical    , parameter :: debug_adapt_computational_domain = .true.
+        logical    , parameter :: debug_adapt_computational_domain = .false.
         logical    , parameter :: debug_geometry_update = .false.
 
         logical    , parameter :: debug_initialize_nodes   = .true.

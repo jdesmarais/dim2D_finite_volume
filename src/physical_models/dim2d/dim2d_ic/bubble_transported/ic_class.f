@@ -325,6 +325,7 @@
           t_s = t
           x_s = x
           y_s = y
+          
 
           var = T0
 
@@ -413,10 +414,9 @@
 
           ! add the perturbation
           call add_far_field_perturbation(
+     $         temperature,
      $         velocity_x,
-     $         velocity_y,
-     $         temperature)
-
+     $         velocity_y)
 
           mass = get_mass_far_field(temperature)
 
