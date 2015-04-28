@@ -174,10 +174,10 @@ if __name__=="__main__":
     velocityStudy             = False
     thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
-    icPerturbationStudy       = True
-    bcPerturbationStudy_T0    = False
-    bcPerturbationStudy_vx0   = False
-    bcPerturbationStudy_vy0   = False
+    icPerturbationStudy       = False
+    bcPerturbationStudy_T0    = True
+    bcPerturbationStudy_vx0   = True
+    bcPerturbationStudy_vy0   = True
 
 
     #1) temperature study
@@ -252,9 +252,9 @@ if __name__=="__main__":
     #4) perturbation studies
     if(icPerturbationStudy):
 
-        temperature_array     = [0.95,0.99,0.995] #[0.95,0.99,0.995,0.999]
+        temperature_array     = [0.95,0.99,0.995,0.999] #[0.95,0.99,0.995,0.999]
         flow_velocity_array   = [0.1]
-        ic_perturbation_array = [0.00001] #[0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05,0.1]
+        ic_perturbation_array = [0.5] #[0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05,0.1]
 
         generate_simulation_error_files(
             main_sm_dirs,

@@ -54,14 +54,14 @@ if __name__=="__main__":
     small_domain_run          = True
     nb_tiles_option           = [8,8]
 
-    temperatureStudy          = True
+    temperatureStudy          = False
     velocityStudy             = False
     thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
     icPerturbationStudy       = False
-    bcPerturbationStudy_T0    = False
-    bcPerturbationStudy_vx0   = False
-    bcPerturbationStudy_vy0   = False
+    bcPerturbationStudy_T0    = True
+    bcPerturbationStudy_vx0   = True
+    bcPerturbationStudy_vy0   = True
 
 
     #1) temperature study

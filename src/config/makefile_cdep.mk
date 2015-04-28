@@ -350,6 +350,7 @@ mainlayer_interface_grdpts_id_update_dep=\
 				mainlayer_interface_grdpts_id_update_class.o
 
 mainlayer_interface_icr_dep=	$(mainlayer_interface_grdpts_id_update_dep)\
+				bf_layer_bc_sections_icr_module.o\
 				mainlayer_interface_icr_class.o
 
 #bf_mainlayer objects

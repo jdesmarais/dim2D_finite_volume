@@ -1,3 +1,17 @@
+      !> @file
+      !> subroutines for the merge of bc_sections : anti-corners
+      !> can be included in the computation of edges
+      !
+      !> @author
+      !> Julien L. Desmarais
+      !
+      !> @brief
+      !> subroutines for the merge of bc_sections : anti-corners
+      !> can be included in the computation of edges
+      !
+      !> @date
+      ! 28_04_2015 - initial version - J.L. Desmarais
+      !-----------------------------------------------------------------
       module bf_layer_bc_sections_merge_module
 
         use parameters_bf_layer, only :
@@ -47,7 +61,26 @@
         contains
 
         
-        subroutine reallocate_bc_sections_for_merge(bc_sections,nb_ele_removed)
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> remove from the array of bc_sections the anti-corners
+        !> that are added to edge-type bc_section
+        !
+        !> @date
+        !> 28_04_2015 - initial version - J.L. Desmarais
+        !
+        !@param[inout] bc_sections
+        ! array of bc_sections where the anti-corners that should be 
+        ! removed have their type modified to no_bc_procedure_type
+        !
+        !@param[in] nb_ele_removed
+        ! number of elements removed in the array of bc_sections
+        !------------------------------------------------------------
+        subroutine reallocate_bc_sections_for_merge(
+     $       bc_sections,
+     $       nb_ele_removed)
 
           implicit none
 
@@ -79,6 +112,41 @@
         end subroutine reallocate_bc_sections_for_merge
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update a bc_section of type corner which is overlap by
+        !> an edge when the latter is merged with an anti-corner:
+        !> unlike update_anticorner_for_merge(), this function also
+        !> overlap the corner as the anti-corner was previously
+        !> overlap by the edge
+        !
+        !> @date
+        !> 28_04_2015 - initial version - J.L. Desmarais
+        !
+        !@param[in] anticorner_type
+        ! type of anti-corner which is overlap by an edge
+        !
+        !@param[in] anticorner_position
+        ! position of the anti-corner which is overlap by an edge
+        !
+        !@param[in] corner_type
+        ! type of corner which is overlap by an edge
+        !
+        !@param[in] corner_position
+        ! position of the corner which is overlap by an edge
+        !
+        !@param[in] corner_overlap
+        ! overlap-type set to the corner overlap by an edge
+        !
+        !@param[inout] bc_sections
+        ! array of bc_sections
+        !
+        !@param[inout] nb_ele_removed
+        ! number of elements to be removed in the bc_sections b/c of
+        ! the overlap of an anti-corner by an edge
+        !------------------------------------------------------------
         subroutine update_corner_for_merge(
      $       anticorner_type,
      $       anticorner_position,
@@ -141,6 +209,29 @@
         end subroutine update_corner_for_merge
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> update a bc_section of type anti-corner which is overlap by
+        !> an edge when the latter is merged with an anti-corner
+        !
+        !> @date
+        !> 28_04_2015 - initial version - J.L. Desmarais
+        !
+        !@param[in] anticorner_type
+        ! type of anti-corner which is overlap by an edge
+        !
+        !@param[in] anticorner_position
+        ! position of the anti-corner which is overlap by an edge
+        !
+        !@param[inout] bc_sections
+        ! array of bc_sections
+        !
+        !@param[inout] nb_ele_removed
+        ! number of elements to be removed in the bc_sections b/c of
+        ! the overlap of an anti-corner by an edge
+        !------------------------------------------------------------
         subroutine update_anticorner_for_merge(
      $       anticorner_type,
      $       anticorner_position,
@@ -171,12 +262,6 @@
                 nb_ele_removed = nb_ele_removed+1
                 exit
 
-c$$$             else
-c$$$
-c$$$                if(j_min.gt.anticorner_position(2)) then
-c$$$                   exit
-c$$$                end if
-
              end if
 
           end do
@@ -184,6 +269,24 @@ c$$$                end if
         end subroutine update_anticorner_for_merge
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> verify that the two grdpts_id configurations match
+        !
+        !> @date
+        !> 28_04_2015 - initial version - J.L. Desmarais
+        !
+        !@param[in] config
+        ! grdpts_id tested
+        !
+        !@param[in] config_test
+        ! grdpts_id configuration that config should match
+        !
+        !@return test_validated
+        ! determine whether the configurations are the same
+        !------------------------------------------------------------
         function test_grdpts_id_config(config,config_test)
      $       result(test_validated)
 
@@ -229,41 +332,56 @@ c$$$                end if
         end function test_grdpts_id_config
 
 
-        ! edge_bc_section: edge bc_section whose overlap with
-        !  neighboring anti-corner is investigated
+        !> @author
+        !> Julien L. Desmarais
         !
-        ! side: either left or right, indicating which side of 
-        !  the bc_section is studied
+        !> @brief
+        !> verify that the two grdpts_id configurations match
         !
-        ! grdpts_ex_borders: [i_min,i_max]x[j_min,j_max] of the
-        !  grdpts_id to be extracted
+        !> @date
+        !> 28_04_2015 - initial version - J.L. Desmarais
         !
-        ! test_merge_loc_borders: which grdpts from the test_merge
-        !  array are tested
+        !@param[in] edge_bc_section
+        ! edge bc_section whose overlap with neighboring anti-corner
+        ! is investigated
         !
-        ! test_merge_array: what is the pattern the grdpts_id should
-        !  match
+        !@param[in] side
+        ! either left or right, indicating which side of the
+        ! bc_section is studied
         !
-        ! test_over_loc_borders: which grdpts from the test_over
-        !  array are tested
+        !@param[out] grdpts_ex_borders
+        ! [i_min,i_max]x[j_min,j_max] of the grdpts_id to be extracted
         !
-        ! test_over_array: what is the pattern the grdpts_id should
-        !  match
+        !@param[out] test_merge_loc_borders
+        ! which grdpts from the test_merge array are tested
         !
-        ! merge_anticorner_type: determine the type of anticorner that
-        !  should be merged if the test is validated
+        !@param[out] test_merge_array
+        ! what is the pattern the grdpts_id should match
         !
-        ! merge_anticorner_position: determine the position of the
-        !  anticorner that should be merged if the test is validated
+        !@param[out] test_over_loc_borders
+        ! which grdpts from the test_over array are tested
         !
-        ! over_corner_type: determine the type of corner that
-        !  should be overlap if the test is validated
+        !@param[out] test_over_array
+        ! what is the pattern the grdpts_id should match
         !
-        ! over_corner_position: determine the position of the
-        !  anticorner that should be overlap if the test is validated
+        !@param[out] merge_anticorner_type
+        ! determine the type of anticorner that should be merged
+        ! if the test is validated
         !
-        ! over_corner_overlap: determine the overlap of the corner
-        !  if the test is validated
+        !@param[out] merge_anticorner_position
+        ! determine the position of the anticorner that should be
+        ! merged if the test is validated
+        !
+        !@param[out] over_corner_type
+        ! determine the type of corner that should be overlap if
+        ! the test is validated
+        !
+        !@param[out] over_corner_position
+        ! determine the position of the anticorner that should be
+        ! overlap if the test is validated
+        !
+        !@param[out] over_corner_overlap
+        ! determine the overlap of the corner if the test is validated
         !------------------------------------------------------------
         subroutine get_edge_test_param(
      $       edge_bc_section,
@@ -581,29 +699,41 @@ c$$$                end if
         end subroutine get_edge_test_param
 
 
-        ! anticorner_bc_section: anticorner bc_section whose
-        !  neighboring corners is investigated
+        !> @author
+        !> Julien L. Desmarais
         !
-        ! side: either left or right, indicating which side of 
-        !  the bc_section is studied
+        !> @brief
+        !> verify that the two grdpts_id configurations match
         !
-        ! grdpts_ex_borders: [i_min,i_max]x[j_min,j_max] of the
-        !  grdpts_id to be extracted
+        !> @date
+        !> 28_04_2015 - initial version - J.L. Desmarais
         !
-        ! test1_loc_borders: which grdpts from the test_merge
-        !  array are tested
+        !@param[in] anticorner_bc_section
+        ! anticorner bc_section whose neighboring corners is
+        ! investigated
         !
-        ! test1_array: what is the pattern the grdpts_id should
-        !  match
+        !@param[in] side
+        ! either left or right, indicating which side of the
+        ! bc_section is studied
         !
-        ! test2_loc_borders: which grdpts from the test_over
-        !  array are tested
+        !@param[out] grdpts_ex_borders
+        ! [i_min,i_max]x[j_min,j_max] of the grdpts_id to be extracted
         !
-        ! test2_array: what is the pattern the grdpts_id should
-        !  match
+        !@param[out] test1_loc_borders
+        ! which grdpts from the test_merge array are tested
         !
-        ! new_anticorner_type: determine the type of anticorner that
-        !  should be merged if the test is validated
+        !@param[out] test1_array
+        ! what is the pattern the grdpts_id should match
+        !
+        !@param[out] test2_loc_borders
+        ! which grdpts from the test_over array are tested
+        !
+        !@param[out] test2_array
+        ! what is the pattern the grdpts_id should match
+        !
+        !@param[out] new_anticorner_type
+        ! determine the type of anticorner that should be merged
+        ! if the test is validated
         !------------------------------------------------------------
         subroutine get_anticorner_test_param(
      $       anticorner_bc_section,
@@ -878,11 +1008,6 @@ c$$$                end if
         !
         !> @date
         !> 23_04_2015 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> mainlayer_interface_dyn enhanced with procedures enabling
-        !> the reorganization of the bc_sections initialized by
-        !> the buffer layer
         !
         !>@param bc_section
         !> parameters characterizing the bc_section

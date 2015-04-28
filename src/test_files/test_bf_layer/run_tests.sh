@@ -75,6 +75,16 @@ file=test_bf_layer_bc_sections_overlap
 perform_test $file
 
 
+#test_bf_layer_bc_sections_merge
+file=test_bf_layer_bc_sections_merge
+perform_test $file
+
+
+#test_bf_layer_bc_sections_icr
+file=test_bf_layer_bc_sections_icr
+perform_test $file
+
+
 #test_bf_layer_exchange
 file=test_bf_layer_exchange
 perform_test $file

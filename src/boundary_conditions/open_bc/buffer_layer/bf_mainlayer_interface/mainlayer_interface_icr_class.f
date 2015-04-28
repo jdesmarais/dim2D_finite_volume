@@ -18,8 +18,10 @@
       
         use bf_layer_bc_sections_merge_module, only :
      $       test_grdpts_id_config,
-     $       get_edge_test_param,
      $       get_extent_bc_section_edge
+
+        use bf_layer_bc_sections_icr_module, only :
+     $       get_edge_crenel_id_param
 
         use bf_layer_class, only :
      $       bf_layer
@@ -115,16 +117,10 @@
           ! parameters to test the anti-corners at
           ! the sides of the edge
           integer(ikind), dimension(2,2) :: grdpts_ex_borders
-          integer(ikind), dimension(2,2) :: test_merge_loc_borders
-          integer(ikind), dimension(4,4) :: test_merge_array
-          integer(ikind), dimension(2,2) :: test_over_loc_borders
-          integer(ikind), dimension(4,4) :: test_over_array
-          integer(ikind)                 :: merge_anticorner_type
-          integer(ikind), dimension(2)   :: merge_anticorner_position
-          integer(ikind)                 :: over_corner_type
-          integer(ikind), dimension(2)   :: over_corner_position
-          integer                        :: over_corner_overlap
-          integer(ikind), dimension(3)   :: edge_new_position
+          integer(ikind), dimension(2,2) :: test1_loc_borders
+          integer(ikind), dimension(3,3) :: test1_array
+          integer(ikind), dimension(2,2) :: test2_loc_borders
+          integer(ikind), dimension(3,3) :: test2_array
 
 
           ! parameters to extract the grdpts to check
@@ -132,7 +128,7 @@
           ! of the edge
           integer(ikind), dimension(2)   :: match_table
           integer(ikind), dimension(2,2) :: gen_coords
-          integer       , dimension(4,4) :: grdptsid_side
+          integer       , dimension(3,3) :: grdptsid_side
           integer                        :: size_x
           integer                        :: size_y
           logical                        :: modify_edge
@@ -151,30 +147,19 @@
 
              ! loop over the sides of the edges
              do j=1,2
+
              
                 ! get the parameters to test whether there
                 ! are anti-corners overlap with corners at
                 ! each sides of the edges
-                call get_edge_test_param(
+                call get_edge_crenel_id_param(
      $               bc_section,
      $               side(j),
-     $               
      $               grdpts_ex_borders,
-     $               
-     $               test_merge_loc_borders,
-     $               test_merge_array,
-     $            
-     $               test_over_loc_borders,
-     $               test_over_array,
-     $               
-     $               merge_anticorner_type,
-     $               merge_anticorner_position,
-     $               
-     $               over_corner_type,
-     $               over_corner_position,
-     $               over_corner_overlap,
-     $               
-     $               edge_new_position)
+     $               test1_loc_borders,
+     $               test1_array,
+     $               test2_loc_borders,
+     $               test2_array)
              
              
                 ! determine the borders of the grdpts_id
@@ -198,9 +183,20 @@
              
                 ! test whether the grdpts_id on the side
                 ! have the configuration of an anti-corner
-                ! overlap by a corner
+                ! overlap by a corner or an anti-corner
+                ! followed by an edge
                 !
-                ! ex:
+                ! ex: (test1)
+                !
+                !     corner
+                !        |   edge
+                !       / \  __|__ 
+                !     _____ /     \|3 2|\
+                !     3 3 3|_ _ _ _|3 2| \_ anti-corner + edge
+                !     2 2 3 3 ... 3 3 2| /
+                !      |2 2 2 ... 2 2 2|/
+                !
+                ! ex: (test2)
                 !
                 !     corner       corner
                 !        |   edge    |
@@ -209,15 +205,26 @@
                 !     3 3 3|_ _ _ _|3 3 3
                 !     2 2 3 3 ... 3 3 2 2
                 !      |2 2 2 ... 2 2 2|
+                !
                 !-----------------------------------------
                 modify_edge = test_grdpts_id_config(
      $            grdptsid_side(
-     $               test_over_loc_borders(1,1):test_over_loc_borders(1,2),
-     $               test_over_loc_borders(2,1):test_over_loc_borders(2,2)),
-     $            test_over_array(
-     $               test_over_loc_borders(1,1):test_over_loc_borders(1,2),
-     $               test_over_loc_borders(2,1):test_over_loc_borders(2,2)))
+     $               test1_loc_borders(1,1):test1_loc_borders(1,2),
+     $               test1_loc_borders(2,1):test1_loc_borders(2,2)),
+     $            test1_array(
+     $               test1_loc_borders(1,1):test1_loc_borders(1,2),
+     $               test1_loc_borders(2,1):test1_loc_borders(2,2)))
                 
+                if(.not.modify_edge) then
+                   modify_edge = test_grdpts_id_config(
+     $                  grdptsid_side(
+     $                     test2_loc_borders(1,1):test2_loc_borders(1,2),
+     $                     test2_loc_borders(2,1):test2_loc_borders(2,2)),
+     $                  test2_array(
+     $                     test2_loc_borders(1,1):test2_loc_borders(1,2),
+     $                     test2_loc_borders(2,1):test2_loc_borders(2,2)))
+                end if
+                   
                 update_entire_bc_section =
      $               update_entire_bc_section.and.modify_edge
 

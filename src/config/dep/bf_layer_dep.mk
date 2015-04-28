@@ -210,6 +210,7 @@ $(mbf_layer_dir)/mainlayer_interface_grdpts_id_update_class.o:\
 
 $(mbf_layer_dir)/mainlayer_interface_icr_class.o:\
 	$(bbf_layer_dir)/bf_layer_bc_sections_merge_module.o\
+	$(bbf_layer_dir)/bf_layer_bc_sections_icr_module.o\
 	$(bf_layer_dir)/bf_layer_class.o\
 	$(mbf_layer_dir)/mainlayer_interface_grdpts_id_update_class.o\
 	$(param_dir)/parameters_constant.o\
@@ -380,6 +381,11 @@ $(bbf_layer_dir)/bf_mainlayer_bc_sections_module.o:\
 	$(param_dir)/parameters_kind.o
 
 $(bbf_layer_dir)/bf_layer_bc_sections_merge_module.o:\
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_kind.o
+
+$(bbf_layer_dir)/bf_layer_bc_sections_icr_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_kind.o

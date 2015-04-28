@@ -477,7 +477,7 @@ if __name__=="__main__":
         temperature_array      = [0.95,0.99,0.995,0.999]
         flow_velocity          = 0.1
         md_threshold           = 0
-        ic_perturbations_array = [0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05,0.1]
+        ic_perturbations_array = [0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05,0.1,0.5]
 
         legendPosition      = 'best'
         fig_ic_perturbation = 'ic_perturbation.eps'        

@@ -347,6 +347,19 @@ test_bf_layer_bc_sections_merge:bf_layer_bc_sections_merge_module.o\
 				parameters_constant.o\
 				parameters_kind.o
 
+test_bf_layer_bc_sections_icr.o:\
+				$(bbf_layer_dir)/bf_layer_bc_sections_icr_module.o\
+				$(test_dir)/tools/check_data_module.o\
+				$(bf_layer_dir)/parameters_bf_layer.o\
+				$(param_dir)/parameters_constant.o\
+				$(param_dir)/parameters_kind.o
+
+test_bf_layer_bc_sections_icr:	bf_layer_bc_sections_icr_module.o\
+				check_data_module.o\
+				parameters_bf_layer.o\
+				parameters_constant.o\
+				parameters_kind.o
+
 #buffer_layer/bf_layer_computations
 test_bf_compute_basic.o:	$(cbf_layer_dir)/bf_compute_basic_class.o\
 				$(test_dir)/tools/check_data_module.o\
