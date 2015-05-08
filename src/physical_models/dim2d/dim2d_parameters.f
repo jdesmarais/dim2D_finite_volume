@@ -60,9 +60,9 @@
         !@param length_c       length scale               [m]    
         !@param time_c         time scale                 [s]
         !--------------------------------------------------------
-        real(rkind), parameter :: rho_c    = dim2d_M/(3*dim2d_b)
-        real(rkind), parameter :: p_c      = dim2d_a/(27*dim2d_b**2)
-        real(rkind), parameter :: T_c      = 8*dim2d_a/(27*dim2d_b*dim2d_R)
+        real(rkind), parameter :: rho_c    = dim2d_M/(3.0d0*dim2d_b)
+        real(rkind), parameter :: p_c      = dim2d_a/(27.0d0*dim2d_b**2)
+        real(rkind), parameter :: T_c      = 8.0d0*dim2d_a/(27.0d0*dim2d_b*dim2d_R)
         real(rkind), parameter :: u_c      = (p_c/rho_c)**0.5
         real(rkind), parameter :: length_c = 1.0e-6
         real(rkind), parameter :: time_c   = length_c/u_c

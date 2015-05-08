@@ -16,8 +16,14 @@
       !-----------------------------------------------------------------
       module dim2d_state_eq_module
 
-        use dim2d_parameters, only : we
-        use parameters_kind , only : rkind
+        use dim2d_parameters, only :
+     $       we
+
+        use parameters_input, only :
+     $       dim2d_lowTemperature
+
+        use parameters_kind , only :
+     $       rkind
 
         implicit none
 
@@ -50,14 +56,33 @@
           real(rkind), intent(in) :: temperature
           real(rkind)             :: interface_lgh
 
-          if(rkind.eq.8) then
-             interface_lgh=2.0d0/SQRT(we)*(
-     $            -0.19d0+1.65d0/(SQRT(1.0d0-temperature)))
-          else
-             interface_lgh=2./SQRT(We)*(
-     $            -0.19+1.65/(SQRT(1.-temperature)))
-          end if
 
+          if(dim2d_lowTemperature) then
+           
+             if(rkind.eq.8) then
+
+                interface_lgh=2.0d0/SQRT(we)*(-0.18904846589641416d0 + 1.6488520842641357d0/(SQRT(1.0d0-temperature)))
+
+             else
+
+                interface_lgh=2.0/SQRT(we)*(-0.18904846589641416d0 + 1.6488520842641357d0/(SQRT(1.0-temperature)))
+
+             end if
+
+          else
+           
+             if(rkind.eq.8) then
+
+                interface_lgh=2.0d0/SQRT(we)*(-0.19d0+1.65d0/(SQRT(1.0d0-temperature)))
+                 
+             else
+
+                interface_lgh=2./SQRT(We)*(-0.19+1.65/(SQRT(1.-temperature)))
+
+             end if
+
+          end if
+              
         end function get_interface_length
 
 
@@ -80,10 +105,22 @@
           real(rkind), intent(in) :: temperature
           real(rkind)             :: md_liquid
           
-          if(rkind.eq.8) then
-             md_liquid = 1.0d0+2.08d0*SQRT(1.0d0-temperature)
+          if(dim2d_lowTemperature) then
+
+             if(rkind.eq.8) then
+                md_liquid = 0.9938571064249365d0 + 2.090919049992133d0*SQRT(1.0d0-temperature)
+             else
+                md_liquid = 0.9938571064249365   + 2.090919049992133*SQRT(1.0-temperature)
+             end if
+
           else
-             md_liquid = 1.+2.08*SQRT(1.-temperature)
+
+             if(rkind.eq.8) then
+                md_liquid = 1.0d0+2.08d0*SQRT(1.0d0-temperature)
+             else
+                md_liquid = 1.+2.08*SQRT(1.-temperature)
+             end if
+
           end if
 
         end function get_mass_density_liquid
@@ -108,10 +145,22 @@
           real(rkind), intent(in) :: temperature
           real(rkind)             :: md_vapor
           
-          if(rkind.eq.8) then
-             md_vapor = 1.0d0-1.86d0*SQRT(1.0d0-temperature)
+          if(dim2d_lowTemperature) then
+
+             if(rkind.eq.8) then
+                md_vapor = 0.9846620916424216d0 - 1.8210340140036445d0*SQRT(1.0d0-temperature)
+             else
+                md_vapor = 0.9846620916424216 - 1.8210340140036445*SQRT(1.0-temperature)
+             end if
+
           else
-             md_vapor = 1.-1.86*SQRT(1.-temperature)
+
+             if(rkind.eq.8) then
+                md_vapor = 1.0d0-1.86d0*SQRT(1.0d0-temperature)
+             else
+                md_vapor = 1.-1.86*SQRT(1.-temperature)
+             end if
+
           end if
 
         end function get_mass_density_vapor

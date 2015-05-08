@@ -328,7 +328,8 @@ def compute_code_inputs(inputFileName,nbTiles):
                    'ic_perturbation_ac',
                    'ic_perturbation_amp',
                    'gravity_choice',
-                   'wave_forcing']
+                   'wave_forcing',
+                   'dim2d_lowTemperature']
     inputs=read_inputs(inputFileName, inputs_needed)
     
 
@@ -442,6 +443,9 @@ def compute_code_inputs(inputFileName,nbTiles):
     gravity_choice = gravity_code[int(inputs['gravity_choice'])]
     wave_forcing   = wave_forcing_code[int(inputs['wave_forcing'])]
 
+    # compute the dim2d_lowTemperature
+    dim2d_lowTemperature = int_to_logical_str(
+        int(inputs['dim2d_lowTemperature']))
 
     return [inputs,
             ntx,nty,ne,
@@ -461,7 +465,8 @@ def compute_code_inputs(inputFileName,nbTiles):
             wave_forcing,
             flow_direction,
             flow_x_side,
-            flow_y_side]
+            flow_y_side,
+            dim2d_lowTemperature]
 
 
 # update the 'parameters_input.f' file with the inputs
@@ -483,7 +488,8 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
                              wave_forcing,
                              flow_direction,
                              flow_x_side,
-                             flow_y_side):
+                             flow_y_side,
+                             dim2d_lowTemperature):
     '''
     @description
     update the constants defined in the 'parameters_input'
@@ -512,7 +518,8 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         'bc_W_type_choice':bc_W_type_choice,
         'gravity_choice':gravity_choice,
         'wave_forcing':wave_forcing,
-        'flow_direction':flow_direction}
+        'flow_direction':flow_direction,
+        'dim2d_lowTemperature':dim2d_lowTemperature}
 
     for key, value  in constants_changed1.items():
 
@@ -646,8 +653,13 @@ if __name__ == "__main__":
     makefile_path        = makefileHeaderPath
     param_cst_path       = paramCstPath
 
+
     # parse the program arguments
-    [inputFileName,compileCode,compileCodeBuffer,nbTiles]=parse_argv(sys.argv[1:])
+    [inputFileName,
+     compileCode,
+     compileCodeBuffer,
+     nbTiles]=parse_argv(sys.argv[1:])
+
 
     # compute the code inputs
     [inputs,ntx,nty,ne,
@@ -667,7 +679,8 @@ if __name__ == "__main__":
      wave_forcing,
      flow_direction,
      flow_x_side,
-     flow_y_side]=compute_code_inputs(inputFileName,nbTiles)
+     flow_y_side,
+     dim2d_lowTemperature]=compute_code_inputs(inputFileName,nbTiles)
 
 
     # replace the inputs in the 'parameters_input' file
@@ -690,24 +703,29 @@ if __name__ == "__main__":
                              wave_forcing,
                              flow_direction,
                              flow_x_side,
-                             flow_y_side)
+                             flow_y_side,
+                             dim2d_lowTemperature)
 
 
     # replace the inputs in the 'makefile'
     update_makefile(makefile_path,bc_choice)
 
+
     # replace the commit SHA number in the
     # 'parameters_constant'
     set_commit(param_cst_path)
+
 
     # print the major results
     print ''
     print '(ntx,nty,ne)', ntx,nty,ne
 
+
     # print the end of the configuration
     print ''
     print 'end of configuration'
     print ''
+
     
     # compile the code
     if(compileCode):

@@ -24,28 +24,28 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -1.8488500000d0
-        real(rkind), parameter :: x_max = 1.8488500000d0
-        real(rkind), parameter :: y_min = -1.8488500000d0
-        real(rkind), parameter :: y_max = 1.8488500000d0
+        real(rkind), parameter :: x_min = -5.5247500000d0
+        real(rkind), parameter :: x_max = 5.5247500000d0
+        real(rkind), parameter :: y_min = -5.5247500000d0
+        real(rkind), parameter :: y_max = 5.5247500000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 35.9533000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0023000000d0
+        real(rkind), parameter :: t_max = 4.9718000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0002000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0640000000d0
+        real(rkind), parameter :: detail_print = 0.0403000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
         !<mpi choice
-        integer, parameter :: npx = 1 !<number of processors along x
-        integer, parameter :: npy = 1 !<number of processors along y
+        integer, parameter :: npx = 8 !<number of processors along x
+        integer, parameter :: npy = 8 !<number of processors along y
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 108
-        integer(ikind), parameter :: nty = 108
+        integer(ikind), parameter :: ntx = 2288
+        integer(ikind), parameter :: nty = 2288
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -106,24 +106,33 @@
         !bubble_ascending   : initial bubble
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
+        !
+        !--------------------------------------------
+        !dim2d_lowTemperature:
+        !--------------------------------------------
+        !option to force the use of low temperature laws
+        !for the saturated liquid and vapor mass densities
+        !and the interface length
         !--------------------------------------------
         integer    , parameter :: flow_direction = y_direction
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
         real(rkind), parameter :: flow_velocity = 0.1000000000d0
         
-        real(rkind), parameter :: T0 = 0.9990000000d0
+        real(rkind), parameter :: T0 = 0.9500000000d0
 
         integer    , parameter :: ic_choice = bubble_transported
         integer    , parameter :: ic_perturbation_ac = .false.
         real(rkind), parameter :: ic_perturbation_amp = 0.0000000000d0
+
+        logical    , parameter :: dim2d_lowTemperature = .true.
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = hedstrom_xy_choice
+        integer, parameter :: bc_choice = periodic_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
@@ -144,10 +153,10 @@
         !bc_W_type_choice : type of boundary condition applied
         !                   at the West boundary
         !-----------------------------------------------------
-        integer    , parameter :: bc_N_type_choice = bc_timedev_choice
-        integer    , parameter :: bc_S_type_choice = bc_timedev_choice
-        integer    , parameter :: bc_E_type_choice = bc_timedev_choice
-        integer    , parameter :: bc_W_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_N_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_S_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_E_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_W_type_choice = bc_nodes_choice
 
 
         !-----------------------------------------------------
@@ -220,7 +229,7 @@
         ! amplitude of the perturbation applied to the y-component of
         ! the velocity used to compute the far field values
         !------------------------------------------------------------
-        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
         logical    , parameter :: obc_edge_overlap_ac     = .true.
@@ -228,11 +237,11 @@
         
         integer    , parameter :: obc_perturbation_T0_ac = .false.
         integer    , parameter :: obc_perturbation_vx0_ac = .false.
-        integer    , parameter :: obc_perturbation_vy0_ac = .true.
+        integer    , parameter :: obc_perturbation_vy0_ac = .false.
 
         real(rkind), parameter :: obc_perturbation_T0_amp = 0.0000000000d0
         real(rkind), parameter :: obc_perturbation_vx0_amp = 0.0000000000d0
-        real(rkind), parameter :: obc_perturbation_vy0_amp = 0.0050000000d0
+        real(rkind), parameter :: obc_perturbation_vy0_amp = 0.0000000000d0
 
 
         !------------------------------------------------------------

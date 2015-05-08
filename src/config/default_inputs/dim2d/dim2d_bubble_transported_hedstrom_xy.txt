@@ -227,13 +227,19 @@ ic_perturbation_amp = 0.0
 !============================================================
 !set the options tuning the DIM equations
 !============================================================
+!dim2d_lowTemperature : integer
+! 0 : do not use low temperature laws T \in [0.995, 0.999]
+! 1 : use low temperature laws: T \in [0.95,0.99]
+!
 !gravity_choice : integer
 ! 0 : no gravity
 ! 1 : earth gravity: 9.81
+!
 !wave_forcing : integer
 ! 0 : no forcing
 ! 1 : oscillatory forcing
 ! 2 : intermittent forcing
 !============================================================
+dim2d_lowTemperature=1
 gravity_choice=0
 wave_forcing=0
