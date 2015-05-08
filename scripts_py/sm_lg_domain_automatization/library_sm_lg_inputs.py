@@ -101,6 +101,12 @@ def get_we(length_c, dim1d_a, dim1d_b, dim1d_M, dim1d_K):
     capillarity constant
     '''
 
+    #print "length_c: "+str(length_c)
+    #print "dim1d_a: "+str(dim1d_a)
+    #print "dim1d_b: "+str(dim1d_b)
+    #print "dim1d_M: "+str(dim1d_M)
+    #print "dim1d_K: "+str(dim1d_K)
+
     #critical mass density
     rho_c = dim1d_M/(3.*dim1d_b)
 
@@ -139,9 +145,13 @@ def get_interface_space_step(interface_lgh,nb_pts):
     captured by a defined number of grid points
     '''
 
-    return float(math.floor(
-            interface_lgh/nb_pts
-            *10**4))/(10**4)
+    x=float(interface_lgh)/float(nb_pts)
+    y=float(math.floor(x*10**4))/(10**4)
+
+    #print "dx_max:"+str(x)
+    #print "dx_max_approx:"+str(y)
+
+    return y
 
 
 # compute the diameter of the bubble from the interface size

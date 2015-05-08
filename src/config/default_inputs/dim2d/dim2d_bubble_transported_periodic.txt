@@ -216,6 +216,6 @@ ic_perturbation_amp = 0.0
 ! 1 : oscillatory forcing
 ! 2 : intermittent forcing
 !---------------------------------------------------------
-dim2d_lowTemperature=1
+dim2d_lowTemperature=0
 gravity_choice=0
 wave_forcing=0

@@ -136,11 +136,19 @@ if __name__=="__main__":
     mainDir = os.path.join(os.getenv('HOME'),
                            'projects')
 
+#    main_sm_dirs = os.path.join(mainDir,
+#                                '20150429_dim2d_bb_trans_cv_r3.5_search4_over2_bc_crenel')
+
     main_sm_dirs = os.path.join(mainDir,
-                                '20150424_dim2d_bb_trans_cv_r3.5_search4_over2_lin_crenel')
+                                '20150508_dim2d_bb_trans_cv_r3.5_search4_over2_bc_crenel_low')
+
+#    main_sm_dirs = os.path.join(mainDir)
+    
+#    main_sm_dirs = os.path.join(mainDir,
+#                                '20150424_dim2d_bb_trans_cv_r3.5_noadapt_lin')
 
     main_lg_dirs = os.path.join(mainDir,
-                                '20150422_dim2d_bb_trans_cv_r3.5_lg')
+                                'dim2d_bb_trans_large_domain_low')
 
 
     #paths for the large domain simulations
@@ -170,20 +178,20 @@ if __name__=="__main__":
     # - thresholdVelocityStudy    : create error files for the
     #                               threshold study on velocity
     #------------------------------------------------------------
-    temperatureStudy          = False
+    temperatureStudy          = True
     velocityStudy             = False
     thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
     icPerturbationStudy       = False
-    bcPerturbationStudy_T0    = True
-    bcPerturbationStudy_vx0   = True
-    bcPerturbationStudy_vy0   = True
+    bcPerturbationStudy_T0    = False
+    bcPerturbationStudy_vx0   = False
+    bcPerturbationStudy_vy0   = False
 
 
     #1) temperature study
     if(temperatureStudy):
 
-        temperature_array   = [0.99,0.995] #[0.95,0.99,0.995,0.999]
+        temperature_array   = [0.95] #[0.95,0.99,0.995,0.999]
         flow_velocity_array = [0.1]
         
         generate_simulation_error_files(
@@ -200,7 +208,7 @@ if __name__=="__main__":
     if(velocityStudy):
 
         temperature_array   = [0.99]
-        flow_velocity_array = [0.05,0.25,0.5]
+        flow_velocity_array = [0.5]
         
         generate_simulation_error_files(
             main_sm_dirs,
@@ -234,7 +242,7 @@ if __name__=="__main__":
     if(thresholdVelocityStudy):
         
         temperature_array   = [0.99]
-        flow_velocity_array = [0.05] #[0.05,0.1,0.25,0.5]
+        flow_velocity_array = [0.05,0.25,0.5]
         md_threshold_array  = [0.05, 0.1, 0.2, 0.3]
         
         
@@ -252,7 +260,7 @@ if __name__=="__main__":
     #4) perturbation studies
     if(icPerturbationStudy):
 
-        temperature_array     = [0.95,0.99,0.995,0.999] #[0.95,0.99,0.995,0.999]
+        temperature_array     = [0.95,0.99,0.995,0.999]
         flow_velocity_array   = [0.1]
         ic_perturbation_array = [0.5] #[0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05,0.1]
 
@@ -315,4 +323,4 @@ if __name__=="__main__":
             lg_dirs,
             temperature_array,
             flow_velocity_array,
-            bc_perturbation_vy0_array=bc_perturbation_array)        
+            bc_perturbation_vy0_array=bc_perturbation_array)

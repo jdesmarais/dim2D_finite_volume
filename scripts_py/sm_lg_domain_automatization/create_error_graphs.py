@@ -173,9 +173,17 @@ if __name__=="__main__":
 
     # main directory where the simulations are saved
     #------------------------------------------------------------
+    #mainDir = os.path.join(os.getenv('HOME'),
+    #                       'projects',
+    #                       '20150429_dim2d_bb_trans_cv_r3.5_search4_over2_bc_crenel')
+
     mainDir = os.path.join(os.getenv('HOME'),
                            'projects',
-                           '20150424_dim2d_bb_trans_cv_r3.5_search4_over2_lin_crenel')
+                           '20150508_dim2d_bb_trans_cv_r3.5_search4_over2_bc_crenel_low')
+
+    #mainDir = os.path.join(os.getenv('HOME'),
+    #                       'projects',
+    #                       '20150424_dim2d_bb_trans_cv_r3.5_search4_over2_lin_crenel')
 
 
     # dictionnaries to associate a temperature parameter with
@@ -197,14 +205,20 @@ if __name__=="__main__":
     # - thresholdVelocityStudy    : create error graph for the
     #                               threshold study on velocity
     #------------------------------------------------------------
-    temperatureStudy          = False
+    temperatureStudy          = True
     velocityStudy             = False
     thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
 
-    errorPosition  = False
-    errorIcPerturbation = True
+    errorPosition          = False
+    errorIcPerturbation    = False
+    errorBcPerturbationT0  = False
+    errorBcPerturbationvx0 = False
+    errorBcPerturbationvy0 = False
 
+    errorIcExplaination    = False
+    errorBcExplainationT0  = False
+    errorBcExplainationVy0 = False
 
     
     # options for the line drawing
@@ -261,7 +275,7 @@ if __name__=="__main__":
     #============================================================
     if(temperatureStudy):
 
-        temperature_array   = [0.95,0.99,0.995,0.999]
+        temperature_array   = [0.95] #[0.95,0.99,0.995,0.999]
         flow_velocity_array = [0.1]
         md_threshold_array  = [0]
         legendPosition      = 'upper right'
@@ -341,14 +355,14 @@ if __name__=="__main__":
     #============================================================
     if(thresholdTemperatureStudy):
 
-        temperature_array   = [0.95,0.99,0.995,0.999]
+        temperature_array   = [0.95] #[0.95,0.99,0.995,0.999]
         flow_velocity_array = [0.1]
         md_threshold_array  = [0.05, 0.1, 0.2, 0.3]
-        legendPosition      = 'lower right'
+        legendPosition      = 'upper right'
 
         # output file + graph limits
         figPath   = os.path.join(mainDir,fig_T_threshold)
-        plot_ylim = plot_ylim_T_threshold
+        plot_ylim = [0.0000006,0.0008] #plot_ylim_T_threshold
 
         # legend + line properties
         legendParam = []
@@ -382,13 +396,13 @@ if __name__=="__main__":
     if(thresholdVelocityStudy):
 
         temperature_array   = [0.99]
-        flow_velocity_array = [0.25] #[0.05,0.1,0.25,0.5]
+        flow_velocity_array = [0.05,0.1,0.25,0.5]
         md_threshold_array  = [0.05, 0.1, 0.2, 0.3]
-        legendPosition      = 'lower center'
+        legendPosition      = 'upper left' #upper right'
 
         # output file + graph limits
         figPath   = os.path.join(mainDir,fig_v_threshold)
-        plot_ylim = plot_ylim_v_threshold
+        plot_ylim = [0.00005,0.0015] #plot_ylim_v_threshold
 
         # legend + line properties
         legendParam = []
@@ -397,7 +411,8 @@ if __name__=="__main__":
             md_i = md_threshold_dict[str(md_threshold)]
             for flow_velocity in flow_velocity_array:
                 v_i  = flow_velocity_dict[str(flow_velocity)]
-                legendParam.append(str(flow_velocity)+'\_'+str(md_threshold))
+                #legendParam.append(str(flow_velocity)+'\_'+str(md_threshold))
+                legendParam.append(str(md_threshold))
                 graphPties.append([color_flow_velocity[v_i],
                                    style_threshold[md_i]])
 
@@ -480,7 +495,7 @@ if __name__=="__main__":
         ic_perturbations_array = [0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05,0.1,0.5]
 
         legendPosition      = 'best'
-        fig_ic_perturbation = 'ic_perturbation.eps'        
+        fig_ic_perturbation = 'ic_perturbation.png'
         plot_ylim           = 'None'
         xlabel              = 'Maximum initial perturbation'
 
@@ -530,3 +545,366 @@ if __name__=="__main__":
             figPath=fig_ic_perturbation,
             plot_ylim=plot_ylim,
             xlabel=xlabel)
+
+
+    if(errorBcPerturbationT0):
+
+        temperature_array      = [0.95,0.99,0.995,0.999]
+        flow_velocity          = 0.1
+        md_threshold           = 0
+        bc_perturbations_array = [0.000005,0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01]
+
+        legendPosition      = 'lower right'
+        fig_ic_perturbation = 'bc_perturbation_T0.png'
+        plot_ylim           = [0.0001,1] #'None'
+        xlabel              = 'Temperature perturbation'
+
+        data        = []
+        legendParam = []
+        graphPties  = []
+
+        for temperature in temperature_array:
+
+            data_error = []
+            data_error.append([])
+            data_error.append([])
+
+            for bc_perturbation in bc_perturbations_array:
+
+                # get the path for the error file
+                dir_name = get_simulation_dir(temperature,
+                                              flow_velocity,
+                                              md_threshold,
+                                              bc_perturbation_T0_amp=temperature*bc_perturbation)
+
+                errorPath = os.path.join(mainDir,dir_name,'error','error_max.nc')
+
+                # extract the maximum of the error for this perturbation
+                max_error = extract_max_error_in_time(errorPath, var_names=['max_error_in_time_mass'])
+
+                # put the values in the database
+                data_error[0].append(bc_perturbation)
+                data_error[1].append(max_error[0])
+
+            # save the data [data_error[0],data_error[1]] in the database
+            data.append(data_error)
+
+            #set the legend properties            
+            legendParam.append(temperature)
+
+            # set the graph properties
+            T_i  = temperature_dict[str(temperature)]
+            graphPties.append([color_temperature[T_i],'-o'])
+
+
+        create_error_graph_perturbation(
+            data,
+            legendPosition=legendPosition,
+            legendParam=legendParam,
+            graphPties=graphPties,
+            figPath=fig_ic_perturbation,
+            plot_ylim=plot_ylim,
+            xlabel=xlabel)
+
+
+    if(errorBcPerturbationvx0):
+
+        temperature_array      = [0.95,0.99,0.995,0.999]
+        flow_velocity          = 0.1
+        md_threshold           = 0
+        bc_perturbations_array = [0.000005,0.00001,0.00005,0.0001,0.0005,0.001]
+
+        legendPosition      = 'lower right'
+        fig_ic_perturbation = 'bc_perturbation_vx0.png'
+        plot_ylim           = [0.0001,1] #'None'
+        xlabel              = '$x$-Velocity perturbation'
+
+        data        = []
+        legendParam = []
+        graphPties  = []
+
+        for temperature in temperature_array:
+
+            data_error = []
+            data_error.append([])
+            data_error.append([])
+
+            for bc_perturbation in bc_perturbations_array:
+
+                # get the path for the error file
+                dir_name = get_simulation_dir(temperature,
+                                              flow_velocity,
+                                              md_threshold,
+                                              bc_perturbation_vx0_amp=bc_perturbation)
+
+                errorPath = os.path.join(mainDir,dir_name,'error','error_max.nc')
+
+                # extract the maximum of the error for this perturbation
+                max_error = extract_max_error_in_time(errorPath, var_names=['max_error_in_time_mass'])
+
+                # put the values in the database
+                data_error[0].append(bc_perturbation)
+                data_error[1].append(max_error[0])
+
+            # save the data [data_error[0],data_error[1]] in the database
+            data.append(data_error)
+
+            #set the legend properties            
+            legendParam.append(temperature)
+
+            # set the graph properties
+            T_i  = temperature_dict[str(temperature)]
+            graphPties.append([color_temperature[T_i],'-o'])
+
+
+        create_error_graph_perturbation(
+            data,
+            legendPosition=legendPosition,
+            legendParam=legendParam,
+            graphPties=graphPties,
+            figPath=fig_ic_perturbation,
+            plot_ylim=plot_ylim,
+            xlabel=xlabel)
+
+
+    if(errorBcPerturbationvy0):
+
+        temperature_array      = [0.95,0.99,0.995,0.999]
+        flow_velocity          = 0.1
+        md_threshold           = 0
+        bc_perturbations_array = [0.000005,0.00001,
+                                  0.00002,0.00003,0.00004,0.00005,0.00007,
+                                  0.0001,0.0005,0.001,0.005,0.01,0.05,0.1,0.5]
+
+        legendPosition      = 'lower right'
+        fig_ic_perturbation = 'bc_perturbation_vy0.png'
+        plot_ylim           = [0.0001,0.1] #'None'
+        xlabel              = 'Velocity perturbation'
+
+        data        = []
+        legendParam = []
+        graphPties  = []
+
+        for temperature in temperature_array:
+
+            data_error = []
+            data_error.append([])
+            data_error.append([])
+
+            for bc_perturbation in bc_perturbations_array:
+
+                # get the path for the error file
+                dir_name = get_simulation_dir(temperature,
+                                              flow_velocity,
+                                              md_threshold,
+                                              bc_perturbation_vy0_amp=flow_velocity*bc_perturbation)
+
+                errorPath = os.path.join(mainDir,dir_name,'error','error_max.nc')
+
+                if(os.path.isfile(errorPath)):
+
+                    # extract the maximum of the error for this perturbation
+                    max_error = extract_max_error_in_time(errorPath, var_names=['max_error_in_time_mass'])
+
+                    # put the values in the database
+                    data_error[0].append(bc_perturbation)
+                    data_error[1].append(max_error[0])
+
+            # save the data [data_error[0],data_error[1]] in the database
+            data.append(data_error)
+
+            #set the legend properties            
+            legendParam.append(temperature)
+
+            # set the graph properties
+            T_i  = temperature_dict[str(temperature)]
+            graphPties.append([color_temperature[T_i],'-o'])
+
+
+        create_error_graph_perturbation(
+            data,
+            legendPosition=legendPosition,
+            legendParam=legendParam,
+            graphPties=graphPties,
+            figPath=fig_ic_perturbation,
+            plot_ylim=plot_ylim,
+            xlabel=xlabel)
+
+
+    # explainations of the error
+    if(errorIcExplaination):
+
+        temperature_array     = [0.995,0.999]
+        flow_velocity         = 0.1
+        bc_perturbation_array = [0.0001,0.001,0.01]
+        md_threshold          = 0
+        legendPosition        = 'upper left' #upper right'
+
+        # output file + graph limits
+        figPath   = 'ic_explainations.png'
+        plot_ylim = [0.00001,0.01]
+
+        data = [] 
+        legendParam = []
+        graphPties = []
+
+        for temperature in temperature_array:
+            for bc_perturbation in bc_perturbation_array:
+                    
+                # get the path to the error data
+                T_i  = temperature_dict[str(temperature)]
+                v_i  = flow_velocity_dict[str(flow_velocity)]
+
+                # get the path for the error file
+                dir_name = get_simulation_dir(temperature,
+                                              flow_velocity,
+                                              md_threshold,
+                                              ic_perturbation_amp=bc_perturbation)
+
+                errorPath = os.path.join(mainDir,dir_name,'error','error_max.nc')
+
+                
+                # extract the error data
+                [time_rescaled,error] = extract_max_error_in_time(errorPath)
+        
+                # stored the error data for the graph
+                data.append([time_rescaled,error])
+
+                #set the legend properties            
+                legendParam.append(temperature)
+
+                # set the graph properties
+                T_i  = temperature_dict[str(temperature)]
+                graphPties.append([color_temperature[T_i],'-'])
+
+
+        # create the graph
+        create_error_graph(
+            data,
+            legendPosition=legendPosition,
+            legendParam=legendParam,
+            graphPties=graphPties,
+            width=width,
+            figPath=figPath,
+            show=show,
+            logScale=logScale,
+            plot_ylim=plot_ylim)
+
+
+    if(errorBcExplainationT0):
+
+        temperature_array     = [0.995,0.999]
+        flow_velocity         = 0.1
+        bc_perturbation_array = [0.000005,0.00005,0.0005]
+        md_threshold          = 0
+        legendPosition        = 'upper left' #upper right'
+
+        # output file + graph limits
+        figPath   = 'bc_explainations_T0.png'
+        plot_ylim = [0.00001,0.02]
+
+        data = [] 
+        legendParam = []
+        graphPties = []
+
+        for temperature in temperature_array:
+            for bc_perturbation in bc_perturbation_array:
+                    
+                # get the path to the error data
+                T_i  = temperature_dict[str(temperature)]
+                v_i  = flow_velocity_dict[str(flow_velocity)]
+
+                # get the path for the error file
+                dir_name = get_simulation_dir(temperature,
+                                              flow_velocity,
+                                              md_threshold,
+                                              bc_perturbation_T0_amp=temperature*bc_perturbation)
+
+                errorPath = os.path.join(mainDir,dir_name,'error','error_max.nc')
+
+                
+                # extract the error data
+                [time_rescaled,error] = extract_max_error_in_time(errorPath)
+        
+                # stored the error data for the graph
+                data.append([time_rescaled,error])
+
+                #set the legend properties            
+                legendParam.append(temperature)
+
+                # set the graph properties
+                T_i  = temperature_dict[str(temperature)]
+                graphPties.append([color_temperature[T_i],'-'])
+
+
+        # create the graph
+        create_error_graph(
+            data,
+            legendPosition=legendPosition,
+            legendParam=legendParam,
+            graphPties=graphPties,
+            width=width,
+            figPath=figPath,
+            show=show,
+            logScale=logScale,
+            plot_ylim=plot_ylim)
+
+
+    if(errorBcExplainationVy0):
+
+        temperature_array     = [0.995,0.999]
+        flow_velocity         = 0.1
+        bc_perturbation_array = [0.0001,0.001,0.01]
+        md_threshold          = 0
+        legendPosition        = 'upper left' #upper right'
+
+        # output file + graph limits
+        figPath   = 'bc_explainations_vy0.png'
+        plot_ylim = [0.000007,0.02]
+
+        data = [] 
+        legendParam = []
+        graphPties = []
+
+        for temperature in temperature_array:
+            for bc_perturbation in bc_perturbation_array:
+                    
+                # get the path to the error data
+                T_i  = temperature_dict[str(temperature)]
+                v_i  = flow_velocity_dict[str(flow_velocity)]
+
+                # get the path for the error file
+                dir_name = get_simulation_dir(temperature,
+                                              flow_velocity,
+                                              md_threshold,
+                                              bc_perturbation_vy0_amp=flow_velocity*bc_perturbation)
+
+                errorPath = os.path.join(mainDir,dir_name,'error','error_max.nc')
+
+                if(os.path.isfile(errorPath)):
+
+                    # extract the error data
+                    [time_rescaled,error] = extract_max_error_in_time(errorPath)
+        
+                    # stored the error data for the graph
+                    data.append([time_rescaled,error])
+
+                    #set the legend properties            
+                    legendParam.append(temperature)
+
+                    # set the graph properties
+                    T_i  = temperature_dict[str(temperature)]
+                    graphPties.append([color_temperature[T_i],'-'])
+
+
+        # create the graph
+        create_error_graph(
+            data,
+            legendPosition=legendPosition,
+            legendParam=legendParam,
+            graphPties=graphPties,
+            width=width,
+            figPath=figPath,
+            show=show,
+            logScale=logScale,
+            plot_ylim=plot_ylim)

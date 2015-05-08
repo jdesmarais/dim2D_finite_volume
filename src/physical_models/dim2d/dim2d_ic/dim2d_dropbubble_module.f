@@ -148,20 +148,22 @@
           integer    , intent(in) :: phase_at_center
           real(rkind)             :: mass_density_ellipsoid
 
+          real(rkind) :: scale
           real(rkind) :: r,ri
           integer     :: sign
 
-          r    = get_coordinate(x,y,xc,yc,a,b)
-          ri   = 1.0d0          
-          sign = choose_phase_at_center(phase_at_center)
+          r     = get_coordinate(x,y,xc,yc,a,b)
+          ri    = 1.0d0
+          scale = Sqrt(a*b)
+          sign  = choose_phase_at_center(phase_at_center)
 
           select case(rkind)
             case(4)
                mass_density_ellipsoid = (dliq+dvap)/2. +
-     $              (dliq-dvap)/2.*tanh(sign*2*(r-ri)/li)
+     $              (dliq-dvap)/2.*tanh(sign*2*scale*(r-ri)/li)
             case(8)
                mass_density_ellipsoid = (dliq+dvap)/2.0d0 +
-     $              (dliq-dvap)/2.0d0*dtanh(sign*2.0d0*(r-ri)/li)
+     $              (dliq-dvap)/2.0d0*dtanh(sign*2.0d0*scale*(r-ri)/li)
             case default
                print '(''dim2d_dropletbubble_module'')'
                print '(''mass_density_ellipsoid'')'
@@ -222,9 +224,11 @@
           real(rkind)             :: mass_density_grad_norm_squared
 
           real(rkind) :: r,ri
-
-          r = get_coordinate(x,y,xc,yc,a,b)
-          ri = 1.0
+          real(rkind) :: scale
+          
+          scale = Sqrt(a*b)
+          r     = get_coordinate(x,y,xc,yc,a,b)
+          ri    = 1.0
 
           !< compute \f$ {| \nabla \rho |}^2 \f$
           if(r.eq.0) then
@@ -233,14 +237,14 @@
           else
              if(rkind.eq.8) then
                 mass_density_grad_norm_squared=
-     $               ((dliq-dvap)/(li*r))**2*
-     $               (1.0d0-(dtanh(2.0d0*(r-ri)/li))**2)**2*
-     $               (x**2/a**4 + y**2/b**4)
+     $               ((dliq-dvap)/(li*r/scale))**2*
+     $               (1.0d0-(dtanh(2.0d0*scale*(r-ri)/li))**2)**2*
+     $               ((x-xc)**2/a**4 + (y-yc)**2/b**4)
              else
                 mass_density_grad_norm_squared=
-     $               ((dliq-dvap)/(li*r))**2*
-     $               (1.0-(dtanh(2.0*(r-ri)/li))**2)**2*
-     $               (x**2/a**4 + y**2/b**4)    
+     $               ((dliq-dvap)/(li*r/scale))**2*
+     $               (1.0-(tanh(2.0*scale*(r-ri)/li))**2)**2*
+     $               ((x-xc)**2/a**4 + (y-yc)**2/b**4)
              end if
           end if
 

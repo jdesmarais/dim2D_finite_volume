@@ -24,10 +24,10 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -5.5247500000d0
-        real(rkind), parameter :: x_max = 5.5247500000d0
-        real(rkind), parameter :: y_min = -5.5247500000d0
-        real(rkind), parameter :: y_max = 5.5247500000d0
+        real(rkind), parameter :: x_min = -0.2523500000d0
+        real(rkind), parameter :: x_max = 0.2523500000d0
+        real(rkind), parameter :: y_min = -0.2523500000d0
+        real(rkind), parameter :: y_max = 0.2523500000d0
         
         !<computational times
         real(rkind), parameter :: t_max = 4.9718000000d0 !10.0d0
@@ -39,13 +39,13 @@
         logical    , parameter :: write_detectors = .true.
 
         !<mpi choice
-        integer, parameter :: npx = 8 !<number of processors along x
-        integer, parameter :: npy = 8 !<number of processors along y
+        integer, parameter :: npx = 1 !<number of processors along x
+        integer, parameter :: npy = 1 !<number of processors along y
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 2288
-        integer(ikind), parameter :: nty = 2288
+        integer(ikind), parameter :: ntx = 108
+        integer(ikind), parameter :: nty = 108
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -132,7 +132,7 @@
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = periodic_xy_choice
+        integer, parameter :: bc_choice = hedstrom_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
@@ -153,10 +153,10 @@
         !bc_W_type_choice : type of boundary condition applied
         !                   at the West boundary
         !-----------------------------------------------------
-        integer    , parameter :: bc_N_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_S_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_E_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_W_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_N_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_S_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_E_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_W_type_choice = bc_timedev_choice
 
 
         !-----------------------------------------------------
@@ -316,7 +316,7 @@
         !
         !------------------------------------------------------------
         logical    , parameter :: bf_openbc_md_threshold_ac = .false.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.0000000000d0
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.4000000000d0
 
 
         !------------------------------------------------------------

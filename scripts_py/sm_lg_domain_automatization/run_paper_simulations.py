@@ -42,26 +42,26 @@ if __name__=="__main__":
                                  'src','config',
                                  'default_inputs','dim2d')
     ##for small domain simulations
-    model_input=os.path.join(maindir_input,
-        'dim2d_bubble_transported_hedstrom_xy.txt')
+    #model_input=os.path.join(maindir_input,
+    #    'dim2d_bubble_transported_hedstrom_xy.txt')
 
     #for large domain simulations
-    #model_input=os.path.join(maindir_input,
-    #    'dim2d_bubble_transported_periodic.txt')
+    model_input=os.path.join(maindir_input,
+        'dim2d_bubble_transported_periodic.txt')
     
 
-    large_domain_run          = False
-    small_domain_run          = True
+    large_domain_run          = True
+    small_domain_run          = False
     nb_tiles_option           = [8,8]
 
-    temperatureStudy          = False
-    velocityStudy             = False
+    temperatureStudy          = True
+    velocityStudy             = True
     thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
     icPerturbationStudy       = False
-    bcPerturbationStudy_T0    = True
-    bcPerturbationStudy_vx0   = True
-    bcPerturbationStudy_vy0   = True
+    bcPerturbationStudy_T0    = False
+    bcPerturbationStudy_vx0   = False
+    bcPerturbationStudy_vy0   = False
 
 
     #1) temperature study
@@ -114,9 +114,9 @@ if __name__=="__main__":
     #3) threshold study
     if(thresholdTemperatureStudy):
 
-        temperature_array  = [0.95,0.99,0.995,0.999]
+        temperature_array  = [0.95, 0.99, 0.995, 0.999]
         flow_velocity      = 0.1
-        md_threshold_array = [0.01,0.05, 0.1, 0.2, 0.3]
+        md_threshold_array = [0.01, 0.05, 0.1, 0.2, 0.3]
         md_threshold_ac    = 1
         
         for md_threshold in md_threshold_array:
@@ -139,7 +139,7 @@ if __name__=="__main__":
     
     if(thresholdVelocityStudy):
         temperature         = 0.99
-        flow_velocity_array = [0.05,0.25,0.5]
+        flow_velocity_array = [0.05, 0.25, 0.5]
         md_threshold_array  = [0.01, 0.05, 0.1, 0.2, 0.3]
         md_threshold_ac     = 1
     
@@ -167,7 +167,7 @@ if __name__=="__main__":
 
         temperature_array     = [0.95,0.99,0.995,0.999]
         flow_velocity         = 0.1
-        ic_perturbation_array = [0.5] #[0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05,0.1]
+        ic_perturbation_array = [0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05,0.1,0.5]
         ic_perturbation_ac    = 1
         
         for ic_perturbation in ic_perturbation_array:
@@ -244,7 +244,7 @@ if __name__=="__main__":
 
     if(bcPerturbationStudy_vy0):
 
-        temperature           = [0.95,0.99,0.995,0.999]
+        temperature_array     = [0.95,0.99,0.995,0.999]
         flow_velocity         = 0.1
         bc_perturbation_array = [0.000005,0.00001,0.00005,0.0001,0.0005,0.001,0.005,0.01,0.05]
         bc_perturbation_ac    = 1
