@@ -52,7 +52,9 @@
      $       flow_direction,
      $       flow_x_side,
      $       flow_y_side,
-     $       flow_velocity
+     $       flow_velocity,
+     $       li_perturbation_ac,
+     $       li_perturbation_amp
 
         use parameters_kind, only :
      $       ikind,
@@ -184,7 +186,11 @@
 
           !set the major and minor axes of the bubble ellipse
           a=2.0d0*li
-          b=a !a/2.0d0          
+          b=a !a/2.0d0
+
+          if(li_perturbation_ac) then
+             li = li*(1.0d0+li_perturbation_amp)
+          end if
 
 
           !determine the flow velocities

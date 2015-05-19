@@ -12,7 +12,10 @@ import math #for mathematical fcts
 
 
 # for the global variables of the module
-from automatization_csts import nb_pts_inside_interface_required, precision
+from automatization_csts import\
+    nb_pts_inside_interface_required,\
+    precision,\
+    initial_reflection_study
 
 
 # compute the reduced saturated mass density of vapor
@@ -244,9 +247,14 @@ def get_simulation_time(domain_lgh,
     #simulation is
     total_distance = domain_lgh/2.0+ratio_interface_influence*interface_lgh+bubble_diameter/2.0
 
-    return float(math.ceil(
+    simulation_time = float(math.ceil(
             total_distance/flow_velocity*
             10**4))/(10**4)
+
+    if(initial_reflection_study):
+        simulation_time = simulation_time/4.0
+
+    return simulation_time
 
 
 # get the detail_print such that the total number of files

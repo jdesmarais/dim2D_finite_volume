@@ -132,6 +132,9 @@ pm_choice = 4
 !
 !---------------------------------------------------------
 bc_choice = 0
+
+openbc_detector_distance = 4
+
 openbc_md_threshold_ac = 1
 openbc_md_threshold    = 0.1
 
@@ -139,9 +142,9 @@ openbc_perturbation_T0_ac  = 0
 openbc_perturbation_vx0_ac = 0
 openbc_perturbation_vy0_ac = 0
 
-openbc_perturbation_T0_amp  = 0.0d0
-openbc_perturbation_vx0_amp = 0.0d0
-openbc_perturbation_vy0_amp = 0.0d0
+openbc_perturbation_T0_amp  = 0.0
+openbc_perturbation_vx0_amp = 0.0
+openbc_perturbation_vy0_amp = 0.0
 
 
 !6.    Initial conditions
@@ -196,6 +199,18 @@ openbc_perturbation_vy0_amp = 0.0d0
 ! maximum amplitude of the perturbation in the initial
 ! conditions
 !
+!------------------------------------------------------------
+!li_perturbation_ac : integer
+!------------------------------------------------------------
+! 1: activate the perturbation of the interface length
+! 0: do not activate the perturbation of the interface length
+!
+!------------------------------------------------------------
+!li_perturbation_amp : real
+!------------------------------------------------------------
+! maximum amplitude of the perturbation for the interface
+! length
+!
 !---------------------------------------------------------
 flow_direction = N
 flow_velocity = 0.1
@@ -203,6 +218,8 @@ temperature = 0.995
 ic_choice = 6
 ic_perturbation_ac = 0
 ic_perturbation_amp = 0.0
+li_perturbation_ac = 0
+li_perturbation_amp = -2.0
 
 !7.     DIM equations
 !---------------------------------------------------------

@@ -313,6 +313,7 @@ def compute_code_inputs(inputFileName,nbTiles):
                    'dt','t_max','detail_print',
                    'pm_choice',
                    'bc_choice',
+                   'openbc_detector_distance',
                    'openbc_md_threshold_ac',
                    'openbc_md_threshold',
                    'openbc_perturbation_T0_ac',
@@ -327,6 +328,8 @@ def compute_code_inputs(inputFileName,nbTiles):
                    'ic_choice',
                    'ic_perturbation_ac',
                    'ic_perturbation_amp',
+                   'li_perturbation_ac',
+                   'li_perturbation_amp',
                    'gravity_choice',
                    'wave_forcing',
                    'dim2d_lowTemperature']
@@ -379,6 +382,10 @@ def compute_code_inputs(inputFileName,nbTiles):
     ic_perturbation_ac = int_to_logical_str(
         int(inputs['ic_perturbation_ac']))
 
+    # compute the ic_perturbation_ac
+    li_perturbation_ac = int_to_logical_str(
+        int(inputs['li_perturbation_ac']))
+
     # determine the flow parameters
     flow_direction = flow_direction_code[inputs['flow_direction']][0]
     flow_x_side    = flow_direction_code[inputs['flow_direction']][1]
@@ -427,6 +434,10 @@ def compute_code_inputs(inputFileName,nbTiles):
     openbc_md_threshold_ac = int_to_logical_str(
         int(inputs['openbc_md_threshold_ac']))
 
+    # determine the openbc_detector_distance
+    inputs['openbc_detector_distance'] =\
+        int(inputs['openbc_detector_distance'])
+
     # compute the openbc_perturbation_T0_ac
     openbc_perturbation_T0_ac = int_to_logical_str(
         int(inputs['openbc_perturbation_T0_ac']))
@@ -452,6 +463,7 @@ def compute_code_inputs(inputFileName,nbTiles):
             pm_choice,
             ic_choice,
             ic_perturbation_ac,
+            li_perturbation_ac,
             bc_choice,
             openbc_md_threshold_ac,
             openbc_perturbation_T0_ac,
@@ -475,6 +487,7 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
                              pm_choice,
                              ic_choice,
                              ic_perturbation_ac,
+                             li_perturbation_ac,
                              bc_choice,
                              openbc_md_threshold_ac,
                              openbc_perturbation_T0_ac,
@@ -507,8 +520,10 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         'pm_choice':pm_choice,
         'ic_choice':ic_choice,
         'ic_perturbation_ac':ic_perturbation_ac,
+        'li_perturbation_ac':li_perturbation_ac,
         'bc_choice':bc_choice,
         'bf_openbc_md_threshold_ac':openbc_md_threshold_ac,
+        'obc_dct_distance':inputs['openbc_detector_distance'],
         'obc_perturbation_T0_ac':openbc_perturbation_T0_ac,
         'obc_perturbation_vx0_ac':openbc_perturbation_vx0_ac,
         'obc_perturbation_vy0_ac':openbc_perturbation_vy0_ac,
@@ -546,6 +561,7 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         'flow_velocity'           : inputs['flow_velocity'],
         'T0'                      : inputs['temperature'],
         'ic_perturbation_amp'     : inputs['ic_perturbation_amp'],
+        'li_perturbation_amp'     : inputs['li_perturbation_amp'],
         'bf_openbc_md_threshold'  : inputs['openbc_md_threshold'],
         'obc_perturbation_T0_amp' : inputs['openbc_perturbation_T0_amp'],
         'obc_perturbation_vx0_amp': inputs['openbc_perturbation_vx0_amp'],
@@ -666,6 +682,7 @@ if __name__ == "__main__":
      pm_choice,
      ic_choice,
      ic_perturbation_ac,
+     li_perturbation_ac,
      bc_choice,
      openbc_md_threshold_ac,
      openbc_perturbation_T0_ac,
@@ -690,6 +707,7 @@ if __name__ == "__main__":
                              pm_choice,
                              ic_choice,
                              ic_perturbation_ac,
+                             li_perturbation_ac,
                              bc_choice,
                              openbc_md_threshold_ac,
                              openbc_perturbation_T0_ac,

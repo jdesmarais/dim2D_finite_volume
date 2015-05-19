@@ -24,8 +24,10 @@ from create_sm_lg_inputs import (get_parameter,
 # get the name of the folder for the simulation
 def get_simulation_dir(temperature,
                        flow_velocity,
+                       dct_distance=4,
                        md_threshold=0,
                        ic_perturbation_amp=0,
+                       li_perturbation_amp=0,
                        bc_perturbation_T0_amp=0,
                        bc_perturbation_vx0_amp=0,
                        bc_perturbation_vy0_amp=0):
@@ -39,12 +41,18 @@ def get_simulation_dir(temperature,
         'dim2d_'+\
         str(temperature)+'_'+\
         str(flow_velocity)
+
+    if(dct_distance!=4):
+        simDir+='_dct'+str(dct_distance)
                 
     if(md_threshold!=0):
         simDir+='_md'+str(md_threshold)
 
     if(ic_perturbation_amp!=0):
         simDir+='_ic'+str(ic_perturbation_amp)
+
+    if(li_perturbation_amp!=0):
+        simDir+='_li'+str(li_perturbation_amp)
 
     if(bc_perturbation_T0_amp!=0):
         simDir+='_T0'+str(bc_perturbation_T0_amp)
@@ -419,10 +427,13 @@ def generate_sm_lg_results(mainDir,
                            flow_velocity,
                            model_input,
                            bf_layer_option=False,
+                           dct_distance=4,
                            md_threshold_ac=0,
                            md_threshold=0.0,
                            ic_perturbation_ac=0,
                            ic_perturbation_amp=0.0,
+                           li_perturbation_ac=0,
+                           li_perturbation_amp=0.0,
                            bc_perturbation_T0_ac=0,
                            bc_perturbation_T0_amp=0.0,
                            bc_perturbation_vx0_ac=0,
@@ -456,8 +467,10 @@ def generate_sm_lg_results(mainDir,
     
     destDir = get_simulation_dir(temperature,
                                  flow_velocity,
+                                 dct_distance=dct_distance,
                                  md_threshold=md_threshold,
                                  ic_perturbation_amp=ic_perturbation_amp,
+                                 li_perturbation_amp=li_perturbation_amp,
                                  bc_perturbation_T0_amp=bc_perturbation_T0_amp,
                                  bc_perturbation_vx0_amp=bc_perturbation_vx0_amp,
                                  bc_perturbation_vy0_amp=bc_perturbation_vy0_amp)
@@ -490,10 +503,13 @@ def generate_sm_lg_results(mainDir,
                         model_input,
                         sm_domain=inputPath_sm_domain,
                         lg_domain=inputPath_lg_domain,
+                        dct_distance=dct_distance,
                         md_threshold_ac=md_threshold_ac,
                         md_threshold=md_threshold,
                         ic_perturbation_ac=ic_perturbation_ac,
                         ic_perturbation_amp=ic_perturbation_amp,
+                        li_perturbation_ac=li_perturbation_ac,
+                        li_perturbation_amp=li_perturbation_amp,
                         bc_perturbation_T0_ac=bc_perturbation_T0_ac,
                         bc_perturbation_T0_amp=bc_perturbation_T0_amp,
                         bc_perturbation_vx0_ac=bc_perturbation_vx0_ac,

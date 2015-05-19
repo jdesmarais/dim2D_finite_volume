@@ -14,10 +14,13 @@ import subprocess
 import shlex
 import shutil
 
-from automatization_csts import (md_threshold_ac_default,
+from automatization_csts import (dct_distance_default,
+                                 md_threshold_ac_default,
                                  md_threshold_default,
                                  ic_perturbation_ac_default,
                                  ic_perturbation_amp_default,
+                                 li_perturbation_ac_default,
+                                 li_perturbation_amp_default,
                                  bc_perturbation_T0_ac_default,
                                  bc_perturbation_T0_amp_default,
                                  bc_perturbation_vx0_ac_default,
@@ -235,10 +238,13 @@ def get_parameter(param,filePath):
 # and on a large domains
 def get_inputsToBeModified(temperature,
                            flow_velocity,
+                           dct_distance,
                            md_threshold_ac,
                            md_threshold,
                            ic_perturbation_ac,
                            ic_perturbation_amp,
+                           li_perturbation_ac,
+                           li_perturbation_amp,
                            bc_perturbation_T0_ac,
                            bc_perturbation_T0_amp,
                            bc_perturbation_vx0_ac,
@@ -361,10 +367,13 @@ def get_inputsToBeModified(temperature,
         'y_max'                       : small_domain_extent[1][1],
         'flow_velocity'               : flow_velocity,
         'temperature'                 : temperature,
+        'openbc_detector_distance'    : dct_distance,
         'openbc_md_threshold_ac'      : md_threshold_ac,
         'openbc_md_threshold'         : md_threshold,
         'ic_perturbation_ac'          : ic_perturbation_ac,
         'ic_perturbation_amp'         : ic_perturbation_amp,
+        'li_perturbation_ac'          : li_perturbation_ac,
+        'li_perturbation_amp'         : li_perturbation_amp,
         'openbc_perturbation_T0_ac'   : bc_perturbation_T0_ac,
         'openbc_perturbation_T0_amp'  : bc_perturbation_T0_amp,
         'openbc_perturbation_vx0_ac'  : bc_perturbation_vx0_ac,
@@ -388,6 +397,8 @@ def get_inputsToBeModified(temperature,
         'openbc_md_threshold'         : 0.0,
         'ic_perturbation_ac'          : 0,
         'ic_perturbation_amp'         : 0.0,
+        'li_perturbation_ac'          : li_perturbation_ac,
+        'li_perturbation_amp'         : li_perturbation_amp,
         'openbc_perturbation_T0_ac'   : 0,
         'openbc_perturbation_T0_amp'  : 0.0,
         'openbc_perturbation_vx0_ac'  : 0,
@@ -448,10 +459,13 @@ def create_sm_lg_inputs(temperature,
                         model_input,
                         sm_domain                 = 'inputs_sm_domain.txt',
                         lg_domain                 = 'inputs_lg_domain.txt',
+                        dct_distance              = dct_distance_default,
                         md_threshold_ac           = md_threshold_ac_default,
                         md_threshold              = md_threshold_default,
                         ic_perturbation_ac        = ic_perturbation_ac_default,
                         ic_perturbation_amp       = ic_perturbation_amp_default,
+                        li_perturbation_ac        = li_perturbation_ac_default,
+                        li_perturbation_amp       = li_perturbation_amp_default,
                         bc_perturbation_T0_ac     = bc_perturbation_T0_ac_default,
                         bc_perturbation_T0_amp    = bc_perturbation_T0_amp_default,
                         bc_perturbation_vx0_ac    = bc_perturbation_vx0_ac_default,
@@ -474,10 +488,13 @@ def create_sm_lg_inputs(temperature,
     [inputs_sm_domain, inputs_lg_domain] = get_inputsToBeModified(
         temperature,
         flow_velocity,
+        dct_distance,
         md_threshold_ac,
         md_threshold,
         ic_perturbation_ac,
         ic_perturbation_amp,
+        li_perturbation_ac,
+        li_perturbation_amp,
         bc_perturbation_T0_ac,
         bc_perturbation_T0_amp,
         bc_perturbation_vx0_ac,
@@ -523,10 +540,15 @@ if __name__=="__main__":
 
     inputs['sm_domain']           = 'inputs_sm_domain.txt'
     inputs['lg_domain']           = 'inputs_lg_domain.txt'
+
+    inputs['dct_distance']        = 5
+
     inputs['md_threshold_ac']     = 0
     inputs['md_threshold']        = 0.4
     inputs['ic_perturbation_ac']  = 0
     inputs['ic_perturbation_amp'] = 0.0
+    inputs['li_perturbation_ac']  = 1
+    inputs['li_perturbation_amp'] = 1.0
 
     inputs['bc_perturbation_T0']      = 0
     inputs['bc_perturbation_T0_amp']  = 0.0
@@ -542,10 +564,13 @@ if __name__=="__main__":
                         inputs['model_input'],
                         sm_domain=inputs['sm_domain'],
                         lg_domain=inputs['lg_domain'],
+                        dct_distance=inputs['dct_distance'],
                         md_threshold_ac=inputs['md_threshold_ac'],
                         md_threshold=inputs['md_threshold'],
                         ic_perturbation_ac=inputs['ic_perturbation_ac'],
                         ic_perturbation_amp=inputs['ic_perturbation_amp'],
+                        li_perturbation_ac=inputs['li_perturbation_ac'],
+                        li_perturbation_amp=inputs['li_perturbation_amp'],
                         bc_perturbation_T0_ac=inputs['bc_perturbation_T0'],
                         bc_perturbation_T0_amp=inputs['bc_perturbation_T0_amp'],
                         bc_perturbation_vx0_ac=inputs['bc_perturbation_vx0'],

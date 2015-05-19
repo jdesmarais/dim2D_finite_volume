@@ -41,24 +41,26 @@ if __name__=="__main__":
     maindir_input = os.path.join(os.getenv('augeanstables'),
                                  'src','config',
                                  'default_inputs','dim2d')
-    ##for small domain simulations
-    #model_input=os.path.join(maindir_input,
-    #    'dim2d_bubble_transported_hedstrom_xy.txt')
+    #for small domain simulations
+    model_input=os.path.join(maindir_input,
+        'dim2d_bubble_transported_hedstrom_xy.txt')
 
     #for large domain simulations
-    model_input=os.path.join(maindir_input,
-        'dim2d_bubble_transported_periodic.txt')
+    #model_input=os.path.join(maindir_input,
+    #    'dim2d_bubble_transported_periodic.txt')
     
 
-    large_domain_run          = True
-    small_domain_run          = False
+    large_domain_run          = False
+    small_domain_run          = True
     nb_tiles_option           = [8,8]
 
-    temperatureStudy          = True
-    velocityStudy             = True
+    temperatureStudy          = False
+    velocityStudy             = False
     thresholdTemperatureStudy = False
     thresholdVelocityStudy    = False
+    dctDistanceStudy          = False
     icPerturbationStudy       = False
+    liPerturbationStudy       = True
     bcPerturbationStudy_T0    = False
     bcPerturbationStudy_vx0   = False
     bcPerturbationStudy_vy0   = False
@@ -161,8 +163,31 @@ if __name__=="__main__":
                                         md_threshold_ac=md_threshold_ac,
                                         md_threshold=md_threshold)
 
+    #4) detector distance study
+    if(dctDistanceStudy):
+    
+        temperature_array  = [0.95, 0.99, 0.995, 0.999]
+        flow_velocity      = 0.1
+        dct_distance_array = [2,8,12,16]
+        
+        for dct_distance in dct_distance_array:
+            for temperature in temperature_array:
+                
+                [destDir,
+                 nameRun_sm_domain,
+                 nameRun_lg_domain] =\
+                 \
+                 generate_sm_lg_results(mainDir,
+                                        temperature,
+                                        flow_velocity,
+                                        model_input,
+                                        bf_layer_option=True,
+                                        small_domain_run=small_domain_run,
+                                        large_domain_run=False,
+                                        nb_tiles_option=nb_tiles_option,
+                                        dct_distance=dct_distance)
 
-    #4) perturbation study
+    #5) perturbation study
     if(icPerturbationStudy):
 
         temperature_array     = [0.95,0.99,0.995,0.999]
@@ -187,6 +212,31 @@ if __name__=="__main__":
                                         nb_tiles_option=nb_tiles_option,
                                         ic_perturbation_ac=ic_perturbation_ac,
                                         ic_perturbation_amp=ic_perturbation)
+
+    if(liPerturbationStudy):
+
+        temperature_array     = [0.95,0.99,0.995,0.999]
+        flow_velocity         = 0.1
+        li_perturbation_array = [-0.5,-0.45,-0.4,-0.35,-0.3]
+        li_perturbation_ac    = 1
+        
+        for li_perturbation in li_perturbation_array:
+            for temperature in temperature_array:
+
+                [destDir,
+                 nameRun_sm_domain,
+                 nameRun_lg_domain] =\
+                 \
+                 generate_sm_lg_results(mainDir,
+                                        temperature,
+                                        flow_velocity,
+                                        model_input,
+                                        bf_layer_option=True,
+                                        small_domain_run=small_domain_run,
+                                        large_domain_run=large_domain_run,
+                                        nb_tiles_option=nb_tiles_option,
+                                        li_perturbation_ac=li_perturbation_ac,
+                                        li_perturbation_amp=li_perturbation)
     
     if(bcPerturbationStudy_T0):
 

@@ -16,7 +16,8 @@
         use parameters_constant
 
         use parameters_kind, only :
-     $       ikind, rkind
+     $       ikind,
+     $       rkind
 
         implicit none
 
@@ -24,17 +25,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -0.2523500000d0
-        real(rkind), parameter :: x_max = 0.2523500000d0
-        real(rkind), parameter :: y_min = -0.2523500000d0
-        real(rkind), parameter :: y_max = 0.2523500000d0
+        real(rkind), parameter :: x_min = -1.8488500000d0
+        real(rkind), parameter :: x_max = 1.8488500000d0
+        real(rkind), parameter :: y_min = -1.8488500000d0
+        real(rkind), parameter :: y_max = 1.8488500000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 4.9718000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0002000000d0
+        real(rkind), parameter :: t_max = 35.9533000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0023000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0403000000d0
+        real(rkind), parameter :: detail_print = 0.0640000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -119,13 +120,17 @@
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
         real(rkind), parameter :: flow_velocity = 0.1000000000d0
         
-        real(rkind), parameter :: T0 = 0.9500000000d0
+        real(rkind), parameter :: T0 = 0.9990000000d0
 
         integer    , parameter :: ic_choice = bubble_transported
+
         integer    , parameter :: ic_perturbation_ac = .false.
         real(rkind), parameter :: ic_perturbation_amp = 0.0000000000d0
 
-        logical    , parameter :: dim2d_lowTemperature = .true.
+        integer    , parameter :: li_perturbation_ac = .true.
+        real(rkind), parameter :: li_perturbation_amp = -0.3000000000d0
+
+        logical    , parameter :: dim2d_lowTemperature = .false.
 
         !<body forces choice
         integer, parameter :: gravity_choice = no_gravity_choice
@@ -229,12 +234,13 @@
         ! amplitude of the perturbation applied to the y-component of
         ! the velocity used to compute the far field values
         !------------------------------------------------------------
-        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
         logical    , parameter :: obc_edge_overlap_ac     = .true.
         logical    , parameter :: obc_crenel_removal_ac   = .true. !no_edge_limit (pb at interfaces between bf_layers)
-        
+        integer    , parameter :: obc_dct_distance = 4
+
         integer    , parameter :: obc_perturbation_T0_ac = .false.
         integer    , parameter :: obc_perturbation_vx0_ac = .false.
         integer    , parameter :: obc_perturbation_vy0_ac = .false.
@@ -316,7 +322,7 @@
         !
         !------------------------------------------------------------
         logical    , parameter :: bf_openbc_md_threshold_ac = .false.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.4000000000d0
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.0000000000d0
 
 
         !------------------------------------------------------------

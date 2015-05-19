@@ -18,7 +18,8 @@
      $       N,S,E,W
 
         use parameters_input, only :
-     $       nx,ny,bc_size
+     $       nx,ny,bc_size,
+     $       obc_dct_distance
 
         use parameters_kind, only :
      $       ikind
@@ -151,7 +152,7 @@
 
         !default positions for the increasing detectors
         !------------------------------------------------------------
-        integer       , parameter :: dct_icr_distance  = 2*bc_size
+        integer       , parameter :: dct_icr_distance  = obc_dct_distance
         integer(ikind), parameter :: dct_icr_N_default = ny-(bc_size+dct_icr_distance)+1
         integer(ikind), parameter :: dct_icr_S_default = bc_size+dct_icr_distance
         integer(ikind), parameter :: dct_icr_E_default = nx-(bc_size+dct_icr_distance)+1
@@ -176,7 +177,7 @@
         !              points to check around the line
         !              for removing a buffer layer
         !------------------------------------------------------------
-        integer, parameter :: search_dcr = 4
+        integer, parameter :: search_dcr = obc_dct_distance
 
 
         !extra checks when determining the bc_procedures

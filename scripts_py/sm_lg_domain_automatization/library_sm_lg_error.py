@@ -192,31 +192,32 @@ def compare_folders(exePath,
     if(nbFiles_sm_domain != nbFiles_lg_domain):
         print 'library_sm_lg_error'
         print 'compare_folders'
-        sys.exit('different number of files in small and large folders')
+        print 'different number of files in small and large folders'
 
-        
-    mg_progress = 'generating error files: ...'
-    create_mg_progress(mg_progress)
+    else:
 
-
-    #4) generate the error files for matching files
-    nbFiles = min(nbFiles_sm_domain,nbFiles_lg_domain)+1
-    for i in range(0,nbFiles):
-        
-        dataPath_sm_domain = dataDir_sm_domain+'/data'+str(i)+'.nc'
-        dataPath_lg_domain = dataDir_lg_domain+'/data'+str(i)+'.nc'
-        errorPath          = errorDir+'/error'+str(i)+'.nc'
-
-        compare_data(exePath,
-                     dataPath_sm_domain,
-                     dataPath_lg_domain,
-                     errorPath)
-
-        mg_progress = 'generating error files: '+str(i)+' / '+str(nbFiles)
+        mg_progress = 'generating error files: ...'
         create_mg_progress(mg_progress)
 
-    mg_progress = 'generating error files: done              '
-    create_mg_final(mg_progress)
+
+        #4) generate the error files for matching files
+        nbFiles = min(nbFiles_sm_domain,nbFiles_lg_domain)+1
+        for i in range(0,nbFiles):
+        
+            dataPath_sm_domain = dataDir_sm_domain+'/data'+str(i)+'.nc'
+            dataPath_lg_domain = dataDir_lg_domain+'/data'+str(i)+'.nc'
+            errorPath          = errorDir+'/error'+str(i)+'.nc'
+            
+            compare_data(exePath,
+                         dataPath_sm_domain,
+                         dataPath_lg_domain,
+                         errorPath)
+
+            mg_progress = 'generating error files: '+str(i)+' / '+str(nbFiles)
+            create_mg_progress(mg_progress)
+
+        mg_progress = 'generating error files: done              '
+        create_mg_final(mg_progress)
 
     return errorDir
 
@@ -234,53 +235,54 @@ def create_error_max_file(errorDir,exePath):
     if(not os.path.isdir(errorDir)):
         print 'library_sm_lg_error'
         print 'create_error_max_file'
-        sys.exit('folder '+errorDir+' does not exist')
+        print 'folder '+errorDir+' does not exist'
 
+    else:
 
-    #2) verify that the executable exists
-    if(not os.path.isfile(exePath)):
-        print 'library_sm_lg_error'
-        print 'create_error_max_file'
-        sys.exit('executable '+exePath+' does not exist')
+        #2) verify that the executable exists
+        if(not os.path.isfile(exePath)):
+            print 'library_sm_lg_error'
+            print 'create_error_max_file'
+            print 'executable '+exePath+' does not exist'
 
-    mg_progress = 'generating error_max file: ...'
-    create_mg_progress(mg_progress)
+        else:
+            mg_progress = 'generating error_max file: ...'
+            create_mg_progress(mg_progress)
 
-    #3) determine the total number of error
-    #    files in the errorDir
-    nb_files = get_nb_data_files(errorDir,rootFile='error')
-
-
-    #4) generate the filename for the error_max file
-    errorMaxFile = errorDir+'/error_max.nc'
-    if(os.path.isfile(errorMaxFile)):
-        os.remove(errorMaxFile)
-    
-
-    #5) generate the error_max.nc file from the
-    #   error[0-9]*.nc files in errorDir
-    cmd = exePath
-    cmd+=' -i '+errorDir
-    cmd+=' -o '+errorMaxFile
-    cmd+=' -n '+str(nb_files)
-
-    subprocess.call(cmd, shell=True)
-
-
-    #6) verify that the output error file has
-    #   been generated
-    if(not os.path.isfile(errorMaxFile)):
-        print 'library_sm_lg_error'
-        print 'create_error_max_file'
-        sys.exit('error when generating the error_max file '+
-                 errorMaxFile)
-
-    mg_progress = 'generating error_max file: done'
-    create_mg_final(mg_progress)
-
-    print 'error_max file in: \n'
-    print errorMaxFile
-    print '\n'
+            #3) determine the total number of error
+            #    files in the errorDir
+            nb_files = get_nb_data_files(errorDir,rootFile='error')
+    		
+    		
+            #4) generate the filename for the error_max file
+            errorMaxFile = errorDir+'/error_max.nc'
+            if(os.path.isfile(errorMaxFile)):
+                os.remove(errorMaxFile)
+    		
+    		
+            #5) generate the error_max.nc file from the
+            #   error[0-9]*.nc files in errorDir
+            cmd = exePath
+            cmd+=' -i '+errorDir
+            cmd+=' -o '+errorMaxFile
+            cmd+=' -n '+str(nb_files)
+    		
+            subprocess.call(cmd, shell=True)
+    		
+    		
+            #6) verify that the output error file has
+            #   been generated
+            if(not os.path.isfile(errorMaxFile)):
+                print 'library_sm_lg_error'
+                print 'create_error_max_file'
+                print 'error when generating the error_max file '+errorMaxFile
+            else:
+                mg_progress = 'generating error_max file: done'
+    		create_mg_final(mg_progress)
+    		
+    		print 'error_max file in: \n'
+    		print errorMaxFile
+    		print '\n'
 
     return
 

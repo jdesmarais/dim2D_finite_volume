@@ -441,7 +441,8 @@ def create_error_graph_perturbation(
     # add a log scale
     if(logScale):
         ax.set_xscale('log')
-        ax.set_yscale('log')
+
+    ax.set_yscale('log')
 
     # add the plot limits
     if(not plot_ylim=='None'):
