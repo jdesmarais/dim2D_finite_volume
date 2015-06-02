@@ -28,12 +28,43 @@
         implicit none
 
         private
-        public :: get_interface_length,
-     $            get_mass_density_liquid,
-     $            get_mass_density_vapor
+        public :: 
+     $       get_surface_tension,
+     $       get_interface_length,
+     $       get_mass_density_liquid,
+     $       get_mass_density_vapor
 
 
         contains
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> get the surface tension at a given temperature
+        !
+        !> @date
+        !> 01_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@param temperature
+        !> temperature at which the interface length is computed
+        !---------------------------------------------------------------
+        function get_surface_tension(temperature)
+     $       result(surface_tension)
+
+          implicit none
+
+          real(rkind), intent(in) :: temperature
+          real(rkind)             :: surface_tension
+
+
+          if(rkind.eq.8) then
+             surface_tension = 2.0d0*sqrt(2.0d0)/(3.0d0*sqrt(We))*(9.691686257306483d0*(sqrt(1.0d0-temperature))**3)
+          else
+             surface_tension = 2.0*sqrt(2.0)/(3.0*sqrt(We))*(9.691686257306483*(sqrt(1-temperature))**3)
+          end if          
+
+        end function get_surface_tension
 
 
         !> @author
@@ -73,11 +104,11 @@
            
              if(rkind.eq.8) then
 
-                interface_lgh=2.0d0/SQRT(we)*(-0.19d0+1.65d0/(SQRT(1.0d0-temperature)))
+                interface_lgh=1.0d0/SQRT(2.0*we)*(1.6309400153322933d0/(SQRT(1.0d0-temperature)))
                  
              else
 
-                interface_lgh=2./SQRT(We)*(-0.19+1.65/(SQRT(1.-temperature)))
+                interface_lgh=1.0d0/SQRT(2.0*We)*(1.6309400153322933/(SQRT(1.-temperature)))
 
              end if
 
@@ -107,18 +138,24 @@
           
           if(dim2d_lowTemperature) then
 
-             if(rkind.eq.8) then
-                md_liquid = 0.9938571064249365d0 + 2.090919049992133d0*SQRT(1.0d0-temperature)
-             else
-                md_liquid = 0.9938571064249365   + 2.090919049992133*SQRT(1.0-temperature)
-             end if
-
-          else
+c$$$             if(rkind.eq.8) then
+c$$$                md_liquid = 0.9938571064249365d0 + 2.090919049992133d0*SQRT(1.0d0-temperature)
+c$$$             else
+c$$$                md_liquid = 0.9938571064249365   + 2.090919049992133*SQRT(1.0-temperature)
+c$$$             end if
 
              if(rkind.eq.8) then
                 md_liquid = 1.0d0+2.08d0*SQRT(1.0d0-temperature)
              else
                 md_liquid = 1.+2.08*SQRT(1.-temperature)
+             end if
+
+          else             
+
+             if(rkind.eq.8) then
+                md_liquid = 1.0d0+2.06d0*SQRT(1.0d0-temperature)
+             else
+                md_liquid = 1.+2.06*SQRT(1.-temperature)
              end if
 
           end if
@@ -147,18 +184,24 @@
           
           if(dim2d_lowTemperature) then
 
-             if(rkind.eq.8) then
-                md_vapor = 0.9846620916424216d0 - 1.8210340140036445d0*SQRT(1.0d0-temperature)
-             else
-                md_vapor = 0.9846620916424216 - 1.8210340140036445*SQRT(1.0-temperature)
-             end if
-
-          else
+c$$$             if(rkind.eq.8) then
+c$$$                md_vapor = 0.9846620916424216d0 - 1.8210340140036445d0*SQRT(1.0d0-temperature)
+c$$$             else
+c$$$                md_vapor = 0.9846620916424216 - 1.8210340140036445*SQRT(1.0-temperature)
+c$$$             end if
 
              if(rkind.eq.8) then
                 md_vapor = 1.0d0-1.86d0*SQRT(1.0d0-temperature)
              else
                 md_vapor = 1.-1.86*SQRT(1.-temperature)
+             end if
+
+          else
+
+             if(rkind.eq.8) then
+                md_vapor = 1.0d0-1.91d0*SQRT(1.0d0-temperature)
+             else
+                md_vapor = 1.-1.91*SQRT(1.-temperature)
              end if
 
           end if
