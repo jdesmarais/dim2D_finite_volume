@@ -849,7 +849,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
           !>@param body_forces
           !> body forces
           !--------------------------------------------------------------
-          function bodyforces(t,x,y,nodes,k) result(body_forces)
+          function bodyforces(t,x,y,nodes,k,prim) result(body_forces)
 
             import rkind
             import ne
@@ -859,6 +859,7 @@ c$$$          procedure(n_gradient_proc)  , nopass, deferred :: compute_n_gradie
             real(rkind)               , intent(in) :: y
             real(rkind), dimension(ne), intent(in) :: nodes
             integer                   , intent(in) :: k
+            logical, optional         , intent(in) :: prim
             real(rkind)                            :: body_forces
 
           end function bodyforces

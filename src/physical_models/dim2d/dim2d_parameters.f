@@ -79,19 +79,19 @@
         !--------------------------------------------------------
         !cv=dim2d_M*dim2d_cv/dim2d_R
         !--------------------------------------------------------
-        !real(rkind), parameter :: viscous_r = dim2d_nu/dim2d_mu
-        !real(rkind), parameter :: Re = rho_c*u_c*length_c/dim2d_mu
-        !real(rkind), parameter :: We = (length_c**2*u_c**2)/(rho_c*dim2d_K)
-        !real(rkind), parameter :: Pr = dim2d_mu*dim2d_cv/dim2d_lambda
-        !real(rkind), parameter :: cv_r = dim2d_M*dim2d_cv/dim2d_R
-        !real(rkind), parameter :: gravity = 0.03d0 !time_c/u_c*dim2d_g
+        real(rkind), parameter :: viscous_r = dim2d_nu/dim2d_mu
+        real(rkind), parameter :: Re = rho_c*u_c*length_c/dim2d_mu
+        real(rkind), parameter :: We = (length_c**2*u_c**2)/(rho_c*dim2d_K)
+        real(rkind), parameter :: Pr = dim2d_mu*dim2d_cv/dim2d_lambda
+        real(rkind), parameter :: cv_r = dim2d_M*dim2d_cv/dim2d_R
+        real(rkind), parameter :: gravity = 0.03d0 !time_c/u_c*dim2d_g
        
-        real(rkind), parameter :: viscous_r = -1.5d0
-        real(rkind), parameter :: Re = 5.0d0
-        real(rkind), parameter :: We = 10.0d0
-        real(rkind), parameter :: Pr = 20.0d0
-        real(rkind), parameter :: cv_r = 2.5d0
-        real(rkind), parameter :: gravity = 9.81d0
+        !real(rkind), parameter :: viscous_r = -1.5d0
+        !real(rkind), parameter :: Re = 5.0d0
+        !real(rkind), parameter :: We = 10.0d0
+        !real(rkind), parameter :: Pr = 20.0d0
+        !real(rkind), parameter :: cv_r = 2.5d0
+        !real(rkind), parameter :: gravity = 9.81d0
 
         real(rkind), parameter :: epsilon = 1.0d0/Re
         real(rkind), parameter :: zeta    = 1.0d0/We

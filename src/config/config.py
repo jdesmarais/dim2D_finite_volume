@@ -159,7 +159,13 @@ def read_inputs(filename, inputs_needed):
         # except for the parameter 'flow_direction'
         # which must remain of character type
         if(input_param!='flow_direction'):
-            inputs_read[input_param]=float(output)
+            try :
+                inputs_read[input_param]=float(output)
+            except ValueError:
+                print str(input_param)+' not found in input file'
+                sys.exit(2)
+                
+            
         else:
             output=output.replace('\r','')
             output=output.replace('\n','')
@@ -265,7 +271,8 @@ def compute_code_inputs(inputFileName,nbTiles):
                     'homogeneous_liquid',
                     'drop_collision',
                     'phase_separation',
-                    'bubble_transported']
+                    'bubble_transported',
+                    'bubble_next_to_wall']
 
     bc_code      = ['periodic_xy_choice',
                     'reflection_xy_choice',

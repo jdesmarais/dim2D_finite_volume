@@ -1836,7 +1836,7 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
         !>@param body_forces
         !> body forces evaluated at (i,j)
         !--------------------------------------------------------------
-        function compute_body_forces(t,x,y,nodes,k) result(body_forces)
+        function compute_body_forces(t,x,y,nodes,k,prim) result(body_forces)
 
           implicit none
 
@@ -1846,29 +1846,67 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
           real(rkind), dimension(ne), intent(in) :: nodes
           integer                   , intent(in) :: k
           real(rkind)                            :: body_forces
+          logical, optional         , intent(in) :: prim
 
           real(rkind) :: t_s,x_s,y_s
+          logical     :: prim_opt
 
-          if(gravity_choice.eq.earth_gravity_choice) then
-             select case(k)
-               case(1)
-                  body_forces = 0
-               case(2)
-                  body_forces = 0
-               case(3)
-                  body_forces = -nodes(1)*gravity
-               case(4)
-                  body_forces = -nodes(3)*gravity
-               case default
-                  body_forces = 0
-                  print '(''dim2d/pmodel_eq_class'')'
-                  print '(''compute_body_forces'')'
-                  stop '1=< k =<4 violated'
-             end select
+          if(present(prim)) then
+             prim_opt=prim
+          else
+             prim_opt=.false.
+          end if
+
+
+          if(prim_opt) then
+
+             if(gravity_choice.eq.earth_gravity_choice) then
+                select case(k)
+                  case(1)
+                     body_forces = 0
+                  case(2)
+                     body_forces = 0
+                  case(3)
+                     body_forces = -gravity
+                  case(4)
+                     body_forces = 0
+                  case default
+                     body_forces = 0
+                     print '(''dim2d/pmodel_eq_class'')'
+                     print '(''compute_body_forces'')'
+                     stop '1=< k =<4 violated'
+                end select
+
+             else
+                  
+                body_forces = 0
+                
+             end if
 
           else
 
-             body_forces = 0
+             if(gravity_choice.eq.earth_gravity_choice) then
+                select case(k)
+                  case(1)
+                     body_forces = 0
+                  case(2)
+                     body_forces = 0
+                  case(3)
+                     body_forces = -nodes(1)*gravity !-rho.g
+                  case(4)
+                     body_forces = -nodes(3)*gravity !-rho.v.g
+                  case default
+                     body_forces = 0
+                     print '(''dim2d/pmodel_eq_class'')'
+                     print '(''compute_body_forces'')'
+                     stop '1=< k =<4 violated'
+                end select
+
+             else
+                  
+                body_forces = 0
+                
+             end if
 
           end if
 

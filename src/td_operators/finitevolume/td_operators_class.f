@@ -182,9 +182,7 @@
 
                    time_dev(i,j,k)=
      $                  (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
-     $                  (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
-                   
-                   time_dev(i,j,k)=time_dev(i,j,k)+
+     $                  (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)+
      $                  p_model%compute_body_forces(
      $                  t,x_map(i),y_map(j),
      $                  nodes(i,j,:),k)
@@ -343,7 +341,6 @@
             end if
 
 
-
             t_s = t
             ierror = BF_SUCCESS          
 
@@ -401,10 +398,7 @@
                               
                         time_dev(i,j,k)=
      $                       (flux_x(i,j,k)/dx-flux_x(i+1,j,k)/dx)+
-     $                       (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)
-                        
-                        time_dev(i,j,k)=
-     $                       time_dev(i,j,k)+
+     $                       (flux_y(i,j,k)/dy-flux_y(i,j+1,k)/dy)+
      $                       p_model%compute_body_forces(
      $                       t, x_map(i), y_map(j),
      $                       nodes(i,j,:),k)

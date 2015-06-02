@@ -1063,6 +1063,8 @@
           real(rkind), dimension(ne)    :: n_amp0
           real(rkind), dimension(ne)    :: t_amp0
           real(rkind), dimension(ne)    :: t_amp1
+          real(rkind), dimension(ne)    :: b_amp0
+          real(rkind), dimension(ne)    :: b_amp1
           real(rkind), dimension(ne)    :: amp
           real(rkind), dimension(ne)    :: char_amp
 
@@ -1072,9 +1074,13 @@
           integer(ikind)                :: i1_inter1, i1_inter2, j1_inter
           real(rkind), dimension(2)     :: x_map_inter
           real(rkind), dimension(2,ne)  :: nodes_inter
+          real(rkind), dimension(ne)    :: ff_nodes
+
           real(rkind), dimension(2,ne)  :: inter_nodes0
           real(rkind), dimension(2,ne)  :: inter_trans0
           real(rkind), dimension(2,ne)  :: inter_trans1
+          real(rkind), dimension(2,ne)  :: inter_bodyforce0
+          real(rkind), dimension(2,ne)  :: inter_bodyforce1
 
           real(rkind), dimension(ne)    :: new_grdpt_prim
 
@@ -1174,6 +1180,15 @@
           inter_trans0 = get_interpolation_coeff_1D(x_map_inter,nodes_inter)
 
 
+          !3.3) create the interpolation coefficients for the body forces
+          do k=1,ne
+             nodes_inter(1,k) = p_model%compute_body_forces(t-dt,x_map_inter(1),y0, bf_nodes0(i0_inter1,j0_inter,:),k,prim=.true.)
+             nodes_inter(2,k) = p_model%compute_body_forces(t-dt,x_map_inter(2),y0, bf_nodes0(i0_inter2,j0_inter,:),k,prim=.true.)
+          end do
+
+          inter_bodyforce0 = get_interpolation_coeff_1D(x_map_inter,nodes_inter)
+
+
           !--------------------------------------------------
           !4) create the interpolation coefficients for
           !   the data at t+dt
@@ -1202,6 +1217,14 @@
           !4.3) interpolation coefficients for the transverse terms at t+dt
           inter_trans1 = get_interpolation_coeff_1D(x_map_inter,nodes_inter)
 
+          !4.4) create the interpolation coefficients for the body forces at t+dt
+          do k=1,ne
+             nodes_inter(1,k) = p_model%compute_body_forces(t,x_map_inter(1),y0,bf_nodes1(i1_inter1,j1_inter,:),k,prim=.true.)
+             nodes_inter(2,k) = p_model%compute_body_forces(t,x_map_inter(2),y0,bf_nodes1(i1_inter2,j1_inter,:),k,prim=.true.)
+          end do
+
+          inter_bodyforce1 = get_interpolation_coeff_1D(x_map_inter,nodes_inter)
+
 
           !--------------------------------------------------
           !5) interpolate the transverse terms
@@ -1211,7 +1234,14 @@
 
 
           !--------------------------------------------------
-          !6) determine the nodes for the computation
+          !6) interpolate the body forces
+          !   at (x1,y1)
+          !--------------------------------------------------
+          b_amp1 = interpolate_1D(x1,inter_bodyforce1)
+
+
+          !--------------------------------------------------
+          !7) determine the nodes for the computation
           !   of the eigenquantities at t+dt
           !--------------------------------------------------
           obc_prim_nodes = p_model%get_prim_obc_eigenqties(
@@ -1220,14 +1250,14 @@
 
 
           !--------------------------------------------------
-          !7) evaluate the eigenvalues at t+dt
+          !8) evaluate the eigenvalues at t+dt
           !--------------------------------------------------
           eigenvalues_x  = p_model%compute_x_eigenvalues_prim(
      $                        obc_prim_nodes)
 
 
           !--------------------------------------------------
-          !8) determine the left eigenvector
+          !9) determine the left eigenvector
           !   corresponding to the eigenvalue
           !--------------------------------------------------
           left_eigenM    = p_model%compute_x_lefteigenvector_prim(
@@ -1235,20 +1265,20 @@
 
 
           !--------------------------------------------------
-          !9) determine the characteristic amplitude
+          !10) determine the characteristic amplitude
           !--------------------------------------------------
           y0 = y1
 
           do k=1,ne
 
 
-             !9.1) determine the position where the
+             !10.1) determine the position where the
              !     characteristic amplitude should
              !     be estimated
              x0 = x1 - eigenvalues_x(k)*dt
 
 
-             !9.2) determine the normal and transverse
+             !10.2) determine the normal and transverse
              !     contributions of the hyperbolic
              !     terms to the characteristic amplitude
              if(side_x.eqv.right) then
@@ -1257,13 +1287,17 @@
                    
                    n_amp0 = interpolate_1D(x0,inter_nodes0)
                    t_amp0 = interpolate_1D(x0,inter_trans0)
+                   b_amp0 = interpolate_1D(x0,inter_bodyforce0)
                    
                 else
 
-                   n_amp0 = p_model%compute_prim_var(
-     $                         p_model%get_far_field(t-dt,x0,y0))
+                   ff_nodes = p_model%get_far_field(t-dt,x0,y0)
+
+                   n_amp0 = p_model%compute_prim_var(ff_nodes)
+
                    do l=1,ne
                       t_amp0(l) = 0.0d0
+                      b_amp0(l) = p_model%compute_body_forces(t-dt,x0,y0,ff_nodes,l,prim=.true.)
                    end do
 
                 end if
@@ -1272,31 +1306,37 @@
                 
                 if(eigenvalues_x(k).gt.0) then
 
-                   n_amp0 = p_model%compute_prim_var(
-     $                         p_model%get_far_field(t-dt,x0,y0))
+                   ff_nodes = p_model%get_far_field(t-dt,x0,y0)
+
+                   n_amp0 = p_model%compute_prim_var(ff_nodes)
+
                    do l=1,ne
                       t_amp0(l) = 0.0d0
+                      b_amp0(l) = p_model%compute_body_forces(t-dt,x0,y0,ff_nodes,l,prim=.true.)
                    end do
 
                 else
 
                    n_amp0 = interpolate_1D(x0,inter_nodes0)
                    t_amp0 = interpolate_1D(x0,inter_trans0)
+                   b_amp0 = interpolate_1D(x0,inter_bodyforce0)
 
                 end if
              end if
 
 
-             !9.3) combine the information on the nodes
+             !10.3) combine the information on the nodes
              !     at t-dt and the approximation of the
              !     integration of the transverse terms
              !     from t-dt to t
              amp =
      $            n_amp0 -
-     $            compute_NewtonCotes_integration(t_amp0, t_amp1, dt)
+     $            compute_NewtonCotes_integration(
+     $            t_amp0-b_amp0,
+     $            t_amp1-b_amp1, dt)
 
              
-             !9.4) compute the scalar product of the
+             !10.4) compute the scalar product of the
              !     left eigenvector corresponding to
              !     the eigenvalue with the
              !     characteristic amplitude
@@ -1306,14 +1346,14 @@
 
 
           !--------------------------------------------------
-          !10) determine the right eigenmatrix
+          !11) determine the right eigenmatrix
           !--------------------------------------------------
           right_eigenM = p_model%compute_x_righteigenvector_prim(
      $                      obc_prim_nodes)
 
 
           !--------------------------------------------------
-          !11) determine the new grid point
+          !12) determine the new grid point
           !--------------------------------------------------
           new_grdpt_prim = MATMUL(char_amp,right_eigenM)
           new_grdpt      = p_model%compute_cons_var(new_grdpt_prim)
@@ -1411,6 +1451,8 @@
           real(rkind), dimension(ne)    :: n_amp0
           real(rkind), dimension(ne)    :: t_amp0
           real(rkind), dimension(ne)    :: t_amp1
+          real(rkind), dimension(ne)    :: b_amp0
+          real(rkind), dimension(ne)    :: b_amp1
           real(rkind), dimension(ne)    :: amp
           real(rkind), dimension(ne)    :: char_amp
           real(rkind), dimension(ne)    :: new_grdpt_prim
@@ -1424,6 +1466,9 @@
           real(rkind), dimension(2,ne)  :: inter_nodes0
           real(rkind), dimension(2,ne)  :: inter_trans0
           real(rkind), dimension(2,ne)  :: inter_trans1
+          real(rkind), dimension(2,ne)  :: inter_bodyforce0
+          real(rkind), dimension(2,ne)  :: inter_bodyforce1
+          real(rkind), dimension(ne)    :: ff_nodes
 
 
           !--------------------------------------------------
@@ -1522,6 +1567,15 @@
           inter_trans0 = get_interpolation_coeff_1D(y_map_inter,nodes_inter)
 
 
+          !3.3) create the interpolation coefficients for the body forces
+          do k=1,ne
+             nodes_inter(1,k) = p_model%compute_body_forces(t-dt,x0,y_map_inter(1), bf_nodes0(i0_inter,j0_inter1,:),k,prim=.true.)
+             nodes_inter(2,k) = p_model%compute_body_forces(t-dt,x0,y_map_inter(2), bf_nodes0(i0_inter,j0_inter2,:),k,prim=.true.)
+          end do
+
+          inter_bodyforce0 = get_interpolation_coeff_1D(y_map_inter,nodes_inter)
+
+
           !--------------------------------------------------
           !4) create the interpolation coefficients for
           !   the data at t
@@ -1550,6 +1604,14 @@
           !4.3) interpolation coefficients for the transverse terms at t
           inter_trans1 = get_interpolation_coeff_1D(y_map_inter,nodes_inter)
 
+          !4.4) create the interpolation coefficients for the body forces at t+dt
+          do k=1,ne
+             nodes_inter(1,k) = p_model%compute_body_forces(t,x0,y_map_inter(1),bf_nodes1(i1_inter,j1_inter1,:),k,prim=.true.)
+             nodes_inter(2,k) = p_model%compute_body_forces(t,x0,y_map_inter(2),bf_nodes1(i1_inter,j1_inter2,:),k,prim=.true.)
+          end do
+
+          inter_bodyforce1 = get_interpolation_coeff_1D(y_map_inter,nodes_inter)
+
 
           !--------------------------------------------------
           !5) interpolate the transverse terms
@@ -1559,7 +1621,14 @@
 
 
           !--------------------------------------------------
-          !6) determine the nodes for the computation
+          !6) interpolate the body forces
+          !   at (x1,y1)
+          !--------------------------------------------------
+          b_amp1 = interpolate_1D(y1,inter_bodyforce1)
+
+
+          !--------------------------------------------------
+          !7) determine the nodes for the computation
           !   of the eigenquantities at t
           !--------------------------------------------------
           obc_prim_nodes = p_model%get_prim_obc_eigenqties(
@@ -1568,14 +1637,14 @@
 
 
           !--------------------------------------------------
-          !7) evaluate the eigenvalues at t
+          !8) evaluate the eigenvalues at t
           !--------------------------------------------------
           eigenvalues_y  = p_model%compute_y_eigenvalues_prim(
      $                        obc_prim_nodes)
 
 
           !--------------------------------------------------
-          !8) determine the left eigenvector
+          !9) determine the left eigenvector
           !   corresponding to the eigenvalue
           !--------------------------------------------------
           left_eigenM    = p_model%compute_y_lefteigenvector_prim(
@@ -1583,20 +1652,20 @@
              
 
           !--------------------------------------------------
-          !9) determine the characteristic amplitude
+          !10) determine the characteristic amplitude
           !--------------------------------------------------
           x0 = x1
 
           do k=1,ne
 
 
-             !9.1) determine the position where the
+             !10.1) determine the position where the
              !     characteristic amplitude should
              !     be estimated
              y0 = y1 - eigenvalues_y(k)*dt
 
 
-             !9.2) determine the normal and transverse
+             !10.2) determine the normal and transverse
              !     contributions of the hyperbolic
              !     terms to the characteristic amplitude
              if(side_y.eqv.right) then
@@ -1605,13 +1674,16 @@
                    
                    n_amp0 = interpolate_1D(y0,inter_nodes0)
                    t_amp0 = interpolate_1D(y0,inter_trans0)
+                   b_amp0 = interpolate_1D(y0,inter_bodyforce0)
                    
                 else
 
-                   n_amp0 = p_model%compute_prim_var(
-     $                         p_model%get_far_field(t-dt,x0,y0))
+                   ff_nodes = p_model%get_far_field(t-dt,x0,y0)
+
+                   n_amp0 = p_model%compute_prim_var(ff_nodes)
                    do l=1,ne
                       t_amp0(l) = 0.0d0
+                      b_amp0(l) = p_model%compute_body_forces(t-dt,x0,y0,ff_nodes,l,prim=.true.)
                    end do
 
                 end if
@@ -1620,31 +1692,36 @@
                 
                 if(eigenvalues_y(k).gt.0) then
 
-                   n_amp0 = p_model%compute_prim_var(
-     $                         p_model%get_far_field(t-dt,x0,y0))
+                   ff_nodes = p_model%get_far_field(t-dt,x0,y0)
+
+                   n_amp0 = p_model%compute_prim_var(ff_nodes)
                    do l=1,ne
                       t_amp0(l) = 0.0d0
+                      b_amp0(l) = p_model%compute_body_forces(t-dt,x0,y0,ff_nodes,l,prim=.true.)
                    end do
 
                 else
 
                    n_amp0 = interpolate_1D(y0,inter_nodes0)
                    t_amp0 = interpolate_1D(y0,inter_trans0)
+                   b_amp0 = interpolate_1D(y0,inter_bodyforce0)
 
                 end if
              end if
 
 
-             !9.3) combine the information on the nodes
+             !10.3) combine the information on the nodes
              !     at t-dt and the approximation of the
              !     integration of the transverse terms
              !     from t-dt to t
              amp =
      $            n_amp0 -
-     $            compute_NewtonCotes_integration(t_amp0, t_amp1, dt)
+     $            compute_NewtonCotes_integration(
+     $            t_amp0-b_amp0,
+     $            t_amp1-b_amp1, dt)
 
              
-             !9.4) compute the scalar product of the
+             !10.4) compute the scalar product of the
              !     left eigenvector corresponding to
              !     the eigenvalue with the
              !     characteristic amplitude
@@ -1654,14 +1731,14 @@
 
 
           !--------------------------------------------------
-          !10) determine the right eigenmatrix
+          !11) determine the right eigenmatrix
           !--------------------------------------------------
           right_eigenM = p_model%compute_y_righteigenvector_prim(
      $                      obc_prim_nodes)
 
 
           !--------------------------------------------------
-          !11) determine the new grid point
+          !12) determine the new grid point
           !--------------------------------------------------
           new_grdpt_prim = MATMUL(char_amp,right_eigenM)
           new_grdpt      = p_model%compute_cons_var(new_grdpt_prim)
@@ -1788,6 +1865,7 @@
           integer(ikind), dimension(2)       , intent(in) :: eigen_indices
           integer(ikind), dimension(2,3)     , intent(in) :: inter_indices1
           real(rkind)   , dimension(ne)                   :: new_grdpt
+          real(rkind)   , dimension(ne)                   :: ff_nodes
 
           
           !x1,y1
@@ -1850,6 +1928,8 @@
           real(rkind), dimension(ne)    :: n_amp0
           real(rkind), dimension(ne)    :: t_amp0
           real(rkind), dimension(ne)    :: t_amp1
+          real(rkind), dimension(ne)    :: b_amp0
+          real(rkind), dimension(ne)    :: b_amp1
           real(rkind), dimension(ne)    :: amp
           real(rkind), dimension(ne)    :: char_amp
           real(rkind), dimension(ne)    :: new_grdpt_prim_n
@@ -1906,10 +1986,13 @@
           real(rkind)                     :: y_inter
           real(rkind)   , dimension(3)    :: n1_inter     
           real(rkind)   , dimension(3)    :: n2_inter     
-          real(rkind)   , dimension(3,ne) :: nodes_inter  
+          real(rkind)   , dimension(ne)   :: nodes_inter_tmp
+          real(rkind)   , dimension(3,ne) :: nodes_inter
           real(rkind)   , dimension(3,ne) :: inter_nodes0
           real(rkind)   , dimension(3,ne) :: inter_trans0
           real(rkind)   , dimension(3,ne) :: inter_trans1
+          real(rkind)   , dimension(3,ne) :: inter_bodyforce0
+          real(rkind)   , dimension(3,ne) :: inter_bodyforce1
           real(rkind)                     :: dx,dy
 
 
@@ -1959,7 +2042,11 @@
           !   (n1,n2) reference frame
           !--------------------------------------------------
 
-          !4.1) extract the interpolation
+          !4.1) create the interpolation
+          !     coefficients for the
+          !     primitive data at t-dt
+
+          !4.1.1) extract the interpolation
           !     data for the nodes at t-dt
           do k=1,3
              
@@ -1978,7 +2065,7 @@
 
           end do
 
-          !4.2) create the interpolation
+          !4.1.2) create the interpolation
           !     coefficients for the nodes
           !     at t-dt
           inter_nodes0 = get_interpolation_coeff_2D(
@@ -1987,11 +2074,11 @@
      $         nodes_inter)
 
 
-          !4.3) create the interpolation
+          !4.2) create the interpolation
           !     coefficients for the
           !     transverse terms at t-dt
 
-          !4.3.1) create the data at the
+          !4.2.1) create the data at the
           !       interpolation grid points
           call get_n_transverse_data_for_interpolation(
      $         t-dt,
@@ -2010,7 +2097,7 @@
      $         dx,dy,
      $         nodes_inter)
           
-          !4.3.2) create the interpolation
+          !4.2.2) create the interpolation
           !       plane for the contribution
           !       of the transverse term at t-dt
           inter_trans0 = get_interpolation_coeff_2D(
@@ -2019,9 +2106,47 @@
      $         nodes_inter)
 
 
+          !4.3) create the interpolation
+          !     coefficients for the
+          !     body force terms at t-dt
+
+          !4.3.1) create the data at the
+          !       interpolation grid points
+          do k=1,3
+             
+             i_x_inter        = inter_indices0(1,k)
+             i_y_inter        = inter_indices0(2,k)
+
+             x_inter          = bf_x_map0(i_x_inter)
+             y_inter          = bf_y_map0(i_y_inter)
+
+             n1_inter(k)      = get_n1_coord(x_inter,y_inter)
+             n2_inter(k)      = get_n2_coord(x_inter,y_inter)
+
+             do l=1,ne
+                nodes_inter_tmp(l) = p_model%compute_body_forces(
+     $               t-dt,x_inter,y_inter,
+     $               bf_nodes0(i_x_inter,i_y_inter,:),l,
+     $               prim=.true.)
+             end do
+
+             nodes_inter(k,:) = p_model%compute_xy_to_n_var(
+     $            nodes_inter_tmp)
+
+          end do
+
+          !4.3.2) create the interpolation
+          !       plane for the contribution
+          !       of the body forces at t-dt
+          inter_bodyforce0 = get_interpolation_coeff_2D(
+     $         n1_inter,
+     $         n2_inter,
+     $         nodes_inter)
+
+
           !--------------------------------------------------
           !5) create the interpolation coefficients
-          !   for the data at t+dt
+          !   for the data at t
           !
           !   the interpolation data are the
           !   primitive variables converted
@@ -2029,7 +2154,10 @@
           !   (n1,n2) reference frame
           !--------------------------------------------------
           
-          !5.1) create the coordinate maps (n1,n2)
+          !5.1) create the interpolation
+          !     coefficients for the
+          !     body force terms at t and
+          !     create the coordinate maps (n1,n2)
           !     identifying the position of the
           !     interpolation points
           do k=1,3
@@ -2043,7 +2171,26 @@
              n1_inter(k)      = get_n1_coord(x_inter,y_inter)
              n2_inter(k)      = get_n2_coord(x_inter,y_inter)
 
+             do l=1,ne
+                nodes_inter_tmp(l) = p_model%compute_body_forces(
+     $               t,x_inter,y_inter,
+     $               bf_nodes1(i_x_inter,i_y_inter,:),l,
+     $               prim=.true.)
+             end do
+
+             nodes_inter(k,:) = p_model%compute_xy_to_n_var(
+     $            nodes_inter_tmp)
+
           end do
+
+          !5.1.2) create the interpolation
+          !       plane for the contribution
+          !       of the body forces at t
+          inter_bodyforce1 = get_interpolation_coeff_2D(
+     $         n1_inter,
+     $         n2_inter,
+     $         nodes_inter)
+
 
           !5.2) compute the transverse terms at
           !     the interpolation points
@@ -2070,14 +2217,20 @@
           inter_trans1 = get_interpolation_coeff_2D(
      $         n1_inter,
      $         n2_inter,
-     $         nodes_inter)
+     $         nodes_inter)          
 
 
           !--------------------------------------------------
-          !6) interpolate the transverse terms
+          !6.1) interpolate the transverse terms
           !   at t
           !--------------------------------------------------
           t_amp1 = interpolate_2D(n1_1,n2_1,inter_trans1)
+
+          !--------------------------------------------------
+          !6.2) interpolate the body forces terms
+          !   at t
+          !--------------------------------------------------
+          b_amp1 = interpolate_2D(n1_1,n2_1,inter_bodyforce1)
 
 
           !--------------------------------------------------
@@ -2158,19 +2311,28 @@
                
                    n_amp0 = interpolate_2D(n1_0, n2_0, inter_nodes0)
                    t_amp0 = interpolate_2D(n1_0, n2_0, inter_trans0)
+                   b_amp0 = interpolate_2D(n1_0, n2_0, inter_bodyforce0)
                    
                 else
 
                    x0 = get_x_coord(n1_0,n2_0)
                    y0 = get_y_coord(n1_0,n2_0)
 
+                   ff_nodes = p_model%get_far_field(t-dt,x0,y0)
+
                    n_amp0 = p_model%compute_xy_to_n_var(
      $                         p_model%compute_prim_var(
-     $                            p_model%get_far_field(t,x0,y0)))
+     $                            ff_nodes))
 
                    do l=1,ne
                       t_amp0(l) = 0.0d0
+                      nodes_inter_tmp(l) = p_model%compute_body_forces(
+     $                     t-dt,x0,y0,
+     $                     ff_nodes,l,
+     $                     prim=.true.)
                    end do
+
+                   b_amp0 = p_model%compute_xy_to_n_var(nodes_inter_tmp)
                    
                 end if
                 
@@ -2181,18 +2343,27 @@
                    x0 = get_x_coord(n1_0,n2_0)
                    y0 = get_y_coord(n1_0,n2_0)
 
+                   ff_nodes = p_model%get_far_field(t-dt,x0,y0)
+
                    n_amp0 = p_model%compute_xy_to_n_var(
      $                         p_model%compute_prim_var(
-     $                            p_model%get_far_field(t,x0,y0)))
+     $                            ff_nodes))
 
                    do l=1,ne
                       t_amp0(l) = 0.0d0
+                      nodes_inter_tmp(l) = p_model%compute_body_forces(
+     $                     t-dt,x0,y0,
+     $                     ff_nodes,l,
+     $                     prim=.true.)
                    end do
+                   
+                   b_amp0 = p_model%compute_xy_to_n_var(nodes_inter_tmp)
 
                 else
 
                    n_amp0 = interpolate_2D(n1_0, n2_0, inter_nodes0)
                    t_amp0 = interpolate_2D(n1_0, n2_0, inter_trans0)
+                   b_amp0 = interpolate_2D(n1_0, n2_0, inter_bodyforce0)
 
                 end if
              end if
@@ -2204,7 +2375,10 @@
              !     terms from t-dt to t
              amp =
      $            n_amp0 -
-     $            compute_NewtonCotes_integration(t_amp0, t_amp1, dt)
+     $            compute_NewtonCotes_integration(
+     $               t_amp0-b_amp0,
+     $               t_amp1-b_amp1,
+     $               dt)
 
              
              !9.4) compute the scalar product of the

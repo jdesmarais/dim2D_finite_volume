@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = 'fc74ecbad937ba3f6aaf2530c140cdda4f1205f3')
+        parameter (commit = '5c6433b5f2656dbde4d2bd72e394f16426a541c5')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -72,15 +72,16 @@
         integer, parameter :: sincos=6
 
         !>initial conditions choice for DIM
-        character(18), dimension(8), parameter :: dim2d_ic_code =[
-     $       'steady_state      ',
-     $       'drop_retraction   ',
-     $       'bubble_ascending  ',
-     $       'homogeneous_liquid',
-     $       'drop_collision    ',
-     $       'phase_separation  ',
-     $       'bubble_transported',
-     $       'newgrdpt_test     ']
+        character(19), dimension(9), parameter :: dim2d_ic_code =[
+     $       'steady_state       ',
+     $       'drop_retraction    ',
+     $       'bubble_ascending   ',
+     $       'homogeneous_liquid ',
+     $       'drop_collision     ',
+     $       'phase_separation   ',
+     $       'bubble_transported ',
+     $       'bubble_next_to_wall',
+     $       'newgrdpt_test      ']
 
         integer, parameter :: steady_state=0
         integer, parameter :: drop_retraction=1
@@ -89,7 +90,8 @@
         integer, parameter :: drop_collision=4
         integer, parameter :: phase_separation=5
         integer, parameter :: bubble_transported=6
-        integer, parameter :: newgrdpt_test=7
+        integer, parameter :: bubble_next_to_wall=7
+        integer, parameter :: newgrdpt_test=8
 
         !>boundary conditions choice
         character(23), dimension(9), parameter :: bc_code =[

@@ -25,17 +25,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = 0.0000000000d0
-        real(rkind), parameter :: x_max = 1.5000000000d0
-        real(rkind), parameter :: y_min = -1.0000000000d0
-        real(rkind), parameter :: y_max = 1.5000000000d0
+        real(rkind), parameter :: x_min = -0.6489000000d0
+        real(rkind), parameter :: x_max = 0.6489000000d0
+        real(rkind), parameter :: y_min = 0.0000000000d0
+        real(rkind), parameter :: y_max = 0.9734000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 4000.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0025000000d0
+        real(rkind), parameter :: t_max = 12.6033000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0008000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0002000000d0
+        real(rkind), parameter :: detail_print = 0.0635000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -45,8 +45,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 155
-        integer(ikind), parameter :: nty = 255
+        integer(ikind), parameter :: ntx = 108
+        integer(ikind), parameter :: nty = 82
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -120,9 +120,9 @@
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
         real(rkind), parameter :: flow_velocity = 0.0000000000d0
         
-        real(rkind), parameter :: T0 = 0.9950000000d0
+        real(rkind), parameter :: T0 = 0.9990000000d0
 
-        integer    , parameter :: ic_choice = bubble_ascending
+        integer    , parameter :: ic_choice = bubble_next_to_wall
 
         integer    , parameter :: ic_perturbation_ac = .false.
         real(rkind), parameter :: ic_perturbation_amp = 0.0000000000d0
@@ -137,7 +137,7 @@
         integer, parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = wall_x_reflection_y_choice
+        integer, parameter :: bc_choice = reflection_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
@@ -158,10 +158,10 @@
         !bc_W_type_choice : type of boundary condition applied
         !                   at the West boundary
         !-----------------------------------------------------
-        integer    , parameter :: bc_N_type_choice = bc_flux_and_node_choice
-        integer    , parameter :: bc_S_type_choice = bc_flux_and_node_choice
+        integer    , parameter :: bc_N_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_S_type_choice = bc_nodes_choice
         integer    , parameter :: bc_E_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_W_type_choice = bc_flux_and_node_choice
+        integer    , parameter :: bc_W_type_choice = bc_nodes_choice
 
 
         !-----------------------------------------------------
@@ -239,7 +239,7 @@
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
         logical    , parameter :: obc_edge_overlap_ac     = .true.
         logical    , parameter :: obc_crenel_removal_ac   = .true. !no_edge_limit (pb at interfaces between bf_layers)
-        integer    , parameter :: obc_dct_distance = 4
+        integer    , parameter :: obc_dct_distance = 5
 
         integer    , parameter :: obc_perturbation_T0_ac = .false.
         integer    , parameter :: obc_perturbation_vx0_ac = .false.
