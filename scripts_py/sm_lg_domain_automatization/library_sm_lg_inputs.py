@@ -26,7 +26,7 @@ def get_mass_density_vapor(T):
     as function of temperature
     '''
 
-    return 1.0-1.86*math.sqrt(1.0-T)
+    return 1.0-1.91*math.sqrt(1.0-T)
 
 
 # compute the reduced saturated mass density of liquid
@@ -37,7 +37,7 @@ def get_mass_density_liquid(T):
     as function of temperature
     '''
 
-    return 1.0+2.08*math.sqrt(1.0-T)
+    return 1.0+2.06*math.sqrt(1.0-T)
 
 
 # get the reduced constant volume heat capacity
@@ -136,7 +136,7 @@ def get_interface_length(we,T):
     as function of temperature and the weber number
     '''
 
-    return (2.0/math.sqrt(we))*(-0.19+1.65/(math.sqrt(1.0-T)))
+    return (1.0/math.sqrt(2.0*we))*(1.63/(math.sqrt(1.0-T)))
 
 
 # compute the space step ensuring that the interface is

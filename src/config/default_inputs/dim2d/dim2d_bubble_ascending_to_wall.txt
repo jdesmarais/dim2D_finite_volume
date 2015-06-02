@@ -2,7 +2,7 @@
 !---------------------------------------------------------
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !---------------------------------------------------------
-detail_print = 0.0002
+detail_print = 0.005
 
 
 !2.	Simulation duration
@@ -10,8 +10,8 @@ detail_print = 0.0002
 !t_steps : integer : set number of steps in time
 !t_max   : real    : set simulation maximum time
 !---------------------------------------------------------
-dt    = 0.00005
-t_max = 100.0
+dt    = 0.0005
+t_max = 10.0
 
 
 !3.	Space discretisation

@@ -28,16 +28,36 @@
       !-----------------------------------------------------------------
       module bc_operators_class
 
-        use bc_operators_default_class, only : bc_operators_default
-        use sd_operators_class        , only : sd_operators
-        use pmodel_eq_class           , only : pmodel_eq
-        use parameters_constant       , only : bc_fluxes_choice
-        use parameters_input          , only : nx,ny,ne,bc_size
-        use parameters_kind           , only : rkind,ikind
-        use reflection_xy_module      , only : reflection_x_prefactor
-        use wall_xy_module            , only : wall_prefactor,
-     $                                         compute_wall_flux_x,
-     $                                         compute_wall_flux_y
+        use bc_operators_default_class, only :
+     $     bc_operators_default
+
+        use sd_operators_class, only :
+     $       sd_operators
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use parameters_constant, only :
+     $       N,S,E,W,
+     $       bc_fluxes_choice,
+     $       bc_nodes_choice,
+     $       bc_flux_and_node_choice
+
+        use parameters_input, only :
+     $       nx,ny,ne,
+     $       bc_size
+
+        use parameters_kind, only :
+     $       rkind,
+     $       ikind
+
+        use reflection_xy_module, only :
+     $       reflection_x_prefactor
+
+        use wall_xy_module, only :
+     $       wall_prefactor,
+     $       compute_wall_flux_x,
+     $       compute_wall_flux_y
         
         implicit none
 
@@ -115,12 +135,13 @@
           class(bc_operators), intent(inout) :: this
           type(pmodel_eq)    , intent(in)    :: p_model
 
-          
           this%prefactor   = wall_prefactor(p_model)
           this%prefactor_x = reflection_x_prefactor(p_model)
 
-          this%bcx_choice = bc_fluxes_choice
-          this%bcy_choice = bc_fluxes_choice
+          this%bc_type(N) = bc_flux_and_node_choice
+          this%bc_type(S) = bc_flux_and_node_choice
+          this%bc_type(E) = bc_nodes_choice
+          this%bc_type(W) = bc_flux_and_node_choice
 
         end subroutine ini
 

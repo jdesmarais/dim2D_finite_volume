@@ -532,7 +532,7 @@ if __name__=="__main__":
 
     inputs = {}
     
-    inputs['temperature']     = 0.95
+    inputs['temperature']     = 0.999
     inputs['flow_velocity']   = 0.1
     inputs['model_input']     = os.path.join(os.getenv('augeanstables'),
                                              'src','config','default_inputs','dim2d',
@@ -544,11 +544,11 @@ if __name__=="__main__":
     inputs['dct_distance']        = 5
 
     inputs['md_threshold_ac']     = 0
-    inputs['md_threshold']        = 0.4
+    inputs['md_threshold']        = 0
     inputs['ic_perturbation_ac']  = 0
     inputs['ic_perturbation_amp'] = 0.0
-    inputs['li_perturbation_ac']  = 1
-    inputs['li_perturbation_amp'] = 1.0
+    inputs['li_perturbation_ac']  = 0
+    inputs['li_perturbation_amp'] = 0.0
 
     inputs['bc_perturbation_T0']      = 0
     inputs['bc_perturbation_T0_amp']  = 0.0

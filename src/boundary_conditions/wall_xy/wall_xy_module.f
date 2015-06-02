@@ -14,75 +14,97 @@
       !-----------------------------------------------------------------
       module wall_xy_module
       
-        use sd_operators_class , only : sd_operators
-        use pmodel_eq_class    , only : pmodel_eq
-        use dim2d_parameters   , only : rho_c, u_c, length_c, time_c,
-     $                                  re, we, viscous_r, cv_r
-        use dim2d_prim_module  , only : mass_density,
-     $                                  velocity_x, velocity_y,
-     $                                  capillarity_pressure
-        use parameters_constant, only : vector_x, vector_y
-        use parameters_input   , only : nx,ny,ne,bc_size
-        use parameters_kind    , only : ikind,rkind
-        use wall_prim_module   , only : wall_pressure
+        use sd_operators_class, only :
+     $     sd_operators
+
+        use pmodel_eq_class, only :
+     $       pmodel_eq
+
+        use dim2d_parameters, only :
+     $       rho_c, u_c,
+     $       length_c, time_c,
+     $       re, we, viscous_r,
+     $       cv_r
+
+        use dim2d_prim_module, only :
+     $       mass_density,
+     $       velocity_x,
+     $       velocity_y,
+     $       capillarity_pressure
+
+        use parameters_constant, only :
+     $       vector_x,
+     $       vector_y
+
+        use parameters_input, only :
+     $       nx,
+     $       ny,
+     $       ne,
+     $       bc_size
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
+
+        use wall_prim_module, only :
+     $       wall_pressure
 
         implicit none
 
 
         private
-        public :: wall_prefactor,
-     $            wall_fx_momentum_x,
-     $            wall_fx_momentum_y,
-     $            wall_fy_momentum_x,
-     $            wall_fy_momentum_y,
-     $            wall_heat_flux,
-     $            compute_wall_flux_x,
-     $            compute_wall_flux_y
-
+        public ::
+     $       wall_fx_momentum_x,
+     $       wall_fx_momentum_y,
+     $       wall_fy_momentum_x,
+     $       wall_fy_momentum_y,
+     $       wall_fx_total_energy,
+     $       wall_fy_total_energy,
+     $       wall_heat_flux,
+     $       compute_wall_flux_x,
+     $       compute_wall_flux_y
+        
 
         contains
-
 
         !> @author
         !> Julien L. Desmarais
         !
         !> @brief
-        !> function computing the prefactor in determining the
-        !> ghost cells : the prefactor is equal to -1 or +1
-        !> depending if the variable type is a vector_x,
-        !> vector_y or not
+        !> determine the temperature and the mass densities
+        !> at the wall
         !
         !> @date
         !> 24_08_2013 - initial version - J.L. Desmarais
         !
-        !>@param p_model
-        !> physical model
-        !
-        !>@param prefactor
-        !> table containing the prefactor for the reflection
+        !>@param f_used
+        !> object encapsulating the conservative variables
+        !> and the coordinates
+        !>
+        !>@param i
+        !> index along x-axis where the data is evaluated
+        !>
+        !>@param j
+        !> index along y-axis where the data is evaluated
+        !>
+        !>@param var
+        !> \f$ {\left(f_{q_x}\right)}_x \f$ evaluated
+        !> at $(i+\frac{1}{2},j)$
         !--------------------------------------------------------------
-        function wall_prefactor(p_model) result(prefactor)
+        function wall_fx_momentum_x(nodes,dx,dy,s,i,j) result(var)
 
           implicit none
 
-          type(pmodel_eq)        , intent(in) :: p_model
-          integer, dimension(ne)             :: prefactor
-        
-          integer, dimension(ne) :: var_type
-          integer :: k
+          real(rkind), dimension(:,:,:), intent(in) :: nodes
+          real(rkind)                  , intent(in) :: dx
+          real(rkind)                  , intent(in) :: dy
+          type(sd_operators)           , intent(in) :: s
+          integer(ikind)               , intent(in) :: i
+          integer(ikind)               , intent(in) :: j
+          real(rkind)                               :: var
 
-          var_type = p_model%get_var_type()
 
-          do k=1,ne
-             if((var_type(k).eq.vector_x).or.(
-     $           var_type(k).eq.vector_y)) then
-                prefactor(k)=-1
-             else
-                prefactor(k)= 1
-             end if
-          end do
 
-        end function wall_prefactor
 
 
         !> @author
