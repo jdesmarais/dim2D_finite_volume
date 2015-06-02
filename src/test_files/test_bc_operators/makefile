@@ -142,3 +142,33 @@ test_periodic_xy:	check_data_module.o\
 			$(mt_dep)\
 			$(wave2d_dep)\
 			$(periodic_dep)
+
+# wall_xy
+ridders_method_fcts_module.o:	$(wbc_dir)/ridders_method_module.o\
+				$(param_dir)/parameters_kind.o
+
+test_ridders_method.o:		$(test_dir)/tools/check_data_module.o\
+				$(wbc_dir)/ridders_method_module.o\
+				ridders_method_fcts_module.o\
+				$(param_dir)/parameters_kind.o
+
+test_ridders_method:		check_data_module.o\
+				ridders_method_module.o\
+				ridders_method_fcts_module.o\
+				parameters_kind.o
+
+test_wall_xy_equilibrium.o:	$(test_dir)/tools/check_data_module.o\
+				$(dim2d_dir)/dim2d_parameters.o\
+				$(dim2d_dir)/dim2d_state_eq_module.o\
+				$(param_dir)/parameters_kind.o\
+				ridders_method_fcts_module.o\
+				$(wbc_dir)/wall_xy_equilibrium_module.o
+
+test_wall_xy_equilibrium:	parameters_kind.o\
+				check_data_module.o\
+				dim2d_parameters.o\
+				dim2d_state_eq_module.o\
+				dim2d_state_eq_module.o\
+				ridders_method_module.o\
+				wall_xy_equilibrium_module.o\
+				ridders_method_fcts_module.o

@@ -24,8 +24,8 @@ dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 
 sd_choice = mt_choice            #space discretization choice
 pm_choice = dim2d_choice         #physical model choice
-ic_choice = bubble_transported        #initial conditions choice
-bc_choice = hedstrom_xy_choice   #boundary condition choice
+ic_choice = bubble_ascending        #initial conditions choice
+bc_choice = wall_x_reflection_y_choice   #boundary condition choice
 td_choice = finitevolume_choice  #time discretization choice
 ti_choice = rk3tvd_choice        #time integration choice
 io_choice = nf90_choice          #writer choice
@@ -113,6 +113,7 @@ include $(config_dir)/dep/tools_dep.mk		#tools for tests
 include $(config_dir)/dep/sd_dep.mk         	#space discretization operators
 include $(config_dir)/dep/dim2d_dep.mk      	#dim2D physical model
 include $(config_dir)/dep/hedstrom_xy_dep.mk	#hedstrom_xy b.c.
+include $(config_dir)/dep/wall_xy_dep.mk	#wall_xy b.c.
 
 
 

@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '1a90ea1de73374a9c3c5517977b4888ad927cea8')
+        parameter (commit = 'fc74ecbad937ba3f6aaf2530c140cdda4f1205f3')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -117,6 +117,7 @@
         integer, parameter :: bc_nodes_choice=0
         integer, parameter :: bc_fluxes_choice=1
         integer, parameter :: bc_timedev_choice=2
+        integer, parameter :: bc_flux_and_node_choice=3
 
         !>equations tuning choice
         integer, parameter :: no_gravity_choice=0

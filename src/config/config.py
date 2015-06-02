@@ -279,7 +279,8 @@ def compute_code_inputs(inputFileName,nbTiles):
 
     bc_type_code = ['bc_nodes_choice',
                     'bc_fluxes_choice',
-                    'bc_timedev_choice']
+                    'bc_timedev_choice',
+                    'bc_flux_and_node_choice']
 
     gravity_code = ['no_gravity_choice',
                     'earth_gravity_choice']
@@ -405,13 +406,21 @@ def compute_code_inputs(inputFileName,nbTiles):
         bc_W_type_choice = bc_type_code[0]
         
 
-    if(bc_choice=='wall_xy_choice' or
-       bc_choice=='wall_x_reflection_y_choice'):
+    if(bc_choice=='wall_xy_choice'):
 
-        bc_N_type_choice = bc_type_code[1]
-        bc_S_type_choice = bc_type_code[1]
-        bc_E_type_choice = bc_type_code[1]
-        bc_W_type_choice = bc_type_code[1]
+        bc_N_type_choice = bc_type_code[3]
+        bc_S_type_choice = bc_type_code[3]
+        bc_E_type_choice = bc_type_code[3]
+        bc_W_type_choice = bc_type_code[3]
+
+       
+    if(bc_choice=='wall_x_reflection_y_choice'):
+
+        bc_N_type_choice = bc_type_code[3]
+        bc_S_type_choice = bc_type_code[3]
+        bc_E_type_choice = bc_type_code[0]
+        bc_W_type_choice = bc_type_code[3]
+
 
     if(bc_choice=='hedstrom_xy_choice' or
        bc_choice=='hedstrom_xy_corners_choice' or
@@ -423,12 +432,14 @@ def compute_code_inputs(inputFileName,nbTiles):
         bc_E_type_choice = bc_type_code[2]
         bc_W_type_choice = bc_type_code[2]
 
+
     if(bc_choice=='hedstrom_x_reflection_y_choice'):
 
         bc_N_type_choice = bc_type_code[0]
         bc_S_type_choice = bc_type_code[0]
         bc_E_type_choice = bc_type_code[2]
         bc_W_type_choice = bc_type_code[2]
+
 
     # compute the openbc_md_threshold_ac
     openbc_md_threshold_ac = int_to_logical_str(
