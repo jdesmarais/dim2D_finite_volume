@@ -153,16 +153,24 @@
         !>@param s
         !> space discretization operators
         !--------------------------------------------------------------
-        subroutine apply_bc_on_nodes(this,nodes)
+        subroutine apply_bc_on_nodes(this,t,x_map,y_map,nodes_tmp,nodes)
 
           implicit none
 
           class(bc_operators)             , intent(in)    :: this
+          real(rkind)                     , intent(in)    :: t
+          real(rkind), dimension(nx)      , intent(in)    :: x_map
+          real(rkind), dimension(ny)      , intent(in)    :: y_map
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
 
 
           integer(ikind) :: i,j
           integer        :: k
+
+          real(rkind) :: s
+
+          s = t + x_map(1) + y_map(1) + nodes_tmp(1,1,1)
 
           !<compute the east and west boundary layers
           !>without the north and south corners

@@ -19,6 +19,9 @@
         use bc_operators_class, only :
      $       bc_operators
 
+        use bc_operators_module, only :
+     $       shall_bc_on_nodes_be_applied
+
         use cmd_operators_class, only :
      $       cmd_operators
 
@@ -34,6 +37,7 @@
      $       reflection_xy_choice,
      $       wall_xy_choice,
      $       wall_x_reflection_y_choice,
+     $       wall_x_simplified_choice,
      $       hedstrom_xy_choice,
      $       hedstrom_xy_corners_choice,
      $       hedstrom_x_reflection_y_choice,
@@ -49,7 +53,8 @@
      $       bc_N_type_choice,
      $       bc_S_type_choice,
      $       bc_E_type_choice,
-     $       bc_W_type_choice
+     $       bc_W_type_choice,
+     $       steady_state_limit
 
         use parameters_kind, only :
      $       ikind,
@@ -203,6 +208,8 @@
           procedure, pass          :: compute_integration_step_ext
           procedure, pass          :: write_data
 
+          procedure, pass          :: check_steady_state
+
           procedure, pass          :: adapt_domain !interface for domain extension
 
           procedure, pass          :: set_dx    !only for tests
@@ -246,6 +253,7 @@
 
 
           type(cmd_operators) :: cmd_operators_used
+          real(rkind), dimension(:,:,:), allocatable :: nodes_tmp
 
 
           !analyze the command line arguments
@@ -281,6 +289,11 @@
              call this%io_operators_used%ini()
 
           end if
+
+          allocate(nodes_tmp(nx,ny,ne))
+          nodes_tmp = this%nodes
+          call this%apply_bc_on_nodes(nodes_tmp)
+          deallocate(nodes_tmp)
 
           !4) verify the inputs
           call this%check_inputs()
@@ -359,7 +372,8 @@
           select case(bc_choice)
           
             case(reflection_xy_choice, periodic_xy_choice,
-     $           wall_xy_choice, wall_x_reflection_y_choice)
+     $           wall_xy_choice, wall_x_reflection_y_choice,
+     $           wall_x_simplified_choice)
                this%x_borders=[bc_size+1,nx-bc_size]
                this%y_borders=[bc_size+1,ny-bc_size]
                   
@@ -551,21 +565,21 @@
         !>@param this
         !> object encapsulating the main governing variables
         !--------------------------------------------------------------
-        subroutine apply_bc_on_nodes(this)
+        subroutine apply_bc_on_nodes(this,nodes_tmp)
 
           implicit none
 
-          class(field_abstract), intent(inout) :: this
+          class(field_abstract)           , intent(inout) :: this
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
 
-          if((bc_choice.ne.hedstrom_xy_choice).and.
-     $       (bc_choice.ne.hedstrom_xy_corners_choice).and.
-     $       (bc_choice.ne.poinsot_xy_choice).and.
-     $       (bc_choice.ne.yoolodato_xy_choice)) then
+          if(shall_bc_on_nodes_be_applied()) then
 
-             call this%bc_operators_used%apply_bc_on_nodes(this%nodes)
+             call this%bc_operators_used%apply_bc_on_nodes(
+     $            this%time,this%x_map,this%y_map,
+     $            nodes_tmp,
+     $            this%nodes)
 
           end if
-
 
         end subroutine apply_bc_on_nodes
 
@@ -714,6 +728,62 @@
      $         this%time)
 
         end subroutine write_data
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> adapt the computational domain
+        !
+        !> @date
+        !> 14_10_2014 - initial version - J.L. Desmarais
+        !
+        !>@param this
+        !> object encapsulating the main variables at t
+        !
+        !>@return steady_state
+        !> check whether the steady state is reached for
+        !> the simulation: variations in time dev ~ 1e-
+        !--------------------------------------------------------------
+        function check_steady_state(this) result(steady_state)
+
+          implicit none
+
+          class(field_abstract), intent(in) :: this
+          logical                           :: steady_state
+
+          real(rkind), dimension(nx,ny,ne)  :: time_dev
+
+          integer :: i,j,k
+
+          !make use of the time discretization operator
+          !to compute the time derivative of the field
+          time_dev = this%td_operators_used%compute_time_dev(
+     $         this%time,
+     $         this%nodes,
+     $         this%x_map,
+     $         this%y_map,
+     $         this%sd_operators_used,
+     $         this%pmodel_eq_used,
+     $         this%bc_operators_used)
+
+          steady_state = .true.
+
+          do k=1, ne
+             do j=1, ny
+                do i=1, nx
+
+                   if(abs(time_dev(i,j,k)).gt.(steady_state_limit)) then
+                      steady_state = .false.
+                      return
+                   end if
+
+                end do
+             end do
+          end do
+
+        end function check_steady_state
 
 
         !> @author

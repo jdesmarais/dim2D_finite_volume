@@ -128,19 +128,32 @@
            !>@param this
            !> abstract boundary conditions
            !
-           !>@param f_used
-           !> object encapsulating the main variables
+           !>@param t
+           !> time
            !
-           !>@param s
-           !> space discretization operators
+           !>@param x_map
+           !> coordinate map along the x-direction
+           !
+           !>@param y_map
+           !> coordinate map along the y-direction
+           !
+           !>@param nodes_tmp
+           !> governing variables at t-dt
+           !
+           !>@param nodes
+           !> governing variables at t
            !-------------------------------------------------------------
-           subroutine nodes_proc(this,nodes)
+           subroutine nodes_proc(this,t,x_map,y_map,nodes_tmp,nodes)
            
              import bc_operators_abstract
              import nx,ny,ne
              import rkind
            
              class(bc_operators_abstract)    , intent(in)    :: this
+             real(rkind)                     , intent(in)    :: t
+             real(rkind), dimension(nx)      , intent(in)    :: x_map
+             real(rkind), dimension(ny)      , intent(in)    :: y_map
+             real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
              real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
 
            end subroutine nodes_proc
@@ -206,15 +219,16 @@
            !>@param flux_y
            !> fluxes along the y-direction
            !-------------------------------------------------------------
-           subroutine fluxes_proc(nodes,dx,dy,s,flux_x,flux_y)
+           subroutine fluxes_proc(t,x_map,y_map,nodes,s,flux_x,flux_y)
            
              import sd_operators
              import rkind
              import nx,ny,ne
            
+             real(rkind)                       , intent(in)    :: t
+             real(rkind), dimension(nx)        , intent(in)    :: x_map
+             real(rkind), dimension(ny)        , intent(in)    :: y_map
              real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
-             real(rkind)                       , intent(in)    :: dx
-             real(rkind)                       , intent(in)    :: dy
              type(sd_operators)                , intent(in)    :: s
              real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
              real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y

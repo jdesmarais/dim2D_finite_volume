@@ -25,17 +25,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -0.6489000000d0
-        real(rkind), parameter :: x_max = 0.6489000000d0
+        real(rkind), parameter :: x_min = 0.0000000000d0
+        real(rkind), parameter :: x_max = 0.6300000000d0
         real(rkind), parameter :: y_min = 0.0000000000d0
-        real(rkind), parameter :: y_max = 0.9734000000d0
+        real(rkind), parameter :: y_max = 0.5166000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 12.6033000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 200.0000000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0008000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0635000000d0
+        real(rkind), parameter :: detail_print = 0.0008000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -45,8 +45,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 108
-        integer(ikind), parameter :: nty = 82
+        integer(ikind), parameter :: ntx = 55
+        integer(ikind), parameter :: nty = 46
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -124,20 +124,24 @@
 
         integer    , parameter :: ic_choice = bubble_next_to_wall
 
-        integer    , parameter :: ic_perturbation_ac = .false.
+        integer    , parameter :: phase_at_center = liquid
+        real(rkind), parameter :: wall_micro_contact_angle = 45.0000000000d0
+
+        logical    , parameter :: ic_perturbation_ac = .false.
         real(rkind), parameter :: ic_perturbation_amp = 0.0000000000d0
 
-        integer    , parameter :: li_perturbation_ac = .false.
+        logical    , parameter :: li_perturbation_ac = .false.
         real(rkind), parameter :: li_perturbation_amp = 0.0000000000d0
 
         logical    , parameter :: dim2d_lowTemperature = .false.
 
         !<body forces choice
-        integer, parameter :: gravity_choice = earth_gravity_choice
-        integer, parameter :: wave_forcing = no_wave_forcing
+        integer    , parameter :: gravity_ac = .true.
+        real(rkind), parameter :: gravity_amp = 0.0150000000d0
+        integer    , parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = reflection_xy_choice
+        integer, parameter :: bc_choice = wall_x_simplified_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
@@ -158,10 +162,10 @@
         !bc_W_type_choice : type of boundary condition applied
         !                   at the West boundary
         !-----------------------------------------------------
-        integer    , parameter :: bc_N_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_S_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_E_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_W_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_N_type_choice = bc_flux_and_node_choice
+        integer    , parameter :: bc_S_type_choice = bc_flux_and_node_choice
+        integer    , parameter :: bc_E_type_choice = bc_flux_and_node_choice
+        integer    , parameter :: bc_W_type_choice = bc_flux_and_node_choice
 
 
         !-----------------------------------------------------
@@ -241,9 +245,9 @@
         logical    , parameter :: obc_crenel_removal_ac   = .true. !no_edge_limit (pb at interfaces between bf_layers)
         integer    , parameter :: obc_dct_distance = 5
 
-        integer    , parameter :: obc_perturbation_T0_ac = .false.
-        integer    , parameter :: obc_perturbation_vx0_ac = .false.
-        integer    , parameter :: obc_perturbation_vy0_ac = .false.
+        logical    , parameter :: obc_perturbation_T0_ac = .false.
+        logical    , parameter :: obc_perturbation_vx0_ac = .false.
+        logical    , parameter :: obc_perturbation_vy0_ac = .false.
 
         real(rkind), parameter :: obc_perturbation_T0_amp = 0.0000000000d0
         real(rkind), parameter :: obc_perturbation_vx0_amp = 0.0000000000d0
@@ -341,13 +345,35 @@
         !    control whether the new grid points are computed when
         !    increasing the computational domain (only use for tests,
         !    should be set to .false. by default)
+        !
+        !debug_initialize_nodes :
+        !    the nodes are initialized with debug_real
+        !
+        !debug_initialize_timedev :
+        !    the time derivatives are initialized with debug_real
         !------------------------------------------------------------
         logical    , parameter :: debug_restart_for_geometry = .false.
-        logical    , parameter :: debug_adapt_computational_domain = .true.
+        logical    , parameter :: debug_adapt_computational_domain = .false.
         logical    , parameter :: debug_geometry_update = .false.
 
-        logical    , parameter :: debug_initialize_nodes   = .true.
-        logical    , parameter :: debug_initialize_timedev = .true.
+        logical    , parameter :: debug_initialize_nodes    = .true.
+        logical    , parameter :: debug_initialize_bc_nodes = .false.
+        logical    , parameter :: debug_initialize_timedev  = .true.
         real(rkind), parameter :: debug_real=1e30
+
+
+        !------------------------------------------------------------
+        !steady state simulation options
+        !------------------------------------------------------------
+        !steady_state_simulation :
+        !    logical stating whether the simulation should be run as
+        !    if it is a steady state computation (no time limit)
+        !
+        !steady_state_limit :
+        !    parameter checked such that the simulation is considered
+        !    steady state
+        !------------------------------------------------------------
+        logical    , parameter :: steady_state_simulation = .true.
+        real(rkind), parameter :: steady_state_limit = 1.0e-12
 
       end module parameters_input

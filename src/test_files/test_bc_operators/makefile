@@ -160,14 +160,18 @@ test_ridders_method:		check_data_module.o\
 test_wall_xy_equilibrium.o:	$(test_dir)/tools/check_data_module.o\
 				$(dim2d_dir)/dim2d_parameters.o\
 				$(dim2d_dir)/dim2d_state_eq_module.o\
+				$(param_dir)/parameters_constant.o\
 				$(param_dir)/parameters_kind.o\
 				ridders_method_fcts_module.o\
+				$(mt_dir)/sd_operators_class.o\
 				$(wbc_dir)/wall_xy_equilibrium_module.o
 
-test_wall_xy_equilibrium:	parameters_kind.o\
+test_wall_xy_equilibrium:	$(param_dep)\
+				$(mt_dep)\
+				n_coords_module.o\
 				check_data_module.o\
 				dim2d_parameters.o\
-				dim2d_state_eq_module.o\
+				dim2d_prim_module.o\
 				dim2d_state_eq_module.o\
 				ridders_method_module.o\
 				wall_xy_equilibrium_module.o\

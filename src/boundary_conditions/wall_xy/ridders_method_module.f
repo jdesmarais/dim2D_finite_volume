@@ -192,11 +192,11 @@
              stop ''
 
 
-          else if (is_real_validated(fl,0.0,.false.)) then
+          else if (is_real_validated(fl,0.0d0,.false.)) then
              x = x1
 
 
-          else if (is_real_validated(fh,0.0,.false.)) then
+          else if (is_real_validated(fh,0.0d0,.false.)) then
              x = x2
 
 
@@ -204,6 +204,9 @@
              print '(''ridder_method_module'')'
              print '(''get_root_ridder_method'')'
              print '(''root must be bracketed'')'
+             
+             print '(''(x1,f1): '',2F10.4)', x1,fl
+             print '(''(x2,fh): '',2F10.4)', x2,fh
              stop ''
 
 

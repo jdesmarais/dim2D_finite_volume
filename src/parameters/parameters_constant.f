@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '5c6433b5f2656dbde4d2bd72e394f16426a541c5')
+        parameter (commit = '343209b4c82be31425f89c2bc2be4e9f226197ec')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -93,8 +93,14 @@
         integer, parameter :: bubble_next_to_wall=7
         integer, parameter :: newgrdpt_test=8
 
+
+        !> phase at center code
+        character(6), dimension(2), parameter :: phase_at_center_code = [
+     $       'liquid','vapor']
+
+
         !>boundary conditions choice
-        character(23), dimension(9), parameter :: bc_code =[
+        character(23), dimension(10), parameter :: bc_code =[
      $       'periodic_xy            ',
      $       'reflection_xy          ',
      $       'wall_xy                ',
@@ -103,7 +109,8 @@
      $       'hedstrom_xy_corners    ',
      $       'hedstrom_x_reflection_y',
      $       'poinsot_xy             ',
-     $       'yoolodato_xy           ']
+     $       'yoolodato_xy           ',
+     $       'wall_x_simplified      ']
 
         integer, parameter :: periodic_xy_choice=0
         integer, parameter :: reflection_xy_choice=1
@@ -114,6 +121,7 @@
         integer, parameter :: hedstrom_x_reflection_y_choice=6
         integer, parameter :: poinsot_xy_choice=7
         integer, parameter :: yoolodato_xy_choice=8
+        integer, parameter :: wall_x_simplified_choice=9
 
         !>boundary conditions type choice
         integer, parameter :: bc_nodes_choice=0

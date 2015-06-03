@@ -31,7 +31,9 @@ from automatization_csts import (dct_distance_default,
                                  ratio_bubble_interface_default,
                                  CFL_constant_default,
                                  ratio_interface_influence_default,
-                                 total_nb_files_default)
+                                 total_nb_files_default,
+                                 changeParameterPath,
+                                 getParameterPath)
 
 from library_sm_lg_inputs import (get_we,
                                   get_interface_length,
@@ -46,16 +48,7 @@ from library_sm_lg_inputs import (get_we,
                                   get_detail_print,
                                   get_large_domain_extent)
                                        
-
-changeParameterPath = os.path.join(os.getenv('augeanstables'),
-                                   'src',
-                                   'config',
-                                   'change_parameter.sh')
-getParameterPath    = os.path.join(os.getenv('augeanstables'),
-                                   'src',
-                                   'config',
-                                   'get_parameter.sh')
-                                   
+                 
 # display the help for the program
 def display_help():
     '''

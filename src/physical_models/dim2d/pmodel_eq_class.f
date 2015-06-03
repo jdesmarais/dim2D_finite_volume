@@ -143,7 +143,6 @@
      $       homogeneous_liquid,
      $       drop_collision,
      $       phase_separation,
-     $       earth_gravity_choice,
      $       obc_eigenqties_bc,
      $       obc_eigenqties_lin,
      $       obc_edge_flux_capillarity,
@@ -152,7 +151,7 @@
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
      $       ic_choice,
-     $       gravity_choice,
+     $       gravity_ac,
      $       flow_velocity,
      $       T0,
      $       obc_eigenqties_strategy,
@@ -649,8 +648,8 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
           real(rkind)  , dimension(:), allocatable, intent(out) :: param_value
 
 
-          allocate(param_name(8))
-          allocate(param_value(8))
+          allocate(param_name(6))
+          allocate(param_value(6))
 
           param_name(1)  = 'viscous_r'
           param_name(2)  = 'Re'
@@ -658,8 +657,6 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
           param_name(4)  = 'Pr'
           param_name(5)  = 'cv_r'
           param_name(6)  = 'gravity'
-          param_name(7)  = 'flow_velocity'
-          param_name(8)  = 'temperature'
 
           param_value(1) = viscous_r
           param_value(2) = Re
@@ -667,8 +664,6 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
           param_value(4) = Pr
           param_value(5) = cv_r
           param_value(6) = gravity
-          param_value(7) = flow_velocity
-          param_value(8) = T0
 
         end subroutine get_sim_parameters
         
@@ -1860,7 +1855,7 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
 
           if(prim_opt) then
 
-             if(gravity_choice.eq.earth_gravity_choice) then
+             if(gravity_ac) then
                 select case(k)
                   case(1)
                      body_forces = 0
@@ -1885,7 +1880,7 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
 
           else
 
-             if(gravity_choice.eq.earth_gravity_choice) then
+             if(gravity_ac) then
                 select case(k)
                   case(1)
                      body_forces = 0

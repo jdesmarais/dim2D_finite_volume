@@ -17,6 +17,7 @@ rbc_dir		       	= $(bc_dir)/reflection_xy
 pbc_dir		        = $(bc_dir)/periodic_xy
 wbc_dir			= $(bc_dir)/wall_xy
 wrbc_dir		= $(bc_dir)/wall_x_reflection_y
+wsbc_dir		= $(bc_dir)/wall_x_simplified
 obc_dir                 = $(bc_dir)/open_bc
 
 nf90_dir		= $(io_dir)/nf90_operators

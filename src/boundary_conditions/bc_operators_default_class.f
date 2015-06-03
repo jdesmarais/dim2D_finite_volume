@@ -85,11 +85,15 @@
         !>@param nodes
         !> object encapsulating the main variables
         !--------------------------------------------------------------
-        subroutine apply_bc_on_nodes(this,nodes)
+        subroutine apply_bc_on_nodes(this,t,x_map,y_map,nodes_tmp,nodes)
 
           implicit none
 
           class(bc_operators_default)     , intent(in)    :: this
+          real(rkind)                     , intent(in)    :: t
+          real(rkind), dimension(nx)      , intent(in)    :: x_map
+          real(rkind), dimension(ny)      , intent(in)    :: y_map
+          real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
 
           real(rkind)           :: node_s          
@@ -97,7 +101,7 @@
 
           stop 'bc_operator%apply_bc_on_nodes() not implemented'
 
-          node_s  = nodes(1,1,1)
+          node_s  = nodes(1,1,1)+t+x_map(1)+y_map(1)+nodes_tmp(1,1,1)
           bc_type = this%bc_type
           
 
@@ -170,25 +174,24 @@
         !>@param flux_y
         !> fluxes along the y-direction
         !--------------------------------------------------------------
-        subroutine apply_bc_on_fluxes(nodes,dx,dy,s,flux_x,flux_y)
+        subroutine apply_bc_on_fluxes(t,x_map,y_map,nodes,s,flux_x,flux_y)
 
           implicit none
 
+          real(rkind)                       , intent(in)    :: t
+          real(rkind), dimension(nx)        , intent(in)    :: x_map
+          real(rkind), dimension(ny)        , intent(in)    :: y_map
           real(rkind), dimension(nx,ny,ne)  , intent(in)    :: nodes
-          real(rkind)                       , intent(in)    :: dx
-          real(rkind)                       , intent(in)    :: dy
           type(sd_operators)                , intent(in)    :: s
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
 
-          real(rkind) :: node,flux,dx_s,dy_s
+          real(rkind) :: node,flux
           integer :: bc_s
 
           stop 'bc_operator%apply_bc_on_fluxes() not implemented'
 
-          node=nodes(1,1,1)
-          dx_s = dx
-          dy_s = dy
+          node=nodes(1,1,1)+x_map(1)+y_map(1)+t
           bc_s = s%get_bc_size()
 
           flux=flux_x(1,1,1)

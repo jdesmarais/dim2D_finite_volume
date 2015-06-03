@@ -191,6 +191,6 @@
         !                            with the computations, extra checks
         !                            can be performed
         !------------------------------------------------------------
-        integer, parameter :: bc_procedure_extra_checks = .true.
+        logical, parameter :: bc_procedure_extra_checks = .true.
 
       end module parameters_bf_layer

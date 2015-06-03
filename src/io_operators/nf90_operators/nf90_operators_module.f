@@ -28,6 +28,8 @@
      $       convention,
      $       ns2d_ic_code,
      $       dim2d_ic_code,
+     $       phase_at_center_code,
+     $       bubble_next_to_wall,
      $       bc_code,
      $       obc_type_code,
      $       hedstrom_xy_choice,
@@ -51,6 +53,9 @@
      $       npx,npy,nx,ny,ne,bc_size,
      $       x_min,x_max,y_min,y_max,
      $       t_max,dt,detail_print,
+     $       flow_direction, flow_velocity,
+     $       T0, phase_at_center,
+     $       wall_micro_contact_angle,
      $       ic_choice, bc_choice,
      $       bf_openbc_md_threshold_ac,
      $       bf_openbc_md_threshold,
@@ -255,6 +260,7 @@
                !DEC$ FORCEINLINE RECURSIVE
                call nf90_handle_err(retval)
 
+               call nf90_write_header_ic_dim2d(ncid)
 
                if(ic_perturbation_ac) then
                   call nf90_handle_err(
@@ -271,13 +277,6 @@
      $                 'ic_perturbation_amp',
      $                 ic_perturbation_amp))
 
-               else
-                  call nf90_handle_err(
-     $                 nf90_put_att(
-     $                 ncid,
-     $                 NF90_GLOBAL,
-     $                 'ic_perturbation_ac',
-     $                 'deactivated'))
                end if
 
           end select
@@ -292,6 +291,81 @@
 
 
         end subroutine nf90_write_header
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> function writing the i.c. parameters on the
+        !> output netcdf file
+        !
+        !> @date
+        !> 05_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@param ncid
+        !> integer identifying the netcdf file
+        !--------------------------------------------------------------
+        subroutine nf90_write_header_ic_dim2d(ncid)
+
+          implicit none
+
+          integer, intent(in) :: ncid
+
+          integer :: retval
+
+
+          ! parameters specific to the i.c.
+          ! are written
+
+          !1) flow velocity
+          !----------------------------------------
+          retval = nf90_put_att(
+     $         ncid,
+     $         NF90_GLOBAL,
+     $         'flow_velocity',
+     $         flow_velocity)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+
+          !2) temperature
+          !----------------------------------------
+          retval = nf90_put_att(
+     $         ncid,
+     $         NF90_GLOBAL,
+     $         'temperature',
+     $         T0)
+          !DEC$ FORCEINLINE RECURSIVE
+          call nf90_handle_err(retval)
+
+
+          !3) parameters characteristic to the
+          !   initial conditions
+          !----------------------------------------
+          select case(ic_choice)
+
+          case(bubble_next_to_wall)
+
+             retval = nf90_put_att(
+     $         ncid,
+     $         NF90_GLOBAL,
+     $         'phase_at_center',
+     $         phase_at_center_code(phase_at_center+1))
+             !DEC$ FORCEINLINE RECURSIVE
+             call nf90_handle_err(retval)
+
+             retval = nf90_put_att(
+     $         ncid,
+     $         NF90_GLOBAL,
+     $         'contact_angle',
+     $         wall_micro_contact_angle)
+             !DEC$ FORCEINLINE RECURSIVE
+             call nf90_handle_err(retval)
+
+          end select
+
+        end subroutine nf90_write_header_ic_dim2d
 
 
         !> @author
@@ -455,13 +529,6 @@
      $            NF90_GLOBAL,
      $            'obc_perturbation_T0_amp',
      $            obc_perturbation_T0_amp))
-          else
-             call nf90_handle_err(
-     $            nf90_put_att(
-     $            ncid,
-     $            NF90_GLOBAL,
-     $            'obc_perturbation_T0_ac',
-     $            'deactivated'))
           end if
 
           if(obc_perturbation_vx0_ac) then
@@ -478,13 +545,6 @@
      $            NF90_GLOBAL,
      $            'obc_perturbation_vx0_amp',
      $            obc_perturbation_vx0_amp))
-          else
-             call nf90_handle_err(
-     $            nf90_put_att(
-     $            ncid,
-     $            NF90_GLOBAL,
-     $            'obc_perturbation_vx0_ac',
-     $            'deactivated'))
           end if
 
           if(obc_perturbation_vy0_ac) then
@@ -501,13 +561,6 @@
      $            NF90_GLOBAL,
      $            'obc_perturbation_vy0_amp',
      $            obc_perturbation_vy0_amp))
-          else
-             call nf90_handle_err(
-     $            nf90_put_att(
-     $            ncid,
-     $            NF90_GLOBAL,
-     $            'obc_perturbation_vy0_ac',
-     $            'deactivated'))
           end if
 
 
@@ -526,15 +579,6 @@
      $            NF90_GLOBAL,
      $            'openbc_md_threshold',
      $            bf_openbc_md_threshold)
-             !DEC$ FORCEINLINE RECURSIVE
-             call nf90_handle_err(retval)
-
-          else
-             retval = nf90_put_att(
-     $            ncid,
-     $            NF90_GLOBAL,
-     $            'openbc_md_threshold_ac',
-     $            'deactivated')
              !DEC$ FORCEINLINE RECURSIVE
              call nf90_handle_err(retval)
 

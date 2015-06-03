@@ -1,3 +1,5 @@
+import os
+
 #constant variables
 #------------------------------------------------------------
 bc_size                           = 2    #number of grid points for the boundary layer
@@ -23,3 +25,14 @@ dct_distance_default              = 4    #default distance between the edge and 
 
 total_nb_files_default            = 1000  #total number of files written
 initial_reflection_study          = False #study of the initial refletions
+
+
+changeParameterPath = os.path.join(os.getenv('augeanstables'),
+                                   'src',
+                                   'config',
+                                   'change_parameter.sh')
+
+getParameterPath    = os.path.join(os.getenv('augeanstables'),
+                                   'src',
+                                   'config',
+                                   'get_parameter.sh')

@@ -75,8 +75,8 @@
           real(rkind)                  , intent(in)    :: amplitude
 
 
-          integer, parameter :: seed_x = 1384973980
-          integer, parameter :: seed_y = 2179427892
+          integer, parameter :: seed_x = 138497!3980
+          integer, parameter :: seed_y = 217942!7892
 
 
           real(rkind) :: x_min

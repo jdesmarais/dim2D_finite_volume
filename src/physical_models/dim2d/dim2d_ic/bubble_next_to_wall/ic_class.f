@@ -21,7 +21,7 @@
      $       total_energy_ellipsoid
 
         use dim2d_parameters, only :
-     $       cv_r
+     $       cv_r, we
 
         use dim2d_prim_module, only :
      $       speed_of_sound
@@ -40,7 +40,8 @@
 
         use parameters_input, only :
      $       nx,ny,ne,
-     $       T0
+     $       T0,
+     $       phase_at_center
 
         use parameters_kind, only :
      $       ikind,
@@ -50,9 +51,6 @@
 
         private
         public :: ic
-
-        !set the phase at the center
-        integer, parameter :: phase_at_center = liquid
 
 
         !> @class ic
@@ -145,6 +143,8 @@
           real(rkind)    :: x,y
 
           real(rkind) :: s
+          real(rkind) :: angle
+          real(rkind) :: x1          
 
 
           !get the mass densities corresponding to the
@@ -163,7 +163,7 @@
 
           !set the center of the droplet
           xc=0.0d0
-          yc=1.5d0*a
+          yc=0.0d0 !1.5d0*a
 
           !determine the flow velocities
           velocity_x = get_velocity_x()
@@ -175,16 +175,42 @@
              dout = dliq
           end if
 
+          angle = (90.0d0-90.0d0)*ACOS(-1.0d0)/180.0d0
 
           !initialize the mass, momentum and total energy fields
           do j=1, size(y_map,1)
              do i=1, size(x_map,1)
 
+                ! coordinates
                 x = x_map(i)
                 y = y_map(j)
 
-                s = smoothing_fct(x,[-1.5d0*a,1.5d0*a],li)*
-     $              smoothing_fct(y,[   0.0d0,3.0d0*a],li)
+c$$$                !constant field
+c$$$                nodes(i,j,1) = dvap
+c$$$                nodes(i,j,2) = nodes(i,j,1)*velocity_x
+c$$$                nodes(i,j,3) = nodes(i,j,1)*velocity_y
+c$$$                nodes(i,j,4) = 0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y**2)
+c$$$     $                       + nodes(i,j,1)*(8.0d0/3.0d0*cv_r*T0-3.0d0*nodes(i,j,1))
+
+c$$$                !inclined bubble
+c$$$                x1 = x*Cos(angle) - y*Sin(angle)
+c$$$
+c$$$                nodes(i,j,1) = 0.5d0*(dliq+dvap)
+c$$$     $                       + 0.5d0*(dliq-dvap)*Tanh(-2.0d0*x1/li)
+c$$$
+c$$$                nodes(i,j,2) = nodes(i,j,1)*velocity_x
+c$$$
+c$$$                nodes(i,j,3) = nodes(i,j,1)*velocity_y
+c$$$
+c$$$                s = 0.5d0*(dliq-dvap)*(1.0d0-(Tanh(-2.0d0*x1/li))**2)*2.0d0/li
+c$$$
+c$$$                nodes(i,j,4) = 0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y**2)
+c$$$     $                       + nodes(i,j,1)*(8.0d0/3.0d0*cv_r*T0-3.0d0*nodes(i,j,1))
+c$$$     $                       + 1.0d0/We*s**2
+
+                ! bubble
+                s = smoothing_fct(x,[xc-1.5d0*a,xc+1.5d0*a],li)*
+     $              smoothing_fct(y,[yc-1.5d0*a,yc+1.5d0*a],li)
 
                 nodes(i,j,1) =
      $               mass_density_ellipsoid(
@@ -396,7 +422,7 @@
           real(rkind) :: velocity_y
           real(rkind) :: temperature
 
-          character(10) :: name_s
+          character(19) :: name_s
           
           t_s = t
           x_s = x

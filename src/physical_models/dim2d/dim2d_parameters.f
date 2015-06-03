@@ -15,8 +15,11 @@
       !-----------------------------------------------------------------
       module dim2d_parameters
 
-      
-        use parameters_kind, only : rkind
+        use parameters_input, only :
+     $       gravity_amp
+
+        use parameters_kind, only :
+     $       rkind
 
 
         private
@@ -84,7 +87,7 @@
         real(rkind), parameter :: We = (length_c**2*u_c**2)/(rho_c*dim2d_K)
         real(rkind), parameter :: Pr = dim2d_mu*dim2d_cv/dim2d_lambda
         real(rkind), parameter :: cv_r = dim2d_M*dim2d_cv/dim2d_R
-        real(rkind), parameter :: gravity = 0.03d0 !time_c/u_c*dim2d_g
+        real(rkind), parameter :: gravity = gravity_amp !time_c/u_c*dim2d_g
        
         !real(rkind), parameter :: viscous_r = -1.5d0
         !real(rkind), parameter :: Re = 5.0d0

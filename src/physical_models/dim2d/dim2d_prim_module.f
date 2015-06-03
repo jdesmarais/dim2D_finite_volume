@@ -49,6 +49,7 @@
      $       velocity_n2,
      $       classical_pressure,
      $       classical_pressure_local,
+     $       pressure,
      $       classical_temperature_eff,
      $       capillarity_temperature_eff,
      $       temperature_eff,
@@ -431,6 +432,42 @@
           end if
 
         end function classical_pressure_local
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> compute the pressure from the state equation
+        !
+        !> @date
+        !> 03_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@param nodes
+        !> governing variables
+        !
+        !>@param temperature
+        !> temperature
+        !
+        !>@param mass_density
+        !> mass_density
+        !
+        !>@return pressure
+        !> pressure
+        !--------------------------------------------------------------
+        function pressure(temperature,mass_density)
+
+          implicit none
+
+          real(rkind), intent(in) :: temperature
+          real(rkind), intent(in) :: mass_density
+          real(rkind)             :: pressure
+
+          pressure =
+     $         8.0d0*mass_density*temperature/(3.0d0-mass_density) -
+     $         3.0d0*mass_density**2
+
+        end function pressure
 
 
         !> @author 

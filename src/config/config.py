@@ -158,7 +158,8 @@ def read_inputs(filename, inputs_needed):
         # convert the parameter read into float
         # except for the parameter 'flow_direction'
         # which must remain of character type
-        if(input_param!='flow_direction'):
+        if(input_param!='flow_direction' and
+           input_param!='phase_at_center'):
             try :
                 inputs_read[input_param]=float(output)
             except ValueError:
@@ -282,15 +283,13 @@ def compute_code_inputs(inputFileName,nbTiles):
                     'hedstrom_xy_corners_choice',
                     'hedstrom_x_reflection_y_choice',
                     'poinsot_xy_choice',
-                    'yoolodato_xy_choice']
+                    'yoolodato_xy_choice',
+                    'wall_x_simplified_choice']
 
     bc_type_code = ['bc_nodes_choice',
                     'bc_fluxes_choice',
                     'bc_timedev_choice',
                     'bc_flux_and_node_choice']
-
-    gravity_code = ['no_gravity_choice',
-                    'earth_gravity_choice']
 
     wave_forcing_code = ['no_wave_forcing',
                          'oscillatory_forcing',
@@ -316,9 +315,10 @@ def compute_code_inputs(inputFileName,nbTiles):
         'SW': ['xy_direction',-1.0,-1.0]}
 
     # read the input file
-    inputs_needed=['x_min','x_max','dx',
-                   'y_min','y_max','dy',
-                   'dt','t_max','detail_print',
+    inputs_needed=['detail_print',
+                   'dt','t_max','steady_state_ac',
+                   'dx','x_min','x_max',
+                   'dy','y_min','y_max',
                    'pm_choice',
                    'bc_choice',
                    'openbc_detector_distance',
@@ -330,20 +330,27 @@ def compute_code_inputs(inputFileName,nbTiles):
                    'openbc_perturbation_T0_amp',
                    'openbc_perturbation_vx0_amp',
                    'openbc_perturbation_vy0_amp',
+                   'ic_choice',
                    'flow_direction',
                    'flow_velocity',
                    'temperature',
-                   'ic_choice',
+                   'micro_contact_angle',
+                   'phase_at_center',
                    'ic_perturbation_ac',
                    'ic_perturbation_amp',
                    'li_perturbation_ac',
                    'li_perturbation_amp',
-                   'gravity_choice',
-                   'wave_forcing',
-                   'dim2d_lowTemperature']
+                   'dim2d_lowTemperature',
+                   'gravity_ac',
+                   'gravity_amp',
+                   'wave_forcing']
     inputs=read_inputs(inputFileName, inputs_needed)
     
+    inputs_computed = {}
 
+    #------------------------------------------------------------
+    # division of the computational domain into tiles
+    #------------------------------------------------------------
     # update the type of the inputs
     inputs['npx']=nbTiles[0]
     inputs['npy']=nbTiles[1]
@@ -352,81 +359,111 @@ def compute_code_inputs(inputFileName,nbTiles):
     # compute the ntx and nty determining the
     # extent of the computational domain
     bc_size=2
-    [ntx,nty]=compute_ntx_and_nty(
+    [inputs_computed['ntx'],
+     inputs_computed['nty']]=compute_ntx_and_nty(
         inputs['npx'], inputs['npy'],
         inputs['x_min'],inputs['x_max'],inputs['dx'],
         inputs['y_min'],inputs['y_max'],inputs['dy'],
         bc_size)
 
+
+    #------------------------------------------------------------
+    # duration of the simulation
+    #------------------------------------------------------------
+    # determine whether it is a steady state simulation
+    inputs['steady_state_ac'] = int_to_logical_str(
+        int(inputs['steady_state_ac']))
+
+
+    #------------------------------------------------------------
+    # type of physical model
+    #------------------------------------------------------------
     # compute the pm_choice
-    pm_choice = pm_code[int(inputs['pm_choice'])]
+    inputs['pm_choice'] = pm_code[int(inputs['pm_choice'])]
+    pm_choice = inputs['pm_choice']
 
     # compute the ne
     if(pm_choice=='simpletest_choice'):
-        ne = 1
-    if(pm_choice=='wave1d_choice'):
-        ne = 2
-    if(pm_choice=='wave2d_choice'):
-        ne = 3
-    if(pm_choice=='ns2d_choice'):
-        ne = 4
-    if(pm_choice=='dim2d_choice'):
-        ne = 4
+        inputs_computed['ne'] = 1
 
+    if(pm_choice=='wave1d_choice'):
+        inputs_computed['ne'] = 2
+
+    if(pm_choice=='wave2d_choice'):
+        inputs_computed['ne'] = 3
+
+    if(pm_choice=='ns2d_choice' or pm_choice=='dim2d_choice'):
+        inputs_computed['ne'] = 4
+
+
+    #------------------------------------------------------------
+    # type of initial conditions
+    #------------------------------------------------------------
     # compute the ic_choice
     if(pm_choice=='wave2d_choice'):
-        ic_choice = wave2d_ic_code[int(inputs['ic_choice'])]
+        inputs['ic_choice'] = wave2d_ic_code[int(inputs['ic_choice'])]
 
     elif(pm_choice=='ns2d_choice'):
-        ic_choice = ns2d_ic_code[int(inputs['ic_choice'])]
+        inputs['ic_choice'] = ns2d_ic_code[int(inputs['ic_choice'])]
 
     elif(pm_choice=='dim2d_choice'):
-        ic_choice = dim2d_ic_code[int(inputs['ic_choice'])]
+        inputs['ic_choice'] = dim2d_ic_code[int(inputs['ic_choice'])]
 
     else:
-        ic_choice = ns2d_ic_code[0]
+        inputs['ic_choice'] = ns2d_ic_code[0]
 
     # compute the ic_perturbation_ac
-    ic_perturbation_ac = int_to_logical_str(
+    inputs['ic_perturbation_ac'] = int_to_logical_str(
         int(inputs['ic_perturbation_ac']))
 
     # compute the ic_perturbation_ac
-    li_perturbation_ac = int_to_logical_str(
+    inputs['li_perturbation_ac'] = int_to_logical_str(
         int(inputs['li_perturbation_ac']))
 
     # determine the flow parameters
-    flow_direction = flow_direction_code[inputs['flow_direction']][0]
-    flow_x_side    = flow_direction_code[inputs['flow_direction']][1]
-    flow_y_side    = flow_direction_code[inputs['flow_direction']][2]
+    inputs_computed['flow_direction'] = flow_direction_code[inputs['flow_direction']][0]
+    inputs_computed['flow_x_side']    = flow_direction_code[inputs['flow_direction']][1]
+    inputs_computed['flow_y_side']    = flow_direction_code[inputs['flow_direction']][2]
 
     
+    #------------------------------------------------------------
+    # type of boundary conditions
+    #------------------------------------------------------------
     # compute the bc_choice    
-    bc_choice = bc_code[int(inputs['bc_choice'])]
+    inputs['bc_choice'] = bc_code[int(inputs['bc_choice'])]
+    bc_choice = inputs['bc_choice']
     
     # compute the bc_type_choice
     if(bc_choice=='periodic_xy_choice' or
        bc_choice=='reflection_xy_choice'):
 
-        bc_N_type_choice = bc_type_code[0]
-        bc_S_type_choice = bc_type_code[0]
-        bc_E_type_choice = bc_type_code[0]
-        bc_W_type_choice = bc_type_code[0]
+        inputs_computed['bc_N_type_choice'] = bc_type_code[0]
+        inputs_computed['bc_S_type_choice'] = bc_type_code[0]
+        inputs_computed['bc_E_type_choice'] = bc_type_code[0]
+        inputs_computed['bc_W_type_choice'] = bc_type_code[0]
         
 
     if(bc_choice=='wall_xy_choice'):
 
-        bc_N_type_choice = bc_type_code[3]
-        bc_S_type_choice = bc_type_code[3]
-        bc_E_type_choice = bc_type_code[3]
-        bc_W_type_choice = bc_type_code[3]
+        inputs_computed['bc_N_type_choice'] = bc_type_code[3]
+        inputs_computed['bc_S_type_choice'] = bc_type_code[3]
+        inputs_computed['bc_E_type_choice'] = bc_type_code[3]
+        inputs_computed['bc_W_type_choice'] = bc_type_code[3]
 
        
     if(bc_choice=='wall_x_reflection_y_choice'):
 
-        bc_N_type_choice = bc_type_code[3]
-        bc_S_type_choice = bc_type_code[3]
-        bc_E_type_choice = bc_type_code[0]
-        bc_W_type_choice = bc_type_code[3]
+        inputs_computed['bc_N_type_choice'] = bc_type_code[3]
+        inputs_computed['bc_S_type_choice'] = bc_type_code[3]
+        inputs_computed['bc_E_type_choice'] = bc_type_code[0]
+        inputs_computed['bc_W_type_choice'] = bc_type_code[3]
+
+    if(bc_choice=='wall_x_simplified_choice'):
+
+        inputs_computed['bc_N_type_choice'] = bc_type_code[3]
+        inputs_computed['bc_S_type_choice'] = bc_type_code[3]
+        inputs_computed['bc_E_type_choice'] = bc_type_code[3]
+        inputs_computed['bc_W_type_choice'] = bc_type_code[3]
 
 
     if(bc_choice=='hedstrom_xy_choice' or
@@ -434,22 +471,25 @@ def compute_code_inputs(inputFileName,nbTiles):
        bc_choice=='poinsot_xy_choice' or
        bc_choice=='yoolodato_xy_choice'):
 
-        bc_N_type_choice = bc_type_code[2]
-        bc_S_type_choice = bc_type_code[2]
-        bc_E_type_choice = bc_type_code[2]
-        bc_W_type_choice = bc_type_code[2]
+        inputs_computed['bc_N_type_choice'] = bc_type_code[2]
+        inputs_computed['bc_S_type_choice'] = bc_type_code[2]
+        inputs_computed['bc_E_type_choice'] = bc_type_code[2]
+        inputs_computed['bc_W_type_choice'] = bc_type_code[2]
 
 
     if(bc_choice=='hedstrom_x_reflection_y_choice'):
 
-        bc_N_type_choice = bc_type_code[0]
-        bc_S_type_choice = bc_type_code[0]
-        bc_E_type_choice = bc_type_code[2]
-        bc_W_type_choice = bc_type_code[2]
+        inputs_computed['bc_N_type_choice'] = bc_type_code[0]
+        inputs_computed['bc_S_type_choice'] = bc_type_code[0]
+        inputs_computed['bc_E_type_choice'] = bc_type_code[2]
+        inputs_computed['bc_W_type_choice'] = bc_type_code[2]
 
 
+    #------------------------------------------------------------
+    # open boundary conditions
+    #------------------------------------------------------------
     # compute the openbc_md_threshold_ac
-    openbc_md_threshold_ac = int_to_logical_str(
+    inputs['openbc_md_threshold_ac'] = int_to_logical_str(
         int(inputs['openbc_md_threshold_ac']))
 
     # determine the openbc_detector_distance
@@ -457,70 +497,42 @@ def compute_code_inputs(inputFileName,nbTiles):
         int(inputs['openbc_detector_distance'])
 
     # compute the openbc_perturbation_T0_ac
-    openbc_perturbation_T0_ac = int_to_logical_str(
+    inputs['openbc_perturbation_T0_ac'] = int_to_logical_str(
         int(inputs['openbc_perturbation_T0_ac']))
 
     # compute the openbc_perturbation_vx0_ac
-    openbc_perturbation_vx0_ac = int_to_logical_str(
+    inputs['openbc_perturbation_vx0_ac'] = int_to_logical_str(
         int(inputs['openbc_perturbation_vx0_ac']))
 
     # compute the openbc_perturbation_vy0_ac
-    openbc_perturbation_vy0_ac = int_to_logical_str(
+    inputs['openbc_perturbation_vy0_ac'] = int_to_logical_str(
         int(inputs['openbc_perturbation_vy0_ac']))
 
-    # compute the gravity_choice
-    gravity_choice = gravity_code[int(inputs['gravity_choice'])]
-    wave_forcing   = wave_forcing_code[int(inputs['wave_forcing'])]
+
+    #------------------------------------------------------------
+    # body forces
+    #------------------------------------------------------------
+    # compute the wave_forcing_choice
+    inputs['wave_forcing']   = wave_forcing_code[int(inputs['wave_forcing'])]
 
     # compute the dim2d_lowTemperature
-    dim2d_lowTemperature = int_to_logical_str(
+    inputs['dim2d_lowTemperature'] = int_to_logical_str(
         int(inputs['dim2d_lowTemperature']))
 
-    return [inputs,
-            ntx,nty,ne,
-            pm_choice,
-            ic_choice,
-            ic_perturbation_ac,
-            li_perturbation_ac,
-            bc_choice,
-            openbc_md_threshold_ac,
-            openbc_perturbation_T0_ac,
-            openbc_perturbation_vx0_ac,
-            openbc_perturbation_vy0_ac,
-            bc_N_type_choice,
-            bc_S_type_choice,
-            bc_E_type_choice,
-            bc_W_type_choice,
-            gravity_choice,
-            wave_forcing,
-            flow_direction,
-            flow_x_side,
-            flow_y_side,
-            dim2d_lowTemperature]
+    # compute gravity_ac
+    inputs['gravity_ac'] = int_to_logical_str(
+        int(inputs['gravity_ac']))
+    #------------------------------------------------------------
+
+
+    return [inputs,inputs_computed]
 
 
 # update the 'parameters_input.f' file with the inputs
 # of the simulation
-def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
-                             pm_choice,
-                             ic_choice,
-                             ic_perturbation_ac,
-                             li_perturbation_ac,
-                             bc_choice,
-                             openbc_md_threshold_ac,
-                             openbc_perturbation_T0_ac,
-                             openbc_perturbation_vx0_ac,
-                             openbc_perturbation_vy0_ac,
-                             bc_N_type_choice,
-                             bc_S_type_choice,
-                             bc_E_type_choice,
-                             bc_W_type_choice,
-                             gravity_choice,
-                             wave_forcing,
-                             flow_direction,
-                             flow_x_side,
-                             flow_y_side,
-                             dim2d_lowTemperature):
+def update_parameters_inputs(file_path,
+                             inputs,
+                             inputs_computed):
     '''
     @description
     update the constants defined in the 'parameters_input'
@@ -530,29 +542,32 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
     # change the constant that do not require a special
     # output treatment (integer,character...)
     constants_changed1={
-        'npx':inputs['npx'],
-        'npy':inputs['npy'],
-        'ntx':ntx,
-        'nty':nty,
-        'ne':ne,
-        'pm_choice':pm_choice,
-        'ic_choice':ic_choice,
-        'ic_perturbation_ac':ic_perturbation_ac,
-        'li_perturbation_ac':li_perturbation_ac,
-        'bc_choice':bc_choice,
-        'bf_openbc_md_threshold_ac':openbc_md_threshold_ac,
-        'obc_dct_distance':inputs['openbc_detector_distance'],
-        'obc_perturbation_T0_ac':openbc_perturbation_T0_ac,
-        'obc_perturbation_vx0_ac':openbc_perturbation_vx0_ac,
-        'obc_perturbation_vy0_ac':openbc_perturbation_vy0_ac,
-        'bc_N_type_choice':bc_N_type_choice,
-        'bc_S_type_choice':bc_S_type_choice,
-        'bc_E_type_choice':bc_E_type_choice,
-        'bc_W_type_choice':bc_W_type_choice,
-        'gravity_choice':gravity_choice,
-        'wave_forcing':wave_forcing,
-        'flow_direction':flow_direction,
-        'dim2d_lowTemperature':dim2d_lowTemperature}
+        'npx'                              : inputs['npx'],
+        'npy'                              : inputs['npy'],
+        'ntx'                              : inputs_computed['ntx'],
+        'nty'                              : inputs_computed['nty'],
+        'ne'                               : inputs_computed['ne'],
+        'pm_choice'                        : inputs['pm_choice'],
+        'ic_choice'                        : inputs['ic_choice'],
+        'phase_at_center'                  : inputs['phase_at_center'],
+        'ic_perturbation_ac'               : inputs['ic_perturbation_ac'],
+        'li_perturbation_ac'               : inputs['li_perturbation_ac'],
+        'bc_choice'                        : inputs['bc_choice'],
+        'bf_openbc_md_threshold_ac'        : inputs['openbc_md_threshold_ac'],
+        'obc_dct_distance'                 : inputs['openbc_detector_distance'],
+        'obc_perturbation_T0_ac'           : inputs['openbc_perturbation_T0_ac'],
+        'obc_perturbation_vx0_ac'          : inputs['openbc_perturbation_vx0_ac'],
+        'obc_perturbation_vy0_ac'          : inputs['openbc_perturbation_vy0_ac'],
+        'bc_N_type_choice'                 : inputs_computed['bc_N_type_choice'],
+        'bc_S_type_choice'                 : inputs_computed['bc_S_type_choice'],
+        'bc_E_type_choice'                 : inputs_computed['bc_E_type_choice'],
+        'bc_W_type_choice'                 : inputs_computed['bc_W_type_choice'],
+        'gravity_ac'                       : inputs['gravity_ac'],
+        'wave_forcing'                     : inputs['wave_forcing'],
+        'flow_direction'                   : inputs_computed['flow_direction'],
+        'dim2d_lowTemperature'             : inputs['dim2d_lowTemperature'],
+        'debug_adapt_computational_domain' : inputs['adapt_computational_domain'],
+        'steady_state_simulation'          : inputs['steady_state_ac']}
 
     for key, value  in constants_changed1.items():
 
@@ -574,16 +589,18 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
         't_max'                   : inputs['t_max'],
         'dt'                      : inputs['dt'],
         'detail_print'            : inputs['detail_print'],
-        'flow_x_side'             : flow_x_side,
-        'flow_y_side'             : flow_y_side,
+        'flow_x_side'             : inputs_computed['flow_x_side'],
+        'flow_y_side'             : inputs_computed['flow_y_side'],
         'flow_velocity'           : inputs['flow_velocity'],
         'T0'                      : inputs['temperature'],
+        'wall_micro_contact_angle': inputs['micro_contact_angle'],
         'ic_perturbation_amp'     : inputs['ic_perturbation_amp'],
         'li_perturbation_amp'     : inputs['li_perturbation_amp'],
         'bf_openbc_md_threshold'  : inputs['openbc_md_threshold'],
         'obc_perturbation_T0_amp' : inputs['openbc_perturbation_T0_amp'],
         'obc_perturbation_vx0_amp': inputs['openbc_perturbation_vx0_amp'],
-        'obc_perturbation_vy0_amp': inputs['openbc_perturbation_vy0_amp']}
+        'obc_perturbation_vy0_amp': inputs['openbc_perturbation_vy0_amp'],
+        'gravity_amp'             : inputs['gravity_amp']}
 
     for key, value in constants_changed2.items():
 
@@ -599,7 +616,7 @@ def update_parameters_inputs(file_path,inputs,ntx,nty,ne,
 
 # update the makefile with the path to the folders
 # needed for the simulation
-def update_makefile(file_path,bc_choice):
+def update_makefile(file_path,inputs):
     '''
     @description
     update the folder for the compilation
@@ -608,9 +625,9 @@ def update_makefile(file_path,bc_choice):
 
     # define the constants changed in the file
     constants_changed={
-        'pm_choice':pm_choice,
-        'ic_choice':ic_choice,
-        'bc_choice':bc_choice}
+        'pm_choice':inputs['pm_choice'],
+        'ic_choice':inputs['ic_choice'],
+        'bc_choice':inputs['bc_choice']}
 
 
     # change the constant in the file
@@ -696,55 +713,25 @@ if __name__ == "__main__":
 
 
     # compute the code inputs
-    [inputs,ntx,nty,ne,
-     pm_choice,
-     ic_choice,
-     ic_perturbation_ac,
-     li_perturbation_ac,
-     bc_choice,
-     openbc_md_threshold_ac,
-     openbc_perturbation_T0_ac,
-     openbc_perturbation_vx0_ac,
-     openbc_perturbation_vy0_ac,
-     bc_N_type_choice,
-     bc_S_type_choice,
-     bc_E_type_choice,
-     bc_W_type_choice,
-     gravity_choice,
-     wave_forcing,
-     flow_direction,
-     flow_x_side,
-     flow_y_side,
-     dim2d_lowTemperature]=compute_code_inputs(inputFileName,nbTiles)
+    [inputs,inputs_computed]=compute_code_inputs(inputFileName,nbTiles)
+
+    
+    #check whether the computational domain is
+    #adapted or not
+    if(compileCodeBuffer):
+        inputs['adapt_computational_domain']='.true.'
+    else:
+        inputs['adapt_computational_domain']='.false.'
 
 
     # replace the inputs in the 'parameters_input' file
     update_parameters_inputs(param_path,
                              inputs,
-                             ntx,nty,ne,
-                             pm_choice,
-                             ic_choice,
-                             ic_perturbation_ac,
-                             li_perturbation_ac,
-                             bc_choice,
-                             openbc_md_threshold_ac,
-                             openbc_perturbation_T0_ac,
-                             openbc_perturbation_vx0_ac,
-                             openbc_perturbation_vy0_ac,
-                             bc_N_type_choice,
-                             bc_S_type_choice,
-                             bc_E_type_choice,
-                             bc_W_type_choice,
-                             gravity_choice,
-                             wave_forcing,
-                             flow_direction,
-                             flow_x_side,
-                             flow_y_side,
-                             dim2d_lowTemperature)
+                             inputs_computed)
 
 
     # replace the inputs in the 'makefile'
-    update_makefile(makefile_path,bc_choice)
+    update_makefile(makefile_path,inputs)
 
 
     # replace the commit SHA number in the
@@ -754,7 +741,10 @@ if __name__ == "__main__":
 
     # print the major results
     print ''
-    print '(ntx,nty,ne)', ntx,nty,ne
+    print '(ntx,nty,ne)',\
+        inputs_computed['ntx'],\
+        inputs_computed['nty'],\
+        inputs_computed['ne']
 
 
     # print the end of the configuration

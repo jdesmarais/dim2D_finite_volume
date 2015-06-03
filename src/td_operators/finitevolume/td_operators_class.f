@@ -20,12 +20,17 @@
         use bc_operators_class, only :
      $       bc_operators
 
+        use bc_operators_module, only :
+     $       shall_bc_on_fluxes_be_applied,
+     $       shall_bc_on_timedev_be_applied
+
         use sd_operators_class, only :
      $       sd_operators
 
         use parameters_constant, only :
      $       bc_fluxes_choice,
-     $       bc_timedev_choice
+     $       bc_timedev_choice,
+     $       bc_flux_and_node_choice
 
         use parameters_bf_layer, only :
      $       interior_pt,
@@ -163,14 +168,10 @@
 
           !< if the boundary conditions influence the computation
           !> of the fluxes, then we need to modify the fluxes
-          if((bc_N_type_choice.eq.bc_fluxes_choice).or.
-     $       (bc_S_type_choice.eq.bc_fluxes_choice).or.
-     $       (bc_E_type_choice.eq.bc_fluxes_choice).or.
-     $       (bc_W_type_choice.eq.bc_fluxes_choice)
-     $    ) then
+          if(shall_bc_on_fluxes_be_applied()) then
 
              call bc_used%apply_bc_on_fluxes(
-     $            nodes, dx, dy, s, flux_x, flux_y)
+     $            t,x_map,y_map,nodes,s,flux_x,flux_y)
 
           end if
 
@@ -194,12 +195,7 @@
           !< if the boundary conditions influence the computation
           !> of the time derivatives, then we need to compute the
           !> time derivatives at the boundary
-          if(
-     $         (bc_N_type_choice.eq.bc_timedev_choice).or.
-     $         (bc_S_type_choice.eq.bc_timedev_choice).or.
-     $         (bc_E_type_choice.eq.bc_timedev_choice).or.
-     $         (bc_W_type_choice.eq.bc_timedev_choice)
-     $    ) then
+          if(shall_bc_on_timedev_be_applied()) then
 
              !if not all the time derivatives of the boundary
              !layers should be computed, the selected time
@@ -376,15 +372,10 @@
 
             !if the boundary conditions influence the computation
             !of the fluxes, then we need to modify the fluxes
-            if(
-     $           (bc_N_type_choice.eq.bc_fluxes_choice).or.
-     $           (bc_S_type_choice.eq.bc_fluxes_choice).or.
-     $           (bc_E_type_choice.eq.bc_fluxes_choice).or.
-     $           (bc_W_type_choice.eq.bc_fluxes_choice)
-     $      ) then
+            if(shall_bc_on_fluxes_be_applied()) then
 
                call bc_used%apply_bc_on_fluxes(
-     $              nodes,dx,dy,s,flux_x,flux_y)
+     $              t,x_map,y_map,nodes,s,flux_x,flux_y)
 
             end if
 
@@ -413,10 +404,7 @@
             !if the boundary conditions influence the computation
             !of the time derivatives, then we need to compute the
             !time derivatives at the boundary
-            if((bc_N_type_choice.eq.bc_timedev_choice).or.
-     $         (bc_S_type_choice.eq.bc_timedev_choice).or.
-     $         (bc_E_type_choice.eq.bc_timedev_choice).or.
-     $         (bc_W_type_choice.eq.bc_timedev_choice)) then
+            if(shall_bc_on_timedev_be_applied()) then
 
                call bc_used%apply_bc_on_timedev_nopt(
      $              t,

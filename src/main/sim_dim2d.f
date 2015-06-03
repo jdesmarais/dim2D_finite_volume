@@ -17,19 +17,28 @@
       !-----------------------------------------------------------------
       program sim_dim2d
 
-        use field_class            , only : field
-        use parameters_input       , only : t_max,dt,detail_print
-        use parameters_kind        , only : ikind
+        use field_class, only :
+     $       field
+
+        use parameters_input, only :
+     $       t_max,dt,detail_print,
+     $       steady_state_simulation
+
+        use parameters_kind, only :
+     $       ikind
 
         implicit none
 
 
         ! operators needed for the simulation
         type(field) :: f_simulated !  field simulated
-        
+
+
         ! intermediate variables for the simulation
         integer(ikind) :: nt, output_print
         integer(ikind) :: t
+        logical        :: steady_state_reached
+        integer        :: s
 
         ! CPU recorded times
         real :: time1, time2, time3
@@ -41,7 +50,6 @@
 
         ! initialize the field
         call f_simulated%ini()
-        call f_simulated%apply_bc_on_nodes()
         call f_simulated%write_data()
 
 
@@ -55,16 +63,38 @@
         print *, 'time_elapsed: ', time2-time1
 
 
-        ! integrate the field until t=t_max
-        do t=1, nt
+        ! run the simulation until t=t_max
+        ! for simulations that have a fixed
+        ! final time
+        ! for steady state simulations, run
+        ! the simulation until the time
+        ! derivatives are small enough in the
+        ! computational domain
+        steady_state_reached = .false.
+        s = 0
 
-           !DEC$ FORCEINLINE RECURSIVE
-           call f_simulated%integrate(dt)
+        do while(.not.steady_state_reached)
 
-           !  write the output data
-           if((output_print.eq.1).or.
-     $        ((output_print.ne.0).and.(mod(t,output_print).eq.0))) then
-              call f_simulated%write_data()
+           ! integrate the field until t=t_max
+           do t=1, nt
+
+              !DEC$ FORCEINLINE RECURSIVE
+              call f_simulated%integrate(dt)
+
+              !  write the output data
+              if((output_print.eq.1).or.
+     $             ((output_print.ne.0).and.(mod(t+s*nt,output_print).eq.0))) then
+                 call f_simulated%write_data()
+              end if
+
+           end do
+           
+           ! check whether the steady state is reached
+           if(steady_state_simulation) then
+              steady_state_reached = f_simulated%check_steady_state()
+              s = s+1
+           else
+              steady_state_reached = .true.
            end if
 
         end do
@@ -76,7 +106,7 @@
 
 
         ! write the last timestep
-        if((output_print.eq.0).or.(mod(nt,output_print).ne.0)) then
+        if((output_print.eq.0).or.(mod(nt+s*nt,output_print).ne.0)) then
            call f_simulated%write_data()
         end if
 

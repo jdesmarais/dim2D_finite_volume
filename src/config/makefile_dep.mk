@@ -13,6 +13,7 @@ $(field_dir)/surrogate_class.o:
 
 $(field_dir)/field_abstract_class.o:\
 			$(bc_cdir)/bc_operators_class.o\
+			$(bc_dir)/bc_operators_module.o\
 			$(field_dir)/surrogate_class.o\
 			$(ti_dir)/interface_integration_step.o\
 			$(io_dir)/cmd_operators_class.o\
@@ -233,6 +234,10 @@ $(bc_dir)/bc_operators_nopt_module.o:\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
 			$(pm_cdir)/pmodel_eq_class.o
+
+$(bc_dir)/bc_operators_module.o:\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o
 
 
 #periodic boundary conditions
@@ -710,6 +715,7 @@ $(td_dir)/td_operators_par_class.o:\
 
 $(fv_dir)/td_operators_class.o:\
 			$(bc_cdir)/bc_operators_class.o\
+			$(bc_dir)/bc_operators_module.o\
 			$(sd_cdir)/sd_operators_class.o\
 			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(param_dir)/parameters_input.o\

@@ -124,7 +124,7 @@
 
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call field_used%apply_bc_on_nodes()
+          call field_used%apply_bc_on_nodes(nodes_tmp)
 
 
           !<runge-kutta second step
@@ -140,7 +140,7 @@
 
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call field_used%apply_bc_on_nodes()
+          call field_used%apply_bc_on_nodes(nodes_tmp)
 
 
           !<runge-kutta third step
@@ -156,7 +156,7 @@
 
           !<apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call field_used%apply_bc_on_nodes()
+          call field_used%apply_bc_on_nodes(nodes_tmp)
 
         end subroutine integrate
 
@@ -209,7 +209,7 @@
 
           !apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call field_used%apply_bc_on_nodes()
+          call field_used%apply_bc_on_nodes(nodes_tmp)
 
 
           !runge-kutta second step
@@ -228,7 +228,7 @@
 
           !apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call field_used%apply_bc_on_nodes()
+          call field_used%apply_bc_on_nodes(nodes_tmp)
 
 
           !runge-kutta third step
@@ -247,44 +247,11 @@
 
           !apply the boundary conditions
           !DEC$ FORCEINLINE RECURSIVE
-          call field_used%apply_bc_on_nodes()
+          call field_used%apply_bc_on_nodes(nodes_tmp)
 
           !adapt the computational domain
           call field_used%adapt_domain(dt,nodes_tmp)
 
         end subroutine integrate_ext
       
-
       end module td_integrator_class
-
-
-c$$$      print *,'first step'
-c$$$
-c$$$          do j=1, nodes_profile(2)
-c$$$             do i=1, nodes_profile(1)
-c$$$                print '(''('',I2,'','',I2,'')'', 3X,
-c$$$     $                  ''u1='',F10.2)',
-c$$$     $               i,j,
-c$$$     $               field_used%nodes(i,j,1)
-c$$$             end do
-c$$$          end do
-
-c$$$         print *,'second step'
-c$$$
-c$$$          do j=1, nodes_profile(2)
-c$$$             do i=1, nodes_profile(1)
-c$$$                print '(''('',I2,'','',I2,'')'', 3X,
-c$$$     $                  ''u2='',F10.2)',
-c$$$     $               i,j,
-c$$$     $               field_used%nodes(i,j,1)
-c$$$             end do
-c$$$          end do
-
-c$$$         do j=1, nodes_profile(2)-2*bc_size
-c$$$             do i=1, nodes_profile(1)-2*bc_size
-c$$$                print '(''('',I2,'','',I2,'')'', 3X,
-c$$$     $                  ''time_dev='',F10.2)',
-c$$$     $               i,j,
-c$$$     $               time_dev(i,j,1)
-c$$$             end do
-c$$$          end do

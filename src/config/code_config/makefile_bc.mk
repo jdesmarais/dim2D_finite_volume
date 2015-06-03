@@ -18,6 +18,11 @@ ifeq ($(strip $(bc_choice)), wall_x_reflection_y_choice)
 	sim_dep+=$(wall_x_reflection_dep)
 	sim_par_dep+=$(wall_x_reflection_dep)
 endif
+ifeq ($(strip $(bc_choice)), wall_x_simplified_choice)
+	bc_cdir=$(wsbc_dir)
+	sim_dep+=$(wall_x_simplified_dep)
+	sim_par_dep+=$(wall_x_simplified_dep)
+endif
 ifeq ($(strip $(bc_choice)), hedstrom_xy_choice)
 	bc_cdir=$(hobc_dir)
 	sim_dep+=$(hedstrom_xy_dep)

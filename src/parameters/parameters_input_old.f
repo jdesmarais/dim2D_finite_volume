@@ -14,7 +14,10 @@
       module parameters_input
 
         use parameters_constant
-        use parameters_kind, only : ikind, rkind
+
+        use parameters_kind, only :
+     $       ikind,
+     $       rkind
 
         implicit none
 
@@ -22,17 +25,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -7.2d0
-        real(rkind), parameter :: x_max = -1.3d0
-        real(rkind), parameter :: y_min = -6.4d0
-        real(rkind), parameter :: y_max = 3.4d0
+        real(rkind), parameter :: x_min = 0.0000000000d0
+        real(rkind), parameter :: x_max = 0.6489000000d0
+        real(rkind), parameter :: y_min = 0.0000000000d0
+        real(rkind), parameter :: y_max = 0.5000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 10.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0025000000d0
+        real(rkind), parameter :: t_max = 100.0000000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0008000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.2500000000d0
+        real(rkind), parameter :: detail_print = 0.0063500000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -42,12 +45,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 64
-        integer(ikind), parameter :: nty = 54
+        integer(ikind), parameter :: ntx = 57
+        integer(ikind), parameter :: nty = 45
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 3
+        integer       , parameter :: ne = 4
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -104,26 +107,45 @@
         !bubble_ascending   : initial bubble
         !homogeneous_liquid : constant liquid density
         !phase_separation   : unstable mass density
+        !
         !--------------------------------------------
-        integer    , parameter :: flow_direction = x_direction
+        !dim2d_lowTemperature:
+        !--------------------------------------------
+        !option to force the use of low temperature laws
+        !for the saturated liquid and vapor mass densities
+        !and the interface length
+        !--------------------------------------------
+        integer    , parameter :: flow_direction = y_direction
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.1000000000d0
+        real(rkind), parameter :: flow_velocity = 0.0000000000d0
         
-        real(rkind), parameter :: T0 = 0.950000000d0
+        real(rkind), parameter :: T0 = 0.9990000000d0
 
-        integer    , parameter :: ic_choice = sincos
+        integer    , parameter :: ic_choice = bubble_next_to_wall
+
+        integer    , parameter :: phase_at_center = liquid
+        real(rkind), parameter :: wall_micro_contact_angle = 45.0d0
+
+        logical    , parameter :: ic_perturbation_ac = .false.
+        real(rkind), parameter :: ic_perturbation_amp = 0.0000000000d0
+
+        logical    , parameter :: li_perturbation_ac = .false.
+        real(rkind), parameter :: li_perturbation_amp = 0.0000000000d0
+
+        logical    , parameter :: dim2d_lowTemperature = .false.
 
         !<body forces choice
-        integer, parameter :: gravity_choice = no_gravity_choice
-        integer, parameter :: wave_forcing = no_wave_forcing
+        integer    , parameter :: gravity_ac  = .true.
+        real(rkind), parameter :: gravity_amp = 0.003d0
+        integer    , parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = hedstrom_xy_choice
+        integer, parameter :: bc_choice = wall_x_simplified_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
-
+        logical, parameter :: io_onefile_per_proc = .true.
 
         !< boundary conditions parameters
         !-----------------------------------------------------
@@ -140,20 +162,21 @@
         !bc_W_type_choice : type of boundary condition applied
         !                   at the West boundary
         !-----------------------------------------------------
-        integer    , parameter :: bc_N_type_choice = bc_timedev_choice
-        integer    , parameter :: bc_S_type_choice = bc_timedev_choice
-        integer    , parameter :: bc_E_type_choice = bc_timedev_choice
-        integer    , parameter :: bc_W_type_choice = bc_timedev_choice
+        integer    , parameter :: bc_N_type_choice = bc_flux_and_node_choice
+        integer    , parameter :: bc_S_type_choice = bc_flux_and_node_choice
+        integer    , parameter :: bc_E_type_choice = bc_flux_and_node_choice
+        integer    , parameter :: bc_W_type_choice = bc_flux_and_node_choice
 
 
         !-----------------------------------------------------
         !for the open boundary conditions
         !-----------------------------------------------------
-        !obc_outgoing_strategy : control how the information of the
-        !                        outgoing waves are computed
-        !
-        !                        1) obc_outgoing_cons
-        !                        2) obc_outgoing_prim
+        !obc_eigenqties_strategy : control how the eigenquantities
+        !                          are computed at the edge for the
+        !                          open boundary conditions:
+        ! 
+        !                          1) obc_eigenqties_bc
+        !                          2) obc_eigenqties_lin
         !
         !obc_edge_xy_strategy : control which strategy is used
         !                       when computing the gridpoints
@@ -165,13 +188,6 @@
         !                       3) obc_edge_xy_diag_flux
         !
         !
-        !obc_eigenqties_strategy : control how the eigenquantities
-        !                          are computed at the edge for the
-        !                          open boundary conditions:
-        ! 
-        !                          1) obc_eigenqties_bc
-        !                          2) obc_eigenqties_lin
-        !
         !obc_edge_flux_strategy: control whether the capillarity
         !                        terms are included when computing
         !                        the one-side fluxes used for the
@@ -179,11 +195,63 @@
         !
         !                        1) obc_edge_flux_capillarity
         !                        2) obc_edge_flux_no_capillarity
-        !-----------------------------------------------------
-        integer    , parameter :: obc_outgoing_strategy   = obc_outgoing_prim
+        !
+        !------------------------------------------------------------
+        !openbc_perturbation_T0_ac : integer
+        !------------------------------------------------------------
+        ! 1: activate the perturbation of the temperature used to 
+        !    determine the far field values
+        ! 0: do not activate the perturbation of the temperature used
+        !    to determine the far field values
+        !
+        !------------------------------------------------------------
+        !openbc_perturbation_vx0_ac : integer
+        !------------------------------------------------------------
+        ! 1: activate the perturbation of the x-component of the
+        !    velocity used to determine the far field values
+        ! 0: do not activate the perturbation of the x-component of
+        !    the velocity used to determine the far field values
+        !
+        !------------------------------------------------------------
+        !openbc_perturbation_vy0_ac : integer
+        !------------------------------------------------------------
+        ! 1: activate the perturbation of the y-component of the
+        !    velocity used to determine the far field values
+        ! 0: do not activate the perturbation of the y-component of
+        !    the velocity used to determine the far field values
+        !
+        !------------------------------------------------------------
+        !openbc_perturbation_T0_amp : real
+        !------------------------------------------------------------
+        ! amplitude of the perturbation applied to the temperature
+        ! used to compute the far field values
+        !
+        !------------------------------------------------------------
+        !openbc_perturbation_vx0_amp : real
+        !------------------------------------------------------------
+        ! amplitude of the perturbation applied to the x-component of
+        ! the velocity used to compute the far field values
+        !
+        !------------------------------------------------------------
+        !openbc_perturbation_vy0_amp : real
+        !------------------------------------------------------------
+        ! amplitude of the perturbation applied to the y-component of
+        ! the velocity used to compute the far field values
+        !------------------------------------------------------------
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
-        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
+        logical    , parameter :: obc_edge_overlap_ac     = .true.
+        logical    , parameter :: obc_crenel_removal_ac   = .true. !no_edge_limit (pb at interfaces between bf_layers)
+        integer    , parameter :: obc_dct_distance = 5
+
+        logical    , parameter :: obc_perturbation_T0_ac = .false.
+        logical    , parameter :: obc_perturbation_vx0_ac = .false.
+        logical    , parameter :: obc_perturbation_vy0_ac = .false.
+
+        real(rkind), parameter :: obc_perturbation_T0_amp = 0.0000000000d0
+        real(rkind), parameter :: obc_perturbation_vx0_amp = 0.0000000000d0
+        real(rkind), parameter :: obc_perturbation_vy0_amp = 0.0000000000d0
 
 
         !------------------------------------------------------------
@@ -257,8 +325,8 @@
         !                         [\rho_vap+thr_vap, \rho_liq-thr_liq]
         !
         !------------------------------------------------------------
-        logical    , parameter :: bf_openbc_md_threshold_ac = .true.
-        real(rkind), parameter :: bf_openbc_md_threshold = 0.1000000000d0
+        logical    , parameter :: bf_openbc_md_threshold_ac = .false.
+        real(rkind), parameter :: bf_openbc_md_threshold = 0.0000000000d0
 
 
         !------------------------------------------------------------
@@ -271,14 +339,41 @@
         !debug_adapt_computational_domain :
         !    control whether the edges of the computational domain
         !    are adapted once the simulation starts
+        !    should be set to .true. by default
         !
         !debug_geometry_update :
         !    control whether the new grid points are computed when
         !    increasing the computational domain (only use for tests,
         !    should be set to .false. by default)
+        !
+        !debug_initialize_nodes :
+        !    the nodes are initialized with debug_real
+        !
+        !debug_initialize_timedev :
+        !    the time derivatives are initialized with debug_real
         !------------------------------------------------------------
         logical    , parameter :: debug_restart_for_geometry = .false.
-        logical    , parameter :: debug_adapt_computational_domain = .false.
+        logical    , parameter :: debug_adapt_computational_domain = .true.
         logical    , parameter :: debug_geometry_update = .false.
+
+        logical    , parameter :: debug_initialize_nodes    = .true.
+        logical    , parameter :: debug_initialize_bc_nodes = .false.
+        logical    , parameter :: debug_initialize_timedev  = .true.
+        real(rkind), parameter :: debug_real=1e30
+
+
+        !------------------------------------------------------------
+        !steady state simulation options
+        !------------------------------------------------------------
+        !steady_state_simulation :
+        !    logical stating whether the simulation should be run as
+        !    if it is a steady state computation (no time limit)
+        !
+        !steady_state_limit :
+        !    parameter checked such that the simulation is considered
+        !    steady state
+        !------------------------------------------------------------
+        logical    , parameter :: steady_state_simulation = .true.
+        real(rkind), parameter :: steady_state_limit = 1.0e-12
 
       end module parameters_input

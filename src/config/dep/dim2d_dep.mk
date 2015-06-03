@@ -1,5 +1,6 @@
 #diffuse interface model equations
 $(dim2d_dir)/dim2d_parameters.o:\
+			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
 $(dim2d_dir)/dim2d_prim_module.o:\

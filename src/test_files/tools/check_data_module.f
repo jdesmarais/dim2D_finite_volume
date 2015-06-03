@@ -64,7 +64,7 @@
                 test_loc = is_real_validated(var(i),cst(i),detailled)
                 test_validated = test_validated.and.test_loc
                 if(detailled.and.(.not.test_loc)) then
-                   print '(''['',I4'']:'',F8.3,'' -> '',F8.3)', 
+                   print '(''['',I4,'']:'',F8.3,'' -> '',F8.3)', 
      $                  i, var(i), cst(i)
                 end if
              end do
@@ -110,7 +110,7 @@
                    test_loc = is_real_validated(var(i,j),cst(i,j),detailled)
                    test_validated = test_validated.and.test_loc
                    if(detailled_op.and.(.not.test_loc)) then
-                      print '(''['',2I4'']:'',F8.3,'' -> '',F8.3)', 
+                      print '(''['',2I4,'']:'',F8.3,'' -> '',F8.3)', 
      $                     i,j,
      $                     var(i,j), cst(i,j)
                    end if
@@ -161,7 +161,7 @@
                       test_loc = is_real_validated(var(i,j,k),cst(i,j,k),detailled)
                       test_validated = test_validated.and.test_loc
                       if(detailled_op.and.(.not.test_loc)) then
-                         print '(''['',3I3'']:'',F8.3,'' -> '',F8.3)', 
+                         print '(''['',3I3,'']:'',F8.3,'' -> '',F8.3)', 
      $                        i,j,k,
      $                        var(i,j,k), cst(i,j,k)
                       end if
@@ -295,7 +295,7 @@
                    test_loc = int_matrix(i,j).eq.int_matrix_cst(i,j)
                    
                    if(detailled_op.and.(.not.test_loc)) then
-                      print '(''['',2I3'']:'',I5,'' -> '',I5)', 
+                      print '(''['',2I3,'']:'',I5,'' -> '',I5)', 
      $                     i,j,
      $                     int_matrix(i,j),
      $                     int_matrix_cst(i,j)
@@ -356,7 +356,7 @@
                       test_loc = int_matrix(i,j,k).eq.int_matrix_cst(i,j,k)
                       
                       if(detailled_op.and.(.not.test_loc)) then
-                         print '(''['',3I3'']:'',I5,'' -> '',I5)',
+                         print '(''['',3I3,'']:'',I5,'' -> '',I5)',
      $                        i,j,k,
      $                        int_matrix(i,j,k),
      $                        int_matrix_cst(i,j,k)
@@ -496,7 +496,7 @@
                    test_loc = boolean_matrix(i,j).eqv.boolean_matrix_cst(i,j)
                    
                    if(detailled_op.and.(.not.test_loc)) then
-                      print '(''['',2I3'']:'',L1,'' -> '',L1)', 
+                      print '(''['',2I3,'']:'',L1,'' -> '',L1)', 
      $                     i,j,
      $                     boolean_matrix(i,j),
      $                     boolean_matrix_cst(i,j)

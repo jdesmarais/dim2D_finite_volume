@@ -81,7 +81,8 @@ dim2d_dep=		$(ns_vdw2d_dep)\
 
 bc_dep=			bc_operators_abstract_class.o\
 			bc_operators_default_class.o\
-			bc_operators_class.o
+			bc_operators_class.o\
+			bc_operators_module.o
 
 reflection_dep=		$(bc_dep)\
 			reflection_xy_module.o
@@ -96,6 +97,10 @@ wall_x_reflection_dep=	$(bc_dep)\
 			reflection_xy_module.o\
 			wall_prim_module.o\
 			wall_xy_module.o
+
+wall_x_simplified_dep=	$(bc_dep)\
+			ridders_method_module.o\
+			wall_xy_equilibrium_module.o
 
 hedstrom_xy_dep=	$(bc_dep)\
 			bf_layer_errors_module.o\
