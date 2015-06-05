@@ -34,11 +34,17 @@
      $       get_surface_tension
 
         use parameters_constant, only :
-     $       left
+     $       left,
+     $       no_heat_source,
+     $       constant_heat_source
 
         use parameters_input, only :
      $       ne,
-     $       wall_micro_contact_angle
+     $       wall_micro_contact_angle,
+     $       wall_heat_source_choice,
+     $       wall_maximum_heat_flux,
+     $       wall_extra_heat_source_choice,
+     $       wall_maximum_extra_heat_flux
 
         use parameters_kind, only :
      $       ikind,
@@ -225,6 +231,7 @@
 
           real(rkind) :: dx
           real(rkind) :: dy
+          real(rkind) :: wall_extra_heat_flux
 
           dx = x_map(2)-x_map(1)
           dy = y_map(2)-y_map(1)
@@ -238,6 +245,19 @@
      $                -1.0d0/we*flux_x_capillarity_momentum_y(nodes,s,i,j,dx,dy)
 
           flux_x(4) = -1.0d0/re*(-get_wall_heat_flux(t,x_map(i),y_map(j)))
+
+
+          if(wall_extra_heat_source_choice.ne.no_heat_source) then
+
+             wall_extra_heat_flux = get_wall_extra_heat_flux(t,x_map(i),y_map(j))
+
+             if(side.eqv.left) then
+                flux_x(4) = flux_x(4) - wall_extra_heat_flux
+             else
+                flux_x(4) = flux_x(4) + wall_extra_heat_flux
+             end if
+
+          end if
 
         end function compute_wall_flux_x
 
@@ -300,6 +320,8 @@
           real(rkind) :: dx
           real(rkind) :: dy
 
+          real(rkind) :: wall_extra_heat_flux
+
 
           dx = x_map(2)-x_map(1)
           dy = y_map(2)-y_map(1)
@@ -314,6 +336,19 @@
      $                -1.0d0/we*flux_y_capillarity_momentum_y(nodes,s,i,j,dx,dy)
 
           flux_y(4) = -1.0d0/re*(-get_wall_heat_flux(t,x_map(i),y_map(j)))
+
+
+          if(wall_extra_heat_source_choice.ne.no_heat_source) then
+
+             wall_extra_heat_flux = get_wall_extra_heat_flux(t,x_map(i),y_map(j))
+
+             if(side.eqv.left) then
+                flux_y(4) = flux_y(4) - wall_extra_heat_flux
+             else
+                flux_y(4) = flux_y(4) + wall_extra_heat_flux
+             end if
+
+          end if
 
         end function compute_wall_flux_y
 
@@ -1371,11 +1406,81 @@
 
           real(rkind) :: s
 
-          wall_heat_flux = 0.0d0
+          select case(wall_heat_source_choice)
+
+            case(no_heat_source)
+               wall_heat_flux = 0.0d0
+               
+            case(constant_heat_source)
+               wall_heat_flux = wall_maximum_heat_flux
+
+            case default
+               print '(''wall_xy_equilibrium_module'')'
+               print '(''wall_heat_source_choice not recognized'')'
+               print '(''wall_heat_source_choice: '',I1)', wall_heat_source_choice
+               stop ''
+
+          end select               
 
           s = (t+x+y)
 
         end function get_wall_heat_flux
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the heat flux at the wall for
+        !> the extra source term
+        !
+        !> @date
+        !> 05_06_2016 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> abscissa in $x$-direction
+        !
+        !>@param y
+        !> abscissa in $y$-direction
+        !
+        !>@param wall_heat_flux
+        !> heat flux at the wall
+        !--------------------------------------------------------------
+        function get_wall_extra_heat_flux(t,x,y)
+     $     result(wall_extra_heat_flux)
+
+          implicit none
+
+          real(rkind), intent(in) :: t
+          real(rkind), intent(in) :: x
+          real(rkind), intent(in) :: y
+          real(rkind)             :: wall_extra_heat_flux
+
+          real(rkind) :: s
+
+          
+          select case(wall_extra_heat_source_choice)
+
+            case(no_heat_source)
+               wall_extra_heat_flux = 0.0d0
+
+            case(constant_heat_source)
+               wall_extra_heat_flux = wall_maximum_extra_heat_flux
+
+            case default
+               print '(''wall_xy_equilibrium_module'')'
+               print '(''wall_extra_heat_source_choice not recognized'')'
+               print '(''wall_extra_heat_source_choice: '',I1)', wall_extra_heat_source_choice
+               stop ''
+
+          end select               
+
+          s = (t+x+y)
+
+        end function get_wall_extra_heat_flux
 
         
         !> @author

@@ -24,6 +24,13 @@ endif
 #Diffuse interface model initial conditions
 ifeq ($(strip $(pm_choice)), dim2d_choice)
 
+	ifeq ($(strip $(ic_choice)), bubble_nucleation)
+		ic_cdir=$(dim2d_ic)/bubble_nucleation_at_wall
+
+		dim2d_ic_dep+=	dim2d_state_eq_module.o\
+				dim2d_dropbubble_module.o
+	endif
+
 	ifeq ($(strip $(ic_choice)), bubble_next_to_wall)
 		ic_cdir=$(dim2d_ic)/bubble_next_to_wall
 

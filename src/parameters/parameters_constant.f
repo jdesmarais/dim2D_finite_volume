@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '343209b4c82be31425f89c2bc2be4e9f226197ec')
+        parameter (commit = '29d445895d4fd228cd75056883e55dafe7ff5588')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -53,7 +53,7 @@
 
 
         !>initial conditions choice for NS
-        character(15), dimension(8), parameter :: ns2d_ic_code =[
+        character(15), dimension(10), parameter :: ns2d_ic_code =[
      $       'steady_state   ',
      $       'peak           ',
      $       'vortex         ',
@@ -61,6 +61,8 @@
      $       'sym_y          ',
      $       'negative_spot  ',
      $       'sincos         ',
+     $       'not_implemented',
+     $       'not_implemented',
      $       'not_implemented']
 
         !integer, parameter :: steady_state=0
@@ -72,7 +74,7 @@
         integer, parameter :: sincos=6
 
         !>initial conditions choice for DIM
-        character(19), dimension(9), parameter :: dim2d_ic_code =[
+        character(19), dimension(10), parameter :: dim2d_ic_code =[
      $       'steady_state       ',
      $       'drop_retraction    ',
      $       'bubble_ascending   ',
@@ -81,6 +83,7 @@
      $       'phase_separation   ',
      $       'bubble_transported ',
      $       'bubble_next_to_wall',
+     $       'bubble_nucleation  ',
      $       'newgrdpt_test      ']
 
         integer, parameter :: steady_state=0
@@ -91,7 +94,8 @@
         integer, parameter :: phase_separation=5
         integer, parameter :: bubble_transported=6
         integer, parameter :: bubble_next_to_wall=7
-        integer, parameter :: newgrdpt_test=8
+        integer, parameter :: bubble_nucleation=8
+        integer, parameter :: newgrdpt_test=9
 
 
         !> phase at center code
@@ -286,6 +290,20 @@
         !-----------------------------------------------------------
         integer, parameter :: fixed_domain_choice = 0
         integer, parameter :: adapt_domain_choice = 1
+
+
+        !> wall heat source type
+        !-----------------------------------------------------------
+        !control the type of heat source at the wall
+        !-----------------------------------------------------------
+        ! no_heat_source: no heat is added to the domain
+        !
+        ! constant_heat_source: the heat source is the same everywhere
+        !                       at the wall equal to the maximum heat
+        !                       flux
+        !-----------------------------------------------------------
+        integer, parameter :: no_heat_source = 0
+        integer, parameter :: constant_heat_source = 1
 
       end module parameters_constant
 

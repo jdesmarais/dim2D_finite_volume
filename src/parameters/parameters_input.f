@@ -26,16 +26,16 @@
 
         !<computational field dimensions
         real(rkind), parameter :: x_min = 0.0000000000d0
-        real(rkind), parameter :: x_max = 0.6300000000d0
+        real(rkind), parameter :: x_max = 0.6489000000d0
         real(rkind), parameter :: y_min = 0.0000000000d0
-        real(rkind), parameter :: y_max = 0.5166000000d0
+        real(rkind), parameter :: y_max = 0.4000000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 200.0000000000d0 !10.0d0
+        real(rkind), parameter :: t_max = 100.0000000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0008000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0008000000d0
+        real(rkind), parameter :: detail_print = 0.0010000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -45,8 +45,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 55
-        integer(ikind), parameter :: nty = 46
+        integer(ikind), parameter :: ntx = 57
+        integer(ikind), parameter :: nty = 37
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -122,10 +122,9 @@
         
         real(rkind), parameter :: T0 = 0.9990000000d0
 
-        integer    , parameter :: ic_choice = bubble_next_to_wall
+        integer    , parameter :: ic_choice = bubble_nucleation
 
-        integer    , parameter :: phase_at_center = liquid
-        real(rkind), parameter :: wall_micro_contact_angle = 45.0000000000d0
+        integer    , parameter :: phase_at_center = vapor
 
         logical    , parameter :: ic_perturbation_ac = .false.
         real(rkind), parameter :: ic_perturbation_amp = 0.0000000000d0
@@ -136,8 +135,8 @@
         logical    , parameter :: dim2d_lowTemperature = .false.
 
         !<body forces choice
-        integer    , parameter :: gravity_ac = .true.
-        real(rkind), parameter :: gravity_amp = 0.0150000000d0
+        integer    , parameter :: gravity_ac = .false.
+        real(rkind), parameter :: gravity_amp = 0.0050000000d0
         integer    , parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
@@ -147,7 +146,7 @@
         integer, parameter :: io_choice = netcdf_choice
         logical, parameter :: io_onefile_per_proc = .true.
 
-        !< boundary conditions parameters
+        !< type of boundary conditions
         !-----------------------------------------------------
         !type of boundary conditions applied at the edge
         !(constrained by the bc_choice parameter)
@@ -168,6 +167,22 @@
         integer    , parameter :: bc_W_type_choice = bc_flux_and_node_choice
 
 
+        !< wall boundary conditions parameters
+        !-----------------------------------------------------
+        !
+        !wall_micro_contact_angle : static contact angle
+        !                           imposed at the wall
+        !
+        !wall_maximum_heat_flux   : maximum heat flux at the
+        !                           wall
+        !-----------------------------------------------------
+        real(rkind), parameter :: wall_micro_contact_angle = 45.0000000000d0
+        integer    , parameter :: wall_heat_source_choice       = constant_heat_source
+        real(rkind), parameter :: wall_maximum_heat_flux        = 0.007d0
+        integer    , parameter :: wall_extra_heat_source_choice = constant_heat_source
+        real(rkind), parameter :: wall_maximum_extra_heat_flux  = 0.001d0
+
+        
         !-----------------------------------------------------
         !for the open boundary conditions
         !-----------------------------------------------------
@@ -373,7 +388,7 @@
         !    parameter checked such that the simulation is considered
         !    steady state
         !------------------------------------------------------------
-        logical    , parameter :: steady_state_simulation = .true.
+        logical    , parameter :: steady_state_simulation = .false.
         real(rkind), parameter :: steady_state_limit = 1.0e-12
 
       end module parameters_input
