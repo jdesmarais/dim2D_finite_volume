@@ -68,8 +68,6 @@
 
           procedure                 ,   pass           :: get_bc_type
 
-          procedure(ini_proc)       ,   pass, deferred :: ini
-
           procedure(nodes_proc)     ,   pass, deferred :: apply_bc_on_nodes
           procedure(nodes_nopt_proc),   pass, deferred :: apply_bc_on_nodes_nopt
 
@@ -83,37 +81,6 @@
 
         abstract interface
            
-           !> @author
-           !> Julien L. Desmarais
-           !
-           !> @brief
-           !> subroutine initializing the main attributes
-           !> of the boundary conditions
-           !
-           !> @date
-           !> 24_09_2013 - initial version - J.L. Desmarais
-           !
-           !>@param this
-           !> abstract boundary conditions
-           !
-           !>@param s
-           !> spatial discretisation operators
-           !
-           !>@param p_model
-           !> physical model
-           !-------------------------------------------------------------
-           subroutine ini_proc(this,p_model)
-        
-             import bc_operators_abstract
-             import pmodel_eq
-
-             class(bc_operators_abstract), intent(inout) :: this
-             type(pmodel_eq)             , intent(in)    :: p_model
-
-
-           end subroutine ini_proc
-
-
            !> @author
            !> Julien L. Desmarais
            !
@@ -143,13 +110,15 @@
            !>@param nodes
            !> governing variables at t
            !-------------------------------------------------------------
-           subroutine nodes_proc(this,t,x_map,y_map,nodes_tmp,nodes)
+           subroutine nodes_proc(
+     $       bc_section,
+     $       t,x_map,y_map,nodes_tmp,
+     $       nodes)
            
-             import bc_operators_abstract
              import nx,ny,ne
              import rkind
            
-             class(bc_operators_abstract)    , intent(in)    :: this
+             integer    , dimension(4)       , intent(in)    :: bc_section
              real(rkind)                     , intent(in)    :: t
              real(rkind), dimension(nx)      , intent(in)    :: x_map
              real(rkind), dimension(ny)      , intent(in)    :: y_map

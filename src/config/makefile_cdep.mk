@@ -117,7 +117,8 @@ hedstrom_xy_dep=	$(bc_dep)\
 			hedstrom_xy_module.o\
 			hedstrom_xy_corners_module.o\
 			hedstrom_xy_anti_corner_flux_module.o\
-			hedstrom_xy_anti_corner_diag_flux_module.o
+			hedstrom_xy_anti_corner_diag_flux_module.o\
+			bc_operators_hedstrom_xy_class.o
 
 hedstrom_xy_corners_dep=\
 			$(bc_dep)\

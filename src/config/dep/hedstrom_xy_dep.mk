@@ -50,7 +50,7 @@ $(hobc_dir)/hedstrom_xy_anti_corner_diag_flux_module.o:\
 			$(sd_cdir)/sd_operators_n2_oneside_R1_class.o\
 			$(sd_cdir)/sd_operators_n2_oneside_R0_class.o
 
-$(hobc_dir)/bc_operators_class.o:\
+$(hobc_dir)/bc_operators_hedstrom_xy_class.o:\
 			$(obc_dir)/bc_operators_openbc_normal_class.o\
 			$(bc_dir)/bc_operators_nopt_module.o\
 			$(bf_layer_dir)/bf_layer_errors_module.o\
@@ -73,3 +73,7 @@ $(hobc_dir)/bc_operators_class.o:\
 			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
 			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
 			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
+
+$(hobc_dir)/bc_operators_class.o:\
+			$(hobc_dir)/bc_operators_hedstrom_xy_class.o\
+			$(pm_cdir)/pmodel_eq_class.o
