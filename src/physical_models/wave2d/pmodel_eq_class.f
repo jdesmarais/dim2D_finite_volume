@@ -1145,7 +1145,7 @@ c$$$     $       compute_n2_transM_wave2d
         end function compute_flux_y_oneside
 
 
-        function compute_body_forces(t,x,y,nodes,k) result(body_forces)
+        function compute_body_forces(t,x,y,nodes,k,prim) result(body_forces)
 
           implicit none
 
@@ -1155,6 +1155,9 @@ c$$$     $       compute_n2_transM_wave2d
           real(rkind), dimension(ne), intent(in) :: nodes
           integer                   , intent(in) :: k
           real(rkind)                            :: body_forces
+          logical, optional         , intent(in) :: prim
+
+          logical :: prim_op
 
           real(rkind) :: omega
           real(rkind) :: node_s
@@ -1162,6 +1165,10 @@ c$$$     $       compute_n2_transM_wave2d
 
           real(rkind) :: x_center
           real(rkind) :: y_center          
+
+          if(present(prim)) then
+             prim_op = prim
+          end if
 
 
           select case(wave_forcing)

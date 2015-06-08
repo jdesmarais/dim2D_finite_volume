@@ -117,7 +117,7 @@ test_bc_operators_openbc_normal:\
 
 
 # reflection_xy
-test_reflection_xy.o:	$(rbc_dir)/bc_operators_class.o\
+test_reflection_xy.o:	$(rbc_dir)/bc_operators_reflection_xy_class.o\
 			$(test_dir)/tools/check_data_module.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_kind.o\

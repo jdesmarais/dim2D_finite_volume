@@ -45,12 +45,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 57
-        integer(ikind), parameter :: nty = 37
+        integer(ikind), parameter :: ntx = 6
+        integer(ikind), parameter :: nty = 8
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 4
+        integer       , parameter :: ne = 3
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -140,7 +140,7 @@
         integer    , parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = wall_x_simplified_choice
+        integer, parameter :: bc_choice = reflection_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
@@ -161,10 +161,10 @@
         !bc_W_type_choice : type of boundary condition applied
         !                   at the West boundary
         !-----------------------------------------------------
-        integer    , parameter :: bc_N_type_choice = bc_flux_and_node_choice
-        integer    , parameter :: bc_S_type_choice = bc_flux_and_node_choice
-        integer    , parameter :: bc_E_type_choice = bc_flux_and_node_choice
-        integer    , parameter :: bc_W_type_choice = bc_flux_and_node_choice
+        integer    , parameter :: bc_N_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_S_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_E_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_W_type_choice = bc_nodes_choice
 
 
         !< wall boundary conditions parameters

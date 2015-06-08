@@ -49,7 +49,7 @@
 
 
         private
-        public :: bc_operators
+        public :: bc_operators_reflection_xy
 
 
         !> @class bc_operators
@@ -81,14 +81,14 @@
         !> computational domain for the field but only 
         !> on the bc_sections
         !---------------------------------------------------------------
-        type, extends(bc_operators_default) :: bc_operators
+        type, extends(bc_operators_default) :: bc_operators_reflection_xy
 
           contains
 
-          procedure,   pass :: apply_bc_on_nodes
+          procedure, nopass :: apply_bc_on_nodes
           procedure,   pass :: apply_bc_on_nodes_nopt
 
-        end type bc_operators
+        end type bc_operators_reflection_xy
 
 
         contains
@@ -115,7 +115,10 @@
         !> space discretization operators
         !--------------------------------------------------------------
         subroutine apply_bc_on_nodes(
-     $       bc_section,t,x_map,y_map,nodes_tmp,nodes)
+     $       bc_section,
+     $       t,x_map,y_map,nodes_tmp,
+     $       p_model,
+     $       nodes)
 
           implicit none
 
@@ -124,17 +127,21 @@
           real(rkind), dimension(nx)      , intent(in)    :: x_map
           real(rkind), dimension(ny)      , intent(in)    :: y_map
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
+          type(pmodel_eq)                 , intent(in)    :: p_model
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
 
+          real(rkind)            :: s
 
           integer, dimension(ne) :: prefactor_x
           integer, dimension(ne) :: prefactor_y
+
+          integer(ikind)         :: reflection_N
+          integer(ikind)         :: reflection_S
+          integer(ikind)         :: reflection_E
+          integer(ikind)         :: reflection_W
+
           integer(ikind)         :: i,j
           integer                :: k
-          real(rkind)            :: s
-          
-          integer(ikind)         :: reflection_x
-          integer(ikind)         :: reflection_y
 
           s = t + x_map(1) + y_map(1) + nodes_tmp(1,1,1)
 
@@ -142,8 +149,11 @@
           prefactor_x  = reflection_x_prefactor(p_model)
           prefactor_y  = reflection_y_prefactor(p_model)
 
-          reflection_S = 
           reflection_N = 2*bc_section(3)-1
+          reflection_S = 2*bc_section(3)+2*bc_size-1
+          reflection_E = 2*bc_section(2)-1
+          reflection_W = 2*bc_section(2)+2*bc_size-1
+
 
           select case(bc_section(1))
 
@@ -170,39 +180,56 @@
                      end do
                   end do
                end do
-               
 
+            case(E_edge_type)
+               do k=1, ne
+                  do j=bc_section(3), bc_section(4)
+                     do i=bc_section(2), bc_section(2)+bc_size-1
 
-          !< compute the reflection b.c. in E and W boundary layers
-          do k=1,ne
-             do j=1+bc_size, ny-bc_size
-                !DEC$ IVDEP
-                do i=1,bc_size
-                   
-                   nodes(i,j,k) = 
-     $                  this%prefactor_x(k)*nodes(2*bc_size+1-i,j,k)
-                   nodes(nx-bc_size+i,j,k) = 
-     $                  this%prefactor_x(k)*nodes(nx-bc_size-i+1,j,k)
-                   
-                end do
-             end do
-          end do
+                        nodes(i,j,k) = prefactor_x(k)*
+     $                       nodes(reflection_E-i,j,k)
 
+                     end do
+                  end do
+               end do
 
-          !< compute the reflection b.c. in N and S boundary layers
-          do k=1, ne
-             do j=1, bc_size
-                !DEC$ IVDEP
-                do i=1, nx
-                   
-                   nodes(i,j,k) = 
-     $                  this%prefactor_y(k)*nodes(i,2*bc_size+1-j,k)
-                   nodes(i,ny-bc_size+j,k) = 
-     $                  this%prefactor_y(k)*nodes(i,ny-bc_size-j+1,k)
-                   
-                end do
-             end do
-          end do
+            case(W_edge_type)
+               do k=1, ne
+                  do j=bc_section(3), bc_section(4)
+                     do i=bc_section(2), bc_section(2)+bc_size-1
+
+                        nodes(i,j,k) = prefactor_x(k)*
+     $                       nodes(reflection_W-i,j,k)
+
+                     end do
+                  end do
+               end do
+
+            case(SW_corner_type,SE_corner_type)
+               do k=1, ne
+                  do j=bc_section(3), bc_section(3)+bc_size-1
+                     do i=bc_section(2),bc_section(2)+bc_size-1
+                        
+                        nodes(i,j,k) = prefactor_y(k)*
+     $                       nodes(i,reflection_S-j,k)
+
+                     end do
+                  end do
+               end do
+
+            case(NW_corner_type,NE_corner_type)
+               do k=1, ne
+                  do j=bc_section(3), bc_section(3)+bc_size-1
+                     do i=bc_section(2),bc_section(2)+bc_size-1
+                        
+                        nodes(i,j,k) = prefactor_y(k)*
+     $                       nodes(i,reflection_N-j,k)
+
+                     end do
+                  end do
+               end do
+
+          end select
 
         end subroutine apply_bc_on_nodes
 
@@ -231,7 +258,7 @@
 
           implicit none
 
-          class(bc_operators)                        , intent(in)    :: this
+          class(bc_operators_reflection_xy)          , intent(in)    :: this
           real(rkind)   , dimension(nx,ny,ne)        , intent(inout) :: nodes
           integer(ikind), dimension(:,:), allocatable, intent(in)    :: bc_sections
 
@@ -244,6 +271,18 @@
 
           integer(ikind) :: i_min,j_min
           integer(ikind) :: i_max,j_max
+
+          integer, dimension(ne) :: prefactor_x
+          integer, dimension(ne) :: prefactor_y
+
+          integer, dimension(4) :: bc_type
+
+          print '(''bc_operators_reflection_xy'')'
+          print '(''apply_bc_on_nodes_nopt'')'
+          print '(''not implemented'')'
+          stop ''
+
+          bc_type = this%get_bc_type()
 
 
           if(allocated(bc_sections)) then
@@ -264,7 +303,7 @@
                            do i=i_min,i_min+1
                               
                               nodes(i,j,k) = 
-     $                             this%prefactor_y(k)*nodes(i,j_r,k)
+     $                             prefactor_y(k)*nodes(i,j_r,k)
                               
                            end do
                         end do
@@ -279,7 +318,7 @@
                            do i=i_min,i_min+1
                               
                               nodes(i,j,k) = 
-     $                             this%prefactor_y(k)*nodes(i,j_r,k)
+     $                             prefactor_y(k)*nodes(i,j_r,k)
                               
                            end do
                         end do
@@ -297,7 +336,7 @@
                            do i=i_min,i_max
                               
                               nodes(i,j,k) = 
-     $                             this%prefactor_y(k)*nodes(i,j_r,k)
+     $                             prefactor_y(k)*nodes(i,j_r,k)
                               
                            end do
                         end do
@@ -315,7 +354,7 @@
                            do i=i_min,i_max
                               
                               nodes(i,j,k) = 
-     $                             this%prefactor_y(k)*nodes(i,j_r,k)
+     $                             prefactor_y(k)*nodes(i,j_r,k)
                               
                            end do
                         end do
@@ -333,7 +372,7 @@
                               i_r = 2*i_min-(i+1)
                               
                               nodes(i,j,k) = 
-     $                             this%prefactor_x(k)*nodes(i_r,j,k)
+     $                             prefactor_x(k)*nodes(i_r,j,k)
                               
                            end do
                         end do
@@ -351,7 +390,7 @@
                               i_r = 2*i_min+3-i
                               
                               nodes(i,j,k) = 
-     $                             this%prefactor_x(k)*nodes(i_r,j,k)
+     $                             prefactor_x(k)*nodes(i_r,j,k)
                               
                            end do
                         end do

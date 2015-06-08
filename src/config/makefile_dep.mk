@@ -286,7 +286,7 @@ $(rbc_dir)/reflection_xy_module.o:\
 #			$(param_dir)/parameters_input.o\
 #			$(param_dir)/parameters_kind.o
 
-$(rbc_dir)/bc_operators_class.o:\
+$(rbc_dir)/bc_operators_reflection_xy_class.o:\
 			$(bc_dir)/bc_operators_default_class.o\
 			$(pm_cdir)/pmodel_eq_class.o\
 			$(bf_layer_dir)/parameters_bf_layer.o\

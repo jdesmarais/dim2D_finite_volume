@@ -146,7 +146,7 @@
 
           real(rkind) :: s
           real(rkind) :: angle
-          real(rkind) :: x1          
+          !real(rkind) :: x1          
 
 
           !get the mass densities corresponding to the

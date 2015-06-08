@@ -55,7 +55,7 @@
 
           contains
 
-          procedure,   pass :: apply_bc_on_nodes
+          procedure, nopass :: apply_bc_on_nodes
           procedure,   pass :: apply_bc_on_nodes_nopt
 
           procedure, nopass :: apply_bc_on_fluxes
@@ -85,24 +85,28 @@
         !>@param nodes
         !> object encapsulating the main variables
         !--------------------------------------------------------------
-        subroutine apply_bc_on_nodes(this,t,x_map,y_map,nodes_tmp,nodes)
+        subroutine apply_bc_on_nodes(
+     $       bc_section,
+     $       t,x_map,y_map,nodes_tmp,
+     $       p_model,
+     $       nodes)
 
           implicit none
 
-          class(bc_operators_default)     , intent(in)    :: this
+          integer    , dimension(4)       , intent(in)    :: bc_section
           real(rkind)                     , intent(in)    :: t
           real(rkind), dimension(nx)      , intent(in)    :: x_map
           real(rkind), dimension(ny)      , intent(in)    :: y_map
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
+          type(pmodel_eq)                 , intent(in)    :: p_model
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
 
-          real(rkind)           :: node_s          
-          integer, dimension(4) :: bc_type
+          real(rkind) :: node_s
 
           stop 'bc_operator%apply_bc_on_nodes() not implemented'
 
-          node_s  = nodes(1,1,1)+t+x_map(1)+y_map(1)+nodes_tmp(1,1,1)
-          bc_type = this%bc_type
+          node_s  = nodes(1,1,1)+t+x_map(1)+y_map(1)+nodes_tmp(1,1,1)+
+     $              bc_section(1)+p_model%get_eq_nb()
           
 
         end subroutine apply_bc_on_nodes

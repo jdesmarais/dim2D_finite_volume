@@ -68,7 +68,7 @@
 
           procedure                 ,   pass           :: get_bc_type
 
-          procedure(nodes_proc)     ,   pass, deferred :: apply_bc_on_nodes
+          procedure(nodes_proc)     , nopass, deferred :: apply_bc_on_nodes
           procedure(nodes_nopt_proc),   pass, deferred :: apply_bc_on_nodes_nopt
 
           procedure(fluxes_proc)    , nopass, deferred :: apply_bc_on_fluxes
@@ -113,9 +113,11 @@
            subroutine nodes_proc(
      $       bc_section,
      $       t,x_map,y_map,nodes_tmp,
+     $       p_model,
      $       nodes)
            
              import nx,ny,ne
+             import pmodel_eq
              import rkind
            
              integer    , dimension(4)       , intent(in)    :: bc_section
@@ -123,6 +125,7 @@
              real(rkind), dimension(nx)      , intent(in)    :: x_map
              real(rkind), dimension(ny)      , intent(in)    :: y_map
              real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
+             type(pmodel_eq)                 , intent(in)    :: p_model
              real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
 
            end subroutine nodes_proc

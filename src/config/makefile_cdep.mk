@@ -80,12 +80,13 @@ dim2d_dep=		$(ns_vdw2d_dep)\
 			$(pm_dep)
 
 bc_dep=			bc_operators_abstract_class.o\
-			bc_operators_default_class.o\
-			bc_operators_class.o\
-			bc_operators_module.o
+			bc_operators_default_class.o
+
+#			bc_operators_module.o
 
 reflection_dep=		$(bc_dep)\
-			reflection_xy_module.o
+			reflection_xy_module.o\
+			bc_operators_reflection_xy_class.o
 
 periodic_dep=		$(bc_dep)
 

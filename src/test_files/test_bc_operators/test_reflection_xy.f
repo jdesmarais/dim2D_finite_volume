@@ -1,7 +1,7 @@
       program test_reflection_xy
 
-        use bc_operators_class, only :
-     $       bc_operators
+        use bc_operators_reflection_xy_class, only :
+     $       bc_operators_reflection_xy
 
         use check_data_module, only :
      $       is_int_vector_validated,
@@ -24,7 +24,7 @@
      $       bc_nodes_choice
 
         use parameters_input, only :
-     $       nx,ny,ne,
+     $       nx,ny,ne,bc_size,
      $       bc_N_type_choice,bc_S_type_choice,
      $       bc_E_type_choice,bc_W_type_choice,
      $       bc_choice
@@ -50,80 +50,21 @@
 
         call check_inputs()
 
-
-        test_loc = test_ini(detailled)
-        test_validated = test_validated.and.test_loc
-        print '(''test_ini: '',L1)', test_loc
-        print '()'
-
-
         test_loc = test_apply_bc_on_nodes(detailled)
         test_validated = test_validated.and.test_loc
         print '(''test_apply_bc_on_nodes: '',L1)', test_loc
         print '()'
 
 
-        test_loc = test_apply_bc_on_nodes_nopt(detailled)
-        test_validated = test_validated.and.test_loc
-        print '(''test_apply_bc_on_nodes_nopt: '',L1)', test_loc
-        print '()'
+c$$$        test_loc = test_apply_bc_on_nodes_nopt(detailled)
+c$$$        test_validated = test_validated.and.test_loc
+c$$$        print '(''test_apply_bc_on_nodes_nopt: '',L1)', test_loc
+c$$$        print '()'
 
 
         print '(''test_validated: '',L1)', test_validated
 
         contains
-
-
-        function test_ini(detailled)
-     $       result(test_validated)
-
-          implicit none
-
-          logical, intent(in) :: detailled
-          logical             :: test_validated
-
-
-          type(bc_operators) :: bc_operators_used
-          type(pmodel_eq)    :: p_model
-
-
-          test_validated = .true.
-
-
-          ! output
-          call bc_operators_used%ini(p_model)
-
-
-          ! validation
-          test_loc = is_int_vector_validated(
-     $         bc_operators_used%prefactor_x,
-     $         [1,-1,1],
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test prefactor_x failed'')'
-          end if
-
-          test_loc = is_int_vector_validated(
-     $         bc_operators_used%prefactor_y,
-     $         [1,1,-1],
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test prefactor_y failed'')'
-          end if
-
-          test_loc = is_int_vector_validated(
-     $         bc_operators_used%bc_type,
-     $         [bc_nodes_choice,bc_nodes_choice,
-     $          bc_nodes_choice,bc_nodes_choice],
-     $         detailled)
-          test_validated = test_validated.and.test_loc
-          if(detailled.and.(.not.test_loc)) then
-             print '(''test bc_type failed'')'
-          end if
-
-        end function test_ini
 
 
         function test_apply_bc_on_nodes(detailled)
@@ -135,8 +76,12 @@
           logical             :: test_validated
 
 
-          type(bc_operators)               :: bc_operators_used
+          type(bc_operators_reflection_xy) :: bc_operators_used
           type(pmodel_eq)                  :: p_model
+          real(rkind)                      :: t
+          real(rkind), dimension(nx)       :: x_map
+          real(rkind), dimension(ny)       :: y_map
+          real(rkind), dimension(nx,ny,ne) :: nodes_tmp
           real(rkind), dimension(nx,ny,ne) :: nodes
           real(rkind), dimension(nx,ny,ne) :: test_nodes
 
@@ -148,7 +93,6 @@
 
 
           !input
-          call bc_operators_used%ini(p_model)
 
           nodes = reshape((/
      $         ((((i-1)+6*(j-1)+100*(k-1), i=1,6), j=1,8),k=1,ne)/),
@@ -191,7 +135,29 @@
      $         /),(/6,2,ne/))
 
           !output
-          call bc_operators_used%apply_bc_on_nodes(nodes)
+          call bc_operators_used%apply_bc_on_nodes(
+     $         [W_edge_type,1,bc_size+1,ny-bc_size+1],
+     $         t,x_map,y_map,nodes_tmp,
+     $         p_model,
+     $         nodes)
+
+          call bc_operators_used%apply_bc_on_nodes(
+     $         [E_edge_type,nx-bc_size+1,bc_size+1,ny-bc_size+1],
+     $         t,x_map,y_map,nodes_tmp,
+     $         p_model,
+     $         nodes)
+
+          call bc_operators_used%apply_bc_on_nodes(
+     $         [S_edge_type,1,1,nx],
+     $         t,x_map,y_map,nodes_tmp,
+     $         p_model,
+     $         nodes)
+
+          call bc_operators_used%apply_bc_on_nodes(
+     $         [N_edge_type,1,ny-bc_size+1,nx],
+     $         t,x_map,y_map,nodes_tmp,
+     $         p_model,
+     $         nodes)
 
           !validation
           test_loc = is_real_matrix3D_validated(
@@ -202,61 +168,61 @@
 
         end function test_apply_bc_on_nodes
 
-
-        function test_apply_bc_on_nodes_nopt(detailled)
-     $       result(test_validated)
-
-          implicit none
-
-          logical, intent(in) :: detailled
-          logical             :: test_validated
-
-
-          type(bc_operators)               :: bc_operators_used
-          type(pmodel_eq)                  :: p_model
-          real(rkind), dimension(nx,ny,ne) :: nodes
-          real(rkind), dimension(nx,ny,ne) :: test_nodes
-
-          integer(ikind) :: i,j
-          integer        :: k
-
-          integer(ikind), dimension(:,:), allocatable :: bc_sections
-
-          
-          !input
-          call bc_operators_used%ini(p_model)
-
-          nodes = reshape((/
-     $         ((((i-1)+6*(j-1)+100*(k-1), i=1,6), j=1,8),k=1,ne)/),
-     $         (/nx,ny,ne/))
-
-          test_nodes = nodes
-
-          call bc_operators_used%apply_bc_on_nodes(test_nodes)
-          
-          allocate(bc_sections(5,8))
-          bc_sections(:,1) = [W_edge_type   ,1,3,6         ,no_overlap]
-          bc_sections(:,2) = [E_edge_type   ,5,3,6         ,no_overlap]
-          bc_sections(:,3) = [SW_corner_type,1,1,no_overlap,no_overlap]
-          bc_sections(:,4) = [S_edge_type   ,3,1,4         ,no_overlap]
-          bc_sections(:,5) = [SE_corner_type,5,1,no_overlap,no_overlap]
-          bc_sections(:,6) = [NW_corner_type,1,7,no_overlap,no_overlap]
-          bc_sections(:,7) = [N_edge_type   ,3,7,4         ,no_overlap]
-          bc_sections(:,8) = [NE_corner_type,5,7,no_overlap,no_overlap]
-
-
-          !output
-          call bc_operators_used%apply_bc_on_nodes_nopt(nodes,bc_sections)
-
-
-          !validation
-          test_validated = is_real_matrix3D_validated(
-     $         nodes,
-     $         test_nodes,
-     $         detailled)
-          
-
-        end function test_apply_bc_on_nodes_nopt
+c$$$
+c$$$        function test_apply_bc_on_nodes_nopt(detailled)
+c$$$     $       result(test_validated)
+c$$$
+c$$$          implicit none
+c$$$
+c$$$          logical, intent(in) :: detailled
+c$$$          logical             :: test_validated
+c$$$
+c$$$
+c$$$          type(bc_operators)               :: bc_operators_used
+c$$$          type(pmodel_eq)                  :: p_model
+c$$$          real(rkind), dimension(nx,ny,ne) :: nodes
+c$$$          real(rkind), dimension(nx,ny,ne) :: test_nodes
+c$$$
+c$$$          integer(ikind) :: i,j
+c$$$          integer        :: k
+c$$$
+c$$$          integer(ikind), dimension(:,:), allocatable :: bc_sections
+c$$$
+c$$$          
+c$$$          !input
+c$$$          call bc_operators_used%ini(p_model)
+c$$$
+c$$$          nodes = reshape((/
+c$$$     $         ((((i-1)+6*(j-1)+100*(k-1), i=1,6), j=1,8),k=1,ne)/),
+c$$$     $         (/nx,ny,ne/))
+c$$$
+c$$$          test_nodes = nodes
+c$$$
+c$$$          call bc_operators_used%apply_bc_on_nodes(test_nodes)
+c$$$          
+c$$$          allocate(bc_sections(5,8))
+c$$$          bc_sections(:,1) = [W_edge_type   ,1,3,6         ,no_overlap]
+c$$$          bc_sections(:,2) = [E_edge_type   ,5,3,6         ,no_overlap]
+c$$$          bc_sections(:,3) = [SW_corner_type,1,1,no_overlap,no_overlap]
+c$$$          bc_sections(:,4) = [S_edge_type   ,3,1,4         ,no_overlap]
+c$$$          bc_sections(:,5) = [SE_corner_type,5,1,no_overlap,no_overlap]
+c$$$          bc_sections(:,6) = [NW_corner_type,1,7,no_overlap,no_overlap]
+c$$$          bc_sections(:,7) = [N_edge_type   ,3,7,4         ,no_overlap]
+c$$$          bc_sections(:,8) = [NE_corner_type,5,7,no_overlap,no_overlap]
+c$$$
+c$$$
+c$$$          !output
+c$$$          call bc_operators_used%apply_bc_on_nodes_nopt(nodes,bc_sections)
+c$$$
+c$$$
+c$$$          !validation
+c$$$          test_validated = is_real_matrix3D_validated(
+c$$$     $         nodes,
+c$$$     $         test_nodes,
+c$$$     $         detailled)
+c$$$          
+c$$$
+c$$$        end function test_apply_bc_on_nodes_nopt
 
 
         subroutine check_inputs()
