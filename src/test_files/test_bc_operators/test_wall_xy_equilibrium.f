@@ -26,6 +26,10 @@
         use sd_operators_class, only : 
      $       sd_operators
 
+        use sd_operators_fd_module, only :
+     $       gradient_x_interior,
+     $       gradient_y_interior
+
         use wall_xy_equilibrium_module, only :
      $       dmddx,
      $       temperature,
@@ -188,7 +192,8 @@
           flux_x = compute_wall_flux_x(nodes,s,4,3,0.0d0,
      $         [0.0d0,dx,2*dx,3*dx,4*dx],
      $         [0.0d0,dy,2*dy,3*dy,4*dy],
-     $         right)
+     $         right,
+     $         gradient_y_interior)
 
 
           call transpose_nodes(dx,dy,nodes)
@@ -196,7 +201,8 @@
           flux_y = compute_wall_flux_y(nodes,s,3,4,0.0d0,
      $         [0.0d0,dx,2*dx,3*dx,4*dx],
      $         [0.0d0,dy,2*dy,3*dy,4*dy],
-     $         right)
+     $         right,
+     $         gradient_x_interior)
 
 
           test_validated = is_real_vector_validated(
@@ -227,7 +233,8 @@
      $         compute_wall_flux_x(nodes,s,4,3,0.0d0,
      $         [0.0d0,dx,2*dx,3*dx,4*dx],
      $         [0.0d0,dy,2*dy,3*dy,4*dy],
-     $         right),
+     $         right,
+     $         gradient_y_interior),
      $         [0.0d0, 222.52820459905700d0, -82.09240176344290d0, 0.001d0],
      $         detailled)
 
@@ -331,7 +338,8 @@
 
           test_validated = is_real_validated(
      $         flux_x_inviscid_momentum_x(
-     $            0.0d0,x_map,y_map,nodes,dx,dy,4,3,right),
+     $            0.0d0,x_map,y_map,nodes,dx,dy,4,3,right,
+     $            gradient_y_interior),
      $         -57.35226415094340d0,
      $         detailled)
 

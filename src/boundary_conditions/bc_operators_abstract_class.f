@@ -92,8 +92,8 @@
            !> @date
            !> 24_09_2013 - initial version - J.L. Desmarais
            !
-           !>@param this
-           !> abstract boundary conditions
+           !>@param bc_section
+           !> boundary section computed
            !
            !>@param t
            !> time
@@ -106,6 +106,9 @@
            !
            !>@param nodes_tmp
            !> governing variables at t-dt
+           !
+           !>@param p_model
+           !> physical model
            !
            !>@param nodes
            !> governing variables at t
@@ -191,12 +194,16 @@
            !>@param flux_y
            !> fluxes along the y-direction
            !-------------------------------------------------------------
-           subroutine fluxes_proc(t,x_map,y_map,nodes,s,flux_x,flux_y)
+           subroutine fluxes_proc(
+     $       bc_section,
+     $       t,x_map,y_map,nodes,s,
+     $       flux_x,flux_y)
            
              import sd_operators
              import rkind
              import nx,ny,ne
            
+             integer    , dimension(4)         , intent(in)    :: bc_section
              real(rkind)                       , intent(in)    :: t
              real(rkind), dimension(nx)        , intent(in)    :: x_map
              real(rkind), dimension(ny)        , intent(in)    :: y_map

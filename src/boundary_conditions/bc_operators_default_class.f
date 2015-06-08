@@ -178,10 +178,14 @@
         !>@param flux_y
         !> fluxes along the y-direction
         !--------------------------------------------------------------
-        subroutine apply_bc_on_fluxes(t,x_map,y_map,nodes,s,flux_x,flux_y)
+        subroutine apply_bc_on_fluxes(
+     $     bc_section,
+     $     t,x_map,y_map,nodes,s,
+     $     flux_x,flux_y)
 
           implicit none
 
+          integer    , dimension(4)         , intent(in)    :: bc_section
           real(rkind)                       , intent(in)    :: t
           real(rkind), dimension(nx)        , intent(in)    :: x_map
           real(rkind), dimension(ny)        , intent(in)    :: y_map
@@ -196,7 +200,7 @@
           stop 'bc_operator%apply_bc_on_fluxes() not implemented'
 
           node=nodes(1,1,1)+x_map(1)+y_map(1)+t
-          bc_s = s%get_bc_size()
+          bc_s = s%get_bc_size() + bc_section(1)
 
           flux=flux_x(1,1,1)
           flux=flux_y(1,1,1)

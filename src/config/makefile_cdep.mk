@@ -91,8 +91,9 @@ reflection_dep=		$(bc_dep)\
 periodic_dep=		$(bc_dep)
 
 wall_xy_dep=		$(bc_dep)\
-			wall_prim_module.o\
-			wall_xy_module.o
+			wall_xy_equilibrium_module.o\
+			ridders_method_module.o\
+			bc_operators_wall_xy_class.o
 
 wall_x_reflection_dep=	$(bc_dep)\
 			reflection_xy_module.o\

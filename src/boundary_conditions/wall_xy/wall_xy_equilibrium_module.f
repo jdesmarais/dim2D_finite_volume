@@ -33,6 +33,9 @@
      $       get_mass_density_liquid,
      $       get_surface_tension
 
+        use interface_primary, only :
+     $       gradient_proc
+
         use ISO_FORTRAN_ENV, only :
      $       ERROR_UNIT
 
@@ -225,7 +228,8 @@
      $       t,
      $       x_map,
      $       y_map,
-     $       side)
+     $       side,
+     $       gradient_y_proc)
      $       result(flux_x)
 
           implicit none
@@ -238,6 +242,7 @@
           real(rkind)   , dimension(:)    , intent(in) :: x_map
           real(rkind)   , dimension(:)    , intent(in) :: y_map
           logical                         , intent(in) :: side
+          procedure(gradient_proc)                     :: gradient_y_proc
           real(rkind)   , dimension(ne)                :: flux_x
 
           real(rkind) :: dx
@@ -249,14 +254,17 @@
 
           flux_x(1) = 0.0d0
 
-          flux_x(2) = flux_x_inviscid_momentum_x(t,x_map,y_map,nodes,dx,dy,i,j,side)
+          flux_x(2) = flux_x_inviscid_momentum_x(t,x_map,y_map,nodes,dx,dy,i,j,side,gradient_y_proc)
      $                -1.0d0/we*flux_x_capillarity_momentum_x(nodes,s,i,j,dx,dy)
 
           flux_x(3) = -1.0d0/re*flux_x_viscid_momentum_y(nodes,s,i,j,dx,dy)
      $                -1.0d0/we*flux_x_capillarity_momentum_y(nodes,s,i,j,dx,dy)
 
+             
           flux_x(4) = -1.0d0/re*(-get_wall_heat_flux(t,x_map(i),y_map(j)))
-
+          if(side.eqv.left) then
+             flux_x(4) = - flux_x(4)
+          end if
 
           if(wall_extra_heat_source_choice.ne.no_heat_source) then
 
@@ -313,7 +321,8 @@
      $       t,
      $       x_map,
      $       y_map,
-     $       side)
+     $       side,
+     $       gradient_x_proc)
      $       result(flux_y)
 
           implicit none
@@ -326,6 +335,7 @@
           real(rkind)   , dimension(:)    , intent(in) :: x_map
           real(rkind)   , dimension(:)    , intent(in) :: y_map
           logical                         , intent(in) :: side
+          procedure(gradient_proc)                     :: gradient_x_proc
           real(rkind)   , dimension(ne)                :: flux_y
 
           real(rkind) :: dx
@@ -343,11 +353,13 @@
           flux_y(2) = -1.0d0/re*flux_y_viscid_momentum_x(nodes,s,i,j,dx,dy)
      $                -1.0d0/we*flux_y_capillarity_momentum_x(nodes,s,i,j,dx,dy)
 
-          flux_y(3) = flux_y_inviscid_momentum_y(t,x_map,y_map,nodes,dx,dy,i,j,side)
+          flux_y(3) = flux_y_inviscid_momentum_y(t,x_map,y_map,nodes,dx,dy,i,j,side,gradient_x_proc)
      $                -1.0d0/we*flux_y_capillarity_momentum_y(nodes,s,i,j,dx,dy)
 
           flux_y(4) = -1.0d0/re*(-get_wall_heat_flux(t,x_map(i),y_map(j)))
-
+          if(side.eqv.left) then
+             flux_y(4) = - flux_y(4)
+          end if
 
           if(wall_extra_heat_source_choice.ne.no_heat_source) then
 
@@ -404,7 +416,11 @@
         !>@return var
         !> x-flux at the wall
         !--------------------------------------------------------------
-        function flux_x_inviscid_momentum_x(t,x_map,y_map,nodes,dx,dy,i,j,side)
+        function flux_x_inviscid_momentum_x(
+     $     t,x_map,y_map,nodes,
+     $     dx,dy,i,j,
+     $     side,
+     $     gradient_y_proc)
      $     result(var)
 
           implicit none
@@ -418,6 +434,7 @@
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           logical                      , intent(in) :: side
+          procedure(gradient_proc)                  :: gradient_y_proc
           real(rkind)                               :: var
 
           real(rkind) :: Tl
@@ -430,21 +447,21 @@
           if(side.eqv.left) then
 
              !temperature at (i,j)
-             Th = 3.0d0/(8.0d0*cv_r)*temperature_eff(
+             Tl = 3.0d0/(8.0d0*cv_r)*temperature_eff(
      $            nodes,i,j,
      $            dx,dy,
      $            gradient_x_interior,
-     $            gradient_y_interior)
+     $            gradient_y_proc)
 
              !pressure at (i,j)
-             Ph = pressure(Th,nodes(i,j,1))
+             Pl = pressure(Tl,nodes(i,j,1))
 
              !temperature at (i,j-1)
-             Tl = Th - dx*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
+             Th = Tl + dx*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
 
              !pressure at (i,j-1)
-             Pl = pressure(Tl,nodes(i-1,j,1))
-
+             Ph = pressure(Th,nodes(i-1,j,1))
+             
 
           !for the East layer
           else
@@ -454,7 +471,7 @@
      $            nodes,i-1,j,
      $            dx,dy,
      $            gradient_x_interior,
-     $            gradient_y_interior)
+     $            gradient_y_proc)
 
              !pressure at (i,j-1)
              Pl = pressure(Tl,nodes(i-1,j,1))
@@ -763,7 +780,11 @@
         !>@return var
         !> x-flux at the wall
         !--------------------------------------------------------------
-        function flux_y_inviscid_momentum_y(t,x_map,y_map,nodes,dx,dy,i,j,side)
+        function flux_y_inviscid_momentum_y(
+     $     t,x_map,y_map,nodes,
+     $     dx,dy,i,j,
+     $     side,
+     $     gradient_x_proc)
      $     result(var)
 
           implicit none
@@ -777,6 +798,7 @@
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           logical                      , intent(in) :: side
+          procedure(gradient_proc)                  :: gradient_x_proc
           real(rkind)                               :: var
 
           real(rkind) :: Tl
@@ -788,20 +810,20 @@
           if(side.eqv.left) then
 
              !temperature at (i,j)
-             Th = 3.0d0/(8.0d0*cv_r)*temperature_eff(
+             Tl = 3.0d0/(8.0d0*cv_r)*temperature_eff(
      $            nodes,i,j,
      $            dx,dy,
-     $            gradient_x_interior,
+     $            gradient_x_proc,
      $            gradient_y_interior)
 
              !pressure at (i,j)
-             Ph = pressure(Th,nodes(i,j,1))
+             Pl = pressure(Tl,nodes(i,j,1))
 
              !temperature at (i,j-1)
-             Tl = Th - dy*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
+             Th = Tl + dy*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
 
              !pressure at (i,j-1)
-             Pl = pressure(Tl,nodes(i,j-1,1))
+             Ph = pressure(Th,nodes(i,j-1,1))
 
           !for the North layer
           else
@@ -810,7 +832,7 @@
              Tl = 3.0d0/(8.0d0*cv_r)*temperature_eff(
      $            nodes,i,j-1,
      $            dx,dy,
-     $            gradient_x_interior,
+     $            gradient_x_proc,
      $            gradient_y_interior)
 
              !pressure at (i,j-1)
