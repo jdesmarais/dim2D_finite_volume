@@ -98,7 +98,7 @@ use_test_param_dim2d(){
     comment_param_dim2d 'real(rkind), parameter :: Re = rho_c'
     comment_param_dim2d 'real(rkind), parameter :: We = (length_c'
     comment_param_dim2d 'real(rkind), parameter :: Pr = dim2d_mu'
-    comment_param_dim2d 'real(rkind), parameter :: gravity = 0.03d0'
+    comment_param_dim2d 'real(rkind), parameter :: gravity = gravity_amp'
 
     uncomment_param_dim2d 'real(rkind), parameter :: viscous_r = -1.5d0'
     uncomment_param_dim2d 'real(rkind), parameter :: Re = 5.0d0'
@@ -121,7 +121,7 @@ use_normal_param_dim2d(){
     uncomment_param_dim2d 'real(rkind), parameter :: Re = rho_c'
     uncomment_param_dim2d 'real(rkind), parameter :: We = (length_c'
     uncomment_param_dim2d 'real(rkind), parameter :: Pr = dim2d_mu'
-    uncomment_param_dim2d 'real(rkind), parameter :: gravity = 0.03d0'
+    uncomment_param_dim2d 'real(rkind), parameter :: gravity = gravity_amp'
 
     comment_param_dim2d 'real(rkind), parameter :: viscous_r = -1.5d0'
     comment_param_dim2d 'real(rkind), parameter :: Re = 5.0d0'

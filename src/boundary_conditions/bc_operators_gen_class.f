@@ -753,7 +753,7 @@
         !> Julien L. Desmarais
         !
         !> @brief
-        !> error printed if bc_choice nto recognized
+        !> error printed if bc_choice not recognized
         !
         !> @date
         !> 07_06_2015 - initial version - J.L. Desmarais
@@ -764,25 +764,25 @@
         !>@param fct_name
         !> name of the subroutine where the exception is caught
         !
-        !>@param mainlayer_id
+        !>@param bc_choice
         !> value of the parameter trigerring the exception
         !--------------------------------------------------------------
-        subroutine error_mainlayer_id(
-     $     file_name, fct_name, mainlayer_id)
+        subroutine error_bc_choice(
+     $     file_name, fct_name, bc_choice)
 
           implicit none
 
           character(*), intent(in) :: file_name
           character(*), intent(in) :: fct_name
-          integer     , intent(in) :: mainlayer_id
+          integer     , intent(in) :: bc_choice
 
           write(ERROR_UNIT, '(A)') file_name
           write(ERROR_UNIT, '(A)') fct_name
           write(ERROR_UNIT, '(A)') 'bc_choice not recognized'
-          write(ERROR_UNIT, '(''bc_choice: '',I2)') mainlayer_id
+          write(ERROR_UNIT, '(''bc_choice: '',I2)') bc_choice
 
           stop 'error_bc_choice'
 
-        end subroutine error_mainlayer_id
+        end subroutine error_bc_choice
 
       end module bc_operators_gen_class

@@ -90,3 +90,21 @@ change_param_input 'bc_E_type_choice' 'bc_nodes_choice'
 change_param_input 'bc_W_type_choice' 'bc_nodes_choice'
 
 perform_test $file
+
+
+#test wall_xy_equilibrium
+file='test_wall_xy_equilibrium'
+change_param_makefile 'pm_choice' 'dim2d_choice'
+change_param_makefile 'ic_choice' 'bubble_nucleation'
+change_param_input 'ne' '4'
+change_param_input 'ic_choice' 'peak'
+change_param_input 'bc_choice' 'wall_xy_choice'
+change_param_input 'bc_N_type_choice' 'bc_flux_and_node_choice'
+change_param_input 'bc_S_type_choice' 'bc_flux_and_node_choice'
+change_param_input 'bc_E_type_choice' 'bc_flux_and_node_choice'
+change_param_input 'bc_W_type_choice' 'bc_flux_and_node_choice'
+use_test_param_dim2d
+
+perform_test $file
+
+use_normal_param_dim2d

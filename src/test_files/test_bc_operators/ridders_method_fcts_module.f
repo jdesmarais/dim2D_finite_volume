@@ -15,8 +15,14 @@
      $       root_fct3,
      $       root_fct4
         
+        type, abstract, extends(root_fct_abstract) :: root_fct
 
-        type, extends(root_fct_abstract) :: root_fct1
+          integer :: s
+
+        end type root_fct
+
+
+        type, extends(root_fct) :: root_fct1
 
           contains
 
@@ -24,7 +30,7 @@
 
         end type root_fct1
 
-        type, extends(root_fct_abstract) :: root_fct2
+        type, extends(root_fct) :: root_fct2
 
           contains
 
@@ -32,7 +38,7 @@
 
         end type root_fct2
 
-        type, extends(root_fct_abstract) :: root_fct3
+        type, extends(root_fct) :: root_fct3
 
           contains
 
@@ -40,7 +46,7 @@
 
         end type root_fct3
 
-        type, extends(root_fct_abstract) :: root_fct4
+        type, extends(root_fct) :: root_fct4
 
           contains
 
@@ -60,7 +66,11 @@
           real(rkind)     , intent(in) :: x
           real(rkind)                  :: fx
 
+          integer :: s
+
           fx = 1.0d0+x
+
+          s=this%s
 
         end function fct1
 
@@ -73,7 +83,11 @@
           real(rkind)     , intent(in) :: x
           real(rkind)                  :: fx
 
+          integer :: s
+
           fx = (x-1.0d0)*(x-2.0d0)
+
+          s = this%s
 
         end function fct2
 
@@ -86,7 +100,11 @@
           real(rkind)     , intent(in) :: x
           real(rkind)                  :: fx
 
+          integer :: s
+          
           fx = Tanh(x)
+
+          s=this%s
 
         end function fct3
 
@@ -99,7 +117,11 @@
           real(rkind)     , intent(in) :: x
           real(rkind)                  :: fx
 
+          integer :: s
+
           fx = Tanh(x-2.0d0)
+
+          s=this%s
 
         end function fct4
 

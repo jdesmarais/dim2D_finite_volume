@@ -13,7 +13,8 @@
      $       get_mass_density_liquid
 
         use parameters_constant, only :
-     $       right
+     $       right,
+     $       sd_interior_type
 
         use parameters_kind, only :
      $       rkind
@@ -227,7 +228,7 @@
      $         [0.0d0,dx,2*dx,3*dx,4*dx],
      $         [0.0d0,dy,2*dy,3*dy,4*dy],
      $         right),
-     $         [0.0d0, 203.196776027628d0, -82.09240176344290d0, 0.2d0],
+     $         [0.0d0, 222.52820459905700d0, -82.09240176344290d0, 0.001d0],
      $         detailled)
 
         end function test_compute_wall_flux_x
@@ -331,7 +332,7 @@
           test_validated = is_real_validated(
      $         flux_x_inviscid_momentum_x(
      $            0.0d0,x_map,y_map,nodes,dx,dy,4,3,right),
-     $         -76.68369272237200d0,
+     $         -57.35226415094340d0,
      $         detailled)
 
         end function test_flux_x_inviscid_momentum_x
@@ -415,7 +416,8 @@
      $         y_map,
      $         nodes,
      $         T_guess,
-     $         md_guess)
+     $         md_guess,
+     $         sd_interior_type)
 
           md_ghost_cell  = nodes(4,3,1)
           qx_ghost_cell  = nodes(4,3,2)
@@ -439,7 +441,8 @@
      $         y_map,
      $         nodes,
      $         T_guess,
-     $         md_guess)
+     $         md_guess,
+     $         sd_interior_type)
 
           !test
           test_validated = .true.
@@ -517,7 +520,7 @@
      $         velocity_y,
      $         x_map,
      $         y_map,
-     $         nodes)          
+     $         nodes)
           
           call compute_wall_E_ghost_cell(
      $         4,3,
@@ -526,7 +529,8 @@
      $         y_map,
      $         nodes,
      $         T_guess,
-     $         md_guess)
+     $         md_guess,
+     $         sd_interior_type)
 
           md_ghost_cell  = nodes(4,3,1)
           qx_ghost_cell  = nodes(4,3,2)
@@ -546,7 +550,8 @@
      $         y_map,
      $         nodes,
      $         T_guess,
-     $         md_guess)
+     $         md_guess,
+     $         sd_interior_type)
 
           !test
           test_validated = .true.
@@ -634,7 +639,8 @@
      $         y_map,
      $         nodes,
      $         T_guess,
-     $         md_guess)
+     $         md_guess,
+     $         sd_interior_type)
 
           md_ghost_cell  = nodes(4,3,1)
           qx_ghost_cell  = nodes(4,3,2)
@@ -654,7 +660,8 @@
      $         y_map,
      $         nodes,
      $         T_guess,
-     $         md_guess)
+     $         md_guess,
+     $         sd_interior_type)
 
           !test
           test_validated = .true.
@@ -737,7 +744,8 @@
      $         y_map,
      $         nodes,
      $         T_guess,
-     $         md_guess)
+     $         md_guess,
+     $         sd_interior_type)
 
           md_ghost_cell = get_wall_x_md_ghost_cell(
      $         T_guess,
@@ -750,7 +758,9 @@
      $         x_map(2)-x_map(1),
      $         y_map(2)-y_map(1),
      $         90.0d0,
-     $         1.0d0)
+     $         0.005d0,
+     $         sd_interior_type,
+     $         sd_interior_type)
 
           test_validated = .true.
 
@@ -821,24 +831,30 @@
           real(rkind), dimension(5)    , intent(out) :: y_map
           real(rkind), dimension(5,5,4), intent(out) :: nodes
 
-          T_guess  = 0.999
-          md_guess = 1.0d0
+          real(rkind) :: dx
+          real(rkind) :: dy
 
-          velocity_x = 0.01d0
-          velocity_y = 0.02d0
+          T_guess  = 0.915
+          md_guess = 1.45d0
 
-          x_map = [0.0,0.05,0.1,0.15,0.2]
-          y_map = [0.0,0.03,0.06,0.09,0.12]
+          velocity_x = 0.02d0
+          velocity_y = 0.03d0
 
-          nodes(2,3,1) = 1.1d0
-          nodes(3,3,1) = 1.0d0
+          dx = 0.5
+          dy = 0.8
+
+          x_map = [0.0,dx,2*dx,3*dx,4*dx]
+          y_map = [0.0,dy,2*dy,3*dy,4*dy]
+
+          nodes(2,3,1) = 0.2d0
+          nodes(3,3,1) = 0.5d0
 
           nodes(3,2,1) = 1.2d0
-          nodes(3,4,1) = 1.15d0
+          nodes(3,4,1) = 0.9d0
 
           nodes(3,3,2) = nodes(3,3,1)*velocity_x
           nodes(3,3,3) = nodes(3,3,1)*velocity_y
-          nodes(3,3,4) = 5.0d0
+          nodes(3,3,4) = 2.26d0
 
         end subroutine get_test_parameters_wall_ghost_cell
 
@@ -893,13 +909,15 @@
           call wall_x_root_fct_used%ini(
      $         [0.2d0,1.5d0],
      $         [1.2d0,0.9d0],
-     $         0.2d0,
-     $         0.3d0,
-     $         1.6d0,
+     $         0.02d0,
+     $         0.03d0,
+     $         2.26d0,
      $         0.5d0,
      $         0.8d0,
      $         45.0d0,
-     $         0.2d0)
+     $         0.005d0,
+     $         sd_interior_type,
+     $         sd_interior_type)
           
           test_validated = is_real_validated(
      $         wall_x_root_fct_used%f(0.5d0),
@@ -907,13 +925,15 @@
      $         1.5d0,
      $         [0.2d0,0.5d0],
      $         [1.2d0,0.9d0],
-     $         0.2d0,
-     $         0.3d0,
-     $         1.6d0,
+     $         0.02d0,
+     $         0.03d0,
+     $         2.26d0,
      $         0.5d0,
      $         0.8d0,
      $         45.0d0,
-     $         0.2d0),
+     $         0.005d0,
+     $         sd_interior_type,
+     $         sd_interior_type),
      $         detailled)
 
         end function test_wall_x_root_fct
@@ -932,14 +952,16 @@
      $         1.5d0,
      $         [0.2d0,0.5d0],
      $         [1.2d0,0.9d0],
-     $         0.2d0,
-     $         0.3d0,
-     $         1.6d0,
+     $         0.02d0,
+     $         0.03d0,
+     $         2.26d0,
      $         0.5d0,
      $         0.8d0,
      $         45.0d0,
-     $         0.2d0),
-     $         -0.605003199415867d0,
+     $         0.005d0,
+     $         sd_interior_type,
+     $         sd_interior_type),
+     $         -0.257602898833856d0,
      $         detailled)
 
         end function test_wall_x_equilibrium_root_fct
@@ -1001,7 +1023,7 @@
 
           test_validated = is_real_validated(
      $         temperature(1.5d0,50.0d0,-0.1d0,0.2d0,6.3d0),
-     $         -0.29875d0,
+     $         1.0512500000d0,
      $         detailled)
 
         end function test_temperature
@@ -1016,7 +1038,7 @@
           logical             :: test_validated
 
           test_validated = is_real_validated(
-     $         dmddx(0.5d0,-2.0d0,3.0d0),
+     $         dmddx(0.5d0,[-2.0d0,-99.0d0,3.0d0],sd_interior_type),
      $         5.0d0,
      $         detailled)
 
@@ -1164,13 +1186,13 @@
              print '(''wall_contact_angle should equal 90.0d0'')'
           end if
 
-c$$$          test_loc = is_real_validated(
-c$$$     $         get_wall_heat_flux(0.0d0,0.0d0,0.0d0),
-c$$$     $         1.0d0,detailled)
-c$$$          test_validated = test_validated.and.test_loc
-c$$$          if(.not.test_loc) then
-c$$$             print '(''wall_heat_flux should equal 1.0d0'')'
-c$$$          end if
+          test_loc = is_real_validated(
+     $         get_wall_heat_flux(0.0d0,0.0d0,0.0d0),
+     $         0.005d0,detailled)
+          test_validated = test_validated.and.test_loc
+          if(.not.test_loc) then
+             print '(''wall_heat_flux should equal 1.0d0'')'
+          end if
 
           if(.not.test_validated) then
              stop ''

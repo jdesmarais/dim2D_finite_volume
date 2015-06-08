@@ -45,12 +45,12 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 6
-        integer(ikind), parameter :: nty = 8
+        integer(ikind), parameter :: ntx = 8
+        integer(ikind), parameter :: nty = 10
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
-        integer       , parameter :: ne = 3
+        integer       , parameter :: ne = 4
         integer       , parameter :: bc_size = 2
 
         !<initial conditions choice
@@ -115,14 +115,14 @@
         !for the saturated liquid and vapor mass densities
         !and the interface length
         !--------------------------------------------
-        integer    , parameter :: flow_direction = y_direction
-        real(rkind), parameter :: flow_x_side = 1.0000000000d0
-        real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.0000000000d0
+        integer    , parameter :: flow_direction = x_direction
+        real(rkind), parameter :: flow_x_side = 1.0d0
+        real(rkind), parameter :: flow_y_side = 0.0d0
+        real(rkind), parameter :: flow_velocity = 0.1d0
         
-        real(rkind), parameter :: T0 = 0.9990000000d0
+        real(rkind), parameter :: T0 = 0.95d0
 
-        integer    , parameter :: ic_choice = bubble_nucleation
+        integer    , parameter :: ic_choice = peak
 
         integer    , parameter :: phase_at_center = vapor
 
@@ -140,7 +140,7 @@
         integer    , parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = reflection_xy_choice
+        integer, parameter :: bc_choice = wall_xy_choice
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
@@ -161,10 +161,10 @@
         !bc_W_type_choice : type of boundary condition applied
         !                   at the West boundary
         !-----------------------------------------------------
-        integer    , parameter :: bc_N_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_S_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_E_type_choice = bc_nodes_choice
-        integer    , parameter :: bc_W_type_choice = bc_nodes_choice
+        integer    , parameter :: bc_N_type_choice = bc_flux_and_node_choice
+        integer    , parameter :: bc_S_type_choice = bc_flux_and_node_choice
+        integer    , parameter :: bc_E_type_choice = bc_flux_and_node_choice
+        integer    , parameter :: bc_W_type_choice = bc_flux_and_node_choice
 
 
         !< wall boundary conditions parameters
@@ -176,10 +176,10 @@
         !wall_maximum_heat_flux   : maximum heat flux at the
         !                           wall
         !-----------------------------------------------------
-        real(rkind), parameter :: wall_micro_contact_angle = 45.0000000000d0
+        real(rkind), parameter :: wall_micro_contact_angle = 90.0000000000d0
         integer    , parameter :: wall_heat_source_choice       = constant_heat_source
-        real(rkind), parameter :: wall_maximum_heat_flux        = 0.007d0
-        integer    , parameter :: wall_extra_heat_source_choice = constant_heat_source
+        real(rkind), parameter :: wall_maximum_heat_flux        = 0.005d0
+        integer    , parameter :: wall_extra_heat_source_choice = no_heat_source !constant_heat_source
         real(rkind), parameter :: wall_maximum_extra_heat_flux  = 0.001d0
 
         

@@ -33,10 +33,18 @@
      $       get_mass_density_liquid,
      $       get_surface_tension
 
+        use ISO_FORTRAN_ENV, only :
+     $       ERROR_UNIT
+
         use parameters_constant, only :
      $       left,
      $       no_heat_source,
-     $       constant_heat_source
+     $       constant_heat_source,
+     $       sd_interior_type,
+     $       sd_L0_type,
+     $       sd_L1_type,
+     $       sd_R1_type,
+     $       sd_R0_type
 
         use parameters_input, only :
      $       ne,
@@ -44,7 +52,8 @@
      $       wall_heat_source_choice,
      $       wall_maximum_heat_flux,
      $       wall_extra_heat_source_choice,
-     $       wall_maximum_extra_heat_flux
+     $       wall_maximum_extra_heat_flux,
+     $       debug_real
 
         use parameters_kind, only :
      $       ikind,
@@ -162,6 +171,8 @@
           real(rkind)               :: delta_y
           real(rkind)               :: micro_angle
           real(rkind)               :: wall_heat_flux
+          integer                   :: grad_type_x
+          integer                   :: grad_type_y
 
           contains
 
@@ -911,13 +922,14 @@
         !> heat flux at the wall
         !--------------------------------------------------------------
         subroutine compute_wall_S_ghost_cell(
-     $       i,j,
-     $       t,
-     $       x_map,
-     $       y_map,
-     $       nodes,
-     $       T_guess,
-     $       md_guess)
+     $     i,j,
+     $     t,
+     $     x_map,
+     $     y_map,
+     $     nodes,
+     $     T_guess,
+     $     md_guess,
+     $     grad_type_x)
 
           implicit none
 
@@ -929,6 +941,7 @@
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
           real(rkind)                  , intent(in)    :: T_guess
           real(rkind)                  , intent(in)    :: md_guess
+          integer                      , intent(in)    :: grad_type_x
 
 
           real(rkind), dimension(2) :: md_x
@@ -942,8 +955,27 @@
           real(rkind)               :: wall_heat_flux
 
 
-          md_x           = [nodes(i  ,j+2,1), nodes(i  ,j+1,1)]
-          md_y           = [nodes(i-1,j+1,1), nodes(i+1,j+1,1)]
+          md_x = [nodes(i,j+2,1), nodes(i,j+1,1)]
+
+          select case(grad_type_x)
+
+            case(sd_interior_type,sd_L1_type,sd_R1_type)
+               md_y = [nodes(i-1,j+1,1), nodes(i+1,j+1,1)]
+
+            case(sd_L0_type)
+               md_y = [debug_real, nodes(i+1,j+1,1)]
+
+            case(sd_R0_type)
+               md_y = [nodes(i-1,j+1,1), debug_real]
+
+            case default
+               call error_grad_type(
+     $              'wall_xy_equilibrium_module',
+     $              'compute_wall_N_ghost_cell',
+     $              grad_type_x)
+               
+          end select
+
           velocity_x     =-nodes(i,j+1,3)/nodes(i,j+1,1)
           velocity_y     = nodes(i,j+1,2)/nodes(i,j+1,1)
           Ed             = nodes(i,j+1,4)
@@ -966,7 +998,9 @@
      $            delta_x,
      $            delta_y,
      $            micro_angle,
-     $            wall_heat_flux)
+     $            wall_heat_flux,
+     $            sd_interior_type,
+     $            grad_type_x)
           
           ! compute the mass density of the ghost cell (i,j-1)
           nodes(i,j-1,1) = get_wall_md_extra_ghost_cell(
@@ -1026,7 +1060,8 @@
      $     y_map,
      $     nodes,
      $     T_guess,
-     $     md_guess)
+     $     md_guess,
+     $     grad_type_x)
 
           implicit none
 
@@ -1038,6 +1073,7 @@
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
           real(rkind)                  , intent(in)    :: T_guess
           real(rkind)                  , intent(in)    :: md_guess
+          integer                      , intent(in)    :: grad_type_x
 
 
           real(rkind), dimension(2) :: md_x
@@ -1051,8 +1087,27 @@
           real(rkind)               :: wall_heat_flux
 
 
-          md_x           = [nodes(i  ,j-2,1), nodes(i  ,j-1,1)]
-          md_y           = [nodes(i-1,j-1,1), nodes(i+1,j-1,1)]
+          md_x = [nodes(i  ,j-2,1), nodes(i  ,j-1,1)]
+
+          select case(grad_type_x)
+
+            case(sd_interior_type,sd_L1_type,sd_R1_type)
+               md_y = [nodes(i-1,j-1,1), nodes(i+1,j-1,1)]
+
+            case(sd_L0_type)
+               md_y = [debug_real, nodes(i+1,j-1,1)]
+
+            case(sd_R0_type)
+               md_y = [nodes(i-1,j-1,1), debug_real]
+
+            case default
+               call error_grad_type(
+     $              'wall_xy_equilibrium_module',
+     $              'compute_wall_N_ghost_cell',
+     $              grad_type_x)
+               
+          end select
+
           velocity_x     = nodes(i,j-1,3)/nodes(i,j-1,1)
           velocity_y     = nodes(i,j-1,2)/nodes(i,j-1,1)
           Ed             = nodes(i,j-1,4)
@@ -1075,7 +1130,9 @@
      $            delta_x,
      $            delta_y,
      $            micro_angle,
-     $            wall_heat_flux)
+     $            wall_heat_flux,
+     $            sd_interior_type,
+     $            grad_type_x)
 
           ! compute the mass density of the ghost cell (i,j+1)
           nodes(i,j+1,1) = get_wall_md_extra_ghost_cell(
@@ -1134,7 +1191,8 @@
      $     y_map,
      $     nodes,
      $     T_guess,
-     $     md_guess)
+     $     md_guess,
+     $     grad_type_y)
 
           implicit none
 
@@ -1146,6 +1204,7 @@
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
           real(rkind)                  , intent(in)    :: T_guess
           real(rkind)                  , intent(in)    :: md_guess
+          integer                      , intent(in)    :: grad_type_y
 
 
           real(rkind), dimension(2) :: md_x
@@ -1159,8 +1218,28 @@
           real(rkind)               :: wall_heat_flux
 
 
-          md_x           = [nodes(i+2,j  ,1), nodes(i+1,j  ,1)]
-          md_y           = [nodes(i+1,j-1,1), nodes(i+1,j+1,1)]
+          md_x = [nodes(i+2,j,1), nodes(i+1,j,1)]
+
+          select case(grad_type_y)
+
+            case(sd_interior_type,sd_L1_type,sd_R1_type)
+               md_y = [nodes(i+1,j-1,1), nodes(i+1,j+1,1)]
+
+            case(sd_L0_type)
+               md_y = [debug_real, nodes(i+1,j+1,1)]
+
+            case(sd_R0_type)
+               md_y = [nodes(i+1,j-1,1), debug_real]
+
+            case default
+               call error_grad_type(
+     $              'wall_xy_equilibrium_module',
+     $              'compute_wall_W_ghost_cell',
+     $              grad_type_y)
+               
+          end select
+
+          
           velocity_x     =-nodes(i+1,j,2)/nodes(i+1,j,1)
           velocity_y     = nodes(i+1,j,3)/nodes(i+1,j,1)
           Ed             = nodes(i+1,j,4)
@@ -1183,7 +1262,9 @@
      $            delta_x,
      $            delta_y,
      $            micro_angle,
-     $            wall_heat_flux)
+     $            wall_heat_flux,
+     $            sd_interior_type,
+     $            grad_type_y)
 
           ! compute the mass density of the ghost cell (i-1,j)
           nodes(i-1,j,1) = get_wall_md_extra_ghost_cell(
@@ -1237,13 +1318,14 @@
         !> heat flux at the wall
         !--------------------------------------------------------------
         subroutine compute_wall_E_ghost_cell(
-     $       i,j,
-     $       t,
-     $       x_map,
-     $       y_map,
-     $       nodes,
-     $       T_guess,
-     $       md_guess)
+     $     i,j,
+     $     t,
+     $     x_map,
+     $     y_map,
+     $     nodes,
+     $     T_guess,
+     $     md_guess,
+     $     grad_type_y)
 
           implicit none
 
@@ -1255,6 +1337,7 @@
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
           real(rkind)                  , intent(in)    :: T_guess
           real(rkind)                  , intent(in)    :: md_guess
+          integer                      , intent(in)    :: grad_type_y
 
 
           real(rkind), dimension(2) :: md_x
@@ -1268,8 +1351,27 @@
           real(rkind)               :: wall_heat_flux
 
 
-          md_x           = [nodes(i-2,j  ,1), nodes(i-1,j  ,1)]
-          md_y           = [nodes(i-1,j-1,1), nodes(i-1,j+1,1)]
+          md_x = [nodes(i-2,j,1), nodes(i-1,j,1)]
+          
+          select case(grad_type_y)
+
+            case(sd_interior_type,sd_L1_type,sd_R1_type)
+               md_y = [nodes(i-1,j-1,1), nodes(i-1,j+1,1)]
+
+            case(sd_L0_type)
+               md_y = [debug_real, nodes(i-1,j+1,1)]
+
+            case(sd_R0_type)
+               md_y = [nodes(i-1,j-1,1), debug_real]
+
+            case default
+               call error_grad_type(
+     $              'wall_xy_equilibrium_module',
+     $              'compute_wall_E_ghost_cell',
+     $              grad_type_y)
+               
+          end select
+
           velocity_x     = nodes(i-1,j,2)/nodes(i-1,j,1)
           velocity_y     = nodes(i-1,j,3)/nodes(i-1,j,1)
           Ed             = nodes(i-1,j,4)
@@ -1292,7 +1394,9 @@
      $            delta_x,
      $            delta_y,
      $            micro_angle,
-     $            wall_heat_flux)
+     $            wall_heat_flux,
+     $            sd_interior_type,
+     $            grad_type_y)
 
           ! compute the mass density of the ghost cell (i+1,j)
           nodes(i+1,j,1) = get_wall_md_extra_ghost_cell(
@@ -1521,18 +1625,20 @@
         !> heat flux at the wall
         !--------------------------------------------------------------
         function get_wall_x_md_ghost_cell(
-     $       T_guess,
-     $       md_guess,
-     $       md_x,
-     $       md_y,
-     $       velocity_x,
-     $       velocity_y,
-     $       Ed,
-     $       delta_x,
-     $       delta_y,
-     $       micro_angle,
-     $       wall_heat_flux)
-     $       result(md)
+     $     T_guess,
+     $     md_guess,
+     $     md_x,
+     $     md_y,
+     $     velocity_x,
+     $     velocity_y,
+     $     Ed,
+     $     delta_x,
+     $     delta_y,
+     $     micro_angle,
+     $     wall_heat_flux,
+     $     grad_type_x,
+     $     grad_type_y)
+     $     result(md)
 
           implicit none
 
@@ -1547,6 +1653,8 @@
           real(rkind)              , intent(in) :: delta_y       
           real(rkind)              , intent(in) :: micro_angle   
           real(rkind)              , intent(in) :: wall_heat_flux
+          integer                  , intent(in) :: grad_type_x
+          integer                  , intent(in) :: grad_type_y
           real(rkind)                           :: md
 
 
@@ -1567,7 +1675,9 @@
      $         delta_x,
      $         delta_y,
      $         micro_angle,
-     $         wall_heat_flux)
+     $         wall_heat_flux,
+     $         grad_type_x,
+     $         grad_type_y)
 
 
           ! determine the brackets for the root
@@ -1784,16 +1894,18 @@
         !> heat flux at the wall
         !--------------------------------------------------------------
         subroutine wall_x_root_ini(
-     $       this,
-     $       md_x,
-     $       md_y,
-     $       velocity_x,
-     $       velocity_y,
-     $       Ed,
-     $       delta_x,
-     $       delta_y,
-     $       micro_angle,
-     $       wall_heat_flux)
+     $     this,
+     $     md_x,
+     $     md_y,
+     $     velocity_x,
+     $     velocity_y,
+     $     Ed,
+     $     delta_x,
+     $     delta_y,
+     $     micro_angle,
+     $     wall_heat_flux,
+     $     grad_type_x,
+     $     grad_type_y)
 
           implicit none
 
@@ -1807,6 +1919,8 @@
           real(rkind)              , intent(in)    :: delta_y       
           real(rkind)              , intent(in)    :: micro_angle   
           real(rkind)              , intent(in)    :: wall_heat_flux
+          integer                  , intent(in)    :: grad_type_x
+          integer                  , intent(in)    :: grad_type_y
 
           
           this%md_x           = md_x          
@@ -1818,6 +1932,8 @@
           this%delta_y        = delta_y       
           this%micro_angle    = micro_angle   
           this%wall_heat_flux = wall_heat_flux
+          this%grad_type_x    = grad_type_x
+          this%grad_type_y    = grad_type_y
 
         end subroutine wall_x_root_ini
 
@@ -1860,7 +1976,9 @@
      $         this%delta_x,
      $         this%delta_y,
      $         this%micro_angle,
-     $         this%wall_heat_flux)
+     $         this%wall_heat_flux,
+     $         this%grad_type_x,
+     $         this%grad_type_y)
 
         end function wall_x_root_f
 
@@ -1920,7 +2038,9 @@
      $       delta_x,
      $       delta_y,
      $       micro_angle,
-     $       wall_heat_flux)
+     $       wall_heat_flux,
+     $       grad_type_x,
+     $       grad_type_y)
      $       result(equilibrium_fct)
 
           implicit none
@@ -1935,6 +2055,8 @@
           real(rkind)              , intent(in) :: delta_y
           real(rkind)              , intent(in) :: micro_angle
           real(rkind)              , intent(in) :: wall_heat_flux
+          integer                  , intent(in) :: grad_type_x
+          integer                  , intent(in) :: grad_type_y
           real(rkind)                           :: equilibrium_fct
 
           real(rkind) :: dmddx_half
@@ -1948,8 +2070,8 @@
           md_av = md_average(md,md_x(2))
 
           md_grad_squared =
-     $         dmddx(delta_x,md_x(1),md_x(2))**2 +
-     $         dmddx(delta_y,md_y(1),md_y(2))**2
+     $         dmddx(delta_x,[md_x(1),md,md_x(2)],grad_type_x)**2 +
+     $         dmddx(delta_y,[md_y(1),md,md_y(2)],grad_type_y)**2
 
           temperature1 = temperature(
      $         md,
@@ -2188,21 +2310,71 @@
         !>@param drhodx
         !> mass density gradient at $i$
         !--------------------------------------------------------------
-        function dmddx(delta_x,md0,md2)
+        function dmddx(delta_x,md_tab,grad_type)
 
           implicit none
 
-          real(rkind), intent(in) :: delta_x
-          real(rkind), intent(in) :: md0
-          real(rkind), intent(in) :: md2
-          real(rkind)             :: dmddx
-          
-          if(rkind.eq.8) then
-             dmddx = (md2-md0)/(2.0d0*delta_x)
-          else
-             dmddx = (md2-md0)/(2.0*delta_x)
-          end if
+          real(rkind)              , intent(in) :: delta_x
+          real(rkind), dimension(3), intent(in) :: md_tab
+          integer                  , intent(in) :: grad_type
+          real(rkind)                           :: dmddx
+
+          select case(grad_type)
+
+            case(sd_interior_type,sd_L1_type,sd_R1_type)
+               dmddx = (md_tab(3)-md_tab(1))/(2.0d0*delta_x)
+
+            case(sd_L0_type)
+               dmddx = (md_tab(3)-md_tab(2))/delta_x
+
+            case(sd_R0_type)
+               dmddx = (md_tab(2)-md_tab(1))/delta_x
+
+            case default
+               call error_grad_type(
+     $              'wall_xy_equilibrium_module',
+     $              'dmdx',
+     $              grad_type)
+
+          end select
 
         end function dmddx
+
+        
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> error printed if grad_type not recognized
+        !
+        !> @date
+        !> 08_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param grad_type
+        !> value of the parameter trigerring the exception
+        !--------------------------------------------------------------
+        subroutine error_grad_type(
+     $     file_name, fct_name, grad_type)
+
+          implicit none
+
+          character(*), intent(in) :: file_name
+          character(*), intent(in) :: fct_name
+          integer     , intent(in) :: grad_type
+
+          write(ERROR_UNIT, '(A)') file_name
+          write(ERROR_UNIT, '(A)') fct_name
+          write(ERROR_UNIT, '(A)') 'grad_type not recognized'
+          write(ERROR_UNIT, '(''grad_type: '',I2)') grad_type
+
+          stop 'error_grad_type'
+
+        end subroutine error_grad_type
 
       end module wall_xy_equilibrium_module
