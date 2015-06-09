@@ -146,7 +146,7 @@
 
           real(rkind) :: s
           real(rkind) :: angle
-          !real(rkind) :: x1          
+          !real(rkind) :: x1
 
 
           !get the mass densities corresponding to the
@@ -165,7 +165,7 @@
 
           !set the center of the droplet
           xc=0.0d0
-          yc=0.0d0 !1.5d0*a
+          yc=0.0 !1.5d0*a
 
           !determine the flow velocities
           velocity_x = get_velocity_x()
@@ -177,7 +177,7 @@
              dout = dliq
           end if
 
-          angle = (90.0d0-90.0d0)*ACOS(-1.0d0)/180.0d0
+          angle = (45.0d0-90.0d0)*ACOS(-1.0d0)/180.0d0
 
           !initialize the mass, momentum and total energy fields
           do j=1, size(y_map,1)
@@ -194,8 +194,8 @@ c$$$                nodes(i,j,3) = nodes(i,j,1)*velocity_y
 c$$$                nodes(i,j,4) = 0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y**2)
 c$$$     $                       + nodes(i,j,1)*(8.0d0/3.0d0*cv_r*T0-3.0d0*nodes(i,j,1))
 
-c$$$                !inclined bubble
-c$$$                x1 = x*Cos(angle) - y*Sin(angle)
+                !inclined bubble
+c$$$                x1 = abs(x-0.4)*Cos(angle) - y*Sin(angle)
 c$$$
 c$$$                nodes(i,j,1) = 0.5d0*(dliq+dvap)
 c$$$     $                       + 0.5d0*(dliq-dvap)*Tanh(-2.0d0*x1/li)

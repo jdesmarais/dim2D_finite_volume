@@ -17,8 +17,8 @@
       !-----------------------------------------------------------------
       module td_operators_class
 
-        use bc_operators_class, only :
-     $       bc_operators
+        use bc_operators_gen_class, only :
+     $       bc_operators_gen
 
         use bc_operators_module, only :
      $       shall_bc_on_fluxes_be_applied,
@@ -130,7 +130,7 @@
           real(rkind), dimension(ny)                           , intent(in) :: y_map
           type(sd_operators)                                   , intent(in) :: s
           type(pmodel_eq)                                      , intent(in) :: p_model
-          type(bc_operators)                                   , intent(in) :: bc_used
+          type(bc_operators_gen)                               , intent(in) :: bc_used
           integer(ikind), dimension(:,:), allocatable, optional, intent(in) :: bc_sections
           real(rkind), dimension(nx,ny,ne)                                  :: time_dev
 
@@ -171,7 +171,8 @@
           if(shall_bc_on_fluxes_be_applied()) then
 
              call bc_used%apply_bc_on_fluxes(
-     $            t,x_map,y_map,nodes,s,flux_x,flux_y)
+     $            t,x_map,y_map,nodes,s,
+     $            flux_x,flux_y)
 
           end if
 
@@ -209,29 +210,29 @@
                 bf_alignment(2,2) = ny-bc_size
 
                 call bc_used%apply_bc_on_timedev_nopt(
-     $               t,
+     $               bc_sections,
      $               bf_alignment,
      $               bf_grdpts_id,
-     $               x_map,y_map,nodes,
+     $               t,x_map,y_map,nodes,
      $               nodes,
      $               p_model,
      $               flux_x,flux_y,
-     $               bc_sections,
      $               time_dev)
 
              !if all the time derivatives of the boundary
              !layers are computed
              else
+
                 call bc_used%apply_bc_on_timedev(
      $               t,x_map,y_map,nodes,
      $               p_model,
      $               flux_x,flux_y,
      $               time_dev)
+
              end if          
           end if
 
         end function compute_time_dev
-
 
 
         !> @author
@@ -310,7 +311,7 @@
             real(rkind)   , dimension(:,:,:)             , intent(in)  :: nodes
             type(sd_operators)                           , intent(in)  :: s
             type(pmodel_eq)                              , intent(in)  :: p_model
-            type(bc_operators)                           , intent(in)  :: bc_used
+            type(bc_operators_gen)                       , intent(in)  :: bc_used
             real(rkind)   , dimension(:,:,:)             , intent(out) :: time_dev
             real(rkind)   , dimension(nx,ny,ne)          , intent(in)  :: interior_nodes
             integer       , dimension(:,:)  , allocatable, intent(in)  :: bc_sections
@@ -372,12 +373,10 @@
 
             !if the boundary conditions influence the computation
             !of the fluxes, then we need to modify the fluxes
-            if(shall_bc_on_fluxes_be_applied()) then
-
-               call bc_used%apply_bc_on_fluxes(
-     $              t,x_map,y_map,nodes,s,flux_x,flux_y)
-
-            end if
+            call bc_used%apply_bc_on_fluxes_nopt(
+     $           bc_sections,
+     $           t,x_map,y_map,nodes,s,
+     $           flux_x,flux_y)
 
 
             !compute the time derivatives
@@ -404,20 +403,13 @@
             !if the boundary conditions influence the computation
             !of the time derivatives, then we need to compute the
             !time derivatives at the boundary
-            if(shall_bc_on_timedev_be_applied()) then
-
-               call bc_used%apply_bc_on_timedev_nopt(
-     $              t,
-     $              bf_alignment,
-     $              grdpts_id,
-     $              x_map,y_map,nodes,
-     $              interior_nodes,
-     $              p_model,
-     $              flux_x,flux_y,
-     $              bc_sections,
-     $              time_dev)
-
-            end if
+            call bc_used%apply_bc_on_timedev_nopt(
+     $           bc_sections,
+     $           bf_alignment,grdpts_id,
+     $           t,x_map,y_map,nodes,
+     $           interior_nodes,
+     $           p_model,flux_x,flux_y,
+     $           time_dev)
 
             deallocate(flux_x)
             deallocate(flux_y)

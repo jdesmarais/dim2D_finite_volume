@@ -43,6 +43,7 @@
      $       left,
      $       no_heat_source,
      $       constant_heat_source,
+     $       gaussian_heat_source,
      $       sd_interior_type,
      $       sd_L0_type,
      $       sd_L1_type,
@@ -111,8 +112,8 @@
         ! sign_normal: -1.0d0 enforces u=0    at boundary
         !               1.0d0 enforces dudn=0 at boundary
         ! sign_trans : -1.0d0 enforces v=0    at boundary
-        integer, parameter :: sign_normal = 1.0d0
-        integer, parameter :: sign_trans  =-1.0d0
+        real(rkind), parameter :: sign_normal = 1.0d0
+        real(rkind), parameter :: sign_trans  =-1.0d0
 
 
         ! choice of the method to compute the mass
@@ -1531,6 +1532,8 @@
           real(rkind)             :: wall_heat_flux
 
           real(rkind) :: s
+          real(rkind) :: x_center
+          real(rkind) :: variance
 
           select case(wall_heat_source_choice)
 
@@ -1539,6 +1542,11 @@
                
             case(constant_heat_source)
                wall_heat_flux = wall_maximum_heat_flux
+
+            case(gaussian_heat_source)
+               x_center = 0.0d0
+               variance = 0.2d0
+               wall_heat_flux = wall_maximum_heat_flux*Exp(-0.5d0*((x-x_center)/variance)**2)
 
             case default
                print '(''wall_xy_equilibrium_module'')'
@@ -1586,6 +1594,8 @@
           real(rkind)             :: wall_extra_heat_flux
 
           real(rkind) :: s
+          real(rkind) :: x_center
+          real(rkind) :: variance
 
           
           select case(wall_extra_heat_source_choice)
@@ -1595,6 +1605,11 @@
 
             case(constant_heat_source)
                wall_extra_heat_flux = wall_maximum_extra_heat_flux
+
+            case(gaussian_heat_source)
+               x_center = 0.0d0
+               variance = 0.2d0
+               wall_extra_heat_flux = wall_maximum_extra_heat_flux*Exp(-0.5d0*((x-x_center)/variance)**2)
 
             case default
                print '(''wall_xy_equilibrium_module'')'
@@ -1828,8 +1843,8 @@
              fl = wall_x_root_fct_used%f(xl)
              fh = wall_x_root_fct_used%f(xh)
 
-             print '(''(xl,fl) T_guess: '',2F10.4)', xl,fl
-             print '(''(xh,fh) T_guess: '',2F10.4)', xh,fh
+             print *, '(xl,fl) f(md_vap(T_guess)):', xl,fl
+             print *, '(xh,fh) f(md_liq(T_guess)):', xh,fh
 
              stop ''
 

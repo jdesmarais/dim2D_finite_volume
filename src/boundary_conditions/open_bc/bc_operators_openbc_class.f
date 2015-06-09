@@ -29,10 +29,21 @@
         use bf_layer_errors_module, only :
      $       error_bc_section_type
 
+        use bf_layer_extract_module, only :
+     $       get_bf_layer_match_table
+
         use interface_primary, only :
      $       gradient_proc
         
         use parameters_bf_layer, only :
+     $       cptnot_type
+
+        use parameters_constant, only :
+     $       bc_flux_and_node_choice,
+     $       bc_timedev_choice,
+     $       bc_fluxes_choice,
+     $       N,S,E,W,
+     $       left,right,
      $       N_edge_type,
      $       S_edge_type,
      $       E_edge_type,
@@ -44,23 +55,15 @@
      $       SW_edge_type,
      $       SE_edge_type,
      $       NW_edge_type,
-     $       NE_edge_type,
-     $       
-     $       cptnot_type
-
-        use parameters_constant, only :
-     $       bc_flux_and_node_choice,
-     $       bc_timedev_choice,
-     $       N,S,E,W,
-     $       left,right
+     $       NE_edge_type
 
         use parameters_input, only :
      $       nx,ny,ne,
      $       bc_size,
-     $       bc_N_type_choice,
-     $       bc_S_type_choice,
-     $       bc_E_type_choice,
-     $       bc_W_type_choice
+     $       bc_NE_type_choice,
+     $       bc_NW_type_choice,
+     $       bc_SE_type_choice,
+     $       bc_SW_type_choice
 
         use parameters_kind, only :
      $       ikind,
@@ -108,6 +111,14 @@
         !> @class bc_operators_openbc
         !> abstract class encapsulating interfaces to compute the 
         !> time derivatives at the egdes, corners and anti-corners
+        !
+        !>@param check_x_flux_interactions_btw_bcs
+        !> check whether the computation of the x-fluxes overlap between
+        !> the N/S and E/W layers
+        !
+        !>@param check_y_flux_interactions_btw_bcs
+        !> check whether the computation of the y-fluxes overlap between
+        !> the N/S and E/W layers
         !
         !>@param apply_bc_on_timedev_nopt
         !> compute the time derivatives based on the boundary conditions
@@ -423,12 +434,23 @@
         !>@param i_max
         !> max x-index where the x-fluxes are computed
         !-------------------------------------------------------------
-        subroutine check_x_flux_interactions_btw_bcs(i_min,i_max)
+        subroutine check_x_flux_interactions_btw_bcs(
+     $       i_min,i_max,
+     $       side,
+     $       bf_alignment)
 
           implicit none
 
-          integer(ikind), intent(inout) :: i_min
-          integer(ikind), intent(inout) :: i_max
+          integer(ikind)                          , intent(inout) :: i_min
+          integer(ikind)                          , intent(inout) :: i_max
+          logical                                 , intent(in)    :: side
+          integer(ikind), dimension(2,2), optional, intent(in)    :: bf_alignment
+
+
+          integer(ikind), dimension(2) :: match_table
+          integer(ikind)               :: i_min_g
+          integer(ikind)               :: i_max_g
+
 
           ! when the x-flxues are computed for an open b.c., this is
           ! either for the North or for the South layers
@@ -437,17 +459,93 @@
           ! recomputed by the curretn boundary conditions, therefore
           ! the min-max indices can be shifted to avoid to re-compute
           ! the fluxes
-          
-          ! if the West b.c. modifies the fluxes, we should not
-          ! re-compute the fluxes at i=bc_size+1
-          if(bc_W_type_choice.eq.bc_flux_and_node_choice) then
-             i_min=i_min+1
-          end if
+          if(present(bf_alignment)) then
 
-          ! if the East b.c. modifies the fluxes, we should not
-          ! re-compute the fluxes at i=nx-bc_size+1
-          if(bc_E_type_choice.eq.bc_flux_and_node_choice) then
-             i_max=i_max-1
+             match_table = get_bf_layer_match_table(
+     $            bf_alignment)
+
+             i_min_g = i_min + match_table(1)
+             i_max_g = i_max + match_table(1)
+
+
+             ! South layer
+             if(side.eqv.left) then
+
+                ! if the West b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at i=bc_size+1
+                if((i_min_g.eq.(bc_size+1)).and.(
+     $             (bc_SW_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_SW_type_choice.eq.bc_fluxes_choice))) then
+                   i_min=i_min+1
+                end if
+
+                ! if the East b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at i=nx-bc_size+1
+                if((i_max_g.eq.(nx-bc_size+1)).and.(
+     $             (bc_SE_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_SE_type_choice.eq.bc_fluxes_choice))) then
+                   i_max=i_max-1
+                end if
+
+             ! North layer
+             else
+
+                ! if the West b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at i=bc_size+1
+                if((i_min_g.eq.(bc_size+1)).and.(
+     $             (bc_NW_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_NW_type_choice.eq.bc_fluxes_choice))) then
+                   i_min=i_min+1
+                end if
+
+                ! if the East b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at i=nx-bc_size+1
+                if((i_max_g.eq.(nx-bc_size+1)).and.(
+     $             (bc_NE_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_NE_type_choice.eq.bc_fluxes_choice))) then
+                   i_max=i_max-1
+                end if                
+
+             end if
+
+          else          
+          
+             ! South layer
+             if(side.eqv.left) then
+
+                ! if the West b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at i=bc_size+1
+                if((bc_SW_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_SW_type_choice.eq.bc_fluxes_choice)) then
+                   i_min=i_min+1
+                end if
+             
+                ! if the East b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at i=nx-bc_size+1
+                if((bc_SE_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_SE_type_choice.eq.bc_fluxes_choice))then
+                   i_max=i_max-1
+                end if
+
+             ! North layer
+             else
+
+                ! if the West b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at i=bc_size+1
+                if((bc_NW_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_NW_type_choice.eq.bc_fluxes_choice)) then
+                   i_min=i_min+1
+                end if
+             
+                ! if the East b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at i=nx-bc_size+1
+                if((bc_NE_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_NE_type_choice.eq.bc_fluxes_choice))then
+                   i_max=i_max-1
+                end if
+
+             end if
+
           end if
 
         end subroutine check_x_flux_interactions_btw_bcs
@@ -469,12 +567,23 @@
         !>@param j_max
         !> max y-index where the x-fluxes are computed
         !-------------------------------------------------------------
-        subroutine check_y_flux_interactions_btw_bcs(j_min,j_max)
+        subroutine check_y_flux_interactions_btw_bcs(
+     $     j_min,j_max,
+     $     side,
+     $     bf_alignment)
 
           implicit none
 
-          integer(ikind), intent(inout) :: j_min
-          integer(ikind), intent(inout) :: j_max
+          integer(ikind)                          , intent(inout) :: j_min
+          integer(ikind)                          , intent(inout) :: j_max
+          logical                                 , intent(in)    :: side
+          integer(ikind), dimension(2,2), optional, intent(in)    :: bf_alignment
+
+
+          integer(ikind), dimension(2) :: match_table
+          integer(ikind)               :: j_min_g
+          integer(ikind)               :: j_max_g
+
 
           ! when the y-flxues are computed for an open b.c., this is
           ! either for the West or for the East layers
@@ -483,52 +592,177 @@
           ! recomputed by the curretn boundary conditions, therefore
           ! the min-max indices can be shifted to avoid to re-compute
           ! the fluxes
-          
-          ! if the South b.c. modifies the fluxes, we should not
-          ! re-compute the fluxes at j=bc_size+1
-          if(bc_S_type_choice.eq.bc_flux_and_node_choice) then
-             j_min=j_min+1
+          if(present(bf_alignment)) then
+
+             match_table = get_bf_layer_match_table(
+     $            bf_alignment)
+
+             j_min_g = j_min + match_table(2)
+             j_max_g = j_max + match_table(2)
+
+             
+             ! West layer
+             if(side.eqv.left) then
+
+                ! if the South b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at j=bc_size+1
+                if((j_min_g.eq.(bc_size+1)).and.(
+     $             (bc_SW_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_SW_type_choice.eq.bc_fluxes_choice))) then
+                   j_min=j_min+1
+                end if
+                
+                ! if the North b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at j=ny-bc_size+1
+                if((j_max_g.eq.(ny-bc_size+1)).and.(
+     $             (bc_NW_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_NW_type_choice.eq.bc_fluxes_choice))) then
+                   j_max=j_max-1
+                end if
+
+             ! East layer
+             else
+
+                ! if the South b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at j=bc_size+1
+                if((j_min_g.eq.(bc_size+1)).and.(
+     $               (bc_SE_type_choice.eq.bc_flux_and_node_choice).or.
+     $               (bc_SE_type_choice.eq.bc_fluxes_choice))) then
+                   j_min=j_min+1
+                end if
+                
+                ! if the North b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at j=ny-bc_size+1
+                if((j_max_g.eq.(ny-bc_size+1)).and.(
+     $               (bc_NE_type_choice.eq.bc_flux_and_node_choice).or.
+     $               (bc_NE_type_choice.eq.bc_fluxes_choice))) then
+                   j_max=j_max-1
+                end if
+
+             end if
+
+          else
+
+             ! West layer
+             if(side.eqv.left) then
+                          
+                ! if the South b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at j=bc_size+1
+                if((bc_SW_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_SW_type_choice.eq.bc_fluxes_choice)) then
+                   j_min=j_min+1
+                end if
+               
+                ! if the North b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at j=ny-bc_size+1
+                if((bc_NW_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_NW_type_choice.eq.bc_fluxes_choice)) then
+                   j_max=j_max-1
+                end if
+
+             ! East layer
+             else
+
+                ! if the South b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at j=bc_size+1
+                if((bc_SE_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_SE_type_choice.eq.bc_fluxes_choice)) then
+                   j_min=j_min+1
+                end if
+               
+                ! if the North b.c. modifies the fluxes, we should not
+                ! re-compute the fluxes at j=ny-bc_size+1
+                if((bc_NE_type_choice.eq.bc_flux_and_node_choice).or.
+     $             (bc_NE_type_choice.eq.bc_fluxes_choice)) then
+                   j_max=j_max-1
+                end if
+
+             end if
+
           end if
 
-          ! if the North b.c. modifies the fluxes, we should not
-          ! re-compute the fluxes at j=ny-bc_size+1
-          if(bc_N_type_choice.eq.bc_flux_and_node_choice) then
-             j_max=j_max-1
-          end if
-
-        end subroutine check_y_flux_interactions_btw_bcs        
+        end subroutine check_y_flux_interactions_btw_bcs
 
 
-        !apply the boundary conditions on the time derivatives
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine applying the boundary conditions
+        !> on the time-derivatives for a specific
+        !> boundary section on a sub-domain
+        !
+        !> @date
+        !> 07_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@param bc_section
+        !> section computed for the boundary conditions
+        !> of the sub-domain
+        !
+        !>@param bf_alignment
+        !> relative alignment of the sub-domain compared
+        !> to the interior domain
+        !
+        !>@param bf_grdpts_id
+        !> identification of the grid-points in the
+        !> sub-domain
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x_map
+        !> x-coordinates
+        !
+        !>@param y_map
+        !> y-coordinates
+        !
+        !>@param nodes
+        !> governing variables
+        !
+        !>@param interior_nodes
+        !> grid-points of the interior domain
+        !
+        !>@param p_model
+        !> physical model
+        !
+        !>@param flux_x
+        !> fluxes along the x-direction
+        !
+        !>@param flux_y
+        !> fluxes along the y-direction
+        !
+        !>@param timedev
+        !> tim derivatives of the sub-domain
+        !-------------------------------------------------------------
         subroutine apply_bc_on_timedev_nopt(
-     $       this,
-     $       t,
-     $       bf_alignment,
-     $       bf_grdpts_id,
-     $       bf_x_map,
-     $       bf_y_map,
-     $       bf_nodes,
-     $       interior_nodes,
-     $       p_model,
-     $       flux_x, flux_y,
-     $       bc_sections,
-     $       timedev)
+     $     this,
+     $     bc_section,
+     $     bf_alignment,
+     $     bf_grdpts_id,
+     $     t,
+     $     bf_x_map,
+     $     bf_y_map,
+     $     bf_nodes,
+     $     interior_nodes,
+     $     p_model,
+     $     flux_x, flux_y,
+     $     timedev)
         
           implicit none
 
-          class(bc_operators_openbc)                     , intent(in)    :: this
-          real(rkind)                                    , intent(in)    :: t
-          integer(ikind), dimension(2,2)                 , intent(in)    :: bf_alignment
-          integer       , dimension(:,:)                 , intent(in)    :: bf_grdpts_id
-          real(rkind)   , dimension(:)                   , intent(in)    :: bf_x_map
-          real(rkind)   , dimension(:)                   , intent(in)    :: bf_y_map
-          real(rkind)   , dimension(:,:,:)               , intent(in)    :: bf_nodes
-          real(rkind)   , dimension(nx,ny,ne)            , intent(in)    :: interior_nodes
-          type(pmodel_eq)                                , intent(in)    :: p_model
-          real(rkind)   , dimension(:,:,:)               , intent(inout) :: flux_x
-          real(rkind)   , dimension(:,:,:)               , intent(inout) :: flux_y
-          integer(ikind), dimension(:,:)    , allocatable, intent(in)    :: bc_sections
-          real(rkind)   , dimension(:,:,:)               , intent(inout) :: timedev
+          class(bc_operators_openbc)         , intent(in)    :: this
+          integer       , dimension(5)       , intent(in)    :: bc_section
+          integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+          integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
+          real(rkind)                        , intent(in)    :: t
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map
+          real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map
+          real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
+          real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+          type(pmodel_eq)                    , intent(in)    :: p_model
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_x
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_y
+          real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
 
           
           !spatial discretisation operators
@@ -545,225 +779,156 @@
           real(rkind)    :: dx,dy
           integer(ikind) :: i_min, i_max
           integer(ikind) :: j_min, j_max
-          integer        :: k
           integer        :: overlap_type
-          logical        :: compute_edge
           
 
-          !if there are effectively boundary layers
-          !in the buffer layer computed, the time
-          !derivatives corresponding to the boundary
-          !grid points are computed
-          if(allocated(bc_sections)) then
-          
-             dx = bf_x_map(2) - bf_x_map(1)
-             dy = bf_y_map(2) - bf_y_map(1)
+          dx = bf_x_map(2) - bf_x_map(1)
+          dy = bf_y_map(2) - bf_y_map(1)
 
 
-             !go through the boundary layers
-             !if the boundary actually needs the computation
-             !of the fluxes in the direction of the edge, the
-             !fluxes are computed
-             do k=1, size(bc_sections,2)
-
-                overlap_type = bc_sections(5,k)
-
-                !identify the type of boundary layer
-                select case(bc_sections(1,k))
-
-                  case(N_edge_type)
-
-                     !do not compute the edge fluxes only if
-                     !(y.ge.bc_y_max).and.
-                     !(bc_N_type_choice.ne.bc_timedev_choice)
-
-                     j_min = bc_sections(3,k)
-
-                     compute_edge = compute_edge_N(bf_y_map(j_min),bc_timedev_choice)
-                  
-                     !determine the extent of the edge from the
-                     !bc_section
-                     if(compute_edge) then
-
-                        i_min = bc_sections(2,k)
-                        i_max = bc_sections(4,k)
-
-                        call this%apply_bc_on_timedev_N_edge(
-     $                       t,
-     $                       bf_alignment,
-     $                       bf_grdpts_id,
-     $                       bf_x_map,
-     $                       bf_y_map,
-     $                       bf_nodes,
-     $                       interior_nodes,
-     $                       s_y_R1, s_y_R0,
-     $                       p_model,
-     $                       i_min, i_max, j_min,
-     $                       overlap_type,
-     $                       flux_x,
-     $                       timedev)
-                  
-                     end if
-
-                        
-                  case(S_edge_type)
-                  
-                     !do not compute the edge fluxes only if
-                     !(y.le.bc_y_min).and.
-                     !(bc_S_type_choice.ne.bc_timedev_choice)
-                  
-                     j_min = bc_sections(3,k)
-                  
-                     compute_edge = compute_edge_S(bf_y_map(j_min+1),bc_timedev_choice)
-                  
-                     !determine the extent of the edge from the
-                     !bc_section
-                     if(compute_edge) then
-                     
-                        i_min = bc_sections(2,k)
-                        i_max = bc_sections(4,k)
-                  
-                        call this%apply_bc_on_timedev_S_edge(
-     $                       t,
-     $                       bf_alignment,
-     $                       bf_grdpts_id,
-     $                       bf_x_map,
-     $                       bf_y_map,
-     $                       bf_nodes,
-     $                       interior_nodes,
-     $                       s_y_L0, s_y_L1,
-     $                       p_model,
-     $                       i_min, i_max, j_min,
-     $                       overlap_type,
-     $                       flux_x,
-     $                       timedev)
-                  
-                     end if
-
-                  
-                  case(E_edge_type)
-                  
-                     !do not compute the edge fluxes only if
-                     !(x.ge.bc_x_max).and.
-                     !(bc_E_type_choice.ne.bc_timedev_choice)
-                  
-                     i_min = bc_sections(2,k)
-                  
-                     compute_edge = compute_edge_E(bf_x_map(i_min),bc_timedev_choice)
-                  
-                     !determine the extent of the edge from the
-                     !bc_section and compute the fluxes
-                     if(compute_edge) then
-                     
-                        j_min = bc_sections(3,k)
-                        j_max = bc_sections(4,k)
-                  
-                        call this%apply_bc_on_timedev_E_edge(
-     $                       t,
-     $                       bf_alignment,
-     $                       bf_grdpts_id,
-     $                       bf_x_map,
-     $                       bf_y_map,
-     $                       bf_nodes,
-     $                       interior_nodes,
-     $                       s_x_R1, s_x_R0,
-     $                       p_model,
-     $                       i_min, j_min, j_max,
-     $                       overlap_type,
-     $                       flux_y,
-     $                       timedev)
-                  
-                     end if
-
-                  
-                  case(W_edge_type)
-                  
-                     !do not compute the edge fluxes only if
-                     !(x.le.bc_x_min).and.
-                     !(bc_W_type_choice.ne.bc_timedev_choice)
-                  
-                     i_min = bc_sections(2,k)
-                  
-                     compute_edge = compute_edge_W(bf_x_map(i_min+1),bc_timedev_choice)
-                  
-                     !determine the extent of the edge from the
-                     !bc_section
-                     if(compute_edge) then
-                     
-                        j_min = bc_sections(3,k)
-                        j_max = bc_sections(4,k)
-                  
-                        call this%apply_bc_on_timedev_W_edge(
-     $                       t,
-     $                       bf_alignment,
-     $                       bf_grdpts_id,
-     $                       bf_x_map,
-     $                       bf_y_map,
-     $                       bf_nodes,
-     $                       interior_nodes,
-     $                       s_x_L0, s_x_L1,
-     $                       p_model,
-     $                       i_min, j_min, j_max,
-     $                       overlap_type,
-     $                       flux_y,
-     $                       timedev)
-                  
-                     end if
+          overlap_type = bc_section(5)
 
 
-                  ! corner type bc_section
-                  case(NE_corner_type,
-     $                 NW_corner_type,
-     $                 SE_corner_type,
-     $                 SW_corner_type)
+          !identify the type of boundary layer
+          select case(bc_section(1))
 
-                    call this%compute_timedev_corner(
-     $                 t,
-     $                 bf_x_map,
-     $                 bf_y_map,
-     $                 bf_nodes,
-     $                 p_model,
-     $                 bc_sections(:,k),
-     $                 timedev)
+            case(N_edge_type)
 
+               j_min = bc_section(3)
+               i_min = bc_section(2)
+               i_max = bc_section(4)
 
-                  ! anti-corner type bc_section
-                  case(NE_edge_type,
-     $                 NW_edge_type,
-     $                 SE_edge_type,
-     $                 SW_edge_type)
-
-                    call this%compute_timedev_anti_corner(
-     $                 t,
-     $                 bf_alignment,
-     $                 bf_grdpts_id,
-     $                 bf_x_map,
-     $                 bf_y_map,
-     $                 bf_nodes,
-     $                 interior_nodes,
-     $                 s_x_L1,
-     $                 s_x_R1,
-     $                 s_y_L1,
-     $                 s_y_R1,
-     $                 p_model,
-     $                 bc_sections(:,k),
-     $                 flux_x,
-     $                 flux_y,
-     $                 timedev)
-
-
-                  case default
-                     call error_bc_section_type(
-     $                    'bc_operators_openbc_class',
-     $                    'apply_bc_on_timedev_nopt',
-     $                    bc_sections(1,k))
-
-                  end select
-
-               end do
+               call this%apply_bc_on_timedev_N_edge(
+     $              t,
+     $              bf_alignment,
+     $              bf_grdpts_id,
+     $              bf_x_map,
+     $              bf_y_map,
+     $              bf_nodes,
+     $              interior_nodes,
+     $              s_y_R1, s_y_R0,
+     $              p_model,
+     $              i_min, i_max, j_min,
+     $              overlap_type,
+     $              flux_x,
+     $              timedev)
                
-            end if
-           
+
+            case(S_edge_type)
+             
+                j_min = bc_section(3)
+                i_min = bc_section(2)
+                i_max = bc_section(4)
+             
+                call this%apply_bc_on_timedev_S_edge(
+     $               t,
+     $               bf_alignment,
+     $               bf_grdpts_id,
+     $               bf_x_map,
+     $               bf_y_map,
+     $               bf_nodes,
+     $               interior_nodes,
+     $               s_y_L0, s_y_L1,
+     $               p_model,
+     $               i_min, i_max, j_min,
+     $               overlap_type,
+     $               flux_x,
+     $               timedev)
+
+             
+             case(E_edge_type)
+             
+                i_min = bc_section(2)
+                j_min = bc_section(3)
+                j_max = bc_section(4)
+             
+                call this%apply_bc_on_timedev_E_edge(
+     $               t,
+     $               bf_alignment,
+     $               bf_grdpts_id,
+     $               bf_x_map,
+     $               bf_y_map,
+     $               bf_nodes,
+     $               interior_nodes,
+     $               s_x_R1, s_x_R0,
+     $               p_model,
+     $               i_min, j_min, j_max,
+     $               overlap_type,
+     $               flux_y,
+     $               timedev)
+
+             
+             case(W_edge_type)
+             
+                i_min = bc_section(2)
+                j_min = bc_section(3)
+                j_max = bc_section(4)
+                
+                call this%apply_bc_on_timedev_W_edge(
+     $               t,
+     $               bf_alignment,
+     $               bf_grdpts_id,
+     $               bf_x_map,
+     $               bf_y_map,
+     $               bf_nodes,
+     $               interior_nodes,
+     $               s_x_L0, s_x_L1,
+     $               p_model,
+     $               i_min, j_min, j_max,
+     $               overlap_type,
+     $               flux_y,
+     $               timedev)
+
+
+             ! corner type bc_section
+             case(NE_corner_type,
+     $            NW_corner_type,
+     $            SE_corner_type,
+     $            SW_corner_type)
+
+               call this%compute_timedev_corner(
+     $            t,
+     $            bf_x_map,
+     $            bf_y_map,
+     $            bf_nodes,
+     $            p_model,
+     $            bc_section,
+     $            timedev)
+
+
+             ! anti-corner type bc_section
+             case(NE_edge_type,
+     $            NW_edge_type,
+     $            SE_edge_type,
+     $            SW_edge_type)
+
+               call this%compute_timedev_anti_corner(
+     $            t,
+     $            bf_alignment,
+     $            bf_grdpts_id,
+     $            bf_x_map,
+     $            bf_y_map,
+     $            bf_nodes,
+     $            interior_nodes,
+     $            s_x_L1,
+     $            s_x_R1,
+     $            s_y_L1,
+     $            s_y_R1,
+     $            p_model,
+     $            bc_section,
+     $            flux_x,
+     $            flux_y,
+     $            timedev)
+
+
+             case default
+                call error_bc_section_type(
+     $               'bc_operators_openbc_class',
+     $               'apply_bc_on_timedev_nopt',
+     $               bc_section(1))
+
+           end select
+                     
         end subroutine apply_bc_on_timedev_nopt
 
 
@@ -778,21 +943,24 @@
         !> @date
         !> 26_01_2014 - initial version - J.L. Desmarais
         !
-        !>@param p_model
-        !> object encapsulating the physical model
+        !>@param this
+        !> boundary operator
         !
         !>@param t
         !> simulation time for boundary conditions depending
         !> on time
         !
-        !>@param nodes
-        !> object encapsulating the main variables
+        !>@param bf_x_map
+        !> coordinates along the x-direction on the sub-domain
         !
-        !>@param x_map
-        !> coordinates along the x-direction
+        !>@param bf_y_map
+        !> coordinates along the y-direction on the sub-domain
         !
-        !>@param y_map
-        !> coordinates along the y-direction
+        !>@param bf_nodes
+        !> object encapsulating the main variables on the sub-domain
+        !
+        !>@param p_model
+        !> object encapsulating the physical model
         !
         !>@param bc_section
         !> type of corner + properties on the location
@@ -823,7 +991,6 @@
           
           
           integer(ikind)        :: i_min, j_min
-          logical               :: compute_edge
           logical               :: side_x, side_y
           integer, dimension(4) :: compute_point
 
@@ -835,39 +1002,23 @@
 
             case(SW_corner_type)
 
-               compute_edge =
-     $              compute_edge_S(bf_y_map(j_min+1),bc_timedev_choice).and.
-     $              compute_edge_W(bf_x_map(i_min+1),bc_timedev_choice)
-
                side_x = left
                side_y = left
 
 
             case(SE_corner_type)
                
-               compute_edge =
-     $              compute_edge_S(bf_y_map(j_min+1),bc_timedev_choice).and.
-     $              compute_edge_E(bf_x_map(i_min),bc_timedev_choice)
-               
                side_x = right
                side_y = left
 
                      
             case(NW_corner_type)
-
-               compute_edge =
-     $              compute_edge_N(bf_y_map(j_min),bc_timedev_choice).and.
-     $              compute_edge_W(bf_x_map(i_min),bc_timedev_choice)
                
                side_x = left
                side_y = right
 
 
             case(NE_corner_type)
-
-               compute_edge =
-     $              compute_edge_N(bf_y_map(j_min),bc_timedev_choice).and.
-     $              compute_edge_E(bf_x_map(i_min),bc_timedev_choice)
                
                side_x = right
                side_y = right
@@ -882,26 +1033,22 @@
           end select
 
           !computation of the corner pts
-          if(compute_edge) then
-
-             call determine_corner_or_anti_corner_grdpts_computed(
-     $            bc_section(4),
-     $            bc_section(5),
-     $            compute_point)
-             
-             call compute_timedev_corner_pts(
-     $            this,
-     $            t,
-     $            bf_x_map,
-     $            bf_y_map,
-     $            bf_nodes,
-     $            p_model,
-     $            i_min, j_min,
-     $            side_x, side_y,
-     $            compute_point,
-     $            timedev)
-
-          end if
+          call determine_corner_or_anti_corner_grdpts_computed(
+     $         bc_section(4),
+     $         bc_section(5),
+     $         compute_point)
+          
+          call compute_timedev_corner_pts(
+     $         this,
+     $         t,
+     $         bf_x_map,
+     $         bf_y_map,
+     $         bf_nodes,
+     $         p_model,
+     $         i_min, j_min,
+     $         side_x, side_y,
+     $         compute_point,
+     $         timedev)
 
         end subroutine compute_timedev_corner
 

@@ -16,8 +16,8 @@
       !-----------------------------------------------------------------
       module field_abstract_class
       
-        use bc_operators_class, only :
-     $       bc_operators
+        use bc_operators_gen_class, only :
+     $       bc_operators_gen
 
         use bc_operators_module, only :
      $       shall_bc_on_nodes_be_applied
@@ -33,17 +33,8 @@
      $       io_operators
 
         use parameters_constant, only :
-     $       periodic_xy_choice,
-     $       reflection_xy_choice,
-     $       wall_xy_choice,
-     $       wall_x_reflection_y_choice,
-     $       wall_x_simplified_choice,
-     $       hedstrom_xy_choice,
-     $       hedstrom_xy_corners_choice,
-     $       hedstrom_x_reflection_y_choice,
-     $       poinsot_xy_choice,
-     $       yoolodato_xy_choice,
-     $       N,S,E,W
+     $       N,S,E,W,
+     $       bc_timedev_choice
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
@@ -176,11 +167,11 @@
         !---------------------------------------------------------------
         type, extends(surrogate) :: field_abstract
 
-          type(sd_operators) :: sd_operators_used
-          type(pmodel_eq)    :: pmodel_eq_used
-          type(bc_operators) :: bc_operators_used
-          type(td_operators) :: td_operators_used
-          type(io_operators) :: io_operators_used
+          type(sd_operators)     :: sd_operators_used
+          type(pmodel_eq)        :: pmodel_eq_used
+          type(bc_operators_gen) :: bc_operators_used
+          type(td_operators)     :: td_operators_used
+          type(io_operators)     :: io_operators_used
 
           real(rkind)                      :: time
           real(rkind), dimension(nx,ny,ne) :: nodes
@@ -266,10 +257,7 @@
           !1) initialize the integration borders
           call this%ini_for_timeInt()
 
-          !2) initialize the boundary conditions
-          call this%bc_operators_used%ini(this%pmodel_eq_used)
-
-          !3) initialize the time+x_map,y_map+nodes+io_operators
+          !2) initialize the time+x_map,y_map+nodes+io_operators
           if(cmd_operators_used%is_restart_activated()) then
 
              call this%io_operators_used%read_data(
@@ -295,7 +283,7 @@
           call this%apply_bc_on_nodes(nodes_tmp)
           deallocate(nodes_tmp)
 
-          !4) verify the inputs
+          !3) verify the inputs
           call this%check_inputs()
 
         end subroutine ini
@@ -319,32 +307,12 @@
 
           class(field_abstract), intent(in) :: this
 
-          integer, dimension(4) :: bc_type
-
           if(ne.ne.this%pmodel_eq_used%get_eq_nb()) then
              stop 'ne is not correct considering the physical model'
           end if
 
           if(bc_size.ne.this%sd_operators_used%get_bc_size()) then
              stop 'bc_size is not correct considering spatial operator'
-          end if
-
-          bc_type = this%bc_operators_used%get_bc_type()
-
-          if(bc_N_type_choice.ne.bc_type(N)) then
-             stop 'bc_N_type_choice does not match bc_operator'
-          end if
-
-          if(bc_S_type_choice.ne.bc_type(S)) then
-             stop 'bc_S_type_choice does not match bc_operator'
-          end if
-
-          if(bc_E_type_choice.ne.bc_type(E)) then
-             stop 'bc_E_type_choice does not match bc_operator'
-          end if
-
-          if(bc_W_type_choice.ne.bc_type(W)) then
-             stop 'bc_W_type_choice does not match bc_operator'
           end if
           
         end subroutine check_inputs
@@ -368,31 +336,25 @@
 
           class(field_abstract), intent(inout) :: this
 
+
+          this%x_borders = [bc_size+1,nx-bc_size]
+          this%y_borders = [bc_size+1,ny-bc_size]
+
+          if(bc_W_type_choice.eq.bc_timedev_choice) then
+             this%x_borders(1) = this%x_borders(1)-bc_size
+          end if
+
+          if(bc_E_type_choice.eq.bc_timedev_choice) then
+             this%x_borders(2) = this%x_borders(2)+bc_size
+          end if
           
-          select case(bc_choice)
-          
-            case(reflection_xy_choice, periodic_xy_choice,
-     $           wall_xy_choice, wall_x_reflection_y_choice,
-     $           wall_x_simplified_choice)
-               this%x_borders=[bc_size+1,nx-bc_size]
-               this%y_borders=[bc_size+1,ny-bc_size]
-                  
-            case(hedstrom_xy_choice,
-     $           hedstrom_xy_corners_choice,
-     $           poinsot_xy_choice,
-     $           yoolodato_xy_choice)
-               this%x_borders=[1,nx]
-               this%y_borders=[1,ny]
-               
-            case(hedstrom_x_reflection_y_choice)
-               this%x_borders=[1,nx]
-               this%y_borders=[bc_size+1,ny-bc_size]
-            
-            case default
-               print '(''field_abstract: compute_integration_step'')'
-               stop 'bc not implemented'
-            
-          end select
+          if(bc_S_type_choice.eq.bc_timedev_choice) then
+             this%y_borders(1) = this%y_borders(1)-bc_size
+          end if
+
+          if(bc_N_type_choice.eq.bc_timedev_choice) then
+             this%y_borders(2) = this%y_borders(2)+bc_size
+          end if
 
         end subroutine ini_for_timeInt
 
@@ -576,7 +538,7 @@
 
              call this%bc_operators_used%apply_bc_on_nodes(
      $            this%time,this%x_map,this%y_map,
-     $            nodes_tmp,
+     $            nodes_tmp,this%pmodel_eq_used,
      $            this%nodes)
 
           end if

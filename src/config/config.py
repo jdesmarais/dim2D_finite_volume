@@ -9,6 +9,11 @@ import string
 
 import argparse
 
+from library_config import\
+    get_flow_config,\
+    get_bc_config
+    
+
 
 #root of the code
 augeanstablesPath= os.getenv('augeanstables')
@@ -278,42 +283,17 @@ def compute_code_inputs(inputFileName,nbTiles):
 
     bc_code      = ['periodic_xy_choice',
                     'reflection_xy_choice',
-                    'wall_xy_choice',
-                    'wall_x_reflection_y_choice',
                     'hedstrom_xy_choice',
-                    'hedstrom_xy_corners_choice',
-                    'hedstrom_x_reflection_y_choice',
                     'poinsot_xy_choice',
                     'yoolodato_xy_choice',
-                    'wall_x_simplified_choice']
-
-    bc_type_code = ['bc_nodes_choice',
-                    'bc_fluxes_choice',
-                    'bc_timedev_choice',
-                    'bc_flux_and_node_choice']
+                    'wall_xy_choice',
+                    'wall_S_reflection_choice',
+                    'wall_S_open_choice']
 
     wave_forcing_code = ['no_wave_forcing',
                          'oscillatory_forcing',
                          'intermittent_oscillatory_forcing',
                          'moving_oscillatory_forcing']
-
-    #in order to set the correct direction of the flow
-    #(N,S,E,W,NE,NW,SE,SW) from the inputs.txt, three
-    #parameters are initialized in parameters_input.f
-    #[1]: the direction of the flow is either horizontal
-    #(x_direction), vertical (y_direction) or diagonal
-    #(xy_direction)
-    #[2]: whether the flow is right or left (1.0/-1.0)
-    #[3]: whether the flow is upward or downwards (1.0/-1.0)
-    flow_direction_code = {
-        'N':  [ 'y_direction', 1.0, 1.0],
-        'S':  [ 'y_direction', 1.0,-1.0],
-        'E':  [ 'x_direction', 1.0, 1.0],
-        'W':  [ 'x_direction',-1.0, 1.0],
-        'NE': ['xy_direction', 1.0, 1.0],
-        'NW': ['xy_direction',-1.0, 1.0],
-        'SE': ['xy_direction', 1.0,-1.0],
-        'SW': ['xy_direction',-1.0,-1.0]}
 
     # read the input file
     inputs_needed=['detail_print',
@@ -352,10 +332,9 @@ def compute_code_inputs(inputFileName,nbTiles):
     #------------------------------------------------------------
     # division of the computational domain into tiles
     #------------------------------------------------------------
-    # update the type of the inputs
+    # get the number of processors
     inputs['npx']=nbTiles[0]
     inputs['npy']=nbTiles[1]
-
 
     # compute the ntx and nty determining the
     # extent of the computational domain
@@ -422,9 +401,7 @@ def compute_code_inputs(inputFileName,nbTiles):
         int(inputs['li_perturbation_ac']))
 
     # determine the flow parameters
-    inputs_computed['flow_direction'] = flow_direction_code[inputs['flow_direction']][0]
-    inputs_computed['flow_x_side']    = flow_direction_code[inputs['flow_direction']][1]
-    inputs_computed['flow_y_side']    = flow_direction_code[inputs['flow_direction']][2]
+    get_flow_config(inputs['flow_direction'],inputs_computed)
 
     
     #------------------------------------------------------------
@@ -434,60 +411,11 @@ def compute_code_inputs(inputFileName,nbTiles):
     inputs['bc_choice'] = bc_code[int(inputs['bc_choice'])]
     bc_choice = inputs['bc_choice']
     
-    # compute the bc_type_choice
-    if(bc_choice=='periodic_xy_choice' or
-       bc_choice=='reflection_xy_choice'):
-
-        inputs_computed['bc_N_type_choice'] = bc_type_code[0]
-        inputs_computed['bc_S_type_choice'] = bc_type_code[0]
-        inputs_computed['bc_E_type_choice'] = bc_type_code[0]
-        inputs_computed['bc_W_type_choice'] = bc_type_code[0]
-        
-
-    if(bc_choice=='wall_xy_choice'):
-
-        inputs_computed['bc_N_type_choice'] = bc_type_code[3]
-        inputs_computed['bc_S_type_choice'] = bc_type_code[3]
-        inputs_computed['bc_E_type_choice'] = bc_type_code[3]
-        inputs_computed['bc_W_type_choice'] = bc_type_code[3]
-
-       
-    if(bc_choice=='wall_x_reflection_y_choice'):
-
-        inputs_computed['bc_N_type_choice'] = bc_type_code[3]
-        inputs_computed['bc_S_type_choice'] = bc_type_code[3]
-        inputs_computed['bc_E_type_choice'] = bc_type_code[0]
-        inputs_computed['bc_W_type_choice'] = bc_type_code[3]
-
-    if(bc_choice=='wall_x_simplified_choice'):
-
-        inputs_computed['bc_N_type_choice'] = bc_type_code[3]
-        inputs_computed['bc_S_type_choice'] = bc_type_code[3]
-        inputs_computed['bc_E_type_choice'] = bc_type_code[3]
-        inputs_computed['bc_W_type_choice'] = bc_type_code[3]
-
-
-    if(bc_choice=='hedstrom_xy_choice' or
-       bc_choice=='hedstrom_xy_corners_choice' or
-       bc_choice=='poinsot_xy_choice' or
-       bc_choice=='yoolodato_xy_choice'):
-
-        inputs_computed['bc_N_type_choice'] = bc_type_code[2]
-        inputs_computed['bc_S_type_choice'] = bc_type_code[2]
-        inputs_computed['bc_E_type_choice'] = bc_type_code[2]
-        inputs_computed['bc_W_type_choice'] = bc_type_code[2]
-
-
-    if(bc_choice=='hedstrom_x_reflection_y_choice'):
-
-        inputs_computed['bc_N_type_choice'] = bc_type_code[0]
-        inputs_computed['bc_S_type_choice'] = bc_type_code[0]
-        inputs_computed['bc_E_type_choice'] = bc_type_code[2]
-        inputs_computed['bc_W_type_choice'] = bc_type_code[2]
+    get_bc_config(bc_choice,inputs_computed)
 
 
     #------------------------------------------------------------
-    # open boundary conditions
+    # perturbation of open boundary conditions
     #------------------------------------------------------------
     # compute the openbc_md_threshold_ac
     inputs['openbc_md_threshold_ac'] = int_to_logical_str(
@@ -559,10 +487,30 @@ def update_parameters_inputs(file_path,
         'obc_perturbation_T0_ac'           : inputs['openbc_perturbation_T0_ac'],
         'obc_perturbation_vx0_ac'          : inputs['openbc_perturbation_vx0_ac'],
         'obc_perturbation_vy0_ac'          : inputs['openbc_perturbation_vy0_ac'],
+        'bc_N_choice'                      : inputs_computed['bc_N_choice'],
+        'bc_S_choice'                      : inputs_computed['bc_S_choice'],
+        'bc_E_choice'                      : inputs_computed['bc_E_choice'],
+        'bc_W_choice'                      : inputs_computed['bc_W_choice'],
+        'bc_NW_choice'                     : inputs_computed['bc_NW_choice'],
+        'bc_NE_choice'                     : inputs_computed['bc_NE_choice'],
+        'bc_SW_choice'                     : inputs_computed['bc_SW_choice'],
+        'bc_SE_choice'                     : inputs_computed['bc_SE_choice'],
         'bc_N_type_choice'                 : inputs_computed['bc_N_type_choice'],
         'bc_S_type_choice'                 : inputs_computed['bc_S_type_choice'],
         'bc_E_type_choice'                 : inputs_computed['bc_E_type_choice'],
         'bc_W_type_choice'                 : inputs_computed['bc_W_type_choice'],
+        'bc_NW_type_choice'                : inputs_computed['bc_NW_type_choice'],
+        'bc_NE_type_choice'                : inputs_computed['bc_NE_type_choice'],
+        'bc_SW_type_choice'                : inputs_computed['bc_SW_type_choice'],
+        'bc_SE_type_choice'                : inputs_computed['bc_SE_type_choice'],
+        'bc_order1'                        : inputs_computed['bc_order1'],
+        'bc_order2'                        : inputs_computed['bc_order2'],
+        'bc_order3'                        : inputs_computed['bc_order3'],
+        'bc_order4'                        : inputs_computed['bc_order4'],
+        'bc_order5'                        : inputs_computed['bc_order5'],
+        'bc_order6'                        : inputs_computed['bc_order6'],
+        'bc_order7'                        : inputs_computed['bc_order7'],
+        'bc_order8'                        : inputs_computed['bc_order8'],
         'gravity_ac'                       : inputs['gravity_ac'],
         'wave_forcing'                     : inputs['wave_forcing'],
         'flow_direction'                   : inputs_computed['flow_direction'],

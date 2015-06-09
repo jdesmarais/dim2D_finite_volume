@@ -37,6 +37,20 @@
         contains
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine whether the boundary conditions
+        !> should be applied on the nodes for the
+        !> computational domain
+        !
+        !> @date
+        !> 10_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@return shall_bc_on_nodes_be_applied
+        !> determine whether the boundary conditions are applied
+        !--------------------------------------------------------------
         function shall_bc_on_nodes_be_applied()
 
           implicit none
@@ -56,6 +70,20 @@
         end function shall_bc_on_nodes_be_applied
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine whether the boundary conditions
+        !> should be applied on the fluxes for the
+        !> computational domain
+        !
+        !> @date
+        !> 10_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@return shall_bc_on_fluxes_be_applied
+        !> determine whether the boundary conditions are applied
+        !--------------------------------------------------------------
         function shall_bc_on_fluxes_be_applied()
      
           implicit none
@@ -67,14 +95,28 @@
      $         (bc_S_type_choice.eq.bc_flux_and_node_choice).or.
      $         (bc_E_type_choice.eq.bc_flux_and_node_choice).or.
      $         (bc_W_type_choice.eq.bc_flux_and_node_choice).or.
-     $         (bc_N_type_choice.eq.bc_flux_and_node_choice).or.
-     $         (bc_S_type_choice.eq.bc_flux_and_node_choice).or.
-     $         (bc_E_type_choice.eq.bc_flux_and_node_choice).or.
-     $         (bc_W_type_choice.eq.bc_flux_and_node_choice)
+     $         (bc_N_type_choice.eq.bc_fluxes_choice).or.
+     $         (bc_S_type_choice.eq.bc_fluxes_choice).or.
+     $         (bc_E_type_choice.eq.bc_fluxes_choice).or.
+     $         (bc_W_type_choice.eq.bc_fluxes_choice)
 
         end function shall_bc_on_fluxes_be_applied
 
 
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine whether the boundary conditions
+        !> should be applied on the time derivatives
+        !> for the computational domain
+        !
+        !> @date
+        !> 10_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@return shall_bc_on_timedev_be_applied
+        !> determine whether the boundary conditions are applied
+        !--------------------------------------------------------------
         function shall_bc_on_timedev_be_applied()
 
           implicit none

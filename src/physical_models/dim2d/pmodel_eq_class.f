@@ -159,7 +159,8 @@
      $       bf_openbc_md_threshold,
      $       obc_edge_flux_strategy,
      $       ic_perturbation_ac,
-     $       ic_perturbation_amp
+     $       ic_perturbation_amp,
+     $       gravity_ac
 
         use parameters_kind, only :
      $       ikind,
@@ -663,7 +664,12 @@ c$$$          procedure, nopass :: compute_y_leftConsLodiM
           param_value(3) = We
           param_value(4) = Pr
           param_value(5) = cv_r
-          param_value(6) = gravity
+
+          if(gravity_ac) then
+             param_value(6) = gravity
+          else
+             param_value(6) = 0.0d0
+          end if
 
         end subroutine get_sim_parameters
         

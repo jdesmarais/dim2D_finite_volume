@@ -14,8 +14,8 @@
       !-----------------------------------------------------------------
       module bf_mainlayer_time_class
 
-        use bc_operators_class, only :
-     $       bc_operators
+        use bc_operators_gen_class, only :
+     $       bc_operators_gen
 
         use bf_layer_errors_module, only :
      $       error_mainlayer_id
@@ -217,7 +217,7 @@
           real(rkind)                     , intent(in)    :: t
           type(sd_operators)              , intent(in)    :: s
           type(pmodel_eq)                 , intent(in)    :: p_model
-          type(bc_operators)              , intent(in)    :: bc_used
+          type(bc_operators_gen)          , intent(in)    :: bc_used
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
 
           type(bf_sublayer), pointer :: current_sublayer

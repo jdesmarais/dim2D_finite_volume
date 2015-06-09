@@ -13,19 +13,7 @@
       !-----------------------------------------------------------------
       module bf_newgrdpt_verification_module
 
-        use parameters_bf_layer, only :
-     $       N_edge_type,
-     $       S_edge_type,
-     $       E_edge_type,
-     $       W_edge_type,
-     $       NE_edge_type,
-     $       NW_edge_type,
-     $       SE_edge_type,
-     $       SW_edge_type,
-     $       NE_corner_type,
-     $       NW_corner_type,
-     $       SE_corner_type,
-     $       SW_corner_type,
+        use parameters_bf_layer, only :     
      $       no_gradient_type,
      $       gradient_I_type,
      $       gradient_L0_type,
@@ -40,6 +28,20 @@
      $       no_pt,
      $     
      $       BF_SUCCESS
+
+        use parameters_constant, only : 
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       NE_edge_type,
+     $       NW_edge_type,
+     $       SE_edge_type,
+     $       SW_edge_type,
+     $       NE_corner_type,
+     $       NW_corner_type,
+     $       SE_corner_type,
+     $       SW_corner_type
 
         use parameters_kind, only :
      $       ikind

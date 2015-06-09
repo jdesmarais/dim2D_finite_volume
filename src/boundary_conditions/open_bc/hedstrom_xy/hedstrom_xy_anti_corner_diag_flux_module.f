@@ -32,18 +32,18 @@
      $       incoming_right
 
         use parameters_bf_layer, only :
-     $       SE_edge_type,
-     $       SW_edge_type,
-     $       NE_edge_type,
-     $       NW_edge_type,
-     $       
      $       cptnot_type
 
         use parameters_constant, only :
      $       bc_timedev_choice,
      $       left,right,
      $       n1_direction,
-     $       n2_direction
+     $       n2_direction,
+     $       
+     $       SE_edge_type,
+     $       SW_edge_type,
+     $       NE_edge_type,
+     $       NW_edge_type
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size

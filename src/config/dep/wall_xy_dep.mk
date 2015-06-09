@@ -20,8 +20,8 @@ $(wbc_dir)/bc_operators_wall_xy_class.o:\
 			$(dim2d_dir)/dim2d_parameters.o\
 			$(dim2d_dir)/dim2d_prim_module.o\
 			$(dim2d_dir)/dim2d_state_eq_module.o\
+			$(param_dir)/errors_module.o\
 			$(sd_dir)/interface_primary.o\
-			$(bf_layer_dir)/parameters_bf_layer.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\

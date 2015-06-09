@@ -24,8 +24,7 @@
      $       get_newgrdpt_verification_bounds
         
         use parameters_bf_layer, only :
-     $       BF_SUCCESS,
-     $       no_bc_procedure_type,
+     $       BF_SUCCESS,     
      $       no_gradient_type,
      $       
      $       NEWGRDPT_NO_ERROR,
@@ -33,7 +32,8 @@
      $       NEWGRDPT_DATA_NBGRDPTS_ERROR
 
         use parameters_constant, only :
-     $       N,S,E,W
+     $       N,S,E,W,
+     $       no_bc_procedure_type
 
         use parameters_kind, only :
      $       ikind,

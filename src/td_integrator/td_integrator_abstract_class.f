@@ -16,13 +16,11 @@
       !-----------------------------------------------------------------
       module td_integrator_abstract_class
 
-        use bc_operators_class  , only : bc_operators
-        use sd_operators_class  , only : sd_operators
-        use pmodel_eq_class     , only : pmodel_eq
-        use field_abstract_class, only : field_abstract
-        use td_operators_class  , only : td_operators
-        use parameters_kind     , only : rkind
+        use field_abstract_class, only :
+     $       field_abstract
 
+        use parameters_kind, only :
+     $       rkind
 
         implicit none
 

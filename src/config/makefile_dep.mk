@@ -12,7 +12,7 @@ $(param_dir)/parameters_input.o:\
 $(field_dir)/surrogate_class.o:
 
 $(field_dir)/field_abstract_class.o:\
-			$(bc_cdir)/bc_operators_class.o\
+			$(bc_dir)/bc_operators_gen_class.o\
 			$(bc_dir)/bc_operators_module.o\
 			$(field_dir)/surrogate_class.o\
 			$(ti_dir)/interface_integration_step.o\
@@ -237,6 +237,17 @@ $(bc_dir)/bc_operators_module.o:\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o
 
+$(bc_dir)/bc_operators_gen_class.o:\
+			$(hobc_dir)/bc_operators_hedstrom_xy_class.o\
+			$(rbc_dir)/bc_operators_reflection_x_class.o\
+			$(rbc_dir)/bc_operators_reflection_y_class.o\
+			$(wbc_dir)/bc_operators_wall_xy_class.o\
+			$(param_dir)/errors_module.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o\
+			$(sd_cdir)/sd_operators_class.o
 
 #periodic boundary conditions
 $(pbc_dir)/bc_operators_class.o:\
@@ -284,10 +295,19 @@ $(rbc_dir)/reflection_xy_module.o:\
 #			$(param_dir)/parameters_input.o\
 #			$(param_dir)/parameters_kind.o
 
-$(rbc_dir)/bc_operators_reflection_xy_class.o:\
+$(rbc_dir)/bc_operators_reflection_x_class.o:\
 			$(bc_dir)/bc_operators_default_class.o\
+			$(param_dir)/errors_module.o\
 			$(pm_cdir)/pmodel_eq_class.o\
-			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(rbc_dir)/reflection_xy_module.o
+
+$(rbc_dir)/bc_operators_reflection_y_class.o:\
+			$(bc_dir)/bc_operators_default_class.o\
+			$(param_dir)/errors_module.o\
+			$(pm_cdir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
@@ -385,63 +405,9 @@ $(wrbc_dir)/bc_operators_par_class.o:\
 
 #open boundary conditions
 include $(AUGEANSTABLES_CONFIG)/dep/bf_layer_dep.mk
-
-$(obc_dir)/bc_operators_openbc_class.o:\
-			$(bc_dir)/bc_operators_default_class.o\
-			$(bbf_layer_dir)/bf_layer_bc_checks_module.o\
-			$(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o\
-			$(bf_layer_dir)/bf_layer_errors_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(bf_layer_dir)/parameters_bf_layer.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o\
-			$(sd_cdir)/sd_operators_fd_module.o\
-			$(sd_cdir)/sd_operators_x_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
-
-$(obc_dir)/bc_operators_openbc_normal_class.o:\
-			$(obc_dir)/bc_operators_openbc_class.o\
-			$(bbf_layer_dir)/bf_layer_bc_fluxes_module.o\
-			$(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o\
-			$(sbf_layer_dir)/bf_layer_extract_module.o\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o\
-			$(sd_cdir)/sd_operators_class.o\
-			$(sd_cdir)/sd_operators_fd_module.o\
-			$(sd_cdir)/sd_operators_x_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
-
-$(obc_dir)/openbc_operators_module.o:\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
-
+include $(AUGEANSTABLES_CONFIG)/dep/openbc_dep.mk
+include $(AUGEANSTABLES_CONFIG)/dep/poinsot_dep.mk
+include $(AUGEANSTABLES_CONFIG)/dep/yoolodato_dep.mk
 
 
 #hedstrom_xy_corners open boundary conditions
@@ -495,209 +461,10 @@ $(hrobc_dir)/bc_operators_class.o:\
 			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
 			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
 
-#poinsot open boundary conditions
-$(pobc_dir)/lodi_abstract_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(pobc_dir)/lodi_xy_module.o:\
-			$(sd_dir)/interface_primary.o\
-			$(pobc_cdir)/lodi_inflow_class.o\
-			$(pobc_cdir)/lodi_outflow_class.o\
-			$(obc_dir)/openbc_operators_module.o\
-			$(pm_cdir)/pmodel_eq_class.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(sd_cdir)/sd_operators_fd_module.o
-
-$(pobc_dir)/bc_operators_class.o:\
-			$(obc_dir)/bc_operators_openbc_normal_class.o\
-			$(pobc_dir)/lodi_xy_module.o\
-			$(pobc_cdir)/lodi_inflow_class.o\
-			$(pobc_cdir)/lodi_outflow_class.o\
-			$(sd_dir)/interface_primary.o\
-			$(obc_dir)/openbc_operators_module.o\
-			$(pm_cdir)/pmodel_eq_class.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(sd_cdir)/sd_operators_fd_module.o\
-			$(sd_cdir)/sd_operators_x_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
-
-#poinsot boundary conditions for NS equations
-$(pobc_dir)/lodi_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(pobc_dir)/lodi_abstract_class.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(pobc_ns2d_dir)/lodi_inflow_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(pobc_dir)/lodi_class.o\
-			$(ns2d_dir)/ns2d_parameters.o\
-			$(ns2d_dir)/ns2d_prim_module.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(ns2d_dir)/pmodel_eq_class.o
-
-$(pobc_ns2d_dir)/lodi_outflow_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(pobc_dir)/lodi_class.o\
-			$(ns2d_dir)/ns2d_parameters.o\
-			$(ns2d_dir)/ns2d_prim_module.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(ns2d_dir)/pmodel_eq_class.o
-
-#yoo and lodato boundary conditions
-$(yobc_dir)/bc_operators_class.o:\
-			$(obc_dir)/bc_operators_openbc_class.o\
-			$(sd_dir)/interface_primary.o\
-			$(yobc_cdir)/lodi_edge_inflow_class.o\
-			$(yobc_cdir)/lodi_edge_outflow_class.o\
-			$(yobc_cdir)/lodi_corner_inflow_inflow_class.o\
-			$(yobc_cdir)/lodi_corner_inflow_outflow_class.o\
-			$(yobc_cdir)/lodi_corner_outflow_outflow_class.o\
-			$(yobc_dir)/lodi_timedev_xy_module.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_x_oneside_R0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L0_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_L1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R1_class.o\
-			$(sd_cdir)/sd_operators_y_oneside_R0_class.o
-
-
-$(yobc_dir)/lodi_component_module.o:\
-			$(param_dir)/parameters_constant.o
-
-$(yobc_dir)/lodi_transverse_module.o:\
-			$(sd_cdir)/sd_operators_class.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o
-
-$(yobc_dir)/lodi_timedev_xy_module.o:\
-			$(sd_dir)/interface_primary.o\
-			$(obc_dir)/openbc_operators_module.o\
-			$(yobc_cdir)/lodi_edge_inflow_class.o\
-			$(yobc_cdir)/lodi_edge_outflow_class.o\
-			$(yobc_cdir)/lodi_corner_inflow_inflow_class.o\
-			$(yobc_cdir)/lodi_corner_inflow_outflow_class.o\
-			$(yobc_cdir)/lodi_corner_outflow_outflow_class.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(yobc_dir)/lodi_edge_abstract_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(yobc_dir)/lodi_edge_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(yobc_dir)/lodi_edge_abstract_class.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(yobc_dir)/lodi_corner_abstract_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(yobc_dir)/lodi_corner_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(yobc_dir)/lodi_corner_abstract_class.o\
-			$(ns2d_dir)/ns2d_prim_module.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-
-#Yoo-Lodato b.c. for the NS equations in 2D
-#------------------------------------------
-$(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o:\
-			$(ns2d_dir)/ns2d_parameters.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_kind.o\
-			$(param_dir)/parameters_input.o
-
-$(yobc_ns2d_dir)/lodi_edge_inflow_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(yobc_dir)/lodi_edge_class.o\
-			$(yobc_dir)/lodi_component_module.o\
-			$(yobc_dir)/lodi_transverse_module.o\
-			$(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(ns2d_dir)/pmodel_eq_class.o
-
-$(yobc_ns2d_dir)/lodi_edge_outflow_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(yobc_dir)/lodi_edge_class.o\
-			$(yobc_dir)/lodi_component_module.o\
-			$(yobc_dir)/lodi_transverse_module.o\
-			$(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(ns2d_dir)/pmodel_eq_class.o
-
-$(yobc_ns2d_dir)/lodi_corner_inflow_inflow_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(yobc_dir)/lodi_component_module.o\
-			$(yobc_dir)/lodi_corner_class.o\
-			$(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(yobc_ns2d_dir)/lodi_corner_inflow_outflow_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(yobc_dir)/lodi_component_module.o\
-			$(yobc_dir)/lodi_corner_class.o\
-			$(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(yobc_ns2d_dir)/lodi_corner_outflow_outflow_class.o:\
-			$(sd_dir)/interface_primary.o\
-			$(yobc_dir)/lodi_component_module.o\
-			$(yobc_dir)/lodi_corner_class.o\
-			$(yobc_ns2d_dir)/lodi_relaxation_coeff_module.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-
-
 
 #time discretization methods
 $(td_dir)/td_operators_abstract_class.o:\
-			$(bc_cdir)/bc_operators_class.o\
+			$(bc_dir)/bc_operators_gen_class.o\
 			$(sd_cdir)/sd_operators_class.o\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o\
@@ -712,7 +479,7 @@ $(td_dir)/td_operators_par_class.o:\
 			$(spm_dir)/dim2d_eq_class.o
 
 $(fv_dir)/td_operators_class.o:\
-			$(bc_cdir)/bc_operators_class.o\
+			$(bc_dir)/bc_operators_gen_class.o\
 			$(bc_dir)/bc_operators_module.o\
 			$(sd_cdir)/sd_operators_class.o\
 			$(bf_layer_dir)/parameters_bf_layer.o\
@@ -765,105 +532,11 @@ $(rk3tvd_dir)/td_integrator_par_class.o:\
 
 
 #io operators
-$(io_dir)/cmd_operators_class.o:\
-			$(bf_layer_dir)/parameters_bf_layer.o
-
-$(io_dir)/io_operators_module.o:
-
-$(io_dir)/io_operators_abstract_class.o:\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(io_dir)/io_operators_abstract_par_class.o:\
-			$(mpi_dir)/mpi_process_class.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(nf90_dir)/nf90_operators_module.o:\
-			$(bf_layer_dir)/parameters_bf_layer.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(nf90_dir)/nf90_operators_read_module.o:\
-			$(nf90_dir)/nf90_operators_module.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(nf90_dir)/io_operators_class.o:\
-			$(io_dir)/io_operators_module.o\
-			$(io_dir)/io_operators_abstract_class.o\
-			$(nf90_dir)/nf90_operators_module.o\
-			$(nf90_dir)/nf90_operators_read_module.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
-
-$(nf90_dir)/io_operators_par_class.o:\
-			$(io_dir)/io_operators_module.o\
-			$(io_dir)/io_operators_abstract_par_class.o\
-			$(mpi_dir)/mpi_process_class.o\
-			$(nf90_dir)/nf90_operators_module.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o\
-			$(pm_cdir)/pmodel_eq_class.o
+include $(AUGEANSTABLES_CONFIG)/dep/io_dep.mk
 
 
-#mpi processes
-$(mpi_dir)/mpi_tag_module.o:
-
-$(mpi_dir)/mpi_requests_module.o:\
-			$(mpi_bc_dir)/mpi_mg_bc_class.o\
-			$(mpi_dir)/mpi_process_class.o\
-			$(mpi_dir)/mpi_tag_module.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o
-
-$(mpi_dir)/mpi_process_class.o:\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o
-
-$(mpi_dir)/mpi_interface_class.o:\
-			$(mpi_bc_dir)/mpi_mg_bc_ext_class.o\
-			$(mpi_dir)/mpi_process_class.o\
-			$(mpi_dir)/mpi_requests_module.o\
-			$(bf_layer_dir)/parameters_bf_layer.o\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o
-
-
-#mpi messenger bc
-$(mpi_bc_dir)/mpi_mg_neighbours.o:\
-			$(param_dir)/parameters_constant.o
-
-$(mpi_bc_dir)/mpi_mg_derived_types.o:\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o\
-			$(param_dir)/parameters_kind.o
-
-$(mpi_bc_dir)/mpi_mg_bc_class.o:\
-			$(mpi_bc_dir)/mpi_mg_neighbours.o\
-			$(mpi_bc_dir)/mpi_mg_derived_types.o\
-			$(param_dir)/parameters_input.o
-
-$(mpi_bc_dir)/mpi_mg_ini_bc_proc.o:\
-			$(param_dir)/parameters_constant.o\
-			$(param_dir)/parameters_input.o
-
-$(mpi_bc_dir)/mpi_mg_construct.o:\
-			$(mpi_dir)/mpi_process_class.o\
-			$(param_dir)/parameters_constant.o
-
-$(mpi_bc_dir)/mpi_mg_bc_ext_class.o:\
-			$(mpi_bc_dir)/mpi_mg_bc_class.o\
-			$(mpi_bc_dir)/mpi_mg_construct.o\
-			$(mpi_bc_dir)/mpi_mg_ini_bc_proc.o\
-			$(param_dir)/parameters_input.o
+#mpi operators
+include $(AUGEANSTABLES_CONFIG)/dep/mpi_dep.mk
 
 
 #simulations

@@ -17,8 +17,8 @@
       !-----------------------------------------------------------------
       module bf_compute_time_class
 
-        use bc_operators_class, only :
-     $       bc_operators
+        use bc_operators_gen_class, only :
+     $       bc_operators_gen
 
         use bf_compute_basic_class, only :
      $       bf_compute_basic
@@ -147,7 +147,7 @@
           real(rkind), dimension(:)                  , intent(in)    :: y_map
           type(sd_operators)                         , intent(in)    :: s
           type(pmodel_eq)                            , intent(in)    :: p_model
-          type(bc_operators)                         , intent(in)    :: bc_used
+          type(bc_operators_gen)                     , intent(in)    :: bc_used
           integer(ikind), dimension(2,2)             , intent(in)    :: bf_alignment
           integer       , dimension(:,:)             , intent(in)    :: grdpts_id
           real(rkind)   , dimension(nx,ny,ne)        , intent(in)    :: interior_nodes

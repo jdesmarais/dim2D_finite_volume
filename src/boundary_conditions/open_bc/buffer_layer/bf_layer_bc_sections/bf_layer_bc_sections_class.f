@@ -42,7 +42,9 @@
      $       bc_interior_pt,
      $       bc_pt,
      $       BF_SUCCESS,
-     $       
+     $       no_overlap
+        
+        use parameters_constant, only :
      $       N_edge_type,
      $       S_edge_type,
      $       E_edge_type,
@@ -54,10 +56,8 @@
      $       NE_edge_type,
      $       NW_edge_type,
      $       SE_edge_type,
-     $       SW_edge_type,
-     $       
-     $       no_overlap
-        
+     $       SW_edge_type
+
         use parameters_input, only :
      $       bc_size
 

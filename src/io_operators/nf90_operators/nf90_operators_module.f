@@ -30,11 +30,10 @@
      $       dim2d_ic_code,
      $       phase_at_center_code,
      $       bubble_next_to_wall,
+     $       bubble_nucleation,
      $       bc_code,
      $       obc_type_code,
      $       hedstrom_xy_choice,
-     $       hedstrom_xy_corners_choice,
-     $       hedstrom_x_reflection_y_choice,
      $       poinsot_xy_choice,
      $       yoolodato_xy_choice,
      $       obc_edge_flux_capillarity,
@@ -43,7 +42,9 @@
      $       obc_eigenqties_lin,
      $       obc_edge_xy_corner,
      $       obc_edge_xy_flux,
-     $       obc_edge_xy_diag_flux
+     $       obc_edge_xy_diag_flux,
+     $       no_heat_source,
+     $       wall_source_code
         
         use parameters_kind, only :
      $       rkind,
@@ -75,7 +76,11 @@
      $       io_onefile_per_proc,
      $       debug_adapt_computational_domain,
      $       ic_perturbation_ac,
-     $       ic_perturbation_amp
+     $       ic_perturbation_amp,
+     $       wall_heat_source_choice,
+     $       wall_maximum_heat_flux,
+     $       wall_extra_heat_source_choice,
+     $       wall_maximum_extra_heat_flux
 
         use pmodel_eq_class, only :
      $       pmodel_eq
@@ -345,7 +350,7 @@
           !----------------------------------------
           select case(ic_choice)
 
-          case(bubble_next_to_wall)
+          case(bubble_next_to_wall,bubble_nucleation)
 
              retval = nf90_put_att(
      $         ncid,
@@ -362,6 +367,46 @@
      $         wall_micro_contact_angle)
              !DEC$ FORCEINLINE RECURSIVE
              call nf90_handle_err(retval)
+
+
+             if(wall_heat_source_choice.ne.no_heat_source) then
+                retval = nf90_put_att(
+     $               ncid,
+     $               NF90_GLOBAL,
+     $               'wall_heat_source',
+     $               wall_source_code(wall_heat_source_choice+1))
+                !DEC$ FORCEINLINE RECURSIVE
+                call nf90_handle_err(retval)
+
+                retval = nf90_put_att(
+     $               ncid,
+     $               NF90_GLOBAL,
+     $               'wall_maximum_heat_source',
+     $               wall_maximum_heat_flux)
+                !DEC$ FORCEINLINE RECURSIVE
+                call nf90_handle_err(retval)
+
+             end if
+
+             
+             if(wall_extra_heat_source_choice.ne.no_heat_source) then
+                retval = nf90_put_att(
+     $               ncid,
+     $               NF90_GLOBAL,
+     $               'wall_extra_heat_source',
+     $               wall_source_code(wall_extra_heat_source_choice+1))
+                !DEC$ FORCEINLINE RECURSIVE
+                call nf90_handle_err(retval)
+
+                retval = nf90_put_att(
+     $               ncid,
+     $               NF90_GLOBAL,
+     $               'wall_maximum_extra_heat_flux',
+     $               wall_maximum_extra_heat_flux)
+                !DEC$ FORCEINLINE RECURSIVE
+                call nf90_handle_err(retval)
+
+             end if
 
           end select
 
@@ -405,8 +450,6 @@
           select case(bc_choice)
 
           case(hedstrom_xy_choice,
-     $         hedstrom_xy_corners_choice,
-     $         hedstrom_x_reflection_y_choice,
      $         poinsot_xy_choice,
      $         yoolodato_xy_choice)
 
@@ -784,7 +827,8 @@
           integer, parameter       :: NDIMS = 3
           integer, dimension(NDIMS):: dimids
 
-          integer :: NF_MYREAL
+          integer     :: NF_MYREAL
+          real(rkind) :: NF_FILL_MYREAL
 
           character(len=10), dimension(ne) :: name_var
           character(len=33), dimension(ne) :: longname_var
@@ -807,10 +851,15 @@
 
           !<define the type of variables stored
           select case(RKIND)
+
             case(4)
-               NF_MYREAL=NF90_FLOAT
+               NF_MYREAL      = NF90_FLOAT
+               NF_FILL_MYREAL = NF90_FILL_FLOAT
+
             case(8)
-               NF_MYREAL=NF90_DOUBLE
+               NF_MYREAL      = NF90_DOUBLE
+               NF_FILL_MYREAL = NF90_FILL_DOUBLE
+               
             case default
                print '(''nf90_operators_wr_class :'')'
                print '(''nf90_def_var_model'')'
@@ -928,6 +977,26 @@
              !assign the long_name to the variables
              retval = NF90_PUT_ATT(ncid, data_id(k), LONG_NAME,
      $            longname_var(k))
+             !DEC$ FORCEINLINE RECURSIVE
+             call nf90_handle_err(retval)
+
+             !assign missing value to
+             !the governing variables
+             retval = nf90_put_att(
+     $            ncid,
+     $            data_id(k),
+     $            'missing_data',
+     $            NF_FILL_MYREAL)
+             !DEC$ FORCEINLINE RECURSIVE
+             call nf90_handle_err(retval)
+
+             !assign fill value to
+             !the governing variables
+             retval = nf90_put_att(
+     $            ncid,
+     $            data_id(k),
+     $            '_FillValue',
+     $            NF_FILL_MYREAL)
              !DEC$ FORCEINLINE RECURSIVE
              call nf90_handle_err(retval)
 

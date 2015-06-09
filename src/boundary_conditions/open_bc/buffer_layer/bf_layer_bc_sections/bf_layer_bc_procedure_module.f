@@ -15,13 +15,15 @@
       module bf_layer_bc_procedure_module
       
         use parameters_bf_layer, only :
-     $     
      $     interior_pt,
      $     bc_interior_pt,
      $     bc_pt,
      $     
      $     BF_SUCCESS,
      $     
+     $     bc_procedure_extra_checks
+
+        use parameters_constant, only :
      $     SW_corner_type,
      $     SE_corner_type,
      $     NW_corner_type,
@@ -33,9 +35,8 @@
      $     SE_edge_type,
      $     SW_edge_type,
      $     NE_edge_type,
-     $     NW_edge_type,
-     $     
-     $     bc_procedure_extra_checks
+     $     NW_edge_type
+
 
         implicit none
 

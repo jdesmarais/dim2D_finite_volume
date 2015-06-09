@@ -7,10 +7,6 @@ $(bf_layer_dir)/parameters_bf_layer.o:\
 $(bf_layer_dir)/bf_layer_errors_module.o:
 
 
-$(bf_layer_dir)/bf_nbc_template_module.o:\
-	$(bf_layer_dir)/parameters_bf_layer.o
-
-
 #bf_layer_parents
 $(pbf_layer_dir)/bf_layer_basic_class.o:\
 	$(sbf_layer_dir)/bf_layer_extract_module.o\
@@ -48,7 +44,7 @@ $(pbf_layer_dir)/bf_layer_time_class.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(sbf_layer_dir)/bf_layer_extract_module.o\
 	$(cbf_layer_dir)/bf_compute_newgrdpt_class.o\
-	$(bc_cdir)/bc_operators_class.o\
+	$(bc_dir)/bc_operators_gen_class.o\
 	$(ti_dir)/interface_integration_step.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_constant.o\
@@ -108,11 +104,6 @@ $(mpbf_layer_dir)/bf_mainlayer_print_class.o:\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(param_dir)/parameters_input.o
 
-$(mpbf_layer_dir)/bf_mainlayer_print_class.o:\
-	$(mpbf_layer_dir)/bf_mainlayer_basic_class.o\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(param_dir)/parameters_input.o
-
 $(mpbf_layer_dir)/bf_mainlayer_sync_class.o:\
 	$(bbf_layer_dir)/bf_interior_bc_sections_module.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
@@ -123,7 +114,7 @@ $(mpbf_layer_dir)/bf_mainlayer_sync_class.o:\
 	$(param_dir)/parameters_kind.o
 
 $(mpbf_layer_dir)/bf_mainlayer_time_class.o:\
-	$(bc_cdir)/bc_operators_class.o\
+	$(bc_dir)/bc_operators_gen_class.o\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(mpbf_layer_dir)/bf_mainlayer_sync_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
@@ -247,7 +238,7 @@ $(ipbf_layer_dir)/bf_interface_dyn_class.o:\
 	$(param_dir)/parameters_kind.o
 
 $(ipbf_layer_dir)/bf_interface_time_class.o:\
-	$(bc_cdir)/bc_operators_class.o\
+	$(bc_dir)/bc_operators_gen_class.o\
 	$(ipbf_layer_dir)/bf_interface_dyn_class.o\
 	$(bbf_layer_dir)/bf_mainlayer_bc_sections_module.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
@@ -305,47 +296,15 @@ $(bf_layer_dir)/bf_interface_class.o:\
 	$(pm_cdir)/pmodel_eq_class.o
 
 
-#main objects
-$(bf_layer_dir)/bf_path_icr_class.o:\
-	$(bf_layer_dir)/bf_layer_errors_module.o\
-	$(bf_layer_dir)/bf_interface_class.o\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o\
-	$(pm_cdir)/pmodel_eq_class.o
-
-$(bf_layer_dir)/bf_interface_icr_class.o:\
-	$(dbf_layer_dir)/bf_detector_dcr_param_class.o\
-	$(dbf_layer_dir)/bf_detector_icr_list_class.o\
-	$(bf_layer_dir)/bf_path_icr_class.o\
-	$(bf_layer_dir)/bf_nbc_template_module.o\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(bf_layer_dir)/bf_interface_class.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(pm_cdir)/pmodel_eq_class.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
-$(bf_layer_dir)/bf_interface_dcr_class.o:\
-	$(bf_layer_dir)/bf_interface_icr_class.o\
-	$(bf_layer_dir)/bf_mainlayer_class.o\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o\
-	$(pm_cdir)/pmodel_eq_class.o\
-	$(lbf_layer_dir)/sbf_list_class.o
-
-
-
 #buffer layer bc_sections
 $(bbf_layer_dir)/bf_layer_bc_procedure_module.o:\
-	$(bf_layer_dir)/parameters_bf_layer.o
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o
 
 $(bbf_layer_dir)/bf_layer_bc_sections_overlap_module.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
-	$(bf_layer_dir)/parameters_bf_layer.o
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o
 
 $(bbf_layer_dir)/bf_layer_bc_sections_class.o:\
 	$(bbf_layer_dir)/bf_layer_bc_procedure_module.o\
@@ -353,11 +312,13 @@ $(bbf_layer_dir)/bf_layer_bc_sections_class.o:\
 	$(bf_layer_dir)/bf_layer_errors_module.o\
 	$(sbf_layer_dir)/bf_layer_extract_module.o\
 	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
 $(bbf_layer_dir)/bf_interior_bc_sections_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
 
@@ -393,10 +354,13 @@ $(bbf_layer_dir)/bf_layer_bc_sections_icr_module.o:\
 
 #bf_layer_newgrdpt folder
 $(ngbf_layer_dir)/bf_newgrdpt_verification_module.o:\
-	$(bf_layer_dir)/parameters_bf_layer.o
+	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
+	$(param_dir)/parameters_kind.o
 
 $(ngbf_layer_dir)/bf_newgrdpt_procedure_module.o:\
 	$(bf_layer_dir)/parameters_bf_layer.o\
+	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_kind.o
 
 $(ngbf_layer_dir)/bf_newgrdpt_extract_module.o:\
@@ -433,20 +397,9 @@ $(cbf_layer_dir)/bf_compute_basic_class.o:\
 	$(param_dir)/parameters_kind.o
 
 $(cbf_layer_dir)/bf_compute_time_class.o:\
-	$(bc_cdir)/bc_operators_class.o\
+	$(bc_dir)/bc_operators_gen_class.o\
 	$(cbf_layer_dir)/bf_compute_basic_class.o\
 	$(ti_dir)/interface_integration_step.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o\
-	$(pm_cdir)/pmodel_eq_class.o\
-	$(sd_cdir)/sd_operators_class.o\
-	$(td_cdir)/td_operators_class.o
-
-$(cbf_layer_dir)/bf_compute_class.o:\
-	$(bc_cdir)/bc_operators_class.o\
-	$(sbf_layer_dir)/bf_layer_extract_module.o\
-	$(ti_dir)/interface_integration_step.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o\
@@ -459,70 +412,6 @@ $(cbf_layer_dir)/bf_compute_newgrdpt_class.o:\
 	$(ngbf_layer_dir)/bf_newgrdpt_dispatch_module.o\
 	$(param_dir)/parameters_kind.o\
 	$(pm_cdir)/pmodel_eq_class.o
-
-
-#buffer layer detectors
-$(dbf_layer_dir)/dbf_element_class.o:\
-	$(param_dir)/parameters_kind.o
-
-$(dbf_layer_dir)/dbf_list_class.o:\
-	$(dbf_layer_dir)/dbf_element_class.o\
-	$(param_dir)/parameters_kind.o
-
-$(dbf_layer_dir)/bf_detector_module.o:\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
-$(dbf_layer_dir)/bf_detector_icr_list_class.o:\
-	$(dbf_layer_dir)/bf_detector_module.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
-$(dbf_layer_dir)/bf_detector_dcr_param_class.o:\
-	$(dbf_layer_dir)/bf_detector_module.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
-$(dbf_layer_dir)/bf_detector_dcr_list_class.o:\
-	$(dbf_layer_dir)/bf_detector_module.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
-$(dbf_layer_dir)/bf_detector_dcr_list_NS_class.o:\
-	$(dbf_layer_dir)/bf_detector_dcr_list_class.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_kind.o
-
-$(dbf_layer_dir)/bf_detector_dcr_list_EW_class.o:\
-	$(dbf_layer_dir)/bf_detector_dcr_list_class.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_kind.o
-
-$(dbf_layer_dir)/bf_detector_dcr_list_N_class.o:\
-	$(dbf_layer_dir)/bf_detector_dcr_list_NS_class.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
-$(dbf_layer_dir)/bf_detector_dcr_list_S_class.o:\
-	$(dbf_layer_dir)/bf_detector_dcr_list_NS_class.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
-$(dbf_layer_dir)/bf_detector_dcr_list_E_class.o:\
-	$(dbf_layer_dir)/bf_detector_dcr_list_EW_class.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
-$(dbf_layer_dir)/bf_detector_dcr_list_W_class.o:\
-	$(dbf_layer_dir)/bf_detector_dcr_list_EW_class.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
 
 
 #buffer layer grdpts_id
@@ -562,64 +451,6 @@ $(iobf_layer_dir)/bf_layer_nf90_operators_module.o:\
 	$(param_dir)/parameters_constant.o\
 	$(param_dir)/parameters_input.o\
 	$(param_dir)/parameters_kind.o
-
-
-#buffer layer list
-$(lbf_layer_dir)/sbf_list_class.o:\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(lbf_layer_dir)/bf_sublayer_pointer_class.o
-
-
-#buffer layer neighbors
-$(nbf_layer_dir)/nbf_element_class.o:\
-	$(bf_layer_dir)/bf_layer_class.o\
-	$(bf_layer_dir)/bf_layer_errors_module.o\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
-$(nbf_layer_dir)/nbf_list_class.o:\
-	$(bbf_layer_dir)/bf_interior_bc_sections_module.o\
-	$(bf_layer_dir)/bf_layer_errors_module.o\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(nbf_layer_dir)/nbf_element_class.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o\
-	$(lbf_layer_dir)/sbf_list_class.o
-
-$(nbf_layer_dir)/nbf_interface_basic_class.o:\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(nbf_layer_dir)/nbf_element_class.o\
-	$(nbf_layer_dir)/nbf_list_class.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_kind.o
-
-$(nbf_layer_dir)/nbf_interface_sync_class.o:\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(nbf_layer_dir)/nbf_interface_basic_class.o\
-	$(param_dir)/parameters_constant.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o
-
-$(nbf_layer_dir)/nbf_interface_newgrdpt_class.o:\
-	$(sbf_layer_dir)/bf_layer_extract_module.o\
-	$(ngbf_layer_dir)/bf_newgrdpt_extract_module.o\
-	$(ngbf_layer_dir)/bf_newgrdpt_procedure_module.o\
-	$(gbf_layer_dir)/bf_suspicious_bc_interior_pt_module.o\
-	$(gbf_layer_dir)/bf_bc_crenel_module.o\
-	$(ngbf_layer_dir)/bf_newgrdpt_class.o\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(nbf_layer_dir)/nbf_interface_sync_class.o\
-	$(bf_layer_dir)/parameters_bf_layer.o\
-	$(param_dir)/parameters_input.o\
-	$(param_dir)/parameters_kind.o\
-	$(pm_cdir)/pmodel_eq_class.o
-
-$(nbf_layer_dir)/nbf_interface_class.o:\
-	$(bf_layer_dir)/bf_sublayer_class.o\
-	$(nbf_layer_dir)/nbf_interface_newgrdpt_class.o\
-	$(lbf_layer_dir)/sbf_list_class.o
 
 
 #buffer layer restart
@@ -705,3 +536,5 @@ $(dbf_layer_dir)/dcr_interface_class.o:\
 	$(bf_layer_dir)/bf_mainlayer_class.o\
 	$(bf_layer_dir)/bf_sublayer_class.o\
 	$(dbf_layer_dir)/dcr_list_class.o
+
+

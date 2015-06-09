@@ -40,6 +40,11 @@
      $       mainlayer_interface_dyn
 
         use parameters_bf_layer, only :
+     $       no_overlap
+
+        use parameters_constant, only :
+     $       left,
+     $       right,
      $       N_edge_type,
      $       S_edge_type,
      $       E_edge_type,
@@ -51,13 +56,7 @@
      $       NE_corner_type,
      $       NW_corner_type,
      $       SE_corner_type,
-     $       SW_corner_type,
-     $       no_overlap
-
-
-        use parameters_constant, only :
-     $       left,
-     $       right
+     $       SW_corner_type
 
         use parameters_kind, only :
      $       ikind,

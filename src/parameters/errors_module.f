@@ -21,10 +21,12 @@
 
         private
         public :: 
-     $       error_bc_section_type
+     $       error_bc_section_type,
+     $       error_bc_choice
 
 
         integer, parameter :: ERROR_BC_SECTION_ID_CODE = 0
+        integer, parameter :: ERROR_BC_CHOICE_ID_CODE  = 1
 
 
         contains
@@ -67,5 +69,42 @@
           stop 'error_bc_section'
 
         end subroutine error_bc_section_type
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> error printed if bc_choice not recognized
+        !
+        !> @date
+        !> 07_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@param file_name
+        !> name of the file where the exception is caught
+        !
+        !>@param fct_name
+        !> name of the subroutine where the exception is caught
+        !
+        !>@param bc_choice
+        !> value of the parameter trigerring the exception
+        !--------------------------------------------------------------
+        subroutine error_bc_choice(
+     $     file_name, fct_name, bc_choice)
+
+          implicit none
+
+          character(*), intent(in) :: file_name
+          character(*), intent(in) :: fct_name
+          integer     , intent(in) :: bc_choice
+
+          write(ERROR_UNIT, '(A)') file_name
+          write(ERROR_UNIT, '(A)') fct_name
+          write(ERROR_UNIT, '(A)') 'bc_choice not recognized'
+          write(ERROR_UNIT, '(''bc_choice: '',I2)') bc_choice
+
+          stop 'error_bc_choice'
+
+        end subroutine error_bc_choice
 
       end module errors_module

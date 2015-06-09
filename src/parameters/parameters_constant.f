@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '29d445895d4fd228cd75056883e55dafe7ff5588')
+        parameter (commit = '5e5a9a2e64becf46edd15daeeae3ec68c63218be')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -100,38 +100,60 @@
 
         !> phase at center code
         character(6), dimension(2), parameter :: phase_at_center_code = [
-     $       'liquid','vapor']
-
+     $       'liquid',
+     $       'vapor ']
 
         !>boundary conditions choice
-        character(23), dimension(10), parameter :: bc_code =[
+        character(23), dimension(8), parameter :: bc_code =[
      $       'periodic_xy            ',
      $       'reflection_xy          ',
-     $       'wall_xy                ',
-     $       'wall_x_reflection_y    ',
      $       'hedstrom_xy            ',
-     $       'hedstrom_xy_corners    ',
-     $       'hedstrom_x_reflection_y',
      $       'poinsot_xy             ',
      $       'yoolodato_xy           ',
-     $       'wall_x_simplified      ']
+     $       'wall_xy                ',
+     $       'wall_S_reflection      ',
+     $       'wall_S_open            ']
 
         integer, parameter :: periodic_xy_choice=0
         integer, parameter :: reflection_xy_choice=1
-        integer, parameter :: wall_xy_choice=2
-        integer, parameter :: wall_x_reflection_y_choice=3
-        integer, parameter :: hedstrom_xy_choice=4
-        integer, parameter :: hedstrom_xy_corners_choice=5
-        integer, parameter :: hedstrom_x_reflection_y_choice=6
-        integer, parameter :: poinsot_xy_choice=7
-        integer, parameter :: yoolodato_xy_choice=8
-        integer, parameter :: wall_x_simplified_choice=9
+        integer, parameter :: hedstrom_xy_choice=2
+        integer, parameter :: poinsot_xy_choice=3
+        integer, parameter :: yoolodato_xy_choice=4
+        integer, parameter :: wall_xy_choice=5
+        integer, parameter :: wall_S_reflection_choice=6
+        integer, parameter :: wall_S_open_choice=6
+
+        !>boundary conditions local choice
+        integer, parameter :: periodic_x_choice=0
+        integer, parameter :: periodic_y_choice=1
+        integer, parameter :: reflection_x_choice=2
+        integer, parameter :: reflection_y_choice=3
+        integer, parameter :: hedstrom_choice=4
+        integer, parameter :: poinsot_choice=5
+        integer, parameter :: yoolodato_choice=6
+        integer, parameter :: wall_choice=7
+                
 
         !>boundary conditions type choice
         integer, parameter :: bc_nodes_choice=0
         integer, parameter :: bc_fluxes_choice=1
         integer, parameter :: bc_timedev_choice=2
         integer, parameter :: bc_flux_and_node_choice=3
+
+        !>boundary procedure convention
+        integer, parameter :: no_bc_procedure_type=0
+        integer, parameter :: SW_corner_type=1
+        integer, parameter :: SE_corner_type=2
+        integer, parameter :: NW_corner_type=3
+        integer, parameter :: NE_corner_type=4
+        integer, parameter :: S_edge_type=5
+        integer, parameter :: E_edge_type=6
+        integer, parameter :: W_edge_type=7
+        integer, parameter :: N_edge_type=8
+        integer, parameter :: SE_edge_type=9
+        integer, parameter :: SW_edge_type=10
+        integer, parameter :: NE_edge_type=11
+        integer, parameter :: NW_edge_type=12
 
         !>equations tuning choice
         integer, parameter :: no_gravity_choice=0
@@ -302,8 +324,14 @@
         !                       at the wall equal to the maximum heat
         !                       flux
         !-----------------------------------------------------------
-        integer, parameter :: no_heat_source = 0
+        character(20), dimension(3), parameter :: wall_source_code =[
+     $       'no_heat_source      ',
+     $       'constant_heat_source',
+     $       'gaussian_heat_source']
+
+        integer, parameter :: no_heat_source       = 0
         integer, parameter :: constant_heat_source = 1
+        integer, parameter :: gaussian_heat_source = 2
 
       end module parameters_constant
 

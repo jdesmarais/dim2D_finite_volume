@@ -13,6 +13,8 @@
       !-----------------------------------------------------------------
       module parameters_input
 
+        use netcdf
+
         use parameters_constant
 
         use parameters_kind, only :
@@ -25,17 +27,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = 0.0000000000d0
+        real(rkind), parameter :: x_min = -0.6489000000d0
         real(rkind), parameter :: x_max = 0.6489000000d0
         real(rkind), parameter :: y_min = 0.0000000000d0
-        real(rkind), parameter :: y_max = 0.4000000000d0
+        real(rkind), parameter :: y_max = 0.8000000000d0
         
         !<computational times
         real(rkind), parameter :: t_max = 100.0000000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0008000000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0010000000d0
+        real(rkind), parameter :: detail_print = 1.0000000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -45,8 +47,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 10
-        integer(ikind), parameter :: nty = 10
+        integer(ikind), parameter :: ntx = 108
+        integer(ikind), parameter :: nty = 68
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -115,14 +117,14 @@
         !for the saturated liquid and vapor mass densities
         !and the interface length
         !--------------------------------------------
-        integer    , parameter :: flow_direction = x_direction
-        real(rkind), parameter :: flow_x_side = 1.0d0
-        real(rkind), parameter :: flow_y_side = 0.0d0
-        real(rkind), parameter :: flow_velocity = 0.1d0
+        integer    , parameter :: flow_direction = y_direction
+        real(rkind), parameter :: flow_x_side = 1.0000000000d0
+        real(rkind), parameter :: flow_y_side = 1.0000000000d0
+        real(rkind), parameter :: flow_velocity = 0.0000000000d0
         
-        real(rkind), parameter :: T0 = 0.95d0
+        real(rkind), parameter :: T0 = 0.9990000000d0
 
-        integer    , parameter :: ic_choice = peak
+        integer    , parameter :: ic_choice = bubble_nucleation
 
         integer    , parameter :: phase_at_center = vapor
 
@@ -135,36 +137,77 @@
         logical    , parameter :: dim2d_lowTemperature = .false.
 
         !<body forces choice
-        integer    , parameter :: gravity_ac = .false.
-        real(rkind), parameter :: gravity_amp = 0.0050000000d0
+        logical    , parameter :: gravity_ac = .false.
+        real(rkind), parameter :: gravity_amp = 0.0000000000d0
         integer    , parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = wall_xy_choice
+        integer, parameter :: bc_choice = wall_S_open_choice
+
+        integer, parameter :: bc_N_choice = hedstrom_choice
+        integer, parameter :: bc_S_choice = wall_choice
+        integer, parameter :: bc_E_choice = hedstrom_choice
+        integer, parameter :: bc_W_choice = hedstrom_choice
+
+        integer, parameter :: bc_NW_choice = hedstrom_choice
+        integer, parameter :: bc_NE_choice = hedstrom_choice
+        integer, parameter :: bc_SE_choice = wall_choice
+        integer, parameter :: bc_SW_choice = wall_choice        
+
+        integer, parameter :: bc_order1 = SW_corner_type
+        integer, parameter :: bc_order2 = S_edge_type
+        integer, parameter :: bc_order3 = SE_edge_type
+        integer, parameter :: bc_order4 = W_edge_type
+        integer, parameter :: bc_order5 = E_edge_type
+        integer, parameter :: bc_order6 = NW_corner_type
+        integer, parameter :: bc_order7 = N_edge_type
+        integer, parameter :: bc_order8 = NE_corner_type
+        
 
         !<output choice
         integer, parameter :: io_choice = netcdf_choice
         logical, parameter :: io_onefile_per_proc = .true.
 
+
         !< type of boundary conditions
-        !-----------------------------------------------------
+        !------------------------------------------------------
         !type of boundary conditions applied at the edge
         !(constrained by the bc_choice parameter)
-        !-----------------------------------------------------
+        !------------------------------------------------------
         !
-        !bc_N_type_choice : type of boundary condition applied
-        !                   at the North boundary
-        !bc_S_type_choice : type of boundary condition applied
-        !                   at the South boundary
-        !bc_E_type_choice : type of boundary condition applied
-        !                   at the East boundary
-        !bc_W_type_choice : type of boundary condition applied
-        !                   at the West boundary
-        !-----------------------------------------------------
-        integer    , parameter :: bc_N_type_choice = bc_flux_and_node_choice
-        integer    , parameter :: bc_S_type_choice = bc_flux_and_node_choice
-        integer    , parameter :: bc_E_type_choice = bc_flux_and_node_choice
-        integer    , parameter :: bc_W_type_choice = bc_flux_and_node_choice
+        !bc_N_type_choice  : type of boundary condition applied
+        !                    at the North boundary
+        !
+        !bc_S_type_choice  : type of boundary condition applied
+        !                    at the South boundary
+        !
+        !bc_E_type_choice  : type of boundary condition applied
+        !                    at the East boundary
+        !
+        !bc_W_type_choice  : type of boundary condition applied
+        !                    at the West boundary
+        !
+        !bc_NW_type_choice : type of boundary condition applied
+        !                    at the North-West corner boundary
+        !
+        !bc_NE_type_choice : type of boundary condition applied
+        !                    at the North-East corner boundary
+        !
+        !bc_SE_type_choice : type of boundary condition applied
+        !                    at the South-East corner boundary
+        !
+        !bc_SW_type_choice : type of boundary condition applied
+        !                    at the South-West corner boundary
+        !------------------------------------------------------
+        integer, parameter :: bc_N_type_choice = bc_timedev_choice
+        integer, parameter :: bc_S_type_choice = bc_flux_and_node_choice
+        integer, parameter :: bc_E_type_choice = bc_timedev_choice
+        integer, parameter :: bc_W_type_choice = bc_timedev_choice
+
+        integer, parameter :: bc_NW_type_choice = bc_timedev_choice
+        integer, parameter :: bc_NE_type_choice = bc_timedev_choice
+        integer, parameter :: bc_SE_type_choice = bc_flux_and_node_choice
+        integer, parameter :: bc_SW_type_choice = bc_flux_and_node_choice
 
 
         !< wall boundary conditions parameters
@@ -176,11 +219,11 @@
         !wall_maximum_heat_flux   : maximum heat flux at the
         !                           wall
         !-----------------------------------------------------
-        real(rkind), parameter :: wall_micro_contact_angle = 90.0000000000d0
-        integer    , parameter :: wall_heat_source_choice       = constant_heat_source
-        real(rkind), parameter :: wall_maximum_heat_flux        = 0.005d0
-        integer    , parameter :: wall_extra_heat_source_choice = no_heat_source !constant_heat_source
-        real(rkind), parameter :: wall_maximum_extra_heat_flux  = 0.001d0
+        real(rkind), parameter :: wall_micro_contact_angle = 135.0000000000d0
+        integer    , parameter :: wall_heat_source_choice       = no_heat_source
+        real(rkind), parameter :: wall_maximum_heat_flux        = 0.000d0 !0.005d0
+        integer    , parameter :: wall_extra_heat_source_choice = no_heat_source
+        real(rkind), parameter :: wall_maximum_extra_heat_flux  = 0.000d0
 
         
         !-----------------------------------------------------
@@ -372,9 +415,9 @@
         logical    , parameter :: debug_geometry_update = .false.
 
         logical    , parameter :: debug_initialize_nodes    = .true.
-        logical    , parameter :: debug_initialize_bc_nodes = .false.
+        logical    , parameter :: debug_initialize_bc_nodes = .true.
         logical    , parameter :: debug_initialize_timedev  = .true.
-        real(rkind), parameter :: debug_real=1e30
+        real(rkind), parameter :: debug_real=NF90_FILL_DOUBLE !1e30
 
 
         !------------------------------------------------------------
@@ -388,7 +431,7 @@
         !    parameter checked such that the simulation is considered
         !    steady state
         !------------------------------------------------------------
-        logical    , parameter :: steady_state_simulation = .false.
+        logical    , parameter :: steady_state_simulation = .true.
         real(rkind), parameter :: steady_state_limit = 1.0e-12
 
       end module parameters_input

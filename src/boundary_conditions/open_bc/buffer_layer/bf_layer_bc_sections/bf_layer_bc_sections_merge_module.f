@@ -15,6 +15,18 @@
       module bf_layer_bc_sections_merge_module
 
         use parameters_bf_layer, only :
+     $       no_overlap,
+     $       N_overlap,
+     $       S_overlap,
+     $       E_overlap,
+     $       W_overlap,
+     $       interior_pt,
+     $       bc_interior_pt,
+     $       bc_pt
+
+        use parameters_constant, only :
+     $       left, right,
+     $       
      $       no_bc_procedure_type,
      $       N_edge_type,
      $       S_edge_type,
@@ -27,18 +39,7 @@
      $       NE_edge_type,
      $       NW_edge_type,
      $       SE_edge_type,
-     $       SW_edge_type,
-     $       no_overlap,
-     $       N_overlap,
-     $       S_overlap,
-     $       E_overlap,
-     $       W_overlap,
-     $       interior_pt,
-     $       bc_interior_pt,
-     $       bc_pt
-
-        use parameters_constant, only :
-     $       left, right
+     $       SW_edge_type
 
         use parameters_kind, only :
      $       ikind

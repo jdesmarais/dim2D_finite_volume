@@ -16,9 +16,19 @@
 
         use parameters_bf_layer, only :
      $       bc_pt,
-     $       no_pt,
-     $       no_bc_procedure_type,
+     $       no_pt,     
      $       no_gradient_type,
+     $       no_gradient_type,
+     $       gradient_I_type,
+     $       gradient_L0_type,
+     $       gradient_R0_type,
+     $       gradient_xLR0_yI_type,
+     $       gradient_xI_yLR0_type,
+     $       gradient_xLR0_yLR0_type,
+     $       BF_SUCCESS
+
+        use parameters_constant, only :
+     $       no_bc_procedure_type,
      $       N_edge_type,
      $       S_edge_type,
      $       E_edge_type,
@@ -30,15 +40,7 @@
      $       NE_corner_type,
      $       NW_corner_type,
      $       SE_corner_type,
-     $       SW_corner_type,
-     $       no_gradient_type,
-     $       gradient_I_type,
-     $       gradient_L0_type,
-     $       gradient_R0_type,
-     $       gradient_xLR0_yI_type,
-     $       gradient_xI_yLR0_type,
-     $       gradient_xLR0_yLR0_type,
-     $       BF_SUCCESS
+     $       SW_corner_type
 
         use parameters_kind, only :
      $       ikind

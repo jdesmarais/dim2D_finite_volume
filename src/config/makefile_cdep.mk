@@ -84,9 +84,10 @@ bc_dep=			bc_operators_abstract_class.o\
 
 #			bc_operators_module.o
 
-reflection_dep=		$(bc_dep)\
+reflection_xy_dep=	$(bc_dep)\
 			reflection_xy_module.o\
-			bc_operators_reflection_xy_class.o
+			bc_operators_reflection_x_class.o\
+			bc_operators_reflection_y_class.o
 
 periodic_dep=		$(bc_dep)
 
@@ -94,15 +95,6 @@ wall_xy_dep=		$(bc_dep)\
 			wall_xy_equilibrium_module.o\
 			ridders_method_module.o\
 			bc_operators_wall_xy_class.o
-
-wall_x_reflection_dep=	$(bc_dep)\
-			reflection_xy_module.o\
-			wall_prim_module.o\
-			wall_xy_module.o
-
-wall_x_simplified_dep=	$(bc_dep)\
-			ridders_method_module.o\
-			wall_xy_equilibrium_module.o
 
 hedstrom_xy_dep=	$(bc_dep)\
 			bf_layer_errors_module.o\
@@ -174,6 +166,13 @@ yoo_ns2d_dep=		$(yoo_xy_dep)\
 			lodi_corner_inflow_inflow_class.o\
 			lodi_corner_inflow_outflow_class.o\
 			lodi_corner_outflow_outflow_class.o
+
+bc_gen_dep=		bc_operators_module.o\
+			errors_module.o\
+			$(hedstrom_xy_dep)\
+			$(reflection_xy_dep)\
+			$(wall_xy_dep)\
+			bc_operators_gen_class.o
 
 td_dep=			td_operators_abstract_class.o\
 			td_operators_class.o

@@ -36,22 +36,7 @@
 
         use parameters_bf_layer, only :
      $       align_N, align_S,
-     $       align_E, align_W,
-     $       
-     $       N_edge_type,
-     $       S_edge_type,
-     $       E_edge_type,
-     $       W_edge_type,
-     $       
-     $       NE_corner_type,
-     $       NW_corner_type,
-     $       SE_corner_type,
-     $       SW_corner_type,
-     $       
-     $       NE_edge_type,
-     $       NW_edge_type,
-     $       SE_edge_type,
-     $       SW_edge_type,
+     $       align_E, align_W,     
      $       
      $       dct_icr_distance,
      $       
@@ -68,7 +53,21 @@
 
         use parameters_constant, only :
      $       N,S,E,W,
-     $       no_interior_mainlayer
+     $       no_interior_mainlayer,
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       
+     $       NE_corner_type,
+     $       NW_corner_type,
+     $       SE_corner_type,
+     $       SW_corner_type,
+     $       
+     $       NE_edge_type,
+     $       NW_edge_type,
+     $       SE_edge_type,
+     $       SW_edge_type
 
         use parameters_input, only :
      $       nx,ny,ne,
@@ -343,7 +342,7 @@
           end if
 
 
-          ! check whether the East boundary should be updated
+          ! check whether the North boundary should be updated
           if(adapt_N_choice.eq.adapt_domain_choice) then
              
              mainlayer_id = N

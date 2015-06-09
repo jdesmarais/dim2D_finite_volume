@@ -663,7 +663,7 @@
 
              ! fluxes that can only be computed by combining
              ! the current nodes with the interior_nodes
-             if(i_min.le.bc_size) then
+             if(i_min.le.i_lim_min) then
 
                 call compute_flux_x_by_combining_grdpts(
      $               bf_alignment,
@@ -681,7 +681,7 @@
 
              ! fluxes that can be computed using directly 
              ! nodes
-             do i=max(i_min,bc_size+1), min(i_max,size_x-bc_size+1)
+             do i=i_mid_min, i_mid_max
 
                 flux_x(i,j+1,:) = p_model%compute_flux_x_oneside(
      $               bf_nodes,dx,dy,
@@ -693,7 +693,7 @@
 
              ! fluxes that can only be computed by combining
              ! the current nodes with the interior_nodes
-             if(i_max.ge.(size_x-bc_size+2)) then
+             if(i_max.ge.i_lim_max) then
 
                 call compute_flux_x_by_combining_grdpts(
      $               bf_alignment,
@@ -824,17 +824,32 @@
           logical               :: side_y
           integer(ikind)        :: i,j
           real(rkind)           :: dx,dy
+          integer(ikind)        :: i_min_f
+          integer(ikind)        :: i_max_f
 
 
           dx = bf_x_map(2) - bf_x_map(1)
           dy = bf_y_map(2) - bf_y_map(1)
 
+          side_y = right
           
           call determine_edge_grdpts_computed(overlap_type,compute_edge)
 
 
           if((compute_edge(1).or.compute_edge(2)).and.
      $       ((i_max-i_min+1).gt.0)) then
+
+             i_min_f = i_min
+             i_max_f = i_max+1
+
+
+             ! check whether all fluxes should be computed for
+             ! the edge of whether some fluxes have already been
+             ! computed by other boundary conditions: flux b.c.
+             call this%check_x_flux_interactions_btw_bcs(
+     $            i_min_f,i_max_f,
+     $            side_y,
+     $            bf_alignment=bf_alignment)
 
              !compute the fluxes at the edges
              call compute_fluxes_x_for_bc_y_edge(
@@ -845,13 +860,10 @@
      $            dx,dy,
      $            s_y_R1, s_y_R0,
      $            p_model,
-     $            i_min, i_max+1, j_min,
+     $            i_min_f, i_max_f, j_min,
      $            compute_edge,
      $            flux_x)
 
-             !compute the time derivatives
-             side_y = right
-          
              !1st section: j=j_min
              if(compute_edge(1)) then
 
@@ -1008,17 +1020,33 @@
           logical               :: side_y
           integer(ikind)        :: i,j
           real(rkind)           :: dx,dy
+          integer(ikind)        :: i_min_f
+          integer(ikind)        :: i_max_f
 
 
           dx = bf_x_map(2) - bf_x_map(1)
           dy = bf_y_map(2) - bf_y_map(1)
 
+          side_y = left
 
           call determine_edge_grdpts_computed(overlap_type,compute_edge)
 
 
           if((compute_edge(1).or.compute_edge(2)).and.
      $       ((i_max-i_min+1).gt.0)) then
+
+             i_min_f = i_min
+             i_max_f = i_max+1
+             
+
+             ! check whether all fluxes should be computed for
+             ! the edge of whether some fluxes have already been
+             ! computed by other boundary conditions: flux b.c.
+             call this%check_x_flux_interactions_btw_bcs(
+     $            i_min_f,i_max_f,
+     $            side_y,
+     $            bf_alignment=bf_alignment)
+
 
              !compute the fluxes at the edges
              call compute_fluxes_x_for_bc_y_edge(
@@ -1029,13 +1057,10 @@
      $            dx,dy,
      $            s_y_L0, s_y_L1,
      $            p_model,
-     $            i_min, i_max+1, j_min,
+     $            i_min_f, i_max_f, j_min,
      $            compute_edge,
      $            flux_x)
-
-
-             !compute the time derivatives
-             side_y = left
+             
 
              !1st section: j=j_min
              if(compute_edge(1)) then
@@ -1191,17 +1216,33 @@
           logical               :: side_x
           integer(ikind)        :: i,j
           real(rkind)           :: dx,dy
+          integer(ikind)        :: j_min_f
+          integer(ikind)        :: j_max_f
 
 
           dx = bf_x_map(2) - bf_x_map(1)
           dy = bf_y_map(2) - bf_y_map(1)
 
+          side_x = right
 
           call determine_edge_grdpts_computed(overlap_type,compute_edge)
 
 
           if((compute_edge(1).or.compute_edge(2)).and.
      $       ((j_max-j_min+1).gt.0)) then
+
+             j_min_f = j_min
+             j_max_f = j_max+1
+             
+
+             ! check whether all fluxes should be computed for
+             ! the edge of whether some fluxes have already been
+             ! computed by other boundary conditions: flux b.c.
+             call this%check_y_flux_interactions_btw_bcs(
+     $            j_min_f,j_max_f,
+     $            side_x,
+     $            bf_alignment=bf_alignment)
+
 
              !compute the fluxes at the edges
              call compute_fluxes_y_for_bc_x_edge(
@@ -1212,13 +1253,10 @@
      $            dx,dy,
      $            s_x_R1, s_x_R0,
      $            p_model,
-     $            i_min, j_min, j_max+1,
+     $            i_min, j_min_f, j_max_f,
      $            compute_edge,
      $            flux_y)
 
-             !compute the time derivatives
-             side_x = right
-          
              
              ! compute the time derivatives
              !============================================================
@@ -1412,17 +1450,34 @@
           logical               :: side_x
           integer(ikind)        :: i,j
           real(rkind)           :: dx,dy
+          integer(ikind)        :: j_min_f
+          integer(ikind)        :: j_max_f
 
 
           dx = bf_x_map(2) - bf_x_map(1)
           dy = bf_y_map(2) - bf_y_map(1)
 
+          side_x = left
 
           call determine_edge_grdpts_computed(overlap_type,compute_edge)
 
 
           if((compute_edge(1).or.compute_edge(2)).and.
      $       ((j_max-j_min+1).gt.0)) then
+
+
+             j_min_f = j_min
+             j_max_f = j_max+1
+             
+
+             ! check whether all fluxes should be computed for
+             ! the edge of whether some fluxes have already been
+             ! computed by other boundary conditions: flux b.c.
+             call this%check_y_flux_interactions_btw_bcs(
+     $            j_min_f,j_max_f,
+     $            side_x,
+     $            bf_alignment=bf_alignment)
+
 
              !compute the fluxes at the edges
              call compute_fluxes_y_for_bc_x_edge(
@@ -1433,13 +1488,10 @@
      $            dx,dy,
      $            s_x_L0, s_x_L1,
      $            p_model,
-     $            i_min, j_min, j_max+1,
+     $            i_min, j_min_f, j_max_f,
      $            compute_edge,
      $            flux_y)
 
-             !compute the time derivatives
-             side_x = left
-          
              
              ! compute the time derivatives
              !============================================================

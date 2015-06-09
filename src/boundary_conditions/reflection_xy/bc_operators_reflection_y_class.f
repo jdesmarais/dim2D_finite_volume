@@ -12,7 +12,7 @@
       !> @date
       !> 07_04_2015 - initial version - J.L. Desmarais
       !-----------------------------------------------------------------
-      module bc_operators_reflection_xy_class
+      module bc_operators_reflection_y_class
 
         use bc_operators_default_class, only :
      $       bc_operators_default
@@ -27,8 +27,6 @@
      $       bc_nodes_choice,
      $       N_edge_type,
      $       S_edge_type,
-     $       E_edge_type,
-     $       W_edge_type,
      $       NE_corner_type,
      $       NW_corner_type,
      $       SE_corner_type,
@@ -43,53 +41,40 @@
      $       rkind
 
         use reflection_xy_module, only :
-     $       reflection_x_prefactor,
      $       reflection_y_prefactor
 
         implicit none
 
 
         private
-        public :: bc_operators_reflection_xy
+        public :: bc_operators_reflection_y
 
 
         !> @class bc_operators
         !> class encapsulating subroutines to apply
-        !> reflection boundary conditions in the x and
-        !> y directions at the edge of the computational
+        !> reflection boundary conditions in the y
+        !> direction at the edges of the computational
         !> domain
-        !>
-        !> @param prefactor_x
-        !> prefactor for the computation of the reflection
-        !> boundary conditions along the x-direction
-        !>
-        !> @param prefactor_y
-        !> prefactor for the computation of the reflection
-        !> boundary conditions along the y-direction
-        !>
-        !> @param initialize
-        !> initialize the prefactor_x and prefactor_y
-        !> attributes of the boundary conditions
-        !>
+        !
         !> @param apply_bc_on_nodes
         !> apply the reflection boundary conditions along
-        !> the x and y directions at the edge of the
+        !> the y direction at the edge of the
         !> computational domain for the field
-        !>
+        !
         !> @param apply_bc_on_nodes_nopt
         !> apply the reflection boundary conditions along
-        !> the x and y directions at the edge of the
+        !> the y direction at the edge of the
         !> computational domain for the field but only 
         !> on the bc_sections
         !---------------------------------------------------------------
-        type, extends(bc_operators_default) :: bc_operators_reflection_xy
+        type, extends(bc_operators_default) :: bc_operators_reflection_y
 
           contains
 
           procedure, nopass :: apply_bc_on_nodes
           procedure, nopass :: apply_bc_on_nodes_nopt
 
-        end type bc_operators_reflection_xy
+        end type bc_operators_reflection_y
 
 
         contains
@@ -202,28 +187,18 @@
           real(rkind), dimension(:,:,:), intent(inout) :: nodes
 
           real(rkind)            :: s
-
-          integer, dimension(ne) :: prefactor_x
           integer, dimension(ne) :: prefactor_y
-
           integer(ikind)         :: reflection_N
           integer(ikind)         :: reflection_S
-          integer(ikind)         :: reflection_E
-          integer(ikind)         :: reflection_W
-
           integer(ikind)         :: i,j
           integer                :: k
 
           s = t + x_map(1) + y_map(1) + nodes_tmp(1,1,1)
 
-
-          prefactor_x  = reflection_x_prefactor(p_model)
           prefactor_y  = reflection_y_prefactor(p_model)
 
           reflection_N = 2*bc_section(3)-1
           reflection_S = 2*bc_section(3)+2*bc_size-1
-          reflection_E = 2*bc_section(2)-1
-          reflection_W = 2*bc_section(2)+2*bc_size-1
 
 
           select case(bc_section(1))
@@ -247,30 +222,6 @@
                         
                         nodes(i,j,k) = prefactor_y(k)*
      $                       nodes(i,reflection_S-j,k)
-
-                     end do
-                  end do
-               end do
-
-            case(E_edge_type)
-               do k=1, ne
-                  do j=bc_section(3), bc_section(4)
-                     do i=bc_section(2), bc_section(2)+bc_size-1
-
-                        nodes(i,j,k) = prefactor_x(k)*
-     $                       nodes(reflection_E-i,j,k)
-
-                     end do
-                  end do
-               end do
-
-            case(W_edge_type)
-               do k=1, ne
-                  do j=bc_section(3), bc_section(4)
-                     do i=bc_section(2), bc_section(2)+bc_size-1
-
-                        nodes(i,j,k) = prefactor_x(k)*
-     $                       nodes(reflection_W-i,j,k)
 
                      end do
                   end do
@@ -302,7 +253,7 @@
 
             case default
                call error_bc_section_type(
-     $              'bc_operators_reflection_xy_class',
+     $              'bc_operators_reflection_y_class',
      $              'apply_bc_on_nodes',
      $              bc_section(1))
 
@@ -310,4 +261,4 @@
 
         end subroutine apply_bc_on_nodes_nopt
 
-      end module bc_operators_reflection_xy_class
+      end module bc_operators_reflection_y_class

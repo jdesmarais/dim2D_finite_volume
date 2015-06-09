@@ -32,16 +32,6 @@
         use interface_primary, only :
      $       gradient_proc
 
-        use parameters_bf_layer, only :
-     $       N_edge_type,
-     $       S_edge_type,
-     $       E_edge_type,
-     $       W_edge_type,
-     $       NE_corner_type,
-     $       NW_corner_type,
-     $       SE_corner_type,
-     $       SW_corner_type
-
         use parameters_constant, only :
      $       N,S,E,W,
      $       bc_flux_and_node_choice,
@@ -50,7 +40,15 @@
      $       sd_L0_type,
      $       sd_L1_type,
      $       sd_R1_type,
-     $       sd_R0_type
+     $       sd_R0_type,
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       NE_corner_type,
+     $       NW_corner_type,
+     $       SE_corner_type,
+     $       SW_corner_type
 
         use parameters_input, only :
      $       nx,ny,ne,
@@ -79,7 +77,6 @@
      $       gradient_y_y_oneside_L1,
      $       gradient_y_y_oneside_R1,
      $       gradient_y_y_oneside_R0
-
 
         use sd_operators_x_oneside_L0_class, only :
      $       sd_operators_x_oneside_L0
@@ -131,7 +128,10 @@
           contains
 
           procedure, nopass :: apply_bc_on_nodes
+          procedure, nopass :: apply_bc_on_nodes_nopt
+
           procedure, nopass :: apply_bc_on_fluxes
+          procedure, nopass :: apply_bc_on_fluxes_nopt
 
         end type bc_operators_wall_xy
 
@@ -186,6 +186,64 @@
           real(rkind), dimension(nx,ny,ne), intent(in)    :: nodes_tmp
           type(pmodel_eq)                 , intent(in)    :: p_model
           real(rkind), dimension(nx,ny,ne), intent(inout) :: nodes
+
+
+          call apply_bc_on_nodes_nopt(
+     $         [bc_section,0],
+     $         t,x_map,y_map,nodes_tmp,
+     $         p_model,
+     $         nodes)
+
+        end subroutine apply_bc_on_nodes
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine applying the boundary conditions
+        !> on the nodes for a specific boundary section
+        !> on the sub-domain
+        !
+        !> @date
+        !> 08_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@param bc_section
+        !> boundary section computed on sub-domain
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x_map
+        !> coordinate map along the x-direction on sub-domain
+        !
+        !>@param y_map
+        !> coordinate map along the y-direction on sub-domain
+        !
+        !>@param nodes_tmp
+        !> governing variables at t-dt on sub-domain
+        !
+        !>@param p_model
+        !> physical model
+        !
+        !>@param nodes
+        !> governing variables at t on sub-domain
+        !--------------------------------------------------------------
+        subroutine apply_bc_on_nodes_nopt(
+     $       bc_section,
+     $       t,x_map,y_map,nodes_tmp,
+     $       p_model,
+     $       nodes)
+
+          implicit none
+
+          integer    , dimension(5)    , intent(in)    :: bc_section
+          real(rkind)                  , intent(in)    :: t
+          real(rkind), dimension(:)    , intent(in)    :: x_map
+          real(rkind), dimension(:)    , intent(in)    :: y_map
+          real(rkind), dimension(:,:,:), intent(in)    :: nodes_tmp
+          type(pmodel_eq)              , intent(in)    :: p_model
+          real(rkind), dimension(:,:,:), intent(inout) :: nodes
 
           integer(ikind) :: i,j
 
@@ -544,7 +602,7 @@
      $              bc_section(1))
           end select
 
-        end subroutine apply_bc_on_nodes
+        end subroutine apply_bc_on_nodes_nopt
 
 
         !> @author
@@ -597,6 +655,65 @@
           type(sd_operators)                , intent(in)    :: s
           real(rkind), dimension(nx+1,ny,ne), intent(inout) :: flux_x
           real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
+
+          call apply_bc_on_fluxes_nopt(
+     $         [bc_section,0],
+     $         t,x_map,y_map,nodes,s,
+     $         flux_x,flux_y)
+
+        end subroutine apply_bc_on_fluxes
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> subroutine applying the boundary conditions
+        !> on the fluxes along the x directions at the
+        !> edge of the computational domain
+        !
+        !> @date
+        !> 08_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@param bc_section
+        !> boundary section computed
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x_map
+        !> x-coordinates
+        !
+        !>@param y_map
+        !> y-coordinates
+        !
+        !>@param nodes
+        !> governing variables
+        !
+        !>@param s
+        !> space discretization operators
+        !
+        !>@param flux_x
+        !> flux along the x-direction
+        !
+        !>@param flux_y
+        !> flux along the y-direction
+        !--------------------------------------------------------------
+        subroutine apply_bc_on_fluxes_nopt(
+     $     bc_section,
+     $     t,x_map,y_map,nodes,s,
+     $     flux_x,flux_y)
+
+          implicit none
+
+          integer    , dimension(5)    , intent(in)    :: bc_section
+          real(rkind)                  , intent(in)    :: t
+          real(rkind), dimension(:)    , intent(in)    :: x_map
+          real(rkind), dimension(:)    , intent(in)    :: y_map
+          real(rkind), dimension(:,:,:), intent(in)    :: nodes
+          type(sd_operators)           , intent(in)    :: s
+          real(rkind), dimension(:,:,:), intent(inout) :: flux_x
+          real(rkind), dimension(:,:,:), intent(inout) :: flux_y
 
           integer(ikind) :: i
           integer(ikind) :: j
@@ -727,14 +844,14 @@
 
             case default
                print '(''bc_operators_wall_xy_class'')'
-               print '(''apply_bc_on_fluxes'')'
+               print '(''apply_bc_on_fluxes_nopt'')'
                print '(''bc_section not recognized'')'
                print '(''bc_section: '',I2)', bc_section(1)
                stop ''
                
           end select
 
-        end subroutine apply_bc_on_fluxes
+        end subroutine apply_bc_on_fluxes_nopt
 
 
         !> @author 

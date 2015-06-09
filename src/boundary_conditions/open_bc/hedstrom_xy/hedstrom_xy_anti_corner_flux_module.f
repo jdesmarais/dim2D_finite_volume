@@ -37,6 +37,14 @@
      $       compute_timedev_corner_local
 
         use parameters_bf_layer, only : 
+     $       cptnormal_type,
+     $       cptnot_type,
+     $       cptoverlap_type
+
+        use parameters_constant, only :
+     $       bc_timedev_choice,
+     $       left,right,
+     $       
      $       SE_edge_type,
      $       SW_edge_type,
      $       NE_edge_type,
@@ -44,15 +52,7 @@
      $       SE_corner_type,
      $       SW_corner_type,
      $       NE_corner_type,
-     $       NW_corner_type,
-     $       
-     $       cptnormal_type,
-     $       cptnot_type,
-     $       cptoverlap_type
-
-        use parameters_constant, only :
-     $       bc_timedev_choice,
-     $       left,right
+     $       NW_corner_type
 
         use parameters_input, only :
      $       nx,ny,ne,

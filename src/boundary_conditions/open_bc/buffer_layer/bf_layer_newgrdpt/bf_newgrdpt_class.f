@@ -31,6 +31,17 @@
      $       incoming_proc        
 
         use parameters_bf_layer, only :
+     $       gradient_I_type,
+     $       gradient_L0_type,
+     $       gradient_R0_type,
+     $       gradient_xLR0_yI_type,
+     $       gradient_xI_yLR0_type,
+     $       gradient_xLR0_yLR0_type
+
+        use parameters_constant, only :
+     $       left, right,
+     $       x_direction, y_direction,
+     $       n1_direction, n2_direction,
      $       N_edge_type,
      $       S_edge_type,
      $       E_edge_type,
@@ -42,18 +53,7 @@
      $       NE_corner_type,
      $       NW_corner_type,
      $       SE_corner_type,
-     $       SW_corner_type,
-     $       gradient_I_type,
-     $       gradient_L0_type,
-     $       gradient_R0_type,
-     $       gradient_xLR0_yI_type,
-     $       gradient_xI_yLR0_type,
-     $       gradient_xLR0_yLR0_type
-
-        use parameters_constant, only :
-     $       left, right,
-     $       x_direction, y_direction,
-     $       n1_direction, n2_direction
+     $       SW_corner_type
 
         use parameters_input, only :
      $       nx,ny,ne

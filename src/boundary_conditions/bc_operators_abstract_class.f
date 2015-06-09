@@ -66,15 +66,16 @@
 
           contains
 
-          procedure                 ,   pass           :: get_bc_type
+          procedure                  ,   pass           :: get_bc_type
 
-          procedure(nodes_proc)     , nopass, deferred :: apply_bc_on_nodes
-          procedure(nodes_nopt_proc),   pass, deferred :: apply_bc_on_nodes_nopt
+          procedure(nodes_proc)      , nopass, deferred :: apply_bc_on_nodes
+          procedure(nodes_nopt_proc) , nopass, deferred :: apply_bc_on_nodes_nopt
 
-          procedure(fluxes_proc)    , nopass, deferred :: apply_bc_on_fluxes
+          procedure(fluxes_proc)     , nopass, deferred :: apply_bc_on_fluxes
+          procedure(fluxes_nopt_proc), nopass, deferred :: apply_bc_on_fluxes_nopt
 
-          procedure(tdev_proc)      ,   pass, deferred :: apply_bc_on_timedev
-          procedure(tdev_nopt_proc) ,   pass, deferred :: apply_bc_on_timedev_nopt
+          procedure(tdev_proc)       ,   pass, deferred :: apply_bc_on_timedev
+          procedure(tdev_nopt_proc)  ,   pass, deferred :: apply_bc_on_timedev_nopt
 
         end type bc_operators_abstract
 
@@ -139,31 +140,50 @@
            !
            !> @brief
            !> subroutine applying the boundary conditions
-           !> along the x and y directions at the edge of the
-           !> computational domain
+           !> along the x and y directions on a specific
+           !> boundary section on the sub-domain
            !
            !> @date
-           !> 24_09_2013 - initial version - J.L. Desmarais
+           !> 10_06_2015 - initial version - J.L. Desmarais
            !
-           !>@param this
-           !> abstract boundary conditions
+           !>@param bc_section
+           !> boundary section computed on sub-domain
            !
-           !>@param f_used
-           !> object encapsulating the main variables
+           !>@param t
+           !> time
            !
-           !>@param s
-           !> space discretization operators
+           !>@param x_map
+           !> coordinate map along the x-direction on sub-domain
+           !
+           !>@param y_map
+           !> coordinate map along the y-direction on sub-domain
+           !
+           !>@param nodes_tmp
+           !> governing variables at t-dt on sub-domain
+           !
+           !>@param p_model
+           !> physical model
+           !
+           !>@param nodes
+           !> governing variables at t on sub-domain
            !-------------------------------------------------------------
-           subroutine nodes_nopt_proc(this,nodes,bc_sections)
+           subroutine nodes_nopt_proc(
+     $       bc_section,
+     $       t,x_map,y_map,nodes_tmp,
+     $       p_model,
+     $       nodes)
            
-             import bc_operators_abstract
              import nx,ny,ne
-             import ikind
+             import pmodel_eq
              import rkind
            
-             class(bc_operators_abstract)               , intent(in)    :: this
-             real(rkind)   , dimension(nx,ny,ne)        , intent(inout) :: nodes
-             integer(ikind), dimension(:,:), allocatable, intent(in)    :: bc_sections
+             integer    , dimension(5)    , intent(in)    :: bc_section
+             real(rkind)                  , intent(in)    :: t
+             real(rkind), dimension(:)    , intent(in)    :: x_map
+             real(rkind), dimension(:)    , intent(in)    :: y_map
+             real(rkind), dimension(:,:,:), intent(in)    :: nodes_tmp
+             type(pmodel_eq)              , intent(in)    :: p_model
+             real(rkind), dimension(:,:,:), intent(inout) :: nodes
 
            end subroutine nodes_nopt_proc
 
@@ -213,6 +233,62 @@
              real(rkind), dimension(nx,ny+1,ne), intent(inout) :: flux_y
            
            end subroutine fluxes_proc
+
+
+           !> @author
+           !> Julien L. Desmarais
+           !
+           !> @brief
+           !> subroutine applying the boundary conditions
+           !> on the fluxes along the x directions at the
+           !> edge of the sub-domain on a specific boundary
+           !> section
+           !
+           !> @date
+           !> 09_06_2015 - initial version - J.L. Desmarais
+           !
+           !>@param bc_section
+           !> boundary section computed
+           !
+           !>@param t
+           !> time
+           !
+           !>@param x_map
+           !> x-coordinates on the sub-domain
+           !
+           !>@param y_map
+           !> y-coordinates on the sub-domain
+           !
+           !>@param nodes
+           !> governing variables on the sub-domain
+           !
+           !>@param s
+           !> space discretization operators
+           !
+           !>@param flux_x
+           !> fluxes along the x-direction
+           !
+           !>@param flux_y
+           !> fluxes along the y-direction
+           !-------------------------------------------------------------
+           subroutine fluxes_nopt_proc(
+     $       bc_section,
+     $       t,x_map,y_map,nodes,s,
+     $       flux_x,flux_y)
+           
+             import sd_operators
+             import rkind
+           
+             integer    , dimension(5)    , intent(in)    :: bc_section
+             real(rkind)                  , intent(in)    :: t
+             real(rkind), dimension(:)    , intent(in)    :: x_map
+             real(rkind), dimension(:)    , intent(in)    :: y_map
+             real(rkind), dimension(:,:,:), intent(in)    :: nodes
+             type(sd_operators)           , intent(in)    :: s
+             real(rkind), dimension(:,:,:), intent(inout) :: flux_x
+             real(rkind), dimension(:,:,:), intent(inout) :: flux_y
+           
+           end subroutine fluxes_nopt_proc
 
 
            !> @author
@@ -313,16 +389,11 @@
            !-------------------------------------------------------------
            subroutine tdev_nopt_proc(
      $       this,
-     $       t,
-     $       bf_alignment,
-     $       bf_grdpts_id,
-     $       bf_x_map,
-     $       bf_y_map,
-     $       bf_nodes,
-     $       interior_nodes,
-     $       p_model,
+     $       bc_section,
+     $       bf_alignment, bf_grdpts_id,
+     $       t, bf_x_map, bf_y_map, bf_nodes,
+     $       interior_nodes, p_model,
      $       flux_x, flux_y,
-     $       bc_sections,
      $       timedev)
            
              import bc_operators_abstract
@@ -331,19 +402,19 @@
              import ikind
              import rkind
            
-             class(bc_operators_abstract)                   , intent(in)    :: this
-             real(rkind)                                    , intent(in)    :: t
-             integer(ikind), dimension(2,2)                 , intent(in)    :: bf_alignment
-             integer       , dimension(:,:)                 , intent(in)    :: bf_grdpts_id
-             real(rkind)   , dimension(:)                   , intent(in)    :: bf_x_map
-             real(rkind)   , dimension(:)                   , intent(in)    :: bf_y_map
-             real(rkind)   , dimension(:,:,:)               , intent(in)    :: bf_nodes
-             real(rkind)   , dimension(nx,ny,ne)            , intent(in)    :: interior_nodes
-             type(pmodel_eq)                                , intent(in)    :: p_model
-             real(rkind)   , dimension(:,:,:)               , intent(inout) :: flux_x
-             real(rkind)   , dimension(:,:,:)               , intent(inout) :: flux_y
-             integer(ikind), dimension(:,:)    , allocatable, intent(in)    :: bc_sections
-             real(rkind)   , dimension(:,:,:)               , intent(inout) :: timedev
+             class(bc_operators_abstract)       , intent(in)    :: this
+             integer       , dimension(5)       , intent(in)    :: bc_section
+             integer(ikind), dimension(2,2)     , intent(in)    :: bf_alignment
+             integer       , dimension(:,:)     , intent(in)    :: bf_grdpts_id
+             real(rkind)                        , intent(in)    :: t
+             real(rkind)   , dimension(:)       , intent(in)    :: bf_x_map
+             real(rkind)   , dimension(:)       , intent(in)    :: bf_y_map
+             real(rkind)   , dimension(:,:,:)   , intent(in)    :: bf_nodes
+             real(rkind)   , dimension(nx,ny,ne), intent(in)    :: interior_nodes
+             type(pmodel_eq)                    , intent(in)    :: p_model
+             real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_x
+             real(rkind)   , dimension(:,:,:)   , intent(inout) :: flux_y
+             real(rkind)   , dimension(:,:,:)   , intent(inout) :: timedev
 
            end subroutine tdev_nopt_proc
 

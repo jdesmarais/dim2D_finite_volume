@@ -22,8 +22,8 @@
         use bf_layer_errors_module, only :
      $       error_mainlayer_id
 
-        use bc_operators_class, only :
-     $       bc_operators
+        use bc_operators_gen_class, only :
+     $       bc_operators_gen
 
         use bf_compute_newgrdpt_class, only :
      $       bf_compute_newgrdpt
@@ -680,7 +680,7 @@
           real(rkind)                     , intent(in)    :: t
           type(sd_operators)              , intent(in)    :: s
           type(pmodel_eq)                 , intent(in)    :: p_model
-          type(bc_operators)              , intent(in)    :: bc_used
+          type(bc_operators_gen)          , intent(in)    :: bc_used
           real(rkind), dimension(nx,ny,ne), intent(in)    :: interior_nodes
 
           if(allocated(this%nodes)) then

@@ -25,7 +25,7 @@ dep_dir	   = $(AUGEANSTABLES_CONFIG)/dep
 sd_choice = mt_choice            #space discretization choice
 pm_choice = dim2d_choice         #physical model choice
 ic_choice = bubble_nucleation  #initial conditions choice
-bc_choice = hedstrom_xy_choice   #boundary condition choice
+bc_choice = wall_S_open_choice   #boundary condition choice
 td_choice = finitevolume_choice  #time discretization choice
 ti_choice = rk3tvd_choice        #time integration choice
 io_choice = nf90_choice          #writer choice
@@ -57,7 +57,6 @@ include $(config_dir)/code_config/makefile_bc.mk  #boundary conditions
 include $(config_dir)/code_config/makefile_td.mk  #time discretization
 include $(config_dir)/code_config/makefile_ti.mk  #time integration
 include $(config_dir)/code_config/makefile_io.mk  #writer choice
-
 
 #-----------------------------------------------------------------------
 #compiler and options

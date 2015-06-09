@@ -72,19 +72,19 @@
 
 
           if(present(x_borders)) then
-             i_min = x_borders(1)
-             i_max = x_borders(2)
+             i_min = 1
+             i_max = nx
           else
-             i_min = bc_size+1
-             i_max = nx-bc_size
+             i_min = 1
+             i_max = nx
           end if
 
           if(present(y_borders)) then
-             j_min = y_borders(1)
-             j_max = y_borders(2)
+             j_min = 1
+             j_max = ny
           else
-             j_min = bc_size+1
-             j_max = ny-bc_size
+             j_min = 1
+             j_max = ny
           end if
 
           

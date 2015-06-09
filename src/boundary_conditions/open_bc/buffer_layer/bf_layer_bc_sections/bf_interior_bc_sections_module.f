@@ -17,6 +17,9 @@
       module bf_interior_bc_sections_module
       
         use parameters_bf_layer, only :
+     $       no_overlap
+
+        use parameters_constant, only :
      $       N_edge_type,
      $       S_edge_type,
      $       E_edge_type,
@@ -24,8 +27,7 @@
      $       SW_corner_type,
      $       SE_corner_type,
      $       NW_corner_type,
-     $       NE_corner_type,
-     $       no_overlap
+     $       NE_corner_type
 
         use parameters_input, only :
      $       nx,

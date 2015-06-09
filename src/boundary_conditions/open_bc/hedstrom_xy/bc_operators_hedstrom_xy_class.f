@@ -35,7 +35,18 @@
         use interface_primary, only :
      $       gradient_proc
 
-        use parameters_bf_layer, only : 
+        use parameters_bf_layer, only :     
+     $       align_N,align_S,
+     $       align_E,align_W
+
+        use parameters_constant, only :
+     $       bc_timedev_choice,
+     $       left,right,
+     $       N,S,E,W,
+     $       obc_edge_xy_corner,
+     $       obc_edge_xy_flux,
+     $       obc_edge_xy_diag_flux,
+     $       
      $       N_edge_type,
      $       S_edge_type,
      $       E_edge_type,
@@ -47,17 +58,7 @@
      $       SE_corner_type,
      $       SW_corner_type,
      $       NE_corner_type,
-     $       NW_corner_type,
-     $       align_N,align_S,
-     $       align_E,align_W
-
-        use parameters_constant, only :
-     $       bc_timedev_choice,
-     $       left,right,
-     $       N,S,E,W,
-     $       obc_edge_xy_corner,
-     $       obc_edge_xy_flux,
-     $       obc_edge_xy_diag_flux
+     $       NW_corner_type
 
         use parameters_input, only :
      $       nx,ny,ne,bc_size,
@@ -241,12 +242,13 @@
                j = bc_section(3)
                
                i_min = bc_section(2)
-               i_max = bc_section(4)
+               i_max = bc_section(4)+1
 
                ! verify whether the fluxes in common with the
                ! East and West b.c. have already been computed
                call this%check_x_flux_interactions_btw_bcs(
-     $              i_min,i_max)
+     $              i_min,i_max,
+     $              right)
           
                ! compute the x-fluxes
                call this%compute_fluxes_x_for_bc_y_edge(
@@ -282,12 +284,13 @@
                j = bc_section(3)
 
                i_min = bc_section(2)
-               i_max = bc_section(4)
+               i_max = bc_section(4)+1
 
                ! verify whether the fluxes in common with the
                ! East and West b.c. have already been computed
                call this%check_x_flux_interactions_btw_bcs(
-     $              i_min,i_max)
+     $              i_min,i_max,
+     $              left)
 
                ! compute the x-fluxes
                call this%compute_fluxes_x_for_bc_y_edge(
@@ -323,12 +326,13 @@
                i = bc_section(2)
                
                j_min = bc_section(3)
-               j_max = bc_section(4)
+               j_max = bc_section(4)+1
           
                ! verify whether the fluxes in common with the
                ! South and North b.c. have already been computed
                call this%check_y_flux_interactions_btw_bcs(
-     $              j_min,j_max)
+     $              j_min,j_max,
+     $              right)
 
                ! compute the y-fluxes
                call this%compute_fluxes_y_for_bc_x_edge(
@@ -364,12 +368,13 @@
                i = bc_section(2) 
 
                j_min = bc_section(3)
-               j_max = bc_section(4)
+               j_max = bc_section(4)+1
           
                ! verify whether the fluxes in common with the
                ! South and North b.c. have already been computed
                call this%check_y_flux_interactions_btw_bcs(
-     $              j_min,j_max)
+     $              j_min,j_max,
+     $              left)
           
                ! compute the y-fluxes
                call this%compute_fluxes_y_for_bc_x_edge(

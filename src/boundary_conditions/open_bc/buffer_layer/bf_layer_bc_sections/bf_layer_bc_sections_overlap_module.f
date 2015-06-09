@@ -29,20 +29,7 @@
      $       SE_overlap,
      $       SW_overlap,
      $       NS_overlap,
-     $       EW_overlap,
-     $       
-     $       N_edge_type,
-     $       S_edge_type,
-     $       E_edge_type,
-     $       W_edge_type,
-     $       NE_corner_type,
-     $       NW_corner_type,
-     $       SE_corner_type,
-     $       SW_corner_type,
-     $       NE_edge_type,
-     $       NW_edge_type,
-     $       SE_edge_type,
-     $       SW_edge_type,
+     $       EW_overlap,     
      $       
      $       cpt1normal_and_cpt4normal,   
      $       cpt1normal_and_cpt4not,  
@@ -68,6 +55,19 @@
      $       cptnot_type,
      $       cptoverlap_type
 
+        use parameters_constant, only :
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
+     $       NE_corner_type,
+     $       NW_corner_type,
+     $       SE_corner_type,
+     $       SW_corner_type,
+     $       NE_edge_type,
+     $       NW_edge_type,
+     $       SE_edge_type,
+     $       SW_edge_type
 
         use parameters_kind, only :
      $       ikind

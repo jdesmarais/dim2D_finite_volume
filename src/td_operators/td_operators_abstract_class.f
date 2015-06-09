@@ -18,8 +18,8 @@
       !-----------------------------------------------------------------
       module td_operators_abstract_class
 
-        use bc_operators_class, only :
-     $       bc_operators
+        use bc_operators_gen_class, only :
+     $       bc_operators_gen
 
         use parameters_input, only :
      $       nx,ny,ne
@@ -95,10 +95,13 @@
           !>@param time_dev
           !> time derivatives
           !--------------------------------------------------------------
-          function time_proc(t,nodes,x_map,y_map,s,p_model,bc_used,bc_sections)
+          function time_proc(
+     $       t,nodes,x_map,y_map,
+     $       s,p_model,bc_used,
+     $       bc_sections)
      $       result(time_dev)
 
-            import bc_operators
+            import bc_operators_gen
             import sd_operators
             import pmodel_eq
             import ikind
@@ -111,7 +114,7 @@
             real(rkind), dimension(ny)                           , intent(in) :: y_map
             type(sd_operators)                                   , intent(in) :: s
             type(pmodel_eq)                                      , intent(in) :: p_model
-            type(bc_operators)                                   , intent(in) :: bc_used
+            type(bc_operators_gen)                               , intent(in) :: bc_used
             integer(ikind), dimension(:,:), allocatable, optional, intent(in) :: bc_sections
             real(rkind), dimension(nx,ny,ne)                                  :: time_dev
 
@@ -176,7 +179,7 @@
      $      bc_sections,
      $      x_borders, y_borders)
 
-            import bc_operators
+            import bc_operators_gen
             import ikind
             import nx,ny,ne
             import pmodel_eq
@@ -189,7 +192,7 @@
             real(rkind)   , dimension(:)               , intent(in)  :: y_map
             type(sd_operators)                         , intent(in)  :: s
             type(pmodel_eq)                            , intent(in)  :: p_model
-            type(bc_operators)                         , intent(in)  :: bc_used
+            type(bc_operators_gen)                     , intent(in)  :: bc_used
             real(rkind)   , dimension(:,:,:)           , intent(out) :: time_dev
             integer(ikind), dimension(2,2)             , intent(in)  :: bf_alignment
             integer       , dimension(:,:)             , intent(in)  :: grdpts_id

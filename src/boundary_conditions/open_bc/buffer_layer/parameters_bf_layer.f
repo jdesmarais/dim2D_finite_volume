@@ -71,23 +71,6 @@
         integer, dimension(4), parameter :: bf_neighbors_id = (/2,1,2,1/)
 
 
-        !convention for the boundary layer procedures
-        !------------------------------------------------------------
-        integer, parameter :: no_bc_procedure_type=0
-        integer, parameter :: SW_corner_type=1
-        integer, parameter :: SE_corner_type=2
-        integer, parameter :: NW_corner_type=3
-        integer, parameter :: NE_corner_type=4
-        integer, parameter :: S_edge_type=5
-        integer, parameter :: E_edge_type=6
-        integer, parameter :: W_edge_type=7
-        integer, parameter :: N_edge_type=8
-        integer, parameter :: SE_edge_type=9
-        integer, parameter :: SW_edge_type=10
-        integer, parameter :: NE_edge_type=11
-        integer, parameter :: NW_edge_type=12
-
-
         !convention for the overlap of bc_sections
         !-------------------------------------------------------------
         integer, parameter :: no_overlap = 0
