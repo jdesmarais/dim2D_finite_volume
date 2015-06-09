@@ -116,14 +116,33 @@ test_bc_operators_openbc_normal:\
 			$(hedstrom_xy_dep)
 
 
+# hedstrom_xy
+test_bc_operators_hedstrom_xy.o:\
+			$(hobc_dir)/bc_operators_hedstrom_xy_class.o\
+			$(test_dir)/tools/check_data_module.o\
+			$(bf_layer_dir)/parameters_bf_layer.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o\
+			$(pm_cdir)/pmodel_eq_class.o
+
+test_bc_operators_hedstrom_xy:\
+			$(param_dep)\
+			$(mt_dep)\
+			$(dim2d_dep)\
+			$(hedstrom_xy_dep)\
+			check_data_module.o\
+			errors_module.o
+
 # reflection_xy
-test_reflection_xy.o:	$(rbc_dir)/bc_operators_reflection_xy_class.o\
+test_bc_operators_reflection_xy.o:\
+			$(rbc_dir)/bc_operators_reflection_xy_class.o\
 			$(test_dir)/tools/check_data_module.o\
 			$(param_dir)/parameters_constant.o\
 			$(param_dir)/parameters_kind.o\
 			$(wave2d_dir)/pmodel_eq_class.o
 
-test_reflection_xy:	check_data_module.o\
+test_bc_operators_reflection_xy:\
+			check_data_module.o\
 			$(param_dep)\
 			$(mt_dep)\
 			$(wave2d_dep)\
@@ -178,14 +197,14 @@ test_wall_xy_equilibrium:	$(param_dep)\
 				wall_xy_equilibrium_module.o\
 				ridders_method_fcts_module.o
 
-test_wall_xy.o:			$(wbc_dir)/bc_operators_wall_xy_class.o\
+test_bc_operators_wall_xy.o:	$(wbc_dir)/bc_operators_wall_xy_class.o\
 				$(dim2d_dir)/dim2d_parameters.o\
 				$(bf_layer_dir)/parameters_bf_layer.o\
 				$(param_dir)/parameters_input.o\
 				$(param_dir)/parameters_kind.o\
 				$(dim2d_dir)/pmodel_eq_class.o
 
-test_wall_xy:			$(param_dep)\
+test_bc_operators_wall_xy:	$(param_dep)\
 				$(mt_dep)\
 				sd_operators_x_oneside_L0_class.o\
 				sd_operators_x_oneside_L1_class.o\

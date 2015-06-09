@@ -49,13 +49,18 @@
      $       cptnot_type
 
         use parameters_constant, only :
+     $       bc_flux_and_node_choice,
      $       bc_timedev_choice,
      $       N,S,E,W,
      $       left,right
 
         use parameters_input, only :
      $       nx,ny,ne,
-     $       bc_size
+     $       bc_size,
+     $       bc_N_type_choice,
+     $       bc_S_type_choice,
+     $       bc_E_type_choice,
+     $       bc_W_type_choice
 
         use parameters_kind, only :
      $       ikind,
@@ -114,6 +119,9 @@
         type, extends(bc_operators_default), abstract :: bc_operators_openbc
 
            contains
+
+           procedure                , nopass         :: check_x_flux_interactions_btw_bcs
+           procedure                , nopass         :: check_y_flux_interactions_btw_bcs
 
            procedure                , pass           :: apply_bc_on_timedev_nopt
 
@@ -397,6 +405,99 @@
         end interface
 
         contains
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the x-fluxes are re-computed when
+        !> several boundary conditions interact at a corner
+        !
+        !> @date
+        !> 09_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@param i_min
+        !> min x-index where the x-fluxes are computed
+        !
+        !>@param i_max
+        !> max x-index where the x-fluxes are computed
+        !-------------------------------------------------------------
+        subroutine check_x_flux_interactions_btw_bcs(i_min,i_max)
+
+          implicit none
+
+          integer(ikind), intent(inout) :: i_min
+          integer(ikind), intent(inout) :: i_max
+
+          ! when the x-flxues are computed for an open b.c., this is
+          ! either for the North or for the South layers
+          ! if the boundary conditions on the East or West layers are
+          ! modifying the x-fluxes, then the x-fluxes should not be
+          ! recomputed by the curretn boundary conditions, therefore
+          ! the min-max indices can be shifted to avoid to re-compute
+          ! the fluxes
+          
+          ! if the West b.c. modifies the fluxes, we should not
+          ! re-compute the fluxes at i=bc_size+1
+          if(bc_W_type_choice.eq.bc_flux_and_node_choice) then
+             i_min=i_min+1
+          end if
+
+          ! if the East b.c. modifies the fluxes, we should not
+          ! re-compute the fluxes at i=nx-bc_size+1
+          if(bc_E_type_choice.eq.bc_flux_and_node_choice) then
+             i_max=i_max-1
+          end if
+
+        end subroutine check_x_flux_interactions_btw_bcs
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> check whether the y-fluxes are re-computed when
+        !> several boundary conditions interact at a corner
+        !
+        !> @date
+        !> 09_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@param j_min
+        !> min y-index where the x-fluxes are computed
+        !
+        !>@param j_max
+        !> max y-index where the x-fluxes are computed
+        !-------------------------------------------------------------
+        subroutine check_y_flux_interactions_btw_bcs(j_min,j_max)
+
+          implicit none
+
+          integer(ikind), intent(inout) :: j_min
+          integer(ikind), intent(inout) :: j_max
+
+          ! when the y-flxues are computed for an open b.c., this is
+          ! either for the West or for the East layers
+          ! if the boundary conditions on the North or South layers are
+          ! modifying the y-fluxes, then the y-fluxes should not be
+          ! recomputed by the curretn boundary conditions, therefore
+          ! the min-max indices can be shifted to avoid to re-compute
+          ! the fluxes
+          
+          ! if the South b.c. modifies the fluxes, we should not
+          ! re-compute the fluxes at j=bc_size+1
+          if(bc_S_type_choice.eq.bc_flux_and_node_choice) then
+             j_min=j_min+1
+          end if
+
+          ! if the North b.c. modifies the fluxes, we should not
+          ! re-compute the fluxes at j=ny-bc_size+1
+          if(bc_N_type_choice.eq.bc_flux_and_node_choice) then
+             j_max=j_max-1
+          end if
+
+        end subroutine check_y_flux_interactions_btw_bcs        
+
 
         !apply the boundary conditions on the time derivatives
         subroutine apply_bc_on_timedev_nopt(

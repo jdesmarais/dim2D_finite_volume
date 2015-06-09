@@ -1,4 +1,4 @@
-      program test_wall_xy
+      program test_bc_operators_wall_xy
 
         use bc_operators_wall_xy_class, only :
      $       bc_operators_wall_xy
@@ -924,4 +924,4 @@
 
         end subroutine test_inputs
 
-      end program test_wall_xy
+      end program test_bc_operators_wall_xy

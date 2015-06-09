@@ -241,14 +241,15 @@
         !--------------------------------------------------------------
         subroutine apply_bc_on_timedev(
      $     this,
+     $     bc_section,
      $     t,x_map,y_map,nodes,
-     $     p_model,
-     $     flux_x,flux_y,
+     $     p_model,flux_x,flux_y,
      $     timedev)
 
           implicit none
            
           class(bc_operators_default)       , intent(in)    :: this
+          integer    , dimension(4)         , intent(in)    :: bc_section
           real(rkind)                       , intent(in)    :: t
           real(rkind), dimension(nx)        , intent(in)    :: x_map
           real(rkind), dimension(ny)        , intent(in)    :: y_map
@@ -265,7 +266,7 @@
           stop 'bc_operator%apply_bc_on_time_dev() not implemented'
 
           !to prevent unused param warnings
-          node=nodes(1,1,1)
+          node=nodes(1,1,1)+bc_section(1)
           dx_s = x_map(2)-x_map(1)
           dy_s = y_map(2)-y_map(1)
           t_s  = t
@@ -273,7 +274,7 @@
           flux=flux_x(1,1,1)
           flux=flux_y(1,1,1)
           timedev_s = timedev(1,1,1)
-          bc_s = this%bc_type
+          bc_s = this%get_bc_type()
 
         end subroutine apply_bc_on_timedev
 

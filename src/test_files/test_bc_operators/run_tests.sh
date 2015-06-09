@@ -58,8 +58,8 @@ file='test_bc_operators_openbc_normal'
 perform_test $file
 
 
-#test_reflection_xy
-file='test_reflection_xy'
+#test_bc_operators_reflection_xy
+file='test_bc_operators_reflection_xy'
 change_param_makefile 'pm_choice' 'wave2d_choice'
 change_param_makefile 'ic_choice' 'peak'
 change_param_input 'ntx' '6'
@@ -92,7 +92,7 @@ change_param_input 'bc_W_type_choice' 'bc_nodes_choice'
 perform_test $file
 
 
-#test wall_xy_equilibrium
+#test_wall_xy_equilibrium
 file='test_wall_xy_equilibrium'
 change_param_makefile 'pm_choice' 'dim2d_choice'
 change_param_makefile 'ic_choice' 'bubble_nucleation'
@@ -104,6 +104,12 @@ change_param_input 'bc_S_type_choice' 'bc_flux_and_node_choice'
 change_param_input 'bc_E_type_choice' 'bc_flux_and_node_choice'
 change_param_input 'bc_W_type_choice' 'bc_flux_and_node_choice'
 use_test_param_dim2d
+
+perform_test $file
+
+
+#test bc_operators_wall_xy
+file='test_bc_operators_wall_xy'
 
 perform_test $file
 

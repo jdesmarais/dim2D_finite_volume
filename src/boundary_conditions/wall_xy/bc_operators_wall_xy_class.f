@@ -19,6 +19,9 @@
         use dim2d_parameters, only :
      $       cv_r
 
+        use errors_module, only :
+     $       error_bc_section_type
+
         use dim2d_prim_module, only :
      $       temperature_eff
 
@@ -535,11 +538,10 @@
 
 
             case default
-               print '(''bc_operators_wall_xy_class'')'
-               print '(''apply_bc_on_nodes'')'
-               print '(''bc_section not recognized'')'
-               print '(''bc_section: '',I2)', bc_section(1)
-               stop ''
+               call error_bc_section_type(
+     $              'bc_operators_wall_xy_class',
+     $              'apply_bc_on_nodes',
+     $              bc_section(1))
           end select
 
         end subroutine apply_bc_on_nodes

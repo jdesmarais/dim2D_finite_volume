@@ -1,4 +1,4 @@
-      program test_reflection_xy
+      program test_bc_operators_reflection_xy
 
         use bc_operators_reflection_xy_class, only :
      $       bc_operators_reflection_xy
@@ -255,4 +255,4 @@ c$$$        end function test_apply_bc_on_nodes_nopt
 
         end subroutine check_inputs
 
-      end program test_reflection_xy
+      end program test_bc_operators_reflection_xy

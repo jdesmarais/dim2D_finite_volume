@@ -11,17 +11,17 @@
       !
       !> @date
       !> 01_08_2014 - initial version - J.L. Desmarais
+      !> 09_06_2015 - interface change for generalized b.c. - J.L.Desmarais
       !-----------------------------------------------------------------
       module bc_operators_hedstrom_xy_class
 
         use bc_operators_openbc_normal_class, only :
      $       bc_operators_openbc_normal
 
-        use bf_layer_errors_module, only :
+        use errors_module, only :
      $       error_bc_section_type
 
         use hedstrom_xy_module, only :
-     $       compute_timedev_y_layer_interior,
      $       compute_timedev_x_edge_local,
      $       compute_timedev_y_edge_local,
      $       compute_timedev_corner_local
@@ -36,6 +36,10 @@
      $       gradient_proc
 
         use parameters_bf_layer, only : 
+     $       N_edge_type,
+     $       S_edge_type,
+     $       E_edge_type,
+     $       W_edge_type,
      $       SE_edge_type,
      $       SW_edge_type,
      $       NE_edge_type,
@@ -125,8 +129,6 @@
 
           contains
 
-          procedure, pass :: ini
-
           !procedure used w/o field extension
           procedure, pass :: apply_bc_on_timedev => apply_bc_on_timedev_2ndorder
 
@@ -134,48 +136,13 @@
           procedure, pass :: apply_bc_on_timedev_x_edge
           procedure, pass :: apply_bc_on_timedev_y_edge
           procedure, pass :: apply_bc_on_timedev_xy_corner
-
+                     
           procedure, pass :: compute_timedev_anti_corner
 
         end type bc_operators_hedstrom_xy
       
 
         contains
-
-        !> @author
-        !> Julien L. Desmarais
-        !
-        !> @brief
-        !> subroutine initializing the main attributes
-        !> of the boundary conditions
-        !
-        !> @date
-        !> 04_08_2014 - initial version - J.L. Desmarais
-        !
-        !>@param this
-        !> boundary conditions initialized
-        !
-        !>@param p_model
-        !> physical model to know the type of the main variables
-        !--------------------------------------------------------------
-        subroutine ini(this,p_model)
-        
-          implicit none
-
-          class(bc_operators_hedstrom_xy), intent(inout) :: this
-          type(pmodel_eq)                , intent(in)    :: p_model
-          
-          integer :: neq
-
-          neq = p_model%get_eq_nb()
-
-          this%bc_type = [
-     $         bc_timedev_choice,
-     $         bc_timedev_choice,
-     $         bc_timedev_choice,
-     $         bc_timedev_choice]
-
-        end subroutine ini
 
 
         !> @author
@@ -212,15 +179,16 @@
         !> time derivatives
         !-------------------------------------------------------------
         subroutine apply_bc_on_timedev_2ndorder(
-     $     this,
-     $     t,x_map,y_map,nodes,
-     $     p_model,
-     $     flux_x,flux_y,
-     $     timedev)
+     $       this,
+     $       bc_section,
+     $       t,x_map,y_map,nodes,
+     $       p_model,flux_x,flux_y,
+     $       timedev)
         
           implicit none
         
           class(bc_operators_hedstrom_xy)   , intent(in)    :: this
+          integer    , dimension(4)         , intent(in)    :: bc_section
           real(rkind)                       , intent(in)    :: t
           real(rkind), dimension(nx)        , intent(in)    :: x_map
           real(rkind), dimension(ny)        , intent(in)    :: y_map
@@ -264,130 +232,261 @@
 
           !2) compute the fluxes at the edges of
           !   the computational domain
+          !3) compute the time derivatives
           !----------------------------------------
-          ! S_edge
-          i_min = bc_size+1
-          i_max = nx-bc_size+1
-          j     = 1
+          select case(bc_section(1))
+
+            case(N_edge_type)
           
-          call this%compute_fluxes_x_for_bc_y_edge(
-     $         bf_alignment,
-     $         bf_grdpts_id,
-     $         nodes,
-     $         nodes,
-     $         dx,dy,
-     $         s_y_L0, s_y_L1,
-     $         p_model,
-     $         i_min, i_max, j,
-     $         [.true.,.true.],
-     $         flux_x)
+               j = bc_section(3)
+               
+               i_min = bc_section(2)
+               i_max = bc_section(4)
+
+               ! verify whether the fluxes in common with the
+               ! East and West b.c. have already been computed
+               call this%check_x_flux_interactions_btw_bcs(
+     $              i_min,i_max)
           
+               ! compute the x-fluxes
+               call this%compute_fluxes_x_for_bc_y_edge(
+     $              bf_alignment,
+     $              bf_grdpts_id,
+     $              nodes,
+     $              nodes,
+     $              dx,dy,
+     $              s_y_R1, s_y_R0,
+     $              p_model,
+     $              i_min, i_max, j,
+     $              [.true.,.true.],
+     $              flux_x)
+
+               ! compute the time derivatives
+               do j=bc_section(3),bc_section(3)+bc_size-1
+                  do i=bc_section(2),bc_section(4)
+
+                     timedev(i,j,:) = compute_timedev_y_edge_local(
+     $                    t,x_map,y_map,nodes,
+     $                    p_model,
+     $                    gradient_y_y_oneside_R0, dy,
+     $                    i,j,
+     $                    flux_x, dx,
+     $                    right)
+
+                  end do
+               end do
+
+
+            case(S_edge_type)
+
+               j = bc_section(3)
+
+               i_min = bc_section(2)
+               i_max = bc_section(4)
+
+               ! verify whether the fluxes in common with the
+               ! East and West b.c. have already been computed
+               call this%check_x_flux_interactions_btw_bcs(
+     $              i_min,i_max)
+
+               ! compute the x-fluxes
+               call this%compute_fluxes_x_for_bc_y_edge(
+     $              bf_alignment,
+     $              bf_grdpts_id,
+     $              nodes,
+     $              nodes,
+     $              dx,dy,
+     $              s_y_L0, s_y_L1,
+     $              p_model,
+     $              i_min, i_max, j,
+     $              [.true.,.true.],
+     $              flux_x)
+
+               ! compute the time derivatives
+               do j=bc_section(3),bc_section(3)+bc_size-1
+                  do i=bc_section(2),bc_section(4)
+
+                     timedev(i,j,:) = compute_timedev_y_edge_local(
+     $                    t,x_map,y_map,nodes,
+     $                    p_model,
+     $                    gradient_y_y_oneside_L0, dy,
+     $                    i,j,
+     $                    flux_x, dx,
+     $                    left)
+
+                  end do
+               end do
+
+
+            case(E_edge_type)
           
-          ! E+W_edge
-          i     = 1
-          j_min = bc_size+1
-          j_max = ny-bc_size+1
+               i = bc_section(2)
+               
+               j_min = bc_section(3)
+               j_max = bc_section(4)
           
-          call this%compute_fluxes_y_for_bc_x_edge(
-     $         bf_alignment,
-     $         bf_grdpts_id,
-     $         nodes,
-     $         nodes,
-     $         dx,dy,
-     $         s_x_L0, s_x_L1,
-     $         p_model,
-     $         i, j_min, j_max,
-     $         [.true.,.true.],
-     $         flux_y)
+               ! verify whether the fluxes in common with the
+               ! South and North b.c. have already been computed
+               call this%check_y_flux_interactions_btw_bcs(
+     $              j_min,j_max)
+
+               ! compute the y-fluxes
+               call this%compute_fluxes_y_for_bc_x_edge(
+     $              bf_alignment,
+     $              bf_grdpts_id,
+     $              nodes,
+     $              nodes,
+     $              dx,dy,
+     $              s_x_R1, s_x_R0,
+     $              p_model,
+     $              i, j_min, j_max,
+     $              [.true.,.true.],
+     $              flux_y)
+
+               ! compute the time derivatives
+               do j=bc_section(3),bc_section(4)
+                  do i=bc_section(2),bc_section(2)+bc_size-1
+                     
+                     timedev(i,j,:) = compute_timedev_x_edge_local(
+     $                    t,x_map,y_map,nodes,
+     $                    p_model,
+     $                    gradient_x_x_oneside_R0,dx,
+     $                    i,j,
+     $                    flux_y,dy,
+     $                    right)
+
+                  end do
+               end do
+
+
+            case(W_edge_type)
+
+               i = bc_section(2) 
+
+               j_min = bc_section(3)
+               j_max = bc_section(4)
           
-          i = nx-bc_size+1
-
-          call this%compute_fluxes_y_for_bc_x_edge(
-     $         bf_alignment,
-     $         bf_grdpts_id,
-     $         nodes,
-     $         nodes,
-     $         dx,dy,
-     $         s_x_R1, s_x_R0,
-     $         p_model,
-     $         i, j_min, j_max,
-     $         [.true.,.true.],
-     $         flux_y)
+               ! verify whether the fluxes in common with the
+               ! South and North b.c. have already been computed
+               call this%check_y_flux_interactions_btw_bcs(
+     $              j_min,j_max)
           
-          
-          ! N_edge
-          i_min = bc_size+1
-          i_max = nx-bc_size+1
-          j     = ny-bc_size+1
-          
-          call this%compute_fluxes_x_for_bc_y_edge(
-     $         bf_alignment,
-     $         bf_grdpts_id,
-     $         nodes,
-     $         nodes,
-     $         dx,dy,
-     $         s_y_R1, s_y_R0,
-     $         p_model,
-     $         i_min, i_max, j,
-     $         [.true.,.true.],
-     $         flux_x)
+               ! compute the y-fluxes
+               call this%compute_fluxes_y_for_bc_x_edge(
+     $              bf_alignment,
+     $              bf_grdpts_id,
+     $              nodes,
+     $              nodes,
+     $              dx,dy,
+     $              s_x_L0, s_x_L1,
+     $              p_model,
+     $              i, j_min, j_max,
+     $              [.true.,.true.],
+     $              flux_y)
+
+               ! compute the time derivatives
+               do j=bc_section(3),bc_section(4)
+                  do i=bc_section(2),bc_section(2)+bc_size-1
+
+                     timedev(i,j,:) = compute_timedev_x_edge_local(
+     $                    t,x_map,y_map,nodes,
+     $                    p_model,
+     $                    gradient_x_x_oneside_L0,dx,
+     $                    i,j,
+     $                    flux_y,dy,
+     $                    left)
+                  end do
+               end do
 
 
-          !3) compute the time derivatives at the
-          !   edge of the computational domain
-          !----------------------------------------
-          ! S layer
-          do j=1,bc_size
-             call compute_timedev_y_layer_interior(
-     $            t,x_map,y_map,nodes,
-     $            p_model,
-     $            gradient_y_y_oneside_L0,dy,
-     $            j,
-     $            flux_x,dx,
-     $            left,
-     $            timedev)
-          end do
+            case(SW_corner_type)
 
-          ! E+W layers
-          do j=bc_size+1,ny-bc_size
-             
-             ! W layer
-             do i=1,bc_size
-                timedev(i,j,:) = compute_timedev_x_edge_local(
-     $               t,x_map,y_map,nodes,
-     $               p_model,
-     $               gradient_x_x_oneside_L0,dx,
-     $               i,j,
-     $               flux_y,dy,
-     $               left)
-             end do
+               ! compute the time derivatives
+               do j=bc_section(3),bc_section(3)+bc_size-1
+                  do i=bc_section(2),bc_section(2)+bc_size-1
 
-             ! E layer
-             do i=nx-bc_size+1,nx
-                timedev(i,j,:) = compute_timedev_x_edge_local(
-     $               t,x_map,y_map,nodes,
-     $               p_model,
-     $               gradient_x_x_oneside_R0,dx,
-     $               i,j,
-     $               flux_y,dy,
-     $               right)
-             end do
+                     timedev(i,j,:) = compute_timedev_corner_local(
+     $                    t, x_map, y_map, nodes,
+     $                    p_model,
+     $                    gradient_x_x_oneside_L0,
+     $                    gradient_y_y_oneside_L0,
+     $                    dx,dy,
+     $                    i,j,
+     $                    left,
+     $                    left)
+                     
+                  end do
+               end do
 
-          end do
 
-          ! N layer
-          do j=ny-bc_size+1,ny
+            case(SE_corner_type)
 
-             call compute_timedev_y_layer_interior(
-     $            t,x_map,y_map,nodes,
-     $            p_model,
-     $            gradient_y_y_oneside_R0,dy,
-     $            j,
-     $            flux_x,dx,
-     $            right,
-     $            timedev)
+               ! compute the time derivatives
+               do j=bc_section(3),bc_section(3)+bc_size-1
+                  do i=bc_section(2),bc_section(2)+bc_size-1
 
-          end do
+                     timedev(i,j,:) = compute_timedev_corner_local(
+     $                    t, x_map, y_map, nodes,
+     $                    p_model,
+     $                    gradient_x_x_oneside_R0,
+     $                    gradient_y_y_oneside_L0,
+     $                    dx,dy,
+     $                    i,j,
+     $                    right,
+     $                    left)
+                     
+                  end do
+               end do
+
+
+            case(NW_corner_type)
+
+               ! compute the time derivatives
+               do j=bc_section(3),bc_section(3)+bc_size-1
+                  do i=bc_section(2),bc_section(2)+bc_size-1
+
+                     timedev(i,j,:) = compute_timedev_corner_local(
+     $                    t, x_map, y_map, nodes,
+     $                    p_model,
+     $                    gradient_x_x_oneside_L0,
+     $                    gradient_y_y_oneside_R0,
+     $                    dx,dy,
+     $                    i,j,
+     $                    left,
+     $                    right)
+                     
+                  end do
+               end do
+
+
+            case(NE_corner_type)
+
+               ! compute the time derivatives
+               do j=bc_section(3),bc_section(3)+bc_size-1
+                  do i=bc_section(2),bc_section(2)+bc_size-1
+
+                     timedev(i,j,:) = compute_timedev_corner_local(
+     $                    t, x_map, y_map, nodes,
+     $                    p_model,
+     $                    gradient_x_x_oneside_R0,
+     $                    gradient_y_y_oneside_R0,
+     $                    dx,dy,
+     $                    i,j,
+     $                    right,
+     $                    right)
+                     
+                  end do
+               end do
+
+
+            case default
+               call error_bc_section_type(
+     $              'bc_operators_hedstrom_xy_class',
+     $              'apply_bc_on_timedev_2ndorder',
+     $              bc_section(1))
+
+
+          end select
         
         end subroutine apply_bc_on_timedev_2ndorder
 

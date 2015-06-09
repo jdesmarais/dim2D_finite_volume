@@ -207,8 +207,6 @@ $(ns2d_dir)/pmodel_eq_class.o:\
 			$(phy_eq_dir)/pmodel_eq_default_class.o
 
 
-
-
 #boundary conditions
 $(bc_dir)/bc_operators_abstract_class.o:\
 			$(param_dir)/parameters_input.o\

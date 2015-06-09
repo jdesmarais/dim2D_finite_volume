@@ -54,6 +54,7 @@ $(hobc_dir)/bc_operators_hedstrom_xy_class.o:\
 			$(obc_dir)/bc_operators_openbc_normal_class.o\
 			$(bc_dir)/bc_operators_nopt_module.o\
 			$(bf_layer_dir)/bf_layer_errors_module.o\
+			$(param_dir)/errors_module.o\
 			$(hobc_dir)/hedstrom_xy_module.o\
 			$(hobc_dir)/hedstrom_xy_anti_corner_flux_module.o\
 			$(hobc_dir)/hedstrom_xy_anti_corner_diag_flux_module.o\

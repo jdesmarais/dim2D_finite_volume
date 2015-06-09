@@ -229,6 +229,12 @@
                   end do
                end do
 
+            case default
+               call error_bc_section(
+     $              'bc_operators_reflection_xy_class',
+     $              'apply_bc_on_nodes',
+     $              bc_section(1))
+
           end select
 
         end subroutine apply_bc_on_nodes

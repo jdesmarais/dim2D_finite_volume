@@ -246,13 +246,9 @@
            !-------------------------------------------------------------
            subroutine tdev_proc(
      $       this,
-     $       t,
-     $       x_map,
-     $       y_map,
-     $       nodes,
-     $       p_model,
-     $       flux_x,
-     $       flux_y,
+     $       bc_section,
+     $       t,x_map,y_map,nodes,
+     $       p_model,flux_x,flux_y,
      $       timedev)
            
              import bc_operators_abstract
@@ -261,6 +257,7 @@
              import rkind
            
              class(bc_operators_abstract)      , intent(in)    :: this
+             integer    , dimension(4)         , intent(in)    :: bc_section
              real(rkind)                       , intent(in)    :: t
              real(rkind), dimension(nx)        , intent(in)    :: x_map
              real(rkind), dimension(ny)        , intent(in)    :: y_map
