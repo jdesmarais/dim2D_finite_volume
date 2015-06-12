@@ -22,8 +22,8 @@
         character*(*) :: convention
 
         parameter (institut     = 'Eindhoven university of technology')
-        parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '0b722b7474ba4c8dcd0aeeaf06cab323c2256365')
+        parameter (prog_version = 'cretean bull V0.1')
+        parameter (commit = 'af9cbbf278ebaa7212eb3861cd19e911c6da3745')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -53,7 +53,7 @@
 
 
         !>initial conditions choice for NS
-        character(15), dimension(10), parameter :: ns2d_ic_code =[
+        character(15), dimension(11), parameter :: ns2d_ic_code =[
      $       'steady_state   ',
      $       'peak           ',
      $       'vortex         ',
@@ -61,6 +61,7 @@
      $       'sym_y          ',
      $       'negative_spot  ',
      $       'sincos         ',
+     $       'not_implemented',
      $       'not_implemented',
      $       'not_implemented',
      $       'not_implemented']
@@ -74,7 +75,7 @@
         integer, parameter :: sincos=6
 
         !>initial conditions choice for DIM
-        character(19), dimension(10), parameter :: dim2d_ic_code =[
+        character(19), dimension(11), parameter :: dim2d_ic_code =[
      $       'steady_state       ',
      $       'drop_retraction    ',
      $       'bubble_ascending   ',
@@ -83,6 +84,7 @@
      $       'phase_separation   ',
      $       'bubble_transported ',
      $       'bubble_next_to_wall',
+     $       'bubble_collapse    ',
      $       'bubble_nucleation  ',
      $       'newgrdpt_test      ']
 
@@ -94,8 +96,9 @@
         integer, parameter :: phase_separation=5
         integer, parameter :: bubble_transported=6
         integer, parameter :: bubble_next_to_wall=7
-        integer, parameter :: bubble_nucleation=8
-        integer, parameter :: newgrdpt_test=9
+        integer, parameter :: bubble_collapse=8
+        integer, parameter :: bubble_nucleation=9
+        integer, parameter :: newgrdpt_test=10
 
 
         !> phase at center code

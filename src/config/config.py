@@ -164,13 +164,16 @@ def read_inputs(filename, inputs_needed):
         # except for the parameter 'flow_direction'
         # which must remain of character type
         if(input_param!='flow_direction' and
-           input_param!='phase_at_center'):
+           input_param!='phase_at_center' and
+           input_param!='wall_heat_source_choice' and
+           input_param!='wall_extra_heat_source_choice'):
+
             try :
                 inputs_read[input_param]=float(output)
+
             except ValueError:
                 print str(input_param)+' not found in input file'
-                sys.exit(2)
-                
+                sys.exit(2)                
             
         else:
             output=output.replace('\r','')
@@ -318,6 +321,7 @@ def compute_code_inputs(inputFileName,nbTiles):
                    'temperature',
                    'micro_contact_angle',
                    'phase_at_center',
+                   'ratio_bubble_interface',
                    'ic_perturbation_ac',
                    'ic_perturbation_amp',
                    'li_perturbation_ac',
@@ -325,7 +329,16 @@ def compute_code_inputs(inputFileName,nbTiles):
                    'dim2d_lowTemperature',
                    'gravity_ac',
                    'gravity_amp',
+                   'wall_heat_source_choice',
+                   'wall_maximum_heat_flux',
+                   'wall_heat_source_center',
+                   'wall_heat_source_variance',                   
+                   'wall_extra_heat_source_choice',
+                   'wall_maximum_extra_heat_flux',
+                   'wall_extra_heat_source_center',
+                   'wall_extra_heat_source_variance',
                    'wave_forcing']
+
     inputs=read_inputs(inputFileName, inputs_needed)
     
     inputs_computed = {}
@@ -516,6 +529,8 @@ def update_parameters_inputs(file_path,
         'wave_forcing'                     : inputs['wave_forcing'],
         'flow_direction'                   : inputs_computed['flow_direction'],
         'dim2d_lowTemperature'             : inputs['dim2d_lowTemperature'],
+        'wall_heat_source_choice'          : inputs['wall_heat_source_choice'],
+        'wall_extra_heat_source_choice'    : inputs['wall_extra_heat_source_choice'],
         'debug_adapt_computational_domain' : inputs['adapt_computational_domain'],
         'steady_state_simulation'          : inputs['steady_state_ac']}
 
@@ -532,25 +547,32 @@ def update_parameters_inputs(file_path,
     # change the constant that do require a special
     # output treatment (output format)
     constants_changed2={
-        'x_min'                   : inputs['x_min'],
-        'x_max'                   : inputs['x_max'],
-        'y_min'                   : inputs['y_min'],
-        'y_max'                   : inputs['y_max'],
-        't_max'                   : inputs['t_max'],
-        'dt'                      : inputs['dt'],
-        'detail_print'            : inputs['detail_print'],
-        'flow_x_side'             : inputs_computed['flow_x_side'],
-        'flow_y_side'             : inputs_computed['flow_y_side'],
-        'flow_velocity'           : inputs['flow_velocity'],
-        'T0'                      : inputs['temperature'],
-        'wall_micro_contact_angle': inputs['micro_contact_angle'],
-        'ic_perturbation_amp'     : inputs['ic_perturbation_amp'],
-        'li_perturbation_amp'     : inputs['li_perturbation_amp'],
-        'bf_openbc_md_threshold'  : inputs['openbc_md_threshold'],
-        'obc_perturbation_T0_amp' : inputs['openbc_perturbation_T0_amp'],
-        'obc_perturbation_vx0_amp': inputs['openbc_perturbation_vx0_amp'],
-        'obc_perturbation_vy0_amp': inputs['openbc_perturbation_vy0_amp'],
-        'gravity_amp'             : inputs['gravity_amp']}
+        'x_min'                           : inputs['x_min'],
+        'x_max'                           : inputs['x_max'],
+        'y_min'                           : inputs['y_min'],
+        'y_max'                           : inputs['y_max'],
+        't_max'                           : inputs['t_max'],
+        'dt'                              : inputs['dt'],
+        'detail_print'                    : inputs['detail_print'],
+        'flow_x_side'                     : inputs_computed['flow_x_side'],
+        'flow_y_side'                     : inputs_computed['flow_y_side'],
+        'flow_velocity'                   : inputs['flow_velocity'],
+        'T0'                              : inputs['temperature'],
+        'wall_micro_contact_angle'        : inputs['micro_contact_angle'],
+        'ratio_bubble_interface'          : inputs['ratio_bubble_interface'],
+        'ic_perturbation_amp'             : inputs['ic_perturbation_amp'],
+        'li_perturbation_amp'             : inputs['li_perturbation_amp'],
+        'bf_openbc_md_threshold'          : inputs['openbc_md_threshold'],
+        'obc_perturbation_T0_amp'         : inputs['openbc_perturbation_T0_amp'],
+        'obc_perturbation_vx0_amp'        : inputs['openbc_perturbation_vx0_amp'],
+        'obc_perturbation_vy0_amp'        : inputs['openbc_perturbation_vy0_amp'],
+        'gravity_amp'                     : inputs['gravity_amp'],
+        'wall_maximum_heat_flux'          : inputs['wall_maximum_heat_flux'],
+        'wall_heat_source_center'         : inputs['wall_heat_source_center'],
+        'wall_heat_source_variance'       : inputs['wall_heat_source_variance'],
+        'wall_maximum_extra_heat_flux'    : inputs['wall_maximum_extra_heat_flux'],
+        'wall_extra_heat_source_center'   : inputs['wall_extra_heat_source_center'],
+        'wall_extra_heat_source_variance' : inputs['wall_extra_heat_source_variance']}
 
     for key, value in constants_changed2.items():
 
@@ -559,7 +581,7 @@ def update_parameters_inputs(file_path,
         cmd+=" -o "+str(file_path)
         cmd+=" -p "+key
         cmd+=" -v "+"%10.10fd0"%value
-        subprocess.call(cmd, shell=True)    
+        subprocess.call(cmd, shell=True)
 
     print 'update parameters_input.f'
 

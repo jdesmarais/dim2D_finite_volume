@@ -27,17 +27,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = 0.0544000000d0
-        real(rkind), parameter :: x_max = 0.0544000000d0
+        real(rkind), parameter :: x_min = 0.0000000000d0
+        real(rkind), parameter :: x_max = 0.1428000000d0
         real(rkind), parameter :: y_min = 0.0000000000d0
-        real(rkind), parameter :: y_max = 0.0901000000d0
+        real(rkind), parameter :: y_max = 0.1428000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 100.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0000840000d0
+        real(rkind), parameter :: t_max = 6.0000000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0000420000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 1.0000000000d0
+        real(rkind), parameter :: detail_print = 0.0084000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -47,8 +47,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 5
-        integer(ikind), parameter :: nty = 58
+        integer(ikind), parameter :: ntx = 89
+        integer(ikind), parameter :: nty = 89
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -142,25 +142,25 @@
         integer    , parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = wall_S_open_choice
+        integer, parameter :: bc_choice = wall_S_reflection_choice
 
-        integer, parameter :: bc_N_choice = hedstrom_choice
+        integer, parameter :: bc_N_choice = reflection_y_choice
         integer, parameter :: bc_S_choice = wall_choice
-        integer, parameter :: bc_E_choice = hedstrom_choice
-        integer, parameter :: bc_W_choice = hedstrom_choice
+        integer, parameter :: bc_E_choice = reflection_x_choice
+        integer, parameter :: bc_W_choice = reflection_x_choice
 
-        integer, parameter :: bc_NW_choice = hedstrom_choice
-        integer, parameter :: bc_NE_choice = hedstrom_choice
-        integer, parameter :: bc_SE_choice = wall_choice
-        integer, parameter :: bc_SW_choice = wall_choice        
+        integer, parameter :: bc_NW_choice = reflection_x_choice
+        integer, parameter :: bc_NE_choice = reflection_x_choice
+        integer, parameter :: bc_SE_choice = reflection_x_choice
+        integer, parameter :: bc_SW_choice = reflection_x_choice        
 
-        integer, parameter :: bc_order1 = SW_corner_type
-        integer, parameter :: bc_order2 = S_edge_type
-        integer, parameter :: bc_order3 = SE_corner_type
-        integer, parameter :: bc_order4 = W_edge_type
-        integer, parameter :: bc_order5 = E_edge_type
-        integer, parameter :: bc_order6 = NW_corner_type
-        integer, parameter :: bc_order7 = N_edge_type
+        integer, parameter :: bc_order1 = W_edge_type
+        integer, parameter :: bc_order2 = E_edge_type
+        integer, parameter :: bc_order3 = S_edge_type
+        integer, parameter :: bc_order4 = N_edge_type
+        integer, parameter :: bc_order5 = SW_corner_type
+        integer, parameter :: bc_order6 = SE_corner_type
+        integer, parameter :: bc_order7 = NW_corner_type
         integer, parameter :: bc_order8 = NE_corner_type
         
 
@@ -199,31 +199,64 @@
         !bc_SW_type_choice : type of boundary condition applied
         !                    at the South-West corner boundary
         !------------------------------------------------------
-        integer, parameter :: bc_N_type_choice = bc_timedev_choice
+        integer, parameter :: bc_N_type_choice = bc_nodes_choice
         integer, parameter :: bc_S_type_choice = bc_flux_and_node_choice
-        integer, parameter :: bc_E_type_choice = bc_timedev_choice
-        integer, parameter :: bc_W_type_choice = bc_timedev_choice
+        integer, parameter :: bc_E_type_choice = bc_nodes_choice
+        integer, parameter :: bc_W_type_choice = bc_nodes_choice
 
-        integer, parameter :: bc_NW_type_choice = bc_timedev_choice
-        integer, parameter :: bc_NE_type_choice = bc_timedev_choice
-        integer, parameter :: bc_SE_type_choice = bc_flux_and_node_choice
-        integer, parameter :: bc_SW_type_choice = bc_flux_and_node_choice
+        integer, parameter :: bc_NW_type_choice = bc_nodes_choice
+        integer, parameter :: bc_NE_type_choice = bc_nodes_choice
+        integer, parameter :: bc_SE_type_choice = bc_nodes_choice
+        integer, parameter :: bc_SW_type_choice = bc_nodes_choice
+
+
+        !< bubble collapse ic parameters
+        !-----------------------------------------------------
+        !ratio_bubble_interface: ratio between the radius of
+        !                        the initial bubble and the
+        !                        interafce width
+        !-----------------------------------------------------
+        real(rkind), parameter :: ratio_bubble_interface = 2.0000000000d0
 
 
         !< wall boundary conditions parameters
         !-----------------------------------------------------
-        !
-        !wall_micro_contact_angle : static contact angle
-        !                           imposed at the wall
-        !
-        !wall_maximum_heat_flux   : maximum heat flux at the
-        !                           wall
+        !wall contact angle properties
         !-----------------------------------------------------
-        real(rkind), parameter :: wall_micro_contact_angle = 45.0000000000d0
-        integer    , parameter :: wall_heat_source_choice       = no_heat_source
-        real(rkind), parameter :: wall_maximum_heat_flux        = 0.000d0 !0.005d0
-        integer    , parameter :: wall_extra_heat_source_choice = no_heat_source
-        real(rkind), parameter :: wall_maximum_extra_heat_flux  = 0.00001d0
+        !wall_micro_contact_angle  : static contact angle
+        !                            imposed at the wall
+        !
+        !-----------------------------------------------------
+        !wall heat flux related to the temperature
+        !gradient imposed at the wall
+        !-----------------------------------------------------
+        !wall_heat_source_choice   : choice of heat source at the wall
+        !wall_maximum_heat_flux    : maximum heat flux at the
+        !                            wall
+        !wall_heat_source_center   : center if gaussian heat source
+        !wall_heat_source_variance : variance if gaussian heat source
+        !
+        !-----------------------------------------------------
+        !wall heat flux independant of the temperature
+        !gradient at the wall
+        !-----------------------------------------------------
+        !wall_extra_heat_source_choice   : choice of extra heat source at the wall
+        !wall_maximum_extra_heat_flux    : maximum extra heat flux at the
+        !                                  wall
+        !wall_extra_heat_source_center   : center if gaussian extra_heat source
+        !wall_extra_heat_source_variance : variance if gaussian extra_heat source
+        !-----------------------------------------------------
+        real(rkind), parameter :: wall_micro_contact_angle = 90.0000000000d0
+
+        integer    , parameter :: wall_heat_source_choice = constant_heat_source
+        real(rkind), parameter :: wall_maximum_heat_flux = 0.1000000000d0 !0.005d0
+        real(rkind), parameter :: wall_heat_source_center = 0.2000000000d0
+        real(rkind), parameter :: wall_heat_source_variance = 0.0300000000d0
+
+        integer    , parameter :: wall_extra_heat_source_choice = gaussian_heat_source
+        real(rkind), parameter :: wall_maximum_extra_heat_flux = 0.1100000000d0
+        real(rkind), parameter :: wall_extra_heat_source_center = 0.2100000000d0
+        real(rkind), parameter :: wall_extra_heat_source_variance = 0.0310000000d0
 
         
         !-----------------------------------------------------
@@ -431,7 +464,7 @@
         !    parameter checked such that the simulation is considered
         !    steady state
         !------------------------------------------------------------
-        logical    , parameter :: steady_state_simulation = .true.
+        logical    , parameter :: steady_state_simulation = .false.
         real(rkind), parameter :: steady_state_limit = 1.0e-12
 
       end module parameters_input

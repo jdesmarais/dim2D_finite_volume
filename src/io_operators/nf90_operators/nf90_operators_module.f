@@ -30,6 +30,7 @@
      $       dim2d_ic_code,
      $       phase_at_center_code,
      $       bubble_next_to_wall,
+     $       bubble_collapse,
      $       bubble_nucleation,
      $       bc_code,
      $       obc_type_code,
@@ -44,6 +45,7 @@
      $       obc_edge_xy_flux,
      $       obc_edge_xy_diag_flux,
      $       no_heat_source,
+     $       gaussian_heat_source,
      $       wall_source_code
         
         use parameters_kind, only :
@@ -77,10 +79,13 @@
      $       debug_adapt_computational_domain,
      $       ic_perturbation_ac,
      $       ic_perturbation_amp,
+     $       ratio_bubble_interface,
      $       wall_heat_source_choice,
      $       wall_maximum_heat_flux,
      $       wall_extra_heat_source_choice,
-     $       wall_maximum_extra_heat_flux
+     $       wall_maximum_extra_heat_flux,
+     $       wall_extra_heat_source_center,
+     $       wall_extra_heat_source_variance
 
         use pmodel_eq_class, only :
      $       pmodel_eq
@@ -350,7 +355,7 @@
           !----------------------------------------
           select case(ic_choice)
 
-          case(bubble_next_to_wall,bubble_nucleation)
+          case(bubble_next_to_wall,bubble_collapse,bubble_nucleation)
 
              retval = nf90_put_att(
      $         ncid,
@@ -367,6 +372,18 @@
      $         wall_micro_contact_angle)
              !DEC$ FORCEINLINE RECURSIVE
              call nf90_handle_err(retval)
+
+             if(ic_choice.eq.bubble_collapse) then
+
+                retval = nf90_put_att(
+     $               ncid,
+     $               NF90_GLOBAL,
+     $               'ratio_bubble_radius_interface',
+     $               ratio_bubble_interface)
+                !DEC$ FORCEINLINE RECURSIVE
+                call nf90_handle_err(retval)
+
+             end if
 
 
              if(wall_heat_source_choice.ne.no_heat_source) then
@@ -405,6 +422,26 @@
      $               wall_maximum_extra_heat_flux)
                 !DEC$ FORCEINLINE RECURSIVE
                 call nf90_handle_err(retval)
+
+                if(wall_extra_heat_source_choice.eq.gaussian_heat_source) then
+
+                   retval = nf90_put_att(
+     $                  ncid,
+     $                  NF90_GLOBAL,
+     $                  'wall_extra_heat_source_center',
+     $                  wall_extra_heat_source_center)
+                   !DEC$ FORCEINLINE RECURSIVE
+                   call nf90_handle_err(retval)
+
+                   retval = nf90_put_att(
+     $                  ncid,
+     $                  NF90_GLOBAL,
+     $                  'wall_extra_heat_source_variance',
+     $                  wall_extra_heat_source_variance)
+                   !DEC$ FORCEINLINE RECURSIVE
+                   call nf90_handle_err(retval)
+
+                end if
 
              end if
 

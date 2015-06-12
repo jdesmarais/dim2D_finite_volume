@@ -19,7 +19,7 @@ bc_perturbation_vy0_ac_default    = 0    #the addition of perturation to the far
 bc_perturbation_vy0_amp_default   = 0.0  #the amplitude maximum of the perturbation is set to zero by default
 nb_pts_in_interface_default       = 10   #number of grid points required to resolve the interface gradient
 ratio_bubble_interface_default    = 2    #ratio between the bubble and the interface at the initialization
-CFL_constant_default              = 0.1  #CFL constant used by default
+CFL_constant_default              = 0.05 #CFL constant used by default
 ratio_interface_influence_default = 4.0  #ratio used to determine at which distance the interface is supposed not to have an influence
 dct_distance_default              = 4    #default distance between the edge and the detectors
 

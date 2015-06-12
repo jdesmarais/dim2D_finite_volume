@@ -44,7 +44,7 @@
      $       nx,ny,ne,
      $       T0,
      $       phase_at_center,
-     $       wall_micro_contact_angle
+     $       ratio_bubble_interface
 
         use parameters_kind, only :
      $       ikind,
@@ -162,7 +162,7 @@
           li = get_interface_length(T0)
 
           !set the major and minor axes of the bubble ellipse
-          a=li !2.0d0*li
+          a=ratio_bubble_interface*li
           b=a
 
           !set the center of the droplet

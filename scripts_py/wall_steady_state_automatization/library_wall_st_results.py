@@ -45,6 +45,7 @@ from create_wall_st_inputs import create_wall_st_inputs
 def get_simulation_dir(temperature,
                        micro_contact_angle,
                        phase_at_center,
+                       collapse_ratio=2.0,
                        gravity_amp=0):
     '''
     @description
@@ -60,6 +61,9 @@ def get_simulation_dir(temperature,
 
     if(gravity_amp!=0):
         simDir+='_g'+str(gravity_amp)
+
+    if(collapse_ratio!=2.0):
+        simDir+='_ra'+str(collapse_ratio)
 
     return simDir
 
@@ -147,7 +151,7 @@ def generate_wall_st_results(mainDir,
     destDir = get_simulation_dir(temperature,
                                  micro_contact_angle,
                                  phase_at_center,
-                                 gravity_amp)
+                                 gravity_amp=gravity_amp)
     destDir = os.path.join(mainDir,destDir)
 
     # if there is already an existing directory, the function

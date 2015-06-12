@@ -2,7 +2,7 @@
 !============================================================
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !============================================================
-detail_print = 1.0
+detail_print = 0.001
 !detail_print = 1.0
 
 
@@ -13,7 +13,7 @@ detail_print = 1.0
 !steady_state_ac : integer : (0 not activated, 1 activated)
 !                :         : run until steady state
 !============================================================
-dt = 8.4e-05
+dt = 4.2e-05
 t_max = 100.0
 steady_state_ac = 1
 
@@ -32,7 +32,7 @@ steady_state_ac = 1
 !npy     : integer : number of tiles in the y-direction
 !============================================================
 dx = 0.0017
-x_min = 0.0544
+x_min = 0.0
 x_max = 0.0544
 
 dy = 0.0017
@@ -75,7 +75,15 @@ pm_choice = 4
 ! 6 : for south wall and reflection for E,W,N
 ! 7 : for south wall and open bc for E,W,N
 ! 8 : for half south wall, reflection left, open bc for E,N
-!
+!============================================================
+bc_choice = 6
+
+
+!5.1    Open boundary conditions
+!============================================================
+!set the detector distance and the amplitude of the
+!perturbations
+!============================================================
 !------------------------------------------------------------
 !openbc_detector_distance : integer
 !------------------------------------------------------------
@@ -153,8 +161,6 @@ pm_choice = 4
 ! the velocity used to compute the far field values
 !
 !============================================================
-bc_choice = 7
-
 openbc_detector_distance = 5
 
 openbc_md_threshold_ac = 0
@@ -228,6 +234,11 @@ openbc_perturbation_vy0_amp = 0.0
 !phase in the center of the domain (liquid or vapor)
 !
 !------------------------------------------------------------
+!ratio_bubble_interface : real
+!------------------------------------------------------------
+!ratio between the bubble size and its interface
+!
+!------------------------------------------------------------
 !ic_perturbation_ac : integer
 !------------------------------------------------------------
 ! 1: activate the superposition of perturbation in the initial
@@ -265,11 +276,16 @@ ic_choice = 8
 flow_direction = N
 flow_velocity = 0.0
 temperature = 0.95
-micro_contact_angle = 45.0
+micro_contact_angle = 90.0
 phase_at_center = vapor
 
 !------------------------------------------------------------
-!6.3    Perturbations of the initial conditions
+!6.3	Parameters for the bubble collapse
+!------------------------------------------------------------
+ratio_bubble_interface = 1.0
+
+!------------------------------------------------------------
+!6.4    Perturbations of the initial conditions
 !------------------------------------------------------------
 ic_perturbation_ac = 0
 ic_perturbation_amp = 0.0
@@ -281,20 +297,86 @@ li_perturbation_amp = 0.0
 !============================================================
 !set the options tuning the DIM equations
 !============================================================
+!------------------------------------------------------------
 !dim2d_lowTemperature : integer
+!------------------------------------------------------------
 ! 0 : do not use low temperature laws T \in [0.995, 0.999]
 ! 1 : use low temperature laws: T \in [0.95,0.99]
 !
+!------------------------------------------------------------
 !gravity_ac : integer
+!------------------------------------------------------------
 ! 0 : no gravity
 ! 1 : gravity added
 !
+!------------------------------------------------------------
 !gravity_amp : real
+!------------------------------------------------------------
 ! amplitude of the gravity added
+!
+!------------------------------------------------------------
+!wall_heat_source_choice : character
+!------------------------------------------------------------
+! temperature gradient imposed at the wall
+!
+!	- no_heat_source: no temperature gradient
+!	- constant_heat_source : constant temperature gradient
+!
+!------------------------------------------------------------
+!wall_maximum_heat_flux : real
+!------------------------------------------------------------
+! intensity of the temperature gradient imposed at the wall
+!
+!------------------------------------------------------------
+!wall_extra_heat_source_choice : character
+!------------------------------------------------------------
+! extra heat flux imposed at the wall not related to the
+! temperature at the wall
+!
+!	- no_heat_source: no heat flux
+!	- constant_heat_source : constant heat flux
+!	- gaussian_heat_source : heat flux with a gaussian profile
+!
+!------------------------------------------------------------
+!wall_maximum_extra_heat_flux : real
+!------------------------------------------------------------
+! intensity of the heat flux imposed at the wall
+!
+!------------------------------------------------------------
+!wall_extra_heat_source_center : real
+!------------------------------------------------------------
+! localization of the maximum heat flux for the gaussian 
+! heat flux
+!
+!------------------------------------------------------------
+!wall_extra_heat_source_variance : real
+!------------------------------------------------------------
+! variance of the maximum heat flux for the gaussian 
+! heat flux
 !============================================================
+!------------------------------------------------------------
+!7.1	Equations of state
+!------------------------------------------------------------
 dim2d_lowTemperature=0
+
+!------------------------------------------------------------
+!7.2	Gravity
+!------------------------------------------------------------
 gravity_ac=0
 gravity_amp=0.000
+
+!------------------------------------------------------------
+!7.3	Heat source
+!------------------------------------------------------------
+wall_heat_source_choice = constant_heat_source
+wall_maximum_heat_flux = 0.1
+wall_heat_source_center = 0.2
+wall_heat_source_variance = 0.03
+
+wall_extra_heat_source_choice = gaussian_heat_source
+wall_maximum_extra_heat_flux = 0.11
+wall_extra_heat_source_center = 0.21
+wall_extra_heat_source_variance = 0.031
 
 
 !8.	Wave equations

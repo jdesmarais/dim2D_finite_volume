@@ -52,11 +52,19 @@
 
         use parameters_input, only :
      $       ne,
+     $       
      $       wall_micro_contact_angle,
+     $       
      $       wall_heat_source_choice,
      $       wall_maximum_heat_flux,
+     $       wall_heat_source_center,
+     $       wall_heat_source_variance,
+     $       
      $       wall_extra_heat_source_choice,
      $       wall_maximum_extra_heat_flux,
+     $       wall_extra_heat_source_center,
+     $       wall_extra_heat_source_variance,
+     $       
      $       debug_real
 
         use parameters_kind, only :
@@ -258,7 +266,7 @@
           flux_x(2) = flux_x_inviscid_momentum_x(t,x_map,y_map,nodes,dx,dy,i,j,side,gradient_y_proc)
      $                -1.0d0/we*flux_x_capillarity_momentum_x(nodes,s,i,j,dx,dy)
 
-          flux_x(3) = -1.0d0/re*flux_x_viscid_momentum_y(nodes,s,i,j,dx,dy)
+          flux_x(3) = -1.0d0/re*flux_x_viscid_momentum_y(nodes,s,i,j,dx)
      $                -1.0d0/we*flux_x_capillarity_momentum_y(nodes,s,i,j,dx,dy)
 
              
@@ -351,7 +359,7 @@
 
           flux_y(1) = 0.0d0
 
-          flux_y(2) = -1.0d0/re*flux_y_viscid_momentum_x(nodes,s,i,j,dx,dy)
+          flux_y(2) = -1.0d0/re*flux_y_viscid_momentum_x(nodes,s,i,j,dy)
      $                -1.0d0/we*flux_y_capillarity_momentum_x(nodes,s,i,j,dx,dy)
 
           flux_y(3) = flux_y_inviscid_momentum_y(t,x_map,y_map,nodes,dx,dy,i,j,side,gradient_x_proc)
@@ -440,54 +448,43 @@
 
           real(rkind) :: Tl
           real(rkind) :: Th
-          real(rkind) :: Pl
-          real(rkind) :: Ph
+          real(rkind) :: T_half
+          real(rkind) :: md_half
 
 
           !for the West layer
           if(side.eqv.left) then
 
-             !temperature at (i,j)
+             !low temperature at (i,j)
              Tl = 3.0d0/(8.0d0*cv_r)*temperature_eff(
      $            nodes,i,j,
      $            dx,dy,
      $            gradient_x_interior,
-     $            gradient_y_proc)
-
-             !pressure at (i,j)
-             Pl = pressure(Tl,nodes(i,j,1))
-
-             !temperature at (i,j-1)
-             Th = Tl + dx*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
-
-             !pressure at (i,j-1)
-             Ph = pressure(Th,nodes(i-1,j,1))
-             
+     $            gradient_y_proc)             
 
           !for the East layer
           else
              
-             !temperature at (i,j-1)
+             !low temperature at (i-1,j)
              Tl = 3.0d0/(8.0d0*cv_r)*temperature_eff(
      $            nodes,i-1,j,
      $            dx,dy,
      $            gradient_x_interior,
      $            gradient_y_proc)
 
-             !pressure at (i,j-1)
-             Pl = pressure(Tl,nodes(i-1,j,1))
-
-             !temperature at (i,j)
-             Th = Tl + dx*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
-
-             !pressure at (i,j)
-             Ph = pressure(Th,nodes(i,j,1))
-
-
           end if
 
-          !average pressure at (i,j-1/2)
-          var = 0.5d0*(Pl+Ph)
+          !high temperature
+          Th = Tl + dx*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
+
+          !temperature at (i-1/2,j)
+          T_half = 0.5d0*(Tl+Th)
+
+          !mass density at (i-1/2,j)
+          md_half = 0.5d0*(nodes(i-1,j,1)+nodes(i,j,1))
+
+          !average pressure at (i-1/2,j)
+          var = pressure(T_half,md_half)
 
         end function flux_x_inviscid_momentum_x
 
@@ -579,7 +576,7 @@
         !>@return var
         !> x-flux at the wall
         !--------------------------------------------------------------
-        function flux_x_viscid_momentum_y(nodes,s,i,j,dx,dy)
+        function flux_x_viscid_momentum_y(nodes,s,i,j,dx)
      $     result(var)
 
           implicit none
@@ -589,11 +586,9 @@
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
           real(rkind)                  , intent(in) :: dx
-          real(rkind)                  , intent(in) :: dy
           real(rkind)                               :: var
                     
-          var = s%dfdy(nodes,i,j,velocity_x,dy) +
-     $          s%dfdx(nodes,i,j,velocity_y,dx)
+          var = s%dfdx(nodes,i,j,velocity_y,dx)
 
         end function flux_x_viscid_momentum_y
 
@@ -680,7 +675,7 @@
         !>@return var
         !> x-flux at the wall
         !--------------------------------------------------------------
-        function flux_y_viscid_momentum_x(nodes,s,i,j,dx,dy)
+        function flux_y_viscid_momentum_x(nodes,s,i,j,dy)
      $     result(var)
 
           implicit none
@@ -689,12 +684,10 @@
           class(sd_operators)          , intent(in) :: s
           integer(ikind)               , intent(in) :: i
           integer(ikind)               , intent(in) :: j
-          real(rkind)                  , intent(in) :: dx
           real(rkind)                  , intent(in) :: dy
           real(rkind)                               :: var
                     
-          var = s%dgdy(nodes,i,j,velocity_x,dy) +
-     $          s%dgdx(nodes,i,j,velocity_y,dx)
+          var = s%dgdy(nodes,i,j,velocity_x,dy)
 
         end function flux_y_viscid_momentum_x
 
@@ -804,8 +797,8 @@
 
           real(rkind) :: Tl
           real(rkind) :: Th
-          real(rkind) :: Pl
-          real(rkind) :: Ph
+          real(rkind) :: T_half
+          real(rkind) :: md_half
 
           !for the South layer
           if(side.eqv.left) then
@@ -817,15 +810,6 @@
      $            gradient_x_proc,
      $            gradient_y_interior)
 
-             !pressure at (i,j)
-             Pl = pressure(Tl,nodes(i,j,1))
-
-             !temperature at (i,j-1)
-             Th = Tl + dy*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
-
-             !pressure at (i,j-1)
-             Ph = pressure(Th,nodes(i,j-1,1))
-
           !for the North layer
           else
              
@@ -836,19 +820,19 @@
      $            gradient_x_proc,
      $            gradient_y_interior)
 
-             !pressure at (i,j-1)
-             Pl = pressure(Tl,nodes(i,j-1,1))
-
-             !temperature at (i,j)
-             Th = Tl + dy*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
-
-             !pressure at (i,j)
-             Ph = pressure(Th,nodes(i,j,1))
-
           end if
 
+          !high temperature
+          Th = Tl + dy*Pr*get_wall_heat_flux(t,x_map(i),y_map(j))
+
+          !temperature at (i,j-1/2)
+          T_half = 0.5d0*(Tl+Th)
+
+          !mass density at (i,j-1/2)
+          md_half = 0.5*(nodes(i,j-1,1)+nodes(i,j,1))
+
           !average pressure at (i,j-1/2)
-          var = 0.5d0*(Pl+Ph)
+          var = pressure(T_half,md_half)
 
         end function flux_y_inviscid_momentum_y
 
@@ -1531,32 +1515,12 @@
           real(rkind), intent(in) :: y
           real(rkind)             :: wall_heat_flux
 
-          real(rkind) :: s
-          real(rkind) :: x_center
-          real(rkind) :: variance
-
-          select case(wall_heat_source_choice)
-
-            case(no_heat_source)
-               wall_heat_flux = 0.0d0
-               
-            case(constant_heat_source)
-               wall_heat_flux = wall_maximum_heat_flux
-
-            case(gaussian_heat_source)
-               x_center = 0.0d0
-               variance = 0.2d0
-               wall_heat_flux = wall_maximum_heat_flux*Exp(-0.5d0*((x-x_center)/variance)**2)
-
-            case default
-               print '(''wall_xy_equilibrium_module'')'
-               print '(''wall_heat_source_choice not recognized'')'
-               print '(''wall_heat_source_choice: '',I1)', wall_heat_source_choice
-               stop ''
-
-          end select               
-
-          s = (t+x+y)
+          wall_heat_flux = get_heat_flux(
+     $         t,x,y,
+     $         wall_heat_source_choice,
+     $         wall_maximum_heat_flux,
+     $         wall_heat_source_center,
+     $         wall_heat_source_variance)
 
         end function get_wall_heat_flux
 
@@ -1593,35 +1557,93 @@
           real(rkind), intent(in) :: y
           real(rkind)             :: wall_extra_heat_flux
 
-          real(rkind) :: s
-          real(rkind) :: x_center
-          real(rkind) :: variance
-
           
-          select case(wall_extra_heat_source_choice)
+          wall_extra_heat_flux = get_heat_flux(
+     $         t,x,y,
+     $         wall_extra_heat_source_choice,
+     $         wall_maximum_extra_heat_flux,
+     $         wall_extra_heat_source_center,
+     $         wall_extra_heat_source_variance)
+
+        end function get_wall_extra_heat_flux
+
+
+        !> @author
+        !> Julien L. Desmarais
+        !
+        !> @brief
+        !> determine the heat flux
+        !
+        !> @date
+        !> 03_06_2015 - initial version - J.L. Desmarais
+        !
+        !>@param t
+        !> time
+        !
+        !>@param x
+        !> abscissa in $x$-direction
+        !
+        !>@param y
+        !> abscissa in $y$-direction
+        !
+        !>@param maximum_heat_flux
+        !> maximum heat flux imposed
+        !
+        !>@param heat_source_center
+        !> center for gaussian heat flux
+        !
+        !>@param heat_source_variance
+        !> variance for gaussian heat flux
+        !
+        !>@param heat_flux
+        !> heat flux imposed
+        !--------------------------------------------------------------
+        function get_heat_flux(
+     $     t,x,y,
+     $     heat_source_choice,
+     $     maximum_heat_flux,
+     $     heat_source_center,
+     $     heat_source_variance)
+     $     result(heat_flux)
+
+          implicit none
+
+          real(rkind), intent(in) :: t
+          real(rkind), intent(in) :: x
+          real(rkind), intent(in) :: y
+          integer    , intent(in) :: heat_source_choice
+          real(rkind), intent(in) :: maximum_heat_flux
+          real(rkind), intent(in) :: heat_source_center
+          real(rkind), intent(in) :: heat_source_variance
+          real(rkind)             :: heat_flux
+
+          real(rkind) :: s
+
+          select case(heat_source_choice)
 
             case(no_heat_source)
-               wall_extra_heat_flux = 0.0d0
-
+               heat_flux = 0.0d0
+               
             case(constant_heat_source)
-               wall_extra_heat_flux = wall_maximum_extra_heat_flux
+               heat_flux = maximum_heat_flux
 
             case(gaussian_heat_source)
-               x_center = 0.0d0
-               variance = 0.02d0
-               wall_extra_heat_flux = wall_maximum_extra_heat_flux*Exp(-0.5d0*((x-x_center)/variance)**2)
+               heat_flux = maximum_heat_flux*
+     $              Exp(-0.5d0*((x-heat_source_center)/
+     $                          heat_source_variance)**2)
 
             case default
                print '(''wall_xy_equilibrium_module'')'
-               print '(''wall_extra_heat_source_choice not recognized'')'
-               print '(''wall_extra_heat_source_choice: '',I1)', wall_extra_heat_source_choice
+               print '(''get_heat_flux'')'
+               print '(''heat_source_choice not recognized'')'
+               print '(''heat_source_choice: '',I1)', wall_heat_source_choice
                stop ''
 
           end select               
 
           s = (t+x+y)
 
-        end function get_wall_extra_heat_flux
+        end function get_heat_flux
 
         
         !> @author
