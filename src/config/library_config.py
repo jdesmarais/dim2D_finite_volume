@@ -125,6 +125,22 @@ def get_bc_config(bc_choice,inputs_computed):
                      inputs_computed)
 
 
+    elif(bc_choice=='half_wall_S_open_choice'):
+
+        inputs_computed['bc_N_choice'] = 'hedstrom_choice'
+        inputs_computed['bc_S_choice'] = 'wall_choice'
+        inputs_computed['bc_E_choice'] = 'hedstrom_choice'
+        inputs_computed['bc_W_choice'] = 'reflection_x_choice'
+
+        inputs_computed['bc_NW_choice'] = 'reflection_x_choice'
+        inputs_computed['bc_NE_choice'] = 'hedstrom_choice'
+        inputs_computed['bc_SW_choice'] = 'reflection_x_choice'
+        inputs_computed['bc_SE_choice'] = 'wall_choice'
+
+        set_bc_order(['W','S','SE','SW','E','N','NE','NW'],
+                     inputs_computed)
+
+
     elif(bc_choice=='hedstrom_xy_choice'):
         
         inputs_computed['bc_N_choice'] = 'hedstrom_choice'
@@ -284,7 +300,7 @@ def get_bc_order_type(bc_type):
         return 'SW_corner_type'
 
     elif(bc_type=='SE'):
-        return 'SE_edge_type'
+        return 'SE_corner_type'
 
     else:
         print 'library_config'

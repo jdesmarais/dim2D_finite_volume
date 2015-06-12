@@ -17,6 +17,9 @@
         use bc_operators_default_class, only :
      $       bc_operators_default
 
+        use check_data_module, only :
+     $       is_real_validated
+
         use errors_module, only :
      $       error_bc_section_type
 
@@ -34,7 +37,9 @@
 
         use parameters_input, only :
      $       nx,ny,ne,
-     $       bc_size
+     $       bc_size,
+     $       debug_initialize_bc_nodes,
+     $       debug_real
 
         use parameters_kind, only :
      $       ikind,
@@ -233,9 +238,23 @@
                   do j=bc_section(3), bc_section(3)+bc_size-1
                      do i=bc_section(2),bc_section(2)+bc_size-1
                         
-                        nodes(i,j,k) = prefactor_x(k)*
-     $                       nodes(reflection_W-i,j,k)
+                        if(debug_initialize_bc_nodes) then
 
+                           if(is_real_validated(nodes(reflection_W-i,j,k),debug_real)) then
+                              nodes(i,j,k) = debug_real
+
+                           else
+                              nodes(i,j,k) = prefactor_x(k)*
+     $                             nodes(reflection_W-i,j,k)
+                              
+                           end if
+                           
+                        else
+                           nodes(i,j,k) = prefactor_x(k)*
+     $                          nodes(reflection_W-i,j,k)
+                           
+                        end if
+                        
                      end do
                   end do
                end do
@@ -245,8 +264,22 @@
                   do j=bc_section(3), bc_section(3)+bc_size-1
                      do i=bc_section(2),bc_section(2)+bc_size-1
                         
-                        nodes(i,j,k) = prefactor_x(k)*
-     $                       nodes(reflection_E-i,j,k)
+                        if(debug_initialize_bc_nodes) then
+
+                           if(is_real_validated(nodes(reflection_E-i,j,k),debug_real)) then
+                              nodes(i,j,k) = debug_real
+
+                           else
+                              nodes(i,j,k) = prefactor_x(k)*
+     $                             nodes(reflection_E-i,j,k)
+
+                           end if
+
+                        else
+                           nodes(i,j,k) = prefactor_x(k)*
+     $                          nodes(reflection_E-i,j,k)
+
+                        end if
 
                      end do
                   end do

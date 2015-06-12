@@ -288,7 +288,8 @@ def compute_code_inputs(inputFileName,nbTiles):
                     'yoolodato_xy_choice',
                     'wall_xy_choice',
                     'wall_S_reflection_choice',
-                    'wall_S_open_choice']
+                    'wall_S_open_choice',
+                    'half_wall_S_open_choice']
 
     wave_forcing_code = ['no_wave_forcing',
                          'oscillatory_forcing',

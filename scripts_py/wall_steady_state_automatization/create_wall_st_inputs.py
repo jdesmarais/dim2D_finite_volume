@@ -14,7 +14,7 @@ import subprocess
 import shlex
 import shutil
 
-debug=False
+debug=True
 
 
 #add the python files from sm_lg_automatization
@@ -109,11 +109,11 @@ def get_inputsToBeModified(steady_state_ac,
 
     # compute the x_max of the domain
     eq_length = get_equilibrium_length(micro_contact_angle,bubble_diameter)
-    x_max     = get_x_max(eq_length,ratio_eq_length_domain)
+    x_max     = get_x_max(bubble_diameter,eq_length,ratio_eq_length_domain)
     if(debug): print 'x_max: ', x_max
 
     # compute the y_max of the domain
-    y_max     = get_y_max(bubble_diameter,ratio_drop_length_domain)
+    y_max     = x_max #get_y_max(bubble_diameter,ratio_drop_length_domain)
     if(debug): print 'y_max: ', y_max
 
     # compute the maximum space step from the interface length
@@ -138,7 +138,9 @@ def get_inputsToBeModified(steady_state_ac,
     # compute the maximum time step ensuring numerical stability
     flow_velocity = 0.0
     speed_max     = speed_of_sound
-    dt_max        = get_dt_max(dx_max,speed_max,CFL_constant)
+    if(debug): print 'speed_of_sound: ', speed_of_sound
+
+    dt_max        = get_dt_max(dx_max,speed_max,CFL_constant,precision_c=6)
     if(debug): print 'dt_max: ', dt_max
 
     # determine the maximum simulation time
@@ -230,15 +232,15 @@ if __name__=="__main__":
     
     inputs['steady_state_ac']     = 1
 
-    inputs['temperature']         = 0.999
+    inputs['temperature']         = 0.95
     inputs['micro_contact_angle'] = 45.0
     inputs['model_input']         = os.path.join(os.getenv('augeanstables'),
                                                  'src','config','default_inputs','dim2d',
                                                  'dim2d_bubble_next_to_wall.txt')
 
     inputs['inputs_wall']         = 'inputs_wall.txt'
-    inputs['gravity_ac']          = 1
-    inputs['gravity_amp']         = 0.003
+    inputs['gravity_ac']          = 0
+    inputs['gravity_amp']         = 0.000
     inputs['phase_at_center']     = 'vapor'
 
     # create the inputs

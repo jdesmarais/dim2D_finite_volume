@@ -25,16 +25,17 @@ def get_equilibrium_length(micro_contact_angle,initial_radius):
     is reached at the borders
     '''
     
-    contact_angle = pi*micro_contact_angle/180.0
+    contact_angle_vap = pi*(1.0-micro_contact_angle/180.0)
 
-    length = initial_radius*\
-        sqrt(pi/(2.0*contact_angle-sin(2.0*contact_angle)))*\
-        sin(contact_angle)
+    length = initial_radius*sqrt(pi/2.0)*\
+        sin(contact_angle_vap)/\
+        sqrt(contact_angle_vap-sin(2.0*contact_angle_vap)/2.0)
+        
 
     return length
 
 
-def get_x_max(equilibrium_length,ratio_eq_length_domain):
+def get_x_max(initial_radius,equilibrium_length,ratio_eq_length_domain):
     '''
     @description
     compute the extent of the droplet when the equilibrium
@@ -43,7 +44,7 @@ def get_x_max(equilibrium_length,ratio_eq_length_domain):
     is reached at the borders
     '''
 
-    x_max = equilibrium_length*ratio_eq_length_domain
+    x_max = max(4.0*initial_radius,equilibrium_length+2.0*initial_radius)
 
     return x_max
 

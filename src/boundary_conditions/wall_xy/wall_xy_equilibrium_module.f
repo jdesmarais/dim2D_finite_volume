@@ -1608,7 +1608,7 @@
 
             case(gaussian_heat_source)
                x_center = 0.0d0
-               variance = 0.2d0
+               variance = 0.02d0
                wall_extra_heat_flux = wall_maximum_extra_heat_flux*Exp(-0.5d0*((x-x_center)/variance)**2)
 
             case default

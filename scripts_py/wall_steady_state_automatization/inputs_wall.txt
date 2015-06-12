@@ -2,7 +2,8 @@
 !============================================================
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !============================================================
-detail_print = 0.0008
+detail_print = 0.0005
+!detail_print = 0.0005
 
 
 !2.	Simulation duration
@@ -12,7 +13,7 @@ detail_print = 0.0008
 !steady_state_ac : integer : (0 not activated, 1 activated)
 !                :         : run until steady state
 !============================================================
-dt = 0.0008
+dt = 0.000867
 t_max = 200.0
 steady_state_ac = 1
 
@@ -32,11 +33,11 @@ steady_state_ac = 1
 !============================================================
 dx = 0.0126
 x_min = 0.0
-x_max = 0.63
+x_max = 1.0206
 
 dy = 0.0126
 y_min = 0.0
-y_max = 0.5166
+y_max = 1.0206
 
 npx = 1
 npy = 1
@@ -67,14 +68,13 @@ pm_choice = 4
 !------------------------------------------------------------
 ! 0 : for periodic xy
 ! 1 : for reflection xy
-! 2 : for wall xy
-! 3 : for wall x and reflection y
-! 4 : for hedstrom openbc xy
-! 5 : for hedstrom openbc xy with corner treatment
-! 6 : for hedstrom x reflection y
-! 7 : for poinsot and lele openbc xy
-! 8 : for yoo and lodato openbc xy
-! 9 : for wall x simplified bc
+! 2 : for hedstrom openbc xy
+! 3 : for poinsot and lele openbc xy
+! 4 : for yoo and lodato openbc xy
+! 5 : for wall xy
+! 6 : for south wall and reflection for E,W,N
+! 7 : for south wall and open bc for E,W,N
+! 8 : for half south wall, reflection left, open bc for E,N
 !
 !------------------------------------------------------------
 !openbc_detector_distance : integer
@@ -153,7 +153,7 @@ pm_choice = 4
 ! the velocity used to compute the far field values
 !
 !============================================================
-bc_choice = 9
+bc_choice = 8
 
 openbc_detector_distance = 5
 
@@ -193,6 +193,7 @@ openbc_perturbation_vy0_amp = 0.0
 ! 5 : phase separation
 ! 6 : bubble transported
 ! 7 : bubble next to wall
+! 8 : bubble nucleation at wall
 !
 !------------------------------------------------------------
 !flow_direction : character
@@ -264,8 +265,8 @@ ic_choice = 7
 flow_direction = N
 flow_velocity = 0.0
 temperature = 0.999
-micro_contact_angle = 45.0
-phase_at_center = liquid
+micro_contact_angle = 135.0
+phase_at_center = vapor
 
 !------------------------------------------------------------
 !6.3    Perturbations of the initial conditions
@@ -293,7 +294,7 @@ li_perturbation_amp = 0.0
 !============================================================
 dim2d_lowTemperature=0
 gravity_ac = 1
-gravity_amp = 0.015
+gravity_amp = 0.0
 
 
 !8.	Wave equations

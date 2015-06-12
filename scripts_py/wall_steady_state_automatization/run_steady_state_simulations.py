@@ -39,8 +39,8 @@ if __name__=="__main__":
         maindir_input,
         'dim2d_bubble_next_to_wall.txt')
 
-    contactAngleStudy         = False
-    gravityStudy              = True
+    contactAngleStudy         = True
+    gravityStudy              = False
 
 
     #1) contact angle study
@@ -48,9 +48,9 @@ if __name__=="__main__":
 
         steady_state_ac     = 1
         temperature         = 0.999
-        contact_angle_array = [22.5,45.0,67.5,90.0]
-        phase_at_center     = 'liquid'
-        gravity             = 0.003        
+        contact_angle_array = [22.5,45.0,67.5,90.0,112.5,135.0]
+        phase_at_center     = 'vapor'
+        gravity             = 0.000
     
         for contact_angle in contact_angle_array:
             
@@ -71,7 +71,7 @@ if __name__=="__main__":
         steady_state_ac     = 1
         temperature         = 0.999
         contact_angle       = 45.0
-        phase_at_center     = 'liquid'
+        phase_at_center     = 'vapor'
         gravity_array       = [0.005,0.015]
     
         for gravity in gravity_array:

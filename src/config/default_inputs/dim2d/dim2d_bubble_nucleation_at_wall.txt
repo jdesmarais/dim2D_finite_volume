@@ -3,8 +3,7 @@
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !============================================================
 detail_print = 1.0
-!detail_print = 0.001
-
+!detail_print = 1.0
 
 
 !2.	Simulation duration
@@ -14,7 +13,7 @@ detail_print = 1.0
 !steady_state_ac : integer : (0 not activated, 1 activated)
 !                :         : run until steady state
 !============================================================
-dt = 0.0008
+dt = 8.4e-05
 t_max = 100.0
 steady_state_ac = 1
 
@@ -32,13 +31,13 @@ steady_state_ac = 1
 !npx     : integer : number of tiles in the x-direction
 !npy     : integer : number of tiles in the y-direction
 !============================================================
-dx = 0.0126
-x_min =-0.6489
-x_max = 0.6489
+dx = 0.0017
+x_min = 0.0544
+x_max = 0.0544
 
-dy = 0.0126
+dy = 0.0017
 y_min = 0.0
-y_max = 0.8
+y_max = 0.0901
 
 npx = 1
 npy = 1
@@ -75,6 +74,7 @@ pm_choice = 4
 ! 5 : for wall xy
 ! 6 : for south wall and reflection for E,W,N
 ! 7 : for south wall and open bc for E,W,N
+! 8 : for half south wall, reflection left, open bc for E,N
 !
 !------------------------------------------------------------
 !openbc_detector_distance : integer
@@ -264,8 +264,8 @@ ic_choice = 8
 !------------------------------------------------------------
 flow_direction = N
 flow_velocity = 0.0
-temperature = 0.999
-micro_contact_angle = 135.0
+temperature = 0.95
+micro_contact_angle = 45.0
 phase_at_center = vapor
 
 !------------------------------------------------------------

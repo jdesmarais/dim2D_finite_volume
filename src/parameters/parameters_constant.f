@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'augeanstables V0.6')
-        parameter (commit = '5e5a9a2e64becf46edd15daeeae3ec68c63218be')
+        parameter (commit = '0b722b7474ba4c8dcd0aeeaf06cab323c2256365')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -104,7 +104,7 @@
      $       'vapor ']
 
         !>boundary conditions choice
-        character(23), dimension(8), parameter :: bc_code =[
+        character(23), dimension(9), parameter :: bc_code =[
      $       'periodic_xy            ',
      $       'reflection_xy          ',
      $       'hedstrom_xy            ',
@@ -112,7 +112,8 @@
      $       'yoolodato_xy           ',
      $       'wall_xy                ',
      $       'wall_S_reflection      ',
-     $       'wall_S_open            ']
+     $       'wall_S_open            ',
+     $       'half_wall_S_open       ']
 
         integer, parameter :: periodic_xy_choice=0
         integer, parameter :: reflection_xy_choice=1
@@ -121,7 +122,8 @@
         integer, parameter :: yoolodato_xy_choice=4
         integer, parameter :: wall_xy_choice=5
         integer, parameter :: wall_S_reflection_choice=6
-        integer, parameter :: wall_S_open_choice=6
+        integer, parameter :: wall_S_open_choice=7
+        integer, parameter :: half_wall_S_open_choice=8
 
         !>boundary conditions local choice
         integer, parameter :: periodic_x_choice=0

@@ -2,7 +2,7 @@
 !============================================================
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !============================================================
-detail_print = 0.25
+detail_print = 0.0635
 
 
 !2.	Simulation duration
@@ -12,8 +12,8 @@ detail_print = 0.25
 !steady_state_ac : integer : (0 not activated, 1 activated)
 !                :         : run until steady state
 !============================================================
-dt    = 0.0025
-t_max = 10.0
+dt = 0.0008
+t_max = 12.6033
 steady_state_ac = 0
 
 
@@ -30,13 +30,13 @@ steady_state_ac = 0
 !npx     : integer : number of tiles in the x-direction
 !npy     : integer : number of tiles in the y-direction
 !============================================================
-dx = 0.01
-x_min =-0.5
-x_max = 0.5
+dx = 0.0126
+x_min = -0.6489
+x_max = 0.6489
 
-dy = 0.01
-y_min =-0.5
-y_max = 0.5
+dy = 0.0126
+y_min = -0.6489
+y_max = 0.6489
 
 npx = 1
 npy = 1
@@ -67,15 +67,13 @@ pm_choice = 4
 !------------------------------------------------------------
 ! 0 : for periodic xy
 ! 1 : for reflection xy
-! 2 : for wall xy
-! 3 : for wall x and reflection y
-! 4 : for hedstrom openbc xy
-! 5 : for hedstrom openbc xy with corner treatment
-! 6 : for hedstrom x reflection y
-! 7 : for poinsot and lele openbc xy
-! 8 : for yoo and lodato openbc xy
-! 9 : for wall x simplified bc
-!10 : for wall x with open bc
+! 2 : for hedstrom openbc xy
+! 3 : for poinsot and lele openbc xy
+! 4 : for yoo and lodato openbc xy
+! 5 : for wall xy
+! 6 : for south wall and reflection for E,W,N
+! 7 : for south wall and open bc for E,W,N
+! 8 : for half south wall, reflection left, open bc for E,N
 !
 !------------------------------------------------------------
 !openbc_detector_distance : integer
@@ -154,18 +152,18 @@ pm_choice = 4
 ! the velocity used to compute the far field values
 !
 !============================================================
-bc_choice = 4
+bc_choice = 2
 
 openbc_detector_distance = 5
 
-openbc_md_threshold_ac = 1
-openbc_md_threshold    = 0.1
+openbc_md_threshold_ac = 0
+openbc_md_threshold = 0
 
-openbc_perturbation_T0_ac  = 0
+openbc_perturbation_T0_ac = 0
 openbc_perturbation_vx0_ac = 0
 openbc_perturbation_vy0_ac = 0
 
-openbc_perturbation_T0_amp  = 0.0
+openbc_perturbation_T0_amp = 0.0
 openbc_perturbation_vx0_amp = 0.0
 openbc_perturbation_vy0_amp = 0.0
 
@@ -265,7 +263,7 @@ ic_choice = 6
 !------------------------------------------------------------
 flow_direction = N
 flow_velocity = 0.1
-temperature = 0.995
+temperature = 0.999
 micro_contact_angle = 90.0
 phase_at_center = vapor
 

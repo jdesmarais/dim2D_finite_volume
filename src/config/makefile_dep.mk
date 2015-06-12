@@ -297,6 +297,7 @@ $(rbc_dir)/reflection_xy_module.o:\
 
 $(rbc_dir)/bc_operators_reflection_x_class.o:\
 			$(bc_dir)/bc_operators_default_class.o\
+			$(test_dir)/tools/check_data_module.o\
 			$(param_dir)/errors_module.o\
 			$(pm_cdir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_constant.o\
@@ -306,6 +307,7 @@ $(rbc_dir)/bc_operators_reflection_x_class.o:\
 
 $(rbc_dir)/bc_operators_reflection_y_class.o:\
 			$(bc_dir)/bc_operators_default_class.o\
+			$(test_dir)/tools/check_data_module.o\
 			$(param_dir)/errors_module.o\
 			$(pm_cdir)/pmodel_eq_class.o\
 			$(param_dir)/parameters_constant.o\

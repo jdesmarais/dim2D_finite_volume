@@ -31,14 +31,16 @@
 
           real(rkind), intent(in) :: var
           real(rkind), intent(in) :: cst
-          logical                 :: detailled
+          logical    , optional   :: detailled
           logical                 :: test_validated
 
           test_validated = abs(var-cst)<1e-10
 
-          if(detailled.and.(.not.test_validated)) then
-             print *, var
-             print *, cst
+          if(present(detailled)) then
+             if(detailled.and.(.not.test_validated)) then
+                print *, var
+                print *, cst
+             end if
           end if
           
         end function is_real_validated

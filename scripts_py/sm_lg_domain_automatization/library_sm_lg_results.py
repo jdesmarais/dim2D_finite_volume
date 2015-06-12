@@ -137,7 +137,7 @@ def estimate_simulation_duration(inputPath):
     @description:
     estimate the simulation duration based on the
     grid size in x- and y-directions and the total
-    number of time steps
+    number of time steps (in seconds)
     '''
 
     #1) verify that the file 'inputPath' exists

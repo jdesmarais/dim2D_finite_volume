@@ -206,7 +206,7 @@ def get_small_domain_extent(domain_length,dx):
 
 # compute the maximum time step ensuring numerical stability
 # according to the CFL condition
-def get_dt_max(dx,speed_max,CFL_constant):
+def get_dt_max(dx,speed_max,CFL_constant,precision_c=precision):
     '''
     @description
     compute the maximum time step ensuring numerical
@@ -215,7 +215,7 @@ def get_dt_max(dx,speed_max,CFL_constant):
 
     return float(math.floor(
             CFL_constant*dx/speed_max
-            *10**precision))/(10**precision)
+            *10**precision_c))/(10**precision_c)
 
 
 # compute the total simulation time ensuring that the
