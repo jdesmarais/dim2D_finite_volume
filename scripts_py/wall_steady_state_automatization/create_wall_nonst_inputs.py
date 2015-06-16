@@ -51,22 +51,31 @@ from create_sm_lg_inputs import (get_parameter,
 
 # determine the inputs modified in the input file
 def get_inputsToBeModified(
-    steady_state_ac,
-    temperature,
-    micro_contact_angle,
-    phase_at_center,
-    gravity_ac,
-    gravity_amp,
-    nb_pts_in_interface,
-    ratio_bubble_interface,
-    CFL_constant,
-    total_nb_files):
+    simulation_duration,
+    steady_state_ac = 0,
+    temperature = 0.999,
+    micro_contact_angle = 90.0,
+    phase_at_center = 'vapor',
+    gravity_ac = 0,
+    gravity_amp = 0.0,
+    nb_pts_in_interface = nb_pts_in_interface_default,
+    ratio_bubble_interface = 2.0,
+    wall_heat_source_choice = 'no_heat_source',
+    wall_maximum_heat_flux = 0.0,
+    wall_heat_source_center = 0.0,
+    wall_heat_source_variance = 1.0,
+    wall_extra_heat_source_choice = 'no_heat_source',
+    wall_maximum_extra_heat_flux = 0.0,
+    wall_extra_heat_source_center = 0.0,
+    wall_extra_heat_source_variance = 1.0,
+    CFL_constant = CFL_constant_default,
+    total_nb_files = total_nb_files_default):
 
     '''
     @description
     determine the inputs to be modified in the template.txt
-    template input file to run the DIM2D simulation for a drop/bubble
-    collapse on a wall
+    template input file to run the DIM2D simulation for non-
+    steady state simulations of drop/bubble at the wall
     '''
 
     # extract length_c, dim2d_a, dim2d_b, dim2d_M, dim2d_cv, dim2d_R
@@ -98,7 +107,7 @@ def get_inputsToBeModified(
     interface_lgh = get_interface_length(we,temperature)
     if(debug): print 'interface_length: ', interface_lgh
 
-    # compute the bubble diameter from the interface length
+    # compute the normal bubble diameter from the interface length
     bubble_diameter = get_bubble_diameter(interface_lgh,
                                           2.0)
     if(debug): print 'bubble_diameter: ', bubble_diameter
@@ -140,7 +149,7 @@ def get_inputsToBeModified(
     if(debug): print 'dt_max: ', dt_max
 
     # determine the maximum simulation time
-    simulation_time = 6.0
+    simulation_time = simulation_duration
 
     # determine the detail print
     detail_print = get_detail_print(total_nb_files,
@@ -151,60 +160,87 @@ def get_inputsToBeModified(
 
     # gather the inputs to be modified in a dictionnary
     inputsToBeModified = {
-        'detail_print'                : detail_print,
-        'dt'                          : dt_max,
-        't_max'                       : simulation_time,
-        'steady_state_ac'             : steady_state_ac,
-        'dx'                          : dx_max,
-        'x_min'                       : domain_extent[0][0],
-        'x_max'                       : domain_extent[1][0],
-        'dy'                          : dx_max,
-        'y_min'                       : domain_extent[0][1],
-        'y_max'                       : domain_extent[1][1],
-        'flow_velocity'               : flow_velocity,
-        'temperature'                 : temperature,
-        'micro_contact_angle'         : micro_contact_angle,
-        'phase_at_center'             : phase_at_center,
-        'ratio_bubble_interface'      : ratio_bubble_interface,
-        'gravity_ac'                  : gravity_ac,
-        'gravity_amp'                 : gravity_amp}
+        'detail_print'                    : detail_print,
+        'dt'                              : dt_max,
+        't_max'                           : simulation_time,
+        'steady_state_ac'                 : steady_state_ac,
+        'dx'                              : dx_max,
+        'x_min'                           : domain_extent[0][0],
+        'x_max'                           : domain_extent[1][0],
+        'dy'                              : dx_max,
+        'y_min'                           : domain_extent[0][1],
+        'y_max'                           : domain_extent[1][1],
+        'flow_velocity'                   : flow_velocity,
+        'temperature'                     : temperature,
+        'micro_contact_angle'             : micro_contact_angle,
+        'phase_at_center'                 : phase_at_center,
+        'ratio_bubble_interface'          : ratio_bubble_interface,
+        'gravity_ac'                      : gravity_ac,
+        'gravity_amp'                     : gravity_amp,
+        'wall_heat_source_choice'         : wall_heat_source_choice,
+        'wall_maximum_heat_flux'          : wall_maximum_heat_flux,
+        'wall_heat_source_center'         : wall_heat_source_center,
+        'wall_heat_source_variance'       : wall_heat_source_variance,
+        'wall_extra_heat_source_choice'   : wall_extra_heat_source_choice,
+        'wall_maximum_extra_heat_flux'    : wall_maximum_extra_heat_flux,
+        'wall_extra_heat_source_center'   : wall_extra_heat_source_center,
+        'wall_extra_heat_source_variance' : wall_extra_heat_source_variance}
 
     return inputsToBeModified
 
 
 # create the input file for the wall DIM2D simulation
-def create_wall_bubblecollapse_inputs(
-    steady_state_ac,
-    temperature,
-    micro_contact_angle,
-    phase_at_center,
-    gravity_ac,
-    gravity_amp,
+def create_wall_nonst_inputs(
     model_input,
-    inputs_wall_modified      = 'inputs_wall.txt',
-    nb_pts_in_interface       = nb_pts_in_interface_default,
-    ratio_bubble_interface    = 2.0,
-    CFL_constant              = CFL_constant_default,
-    total_nb_files            = total_nb_files_default):
+    simulation_duration,
+    inputs_wall_modified = 'inputs_wall.txt',
+    steady_state_ac = 0,
+    temperature = 0.999,
+    micro_contact_angle = 90.0,
+    phase_at_center = 'vapor',
+    gravity_ac = 0,
+    gravity_amp = 0.0,
+    nb_pts_in_interface = nb_pts_in_interface_default,
+    ratio_bubble_interface = 2.0,
+    wall_heat_source_choice = 'no_heat_source',
+    wall_maximum_heat_flux = 0.0,
+    wall_heat_source_center = 0.0,
+    wall_heat_source_variance = 1.0,
+    wall_extra_heat_source_choice = 'no_heat_source',
+    wall_maximum_extra_heat_flux = 0.0,
+    wall_extra_heat_source_center = 0.0,
+    wall_extra_heat_source_variance = 1.0,
+    CFL_constant = CFL_constant_default,
+    total_nb_files = total_nb_files_default):
+
     '''
     @description:
-    create the small and large domain inputs for the simulation    
+    create the file for non-steady-state simulations at the wall
     '''
 
     # determine the inputs to be modified in
     # template.txt to run the simulation on
     # small and large scale domains
     inputs_wall = get_inputsToBeModified(
-        steady_state_ac,
-        temperature,
-        micro_contact_angle,
-        phase_at_center,
-        gravity_ac,
-        gravity_amp,
-        nb_pts_in_interface,
-        ratio_bubble_interface,
-        CFL_constant,
-        total_nb_files)
+        simulation_duration,
+        steady_state_ac                  = steady_state_ac,
+        temperature                      = temperature,
+        micro_contact_angle              = micro_contact_angle,
+        phase_at_center                  = phase_at_center,
+        gravity_ac                       = gravity_ac,
+        gravity_amp                      = gravity_amp,
+        nb_pts_in_interface              = nb_pts_in_interface,
+        ratio_bubble_interface           = ratio_bubble_interface,
+        wall_heat_source_choice          = wall_heat_source_choice,
+        wall_maximum_heat_flux           = wall_maximum_heat_flux,
+        wall_heat_source_center          = wall_heat_source_center,
+        wall_heat_source_variance        = wall_heat_source_variance,
+        wall_extra_heat_source_choice    = wall_extra_heat_source_choice,
+        wall_maximum_extra_heat_flux     = wall_maximum_extra_heat_flux,
+        wall_extra_heat_source_center    = wall_extra_heat_source_center,
+        wall_extra_heat_source_variance  = wall_extra_heat_source_variance,
+        CFL_constant                     = CFL_constant,
+        total_nb_files                   = total_nb_files)
     
 
     # create the input file for the small

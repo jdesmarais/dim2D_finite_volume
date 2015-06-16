@@ -162,7 +162,7 @@
           li = get_interface_length(T0)
 
           !set the major and minor axes of the bubble ellipse
-          a=li !2.0d0*li
+          a=2.0d0*li
           b=a
 
           !set the center of the droplet
@@ -190,12 +190,12 @@
                 x = x_map(i)
                 y = y_map(j)
 
-c$$$                !constant field
-c$$$                nodes(i,j,1) = dvap
-c$$$                nodes(i,j,2) = nodes(i,j,1)*velocity_x
-c$$$                nodes(i,j,3) = nodes(i,j,1)*velocity_y
-c$$$                nodes(i,j,4) = 0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y**2)
-c$$$     $                       + nodes(i,j,1)*(8.0d0/3.0d0*cv_r*T0-3.0d0*nodes(i,j,1))
+                !constant field
+                nodes(i,j,1) = dliq
+                nodes(i,j,2) = nodes(i,j,1)*velocity_x
+                nodes(i,j,3) = nodes(i,j,1)*velocity_y
+                nodes(i,j,4) = 0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y**2)
+     $                       + nodes(i,j,1)*(8.0d0/3.0d0*cv_r*T0-3.0d0*nodes(i,j,1))
 
 c$$$                !inclined bubble
 c$$$                x1 = (x-x_pinned)*Sin(angle) - y*Cos(angle)
@@ -213,31 +213,31 @@ c$$$                nodes(i,j,4) = 0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y*
 c$$$     $                       + nodes(i,j,1)*(8.0d0/3.0d0*cv_r*T0-3.0d0*nodes(i,j,1))
 c$$$     $                       + 1.0d0/We*s**2
 
-                ! bubble
-                s = smoothing_fct(x,[xc-1.5d0*a,xc+1.5d0*a],li)*
-     $              smoothing_fct(y,[yc-1.5d0*a,yc+1.5d0*a],li)
-
-                nodes(i,j,1) =
-     $               mass_density_ellipsoid(
-     $               x,y,xc,yc,a,b,li,dliq,dvap,phase_at_center)*s+
-     $               dout*(1.0d0-s)
-
-                nodes(i,j,2) =
-     $               nodes(i,j,1)*velocity_x*s+
-     $               dout*velocity_x*(1.0d0-s)
-
-                nodes(i,j,3) =
-     $               nodes(i,j,1)*velocity_y*s+
-     $               dout*velocity_y*(1.0d0-s)
-                
-                nodes(i,j,4) =
-     $               (total_energy_ellipsoid(
-     $               x,y,xc,yc,a,b,li,dliq,dvap,
-     $               nodes(i,j,1),T0)
-     $               +
-     $               0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y**2))*s+
-     $               (dout*(8.0d0/3.0d0*cv_r*T0-3.0d0*dout)+
-     $                0.5d0*dout*(velocity_x**2+velocity_y**2))*(1.0d0-s)
+c$$$                ! bubble
+c$$$                s = smoothing_fct(x,[xc-1.5d0*a,xc+1.5d0*a],li)*
+c$$$     $              smoothing_fct(y,[yc-1.5d0*a,yc+1.5d0*a],li)
+c$$$
+c$$$                nodes(i,j,1) =
+c$$$     $               mass_density_ellipsoid(
+c$$$     $               x,y,xc,yc,a,b,li,dliq,dvap,phase_at_center)*s+
+c$$$     $               dout*(1.0d0-s)
+c$$$
+c$$$                nodes(i,j,2) =
+c$$$     $               nodes(i,j,1)*velocity_x*s+
+c$$$     $               dout*velocity_x*(1.0d0-s)
+c$$$
+c$$$                nodes(i,j,3) =
+c$$$     $               nodes(i,j,1)*velocity_y*s+
+c$$$     $               dout*velocity_y*(1.0d0-s)
+c$$$                
+c$$$                nodes(i,j,4) =
+c$$$     $               (total_energy_ellipsoid(
+c$$$     $               x,y,xc,yc,a,b,li,dliq,dvap,
+c$$$     $               nodes(i,j,1),T0)
+c$$$     $               +
+c$$$     $               0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y**2))*s+
+c$$$     $               (dout*(8.0d0/3.0d0*cv_r*T0-3.0d0*dout)+
+c$$$     $                0.5d0*dout*(velocity_x**2+velocity_y**2))*(1.0d0-s)
 
              end do
           end do

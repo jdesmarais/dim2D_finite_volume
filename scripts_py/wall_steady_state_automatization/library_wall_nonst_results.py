@@ -40,14 +40,15 @@ from library_sm_lg_results import (generate_exe,
                                    get_name_run,
                                    run_simulation)
 
-from create_wall_bubblecollapse_inputs import create_wall_bubblecollapse_inputs
+from create_wall_nonst_inputs import create_wall_nonst_inputs
 
 from library_wall_st_results import get_simulation_dir
 
 
 # create the simulation
 def create_simulation(destDir,
-                      inputPath):
+                      inputPath,
+                      PBSnameRun):
     '''
     @description
     create the executable corresponding to the inputPath, save it
@@ -57,7 +58,7 @@ def create_simulation(destDir,
 
     #0) check that destDir exists
     if(not os.path.isdir(destDir)):
-        print 'library_wall_st_results'
+        print 'library_wall_nonst_results'
         print 'create_simulation'
         sys.exit('***directory '+destDir+' does not exist***')
 
@@ -68,7 +69,7 @@ def create_simulation(destDir,
 
     #2) move the executable to destDir
     if(not os.path.isfile(exePath)):
-        print 'library_wall_bubblecollapse_results'
+        print 'library_wall_nonst_results'
         print 'create_simulation'
         sys.exit('***exe file'+exePath+' does not exist***')
 
@@ -78,10 +79,6 @@ def create_simulation(destDir,
 
 
     #3) create the PBS script
-    temperature         = float(get_parameter('temperature',inputPath))
-    micro_contact_angle = float(get_parameter('micro_contact_angle',inputPath))
-    ratio_bubble_interface = float(get_parameter('ratio_bubble_interface',inputPath))
-    nameRun = get_name_run(temperature,ratio_bubble_interface)
     simulation_duration = estimate_simulation_duration(inputPath)
     walltime = estimate_wall_time(simulation_duration,
                                   safety_ratio=2.0)
@@ -91,30 +88,40 @@ def create_simulation(destDir,
     create_pbs_script(
         pbsScriptPath,
         newExePath,
-        nameRun=nameRun,
+        nameRun=PBSnameRun,
         walltime=walltime)
 
-    return [pbsScriptPath,nameRun]
+    return [pbsScriptPath,PBSnameRun]
 
 
 # create and run the simulation for test
-def generate_wall_bubblecollapse_results(
+def generate_wall_nonst_results(
     mainDir,
-    steady_state_ac,
-    temperature,
-    micro_contact_angle,
-    phase_at_center,
-    ratio_bubble_interface,
     model_input,
-    gravity_ac=0,
-    gravity_amp=0,
-    total_nb_files=total_nb_files_default):
+    PBSnameRun,
+    simulation_duration,
+    steady_state_ac                 = 0,
+    temperature                     = 0.999,
+    micro_contact_angle             = '90.0',
+    phase_at_center                 = 'vapor',
+    ratio_bubble_interface          = 2.0,
+    gravity_ac                      = 0,
+    gravity_amp                     = 0,
+    wall_heat_source_choice         = 'no_heat_source',
+    wall_maximum_heat_flux          = 0.0,
+    wall_heat_source_center         = 0.0,
+    wall_heat_source_variance       = 1.0 ,
+    wall_extra_heat_source_choice   = 'no_heat_source',
+    wall_maximum_extra_heat_flux    = 0.0,
+    wall_extra_heat_source_center   = 0.0,
+    wall_extra_heat_source_variance = 1.0,
+    total_nb_files                  = total_nb_files_default):
 
     '''
     @description
     create the directory to save the simulation results,
     generate the input file needed to run the simulations
-    of a bubble collapse at a wall,
+    of non steady drop/bubble at a wall,
     generate the executable,
     create the PBS scripts file, and
     run the simulation
@@ -124,8 +131,8 @@ def generate_wall_bubblecollapse_results(
     #   directory where the directory to save the simulation
     #   is created
     if(not os.path.isdir(mainDir)):
-        print 'library_wall_bubblecollapse_results'
-        print 'generate_wall_bublecollapse_results'
+        print 'library_wall_nonst_results'
+        print 'generate_wall_nonst_results'
         sys.exit('*** '+mainDir+' is not a directory***')
 
 
@@ -133,14 +140,17 @@ def generate_wall_bubblecollapse_results(
     destDir = get_simulation_dir(temperature,
                                  micro_contact_angle,
                                  phase_at_center,
-                                 collapse_ratio=ratio_bubble_interface)
+                                 collapse_ratio               = ratio_bubble_interface,
+                                 gravity_amp                  = gravity_amp,
+                                 wall_maximum_heat_flux       = wall_maximum_heat_flux,
+                                 wall_maximum_extra_heat_flux = wall_maximum_extra_heat_flux)
     destDir = os.path.join(mainDir,destDir)
 
     # if there is already an existing directory, the function
     # throws an error
     if(os.path.isdir(destDir)):
-        print 'library_wall_bubblecollapse_results'
-        print 'generate_wall_bublecollapse_results'
+        print 'library_wall_nonst_results'
+        print 'generate_wall_nonst_results'
         sys.exit('*** '+destDir+' already exists***')
     os.mkdir(destDir)
     
@@ -153,23 +163,32 @@ def generate_wall_bubblecollapse_results(
         os.remove(inputPath)
 
     #create input
-    create_wall_bubblecollapse_inputs(
-        steady_state_ac,
-        temperature,
-        micro_contact_angle,
-        phase_at_center,
-        gravity_ac,
-        gravity_amp,
+    create_wall_nonst_inputs(
         model_input,
-        inputs_wall_modified = inputPath,
-        ratio_bubble_interface = ratio_bubble_interface,
-        total_nb_files = total_nb_files)
+        simulation_duration,
+        inputs_wall_modified            = inputPath,
+        steady_state_ac                 = steady_state_ac,
+        temperature                     = temperature,
+        micro_contact_angle             = micro_contact_angle,
+        phase_at_center                 = phase_at_center,
+        gravity_ac                      = gravity_ac,
+        gravity_amp                     = gravity_amp,
+        ratio_bubble_interface          = ratio_bubble_interface,
+        wall_heat_source_choice         = wall_heat_source_choice,
+        wall_maximum_heat_flux          = wall_maximum_heat_flux,
+        wall_heat_source_center         = wall_heat_source_center,
+        wall_heat_source_variance       = wall_heat_source_variance,
+        wall_extra_heat_source_choice   = wall_extra_heat_source_choice,
+        wall_maximum_extra_heat_flux    = wall_maximum_extra_heat_flux,
+        wall_extra_heat_source_center   = wall_extra_heat_source_center,
+        wall_extra_heat_source_variance = wall_extra_heat_source_variance,
+        total_nb_files                  = total_nb_files)
 
     #4) create dir, generate executable,
     #   create PBS script file
     [pbsScriptPath,nameRun] = create_simulation(destDir,
-                                                inputPath)
-        
+                                                inputPath,
+                                                PBSnameRun)        
 
     #5) run the simulation
     run_simulation(pbsScriptPath)

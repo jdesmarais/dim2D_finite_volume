@@ -48,7 +48,7 @@ if __name__=="__main__":
 
         steady_state_ac     = 1
         temperature         = 0.999
-        contact_angle_array = [22.5,45.0,67.5,90.0,112.5,135.0]
+        contact_angle_array = [135.0] #[22.5,45.0,67.5,90.0,112.5,135.0]
         phase_at_center     = 'vapor'
         gravity             = 0.000
     

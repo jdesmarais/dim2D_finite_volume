@@ -17,7 +17,7 @@ and the contact angle at the wall between the phases
 
 import os
 
-from library_wall_bubblecollapse_results import generate_wall_bubblecollapse_results
+from library_wall_nonst_results import generate_wall_nonst_results
 
 
 if __name__=="__main__":
@@ -58,17 +58,20 @@ if __name__=="__main__":
             
             [destDir, nameRun] =\
                 \
-                generate_wall_bubblecollapse_results(
+                generate_wall_nonst_results(
                 mainDir,
-                steady_state_ac,
-                temperature,
-                contact_angle,
-                phase_at_center,
-                ratio,
                 model_input,
-                gravity_ac=gravity_ac,
-                gravity_amp=gravity,
-                total_nb_files=total_nb_files)
+                PBSnameRun,
+                simulationDuration,
+                steady_state_ac           = steady_state_ac,
+                temperature               = temperature,
+                micro_contact_angle       = contact_angle,
+                phase_at_center           = phase_at_center,
+                ratio_bubble_interface    = ratio,
+                gravity_ac                = gravity_ac,
+                gravity_amp               = gravity,
+                total_nb_files            = total_nb_files)
+
 
     #2) contact_angle study
     if(contactangleStudy):
@@ -87,16 +90,18 @@ if __name__=="__main__":
             
             [destDir, nameRun] =\
                 \
-                generate_wall_bubblecollapse_results(
+                generate_wall_nonst_results(
                 mainDir,
-                steady_state_ac,
-                temperature,
-                contact_angle,
-                phase_at_center,
-                ratio,
                 model_input,
-                gravity_ac=gravity_ac,
-                gravity_amp=gravity,
-                total_nb_files=total_nb_files)
+                PBSnameRun,
+                simulationDuration,
+                steady_state_ac           = steady_state_ac,
+                temperature               = temperature,
+                micro_contact_angle       = contact_angle,
+                phase_at_center           = phase_at_center,
+                ratio_bubble_interface    = ratio,
+                gravity_ac                = gravity_ac,
+                gravity_amp               = gravity,
+                total_nb_files            = total_nb_files)
              
     

@@ -54,7 +54,11 @@
 
 
         ! allocate the field
-        nt           = int((t_max-f_simulated%get_time())/dt)
+        if(steady_state_simulation) then
+           nt = int((t_max)/dt)
+        else
+           nt = int((t_max-f_simulated%get_time())/dt)
+        end if
         output_print = int(1.0d0/detail_print)
 
 

@@ -46,7 +46,9 @@ def get_simulation_dir(temperature,
                        micro_contact_angle,
                        phase_at_center,
                        collapse_ratio=2.0,
-                       gravity_amp=0):
+                       gravity_amp=0,
+                       wall_maximum_heat_flux = 0,
+                       wall_maximum_extra_heat_flux = 0):
     '''
     @description
     get the name of the folder where the simulation results
@@ -59,12 +61,18 @@ def get_simulation_dir(temperature,
         'ca'+str(micro_contact_angle)+'_'+\
         phase_at_center[0:3]
 
-    if(gravity_amp!=0):
-        simDir+='_g'+str(gravity_amp)
-
     if(collapse_ratio!=2.0):
         simDir+='_ra'+str(collapse_ratio)
 
+    if(gravity_amp!=0):
+        simDir+='_g'+str(gravity_amp)
+
+    if(wall_maximum_heat_flux):
+        simDir+='_fh'+str(wall_maximum_heat_flux)
+
+    if(wall_maximum_extra_heat_flux):
+        simDir+='_sh'+str(wall_maximum_extra_heat_flux)
+    
     return simDir
 
 
@@ -138,29 +146,29 @@ def generate_wall_st_results(mainDir,
     run the simulation
     '''
     
-    #1) test whether 'mainDir' can be used as a reference
-    #   directory where the directory to save the simulation
-    #   is created
-    if(not os.path.isdir(mainDir)):
-        print 'library_wall_st_results'
-        print 'generate_wall_st_results'
-        sys.exit('*** '+mainDir+' is not a directory***')
-
-
-    #2) create the directory to save the simulation    
-    destDir = get_simulation_dir(temperature,
-                                 micro_contact_angle,
-                                 phase_at_center,
-                                 gravity_amp=gravity_amp)
-    destDir = os.path.join(mainDir,destDir)
-
-    # if there is already an existing directory, the function
-    # throws an error
-    if(os.path.isdir(destDir)):
-        print 'library_wall_st_results'
-        print 'generate_wall_st_results'
-        sys.exit('*** '+destDir+' already exists***')
-    os.mkdir(destDir)
+    ##1) test whether 'mainDir' can be used as a reference
+    ##   directory where the directory to save the simulation
+    ##   is created
+    #if(not os.path.isdir(mainDir)):
+    #    print 'library_wall_st_results'
+    #    print 'generate_wall_st_results'
+    #    sys.exit('*** '+mainDir+' is not a directory***')
+    #
+    #
+    ##2) create the directory to save the simulation    
+    #destDir = get_simulation_dir(temperature,
+    #                             micro_contact_angle,
+    #                             phase_at_center,
+    #                             gravity_amp=gravity_amp)
+    #destDir = os.path.join(mainDir,destDir)
+    #
+    ## if there is already an existing directory, the function
+    ## throws an error
+    #if(os.path.isdir(destDir)):
+    #    print 'library_wall_st_results'
+    #    print 'generate_wall_st_results'
+    #    sys.exit('*** '+destDir+' already exists***')
+    #os.mkdir(destDir)
     
     
     #3) create the inputs for the simulation
@@ -180,14 +188,14 @@ def generate_wall_st_results(mainDir,
                           model_input,
                           inputs_wall_modified = inputPath)
 
-    #4) create dir, generate executable,
-    #   create PBS script file
-    [pbsScriptPath,nameRun] = create_simulation(destDir,
-                                                inputPath)
-        
-
-    #5) run the simulation
-    run_simulation(pbsScriptPath)
+    ##4) create dir, generate executable,
+    ##   create PBS script file
+    #[pbsScriptPath,nameRun] = create_simulation(destDir,
+    #                                            inputPath)
+    #    
+    #
+    ##5) run the simulation
+    #run_simulation(pbsScriptPath)
 
     return [destDir,nameRun]
 
