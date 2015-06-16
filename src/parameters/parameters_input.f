@@ -28,13 +28,13 @@
 
         !<computational field dimensions
         real(rkind), parameter :: x_min = 0.0000000000d0
-        real(rkind), parameter :: x_max = 1.0206000000d0
+        real(rkind), parameter :: x_max = 0.1428000000d0
         real(rkind), parameter :: y_min = 0.0000000000d0
-        real(rkind), parameter :: y_max = 1.0206000000d0
+        real(rkind), parameter :: y_max = 0.1428000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 200.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0004330000d0
+        real(rkind), parameter :: t_max = 100.0000000000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0000420000d0
         
         !<output writing
         real(rkind), parameter :: detail_print = 0.0003000000d0
@@ -47,8 +47,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 86
-        integer(ikind), parameter :: nty = 86
+        integer(ikind), parameter :: ntx = 89
+        integer(ikind), parameter :: nty = 89
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -122,9 +122,9 @@
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
         real(rkind), parameter :: flow_velocity = 0.0000000000d0
         
-        real(rkind), parameter :: T0 = 0.9990000000d0
+        real(rkind), parameter :: T0 = 0.9500000000d0
 
-        integer    , parameter :: ic_choice = bubble_next_to_wall
+        integer    , parameter :: ic_choice = bubble_nucleation
 
         integer    , parameter :: phase_at_center = vapor
 
@@ -246,17 +246,17 @@
         !wall_extra_heat_source_center   : center if gaussian extra_heat source
         !wall_extra_heat_source_variance : variance if gaussian extra_heat source
         !-----------------------------------------------------
-        real(rkind), parameter :: wall_micro_contact_angle = 112.5000000000d0
+        real(rkind), parameter :: wall_micro_contact_angle = 130.0000000000d0
 
         integer    , parameter :: wall_heat_source_choice = no_heat_source
         real(rkind), parameter :: wall_maximum_heat_flux = 0.0000000000d0 !0.005d0
-        real(rkind), parameter :: wall_heat_source_center = 0.2000000000d0
-        real(rkind), parameter :: wall_heat_source_variance = 0.0300000000d0
+        real(rkind), parameter :: wall_heat_source_center = 0.0000000000d0
+        real(rkind), parameter :: wall_heat_source_variance = 1.0000000000d0
 
-        integer    , parameter :: wall_extra_heat_source_choice = no_heat_source
-        real(rkind), parameter :: wall_maximum_extra_heat_flux = 0.0000000000d0
-        real(rkind), parameter :: wall_extra_heat_source_center = 0.2100000000d0
-        real(rkind), parameter :: wall_extra_heat_source_variance = 0.0400000000d0
+        integer    , parameter :: wall_extra_heat_source_choice = gaussian_heat_source
+        real(rkind), parameter :: wall_maximum_extra_heat_flux = -0.0200000000d0
+        real(rkind), parameter :: wall_extra_heat_source_center = 0.0000000000d0
+        real(rkind), parameter :: wall_extra_heat_source_variance = 0.0356472677d0
 
         
         !-----------------------------------------------------
@@ -464,7 +464,7 @@
         !    parameter checked such that the simulation is considered
         !    steady state
         !------------------------------------------------------------
-        logical    , parameter :: steady_state_simulation = .true.
+        logical    , parameter :: steady_state_simulation = .false.
         real(rkind), parameter :: steady_state_limit = 1.0e-12
 
       end module parameters_input

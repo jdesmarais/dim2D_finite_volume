@@ -71,7 +71,8 @@ if __name__=="__main__":
         'dim2d_bubble_nucleation_at_wall.txt')
 
     conductionHeatStudy = False
-    sourceHeatStudy     = True
+    sourceHeatStudy     = False
+    contactAngleStudy   = True
 
 
     #1) conduction heat study
@@ -117,7 +118,7 @@ if __name__=="__main__":
                 total_nb_files            = total_nb_files)
 
 
-    #2) source heat study
+    #2) source heat study: constant contact angle
     if(sourceHeatStudy):
 
         simulationDuration  = 100
@@ -129,7 +130,7 @@ if __name__=="__main__":
         gravity_ac          = 0
         gravity             = 0.000
         heat_source_choice  = 'gaussian_heat_source'
-        max_heat_flux_array = [-0.0001,-0.001,-0.01,-0.1]
+        max_heat_flux_array = [-0.02,-0.04,-0.06,-0.08,-0.1]
         heat_source_center  = 0.0
         heat_source_variance = 2.0*extract_interface_length(dim2dParamPath,temperature)
         total_nb_files      = 500
@@ -137,7 +138,50 @@ if __name__=="__main__":
     
         for max_heat_flux in max_heat_flux_array:
             
-            PBSnameRun = 'dim2d_'+str(temperature)+'_fe'+str(max_heat_flux)
+            PBSnameRun = 'dim2d_'+str(temperature)+'_sh'+str(max_heat_flux)
+
+            [destDir, nameRun] =\
+                \
+                generate_wall_nonst_results(
+                mainDir,
+                model_input,
+                PBSnameRun,
+                simulationDuration,
+                steady_state_ac                 = steady_state_ac,
+                temperature                     = temperature,
+                micro_contact_angle             = contact_angle,
+                phase_at_center                 = phase_at_center,
+                ratio_bubble_interface          = ratio,
+                gravity_ac                      = gravity_ac,
+                gravity_amp                     = gravity,
+                wall_extra_heat_source_choice   = heat_source_choice,
+                wall_maximum_extra_heat_flux    = max_heat_flux,
+                wall_extra_heat_source_center   = heat_source_center,
+                wall_extra_heat_source_variance = heat_source_variance,
+                total_nb_files                  = total_nb_files)
+
+
+    #3) contact angles study for fixed heat flux
+    if(contactAngleStudy):
+
+        simulationDuration   = 100
+        steady_state_ac      = 0
+        temperature          = 0.95
+        contact_angle_array  = [112.5,130.0] #[22.5,45.0,67.5,112.5,130.0]
+        phase_at_center      = 'vapor'
+        ratio                = 2.0
+        gravity_ac           = 0
+        gravity              = 0.000
+        heat_source_choice   = 'gaussian_heat_source'
+        max_heat_flux        = -0.02
+        heat_source_center   = 0.0
+        heat_source_variance = 2.0*extract_interface_length(dim2dParamPath,temperature)
+        total_nb_files       = 500
+
+    
+        for contact_angle in contact_angle_array:
+            
+            PBSnameRun = 'dim2d_'+str(temperature)+'_sh'+str(max_heat_flux)+'_ca'+str(contact_angle)
 
             [destDir, nameRun] =\
                 \

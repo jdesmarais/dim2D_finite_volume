@@ -98,3 +98,4 @@ src/test_files/test_geometry_updates/*/*
 *visitlog.py
 scripts_py/sm_lg_domain_automatization/*.txt
 src/config/test_bubble.sh
+*.curve
