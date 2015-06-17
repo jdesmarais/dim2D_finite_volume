@@ -456,10 +456,13 @@
           select case(flow_direction)
             case(x_direction)
                velocity_x = u0_x_flow
+
             case(y_direction)
                velocity_x = u0_y_flow
+
             case(xy_direction)
                velocity_x = u0_xy_flow
+
             case default
                print '(''bubble_transported/ic_class.f'')'
                print '(''apply_ic'')'

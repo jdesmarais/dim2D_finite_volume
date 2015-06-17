@@ -273,7 +273,7 @@ ic_choice = 8
 !------------------------------------------------------------
 !6.2	Parameters for the initial conditions
 !------------------------------------------------------------
-flow_direction = N
+flow_direction = E
 flow_velocity = 0.0
 temperature = 0.95
 micro_contact_angle = 90.0

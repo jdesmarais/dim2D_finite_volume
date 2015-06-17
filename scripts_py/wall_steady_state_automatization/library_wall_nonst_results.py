@@ -103,6 +103,7 @@ def generate_wall_nonst_results(
     steady_state_ac                 = 0,
     temperature                     = 0.999,
     micro_contact_angle             = '90.0',
+    flow_velocity                   = 0.0,
     phase_at_center                 = 'vapor',
     ratio_bubble_interface          = 2.0,
     gravity_ac                      = 0,
@@ -143,7 +144,8 @@ def generate_wall_nonst_results(
                                  collapse_ratio               = ratio_bubble_interface,
                                  gravity_amp                  = gravity_amp,
                                  wall_maximum_heat_flux       = wall_maximum_heat_flux,
-                                 wall_maximum_extra_heat_flux = wall_maximum_extra_heat_flux)
+                                 wall_maximum_extra_heat_flux = wall_maximum_extra_heat_flux,
+                                 flow_velocity                = flow_velocity)
     destDir = os.path.join(mainDir,destDir)
 
     # if there is already an existing directory, the function
@@ -170,6 +172,7 @@ def generate_wall_nonst_results(
         steady_state_ac                 = steady_state_ac,
         temperature                     = temperature,
         micro_contact_angle             = micro_contact_angle,
+        flow_velocity                   = flow_velocity,
         phase_at_center                 = phase_at_center,
         gravity_ac                      = gravity_ac,
         gravity_amp                     = gravity_amp,

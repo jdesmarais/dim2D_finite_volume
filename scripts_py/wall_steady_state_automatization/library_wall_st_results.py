@@ -48,7 +48,8 @@ def get_simulation_dir(temperature,
                        collapse_ratio=2.0,
                        gravity_amp=0,
                        wall_maximum_heat_flux = 0,
-                       wall_maximum_extra_heat_flux = 0):
+                       wall_maximum_extra_heat_flux = 0,
+                       flow_velocity = 0):
     '''
     @description
     get the name of the folder where the simulation results
@@ -67,11 +68,14 @@ def get_simulation_dir(temperature,
     if(gravity_amp!=0):
         simDir+='_g'+str(gravity_amp)
 
-    if(wall_maximum_heat_flux):
+    if(wall_maximum_heat_flux!=0):
         simDir+='_fh'+str(wall_maximum_heat_flux)
 
-    if(wall_maximum_extra_heat_flux):
+    if(wall_maximum_extra_heat_flux!=0):
         simDir+='_sh'+str(wall_maximum_extra_heat_flux)
+
+    if(flow_velocity!=0):
+        simDir+='_v'+str(flow_velocity)
     
     return simDir
 

@@ -3,6 +3,7 @@
 from math import sqrt,pi,sin,cos,acos
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 
 def get_equilibrium_length(Ri,theta):
@@ -16,7 +17,7 @@ def get_equilibrium_length(Ri,theta):
     return eq_lgh
 
 
-def get_spherical_cap_data(xmin,xmax,Ri,theta,filled=False):
+def get_spherical_cap_data(y_min,xmin,xmax,Ri,theta,filled=False):
     '''
     @description: compute the spherical cap shape corresponding
     to an equilibrium contact angle between vapor and liquid equal
@@ -29,28 +30,28 @@ def get_spherical_cap_data(xmin,xmax,Ri,theta,filled=False):
         eq_lgh = eq_R*sin(theta1)
 
         x1 = [xmin,-eq_lgh]
-        y1 = [0.0,0.0]
+        y1 = [y_min,y_min]
 
         x2 = np.arange(-eq_lgh,-eq_R,(-eq_R+eq_lgh)/300.)
         y2 = np.empty([len(x2)])
         
         for i in range(0,len(x2)):
-            y2[i] = eq_R*cos(theta1)-eq_R*sin(acos(x2[i]/eq_R))
+            y2[i] = y_min+eq_R*cos(theta1)-eq_R*sin(acos(x2[i]/eq_R))
 
         x3 = np.arange(-eq_R,eq_R,2*eq_R/1000.)
         y3 = np.empty([len(x3)])
         
         for i in range(0,len(x3)):
-            y3[i] = eq_R*cos(theta1)+eq_R*sin(acos(x3[i]/eq_R))
+            y3[i] = y_min+eq_R*cos(theta1)+eq_R*sin(acos(x3[i]/eq_R))
 
         x4 = np.arange(eq_R,eq_lgh,(-eq_R+eq_lgh)/300.)
         y4 = np.empty([len(x4)])
         
         for i in range(0,len(x4)):
-            y4[i] = eq_R*cos(theta1)-eq_R*sin(acos(x4[i]/eq_R))
+            y4[i] = y_min+eq_R*cos(theta1)-eq_R*sin(acos(x4[i]/eq_R))
 
         x5 = [eq_lgh,xmax]
-        y5 = [0.0,0.0]
+        y5 = [y_min,y_min]
 
         x1_i = len(x1)
         x2_i = x1_i+len(x2)
@@ -82,9 +83,9 @@ def get_spherical_cap_data(xmin,xmax,Ri,theta,filled=False):
         for i in range(0,len(x)):
             
             if(x[i]<-eq_lgh or x[i]>eq_lgh):
-                y[i]=0
+                y[i] = y_min
             else:
-                y[i] = eq_R*(sin(acos(x[i]/eq_R)) - sin(0.5*pi-theta))
+                y[i] = y_min + eq_R*(sin(acos(x[i]/eq_R)) - sin(0.5*pi-theta))
                 
     return [x,y]
 
@@ -107,7 +108,8 @@ def create_graph(data_path,
                  width=3,
                  logScale=False,
                  show=True,
-                 contactAngle='None'):
+                 contactAngle='None',
+                 plot_length_eq=False):
     '''
     @description: print a graph of the contact length
     as function of time
@@ -117,9 +119,9 @@ def create_graph(data_path,
 
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
-    plt.figure(figsize=(8,6))
+    fig = plt.figure(figsize=(8,6))
 
-    ax = plt.subplot(111)
+    ax = fig.add_subplot(111)
     
     plt.plot(
         data[:,0],
@@ -128,7 +130,7 @@ def create_graph(data_path,
         linewidth=width,
         color='black')
 
-    if(contactAngle!='None'):
+    if(contactAngle!='None' and plot_length_eq):
         Ri = data[0,1]
         theta = (180-contactAngle)*pi/180
 
@@ -150,6 +152,7 @@ def create_graph(data_path,
     
     if(show):
         plt.show()
+        plt.close()
 
     if(not figPath==''):
         plt.savefig(figPath)
@@ -165,36 +168,51 @@ def create_st_graph(dataRootPath,
                     logScale=False,
                     show=True,
                     sphericalCap=False):
+    '''
+    description: create a graph with the bubble contours
+    at several timesteps
+    '''
 
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
-    plt.figure(figsize=(12,6))
+    fig = plt.figure(figsize=(12,6))
 
-    ax = plt.subplot(111,aspect='equal')
+    ax = fig.add_subplot(111,aspect='equal')
 
 
-    if(sphericalCap==True):
+    y_min = 0
 
-        timestepPrinted = timestepExtracted
-
-        # plot the bubble shape at different times
-        for timestep in timestepPrinted:
+    # plot the bubble shape at different times
+    for i in range(0,len(timestepExtracted)):
     
-            dataPath = dataRootPath+'/contours'+str(timestep)+'.curve'
+        timestep = timestepExtracted[i]
+
+        dataPath = dataRootPath+'/contours'+str(timestep)+'.curve'
+
+        if(os.path.isfile(dataPath)):
+
             data = np.loadtxt(dataPath)
-            
+        
             grayscale_value = 0.1+ 0.9*float(timestep)/float(timestepExtracted[-1])
-            
+        
             # plot the first bubble shape with dashed line
             if(timestep==timestepExtracted[0]):
                 plotstyle = '--'
                 linewidth = 2
                 color = 'black'
+            
+            # plot the last bubble with dashed line
+            elif(timestep==timestepExtracted[-1]):
+                plotstyle = '--'
+                linewidth = 2
+                color = 'black'
+
+            # plot the other bubbles with continuous line
             else:
                 plotstyle = '-'
                 linewidth = width
                 color = grayscale_to_RGB(grayscale_value)
-                
+            
             plt.plot(
                 data[:,0],
                 data[:,1],
@@ -202,17 +220,21 @@ def create_st_graph(dataRootPath,
                 linewidth=linewidth,
                 color=color)
 
-        # plot the spherical cap if the bubble volume remains constant
+            y_min = min(y_min,min(data[:,1]))
+
+
+    # plot the spherical cap
+    if(sphericalCap):
         dataPath = dataRootPath+'/volume.txt'
         volume = np.loadtxt(dataPath)
         theta = (180-contactAngle)*pi/180
         Ri = sqrt(2.0*volume[-1,1]/pi)
         
         if(contactAngle<90):
-            sph_data = get_spherical_cap_data(data[0,0],data[-1,0],Ri,theta,filled=True)
+            sph_data = get_spherical_cap_data(y_min,data[0,0],data[-1,0],Ri,theta,filled=True)
             
         else:
-            sph_data = get_spherical_cap_data(data[0,0],data[-1,0],Ri,theta,filled=False)
+            sph_data = get_spherical_cap_data(y_min,data[0,0],data[-1,0],Ri,theta,filled=False)
             
         plt.plot(
             sph_data[0],
@@ -220,48 +242,21 @@ def create_st_graph(dataRootPath,
             '--',
             linewidth=width,
             color='red')
-        
-        ax.set_xlabel(r''+xlabel)
-        ax.set_ylabel(r''+ylabel)
-
-    else:
-
-        timestepPrinted = timestepExtracted[1::]+[timestepExtracted[0]]
-
-        # plot the bubble shape at different times
-        for timestep in timestepPrinted:
     
-            dataPath = dataRootPath+'/contours'+str(timestep)+'.curve'
-            data = np.loadtxt(dataPath)
+    ax.set_xlabel(r''+xlabel)
+    ax.set_ylabel(r''+ylabel)
+
             
-            grayscale_value = 0.1+ 0.9*float(timestep)/float(timestepExtracted[-1])
-            
-            # plot the first bubble shape with dashed line
-            if(timestep==timestepExtracted[0]):
-                plotstyle = '--'
-                linewidth = 2
-                color = 'black'
-            elif(timestep==timestepExtracted[-1]):
-                plotstyle = '--'
-                linewidth = 2
-                color = 'white'
-            else:
-                plotstyle = '-'
-                linewidth = width
-                color = grayscale_to_RGB(grayscale_value)
-                
-            plt.plot(
-                data[:,0],
-                data[:,1],
-                plotstyle,
-                linewidth=linewidth,
-                color=color)
-        
-            
+    # show the graph
     if(show):
         plt.show()
+        plt.close()
+
                 
+    # save in .eps format
     if(not figPath==''):
         plt.savefig(figPath)
+
+
 
 

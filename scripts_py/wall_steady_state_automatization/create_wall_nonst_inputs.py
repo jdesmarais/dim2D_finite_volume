@@ -31,7 +31,9 @@ from automatization_csts import (nb_pts_in_interface_default,
 
 from automatization_wall_st_csts import (ratio_eq_length_domain_default,
                                          ratio_drop_length_domain_default,
-                                         total_nb_files_default)
+                                         total_nb_files_default,
+                                         wall_S_openbc_EWN,
+                                         wall_S_openbc_WN_reflection_W)
 
 from library_sm_lg_inputs import (get_we,
                                   get_interface_length,
@@ -55,6 +57,8 @@ def get_inputsToBeModified(
     steady_state_ac = 0,
     temperature = 0.999,
     micro_contact_angle = 90.0,
+    flow_velocity = 0.0,
+    flow_direction = 'E',
     phase_at_center = 'vapor',
     gravity_ac = 0,
     gravity_amp = 0.0,
@@ -132,6 +136,9 @@ def get_inputsToBeModified(
     # y_min : domain_extent[0][1]
     # y_max : domain_extent[1][1]
     domain_extent = get_wall_domain_extent(x_max,y_max,dx_max)
+    if(flow_velocity!=0.0):
+        domain_extent[0][0] = -x_max
+
     if(debug): print 'domain_extent: ', domain_extent
 
     # compute the reduced heat capacity
@@ -141,8 +148,7 @@ def get_inputsToBeModified(
     speed_of_sound = get_max_speed_of_sound(temperature,cv_r)
 
     # compute the maximum time step ensuring numerical stability
-    flow_velocity = 0.0
-    speed_max     = speed_of_sound
+    speed_max = abs(flow_velocity) + speed_of_sound
     if(debug): print 'speed_of_sound: ', speed_of_sound
 
     dt_max        = get_dt_max(dx_max,speed_max,CFL_constant,precision_c=6)
@@ -157,6 +163,14 @@ def get_inputsToBeModified(
                                     dt_max)
     if(debug): print 'detail_print: ', detail_print
 
+    # choice of boundary conditions
+    
+
+    if(flow_velocity!=0.0):
+        bc_choice = wall_S_openbc_EWN
+    else:
+        bc_choice = wall_S_openbc_WN_reflection_W
+
 
     # gather the inputs to be modified in a dictionnary
     inputsToBeModified = {
@@ -170,7 +184,9 @@ def get_inputsToBeModified(
         'dy'                              : dx_max,
         'y_min'                           : domain_extent[0][1],
         'y_max'                           : domain_extent[1][1],
+        'bc_choice'                       : bc_choice,
         'flow_velocity'                   : flow_velocity,
+        'flow_direction'                  : flow_direction,
         'temperature'                     : temperature,
         'micro_contact_angle'             : micro_contact_angle,
         'phase_at_center'                 : phase_at_center,
@@ -197,6 +213,7 @@ def create_wall_nonst_inputs(
     steady_state_ac = 0,
     temperature = 0.999,
     micro_contact_angle = 90.0,
+    flow_velocity = 0.0,
     phase_at_center = 'vapor',
     gravity_ac = 0,
     gravity_amp = 0.0,
@@ -226,6 +243,7 @@ def create_wall_nonst_inputs(
         steady_state_ac                  = steady_state_ac,
         temperature                      = temperature,
         micro_contact_angle              = micro_contact_angle,
+        flow_velocity                    = flow_velocity,
         phase_at_center                  = phase_at_center,
         gravity_ac                       = gravity_ac,
         gravity_amp                      = gravity_amp,

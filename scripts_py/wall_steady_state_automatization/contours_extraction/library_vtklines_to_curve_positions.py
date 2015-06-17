@@ -307,3 +307,4 @@ if __name__=="__main__":
         color='black')
     
     plt.show()
+    plt.close()

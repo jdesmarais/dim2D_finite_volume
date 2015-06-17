@@ -38,13 +38,23 @@
 
         use parameters_constant, only :
      $       liquid,
-     $       vapor
+     $       vapor,
+     $       x_direction,
+     $       y_direction
 
         use parameters_input, only :
      $       nx,ny,ne,
      $       T0,
+     $       flow_velocity,
+     $       flow_direction,
+     $       flow_x_side,
+     $       flow_y_side,
      $       phase_at_center,
-     $       wall_micro_contact_angle
+     $       wall_micro_contact_angle,
+     $       x_min,
+     $       x_max,
+     $       y_min,
+     $       y_max
 
         use parameters_kind, only :
      $       ikind,
@@ -55,6 +65,14 @@
         private
         public :: ic
 
+        !flow velocities for the different flow configurations
+        real(rkind), parameter :: u0_x_flow  = flow_velocity*flow_x_side
+        real(rkind), parameter :: u0_y_flow  = 0.0d0
+        real(rkind), parameter :: u0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity*flow_x_side
+
+        real(rkind), parameter :: v0_x_flow  = 0.0d0
+        real(rkind), parameter :: v0_y_flow  = flow_velocity*flow_y_side
+        real(rkind), parameter :: v0_xy_flow = 0.5d0*SQRT(2.0d0)*flow_velocity*flow_y_side
 
         !> @class ic
         !> class encapsulating operators to set the initial
@@ -145,7 +163,6 @@
           integer(ikind) :: i,j
           real(rkind)    :: x,y
 
-          real(rkind) :: s
           !real(rkind) :: angle
           !real(rkind) :: x1
           !real(rkind) :: x_pinned
@@ -170,9 +187,6 @@
           yc=0.0d0 !1.5d0*a
 
           !determine the flow velocities
-          velocity_x = get_velocity_x()
-          velocity_y = get_velocity_y()
-
           if(phase_at_center.eq.liquid) then
              dout = dvap
           else
@@ -189,6 +203,10 @@
                 ! coordinates
                 x = x_map(i)
                 y = y_map(j)
+
+                ! velocities
+                velocity_x = get_velocity_x(x,y)
+                velocity_y = get_velocity_y(x,y)
 
                 !constant field
                 nodes(i,j,1) = dliq
@@ -260,7 +278,7 @@ c$$$     $                0.5d0*dout*(velocity_x**2+velocity_y**2))*(1.0d0-s)
 
           side_s = side
 
-          velocity_x = get_velocity_x()
+          velocity_x = get_velocity_x(x_max,y_max)
           c          = get_speed_of_sound()
 
           var = velocity_x/c
@@ -283,7 +301,7 @@ c$$$     $                0.5d0*dout*(velocity_x**2+velocity_y**2))*(1.0d0-s)
 
           side_s = side
 
-          velocity_y = get_velocity_y()
+          velocity_y = get_velocity_y(x_max,y_max)
           c          = get_speed_of_sound()
 
           var = velocity_y/c
@@ -308,7 +326,7 @@ c$$$     $                0.5d0*dout*(velocity_x**2+velocity_y**2))*(1.0d0-s)
           x_s    = x
           y_s    = y
 
-          var = get_velocity_x()
+          var = get_velocity_x(x,y)
 
         end function get_u_in
 
@@ -330,7 +348,7 @@ c$$$     $                0.5d0*dout*(velocity_x**2+velocity_y**2))*(1.0d0-s)
           x_s    = x
           y_s    = y
 
-          var = get_velocity_y()
+          var = get_velocity_y(x,y)
 
         end function get_v_in
 
@@ -352,7 +370,6 @@ c$$$     $                0.5d0*dout*(velocity_x**2+velocity_y**2))*(1.0d0-s)
           t_s = t
           x_s = x
           y_s = y
-          
 
           var = T0
 
@@ -434,8 +451,8 @@ c$$$     $                0.5d0*dout*(velocity_x**2+velocity_y**2))*(1.0d0-s)
           y_s = y
           name_s = this%name
 
-          velocity_x  = get_velocity_x()
-          velocity_y  = get_velocity_y()
+          velocity_x  = get_velocity_x(x,y)
+          velocity_y  = get_velocity_y(x,y)
           temperature = T0
 
           mass = get_mass_far_field(temperature)
@@ -461,24 +478,56 @@ c$$$     $                0.5d0*dout*(velocity_x**2+velocity_y**2))*(1.0d0-s)
         end function get_far_field
 
 
-        function get_velocity_x() result(velocity_x)
+        function get_velocity_x(x,y) result(velocity_x)
 
           implicit none
 
-          real(rkind) :: velocity_x
-          
-          velocity_x = 0.0d0
+          real(rkind), intent(in) :: x
+          real(rkind), intent(in) :: y
+          real(rkind)             :: velocity_x
+
+          select case(flow_direction)
+
+            case(x_direction)
+               velocity_x = u0_x_flow*((y-y_min)/(y_max-y_min))**2
+
+            case(y_direction)
+               velocity_x = u0_y_flow*((x-x_min)/(x_max-x_min))**2
+
+            case default
+               print '(''bubble_nucleation_at_wall/ic_class.f'')'
+               print '(''get_velocity_x'')'
+               print '(''flow_direction not recognized'')'
+               print '(''flow_direction: '',I2)', flow_direction
+               stop ''
+          end select
           
         end function get_velocity_x
 
         
-        function get_velocity_y() result(velocity_y)
+        function get_velocity_y(x,y) result(velocity_y)
 
           implicit none
 
-          real(rkind) :: velocity_y
+          real(rkind), intent(in) :: x
+          real(rkind), intent(in) :: y
+          real(rkind)             :: velocity_y
           
-          velocity_y = 0.0d0
+          select case(flow_direction)
+
+            case(x_direction)
+               velocity_y = v0_x_flow*((y-y_min)/(y_max-y_min))**2
+
+            case(y_direction)
+               velocity_y = v0_y_flow*((x-x_min)/(x_max-x_min))**2
+
+            case default
+               print '(''bubble_nucleation_at_wall/ic_class.f'')'
+               print '(''get_velocity_y'')'
+               print '(''flow_direction not recognized'')'
+               print '(''flow_direction: '',I2)', flow_direction
+               stop ''
+          end select
 
         end function get_velocity_y
 

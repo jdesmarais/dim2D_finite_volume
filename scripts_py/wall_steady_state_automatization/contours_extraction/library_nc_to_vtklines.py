@@ -1,6 +1,7 @@
 #!/usr/bin/python -i
 
 import sys
+import inspect
 import os
 import getopt
 sys.path.append(os.environ['VISIT_PYTHON_LIB'])
@@ -8,6 +9,7 @@ import visit
 import time
 
 from library_vtklines_to_curve_positions import get_curve_coords_from_vtkfile
+from math import sqrt
 
 import numpy as np
 
@@ -18,8 +20,12 @@ cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(\
 if cmd_subfolder not in sys.path:
     sys.path.insert(0, cmd_subfolder)
 
-from library_sm_lq_inputs import (get_mass_density_vapor,
-                                  get_mass_density_liquid)
+from library_sm_lg_inputs import (get_mass_density_vapor,
+                                  get_mass_density_liquid,
+                                  get_interface_length)
+
+from automatization_contours_csts import cv_r,we
+
 
 # print a progress message which can be overwriten
 def create_mg_progress(mg_progress):
@@ -134,7 +140,7 @@ def get_var_range(var):
     return [minVar,maxVar,midVar]
 
 
-def get_mid_by_max_grad(phase_check=False):
+def get_mid_by_max_grad(domain_borders,phase_check=False):
     '''
     @description: extract the mass density at the
     interface between the liquid and vapor phases
@@ -142,8 +148,6 @@ def get_mid_by_max_grad(phase_check=False):
     the maximum mass denisty gradient alogn the wall
     is reached    
     '''
-
-    domain_borders = get_domain_borders()
 
     visit.DefineScalarExpression("mass_grad_x", "gradient(mass)[0]")
     visit.AddPlot("Pseudocolor","mass_grad_x", 1, 1)
@@ -160,49 +164,129 @@ def get_mid_by_max_grad(phase_check=False):
 
     visit.DrawPlots()
 
-    maxVar = visit.Query('Max', use_actual_data=1)
-    coord1 = float(maxVar.split(',')[0].split('<')[1])
-    coord2 = float(maxVar.split(',')[1].split('>')[0])
+    gradxMass = visit.Query('Max', use_actual_data=1)
+    coord1 = float(gradxMass.split(',')[0].split('<')[1])
+    coord2 = float(gradxMass.split(',')[1].split('>')[0])
 
-    midMass = visit.NodePick(coord=(coord1,coord2,0), vars=("default","mass"))
-
-    if(phase_check):
-
-        # definition of the kortweg energy
-        visit.DefineScalarExpression("mass_grad_y", "gradient(mass)[1]")
-        visit.DefineScalarExpression("mass_grad_squared", "mass_grad_x^2+mass_grad_y^2")
-        visit.DefineScalarExpression("we", "83634")
-        visit.DefineScalarExpression("korteweg_energy", "0.5/we*mass_grad_squared")
-
-        # definition of the kinetic energy
-        visit.DefineScalarExpression("velocity_x", "momentum_x/mass")
-        visit.DefineScalarExpression("velocity_y", "momentum_y/mass")
-        visit.DefineScalarExpression("kinetic_energy", "0.5*mass*(velocity_x^2+velocity_y^2)")
-
-        # definition of the temperature
-        visit.DefineScalarExpression("cv_r", "3.05")
-        visit.DefineScalarExpression("temperature", "3/(8*cv_r)*(1/mass*(energy-kinetic_energy-korteweg_energy)+3*mass)")
-
-        # draw the temperature and extract the temperature at the maxmimum gradient point
-        visit.AddPlot("Pseudocolor","temperature", 1, 1)
-        midTemperature = visit.NodePick(coord=(coord1,coord2,0), vars=("default","temperature"))
-        
-        # deduce the mass densities of the liquid and vapor phases at this temperature
-        mass_vap = get_mass_density_vapor(midTemperature)
-        mass_liq = get_mass_density_liquid(midTemperature)
-
-        # check whether the mass density extracted is close enough from the
-        # mid mass density
-        mid_mass_c = 0.5*(mass_vap+mass_liq)
-        check = abs((mid_mass - mid_mass_c)/(mass_liq-mass_vap)) < 0.1
-
-    else:
-
-        check = True
+    grad_x_Mass = float(gradxMass.split('=')[1].split('(')[0])
 
     visit.DeleteActivePlots()
 
-    return [midMass['mass'],check]
+    linearInterpolation=(grad_x_Mass!=0.0)
+
+    if(grad_x_Mass!=0.0):       
+
+    	if(linearInterpolation):
+    	    # two points are needed for the linear interpolation
+    	    # these are the points next to the node where the maximum
+    	    # mass gradient along x is reached
+    	    coord1_int0 = coord1-domain_borders['dx']
+    	    coord1_int1 = coord1+domain_borders['dx']
+    	    
+    	    # we need to find the coordinates where the maximum
+    	    # gradient is reached by d2mass/dx2 = 0 using linear
+    	    # interpolation between the two previous points
+    	    visit.DefineScalarExpression("mass_grad_xx", "gradient(mass_grad_x)[0]")
+    	    visit.AddPlot("Pseudocolor","mass_grad_xx", 1, 1)
+    	    visit.DrawPlots()
+    	
+    	    massGradXX_0 = visit.NodePick(
+    	        coord=(coord1_int0,coord2,0),
+    	        vars=("default","mass_grad_xx"))
+    	    massGradXX_0 = massGradXX_0['mass_grad_xx']
+    	
+    	    massGradXX_1 = visit.NodePick(
+    	        coord=(coord1_int1,coord2,0),
+    	        vars=("default","mass_grad_xx"))
+    	    massGradXX_1 = massGradXX_1['mass_grad_xx']
+    	
+    	    coord1 = coord1_int0 - massGradXX_0*(coord1_int1-coord1_int0)/(massGradXX_1-massGradXX_0)
+    	    visit.DeleteActivePlots()
+    	
+    	    # we need to determine the mass at the coord1
+    	    # using linear interpolation
+    	    visit.AddPlot("Pseudocolor","mass", 1, 1)
+    	    visit.DrawPlots()
+    	
+    	    mass_0 = visit.NodePick(
+    	        coord=(coord1_int0,coord2,0),
+    	        vars=("default","mass"))
+            mass_0 = mass_0['mass']
+    	
+    	    mass_1 = visit.NodePick(
+    	        coord=(coord1_int1,coord2,0),
+    	        vars=("default","mass"))
+            mass_1 = mass_1['mass']
+    	
+    	    midMass = mass_0 + (mass_1-mass_0)/(coord1_int1-coord1_int0)*(coord1-coord1_int0)
+    	
+    	    visit.DeleteActivePlots()
+    	
+    	else:
+    	
+    	    midMass = visit.NodePick(coord=(coord1,coord2,0), vars=("default","mass"))        
+    	    midMass = midMass['mass']
+    	
+    	if(phase_check):
+    	
+    	    # definition of the kortweg energy
+    	    visit.DefineScalarExpression("mass_grad_y", "gradient(mass)[1]")
+    	    visit.DefineScalarExpression("mass_grad_squared", "mass_grad_x^2+mass_grad_y^2")
+    	    visit.DefineScalarExpression("we", str(we))
+    	    visit.DefineScalarExpression("korteweg_energy", "0.5/we*mass_grad_squared")
+    	
+    	    # definition of the kinetic energy
+    	    visit.DefineScalarExpression("velocity_x", "momentum_x/mass")
+    	    visit.DefineScalarExpression("velocity_y", "momentum_y/mass")
+    	    visit.DefineScalarExpression("kinetic_energy", "0.5*mass*(velocity_x^2+velocity_y^2)")
+    	
+    	    # definition of the temperature
+    	    visit.DefineScalarExpression("cv_r", str(cv_r))
+    	    visit.DefineScalarExpression("temperature", "3/(8*cv_r)*(1/mass*(energy-kinetic_energy-korteweg_energy)+3*mass)")
+    	
+    	    # draw the temperature and extract the temperature at the maximum gradient point
+    	    visit.AddPlot("Pseudocolor","temperature", 1, 1)
+    	    visit.DrawPlots()
+    	    midTemperature = visit.NodePick(coord=(coord1,coord2,0), vars=("default","temperature"))
+    	    midTemperature = midTemperature['temperature']
+    	    visit.DeleteActivePlots()
+    	
+    	    # deduce the mass densities of the liquid and vapor phases at this temperature
+    	    mass_vap = get_mass_density_vapor(midTemperature)
+    	    mass_liq = get_mass_density_liquid(midTemperature)
+    	
+    	    # check whether the mass density extracted is close enough from the
+    	    # mid mass density
+    	    mid_mass_c = 0.5*(mass_vap+mass_liq)
+    	    check = abs((midMass-mid_mass_c)/(mass_liq-mass_vap)) < 0.2
+    	
+    	    # check with the norm of the mass density graident
+    	    visit.AddPlot("Pseudocolor","mass_grad_y", 1, 1)
+    	    visit.DrawPlots()
+    	    gradyMass = visit.NodePick(coord=(coord1,coord2,0), vars=("default","mass_grad_y"))
+    	    grad_y_Mass = gradyMass['mass_grad_y']
+    	    visit.DeleteActivePlots()
+    	
+    	    gradMassNorm = sqrt(grad_x_Mass**2+grad_y_Mass**2)
+    	
+    	    # check by comparing the maximum gradient of the mass density
+    	    interface_lgh = get_interface_length(we,midTemperature)
+    	    mid_gradMass = (mass_liq-mass_vap)/interface_lgh
+    	    check = abs((gradMassNorm - mid_gradMass)/mid_gradMass) < 0.5
+    	
+    	else:
+    	
+    	    check = True
+    	
+    	visit.RemoveOperator(0, 1)
+    	visit.DeleteActivePlots()
+    	visit.ClearPickPoints()
+
+    else:
+        midMass = 0.0
+        check = False
+
+    return [midMass,check]
 
 
 def add_contours(var,contourBorders):
@@ -273,7 +357,7 @@ def add_reflection_x(x_reflection):
     visit.SetOperatorOptions(ReflectAtts, 1)
 
 
-def generate_contours(var,contourBorders,reflection=False):
+def generate_contours(var,domain_borders,contourBorders,reflection=False):
     '''
     @description: generate the contours
     corresponding to the isosurfaces
@@ -281,9 +365,6 @@ def generate_contours(var,contourBorders,reflection=False):
     '''
 
     bc_size=2
-
-    # analyse the domain extent
-    domain_borders = get_domain_borders()
 
     # plot the contour
     add_contours(var,contourBorders)
@@ -335,7 +416,7 @@ def generate_vtklines(ncPath,
 
     vtkPath = 'contours'
 
-    generateContours = True
+    domain_borders = get_domain_borders()
 
     if(contourType=='mass'):
 
@@ -357,8 +438,9 @@ def generate_vtklines(ncPath,
 
     elif(contourType=='wall_max_gradient'):
                 
-        [contourMin,generateContours] = get_mid_by_max_grad(phase_check=phase_check)
-        contourMax = contourMin        
+        [contourMin,generateContours] = get_mid_by_max_grad(domain_borders,
+                                                            phase_check=phase_check)
+        contourMax = contourMin
 
     else:
 
@@ -372,7 +454,7 @@ def generate_vtklines(ncPath,
     # maximum gradient of the mass density
     if(generateContours):
 
-        generate_contours(var,[contourMin,contourMax],reflection=reflection)
+        generate_contours(var,domain_borders,[contourMin,contourMax],reflection=reflection)
 
         # export the contours to a vtk file
         export_contours_to_vtk(vtkPath)
@@ -398,11 +480,11 @@ def generate_vtklines(ncPath,
             graph_data = get_curve_coords_from_vtkfile(
                 os.path.basename(vtkPath)+'.vtk')
             
-            outfile=contourRootPath+str(time)+'.curve'
-            out = open(outfile, 'w')
-            for (x,y) in zip(graph_data[0],graph_data[1]):
-                out.write("%f %f\n" % (x,y))
-            out.close()
+        outfile=contourRootPath+str(time)+'.curve'
+        out = open(outfile, 'w')
+        for (x,y) in zip(graph_data[0],graph_data[1]):
+            out.write("%f %f\n" % (x,y))
+        out.close()
 
         if(reflection):
             os.remove(os.path.basename(vtkPath)+'.0.vtk',)
@@ -431,24 +513,14 @@ def generate_vtklines(ncPath,
 
     else:
         #no contours
+        graph_data='None'
 
         #no volume
         volume = 0.0
 
     visit.DeleteActivePlots()
 
-    return [graph_data, volume]
-
-
-def linear_interpolate(x,x_data,y_data):
-    '''
-    @description:
-    perform linear inerpolation
-    '''
-
-    y = y_data[0] + (y_data[1]-y_data[0])/(x_data[1]-x_data[0])*(x-x_data[0])
-
-    return y
+    return [graph_data, volume, contourMin, domain_borders]
 
 
 def generate_time_contour_data(ncRootPath,
@@ -457,6 +529,7 @@ def generate_time_contour_data(ncRootPath,
                                var='mass',
                                contourPer=0.15,
                                contourType='mass',
+                               phase_check=False,
                                reflection=True):
 
     '''
@@ -468,10 +541,13 @@ def generate_time_contour_data(ncRootPath,
     # create matrices of size timeRange[1]-timeRange[0]
     # that will contain the time, contact length and volume
     # of the bubble
-    nt = int((timeRange[1]-timeRange[0])/timeRange[2])+1
+    nt = int(float(timeRange[1]-timeRange[0])/float(timeRange[2]))
+    if(timeRange[0]+nt*timeRange[2]<timeRange[1]):
+        nt+=1
     time = np.empty([nt])
     contact_lgh = np.empty([nt])
     volume = np.empty([nt])
+    contours = np.empty([nt])
 
     mg_progress = 'generating contour files: ...'
     create_mg_progress(mg_progress)
@@ -486,28 +562,50 @@ def generate_time_contour_data(ncRootPath,
         ncPath  = ncRootPath+str(t)+'.nc'
         vtkPath = vtkRootPath+str(t)
 
+        if(not os.path.isfile(ncPath)):
+            break
+
         # extract the time
         time[i] = get_time(ncPath)
 
         # extract the graph data
-        [graph_data_t,volume_t] = generate_vtklines(
+        [graph_data_t,
+         volume_t,
+         contour_t,
+         domain_borders] = generate_vtklines(
             ncPath,
             contourRootPath,
             var=var,
             contourPer=contourPer,
             contourType=contourType,
+            phase_check=phase_check,
             time=t,
             reflection=reflection)
         
         # save the volume at t
         volume[i]= volume_t
-        
-        # interpolate x=f(y) to find x such that y=0 for
-        # the contact length
-        contact_lgh[i] = linear_interpolate(0.0,
-                                            [graph_data_t[1][-2],graph_data_t[1][-1]],
-                                            [graph_data_t[0][-2],graph_data_t[0][-1]])
 
+        # save the values used to plot the contours
+        contours[i] = contour_t
+        
+        # determine the contact length
+        if(graph_data_t!='None'):
+
+            # interpolate x=f(y) to find x such that y=0 for
+            # the contact length
+            y = np.array(graph_data_t[1][:])
+            i_min, = np.unravel_index(y.argmin(),y.shape)
+            y_min = y[i_min]
+            if(y_min>(domain_borders['y_min'])): #+2*domain_borders['dy']
+                contact_lgh[i]=0.0
+            else:
+                
+                contact_lgh[i] = abs(graph_data_t[0][i_min])
+
+        else:
+
+            contact_lgh[i]=0.0
+            
 
         mg_progress = 'generating contour files: '+str(i+1)+' / '+str(nt)
         create_mg_progress(mg_progress)
@@ -528,5 +626,12 @@ def generate_time_contour_data(ncRootPath,
     # write the length(t) on an output file
     out = open(os.path.dirname(contourRootPath)+'/contact_lgh.txt', 'w')
     for (t,l) in zip(time,contact_lgh):
+        out.write("%f %f\n" % (t,l))
+    out.close()
+
+
+    # write the contour(t) on an output file
+    out = open(os.path.dirname(contourRootPath)+'/contour_value.txt', 'w')
+    for (t,l) in zip(time,contours):
         out.write("%f %f\n" % (t,l))
     out.close()

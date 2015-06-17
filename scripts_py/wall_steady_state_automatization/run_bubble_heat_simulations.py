@@ -72,7 +72,8 @@ if __name__=="__main__":
 
     conductionHeatStudy = False
     sourceHeatStudy     = False
-    contactAngleStudy   = True
+    contactAngleStudy   = False
+    flowVelocityStudy   = True
 
 
     #1) conduction heat study
@@ -202,3 +203,55 @@ if __name__=="__main__":
                 wall_extra_heat_source_center   = heat_source_center,
                 wall_extra_heat_source_variance = heat_source_variance,
                 total_nb_files                  = total_nb_files)
+
+
+    #4) flow velocity study for the bubble
+    #   nucleation
+    if(flowVelocityStudy):
+
+        simulationDuration   = 100
+        steady_state_ac      = 0
+        temperature          = 0.95
+        contact_angle_array  = [45.0] #[22.5,45.0,67.5,112.5,130.0]
+        phase_at_center      = 'vapor'
+        flow_velocity_array  = [0.1] #[0.05, 0.1, 0.15, 0.2]
+        ratio                = 2.0
+        gravity_ac           = 0
+        gravity              = 0.000
+        heat_source_choice   = 'gaussian_heat_source'
+        max_heat_flux        = -0.02
+        heat_source_center   = 0.0
+        heat_source_variance = 2.0*extract_interface_length(dim2dParamPath,temperature)
+        total_nb_files       = 500
+
+    
+        for contact_angle in contact_angle_array:
+
+            for flow_velocity in flow_velocity_array:
+            
+                PBSnameRun =\
+                    'dim2d_'+str(temperature)+\
+                    '_sh'+str(max_heat_flux)+\
+                    '_ca'+str(contact_angle)+\
+                    '_v'+str(flow_velocity)
+
+                [destDir, nameRun] =\
+                    \
+                    generate_wall_nonst_results(
+                    mainDir,
+                    model_input,
+                    PBSnameRun,
+                    simulationDuration,
+                    steady_state_ac                 = steady_state_ac,
+                    temperature                     = temperature,
+                    micro_contact_angle             = contact_angle,
+                    flow_velocity                   = flow_velocity,
+                    phase_at_center                 = phase_at_center,
+                    ratio_bubble_interface          = ratio,
+                    gravity_ac                      = gravity_ac,
+                    gravity_amp                     = gravity,
+                    wall_extra_heat_source_choice   = heat_source_choice,
+                    wall_maximum_extra_heat_flux    = max_heat_flux,
+                    wall_extra_heat_source_center   = heat_source_center,
+                    wall_extra_heat_source_variance = heat_source_variance,
+                    total_nb_files                  = total_nb_files)
