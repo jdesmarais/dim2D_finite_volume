@@ -27,14 +27,14 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -0.1425890709d0
-        real(rkind), parameter :: x_max = 0.1428000000d0
+        real(rkind), parameter :: x_min = -0.1428000000d0
+        real(rkind), parameter :: x_max = 0.2856000000d0
         real(rkind), parameter :: y_min = 0.0000000000d0
         real(rkind), parameter :: y_max = 0.1428000000d0
         
         !<computational times
         real(rkind), parameter :: t_max = 100.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0000400000d0
+        real(rkind), parameter :: dt = 0.0000380000d0
         
         !<output writing
         real(rkind), parameter :: detail_print = 0.0002000000d0
@@ -47,7 +47,7 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 173
+        integer(ikind), parameter :: ntx = 257
         integer(ikind), parameter :: nty = 89
 
         integer(ikind), parameter :: nx = ntx/npx
@@ -120,7 +120,7 @@
         integer    , parameter :: flow_direction = x_direction
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.1000000000d0
+        real(rkind), parameter :: flow_velocity = 0.2000000000d0
         
         real(rkind), parameter :: T0 = 0.9500000000d0
 
@@ -262,7 +262,7 @@
         real(rkind), parameter :: wall_heater_center = 0.0000000000d0
         real(rkind), parameter :: wall_heater_length = 0.0712945354d0
         real(rkind), parameter :: wall_heater_variation_angle_length = 0.0089118169d0
-        real(rkind), parameter :: wall_heater_micro_contact_angle = 45.0000000000d0
+        real(rkind), parameter :: wall_heater_micro_contact_angle = 135.0000000000d0
 
 
         !< wall heat source parameters

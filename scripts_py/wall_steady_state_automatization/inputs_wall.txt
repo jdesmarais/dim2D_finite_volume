@@ -13,7 +13,7 @@ detail_print = 0.0002
 !steady_state_ac : integer : (0 not activated, 1 activated)
 !                :         : run until steady state
 !================================================================================
-dt = 4e-05
+dt = 3.8e-05
 t_max = 100
 steady_state_ac = 0
 
@@ -32,8 +32,8 @@ steady_state_ac = 0
 !npy     : integer : number of tiles in the y-direction
 !================================================================================
 dx = 0.0017
-x_min = -0.142589070867
-x_max = 0.1428
+x_min = -0.1428
+x_max = 0.2856
 
 dy = 0.0017
 y_min = 0.0
@@ -248,7 +248,7 @@ wall_micro_contact_angle = 0.0
 wall_heater_center = 0.0
 wall_heater_length = 0.0712945354334
 wall_heater_variation_angle_length = 0.00891181692917
-wall_heater_micro_contact_angle = 45.0
+wall_heater_micro_contact_angle = 135.0
 
 !--------------------------------------------------------------------------------
 !5.2.3	Characteristics of the conduction-based heaters
@@ -291,6 +291,7 @@ wall_maximum_extra_heat_flux = 0.0
 ! 6 : bubble transported
 ! 7 : bubble next to wall
 ! 8 : bubble nucleation at wall
+! 9 : bubble spherical cap approximation
 !
 !--------------------------------------------------------------------------------
 !flow_direction : character
@@ -360,7 +361,7 @@ ic_choice = 9
 !6.2	Parameters for the initial conditions
 !--------------------------------------------------------------------------------
 flow_direction = E
-flow_velocity = 0.1
+flow_velocity = 0.2
 temperature = 0.95
 phase_at_center = vapor
 

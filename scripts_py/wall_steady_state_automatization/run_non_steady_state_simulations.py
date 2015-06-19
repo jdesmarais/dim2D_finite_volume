@@ -57,7 +57,6 @@ def get_heater_length(Li):
                   the size of the interface length
                   (as the radius of the bubble is set to 2.0Li)
     '''
-    
     return 4.0*Li
 
 
@@ -67,7 +66,6 @@ def get_heater_variation_angle_length(Li):
                   the contact angle varies at the edge of the
                   heater
     '''
-
     return 0.5*Li
 
 
@@ -90,7 +88,8 @@ def generate_wall_nonst_results_uniform_surface(
     wall_heat_source_choice,
     wall_maximum_heat_flux,
     total_nb_files,
-    spherical_cap):
+    spherical_cap,
+    adapt_domain):
     '''
     @description: generate the results for a surface
                   with uniform contact angle
@@ -117,7 +116,8 @@ def generate_wall_nonst_results_uniform_surface(
         wall_extra_heat_source_choice = wall_heat_source_choice,
         wall_maximum_extra_heat_flux  = max_heat_flux,
         total_nb_files                = total_nb_files,
-        spherical_cap                 = spherical_cap)
+        spherical_cap                 = spherical_cap,
+        adapt_domain                  = adapt_domain)
 
 
 def generate_wall_nonst_results_surface_with_heaters(
@@ -141,7 +141,8 @@ def generate_wall_nonst_results_surface_with_heaters(
     wall_heat_source_choice,
     wall_maximum_heat_flux,
     total_nb_files,
-    spherical_cap):
+    spherical_cap,
+    adapt_domain):
     '''
     @description: generate the results for a surface with heaters
     '''
@@ -169,7 +170,8 @@ def generate_wall_nonst_results_surface_with_heaters(
         wall_extra_heat_source_choice      = wall_heat_source_choice,
         wall_maximum_extra_heat_flux       = wall_maximum_heat_flux,
         total_nb_files                     = total_nb_files,
-        spherical_cap                      = spherical_cap)
+        spherical_cap                      = spherical_cap,
+        adapt_domain                       = adapt_domain)
 
 
 if __name__=="__main__":
@@ -230,10 +232,15 @@ if __name__=="__main__":
     #        angle on the heater, the flow velocity...,
     #        the contact angle, away from the heater, is
     #        kept constant
+    #
+    # adapt_domain
+    #        by default the domain is not adapted for
+    #        performance considerations
     #------------------------------------------------------------
     wall_micro_contact_angle_uniform_nucleation =  90.0 
     wall_maximum_heat_flux_nucleation           = -0.02
     wall_micro_contact_angle_with_heaters       =  0.0
+    adapt_domain                                = False
 
 
     #============================================================
@@ -259,7 +266,7 @@ if __name__=="__main__":
         wall_micro_contact_angle = wall_micro_contact_angle_uniform_nucleation
 
         wall_heater_center       = 0.0
-        wall_heater_length       = get_heater_length(Li) #4.0*Li
+        wall_heater_length       = get_heater_length(Li)
 
         wall_heat_source_choice  = 'gaussian_heat_source'
         wall_max_heat_flux_array = [0.0001,0.001,0.01]
@@ -349,7 +356,8 @@ if __name__=="__main__":
                     wall_heat_source_choice,
                     max_heat_flux,
                     total_nb_files,
-                    spherical_cap)
+                    spherical_cap,
+                    adapt_domain)
 
 
         #-------------------------------------------------------------
@@ -386,7 +394,8 @@ if __name__=="__main__":
                     wall_heat_source_choice,
                     max_heat_flux,
                     total_nb_files,
-                    spherical_cap)
+                    spherical_cap,
+                    adapt_domain)
 
                 
     #============================================================
@@ -447,7 +456,8 @@ if __name__=="__main__":
                     wall_heat_source_choice,
                     wall_maximum_heat_flux,
                     total_nb_files,
-                    spherical_cap)
+                    spherical_cap,
+                    adapt_domain)
 
         #-------------------------------------------------------------
         #3.2) surface with heaters: contact angle study for one heat flux
@@ -485,7 +495,8 @@ if __name__=="__main__":
                     wall_heat_source_choice,
                     wall_maximum_heat_flux,
                     total_nb_files,
-                    spherical_cap)
+                    spherical_cap,
+                    adapt_domain)
 
 
     #============================================================
@@ -556,7 +567,8 @@ if __name__=="__main__":
                             wall_heat_source_choice,
                             wall_maximum_heat_flux,
                             total_nb_files,
-                            spherical_cap)
+                            spherical_cap,
+                            adapt_domain)
 
 
         #-------------------------------------------------------------
@@ -603,7 +615,8 @@ if __name__=="__main__":
                             wall_heat_source_choice,
                             wall_maximum_heat_flux,
                             total_nb_files,
-                            spherical_cap)
+                            spherical_cap,
+                            adapt_domain)
                             
                             
     #============================================================
@@ -619,9 +632,9 @@ if __name__=="__main__":
 
         Li = extract_interface_length(dim2dParamPath,temperature)
 
-        contact_angle_array    = [45.0] #[22.5,45.0,67.5,112.5,130.0]
+        contact_angle_array    = [22.5,45.0,67.5,90.0,112.5,135.0]
         phase_at_center        = 'vapor'
-        flow_velocity_array    = [0.1] #[0.05, 0.1, 0.15, 0.2]
+        flow_velocity_array    = [0.1, 0.15, 0.2]
         ratio_bubble_interface = 2.0
         gravity_ac             = 0
         gravity_amp            = 0.000
@@ -679,7 +692,8 @@ if __name__=="__main__":
                             wall_heat_source_choice,
                             max_heat_flux,
                             total_nb_files,
-                            spherical_cap)
+                            spherical_cap,
+                            adapt_domain)
 
         #-------------------------------------------------------------
         #5.2) surface with heaters: flow velocity study (spherical cap)
@@ -706,7 +720,7 @@ if __name__=="__main__":
                         if(flow_velocity!=0.0):
                             PBSnameRun += '_v'+str(flow_velocity)
                                 
-                        PBSnameRun+='_hca'+str(contact_angle)
+                        PBSnameRun+='_hca'+str(wall_micro_contact_angle)
 
                         if(spherical_cap):
                             PBSnameRun += '_sph'
@@ -732,6 +746,5 @@ if __name__=="__main__":
                             wall_heat_source_choice,
                             max_heat_flux,
                             total_nb_files,
-                            spherical_cap)
-
-
+                            spherical_cap,
+                            adapt_domain)

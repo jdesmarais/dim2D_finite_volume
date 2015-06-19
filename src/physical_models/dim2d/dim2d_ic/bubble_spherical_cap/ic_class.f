@@ -180,7 +180,7 @@
 
           ! total volume of the spherical cap
           pi     = ACOS(-1.0d0)
-          Vtotal = pi*(2.0*li)**2
+          Vtotal = pi*(3.0*li)**2
 
           !set the major and minor axes of the bubble ellipse
           theta = pi* wall_micro_contact_angle/180.0d0

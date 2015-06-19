@@ -77,6 +77,44 @@ def compute_volume(x_data,y_data):
     return volume
 
 
+def compute_mass(massLim,domain_borders):
+    '''
+    @description:
+    define a variable which is 1.0 inside the
+    contour and 0 outside, and perform a weighted
+    sum of the variable over the domain
+    '''
+
+    # create a variable which is equal to the mass
+    # inside the vapor phase and equal to 0 in the
+    # liquid phase
+    visit.DefineScalarExpression("vap_phase", "if( le(mass,"+str(massLim)+") , mass, 0)")
+    visit.AddPlot("Pseudocolor","vap_phase", 1, 1)
+
+    visit.AddOperator("Box",1)
+    BoxAtts = visit.BoxAttributes()
+    BoxAtts.amount = BoxAtts.All
+    BoxAtts.minx = domain_borders['x_min']+2.0*domain_borders['dx']
+    BoxAtts.maxx = domain_borders['x_max']-2.0*domain_borders['dx']
+    BoxAtts.miny = domain_borders['y_min']+2.0*domain_borders['dy']
+    BoxAtts.maxy = domain_borders['y_min']-2.0*domain_borders['dy']
+    BoxAtts.inverse = 0
+    visit.SetOperatorOptions(BoxAtts,1)
+
+    visit.DrawPlots()
+
+    # in this way the mass contained in the "bubble"
+    # is simply the sum of the mass over the entire
+    # domain
+    totalMass = visit.Query("Weighted Variable Sum")
+    totalMass = float(totalMass.split('is')[1].split('(')[0])
+
+    # remove the plots
+    visit.DeleteActivePlots()
+
+    return totalMass
+
+
 def get_time(ncPath):
     '''
     @description:
@@ -524,6 +562,9 @@ def generate_vtklines(ncPath,
         #get the volume
         volume = compute_volume(graph_data[0][:],graph_data[1][:])
 
+        #get the mass
+        mass = compute_mass(contourMin,domain_borders)
+
     else:
         #no contours
         graph_data='None'
@@ -531,9 +572,12 @@ def generate_vtklines(ncPath,
         #no volume
         volume = 0.0
 
+        #no mass
+        mass = 0.0
+
     visit.DeleteActivePlots()
 
-    return [graph_data, volume, contourMin, domain_borders]
+    return [graph_data, volume, mass, contourMin, domain_borders]
 
 
 def generate_time_contour_data(ncRootPath,
@@ -560,6 +604,7 @@ def generate_time_contour_data(ncRootPath,
     time        = np.empty([nt])
     contact_lgh = np.empty([nt])
     volume      = np.empty([nt])
+    mass        = np.empty([nt])
 
     mg_progress = 'generating contour files: ...'
     create_mg_progress(mg_progress)
@@ -586,6 +631,7 @@ def generate_time_contour_data(ncRootPath,
         # extract the graph data
         [graph_data_t,
          volume_t,
+         mass_t,
          contour_t,
          domain_borders] = generate_vtklines(
             ncPath,
@@ -599,6 +645,9 @@ def generate_time_contour_data(ncRootPath,
         
         # save the volume at t
         volume[i]= volume_t
+
+        # save the mass at t
+        mass[i] = mass_t
         
         # determine the contact length
         if(graph_data_t!='None'):
@@ -629,6 +678,13 @@ def generate_time_contour_data(ncRootPath,
     # write the volume(t) on an output file
     out = open(os.path.dirname(contourRootPath)+'/volume.txt', 'w')
     for (i,t,v) in zip(file_id,time,volume):
+        out.write("%f %f %f\n" % (i,t,v))
+    out.close()
+
+
+    # write the mass(t) on an output file
+    out = open(os.path.dirname(contourRootPath)+'/mass.txt', 'w')
+    for (i,t,v) in zip(file_id,time,mass):
         out.write("%f %f %f\n" % (i,t,v))
     out.close()
 

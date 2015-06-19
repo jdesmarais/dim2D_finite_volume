@@ -196,10 +196,12 @@ def generate_st_graphs(ncFolder,
     # paths for saving the contact angle and volume figures
     contact_lgh_path = os.path.join(contoursDir,'contact_lgh.txt')
     volume_path      = os.path.join(contoursDir,'volume.txt')
+    mass_path        = os.path.join(contoursDir,'mass.txt')
     dataRootPath     = contoursDir
 
     contactLghFigPath = os.path.join(contoursDir,'contact_lgh.eps')
     volumeFigPath     = os.path.join(contoursDir,'volume.eps')
+    massFigPath       = os.path.join(contoursDir,'mass.eps')
     contoursFigPath   = os.path.join(contoursDir,'contours.eps')
     contoursStFigPath = os.path.join(contoursDir,'contours_st.eps')
 
@@ -221,6 +223,15 @@ def generate_st_graphs(ncFolder,
                  xlabel='$t$',
                  ylabel='volume',
                  figPath=volumeFigPath,
+                 width=3,
+                 logScale=False,
+                 show=show)
+
+    # plot the mass as function of time
+    create_graph(mass_path,
+                 xlabel='$t$',
+                 ylabel='mass',
+                 figPath=massFigPath,
                  width=3,
                  logScale=False,
                  show=show)

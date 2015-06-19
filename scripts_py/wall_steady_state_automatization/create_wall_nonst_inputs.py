@@ -141,7 +141,11 @@ def get_inputsToBeModified(
     # y_max : domain_extent[1][1]
     domain_extent = get_wall_domain_extent(x_max,y_max,dx_max)
     if(flow_velocity!=0.0):
-        domain_extent[0][0] = -x_max
+        domain_extent[0][0] = -domain_extent[1][0]
+
+    #============================================================
+    domain_extent[1][0] = 2*domain_extent[1][0]
+    #============================================================
 
     if(debug): print 'domain_extent: ', domain_extent
 

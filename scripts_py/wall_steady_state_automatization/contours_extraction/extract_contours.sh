@@ -16,6 +16,7 @@ generate_st_contours(){
     ca=$2
 
     ./extract_bubble_contours.py -i $inputDir -c $ca -t $3 -p -g > cur_st_contours.out 2>&1
+    #./extract_bubble_contours.py -i $inputDir -c $ca -t $3 -s > cur_st_contours.out 2>&1
 }
 
 T=0.999
@@ -28,8 +29,15 @@ do
 done
 
 
-for ca in 112.5 130.0
+for ca in 112.5 #135.0
 do
     generate_st_contours $T $ca [0,2424,24]
     echo "generate_st_contours( "$T" , "$ca" ) : done"
 done
+
+
+#for ca in 135.0
+#do
+#    generate_st_contours $T $ca [0,2424,24]
+#    echo "generate_st_contours( "$T" , "$ca" ) : done"
+#done

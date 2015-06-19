@@ -272,6 +272,7 @@ def create_sph_graph(dataRootPath,
     # compute the y_min of the contour giving
     # the wall position
     y_min = 0.0
+    y_max = 0.0
 
     dataPath = dataRootPath+'/contours'+str(timestepExtracted)+'.curve'
 
@@ -287,9 +288,8 @@ def create_sph_graph(dataRootPath,
             color='black')
 
         y_min = min(y_min,min(data[:,1]))
+        y_max = max(y_max,max(data[:,1]))
 
-
-    print y_min
 
     # plot the spherical cap
     dataPath = dataRootPath+'/volume.txt'
@@ -299,11 +299,12 @@ def create_sph_graph(dataRootPath,
     Ri = sqrt(2.0*volume[-1,2]/pi)
         
 
-    x_min = data[0,0]
-    x_max = data[-1,0]
+    x_min = data[0,0]*1.5
+    x_max = data[-1,0]*1.5
+    y_max = y_max*1.1
 
-    x_min = -0.35
-    x_max =  0.35
+    #x_min = -0.35
+    #x_max =  0.35
 
 
     if(contactAngle<90):
@@ -318,7 +319,7 @@ def create_sph_graph(dataRootPath,
         '--',
         linewidth=width,
         color='red')
-    plt.ylim([y_min,0.21])
+    plt.ylim([y_min,y_max])
     
     ax.set_xlabel(r''+xlabel)
     ax.set_ylabel(r''+ylabel)

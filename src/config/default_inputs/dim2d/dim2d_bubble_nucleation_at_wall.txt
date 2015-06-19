@@ -291,6 +291,7 @@ wall_maximum_extra_heat_flux = 0.0
 ! 6 : bubble transported
 ! 7 : bubble next to wall
 ! 8 : bubble nucleation at wall
+! 9 : bubble spherical cap approximation
 !
 !--------------------------------------------------------------------------------
 !flow_direction : character

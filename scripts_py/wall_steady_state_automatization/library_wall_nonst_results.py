@@ -48,7 +48,8 @@ from library_wall_st_results import get_simulation_dir
 # create the simulation
 def create_simulation(destDir,
                       inputPath,
-                      PBSnameRun):
+                      PBSnameRun,
+                      adapt_domain=False):
     '''
     @description
     create the executable corresponding to the inputPath, save it
@@ -64,7 +65,7 @@ def create_simulation(destDir,
 
     
     #1) create the executable corresponding to the inputPath
-    exePath = generate_exe(inputPath)
+    exePath = generate_exe(inputPath,bf_layer_option=adapt_domain)
 
 
     #2) move the executable to destDir
@@ -118,7 +119,8 @@ def generate_wall_nonst_results(
     wall_extra_heat_source_choice      = 'no_heat_source',
     wall_maximum_extra_heat_flux       = 0.0,
     total_nb_files                     = total_nb_files_default,
-    spherical_cap                      = False):
+    spherical_cap                      = False,
+    adapt_domain                       = False):
 
     '''
     @description
@@ -198,7 +200,8 @@ def generate_wall_nonst_results(
     #   create PBS script file
     [pbsScriptPath,nameRun] = create_simulation(destDir,
                                                 inputPath,
-                                                PBSnameRun)        
+                                                PBSnameRun,
+                                                adapt_domain=adapt_domain)
     
     #5) run the simulation
     run_simulation(pbsScriptPath)
