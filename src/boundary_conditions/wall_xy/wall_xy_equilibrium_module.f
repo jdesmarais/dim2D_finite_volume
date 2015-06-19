@@ -41,9 +41,14 @@
 
         use parameters_constant, only :
      $       left,
+     $       
+     $       uniform_surface,
+     $       surface_with_heaters,
+     $       
      $       no_heat_source,
      $       constant_heat_source,
      $       gaussian_heat_source,
+     $       
      $       sd_interior_type,
      $       sd_L0_type,
      $       sd_L1_type,
@@ -53,7 +58,14 @@
         use parameters_input, only :
      $       ne,
      $       
+     $       wall_surface_type,
+     $       
      $       wall_micro_contact_angle,
+     $       
+     $       wall_heater_center,
+     $       wall_heater_length,
+     $       wall_heater_variation_angle_length,
+     $       wall_heater_micro_contact_angle,
      $       
      $       wall_heat_source_choice,
      $       wall_maximum_heat_flux,
@@ -1476,8 +1488,35 @@
           real(rkind)             :: contact_angle
 
           real(rkind) :: s
+          real(rkind) :: sign
+          real(rkind) :: x_border
 
-          contact_angle = wall_micro_contact_angle
+          select case(wall_surface_type)
+            case(uniform_surface)
+               contact_angle = wall_micro_contact_angle
+
+            case(surface_with_heaters)
+
+               if(x<wall_heater_center) then
+                  sign = -1.0d0
+               else
+                  sign = +1.0d0
+               end if
+
+               x_border = wall_heater_center+sign*0.5d0*wall_heater_length
+
+               contact_angle = 0.5d0*(wall_micro_contact_angle+wall_heater_micro_contact_angle)
+     $                       + sign*0.5d0*(wall_micro_contact_angle-wall_heater_micro_contact_angle)*
+     $                         Tanh(2.0d0*(x-x_border)/wall_heater_variation_angle_length)
+
+            case default
+               print '(''wall_xy_equilibrium_module'')'
+               print '(''get_wall_micro_contact_angle'')'
+               print '(''wall_surface_type not recognized'')'
+               print '(''wall_surface_type: '',I2)', wall_surface_type
+               stop ''
+
+          end select
 
           s = x+y
 

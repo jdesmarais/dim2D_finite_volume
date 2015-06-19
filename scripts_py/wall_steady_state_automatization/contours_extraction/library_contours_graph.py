@@ -75,7 +75,7 @@ def get_spherical_cap_data(y_min,xmin,xmax,Ri,theta,filled=False):
 
     else:
         eq_lgh = get_equilibrium_length(Ri,theta)
-        eq_R   = Ri*sqrt(pi/2.0)*1.0/sqrt(theta-0.5*sin(2*theta))
+        eq_R   = Ri*sqrt(pi/2.0)*1.0/sqrt(theta-cos(theta)*sin(theta))
 
         x = np.arange(xmin,xmax,(xmax-xmin)/1000.)
         y = np.empty([len(x)])
@@ -85,7 +85,7 @@ def get_spherical_cap_data(y_min,xmin,xmax,Ri,theta,filled=False):
             if(x[i]<-eq_lgh or x[i]>eq_lgh):
                 y[i] = y_min
             else:
-                y[i] = y_min + eq_R*(sin(acos(x[i]/eq_R)) - sin(0.5*pi-theta))
+                y[i] = y_min + eq_R*( sin(acos(x[i]/eq_R)) - cos(theta) )
                 
     return [x,y]
 
@@ -109,13 +109,16 @@ def create_graph(data_path,
                  logScale=False,
                  show=True,
                  contactAngle='None',
-                 plot_length_eq=False):
+                 plotLengthEq=False,
+                 volumePath='None'):
     '''
     @description: print a graph of the contact length
     as function of time
     '''
 
     data = np.loadtxt(data_path)
+
+    plt.close("all")
 
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
@@ -124,21 +127,22 @@ def create_graph(data_path,
     ax = fig.add_subplot(111)
     
     plt.plot(
-        data[:,0],
         data[:,1],
+        data[:,2],
         '-',
         linewidth=width,
         color='black')
 
-    if(contactAngle!='None' and plot_length_eq):
-        Ri = data[0,1]
+    if(contactAngle!='None' and plotLengthEq and volumePath!='None'):
+        volume = np.loadtxt(volumePath)
+        Ri = sqrt(2.0*volume[-1,2]/pi)
         theta = (180-contactAngle)*pi/180
 
-        data[:,1] = get_equilibrium_length(Ri,theta)
+        data[:,2] = get_equilibrium_length(Ri,theta)
 
         plt.plot(
-            data[:,0],
             data[:,1],
+            data[:,2],
             '--',
             linewidth=width,
             color='red')
@@ -165,13 +169,13 @@ def create_st_graph(dataRootPath,
                     ylabel='',
                     figPath='',
                     width=3,
-                    logScale=False,
-                    show=True,
-                    sphericalCap=False):
+                    show=True):
     '''
     description: create a graph with the bubble contours
     at several timesteps
     '''
+
+    plt.close("all")
 
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
@@ -179,8 +183,8 @@ def create_st_graph(dataRootPath,
 
     ax = fig.add_subplot(111,aspect='equal')
 
-
-    y_min = 0
+    y_min = 0.0
+    y_max = 0.0
 
     # plot the bubble shape at different times
     for i in range(0,len(timestepExtracted)):
@@ -219,30 +223,14 @@ def create_st_graph(dataRootPath,
                 plotstyle,
                 linewidth=linewidth,
                 color=color)
-
-            y_min = min(y_min,min(data[:,1]))
-
-
-    # plot the spherical cap
-    if(sphericalCap):
-        dataPath = dataRootPath+'/volume.txt'
-        volume = np.loadtxt(dataPath)
-        theta = (180-contactAngle)*pi/180
-        Ri = sqrt(2.0*volume[-1,1]/pi)
-        
-        if(contactAngle<90):
-            sph_data = get_spherical_cap_data(y_min,data[0,0],data[-1,0],Ri,theta,filled=True)
-            
-        else:
-            sph_data = get_spherical_cap_data(y_min,data[0,0],data[-1,0],Ri,theta,filled=False)
-            
-        plt.plot(
-            sph_data[0],
-            sph_data[1],
-            '--',
-            linewidth=width,
-            color='red')
     
+            y_min = min(y_min,min(data[:,1]))
+            y_max = max(y_max,max(data[:,1]))
+
+    y_max = 1.05*y_max
+
+    plt.ylim([y_min,y_max])
+
     ax.set_xlabel(r''+xlabel)
     ax.set_ylabel(r''+ylabel)
 
@@ -258,5 +246,91 @@ def create_st_graph(dataRootPath,
         plt.savefig(figPath)
 
 
+def create_sph_graph(dataRootPath,
+                     timestepExtracted,
+                     contactAngle,
+                     xlabel='$x$',
+                     ylabel='',
+                     figPath='',
+                     width=3,
+                     show=True):
+    '''
+    description: create a contour for the last time step
+    and add the spherical cap approximation
+    '''
 
+    plt.close("all")
+
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    fig = plt.figure(figsize=(12,6))
+
+    ax = fig.add_subplot(111,aspect='equal')
+
+
+    # plot the contour for the last timestep and
+    # compute the y_min of the contour giving
+    # the wall position
+    y_min = 0.0
+
+    dataPath = dataRootPath+'/contours'+str(timestepExtracted)+'.curve'
+
+    if(os.path.isfile(dataPath)):
+
+        data = np.loadtxt(dataPath)
+        
+        plt.plot(
+            data[:,0],
+            data[:,1],
+            '-',
+            linewidth=width,
+            color='black')
+
+        y_min = min(y_min,min(data[:,1]))
+
+
+    print y_min
+
+    # plot the spherical cap
+    dataPath = dataRootPath+'/volume.txt'
+    volume = np.loadtxt(dataPath)
+
+    theta = (180-contactAngle)*pi/180
+    Ri = sqrt(2.0*volume[-1,2]/pi)
+        
+
+    x_min = data[0,0]
+    x_max = data[-1,0]
+
+    x_min = -0.35
+    x_max =  0.35
+
+
+    if(contactAngle<90):
+        sph_data = get_spherical_cap_data(y_min,x_min,x_max,Ri,theta,filled=True)
+        
+    else:
+        sph_data = get_spherical_cap_data(y_min,x_min,x_max,Ri,theta,filled=False)
+        
+    plt.plot(
+        sph_data[0],
+        sph_data[1],
+        '--',
+        linewidth=width,
+        color='red')
+    plt.ylim([y_min,0.21])
+    
+    ax.set_xlabel(r''+xlabel)
+    ax.set_ylabel(r''+ylabel)
+
+            
+    # show the graph
+    if(show):
+        plt.show()
+        plt.close()
+
+                
+    # save in .eps format
+    if(not figPath==''):
+        plt.savefig(figPath)
 

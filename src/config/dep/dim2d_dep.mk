@@ -94,6 +94,16 @@ $(dim2d_ic)/bubble_nucleation_at_wall/ic_class.o:\
 			$(param_dir)/parameters_input.o\
 			$(param_dir)/parameters_kind.o
 
+$(dim2d_ic)/bubble_spherical_cap/ic_class.o:\
+			$(dim2d_ic)/dim2d_dropbubble_module.o\
+			$(dim2d_dir)/dim2d_parameters.o\
+			$(dim2d_dir)/dim2d_state_eq_module.o\
+			$(dim2d_dir)/dim2d_prim_module.o\
+			$(phy_eq_dir)/ic_abstract_class.o\
+			$(param_dir)/parameters_constant.o\
+			$(param_dir)/parameters_input.o\
+			$(param_dir)/parameters_kind.o
+
 $(dim2d_ic)/drop_collision/ic_class.o:\
 			$(dim2d_ic)/dim2d_dropbubble_module.o\
 			$(dim2d_dir)/dim2d_parameters.o\

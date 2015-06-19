@@ -30,7 +30,9 @@ from automatization_csts import (nb_pts_in_interface_default,
 
 from automatization_wall_st_csts import (ratio_eq_length_domain_default,
                                          ratio_drop_length_domain_default,
-                                         total_nb_files_default)
+                                         total_nb_files_default,
+                                         half_sphere_ic_choice,
+                                         spherical_cap_ic_choice)
 
 from library_sm_lg_inputs import (get_we,
                                   get_interface_length,
@@ -63,7 +65,8 @@ def get_inputsToBeModified(steady_state_ac,
                            ratio_eq_length_domain,
                            ratio_drop_length_domain,
                            CFL_constant,
-                           total_nb_files):
+                           total_nb_files,
+                           spherical_cap=False):
 
     '''
     @description
@@ -152,6 +155,14 @@ def get_inputsToBeModified(steady_state_ac,
                                     dt_max)
     if(debug): print 'detail_print: ', detail_print
 
+    # initial conditions:
+    # either half sphere with 90 contact angle
+    # or spherical cap constrained by contact angle
+    if(spherical_cap):
+        ic_choice = spherical_cap_ic_choice
+    else:
+        ic_choice = half_sphere_ic_choice
+
 
     # gather the inputs to be modified in a dictionnary
     inputsToBeModified = {
@@ -165,9 +176,10 @@ def get_inputsToBeModified(steady_state_ac,
         'dy'                          : dx_max,
         'y_min'                       : domain_extent[0][1],
         'y_max'                       : domain_extent[1][1],
+        'ic_choice'                   : ic_choice,
         'flow_velocity'               : flow_velocity,
         'temperature'                 : temperature,
-        'micro_contact_angle'         : micro_contact_angle,
+        'wall_micro_contact_angle'    : micro_contact_angle,
         'phase_at_center'             : phase_at_center,
         'gravity_ac'                  : gravity_ac,
         'gravity_amp'                 : gravity_amp}
@@ -183,6 +195,7 @@ def create_wall_st_inputs(steady_state_ac,
                           gravity_ac,
                           gravity_amp,
                           model_input,
+                          spherical_cap             = False,
                           inputs_wall_modified      = 'inputs_wall.txt',
                           nb_pts_in_interface       = nb_pts_in_interface_default,
                           ratio_bubble_interface    = ratio_bubble_interface_default,
@@ -210,7 +223,8 @@ def create_wall_st_inputs(steady_state_ac,
         ratio_eq_length_domain,
         ratio_drop_length_domain,
         CFL_constant,
-        total_nb_files)
+        total_nb_files,
+        spherical_cap=spherical_cap)
     
 
     # create the input file for the small
@@ -233,15 +247,16 @@ if __name__=="__main__":
     inputs['steady_state_ac']     = 1
 
     inputs['temperature']         = 0.95
-    inputs['micro_contact_angle'] = 45.0
+    inputs['micro_contact_angle'] = 75.0
+    inputs['phase_at_center']     = 'vapor'
+    inputs['gravity_ac']          = 0
+    inputs['gravity_amp']         = 0.000
     inputs['model_input']         = os.path.join(os.getenv('augeanstables'),
                                                  'src','config','default_inputs','dim2d',
                                                  'dim2d_bubble_next_to_wall.txt')
-
+    inputs['spherical_cap']       = False
     inputs['inputs_wall']         = 'inputs_wall.txt'
-    inputs['gravity_ac']          = 0
-    inputs['gravity_amp']         = 0.000
-    inputs['phase_at_center']     = 'vapor'
+
 
     # create the inputs
     create_wall_st_inputs(inputs['steady_state_ac'],

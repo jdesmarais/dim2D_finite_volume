@@ -124,7 +124,7 @@
         
         real(rkind), parameter :: T0 = 0.9500000000d0
 
-        integer    , parameter :: ic_choice = bubble_nucleation
+        integer    , parameter :: ic_choice = bubble_spherical_cap
 
         integer    , parameter :: phase_at_center = vapor
 
@@ -219,13 +219,53 @@
         real(rkind), parameter :: ratio_bubble_interface = 2.0000000000d0
 
 
-        !< wall boundary conditions parameters
+        !< wall surface parameters
         !-----------------------------------------------------
-        !wall contact angle properties
+        !surface_type : type of surface imposed
         !-----------------------------------------------------
-        !wall_micro_contact_angle  : static contact angle
-        !                            imposed at the wall
+        ! - uniform surface      : the contact angle is the
+        !                          same everywhere
         !
+        ! - surface_with_heaters : the contact angle varies at
+        !                          the location of the heaters
+        !-----------------------------------------------------
+        integer    , parameter :: wall_surface_type = surface_with_heaters
+
+        
+        !< wall contact angle parameters
+        !-----------------------------------------------------
+        ! wall_micro_contact_angle
+        !-----------------------------------------------------
+        ! contact angle at the wall
+        !-----------------------------------------------------
+        real(rkind), parameter :: wall_micro_contact_angle = 0.0000000000d0
+
+
+        !< wall heater parameters
+        !-----------------------------------------------------
+        !
+        !-----------------------------------------------------
+        ! wall_heater_center
+        !-----------------------------------------------------
+        ! location of the heater
+        !
+        !-----------------------------------------------------
+        ! wall_heater_length
+        !-----------------------------------------------------
+        ! size of the heater
+        !
+        !-----------------------------------------------------
+        ! wall_heater_micro_contact_angle
+        !-----------------------------------------------------
+        ! contact angle at the heater
+        !-----------------------------------------------------
+        real(rkind), parameter :: wall_heater_center = 0.0000000000d0
+        real(rkind), parameter :: wall_heater_length = 0.0712945354d0
+        real(rkind), parameter :: wall_heater_variation_angle_length = 0.0089118169d0
+        real(rkind), parameter :: wall_heater_micro_contact_angle = 45.0000000000d0
+
+
+        !< wall heat source parameters
         !-----------------------------------------------------
         !wall heat flux related to the temperature
         !gradient imposed at the wall
@@ -246,17 +286,15 @@
         !wall_extra_heat_source_center   : center if gaussian extra_heat source
         !wall_extra_heat_source_variance : variance if gaussian extra_heat source
         !-----------------------------------------------------
-        real(rkind), parameter :: wall_micro_contact_angle = 45.0000000000d0
-
         integer    , parameter :: wall_heat_source_choice = no_heat_source
-        real(rkind), parameter :: wall_maximum_heat_flux = 0.0000000000d0 !0.005d0
-        real(rkind), parameter :: wall_heat_source_center = 0.0000000000d0
-        real(rkind), parameter :: wall_heat_source_variance = 1.0000000000d0
+        real(rkind), parameter :: wall_maximum_heat_flux = 0.0000000000d0
+        real(rkind), parameter :: wall_heat_source_center   = wall_heater_center
+        real(rkind), parameter :: wall_heat_source_variance = 0.5d0*wall_heater_length
 
-        integer    , parameter :: wall_extra_heat_source_choice = gaussian_heat_source
-        real(rkind), parameter :: wall_maximum_extra_heat_flux = -0.0200000000d0
-        real(rkind), parameter :: wall_extra_heat_source_center = 0.0000000000d0
-        real(rkind), parameter :: wall_extra_heat_source_variance = 0.0356472677d0
+        integer    , parameter :: wall_extra_heat_source_choice = no_heat_source
+        real(rkind), parameter :: wall_maximum_extra_heat_flux = 0.0000000000d0
+        real(rkind), parameter :: wall_extra_heat_source_center   = wall_heater_center
+        real(rkind), parameter :: wall_extra_heat_source_variance = 0.5d0*wall_heater_length
 
         
         !-----------------------------------------------------

@@ -17,7 +17,8 @@ from library_nc_to_vtklines import (generate_vtklines,
                                     generate_time_contour_data)
 
 from library_contours_graph import (create_graph,
-                                    create_st_graph)
+                                    create_st_graph,
+                                    create_sph_graph)
 
 
 import numpy as np
@@ -167,6 +168,11 @@ def generate_st_graphs(ncFolder,
     contoursRootPath = os.path.join(contoursDir,'contours')
 
     
+    # choose whether to create the graph with the spherical cap
+    # approximation
+    add_spherical_cap_approx = not phase_check
+
+    
     # if there is no existing contour folder
     # create one    
     if(not os.path.isdir(contoursDir)):
@@ -207,7 +213,8 @@ def generate_st_graphs(ncFolder,
                  width=3,
                  logScale=False,
                  show=show,
-                 plot_length_eq=(not phase_check))
+                 plotLengthEq=add_spherical_cap_approx,
+                 volumePath=volume_path)
     
     # plot the volume as function of time
     create_graph(volume_path,
@@ -218,7 +225,8 @@ def generate_st_graphs(ncFolder,
                  logScale=False,
                  show=show)
 
-    # plot the contour at different time steps
+    # plot the contour at different time steps:
+    # choose the timesteps to have only maxNbBubbleContours
     #------------------------------------------------------------
 
     # get the first timestep with a bubble
@@ -229,17 +237,23 @@ def generate_st_graphs(ncFolder,
             start_i = i
             break
 
+    nt = len(volume[:,0])
+
+    # select the timesteps
     times = []
     if(maxNbBubbleContours=='None'):
-        step = timeRange[2]
+        step = 1
     else:
-        step = int(float(timeRange[1]-start_i)/float(maxNbBubbleContours))
+        step = int(float(nt-start_i)/float(maxNbBubbleContours))
     step = max(1,step)
 
-    for time in range(start_i,timeRange[1],step):
-        times.append(time)
-    times.append(timeRange[1])
+    for i in range(start_i,nt,step):
+        times.append(int(volume[i,0]))
+    times.append(int(volume[-1,0]))
 
+
+    # create the graph with only the contours at different
+    # relevant times
     create_st_graph(dataRootPath,
                     times,
                     contactAngle,
@@ -247,20 +261,16 @@ def generate_st_graphs(ncFolder,
                     ylabel='',
                     figPath=contoursFigPath,
                     width=3,
-                    logScale=False,
                     show=show)
 
-    if(not phase_check):
-        create_st_graph(dataRootPath,
-                        times,
-                        contactAngle,
-                        xlabel='$x$',
-                        ylabel='',
-                        figPath=contoursStFigPath,
-                        width=3,
-                        logScale=False,
-                        show=show,
-                        sphericalCap=(not phase_check))
+    # create the graph with only the last contours and the
+    # spherical cap approximation
+    if(add_spherical_cap_approx):
+        create_sph_graph(dataRootPath,
+                         times[-1],
+                         contactAngle,
+                         figPath=contoursStFigPath,
+                         show=show)
 
 
 def find_initial_bubble(volumePath):
@@ -271,7 +281,7 @@ def find_initial_bubble(volumePath):
     
     volume = np.loadtxt(volumePath)
     
-    for (t,v) in zip(volume[:,0],volume[:,1]):
+    for (t,v) in zip(volume[:,1],volume[:,2]):
         if(v>0):
             t_i = t
             v_i = v
@@ -289,8 +299,9 @@ if __name__=='__main__':
 
     options = parse_opts(sys.argv[1:])
     
-    visit.Launch()
-    visit.SuppressMessages(0)
+    if(options['genContours']):
+        visit.Launch()
+        visit.SuppressMessages(0)
 
     contourType = 'wall_max_gradient' #'mass', 'gradient'
 
@@ -303,7 +314,7 @@ if __name__=='__main__':
                        phase_check=options['phaseCheck'],
                        genContours=options['genContours'],
                        contourPer=0.1,
-                       maxNbBubbleContours=10,
+                       maxNbBubbleContours=5,
                        show=options['show'])
 
     [t_i,r_i] = find_initial_bubble(os.path.join(options['inputDir'],'contours','volume.txt'))

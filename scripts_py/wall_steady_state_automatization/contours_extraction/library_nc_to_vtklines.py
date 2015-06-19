@@ -27,7 +27,6 @@ from library_sm_lg_inputs import (get_mass_density_vapor,
 from automatization_contours_csts import cv_r,we
 
 
-# print a progress message which can be overwriten
 def create_mg_progress(mg_progress):
     '''
     @description:
@@ -37,7 +36,6 @@ def create_mg_progress(mg_progress):
     sys.stdout.flush()
 
 
-# create the final print message not overwritten
 def create_mg_final(mg_progress):
     '''
     @description:
@@ -46,6 +44,37 @@ def create_mg_final(mg_progress):
     sys.stdout.write('%s' % mg_progress)
     sys.stdout.flush()
     print '\n'
+
+
+def compute_volume(x_data,y_data):
+    '''
+    @description: compute the volume of
+    the contours using trapezoid rule
+    '''
+
+    y_min = min(y_data)
+
+    x_prev = x_data[0]
+    y_prev = y_data[0]
+
+    volume = 0.0
+        
+    for i in range(1,len(x_data)):
+            
+        x = x_data[i]
+        y = y_data[i]
+            
+        dx = x - x_prev
+        dy = y - y_prev
+            
+        volume += dx*(y + 0.5*dy)
+            
+        x_prev = x
+        y_prev = y
+
+    volume-=y_min*(x_data[-1]-x_data[0])
+
+    return volume
 
 
 def get_time(ncPath):
@@ -493,23 +522,7 @@ def generate_vtklines(ncPath,
             sys.rm(os.path.basename(vtkPath)+'.vtk')
 
         #get the volume
-        x_prev = graph_data[0][0]
-        y_prev = graph_data[1][0]
-
-        volume = 0.0
-        
-        for i in range(1,len(graph_data[0])-1):
-            
-            x = graph_data[0][i]
-            y = graph_data[1][i]
-            
-            dx = x - x_prev
-            dy = y - y_prev
-            
-            volume += dx*(y + 0.5*dy)
-            
-            x_prev = x
-            y_prev = y
+        volume = compute_volume(graph_data[0][:],graph_data[1][:])
 
     else:
         #no contours
@@ -542,28 +555,30 @@ def generate_time_contour_data(ncRootPath,
     # that will contain the time, contact length and volume
     # of the bubble
     nt = int(float(timeRange[1]-timeRange[0])/float(timeRange[2]))
-    if(timeRange[0]+nt*timeRange[2]<timeRange[1]):
-        nt+=1
-    time = np.empty([nt])
+
+    file_id     = np.empty([nt])
+    time        = np.empty([nt])
     contact_lgh = np.empty([nt])
-    volume = np.empty([nt])
-    contours = np.empty([nt])
+    volume      = np.empty([nt])
 
     mg_progress = 'generating contour files: ...'
     create_mg_progress(mg_progress)
     vtkRootPath = contourRootPath
 
 
-    i=0
-
     # extract tha data as functions of time
-    for t in range(timeRange[0],timeRange[1],timeRange[2]):
+    for i in range(0,nt):
+
+        t = i*timeRange[2]
 
         ncPath  = ncRootPath+str(t)+'.nc'
         vtkPath = vtkRootPath+str(t)
 
         if(not os.path.isfile(ncPath)):
             break
+
+        # write the file id
+        file_id[i] = t
 
         # extract the time
         time[i] = get_time(ncPath)
@@ -584,9 +599,6 @@ def generate_time_contour_data(ncRootPath,
         
         # save the volume at t
         volume[i]= volume_t
-
-        # save the values used to plot the contours
-        contours[i] = contour_t
         
         # determine the contact length
         if(graph_data_t!='None'):
@@ -610,28 +622,19 @@ def generate_time_contour_data(ncRootPath,
         mg_progress = 'generating contour files: '+str(i+1)+' / '+str(nt)
         create_mg_progress(mg_progress)
 
-        i+=1
-
     mg_progress = 'generating contour files: done              '
     create_mg_final(mg_progress)
 
 
     # write the volume(t) on an output file
     out = open(os.path.dirname(contourRootPath)+'/volume.txt', 'w')
-    for (t,v) in zip(time,volume):
-        out.write("%f %f\n" % (t,v))
+    for (i,t,v) in zip(file_id,time,volume):
+        out.write("%f %f %f\n" % (i,t,v))
     out.close()
 
 
     # write the length(t) on an output file
     out = open(os.path.dirname(contourRootPath)+'/contact_lgh.txt', 'w')
-    for (t,l) in zip(time,contact_lgh):
-        out.write("%f %f\n" % (t,l))
-    out.close()
-
-
-    # write the contour(t) on an output file
-    out = open(os.path.dirname(contourRootPath)+'/contour_value.txt', 'w')
-    for (t,l) in zip(time,contours):
-        out.write("%f %f\n" % (t,l))
+    for (i,t,l) in zip(file_id,time,contact_lgh):
+        out.write("%f %f %f\n" % (i,t,l))
     out.close()

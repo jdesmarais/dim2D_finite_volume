@@ -26,17 +26,23 @@
      $       commit,
      $       ref,
      $       convention,
+     $       
      $       ns2d_ic_code,
      $       dim2d_ic_code,
+     $       
      $       phase_at_center_code,
+     $       
      $       bubble_next_to_wall,
      $       bubble_collapse,
      $       bubble_nucleation,
+     $       bubble_spherical_cap,
+     $       
      $       bc_code,
      $       obc_type_code,
      $       hedstrom_xy_choice,
      $       poinsot_xy_choice,
      $       yoolodato_xy_choice,
+     $       
      $       obc_edge_flux_capillarity,
      $       obc_edge_flux_no_capillarity,
      $       obc_eigenqties_bc,
@@ -44,22 +50,29 @@
      $       obc_edge_xy_corner,
      $       obc_edge_xy_flux,
      $       obc_edge_xy_diag_flux,
+     $       
+     $       surface_type_code,
+     $       uniform_surface,
+     $       surface_with_heaters,
+     $       
+     $       wall_source_code,
      $       no_heat_source,
-     $       gaussian_heat_source,
-     $       wall_source_code
+     $       gaussian_heat_source
         
         use parameters_kind, only :
      $       rkind,
      $       ikind
 
         use parameters_input, only :
+     $       
      $       npx,npy,nx,ny,ne,bc_size,
      $       x_min,x_max,y_min,y_max,
      $       t_max,dt,detail_print,
+     $       
      $       flow_direction, flow_velocity,
      $       T0, phase_at_center,
-     $       wall_micro_contact_angle,
      $       ic_choice, bc_choice,
+     $       
      $       bf_openbc_md_threshold_ac,
      $       bf_openbc_md_threshold,
      $       sigma_P,
@@ -79,9 +92,22 @@
      $       debug_adapt_computational_domain,
      $       ic_perturbation_ac,
      $       ic_perturbation_amp,
+     $       
      $       ratio_bubble_interface,
+     $       
+     $       wall_surface_type,
+     $       wall_micro_contact_angle,
+     $       
+     $       wall_heater_center,
+     $       wall_heater_length,
+     $       wall_heater_variation_angle_length,
+     $       wall_heater_micro_contact_angle,
+     $       
      $       wall_heat_source_choice,
      $       wall_maximum_heat_flux,
+     $       wall_heat_source_center,
+     $       wall_heat_source_variance,
+     $       
      $       wall_extra_heat_source_choice,
      $       wall_maximum_extra_heat_flux,
      $       wall_extra_heat_source_center,
@@ -355,21 +381,14 @@
           !----------------------------------------
           select case(ic_choice)
 
-          case(bubble_next_to_wall,bubble_collapse,bubble_nucleation)
+          case(bubble_next_to_wall,bubble_collapse,
+     $         bubble_nucleation, bubble_spherical_cap)
 
              retval = nf90_put_att(
      $         ncid,
      $         NF90_GLOBAL,
      $         'phase_at_center',
      $         phase_at_center_code(phase_at_center+1))
-             !DEC$ FORCEINLINE RECURSIVE
-             call nf90_handle_err(retval)
-
-             retval = nf90_put_att(
-     $         ncid,
-     $         NF90_GLOBAL,
-     $         'contact_angle',
-     $         wall_micro_contact_angle)
              !DEC$ FORCEINLINE RECURSIVE
              call nf90_handle_err(retval)
 
@@ -385,7 +404,66 @@
 
              end if
 
+             ! type of surface
+             retval = nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'wall_surface_type',
+     $            surface_type_code(wall_surface_type+1))
+             !DEC$ FORCEINLINE RECURSIVE
+             call nf90_handle_err(retval)
 
+
+             ! type of surface
+             retval = nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'wall_micro_contact_angle',
+     $            wall_micro_contact_angle)
+             !DEC$ FORCEINLINE RECURSIVE
+             call nf90_handle_err(retval)
+
+             
+             ! add the parameters specific to the
+             ! non-uniform surfaces
+             if(wall_surface_type.eq.surface_with_heaters) then
+                
+                retval = nf90_put_att(
+     $               ncid,
+     $               NF90_GLOBAL,
+     $               'wall_heater_center',
+     $               wall_heater_center)
+                !DEC$ FORCEINLINE RECURSIVE
+                call nf90_handle_err(retval)
+
+                retval = nf90_put_att(
+     $               ncid,
+     $               NF90_GLOBAL,
+     $               'wall_heater_length',
+     $               wall_heater_length)
+                !DEC$ FORCEINLINE RECURSIVE
+                call nf90_handle_err(retval)
+                
+                retval = nf90_put_att(
+     $               ncid,
+     $               NF90_GLOBAL,
+     $               'wall_heater_variation_angle_length',
+     $               wall_heater_variation_angle_length)
+                !DEC$ FORCEINLINE RECURSIVE
+                call nf90_handle_err(retval)
+
+                retval = nf90_put_att(
+     $               ncid,
+     $               NF90_GLOBAL,
+     $               'wall_heater_micro_contact_angle',
+     $               wall_heater_micro_contact_angle)
+                !DEC$ FORCEINLINE RECURSIVE
+                call nf90_handle_err(retval)
+
+             end if
+
+
+             ! conduction heat source
              if(wall_heat_source_choice.ne.no_heat_source) then
                 retval = nf90_put_att(
      $               ncid,
@@ -403,9 +481,34 @@
                 !DEC$ FORCEINLINE RECURSIVE
                 call nf90_handle_err(retval)
 
+                if(wall_heat_source_choice.eq.gaussian_heat_source) then
+
+                   if(wall_surface_type.ne.surface_with_heaters) then
+
+                      retval = nf90_put_att(
+     $                     ncid,
+     $                     NF90_GLOBAL,
+     $                     'wall_heat_source_center',
+     $                     wall_heat_source_center)
+                      !DEC$ FORCEINLINE RECURSIVE
+                      call nf90_handle_err(retval)
+
+                      retval = nf90_put_att(
+     $                     ncid,
+     $                     NF90_GLOBAL,
+     $                     'wall_heat_source_variance',
+     $                     wall_heat_source_variance)
+                      !DEC$ FORCEINLINE RECURSIVE
+                      call nf90_handle_err(retval)
+
+                   end if
+
+                end if
+
              end if
 
              
+             ! extra heat source
              if(wall_extra_heat_source_choice.ne.no_heat_source) then
                 retval = nf90_put_att(
      $               ncid,
@@ -425,21 +528,25 @@
 
                 if(wall_extra_heat_source_choice.eq.gaussian_heat_source) then
 
-                   retval = nf90_put_att(
-     $                  ncid,
-     $                  NF90_GLOBAL,
-     $                  'wall_extra_heat_source_center',
-     $                  wall_extra_heat_source_center)
-                   !DEC$ FORCEINLINE RECURSIVE
-                   call nf90_handle_err(retval)
+                   if(wall_surface_type.ne.surface_with_heaters) then
 
-                   retval = nf90_put_att(
-     $                  ncid,
-     $                  NF90_GLOBAL,
-     $                  'wall_extra_heat_source_variance',
-     $                  wall_extra_heat_source_variance)
-                   !DEC$ FORCEINLINE RECURSIVE
-                   call nf90_handle_err(retval)
+                      retval = nf90_put_att(
+     $                     ncid,
+     $                     NF90_GLOBAL,
+     $                     'wall_extra_heat_source_center',
+     $                     wall_extra_heat_source_center)
+                      !DEC$ FORCEINLINE RECURSIVE
+                      call nf90_handle_err(retval)
+
+                      retval = nf90_put_att(
+     $                     ncid,
+     $                     NF90_GLOBAL,
+     $                     'wall_extra_heat_source_variance',
+     $                     wall_extra_heat_source_variance)
+                      !DEC$ FORCEINLINE RECURSIVE
+                      call nf90_handle_err(retval)
+
+                   end if
 
                 end if
 

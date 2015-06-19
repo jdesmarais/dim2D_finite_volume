@@ -39,11 +39,12 @@ if __name__=="__main__":
         maindir_input,
         'dim2d_bubble_next_to_wall.txt')
 
-    contactAngleStudy         = True
-    gravityStudy              = False
+    contactAngleStudy = False
+    sphericalCapStudy = True
+    gravityStudy      = False
 
 
-    #1) contact angle study
+    #1) contact angle study with a half sphere at the beginning
     if(contactAngleStudy):
 
         steady_state_ac     = 1
@@ -51,6 +52,7 @@ if __name__=="__main__":
         contact_angle_array = [135.0] #[22.5,45.0,67.5,90.0,112.5,135.0]
         phase_at_center     = 'vapor'
         gravity             = 0.000
+        spherical_cap       = False
     
         for contact_angle in contact_angle_array:
             
@@ -63,9 +65,37 @@ if __name__=="__main__":
                                          phase_at_center,
                                          model_input,
                                          gravity_ac=1,
-                                         gravity_amp=gravity)
+                                         gravity_amp=gravity,
+                                         spherical_cap=spherical_cap)
 
-    #2) gravity study
+
+    #2) contact angle study with a spherical cap approximation
+    #   pinned with a fixed contact angle
+    if(sphericalCapStudy):
+
+        steady_state_ac = 1
+        temperature         = 0.95
+        contact_angle_array = [22.5] #[22.5,45.0,67.5,90.0,112.5,135.0]
+        phase_at_center     = 'vapor'
+        gravity             = 0.000
+        spherical_cap       = True
+    
+        for contact_angle in contact_angle_array:
+            
+            [destDir, nameRun] =\
+                \
+                generate_wall_st_results(mainDir,
+                                         steady_state_ac,
+                                         temperature,
+                                         contact_angle,
+                                         phase_at_center,
+                                         model_input,
+                                         gravity_ac=1,
+                                         gravity_amp=gravity,
+                                         spherical_cap=spherical_cap)
+        
+
+    #3) gravity study
     if(gravityStudy):
 
         steady_state_ac     = 1

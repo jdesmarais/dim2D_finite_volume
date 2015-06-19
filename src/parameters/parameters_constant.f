@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'cretean bull V0.1')
-        parameter (commit = 'bc7f50f590e724d971249a881226aad0a2713e25')
+        parameter (commit = '170a170170941952e9f975746d6288df004bae96')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -53,7 +53,7 @@
 
 
         !>initial conditions choice for NS
-        character(15), dimension(11), parameter :: ns2d_ic_code =[
+        character(15), dimension(12), parameter :: ns2d_ic_code =[
      $       'steady_state   ',
      $       'peak           ',
      $       'vortex         ',
@@ -61,6 +61,7 @@
      $       'sym_y          ',
      $       'negative_spot  ',
      $       'sincos         ',
+     $       'not_implemented',
      $       'not_implemented',
      $       'not_implemented',
      $       'not_implemented',
@@ -75,18 +76,19 @@
         integer, parameter :: sincos=6
 
         !>initial conditions choice for DIM
-        character(19), dimension(11), parameter :: dim2d_ic_code =[
-     $       'steady_state       ',
-     $       'drop_retraction    ',
-     $       'bubble_ascending   ',
-     $       'homogeneous_liquid ',
-     $       'drop_collision     ',
-     $       'phase_separation   ',
-     $       'bubble_transported ',
-     $       'bubble_next_to_wall',
-     $       'bubble_collapse    ',
-     $       'bubble_nucleation  ',
-     $       'newgrdpt_test      ']
+        character(20), dimension(12), parameter :: dim2d_ic_code =[
+     $       'steady_state        ',
+     $       'drop_retraction     ',
+     $       'bubble_ascending    ',
+     $       'homogeneous_liquid  ',
+     $       'drop_collision      ',
+     $       'phase_separation    ',
+     $       'bubble_transported  ',
+     $       'bubble_next_to_wall ',
+     $       'bubble_collapse     ',
+     $       'bubble_nucleation   ',
+     $       'bubble_spherical_cap',
+     $       'newgrdpt_test       ']
 
         integer, parameter :: steady_state=0
         integer, parameter :: drop_retraction=1
@@ -98,7 +100,8 @@
         integer, parameter :: bubble_next_to_wall=7
         integer, parameter :: bubble_collapse=8
         integer, parameter :: bubble_nucleation=9
-        integer, parameter :: newgrdpt_test=10
+        integer, parameter :: bubble_spherical_cap=10
+        integer, parameter :: newgrdpt_test=11
 
 
         !> phase at center code
@@ -337,6 +340,24 @@
         integer, parameter :: no_heat_source       = 0
         integer, parameter :: constant_heat_source = 1
         integer, parameter :: gaussian_heat_source = 2
+
+
+        !> wall contact angle type
+        !-----------------------------------------------------------
+        !control the contact angle imposed at the wall
+        !-----------------------------------------------------------
+        ! uniform_surface:      the contact angle is the same everywhere
+        !                       on the surface
+        !
+        ! surface_with_heaters: the contact angle varies at the location
+        !                       of the heaters
+        !-----------------------------------------------------------
+        character(20), dimension(2), parameter :: surface_type_code =[
+     $       'uniform_surface     ',
+     $       'surface_with_heaters']
+
+        integer, parameter :: uniform_surface      = 0
+        integer, parameter :: surface_with_heaters = 1
 
       end module parameters_constant
 

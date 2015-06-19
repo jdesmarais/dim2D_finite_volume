@@ -45,11 +45,14 @@ from create_wall_st_inputs import create_wall_st_inputs
 def get_simulation_dir(temperature,
                        micro_contact_angle,
                        phase_at_center,
-                       collapse_ratio=2.0,
-                       gravity_amp=0,
-                       wall_maximum_heat_flux = 0,
-                       wall_maximum_extra_heat_flux = 0,
-                       flow_velocity = 0):
+                       collapse_ratio                  = 2.0,
+                       gravity_amp                     = 0,
+                       wall_surface_type               = 'uniform_surface',
+                       wall_heater_micro_contact_angle = 90.0,
+                       wall_maximum_heat_flux          = 0,
+                       wall_maximum_extra_heat_flux    = 0,
+                       flow_velocity                   = 0,
+                       spherical_cap                   = False):
     '''
     @description
     get the name of the folder where the simulation results
@@ -58,9 +61,14 @@ def get_simulation_dir(temperature,
 
     simDir =\
         'dim2d_'+\
-        str(temperature)+'_'+\
-        'ca'+str(micro_contact_angle)+'_'+\
-        phase_at_center[0:3]
+        str(temperature)
+
+    if(wall_surface_type!='uniform_surface'):
+        simDir+='_ca'+str(wall_heater_micro_contact_angle)
+    else:
+        simDir+='_ca'+str(micro_contact_angle)
+    
+    simDir+='_'+phase_at_center[0:3]
 
     if(collapse_ratio!=2.0):
         simDir+='_ra'+str(collapse_ratio)
@@ -76,6 +84,12 @@ def get_simulation_dir(temperature,
 
     if(flow_velocity!=0):
         simDir+='_v'+str(flow_velocity)
+
+    if(wall_surface_type!='uniform_surface'):
+        simDir+='_hca'+str(micro_contact_angle)
+
+    if(spherical_cap):
+        simDir+='_sph'
     
     return simDir
 
@@ -139,7 +153,8 @@ def generate_wall_st_results(mainDir,
                              phase_at_center,
                              model_input,
                              gravity_ac=0,
-                             gravity_amp=0):
+                             gravity_amp=0,
+                             spherical_cap=False):
     '''
     @description
     create the directory to save the simulation results,
@@ -150,29 +165,30 @@ def generate_wall_st_results(mainDir,
     run the simulation
     '''
     
-    ##1) test whether 'mainDir' can be used as a reference
-    ##   directory where the directory to save the simulation
-    ##   is created
-    #if(not os.path.isdir(mainDir)):
-    #    print 'library_wall_st_results'
-    #    print 'generate_wall_st_results'
-    #    sys.exit('*** '+mainDir+' is not a directory***')
-    #
-    #
-    ##2) create the directory to save the simulation    
-    #destDir = get_simulation_dir(temperature,
-    #                             micro_contact_angle,
-    #                             phase_at_center,
-    #                             gravity_amp=gravity_amp)
-    #destDir = os.path.join(mainDir,destDir)
-    #
-    ## if there is already an existing directory, the function
-    ## throws an error
-    #if(os.path.isdir(destDir)):
-    #    print 'library_wall_st_results'
-    #    print 'generate_wall_st_results'
-    #    sys.exit('*** '+destDir+' already exists***')
-    #os.mkdir(destDir)
+    #1) test whether 'mainDir' can be used as a reference
+    #   directory where the directory to save the simulation
+    #   is created
+    if(not os.path.isdir(mainDir)):
+        print 'library_wall_st_results'
+        print 'generate_wall_st_results'
+        sys.exit('*** '+mainDir+' is not a directory***')
+    
+    
+    #2) create the directory to save the simulation    
+    destDir = get_simulation_dir(temperature,
+                                 micro_contact_angle,
+                                 phase_at_center,
+                                 gravity_amp=gravity_amp,
+                                 spherical_cap = spherical_cap)
+    destDir = os.path.join(mainDir,destDir)
+    
+    # if there is already an existing directory, the function
+    # throws an error
+    if(os.path.isdir(destDir)):
+        print 'library_wall_st_results'
+        print 'generate_wall_st_results'
+        sys.exit('*** '+destDir+' already exists***')
+    os.mkdir(destDir)
     
     
     #3) create the inputs for the simulation
@@ -190,16 +206,17 @@ def generate_wall_st_results(mainDir,
                           gravity_ac,
                           gravity_amp,
                           model_input,
+                          spherical_cap = spherical_cap,
                           inputs_wall_modified = inputPath)
 
-    ##4) create dir, generate executable,
-    ##   create PBS script file
-    #[pbsScriptPath,nameRun] = create_simulation(destDir,
-    #                                            inputPath)
-    #    
-    #
-    ##5) run the simulation
-    #run_simulation(pbsScriptPath)
+    #4) create dir, generate executable,
+    #   create PBS script file
+    [pbsScriptPath,nameRun] = create_simulation(destDir,
+                                                inputPath)
+        
+    
+    #5) run the simulation
+    run_simulation(pbsScriptPath)
 
     return [destDir,nameRun]
 

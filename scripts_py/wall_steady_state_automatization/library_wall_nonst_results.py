@@ -100,23 +100,25 @@ def generate_wall_nonst_results(
     model_input,
     PBSnameRun,
     simulation_duration,
-    steady_state_ac                 = 0,
-    temperature                     = 0.999,
-    micro_contact_angle             = '90.0',
-    flow_velocity                   = 0.0,
-    phase_at_center                 = 'vapor',
-    ratio_bubble_interface          = 2.0,
-    gravity_ac                      = 0,
-    gravity_amp                     = 0,
-    wall_heat_source_choice         = 'no_heat_source',
-    wall_maximum_heat_flux          = 0.0,
-    wall_heat_source_center         = 0.0,
-    wall_heat_source_variance       = 1.0 ,
-    wall_extra_heat_source_choice   = 'no_heat_source',
-    wall_maximum_extra_heat_flux    = 0.0,
-    wall_extra_heat_source_center   = 0.0,
-    wall_extra_heat_source_variance = 1.0,
-    total_nb_files                  = total_nb_files_default):
+    steady_state_ac                    = 0,
+    temperature                        = 0.999,
+    flow_velocity                      = 0.0,
+    phase_at_center                    = 'vapor',
+    ratio_bubble_interface             = 2.0,
+    gravity_ac                         = 0,
+    gravity_amp                        = 0,
+    wall_surface_type                  = 'uniform_surface',
+    wall_heater_center                 = 0.0,
+    wall_heater_length                 = 1.0,
+    wall_heater_variation_angle_length = 0.1,
+    wall_heater_micro_contact_angle    = 90.0,
+    wall_micro_contact_angle           = 90.0,
+    wall_heat_source_choice            = 'no_heat_source',
+    wall_maximum_heat_flux             = 0.0,
+    wall_extra_heat_source_choice      = 'no_heat_source',
+    wall_maximum_extra_heat_flux       = 0.0,
+    total_nb_files                     = total_nb_files_default,
+    spherical_cap                      = False):
 
     '''
     @description
@@ -139,13 +141,16 @@ def generate_wall_nonst_results(
 
     #2) create the directory to save the simulation    
     destDir = get_simulation_dir(temperature,
-                                 micro_contact_angle,
+                                 wall_micro_contact_angle,
                                  phase_at_center,
-                                 collapse_ratio               = ratio_bubble_interface,
-                                 gravity_amp                  = gravity_amp,
-                                 wall_maximum_heat_flux       = wall_maximum_heat_flux,
-                                 wall_maximum_extra_heat_flux = wall_maximum_extra_heat_flux,
-                                 flow_velocity                = flow_velocity)
+                                 collapse_ratio                  = ratio_bubble_interface,
+                                 gravity_amp                     = gravity_amp,
+                                 wall_surface_type               = wall_surface_type,
+                                 wall_heater_micro_contact_angle = wall_heater_micro_contact_angle,
+                                 wall_maximum_heat_flux          = wall_maximum_heat_flux,
+                                 wall_maximum_extra_heat_flux    = wall_maximum_extra_heat_flux,
+                                 flow_velocity                   = flow_velocity,
+                                 spherical_cap                   = spherical_cap)
     destDir = os.path.join(mainDir,destDir)
 
     # if there is already an existing directory, the function
@@ -168,31 +173,33 @@ def generate_wall_nonst_results(
     create_wall_nonst_inputs(
         model_input,
         simulation_duration,
-        inputs_wall_modified            = inputPath,
-        steady_state_ac                 = steady_state_ac,
-        temperature                     = temperature,
-        micro_contact_angle             = micro_contact_angle,
-        flow_velocity                   = flow_velocity,
-        phase_at_center                 = phase_at_center,
-        gravity_ac                      = gravity_ac,
-        gravity_amp                     = gravity_amp,
-        ratio_bubble_interface          = ratio_bubble_interface,
-        wall_heat_source_choice         = wall_heat_source_choice,
-        wall_maximum_heat_flux          = wall_maximum_heat_flux,
-        wall_heat_source_center         = wall_heat_source_center,
-        wall_heat_source_variance       = wall_heat_source_variance,
-        wall_extra_heat_source_choice   = wall_extra_heat_source_choice,
-        wall_maximum_extra_heat_flux    = wall_maximum_extra_heat_flux,
-        wall_extra_heat_source_center   = wall_extra_heat_source_center,
-        wall_extra_heat_source_variance = wall_extra_heat_source_variance,
-        total_nb_files                  = total_nb_files)
+        inputs_wall_modified               = inputPath,
+        steady_state_ac                    = steady_state_ac,
+        spherical_cap                      = spherical_cap,
+        temperature                        = temperature,
+        flow_velocity                      = flow_velocity,
+        phase_at_center                    = phase_at_center,
+        gravity_ac                         = gravity_ac,
+        gravity_amp                        = gravity_amp,
+        ratio_bubble_interface             = ratio_bubble_interface,
+        wall_surface_type                  = wall_surface_type,
+        wall_micro_contact_angle           = wall_micro_contact_angle,
+        wall_heater_center                 = wall_heater_center,
+        wall_heater_length                 = wall_heater_length,
+        wall_heater_variation_angle_length = wall_heater_variation_angle_length,
+        wall_heater_micro_contact_angle    = wall_heater_micro_contact_angle,
+        wall_heat_source_choice            = wall_heat_source_choice,
+        wall_maximum_heat_flux             = wall_maximum_heat_flux,
+        wall_extra_heat_source_choice      = wall_extra_heat_source_choice,
+        wall_maximum_extra_heat_flux       = wall_maximum_extra_heat_flux,
+        total_nb_files                     = total_nb_files)
 
     #4) create dir, generate executable,
     #   create PBS script file
     [pbsScriptPath,nameRun] = create_simulation(destDir,
                                                 inputPath,
                                                 PBSnameRun)        
-
+    
     #5) run the simulation
     run_simulation(pbsScriptPath)
 
