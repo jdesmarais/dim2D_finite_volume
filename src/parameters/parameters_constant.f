@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'cretean bull V0.1')
-        parameter (commit = 'efa3dc3aa64eebf88ed65eac3b7d6e2c9ba25692')
+        parameter (commit = 'c3873117568e295233f12132f31b1f2cb9ad943d')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         

@@ -51,6 +51,7 @@
      $       flow_y_side,
      $       phase_at_center,
      $       wall_micro_contact_angle,
+     $       wall_heater_micro_contact_angle,
      $       x_min,
      $       x_max,
      $       y_min,
@@ -183,7 +184,7 @@
           Vtotal = pi*(3.0*li)**2
 
           !set the major and minor axes of the bubble ellipse
-          theta = pi* wall_micro_contact_angle/180.0d0
+          theta = pi*wall_heater_micro_contact_angle/180.0d0
           a=SQRT(Vtotal/((pi-theta)+COS(theta)*SIN(theta)))
           b=a
 

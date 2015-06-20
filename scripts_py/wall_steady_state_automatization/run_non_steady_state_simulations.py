@@ -23,6 +23,7 @@ from library_sm_lg_inputs import (get_we,
                                   get_interface_length)
 
 from create_sm_lg_inputs import get_parameter
+from math import *
 
 
 def extract_interface_length(dim2dParamPath,temperature):
@@ -51,13 +52,26 @@ def extract_interface_length(dim2dParamPath,temperature):
     return interface_lgh
 
 
-def get_heater_length(Li):
+def get_heater_length(contact_angle,Li):
     '''
     @description: determine the length of the heater from
                   the size of the interface length
                   (as the radius of the bubble is set to 2.0Li)
     '''
-    return 4.0*Li
+    
+    Ri = 3.0*Li
+
+    margin = 0.25
+
+    theta = pi*contact_angle/180.0
+
+    f_theta = sqrt(pi/(pi-theta+cos(theta)*sin(theta)))*sin(theta)
+
+    length = 2.0*f_theta*Ri*(1.0+margin)
+
+    print 'heater_lgh/2:', length/2.0
+
+    return length
 
 
 def get_heater_variation_angle_length(Li):
@@ -66,7 +80,10 @@ def get_heater_variation_angle_length(Li):
                   the contact angle varies at the edge of the
                   heater
     '''
-    return 0.5*Li
+
+    ratio_va = 2.0
+
+    return ratio_va*Li
 
 
 def generate_wall_nonst_results_uniform_surface(
@@ -114,7 +131,7 @@ def generate_wall_nonst_results_uniform_surface(
         wall_heater_center            = wall_heater_center,
         wall_heater_length            = wall_heater_length,
         wall_extra_heat_source_choice = wall_heat_source_choice,
-        wall_maximum_extra_heat_flux  = max_heat_flux,
+        wall_maximum_extra_heat_flux  = wall_maximum_heat_flux,
         total_nb_files                = total_nb_files,
         spherical_cap                 = spherical_cap,
         adapt_domain                  = adapt_domain)
@@ -204,7 +221,7 @@ if __name__=="__main__":
     #------------------------------------------------------------
     uniformNucleation_conductionHeatStudy = False
     uniformNucleation_sourceHeatStudy     = False
-    uniformNucleation_contactAngleStudy   = False
+    uniformNucleation_contactAngleStudy   = True
     uniformNucleation_flowVelocityStudy   = False
 
     heaterNucleation_sourceHeatStudy   = False
@@ -212,7 +229,7 @@ if __name__=="__main__":
     heaterNucleation_flowVelocityStudy = False
 
     uniformSphericalC_flowVelocityStudy = False
-    heaterSphericalC_flowVelocityStudy  = True
+    heaterSphericalC_flowVelocityStudy  = False
 
     
     # default parameters for the generation of results
@@ -416,9 +433,9 @@ if __name__=="__main__":
         gravity_ac               = 0
         gravity_amp              = 0.000
 
-        wall_micro_contact_angle = [112.5,130.0] #[22.5,45.0,67.5,112.5,130.0]
+        wall_micro_contact_angle = [135.0] #[22.5,45.0,67.5,112.5,135.0]
         wall_heater_center       = 0.0
-        wall_heater_length       = get_heater_length(Li)
+        wall_heater_length       = 4.0*Li
         wall_heat_source_choice  = 'gaussian_heat_source'
         wall_maximum_heat_flux   = wall_maximum_heat_flux_nucleation
         total_nb_files           = 500
@@ -433,9 +450,9 @@ if __name__=="__main__":
 
             wall_surface_type = 'uniform_surface'
 
-            for contact_angle in contact_angle_array:
+            for contact_angle in wall_micro_contact_angle:
             
-                PBSnameRun = 'dim2d_'+str(temperature)+'_sh'+str(max_heat_flux)+'_ca'+str(contact_angle)
+                PBSnameRun = 'dim2d_'+str(temperature)+'_sh'+str(wall_maximum_heat_flux)+'_ca'+str(contact_angle)
 
                 generate_wall_nonst_results_uniform_surface(
                     mainDir,
@@ -475,10 +492,10 @@ if __name__=="__main__":
                              '_hca'+str(contact_angle)
 
                 generate_wall_nonst_results_surface_with_heaters(
-                    mainDir,                           
-                    model_input,                       
-                    PBSnameRun,                        
-                    simulationDuration,                
+                    mainDir,
+                    model_input,
+                    PBSnameRun,
+                    simulationDuration,
                     steady_state_ac,
                     temperature,
                     flow_velocity,
@@ -626,7 +643,7 @@ if __name__=="__main__":
     if(uniformSphericalC_flowVelocityStudy or
        heaterSphericalC_flowVelocityStudy):
 
-        simulationDuration     = 100
+        simulationDuration     = 10.0
         steady_state_ac        = 0
         temperature            = 0.95
 
@@ -634,7 +651,7 @@ if __name__=="__main__":
 
         contact_angle_array    = [22.5,45.0,67.5,90.0,112.5,135.0]
         phase_at_center        = 'vapor'
-        flow_velocity_array    = [0.1, 0.15, 0.2]
+        flow_velocity_array    = [0.0, 0.1, 0.15, 0.2]
         ratio_bubble_interface = 2.0
         gravity_ac             = 0
         gravity_amp            = 0.000
@@ -643,7 +660,6 @@ if __name__=="__main__":
         max_heat_flux_array     = [0.0]
 
         wall_heater_center     = 0.0
-        wall_heater_length     = get_heater_length(Li)
 
         total_nb_files         = 500
         spherical_cap          = True
@@ -708,11 +724,13 @@ if __name__=="__main__":
 
                 for contact_angle in contact_angle_array:
 
+                    wall_heater_length = get_heater_length(contact_angle,Li)
+
                     for flow_velocity in flow_velocity_array:
             
                         PBSnameRun =\
                             'dim2d_'+str(temperature)+\
-                            '_ca'+str(contact_angle)
+                            '_hca'+str(wall_micro_contact_angle)
 
                         if(max_heat_flux!=0.0):
                             PBSnameRun += '_sh'+str(max_heat_flux)
@@ -720,7 +738,7 @@ if __name__=="__main__":
                         if(flow_velocity!=0.0):
                             PBSnameRun += '_v'+str(flow_velocity)
                                 
-                        PBSnameRun+='_hca'+str(wall_micro_contact_angle)
+                        PBSnameRun+='_ca'+str(contact_angle)
 
                         if(spherical_cap):
                             PBSnameRun += '_sph'
