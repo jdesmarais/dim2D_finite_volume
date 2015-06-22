@@ -1895,8 +1895,8 @@
              print '(''get_wall_x_root_brackets'')'
              print '(''exceeded maximum iterations'')'
 
-             print '(''T_guess: '',F10.4)', T_guess
-             print '(''md_guess: '',F10.4)', md_guess
+             print *, 'T_guess', T_guess
+             print *, 'md_guess', md_guess
 
              xl = get_mass_density_vapor(T_guess)
              xh = get_mass_density_liquid(T_guess)

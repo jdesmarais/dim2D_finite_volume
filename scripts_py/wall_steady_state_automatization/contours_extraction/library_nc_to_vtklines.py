@@ -46,13 +46,13 @@ def create_mg_final(mg_progress):
     print '\n'
 
 
-def compute_volume(x_data,y_data):
+def compute_volume(domain_borders,x_data,y_data):
     '''
     @description: compute the volume of
     the contours using trapezoid rule
     '''
 
-    y_min = min(y_data)
+    y_min = domain_borders['y_min']+2.0*domain_borders['dy']
 
     x_prev = x_data[0]
     y_prev = y_data[0]
@@ -63,16 +63,17 @@ def compute_volume(x_data,y_data):
             
         x = x_data[i]
         y = y_data[i]
+
+        if(y<y_min):
+            y = y_min
             
         dx = x - x_prev
         dy = y - y_prev
             
-        volume += dx*(y + 0.5*dy)
+        volume += dx*((y-y_min) + 0.5*dy)
             
         x_prev = x
         y_prev = y
-
-    volume-=y_min*(x_data[-1]-x_data[0])
 
     return volume
 
@@ -327,7 +328,7 @@ def get_mid_by_max_grad(domain_borders,phase_check=False):
     	    mid_mass_c = 0.5*(mass_vap+mass_liq)
     	    check = abs((midMass-mid_mass_c)/(mass_liq-mass_vap)) < 0.2
     	
-    	    # check with the norm of the mass density graident
+    	    # check with the norm of the mass density gradient
     	    visit.AddPlot("Pseudocolor","mass_grad_y", 1, 1)
     	    visit.DrawPlots()
     	    gradyMass = visit.NodePick(coord=(coord1,coord2,0), vars=("default","mass_grad_y"))
@@ -339,8 +340,8 @@ def get_mid_by_max_grad(domain_borders,phase_check=False):
     	    # check by comparing the maximum gradient of the mass density
     	    interface_lgh = get_interface_length(we,midTemperature)
     	    mid_gradMass = (mass_liq-mass_vap)/interface_lgh
-    	    check = abs((gradMassNorm - mid_gradMass)/mid_gradMass) < 0.5
-    	
+    	    check = abs((gradMassNorm - mid_gradMass)/mid_gradMass) < 0.4
+
     	else:
     	
     	    check = True
@@ -395,7 +396,7 @@ def remove_boundary_pts(domain_borders,bc_size=2):
 
     x_min_R = domain_borders['x_min']+bc_size*domain_borders['dx']
     x_max_R = domain_borders['x_max']-bc_size*domain_borders['dx']
-    y_min_R = domain_borders['y_min'] #+bc_size*domain_borders['dy']
+    y_min_R = domain_borders['y_min']+bc_size*domain_borders['dy']
     y_max_R = domain_borders['y_max']-bc_size*domain_borders['dy']
 
     visit.AddOperator("Box",1)
@@ -560,7 +561,7 @@ def generate_vtklines(ncPath,
             sys.rm(os.path.basename(vtkPath)+'.vtk')
 
         #get the volume
-        volume = compute_volume(graph_data[0][:],graph_data[1][:])
+        volume = compute_volume(domain_borders, graph_data[0][:], graph_data[1][:])
 
         #get the mass
         mass = compute_mass(contourMin,domain_borders)
@@ -605,6 +606,7 @@ def generate_time_contour_data(ncRootPath,
     contact_lgh = np.empty([nt])
     volume      = np.empty([nt])
     mass        = np.empty([nt])
+    contour     = np.empty([nt])
 
     mg_progress = 'generating contour files: ...'
     create_mg_progress(mg_progress)
@@ -614,7 +616,7 @@ def generate_time_contour_data(ncRootPath,
     # extract tha data as functions of time
     for i in range(0,nt):
 
-        t = i*timeRange[2]
+        t = timeRange[0]+i*timeRange[2]
 
         ncPath  = ncRootPath+str(t)+'.nc'
         vtkPath = vtkRootPath+str(t)
@@ -648,6 +650,10 @@ def generate_time_contour_data(ncRootPath,
 
         # save the mass at t
         mass[i] = mass_t
+
+        # save the mass density chosen
+        # for the contour
+        contour[i] = contour_t
         
         # determine the contact length
         if(graph_data_t!='None'):
@@ -657,7 +663,7 @@ def generate_time_contour_data(ncRootPath,
             y = np.array(graph_data_t[1][:])
             i_min, = np.unravel_index(y.argmin(),y.shape)
             y_min = y[i_min]
-            if(y_min>(domain_borders['y_min'])): #+2*domain_borders['dy']
+            if(y_min>(domain_borders['y_min']+2*domain_borders['dy'])): #+2*domain_borders['dy']
                 contact_lgh[i]=0.0
             else:
                 
@@ -694,3 +700,23 @@ def generate_time_contour_data(ncRootPath,
     for (i,t,l) in zip(file_id,time,contact_lgh):
         out.write("%f %f %f\n" % (i,t,l))
     out.close()
+
+
+    # write the mass density chosen to draw the contour
+    # on an output file
+    out = open(os.path.dirname(contourRootPath)+'/contour.txt', 'w')
+    for (i,t,l) in zip(file_id,time,contour):
+        out.write("%f %f %f\n" % (i,t,l))
+    out.close()
+
+
+    # write the domain borders on an output file
+    out = open(os.path.dirname(contourRootPath)+'/domain_borders.txt', 'w')
+    out.write("%f\n" %(domain_borders['x_min']))
+    out.write("%f\n" %(domain_borders['x_max']))
+    out.write("%f\n" %(domain_borders['y_min']))
+    out.write("%f\n" %(domain_borders['y_max']))
+    out.write("%f\n" %(domain_borders['dx']))
+    out.write("%f\n" %(domain_borders['dy']))
+    out.close()
+    

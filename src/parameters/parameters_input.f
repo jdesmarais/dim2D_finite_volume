@@ -27,17 +27,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = 0.0000000000d0
-        real(rkind), parameter :: x_max = 0.1428000000d0
+        real(rkind), parameter :: x_min = -0.2856000000d0
+        real(rkind), parameter :: x_max = 0.2856000000d0
         real(rkind), parameter :: y_min = 0.0000000000d0
-        real(rkind), parameter :: y_max = 0.1428000000d0
+        real(rkind), parameter :: y_max = 0.2495000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 100.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0000420000d0
+        real(rkind), parameter :: t_max = 0.0000800000d0 !10.0d0
+        real(rkind), parameter :: dt = 0.0000400000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0003000000d0
+        real(rkind), parameter :: detail_print = 1.0000000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -47,8 +47,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 89
-        integer(ikind), parameter :: nty = 89
+        integer(ikind), parameter :: ntx = 341
+        integer(ikind), parameter :: nty = 152
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -120,11 +120,11 @@
         integer    , parameter :: flow_direction = x_direction
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.0000000000d0
+        real(rkind), parameter :: flow_velocity = 0.1000000000d0
         
         real(rkind), parameter :: T0 = 0.9500000000d0
 
-        integer    , parameter :: ic_choice = bubble_nucleation
+        integer    , parameter :: ic_choice = bubble_spherical_cap
 
         integer    , parameter :: phase_at_center = vapor
 
@@ -142,26 +142,26 @@
         integer    , parameter :: wave_forcing = no_wave_forcing
 
         !<boundary conditions choice
-        integer, parameter :: bc_choice = half_wall_S_open_choice
+        integer, parameter :: bc_choice = wall_S_open_choice
 
         integer, parameter :: bc_N_choice = hedstrom_choice
         integer, parameter :: bc_S_choice = wall_choice
         integer, parameter :: bc_E_choice = hedstrom_choice
-        integer, parameter :: bc_W_choice = reflection_x_choice
+        integer, parameter :: bc_W_choice = hedstrom_choice
 
-        integer, parameter :: bc_NW_choice = reflection_x_choice
+        integer, parameter :: bc_NW_choice = hedstrom_choice
         integer, parameter :: bc_NE_choice = hedstrom_choice
         integer, parameter :: bc_SE_choice = wall_choice
-        integer, parameter :: bc_SW_choice = reflection_x_choice        
+        integer, parameter :: bc_SW_choice = wall_choice        
 
-        integer, parameter :: bc_order1 = W_edge_type
+        integer, parameter :: bc_order1 = SW_corner_type
         integer, parameter :: bc_order2 = S_edge_type
         integer, parameter :: bc_order3 = SE_corner_type
-        integer, parameter :: bc_order4 = SW_corner_type
+        integer, parameter :: bc_order4 = W_edge_type
         integer, parameter :: bc_order5 = E_edge_type
-        integer, parameter :: bc_order6 = N_edge_type
-        integer, parameter :: bc_order7 = NE_corner_type
-        integer, parameter :: bc_order8 = NW_corner_type
+        integer, parameter :: bc_order6 = NW_corner_type
+        integer, parameter :: bc_order7 = N_edge_type
+        integer, parameter :: bc_order8 = NE_corner_type
         
 
         !<output choice
@@ -202,12 +202,12 @@
         integer, parameter :: bc_N_type_choice = bc_timedev_choice
         integer, parameter :: bc_S_type_choice = bc_flux_and_node_choice
         integer, parameter :: bc_E_type_choice = bc_timedev_choice
-        integer, parameter :: bc_W_type_choice = bc_nodes_choice
+        integer, parameter :: bc_W_type_choice = bc_timedev_choice
 
-        integer, parameter :: bc_NW_type_choice = bc_nodes_choice
+        integer, parameter :: bc_NW_type_choice = bc_timedev_choice
         integer, parameter :: bc_NE_type_choice = bc_timedev_choice
         integer, parameter :: bc_SE_type_choice = bc_flux_and_node_choice
-        integer, parameter :: bc_SW_type_choice = bc_nodes_choice
+        integer, parameter :: bc_SW_type_choice = bc_flux_and_node_choice
 
 
         !< bubble collapse ic parameters
@@ -238,7 +238,7 @@
         !-----------------------------------------------------
         ! contact angle at the wall
         !-----------------------------------------------------
-        real(rkind), parameter :: wall_micro_contact_angle = 135.0000000000d0
+        real(rkind), parameter :: wall_micro_contact_angle = 22.5000000000d0
 
 
         !< wall heater parameters
@@ -260,7 +260,7 @@
         ! contact angle at the heater
         !-----------------------------------------------------
         real(rkind), parameter :: wall_heater_center = 0.0000000000d0
-        real(rkind), parameter :: wall_heater_length = 0.0712945354d0
+        real(rkind), parameter :: wall_heater_length = 0.0514777942d0
         real(rkind), parameter :: wall_heater_variation_angle_length = 0.1000000000d0
         real(rkind), parameter :: wall_heater_micro_contact_angle = 90.0000000000d0
 
@@ -291,10 +291,37 @@
         real(rkind), parameter :: wall_heat_source_center   = wall_heater_center
         real(rkind), parameter :: wall_heat_source_variance = 0.5d0*wall_heater_length
 
-        integer    , parameter :: wall_extra_heat_source_choice = gaussian_heat_source
-        real(rkind), parameter :: wall_maximum_extra_heat_flux = -0.0200000000d0
+        integer    , parameter :: wall_extra_heat_source_choice = no_heat_source
+        real(rkind), parameter :: wall_maximum_extra_heat_flux = 0.0000000000d0
         real(rkind), parameter :: wall_extra_heat_source_center   = wall_heater_center
         real(rkind), parameter :: wall_extra_heat_source_variance = 0.5d0*wall_heater_length
+
+
+        !< wall inflow bubble parameters
+        !-----------------------------------------------------
+        !parameters related to the inflow bubble
+        !that can be introduced in the bubble nucleation i.c.
+        !-----------------------------------------------------
+        !inflow_bubble_ac : logical
+        !
+        !  .true.  : add a bubble in the inflow for the bubble
+        !            nucleation i.c.
+        !  .false. : do not add a bubble in the inflow for the
+        !            bubble nucleation i.c.
+        !
+        !inflow_bubble_x_center : real
+        !   position of the inflow bubble along the x-axis
+        !
+        !inflow_bubble_y_center : real
+        !   position of the inflow bubble along the y-axis
+        !
+        !inflow_bubble_radius : real
+        !   radius of the inflow bubble
+        !-----------------------------------------------------
+        logical    , parameter :: inflow_bubble_ac = .true.
+        real(rkind), parameter :: inflow_bubble_x_center = 0.0d0
+        real(rkind), parameter :: inflow_bubble_y_center = 0.15d0
+        real(rkind), parameter :: inflow_bubble_radius   = 0.05d0        
 
         
         !-----------------------------------------------------
@@ -431,7 +458,7 @@
         !                 can be extended
         !-----------------------------------------------------
         integer, parameter :: adapt_N_choice = adapt_domain_choice
-        integer, parameter :: adapt_S_choice = adapt_domain_choice
+        integer, parameter :: adapt_S_choice = fixed_domain_choice
         integer, parameter :: adapt_E_choice = adapt_domain_choice
         integer, parameter :: adapt_W_choice = adapt_domain_choice
 
@@ -482,7 +509,7 @@
         !    the time derivatives are initialized with debug_real
         !------------------------------------------------------------
         logical    , parameter :: debug_restart_for_geometry = .false.
-        logical    , parameter :: debug_adapt_computational_domain = .false.
+        logical    , parameter :: debug_adapt_computational_domain = .true.
         logical    , parameter :: debug_geometry_update = .false.
 
         logical    , parameter :: debug_initialize_nodes    = .true.

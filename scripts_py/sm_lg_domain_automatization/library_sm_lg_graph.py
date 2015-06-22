@@ -44,7 +44,16 @@ def grayscale_to_RGB(grayscale_value):
     determine the RGB code for a color from
     its grayscale values
     '''
-    R = 1.0 - grayscale_value
+
+    if( (0<=grayscale_value) and (grayscale_value<=1) ):
+
+        R = 1.0 - grayscale_value
+
+    else:
+
+        print 'error for grayscale value'
+        print grayscale_value
+        sys.exit(2)            
 
     return (R,R,R)
 

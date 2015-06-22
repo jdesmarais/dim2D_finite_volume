@@ -39,8 +39,8 @@ if __name__=="__main__":
         maindir_input,
         'dim2d_bubble_next_to_wall.txt')
 
-    contactAngleStudy = False
-    sphericalCapStudy = True
+    contactAngleStudy = True
+    sphericalCapStudy = False
     gravityStudy      = False
 
 
@@ -49,7 +49,7 @@ if __name__=="__main__":
 
         steady_state_ac     = 1
         temperature         = 0.999
-        contact_angle_array = [135.0] #[22.5,45.0,67.5,90.0,112.5,135.0]
+        contact_angle_array = [22.5,45.0,67.5,90.0] #[22.5,45.0,67.5,90.0,112.5,135.0]
         phase_at_center     = 'vapor'
         gravity             = 0.000
         spherical_cap       = False
@@ -64,7 +64,7 @@ if __name__=="__main__":
                                          contact_angle,
                                          phase_at_center,
                                          model_input,
-                                         gravity_ac=1,
+                                         gravity_ac=0,
                                          gravity_amp=gravity,
                                          spherical_cap=spherical_cap)
 

@@ -4,6 +4,25 @@ from math import sqrt,pi,sin,cos,acos
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import sys
+
+def extract_domain_borders(dataPath):
+    '''
+    @description: extract the domain borders from
+    the input file
+    '''
+
+    data = np.loadtxt(dataPath)
+
+    domain_borders = {}
+    domain_borders['x_min'] = data[0]
+    domain_borders['x_max'] = data[1]
+    domain_borders['y_min'] = data[2]
+    domain_borders['y_max'] = data[3]
+    domain_borders['dx']    = data[4]
+    domain_borders['dy']    = data[5]
+
+    return domain_borders
 
 
 def get_equilibrium_length(Ri,theta):
@@ -96,7 +115,16 @@ def grayscale_to_RGB(grayscale_value):
     determine the RGB code for a color from
     its grayscale values
     '''
-    R = 1.0 - grayscale_value
+    
+    if( (0<=grayscale_value) and (grayscale_value<=1) ):
+
+        R = 1.0 - grayscale_value
+
+    else:
+
+        print 'error for grayscale value'
+        print grayscale_value
+        sys.exit(2)            
 
     return (R,R,R)
 
@@ -169,7 +197,9 @@ def create_st_graph(dataRootPath,
                     ylabel='',
                     figPath='',
                     width=3,
-                    show=True):
+                    show=True,
+                    x_limits='None',
+                    y_limits='None'):
     '''
     description: create a graph with the bubble contours
     at several timesteps
@@ -197,16 +227,27 @@ def create_st_graph(dataRootPath,
 
             data = np.loadtxt(dataPath)
         
-            grayscale_value = 0.1+ 0.9*float(timestep)/float(timestepExtracted[-1])
+            if(timestep==timestepExtracted[-1]):
+                ratio = 1
+            else:
+                ratio = (float(timestep)-float(timestepExtracted[0]))/\
+                        (float(timestepExtracted[-1])-float(timestepExtracted[0]))
+
+            if(not (0<=ratio<=1)):
+                print 'timestep    ', timestep
+                print 'timestep[0] ', timestepExtracted[0]
+                print 'timestep[-1]', timestepExtracted[-1]
+
+            grayscale_value = 0.1 + 0.9*ratio
         
             # plot the first bubble shape with dashed line
-            if(timestep==timestepExtracted[0]):
+            if(i==0):
                 plotstyle = '--'
                 linewidth = 2
                 color = 'black'
             
             # plot the last bubble with dashed line
-            elif(timestep==timestepExtracted[-1]):
+            elif(i==len(timestepExtracted)-1):
                 plotstyle = '--'
                 linewidth = 2
                 color = 'black'
@@ -234,6 +275,14 @@ def create_st_graph(dataRootPath,
     ax.set_xlabel(r''+xlabel)
     ax.set_ylabel(r''+ylabel)
 
+
+    # set the limits
+    if(x_limits!='None'):
+        plt.xlim(x_limits)
+
+    if(y_limits!='None'):
+        plt.ylim(y_limits)
+
             
     # show the graph
     if(show):
@@ -253,7 +302,9 @@ def create_sph_graph(dataRootPath,
                      ylabel='',
                      figPath='',
                      width=3,
-                     show=True):
+                     show=True,
+                     x_limits='None',
+                     y_limits='None'):
     '''
     description: create a contour for the last time step
     and add the spherical cap approximation
@@ -298,9 +349,12 @@ def create_sph_graph(dataRootPath,
     theta = (180-contactAngle)*pi/180
     Ri = sqrt(2.0*volume[-1,2]/pi)
         
+    dataPath = dataRootPath+'/domain_borders.txt'
+    domain_borders = extract_domain_borders(dataPath)    
 
-    x_min = data[0,0]*1.5
+    x_min = data[ 0,0]*1.5
     x_max = data[-1,0]*1.5
+    y_min = domain_borders['y_min']+2.0*domain_borders['dy']
     y_max = y_max*1.1
 
     #x_min = -0.35
@@ -320,6 +374,12 @@ def create_sph_graph(dataRootPath,
         linewidth=width,
         color='red')
     plt.ylim([y_min,y_max])
+
+    if(x_limits!='None'):
+        plt.xlim(x_limits)
+
+    if(y_limits!='None'):
+        plt.ylim(y_limits)
     
     ax.set_xlabel(r''+xlabel)
     ax.set_ylabel(r''+ylabel)

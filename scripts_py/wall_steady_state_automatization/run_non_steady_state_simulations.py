@@ -221,14 +221,14 @@ if __name__=="__main__":
     #------------------------------------------------------------
     uniformNucleation_conductionHeatStudy = False
     uniformNucleation_sourceHeatStudy     = False
-    uniformNucleation_contactAngleStudy   = True
+    uniformNucleation_contactAngleStudy   = False
     uniformNucleation_flowVelocityStudy   = False
 
     heaterNucleation_sourceHeatStudy   = False
     heaterNucleation_contactAngleStudy = False
     heaterNucleation_flowVelocityStudy = False
 
-    uniformSphericalC_flowVelocityStudy = False
+    uniformSphericalC_flowVelocityStudy = True
     heaterSphericalC_flowVelocityStudy  = False
 
     
@@ -522,13 +522,13 @@ if __name__=="__main__":
     if(uniformNucleation_flowVelocityStudy or
        heaterNucleation_flowVelocityStudy):
 
-        simulationDuration   = 100
+        simulationDuration   = 100.0
         steady_state_ac      = 0
         temperature          = 0.95
 
         Li = extract_interface_length(dim2dParamPath,temperature)
 
-        contact_angle_array  = [45.0] #[22.5,45.0,67.5,112.5,130.0]
+        contact_angle_array  = [22.5,45.0,67.5,112.5,135.0]
         phase_at_center      = 'vapor'
         flow_velocity_array  = [0.1] #[0.05, 0.1, 0.15, 0.2]
 
@@ -536,11 +536,11 @@ if __name__=="__main__":
         gravity_ac             = 0
         gravity_amp            = 0.000
 
-        wall_micro_contact_angle = [112.5,130.0] #[22.5,45.0,67.5,112.5,130.0]
+        wall_micro_contact_angle = wall_micro_contact_angle_with_heaters
         wall_heater_center       = 0.0
-        wall_heater_length       = get_heater_length(Li)
+        wall_heater_length       = get_heater_length(22.5,Li)
         wall_heat_source_choice  = 'gaussian_heat_source'
-        max_heat_flux_array      = [-0.04,-0.06,-0.08,-0.1]
+        max_heat_flux_array      = [-0.03,-0.04] #[-0.04,-0.06,-0.08,-0.1]
 
         total_nb_files           = 500
         spherical_cap            = False
@@ -582,7 +582,7 @@ if __name__=="__main__":
                             wall_heater_center,
                             wall_heater_length,
                             wall_heat_source_choice,
-                            wall_maximum_heat_flux,
+                            max_heat_flux,
                             total_nb_files,
                             spherical_cap,
                             adapt_domain)
@@ -630,7 +630,7 @@ if __name__=="__main__":
                             contact_angle,
                             wall_micro_contact_angle,
                             wall_heat_source_choice,
-                            wall_maximum_heat_flux,
+                            max_heat_flux,
                             total_nb_files,
                             spherical_cap,
                             adapt_domain)
@@ -649,9 +649,9 @@ if __name__=="__main__":
 
         Li = extract_interface_length(dim2dParamPath,temperature)
 
-        contact_angle_array    = [22.5,45.0,67.5,90.0,112.5,135.0]
+        contact_angle_array    = [22.5] #[22.5,45.0,67.5,90.0,112.5,135.0]
         phase_at_center        = 'vapor'
-        flow_velocity_array    = [0.0, 0.1, 0.15, 0.2]
+        flow_velocity_array    = [0.1] #[0.3,0.4,0.5] #0.0, 0.1, 0.15, 0.2]
         ratio_bubble_interface = 2.0
         gravity_ac             = 0
         gravity_amp            = 0.000
@@ -670,9 +670,13 @@ if __name__=="__main__":
         #-------------------------------------------------------------
         if(uniformSphericalC_flowVelocityStudy):
 
+            wall_surface_type = 'uniform_surface'
+
             for max_heat_flux in max_heat_flux_array:        
 
                 for contact_angle in contact_angle_array:
+
+                    wall_heater_length = get_heater_length(contact_angle,Li)
 
                     for flow_velocity in flow_velocity_array:
 
@@ -702,7 +706,7 @@ if __name__=="__main__":
                             gravity_ac,
                             gravity_amp,
                             wall_surface_type,
-                            wall_micro_contact_angle,
+                            contact_angle,
                             wall_heater_center,
                             wall_heater_length,
                             wall_heat_source_choice,

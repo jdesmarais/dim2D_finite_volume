@@ -17,8 +17,8 @@ generate_st_contours(){
     inputDir=$( get_st_dir $1 $2)
     ca=$2
 
-    ./extract_bubble_contours.py -i $inputDir -c $ca -t $3 -p -g > cur_st_contours.out 2>&1
-    #./extract_bubble_contours.py -i $inputDir -c $ca -t $3 -s > cur_st_contours.out 2>&1
+    #./extract_bubble_contours.py -i $inputDir -c $ca -t $3 -p -g > cur_st_contours.out 2>&1
+    ./extract_bubble_contours.py -i $inputDir -c $ca -t $3 -s -x $4 -y $5 #> cur_st_contours.out 2>&1
 
     echo "generate_st_contours( "$T" , "$ca" ) : done"
 }
@@ -33,7 +33,7 @@ get_non_st_dir(){
 
 
 # generate the contours for the non-steady state simulations
-generate_contours(){
+generate_non_st_contours(){
     pythonDir=/home/jdesmarais/Code/augeanstables/scripts_py
 
     cd $pythonDir
@@ -53,35 +53,35 @@ generate_contours(){
 #============================================================
 T=0.999
 
-#22.5 45.0 67.5 90.0 112.5 130.0
-for ca in 22.5 45.0 67.5 90.0
+# 22.5 45.0 67.5 90.0
+for ca in 90.0 #22.5 45.0 67.5 90.0
 do
-    generate_st_contours $T $ca [0,1010,10]
+    generate_st_contours $T $ca [0,1010,10] [-0.4,0.4] [0,0.3]
 done
 
+## 112.5 135.0
+#for ca in 112.5 135.0
+#do
+#    generate_st_contours $T $ca [0,2424,24] [-0.4,0.4] [0,0.3]
+#done
 
-for ca in 112.5 135.0
-do
-    generate_st_contours $T $ca [0,2424,24]
-done
 
-
-#============================================================
-# extraction of the contours for the nucleation simulations
-#============================================================
-T=0.95
-
-# heat flux study at constant contact angle
-ca=90.0
-for sh in -0.04 -0.06 -0.08 -0.1
-do
-    generate_non_st_contours $T $ca $sh [0,200,2]
-done
-
-# contact angle study at constant heat flux
-sh=-0.02
-for ca in 22.5 45.0 67.5 90.0 112.5 135.0
-do
-    generate_non_st_contours $T $ca $sh [0,200,2]
-done
+##============================================================
+## extraction of the contours for the nucleation simulations
+##============================================================
+#T=0.95
+#
+## heat flux study at constant contact angle
+#ca=90.0
+#for sh in -0.04 -0.06 -0.08 -0.1
+#do
+#    generate_non_st_contours $T $ca $sh [0,200,2]
+#done
+#
+## contact angle study at constant heat flux
+#sh=-0.02
+#for ca in 22.5 45.0 67.5 90.0 112.5 135.0
+#do
+#    generate_non_st_contours $T $ca $sh [0,200,2]
+#done
 

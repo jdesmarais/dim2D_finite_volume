@@ -130,7 +130,7 @@ def create_simulation(destDir,
     temperature         = float(get_parameter('temperature',inputPath))
     micro_contact_angle = float(get_parameter('micro_contact_angle',inputPath))
     nameRun = get_name_run(temperature,micro_contact_angle)
-    simulation_duration = 4.0*60.0*60.0 #estimate_simulation_duration(inputPath)
+    simulation_duration = 12.0*60.0*60.0 #estimate_simulation_duration(inputPath)
     walltime = estimate_wall_time(simulation_duration,
                                   safety_ratio=6.0)
 
@@ -217,7 +217,7 @@ def generate_wall_st_results(mainDir,
     
     #5) run the simulation
     run_simulation(pbsScriptPath)
-
+    
     return [destDir,nameRun]
 
 

@@ -51,7 +51,7 @@ from library_wall_st_inputs import get_wall_domain_extent
 
 from create_sm_lg_inputs import (get_parameter,
                                  create_inputFile)
-
+from math import floor
 
 # determine the inputs modified in the input file
 def get_inputsToBeModified(
@@ -145,6 +145,7 @@ def get_inputsToBeModified(
     if(spherical_cap):
         domain_extent[1][0] = 2*domain_extent[1][0]
         domain_extent[1][1] = 2.0*(3.0*interface_lgh) + 2.0*interface_lgh*4.0
+        domain_extent[1][1] = float(floor(domain_extent[1][1]*10**4)/10**4)
     #============================================================
 
     if(flow_velocity!=0.0):

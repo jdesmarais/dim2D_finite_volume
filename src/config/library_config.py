@@ -46,6 +46,13 @@ def get_bc_config(bc_choice,inputs_computed):
        - bc_{N,S,E,W,NW,NE,SW,SE}_type
        - bc_order{1,2,3,4,5,6,7,8}
     '''
+
+
+    inputs_computed['adapt_N_choice'] = 'adapt_domain_choice'
+    inputs_computed['adapt_S_choice'] = 'adapt_domain_choice'
+    inputs_computed['adapt_E_choice'] = 'adapt_domain_choice'
+    inputs_computed['adapt_W_choice'] = 'adapt_domain_choice'
+
     
     if(bc_choice=='reflection_xy_choice'):
 
@@ -61,7 +68,6 @@ def get_bc_config(bc_choice,inputs_computed):
 
         set_bc_order(['W','E','SW','S','SE','NW','N','NE'],
                      inputs_computed)
-
 
     elif(bc_choice=='periodic_xy_choice'):
 
@@ -124,6 +130,8 @@ def get_bc_config(bc_choice,inputs_computed):
         set_bc_order(['SW','S','SE','W','E','NW','N','NE'],
                      inputs_computed)
 
+        inputs_computed['adapt_S_choice'] = 'fixed_domain_choice'
+
 
     elif(bc_choice=='half_wall_S_open_choice'):
 
@@ -139,6 +147,9 @@ def get_bc_config(bc_choice,inputs_computed):
 
         set_bc_order(['W','S','SE','SW','E','N','NE','NW'],
                      inputs_computed)
+
+        inputs_computed['adapt_S_choice'] = 'fixed_domain_choice'
+        inputs_computed['adapt_W_choice'] = 'fixed_domain_choice'
 
 
     elif(bc_choice=='hedstrom_xy_choice'):

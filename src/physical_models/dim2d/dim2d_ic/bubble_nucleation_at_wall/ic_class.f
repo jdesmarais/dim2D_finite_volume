@@ -23,7 +23,8 @@
      $       total_energy_ellipsoid
 
         use dim2d_parameters, only :
-     $       cv_r, we
+     $       cv_r,
+     $       we
 
         use dim2d_prim_module, only :
      $       speed_of_sound
@@ -54,7 +55,11 @@
      $       x_min,
      $       x_max,
      $       y_min,
-     $       y_max
+     $       y_max,
+     $       inflow_bubble_ac,
+     $       inflow_bubble_x_center,
+     $       inflow_bubble_y_center,
+     $       inflow_bubble_radius
 
         use parameters_kind, only :
      $       ikind,
@@ -167,6 +172,8 @@
           !real(rkind) :: x1
           !real(rkind) :: x_pinned
 
+          real(rkind) :: s
+
 
           !get the mass densities corresponding to the
           !liquid and vapor phases for the initial
@@ -179,12 +186,12 @@
           li = get_interface_length(T0)
 
           !set the major and minor axes of the bubble ellipse
-          a=2.0d0*li
+          a=inflow_bubble_radius
           b=a
 
           !set the center of the droplet
-          xc=0.0d0
-          yc=0.0d0 !1.5d0*a
+          xc=inflow_bubble_x_center
+          yc=inflow_bubble_y_center
 
           !determine the flow velocities
           if(phase_at_center.eq.liquid) then
@@ -197,23 +204,72 @@
           !x_pinned = 0.040
 
           !initialize the mass, momentum and total energy fields
-          do j=1, size(y_map,1)
-             do i=1, size(x_map,1)
+          if(inflow_bubble_ac) then
 
-                ! coordinates
-                x = x_map(i)
-                y = y_map(j)
+             do j=1, size(y_map,1)
+                do i=1, size(x_map,1)
 
-                ! velocities
-                velocity_x = get_velocity_x(x,y)
-                velocity_y = get_velocity_y(x,y)
+                   ! coordinates
+                   x = x_map(i)
+                   y = y_map(j)
 
-                !constant field
-                nodes(i,j,1) = dliq
-                nodes(i,j,2) = nodes(i,j,1)*velocity_x
-                nodes(i,j,3) = nodes(i,j,1)*velocity_y
-                nodes(i,j,4) = 0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y**2)
-     $                       + nodes(i,j,1)*(8.0d0/3.0d0*cv_r*T0-3.0d0*nodes(i,j,1))
+                   ! velocities
+                   velocity_x = get_velocity_x(x,y)
+                   velocity_y = get_velocity_y(x,y)
+
+                   !inflow bubble surrounding by saturated liquid
+                   s = smoothing_fct(x,[xc-1.5d0*a,xc+1.5d0*a],li)*
+     $                 smoothing_fct(y,[yc-1.5d0*a,yc+1.5d0*a],li)
+
+                   nodes(i,j,1) =
+     $                  mass_density_ellipsoid(
+     $                  x,y,xc,yc,a,b,li,dliq,dvap,phase_at_center)*s+
+     $                  dout*(1.0d0-s)
+
+                   nodes(i,j,2) =
+     $                  nodes(i,j,1)*velocity_x*s+
+     $                  dout*velocity_x*(1.0d0-s)
+                   
+                   nodes(i,j,3) =
+     $                  nodes(i,j,1)*velocity_y*s+
+     $                  dout*velocity_y*(1.0d0-s)
+                   
+                   nodes(i,j,4) =
+     $                  (total_energy_ellipsoid(
+     $                  x,y,xc,yc,a,b,li,dliq,dvap,
+     $                  nodes(i,j,1),T0)
+     $                  +
+     $                  0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y**2))*s+
+     $                  (dout*(8.0d0/3.0d0*cv_r*T0-3.0d0*dout)+
+     $                  0.5d0*dout*(velocity_x**2+velocity_y**2))*(1.0d0-s)
+
+                end do
+             end do
+
+          else
+
+             do j=1, size(y_map,1)
+                do i=1, size(x_map,1)
+
+                   ! coordinates
+                   x = x_map(i)
+                   y = y_map(j)
+
+                   ! velocities
+                   velocity_x = get_velocity_x(x,y)
+                   velocity_y = get_velocity_y(x,y)
+
+                   !constant field
+                   nodes(i,j,1) = dliq
+                   nodes(i,j,2) = nodes(i,j,1)*velocity_x
+                   nodes(i,j,3) = nodes(i,j,1)*velocity_y
+                   nodes(i,j,4) = 0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y**2)
+     $                  + nodes(i,j,1)*(8.0d0/3.0d0*cv_r*T0-3.0d0*nodes(i,j,1))
+
+                end do
+             end do
+
+          end if         
 
 c$$$                !inclined bubble
 c$$$                x1 = (x-x_pinned)*Sin(angle) - y*Cos(angle)
@@ -230,35 +286,6 @@ c$$$
 c$$$                nodes(i,j,4) = 0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y**2)
 c$$$     $                       + nodes(i,j,1)*(8.0d0/3.0d0*cv_r*T0-3.0d0*nodes(i,j,1))
 c$$$     $                       + 1.0d0/We*s**2
-
-c$$$                ! bubble
-c$$$                s = smoothing_fct(x,[xc-1.5d0*a,xc+1.5d0*a],li)*
-c$$$     $              smoothing_fct(y,[yc-1.5d0*a,yc+1.5d0*a],li)
-c$$$
-c$$$                nodes(i,j,1) =
-c$$$     $               mass_density_ellipsoid(
-c$$$     $               x,y,xc,yc,a,b,li,dliq,dvap,phase_at_center)*s+
-c$$$     $               dout*(1.0d0-s)
-c$$$
-c$$$                nodes(i,j,2) =
-c$$$     $               nodes(i,j,1)*velocity_x*s+
-c$$$     $               dout*velocity_x*(1.0d0-s)
-c$$$
-c$$$                nodes(i,j,3) =
-c$$$     $               nodes(i,j,1)*velocity_y*s+
-c$$$     $               dout*velocity_y*(1.0d0-s)
-c$$$                
-c$$$                nodes(i,j,4) =
-c$$$     $               (total_energy_ellipsoid(
-c$$$     $               x,y,xc,yc,a,b,li,dliq,dvap,
-c$$$     $               nodes(i,j,1),T0)
-c$$$     $               +
-c$$$     $               0.5d0*nodes(i,j,1)*(velocity_x**2+velocity_y**2))*s+
-c$$$     $               (dout*(8.0d0/3.0d0*cv_r*T0-3.0d0*dout)+
-c$$$     $                0.5d0*dout*(velocity_x**2+velocity_y**2))*(1.0d0-s)
-
-             end do
-          end do
 
         end subroutine apply_ic
 
