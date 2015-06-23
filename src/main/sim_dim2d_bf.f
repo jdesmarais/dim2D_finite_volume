@@ -45,7 +45,6 @@
 
         ! initialize the field
         call f_simulated%ini()
-        call f_simulated%apply_bc_on_nodes(f_simulated%nodes)
         call f_simulated%write_data()
 
 

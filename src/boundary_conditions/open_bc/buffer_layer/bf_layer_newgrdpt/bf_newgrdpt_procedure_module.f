@@ -110,7 +110,7 @@
           integer                       , intent(out) :: nb_procedures
           integer       , dimension(4)  , intent(out) :: procedure_type
           integer       , dimension(4)  , intent(out) :: gradient_type
-          integer                                     :: ierror
+          logical                                     :: ierror
 
           integer :: config_id
 
@@ -283,9 +283,9 @@
           integer                , intent(out) :: nb_procedures
           integer, dimension(4)  , intent(out) :: procedure_type
           integer, dimension(4)  , intent(out) :: gradient_type
-          integer, optional      , intent(out) :: ierr
+          logical, optional      , intent(out) :: ierr
           
-          integer :: ierr_op
+          logical :: ierr_op
 
           ierr_op = BF_SUCCESS
 

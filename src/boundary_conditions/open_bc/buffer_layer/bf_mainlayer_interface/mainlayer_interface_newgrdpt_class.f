@@ -162,7 +162,7 @@
           real(rkind)      , dimension(nx,ny,ne), intent(in)    :: interior_nodes1
           type(bf_sublayer)                     , intent(inout) :: bf_sublayer_ptr
           integer(ikind)   , dimension(2)       , intent(in)    :: gen_newgrdpt_coords
-          integer                                               :: ierror
+          logical                                               :: ierror
 
           integer(ikind), dimension(2)   :: bf_newgrdpt_coords1
 
@@ -316,7 +316,8 @@
                 if(ierror_proc.neqv.BF_SUCCESS) then
                    print '(''mainlayer_interface_newgrdpt'')'
                    print '(''compute_newgrdpt'')'
-                   print '(''unable to find the procedure characteristics'')'
+                   print '(''unable to find the'')'
+                   print '(''procedure characteristics'')'
                    stop ''
                 end if
 
@@ -340,7 +341,8 @@
              if(.not.all_grdpts_available) then
                 print '(''mainlayer_interface_newgrdpt'')'
                 print '(''compute_newgrdpt'')'
-                print '(''error when checking the grdpts for newgrdpt'')'
+                print '(''error when checking the grdpts'')'
+                print '(''for newgrdpt'')'
                 stop ''
              end if
 

@@ -124,7 +124,7 @@
         
         real(rkind), parameter :: T0 = 0.9500000000d0
 
-        integer    , parameter :: ic_choice = bubble_spherical_cap
+        integer    , parameter :: ic_choice = bubble_nucleation
 
         integer    , parameter :: phase_at_center = vapor
 

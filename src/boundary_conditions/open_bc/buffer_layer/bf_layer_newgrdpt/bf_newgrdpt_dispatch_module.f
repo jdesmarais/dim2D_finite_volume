@@ -610,7 +610,7 @@
           integer       , dimension(4)    , intent(in)    :: gradient_type
           logical       , dimension(4)    , intent(out)   :: grdpts_available
           integer(ikind), dimension(2,2)  , intent(out)   :: data_needed_bounds0
-          integer                                         :: ierror
+          logical                                         :: ierror
 
 
           logical               :: all_grdpts_available

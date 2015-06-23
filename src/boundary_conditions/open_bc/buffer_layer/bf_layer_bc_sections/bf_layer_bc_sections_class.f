@@ -1417,9 +1417,9 @@
 
           implicit none
 
-          integer, dimension(:,:), intent(inout) :: bc_sections_sorted
-          integer, dimension(2)  , intent(in)    :: x_borders
-          integer, dimension(2)  , intent(in)    :: y_borders
+          integer(ikind), dimension(:,:), intent(inout) :: bc_sections_sorted
+          integer(ikind), dimension(2)  , intent(in)    :: x_borders
+          integer(ikind), dimension(2)  , intent(in)    :: y_borders
 
           integer :: k_prev_stage    !index where the bc_section for j-1 begins
           integer :: k_current_stage !index where the bc_section for j begins

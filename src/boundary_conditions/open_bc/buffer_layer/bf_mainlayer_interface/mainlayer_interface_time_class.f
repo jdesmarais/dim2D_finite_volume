@@ -125,6 +125,9 @@
 
           type(bf_layer_bc_sections) :: bf_layer_bc_sections_used
 
+          integer(ikind), dimension(2) :: x_borders
+          integer(ikind), dimension(2) :: y_borders
+
 
           ! extract the bc_sections from the buffer layer
           call bf_layer_used%get_bc_sections(bc_sections)
@@ -184,10 +187,13 @@
 
              call bf_layer_bc_sections_used%bubble_sort(bc_sections)
 
+             x_borders = bf_layer_used%get_x_borders()
+             y_borders = bf_layer_used%get_y_borders()
+
              call bf_layer_bc_sections_used%check_overlaps(
      $            bc_sections,
-     $            bf_layer_used%get_x_borders(),
-     $            bf_layer_used%get_y_borders())
+     $            x_borders,
+     $            y_borders)
              
 
              ! turn the anti-corners into corners

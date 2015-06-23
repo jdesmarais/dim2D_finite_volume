@@ -128,7 +128,7 @@
                test1_loc_borders = reshape((/1,1,2,3/),(/2,2/))
                test2_loc_borders = reshape((/1,1,2,3/),(/2,2/))
 
-               if(side.eq.left) then
+               if(side.eqv.left) then
                   grdpts_ex_borders = reshape((/
      $                 i_min-2, j_min,
      $                 i_min-1, j_min+2/),

@@ -441,7 +441,7 @@
 
                over_corner_overlap  = S_overlap
 
-               if(side.eq.left) then
+               if(side.eqv.left) then
                   grdpts_ex_borders = reshape((/
      $                 i_min-2, j_min,
      $                 i_min-1, j_min+3/),

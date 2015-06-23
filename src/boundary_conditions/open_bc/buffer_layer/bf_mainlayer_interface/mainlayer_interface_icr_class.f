@@ -107,7 +107,6 @@
           logical                                    :: update_entire_bc_section
 
 
-          integer(ikind)       , parameter :: edge_extent_limit = 2
           logical, dimension(2), parameter :: side = [left,right]
 
           integer(ikind) :: extent
