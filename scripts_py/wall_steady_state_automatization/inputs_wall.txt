@@ -2,8 +2,8 @@
 !================================================================================
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !================================================================================
-detail_print = 0.002
-!detail_print = 0.002
+detail_print = 0.0002
+!detail_print = 0.0002
 
 
 !2.	Simulation duration
@@ -14,7 +14,7 @@ detail_print = 0.002
 !                :         : run until steady state
 !================================================================================
 dt = 4e-05
-t_max = 10.0
+t_max = 100.0
 steady_state_ac = 0
 
 
@@ -32,12 +32,12 @@ steady_state_ac = 0
 !npy     : integer : number of tiles in the y-direction
 !================================================================================
 dx = 0.0017
-x_min = -0.2856
-x_max = 0.2856
+x_min = -0.1428
+x_max = 0.1428
 
 dy = 0.0017
 y_min = 0.0
-y_max = 0.2495
+y_max = 0.1428
 
 npx = 1
 npy = 1
@@ -239,16 +239,16 @@ openbc_perturbation_vy0_amp = 0.0
 !--------------------------------------------------------------------------------
 !5.2.1	Type of surface
 !--------------------------------------------------------------------------------
-wall_surface_type = uniform_surface
-wall_micro_contact_angle = 22.5
+wall_surface_type = surface_with_heaters
+wall_micro_contact_angle = 0.0
 
 !--------------------------------------------------------------------------------
 !5.2.2	Dimensions of the heater
 !--------------------------------------------------------------------------------
 wall_heater_center = 0.0
 wall_heater_length = 0.0514777942247
-wall_heater_variation_angle_length = 0.1
-wall_heater_micro_contact_angle = 90.0
+wall_heater_variation_angle_length = 0.0356472677167
+wall_heater_micro_contact_angle = 135.0
 
 !--------------------------------------------------------------------------------
 !5.2.3	Characteristics of the conduction-based heaters
@@ -259,8 +259,8 @@ wall_maximum_heat_flux = 0.0
 !--------------------------------------------------------------------------------
 !5.2.4	Characteristics of the source-based heaters
 !--------------------------------------------------------------------------------
-wall_extra_heat_source_choice = no_heat_source
-wall_maximum_extra_heat_flux = 0.0
+wall_extra_heat_source_choice = gaussian_heat_source
+wall_maximum_extra_heat_flux = -0.0375
 
 
 !6.    Initial conditions
@@ -355,7 +355,7 @@ wall_maximum_extra_heat_flux = 0.0
 !--------------------------------------------------------------------------------
 !6.1	Choice of the initial conditions
 !--------------------------------------------------------------------------------
-ic_choice = 9
+ic_choice = 8
 
 !--------------------------------------------------------------------------------
 !6.2	Parameters for the initial conditions

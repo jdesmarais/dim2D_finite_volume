@@ -132,39 +132,39 @@ def generate_wall_nonst_results(
     run the simulation
     '''
     
-    ##1) test whether 'mainDir' can be used as a reference
-    ##   directory where the directory to save the simulation
-    ##   is created
-    #if(not os.path.isdir(mainDir)):
-    #    print 'library_wall_nonst_results'
-    #    print 'generate_wall_nonst_results'
-    #    sys.exit('*** '+mainDir+' is not a directory***')
-    #
-    #
-    ##2) create the directory to save the simulation    
-    #destDir = get_simulation_dir(temperature,
-    #                             wall_micro_contact_angle,
-    #                             phase_at_center,
-    #                             collapse_ratio                  = ratio_bubble_interface,
-    #                             gravity_amp                     = gravity_amp,
-    #                             wall_surface_type               = wall_surface_type,
-    #                             wall_heater_micro_contact_angle = wall_heater_micro_contact_angle,
-    #                             wall_maximum_heat_flux          = wall_maximum_heat_flux,
-    #                             wall_maximum_extra_heat_flux    = wall_maximum_extra_heat_flux,
-    #                             flow_velocity                   = flow_velocity,
-    #                             spherical_cap                   = spherical_cap)
-    #destDir = os.path.join(mainDir,destDir)
-    #
-    ## if there is already an existing directory, the function
-    ## throws an error
-    #if(os.path.isdir(destDir)):
-    #    print 'library_wall_nonst_results'
-    #    print 'generate_wall_nonst_results'
-    #    sys.exit('*** '+destDir+' already exists***')
-    #os.mkdir(destDir)
-    #
-    #
-    ##3) create the inputs for the simulation
+    #1) test whether 'mainDir' can be used as a reference
+    #   directory where the directory to save the simulation
+    #   is created
+    if(not os.path.isdir(mainDir)):
+        print 'library_wall_nonst_results'
+        print 'generate_wall_nonst_results'
+        sys.exit('*** '+mainDir+' is not a directory***')
+    
+    
+    #2) create the directory to save the simulation    
+    destDir = get_simulation_dir(temperature,
+                                 wall_micro_contact_angle,
+                                 phase_at_center,
+                                 collapse_ratio                  = ratio_bubble_interface,
+                                 gravity_amp                     = gravity_amp,
+                                 wall_surface_type               = wall_surface_type,
+                                 wall_heater_micro_contact_angle = wall_heater_micro_contact_angle,
+                                 wall_maximum_heat_flux          = wall_maximum_heat_flux,
+                                 wall_maximum_extra_heat_flux    = wall_maximum_extra_heat_flux,
+                                 flow_velocity                   = flow_velocity,
+                                 spherical_cap                   = spherical_cap)
+    destDir = os.path.join(mainDir,destDir)
+    
+    # if there is already an existing directory, the function
+    # throws an error
+    if(os.path.isdir(destDir)):
+        print 'library_wall_nonst_results'
+        print 'generate_wall_nonst_results'
+        sys.exit('*** '+destDir+' already exists***')
+    os.mkdir(destDir)
+    
+    
+    #3) create the inputs for the simulation
     inputPath = 'inputs_wall.txt'
     
     # remove old input files
@@ -196,17 +196,17 @@ def generate_wall_nonst_results(
         wall_maximum_extra_heat_flux       = wall_maximum_extra_heat_flux,
         total_nb_files                     = total_nb_files)
 
-    ##4) create dir, generate executable,
-    ##   create PBS script file
-    #[pbsScriptPath,nameRun] = create_simulation(destDir,
-    #                                            inputPath,
-    #                                            PBSnameRun,
-    #                                            adapt_domain=adapt_domain)
-    #
-    ##5) run the simulation
-    #run_simulation(pbsScriptPath)
-    #
-    #return [destDir,nameRun]
+    #4) create dir, generate executable,
+    #   create PBS script file
+    [pbsScriptPath,nameRun] = create_simulation(destDir,
+                                                inputPath,
+                                                PBSnameRun,
+                                                adapt_domain=adapt_domain)
+    
+    #5) run the simulation
+    run_simulation(pbsScriptPath)
+    
+    return [destDir,nameRun]
 
 
 if __name__ == "__main__":

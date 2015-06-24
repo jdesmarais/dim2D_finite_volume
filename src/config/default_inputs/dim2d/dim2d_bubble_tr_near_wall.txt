@@ -2,8 +2,7 @@
 !================================================================================
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !================================================================================
-detail_print = 1.0
-!detail_print = 0.002
+detail_print = 0.002
 
 
 !2.	Simulation duration
@@ -13,11 +12,9 @@ detail_print = 1.0
 !steady_state_ac : integer : (0 not activated, 1 activated)
 !                :         : run until steady state
 !================================================================================
-dt = 4e-05
-t_max = 8e-05
+dt = 8e-05
+t_max = 30.0
 steady_state_ac = 0
-
-!t_max = 10.0
 
 
 !3.	Space discretisation
@@ -34,8 +31,8 @@ steady_state_ac = 0
 !npy     : integer : number of tiles in the y-direction
 !================================================================================
 dx = 0.0017
-x_min = -0.2856
-x_max = 0.2856
+x_min = -0.1088
+x_max = 0.1088
 
 dy = 0.0017
 y_min = 0.0
@@ -163,10 +160,10 @@ bc_choice = 7
 ! the velocity used to compute the far field values
 !
 !================================================================================
-openbc_detector_distance = 5
+openbc_detector_distance = 20
 
-openbc_md_threshold_ac = 0
-openbc_md_threshold = 0
+openbc_md_threshold_ac = 1
+openbc_md_threshold = 0.1
 
 openbc_perturbation_T0_ac = 0
 openbc_perturbation_vx0_ac = 0

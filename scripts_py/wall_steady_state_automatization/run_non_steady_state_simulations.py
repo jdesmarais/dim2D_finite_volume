@@ -226,9 +226,9 @@ if __name__=="__main__":
 
     heaterNucleation_sourceHeatStudy   = False
     heaterNucleation_contactAngleStudy = False
-    heaterNucleation_flowVelocityStudy = False
+    heaterNucleation_flowVelocityStudy = True
 
-    uniformSphericalC_flowVelocityStudy = True
+    uniformSphericalC_flowVelocityStudy = False
     heaterSphericalC_flowVelocityStudy  = False
 
     
@@ -540,7 +540,7 @@ if __name__=="__main__":
         wall_heater_center       = 0.0
         wall_heater_length       = get_heater_length(22.5,Li)
         wall_heat_source_choice  = 'gaussian_heat_source'
-        max_heat_flux_array      = [-0.03,-0.04] #[-0.04,-0.06,-0.08,-0.1]
+        max_heat_flux_array      = [-0.035,-0.0375]#,-0.04] #[-0.04,-0.06,-0.08,-0.1]
 
         total_nb_files           = 500
         spherical_cap            = False

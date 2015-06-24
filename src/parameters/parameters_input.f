@@ -27,17 +27,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -0.2856000000d0
-        real(rkind), parameter :: x_max = 0.2856000000d0
+        real(rkind), parameter :: x_min = -0.1428000000d0
+        real(rkind), parameter :: x_max = 0.1428000000d0
         real(rkind), parameter :: y_min = 0.0000000000d0
-        real(rkind), parameter :: y_max = 0.2495000000d0
+        real(rkind), parameter :: y_max = 0.1428000000d0
         
         !<computational times
-        real(rkind), parameter :: t_max = 0.0000800000d0 !10.0d0
+        real(rkind), parameter :: t_max = 100.0000000000d0 !10.0d0
         real(rkind), parameter :: dt = 0.0000400000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 1.0000000000d0
+        real(rkind), parameter :: detail_print = 0.0002000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -47,8 +47,8 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 341
-        integer(ikind), parameter :: nty = 152
+        integer(ikind), parameter :: ntx = 173
+        integer(ikind), parameter :: nty = 89
 
         integer(ikind), parameter :: nx = ntx/npx
         integer(ikind), parameter :: ny = nty/npy
@@ -229,7 +229,7 @@
         ! - surface_with_heaters : the contact angle varies at
         !                          the location of the heaters
         !-----------------------------------------------------
-        integer    , parameter :: wall_surface_type = uniform_surface
+        integer    , parameter :: wall_surface_type = surface_with_heaters
 
         
         !< wall contact angle parameters
@@ -238,7 +238,7 @@
         !-----------------------------------------------------
         ! contact angle at the wall
         !-----------------------------------------------------
-        real(rkind), parameter :: wall_micro_contact_angle = 22.5000000000d0
+        real(rkind), parameter :: wall_micro_contact_angle = 0.0000000000d0
 
 
         !< wall heater parameters
@@ -261,8 +261,8 @@
         !-----------------------------------------------------
         real(rkind), parameter :: wall_heater_center = 0.0000000000d0
         real(rkind), parameter :: wall_heater_length = 0.0514777942d0
-        real(rkind), parameter :: wall_heater_variation_angle_length = 0.1000000000d0
-        real(rkind), parameter :: wall_heater_micro_contact_angle = 90.0000000000d0
+        real(rkind), parameter :: wall_heater_variation_angle_length = 0.0356472677d0
+        real(rkind), parameter :: wall_heater_micro_contact_angle = 135.0000000000d0
 
 
         !< wall heat source parameters
@@ -291,8 +291,8 @@
         real(rkind), parameter :: wall_heat_source_center   = wall_heater_center
         real(rkind), parameter :: wall_heat_source_variance = 0.5d0*wall_heater_length
 
-        integer    , parameter :: wall_extra_heat_source_choice = no_heat_source
-        real(rkind), parameter :: wall_maximum_extra_heat_flux = 0.0000000000d0
+        integer    , parameter :: wall_extra_heat_source_choice = gaussian_heat_source
+        real(rkind), parameter :: wall_maximum_extra_heat_flux = -0.0375000000d0
         real(rkind), parameter :: wall_extra_heat_source_center   = wall_heater_center
         real(rkind), parameter :: wall_extra_heat_source_variance = 0.5d0*wall_heater_length
 
@@ -318,10 +318,10 @@
         !inflow_bubble_radius : real
         !   radius of the inflow bubble
         !-----------------------------------------------------
-        logical    , parameter :: inflow_bubble_ac = .true.
+        logical    , parameter :: inflow_bubble_ac = .false.
         real(rkind), parameter :: inflow_bubble_x_center = 0.0d0
-        real(rkind), parameter :: inflow_bubble_y_center = 0.15d0
-        real(rkind), parameter :: inflow_bubble_radius   = 0.05d0        
+        real(rkind), parameter :: inflow_bubble_y_center = 0.125d0
+        real(rkind), parameter :: inflow_bubble_radius   = 0.05d0
 
         
         !-----------------------------------------------------
@@ -394,7 +394,7 @@
         ! amplitude of the perturbation applied to the y-component of
         ! the velocity used to compute the far field values
         !------------------------------------------------------------
-        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_lin
+        integer    , parameter :: obc_eigenqties_strategy = obc_eigenqties_bc
         integer    , parameter :: obc_edge_xy_strategy    = obc_edge_xy_flux
         integer    , parameter :: obc_edge_flux_strategy  = obc_edge_flux_capillarity
         logical    , parameter :: obc_edge_overlap_ac     = .true.
@@ -509,7 +509,7 @@
         !    the time derivatives are initialized with debug_real
         !------------------------------------------------------------
         logical    , parameter :: debug_restart_for_geometry = .false.
-        logical    , parameter :: debug_adapt_computational_domain = .true.
+        logical    , parameter :: debug_adapt_computational_domain = .false.
         logical    , parameter :: debug_geometry_update = .false.
 
         logical    , parameter :: debug_initialize_nodes    = .true.
