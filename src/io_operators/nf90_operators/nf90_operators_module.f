@@ -27,6 +27,8 @@
      $       ref,
      $       convention,
      $       
+     $       flow_profile_code,
+     $       
      $       ns2d_ic_code,
      $       dim2d_ic_code,
      $       
@@ -69,7 +71,9 @@
      $       x_min,x_max,y_min,y_max,
      $       t_max,dt,detail_print,
      $       
-     $       flow_direction, flow_velocity,
+     $       flow_direction,
+     $       flow_velocity,
+     $       flow_profile,
      $       T0, phase_at_center,
      $       ic_choice, bc_choice,
      $       
@@ -383,6 +387,18 @@
 
           case(bubble_next_to_wall,bubble_collapse,
      $         bubble_nucleation, bubble_spherical_cap)
+
+             if(abs(flow_velocity)>0.0) then
+             
+               retval = nf90_put_att(
+     $            ncid,
+     $            NF90_GLOBAL,
+     $            'flow_profile',
+     $            flow_profile_code(flow_profile+1))
+               !DEC$ FORCEINLINE RECURSIVE
+               call nf90_handle_err(retval)
+
+             end if
 
              retval = nf90_put_att(
      $         ncid,

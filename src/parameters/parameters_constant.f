@@ -23,7 +23,7 @@
 
         parameter (institut     = 'Eindhoven university of technology')
         parameter (prog_version = 'cretean bull V0.1')
-        parameter (commit = '8514a33fba27b9444a396d1b3a4eb6eb0656891f')
+        parameter (commit = '77c5b893eece19a6742b4ed747a0d402a990b5c2')
         parameter (ref          = 'desmaraisjulien@gmail.com')
         parameter (convention   = 'cf-1.6')
         
@@ -50,6 +50,15 @@
         !>phase identification
         integer, parameter :: liquid=0
         integer, parameter :: vapor=1
+
+
+        !>flow profile
+        integer, parameter :: parabolic_profile=0
+        integer, parameter :: linear_profile=1
+
+        character(17), dimension(2), parameter :: flow_profile_code = [
+     $       'parabolic_profile',
+     $       'linear_profile   ']
 
 
         !>initial conditions choice for NS

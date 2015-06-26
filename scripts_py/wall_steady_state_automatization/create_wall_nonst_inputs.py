@@ -64,6 +64,7 @@ def get_inputsToBeModified(
     temperature                        = 0.999,
     flow_velocity                      = 0.0,
     flow_direction                     = 'E',
+    flow_profile                       = 'parabolic_profile',
     phase_at_center                    = 'vapor',
     gravity_ac                         = 0,
     gravity_amp                        = 0.0,
@@ -182,10 +183,25 @@ def get_inputsToBeModified(
     if(extra_domain!='None'):
 
         if(flow_velocity!=0.):
-            flow_velocity_m = flow_velocity*(
-                float(domain_extent[1][1]+extra_domain[1][1]*x_length)/
-                float(domain_extent[1][1])
-                )**2
+
+            if(flow_profile=='parabolic_profile'):
+                flow_velocity_m = flow_velocity*(
+                    float(domain_extent[1][1]+extra_domain[1][1]*x_length)/
+                    float(domain_extent[1][1])
+                    )**2
+
+            elif(flow_profile=='linear_profile'):
+                flow_velocity_m = flow_velocity*(
+                    float(domain_extent[1][1]+extra_domain[1][1]*x_length)/
+                    float(domain_extent[1][1])
+                    )
+
+            else:
+                print 'create_wall_nonst_inputs'
+                print 'get_inputsToBeModified'
+                print 'flow_profile not recognized'
+                print 'flow_profile: '+str(flow_profile)
+                sys.exit(2)
 
         domain_extent[0][0]+= extra_domain[0][0]*x_length
         domain_extent[1][0]+= extra_domain[1][0]*x_length
@@ -255,6 +271,7 @@ def get_inputsToBeModified(
         'ic_choice'                          : ic_choice,
         'flow_velocity'                      : flow_velocity_m,
         'flow_direction'                     : flow_direction,
+        'flow_profile'                       : flow_profile,
         'temperature'                        : temperature,
         'phase_at_center'                    : phase_at_center,
         'ratio_bubble_interface'             : ratio_bubble_interface,
@@ -275,6 +292,7 @@ def create_wall_nonst_inputs(
     extra_domain                       = 'None',
     temperature                        = 0.999,
     flow_velocity                      = 0.0,
+    flow_profile                       = 'parabolic_profile',
     phase_at_center                    = 'vapor',
     gravity_ac                         = 0,
     gravity_amp                        = 0.0,
@@ -309,6 +327,7 @@ def create_wall_nonst_inputs(
         extra_domain                       = extra_domain,
         temperature                        = temperature,
         flow_velocity                      = flow_velocity,
+        flow_profile                       = flow_profile,
         phase_at_center                    = phase_at_center,
         gravity_ac                         = gravity_ac,
         gravity_amp                        = gravity_amp,

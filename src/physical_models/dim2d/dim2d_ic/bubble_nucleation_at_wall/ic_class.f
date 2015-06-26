@@ -41,7 +41,9 @@
      $       liquid,
      $       vapor,
      $       x_direction,
-     $       y_direction
+     $       y_direction,
+     $       parabolic_profile,
+     $       linear_profile
 
         use parameters_input, only :
      $       nx,ny,ne,
@@ -50,6 +52,7 @@
      $       flow_direction,
      $       flow_x_side,
      $       flow_y_side,
+     $       flow_profile,
      $       phase_at_center,
      $       wall_micro_contact_angle,
      $       x_min,
@@ -513,20 +516,53 @@ c$$$     $                       + 1.0d0/We*s**2
           real(rkind), intent(in) :: y
           real(rkind)             :: velocity_x
 
-          select case(flow_direction)
 
-            case(x_direction)
-               velocity_x = u0_x_flow*((y-y_min)/(y_max-y_min))**2
+          select case(flow_profile)
 
-            case(y_direction)
-               velocity_x = u0_y_flow*((x-x_min)/(x_max-x_min))**2
+            case(parabolic_profile)
 
+               select case(flow_direction)
+
+                 case(x_direction)
+                    velocity_x = u0_x_flow*((y-y_min)/(y_max-y_min))**2
+
+                 case(y_direction)
+                    velocity_x = u0_y_flow*((x-x_min)/(x_max-x_min))**2
+
+                 case default
+                    print '(''bubble_spherical_cap/ic_class.f'')'
+                    print '(''get_velocity_x'')'
+                    print '(''flow_direction not recognized'')'
+                    print '(''flow_direction: '',I2)', flow_direction
+                    stop ''
+                 end select
+
+            case(linear_profile)
+
+               select case(flow_direction)
+
+                 case(x_direction)
+                    velocity_x = u0_x_flow*((y-y_min)/(y_max-y_min))
+
+                 case(y_direction)
+                    velocity_x = u0_y_flow*((x-x_min)/(x_max-x_min))
+
+                 case default
+                    print '(''bubble_spherical_cap/ic_class.f'')'
+                    print '(''get_velocity_x'')'
+                    print '(''flow_direction not recognized'')'
+                    print '(''flow_direction: '',I2)', flow_direction
+                    stop ''
+               end select
+               
             case default
-               print '(''bubble_nucleation_at_wall/ic_class.f'')'
+
+               print '(''bubble_spherical_cap/ic_class.f'')'
                print '(''get_velocity_x'')'
-               print '(''flow_direction not recognized'')'
-               print '(''flow_direction: '',I2)', flow_direction
+               print '(''flow_profile not recognized'')'
+               print '(''flow_profile: '',I2)', flow_profile
                stop ''
+
           end select
           
         end function get_velocity_x
@@ -540,20 +576,53 @@ c$$$     $                       + 1.0d0/We*s**2
           real(rkind), intent(in) :: y
           real(rkind)             :: velocity_y
           
-          select case(flow_direction)
 
-            case(x_direction)
-               velocity_y = v0_x_flow*((y-y_min)/(y_max-y_min))**2
+          select case(flow_profile)
 
-            case(y_direction)
-               velocity_y = v0_y_flow*((x-x_min)/(x_max-x_min))**2
+            case(parabolic_profile)
 
+               select case(flow_direction)
+
+                 case(x_direction)
+                    velocity_y = v0_x_flow*((y-y_min)/(y_max-y_min))**2
+
+                 case(y_direction)
+                    velocity_y = v0_y_flow*((x-x_min)/(x_max-x_min))**2
+
+                 case default
+                    print '(''bubble_nucleation_at_wall/ic_class.f'')'
+                    print '(''get_velocity_y'')'
+                    print '(''flow_direction not recognized'')'
+                    print '(''flow_direction: '',I2)', flow_direction
+                    stop ''
+               end select
+
+            case(linear_profile)
+
+               select case(flow_direction)
+
+                 case(x_direction)
+                    velocity_y = v0_x_flow*((y-y_min)/(y_max-y_min))
+
+                 case(y_direction)
+                    velocity_y = v0_y_flow*((x-x_min)/(x_max-x_min))
+
+                 case default
+                    print '(''bubble_nucleation_at_wall/ic_class.f'')'
+                    print '(''get_velocity_y'')'
+                    print '(''flow_direction not recognized'')'
+                    print '(''flow_direction: '',I2)', flow_direction
+                    stop ''
+               end select
+               
             case default
-               print '(''bubble_nucleation_at_wall/ic_class.f'')'
+
+               print '(''bubble_spherical_cap/ic_class.f'')'
                print '(''get_velocity_y'')'
-               print '(''flow_direction not recognized'')'
-               print '(''flow_direction: '',I2)', flow_direction
+               print '(''flow_profile not recognized'')'
+               print '(''flow_profile: '',I2)', flow_profile
                stop ''
+
           end select
 
         end function get_velocity_y

@@ -2,8 +2,8 @@
 !================================================================================
 !detail_print : real : Set detail (between 0. and < = 1.0)
 !================================================================================
-detail_print = 0.0017
-!detail_print = 0.0017
+detail_print = 0.002
+!detail_print = 0.002
 
 
 !2.	Simulation duration
@@ -13,7 +13,7 @@ detail_print = 0.0017
 !steady_state_ac : integer : (0 not activated, 1 activated)
 !                :         : run until steady state
 !================================================================================
-dt = 3.3e-05
+dt = 4e-05
 t_max = 10.0
 steady_state_ac = 0
 
@@ -32,8 +32,8 @@ steady_state_ac = 0
 !npy     : integer : number of tiles in the y-direction
 !================================================================================
 dx = 0.0017
-x_min = -0.2856
-x_max = 0.7854
+x_min = -0.1428
+x_max = 0.4284
 
 dy = 0.0017
 y_min = 0.0
@@ -311,6 +311,12 @@ wall_maximum_extra_heat_flux = 0.0
 !reduced speed of the mean flow
 !
 !--------------------------------------------------------------------------------
+!flow_profile : character
+!--------------------------------------------------------------------------------
+! - parabolic_profile : from 0 to flow_velocity at the height of the domain
+! - linear_profile    : from 0 to flow_velocity at the height of the domain
+!
+!--------------------------------------------------------------------------------
 !temperature : real
 !--------------------------------------------------------------------------------
 !temperature of the mean flow
@@ -361,7 +367,8 @@ ic_choice = 9
 !6.2	Parameters for the initial conditions
 !--------------------------------------------------------------------------------
 flow_direction = E
-flow_velocity = 0.5
+flow_velocity = 0.1
+flow_profile = linear_profile
 temperature = 0.95
 phase_at_center = vapor
 

@@ -52,6 +52,7 @@ def get_simulation_dir(temperature,
                        wall_maximum_heat_flux          = 0,
                        wall_maximum_extra_heat_flux    = 0,
                        flow_velocity                   = 0,
+                       flow_profile                    = 'parabolic_profile',
                        spherical_cap                   = False):
     '''
     @description
@@ -83,7 +84,10 @@ def get_simulation_dir(temperature,
         simDir+='_sh'+str(wall_maximum_extra_heat_flux)
 
     if(flow_velocity!=0):
-        simDir+='_v'+str(flow_velocity)
+        if(flow_profile=='linear_profile'):
+            simDir+='_vl'+str(flow_velocity)
+        else:
+            simDir+='_v'+str(flow_velocity)
 
     if(wall_surface_type!='uniform_surface'):
         simDir+='_hca'+str(micro_contact_angle)

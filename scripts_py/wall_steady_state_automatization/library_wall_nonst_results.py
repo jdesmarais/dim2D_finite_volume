@@ -104,6 +104,7 @@ def generate_wall_nonst_results(
     steady_state_ac                    = 0,
     temperature                        = 0.999,
     flow_velocity                      = 0.0,
+    flow_profile                       = 'parabolic_profile',
     phase_at_center                    = 'vapor',
     ratio_bubble_interface             = 2.0,
     gravity_ac                         = 0,
@@ -154,6 +155,7 @@ def generate_wall_nonst_results(
                                  wall_maximum_heat_flux          = wall_maximum_heat_flux,
                                  wall_maximum_extra_heat_flux    = wall_maximum_extra_heat_flux,
                                  flow_velocity                   = flow_velocity,
+                                 flow_profile                    = flow_profile,
                                  spherical_cap                   = spherical_cap)
     destDir = os.path.join(mainDir,destDir)
     
@@ -184,6 +186,7 @@ def generate_wall_nonst_results(
         extra_domain                       = extra_domain,
         temperature                        = temperature,
         flow_velocity                      = flow_velocity,
+        flow_profile                       = flow_profile,
         phase_at_center                    = phase_at_center,
         gravity_ac                         = gravity_ac,
         gravity_amp                        = gravity_amp,

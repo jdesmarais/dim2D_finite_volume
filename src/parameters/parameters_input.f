@@ -27,17 +27,17 @@
         logical    , parameter :: debug = .true.        
 
         !<computational field dimensions
-        real(rkind), parameter :: x_min = -0.2856000000d0
-        real(rkind), parameter :: x_max = 0.7854000000d0
+        real(rkind), parameter :: x_min = -0.1428000000d0
+        real(rkind), parameter :: x_max = 0.4284000000d0
         real(rkind), parameter :: y_min = 0.0000000000d0
         real(rkind), parameter :: y_max = 0.2495000000d0
         
         !<computational times
         real(rkind), parameter :: t_max = 10.0000000000d0 !10.0d0
-        real(rkind), parameter :: dt = 0.0000330000d0
+        real(rkind), parameter :: dt = 0.0000400000d0
         
         !<output writing
-        real(rkind), parameter :: detail_print = 0.0017000000d0
+        real(rkind), parameter :: detail_print = 0.0020000000d0
         logical    , parameter :: write_domain_extension = .true.
         logical    , parameter :: write_detectors = .true.
 
@@ -47,7 +47,7 @@
 
         !<size of the main tables
         !<careful, choose ne according to the physical model
-        integer(ikind), parameter :: ntx = 635
+        integer(ikind), parameter :: ntx = 341
         integer(ikind), parameter :: nty = 152
 
         integer(ikind), parameter :: nx = ntx/npx
@@ -120,7 +120,8 @@
         integer    , parameter :: flow_direction = x_direction
         real(rkind), parameter :: flow_x_side = 1.0000000000d0
         real(rkind), parameter :: flow_y_side = 1.0000000000d0
-        real(rkind), parameter :: flow_velocity = 0.5000000000d0
+        real(rkind), parameter :: flow_velocity = 0.1000000000d0
+        integer    , parameter :: flow_profile = linear_profile
         
         real(rkind), parameter :: T0 = 0.9500000000d0
 

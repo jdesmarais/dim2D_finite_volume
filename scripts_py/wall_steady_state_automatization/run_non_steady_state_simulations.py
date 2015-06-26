@@ -94,6 +94,7 @@ def generate_wall_nonst_results_uniform_surface(
     steady_state_ac,
     temperature,
     flow_velocity,
+    flow_profile,
     phase_at_center,
     ratio_bubble_interface,
     gravity_ac,
@@ -124,6 +125,7 @@ def generate_wall_nonst_results_uniform_surface(
         steady_state_ac               = steady_state_ac,
         temperature                   = temperature,
         flow_velocity                 = flow_velocity,
+        flow_profile                  = flow_profile,
         phase_at_center               = phase_at_center,
         ratio_bubble_interface        = ratio_bubble_interface,
         gravity_ac                    = gravity_ac,
@@ -149,6 +151,7 @@ def generate_wall_nonst_results_surface_with_heaters(
     steady_state_ac,
     temperature,
     flow_velocity,
+    flow_profile,
     phase_at_center,
     ratio_bubble_interface,
     gravity_ac,
@@ -180,6 +183,7 @@ def generate_wall_nonst_results_surface_with_heaters(
         steady_state_ac                    = steady_state_ac,
         temperature                        = temperature,
         flow_velocity                      = flow_velocity,
+        flow_profile                       = flow_profile,
         phase_at_center                    = phase_at_center,
         ratio_bubble_interface             = ratio_bubble_interface,
         gravity_ac                         = gravity_ac,
@@ -265,6 +269,7 @@ if __name__=="__main__":
     wall_micro_contact_angle_uniform_nucleation =  90.0 
     wall_maximum_heat_flux_nucleation           = -0.02
     wall_micro_contact_angle_with_heaters       =  0.0
+    flow_profile                                = 'parabolic_profile'
     extra_domain                                = 'None'
     adapt_domain                                = False    
 
@@ -372,6 +377,7 @@ if __name__=="__main__":
                     steady_state_ac,
                     temperature,
                     flow_velocity,
+                    flow_profile,
                     phase_at_center,
                     ratio_bubble_interface,
                     gravity_ac,
@@ -410,6 +416,7 @@ if __name__=="__main__":
                     steady_state_ac,
                     temperature,
                     flow_velocity,
+                    flow_profile,
                     phase_at_center,
                     ratio_bubble_interface,
                     gravity_ac,
@@ -477,6 +484,7 @@ if __name__=="__main__":
                     steady_state_ac,
                     temperature,
                     flow_velocity,
+                    flow_profile,
                     phase_at_center,
                     ratio_bubble_interface,
                     gravity_ac,
@@ -516,6 +524,7 @@ if __name__=="__main__":
                     steady_state_ac,
                     temperature,
                     flow_velocity,
+                    flow_profile,
                     phase_at_center,
                     ratio_bubble_interface,
                     gravity_ac,
@@ -550,6 +559,7 @@ if __name__=="__main__":
         contact_angle_array  = [22.5] #[22.5,45.0,67.5,112.5,135.0]
         phase_at_center      = 'vapor'
         flow_velocity_array  = [0.4] #[0.05, 0.1, 0.15, 0.2]
+        flow_profile         = 'linear_profile' #'parabolic_profile'
 
         ratio_bubble_interface = 2.0
         gravity_ac             = 0
@@ -593,6 +603,7 @@ if __name__=="__main__":
                             steady_state_ac,
                             temperature,
                             flow_velocity,
+                            flow_profile,
                             phase_at_center,
                             ratio_bubble_interface,
                             gravity_ac,
@@ -641,6 +652,7 @@ if __name__=="__main__":
                             steady_state_ac,
                             temperature,
                             flow_velocity,
+                            flow_profile,
                             phase_at_center,
                             ratio_bubble_interface,
                             gravity_ac,
@@ -674,6 +686,7 @@ if __name__=="__main__":
         Li = extract_interface_length(dim2dParamPath,temperature)
 
         phase_at_center        = 'vapor'
+        flow_profile           = 'linear_profile' #'parabolic_profile'
         
         #============================================================
         # simulations with extended domain for detachment
@@ -688,21 +701,21 @@ if __name__=="__main__":
         #flow_velocity_array    = [0.4]
 
         # 2) extra simulations for v=0.5
-        contact_angle_array    = [45.0,67.5,90.0,112.5,135.0]
-        flow_velocity_array    = [0.5]
-
-        extra_domain           = [[0 for x in range(2)] for x in range(2)]
-        extra_domain[0][0]     =-1.0
-        extra_domain[1][0]     = 2.5
-        extra_domain[0][1]     = 0.0
-        extra_domain[1][1]     = 0.0
+        #contact_angle_array    = [45.0,67.5,90.0,112.5,135.0]
+        #flow_velocity_array    = [0.5]
+        #
+        #extra_domain           = [[0 for x in range(2)] for x in range(2)]
+        #extra_domain[0][0]     =-1.0
+        #extra_domain[1][0]     = 2.5
+        #extra_domain[0][1]     = 0.0
+        #extra_domain[1][1]     = 0.0
         #============================================================
         
         #============================================================
         # normal simulations
         #============================================================
-        #contact_angle_array    = [22.5,45.0,67.5,90.0,112.5,135.0]
-        #flow_velocity_array    = [0.1,0.2,0.3,0.4,0.5]
+        contact_angle_array    = [22.5,45.0,67.5,90.0,112.5,135.0]
+        flow_velocity_array    = [0.1] #[0.1,0.2,0.3,0.4,0.5]
         #============================================================
 
         ratio_bubble_interface = 2.0
@@ -755,6 +768,7 @@ if __name__=="__main__":
                             steady_state_ac,
                             temperature,
                             flow_velocity,
+                            flow_profile,
                             phase_at_center,
                             ratio_bubble_interface,
                             gravity_ac,
@@ -811,6 +825,7 @@ if __name__=="__main__":
                             steady_state_ac,
                             temperature,
                             flow_velocity,
+                            flow_profile,
                             phase_at_center,
                             ratio_bubble_interface,
                             gravity_ac,

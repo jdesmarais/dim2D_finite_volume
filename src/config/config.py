@@ -160,27 +160,23 @@ def read_inputs(filename, inputs_needed):
         args = shlex.split(cmd)
         output = subprocess.Popen(args,stdout=subprocess.PIPE).communicate()[0]
 
-        # convert the parameter read into float
-        # except for the parameter 'flow_direction'
-        # which must remain of character type
-        if(input_param!='flow_direction' and
-           input_param!='phase_at_center' and
-           input_param!='wall_surface_type' and
-           input_param!='wall_heat_source_choice' and
-           input_param!='wall_extra_heat_source_choice'):
-
-            try :
-                inputs_read[input_param]=float(output)
-
-            except ValueError:
-                print str(input_param)+' not found in input file'
-                sys.exit(2)                
+        
+        # the input asked should be converted to a float
+        try :
+            inputs_read[input_param] = float(output)
             
-        else:
+        # if it does not work it is because this input in a chain
+        # of characters and therefore it should remain as such
+        except ValueError:
             output=output.replace('\r','')
             output=output.replace('\n','')
-            inputs_read[input_param]=output
+            inputs_read[input_param] = output
 
+            # if the input was not found in the input file
+            if(output==''):
+                print '['+str(input_param)+'] not found in input file'
+                sys.exit(2)
+            
     return inputs_read
 
 
@@ -333,6 +329,7 @@ def compute_code_inputs(inputFileName,nbTiles):
                    'ic_choice',
                    'flow_direction',
                    'flow_velocity',
+                   'flow_profile',
                    'temperature',
                    'phase_at_center',
                    'ratio_bubble_interface',
@@ -496,6 +493,7 @@ def update_parameters_inputs(file_path,
         'ntx'                              : inputs_computed['ntx'],
         'nty'                              : inputs_computed['nty'],
         'ne'                               : inputs_computed['ne'],
+        'flow_profile'                     : inputs['flow_profile'],
         'pm_choice'                        : inputs['pm_choice'],
         'ic_choice'                        : inputs['ic_choice'],
         'phase_at_center'                  : inputs['phase_at_center'],

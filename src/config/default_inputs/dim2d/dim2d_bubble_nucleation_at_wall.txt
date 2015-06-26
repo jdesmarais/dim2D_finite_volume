@@ -311,6 +311,12 @@ wall_maximum_extra_heat_flux = 0.0
 !reduced speed of the mean flow
 !
 !--------------------------------------------------------------------------------
+!flow_profile : character
+!--------------------------------------------------------------------------------
+! - parabolic_profile : from 0 to flow_velocity at the height of the domain
+! - linear_profile    : from 0 to flow_velocity at the height of the domain
+!
+!--------------------------------------------------------------------------------
 !temperature : real
 !--------------------------------------------------------------------------------
 !temperature of the mean flow
@@ -362,6 +368,7 @@ ic_choice = 8
 !--------------------------------------------------------------------------------
 flow_direction = E
 flow_velocity = 0.0
+flow_profile = parabolic_profile
 temperature = 0.95
 phase_at_center = vapor
 
